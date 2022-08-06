@@ -95,7 +95,7 @@ It is used for TCP/IP devices."
  (add-to-list 'tramp-methods
 	      `(,tramp-adb-method
                 (tramp-login-program ,tramp-adb-program)
-                (tramp-login-args    (("shell")))
+                (tramp-login-args    (("-s" "%d") ("shell")))
                 (tramp-direct-async  t)
 	        (tramp-tmpdir        "/data/local/tmp")
                 (tramp-default-port  5555)))
@@ -325,6 +325,11 @@ arguments to pass to the OPERATION."
 		      (tramp-compat-file-name-concat localname "."))
 		     (tramp-shell-quote-argument
 		      (tramp-compat-file-name-concat localname ".."))))
+	  (replace-regexp-in-region
+	   (regexp-quote
+	    (tramp-compat-file-name-unquote
+	     (file-name-as-directory localname)))
+	   "" (point-min))
 	  (widen)))
       (tramp-adb-sh-fix-ls-output)
       (tramp-do-parse-file-attributes-with-ls v))))
@@ -357,6 +362,10 @@ arguments to pass to the OPERATION."
 Android's \"ls\" command doesn't insert size column for directories:
 Emacs dired can't find files."
   (save-excursion
+    ;; Fix file names with spaces.
+    ;; FIXME: It would be better if we could call "ls" with proper
+    ;; argument or environment variable.
+    (replace-string-in-region "\\ " " " (point-min))
     ;; Insert missing size.
     (goto-char (point-min))
     (while
@@ -1240,9 +1249,8 @@ connection if a previous connection has died for some reason."
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		 (process-connection-type tramp-process-connection-type)
-		 (args (if (> (length host) 0)
-			   (list "-s" device "shell")
-			 (list "shell")))
+		 (args (tramp-expand-args
+			vec 'tramp-login-args ?d (or device "")))
 		 (p (let ((default-directory
 			    tramp-compat-temporary-file-directory))
 		      (apply #'start-process (tramp-get-connection-name vec) buf
