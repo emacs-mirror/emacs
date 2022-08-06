@@ -508,11 +508,9 @@ So the function can assume that point is at the beginning of the defun body.
 It should move point to the first position after the defun.")
 
 (defvar end-of-defun-moves-to-eol t
-  "Defines whether `end-of-defun' moves to eol before doing
-everything else.
-
-Set this to nil in major mode if this movement affects mode's
-decisions about context in an unwanted way.")
+  "Whether `end-of-defun' moves to eol before doing anything else.
+Set this to nil if this movement adversely affects the buffer's
+major mode's decisions about context.")
 
 (defun buffer-end (arg)
   "Return the \"far end\" position of the buffer, in direction ARG.
