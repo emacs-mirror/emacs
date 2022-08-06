@@ -3496,6 +3496,64 @@ skip_lazy_string (Lisp_Object readcharfun)
     skip_dyn_bytes (readcharfun, nskip);
 }
 
+static Lisp_Object
+get_lazy_string (Lisp_Object val)
+{
+  char *saved = NULL;
+  file_offset saved_position;
+  /* Get a doc string from the file we are loading.
+     If it's in saved_doc_string, get it from there.
+
+     Here, we don't know if the string is a bytecode string or a doc
+     string.  As a bytecode string must be unibyte, we always return a
+     unibyte string.  If it is actually a doc string, caller must make
+     it multibyte.  */
+
+  /* Position is negative for user variables.  */
+  EMACS_INT pos = eabs (XFIXNUM (XCDR (val)));
+  if (pos >= saved_doc_string_position
+      && pos < (saved_doc_string_position + saved_doc_string_length))
+    {
+      saved = saved_doc_string;
+      saved_position = saved_doc_string_position;
+    }
+  /* Look in prev_saved_doc_string the same way.  */
+  else if (pos >= prev_saved_doc_string_position
+	   && pos < (prev_saved_doc_string_position
+		     + prev_saved_doc_string_length))
+    {
+      saved = prev_saved_doc_string;
+      saved_position = prev_saved_doc_string_position;
+    }
+  if (saved)
+    {
+      ptrdiff_t start = pos - saved_position;
+      ptrdiff_t from = start;
+      ptrdiff_t to = start;
+
+      /* Process quoting with ^A, and find the end of the string,
+	 which is marked with ^_ (037).  */
+      while (saved[from] != 037)
+	{
+	  int c = saved[from++];
+	  if (c == 1)
+	    {
+	      c = saved[from++];
+	      saved[to++] = (c == 1 ? c
+			     : c == '0' ? 0
+			     : c == '_' ? 037
+			     : c);
+	    }
+	  else
+	    saved[to++] = c;
+	}
+
+      return make_unibyte_string (saved + start, to - start);
+    }
+  else
+    return get_doc_string (val, 1, 0);
+}
+
 
 /* Length of prefix only consisting of symbol constituent characters.  */
 static ptrdiff_t
@@ -4237,6 +4295,15 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    XSETCDR (e->u.list.tail, obj);
 	    read_stack_pop ();
 	    obj = e->u.list.head;
+
+	    /* Hack: immediately convert (#$ . FIXNUM) to the corresponding
+	       string if load-force-doc-strings is set.  */
+	    if (load_force_doc_strings
+		&& BASE_EQ (XCAR (obj), Vload_file_name)
+		&& !NILP (XCAR (obj))
+		&& FIXNUMP (XCDR (obj)))
+	      obj = get_lazy_string (obj);
+
 	    break;
 	  }
 
