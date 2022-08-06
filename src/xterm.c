@@ -12521,7 +12521,6 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
 
   if (new != focus && new)
     {
-
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (new))
 	XSetICFocus (FRAME_XIC (new));
@@ -12677,13 +12676,6 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 			   dpyinfo, frame, bufp);
       }
       break;
-
-#ifdef HAVE_XINPUT2
-    case GenericEvent:
-      xi_focus_handle_for_device (dpyinfo, frame,
-				  event->xcookie.data);
-      break;
-#endif
 
     case FocusIn:
     case FocusOut:
@@ -20110,7 +20102,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 are an inferiors of the frame's top window, which will
 		 get virtual events.  */
 	      if (any)
-		x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+		xi_focus_handle_for_device (dpyinfo, any, xi_event);
 
 	      if (!any)
 		any = x_any_window_to_frame (dpyinfo, enter->event);
@@ -20250,7 +20242,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      if (any)
-		x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+		xi_focus_handle_for_device (dpyinfo, any, xi_event);
 
 #ifndef USE_X_TOOLKIT
 	      f = x_top_window_to_frame (dpyinfo, leave->event);
