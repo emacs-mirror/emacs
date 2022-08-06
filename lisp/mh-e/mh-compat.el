@@ -69,6 +69,7 @@ The optional argument COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions."
+  (declare (obsolete nil "29.1"))
   `(display-completion-list
     (completion-hilit-commonality ,completions
                                   ,(length common-substring) nil)))
