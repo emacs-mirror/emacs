@@ -290,13 +290,7 @@ while (my $file = <FIND>) {
   }
 }
 
-my @pkgs;
-if (-d "../xemacs-packages") {
-  @pkgs = qw (libs/edebug libs/xemacs-base comm/eudc oa/edit-utils);
-} else {
-  @pkgs = ();
-}
-for (@pkgs) { s@^@../xemacs-packages/@; }
+my @pkgs = ();
 open (FIND, "find lisp @pkgs -name '*.el' -print |") or die;
 while (my $file = <FIND>) {
   my $contents = FileContents $file;
