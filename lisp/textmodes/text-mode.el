@@ -67,13 +67,11 @@
     st)
   "Syntax table used while in `text-mode'.")
 
-(defvar text-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\t" #'ispell-complete-word)
-    map)
-  "Keymap for `text-mode'.
+(defvar-keymap text-mode-map
+  :doc "Keymap for `text-mode'.
 Many other modes, such as `mail-mode' and `outline-mode', inherit
-all the commands defined in this map.")
+all the commands defined in this map."
+  "C-M-i" #'ispell-complete-word)
 
 (easy-menu-define text-mode-menu text-mode-map
   "Menu for `text-mode'."

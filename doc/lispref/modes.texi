@@ -1356,11 +1356,10 @@ the conventions listed above:
 ;; @r{Create the keymap for this mode.}
 @group
 (defvar-keymap text-mode-map
-  "C-M-i" #'ispell-complete-word
-  @dots{})
-  "Keymap for `text-mode'.
-Many other modes, such as `mail-mode', `outline-mode' and
-`indented-text-mode', inherit all the commands defined in this map.")
+  :doc "Keymap for `text-mode'.
+Many other modes, such as `mail-mode' and `outline-mode', inherit all
+the commands defined in this map."
+  "C-M-i" #'ispell-complete-word)
 @end group
 @end smallexample
 
