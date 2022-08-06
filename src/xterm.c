@@ -20016,11 +20016,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  {
 	  case XI_FocusIn:
 	    {
-	      XIFocusInEvent *focusin = (XIFocusInEvent *) xi_event;
-	      struct xi_device_t *source;
+	      XIFocusInEvent *focusin;
 
+	      focusin = (XIFocusInEvent *) xi_event;
 	      any = x_any_window_to_frame (dpyinfo, focusin->event);
-	      source = xi_device_from_id (dpyinfo, focusin->sourceid);
+
 #ifdef USE_GTK
 	      /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
 		 minimized/iconified windows; thus, for those WMs we won't get
@@ -20049,24 +20049,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
-	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      xi_focus_handle_for_device (dpyinfo, any, xi_event);
 
-	      if (inev.ie.kind != NO_EVENT && source)
-		inev.ie.device = source->name;
 	      goto XI_OTHER;
 	    }
 
 	  case XI_FocusOut:
 	    {
-	      XIFocusOutEvent *focusout = (XIFocusOutEvent *) xi_event;
-	      struct xi_device_t *source;
+	      XIFocusOutEvent *focusout;
 
+	      focusout = (XIFocusOutEvent *) xi_event;
 	      any = x_any_window_to_frame (dpyinfo, focusout->event);
-	      source = xi_device_from_id (dpyinfo, focusout->sourceid);
-	      x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+	      xi_focus_handle_for_device (dpyinfo, any, xi_event);
 
-	      if (inev.ie.kind != NO_EVENT && source)
-		inev.ie.device = source->name;
 	      goto XI_OTHER;
 	    }
 
