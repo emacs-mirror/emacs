@@ -380,6 +380,83 @@ def f(x: CustomInt) -> CustomInt:
      (128 . font-lock-builtin-face) (131)
      (144 . font-lock-keyword-face) (150))))
 
+(ert-deftest python-font-lock-escape-sequence-string-newline ()
+  (python-tests-assert-faces
+   "'\\n'
+\"\\n\"
+f'\\n'
+f\"\\n\"
+u'\\n'
+u\"\\n\""
+   '((1 . font-lock-doc-face)
+     (2 . font-lock-constant-face)
+     (4 . font-lock-doc-face) (5)
+     (6 . font-lock-doc-face)
+     (7 . font-lock-constant-face)
+     (9 . font-lock-doc-face) (10)
+     (12 . font-lock-string-face)
+     (13 . font-lock-constant-face)
+     (15 . font-lock-string-face) (16)
+     (18 . font-lock-string-face)
+     (19 . font-lock-constant-face)
+     (21 . font-lock-string-face) (22)
+     (24 . font-lock-string-face)
+     (25 . font-lock-constant-face)
+     (27 . font-lock-string-face) (28)
+     (30 . font-lock-string-face)
+     (31 . font-lock-constant-face)
+     (33 . font-lock-string-face))))
+
+(ert-deftest python-font-lock-escape-sequence-bytes-newline ()
+  (python-tests-assert-faces
+   "b'\\n'
+b\"\\n\""
+   '((1)
+     (2 . font-lock-doc-face)
+     (3 . font-lock-constant-face)
+     (5 . font-lock-doc-face) (6)
+     (8 . font-lock-doc-face)
+     (9 . font-lock-constant-face)
+     (11 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-escape-sequence-hex-octal ()
+  (python-tests-assert-faces
+   "b'\\x12 \\777'
+'\\x12 \\777'"
+   '((1)
+     (2 . font-lock-doc-face)
+     (3 . font-lock-constant-face)
+     (7 . font-lock-doc-face)
+     (8 . font-lock-constant-face)
+     (12 . font-lock-doc-face) (13)
+     (14 . font-lock-doc-face)
+     (15 . font-lock-constant-face)
+     (19 . font-lock-doc-face)
+     (20 . font-lock-constant-face)
+     (24 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-escape-sequence-unicode ()
+  (python-tests-assert-faces
+   "b'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'
+'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
+   '((1)
+     (2 . font-lock-doc-face) (41)
+     (42 . font-lock-doc-face)
+     (43 . font-lock-constant-face)
+     (49 . font-lock-doc-face)
+     (50 . font-lock-constant-face)
+     (60 . font-lock-doc-face)
+     (61 . font-lock-constant-face)
+     (80 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-raw-escape-sequence ()
+  (python-tests-assert-faces
+   "rb'\\x12 \123 \\n'
+r'\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
+   '((1)
+     (3 . font-lock-doc-face) (14)
+     (16 . font-lock-doc-face))))
+
 
 ;;; Indentation
 
