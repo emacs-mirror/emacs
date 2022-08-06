@@ -4011,9 +4011,8 @@ Mail anyway? (y or n) ")
 (defun ediff-choose-syntax-table ()
   (setq ediff-syntax-table
 	(ediff-with-current-buffer ediff-buffer-A
-	  (if (not (memq major-mode
-			 '(fundamental-mode text-mode indented-text-mode)))
-	      (syntax-table))))
+          (unless (memq major-mode '(fundamental-mode text-mode))
+            (syntax-table))))
   (if (not ediff-syntax-table)
       (setq ediff-syntax-table
 	    (ediff-with-current-buffer ediff-buffer-B

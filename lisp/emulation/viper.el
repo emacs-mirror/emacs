@@ -379,7 +379,7 @@ widget."
     flora-mode
     sql-mode
 
-    text-mode indented-text-mode
+    text-mode
     tex-mode latex-mode bibtex-mode
     ps-mode
 

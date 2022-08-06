@@ -394,9 +394,8 @@ else allout's special hanging-indent maintaining auto-fill function,
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
-Ie, it is indented to be just past the header prefix.  This is
-relevant mostly for use with `indented-text-mode', or other situations
-where auto-fill occurs."
+I.e., it is indented to be just past the header prefix.  This is
+relevant mostly for situations where auto-fill occurs."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-use-hanging-indents)
