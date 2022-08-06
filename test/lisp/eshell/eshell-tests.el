@@ -36,59 +36,6 @@
 
 ;;; Tests:
 
-(ert-deftest eshell-test/simple-command-result ()
-  "Test `eshell-command-result' with a simple command."
-  (should (equal (eshell-test-command-result "+ 1 2") 3)))
-
-(ert-deftest eshell-test/lisp-command ()
-  "Test `eshell-command-result' with an elisp command."
-  (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
-
-(ert-deftest eshell-test/lisp-command-with-quote ()
-  "Test `eshell-command-result' with an elisp command containing a quote."
-  (should (equal (eshell-test-command-result "(eq 'foo nil)") nil)))
-
-(ert-deftest eshell-test/for-loop ()
-  "Test `eshell-command-result' with a for loop.."
-  (let ((process-environment (cons "foo" process-environment)))
-    (should (equal (eshell-test-command-result
-                    "for foo in 5 { echo $foo }") 5))))
-
-(ert-deftest eshell-test/for-name-loop () ;Bug#15231
-  "Test `eshell-command-result' with a for loop using `name'."
-  (let ((process-environment (cons "name" process-environment)))
-    (should (equal (eshell-test-command-result
-                    "for name in 3 { echo $name }") 3))))
-
-(ert-deftest eshell-test/for-name-shadow-loop () ; bug#15372
-  "Test `eshell-command-result' with a for loop using an env-var."
-  (let ((process-environment (cons "name=env-value" process-environment)))
-    (with-temp-eshell
-     (eshell-command-result-p "echo $name; for name in 3 { echo $name }; echo $name"
-                              "env-value\n3\nenv-value\n"))))
-
-(ert-deftest eshell-test/lisp-command-args ()
-  "Test `eshell-command-result' with elisp and trailing args.
-Test that trailing arguments outside the S-expression are
-ignored.  e.g. \"(+ 1 2) 3\" => 3"
-  (should (equal (eshell-test-command-result "(+ 1 2) 3") 3)))
-
-(ert-deftest eshell-test/subcommand ()
-  "Test `eshell-command-result' with a simple subcommand."
-  (should (equal (eshell-test-command-result "{+ 1 2}") 3)))
-
-(ert-deftest eshell-test/subcommand-args ()
-  "Test `eshell-command-result' with a subcommand and trailing args.
-Test that trailing arguments outside the subcommand are ignored.
-e.g. \"{+ 1 2} 3\" => 3"
-  (should (equal (eshell-test-command-result "{+ 1 2} 3") 3)))
-
-(ert-deftest eshell-test/subcommand-lisp ()
-  "Test `eshell-command-result' with an elisp subcommand and trailing args.
-Test that trailing arguments outside the subcommand are ignored.
-e.g. \"{(+ 1 2)} 3\" => 3"
-  (should (equal (eshell-test-command-result "{(+ 1 2)} 3") 3)))
-
 (ert-deftest eshell-test/pipe-headproc ()
   "Check that piping a non-process to a process command waits for the process"
   (skip-unless (executable-find "cat"))

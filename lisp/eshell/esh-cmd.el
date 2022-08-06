@@ -541,9 +541,7 @@ implemented via rewriting, rather than as a function."
 	   	,(eshell-invokify-arg body t)))
 	     (setcar for-items (cadr for-items))
 	     (setcdr for-items (cddr for-items)))
-           (eshell-close-handles
-            eshell-last-command-status
-            (list 'quote eshell-last-command-result))))))
+           (eshell-close-handles)))))
 
 (defun eshell-structure-basic-command (func names keyword test body
 					    &optional else)
@@ -574,9 +572,7 @@ function."
   `(let ((eshell-command-body '(nil))
          (eshell-test-body '(nil)))
      (,func ,test ,body ,else)
-     (eshell-close-handles
-        eshell-last-command-status
-        (list 'quote eshell-last-command-result))))
+     (eshell-close-handles)))
 
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.

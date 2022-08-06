@@ -201,7 +201,7 @@ history and invoking commands in a script file.
 * Aliases::
 * History::
 * Completion::
-* for loop::
+* Control Flow::
 * Scripts::
 @end menu
 
@@ -219,12 +219,18 @@ same name; if there is no match, it then tries to execute it as an
 external command.
 
 The semicolon (@code{;}) can be used to separate multiple command
-invocations on a single line.  A command invocation followed by an
-ampersand (@code{&}) will be run in the background.  Eshell has no job
-control, so you can not suspend or background the current process, or
-bring a background process into the foreground.  That said, background
-processes invoked from Eshell can be controlled the same way as any
-other background process in Emacs.
+invocations on a single line.  You can also separate commands with
+@code{&&} or @code{||}. When using @code{&&}, Eshell will execute the
+second command only if the first succeeds (i.e.@: has an exit
+status of 0); with @code{||}, Eshell will execute the second command
+only if the first fails.
+
+A command invocation followed by an ampersand (@code{&}) will be run
+in the background.  Eshell has no job control, so you can not suspend
+or background the current process, or bring a background process into
+the foreground.  That said, background processes invoked from Eshell
+can be controlled the same way as any other background process in
+Emacs.
 
 @node Arguments
 @section Arguments
@@ -1008,19 +1014,41 @@ command for which this function provides completions; you can also name
 the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
 for a specific major mode.
 
-@node for loop
-@section @code{for} loop
+@node Control Flow
+@section Control Flow
 Because Eshell commands can not (easily) be combined with lisp forms,
-Eshell provides a command-oriented @command{for}-loop for convenience.
-The syntax is as follows:
+Eshell provides command-oriented control flow statements for
+convenience.
 
-@example
-@code{for VAR in TOKENS @{ command invocation(s) @}}
-@end example
+@table @code
 
-where @samp{TOKENS} is a space-separated sequence of values of
-@var{VAR} for each iteration.  This can even be the output of a
-command if @samp{TOKENS} is replaced with @samp{@{ command invocation @}}.
+@item if @{ @var{conditional} @} @{ @var{true-commands} @}
+@itemx if @{ @var{conditional} @} @{ @var{true-commands} @} @{ @var{false-commands} @}
+Evaluate @var{true-commands} if @var{conditional} returns success
+(i.e.@: its exit code is zero); otherwise, evaluate
+@var{false-commands}.
+
+@item unless @{ @var{conditional} @} @{ @var{false-commands} @}
+@itemx unless @{ @var{conditional} @} @{ @var{false-commands} @} @{ @var{true-commands} @}
+Evaluate @var{false-commands} if @var{conditional} returns failure
+(i.e.@: its exit code is non-zero); otherwise, evaluate
+@var{true-commands}.
+
+@item while @{ @var{conditional} @} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional}
+returns success.
+
+@item until @{ @var{conditional} @} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional}
+returns failure.
+
+@item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
+Iterate over each element of of @var{list}, storing the element in
+@var{var} and evaluating @var{commands}.  If @var{list} is not a list,
+treat it as a list of one element.  If you specify multiple
+@var{lists}, this will iterate over each of them in turn.
+
+@end table
 
 @node Scripts
 @section Scripts
