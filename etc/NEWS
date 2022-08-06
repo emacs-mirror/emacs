@@ -2234,6 +2234,10 @@ remote host are shown.  Alternatively, the user option
 'proced-show-remote-processes' can be set to non-nil.
 'proced-signal-function' has been marked obsolete.
 
+---
+*** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
+The old name is still available as an obsolete function alias.
+
 
 * New Modes and Packages in Emacs 29.1
 

@@ -1699,7 +1699,7 @@ the HOT-SPOT Operation section.
 
         Misc commands:
         -------------
-M-x outlineify-sticky       Activate outline mode for current buffer,
+\\[allout-outlinify-sticky] Activate outline mode for current buffer,
                             and establish a default file-var setting
                             for `allout-layout'.
 \\[allout-mark-topic]       `allout-mark-topic'
@@ -6184,19 +6184,18 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 
 ;;;_ #9 miscellaneous
 ;;;_  : Mode:
-;;;_   > outlineify-sticky ()
-;; outlinify-sticky is correct spelling; provide this alias for sticklers:
+;;;_   > allout-outlinify-sticky ()
 ;;;###autoload
-(defalias 'outlinify-sticky #'outlineify-sticky)
+(define-obsolete-function-alias 'outlinify-sticky #'allout-outlinify-sticky "29.1")
 ;;;###autoload
-(defun outlineify-sticky (&optional _arg)
+(define-obsolete-function-alias 'outlineify-sticky #'allout-outlinify-sticky "29.1")
+;;;###autoload
+(defun allout-outlinify-sticky (&optional _arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
 See `allout-layout' and customization of `allout-auto-activation'
 for details on preparing Emacs for automatic allout activation."
-
   (interactive "P")
-
   (if (allout-mode-p) (allout-mode))    ; deactivate so we can re-activate...
   (allout-mode)
 
