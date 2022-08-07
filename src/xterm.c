@@ -12481,7 +12481,7 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
 {
   struct input_event ie;
   struct frame *focus, *new;
-  struct xi_device_t *device, *source;
+  struct xi_device_t *device, *source = NULL;
   ptrdiff_t i;
   Time time;
 #ifdef USE_GTK
