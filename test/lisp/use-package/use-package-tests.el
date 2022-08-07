@@ -22,7 +22,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 (require 'ert)
 (require 'use-package)
 
@@ -98,20 +98,6 @@
               (insert ?\n ?\` (pp-to-string (macroexpand-1 decl))))))))))
 
 (bind-key "C-c C-u" #'fix-expansion emacs-lisp-mode-map)
-
-(eval-when-compile
-  (defun plist-delete (plist property)
-    "Delete PROPERTY from PLIST"
-    (let (p)
-      (while plist
-        (if (not (eq property (car plist)))
-            (setq p (plist-put p (car plist) (nth 1 plist))))
-        (setq plist (cddr plist)))
-      p))
-
-  ;; `cl-flet' does not work for some of the mocking we do below, while `flet'
-  ;; always does.
-  (setplist 'flet (plist-delete (symbol-plist 'flet) 'byte-obsolete-info)))
 
 (ert-deftest use-package-test-recognize-function ()
   (should (use-package-recognize-function nil t))
@@ -232,9 +218,9 @@
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test-normalize/:ensure ()
-  (flet ((norm (&rest args)
-               (apply #'use-package-normalize/:ensure
-                      'foopkg :ensure args)))
+  (cl-flet ((norm (&rest args)
+                  (apply #'use-package-normalize/:ensure
+                         'foopkg :ensure args)))
     (should (equal (norm '(t)) '(t)))
     (should (equal (norm '(nil)) '(nil)))
     (should (equal (norm '(sym)) '(sym)))
@@ -333,11 +319,11 @@
 
 (ert-deftest use-package-test/:ensure-11 ()
   (let (tried-to-install)
-    (flet ((use-package-ensure-elpa
-            (name ensure state &optional no-refresh)
-            (when ensure
-              (setq tried-to-install name)))
-           (require (&rest ignore)))
+    (cl-letf (((symbol-function #'use-package-ensure-elpa)
+               (lambda (name ensure state &optional no-refresh)
+                 (when ensure
+                   (setq tried-to-install name))))
+              ((symbol-function #'require) #'ignore))
       (use-package foo :ensure t)
       (should (eq tried-to-install 'foo)))))
 
@@ -737,9 +723,9 @@
       (add-to-list 'interpreter-mode-alist '("interp" . fun)))))
 
 (ert-deftest use-package-test-normalize/:mode ()
-  (flet ((norm (&rest args)
-               (apply #'use-package-normalize/:mode
-                      'foopkg :mode args)))
+  (cl-flet ((norm (&rest args)
+                  (apply #'use-package-normalize/:mode
+                         'foopkg :mode args)))
     (should (equal (norm '(".foo"))
                    '((".foo" . foopkg))))
     (should (equal (norm '(".foo" ".bar"))
@@ -993,9 +979,9 @@
                                  (load "foo" nil t))))))))
 
 (ert-deftest use-package-test-normalize/:hook ()
-  (flet ((norm (&rest args)
-               (apply #'use-package-normalize/:hook
-                      'foopkg :hook args)))
+  (cl-flet ((norm (&rest args)
+                  (apply #'use-package-normalize/:hook
+                         'foopkg :hook args)))
     (should-error (norm nil))
     (should (equal (norm '(bar))
                    '((bar . foopkg))))
@@ -1117,9 +1103,9 @@
            (add-hook 'emacs-lisp-mode-hook #'(lambda nil (function))))))))
 
 (ert-deftest use-package-test-normalize/:custom ()
-  (flet ((norm (&rest args)
-               (apply #'use-package-normalize/:custom
-                      'foopkg :custom args)))
+  (cl-flet ((norm (&rest args)
+                  (apply #'use-package-normalize/:custom
+                         'foopkg :custom args)))
     (should-error (norm nil))
     (should-error (norm '(bar)))
     ;; (should-error (norm '((foo bar baz quux))))
@@ -1831,7 +1817,7 @@
    `(bind-key "C-c C-r" #'org-ref-helm-insert-cite-link override-global-map nil)))
 
 (ert-deftest use-package-test/560 ()
-  (flet ((executable-find (name)))
+  (cl-letf (((symbol-function #'executable-find) #'ignore))
     (let (notmuch-command)
       (match-expansion
        (use-package notmuch
@@ -1942,7 +1928,8 @@
         (use-package-expand-minimally t)
         debug-on-error
         warnings)
-    (flet ((display-warning (_ msg _) (push msg warnings)))
+    (cl-letf (((symbol-function #'display-warning)
+               (lambda (_ msg _) (push msg warnings))))
       (progn
         (macroexpand-1
          '(use-package ediff :defer t (setq my-var t)))
