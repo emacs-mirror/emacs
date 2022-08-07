@@ -3197,13 +3197,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
                (progn
 		 (if (or (file-exists-p file) (not keep-proposed-name))
 		     (setq file (make-temp-name proposed-name)))
-		 ;; the with-temp-buffer thing is a workaround for an XEmacs
-		 ;; bug: write-region complains that we are trying to visit a
-		 ;; file in an indirect buffer, failing to notice that the
-		 ;; VISIT flag is unset and that we are actually writing from a
-		 ;; string and not from any buffer.
-		 (with-temp-buffer
-		   (write-region "" nil file nil 'silent nil 'excl))
+                 (write-region "" nil file nil 'silent nil 'excl)
                  nil)
             (file-already-exists t))
       ;; the file was somehow created by someone else between
