@@ -189,11 +189,17 @@ Will not do anything if `url-show-status' is nil."
   'file-size-human-readable "24.4")
 
 ;;;###autoload
-(defun url-display-percentage (fmt _perc &rest args)
+(defun url-display-message (fmt &rest args)
+  "Like `message', but do nothing if `url-show-status' is nil."
   (when (and url-show-status
              (not (and url-current-object (url-silent url-current-object)))
              fmt)
     (apply #'message fmt args)))
+
+;;;###autoload
+(defun url-display-percentage (fmt _perc &rest args)
+  (declare (obsolete url-display-message "29.1"))
+  (url-display-message fmt args))
 
 ;;;###autoload
 (defun url-percentage (x y)
