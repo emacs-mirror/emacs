@@ -10711,6 +10711,11 @@ move_it_vertically_backward (struct it *it, int dy)
   while (nlines-- && IT_CHARPOS (*it) > pos_limit)
     back_to_previous_visible_line_start (it);
 
+  /* Move one line more back, for the (rare) situation where we have
+     bidi-reordered continued lines, and we start from the top-most
+     screen line, which is the last in logical order.  */
+  if (it->bidi_p && dy == 0)
+    back_to_previous_visible_line_start (it);
   /* Reseat the iterator here.  When moving backward, we don't want
      reseat to skip forward over invisible text, set up the iterator
      to deliver from overlay strings at the new position etc.  So,
@@ -10956,7 +10961,6 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       int nchars_per_row
 	= (it->last_visible_x - it->first_visible_x) / FRAME_COLUMN_WIDTH (it->f);
       bool hit_pos_limit = false;
-      bool reverse_rows = false;
       ptrdiff_t pos_limit;
 
       /* Start at the beginning of the screen line containing IT's
@@ -10966,10 +10970,6 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
       start_charpos = IT_CHARPOS (*it);
       move_it_vertically_backward (it, 0);
       dvpos -= it->vpos;
-
-      /* Do we have glyph rows whose positions _increase_ as we go up?  */
-      if (IT_CHARPOS (*it) > start_charpos)
-	reverse_rows = true;
 
       /* Go back -DVPOS buffer lines, but no farther than -DVPOS full
 	 screen lines, and reseat the iterator there.  */
@@ -11021,8 +11021,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	  SAVE_IT (it2, *it, it2data);
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
 	  /* Move back again if we got too far ahead.  */
-	  if ((IT_CHARPOS (*it) >= start_charpos && !reverse_rows)
-	      || (IT_CHARPOS (*it) <= start_charpos && reverse_rows))
+	  if (it->vpos - it2.vpos > delta)
 	    RESTORE_IT (it, &it2, it2data);
 	  else
 	    bidi_unshelve_cache (it2data, true);
