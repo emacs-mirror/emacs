@@ -1520,7 +1520,9 @@ Note that the style variables are always made local to the buffer."
       ;; was before unescaping a NL.)
       (while
 	  (progn (end-of-line)
-		 (eq (char-before) ?\\))
+		 (and
+		  (eq (char-before) ?\\)
+		  (not (eobp))))
 	(forward-line))
       ;; We're at an EOLL or point-max.
       (if (equal (c-get-char-property (point) 'syntax-table) '(15))
@@ -1641,7 +1643,9 @@ Note that the style variables are always made local to the buffer."
 		end))
 	     (while
 		 (progn (end-of-line)
-			(eq (char-before) ?\\))
+			(and
+			 (eq (char-before) ?\\)
+			 (not (eobp))))
 	       (forward-line))
 	     (point))
 	   c-new-END))
