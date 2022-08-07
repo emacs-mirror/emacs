@@ -172,10 +172,11 @@ org-manuals: main-first
 ## Comments on loaddefs generation:
 
 # loaddefs depends on gen-lisp because in ../src, the emacs target
-# depends on loaddefs but not on eg leim-list.  So having leim as a
-# dependency of loaddefs (via gen-lisp) ensures leim-list gets created
-# before the final emacs is dumped.  Having leim dependencies in
-# ../src as well would create a parallel race condition.
+# depends on loaddefs, but not on, for instance, leim-list.  So having
+# leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
+# gets created before the final emacs is dumped.  Having leim
+# dependencies in ../src as well would create a parallel race
+# condition.
 #
 # FIXME: Is the following true any more?
 #
