@@ -7586,6 +7586,26 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 #endif
 }
 
+#ifdef USE_GTK
+
+static void
+x_set_gtk_user_time (struct frame *f, Time time)
+{
+  GtkWidget *widget;
+  GdkWindow *window;
+
+  widget = FRAME_GTK_OUTER_WIDGET (f);
+  window = gtk_widget_get_window (widget);
+
+  /* This widget isn't realized yet.  */
+  if (!window)
+    return;
+
+  gdk_x11_window_set_user_time (window, time);
+}
+
+#endif
+
 /* Not needed on GTK because GTK handles reporting the user time
    itself.  */
 
@@ -18211,6 +18231,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xkey.time,
 				    event->xkey.send_event);
       ignore_next_mouse_click_timeout = 0;
+
       coding = Qlatin_1;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -18220,6 +18241,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
       f = any;
+
+#ifdef USE_GTK
+      if (f)
+	x_set_gtk_user_time (f, event->xkey.time);
+#endif
 
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
@@ -21592,6 +21618,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ignore_next_mouse_click_timeout = 0;
 
 	      f = x_any_window_to_frame (dpyinfo, xev->event);
+
+	      /* GTK handles TAB events in an undesirable manner, so
+		 keyboard events are always dropped.  But as a side
+		 effect, the user time will no longer be set by GDK,
+		 so do that manually.  */
+#ifdef USE_GTK
+	      if (f)
+		x_set_gtk_user_time (f, xev->time);
+#endif
 
 	      if (f)
 		{
