@@ -258,30 +258,60 @@ Accepts keyword arguments:
                          for these bindings
 :prefix-docstring STR  - docstring for the prefix-map variable
 :menu-name NAME        - optional menu string for prefix map
+:repeat-docstring STR  - docstring for the repeat-map variable
+:repeat-map MAP        - name of the repeat map that should be created
+                         for these bindings. If specified, the
+                         'repeat-map property of each command bound
+                         (within the scope of the :repeat-map keyword)
+                         is set to this map.
+:exit BINDINGS         - Within the scope of :repeat-map will bind the
+                         key in the repeat map, but will not set the
+                         'repeat-map property of the bound command.
+:continue BINDINGS     - Within the scope of :repeat-map forces the
+                         same behaviour as if no special keyword had
+                         been used (that is, the command is bound, and
+                         it's 'repeat-map property set)
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
 function symbol (unquoted)."
   (let (map
-        doc
+        prefix-doc
         prefix-map
         prefix
+        repeat-map
+        repeat-doc
+        repeat-type ;; Only used internally
         filter
         menu-name
         pkg)
 
     ;; Process any initial keyword arguments
-    (let ((cont t))
+    (let ((cont t)
+          (arg-change-func 'cddr))
       (while (and cont args)
         (if (cond ((and (eq :map (car args))
                         (not prefix-map))
                    (setq map (cadr args)))
                   ((eq :prefix-docstring (car args))
-                   (setq doc (cadr args)))
+                   (setq prefix-doc (cadr args)))
                   ((and (eq :prefix-map (car args))
                         (not (memq map '(global-map
                                          override-global-map))))
                    (setq prefix-map (cadr args)))
+                  ((eq :repeat-docstring (car args))
+                   (setq repeat-doc (cadr args)))
+                  ((and (eq :repeat-map (car args))
+                        (not (memq map '(global-map
+                                         override-global-map))))
+                   (setq repeat-map (cadr args))
+                   (setq map repeat-map))
+                  ((eq :continue (car args))
+                   (setq repeat-type :continue
+                         arg-change-func 'cdr))
+                  ((eq :exit (car args))
+                   (setq repeat-type :exit
+                         arg-change-func 'cdr))
                   ((eq :prefix (car args))
                    (setq prefix (cadr args)))
                   ((eq :filter (car args))
@@ -290,12 +320,16 @@ function symbol (unquoted)."
                    (setq menu-name (cadr args)))
                   ((eq :package (car args))
                    (setq pkg (cadr args))))
-            (setq args (cddr args))
+            (setq args (funcall arg-change-func args))
           (setq cont nil))))
 
     (when (or (and prefix-map (not prefix))
               (and prefix (not prefix-map)))
       (error "Both :prefix-map and :prefix must be supplied"))
+
+    (when repeat-type
+      (unless repeat-map
+        (error ":continue and :exit require specifying :repeat-map")))
 
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
@@ -328,13 +362,16 @@ function symbol (unquoted)."
         (append
          (when prefix-map
            `((defvar ,prefix-map)
-             ,@(when doc `((put ',prefix-map 'variable-documentation ,doc)))
+             ,@(when prefix-doc `((put ',prefix-map 'variable-documentation ,prefix-doc)))
              ,@(if menu-name
                    `((define-prefix-command ',prefix-map nil ,menu-name))
                  `((define-prefix-command ',prefix-map)))
              ,@(if (and map (not (eq map 'global-map)))
                    (wrap map `((bind-key ,prefix ',prefix-map ,map ,filter)))
                  `((bind-key ,prefix ',prefix-map nil ,filter)))))
+         (when repeat-map
+           `((defvar ,repeat-map (make-sparse-keymap)
+               ,@(when repeat-doc `(,repeat-doc)))))
          (wrap map
                (cl-mapcan
                 (lambda (form)
@@ -342,13 +379,19 @@ function symbol (unquoted)."
                     (if prefix-map
                         `((bind-key ,(car form) ,fun ,prefix-map ,filter))
                       (if (and map (not (eq map 'global-map)))
-                          `((bind-key ,(car form) ,fun ,map ,filter))
+                          ;; Only needed in this branch, since when
+                          ;; repeat-map is non-nil, map is always
+                          ;; non-nil
+                          `(,@(when (and repeat-map (not (eq repeat-type :exit)))
+                                `((put ,fun 'repeat-map ',repeat-map)))
+                            (bind-key ,(car form) ,fun ,map ,filter))
                         `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
          (when next
-           (bind-keys-form (if pkg
-                               (cons :package (cons pkg next))
-                             next) map)))))))
+           (bind-keys-form `(,@(when repeat-map `(:repeat-map ,repeat-map))
+                             ,@(if pkg
+                                   (cons :package (cons pkg next))
+                                 next)) map)))))))
 
 ;;;###autoload
 (defmacro bind-keys (&rest args)
@@ -362,6 +405,19 @@ Accepts keyword arguments:
                          for these bindings
 :prefix-docstring STR  - docstring for the prefix-map variable
 :menu-name NAME        - optional menu string for prefix map
+:repeat-docstring STR  - docstring for the repeat-map variable
+:repeat-map MAP        - name of the repeat map that should be created
+                         for these bindings. If specified, the
+                         'repeat-map property of each command bound
+                         (within the scope of the :repeat-map keyword)
+                         is set to this map.
+:exit BINDINGS         - Within the scope of :repeat-map will bind the
+                         key in the repeat map, but will not set the
+                         'repeat-map property of the bound command.
+:continue BINDINGS     - Within the scope of :repeat-map forces the
+                         same behaviour as if no special keyword had
+                         been used (that is, the command is bound, and
+                         it's 'repeat-map property set)
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
