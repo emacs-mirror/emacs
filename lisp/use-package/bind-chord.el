@@ -1,4 +1,4 @@
-;;; bind-chord.el --- key-chord binding helper for use-package-chords
+;;; bind-chord.el --- key-chord binding helper for use-package-chords  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2017 Justin Talbott
 
