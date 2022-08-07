@@ -48,13 +48,9 @@ that Ediff doesn't know about.")
   (declare (obsolete window-system "27.1"))
   window-system)
 
-(defun ediff-window-display-p ()
-  (and window-system
-       (not (memq window-system '(tty pc stream)))))
-
 ;; test if supports faces
 (defun ediff-has-face-support-p ()
-  (cond ((ediff-window-display-p))
+  (cond ((display-graphic-p))
 	(ediff-force-faces)
 	((display-color-p))
 	(t (memq window-system '(pc)))))
@@ -258,7 +254,7 @@ It needs to be killed when we quit the session.")
 
 
 (defsubst ediff-multiframe-setup-p ()
-  (and (ediff-window-display-p) ediff-multiframe))
+  (and (display-graphic-p) ediff-multiframe))
 
 (defmacro ediff-narrow-control-frame-p ()
   '(and (ediff-multiframe-setup-p)
@@ -788,7 +784,7 @@ Ediff needs to find fine differences."
 
 (defun ediff-set-face-pixmap (face pixmap)
   "Set stipple pixmap of FACE to PIXMAP on a monochrome display."
-  (if (and (ediff-window-display-p) (not (display-color-p)))
+  (if (and (display-graphic-p) (not (display-color-p)))
       (condition-case nil
 	  (set-face-background-pixmap face pixmap)
 	(error
@@ -1382,14 +1378,14 @@ This default should work without changes."
 
 
 (defsubst ediff-frame-iconified-p (frame)
-  (and (ediff-window-display-p)
+  (and (display-graphic-p)
        (frame-live-p frame)
        (eq (frame-visible-p frame) 'icon)))
 
 (defsubst ediff-window-visible-p (wind)
   ;; under TTY, window-live-p also means window is visible
   (and (window-live-p wind)
-       (or (not (ediff-window-display-p))
+       (or (not (display-graphic-p))
 	   (frame-visible-p (window-frame wind)))))
 
 
@@ -1398,7 +1394,7 @@ This default should work without changes."
 
 (defun ediff-reset-mouse (&optional frame do-not-grab-mouse)
   (or frame (setq frame (selected-frame)))
-  (if (ediff-window-display-p)
+  (if (display-graphic-p)
       (let ((frame-or-wind frame))
 	(or do-not-grab-mouse
 	    ;; don't set mouse if the user said to never do this
@@ -1562,6 +1558,7 @@ This default should work without changes."
 (define-obsolete-function-alias 'ediff-convert-standard-filename #'convert-standard-filename "28.1")
 (define-obsolete-function-alias 'ediff-hide-face #'ignore "28.1")
 (define-obsolete-function-alias 'ediff-file-remote-p #'file-remote-p "29.1")
+(define-obsolete-function-alias 'ediff-window-display-p #'display-graphic-p "29.1")
 
 (provide 'ediff-init)
 ;;; ediff-init.el ends here

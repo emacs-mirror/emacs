@@ -735,7 +735,7 @@ buffers."
   ;; set visibility range appropriate to this invocation of Ediff.
   (ediff-visible-region)
   ;; raise
-  (if (and (ediff-window-display-p)
+  (if (and (display-graphic-p)
 	   (symbolp this-command)
 	   (symbolp last-command)
 	   ;; Either one of the display-changing commands
@@ -760,7 +760,7 @@ buffers."
 	    (raise-frame (window-frame ediff-window-B)))
 	(if (window-live-p ediff-window-C)
 	    (raise-frame (window-frame ediff-window-C)))))
-  (if (and (ediff-window-display-p)
+  (if (and (display-graphic-p)
 	   (frame-live-p ediff-control-frame)
 	   (not ediff-use-long-help-message)
 	   (not (ediff-frame-iconified-p ediff-control-frame)))
@@ -1252,7 +1252,7 @@ of the current buffer."
 This is especially useful when comparing buffers side-by-side."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (or (ediff-window-display-p)
+  (or (display-graphic-p)
       (user-error "Emacs is not running as a window application"))
   (ediff-recenter 'no-rehighlight) ; make sure buffs are displayed in windows
   (let ((ctl-buf ediff-control-buffer))
@@ -1279,7 +1279,7 @@ To change the default, set the variable `ediff-window-setup-function',
 which see."
   (interactive)
   (let (window-setup-func)
-    (or (ediff-window-display-p)
+    (or (display-graphic-p)
 	(user-error "Emacs is not running as a window application"))
 
   (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
@@ -1323,7 +1323,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
   ;; FIXME: Make it work in Emacs!
   (if (featurep 'ediff-tbar)
       (progn
-	(or (ediff-window-display-p)
+        (or (display-graphic-p)
 	    (user-error "Emacs is not running as a window application"))
 	;; do this only after killing the toolbar
 	(setq ediff-use-toolbar-p (not ediff-use-toolbar-p))
@@ -2438,7 +2438,7 @@ reverse the meaning of this variable."
         (after-quit-hook-internal (remq t ediff-after-quit-hook-internal))
 	(session-number ediff-meta-session-number)
 	;; suitable working frame
-	(warp-frame (if (and (ediff-window-display-p) (eq ediff-grab-mouse t))
+        (warp-frame (if (and (display-graphic-p) (eq ediff-grab-mouse t))
 			(cond ((window-live-p ediff-window-A)
 			       (window-frame ediff-window-A))
 			      ((window-live-p ediff-window-B)
@@ -2512,7 +2512,7 @@ reverse the meaning of this variable."
   (setq warp-frame  ; if mouse is over a reasonable frame, use it
 	(cond ((ediff-good-frame-under-mouse))
 	      (t warp-frame)))
-  (if (and (ediff-window-display-p) (frame-live-p warp-frame) ediff-grab-mouse)
+  (if (and (display-graphic-p) (frame-live-p warp-frame) ediff-grab-mouse)
       (set-mouse-position warp-frame 2 1))
 
   (mapc #'funcall after-quit-hook-internal)
@@ -2569,7 +2569,7 @@ reverse the meaning of this variable."
 	(ediff-kill-buffer-carefully ediff-patch-diagnostics))
 
     ;; delete control frame or window
-    (cond ((and (ediff-window-display-p) (frame-live-p ctl-frame))
+    (cond ((and (display-graphic-p) (frame-live-p ctl-frame))
 	   (delete-frame ctl-frame))
 	  ((window-live-p ctl-wind)
 	   (delete-window ctl-wind)))
@@ -2744,7 +2744,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	 (buf-fine-diff ediff-fine-diff-buffer))
 
     ;; hide the control panel
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(iconify-frame ediff-control-frame)
       (bury-buffer))
     (if buf-err (bury-buffer buf-err))

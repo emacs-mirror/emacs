@@ -52,7 +52,7 @@
 ;; Determine which window setup function to use based on current window system.
 (defun ediff-choose-window-setup-function-automatically ()
   (declare (obsolete ediff-setup-windows-default "24.3"))
-  (if (ediff-window-display-p)
+  (if (display-graphic-p)
       #'ediff-setup-windows-multiframe
     #'ediff-setup-windows-plain))
 
@@ -304,7 +304,7 @@ keyboard input to go into icons."
       (other-window 1))
 
   ;; in case user did a no-no on a tty
-  (or (ediff-window-display-p)
+  (or (display-graphic-p)
       (setq ediff-window-setup-function #'ediff-setup-windows-plain))
 
   (or (ediff-keep-window-config control-buffer)
@@ -844,7 +844,7 @@ keyboard input to go into icons."
 (defun ediff-skip-unsuitable-frames (&optional ok-unsplittable)
   "Skip unsplittable frames and frames that have dedicated windows.
 Create a new splittable frame if none is found."
-  (if (ediff-window-display-p)
+  (if (display-graphic-p)
       (let ((wind-frame (window-frame))
 	     seen-windows)
 	(while (and (not (memq (selected-window) seen-windows))
@@ -993,7 +993,7 @@ Create a new splittable frame if none is found."
 
     ;; synchronize so the cursor will move to control frame
     ;; per RMS suggestion
-    (if (ediff-window-display-p)
+    (if (display-graphic-p)
 	(let ((count 7))
 	  (sit-for .1)
 	  (while (and (not (frame-visible-p ctl-frame)) (> count 0))
@@ -1012,7 +1012,7 @@ Create a new splittable frame if none is found."
 
 (defun ediff-destroy-control-frame (ctl-buffer)
   (ediff-with-current-buffer ctl-buffer
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
 	  (setq ediff-control-frame nil)
 	  (delete-frame ctl-frame))))
@@ -1145,7 +1145,7 @@ It assumes that it is called from within the control buffer."
     ;; Force mode-line redisplay
     (force-mode-line-update)
 
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(ediff-refresh-control-frame))
 
     (ediff-with-current-buffer ediff-buffer-A
