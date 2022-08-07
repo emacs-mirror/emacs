@@ -17,8 +17,9 @@ later version.
 
 This document is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE@.  See the GNU
 General Public License for more details.
+
 @end quotation
 @end copying
 
@@ -54,7 +55,8 @@ version 3 of the License, or (at your option) any later version.
 
 This document is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+FOR A PARTICULAR PURPOSE@. See the GNU General Public License for more details.
+
 @end quotation
 @end ifnottex
 
@@ -62,6 +64,8 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 * Introduction::
 * Installation::
 * Getting Started::
+* Basic Concepts::
+* Issues/Requests::
 * Keywords::
 * FAQ::
 * Debugging Tools::
@@ -72,43 +76,38 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 @detailmenu
 --- The Detailed Node Listing ---
 
-
 Installation
 
 * Installing from an Elpa Archive::
 * Installing from the Git Repository::
 * Post-Installation Tasks::
 
-
-
-
 Keywords
 
-* @code{:after}: @code{after}. 
-* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
-* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
-* @code{:commands}: @code{commands}. 
-* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
-* @code{:custom}: @code{custom}. 
-* @code{:custom-face}: @code{custom-face}. 
-* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
-* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
-* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
-* @code{:disabled}: @code{disabled}. 
-* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
-* @code{:hook}: @code{hook}. 
-* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
-* @code{:load-path}: @code{load-path}. 
-* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
-* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
-* @code{:no-require}: @code{no-require}. 
-* @code{:requires}: @code{requires}. 
-
-
+* @code{after}::
+* @code{bind-keymap}, @code{bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
+* @code{bind}, @code{bind*}: @code{bind} @code{bind*}. 
+* @code{commands}::
+* @code{preface}, @code{init}, @code{config}: @code{preface} @code{init} @code{config}. 
+* @code{custom}::
+* @code{custom-face}::
+* @code{defer}, @code{demand}: @code{defer} @code{demand}. 
+* @code{defines}, @code{functions}: @code{defines} @code{functions}. 
+* @code{diminish}, @code{delight}: @code{diminish} @code{delight}. 
+* @code{disabled}::
+* @code{ensure}, @code{pin}: @code{ensure} @code{pin}. 
+* @code{hook}::
+* @code{if}, @code{when}, @code{unless}: @code{if} @code{when} @code{unless}. 
+* @code{load-path}::
+* @code{mode}, @code{interpreter}: @code{mode} @code{interpreter}. 
+* @code{magic}, @code{magic-fallback}: @code{magic} @code{magic-fallback}. 
+* @code{no-require}::
+* @code{requires}::
 
 @code{:bind}, @code{:bind*}
 
 * Binding to local keymaps::
+
 
 FAQ
 
@@ -123,20 +122,30 @@ FAQ - How to @dots{}?
 FAQ - Issues and Errors
 
 * This is an issues::
+
+
 @end detailmenu
 @end menu
 
 @node Introduction
 @chapter Introduction
 
-The @code{use-package} macro allows you to isolate package configuration
-in your @file{.emacs} file in a way that is both performance-oriented and,
-well, tidy.  I created it because I have over 400 packages that I use in
-Emacs, and things were getting difficult to manage.  Yet with this utility
-my total load time is around 2 seconds, with no loss of functionality!
+The @code{use-package} macro allows you to isolate package configuration in your
+@code{.emacs} file in a way that is both performance-oriented and, well, tidy. I
+created it because I have over 80 packages that I use in Emacs, and things
+were getting difficult to manage. Yet with this utility my total load time is
+around 2 seconds, with no loss of functionality!
+
+More text to come@dots{}
 
 @node Installation
 @chapter Installation
+
+@menu
+* Installing from an Elpa Archive::
+* Installing from the Git Repository::
+* Post-Installation Tasks::
+@end menu
 
 use-package can be installed using Emacs' package manager or manually from
 its development repository.
@@ -163,7 +172,7 @@ To use Melpa:
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
+             '("melpa" . "https://melpa.org/packages/") t)
 @end lisp
 
 @itemize
@@ -174,7 +183,7 @@ To use Melpa-Stable:
 @lisp
 (require 'package)
 (add-to-list 'package-archives
-	     '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
 @end lisp
 
 Once you have added your preferred archive, you need to update the
@@ -225,7 +234,7 @@ Finally add this to your init file:
 (with-eval-after-load 'info
   (info-initialize)
   (add-to-list 'Info-directory-list
-	       "~/.emacs.d/site-lisp/use-package/"))
+               "~/.emacs.d/site-lisp/use-package/"))
 @end lisp
 
 Note that elements of @code{load-path} should not end with a slash, while those of
@@ -267,37 +276,75 @@ use-package-version’s value is "2.4.1"
 
 If you are completely new to use-package then see @ref{Getting Started}.
 
-If you run into problems, then please see the @ref{FAQ}.  Also see the
-@ref{Debugging Tools}.
+If you run into problems, then please see the
+@ref{FAQ}.  Also see the @ref{Debugging Tools}.
 
 @node Getting Started
 @chapter Getting Started
 
-TODO. For now, see @code{README.md}.
+TODO@. For now, see @code{README.md}.
+
+@node Basic Concepts
+@chapter Basic Concepts
+
+@code{use-package} was created for few basic reasons, each of which drove the
+design in various ways. Understanding these reasons may help make some of
+those decisions clearer:
+
+@itemize
+@item
+To gather all configuration details of a package into one place, making
+it easier to copy, disable, or move it elsewhere in the init file.
+
+
+@item
+To reduce duplication and boilerplate, capturing several common practices
+as mere keywords both easy and intuitive to use.
+
+
+@item
+To make startup time of Emacs as quick as possible, without sacrificing
+the quantity of add-on packages used.
+
+
+@item
+To make it so errors encountered during startup disable only the package
+raising the error, and as little else as possible, leaving a close to a
+functional Emacs as possible.
+
+
+@item
+To allow byte-compilation of one's init file so that any warnings or
+errors seen are meaningful. In this way, even if byte-compilation is not
+used for speed (reason 3), it can still be used as a sanity check.
+@end itemize
+
+@node Issues/Requests
+@chapter Issues/Requests
 
 @node Keywords
 @chapter Keywords
 
 @menu
-* @code{:after}: @code{after}. 
-* @code{:bind-keymap}, @code{:bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
-* @code{:bind}, @code{:bind*}: @code{bind} @code{bind*}. 
-* @code{:commands}: @code{commands}. 
-* @code{:preface}, @code{:init}, @code{:config}: @code{preface} @code{init} @code{config}. 
-* @code{:custom}: @code{custom}. 
-* @code{:custom-face}: @code{custom-face}. 
-* @code{:defer}, @code{:demand}: @code{defer} @code{demand}. 
-* @code{:defines}, @code{:functions}: @code{defines} @code{functions}. 
-* @code{:diminish}, @code{:delight}: @code{diminish} @code{delight}. 
-* @code{:disabled}: @code{disabled}. 
-* @code{:ensure}, @code{:pin}: @code{ensure} @code{pin}. 
-* @code{:hook}: @code{hook}. 
-* @code{:if}, @code{:when}, @code{:unless}: @code{if} @code{when} @code{unless}. 
-* @code{:load-path}: @code{load-path}. 
-* @code{:mode}, @code{:interpreter}: @code{mode} @code{interpreter}. 
-* @code{:magic}, @code{:magic-fallback}: @code{magic} @code{magic-fallback}. 
-* @code{:no-require}: @code{no-require}. 
-* @code{:requires}: @code{requires}. 
+* @code{after}::
+* @code{bind-keymap}, @code{bind-keymap*}: @code{bind-keymap} @code{bind-keymap*}. 
+* @code{bind}, @code{bind*}: @code{bind} @code{bind*}. 
+* @code{commands}::
+* @code{preface}, @code{init}, @code{config}: @code{preface} @code{init} @code{config}. 
+* @code{custom}::
+* @code{custom-face}::
+* @code{defer}, @code{demand}: @code{defer} @code{demand}. 
+* @code{defines}, @code{functions}: @code{defines} @code{functions}. 
+* @code{diminish}, @code{delight}: @code{diminish} @code{delight}. 
+* @code{disabled}::
+* @code{ensure}, @code{pin}: @code{ensure} @code{pin}. 
+* @code{hook}::
+* @code{if}, @code{when}, @code{unless}: @code{if} @code{when} @code{unless}. 
+* @code{load-path}::
+* @code{mode}, @code{interpreter}: @code{mode} @code{interpreter}. 
+* @code{magic}, @code{magic-fallback}: @code{magic} @code{magic-fallback}. 
+* @code{no-require}::
+* @code{requires}::
 @end menu
 
 @node @code{after}
@@ -340,6 +387,13 @@ have been loaded. Here are some of the other possibilities:
 When you nest selectors, such as @code{(:any (:all foo bar) (:all baz quux))}, it
 means that the package will be loaded when either both @code{foo} and @code{bar} have
 been loaded, or both @code{baz} and @code{quux} have been loaded.
+
+@strong{NOTE}: Pay attention if you set @code{use-package-always-defer} to t, and also use
+the @code{:after} keyword, as you will need to specify how the declared package is
+to be loaded: e.g., by some @code{:bind}. If you're not using one of the mechanisms
+that registers autoloads, such as @code{:bind} or @code{:hook}, and your package manager
+does not provide autoloads, it's possible that without adding @code{:demand t} to
+those declarations, your package will never be loaded.
 
 @node @code{bind-keymap} @code{bind-keymap*}
 @section @code{:bind-keymap}, @code{:bind-keymap*}
@@ -400,8 +454,8 @@ The @code{:bind} keyword takes either a cons or a list of conses:
 @lisp
 (use-package hi-lock
   :bind (("M-o l" . highlight-lines-matching-regexp)
-	 ("M-o r" . highlight-regexp)
-	 ("M-o w" . highlight-phrase)))
+         ("M-o r" . highlight-regexp)
+         ("M-o w" . highlight-phrase)))
 @end lisp
 
 The @code{:commands} keyword likewise takes either a symbol or a list of symbols.
@@ -415,9 +469,9 @@ Examples:
 @lisp
 (use-package helm
   :bind (("M-x" . helm-M-x)
-	 ("M-<f5>" . helm-find-files)
-	 ([f10] . helm-buffers-list)
-	 ([S-f10] . helm-recentf)))
+         ("M-<f5>" . helm-find-files)
+         ([f10] . helm-buffers-list)
+         ([S-f10] . helm-recentf)))
 @end lisp
 
 @menu
@@ -434,7 +488,7 @@ supports this with a @code{:map} modifier, taking the local keymap to bind to:
 @lisp
 (use-package helm
   :bind (:map helm-command-map
-	 ("C-c h" . helm-execute-persistent-action)))
+         ("C-c h" . helm-execute-persistent-action)))
 @end lisp
 
 The effect of this statement is to wait until @code{helm} has loaded, and then to
@@ -447,13 +501,13 @@ first use of @code{:map} are applied to the global keymap:
 @lisp
 (use-package term
   :bind (("C-c t" . term)
-	 :map term-mode-map
-	 ("M-p" . term-send-up)
-	 ("M-n" . term-send-down)
-	 :map term-raw-map
-	 ("M-o" . other-window)
-	 ("M-p" . term-send-up)
-	 ("M-n" . term-send-down)))
+         :map term-mode-map
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)
+         :map term-raw-map
+         ("M-o" . other-window)
+         ("M-p" . term-send-up)
+         ("M-n" . term-send-down)))
 @end lisp
 
 @node @code{commands}
@@ -506,9 +560,9 @@ As you might expect, you can use @code{:init} and @code{:config} together:
 (use-package color-moccur
   :commands (isearch-moccur isearch-all)
   :bind (("M-s O" . moccur)
-	 :map isearch-mode-map
-	 ("M-o" . isearch-moccur)
-	 ("M-O" . isearch-moccur-all))
+         :map isearch-mode-map
+         ("M-o" . isearch-moccur)
+         ("M-O" . isearch-moccur-all))
   :init
   (setq isearch-lazy-highlight t)
   :config
@@ -761,7 +815,7 @@ equivalent:
 
 (use-package ace-jump-mode
   :hook ((prog-mode . ace-jump-mode)
-	 (text-mode . ace-jump-mode)))
+         (text-mode . ace-jump-mode)))
 
 (use-package ace-jump-mode
   :commands ace-jump-mode
@@ -878,22 +932,22 @@ This does exactly the same thing as the following:
 @node @code{magic} @code{magic-fallback}
 @section @code{:magic}, @code{:magic-fallback}
 
-Similar to `:mode` and `:interpreter`, you can also use `:magic` and
-`:magic-fallback` to cause certain function to be run if the beginning of a
+Similar to @code{:mode} and @code{:interpreter}, you can also use @code{:magic} and
+@code{:magic-fallback} to cause certain function to be run if the beginning of a
 file matches a given regular expression. The difference between the two is
-that `:magic-fallback` has a lower priority than `:mode`. For example:
+that @code{:magic-fallback} has a lower priority than @code{:mode}. For example:
 
-``` elisp
+@lisp
 (use-package pdf-tools
   :load-path "site-lisp/pdf-tools/lisp"
   :magic ("%PDF" . pdf-view-mode)
   :config
   (pdf-tools-install))
-```
+@end lisp
 
-This registers an autoloaded command for `pdf-view-mode`, defers loading of
-`pdf-tools`, and runs `pdf-view-mode` if the beginning of a buffer matches the
-string `"%PDF"`.
+This registers an autoloaded command for @code{pdf-view-mode}, defers loading of
+@code{pdf-tools}, and runs @code{pdf-view-mode} if the beginning of a buffer matches the
+string @code{"%PDF"}.
 
 @node @code{no-require}
 @section @code{:no-require}
@@ -1001,4 +1055,5 @@ Please also see the @ref{FAQ}.
 
 @printindex vr
 
+Emacs 28.0.92 (Org mode 9.5.2)
 @bye
