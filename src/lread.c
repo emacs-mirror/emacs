@@ -3486,7 +3486,9 @@ get_lazy_string (Lisp_Object val)
      unibyte string.  If it is actually a doc string, caller must make
      it multibyte.  */
 
-  /* Position is negative for user variables.  */
+  /* We used to emit negative positions for 'user variables' (whose doc
+     strings started with an asterisk); take the absolute value for
+     compatibility.  */
   EMACS_INT pos = eabs (XFIXNUM (XCDR (val)));
   struct saved_string *ss = &saved_strings[0];
   struct saved_string *ssend = ss + ARRAYELTS (saved_strings);

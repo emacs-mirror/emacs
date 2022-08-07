@@ -2451,18 +2451,9 @@ list that represents a doc string reference.
       (let (position
             (print-symbols-bare t))     ; Possibly redundant binding.
         ;; Insert the doc string, and make it a comment with #@LENGTH.
-        (and (>= (nth 1 info) 0)
-             dynamic-docstrings
-             (progn
-               (setq position
-                     (byte-compile-output-as-comment
-                      (nth (nth 1 info) form) nil))
-               ;; If the doc string starts with * (a user variable),
-               ;; negate POSITION.
-               (if (and (stringp (nth (nth 1 info) form))
-                        (> (length (nth (nth 1 info) form)) 0)
-                        (eq (aref (nth (nth 1 info) form) 0) ?*))
-                   (setq position (- position)))))
+        (when (and (>= (nth 1 info) 0) dynamic-docstrings)
+             (setq position (byte-compile-output-as-comment
+                             (nth (nth 1 info) form) nil)))
 
         (let ((print-continuous-numbering t)
               print-number-table
