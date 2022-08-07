@@ -44,9 +44,8 @@
 This is provided as a temporary relief for users of face-capable displays
 that Ediff doesn't know about.")
 
-;; Are we running as a window application or on a TTY?
 (defsubst ediff-device-type ()
-  (declare (obsolete nil "27.1"))
+  (declare (obsolete window-system "27.1"))
   window-system)
 
 (defun ediff-window-display-p ()
@@ -1381,7 +1380,7 @@ This default should work without changes."
 (define-obsolete-function-alias 'ediff-event-key #'identity "27.1")
 
 (defun ediff-last-command-char ()
-  (declare (obsolete nil "27.1"))
+  (declare (obsolete last-command-event "27.1"))
   last-command-event)
 
 
@@ -1562,15 +1561,8 @@ This default should work without changes."
   (ediff-file-attributes filename 5))
 
 
-;;; Obsolete
-
-(defun ediff-convert-standard-filename (fname)
-  (declare (obsolete convert-standard-filename "28.1"))
-  (convert-standard-filename fname))
-
-(define-obsolete-function-alias 'ediff-with-syntax-table
-  #'with-syntax-table "27.1")
-
+(define-obsolete-function-alias 'ediff-with-syntax-table #'with-syntax-table "27.1")
+(define-obsolete-function-alias 'ediff-convert-standard-filename #'convert-standard-filename "28.1")
 (define-obsolete-function-alias 'ediff-hide-face #'ignore "28.1")
 
 (provide 'ediff-init)
