@@ -61,6 +61,7 @@ function (@pxref{Terminal Output}).
 * Syntax Errors::       How to find syntax errors.
 * Test Coverage::       Ensuring you have tested all branches in your code.
 * Profiling::           Measuring the resources that your code uses.
+* Tracing::             Log function calls, arguments, and return values.
 @end menu
 
 @node Debugger
@@ -1088,14 +1089,16 @@ provided by the @file{trace.el} package.  Many functions may be traced
 at the same time.  The functions @code{trace-function-foreground} and
 @code{trace-function-background} add a new trace to a single specified
 function.  The functions @code{trace-package}, @code{trace-regexp},
-and @code{trace-library} enable traces to be added to multiple
-functions in bulk.  Calls to traced functions, including the values
-of their arguments, are logged to the @file{*trace-output*} buffer
-(or another buffer as specified).
+and @code{trace-library} enable traces to be added to functions en
+masse.  Calls to traced functions, including the values of their
+arguments and return values, are logged to the @file{*trace-output*}
+buffer (or another buffer as specified).
 
-In addition, you can call @code{trace-values} in your code to output
-the values of its arguments to the trace buffer, to provide more trace
-information than is provided by the function calls alone.
+Optional 'context' expressions will be evaluated and logged both when
+the associated function is called and when it returns; and finally you
+may add explicit calls to @code{trace-values} to your code to log
+arbitrary other values to the trace buffer, if you wish to provide
+more data than is provided by function traces alone.
 
 @deffn Command trace-function-foreground function &optional buffer context
 This function adds a foreground trace to @var{function}.  When called
@@ -1119,13 +1122,13 @@ stuff - use `trace-function-background' instead.
 
 Calling `trace-function-foreground' again for the same FUNCTION will
 update the optional argument behaviours to respect the new values.
-@end defun
+@end deffn
 
 @deffn Command trace-function-background function &optional buffer context
 This function adds a background trace to @var{function}.  This is like
 @code{trace-function-foreground}, but without popping up the output
 buffer or changing the window configuration.
-@end defun
+@end deffn
 
 @deffn Command trace-package prefix &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
@@ -1141,7 +1144,7 @@ file.  See `trace-function-foreground' for details of @var{buffer} and
 
 Calling `trace-package' again for the same @var{prefix} will update
 the optional argument behaviours to respect the new values.
-@end defun
+@end deffn
 
 @deffn Command trace-regexp regexp &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
@@ -1161,11 +1164,11 @@ file.  See `trace-function-foreground' for details of @var{buffer} and
 
 Calling `trace-regexp' again for the same @var{regexp} will update the
 optional argument behaviours to respect the new values.
-@end defun
+@end deffn
 
 @deffn Command trace-library library &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
-defined in @var{library}.
+currently defined in @var{library} according to the @var{load-history}.
 
 For any autoload declarations with a file name matching @var{library},
 the associated function will be traced if and when it is defined.
@@ -1180,48 +1183,47 @@ AFTER-LOAD is non-nil then re-process @var{library} after loading it
 
 Calling `trace-library' again for the same @var{library} will update
 the optional argument behaviours to respect the new values.
-@end defun
+@end deffn
 
 @deffn Command trace-currently-traced &optional display-message
 This function returns the list of currently traced function symbols.
 When called interactively, or if @var{display-message} is non-nil, it
 displays the list as a message.
-@end defun
+@end deffn
 
 @deffn Command untrace-function function
-This function removes the trace on @var{function}.  When called
-interactively, it prompts for @var{function} in the minibuffer.
-Calling @code{untrace-function} has no effect if @var{function} is not
-currently traced.
-@end defun
+This function removes the trace on @var{function}.  This has no effect
+if @var{function} was not being traced.  When called interactively, it
+prompts for @var{function} in the minibuffer.
+@end deffn
 
 @deffn Command untrace-package prefix
 This function calls @code{untrace-function} for all functions with
 names starting with @var{prefix}.  When called interactively, it
 prompts for @var{prefix} in the minibuffer.
-@end defun
+@end deffn
 
 @deffn Command untrace-regexp regexp
 This function calls @code{untrace-function} for all functions matching
 @var{regexp}.  When called interactively, it prompts for @var{regexp}
 in the minibuffer.
-@end defun
+@end deffn
 
 @deffn Command untrace-library library
 This function calls @code{untrace-function} for all functions defined
 in @var{library}.  When called interactively, it prompts for
 @var{library} in the minibuffer.
-@end defun
+@end deffn
 
 @deffn Command untrace-all
 This function calls @code{untrace-function} for all functions.
-@end defun
+@end deffn
 
 @deffn Function trace-values &rest values
 This function inserts a message showing @var{values} into the trace
 buffer.  You can add explicit calls to @code{trace-values} into your
 functions in order to provide additional tracing information.
-@end defun
+@end deffn
 
 @defvar Variable inhibit-trace
 If non-nil, all tracing is inhibited.
