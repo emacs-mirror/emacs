@@ -2452,8 +2452,8 @@ list that represents a doc string reference.
             (print-symbols-bare t))     ; Possibly redundant binding.
         ;; Insert the doc string, and make it a comment with #@LENGTH.
         (when (and (>= (nth 1 info) 0) dynamic-docstrings)
-             (setq position (byte-compile-output-as-comment
-                             (nth (nth 1 info) form) nil)))
+          (setq position (byte-compile-output-as-comment
+                          (nth (nth 1 info) form) nil)))
 
         (let ((print-continuous-numbering t)
               print-number-table
