@@ -3270,6 +3270,9 @@ implementation will be used."
 
       (condition-case err
 	  (cond
+	   ;; Empty file.
+	   ((zerop size))
+
 	   ;; `copy-file' handles direct copy and out-of-band methods.
 	   ((or (tramp-local-host-p v)
 		(tramp-method-out-of-band-p v size))
@@ -3284,6 +3287,11 @@ implementation will be used."
 	      (tramp-barf-unless-okay
 	       v (format rem-enc (tramp-shell-quote-argument localname))
 	       "Encoding remote file failed"))
+
+	    ;; Check error.  `rem-enc' could be a pipe, which doesn't
+	    ;; flag the error in the first command.
+	    (when (zerop (buffer-size (tramp-get-buffer v)))
+	      (tramp-error v 'file-error' "Encoding remote file failed"))
 
 	    (with-tramp-progress-reporter
 		v 3 (format-message
