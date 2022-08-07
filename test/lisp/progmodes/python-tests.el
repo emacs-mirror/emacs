@@ -2734,6 +2734,28 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (point))
               (python-tests-look-at "def wwrap(f):" -1)))))
 
+(ert-deftest python-nav-beginning-of-block-2 ()
+  (python-tests-with-temp-buffer
+   "
+if True:
+
+    pass
+if False:
+    # comment
+    pass
+"
+   (python-tests-look-at "if True:")
+   (forward-line)
+   (should (= (save-excursion
+                (python-nav-beginning-of-block)
+                (point))
+              (python-tests-look-at "if True:" -1)))
+   (python-tests-look-at "# comment")
+   (should (= (save-excursion
+                (python-nav-beginning-of-block)
+                (point))
+              (python-tests-look-at "if False:" -1)))))
+
 (ert-deftest python-nav-end-of-block-1 ()
   (python-tests-with-temp-buffer
    "

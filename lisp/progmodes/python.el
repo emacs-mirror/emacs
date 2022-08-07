@@ -1761,16 +1761,16 @@ backward to previous statement."
   "Move to start of current block."
   (interactive "^")
   (let ((starting-pos (point)))
+    ;; Go to first line beginning a statement
+    (while (and (not (bobp))
+                (or (and (python-nav-beginning-of-statement) nil)
+                    (python-info-current-line-comment-p)
+                    (python-info-current-line-empty-p)))
+      (forward-line -1))
     (if (progn
           (python-nav-beginning-of-statement)
           (looking-at (python-rx block-start)))
         (point-marker)
-      ;; Go to first line beginning a statement
-      (while (and (not (bobp))
-                  (or (and (python-nav-beginning-of-statement) nil)
-                      (python-info-current-line-comment-p)
-                      (python-info-current-line-empty-p)))
-        (forward-line -1))
       (let ((block-matching-indent
              (- (current-indentation) python-indent-offset)))
         (while
