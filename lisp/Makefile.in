@@ -171,10 +171,11 @@ org-manuals: main-first
 
 ## Comments on loaddefs generation:
 
-# In ../src, the emacs target depends on loaddefs but not on eg leim-list.
-# So having leim as a dependency of loaddefs (via gen-lisp) ensures leim-list
-# gets created before the final emacs is dumped.  Having leim
-# dependencies in ../src as well would create a parallel race condition.
+# loaddefs depends on gen-lisp because in ../src, the emacs target
+# depends on loaddefs but not on eg leim-list.  So having leim as a
+# dependency of loaddefs (via gen-lisp) ensures leim-list gets created
+# before the final emacs is dumped.  Having leim dependencies in
+# ../src as well would create a parallel race condition.
 #
 # FIXME: Is the following true any more?
 #
@@ -190,7 +191,7 @@ org-manuals: main-first
 # "all" dependency.  "leim" isn't really a dependency here, but we
 # need leim-list.el at about the same time, so ensure that it's
 # generated, too.
-autoloads: $(lisp)/emacs-lisp/loaddefs-gen.elc leim
+autoloads: $(lisp)/emacs-lisp/loaddefs-gen.elc gen-lisp
 	$(AM_V_GEN)$(emacs) \
             -l $(lisp)/emacs-lisp/loaddefs-gen.elc \
 	    -f loaddefs-generate--emacs-batch ${SUBDIRS_ALMOST}
