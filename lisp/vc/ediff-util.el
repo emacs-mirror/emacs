@@ -296,10 +296,6 @@ to invocation.")
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
 
-      (if (ediff-window-display-p)
-	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil 'local))
-      (setq ediff-mouse-pixel-position (mouse-pixel-position))
-
       ;; adjust for merge jobs
       (if ediff-merge-job
 	  (let ((buf

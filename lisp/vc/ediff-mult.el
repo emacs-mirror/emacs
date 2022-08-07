@@ -1861,7 +1861,6 @@ all marked sessions must be active."
 	    ;; handle an individual session with a live control buffer
 	    ((ediff-buffer-live-p session-buf)
 	     (ediff-with-current-buffer session-buf
-	       (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	       (ediff-recenter 'no-rehighlight)))
 
 	    ((ediff-problematic-session-p info)
@@ -2005,7 +2004,6 @@ all marked sessions must be active."
 	    (ediff-show-meta-buffer ctl-buf t)
 	  ;; it's a session buffer -- invoke go back to session
 	  (ediff-with-current-buffer ctl-buf
-	    (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	    (ediff-recenter 'no-rehighlight)))
       (beep)
       (message "You've selected a stale session --- try again")

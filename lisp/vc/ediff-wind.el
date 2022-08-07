@@ -179,6 +179,7 @@ Used internally---not a user option.")
 (ediff-defvar-local ediff-mouse-pixel-position nil
   "Position of the mouse.
 Used to decide whether to warp the mouse into control frame.")
+(make-obsolete-variable 'ediff-mouse-pixel-position "it is unused." "29.1")
 
 ;; not used for now
 (defvar ediff-mouse-pixel-threshold 30
@@ -901,7 +902,6 @@ Create a new splittable frame if none is found."
 	fheight fwidth adjusted-parameters)
 
     (with-current-buffer ctl-buffer
-      ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
       (run-hooks 'ediff-before-setup-control-frame-hook))
 
     (setq old-ctl-frame (with-current-buffer ctl-buffer ediff-control-frame))
