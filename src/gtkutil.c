@@ -6658,6 +6658,17 @@ xg_filter_key (struct frame *frame, XEvent *xkey)
 }
 #endif
 
+#ifndef HAVE_PGTK
+void
+xg_set_user_timestamp (struct frame *frame, guint32 time)
+{
+  GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (frame);
+  GdkWindow *window = gtk_widget_get_window (widget);
+  eassert (window);
+  gdk_x11_window_set_user_time (window, time);
+}
+#endif
+
 #if GTK_CHECK_VERSION (3, 10, 0)
 static void
 xg_widget_style_updated (GtkWidget *widget, gpointer user_data)

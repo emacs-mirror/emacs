@@ -1721,7 +1721,9 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))
     (when server-raise-frame
-      (select-frame-set-input-focus (window-frame)))))
+      (let ((frame (window-frame)))
+        (frame-note-oob-interaction frame)
+        (select-frame-set-input-focus frame)))))
 
 (defvar server-stop-automatically nil
   "Internal status variable for `server-stop-automatically'.")

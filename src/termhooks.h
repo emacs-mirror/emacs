@@ -860,6 +860,13 @@ struct terminal
      will be considered as grabbed.  */
   bool (*any_grab_hook) (Display_Info *);
 #endif
+
+  /* Called to note that the user has interacted with a window system
+     frame outside the window system and that we should update the
+     window system's notion of the user's last interaction time with
+     that frame.  */
+  void (*note_oob_interaction_hook) (struct frame *);
+
 } GCALIGNED_STRUCT;
 
 INLINE bool
