@@ -1272,9 +1272,6 @@ This default should work without changes."
   "Temporary file used for refining difference regions in buffer C.")
 
 
-(defun ediff-file-remote-p (file-name)
-  (file-remote-p file-name))
-
 ;; File for which we can get attributes, such as size or date
 (defun ediff-listable-file (file-name)
   (let ((handler (find-file-name-handler file-name 'file-local-copy)))
@@ -1564,6 +1561,7 @@ This default should work without changes."
 (define-obsolete-function-alias 'ediff-with-syntax-table #'with-syntax-table "27.1")
 (define-obsolete-function-alias 'ediff-convert-standard-filename #'convert-standard-filename "28.1")
 (define-obsolete-function-alias 'ediff-hide-face #'ignore "28.1")
+(define-obsolete-function-alias 'ediff-file-remote-p #'file-remote-p "29.1")
 
 (provide 'ediff-init)
 ;;; ediff-init.el ends here

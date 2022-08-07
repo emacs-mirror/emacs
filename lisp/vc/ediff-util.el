@@ -3273,7 +3273,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 (defun ediff-filename-magic-p (file)
   (or (ediff-file-compressed-p file)
-      (ediff-file-remote-p file)))
+      (file-remote-p file)))
 
 
 (defun ediff-save-buffer (arg)
@@ -3394,11 +3394,11 @@ Without an argument, it saves customized diff argument, if available
 	file-A file-B)
     (unless (and buf-A-file-name
 		 (file-exists-p buf-A-file-name)
-		 (not (ediff-file-remote-p buf-A-file-name)))
+                 (not (file-remote-p buf-A-file-name)))
       (setq file-A (ediff-make-temp-file ediff-buffer-A)))
     (unless (and buf-B-file-name
 		 (file-exists-p buf-B-file-name)
-		 (not (ediff-file-remote-p buf-B-file-name)))
+                 (not (file-remote-p buf-B-file-name)))
       (setq file-B (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
 	(setq ediff-custom-diff-buffer
