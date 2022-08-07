@@ -24,9 +24,7 @@
 
 ;;; Code:
 
-
 (require 'diff-mode) ; For `diff-file-junk-re'.
-
 
 (defgroup ediff-ptch nil
   "Ediff patch support."

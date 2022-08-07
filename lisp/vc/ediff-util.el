@@ -24,23 +24,10 @@
 
 ;;; Code:
 
-
 (provide 'ediff-util)    ;FIXME: Break cyclic dependencies and move to the end!
 
-;; Compiler pacifier
 (defvar ediff-use-toolbar-p)
-(defvar ediff-toolbar-height)
-(defvar ediff-toolbar)
-(defvar ediff-toolbar-3way)
-(defvar bottom-toolbar)
-(defvar bottom-toolbar-visible-p)
-(defvar bottom-toolbar-height)
-(defvar mark-active)
-
 (defvar ediff-after-quit-hook-internal nil)
-
-;; end pacifier
-
 
 (require 'ediff-init)
 (require 'ediff-help)
@@ -1336,10 +1323,6 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
 	      ediff-session-registry)
 	(if (ediff-in-control-buffer-p)
 	    (ediff-recenter 'no-rehighlight)))))
-
-
-(define-obsolete-function-alias 'ediff-kill-bottom-toolbar #'ignore "27.1")
-(define-obsolete-function-alias 'ediff-make-bottom-toolbar #'ignore "27.1")
 
 ;; Merging
 
@@ -3082,10 +3065,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   )
 
 
-;; for compatibility
-(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook
-  #'minibuffer-with-setup-hook "28.1")
-
 ;; This is adapted from a similar function in `emerge.el'.
 ;; PROMPT should not have a trailing ': ', so that it can be modified
 ;; according to context.
@@ -3202,16 +3181,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
     file))
 
 
-;; Quote metacharacters (using \) when executing diff in Unix.
-;;(defun ediff-protect-metachars (str)
-;;  (let ((limit 0))
-;;    (while (string-match ediff-metachars str limit)
-;;      (setq str (concat (substring str 0 (match-beginning 0))
-;;			"\\"
-;;			(substring str (match-beginning 0))))
-;;      (setq limit (1+ (match-end 0)))))
-;;  str)
-
 ;; Make sure the current buffer (for a file) has the same contents as the
 ;; file on disk, and attempt to remedy the situation if not.
 ;; Signal an error if we can't make them the same, or the user doesn't want
@@ -3272,6 +3241,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 
 (defun ediff-filename-magic-p (file)
+  (declare (obsolete nil "29.1"))
   (or (ediff-file-compressed-p file)
       (file-remote-p file)))
 
@@ -3320,7 +3290,8 @@ Without an argument, it saves customized diff argument, if available
     (select-window wind)
     (delete-other-windows)
     (or (mark) (push-mark))
-    (ediff-activate-mark)
+    (setq mark-active 'ediff-util)
+    (setq-local transient-mark-mode t)
     (split-window-vertically)
     (ediff-select-lowest-window)
     (setq other-wind (selected-window))
@@ -3899,11 +3870,9 @@ Ediff Control Panel to restore highlighting."
   "Submit bug report on Ediff."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (defvar ediff-device-type)
   (defvar ediff-buffer-name)
   (let ((reporter-prompt-for-summary-p t)
 	(ctl-buf ediff-control-buffer)
-	(ediff-device-type window-system)
 	varlist salutation ediff-buffer-name)
     (setq varlist '(ediff-diff-program ediff-diff-options
                     ediff-diff3-program ediff-diff3-options
@@ -3922,8 +3891,7 @@ Ediff Control Panel to restore highlighting."
 		    ediff-job-name
 		    ediff-word-mode
 		    ediff-buffer-name
-		    ediff-device-type
-		    ))
+                    window-system))
     (setq salutation "
 Congratulations!  You may have unearthed a bug in Ediff!
 
@@ -4009,14 +3977,10 @@ Mail anyway? (y or n) ")
 	      (syntax-table))))
   )
 
-
-(define-obsolete-function-alias 'ediff-deactivate-mark #'deactivate-mark "27.1")
-
 (defun ediff-activate-mark ()
+  (declare (obsolete nil "29.1"))
   (setq mark-active 'ediff-util)
   (setq-local transient-mark-mode t))
-
-(define-obsolete-function-alias 'ediff-nuke-selective-display #'ignore "27.1")
 
 ;; The next two are modified versions from emerge.el.
 ;; VARS must be a list of symbols
@@ -4169,7 +4133,12 @@ Mail anyway? (y or n) ")
 	(key-description desc)
       (format "M-x %s" func-def))))
 
+(define-obsolete-function-alias 'ediff-kill-bottom-toolbar #'ignore "27.1")
+(define-obsolete-function-alias 'ediff-make-bottom-toolbar #'ignore "27.1")
+(define-obsolete-function-alias 'ediff-deactivate-mark #'deactivate-mark "27.1")
+(define-obsolete-function-alias 'ediff-nuke-selective-display #'ignore "27.1")
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
+(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook #'minibuffer-with-setup-hook "28.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
 (define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 (define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")

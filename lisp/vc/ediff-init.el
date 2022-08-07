@@ -27,17 +27,13 @@
 (require 'cl-lib)
 (require 'ediff-util)
 
-;; Start compiler pacifier
 (defvar ediff-metajob-name)
 (defvar ediff-meta-buffer)
 (defvar ediff-grab-mouse)
 (defvar ediff-mouse-pixel-position)
 (defvar ediff-mouse-pixel-threshold)
-(defvar ediff-whitespace)
 (defvar ediff-multiframe)
 (defvar ediff-use-toolbar-p)
-(defvar mswindowsx-bitmap-file-path)
-;; end pacifier
 
 (defvar ediff-force-faces nil
   "If t, Ediff will think that it is running on a display that supports faces.
@@ -57,11 +53,6 @@ that Ediff doesn't know about.")
 
 ;; toolbar support for emacs hasn't been implemented in ediff
 (defun ediff-has-toolbar-support-p ()
-  nil)
-
-
-(defun ediff-has-gutter-support-p ()
-  (declare (obsolete nil "27.1"))
   nil)
 
 (defun ediff-use-toolbar-p ()
@@ -717,18 +708,6 @@ Ediff needs to find fine differences."
   :type 'symbol
   :group 'ediff)
 
-
-(define-obsolete-function-alias 'ediff-read-event #'read-event "27.1")
-
-(define-obsolete-function-alias 'ediff-overlayp #'overlayp "27.1")
-
-(define-obsolete-function-alias 'ediff-make-overlay #'make-overlay "27.1")
-
-(define-obsolete-function-alias 'ediff-delete-overlay #'delete-overlay "27.1")
-
-(define-obsolete-function-alias 'ediff-color-display-p #'display-color-p "27.1")
-
-
 ;; A var local to each control panel buffer.  Indicates highlighting style
 ;; in effect for this buffer: `face', `ascii',
 ;; `off' -- turned off (on a dumb terminal only).
@@ -967,8 +946,6 @@ this variable represents.")
   (cond ((not (ediff-has-face-support-p)) nil)
 	((and (boundp 'x-bitmap-file-path)
 	      (locate-library "stipple" t x-bitmap-file-path)) "stipple")
-	((and (boundp 'mswindowsx-bitmap-file-path)
-	      (locate-library "stipple" t mswindowsx-bitmap-file-path)) "stipple")
 	(t "Stipple")))
 
 (defface ediff-even-diff-A
@@ -1275,6 +1252,7 @@ This default should work without changes."
 
 
 (defsubst ediff-frame-unsplittable-p (frame)
+  (declare (obsolete nil "29.1"))
   (cdr (assq 'unsplittable (frame-parameters frame))))
 
 (defsubst ediff-get-next-window (wind prev-wind)
@@ -1349,28 +1327,22 @@ This default should work without changes."
       (ediff-clear-fine-differences-in-one-buffer n 'C)))
 
 
-(defsubst ediff-mouse-event-p (event)
-  (string-match "mouse" (format "%S" (event-basic-type event))))
-
-
 (defsubst ediff-key-press-event-p (event)
   (or (char-or-string-p event) (symbolp event)))
 
 (defun ediff-event-point (event)
-  (cond ((ediff-mouse-event-p event)
+  (cond ((mouse-event-p event)
 	 (posn-point (event-start event)))
 	((ediff-key-press-event-p event)
 	 (point))
 	(t (error "Error"))))
 
 (defun ediff-event-buffer (event)
-  (cond ((ediff-mouse-event-p event)
+  (cond ((mouse-event-p event)
 	 (window-buffer (posn-window (event-start event))))
 	((ediff-key-press-event-p event)
 	 (current-buffer))
 	(t (error "Error"))))
-
-(define-obsolete-function-alias 'ediff-event-key #'identity "27.1")
 
 (defun ediff-last-command-char ()
   (declare (obsolete last-command-event "27.1"))
@@ -1383,14 +1355,8 @@ This default should work without changes."
        (eq (frame-visible-p frame) 'icon)))
 
 (defsubst ediff-window-visible-p (wind)
-  ;; under TTY, window-live-p also means window is visible
   (and (window-live-p wind)
-       (or (not (display-graphic-p))
-	   (frame-visible-p (window-frame wind)))))
-
-
-(define-obsolete-function-alias 'ediff-frame-char-width
-  #'frame-char-width "27.1")
+       (frame-visible-p (window-frame wind))))
 
 (defun ediff-reset-mouse (&optional frame do-not-grab-mouse)
   (or frame (setq frame (selected-frame)))
@@ -1433,8 +1399,6 @@ This default should work without changes."
                             ediff-mouse-pixel-threshold))))
               (t nil)))))
 
-(define-obsolete-function-alias 'ediff-frame-char-height
-  #'frame-char-height "27.1")
 
 ;; Some overlay functions
 
@@ -1448,12 +1412,6 @@ This default should work without changes."
 
 (defsubst ediff-empty-overlay-p (overl)
   (= (ediff-overlay-start overl) (ediff-overlay-end overl)))
-
-(define-obsolete-function-alias 'ediff-overlay-buffer
-  #'overlay-buffer "27.1")
-
-(define-obsolete-function-alias 'ediff-overlay-get #'overlay-get "27.1")
-
 
 (defun ediff-move-overlay (overlay beg end &optional buffer)
   "If OVERLAY's buffer exists, call `move-overlay'."
@@ -1493,7 +1451,7 @@ This default should work without changes."
     (ediff-abbreviate-file-name (file-name-directory dir))))
 
 (defsubst ediff-nonempty-string-p (string)
-  (and (stringp string) (not (string= string ""))))
+  (and (stringp string) (string-empty-p string)))
 
 (defun ediff-abbrev-jobname (jobname)
   (cond ((eq jobname 'ediff-directories)
@@ -1554,11 +1512,23 @@ This default should work without changes."
   (ediff-file-attributes filename 5))
 
 
+(define-obsolete-function-alias 'ediff-has-gutter-support-p #'ignore "27.1")
+(define-obsolete-function-alias 'ediff-event-key #'identity "27.1")
+(define-obsolete-function-alias 'ediff-frame-char-width #'frame-char-width "27.1")
+(define-obsolete-function-alias 'ediff-frame-char-height #'frame-char-height "27.1")
+(define-obsolete-function-alias 'ediff-overlay-buffer #'overlay-buffer "27.1")
+(define-obsolete-function-alias 'ediff-overlay-get #'overlay-get "27.1")
+(define-obsolete-function-alias 'ediff-read-event #'read-event "27.1")
+(define-obsolete-function-alias 'ediff-overlayp #'overlayp "27.1")
+(define-obsolete-function-alias 'ediff-make-overlay #'make-overlay "27.1")
+(define-obsolete-function-alias 'ediff-delete-overlay #'delete-overlay "27.1")
+(define-obsolete-function-alias 'ediff-color-display-p #'display-color-p "27.1")
 (define-obsolete-function-alias 'ediff-with-syntax-table #'with-syntax-table "27.1")
 (define-obsolete-function-alias 'ediff-convert-standard-filename #'convert-standard-filename "28.1")
 (define-obsolete-function-alias 'ediff-hide-face #'ignore "28.1")
 (define-obsolete-function-alias 'ediff-file-remote-p #'file-remote-p "29.1")
 (define-obsolete-function-alias 'ediff-window-display-p #'display-graphic-p "29.1")
+(define-obsolete-function-alias 'ediff-mouse-event-p #'mouse-event-p "29.1")
 
 (provide 'ediff-init)
 ;;; ediff-init.el ends here
