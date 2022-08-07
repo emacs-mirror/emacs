@@ -936,7 +936,6 @@ Otherwise, simply insert MH-INS-STRING before each line."
 (provide 'mh-letter)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -376,7 +376,6 @@ This button runs `mh-widen'"))
 (provide 'mh-tool-bar)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

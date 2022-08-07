@@ -1272,7 +1272,6 @@ discarded."
 (provide 'mh-comp)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -5852,11 +5852,6 @@ REPORT-FN is Flymake's callback function."
 
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
-
 (provide 'python)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 
 ;;; python.el ends here

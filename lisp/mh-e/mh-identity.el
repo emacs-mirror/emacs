@@ -316,7 +316,6 @@ the header."
 (provide 'mh-identity)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

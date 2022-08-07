@@ -1010,7 +1010,6 @@ If the current line is too long truncate a part of it as well."
 (provide 'mh-utils)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

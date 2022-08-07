@@ -109,7 +109,6 @@ PROMPT overrides the default one used to ask user for a file name."
 
 ;; Local Variables:
 ;; no-update-autoloads: t
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

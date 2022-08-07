@@ -242,7 +242,6 @@ Consider using \\[mh-ps-print-msg] instead."
 (provide 'mh-print)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

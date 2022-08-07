@@ -78,7 +78,6 @@
 (provide 'mh-inc)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

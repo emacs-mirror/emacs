@@ -894,7 +894,6 @@ See also `mh-folder-mode'.
 (provide 'mh-show)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

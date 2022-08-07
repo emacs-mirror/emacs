@@ -2012,7 +2012,6 @@ If MSG is nil then act on the message at point"
 (provide 'mh-folder)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

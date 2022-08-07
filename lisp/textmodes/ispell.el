@@ -4235,17 +4235,10 @@ Both should not be used to define a buffer-local dictionary."
 
 ;;; LOCAL VARIABLES AND BUFFER-LOCAL VALUE EXAMPLES.
 
-;; Local Variable options:
-;; mode: name(-mode)
-;; eval: expression
-;; local-variable: value
-
 ;; The following sets the buffer local dictionary to `american' English
 ;; and spell checks only comments.
 
 ;; Local Variables:
-;; mode: emacs-lisp
-;; comment-column: 40
 ;; ispell-check-comments: exclusive
 ;; ispell-local-dictionary: "american"
 ;; End:

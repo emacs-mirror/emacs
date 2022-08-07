@@ -414,7 +414,6 @@ The argument CHANGE is ignored."
 (provide 'mh-xface)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

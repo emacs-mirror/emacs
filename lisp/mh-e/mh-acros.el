@@ -289,7 +289,6 @@ form (FUNCNAME ARGLIST BODY...), similar to defun."
 
 ;; Local Variables:
 ;; no-byte-compile: t
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -2499,8 +2499,4 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 
 (provide 'filesets)
 
-;; Local Variables:
-;; sentence-end-double-space:t
-;; End:
-
 ;;; filesets.el ends here

@@ -996,7 +996,6 @@ removed."
 (provide 'mh-seq)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

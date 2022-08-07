@@ -662,7 +662,6 @@ show buffer, the message in the show buffer doesn't match."
 (provide 'mh-alias)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

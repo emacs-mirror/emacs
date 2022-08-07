@@ -1932,7 +1932,6 @@ folder buffer."
 (provide 'mh-search)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 
