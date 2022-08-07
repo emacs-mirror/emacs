@@ -1663,7 +1663,7 @@ this file.  Usage:
 :custom-face     Call `custom-set-faces' with each face definition.
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive."
-  (declare (indent 1))
+  (declare (indent defun))
   (unless (memq :disabled args)
     (macroexp-progn
      (use-package-concat
@@ -1681,8 +1681,6 @@ this file.  Usage:
                      name (error-message-string err)) :error)))))
       (when use-package-compute-statistics
         `((use-package-statistics-gather :use-package ',name t)))))))
-
-(put 'use-package 'lisp-indent-function 'defun)
 
 (provide 'use-package-core)
 
