@@ -176,7 +176,7 @@ If INTERACTIVE is non-nil, don't compile the fortune file afterwards."
 	  (fortune-compile file)))))
 
 (defun fortune-ask-file ()
-  "Asks the user for a file name."
+  "Ask the user for the file name of the fortune file."
   (expand-file-name
    (read-file-name
     "Fortune file to use: "

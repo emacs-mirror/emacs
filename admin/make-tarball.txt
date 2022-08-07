@@ -185,10 +185,11 @@ General steps (for each step, check for possible errors):
 
      ./admin/diff-tar-files emacs-OLD.tar emacs-NEW.tar
 
-    Alternatively:
+    Alternatively, if you want to use the compressed tarballs (which
+    diff-tar-files doesn't understand):
 
-     tar tf emacs-OLD.tar | sed -e 's,^[^/]*,,' | sort > old_tmp
-     tar tf emacs-NEW.tar | sed -e 's,^[^/]*,,' | sort > new_tmp
+     tar tJf emacs-OLD.tar.xz | sed -e 's,^[^/]*,,' | sort > old_tmp
+     tar tJf emacs-NEW.tar.xz | sed -e 's,^[^/]*,,' | sort > new_tmp
      diff -u old_tmp new_tmp
 
     If this is the first pretest of a major release, just comparing

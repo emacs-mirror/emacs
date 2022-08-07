@@ -2329,8 +2329,23 @@ terminals display them as 1-column glyphs.  Again, this causes cursor
 addressing to get out of sync and eventually messes up the display.
 
 One possible workaround for problems caused by character composition
-is to turn off 'auto-composition-mode' on Kitty terminals.
+is to turn off 'auto-composition-mode' on Kitty terminals, e.g. by
+customizing the 'auto-composition-mode' variable to have as value a
+string that the 'tty-type' function returns on those terminals.
 
+*** Display artifacts on the Alacritty text terminal
+
+This terminal is known to cause problems with Emoji sequences: when
+displaying them, the Emacs text-mode frame could show gaps and other
+visual artifacts.
+
+The solution is to disable 'auto-composition-mode' on these
+terminals, for example, like this:
+
+  (setq auto-composition-mode "alacritty")
+
+This disables 'auto-composition-mode' on frames that display on
+terminals of this type.
 
 * Runtime problems specific to individual Unix variants
 
