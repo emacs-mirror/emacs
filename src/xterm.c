@@ -6581,6 +6581,12 @@ x_set_frame_alpha (struct frame *f)
   x_stop_ignoring_errors (dpyinfo);
 }
 
+/***********************************************************************
+		    Starting and ending an update
+ ***********************************************************************/
+
+#if defined HAVE_XSYNC && !defined USE_GTK
+
 /* Wait for an event matching PREDICATE to show up in the event
    queue, or TIMEOUT to elapse.
 
@@ -6633,12 +6639,6 @@ x_if_event (Display *dpy, XEvent *event_return,
 	return 1;
     }
 }
-
-/***********************************************************************
-		    Starting and ending an update
- ***********************************************************************/
-
-#if defined HAVE_XSYNC && !defined USE_GTK
 
 /* Return the monotonic time corresponding to the high-resolution
    server timestamp TIMESTAMP.  Return 0 if the necessary information
@@ -7521,25 +7521,26 @@ static void x_check_font (struct frame *, struct font *);
    user time.  We don't sanitize timestamps from events sent by the X
    server itself because some Lisp might have set the user time to a
    ridiculously large value, and this way a more reasonable timestamp
-   can be obtained upon the next event.  If EXPLICIT_FRAME is NULL,
-   update the focused frame's timestamp; otherwise, update
-   EXPLICIT_FRAME's. */
+   can be obtained upon the next event.  */
 
 static void
-x_display_set_last_user_time_1 (struct x_display_info *dpyinfo, Time time,
-				bool send_event,
-				struct frame *explicit_frame)
+x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
+			      bool send_event)
 {
-  struct frame *frame;
+#ifndef USE_GTK
+  struct frame *focus_frame;
   Time old_time;
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC
   uint64_t monotonic_time;
 #endif
 
-  frame = explicit_frame ? explicit_frame : dpyinfo->x_focus_frame;
+  focus_frame = dpyinfo->x_focus_frame;
   old_time = dpyinfo->last_user_time;
+#endif
 
+#ifdef ENABLE_CHECKING
   eassert (time <= X_ULONG_MAX);
+#endif
 
   if (!send_event || time > dpyinfo->last_user_time)
     dpyinfo->last_user_time = time;
@@ -7566,35 +7567,23 @@ x_display_set_last_user_time_1 (struct x_display_info *dpyinfo, Time time,
     }
 #endif
 
-  /* Don't waste bandwidth if the time hasn't actually changed.
-     Update anyway if we're updating the timestamp for a non-focused
-     frame, since the event loop might not have gotten around to
-     updating that frame's timestamp.  */
-  if (frame && (explicit_frame || old_time != dpyinfo->last_user_time))
+#ifndef USE_GTK
+  /* Don't waste bandwidth if the time hasn't actually changed.  */
+  if (focus_frame && old_time != dpyinfo->last_user_time)
     {
       time = dpyinfo->last_user_time;
 
-      while (FRAME_PARENT_FRAME (frame))
-	frame = FRAME_PARENT_FRAME (frame);
+      while (FRAME_PARENT_FRAME (focus_frame))
+	focus_frame = FRAME_PARENT_FRAME (focus_frame);
 
-#if defined USE_GTK
-      xg_set_user_timestamp (frame, time);
-#else
-      if (FRAME_X_OUTPUT (frame)->user_time_window != None)
+      if (FRAME_X_OUTPUT (focus_frame)->user_time_window != None)
 	XChangeProperty (dpyinfo->display,
-			 FRAME_X_OUTPUT (frame)->user_time_window,
+			 FRAME_X_OUTPUT (focus_frame)->user_time_window,
 			 dpyinfo->Xatom_net_wm_user_time,
 			 XA_CARDINAL, 32, PropModeReplace,
 			 (unsigned char *) &time, 1);
-#endif
     }
-}
-
-static void
-x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
-			      bool send_event)
-{
-  x_display_set_last_user_time_1 (dpyinfo, time, send_event, NULL);
+#endif
 }
 
 #ifdef USE_GTK
@@ -25894,11 +25883,9 @@ xembed_request_focus (struct frame *f)
 			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 }
 
-/* Activate frame with Extended Window Manager Hints
+/* Activate frame with Extended Window Manager Hints */
 
-Return whether we were successful in doing so.  */
-
-static bool
+static void
 x_ewmh_activate_frame (struct frame *f)
 {
   XEvent msg;
@@ -25906,7 +25893,8 @@ x_ewmh_activate_frame (struct frame *f)
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+  if (FRAME_VISIBLE_P (f)
+      && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
     {
       /* See the documentation at
 	 https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
@@ -25926,9 +25914,7 @@ x_ewmh_activate_frame (struct frame *f)
       XSendEvent (dpyinfo->display, dpyinfo->root_window,
 		  False, (SubstructureRedirectMask
 			  | SubstructureNotifyMask), &msg);
-      return true;
     }
-  return false;
 }
 
 static Lisp_Object
@@ -25966,14 +25952,16 @@ x_focus_frame (struct frame *f, bool noactivate)
        events.  See XEmbed Protocol Specification at
        https://freedesktop.org/wiki/Specifications/xembed-spec/  */
     xembed_request_focus (f);
-  else if (noactivate ||
-	   (!FRAME_PARENT_FRAME (f) && !x_ewmh_activate_frame (f)))
+  else
     {
       /* Ignore any BadMatch error this request might result in.  */
       x_ignore_errors_for_next_request (dpyinfo);
       XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      RevertToParent, CurrentTime);
       x_stop_ignoring_errors (dpyinfo);
+
+      if (!noactivate)
+	x_ewmh_activate_frame (f);
     }
 }
 
@@ -28588,55 +28576,6 @@ x_have_any_grab (struct x_display_info *dpyinfo)
 }
 #endif
 
-static Bool
-server_timestamp_predicate (Display *display,
-			    XEvent *xevent,
-			    XPointer arg)
-{
-  XID *args = (XID *) arg;
-
-  if (xevent->type == PropertyNotify
-      && xevent->xproperty.window == args[0]
-      && xevent->xproperty.atom == args[1])
-    return True;
-
-  return False;
-}
-
-static bool
-x_get_server_time (struct frame *f, Time *time)
-{
-  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  Atom property_atom = dpyinfo->Xatom_EMACS_SERVER_TIME_PROP;
-  XEvent event;
-
-  XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
-		   property_atom, XA_ATOM, 32,
-		   PropModeReplace, (unsigned char *) &property_atom, 1);
-
-  if (x_if_event (dpyinfo->display, &event, server_timestamp_predicate,
-		  (XPointer) &(XID[]) {FRAME_OUTER_WINDOW (f), property_atom},
-		  dtotimespec (XFLOAT_DATA (Vx_wait_for_event_timeout))))
-    return false;
-  *time = event.xproperty.time;
-  return true;
-}
-
-static void
-x_note_oob_interaction (struct frame *f)
-{
-  while (FRAME_PARENT_FRAME (f))
-    f = FRAME_PARENT_FRAME (f);
-  if (FRAME_LIVE_P (f))
-    {
-      Time server_time;
-      if (!x_get_server_time (f, &server_time))
-	error ("Timed out waiting for server timestamp");
-      x_display_set_last_user_time_1 (
-	FRAME_DISPLAY_INFO (f), server_time, false, f);
-    }
-}
-
 /* Create a struct terminal, initialize it with the X11 specific
    functions and make DISPLAY->TERMINAL point to it.  */
 
@@ -28707,7 +28646,6 @@ x_create_terminal (struct x_display_info *dpyinfo)
 #ifdef HAVE_XINPUT2
   terminal->any_grab_hook = x_have_any_grab;
 #endif
-  terminal->note_oob_interaction_hook = x_note_oob_interaction;
   /* Other hooks are NULL by default.  */
 
   return terminal;

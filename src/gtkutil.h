@@ -224,10 +224,6 @@ extern bool xg_is_menu_window (Display *dpy, Window);
 extern bool xg_filter_key (struct frame *frame, XEvent *xkey);
 #endif
 
-#ifndef HAVE_PGTK
-extern void xg_set_user_timestamp (struct frame *frame, guint32 time);
-#endif
-
 /* Mark all callback data that are Lisp_Objects during GC.  */
 extern void xg_mark_data (void);
 

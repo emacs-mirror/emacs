@@ -5942,25 +5942,6 @@ This function is for internal use only.  */)
 
   return f->was_invisible ? Qt : Qnil;
 }
-
-DEFUN ("frame-note-oob-interaction",
-       Fframe_note_oob_interaction,
-       Sframe_note_oob_interaction, 0, 1, 0,
-       doc: /* Note that the user has interacted with a frame.
-This function is useful when the user interacts with Emacs out-of-band
-(e.g., via the server) and we want to pretend for purposes of Emacs
-interacting with the window system that the last interaction time was
-the time of that out-of-band interaction, not the time of the last
-window system input event delivered to that frame.  */)
-  (Lisp_Object frame)
-{
-  struct frame *f = decode_any_frame (frame);
-  if (FRAME_LIVE_P (f) &&
-      FRAME_TERMINAL (f)->note_oob_interaction_hook)
-    FRAME_TERMINAL (f)->note_oob_interaction_hook (f);
-  return Qnil;
-}
-
 
 /***********************************************************************
 			Multimonitor data
@@ -6645,7 +6626,6 @@ iconify the top level frame instead.  */);
   defsubr (&Sframe_window_state_change);
   defsubr (&Sset_frame_window_state_change);
   defsubr (&Sframe_scale_factor);
-  defsubr (&Sframe_note_oob_interaction);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);
