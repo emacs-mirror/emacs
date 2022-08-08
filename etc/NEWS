@@ -887,6 +887,7 @@ specifiers can now use ':type webp'.
 
 ** Windows
 
++++
 *** New user option 'display-buffer-avoid-small-windows'.
 If non-nil, this should be a window height, a number.  Windows smaller
 than this will be avoided by 'display-buffer', if possible.
@@ -1194,9 +1195,11 @@ This command visits the file on the current line with EWW.
 
 ** Elisp
 
+---
 *** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
 This command evals the forms in the current buffer.
 
+---
 *** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
 These commands (bound to 'C-c C-f' and 'C-c C-b', respectively)
 byte-compile the visited file and the current buffer, respectively.
@@ -1231,6 +1234,7 @@ This controls how statements like the following are indented:
         bar
 
 ** Cperl Mode
+
 ---
 *** New user option 'cperl-file-style'.
 This option determines the indentation style to be used.  It can also
@@ -1639,6 +1643,7 @@ the common "utm_" trackers from URLs.
 
 ** Find-Dired
 
+---
 *** New command 'find-dired-with-command'.
 This enables users to run 'find-dired' with an arbitrary command,
 enabling running commands previously unsupported and also enabling new
@@ -2246,6 +2251,7 @@ The old name is still available as an obsolete function alias.
 Allows the creation of "functions with slots" or "function objects"
 via the macros 'oclosure-define' and 'oclosure-lambda'.
 
++++
 *** New generic function 'oclosure-interactive-form'.
 Used by 'interactive-form' when called on an OClosure.
 This allows specific OClosure types to compute their interactive specs
@@ -2527,6 +2533,7 @@ functions.
 ** '?\' at the end of a line now signals an error.
 Previously it produced a nonsense value, -1, that was never intended.
 
+---
 ** Some libraries obsolete since Emacs 24.1 and 24.3 have been removed:
 abbrevlist.el, assoc.el, complete.el, cust-print.el,
 erc-hecomplete.el, mailpost.el, mouse-sel.el, old-emacs-lock.el,
@@ -2540,6 +2547,7 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 This can be used to specify what forms to put into 'command-history'
 when executing commands interactively.
 
++++
 ** The FORM arg of 'time-convert' is mandatory.
 'time-convert' can still be called without it, as before, but the
 compiler now emits a warning about this deprecated usage.
@@ -2597,15 +2605,18 @@ for each specific data type while the selection is being converted.
 This function includes the current value of the variable in eldoc display
 and can be used as a more detailed alternative to 'elisp-eldoc-var-docstring'.
 
++++
 ** 'save-some-buffers' can now be extended to save other things.
 Traditionally, 'save-some-buffers' saved buffers, and also saved
 abbrevs.  This has been generalized via the
 'save-some-buffers-functions' variable, and packages can now register
 things to be saved.
 
++++
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
+---
 ** 'symbol-file' can now report natively-compiled .eln files.
 If Emacs was built with native-compilation enabled, Lisp programs can
 now call 'symbol-file' with the new optional 3rd argument non-nil to
@@ -2872,10 +2883,12 @@ them towards or away from each other.
 This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
+---
 ** New hook 'post-select-region-hook'.
 This hook is run immediately after 'select-active-regions' causes the
 region to be set as the primary selection.
 
++++
 ** New function 'buffer-match-p'.
 Check if a buffer satisfies some condition.  Some examples for
 conditions can be regular expressions that match a buffer name, a
@@ -2883,6 +2896,7 @@ cons-cell like '(major-mode . shell-mode)' that matches any buffer
 where 'major-mode' is 'shell-mode' or a combined with a condition like
 '(and "\\`\\*.+\\*\\'" (major-mode . special-mode))'.
 
++++
 ** New function 'match-buffers'.
 Use 'buffer-match-p' to gather a list of buffers that match a
 condition.
