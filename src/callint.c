@@ -168,7 +168,7 @@ check_mark (bool for_region)
    of VALUES to do its job.  */
 
 static void
-fix_command (Lisp_Object input, Lisp_Object function, Lisp_Object values)
+fix_command (Lisp_Object function, Lisp_Object values)
 {
   /* Quick exit if there's no values to alter.  */
   if (!CONSP (values))
@@ -317,7 +317,6 @@ invoke it (via an `interactive' spec that contains, for instance, an
     {
       Lisp_Object funval = Findirect_function (function, Qt);
       uintmax_t events = num_input_events;
-      Lisp_Object input = specs;
       /* Compute the arg values using the user's expression.  */
       specs = Feval (specs,
  		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
@@ -328,7 +327,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	     Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  Lisp_Object values = quotify_args (Fcopy_sequence (specs));
-	  fix_command (input, function, values);
+	  fix_command (function, values);
           call4 (intern ("add-to-history"), intern ("command-history"),
                  Fcons (function, values), Qnil, Qt);
 	}
