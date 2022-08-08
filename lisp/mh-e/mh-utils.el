@@ -445,10 +445,8 @@ no effect."
         (setq folder (format "%s/%s/" mh-current-folder-name
                              (substring folder 1))))
       ;; XXX: Purge empty strings from the list that split-string
-      ;; returns. In XEmacs, (split-string "+foo/" "/") returns
-      ;; ("+foo" "") while in GNU Emacs it returns ("+foo"). In the
-      ;; code it is assumed that the components list has no empty
-      ;; strings.
+      ;; returns. In the code it is assumed that the components list
+      ;; has no empty strings.
       (let ((components (delete "" (split-string folder "/")))
             (result ()))
         ;; Remove .. and . from the pathname.
