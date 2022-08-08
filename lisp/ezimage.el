@@ -182,11 +182,6 @@ Optional argument STRING is a string upon which to add text properties."
   (when ezimage-use-images
     (let* ((bt (buffer-substring start (+ length start)))
 	   (a (assoc bt ezimage-expand-image-button-alist)))
-      ;; Regular images (created with `insert-image' are intangible
-      ;; which (I suppose) make them more compatible with XEmacs 21.
-      ;; Unfortunately, there is a giant pile of code dependent on the
-      ;; underlying text.  This means if we leave it tangible, then I
-      ;; don't have to change said giant piles of code.
       (if (and a (symbol-value (cdr a)))
 	  (ezimage-insert-over-text (symbol-value (cdr a))
 				    start
