@@ -1085,43 +1085,63 @@ profiler-@dots{}} commands described above from working.
 @cindex trace functions
 
 You can trace the execution of functions using the tracing facilities
-provided by the @file{trace.el} package.  Many functions may be traced
-at the same time.  The functions @code{trace-function-foreground} and
+provided by the @file{trace.el} library.  Many functions can be traced
+at the same time.  The commands @code{trace-function-foreground} and
 @code{trace-function-background} add a new trace to a single specified
-function.  The functions @code{trace-package}, @code{trace-regexp},
-and @code{trace-library} enable traces to be added to functions en
-masse.  Calls to traced functions, including the values of their
-arguments and return values, are logged to the @file{*trace-output*}
-buffer (or another buffer as specified).
+function.  The commands @code{trace-package}, @code{trace-regexp}, and
+@code{trace-library} enable traces to be added to functions en masse.
 
-Optional 'context' expressions will be evaluated and logged both when
-the associated function is called and when it returns; and finally you
-may add explicit calls to @code{trace-values} to your code to log
-arbitrary other values to the trace buffer, if you wish to provide
-more data than is provided by function traces alone.
+Calls to traced functions, including the values of their arguments and
+their return values, are logged to the @file{*trace-output*} buffer
+(or another buffer as specified -- either by the @code{trace-buffer}
+user option, or as an argument to a tracing command).
+
+Optional @var{context} expressions are also evaluated, both when the
+associated function is called and again when it returns, with the
+value logged alongside the call-time arguments or return value
+respectively.  This could be used to track the current buffer or
+position of point, for example.
+
+Finally, you may add explicit calls to @code{trace-values} to your
+code to log arbitrary values to the trace buffer at any time.
+
+When using ``foreground'' tracing, the output buffer will be displayed
+whenever a traced function is called.  When using ``background''
+tracing the the output buffer is not forcibly displayed.  Foreground
+tracing should not be used to trace functions that switch buffers, or
+have other display-oriented behaviour.
+
+@menu
+* Commands for Tracing::  Commands and variables.
+* Examples of Tracing::   Usage examples.
+* Restrictions on Tracing:: Limitations on what can be traced.
+@end menu
+
+@node Commands for Tracing
+@subsection Commands and variables for tracing functions
+
+@defopt trace-buffer
+This variable defines the default buffer where trace output will be
+appended.
+@end defopt
+
+@defvar inhibit-trace
+If this variable is non-@code{nil}, all tracing is temporarily
+inhibited (including any calls to @code{trace-values}).
+@end defvar
 
 @deffn Command trace-function-foreground function &optional buffer context
 This function adds a foreground trace to @var{function}.  When called
 interactively, it prompts for @var{function} in the minibuffer.  With
 a prefix argument, also prompt for the trace output @var{buffer}
-(defaulting to the value of @var{trace-buffer}), and a Lisp expression
-@var{context}.  When called from Lisp, @var{context} should be a
-function of no arguments which returns a value to insert into
+(defaulting to the value of @code{trace-buffer}), and a Lisp
+expression @var{context}.  When called from Lisp, @var{context} should
+be a function of no arguments which returns a value to insert into
 @var{buffer} during the trace.
 
-Tracing a function causes every call to that function to insert into
-@var{buffer} Lisp-style trace messages that display the function's
-arguments and return values.  It also evaluates @var{context}, if that
-is non-nil, and inserts its value too.  For example, you can use this
-to track the current buffer, or position of point.
-
-This function creates @var{buffer} if it does not exist.  This buffer
-will popup whenever FUNCTION is called.  Do not use this function to
-trace functions that switch buffers, or do any other display-oriented
-stuff - use `trace-function-background' instead.
-
-Calling `trace-function-foreground' again for the same FUNCTION will
-update the optional argument behaviours to respect the new values.
+Calling `trace-function-foreground' again for the same @var{function}
+will update the optional argument behaviours to respect the new
+values.
 @end deffn
 
 @deffn Command trace-function-background function &optional buffer context
@@ -1138,9 +1158,10 @@ For any autoload declarations matching @var{prefix}, the associated
 function will be traced if and when it is defined.
 
 With a prefix argument, also prompt for the optional arguments.  If
-AFTER-LOAD is non-nil then re-process @var{prefix} after loading any
-file.  See `trace-function-foreground' for details of @var{buffer} and
-@var{context}, and of foreground vs background tracing.
+@var{after-load} is non-@code{nil} then re-process @var{prefix} after
+loading any file.  See `trace-function-foreground' for details of
+@var{buffer} and @var{context}, and of foreground vs background
+tracing.
 
 Calling `trace-package' again for the same @var{prefix} will update
 the optional argument behaviours to respect the new values.
@@ -1158,9 +1179,10 @@ the results.  For any autoload declarations matching @var{regexp}, the
 associated function will be traced if and when it is defined.
 
 With a prefix argument, also prompt for the optional arguments.  If
-AFTER-LOAD is non-nil then re-process @var{regexp} after loading any
-file.  See `trace-function-foreground' for details of @var{buffer} and
-@var{context}, and of foreground vs background tracing.
+@var{after-load} is non-@code{nil} then re-process @var{regexp} after
+loading any file.  See `trace-function-foreground' for details of
+@var{buffer} and @var{context}, and of foreground vs background
+tracing.
 
 Calling `trace-regexp' again for the same @var{regexp} will update the
 optional argument behaviours to respect the new values.
@@ -1168,7 +1190,7 @@ optional argument behaviours to respect the new values.
 
 @deffn Command trace-library library &optional buffer context after-load
 This function calls @code{trace-function-background} for all functions
-currently defined in @var{library} according to the @var{load-history}.
+currently defined in @var{library} according to @var{load-history}.
 
 For any autoload declarations with a file name matching @var{library},
 the associated function will be traced if and when it is defined.
@@ -1176,8 +1198,8 @@ the associated function will be traced if and when it is defined.
 longer, more specific path.)
 
 With a prefix argument, also prompt for the optional arguments.  If
-AFTER-LOAD is non-nil then re-process @var{library} after loading it
-\(ensuring that all of its functions will be traced).  See
+@var{after-load} is non-@code{nil} then re-process @var{library} after
+loading it \(ensuring that all of its functions will be traced).  See
 `trace-function-foreground' for details of @var{buffer} and
 @var{context}, and of foreground vs background tracing.
 
@@ -1187,8 +1209,8 @@ the optional argument behaviours to respect the new values.
 
 @deffn Command trace-currently-traced &optional display-message
 This function returns the list of currently traced function symbols.
-When called interactively, or if @var{display-message} is non-nil, it
-displays the list as a message.
+When called interactively, or if @var{display-message} is
+non-@code{nil}, it displays the list as a message.
 @end deffn
 
 @deffn Command untrace-function function
@@ -1225,6 +1247,118 @@ buffer.  You can add explicit calls to @code{trace-values} into your
 functions in order to provide additional tracing information.
 @end deffn
 
-@defvar Variable inhibit-trace
-If non-nil, all tracing is inhibited.
-@end defvar
+
+@node Restrictions on Tracing
+@subsection Limitations on what can be traced
+
+@enumerate
+@item
+Traced subrs when called interactively will always show @code{nil} as
+the value of their arguments.
+
+@item
+Only functions/macros/subrs that are called via their function cell
+will generate trace output; hence, you won't get trace output for:
+
+@enumerate
+@item
+Macros that were expanded during compilation.
+
+@item
+Subrs called directly from other subrs/C-code.
+
+@item
+Byte-compiled calls to subrs that have special byte-codes associated
+with them:
+
+@example
+(sort (cl-loop for sym being the symbols
+               if (and (subrp (symbol-function sym))
+                       (plist-get (symbol-plist sym)
+                                  'byte-opcode))
+               collect sym)
+      (lambda (s1 s2)
+        (string< (symbol-name s1) (symbol-name s2))))
+@end example
+@end enumerate
+
+@item
+All the restrictions that apply to @file{nadvice.el} (as tracing is
+implemented using advice).
+
+@item
+Tracing too many functions at one time will render Emacs unusable.  Do
+not attempt to trace all functions, and take care with the arguments
+passed to the bulk tracing commands @code{trace-package} and
+@code{trace-regexp}.
+
+@item
+Foreground tracing should not be used to trace functions that switch
+buffers, or have other display-oriented behaviour.
+@end enumerate
+
+
+@node Examples of Tracing
+@subsection Usage examples for function tracing
+
+The following is example trace output, including a context list
+expression, for a function which also makes a call to `trace-values'.
+The left hand column indicates the evaluation depth of the function
+call.
+
+@example
+@group
+1 -> (funcname arg1 arg2) [(context1 context2)]
+1 -> (trace-values value1 value2)
+1 <- funcname: return [(context1 context2)]
+@end group
+@end example
+
+@example
+@group
+(defun fact (n)
+  (if (= n 0) 1
+    (* n (fact (1- n)))))
+     @result{} fact
+
+(trace-function 'fact)
+     @result{} fact
+
+Now, evaluating this...
+
+(fact 4)
+     @result{} 24
+
+...will generate the following in *trace-buffer*:
+
+1 -> fact: n=4
+| 2 -> fact: n=3
+| | 3 -> fact: n=2
+| | | 4 -> fact: n=1
+| | | | 5 -> fact: n=0
+| | | | 5 <- fact: 1
+| | | 4 <- fact: 1
+| | 3 <- fact: 2
+| 2 <- fact: 6
+1 <- fact: 24
+@end group
+@group
+(defun ack (x y z)
+  (if (= x 0)
+      (+ y z)
+    (if (and (<= x 2) (= z 0))
+        (1- x)
+      (if (and (> x 2) (= z 0))
+          y
+        (ack (1- x) y (ack x y (1- z)))))))
+     @result{} ack
+
+(trace-function 'ack)
+     @result{} ack
+
+Try this for some interesting trace output:
+
+(ack 3 3 1)
+     @result{} 27
+@end group
+@end example
