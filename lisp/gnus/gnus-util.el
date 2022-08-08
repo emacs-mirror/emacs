@@ -1385,8 +1385,7 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 			  system-configuration)
 			 ((memq 'type lst)
 			  (symbol-name system-type))
-			 (t nil)))
-	 ) ;; codename
+                         (t nil))))
     (cond
      ((not (memq 'emacs lst))
       nil)
