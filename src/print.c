@@ -65,17 +65,10 @@ static unsigned int printchar_stdout_last;
 
 struct print_buffer
 {
-  /* Allocated buffer.  */
-  char *buffer;
-
-  /* Size of allocated buffer.  */
-  ptrdiff_t size;
-
-  /* Chars stored in buffer.  */
-  ptrdiff_t pos;
-
-  /* Bytes stored in buffer.  */
-  ptrdiff_t pos_byte;
+  char *buffer;			/* Allocated buffer.  */
+  ptrdiff_t size;		/* Size of allocated buffer.  */
+  ptrdiff_t pos;		/* Chars stored in buffer.  */
+  ptrdiff_t pos_byte;		/* Bytes stored in buffer.  */
 };
 
 /* When printing into a buffer, first we put the text in this
