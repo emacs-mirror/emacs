@@ -776,8 +776,12 @@ decided heuristically.)"
           (when (and (not name)
                      (string-match-p "\\`def" (symbol-name symbol)))
             (when-let ((candidate (ignore-errors (read (current-buffer)))))
-              (when (symbolp candidate)
-                (setq name candidate))))
+              (cond
+               ((symbolp candidate)
+                (setq name candidate))
+               ((and (consp candidate)
+                     (symbolp (car (delete 'quote candidate))))
+                (setq name (car (delete 'quote candidate)))))))
           (when-let ((result (or name symbol)))
             (symbol-name result)))))))
 
