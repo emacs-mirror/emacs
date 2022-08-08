@@ -130,11 +130,6 @@ See also ESR's proposal for a BROWSER environment variable
 ** In Custom buffers, put the option that turns a mode on or off first
 This should use a heuristic of some kind?
 
-** Define recompute-arg and recompute-arg-if for fix_command to use
-See rms message of 11 Dec 05 in
-https://lists.gnu.org/r/emacs-pretest-bug/2005-12/msg00165.html,
-and the rest of that discussion.
-
 ** In Emacs Info, examples of using Customize should be clickable
 They should create Custom buffers when clicked.
 
