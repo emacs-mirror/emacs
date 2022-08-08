@@ -52,4 +52,17 @@
       (call-interactively #'ignore t))
     (should (= (length command-history) history-length))))
 
+(defun callint-test-int-args (foo bar &optional zot)
+  (declare (interactive-args
+            (bar 10)
+            (zot 11)))
+  (interactive (list 1 1 1))
+  (+ foo bar zot))
+
+(ert-deftest test-interactive-args ()
+  (let ((history-length 1)
+        (command-history ()))
+    (should (= (call-interactively 'callint-test-int-args t) 3))
+    (should (equal command-history '((callint-test-int-args 1 10 11))))))
+
 ;;; callint-tests.el ends here

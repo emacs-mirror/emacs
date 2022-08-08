@@ -664,7 +664,10 @@ which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
   (declare (interactive-only
-	    "use `search-forward' and `replace-match' instead."))
+	    "use `search-forward' and `replace-match' instead.")
+           (interactive-args
+	    (start (if (use-region-p) (region-beginning)))
+	    (end (if (use-region-p) (region-end)))))
   (interactive
    (let ((common
 	  (query-replace-read-args

@@ -161,10 +161,8 @@ check_mark (bool for_region)
     xsignal0 (Qmark_inactive);
 }
 
-/* If the list of args INPUT was produced with an explicit call to
-   `list', look for elements that were computed with
-   (region-beginning) or (region-end), and put those expressions into
-   VALUES instead of the present values.
+/* If FUNCTION has an `interactive-args' spec, replace relevant
+   elements in VALUES with those forms instead.
 
    This function doesn't return a value because it modifies elements
    of VALUES to do its job.  */
@@ -172,62 +170,24 @@ check_mark (bool for_region)
 static void
 fix_command (Lisp_Object input, Lisp_Object function, Lisp_Object values)
 {
-  /* FIXME: Instead of this ugly hack, we should provide a way for an
-     interactive spec to return an expression/function that will re-build the
-     args without user intervention.  */
-  if (CONSP (input))
+  /* Quick exit if there's no values to alter.  */
+  if (!CONSP (values))
+    return;
+
+  Lisp_Object reps = Fget (function, Qinteractive_args);
+
+  if (!NILP (reps) && CONSP (reps))
     {
-      Lisp_Object car;
+      int i = 0;
+      Lisp_Object vals = values;
 
-      car = XCAR (input);
-      /* Skip through certain special forms.  */
-      while (EQ (car, Qlet) || EQ (car, Qletx)
-	     || EQ (car, Qsave_excursion)
-	     || EQ (car, Qprogn))
+      while (!NILP (vals))
 	{
-	  while (CONSP (XCDR (input)))
-	    input = XCDR (input);
-	  input = XCAR (input);
-	  if (!CONSP (input))
-	    break;
-	  car = XCAR (input);
-	}
-      if (EQ (car, Qlist))
-	{
-	  Lisp_Object intail, valtail;
-	  for (intail = Fcdr (input), valtail = values;
-	       CONSP (valtail);
-	       intail = Fcdr (intail), valtail = XCDR (valtail))
-	    {
-	      Lisp_Object elt;
-	      elt = Fcar (intail);
-	      if (CONSP (elt))
-		{
-		  Lisp_Object presflag, carelt;
-		  carelt = XCAR (elt);
-		  /* If it is (if X Y), look at Y.  */
-		  if (EQ (carelt, Qif)
-		      && NILP (Fnthcdr (make_fixnum (3), elt)))
-		    elt = Fnth (make_fixnum (2), elt);
-		  /* If it is (when ... Y), look at Y.  */
-		  else if (EQ (carelt, Qwhen))
-		    {
-		      while (CONSP (XCDR (elt)))
-			elt = XCDR (elt);
-		      elt = Fcar (elt);
-		    }
-
-		  /* If the function call we're looking at
-		     is a special preserved one, copy the
-		     whole expression for this argument.  */
-		  if (CONSP (elt))
-		    {
-		      presflag = Fmemq (Fcar (elt), preserved_fns);
-		      if (!NILP (presflag))
-			Fsetcar (valtail, Fcar (intail));
-		    }
-		}
-	    }
+	  Lisp_Object rep = Fassq (make_fixnum (i), reps);
+	  if (!NILP (rep))
+	    Fsetcar (vals, XCDR (rep));
+	  vals = XCDR (vals);
+	  ++i;
 	}
     }
 
@@ -235,31 +195,28 @@ fix_command (Lisp_Object input, Lisp_Object function, Lisp_Object values)
      optional, remove them from the list.  This makes navigating the
      history less confusing, since it doesn't contain a lot of
      parameters that aren't used.  */
-  if (CONSP (values))
+  Lisp_Object arity = Ffunc_arity (function);
+  /* We don't want to do this simplification if we have an &rest
+     function, because (cl-defun foo (a &optional (b 'zot)) ..)
+     etc.  */
+  if (FIXNUMP (XCAR (arity)) && FIXNUMP (XCDR (arity)))
     {
-      Lisp_Object arity = Ffunc_arity (function);
-      /* We don't want to do this simplification if we have an &rest
-	 function, because (cl-defun foo (a &optional (b 'zot)) ..)
-	 etc.  */
-      if (FIXNUMP (XCAR (arity)) && FIXNUMP (XCDR (arity)))
+      Lisp_Object final = Qnil;
+      ptrdiff_t final_i = 0, i = 0;
+      for (Lisp_Object tail = values;
+	   CONSP (tail);
+	   tail = XCDR (tail), ++i)
 	{
-	  Lisp_Object final = Qnil;
-	  ptrdiff_t final_i = 0, i = 0;
-	  for (Lisp_Object tail = values;
-	       CONSP (tail);
-	       tail = XCDR (tail), ++i)
+	  if (!NILP (XCAR (tail)))
 	    {
-	      if (!NILP (XCAR (tail)))
-		{
-		  final = tail;
-		  final_i = i;
-		}
+	      final = tail;
+	      final_i = i;
 	    }
-
-	  /* Chop the trailing optional values.  */
-	  if (final_i > 0 && final_i >= XFIXNUM (XCAR (arity)) - 1)
-	    XSETCDR (final,  Qnil);
 	}
+
+      /* Chop the trailing optional values.  */
+      if (final_i > 0 && final_i >= XFIXNUM (XCAR (arity)) - 1)
+	XSETCDR (final,  Qnil);
     }
 }
 
@@ -950,4 +907,6 @@ use `event-start', `event-end', and `event-click-count'.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sfuncall_interactively);
   defsubr (&Sprefix_numeric_value);
+
+  DEFSYM (Qinteractive_args, "interactive-args");
 }
