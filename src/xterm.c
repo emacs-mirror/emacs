@@ -13091,10 +13091,10 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
 		 int *root_y_return, int *win_x_return,
 		 int *win_y_return, unsigned int *mask_return)
 {
-  struct x_display_info *dpyinfo;
   Bool rc;
-  bool had_errors;
 #ifdef HAVE_XINPUT2
+  struct x_display_info *dpyinfo;
+  bool had_errors;
   XIModifierState modifiers;
   XIButtonState buttons;
   XIGroupState group; /* Unused.  */
@@ -13102,8 +13102,8 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
   unsigned int state;
 #endif
 
-  dpyinfo = x_display_info_for_display (dpy);
 #ifdef HAVE_XINPUT2
+  dpyinfo = x_display_info_for_display (dpy);
   if (dpyinfo && dpyinfo->client_pointer_device != -1)
     {
       /* Catch errors caused by the device going away.  This is not
