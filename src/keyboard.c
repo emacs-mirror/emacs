@@ -12950,7 +12950,10 @@ This variable only has an effect when Transient Mark mode is enabled.
 
 If the value is `only', only temporarily active regions (usually made
 by mouse-dragging or shift-selection) set the window system's primary
-selection.  */);
+selection.
+
+If this variable causes the region to be set as the primary selection,
+`post-select-region-hook' is then run afterwards.  */);
   Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
