@@ -2412,6 +2412,35 @@ If FILE is nil, try to load a default file.  The default file name is
     (error nil))
   (setq tpu-edt-mode nil))
 
+
+;;;### (autoloads nil "tpu-extras" "tpu-extras.el" "cbbb448cff48fab904ac19805aa6f36a")
+;;; Generated autoloads from tpu-extras.el
+
+(autoload 'tpu-cursor-free-mode "tpu-extras" "\
+Minor mode to allow the cursor to move freely about the screen.
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'tpu-set-scroll-margins "tpu-extras" "\
+Set scroll margins.
+
+\(fn TOP BOTTOM)" t nil)
+
+(autoload 'tpu-set-cursor-free "tpu-extras" "\
+Allow the cursor to move freely about the screen.
+
+\(fn)" t nil)
+
+(autoload 'tpu-set-cursor-bound "tpu-extras" "\
+Constrain the cursor to the flow of the text.
+
+\(fn)" t nil)
+
+;;;***
+
 (provide 'tpu-edt)
 
 ;;; tpu-edt.el ends here
