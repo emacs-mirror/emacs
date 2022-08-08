@@ -510,7 +510,7 @@ font-lock is done highlighting.")
   nil)
 
 ;; Register mh-folder-mode as supporting which-function-mode...
-(eval-and-compile (require 'which-func nil t))
+(require 'which-func)
 (when (and (boundp 'which-func-modes) (listp which-func-modes))
   (add-to-list 'which-func-modes 'mh-folder-mode))
 
