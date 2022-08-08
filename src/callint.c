@@ -176,7 +176,7 @@ fix_command (Lisp_Object function, Lisp_Object values)
 
   Lisp_Object reps = Fget (function, Qinteractive_args);
 
-  if (!NILP (reps) && CONSP (reps))
+  if (CONSP (reps))
     {
       int i = 0;
       Lisp_Object vals = values;
