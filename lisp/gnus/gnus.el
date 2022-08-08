@@ -2237,7 +2237,7 @@ Disabling the agent may result in noticeable loss of performance."
 
 Can be a list of symbols or a string.  Valid symbols are `gnus'
 (show Gnus version) and `emacs' (show Emacs version).  In
-addition to the Emacs version, you can add`config' (show system
+addition to the Emacs version, you can add `config' (show system
 configuration) or `type' (show system type).  If you set it to a
 string, be sure to use a valid format, see RFC 2616."
   :version "22.1"
