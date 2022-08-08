@@ -66,17 +66,12 @@
 
 ;;; Installation:
 
-;; This file requires Emacs-20.3, XEmacs-20.4 or higher and package cc-mode.
-
 ;; If antlr-mode is not part of your distribution, put this file into your
 ;; load-path and the following into your init file:
 ;;   (autoload 'antlr-mode "antlr-mode" nil t)
 ;;   (setq auto-mode-alist (cons '("\\.g\\'" . antlr-mode) auto-mode-alist))
 ;;   (add-hook 'speedbar-load-hook  ; would be too late in antlr-mode.el
 ;;	       (lambda () (speedbar-add-supported-extension ".g")))
-
-;; I strongly recommend to use font-lock with a support mode like
-;; jit-lock (Emacs) / lazy-shot (XEmacs).
 
 ;; To customize, use menu item "Antlr" -> "Customize Antlr".
 
@@ -894,7 +889,7 @@ Used for `antlr-slow-syntactic-context'.")
 
 
 ;;;===========================================================================
-;;;  Syntax functions -- Emacs vs XEmacs dependent, part 1
+;;;  Syntax functions
 ;;;===========================================================================
 
 ;;;===========================================================================
@@ -2431,8 +2426,6 @@ the default language."
 	comment-start-skip "/\\*+ *\\|// *")
   ;; various -----------------------------------------------------------------
   (set (make-local-variable 'font-lock-defaults) antlr-font-lock-defaults)
-  (when (featurep 'xemacs)
-    (easy-menu-add antlr-mode-menu))
   (set (make-local-variable 'imenu-create-index-function)
        #'antlr-imenu-create-index-function)
   (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
