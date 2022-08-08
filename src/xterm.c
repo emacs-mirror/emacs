@@ -5291,6 +5291,7 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
   xi_device->direct_p = false;
 #endif
   xi_device->name = build_string (device->name);
+  xi_device->attachment = device->attachment;
 
   for (c = 0; c < device->num_classes; ++c)
     {
@@ -12474,7 +12475,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
    focus is switched to a given frame.  This situation is handled by
    keeping track of each master device's focus frame, the time of the
    last interaction with that frame, and always keeping the focus on
-   the most recently selected frame.  */
+   the most recently selected frame.  We also use the pointer of the
+   device that is keeping the current frame focused in functions like
+   `mouse-position'.  */
 
 static void
 xi_handle_focus_change (struct x_display_info *dpyinfo)
@@ -12493,6 +12496,8 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
   new = NULL;
   time = 0;
 
+  dpyinfo->client_pointer_device = -1;
+
   for (i = 0; i < dpyinfo->num_devices; ++i)
     {
       device = &dpyinfo->devices[i];
@@ -12503,6 +12508,14 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
 	  new = device->focus_frame;
 	  time = device->focus_frame_time;
 	  source = device;
+
+	  /* Use this device for future calls to `mouse-position' etc.
+	     If it is a keyboard, use its attached pointer.  */
+
+	  if (device->use == XIMasterKeyboard)
+	    dpyinfo->client_pointer_device = device->attachment;
+	  else
+	    dpyinfo->client_pointer_device = device->device_id;
 	}
 
       if (device->focus_implicit_frame
@@ -12511,6 +12524,14 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
 	  new = device->focus_implicit_frame;
 	  time = device->focus_implicit_time;
 	  source = device;
+
+	  /* Use this device for future calls to `mouse-position' etc.
+	     If it is a keyboard, use its attached pointer.  */
+
+	  if (device->use == XIMasterKeyboard)
+	    dpyinfo->client_pointer_device = device->attachment;
+	  else
+	    dpyinfo->client_pointer_device = device->device_id;
 	}
     }
 
@@ -12601,12 +12622,24 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
       if (!event->focus)
 	break;
 
+      if (device->use == XIMasterPointer)
+	device = xi_device_from_id (dpyinfo, device->attachment);
+
+      if (!device)
+	break;
+
       device->focus_implicit_frame = mentioned_frame;
       device->focus_implicit_time = event->time;
       break;
 
     case XI_Leave:
       if (!event->focus)
+	break;
+
+      if (device->use == XIMasterPointer)
+	device = xi_device_from_id (dpyinfo, device->attachment);
+
+      if (!device)
 	break;
 
       device->focus_implicit_frame = NULL;
@@ -12645,6 +12678,13 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
 		       Time time)
 {
   bool change;
+
+  /* If DEVICE is a pointer, use its attached keyboard device.  */
+  if (device->use == XIMasterPointer)
+    device = xi_device_from_id (dpyinfo, device->attachment);
+
+  if (!device)
+    return;
 
   change = false;
 
@@ -13042,6 +13082,68 @@ get_keysym_name (int keysym)
   return value;
 }
 
+/* Like XQueryPointer, but always use the right client pointer
+   device.  */
+
+Bool
+x_query_pointer (Display *dpy, Window w, Window *root_return,
+		 Window *child_return, int *root_x_return,
+		 int *root_y_return, int *win_x_return,
+		 int *win_y_return, unsigned int *mask_return)
+{
+  struct x_display_info *dpyinfo;
+  Bool rc;
+  bool had_errors;
+#ifdef HAVE_XINPUT2
+  XIModifierState modifiers;
+  XIButtonState buttons;
+  XIGroupState group; /* Unused.  */
+  double root_x, root_y, win_x, win_y;
+  unsigned int state;
+#endif
+
+  dpyinfo = x_display_info_for_display (dpy);
+#ifdef HAVE_XINPUT2
+  if (dpyinfo && dpyinfo->client_pointer_device != -1)
+    {
+      /* Catch errors caused by the device going away.  This is not
+	 very expensive, since XIQueryPointer will sync anyway.  */
+      x_catch_errors (dpy);
+      rc = XIQueryPointer (dpyinfo->display,
+			   dpyinfo->client_pointer_device,
+			   w, root_return, child_return,
+			   &root_x, &root_y, &win_x, &win_y,
+			   &buttons, &modifiers, &group);
+      had_errors = x_had_errors_p (dpy);
+      x_uncatch_errors_after_check ();
+
+      if (had_errors)
+	rc = XQueryPointer (dpyinfo->display, w, root_return,
+			    child_return, root_x_return,
+			    root_y_return, win_x_return,
+			    win_y_return, mask_return);
+      else
+	{
+	  state = 0;
+
+	  xi_convert_button_state (&buttons, &state);
+	  *mask_return = state | modifiers.effective;
+
+	  *root_x_return = lrint (root_x);
+	  *root_y_return = lrint (root_y);
+	  *win_x_return = lrint (win_x);
+	  *win_y_return = lrint (win_y);
+	}
+    }
+  else
+#endif
+    rc = XQueryPointer (dpy, w, root_return, child_return,
+			root_x_return, root_y_return, win_x_return,
+			win_y_return, mask_return);
+
+  return rc;
+}
+
 /* Mouse clicks and mouse movement.  Rah.
 
    Formerly, we used PointerMotionHintMask (in standard_event_mask)
@@ -13308,20 +13410,20 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       dpyinfo->last_mouse_scroll_bar = NULL;
 
       /* Figure out which root window we're on.  */
-      XQueryPointer (FRAME_X_DISPLAY (*fp),
-		     DefaultRootWindow (FRAME_X_DISPLAY (*fp)),
-		     /* The root window which contains the pointer.  */
-		     &root,
-		     /* Trash which we can't trust if the pointer is on
-			a different screen.  */
-		     &dummy_window,
-		     /* The position on that root window.  */
-		     &root_x, &root_y,
-		     /* More trash we can't trust.  */
-		     &dummy, &dummy,
-		     /* Modifier keys and pointer buttons, about which
-			we don't care.  */
-		     (unsigned int *) &dummy);
+      x_query_pointer (FRAME_X_DISPLAY (*fp),
+		       DefaultRootWindow (FRAME_X_DISPLAY (*fp)),
+		       /* The root window which contains the pointer.  */
+		       &root,
+		       /* Trash which we can't trust if the pointer is on
+			  a different screen.  */
+		       &dummy_window,
+		       /* The position on that root window.  */
+		       &root_x, &root_y,
+		       /* More trash we can't trust.  */
+		       &dummy, &dummy,
+		       /* Modifier keys and pointer buttons, about which
+			  we don't care.  */
+		       (unsigned int *) &dummy);
 
       /* Now we have a position on the root; find the innermost window
 	 containing the pointer.  */
@@ -15894,17 +15996,17 @@ x_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_window,
 
   /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
-  if (XQueryPointer (FRAME_X_DISPLAY (f), w,
+  if (x_query_pointer (FRAME_X_DISPLAY (f), w,
 
-		     /* Root, child, root x and root y.  */
-		     &dummy_window, &dummy_window,
-		     &dummy_coord, &dummy_coord,
+		       /* Root, child, root x and root y.  */
+		       &dummy_window, &dummy_window,
+		       &dummy_coord, &dummy_coord,
 
-		     /* Position relative to scroll bar.  */
-		     &win_x, &win_y,
+		       /* Position relative to scroll bar.  */
+		       &win_x, &win_y,
 
-		     /* Mouse buttons and modifier keys.  */
-		     &dummy_mask))
+		       /* Mouse buttons and modifier keys.  */
+		       &dummy_mask))
     {
       int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
 
@@ -15963,17 +16065,17 @@ x_horizontal_scroll_bar_report_motion (struct frame **fp, Lisp_Object *bar_windo
 
   /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
-  if (XQueryPointer (FRAME_X_DISPLAY (f), w,
+  if (x_query_pointer (FRAME_X_DISPLAY (f), w,
 
-		     /* Root, child, root x and root y.  */
-		     &dummy_window, &dummy_window,
-		     &dummy_coord, &dummy_coord,
+		       /* Root, child, root x and root y.  */
+		       &dummy_window, &dummy_window,
+		       &dummy_coord, &dummy_coord,
 
-		     /* Position relative to scroll bar.  */
-		     &win_x, &win_y,
+		       /* Position relative to scroll bar.  */
+		       &win_x, &win_y,
 
-		     /* Mouse buttons and modifier keys.  */
-		     &dummy_mask))
+		       /* Mouse buttons and modifier keys.  */
+		       &dummy_mask))
     {
       int left_range = HORIZONTAL_SCROLL_BAR_LEFT_RANGE (f, bar->width);
 
@@ -22202,7 +22304,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (info)
 			{
 			  if (device && info->enabled)
-			    device->use = info->use;
+			    {
+			      device->use = info->use;
+			      device->attachment = info->attachment;
+			    }
 			  else if (device)
 			    disabled[n_disabled++] = hev->info[i].deviceid;
 
@@ -27815,6 +27920,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #else /* Some old version of XI2 we're not interested in. */
   int minor = 0;
 #endif
+
+  dpyinfo->client_pointer_device = -1;
 
   if (XQueryExtension (dpyinfo->display, "XInputExtension",
 		       &dpyinfo->xi2_opcode, &xi_first_event,

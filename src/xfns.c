@@ -609,24 +609,24 @@ x_relative_mouse_position (struct frame *f, int *x, int *y)
 
   block_input ();
 
-  XQueryPointer (FRAME_X_DISPLAY (f),
-                 FRAME_DISPLAY_INFO (f)->root_window,
+  x_query_pointer (FRAME_X_DISPLAY (f),
+		   FRAME_DISPLAY_INFO (f)->root_window,
 
-                 /* The root window which contains the pointer.  */
-                 &root,
+		   /* The root window which contains the pointer.  */
+		   &root,
 
-                 /* Window pointer is on, not used  */
-                 &dummy_window,
+		   /* Window pointer is on, not used  */
+		   &dummy_window,
 
-                 /* The position on that root window.  */
-                 x, y,
+		   /* The position on that root window.  */
+		   x, y,
 
-                 /* x/y in dummy_window coordinates, not used.  */
-                 &dummy, &dummy,
+		   /* x/y in dummy_window coordinates, not used.  */
+		   &dummy, &dummy,
 
-                 /* Modifier keys and pointer buttons, about which
-                    we don't care.  */
-                 (unsigned int *) &dummy);
+		   /* Modifier keys and pointer buttons, about which
+		      we don't care.  */
+		   (unsigned int *) &dummy);
 
   XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
@@ -6823,10 +6823,10 @@ selected frame's display.  */)
     return Qnil;
 
   block_input ();
-  XQueryPointer (FRAME_X_DISPLAY (f),
-		 FRAME_DISPLAY_INFO (f)->root_window,
-                 &root, &dummy_window, &x, &y, &dummy, &dummy,
-                 (unsigned int *) &dummy);
+  x_query_pointer (FRAME_X_DISPLAY (f),
+		   FRAME_DISPLAY_INFO (f)->root_window,
+		   &root, &dummy_window, &x, &y, &dummy, &dummy,
+		   (unsigned int *) &dummy);
   unblock_input ();
 
   return Fcons (make_fixnum (x), make_fixnum (y));
@@ -8382,8 +8382,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
       Lisp_Object frame, attributes, monitor, geometry;
 
       block_input ();
-      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
-		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+      x_query_pointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
+		       &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
       unblock_input ();
 
       XSETFRAME (frame, f);

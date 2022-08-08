@@ -249,6 +249,10 @@ struct xi_device_t
   /* Whether or not the device is grabbed and its use.  */
   int grab, use;
 
+  /* The attached device.  Only valid if USE is some kind of master
+     device.  */
+  int attachment;
+
 #ifdef HAVE_XINPUT2_2
   /* Whether or not this device is a direct touch device.  */
   bool direct_p;
@@ -708,13 +712,27 @@ struct x_display_info
 
 #ifdef HAVE_XINPUT2
   bool supports_xi2;
+
+  /* The minor version of the input extension.  (Major is always
+     2.x.) */
   int xi2_version;
+
+  /* The generic event opcode of XI2 events.  */
   int xi2_opcode;
 
+  /* The number of devices on this display known to Emacs.  */
   int num_devices;
+
+  /* Array of all input extension devices on this display known to
+     Emacs.  */
   struct xi_device_t *devices;
 
+  /* Pending keystroke time.  */
   Time pending_keystroke_time;
+
+  /* Pending keystroke source.  If a core KeyPress event arrives with
+     the same timestamp as pending_keystroke_time, it will be treated
+     as originating from this device.  */
   int pending_keystroke_source;
 
 #if defined USE_GTK && !defined HAVE_GTK3
@@ -724,6 +742,10 @@ struct x_display_info
      input method) core key event.  */
   bool pending_keystroke_time_special_p;
 #endif
+
+  /* The client pointer.  We keep a record client-side to avoid
+     calling XISetClientPointer all the time.  */
+  int client_pointer_device;
 #endif
 
 #ifdef HAVE_XKB
@@ -1599,10 +1621,13 @@ extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #ifdef HAVE_XRENDER
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
-extern void x_xr_ensure_picture (struct frame *f);
-extern void x_xr_apply_ext_clip (struct frame *f, GC gc);
-extern void x_xr_reset_ext_clip (struct frame *f);
+extern void x_xr_ensure_picture (struct frame *);
+extern void x_xr_apply_ext_clip (struct frame *, GC);
+extern void x_xr_reset_ext_clip (struct frame *);
 #endif
+
+extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
+			     int *, int *, int *, unsigned int *);
 
 #ifdef HAVE_GTK3
 extern void x_scroll_bar_configure (GdkEvent *);
