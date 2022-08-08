@@ -84,14 +84,6 @@
 ;; You can also customize the variable
 ;; `prolog-program-name' (in the group `prolog-inferior') and provide
 ;; a full path for your Prolog system (swi, scitus, etc.).
-;;
-;; Note: I (Stefan, the current maintainer) work under XEmacs.  Future
-;;   developments will thus be biased towards XEmacs (OK, I admit it,
-;;   I am biased towards XEmacs in general), though I will do my best
-;;   to keep the GNU Emacs compatibility.  So if you work under Emacs
-;;   and see something that does not work do drop me a line, as I have
-;;   a smaller chance to notice this kind of bugs otherwise.
-;  [The above comment dates from 2011.]
 
 ;; Changelog:
 
