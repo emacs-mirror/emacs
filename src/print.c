@@ -63,16 +63,16 @@ static Lisp_Object being_printed[PRINT_CIRCLE];
 /* Last char printed to stdout by printchar.  */
 static unsigned int printchar_stdout_last;
 
+struct print_buffer {
+  char *buffer;			/* Allocated buffer.  */
+  ptrdiff_t size;		/* Size of allocated buffer.  */
+  ptrdiff_t pos;		/* Chars stored in buffer.  */
+  ptrdiff_t pos_byte;		/* Bytes stored in buffer.  */
+};
+
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
-static char *print_buffer;
-
-/* Size allocated in print_buffer.  */
-static ptrdiff_t print_buffer_size;
-/* Chars stored in print_buffer.  */
-static ptrdiff_t print_buffer_pos;
-/* Bytes stored in print_buffer.  */
-static ptrdiff_t print_buffer_pos_byte;
+static struct print_buffer print_buffer;
 
 /* Vprint_number_table is a table, that keeps objects that are going to
    be printed, to allow use of #n= and #n# to express sharing.
@@ -96,8 +96,8 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 static void
 print_free_buffer (void)
 {
-  xfree (print_buffer);
-  print_buffer = NULL;
+  xfree (print_buffer.buffer);
+  print_buffer.buffer = NULL;
 }
 
 /* This is used to restore the saved contents of print_buffer
@@ -105,7 +105,7 @@ print_free_buffer (void)
 static void
 print_unwind (Lisp_Object saved_text)
 {
-  memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
+  memcpy (print_buffer.buffer, SDATA (saved_text), SCHARS (saved_text));
 }
 
 /* Lisp functions to do output using a stream must start with a call to
@@ -169,22 +169,22 @@ print_prepare (Lisp_Object printcharfun)
       if (! NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! print_escape_nonascii)
 	specbind (Qprint_escape_nonascii, Qt);
-      if (print_buffer != 0)
+      if (print_buffer.buffer != NULL)
 	{
-	  Lisp_Object string = make_string_from_bytes (print_buffer,
-						       print_buffer_pos,
-						       print_buffer_pos_byte);
+	  Lisp_Object string = make_string_from_bytes (print_buffer.buffer,
+						       print_buffer.pos,
+						       print_buffer.pos_byte);
 	  record_unwind_protect (print_unwind, string);
 	}
       else
 	{
 	  int new_size = 1000;
-	  print_buffer = xmalloc (new_size);
-	  print_buffer_size = new_size;
+	  print_buffer.buffer = xmalloc (new_size);
+	  print_buffer.size = new_size;
 	  record_unwind_protect_void (print_free_buffer);
 	}
-      print_buffer_pos = 0;
-      print_buffer_pos_byte = 0;
+      print_buffer.pos = 0;
+      print_buffer.pos_byte = 0;
     }
   if (EQ (printcharfun, Qt) && ! noninteractive)
     setup_echo_area_for_printing (multibyte);
@@ -197,21 +197,21 @@ print_finish (struct print_context *pc)
 {
   if (NILP (pc->printcharfun))
     {
-      if (print_buffer_pos != print_buffer_pos_byte
+      if (print_buffer.pos != print_buffer.pos_byte
 	  && NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	{
 	  USE_SAFE_ALLOCA;
-	  unsigned char *temp = SAFE_ALLOCA (print_buffer_pos + 1);
-	  copy_text ((unsigned char *) print_buffer, temp,
-		     print_buffer_pos_byte, 1, 0);
-	  insert_1_both ((char *) temp, print_buffer_pos,
-			 print_buffer_pos, 0, 1, 0);
+	  unsigned char *temp = SAFE_ALLOCA (print_buffer.pos + 1);
+	  copy_text ((unsigned char *) print_buffer.buffer, temp,
+		     print_buffer.pos_byte, 1, 0);
+	  insert_1_both ((char *) temp, print_buffer.pos,
+			 print_buffer.pos, 0, 1, 0);
 	  SAFE_FREE ();
 	}
       else
-	insert_1_both (print_buffer, print_buffer_pos,
-		       print_buffer_pos_byte, 0, 1, 0);
-      signal_after_change (PT - print_buffer_pos, 0, print_buffer_pos);
+	insert_1_both (print_buffer.buffer, print_buffer.pos,
+		       print_buffer.pos_byte, 0, 1, 0);
+      signal_after_change (PT - print_buffer.pos, 0, print_buffer.pos);
     }
   if (MARKERP (pc->old_printcharfun))
     set_marker_both (pc->old_printcharfun, Qnil, PT, PT_BYTE);
@@ -310,13 +310,14 @@ printchar (unsigned int ch, Lisp_Object fun)
 
       if (NILP (fun))
 	{
-	  ptrdiff_t incr = len - (print_buffer_size - print_buffer_pos_byte);
+	  ptrdiff_t incr = len - (print_buffer.size - print_buffer.pos_byte);
 	  if (incr > 0)
-	    print_buffer = xpalloc (print_buffer, &print_buffer_size,
-				    incr, -1, 1);
-	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
-	  print_buffer_pos += 1;
-	  print_buffer_pos_byte += len;
+	    print_buffer.buffer = xpalloc (print_buffer.buffer,
+					   &print_buffer.size,
+					   incr, -1, 1);
+	  memcpy (print_buffer.buffer + print_buffer.pos_byte, str, len);
+	  print_buffer.pos += 1;
+	  print_buffer.pos_byte += len;
 	}
       else if (noninteractive)
 	{
@@ -375,12 +376,13 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 {
   if (NILP (printcharfun))
     {
-      ptrdiff_t incr = size_byte - (print_buffer_size - print_buffer_pos_byte);
+      ptrdiff_t incr = size_byte - (print_buffer.size - print_buffer.pos_byte);
       if (incr > 0)
-	print_buffer = xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
-      memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
-      print_buffer_pos += size;
-      print_buffer_pos_byte += size_byte;
+	print_buffer.buffer = xpalloc (print_buffer.buffer,
+				       &print_buffer.size, incr, -1, 1);
+      memcpy (print_buffer.buffer + print_buffer.pos_byte, ptr, size_byte);
+      print_buffer.pos += size;
+      print_buffer.pos_byte += size_byte;
     }
   else if (noninteractive && EQ (printcharfun, Qt))
     {
