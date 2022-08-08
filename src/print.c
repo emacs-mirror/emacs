@@ -63,11 +63,19 @@ static Lisp_Object being_printed[PRINT_CIRCLE];
 /* Last char printed to stdout by printchar.  */
 static unsigned int printchar_stdout_last;
 
-struct print_buffer {
-  char *buffer;			/* Allocated buffer.  */
-  ptrdiff_t size;		/* Size of allocated buffer.  */
-  ptrdiff_t pos;		/* Chars stored in buffer.  */
-  ptrdiff_t pos_byte;		/* Bytes stored in buffer.  */
+struct print_buffer
+{
+  /* Allocated buffer.  */
+  char *buffer;
+
+  /* Size of allocated buffer.  */
+  ptrdiff_t size;
+
+  /* Chars stored in buffer.  */
+  ptrdiff_t pos;
+
+  /* Bytes stored in buffer.  */
+  ptrdiff_t pos_byte;
 };
 
 /* When printing into a buffer, first we put the text in this
@@ -114,7 +122,8 @@ print_unwind (Lisp_Object saved_text)
    block of characters.  */
 
 /* State carried between print_prepare and print_finish.  */
-struct print_context {
+struct print_context
+{
   Lisp_Object printcharfun;
   Lisp_Object old_printcharfun;
   ptrdiff_t old_point, start_point;
