@@ -288,7 +288,6 @@ form (FUNCNAME ARGLIST BODY...), similar to defun."
 (provide 'mh-acros)
 
 ;; Local Variables:
-;; no-byte-compile: t
 ;; sentence-end-double-space: nil
 ;; End:
 

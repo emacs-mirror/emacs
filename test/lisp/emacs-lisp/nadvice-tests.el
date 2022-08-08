@@ -213,8 +213,4 @@ function being an around advice."
     (should (equal (cl-prin1-to-string (car x))
                    "#f(advice first :before #f(advice car :after cdr))"))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
 ;;; nadvice-tests.el ends here

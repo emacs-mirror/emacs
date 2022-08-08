@@ -195,8 +195,4 @@ Parser is called with and without `symbol-qnames' argument.")
     (should (equal (cdr test)
                    (xml-parse-region (point-min) (point-max))))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
 ;;; xml-tests.el ends here

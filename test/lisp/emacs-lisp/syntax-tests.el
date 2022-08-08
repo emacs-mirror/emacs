@@ -60,8 +60,4 @@
   (should-error
    (syntax-propertize--shift-groups-and-backrefs "\\(a\\)\\3" 7)))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
 ;;; syntax-tests.el ends here.
