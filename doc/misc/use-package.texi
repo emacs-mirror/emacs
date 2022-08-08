@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2012-2017 John Wiegley <johnw@@newartisans.com>
+Copyright (C) 2012-2022 John Wiegley <johnw@@newartisans.com>
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title use-package User Manual
-@subtitle for version 2.4.1
+@subtitle for version 2.4.1-81-gb185c6b+1
 @author John Wiegley
 @page
 @vskip 0pt plus 1filll
@@ -44,20 +44,13 @@ General Public License for more details.
 @node Top
 @top use-package User Manual
 
-use-package is@dots{}
+The @code{use-package} macro allows you to isolate package configuration in your
+@code{.emacs} file in a way that is both performance-oriented and, well, tidy. I
+created it because I have over 80 packages that I use in Emacs, and things
+were getting difficult to manage. Yet with this utility my total load time is
+around 2 seconds, with no loss of functionality!
 
-@quotation
-Copyright (C) 2012-2017 John Wiegley <johnw@@newartisans.com>
-
-You can redistribute this document and/or modify it under the terms of the GNU
-General Public License as published by the Free Software Foundation, either
-version 3 of the License, or (at your option) any later version.
-
-This document is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE@. See the GNU General Public License for more details.
-
-@end quotation
+@insertcopying
 @end ifnottex
 
 @menu
@@ -67,11 +60,7 @@ FOR A PARTICULAR PURPOSE@. See the GNU General Public License for more details.
 * Basic Concepts::
 * Issues/Requests::
 * Keywords::
-* FAQ::
 * Debugging Tools::
-* Command Index::
-* Function Index::
-* Variable Index::
 
 @detailmenu
 --- The Detailed Node Listing ---
@@ -109,21 +98,6 @@ Keywords
 * Binding to local keymaps::
 
 
-FAQ
-
-* FAQ - How to @dots{}?::
-* FAQ - Issues and Errors::
-
-FAQ - How to @dots{}?
-
-* This is a question::
-
-
-FAQ - Issues and Errors
-
-* This is an issues::
-
-
 @end detailmenu
 @end menu
 
@@ -140,12 +114,6 @@ More text to come@dots{}
 
 @node Installation
 @chapter Installation
-
-@menu
-* Installing from an Elpa Archive::
-* Installing from the Git Repository::
-* Post-Installation Tasks::
-@end menu
 
 use-package can be installed using Emacs' package manager or manually from
 its development repository.
@@ -276,8 +244,7 @@ use-package-version’s value is "2.4.1"
 
 If you are completely new to use-package then see @ref{Getting Started}.
 
-If you run into problems, then please see the
-@ref{FAQ}.  Also see the @ref{Debugging Tools}.
+If you run into problems, then please see the @ref{Debugging Tools}.
 
 @node Getting Started
 @chapter Getting Started
@@ -293,25 +260,22 @@ those decisions clearer:
 
 @itemize
 @item
-To gather all configuration details of a package into one place, making
-it easier to copy, disable, or move it elsewhere in the init file.
-
-
-@item
-To reduce duplication and boilerplate, capturing several common practices
-as mere keywords both easy and intuitive to use.
-
+To gather all configuration details of a package into one place,
+making it easier to copy, disable, or move it elsewhere in the init
+file.
 
 @item
-To make startup time of Emacs as quick as possible, without sacrificing
-the quantity of add-on packages used.
-
+To reduce duplication and boilerplate, capturing several common
+practices as mere keywords both easy and intuitive to use.
 
 @item
-To make it so errors encountered during startup disable only the package
-raising the error, and as little else as possible, leaving a close to a
-functional Emacs as possible.
+To make startup time of Emacs as quick as possible, without
+sacrificing the quantity of add-on packages used.
 
+@item
+To make it so errors encountered during startup disable only the
+package raising the error, and as little else as possible, leaving a
+close to a functional Emacs as possible.
 
 @item
 To allow byte-compilation of one's init file so that any warnings or
@@ -997,63 +961,9 @@ As a convenience, a list of such packages may be specified:
 For more complex logic, such as that supported by @code{:after}, simply use @code{:if}
 and the appropriate Lisp expression.
 
-@node FAQ
-@appendix FAQ
-
-The next two nodes lists frequently asked questions.
-
-Please also use the @ref{Debugging Tools}.
-
-@menu
-* FAQ - How to @dots{}?::
-* FAQ - Issues and Errors::
-@end menu
-
-@node FAQ - How to @dots{}?
-@appendixsec FAQ - How to @dots{}?
-
-@menu
-* This is a question::
-@end menu
-
-@node This is a question
-@appendixsubsec This is a question
-
-This is an answer.
-
-@node FAQ - Issues and Errors
-@appendixsec FAQ - Issues and Errors
-
-@menu
-* This is an issues::
-@end menu
-
-@node This is an issues
-@appendixsubsec This is an issues
-
-This is a description.
-
 @node Debugging Tools
 @chapter Debugging Tools
 
 TODO
 
-Please also see the @ref{FAQ}.
-
-@node Command Index
-@appendix Command Index
-
-@printindex cp
-
-@node Function Index
-@appendix Function Index
-
-@printindex fn
-
-@node Variable Index
-@appendix Variable Index
-
-@printindex vr
-
-Emacs 28.0.92 (Org mode 9.5.2)
 @bye
