@@ -6075,8 +6075,4 @@ buffer with overlapping strings."
 
 (provide 'python-tests)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; python-tests.el ends here

@@ -818,7 +818,3 @@ An existing calc stack is reused, otherwise a new one is created."
 
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
-
-;; Local Variables:
-;; bug-reference-url-format: "https://debbugs.gnu.org/%s"
-;; End:
