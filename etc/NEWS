@@ -2535,6 +2535,11 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New 'declare' form 'interactive-args'.
+This can be used to specify what forms to put into 'command-history'
+when executing commands interactively.
+
 ** The FORM arg of 'time-convert' is mandatory.
 'time-convert' can still be called without it, as before, but the
 compiler now emits a warning about this deprecated usage.
