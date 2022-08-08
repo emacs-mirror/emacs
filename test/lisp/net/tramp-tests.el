@@ -2481,7 +2481,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      (insert-file-contents tmp-name)
 	      (should (string-equal (buffer-string) "foo")))
 
-	    ;; Write empty string.  Used for creation of temprorary files.
+	    ;; Write empty string.  Used for creation of temporary files.
 	    ;; Since Emacs 27.1.
 	    (when (fboundp 'make-empty-file)
 	      (with-no-warnings

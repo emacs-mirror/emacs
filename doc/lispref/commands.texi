@@ -2704,7 +2704,7 @@ Return the timestamp in @var{position}.  This is the time at which the
 event occurred, in milliseconds.  Such a timestamp is reported
 relative to an arbitrary starting time that varies according to the
 window system in use.  On the X Window System, for example, it is the
-number of miliseconds since the X server was started.
+number of milliseconds since the X server was started.
 @end defun
 
   These functions compute a position list given particular buffer

@@ -1480,7 +1480,7 @@ instead of returning \"E\".")
           (error '(STRING . "E")))))))
 
 (defun x-dnd-handle-octet-stream (_selection _type _value)
-  "Handle a selecton request for `application/octet-stream'.
+  "Handle a selection request for `application/octet-stream'.
 Return the contents of the XDS file."
   (cons 'application/octet-stream
         (ignore-errors

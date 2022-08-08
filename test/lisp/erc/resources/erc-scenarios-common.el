@@ -142,10 +142,10 @@ Dialog resource directories are located by expanding the variable
   (declare (indent 1))
 
   (let* ((orig-autojoin-mode (make-symbol "orig-autojoin-mode"))
-         (combind `((,orig-autojoin-mode (bound-and-true-p erc-autojoin-mode))
+         (combined `((,orig-autojoin-mode (bound-and-true-p erc-autojoin-mode))
                     ,@(erc-scenarios-common--make-bindings bindings))))
 
-    `(erc-d-t-with-cleanup (,@combind)
+    `(erc-d-t-with-cleanup (,@combined)
 
          (ert-info ("Restore autojoin, etc., kill ERC buffers")
            (dolist (buf (buffer-list))

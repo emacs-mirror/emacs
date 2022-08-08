@@ -1253,7 +1253,7 @@ accepts is as follows (order is not significant):
 
 The ~popup~ key takes the same values as ~selection~.
 
-Apart from specfying each key separately, a fallback list is accepted.
+Apart from specifying each key separately, a fallback list is accepted.
 This is only useful when the desired aesthetic is the same across all
 keys that are not explicitly referenced.  For example, this:
 
@@ -3639,7 +3639,7 @@ it if you plan to control face attributes.
 :end:
 #+cindex: Org custom emphasis faces
 
-Org provides the user option ~org-emphasis-alist~ which assosiates a
+Org provides the user option ~org-emphasis-alist~ which associates a
 character with a face, list of faces, or face attributes.  The default
 specification of that variable looks like this:
 

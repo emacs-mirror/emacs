@@ -6837,7 +6837,7 @@ x_sync_trigger_fence (struct frame *f, XSyncValue value)
   idx = (n / 4) % 2;
 
 #ifdef FRAME_DEBUG
-  fprintf (stderr, "Triggering synchonization fence: %lu\n", idx);
+  fprintf (stderr, "Triggering synchronization fence: %lu\n", idx);
 #endif
 
   XSyncTriggerFence (FRAME_X_DISPLAY (f),
@@ -18928,7 +18928,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         {
 	  /* Now clear dpyinfo->last_mouse_motion_frame, or
 	     gui_redo_mouse_highlight will end up highlighting the
-	     last known poisition of the mouse if a tooltip frame is
+	     last known position of the mouse if a tooltip frame is
 	     later unmapped.  */
 
 	  if (f == dpyinfo->last_mouse_motion_frame)
@@ -20397,7 +20397,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  /* Now clear dpyinfo->last_mouse_motion_frame, or
 		     gui_redo_mouse_highlight will end up highlighting
-		     the last known poisition of the mouse if a
+		     the last known position of the mouse if a
 		     tooltip frame is later unmapped.  */
 
 		  if (f == dpyinfo->last_mouse_motion_frame)
