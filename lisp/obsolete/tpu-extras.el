@@ -422,8 +422,4 @@ A repeat count means scroll that many sections."
 
 (provide 'tpu-extras)
 
-;; Local Variables:
-;; generated-autoload-file: "tpu-edt.el"
-;; End:
-
 ;;; tpu-extras.el ends here
