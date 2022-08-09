@@ -1275,7 +1275,7 @@ Return nil at end of buffer, t otherwise."
 
 (defun rng-segment-blank-p (segment)
   (if (car segment)
-      (rng-blank-p (car segment))
+      (string-blank-p (car segment))
     (apply #'rng-region-blank-p
 	   (cdr segment))))
 
@@ -1303,7 +1303,7 @@ string between START and END."
 	((not (or (and whitespace
 		       (or (eq whitespace t)
 			   (if value
-			       (rng-blank-p value)
+                               (string-blank-p value)
 			     (rng-region-blank-p start end))))
 		  (rng-match-mixed-text)))
 	 (rng-mark-invalid "Text not allowed" start (or end (point))))))
