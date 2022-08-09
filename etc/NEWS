@@ -1102,31 +1102,31 @@ now has font-selection and character composition rules, a language
 environment, and an input method.  The newly-added scripts and the
 corresponding language environments are:
 
-**** Tai Tham script and the Northern Thai language environment
-**** Brahmi script and language environment
-**** Kaithi script and language environment
-**** Tirhuta script and language environment
-**** Sharada script and language environment
-**** Siddham script and language environment
-**** Syloti Nagri script and language environment
-**** Modi script and language environment
-**** Baybayin script and Tagalog language environment
-**** Hanunoo script and language environment
-**** Buhid script and language environment
-**** Tagbanwa script and language environment
-**** Limbu script and language environment
-**** Balinese script and language environment
-**** Javanese script and language environment
-**** Sundanese script and language environment
-**** Batak script and language environment
-**** Rejang script and language environment
-**** Makasar script and language environment
-**** Lontara script and language environment
-**** Hanifi Rohingya script and language environment
-**** Grantha script and language environment
-**** Kharoshthi script and language environment
-**** Lepcha script and language environment
-**** Meetei Mayek script and language environment
+Tai Tham script and the Northern Thai language environment
+Brahmi script and language environment
+Kaithi script and language environment
+Tirhuta script and language environment
+Sharada script and language environment
+Siddham script and language environment
+Syloti Nagri script and language environment
+Modi script and language environment
+Baybayin script and Tagalog language environment
+Hanunoo script and language environment
+Buhid script and language environment
+Tagbanwa script and language environment
+Limbu script and language environment
+Balinese script and language environment
+Javanese script and language environment
+Sundanese script and language environment
+Batak script and language environment
+Rejang script and language environment
+Makasar script and language environment
+Lontara script and language environment
+Hanifi Rohingya script and language environment
+Grantha script and language environment
+Kharoshthi script and language environment
+Lepcha script and language environment
+Meetei Mayek script and language environment
 
 ---
 *** The "Oriya" language environment was renamed to "Odia".
