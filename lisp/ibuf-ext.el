@@ -48,9 +48,7 @@
 ;;; Utility functions
 (defun ibuffer-remove-alist (key alist)
   "Remove all entries in ALIST that have a key equal to KEY."
-  (while (when-let ((it (assoc key alist)))
-           (setq alist (remove it alist)) it))
-  alist)
+  (assoc-delete-all key (copy-sequence alist)))
 
 (defun ibuffer-split-list (fn elts)
   (declare (obsolete seq-group-by "29.1"))
