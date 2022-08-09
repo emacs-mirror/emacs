@@ -116,6 +116,8 @@
   "User variables for Emacs ispell interface."
   :group 'applications)
 
+(defalias 'check-ispell-version 'ispell-check-version)
+
 (declare-function flyspell-unhighlight-at "flyspell" (pos))
 
 ;;; **********************************************************************
@@ -4227,8 +4229,6 @@ Both should not be used to define a buffer-local dictionary."
 			  (newline)
 			  (insert comment-end)))))
 	      (insert (concat " " word))))))))
-
-(define-obsolete-function-alias 'check-ispell-version #'ispell-check-version "29.1")
 
 (provide 'ispell)
 
