@@ -127,6 +127,15 @@ scanning for autoloads and will be in the `load-path'."
         (substring name 0 (match-beginning 0))
       name)))
 
+(defun loaddefs-generate--shorten-autoload (form)
+  "Remove optional nil elements from an `autoload' form."
+  (take (max (- (length form)
+                (seq-position (reverse form) nil
+                              (lambda (e1 e2)
+                                (not (eq e1 e2)))))
+             3)
+        form))
+
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition
@@ -165,8 +174,8 @@ expression, in which case we want to handle forms differently."
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
         (when (consp args) (setq doc (help-add-fundoc-usage doc args)))
-        ;; (message "autoload of %S" (nth 1 form))
-        `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type)))
+        (loaddefs-generate--shorten-autoload
+         `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type))))
 
      ((and expansion (memq car '(progn prog1)))
       (let ((end (memq :autoload-end form)))
@@ -220,22 +229,23 @@ expression, in which case we want to handle forms differently."
         ;; can recover it.
 	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; `define-generic-mode' quotes the name, so take care of that
-        `(autoload ,(if (listp name) name (list 'quote name))
-           ,file ,doc
-           ,(or (and (memq car '(define-skeleton define-derived-mode
-                                  define-generic-mode
-                                  easy-mmode-define-global-mode
-                                  define-global-minor-mode
-                                  define-globalized-minor-mode
-                                  easy-mmode-define-minor-mode
-                                  define-minor-mode))
-                     t)
-                (and (eq (car-safe (car body)) 'interactive)
-                     ;; List of modes or just t.
-                     (or (if (nthcdr 1 (car body))
-                             (list 'quote (nthcdr 1 (car body)))
-                           t))))
-           ,(if macrop ''macro nil))))
+        (loaddefs-generate--shorten-autoload
+         `(autoload ,(if (listp name) name (list 'quote name))
+            ,file ,doc
+            ,(or (and (memq car '(define-skeleton define-derived-mode
+                                   define-generic-mode
+                                   easy-mmode-define-global-mode
+                                   define-global-minor-mode
+                                   define-globalized-minor-mode
+                                   easy-mmode-define-minor-mode
+                                   define-minor-mode))
+                      t)
+                 (and (eq (car-safe (car body)) 'interactive)
+                      ;; List of modes or just t.
+                      (or (if (nthcdr 1 (car body))
+                              (list 'quote (nthcdr 1 (car body)))
+                            t))))
+            ,(if macrop ''macro nil)))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
