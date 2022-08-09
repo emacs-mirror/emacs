@@ -1117,7 +1117,7 @@ Auto-indent does not happen if a numeric ARG is used."
                  (eq ?\t (char-after (line-beginning-position)))
                  (not (or (eq last-command 'fortran-indent-line)
                           (eq last-command
-                              'fortran-indent-new-line))))
+                              'reindent-then-newline-and-indent))))
             (save-excursion
               (re-search-backward "[^ \t0-9]"
                                   (line-beginning-position)
@@ -1586,10 +1586,6 @@ Return point or nil."
         (if (< (current-column) cfi)
             (move-to-column cfi)))))
 
-;; Historically this was a separate function which advertised itself
-;; as reindenting but only did so where `most likely to be necessary'.
-(defalias 'fortran-indent-new-line 'reindent-then-newline-and-indent)
-
 (defun fortran-indent-subprogram ()
   "Properly indent the Fortran subprogram containing point."
   (interactive "*")
@@ -1926,9 +1922,6 @@ If ALL is nil, only match comments that start in column > 0."
           ;; Result.
           (nth 3 parse-state))))))
 
-;; From old version.
-(defalias 'fortran-auto-fill-mode 'auto-fill-mode)
-
 (defun fortran-fill ()
   "Fill the current line at an appropriate point(s)."
   (let* ((auto-fill-function #'fortran-auto-fill)
@@ -2214,6 +2207,9 @@ arg DO-SPACE prevents stripping the whitespace."
     ["Add Imenu Menu" imenu-add-menubar-index
      :active   (not (lookup-key (current-local-map) [menu-bar index]))
      :help "Add an index menu to the menu-bar"]))
+
+(define-obsolete-function-alias 'fortran-indent-new-line #'reindent-then-newline-and-indent "29.1")
+(define-obsolete-function-alias 'fortran-auto-fill-mode #'auto-fill-mode "29.1")
 
 (provide 'fortran)
 
