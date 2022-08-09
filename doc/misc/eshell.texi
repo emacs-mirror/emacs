@@ -1020,27 +1020,32 @@ Because Eshell commands can not (easily) be combined with lisp forms,
 Eshell provides command-oriented control flow statements for
 convenience.
 
+Most of Eshell's control flow statements accept a @var{conditional}.
+This can take a few different forms.  If @var{conditional} is a dollar
+expansion, the condition is satisfied if the result is a
+non-@code{nil} value.  If @var{conditional} is a @samp{@{
+@var{subcommand} @}}, the condition is satisfied if the
+@var{subcommand}'s exit status is 0.
+
 @table @code
 
-@item if @{ @var{conditional} @} @{ @var{true-commands} @}
-@itemx if @{ @var{conditional} @} @{ @var{true-commands} @} @{ @var{false-commands} @}
-Evaluate @var{true-commands} if @var{conditional} returns success
-(i.e.@: its exit code is zero); otherwise, evaluate
-@var{false-commands}.
+@item if @var{conditional} @{ @var{true-commands} @}
+@itemx if @var{conditional} @{ @var{true-commands} @} @{ @var{false-commands} @}
+Evaluate @var{true-commands} if @var{conditional} is satisfied;
+otherwise, evaluate @var{false-commands}.
 
-@item unless @{ @var{conditional} @} @{ @var{false-commands} @}
-@itemx unless @{ @var{conditional} @} @{ @var{false-commands} @} @{ @var{true-commands} @}
-Evaluate @var{false-commands} if @var{conditional} returns failure
-(i.e.@: its exit code is non-zero); otherwise, evaluate
-@var{true-commands}.
+@item unless @var{conditional} @{ @var{false-commands} @}
+@itemx unless @var{conditional} @{ @var{false-commands} @} @{ @var{true-commands} @}
+Evaluate @var{false-commands} if @var{conditional} is not satisfied;
+otherwise, evaluate @var{true-commands}.
 
-@item while @{ @var{conditional} @} @{ @var{commands} @}
-Repeatedly evaluate @var{commands} so long as @var{conditional}
-returns success.
+@item while @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional} is
+satisfied.
 
-@item until @{ @var{conditional} @} @{ @var{commands} @}
-Repeatedly evaluate @var{commands} so long as @var{conditional}
-returns failure.
+@item until @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} until @var{conditional} is
+satisfied.
 
 @item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
 Iterate over each element of of @var{list}, storing the element in

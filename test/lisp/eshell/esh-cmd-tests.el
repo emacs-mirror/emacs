@@ -132,6 +132,15 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 
 (ert-deftest esh-cmd-test/while-loop ()
   "Test invocation of a while loop."
+  (with-temp-eshell
+   (let ((eshell-test-value '(0 1 2)))
+     (eshell-command-result-p
+      (concat "while $eshell-test-value "
+              "{ setq eshell-test-value (cdr eshell-test-value) }")
+      "(1 2)\n(2)\n"))))
+
+(ert-deftest esh-cmd-test/while-loop-ext-cmd ()
+  "Test invocation of a while loop using an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    (let ((eshell-test-value 0))
@@ -142,6 +151,15 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 
 (ert-deftest esh-cmd-test/until-loop ()
   "Test invocation of an until loop."
+  (with-temp-eshell
+   (let ((eshell-test-value nil))
+     (eshell-command-result-p
+      (concat "until $eshell-test-value "
+              "{ setq eshell-test-value t }")
+      "t\n"))))
+
+(ert-deftest esh-cmd-test/until-loop-ext-cmd ()
+  "Test invocation of an until loop using an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    (let ((eshell-test-value 0))
@@ -152,15 +170,26 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 
 (ert-deftest esh-cmd-test/if-statement ()
   "Test invocation of an if statement."
-  (skip-unless (executable-find "["))
   (with-temp-eshell
-   (eshell-command-result-p "if {[ foo = foo ]} {echo yes}"
-                            "yes\n")
-   (eshell-command-result-p "if {[ foo = bar ]} {echo yes}"
-                            "\\`\\'")))
+   (let ((eshell-test-value t))
+     (eshell-command-result-p "if $eshell-test-value {echo yes}"
+                              "yes\n"))
+   (let ((eshell-test-value nil))
+     (eshell-command-result-p "if $eshell-test-value {echo yes}"
+                              "\\`\\'"))))
 
 (ert-deftest esh-cmd-test/if-else-statement ()
   "Test invocation of an if/else statement."
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-command-result-p "if $eshell-test-value {echo yes} {echo no}"
+                              "yes\n"))
+   (let ((eshell-test-value nil))
+     (eshell-command-result-p "if $eshell-test-value {echo yes} {echo no}"
+                              "no\n"))))
+
+(ert-deftest esh-cmd-test/if-else-statement-ext-cmd ()
+  "Test invocation of an if/else statement using an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    (eshell-command-result-p "if {[ foo = foo ]} {echo yes} {echo no}"
@@ -170,15 +199,26 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 
 (ert-deftest esh-cmd-test/unless-statement ()
   "Test invocation of an unless statement."
-  (skip-unless (executable-find "["))
   (with-temp-eshell
-   (eshell-command-result-p "unless {[ foo = foo ]} {echo no}"
-                            "\\`\\'")
-   (eshell-command-result-p "unless {[ foo = bar ]} {echo no}"
-                            "no\n")))
+   (let ((eshell-test-value t))
+     (eshell-command-result-p "unless $eshell-test-value {echo no}"
+                              "\\`\\'"))
+   (let ((eshell-test-value nil))
+     (eshell-command-result-p "unless $eshell-test-value {echo no}"
+                              "no\n"))))
 
 (ert-deftest esh-cmd-test/unless-else-statement ()
   "Test invocation of an unless/else statement."
+  (with-temp-eshell
+   (let ((eshell-test-value t))
+     (eshell-command-result-p "unless $eshell-test-value {echo no} {echo yes}"
+                              "yes\n"))
+   (let ((eshell-test-value nil))
+     (eshell-command-result-p "unless $eshell-test-value {echo no} {echo yes}"
+                              "no\n"))))
+
+(ert-deftest esh-cmd-test/unless-else-statement-ext-cmd ()
+  "Test invocation of an unless/else statement using an external command."
   (skip-unless (executable-find "["))
   (with-temp-eshell
    (eshell-command-result-p "unless {[ foo = foo ]} {echo no} {echo yes}"

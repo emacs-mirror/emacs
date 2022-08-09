@@ -549,10 +549,11 @@ implemented via rewriting, rather than as a function."
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
-  ;; If the test form begins with `eshell-convert', it means
-  ;; something data-wise will be returned, and we should let
-  ;; that determine the truth of the statement.
-  (unless (eq (car test) 'eshell-convert)
+  ;; If the test form begins with `eshell-convert' or
+  ;; `eshell-escape-arg', it means something data-wise will be
+  ;; returned, and we should let that determine the truth of the
+  ;; statement.
+  (unless (memq (car test) '(eshell-convert eshell-escape-arg))
     (setq test
 	  `(progn ,test
                   (eshell-exit-success-p))))
