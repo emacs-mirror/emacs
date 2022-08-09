@@ -2926,9 +2926,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
 
 ;;; Colors
 
-;; Printing color requires x-color-values.
 ;;;###autoload
-(defcustom ps-print-color-p (fboundp 'x-color-values)
+(defcustom ps-print-color-p t
   "Specify how buffer's text color is printed.
 
 Valid values are:

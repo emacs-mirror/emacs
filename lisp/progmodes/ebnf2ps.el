@@ -2037,7 +2037,6 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
   :group 'ebnf2ps)
 
 
-;; Printing color requires x-color-values.
 (defcustom ebnf-color-p t
   "Non-nil means use color."
   :type 'boolean
