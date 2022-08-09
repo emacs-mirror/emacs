@@ -4160,7 +4160,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			    (file-attributes tmp-name1))))
 	    ;; Skip the test, if the remote handler is not able to set
 	    ;; the correct time.
-	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)))
+	    ;; Some remote machines cannot resolve seconds.  So we use a minute.
+	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 60)))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
 	    (unless (tramp-compat-time-equal-p
@@ -4168,16 +4169,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		      (file-attributes tmp-name1))
 		     tramp-time-dont-know)
 	      (should
-	       (or (tramp-compat-time-equal-p
-                    (file-attribute-modification-time
-		     (file-attributes tmp-name1))
-		    (seconds-to-time 1))
-		   ;; Some remote machines cannot resolve seconds.
-		   ;; The return the modification time `(0 0).
-		   (tramp-compat-time-equal-p
-                    (file-attribute-modification-time
-		     (file-attributes tmp-name1))
-		    (seconds-to-time 0))))
+	       (tramp-compat-time-equal-p
+                (file-attribute-modification-time (file-attributes tmp-name1))
+		(seconds-to-time 60)))
 	      ;; Setting the time for not existing files shall fail.
 	      (should-error
 	       (set-file-times tmp-name2)
@@ -4192,18 +4186,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      ;; regular files, there shouldn't be a difference.
 	      (when (tramp--test-emacs28-p)
 		(with-no-warnings
-		  (set-file-times tmp-name1 (seconds-to-time 1) 'nofollow)
+		  (set-file-times tmp-name1 (seconds-to-time 60) 'nofollow)
 		  (should
-		   (or (tramp-compat-time-equal-p
-			(file-attribute-modification-time
-			 (file-attributes tmp-name1))
-			(seconds-to-time 1))
-		       ;; Some remote machines cannot resolve seconds.
-		       ;; The return the modification time `(0 0).
-		       (tramp-compat-time-equal-p
-			(file-attribute-modification-time
-			 (file-attributes tmp-name1))
-			(seconds-to-time 0))))))))
+		   (tramp-compat-time-equal-p
+                    (file-attribute-modification-time
+		     (file-attributes tmp-name1))
+		    (seconds-to-time 60)))))))
 
 	;; Cleanup.
 	(ignore-errors

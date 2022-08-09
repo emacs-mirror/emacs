@@ -750,15 +750,6 @@ nil.  See also `gnus-bind-print-variables'."
   (when (file-exists-p file)
     (delete-file file)))
 
-(defun gnus-delete-duplicates (list)
-  "Remove duplicate entries from LIST."
-  (let ((result nil))
-    (while list
-      (unless (member (car list) result)
-	(push (car list) result))
-      (pop list))
-    (nreverse result)))
-
 (defun gnus-delete-directory (directory)
   "Delete files in DIRECTORY.  Subdirectories remain.
 If there's no subdirectory, delete DIRECTORY as well."
@@ -1549,6 +1540,8 @@ lists of strings."
 ;; separate file to avoid pulling in rmail.el when requiring
 ;; gnus-util.
 (autoload 'gnus-output-to-rmail "gnus-rmail")
+
+(define-obsolete-function-alias 'gnus-delete-duplicates #'seq-uniq "29.1")
 
 (provide 'gnus-util)
 

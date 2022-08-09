@@ -52,17 +52,6 @@
            (setq alist (remove it alist)) it))
   alist)
 
-;; borrowed from Gnus
-(defun ibuffer-remove-duplicates (list)
-  "Return a copy of LIST with duplicate elements removed."
-  (let ((new nil)
-	(tail list))
-    (while tail
-      (or (member (car tail) new)
-	  (setq new (cons (car tail) new)))
-      (setq tail (cdr tail)))
-    (nreverse new)))
-
 (defun ibuffer-split-list (fn elts)
   (declare (obsolete seq-group-by "29.1"))
   (let ((res (seq-group-by fn elts)))
@@ -799,7 +788,7 @@ specification, with the same structure as an element of the list
         (mapcar (lambda (mode)
                   (cons (format "%s" mode) `((mode . ,mode))))
                 (let ((modes
-                       (ibuffer-remove-duplicates
+                       (seq-uniq
                         (mapcar (lambda (buf)
 				  (buffer-local-value 'major-mode buf))
                                 (buffer-list)))))
@@ -876,7 +865,7 @@ specification, with the same structure as an element of the list
   "Move point to the filter group whose name is NAME."
   (interactive
    (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
-  (ibuffer-aif (assoc name (ibuffer-current-filter-groups-with-position))
+  (if-let ((it (assoc name (ibuffer-current-filter-groups-with-position))))
       (goto-char (cdr it))
     (error "No filter group with name %s" name)))
 
@@ -887,7 +876,7 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   (interactive (list (ibuffer-read-filter-group-name "Kill filter group: " t)))
   (when (equal name "Default")
     (error "Can't kill default filter group"))
-  (ibuffer-aif (assoc name ibuffer-filter-groups)
+  (if-let ((it (assoc name ibuffer-filter-groups)))
       (progn
 	(push (copy-tree it) ibuffer-filter-group-kill-ring)
 	(setq ibuffer-filter-groups (ibuffer-remove-alist
@@ -902,13 +891,12 @@ The group will be added to `ibuffer-filter-group-kill-ring'."
   "Kill the filter group at point.
 See also `ibuffer-kill-filter-group'."
   (interactive "P\np")
-  (ibuffer-aif (save-excursion
-		 (ibuffer-forward-line 0)
-		 (get-text-property (point) 'ibuffer-filter-group-name))
-      (progn
-	(ibuffer-kill-filter-group it))
-      (funcall (if interactive-p #'call-interactively #'funcall)
-	       #'kill-line arg)))
+  (if-let ((it (save-excursion
+                 (ibuffer-forward-line 0)
+                 (get-text-property (point) 'ibuffer-filter-group-name))))
+      (ibuffer-kill-filter-group it)
+    (funcall (if interactive-p #'call-interactively #'funcall)
+             #'kill-line arg)))
 
 (defun ibuffer-insert-filter-group-before (newgroup group)
   (let* ((found nil)
@@ -964,7 +952,7 @@ prompt for NAME, and use the current filters."
      (list
       (read-from-minibuffer "Save current filter groups as: ")
       ibuffer-filter-groups)))
-  (ibuffer-aif (assoc name ibuffer-saved-filter-groups)
+  (if-let ((it (assoc name ibuffer-saved-filter-groups)))
       (setcdr it groups)
     (push (cons name groups) ibuffer-saved-filter-groups))
   (ibuffer-maybe-save-stuff))
@@ -1136,7 +1124,7 @@ Interactively, prompt for NAME, and use the current filters."
      (list
       (read-from-minibuffer "Save current filters as: ")
       ibuffer-filtering-qualifiers)))
-  (ibuffer-aif (assoc name ibuffer-saved-filters)
+  (if-let ((it (assoc name ibuffer-saved-filters)))
       (setcdr it filters)
     (push (cons name filters) ibuffer-saved-filters))
   (ibuffer-maybe-save-stuff))
@@ -1348,11 +1336,11 @@ pattern.  For example, for a buffer associated with file
 For a buffer associated with file '/a/b/c.d', this matches
 against '/a/b'.  For a buffer not associated with a file, this
 matches against the value of `default-directory' in that buffer."
-  (:description "directory name"
-   :reader (read-from-minibuffer "Filter by directory name (regex): "))
-  (ibuffer-aif (with-current-buffer buf (ibuffer-buffer-file-name))
-      (let ((dirname (file-name-directory it)))
-        (when dirname (string-match qualifier dirname)))
+  ( :description "directory name"
+    :reader (read-from-minibuffer "Filter by directory name (regex): "))
+  (if-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
+      (when-let ((dirname (file-name-directory it)))
+        (string-match qualifier dirname))
     (when default-directory (string-match qualifier default-directory))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
@@ -1985,6 +1973,8 @@ defaults to one."
      (lambda (buf _mark)
        (push buf ibuffer-do-occur-bufs)))
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
+
+(define-obsolete-function-alias 'ibuffer-remove-duplicates #'seq-uniq "29.1")
 
 (provide 'ibuf-ext)
 

@@ -99,7 +99,7 @@ SUFFIX should start with \":2,\"."
   (let* ((flags (substring suffix 3))
 	 (flags-as-list (append flags nil))
 	 (new-flags
-	  (concat (gnus-delete-duplicates
+          (concat (seq-uniq
 		   ;; maildir flags must be sorted
 		   (sort (cons flag flags-as-list) #'<)))))
     (concat ":2," new-flags)))
@@ -1015,7 +1015,7 @@ This variable is set by `nnmaildir-request-article'.")
 	    dir (nnmaildir--nndir dir)
 	    dir (nnmaildir--marks-dir dir)
             ls (nnmaildir--group-ls nnmaildir--cur-server pgname)
-	    all-marks (gnus-delete-duplicates
+            all-marks (seq-uniq
 		       ;; get mark names from mark dirs and from flag
 		       ;; mappings
 		       (append
@@ -1697,7 +1697,7 @@ This variable is set by `nnmaildir-request-article'.")
             pgname (nnmaildir--pgname nnmaildir--cur-server gname)
             ls (nnmaildir--group-ls nnmaildir--cur-server pgname)
 	    all-marks (funcall ls marksdir nil "\\`[^.]" 'nosort)
-	    all-marks (gnus-delete-duplicates
+            all-marks (seq-uniq
 		       ;; get mark names from mark dirs and from flag
 		       ;; mappings
 		       (append
