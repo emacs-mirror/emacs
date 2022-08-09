@@ -762,7 +762,7 @@ decided heuristically.)"
           (when symbol
             (let ((spec (get symbol 'edebug-form-spec)))
               (save-excursion
-                (when (and (eq (car spec) '&define)
+                (when (and (eq (car-safe spec) '&define)
                            (memq 'name spec))
                   (pop spec)
                   (while (and spec (not name))
