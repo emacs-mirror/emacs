@@ -2267,6 +2267,11 @@ This mode is used to edit files geared towards testing actions in
 Emacs buffers, like indentation and the like.  The new ert function
 'ert-test-erts-file' is used to parse these files.
 
+---
+** New mode 'js-json-mode'.
+This is a lightweight variant of 'js-mode' that is used by default
+when visiting JSON files.
+
 
 * Incompatible Lisp Changes in Emacs 29.1
 
