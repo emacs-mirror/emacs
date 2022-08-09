@@ -376,6 +376,9 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 * Changes in Emacs 29.1
 
 ---
+** New user option 'electric-quote-replace-consecutive'.
+
+---
 ** Emacs is now capable of editing files with very long lines.
 The display of long lines has been optimized, and Emacs should no
 longer choke when a buffer on display contains long lines.  The
