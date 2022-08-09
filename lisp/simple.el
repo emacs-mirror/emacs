@@ -6863,6 +6863,14 @@ point otherwise."
   :version "23.1"
   :group 'editing-basics)
 
+(defun use-region-beginning ()
+  "Return the start of the region if `use-region-p'."
+  (and (use-region-p) (region-beginning)))
+
+(defun use-region-end ()
+  "Return the end of the region if `use-region-p'."
+  (and (use-region-p) (region-end)))
+
 (defun use-region-p ()
   "Return t if the region is active and it is appropriate to act on it.
 This is used by commands that act specially on the region under
@@ -6873,7 +6881,11 @@ mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
-`use-empty-active-region'; in that case, use `region-active-p'."
+`use-empty-active-region'; in that case, use `region-active-p'.
+
+Also see the convenience functions `use-region-beginning' and
+`use-region-end', which may be handy when writing `interactive'
+specs."
   (and (region-active-p)
        (or use-empty-active-region (> (region-end) (region-beginning)))
        t))
