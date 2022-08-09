@@ -72,13 +72,8 @@ LIST is not modified."
 			    t))
 
 (defun rng-collapse-space (string)
-  (setq string
-	(replace-regexp-in-string "[ \t\r\n]+" " " string t t))
-  (when (string-match "\\` " string)
-    (setq string (substring string 1)))
-  (when (string-match " \\'" string)
-    (setq string (substring string 0 -1)))
-  string)
+  (string-trim
+   (replace-regexp-in-string "[ \t\r\n]+" " " string t t)))
 
 (define-error 'rng-error nil)
 
