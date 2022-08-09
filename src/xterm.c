@@ -12905,7 +12905,9 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 	    }
 
 	  devices[ndevices++] = dpyinfo->devices[i];
+
 	out:
+	  continue;
 	}
     }
 
