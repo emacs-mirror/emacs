@@ -432,7 +432,7 @@ This variant of `rx' supports common Python named REGEXPS."
              (seq (not "\\")
                   (group (or "\\\\" "\\'" "\\a" "\\b" "\\f"
                              "\\n" "\\r" "\\t" "\\v"
-                             (seq "\\" (= 3 (in "0-7")))
+                             (seq "\\" (** 1 3 (in "0-7")))
                              (seq "\\x" hex hex)))))
             (string-escape-sequence
              (or bytes-escape-sequence
@@ -556,7 +556,14 @@ the {...} holes that appear within f-strings."
   "A regular expression matching the start of a not-raw bytes literal.")
 
 (defconst python--not-raw-string-literal-start-regexp
-  (rx (or bos (not alnum)) (? (or "u" "U" "F" "f")) (or "\"" "\"\"\"" "'" "'''") eos)
+  (rx bos (or
+           ;; Multi-line string literals
+           (seq (? (? (not alnum)) (or "u" "U" "F" "f")) (or "\"\"\"" "'''"))
+           (seq (? anychar) (not alnum) (or "\"\"\"" "'''"))
+           ;; Single line string literals
+           (seq (? (** 0 2 anychar) (not alnum)) (or "u" "U" "F" "f") (or "'" "\""))
+           (seq (? (** 0 3 anychar) (not (any "'\"" alnum))) (or "'" "\"")))
+      eos)
   "A regular expression matching the start of a not-raw string literal.")
 
 (defun python--string-bytes-literal-matcher (regexp start-regexp)
@@ -565,11 +572,12 @@ the {...} holes that appear within f-strings."
     (cl-loop for result = (re-search-forward regexp limit t)
              for result-valid = (and
                                  result
-                                 (let* ((pos (nth 8 (syntax-ppss)))
-                                        (before-quote
-                                         (buffer-substring-no-properties
-                                          (max (- pos 5) (point-min))
-                                          (min (+ pos 1) (point-max)))))
+                                 (when-let* ((pos (nth 8 (syntax-ppss)))
+                                             (before-quote
+                                              (buffer-substring-no-properties
+                                               (max (- pos 4) (point-min))
+                                               (min (+ pos 1) (point-max)))))
+                                   (backward-char)
                                    (string-match-p start-regexp before-quote)))
              until (or (not result) result-valid)
              finally return (and result-valid result))))
