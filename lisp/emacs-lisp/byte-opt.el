@@ -1747,10 +1747,10 @@ See Info node `(elisp) Integer Basics'."
     byte-goto-if-not-nil-else-pop))
 
 (defconst byte-after-unbind-ops
-   '(byte-constant byte-dup
+   '(byte-constant byte-dup byte-stack-ref byte-stack-set byte-discard
      byte-symbolp byte-consp byte-stringp byte-listp byte-numberp byte-integerp
      byte-eq byte-not
-     byte-cons byte-list1 byte-list2	; byte-list3 byte-list4
+     byte-cons byte-list1 byte-list2 byte-list3 byte-list4 byte-listN
      byte-interactive-p)
    ;; How about other side-effect-free-ops?  Is it safe to move an
    ;; error invocation (such as from nth) out of an unwind-protect?
@@ -1762,7 +1762,8 @@ See Info node `(elisp) Integer Basics'."
 (defconst byte-compile-side-effect-and-error-free-ops
   '(byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
     byte-integerp byte-numberp byte-eq byte-equal byte-not byte-car-safe
-    byte-cdr-safe byte-cons byte-list1 byte-list2 byte-point byte-point-max
+    byte-cdr-safe byte-cons byte-list1 byte-list2 byte-list3 byte-list4
+    byte-listN byte-point byte-point-max
     byte-point-min byte-following-char byte-preceding-char
     byte-current-column byte-eolp byte-eobp byte-bolp byte-bobp
     byte-current-buffer byte-stack-ref))
@@ -2113,13 +2114,15 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setcar (cdr rest) lap0)
 	  (setq keep-going t))
 	 ;;
-	 ;; varbind-X unbind-N         -->  discard unbind-(N-1)
-	 ;; save-excursion unbind-N    -->  unbind-(N-1)
-	 ;; save-restriction unbind-N  -->  unbind-(N-1)
+	 ;; varbind-X unbind-N            -->  discard unbind-(N-1)
+	 ;; save-excursion unbind-N       -->  unbind-(N-1)
+	 ;; save-restriction unbind-N     -->  unbind-(N-1)
+	 ;; save-current-buffer unbind-N  -->  unbind-(N-1)
 	 ;;
 	 ((and (eq 'byte-unbind (car lap1))
 	       (memq (car lap0) '(byte-varbind byte-save-excursion
-				  byte-save-restriction))
+				  byte-save-restriction
+                                  byte-save-current-buffer))
 	       (< 0 (cdr lap1)))
 	  (if (zerop (setcdr lap1 (1- (cdr lap1))))
 	      (delq lap1 rest))
