@@ -1068,8 +1068,11 @@ see the function `describe-fontset' for the format of the list."
   (with-current-buffer standard-output
     (if (not input-method-alist)
         (insert "
-No input method is available, perhaps because you have not
-installed LEIM (Libraries of Emacs Input Methods).")
+No input method is available.
+
+This might indicate a problem with your Emacs installation, as
+LEIM (Libraries of Emacs Input Method) should normally always be
+installed together with Emacs.")
       (insert (substitute-command-keys
                "LANGUAGE\n  NAME (`TITLE' in mode line)\n"))
       (insert "    SHORT-DESCRIPTION\n------------------------------\n")

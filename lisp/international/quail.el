@@ -249,11 +249,9 @@ This activates input method defined by PACKAGE-NAME by running
 		  (princ (car libraries))
 		  (princ (substitute-command-keys "\" is not in `load-path'.
 
-The most common case is that you have not yet installed appropriate
-libraries in LEIM (Libraries of Emacs Input Method) which is
-distributed separately from Emacs.
-
-LEIM is available from the same ftp directory as Emacs.")))
+This might indicate a problem with your Emacs installation, as
+LEIM (Libraries of Emacs Input Method) should normally always be
+installed together with Emacs.")))
 		(error "Can't use the Quail package `%s'" package-name))
 	    (setq libraries (cdr libraries))))))
   (quail-select-package package-name)
