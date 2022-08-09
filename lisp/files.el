@@ -2950,7 +2950,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.js[mx]?\\'" . javascript-mode)
      ;; https://en.wikipedia.org/wiki/.har
      ("\\.har\\'" . javascript-mode)
-     ("\\.json\\'" . javascript-mode)
+     ("\\.json\\'" . js-json-mode)
      ("\\.[ds]?va?h?\\'" . verilog-mode)
      ("\\.by\\'" . bovine-grammar-mode)
      ("\\.wy\\'" . wisent-grammar-mode)
