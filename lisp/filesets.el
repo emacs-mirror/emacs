@@ -154,14 +154,8 @@ COND-FN takes one argument: the current element."
 
 (defun filesets-ormap (fsom-pred lst)
   "Return the tail of LST for the head of which FSOM-PRED is non-nil."
-  (let ((fsom-lst lst)
-	(fsom-rv nil))
-    (while (and fsom-lst
-		(null fsom-rv))
-      (if (funcall fsom-pred (car fsom-lst))
-	  (setq fsom-rv fsom-lst)
-	(setq fsom-lst (cdr fsom-lst))))
-    fsom-rv))
+  (declare (obsolete seq-drop-while "29.1"))
+  (seq-drop-while (lambda (x) (not (funcall fsom-pred x))) lst))
 
 (define-obsolete-function-alias 'filesets-some #'cl-some "28.1")
 (define-obsolete-function-alias 'filesets-member #'cl-member "28.1")
