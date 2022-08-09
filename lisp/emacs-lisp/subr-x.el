@@ -118,6 +118,7 @@ the resulting string may be longer than the original if LENGTH is
       (concat "..." (substring string (min (1- strlen)
                                            (max 0 (- strlen length))))))))
 
+;;;###autoload
 (defsubst string-blank-p (string)
   "Check whether STRING is either empty or only whitespace.
 The following characters count as whitespace here: space, tab, newline and
