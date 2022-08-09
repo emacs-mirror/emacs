@@ -71,10 +71,6 @@ LIST is not modified."
 			    s
 			    t))
 
-(defun rng-collapse-space (string)
-  (string-trim
-   (replace-regexp-in-string "[ \t\r\n]+" " " string t t)))
-
 (define-error 'rng-error nil)
 
 (defun rng-uniquify-eq (list)
@@ -83,6 +79,7 @@ LIST is not modified."
 
 (define-obsolete-function-alias 'rng-uniquify-equal #'seq-uniq "28.1")
 (define-obsolete-function-alias 'rng-blank-p #'string-blank-p "29.1")
+(define-obsolete-function-alias 'rng-collapse-space #'string-clean-whitespace "29.1")
 
 (provide 'rng-util)
 
