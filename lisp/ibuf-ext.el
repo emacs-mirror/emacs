@@ -63,15 +63,10 @@
       (setq tail (cdr tail)))
     (nreverse new)))
 
-(defun ibuffer-split-list (ibuffer-split-list-fn ibuffer-split-list-elts)
-  (let ((hip-crowd nil)
-	(lamers nil))
-    (dolist (ibuffer-split-list-elt ibuffer-split-list-elts)
-      (if (funcall ibuffer-split-list-fn ibuffer-split-list-elt)
-	  (push ibuffer-split-list-elt hip-crowd)
-	(push ibuffer-split-list-elt lamers)))
-    ;; Too bad Emacs Lisp doesn't have multiple values.
-    (list (nreverse hip-crowd) (nreverse lamers))))
+(defun ibuffer-split-list (fn elts)
+  (declare (obsolete seq-group-by "29.1"))
+  (let ((res (seq-group-by fn elts)))
+    (list (cdr (assq t res)) (cdr (assq nil res)))))
 
 (defcustom ibuffer-never-show-predicates nil
   "A list of predicates (a regexp or function) for buffers not to display.
@@ -769,11 +764,12 @@ specification, with the same structure as an element of the list
 	  (i 0))
       (dolist (filtergroup filter-group-alist)
 	(let ((filterset (cdr filtergroup)))
-	  (cl-destructuring-bind (hip-crowd lamers)
-	      (ibuffer-split-list (lambda (bufmark)
-				    (ibuffer-included-in-filters-p (car bufmark)
-								   filterset))
-				  bmarklist)
+          (let* ((res (seq-group-by (lambda (bufmark)
+                                      (ibuffer-included-in-filters-p (car bufmark)
+                                                                     filterset))
+                                    bmarklist))
+                 (hip-crowd (cdr (assq t res)))
+                 (lamers (cdr (assq nil res))))
 	    (aset vec i hip-crowd)
 	    (cl-incf i)
 	    (setq bmarklist lamers))))
