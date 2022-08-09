@@ -48,7 +48,7 @@
 ;;; Utility functions
 (defun ibuffer-remove-alist (key alist)
   "Remove all entries in ALIST that have a key equal to KEY."
-  (while (ibuffer-awhen (assoc key alist)
+  (while (when-let ((it (assoc key alist)))
            (setq alist (remove it alist)) it))
   alist)
 
@@ -1313,7 +1313,7 @@ For example, for a buffer associated with file '/a/b/c.d', this
 matches against '/a/b/c.d'."
   (:description "full file name"
    :reader (read-from-minibuffer "Filter by full file name (regexp): "))
-  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
+  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-basename "ibuf-ext")
@@ -1325,7 +1325,7 @@ matches against `c.d'."
   (:description "file basename"
    :reader (read-from-minibuffer
             "Filter by file name, without directory part (regex): "))
-  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
+  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier (file-name-nondirectory it))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-file-extension "ibuf-ext")
@@ -1338,7 +1338,7 @@ pattern.  For example, for a buffer associated with file
   (:description "filename extension"
    :reader (read-from-minibuffer
             "Filter by filename extension without separator (regex): "))
-  (ibuffer-awhen (with-current-buffer buf (ibuffer-buffer-file-name))
+  (when-let ((it (with-current-buffer buf (ibuffer-buffer-file-name))))
     (string-match qualifier (or (file-name-extension it) ""))))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-directory "ibuf-ext")
