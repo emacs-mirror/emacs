@@ -52,17 +52,6 @@
            (setq alist (remove it alist)) it))
   alist)
 
-;; borrowed from Gnus
-(defun ibuffer-remove-duplicates (list)
-  "Return a copy of LIST with duplicate elements removed."
-  (let ((new nil)
-	(tail list))
-    (while tail
-      (or (member (car tail) new)
-	  (setq new (cons (car tail) new)))
-      (setq tail (cdr tail)))
-    (nreverse new)))
-
 (defun ibuffer-split-list (fn elts)
   (declare (obsolete seq-group-by "29.1"))
   (let ((res (seq-group-by fn elts)))
@@ -799,7 +788,7 @@ specification, with the same structure as an element of the list
         (mapcar (lambda (mode)
                   (cons (format "%s" mode) `((mode . ,mode))))
                 (let ((modes
-                       (ibuffer-remove-duplicates
+                       (seq-uniq
                         (mapcar (lambda (buf)
 				  (buffer-local-value 'major-mode buf))
                                 (buffer-list)))))
@@ -1985,6 +1974,8 @@ defaults to one."
      (lambda (buf _mark)
        (push buf ibuffer-do-occur-bufs)))
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
+
+(define-obsolete-function-alias 'ibuffer-remove-duplicates #'seq-uniq "29.1")
 
 (provide 'ibuf-ext)
 
