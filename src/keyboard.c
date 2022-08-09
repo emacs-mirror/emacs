@@ -4645,24 +4645,29 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	  /* If we got here, presumably `decode_timer` has checked
              that this timer has not yet been triggered.  */
 	  eassert (NILP (AREF (chosen_timer, 0)));
-	  specpdl_ref count = SPECPDL_INDEX ();
-	  Lisp_Object old_deactivate_mark = Vdeactivate_mark;
+	  /* In a production build, where assertions compile to
+	     nothing, we still want to play it safe here.  */
+	  if (NILP (AREF (chosen_timer, 0)))
+	    {
+	      specpdl_ref count = SPECPDL_INDEX ();
+	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
-	  /* Mark the timer as triggered to prevent problems if the lisp
-	     code fails to reschedule it right.  */
-	  ASET (chosen_timer, 0, Qt);
+	      /* Mark the timer as triggered to prevent problems if the lisp
+		 code fails to reschedule it right.  */
+	      ASET (chosen_timer, 0, Qt);
 
-	  specbind (Qinhibit_quit, Qt);
+	      specbind (Qinhibit_quit, Qt);
 
-	  call1 (Qtimer_event_handler, chosen_timer);
-	  Vdeactivate_mark = old_deactivate_mark;
-	  timers_run++;
-	  unbind_to (count, Qnil);
+	      call1 (Qtimer_event_handler, chosen_timer);
+	      Vdeactivate_mark = old_deactivate_mark;
+	      timers_run++;
+	      unbind_to (count, Qnil);
 
-	  /* Since we have handled the event,
-	     we don't need to tell the caller to wake up and do it.  */
-          /* But the caller must still wait for the next timer, so
-             return 0 to indicate that.  */
+	      /* Since we have handled the event,
+		 we don't need to tell the caller to wake up and do it.  */
+	      /* But the caller must still wait for the next timer, so
+		 return 0 to indicate that.  */
+	    }
 
 	  nexttime = make_timespec (0, 0);
           break;
