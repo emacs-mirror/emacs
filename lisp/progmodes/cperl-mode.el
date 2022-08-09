@@ -98,7 +98,7 @@
   (let (answer)
     (while list
       (or answer
-	  (if (or (x-color-defined-p (car list))
+          (if (or (color-defined-p (car list))
 		  (null (cdr list)))
 	      (setq answer (car list))))
       (setq list (cdr list)))

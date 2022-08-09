@@ -357,7 +357,7 @@ is utf-8"
 
 (defvar dictionary-color-support
   (condition-case nil
-      (x-display-color-p)
+      (display-color-p)
     (error nil))
   "Determines if the Emacs has support to display color.")
 

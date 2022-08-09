@@ -2037,7 +2037,7 @@ as backgrounds."
 	     (setq color (background-color-at-point))))
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
-	(let ((components (x-color-values color)))
+        (let ((components (color-values color)))
 	  (unless (string-match-p "^#\\(?:[[:xdigit:]][[:xdigit:]][[:xdigit:]]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))

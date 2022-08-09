@@ -57,7 +57,7 @@
 (define-obsolete-function-alias 'viper-int-to-char #'identity "27.1")
 (define-obsolete-function-alias 'viper-get-face #'facep "27.1")
 (define-obsolete-function-alias 'viper-color-defined-p
-  #'x-color-defined-p "27.1")
+  #'color-defined-p "27.1")
 (define-obsolete-function-alias 'viper-iconify
   #'iconify-or-deiconify-frame "27.1")
 
@@ -71,7 +71,7 @@
 	 (= char char1))
 	(t nil)))
 
-(define-obsolete-function-alias 'viper-color-display-p #'x-display-color-p "29.1")
+(define-obsolete-function-alias 'viper-color-display-p #'display-color-p "29.1")
 
 (defun viper-get-cursor-color (&optional _frame)
   (cdr (assoc 'cursor-color (frame-parameters))))
@@ -89,8 +89,8 @@ Otherwise return the normal value."
 
 ;; cursor colors
 (defun viper-change-cursor-color (new-color &optional frame)
-  (if (and (viper-window-display-p) (x-display-color-p)
-	   (stringp new-color) (x-color-defined-p new-color)
+  (if (and (viper-window-display-p) (display-color-p)
+           (stringp new-color) (color-defined-p new-color)
 	   (not (string= new-color (viper-get-cursor-color))))
       (modify-frame-parameters
        (or frame (selected-frame))
@@ -121,9 +121,9 @@ Otherwise return the normal value."
 
 ;; By default, saves current frame cursor color before changing viper state
 (defun viper-save-cursor-color (before-which-mode)
-  (if (and (viper-window-display-p) (x-display-color-p))
+  (if (and (viper-window-display-p) (display-color-p))
       (let ((color (viper-get-cursor-color)))
-	(if (and (stringp color) (x-color-defined-p color)
+        (if (and (stringp color) (color-defined-p color)
 		 ;; there is something fishy in that the color is not saved if
 		 ;; it is the same as frames default cursor color. need to be
 		 ;; checked.

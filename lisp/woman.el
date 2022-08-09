@@ -902,7 +902,7 @@ Troff emulation is experimental and largely untested.
 (defcustom woman-fontify
   (or (display-color-p)
       (display-graphic-p)
-      (x-display-color-p))
+      (display-color-p))
   "If non-nil then WoMan assumes that face support is available.
 It defaults to a non-nil value if the display supports either colors
 or different fonts."

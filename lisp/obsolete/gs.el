@@ -144,7 +144,7 @@ image in pixels."
 
 (defun gs-set-ghostview-colors-window-prop (frame pixel-colors)
   "Set the `GHOSTVIEW_COLORS' environment variable depending on FRAME."
-  (let ((mode (cond ((x-display-color-p frame) "Color")
+  (let ((mode (cond ((display-color-p frame) "Color")
 		    ((x-display-grayscale-p frame) "Grayscale")
 		    (t "Monochrome"))))
     (x-change-window-property "GHOSTVIEW_COLORS"
