@@ -5282,16 +5282,15 @@ xi_populate_device_from_info (struct xi_device_t *xi_device,
 				  * device->num_classes);
   values = NULL;
 #endif
-#ifdef HAVE_XINPUT2_2
-  xi_device->touchpoints = NULL;
-#endif
 
   xi_device->use = device->use;
-#ifdef HAVE_XINPUT2_2
-  xi_device->direct_p = false;
-#endif
   xi_device->name = build_string (device->name);
   xi_device->attachment = device->attachment;
+
+#ifdef HAVE_XINPUT2_2
+  xi_device->touchpoints = NULL;
+  xi_device->direct_p = false;
+#endif
 
   for (c = 0; c < device->num_classes; ++c)
     {
