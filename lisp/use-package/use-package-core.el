@@ -908,12 +908,12 @@ If RECURSED is non-nil, recurse into sublists."
   "A predicate that recognizes functional constructions:
   nil
   sym
-  'sym
+  \\='sym
   (quote sym)
   #'sym
   (function sym)
   (lambda () ...)
-  '(lambda () ...)
+  \\='(lambda () ...)
   (quote (lambda () ...))
   #'(lambda () ...)
   (function (lambda () ...))"
