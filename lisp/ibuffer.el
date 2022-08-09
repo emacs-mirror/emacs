@@ -2332,7 +2332,18 @@ FORMATS is the value to use for `ibuffer-formats'.
 	      (run-hooks 'ibuffer-hook))
 	  (setq buffer-read-only t))
 	(unless ibuffer-expert
-	  (message "Commands: m, u, t, RET, g, k, S, D, Q; q to quit; h for help"))))))
+          (message (substitute-command-keys
+                    (concat "Commands: \\[ibuffer-mark-forward], "
+                            "\\[ibuffer-unmark-forward], "
+                            "\\[ibuffer-toggle-marks], "
+                            "\\[ibuffer-visit-buffer], "
+                            "\\[ibuffer-update], "
+                            "\\[ibuffer-do-kill-lines], "
+                            "\\[ibuffer-do-save], "
+                            "\\[ibuffer-do-delete], "
+                            "\\[ibuffer-do-query-replace]; "
+                            "\\[quit-window] to quit; "
+                            "\\[describe-mode] for help"))))))))
 
 ;;;###autoload
 (defun ibuffer-jump (&optional other-window)
