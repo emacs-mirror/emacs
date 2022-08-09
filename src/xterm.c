@@ -12850,6 +12850,72 @@ xi_handle_device_changed (struct x_display_info *dpyinfo,
 #endif
 }
 
+/* Remove the client-side record of every device in TO_DISABLE.
+   Called while processing XI_HierarchyChanged events.  We batch up
+   multiple disabled devices because it is more efficient to disable
+   them at once.  */
+
+static void
+xi_disable_devices (struct x_display_info *dpyinfo,
+		    int *to_disable, int n_disabled)
+{
+  struct xi_device_t *devices;
+  int ndevices, i, j;
+#ifdef HAVE_XINPUT2_2
+  struct xi_touch_point_t *tem, *last;
+#endif
+
+  /* Don't pointlessly copy dpyinfo->devices if there are no devices
+     to disable.  */
+  if (!n_disabled)
+    return;
+
+  ndevices = 0;
+  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
+
+  /* Loop through every device currently in DPYINFO, and copy it to
+     DEVICES if it is not in TO_DISABLE.  Note that this function
+     should be called with input blocked, since xfree can otherwise
+     call GC, which will call mark_xterm with invalid state.  */
+  for (i = 0; i < dpyinfo->num_devices; ++i)
+    {
+      for (j = 0; j < n_disabled; ++j)
+	{
+	  if (to_disable[j] == dpyinfo->devices[i].device_id)
+	    {
+	      /* Free any scroll valuators that might be on this
+		 device.  */
+#ifdef HAVE_XINPUT2_1
+	      xfree (dpyinfo->devices[i].valuators);
+#endif
+
+	      /* Free any currently active touch points on this
+		 device.  */
+#ifdef HAVE_XINPUT2_2
+	      tem = dpyinfo->devices[i].touchpoints;
+	      while (tem)
+		{
+		  last = tem;
+		  tem = tem->next;
+		  xfree (last);
+		}
+#endif
+
+	      goto out;
+	    }
+
+	  devices[ndevices++] = dpyinfo->devices[i];
+	out:
+	}
+    }
+
+  /* Free the old devices array and replace it with ndevices.  */
+  xfree (dpyinfo->devices);
+
+  dpyinfo->devices = devices;
+  dpyinfo->num_devices = ndevices;
+}
+
 #endif
 
 /* The focus may have changed.  Figure out if it is a real focus change,
@@ -22361,11 +22427,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      XIHierarchyEvent *hev = (XIHierarchyEvent *) xi_event;
 	      XIDeviceInfo *info;
-	      int i, j, ndevices, n_disabled, *disabled;
-	      struct xi_device_t *device, *devices;
-#ifdef HAVE_XINPUT2_2
-	      struct xi_touch_point_t *tem, *last;
-#endif
+	      int i, ndevices, n_disabled, *disabled;
+	      struct xi_device_t *device;
 
 	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
@@ -22376,45 +22439,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      /* Handle all disabled devices now, to prevent
 			 things happening out-of-order later.  */
-		      if (n_disabled)
-			{
-			  ndevices = 0;
-			  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
-
-			  for (i = 0; i < dpyinfo->num_devices; ++i)
-			    {
-			      for (j = 0; j < n_disabled; ++j)
-				{
-				  if (disabled[j] == dpyinfo->devices[i].device_id)
-				    {
-#ifdef HAVE_XINPUT2_1
-				      xfree (dpyinfo->devices[i].valuators);
-#endif
-#ifdef HAVE_XINPUT2_2
-				      tem = dpyinfo->devices[i].touchpoints;
-				      while (tem)
-					{
-					  last = tem;
-					  tem = tem->next;
-					  xfree (last);
-					}
-#endif
-				      goto continue_detachment;
-				    }
-				}
-
-			      devices[ndevices++] = dpyinfo->devices[i];
-
-			    continue_detachment:
-			      continue;
-			    }
-
-			  xfree (dpyinfo->devices);
-			  dpyinfo->devices = devices;
-			  dpyinfo->num_devices = ndevices;
-
-			  n_disabled = 0;
-			}
+		      xi_disable_devices (dpyinfo, disabled, n_disabled);
+		      n_disabled = 0;
 
 		      x_catch_errors (dpyinfo->display);
 		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
@@ -22461,43 +22487,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    }
 		}
 
-	      if (n_disabled)
-		{
-		  ndevices = 0;
-		  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
-
-		  for (i = 0; i < dpyinfo->num_devices; ++i)
-		    {
-		      for (j = 0; j < n_disabled; ++j)
-			{
-			  if (disabled[j] == dpyinfo->devices[i].device_id)
-			    {
-#ifdef HAVE_XINPUT2_1
-			      xfree (dpyinfo->devices[i].valuators);
-#endif
-#ifdef HAVE_XINPUT2_2
-			      tem = dpyinfo->devices[i].touchpoints;
-			      while (tem)
-				{
-				  last = tem;
-				  tem = tem->next;
-				  xfree (last);
-				}
-#endif
-			      goto break_detachment;
-			    }
-			}
-
-		      devices[ndevices++] = dpyinfo->devices[i];
-
-		    break_detachment:
-		      continue;
-		    }
-
-		  xfree (dpyinfo->devices);
-		  dpyinfo->devices = devices;
-		  dpyinfo->num_devices = ndevices;
-		}
+	      /* Delete all devices that were disabled by this
+		 event.  */
+	      xi_disable_devices (dpyinfo, disabled, n_disabled);
 
 	      /* Now that the device hierarchy has been changed,
 		 recompute focus.  */
