@@ -12705,6 +12705,151 @@ xi_handle_interaction (struct x_display_info *dpyinfo,
     xi_handle_focus_change (dpyinfo);
 }
 
+#ifdef HAVE_XINPUT2_1
+
+/* Look up a scroll valuator in DEVICE by NUMBER.  */
+
+static struct xi_scroll_valuator_t *
+xi_get_scroll_valuator (struct xi_device_t *device, int number)
+{
+  int i;
+
+  for (i = 0; i < device->scroll_valuator_count; ++i)
+    {
+      if (device->valuators[i].number == number)
+	return &device->valuators[i];
+    }
+
+  return NULL;
+}
+
+#endif
+
+/* Handle EVENT, a DeviceChanged event.  Look up the device that
+   changed, and update its information with the data in EVENT.  */
+
+static void
+xi_handle_device_changed (struct x_display_info *dpyinfo,
+			  struct xi_device_t *device,
+			  XIDeviceChangedEvent *event)
+{
+#ifdef HAVE_XINPUT2_1
+  XIDeviceInfo *info;
+  XIScrollClassInfo *scroll;
+  int i, ndevices;
+  struct xi_scroll_valuator_t *valuator;
+  XIValuatorClassInfo *valuator_info;
+#endif
+#ifdef HAVE_XINPUT2_2
+  struct xi_touch_point_t *tem, *last;
+  XITouchClassInfo *touch;
+#endif
+
+#ifdef HAVE_XINPUT2_1
+  /* When a DeviceChange event is received for a master device, we
+     don't get any scroll valuators along with it.  This is possibly
+     an X server bug but I really don't want to dig any further, so
+     fetch the scroll valuators manually.  (bug#57020) */
+
+  x_catch_errors (dpyinfo->display);
+  info = XIQueryDevice (dpyinfo->display, event->deviceid,
+			/* ndevices is always 1 if a deviceid is
+			   specified.  If the request fails, NULL will
+			   be returned.  */
+			&ndevices);
+  x_uncatch_errors ();
+
+  if (info)
+    {
+      device->valuators = xrealloc (device->valuators,
+				    (info->num_classes
+				     * sizeof *device->valuators));
+      device->scroll_valuator_count = 0;
+#ifdef HAVE_XINPUT2_2
+      device->direct_p = false;
+#endif
+
+      for (i = 0; i < info->num_classes; ++i)
+	{
+	  switch (info->classes[i]->type)
+	    {
+	    case XIScrollClass:
+	      scroll = (XIScrollClassInfo *) info->classes[i];
+
+	      valuator = &device->valuators[device->scroll_valuator_count++];
+	      valuator->horizontal = (scroll->scroll_type
+				      == XIScrollTypeHorizontal);
+	      valuator->invalid_p = true;
+	      valuator->emacs_value = DBL_MIN;
+	      valuator->increment = scroll->increment;
+	      valuator->number = scroll->number;
+	      break;
+
+#ifdef HAVE_XINPUT2_2
+	    case XITouchClass:
+	      touch = (XITouchClassInfo *) info->classes[i];
+
+	      if (touch->mode == XIDirectTouch)
+		device->direct_p = true;
+	      break;
+#endif
+	    }
+	}
+
+      /* Restore the values of any scroll valuators that we already
+	 know about.  */
+
+      for (i = 0; i < info->num_classes; ++i)
+	{
+	  switch (info->classes[i]->type)
+	    {
+	    case XIValuatorClass:
+	      valuator_info = (XIValuatorClassInfo *) info->classes[i];
+
+	      valuator = xi_get_scroll_valuator (device,
+						 valuator_info->number);
+	      if (valuator)
+		{
+		  valuator->invalid_p = false;
+		  valuator->current_value = valuator_info->value;
+
+		  /* Make sure that this is reset if the pointer moves
+		     into a window of ours.
+
+		     Otherwise the valuator state could be left
+		     invalid if the DeviceChange event happened with
+		     the pointer outside any Emacs frame. */
+		  valuator->pending_enter_reset = true;
+		}
+
+	      break;
+	    }
+	}
+
+#ifdef HAVE_XINPUT2_2
+      /* The device is no longer a DirectTouch device, so
+	 remove any touchpoints that we might have
+	 recorded.  */
+      if (!device->direct_p)
+	{
+	  tem = device->touchpoints;
+
+	  while (tem)
+	    {
+	      last = tem;
+	      tem = tem->next;
+	      xfree (last);
+	    }
+
+	  device->touchpoints = NULL;
+	}
+#endif
+
+      XIFreeDeviceInfo (info);
+    }
+#endif
+}
+
 #endif
 
 /* The focus may have changed.  Figure out if it is a real focus change,
@@ -22363,16 +22508,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_DeviceChanged:
 	    {
-	      XIDeviceChangedEvent *device_changed = (XIDeviceChangedEvent *) xi_event;
+	      XIDeviceChangedEvent *device_changed;
 	      struct xi_device_t *device;
-#ifdef HAVE_XINPUT2_2
-	      struct xi_touch_point_t *tem, *last;
-#endif
-	      int c;
-#ifdef HAVE_XINPUT2_1
-	      int i;
-#endif
 
+	      device_changed = (XIDeviceChangedEvent *) xi_event;
 	      device = xi_device_from_id (dpyinfo, device_changed->deviceid);
 
 	      /* If the device isn't enabled, then stop handling this
@@ -22381,105 +22520,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (!device)
 		goto XI_OTHER;
 
-	      /* Free data that we will regenerate from new
-		 information.  */
-#ifdef HAVE_XINPUT2_1
-	      device->valuators = xrealloc (device->valuators,
-					    (device_changed->num_classes
-					     * sizeof *device->valuators));
-	      device->scroll_valuator_count = 0;
-#endif
-#ifdef HAVE_XINPUT2_2
-	      device->direct_p = false;
-#endif
-
-	      for (c = 0; c < device_changed->num_classes; ++c)
-		{
-		  switch (device_changed->classes[c]->type)
-		    {
-#ifdef HAVE_XINPUT2_1
-		    case XIScrollClass:
-		      {
-			XIScrollClassInfo *info;
-
-			info = (XIScrollClassInfo *) device_changed->classes[c];
-			struct xi_scroll_valuator_t *valuator;
-
-			valuator = &device->valuators[device->scroll_valuator_count++];
-			valuator->horizontal
-			  = (info->scroll_type == XIScrollTypeHorizontal);
-			valuator->invalid_p = true;
-			valuator->emacs_value = DBL_MIN;
-			valuator->increment = info->increment;
-			valuator->number = info->number;
-
-			break;
-		      }
-#endif
-
-#ifdef HAVE_XINPUT2_2
-		    case XITouchClass:
-		      {
-			XITouchClassInfo *info;
-
-			info = (XITouchClassInfo *) device_changed->classes[c];
-			device->direct_p = info->mode == XIDirectTouch;
-		      }
-#endif
-		    default:
-		      break;
-		    }
-		}
-
-#ifdef HAVE_XINPUT2_1
-	      for (c = 0; c < device_changed->num_classes; ++c)
-		{
-		  if (device_changed->classes[c]->type == XIValuatorClass)
-		    {
-		      XIValuatorClassInfo *info;
-
-		      info = (XIValuatorClassInfo *) device_changed->classes[c];
-
-		      for (i = 0; i < device->scroll_valuator_count; ++i)
-			{
-			  if (device->valuators[i].number == info->number)
-			    {
-			      device->valuators[i].invalid_p = false;
-			      device->valuators[i].current_value = info->value;
-
-			      /* Make sure that this is reset if the
-				 pointer moves into a window of ours.
-
-				 Otherwise the valuator state could be
-				 left invalid if the DeviceChange
-				 event happened with the pointer
-				 outside any Emacs frame. */
-			      device->valuators[i].pending_enter_reset = true;
-			    }
-			}
-		    }
-		}
-#endif
-
-#ifdef HAVE_XINPUT2_2
-	      /* The device is no longer a DirectTouch device, so
-		 remove any touchpoints that we might have
-		 recorded.  */
-	      if (!device->direct_p)
-		{
-		  tem = device->touchpoints;
-
-		  while (tem)
-		    {
-		      last = tem;
-		      tem = tem->next;
-		      xfree (last);
-		    }
-
-		  device->touchpoints = NULL;
-		}
-#endif
-
+	      /* Now handle the event by retrieving scroll valuators
+		 and touch info.  */
+	      xi_handle_device_changed (dpyinfo, device, device_changed);
 	      goto XI_OTHER;
 	    }
 
