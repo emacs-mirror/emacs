@@ -144,20 +144,18 @@ Useful commands (type ? to hide them and free up screen):
 
 (ediff-defvar-local ediff-meta-buffer-map nil
   "The keymap for the meta buffer.")
-(defvar ediff-dir-diffs-buffer-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q" #'ediff-bury-dir-diffs-buffer)
-    (define-key map " " #'next-line)
-    (define-key map "n" #'next-line)
-    (define-key map "\C-?" #'previous-line)
-    (define-key map "p" #'previous-line)
-    (define-key map "C" #'ediff-dir-diff-copy-file)
-    (define-key map  [mouse-2] #'ediff-dir-diff-copy-file)
-    (define-key map [delete] #'previous-line)
-    (define-key map [backspace] #'previous-line)
-    map)
-  "Keymap for buffer showing differences between directories.")
+(defvar-keymap ediff-dir-diffs-buffer-map
+  :doc "Keymap for buffer showing differences between directories."
+  :suppress t
+  "q"           #'ediff-bury-dir-diffs-buffer
+  "SPC"         #'next-line
+  "n"           #'next-line
+  "DEL"         #'previous-line
+  "p"           #'previous-line
+  "C"           #'ediff-dir-diff-copy-file
+  "<mouse-2>"   #'ediff-dir-diff-copy-file
+  "<delete>"    #'previous-line
+  "<backspace>" #'previous-line)
 
 ;; Variable specifying the action to take when the use invokes ediff in the
 ;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action
