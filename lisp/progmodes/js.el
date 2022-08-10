@@ -307,9 +307,6 @@ Match group 1 is the name of the macro.")
 (defconst js--font-lock-keywords-2
   (append js--font-lock-keywords-1
           (list (list js--keyword-re 1 font-lock-keyword-face)
-                (list "\\_<for\\_>"
-                      "\\s-+\\(each\\)\\_>" nil nil
-                      (list 1 'font-lock-keyword-face))
                 (cons js--basic-type-re font-lock-type-face)
                 (cons js--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `js-mode'.")
