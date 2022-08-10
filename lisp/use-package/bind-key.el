@@ -131,6 +131,7 @@
 
 (define-minor-mode override-global-mode
   "A minor mode so that keymap settings override other modes."
+  :init-value t
   :global t
   :lighter "")
 
