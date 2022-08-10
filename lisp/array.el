@@ -103,7 +103,7 @@ Set them to the optional arguments A-ROW and A-COLUMN if those are supplied."
 
 (defun array-update-buffer-position ()
   "Set `array-buffer-line' and `array-buffer-column' to their current values."
-  (setq array-buffer-line (current-line)
+  (setq array-buffer-line (array-current-line)
 	array-buffer-column (current-column)))
 
 
@@ -113,7 +113,7 @@ Set them to the optional arguments A-ROW and A-COLUMN if those are supplied."
 (defun array-what-position ()
   "Display the row and column in which the cursor is positioned."
   (interactive)
-  (let ((array-buffer-line (current-line))
+  (let ((array-buffer-line (array-current-line))
 	(array-buffer-column (current-column)))
     (message "Array row: %s  Array column: %s"
 	     (prin1-to-string (array-current-row))
@@ -147,13 +147,13 @@ Set them to the optional arguments A-ROW and A-COLUMN if those are supplied."
 ;;; Internal movement functions.
 
 (defun array-beginning-of-field (&optional go-there)
-   "Return the column of the beginning of the current field.
+  "Return the column of the beginning of the current field.
 Optional argument GO-THERE, if non-nil, means go there too."
-   ;; Requires that array-buffer-column be current.
-   (let ((goal-column (- array-buffer-column (% array-buffer-column array-field-width))))
-     (if go-there
-	 (move-to-column-untabify goal-column)
-       goal-column)))
+  ;; Requires that array-buffer-column be current.
+  (let ((goal-column (- array-buffer-column (% array-buffer-column array-field-width))))
+    (if go-there
+        (array-move-to-column-untabify goal-column)
+      goal-column)))
 
 (defun array-end-of-field (&optional go-there)
   "Return the column of the end of the current array field.
@@ -162,7 +162,7 @@ If optional argument GO-THERE is non-nil, go there too."
   (let ((goal-column (+ (- array-buffer-column (% array-buffer-column array-field-width))
 			array-field-width)))
     (if go-there
-	(move-to-column-untabify goal-column)
+        (array-move-to-column-untabify goal-column)
       goal-column)))
 
 (defun array-move-to-cell (a-row a-column)
@@ -174,7 +174,7 @@ Leave point at the beginning of the field and return the new buffer column."
 	(goal-column (* array-field-width (% (1- a-column) array-columns-per-line))))
     (goto-char (point-min))
     (forward-line goal-line)
-    (move-to-column-untabify goal-column)))
+    (array-move-to-column-untabify goal-column)))
 
 (defun array-move-to-row (a-row)
   "Move to array row A-ROW preserving the current array column.
@@ -184,7 +184,7 @@ Leave point at the beginning of the field and return the new array row."
 		      (% array-buffer-line array-lines-per-row)))
 	(goal-column (- array-buffer-column (% array-buffer-column array-field-width))))
     (forward-line (- goal-line array-buffer-line))
-    (move-to-column-untabify goal-column)
+    (array-move-to-column-untabify goal-column)
     a-row))
 
 (defun array-move-to-column (a-column)
@@ -196,7 +196,7 @@ Leave point at the beginning of the field and return the new array column."
 		      (floor (1- a-column) array-columns-per-line)))
 	(goal-column (* array-field-width (% (1- a-column) array-columns-per-line))))
     (forward-line (- goal-line array-buffer-line))
-    (move-to-column-untabify goal-column)
+    (array-move-to-column-untabify goal-column)
     a-column))
 
 (defun array-move-one-row (sign)
@@ -214,7 +214,7 @@ If requested to move beyond the array bounds, signal an error."
 	  (t
 	   (progn
 	     (forward-line (* sign array-lines-per-row))
-	     (move-to-column-untabify goal-column)
+             (array-move-to-column-untabify goal-column)
 	     (+ array-row sign))))))
 
 (defun array-move-one-column (sign)
@@ -233,15 +233,15 @@ If requested to move beyond the array bounds, signal an error."
 	    ;; Going backward from first column on the line.
 	    ((and (= sign -1) (= 1 (% array-column array-columns-per-line)))
 	     (forward-line -1)
-	     (move-to-column-untabify
+             (array-move-to-column-untabify
 	      (* array-field-width (1- array-columns-per-line))))
 	    ;; Going forward from last column on the line.
 	    ((and (= sign 1) (zerop (% array-column array-columns-per-line)))
 	     (forward-line 1))
 	    ;; Somewhere in the middle of the line.
 	    (t
-	     (move-to-column-untabify (+ (array-beginning-of-field)
-					 (* array-field-width sign)))))
+             (array-move-to-column-untabify (+ (array-beginning-of-field)
+                                               (* array-field-width sign)))))
 	   (+ array-column sign)))))
 
 (defun array-normalize-cursor ()
@@ -281,15 +281,15 @@ If necessary, scroll horizontally to keep the cursor in view."
   "Move down one array row, staying in the current array column.
 If optional ARG is given, move down ARG array rows."
   (interactive "p")
-  (let ((array-buffer-line (current-line))
+  (let ((array-buffer-line (array-current-line))
 	(array-buffer-column (current-column)))
     (if (= (abs arg) 1)
 	(array-move-one-row arg)
       (array-move-to-row
-       (limit-index (+ (or (array-current-row)
-			   (error "Cursor is not in an array cell"))
-		       arg)
-		    array-max-row))))
+       (array--limit-index (+ (or (array-current-row)
+                             (error "Cursor is not in an array cell"))
+                         arg)
+                      array-max-row))))
   (array-normalize-cursor))
 
 (defun array-previous-row (&optional arg)
@@ -303,15 +303,15 @@ If optional ARG is given, move up ARG array rows."
 If optional ARG is given, move forward ARG array columns.
 If necessary, keep the cursor in the window by scrolling right or left."
   (interactive "p")
-  (let ((array-buffer-line (current-line))
+  (let ((array-buffer-line (array-current-line))
 	(array-buffer-column (current-column)))
     (if (= (abs arg) 1)
 	(array-move-one-column arg)
       (array-move-to-column
-       (limit-index (+ (or (array-current-column)
-			   (error "Cursor is not in an array cell"))
-		       arg)
-		    array-max-column))))
+       (array--limit-index (+ (or (array-current-column)
+                             (error "Cursor is not in an array cell"))
+                         arg)
+                      array-max-column))))
   (array-normalize-cursor))
 
 (defun array-backward-column (&optional arg)
@@ -325,8 +325,8 @@ If necessary, keep the cursor in the window by scrolling right or left."
   "Go to array row A-ROW and array column A-COLUMN."
   (interactive "nArray row: \nnArray column: ")
   (array-move-to-cell
-   (limit-index a-row array-max-row)
-   (limit-index a-column array-max-column))
+   (array--limit-index a-row array-max-row)
+   (array--limit-index a-column array-max-column))
   (array-normalize-cursor))
 
 
@@ -417,7 +417,7 @@ Leave point at the beginning of the field."
   "Copy the current field one array row down.
 If optional ARG is given, copy down through ARG array rows."
   (interactive "p")
-  (let* ((array-buffer-line (current-line))
+  (let* ((array-buffer-line (array-current-line))
 	 (array-buffer-column (current-column))
 	 (array-row (or (array-current-row)
 			   (error "Cursor is not in a valid array cell")))
@@ -425,7 +425,7 @@ If optional ARG is given, copy down through ARG array rows."
     (if (= (abs arg) 1)
 	(array-copy-once-vertically arg)
       (array-copy-to-row
-       (limit-index (+ array-row arg) array-max-row))))
+       (array--limit-index (+ array-row arg) array-max-row))))
   (array-normalize-cursor))
 
 (defun array-copy-up (&optional arg)
@@ -438,7 +438,7 @@ If optional ARG is given, copy up through ARG array rows."
   "Copy the current field one array column to the right.
 If optional ARG is given, copy through ARG array columns to the right."
   (interactive "p")
-  (let* ((array-buffer-line (current-line))
+  (let* ((array-buffer-line (array-current-line))
 	 (array-buffer-column (current-column))
 	 (array-column (or (array-current-column)
 			   (error "Cursor is not in a valid array cell")))
@@ -446,7 +446,7 @@ If optional ARG is given, copy through ARG array columns to the right."
     (if (= (abs arg) 1)
 	(array-copy-once-horizontally arg)
       (array-copy-to-column
-       (limit-index (+ array-column arg) array-max-column))))
+       (array--limit-index (+ array-column arg) array-max-column))))
   (array-normalize-cursor))
 
 (defun array-copy-backward (&optional arg)
@@ -473,7 +473,7 @@ If optional ARG is given, copy through ARG array columns to the right."
 	(if (= (abs arg) 1)
 	    (array-copy-once-horizontally arg)
 	  (array-copy-to-column
-	   (limit-index (+ array-column arg) array-max-column))))))
+           (array--limit-index (+ array-column arg) array-max-column))))))
   (message "Working...done")
   (array-move-to-row array-row)
   (array-normalize-cursor))
@@ -506,7 +506,7 @@ If optional ARG is given, copy through ARG rows down."
 			     (forward-line 1)
 			     (point))))
 	   (this-row array-row)
-	   (goal-row (limit-index (+ this-row arg) array-max-row))
+           (goal-row (array--limit-index (+ this-row arg) array-max-row))
 	   (num (- goal-row this-row))
 	   (count (abs num))
 	   (sign (if (not (zerop count)) (/ num count))))
@@ -700,13 +700,13 @@ of `array-rows-numbered'."
 	       (floor (1- temp-max-column) new-columns-per-line))
 	      (newlines-added 0))
 	  (while (< newlines-removed newlines-to-be-removed)
-	    (move-to-column-untabify
+            (array-move-to-column-untabify
 	     (* (1+ newlines-removed) old-line-length))
 	    (kill-line 1)
 	    (setq newlines-removed (1+ newlines-removed)))
 	  (beginning-of-line)
 	  (while (< newlines-added newlines-to-be-added)
-	    (move-to-column-untabify (* old-field-width new-columns-per-line))
+            (array-move-to-column-untabify (* old-field-width new-columns-per-line))
 	    (newline)
 	    (setq newlines-added (1+ newlines-added)))
 	  (forward-line 1))))
@@ -735,16 +735,16 @@ of `array-rows-numbered'."
 
 ;;; Utilities.
 
-(defun limit-index (index limit)
+(defun array--limit-index (index limit)
   (cond ((< index 1) 1)
 	((> index limit) limit)
 	(t index)))
 
-(defun current-line ()
+(defun array-current-line ()
   "Return the current buffer line at point.  The first line is 0."
   (count-lines (point-min) (line-beginning-position)))
 
-(defun move-to-column-untabify (column)
+(defun array-move-to-column-untabify (column)
   "Move to COLUMN on the current line, untabifying if necessary.
 Return COLUMN."
   (or (and (= column (move-to-column column))
@@ -753,10 +753,10 @@ Return COLUMN."
       (if array-respect-tabs
 	  (error "There is a TAB character in the way")
 	(progn
-	  (untabify-backward)
+          (array--untabify-backward)
 	  (move-to-column column)))))
 
-(defun untabify-backward ()
+(defun array--untabify-backward ()
   "Untabify the preceding TAB."
   (save-excursion
     (let ((start (point)))
@@ -885,7 +885,10 @@ Entering array mode calls the function `array-mode-hook'."
   (setq-local truncate-lines t)
   (setq overwrite-mode 'overwrite-mode-textual))
 
-
+(define-obsolete-function-alias 'limit-index #'array--limit-index "29.1")
+(define-obsolete-function-alias 'current-line #'array-current-line "29.1")
+(define-obsolete-function-alias 'move-to-column-untabify #'array-move-to-column-untabify "29.1")
+(define-obsolete-function-alias 'untabify-backward #'array--untabify-backward "29.1")
 
 (provide 'array)
 
