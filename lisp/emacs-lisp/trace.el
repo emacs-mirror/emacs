@@ -137,6 +137,7 @@
 ;; 2017-06-17  Phil Sainty
 ;;	* New commands `trace-package', `untrace-package', `trace-regexp',
 ;;	  `untrace-regexp', `trace-library', `untrace-library'.
+;;      * Documentation added to the elisp reference manual.
 ;;
 ;; 2012-2014  Stefan Monnier, Glenn Morris
 ;;	* Adapted for nadvice.el
