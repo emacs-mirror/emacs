@@ -890,14 +890,18 @@ command (excluding the command name itself).
 
 @vindex $$
 @item $$
-This is the result of the last command.  In case of an external
-command, it is @code{t} or @code{nil}.
+This is the result of the last command.  For external commands, it is
+@code{t} if the exit code was 0 or @code{nil} otherwise.
 
+@vindex eshell-lisp-form-nil-is-failure
 @vindex $?
 @item $?
 This variable contains the exit code of the last command.  If the last
 command was a Lisp function, it is 0 for successful completion or 1
-otherwise.
+otherwise.  If @code{eshell-lisp-form-nil-is-failure} is
+non-@code{nil}, then a command with a Lisp form, like
+@samp{(@var{command} @var{args}@dots{})}, that returns @code{nil} will
+set this variable to 2.
 
 @vindex $COLUMNS
 @vindex $LINES
@@ -1024,8 +1028,8 @@ Most of Eshell's control flow statements accept a @var{conditional}.
 This can take a few different forms.  If @var{conditional} is a dollar
 expansion, the condition is satisfied if the result is a
 non-@code{nil} value.  If @var{conditional} is a @samp{@{
-@var{subcommand} @}}, the condition is satisfied if the
-@var{subcommand}'s exit status is 0.
+@var{subcommand} @}} or @samp{(@var{lisp form})}, the condition is
+satisfied if the command's exit status is 0.
 
 @table @code
 

@@ -139,6 +139,15 @@ e.g. \"{(+ 1 2)} 3\" => 3"
               "{ setq eshell-test-value (cdr eshell-test-value) }")
       "(1 2)\n(2)\n"))))
 
+(ert-deftest esh-cmd-test/while-loop-lisp-form ()
+  "Test invocation of a while loop using a Lisp form."
+  (with-temp-eshell
+   (let ((eshell-test-value 0))
+     (eshell-command-result-p
+      (concat "while (/= eshell-test-value 3) "
+              "{ setq eshell-test-value (1+ eshell-test-value) }")
+      "1\n2\n3\n"))))
+
 (ert-deftest esh-cmd-test/while-loop-ext-cmd ()
   "Test invocation of a while loop using an external command."
   (skip-unless (executable-find "["))
@@ -157,6 +166,16 @@ e.g. \"{(+ 1 2)} 3\" => 3"
       (concat "until $eshell-test-value "
               "{ setq eshell-test-value t }")
       "t\n"))))
+
+(ert-deftest esh-cmd-test/until-loop-lisp-form ()
+  "Test invocation of an until loop using a Lisp form."
+  (skip-unless (executable-find "["))
+  (with-temp-eshell
+   (let ((eshell-test-value 0))
+     (eshell-command-result-p
+      (concat "until (= eshell-test-value 3) "
+              "{ setq eshell-test-value (1+ eshell-test-value) }")
+      "1\n2\n3\n"))))
 
 (ert-deftest esh-cmd-test/until-loop-ext-cmd ()
   "Test invocation of an until loop using an external command."
@@ -188,6 +207,30 @@ e.g. \"{(+ 1 2)} 3\" => 3"
      (eshell-command-result-p "if $eshell-test-value {echo yes} {echo no}"
                               "no\n"))))
 
+(ert-deftest esh-cmd-test/if-else-statement-lisp-form ()
+  "Test invocation of an if/else statement using a Lisp form."
+  (with-temp-eshell
+   (eshell-command-result-p "if (zerop 0) {echo yes} {echo no}"
+                            "yes\n")
+   (eshell-command-result-p "if (zerop 1) {echo yes} {echo no}"
+                            "no\n")
+   (let ((debug-on-error nil))
+     (eshell-command-result-p "if (zerop \"foo\") {echo yes} {echo no}"
+                              "no\n"))))
+
+(ert-deftest esh-cmd-test/if-else-statement-lisp-form-2 ()
+  "Test invocation of an if/else statement using a Lisp form.
+This tests when `eshell-lisp-form-nil-is-failure' is nil."
+  (let ((eshell-lisp-form-nil-is-failure nil))
+    (with-temp-eshell
+     (eshell-command-result-p "if (zerop 0) {echo yes} {echo no}"
+                              "yes\n")
+     (eshell-command-result-p "if (zerop 1) {echo yes} {echo no}"
+                              "yes\n")
+     (let ((debug-on-error nil))
+       (eshell-command-result-p "if (zerop \"foo\") {echo yes} {echo no}"
+                                "no\n")))))
+
 (ert-deftest esh-cmd-test/if-else-statement-ext-cmd ()
   "Test invocation of an if/else statement using an external command."
   (skip-unless (executable-find "["))
@@ -215,6 +258,17 @@ e.g. \"{(+ 1 2)} 3\" => 3"
                               "yes\n"))
    (let ((eshell-test-value nil))
      (eshell-command-result-p "unless $eshell-test-value {echo no} {echo yes}"
+                              "no\n"))))
+
+(ert-deftest esh-cmd-test/unless-else-statement-lisp-form ()
+  "Test invocation of an unless/else statement using a Lisp form."
+  (with-temp-eshell
+   (eshell-command-result-p "unless (zerop 0) {echo no} {echo yes}"
+                            "yes\n")
+   (eshell-command-result-p "unless (zerop 1) {echo no} {echo yes}"
+                            "no\n")
+   (let ((debug-on-error nil))
+     (eshell-command-result-p "unless (zerop \"foo\") {echo no} {echo yes}"
                               "no\n"))))
 
 (ert-deftest esh-cmd-test/unless-else-statement-ext-cmd ()

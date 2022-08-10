@@ -2162,6 +2162,13 @@ Additionally, globs ending with '**/' or '***/' no longer raise an
 error, and now expand to all directories recursively (following
 symlinks in the latter case).
 
++++
+*** Lisp forms in Eshell now treat a 'nil' result as a failed exit status.
+When executing a command that looks like '(lisp form)', Eshell will
+set the exit status (available in the '$?' variable) to 2.  This
+allows commands like that to be used as conditionals.  To change this
+behavior, customize the new 'eshell-lisp-form-nil-is-failure' option.
+
 ** Shell
 
 ---
