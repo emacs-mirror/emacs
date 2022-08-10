@@ -254,13 +254,9 @@ the string."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (let ((pad-length (- length (length string))))
-    (if (< pad-length 0)
-        string
-      (concat (and start
-                   (make-string pad-length (or padding ?\s)))
-              string
-              (and (not start)
-                   (make-string pad-length (or padding ?\s)))))))
+    (cond ((<= pad-length 0) string)
+          (start (concat (make-string pad-length (or padding ?\s)) string))
+          (t (concat string (make-string pad-length (or padding ?\s)))))))
 
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
