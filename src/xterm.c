@@ -22436,11 +22436,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_HierarchyChanged:
 	    {
-	      XIHierarchyEvent *hev = (XIHierarchyEvent *) xi_event;
+	      XIHierarchyEvent *hev;
 	      XIDeviceInfo *info;
 	      int i, ndevices, n_disabled, *disabled;
 	      struct xi_device_t *device;
+	      bool any_changed;
 
+	      any_changed = false;
+	      hev = (XIHierarchyEvent *) xi_event;
 	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
 
@@ -22450,8 +22453,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      /* Handle all disabled devices now, to prevent
 			 things happening out-of-order later.  */
-		      xi_disable_devices (dpyinfo, disabled, n_disabled);
-		      n_disabled = 0;
+
+		      if (ndevices)
+			{
+			  xi_disable_devices (dpyinfo, disabled, n_disabled);
+			  n_disabled = 0;
+
+			  /* This flag really just means that disabled
+			     devices were handled early and should be
+			     used in conjunction with n_disabled.  */
+			  any_changed = true;
+			}
 
 		      x_catch_errors (dpyinfo->display);
 		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
@@ -22502,9 +22514,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 event.  */
 	      xi_disable_devices (dpyinfo, disabled, n_disabled);
 
-	      /* Now that the device hierarchy has been changed,
-		 recompute focus.  */
-	      xi_handle_focus_change (dpyinfo);
+	      /* If the device hierarchy has been changed, recompute
+		 focus.  This might seem like a micro-optimization but
+		 it actually keeps the focus from changing in some
+		 cases where it would be undesierable.  */
+	      if (any_changed || n_disabled)
+		xi_handle_focus_change (dpyinfo);
 
 	      goto XI_OTHER;
 	    }
