@@ -6206,7 +6206,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   "printing.el, v 6.9.3 <2007/12/09 vinicius>
 
 Please send all bug fixes and enhancements to
-        bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>")
+   bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>")
 (make-obsolete-variable 'pr-version 'emacs-version "29.1")
 
 (provide 'printing)
