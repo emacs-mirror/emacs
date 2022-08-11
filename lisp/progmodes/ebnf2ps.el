@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.4
+;; Old-Version: 4.4
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -21,16 +21,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-(defconst ebnf-version "4.4"
-  "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
-
-Vinicius's last change version.  When reporting bugs, please also
-report the version of Emacs, if any, that ebnf2ps was running with.
-
-Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
-
 
 ;;; Commentary:
 
@@ -2452,8 +2442,6 @@ See also `ebnf-syntax-buffer'."
   "Return the current ebnf2ps setup."
   (format
    "
-;;; ebnf2ps.el version %s
-
 ;;; Emacs version %S
 
 \(setq ebnf-special-show-delimiter      %S
@@ -2522,7 +2510,6 @@ See also `ebnf-syntax-buffer'."
 
 ;;; ebnf2ps.el - end of settings
 "
-   ebnf-version
    emacs-version
    ebnf-special-show-delimiter
    (ps-print-quote ebnf-special-font)
@@ -2955,7 +2942,7 @@ See section \"Actions in Comments\" in ebnf2ps documentation.")
 
 
 (defvar ebnf-eps-file-alist nil
-"Alist associating file name with EPS header and footer.
+  "Alist associating file name with EPS header and footer.
 
 Each element has the following form:
 
@@ -5239,11 +5226,7 @@ killed after process termination."
 	 (not (search-forward "& ebnf2ps v"
 			      (line-end-position)
 			      t))
-	 (progn
-	   ;; adjust creator comment
-	   (end-of-line)
-	   ;; (backward-char)
-	   (insert " & ebnf2ps v" ebnf-version)
+         (progn
 	   ;; insert ebnf settings & engine
 	   (goto-char (point-max))
 	   (search-backward "\n%%EndProlog\n")
@@ -5269,7 +5252,7 @@ killed after process termination."
        (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
        "\n%%Title: " filename
        "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
-       "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
+       "\n%%Creator: " (user-full-name) " (using GNU Emacs " emacs-version ")"
        "\n%%DocumentNeededResources: font "
        (or ebnf-fonts-required
 	   (setq ebnf-fonts-required
@@ -6347,6 +6330,15 @@ killed after process termination."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defconst ebnf-version "4.4"
+  "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
+
+Vinicius's last change version.  When reporting bugs, please also
+report the version of Emacs, if any, that ebnf2ps was running with.
+
+Please send all bug fixes and enhancements to
+  bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
+(make-obsolete-variable 'ebnf-version 'emacs-version "29.1")
 
 (provide 'ebnf2ps)
 
