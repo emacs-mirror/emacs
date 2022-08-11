@@ -2960,6 +2960,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 If the name won't fit on one line, the minibuffer is expanded to hold it,
 and the command waits for a keystroke from the user.  If the keystroke is
 SPC, it is ignored; if it is anything else, it is processed as a command."
+  (declare (obsolete nil "29.1"))
   (interactive)
   (let ((name (buffer-file-name)))
     (or name
