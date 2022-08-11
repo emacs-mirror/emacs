@@ -18133,8 +18133,8 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
     {
       specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
-      run_hook_with_args_2 (Qwindow_scroll_functions, window,
-			    make_fixnum (CHARPOS (startp)));
+      safe_run_hooks_2
+	(Qwindow_scroll_functions, window, make_fixnum (CHARPOS (startp)));
       unbind_to (count, Qnil);
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
       /* In case the hook functions switch buffers.  */

@@ -1339,6 +1339,13 @@ When invoked with a non-zero prefix argument, as in 'C-u C-x C-e',
 this command will pop up a new buffer and show the full pretty-printed
 value there.
 
++++
+*** You can now generate a backtrace from Lisp errors in redisplay.
+To do this, set the new variable 'backtrace-on-redisplay-error' to a
+non-nil value.  The backtrace will be written to buffer
+*Redisplay-trace*.  This buffer will not be automatically displayed in
+a window.
+
 ** Compile
 
 +++
