@@ -361,7 +361,8 @@ AGES is the list of ages that are to be shown."
   (mapc (lambda (feed)
           (let ((feed-name-symbol (intern (car feed))))
             (mapc (lambda (item)
-                    (when (memq (newsticker--age item) ages)
+                    (when (or (memq 'all ages)
+                              (memq (newsticker--age item) ages))
                       (newsticker--treeview-list-add-item
                        item feed-name-symbol t)))
                   (newsticker--treeview-list-sort-items
@@ -1218,11 +1219,11 @@ Note: does not update the layout."
     (newsticker--treeview-list-update t)
     (newsticker--treeview-item-update)
     (newsticker--treeview-tree-update-tags)
-    (cond (newsticker--treeview-current-feed
-           (newsticker--treeview-list-items newsticker--treeview-current-feed))
-          (newsticker--treeview-current-vfeed
+    (cond (newsticker--treeview-current-vfeed
            (newsticker--treeview-list-items-with-age
-            (intern newsticker--treeview-current-vfeed))))
+            (intern newsticker--treeview-current-vfeed)))
+          (newsticker--treeview-current-feed
+           (newsticker--treeview-list-items newsticker--treeview-current-feed)))
     (newsticker--treeview-tree-update-highlight)
     (newsticker--treeview-list-update-highlight)
     (let ((cur-feed (or newsticker--treeview-current-feed
