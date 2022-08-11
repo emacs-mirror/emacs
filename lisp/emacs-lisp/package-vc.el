@@ -38,6 +38,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'rx))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
