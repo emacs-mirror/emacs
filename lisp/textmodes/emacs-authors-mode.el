@@ -1,4 +1,4 @@
-;;; etc-authors-mode.el --- font-locking for etc/AUTHORS  -*- lexical-binding: t -*-
+;;; emacs-authors-mode.el --- font-locking for etc/AUTHORS  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
@@ -27,65 +27,69 @@
 
 ;;; Code:
 
-(defgroup etc-authors-mode nil
+(defgroup emacs-authors-mode nil
   "Display the \"etc/AUTHORS\" file from the Emacs distribution."
-  :version "28.1"
+  :version "29.1"
   :group 'internal)
 
-(defface etc-authors-default '((t :inherit variable-pitch))
+(defface emacs-authors-default
+  '((t :inherit variable-pitch))
   "Default face used to display the \"etc/AUTHORS\" file.
-See also `etc-authors-mode'."
-  :version "28.1")
+See also `emacs-authors-mode'."
+  :version "29.1")
 
-(defface etc-authors-author '((((class color) (min-colors 88) (background light))
-                    :foreground "midnight blue"
-                    :weight bold :height 1.05
-                    :inherit variable-pitch)
-                   (((class color) (min-colors 88) (background dark))
-                    :foreground "cyan"
-                    :weight bold :height 1.05
-                    :inherit variable-pitch)
-                   (((supports :weight bold) (supports :height 1.05))
-                    :weight bold :height 1.05
-                    :inherit variable-pitch)
-                   (((supports :weight bold))
-                    :weight bold :inherit variable-pitch)
-                   (t :inherit variable-pitch))
+(defface emacs-authors-author
+  '((((class color) (min-colors 88) (background light))
+     :foreground "midnight blue"
+     :weight bold :height 1.05
+     :inherit variable-pitch)
+    (((class color) (min-colors 88) (background dark))
+     :foreground "cyan"
+     :weight bold :height 1.05
+     :inherit variable-pitch)
+    (((supports :weight bold) (supports :height 1.05))
+     :weight bold :height 1.05
+     :inherit variable-pitch)
+    (((supports :weight bold))
+     :weight bold :inherit variable-pitch)
+    (t :inherit variable-pitch))
   "Face used for the author in the \"etc/AUTHORS\" file.
-See also `etc-authors-mode'."
-  :version "28.1")
+See also `emacs-authors-mode'."
+  :version "29.1")
 
-(defface etc-authors-descriptor '((((class color) (min-colors 88) (background light))
-                        :foreground "sienna" :inherit variable-pitch)
-                       (((class color) (min-colors 88) (background dark))
-                        :foreground "peru" :inherit variable-pitch)
-                       (t :inherit variable-pitch))
+(defface emacs-authors-descriptor
+  '((((class color) (min-colors 88) (background light))
+     :foreground "sienna" :inherit variable-pitch)
+    (((class color) (min-colors 88) (background dark))
+     :foreground "peru" :inherit variable-pitch)
+    (t :inherit variable-pitch))
   "Face used for the description text in the \"etc/AUTHORS\" file.
-See also `etc-authors-mode'."
-  :version "28.1")
+See also `emacs-authors-mode'."
+  :version "29.1")
 
-(defface etc-authors-other-files '((t :inherit etc-authors-descriptor))
+(defface emacs-authors-other-files
+  '((t :inherit emacs-authors-descriptor))
   "Face used for the \"other files\" text in the \"etc/AUTHORS\" file.
-See also `etc-authors-mode'."
-  :version "28.1")
+See also `emacs-authors-mode'."
+  :version "29.1")
 
-(defconst etc-authors--author-re
+(defconst emacs-authors--author-re
   (rx bol (group (not (any blank "\n")) (+? (not (any ":" "\n")))) ":")
   "Regexp matching an author in \"etc/AUTHORS\".")
 
-(defvar etc-authors-mode-font-lock-keywords
-  `((,etc-authors--author-re
-     1 'etc-authors-author)
+(defvar emacs-authors-mode-font-lock-keywords
+  `((,emacs-authors--author-re
+     1 'emacs-authors-author)
     (,(rx (or "wrote"
               (seq (? "and ") (or "co-wrote" "changed"))))
-     0 'etc-authors-descriptor)
+     0 'emacs-authors-descriptor)
     (,(rx "and " (+ digit) " other files")
-     0 'etc-authors-other-files)
+     0 'emacs-authors-other-files)
     (,(rx bol (not space) (+ not-newline) eol)
-     0 'etc-authors-default)))
+     0 'emacs-authors-default)))
 
-(defun etc-authors-mode--hide-local-variables ()
-  "Hide local variables in \"etc/AUTHORS\".  Used by `etc-authors-mode'."
+(defun emacs-authors-mode--hide-local-variables ()
+  "Hide local variables in \"etc/AUTHORS\".  Used by `emacs-authors-mode'."
   (narrow-to-region (point-min)
                     (save-excursion
                       (goto-char (point-min))
@@ -95,39 +99,49 @@ See also `etc-authors-mode'."
                           (progn (forward-line -1) (point))
                         (point-max)))))
 
-(defun etc-authors-next-author (&optional arg)
+(defun emacs-authors-next-author (&optional arg)
   "Move point to the next author in \"etc/AUTHORS\".
 With a prefix arg ARG, move point that many authors forward."
-  (interactive "p" etc-authors-mode)
+  (interactive "p" emacs-authors-mode)
   (if (< 0 arg)
       (progn
-        (when (looking-at etc-authors--author-re)
+        (when (looking-at emacs-authors--author-re)
           (forward-line 1))
-        (re-search-forward etc-authors--author-re nil t arg))
-    (when (looking-at etc-authors--author-re)
+        (re-search-forward emacs-authors--author-re nil t arg))
+    (when (looking-at emacs-authors--author-re)
           (forward-line -1))
-    (re-search-backward etc-authors--author-re nil t (abs arg)))
+    (re-search-backward emacs-authors--author-re nil t (abs arg)))
   (goto-char (line-beginning-position)))
 
-(defun etc-authors-prev-author (&optional arg)
+(defun emacs-authors-prev-author (&optional arg)
   "Move point to the previous author in \"etc/AUTHORS\".
 With a prefix arg ARG, move point that many authors backward."
-  (interactive "p" etc-authors-mode)
-  (etc-authors-next-author (- arg)))
+  (interactive "p" emacs-authors-mode)
+  (emacs-authors-next-author (- arg)))
 
-(defvar-keymap etc-authors-mode-map
-  :doc "Keymap for `etc-authors-mode'."
-  "n" #'etc-authors-next-author
-  "p" #'etc-authors-prev-author)
+(define-obsolete-variable-alias 'etc-authors-mode-map 'emacs-authors-mode-map "29.1")
+(defvar-keymap emacs-authors-mode-map
+  :doc "Keymap for `emacs-authors-mode'."
+  "n" #'emacs-authors-next-author
+  "p" #'emacs-authors-prev-author)
 
 ;;;###autoload
-(define-derived-mode etc-authors-mode special-mode "Authors View"
+(define-derived-mode emacs-authors-mode special-mode "Authors View"
   "Major mode for viewing \"etc/AUTHORS\" from the Emacs distribution.
 Provides some basic font locking and not much else."
   (setq-local font-lock-defaults
-              '(etc-authors-mode-font-lock-keywords nil nil ((?_ . "w"))))
+              '(emacs-authors-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (setq font-lock-multiline nil)
-  (etc-authors-mode--hide-local-variables))
+  (emacs-authors-mode--hide-local-variables))
 
-(provide 'etc-authors-mode)
-;;; etc-authors-mode.el ends here
+(define-obsolete-face-alias 'etc-authors-default 'emacs-authors-default "29.1")
+(define-obsolete-face-alias 'etc-authors-author 'emacs-authors-author "29.1")
+(define-obsolete-face-alias 'etc-authors-descriptor 'emacs-authors-descriptor "29.1")
+(define-obsolete-face-alias 'etc-authors-other-files 'emacs-authors-other-files "29.1")
+(define-obsolete-function-alias 'etc-authors-next-author #'emacs-authors-next-author "29.1")
+(define-obsolete-function-alias 'etc-authors-prev-author #'emacs-authors-prev-author "29.1")
+;;;###autoload
+(define-obsolete-function-alias 'etc-authors-mode #'emacs-authors-mode "29.1")
+
+(provide 'emacs-authors-mode)
+;;; emacs-authors-mode.el ends here
