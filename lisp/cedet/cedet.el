@@ -25,10 +25,6 @@
 ;;; Commentary:
 
 ;;; Code:
-;;
-;; This file depends on the major components of CEDET, so that you can
-;; load them all by doing (require 'cedet).  This is mostly for
-;; compatibility with the upstream, stand-alone CEDET distribution.
 
 (declare-function inversion-find-version "inversion")
 
