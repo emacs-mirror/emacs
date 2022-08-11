@@ -898,14 +898,22 @@ correspond to previously loaded files (those returned by
 
 (defun package--get-activatable-pkg (pkg-name)
   ;; Is "activatable" a word?
-  (let ((pkg-descs (cdr (assq pkg-name package-alist))))
+  (let ((pkg-descs (sort (cdr (assq pkg-name package-alist))
+                         (lambda (p1 p2)
+                           (let ((v1 (package-desc-version p1))
+                                 (v2 (package-desc-version p2)))
+                             (or
+                              ;; Prefer source packages.
+                              (eq (package-desc-kind p1) 'vc)
+                              (not (eq (package-desc-kind p2) 'vc))
+                              ;; Prefer builtin packages.
+                              (package-disabled-p p1 v1)
+                              (not (package-disabled-p p2 v2))))))))
     ;; Check if PACKAGE is available in `package-alist'.
     (while
         (when pkg-descs
           (let ((available-version (package-desc-version (car pkg-descs))))
-            (or (package-disabled-p pkg-name available-version)
-                ;; Prefer a builtin package.
-                (package-built-in-p pkg-name available-version))))
+            (package-disabled-p pkg-name available-version)))
       (setq pkg-descs (cdr pkg-descs)))
     (car pkg-descs)))
 
