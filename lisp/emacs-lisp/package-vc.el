@@ -29,7 +29,6 @@
 ;; - Allow for automatic updating                               TODO
 ;;   * Detect merge conflicts                                   TODO
 ;;   * Check if there are upstream changes                      TODO
-;; - Respect the .elpaignore file                               TODO
 ;; - Allow finding revisions that bump the version tag          TODO
 ;;   * Allow for `package-vc-fetch' to use the version
 ;;     of the package if already installed.

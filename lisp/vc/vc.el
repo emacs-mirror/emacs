@@ -573,6 +573,11 @@
 ;;
 ;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
 ;;   Returns the symbol of the backend used if successful.
+;;
+;; - send-patch (addr &optional rev-list)
+;;
+;;   Send a patch to ADDR
+
 
 ;;; Changes from the pre-25.1 API:
 ;;

@@ -599,6 +599,25 @@ package."
   "Return the priority of the archive of package-desc object PKG-DESC."
   (package-archive-priority (package-desc-archive pkg-desc)))
 
+(defun package--parse-elpaignore (pkg-desc)
+  "Return the of regular expression to match files ignored by PKG-DESC."
+  (let* ((pkg-dir (file-name-as-directory (package-desc-dir pkg-desc)))
+         (ignore (expand-file-name ".elpaignore" pkg-dir))
+         files)
+    (when (file-exists-p ignore)
+      (with-temp-buffer
+        (insert-file-contents ignore)
+        (goto-char (point-min))
+        (while (not (eobp))
+          (push (wildcard-to-regexp
+                 (let ((line (buffer-substring
+                              (line-beginning-position)
+                              (line-end-position))))
+                   (file-name-concat pkg-dir (string-trim-left line "/"))))
+                files)
+          (forward-line)))
+      files)))
+
 (cl-defstruct (package--bi-desc
                (:constructor package-make-builtin (version summary))
                (:type vector))
@@ -1073,11 +1092,13 @@ untar into a directory named DIR; otherwise, signal an error."
 
 ;;;; Compilation
 (defvar warning-minimum-level)
+(defvar byte-compile-ignore-files)
 (defun package--compile (pkg-desc)
   "Byte-compile installed package PKG-DESC.
 This assumes that `pkg-desc' has already been activated with
 `package-activate-1'."
-  (let ((warning-minimum-level :error)
+  (let ((byte-compile-ignore-files (package--parse-elpaignore pkg-desc))
+        (warning-minimum-level :error)
         (load-path load-path))
     (byte-recompile-directory (package-desc-dir pkg-desc) 0 t)))
 
