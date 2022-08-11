@@ -8,20 +8,8 @@
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.5
+;; Old-Version: 7.3.5
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
-
-(eval-when-compile (require 'cl-lib))
-
-(defconst ps-print-version "7.3.5"
-  "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
-
-Vinicius's last change version -- this file may have been edited as part of
-Emacs without changes to the version number.  When reporting bugs, please also
-report the version of Emacs, if any, that ps-print was distributed with.
-
-Please send all bug fixes and enhancements to
-	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -1451,6 +1439,7 @@ Please send all bug fixes and enhancements to
 ;;; Code:
 
 (require 'lpr)
+(eval-when-compile (require 'cl-lib))
 
 ;; autoloads for secondary file
 (require 'ps-print-loaddefs)
@@ -3596,7 +3585,6 @@ The table depends on the current ps-print setup."
     (mapconcat
      #'ps-print-quote
      (list
-      (concat "\n;;; (Emacs) ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version     " emacs-version)
       (ps-comment-string "lpr-windows-system" lpr-windows-system)
@@ -5347,7 +5335,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      ps-adobe-tag
      "%%Title: " (buffer-name)		; Take job name from name of
 					; first buffer printed
-     "\n%%Creator: ps-print v" ps-print-version
+     "\n%%Creator: GNU Emacs " emacs-version
      "\n%%For: " (user-full-name)       ;FIXME: may need encoding!
      "\n%%CreationDate: " (format-time-string "%T %b %d %Y") ;FIXME: encoding!
      "\n%%Orientation: "
@@ -6547,6 +6535,17 @@ If FACE is not a valid face name, use default face."
 
 (unless noninteractive
   (add-hook 'kill-emacs-query-functions #'ps-kill-emacs-check))
+
+(defconst ps-print-version "7.3.5"
+  "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
+
+Vinicius's last change version -- this file may have been edited as part of
+Emacs without changes to the version number.  When reporting bugs, please also
+report the version of Emacs, if any, that ps-print was distributed with.
+
+Please send all bug fixes and enhancements to
+  bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
+(make-obsolete-variable 'ps-print-version 'emacs-version "29.1")
 
 (define-obsolete-function-alias 'ps-print-ensure-fontified #'font-lock-ensure "29.1")
 

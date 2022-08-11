@@ -1154,9 +1154,6 @@ Please send all bug fixes and enhancements to
 (require 'ps-print)
 (eval-when-compile (require 'cl-lib))
 
-(and (string< ps-print-version "5.2.3")
-     (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:

@@ -1008,10 +1008,6 @@
 (require 'lpr)
 (require 'ps-print)
 
-(and (string< ps-print-version "6.6.4")
-     (error "`printing' requires `ps-print' package version 6.6.4 or later"))
-
-
 (defconst pr-cygwin-system
   (and lpr-windows-system (getenv "OSTYPE")
        (string-match "cygwin" (getenv "OSTYPE"))))
@@ -3000,8 +2996,7 @@ Calls `pr-update-menus' to adjust menus."
 
 
 (defconst pr-help-message
-  (concat "ps-print.el version " ps-print-version
-	  "\n\n
+  "\
 Menu Layout
 -----------
 
@@ -3207,13 +3202,12 @@ VI. Customization:
    23. Show current settings for `printing', `ps-print' or `lpr'.
 
    24. Quick help for printing menu layout.
-")
+"
   "Printing help message.")
 
 
 (defconst pr-interface-help-message
-  (concat "    ps-print.el version " ps-print-version
-	  "\n\n
+  "\
 The printing interface buffer has the same functionality as the printing menu.
 The major difference is that the states (like sending PostScript generated to a
 file, n-up printing, etc.) are set and saved between printing buffer
@@ -3440,7 +3434,7 @@ The printing interface buffer has the following sections:
 
    Quick help for printing interface buffer and printing menu layout.  You can
    also quit the printing interface buffer or kill all printing help buffer.
-")
+"
   "Printing buffer interface help message.")
 
 
@@ -5587,8 +5581,6 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (switch-to-buffer (get-buffer-create pr-buffer-name))
 
   ;; header
-  (let ((versions (concat "ps-print v" ps-print-version)))
-    (widget-insert (make-string (- 79 (length versions)) ?\ ) versions))
   (pr-insert-italic "\nCurrent Directory : " 1)
   (pr-insert-italic default-directory)
 
