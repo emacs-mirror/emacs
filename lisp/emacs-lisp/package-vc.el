@@ -195,7 +195,17 @@ The output is written out into PKG-FILE."
           (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--reload-previously-loaded new-desc)))))
+        (package--reload-previously-loaded new-desc)))
+
+    ;; Detect a manual
+    (when (executable-find "install-info")
+      ;; Only proceed if we can find an unambiguous TeXinfo file
+      (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
+            (dir-file (expand-file-name "dir" pkg-dir)))
+        (when (length= texi-files 1)
+          (call-process "install-info" nil nil nil
+                        (concat "--dir=" dir-file)
+                        (car texi-files)))))))
 
 (defun package-vc-sourced-packages-list ()
   "Generate a list of packages with VC data."
