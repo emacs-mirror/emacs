@@ -2194,17 +2194,22 @@ to install it but still mark it as selected."
           (message  "Package `%s' installed." name))
       (message "`%s' is already installed" name))))
 
+(declare-function package-vc-update "package-vc" (pkg))
+
 ;;;###autoload
 (defun package-update (name)
   "Update package NAME if a newer version exists."
   (interactive
    (list (completing-read
           "Update package: " (package--updateable-packages) nil t)))
-  (let ((package (if (symbolp name)
-                     name
-                   (intern name))))
-    (package-delete (cadr (assq package package-alist)) 'force)
-    (package-install package 'dont-select)))
+  (let* ((package (if (symbolp name)
+                      name
+                    (intern name)))
+         (pkg-desc (cadr (assq package package-alist))))
+    (if (eq (package-desc-kind pkg-desc) 'vc)
+        (package-vc-update pkg-desc)
+      (package-delete pkg-desc 'force)
+      (package-install package 'dont-select))))
 
 (defun package--updateable-packages ()
   ;; Initialize the package system to get the list of package

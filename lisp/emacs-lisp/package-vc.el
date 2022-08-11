@@ -227,6 +227,12 @@ The output is written out into PKG-FILE."
              t))))
    package-archive-contents))
 
+(defun package-vc-update (pkg-desc)
+  "Attempt to update the packager PKG-DESC."
+  (let ((default-directory (package-desc-dir pkg-desc)))
+    (with-demoted-errors "Error during package update: %S"
+      (vc-pull))))
+
 (defun package-vc-fetch (name-or-url &optional name rev)
   "Fetch the source of NAME-OR-URL.
 If NAME-OR-URL is a URL, then the package will be downloaded from
