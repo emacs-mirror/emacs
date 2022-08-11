@@ -2658,7 +2658,10 @@ Helper function for `describe-package'."
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
          (maintainer (cdr (assoc :maintainer extras)))
-         (authors (cdr (assoc :authors extras))))
+         (authors (cdr (assoc :authors extras)))
+         (news (and-let* ((file (expand-file-name "news" pkg-dir))
+                          ((file-readable-p file)))
+                 file)))
     (when (string= status "avail-obso")
       (setq status "available obsolete"))
     (when incompatible-reason
@@ -2857,6 +2860,14 @@ Helper function for `describe-package'."
               t)
             (insert (or readme-string
                         "This package does not provide a description.")))))
+
+      ;; Insert news if available.
+      (when news
+        (insert "\n" (make-separator-line) "\n"
+                (propertize "* News" 'face 'package-help-section-name)
+                "\n\n")
+        (insert-file-contents news))
+
       ;; Make library descriptions into links.
       (goto-char start-of-description)
       (package--describe-add-library-links)
