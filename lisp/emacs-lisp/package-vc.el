@@ -235,6 +235,7 @@ The output is written out into PKG-FILE."
     (with-demoted-errors "Error during package update: %S"
       (vc-pull))))
 
+;;;###autoload
 (defun package-vc-fetch (name-or-url &optional name rev)
   "Fetch the source of NAME-OR-URL.
 If NAME-OR-URL is a URL, then the package will be downloaded from
