@@ -1190,49 +1190,64 @@ See Info node `(elisp) Integer Basics'."
 	  (and clauses form)))
     form))
 
+(defsubst byte-opt--negate (form)
+  "Negate FORM, avoiding double negation if already negated."
+  (if (and (consp form) (memq (car form) '(not null)))
+      (cadr form)
+    `(not ,form)))
+
 (defun byte-optimize-if (form)
-  ;; (if (progn <insts> <test>) <rest>) ==> (progn <insts> (if <test> <rest>))
-  ;; (if <true-constant> <then> <else...>) ==> <then>
-  ;; (if <false-constant> <then> <else...>) ==> (progn <else...>)
-  ;; (if <test> nil <else...>) ==> (if (not <test>) (progn <else...>))
-  ;; (if <test> <then> nil) ==> (if <test> <then>)
-  (let ((clause (nth 1 form)))
-    (cond ((and (eq (car-safe clause) 'progn)
-                (proper-list-p clause))
-           (if (null (cddr clause))
-               ;; A trivial `progn'.
-               (byte-optimize-if `(,(car form) ,(cadr clause) ,@(nthcdr 2 form)))
-             (nconc (butlast clause)
-                    (list
-                     (byte-optimize-if
-                      `(,(car form) ,(car (last clause)) ,@(nthcdr 2 form)))))))
-          ((byte-compile-trueconstp clause)
-	   `(progn ,clause ,(nth 2 form)))
-	  ((byte-compile-nilconstp clause)
-           `(progn ,clause ,@(nthcdr 3 form)))
-	  ((nth 2 form)
-	   (if (equal '(nil) (nthcdr 3 form))
-	       (list (car form) clause (nth 2 form))
-	     form))
-	  ((or (nth 3 form) (nthcdr 4 form))
-	   (list (car form)
-		 ;; Don't make a double negative;
-		 ;; instead, take away the one that is there.
-		 (if (and (consp clause) (memq (car clause) '(not null))
-			  (= (length clause) 2)) ; (not xxxx) or (not (xxxx))
-		     (nth 1 clause)
-		   (list 'not clause))
-		 (if (nthcdr 4 form)
-		     (cons 'progn (nthcdr 3 form))
-		   (nth 3 form))))
-	  (t
-	   (list 'progn clause nil)))))
+  (let ((condition (nth 1 form))
+        (then (nth 2 form))
+        (else (nthcdr 3 form)))
+    (cond
+     ;; (if (progn ... X) ...) -> (progn ... (if X ...))
+     ((eq (car-safe condition) 'progn)
+      (nconc (butlast condition)
+             (list
+              (byte-optimize-if
+               `(,(car form) ,(car (last condition)) ,@(nthcdr 2 form))))))
+     ;; (if TRUE THEN ...) -> (progn TRUE THEN)
+     ((byte-compile-trueconstp condition)
+      `(progn ,condition ,then))
+     ;; (if FALSE THEN ELSE...) -> (progn FALSE ELSE...)
+     ((byte-compile-nilconstp condition)
+      (if else
+          `(progn ,condition ,@else)
+        condition))
+     ;; (if X nil t) -> (not X)
+     ((and (eq then nil) (eq else '(t)))
+      `(not ,condition))
+     ;; (if X t [nil]) -> (not (not X))
+     ((and (eq then t) (or (null else) (eq else '(nil))))
+      `(not ,(byte-opt--negate condition)))
+     ;; (if VAR VAR X...) -> (or VAR (progn X...))
+     ((and (symbolp condition) (eq condition then))
+      `(or ,then ,(if (cdr else)
+                      `(progn . ,else)
+                    (car else))))
+     ;; (if X THEN nil) -> (if X THEN)
+     (then
+      (if (equal else '(nil))
+	  (list (car form) condition then)
+	form))
+     ;; (if X nil ELSE...) -> (if (not X) (progn ELSE...))
+     ((or (car else) (cdr else))
+      (list (car form) (byte-opt--negate condition)
+	    (if (cdr else)
+		`(progn . ,else)
+	      (car else))))
+     ;; (if X nil nil) -> (progn X nil)
+     (t
+      (list 'progn condition nil)))))
 
 (defun byte-optimize-while (form)
   (when (< (length form) 2)
     (byte-compile-warn-x form "too few arguments for `while'"))
-  (if (nth 1 form)
-      form))
+  (let ((condition (nth 1 form)))
+    (if (byte-compile-nilconstp condition)
+        condition
+      form)))
 
 (put 'and   'byte-optimizer #'byte-optimize-and)
 (put 'or    'byte-optimizer #'byte-optimize-or)
