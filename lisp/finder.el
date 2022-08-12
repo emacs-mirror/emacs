@@ -436,9 +436,9 @@ FILE should be in a form suitable for passing to `locate-library'."
   (interactive nil finder-mode)
   (message "%s"
    (substitute-command-keys
-    "\\<finder-mode-map>\\[finder-select] = select, \
-\\[finder-mouse-select] = select, \\[finder-list-keywords] = to \
-finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
+    "\\<finder-mode-map>\\[finder-select] select, \
+\\[finder-mouse-select] select, \\[finder-list-keywords] go to \
+finder directory, \\[finder-exit] quit, \\[finder-summary] help")))
 
 (defun finder-exit ()
   "Exit Finder mode.
