@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(require 'subr-x)    ; `emacs-etc--hide-local-variables'
+
 (defgroup emacs-authors-mode nil
   "Display the \"etc/AUTHORS\" file from the Emacs distribution."
   :version "29.1"
@@ -88,17 +90,6 @@ See also `emacs-authors-mode'."
     (,(rx bol (not space) (+ not-newline) eol)
      0 'emacs-authors-default)))
 
-(defun emacs-authors-mode--hide-local-variables ()
-  "Hide local variables in \"etc/AUTHORS\".  Used by `emacs-authors-mode'."
-  (narrow-to-region (point-min)
-                    (save-excursion
-                      (goto-char (point-min))
-                      ;; Obfuscate to avoid this being interpreted
-                      ;; as a local variable section itself.
-                      (if (re-search-forward "^Local\sVariables:$" nil t)
-                          (progn (forward-line -1) (point))
-                        (point-max)))))
-
 (defun emacs-authors-next-author (&optional arg)
   "Move point to the next author in \"etc/AUTHORS\".
 With a prefix arg ARG, move point that many authors forward."
@@ -109,7 +100,7 @@ With a prefix arg ARG, move point that many authors forward."
           (forward-line 1))
         (re-search-forward emacs-authors--author-re nil t arg))
     (when (looking-at emacs-authors--author-re)
-          (forward-line -1))
+      (forward-line -1))
     (re-search-backward emacs-authors--author-re nil t (abs arg)))
   (goto-char (line-beginning-position)))
 
@@ -139,7 +130,7 @@ Provides some basic font locking and not much else."
               '(emacs-authors-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (setq font-lock-multiline nil)
   (setq imenu-generic-expression emacs-authors-imenu-generic-expression)
-  (emacs-authors-mode--hide-local-variables))
+  (emacs-etc--hide-local-variables))
 
 (define-obsolete-face-alias 'etc-authors-default 'emacs-authors-default "29.1")
 (define-obsolete-face-alias 'etc-authors-author 'emacs-authors-author "29.1")

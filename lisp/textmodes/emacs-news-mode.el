@@ -25,6 +25,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'outline)
+(require 'subr-x)    ; `emacs-etc--hide-local-variables'
 
 (defgroup emacs-news-mode nil
   "Major mode for editing and viewing the Emacs NEWS file."
@@ -76,7 +77,8 @@
               outline-minor-mode-cycle t
               outline-level (lambda () (length (match-string 2)))
               outline-minor-mode-highlight 'append)
-  (outline-minor-mode))
+  (outline-minor-mode)
+  (emacs-etc--hide-local-variables))
 
 ;;;###autoload
 (define-derived-mode emacs-news-mode text-mode "NEWS"
