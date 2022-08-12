@@ -15438,8 +15438,6 @@ files.  If a positive number, delete files older than number of days
 (the deletion will only happen when receiving new mail).  You may also
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
-@code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
-and @code{2} in released Gnusae.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
