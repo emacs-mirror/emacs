@@ -40,8 +40,6 @@
 
 ;; Restrictions:
 ;; =============
-;; - Traced subrs when called interactively will always show nil as the
-;;   value of their arguments.
 ;; - Only functions/macros/subrs that are called via their function cell will
 ;;   generate trace output, hence, you won't get trace output for:
 ;;   + Subrs called directly from other subrs/C-code
