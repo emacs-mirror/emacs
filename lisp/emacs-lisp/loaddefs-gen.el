@@ -519,15 +519,21 @@ binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified.
+directory or directories specified by DIRS.
 
-If EXTRA-DATA, include this string at the start of the generated
-file.  This will also force generation of OUTPUT-FILE even if
-there are no autoloads to put into the file.
+Optional argument EXCLUDED-FILES, if non-nil, should be a list of
+files, such as preloaded files, whose autoloads should not be written
+to OUTPUT-FILE.
 
-If INCLUDE-PACKAGE-VERSION, include package version data.
+If EXTRA-DATA is non-nil, it should be a string; include that string
+at the beginning of the generated file.  This will also force the
+generation of OUTPUT-FILE even if there are no autoloads to put into
+that file.
 
-If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
+If INCLUDE-PACKAGE-VERSION is non-nil, include package version data.
+
+If GENERATE-FULL is non-nil, regenerate all the loaddefs files anew,
+instead of just updating them with the new/changed autoloads."
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
                        ;; We don't use module-file-suffix below because
