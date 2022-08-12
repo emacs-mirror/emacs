@@ -589,7 +589,8 @@ instead of just updating them with the new/changed autoloads."
       ;; We have some data, so generate the loaddef files.  First
       ;; group per output file.
       (dolist (fdefs (seq-group-by #'car defs))
-        (let ((loaddefs-file (car fdefs)))
+        (let ((loaddefs-file (car fdefs))
+              hash)
           (with-temp-buffer
             (if (and updating (file-exists-p loaddefs-file))
                 (insert-file-contents loaddefs-file)
@@ -599,6 +600,7 @@ instead of just updating them with the new/changed autoloads."
               (when extra-data
                 (insert extra-data)
                 (ensure-empty-lines 1)))
+            (setq hash (buffer-hash))
             ;; Then group by source file (and sort alphabetically).
             (dolist (section (sort (seq-group-by #'cadr (cdr fdefs))
                                    (lambda (e1 e2)
@@ -635,9 +637,11 @@ instead of just updating them with the new/changed autoloads."
                     (loaddefs-generate--print-form def))
                   (unless (bolp)
                     (insert "\n")))))
-            (write-region (point-min) (point-max) loaddefs-file nil 'silent)
-            (byte-compile-info (file-relative-name loaddefs-file lisp-directory)
-                               t "GEN")))))))
+            ;; Only write the file if we actually made a change.
+            (unless (equal (buffer-hash) hash)
+              (write-region (point-min) (point-max) loaddefs-file nil 'silent)
+              (byte-compile-info
+               (file-relative-name loaddefs-file lisp-directory) t "GEN"))))))))
 
 (defun loaddefs-generate--print-form (def)
   "Print DEF in a format that makes sense for version control."
