@@ -885,7 +885,6 @@ History
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 
@@ -15440,7 +15439,7 @@ files.  If a positive number, delete files older than number of days
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
 @code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
-and @code{2} in released Gnusae.  @xref{Gnus Development}.
+and @code{2} in released Gnusae.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -26918,7 +26917,6 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 @end menu
@@ -27144,56 +27142,6 @@ If you ever notice Gnus acting non-compliant with regards to the texts
 mentioned above, don't hesitate to drop a note to Gnus Towers and let us
 know.
 
-
-@node Gnus Development
-@subsection Gnus Development
-
-Gnus is developed in a two-phased cycle.  The first phase involves much
-discussion on the development mailing list @samp{ding@@gnus.org}, where people
-propose changes and new features, post patches and new back ends.  This
-phase is called the @dfn{alpha} phase, since the Gnusae released in this
-phase are @dfn{alpha releases}, or (perhaps more commonly in other
-circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
-unstable and should not be used by casual users.  Gnus alpha releases
-have names like ``Oort Gnus'' and ``No Gnus''.  @xref{Gnus Versions}.
-
-After futzing around for 10--100 alpha releases, Gnus is declared
-@dfn{frozen}, and only bug fixes are applied.  Gnus loses the prefix,
-and is called things like ``Gnus 5.10.1'' instead.  Normal people are
-supposed to be able to use these, and these are mostly discussed on the
-@samp{gnu.emacs.gnus} newsgroup.  This newgroup is mirrored to the
-mailing list @samp{info-gnus-english@@gnu.org} which is carried on Gmane
-as @samp{gmane.emacs.gnus.user}.  These releases are finally integrated
-in Emacs.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
-
-The division of discussion between the ding mailing list and the Gnus
-newsgroup is not purely based on publicity concerns.  It's true that
-having people write about the horrible things that an alpha Gnus release
-can do (sometimes) in a public forum may scare people off, but more
-importantly, talking about new experimental features that have been
-introduced may confuse casual users.  New features are frequently
-introduced, fiddled with, and judged to be found wanting, and then
-either discarded or totally rewritten.  People reading the mailing list
-usually keep up with these rapid changes, while people on the newsgroup
-can't be assumed to do so.
-
-So if you have problems with or questions about the alpha versions,
-direct those to the ding mailing list @samp{ding@@gnus.org}.  This list
-is also available on Gmane as @samp{gmane.emacs.gnus.general}.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
 
 @node Contributors
 @subsection Contributors
