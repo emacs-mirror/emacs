@@ -2022,7 +2022,6 @@ the arguments to the function @code{concat} are the strings
 @w{@code{"The "}} and @w{@code{" red foxes."}} and the list
 @code{(number-to-string (+ 2 fill-column))}.
 
-@c For GNU Emacs 22, need number-to-string
 @smallexample
 (concat "The " (number-to-string (+ 2 fill-column)) " red foxes.")
 @end smallexample
@@ -10318,9 +10317,8 @@ loop with a list.
 
 @cindex @file{*scratch*} buffer
 The function requires several lines for its output.  If you are
-reading this in a recent instance of GNU Emacs,
-@c GNU Emacs 21, GNU Emacs 22, or a later version,
-you can evaluate the following expression inside of Info, as usual.
+reading this in a recent instance of GNU Emacs, you can evaluate the
+following expression inside of Info, as usual.
 
 If you are using an earlier version of Emacs, you need to copy the
 necessary expressions to your @file{*scratch*} buffer and evaluate
@@ -17741,17 +17739,6 @@ or start GNU Emacs with the command @code{emacs -nbc}.
 @smallexample
 (setq grep-command "grep -i -nH -e ")
 @end smallexample
-
-@ignore
-@c Evidently, no longer needed in GNU Emacs 22
-
-item Automatically uncompress compressed files when visiting them
-
-smallexample
-(load "uncompress")
-end smallexample
-
-@end ignore
 
 @item Find an existing buffer, even if it has a different name@*
 This avoids problems with symbolic links.
