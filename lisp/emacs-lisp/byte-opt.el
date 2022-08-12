@@ -1207,25 +1207,26 @@ See Info node `(elisp) Integer Basics'."
       form)))
 
 (defun byte-optimize-apply (form)
-  ;; If the last arg is a literal constant, turn this into a funcall.
-  ;; The funcall optimizer can then transform (funcall 'foo ...) -> (foo ...).
-  (if (= (length form) 2)
-      ;; single-argument `apply' is not worth optimizing (bug#40968)
-      form
-    (let ((fn (nth 1 form))
-	  (last (nth (1- (length form)) form))) ; I think this really is fastest
-      (or (if (or (null last)
-		  (eq (car-safe last) 'quote))
-	      (if (listp (nth 1 last))
-		  (let ((butlast (nreverse (cdr (reverse (cdr (cdr form)))))))
-		    (nconc (list 'funcall fn) butlast
-			   (mapcar (lambda (x) (list 'quote x)) (nth 1 last))))
+  (let ((len (length form)))
+    (if (>= len 2)
+        (let ((fn (nth 1 form))
+	      (last (nth (1- len) form)))
+          (cond
+           ;; (apply F ... '(X Y ...)) -> (funcall F ... 'X 'Y ...)
+           ((or (null last)
+                (eq (car-safe last) 'quote))
+            (let ((last-value (nth 1 last)))
+	      (if (listp last-value)
+                  `(funcall ,fn ,@(butlast (cddr form))
+                            ,@(mapcar (lambda (x) (list 'quote x)) last-value))
 	        (byte-compile-warn-x
-                 last
-	         "last arg to apply can't be a literal atom: `%s'"
-	         last)
-	        nil))
-	  form))))
+                 last "last arg to apply can't be a literal atom: `%s'" last)
+	        nil)))
+           ;; (apply F ... (list X Y ...)) -> (funcall F ... X Y ...)
+           ((eq (car-safe last) 'list)
+            `(funcall ,fn ,@(butlast (cddr form)) ,@(cdr last)))
+           (t form)))
+      form)))
 
 (put 'funcall 'byte-optimizer #'byte-optimize-funcall)
 (put 'apply   'byte-optimizer #'byte-optimize-apply)
