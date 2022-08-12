@@ -1125,35 +1125,91 @@ See Info node `(elisp) Integer Basics'."
     (nth 1 form)))
 
 (defun byte-optimize-and (form)
-  ;; Simplify if less than 2 args.
-  ;; if there is a literal nil in the args to `and', throw it and following
-  ;; forms away, and surround the `and' with (progn ... nil).
-  (cond ((null (cdr form)))
-	((memq nil form)
-	 (list 'progn
-	       (byte-optimize-and
-		(prog1 (setq form (copy-sequence form))
-		  (while (nth 1 form)
-		    (setq form (cdr form)))
-		  (setcdr form nil)))
-	       nil))
-	((null (cdr (cdr form)))
-	 (nth 1 form))
-	((byte-optimize-constant-args form))))
+  (let ((seq nil)
+        (new-args nil)
+        (nil-result nil)
+        (args (cdr form)))
+    (while
+        (and args
+             (let ((arg (car args)))
+               (cond
+                (seq                    ; previous arg was always-true
+                 (push arg seq)
+                 (unless (and (cdr args) (byte-compile-trueconstp arg))
+                   (push `(progn . ,(nreverse seq)) new-args)
+                   (setq seq nil))
+                 t)
+                ((and (cdr args) (byte-compile-trueconstp arg))
+                 ;; Always-true arg: evaluate unconditionally.
+                 (push arg seq)
+                 t)
+                ((and arg (not (byte-compile-nilconstp arg)))
+                 (push arg new-args)
+                 t)
+                (t
+                 ;; Throw away the remaining args; this one is always false.
+                 (setq nil-result t)
+                 (when arg
+                   (push arg new-args))  ; keep possible side-effects
+                 nil))))
+      (setq args (cdr args)))
+
+    (setq new-args (nreverse new-args))
+    (if (equal new-args (cdr form))
+        ;; Input is unchanged: keep original form, and don't represent
+        ;; a nil result explicitly because that would lead to infinite
+        ;; growth when the optimiser is iterated.
+        (setq nil-result nil)
+      (setq form (cons (car form) new-args)))
+
+    (let ((new-form
+           (pcase form
+             ;; (and (progn ... X) ...) -> (progn ... (and X ...))
+             (`(,head (progn . ,forms) . ,rest)
+              `(progn ,@(butlast forms) (,head ,(car (last forms)) . ,rest)))
+             (`(,_) t)                   ; (and) -> t
+             (`(,_ ,arg) arg)            ; (and X) -> X
+             (_ (byte-optimize-constant-args form)))))
+      (if nil-result
+          `(progn ,new-form nil)
+        new-form))))
 
 (defun byte-optimize-or (form)
-  ;; Throw away nil's, and simplify if less than 2 args.
-  ;; If there is a literal non-nil constant in the args to `or', throw away all
-  ;; following forms.
-  (setq form (remq nil form))
-  (let ((rest form))
-    (while (cdr (setq rest (cdr rest)))
-      (if (byte-compile-trueconstp (car rest))
-	  (setq form (copy-sequence form)
-		rest (setcdr (memq (car rest) form) nil))))
-    (if (cdr (cdr form))
-	(byte-optimize-constant-args form)
-      (nth 1 form))))
+  (let ((seq nil)
+        (new-args nil)
+        (args (remq nil (cdr form))))   ; Discard nil arguments.
+    (while
+        (and args
+             (let ((arg (car args)))
+               (cond
+                (seq                    ; previous arg was always-false
+                 (push arg seq)
+                 (unless (and (cdr args) (byte-compile-nilconstp arg))
+                   (push `(progn . ,(nreverse seq)) new-args)
+                   (setq seq nil))
+                 t)
+                ((and (cdr args) (byte-compile-nilconstp arg))
+                 ;; Always-false arg: evaluate unconditionally.
+                 (push arg seq)
+                 t)
+                (t
+                 (push arg new-args)
+                 ;; If this arg is always true, throw away the remaining args.
+                 (not (byte-compile-trueconstp arg))))))
+      (setq args (cdr args)))
+
+    (setq new-args (nreverse new-args))
+    ;; Keep original form unless the arguments changed.
+    (unless (equal new-args (cdr form))
+      (setq form (cons (car form) new-args)))
+
+    (pcase form
+      ;; (or (progn ... X) ...) -> (progn ... (or X ...))
+      (`(,head (progn . ,forms) . ,rest)
+       `(progn ,@(butlast forms) (,head ,(car (last forms)) . ,rest)))
+      (`(,_) nil)                       ; (or) -> nil
+      (`(,_ ,arg) arg)                  ; (or X) -> X
+      (_ (byte-optimize-constant-args form)))))
 
 (defun byte-optimize-cond (form)
   ;; if any clauses have a literal nil as their test, throw them away.
@@ -1242,6 +1298,7 @@ See Info node `(elisp) Integer Basics'."
       (list 'progn condition nil)))))
 
 (defun byte-optimize-while (form)
+  ;; FIXME: This check does not belong here, move!
   (when (< (length form) 2)
     (byte-compile-warn-x form "too few arguments for `while'"))
   (let ((condition (nth 1 form)))
