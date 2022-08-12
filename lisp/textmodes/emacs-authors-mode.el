@@ -119,6 +119,12 @@ With a prefix arg ARG, move point that many authors backward."
   (interactive "p" emacs-authors-mode)
   (emacs-authors-next-author (- arg)))
 
+(defvar emacs-authors-imenu-generic-expression
+  `((nil ,(rx bol (group (+ (not ":"))) ": "
+              (or "wrote" "co-wrote" "changed")
+              " ")
+         1)))
+
 (define-obsolete-variable-alias 'etc-authors-mode-map 'emacs-authors-mode-map "29.1")
 (defvar-keymap emacs-authors-mode-map
   :doc "Keymap for `emacs-authors-mode'."
@@ -132,6 +138,7 @@ Provides some basic font locking and not much else."
   (setq-local font-lock-defaults
               '(emacs-authors-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (setq font-lock-multiline nil)
+  (setq imenu-generic-expression emacs-authors-imenu-generic-expression)
   (emacs-authors-mode--hide-local-variables))
 
 (define-obsolete-face-alias 'etc-authors-default 'emacs-authors-default "29.1")
