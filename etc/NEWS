@@ -1250,6 +1250,12 @@ be used as a file-local variable.
 If given a prefix, it will query the user for an argument to use for
 the run/continue command.
 
+---
+*** 'perldb' now recognizes '-E'
+As of Perl 5.10, 'perl -E 0' behaves like 'perl -e 0' but also activates
+all optional features of the Perl version in use.  'perldb' now uses
+this invocation as its default.
+
 ** Customize
 
 ---
