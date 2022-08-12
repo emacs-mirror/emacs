@@ -294,16 +294,16 @@ buffers (yet) -- that will be amended in a future version."
   :version "29.1")
 
 (define-icon outline-open button
-  '((emoji "▶️")
-    (symbol " ⯈ ")
+  '((emoji "🔽")
+    (symbol " ⯆ ")
     (text " open "))
   "Icon used for buttons for opening a section in outline buffers."
   :version "29.1"
   :help-echo "Open this section")
 
 (define-icon outline-close button
-  '((emoji "🔽")
-    (symbol " ⯆ ")
+  '((emoji "▶️")
+    (symbol " ⯈ ")
     (text " close "))
   "Icon used for buttons for closing a section in outline buffers."
   :version "29.1"
