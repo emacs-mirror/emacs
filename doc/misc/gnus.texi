@@ -885,7 +885,6 @@ History
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
 * Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
@@ -26919,7 +26918,6 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
 * Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
@@ -27146,29 +27144,6 @@ If you ever notice Gnus acting non-compliant with regards to the texts
 mentioned above, don't hesitate to drop a note to Gnus Towers and let us
 know.
 
-
-@node Emacsen
-@subsection Emacsen
-@cindex Emacsen
-@cindex Mule
-@cindex Emacs
-
-This version of Gnus should work on:
-
-@itemize @bullet
-
-@item
-Emacs 23.1 and up.
-
-@end itemize
-
-This Gnus version will absolutely not work on any Emacsen older than
-that.  Not reliably, at least.  Older versions of Gnus may work on older
-Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
-20.7.
-
-@c No-merge comment: The paragraph added in v5-10 here must not be
-@c synced here!
 
 @node Gnus Development
 @subsection Gnus Development
