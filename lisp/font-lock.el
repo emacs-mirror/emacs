@@ -254,6 +254,23 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
+(defcustom font-lock-large-files t
+  "How to fontify large files.
+When t, apply highlighting without restriction.
+
+When its a cons with car equal to `head', fontify the first (cdr
+value) number of characters only.
+
+When its a cons with car equal to `narrow', narrow the buffer
+to (cdr value) characters around point. That speeds up
+fontification at the expense of possible misdetection of syntax
+context."
+  :type '(choice (const :tag "full" t)
+                 (cons :tag "head"
+                       (const head) (integer :tag "length" 1000000))
+                 (cons :tag "narrow"
+                       (const narrow) (integer :tag "width" 15000))))
+
 (defcustom font-lock-ignore nil
   "Rules to selectively disable fontifications due to `font-lock-keywords'.
 If non-nil, the value should be a list of condition sets of the form
@@ -996,7 +1013,18 @@ If LOUDLY is non-nil, print status messages while fontifying.
 This works by calling `font-lock-fontify-region-function'."
   (font-lock-set-defaults)
   (save-restriction
-    (unless font-lock-dont-widen (widen))
+    (pcase-exhaustive font-lock-large-files
+      (`t nil)
+      (`(head . ,length)
+       (setq beg (min length beg)
+             end (min length end)))
+      (`(narrow . ,width)
+       (narrow-to-region (max (point-min) (* (1- (/ beg width)) width))
+                         (min (point-max) (* (1+ (/ beg width)) width)))
+       (setq end (min end (point-max)))))
+    (unless (or font-lock-dont-widen
+                (eq (car-safe font-lock-large-files) 'narrow))
+      (widen))
     (funcall font-lock-fontify-region-function beg end loudly)))
 
 (defun font-lock-unfontify-region (beg end)

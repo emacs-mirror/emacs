@@ -4392,20 +4392,6 @@ handle_fontified_prop (struct it *it)
 
       eassert (it->end_charpos == ZV);
 
-      if (current_buffer->long_line_optimizations_p)
-	{
-	  ptrdiff_t begv = it->narrowed_begv;
-	  ptrdiff_t zv = it->narrowed_zv;
-	  ptrdiff_t charpos = IT_CHARPOS (*it);
-	  if (charpos < begv || charpos > zv)
-	    {
-	      begv = get_narrowed_begv (it->w, charpos);
-	      zv = get_narrowed_zv (it->w, charpos);
-	    }
-	  narrow_to_region_internal (make_fixnum (begv), make_fixnum (zv), true);
-	  specbind (Qrestrictions_locked, Qt);
-	}
-
       /* Don't allow Lisp that runs from 'fontification-functions'
 	 clear our face and image caches behind our back.  */
       it->f->inhibit_clear_image_cache = true;
