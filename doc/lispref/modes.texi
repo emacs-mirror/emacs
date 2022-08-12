@@ -2507,15 +2507,13 @@ Dashes sufficient to fill the remainder of the mode line.
 @item %%
 The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
-@end table
 
-The following @code{%}-construct is still supported, but it is
-obsolete, since you can get the same result using the variable
-@code{mode-name}.
-
-@table @code
 @item %m
-The value of @code{mode-name}.
+Obsolete; use the @code{mode-name} variable instead.  The @code{%m}
+construct is still supported, but it is inadequate, as it produces an
+empty string if the value of the @code{mode-name} variable is a
+non-string mode-line construct (for example, in
+@code{emacs-lisp-mode}).
 @end table
 
 @node Properties in Mode
