@@ -116,12 +116,11 @@
 ;;    non-nil, the line numbers are never touched.
 ;; 2) Multi-; statements like "do i=1,20 ; j=j+i ; end do" are not handled
 ;;    correctly, but I imagine them to be rare.
-;; 3) Regexps for hilit19 are no longer supported.
-;; 4) For FIXED FORMAT code, use fortran mode.
-;; 5) Preprocessor directives, i.e., lines starting with # are left-justified
+;; 3) For FIXED FORMAT code, use fortran mode.
+;; 4) Preprocessor directives, i.e., lines starting with # are left-justified
 ;;    and are untouched by all case-changing commands.  There is, at present, no
 ;;    mechanism for treating multi-line directives (continued by \ ).
-;; 6) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
+;; 5) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
 
 ;; List of user commands

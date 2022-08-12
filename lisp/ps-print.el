@@ -1320,11 +1320,11 @@ Please send all bug fixes and enhancements to
 ;; Known bugs and limitations of ps-print
 ;; --------------------------------------
 ;;
-;; Automatic font-attribute detection doesn't work well, especially with
-;; hilit19 and older versions of get-create-face.  Users having problems with
-;; auto-font detection should use the lists `ps-italic-faces', `ps-bold-faces'
-;; and `ps-underlined-faces' and/or turn off automatic detection by setting
-;; `ps-auto-font-detect' to nil.
+;; Automatic font-attribute detection doesn't work well.  Users having
+;; problems with auto-font detection should use the lists
+;; `ps-italic-faces', `ps-bold-faces' and `ps-underlined-faces' and/or
+;; turn off automatic detection by setting `ps-auto-font-detect' to
+;; nil.
 ;;
 ;; Still too slow; could use some hand-optimization.
 ;;
