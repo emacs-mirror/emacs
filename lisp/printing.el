@@ -56,10 +56,6 @@
 ;; spool and to despool PostScript buffer.  So, `printing' provides an
 ;; interface to ps-print package and it also provides some extra stuff.
 ;;
-;; To download the latest ps-print package see
-;; `https://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'.
-;; Please, see README file for ps-print installation instructions.
-;;
 ;; `printing' was inspired by:
 ;;
 ;;    print-nt.el	      Frederic Corne <frederic.corne@erli.fr>
@@ -934,11 +930,6 @@
 ;;
 ;;
 ;; Below are some URL where you can find good utilities.
-;;
-;; * For `printing' package:
-;;
-;;    printing	`https://www.emacswiki.org/cgi-bin/emacs/download/printing.el'
-;;    ps-print	`https://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'
 ;;
 ;; * For GNU or Unix system:
 ;;
