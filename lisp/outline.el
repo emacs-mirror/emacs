@@ -281,7 +281,7 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defcustom outline-minor-mode-use-buttons '(derived-mode . special-mode)
+(defcustom outline-minor-mode-use-buttons '(derived-mode . help-mode)
   "Whether to display clickable buttons on the headings.
 The value should be a `buffer-match-p' condition.
 
