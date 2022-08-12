@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
-;; Version: 1.2
+;; Version: 2.0
 
 ;; This file is part of GNU Emacs.
 
