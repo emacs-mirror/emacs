@@ -17877,6 +17877,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselection.requestor))
         goto OTHER;
 #endif /* not USE_X_TOOLKIT and not USE_GTK */
+#ifdef HAVE_GTK3
+      /* GTK 3 apparently chokes on these events since they have no
+	 associated device.  (bug#56869, another bug as well that I
+	 can't find) */
+      *finish = X_EVENT_DROP;
+#endif
       x_handle_selection_notify (&event->xselection);
       break;
 
@@ -17885,6 +17891,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselectionclear.window))
         goto OTHER;
 #endif /* not USE_X_TOOLKIT and not USE_GTK */
+#ifdef HAVE_GTK3
+      *finish = X_EVENT_DROP;
+#endif
       {
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
@@ -17911,6 +17920,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselectionrequest.owner))
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
+#ifdef HAVE_GTK3
+      *finish = X_EVENT_DROP;
+#endif
       {
 	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
