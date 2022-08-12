@@ -722,35 +722,83 @@ for speeding up processing.")
 ;; something not EQ to its argument if and ONLY if it has made a change.
 ;; This implies that you cannot simply destructively modify the list;
 ;; you must return something not EQ to it if you make an optimization.
-;;
-;; It is now safe to optimize code such that it introduces new bindings.
 
-(defsubst byte-compile-trueconstp (form)
+(defsubst byte-opt--bool-value-form (form)
+  "The form in FORM that yields its boolean value, possibly FORM itself."
+  (while (let ((head (car-safe form)))
+           (cond ((memq head '( progn inline save-excursion save-restriction
+                                save-current-buffer))
+                  (setq form (car (last form)))
+                  t)
+                 ((memq head '(let let* setq setcar setcdr))
+                  (setq form (car (last (cddr form))))
+                  t)
+                 ((memq head '( prog1 unwind-protect copy-sequence identity
+                                reverse nreverse sort))
+                  (setq form (nth 1 form))
+                  t)
+                 ((eq head 'mapc)
+                  (setq form (nth 2 form))
+                  t))))
+  form)
+
+(defun byte-compile-trueconstp (form)
   "Return non-nil if FORM always evaluates to a non-nil value."
-  (while (eq (car-safe form) 'progn)
-    (setq form (car (last (cdr form)))))
+  (setq form (byte-opt--bool-value-form form))
   (cond ((consp form)
-         (pcase (car form)
-           ('quote (cadr form))
-           ;; Can't use recursion in a defsubst.
-           ;; (`progn (byte-compile-trueconstp (car (last (cdr form)))))
-           ))
+         (let ((head (car form)))
+           ;; FIXME: Lots of other expressions are statically non-nil.
+           (cond ((memq head '(quote function)) (cadr form))
+                 ((eq head 'list) (cdr form))
+                 ((memq head
+                        ;; FIXME: Replace this list with a function property?
+                        '( length safe-length cons lambda
+                           string make-string format concat
+                           substring substring-no-properties string-replace
+                           replace-regexp-in-string symbol-name make-symbol
+                           mapconcat
+                           vector make-vector vconcat make-record record
+                           regexp-quote regexp-opt
+                           buffer-string buffer-substring
+                           buffer-substring-no-properties
+                           current-buffer buffer-size
+                           point point-min point-max
+                           following-char preceding-char max-char
+                           + - * / % 1+ 1- min max abs
+                           logand logior lorxor lognot ash
+                           number-to-string string-to-number
+                           int-to-string char-to-string prin1-to-string
+                           byte-to-string string-to-vector string-to-char
+                           always))
+                  t)
+                 ((eq head 'if)
+                  (and (byte-compile-trueconstp (nth 2 form))
+                       (byte-compile-trueconstp (car (last (cdddr form))))))
+                 ((memq head '(not null))
+                  (byte-compile-nilconstp (cadr form)))
+                 ((eq head 'or)
+                  (and (cdr form)
+                       (byte-compile-trueconstp (car (last (cdr form)))))))))
         ((not (symbolp form)))
         ((eq form t))
         ((keywordp form))))
 
-(defsubst byte-compile-nilconstp (form)
+(defun byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
-  (while (eq (car-safe form) 'progn)
-    (setq form (car (last (cdr form)))))
-  (cond ((consp form)
-         (pcase (car form)
-           ('quote (null (cadr form)))
-           ;; Can't use recursion in a defsubst.
-           ;; (`progn (byte-compile-nilconstp (car (last (cdr form)))))
-           ))
-        ((not (symbolp form)) nil)
-        ((null form))))
+  (setq form (byte-opt--bool-value-form form))
+  (or (not form)   ; assume (quote nil) always being normalised to nil
+      (and (consp form)
+           (let ((head (car form)))
+             ;; FIXME: There are many other expressions that are statically nil.
+             (cond ((memq head '(while ignore)) t)
+                   ((eq head 'if)
+                    (and (byte-compile-nilconstp (nth 2 form))
+                         (byte-compile-nilconstp (car (last (cdddr form))))))
+                   ((memq head '(not null))
+                    (byte-compile-trueconstp (cadr form)))
+                   ((eq head 'and)
+                    (and (cdr form)
+                         (byte-compile-nilconstp (car (last (cdr form)))))))))))
 
 ;; If the function is being called with constant integer args,
 ;; evaluate as much as possible at compile-time.  This optimizer
