@@ -29,6 +29,7 @@ s#^Running # Running #
 s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
 s#^make.*Error#  \\& #
+s#^Dumping under the name#  \\& #
 ' | \
 grep -E --line-buffered -v "^make|\
 ^Loading|\
@@ -43,7 +44,6 @@ GEN.*autoloads|\
 ^Adding name|\
 ^Dump mode|\
 ^Dumping finger|\
-^Dumping under the name|\
 ^Byte counts|\
 ^Reloc counts|\
 ^Pure-hashed|\
