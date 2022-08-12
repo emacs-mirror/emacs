@@ -214,7 +214,7 @@ some global variables)."
             ;; FIXME: Make it so we can click the function name to jump to its
             ;; definition and/or untrace it.
             (cons function args)
-            context)))
+            (if context (format " [%s]" context) ""))))
 
 (defun trace-exit-message (function level value context)
   "Generate a string that describes that FUNCTION has exited.
@@ -230,7 +230,7 @@ some global variables)."
             function
             ;; Do this so we'll see strings:
             value
-            context)))
+            (if context (format " [%s]" context) ""))))
 
 (defvar trace--timer nil)
 
@@ -251,8 +251,14 @@ some global variables)."
 FUNCTION is the name of the traced function.
 BUFFER is the buffer where the trace should be printed.
 BACKGROUND if nil means to display BUFFER.
-CONTEXT if non-nil should be a function that returns extra info that should
-be printed along with the arguments in the trace."
+CONTEXT, if non-nil, should be either a function or an expression
+that returns extra info, which will be printed after the
+arguments or return value in the trace."
+  (setq context (if context
+                    (if (functionp context)
+                        context
+                      (trace-make-context context))
+                  (lambda () "")))
   (lambda (body &rest args)
     (let ((trace-level (1+ trace-level))
           (trace-buffer (get-buffer-create buffer))
@@ -289,8 +295,7 @@ be printed along with the arguments in the trace."
   "Add trace advice for FUNCTION."
   (advice-add
    function :around
-   (trace-make-advice function (or buffer trace-buffer) background
-                      (or context (lambda () "")))
+   (trace-make-advice function (or buffer trace-buffer) background context)
    `((name . ,trace-advice-name) (depth . -100))))
 
 (defun trace-is-traceable-p (sym)
@@ -334,15 +339,18 @@ Interactively, display the list as a message."
 Return (BUFFER CONTEXT)."
   (list
    (read-buffer "Output to buffer" trace-buffer)
-   (let ((exp
-          (read-from-minibuffer "Context expression: "
-                                nil read-expression-map t
-                                'read-expression-history "nil")))
-     (and exp
-          (lambda ()
-            (let ((print-circle t)
-                  (print-escape-newlines t))
-              (concat " [" (prin1-to-string (eval exp t)) "]")))))))
+   (when-let ((exp (read-from-minibuffer
+                    "Context expression: "
+                    nil read-expression-map t
+                    'read-expression-history "nil")))
+     (trace-make-context exp))))
+
+(defun trace-make-context (exp)
+  "Return a context function for expression EXP."
+  (lambda ()
+    (let ((print-circle t)
+          (print-escape-newlines t))
+      (prin1-to-string (eval exp t)))))
 
 ;;;###autoload
 (defun trace-function-foreground (function &optional buffer context)

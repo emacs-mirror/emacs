@@ -1097,12 +1097,11 @@ user option, or as the @var{buffer} argument to a tracing command).
 @cindex @code{context} in trace functions
 Optional @var{context} expressions are also evaluated, both when the
 associated function is called and again when it returns, with the
-value logged alongside the call-time arguments or return value
-respectively.  This could be used to track the current buffer or
-position of point, for instance.  When trace functions are called from
-Lisp rather than interactively, @var{context} should be a function of
-no arguments which returns the value to be inserted into the trace
-output buffer.
+value logged within square brackets alongside the call-time arguments
+or return value respectively.  This could be used to track the current
+buffer or position of point, for instance.  If @var{context} is a
+function, it will be called (with no arguments) to obtain the value to
+be inserted into the trace output buffer.
 
 Finally, you may add explicit calls to @code{trace-values} to your
 code, to log arbitrary values to the trace buffer at any time.
