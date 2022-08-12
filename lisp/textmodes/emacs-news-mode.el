@@ -59,9 +59,12 @@
   "C-x C-q" #'emacs-news-view-mode
   "<remap> <open-line>" #'emacs-news-open-line)
 
-(defvar-keymap emacs-news-view-mode-map
-  :parent emacs-news-common-map
-  "C-x C-q" #'emacs-news-mode)
+(defvar emacs-news-view-mode-map
+  ;; This is defined this way instead of inheriting because we're
+  ;; deriving the mode from `special-mode' and want the keys from there.
+  (let ((map (copy-keymap emacs-news-common-map)))
+    (keymap-set map "C-x C-q" #'emacs-news-mode)
+    map))
 
 (defvar emacs-news-mode-font-lock-keywords
   `(("^---$" 0 'emacs-news-does-not-need-documentation)
