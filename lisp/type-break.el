@@ -46,11 +46,6 @@
 ;; in the mode line instead, do M-x type-break-mode-line-message-mode
 ;; or set the variable of the same name to t.
 
-;; This program can truly cons up a storm because of all the calls to
-;; `current-time' (which always returns fresh conses).  I'm dismayed by
-;; this, but I think the health of my hands is far more important than a
-;; few pages of virtual memory.
-
 ;; This package was inspired by Roland McGrath's hanoi-break.el.
 ;; Several people contributed feedback and ideas, including
 ;;      Roland McGrath <roland@gnu.org>
@@ -263,7 +258,7 @@ It will be either \"seconds\" or \"keystrokes\".")
 (defvar type-break-keystroke-count 0)
 (defvar type-break-time-last-break nil)
 (defvar type-break-time-next-break nil)
-(defvar type-break-time-last-command (current-time))
+(defvar type-break-time-last-command (time-convert nil 'integer))
 (defvar type-break-current-time-warning-interval nil)
 (defvar type-break-current-keystroke-warning-interval nil)
 (defvar type-break-time-warning-count 0)
@@ -362,7 +357,7 @@ problems."
 
     (setq type-break-time-last-break
           (or (type-break-get-previous-time)
-              (current-time)))
+	      (time-convert nil 'integer)))
 
     ;; Schedule according to break time from session file.
     (type-break-schedule
@@ -381,7 +376,7 @@ problems."
              (setq type-break-interval-start type-break-time-last-break)
              (- type-break-interval diff))
          ;; Schedule from now.
-         (setq type-break-interval-start (current-time))
+	 (setq type-break-interval-start (time-convert nil 'integer))
          (type-break-file-time type-break-interval-start)
          type-break-interval))
      type-break-interval-start
@@ -456,7 +451,7 @@ the variable of the same name."
 	      ;; file saving is left to auto-save
 	      ))))))
 
-(defun timep (time)
+(defun type-break-timep (time)
   "If TIME is a Lisp time value then return TIME, else return nil."
   (condition-case nil
       (and (float-time time) time)
@@ -480,7 +475,7 @@ the variable of the same name."
 Return nil if the file is missing or if the time is not a Lisp time value."
   (let ((file (type-break-choose-file)))
     (if file
-        (timep ;; returns expected format, else nil
+        (type-break-timep ;; returns expected format, else nil
          (with-current-buffer (find-file-noselect file 'nowarn)
 	   (condition-case nil
 	       (save-excursion
@@ -525,7 +520,7 @@ as per the function `type-break-schedule'."
   ;; remove any query scheduled during interactive invocation
   (remove-hook 'type-break-post-command-hook 'type-break-do-query)
   (let ((continue t)
-        (start-time (current-time)))
+	(start-time (time-convert nil 'integer)))
     (setq type-break-time-last-break start-time)
     (while continue
       (save-window-excursion
@@ -676,9 +671,9 @@ keystroke threshold has been exceeded."
                 (progn
                   (type-break-keystroke-reset)
                   (type-break-mode-line-countdown-or-break nil)
-                  (setq type-break-time-last-break (current-time))
+		  (setq type-break-time-last-break (time-convert nil 'integer))
                   (type-break-schedule)))
-           (setq type-break-time-last-command (current-time))))
+	   (setq type-break-time-last-command (time-convert nil 'integer))))
 
     (and type-break-keystroke-threshold
          (let ((keys (this-command-keys)))
@@ -943,14 +938,13 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 ;;; misc functions
 
-;; Compute the difference, in seconds, between a and b, two structures
-;; similar to those returned by `current-time'.
+;; Compute the difference, in seconds, between a and b, two time values.
 (defun type-break-time-difference (a b)
   (round (float-time (time-subtract b a))))
 
 ;; Return a time value that is the sum of the time-value arguments.
 (defun type-break-time-sum (&rest tmlist)
-  (let ((sum '(0 0)))
+  (let ((sum 0))
     (dolist (tem tmlist)
       (setq sum (time-add sum tem)))
     sum))
@@ -967,7 +961,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
      (t (format "%d seconds" secs)))))
 
 (defun type-break-keystroke-reset ()
-  (setq type-break-interval-start (current-time)) ; not a keystroke
+  (setq type-break-interval-start (time-convert nil 'integer))
   (setq type-break-keystroke-count 0)
   (setq type-break-keystroke-warning-count 0)
   (setq type-break-current-keystroke-warning-interval
@@ -1148,6 +1142,8 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (quit
        (and (get-buffer buffer-name)
             (kill-buffer buffer-name))))))
+
+(define-obsolete-function-alias 'timep 'type-break-timep "29.1")
 
 
 (provide 'type-break)

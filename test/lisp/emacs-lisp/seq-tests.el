@@ -559,5 +559,23 @@ Evaluate BODY for each created sequence.
     (should (equal (seq-split seq 3)
                    '("012" "345" "678" "9")))))
 
+(ert-deftest test-seq-uniq-list ()
+  (let ((list '(1 2 3)))
+    (should (equal (seq-uniq (append list list)) '(1 2 3))))
+  (let ((list '(1 2 3 2 1)))
+    (should (equal (seq-uniq list) '(1 2 3))))
+  (let ((list (list (substring "1")
+                    (substring "2")
+                    (substring "3")
+                    (substring "2")
+                    (substring "1"))))
+    (should (equal (seq-uniq list) '("1" "2" "3")))
+    (should (equal (seq-uniq list #'eq) '("1" "2" "3" "2" "1"))))
+  ;; Long lists have a different code path.
+  (let ((list (seq-map-indexed (lambda (_ i) i)
+			       (make-list 10000 nil))))
+    (should (= (length list) 10000))
+    (should (= (length (seq-uniq (append list list))) 10000))))
+
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

@@ -250,30 +250,6 @@ The prompt will be set to PROMPT."
   "A marker that tracks the beginning of output of the last subprocess.
 Used only on systems which do not support async subprocesses.")
 
-(defvar eshell-needs-pipe
-  '("bc"
-    ;; xclip.el (in GNU ELPA) calls all of these with
-    ;; `process-connection-type' set to nil.
-    "pbpaste" "putclip" "xclip" "xsel" "wl-copy")
-  "List of commands which need `process-connection-type' to be nil.
-Currently only affects commands in pipelines, and not those at
-the front.  If an element contains a directory part it must match
-the full name of a command, otherwise just the nondirectory part must match.")
-
-(defun eshell-needs-pipe-p (command)
-  "Return non-nil if COMMAND needs `process-connection-type' to be nil.
-See `eshell-needs-pipe'."
-  (and (bound-and-true-p eshell-in-pipeline-p)
-       (not (eq eshell-in-pipeline-p 'first))
-       ;; FIXME should this return non-nil for anything that is
-       ;; neither 'first nor 'last?  See bug#1388 discussion.
-       (catch 'found
-	 (dolist (exe eshell-needs-pipe)
-	   (if (string-equal exe (if (string-search "/" exe)
-				     command
-				   (file-name-nondirectory command)))
-	       (throw 'found t))))))
-
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
   (require 'esh-var)
@@ -290,31 +266,36 @@ See `eshell-needs-pipe'."
     (cond
      ((fboundp 'make-process)
       (setq proc
-	    (let ((process-connection-type
-		   (unless (eshell-needs-pipe-p command)
-		     process-connection-type))
-		  (command (file-local-name (expand-file-name command))))
-	      (apply #'start-file-process
-		     (file-name-nondirectory command) nil command args)))
+            (let ((command (file-local-name (expand-file-name command)))
+                  (conn-type (pcase (bound-and-true-p eshell-in-pipeline-p)
+                               ('first '(nil . pipe))
+                               ('last  '(pipe . nil))
+                               ('t     'pipe)
+                               ('nil   nil))))
+              (make-process
+               :name (file-name-nondirectory command)
+               :buffer (current-buffer)
+               :command (cons command args)
+               :filter (if (eshell-interactive-output-p)
+                           #'eshell-output-filter
+                         #'eshell-insertion-filter)
+               :sentinel #'eshell-sentinel
+               :connection-type conn-type
+               :file-handler t)))
       (eshell-record-process-object proc)
-      (set-process-buffer proc (current-buffer))
-      (set-process-filter proc (if (eshell-interactive-output-p)
-	                           #'eshell-output-filter
-                                 #'eshell-insertion-filter))
-      (set-process-sentinel proc #'eshell-sentinel)
       (run-hook-with-args 'eshell-exec-hook proc)
       (when (fboundp 'process-coding-system)
 	(let ((coding-systems (process-coding-system proc)))
 	  (setq decoding (car coding-systems)
 		encoding (cdr coding-systems)))
-	;; If start-process decided to use some coding system for
+	;; If `make-process' decided to use some coding system for
 	;; decoding data sent from the process and the coding system
 	;; doesn't specify EOL conversion, we had better convert CRLF
 	;; to LF.
 	(if (vectorp (coding-system-eol-type decoding))
 	    (setq decoding (coding-system-change-eol-conversion decoding 'dos)
 		  changed t))
-	;; Even if start-process left the coding system for encoding
+	;; Even if `make-process' left the coding system for encoding
 	;; data sent from the process undecided, we had better use the
 	;; same one as what we use for decoding.  But, we should
 	;; suppress EOL conversion.

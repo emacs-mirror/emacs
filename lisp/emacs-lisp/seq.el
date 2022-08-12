@@ -455,6 +455,33 @@ TESTFN is used to compare elements, or `equal' if TESTFN is nil."
         (setq result (cons elt result))))
     (nreverse result)))
 
+(cl-defmethod seq-uniq ((sequence list) &optional testfn)
+  (let ((result nil))
+    (if (not testfn)
+        ;; Fast path.  If the list is long, use a hash table to speed
+        ;; things up even more.
+        (let ((l (length sequence)))
+          (if (> l 100)
+              (let ((hash (make-hash-table :test #'equal :size l)))
+                (while sequence
+                  (unless (gethash (car sequence) hash)
+                    (setf (gethash (car sequence) hash) t)
+                    (push (car sequence) result))
+                  (setq sequence (cdr sequence))))
+            ;; Short list.
+            (while sequence
+              (unless (member (car sequence) result)
+                (push (car sequence) result))
+              (pop sequence))))
+      ;; Slower path.
+      (while sequence
+        (unless (seq-find (lambda (elem)
+                            (funcall testfn elem (car sequence)))
+                          result)
+          (push (car sequence) result))
+        (pop sequence)))
+    (nreverse result)))
+
 (cl-defgeneric seq-mapcat (function sequence &optional type)
   "Concatenate the result of applying FUNCTION to each element of SEQUENCE.
 The result is a sequence of type TYPE, or a list if TYPE is nil."

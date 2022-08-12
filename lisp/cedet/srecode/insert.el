@@ -319,6 +319,10 @@ by themselves.")
 Specify the :indent argument to enable automatic indentation when newlines
 occur in your template.")
 
+(cl-defmethod srecord-compile-inserter-newline-p
+    ((_ srecode-template-inserter-newline))
+  t)
+
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-newline)
 				  dictionary)
   "Insert the STI inserter."

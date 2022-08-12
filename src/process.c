@@ -1243,14 +1243,31 @@ or t (process is stopped).  */)
   return XPROCESS (process)->command;
 }
 
-DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 1, 0,
+DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 2, 0,
        doc: /* Return the name of the terminal PROCESS uses, or nil if none.
 This is the terminal that the process itself reads and writes on,
-not the name of the pty that Emacs uses to talk with that terminal.  */)
-  (register Lisp_Object process)
+not the name of the pty that Emacs uses to talk with that terminal.
+
+If STREAM is nil, return the terminal name if any of PROCESS's
+standard streams use a terminal for communication.  If STREAM is one
+of `stdin', `stdout', or `stderr', return the name of the terminal
+PROCESS uses for that stream specifically, or nil if that stream
+communicates via a pipe.  */)
+  (register Lisp_Object process, Lisp_Object stream)
 {
   CHECK_PROCESS (process);
-  return XPROCESS (process)->tty_name;
+  register struct Lisp_Process *p = XPROCESS (process);
+
+  if (NILP (stream))
+    return p->tty_name;
+  else if (EQ (stream, Qstdin))
+    return p->pty_in ? p->tty_name : Qnil;
+  else if (EQ (stream, Qstdout))
+    return p->pty_out ? p->tty_name : Qnil;
+  else if (EQ (stream, Qstderr))
+    return p->pty_out && NILP (p->stderrproc) ? p->tty_name : Qnil;
+  else
+    signal_error ("Unknown stream", stream);
 }
 
 static void
@@ -1314,6 +1331,19 @@ set_process_filter_masks (struct Lisp_Process *p)
 	   /* Network or serial process not stopped:  */
 	   && !EQ (p->command, Qt))
     add_process_read_fd (p->infd);
+}
+
+static bool
+is_pty_from_symbol (Lisp_Object symbol)
+{
+  if (EQ (symbol, Qpty))
+    return true;
+  else if (EQ (symbol, Qpipe))
+    return false;
+  else if (NILP (symbol))
+    return !NILP (Vprocess_connection_type);
+  else
+    report_file_error ("Unknown connection type", symbol);
 }
 
 DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
@@ -1741,15 +1771,18 @@ signals to stop and continue a process.
 :connection-type TYPE -- TYPE is control type of device used to
 communicate with subprocesses.  Values are `pipe' to use a pipe, `pty'
 to use a pty, or nil to use the default specified through
-`process-connection-type'.
+`process-connection-type'.  If TYPE is a cons (INPUT . OUTPUT), then
+INPUT will be used for standard input and OUTPUT for standard output
+(and standard error if `:stderr' is nil).
 
 :filter FILTER -- Install FILTER as the process filter.
 
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
 
 :stderr STDERR -- STDERR is either a buffer or a pipe process attached
-to the standard error of subprocess.  Specifying this implies
-`:connection-type' is set to `pipe'.  If STDERR is nil, standard error
+to the standard error of subprocess.  When specifying this, the
+subprocess's standard error will always communicate via a pipe, no
+matter the value of `:connection-type'.  If STDERR is nil, standard error
 is mixed with standard output and sent to BUFFER or FILTER.  (Note
 that specifying :stderr will create a new, separate (but associated)
 process, with its own filter and sentinel.  See
@@ -1845,21 +1878,19 @@ usage: (make-process &rest ARGS)  */)
   CHECK_TYPE (NILP (tem), Qnull, tem);
 
   tem = plist_get (contact, QCconnection_type);
-  if (EQ (tem, Qpty))
-    XPROCESS (proc)->pty_flag = true;
-  else if (EQ (tem, Qpipe))
-    XPROCESS (proc)->pty_flag = false;
-  else if (NILP (tem))
-    XPROCESS (proc)->pty_flag = !NILP (Vprocess_connection_type);
+  if (CONSP (tem))
+    {
+      XPROCESS (proc)->pty_in = is_pty_from_symbol (XCAR (tem));
+      XPROCESS (proc)->pty_out = is_pty_from_symbol (XCDR (tem));
+    }
   else
-    report_file_error ("Unknown connection type", tem);
+    {
+      XPROCESS (proc)->pty_in = XPROCESS (proc)->pty_out =
+	is_pty_from_symbol (tem);
+    }
 
   if (!NILP (stderrproc))
-    {
-      pset_stderrproc (XPROCESS (proc), stderrproc);
-
-      XPROCESS (proc)->pty_flag = false;
-    }
+    pset_stderrproc (XPROCESS (proc), stderrproc);
 
 #ifdef HAVE_GNUTLS
   /* AKA GNUTLS_INITSTAGE(proc).  */
@@ -2099,66 +2130,80 @@ static void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   struct Lisp_Process *p = XPROCESS (process);
-  int inchannel, outchannel;
+  int inchannel = -1, outchannel = -1;
   pid_t pid = -1;
   int vfork_errno;
   int forkin, forkout, forkerr = -1;
-  bool pty_flag = 0;
+  bool pty_in = false, pty_out = false;
   char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
+  int ptychannel = -1, pty_tty = -1;
   sigset_t oldset;
 
   /* Ensure that the SIGCHLD handler can notify
      `wait_reading_process_output'.  */
   child_signal_init ();
 
-  inchannel = outchannel = -1;
+  if (p->pty_in || p->pty_out)
+    ptychannel = allocate_pty (pty_name);
 
-  if (p->pty_flag)
-    outchannel = inchannel = allocate_pty (pty_name);
-
-  if (inchannel >= 0)
+  if (ptychannel >= 0)
     {
-      p->open_fd[READ_FROM_SUBPROCESS] = inchannel;
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
       /* Don't let this terminal become our controlling terminal
 	 (in case we don't have one).  */
-      forkout = forkin = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
-      if (forkin < 0)
+      pty_tty = emacs_open (pty_name, O_RDWR | O_NOCTTY, 0);
+      if (pty_tty < 0)
 	report_file_error ("Opening pty", Qnil);
-      p->open_fd[SUBPROCESS_STDIN] = forkin;
-#else
-      forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
-      pty_flag = 1;
+      pty_in = p->pty_in;
+      pty_out = p->pty_out;
       lisp_pty_name = build_string (pty_name);
+    }
+
+  /* Set up stdin for the child process.  */
+  if (ptychannel >= 0 && p->pty_in)
+    {
+      p->open_fd[SUBPROCESS_STDIN] = forkin = pty_tty;
+      outchannel = ptychannel;
     }
   else
     {
-      if (emacs_pipe (p->open_fd + SUBPROCESS_STDIN) != 0
-	  || emacs_pipe (p->open_fd + READ_FROM_SUBPROCESS) != 0)
+      if (emacs_pipe (p->open_fd + SUBPROCESS_STDIN) != 0)
 	report_file_error ("Creating pipe", Qnil);
       forkin = p->open_fd[SUBPROCESS_STDIN];
       outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
+    }
+
+  /* Set up stdout for the child process.  */
+  if (ptychannel >= 0 && p->pty_out)
+    {
+      forkout = pty_tty;
+      p->open_fd[READ_FROM_SUBPROCESS] = inchannel = ptychannel;
+    }
+  else
+    {
+      if (emacs_pipe (p->open_fd + READ_FROM_SUBPROCESS) != 0)
+	report_file_error ("Creating pipe", Qnil);
       inchannel = p->open_fd[READ_FROM_SUBPROCESS];
       forkout = p->open_fd[SUBPROCESS_STDOUT];
 
 #if defined(GNU_LINUX) && defined(F_SETPIPE_SZ)
       fcntl (inchannel, F_SETPIPE_SZ, read_process_output_max);
 #endif
+    }
 
-      if (!NILP (p->stderrproc))
-	{
-	  struct Lisp_Process *pp = XPROCESS (p->stderrproc);
+  if (!NILP (p->stderrproc))
+    {
+      struct Lisp_Process *pp = XPROCESS (p->stderrproc);
 
-	  forkerr = pp->open_fd[SUBPROCESS_STDOUT];
+      forkerr = pp->open_fd[SUBPROCESS_STDOUT];
 
-	  /* Close unnecessary file descriptors.  */
-	  close_process_fd (&pp->open_fd[WRITE_TO_SUBPROCESS]);
-	  close_process_fd (&pp->open_fd[SUBPROCESS_STDIN]);
-	}
+      /* Close unnecessary file descriptors.  */
+      close_process_fd (&pp->open_fd[WRITE_TO_SUBPROCESS]);
+      close_process_fd (&pp->open_fd[SUBPROCESS_STDIN]);
     }
 
   if (FD_SETSIZE <= inchannel || FD_SETSIZE <= outchannel)
@@ -2183,7 +2228,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
      we just reopen the device (see emacs_get_tty_pgrp) as this is
      more portable (see USG_SUBTTY_WORKS above).  */
 
-  p->pty_flag = pty_flag;
+  p->pty_in = pty_in;
+  p->pty_out = pty_out;
   pset_status (p, Qrun);
 
   if (!EQ (p->command, Qt)
@@ -2199,13 +2245,15 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   block_input ();
   block_child_signal (&oldset);
 
-  pty_flag = p->pty_flag;
-  eassert (pty_flag == ! NILP (lisp_pty_name));
+  pty_in = p->pty_in;
+  pty_out = p->pty_out;
+  eassert ((pty_in || pty_out) == ! NILP (lisp_pty_name));
 
   vfork_errno
     = emacs_spawn (&pid, forkin, forkout, forkerr, new_argv, env,
                    SSDATA (current_dir),
-                   pty_flag ? SSDATA (lisp_pty_name) : NULL, &oldset);
+                   pty_in || pty_out ? SSDATA (lisp_pty_name) : NULL,
+                   pty_in, pty_out, &oldset);
 
   eassert ((vfork_errno == 0) == (0 < pid));
 
@@ -2263,7 +2311,7 @@ create_pty (Lisp_Object process)
 {
   struct Lisp_Process *p = XPROCESS (process);
   char pty_name[PTY_NAME_SIZE];
-  int pty_fd = !p->pty_flag ? -1 : allocate_pty (pty_name);
+  int pty_fd = !(p->pty_in || p->pty_out) ? -1 : allocate_pty (pty_name);
 
   if (pty_fd >= 0)
     {
@@ -2301,7 +2349,7 @@ create_pty (Lisp_Object process)
 	 we just reopen the device (see emacs_get_tty_pgrp) as this is
 	 more portable (see USG_SUBTTY_WORKS above).  */
 
-      p->pty_flag = 1;
+      p->pty_in = p->pty_out = true;
       pset_status (p, Qrun);
       setup_process_coding_systems (process);
 
@@ -2412,7 +2460,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
     p->kill_without_query = 1;
   if (tem = plist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
-  eassert (! p->pty_flag);
+  eassert (! p->pty_in && ! p->pty_out);
 
   if (!EQ (p->command, Qt)
       && !EQ (p->filter, Qt))
@@ -3147,7 +3195,7 @@ usage:  (make-serial-process &rest ARGS)  */)
     p->kill_without_query = 1;
   if (tem = plist_get (contact, QCstop), !NILP (tem))
     pset_command (p, Qt);
-  eassert (! p->pty_flag);
+  eassert (! p->pty_in && ! p->pty_out);
 
   if (!EQ (p->command, Qt)
       && !EQ (p->filter, Qt))
@@ -6339,7 +6387,7 @@ Otherwise it discards the output.  */)
 
       /* If the restriction isn't what it should be, set it.  */
       if (old_begv != BEGV || old_zv != ZV)
-	Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv), Qnil);
+	Fnarrow_to_region (make_fixnum (old_begv), make_fixnum (old_zv));
 
       bset_read_only (current_buffer, old_read_only);
       SET_PT_BOTH (opoint, opoint_byte);
@@ -6808,7 +6856,7 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
     error ("Process %s is not active",
 	   SDATA (p->name));
 
-  if (!p->pty_flag)
+  if (! p->pty_in)
     current_group = Qnil;
 
   /* If we are using pgrps, get a pgrp number and make it negative.  */
@@ -7177,7 +7225,7 @@ process has been transmitted to the serial port.  */)
       send_process (proc, "", 0, Qnil);
     }
 
-  if (XPROCESS (proc)->pty_flag)
+  if (XPROCESS (proc)->pty_in)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
     {

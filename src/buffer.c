@@ -6431,12 +6431,15 @@ will run for `clone-indirect-buffer' calls as well.  */);
 
   DEFVAR_LISP ("long-line-threshold", Vlong_line_threshold,
     doc: /* Line length above which to use redisplay shortcuts.
+
 The value should be a positive integer or nil.
 If the value is an integer, shortcuts in the display code intended
 to speed up redisplay for long lines will automatically be enabled
 in buffers which contain one or more lines whose length is above
 this threshold.
-If nil, these display shortcuts will always remain disabled.  */);
+If nil, these display shortcuts will always remain disabled.
+
+There is no reason to change that value except for debugging purposes.  */);
   XSETFASTINT (Vlong_line_threshold, 10000);
 
   defsubr (&Sbuffer_live_p);

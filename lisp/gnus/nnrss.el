@@ -325,7 +325,7 @@ for decoding when the cdr that the data specify is not available.")
 	       (nnmail-expired-article-p
 		group
 		(if (listp (setq days (nth 1 e))) days
-		  (days-to-time (- days (time-to-days '(0 0)))))
+		  (days-to-time (- days (time-to-days 0))))
 		force))
 	  (setq nnrss-group-data (delq e nnrss-group-data)
 		changed t)
@@ -453,8 +453,8 @@ which RSS 2.0 allows."
   (let (case-fold-search vector year month day time zone given)
     (cond ((null date))			; do nothing for this case
 	  ;; if the date is just digits (unix time stamp):
-	  ((string-match "^[0-9]+$" date)
-	   (setq given (time-convert (string-to-number date))))
+	  ((string-match "\\`[0-9]+\\'" date)
+	   (setq given (time-convert (string-to-number date) t)))
 	  ;; RFC 822
 	  ((string-match " [0-9]+ " date)
 	   (setq vector (timezone-parse-date date)

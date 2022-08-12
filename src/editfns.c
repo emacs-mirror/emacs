@@ -2660,9 +2660,11 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
 This allows the buffer's full text to be seen and edited.
 
-When called from Lisp inside a body form in which `narrow-to-region'
-was called with an optional argument LOCK non-nil, this function does
-not produce any effect.  */)
+Note that, when the current buffer contains one or more lines whose
+length is above `long-line-threshold', Emacs may decide to leave, for
+performance reasons, the accessible portion of the buffer unchanged
+after this function is called from low-level hooks, such as
+`jit-lock-functions' or `post-command-hook'.  */)
   (void)
 {
   if (! NILP (Vrestrictions_locked))
@@ -2689,22 +2691,11 @@ unwind_locked_zv (Lisp_Object point_max)
   SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
 }
 
-DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 3, "r",
-       doc: /* Restrict editing in this buffer to the current region.
-The rest of the text becomes temporarily invisible and untouchable
-but is not deleted; if you save the buffer in a file, the invisible
-text is included in the file.  \\[widen] makes all visible again.
-See also `save-restriction'.
-
-When calling from Lisp, pass two arguments START and END:
-positions (integers or markers) bounding the text that should
-remain visible.
-
-When called from Lisp with the optional argument LOCK non-nil,
-calls to `widen', or to `narrow-to-region' with an optional
-argument LOCK nil, do not produce any effect until the end of
-the current body form.  */)
-  (Lisp_Object start, Lisp_Object end, Lisp_Object lock)
+/* Internal function for Fnarrow_to_region, meant to be used with a
+   third argument 'true', in which case it should be followed by "specbind
+   (Qrestrictions_locked, Qt)".  */
+Lisp_Object
+narrow_to_region_internal (Lisp_Object start, Lisp_Object end, bool lock)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
 
@@ -2713,7 +2704,7 @@ the current body form.  */)
       EMACS_INT tem = s; s = e; e = tem;
     }
 
-  if (! NILP (lock))
+  if (lock)
     {
       if (!(BEGV <= s && s <= e && e <= ZV))
 	args_out_of_range (start, end);
@@ -2727,8 +2718,6 @@ the current body form.  */)
 
       SET_BUF_BEGV (current_buffer, s);
       SET_BUF_ZV (current_buffer, e);
-
-      specbind (Qrestrictions_locked, Qt);
     }
   else
     {
@@ -2752,6 +2741,27 @@ the current body form.  */)
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
+}
+
+DEFUN ("narrow-to-region", Fnarrow_to_region, Snarrow_to_region, 2, 2, "r",
+       doc: /* Restrict editing in this buffer to the current region.
+The rest of the text becomes temporarily invisible and untouchable
+but is not deleted; if you save the buffer in a file, the invisible
+text is included in the file.  \\[widen] makes all visible again.
+See also `save-restriction'.
+
+When calling from Lisp, pass two arguments START and END:
+positions (integers or markers) bounding the text that should
+remain visible.
+
+Note that, when the current buffer contains one or more lines whose
+length is above `long-line-threshold', Emacs may decide to leave, for
+performance reasons, the accessible portion of the buffer unchanged
+after this function is called from low-level hooks, such as
+`jit-lock-functions' or `post-command-hook'.  */)
+  (Lisp_Object start, Lisp_Object end)
+{
+  return narrow_to_region_internal (start, end, false);
 }
 
 Lisp_Object

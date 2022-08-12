@@ -75,7 +75,7 @@ The following attributes are recognized:
               (`(,(and (or "links" "uid" "gid" "size") key) ,value)
                (cons (intern key) (string-to-number value)))
               (`(,(and (or "atime" "mtime" "ctime") key) ,value)
-               (cons (intern key) (time-convert (string-to-number value))))
+               (cons (intern key) (time-convert (string-to-number value) t)))
               (`(,key ,value)
                (cons (intern key) value))
               (_ (error "invalid format %S" i))))

@@ -537,8 +537,6 @@ This is like `describe-bindings', but displays only Isearch keys."
     (describe-function 'isearch-forward))
   (when isearch-mode (isearch-update)))
 
-(defalias 'isearch-mode-help 'isearch-describe-mode)
-
 
 ;; Define isearch-mode keymap.
 
@@ -2838,7 +2836,9 @@ The command accepts Unicode names like \"smiling face\" or
 			    isearch-barrier
 			    (1+ isearch-other-end)))))
       (isearch-search)
-      ))
+      (when (and (memq isearch-wrap-pause '(no no-ding))
+                 (not isearch-success))
+        (isearch-repeat (if isearch-forward 'forward 'backward)))))
   (isearch-push-state)
   (if isearch-op-fun (funcall isearch-op-fun))
   (isearch-update))
@@ -4633,6 +4633,8 @@ CASE-FOLD non-nil means the search was case-insensitive."
                        (replace-regexp-in-string "'" "['’]")
                        (replace-regexp-in-string "\"" "[\"“”]")))))
     (buffer-local-restore-state isearch-fold-quotes-mode--state)))
+
+(define-obsolete-function-alias 'isearch-mode-help #'isearch-describe-mode "29.1")
 
 (provide 'isearch)
 

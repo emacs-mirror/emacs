@@ -123,7 +123,8 @@ Emit STARTMSG and ENDMSG before and after.  Cache the result; second
 and subsequent calls on the same file won't go to disk."
   (setq phrase-file (cookie-check-file phrase-file))
   (let ((sym (intern-soft phrase-file cookie-cache)))
-    (and sym (not (equal (symbol-function sym)
+    (and sym (not (time-equal-p
+			 (symbol-function sym)
 			 (file-attribute-modification-time
                           (file-attributes phrase-file))))
 	 (yes-or-no-p (concat phrase-file

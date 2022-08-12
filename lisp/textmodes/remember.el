@@ -556,7 +556,7 @@ If this is nil, then `diary-file' will be used instead."
     map)
   "Keymap used in `remember-mode'.")
 
-(define-derived-mode remember-mode indented-text-mode "Remember"
+(define-derived-mode remember-mode text-mode "Remember"
   "Major mode for output from \\[remember].
 This buffer is used to collect data that you want to remember.
 \\<remember-mode-map>

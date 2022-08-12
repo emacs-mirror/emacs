@@ -62,7 +62,7 @@
 (defvar ede-speedbar-menu
   '([ "Compile" ede-speedbar-compile-line t]
     [ "Compile Project" ede-speedbar-compile-project
-      (ede-project-child-p (speedbar-line-token)) ]
+      (cl-typep (speedbar-line-token) 'ede-project) ]
     "---"
     [ "Edit File/Tag" speedbar-edit-line
       (not (eieio-object-p (speedbar-line-token)))]
@@ -79,7 +79,7 @@
       (eieio-object-p (speedbar-line-token)) ]
     [ "Edit Project File" ede-speedbar-edit-projectfile t]
     [ "Make Distribution" ede-speedbar-make-distribution
-      (ede-project-child-p (speedbar-line-token)) ]
+      (cl-typep (speedbar-line-token) 'ede-project) ]
     )
   "Menu part in easymenu format used in speedbar while browsing objects.")
 

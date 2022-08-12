@@ -430,6 +430,18 @@ g .. h		foo
   (make-non-key-event 'keymap-tests-event)
   (should (equal (where-is-internal 'keymap-tests-command) '([3 103]))))
 
+(ert-deftest keymap-test-duplicate-definitions ()
+  "Check that defvar-keymap rejects duplicate key definitions."
+  (should-error
+   (defvar-keymap
+       ert-keymap-duplicate
+       "a" #'next-line
+       "a" #'previous-line))
+  (should-error
+   (define-keymap
+       "a" #'next-line
+       "a" #'previous-line)))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here

@@ -655,7 +655,9 @@ The character information includes:
               ("file code"
                ,@(if multibyte-p
                      (let* ((coding buffer-file-coding-system)
-                            (encoded (encode-coding-char char coding charset)))
+                            (encoded
+                             (and coding
+                                  (encode-coding-char char coding charset))))
                        (if encoded
                            (list (encoded-string-description encoded coding)
                                  (format "(encoded by coding system %S)"

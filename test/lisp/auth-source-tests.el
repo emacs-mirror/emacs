@@ -27,7 +27,7 @@
 ;;; Code:
 
 (require 'ert)
-(eval-when-compile (require 'ert-x))
+(require 'ert-x)
 (require 'cl-lib)
 (require 'auth-source)
 (require 'secrets)
@@ -409,6 +409,30 @@ machine c1 port c2 user c3 password c4\n"
       ;; Note: The netrc backend doesn't delete anything, so
       ;; this is actually the same as `auth-source-search'.
       (should (equal found expected)))))
+
+(ert-deftest test-netrc-credentials ()
+  (let ((data (auth-source-netrc-parse-all (ert-resource-file "authinfo"))))
+    (should data)
+    (let ((imap (seq-find (lambda (elem)
+                            (equal (cdr (assoc "machine" elem))
+                                   "imap.example.org"))
+                          data)))
+      (should (equal (cdr (assoc "login" imap)) "jrh@example.org"))
+      (should (equal (cdr (assoc "password" imap)) "*foobar*")))
+    (let ((imap (seq-find (lambda (elem)
+                            (equal (cdr (assoc "machine" elem))
+                                   "ftp.example.org"))
+                          data)))
+      (should (equal (cdr (assoc "login" imap)) "jrh"))
+      (should (equal (cdr (assoc "password" imap)) "*baz*")))))
+
+(ert-deftest test-netrc-credentials-2 ()
+  (let ((data (auth-source-netrc-parse-all
+               (ert-resource-file "netrc-folding"))))
+    (should
+     (equal data
+            '((("machine" . "XM") ("login" . "XL") ("password" . "XP"))
+              (("machine" . "YM") ("login" . "YL") ("password" . "YP")))))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

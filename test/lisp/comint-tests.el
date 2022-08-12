@@ -95,8 +95,4 @@ flow.  Hook function returns alternative password."
 password flow if it returns a nil value."
   (comint-tests/test-password-function #'ignore))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
-
 ;;; comint-tests.el ends here

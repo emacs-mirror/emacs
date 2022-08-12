@@ -24,9 +24,7 @@
 
 ;;; Code:
 
-
 (require 'diff-mode) ; For `diff-file-junk-re'.
-
 
 (defgroup ediff-ptch nil
   "Ediff patch support."
@@ -798,7 +796,7 @@ you can still examine the changes via M-x ediff-files"
       ;; the orig file.
       (setq target-filename
 	    (concat
-	     (if (ediff-file-remote-p (file-truename source-filename))
+             (if (file-remote-p (file-truename source-filename))
 		 magic-file-name
 	       source-filename)
 	     "_patched"))

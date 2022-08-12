@@ -251,6 +251,7 @@ If VERBOSE is `1', put everything on one line.  If VERBOSE is omitted
 or nil, use a compact 80-column format."
   (and macro (symbolp macro) (setq macro (symbol-function macro)))
   (edmacro-format-keys (or macro last-kbd-macro) verbose))
+
 
 ;;; Commands for *Edit Macro* buffer.
 
@@ -446,6 +447,7 @@ doubt, use whitespace."
   (interactive)
   (error "This mode can be enabled only by `edit-kbd-macro'"))
 (put 'edmacro-mode 'mode-class 'special)
+
 
 ;;; Formatting a keyboard macro as human-readable text.
 
@@ -637,12 +639,8 @@ This function assumes that the events can be stored in a string."
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
       (let (result)
-        ;; Not preloaded in without-x builds.
+        ;; Not preloaded in a --without-x build.
         (require 'mwheel)
-        (defvar mouse-wheel-down-event)
-        (defvar mouse-wheel-left-event)
-        (defvar mouse-wheel-right-event)
-        (defvar mouse-wheel-up-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)
@@ -669,6 +667,7 @@ This function assumes that the events can be stored in a string."
 	;; Reverse them again and make them back into a vector.
 	(vconcat (nreverse result)))
     macro))
+
 
 ;;; Parsing a human-readable keyboard macro.
 

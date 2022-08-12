@@ -36,8 +36,6 @@
 
 (defconst rng-builtin-datatypes-uri (rng-make-datatypes-uri ""))
 
-(defun rng-blank-p (str) (string-match "\\`[ \t\n\r]*\\'" str))
-
 (defun rng-substq (new old list)
   "Replace first member of LIST (if any) that is `eq' to OLD by NEW.
 LIST is not modified."
@@ -73,24 +71,15 @@ LIST is not modified."
 			    s
 			    t))
 
-(defun rng-collapse-space (string)
-  (setq string
-	(replace-regexp-in-string "[ \t\r\n]+" " " string t t))
-  (when (string-match "\\` " string)
-    (setq string (substring string 1)))
-  (when (string-match " \\'" string)
-    (setq string (substring string 0 -1)))
-  string)
-
 (define-error 'rng-error nil)
-
-;; Obsolete.
 
 (defun rng-uniquify-eq (list)
   (declare (obsolete seq-uniq "28.1"))
   (seq-uniq list #'eq))
 
 (define-obsolete-function-alias 'rng-uniquify-equal #'seq-uniq "28.1")
+(define-obsolete-function-alias 'rng-blank-p #'string-blank-p "29.1")
+(define-obsolete-function-alias 'rng-collapse-space #'string-clean-whitespace "29.1")
 
 (provide 'rng-util)
 

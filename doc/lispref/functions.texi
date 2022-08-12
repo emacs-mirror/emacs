@@ -2498,6 +2498,10 @@ the current buffer.
 Specify that this command is meant to be applicable for @var{modes}
 only.
 
+@item (interactive-args @var{arg} ...)
+Specify the arguments that should be stored for @code{repeat-command}.
+Each @var{arg} is on the form @code{@var{argument-name} @var{form}}.
+
 @item (pure @var{val})
 If @var{val} is non-@code{nil}, this function is @dfn{pure}
 (@pxref{What Is a Function}).  This is the same as the @code{pure}

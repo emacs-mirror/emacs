@@ -540,7 +540,6 @@ See `mh-spamprobe-blocklist' for more information."
 (provide 'mh-junk)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

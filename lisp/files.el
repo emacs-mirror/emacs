@@ -2950,7 +2950,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.js[mx]?\\'" . javascript-mode)
      ;; https://en.wikipedia.org/wiki/.har
      ("\\.har\\'" . javascript-mode)
-     ("\\.json\\'" . javascript-mode)
+     ("\\.json\\'" . js-json-mode)
      ("\\.[ds]?va?h?\\'" . verilog-mode)
      ("\\.by\\'" . bovine-grammar-mode)
      ("\\.wy\\'" . wisent-grammar-mode)
@@ -3848,10 +3848,8 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 	(cond ((memq var ignored-local-variables)
 	       ;; Ignore any variable in `ignored-local-variables'.
 	       nil)
-              ((seq-some (lambda (elem)
-                           (and (eq (car elem) var)
-                                (eq (cdr elem) val)))
-                         ignored-local-variable-values)
+              ;; Ignore variables with the specified values.
+              ((member elt ignored-local-variable-values)
                nil)
 	      ;; Obey `enable-local-eval'.
 	      ((eq var 'eval)
@@ -4446,7 +4444,8 @@ This function returns either:
                   ;; The entry MTIME should match the most recent
                   ;; MTIME among matching files.
                   (and cached-files
-		       (equal (nth 2 dir-elt)
+		       (time-equal-p
+			      (nth 2 dir-elt)
 			      (let ((latest 0))
 				(dolist (f cached-files latest)
 				  (let ((f-time

@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdlib.h>		/* for qsort */
+
 #include "lisp.h"
 #include "character.h"
 #include "composite.h"
@@ -1021,7 +1023,11 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  /* But we don't know where to stop the searching.  */
 	  endpos = NILP (string) ? BEGV - 1 : -1;
 	  /* Usually we don't reach ENDPOS because we stop searching
-	     at an uncomposable character (NL, LRE, etc).  */
+	     at an uncomposable character (NL, LRE, etc).  In buffers
+	     with long lines, however, NL might be far away, so
+	     pretend that the buffer is smaller.  */
+	  if (current_buffer->long_line_optimizations_p)
+	    endpos = get_closer_narrowed_begv (cmp_it->parent_it->w, charpos);
 	}
     }
   cmp_it->id = -1;
@@ -1580,7 +1586,6 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   Lisp_Object window;
   struct window *w;
   bool need_adjustment = 0;
-  ptrdiff_t narrowed_begv;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
@@ -1597,11 +1602,14 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
 	}
       else
 	head = backlim;
-      /* In buffers with very long lines, this function becomes very
-	 slow.  Pretend that the buffer is narrowed to make it fast.  */
-      narrowed_begv = get_narrowed_begv (w, window_point (w));
-      if (narrowed_begv && pos > narrowed_begv)
-	head = narrowed_begv;
+      if (current_buffer->long_line_optimizations_p)
+	{
+	  /* In buffers with very long lines, this function becomes very
+	     slow.  Pretend that the buffer is narrowed to make it fast.  */
+	  ptrdiff_t begv = get_closer_narrowed_begv (w, window_point (w));
+	  if (pos > begv)
+	    head = begv;
+	}
       tail = ZV;
       stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);
@@ -2048,6 +2056,54 @@ See `find-composition' for more details.  */)
   return Fcons (make_fixnum (start), Fcons (make_fixnum (end), tail));
 }
 
+static int
+compare_composition_rules (const void *r1, const void *r2)
+{
+  Lisp_Object vec1 = *(Lisp_Object *)r1, vec2 = *(Lisp_Object *)r2;
+
+  return XFIXNAT (AREF (vec2, 1)) - XFIXNAT (AREF (vec1, 1));
+}
+
+DEFUN ("composition-sort-rules", Fcomposition_sort_rules,
+       Scomposition_sort_rules, 1, 1, 0,
+       doc: /* Sort composition RULES by their LOOKBACK parameter.
+
+If RULES include just one rule, return RULES.
+Otherwise, return a new list of rules where all the rules are
+arranged in decreasing order of the LOOKBACK parameter of the
+rules (the second element of the rule's vector).  This is required
+when combining composition rules from different sources, because
+of the way buffer text is examined for matching one of the rules.  */)
+  (Lisp_Object rules)
+{
+  ptrdiff_t nrules;
+  USE_SAFE_ALLOCA;
+
+  CHECK_LIST (rules);
+  nrules = list_length (rules);
+  if (nrules > 1)
+    {
+      ptrdiff_t i;
+      Lisp_Object *sortvec;
+
+      SAFE_NALLOCA (sortvec, 1, nrules);
+      for (i = 0; i < nrules; i++)
+	{
+	  Lisp_Object elt = XCAR (rules);
+	  if (VECTORP (elt) && ASIZE (elt) == 3 && FIXNATP (AREF (elt, 1)))
+	    sortvec[i] = elt;
+	  else
+	    error ("Invalid composition rule in RULES argument");
+	  rules = XCDR (rules);
+	}
+      qsort (sortvec, nrules, sizeof (Lisp_Object), compare_composition_rules);
+      rules = Flist (nrules, sortvec);
+      SAFE_FREE ();
+    }
+
+  return rules;
+}
+
 
 void
 syms_of_composite (void)
@@ -2179,4 +2235,5 @@ This list is auto-generated, you should not need to modify it.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
   defsubr (&Sclear_composition_cache);
+  defsubr (&Scomposition_sort_rules);
 }

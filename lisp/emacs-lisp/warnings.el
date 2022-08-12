@@ -209,7 +209,7 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     (text " stop "))
   "Suppress warnings."
   :version "29.1"
-  :help-echo "Click to supress this warning type")
+  :help-echo "Click to suppress this warning type")
 
 (defun warnings-suppress (type)
   (pcase (car

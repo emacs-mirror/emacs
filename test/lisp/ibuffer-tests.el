@@ -132,7 +132,7 @@
           (ibuffer-switch-to-saved-filter-groups "saved-filters")
           (should (assoc "Elisp" (cdar ibuffer-saved-filter-groups))))
       (setq ibuffer-saved-filter-groups orig-filters)
-      (ibuffer-awhen (get-buffer "*Ibuffer*")
+      (when-let ((it (get-buffer "*Ibuffer*")))
         (and (buffer-live-p it) (kill-buffer it))))))
 
 

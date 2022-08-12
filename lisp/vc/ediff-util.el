@@ -24,23 +24,10 @@
 
 ;;; Code:
 
-
 (provide 'ediff-util)    ;FIXME: Break cyclic dependencies and move to the end!
 
-;; Compiler pacifier
 (defvar ediff-use-toolbar-p)
-(defvar ediff-toolbar-height)
-(defvar ediff-toolbar)
-(defvar ediff-toolbar-3way)
-(defvar bottom-toolbar)
-(defvar bottom-toolbar-visible-p)
-(defvar bottom-toolbar-height)
-(defvar mark-active)
-
 (defvar ediff-after-quit-hook-internal nil)
-
-;; end pacifier
-
 
 (require 'ediff-init)
 (require 'ediff-help)
@@ -295,10 +282,6 @@ to invocation.")
       ;; This is because one may lose work---dangerous.
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
-
-      (if (ediff-window-display-p)
-	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil 'local))
-      (setq ediff-mouse-pixel-position (mouse-pixel-position))
 
       ;; adjust for merge jobs
       (if ediff-merge-job
@@ -739,7 +722,7 @@ buffers."
   ;; set visibility range appropriate to this invocation of Ediff.
   (ediff-visible-region)
   ;; raise
-  (if (and (ediff-window-display-p)
+  (if (and (display-graphic-p)
 	   (symbolp this-command)
 	   (symbolp last-command)
 	   ;; Either one of the display-changing commands
@@ -764,7 +747,7 @@ buffers."
 	    (raise-frame (window-frame ediff-window-B)))
 	(if (window-live-p ediff-window-C)
 	    (raise-frame (window-frame ediff-window-C)))))
-  (if (and (ediff-window-display-p)
+  (if (and (display-graphic-p)
 	   (frame-live-p ediff-control-frame)
 	   (not ediff-use-long-help-message)
 	   (not (ediff-frame-iconified-p ediff-control-frame)))
@@ -1256,7 +1239,7 @@ of the current buffer."
 This is especially useful when comparing buffers side-by-side."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (or (ediff-window-display-p)
+  (or (display-graphic-p)
       (user-error "Emacs is not running as a window application"))
   (ediff-recenter 'no-rehighlight) ; make sure buffs are displayed in windows
   (let ((ctl-buf ediff-control-buffer))
@@ -1283,7 +1266,7 @@ To change the default, set the variable `ediff-window-setup-function',
 which see."
   (interactive)
   (let (window-setup-func)
-    (or (ediff-window-display-p)
+    (or (display-graphic-p)
 	(user-error "Emacs is not running as a window application"))
 
   (cond ((eq ediff-window-setup-function #'ediff-setup-windows-multiframe)
@@ -1327,7 +1310,7 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
   ;; FIXME: Make it work in Emacs!
   (if (featurep 'ediff-tbar)
       (progn
-	(or (ediff-window-display-p)
+        (or (display-graphic-p)
 	    (user-error "Emacs is not running as a window application"))
 	;; do this only after killing the toolbar
 	(setq ediff-use-toolbar-p (not ediff-use-toolbar-p))
@@ -1340,10 +1323,6 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
 	      ediff-session-registry)
 	(if (ediff-in-control-buffer-p)
 	    (ediff-recenter 'no-rehighlight)))))
-
-
-(define-obsolete-function-alias 'ediff-kill-bottom-toolbar #'ignore "27.1")
-(define-obsolete-function-alias 'ediff-make-bottom-toolbar #'ignore "27.1")
 
 ;; Merging
 
@@ -2442,7 +2421,7 @@ reverse the meaning of this variable."
         (after-quit-hook-internal (remq t ediff-after-quit-hook-internal))
 	(session-number ediff-meta-session-number)
 	;; suitable working frame
-	(warp-frame (if (and (ediff-window-display-p) (eq ediff-grab-mouse t))
+        (warp-frame (if (and (display-graphic-p) (eq ediff-grab-mouse t))
 			(cond ((window-live-p ediff-window-A)
 			       (window-frame ediff-window-A))
 			      ((window-live-p ediff-window-B)
@@ -2516,7 +2495,7 @@ reverse the meaning of this variable."
   (setq warp-frame  ; if mouse is over a reasonable frame, use it
 	(cond ((ediff-good-frame-under-mouse))
 	      (t warp-frame)))
-  (if (and (ediff-window-display-p) (frame-live-p warp-frame) ediff-grab-mouse)
+  (if (and (display-graphic-p) (frame-live-p warp-frame) ediff-grab-mouse)
       (set-mouse-position warp-frame 2 1))
 
   (mapc #'funcall after-quit-hook-internal)
@@ -2573,7 +2552,7 @@ reverse the meaning of this variable."
 	(ediff-kill-buffer-carefully ediff-patch-diagnostics))
 
     ;; delete control frame or window
-    (cond ((and (ediff-window-display-p) (frame-live-p ctl-frame))
+    (cond ((and (display-graphic-p) (frame-live-p ctl-frame))
 	   (delete-frame ctl-frame))
 	  ((window-live-p ctl-wind)
 	   (delete-window ctl-wind)))
@@ -2748,7 +2727,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	 (buf-fine-diff ediff-fine-diff-buffer))
 
     ;; hide the control panel
-    (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
+    (if (and (display-graphic-p) (frame-live-p ediff-control-frame))
 	(iconify-frame ediff-control-frame)
       (bury-buffer))
     (if buf-err (bury-buffer buf-err))
@@ -3086,10 +3065,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   )
 
 
-;; for compatibility
-(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook
-  #'minibuffer-with-setup-hook "28.1")
-
 ;; This is adapted from a similar function in `emerge.el'.
 ;; PROMPT should not have a trailing ': ', so that it can be modified
 ;; according to context.
@@ -3197,13 +3172,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
                (progn
 		 (if (or (file-exists-p file) (not keep-proposed-name))
 		     (setq file (make-temp-name proposed-name)))
-		 ;; the with-temp-buffer thing is a workaround for an XEmacs
-		 ;; bug: write-region complains that we are trying to visit a
-		 ;; file in an indirect buffer, failing to notice that the
-		 ;; VISIT flag is unset and that we are actually writing from a
-		 ;; string and not from any buffer.
-		 (with-temp-buffer
-		   (write-region "" nil file nil 'silent nil 'excl))
+                 (write-region "" nil file nil 'silent nil 'excl)
                  nil)
             (file-already-exists t))
       ;; the file was somehow created by someone else between
@@ -3211,16 +3180,6 @@ Hit \\[ediff-recenter] to reset the windows afterward."
       nil)
     file))
 
-
-;; Quote metacharacters (using \) when executing diff in Unix.
-;;(defun ediff-protect-metachars (str)
-;;  (let ((limit 0))
-;;    (while (string-match ediff-metachars str limit)
-;;      (setq str (concat (substring str 0 (match-beginning 0))
-;;			"\\"
-;;			(substring str (match-beginning 0))))
-;;      (setq limit (1+ (match-end 0)))))
-;;  str)
 
 ;; Make sure the current buffer (for a file) has the same contents as the
 ;; file on disk, and attempt to remedy the situation if not.
@@ -3282,8 +3241,9 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 
 
 (defun ediff-filename-magic-p (file)
+  (declare (obsolete nil "29.1"))
   (or (ediff-file-compressed-p file)
-      (ediff-file-remote-p file)))
+      (file-remote-p file)))
 
 
 (defun ediff-save-buffer (arg)
@@ -3330,7 +3290,8 @@ Without an argument, it saves customized diff argument, if available
     (select-window wind)
     (delete-other-windows)
     (or (mark) (push-mark))
-    (ediff-activate-mark)
+    (setq mark-active 'ediff-util)
+    (setq-local transient-mark-mode t)
     (split-window-vertically)
     (ediff-select-lowest-window)
     (setq other-wind (selected-window))
@@ -3404,11 +3365,11 @@ Without an argument, it saves customized diff argument, if available
 	file-A file-B)
     (unless (and buf-A-file-name
 		 (file-exists-p buf-A-file-name)
-		 (not (ediff-file-remote-p buf-A-file-name)))
+                 (not (file-remote-p buf-A-file-name)))
       (setq file-A (ediff-make-temp-file ediff-buffer-A)))
     (unless (and buf-B-file-name
 		 (file-exists-p buf-B-file-name)
-		 (not (ediff-file-remote-p buf-B-file-name)))
+                 (not (file-remote-p buf-B-file-name)))
       (setq file-B (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
 	(setq ediff-custom-diff-buffer
@@ -3909,11 +3870,9 @@ Ediff Control Panel to restore highlighting."
   "Submit bug report on Ediff."
   (interactive)
   (ediff-barf-if-not-control-buffer)
-  (defvar ediff-device-type)
   (defvar ediff-buffer-name)
   (let ((reporter-prompt-for-summary-p t)
 	(ctl-buf ediff-control-buffer)
-	(ediff-device-type window-system)
 	varlist salutation ediff-buffer-name)
     (setq varlist '(ediff-diff-program ediff-diff-options
                     ediff-diff3-program ediff-diff3-options
@@ -3932,8 +3891,7 @@ Ediff Control Panel to restore highlighting."
 		    ediff-job-name
 		    ediff-word-mode
 		    ediff-buffer-name
-		    ediff-device-type
-		    ))
+                    window-system))
     (setq salutation "
 Congratulations!  You may have unearthed a bug in Ediff!
 
@@ -4011,23 +3969,18 @@ Mail anyway? (y or n) ")
 (defun ediff-choose-syntax-table ()
   (setq ediff-syntax-table
 	(ediff-with-current-buffer ediff-buffer-A
-	  (if (not (memq major-mode
-			 '(fundamental-mode text-mode indented-text-mode)))
-	      (syntax-table))))
+          (unless (memq major-mode '(fundamental-mode text-mode))
+            (syntax-table))))
   (if (not ediff-syntax-table)
       (setq ediff-syntax-table
 	    (ediff-with-current-buffer ediff-buffer-B
 	      (syntax-table))))
   )
 
-
-(define-obsolete-function-alias 'ediff-deactivate-mark #'deactivate-mark "27.1")
-
 (defun ediff-activate-mark ()
+  (declare (obsolete nil "29.1"))
   (setq mark-active 'ediff-util)
   (setq-local transient-mark-mode t))
-
-(define-obsolete-function-alias 'ediff-nuke-selective-display #'ignore "27.1")
 
 ;; The next two are modified versions from emerge.el.
 ;; VARS must be a list of symbols
@@ -4094,11 +4047,11 @@ Mail anyway? (y or n) ")
 
 ;;; Debug
 
-(ediff-defvar-local ediff-command-begin-time '(0 0 0))
+(ediff-defvar-local ediff-command-begin-time 0)
 
 ;; calculate time used by command
 (defun ediff-calc-command-time ()
-  (or (equal ediff-command-begin-time '(0 0 0))
+  (or (equal ediff-command-begin-time 0)
       (message "Elapsed time: %g second(s)"
 	       (float-time (time-since ediff-command-begin-time)))))
 
@@ -4112,10 +4065,10 @@ Mail anyway? (y or n) ")
 
   (let ((pre-hook 'pre-command-hook)
 	(post-hook 'post-command-hook))
-    (if (not (equal ediff-command-begin-time '(0 0 0)))
+    (if (not (equal ediff-command-begin-time 0))
 	(progn (remove-hook pre-hook 'ediff-save-time)
 	       (remove-hook post-hook 'ediff-calc-command-time)
-	       (setq ediff-command-begin-time '(0 0 0))
+	       (setq ediff-command-begin-time 0)
 	       (message "Ediff profiling disabled"))
       (add-hook pre-hook 'ediff-save-time t 'local)
       (add-hook post-hook 'ediff-calc-command-time nil 'local)
@@ -4180,7 +4133,12 @@ Mail anyway? (y or n) ")
 	(key-description desc)
       (format "M-x %s" func-def))))
 
+(define-obsolete-function-alias 'ediff-kill-bottom-toolbar #'ignore "27.1")
+(define-obsolete-function-alias 'ediff-make-bottom-toolbar #'ignore "27.1")
+(define-obsolete-function-alias 'ediff-deactivate-mark #'deactivate-mark "27.1")
+(define-obsolete-function-alias 'ediff-nuke-selective-display #'ignore "27.1")
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
+(define-obsolete-function-alias 'ediff-minibuffer-with-setup-hook #'minibuffer-with-setup-hook "28.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
 (define-obsolete-function-alias 'ediff-union #'seq-union "28.1")
 (define-obsolete-function-alias 'ediff-intersection #'seq-intersection "28.1")

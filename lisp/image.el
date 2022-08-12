@@ -32,7 +32,6 @@
   :group 'multimedia)
 
 (declare-function image-flush "image.c" (spec &optional frame))
-(defalias 'image-refresh 'image-flush)
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
@@ -1303,6 +1302,8 @@ changing the displayed image size does not affect the saved image."
     (image-rotate 180)
     (setf (image-property image :flip)
           (not (image-property image :flip)))))
+
+(define-obsolete-function-alias 'image-refresh #'image-flush "29.1")
 
 (provide 'image)
 

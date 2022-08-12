@@ -488,13 +488,13 @@ arguments, imagine you'd like to set the file name output of a
 latex source block to a sha1 of its contents.  We could achieve
 this with:
 
-(defun org-src-sha ()
-  (let ((elem (org-element-at-point)))
-    (concat (sha1 (org-element-property :value elem)) \".svg\")))
+  (defun org-src-sha ()
+    (let ((elem (org-element-at-point)))
+      (concat (sha1 (org-element-property :value elem)) \".svg\")))
 
-(setq org-babel-default-header-args:latex
-      `((:results . \"file link replace\")
-        (:file . (lambda () (org-src-sha)))))
+  (setq org-babel-default-header-args:latex
+        `((:results . \"file link replace\")
+          (:file . (lambda () (org-src-sha)))))
 
 Because the closure is evaluated with point at the source block,
 the call to `org-element-at-point' above will always retrieve

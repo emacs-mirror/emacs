@@ -1,25 +1,23 @@
-#+title: Modus themes for GNU Emacs
-#+author: Protesilaos Stavrou
-#+email: info@protesilaos.com
-#+language: en
-#+options: ':t toc:nil author:t email:t num:t
-#+startup: content
-
-#+macro: stable-version 2.4.0
-#+macro: release-date 2022-06-01
-#+macro: development-version 2.5.0-dev
-#+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
-#+macro: space @@texinfo:@: @@
-#+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
-
-#+texinfo_filename: modus-themes.info
-#+texinfo_dir_category: Emacs misc features
-#+texinfo_dir_title: Modus Themes: (modus-themes)
-#+texinfo_dir_desc: Elegant, highly legible and customizable themes
-#+texinfo_header: @set MAINTAINERSITE @uref{https://protesilaos.com,maintainer webpage}
-#+texinfo_header: @set MAINTAINER Protesilaos Stavrou
-#+texinfo_header: @set MAINTAINEREMAIL @email{info@protesilaos.com}
-#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:info@protesilaos.com,contact the maintainer}
+#+title:                 Modus themes for GNU Emacs
+#+author:                Protesilaos Stavrou
+#+email:                 info@protesilaos.com
+#+language:              en
+#+options:               ':t toc:nil author:t email:t num:t
+#+startup:               content
+#+macro:                 stable-version 2.5.0
+#+macro:                 release-date 2022-08-03
+#+macro:                 development-version 2.6.0-dev
+#+macro:                 file @@texinfo:@file{@@$1@@texinfo:}@@
+#+macro:                 space @@texinfo:@: @@
+#+macro:                 kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
+#+texinfo_filename:      modus-themes.info
+#+texinfo_dir_category:  Emacs misc features
+#+texinfo_dir_title:     Modus Themes: (modus-themes)
+#+texinfo_dir_desc:      Elegant, highly legible and customizable themes
+#+texinfo_header:        @set MAINTAINERSITE @uref{https://protesilaos.com,maintainer webpage}
+#+texinfo_header:        @set MAINTAINER Protesilaos Stavrou
+#+texinfo_header:        @set MAINTAINEREMAIL @email{info@protesilaos.com}
+#+texinfo_header:        @set MAINTAINERCONTACT @uref{mailto:info@protesilaos.com,contact the maintainer}
 
 #+texinfo: @insertcopying
 
@@ -197,6 +195,9 @@ sudo apt install elpa-modus-themes
 #+end_src
 
 They are now ready to be used: [[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]].
+
+NOTE that Debian's package is severely out-of-date as of this writing
+2022-07-24 09:57 +0300.
 
 *** GNU Guix
 :properties:
@@ -618,7 +619,7 @@ By default, customizing a theme-related user option through the Custom
 interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
 currently active Modus theme.
 
-Enable this behavior by setting this variable to ~nil~.
+Enable this behaviour by setting this variable to ~nil~.
 
 Regardless of this option, the active theme must be reloaded for changes
 to user options to take effect ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
@@ -1199,7 +1200,7 @@ Brief: Set the overall style of completion framework interfaces.
 
 Symbol: ~modus-themes-completions~ (=alist= type properties)
 
-This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy, Mct,
+This affects Company, Corfu, Flx, Helm, Icomplete/Fido, Ido, Ivy,
 Orderless, Selectrum, Vertico.  The value is an alist that takes the
 form of a =(key . properties)= combination.  Here is a sample, followed
 by a description of the particularities:
@@ -1475,6 +1476,9 @@ with underlines.
 
 This style affects several packages that enable ~hl-line-mode~, such as
 =elfeed=, =notmuch=, and =mu4e=.
+
+[ Also check the =lin= package on GNU ELPA (by the author of the
+  modus-themes) for a stylistic enhancement to ~hl-line-mode~. ]
 
 ** Option for line numbers
 :properties:
@@ -2000,16 +2004,21 @@ Putting it all together, the alist can look like this:
 :end:
 #+vindex: modus-themes-headings
 
-Brief: Control the style of headings.  This can be particularised for
-each level of heading (e.g. Org has eight levels).
+Brief: Heading styles with optional list of values for levels 0-8.
 
 Symbol: ~modus-themes-headings~ (=alist= type, multiple properties)
 
-This is an alist that accepts a =(key . list-of-values)= combination.  The
-key is either a number, representing the heading's level or ~t~, which
-pertains to the fallback style.  The list of values covers symbols that
-refer to properties, as described below.  Here is a sample, followed by
-a presentation of all available properties:
+This is an alist that accepts a =(key . list-of-values)= combination.
+The key is either a number, representing the heading's level (0-8) or t,
+which pertains to the fallback style.
+
+Level 0 is a special heading: it is used for what counts as a document
+title or equivalent, such as the =#+title= construct we find in Org
+files.  Levels 1-8 are regular headings.
+
+The list of values covers symbols that refer to properties, as described
+below.  Here is a complete sample, followed by a presentation of all
+available properties:
 
 #+begin_src emacs-lisp
 (setq modus-themes-headings
@@ -2162,7 +2171,7 @@ things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
-they are labeled as "do-it-yourself" or "DIY".
+they are labelled as "do-it-yourself" or "DIY".
 
 ** More accurate colors in terminal emulators
 :PROPERTIES:
@@ -2605,7 +2614,7 @@ this example:
 Whenever we enter a ~diff-mode~ buffer, we now get a magenta-colored
 region.
 
-Perhaps you may wish to generalize those findings in to a set of
+Perhaps you may wish to generalise those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
@@ -2624,7 +2633,7 @@ contrast on an on-demand basis.
 
 One way to achieve this is to design a command that cycles through three
 distinct levels of intensity, though the following can be adapted to any
-kind of cyclic behavior, such as to switch between red, green, and
+kind of cyclic behaviour, such as to switch between red, green, and
 blue.
 
 In the following example, we employ the ~modus-themes-color~ function
@@ -2848,7 +2857,6 @@ both themes and expands to some more assosiations in the palette:
               (bg-inactive . "#f6ece5")
               (bg-region . "#c6bab1")
               (bg-header . "#ede3e0")
-              (bg-tab-bar . "#dcd3d3")
               (bg-tab-active . "#fdf6eb")
               (bg-tab-inactive . "#c8bab8"))
             modus-themes-vivendi-color-overrides
@@ -2860,7 +2868,6 @@ both themes and expands to some more assosiations in the palette:
               (bg-inactive . "#1a1e39")
               (bg-region . "#393a53")
               (bg-header . "#202037")
-              (bg-tab-bar . "#262b41")
               (bg-tab-active . "#120f18")
               (bg-tab-inactive . "#3a3a5a")))
     (setq modus-themes-operandi-color-overrides nil
@@ -2879,7 +2886,6 @@ look like this:
   (bg-inactive . "#e6e6e6")
   (bg-region . "#b5b5b5")
   (bg-header . "#e4e4e4")
-  (bg-tab-bar . "#d1d1d4")
   (bg-tab-active . "#f5f5f5")
   (bg-tab-inactive . "#c0c0c0"))
 #+end_src
@@ -2896,6 +2902,9 @@ whatever color values they desire, even if the possible combinations
 fall below the minimum 7:1 contrast ratio that governs the design of the
 themes (the WCAG AAA legibility standard).  Alternatively, this can also
 be done programmatically ([[#h:4589acdc-2505-41fc-9f5e-699cfc45ab00][Override color saturation]]).
+
+The above are expanded into a fully fledged derivative elsewhere in this
+document ([[#h:736c0ff5-8c9c-4565-82cf-989e57d07d4a][Override colors completely]]).
 
 For manual interventions it is advised to inspect the source code of
 ~modus-themes-operandi-colors~ and ~modus-themes-vivendi-colors~ for the
@@ -3092,6 +3101,286 @@ Blend background colors with BG-BLEND and foreground colors with FG-BLEND."
 (modus-themes-tinted-mode 1)
 #+end_src
 
+** Override colors completely
+:PROPERTIES:
+:CUSTOM_ID: h:736c0ff5-8c9c-4565-82cf-989e57d07d4a
+:END:
+
+Based on the ideas we have already covered in these sections, the
+following code block provides a complete, bespoke pair of color palettes
+which override the defaults.  They are implemented as a minor mode, as
+explained before ([[#h:307d95dd-8dbd-4ece-a543-10ae86f155a6][Override colors]]).  We call them "Summertime" for
+convenience.
+
+#+begin_src emacs-lisp
+;; Read the relevant blog post:
+;; <https://protesilaos.com/codelog/2022-07-26-modus-themes-color-override-demo/>
+(define-minor-mode modus-themes-summertime
+  "Refashion the Modus themes by overriding their colors.
+
+This is a complete technology demonstration to show how to
+manually override the colors of the Modus themes.  I have taken
+good care of those overrides to make them work as a fully fledged
+color scheme that is compatible with all user options of the
+Modus themes.
+
+These overrides are usable by those who (i) like something more
+fancy than the comparatively austere looks of the Modus themes,
+and (ii) can cope with a lower contrast ratio.
+
+The overrides are set up as a minor mode, so that the user can
+activate the effect on demand.  Those who want to load the
+overrides at all times can either add them directly to their
+configuration or enable `modus-themes-summertime' BEFORE loading
+either of the Modus themes (if the overrides are evaluated after
+the theme, the theme must be reloaded).
+
+Remember that all changes to theme-related variables require a
+reload of the theme to take effect (the Modus themes have lots of
+user options, apart from those overrides).
+
+The `modus-themes-summertime' IS NOT an official extension to the
+Modus themes and DOES NOT comply with its lofty accessibility
+standards.  It is included in the official manual as guidance for
+those who want to make use of the color overriding facility we
+provide."
+  :init-value nil
+  :global t
+  (if modus-themes-summertime
+      (setq modus-themes-operandi-color-overrides
+            '((bg-main . "#fff0f2")
+              (bg-dim . "#fbe6ef")
+              (bg-alt . "#f5dae6")
+              (bg-hl-line . "#fad8e3")
+              (bg-active . "#efcadf")
+              (bg-inactive . "#f3ddef")
+              (bg-active-accent . "#ffbbef")
+              (bg-region . "#dfc5d1")
+              (bg-region-accent . "#efbfef")
+              (bg-region-accent-subtle . "#ffd6ef")
+              (bg-header . "#edd3e0")
+              (bg-tab-active . "#ffeff2")
+              (bg-tab-inactive . "#f8d3ef")
+              (bg-tab-inactive-accent . "#ffd9f5")
+              (bg-tab-inactive-alt . "#e5c0d5")
+              (bg-tab-inactive-alt-accent . "#f3cce0")
+              (fg-main . "#543f78")
+              (fg-dim . "#5f476f")
+              (fg-alt . "#7f6f99")
+              (fg-unfocused . "#8f6f9f")
+              (fg-active . "#563068")
+              (fg-inactive . "#8a5698")
+              (fg-docstring . "#5f5fa7")
+              (fg-comment-yellow . "#a9534f")
+              (fg-escape-char-construct . "#8b207f")
+              (fg-escape-char-backslash . "#a06d00")
+              (bg-special-cold . "#d3e0f4")
+              (bg-special-faint-cold . "#e0efff")
+              (bg-special-mild . "#c4ede0")
+              (bg-special-faint-mild . "#e0f0ea")
+              (bg-special-warm . "#efd0c4")
+              (bg-special-faint-warm . "#ffe4da")
+              (bg-special-calm . "#f0d3ea")
+              (bg-special-faint-calm . "#fadff9")
+              (fg-special-cold . "#405fb8")
+              (fg-special-mild . "#407f74")
+              (fg-special-warm . "#9d6f4f")
+              (fg-special-calm . "#af509f")
+              (bg-completion . "#ffc5e5")
+              (bg-completion-subtle . "#f7cfef")
+              (red . "#ed2f44")
+              (red-alt . "#e0403d")
+              (red-alt-other . "#e04059")
+              (red-faint . "#ed4f44")
+              (red-alt-faint . "#e0603d")
+              (red-alt-other-faint . "#e06059")
+              (green . "#217a3c")
+              (green-alt . "#417a1c")
+              (green-alt-other . "#006f3c")
+              (green-faint . "#318a4c")
+              (green-alt-faint . "#518a2c")
+              (green-alt-other-faint . "#20885c")
+              (yellow . "#b06202")
+              (yellow-alt . "#a95642")
+              (yellow-alt-other . "#a06f42")
+              (yellow-faint . "#b07232")
+              (yellow-alt-faint . "#a96642")
+              (yellow-alt-other-faint . "#a08042")
+              (blue . "#275ccf")
+              (blue-alt . "#475cc0")
+              (blue-alt-other . "#3340ef")
+              (blue-faint . "#476ce0")
+              (blue-alt-faint . "#575ccf")
+              (blue-alt-other-faint . "#3f60d7")
+              (magenta . "#bf317f")
+              (magenta-alt . "#d033c0")
+              (magenta-alt-other . "#844fe4")
+              (magenta-faint . "#bf517f")
+              (magenta-alt-faint . "#d053c0")
+              (magenta-alt-other-faint . "#846fe4")
+              (cyan . "#007a9f")
+              (cyan-alt . "#3f709f")
+              (cyan-alt-other . "#107f7f")
+              (cyan-faint . "#108aaf")
+              (cyan-alt-faint . "#3f80af")
+              (cyan-alt-other-faint . "#3088af")
+              (red-active . "#cd2f44")
+              (green-active . "#116a6c")
+              (yellow-active . "#993602")
+              (blue-active . "#475ccf")
+              (magenta-active . "#7f2ccf")
+              (cyan-active . "#007a8f")
+              (red-nuanced-bg . "#ffdbd0")
+              (red-nuanced-fg . "#ed6f74")
+              (green-nuanced-bg . "#dcf0dd")
+              (green-nuanced-fg . "#3f9a4c")
+              (yellow-nuanced-bg . "#fff3aa")
+              (yellow-nuanced-fg . "#b47232")
+              (blue-nuanced-bg . "#e3e3ff")
+              (blue-nuanced-fg . "#201f6f")
+              (magenta-nuanced-bg . "#fdd0ff")
+              (magenta-nuanced-fg . "#c0527f")
+              (cyan-nuanced-bg . "#dbefff")
+              (cyan-nuanced-fg . "#0f3f60")
+              (bg-diff-heading . "#b7cfe0")
+              (fg-diff-heading . "#041645")
+              (bg-diff-added . "#d6f0d6")
+              (fg-diff-added . "#004520")
+              (bg-diff-changed . "#fcefcf")
+              (fg-diff-changed . "#524200")
+              (bg-diff-removed . "#ffe0ef")
+              (fg-diff-removed . "#891626")
+              (bg-diff-refine-added . "#84cfa4")
+              (fg-diff-refine-added . "#002a00")
+              (bg-diff-refine-changed . "#cccf8f")
+              (fg-diff-refine-changed . "#302010")
+              (bg-diff-refine-removed . "#da92b0")
+              (fg-diff-refine-removed . "#500010")
+              (bg-diff-focus-added . "#a6e5c6")
+              (fg-diff-focus-added . "#002c00")
+              (bg-diff-focus-changed . "#ecdfbf")
+              (fg-diff-focus-changed . "#392900")
+              (bg-diff-focus-removed . "#efbbcf")
+              (fg-diff-focus-removed . "#5a0010"))
+            modus-themes-vivendi-color-overrides
+            '((bg-main . "#25152a")
+              (bg-dim . "#2a1930")
+              (bg-alt . "#382443")
+              (bg-hl-line . "#332650")
+              (bg-active . "#463358")
+              (bg-inactive . "#2d1f3a")
+              (bg-active-accent . "#50308f")
+              (bg-region . "#5d4a67")
+              (bg-region-accent . "#60509f")
+              (bg-region-accent-subtle . "#3f285f")
+              (bg-header . "#3a2543")
+              (bg-tab-active . "#26162f")
+              (bg-tab-inactive . "#362647")
+              (bg-tab-inactive-accent . "#36265a")
+              (bg-tab-inactive-alt . "#3e2f5a")
+              (bg-tab-inactive-alt-accent . "#3e2f6f")
+              (fg-main . "#debfe0")
+              (fg-dim . "#d0b0da")
+              (fg-alt . "#ae85af")
+              (fg-unfocused . "#8e7f9f")
+              (fg-active . "#cfbfef")
+              (fg-inactive . "#b0a0c0")
+              (fg-docstring . "#c8d9f7")
+              (fg-comment-yellow . "#cf9a70")
+              (fg-escape-char-construct . "#ff75aa")
+              (fg-escape-char-backslash . "#dbab40")
+              (bg-special-cold . "#2a3f58")
+              (bg-special-faint-cold . "#1e283f")
+              (bg-special-mild . "#0f3f31")
+              (bg-special-faint-mild . "#0f281f")
+              (bg-special-warm . "#44331f")
+              (bg-special-faint-warm . "#372213")
+              (bg-special-calm . "#4a314f")
+              (bg-special-faint-calm . "#3a223f")
+              (fg-special-cold . "#c0b0ff")
+              (fg-special-mild . "#bfe0cf")
+              (fg-special-warm . "#edc0a6")
+              (fg-special-calm . "#ff9fdf")
+              (bg-completion . "#502d70")
+              (bg-completion-subtle . "#451d65")
+              (red . "#ff5f6f")
+              (red-alt . "#ff8f6d")
+              (red-alt-other . "#ff6f9d")
+              (red-faint . "#ffa0a0")
+              (red-alt-faint . "#f5aa80")
+              (red-alt-other-faint . "#ff9fbf")
+              (green . "#51ca5c")
+              (green-alt . "#71ca3c")
+              (green-alt-other . "#51ca9c")
+              (green-faint . "#78bf78")
+              (green-alt-faint . "#99b56f")
+              (green-alt-other-faint . "#88bf99")
+              (yellow . "#f0b262")
+              (yellow-alt . "#f0e242")
+              (yellow-alt-other . "#d0a272")
+              (yellow-faint . "#d2b580")
+              (yellow-alt-faint . "#cabf77")
+              (yellow-alt-other-faint . "#d0ba95")
+              (blue . "#778cff")
+              (blue-alt . "#8f90ff")
+              (blue-alt-other . "#8380ff")
+              (blue-faint . "#82b0ec")
+              (blue-alt-faint . "#a0acef")
+              (blue-alt-other-faint . "#80b2f0")
+              (magenta . "#ff70cf")
+              (magenta-alt . "#ff77f0")
+              (magenta-alt-other . "#ca7fff")
+              (magenta-faint . "#e0b2d6")
+              (magenta-alt-faint . "#ef9fe4")
+              (magenta-alt-other-faint . "#cfa6ff")
+              (cyan . "#30cacf")
+              (cyan-alt . "#60caff")
+              (cyan-alt-other . "#40b79f")
+              (cyan-faint . "#90c4ed")
+              (cyan-alt-faint . "#a0bfdf")
+              (cyan-alt-other-faint . "#a4d0bb")
+              (red-active . "#ff6059")
+              (green-active . "#64dc64")
+              (yellow-active . "#ffac80")
+              (blue-active . "#4fafff")
+              (magenta-active . "#cf88ff")
+              (cyan-active . "#50d3d0")
+              (red-nuanced-bg . "#440a1f")
+              (red-nuanced-fg . "#ffcccc")
+              (green-nuanced-bg . "#002904")
+              (green-nuanced-fg . "#b8e2b8")
+              (yellow-nuanced-bg . "#422000")
+              (yellow-nuanced-fg . "#dfdfb0")
+              (blue-nuanced-bg . "#1f1f5f")
+              (blue-nuanced-fg . "#bfd9ff")
+              (magenta-nuanced-bg . "#431641")
+              (magenta-nuanced-fg . "#e5cfef")
+              (cyan-nuanced-bg . "#042f49")
+              (cyan-nuanced-fg . "#a8e5e5")
+              (bg-diff-heading . "#304466")
+              (fg-diff-heading . "#dae7ff")
+              (bg-diff-added . "#0a383a")
+              (fg-diff-added . "#94ba94")
+              (bg-diff-changed . "#2a2000")
+              (fg-diff-changed . "#b0ba9f")
+              (bg-diff-removed . "#50163f")
+              (fg-diff-removed . "#c6adaa")
+              (bg-diff-refine-added . "#006a46")
+              (fg-diff-refine-added . "#e0f6e0")
+              (bg-diff-refine-changed . "#585800")
+              (fg-diff-refine-changed . "#ffffcc")
+              (bg-diff-refine-removed . "#952838")
+              (fg-diff-refine-removed . "#ffd9eb")
+              (bg-diff-focus-added . "#1d4c3f")
+              (fg-diff-focus-added . "#b4dfb4")
+              (bg-diff-focus-changed . "#424200")
+              (fg-diff-focus-changed . "#d0daaf")
+              (bg-diff-focus-removed . "#6f0f39")
+              (fg-diff-focus-removed . "#eebdba")))
+    (setq modus-themes-operandi-color-overrides nil
+          modus-themes-vivendi-color-overrides nil)))
+#+end_src
+
 ** Font configurations for Org and others
 :properties:
 :custom_id: h:defcf4fc-8fa8-4c29-b12e-7119582cc929
@@ -3116,6 +3405,9 @@ To make everything use your desired font families, you need to configure
 the ~variable-pitch~ (proportional spacing) and ~fixed-pitch~ (monospaced)
 faces respectively.  It may also be convenient to set your main typeface
 by configuring the ~default~ face the same way.
+
+[ The =fontaine= package on GNU ELPA (by the author of the modus-themes)
+  is designed to handle this case. ]
 
 Put something like this in your initialization file (also consider
 reading the doc string of ~set-face-attribute~):
@@ -4165,9 +4457,9 @@ have lots of extensions, so the "full support" may not be 100% true…
 + calendar and diary
 + calfw
 + calibredb
-+ centaur-tabs
 + cfrs
 + change-log and log-view (such as ~vc-print-log~, ~vc-print-root-log~)
++ chart
 + cider
 + circe
 + citar
@@ -4187,13 +4479,12 @@ have lots of extensions, so the "full support" may not be 100% true…
 + css-mode
 + csv-mode
 + ctrlf
-+ cursor-flash
 + custom (what you get with {{{kbd(M-x customize)}}})
 + dap-mode
-+ dashboard (emacs-dashboard)
 + deadgrep
 + debbugs
 + deft
++ denote
 + devdocs
 + dictionary
 + diff-hl
@@ -4210,7 +4501,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + diredp (dired+)
 + display-fill-column-indicator-mode
 + doom-modeline
-+ dynamic-ruler
 + easy-jekyll
 + ebdb
 + ediff
@@ -4251,7 +4541,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + flyspell
 + flx
 + freeze-it
-+ frog-menu
 + focus
 + fold-this
 + font-lock (generic syntax highlighting)
@@ -4289,6 +4578,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + imenu-list
 + indium
 + info
++ info+ (info-plus)
 + info-colors
 + interaction-log
 + ioccur
@@ -4303,6 +4593,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + kaocha-runner
 + keycast
 + ledger-mode
++ leerzeichen
 + line numbers (~display-line-numbers-mode~ and global variant)
 + lsp-mode
 + lsp-ui
@@ -4314,7 +4605,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + marginalia
 + markdown-mode
 + markup-faces (~adoc-mode~)
-+ mct
 + mentor
 + messages
 + mini-modeline
@@ -4341,14 +4631,12 @@ have lots of extensions, so the "full support" may not be 100% true…
 + org-superstar
 + org-table-sticky-header
 + org-tree-slide
-+ org-treescope
 + origami
 + outline-mode
 + outline-minor-faces
 + package (what you get with {{{kbd(M-x list-packages)}}})
 + page-break-lines
 + pandoc-mode
-+ paradox
 + paren-face
 + pass
 + pdf-tools
@@ -4420,7 +4708,6 @@ have lots of extensions, so the "full support" may not be 100% true…
 + typescript
 + undo-tree
 + vc (vc-dir.el, vc-hooks.el)
-+ vc-annotate (the output of {{{kbd(C-x v g)}}})
 + vertico
 + vertico-quick
 + vimish-fold
@@ -4464,9 +4751,11 @@ supported by the themes.
 + bufler
 + counsel-notmuch
 + counsel-org-capture-string
++ dashboard (emacs-dashboard)
 + define-word
 + disk-usage
 + dtache
++ dynamic-ruler
 + easy-kill
 + edit-indirect
 + egerrit
@@ -4542,7 +4831,7 @@ The =git-gutter= and =git-gutter-fr= packages default to drawing bitmaps
 for the indicators they display (e.g. bitmap of a plus sign for added
 lines).  In Doom Emacs, these bitmaps are replaced with contiguous lines
 which may look nicer, but require a change to the foreground of the
-relevant faces to yield the desired color combinations.
+relevant faces to yield the desired colour combinations.
 
 Since this is Doom-specific, we urge users to apply changes in their
 local setup.  Below is some sample code, based on what we cover at
@@ -5181,24 +5470,6 @@ candidates.  That style still meets the contrast ratio target of >= 7:1
 ANSI color number 1 (red) from the already-supported array of
 ~ansi-color-names-vector~.
 
-** Note on vc-annotate-background-mode
-:properties:
-:custom_id: h:5095cbd1-e17a-419c-93e8-951c186362a3
-:end:
-
-Due to the unique way ~vc-annotate~ ({{{kbd(C-x v g)}}}) applies colors, support
-for its background mode (~vc-annotate-background-mode~) is disabled at the
-theme level.
-
-Normally, such a drastic measure should not belong in a theme: assuming
-the user's preferences is bad practice.  However, it has been deemed
-necessary in the interest of preserving color contrast accessibility
-while still supporting a useful built-in tool.
-
-If there actually is a way to avoid such a course of action, without
-prejudice to the accessibility standard of this project, then please
-report as much or send patches ([[#h:9c3cd842-14b7-44d7-84b2-a5c8bc3fc3b1][Contributing]]).
-
 ** Note on pdf-tools link hints
 :properties:
 :custom_id: h:2659d13e-b1a5-416c-9a89-7c3ce3a76574
@@ -5519,7 +5790,7 @@ interface virtually unusable.
 
 [[#h:5808be52-361a-4d18-88fd-90129d206f9b][Option for links]].
 
-Again, one must exercise judgment in order to avoid discrimination,
+Again, one must exercise judgement in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5535,11 +5806,11 @@ usability beyond matters of color---they would be making a
 not-so-obvious error of treating different cases as if they were the
 same.
 
-The Modus themes prioritize "thematic consistency" over abstract harmony
+The Modus themes prioritise "thematic consistency" over abstract harmony
 or regularity among their applicable colors.  In concrete terms, we do
 not claim that, say, our yellows are the best complements for our blues
 because we generally avoid using complementary colors side-by-side, so
-it is wrong to optimize for a decontextualised blue+yellow combination.
+it is wrong to optimise for a decontextualised blue+yellow combination.
 Not to imply that our colors do not work well together because they do,
 just to clarify that consistency of context is what themes must strive
 for, and that requires widening the scope of the design beyond the
@@ -5758,22 +6029,22 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia, Gonçalo Marrafa,
   Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris
   Garcia, Ivan Popovych, Jeremy Friesen, Jerry Zhang, Johannes Grødem,
-  John Haman, Jorge Morais, Joshua O'Connor, Julio C. Villasante, Kenta
-  Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg,
-  Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark Bestley, Mark
-  Burton, Markus Beppler, Mauro Aranda, Maxime Tréca, Michael
-  Goldenberg, Morgan Smith, Morgan Willcock, Murilo Pereira, Nicky van
-  Foreest, Nicolas De Jaeghere, Paul Poloskov, Pengji Zhang, Pete
-  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Przemysław
-  Kryger, Robert Hepple, Roman Rudakov, Ryan Phillips, Rytis Paškauskas,
-  Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper, Saša Janiška,
-  Shreyas Ragavan, Simon Pugnet, Tassilo Horn, Thibaut Verron, Thomas
-  Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
-  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley.  As
-  well as users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux,
-  Fredrik, Moesasji, Nick, TheBlob42, Trey, bepolymathe, bit9tream,
-  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
-  pRot0ta1p.
+  John Haman, Jonas Collberg, Jorge Morais, Joshua O'Connor, Julio
+  C. Villasante, Kenta Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin
+  Ninev, Len Trigg, Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark
+  Bestley, Mark Burton, Markus Beppler, Matt Armstrong, Mauro Aranda,
+  Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
+  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Paul Poloskov,
+  Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre
+  Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov, Ryan
+  Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel
+  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Tassilo Horn,
+  Thibaut Verron, Thomas Heartman, Togan Muftuoglu, Tony Zorman, Trey
+  Merkley, Tomasz Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh,
+  Vincent Foley.  As well as users: Ben, CsBigDataHub1, Emacs Contrib,
+  Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
+  Trey, bepolymathe, bit9tream, derek-upham, doolio, fleimgruber,
+  gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core
@@ -5784,10 +6055,12 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Inspiration for certain features :: Bozhidar Batsov (zenburn-theme),
   Fabrice Niessen (leuven-theme).
 
-Special thanks (from A-Z) to Gustavo Barros, Manuel Uberti, Nicolas De
-Jaeghere, and Omar Antolín Camarena for their long time contributions
-and insightful commentary on key aspects of the themes' design and/or
-aspects of their functionality.
+Special thanks (from A-Z) to Daniel Mendler, Gustavo Barros, Manuel
+Uberti, Nicolas De Jaeghere, and Omar Antolín Camarena for their long
+time contributions and insightful commentary on key aspects of the
+themes' design and/or aspects of their functionality.
+
+All errors are my own.
 
 * Other notes about the project
 :properties:

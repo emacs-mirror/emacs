@@ -781,7 +781,7 @@ Built automatically from the customizable user options
 (defvar woman-uncompressed-file-regexp)	; for the compiler
 (defvar woman-file-compression-regexp)	; for the compiler
 
-(defun set-woman-file-regexp (symbol value)
+(defun woman-set-file-regexp (symbol value)
   "Bind SYMBOL to VALUE and set `woman-file-regexp' as per user customizations.
 Used as :set cookie by Customize when customizing the user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'."
@@ -806,7 +806,7 @@ in the ncurses package include `toe.1m', `form.3x', etc.
 Note: an optional compression regexp will be appended, so this regexp
 MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
-  :set #'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-file-compression-regexp
@@ -822,7 +822,7 @@ Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; not loaded by default!
   :version "24.1"                       ; added xz
   :type 'regexp
-  :set #'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-use-own-frame nil
@@ -902,7 +902,7 @@ Troff emulation is experimental and largely untested.
 (defcustom woman-fontify
   (or (display-color-p)
       (display-graphic-p)
-      (x-display-color-p))
+      (display-color-p))
   "If non-nil then WoMan assumes that face support is available.
 It defaults to a non-nil value if the display supports either colors
 or different fonts."
@@ -4580,10 +4580,10 @@ logging the message."
 
 (put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
 
-;; Obsolete.
-
 (defvar woman-version "0.551 (beta)" "WoMan version information.")
 (make-obsolete-variable 'woman-version 'emacs-version "28.1")
+
+(define-obsolete-function-alias 'set-woman-file-regexp 'woman-set-file-regexp "29.1")
 
 (provide 'woman)
 

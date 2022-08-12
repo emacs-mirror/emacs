@@ -50,17 +50,27 @@ prefix, that will not be registered.  But all other prefixes will
 be included.")
 (put 'autoload-compute-prefixes 'safe-local-variable #'booleanp)
 
+(defvar no-update-autoloads nil
+  "File local variable to prevent scanning this file for autoload cookies.")
+
 (defvar autoload-ignored-definitions
   '("define-obsolete-function-alias"
     "define-obsolete-variable-alias"
-    "define-category" "define-key"
+    "define-category"
+    "define-key" "define-key-after" "define-keymap"
     "defgroup" "defface" "defadvice"
     "def-edebug-spec"
     ;; Hmm... this is getting ugly:
     "define-widget"
     "define-erc-module"
     "define-erc-response-handler"
-    "defun-rcirc-command")
+    "defun-rcirc-command"
+    "define-short-documentation-group"
+    "def-edebug-elem-spec"
+    "defvar-mode-local"
+    "defcustom-mode-local-semantic-dependency-system-include-path"
+    "define-ibuffer-column"
+    "define-ibuffer-sorter")
   "List of strings naming definitions to ignore for prefixes.
 More specifically those definitions will not be considered for the
 `register-definition-prefixes' call.")
@@ -117,6 +127,15 @@ scanning for autoloads and will be in the `load-path'."
         (substring name 0 (match-beginning 0))
       name)))
 
+(defun loaddefs-generate--shorten-autoload (form)
+  "Remove optional nil elements from an `autoload' form."
+  (take (max (- (length form)
+                (seq-position (reverse form) nil
+                              (lambda (e1 e2)
+                                (not (eq e1 e2)))))
+             3)
+        form))
+
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition
@@ -155,8 +174,8 @@ expression, in which case we want to handle forms differently."
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
         (when (consp args) (setq doc (help-add-fundoc-usage doc args)))
-        ;; (message "autoload of %S" (nth 1 form))
-        `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type)))
+        (loaddefs-generate--shorten-autoload
+         `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type))))
 
      ((and expansion (memq car '(progn prog1)))
       (let ((end (memq :autoload-end form)))
@@ -210,22 +229,23 @@ expression, in which case we want to handle forms differently."
         ;; can recover it.
 	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; `define-generic-mode' quotes the name, so take care of that
-        `(autoload ,(if (listp name) name (list 'quote name))
-           ,file ,doc
-           ,(or (and (memq car '(define-skeleton define-derived-mode
-                                  define-generic-mode
-                                  easy-mmode-define-global-mode
-                                  define-global-minor-mode
-                                  define-globalized-minor-mode
-                                  easy-mmode-define-minor-mode
-                                  define-minor-mode))
-                     t)
-                (and (eq (car-safe (car body)) 'interactive)
-                     ;; List of modes or just t.
-                     (or (if (nthcdr 1 (car body))
-                             (list 'quote (nthcdr 1 (car body)))
-                           t))))
-           ,(if macrop ''macro nil))))
+        (loaddefs-generate--shorten-autoload
+         `(autoload ,(if (listp name) name (list 'quote name))
+            ,file ,doc
+            ,(or (and (memq car '(define-skeleton define-derived-mode
+                                   define-generic-mode
+                                   easy-mmode-define-global-mode
+                                   define-global-minor-mode
+                                   define-globalized-minor-mode
+                                   easy-mmode-define-minor-mode
+                                   define-minor-mode))
+                      t)
+                 (and (eq (car-safe (car body)) 'interactive)
+                      ;; List of modes or just t.
+                      (or (if (nthcdr 1 (car body))
+                              (list 'quote (nthcdr 1 (car body)))
+                            t))))
+            ,(if macrop ''macro nil)))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -447,7 +467,7 @@ don't include."
   (let ((prefs nil))
     ;; Avoid (defvar <foo>) by requiring a trailing space.
     (while (re-search-forward
-            "^(\\(def[^ ]+\\) ['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
+            "^(\\(def[^ \t\n]+\\)[ \t\n]+['(]*\\([^' ()\"\n]+\\)[\n \t]" nil t)
       (unless (member (match-string 1) autoload-ignored-definitions)
         (let ((name (match-string-no-properties 2)))
           (when (save-excursion
@@ -459,7 +479,7 @@ don't include."
             (push name prefs)))))
     (loaddefs-generate--make-prefixes prefs load-name)))
 
-(defun loaddefs-generate--rubric (file &optional type feature)
+(defun loaddefs-generate--rubric (file &optional type feature compile)
   "Return a string giving the appropriate autoload rubric for FILE.
 TYPE (default \"autoloads\") is a string stating the type of
 information contained in FILE.  TYPE \"package\" acts like the default,
@@ -467,7 +487,9 @@ but adds an extra line to the output to modify `load-path'.
 
 If FEATURE is non-nil, FILE will provide a feature.  FEATURE may
 be a string naming the feature, otherwise it will be based on
-FILE's name."
+FILE's name.
+
+If COMPILE, don't include a \"don't compile\" cookie."
   (let ((lp (and (equal type "package") (setq type "autoloads"))))
     (with-temp-buffer
       (generate-lisp-file-heading
@@ -481,29 +503,9 @@ FILE's name."
       (insert "\n;;; End of scraped data\n\n")
       (generate-lisp-file-trailer
        file :provide (and (stringp feature) feature)
+       :compile compile
        :inhibit-provide (not feature))
       (buffer-string))))
-
-(defun loaddefs-generate--insert-section-header (outbuf autoloads
-                                                        load-name file time)
-  "Insert into buffer OUTBUF the section-header line for FILE.
-The header line lists the file name, its \"load name\", its autoloads,
-and the time the FILE was last updated (the time is inserted only
-if `autoload-timestamps' is non-nil, otherwise a fixed fake time is inserted)."
-  (insert "\f\n;;;### ")
-  (prin1 `(autoloads ,autoloads ,load-name ,file ,time)
-	 outbuf)
-  (terpri outbuf)
-  ;; Break that line at spaces, to avoid very long lines.
-  ;; Make each sub-line into a comment.
-  (with-current-buffer outbuf
-    (save-excursion
-      (forward-line -1)
-      (while (not (eolp))
-	(move-to-column 64)
-	(skip-chars-forward "^ \n")
-	(or (eolp)
-	    (insert "\n" ";;;;;; "))))))
 
 ;;;###autoload
 (defun loaddefs-generate (dir output-file &optional excluded-files
@@ -517,15 +519,21 @@ binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified.
+directory or directories specified by DIRS.
 
-If EXTRA-DATA, include this string at the start of the generated
-file.  This will also force generation of OUTPUT-FILE even if
-there are no autoloads to put into the file.
+Optional argument EXCLUDED-FILES, if non-nil, should be a list of
+files, such as preloaded files, whose autoloads should not be written
+to OUTPUT-FILE.
 
-If INCLUDE-PACKAGE-VERSION, include package version data.
+If EXTRA-DATA is non-nil, it should be a string; include that string
+at the beginning of the generated file.  This will also force the
+generation of OUTPUT-FILE even if there are no autoloads to put into
+that file.
 
-If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
+If INCLUDE-PACKAGE-VERSION is non-nil, include package version data.
+
+If GENERATE-FULL is non-nil, regenerate all the loaddefs files anew,
+instead of just updating them with the new/changed autoloads."
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
                        ;; We don't use module-file-suffix below because
@@ -585,7 +593,8 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
           (with-temp-buffer
             (if (and updating (file-exists-p loaddefs-file))
                 (insert-file-contents loaddefs-file)
-              (insert (loaddefs-generate--rubric loaddefs-file nil t))
+              (insert (loaddefs-generate--rubric
+                       loaddefs-file nil t include-package-version))
               (search-backward "\f")
               (when extra-data
                 (insert extra-data)
@@ -631,18 +640,19 @@ If GENERATE-FULL, don't update, but regenerate all the loaddefs files."
                                t "GEN")))))))
 
 (defun loaddefs-generate--print-form (def)
-  "Print DEF in the way make-docfile.c expects it."
+  "Print DEF in a format that makes sense for version control."
   (if (or (not (consp def))
           (not (symbolp (car def)))
           (memq (car def) '( make-obsolete
                              define-obsolete-function-alias))
           (not (stringp (nth 3 def))))
       (prin1 def (current-buffer) t)
-    ;; The salient point here is that we have to have the doc string
-    ;; that starts with a backslash and a newline, and there mustn't
-    ;; be any newlines before that.  So -- typically
-    ;; (defvar foo 'value "\
-    ;; Doc string" ...).
+    ;; We want to print, for instance, `defvar' values while escaping
+    ;; control characters (so that we don't end up with lines with
+    ;; trailing tab characters and the like), but we don't want to do
+    ;; this for doc strings, because then the doc strings would be on
+    ;; one single line, which would lead to more VC churn.  So --
+    ;; typically (defvar foo 'value "\ Doc string" ...).
     (insert "(")
     (dotimes (_ 3)
       (prin1 (pop def) (current-buffer)

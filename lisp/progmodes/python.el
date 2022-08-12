@@ -427,7 +427,19 @@ This variant of `rx' supports common Python named REGEXPS."
                                  (: "vim:" (* space) "set" (+ space)
                                     "fileencoding" (* space) ?= (* space)
                                     (group-n 1 (+ (or word ?-)))
-                                    (* space) ":")))))
+                                    (* space) ":"))))
+            (bytes-escape-sequence
+             (seq (not "\\")
+                  (group (or "\\\\" "\\'" "\\a" "\\b" "\\f"
+                             "\\n" "\\r" "\\t" "\\v"
+                             (seq "\\" (** 1 3 (in "0-7")))
+                             (seq "\\x" hex hex)))))
+            (string-escape-sequence
+             (or bytes-escape-sequence
+                 (seq (not "\\")
+                      (or (group-n 1 "\\u" (= 4 hex))
+                          (group-n 1 "\\U" (= 8 hex))
+                          (group-n 1 "\\N{" (*? anychar) "}"))))))
      (rx ,@regexps)))
 
 
@@ -538,6 +550,37 @@ the {...} holes that appear within f-strings."
               (put-text-property beg end 'face nil))))
         (goto-char (min limit (1+ send)))
         (setq ppss (syntax-ppss))))))
+
+(defconst python--not-raw-bytes-literal-start-regexp
+  (rx (or bos (not alnum)) (or "b" "B") (or "\"" "\"\"\"" "'" "'''") eos)
+  "A regular expression matching the start of a not-raw bytes literal.")
+
+(defconst python--not-raw-string-literal-start-regexp
+  (rx bos (or
+           ;; Multi-line string literals
+           (seq (? (? (not alnum)) (or "u" "U" "F" "f")) (or "\"\"\"" "'''"))
+           (seq (? anychar) (not alnum) (or "\"\"\"" "'''"))
+           ;; Single line string literals
+           (seq (? (** 0 2 anychar) (not alnum)) (or "u" "U" "F" "f") (or "'" "\""))
+           (seq (? (** 0 3 anychar) (not (any "'\"" alnum))) (or "'" "\"")))
+      eos)
+  "A regular expression matching the start of a not-raw string literal.")
+
+(defun python--string-bytes-literal-matcher (regexp start-regexp)
+  "Match REGEXP within a string or bytes literal whose start matches START-REGEXP."
+  (lambda (limit)
+    (cl-loop for result = (re-search-forward regexp limit t)
+             for result-valid = (and
+                                 result
+                                 (when-let* ((pos (nth 8 (syntax-ppss)))
+                                             (before-quote
+                                              (buffer-substring-no-properties
+                                               (max (- pos 4) (point-min))
+                                               (min (+ pos 1) (point-max)))))
+                                   (backward-char)
+                                   (string-match-p start-regexp before-quote)))
+             until (or (not result) result-valid)
+             finally return (and result-valid result))))
 
 (defvar python-font-lock-keywords-level-1
   `((,(python-rx symbol-start "def" (1+ space) (group symbol-name))
@@ -716,7 +759,24 @@ sign in chained assignment."
                   grouped-assignment-target (* space)
                   (or ")" "]") (* space)
                   assignment-operator))
-     (1 font-lock-variable-name-face)))
+     (1 font-lock-variable-name-face))
+    ;; escape sequences within bytes literals
+    ;;   "\\" "\'" "\a" "\b" "\f" "\n" "\r" "\t" "\v"
+    ;;   "\ooo" character with octal value ooo
+    ;;   "\xhh" character with hex value hh
+    (,(python--string-bytes-literal-matcher
+       (python-rx bytes-escape-sequence)
+       python--not-raw-bytes-literal-start-regexp)
+     (1 font-lock-constant-face t))
+    ;; escape sequences within string literals, the same as appear in bytes
+    ;; literals in addition to:
+    ;;   "\uxxxx" Character with 16-bit hex value xxxx
+    ;;   "\Uxxxxxxxx" Character with 32-bit hex value xxxxxxxx
+    ;;   "\N{name}" Character named name in the Unicode database
+    (,(python--string-bytes-literal-matcher
+       (python-rx string-escape-sequence)
+       python--not-raw-string-literal-start-regexp)
+     (1 'font-lock-constant-face t)))
   "Font lock keywords to use in `python-mode' for maximum decoration.
 
 This decoration level includes everything in
@@ -1709,16 +1769,16 @@ backward to previous statement."
   "Move to start of current block."
   (interactive "^")
   (let ((starting-pos (point)))
+    ;; Go to first line beginning a statement
+    (while (and (not (bobp))
+                (or (and (python-nav-beginning-of-statement) nil)
+                    (python-info-current-line-comment-p)
+                    (python-info-current-line-empty-p)))
+      (forward-line -1))
     (if (progn
           (python-nav-beginning-of-statement)
           (looking-at (python-rx block-start)))
         (point-marker)
-      ;; Go to first line beginning a statement
-      (while (and (not (bobp))
-                  (or (and (python-nav-beginning-of-statement) nil)
-                      (python-info-current-line-comment-p)
-                      (python-info-current-line-empty-p)))
-        (forward-line -1))
       (let ((block-matching-indent
              (- (current-indentation) python-indent-offset)))
         (while
@@ -5800,11 +5860,6 @@ REPORT-FN is Flymake's callback function."
 
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
-
 (provide 'python)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 
 ;;; python.el ends here

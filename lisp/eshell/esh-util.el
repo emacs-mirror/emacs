@@ -539,7 +539,7 @@ list."
 (autoload 'parse-time-string "parse-time")
 
 (eval-when-compile
-  (require 'ange-ftp nil t))		; ange-ftp-parse-filename
+  (require 'ange-ftp))		; ange-ftp-parse-filename
 
 (defvar tramp-file-name-structure)
 (declare-function ange-ftp-ls "ange-ftp"

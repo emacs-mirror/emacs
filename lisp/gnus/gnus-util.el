@@ -383,7 +383,7 @@ Cache the result as a text property stored in DATE."
   ;; Either return the cached value...
   `(let ((d ,date))
      (if (equal "" d)
-	 '(0 0)
+	 0
        (or (get-text-property 0 'gnus-time d)
 	   ;; or compute the value...
 	   (let ((time (safe-date-to-time d)))
@@ -749,15 +749,6 @@ nil.  See also `gnus-bind-print-variables'."
   "Delete FILE if it exists."
   (when (file-exists-p file)
     (delete-file file)))
-
-(defun gnus-delete-duplicates (list)
-  "Remove duplicate entries from LIST."
-  (let ((result nil))
-    (while list
-      (unless (member (car list) result)
-	(push (car list) result))
-      (pop list))
-    (nreverse result)))
 
 (defun gnus-delete-directory (directory)
   "Delete files in DIRECTORY.  Subdirectories remain.
@@ -1134,14 +1125,11 @@ sure of changing the value of `foo'."
 If you find some problem with the directory separator character, try
 \"[/\\\\]\" for some systems.")
 
-(defun gnus-url-unhex (x)
-  (if (> x ?9)
-      (if (>= x ?a)
-	  (+ 10 (- x ?a))
-	(+ 10 (- x ?A)))
-    (- x ?0)))
+(autoload 'url-unhex "url-util")
+(define-obsolete-function-alias 'gnus-url-unhex #'url-unhex "29.1")
 
-;; Fixme: Do it like QP.
+;; FIXME: Make obsolete in favor of `url-unhex-string', which is
+;;        identical except for the call to `char-to-string'.
 (defun gnus-url-unhex-string (str &optional allow-newlines)
   "Remove %XX, embedded spaces, etc in a url.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
@@ -1151,9 +1139,9 @@ forbidden in URL encoding."
 	(case-fold-search t))
     (while (string-match "%[0-9a-f][0-9a-f]" str)
       (let* ((start (match-beginning 0))
-	     (ch1 (gnus-url-unhex (elt str (+ start 1))))
+             (ch1 (url-unhex (elt str (+ start 1))))
 	     (code (+ (* 16 ch1)
-		      (gnus-url-unhex (elt str (+ start 2))))))
+                      (url-unhex (elt str (+ start 2))))))
 	(setq tmp (concat
 		   tmp (substring str 0 start)
 		   (cond
@@ -1254,7 +1242,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 	contents value)
     (if (or (null (setq value (symbol-value variable)))
 	    (not (equal (car value) file))
-	    (not (equal (nth 1 value) time)))
+	    (not (time-equal-p (nth 1 value) time)))
 	(progn
 	  (setq contents (funcall function file))
 	  (set variable (list file time contents))
@@ -1388,8 +1376,7 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 			  system-configuration)
 			 ((memq 'type lst)
 			  (symbol-name system-type))
-			 (t nil)))
-	 ) ;; codename
+                         (t nil))))
     (cond
      ((not (memq 'emacs lst))
       nil)
@@ -1553,6 +1540,8 @@ lists of strings."
 ;; separate file to avoid pulling in rmail.el when requiring
 ;; gnus-util.
 (autoload 'gnus-output-to-rmail "gnus-rmail")
+
+(define-obsolete-function-alias 'gnus-delete-duplicates #'seq-uniq "29.1")
 
 (provide 'gnus-util)
 

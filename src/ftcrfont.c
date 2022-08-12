@@ -567,7 +567,7 @@ ftcrfont_draw (struct glyph_string *s,
       unblock_input ();
       return 0;
     }
-  BView_cr_dump_clipping (FRAME_HAIKU_VIEW (f), cr);
+  BView_cr_dump_clipping (FRAME_HAIKU_DRAWABLE (f), cr);
 #endif
 
   if (with_background)
@@ -677,7 +677,11 @@ ftcrhbfont_begin_hb_font (struct font *font, double *position_unit)
 
   ftcrfont_info->ft_size = ft_face->size;
   hb_font_t *hb_font = fthbfont_begin_hb_font (font, position_unit);
-  if (ftcrfont_info->bitmap_position_unit)
+  /* HarfBuzz 5 correctly scales bitmap-only fonts without position
+     unit adjustment.
+     (https://github.com/harfbuzz/harfbuzz/issues/489) */
+  if (!hb_version_atleast (5, 0, 0)
+      && ftcrfont_info->bitmap_position_unit)
     *position_unit = ftcrfont_info->bitmap_position_unit;
 
   return hb_font;

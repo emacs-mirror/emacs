@@ -275,10 +275,8 @@ will prompt for other arguments."
     (define-key map [(mouse-2)] #'reftex-index-mouse-goto-line-and-hide)
     (define-key map [follow-link] 'mouse-face)
 
-    (substitute-key-definition
-     #'next-line #'reftex-index-next map global-map)
-    (substitute-key-definition
-     #'previous-line #'reftex-index-previous map global-map)
+    (define-key map [remap next-line] #'reftex-index-next)
+    (define-key map [remap previous-line] #'reftex-index-previous)
 
     (define-key map "n" #'reftex-index-next)
     (define-key map "p" #'reftex-index-previous)

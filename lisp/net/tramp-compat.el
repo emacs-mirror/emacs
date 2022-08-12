@@ -320,6 +320,16 @@ CONDITION can also be a list of error conditions."
     (lambda (string1 string2)
       (eq t (compare-strings string1 nil nil string2 nil nil t)))))
 
+;; Function `auth-source-netrc-parse-all' is new in Emacs 29.1.
+;; `netrc-parse' has been obsoleted in parallel.
+(defalias 'tramp-compat-auth-source-netrc-parse-all
+  (if (fboundp 'auth-source-netrc-parse-all)
+      #'auth-source-netrc-parse-all
+    (lambda (&optional file)
+      (declare-function netrc-parse "netrc")
+      (autoload 'netrc-parse "netrc")
+      (netrc-parse file))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 

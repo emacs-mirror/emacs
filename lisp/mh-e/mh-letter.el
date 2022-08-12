@@ -864,16 +864,17 @@ Any match found replaces the text from BEGIN to END."
           ((stringp completion)
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer
-                 (mh-display-completion-list
-                  (all-completions word choices)
-                  ;; The `common-substring' arg only works if it's a prefix.
-                  (unless (and (functionp choices)
-                               (let ((bounds
-                                      (funcall choices
-                                               word nil '(boundaries . ""))))
-                                 (and (eq 'boundaries (car-safe bounds))
-                                      (< 0 (cadr bounds)))))
-                    word)))
+                 (display-completion-list
+                  (completion-hilit-commonality
+                   (all-completions word choices)
+                   ;; The `common-substring' arg only works if it's a prefix.
+                   (unless (and (functionp choices)
+                                (let ((bounds
+                                       (funcall choices
+                                                word nil '(boundaries . ""))))
+                                  (and (eq 'boundaries (car-safe bounds))
+                                       (< 0 (cadr bounds)))))
+                     word))))
              (ignore-errors
                (kill-buffer completions-buffer))
              (delete-region begin end)
@@ -935,7 +936,6 @@ Otherwise, simply insert MH-INS-STRING before each line."
 (provide 'mh-letter)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

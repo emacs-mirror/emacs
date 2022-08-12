@@ -760,7 +760,7 @@ with a prefix argument."
 
 (defvar dired-aux-files)
 
-(defun minibuffer-default-add-dired-shell-commands ()
+(defun dired-minibuffer-default-add-shell-commands ()
   "Return a list of all commands associated with current dired files.
 This function is used to add all related commands retrieved by `mailcap'
 to the end of the list of defaults just after the default value."
@@ -787,7 +787,7 @@ offer a smarter default choice of shell command."
       (lambda ()
 	(setq-local dired-aux-files files)
 	(setq-local minibuffer-default-add-function
-		    #'minibuffer-default-add-dired-shell-commands))
+                    #'dired-minibuffer-default-add-shell-commands))
     (setq prompt (format prompt (dired-mark-prompt arg files)))
     (if (functionp 'dired-guess-shell-command)
 	(dired-mark-pop-up nil 'shell files
@@ -3058,7 +3058,7 @@ Optional third arg LIMIT (>= 1) is a limit to the length of the
 resulting list.
 Thus, if SEP is a regexp that only matches itself,
 
-   (mapconcat #'identity (dired-split SEP STRING) SEP)
+   (mapconcat #\\='identity (dired-split SEP STRING) SEP)
 
 is always equal to STRING."
   (declare (obsolete split-string "29.1"))
@@ -3528,6 +3528,9 @@ in the Dired buffer."
       (when (and state (not (eq state 'unregistered)))
         (setq model (vc-checkout-model backend only-files-list))))
     (list backend files only-files-list state model)))
+
+(define-obsolete-function-alias 'minibuffer-default-add-dired-shell-commands
+  #'dired-minibuffer-default-add-shell-commands "29.1")
 
 
 (provide 'dired-aux)

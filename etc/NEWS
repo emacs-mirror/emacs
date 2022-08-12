@@ -59,7 +59,7 @@ If a constant file name is required, the file can be renamed to
 "emacs.pdmp", and Emacs will find it during startup anyway.
 
 ---
-** Emacs now uses of XInput 2 for input events.
+** Emacs now uses XInput 2 for input events.
 If your X server has support and you have the XInput 2 development
 headers installed, Emacs will use the X Input Extension for handling
 input.  If this causes problems, you can configure Emacs with the
@@ -350,6 +350,21 @@ Use 'abbrev', 'skeleton' or 'tempo' instead.
 Use something like 'M-x shell RET ssh <host> RET' instead.
 
 ---
+** The url-about.el library is now obsolete.
+
+---
+** The autoload.el library is now obsolete.
+It is superseded by the loaddefs-gen.el library.
+
+---
+** The netrc.el library is now obsolete.
+Use the 'auth-source-netrc-parse-all' function in auth-source.el
+instead.
+
+---
+** The url-dired.el library is now obsolete.
+
+---
 ** The fast-lock.el and lazy-lock.el library have been removed.
 They have been obsolete since Emacs 22.1.
 
@@ -359,6 +374,9 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 
 
 * Changes in Emacs 29.1
+
+---
+** New user option 'electric-quote-replace-consecutive'.
 
 ---
 ** Emacs is now capable of editing files with very long lines.
@@ -620,6 +638,9 @@ requires an X compositing manager supporting the extended frame
 synchronization protocol (see
 https://fishsoup.net/misc/wm-spec-synchronization.html).
 
+This behavior can be toggled on and off via the frame parameter
+'use-frame-synchronization'.
+
 +++
 ** New frame parameter 'alpha-background' and X resource "alphaBackground".
 This controls the opacity of the text background when running on a
@@ -869,6 +890,7 @@ specifiers can now use ':type webp'.
 
 ** Windows
 
++++
 *** New user option 'display-buffer-avoid-small-windows'.
 If non-nil, this should be a window height, a number.  Windows smaller
 than this will be avoided by 'display-buffer', if possible.
@@ -1080,31 +1102,31 @@ now has font-selection and character composition rules, a language
 environment, and an input method.  The newly-added scripts and the
 corresponding language environments are:
 
-**** Tai Tham script and the Northern Thai language environment
-**** Brahmi script and language environment
-**** Kaithi script and language environment
-**** Tirhuta script and language environment
-**** Sharada script and language environment
-**** Siddham script and language environment
-**** Syloti Nagri script and language environment
-**** Modi script and language environment
-**** Baybayin script and Tagalog language environment
-**** Hanunoo script and language environment
-**** Buhid script and language environment
-**** Tagbanwa script and language environment
-**** Limbu script and language environment
-**** Balinese script and language environment
-**** Javanese script and language environment
-**** Sundanese script and language environment
-**** Batak script and language environment
-**** Rejang script and language environment
-**** Makasar script and language environment
-**** Lontara script and language environment
-**** Hanifi Rohingya script and language environment
-**** Grantha script and language environment
-**** Kharoshthi script and language environment
-**** Lepcha script and language environment
-**** Meetei Mayek script and language environment
+Tai Tham script and the Northern Thai language environment
+Brahmi script and language environment
+Kaithi script and language environment
+Tirhuta script and language environment
+Sharada script and language environment
+Siddham script and language environment
+Syloti Nagri script and language environment
+Modi script and language environment
+Baybayin script and Tagalog language environment
+Hanunoo script and language environment
+Buhid script and language environment
+Tagbanwa script and language environment
+Limbu script and language environment
+Balinese script and language environment
+Javanese script and language environment
+Sundanese script and language environment
+Batak script and language environment
+Rejang script and language environment
+Makasar script and language environment
+Lontara script and language environment
+Hanifi Rohingya script and language environment
+Grantha script and language environment
+Kharoshthi script and language environment
+Lepcha script and language environment
+Meetei Mayek script and language environment
 
 ---
 *** The "Oriya" language environment was renamed to "Odia".
@@ -1176,9 +1198,11 @@ This command visits the file on the current line with EWW.
 
 ** Elisp
 
+---
 *** New command 'elisp-eval-buffer' (bound to 'C-c C-e').
 This command evals the forms in the current buffer.
 
+---
 *** New commands 'elisp-byte-compile-file' and 'elisp-byte-compile-buffer'.
 These commands (bound to 'C-c C-f' and 'C-c C-b', respectively)
 byte-compile the visited file and the current buffer, respectively.
@@ -1213,6 +1237,7 @@ This controls how statements like the following are indented:
         bar
 
 ** Cperl Mode
+
 ---
 *** New user option 'cperl-file-style'.
 This option determines the indentation style to be used.  It can also
@@ -1313,6 +1338,13 @@ pop up a new buffer and show the full pretty-printed value there.
 When invoked with a non-zero prefix argument, as in 'C-u C-x C-e',
 this command will pop up a new buffer and show the full pretty-printed
 value there.
+
++++
+*** You can now generate a backtrace from Lisp errors in redisplay.
+To do this, set the new variable 'backtrace-on-redisplay-error' to a
+non-nil value.  The backtrace will be written to buffer
+*Redisplay-trace*.  This buffer will not be automatically displayed in
+a window.
 
 ** Compile
 
@@ -1453,6 +1485,11 @@ If a user does 'C-s' and then uses '<mouse-2>' ('mouse-yank-primary')
 outside the echo area, Emacs will, by default, end the Isearch and
 yank the text at mouse cursor.  But if 'mouse-yank-at-point' is
 non-nil, the text will now be added to the Isearch instead.
+
++++
+*** Changes for values 'no' and 'no-ding' of 'isearch-wrap-pause'.
+Now with these values the search will wrap around not only on repeating
+with 'C-s C-s', but also after typing a character.
 
 +++
 *** New user option 'char-fold-override'.
@@ -1616,6 +1653,7 @@ the common "utm_" trackers from URLs.
 
 ** Find-Dired
 
+---
 *** New command 'find-dired-with-command'.
 This enables users to run 'find-dired' with an arbitrary command,
 enabling running commands previously unsupported and also enabling new
@@ -1632,6 +1670,12 @@ Message, referred to as 'gnus-summary-tool-bar-retro',
 'message-tool-bar-gnome'.  The "retro" tool bars have been removed (as
 well as the icons used), and the "Gnome" tool bars are now the only
 pre-defined toolbars.
+
+---
+*** 'gnus-summary-up-thread' and 'gnus-summary-down-thread' bindings removed.
+The 'gnus-summary-down-thread' binding to "M-C-d" was shadowed by
+'gnus-summary-read-document', and these commands are also available on
+"T-u" and "T-d" respectively.
 
 ---
 *** Gnus now uses a variable-pitch font in the headers by default.
@@ -2205,6 +2249,10 @@ remote host are shown.  Alternatively, the user option
 'proced-show-remote-processes' can be set to non-nil.
 'proced-signal-function' has been marked obsolete.
 
+---
+*** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
+The old name is still available as an obsolete function alias.
+
 
 * New Modes and Packages in Emacs 29.1
 
@@ -2213,6 +2261,7 @@ remote host are shown.  Alternatively, the user option
 Allows the creation of "functions with slots" or "function objects"
 via the macros 'oclosure-define' and 'oclosure-lambda'.
 
++++
 *** New generic function 'oclosure-interactive-form'.
 Used by 'interactive-form' when called on an OClosure.
 This allows specific OClosure types to compute their interactive specs
@@ -2227,6 +2276,11 @@ This is a dark version of the 'leuven' theme.
 This mode is used to edit files geared towards testing actions in
 Emacs buffers, like indentation and the like.  The new ert function
 'ert-test-erts-file' is used to parse these files.
+
+---
+** New mode 'js-json-mode'.
+This is a lightweight variant of 'js-mode' that is used by default
+when visiting JSON files.
 
 
 * Incompatible Lisp Changes in Emacs 29.1
@@ -2302,6 +2356,12 @@ they will still be escaped, so the '.foo' symbol is still printed as
 'mode-line' is now the parent face of the new 'mode-line-active' face,
 and remapping parent of basic faces does not work reliably.
 Instead of remapping 'mode-line', you have to remap 'mode-line-active'.
+
++++
+** 'make-process' has been extended to support ptys when ':stderr' is set.
+Previously, setting ':stderr' to a non-nil value would force the
+process's connection to use pipes.  Now, Emacs will use a pty for
+stdin and stdout if requested no matter the value of ':stderr'.
 
 ---
 ** User option 'mail-source-ignore-errors' is now obsolete.
@@ -2429,14 +2489,15 @@ but switching to `ash` is generally much preferable.
 'meta-complete-symbol', 'meta-mode-map',
 'minibuffer-completing-symbol',
 'minibuffer-local-filename-must-match-map', 'mode25', 'mode4350',
-'msb-after-load-hooks', 'nnimap-split-rule', 'ns-alternatives-map',
-'ns-store-cut-buffer-internal', 'package-menu-view-commentary',
-'pascal-last-completions', 'pascal-show-completions',
-'pascal-toggle-completions', 'prolog-char-quote-workaround',
-'read-filename-at-point', 'reftex-index-map',
-'reftex-index-phrases-map', 'reftex-select-bib-map',
-'reftex-select-label-map', 'reftex-toc-map', 'register-name-alist',
-'register-value', 'report-emacs-bug-pretest-address',
+'msb-after-load-hooks', 'nnimap-split-rule', 'nntp-authinfo-file',
+'ns-alternatives-map', 'ns-store-cut-buffer-internal',
+'package-menu-view-commentary', 'pascal-last-completions',
+'pascal-show-completions', 'pascal-toggle-completions',
+'prolog-char-quote-workaround', 'read-filename-at-point',
+'reftex-index-map', 'reftex-index-phrases-map',
+'reftex-select-bib-map', 'reftex-select-label-map', 'reftex-toc-map',
+'register-name-alist', 'register-value',
+'report-emacs-bug-pretest-address',
 'rmail-default-dont-reply-to-names', 'rmail-dont-reply-to',
 'rmail-dont-reply-to-names', 'rst-block-face', 'rst-comment-face',
 'rst-definition-face', 'rst-directive-face', 'rst-emphasis1-face',
@@ -2455,7 +2516,7 @@ but switching to `ash` is generally much preferable.
 'find-emacs-lisp-shadows', 'newsticker-cache-filename',
 'redisplay-end-trigger-functions', 'set-window-redisplay-end-trigger',
 'unify-8859-on-decoding-mode', 'unify-8859-on-encoding-mode',
-'vc-arch-command', 'window-redisplay-end-trigger'.
+'vc-arch-command', 'window-redisplay-end-trigger', 'x-selection'.
 
 ---
 ** Some functions and variables obsolete since Emacs 21 or 22 have been removed:
@@ -2487,6 +2548,7 @@ functions.
 ** '?\' at the end of a line now signals an error.
 Previously it produced a nonsense value, -1, that was never intended.
 
+---
 ** Some libraries obsolete since Emacs 24.1 and 24.3 have been removed:
 abbrevlist.el, assoc.el, complete.el, cust-print.el,
 erc-hecomplete.el, mailpost.el, mouse-sel.el, old-emacs-lock.el,
@@ -2494,6 +2556,16 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New 'declare' form 'interactive-args'.
+This can be used to specify what forms to put into 'command-history'
+when executing commands interactively.
+
++++
+** The FORM arg of 'time-convert' is mandatory.
+'time-convert' can still be called without it, as before, but the
+compiler now emits a warning about this deprecated usage.
 
 +++
 ** Emacs now supports user-customizable and themable icons.
@@ -2548,21 +2620,22 @@ for each specific data type while the selection is being converted.
 This function includes the current value of the variable in eldoc display
 and can be used as a more detailed alternative to 'elisp-eldoc-var-docstring'.
 
++++
 ** 'save-some-buffers' can now be extended to save other things.
 Traditionally, 'save-some-buffers' saved buffers, and also saved
 abbrevs.  This has been generalized via the
 'save-some-buffers-functions' variable, and packages can now register
 things to be saved.
 
++++
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
-+++
-** New argument LOCK of 'narrow-to-region'.
-If 'narrow-to-region' is called from Lisp with the new optional
-argument LOCK non-nil, then calls to 'widen' and calls to
-'narrow-to-region' with the optional argument LOCK nil or omitted do
-not produce any effect until the end of the current body form.
+---
+** 'symbol-file' can now report natively-compiled .eln files.
+If Emacs was built with native-compilation enabled, Lisp programs can
+now call 'symbol-file' with the new optional 3rd argument non-nil to
+request the name of the .eln file which defined a given symbol.
 
 ** Themes
 
@@ -2825,10 +2898,12 @@ them towards or away from each other.
 This hook is run before 'x-popup-menu' is about to display a
 deck-of-cards menu on screen.
 
+---
 ** New hook 'post-select-region-hook'.
 This hook is run immediately after 'select-active-regions' causes the
 region to be set as the primary selection.
 
++++
 ** New function 'buffer-match-p'.
 Check if a buffer satisfies some condition.  Some examples for
 conditions can be regular expressions that match a buffer name, a
@@ -2836,6 +2911,7 @@ cons-cell like '(major-mode . shell-mode)' that matches any buffer
 where 'major-mode' is 'shell-mode' or a combined with a condition like
 '(and "\\`\\*.+\\*\\'" (major-mode . special-mode))'.
 
++++
 ** New function 'match-buffers'.
 Use 'buffer-match-p' to gather a list of buffers that match a
 condition.
@@ -3290,6 +3366,15 @@ translation.
 ** 'shell-quote-argument' has a new optional parameter POSIX.
 This is useful when quoting shell arguments for a remote shell
 invocation.  Such shells are POSIX conformant by default.
+
++++
+** 'make-process' can set connection type independently for input and output.
+When calling 'make-process', communication via pty can be enabled
+selectively for just input or output by passing a cons cell for
+':connection-type', e.g. '(pipe . pty)'.  When examining a process
+later, you can determine whether a particular stream for a process
+uses a pty by passing one of 'stdin', 'stdout', or 'stderr' as the
+second argument to 'process-tty-name'.
 
 +++
 ** 'signal-process' now consults the list 'signal-process-functions'.

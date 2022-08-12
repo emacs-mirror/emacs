@@ -381,7 +381,6 @@ Also store it in `eldoc-last-message' and return that value."
 (defun eldoc-display-message-no-interference-p ()
   "Return nil if displaying a message would cause interference."
   (not (or executing-kbd-macro
-           (bound-and-true-p edebug-active)
            ;; The following configuration shows "Matches..." in the
            ;; echo area when point is after a closing bracket, which
            ;; conflicts with eldoc.

@@ -87,14 +87,6 @@ University of California, as described above. */
 
 #include <config.h>
 
-/* WIN32_NATIVE is for XEmacs.
-   MSDOS, WINDOWSNT, DOS_NT are for Emacs. */
-#ifdef WIN32_NATIVE
-# undef MSDOS
-# undef  WINDOWSNT
-# define WINDOWSNT
-#endif /* WIN32_NATIVE */
-
 #ifdef MSDOS
 # undef MSDOS
 # define MSDOS true

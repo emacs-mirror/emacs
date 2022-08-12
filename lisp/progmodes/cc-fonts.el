@@ -285,6 +285,7 @@
     (byte-compile
      `(lambda (limit)
 	(let (res)
+	  (c-skip-comments-and-strings limit)
 	  (while (and (setq res (re-search-forward ,regexp limit t))
 		      (progn
 			(goto-char (match-beginning 0))
@@ -300,43 +301,45 @@
     ;; with HIGHLIGHTS, a list of highlighters as specified on page
     ;; "Search-based Fontification" in the elisp manual.  If CHECK-POINT
     ;; is non-nil, we will check (< (point) limit) in the main loop.
-    `(while
-	 ,(if check-point
-	      `(and (< (point) limit)
-		    (re-search-forward ,regexp limit t))
-	    `(re-search-forward ,regexp limit t))
-       (unless (progn
-		 (goto-char (match-beginning 0))
-		 (c-skip-comments-and-strings limit))
-	 (goto-char (match-end 0))
-	 ,@(mapcar
-	    (lambda (highlight)
-	      (if (integerp (car highlight))
-		  ;; e.g. highlight is (1 font-lock-type-face t)
-		  (progn
-		    (unless (eq (nth 2 highlight) t)
-		      (error
-		       "The override flag must currently be t in %s"
-		       highlight))
-		    (when (nth 3 highlight)
-		      (error
-		       "The laxmatch flag may currently not be set in %s"
-		       highlight))
-		    `(save-match-data
-		       (c-put-font-lock-face
-			(match-beginning ,(car highlight))
-			(match-end ,(car highlight))
-			,(elt highlight 1))))
-		;; highlight is an "ANCHORED HIGHLIGHTER" of the form
-		;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
-		(when (nth 3 highlight)
-		  (error "Match highlights currently not supported in %s"
+    `(progn
+       (c-skip-comments-and-strings limit)
+       (while
+	   ,(if check-point
+		`(and (< (point) limit)
+		      (re-search-forward ,regexp limit t))
+	      `(re-search-forward ,regexp limit t))
+	 (unless (progn
+		   (goto-char (match-beginning 0))
+		   (c-skip-comments-and-strings limit))
+	   (goto-char (match-end 0))
+	   ,@(mapcar
+	      (lambda (highlight)
+		(if (integerp (car highlight))
+		    ;; e.g. highlight is (1 font-lock-type-face t)
+		    (progn
+		      (unless (eq (nth 2 highlight) t)
+			(error
+			 "The override flag must currently be t in %s"
 			 highlight))
-		`(progn
-		   ,(nth 1 highlight)
-		   (save-match-data ,(car highlight))
-		   ,(nth 2 highlight))))
-	    highlights))))
+		      (when (nth 3 highlight)
+			(error
+			 "The laxmatch flag may currently not be set in %s"
+			 highlight))
+		      `(save-match-data
+			 (c-put-font-lock-face
+			  (match-beginning ,(car highlight))
+			  (match-end ,(car highlight))
+			  ,(elt highlight 1))))
+		  ;; highlight is an "ANCHORED HIGHLIGHTER" of the form
+		  ;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
+		  (when (nth 3 highlight)
+		    (error "Match highlights currently not supported in %s"
+			   highlight))
+		  `(progn
+		     ,(nth 1 highlight)
+		     (save-match-data ,(car highlight))
+		     ,(nth 2 highlight))))
+	      highlights)))))
 
   (defun c-make-font-lock-search-function (regexp &rest highlights)
     ;; This function makes a byte compiled function that works much like
@@ -416,6 +419,8 @@
     ;; lambda more easily.
     (byte-compile
      `(lambda (limit)
+	(let ((lit-start (c-literal-start)))
+	  (when lit-start (goto-char lit-start)))
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
 	      (parse-sexp-lookup-properties

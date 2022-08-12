@@ -163,7 +163,7 @@ no aliases, which is represented by this being a table with no entries.)")
     (if (file-exists-p mail-personal-alias-file)
 	(let ((modtime (file-attribute-modification-time
 			(file-attributes mail-personal-alias-file))))
-	  (if (not (equal mail-abbrev-modtime modtime))
+	  (if (not (time-equal-p mail-abbrev-modtime modtime))
 	      (progn
 		(setq mail-abbrev-modtime modtime)
 		(build-mail-abbrevs)))))))

@@ -622,7 +622,7 @@ manner suitable for prepending to a user-specified script."
   (dolist (img-overlay org-inline-image-overlays)
     (when (string= img-file (plist-get (cdr (overlay-get img-overlay 'display)) :file))
       (when (file-exists-p img-file)
-        (image-refresh (overlay-get img-overlay 'display))))))
+        (image-flush (overlay-get img-overlay 'display))))))
 
 ;;-----------------------------------------------------------------------------
 ;; facade functions

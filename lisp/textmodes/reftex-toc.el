@@ -34,10 +34,8 @@
     (define-key map [(mouse-2)] #'reftex-toc-mouse-goto-line-and-hide)
     (define-key map [follow-link] 'mouse-face)
 
-    (substitute-key-definition
-     'next-line 'reftex-toc-next map global-map)
-    (substitute-key-definition
-     'previous-line 'reftex-toc-previous map global-map)
+    (define-key map [remap next-line] #'reftex-toc-next)
+    (define-key map [remap previous-line] #'reftex-toc-previous)
 
     (define-key map "n" #'reftex-toc-next)
     (define-key map "p" #'reftex-toc-previous)

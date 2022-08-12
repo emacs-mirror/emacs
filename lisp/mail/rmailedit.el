@@ -34,13 +34,10 @@
   :group 'rmail-edit)
 
 
-(defvar rmail-edit-map
-  (let ((map (make-sparse-keymap)))
-    ;; Make a keymap that inherits text-mode-map.
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-c\C-c" #'rmail-cease-edit)
-    (define-key map "\C-c\C-]" #'rmail-abort-edit)
-    map))
+(defvar-keymap rmail-edit-map
+  :parent text-mode-map
+  "C-c C-c" #'rmail-cease-edit
+  "C-c C-]" #'rmail-abort-edit)
 
 (declare-function rmail-summary-disable "rmailsum" ())
 

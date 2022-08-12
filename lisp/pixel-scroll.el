@@ -761,7 +761,8 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
     (let ((window (mwheel-event-window event))
           ;; The animations are smoother if the GC threshold is
           ;; reduced for the duration of the animation.
-          (gc-cons-threshold (* gc-cons-threshold 3))
+          (gc-cons-threshold (min most-positive-fixnum
+                                  (* gc-cons-threshold 3)))
           (state nil))
       (when (framep window)
         (setq window (frame-selected-window window)))

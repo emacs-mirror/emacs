@@ -183,9 +183,10 @@ General steps (for each step, check for possible errors):
     yourself, find it at <https://alpha.gnu.org/gnu/emacs/pretest>.
     Releases are of course at <https://ftp.gnu.org/pub/gnu/emacs/>.
 
-     ./admin/diff-tar-files emacs-OLD.tar.gz emacs-NEW.tar.gz
+     ./admin/diff-tar-files emacs-OLD.tar emacs-NEW.tar
 
-    Alternatively:
+    Alternatively, if you want to use the compressed tarballs (which
+    diff-tar-files doesn't understand):
 
      tar tJf emacs-OLD.tar.xz | sed -e 's,^[^/]*,,' | sort > old_tmp
      tar tJf emacs-NEW.tar.xz | sed -e 's,^[^/]*,,' | sort > new_tmp
@@ -203,7 +204,7 @@ General steps (for each step, check for possible errors):
     The output of this command might be easier to compare to the
     tarball than the one you get from find.
 
-7.   tar -xf emacs-NEW.tar; cd emacs-NEW
+7.   tar xf emacs-NEW.tar; cd emacs-NEW
      ./configure --prefix=/tmp/emacs && make check && make install
 
     Use 'script' or M-x compile to save the compilation log in
@@ -288,7 +289,7 @@ General steps (for each step, check for possible errors):
     https://ftp.gnu.org/gnu/emacs/ for a release.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
-    Check they build.
+    Check they build (./configure --with-native-compilation).
 
 11. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
@@ -309,8 +310,8 @@ General steps (for each step, check for possible errors):
       sha1sum emacs-NEW.tar.xz
       sha256sum emacs-NEW.tar.xz
 
-    You can optionally sign the announcement email, probably using the
-    same PGP key that you used for signing the tarball.
+    You can optionally sign the announcement email, preferably using
+    the same PGP key that you used for signing the tarball.
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
 

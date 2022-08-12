@@ -949,6 +949,10 @@ haiku_create_frame (Lisp_Object parms)
 	  || !FRAME_LIVE_P (XFRAME (KVAR (kb, Vdefault_minibuffer_frame)))))
     kset_default_minibuffer_frame (kb, frame);
 
+  /* Set whether or not frame synchronization is enabled.  */
+  gui_default_parameter (f, parms, Quse_frame_synchronization, Qt,
+			 NULL, NULL, RES_TYPE_BOOLEAN);
+
   gui_default_parameter (f, parms, Qz_group, Qnil,
 			 NULL, NULL, RES_TYPE_SYMBOL);
 
@@ -1501,9 +1505,9 @@ haiku_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
 
   if (FRAME_HAIKU_VIEW (f))
     {
-      BView_draw_lock (FRAME_HAIKU_VIEW (f), false, 0, 0, 0, 0);
-      BView_SetViewColor (FRAME_HAIKU_VIEW (f), background);
-      BView_draw_unlock (FRAME_HAIKU_VIEW (f));
+     BView_draw_lock (FRAME_HAIKU_DRAWABLE (f), false, 0, 0, 0, 0);
+      BView_SetViewColor (FRAME_HAIKU_DRAWABLE (f), background);
+      BView_draw_unlock (FRAME_HAIKU_DRAWABLE (f));
 
       FRAME_OUTPUT_DATA (f)->cursor_fg = background;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
@@ -2113,6 +2117,13 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     }
 
   update_face_from_frame_parameter (f, Qmouse_color, arg);
+}
+
+static void
+haiku_set_use_frame_synchronization (struct frame *f, Lisp_Object arg,
+				     Lisp_Object oldval)
+{
+  be_set_use_frame_synchronization (FRAME_HAIKU_VIEW (f), !NILP (arg));
 }
 
 
@@ -3128,6 +3139,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_override_redirect,
     gui_set_no_special_glyphs,
     gui_set_alpha_background,
+    haiku_set_use_frame_synchronization,
   };
 
 void

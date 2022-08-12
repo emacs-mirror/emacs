@@ -34,7 +34,6 @@
 (require 'gnus-util)
 (require 'gnus)
 (require 'nnoo)
-(require 'netrc)
 (require 'utf7)
 (require 'nnmail)
 
@@ -556,7 +555,7 @@ during splitting, which may be slow."
                                ;; Look for the credentials based on
                                ;; the virtual server name and the address
                                (nnimap-credentials
-				(gnus-delete-duplicates
+                                (seq-uniq
 				 (list server nnimap-address))
                                 ports
                                 nnimap-user))))

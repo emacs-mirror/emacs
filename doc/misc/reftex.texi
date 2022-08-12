@@ -38,7 +38,6 @@ Con@TeX{}t
 @set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
 @set DEVELADDRESS @AUCTeX{} developer mailing list (@email{auctex-devel@@gnu.org})
 @set BUGADDRESS @AUCTeX{} bug mailing list (@email{bug-auctex@@gnu.org})
-@set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs FTP site}
 @c %**end of header
 
 @copying
@@ -249,10 +248,7 @@ reports or suggestions.
 @cindex Installation
 
 @RefTeX{} has been bundled and pre-installed with Emacs since
-version 20.2.  It has also been bundled and pre-installed with XEmacs
-19.16--20.x.  XEmacs 21.x users want to install the corresponding
-plug-in package which is available from the @value{XEMACSFTP}.  See the
-XEmacs 21.x documentation on package installation for details.
+version 20.2.
 
 @findex turn-on-reftex
 @findex reftex-mode
@@ -3584,7 +3580,7 @@ the @value{BUGADDRESS}.
 
 There are also several Usenet groups which have competent readers who
 might be able to help: @code{comp.emacs}, @code{gnu.emacs.help},
-@code{comp.emacs.xemacs}, and @code{comp.text.tex}.
+and @code{comp.text.tex}.
 
 Thanks to the people on the Net who have used @RefTeX{} and helped
 developing it with their reports.  In particular thanks to @i{Ralf

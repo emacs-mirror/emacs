@@ -109,8 +109,8 @@ BASE and EXTRA-STRINGS where BASE is a string and EXTRA-STRINGS
 is a list of strings.  For example the current implementation for
 post-forward-angle-brackets could be:
 
-(defun my-post-forward-angle-brackets (base extra-string)
-  (concat base \"<\" (mapconcat #'identity extra-string \"/\") \">\"))
+  (defun my-post-forward-angle-brackets (base extra-string)
+    (concat base \"<\" (mapconcat #\\='identity extra-string \"/\") \">\"))
 
 The \"mumble\" part may be stripped as well, depending on the
 setting of `uniquify-strip-common-suffix'.  For more options that

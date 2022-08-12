@@ -705,12 +705,13 @@ coding system will apply.  @xref{Default Coding Systems}.
 Initialize the type of device used to communicate with the subprocess.
 Possible values are @code{pty} to use a pty, @code{pipe} to use a
 pipe, or @code{nil} to use the default derived from the value of the
-@code{process-connection-type} variable.  This parameter and the value
-of @code{process-connection-type} are ignored if a non-@code{nil}
-value is specified for the @code{:stderr} parameter; in that case, the
-type will always be @code{pipe}.  On systems where ptys are not
-available (MS-Windows), this parameter is likewise ignored, and pipes
-are used unconditionally.
+@code{process-connection-type} variable.  If @var{type} is a cons cell
+@w{@code{(@var{input} . @var{output})}}, then @var{input} will be used
+for standard input and @var{output} for standard output (and standard
+error if @code{:stderr} is @code{nil}).
+
+On systems where ptys are not available (MS-Windows), this parameter
+is ignored, and pipes are used unconditionally.
 
 @item :noquery @var{query-flag}
 Initialize the process query flag to @var{query-flag}.
@@ -1242,15 +1243,24 @@ that are already closed, the value is either 0 or 256, depending on
 whether the connection was closed normally or abnormally.
 @end defun
 
-@defun process-tty-name process
+@defun process-tty-name process &optional stream
 This function returns the terminal name that @var{process} is using for
 its communication with Emacs---or @code{nil} if it is using pipes
 instead of a pty (see @code{process-connection-type} in
-@ref{Asynchronous Processes}).  If @var{process} represents a program
-running on a remote host, the terminal name used by that program on
-the remote host is provided as process property @code{remote-tty}.  If
-@var{process} represents a network, serial, or pipe connection, the
-value is @code{nil}.
+@ref{Asynchronous Processes}).  By default, this function returns the
+terminal name if any of @var{process}'s standard streams use a
+terminal.  If @var{stream} is one of @code{stdin}, @code{stdout}, or
+@code{stderr}, this function returns the terminal name (or @code{nil},
+as above) that @var{process} uses for that stream specifically.  You
+can use this to determine whether a particular stream uses a pipe or a
+pty.
+
+If @var{process} represents a program running on a remote host, this
+function returns the @emph{local} terminal name that communicates with
+@var{process}; you can get the terminal name used by that program on
+the remote host with the process property @code{remote-tty}.  If
+@var{process} represents a network, serial, or pipe connection, this
+function always returns @code{nil}.
 @end defun
 
 @defun process-coding-system process
@@ -1530,20 +1540,11 @@ a buffer, which is called the associated buffer of the process
 default filter discards the output.
 
   If the subprocess writes to its standard error stream, by default
-the error output is also passed to the process filter function.  If
-Emacs uses a pseudo-TTY (pty) for communication with the subprocess,
-then it is impossible to separate the standard output and standard
-error streams of the subprocess, because a pseudo-TTY has only one
-output channel.  In that case, if you want to keep the output to those
-streams separate, you should redirect one of them to a file---for
-example, by using an appropriate shell command via
-@code{start-process-shell-command} or a similar function.
-
-  Alternatively, you could use the @code{:stderr} parameter with a
+the error output is also passed to the process filter function.
+Alternatively, you could use the @code{:stderr} parameter with a
 non-@code{nil} value in a call to @code{make-process}
 (@pxref{Asynchronous Processes, make-process}) to make the destination
-of the error output separate from the standard output; in that case,
-Emacs will use pipes for communicating with the subprocess.
+of the error output separate from the standard output.
 
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the

@@ -5,6 +5,7 @@
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -42,22 +43,6 @@
 (define-obsolete-function-alias 'mh-assoc-string #'assoc-string "29.1")
 (define-obsolete-function-alias 'mh-cancel-timer #'cancel-timer "29.1")
 
-;; Emacs 24 made flet obsolete and suggested either cl-flet or
-;; cl-letf. This macro is based upon gmm-flet from Gnus.
-(defmacro mh-flet (bindings &rest body)
-  "Make temporary overriding function definitions.
-That is, temporarily rebind the functions listed in BINDINGS and then
-execute BODY.  BINDINGS is a list containing one or more lists of the
-form (FUNCNAME ARGLIST BODY...), similar to defun."
-  (declare (indent 1) (debug ((&rest (sexp sexp &rest form)) &rest form)))
-  (if (fboundp 'cl-letf)
-      `(cl-letf ,(mapcar (lambda (binding)
-                           `((symbol-function ',(car binding))
-                             (lambda ,@(cdr binding))))
-                         bindings)
-         ,@body)
-    `(flet ,bindings ,@body)))
-
 (define-obsolete-function-alias 'mh-display-color-cells
   #'display-color-cells "29.1")
 
@@ -69,6 +54,7 @@ The optional argument COMMON-SUBSTRING, if non-nil, should be a string
 specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions."
+  (declare (obsolete nil "29.1"))
   `(display-completion-list
     (completion-hilit-commonality ,completions
                                   ,(length common-substring) nil)))
@@ -98,7 +84,7 @@ the completions."
 (define-obsolete-function-alias 'mh-line-end-position
   #'line-end-position "29.1")
 
-(require 'mailabbrev nil t)
+(require 'mailabbrev)
 (define-obsolete-function-alias 'mh-mail-abbrev-make-syntax-table
   #'mail-abbrev-make-syntax-table "29.1")
 
@@ -144,7 +130,6 @@ This is taken from RFC 2396.")
 (provide 'mh-compat)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

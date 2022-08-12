@@ -635,30 +635,23 @@ Emacs.pdmp: $(pdmp)
 endif
 
 ifeq ($(DUMPING),pdumper)
-$(pdmp): emacs$(EXEEXT)
+$(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.el $(lispsource)/loaddefs.elc
 	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
 		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	cp -f $@ $(bootstrap_pdmp)
 endif
 
-## We run make-docfile twice because the command line may get too long
-## on some systems.  Unfortunately, no-one has any idea
-## exactly how long the maximum safe command line length is on all the
-## various systems that Emacs supports.
-##
 ## $(SOME_MACHINE_OBJECTS) comes before $(obj) because some files may
 ## or may not be included in $(obj), but they are always included in
 ## $(SOME_MACHINE_OBJECTS).  Since a file is processed when it is mentioned
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
 ##
-$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj) $(lispsource)/loaddefs.el
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj)
 	$(AM_V_GEN)$(MKDIR_P) $(etc)
 	$(AM_V_at)rm -f $(etc)/DOC
 	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
 	  $(SOME_MACHINE_OBJECTS) $(doc_obj) > $(etc)/DOC
-	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
-	  loaddefs.el
 
 $(libsrc)/make-docfile$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT): \
   $(lib)/libgnu.a
@@ -888,13 +881,7 @@ elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
 	fi
 endif
 
-## VCSWITNESS points to the file that holds info about the current checkout.
-## We use it as a heuristic to decide when to rebuild loaddefs.el.
-## If empty it is ignored; the parent makefile can set it to some other value.
-VCSWITNESS =
-
-$(lispsource)/loaddefs.el: $(VCSWITNESS) | \
-		bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+$(lispsource)/loaddefs.el: | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the

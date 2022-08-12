@@ -86,7 +86,6 @@
 (require 'cl-lib)
 
 (require 'mh-buffers)
-(require 'mh-compat)
 
 
 
@@ -3716,7 +3715,6 @@ The background and foreground are used in the image."
 (provide 'mh-e)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

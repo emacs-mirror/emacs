@@ -29,6 +29,7 @@
 (require 'mh-e)
 
 (require 'font-lock)
+(require 'mailabbrev)
 
 ;;; CL Replacements
 
@@ -444,10 +445,8 @@ no effect."
         (setq folder (format "%s/%s/" mh-current-folder-name
                              (substring folder 1))))
       ;; XXX: Purge empty strings from the list that split-string
-      ;; returns. In XEmacs, (split-string "+foo/" "/") returns
-      ;; ("+foo" "") while in GNU Emacs it returns ("+foo"). In the
-      ;; code it is assumed that the components list has no empty
-      ;; strings.
+      ;; returns. In the code it is assumed that the components list
+      ;; has no empty strings.
       (let ((components (delete "" (split-string folder "/")))
             (result ()))
         ;; Remove .. and . from the pathname.
@@ -1009,7 +1008,6 @@ If the current line is too long truncate a part of it as well."
 (provide 'mh-utils)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

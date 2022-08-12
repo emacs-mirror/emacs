@@ -471,9 +471,7 @@ Return the number of characters removed."
           t ;; Instruct caller to signal an error.  Bug#50511
         ;; Find strongest supported auth.
         (dolist (this-auth auths)
-          (setq this-auth (url-eat-trailing-space
-                           (url-strip-leading-spaces
-                            this-auth)))
+          (setq this-auth (string-trim this-auth))
           (let* ((this-type
                   (downcase (if (string-match "[ \t]" this-auth)
                                 (substring this-auth 0 (match-beginning 0))
@@ -1048,19 +1046,15 @@ More sophisticated percentage downloaded, etc.
 Also does minimal parsing of HTTP headers and will actually cause
 the callback to be triggered."
   (if url-http-content-type
-      (url-display-percentage
+      (url-display-message
        "Reading [%s]... %s of %s (%d%%)"
-       (url-percentage (- nd url-http-end-of-headers)
-		       url-http-content-length)
        url-http-content-type
        (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
        (funcall byte-count-to-string-function url-http-content-length)
        (url-percentage (- nd url-http-end-of-headers)
 		       url-http-content-length))
-    (url-display-percentage
+    (url-display-message
      "Reading... %s of %s (%d%%)"
-     (url-percentage (- nd url-http-end-of-headers)
-		     url-http-content-length)
      (funcall byte-count-to-string-function (- nd url-http-end-of-headers))
      (funcall byte-count-to-string-function url-http-content-length)
      (url-percentage (- nd url-http-end-of-headers)
@@ -1069,7 +1063,6 @@ the callback to be triggered."
   (if (> (- nd url-http-end-of-headers) url-http-content-length)
       (progn
 	;; Found the end of the document!  Wheee!
-	(url-display-percentage nil nil)
 	(url-lazy-message "Reading... done.")
 	(if (url-http-parse-headers)
 	    (url-http-activate-callback)))))
@@ -1099,13 +1092,6 @@ the end of the document."
         ;; one after-change-function call.
         (while read-next-chunk
 	  (setq no-initial-crlf (= 0 url-http-chunked-counter))
-	  (if url-http-content-type
-	      (url-display-percentage nil
-	                              "Reading [%s]... chunk #%d"
-	                              url-http-content-type url-http-chunked-counter)
-	    (url-display-percentage nil
-	                            "Reading... chunk #%d"
-	                            url-http-chunked-counter))
 	  (url-http-debug "Reading chunk %d (%d %d %d)"
 			  url-http-chunked-counter st nd length)
 	  (setq regexp (if no-initial-crlf
@@ -1163,7 +1149,6 @@ the end of the document."
 		    ;; Found the end of the document!  Wheee!
 		    (url-http-debug "Saw end of stream chunk!")
 		    (setq read-next-chunk nil)
-		    (url-display-percentage nil nil)
 		    ;; Every chunk, even the last 0-length one, is
 		    ;; terminated by CRLF.  Skip it.
 		    (if (not (looking-at "\r?\n"))

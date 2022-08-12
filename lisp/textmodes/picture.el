@@ -641,7 +641,6 @@ Leaves the region surrounding the rectangle."
     (define-key map [remap move-end-of-line] 'picture-end-of-line)
     (define-key map [remap mouse-set-point] 'picture-mouse-set-point)
     (define-key map "\C-c\C-d" 'picture-delete-char)
-    (define-key map "\e\t" 'picture-toggle-tab-state)
     (define-key map "\t" 'picture-tab)
     (define-key map "\e\t" 'picture-tab-search)
     (define-key map "\C-c\t" 'picture-set-tab-stops)

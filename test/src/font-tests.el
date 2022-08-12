@@ -96,8 +96,7 @@ expected font properties from parsing NAME.")
 (put 'font-parse-check 'ert-explainer 'font-parse-explain)
 
 (defun font-parse-explain (name prop expected)
-  (let ((result (font-get (font-spec :name name) prop))
-	(propname (symbol-name prop)))
+  (let ((propname (symbol-name prop)))
     (format "Parsing `%s': expected %s `%s', got `%s'."
 	    name (substring propname 1) expected
 	    (font-get (font-spec :name name) prop))))
@@ -183,10 +182,6 @@ expected font properties from parsing NAME.")
                   (font-spec :name "-foundry-name-with-lots-of-dashes-normal-normal-normal-*-*-*-*-*-*-0-iso10646-1")
                   :family)
                  'name-with-lots-of-dashes)))
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 (provide 'font-tests)
 ;;; font-tests.el ends here.

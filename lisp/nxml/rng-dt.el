@@ -52,7 +52,7 @@ a datatype library.")
 	   (rng-dt-error "The string datatype does not take any parameters")))
 	((eq name 'token)
 	 (if (null params)
-	     '(t rng-collapse-space)
+             '(t string-clean-whitespace)
 	   (rng-dt-error "The token datatype does not take any parameters")))
 	(t
 	 (rng-dt-error "There is no built-in datatype %s" name))))

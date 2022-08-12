@@ -1057,6 +1057,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   0, /* x_set_override_redirect */
   gui_set_no_special_glyphs,
   gui_set_alpha_background,
+  NULL,
 #ifdef NS_IMPL_COCOA
   ns_set_appearance,
   ns_set_transparent_titlebar,

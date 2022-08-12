@@ -82,8 +82,8 @@
 (or (eq this-command 'eval-buffer)
     (condition-case nil
 	(load (concat (file-name-directory load-file-name)
-		      "org-loaddefs.el")
-	      nil t t t)
+		      "org-loaddefs")
+	      nil t nil t)
       (error
        (message "WARNING: No org-loaddefs.el file could be found from where org.el is loaded.")
        (sit-for 3)
@@ -16487,7 +16487,7 @@ INCLUDE-LINKED is passed to `org-display-inline-images'."
     (org-toggle-inline-images)))
 
 ;; For without-x builds.
-(declare-function image-refresh "image" (spec &optional frame))
+(declare-function image-flush "image" (spec &optional frame))
 
 (defcustom org-display-remote-inline-images 'skip
   "How to display remote inline images.
@@ -16628,7 +16628,7 @@ buffer boundaries with possible narrowing."
 				(org-element-property :begin link)
 				'org-image-overlay)))
 		      (if (and (car-safe old) refresh)
-			  (image-refresh (overlay-get (cdr old) 'display))
+                          (image-flush (overlay-get (cdr old) 'display))
 			(let ((image (org--create-inline-image file width)))
 			  (when image
 			    (let ((ov (make-overlay

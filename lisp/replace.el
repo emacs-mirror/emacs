@@ -664,7 +664,10 @@ which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
   (declare (interactive-only
-	    "use `search-forward' and `replace-match' instead."))
+	    "use `search-forward' and `replace-match' instead.")
+           (interactive-args
+	    (start (use-region-beginning))
+	    (end (use-region-end))))
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -676,8 +679,7 @@ and TO-STRING is also null.)"
 		   (if (use-region-p) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
-	   (if (use-region-p) (region-beginning))
-	   (if (use-region-p) (region-end))
+	   (use-region-beginning) (use-region-end)
 	   (nth 3 common)
 	   (if (use-region-p) (region-noncontiguous-p)))))
   (perform-replace from-string to-string nil nil delimited nil nil start end backward region-noncontiguous-p))
@@ -2741,7 +2743,9 @@ to a regexp that is actually used for the search.")
 	    (isearch-case-fold-search case-fold)
 	    (isearch-forward (not backward))
 	    (isearch-other-end match-beg)
-	    (isearch-error nil))
+	    (isearch-error nil)
+	    (isearch-lazy-count nil)
+	    (lazy-highlight-buffer nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()

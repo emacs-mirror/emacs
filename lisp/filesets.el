@@ -146,29 +146,16 @@ is loaded before user customizations.  Thus, if (require \\='filesets)
 precedes the `custom-set-variables' command or, for XEmacs, if init.el
 is loaded before custom.el, set this variable to t.")
 
-
-;;; utils
 (defun filesets-filter-list (lst cond-fn)
   "Remove all elements not conforming to COND-FN from list LST.
 COND-FN takes one argument: the current element."
-;  (cl-remove 'dummy lst :test (lambda (dummy elt)
-;			      (not (funcall cond-fn elt)))))
-  (let ((rv nil))
-    (dolist (elt lst)
-      (when (funcall cond-fn elt)
-	(push elt rv)))
-    (nreverse rv)))
+  (declare (obsolete seq-filter "29.1"))
+  (seq-filter cond-fn lst))
 
 (defun filesets-ormap (fsom-pred lst)
   "Return the tail of LST for the head of which FSOM-PRED is non-nil."
-  (let ((fsom-lst lst)
-	(fsom-rv nil))
-    (while (and fsom-lst
-		(null fsom-rv))
-      (if (funcall fsom-pred (car fsom-lst))
-	  (setq fsom-rv fsom-lst)
-	(setq fsom-lst (cdr fsom-lst))))
-    fsom-rv))
+  (declare (obsolete seq-drop-while "29.1"))
+  (seq-drop-while (lambda (x) (not (funcall fsom-pred x))) lst))
 
 (define-obsolete-function-alias 'filesets-some #'cl-some "28.1")
 (define-obsolete-function-alias 'filesets-member #'cl-member "28.1")
@@ -257,13 +244,13 @@ SYM to VAL and return t.  If INIT-FLAG is non-nil, set with
       (setq filesets-menu-use-cached-flag nil)
     (when (default-boundp 'filesets-data)
       (let ((modified-filesets
-	     (filesets-filter-list val
-				   (lambda (x)
-				     (let ((name (car x))
-					   (data (cdr x)))
-				       (let ((elt (assoc name filesets-data)))
-					 (or (not elt)
-					     (not (equal data (cdr elt))))))))))
+             (seq-filter (lambda (x)
+                           (let ((name (car x))
+                                 (data (cdr x)))
+                             (let ((elt (assoc name filesets-data)))
+                               (or (not elt)
+                                   (not (equal data (cdr elt)))))))
+                         val)))
 	(dolist (x modified-filesets)
 	  (filesets-reset-fileset (car x))))))
   (filesets-set-default sym val))
@@ -1033,12 +1020,12 @@ defined in `filesets-ingroup-patterns'."
 (defun filesets-filter-dir-names (lst &optional negative)
   "Remove non-directory names from a list of strings.
 If NEGATIVE is non-nil, remove all directory names."
-  (filesets-filter-list lst
-			(lambda (x)
-			  (and (not (string-match-p "^\\.+/$" x))
-			       (if negative
-				   (not (string-match-p "[:/\\]$" x))
-				 (string-match-p "[:/\\]$" x))))))
+  (seq-filter (lambda (x)
+                (and (not (string-match-p "^\\.+/$" x))
+                     (if negative
+                         (not (string-match-p "[:/\\]$" x))
+                       (string-match-p "[:/\\]$" x))))
+              lst))
 
 (defun filesets-conditional-sort (lst &optional access-fn)
   "Return a sorted copy of LST, LST being a list of strings.
@@ -1683,9 +1670,9 @@ Assume MODE (see `filesets-entry-mode'), if provided."
 			(filesets-directory-files dir patt ':files t))
 		    ;; (message "Filesets: malformed entry: %s" entry)))))))
                     (error "Filesets: malformed entry: %s" entry)))))))
-    (filesets-filter-list fl
-			  (lambda (file)
-			    (not (filesets-filetype-property file event))))))
+    (seq-filter (lambda (file)
+                  (not (filesets-filetype-property file event)))
+                fl)))
 
 (defun filesets-files-under (level depth entry dir patt &optional relativep)
   "Files under DIR that match PATT.
@@ -2498,9 +2485,5 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
   (error "%s" (mapconcat #'identity args " ")))
 
 (provide 'filesets)
-
-;; Local Variables:
-;; sentence-end-double-space:t
-;; End:
 
 ;;; filesets.el ends here

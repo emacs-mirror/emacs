@@ -854,6 +854,9 @@ Mostly we check word delimiters."
        ((get this-command 'flyspell-deplacement)
 	(not (eq flyspell-previous-command this-command)))
        ((get this-command 'flyspell-delayed)
+        ;; In case we're using `delete-selection-mode', make the
+        ;; region be updated immediately.
+        (deactivate-mark)
 	;; The current command is not delayed, that
 	;; is that we must check the word now.
 	(and (not unread-command-events)

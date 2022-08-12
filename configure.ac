@@ -4675,6 +4675,10 @@ if test "${HAVE_X11}" = "yes"; then
     AC_DEFINE([HAVE_XSYNC], [1],
       [Define to 1 if the X Synchronization Extension is available.])
     XSYNC_LIBS="-lXext"
+    OLDLIBS="$LIBS"
+    LIBS="-lXext $LIBS" # Set this temporarily for AC_CHECK_FUNC
+    AC_CHECK_FUNCS([XSyncTriggerFence]) # Check for version 3.1
+    LIBS="$OLDLIBS"
   fi
 fi
 AC_SUBST([XSYNC_LIBS])

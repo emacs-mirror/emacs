@@ -664,32 +664,26 @@ or an empty string if none."
                                  :files files
                                  :update-function update-function)))
 
-(defvar vc-git-stash-shared-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "S" #'vc-git-stash-snapshot)
-    (define-key map "C" #'vc-git-stash)
-    map))
+(defvar-keymap vc-git-stash-shared-map
+  "S" #'vc-git-stash-snapshot
+  "C" #'vc-git-stash)
 
-(defvar vc-git-stash-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map vc-git-stash-shared-map)
-    ;; Turn off vc-dir marking
-    (define-key map [mouse-2] #'ignore)
+(defvar-keymap vc-git-stash-map
+  :parent vc-git-stash-shared-map
+  ;; Turn off vc-dir marking
+  "<mouse-2>"      #'ignore
 
-    (define-key map [down-mouse-3] #'vc-git-stash-menu)
-    (define-key map "\C-k" #'vc-git-stash-delete-at-point)
-    (define-key map "=" #'vc-git-stash-show-at-point)
-    (define-key map "\C-m" #'vc-git-stash-show-at-point)
-    (define-key map "A" #'vc-git-stash-apply-at-point)
-    (define-key map "P" #'vc-git-stash-pop-at-point)
-    map))
+  "<down-mouse-3>" #'vc-git-stash-menu
+  "C-k"            #'vc-git-stash-delete-at-point
+  "="              #'vc-git-stash-show-at-point
+  "RET"            #'vc-git-stash-show-at-point
+  "A"              #'vc-git-stash-apply-at-point
+  "P"              #'vc-git-stash-pop-at-point)
 
-(defvar vc-git-stash-button-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map vc-git-stash-shared-map)
-    (define-key map [mouse-2] #'push-button)
-    (define-key map "\C-m" #'push-button)
-    map))
+(defvar-keymap vc-git-stash-button-map
+  :parent vc-git-stash-shared-map
+  "<mouse-2>" #'push-button
+  "RET"     #'push-button)
 
 (defconst vc-git-stash-shared-help
   "\\<vc-git-stash-shared-map>\\[vc-git-stash]: Create named stash\n\\[vc-git-stash-snapshot]: Snapshot stash")
@@ -910,12 +904,11 @@ If toggling on, also insert its message into the buffer."
         standard-output 1 nil
         "log" "--max-count=1" "--pretty=format:%B" "HEAD")))))
 
-(defvar vc-git-log-edit-mode-map
-  (let ((map (make-sparse-keymap "Git-Log-Edit")))
-    (define-key map "\C-c\C-s" #'vc-git-log-edit-toggle-signoff)
-    (define-key map "\C-c\C-n" #'vc-git-log-edit-toggle-no-verify)
-    (define-key map "\C-c\C-e" #'vc-git-log-edit-toggle-amend)
-    map))
+(defvar-keymap vc-git-log-edit-mode-map
+  :name "Git-Log-Edit"
+  "C-c C-s" #'vc-git-log-edit-toggle-signoff
+  "C-c C-n" #'vc-git-log-edit-toggle-no-verify
+  "C-c C-e" #'vc-git-log-edit-toggle-amend)
 
 (define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
   "Major mode for editing Git log messages.

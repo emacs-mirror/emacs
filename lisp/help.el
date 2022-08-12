@@ -1182,6 +1182,7 @@ Otherwise, return a new string."
                 (let ((k (buffer-substring-no-properties (+ orig-point 2)
                                                          end-point)))
                   (when (or (key-valid-p k)
+                            (string-match-p "\\`mouse-[1-9]" k)
                             (string-match-p "\\`M-x " k))
                     (goto-char orig-point)
                     (delete-char 2)
@@ -1322,18 +1323,17 @@ If BUFFER, lookup keys while in that buffer.  This only affects
 things like :filters for menu bindings."
   (let* ((amaps (accessible-keymaps startmap prefix))
          (orig-maps (if no-menu
-                        (progn
-                          ;; Delete from MAPS each element that is for
-                          ;; the menu bar.
-                          (let* ((tail amaps)
-                                 result)
-                            (while tail
-                              (let ((elem (car tail)))
-                                (when (not (and (>= (length (car elem)) 1)
-                                                (eq (elt (car elem) 0) 'menu-bar)))
-                                  (setq result (append result (list elem)))))
-                              (setq tail (cdr tail)))
-                            result))
+                        ;; Delete from MAPS each element that is for
+                        ;; the menu bar.
+                        (let* ((tail amaps)
+                               result)
+                          (while tail
+                            (let ((elem (car tail)))
+                              (when (not (and (>= (length (car elem)) 1)
+                                              (eq (elt (car elem) 0) 'menu-bar)))
+                                (setq result (append result (list elem)))))
+                            (setq tail (cdr tail)))
+                          result)
                       amaps))
          (maps orig-maps)
          (print-title (or maps always-title))
@@ -1447,8 +1447,7 @@ prefix keys PREFIX (a string or vector).
 TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW and BUFFER are as
 in `describe-map-tree'."
   ;; Converted from describe_map in keymap.c.
-  (let* ((suppress (and partial 'suppress-keymap))
-         (map (keymap-canonicalize map))
+  (let* ((map (keymap-canonicalize map))
          (tail map)
          (first t)
          done vect)
@@ -1479,7 +1478,7 @@ in `describe-map-tree'."
                     ;; commands.
                     (setq definition (keymap--get-keyelt (cdr (car tail)) nil))
                     (or (not (symbolp definition))
-                        (null (get definition suppress)))
+                        (not (get definition (when partial 'suppress-keymap))))
                     ;; Don't show a command that isn't really
                     ;; visible because a local definition of the
                     ;; same key shadows it.
@@ -1512,7 +1511,7 @@ in `describe-map-tree'."
                  (push (cons tail prefix) help--keymaps-seen)))))
       (setq tail (cdr tail)))
     ;; If we found some sparse map events, sort them.
-    (let ((vect (sort vect 'help--describe-map-compare))
+    (let ((vect (sort vect #'help--describe-map-compare))
           (columns ())
           line-start key-end column)
       ;; Now output them in sorted order.

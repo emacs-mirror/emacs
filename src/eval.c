@@ -57,6 +57,12 @@ Lisp_Object Vrun_hooks;
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
 
+/* The handler structure which will catch errors in Lisp hooks called
+   from redisplay.  We do not use it for this; we compare it with the
+   handler which is about to be used in signal_or_quit, and if it
+   matches, cause a backtrace to be generated.  */
+static struct handler *redisplay_deep_handler;
+
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
 Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
@@ -246,6 +252,7 @@ init_eval (void)
   lisp_eval_depth = 0;
   /* This is less than the initial value of num_nonmacro_input_events.  */
   when_entered_debugger = -1;
+  redisplay_deep_handler = NULL;
 }
 
 /* Ensure that *M is at least A + B if possible, or is its maximum
@@ -333,7 +340,8 @@ call_debugger (Lisp_Object arg)
   /* Interrupting redisplay and resuming it later is not safe under
      all circumstances.  So, when the debugger returns, abort the
      interrupted redisplay by going back to the top-level.  */
-  if (debug_while_redisplaying)
+  if (debug_while_redisplaying
+      && !EQ (Vdebugger, Qdebug_early))
     Ftop_level ();
 
   return unbind_to (count, val);
@@ -593,16 +601,19 @@ The return value is BASE-VARIABLE.  */)
 
   if (SYMBOL_CONSTANT_P (new_alias))
     /* Making it an alias effectively changes its value.  */
-    error ("Cannot make a constant an alias");
+    error ("Cannot make a constant an alias: %s",
+	   SDATA (SYMBOL_NAME (new_alias)));
 
   sym = XSYMBOL (new_alias);
 
   switch (sym->u.s.redirect)
     {
     case SYMBOL_FORWARDED:
-      error ("Cannot make an internal variable an alias");
+      error ("Cannot make a built-in variable an alias: %s",
+	     SDATA (SYMBOL_NAME (new_alias)));
     case SYMBOL_LOCALIZED:
-      error ("Don't know how to make a localized variable an alias");
+      error ("Don't know how to make a buffer-local variable an alias: %s",
+	     SDATA (SYMBOL_NAME (new_alias)));
     case SYMBOL_PLAINVAL:
     case SYMBOL_VARALIAS:
       break;
@@ -633,7 +644,8 @@ The return value is BASE-VARIABLE.  */)
     for (p = specpdl_ptr; p > specpdl; )
       if ((--p)->kind >= SPECPDL_LET
 	  && (EQ (new_alias, specpdl_symbol (p))))
-	error ("Don't know how to make a let-bound variable an alias");
+	error ("Don't know how to make a let-bound variable an alias: %s",
+	       SDATA (SYMBOL_NAME (new_alias)));
   }
 
   if (sym->u.s.trapped_write == SYMBOL_TRAPPED_WRITE)
@@ -1552,12 +1564,16 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 						ptrdiff_t nargs,
 						Lisp_Object *args))
 {
+  struct handler *old_deep = redisplay_deep_handler;
   struct handler *c = push_handler (handlers, CONDITION_CASE);
+  if (redisplaying_p)
+    redisplay_deep_handler = c;
   if (sys_setjmp (c->jmp))
     {
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
+      redisplay_deep_handler = old_deep;
       return hfun (val, nargs, args);
     }
   else
@@ -1565,6 +1581,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
       Lisp_Object val = bfun (nargs, args);
       eassert (handlerlist == c);
       handlerlist = c->next;
+      redisplay_deep_handler = old_deep;
       return val;
     }
 }
@@ -1697,6 +1714,11 @@ quit (void)
   return signal_or_quit (Qquit, Qnil, true);
 }
 
+/* Has an error in redisplay giving rise to a backtrace occurred as
+   yet in the current command?  This gets reset in the command
+   loop.  */
+bool backtrace_yet = false;
+
 /* Signal an error, or quit.  ERROR_SYMBOL and DATA are as with Fsignal.
    If KEYBOARD_QUIT, this is a quit; ERROR_SYMBOL should be
    Qquit and DATA should be Qnil, and this function may return.
@@ -1810,6 +1832,40 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       specbind (Qdebugger, Qdebug_early);
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
+    }
+
+  /* If an error is signalled during a Lisp hook in redisplay, write a
+     backtrace into the buffer *Redisplay-trace*.  */
+  if (!debugger_called && !NILP (error_symbol)
+      && backtrace_on_redisplay_error
+      && (NILP (clause) || h == redisplay_deep_handler)
+      && NILP (Vinhibit_debugger)
+      && !NILP (Ffboundp (Qdebug_early)))
+    {
+      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
+      specpdl_ref count = SPECPDL_INDEX ();
+      ptrdiff_t counti = specpdl_ref_to_count (count);
+      AUTO_STRING (redisplay_trace, "*Redisplay_trace*");
+      Lisp_Object redisplay_trace_buffer;
+      AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
+      Lisp_Object delayed_warning;
+      max_ensure_room (&max_specpdl_size, counti, 200);
+      redisplay_trace_buffer = Fget_buffer_create (redisplay_trace, Qnil);
+      current_buffer = XBUFFER (redisplay_trace_buffer);
+      if (!backtrace_yet) /* Are we on the first backtrace of the command?  */
+	Ferase_buffer ();
+      else
+	Finsert (1, &gap);
+      backtrace_yet = true;
+      specbind (Qstandard_output, redisplay_trace_buffer);
+      specbind (Qdebugger, Qdebug_early);
+      call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
+      unbind_to (count, Qnil);
+      delayed_warning = make_string
+	("Error in a redisplay Lisp hook.  See buffer *Redisplay_trace*", 61);
+
+      Vdelayed_warnings_list = Fcons (list2 (Qerror, delayed_warning),
+				      Vdelayed_warnings_list);
     }
 
   if (!NILP (clause))
@@ -4273,6 +4329,11 @@ Does not apply if quit is handled by a `condition-case'.  */);
 
   DEFVAR_BOOL ("debug-on-next-call", debug_on_next_call,
 	       doc: /* Non-nil means enter debugger before next `eval', `apply' or `funcall'.  */);
+
+  DEFVAR_BOOL ("backtrace-on-redisplay-error", backtrace_on_redisplay_error,
+	       doc: /* Non-nil means create a backtrace if a lisp error occurs in redisplay.
+The backtrace is written to buffer *Redisplay-trace*.  */);
+  backtrace_on_redisplay_error = false;
 
   DEFVAR_BOOL ("debugger-may-continue", debugger_may_continue,
 	       doc: /* Non-nil means debugger may continue execution.

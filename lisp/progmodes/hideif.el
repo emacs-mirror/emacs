@@ -2521,8 +2521,7 @@ Turn off hiding by calling `show-ifdefs'."
             (or hide-ifdef-read-only hif-outside-read-only))
       (and hide-ifdef-verbose
            (message "Hiding done, %.1f seconds elapsed"
-                    (float-time (time-subtract (current-time)
-                                               hide-start-time)))))))
+		    (float-time (time-subtract nil hide-start-time)))))))
 
 
 (defun show-ifdefs (&optional start end)

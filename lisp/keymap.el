@@ -313,7 +313,7 @@ Modifiers have to be specified in this order:
 which is
 
    Alt-Control-Hyper-Meta-Shift-super"
-  (declare (pure t) (side-effect-free t))
+  (declare (pure t) (side-effect-free error-free))
   (let ((case-fold-search nil))
     (and
      (stringp keys)
@@ -530,7 +530,8 @@ should be a MENU form as accepted by `easy-menu-define'.
                    (keymap keymap)
                    (prefix (define-prefix-command prefix nil name))
                    (full (make-keymap name))
-                   (t (make-sparse-keymap name)))))
+                   (t (make-sparse-keymap name))))
+          seen-keys)
       (when suppress
         (suppress-keymap keymap (eq suppress 'nodigits)))
       (when parent
@@ -544,6 +545,9 @@ should be a MENU form as accepted by `easy-menu-define'.
           (let ((def (pop definitions)))
             (if (eq key :menu)
                 (easy-menu-define nil keymap "" def)
+              (if (member key seen-keys)
+                  (error "Duplicate definition for key: %S %s" key keymap)
+                (push key seen-keys))
               (keymap-set keymap key def)))))
       keymap)))
 
@@ -571,6 +575,16 @@ as the variable documentation string.
           (push (pop defs) opts))))
     (unless (zerop (% (length defs) 2))
       (error "Uneven number of key/definition pairs: %s" defs))
+    (let ((defs defs)
+          key seen-keys)
+      (while defs
+        (setq key (pop defs))
+        (pop defs)
+        (when (not (eq key :menu))
+          (if (member key seen-keys)
+              (error "Duplicate definition for key '%s' in keymap '%s'"
+                     key variable-name)
+            (push key seen-keys)))))
     `(defvar ,variable-name
        (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))

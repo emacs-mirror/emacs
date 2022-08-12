@@ -107,8 +107,6 @@
 ;;; Code:
 
 (require 'ediff-util)
-;; end pacifier
-
 (require 'ediff-init)
 (require 'ediff-mult)  ; required because of the registry stuff
 
@@ -283,7 +281,8 @@ deleted.
 Returns the buffer into which the file is visited.
 Also sets `ediff--magic-file-name' to indicate where the file's content
 has been saved (if not in `buffer-file-name')."
-  (let* ((file-magic (ediff-filename-magic-p file))
+  (let* ((file-magic (or (ediff-file-compressed-p file)
+                         (file-remote-p file)))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
     (cond ((not (file-readable-p file))
 	   (user-error "File `%s' does not exist or is not readable" file))

@@ -268,7 +268,7 @@ This can also be a list of the above values."
 (defcustom gnus-hidden-properties
   ;; We use to have `intangible' here as well, but Emacs's command loop moves
   ;; point out of invisible text anyway, so `intangible' is clearly not
-  ;; needed there.  And XEmacs doesn't handle `intangible' anyway.
+  ;; needed there.
   '(invisible t)
   "Property list to use for hiding text."
   :type 'plist
@@ -8470,8 +8470,6 @@ url is put as the `gnus-button-url' overlay property on the button."
       (when comma
 	(dotimes (_ (with-temp-buffer
 		      (insert comma)
-		      ;; Note: the XEmacs version of `how-many' takes
-		      ;; no optional argument.
 		      (goto-char (point-min))
 		      (how-many ",")))
 	  (Info-index-next 1)))

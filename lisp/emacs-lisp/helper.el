@@ -131,7 +131,6 @@
 (defun Helper-describe-bindings ()
   "Describe local key bindings of current mode."
   (interactive)
-  (message "Making binding list...")
   (save-window-excursion (describe-bindings))
   (Helper-help-scroller))
 

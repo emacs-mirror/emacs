@@ -325,7 +325,6 @@ The MH command pick is used to do the match."
 (provide 'mh-limit)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

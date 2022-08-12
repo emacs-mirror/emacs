@@ -3043,11 +3043,9 @@ The following properties have special meanings for this widget:
   :on "Hide"
   :off-glyph "right"
   :off "Show"
-  :value-create 'widget-visibility-value-create
+  :value-create 'widget-toggle-value-create
   :action 'widget-toggle-action
   :match (lambda (_widget _value) t))
-
-(defalias 'widget-visibility-value-create 'widget-toggle-value-create)
 
 ;;; The `documentation-link' Widget.
 ;;
@@ -4143,9 +4141,9 @@ is inline."
 	(setq help-echo (funcall help-echo widget)))
     (if help-echo (message "%s" (eval help-echo)))))
 
-;;; Obsolete.
-
 (define-obsolete-function-alias 'widget-sublist #'seq-subseq "28.1")
+(define-obsolete-function-alias 'widget-visibility-value-create
+  #'widget-toggle-value-create "29.1")
 
 (provide 'wid-edit)
 

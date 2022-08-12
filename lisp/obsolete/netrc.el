@@ -4,6 +4,9 @@
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
+;; Obsolete-since: 29.1
+;;
+;; Instead of using `netrc-parse', use `auth-source-netrc-parse-all'.
 ;;
 ;;  Modularized by Ted Zlatanov <tzz@lifelogs.com>
 ;;  when it was part of Gnus.
@@ -50,6 +53,7 @@
 
 (defun netrc-parse (&optional file)
   "Parse FILE and return a list of all entries in the file."
+  (declare (obsolete auth-source-netrc-parse-all "29.1"))
   (interactive "fFile to Parse: ")
   (unless file
     (setq file netrc-file))
@@ -63,8 +67,9 @@
 			"port"))
 	      alist elem result pair)
           (if (and netrc-cache
-		   (equal (car netrc-cache) (file-attribute-modification-time
-                                             (file-attributes file))))
+		   (time-equal-p (car netrc-cache)
+				 (file-attribute-modification-time
+				  (file-attributes file))))
 	      (insert (base64-decode-string (rot13-string (cdr netrc-cache))))
 	    (insert-file-contents file)
 	    (when (string-match "\\.gpg\\'" file)
@@ -159,7 +164,8 @@ default ports DEFAULTS to `netrc-machine'.
 MODE can be \"login\" or \"password\", suitable for passing to
 `netrc-get'."
   (let ((authinfo-list (if (stringp authinfo-file-or-list)
-			   (netrc-parse authinfo-file-or-list)
+                           (with-suppressed-warnings ((obsolete netrc-parse))
+			     (netrc-parse authinfo-file-or-list))
 			 authinfo-file-or-list))
 	(ports (or ports '(nil)))
 	(defaults (or defaults '(nil)))
@@ -222,7 +228,8 @@ MODE can be \"login\" or \"password\", suitable for passing to
   "Return a user name/password pair.
 Port specifications will be prioritized in the order they are
 listed in the PORTS list."
-  (let ((list (netrc-parse))
+  (let ((list (with-suppressed-warnings ((obsolete netrc-parse))
+                (netrc-parse)))
 	found)
     (if (not ports)
 	(setq found (netrc-machine list machine))

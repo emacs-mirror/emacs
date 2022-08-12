@@ -4099,11 +4099,11 @@ E.g.,
 ;; Put these lines uncommented in your .emacs if you want C-r to refresh
 ;; ange-ftp's cache whilst doing filename completion.
 ;;
-;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
-;;(define-key minibuffer-local-must-match-map "\C-r" 'ange-ftp-re-read-dir)
+;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-reread-dir)
+;;(define-key minibuffer-local-must-match-map "\C-r" 'ange-ftp-reread-dir)
 
 ;;;###autoload
-(defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
+(define-obsolete-function-alias 'ange-ftp-re-read-dir #'ange-ftp-reread-dir "29.1")
 
 ;;;###autoload
 (defun ange-ftp-reread-dir (&optional dir)

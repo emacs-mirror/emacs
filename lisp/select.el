@@ -85,9 +85,6 @@ other programs (X Windows clients or MS Windows programs).  But, if this
 variable is set, it is used for the next communication only.
 After the communication, this variable is set to nil.")
 
-;; Only declared obsolete in 23.3.
-(define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
-
 (define-obsolete-variable-alias 'x-select-enable-clipboard
   'select-enable-clipboard "25.1")
 (defcustom select-enable-clipboard t

@@ -1525,6 +1525,17 @@ Setup `char-width-table' appropriate for non-CJK language environment."
   (aset char-acronym-table (+ #xE0021 i) (format " %c TAG" (+ 33 i))))
 (aset char-acronym-table #xE007F "->|TAG") ; CANCEL TAG
 
+(dotimes (i 256)
+  (let* ((vs-number (1+ i))
+         (codepoint (if (< i 16)
+                        (+ #xfe00 i)
+                      (+ #xe0100 i -16)))
+         (delimiter (cond ((<= vs-number 9) "0")
+                          ((<= vs-number 99) "")
+                          (t " "))))
+    (aset char-acronym-table codepoint
+          (format "VS%s%s" delimiter vs-number))))
+
 ;; We can't use the \N{name} things here, because this file is used
 ;; too early in the build process.
 (defvar bidi-control-characters
@@ -1574,7 +1585,9 @@ option `glyphless-char-display'."
 					     #x80 #x9F method))
 	    ((eq target 'variation-selectors)
 	     (glyphless-set-char-table-range glyphless-char-display
-					     #xFE00 #xFE0F method))
+					     #xFE00 #xFE0F method)
+             (glyphless-set-char-table-range glyphless-char-display
+					     #xE0100 #xE01EF method))
 	    ((or (eq target 'format-control)
                  (eq target 'bidi-control))
 	     (when unicode-category-table
@@ -1647,10 +1660,10 @@ GROUP must be one of these symbols:
                     that are relevant for bidirectional formatting control,
                     like U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
-                    Characters in the range U+FE00..U+FE0F, used for
-                    selecting alternate glyph presentations, such as
-                    Emoji vs Text presentation, of the preceding
-                    character(s).
+                    Characters in the range U+FE00..U+FE0F and
+                    U+E0100..U+E01EF, used for selecting alternate glyph
+                    presentations, such as Emoji vs Text presentation, of
+                    the preceding character(s).
   `no-font':        For GUI frames, characters for which no suitable
                     font is found; for text-mode frames, characters
                     that cannot be encoded by `terminal-coding-system'.

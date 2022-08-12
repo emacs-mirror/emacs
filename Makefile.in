@@ -455,18 +455,11 @@ lisp: src
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
-# Ideally, VCSWITNESS should be a file that is modified whenever the
-# repository registers a commit from either a local checkin or a
-# repository pull. In git there is no single file that guarantees
-# this, but the local log for the current head should be close enough.
-#
 # Pass an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
 # source directory of src/).
-dirstate = .git/logs/HEAD
-VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
-	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(BIN_DESTDIR)' \
+	$(MAKE) -C $@ BIN_DESTDIR='$(BIN_DESTDIR)' \
 		 ELN_DESTDIR='$(ELN_DESTDIR)' all
 
 blessmail: Makefile src

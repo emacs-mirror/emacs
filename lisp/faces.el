@@ -657,8 +657,8 @@ If FACE is a face-alias, get the documentation for the target face."
   (put face 'face-documentation (purecopy string)))
 
 
-(defalias 'face-doc-string 'face-documentation)
-(defalias 'set-face-doc-string 'set-face-documentation)
+(define-obsolete-function-alias 'face-doc-string #'face-documentation "29.1")
+(define-obsolete-function-alias 'set-face-doc-string #'set-face-documentation "29.1")
 
 
 
@@ -2037,7 +2037,7 @@ as backgrounds."
 	     (setq color (background-color-at-point))))
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
-	(let ((components (x-color-values color)))
+        (let ((components (color-values color)))
 	  (unless (string-match-p "^#\\(?:[[:xdigit:]][[:xdigit:]][[:xdigit:]]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))
@@ -2046,18 +2046,29 @@ as backgrounds."
     (when msg (message "Color: `%s'" color))
     color))
 
-(defun face-at-point (&optional thing multiple)
-  "Return the face of the character after point.
-If it has more than one face, return the first one.
-If THING is non-nil try first to get a face name from the buffer.
-IF MULTIPLE is non-nil, return a list of all faces.
-Return nil if there is no face."
+(defun face-at-point (&optional text multiple)
+  "Return a face name from point in the current buffer.
+This function is meant to be used as a conveniency function for
+providing defaults when prompting the user for a face name.
+
+If TEXT is non-nil, return the text at point if it names an
+existing face.
+
+Otherwise, look at the faces in effect at point as text
+properties or overlay properties, and return one of these face
+names.
+
+IF MULTIPLE is non-nil, return a list of faces.
+
+Return nil if there is no face at point.
+
+This function is not meant for handling faces programatically; to
+do that, use `get-text-property' and `get-char-property'."
   (let (faces)
-    (if thing
-        ;; Try to get a face name from the buffer.
-        (let ((face (intern-soft (thing-at-point 'symbol))))
-          (if (facep face)
-              (push face faces))))
+    (when text
+      ;; Try to get a face name from the buffer.
+      (when-let ((face (thing-at-point 'face)))
+        (push face faces)))
     ;; Add the named faces that the `read-face-name' or `face' property uses.
     (let ((faceprop (or (get-char-property (point) 'read-face-name)
                         (get-char-property (point) 'face))))

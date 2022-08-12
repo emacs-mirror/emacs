@@ -32,9 +32,6 @@
 ;; If you add a file to be loaded here, keep the following points in mind:
 
 ;; i) If the file is no-byte-compile, explicitly load the .el version.
-;; Such files should (where possible) obey the doc-string conventions
-;; expected by make-docfile.  They should also be added to the
-;; uncompiled[] list in make-docfile.c.
 
 ;; ii) If the file is dumped with Emacs (on any platform), put the
 ;; load statement at the start of a line (leading whitespace is ok).
@@ -42,11 +39,9 @@
 ;; iii) If the file is _not_ dumped with Emacs, make sure the load
 ;; statement is _not_ at the start of a line.  See pcase for an example.
 
-;; These rules are so that src/Makefile can construct lisp.mk automatically.
-;; This ensures both that the Lisp files are compiled (if necessary)
-;; before the emacs executable is dumped, and that they are passed to
-;; make-docfile.  (Any that are not processed for DOC will not have
-;; doc strings in the dumped Emacs.)
+;; These rules are so that src/Makefile can construct lisp.mk
+;; automatically.  This ensures that the Lisp files are compiled (if
+;; necessary) before the emacs executable is dumped.
 
 ;;; Code:
 
@@ -185,9 +180,10 @@
 ;; should be updated by overwriting it with an up-to-date copy of
 ;; loaddefs.el that is not corrupted by local changes.
 ;; admin/update_autogen can be used to update ldefs-boot.el periodically.
-(condition-case nil (load "loaddefs.el")
-  ;; In case loaddefs hasn't been generated yet.
-  (file-error (load "ldefs-boot.el")))
+(condition-case nil
+    (load "loaddefs")
+  (file-error
+   (load "ldefs-boot.el")))
 
 (let ((new (make-hash-table :test #'equal)))
   ;; Now that loaddefs has populated definition-prefixes, purify its contents.

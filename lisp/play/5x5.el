@@ -82,13 +82,6 @@
 
 ;; Non-customize variables.
 
-(defmacro 5x5-defvar-local (var value doc)
-  "Define VAR to VALUE with documentation DOC and make it buffer local."
-  (declare (obsolete defvar-local "28.1"))
-  `(progn
-     (defvar ,var ,value ,doc)
-     (make-variable-buffer-local (quote ,var))))
-
 (defvar-local 5x5-grid nil
   "5x5 grid contents.")
 
@@ -930,13 +923,14 @@ lest."
 
 ;; Support functions
 
-(define-obsolete-function-alias '5x5-xor 'xor "27.1")
-
 (defun 5x5-y-or-n-p (prompt)
   "5x5 wrapper for `y-or-n-p' which respects the `5x5-hassle-me' setting."
   (if 5x5-hassle-me
       (y-or-n-p prompt)
     t))
+
+(define-obsolete-function-alias '5x5-xor #'xor "27.1")
+(define-obsolete-function-alias '5x5-defvar-local #'defvar-local "28.1")
 
 (provide '5x5)
 

@@ -1411,7 +1411,7 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
-(eval-and-compile (require 'which-func nil t))
+(require 'which-func)
 
 ;;;###mh-autoload
 (defun mh-index-create-imenu-index ()
@@ -1932,7 +1932,6 @@ folder buffer."
 (provide 'mh-search)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

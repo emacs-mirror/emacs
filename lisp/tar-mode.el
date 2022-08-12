@@ -1377,7 +1377,7 @@ to make your changes permanent."
 	  ;; Maybe update the datestamp.
 	  (when tar-update-datestamp
 	    (tar-alter-one-field tar-time-offset
-				 (concat (tar-octal-time (current-time)) " "))))
+				 (concat (tar-octal-time nil) " "))))
         ;; After doing the insertion, add any necessary final padding.
         (tar-pad-to-blocksize))
       (set-buffer-modified-p t)         ; mark the tar file as modified

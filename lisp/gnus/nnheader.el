@@ -920,9 +920,9 @@ first.  Otherwise, find the newest one, though it may take a time."
 (defvar ange-ftp-path-format)
 (defun nnheader-re-read-dir (path)
   "Re-read directory PATH if PATH is on a remote system."
-  (when (and (fboundp 'ange-ftp-re-read-dir) (boundp 'ange-ftp-path-format))
+  (when (and (fboundp 'ange-ftp-reread-dir) (boundp 'ange-ftp-path-format))
     (when (string-match (car ange-ftp-path-format) path)
-      (ange-ftp-re-read-dir path))))
+      (ange-ftp-reread-dir path))))
 
 (defun nnheader-insert-file-contents (filename &optional visit beg end replace)
   "Like `insert-file-contents', q.v., but only reads in the file.
@@ -1055,7 +1055,7 @@ See `find-file-noselect' for the arguments."
 				     (or ,end (point-max)))
 		'(buffer-string)))))
 
-(defvar nnheader-last-message-time '(0 0))
+(defvar nnheader-last-message-time 0)
 (defun nnheader-message-maybe (&rest args)
   (let ((now (current-time)))
     (when (time-less-p 1 (time-subtract now nnheader-last-message-time))

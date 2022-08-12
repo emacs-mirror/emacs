@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1999-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware, mouse
@@ -30,8 +30,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'rect))
-
-;;; Utility functions.
 
 ;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)

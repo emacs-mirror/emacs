@@ -1580,8 +1580,6 @@
   :link '(custom-manual "(elisp)Advising Functions")
   :group 'lisp)
 
-(defconst ad-version "2.14")
-
 ;;;###autoload
 (defcustom ad-redefinition-action 'warn
   "Defines what to do with redefinitions during Advice de/activation.
@@ -3249,6 +3247,9 @@ Use only in REAL emergencies."
   (ad-do-advised-functions (function)
     (message "Oops! Left over advised function %S" function)
     (ad-pop-advised-function function)))
+
+(defconst ad-version "2.14")
+(make-obsolete-variable 'ad-version 'emacs-version "29.1")
 
 (provide 'advice)
 

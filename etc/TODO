@@ -130,11 +130,6 @@ See also ESR's proposal for a BROWSER environment variable
 ** In Custom buffers, put the option that turns a mode on or off first
 This should use a heuristic of some kind?
 
-** Define recompute-arg and recompute-arg-if for fix_command to use
-See rms message of 11 Dec 05 in
-https://lists.gnu.org/r/emacs-pretest-bug/2005-12/msg00165.html,
-and the rest of that discussion.
-
 ** In Emacs Info, examples of using Customize should be clickable
 They should create Custom buffers when clicked.
 
@@ -1713,17 +1708,8 @@ apparently loses under Solaris, at least. [fx has mostly done this.]
 
 (Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
 
-** Rewrite make-docfile to be clean and maintainable
-It might be better to replace with Lisp the part of make-docfile that
-produces the etc/DOC file by scanning *.el files, for example by
-reusing the code in the byte compiler or in autoload.el that already
-scans *.el files.
-https://lists.gnu.org/r/emacs-devel/2012-06/msg00037.html
-https://lists.gnu.org/r/emacs-devel/2021-05/msg00235.html
-
 ** Eliminate the etc/DOC file altogether
-As an alternative to the previous item, we could try and eliminate the
-DOC file altogether.  See
+We could try and eliminate the DOC file altogether.  See
 https://lists.gnu.org/r/emacs-devel/2021-05/msg00237.html
 
 ** Add an inferior-comint-minor-mode
@@ -1754,6 +1740,19 @@ for vc-rcs-update-changelog.
 ** Problem with comment-start
 A two-char comment-starter whose two chars are symbol constituents will
 not be noticed if it appears within a word.
+
+** Multi-pointer X does not work very well
+Emacs is reasonably usable under a multi-pointer X (MPX) environment,
+if you turn off tooltips and mouse highlight, and don't use anything
+that calls `mouse-position'.  Otherwise, tooltips are shown next to
+the wrong pointer, mouse highlight simply goes haywire, and
+`mouse-position' returns information for the wrong pointer.
+
+This could be easily fixed in principle, but I cannot find a stable
+enough environment under which the fix can be tested.
+
+The MPX code has not been tested under X toolkit or GTK+ 2.x builds
+and is not expected to work there.
 
 
 This file is part of GNU Emacs.

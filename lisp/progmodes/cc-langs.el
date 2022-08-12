@@ -850,7 +850,7 @@ This is of the form that fits inside [ ] in a regexp."
   "Regexp matching identifiers and keywords (with submatch 0).  Assumed
 to match if `c-symbol-start' matches on the same position."
   t    (concat (c-lang-const c-symbol-start)
-	       "[" (c-lang-const c-symbol-chars) "]*")
+	       "[" (c-lang-const c-symbol-chars) "]\\{,1000\\}")
   pike (concat
 	;; Use the value from C here since the operator backquote is
 	;; covered by the other alternative.

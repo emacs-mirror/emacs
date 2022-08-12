@@ -1692,6 +1692,7 @@ Each of the arguments ARGS has this form:
     (VARIABLE IGNORED)
 
 This means reset VARIABLE.  (The argument IGNORED is ignored)."
+  (declare (obsolete nil "29.1"))
     (apply #'custom-theme-reset-variables 'user args))
 
 (defun custom-add-choice (variable choice)

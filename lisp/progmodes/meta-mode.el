@@ -156,14 +156,14 @@
          (cons (concat "\\<" type-keywords "\\>"
                        "\\([ \t\f]+\\(\\sw+\\)\\)*")
                '((1 font-lock-type-face)
-                 (font-lock-match-meta-declaration-item-and-skip-to-next
+                 (meta-font-lock-match-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; argument declarations: expr, suffix, text, ...
          (cons (concat "\\<" args-keywords "\\>"
                        "\\([ \t\f]+\\(\\sw+\\|\\s_+\\)\\)*")
                '((1 font-lock-type-face)
-                 (font-lock-match-meta-declaration-item-and-skip-to-next
+                 (meta-font-lock-match-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; special case of arguments: expr x of y
@@ -193,8 +193,7 @@
      ))
   "Default expressions to highlight in Metafont or MetaPost mode.")
 
-
-(defun font-lock-match-meta-declaration-item-and-skip-to-next (limit)
+(defun meta-font-lock-match-declaration-item-and-skip-to-next (limit)
   ;; Match and move over Metafont/MetaPost declaration item after point.
   ;;
   ;; The expected syntax of an item is either "word" or "symbol",
@@ -803,11 +802,6 @@ The environment marked is the one that contains point or follows point."
 
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Comment Paragraphs:
-    ;; (define-key map "\M-a"      'backward-sentence)
-    ;; (define-key map "\M-e"      'forward-sentence)
-    ;; (define-key map "\M-h"      'mark-paragraph)
-    ;; (define-key map "\M-q"      'fill-paragraph)
     ;; Navigation:
     (define-key map "\M-\C-a"   'meta-beginning-of-defun)
     (define-key map "\M-\C-e"   'meta-end-of-defun)
@@ -824,10 +818,6 @@ The environment marked is the one that contains point or follows point."
     (define-key map "\C-c:"     'meta-uncomment-region)
     ;; Symbol Completion:
     (define-key map "\M-\t"     'completion-at-point)
-    ;; Shell Commands:
-    ;; (define-key map "\C-c\C-c"  'meta-command-file)
-    ;; (define-key map "\C-c\C-k"  'meta-kill-job)
-    ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
     map)
   "Keymap used in Metafont or MetaPost mode.")
 
@@ -852,10 +842,6 @@ The environment marked is the one that contains point or follows point."
         :active mark-active]
        "--"
        ["Complete Symbol"               completion-at-point t]
-;      "--"
-;      ["Command on Buffer"             meta-command-file t]
-;      ["Kill Job"                      meta-kill-job t]
-;      ["Recenter Output Buffer"        meta-recenter-output-buffer t]
        ))
 
 
@@ -935,6 +921,10 @@ The environment marked is the one that contains point or follows point."
   (setq-local meta-complete-list
               (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
                     (list "" 'ispell-complete-word))))
+
+(define-obsolete-function-alias
+  'font-lock-match-meta-declaration-item-and-skip-to-next
+  #'meta-font-lock-match-declaration-item-and-skip-to-next "29.1")
 
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)

@@ -442,15 +442,6 @@ If your system's ping continues until interrupted, you can try setting
      ping-program
      options)))
 
-;; FIXME -- Needs to be a process filter
-;; (defun netstat-with-filter (filter)
-;;   "Run netstat program."
-;;   (interactive "sFilter: ")
-;;   (netstat)
-;;   (set-buffer (get-buffer "*Netstat*"))
-;;   (goto-char (point-min))
-;;   (delete-matching-lines filter))
-
 ;;;###autoload
 (defun nslookup-host (host &optional name-server)
   "Look up the DNS information for HOST (name or IP address).

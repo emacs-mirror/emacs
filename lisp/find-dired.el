@@ -1,7 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -242,6 +241,11 @@ it finishes, type \\[kill-find]."
     (setq default-directory dir)
     ;; Start the find process.
     (shell-command (concat command "&") (current-buffer))
+    (let ((proc (get-buffer-process (current-buffer))))
+      ;; Initialize the process marker; it is used by the filter.
+      (move-marker (process-mark proc) (point) (current-buffer))
+      (set-process-filter proc #'find-dired-filter)
+      (set-process-sentinel proc #'find-dired-sentinel))
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
@@ -273,11 +277,6 @@ it finishes, type \\[kill-find]."
       (insert "  " command "\n")
       (dired-insert-set-properties point (point)))
     (setq buffer-read-only t)
-    (let ((proc (get-buffer-process (current-buffer))))
-      (set-process-filter proc #'find-dired-filter)
-      (set-process-sentinel proc #'find-dired-sentinel)
-      ;; Initialize the process marker; it is used by the filter.
-      (move-marker (process-mark proc) (point) (current-buffer)))
     (setq mode-line-process '(":%s"))))
 
 (defun find-dired--escaped-ls-option ()
@@ -320,7 +319,7 @@ See `find-name-arg' to customize the arguments."
 ;; Date: 10 May 91 17:50:00 GMT
 ;; Organization: University of Waterloo
 
-(defalias 'lookfor-dired 'find-grep-dired)
+(define-obsolete-function-alias 'lookfor-dired #'find-grep-dired "29.1")
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
   "Find files in DIR that contain matches for REGEXP and start Dired on output.
@@ -419,10 +418,10 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (buffer-substring-no-properties
-                (next-single-property-change
-                 (point) 'dired-filename)
-                (line-end-position)))))
+               (when-let ((start
+                           (next-single-property-change
+                            (point) 'dired-filename)))
+               (buffer-substring-no-properties start (line-end-position))))))
 
 
 (provide 'find-dired)

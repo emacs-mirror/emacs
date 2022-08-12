@@ -770,14 +770,6 @@ cause files to be downloaded to the local computer when they are
 accessed (which could take some time, and Emacs functions accessing
 the file will wait for that), avoiding the errors.
 
-*** ps-print commands fail to find prologue files ps-prin*.ps.
-
-This can happen if you use an old version of X-Symbol package: it
-defines compatibility functions which trick ps-print into thinking it
-runs in XEmacs, and look for the prologue files in a wrong directory.
-
-The solution is to upgrade X-Symbol to a later version.
-
 *** On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
 shared libraries, for instance those for Xaw3d or image support.
@@ -2337,8 +2329,23 @@ terminals display them as 1-column glyphs.  Again, this causes cursor
 addressing to get out of sync and eventually messes up the display.
 
 One possible workaround for problems caused by character composition
-is to turn off 'auto-composition-mode' on Kitty terminals.
+is to turn off 'auto-composition-mode' on Kitty terminals, e.g. by
+customizing the 'auto-composition-mode' variable to have as value a
+string that the 'tty-type' function returns on those terminals.
 
+*** Display artifacts on the Alacritty text terminal
+
+This terminal is known to cause problems with Emoji sequences: when
+displaying them, the Emacs text-mode frame could show gaps and other
+visual artifacts.
+
+The solution is to disable 'auto-composition-mode' on these
+terminals, for example, like this:
+
+  (setq auto-composition-mode "alacritty")
+
+This disables 'auto-composition-mode' on frames that display on
+terminals of this type.
 
 * Runtime problems specific to individual Unix variants
 
@@ -3553,15 +3560,6 @@ On a system where getpagesize is not a system call, it is defined
 as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out(5).
-
-* 'make check' failures
-
-** emacs-module-tests fail on Ubuntu 16.04
-
-This is due to a bug in GCC that was fixed in 2015; see
-<https://lists.gnu.org/r/emacs-devel/2018-09/msg00548.html>.
-You can work around the problem by using a later version of GCC or of
-Ubuntu, or by configuring without modules.
 
 * Problems on legacy systems
 

@@ -799,7 +799,7 @@ the C sources, too."
     ;; different purposes, such as function name, var name, face name,
     ;; property name, ...).
     (concat
-     ;; The main "canonical" occurence of symbols is within '...'.
+     ;; The main "canonical" occurrence of symbols is within '...'.
      "'" quoted "'"
      ;; Commands can also occur as `M-x blabla'.
      "\\|M-x[ \t\n]+" quoted "\\_>"

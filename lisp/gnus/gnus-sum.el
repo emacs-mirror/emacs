@@ -1958,8 +1958,6 @@ increase the score of each group you read."
   "C-M-b" #'gnus-summary-prev-thread
   "M-<down>" #'gnus-summary-next-thread
   "M-<up>" #'gnus-summary-prev-thread
-  "C-M-u" #'gnus-summary-up-thread
-  "C-M-d" #'gnus-summary-down-thread
   "&" #'gnus-summary-execute-command
   "c" #'gnus-summary-catchup-and-exit
   "C-w" #'gnus-summary-mark-region-as-read

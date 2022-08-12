@@ -865,7 +865,6 @@ This function can only be used the folder is threaded."
 (provide 'mh-thread)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -354,7 +354,7 @@ NS is t if the document has a non-nil, but not otherwise known namespace."
   (or (cdr (assq 'uri props))
       (let ((type-id (cdr (assq 'typeId props))))
 	(and type-id
-	     (cons (rng-collapse-space type-id) nil)))))
+             (cons (string-clean-whitespace type-id) nil)))))
 
 (defun rng-possible-type-ids-using (file type-ids)
   (let ((rules (rng-get-parsed-schema-locating-file file))
@@ -366,7 +366,7 @@ NS is t if the document has a non-nil, but not otherwise known namespace."
 	     (let ((id (cdr (assq 'id (cdr rule)))))
 	       (when id
 		 (setq type-ids
-		       (cons (rng-collapse-space id)
+                       (cons (string-clean-whitespace id)
 			     type-ids)))))
 	    ((eq (car rule) 'include)
 	     (let ((uri (cdr (assq 'rules (cdr rule)))))
@@ -390,7 +390,7 @@ or nil."
       (cond ((and (eq (car rule) 'typeId)
 		  (let ((id (assq 'id (cdr rule))))
 		    (and id
-			 (string= (rng-collapse-space (cdr id)) type-id))))
+                         (string= (string-clean-whitespace (cdr id)) type-id))))
 	     (setq schema (rng-match-default-rule (cdr rule))))
 	    ((eq (car rule) 'include)
 	     (let ((uri (cdr (assq 'rules (cdr rule)))))
@@ -414,7 +414,7 @@ or nil."
 	     (setq rng-schema-locating-file-alist
 		   (delq cached rng-schema-locating-file-alist)))
 	   nil)
-	  ((and cached (equal (nth 1 cached) mtime))
+	  ((and cached (time-equal-p (nth 1 cached) mtime))
 	   (nth 2 cached))
 	  (t
 	   (setq parsed (rng-parse-schema-locating-file file))

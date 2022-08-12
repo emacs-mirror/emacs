@@ -1857,6 +1857,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'libxml-parse-xml-region '(start end &optional base-url) "27.1")
 (set-advertised-calling-convention 'libxml-parse-html-region '(start end &optional base-url) "27.1")
+(set-advertised-calling-convention 'time-convert '(time form) "29.1")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -2700,17 +2701,43 @@ This is to `put' what `defalias' is to `fset'."
         (setcdr ps (cons symbol (cdr ps))))))
   (put symbol prop val))
 
-(defun symbol-file (symbol &optional type)
+(defvar comp-native-version-dir)
+(defvar native-comp-eln-load-path)
+(declare-function subr-native-elisp-p "data.c")
+(declare-function native-comp-unit-file "data.c")
+(declare-function subr-native-comp-unit "data.c")
+(declare-function comp-el-to-eln-rel-filename "comp.c")
+
+(defun locate-eln-file (eln-file)
+  "Locate a natively-compiled ELN-FILE by searching its load path.
+This function looks in directories named by `native-comp-eln-load-path'."
+  (or (locate-file-internal (concat comp-native-version-dir "/" eln-file)
+		   native-comp-eln-load-path)
+      (locate-file-internal
+       ;; Preloaded *.eln files live in the preloaded/ subdirectory of
+       ;; the last entry in `native-comp-eln-load-path'.
+       (concat comp-native-version-dir "/preloaded/" eln-file)
+       (last native-comp-eln-load-path))))
+
+(defun symbol-file (symbol &optional type native-p)
   "Return the name of the file that defined SYMBOL.
 The value is normally an absolute file name.  It can also be nil,
 if the definition is not associated with any file.  If SYMBOL
 specifies an autoloaded function, the value can be a relative
 file name without extension.
 
-If TYPE is nil, then any kind of definition is acceptable.  If
-TYPE is `defun', `defvar', or `defface', that specifies function
+If TYPE is nil, then any kind of SYMBOL's definition is acceptable.
+If TYPE is `defun', `defvar', or `defface', that specifies function
 definition, variable definition, or face definition only.
 Otherwise TYPE is assumed to be a symbol property.
+
+If NATIVE-P is non-nil, and SYMBOL was loaded from a .eln file,
+this function will return the absolute file name of that .eln file,
+if found.  Note that if the .eln file is older than its source .el
+file, Emacs won't load such an outdated .eln file, and this function
+will not return it.  If the .eln file couldn't be found, or is
+outdated, the function returns the corresponding .elc or .el file
+instead.
 
 This function only works for symbols defined in Lisp files.  For
 symbols that are defined in C files, use `help-C-file-name'
@@ -2719,24 +2746,59 @@ instead."
 	   (symbolp symbol)
 	   (autoloadp (symbol-function symbol)))
       (nth 1 (symbol-function symbol))
-    (catch 'found
-      (pcase-dolist (`(,file . ,elems) load-history)
-	(when (if type
-		  (if (eq type 'defvar)
-		      ;; Variables are present just as their names.
-		      (member symbol elems)
-		    ;; Many other types are represented as (TYPE . NAME).
-		    (or (member (cons type symbol) elems)
-                        (memq symbol (alist-get type
-                                                (alist-get 'define-symbol-props
-                                                           elems)))))
-	        ;; We accept all types, so look for variable def
-	        ;; and then for any other kind.
-	        (or (member symbol elems)
-                    (let ((match (rassq symbol elems)))
-		      (and match
-		           (not (eq 'require (car match)))))))
-          (throw 'found file))))))
+    (if (and native-p (or (null type) (eq type 'defun))
+	     (symbolp symbol)
+	     (native-comp-available-p)
+	     ;; If it's a defun, we have a shortcut.
+	     (subr-native-elisp-p (symbol-function symbol)))
+	;; native-comp-unit-file returns unnormalized file names.
+	(expand-file-name (native-comp-unit-file (subr-native-comp-unit
+						  (symbol-function symbol))))
+      (let ((elc-file
+	     (catch 'found
+	       (pcase-dolist (`(,file . ,elems) load-history)
+		 (when (if type
+			   (if (eq type 'defvar)
+			       ;; Variables are present just as their
+			       ;; names.
+			       (member symbol elems)
+			     ;; Many other types are represented as
+			     ;; (TYPE . NAME).
+			     (or (member (cons type symbol) elems)
+				 (memq
+				  symbol
+				  (alist-get type
+					     (alist-get 'define-symbol-props
+							elems)))))
+			 ;; We accept all types, so look for variable def
+			 ;; and then for any other kind.
+			 (or (member symbol elems)
+			     (let ((match (rassq symbol elems)))
+			       (and match
+				    (not (eq 'require (car match)))))))
+		   (throw 'found file))))))
+	;; If they asked for the .eln file, try to find it.
+	(or (and elc-file
+		 native-p
+		 (native-comp-available-p)
+		 (let* ((sans-ext (file-name-sans-extension elc-file))
+			(el-file
+			 (and (fboundp 'zlib-available-p)
+			      (zlib-available-p)
+			      (concat sans-ext ".el.gz")))
+			(el-file-backup (concat sans-ext ".el")))
+		   (or (and el-file (file-exists-p el-file))
+		       (and (file-exists-p el-file-backup)
+			    (setq el-file el-file-backup))
+		       (setq el-file nil))
+		   (when (stringp el-file)
+		     (let ((eln-file (locate-eln-file
+				      (comp-el-to-eln-rel-filename el-file))))
+		       ;; Emacs will not load an outdated .eln file,
+		       ;; so we mimic this behavior here.
+		       (if (file-newer-than-file-p eln-file el-file)
+			   eln-file)))))
+	    elc-file)))))
 
 (declare-function read-library-name "find-func" nil)
 
@@ -6577,7 +6639,7 @@ Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 (defvar package--builtin-versions
-  ;; Mostly populated by loaddefs.el via autoload-builtin-package-versions.
+  ;; Mostly populated by loaddefs.el.
   (purecopy `((emacs . ,(version-to-list emacs-version))))
   "Alist giving the version of each versioned builtin package.
 I.e. each element of the list is of the form (NAME . VERSION) where
@@ -6820,7 +6882,7 @@ This means that OBJECT can be printed out and then read back
 again by the Lisp reader.  This function returns nil if OBJECT is
 unreadable, and the printed representation (from `prin1') of
 OBJECT if it is readable."
-  (declare (side-effect-free t))
+  (declare (side-effect-free error-free))
   (catch 'unreadable
     (let ((print-unreadable-function
            (lambda (_object _escape)

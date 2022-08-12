@@ -214,9 +214,7 @@ them.
 
 The MH-E package is distributed with Emacs@footnote{Version
 @value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
-Emacs 23 and higher, as well as XEmacs 21.4.22 and 21.5.31. MH-E is
-known not to work with GNU Emacs versions 20 and below, and XEmacs
-version 21.5.9--21.5.16. It is compatible with MH versions 6.8.4 and
+Emacs 23 and higher. It is compatible with MH versions 6.8.4 and
 higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
 shouldn't have to do anything special to use it. Gnus is also
 required; version 5.10 or higher is recommended. This manual covers
@@ -1501,9 +1499,6 @@ box ~/mail/mh-e
     command emacsclient --eval '(mh-inc-spool-mh-e)'
 @end smallexample
 
-In XEmacs, the command @command{gnuclient} is used in a similar
-fashion.
-
 @findex mh-inc-folder
 @kindex i
 @vindex mh-inc-folder-hook
@@ -2090,8 +2085,7 @@ and @samp{X-Image-URL:} will be used. The option
 This feature will be turned on by default if your system supports it.
 
 The first header field used, if present, is the Gnus-specific
-@samp{Face:} field@footnote{The @samp{Face:} field appeared in GNU
-Emacs 21 and XEmacs. For more information, see
+@samp{Face:} field@footnote{For more information, see
 @uref{https://quimby.gnus.org/circus/face/}.}.
 
 @cindex @command{uncompface}
@@ -2104,12 +2098,9 @@ Emacs 21 and XEmacs. For more information, see
 Next is the traditional @samp{X-Face:} header field@footnote{The
 display of this field requires the
 @uref{ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z,
-@command{uncompface} program}. Recent versions of XEmacs have internal
-support for @samp{X-Face:} images. If your version of XEmacs does not,
-then you'll need both @command{uncompface} and the
-@uref{http://www.jpl.org/ftp/pub/elisp/, @samp{x-face} package}.}. MH-E
-renders the foreground and background of the image using the
-associated attributes of the face @code{mh-show-xface}.
+@command{uncompface} program}.} MH-E renders the foreground and
+background of the image using the associated attributes of the face
+@code{mh-show-xface}.
 
 @cindex @command{convert}
 @cindex @command{wget}
@@ -6448,17 +6439,9 @@ too long to list here).
 @item mh-tool-bar-search-function
 Function called by the tool bar search button (default:
 @code{mh-search}).
-@c -------------------------
-@item mh-xemacs-tool-bar-position
-Tool bar location (default: @samp{Same As Default Tool Bar}).
-@c -------------------------
-@item mh-xemacs-use-tool-bar-flag
-If @samp{on}, use tool bar (default: @samp{on}, if supported).
 @end vtable
 
-In GNU Emacs, icons for some of MH-E's functions are added to the tool
-bar. In XEmacs, you have the opportunity to create a separate tool bar for
-the MH-E icons.
+Icons for some of MH-E's functions are added to the tool bar.
 
 @vindex mh-tool-bar-folder-buttons
 @vindex mh-tool-bar-letter-buttons
@@ -6479,24 +6462,6 @@ option @code{mh-tool-bar-search-function}. By default, this is set to
 @code{mh-search}. @xref{Searching}. You can also choose @samp{Other
 Function} from the @samp{Value Menu} and enter a function of your own
 choosing.
-
-@vindex mh-xemacs-use-tool-bar-flag
-
-XEmacs provides a couple of extra options. The first,
-@code{mh-xemacs-use-tool-bar-flag}, controls whether to show the MH-E
-icons at all. By default, this option is turned on if the window
-system supports tool bars. If your system doesn't support tool bars,
-then you won't be able to turn on this option.
-
-@vindex mh-xemacs-tool-bar-position
-
-The second extra option is @code{mh-xemacs-tool-bar-position} which
-controls the placement of the tool bar along the four edges of the
-frame. You can choose from one of @samp{Same As Default Tool Bar},
-@samp{Top}, @samp{Bottom}, @samp{Left}, or @samp{Right}. If this
-variable is set to anything other than @samp{Same As Default Tool Bar}
-and the default tool bar is in a different location, then two tool
-bars will be displayed: the MH-E tool bar and the default tool bar.
 
 @node Searching
 @chapter Searching Through Messages

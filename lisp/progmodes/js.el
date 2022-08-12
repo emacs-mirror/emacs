@@ -307,9 +307,6 @@ Match group 1 is the name of the macro.")
 (defconst js--font-lock-keywords-2
   (append js--font-lock-keywords-1
           (list (list js--keyword-re 1 font-lock-keyword-face)
-                (list "\\_<for\\_>"
-                      "\\s-+\\(each\\)\\_>" nil nil
-                      (list 1 'font-lock-keyword-face))
                 (cons js--basic-type-re font-lock-type-face)
                 (cons js--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `js-mode'.")
@@ -1830,22 +1827,23 @@ context."
 (defun js--class-decl-matcher (limit)
   "Font lock function used by `js-mode'.
 This performs fontification according to `js--class-styles'."
-  (cl-loop initially (js--ensure-cache limit)
-           while (re-search-forward js--quick-match-re limit t)
-           for orig-end = (match-end 0)
-           do (goto-char (match-beginning 0))
-           if (cl-loop for style in js--class-styles
-                       for decl-re = (plist-get style :class-decl)
-                       if (and (memq (plist-get style :framework)
-                                     js-enabled-frameworks)
-                               (memq (js-syntactic-context)
-                                     (plist-get style :contexts))
-                               decl-re
-                               (looking-at decl-re))
-                       do (goto-char (match-end 0))
-                       and return t)
-           return t
-           else do (goto-char orig-end)))
+  (when js-enabled-frameworks
+    (cl-loop initially (js--ensure-cache limit)
+             while (re-search-forward js--quick-match-re limit t)
+             for orig-end = (match-end 0)
+             do (goto-char (match-beginning 0))
+             if (cl-loop for style in js--class-styles
+                         for decl-re = (plist-get style :class-decl)
+                         if (and (memq (plist-get style :framework)
+                                       js-enabled-frameworks)
+                                 (memq (js-syntactic-context)
+                                       (plist-get style :contexts))
+                                 decl-re
+                                 (looking-at decl-re))
+                         do (goto-char (match-end 0))
+                         and return t)
+             return t
+             else do (goto-char orig-end))))
 
 (defconst js--font-lock-keywords
   '(js--font-lock-keywords-3 js--font-lock-keywords-1
@@ -3489,6 +3487,12 @@ This function is intended for use in `after-change-functions'."
   ;; calls to syntax-propertize wherever it's really needed.
   ;;(syntax-propertize (point-max))
   )
+
+;;;###autoload
+(define-derived-mode js-json-mode js-mode "JSON"
+  ;; JSON files can be big.  Speed up syntax-ppss.
+  (setq-local syntax-propertize-function nil)
+  (setq-local js-enabled-frameworks nil))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply

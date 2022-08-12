@@ -77,6 +77,7 @@ Each element has the form (KEYWORD . DESCRIPTION).")
 
 (defvar-keymap finder-mode-map
   :doc "Keymap used in `finder-mode'."
+  :parent special-mode-map
   "SPC"           #'finder-select
   "f"             #'finder-select
   "<follow-link>" 'mouse-face
@@ -420,15 +421,14 @@ FILE should be in a form suitable for passing to `locate-library'."
   (interactive)
   (finder-list-keywords))
 
-(define-derived-mode finder-mode nil "Finder"
+(define-derived-mode finder-mode special-mode "Finder"
   "Major mode for browsing package documentation.
 \\<finder-mode-map>
 \\[finder-select]	more help for the item on the current line
-\\[finder-exit]	exit Finder mode and kill the Finder buffer."
-  :syntax-table finder-mode-syntax-table
+\\[finder-exit]	exit Finder mode and kill the Finder buffer.
+
+\\{finder-mode-map}"
   :interactive nil
-  (setq buffer-read-only t
-	buffer-undo-list t)
   (setq-local finder-headmark nil))
 
 (defun finder-summary ()
@@ -436,9 +436,9 @@ FILE should be in a form suitable for passing to `locate-library'."
   (interactive nil finder-mode)
   (message "%s"
    (substitute-command-keys
-    "\\<finder-mode-map>\\[finder-select] = select, \
-\\[finder-mouse-select] = select, \\[finder-list-keywords] = to \
-finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
+    "\\<finder-mode-map>\\[finder-select] select, \
+\\[finder-mouse-select] select, \\[finder-list-keywords] go to \
+finder directory, \\[finder-exit] quit, \\[finder-summary] help")))
 
 (defun finder-exit ()
   "Exit Finder mode.

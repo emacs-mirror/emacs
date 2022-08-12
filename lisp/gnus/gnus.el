@@ -2236,12 +2236,10 @@ Disabling the agent may result in noticeable loss of performance."
   "Which information should be exposed in the User-Agent header.
 
 Can be a list of symbols or a string.  Valid symbols are `gnus'
-\(show Gnus version) and `emacs' \(show Emacs version).  In
-addition to the Emacs version, you can add `codename' \(show
-\(S)XEmacs codename) or either `config' \(show system
-configuration) or `type' \(show system type).  If you set it to
-a string, be sure to use a valid format, see RFC 2616."
-
+(show Gnus version) and `emacs' (show Emacs version).  In
+addition to the Emacs version, you can add `config' (show system
+configuration) or `type' (show system type).  If you set it to a
+string, be sure to use a valid format, see RFC 2616."
   :version "22.1"
   :group 'gnus-message
   :type '(choice (list (set :inline t
@@ -2249,8 +2247,7 @@ a string, be sure to use a valid format, see RFC 2616."
                             (const :value emacs :tag "Emacs version")
 			    (choice :tag "system"
                                     (const :value type   :tag "system type")
-                                    (const :value config :tag "system configuration"))
-                            (const :value codename :tag "Emacs codename")))
+                                    (const :value config :tag "system configuration"))))
 		 (string)))
 
 ;; Convert old (< 2005-01-10) symbol type values:

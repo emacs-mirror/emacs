@@ -380,6 +380,162 @@ def f(x: CustomInt) -> CustomInt:
      (128 . font-lock-builtin-face) (131)
      (144 . font-lock-keyword-face) (150))))
 
+(ert-deftest python-font-lock-escape-sequence-string-newline ()
+  (python-tests-assert-faces
+   "'\\n'
+\"\\n\"
+f'\\n'
+f\"\\n\"
+u'\\n'
+u\"\\n\""
+   '((1 . font-lock-doc-face)
+     (2 . font-lock-constant-face)
+     (4 . font-lock-doc-face) (5)
+     (6 . font-lock-doc-face)
+     (7 . font-lock-constant-face)
+     (9 . font-lock-doc-face) (10)
+     (12 . font-lock-string-face)
+     (13 . font-lock-constant-face)
+     (15 . font-lock-string-face) (16)
+     (18 . font-lock-string-face)
+     (19 . font-lock-constant-face)
+     (21 . font-lock-string-face) (22)
+     (24 . font-lock-string-face)
+     (25 . font-lock-constant-face)
+     (27 . font-lock-string-face) (28)
+     (30 . font-lock-string-face)
+     (31 . font-lock-constant-face)
+     (33 . font-lock-string-face))))
+
+(ert-deftest python-font-lock-escape-sequence-multiline-string ()
+  (python-tests-assert-faces
+   (let ((escape-sequences "\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}"))
+     (cl-loop for string-prefix in '("" "f" "rf" "fr" "r" "rb" "br" "b")
+              concat (cl-loop for quote-string in '("\"\"\"" "'''")
+                              concat (concat string-prefix
+                                             quote-string
+                                             escape-sequences
+                                             quote-string
+                                             "\n"))))
+   '((1 . font-lock-doc-face)
+     (4 . font-lock-constant-face)
+     (8 . font-lock-doc-face)
+     (11 . font-lock-constant-face)
+     (13 . font-lock-doc-face)
+     (14 . font-lock-constant-face)
+     (20 . font-lock-doc-face)
+     (21 . font-lock-constant-face)
+     (31 . font-lock-doc-face)
+     (32 . font-lock-constant-face)
+     (51 . font-lock-doc-face) (54)
+     (55 . font-lock-doc-face)
+     (58 . font-lock-constant-face)
+     (62 . font-lock-doc-face)
+     (65 . font-lock-constant-face)
+     (67 . font-lock-doc-face)
+     (68 . font-lock-constant-face)
+     (74 . font-lock-doc-face)
+     (75 . font-lock-constant-face)
+     (85 . font-lock-doc-face)
+     (86 . font-lock-constant-face)
+     (105 . font-lock-doc-face) (108)
+     (110 . font-lock-string-face)
+     (113 . font-lock-constant-face)
+     (117 . font-lock-string-face)
+     (120 . font-lock-constant-face)
+     (122 . font-lock-string-face)
+     (123 . font-lock-constant-face)
+     (129 . font-lock-string-face)
+     (130 . font-lock-constant-face)
+     (140 . font-lock-string-face)
+     (141 . font-lock-constant-face)
+     (160 . font-lock-string-face) (163)
+     (165 . font-lock-string-face)
+     (168 . font-lock-constant-face)
+     (172 . font-lock-string-face)
+     (175 . font-lock-constant-face)
+     (177 . font-lock-string-face)
+     (178 . font-lock-constant-face)
+     (184 . font-lock-string-face)
+     (185 . font-lock-constant-face)
+     (195 . font-lock-string-face)
+     (196 . font-lock-constant-face)
+     (215 . font-lock-string-face) (218)
+     (221 . font-lock-string-face) (274)
+     (277 . font-lock-string-face) (330)
+     (333 . font-lock-string-face) (386)
+     (389 . font-lock-string-face) (442)
+     (444 . font-lock-string-face) (497)
+     (499 . font-lock-string-face) (552)
+     (555 . font-lock-string-face) (608)
+     (611 . font-lock-string-face) (664)
+     (667 . font-lock-string-face) (720)
+     (723 . font-lock-string-face) (776)
+     (778 . font-lock-string-face)
+     (781 . font-lock-constant-face)
+     (785 . font-lock-string-face)
+     (788 . font-lock-constant-face)
+     (790 . font-lock-string-face) (831)
+     (833 . font-lock-string-face)
+     (836 . font-lock-constant-face)
+     (840 . font-lock-string-face)
+     (843 . font-lock-constant-face)
+     (845 . font-lock-string-face) (886))))
+
+(ert-deftest python-font-lock-escape-sequence-bytes-newline ()
+  (python-tests-assert-faces
+   "b'\\n'
+b\"\\n\""
+   '((1)
+     (2 . font-lock-doc-face)
+     (3 . font-lock-constant-face)
+     (5 . font-lock-doc-face) (6)
+     (8 . font-lock-doc-face)
+     (9 . font-lock-constant-face)
+     (11 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-escape-sequence-hex-octal ()
+  (python-tests-assert-faces
+   "b'\\x12 \\777 \\1\\23'
+'\\x12 \\777 \\1\\23'"
+   '((1)
+     (2 . font-lock-doc-face)
+     (3 . font-lock-constant-face)
+     (7 . font-lock-doc-face)
+     (8 . font-lock-constant-face)
+     (12 . font-lock-doc-face)
+     (13 . font-lock-constant-face)
+     (18 . font-lock-doc-face) (19)
+     (20 . font-lock-doc-face)
+     (21 . font-lock-constant-face)
+     (25 . font-lock-doc-face)
+     (26 . font-lock-constant-face)
+     (30 . font-lock-doc-face)
+     (31 . font-lock-constant-face)
+     (36 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-escape-sequence-unicode ()
+  (python-tests-assert-faces
+   "b'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'
+'\\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
+   '((1)
+     (2 . font-lock-doc-face) (41)
+     (42 . font-lock-doc-face)
+     (43 . font-lock-constant-face)
+     (49 . font-lock-doc-face)
+     (50 . font-lock-constant-face)
+     (60 . font-lock-doc-face)
+     (61 . font-lock-constant-face)
+     (80 . font-lock-doc-face))))
+
+(ert-deftest python-font-lock-raw-escape-sequence ()
+  (python-tests-assert-faces
+   "rb'\\x12 \123 \\n'
+r'\\x12 \123 \\n \\u1234 \\U00010348 \\N{Plus-Minus Sign}'"
+   '((1)
+     (3 . font-lock-doc-face) (14)
+     (16 . font-lock-doc-face))))
+
 
 ;;; Indentation
 
@@ -2656,6 +2812,28 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (python-nav-beginning-of-block)
                 (point))
               (python-tests-look-at "def wwrap(f):" -1)))))
+
+(ert-deftest python-nav-beginning-of-block-2 ()
+  (python-tests-with-temp-buffer
+   "
+if True:
+
+    pass
+if False:
+    # comment
+    pass
+"
+   (python-tests-look-at "if True:")
+   (forward-line)
+   (should (= (save-excursion
+                (python-nav-beginning-of-block)
+                (point))
+              (python-tests-look-at "if True:" -1)))
+   (python-tests-look-at "# comment")
+   (should (= (save-excursion
+                (python-nav-beginning-of-block)
+                (point))
+              (python-tests-look-at "if False:" -1)))))
 
 (ert-deftest python-nav-end-of-block-1 ()
   (python-tests-with-temp-buffer
@@ -5975,9 +6153,5 @@ buffer with overlapping strings."
 ")))
 
 (provide 'python-tests)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 
 ;;; python-tests.el ends here

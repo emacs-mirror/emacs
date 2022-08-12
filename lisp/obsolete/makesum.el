@@ -4,6 +4,7 @@
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +33,6 @@
   "Make a summary of current key bindings in the buffer *Summary*.
 Previous contents of that buffer are killed first."
   (interactive)
-  (message "Making command summary...")
   ;; This puts a description of bindings in a buffer called *Help*.
   (save-window-excursion
    (describe-bindings))
@@ -68,8 +68,7 @@ Previous contents of that buffer are killed first."
                             (forward-line -1)
                             (point)))))
        (goto-char (point-min))
-       (insert "Emacs command summary, " (substring (current-time-string) 0 10)
-	       ".\n")
+       (insert "Emacs command summary\n")
        ;; Delete "key    binding" and underlining of dashes.
        (delete-region (point) (progn (forward-line 2) (point)))
        (forward-line 1)			;Skip blank line
@@ -79,8 +78,7 @@ Previous contents of that buffer are killed first."
 	       (goto-char (point-max)))
 	   (double-column beg (point))
 	   (forward-line 1)))
-       (goto-char (point-min)))))
-  (message "Making command summary...done"))
+       (goto-char (point-min))))))
 
 (defun double-column (start end)
   "Reformat buffer contents from START to END into two columns."

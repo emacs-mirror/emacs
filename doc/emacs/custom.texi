@@ -2452,6 +2452,9 @@ keys which send non-@acronym{ASCII} characters.
 Write a single-quote (@code{'}) followed by the Lisp object you want.
 @end table
 
+  For more information on the Emacs Lisp syntax, @pxref{Introduction,,,
+elisp, The Emacs Lisp Reference Manual}.
+
 @node Init Examples
 @subsection Init File Examples
 

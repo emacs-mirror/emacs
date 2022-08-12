@@ -35,7 +35,7 @@
 If TEST returns non-nil, bind `it' to the value, and evaluate
 TRUE-BODY.  Otherwise, evaluate forms in FALSE-BODY as if in `progn'.
 Compare with `if'."
-  (declare (indent 2))
+  (declare (obsolete if-let "29.1") (indent 2))
   (let ((sym (make-symbol "ibuffer-aif-sym")))
     `(let ((,sym ,test))
        (if ,sym
@@ -47,10 +47,9 @@ Compare with `if'."
 (defmacro ibuffer-awhen (test &rest body)
   "Evaluate BODY if TEST returns non-nil.
 During evaluation of body, bind `it' to the value returned by TEST."
-  (declare (indent 1))
-  `(ibuffer-aif ,test
-       (progn ,@body)
-     nil))
+  (declare (indent 1) (obsolete when-let "29.1"))
+  `(when-let ((it ,test))
+     ,@body))
 
 (defmacro ibuffer-save-marks (&rest body)
   "Save the marked status of the buffers and execute BODY; restore marks."

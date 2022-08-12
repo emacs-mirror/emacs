@@ -824,24 +824,21 @@ WILDCARD is not supported."
 
 (defun tramp-crypt-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (let (tramp-crypt-enabled)
       (tramp-compat-set-file-modes
        (tramp-crypt-encrypt-file-name filename) mode flag))))
 
 (defun tramp-crypt-handle-set-file-times (filename &optional time flag)
   "Like `set-file-times' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (let (tramp-crypt-enabled)
       (tramp-compat-set-file-times
        (tramp-crypt-encrypt-file-name filename) time flag))))
 
 (defun tramp-crypt-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (tramp-flush-file-properties v localname)
+  (tramp-skeleton-set-file-modes-times-uid-gid filename
     (let (tramp-crypt-enabled)
       (tramp-set-file-uid-gid
        (tramp-crypt-encrypt-file-name filename) uid gid))))

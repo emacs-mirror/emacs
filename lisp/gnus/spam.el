@@ -43,13 +43,11 @@
 (require 'gnus-uu)                      ; because of key prefix issues
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
+(require 'dig)
 
 (eval-when-compile
   (require 'cl-lib)
   (require 'hashcash))
-
-;; autoload query-dig
-(autoload 'query-dig "dig")
 
 ;; autoload spam-report
 (autoload 'spam-report-gmane "spam-report")
@@ -2008,7 +2006,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
             (unless matches
               (let ((query-string (concat ip "." server)))
                 (if spam-use-dig
-                    (let ((query-result (query-dig query-string)))
+                    (let ((query-result (dig-query query-string)))
                       (when query-result
                         (gnus-message 6 "(DIG): positive blackhole check `%s'"
                                       query-result)

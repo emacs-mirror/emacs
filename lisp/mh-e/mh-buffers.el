@@ -75,7 +75,6 @@ The function returns the size of the final size of the log buffer."
 (provide 'mh-buffers)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

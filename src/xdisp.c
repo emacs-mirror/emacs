@@ -3229,6 +3229,7 @@ init_iterator (struct it *it, struct window *w,
   it->f = XFRAME (w->frame);
 
   it->cmp_it.id = -1;
+  it->cmp_it.parent_it = it;
 
   if (max_redisplay_ticks > 0)
     update_redisplay_ticks (0, w);
@@ -3413,12 +3414,6 @@ init_iterator (struct it *it, struct window *w,
 	}
     }
 
-  if (current_buffer->long_line_optimizations_p)
-    {
-      it->narrowed_begv = get_narrowed_begv (w, window_point (w));
-      it->narrowed_zv = get_narrowed_zv (w, window_point (w));
-    }
-
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -3478,6 +3473,10 @@ init_iterator (struct it *it, struct window *w,
 			&it->bidi_it);
 	}
 
+      /* This is set only when long_line_optimizations_p is non-zero
+	 for the current buffer.  */
+      it->narrowed_begv = 0;
+
       /* Compute faces etc.  */
       reseat (it, it->current.pos, true);
     }
@@ -3510,9 +3509,7 @@ ptrdiff_t
 get_narrowed_begv (struct window *w, ptrdiff_t pos)
 {
   int len = get_narrowed_len (w);
-  ptrdiff_t begv;
-  begv = max ((pos / len - 1) * len, BEGV);
-  return begv == BEGV ? 0 : begv;
+  return max ((pos / len - 1) * len, BEGV);
 }
 
 ptrdiff_t
@@ -4397,16 +4394,16 @@ handle_fontified_prop (struct it *it)
 
       if (current_buffer->long_line_optimizations_p)
 	{
-	  ptrdiff_t begv = it->narrowed_begv ? it->narrowed_begv : BEGV;
+	  ptrdiff_t begv = it->narrowed_begv;
 	  ptrdiff_t zv = it->narrowed_zv;
 	  ptrdiff_t charpos = IT_CHARPOS (*it);
 	  if (charpos < begv || charpos > zv)
 	    {
 	      begv = get_narrowed_begv (it->w, charpos);
-	      if (!begv) begv = BEGV;
 	      zv = get_narrowed_zv (it->w, charpos);
 	    }
-	  Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv), Qt);
+	  narrow_to_region_internal (make_fixnum (begv), make_fixnum (zv), true);
+	  specbind (Qrestrictions_locked, Qt);
 	}
 
       /* Don't allow Lisp that runs from 'fontification-functions'
@@ -7416,7 +7413,7 @@ back_to_previous_visible_line_start (struct it *it)
   it->continuation_lines_width = 0;
 
   eassert (IT_CHARPOS (*it) >= BEGV);
-  eassert (it->narrowed_begv > BEGV
+  eassert (it->narrowed_begv > 0 /* long-line optimizations: all bets off */
 	   || IT_CHARPOS (*it) == BEGV
 	   || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
   CHECK_IT (it);
@@ -7531,6 +7528,21 @@ reseat (struct it *it, struct text_pos pos, bool force_p)
   ptrdiff_t original_pos = IT_CHARPOS (*it);
 
   reseat_1 (it, pos, false);
+
+  if (current_buffer->long_line_optimizations_p)
+    {
+      if (!it->narrowed_begv)
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, window_point (it->w));
+	  it->narrowed_zv = get_narrowed_zv (it->w, window_point (it->w));
+	}
+      else if ((pos.charpos < it->narrowed_begv || pos.charpos > it->narrowed_zv)
+		&& (!redisplaying_p || it->line_wrap == TRUNCATE))
+	{
+	  it->narrowed_begv = get_narrowed_begv (it->w, pos.charpos);
+	  it->narrowed_zv = get_narrowed_zv (it->w, pos.charpos);
+	}
+    }
 
   /* Determine where to check text properties.  Avoid doing it
      where possible because text property lookup is very expensive.  */
@@ -8837,7 +8849,7 @@ get_visually_first_element (struct it *it)
 
   SET_WITH_NARROWED_BEGV (it, bob,
 			  string_p ? 0 :
-			  IT_BYTEPOS (*it) < BEGV ? obegv : BEGV,
+			  IT_CHARPOS (*it) < BEGV ? obegv : BEGV,
 			  it->narrowed_begv);
 
   if (STRINGP (it->string))
@@ -10699,6 +10711,11 @@ move_it_vertically_backward (struct it *it, int dy)
   while (nlines-- && IT_CHARPOS (*it) > pos_limit)
     back_to_previous_visible_line_start (it);
 
+  /* Move one line more back, for the (rare) situation where we have
+     bidi-reordered continued lines, and we start from the top-most
+     screen line, which is the last in logical order.  */
+  if (it->bidi_p && dy == 0)
+    back_to_previous_visible_line_start (it);
   /* Reseat the iterator here.  When moving backward, we don't want
      reseat to skip forward over invisible text, set up the iterator
      to deliver from overlay strings at the new position etc.  So,
@@ -10772,7 +10789,7 @@ move_it_vertically_backward (struct it *it, int dy)
 	  dec_both (&cp, &bp);
 	  SET_WITH_NARROWED_BEGV (it, cp,
 				  find_newline_no_quit (cp, bp, -1, NULL),
-				  it->narrowed_begv);
+				  get_closer_narrowed_begv (it->w, IT_CHARPOS (*it)));
 	  move_it_to (it, cp, -1, -1, -1, MOVE_TO_POS);
 	}
       bidi_unshelve_cache (it3data, true);
@@ -10950,6 +10967,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	 position.  This may actually move vertically backwards,
          in case of overlays, so adjust dvpos accordingly.  */
       dvpos += it->vpos;
+      start_charpos = IT_CHARPOS (*it);
       move_it_vertically_backward (it, 0);
       dvpos -= it->vpos;
 
@@ -11003,7 +11021,7 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 	  SAVE_IT (it2, *it, it2data);
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
 	  /* Move back again if we got too far ahead.  */
-	  if (IT_CHARPOS (*it) >= start_charpos)
+	  if (it->vpos - it2.vpos > delta)
 	    RESTORE_IT (it, &it2, it2data);
 	  else
 	    bidi_unshelve_cache (it2data, true);
@@ -18115,8 +18133,8 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
     {
       specpdl_ref count = SPECPDL_INDEX ();
       specbind (Qinhibit_quit, Qt);
-      run_hook_with_args_2 (Qwindow_scroll_functions, window,
-			    make_fixnum (CHARPOS (startp)));
+      safe_run_hooks_2
+	(Qwindow_scroll_functions, window, make_fixnum (CHARPOS (startp)));
       unbind_to (count, Qnil);
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
       /* In case the hook functions switch buffers.  */
@@ -18825,6 +18843,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	    {
 	      /* Cursor has to be moved backward.  Note that PT >=
 		 CHARPOS (startp) because of the outer if-statement.  */
+	      struct glyph_row *row0 = row;
+
 	      while (!row->mode_line_p
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
@@ -18837,6 +18857,23 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		{
 		  eassert (row->enabled_p);
 		  --row;
+		}
+
+	      /* With bidi-reordered rows we can have buffer positions
+		 _decrease_ when going down by rows.  If we haven't
+		 found our row in the loop above, give it another try
+		 now going in the other direction from the original row.  */
+	      if (!(MATRIX_ROW_START_CHARPOS (row) <= PT
+		    && PT <= MATRIX_ROW_END_CHARPOS (row))
+		  && row0->continued_p)
+		{
+		  row = row0;
+		  while (MATRIX_ROW_START_CHARPOS (row) > PT
+			 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+		    {
+		      eassert (row->enabled_p);
+		      ++row;
+		    }
 		}
 
 	      /* Consider the following case: Window starts at BEGV,
@@ -18862,9 +18899,16 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 		     && !cursor_row_p (row))
 		++row;
 
-	      /* If within the scroll margin, scroll.  */
-	      if (row->y < top_scroll_margin
-		  && CHARPOS (startp) != BEGV)
+	      /* If within the scroll margin, either the top one or
+		 the bottom one, scroll.  */
+	      if ((row->y < top_scroll_margin
+		   && CHARPOS (startp) != BEGV)
+		  || MATRIX_ROW_BOTTOM_Y (row) > last_y
+		  || PT > MATRIX_ROW_END_CHARPOS (row)
+		  || (MATRIX_ROW_BOTTOM_Y (row) == last_y
+		      && PT == MATRIX_ROW_END_CHARPOS (row)
+		      && !row->ends_at_zv_p
+		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
 		scroll_p = true;
 	    }
 	  else
@@ -19448,7 +19492,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
     {
       ptrdiff_t cur, next, found, max = 0, threshold;
       threshold = XFIXNUM (Vlong_line_threshold);
-      for (cur = 1; cur < Z; cur = next)
+      for (cur = BEG; cur < Z; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur), 0, -1, 1,
 				&found, NULL, true);

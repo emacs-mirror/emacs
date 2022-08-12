@@ -465,9 +465,9 @@ When point is placed on a vtable, the following keys are bound:
 Sort the table by the current column
 (@code{vtable-sort-by-current-column}).  Note that the table is sorted
 according to the data returned by the getter function (@pxref{Making A
-Table}), not by how it's
-displayed in the buffer.  Columns that have only numerical data is
-sorted as numbers, the rest are sorted as strings.
+Table}), not by how it's displayed in the buffer.  Columns that have
+only numerical data are sorted as numbers, the rest are sorted as
+strings.
 
 @findex vtable-narrow-current-column
 @item @{

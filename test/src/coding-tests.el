@@ -61,16 +61,17 @@
 ;; Return the contents (specified by CONTENT-TYPE; ascii, latin, or
 ;; binary) of a test file.
 (defun coding-tests-file-contents (content-type)
-  (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
-	 (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
-	 (binary (string-to-multibyte
-		  (concat (string-as-unibyte latin)
-			  (unibyte-string #xC0 #xC1 ?\n)))))
-    (cond ((eq content-type 'ascii) ascii)
-	  ((eq content-type 'latin) latin)
-	  ((eq content-type 'binary) binary)
-	  (t
-	   (error "Invalid file content type: %s" content-type)))))
+  (with-suppressed-warnings ((obsolete string-as-unibyte))
+    (let* ((ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n")
+           (latin (concat ascii "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ\n"))
+           (binary (string-to-multibyte
+                    (concat (string-as-unibyte latin)
+                            (unibyte-string #xC0 #xC1 ?\n)))))
+      (cond ((eq content-type 'ascii) ascii)
+            ((eq content-type 'latin) latin)
+            ((eq content-type 'binary) binary)
+            (t
+             (error "Invalid file content type: %s" content-type))))))
 
 ;; Generate FILE with CONTENTS encoded by CODING-SYSTEM.
 ;; whose encoding specified by CODING-SYSTEM.
@@ -428,10 +429,6 @@
                                               '(utf-8 iso-latin-1 us-ascii))
                  '((iso-latin-1 3) (us-ascii 1 3))))
   (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
-
-;; Local Variables:
-;; byte-compile-warnings: (not obsolete)
-;; End:
 
 (provide 'coding-tests)
 ;;; coding-tests.el ends here

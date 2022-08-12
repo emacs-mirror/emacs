@@ -62,7 +62,7 @@ be signaled in the same way as when it is not well-formed."
 	 (unless (rng-match-element-value (or text ""))
 	   (cons "Invalid data" (and text 'text))))
 	((and text
-	      (not (rng-blank-p text))
+              (not (string-blank-p text))
 	      (not (rng-match-mixed-text)))
 	 (cons "Text not allowed" 'text))
 	((not start-tag)

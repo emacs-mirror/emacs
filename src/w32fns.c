@@ -10508,6 +10508,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   0, /* x_set_override_redirect */
   gui_set_no_special_glyphs,
   gui_set_alpha_background,
+  0, /* x_set_use_frame_synchronization */
 };
 
 void

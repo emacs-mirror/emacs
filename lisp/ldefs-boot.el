@@ -825,7 +825,7 @@ it is disabled.
 
 ;;; Generated autoloads from net/ange-ftp.el
 
-(defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
+(define-obsolete-function-alias 'ange-ftp-re-read-dir #'ange-ftp-reread-dir "29.1")
 (autoload 'ange-ftp-reread-dir "ange-ftp" "\
 Reread remote directory DIR to update the directory cache.
 The implementation of remote FTP file names caches directory contents
@@ -1426,6 +1426,10 @@ Special commands:
 How many seconds passwords are cached, or nil to disable expiring.
 Overrides `password-cache-expiry' through a let-binding.")
 (custom-autoload 'auth-source-cache-expiry "auth-source" t)
+(autoload 'auth-source-netrc-parse-all "auth-source" "\
+Parse FILE and return all entries.
+
+(fn FILE)" nil nil)
 (autoload 'authinfo-mode "auth-source" "\
 Mode for editing .authinfo/.netrc files.
 
@@ -1463,6 +1467,15 @@ key2: value2
 
 ;;; Generated autoloads from cedet/ede/auto.el
 
+(autoload 'ede-add-project-autoload "ede/auto" "\
+Add PROJAUTO, an EDE autoload definition to `ede-project-class-files'.
+Optional argument FLAG indicates how this autoload should be
+added.  Possible values are:
+  `generic' - A generic project type.  Keep this at the very end.
+  `unique' - A unique project type for a specific project.  Keep at the very
+             front of the list so more generic projects don't get priority.
+
+(fn PROJAUTO &optional FLAG)" nil nil)
 (register-definition-prefixes "ede/auto" '("ede-"))
 
 
@@ -1523,60 +1536,6 @@ it is disabled.
 
 (fn &optional ARG)" t nil)
 (register-definition-prefixes "autoinsert" '("auto-insert"))
-
-
-;;; Generated autoloads from emacs-lisp/autoload.el
-
-(put 'autoload-ensure-writable 'risky-local-variable t)
-(autoload 'update-file-autoloads "autoload" "\
-Update the autoloads for FILE.
-If prefix arg SAVE-AFTER is non-nil, save the buffer too.
-
-If FILE binds `generated-autoload-file' as a file-local variable,
-autoloads are written into that file.  Otherwise, the autoloads
-file is determined by OUTFILE.  If called interactively, prompt
-for OUTFILE; if called from Lisp with OUTFILE nil, use the
-existing value of `generated-autoload-file'.
-
-Return FILE if there was no autoload cookie in it, else nil.
-
-(fn FILE &optional SAVE-AFTER OUTFILE)" t nil)
-(autoload 'update-directory-autoloads "autoload" "\
-Update autoload definitions for Lisp files in the directories DIRS.
-In an interactive call, you must give one argument, the name of a
-single directory.  In a call from Lisp, you can supply multiple
-directories as separate arguments, but this usage is discouraged.
-
-The function does NOT recursively descend into subdirectories of the
-directory or directories specified.
-
-In an interactive call, prompt for a default output file for the
-autoload definitions.  When called from Lisp, use the existing
-value of `generated-autoload-file'.  If any Lisp file binds
-`generated-autoload-file' as a file-local variable, write its
-autoloads into the specified file instead.
-
-(fn &rest DIRS)" t nil)
-(make-obsolete 'update-directory-autoloads 'make-directory-autoloads "28.1")
-(autoload 'make-directory-autoloads "autoload" "\
-Update autoload definitions for Lisp files in the directories DIRS.
-DIR can be either a single directory or a list of
-directories.  (The latter usage is discouraged.)
-
-The autoloads will be written to OUTPUT-FILE.  If any Lisp file
-binds `generated-autoload-file' as a file-local variable, write
-its autoloads into the specified file instead.
-
-The function does NOT recursively descend into subdirectories of the
-directory or directories specified.
-
-(fn DIR OUTPUT-FILE)" t nil)
-(autoload 'batch-update-autoloads "autoload" "\
-Update loaddefs.el autoloads in batch mode.
-Calls `update-directory-autoloads' on the command line arguments.
-Definitions are written to `generated-autoload-file' (which
-should be non-nil)." nil nil)
-(register-definition-prefixes "autoload" '("autoload-" "batch-update-autoloads--summary" "generate-" "make-autoload" "no-update-autoloads"))
 
 
 ;;; Generated autoloads from autorevert.el
@@ -1816,7 +1775,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(register-definition-prefixes "battery" '("battery-" "my-"))
+(register-definition-prefixes "battery" '("battery-"))
 
 
 ;;; Generated autoloads from emacs-lisp/benchmark.el
@@ -1874,7 +1833,7 @@ The return value is the value of the final form in BODY.
 
 ;;; Generated autoloads from textmodes/bib-mode.el
 
-(register-definition-prefixes "bib-mode" '("addbib" "bib-" "mark-bib" "return-key-bib" "unread-bib"))
+(register-definition-prefixes "bib-mode" '("bib-"))
 
 
 ;;; Generated autoloads from textmodes/bibtex.el
@@ -2652,7 +2611,7 @@ User can move with [up] or [down], select a buffer
 by \\[bs-select] or [SPC]
 
 Type \\[bs-kill] to leave Buffer Selection Menu without a selection.
-Type \\[bs-help] after invocation to get help on commands available.
+Type \\[describe-mode] after invocation to get help on commands available.
 With prefix argument ARG show a different buffer list.  Function
 `bs--configuration-name-for-prefix-arg' determine accordingly
 name of buffer configuration.
@@ -2856,7 +2815,7 @@ and corresponding effects.
 
 ;;; Generated autoloads from cedet/semantic/bovine/c.el
 
-(register-definition-prefixes "semantic/bovine/c" '("c-mode" "semantic"))
+(register-definition-prefixes "semantic/bovine/c" '("semantic"))
 
 
 ;;; Generated autoloads from calendar/cal-bahai.el
@@ -4557,7 +4516,7 @@ it is disabled.
 
 ;;; Generated autoloads from emacs-lisp/cl-macs.el
 
-(register-definition-prefixes "cl-macs" '("cl-" "foo" "function-form"))
+(register-definition-prefixes "cl-macs" '("cl-"))
 
 
 ;;; Generated autoloads from emacs-lisp/cl-print.el
@@ -4954,7 +4913,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 
 It's often useful to leave a space at the end of the value.")
 (custom-autoload 'compile-command "compile" t)
-(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (or (not (boundp 'compilation-read-command)) compilation-read-command))))
+(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (if (boundp 'compilation-read-command) compilation-read-command t))))
 (defvar compilation-disable-input nil "\
 If non-nil, send end-of-file as compilation process input.
 This only affects platforms that support asynchronous processes (see
@@ -4990,6 +4949,10 @@ the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name.
 
 (fn COMMAND &optional COMINT)" t nil)
+(autoload 'compilation--default-buffer-name "compile" "\
+
+
+(fn NAME-OF-MODE)" nil nil)
 (autoload 'compilation-start "compile" "\
 Run compilation command COMMAND (low level interface).
 If COMMAND starts with a cd command, that becomes the `default-directory'.
@@ -5549,7 +5512,7 @@ Run `perldoc' on WORD.
 (fn WORD)" t nil)
 (autoload 'cperl-perldoc-at-point "cperl-mode" "\
 Run a `perldoc' on the word around point." t nil)
-(register-definition-prefixes "cperl-mode" '("cperl-" "pod2man-program"))
+(register-definition-prefixes "cperl-mode" '("cperl-"))
 
 
 ;;; Generated autoloads from progmodes/cpp.el
@@ -6072,6 +6035,22 @@ Otherwise the menu will be named `Customize'.
 The format is suitable for use with `easy-menu-define'.
 
 (fn SYMBOL &optional NAME)" nil nil)
+(autoload 'customize-icon "cus-edit" "\
+Customize ICON.
+
+(fn ICON)" t nil)
+(autoload 'custom-set-icons "cus-edit" "\
+Install user customizations of icon specs specified in ARGS.
+These settings are registered as theme `user'.
+The arguments should each be a list of the form:
+
+  (SYMBOL EXP)
+
+This stores EXP (without evaluating it) as the saved spec for SYMBOL.
+
+(fn &rest ARGS)" nil nil)
+(autoload 'custom-save-icons "cus-edit" "\
+Save all customized icons in `custom-file'." nil nil)
 (register-definition-prefixes "cus-edit" '("Custom-" "cus" "widget-"))
 
 
@@ -6106,7 +6085,7 @@ omitted, a buffer named *Custom Themes* is used.
 
 ;;; Generated autoloads from cedet/ede/custom.el
 
-(register-definition-prefixes "ede/custom" '("ede-" "eieio-ede-old-variables"))
+(register-definition-prefixes "ede/custom" '("ede-"))
 
 
 ;;; Generated autoloads from vc/cvs-status.el
@@ -6264,12 +6243,12 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-ebrowse.el
 
-(register-definition-prefixes "semantic/db-ebrowse" '("c++-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-ebrowse" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-el.el
 
-(register-definition-prefixes "semantic/db-el" '("emacs-lisp-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-el" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-file.el
@@ -6289,7 +6268,7 @@ Create a new data-debug buffer with NAME.
 
 ;;; Generated autoloads from cedet/semantic/db-javascript.el
 
-(register-definition-prefixes "semantic/db-javascript" '("javascript-mode" "semanticdb-"))
+(register-definition-prefixes "semantic/db-javascript" '("semanticdb-"))
 
 
 ;;; Generated autoloads from cedet/semantic/db-mode.el
@@ -7090,7 +7069,7 @@ protocol defined in RFC 2229.
 This is a quick reference to this mode describing the default key bindings:
 \\<dictionary-mode-map>
 * \\[dictionary-close] close the dictionary buffer
-* \\[dictionary-help] display this help information
+* \\[describe-mode] display this help information
 * \\[dictionary-search] ask for a new word to search
 * \\[dictionary-lookup-definition] search the word at point
 * \\[forward-button] or TAB place point to the next link
@@ -7100,7 +7079,7 @@ This is a quick reference to this mode describing the default key bindings:
 * \\[dictionary-select-dictionary] select the default dictionary
 * \\[dictionary-select-strategy] select the default search strategy
 
-* RET or <mouse-2> visit that link" nil nil)
+* \\`RET' or \\`<mouse-2>' visit that link" nil nil)
 (autoload 'dictionary "dictionary" "\
 Create a new dictionary buffer and install `dictionary-mode'." t nil)
 (autoload 'dictionary-search "dictionary" "\
@@ -7280,7 +7259,7 @@ If given a \\[universal-argument] prefix, also prompt for the QUERY-TYPE paramet
 If given a \\[universal-argument] \\[universal-argument] prefix, also prompt for the SERVER parameter.
 
 (fn DOMAIN &optional QUERY-TYPE QUERY-CLASS QUERY-OPTION DIG-OPTION SERVER)" t nil)
-(register-definition-prefixes "dig" '("dig-" "query-dig"))
+(register-definition-prefixes "dig" '("dig-"))
 
 
 ;;; Generated autoloads from cedet/ede/dired.el
@@ -7435,7 +7414,7 @@ Like \\[dired-jump] (`dired-jump') but in other window.
 
 ;;; Generated autoloads from dired-aux.el
 
-(register-definition-prefixes "dired-aux" '("dired-" "minibuffer-default-add-dired-shell-commands"))
+(register-definition-prefixes "dired-aux" '("dired-"))
 
 
 ;;; Generated autoloads from dired-x.el
@@ -7892,7 +7871,7 @@ it is disabled.
 
 (autoload 'doctor "doctor" "\
 Switch to *doctor* buffer and start giving psychotherapy." t nil)
-(register-definition-prefixes "doctor" '("doc" "make-doctor-variables"))
+(register-definition-prefixes "doctor" '("doc"))
 
 
 ;;; Generated autoloads from cedet/srecode/document.el
@@ -8607,7 +8586,7 @@ already is one.)" t nil)
 Toggle edebugging of all definitions." t nil)
 (autoload 'edebug-all-forms "edebug" "\
 Toggle edebugging of all forms." t nil)
-(register-definition-prefixes "edebug" '("arglist" "backquote-form" "def-declarations" "edebug" "function-form" "interactive" "lambda-" "name" "nested-backquote-form"))
+(register-definition-prefixes "edebug" '("edebug"))
 
 
 ;;; Generated autoloads from vc/ediff.el
@@ -9060,6 +9039,18 @@ BUFFER is put back into its original major mode.
 ;;; Generated autoloads from emacs-lisp/eieio.el
 
 (push (purecopy '(eieio 1 4)) package--builtin-versions)
+(autoload 'make-instance "eieio" "\
+Make a new instance of CLASS based on INITARGS.
+For example:
+
+  (make-instance \\='foo)
+
+INITARGS is a property list with keywords based on the `:initarg'
+for each slot.  For example:
+
+  (make-instance \\='foo :slot1 value1 :slotN valueN)
+
+(fn CLASS &rest INITARGS)" nil nil)
 (register-definition-prefixes "eieio" '("child-of-class-p" "defclass" "eieio-" "find-class" "obj" "oref" "oset" "same-class-p" "set-slot-value" "slot-" "with-slots"))
 
 
@@ -9127,12 +9118,12 @@ Describe CTR if it is a class constructor.
 
 ;;; Generated autoloads from cedet/semantic/bovine/el.el
 
-(register-definition-prefixes "semantic/bovine/el" '("emacs-lisp-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/el" '("semantic-"))
 
 
 ;;; Generated autoloads from emacs-lisp/eldoc.el
 
-(push (purecopy '(eldoc 1 12 0)) package--builtin-versions)
+(push (purecopy '(eldoc 1 13 0)) package--builtin-versions)
 
 
 ;;; Generated autoloads from elec-pair.el
@@ -9325,7 +9316,7 @@ displayed." t nil)
 
 ;;; Generated autoloads from eshell/em-extpipe.el
 
-(register-definition-prefixes "em-extpipe" '("em-extpipe--or-with-catch" "eshell-"))
+(register-definition-prefixes "em-extpipe" '("eshell-"))
 
 
 ;;; Generated autoloads from eshell/em-glob.el
@@ -9380,7 +9371,7 @@ displayed." t nil)
 
 ;;; Generated autoloads from eshell/em-unix.el
 
-(register-definition-prefixes "em-unix" '("eshell" "nil-blank-string"))
+(register-definition-prefixes "em-unix" '("eshell"))
 
 
 ;;; Generated autoloads from eshell/em-xtra.el
@@ -11038,7 +11029,7 @@ Display the bookmarks." t nil)
 Default bookmark handler for EWW buffers.
 
 (fn BOOKMARK)" nil nil)
-(register-definition-prefixes "eww" '("erc--download-directory" "eww-"))
+(register-definition-prefixes "eww" '("eww-"))
 
 
 ;;; Generated autoloads from progmodes/executable.el
@@ -11328,7 +11319,7 @@ used to invoke the command, with all modifiers removed:
 After adjusting, further adjust the font size as long as the key,
 with all modifiers removed, is one of the above characters.
 
-Buffer-local face adjustements have higher priority than global
+Buffer-local face adjustments have higher priority than global
 face adjustments.
 
 The variable `global-text-scale-adjust-resizes-frames' controls
@@ -11505,7 +11496,7 @@ reminders, you can set `feedmail-queue-reminder-alist' to nil.
 
 ;;; Generated autoloads from ffap.el
 
-(defvar ffap-file-finder 'find-file "\
+(defvar ffap-file-finder #'find-file "\
 The command called by `find-file-at-point' to find a file.")
 (custom-autoload 'ffap-file-finder "ffap" t)
 (autoload 'ffap-next "ffap" "\
@@ -11528,7 +11519,7 @@ Find FILENAME, guessing a default from text around point.
 If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
-See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
+See also the variables `ffap-dired-wildcards',
 `ffap-url-unwrap-local', `ffap-url-unwrap-remote',
 `ffap-file-name-with-spaces', and the functions `ffap-file-at-point'
 and `ffap-url-at-point'.
@@ -11873,7 +11864,7 @@ where the first string in the value of the variable `find-ls-option'
 specifies what to use in place of \"-ls\" as the final argument.
 
 (fn DIR REGEXP)" t nil)
-(register-definition-prefixes "find-dired" '("find-" "kill-find" "lookfor-dired"))
+(register-definition-prefixes "find-dired" '("find-" "kill-find"))
 
 
 ;;; Generated autoloads from find-file.el
@@ -13052,7 +13043,7 @@ detailed description of this mode.
 +-----------------------------------+----------------------------------+
 
 (fn COMMAND-LINE)" t nil)
-(register-definition-prefixes "gdb-mi" '("breakpoint" "def-gdb-" "gdb" "gud-" "hollow-right-triangle" "nil"))
+(register-definition-prefixes "gdb-mi" '("breakpoint" "def-gdb-" "gdb" "gud-" "hollow-right-triangle"))
 
 
 ;;; Generated autoloads from emacs-lisp/generator.el
@@ -13376,7 +13367,7 @@ CLEAN is obsolete and ignored.
 
 (autoload 'gnus-article-prepare-display "gnus-art" "\
 Make the current buffer look like a nice article." nil nil)
-(register-definition-prefixes "gnus-art" '(":keymap" "article-" "gnus-"))
+(register-definition-prefixes "gnus-art" '("article-" "gnus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-async.el
@@ -13616,7 +13607,7 @@ The arguments have the same meaning as those of
 `gnus-read-ephemeral-bug-group', which see.
 
 (fn IDS &optional WINDOW-CONF)" t nil)
-(register-definition-prefixes "gnus-group" '(":keymap" "gnus-"))
+(register-definition-prefixes "gnus-group" '("gnus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-html.el
@@ -13809,7 +13800,7 @@ Like `message-reply'.
 
 (fn &optional TO-ADDRESS WIDE)" t nil)
 (define-mail-user-agent 'gnus-user-agent 'gnus-msg-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
-(register-definition-prefixes "gnus-msg" '(":prefix" "gnus-"))
+(register-definition-prefixes "gnus-msg" '("gnus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-notifications.el
@@ -13970,7 +13961,7 @@ Handler function for record returned by `gnus-summary-bookmark-make-record'.
 BOOKMARK is a bookmark name or a bookmark record.
 
 (fn BOOKMARK)" nil nil)
-(register-definition-prefixes "gnus-sum" '(":keymap" "gnus-"))
+(register-definition-prefixes "gnus-sum" '("gnus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-topic.el
@@ -14166,6 +14157,33 @@ retrieval failed.
 (defvar grep-window-height nil "\
 Number of lines in a grep window.  If nil, use `compilation-window-height'.")
 (custom-autoload 'grep-window-height "grep" t)
+(defvar grep-highlight-matches 'auto-detect "\
+Use special markers to highlight grep matches.
+
+Some grep programs are able to surround matches with special
+markers in grep output.  Such markers can be used to highlight
+matches in grep mode.  This requires `font-lock-mode' to be active
+in grep buffers, so if you have globally disabled `font-lock-mode',
+you will not get highlighting.
+
+This option sets the environment variable GREP_COLORS to specify
+markers for highlighting and adds the --color option in front of
+any explicit grep options before starting the grep.
+
+When this option is `auto', grep uses `--color=auto' to highlight
+matches only when it outputs to a terminal (when `grep' is the last
+command in the pipe), thus avoiding the use of any potentially-harmful
+escape sequences when standard output goes to a file or pipe.
+
+To make grep highlight matches even into a pipe, you need the option
+`always' that forces grep to use `--color=always' to unconditionally
+output escape sequences.
+
+If the value is `auto-detect' (the default), `grep' will call
+`grep-compute-defaults' to compute the value.  To change the
+default value, use \\[customize] or call the function
+`grep-apply-setting'.")
+(custom-autoload 'grep-highlight-matches "grep" nil)
 (defvar grep-command nil "\
 The default grep command for \\[grep].
 If the grep program used supports an option to always include file names
@@ -14190,6 +14208,8 @@ for easier editing.")
 (defvar grep-setup-hook nil "\
 List of hook functions run by `grep-process-setup' (see `run-hooks').")
 (custom-autoload 'grep-setup-hook "grep" t)
+(defvar grep-match-face 'match "\
+Face name to use for grep matches.")
 (defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg 1)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
 Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
@@ -14565,7 +14585,7 @@ FUNC is a function to handle input key.
 HELP-TEXT is a text set in `hangul-input-method-help-text'.
 
 (fn INPUT-METHOD FUNC HELP-TEXT &rest ARGS)" nil nil)
-(register-definition-prefixes "quail/hangul" '("alphabetp" "hangul" "notzerop"))
+(register-definition-prefixes "quail/hangul" '("hangul" "notzerop"))
 
 
 ;;; Generated autoloads from language/hanja-util.el
@@ -14580,16 +14600,13 @@ Towers of Hanoi diversion.  Use NRINGS rings.
 
 (fn NRINGS)" t nil)
 (autoload 'hanoi-unix "hanoi" "\
-Towers of Hanoi, UNIX doomsday version.
-Displays 32-ring towers that have been progressing at one move per
-second since 1970-01-01 00:00:00 GMT.
+Towers of Hanoi, 32-bit UNIX doomsday version.
+Display 32-ring towers that have been progressing at one move per
+second since 1970-01-01 00:00:00 UTC.
 
 Repent before ring 31 moves." t nil)
 (autoload 'hanoi-unix-64 "hanoi" "\
-Like `hanoi-unix', but pretend to have a 64-bit clock.
-This is, necessarily (as of Emacs 20.3), a crock.  When the
-`current-time' interface is made s2G-compliant, hanoi.el will need
-to be updated." t nil)
+Like `hanoi-unix', but with a 64-bit clock." t nil)
 (register-definition-prefixes "hanoi" '("hanoi-"))
 
 
@@ -14981,7 +14998,7 @@ See `help-make-xrefs'.
 Add xrefs for symbols in `pp's output between FROM and TO.
 
 (fn FROM TO)" nil nil)
-(define-obsolete-function-alias 'help-xref-interned 'describe-symbol "25.1")
+(define-obsolete-function-alias 'help-xref-interned #'describe-symbol "25.1")
 (autoload 'help-bookmark-jump "help-mode" "\
 Jump to `help-mode' bookmark BOOKMARK.
 Handler function for record returned by `help-bookmark-make-record'.
@@ -15974,7 +15991,7 @@ Call Ibuffer and set point at the line listing the current buffer.
 If optional arg OTHER-WINDOW is non-nil, then use another window.
 
 (fn &optional OTHER-WINDOW)" t nil)
-(register-definition-prefixes "ibuffer" '("filename" "ibuffer-" "locked" "mark" "mod" "name" "process" "read-only" "recency" "size"))
+(register-definition-prefixes "ibuffer" '("ibuffer-"))
 
 
 ;;; Generated autoloads from calendar/icalendar.el
@@ -16201,6 +16218,15 @@ with no args, if that value is non-nil.
 
 (fn)" t nil)
 (register-definition-prefixes "icon" '("beginning-of-icon-defun" "calculate-icon-indent" "electric-icon-brace" "end-of-icon-defun" "icon-" "indent-icon-exp" "mark-icon-function"))
+
+
+;;; Generated autoloads from emacs-lisp/icons.el
+
+(autoload 'describe-icon "icons" "\
+Pop to a buffer to describe ICON.
+
+(fn ICON)" t nil)
+(register-definition-prefixes "icons" '("button" "define-icon" "icon"))
 
 
 ;;; Generated autoloads from cedet/semantic/idle.el
@@ -17271,7 +17297,7 @@ Convert old Emacs Devanagari characters to UCS.
 
 ;;; Generated autoloads from leim/quail/indian.el
 
-(register-definition-prefixes "quail/indian" '("indian-mlm-mozhi-u" "inscript-" "quail-"))
+(register-definition-prefixes "quail/indian" '("indian-mlm-mozhi-u" "inscript-" "quail-" "tamil-"))
 
 
 ;;; Generated autoloads from progmodes/inf-lisp.el
@@ -18337,6 +18363,13 @@ KEYS should be a vector or a string that obeys `key-valid-p'.
 
 (fn MAC &optional COUNTER FORMAT)" nil nil)
 (make-obsolete 'kmacro-lambda-form 'kmacro "29.1")
+(autoload 'kmacro-name-last-macro "kmacro" "\
+Assign a name to the last keyboard macro defined.
+Argument SYMBOL is the name to define.
+The symbol's function definition becomes the keyboard macro string.
+Such a \"function\" cannot be called from Lisp, but it is a valid editor command.
+
+(fn SYMBOL)" t nil)
 (register-definition-prefixes "kmacro" '("kmacro-"))
 
 
@@ -18644,7 +18677,7 @@ This scans for ;;;###autoload forms and related things.
 The first element on the command line should be the (main)
 loaddefs.el output file, and the rest are the directories to
 use." nil nil)
-(register-definition-prefixes "loaddefs-gen" '("autoload-" "generated-autoload-" "loaddefs-generate--"))
+(register-definition-prefixes "loaddefs-gen" '("autoload-" "generated-autoload-" "loaddefs-generate--" "no-update-autoloads"))
 
 
 ;;; Generated autoloads from loadhist.el
@@ -18766,41 +18799,6 @@ Major mode for browsing CVS log output.
 
 (fn)" t nil)
 (register-definition-prefixes "log-view" '("log-view-"))
-
-
-;;; Generated autoloads from longlines.el
-
-(autoload 'longlines-mode "longlines" "\
-Toggle Long Lines mode in this buffer.
-
-When Long Lines mode is enabled, long lines are wrapped if they
-extend beyond `fill-column'.  The soft newlines used for line
-wrapping will not show up when the text is yanked or saved to
-disk.
-
-If the variable `longlines-auto-wrap' is non-nil, lines are
-automatically wrapped whenever the buffer is changed.  You can
-always call `fill-paragraph' to fill individual paragraphs.
-
-If the variable `longlines-show-hard-newlines' is non-nil, hard
-newlines are indicated with a symbol.
-
-This is a minor mode.  If called interactively, toggle the
-`Longlines mode' mode.  If the prefix argument is positive,
-enable the mode, and if it is zero or negative, disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
-the mode if ARG is nil, omitted, or is a positive number.
-Disable the mode if ARG is a negative number.
-
-To check whether the minor mode is enabled in the current buffer,
-evaluate `longlines-mode'.
-
-The mode's hook is called both when the mode is enabled and when
-it is disabled.
-
-(fn &optional ARG)" t nil)
-(register-definition-prefixes "longlines" '("longlines-"))
 
 
 ;;; Generated autoloads from lpr.el
@@ -19292,7 +19290,7 @@ Mairix will be called asynchronously unless
 
 ;;; Generated autoloads from cedet/semantic/bovine/make.el
 
-(register-definition-prefixes "semantic/bovine/make" '("makefile-mode" "semantic-"))
+(register-definition-prefixes "semantic/bovine/make" '("semantic-"))
 
 
 ;;; Generated autoloads from cedet/ede/make.el
@@ -19706,7 +19704,7 @@ Major mode for editing Metafont sources.
 Major mode for editing MetaPost sources.
 
 (fn)" t nil)
-(register-definition-prefixes "meta-mode" '("font-lock-match-meta-declaration-item-and-skip-to-next" "meta"))
+(register-definition-prefixes "meta-mode" '("meta"))
 
 
 ;;; Generated autoloads from mh-e/mh-acros.el
@@ -19891,7 +19889,7 @@ perform the operation on all messages in that region.
 \\{mh-folder-mode-map}
 
 (fn)" t nil)
-(register-definition-prefixes "mh-folder" '(":keymap" "mh-"))
+(register-definition-prefixes "mh-folder" '("mh-"))
 
 
 ;;; Generated autoloads from mh-e/mh-funcs.el
@@ -19916,7 +19914,7 @@ perform the operation on all messages in that region.
 
 ;;; Generated autoloads from mh-e/mh-letter.el
 
-(register-definition-prefixes "mh-letter" '(":keymap" "mh-"))
+(register-definition-prefixes "mh-letter" '("mh-"))
 
 
 ;;; Generated autoloads from mh-e/mh-limit.el
@@ -19941,7 +19939,7 @@ perform the operation on all messages in that region.
 
 ;;; Generated autoloads from mh-e/mh-search.el
 
-(register-definition-prefixes "mh-search" '(":keymap" "mh-"))
+(register-definition-prefixes "mh-search" '("mh-"))
 
 
 ;;; Generated autoloads from mh-e/mh-seq.el
@@ -19951,12 +19949,12 @@ perform the operation on all messages in that region.
 
 ;;; Generated autoloads from mh-e/mh-show.el
 
-(register-definition-prefixes "mh-show" '(":keymap" "mh-"))
+(register-definition-prefixes "mh-show" '("mh-"))
 
 
 ;;; Generated autoloads from mh-e/mh-speed.el
 
-(register-definition-prefixes "mh-speed" '(":keymap" "mh-"))
+(register-definition-prefixes "mh-speed" '("mh-"))
 
 
 ;;; Generated autoloads from mh-e/mh-thread.el
@@ -20094,6 +20092,14 @@ Also see the `duplicate-line' command.
 Duplicate the current line N times.
 Interactively, N is the prefix numeric argument, and defaults to 1.
 Also see the `copy-from-above-command' command.
+
+(fn &optional N)" t nil)
+(autoload 'duplicate-dwim "misc" "\
+Duplicate the current line or region N times.
+If the region is inactive, duplicate the current line (like `duplicate-line').
+Otherwise, duplicate the region, which remains active afterwards.
+If the region is rectangular, duplicate on its right-hand side.
+Interactively, N is the prefix numeric argument, and defaults to 1.
 
 (fn &optional N)" t nil)
 (autoload 'zap-up-to-char "misc" "\
@@ -20531,7 +20537,7 @@ To test this function, evaluate:
 
 (autoload 'mpc "mpc" "\
 Main entry point for MPC." t nil)
-(register-definition-prefixes "mpc" '("mpc-" "tag-browser-tagtypes"))
+(register-definition-prefixes "mpc" '("mpc-"))
 
 
 ;;; Generated autoloads from play/mpuz.el
@@ -20988,17 +20994,6 @@ Open a network connection to HOST on PORT.
 
 (fn HOST PORT)" t nil)
 (register-definition-prefixes "net-utils" '("arp-program" "dns-lookup-program" "finger-X.500-host-regexps" "ftp-" "ifconfig-program" "ipconfig" "iwconfig-program" "net" "nslookup-" "ping-program" "route-program" "run-network-program" "smbclient" "traceroute-program" "whois-"))
-
-
-;;; Generated autoloads from net/netrc.el
-
-(autoload 'netrc-credentials "netrc" "\
-Return a user name/password pair.
-Port specifications will be prioritized in the order they are
-listed in the PORTS list.
-
-(fn MACHINE &rest PORTS)" nil nil)
-(register-definition-prefixes "netrc" '("netrc-"))
 
 
 ;;; Generated autoloads from net/network-stream.el
@@ -22790,15 +22785,17 @@ call (package-activate-all) in your init-file.")
 Directory containing the user's Emacs Lisp packages.
 The directory name should be absolute.
 Apart from this directory, Emacs also looks for system-wide
-packages in `package-directory-list'." :type 'directory :initialize #'custom-initialize-delay :risky t :version "24.1")
+packages in `package-directory-list'." :type 'directory :initialize #'custom-initialize-delay :risky t :group 'applications :version "24.1")
 (custom-autoload 'package-user-dir "package" t)
 (defcustom package-directory-list (let (result) (dolist (f load-path) (and (stringp f) (equal (file-name-nondirectory f) "site-lisp") (push (expand-file-name "elpa" f) result))) (nreverse result)) "\
 List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.
 
 These directories contain packages intended for system-wide; in
-contrast, `package-user-dir' contains packages for personal use." :type '(repeat directory) :initialize #'custom-initialize-delay :risky t :version "24.1")
+contrast, `package-user-dir' contains packages for personal use." :type '(repeat directory) :initialize #'custom-initialize-delay :group 'applications :risky t :version "24.1")
 (custom-autoload 'package-directory-list "package" t)
+(defvar package-activated-list nil "\
+List of the names of currently activated packages.")
 (defvar package--activated nil "\
 Non-nil if `package-activate-all' has been run.")
 (autoload 'package-initialize "package" "\
@@ -22821,6 +22818,7 @@ that code in the early init-file.
 (defun package-activate-all nil "\
 Activate all installed packages.
 The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (if (and qs (not (bound-and-true-p package-activated-list))) (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage)) (require 'package) (package--activate-all))))
+(autoload 'package--activate-all "package" nil nil nil)
 (autoload 'package-import-keyring "package" "\
 Import keys from FILE.
 
@@ -22938,7 +22936,7 @@ It works in more cases if the call is in the file which contains
 the `Version:' header." nil nil)
 (function-put 'package-get-version 'pure 't)
 (defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
-Location of the file used to speed up activation of packages at startup." :type 'file :initialize #'custom-initialize-delay :version "27.1")
+Location of the file used to speed up activation of packages at startup." :type 'file :group 'applications :initialize #'custom-initialize-delay :version "27.1")
 (custom-autoload 'package-quickstart-file "package" t)
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
@@ -23457,7 +23455,7 @@ Various indentation styles:       K&R  BSD  BLK  GNU  LW
 Turning on Perl mode runs the normal hook `perl-mode-hook'.
 
 (fn)" t nil)
-(register-definition-prefixes "perl-mode" '("indent-perl-exp" "mark-perl-function" "perl-"))
+(register-definition-prefixes "perl-mode" '("perl-"))
 
 
 ;;; Generated autoloads from pgtk-dnd.el
@@ -23539,11 +23537,6 @@ Note that Picture mode commands will work outside of Picture mode, but
 they are not by default assigned to keys." t nil)
 (defalias 'edit-picture 'picture-mode)
 (register-definition-prefixes "picture" '("picture-"))
-
-
-;;; Generated autoloads from language/pinyin.el
-
-(register-definition-prefixes "pinyin" '("pinyin-character-map"))
 
 
 ;;; Generated autoloads from textmodes/pixel-fill.el
@@ -24552,11 +24545,6 @@ The default value is (\"/usr/local/share/emacs/fonts/bdf\").")
 (register-definition-prefixes "ps-bdf" '("bdf-"))
 
 
-;;; Generated autoloads from ps-def.el
-
-(register-definition-prefixes "ps-def" '("ps-"))
-
-
 ;;; Generated autoloads from progmodes/ps-mode.el
 
 (push (purecopy '(ps-mode 1 1 9)) package--builtin-versions)
@@ -25071,64 +25059,6 @@ of each directory.
 
 (fn DIRNAME &rest DIRNAMES)" t nil)
 (register-definition-prefixes "quail" '("quail-"))
-
-
-;;; Generated autoloads from net/quickurl.el
-
-(defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'write-file-functions (lambda () (quickurl-read) nil) nil t))\n;; End:\n" "\
-Example `quickurl-postfix' text that adds a local variable to the
-`quickurl-url-file' so that if you edit it by hand it will ensure that
-`quickurl-urls' is updated with the new URL list.
-
-To make use of this do something like:
-
-  (setq quickurl-postfix quickurl-reread-hook-postfix)
-
-in your init file (after loading/requiring quickurl).")
-(autoload 'quickurl "quickurl" "\
-Insert a URL based on LOOKUP.
-
-If not supplied LOOKUP is taken to be the word at point in the current
-buffer, this default action can be modified via
-`quickurl-grab-lookup-function'.
-
-(fn &optional LOOKUP)" t nil)
-(autoload 'quickurl-ask "quickurl" "\
-Insert a URL, with `completing-read' prompt, based on LOOKUP.
-
-(fn LOOKUP)" t nil)
-(autoload 'quickurl-add-url "quickurl" "\
-Allow the user to interactively add a new URL associated with WORD.
-
-See `quickurl-grab-url' for details on how the default word/URL combination
-is decided.
-
-(fn WORD URL COMMENT)" t nil)
-(autoload 'quickurl-browse-url "quickurl" "\
-Browse the URL associated with LOOKUP.
-
-If not supplied LOOKUP is taken to be the word at point in the
-current buffer, this default action can be modified via
-`quickurl-grab-lookup-function'.
-
-(fn &optional LOOKUP)" t nil)
-(autoload 'quickurl-browse-url-ask "quickurl" "\
-Browse the URL, with `completing-read' prompt, associated with LOOKUP.
-
-(fn LOOKUP)" t nil)
-(autoload 'quickurl-edit-urls "quickurl" "\
-Pull `quickurl-url-file' into a buffer for hand editing." t nil)
-(autoload 'quickurl-list-mode "quickurl" "\
-A mode for browsing the quickurl URL list.
-
-The key bindings for `quickurl-list-mode' are:
-
-\\{quickurl-list-mode-map}
-
-(fn)" t nil)
-(autoload 'quickurl-list "quickurl" "\
-Display `quickurl-list' as a formatted list using `quickurl-list-mode'." t nil)
-(register-definition-prefixes "quickurl" '("quickurl-"))
 
 
 ;;; Generated autoloads from emacs-lisp/radix-tree.el
@@ -26759,9 +26689,13 @@ following constructs:
   (backref REF)    matches whatever the submatch REF matched.
                    REF can be a number, as usual, or a name
                    introduced by a previous (let REF ...)
-                   construct." (let* ((rx--pcase-vars nil) (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps))))) `(and (pred stringp) ,(pcase (length rx--pcase-vars) (0 `(pred (string-match ,regexp))) (1 `(app (lambda (s) (if (string-match ,regexp s) (match-string 1 s) 0)) (and ,(car rx--pcase-vars) (pred (not numberp))))) (nvars `(app (lambda (s) (and (string-match ,regexp s) ,(rx--reduce-right (lambda (a b) `(cons ,a ,b)) (mapcar (lambda (i) `(match-string ,i s)) (number-sequence 1 nvars))))) ,(list '\` (rx--reduce-right #'cons (mapcar (lambda (name) (list '\, name)) (reverse rx--pcase-vars)))))))))))
+                   construct." (rx--pcase-expand regexps)))
 (define-symbol-prop 'rx--pcase-macroexpander 'edebug-form-spec 'nil)
 (define-symbol-prop 'rx 'pcase-macroexpander #'rx--pcase-macroexpander)
+(autoload 'rx--pcase-expand "rx" "\
+
+
+(fn REGEXPS)" nil nil)
 (register-definition-prefixes "rx" '("rx-"))
 
 
@@ -26911,7 +26845,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t nil)
-(register-definition-prefixes "saveplace" '("load-save-place-alist-from-file" "save-place"))
+(register-definition-prefixes "saveplace" '("save-place"))
 
 
 ;;; Generated autoloads from cedet/semantic/sb.el
@@ -27288,6 +27222,11 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order).
 
 (fn)" t nil)
+(autoload 'mail-send-and-exit "sendmail" "\
+Send message like `mail-send', then, if no errors, exit from mail buffer.
+Prefix arg means don't delete this window.
+
+(fn &optional ARG)" t nil)
 (defvar mail-mailing-lists nil "\
 List of mailing list addresses the user is subscribed to.
 The variable is used to trigger insertion of the \"Mail-Followup-To\"
@@ -27842,7 +27781,7 @@ If SAME-WINDOW, don't pop to a new window.
 
 (fn GROUP &optional FUNCTION SAME-WINDOW)" t nil)
 (defalias 'shortdoc #'shortdoc-display-group)
-(register-definition-prefixes "shortdoc" '("alist" "buffer" "file" "hash-table" "keymaps" "list" "number" "overlay" "process" "regexp" "sequence" "shortdoc-" "string" "text-properties" "vector"))
+(register-definition-prefixes "shortdoc" '("shortdoc-"))
 
 
 ;;; Generated autoloads from net/shr.el
@@ -28620,7 +28559,7 @@ explicitly, and matters only if you need the extra headers
 installed through `spam-necessary-extra-headers'.
 
 (fn &rest SYMBOLS)" t nil)
-(register-definition-prefixes "spam" '(":keymap" "spam-"))
+(register-definition-prefixes "spam" '("spam-"))
 
 
 ;;; Generated autoloads from gnus/spam-report.el
@@ -29368,7 +29307,10 @@ Studlify-case the current buffer." t nil)
 ;;; Generated autoloads from emacs-lisp/subr-x.el
 
 (autoload 'string-truncate-left "subr-x" "\
-Truncate STRING to LENGTH, replacing initial surplus with \"...\".
+If STRING is longer than LENGTH, return a truncated version.
+When truncating, \"...\" is always prepended to the string, so
+the resulting string may be longer than the original if LENGTH is
+3 or smaller.
 
 (fn STRING LENGTH)" nil nil)
 (autoload 'string-clean-whitespace "subr-x" "\
@@ -30225,7 +30167,7 @@ converts a table into plain text without frames.  It is a companion to
 
 ;;; Generated autoloads from cedet/srecode/table.el
 
-(register-definition-prefixes "srecode/table" '("object-sort-list" "srecode-"))
+(register-definition-prefixes "srecode/table" '("srecode-"))
 
 
 ;;; Generated autoloads from emacs-lisp/tabulated-list.el
@@ -31228,7 +31170,11 @@ If DATE lacks timezone information, GMT is assumed.
 
 (fn DATE)" nil nil)
 (defalias 'time-to-seconds 'float-time)
-(defalias 'seconds-to-time 'time-convert)
+(autoload 'seconds-to-time "time-date" "\
+Convert SECONDS to a proper time, like `current-time' would.
+FORM means the same as in `time-convert'.
+
+(fn SECONDS &rest FORM)" nil nil)
 (autoload 'days-to-time "time-date" "\
 Convert DAYS into a time value.
 
@@ -31266,7 +31212,7 @@ Gregorian date Sunday, December 31, 1 BC.
 (fn TIME)" nil nil)
 (autoload 'safe-date-to-time "time-date" "\
 Parse a string DATE that represents a date-time and return a time value.
-If DATE is malformed, return a time value of zeros.
+If DATE is malformed, return a time value of zero.
 
 (fn DATE)" nil nil)
 (autoload 'format-seconds "time-date" "\
@@ -31741,6 +31687,15 @@ Regular expression matching file names handled by Tramp autoload.
 It must match the initial `tramp-syntax' settings.  It should not
 match file names at root of the underlying local file system,
 like \"/sys\" or \"/C:\".")
+(defvar tramp-foreign-file-name-handler-alist nil "\
+Alist of elements (FUNCTION . HANDLER) for foreign methods handled specially.
+If (FUNCTION FILENAME) returns non-nil, then all I/O on that file is done by
+calling HANDLER.")
+(autoload 'tramp-file-name-handler "tramp" "\
+Invoke Tramp file name handler for OPERATION and ARGS.
+Fall back to normal file name handler if no Tramp file name handler exists.
+
+(fn OPERATION &rest ARGS)" nil nil)
 (defun tramp-autoload-file-name-handler (operation &rest args) "\
 Load Tramp file name handler, and perform OPERATION." (tramp-unload-file-name-handlers) (when tramp-mode (let ((default-directory temporary-file-directory)) (when (bound-and-true-p tramp-archive-autoload) (load "tramp-archive" 'noerror 'nomessage)) (load "tramp" 'noerror 'nomessage))) (apply operation args))
 (defun tramp-register-autoload-file-name-handlers nil "\
@@ -31770,6 +31725,7 @@ List of suffixes which indicate a compressed file.
 It must be supported by libarchive(3).")
 (defmacro tramp-archive-autoload-file-name-regexp nil "\
 Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
+(autoload 'tramp-archive-file-name-handler "tramp-archine")
 (defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
 Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (let ((default-directory temporary-file-directory) (tramp-archive-autoload tramp-archive-enabled)) (apply #'tramp-autoload-file-name-handler operation args)))
 (defun tramp-register-archive-file-name-handler nil "\
@@ -31781,7 +31737,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/tramp-cache.el
 
-(register-definition-prefixes "tramp-cache" '("tramp-"))
+(register-definition-prefixes "tramp-cache" '("tramp-" "with-tramp-"))
 
 
 ;;; Generated autoloads from net/tramp-cmds.el
@@ -31857,6 +31813,48 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from transient.el
 
+(autoload 'transient-define-prefix "transient" "\
+Define NAME as a transient prefix command.
+
+ARGLIST are the arguments that command takes.
+DOCSTRING is the documentation string and is optional.
+
+These arguments can optionally be followed by key-value pairs.
+Each key has to be a keyword symbol, either `:class' or a keyword
+argument supported by the constructor of that class.  The
+`transient-prefix' class is used if the class is not specified
+explicitly.
+
+GROUPs add key bindings for infix and suffix commands and specify
+how these bindings are presented in the popup buffer.  At least
+one GROUP has to be specified.  See info node `(transient)Binding
+Suffix and Infix Commands'.
+
+The BODY is optional.  If it is omitted, then ARGLIST is also
+ignored and the function definition becomes:
+
+  (lambda ()
+    (interactive)
+    (transient-setup \\='NAME))
+
+If BODY is specified, then it must begin with an `interactive'
+form that matches ARGLIST, and it must call `transient-setup'.
+It may however call that function only when some condition is
+satisfied; that is one of the reason why you might want to use
+an explicit BODY.
+
+All transients have a (possibly nil) value, which is exported
+when suffix commands are called, so that they can consume that
+value.  For some transients it might be necessary to have a sort
+of secondary value, called a scope.  Such a scope would usually
+be set in the commands `interactive' form and has to be passed
+to the setup function:
+
+  (transient-setup \\='NAME nil nil :scope SCOPE)
+
+(fn NAME ARGLIST [DOCSTRING] [KEYWORD VALUE]... GROUP... [BODY...])" nil t)
+(function-put 'transient-define-prefix 'lisp-indent-function 'defun)
+(function-put 'transient-define-prefix 'doc-string-elt 3)
 (autoload 'transient-insert-suffix "transient" "\
 Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -31865,9 +31863,11 @@ SUFFIX is a suffix command or a group specification (of
 LOC is a command, a key vector, a key description (a string
   as returned by `key-description'), or a coordination list
   (whose last element may also be a command or key).
+Remove a conflicting binding unless optional KEEP-OTHER is
+  non-nil.
 See info node `(transient)Modifying Existing Transients'.
 
-(fn PREFIX LOC SUFFIX)" nil nil)
+(fn PREFIX LOC SUFFIX &optional KEEP-OTHER)" nil nil)
 (function-put 'transient-insert-suffix 'lisp-indent-function 'defun)
 (autoload 'transient-append-suffix "transient" "\
 Insert a SUFFIX into PREFIX after LOC.
@@ -31877,9 +31877,11 @@ SUFFIX is a suffix command or a group specification (of
 LOC is a command, a key vector, a key description (a string
   as returned by `key-description'), or a coordination list
   (whose last element may also be a command or key).
+Remove a conflicting binding unless optional KEEP-OTHER is
+  non-nil.
 See info node `(transient)Modifying Existing Transients'.
 
-(fn PREFIX LOC SUFFIX)" nil nil)
+(fn PREFIX LOC SUFFIX &optional KEEP-OTHER)" nil nil)
 (function-put 'transient-append-suffix 'lisp-indent-function 'defun)
 (autoload 'transient-replace-suffix "transient" "\
 Replace the suffix at LOC in PREFIX with SUFFIX.
@@ -31903,7 +31905,7 @@ See info node `(transient)Modifying Existing Transients'.
 
 (fn PREFIX LOC)" nil nil)
 (function-put 'transient-remove-suffix 'lisp-indent-function 'defun)
-(register-definition-prefixes "transient" '("magit--fit-window-to-buffer" "transient-"))
+(register-definition-prefixes "transient" '("magit--fit-window-to-buffer" "transient"))
 
 
 ;;; Generated autoloads from tree-widget.el
@@ -32119,7 +32121,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
 2 would mean to use one half, a value of 4 would mean to use one quarter, etc.
 
 (fn WPM &optional WORDLEN FRAC)" t nil)
-(register-definition-prefixes "type-break" '("timep" "type-break-"))
+(register-definition-prefixes "type-break" '("type-break-"))
 
 
 ;;; Generated autoloads from international/ucs-normalize.el
@@ -32267,11 +32269,6 @@ how long to wait for a response before giving up.
 (register-definition-prefixes "url" '("url-"))
 
 
-;;; Generated autoloads from url/url-about.el
-
-(register-definition-prefixes "url-about" '("url-"))
-
-
 ;;; Generated autoloads from url/url-auth.el
 
 (autoload 'url-get-authentication "url-auth" "\
@@ -32371,11 +32368,6 @@ added to this list, so most requests can just pass in nil.
 
 (fn URL)" nil nil)
 (register-definition-prefixes "url-dav" '("url-dav-"))
-
-
-;;; Generated autoloads from url/url-dired.el
-
-(register-definition-prefixes "url-dired" '("url-"))
 
 
 ;;; Generated autoloads from url/url-domsuf.el
@@ -32730,14 +32722,8 @@ Will not do anything if `url-show-status' is nil.
 Return a date string that most HTTP servers can understand.
 
 (fn &optional SPECIFIED-TIME)" nil nil)
-(autoload 'url-eat-trailing-space "url-util" "\
-Remove spaces/tabs at the end of a string.
-
-(fn X)" nil nil)
-(autoload 'url-strip-leading-spaces "url-util" "\
-Remove spaces at the front of a string.
-
-(fn X)" nil nil)
+(define-obsolete-function-alias 'url-eat-trailing-space #'string-trim-right "29.1")
+(define-obsolete-function-alias 'url-strip-leading-spaces #'string-trim-left "29.1")
 (autoload 'url-display-percentage "url-util" "\
 
 
@@ -34524,7 +34510,7 @@ Toggle Viper on/off.
 If Viper is enabled, turn it off.  Otherwise, turn it on." t nil)
 (autoload 'viper-mode "viper" "\
 Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'." t nil)
-(register-definition-prefixes "viper" '("set-viper-state-in-major-mode" "this-major-mode-requires-vi-state" "viper-"))
+(register-definition-prefixes "viper" '("viper-"))
 
 
 ;;; Generated autoloads from emulation/viper-cmd.el
@@ -34544,7 +34530,7 @@ Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'." t nil)
 
 ;;; Generated autoloads from emulation/viper-keym.el
 
-(register-definition-prefixes "viper-keym" '("ex-read-filename-map" "viper-"))
+(register-definition-prefixes "viper-keym" '("viper-"))
 
 
 ;;; Generated autoloads from emulation/viper-macs.el
@@ -34668,7 +34654,7 @@ this is equivalent to `display-warning', using
 `emacs' as the type and `:warning' as the level.
 
 (fn MESSAGE &rest ARGS)" nil nil)
-(register-definition-prefixes "warnings" '("warning-"))
+(register-definition-prefixes "warnings" '("warning"))
 
 
 ;;; Generated autoloads from wdired.el
@@ -35471,7 +35457,7 @@ decompress the file if appropriate.  See the documentation for the
 Default bookmark handler for Woman buffers.
 
 (fn BOOKMARK)" nil nil)
-(register-definition-prefixes "woman" '("WoMan-" "menu-bar-manuals-menu" "set-woman-file-regexp" "woman"))
+(register-definition-prefixes "woman" '("WoMan-" "woman"))
 
 
 ;;; Generated autoloads from textmodes/word-wrap-mode.el
@@ -35613,7 +35599,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push (purecopy '(xref 1 4 1)) package--builtin-versions)
+(push (purecopy '(xref 1 5 0)) package--builtin-versions)
 (autoload 'xref-find-backend "xref" nil nil nil)
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref" "\
@@ -35716,7 +35702,7 @@ to control which program to use when looking for matches.
 
 ;;; Generated autoloads from progmodes/xscheme.el
 
-(register-definition-prefixes "xscheme" '("default-xscheme-runlight" "exit-scheme-interaction-mode" "global-set-scheme-interaction-buffer" "local-" "reset-scheme" "run-scheme" "scheme-" "start-scheme" "verify-xscheme-buffer" "xscheme-"))
+(register-definition-prefixes "xscheme" '("exit-scheme-interaction-mode" "global-set-scheme-interaction-buffer" "local-" "reset-scheme" "run-scheme" "scheme-" "start-scheme" "xscheme-"))
 
 
 ;;; Generated autoloads from nxml/xsd-regexp.el
@@ -35829,8 +35815,8 @@ Zone out, completely." t nil)
 (provide 'loaddefs)
 
 ;; Local Variables:
-;; version-control: never
 ;; no-byte-compile: t
+;; version-control: never
 ;; no-update-autoloads: t
 ;; coding: utf-8-emacs-unix
 ;; End:

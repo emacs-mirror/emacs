@@ -133,7 +133,7 @@ Download tramp, and use /r:machine: for names on remote sites w/out FTP access."
 (defun ede-vc-project-directory ()
   "Run `vc-dir' on the current project."
   (interactive)
-  (let ((top (ede-toplevel-project-or-nil default-directory)))
+  (let ((top (ede-toplevel-project default-directory)))
     (vc-dir top nil)))
 
 (provide 'ede/system)

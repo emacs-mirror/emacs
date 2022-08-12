@@ -294,14 +294,12 @@ also applies `reftex-translate-to-ascii-function' to the string."
 
 (defun reftex-latin1-to-ascii (string)
   ;; Translate the upper 128 chars in the Latin-1 charset to ASCII equivalents
-  (let ((tab "@@@@@@@@@@@@@@@@@@'@@@@@@@@@@@@@ icLxY|S\"ca<--R-o|23'uq..1o>423?AAAAAAACEEEEIIIIDNOOOOOXOUUUUYP3aaaaaaaceeeeiiiidnooooo:ouuuuypy")
-        (emacsp (not (featurep 'xemacs))))
+  (let ((tab "@@@@@@@@@@@@@@@@@@'@@@@@@@@@@@@@ icLxY|S\"ca<--R-o|23'uq..1o>423?AAAAAAACEEEEIIIIDNOOOOOXOUUUUYP3aaaaaaaceeeeiiiidnooooo:ouuuuypy"))
     (mapconcat
      (lambda (c)
        (cond ((and (> c 127) (< c 256))                 ; 8 bit Latin-1
               (char-to-string (aref tab (- c 128))))
-             ((and emacsp                               ; Not for XEmacs
-                   (> c 2175) (< c 2304))               ; Mule Latin-1
+             ((and (> c 2175) (< c 2304))               ; Mule Latin-1
               (char-to-string (aref tab (- c 2176))))
              (t (char-to-string c))))
      string "")))

@@ -281,7 +281,7 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defcustom outline-minor-mode-use-buttons '(derived-mode . special-mode)
+(defcustom outline-minor-mode-use-buttons '(derived-mode . help-mode)
   "Whether to display clickable buttons on the headings.
 The value should be a `buffer-match-p' condition.
 
@@ -294,16 +294,16 @@ buffers (yet) -- that will be amended in a future version."
   :version "29.1")
 
 (define-icon outline-open button
-  '((emoji "▶️")
-    (symbol " ⯈ ")
+  '((emoji "🔽")
+    (symbol " ⯆ ")
     (text " open "))
   "Icon used for buttons for opening a section in outline buffers."
   :version "29.1"
   :help-echo "Open this section")
 
 (define-icon outline-close button
-  '((emoji "🔽")
-    (symbol " ⯆ ")
+  '((emoji "▶️")
+    (symbol " ⯈ ")
     (text " close "))
   "Icon used for buttons for closing a section in outline buffers."
   :version "29.1"
@@ -435,7 +435,7 @@ outline font-lock faces to those of major mode."
                          (goto-char (match-beginning 0))
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
-          (when (outline--use-buttons-p)
+          (when (and (outline--use-buttons-p) (outline-on-heading-p))
             (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
@@ -452,11 +452,10 @@ See the command `outline-mode' for more information on this mode."
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-highlight
-          (if (and global-font-lock-mode (font-lock-specified-p major-mode))
-              (progn
-                (font-lock-add-keywords nil outline-font-lock-keywords t)
-                (font-lock-flush))
-            (outline-minor-mode-highlight-buffer)))
+          (when (and global-font-lock-mode (font-lock-specified-p major-mode))
+            (font-lock-add-keywords nil outline-font-lock-keywords t)
+            (font-lock-flush))
+          (outline-minor-mode-highlight-buffer))
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
@@ -1011,32 +1010,34 @@ If non-nil, EVENT should be a mouse event."
     o))
 
 (defun outline--insert-open-button ()
-  (save-excursion
-    (beginning-of-line)
-    (when (derived-mode-p 'special-mode)
-      (let ((inhibit-read-only t))
-        (insert "  ")
-        (beginning-of-line)))
-    (let ((o (outline--make-button-overlay 'open)))
-      (overlay-put o 'help-echo "Click to hide")
-      (overlay-put o 'keymap
-                   (define-keymap
-                     "RET" #'outline-hide-subtree
-                     "<mouse-2>" #'outline-hide-subtree)))))
+  (with-silent-modifications
+    (save-excursion
+        (beginning-of-line)
+        (when (derived-mode-p 'special-mode)
+          (let ((inhibit-read-only t))
+            (insert "  ")
+            (beginning-of-line)))
+        (let ((o (outline--make-button-overlay 'open)))
+          (overlay-put o 'help-echo "Click to hide")
+          (overlay-put o 'keymap
+                       (define-keymap
+                         "RET" #'outline-hide-subtree
+                         "<mouse-2>" #'outline-hide-subtree))))))
 
 (defun outline--insert-close-button ()
-  (save-excursion
-    (beginning-of-line)
-    (when (derived-mode-p 'special-mode)
-      (let ((inhibit-read-only t))
-        (insert "  ")
-        (beginning-of-line)))
-    (let ((o (outline--make-button-overlay 'close)))
-      (overlay-put o 'help-echo "Click to show")
-      (overlay-put o 'keymap
-                   (define-keymap
-                     "RET" #'outline-show-subtree
-                     "<mouse-2>" #'outline-show-subtree)))))
+  (with-silent-modifications
+    (save-excursion
+        (beginning-of-line)
+        (when (derived-mode-p 'special-mode)
+          (let ((inhibit-read-only t))
+            (insert "  ")
+            (beginning-of-line)))
+        (let ((o (outline--make-button-overlay 'close)))
+          (overlay-put o 'help-echo "Click to show")
+          (overlay-put o 'keymap
+                       (define-keymap
+                         "RET" #'outline-show-subtree
+                         "<mouse-2>" #'outline-show-subtree))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when from

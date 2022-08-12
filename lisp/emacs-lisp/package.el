@@ -1064,7 +1064,9 @@ untar into a directory named DIR; otherwise, signal an error."
   (unless (file-exists-p file)
     (require 'autoload)
     (let ((coding-system-for-write 'utf-8-emacs-unix))
-      (write-region (autoload-rubric file "package" nil) nil file nil 'silent)))
+      (with-suppressed-warnings ((obsolete autoload-rubric))
+        (write-region (autoload-rubric file "package" nil)
+                      nil file nil 'silent))))
   file)
 
 (defvar autoload-timestamps)
@@ -2127,7 +2129,10 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
          package-activated-list)
     ;; We used the quickstart: make it possible to use package-installed-p
     ;; even before package is fully initialized.
-    (memq package package-activated-list))
+    (or
+     (memq package package-activated-list)
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))
    (t
     (or
      (let ((pkg-descs (cdr (assq package (package--alist)))))
@@ -3597,7 +3602,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
         (let ((place (cdr desc))
               (out (copy-sequence (car desc))))
           (add-text-properties place (1+ place)
-                               '(face (bold font-lock-warning-face))
+                               '(face help-key-binding)
                                out)
           out))
     (package--prettify-quick-help-key (cons desc 0))))

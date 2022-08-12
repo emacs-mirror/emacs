@@ -48,7 +48,6 @@
 (require 'wid-edit)
 (require 'cl-lib)
 (require 'eudc-vars)
-(eval-when-compile (require 'subr-x))
 
 ;;{{{      Internal cooking
 

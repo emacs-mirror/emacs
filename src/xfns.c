@@ -609,24 +609,24 @@ x_relative_mouse_position (struct frame *f, int *x, int *y)
 
   block_input ();
 
-  XQueryPointer (FRAME_X_DISPLAY (f),
-                 FRAME_DISPLAY_INFO (f)->root_window,
+  x_query_pointer (FRAME_X_DISPLAY (f),
+		   FRAME_DISPLAY_INFO (f)->root_window,
 
-                 /* The root window which contains the pointer.  */
-                 &root,
+		   /* The root window which contains the pointer.  */
+		   &root,
 
-                 /* Window pointer is on, not used  */
-                 &dummy_window,
+		   /* Window pointer is on, not used  */
+		   &dummy_window,
 
-                 /* The position on that root window.  */
-                 x, y,
+		   /* The position on that root window.  */
+		   x, y,
 
-                 /* x/y in dummy_window coordinates, not used.  */
-                 &dummy, &dummy,
+		   /* x/y in dummy_window coordinates, not used.  */
+		   &dummy, &dummy,
 
-                 /* Modifier keys and pointer buttons, about which
-                    we don't care.  */
-                 (unsigned int *) &dummy);
+		   /* Modifier keys and pointer buttons, about which
+		      we don't care.  */
+		   (unsigned int *) &dummy);
 
   XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
@@ -1201,20 +1201,6 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #ifdef USE_GTK
       xg_set_background_color (f, bg);
 #endif
-
-#ifndef USE_TOOLKIT_SCROLL_BARS /* Turns out to be annoying with
-				   toolkit scroll bars.  */
-      {
-	Lisp_Object bar;
-	for (bar = FRAME_SCROLL_BARS (f);
-	     !NILP (bar);
-	     bar = XSCROLL_BAR (bar)->next)
-	  {
-	    Window window = XSCROLL_BAR (bar)->x_window;
-	    XSetWindowBackground (dpy, window, bg);
-	  }
-      }
-#endif /* USE_TOOLKIT_SCROLL_BARS */
 
       unblock_input ();
       update_face_from_frame_parameter (f, Qbackground_color, arg);
@@ -2429,6 +2415,28 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       FRAME_TERMINAL (f)->set_frame_alpha_hook (f);
       unblock_input ();
     }
+}
+
+static void
+x_set_use_frame_synchronization (struct frame *f, Lisp_Object arg,
+				 Lisp_Object oldval)
+{
+#if !defined USE_GTK && defined HAVE_XSYNC
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  if (!NILP (arg) && FRAME_X_EXTENDED_COUNTER (f))
+    FRAME_X_OUTPUT (f)->use_vsync_p
+      = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
+  else
+    FRAME_X_OUTPUT (f)->use_vsync_p = false;
+
+  store_frame_param (f, Quse_frame_synchronization,
+		     FRAME_X_OUTPUT (f)->use_vsync_p ? Qt : Qnil);
+#else
+  store_frame_param (f, Quse_frame_synchronization, Qnil);
+#endif
 }
 
 
@@ -5149,17 +5157,19 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       (unsigned char *) &counters,
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
-#endif
 
-#ifndef USE_GTK
-      if (FRAME_X_EXTENDED_COUNTER (f))
-	FRAME_X_OUTPUT (f)->use_vsync_p
-	  = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+      x_sync_init_fences (f);
+#endif
 #endif
     }
 #endif
 
   unblock_input ();
+
+  /* Set whether or not frame synchronization is enabled.  */
+  gui_default_parameter (f, parms, Quse_frame_synchronization, Qt,
+			 NULL, NULL, RES_TYPE_BOOLEAN);
 
   /* Works iff frame has been already mapped.  */
   gui_default_parameter (f, parms, Qskip_taskbar, Qnil,
@@ -6813,10 +6823,10 @@ selected frame's display.  */)
     return Qnil;
 
   block_input ();
-  XQueryPointer (FRAME_X_DISPLAY (f),
-		 FRAME_DISPLAY_INFO (f)->root_window,
-                 &root, &dummy_window, &x, &y, &dummy, &dummy,
-                 (unsigned int *) &dummy);
+  x_query_pointer (FRAME_X_DISPLAY (f),
+		   FRAME_DISPLAY_INFO (f)->root_window,
+		   &root, &dummy_window, &x, &y, &dummy, &dummy,
+		   (unsigned int *) &dummy);
   unblock_input ();
 
   return Fcons (make_fixnum (x), make_fixnum (y));
@@ -8372,8 +8382,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
       Lisp_Object frame, attributes, monitor, geometry;
 
       block_input ();
-      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
-		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+      x_query_pointer (FRAME_X_DISPLAY (f), FRAME_DISPLAY_INFO (f)->root_window,
+		       &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
       unblock_input ();
 
       XSETFRAME (frame, f);
@@ -9775,6 +9785,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_override_redirect,
   gui_set_no_special_glyphs,
   x_set_alpha_background,
+  x_set_use_frame_synchronization,
   x_set_shaded,
 };
 

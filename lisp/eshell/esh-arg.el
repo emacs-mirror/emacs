@@ -186,7 +186,7 @@ If QUOTED is nil, the resulting value(s) may be converted to
 numbers (see `eshell-concat-1').
 
 If each argument in REST is a non-list value, the result will be
-a single value, as if (mapconcat #'eshell-stringify REST) had been
+a single value, as if (mapconcat #\\='eshell-stringify REST) had been
 called, possibly converted to a number.
 
 If there is at least one (non-nil) list argument, the result will

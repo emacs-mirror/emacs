@@ -92,6 +92,7 @@
 (require 'cl-seq)
 (require 'bindat)
 (eval-when-compile (require 'pcase))
+(require 'subr-x)   ; `string-pad'
 
 (declare-function speedbar-change-initial-expansion-list
                   "speedbar" (new-default))
@@ -126,9 +127,9 @@ Possible value: main, $rsp, x+3.")
   "Address of memory display.")
 (defvar-local gdb-memory-last-address nil
   "Last successfully accessed memory address.")
-(defvar	gdb-memory-next-page nil
+(defvar gdb-memory-next-page nil
   "Address of next memory page for program memory buffer.")
-(defvar	gdb-memory-prev-page nil
+(defvar gdb-memory-prev-page nil
   "Address of previous memory page for program memory buffer.")
 (defvar-local gdb--memory-display-warning nil
   "Display warning on memory header if t.
@@ -2943,7 +2944,8 @@ Return position where LINE begins."
        start-posn)))
 
 (defun gdb-pad-string (string padding)
-  (format (concat "%" (number-to-string padding) "s") string))
+  (declare (obsolete string-pad "29.1"))
+  (string-pad string padding nil t))
 
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
@@ -2985,13 +2987,13 @@ calling `gdb-table-string'."
   "Return TABLE as a string with columns separated with SEP."
   (let ((column-sizes (gdb-table-column-sizes table)))
     (mapconcat
-     'identity
+     #'identity
      (cl-mapcar
       (lambda (row properties)
-        (apply 'propertize
-               (mapconcat 'identity
-                          (cl-mapcar (lambda (s x) (gdb-pad-string s x))
-                                       row column-sizes)
+        (apply #'propertize
+               (mapconcat #'identity
+                          (cl-mapcar (lambda (s x) (string-pad s x nil t))
+                                     row column-sizes)
                           sep)
                properties))
       (gdb-table-rows table)
@@ -3688,10 +3690,11 @@ in `gdb-memory-format'."
           (dolist (row memory)
             (insert (concat (gdb-mi--field row 'addr) ":"))
             (dolist (column (gdb-mi--field row 'data))
-              (insert (gdb-pad-string column
-                                      (+ 2 (gdb-memory-column-width
-                                            gdb-memory-unit
-                                            gdb-memory-format)))))
+              (insert (string-pad column
+                                  (+ 2 (gdb-memory-column-width
+                                        gdb-memory-unit
+                                        gdb-memory-format))
+                                  nil t)))
             (newline)))
       ;; Show last page instead of empty buffer when out of bounds
       (when gdb-memory-last-address

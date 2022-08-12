@@ -767,7 +767,7 @@ Each element is (INDEX . VALUE)")
 (byte-defop 122  0 byte-char-syntax)
 (byte-defop 123 -1 byte-buffer-substring)
 (byte-defop 124 -1 byte-delete-region)
-(byte-defop 125 -2 byte-narrow-to-region)
+(byte-defop 125 -1 byte-narrow-to-region)
 (byte-defop 126  1 byte-widen)
 (byte-defop 127  0 byte-end-of-line)
 
@@ -1760,7 +1760,7 @@ It is too wide if it has any lines longer than the largest of
            kind name col))
         ;; There's a "naked" ' character before a symbol/list, so it
         ;; should probably be quoted with \=.
-        (when (string-match-p "\\( \"\\|[ \t]\\|^\\)'[a-z(]" docs)
+        (when (string-match-p "\\( [\"#]\\|[ \t]\\|^\\)'[a-z(]" docs)
           (byte-compile-warn-x
            name "%s%sdocstring has wrong usage of unescaped single quotes (use \\= or different quoting)"
            kind name))
@@ -2416,8 +2416,8 @@ Call from the source buffer."
 
 (defun byte-compile-output-file-form (form)
   ;; Write the given form to the output buffer, being careful of docstrings
-  ;; in defvar, defvaralias, defconst, autoload and
-  ;; custom-declare-variable because make-docfile is so amazingly stupid.
+  ;; (for `byte-compile-dynamic-docstrings') in defvar, defvaralias,
+  ;; defconst, autoload, and custom-declare-variable.
   ;; defalias calls are output directly by byte-compile-file-form-defmumble;
   ;; it does not pay to first build the defalias in defmumble and then parse
   ;; it here.
@@ -2463,21 +2463,9 @@ list that represents a doc string reference.
       (let (position
             (print-symbols-bare t))     ; Possibly redundant binding.
         ;; Insert the doc string, and make it a comment with #@LENGTH.
-        (and (>= (nth 1 info) 0)
-             dynamic-docstrings
-             (progn
-               ;; Make the doc string start at beginning of line
-               ;; for make-docfile's sake.
-               (insert "\n")
-               (setq position
-                     (byte-compile-output-as-comment
-                      (nth (nth 1 info) form) nil))
-               ;; If the doc string starts with * (a user variable),
-               ;; negate POSITION.
-               (if (and (stringp (nth (nth 1 info) form))
-                        (> (length (nth (nth 1 info) form)) 0)
-                        (eq (aref (nth (nth 1 info) form) 0) ?*))
-                   (setq position (- position)))))
+        (when (and (>= (nth 1 info) 0) dynamic-docstrings)
+          (setq position (byte-compile-output-as-comment
+                          (nth (nth 1 info) form) nil)))
 
         (let ((print-continuous-numbering t)
               print-number-table
@@ -2604,8 +2592,8 @@ list that represents a doc string reference.
 	  (t
 	   (byte-compile-keep-pending form)))))
 
-;; Functions and variables with doc strings must be output separately,
-;; so make-docfile can recognize them.  Most other things can be output
+;; Functions and variables with doc strings must be output specially,
+;; for `byte-compile-dynamic-docstrings'.  Most other things can be output
 ;; as byte-code.
 
 (put 'autoload 'byte-hunk-handler 'byte-compile-file-form-autoload)
@@ -3845,7 +3833,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler setcdr		2)
 (byte-defop-compiler buffer-substring	2)
 (byte-defop-compiler delete-region	2)
-(byte-defop-compiler narrow-to-region	2-3)
+(byte-defop-compiler narrow-to-region	2)
 (byte-defop-compiler (% byte-rem)	2)
 (byte-defop-compiler aset		3)
 
@@ -5004,7 +4992,7 @@ binding slots have been popped."
   ;;
   ;; FIXME: we also use this hunk-handler to implement the function's
   ;; dynamic docstring feature (via byte-compile-file-form-defmumble).
-  ;; We should actually implement it (more elegantly) in
+  ;; We should probably actually implement it (more elegantly) in
   ;; byte-compile-lambda so it applies to all lambdas.  We did it here
   ;; so the resulting .elc format was recognizable by make-docfile,
   ;; but since then we stopped using DOC for the docstrings of

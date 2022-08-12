@@ -1913,7 +1913,7 @@ This takes effect when first loading the library.")
 	 (valign '(("top") ("middle") ("bottom") ("baseline")))
 	 (rel '(("next") ("previous") ("parent") ("subdocument") ("made")))
 	 (href '("href" ("ftp:") ("file:") ("finger:") ("gopher:") ("http:")
-		 ("mailto:") ("news:") ("rlogin:") ("telnet:") ("tn3270:")
+                 ("https:") ("mailto:") ("news:") ("rlogin:") ("telnet:") ("tn3270:")
 		 ("wais:") ("/cgi-bin/")))
 	 (name '("name"))
 	 (link `(,href

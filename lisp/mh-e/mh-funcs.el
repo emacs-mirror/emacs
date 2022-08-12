@@ -366,7 +366,6 @@ Arguments are IGNORED (for `revert-buffer')."
 (provide 'mh-funcs)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

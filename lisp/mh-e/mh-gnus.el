@@ -28,12 +28,11 @@
 
 (require 'mh-e)
 
-(eval-and-compile
-  (require 'gnus-util nil t)
-  (require 'mm-bodies nil t)
-  (require 'mm-decode nil t)
-  (require 'mm-view nil t)
-  (require 'mml nil t))
+(require 'gnus-util)
+(require 'mm-bodies)
+(require 'mm-decode)
+(require 'mm-view)
+(require 'mml)
 
 (defun mh-gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
@@ -109,7 +108,6 @@ PROMPT overrides the default one used to ask user for a file name."
 
 ;; Local Variables:
 ;; no-update-autoloads: t
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

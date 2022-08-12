@@ -419,7 +419,7 @@
 ;;   AND you'd like the current time considered to be anything besides
 ;;   (vc-annotate-convert-time (current-time)) -- i.e. the current
 ;;   time with hours, minutes, and seconds included.  Probably safe to
-;;   ignore.  Return the current-time, in units of fractional days.
+;;   ignore.  Return the current time, in units of fractional days.
 ;;
 ;; - annotate-extract-revision-at-line ()
 ;;
