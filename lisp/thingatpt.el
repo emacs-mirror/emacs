@@ -74,7 +74,7 @@ question.
 
 \"things\" include `symbol', `list', `sexp', `defun', `filename',
 `existing-filename', `url', `email', `uuid', `word', `sentence',
-`whitespace', `line', and `page'.")
+`whitespace', `line', `face' and `page'.")
 
 ;; Basic movement
 
@@ -166,7 +166,7 @@ positions of the thing found."
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
 `filename', `existing-filename', `url', `email', `uuid', `word',
-`sentence', `whitespace', `line', `number', and `page'.
+`sentence', `whitespace', `line', `number', `face' and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
 strip text properties from the return value.
@@ -360,6 +360,15 @@ E.g.:
          filename)))
 
 (put 'existing-filename 'thing-at-point 'thing-at-point-file-at-point)
+
+;; Faces
+
+(defun thing-at-point-face-at-point (&optional _lax _bounds)
+  "Return the name of the face at point as a symbol."
+  (when-let ((face (thing-at-point 'symbol)))
+    (and (facep face) (intern face))))
+
+(put 'face 'thing-at-point 'thing-at-point-face-at-point)
 
 ;;  URIs
 
