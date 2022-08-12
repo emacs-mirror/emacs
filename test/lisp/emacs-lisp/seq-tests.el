@@ -570,7 +570,12 @@ Evaluate BODY for each created sequence.
                     (substring "2")
                     (substring "1"))))
     (should (equal (seq-uniq list) '("1" "2" "3")))
-    (should (equal (seq-uniq list #'eq) '("1" "2" "3" "2" "1")))))
+    (should (equal (seq-uniq list #'eq) '("1" "2" "3" "2" "1"))))
+  ;; Long lists have a different code path.
+  (let ((list (seq-map-indexed (lambda (_ i) i)
+			       (make-list 10000 nil))))
+    (should (= (length list) 10000))
+    (should (= (length (seq-uniq (append list list))) 10000))))
 
 (provide 'seq-tests)
 ;;; seq-tests.el ends here
