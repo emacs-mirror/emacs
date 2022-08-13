@@ -89,12 +89,11 @@
 ;;  underlining.  However, if the region is already underlined by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
 ;;  underlining.  This problem occurs when a buffer is highlighted with
-;;  hilit19.el or font-lock.el packages.  If this residual highlighting gets
-;;  in the way, you can do the following.  Both font-lock.el and hilit19.el
-;;  provide commands for unhighlighting buffers.  You can either place these
-;;  commands in `ediff-prepare-buffer-hook' (which will unhighlight every
-;;  buffer used by Ediff) or you can execute them interactively, at any time
-;;  and on any buffer.
+;;  font-lock.el packages.  If this residual highlighting gets in the way, you
+;;  can do the following.  font-lock.el provides commands for unhighlighting
+;;  buffers.  You can either place these commands in `ediff-prepare-buffer-hook'
+;;  (which will unhighlight every buffer used by Ediff) or you can execute
+;;  them interactively, at any time and in any buffer.
 
 
 ;;; Acknowledgments:
