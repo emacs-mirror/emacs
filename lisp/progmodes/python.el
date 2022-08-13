@@ -5648,9 +5648,13 @@ returned as is."
 This is a non empty list of strings, the checker tool possibly followed by
 required arguments.  Once launched it will receive the Python source to be
 checked as its standard input.
-To use `flake8' you would set this to (\"flake8\" \"-\")."
+To use `flake8' you would set this to (\"flake8\" \"-\").
+To use `pylint' you would set this to (\"pylint\" \"--from-stdin\" \"stdin\")."
   :version "26.1"
-  :type '(repeat string))
+  :type '(choice (const :tag "Pyflakes" ("pyflakes"))
+                 (const :tag "Flake8" ("flake8" "-"))
+                 (const :tag "Pylint" ("pylint" "--from-stdin" "stdin"))
+                 (repeat :tag "Custom command" string)))
 
 ;; The default regexp accommodates for older pyflakes, which did not
 ;; report the column number, and at the same time it's compatible with
@@ -5658,7 +5662,7 @@ To use `flake8' you would set this to (\"flake8\" \"-\")."
 ;; TYPE
 (defcustom python-flymake-command-output-pattern
   (list
-   "^\\(?:<?stdin>?\\):\\(?1:[0-9]+\\):\\(?:\\(?2:[0-9]+\\):\\)? \\(?3:.*\\)$"
+   "^\\(?:<?stdin>?\\):\\(?1:[0-9]+\\):\\(?:\\(?2:[0-9]+\\):?\\)? \\(?3:.*\\)$"
    1 2 nil 3)
   "Specify how to parse the output of `python-flymake-command'.
 The value has the form (REGEXP LINE COLUMN TYPE MESSAGE): if
@@ -5670,7 +5674,6 @@ MESSAGE'th gives the message text itself.
 If COLUMN or TYPE are nil or that index didn't match, that
 information is not present on the matched line and a default will
 be used."
-  :version "26.1"
   :type '(list regexp
                (integer :tag "Line's index")
                (choice
@@ -5679,7 +5682,8 @@ be used."
                (choice
                 (const :tag "No type" nil)
                 (integer :tag "Type's index"))
-               (integer :tag "Message's index")))
+               (integer :tag "Message's index"))
+  :version "29.1")
 
 (defcustom python-flymake-msg-alist
   '(("\\(^redefinition\\|.*unused.*\\|used$\\)" . :warning))

@@ -6300,6 +6300,40 @@ buffer with overlapping strings."
     a = 1
 ")))
 
+
+;;; Flymake
+
+(ert-deftest python-tests--flymake-command-output-pattern ()
+  (pcase-let ((`(,patt ,line ,col ,type ,msg)
+               python-flymake-command-output-pattern))
+    ;; Pyflakes output as of version 2.4.0
+    (let ((output "<stdin>:12:34 'a.b.c as d' imported but unused"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (should (equal (match-string msg output)
+                     "'a.b.c as d' imported but unused")))
+    ;; Flake8 output as of version 4.0.1
+    (let ((output "stdin:12:34: F401 'a.b.c as d' imported but unused"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (when type (should (equal (match-string type output) "F401")))
+      (should (equal (match-string msg output)
+                     (if type
+                         "'a.b.c as d' imported but unused"
+                       "F401 'a.b.c as d' imported but unused"))))
+    ;; Pylint output as of version 2.14.5
+    (let ((output "stdin:12:34: W0611: Unused import a.b.c (unused-import)"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (when type (should (equal (match-string type output) "W0611")))
+      (should (equal (match-string msg output)
+                     (if type
+                         "Unused import a.b.c (unused-import)"
+                       "W0611: Unused import a.b.c (unused-import)"))))))
+
 (provide 'python-tests)
 
 ;;; python-tests.el ends here
