@@ -2891,20 +2891,20 @@ and cause an annoying delay in display, so several features exist to
 work around this.
 
 @cindex Just-In-Time syntax highlighting
-In Emacs 21 and later, turning on @code{font-lock-mode} automatically
-activates the new @dfn{Just-In-Time fontification} provided by
-@code{jit-lock-mode}.  @code{jit-lock-mode} defers the fontification of
-portions of buffer until you actually need to see them, and can also
-fontify while Emacs is idle.  This makes display of the visible portion
-of a buffer almost instantaneous.  For details about customizing
-@code{jit-lock-mode}, type @kbd{C-h f jit-lock-mode @key{RET}}.
+Turning on @code{font-lock-mode} automatically activates
+@dfn{Just-In-Time fontification} provided by @code{jit-lock-mode}.
+@code{jit-lock-mode} defers the fontification of portions of buffer
+until you actually need to see them, and can also fontify while Emacs
+is idle.  This makes display of the visible portion of a buffer almost
+instantaneous.  For details about customizing @code{jit-lock-mode},
+type @kbd{C-h f jit-lock-mode @key{RET}}.
 
 @cindex Levels of syntax highlighting
 @cindex Decoration level, in @code{font-lock-mode}
-In versions of Emacs before 21, different levels of decoration are
-available, from slight to gaudy.  More decoration means you need to wait
-more time for a buffer to be fontified (or a faster machine).  To
-control how decorated your buffers should become, set the value of
+Different levels of decoration are available, from slight to gaudy.
+More decoration means you need to wait more time for a buffer to be
+fontified (or a faster machine).  To control how decorated your
+buffers should become, set the value of
 @code{font-lock-maximum-decoration} in your @file{.emacs} file, with a
 @code{nil} value indicating default (usually minimum) decoration, and a
 @code{t} value indicating the maximum decoration.  For the gaudiest
@@ -2985,11 +2985,7 @@ Add the following line to your @file{.emacs} file:
 In many systems, @code{ls} is aliased to @samp{ls --color}, which
 prints using ANSI color escape sequences.  Emacs includes the
 @code{ansi-color} package, which lets Shell mode recognize these
-escape sequences.  In Emacs 23.2 and later, the package is enabled by
-default; in earlier versions you can enable it by typing @kbd{M-x
-ansi-color-for-comint-mode} in the Shell buffer, or by adding
-@code{(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)} to
-your init file.
+escape sequences.  It is enabled by default.
 
 @node Fullscreen mode on MS-Windows
 @section How can I start Emacs in fullscreen mode on MS-Windows?

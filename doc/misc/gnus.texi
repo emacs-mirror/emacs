@@ -21958,7 +21958,7 @@ you can set up a local @acronym{IMAP} server, which you then access via
 @code{nnimap}.  This is a rather massive setup for accessing some mbox
 files, so just change to MH or Maildir already...  However, if you're
 really, really passionate about using mbox, you might want to look into
-the package @file{mairix.el}, which comes with Emacs 23.
+the package @file{mairix.el}, which comes with Emacs.
 
 @node What nnmairix does
 @subsection What nnmairix does

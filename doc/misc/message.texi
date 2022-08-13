@@ -1152,12 +1152,11 @@ programs are required to make things work, and some small general hints.
 @uref{https://www.gnupg.org/, GNU Privacy Guard} or
 @uref{https://www.openssl.org/, OpenSSL}.  The default Emacs interface
 to the S/MIME implementation is EasyPG (@pxref{Top,,EasyPG Assistant
-User's Manual, epa, EasyPG Assistant User's Manual}), which has been
-included in Emacs since version 23 and which relies on the command
-line tool @command{gpgsm} provided by @acronym{GnuPG}.  That tool
-implements certificate management, including certificate revocation
-and expiry, while such tasks need to be performed manually, if OpenSSL
-is used.
+User's Manual, epa, EasyPG Assistant User's Manual}), which is
+included in Emacs and relies on the command line tool @command{gpgsm}
+provided by @acronym{GnuPG}.  That tool implements certificate
+management, including certificate revocation and expiry, while such
+tasks need to be performed manually, if OpenSSL is used.
 
 The choice between EasyPG and OpenSSL is controlled by the variable
 @code{mml-smime-use}, which needs to be set to the value @code{epg}

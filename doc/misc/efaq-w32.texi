@@ -930,9 +930,9 @@ an indication of whether the font is outline (.TTF, .ATM) or raster (.FON)
 based when fonts are listed, which may let you differentiate between two
 fonts with the same name and different technologies.
 
-Starting with Emacs 23, the preferred font name format will be moving
-to the simpler and more flexible fontconfig format.  XLFD names will
-continue to be supported for backward compatibility.
+Starting with Emacs 23, the preferred font name format is the simpler
+and more flexible fontconfig format.  XLFD names will continue to be
+supported for backward compatibility.
 
 @example
 XLFD: -*-Courier New-normal-r-*-*-13-*-*-*-c-*-iso8859-1

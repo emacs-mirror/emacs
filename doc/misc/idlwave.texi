@@ -4116,17 +4116,6 @@ configuration files (e.g., @file{.cshrc}), but from the file
 @file{~/.MacOSX/environment.plist}.  Either include your path settings
 there, or start Emacs and IDLWAVE from the shell.
 
-@item @strong{I'm getting errors like @samp{Symbol's value as variable is void:
-cl-builtin-gethash} on completion or routine info.}
-
-This error arises if you upgraded Emacs from 20.x to 21.x without
-re-installing IDLWAVE@.  Old Emacs and new Emacs are not byte-compatible
-in compiled lisp files.  Presumably, you kept the original .elc files in
-place, and this is the source of the error.  If you recompile (or just
-"make; make install") from source, it should resolve this problem.
-Another option is to recompile the @file{idlw*.el} files by hand using
-@kbd{M-x byte-compile-file}.
-
 @item @strong{@kbd{M-@key{TAB}} doesn't complete words, it switches
 windows on my desktop.}
 

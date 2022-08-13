@@ -986,9 +986,9 @@ printer, put this in your @file{.emacs} file:
 @section Specifying Fonts on MS-Windows
 @cindex font specification (MS Windows)
 
-  Starting with Emacs 23, fonts are specified by their name, size
-and optional properties.  The format for specifying fonts comes from the
-fontconfig library used in modern Free desktops:
+  Fonts are specified by their name, size and optional properties.
+The format for specifying fonts comes from the fontconfig library used
+in modern Free desktops:
 
 @example
   [Family[-PointSize]][:Option1=Value1[:Option2=Value2[...]]]
