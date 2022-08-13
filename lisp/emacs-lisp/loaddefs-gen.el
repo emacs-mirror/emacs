@@ -551,6 +551,11 @@ instead of just updating them with the new/changed autoloads."
          (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
 
+    ;; Allow the excluded files to be relative.
+    (setq excluded-files
+          (mapcar (lambda (file) (expand-file-name file dir))
+                  excluded-files))
+
     ;; Collect all the autoload data.
     (let ((progress (make-progress-reporter
                      (byte-compile-info
