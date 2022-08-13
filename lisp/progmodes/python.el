@@ -5872,7 +5872,6 @@ REPORT-FN is Flymake's callback function."
      nil))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
-  (setq-local outline-heading-end-regexp ":[^\n]*\n")
   (setq-local outline-level
               (lambda ()
                 "`outline-level' function for Python mode."
