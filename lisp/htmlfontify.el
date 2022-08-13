@@ -81,11 +81,9 @@
 (eval-when-compile (require 'cl-lib))
 (require 'cus-edit)
 
-(defconst htmlfontify-version 0.21)
-
 (defconst hfy-meta-tags
-  (format "<meta name=\"generator\" content=\"emacs %s; htmlfontify %0.2f\" />"
-          emacs-version htmlfontify-version)
+  (format "<meta name=\"generator\" content=\"emacs %s; htmlfontify\" />"
+          emacs-version)
   "The generator meta tag for this version of htmlfontify.")
 
 (defconst htmlfontify-manual "Htmlfontify Manual"
@@ -2392,12 +2390,13 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
 
-;; Obsolete.
-
 (defun hfy-interq (set-a set-b)
   "Return the intersection (using `eq') of two lists SET-A and SET-B."
   (declare (obsolete seq-intersection "28.1"))
   (nreverse (seq-intersection set-a set-b #'eq)))
+
+(defconst htmlfontify-version 0.21)
+(make-obsolete-variable 'htmlfontify-version 'emacs-version "29.1")
 
 (define-obsolete-function-alias 'hfy-prop-invisible-p #'invisible-p "29.1")
 
