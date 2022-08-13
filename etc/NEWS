@@ -1348,9 +1348,9 @@ value there.
 +++
 *** You can now generate a backtrace from Lisp errors in redisplay.
 To do this, set the new variable 'backtrace-on-redisplay-error' to a
-non-nil value.  The backtrace will be written to buffer
-*Redisplay-trace*.  This buffer will not be automatically displayed in
-a window.
+non-nil value.  The backtrace will be written to a special buffer
+named "*Redisplay-trace*".  This buffer will not be automatically
+displayed in a window.
 
 ** Compile
 
@@ -1753,11 +1753,6 @@ key bindings and functions (such as 'C-h b').
 The new ':doc-spec-function' element can be used to compute the
 ':doc-spec' element when the user asks for info on that particular
 mode (instead of at load time).
-
-** Subr-x
-
-+++
-*** New macro 'with-memoization' provides a very primitive form of memoization.
 
 ** Ansi-color
 
@@ -2649,6 +2644,9 @@ This compares strings ignoring case differences.
 If Emacs was built with native-compilation enabled, Lisp programs can
 now call 'symbol-file' with the new optional 3rd argument non-nil to
 request the name of the .eln file which defined a given symbol.
+
++++
+** New macro 'with-memoization' provides a very primitive form of memoization.
 
 ** Themes
 
