@@ -12650,14 +12650,17 @@ cancels any modification.  */);
 
   DEFSYM (Qdeactivate_mark, "deactivate-mark");
   DEFVAR_LISP ("deactivate-mark", Vdeactivate_mark,
-    doc: /* If an editing command sets this to t, deactivate the mark afterward.
+    doc: /* Whether to deactivate the mark after an editing command.
 The command loop sets this to nil before each command,
 and tests the value when the command returns.
-Buffer modification stores t in this variable.
+If an editing command sets this non-nil, deactivate the mark after
+the command returns.
+
+Buffer modifications store t in this variable.
 
 By default, deactivating the mark will save the contents of the region
-according to `select-active-regions'.  If this is set to the symbol
-`dont-save', the region will not be saved.*/);
+according to `select-active-regions', unless this is set to the symbol
+`dont-save'.  */);
   Vdeactivate_mark = Qnil;
   Fmake_variable_buffer_local (Qdeactivate_mark);
 

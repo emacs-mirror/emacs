@@ -2570,10 +2570,10 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 ---
-** New 'dont-save' value of 'deactivate-mark'.
+** 'deactivate-mark' can have new value 'dont-save'.
 This value means that Emacs should deactivate the mark as usual, but
-without setting the primary selection should 'select-active-regions'
-be enabled.
+without setting the primary selection, if 'select-active-regions' is
+enabled.
 
 +++
 ** New 'declare' form 'interactive-args'.
