@@ -561,10 +561,13 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
   "Test using the \"last result\" ($$) variable with an external command"
   (skip-unless (executable-find "["))
   (with-temp-eshell
-   (eshell-command-result-p "[ foo = foo ]; format \"%s\" $$"
-                            "t\n")
-   (eshell-command-result-p "[ foo = bar ]; format \"%s\" $$"
-                            "nil\n")))
+   ;; MS-DOS/MS-Windows have an external command 'format', which we
+   ;; don't want here.
+   (let ((eshell-prefer-lisp-functions t))
+     (eshell-command-result-p "[ foo = foo ]; format \"%s\" $$"
+                              "t\n")
+     (eshell-command-result-p "[ foo = bar ]; format \"%s\" $$"
+                              "nil\n"))))
 
 (ert-deftest esh-var-test/last-result-var-split-indices ()
   "Test using the \"last result\" ($$) variable with split indices"
