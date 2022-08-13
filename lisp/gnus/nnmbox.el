@@ -52,6 +52,7 @@
 
 (defconst nnmbox-version "nnmbox 1.0"
   "nnmbox version.")
+(make-obsolete-variable 'nnmbox-version 'emacs-version "29.1")
 
 (defvoo nnmbox-current-group nil
   "Current nnmbox news group directory.")

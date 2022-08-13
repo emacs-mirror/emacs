@@ -114,6 +114,7 @@ there.")
 
 (defconst nnspool-version "nnspool 2.0"
   "Version numbers of this version of NNSPOOL.")
+(make-obsolete-variable 'nnspool-version 'emacs-version "29.1")
 
 (defvoo nnspool-current-directory nil
   "Current news group directory.")

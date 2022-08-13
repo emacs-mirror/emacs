@@ -55,6 +55,7 @@ as unread by Gnus.")
 
 (defconst nnmh-version "nnmh 1.0"
   "nnmh version.")
+(make-obsolete-variable 'nnmh-version 'emacs-version "29.1")
 
 (defvoo nnmh-current-directory nil
   "Current news group directory.")

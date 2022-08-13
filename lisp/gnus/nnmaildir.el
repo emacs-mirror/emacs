@@ -62,6 +62,7 @@
   (require 'subr-x))
 
 (defconst nnmaildir-version "Gnus")
+(make-obsolete-variable 'nnmaildir-version 'emacs-version "29.1")
 
 (defconst nnmaildir-flag-mark-mapping
   '((?F . tick)
