@@ -98,9 +98,8 @@ misprints are the Gnus team's fault, sorry.
 
 @menu
 * FAQ 1-1::    What is the latest version of Gnus?
-* FAQ 1-2::    What's new in 5.10?
-* FAQ 1-3::    Where and how to get Gnus?
-* FAQ 1-4::    I sometimes read references to No Gnus and Oort Gnus,
+* FAQ 1-2::    Where and how to get Gnus?
+* FAQ 1-3::    I sometimes read references to No Gnus and Oort Gnus,
                what are those?
 @end menu
 
@@ -111,48 +110,10 @@ What is the latest version of Gnus?
 
 @subsubheading Answer
 
-Jingle please: Gnus 5.10 is released, get it while it's
-hot! As well as the step in version number is rather
-small, Gnus 5.10 has tons of new features which you
-shouldn't miss. The current release (5.13) should be at
-least as stable as the latest release of the 5.8 series.
+The latest version of Gnus is bundled with Emacs.
 
 @node FAQ 1-2
 @subsubheading Question 1.2
-
-What's new in 5.10?
-
-@subsubheading Answer
-
-First of all, you should have a look into the file
-GNUS-NEWS in the toplevel directory of the Gnus tarball,
-there the most important changes are listed. Here's a
-short list of the changes I find especially
-important/interesting:
-
-@itemize @bullet
-
-@item
-Major rewrite of the Gnus agent, Gnus agent is now
-active by default.
-
-@item
-Many new article washing functions for dealing with
-ugly formatted articles.
-
-@item
-Anti Spam features.
-
-@item
-Message-utils now included in Gnus.
-
-@item
-New format specifiers for summary lines, e.g., %B for
-a complex trn-style thread tree.
-@end itemize
-
-@node FAQ 1-3
-@subsubheading Question 1.3
 
 Where and how to get Gnus?
 
@@ -160,20 +121,19 @@ Where and how to get Gnus?
 
 Gnus is bundled with Emacs.
 
-@node FAQ 1-4
-@subsubheading Question 1.4
+@node FAQ 1-3
+@subsubheading Question 1.3
 
 I sometimes read references to No Gnus and Oort Gnus,
 what are those?
 
 @subsubheading Answer
 
-Oort Gnus was the name of the development version of
-Gnus, which became Gnus 5.10 in autumn 2003. No Gnus is
-the name of the current development version which will
-once become Gnus 5.12 or Gnus 6. (If you're wondering why
-not 5.11, the odd version numbers are normally used for
-the Gnus versions bundled with Emacs)
+Oort Gnus was the name of the development version of Gnus, which
+became Gnus 5.10 in autumn 2003.  No Gnus was the name of the
+development version that become Gnus 5.12.  (If you're wondering why
+not 5.11, the odd version numbers are normally used for the Gnus
+versions bundled with Emacs.)
 
 @node FAQ 2 - Startup / Group buffer
 @subsection Startup / Group buffer
