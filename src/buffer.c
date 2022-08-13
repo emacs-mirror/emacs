@@ -6442,6 +6442,24 @@ If nil, these display shortcuts will always remain disabled.
 There is no reason to change that value except for debugging purposes.  */);
   XSETFASTINT (Vlong_line_threshold, 10000);
 
+  DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
+    doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.
+
+The value should be a positive integer.
+
+Shortcuts in the display code intended to speed up redisplay for long
+and truncated lines will automatically be enabled when a line's
+horizontal scroll amount is or about to become larger than the value
+of this variable.
+
+This variable has effect only in buffers which contain one or more
+lines whose length is above `long-line-threshold', which see.
+To disable redisplay shortcuts for long truncated line, set this
+variable to `most-positive-fixnum'.
+
+There is no reason to change that value except for debugging purposes.  */);
+  large_hscroll_threshold = 10000;
+
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);

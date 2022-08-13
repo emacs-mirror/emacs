@@ -385,6 +385,10 @@ longer choke when a buffer on display contains long lines.  The
 variable 'long-line-threshold' controls whether and when these display
 optimizations are in effect.
 
+A companion variable 'large-hscroll-threshold' controls when another
+set of display optimizations are in effect, which are aimed
+specifically at speeding up display of long lines that are truncated.
+
 If you still experience slowdowns while editing files with long lines,
 this may be due to line truncation, or to one of the enabled minor
 modes, or to the current major mode.  Try turning off line truncation

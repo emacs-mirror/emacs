@@ -11054,6 +11054,15 @@ move_it_by_lines (struct it *it, ptrdiff_t dvpos)
 int
 partial_line_height (struct it *it_origin)
 {
+  /* In a buffer with very long and truncated lines, we ignore the
+     possibly-partial height of the last line in the window: it is too
+     expensive to compute that (since in most cases that involves
+     going all the way to ZV), and the effect of ignoring it is
+     relatively minor.  */
+  if (XBUFFER (it_origin->w->contents)->long_line_optimizations_p
+      && it_origin->line_wrap == TRUNCATE)
+    return 0;
+
   int partial_height;
   void *it_data = NULL;
   struct it it;
@@ -11075,6 +11084,51 @@ partial_line_height (struct it *it_origin)
     }
   RESTORE_IT (&it, &it, it_data);
   return partial_height;
+}
+
+/* Approximate move_it_in_display_line_to for very long and truncated
+   display lines, when moving horizontally.  This is used when the
+   buffer's long_line_optimizations_p flag is set.  It ignores various
+   complications, like different font sizes, invisible text, display
+   and overlay strings, and, to some degree, bidirectional text.  So
+   caveat emptor!
+
+   Starting from IT's position, reseat IT after skipping NCHARS
+   characters or to the next newline/ZV, whichever comes first.  Return
+   what move_it_in_display_line_to would have returned in this case.  */
+
+static enum move_it_result
+fast_move_it_horizontally (struct it *it, ptrdiff_t nchars)
+{
+  ptrdiff_t nl_bytepos;
+  ptrdiff_t nl_pos = find_newline_no_quit (IT_CHARPOS (*it), IT_BYTEPOS (*it),
+					   1, &nl_bytepos);
+  struct text_pos new_pos;
+  enum move_it_result move_result;
+
+  if (nl_pos - IT_CHARPOS (*it) > nchars)
+    {
+      SET_TEXT_POS (new_pos,
+		    IT_CHARPOS (*it) + nchars,
+		    CHAR_TO_BYTE (IT_CHARPOS (*it) + nchars));
+      move_result = MOVE_X_REACHED;
+    }
+  else
+    {
+      if (nl_bytepos < ZV_BYTE
+	  || (nl_bytepos > BEGV_BYTE
+	      && FETCH_BYTE (nl_bytepos - 1) == '\n'))
+	{
+	  nl_pos--;
+	  nl_bytepos--;
+	  move_result = MOVE_NEWLINE_OR_CR;
+	}
+      else
+	move_result = MOVE_POS_MATCH_OR_ZV;
+      SET_TEXT_POS (new_pos, nl_pos, nl_bytepos);
+    }
+  reseat (it, new_pos, false);
+  return move_result;
 }
 
 /* Return true if IT points into the middle of a display vector.  */
@@ -15790,7 +15844,20 @@ hscroll_window_tree (Lisp_Object window)
 		it.first_visible_x = window_hscroll_limited (w, it.f)
 				     * FRAME_COLUMN_WIDTH (it.f);
 	      it.last_visible_x = DISP_INFINITY;
-	      move_it_in_display_line_to (&it, pt, -1, MOVE_TO_POS);
+
+	      ptrdiff_t nchars = pt - IT_CHARPOS (it);
+	      if (current_buffer->long_line_optimizations_p
+		  && nchars > large_hscroll_threshold)
+		{
+		  /* Special optimization for very long and truncated
+		     lines which need to be hscrolled far to the left:
+		     jump directly to the (approximate) first position
+		     that is visible, instead of slowly walking there.  */
+		  fast_move_it_horizontally (&it, nchars);
+		  it.current_x += nchars * FRAME_COLUMN_WIDTH (it.f);
+		}
+	      else
+		move_it_in_display_line_to (&it, pt, -1, MOVE_TO_POS);
 	      /* If the line ends in an overlay string with a newline,
 		 we might infloop, because displaying the window will
 		 want to put the cursor after the overlay, i.e. at X
@@ -15803,7 +15870,14 @@ hscroll_window_tree (Lisp_Object window)
 		  if (hscl)
 		    it.first_visible_x = (window_hscroll_limited (w, it.f)
 					  * FRAME_COLUMN_WIDTH (it.f));
-		  move_it_in_display_line_to (&it, pt - 1, -1, MOVE_TO_POS);
+		  if (current_buffer->long_line_optimizations_p
+		      && nchars > large_hscroll_threshold)
+		    {
+		      fast_move_it_horizontally (&it, nchars - 1);
+		      it.current_x += (nchars - 1) * FRAME_COLUMN_WIDTH (it.f);
+		    }
+		  else
+		    move_it_in_display_line_to (&it, pt - 1, -1, MOVE_TO_POS);
 		}
 	      current_buffer = saved_current_buffer;
 
@@ -16741,9 +16815,23 @@ redisplay_internal (void)
 	  it.current_y = this_line_y;
 	  it.vpos = this_line_vpos;
 
-	  /* The call to move_it_to stops in front of PT, but
-	     moves over before-strings.  */
-	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	  if (current_buffer->long_line_optimizations_p
+	      && it.line_wrap == TRUNCATE
+	      && PT - CHARPOS (tlbufpos) > large_hscroll_threshold)
+	    {
+	      /* When lines are very long and truncated, jumping to
+		 the next visible line is much faster than slowly
+		 iterating there.  */
+	      reseat_at_next_visible_line_start (&it, false);
+	      if (IT_CHARPOS (it) <= PT) /* point moved off this line */
+		it.vpos = this_line_vpos + 1;
+	    }
+	  else
+	    {
+	      /* The call to move_it_to stops in front of PT, but
+		 moves over before-strings.  */
+	      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+	    }
 
 	  if (it.vpos == this_line_vpos
 	      && (row = MATRIX_ROW (w->current_matrix, this_line_vpos),
@@ -24510,8 +24598,27 @@ display_line (struct it *it, int cursor_vpos)
 	  it->first_visible_x += x_incr;
 	  it->last_visible_x  += x_incr;
 	}
-      move_result = move_it_in_display_line_to (it, ZV, it->first_visible_x,
-						MOVE_TO_POS | MOVE_TO_X);
+      if (current_buffer->long_line_optimizations_p
+	  && it->line_wrap == TRUNCATE
+	  && window_hscroll_limited (it->w, it->f) > large_hscroll_threshold)
+	{
+	  /* Special optimization for very long and truncated lines
+	     which are hscrolled far to the left: jump directly to the
+	     (approximate) position that is visible, instead of slowly
+	     walking there.  */
+	  ptrdiff_t chars_to_skip =
+	    it->first_visible_x / FRAME_COLUMN_WIDTH (it->f);
+	  enum move_it_result rc =
+	    fast_move_it_horizontally (it, chars_to_skip);
+
+	  if (rc == MOVE_X_REACHED)
+	    it->current_x = it->first_visible_x;
+	  else	/* use arbitrary value < first_visible_x */
+	    it->current_x = it->first_visible_x - FRAME_COLUMN_WIDTH (it->f);
+	}
+      else
+	move_result = move_it_in_display_line_to (it, ZV, it->first_visible_x,
+						  MOVE_TO_POS | MOVE_TO_X);
       /* If we are under a large hscroll, move_it_in_display_line_to
 	 could hit the end of the line without reaching
 	 first_visible_x.  Pretend that we did reach it.  This is
