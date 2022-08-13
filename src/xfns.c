@@ -6856,11 +6856,11 @@ The coordinates X and Y are interpreted in pixels relative to a position
   if (FRAME_DISPLAY_INFO (f)->supports_xi2
       && deviceid != -1)
     {
-      x_catch_errors_for_lisp (FRAME_X_DISPLAY (f));
+      x_catch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
       XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
 		     FRAME_DISPLAY_INFO (f)->root_window,
 		     0, 0, 0, 0, xval, yval);
-      x_uncatch_errors_for_lisp (FRAME_X_DISPLAY (f));
+      x_uncatch_errors_for_lisp (FRAME_DISPLAY_INFO (f));
     }
   else
 #endif
