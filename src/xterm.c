@@ -1398,6 +1398,12 @@ static int x_dnd_last_tooltip_x, x_dnd_last_tooltip_y;
 /* Whether or not those values are actually known yet.  */
 static bool x_dnd_last_tooltip_valid;
 
+#ifdef HAVE_XINPUT2
+/* The master pointer device being used for the drag-and-drop
+   operation.  */
+static int x_dnd_pointer_device;
+#endif
+
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
 struct x_client_list_window
@@ -4704,6 +4710,67 @@ x_restore_events_after_dnd (struct frame *f, XWindowAttributes *wa)
     XDeleteProperty (dpyinfo->display, FRAME_X_WINDOW (f),
 		     dpyinfo->Xatom_XdndTypeList);
 }
+
+#ifdef HAVE_XINPUT2
+
+/* Cancel the current drag-and-drop operation, sending leave messages
+   to any relevant toplevels.  This is called from the event loop when
+   an event is received telling Emacs to gracefully cancel the
+   drag-and-drop operation.  */
+
+static void
+x_dnd_cancel_dnd_early (void)
+{
+  struct frame *f;
+  xm_drop_start_message dmsg;
+
+  eassert (x_dnd_frame && x_dnd_in_progress);
+
+  f = x_dnd_frame;
+
+  if (x_dnd_last_seen_window != None
+      && x_dnd_last_protocol_version != -1)
+    x_dnd_send_leave (x_dnd_frame,
+		      x_dnd_last_seen_window);
+  else if (x_dnd_last_seen_window != None
+	   && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
+	   && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
+	   && x_dnd_motif_setup_p)
+    {
+      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+				    XM_DRAG_REASON_DROP_START);
+      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+      dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
+      dmsg.side_effects
+	= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+							   x_dnd_wanted_action),
+			       XM_DROP_SITE_VALID, x_dnd_motif_operations,
+			       XM_DROP_ACTION_DROP_CANCEL);
+      dmsg.x = 0;
+      dmsg.y = 0;
+      dmsg.index_atom = x_dnd_motif_atom;
+      dmsg.source_window = FRAME_X_WINDOW (f);
+
+      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
+				    x_dnd_last_seen_window,
+				    FRAME_DISPLAY_INFO (f)->last_user_time);
+      xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
+			    x_dnd_last_seen_window, &dmsg);
+    }
+
+  x_dnd_last_seen_window = None;
+  x_dnd_last_seen_toplevel = None;
+  x_dnd_in_progress = false;
+  x_dnd_waiting_for_finish = false;
+  x_dnd_return_frame_object = NULL;
+  x_dnd_movement_frame = NULL;
+  x_dnd_wheel_frame = NULL;
+  x_dnd_frame = NULL;
+  x_dnd_action = None;
+  x_dnd_action_symbol = Qnil;
+}
+
+#endif
 
 static void
 x_dnd_cleanup_drag_and_drop (void *frame)
@@ -12089,6 +12156,25 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_wheel_frame = NULL;
   x_dnd_init_type_lists = false;
   x_dnd_need_send_drop = false;
+
+#ifdef HAVE_XINPUT2
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      /* Only accept input from the last master pointer to have interacted
+	 with Emacs.  This prevents another pointer device getting our
+	 idea of the button state messed up.  */
+      if (FRAME_DISPLAY_INFO (f)->client_pointer_device != -1)
+	x_dnd_pointer_device
+	  = FRAME_DISPLAY_INFO (f)->client_pointer_device;
+      else
+	/* This returns Bool but cannot actually fail.  */
+	XIGetClientPointer (FRAME_X_DISPLAY (f), None,
+			    &x_dnd_pointer_device);
+    }
+
+#endif
+
 #ifdef HAVE_XKB
   x_dnd_keyboard_state = 0;
 
@@ -12882,6 +12968,13 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 	{
 	  if (to_disable[j] == dpyinfo->devices[i].device_id)
 	    {
+	      if (x_dnd_in_progress
+		  /* If the drag-and-drop pointer device is being
+		     disabled, then cancel the drag and drop
+		     operation.  */
+		  && to_disable[j] == x_dnd_pointer_device)
+		x_dnd_cancel_dnd_early ();
+
 	      /* Free any scroll valuators that might be on this
 		 device.  */
 #ifdef HAVE_XINPUT2_1
@@ -14164,11 +14257,13 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
 
-  /* A 32-bit X client on a 64-bit X server can pass a window pointer
-     as-is.  A 64-bit client on a 32-bit X server is in trouble
-     because a pointer does not fit and would be truncated while
-     passing through the server.  So use two slots and hope that X12
-     will resolve such issues someday.  */
+  /* A 32-bit X client can pass a window pointer through the X server
+     as-is.
+
+     A 64-bit client is in trouble because a pointer does not fit in
+     the 32 bits given for ClientMessage data and will be truncated by
+     Xlib.  So use two slots and hope that X12 will resolve such
+     issues someday.  */
   ev->data.l[0] = iw >> 31 >> 1;
   ev->data.l[1] = sign_shift <= 0 ? iw : iw << sign_shift >> sign_shift;
   ev->data.l[2] = part;
@@ -18465,6 +18560,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
       if (x_dnd_in_progress
+	  /* When _NET_WM_CLIENT_LIST stacking is being used, changes
+	     in that property are watched for, and it's not necessary
+	     to update the state in response to ordinary window
+	     substructure events.  */
+	  && !x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
 
@@ -20299,6 +20399,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case CirculateNotify:
       if (x_dnd_in_progress
+	  /* When _NET_WM_CLIENT_LIST stacking is being used, changes
+	     in that property are watched for, and it's not necessary
+	     to update the state in response to ordinary window
+	     substructure events.  */
+	  && !x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
       goto OTHER;
@@ -20987,6 +21092,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     `x-dnd-movement-function`.  */
 		  && (command_loop_level + minibuf_level
 		      <= x_dnd_recursion_depth)
+		  && xev->deviceid == x_dnd_pointer_device
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  Window target, toplevel;
@@ -21321,6 +21427,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (x_dnd_in_progress
 		  && (command_loop_level + minibuf_level
 		      <= x_dnd_recursion_depth)
+		  && xev->deviceid == x_dnd_pointer_device
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
@@ -26005,27 +26112,25 @@ x_set_window_size (struct frame *f, bool change_gravity,
 void
 frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
-  block_input ();
 #ifdef HAVE_XINPUT2
   int deviceid;
 
-  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+  deviceid = FRAME_DISPLAY_INFO (f)->client_pointer_device;
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2
+      && deviceid != -1)
     {
-      if (XIGetClientPointer (FRAME_X_DISPLAY (f),
-			      FRAME_X_WINDOW (f),
-			      &deviceid))
-	{
-	  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
-	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
-			 FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
-	  x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
-	}
+      block_input ();
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
+      XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
+		     FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
+      x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
+      unblock_input ();
     }
   else
 #endif
     XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
 		  0, 0, 0, 0, pix_x, pix_y);
-  unblock_input ();
 }
 
 /* Raise frame F.  */
