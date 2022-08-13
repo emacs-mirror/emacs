@@ -4724,11 +4724,12 @@ def __FFAP_get_module_path(objstr):
 ;;; Code check
 
 (defcustom python-check-command
-  (or (executable-find "pyflakes")
-      (executable-find "epylint")
-      "install pyflakes, pylint or something else")
+  (cond ((executable-find "pyflakes") "pyflakes")
+        ((executable-find "epylint") "epylint")
+        (t "pyflakes"))
   "Command used to check a Python file."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom python-check-buffer-name
   "*Python check: %s*"
