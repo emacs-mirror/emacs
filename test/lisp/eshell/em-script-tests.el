@@ -38,25 +38,25 @@
   "Test sourcing script with no argumentss"
   (ert-with-temp-file temp-file :text "echo hi"
     (with-temp-eshell
-     (eshell-command-result-p (format "source %s" temp-file)
-                              "hi\n"))))
+     (eshell-match-command-output (format "source %s" temp-file)
+                                  "hi\n"))))
 
 (ert-deftest em-script-test/source-script-arg-vars ()
   "Test sourcing script with $0, $1, ... variables"
   (ert-with-temp-file temp-file :text "printnl $0 \"$1 $2\""
     (with-temp-eshell
-     (eshell-command-result-p (format "source %s one two" temp-file)
-                              (format "%s\none two\n" temp-file)))))
+     (eshell-match-command-output (format "source %s one two" temp-file)
+                                  (format "%s\none two\n" temp-file)))))
 
 (ert-deftest em-script-test/source-script-all-args-var ()
   "Test sourcing script with the $* variable"
   (ert-with-temp-file temp-file :text "printnl $*"
     (with-temp-eshell
-     (eshell-command-result-p (format "source %s" temp-file)
-                              "\\`\\'")
-     (eshell-command-result-p (format "source %s a" temp-file)
-                              "a\n")
-     (eshell-command-result-p (format "source %s a b c" temp-file)
-                              "a\nb\nc\n"))))
+     (eshell-match-command-output (format "source %s" temp-file)
+                                  "\\`\\'")
+     (eshell-match-command-output (format "source %s a" temp-file)
+                                  "a\n")
+     (eshell-match-command-output (format "source %s a b c" temp-file)
+                                  "a\nb\nc\n"))))
 
 ;; em-script-tests.el ends here

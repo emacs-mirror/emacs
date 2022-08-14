@@ -43,7 +43,7 @@
                     (executable-find "echo")
                     (executable-find "sleep")))
   (with-temp-eshell
-   (eshell-command-result-p
+   (eshell-match-command-output
     ;; The first command is like `yes' but slower.  This is to prevent
     ;; it from taxing Emacs's process filter too much and causing a
     ;; hang.
@@ -136,4 +136,4 @@ prompt.  See bug#54136."
    (kill-process (caar eshell-process-list))
    ;; Give `eshell-sentinel' a chance to run.
    (sit-for 0.1)
-   (eshell-match-result "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n")))
+   (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))

@@ -40,15 +40,15 @@
   "Check that piping a non-process to a process command waits for the process"
   (skip-unless (executable-find "cat"))
   (with-temp-eshell
-   (eshell-command-result-p "echo hi | *cat"
-                            "hi")))
+   (eshell-match-command-output "echo hi | *cat"
+                                "hi")))
 
 (ert-deftest eshell-test/pipe-tailproc ()
   "Check that piping a process to a non-process command waits for the process"
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
-   (eshell-command-result-p "*echo hi | echo bye"
-                            "bye\nhi\n")))
+   (eshell-match-command-output "*echo hi | echo bye"
+                                "bye\nhi\n")))
 
 (ert-deftest eshell-test/pipe-headproc-stdin ()
   "Check that standard input is sent to the head process in a pipeline"
@@ -59,23 +59,23 @@
    (eshell-insert-command "hello")
    (eshell-send-eof-to-process)
    (eshell-wait-for-subprocess)
-   (eshell-match-result "OLLEH\n")))
+   (should (eshell-match-output "OLLEH\n"))))
 
 (ert-deftest eshell-test/pipe-subcommand ()
   "Check that piping with an asynchronous subcommand works"
   (skip-unless (and (executable-find "echo")
                     (executable-find "cat")))
   (with-temp-eshell
-   (eshell-command-result-p "echo ${*echo hi} | *cat"
-                            "hi")))
+   (eshell-match-command-output "echo ${*echo hi} | *cat"
+                                "hi")))
 
 (ert-deftest eshell-test/pipe-subcommand-with-pipe ()
   "Check that piping with an asynchronous subcommand with its own pipe works"
   (skip-unless (and (executable-find "echo")
                     (executable-find "cat")))
   (with-temp-eshell
-   (eshell-command-result-p "echo ${*echo hi | *cat} | *cat"
-                            "hi")))
+   (eshell-match-command-output "echo ${*echo hi | *cat} | *cat"
+                                "hi")))
 
 (ert-deftest eshell-test/subcommand-reset-in-pipeline ()
   "Check that subcommands reset `eshell-in-pipeline-p'."
@@ -129,32 +129,32 @@
   "Test that \"\\c\" and \"c\" are equivalent when \"c\" is not a
 special character."
   (with-temp-eshell
-   (eshell-command-result-p "echo he\\llo"
-                            "hello\n")))
+   (eshell-match-command-output "echo he\\llo"
+                                "hello\n")))
 
 (ert-deftest eshell-test/escape-nonspecial-unicode ()
   "Test that \"\\c\" and \"c\" are equivalent when \"c\" is a
 unicode character (unicode characters are nonspecial by
 definition)."
   (with-temp-eshell
-   (eshell-command-result-p "echo Vid\\éos"
-                            "Vidéos\n")))
+   (eshell-match-command-output "echo Vid\\éos"
+                                "Vidéos\n")))
 
 (ert-deftest eshell-test/escape-nonspecial-quoted ()
   "Test that the backslash is preserved for escaped nonspecial
 chars"
   (with-temp-eshell
-   (eshell-command-result-p "echo \"h\\i\""
-                            ;; Backslashes are doubled for regexp.
-                            "h\\\\i\n")))
+   (eshell-match-command-output "echo \"h\\i\""
+                                ;; Backslashes are doubled for regexp.
+                                "h\\\\i\n")))
 
 (ert-deftest eshell-test/escape-special-quoted ()
   "Test that the backslash is not preserved for escaped special
 chars"
   (with-temp-eshell
-   (eshell-command-result-p "echo \"\\\"hi\\\\\""
-                            ;; Backslashes are doubled for regexp.
-                            "\\\"hi\\\\\n")))
+   (eshell-match-command-output "echo \"\\\"hi\\\\\""
+                                ;; Backslashes are doubled for regexp.
+                                "\\\"hi\\\\\n")))
 
 (ert-deftest eshell-test/command-running-p ()
   "Modeline should show no command running"
@@ -188,15 +188,15 @@ chars"
                  (> count 0))
        (sit-for 1)
        (setq count (1- count))))
-   (eshell-match-result "alpha\n")))
+   (should (eshell-match-output "alpha\n"))))
 
 (ert-deftest eshell-test/flush-output ()
   "Test flushing of previous output"
   (with-temp-eshell
    (eshell-insert-command "echo alpha")
    (eshell-kill-output)
-   (eshell-match-result
-    (concat "^" (regexp-quote "*** output flushed ***\n") "$"))))
+   (should (eshell-match-output
+            (concat "^" (regexp-quote "*** output flushed ***\n") "$")))))
 
 (ert-deftest eshell-test/run-old-command ()
   "Re-run an old command"

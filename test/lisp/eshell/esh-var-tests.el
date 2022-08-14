@@ -153,15 +153,15 @@
   "Interpolate command result from external command"
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
-   (eshell-command-result-p "echo ${*echo hi}"
-                            "hi\n")))
+   (eshell-match-command-output "echo ${*echo hi}"
+                                "hi\n")))
 
 (ert-deftest esh-var-test/interp-cmd-external-indices ()
   "Interpolate command result from external command with index"
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
-   (eshell-command-result-p "echo ${*echo \"hi\nbye\"}[1]"
-                            "bye\n")))
+   (eshell-match-command-output "echo ${*echo \"hi\nbye\"}[1]"
+                                "bye\n")))
 
 (ert-deftest esh-var-test/interp-temp-cmd ()
   "Interpolate command result redirected to temp file"
@@ -196,8 +196,8 @@
   "Interpolate command result from external command with concatenation"
   (skip-unless (executable-find "echo"))
   (with-temp-eshell
-   (eshell-command-result-p "echo ${echo hi}-${*echo there}"
-                            "hi-there\n")))
+   (eshell-match-command-output "echo ${echo hi}-${*echo there}"
+                                "hi-there\n")))
 
 (ert-deftest esh-var-test/quoted-interp-var ()
   "Interpolate variable inside double-quotes"
@@ -490,72 +490,72 @@ inside double-quotes"
 (ert-deftest esh-var-test/inside-emacs-var ()
   "Test presence of \"INSIDE_EMACS\" in subprocesses"
   (with-temp-eshell
-   (eshell-command-result-p "env"
-                            (format "INSIDE_EMACS=%s,eshell"
-                                    emacs-version))))
+   (eshell-match-command-output "env"
+                                (format "INSIDE_EMACS=%s,eshell"
+                                        emacs-version))))
 
 (ert-deftest esh-var-test/inside-emacs-var-split-indices ()
   "Test using \"INSIDE_EMACS\" with split indices"
   (with-temp-eshell
-   (eshell-command-result-p "echo $INSIDE_EMACS[, 1]"
-                            "eshell")))
+   (eshell-match-command-output "echo $INSIDE_EMACS[, 1]"
+                                "eshell")))
 
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command"
   (with-temp-eshell
-   (eshell-command-result-p "zerop 0; echo $?"
-                            "t\n0\n")
-   (eshell-command-result-p "zerop 1; echo $?"
-                            "0\n")
+   (eshell-match-command-output "zerop 0; echo $?"
+                                "t\n0\n")
+   (eshell-match-command-output "zerop 1; echo $?"
+                                "0\n")
    (let ((debug-on-error nil))
-     (eshell-command-result-p "zerop foo; echo $?"
-                              "1\n"))))
+     (eshell-match-command-output "zerop foo; echo $?"
+                                  "1\n"))))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form"
   (let ((eshell-lisp-form-nil-is-failure t))
-  (with-temp-eshell
-   (eshell-command-result-p "(zerop 0); echo $?"
-                            "t\n0\n")
-   (eshell-command-result-p "(zerop 1); echo $?"
-                            "2\n")
-   (let ((debug-on-error nil))
-     (eshell-command-result-p "(zerop \"foo\"); echo $?"
-                              "1\n")))))
+    (with-temp-eshell
+     (eshell-match-command-output "(zerop 0); echo $?"
+                                  "t\n0\n")
+     (eshell-match-command-output "(zerop 1); echo $?"
+                                  "2\n")
+     (let ((debug-on-error nil))
+       (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                    "1\n")))))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form-2 ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form.
 This tests when `eshell-lisp-form-nil-is-failure' is nil."
   (let ((eshell-lisp-form-nil-is-failure nil))
     (with-temp-eshell
-     (eshell-command-result-p "(zerop 0); echo $?"
-                              "0\n")
-     (eshell-command-result-p "(zerop 0); echo $?"
-                              "0\n")
+     (eshell-match-command-output "(zerop 0); echo $?"
+                                  "0\n")
+     (eshell-match-command-output "(zerop 0); echo $?"
+                                  "0\n")
      (let ((debug-on-error nil))
-       (eshell-command-result-p "(zerop \"foo\"); echo $?"
-                                "1\n")))))
+       (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                    "1\n")))))
 
 (ert-deftest esh-var-test/last-status-var-ext-cmd ()
   "Test using the \"last exit status\" ($?) variable with an external command"
   (skip-unless (executable-find "["))
   (with-temp-eshell
-   (eshell-command-result-p "[ foo = foo ]; echo $?"
-                            "0\n")
-   (eshell-command-result-p "[ foo = bar ]; echo $?"
-                            "1\n")))
+   (eshell-match-command-output "[ foo = foo ]; echo $?"
+                                "0\n")
+   (eshell-match-command-output "[ foo = bar ]; echo $?"
+                                "1\n")))
 
 (ert-deftest esh-var-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ 2"
-                            "3\n5\n")))
+   (eshell-match-command-output "+ 1 2; + $$ 2"
+                                "3\n5\n")))
 
 (ert-deftest esh-var-test/last-result-var-twice ()
   "Test using the \"last result\" ($$) variable twice"
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $$ $$"
-                            "3\n6\n")))
+   (eshell-match-command-output "+ 1 2; + $$ $$"
+                                "3\n6\n")))
 
 (ert-deftest esh-var-test/last-result-var-ext-cmd ()
   "Test using the \"last result\" ($$) variable with an external command"
@@ -564,41 +564,41 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
    ;; MS-DOS/MS-Windows have an external command 'format', which we
    ;; don't want here.
    (let ((eshell-prefer-lisp-functions t))
-     (eshell-command-result-p "[ foo = foo ]; format \"%s\" $$"
-                              "t\n")
-     (eshell-command-result-p "[ foo = bar ]; format \"%s\" $$"
-                              "nil\n"))))
+     (eshell-match-command-output "[ foo = foo ]; format \"%s\" $$"
+                                  "t\n")
+     (eshell-match-command-output "[ foo = bar ]; format \"%s\" $$"
+                                  "nil\n"))))
 
 (ert-deftest esh-var-test/last-result-var-split-indices ()
   "Test using the \"last result\" ($$) variable with split indices"
   (with-temp-eshell
-   (eshell-command-result-p
+   (eshell-match-command-output
     "string-join (list \"01\" \"02\") :; + $$[: 1] 3"
     "01:02\n5\n")
-   (eshell-command-result-p
+   (eshell-match-command-output
     "string-join (list \"01\" \"02\") :; echo \"$$[: 1]\""
     "01:02\n02\n")))
 
 (ert-deftest esh-var-test/last-arg-var ()
   "Test using the \"last arg\" ($_) variable"
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $_ 4"
-                            "3\n6\n")))
+   (eshell-match-command-output "+ 1 2; + $_ 4"
+                                "3\n6\n")))
 
 (ert-deftest esh-var-test/last-arg-var-indices ()
   "Test using the \"last arg\" ($_) variable with indices"
   (with-temp-eshell
-   (eshell-command-result-p "+ 1 2; + $_[0] 4"
-                            "3\n5\n")
-   (eshell-command-result-p "+ 1 2; + $_[1] 4"
-                            "3\n6\n")))
+   (eshell-match-command-output "+ 1 2; + $_[0] 4"
+                                "3\n5\n")
+   (eshell-match-command-output "+ 1 2; + $_[1] 4"
+                                "3\n6\n")))
 
 (ert-deftest esh-var-test/last-arg-var-split-indices ()
   "Test using the \"last arg\" ($_) variable with split indices"
   (with-temp-eshell
-   (eshell-command-result-p "concat 01:02 03:04; + $_[0][: 1] 5"
-                            "01:0203:04\n7\n")
-   (eshell-command-result-p "concat 01:02 03:04; echo \"$_[0][: 1]\""
-                            "01:0203:04\n02\n")))
+   (eshell-match-command-output "concat 01:02 03:04; + $_[0][: 1] 5"
+                                "01:0203:04\n7\n")
+   (eshell-match-command-output "concat 01:02 03:04; echo \"$_[0][: 1]\""
+                                "01:0203:04\n02\n")))
 
 ;; esh-var-tests.el ends here
