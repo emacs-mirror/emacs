@@ -80,7 +80,6 @@ ROOTPROJ is nil, since there is only one project."
   ;; Doesn't already exist, so let's make one.
   (let* ((vertuple (ede-emacs-version dir)))
     (ede-emacs-project
-     (car vertuple)
      :name (car vertuple)
      :version (cdr vertuple)
      :directory (file-name-as-directory dir)
