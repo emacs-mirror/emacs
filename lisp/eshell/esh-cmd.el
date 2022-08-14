@@ -607,7 +607,7 @@ must be implemented via rewriting, rather than as a function."
                                t))
        (if (= (length terms) 4)
 	   `(eshell-protect
-             ,(eshell-invokify-arg (car (last terms)))) t))))
+             ,(eshell-invokify-arg (car (last terms)) t))))))
 
 (defvar eshell-last-command-result)     ;Defined in esh-io.el.
 
@@ -1122,7 +1122,7 @@ be finished later after the completion of an asynchronous subprocess."
 	  (setcar eshell-test-body nil))
 	(unless (car eshell-test-body)
           (setcar eshell-test-body (copy-tree (car args))))
-	(while (cadr (eshell-do-eval (car eshell-test-body)))
+	(while (cadr (eshell-do-eval (car eshell-test-body) synchronous-p))
 	  (setcar eshell-command-body
                   (if (cddr args)
                       `(progn ,@(copy-tree (cdr args)))
@@ -1142,7 +1142,8 @@ be finished later after the completion of an asynchronous subprocess."
             (setcar eshell-test-body (copy-tree (car args))))
 	  (setcar eshell-command-body
                   (copy-tree
-                   (if (cadr (eshell-do-eval (car eshell-test-body)))
+                   (if (cadr (eshell-do-eval (car eshell-test-body)
+                                             synchronous-p))
                        (cadr args)
                      (car (cddr args)))))
 	  (eshell-do-eval (car eshell-command-body) synchronous-p))

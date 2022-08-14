@@ -188,97 +188,88 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 
 (ert-deftest esh-cmd-test/if-statement ()
   "Test invocation of an if statement."
-  (with-temp-eshell
-   (let ((eshell-test-value t))
-     (eshell-match-command-output "if $eshell-test-value {echo yes}"
-                                  "yes\n"))
-   (let ((eshell-test-value nil))
-     (eshell-match-command-output "if $eshell-test-value {echo yes}"
-                                  "\\`\\'"))))
+  (let ((eshell-test-value t))
+    (eshell-command-result-equal "if $eshell-test-value {echo yes}"
+                                 "yes"))
+  (let ((eshell-test-value nil))
+    (eshell-command-result-equal "if $eshell-test-value {echo yes}"
+                                 nil)))
 
 (ert-deftest esh-cmd-test/if-else-statement ()
   "Test invocation of an if/else statement."
-  (with-temp-eshell
-   (let ((eshell-test-value t))
-     (eshell-match-command-output "if $eshell-test-value {echo yes} {echo no}"
-                                  "yes\n"))
-   (let ((eshell-test-value nil))
-     (eshell-match-command-output "if $eshell-test-value {echo yes} {echo no}"
-                                  "no\n"))))
+  (let ((eshell-test-value t))
+    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
+                                 "yes"))
+  (let ((eshell-test-value nil))
+    (eshell-command-result-equal "if $eshell-test-value {echo yes} {echo no}"
+                                 "no")))
 
 (ert-deftest esh-cmd-test/if-else-statement-lisp-form ()
   "Test invocation of an if/else statement using a Lisp form."
-  (with-temp-eshell
-   (eshell-match-command-output "if (zerop 0) {echo yes} {echo no}"
-                                "yes\n")
-   (eshell-match-command-output "if (zerop 1) {echo yes} {echo no}"
-                                "no\n")
-   (let ((debug-on-error nil))
-     (eshell-match-command-output "if (zerop \"foo\") {echo yes} {echo no}"
-                                  "no\n"))))
+  (eshell-command-result-equal "if (zerop 0) {echo yes} {echo no}"
+                               "yes")
+  (eshell-command-result-equal "if (zerop 1) {echo yes} {echo no}"
+                               "no")
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal "if (zerop \"foo\") {echo yes} {echo no}"
+                                 "no")))
 
 (ert-deftest esh-cmd-test/if-else-statement-lisp-form-2 ()
   "Test invocation of an if/else statement using a Lisp form.
 This tests when `eshell-lisp-form-nil-is-failure' is nil."
   (let ((eshell-lisp-form-nil-is-failure nil))
-    (with-temp-eshell
-     (eshell-match-command-output "if (zerop 0) {echo yes} {echo no}"
-                                  "yes\n")
-     (eshell-match-command-output "if (zerop 1) {echo yes} {echo no}"
-                                  "yes\n")
-     (let ((debug-on-error nil))
-       (eshell-match-command-output "if (zerop \"foo\") {echo yes} {echo no}"
-                                    "no\n")))))
+    (eshell-command-result-equal "if (zerop 0) {echo yes} {echo no}"
+                                 "yes")
+    (eshell-command-result-equal "if (zerop 1) {echo yes} {echo no}"
+                                 "yes")
+    (let ((debug-on-error nil))
+      (eshell-command-result-equal "if (zerop \"foo\") {echo yes} {echo no}"
+                                   "no"))))
 
 (ert-deftest esh-cmd-test/if-else-statement-ext-cmd ()
   "Test invocation of an if/else statement using an external command."
   (skip-unless (executable-find "["))
-  (with-temp-eshell
-   (eshell-match-command-output "if {[ foo = foo ]} {echo yes} {echo no}"
-                                "yes\n")
-   (eshell-match-command-output "if {[ foo = bar ]} {echo yes} {echo no}"
-                                "no\n")))
+  (eshell-command-result-equal "if {[ foo = foo ]} {echo yes} {echo no}"
+                               "yes")
+  (eshell-command-result-equal "if {[ foo = bar ]} {echo yes} {echo no}"
+                               "no"))
 
 (ert-deftest esh-cmd-test/unless-statement ()
   "Test invocation of an unless statement."
-  (with-temp-eshell
-   (let ((eshell-test-value t))
-     (eshell-match-command-output "unless $eshell-test-value {echo no}"
-                                  "\\`\\'"))
-   (let ((eshell-test-value nil))
-     (eshell-match-command-output "unless $eshell-test-value {echo no}"
-                                  "no\n"))))
+  (let ((eshell-test-value t))
+    (eshell-command-result-equal "unless $eshell-test-value {echo no}"
+                                 nil))
+  (let ((eshell-test-value nil))
+    (eshell-command-result-equal "unless $eshell-test-value {echo no}"
+                                 "no")))
 
 (ert-deftest esh-cmd-test/unless-else-statement ()
   "Test invocation of an unless/else statement."
-  (with-temp-eshell
-   (let ((eshell-test-value t))
-     (eshell-match-command-output
-      "unless $eshell-test-value {echo no} {echo yes}"
-      "yes\n"))
-   (let ((eshell-test-value nil))
-     (eshell-match-command-output
-      "unless $eshell-test-value {echo no} {echo yes}"
-      "no\n"))))
+  (let ((eshell-test-value t))
+    (eshell-command-result-equal
+     "unless $eshell-test-value {echo no} {echo yes}"
+     "yes"))
+  (let ((eshell-test-value nil))
+    (eshell-command-result-equal
+     "unless $eshell-test-value {echo no} {echo yes}"
+     "no")))
 
 (ert-deftest esh-cmd-test/unless-else-statement-lisp-form ()
   "Test invocation of an unless/else statement using a Lisp form."
-  (with-temp-eshell
-   (eshell-match-command-output "unless (zerop 0) {echo no} {echo yes}"
-                                "yes\n")
-   (eshell-match-command-output "unless (zerop 1) {echo no} {echo yes}"
-                                "no\n")
-   (let ((debug-on-error nil))
-     (eshell-match-command-output "unless (zerop \"foo\") {echo no} {echo yes}"
-                                  "no\n"))))
+  (eshell-command-result-equal "unless (zerop 0) {echo no} {echo yes}"
+                               "yes")
+  (eshell-command-result-equal "unless (zerop 1) {echo no} {echo yes}"
+                               "no")
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal "unless (zerop \"foo\") {echo no} {echo yes}"
+                                 "no")))
 
 (ert-deftest esh-cmd-test/unless-else-statement-ext-cmd ()
   "Test invocation of an unless/else statement using an external command."
   (skip-unless (executable-find "["))
-  (with-temp-eshell
-   (eshell-match-command-output "unless {[ foo = foo ]} {echo no} {echo yes}"
-                                "yes\n")
-   (eshell-match-command-output "unless {[ foo = bar ]} {echo no} {echo yes}"
-                                "no\n")))
+  (eshell-command-result-equal "unless {[ foo = foo ]} {echo no} {echo yes}"
+                               "yes")
+  (eshell-command-result-equal "unless {[ foo = bar ]} {echo no} {echo yes}"
+                               "no"))
 
 ;; esh-cmd-tests.el ends here
