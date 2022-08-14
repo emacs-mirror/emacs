@@ -2390,6 +2390,7 @@ specifies addition of text properties.
 
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
+@cindex @code{%}-constructs in the mode line
 
   Strings used as mode line constructs can use certain
 @code{%}-constructs to substitute various kinds of data.  The
@@ -2480,6 +2481,9 @@ The mnemonics of keyboard, terminal, and buffer coding systems.
 @item %Z
 Like @samp{%z}, but including the end-of-line format.
 
+@item %&
+@samp{*} if the buffer is modified, and @samp{-} otherwise.
+
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{*} if the buffer is modified (see @code{buffer-modified-p}); @*
@@ -2490,9 +2494,6 @@ Like @samp{%z}, but including the end-of-line format.
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
 @samp{-} otherwise.  This differs from @samp{%*} only for a modified
 read-only buffer.  @xref{Buffer Modification}.
-
-@item %&
-@samp{*} if the buffer is modified, and @samp{-} otherwise.
 
 @item %@@
 @samp{@@} if the buffer's @code{default-directory} (@pxref{File Name
