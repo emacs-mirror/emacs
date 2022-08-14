@@ -131,9 +131,7 @@ what are those?
 
 Oort Gnus was the name of the development version of Gnus, which
 became Gnus 5.10 in autumn 2003.  No Gnus was the name of the
-development version that become Gnus 5.12.  (If you're wondering why
-not 5.11, the odd version numbers are normally used for the Gnus
-versions bundled with Emacs.)
+development version that became Gnus 5.12.
 
 @node FAQ 2 - Startup / Group buffer
 @subsection Startup / Group buffer
