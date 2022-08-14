@@ -2357,18 +2357,19 @@ enabled separately in each buffer.
 
 @defvar global-mode-string
 This variable holds a mode line construct that, by default, appears in
-the mode line just after the @code{which-function-mode} minor mode if
-set, else after @code{mode-line-modes}.  Elements that are added to
-this construct should normally end in a space (to ensure that
-consecutive @code{global-mode-string} elements display properly).  For
-instance, the command @code{display-time} sets
-@code{global-mode-string} to refer to the variable
-@code{display-time-string}, which holds a string containing the time
-and load information.
+the mode line as part of @code{mode-line-misc-info}, just after the
+@code{which-function-mode} information if that minor mode is enabled,
+else after @code{mode-line-modes}.  Elements that are added to this
+construct should normally end in a space (to ensure that consecutive
+@code{global-mode-string} elements display properly).  For instance,
+the command @code{display-time} sets @code{global-mode-string} to
+refer to the variable @code{display-time-string}, which holds a string
+containing the time and load information.
 
 The @samp{%M} construct substitutes the value of
-@code{global-mode-string}, but that is obsolete, since the variable is
-included in the mode line from @code{mode-line-format}.
+@code{global-mode-string}.  This construct is not used by the default
+mode line, as the variable itself is used in
+@code{mode-line-misc-info}.
 @end defvar
 
 Here is a simplified version of the default value of
@@ -2447,6 +2448,10 @@ abbreviate.
 @item %l
 The current line number of point, counting within the accessible portion
 of the buffer.
+
+@item %M
+The value of @code{global-mode-string} (which is part of
+@code{mode-line-misc-info} by default).
 
 @item %n
 @samp{Narrow} when narrowing is in effect; nothing otherwise (see

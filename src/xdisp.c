@@ -36470,7 +36470,7 @@ This is used for internal purposes.  */);
   Vinhibit_redisplay = Qnil;
 
   DEFVAR_LISP ("global-mode-string", Vglobal_mode_string,
-    doc: /* String (or mode line construct) included (normally) in `mode-line-format'.  */);
+    doc: /* String (or mode line construct) included (normally) in `mode-line-misc-info'.  */);
   Vglobal_mode_string = Qnil;
 
   DEFVAR_LISP ("overlay-arrow-position", Voverlay_arrow_position,
