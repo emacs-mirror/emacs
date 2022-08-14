@@ -325,7 +325,7 @@ arguments to pass to the OPERATION."
 ;; Starting with Emacs 29, `tramp-archive-file-name-handler' is
 ;; autoloaded.  But it must still be in tramp-loaddefs.el for older
 ;; Emacsen.
-;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archine")
+;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archive")
 ;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
   "Invoke the file archive related OPERATION.

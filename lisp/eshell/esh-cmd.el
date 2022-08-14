@@ -133,6 +133,10 @@ There are several different kinds of commands, however."
 Such arguments will be passed to `read', and then evaluated."
   :type 'regexp)
 
+(defcustom eshell-lisp-form-nil-is-failure t
+  "If non-nil, Lisp forms like (COMMAND ARGS) treat a nil result as failure."
+  :type 'boolean)
+
 (defcustom eshell-pre-command-hook nil
   "A hook run before each interactive command is invoked."
   :type 'hook)
@@ -541,9 +545,7 @@ implemented via rewriting, rather than as a function."
 	   	,(eshell-invokify-arg body t)))
 	     (setcar for-items (cadr for-items))
 	     (setcdr for-items (cddr for-items)))
-           (eshell-close-handles
-            eshell-last-command-status
-            (list 'quote eshell-last-command-result))))))
+           (eshell-close-handles)))))
 
 (defun eshell-structure-basic-command (func names keyword test body
 					    &optional else)
@@ -551,10 +553,11 @@ implemented via rewriting, rather than as a function."
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
-  ;; If the test form begins with `eshell-convert', it means
-  ;; something data-wise will be returned, and we should let
-  ;; that determine the truth of the statement.
-  (unless (eq (car test) 'eshell-convert)
+  ;; If the test form begins with `eshell-convert' or
+  ;; `eshell-escape-arg', it means something data-wise will be
+  ;; returned, and we should let that determine the truth of the
+  ;; statement.
+  (unless (memq (car test) '(eshell-convert eshell-escape-arg))
     (setq test
 	  `(progn ,test
                   (eshell-exit-success-p))))
@@ -574,9 +577,7 @@ function."
   `(let ((eshell-command-body '(nil))
          (eshell-test-body '(nil)))
      (,func ,test ,body ,else)
-     (eshell-close-handles
-        eshell-last-command-status
-        (list 'quote eshell-last-command-result))))
+     (eshell-close-handles)))
 
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
@@ -1415,43 +1416,53 @@ via `eshell-errorn'."
 (defun eshell-lisp-command (object &optional args)
   "Insert Lisp OBJECT, using ARGS if a function."
   (catch 'eshell-external               ; deferred to an external command
+    (setq eshell-last-command-status 0
+          eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p (eshell-interactive-output-p))
+           (command-form-p (functionp object))
            (result
-            (if (functionp object)
-                (progn
-                  (setq eshell-last-arguments args
-                        eshell-last-command-name
+            (if command-form-p
+                (let ((numeric (not (get object
+                                         'eshell-no-numeric-conversions)))
+                      (fname-args (get object 'eshell-filename-arguments)))
+                  (when (or numeric fname-args)
+                    (while args
+                      (let ((arg (car args)))
+                        (cond
+                         ((and numeric (stringp arg) (> (length arg) 0)
+                               (text-property-any 0 (length arg)
+                                                  'number t arg))
+                          ;; If any of the arguments are flagged as
+                          ;; numbers waiting for conversion, convert
+                          ;; them now.
+                          (setcar args (string-to-number arg)))
+                         ((and fname-args (stringp arg)
+                               (string-equal arg "~"))
+                          ;; If any of the arguments match "~",
+                          ;; prepend "./" to treat it as a regular
+                          ;; file name.
+                          (setcar args (concat "./" arg)))))
+                      (setq args (cdr args))))
+                  (setq eshell-last-command-name
                         (concat "#<function " (symbol-name object) ">"))
-                  (let ((numeric (not (get object
-                                           'eshell-no-numeric-conversions)))
-                        (fname-args (get object 'eshell-filename-arguments)))
-                    (when (or numeric fname-args)
-                      (while args
-                        (let ((arg (car args)))
-                          (cond ((and numeric (stringp arg) (> (length arg) 0)
-                                      (text-property-any 0 (length arg)
-                                                         'number t arg))
-                                 ;; If any of the arguments are
-                                 ;; flagged as numbers waiting for
-                                 ;; conversion, convert them now.
-                                 (setcar args (string-to-number arg)))
-                                ((and fname-args (stringp arg)
-                                      (string-equal arg "~"))
-                                 ;; If any of the arguments match "~",
-                                 ;; prepend "./" to treat it as a
-                                 ;; regular file name.
-                                 (setcar args (concat "./" arg)))))
-                        (setq args (cdr args)))))
                   (eshell-apply object eshell-last-arguments))
-              (setq eshell-last-arguments args
-                    eshell-last-command-name "#<Lisp object>")
+              (setq eshell-last-command-name "#<Lisp object>")
               (eshell-eval object))))
       (if (and eshell-ensure-newline-p
 	       (save-excursion
 		 (goto-char eshell-last-output-end)
 		 (not (bolp))))
 	  (eshell-print "\n"))
-      (eshell-close-handles 0 (list 'quote result)))))
+      (eshell-close-handles
+       ;; If `eshell-lisp-form-nil-is-failure' is non-nil, Lisp forms
+       ;; that succeeded but have a nil result should have an exit
+       ;; status of 2.
+       (when (and eshell-lisp-form-nil-is-failure
+                  (not command-form-p)
+                  (= eshell-last-command-status 0)
+                  (not result))
+         2)
+       (list 'quote result)))))
 
 (defalias 'eshell-lisp-command* #'eshell-lisp-command)
 

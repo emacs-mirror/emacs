@@ -71,6 +71,7 @@ this variable to the list of fields to be ignored.")
 (defvoo nnrss-status-string "")
 
 (defconst nnrss-version "nnrss 1.0")
+(make-obsolete-variable 'nnrss-version 'emacs-version "29.1")
 
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")

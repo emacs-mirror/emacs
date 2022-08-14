@@ -35,7 +35,6 @@
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
 (autoload 'gnus-completing-read "gnus-util")
 (autoload 'message-fetch-field "message")
-(autoload 'message-mark-active-p "message")
 (autoload 'message-info "message")
 (autoload 'fill-flowed-encode "flow-fill")
 (autoload 'message-posting-charset "message")
@@ -1236,7 +1235,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ;;
     ;;["Narrow" mml-narrow-to-part t]
     ["Quote MML in region" mml-quote-region
-     :active (message-mark-active-p)
+     :active mark-active
      :help "Quote MML tags in region"]
     ["Validate MML" mml-validate t]
     ["Preview" mml-preview t]

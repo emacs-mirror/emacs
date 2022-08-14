@@ -388,11 +388,11 @@ gnus-version)
   (insert "MH-E " mh-version "\n\n")
   ;; MH-E compilation details.
   (insert "MH-E compilation details:\n")
-  (let* ((compiled-mhe (byte-code-function-p (symbol-function 'mh-version)))
+  (let* ((compiled-mhe (compiled-function-p (symbol-function 'mh-version)))
          (gnus-compiled-version (if compiled-mhe
                                     (mh-macro-expansion-time-gnus-version)
                                   "N/A")))
-    (insert " Byte compiled:\t\t" (if compiled-mhe "yes" "no") "\n"
+    (insert " Compiled:\t\t" (if compiled-mhe "yes" "no") "\n"
             " Gnus (compile-time):\t" gnus-compiled-version "\n"
             " Gnus (run-time):\t" (mh-run-time-gnus-version) "\n\n"))
   ;; Emacs version.

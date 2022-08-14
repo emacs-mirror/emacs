@@ -1054,9 +1054,9 @@
 ;;   (print "Let's clean up now!"))
 ;; foo
 ;;
-;; Now `foo's advice is byte-compiled:
+;; Now `foo's advice is compiled:
 ;;
-;; (byte-code-function-p 'ad-Advice-foo)
+;; (compiled-function-p 'ad-Advice-foo)
 ;; t
 ;;
 ;; (foo 3)
@@ -1298,7 +1298,7 @@
 ;; constructed during preactivation was used, even though we did not specify
 ;; the `compile' flag:
 ;;
-;; (byte-code-function-p 'ad-Advice-fum)
+;; (compiled-function-p 'ad-Advice-fum)
 ;; t
 ;;
 ;; (fum 2)
@@ -1329,7 +1329,7 @@
 ;;
 ;; A new uncompiled advised definition got constructed:
 ;;
-;; (byte-code-function-p 'ad-Advice-fum)
+;; (compiled-function-p 'ad-Advice-fum)
 ;; nil
 ;;
 ;; (fum 2)
@@ -1579,8 +1579,6 @@
   :prefix "ad-"
   :link '(custom-manual "(elisp)Advising Functions")
   :group 'lisp)
-
-(defconst ad-version "2.14")
 
 ;;;###autoload
 (defcustom ad-redefinition-action 'warn
@@ -2118,9 +2116,9 @@ the cache-id will clear the cache."
 
 (defsubst ad-compiled-p (definition)
   "Return non-nil if DEFINITION is a compiled byte-code object."
-  (or (byte-code-function-p definition)
-       (and (macrop definition)
-            (byte-code-function-p (ad-lambdafy definition)))))
+  (or (compiled-function-p definition)
+      (and (macrop definition)
+           (compiled-function-p (ad-lambdafy definition)))))
 
 (defsubst ad-compiled-code (compiled-definition)
   "Return the byte-code object of a COMPILED-DEFINITION."
@@ -3249,6 +3247,9 @@ Use only in REAL emergencies."
   (ad-do-advised-functions (function)
     (message "Oops! Left over advised function %S" function)
     (ad-pop-advised-function function)))
+
+(defconst ad-version "2.14")
+(make-obsolete-variable 'ad-version 'emacs-version "29.1")
 
 (provide 'advice)
 

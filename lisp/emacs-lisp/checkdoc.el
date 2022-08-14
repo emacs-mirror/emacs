@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.6.2
@@ -1356,23 +1356,6 @@ checking of documentation strings.
 		    (mapconcat (lambda (e) (concat (car e)))
 			       checkdoc-common-verbs-wrong-voice "\\|")
 		    "\\)\\>"))))
-
-;; Profiler says this is not yet faster than just calling assoc
-;;(defun checkdoc-word-in-alist-vector (word vector)
-;;  "Check to see if WORD is in the car of an element of VECTOR.
-;;VECTOR must be sorted.  The CDR should be a replacement.  Since the
-;;word list is getting bigger, it is time for a quick bisecting search."
-;;  (let ((max (length vector)) (min 0) i
-;;	(found nil) (fw nil))
-;;    (setq i (/ max 2))
-;;    (while (and (not found) (/= min max))
-;;      (setq fw (car (aref vector i)))
-;;      (cond ((string= word fw) (setq found (cdr (aref vector i))))
-;;	    ((string< word fw) (setq max i))
-;;	    (t (setq min i)))
-;;      (setq i (/ (+ max min) 2))
-;;      )
-;;    found))
 
 ;;; Checking engines
 ;;
@@ -2859,8 +2842,6 @@ function called to create the messages."
         (message "No Package Keyword Errors.")))))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
-
-;; Obsolete
 
 (define-obsolete-function-alias 'checkdoc-run-hooks
   #'run-hook-with-args-until-success "28.1")

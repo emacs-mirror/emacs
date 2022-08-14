@@ -254,13 +254,9 @@ the string."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (let ((pad-length (- length (length string))))
-    (if (< pad-length 0)
-        string
-      (concat (and start
-                   (make-string pad-length (or padding ?\s)))
-              string
-              (and (not start)
-                   (make-string pad-length (or padding ?\s)))))))
+    (cond ((<= pad-length 0) string)
+          (start (concat (make-string pad-length (or padding ?\s)) string))
+          (t (concat string (make-string pad-length (or padding ?\s)))))))
 
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
@@ -470,6 +466,18 @@ be marked unmodified, effectively ignoring those changes."
              (when (and (buffer-modified-p)
                         (equal ,hash (buffer-hash)))
                (restore-buffer-modified-p nil))))))))
+
+(defun emacs-etc--hide-local-variables ()
+  "Hide local variables.
+Used by `emacs-authors-mode' and `emacs-news-mode'."
+  (narrow-to-region (point-min)
+                    (save-excursion
+                      (goto-char (point-max))
+                      ;; Obfuscate to avoid this being interpreted
+                      ;; as a local variable section itself.
+                      (if (re-search-backward "^Local\sVariables:$" nil t)
+                          (progn (forward-line -1) (point))
+                        (point-max)))))
 
 (provide 'subr-x)
 

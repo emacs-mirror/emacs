@@ -324,7 +324,7 @@ arguments to pass to the OPERATION."
 		      (tramp-compat-file-name-concat localname "."))
 		     (tramp-shell-quote-argument
 		      (tramp-compat-file-name-concat localname ".."))))
-	  (replace-regexp-in-region
+	  (tramp-compat-replace-regexp-in-region
 	   (regexp-quote
 	    (tramp-compat-file-name-unquote
 	     (file-name-as-directory localname)))

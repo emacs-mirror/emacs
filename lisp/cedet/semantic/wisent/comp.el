@@ -38,7 +38,7 @@
 ;;; Code:
 (require 'semantic/wisent)
 (eval-when-compile (require 'cl-lib))
-(eval-when-compile (require 'subr-x))   ; `string-pad'
+(require 'subr-x)   ; `string-pad'
 
 ;;;; -------------------
 ;;;; Misc. useful things

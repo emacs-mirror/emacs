@@ -346,7 +346,9 @@ Used only on systems which do not support async subprocesses.")
         (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 	(eshell-update-markers eshell-last-output-end)
 	;; Simulate the effect of eshell-sentinel.
-	(eshell-close-handles (if (numberp exit-status) exit-status -1))
+	(eshell-close-handles
+         (if (numberp exit-status) exit-status -1)
+         (list 'quote (and (numberp exit-status) (= exit-status 0))))
 	(eshell-kill-process-function command exit-status)
 	(or (bound-and-true-p eshell-in-pipeline-p)
 	    (setq eshell-last-sync-output-start nil))
@@ -398,40 +400,36 @@ PROC is the process that's exiting.  STRING is the exit message."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (unwind-protect
-          (let ((entry (assq proc eshell-process-list)))
-;	    (if (not entry)
-;		(error "Sentinel called for unowned process `%s'"
-;		       (process-name proc))
-	    (when entry
-	      (unwind-protect
-		  (progn
-		    (unless (string= string "run")
-                      ;; Write the exit message if the status is
-                      ;; abnormal and the process is already writing
-                      ;; to the terminal.
-                      (when (and (eq proc (eshell-tail-process))
-                                 (not (string-match "^\\(finished\\|exited\\)"
-                                                    string)))
-                        (funcall (process-filter proc) proc string))
-                      (let ((handles (nth 1 entry))
-                            (str (prog1 (nth 3 entry)
-                                   (setf (nth 3 entry) nil)))
-                            (status (process-exit-status proc)))
-                        ;; If we're in the middle of handling output
-                        ;; from this process then schedule the EOF for
-                        ;; later.
-                        (letrec ((finish-io
-                                  (lambda ()
-                                    (if (nth 4 entry)
-                                        (run-at-time 0 nil finish-io)
-                                      (when str
-                                        (ignore-error 'eshell-pipe-broken
-                                          (eshell-output-object
-                                           str nil handles)))
-                                      (eshell-close-handles
-                                       status 'nil handles)))))
-                          (funcall finish-io)))))
-		(eshell-remove-process-entry entry))))
+          (when-let ((entry (assq proc eshell-process-list)))
+	    (unwind-protect
+		(unless (string= string "run")
+                  ;; Write the exit message if the status is
+                  ;; abnormal and the process is already writing
+                  ;; to the terminal.
+                  (when (and (eq proc (eshell-tail-process))
+                             (not (string-match "^\\(finished\\|exited\\)"
+                                                string)))
+                    (funcall (process-filter proc) proc string))
+                  (let ((handles (nth 1 entry))
+                        (str (prog1 (nth 3 entry)
+                               (setf (nth 3 entry) nil)))
+                        (status (process-exit-status proc)))
+                    ;; If we're in the middle of handling output
+                    ;; from this process then schedule the EOF for
+                    ;; later.
+                    (letrec ((finish-io
+                              (lambda ()
+                                (if (nth 4 entry)
+                                    (run-at-time 0 nil finish-io)
+                                  (when str
+                                    (ignore-error 'eshell-pipe-broken
+                                      (eshell-output-object
+                                       str nil handles)))
+                                  (eshell-close-handles
+                                   status (list 'quote (= status 0))
+                                   handles)))))
+                      (funcall finish-io))))
+	      (eshell-remove-process-entry entry)))
 	(eshell-kill-process-function proc string)))))
 
 (defun eshell-process-interact (func &optional all query)

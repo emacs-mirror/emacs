@@ -1813,8 +1813,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
     (unless (or (null tests) (zerop high))
       (message "\nLONG-RUNNING TESTS")
       (message "------------------")
-      (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
-      (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
+      (setq tests (ntake high (sort tests (lambda (x y) (> (car x) (car y))))))
       (message "%s" (mapconcat #'cdr tests "\n")))
     ;; More details on hydra and emba, where the logs are harder to get to.
     (when (and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))

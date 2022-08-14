@@ -1959,12 +1959,8 @@ See calc-keypad for details."
   (or n (setq n 1))
   (or m (setq m 1))
   (calc-check-stack (+ n m -1))
-  (and (> n 0)
-       (let ((top (copy-sequence (nthcdr (+ m calc-stack-top -1)
-					 calc-stack))))
-	 (setcdr (nthcdr (1- n) top) nil)
-	 (nreverse
-          (mapcar (lambda (x) (calc-get-stack-element x sel-mode)) top)))))
+  (nreverse (mapcar (lambda (x) (calc-get-stack-element x sel-mode))
+                    (take n (nthcdr (+ m calc-stack-top -1) calc-stack)))))
 
 (defun calc-top-list-n (&optional n m sel-mode)
   (mapcar #'math-check-complete
@@ -2291,9 +2287,7 @@ the United States."
              ((and (null n)
                    (eq (car-safe top) 'incomplete)
                    (> (length top) (if (eq (nth 1 top) 'intv) 3 2)))
-              (calc-pop-push-list 1 (let ((tt (copy-sequence top)))
-                                      (setcdr (nthcdr (- (length tt) 2) tt) nil)
-                                      (list tt))))
+              (calc-pop-push-list 1 (list (butlast top))))
              ((< nn 0)
               (if (and calc-any-selections
                        (calc-top-selected 1 (- nn)))

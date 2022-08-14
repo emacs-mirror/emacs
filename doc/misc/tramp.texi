@@ -3383,7 +3383,7 @@ names.  Beside the @code{default} value, @var{syntax} can be
 @item @code{simplified}
 @cindex simplified syntax
 
-The remote file name syntax is similar to the syntax used by Ange FTP@.
+This remote file name syntax is similar to the syntax used by Ange FTP@.
 A remote file name has the form
 @code{@value{prefix}user@@host@value{postfix}path/to/file}.  The
 @code{user@@} part is optional, and the method is determined by
@@ -3395,7 +3395,7 @@ A remote file name has the form
 @clear unified
 @set separate
 @include trampver.texi
-The remote file name syntax is similar to the syntax used by XEmacs.
+This remote file name syntax originated in the XEmacs text editor.
 A remote file name has the form
 @code{@trampfn{method,user@@host,path/to/file}}.  The @code{method}
 and @code{user@@} parts are optional.

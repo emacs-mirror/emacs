@@ -57,6 +57,7 @@ component group will show up when you enter the virtual group.")
 
 
 (defconst nnvirtual-version "nnvirtual 1.1")
+(make-obsolete-variable 'nnvirtual-version 'emacs-version "29.1")
 
 (defvoo nnvirtual-current-group nil)
 

@@ -3490,9 +3490,10 @@ This function is intended for use in `after-change-functions'."
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"
-  ;; JSON files can be big.  Speed up syntax-ppss.
-  (setq-local syntax-propertize-function nil)
-  (setq-local js-enabled-frameworks nil))
+  (setq-local js-enabled-frameworks nil)
+  ;; Speed up `syntax-ppss': JSON files can be big but can't hold
+  ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
+  (setq-local syntax-propertize-function #'ignore))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply

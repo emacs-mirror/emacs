@@ -217,6 +217,14 @@ function.  For example:
 @end example
 @end defun
 
+@defun compiled-function-p object
+This function returns @code{t} if @var{object} is a function object
+that was either built-in (a.k.a.@: ``primitive'', @pxref{What Is a
+Function}), or byte-compiled (@pxref{Byte Compilation}), or
+natively-compiled (@pxref{Native Compilation}), or a function loaded
+from a dynamic module (@pxref{Dynamic Modules}).
+@end defun
+
 @defun subr-arity subr
 This works like @code{func-arity}, but only for built-in functions and
 without symbol indirection.  It signals an error for non-built-in

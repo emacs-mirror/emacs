@@ -171,13 +171,13 @@ If DATE lacks timezone information, GMT is assumed."
 	      (error "Invalid date: %s" date)))))))))
 
 ;;;###autoload
-(defalias 'time-to-seconds 'float-time)
+(defalias 'time-to-seconds #'float-time)
 
 ;;;###autoload
-(defun seconds-to-time (seconds &rest form)
-  "Convert SECONDS to a proper time, like `current-time' would.
-FORM means the same as in `time-convert'."
-  (time-convert seconds form))
+(defun seconds-to-time (seconds)
+  "Convert SECONDS to a proper time, like `current-time' would."
+  ;; FIXME: Should we (declare (obsolete time-convert "27.1")) ?
+  (time-convert seconds 'list))
 
 ;;;###autoload
 (defun days-to-time (days)
@@ -202,7 +202,7 @@ TIME should be either a time value or a date-time string."
   (time-subtract nil time))
 
 ;;;###autoload
-(define-obsolete-function-alias 'subtract-time 'time-subtract "26.1")
+(define-obsolete-function-alias 'subtract-time #'time-subtract "26.1")
 
 ;;;###autoload
 (defun date-to-day (date)

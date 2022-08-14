@@ -218,6 +218,7 @@ from the document.")
 
 (defconst nndoc-version "nndoc 1.0"
   "nndoc version.")
+(make-obsolete-variable 'nndoc-version 'emacs-version "29.1")
 
 
 

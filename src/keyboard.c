@@ -1331,6 +1331,7 @@ command_loop_1 (void)
 	display_malloc_warning ();
 
       Vdeactivate_mark = Qnil;
+      backtrace_yet = false;
 
       /* Don't ignore mouse movements for more than a single command
 	 loop.  (This flag is set in xdisp.c whenever the tool bar is
@@ -1841,7 +1842,7 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
+  eassert (nargs >= 2 && nargs <= 4);
   AUTO_STRING (format, "Error in %s (%S): %S");
   Lisp_Object hook = args[0];
   Lisp_Object fun = args[1];
@@ -1912,6 +1913,17 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 			       true);
 
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  unbind_to (count, Qnil);
+}
+
+void
+safe_run_hooks_2 (Lisp_Object hook, Lisp_Object arg1, Lisp_Object arg2)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qinhibit_quit, Qt);
+  run_hook_with_args (4, ((Lisp_Object []) {hook, hook, arg1, arg2}),
+		      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
@@ -12638,10 +12650,17 @@ cancels any modification.  */);
 
   DEFSYM (Qdeactivate_mark, "deactivate-mark");
   DEFVAR_LISP ("deactivate-mark", Vdeactivate_mark,
-	       doc: /* If an editing command sets this to t, deactivate the mark afterward.
+    doc: /* Whether to deactivate the mark after an editing command.
 The command loop sets this to nil before each command,
 and tests the value when the command returns.
-Buffer modification stores t in this variable.  */);
+If an editing command sets this non-nil, deactivate the mark after
+the command returns.
+
+Buffer modifications store t in this variable.
+
+By default, deactivating the mark will save the contents of the region
+according to `select-active-regions', unless this is set to the symbol
+`dont-save'.  */);
   Vdeactivate_mark = Qnil;
   Fmake_variable_buffer_local (Qdeactivate_mark);
 

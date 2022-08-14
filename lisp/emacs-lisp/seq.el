@@ -458,11 +458,21 @@ TESTFN is used to compare elements, or `equal' if TESTFN is nil."
 (cl-defmethod seq-uniq ((sequence list) &optional testfn)
   (let ((result nil))
     (if (not testfn)
-        ;; Fast path.
-        (while sequence
-          (unless (member (car sequence) result)
-            (push (car sequence) result))
-          (pop sequence))
+        ;; Fast path.  If the list is long, use a hash table to speed
+        ;; things up even more.
+        (let ((l (length sequence)))
+          (if (> l 100)
+              (let ((hash (make-hash-table :test #'equal :size l)))
+                (while sequence
+                  (unless (gethash (car sequence) hash)
+                    (setf (gethash (car sequence) hash) t)
+                    (push (car sequence) result))
+                  (setq sequence (cdr sequence))))
+            ;; Short list.
+            (while sequence
+              (unless (member (car sequence) result)
+                (push (car sequence) result))
+              (pop sequence))))
       ;; Slower path.
       (while sequence
         (unless (seq-find (lambda (elem)

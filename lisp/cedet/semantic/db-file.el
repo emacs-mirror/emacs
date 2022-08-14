@@ -29,7 +29,7 @@
 (require 'cedet-files)
 (require 'data-debug)
 
-(defvar semanticdb-file-version semantic-version
+(defvar semanticdb-file-version "2.2"
   "Version of semanticdb we are writing files to disk with.")
 (defvar semanticdb-file-incompatible-version "1.4"
   "Version of semanticdb we are not reverse compatible with.")

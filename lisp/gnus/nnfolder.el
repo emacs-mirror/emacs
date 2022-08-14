@@ -91,6 +91,7 @@ message, a huge time saver for large mailboxes.")
 
 (defconst nnfolder-version "nnfolder 2.0"
   "nnfolder version.")
+(make-obsolete-variable 'nnfolder-version 'emacs-version "29.1")
 
 (defconst nnfolder-article-marker "X-Gnus-Article-Number: "
   "String used to demarcate what the article number for a message is.")

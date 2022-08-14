@@ -55,6 +55,7 @@
 
 (defconst nnbabyl-version "nnbabyl 1.0"
   "nnbabyl version.")
+(make-obsolete-variable 'nnbabyl-version 'emacs-version "29.1")
 
 (defvoo nnbabyl-mbox-buffer nil)
 (defvoo nnbabyl-current-group nil)

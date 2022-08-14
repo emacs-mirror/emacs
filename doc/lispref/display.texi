@@ -8596,9 +8596,9 @@ Characters of Unicode General Category [Cf], such as U+200E
 images, such as U+00AD @sc{soft hyphen}.
 
 @item variation-selectors
-Unicode VS-1 through VS-16 (U+FE00 through U+FE0F), which are used to
-select between different glyphs for the same codepoints (typically
-emojis).
+Unicode VS-1 through VS-256 (U+FE00 through U+FE0F and U+E0100 through
+U+E01EF), which are used to select between different glyphs for the same
+codepoints (typically emojis).
 
 @item no-font
 Characters for which there is no suitable font, or which cannot be

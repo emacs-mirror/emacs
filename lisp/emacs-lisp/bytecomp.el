@@ -1395,7 +1395,7 @@ when printing the error message."
 		      (or (symbolp (symbol-function fn))
 			  (consp (symbol-function fn))
 			  (and (not macro-p)
-			       (byte-code-function-p (symbol-function fn)))))
+			       (compiled-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
           (let ((advertised (gethash (if (and (symbolp fn) (fboundp fn))
                                          ;; Could be a subr.
@@ -1407,7 +1407,7 @@ when printing the error message."
               (if macro-p
                   `(macro lambda ,advertised)
                 `(lambda ,advertised)))
-             ((and (not macro-p) (byte-code-function-p fn)) fn)
+             ((and (not macro-p) (compiled-function-p fn)) fn)
              ((not (consp fn)) nil)
              ((eq 'macro (car fn)) (cdr fn))
              (macro-p nil)
@@ -2946,11 +2946,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (setq fun (cdr fun)))
       (prog1
           (cond
-           ;; Up until Emacs-24.1, byte-compile silently did nothing when asked to
-           ;; compile something invalid.  So let's tune down the complaint from an
-           ;; error to a simple message for the known case where signaling an error
-           ;; causes problems.
-           ((byte-code-function-p fun)
+           ;; Up until Emacs-24.1, byte-compile silently did nothing
+           ;; when asked to compile something invalid.  So let's tone
+           ;; down the complaint from an error to a simple message for
+           ;; the known case where signaling an error causes problems.
+           ((compiled-function-p fun)
             (message "Function %s is already compiled"
                      (if (symbolp form) form "provided"))
             fun)
@@ -3527,7 +3527,7 @@ lambda-expression."
     (byte-compile-out-tag endtag)))
 
 (defun byte-compile-unfold-bcf (form)
-  "Inline call to byte-code-functions."
+  "Inline call to byte-code function."
   (let* ((byte-compile-bound-variables byte-compile-bound-variables)
          (fun (car form))
          (fargs (aref fun 0))
@@ -5254,11 +5254,13 @@ invoked interactively."
 		((not (consp f))
 		 "<malformed function>")
 		((eq 'macro (car f))
-		 (if (or (byte-code-function-p (cdr f))
+		 (if (or (compiled-function-p (cdr f))
+			 ;; FIXME: Can this still happen?
 			 (assq 'byte-code (cdr (cdr (cdr f)))))
 		     " <compiled macro>"
 		   " <macro>"))
 		((assq 'byte-code (cdr (cdr f)))
+		 ;; FIXME: Can this still happen?
 		 "<compiled lambda>")
 		((eq 'lambda (car f))
 		 "<function>")
@@ -5507,9 +5509,7 @@ and corresponding effects."
 ;; itself, compile some of its most used recursive functions (at load time).
 ;;
 (eval-when-compile
-  (or (byte-code-function-p (symbol-function 'byte-compile-form))
-      (subr-native-elisp-p (symbol-function 'byte-compile-form))
-      (assq 'byte-code (symbol-function 'byte-compile-form))
+  (or (compiled-function-p (symbol-function 'byte-compile-form))
       (let ((byte-optimize nil)		; do it fast
 	    (byte-compile-warnings nil))
 	(mapc (lambda (x)

@@ -3530,7 +3530,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
         (let ((place (cdr desc))
               (out (copy-sequence (car desc))))
           (add-text-properties place (1+ place)
-                               '(face (bold font-lock-warning-face))
+                               '(face help-key-binding)
                                out)
           out))
     (package--prettify-quick-help-key (cons desc 0))))

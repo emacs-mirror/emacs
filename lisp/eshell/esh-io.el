@@ -254,6 +254,30 @@ a nil value of mode defaults to `insert'."
       (setq idx (1+ idx))))
   handles)
 
+(defun eshell-close-handles (&optional exit-code result handles)
+  "Close all of the current HANDLES, taking refcounts into account.
+If HANDLES is nil, use `eshell-current-handles'.
+
+EXIT-CODE is the process exit code (zero, if the command
+completed successfully).  If nil, then use the exit code already
+set in `eshell-last-command-status'.
+
+RESULT is the quoted value of the last command.  If nil, then use
+the value already set in `eshell-last-command-result'."
+  (when exit-code
+    (setq eshell-last-command-status exit-code))
+  (when result
+    (cl-assert (eq (car result) 'quote))
+    (setq eshell-last-command-result (cadr result)))
+  (let ((handles (or handles eshell-current-handles)))
+    (dotimes (idx eshell-number-of-handles)
+      (when-let ((handle (aref handles idx)))
+        (setcdr handle (1- (cdr handle)))
+	(when (= (cdr handle) 0)
+          (dolist (target (ensure-list (car (aref handles idx))))
+            (eshell-close-target target (= eshell-last-command-status 0)))
+          (setcar handle nil))))))
+
 (defun eshell-close-target (target status)
   "Close an output TARGET, passing STATUS as the result.
 STATUS should be non-nil on successful termination of the output."
@@ -304,32 +328,6 @@ STATUS should be non-nil on successful termination of the output."
    ;; passed along with it.
    ((consp target)
     (apply (car target) status (cdr target)))))
-
-(defun eshell-close-handles (exit-code &optional result handles)
-  "Close all of the current handles, taking refcounts into account.
-EXIT-CODE is the process exit code; mainly, it is zero, if the command
-completed successfully.  RESULT is the quoted value of the last
-command.  If nil, then the meta variables for keeping track of the
-last execution result should not be changed."
-  (let ((idx 0))
-    (cl-assert (or (not result) (eq (car result) 'quote)))
-    (setq eshell-last-command-status exit-code
-	  eshell-last-command-result (cadr result))
-    (while (< idx eshell-number-of-handles)
-      (let ((handles (or handles eshell-current-handles)))
-	(when (aref handles idx)
-	  (setcdr (aref handles idx)
-		  (1- (cdr (aref handles idx))))
-	  (when (= (cdr (aref handles idx)) 0)
-	    (let ((target (car (aref handles idx))))
-	      (if (not (listp target))
-		  (eshell-close-target target (= exit-code 0))
-		(while target
-		  (eshell-close-target (car target) (= exit-code 0))
-		  (setq target (cdr target)))))
-	    (setcar (aref handles idx) nil))))
-      (setq idx (1+ idx)))
-    nil))
 
 (defun eshell-kill-append (string)
   "Call `kill-append' with STRING, if it is indeed a string."

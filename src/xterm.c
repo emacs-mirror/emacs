@@ -1398,6 +1398,15 @@ static int x_dnd_last_tooltip_x, x_dnd_last_tooltip_y;
 /* Whether or not those values are actually known yet.  */
 static bool x_dnd_last_tooltip_valid;
 
+#ifdef HAVE_XINPUT2
+/* The master pointer device being used for the drag-and-drop
+   operation.  */
+static int x_dnd_pointer_device;
+
+/* The keyboard device attached to that pointer device.  */
+static int x_dnd_keyboard_device;
+#endif
+
 /* Structure describing a single window that can be the target of
    drag-and-drop operations.  */
 struct x_client_list_window
@@ -4704,6 +4713,67 @@ x_restore_events_after_dnd (struct frame *f, XWindowAttributes *wa)
     XDeleteProperty (dpyinfo->display, FRAME_X_WINDOW (f),
 		     dpyinfo->Xatom_XdndTypeList);
 }
+
+#ifdef HAVE_XINPUT2
+
+/* Cancel the current drag-and-drop operation, sending leave messages
+   to any relevant toplevels.  This is called from the event loop when
+   an event is received telling Emacs to gracefully cancel the
+   drag-and-drop operation.  */
+
+static void
+x_dnd_cancel_dnd_early (void)
+{
+  struct frame *f;
+  xm_drop_start_message dmsg;
+
+  eassert (x_dnd_frame && x_dnd_in_progress);
+
+  f = x_dnd_frame;
+
+  if (x_dnd_last_seen_window != None
+      && x_dnd_last_protocol_version != -1)
+    x_dnd_send_leave (x_dnd_frame,
+		      x_dnd_last_seen_window);
+  else if (x_dnd_last_seen_window != None
+	   && !XM_DRAG_STYLE_IS_DROP_ONLY (x_dnd_last_motif_style)
+	   && x_dnd_last_motif_style != XM_DRAG_STYLE_NONE
+	   && x_dnd_motif_setup_p)
+    {
+      dmsg.reason = XM_DRAG_REASON (XM_DRAG_ORIGINATOR_INITIATOR,
+				    XM_DRAG_REASON_DROP_START);
+      dmsg.byte_order = XM_BYTE_ORDER_CUR_FIRST;
+      dmsg.timestamp = FRAME_DISPLAY_INFO (f)->last_user_time;
+      dmsg.side_effects
+	= XM_DRAG_SIDE_EFFECT (xm_side_effect_from_action (FRAME_DISPLAY_INFO (f),
+							   x_dnd_wanted_action),
+			       XM_DROP_SITE_VALID, x_dnd_motif_operations,
+			       XM_DROP_ACTION_DROP_CANCEL);
+      dmsg.x = 0;
+      dmsg.y = 0;
+      dmsg.index_atom = x_dnd_motif_atom;
+      dmsg.source_window = FRAME_X_WINDOW (f);
+
+      x_dnd_send_xm_leave_for_drop (FRAME_DISPLAY_INFO (f), f,
+				    x_dnd_last_seen_window,
+				    FRAME_DISPLAY_INFO (f)->last_user_time);
+      xm_send_drop_message (FRAME_DISPLAY_INFO (f), FRAME_X_WINDOW (f),
+			    x_dnd_last_seen_window, &dmsg);
+    }
+
+  x_dnd_last_seen_window = None;
+  x_dnd_last_seen_toplevel = None;
+  x_dnd_in_progress = false;
+  x_dnd_waiting_for_finish = false;
+  x_dnd_return_frame_object = NULL;
+  x_dnd_movement_frame = NULL;
+  x_dnd_wheel_frame = NULL;
+  x_dnd_frame = NULL;
+  x_dnd_action = None;
+  x_dnd_action_symbol = Qnil;
+}
+
+#endif
 
 static void
 x_dnd_cleanup_drag_and_drop (void *frame)
@@ -11909,6 +11979,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct x_display_info *event_display;
 #endif
   unsigned int additional_mask;
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *device;
+#endif
 
   base = SPECPDL_INDEX ();
 
@@ -12089,6 +12162,33 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   x_dnd_wheel_frame = NULL;
   x_dnd_init_type_lists = false;
   x_dnd_need_send_drop = false;
+
+#ifdef HAVE_XINPUT2
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+    {
+      /* Only accept input from the last master pointer to have interacted
+	 with Emacs.  This prevents another pointer device getting our
+	 idea of the button state messed up.  */
+      if (FRAME_DISPLAY_INFO (f)->client_pointer_device != -1)
+	x_dnd_pointer_device
+	  = FRAME_DISPLAY_INFO (f)->client_pointer_device;
+      else
+	/* This returns Bool but cannot actually fail.  */
+	XIGetClientPointer (FRAME_X_DISPLAY (f), None,
+			    &x_dnd_pointer_device);
+
+      x_dnd_keyboard_device = -1;
+
+      device = xi_device_from_id (FRAME_DISPLAY_INFO (f),
+				  x_dnd_pointer_device);
+
+      if (device)
+	x_dnd_keyboard_device = device->attachment;
+    }
+
+#endif
+
 #ifdef HAVE_XKB
   x_dnd_keyboard_state = 0;
 
@@ -12882,6 +12982,13 @@ xi_disable_devices (struct x_display_info *dpyinfo,
 	{
 	  if (to_disable[j] == dpyinfo->devices[i].device_id)
 	    {
+	      if (x_dnd_in_progress
+		  /* If the drag-and-drop pointer device is being
+		     disabled, then cancel the drag and drop
+		     operation.  */
+		  && to_disable[j] == x_dnd_pointer_device)
+		x_dnd_cancel_dnd_early ();
+
 	      /* Free any scroll valuators that might be on this
 		 device.  */
 #ifdef HAVE_XINPUT2_1
@@ -14164,11 +14271,13 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
   ev->window = FRAME_X_WINDOW (f);
   ev->format = 32;
 
-  /* A 32-bit X client on a 64-bit X server can pass a window pointer
-     as-is.  A 64-bit client on a 32-bit X server is in trouble
-     because a pointer does not fit and would be truncated while
-     passing through the server.  So use two slots and hope that X12
-     will resolve such issues someday.  */
+  /* A 32-bit X client can pass a window pointer through the X server
+     as-is.
+
+     A 64-bit client is in trouble because a pointer does not fit in
+     the 32 bits given for ClientMessage data and will be truncated by
+     Xlib.  So use two slots and hope that X12 will resolve such
+     issues someday.  */
   ev->data.l[0] = iw >> 31 >> 1;
   ev->data.l[1] = sign_shift <= 0 ? iw : iw << sign_shift >> sign_shift;
   ev->data.l[2] = part;
@@ -17316,6 +17425,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   union buffered_input_event inev;
   int count = 0;
   int do_help = 0;
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *gen_help_device;
+  Time gen_help_time;
+#endif
   ptrdiff_t nbytes = 0;
   struct frame *any, *f = NULL;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
@@ -17345,6 +17458,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
+#ifdef HAVE_XINPUT2
+  gen_help_device = NULL;
+#endif
 
   /* Ignore events coming from various extensions, such as XFIXES and
      XKB.  */
@@ -17870,6 +17986,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselection.requestor))
         goto OTHER;
 #endif /* not USE_X_TOOLKIT and not USE_GTK */
+#ifdef HAVE_GTK3
+      /* GTK 3 apparently chokes on these events since they have no
+	 associated device.  (bug#56869, another bug as well that I
+	 can't find) */
+      *finish = X_EVENT_DROP;
+#endif
       x_handle_selection_notify (&event->xselection);
       break;
 
@@ -17878,6 +18000,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselectionclear.window))
         goto OTHER;
 #endif /* not USE_X_TOOLKIT and not USE_GTK */
+#ifdef HAVE_GTK3
+      *finish = X_EVENT_DROP;
+#endif
       {
         const XSelectionClearEvent *eventp = &event->xselectionclear;
 
@@ -17904,6 +18029,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!x_window_to_frame (dpyinfo, event->xselectionrequest.owner))
         goto OTHER;
 #endif /* USE_X_TOOLKIT */
+#ifdef HAVE_GTK3
+      *finish = X_EVENT_DROP;
+#endif
       {
 	const XSelectionRequestEvent *eventp = &event->xselectionrequest;
 
@@ -18446,6 +18574,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
       if (x_dnd_in_progress
+	  /* When _NET_WM_CLIENT_LIST stacking is being used, changes
+	     in that property are watched for, and it's not necessary
+	     to update the state in response to ordinary window
+	     substructure events.  */
+	  && !x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
 
@@ -20280,6 +20413,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case CirculateNotify:
       if (x_dnd_in_progress
+	  /* When _NET_WM_CLIENT_LIST stacking is being used, changes
+	     in that property are watched for, and it's not necessary
+	     to update the state in response to ordinary window
+	     substructure events.  */
+	  && !x_dnd_use_toplevels
 	  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 	x_dnd_update_state (dpyinfo, dpyinfo->last_user_time);
       goto OTHER;
@@ -20876,6 +21014,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 operation, don't send an event.  We only have
 			 to set the user time.  */
 		      if (x_dnd_in_progress
+			  /* If another master device moved the
+			     pointer, we should put a wheel event on
+			     the keyboard buffer as usual.  It will be
+			     run once the drag-and-drop operation
+			     completes.  */
+			  && xev->deviceid == x_dnd_pointer_device
 			  && (command_loop_level + minibuf_level
 			      <= x_dnd_recursion_depth)
 			  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
@@ -20968,6 +21112,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     `x-dnd-movement-function`.  */
 		  && (command_loop_level + minibuf_level
 		      <= x_dnd_recursion_depth)
+		  && xev->deviceid == x_dnd_pointer_device
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  Window target, toplevel;
@@ -21270,7 +21415,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 has changed, generate a HELP_EVENT.  */
 	      if (!NILP (help_echo_string)
 		  || !NILP (previous_help_echo_string))
-		do_help = 1;
+		{
+		  /* Also allow the focus and client pointer to be
+		     adjusted accordingly, in case a help tooltip is
+		     shown.  */
+		  gen_help_device = device;
+		  gen_help_time = xev->time;
+
+		  do_help = 1;
+		}
 	      goto XI_OTHER;
 	    }
 
@@ -21294,6 +21447,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      if (x_dnd_in_progress
 		  && (command_loop_level + minibuf_level
 		      <= x_dnd_recursion_depth)
+		  && xev->deviceid == x_dnd_pointer_device
 		  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
 		{
 		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
@@ -21332,6 +21486,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef XIPointerEmulated
 		    }
 #endif
+
+		  if (f && device)
+		    xi_handle_interaction (dpyinfo, f, device,
+					   xev->time);
 
 		  if (xev->evtype == XI_ButtonPress
 		      && x_dnd_last_seen_window != None)
@@ -21579,11 +21737,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					      xev->send_event);
 
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
+	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
 #ifdef HAVE_XWIDGETS
 	      xvw = xwidget_view_from_window (xev->event);
 	      if (xvw)
 		{
+		  /* If the user interacts with a frame that's focused
+		     on another device, but not the current focus
+		     frame, make it the focus frame.  */
+		  if (device)
+		    xi_handle_interaction (dpyinfo, xvw->frame,
+					   device, xev->time);
+
 		  xwidget_button (xvw, xev->evtype == XI_ButtonPress,
 				  lrint (xev->event_x), lrint (xev->event_y),
 				  xev->detail, xi_convert_event_state (xev),
@@ -21602,8 +21768,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  goto XI_OTHER;
 		}
 #endif
-
-	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -22162,7 +22326,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
 
 #ifdef XK_F1
-		  if (x_dnd_in_progress && keysym == XK_F1)
+		  if (x_dnd_in_progress
+		      && xev->deviceid == x_dnd_keyboard_device
+		      && keysym == XK_F1)
 		    {
 		      x_dnd_xm_use_help = true;
 		      goto xi_done_keysym;
@@ -22426,11 +22592,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  case XI_HierarchyChanged:
 	    {
-	      XIHierarchyEvent *hev = (XIHierarchyEvent *) xi_event;
+	      XIHierarchyEvent *hev;
 	      XIDeviceInfo *info;
 	      int i, ndevices, n_disabled, *disabled;
 	      struct xi_device_t *device;
+	      bool any_changed;
 
+	      any_changed = false;
+	      hev = (XIHierarchyEvent *) xi_event;
 	      disabled = SAFE_ALLOCA (sizeof *disabled * hev->num_info);
 	      n_disabled = 0;
 
@@ -22440,8 +22609,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      /* Handle all disabled devices now, to prevent
 			 things happening out-of-order later.  */
-		      xi_disable_devices (dpyinfo, disabled, n_disabled);
-		      n_disabled = 0;
+
+		      if (ndevices)
+			{
+			  xi_disable_devices (dpyinfo, disabled, n_disabled);
+			  n_disabled = 0;
+
+			  /* This flag really just means that disabled
+			     devices were handled early and should be
+			     used in conjunction with n_disabled.  */
+			  any_changed = true;
+			}
 
 		      x_catch_errors (dpyinfo->display);
 		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
@@ -22492,9 +22670,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 event.  */
 	      xi_disable_devices (dpyinfo, disabled, n_disabled);
 
-	      /* Now that the device hierarchy has been changed,
-		 recompute focus.  */
-	      xi_handle_focus_change (dpyinfo);
+	      /* If the device hierarchy has been changed, recompute
+		 focus.  This might seem like a micro-optimization but
+		 it actually keeps the focus from changing in some
+		 cases where it would be undesierable.  */
+	      if (any_changed || n_disabled)
+		xi_handle_focus_change (dpyinfo);
 
 	      goto XI_OTHER;
 	    }
@@ -23182,6 +23363,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (do_help > 0)
 	{
 	  any_help_event_p = true;
+#ifdef HAVE_XINPUT2
+	  if (gen_help_device)
+	    xi_handle_interaction (dpyinfo, f,
+				   gen_help_device,
+				   gen_help_time);
+#endif
 	  gen_help_event (help_echo_string, frame, help_echo_window,
 			  help_echo_object, help_echo_pos);
 	}
@@ -25947,27 +26134,25 @@ x_set_window_size (struct frame *f, bool change_gravity,
 void
 frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
-  block_input ();
 #ifdef HAVE_XINPUT2
   int deviceid;
 
-  if (FRAME_DISPLAY_INFO (f)->supports_xi2)
+  deviceid = FRAME_DISPLAY_INFO (f)->client_pointer_device;
+
+  if (FRAME_DISPLAY_INFO (f)->supports_xi2
+      && deviceid != -1)
     {
-      if (XIGetClientPointer (FRAME_X_DISPLAY (f),
-			      FRAME_X_WINDOW (f),
-			      &deviceid))
-	{
-	  x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
-	  XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
-			 FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
-	  x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
-	}
+      block_input ();
+      x_ignore_errors_for_next_request (FRAME_DISPLAY_INFO (f));
+      XIWarpPointer (FRAME_X_DISPLAY (f), deviceid, None,
+		     FRAME_X_WINDOW (f), 0, 0, 0, 0, pix_x, pix_y);
+      x_stop_ignoring_errors (FRAME_DISPLAY_INFO (f));
+      unblock_input ();
     }
   else
 #endif
     XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
 		  0, 0, 0, 0, pix_x, pix_y);
-  unblock_input ();
 }
 
 /* Raise frame F.  */
@@ -28955,7 +29140,7 @@ void
 x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 		       Lisp_Object current_owner)
 {
-  Lisp_Object tail, frame, new_owner, tem;
+  Lisp_Object tail, frame, new_owner;
   Time timestamp;
   Window *owners;
   Atom *names;
@@ -28985,7 +29170,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
   FOR_EACH_TAIL_SAFE (tail)
     {
-      tem = XCAR (tail);
+      Lisp_Object tem = XCAR (tail);
       ++nowners;
 
       /* The selection is really lost (since we cannot find a new
@@ -29019,7 +29204,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
-	  tem = XCAR (tail);
+	  Lisp_Object tem = XCAR (tail);
 
 	  /* Now check if we still don't own that selection, which can
 	     happen if another program set itself as the owner.  */
@@ -29039,9 +29224,10 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
+	  Lisp_Object tem = XCAR (tail);
+
 	  reply = xcb_get_selection_owner_reply (dpyinfo->xcb_connection,
 						 cookies[nowners++], &error);
-
 	  if (reply)
 	    owners[nowners - 1] = reply->owner;
 	  else
@@ -29071,7 +29257,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
-	  tem = XCAR (tail);
+	  Lisp_Object tem = XCAR (tail);
 
 	  /* If the selection isn't owned by us anymore, note that the
 	     selection was lost.  */

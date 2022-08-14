@@ -673,9 +673,12 @@ two markers or an overlay.  Otherwise, it is nil."
   (let ((str (cond ((stringp value) value)
 		   ((setq value (xselect--selection-bounds value))
 		    (with-current-buffer (nth 2 value)
-		      (buffer-substring (nth 0 value)
-					(nth 1 value)))))))
-    (xselect--encode-string type str t)))
+                      (when (and (>= (nth 0 value) (point-min))
+                                 (<= (nth 1 value) (point-max)))
+		        (buffer-substring (nth 0 value)
+                                          (nth 1 value))))))))
+    (when str
+      (xselect--encode-string type str t))))
 
 (defun xselect-convert-to-length (_selection _type value)
   (let ((len (cond ((stringp value)

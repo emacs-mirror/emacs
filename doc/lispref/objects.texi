@@ -2022,6 +2022,9 @@ with references to further information.
 @item byte-code-function-p
 @xref{Byte-Code Type, byte-code-function-p}.
 
+@item compiled-function-p
+@xref{Byte-Code Type, compiled-function-p}.
+
 @item case-table-p
 @xref{Case Tables, case-table-p}.
 

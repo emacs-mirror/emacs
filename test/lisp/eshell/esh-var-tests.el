@@ -500,17 +500,74 @@ inside double-quotes"
    (eshell-command-result-p "echo $INSIDE_EMACS[, 1]"
                             "eshell")))
 
+(ert-deftest esh-var-test/last-status-var-lisp-command ()
+  "Test using the \"last exit status\" ($?) variable with a Lisp command"
+  (with-temp-eshell
+   (eshell-command-result-p "zerop 0; echo $?"
+                            "t\n0\n")
+   (eshell-command-result-p "zerop 1; echo $?"
+                            "0\n")
+   (let ((debug-on-error nil))
+     (eshell-command-result-p "zerop foo; echo $?"
+                              "1\n"))))
+
+(ert-deftest esh-var-test/last-status-var-lisp-form ()
+  "Test using the \"last exit status\" ($?) variable with a Lisp form"
+  (let ((eshell-lisp-form-nil-is-failure t))
+  (with-temp-eshell
+   (eshell-command-result-p "(zerop 0); echo $?"
+                            "t\n0\n")
+   (eshell-command-result-p "(zerop 1); echo $?"
+                            "2\n")
+   (let ((debug-on-error nil))
+     (eshell-command-result-p "(zerop \"foo\"); echo $?"
+                              "1\n")))))
+
+(ert-deftest esh-var-test/last-status-var-lisp-form-2 ()
+  "Test using the \"last exit status\" ($?) variable with a Lisp form.
+This tests when `eshell-lisp-form-nil-is-failure' is nil."
+  (let ((eshell-lisp-form-nil-is-failure nil))
+    (with-temp-eshell
+     (eshell-command-result-p "(zerop 0); echo $?"
+                              "0\n")
+     (eshell-command-result-p "(zerop 0); echo $?"
+                              "0\n")
+     (let ((debug-on-error nil))
+       (eshell-command-result-p "(zerop \"foo\"); echo $?"
+                                "1\n")))))
+
+(ert-deftest esh-var-test/last-status-var-ext-cmd ()
+  "Test using the \"last exit status\" ($?) variable with an external command"
+  (skip-unless (executable-find "["))
+  (with-temp-eshell
+   (eshell-command-result-p "[ foo = foo ]; echo $?"
+                            "0\n")
+   (eshell-command-result-p "[ foo = bar ]; echo $?"
+                            "1\n")))
+
 (ert-deftest esh-var-test/last-result-var ()
   "Test using the \"last result\" ($$) variable"
   (with-temp-eshell
    (eshell-command-result-p "+ 1 2; + $$ 2"
                             "3\n5\n")))
 
-(ert-deftest esh-var-test/last-result-var2 ()
+(ert-deftest esh-var-test/last-result-var-twice ()
   "Test using the \"last result\" ($$) variable twice"
   (with-temp-eshell
    (eshell-command-result-p "+ 1 2; + $$ $$"
                             "3\n6\n")))
+
+(ert-deftest esh-var-test/last-result-var-ext-cmd ()
+  "Test using the \"last result\" ($$) variable with an external command"
+  (skip-unless (executable-find "["))
+  (with-temp-eshell
+   ;; MS-DOS/MS-Windows have an external command 'format', which we
+   ;; don't want here.
+   (let ((eshell-prefer-lisp-functions t))
+     (eshell-command-result-p "[ foo = foo ]; format \"%s\" $$"
+                              "t\n")
+     (eshell-command-result-p "[ foo = bar ]; format \"%s\" $$"
+                              "nil\n"))))
 
 (ert-deftest esh-var-test/last-result-var-split-indices ()
   "Test using the \"last result\" ($$) variable with split indices"

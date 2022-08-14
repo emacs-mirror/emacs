@@ -40,17 +40,14 @@
 
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
-  :version "24.1"
+  :version "29.1"
   :group 'gnus-meta
   :type '(radio (function-item
                  :doc "Use Emacs standard `completing-read' function."
                  gnus-emacs-completing-read)
 		(function-item
 		 :doc "Use `ido-completing-read' function."
-		 gnus-ido-completing-read)
-		(function-item
-		 :doc "Use iswitchb based completing-read function."
-		 gnus-iswitchb-completing-read)))
+                 gnus-ido-completing-read)))
 
 (defcustom gnus-completion-styles
   (append (when (and (assq 'substring completion-styles-alist)
@@ -1202,6 +1199,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
+  (declare (obsolete nil "29.1"))
   ;; Make sure iswitchb is loaded before we let-bind its variables.
   ;; If it is loaded inside the let, variables can become unbound afterwards.
   (require 'iswitchb)

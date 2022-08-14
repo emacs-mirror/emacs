@@ -201,7 +201,7 @@ history and invoking commands in a script file.
 * Aliases::
 * History::
 * Completion::
-* for loop::
+* Control Flow::
 * Scripts::
 @end menu
 
@@ -219,12 +219,18 @@ same name; if there is no match, it then tries to execute it as an
 external command.
 
 The semicolon (@code{;}) can be used to separate multiple command
-invocations on a single line.  A command invocation followed by an
-ampersand (@code{&}) will be run in the background.  Eshell has no job
-control, so you can not suspend or background the current process, or
-bring a background process into the foreground.  That said, background
-processes invoked from Eshell can be controlled the same way as any
-other background process in Emacs.
+invocations on a single line.  You can also separate commands with
+@code{&&} or @code{||}. When using @code{&&}, Eshell will execute the
+second command only if the first succeeds (i.e.@: has an exit
+status of 0); with @code{||}, Eshell will execute the second command
+only if the first fails.
+
+A command invocation followed by an ampersand (@code{&}) will be run
+in the background.  Eshell has no job control, so you can not suspend
+or background the current process, or bring a background process into
+the foreground.  That said, background processes invoked from Eshell
+can be controlled the same way as any other background process in
+Emacs.
 
 @node Arguments
 @section Arguments
@@ -884,14 +890,18 @@ command (excluding the command name itself).
 
 @vindex $$
 @item $$
-This is the result of the last command.  In case of an external
-command, it is @code{t} or @code{nil}.
+This is the result of the last command.  For external commands, it is
+@code{t} if the exit code was 0 or @code{nil} otherwise.
 
+@vindex eshell-lisp-form-nil-is-failure
 @vindex $?
 @item $?
 This variable contains the exit code of the last command.  If the last
 command was a Lisp function, it is 0 for successful completion or 1
-otherwise.
+otherwise.  If @code{eshell-lisp-form-nil-is-failure} is
+non-@code{nil}, then a command with a Lisp form, like
+@samp{(@var{command} @var{args}@dots{})}, that returns @code{nil} will
+set this variable to 2.
 
 @vindex $COLUMNS
 @vindex $LINES
@@ -1008,19 +1018,46 @@ command for which this function provides completions; you can also name
 the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
 for a specific major mode.
 
-@node for loop
-@section @code{for} loop
+@node Control Flow
+@section Control Flow
 Because Eshell commands can not (easily) be combined with lisp forms,
-Eshell provides a command-oriented @command{for}-loop for convenience.
-The syntax is as follows:
+Eshell provides command-oriented control flow statements for
+convenience.
 
-@example
-@code{for VAR in TOKENS @{ command invocation(s) @}}
-@end example
+Most of Eshell's control flow statements accept a @var{conditional}.
+This can take a few different forms.  If @var{conditional} is a dollar
+expansion, the condition is satisfied if the result is a
+non-@code{nil} value.  If @var{conditional} is a @samp{@{
+@var{subcommand} @}} or @samp{(@var{lisp form})}, the condition is
+satisfied if the command's exit status is 0.
 
-where @samp{TOKENS} is a space-separated sequence of values of
-@var{VAR} for each iteration.  This can even be the output of a
-command if @samp{TOKENS} is replaced with @samp{@{ command invocation @}}.
+@table @code
+
+@item if @var{conditional} @{ @var{true-commands} @}
+@itemx if @var{conditional} @{ @var{true-commands} @} @{ @var{false-commands} @}
+Evaluate @var{true-commands} if @var{conditional} is satisfied;
+otherwise, evaluate @var{false-commands}.
+
+@item unless @var{conditional} @{ @var{false-commands} @}
+@itemx unless @var{conditional} @{ @var{false-commands} @} @{ @var{true-commands} @}
+Evaluate @var{false-commands} if @var{conditional} is not satisfied;
+otherwise, evaluate @var{true-commands}.
+
+@item while @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional} is
+satisfied.
+
+@item until @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} until @var{conditional} is
+satisfied.
+
+@item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
+Iterate over each element of of @var{list}, storing the element in
+@var{var} and evaluating @var{commands}.  If @var{list} is not a list,
+treat it as a list of one element.  If you specify multiple
+@var{lists}, this will iterate over each of them in turn.
+
+@end table
 
 @node Scripts
 @section Scripts
@@ -1810,11 +1847,6 @@ scrolls back.
 @item It's not possible to fully @code{unload-feature} Eshell
 
 @item Menu support was removed, but never put back
-
-@item Using C-p and C-n with rebind gets into a locked state
-
-This happened a few times in Emacs 21, but has been irreproducible
-since.
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work
 

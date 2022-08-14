@@ -234,9 +234,11 @@ all.  This may very well take some time.")
 
 (defconst nndiary-version "0.2-b14"
   "Current Diary back end version.")
+(make-obsolete-variable 'nndiary-version 'emacs-version "29.1")
 
 (defun nndiary-version ()
   "Current Diary back end version."
+  (declare (obsolete emacs-version "29.1"))
   (interactive)
   (message "NNDiary version %s" nndiary-version))
 

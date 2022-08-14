@@ -7052,7 +7052,8 @@ This requires restrictions of file name syntax."
        "银河系漫游指南系列"
        "Автостопом по гала́ктике"
        ;; Use codepoints without a name.  See Bug#31272.
-       "bung"
+       ;; Works on some Android systems only.
+       (unless (tramp--test-adb-p) "bung")
        ;; Use codepoints from Supplementary Multilingual Plane (U+10000
        ;; to U+1FFFF).
        "🌈🍒👋")

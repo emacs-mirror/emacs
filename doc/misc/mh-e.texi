@@ -213,8 +213,8 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 24.4. It is supported in GNU
-Emacs 23 and higher. It is compatible with MH versions 6.8.4 and
+@value{VERSION} of MH-E appeared in Emacs 24.4.
+It is compatible with MH versions 6.8.4 and
 higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
 shouldn't have to do anything special to use it. Gnus is also
 required; version 5.10 or higher is recommended. This manual covers
@@ -1488,7 +1488,7 @@ Binding} of @samp{m}.
 @cindex Unix commands, @command{xbuffy}
 
 You can use @command{xbuffy} to automate the incorporation of this
-mail using the Emacs 23 command @command{emacsclient} as follows:
+mail using the Emacs command @command{emacsclient} as follows:
 
 @smallexample
 box ~/mail/mh-e
@@ -2552,13 +2552,6 @@ The @samp{gnus-w3m} browser requires an external program. It's quick,
 produces pretty nice output, and it highlights links. It renders
 @samp{&ndash;} and @samp{&reg;} okay. It sometimes fails to wrap lines
 properly. It always downloads remote images.
-@c -------------------------
-@cindex browser, @samp{html2text}
-@cindex @samp{html2text}
-@item @samp{html2text}
-The @samp{html2text} browser requires an external program. Some users
-have reported problems with it, such as filling the entire message as
-if it were one paragraph, or displaying chunks of raw HTML.
 @c -------------------------
 @cindex browser, @samp{links}
 @cindex @samp{links}

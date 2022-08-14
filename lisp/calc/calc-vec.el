@@ -647,9 +647,7 @@
 (defun calcFunc-rhead (vec)
   (if (and (Math-vectorp vec)
 	   (cdr vec))
-      (let ((vec (copy-sequence vec)))
-	(setcdr (nthcdr (- (length vec) 2) vec) nil)
-	vec)
+      (butlast vec)
     (calc-record-why 'vectorp vec)
     (list 'calcFunc-rhead vec)))
 

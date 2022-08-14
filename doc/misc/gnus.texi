@@ -885,8 +885,6 @@ History
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 
@@ -8621,14 +8619,6 @@ uuencoded files that have had trailing spaces deleted.
 @vindex gnus-uu-pre-uudecode-hook
 Hook run before sending a message to @code{uudecode}.
 
-@item gnus-uu-view-with-metamail
-@vindex gnus-uu-view-with-metamail
-@cindex metamail
-Non-@code{nil} means that @code{gnus-uu} will ignore the viewing
-commands defined by the rule variables and just fudge a @acronym{MIME}
-content type based on the file name.  The result will be fed to
-@code{metamail} for viewing.
-
 @item gnus-uu-save-in-digest
 @vindex gnus-uu-save-in-digest
 Non-@code{nil} means that @code{gnus-uu}, when asked to save without
@@ -9363,9 +9353,6 @@ Use @uref{https://almende.github.io/chap-links-library/, CHAP Links}.
 
 @item lynx
 Use @uref{https://lynx.browser.org/, Lynx}.
-
-@item html2text
-Use html2text---a simple @acronym{HTML} converter included with Gnus.
 
 @end table
 
@@ -15440,8 +15427,6 @@ files.  If a positive number, delete files older than number of days
 (the deletion will only happen when receiving new mail).  You may also
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
-@code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
-and @code{2} in released Gnusae.  @xref{Gnus Development}.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -21962,7 +21947,7 @@ you can set up a local @acronym{IMAP} server, which you then access via
 @code{nnimap}.  This is a rather massive setup for accessing some mbox
 files, so just change to MH or Maildir already...  However, if you're
 really, really passionate about using mbox, you might want to look into
-the package @file{mairix.el}, which comes with Emacs 23.
+the package @file{mairix.el}, which comes with Emacs.
 
 @node What nnmairix does
 @subsection What nnmairix does
@@ -26919,8 +26904,6 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 * Why?::                        What's the point of Gnus?
 * Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 @end menu
@@ -27035,16 +27018,6 @@ maintains a hash table that points to the entries in this alist (which
 speeds up many functions), and changing the alist directly will lead to
 peculiar results.
 
-@cindex hilit19
-@cindex highlighting
-Old hilit19 code does not work at all.  In fact, you should probably
-remove all hilit code from all Gnus hooks
-(@code{gnus-group-prepare-hook} and @code{gnus-summary-prepare-hook}).
-Gnus provides various integrated functions for highlighting.  These are
-faster and more accurate.  To make life easier for everybody, Gnus will
-by default remove all hilit calls from all hilit hooks.  Uncleanliness!
-Away!
-
 Packages like @code{expire-kill} will no longer work.  As a matter of
 fact, you should probably remove all old @sc{gnus} packages (and other
 code) when you start using Gnus.  More likely than not, Gnus already
@@ -27146,79 +27119,6 @@ If you ever notice Gnus acting non-compliant with regards to the texts
 mentioned above, don't hesitate to drop a note to Gnus Towers and let us
 know.
 
-
-@node Emacsen
-@subsection Emacsen
-@cindex Emacsen
-@cindex Mule
-@cindex Emacs
-
-This version of Gnus should work on:
-
-@itemize @bullet
-
-@item
-Emacs 23.1 and up.
-
-@end itemize
-
-This Gnus version will absolutely not work on any Emacsen older than
-that.  Not reliably, at least.  Older versions of Gnus may work on older
-Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
-20.7.
-
-@c No-merge comment: The paragraph added in v5-10 here must not be
-@c synced here!
-
-@node Gnus Development
-@subsection Gnus Development
-
-Gnus is developed in a two-phased cycle.  The first phase involves much
-discussion on the development mailing list @samp{ding@@gnus.org}, where people
-propose changes and new features, post patches and new back ends.  This
-phase is called the @dfn{alpha} phase, since the Gnusae released in this
-phase are @dfn{alpha releases}, or (perhaps more commonly in other
-circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
-unstable and should not be used by casual users.  Gnus alpha releases
-have names like ``Oort Gnus'' and ``No Gnus''.  @xref{Gnus Versions}.
-
-After futzing around for 10--100 alpha releases, Gnus is declared
-@dfn{frozen}, and only bug fixes are applied.  Gnus loses the prefix,
-and is called things like ``Gnus 5.10.1'' instead.  Normal people are
-supposed to be able to use these, and these are mostly discussed on the
-@samp{gnu.emacs.gnus} newsgroup.  This newgroup is mirrored to the
-mailing list @samp{info-gnus-english@@gnu.org} which is carried on Gmane
-as @samp{gmane.emacs.gnus.user}.  These releases are finally integrated
-in Emacs.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
-
-The division of discussion between the ding mailing list and the Gnus
-newsgroup is not purely based on publicity concerns.  It's true that
-having people write about the horrible things that an alpha Gnus release
-can do (sometimes) in a public forum may scare people off, but more
-importantly, talking about new experimental features that have been
-introduced may confuse casual users.  New features are frequently
-introduced, fiddled with, and judged to be found wanting, and then
-either discarded or totally rewritten.  People reading the mailing list
-usually keep up with these rapid changes, while people on the newsgroup
-can't be assumed to do so.
-
-So if you have problems with or questions about the alpha versions,
-direct those to the ding mailing list @samp{ding@@gnus.org}.  This list
-is also available on Gmane as @samp{gmane.emacs.gnus.general}.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
 
 @node Contributors
 @subsection Contributors

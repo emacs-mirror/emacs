@@ -1177,10 +1177,9 @@ If toggling on, also insert its message into the buffer."
         standard-output 1 nil
         "log" "--limit=1" "--template" "{desc}")))))
 
-(defvar vc-hg-log-edit-mode-map
-  (let ((map (make-sparse-keymap "Hg-Log-Edit")))
-    (define-key map "\C-c\C-e" #'vc-hg-log-edit-toggle-amend)
-    map))
+(defvar-keymap vc-hg-log-edit-mode-map
+  :name "Hg-Log-Edit"
+  "C-c C-e" #'vc-hg-log-edit-toggle-amend)
 
 (define-derived-mode vc-hg-log-edit-mode log-edit-mode "Log-Edit/hg"
   "Major mode for editing Hg log messages.
@@ -1262,9 +1261,7 @@ REV is the revision to check out into WORKFILE."
 
 ;;; Hg specific functionality.
 
-(defvar vc-hg-extra-menu-map
-  (let ((map (make-sparse-keymap)))
-    map))
+(defvar-keymap vc-hg-extra-menu-map)
 
 (defun vc-hg-extra-menu () vc-hg-extra-menu-map)
 

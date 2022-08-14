@@ -1842,7 +1842,7 @@ usually most effective:
 (set-face-background viper-replace-overlay-face "yellow")
 @end smallexample
 For a complete list of colors available to you, evaluate the expression
-@code{(x-defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
+@code{(defined-colors)}.  (Type it in the buffer @file{*scratch*} and then
 hit the @kbd{C-j} key.
 
 @item viper-replace-overlay-cursor-color  "Red"
@@ -2571,7 +2571,7 @@ The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
 of Viper.  They work only if Emacs runs as an application under X
-Windows (or under some other window system for which a port of GNU Emacs 20
+Windows (or under some other window system for which a port of GNU Emacs
 is available).  Clicking the mouse when Emacs is invoked in an Xterm window
 (using @code{emacs -nw}) will do no good.
 

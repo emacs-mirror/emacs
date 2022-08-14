@@ -162,22 +162,20 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
-(defvar vc-annotate-mode-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "a" #'vc-annotate-revision-previous-to-line)
-    (define-key m "d" #'vc-annotate-show-diff-revision-at-line)
-    (define-key m "=" #'vc-annotate-show-diff-revision-at-line)
-    (define-key m "D" #'vc-annotate-show-changeset-diff-revision-at-line)
-    (define-key m "f" #'vc-annotate-find-revision-at-line)
-    (define-key m "j" #'vc-annotate-revision-at-line)
-    (define-key m "l" #'vc-annotate-show-log-revision-at-line)
-    (define-key m "n" #'vc-annotate-next-revision)
-    (define-key m "p" #'vc-annotate-prev-revision)
-    (define-key m "w" #'vc-annotate-working-revision)
-    (define-key m "v" #'vc-annotate-toggle-annotation-visibility)
-    (define-key m "\C-m" #'vc-annotate-goto-line)
-    m)
-  "Local keymap used for VC-Annotate mode.")
+(defvar-keymap vc-annotate-mode-map
+  :doc "Local keymap used for VC-Annotate mode."
+  "a"   #'vc-annotate-revision-previous-to-line
+  "d"   #'vc-annotate-show-diff-revision-at-line
+  "="   #'vc-annotate-show-diff-revision-at-line
+  "D"   #'vc-annotate-show-changeset-diff-revision-at-line
+  "f"   #'vc-annotate-find-revision-at-line
+  "j"   #'vc-annotate-revision-at-line
+  "l"   #'vc-annotate-show-log-revision-at-line
+  "n"   #'vc-annotate-next-revision
+  "p"   #'vc-annotate-prev-revision
+  "w"   #'vc-annotate-working-revision
+  "v"   #'vc-annotate-toggle-annotation-visibility
+  "RET" #'vc-annotate-goto-line)
 
 ;;; Annotate functionality
 

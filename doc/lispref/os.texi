@@ -1544,11 +1544,11 @@ as traditional Gregorian years do; for example, the year number
 @defun time-convert time form
 This function converts a time value into a Lisp timestamp.
 
-The optional @var{form} argument specifies the timestamp form to be
-returned.  If @var{form} is the symbol @code{integer}, this function
-returns an integer count of seconds.  If @var{form} is a positive
-integer, it specifies a clock frequency and this function returns an
-integer-pair timestamp @code{(@var{ticks} . @var{form})}.  If @var{form} is
+The @var{form} argument specifies the timestamp form to be returned.
+If @var{form} is the symbol @code{integer}, this function returns an
+integer count of seconds.  If @var{form} is a positive integer, it
+specifies a clock frequency and this function returns an integer-pair
+timestamp @code{(@var{ticks} . @var{form})}.  If @var{form} is
 @code{t}, this function treats it as a positive integer suitable for
 representing the timestamp; for example, it is treated as 1000000000
 if @var{time} is @code{nil} and the platform timestamp has nanosecond

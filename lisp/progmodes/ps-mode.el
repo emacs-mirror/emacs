@@ -34,7 +34,6 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1i, 17 May 2008")
 (defconst ps-mode-maintainer-address
   "Peter Kleiweg <p.c.j.kleiweg@rug.nl>, bug-gnu-emacs@gnu.org")
 
@@ -519,7 +518,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 (defun ps-mode-show-version ()
   "Show current version of PostScript mode."
   (interactive)
-  (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
+  (message " *** PostScript Mode (ps-mode) in GNU Emacs %s *** " emacs-version))
 
 ;; From reporter.el
 (defvar reporter-prompt-for-summary-p)
@@ -534,7 +533,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 					ps-run-font-lock-keywords-2)))
       (reporter-submit-bug-report
        ps-mode-maintainer-address
-       (format "ps-mode.el %s [%s]" ps-mode-version system-type)
+       (format "ps-mode.el %s [%s]" emacs-version system-type)
        '(ps-mode-tab
 	 ps-mode-paper-size
 	 ps-mode-print-function
@@ -1093,6 +1092,9 @@ Use line numbers if `ps-run-error-line-numbers' is not nil."
 
 ;;
 (add-hook 'kill-emacs-hook #'ps-run-cleanup)
+
+(defconst ps-mode-version "1.1i, 17 May 2008")
+(make-obsolete-variable 'ps-mode-version 'emacs-version "29.1")
 
 (provide 'ps-mode)
 

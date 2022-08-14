@@ -3435,14 +3435,6 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 Bootstrapping (compiling the .el files) is normally only necessary
 with development builds, since the .elc files are pre-compiled in releases.
 
-*** "No rule to make target" with Ubuntu 8.04 make 3.81-3build1
-
-Compiling the lisp files fails at random places, complaining:
-"No rule to make target '/path/to/some/lisp.elc'".
-The causes of this problem are not understood.  Using GNU make 3.81 compiled
-from source, rather than the Ubuntu version, worked.
-See <URL:https://debbugs.gnu.org/327>, <URL:https://debbugs.gnu.org/821>.
-
 ** Dumping
 
 *** Segfault during 'make'
@@ -3566,6 +3558,15 @@ value in the man page for a.out(5).
 This section covers bugs reported on very old hardware or software.
 If you are using hardware and an operating system shipped after 2000,
 it is unlikely you will see any of these.
+
+** GNU/Linux
+
+*** Ubuntu 8.04 make 3.81-3build1: "No rule to make target"
+Compiling the lisp files fails at random places, complaining:
+"No rule to make target '/path/to/some/lisp.elc'".
+The causes of this problem are not understood.  Using GNU make 3.81 compiled
+from source, rather than the Ubuntu version, worked.
+See <URL:https://debbugs.gnu.org/327>, <URL:https://debbugs.gnu.org/821>.
 
 ** Solaris
 
