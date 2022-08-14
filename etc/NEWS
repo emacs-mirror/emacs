@@ -461,7 +461,7 @@ duplicated on its right-hand side.
 
 +++
 ** 'network-lookup-address-info' can now check numeric IP address validity.
-Specifying 'numeric as the new optional 'hints' argument makes it
+Specifying 'numeric' as the new optional 'hints' argument makes it
 check if the passed address is a valid IPv4/IPv6 address (without DNS
 traffic).
 
@@ -1258,7 +1258,7 @@ If given a prefix, it will query the user for an argument to use for
 the run/continue command.
 
 ---
-*** 'perldb' now recognizes '-E'
+*** 'perldb' now recognizes '-E'.
 As of Perl 5.10, 'perl -E 0' behaves like 'perl -e 0' but also activates
 all optional features of the Perl version in use.  'perldb' now uses
 this invocation as its default.
@@ -1277,7 +1277,6 @@ contents.
 Sets the value of the buffer-local variable 'whitespace-style' in
 'diff-mode' buffers.  By default, this variable is '(face trailing)',
 which preserves behavior from previous Emacs versions.
-
 
 ** Ispell
 
@@ -2050,7 +2049,7 @@ This command displays a buffer containing the page load history of
 the current WebKit widget, and allows you to navigate it.
 
 ---
-*** On X11, the WebKit inspector is now available inside xwidgets.
+*** On X, the WebKit inspector is now available inside xwidgets.
 To access the inspector, right click on the widget and select "Inspect
 Element".
 
@@ -2251,10 +2250,10 @@ instead of also trying to ping it.  Customize the user option
 To respect Emacs naming conventions, the variable 'unread-bib-file'
 has been renamed to 'bib-unread-file'.  The following commands have
 also been renamed:
-  'addbib'           to  'bib-add'
-  'return-key-bib'   to  'bib-return-key'
-  'mark-bib'         to  'bib-mark'
-  'unread-bib'       to  'bib-unread'
+    'addbib'           to  'bib-add'
+    'return-key-bib'   to  'bib-return-key'
+    'mark-bib'         to  'bib-mark'
+    'unread-bib'       to  'bib-unread'
 
 ---
 *** proced.el shows system processes of remote hosts.
@@ -2590,8 +2589,8 @@ compiler now emits a warning about this deprecated usage.
 
 +++
 ** Emacs now supports user-customizable and themable icons.
-These can be used for buttons in buffers and the like.  See
-'(elisp)Icons' and '(emacs)Icons' for details.
+These can be used for buttons in buffers and the like.  See the
+"(elisp) Icons" and "(emacs) Icons" nodes in the manuals for details.
 
 +++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
@@ -2652,11 +2651,10 @@ things to be saved.
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
----
-** 'symbol-file' can now report natively-compiled .eln files.
+** 'symbol-file' can now report natively-compiled ".eln" files.
 If Emacs was built with native-compilation enabled, Lisp programs can
 now call 'symbol-file' with the new optional 3rd argument non-nil to
-request the name of the .eln file which defined a given symbol.
+request the name of the ".eln" file which defined a given symbol.
 
 +++
 ** New macro 'with-memoization' provides a very primitive form of memoization.
