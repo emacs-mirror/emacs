@@ -219,8 +219,10 @@ function.  For example:
 
 @defun compiled-function-p object
 This function returns @code{t} if @var{object} is a function object
-that was either byte-compiled (@pxref{Byte Compilation}) or
-natively-compiled (@pxref{Native Compilation}).
+that was either built-in (a.k.a.@: ``primitive'', @pxref{What is a
+Function}), or byte-compiled (@pxref{Byte Compilation}), or
+natively-compiled (@pxref{Native Compilation}), or a function loaded
+from a dynamic module (@pxref{Dynamic Modules}).
 @end defun
 
 @defun subr-arity subr

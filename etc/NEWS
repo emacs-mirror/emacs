@@ -2573,8 +2573,9 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 +++
 ** New function 'compiled-function-p'.
-This returns non-nil if its argument is either a byte-compiled or a
-natively-compiled function object.
+This returns non-nil if its argument is either a built-in, or a
+byte-compiled, or a natively-compiled function object, or a function
+loaded from a dynamic module.
 
 ---
 ** 'deactivate-mark' can have new value 'dont-save'.
