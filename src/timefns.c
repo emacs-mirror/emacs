@@ -822,17 +822,6 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 
   if (NILP (specified_time))
     form = TIMEFORM_NIL;
-  else if (FLOATP (specified_time))
-    {
-      double d = XFLOAT_DATA (specified_time);
-      if (!isfinite (d))
-	time_error (isnan (d) ? EDOM : EOVERFLOW);
-      if (result)
-	decode_float_time (d, result);
-      else
-	*dresult = d;
-      return TIMEFORM_FLOAT;
-    }
   else if (CONSP (specified_time))
     {
       high = XCAR (specified_time);
@@ -871,6 +860,17 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 	 would be considerably trickier.  */
       if (! INTEGERP (low))
 	form = TIMEFORM_INVALID;
+    }
+  else if (FLOATP (specified_time))
+    {
+      double d = XFLOAT_DATA (specified_time);
+      if (!isfinite (d))
+	time_error (isnan (d) ? EDOM : EOVERFLOW);
+      if (result)
+	decode_float_time (d, result);
+      else
+	*dresult = d;
+      return TIMEFORM_FLOAT;
     }
 
   int err = decode_time_components (form, high, low, usec, psec,
