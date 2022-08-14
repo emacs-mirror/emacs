@@ -861,6 +861,11 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
       if (! INTEGERP (low))
 	form = TIMEFORM_INVALID;
     }
+  else if (FASTER_TIMEFNS && INTEGERP (specified_time))
+    {
+      decode_ticks_hz (specified_time, make_fixnum (1), result, dresult);
+      return form;
+    }
   else if (FLOATP (specified_time))
     {
       double d = XFLOAT_DATA (specified_time);
@@ -1206,10 +1211,16 @@ time_cmp (Lisp_Object a, Lisp_Object b)
     return 0;
 
   /* Compare (X . Z) to (Y . Z) quickly if X and Y are fixnums.
-     Do not inspect Z, as it is OK to not signal if A and B are invalid.  */
-  if (FASTER_TIMEFNS && CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b))
-      && FIXNUMP (XCAR (a)) && FIXNUMP (XCAR (b)))
-    return XFIXNUM (XCAR (a)) - XFIXNUM (XCAR (b));
+     Do not inspect Z, as it is OK to not signal if A and B are invalid.
+     Also, compare X to Y quickly if X and Y are fixnums.  */
+  if (FASTER_TIMEFNS)
+    {
+      Lisp_Object x = a, y = b;
+      if (CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b)))
+	x = XCAR (a), y = XCAR (b);
+      if (FIXNUMP (x) && FIXNUMP (y))
+	return XFIXNUM (x) - XFIXNUM (y);
+    }
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
