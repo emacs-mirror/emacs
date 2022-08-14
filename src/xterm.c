@@ -1402,6 +1402,9 @@ static bool x_dnd_last_tooltip_valid;
 /* The master pointer device being used for the drag-and-drop
    operation.  */
 static int x_dnd_pointer_device;
+
+/* The keyboard device attached to that pointer device.  */
+static int x_dnd_keyboard_device;
 #endif
 
 /* Structure describing a single window that can be the target of
@@ -11976,6 +11979,9 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   struct x_display_info *event_display;
 #endif
   unsigned int additional_mask;
+#ifdef HAVE_XINPUT2
+  struct xi_device_t *device;
+#endif
 
   base = SPECPDL_INDEX ();
 
@@ -12171,6 +12177,14 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	/* This returns Bool but cannot actually fail.  */
 	XIGetClientPointer (FRAME_X_DISPLAY (f), None,
 			    &x_dnd_pointer_device);
+
+      x_dnd_keyboard_device = -1;
+
+      device = xi_device_from_id (FRAME_DISPLAY_INFO (f),
+				  x_dnd_pointer_device);
+
+      if (device)
+	x_dnd_keyboard_device = device->attachment;
     }
 
 #endif
@@ -21000,6 +21014,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 operation, don't send an event.  We only have
 			 to set the user time.  */
 		      if (x_dnd_in_progress
+			  /* If another master device moved the
+			     pointer, we should put a wheel event on
+			     the keyboard buffer as usual.  It will be
+			     run once the drag-and-drop operation
+			     completes.  */
+			  && xev->deviceid == x_dnd_pointer_device
 			  && (command_loop_level + minibuf_level
 			      <= x_dnd_recursion_depth)
 			  && dpyinfo == FRAME_DISPLAY_INFO (x_dnd_frame))
@@ -22306,7 +22326,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  inev.ie.modifiers = x_x_to_emacs_modifiers (dpyinfo, state);
 
 #ifdef XK_F1
-		  if (x_dnd_in_progress && keysym == XK_F1)
+		  if (x_dnd_in_progress
+		      && xev->deviceid == x_dnd_keyboard_device
+		      && keysym == XK_F1)
 		    {
 		      x_dnd_xm_use_help = true;
 		      goto xi_done_keysym;
