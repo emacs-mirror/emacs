@@ -9362,9 +9362,6 @@ Use @uref{https://almende.github.io/chap-links-library/, CHAP Links}.
 @item lynx
 Use @uref{https://lynx.browser.org/, Lynx}.
 
-@item html2text
-Use html2text---a simple @acronym{HTML} converter included with Gnus.
-
 @end table
 
 @item W D F

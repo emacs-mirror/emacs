@@ -745,9 +745,9 @@ Can I use some other browser than w3m to render my HTML-mails?
 @subsubheading Answer
 
 You've got the choice between @samp{shr}, @samp{w3m}, @samp{links},
-@samp{lynx} and @samp{html2text}.  Which one is used is specified in
-the variable @code{mm-text-html-renderer}, so if you want links to
-render your mail, say:
+and @samp{lynx}.  Which one is used is specified in the variable
+@code{mm-text-html-renderer}, so if you want links to render your
+mail, say:
 
 @example
 (setq mm-text-html-renderer 'links)

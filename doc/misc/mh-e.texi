@@ -2553,13 +2553,6 @@ produces pretty nice output, and it highlights links. It renders
 @samp{&ndash;} and @samp{&reg;} okay. It sometimes fails to wrap lines
 properly. It always downloads remote images.
 @c -------------------------
-@cindex browser, @samp{html2text}
-@cindex @samp{html2text}
-@item @samp{html2text}
-The @samp{html2text} browser requires an external program. Some users
-have reported problems with it, such as filling the entire message as
-if it were one paragraph, or displaying chunks of raw HTML.
-@c -------------------------
 @cindex browser, @samp{links}
 @cindex @samp{links}
 @item @samp{links}
