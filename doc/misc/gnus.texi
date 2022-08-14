@@ -8619,14 +8619,6 @@ uuencoded files that have had trailing spaces deleted.
 @vindex gnus-uu-pre-uudecode-hook
 Hook run before sending a message to @code{uudecode}.
 
-@item gnus-uu-view-with-metamail
-@vindex gnus-uu-view-with-metamail
-@cindex metamail
-Non-@code{nil} means that @code{gnus-uu} will ignore the viewing
-commands defined by the rule variables and just fudge a @acronym{MIME}
-content type based on the file name.  The result will be fed to
-@code{metamail} for viewing.
-
 @item gnus-uu-save-in-digest
 @vindex gnus-uu-save-in-digest
 Non-@code{nil} means that @code{gnus-uu}, when asked to save without
