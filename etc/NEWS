@@ -400,6 +400,9 @@ and the major mode with 'M-x so-long-mode', or visit the file with
 Note that the display optimizations in these cases may cause the
 buffer to be occasionally mis-fontified.
 
+The new function 'long-line-optimizations-p' returns non-nil when
+these optimizations are in effect in the current buffer.
+
 +++
 ** New command to change the font size globally.
 To increase the font size, type 'C-x C-M-+' or 'C-x C-M-='; to

@@ -7692,11 +7692,33 @@ not vscroll."
 		 ;; But don't vscroll in a keyboard macro.
 		 (not defining-kbd-macro)
 		 (not executing-kbd-macro)
+                 ;; Lines are not truncated...
+                 (not
+                  (and
+                   (or truncate-lines
+                       (and (integerp truncate-partial-width-windows)
+                            (< (window-total-width)
+                               truncate-partial-width-windows))
+                       (and truncate-partial-width-windows
+                            (not (integerp truncate-partial-width-windows))
+                            (not (window-full-width-p))))
+                   ;; ...or if lines are truncated, this buffer
+                   ;; doesn't have very long lines.
+                   (long-line-optimizations-p)))
 		 (line-move-partial arg noerror))
       (set-window-vscroll nil 0 t)
       (if (and line-move-visual
 	       ;; Display-based column are incompatible with goal-column.
 	       (not goal-column)
+               ;; Lines aren't truncated.
+               (not
+                (or truncate-lines
+                    (and (integerp truncate-partial-width-windows)
+                         (< (window-width)
+                            truncate-partial-width-windows))
+                    (and truncate-partial-width-windows
+                         (not (integerp truncate-partial-width-windows))
+                         (not (window-full-width-p)))))
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
@@ -8133,10 +8155,11 @@ For motion by visual lines, see `beginning-of-visual-line'."
 	  (line-move (1- arg) t)))
 
     ;; Move to beginning-of-line, ignoring fields and invisible text.
-    (skip-chars-backward "^\n")
-    (while (and (not (bobp)) (invisible-p (1- (point))))
-      (goto-char (previous-char-property-change (point)))
-      (skip-chars-backward "^\n"))
+    (let ((inhibit-field-text-motion t))
+      (goto-char (line-beginning-position))
+      (while (and (not (bobp)) (invisible-p (1- (point))))
+        (goto-char (previous-char-property-change (point)))
+        (goto-char (line-beginning-position))))
 
     ;; Now find first visible char in the line.
     (while (and (< (point) orig) (invisible-p (point)))

@@ -306,8 +306,8 @@ and point (e.g., control characters will have a width of 2 or 4, tabs
 will have a variable width).
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
-In a buffer with very long lines, the value can be zero, because calculating
-the exact number is very expensive.
+In a buffer with very long lines, the value will be an approximation,
+because calculating the exact number is very expensive.
 Whether the line is visible (if `selective-display' is t) has no effect;
 however, ^M is treated as end of line when `selective-display' is t.
 Text that has an invisible property is considered as having width 0, unless
@@ -316,8 +316,6 @@ Text that has an invisible property is considered as having width 0, unless
 {
   Lisp_Object temp;
 
-  if (current_buffer->long_line_optimizations_p)
-    return make_fixnum (0);
   XSETFASTINT (temp, current_column ());
   return temp;
 }
@@ -346,6 +344,14 @@ current_column (void)
       && MODIFF == last_known_column_modified)
     return last_known_column;
 
+  ptrdiff_t line_beg = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1,
+				     NULL, NULL, 1);
+
+  /* Avoid becoming abysmally slow for very long lines.  */
+  if (current_buffer->long_line_optimizations_p
+      && !NILP (Vlong_line_threshold)
+      && PT - line_beg > XFIXNUM (Vlong_line_threshold))
+    return PT - line_beg;	/* this is an approximation! */
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
   if (buffer_intervals (current_buffer)
@@ -561,12 +567,52 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
   ptrdiff_t scan, scan_byte, next_boundary, prev_pos, prev_bpos;
 
   scan = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &scan_byte, 1);
-  next_boundary = scan;
-  prev_pos = scan;
-  prev_bpos = scan_byte;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
+
+  if (current_buffer->long_line_optimizations_p)
+    {
+      bool lines_truncated = false;
+
+      if (!NILP (BVAR (current_buffer, truncate_lines)))
+	lines_truncated = true;
+      else if (w && FIXNUMP (Vtruncate_partial_width_windows))
+	lines_truncated =
+	  w->total_cols < XFIXNAT (Vtruncate_partial_width_windows);
+      else if (w && !NILP (Vtruncate_partial_width_windows))
+	lines_truncated =
+	  w->total_cols < FRAME_COLS (XFRAME (WINDOW_FRAME (w)));
+      /* Special optimization for buffers with long and truncated
+	 lines: assumes that each character is a single column.  */
+      if (lines_truncated)
+	{
+	  ptrdiff_t bolpos = scan;
+	  /* The newline which ends this line or ZV.  */
+	  ptrdiff_t eolpos =
+	    find_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, NULL, NULL, 1);
+
+	  scan = bolpos + goal;
+	  if (scan > end)
+	    scan = end;
+	  if (scan > eolpos)
+	    scan = (eolpos == ZV ? ZV : eolpos - 1);
+	  col = scan - bolpos;
+	  if (col > large_hscroll_threshold)
+	    {
+	      prev_col = col - 1;
+	      prev_pos = scan - 1;
+	      prev_bpos = CHAR_TO_BYTE (scan);
+	      goto endloop;
+	    }
+	  /* Restore the values we've overwritten above.  */
+	  scan = bolpos;
+	  col = 0;
+	}
+    }
+  next_boundary = scan;
+  prev_pos = scan;
+  prev_bpos = scan_byte;
 
   memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
