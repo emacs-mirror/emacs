@@ -5139,9 +5139,12 @@ A string is printed verbatim in the mode line except for %-constructs:
   %C -- Like %c, but the leftmost column is displayed as one.
   %i -- print the size of the buffer.
   %I -- like %i, but use k, M, G, etc., to abbreviate.
+  %o -- print percent of window travel through buffer, or Top, Bot or All.
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
+  %q -- print percent of buffer above both the top and the bottom of the
+        window, separated by ‘-’, or ‘All’.
   %n -- print Narrow if appropriate.
   %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
