@@ -2523,13 +2523,16 @@ The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
 @end table
 
-The following @code{%}-construct is still supported, but it is
-obsolete, since you can get the same result using the variable
-@code{mode-name}.
+@subsubheading Obsolete @code{%}-Constructs
+
+  The following constructs should no longer be used.
 
 @table @code
 @item %m
-The value of @code{mode-name}.
+Obsolete; use the @code{mode-name} variable instead.  The @code{%m}
+construct is inadequate, as it produces an empty string if the value
+of @code{mode-name} is a non-string mode-line construct (as in
+@code{emacs-lisp-mode}, for example).
 @end table
 
 @node Properties in Mode
