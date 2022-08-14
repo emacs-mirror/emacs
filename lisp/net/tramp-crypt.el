@@ -426,7 +426,7 @@ Otherwise, return NAME."
        (if (directory-name-p name) #'file-name-as-directory #'identity)
        (concat
 	dir
-	(unless (string-equal localname "/")
+	(unless (string-match-p (rx (seq bos (opt "/") eos)) localname)
 	  (with-tramp-file-property
 	      crypt-vec localname (concat (symbol-name op) "-file-name")
 	    (unless (tramp-crypt-send-command

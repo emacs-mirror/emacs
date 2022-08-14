@@ -1055,9 +1055,10 @@ file names."
 			 ;; code in case of direct copy/move.  Apply
 			 ;; sanity checks.
 			 (or (not equal-remote)
-			     (tramp-gvfs-info newname)
-			     (eq op 'copy)
-			     (not (tramp-gvfs-info filename))))
+			     (and
+			      (tramp-gvfs-info newname)
+			      (or (eq op 'copy)
+				  (not (tramp-gvfs-info filename))))))
 
 		  (if (or (not equal-remote)
 			  (and equal-remote

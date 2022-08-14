@@ -4205,14 +4205,17 @@ file exists and nonzero exit status otherwise."
     ;; by some sh implementations (eg, bash when called as sh) on
     ;; startup; this way, we avoid the startup file clobbering $PS1.
     ;; $PROMPT_COMMAND is another way to set the prompt in /bin/bash,
-    ;; it must be discarded as well.  $HISTFILE is set according to
-    ;; `tramp-histfile-override'.  $TERM and $INSIDE_EMACS set here to
-    ;; ensure they have the correct values when the shell starts, not
-    ;; just processes run within the shell.  (Which processes include
-    ;; our initial probes to ensure the remote shell is usable.)
-    ;; For the time being, we assume that all shells interpret -i as
-    ;; interactive shell.  Must be the last argument, because (for
-    ;; example) bash expects long options first.
+    ;; it must be discarded as well.  Some ssh daemons (for example,
+    ;; on Android devices) do not acknowledge the $PS1 setting in
+    ;; that call, so we make a further sanity check.  (Bug#57044)
+    ;; $HISTFILE is set according to `tramp-histfile-override'.  $TERM
+    ;; and $INSIDE_EMACS set here to ensure they have the correct
+    ;; values when the shell starts, not just processes run within the
+    ;; shell.  (Which processes include our initial probes to ensure
+    ;; the remote shell is usable.)  For the time being, we assume
+    ;; that all shells interpret -i as interactive shell.  Must be the
+    ;; last argument, because (for example) bash expects long options
+    ;; first.
     (tramp-send-command
      vec (format
 	  (concat
@@ -4228,7 +4231,21 @@ file exists and nonzero exit status otherwise."
 	      ""))
 	  (tramp-shell-quote-argument tramp-end-of-output)
 	  shell (or (tramp-get-sh-extra-args shell) ""))
-     t)
+     t t)
+
+    ;; Sanity check.
+    (tramp-barf-if-no-shell-prompt
+     (tramp-get-connection-process vec) 10
+     "Couldn't find remote shell prompt for %s" shell)
+    (unless
+	(tramp-check-for-regexp
+	 (tramp-get-connection-process vec) (regexp-quote tramp-end-of-output))
+      (tramp-message vec 5 "Setting shell prompt")
+      (tramp-send-command
+       vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
+		   (tramp-shell-quote-argument tramp-end-of-output))
+       t))
+
     ;; Check proper HISTFILE setting.  We give up when not working.
     (when (and (stringp tramp-histfile-override)
 	       (file-name-directory tramp-histfile-override))
@@ -5524,10 +5541,14 @@ Nonexistent directories are removed from spec."
 	     ;; "--color=never" argument (for example on FreeBSD).
 	     (when (tramp-send-command-and-check
 		    vec (format "%s -lnd /" result))
-	       (when (tramp-send-command-and-check
-		      vec (format
-			   "%s --color=never -al %s"
-                           result (tramp-get-remote-null-device vec)))
+	       (when (and (tramp-send-command-and-check
+			   vec (format
+				"%s --color=never -al %s"
+				result (tramp-get-remote-null-device vec)))
+			  (not (string-match-p
+				(regexp-quote "\e")
+				(tramp-get-buffer-string
+				 (tramp-get-buffer vec)))))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
