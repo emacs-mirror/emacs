@@ -36,25 +36,25 @@
 (ert-deftest em-basic-test/umask-print-numeric ()
   "Test printing umask numerically."
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o775)))
-    (should (equal (eshell-test-command-result "umask") "002\n")))
+    (eshell-command-result-equal "umask" "002\n"))
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o654)))
-    (should (equal (eshell-test-command-result "umask") "123\n")))
+    (eshell-command-result-equal "umask" "123\n"))
   ;; Make sure larger numbers don't cause problems.
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o1775)))
-    (should (equal (eshell-test-command-result "umask") "002\n"))))
+    (eshell-command-result-equal "umask" "002\n")))
 
 (ert-deftest em-basic-test/umask-read-symbolic ()
   "Test printing umask symbolically."
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o775)))
-    (should (equal (eshell-test-command-result "umask -S")
-                   "u=rwx,g=rwx,o=rx\n")))
+    (eshell-command-result-equal "umask -S"
+                                 "u=rwx,g=rwx,o=rx\n"))
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o654)))
-    (should (equal (eshell-test-command-result "umask -S")
-                   "u=wx,g=rx,o=x\n")))
+    (eshell-command-result-equal "umask -S"
+                                 "u=wx,g=rx,o=x\n"))
   ;; Make sure larger numbers don't cause problems.
   (cl-letf (((symbol-function 'default-file-modes) (lambda () #o1775)))
-    (should (equal (eshell-test-command-result "umask -S")
-                   "u=rwx,g=rwx,o=rx\n"))))
+    (eshell-command-result-equal "umask -S"
+                                 "u=rwx,g=rwx,o=rx\n")))
 
 (ert-deftest em-basic-test/umask-set ()
   "Test setting umask."

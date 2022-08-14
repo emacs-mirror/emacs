@@ -37,22 +37,22 @@
 (ert-deftest em-dirs-test/pwd-var ()
   "Test using the $PWD variable."
   (let ((default-directory "/some/path"))
-    (should (equal (eshell-test-command-result "echo $PWD")
-                   (expand-file-name default-directory)))))
+    (eshell-command-result-equal "echo $PWD"
+                                 (expand-file-name default-directory))))
 
 (ert-deftest em-dirs-test/pwd-var-indices ()
   "Test using the $PWD variable with indices."
   (let ((default-directory "/some/path/here"))
-    (should (equal (eshell-test-command-result "echo $PWD[/ 1]")
-                   "some"))
-    (should (equal (eshell-test-command-result "echo $PWD[/ 1 3]")
-                   '("some" "here")))))
+    (eshell-command-result-equal "echo $PWD[/ 1]"
+                                 "some")
+    (eshell-command-result-equal "echo $PWD[/ 1 3]"
+                                 '("some" "here"))))
 
 (ert-deftest em-dirs-test/short-pwd-var ()
   "Test using the $+ (current directory) variable."
   (let ((default-directory "/some/path"))
-    (should (equal (eshell-test-command-result "echo $+")
-                   (expand-file-name default-directory)))))
+    (eshell-command-result-equal "echo $+"
+                                 (expand-file-name default-directory))))
 
 (ert-deftest em-dirs-test/oldpwd-var ()
   "Test using the $OLDPWD variable."

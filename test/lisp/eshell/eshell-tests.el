@@ -83,28 +83,27 @@
   (dolist (template '("echo {%s} | *cat"
                       "echo ${%s} | *cat"
                       "*cat $<%s> | *cat"))
-    (should (equal (eshell-test-command-result
-                    (format template "echo $eshell-in-pipeline-p"))
-                   nil))
-    (should (equal (eshell-test-command-result
-                    (format template "echo | echo $eshell-in-pipeline-p"))
-                   "last"))
-    (should (equal (eshell-test-command-result
-                    (format template "echo $eshell-in-pipeline-p | echo"))
-                   "first"))
-    (should (equal (eshell-test-command-result
-                    (format template
-                            "echo | echo $eshell-in-pipeline-p | echo"))
-                   "t"))))
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p")
+     nil)
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p")
+     "last")
+    (eshell-command-result-equal
+     (format template "echo $eshell-in-pipeline-p | echo")
+     "first")
+    (eshell-command-result-equal
+     (format template "echo | echo $eshell-in-pipeline-p | echo")
+     "t")))
 
 (ert-deftest eshell-test/lisp-reset-in-pipeline ()
   "Check that interpolated Lisp forms reset `eshell-in-pipeline-p'."
   (skip-unless (executable-find "cat"))
   (dolist (template '("echo (%s) | *cat"
                       "echo $(%s) | *cat"))
-    (should (equal (eshell-test-command-result
-                    (format template "format \"%s\" eshell-in-pipeline-p"))
-                   "nil"))))
+    (eshell-command-result-equal
+     (format template "format \"%s\" eshell-in-pipeline-p")
+     "nil")))
 
 (ert-deftest eshell-test/redirect-buffer ()
   "Check that piping to a buffer works"

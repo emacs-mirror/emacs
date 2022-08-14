@@ -104,6 +104,27 @@ After inserting, call FUNC.  If FUNC is nil, instead call
     (let ((eshell-history-file-name nil))
       (eshell-command-result command))))
 
+(defun eshell-command-result--equal (_command actual expected)
+  "Compare the ACTUAL result of a COMMAND with its EXPECTED value."
+  (equal actual expected))
+
+(defun eshell-command-result--equal-explainer (command actual expected)
+  "Explain the result of `eshell-command-result--equal'."
+  `(nonequal-result
+    (command ,command)
+    (result ,actual)
+    (expected ,expected)))
+
+(put 'eshell-command-result--equal 'ert-explainer
+     #'eshell-command-result--equal-explainer)
+
+(defun eshell-command-result-equal (command result)
+  "Execute COMMAND non-interactively and compare it to RESULT."
+  (should (eshell-command-result--equal
+           command
+           (eshell-test-command-result command)
+           result)))
+
 (provide 'eshell-tests-helpers)
 
 ;;; eshell-tests-helpers.el ends here

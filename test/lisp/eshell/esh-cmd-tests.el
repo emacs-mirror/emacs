@@ -41,37 +41,37 @@
 
 (ert-deftest esh-cmd-test/simple-command-result ()
   "Test invocation with a simple command."
-  (should (equal (eshell-test-command-result "+ 1 2") 3)))
+  (eshell-command-result-equal "+ 1 2" 3))
 
 (ert-deftest esh-cmd-test/lisp-command ()
   "Test invocation with an elisp command."
-  (should (equal (eshell-test-command-result "(+ 1 2)") 3)))
+  (eshell-command-result-equal "(+ 1 2)" 3))
 
 (ert-deftest esh-cmd-test/lisp-command-with-quote ()
   "Test invocation with an elisp command containing a quote."
-  (should (equal (eshell-test-command-result "(eq 'foo nil)") nil)))
+  (eshell-command-result-equal "(eq 'foo nil)" nil))
 
 (ert-deftest esh-cmd-test/lisp-command-args ()
   "Test invocation with elisp and trailing args.
 Test that trailing arguments outside the S-expression are
 ignored.  e.g. \"(+ 1 2) 3\" => 3"
-  (should (equal (eshell-test-command-result "(+ 1 2) 3") 3)))
+  (eshell-command-result-equal "(+ 1 2) 3" 3))
 
 (ert-deftest esh-cmd-test/subcommand ()
   "Test invocation with a simple subcommand."
-  (should (equal (eshell-test-command-result "{+ 1 2}") 3)))
+  (eshell-command-result-equal "{+ 1 2}" 3))
 
 (ert-deftest esh-cmd-test/subcommand-args ()
   "Test invocation with a subcommand and trailing args.
 Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{+ 1 2} 3\" => 3"
-  (should (equal (eshell-test-command-result "{+ 1 2} 3") 3)))
+  (eshell-command-result-equal "{+ 1 2} 3" 3))
 
 (ert-deftest esh-cmd-test/subcommand-lisp ()
   "Test invocation with an elisp subcommand and trailing args.
 Test that trailing arguments outside the subcommand are ignored.
 e.g. \"{(+ 1 2)} 3\" => 3"
-  (should (equal (eshell-test-command-result "{(+ 1 2)} 3") 3)))
+  (eshell-command-result-equal "{(+ 1 2)} 3" 3))
 
 
 ;; Logical operators
@@ -118,9 +118,8 @@ e.g. \"{(+ 1 2)} 3\" => 3"
 (ert-deftest esh-cmd-test/for-name-loop () ; bug#15231
   "Test invocation of a for loop using `name'."
   (let ((process-environment (cons "name" process-environment)))
-    (should (equal (eshell-test-command-result
-                    "for name in 3 { echo $name }")
-                   3))))
+    (eshell-command-result-equal "for name in 3 { echo $name }"
+                                 3)))
 
 (ert-deftest esh-cmd-test/for-name-shadow-loop () ; bug#15372
   "Test invocation of a for loop using an env-var."
