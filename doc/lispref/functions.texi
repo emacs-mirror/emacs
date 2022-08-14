@@ -219,7 +219,8 @@ function.  For example:
 
 @defun compiled-function-p object
 This function returns @code{t} if @var{object} is a function object
-implemented in byte-code or machine code.
+that was either byte-compiled (@pxref{Byte Compilation}) or
+natively-compiled (@pxref{Native Compilation}).
 @end defun
 
 @defun subr-arity subr
