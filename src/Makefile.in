@@ -845,7 +845,6 @@ ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
 ## List of *.eln files we need to produce in addition to the preloaded
 ## ones in $(lisp).
 elnlisp := \
-	emacs-lisp/autoload.eln \
 	emacs-lisp/byte-opt.eln \
 	emacs-lisp/bytecomp.eln \
 	emacs-lisp/cconv.eln \
