@@ -29140,7 +29140,7 @@ void
 x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 		       Lisp_Object current_owner)
 {
-  Lisp_Object tail, frame, new_owner, tem;
+  Lisp_Object tail, frame, new_owner;
   Time timestamp;
   Window *owners;
   Atom *names;
@@ -29170,7 +29170,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
   FOR_EACH_TAIL_SAFE (tail)
     {
-      tem = XCAR (tail);
+      Lisp_Object tem = XCAR (tail);
       ++nowners;
 
       /* The selection is really lost (since we cannot find a new
@@ -29204,7 +29204,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
-	  tem = XCAR (tail);
+	  Lisp_Object tem = XCAR (tail);
 
 	  /* Now check if we still don't own that selection, which can
 	     happen if another program set itself as the owner.  */
@@ -29224,9 +29224,10 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
+	  Lisp_Object tem = XCAR (tail);
+
 	  reply = xcb_get_selection_owner_reply (dpyinfo->xcb_connection,
 						 cookies[nowners++], &error);
-
 	  if (reply)
 	    owners[nowners - 1] = reply->owner;
 	  else
@@ -29256,7 +29257,7 @@ x_preserve_selections (struct x_display_info *dpyinfo, Lisp_Object lost,
 
       FOR_EACH_TAIL_SAFE (tail)
 	{
-	  tem = XCAR (tail);
+	  Lisp_Object tem = XCAR (tail);
 
 	  /* If the selection isn't owned by us anymore, note that the
 	     selection was lost.  */
