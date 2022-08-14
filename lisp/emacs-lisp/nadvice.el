@@ -170,7 +170,7 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
   (if (not (and (symbolp function) (autoloadp (indirect-function function))))
       (interactive-form function)
     (when (commandp function)
-      `(interactive (advice--eval-interactive-spec
+      `(interactive (advice-eval-interactive-spec
                      (cadr (interactive-form ',function)))))))
 
 (defun advice--make-interactive-form (iff ifm)
