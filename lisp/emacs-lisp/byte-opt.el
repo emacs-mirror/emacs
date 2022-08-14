@@ -2479,8 +2479,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 ;; itself, compile some of its most used recursive functions (at load time).
 ;;
 (eval-when-compile
- (or (byte-code-function-p (symbol-function 'byte-optimize-form))
-     (subr-native-elisp-p (symbol-function 'byte-optimize-form))
+ (or (compiled-function-p (symbol-function 'byte-optimize-form))
      (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))

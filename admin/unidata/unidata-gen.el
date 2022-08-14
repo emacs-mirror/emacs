@@ -1083,8 +1083,8 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata--ensure-compiled (&rest funcs)
   (dolist (fun funcs)
-    (or (byte-code-function-p (symbol-function fun))
-	(byte-compile fun))))
+    (unless (compiled-function-p (symbol-function fun))
+      (byte-compile fun))))
 
 (defun unidata-gen-table-name (prop index &rest _ignore)
   (let* ((table (unidata-gen-table-word-list prop index 'unidata-split-name))

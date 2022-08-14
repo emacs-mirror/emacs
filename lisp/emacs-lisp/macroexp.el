@@ -823,7 +823,7 @@ test of free variables in the following ways:
 (eval-when-compile
   (add-hook 'emacs-startup-hook
             (lambda ()
-              (and (not (byte-code-function-p
+              (and (not (compiled-function-p
                          (symbol-function 'macroexpand-all)))
                    (locate-library "macroexp.elc")
                    (load "macroexp.elc")))))

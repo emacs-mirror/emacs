@@ -3411,7 +3411,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  (character	. natnump)
                  (char-table	. char-table-p)
                  (command	. commandp)
-                 (compiled-function . byte-code-function-p)
+                 (compiled-function . compiled-function-p)
                  (hash-table	. hash-table-p)
                  (cons		. consp)
                  (fixnum	. fixnump)

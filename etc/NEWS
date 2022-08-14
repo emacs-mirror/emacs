@@ -2571,6 +2571,9 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
 * Lisp Changes in Emacs 29.1
 
++++
+** New function 'compile-function-p'.
+
 ---
 ** 'deactivate-mark' can have new value 'dont-save'.
 This value means that Emacs should deactivate the mark as usual, but

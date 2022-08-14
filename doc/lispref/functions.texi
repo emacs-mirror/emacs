@@ -217,6 +217,11 @@ function.  For example:
 @end example
 @end defun
 
+@defun compiled-function-p object
+This function returns @code{t} if @var{object} is a function object
+implemented in byte-code or machine code.
+@end defun
+
 @defun subr-arity subr
 This works like @code{func-arity}, but only for built-in functions and
 without symbol indirection.  It signals an error for non-built-in

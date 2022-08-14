@@ -1005,9 +1005,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                 (help-fns--analyze-function function))
                (file-name (find-lisp-object-file-name
                            function (if aliased 'defun def)))
-               (beg (if (and (or (byte-code-function-p def)
+               (beg (if (and (or (functionp def)
                                  (keymapp def)
-                                 (memq (car-safe def) '(macro lambda closure)))
+                                 (eq (car-safe def) 'macro))
                              (stringp file-name)
                              (help-fns--autoloaded-p function))
                         (concat
@@ -1040,7 +1040,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                            (t "Lisp function"))))
 		 ((or (eq (car-safe def) 'macro)
 		      ;; For advised macros, def is a lambda
-		      ;; expression or a byte-code-function-p, so we
+		      ;; expression or a compiled-function-p, so we
 		      ;; need to check macros before functions.
 		      (macrop function))
 		  (concat beg "Lisp macro"))
@@ -1534,8 +1534,8 @@ This cancels value editing without updating the value."
     (when safe-var
       (princ "  This variable is safe as a file local variable ")
       (princ "if its value\n  satisfies the predicate ")
-      (princ (if (byte-code-function-p safe-var)
-		 "which is a byte-compiled expression.\n"
+      (princ (if (compiled-function-p safe-var)
+		 "which is a compiled expression.\n"
 	       (format-message "`%s'.\n" safe-var))))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-risky)
