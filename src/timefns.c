@@ -401,6 +401,10 @@ decode_float_time (double t, struct lisp_time *result)
   else
     {
       int scale = double_integer_scale (t);
+      /* FIXME: `double_integer_scale` often returns values that are
+         "pessimistic" (i.e. larger than necessary), so 3.5 gets converted
+         to (7881299347898368 . 2251799813685248) rather than (7 . 2).
+         On 64bit systems, this should not matter very much, tho.  */
       eassume (scale < flt_radix_power_size);
 
       if (scale < 0)
@@ -1717,8 +1721,6 @@ DEFUN ("time-convert", Ftime_convert, Stime_convert, 1, 2, 0,
        doc: /* Convert TIME value to a Lisp timestamp of the given FORM.
 Truncate the returned value toward minus infinity.
 
-If FORM is nil, return the same form as `current-time'.
-
 If FORM is a positive integer, return a pair of integers (TICKS . FORM),
 where TICKS is the number of clock ticks and FORM is the clock frequency
 in ticks per second.
@@ -1731,9 +1733,14 @@ If FORM is `integer', return an integer count of seconds.
 If FORM is `list', return an integer list (HIGH LOW USEC PSEC), where
 HIGH has the most significant bits of the seconds, LOW has the least
 significant 16 bits, and USEC and PSEC are the microsecond and
-picosecond counts.  */)
+picosecond counts.
+
+If FORM is nil, the behavior depends on `current-time-list',
+but new code should not rely on it.  */)
      (Lisp_Object time, Lisp_Object form)
 {
+  /* FIXME: Any reason why we don't offer a `float` output format option as
+     well, since we accept it as input?  */
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))
