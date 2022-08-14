@@ -15132,16 +15132,16 @@ Emacs may produce different results.)
 @end group
 
 @group
-(lengths-list-file "./lisp/makesum.el")
-     @result{} (85 181)
+(lengths-list-file "./lisp/hex-util.el")
+     @result{} (82 71)
 @end group
 
 @group
   (recursive-lengths-list-many-files
    '("./lisp/macros.el"
      "./lisp/mail/mailalias.el"
-     "./lisp/makesum.el"))
-       @result{} (283 263 480 90 38 32 29 95 178 180 321 218 324 85 181)
+     "./lisp/hex-util.el"))
+       @result{} (283 263 480 90 38 32 29 95 178 180 321 218 324 82 71)
 @end group
 @end smallexample
 
@@ -15233,27 +15233,13 @@ Sorting the list returned by the
 @code{recursive-lengths-list-many-files} function is straightforward;
 it uses the @code{<} function:
 
-@ignore
-2006 Oct 29
-In GNU Emacs 22,  eval
-(progn
-  (cd "/usr/local/share/emacs/22.0.50/")
-  (sort
-   (recursive-lengths-list-many-files
-    '("./lisp/macros.el"
-      "./lisp/mail/mailalias.el"
-      "./lisp/makesum.el"))
-   '<))
-
-@end ignore
-
 @smallexample
 @group
 (sort
  (recursive-lengths-list-many-files
   '("./lisp/macros.el"
     "./lisp/mailalias.el"
-    "./lisp/makesum.el"))
+    "./lisp/hex-util.el"))
  '<)
 @end group
 @end smallexample
@@ -15263,7 +15249,7 @@ In GNU Emacs 22,  eval
 which produces:
 
 @smallexample
-(29 32 38 85 90 95 178 180 181 218 263 283 321 324 480)
+(29 32 38 71 82 90 95 178 180 218 263 283 321 324 480)
 @end smallexample
 
 @noindent
@@ -15311,7 +15297,7 @@ as a list that looks like this (but with more elements):
 @group
 ("./lisp/macros.el"
  "./lisp/mail/rmail.el"
- "./lisp/makesum.el")
+ "./lisp/hex-util.el")
 @end group
 @end smallexample
 
