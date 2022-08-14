@@ -24608,10 +24608,9 @@ display_line (struct it *it, int cursor_vpos)
 	     walking there.  */
 	  ptrdiff_t chars_to_skip =
 	    it->first_visible_x / FRAME_COLUMN_WIDTH (it->f);
-	  enum move_it_result rc =
-	    fast_move_it_horizontally (it, chars_to_skip);
+	  move_result = fast_move_it_horizontally (it, chars_to_skip);
 
-	  if (rc == MOVE_X_REACHED)
+	  if (move_result == MOVE_X_REACHED)
 	    it->current_x = it->first_visible_x;
 	  else	/* use arbitrary value < first_visible_x */
 	    it->current_x = it->first_visible_x - FRAME_COLUMN_WIDTH (it->f);
