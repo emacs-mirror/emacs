@@ -2109,7 +2109,7 @@ xm_setup_dnd_targets (struct x_display_info *dpyinfo,
   int rc, actual_format, idx;
   bool had_errors;
   xm_targets_table_header header;
-  xm_targets_table_rec **recs;
+  xm_targets_table_rec **recs UNINIT;
   xm_byte_order byteorder;
   uint8_t *data;
   ptrdiff_t total_bytes, total_items, i;
@@ -2850,7 +2850,7 @@ x_dnd_free_toplevels (bool display_alive)
   Window *destroy_windows UNINIT;
   unsigned long *prev_masks UNINIT;
   specpdl_ref count;
-  Display *dpy;
+  Display *dpy UNINIT;
   struct x_display_info *dpyinfo;
 
   if (!x_dnd_toplevels)
