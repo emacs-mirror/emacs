@@ -1822,7 +1822,8 @@ backward to previous block."
   (or arg (setq arg 1))
   (let ((block-start-regexp
          (python-rx line-start (* whitespace) block-start))
-        (starting-pos (point)))
+        (starting-pos (point))
+        (orig-arg arg))
     (while (> arg 0)
       (python-nav-end-of-statement)
       (while (and
@@ -1836,7 +1837,8 @@ backward to previous block."
               (python-syntax-context-type)))
       (setq arg (1+ arg)))
     (python-nav-beginning-of-statement)
-    (if (not (looking-at (python-rx block-start)))
+    (if (or (and (> orig-arg 0) (< (point) starting-pos))
+            (not (looking-at (python-rx block-start))))
         (and (goto-char starting-pos) nil)
       (and (not (= (point) starting-pos)) (point-marker)))))
 

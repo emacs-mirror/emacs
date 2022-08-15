@@ -2942,6 +2942,22 @@ if request.user.is_authenticated():
               (python-tests-look-at
                "if request.user.is_authenticated():" -1)))))
 
+(ert-deftest python-nav-forward-block-2 ()
+  (python-tests-with-temp-buffer
+   "
+if True:
+    pass
+"
+   (python-tests-look-at "if True:")
+   (should (not (save-excursion (python-nav-forward-block))))
+   (should (not (save-excursion (python-nav-forward-block -1))))
+   (forward-char)
+   (should (not (save-excursion (python-nav-forward-block))))
+   (should (= (save-excursion (python-nav-forward-block -1))
+              (progn
+                (end-of-line)
+                (python-tests-look-at "if True:" -1))))))
+
 (ert-deftest python-nav-forward-sexp-1 ()
   (python-tests-with-temp-buffer
    "
