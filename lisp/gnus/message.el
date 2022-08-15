@@ -2732,20 +2732,17 @@ Point is left at the beginning of the narrowed-to region."
   (interactive nil message-mode)
   (save-excursion
     (save-restriction
-      (let ((max (1+ (length message-header-format-alist)))
-	    rank)
+      (let ((max (1+ (length message-header-format-alist))))
 	(message-narrow-to-headers)
 	(while (re-search-forward "^[^ \n]+:" nil t)
 	  (put-text-property
 	   (match-beginning 0) (1+ (match-beginning 0))
 	   'message-rank
-	   (if (setq rank (length (memq (assq (intern (buffer-substring
-						       (match-beginning 0)
-						       (1- (match-end 0))))
-					      message-header-format-alist)
-					message-header-format-alist)))
-	       (- max rank)
-	     (1+ max)))))
+           (- max (length
+                   (memq (assq (intern (buffer-substring
+					(match-beginning 0) (1- (match-end 0))))
+			       message-header-format-alist)
+			 message-header-format-alist))))))
       (message-sort-headers-1))))
 
 (defun message-kill-address ()
