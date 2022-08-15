@@ -31,6 +31,10 @@
 
 ;; The functions in this file have been superseded by loaddefs-gen.el.
 
+;; Note: When removing this file, also remove the references to
+;; `make-directory-autoloads' and `update-directory-autoloads' in
+;; subr.el.
+
 ;;; Code:
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
@@ -729,6 +733,7 @@ its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
 directory or directories specified."
+  (declare (obsolete loaddefs-generate "29.1"))
   (interactive "DUpdate autoloads from directory: \nFWrite to file: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes))
@@ -902,7 +907,8 @@ should be non-nil)."
   (let ((args command-line-args-left))
     (batch-update-autoloads--summary args)
     (setq command-line-args-left nil)
-    (make-directory-autoloads args generated-autoload-file)))
+    (with-suppressed-warnings ((obsolete make-directory-autoloads))
+      (make-directory-autoloads args generated-autoload-file))))
 
 (provide 'autoload)
 

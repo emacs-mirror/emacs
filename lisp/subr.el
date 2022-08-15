@@ -1918,6 +1918,13 @@ be a list of the form returned by `event-start' and `event-end'."
 (define-obsolete-function-alias 'user-original-login-name
   #'user-login-name "28.1")
 
+;; These are in obsolete/autoload.el, but are commonly used by
+;; third-party scripts that assume that they exist without requiring
+;; autoload.  These should be removed when obsolete/autoload.el is
+;; removed.
+(autoload 'make-directory-autoloads "autoload" nil t)
+(autoload 'update-directory-autoloads "autoload" nil t)
+
 
 ;;;; Hook manipulation functions.
 
