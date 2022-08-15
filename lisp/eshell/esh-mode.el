@@ -301,7 +301,8 @@ and the hook `eshell-exit-hook'."
   "Emacs shell interactive mode."
   (setq-local eshell-mode t)
 
-  (when eshell-status-in-mode-line
+  (when (and eshell-status-in-mode-line
+             (listp mode-line-format))
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
       (setq-local mode-line-format fmt))
