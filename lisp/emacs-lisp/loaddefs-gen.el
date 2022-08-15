@@ -570,16 +570,15 @@ instead of just updating them with the new/changed autoloads."
                   (time-less-p output-time
                                (file-attribute-modification-time
                                 (file-attributes file))))
-          (setq defs (nconc
-		      (loaddefs-generate--parse-file
-                       file output-file
-                       ;; We only want the package name from the
-                       ;; excluded files.
-                       (and include-package-version
-                            (if (member (expand-file-name file) excluded-files)
-                                'only
-                              t)))
-                      defs))))
+          ;; If we're scanning for package versions, we want to look
+          ;; at the file even if it's excluded.
+          (let* ((excluded (member (expand-file-name file dir) excluded-files))
+                 (package-data
+                  (and include-package-version (if excluded 'only t))))
+            (when (or package-data (not excluded))
+              (setq defs (nconc (loaddefs-generate--parse-file
+                                 file output-file package-data)
+                                defs))))))
       (progress-reporter-done progress))
 
     ;; If we have no autoloads data, but we have EXTRA-DATA, then
