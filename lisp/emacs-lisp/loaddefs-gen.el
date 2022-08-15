@@ -675,7 +675,9 @@ instead of just updating them with the new/changed autoloads."
         (insert "\\\n")))
     (while def
       (insert " ")
-      (prin1 (pop def) (current-buffer) t))
+      (prin1 (pop def) (current-buffer)
+             '(t (escape-newlines . t)
+                 (escape-control-characters . t))))
     (insert ")")))
 
 (defun loaddefs-generate--excluded-files ()
