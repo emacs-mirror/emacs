@@ -883,7 +883,6 @@ History
 
 * Gnus Versions::               What Gnus versions have been released.
 * Why?::                        What's the point of Gnus?
-* Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
@@ -26902,7 +26901,6 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 @menu
 * Gnus Versions::               What Gnus versions have been released.
 * Why?::                        What's the point of Gnus?
-* Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
@@ -26981,61 +26979,6 @@ everywhere I could imagine it being useful.  By doing so, I'm inviting
 every one of you to explore and invent.
 
 May Gnus never be complete.  @kbd{C-u 100 M-x all-hail-emacs}.
-
-
-@node Compatibility
-@subsection Compatibility
-
-@cindex compatibility
-Gnus was designed to be fully compatible with @sc{gnus}.  Almost all key
-bindings have been kept.  More key bindings have been added, of course,
-but only in one or two obscure cases have old bindings been changed.
-
-Our motto is:
-@quotation
-@cartouche
-@center In a cloud bones of steel.
-@end cartouche
-@end quotation
-
-All commands have kept their names.  Some internal functions have changed
-their names.
-
-The @code{gnus-uu} package has changed drastically.  @xref{Decoding
-Articles}.
-
-One major compatibility question is the presence of several summary
-buffers.  All variables relevant while reading a group are
-buffer-local to the summary buffer they belong in.  Although many
-important variables have their values copied into their global
-counterparts whenever a command is executed in the summary buffer, this
-change might lead to incorrect values being used unless you are careful.
-
-All code that relies on knowledge of @sc{gnus} internals will probably
-fail.  To take two examples: Sorting @code{gnus-newsrc-alist} (or
-changing it in any way, as a matter of fact) is strictly verboten.  Gnus
-maintains a hash table that points to the entries in this alist (which
-speeds up many functions), and changing the alist directly will lead to
-peculiar results.
-
-Packages like @code{expire-kill} will no longer work.  As a matter of
-fact, you should probably remove all old @sc{gnus} packages (and other
-code) when you start using Gnus.  More likely than not, Gnus already
-does what you have written code to make @sc{gnus} do.  (Snicker.)
-
-Even though old methods of doing things are still supported, only the
-new methods are documented in this manual.  If you detect a new method of
-doing something while reading this manual, that does not mean you have
-to stop doing it the old way.
-
-Gnus understands all @sc{gnus} startup files.
-
-@findex gnus-bug
-@cindex reporting bugs
-@cindex bugs
-Overall, a casual user who hasn't written much code that depends on
-@sc{gnus} internals should suffer no problems.  If problems occur,
-please let me know by issuing that magic command @kbd{M-x gnus-bug}.
 
 
 @node Conformity
