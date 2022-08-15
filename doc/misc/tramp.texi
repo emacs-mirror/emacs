@@ -2975,14 +2975,31 @@ where @samp{192.168.0.26} is the Android device's IP address.
 (@pxref{Predefined connection information}).
 
 @item
-@value{tramp} requires preserving @env{PATH} environment variable from
-user settings.  Android devices prefer @file{/system/xbin} path over
-@file{/system/bin}.  Both of these are set as follows:
+On the Android device the directory names are prefixed with an
+application specific prefix, which is
+@file{/data/data/com.termux/files/usr/bin} instead of @file{/usr/bin}
+in the @code{Termux} case.  You must adapt the file names in
+@code{tramp-remote-path}, for example via connection-local
+@ifinfo
+settings (@pxref{Connection Variables, , , emacs}):
+@end ifinfo
+@ifnotinfo
+settings:
+@end ifnotinfo
 
 @lisp
 @group
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(add-to-list 'tramp-remote-path "/system/xbin")
+(connection-local-set-profile-variables
+ 'tramp-connection-local-termux-profile
+ `((tramp-remote-path
+    . ,(mapcar
+	(lambda (x)
+	  (if (stringp x) (concat "/data/data/com.termux/files" x) x))
+	(copy-tree tramp-remote-path)))))
+
+(connection-local-set-profiles
+ '(:application tramp :machine "192.168.0.26")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
@@ -2991,7 +3008,9 @@ When the Android device is not @samp{rooted}, specify a writable
 directory for temporary files:
 
 @lisp
-(add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "192.168.0.26")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
 @end lisp
 
 @item
@@ -3019,11 +3038,17 @@ the previous example, fix the connection properties as follows:
 @group
 (add-to-list 'tramp-connection-properties
              (list (regexp-quote "android") "remote-shell" "sh"))
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "android")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
+(connection-local-set-profiles
+ '(:application tramp :machine "android")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
 @noindent
-Open a remote connection with a more concise command @kbd{C-x C-f
+Open a remote connection with the more concise command @kbd{C-x C-f
 @trampfn{ssh,android,} @key{RET}}.
 @end itemize
 
