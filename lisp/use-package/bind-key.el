@@ -131,7 +131,7 @@
 
 (define-minor-mode override-global-mode
   "A minor mode so that keymap settings override other modes."
-  :global t
+  :init-value t
   :lighter "")
 
 ;; the keymaps in `emulation-mode-map-alists' take precedence over
