@@ -734,11 +734,14 @@ highlighting.  This feature uses the special text property
 @section Minibuffer History
 @cindex minibuffer history
 @cindex history of minibuffer input
+@cindex completion, walking through candidates
 
-  Every argument that you enter with the minibuffer is saved in a
-@dfn{minibuffer history list} so you can easily use it again later.
-You can use the following arguments to quickly fetch an earlier
-argument into the minibuffer:
+  Everything you type in the minibuffer is saved in a @dfn{minibuffer
+history list} so you can easily use it again later.  This includes
+completion candidates (such as file names, buffer names, command
+names, etc.@:) and any other kind of minibuffer input.  You can use
+the following commands to quickly fetch an earlier or alternative
+response into the minibuffer:
 
 @table @kbd
 @item M-p
