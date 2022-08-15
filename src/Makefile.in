@@ -790,11 +790,12 @@ ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 ## In out-of-tree builds, TAGS are generated in the build dir, like
 ## other non-bootstrap build products (see Bug#31744).
 
-## This does not need to depend on ../lisp and ../lwlib TAGS files,
+## This does not need to depend on ../lisp, ../lwlib and ../lib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
 TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
 	$(AM_V_GEN)${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+	  --include=$(lib)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
 	  $(ctagsfiles1) \
@@ -803,12 +804,12 @@ TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
 	  $(ctagsfiles2) \
 	  $(ctagsfiles3)
 
-## Arrange to make tags tables for ../lisp and ../lwlib,
+## Arrange to make tags tables for ../lisp, ../lwlib and ../lib,
 ## which the above TAGS file for the C files includes by reference.
-../lisp/TAGS $(lwlibdir)/TAGS: FORCE
+../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS: FORCE
 	$(MAKE) -C $(dir $@) $(notdir $@) ETAGS="$(ETAGS)"
 
-tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
+tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS
 .PHONY: tags
 
 
