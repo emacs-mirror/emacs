@@ -1055,6 +1055,7 @@ Derived from `tramp-postfix-host-format'.")
 (defconst tramp-unknown-id-integer -1
   "Integer used to denote an unknown user or group.")
 
+;;;###tramp-autoload
 (defconst tramp-root-id-string "root"
   "String used to denote the root user or group.")
 
