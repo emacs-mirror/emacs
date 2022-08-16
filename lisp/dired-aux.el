@@ -780,20 +780,16 @@ which is replaced by the value returned by `dired-mark-prompt',
 with ARG and FILES as its arguments.  FILES should be a list of
 file names.  The result is used as the prompt.
 
-This normally reads using `read-shell-command', but if the
-`dired-x' package is loaded, use `dired-guess-shell-command' to
-offer a smarter default choice of shell command."
+Use `dired-guess-shell-command' to offer a smarter default choice
+of shell command."
   (minibuffer-with-setup-hook
       (lambda ()
 	(setq-local dired-aux-files files)
 	(setq-local minibuffer-default-add-function
                     #'dired-minibuffer-default-add-shell-commands))
     (setq prompt (format prompt (dired-mark-prompt arg files)))
-    (if (functionp 'dired-guess-shell-command)
-	(dired-mark-pop-up nil 'shell files
-			   'dired-guess-shell-command prompt files)
-      (dired-mark-pop-up nil 'shell files
-			 'read-shell-command prompt nil nil))))
+    (dired-mark-pop-up nil 'shell files
+                       'dired-guess-shell-command prompt files)))
 
 ;;;###autoload
 (defcustom dired-confirm-shell-command t
@@ -882,7 +878,7 @@ In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
 can be produced by `dired-get-marked-files', for example.
 
-If `dired-x' is loaded, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
 prompted for the shell command to use interactively.
 

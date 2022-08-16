@@ -4919,16 +4919,12 @@ Interactively with prefix argument, read FILE-NAME."
 ;;; Miscellaneous commands
 
 (declare-function Man-getpage-in-background "man" (topic))
-(declare-function dired-guess-shell-command "dired-x" (prompt files))
 (defvar manual-program) ; from man.el
 
 (defun dired-do-man ()
   "In Dired, run `man' on this file."
   (interactive nil dired-mode)
   (require 'man)
-  ;; FIXME: Move `dired-guess-shell-command' to dired.el to remove the
-  ;;        need for requiring `dired-x'.
-  (require 'dired-x)
   (let* ((file (dired-get-file-for-visit))
          (manual-program (string-replace "*" "%s"
                                          (dired-guess-shell-command
