@@ -3634,19 +3634,6 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(dolist (var '(rst-level-face-max rst-level-face-base-color
-				  rst-level-face-base-light
-				  rst-level-face-format-light
-				  rst-level-face-step-light
-				  rst-level-1-face
-				  rst-level-2-face
-				  rst-level-3-face
-				  rst-level-4-face
-				  rst-level-5-face
-				  rst-level-6-face))
-  (make-obsolete-variable var "customize the faces `rst-level-*' instead."
-			  "24.3"))
-
 ;; Define faces for the first 6 levels. More levels are possible, however.
 (defface rst-level-1 '((((background light)) (:background "grey85"))
 		       (((background dark)) (:background "grey15")))
