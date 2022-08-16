@@ -27634,6 +27634,33 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level,
    connection established.  */
 static unsigned x_display_id;
 
+#if defined HAVE_XINPUT2 && !defined HAVE_GTK3
+
+/* Select for device change events on the root window of DPYINFO.
+   These include device change and hierarchy change notifications.  */
+
+static void
+xi_select_hierarchy_events (struct x_display_info *dpyinfo)
+{
+  XIEventMask mask;
+  ptrdiff_t l;
+  unsigned char *m;
+
+  l = XIMaskLen (XI_LASTEVENT);
+  mask.mask = m = alloca (l);
+  memset (m, 0, l);
+  mask.mask_len = l;
+
+  XISetMask (m, XI_PropertyEvent);
+  XISetMask (m, XI_HierarchyChanged);
+  XISetMask (m, XI_DeviceChanged);
+
+  XISelectEvents (dpyinfo->display, dpyinfo->root_window,
+		  &mask, 1);
+}
+
+#endif
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -28263,6 +28290,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       if (rc == Success)
 	{
 	  dpyinfo->supports_xi2 = true;
+#ifndef HAVE_GTK3
+	  /* Select for hierarchy events on the root window.  GTK 3.x
+	     does this itself.  */
+	  xi_select_hierarchy_events (dpyinfo);
+#endif
+
 	  x_cache_xi_devices (dpyinfo);
 	}
     }

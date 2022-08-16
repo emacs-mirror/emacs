@@ -3773,14 +3773,11 @@ setup_xi_event_mask (struct frame *f)
   memset (m, 0, l);
 #endif
 
-  mask.deviceid = XIAllDevices;
-
-  XISetMask (m, XI_PropertyEvent);
-  XISetMask (m, XI_HierarchyChanged);
-  XISetMask (m, XI_DeviceChanged);
 #ifdef HAVE_XINPUT2_2
   if (FRAME_DISPLAY_INFO (f)->xi2_version >= 2)
     {
+      mask.deviceid = XIAllDevices;
+
       XISetMask (m, XI_TouchBegin);
       XISetMask (m, XI_TouchUpdate);
       XISetMask (m, XI_TouchEnd);
@@ -3792,11 +3789,12 @@ setup_xi_event_mask (struct frame *f)
 	  XISetMask (m, XI_GesturePinchEnd);
 	}
 #endif
+
+      XISelectEvents (FRAME_X_DISPLAY (f),
+		      FRAME_X_WINDOW (f),
+		      &mask, 1);
     }
 #endif
-  XISelectEvents (FRAME_X_DISPLAY (f),
-		  FRAME_X_WINDOW (f),
-		  &mask, 1);
 
 #ifndef HAVE_XINPUT2_1
   FRAME_X_OUTPUT (f)->xi_masks = selected;
