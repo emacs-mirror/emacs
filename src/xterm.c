@@ -26167,18 +26167,52 @@ x_raise_frame (struct frame *f)
   unblock_input ();
 }
 
+static void
+x_lower_frame_1 (struct frame *f)
+{
+  Window *windows;
+  Lisp_Object frame, tail;
+  struct frame *sibling;
+
+  windows = alloca (2 * sizeof *windows);
+
+  /* Lowering a child frame leads to the window being put below any
+     scroll bars on the parent.  To avoid that, restack the child
+     frame below all of its siblings instead of just lowering it.  */
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      sibling = XFRAME (frame);
+
+      if (sibling == f)
+	continue;
+
+      if (FRAME_PARENT_FRAME (sibling)
+	  != FRAME_PARENT_FRAME (f))
+	continue;
+
+      windows[0] = FRAME_OUTER_WINDOW (sibling);
+      windows[1] = FRAME_OUTER_WINDOW (f);
+
+      XRestackWindows (FRAME_X_DISPLAY (f), windows, 2);
+    }
+}
+
 /* Lower frame F.  */
 
 static void
 x_lower_frame (struct frame *f)
 {
-  if (FRAME_VISIBLE_P (f))
-    {
-      block_input ();
-      XLowerWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-      XFlush (FRAME_X_DISPLAY (f));
-      unblock_input ();
-    }
+  if (FRAME_PARENT_FRAME (f)
+      && (FRAME_HAS_VERTICAL_SCROLL_BARS (FRAME_PARENT_FRAME (f))
+	  || FRAME_HAS_HORIZONTAL_SCROLL_BARS (FRAME_PARENT_FRAME (f))))
+    x_lower_frame_1 (f);
+  else
+    XLowerWindow (FRAME_X_DISPLAY (f),
+		  FRAME_OUTER_WINDOW (f));
+
+  XFlush (FRAME_X_DISPLAY (f));
+
 #ifdef HAVE_XWIDGETS
   /* Make sure any X windows owned by xwidget views of the parent
      still display below the lowered frame.  */
