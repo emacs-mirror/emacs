@@ -29640,19 +29640,6 @@ Ahem.
 Make sure your computer is switched on.
 
 @item
-Make sure that you really load the current Gnus version.  If you have
-been running @sc{gnus}, you need to exit Emacs and start it up again before
-Gnus will work.
-
-@item
-Try doing an @kbd{M-x gnus-version}.  If you get something that looks
-like @c
-@samp{Gnus v5.13} @c Adjust ../Makefile.in if you change this line!
-@c
-you have the right files loaded.  Otherwise you have some old @file{.el}
-files lying around.  Delete these.
-
-@item
 Read the help group (@kbd{G h} in the group buffer) for a
 @acronym{FAQ} and a how-to.
 
@@ -29660,7 +29647,7 @@ Read the help group (@kbd{G h} in the group buffer) for a
 @vindex max-lisp-eval-depth
 Gnus works on many recursive structures, and in some extreme (and very
 rare) cases Gnus may recurse down ``too deeply'' and Emacs will beep at
-you.  If this happens to you, set @code{max-lisp-eval-depth} to 500 or
+you.  If this happens to you, set @code{max-lisp-eval-depth} to 2000 or
 something like that.
 @end enumerate
 
@@ -29671,10 +29658,9 @@ If all else fails, report the problem as a bug.
 
 @findex gnus-bug
 If you find a bug in Gnus, you can report it with the @kbd{M-x
-gnus-bug} command.  @kbd{M-x set-variable @key{RET} debug-on-error
-@key{RET} t @key{RET}}, and send me the backtrace.  I will fix bugs,
-but I can only fix them if you send me a precise description as to how
-to reproduce the bug.
+gnus-bug} command.  @kbd{M-x toggle-debug-on-error}, and send me the
+backtrace.  I will fix bugs, but I can only fix them if you send me a
+precise description as to how to reproduce the bug.
 
 You really can never be too detailed in a bug report.  Always use the
 @kbd{M-x gnus-bug} command when you make bug reports, even if it creates
@@ -29705,7 +29691,7 @@ edebug.  Debugging Lisp code is documented in the Elisp manual
 (@pxref{Debugging, , Debugging Lisp Programs, elisp, The GNU Emacs
 Lisp Reference Manual}).  To get you started with edebug, consider if
 you discover some weird behavior when pressing @kbd{c}, the first
-step is to do @kbd{C-h k c} and click on the hyperlink (Emacs only) in
+step is to do @kbd{C-h k c} and click on the hyperlink in
 the documentation buffer that leads you to the function definition,
 then press @kbd{M-x edebug-defun @key{RET}} with point inside that function,
 return to Gnus and press @kbd{c} to invoke the code.  You will be
@@ -29717,7 +29703,7 @@ evaluate expressions using @kbd{M-:} or inspect variables using
 @cindex elp
 @cindex profile
 @cindex slow
-Sometimes, a problem do not directly generate an elisp error but
+Sometimes, a problem do not directly generate an Emacs Lisp error but
 manifests itself by causing Gnus to be very slow.  In these cases, you
 can use @kbd{M-x toggle-debug-on-quit} and press @kbd{C-g} when things are
 slow, and then try to analyze the backtrace (repeating the procedure
