@@ -45,7 +45,7 @@
 ;; could be removed.
 (defvar mml2015-use 'epg
   "The package used for PGP/MIME.
-Valid packages include `epg', `pgg' and `mailcrypt'.")
+Valid packages include `epg', and `mailcrypt'.")
 
 ;; Something is not RFC2015.
 (defvar mml2015-function-alist

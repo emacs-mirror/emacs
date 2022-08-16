@@ -1068,7 +1068,6 @@ Return nil if there is nothing appropriate in the buffer near point."
    ("newsticker" "Index")
    ("octave" "(octave-mode)Variable Index" "(octave-mode)Lisp Function Index")
    ("org" "Variable Index" "Command and Function Index")
-   ("pgg" "Variable Index" "Function Index")
    ("rcirc" "Variable Index" "Index")
    ("reftex" "Index")
    ("sasl" "Variable Index" "Function Index")

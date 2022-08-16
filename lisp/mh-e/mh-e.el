@@ -1790,16 +1790,7 @@ message without line wrapping."
 This option is used to select between a variety of mail security
 mechanisms. The default is \"PGP (MIME)\" if it is supported;
 otherwise, the default is \"None\". Other mechanisms include
-vanilla \"PGP\" and \"S/MIME\".
-
-The `pgg' customization group may have some settings which may
-interest you (see Info node `(pgg)').
-
-In particular, I turn on the option `pgg-encrypt-for-me' so that
-all messages I encrypt are encrypted with my public key as well.
-If you keep a copy of all of your outgoing mail with a \"Fcc:\"
-header field, this setting is vital so that you can read the mail
-you write!"
+vanilla \"PGP\" and \"S/MIME\"."
   :type '(choice (const :tag "PGP (MIME)" "pgpmime")
                  (const :tag "PGP" "pgp")
                  (const :tag "S/MIME" "smime")

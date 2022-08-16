@@ -11560,8 +11560,8 @@ things to work:
 To handle @acronym{PGP} and @acronym{PGP/MIME} messages, you have to
 install an OpenPGP implementation such as GnuPG@.  The Lisp interface
 to GnuPG included with Emacs is called EasyPG (@pxref{Top, ,EasyPG,
-epa, EasyPG Assistant user's manual}), but PGG (@pxref{Top, ,PGG, pgg,
-PGG Manual}), and Mailcrypt are also supported.
+epa, EasyPG Assistant user's manual}), but Mailcrypt is also
+supported.
 
 @item
 To handle @acronym{S/MIME} message, you need to install OpenSSL@.  OpenSSL 0.9.6
@@ -11599,18 +11599,16 @@ public-key matching the @samp{From:} header as the recipient;
 @item mml1991-use
 @vindex mml1991-use
 Symbol indicating elisp interface to OpenPGP implementation for
-@acronym{PGP} messages.  The default is @code{epg}, but @code{pgg},
-and @code{mailcrypt} are also supported although
-deprecated.  By default, Gnus uses the first available interface in
-this order.
+@acronym{PGP} messages.  The default is @code{epg}, but
+@code{mailcrypt} is also supported although deprecated.  By default,
+Gnus uses the first available interface in this order.
 
 @item mml2015-use
 @vindex mml2015-use
 Symbol indicating elisp interface to OpenPGP implementation for
 @acronym{PGP/MIME} messages.  The default is @code{epg}, but
-@code{pgg}, and @code{mailcrypt} are also supported
-although deprecated.  By default, Gnus uses the first available
-interface in this order.
+@code{mailcrypt} is also supported although deprecated.  By default,
+Gnus uses the first available interface in this order.
 
 @end table
 
