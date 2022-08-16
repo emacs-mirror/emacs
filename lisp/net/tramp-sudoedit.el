@@ -48,7 +48,8 @@
 			           ("-p" "Password:") ("--")))
 		(tramp-password-previous-hop t)))
 
- (add-to-list 'tramp-default-user-alist '("\\`sudoedit\\'" nil "root"))
+ (add-to-list 'tramp-default-user-alist
+	      `("\\`sudoedit\\'" nil ,tramp-root-id-string))
 
  (tramp-set-completion-function
   tramp-sudoedit-method tramp-completion-function-alist-su))

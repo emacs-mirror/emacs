@@ -410,11 +410,12 @@ The string is used in `tramp-methods'.")
                 (tramp-copy-keep-date       t)))
 
  (add-to-list 'tramp-default-method-alist
-	      `(,tramp-local-host-regexp "\\`root\\'" "su"))
+	      `(,tramp-local-host-regexp
+		,(format "\\`%s\\'" tramp-root-id-string) "su"))
 
  (add-to-list 'tramp-default-user-alist
 	      `(,(concat "\\`" (regexp-opt '("su" "sudo" "doas" "ksu")) "\\'")
-	        nil "root"))
+	        nil ,tramp-root-id-string))
  ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
  ;; Do not add "plink" based methods, they ask interactively for the user.
  (add-to-list 'tramp-default-user-alist
@@ -1314,8 +1315,12 @@ component is used as the target of the symlink."
           ;; ... uid and gid
           (setq res-uid-string (read (current-buffer)))
           (setq res-gid-string (read (current-buffer)))
+	  (when (natnump res-uid-string)
+	    (setq res-uid-string (number-to-string res-uid-string)))
           (unless (stringp res-uid-string)
 	    (setq res-uid-string (symbol-name res-uid-string)))
+	  (when (natnump res-gid-string)
+	    (setq res-gid-string (number-to-string res-gid-string)))
           (unless (stringp res-gid-string)
 	    (setq res-gid-string (symbol-name res-gid-string)))
           ;; ... size
@@ -3096,7 +3101,7 @@ implementation will be used."
 	 (cond
 	  ;; Some predefined values, which aren't reported sometimes,
 	  ;; or would raise problems (all Stopped signals).
-	  ((= i 0) 0)
+	  ((zerop i) 0)
 	  ((string-equal (nth i signals) "HUP") "Hangup")
 	  ((string-equal (nth i signals) "INT") "Interrupt")
 	  ((string-equal (nth i signals) "QUIT") "Quit")
@@ -4272,8 +4277,10 @@ file exists and nonzero exit status otherwise."
 	      (with-tramp-connection-property vec "remote-shell"
 		;; CCC: "root" does not exist always, see my QNAP
 		;; TS-459.  Which check could we apply instead?
-		(tramp-send-command vec "echo ~root" t)
-		(if (or (string-match-p "^~root$" (buffer-string))
+		(tramp-send-command
+		 vec (format "echo ~%s" tramp-root-id-string) t)
+		(if (or (string-match-p
+			 (format "^~%s$" tramp-root-id-string) (buffer-string))
 			;; The default shell (ksh93) of OpenSolaris
 			;; and Solaris is buggy.  We've got reports
 			;; for "SunOS 5.10" and "SunOS 5.11" so far.
