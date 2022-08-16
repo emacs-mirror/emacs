@@ -2081,6 +2081,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defsubst message-delete-line (&optional n)
   "Delete the current line (and the next N lines)."
+  (declare (obsolete delete-line "29.1"))
   (delete-region (progn (beginning-of-line) (point))
 		 (progn (forward-line (or n 1)) (point))))
 
@@ -2385,7 +2386,7 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 		    (setq old-subject
 			  (message-strip-subject-re old-subject))
 		    (message-goto-subject)
-		    (message-delete-line)
+		    (delete-line)
 		    (insert (concat "Subject: "
 				    new-subject
 				    " (was: "
@@ -2500,12 +2501,12 @@ been made to before the user asked for a Crosspost."
     (while (re-search-backward
 	    (concat "^" (regexp-quote message-cross-post-note) ".*")
 	    head t)
-      (message-delete-line))
+      (delete-line))
     (message-goto-signature)
     (while (re-search-backward
 	    (concat "^" (regexp-quote message-followup-to-note) ".*")
 	    head t)
-      (message-delete-line))
+      (delete-line))
     ;; insert new note
     (if (message-goto-signature)
 	(re-search-backward message-signature-separator))
@@ -2577,7 +2578,7 @@ With prefix-argument just set Follow-Up, don't cross-post."
    (cond (cc-content
 	  (save-excursion
 	    (message-goto-to)
-	    (message-delete-line)
+	    (delete-line)
 	    (insert (concat "To: " cc-content "\n"))
 	    (save-restriction
 	      (message-narrow-to-headers)
@@ -3930,14 +3931,14 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
     ;; Delete blank lines at the start of the buffer.
     (goto-char (point-min))
     (while (and (eolp) (not (eobp)))
-      (message-delete-line))
+      (delete-line))
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
     (unless (eq (preceding-char) ?\n)
       (insert "\n"))
     (while (and (zerop (forward-line -1))
 		(looking-at "$"))
-      (message-delete-line)))
+      (delete-line)))
   ;; Do the indentation.
   (if (null message-yank-prefix)
       (indent-rigidly start (or end (mark t)) message-indentation-spaces)
@@ -5141,9 +5142,9 @@ to find out how to use this."
       (let ((headers message-mh-deletable-headers))
 	(while headers
 	  (goto-char (point-min))
-	  (and (re-search-forward
-		(concat "^" (symbol-name (car headers)) ": *") nil t)
-	       (message-delete-line))
+	  (when (re-search-forward
+		 (concat "^" (symbol-name (car headers)) ": *") nil t)
+	    (delete-line))
 	  (pop headers))))
     (run-hooks 'message-send-mail-hook)
     ;; Pass it on to mh.
@@ -6275,7 +6276,7 @@ Headers already prepared in the buffer are not modified."
 	  (and (re-search-forward
 		(concat "^" (symbol-name (car headers)) ": *") nil t)
 	       (get-text-property (1+ (match-beginning 0)) 'message-deletable)
-	       (message-delete-line))
+	       (delete-line))
 	  (pop headers)))
       ;; Go through all the required headers and see if they are in the
       ;; articles already.  If they are not, or are empty, they are
@@ -6494,7 +6495,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
     ;; Tapdance around looong Message-IDs.
     (forward-line -1)
     (when (looking-at "[ \t]*$")
-      (message-delete-line))
+      (delete-line))
     (goto-char begin)
     (search-forward ":" nil t)
     (when (looking-at "\n[ \t]+")
