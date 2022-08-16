@@ -89,11 +89,11 @@
 ;;  underlining.  However, if the region is already underlined by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
 ;;  underlining.  This problem occurs when a buffer is highlighted with
-;;  font-lock.el packages.  If this residual highlighting gets in the way, you
-;;  can do the following.  font-lock.el provides commands for unhighlighting
-;;  buffers.  You can either place these commands in `ediff-prepare-buffer-hook'
-;;  (which will unhighlight every buffer used by Ediff) or you can execute
-;;  them interactively, at any time and in any buffer.
+;;  font-lock.el.  If this residual highlighting gets in the way, you
+;;  can use the font-lock.el commands for unhighlighting buffers.
+;;  Either place these commands in `ediff-prepare-buffer-hook' (which will
+;;  unhighlight every buffer used by Ediff) or execute them
+;;  interactively, which you can do at any time and in any buffer.
 
 
 ;;; Acknowledgments:
