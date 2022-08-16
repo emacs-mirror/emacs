@@ -9359,7 +9359,7 @@ Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 Use @uref{http://w3m.sourceforge.net/, w3m}.
 
 @item links
-Use @uref{https://almende.github.io/chap-links-library/, CHAP Links}.
+Use @uref{http://links.twibright.com/, Links}.
 
 @item lynx
 Use @uref{https://lynx.browser.org/, Lynx}.
