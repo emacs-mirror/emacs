@@ -882,7 +882,7 @@ In a noninteractive call (from Lisp code), you must specify
 the list of file names explicitly with the FILE-LIST argument, which
 can be produced by `dired-get-marked-files', for example.
 
-`dired-guess-shell-alist-default' and
+If `dired-x' is loaded, `dired-guess-shell-alist-default' and
 `dired-guess-shell-alist-user' are consulted when the user is
 prompted for the shell command to use interactively.
 
