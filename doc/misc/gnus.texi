@@ -24193,8 +24193,7 @@ people have started putting nonsense addresses into their @code{From}
 lines.  I think this is counterproductive---it makes it difficult for
 people to send you legitimate mail in response to things you write, as
 well as making it difficult to see who wrote what.  This rewriting may
-perhaps be a bigger menace than the unsolicited commercial email itself
-in the end.
+perhaps be a bigger menace than the spam itself in the end.
 
 The biggest problem I have with email spam is that it comes in under
 false pretenses.  I press @kbd{g} and Gnus merrily informs me that I
@@ -24220,33 +24219,13 @@ This is annoying.  Here's what you can do about it.
 @cindex UCE
 @cindex unsolicited commercial email
 
-First, some background on spam.
-
-If you have access to e-mail, you are familiar with spam (technically
-termed @acronym{UCE}, Unsolicited Commercial E-mail).  Simply put, it
-exists because e-mail delivery is very cheap compared to paper mail,
-so only a very small percentage of people need to respond to an UCE to
-make it worthwhile to the advertiser.  Ironically, one of the most
-common spams is the one offering a database of e-mail addresses for
-further spamming.  Senders of spam are usually called @emph{spammers},
-but terms like @emph{vermin}, @emph{scum}, @emph{sociopaths}, and
-@emph{morons} are in common use as well.
-
 Spam comes from a wide variety of sources.  It is simply impossible to
-dispose of all spam without discarding useful messages.  A good
-example is the TMDA system, which requires senders
-unknown to you to confirm themselves as legitimate senders before
-their e-mail can reach you.  Without getting into the technical side
-of TMDA, a downside is clearly that e-mail from legitimate sources may
-be discarded if those sources can't or won't confirm themselves
-through the TMDA system.  Another problem with TMDA is that it
-requires its users to have a basic understanding of e-mail delivery
-and processing.
+dispose of all spam without discarding useful messages.
 
 The simplest approach to filtering spam is filtering, at the mail
 server or when you sort through incoming mail.  If you get 200 spam
-messages per day from @samp{random-address@@vmadmin.com}, you block
-@samp{vmadmin.com}.  If you get 200 messages about @samp{VIAGRA}, you
+messages per day from @samp{random-address@@example.org}, you block
+@samp{example.org}.  If you get 200 messages about @samp{VIAGRA}, you
 discard all messages with @samp{VIAGRA} in the message.  If you get
 lots of spam from Bulgaria, for example, you try to filter all mail
 from Bulgarian IPs.
@@ -24357,7 +24336,7 @@ In my experience, this will sort virtually everything into the right
 group.  You still have to check the @samp{spam} group from time to time to
 check for legitimate mail, though.  If you feel like being a good net
 citizen, you can even send off complaints to the proper authorities on
-each unsolicited commercial email---at your leisure.
+each spam---at your leisure.
 
 This works for me.  It allows people an easy way to contact me (they can
 just press @kbd{r} in the usual way), and I'm not bothered at all with
@@ -24373,8 +24352,8 @@ Be careful with this approach.  Spammers are wise to it.
 @cindex Vipul's Razor
 @cindex DCC
 
-The days where the hints in the previous section were sufficient in
-avoiding spam are coming to an end.  There are many tools out there
+The days where the hints in the previous section were sufficient to
+avoid spam are over.  There are many tools out there
 that claim to reduce the amount of spam you get.  This section could
 easily become outdated fast, as new products replace old, but
 fortunately most of these tools seem to have similar interfaces.  Even
@@ -24455,7 +24434,7 @@ spam.  And here is the nifty function:
 @subsection Hashcash
 @cindex hashcash
 
-A novel technique to fight spam is to require senders to do something
+One technique to fight spam is to require senders to do something
 costly and demonstrably unique for each message they send.  This has
 the obvious drawback that you cannot rely on everyone in the world
 using this technique, since it is not part of the Internet standards,
@@ -25112,8 +25091,8 @@ The @code{gnus-article-sort-by-chars} entry simplifies detection of
 false positives for me.  I receive lots of worms (sweN, @dots{}), that all
 have a similar size.  Grouping them by size (i.e., chars) makes finding
 other false positives easier.  (Of course worms aren't @i{spam}
-(@acronym{UCE}, @acronym{UBE}) strictly speaking.  Anyhow, bogofilter is
-an excellent tool for filtering those unwanted mails for me.)
+strictly speaking.  Anyhow, bogofilter is an excellent tool for
+filtering those unwanted mails for me.)
 
 @item @b{Ham folders:}
 
