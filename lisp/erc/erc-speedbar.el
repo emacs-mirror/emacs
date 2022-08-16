@@ -31,8 +31,7 @@
 ;; * Write intelligent update function:
 ;;   update-channel, update-nick, remove-nick-from-channel, ...
 ;; * Use indicator-strings for op/voice
-;; * Extract/convert face notes field from bbdb if available and show
-;;   it using sb-image.el
+;; * Extract/convert face notes field from bbdb if available
 ;;
 ;;; Code:
 
