@@ -1306,11 +1306,22 @@ See Info node `(elisp) Integer Basics'."
         condition
       form)))
 
+(defun byte-optimize-not (form)
+  (and (= (length form) 2)
+       (let ((arg (nth 1 form)))
+         (cond ((null arg) t)
+               ((macroexp-const-p arg) nil)
+               ((byte-compile-nilconstp arg) `(progn ,arg t))
+               ((byte-compile-trueconstp arg) `(progn ,arg nil))
+               (t form)))))
+
 (put 'and   'byte-optimizer #'byte-optimize-and)
 (put 'or    'byte-optimizer #'byte-optimize-or)
 (put 'cond  'byte-optimizer #'byte-optimize-cond)
 (put 'if    'byte-optimizer #'byte-optimize-if)
 (put 'while 'byte-optimizer #'byte-optimize-while)
+(put 'not   'byte-optimizer #'byte-optimize-not)
+(put 'null  'byte-optimizer #'byte-optimize-not)
 
 ;; byte-compile-negation-optimizer lives in bytecomp.el
 (put '/= 'byte-optimizer #'byte-compile-negation-optimizer)
