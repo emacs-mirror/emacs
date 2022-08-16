@@ -1563,6 +1563,7 @@ This does not change the name of the visited file (if any).  */)
   (register Lisp_Object newname, Lisp_Object unique)
 {
   register Lisp_Object tem, buf;
+  Lisp_Object requestedname = newname;
 
   CHECK_STRING (newname);
 
@@ -1579,7 +1580,8 @@ This does not change the name of the visited file (if any).  */)
       if (NILP (unique) && XBUFFER (tem) == current_buffer)
 	return BVAR (current_buffer, name);
       if (!NILP (unique))
-	newname = Fgenerate_new_buffer_name (newname, BVAR (current_buffer, name));
+	newname = Fgenerate_new_buffer_name (newname,
+	                                     BVAR (current_buffer, name));
       else
 	error ("Buffer name `%s' is in use", SDATA (newname));
     }
@@ -1599,7 +1601,7 @@ This does not change the name of the visited file (if any).  */)
   run_buffer_list_update_hook (current_buffer);
 
   call2 (intern ("uniquify--rename-buffer-advice"),
-         BVAR (current_buffer, name), unique);
+         requestedname, unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
