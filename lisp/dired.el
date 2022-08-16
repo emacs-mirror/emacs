@@ -775,19 +775,20 @@ of the region if `dired-mark-region' is non-nil.  Otherwise, operate
 on the whole buffer.
 
 Return value is the number of files marked, or nil if none were marked."
-  `(let ((inhibit-read-only t) count
+  `(let ((msg ,msg)
+         (inhibit-read-only t) count
          (use-region-p (dired-mark--region-use-p))
          (beg (dired-mark--region-beginning))
          (end (dired-mark--region-end)))
     (save-excursion
       (setq count 0)
-      (when ,msg
+      (when msg
 	(message "%s %ss%s%s..."
 		 (cond ((eq dired-marker-char ?\s) "Unmarking")
 		       ((eq dired-del-marker dired-marker-char)
 			"Flagging")
 		       (t "Marking"))
-		 ,msg
+		 msg
 		 (if (eq dired-del-marker dired-marker-char)
 		     " for deletion"
 		   "")
@@ -802,9 +803,9 @@ Return value is the number of files marked, or nil if none were marked."
             (insert dired-marker-char)
             (setq count (1+ count))))
         (forward-line 1))
-      (when ,msg (message "%s %s%s %s%s%s"
+      (when msg (message "%s %s%s %s%s%s"
                         count
-                        ,msg
+                        msg
                         (dired-plural-s count)
                         (if (eq dired-marker-char ?\s) "un" "")
                         (if (eq dired-marker-char dired-del-marker)
