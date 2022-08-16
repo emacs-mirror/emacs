@@ -1803,8 +1803,7 @@ long as Gnus is active.
 @end menu
 
 You can customize the Group Mode tool bar, see @kbd{M-x
-customize-apropos @key{RET} gnus-group-tool-bar}.  This feature is only
-available in Emacs.
+customize-apropos @key{RET} gnus-group-tool-bar}.
 
 The tool bar icons are now (de)activated correctly depending on the
 cursor position.  Therefore, moving around in the Group Buffer is
@@ -4836,8 +4835,7 @@ group buffer (@pxref{Selecting a Group}).
 You can have as many summary buffers open as you wish.
 
 You can customize the Summary Mode tool bar, see @kbd{M-x
-customize-apropos @key{RET} gnus-summary-tool-bar}.  This feature is only
-available in Emacs.
+customize-apropos @key{RET} gnus-summary-tool-bar}.
 
 @kindex v @r{(Summary)}
 @cindex keys, reserved for users (Summary)
@@ -17341,11 +17339,6 @@ changes to a wiki (e.g., @url{https://cliki.net/site/recent-changes}).
 @acronym{RSS} has a quite regular and nice interface, and it's
 possible to get the information Gnus needs to keep groups updated.
 
-Note: you had better use Emacs which supports the @code{utf-8} coding
-system because @acronym{RSS} uses UTF-8 for encoding non-@acronym{ASCII}
-text by default.  It is also used by default for non-@acronym{ASCII}
-group names.
-
 @kindex G R @r{(Group)}
 Use @kbd{G R} from the group buffer to subscribe to a feed---you will be
 prompted for the location, the title and the description of the feed.
@@ -17394,7 +17387,7 @@ The directory where @code{nnrss} stores its files.  The default is
 @vindex nnrss-file-coding-system
 The coding system used when reading and writing the @code{nnrss} groups
 data files.  The default is the value of
-@code{mm-universal-coding-system} (which defaults to @code{emacs-mule}).
+@code{mm-universal-coding-system} (which defaults to @code{utf-8-emacs}).
 
 @item nnrss-ignore-article-fields
 @vindex nnrss-ignore-article-fields
