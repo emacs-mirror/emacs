@@ -41,6 +41,7 @@ you to operate on the listed files.  @xref{Directories}.
 * Operating on Files::        How to copy, rename, print, compress, etc.
                                 either one file or several files.
 * Shell Commands in Dired::   Running a shell command on the marked files.
+* Shell Command Guessing::    Guessing shell commands for files.
 * Transforming File Names::   Using patterns to rename multiple files.
 * Comparison in Dired::       Running @code{diff} by way of Dired.
 * Subdirectories in Dired::   Adding subdirectories to the Dired buffer.
@@ -1120,6 +1121,109 @@ buffer (@pxref{Dired Updating}).
 
   @xref{Single Shell}, for information about running shell commands
 outside Dired.
+
+@node Shell Command Guessing
+@section Shell Command Guessing
+@cindex guessing shell commands for files (in Dired)
+
+Based upon the name of a file, Dired tries to guess what shell command
+you might want to apply to it.  For example, if you have point on a
+file named @file{foo.tar} and you press @kbd{!}, Dired will guess that
+you want to run @samp{tar xvf}, and suggest that as the default shell
+command.
+
+The default is mentioned in brackets and you can type @kbd{M-n} to get
+the default into the minibuffer for editing.  If there are several
+commands for a given file, e.g., @samp{xtex} and @samp{dvips} for a
+@file{.dvi} file, you can type @kbd{M-n} several times to see each of
+the matching commands.
+
+Dired only tries to guess a command for a single file, never for a
+list of marked files.
+
+The following variables control guessing of shell commands:
+
+@defvar dired-guess-shell-alist-default
+This variable specifies the predefined rules for guessing shell
+commands suitable for certain files.  Set this to @code{nil} to turn
+guessing off.  The elements of @code{dired-guess-shell-alist-user}
+(defined by the user) will override these rules.
+@end defvar
+
+@defvar dired-guess-shell-alist-user
+If non-@code{nil}, this variables specifies the user-defined alist of
+file regexps and their suggested commands.  These rules take
+precedence over the predefined rules in the variable
+@code{dired-guess-shell-alist-default} (to which they are prepended)
+when @code{dired-do-shell-command} is run).  The default is
+@code{nil}.
+
+Each element of the alist looks like
+
+@example
+(@var{regexp} @var{command}@dots{})
+@end example
+
+@noindent
+where each @var{command} can either be a string or a Lisp expression
+that evaluates to a string.  If several commands are given, all of
+them will temporarily be pushed onto the history.
+
+A @samp{*} in the shell command stands for the file name that matched
+@var{regexp}.  When Emacs invokes the @var{command}, it replaces each
+instance of @samp{*} with the matched file name.
+
+You can set this variable in your Init file.  For example, to add
+rules for @samp{.foo} and @samp{.bar} file extensions:
+
+@example
+(setq dired-guess-shell-alist-user
+      (list
+       (list "\\.foo$" "@var{foo-command}")  ; fixed rule
+       ;; possibly more rules...
+       (list "\\.bar$"  ; rule with condition test
+             '(if @var{condition}
+                  "@var{bar-command-1}"
+                "@var{bar-command-2}"))))
+@end example
+
+@noindent
+This will override any predefined rules for the same extensions.
+@end defvar
+
+@defvar dired-guess-shell-case-fold-search
+If this variable is non-@code{nil},
+@code{dired-guess-shell-alist-default} and
+@code{dired-guess-shell-alist-user} are matched case-insensitively.
+The default is @code{t}.
+@end defvar
+
+@defvar dired-guess-shell-gnutar
+If this variable is non-@code{nil}, it specifies the name of the GNU
+Tar executable (e.g., @file{tar} or @file{gtar}).  GNU Tar's @samp{z}
+switch is used for compressed archives.  If you don't have GNU Tar,
+set this to @code{nil}: a pipe using @command{zcat} is then used
+instead.
+@end defvar
+
+@defvar dired-guess-shell-gzip-quiet
+A non-@code{nil} value of this variable means that @samp{-q} is passed
+to @command{gzip}, possibly overriding a verbose option in the
+@env{GZIP} environment variable.  The default is @code{t}.
+@end defvar
+
+@defvar dired-guess-shell-znew-switches nil
+This variable specifies a string of switches passed to @command{znew}.
+An example is @samp{-K} which will make @command{znew} keep a
+@file{.Z} file when it is smaller than the @file{.gz} file.  The
+default is @code{nil}: no additional switches are passed to
+@command{znew}.
+@end defvar
+
+@defvar dired-shell-command-history nil
+This variable holds the history list for commands that read
+dired-shell commands.
+@end defvar
 
 @node Transforming File Names
 @section Transforming File Names in Dired

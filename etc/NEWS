@@ -1159,6 +1159,12 @@ change the input method's translation rules, customize the user option
 
 ** Dired
 
++++
+*** 'dired-guess-shell-command' moved from dired-x to dired.
+This means that 'dired-do-shell-command' will now provide smarter
+defaults without first having to require 'dired-x'.  See the node
+"(emacs) Shell Command Guessing" in the Emacs manual for more details.
+
 ---
 *** 'dired-clean-up-buffers-too' moved from dired-x to dired.
 This means that Dired now offers to kill buffers visiting files and

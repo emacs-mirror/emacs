@@ -154,5 +154,18 @@
     (should (string-match (regexp-quote command) (nth 0 lines)))
     (dired-test--check-highlighting (nth 0 lines) '(8))))
 
+(ert-deftest dired-guess-default ()
+  (let ((dired-guess-shell-alist-user nil)
+        (dired-guess-shell-alist-default
+         '(("\\.png\\'" "display")
+           ("\\.gif\\'" "display" "xloadimage")
+           ("\\.gif\\'" "feh")
+           ("\\.jpe?g\\'" "xloadimage"))))
+    (should (equal (dired-guess-default '("/tmp/foo.png")) "display"))
+    (should (equal (dired-guess-default '("/tmp/foo.gif"))
+                   '("display" "xloadimage" "feh")))
+    (should (equal (dired-guess-default '("/tmp/foo.png" "/tmp/foo.txt"))
+                   nil))))
+
 (provide 'dired-aux-tests)
 ;;; dired-aux-tests.el ends here

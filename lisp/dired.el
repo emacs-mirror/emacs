@@ -53,6 +53,11 @@
   :prefix "dired-"
   :group 'dired)
 
+(defgroup dired-guess nil
+  "Guess shell command in Dired."
+  :prefix "dired-"
+  :group 'dired)
+
 ;;;###autoload
 (defcustom dired-listing-switches (purecopy "-al")
   "Switches passed to `ls' for Dired.  MUST contain the `l' option.
@@ -418,6 +423,72 @@ is anywhere on its Dired line, except the beginning of the line."
   "If non-nil, kill the current buffer when selecting a new directory."
   :type 'boolean
   :version "28.1")
+
+(defcustom dired-guess-shell-case-fold-search t
+  "If non-nil, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are matched case-insensitively."
+  :group 'dired-guess
+  :type 'boolean
+  :version "29.1")
+
+(defcustom dired-guess-shell-alist-user nil
+  "User-defined alist of rules for suggested commands.
+These rules take precedence over the predefined rules in the variable
+`dired-guess-shell-alist-default' (to which they are prepended).
+
+Each element of this list looks like
+
+    (REGEXP COMMAND...)
+
+COMMAND will be used if REGEXP matches the file to be processed.
+If several files are to be processed, REGEXP has to match all the
+files.
+
+Each COMMAND can either be a string or a Lisp expression that evaluates
+to a string.  If this expression needs to consult the name of the file for
+which the shell commands are being requested, it can access that file name
+as the variable `file'.
+
+If several COMMANDs are given, the first one will be the default
+and the rest will be added temporarily to the history and can be retrieved
+with `previous-history-element' (\\<minibuffer-mode-map>\\[previous-history-element]).
+
+The variable `dired-guess-shell-case-fold-search' controls whether
+REGEXP is matched case-sensitively."
+  :group 'dired-guess
+  :type '(alist :key-type regexp :value-type (repeat sexp))
+  :version "29.1")
+
+(defcustom dired-guess-shell-gnutar
+  (catch 'found
+    (dolist (exe '("tar" "gtar"))
+      (if (with-temp-buffer
+            (ignore-errors (call-process exe nil t nil "--version"))
+            (and (re-search-backward "GNU tar" nil t) t))
+          (throw 'found exe))))
+  "If non-nil, name of GNU tar executable.
+\(E.g., \"tar\" or \"gtar\").  The `z' switch will be used with it for
+compressed or gzip'ed tar files.  If you don't have GNU tar, set this
+to nil: a pipe using `zcat' or `gunzip -c' will be used."
+  ;; Changed from system-type test to testing --version output.
+  ;; Maybe test --help for -z instead?
+  :group 'dired-guess
+  :type '(choice (const :tag "Not GNU tar" nil)
+                 (string :tag "Command name"))
+  :version "29.1")
+
+(defcustom dired-guess-shell-gzip-quiet t
+  "Non-nil says pass -q to gzip overriding verbose GZIP environment."
+  :group 'dired-guess
+  :type 'boolean
+  :version "29.1")
+
+(defcustom dired-guess-shell-znew-switches nil
+  "If non-nil, then string of switches passed to `znew', example: \"-K\"."
+  :group 'dired-guess
+  :type '(choice (const :tag "None" nil)
+                 (string :tag "Switches"))
+  :version "29.1")
 
 
 ;;; Internal variables
