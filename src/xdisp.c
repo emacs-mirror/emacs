@@ -19589,7 +19589,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
     {
       ptrdiff_t cur, next, found, max = 0, threshold;
       threshold = XFIXNUM (Vlong_line_threshold);
-      for (cur = BEG; cur < Z; cur = next)
+      for (cur = BEGV; cur < ZV; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur), 0, -1, 1,
 				&found, NULL, true);
