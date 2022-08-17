@@ -4040,6 +4040,8 @@ types.  */)
   if (!NILP (XCDR (Fall_threads ())))
     error ("No other Lisp threads can be running when this function is called");
 
+  check_pure_size ();
+
   /* Clear out any detritus in memory.  */
   do
     {
