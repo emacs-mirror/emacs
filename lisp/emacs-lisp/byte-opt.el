@@ -1317,9 +1317,6 @@ See Info node `(elisp) Integer Basics'."
       (list 'progn condition nil)))))
 
 (defun byte-optimize-while (form)
-  ;; FIXME: This check does not belong here, move!
-  (when (< (length form) 2)
-    (byte-compile-warn-x form "too few arguments for `while'"))
   (let ((condition (nth 1 form)))
     (if (byte-compile-nilconstp condition)
         condition

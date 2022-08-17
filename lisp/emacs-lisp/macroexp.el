@@ -371,6 +371,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
+            (`(while)
+             (macroexp-warn-and-return
+              "missing `while' condition"
+              `(signal 'wrong-number-of-arguments '(while 0))
+              nil 'compile-only form))
             (`(setq ,(and var (pred symbolp)
                           (pred (not booleanp)) (pred (not keywordp)))
                     ,expr)
