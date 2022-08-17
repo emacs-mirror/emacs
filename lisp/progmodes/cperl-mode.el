@@ -1118,8 +1118,7 @@ Unless KEEP, removes the old indentation."
               (get-text-property (point) 'syntax-type))
             '(here-doc pod))]
      "----"
-     ["CPerl pretty print (experimental)" cperl-ps-print
-      (fboundp 'ps-extend-face-list)]
+     ["CPerl pretty print (experimental)" cperl-ps-print]
      "----"
      ["Syntaxify region" cperl-find-pods-heres-region
       (use-region-p)]
@@ -1153,6 +1152,8 @@ Unless KEEP, removes the old indentation."
        (cperl-write-tags nil nil t t) t]))
     ("Perl docs"
      ["Define word at point" imenu-go-find-at-position
+      ;; This is from imenu-go.el.  I can't find it on any ELPA
+      ;; archive, so I'm not sure if it's still in use or not.
       (fboundp 'imenu-go-find-at-position)]
      ["Help on function" cperl-info-on-command t]
      ["Help on function at point" cperl-info-on-current-command t]
@@ -6030,7 +6031,7 @@ default function."
 		cperl-font-lock-keywords-2 (append
 					   t-font-lock-keywords-1
 					   cperl-font-lock-keywords-1)))
-	(if (fboundp 'ps-print-buffer) (cperl-ps-print-init))
+        (cperl-ps-print-init)
 	(setq cperl-faces-init t))
     (error (message "cperl-init-faces (ignored): %s" errs))))
 
