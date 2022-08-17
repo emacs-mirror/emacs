@@ -794,15 +794,16 @@ right side of it."
 	       `(c-safe (scan-lists ,from ,count ,depth)))))
     (if limit
 	`(save-restriction
-	   (when ,limit
-	     ,(if (numberp count)
-		  (if (< count 0)
-		      `(narrow-to-region ,limit (point-max))
-		    `(narrow-to-region (point-min) ,limit))
-		`(if (< ,count 0)
-		     (narrow-to-region ,limit (point-max))
-		   (narrow-to-region (point-min) ,limit))))
-	   ,res)
+	   (let ((-limit- ,limit))
+	     (when -limit-
+	       ,(if (numberp count)
+		    (if (< count 0)
+			`(narrow-to-region -limit- (point-max))
+		      `(narrow-to-region (point-min) -limit-))
+		  `(if (< ,count 0)
+		       (narrow-to-region -limit- (point-max))
+		     (narrow-to-region (point-min) -limit-))))
+	     ,res))
       res)))
 
 
