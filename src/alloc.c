@@ -5355,9 +5355,6 @@ pure_alloc (size_t size, int type)
   goto again;
 }
 
-
-#ifdef HAVE_UNEXEC
-
 /* Print a warning if PURESIZE is too small.  */
 
 void
@@ -5368,8 +5365,6 @@ check_pure_size (void)
 	      " bytes needed)"),
 	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
-#endif
-
 
 /* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
    the non-Lisp data pool of the pure storage, and return its start
