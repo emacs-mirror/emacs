@@ -28,21 +28,14 @@
 
 ;;; Commentary:
 
-;; This version of the file contains support for the syntax added by
-;; the MooseX::Declare CPAN module, as well as Perl 5.10 keyword
-;; support.
-
 ;; You can either fine-tune the bells and whistles of this mode or
-;; bulk enable them by putting
+;; bulk enable them by putting this in your Init file:
 
-;; (setq cperl-hairy t)
-
-;; in your .emacs file.  (Emacs rulers do not consider it politically
-;; correct to make whistles enabled by default.)
+;;     (setq cperl-hairy t)
 
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
-;; or as help on variables `cperl-tips', `cperl-problems',         <<<<<<
-;; `cperl-praise', `cperl-speed'.				   <<<<<<
+;; or as help on variables `cperl-tips', `cperl-praise',           <<<<<<
+;; `cperl-speed'.                                                  <<<<<<
 ;;
 ;; Or search for "Short extra-docs" further down in this file for
 ;; details on how to use `cperl-mode' instead of `perl-mode' and lots
@@ -50,19 +43,18 @@
 
 ;; The mode information (on C-h m) provides some customization help.
 
-;; Faces used now: three faces for first-class and second-class keywords
+;; Faces used: three faces for first-class and second-class keywords
 ;; and control flow words, one for each: comments, string, labels,
 ;; functions definitions and packages, arrays, hashes, and variable
-;; definitions.  If you do not see all these faces, your font-lock does
-;; not define them, so you need to define them manually.
+;; definitions.
 
-;; This mode supports font-lock, imenu and mode-compile.  In the
-;; hairy version font-lock is on, but you should activate imenu
-;; yourself (note that mode-compile is not standard yet).  Well, you
-;; can use imenu from keyboard anyway (M-g i), but it is better
-;; to bind it like that:
+;; This mode supports imenu.  You can use imenu from the keyboard
+;; (M-g i), but you might prefer binding it like this:
+;;
+;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
 
-;; (define-key global-map [M-S-down-mouse-3] 'imenu)
+;; This version supports the syntax added by the MooseX::Declare CPAN
+;; module, as well as Perl 5.10 keyword support.
 
 ;;; Code:
 
