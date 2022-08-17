@@ -22653,13 +22653,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		      if (info)
 			{
-			  if (device && info->enabled)
+			  if (device)
 			    {
 			      device->use = info->use;
 			      device->attachment = info->attachment;
 			    }
-			  else if (device)
-			    disabled[n_disabled++] = hev->info[i].deviceid;
+
+			  /* device could have been disabled by now.
+			     But instead of removing it immediately,
+			     wait for XIDeviceDisabled, or internal
+			     state could be left inconsistent.  */
 
 			  XIFreeDeviceInfo (info);
 			}
