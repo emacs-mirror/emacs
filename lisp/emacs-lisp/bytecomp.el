@@ -1161,7 +1161,7 @@ message buffer `default-directory'."
 
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
-  (with-current-buffer byte-compile-log-buffer
+  (with-current-buffer (get-buffer-create byte-compile-log-buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
       (byte-compile-warning-prefix nil nil)
