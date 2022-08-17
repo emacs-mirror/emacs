@@ -14808,7 +14808,7 @@ symbols in one function definition."
         (setq lengths-list
               (cons (count-words-in-defun) lengths-list)))
       (kill-buffer buffer)
-      lengths-list))))
+      lengths-list)))
 @end group
 @end smallexample
 
