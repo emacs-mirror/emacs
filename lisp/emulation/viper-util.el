@@ -1020,7 +1020,6 @@ Otherwise return the normal value."
 	 (string-to-char (symbol-name key)))
 	((and (listp key)
 	      (eq (car key) 'control)
-	      (symbol-name (nth 1 key))
 	      (= 1 (length (symbol-name (nth 1 key)))))
 	 (read (format "?\\C-%s" (symbol-name (nth 1 key)))))
 	(t key)))
