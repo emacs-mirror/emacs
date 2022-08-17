@@ -359,6 +359,7 @@
   "Python mode specialized rx macro.
 This variant of `rx' supports common Python named REGEXPS."
   `(rx-let ((sp-bsnl (or space (and ?\\ ?\n)))
+            (sp-nl (or space (and (? ?\\) ?\n)))
             (block-start       (seq symbol-start
                                     (or "def" "class" "if" "elif" "else" "try"
                                         "except" "finally" "for" "while" "with"
@@ -583,9 +584,9 @@ the {...} holes that appear within f-strings."
              finally return (and result-valid result))))
 
 (defvar python-font-lock-keywords-level-1
-  `((,(python-rx symbol-start "def" (1+ space) (group symbol-name))
+  `((,(python-rx symbol-start "def" (1+ sp-bsnl) (group symbol-name))
      (1 font-lock-function-name-face))
-    (,(python-rx symbol-start "class" (1+ space) (group symbol-name))
+    (,(python-rx symbol-start "class" (1+ sp-bsnl) (group symbol-name))
      (1 font-lock-type-face)))
   "Font lock keywords to use in `python-mode' for level 1 decoration.
 
@@ -725,12 +726,12 @@ sign in chained assignment."
     ;;   [*a] = 5, 6
     ;; are handled separately below
     (,(python-font-lock-assignment-matcher
-        (python-rx (? (or "[" "(") (* space))
-                   grouped-assignment-target (* space) ?, (* space)
-                   (* assignment-target (* space) ?, (* space))
-                   (? assignment-target (* space))
-                   (? ?, (* space))
-                   (? (or ")" "]") (* space))
+        (python-rx (? (or "[" "(") (* sp-nl))
+                   grouped-assignment-target (* sp-nl) ?, (* sp-nl)
+                   (* assignment-target (* sp-nl) ?, (* sp-nl))
+                   (? assignment-target (* sp-nl))
+                   (? ?, (* sp-nl))
+                   (? (or ")" "]") (* sp-bsnl))
                    (group assignment-operator)))
      (1 font-lock-variable-name-face)
      (,(python-rx grouped-assignment-target)
@@ -745,19 +746,20 @@ sign in chained assignment."
     ;;   c: Collection = {1, 2, 3}
     ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
     (,(python-font-lock-assignment-matcher
-        (python-rx grouped-assignment-target (* space)
-                   (? ?: (* space) (+ not-simple-operator) (* space))
-                   assignment-operator))
+       (python-rx (or line-start ?\;) (* sp-bsnl)
+                  grouped-assignment-target (* sp-bsnl)
+                  (? ?: (* sp-bsnl) (+ not-simple-operator) (* sp-bsnl))
+                  assignment-operator))
      (1 font-lock-variable-name-face))
     ;; special cases
     ;;   (a) = 5
     ;;   [a] = 5,
     ;;   [*a] = 5, 6
     (,(python-font-lock-assignment-matcher
-       (python-rx (or line-start ?\; ?=) (* space)
-                  (or "[" "(") (* space)
-                  grouped-assignment-target (* space)
-                  (or ")" "]") (* space)
+       (python-rx (or line-start ?\; ?=) (* sp-bsnl)
+                  (or "[" "(") (* sp-nl)
+                  grouped-assignment-target (* sp-nl)
+                  (or ")" "]") (* sp-bsnl)
                   assignment-operator))
      (1 font-lock-variable-name-face))
     ;; escape sequences within bytes literals
@@ -795,6 +797,18 @@ decorators, exceptions, and assignments.")
 
 Which one will be chosen depends on the value of
 `font-lock-maximum-decoration'.")
+
+(defun python-font-lock-extend-region (beg end _old-len)
+  "Extend font-lock region given by BEG and END to statement boundaries."
+  (save-excursion
+    (save-match-data
+      (goto-char beg)
+      (python-nav-beginning-of-statement)
+      (setq beg (point))
+      (goto-char end)
+      (python-nav-end-of-statement)
+      (setq end (point))
+      (cons beg end))))
 
 
 (defconst python-syntax-propertize-function
@@ -5780,7 +5794,9 @@ REPORT-FN is Flymake's callback function."
               `(,python-font-lock-keywords
                 nil nil nil nil
                 (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)))
+                 . python-font-lock-syntactic-face-function)
+                (font-lock-extend-after-change-region-function
+                 . python-font-lock-extend-region)))
 
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)

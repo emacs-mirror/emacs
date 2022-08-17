@@ -108,6 +108,20 @@ STRING, it is skipped so the next STRING occurrence is selected."
            while pos
            collect (cons pos (get-text-property pos 'face))))
 
+(defun python-tests-assert-faces-after-change (content faces search replace)
+  "Assert that font faces for CONTENT are equal to FACES after change.
+All occurrences of SEARCH are changed to REPLACE."
+  (python-tests-with-temp-buffer
+   content
+   ;; Force enable font-lock mode without jit-lock.
+   (rename-buffer "*python-font-lock-test*" t)
+   (let (noninteractive font-lock-support-mode)
+     (font-lock-mode))
+   (while
+       (re-search-forward search nil t)
+     (replace-match replace))
+   (should (equal faces (python-tests-get-buffer-faces)))))
+
 (defun python-tests-self-insert (char-or-str)
   "Call `self-insert-command' for chars in CHAR-OR-STR."
   (let ((chars
@@ -225,6 +239,13 @@ aliqua."
   (python-tests-assert-faces
    "def 1func():"
    '((1 . font-lock-keyword-face) (4))))
+
+(ert-deftest python-font-lock-keywords-level-1-3 ()
+  (python-tests-assert-faces
+   "def \\
+        func():"
+   '((1 . font-lock-keyword-face) (4)
+     (15 . font-lock-function-name-face) (19))))
 
 (ert-deftest python-font-lock-assignment-statement-1 ()
   (python-tests-assert-faces
@@ -379,6 +400,98 @@ def f(x: CustomInt) -> CustomInt:
      (111 . font-lock-variable-name-face) (114)
      (128 . font-lock-builtin-face) (131)
      (144 . font-lock-keyword-face) (150))))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-1 ()
+  (python-tests-assert-faces-after-change
+   "
+[
+    a,
+    b
+] # (
+    1,
+    2
+)
+"
+   '((1)
+     (8 . font-lock-variable-name-face) (9)
+     (15 . font-lock-variable-name-face) (16))
+   "#" "="))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-2 ()
+  (python-tests-assert-faces-after-change
+   "
+[
+    *a
+] # 5, 6
+"
+   '((1)
+     (9 . font-lock-variable-name-face) (10))
+   "#" "="))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-3 ()
+  (python-tests-assert-faces-after-change
+   "a\\
+    ,\\
+    b\\
+    ,\\
+    c\\
+    #\\
+    1\\
+    ,\\
+    2\\
+    ,\\
+    3"
+   '((1 . font-lock-variable-name-face) (2)
+     (15 . font-lock-variable-name-face) (16)
+     (29 . font-lock-variable-name-face) (30))
+   "#" "="))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-4 ()
+  (python-tests-assert-faces-after-change
+   "a\\
+    :\\
+    int\\
+    #\\
+    5"
+   '((1 . font-lock-variable-name-face) (2)
+     (15 . font-lock-builtin-face) (18))
+   "#" "="))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-5 ()
+  (python-tests-assert-faces-after-change
+   "(\\
+    a\\
+)\\
+    #\\
+    5\\
+    ;\\
+    (\\
+    b\\
+    )\\
+    #\\
+    6"
+   '((1)
+     (8 . font-lock-variable-name-face) (9)
+     (46 . font-lock-variable-name-face) (47))
+   "#" "="))
+
+(ert-deftest python-font-lock-assignment-statement-multiline-6 ()
+  (python-tests-assert-faces-after-change
+   "(
+    a
+)\\
+    #\\
+    5\\
+    ;\\
+    (
+    b
+    )\\
+    #\\
+    6"
+   '((1)
+     (7 . font-lock-variable-name-face) (8)
+     (43 . font-lock-variable-name-face) (44))
+   "#" "="))
 
 (ert-deftest python-font-lock-escape-sequence-string-newline ()
   (python-tests-assert-faces
