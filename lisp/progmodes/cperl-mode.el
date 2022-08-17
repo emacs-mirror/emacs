@@ -878,8 +878,9 @@ In regular expressions (including character classes):
 (and (vectorp cperl-del-back-ch) (= (length cperl-del-back-ch) 1)
      (setq cperl-del-back-ch (aref cperl-del-back-ch 0)))
 
-(defun cperl-putback-char (c)		; Emacs 19
-  (push c unread-command-events))       ; Avoid undefined warning
+(defun cperl-putback-char (c)
+  (declare (obsolete nil "29.1"))
+  (push c unread-command-events))
 
 (defsubst cperl-put-do-not-fontify (from to &optional post)
   ;; If POST, do not do it with postponed fontification
@@ -2143,7 +2144,7 @@ to nil."
 		   (delete-char -1)
 		   (delete-char 1))))
 	   (if delete
-	       (cperl-putback-char cperl-del-back-ch))
+               (push cperl-del-back-ch unread-command-events))
 	   (if cperl-message-electric-keyword
 	       (message "Precede char by C-q to avoid expansion"))))))
 
@@ -2217,7 +2218,7 @@ to nil."
 		 (end-of-line)
 		 (setq really-delete t)))
 	   (if (and delete really-delete)
-	       (cperl-putback-char cperl-del-back-ch))))))
+               (push cperl-del-back-ch unread-command-events))))))
 
 (defun cperl-electric-else ()
   "Insert a construction appropriate after a keyword.
@@ -2254,7 +2255,7 @@ to nil."
 	   (cperl-indent-line)
 	   (forward-line -1)
 	   (cperl-indent-line)
-	   (cperl-putback-char cperl-del-back-ch)
+           (push cperl-del-back-ch unread-command-events)
 	   (setq this-command 'cperl-electric-else)
 	   (if cperl-message-electric-keyword
 	       (message "Precede char by C-q to avoid expansion"))))))
