@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1131,15 +1131,6 @@ Unless KEEP, removes the old indentation."
      ["Class Hierarchy from TAGS" cperl-tags-hier-init t]
      ;;["Update classes" (cperl-tags-hier-init t) tags-table-list]
      ("Tags"
-      ;; ["Create tags for current file" cperl-etags t]
-      ;; ["Add tags for current file" (cperl-etags t) t]
-      ;; ["Create tags for Perl files in directory" (cperl-etags nil t) t]
-      ;; ["Add tags for Perl files in directory" (cperl-etags t t) t]
-      ;; ["Create tags for Perl files in (sub)directories"
-      ;;  (cperl-etags nil 'recursive) t]
-      ;; ["Add tags for Perl files in (sub)directories"
-      ;;  (cperl-etags t 'recursive) t])
-      ;; ;;? cperl-write-tags (&optional file erase recurse dir inbuffer)
       ["Create tags for current file" (cperl-write-tags nil t) t]
       ["Add tags for current file" (cperl-write-tags) t]
       ["Create tags for Perl files in directory"
@@ -1888,25 +1879,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 	  (setq cperl-wrong-comment t)
 	  (cperl-make-indent comment-column 1) ; Indent min 1
 	  c)))))
-
-;;(defun cperl-comment-indent-fallback ()
-;;  "Is called if the standard comment-search procedure fails.
-;;Point is at start of real comment."
-;;  (let ((c (current-column)) target cnt prevc)
-;;    (if (= c comment-column) nil
-;;      (setq cnt (skip-chars-backward " \t"))
-;;      (setq target (max (1+ (setq prevc
-;;			     (current-column))) ; Else indent at comment column
-;;		   comment-column))
-;;      (if (= c comment-column) nil
-;;	(delete-backward-char cnt)
-;;	(while (< prevc target)
-;;	  (insert "\t")
-;;	  (setq prevc (current-column)))
-;;	(if (> prevc target) (progn (delete-char -1) (setq prevc (current-column))))
-;;	(while (< prevc target)
-;;	  (insert " ")
-;;	  (setq prevc (current-column)))))))
 
 (defun cperl-indent-for-comment ()
   "Substitute for `indent-for-comment' in CPerl."
@@ -7156,13 +7128,6 @@ One may build such TAGS files from CPerl mode menu."
 	      (nreverse
 	       (sort root-packages (default-value 'imenu-sort-function)))
 	    root-packages))))
-
-;;(x-popup-menu t
-;;   '(keymap "Name1"
-;;	    ("Ret1" "aa")
-;;	    ("Head1" "ab"
-;;	     keymap "Name2"
-;;	     ("Tail1" "x") ("Tail2" "y"))))
 
 (defun cperl-list-fold (list name limit)
   (let (list1 list2 elt1 (num 0))
