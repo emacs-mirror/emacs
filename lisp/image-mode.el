@@ -23,10 +23,14 @@
 
 ;;; Commentary:
 
-;; Defines a major mode for visiting image files
-;; that allows conversion between viewing the text of the file,
-;; hex of the file and viewing the file as an image.  Viewing the image
-;; works by putting a `display' text-property on the
+;; Defines `image-mode', a major mode for visiting image files.  Displaying
+;; images only works if Emacs was built with support for displaying
+;; such images.  See Info node `(emacs) Image Mode' for more
+;; information.
+;;
+;; There is support for switching between viewing the text of the
+;; file, the hex of the file and viewing the file as an image.
+;; Viewing the image works by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
 ;; the image data to the new file.
@@ -789,13 +793,9 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
-  ;; Turn on hexl-mode
   (hexl-mode)
-  (message (substitute-command-keys
-            "Type \\[image-toggle-hex-display] or \
-\\[image-toggle-display] to view the image as %s")
-           (if (image-get-display-property)
-               "hex" "an image or text")))
+  (message "%s" (substitute-command-keys
+                 "Type \\[hexl-mode-exit] to view the image as an image")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
