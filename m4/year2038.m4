@@ -1,4 +1,4 @@
-# year2038.m4 serial 7
+# year2038.m4 serial 8
 dnl Copyright (C) 2017-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -6,6 +6,12 @@ dnl with or without modifications, as long as this notice is preserved.
 
 dnl Attempt to ensure that 'time_t' can go past the year 2038 and that
 dnl the functions 'time', 'stat', etc. work with post-2038 timestamps.
+
+m4_ifdef([AC_SYS_YEAR2038], [
+  AC_DEFUN([gl_YEAR2038_EARLY])
+  AC_DEFUN([gl_YEAR2038], [AC_SYS_YEAR2038])
+  AC_DEFUN([gl_YEAR2038_BODY], [_AC_SYS_YEAR2038])
+], [
 
 AC_DEFUN([gl_YEAR2038_EARLY],
 [
@@ -122,3 +128,5 @@ AC_DEFUN([gl_YEAR2038],
 [
   gl_YEAR2038_BODY([require-year2038-safe])
 ])
+
+]) # m4_ifndef AC_SYS_YEAR2038
