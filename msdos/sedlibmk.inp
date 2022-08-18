@@ -333,6 +333,7 @@ s/@PACKAGE@/emacs/
 /^LIMITS_H *=/s/@[^@\n]*@/limits.h/
 /^IEEE754_H *=/s/@[^@\n]*@/ieee754.h/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
+/^STDCKDINT_H *=/s/@[^@\n]*@/stdckdint.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
 /^SYS_TIME_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
@@ -424,6 +425,7 @@ s/= @GL_GENERATE_LIMITS_H_CONDITION@/= /
 s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDCKDINT_H_CONDITION@/= 1/
 s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
 s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
 s/\$\(MKDIR_P\) malloc//
