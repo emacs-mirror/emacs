@@ -37,9 +37,9 @@
 
 (require 'cl-lib)
 
-(defconst comp--typeof-types (mapcar (lambda (x)
-                                       (append x '(t)))
-                                     cl--typeof-types)
+(defconst comp--typeof-builtin-types (mapcar (lambda (x)
+                                               (append x '(t)))
+                                             cl--typeof-types)
   ;; TODO can we just add t in `cl--typeof-types'?
   "Like `cl--typeof-types' but with t as common supertype.")
 
@@ -230,7 +230,7 @@ Return them as multiple value."
   (cl-loop
    named outer
    with found = nil
-   for l in comp--typeof-types
+   for l in comp--typeof-builtin-types
    do (cl-loop
        for x in l
        for i from (length l) downto 0
@@ -273,7 +273,7 @@ Return them as multiple value."
                (cl-loop
                 with types = (apply #'append typesets)
                 with res = '()
-                for lane in comp--typeof-types
+                for lane in comp--typeof-builtin-types
                 do (cl-loop
                     with last = nil
                     for x in lane
