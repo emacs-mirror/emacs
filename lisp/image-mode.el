@@ -1554,14 +1554,14 @@ The percentage is in relation to the original size of the image."
 
 (defun image-transform-fit-to-height ()
   "Fit the current image to the height of the current window."
-  (declare (obsolete nil "29.1"))
+  (declare (obsolete image-transform-fit-to-window "29.1"))
   (interactive nil image-mode)
   (setq image-transform-resize 'fit-height)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-width ()
   "Fit the current image to the width of the current window."
-  (declare (obsolete nil "29.1"))
+  (declare (obsolete image-transform-fit-to-window "29.1"))
   (interactive nil image-mode)
   (setq image-transform-resize 'fit-width)
   (image-toggle-display-image))
