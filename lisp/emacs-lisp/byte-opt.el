@@ -753,22 +753,41 @@ for speeding up processing.")
                  ((memq head
                         ;; FIXME: Replace this list with a function property?
                         '( length safe-length cons lambda
-                           string make-string format concat
+                           string unibyte-string make-string concat
+                           format format-message
                            substring substring-no-properties string-replace
                            replace-regexp-in-string symbol-name make-symbol
+                           compare-strings
                            mapconcat
                            vector make-vector vconcat make-record record
                            regexp-quote regexp-opt
                            buffer-string buffer-substring
                            buffer-substring-no-properties
                            current-buffer buffer-size
-                           point point-min point-max
+                           point point-min point-max buffer-end count-lines
                            following-char preceding-char max-char
-                           + - * / % 1+ 1- min max abs
-                           logand logior lorxor lognot ash
+                           region-beginning region-end
+                           line-beginning-position line-end-position
+                           + - * / % 1+ 1- min max abs mod expt logb
+                           logand logior logxor lognot ash logcount
+                           floor ceiling round truncate
+                           sqrt sin cos tan asin acos atan exp log copysign
+                           ffloor fceiling fround ftruncate float
+                           ldexp frexp
                            number-to-string string-to-number
-                           int-to-string char-to-string prin1-to-string
+                           int-to-string char-to-string
+                           prin1-to-string read-from-string
                            byte-to-string string-to-vector string-to-char
+                           capitalize upcase downcase
+                           propertize
+                           string-as-multibyte string-as-unibyte
+                           string-to-multibyte string-to-unibyte
+                           string-make-multibyte string-make-unibyte
+                           make-hash-table hash-table-count
+                           unibyte-char-to-multibyte multibyte-char-to-unibyte
+                           sxhash sxhash-equal sxhash-eq sxhash-eql
+                           sxhash-equal-including-properties
+                           make-marker copy-marker point-marker mark-marker
                            always))
                   t)
                  ((eq head 'if)
