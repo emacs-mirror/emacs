@@ -24,9 +24,9 @@
 ;;; Commentary:
 
 ;; Defines `image-mode', a major mode for visiting image files.  Displaying
-;; images only works only if Emacs was built with support for
-;; displaying such images.  See Info node `(emacs) Image Mode' for
-;; more information.
+;; images only works if Emacs was built with support for displaying
+;; such images.  See Info node `(emacs) Image Mode' for more
+;; information.
 ;;
 ;; There is support for switching between viewing the text of the
 ;; file, the hex of the file and viewing the file as an image.
