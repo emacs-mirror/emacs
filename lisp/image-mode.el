@@ -23,10 +23,14 @@
 
 ;;; Commentary:
 
-;; Defines a major mode for visiting image files
-;; that allows conversion between viewing the text of the file,
-;; hex of the file and viewing the file as an image.  Viewing the image
-;; works by putting a `display' text-property on the
+;; Defines `image-mode', a major mode for visiting image files.  Displaying
+;; images only works only if Emacs was built with support for
+;; displaying such images.  See Info node `(emacs) Image Mode' for
+;; more information.
+;;
+;; There is support for switching between viewing the text of the
+;; file, the hex of the file and viewing the file as an image.
+;; Viewing the image works by putting a `display' text-property on the
 ;; image data, with the image-data still present underneath; if the
 ;; resulting buffer file is saved to another name it will correctly save
 ;; the image data to the new file.
