@@ -242,7 +242,7 @@ image."
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
 Stop if the right edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   (cond ((= n 0) nil)
 	((< n 0)
 	 (image-set-window-hscroll (max 0 (+ (window-hscroll) n))))
@@ -257,13 +257,13 @@ Stop if the right edge of the image is reached."
 (defun image-backward-hscroll (&optional n)
   "Scroll image in current window to the right by N character widths.
 Stop if the left edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   (image-forward-hscroll (- n)))
 
 (defun image-next-line (n)
   "Scroll image in current window upward by N lines.
 Stop if the bottom edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   ;; Convert N to pixels.
   (setq n (* n (frame-char-height)))
   (cond ((= n 0) nil)
@@ -280,7 +280,7 @@ Stop if the bottom edge of the image is reached."
 (defun image-previous-line (&optional n)
   "Scroll image in current window downward by N lines.
 Stop if the top edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   (image-next-line (- n)))
 
 (defun image-scroll-up (&optional n)
@@ -298,7 +298,7 @@ A negative N means scroll downward.
 
 If N is the atom `-', scroll downward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
-  (interactive "P")
+  (interactive "P" image-mode)
   (cond ((null n)
 	 (let* ((edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges))))
@@ -326,7 +326,7 @@ A negative N means scroll upward.
 
 If N is the atom `-', scroll upward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
-  (interactive "P")
+  (interactive "P" image-mode)
   (cond ((null n)
 	 (let* ((edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges))))
@@ -347,7 +347,7 @@ A near full screen is 2 columns less than a full screen.
 Negative ARG means scroll rightward.
 If ARG is the atom `-', scroll rightward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
-  (interactive "P")
+  (interactive "P" image-mode)
   (cond ((null n)
 	 (let* ((edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges))))
@@ -368,7 +368,7 @@ A near full screen is 2 less than a full screen.
 Negative ARG means scroll leftward.
 If ARG is the atom `-', scroll leftward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'."
-  (interactive "P")
+  (interactive "P" image-mode)
   (cond ((null n)
 	 (let* ((edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges))))
@@ -385,7 +385,7 @@ When calling from a program, supply as argument a number, nil, or `-'."
   "Scroll horizontally to the left edge of the image in the current window.
 With argument ARG not nil or 1, move forward ARG - 1 lines first,
 stopping if the top or bottom edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   (and arg
        (/= (setq arg (prefix-numeric-value arg)) 1)
        (image-next-line (- arg 1)))
@@ -395,7 +395,7 @@ stopping if the top or bottom edge of the image is reached."
   "Scroll horizontally to the right edge of the image in the current window.
 With argument ARG not nil or 1, move forward ARG - 1 lines first,
 stopping if the top or bottom edge of the image is reached."
-  (interactive "p")
+  (interactive "p" image-mode)
   (and arg
        (/= (setq arg (prefix-numeric-value arg)) 1)
        (image-next-line (- arg 1)))
@@ -407,13 +407,13 @@ stopping if the top or bottom edge of the image is reached."
 
 (defun image-bob ()
   "Scroll to the top-left corner of the image in the current window."
-  (interactive)
+  (interactive nil image-mode)
   (image-set-window-hscroll 0)
   (image-set-window-vscroll 0))
 
 (defun image-eob ()
   "Scroll to the bottom-right corner of the image in the current window."
-  (interactive)
+  (interactive nil image-mode)
   (let* ((image (image-get-display-property))
 	 (edges (window-inside-edges))
 	 (pixel-edges (window-edges nil t t))
@@ -435,7 +435,7 @@ If called interactively, or if TOGGLE is non-nil, toggle between
 fitting FRAME to the current image and restoring the size and
 window configuration prior to the last `image-mode-fit-frame'
 call."
-  (interactive (list nil t))
+  (interactive (list nil t) image-mode)
   (let* ((buffer (current-buffer))
 	 (saved (frame-parameter frame 'image-mode-saved-params))
 	 (window-configuration (current-window-configuration frame))
@@ -1014,7 +1014,7 @@ Otherwise, display the image by calling `image-mode'."
 
 (defun image-kill-buffer ()
   "Kill the current buffer."
-  (interactive)
+  (interactive nil image-mode)
   (kill-buffer (current-buffer)))
 
 (defun image-after-revert-hook ()
@@ -1195,7 +1195,7 @@ current one, in cyclic alphabetical order.
 
 This command visits the specified file via `find-alternate-file',
 replacing the current Image mode buffer."
-  (interactive "p")
+  (interactive "p" image-mode)
   (unless (derived-mode-p 'image-mode)
     (error "The buffer is not in Image mode"))
   (unless buffer-file-name
@@ -1292,12 +1292,12 @@ current one, in cyclic alphabetical order.
 
 This command visits the specified file via `find-alternate-file',
 replacing the current Image mode buffer."
-  (interactive "p")
+  (interactive "p" image-mode)
   (image-next-file (- n)))
 
 (defun image-mode-copy-file-name-as-kill ()
   "Push the currently visited file name onto the kill ring."
-  (interactive)
+  (interactive nil image-mode)
   (unless buffer-file-name
     (error "The current buffer doesn't visit a file"))
   (kill-new buffer-file-name)
@@ -1309,7 +1309,7 @@ Any dired buffer that's opened to the current file's directory
 will have the line where the image appears (if any) marked.
 
 If no such buffer exists, it will be opened."
-  (interactive)
+  (interactive nil image-mode)
   (unless buffer-file-name
     (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
@@ -1321,7 +1321,7 @@ will remove the mark from the line where the image appears (if
 any).
 
 If no such buffer exists, it will be opened."
-  (interactive)
+  (interactive nil image-mode)
   (unless buffer-file-name
     (error "Current buffer is not visiting a file"))
   (image-mode--mark-file buffer-file-name #'dired-unmark "unmarked"))
@@ -1539,7 +1539,8 @@ return value is suitable for appending to an image spec."
   "Prompt for a percentage, and resize the current image to that size.
 The percentage is in relation to the original size of the image."
   (interactive (list (read-number "Scale (% of original): " 100
-                                  'read-number-history)))
+                                  'read-number-history))
+               image-mode)
   (unless (cl-plusp scale)
     (error "Not a positive number: %s" scale))
   (setq image-transform-resize (/ scale 100.0))
@@ -1547,59 +1548,60 @@ The percentage is in relation to the original size of the image."
 
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount."
-  (interactive "nScale: ")
+  (interactive "nScale: " image-mode)
   (setq image-transform-resize scale)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-height ()
   "Fit the current image to the height of the current window."
   (declare (obsolete nil "29.1"))
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize 'fit-height)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-width ()
   "Fit the current image to the width of the current window."
   (declare (obsolete nil "29.1"))
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize 'fit-width)
   (image-toggle-display-image))
 
 (defun image-transform-fit-both ()
   "Scale the current image down to fit in the current window."
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize t)
   (image-toggle-display-image))
 
 (defun image-transform-fit-to-window ()
   "Fit the current image to the height and width of the current window."
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize 'fit-window)
   (image-toggle-display-image))
 
 (defun image-transform-set-rotation (rotation)
   "Prompt for an angle ROTATION, and rotate the image by that amount.
 ROTATION should be in degrees."
-  (interactive "nRotation angle (in degrees): ")
+  (interactive "nRotation angle (in degrees): " image-mode)
   (setq image-transform-rotation (float (mod rotation 360)))
   (image-toggle-display-image))
 
 (defun image-transform-set-smoothing (smoothing)
   (interactive (list (completing-read "Smoothing: "
-                                      '("none" "smooth") nil t)))
+                                      '("none" "smooth") nil t))
+               image-mode)
   (setq image--transform-smoothing smoothing)
   (image-toggle-display-image))
 
 (defun image-transform-original ()
   "Display the current image with the original (actual) size and rotation."
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize nil
 	image-transform-scale 1)
   (image-toggle-display-image))
 
 (defun image-transform-reset ()
   "Display the current image with the default (initial) size and rotation."
-  (interactive)
+  (interactive nil image-mode)
   (setq image-transform-resize image-auto-resize
 	image-transform-rotation 0.0
 	image-transform-scale 1
