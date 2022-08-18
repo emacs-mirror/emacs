@@ -3269,81 +3269,84 @@ implementation will be used."
 (defun tramp-sh-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
   (tramp-skeleton-file-local-copy filename
-    (if-let ((size (file-attribute-size (file-attributes filename)))
-	     (rem-enc (tramp-get-inline-coding v "remote-encoding" size))
-	     (loc-dec (tramp-get-inline-coding v "local-decoding" size)))
+    (if-let ((size (file-attribute-size (file-attributes filename))))
+	(let (rem-enc loc-dec)
 
-      (condition-case err
-	  (cond
-	   ;; Empty file.
-	   ((zerop size))
+	  (condition-case err
+	      (cond
+	       ;; Empty file.  Nothing to copy.
+	       ((zerop size))
 
-	   ;; `copy-file' handles direct copy and out-of-band methods.
-	   ((or (tramp-local-host-p v)
-		(tramp-method-out-of-band-p v size))
-	    (copy-file filename tmpfile 'ok-if-already-exists 'keep-time))
+	       ;; `copy-file' handles direct copy and out-of-band methods.
+	       ((or (tramp-local-host-p v)
+		    (tramp-method-out-of-band-p v size))
+		(copy-file filename tmpfile 'ok-if-already-exists 'keep-time))
 
-	   ;; Use inline encoding for file transfer.
-	   (rem-enc
-	    (with-tramp-progress-reporter
-		v 3
-		(format-message
-		 "Encoding remote file `%s' with `%s'" filename rem-enc)
-	      (tramp-barf-unless-okay
-	       v (format rem-enc (tramp-shell-quote-argument localname))
-	       "Encoding remote file failed"))
+	       ;; Use inline encoding for file transfer.
+	       ((and (setq rem-enc
+			   (tramp-get-inline-coding v "remote-encoding" size))
+		     (setq loc-dec
+			   (tramp-get-inline-coding v "local-decoding" size)))
+		(with-tramp-progress-reporter
+		    v 3
+		    (format-message
+		     "Encoding remote file `%s' with `%s'" filename rem-enc)
+		  (tramp-barf-unless-okay
+		   v (format rem-enc (tramp-shell-quote-argument localname))
+		   "Encoding remote file failed"))
 
-	    ;; Check error.  `rem-enc' could be a pipe, which doesn't
-	    ;; flag the error in the first command.
-	    (when (zerop (buffer-size (tramp-get-buffer v)))
-	      (tramp-error v 'file-error' "Encoding remote file failed"))
+		;; Check error.  `rem-enc' could be a pipe, which
+		;; doesn't flag the error in the first command.
+		(when (zerop (buffer-size (tramp-get-buffer v)))
+		  (tramp-error v 'file-error' "Encoding remote file failed"))
 
-	    (with-tramp-progress-reporter
-		v 3 (format-message
-		     "Decoding local file `%s' with `%s'" tmpfile loc-dec)
-	      (if (functionp loc-dec)
-		  ;; If local decoding is a function, we call it.  We
-		  ;; must disable multibyte, because
-		  ;; `uudecode-decode-region' doesn't handle it
-		  ;; correctly.  Unset `file-name-handler-alist'.
-		  ;; Otherwise, epa-file gets confused.
-		  (let (file-name-handler-alist
-			(coding-system-for-write 'binary)
-			(default-directory
-			 tramp-compat-temporary-file-directory))
-		    (with-temp-file tmpfile
-		      (set-buffer-multibyte nil)
-		      (insert-buffer-substring (tramp-get-buffer v))
-		      (funcall loc-dec (point-min) (point-max))))
+		(with-tramp-progress-reporter
+		    v 3 (format-message
+			 "Decoding local file `%s' with `%s'" tmpfile loc-dec)
+		  (if (functionp loc-dec)
+		      ;; If local decoding is a function, we call it.
+		      ;; We must disable multibyte, because
+		      ;; `uudecode-decode-region' doesn't handle it
+		      ;; correctly.  Unset `file-name-handler-alist'.
+		      ;; Otherwise, epa-file gets confused.
+		      (let (file-name-handler-alist
+			    (coding-system-for-write 'binary)
+			    (default-directory
+			     tramp-compat-temporary-file-directory))
+			(with-temp-file tmpfile
+			  (set-buffer-multibyte nil)
+			  (insert-buffer-substring (tramp-get-buffer v))
+			  (funcall loc-dec (point-min) (point-max))))
 
-		;; If tramp-decoding-function is not defined for this
-		;; method, we invoke tramp-decoding-command instead.
-		(let ((tmpfile2 (tramp-compat-make-temp-file filename)))
-		  ;; Unset `file-name-handler-alist'.  Otherwise,
-		  ;; epa-file gets confused.
-		  (let (file-name-handler-alist
-			(coding-system-for-write 'binary))
-		    (with-current-buffer (tramp-get-buffer v)
-		      (write-region
-		       (point-min) (point-max) tmpfile2 nil 'no-message)))
-		  (unwind-protect
-		      (tramp-call-local-coding-command
-		       loc-dec tmpfile2 tmpfile)
-		    (delete-file tmpfile2)))))
+		    ;; If tramp-decoding-function is not defined for
+		    ;; this method, we invoke tramp-decoding-command
+		    ;; instead.
+		    (let ((tmpfile2 (tramp-compat-make-temp-file filename)))
+		      ;; Unset `file-name-handler-alist'.  Otherwise,
+		      ;; epa-file gets confused.
+		      (let (file-name-handler-alist
+			    (coding-system-for-write 'binary))
+			(with-current-buffer (tramp-get-buffer v)
+			  (write-region
+			   (point-min) (point-max) tmpfile2 nil 'no-message)))
+		      (unwind-protect
+			  (tramp-call-local-coding-command
+			   loc-dec tmpfile2 tmpfile)
+			(delete-file tmpfile2)))))
 
-	    ;; Set proper permissions.
-	    (set-file-modes tmpfile (tramp-default-file-modes filename))
-	    ;; Set local user ownership.
-	    (tramp-set-file-uid-gid tmpfile))
+		;; Set proper permissions.
+		(set-file-modes tmpfile (tramp-default-file-modes filename))
+		;; Set local user ownership.
+		(tramp-set-file-uid-gid tmpfile))
 
-	   ;; Oops, I don't know what to do.
-	   (t (tramp-error
-	       v 'file-error "Wrong method specification for `%s'" method)))
+	       ;; Oops, I don't know what to do.
+	       (t (tramp-error
+		   v 'file-error "Wrong method specification for `%s'" method)))
 
-	;; Error handling.
-	((error quit)
-	 (delete-file tmpfile)
-	 (signal (car err) (cdr err))))
+	    ;; Error handling.
+	    ((error quit)
+	     (delete-file tmpfile)
+	     (signal (car err) (cdr err)))))
 
       ;; Impossible to copy.  Trigger `file-missing' error.
       (setq tmpfile nil))))
