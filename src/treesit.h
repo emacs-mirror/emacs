@@ -62,6 +62,9 @@ struct Lisp_TS_Parser
      inherits this timestamp.  This way we can make sure the node is
      not outdated when we access its information.  */
   ptrdiff_t timestamp;
+  /* If this field is true, parser functions raises
+     treesit-parser-deleted signal.  */
+  bool deleted;
 };
 
 /* A wrapper around a tree-sitter node.  */

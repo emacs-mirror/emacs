@@ -318,6 +318,14 @@ DEFUN ("treesit-language-available-p",
 
 /*** Parsing functions */
 
+static void
+ts_check_parser (Lisp_Object obj)
+{
+  CHECK_TS_PARSER (obj);
+  if (XTS_PARSER (obj)->deleted)
+    xsignal1 (Qtreesit_parser_deleted, obj);
+}
+
 /* An auxiliary function that saves a few lines of code.  Assumes TREE
    is not NULL.  */
 static inline void
@@ -349,7 +357,7 @@ ts_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     {
       CHECK_CONS (parser_list);
       Lisp_Object lisp_parser = XCAR (parser_list);
-      CHECK_TS_PARSER (lisp_parser);
+      ts_check_parser (lisp_parser);
       TSTree *tree = XTS_PARSER (lisp_parser)->tree;
       if (tree != NULL)
 	{
@@ -595,6 +603,7 @@ make_ts_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->visible_beg = BUF_BEGV (XBUFFER (buffer));
   lisp_parser->visible_end = BUF_ZV (XBUFFER (buffer));
   lisp_parser->timestamp = 0;
+  lisp_parser->deleted = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
@@ -748,11 +757,14 @@ DEFUN ("treesit-parser-delete",
        doc: /* Delete PARSER from its buffer.  */)
   (Lisp_Object parser)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
+
   Lisp_Object buffer = XTS_PARSER (parser)->buffer;
   struct buffer *buf = XBUFFER (buffer);
   BVAR (buf, ts_parser_list)
     = Fdelete (parser, BVAR (buf, ts_parser_list));
+
+  XTS_PARSER (parser)->deleted = true;
   return Qnil;
 }
 
@@ -789,7 +801,7 @@ DEFUN ("treesit-parser-buffer",
        doc: /* Return the buffer of PARSER.  */)
   (Lisp_Object parser)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
   Lisp_Object buf;
   XSETBUFFER (buf, XBUFFER (XTS_PARSER (parser)->buffer));
   return buf;
@@ -802,7 +814,7 @@ DEFUN ("treesit-parser-language",
 This symbol is the one used to create the parser.  */)
   (Lisp_Object parser)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
   return XTS_PARSER (parser)->language_symbol;
 }
 
@@ -814,7 +826,7 @@ DEFUN ("treesit-parser-root-node",
        doc: /* Return the root node of PARSER.  */)
   (Lisp_Object parser)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
   ts_ensure_parsed (parser);
   TSNode root_node = ts_tree_root_node (XTS_PARSER (parser)->tree);
   return make_ts_node (parser, root_node);
@@ -862,7 +874,7 @@ if the argument is invalid, or something else went wrong.  If RANGES
 is nil, set PARSER to parse the whole buffer.  */)
   (Lisp_Object parser, Lisp_Object ranges)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
   CHECK_CONS (ranges);
   ts_check_range_argument (ranges);
 
@@ -927,7 +939,7 @@ See `treesit-parser-set-ranges'.  If no range is set, return
 nil.  */)
   (Lisp_Object parser)
 {
-  CHECK_TS_PARSER (parser);
+  ts_check_parser (parser);
   uint32_t len;
   const TSRange *ranges = ts_parser_included_ranges
     (XTS_PARSER (parser)->parser, &len);
@@ -1813,6 +1825,7 @@ syms_of_treesit (void)
 	  "treesit-node-outdated");
   DEFSYM (Quser_emacs_directory,
 	  "user-emacs-directory");
+  DEFSYM (Qtreesit_parser_deleted, "treesit-parser-deleted");
 
   define_error (Qtreesit_error, "Generic tree-sitter error", Qerror);
   define_error (Qtreesit_query_error, "Query pattern is malformed",
@@ -1830,6 +1843,9 @@ syms_of_treesit (void)
 		Qtreesit_error);
   define_error (Qtreesit_node_outdated,
 		"This node is outdated, please retrieve a new one",
+		Qtreesit_error);
+  define_error (Qtreesit_parser_deleted,
+		"This parser is deleted and cannot be used",
 		Qtreesit_error);
 
   DEFVAR_LISP ("treesit-load-name-override-list",
