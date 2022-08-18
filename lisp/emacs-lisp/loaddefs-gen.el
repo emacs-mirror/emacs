@@ -645,7 +645,8 @@ instead of just updating them with the new/changed autoloads."
             (unless (equal (buffer-hash) hash)
               (write-region (point-min) (point-max) loaddefs-file nil 'silent)
               (byte-compile-info
-               (file-relative-name loaddefs-file lisp-directory) t "GEN"))))))))
+               (file-relative-name loaddefs-file (car (ensure-list dir)))
+               t "GEN"))))))))
 
 (defun loaddefs-generate--print-form (def)
   "Print DEF in a format that makes sense for version control."
