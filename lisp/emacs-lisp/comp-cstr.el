@@ -43,10 +43,6 @@
   ;; TODO can we just add t in `cl--typeof-types'?
   "Like `cl--typeof-types' but with t as common supertype.")
 
-(defconst comp--all-builtin-types
-  (append cl--all-builtin-types '(t))
-  "Likewise like `cl--all-builtin-types' but with t as common supertype.")
-
 (cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
                                        (type &aux
 					     (null (eq type 'null))
