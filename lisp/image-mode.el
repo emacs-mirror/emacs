@@ -755,13 +755,9 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
-  ;; Turn on hexl-mode
   (hexl-mode)
-  (message "%s" (concat
-                 (substitute-command-keys
-                  "Type \\[image-toggle-hex-display] or \\[image-toggle-display] to view the image as ")
-                 (if (image-get-display-property)
-                     "hex" "an image or text") ".")))
+  (message "%s" (substitute-command-keys
+                 "Type \\[hexl-mode-exit] to view the image as an image")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
@@ -781,7 +777,7 @@ on these modes."
                  (substitute-command-keys
                   "Type \\[image-toggle-display] or \\[image-toggle-hex-display] to view the image as ")
                  (if (image-get-display-property)
-                     "text" "an image or hex") ".")))
+                     "text" "an image or hex"))))
 
 (defun image-toggle-display-text ()
   "Show the image file as text.
