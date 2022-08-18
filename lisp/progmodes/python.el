@@ -1238,8 +1238,14 @@ possibilities can be narrowed to specific indentation points."
          ;; Add one indentation level.
          (goto-char start)
          (+ (current-indentation) python-indent-offset))
+        (`(:after-backslash-block-continuation . ,start)
+         (goto-char start)
+         (let ((column (current-column)))
+           (if (= column (+ (current-indentation) python-indent-offset))
+               ;; Add one level to avoid same indent as next logical line.
+               (+ column python-indent-offset)
+             column)))
         (`(,(or :inside-paren
-                :after-backslash-block-continuation
                 :after-backslash-dotted-continuation) . ,start)
          ;; Use the column given by the context.
          (goto-char start)

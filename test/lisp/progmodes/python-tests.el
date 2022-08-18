@@ -1250,6 +1250,25 @@ def delete_all_things():
                :after-backslash-dotted-continuation))
    (should (= (python-indent-calculate-indentation) 16))))
 
+(ert-deftest python-indent-after-backslash-6 ()
+  "Backslash continuation from for block."
+  (python-tests-with-temp-buffer
+   "
+for long_variable_name \\
+        in (1, 2):
+    print(long_variable_name)
+"
+   (python-tests-look-at "for long_variable_name \\")
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "in (1, 2):")
+   (should (eq (car (python-indent-context))
+               :after-backslash-block-continuation))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "print(long_variable_name)")
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
 (ert-deftest python-indent-block-enders-1 ()
   "Test de-indentation for pass keyword."
   (python-tests-with-temp-buffer
