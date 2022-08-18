@@ -1384,26 +1384,6 @@ If no such buffer exists, it will be opened."
       (image-toggle-display))))
 
 
-;; Not yet implemented.
-;; (defvar image-transform-minor-mode-map
-;;   (let ((map (make-sparse-keymap)))
-;;     ;; (define-key map  [(control ?+)] 'image-scale-in)
-;;     ;; (define-key map  [(control ?-)] 'image-scale-out)
-;;     ;; (define-key map  [(control ?=)] 'image-scale-none)
-;;     ;; (define-key map "c f h" 'image-scale-fit-height)
-;;     ;; (define-key map "c ]" 'image-rotate-right)
-;;     map)
-;;   "Minor mode keymap `image-transform-mode'.")
-;;
-;; (define-minor-mode image-transform-mode
-;;   "Minor mode for scaling and rotating images.
-;; With a prefix argument ARG, enable the mode if ARG is positive,
-;; and disable it otherwise.  If called from Lisp, enable the mode
-;; if ARG is omitted or nil.  This minor mode requires Emacs to have
-;; been compiled with ImageMagick support."
-;;   nil "image-transform" image-transform-minor-mode-map)
-
-
 (defsubst image-transform-width (width height)
   "Return the bounding box width of a rotated WIDTH x HEIGHT rectangle.
 The rotation angle is the value of `image-transform-rotation' in degrees."
