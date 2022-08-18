@@ -358,9 +358,16 @@ endif
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 
-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid)
+all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
+
+# Changes in lisp may require us to reconsider the build in src.  For
+# example, if loaddefs.{el,elc} were built in lisp, we need a new
+# .pdmp containing the new autoloads.
+.PHONY: src-depending-on-lisp
+src-depending-on-lisp: lisp
+	${MAKE} -C src
 
 # If configure were to just generate emacsver.tex from emacsver.tex.in
 # in the normal way, the timestamp of emacsver.tex would always be
