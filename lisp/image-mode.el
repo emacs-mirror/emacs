@@ -480,156 +480,155 @@ image as text, when opening such images in `image-mode'."
 (defvar-local image-multi-frame nil
   "Non-nil if image for the current Image mode buffer has multiple frames.")
 
-(defvar image-mode-map
-  (let ((map (make-sparse-keymap)))
+(defvar-keymap image-mode-map
+  :doc "Mode keymap for `image-mode'."
+  :parent (make-composed-keymap image-map special-mode-map)
 
-    ;; Toggling keys
-    (define-key map "\C-c\C-c" 'image-toggle-display)
-    (define-key map "\C-c\C-x" 'image-toggle-hex-display)
+  ;; Toggling keys
+  "C-c C-c" #'image-toggle-display
+  "C-c C-x" #'image-toggle-hex-display
 
-    ;; Transformation keys
-    (define-key map "sf" 'image-mode-fit-frame)
-    (define-key map "sw" 'image-transform-fit-to-window)
-    (define-key map "sh" 'image-transform-fit-to-height)
-    (define-key map "si" 'image-transform-fit-to-width)
-    (define-key map "sb" 'image-transform-fit-both)
-    (define-key map "ss" 'image-transform-set-scale)
-    (define-key map "sr" 'image-transform-set-rotation)
-    (define-key map "sm" 'image-transform-set-smoothing)
-    (define-key map "so" 'image-transform-original)
-    (define-key map "s0" 'image-transform-reset)
+  ;; Transformation keys
+  "s f"     #'image-mode-fit-frame
+  "s w"     #'image-transform-fit-to-window
+  "s h"     #'image-transform-fit-to-height
+  "s i"     #'image-transform-fit-to-width
+  "s b"     #'image-transform-fit-both
+  "s s"     #'image-transform-set-scale
+  "s r"     #'image-transform-set-rotation
+  "s m"     #'image-transform-set-smoothing
+  "s o"     #'image-transform-original
+  "s 0"     #'image-transform-reset
 
-    ;; Multi-frame keys
-    (define-key map (kbd "RET") 'image-toggle-animation)
-    (define-key map "F" 'image-goto-frame)
-    (define-key map "f" 'image-next-frame)
-    (define-key map "b" 'image-previous-frame)
-    (define-key map "a+" 'image-increase-speed)
-    (define-key map "a-" 'image-decrease-speed)
-    (define-key map "a0" 'image-reset-speed)
-    (define-key map "ar" 'image-reverse-speed)
+  ;; Multi-frame keys
+  "RET"     #'image-toggle-animation
+  "F"       #'image-goto-frame
+  "f"       #'image-next-frame
+  "b"       #'image-previous-frame
+  "a +"     #'image-increase-speed
+  "a -"     #'image-decrease-speed
+  "a 0"     #'image-reset-speed
+  "a r"     #'image-reverse-speed
 
-    ;; File keys
-    (define-key map "n" 'image-next-file)
-    (define-key map "p" 'image-previous-file)
-    (define-key map "w" 'image-mode-copy-file-name-as-kill)
-    (define-key map "m" 'image-mode-mark-file)
-    (define-key map "u" 'image-mode-unmark-file)
+  ;; File keys
+  "n"       #'image-next-file
+  "p"       #'image-previous-file
+  "w"       #'image-mode-copy-file-name-as-kill
+  "m"       #'image-mode-mark-file
+  "u"       #'image-mode-unmark-file
 
-    ;; Scrolling keys
-    (define-key map (kbd "SPC")   'image-scroll-up)
-    (define-key map (kbd "S-SPC") 'image-scroll-down)
-    (define-key map (kbd "DEL")   'image-scroll-down)
-    (define-key map [remap forward-char] 'image-forward-hscroll)
-    (define-key map [remap backward-char] 'image-backward-hscroll)
-    (define-key map [remap right-char] 'image-forward-hscroll)
-    (define-key map [remap left-char] 'image-backward-hscroll)
-    (define-key map [remap previous-line] 'image-previous-line)
-    (define-key map [remap next-line] 'image-next-line)
-    (define-key map [remap scroll-up] 'image-scroll-up)
-    (define-key map [remap scroll-down] 'image-scroll-down)
-    (define-key map [remap scroll-up-command] 'image-scroll-up)
-    (define-key map [remap scroll-down-command] 'image-scroll-down)
-    (define-key map [remap scroll-left] 'image-scroll-left)
-    (define-key map [remap scroll-right] 'image-scroll-right)
-    (define-key map [remap move-beginning-of-line] 'image-bol)
-    (define-key map [remap move-end-of-line] 'image-eol)
-    (define-key map [remap beginning-of-buffer] 'image-bob)
-    (define-key map [remap end-of-buffer] 'image-eob)
+  ;; Scrolling keys
+  "SPC"     #'image-scroll-up
+  "S-SPC"   #'image-scroll-down
+  "DEL"     #'image-scroll-down
 
-    (easy-menu-define image-mode-menu map "Menu for Image mode."
-      '("Image"
-	["Show as Text" image-toggle-display :active t
-	 :help "Show image as text"]
+  ;; Remapped
+  "<remap> <forward-char>"           #'image-forward-hscroll
+  "<remap> <backward-char>"          #'image-backward-hscroll
+  "<remap> <right-char>"             #'image-forward-hscroll
+  "<remap> <left-char>"              #'image-backward-hscroll
+  "<remap> <previous-line>"          #'image-previous-line
+  "<remap> <next-line>"              #'image-next-line
+  "<remap> <scroll-up>"              #'image-scroll-up
+  "<remap> <scroll-down>"            #'image-scroll-down
+  "<remap> <scroll-up-command>"      #'image-scroll-up
+  "<remap> <scroll-down-command>"    #'image-scroll-down
+  "<remap> <scroll-left>"            #'image-scroll-left
+  "<remap> <scroll-right>"           #'image-scroll-right
+  "<remap> <move-beginning-of-line>" #'image-bol
+  "<remap> <move-end-of-line>"       #'image-eol
+  "<remap> <beginning-of-buffer>"    #'image-bob
+  "<remap> <end-of-buffer>"          #'image-eob)
+
+(easy-menu-define image-mode-menu image-mode-map
+  "Menu for Image mode."
+  '("Image"
+    ["Show as Text" image-toggle-display :active t
+     :help "Show image as text"]
     ["Show as Hex" image-toggle-hex-display :active t
      :help "Show image as hex"]
-	"--"
-	["Fit Frame to Image" image-mode-fit-frame :active t
-	 :help "Resize frame to match image"]
-        ["Fit Image to Window" image-transform-fit-to-window
-         :help "Resize image to match the window height and width"]
-        ["Fit Image to Window (Scale down only)" image-transform-fit-both
-         :help "Scale image down to match the window height and width"]
-	["Zoom In" image-increase-size
-	 :help "Enlarge the image"]
-	["Zoom Out" image-decrease-size
-	 :help "Shrink the image"]
-	["Set Scale..." image-transform-set-scale
-	 :help "Resize image by specified scale factor"]
-	["Rotate Clockwise" image-rotate
-	 :help "Rotate the image"]
-	["Set Rotation..." image-transform-set-rotation
-	 :help "Set rotation angle of the image"]
-        ["Set Smoothing..." image-transform-set-smoothing
-        :help "Toggle smoothing"]
-	["Original Size" image-transform-original
-	 :help "Reset image to actual size"]
-	["Reset to Default Size" image-transform-reset
-	 :help "Reset all image transformations to initial size"]
-	"--"
-	["Show Thumbnails"
-	 (lambda ()
-	   (interactive)
-	   (image-dired default-directory))
-	 :active default-directory
-	 :help "Show thumbnails for all images in this directory"]
-	["Previous Image" image-previous-file :active buffer-file-name
-         :help "Move to previous image in this directory"]
-	["Next Image" image-next-file :active buffer-file-name
-         :help "Move to next image in this directory"]
-	["Copy File Name" image-mode-copy-file-name-as-kill
-         :active buffer-file-name
-         :help "Copy the current file name to the kill ring"]
-	"--"
-	["Animate Image" image-toggle-animation :style toggle
-	 :selected (let ((image (image-get-display-property)))
-		     (and image (image-animate-timer image)))
-	 :active image-multi-frame
-         :help "Toggle image animation"]
-	["Loop Animation"
-	 (lambda () (interactive)
-	   (setq image-animate-loop (not image-animate-loop))
-	   ;; FIXME this is a hacky way to make it affect a currently
-	   ;; animating image.
-	   (when (let ((image (image-get-display-property)))
-		   (and image (image-animate-timer image)))
-	     (image-toggle-animation)
-	     (image-toggle-animation)))
-	 :style toggle :selected image-animate-loop
-	 :active image-multi-frame
-	 :help "Animate images once, or forever?"]
-	["Reverse Animation" image-reverse-speed
-	 :style toggle :selected (let ((image (image-get-display-property)))
-				   (and image (<
-					       (image-animate-get-speed image)
-					       0)))
-	 :active image-multi-frame
-	 :help "Reverse direction of this image's animation?"]
-	["Speed Up Animation" image-increase-speed
-	 :active image-multi-frame
-	 :help "Speed up this image's animation"]
-	["Slow Down Animation" image-decrease-speed
-	 :active image-multi-frame
-	 :help "Slow down this image's animation"]
-	["Reset Animation Speed" image-reset-speed
-	 :active image-multi-frame
-	 :help "Reset the speed of this image's animation"]
-	["Previous Frame" image-previous-frame :active image-multi-frame
-	 :help "Show the previous frame of this image"]
-	["Next Frame" image-next-frame :active image-multi-frame
-	 :help "Show the next frame of this image"]
-	["Goto Frame..." image-goto-frame :active image-multi-frame
-	 :help "Show a specific frame of this image"]
-	))
-    (make-composed-keymap (list map image-map) special-mode-map))
-  "Mode keymap for `image-mode'.")
+    "--"
+    ["Fit Frame to Image" image-mode-fit-frame :active t
+     :help "Resize frame to match image"]
+    ["Fit Image to Window" image-transform-fit-to-window
+     :help "Resize image to match the window height and width"]
+    ["Fit Image to Window (Scale down only)" image-transform-fit-both
+     :help "Scale image down to match the window height and width"]
+    ["Zoom In" image-increase-size
+     :help "Enlarge the image"]
+    ["Zoom Out" image-decrease-size
+     :help "Shrink the image"]
+    ["Set Scale..." image-transform-set-scale
+     :help "Resize image by specified scale factor"]
+    ["Rotate Clockwise" image-rotate
+     :help "Rotate the image"]
+    ["Set Rotation..." image-transform-set-rotation
+     :help "Set rotation angle of the image"]
+    ["Set Smoothing..." image-transform-set-smoothing
+     :help "Toggle smoothing"]
+    ["Original Size" image-transform-original
+     :help "Reset image to actual size"]
+    ["Reset to Default Size" image-transform-reset
+     :help "Reset all image transformations to initial size"]
+    "--"
+    ["Show Thumbnails"
+     (lambda ()
+       (interactive)
+       (image-dired default-directory))
+     :active default-directory
+     :help "Show thumbnails for all images in this directory"]
+    ["Previous Image" image-previous-file :active buffer-file-name
+     :help "Move to previous image in this directory"]
+    ["Next Image" image-next-file :active buffer-file-name
+     :help "Move to next image in this directory"]
+    ["Copy File Name" image-mode-copy-file-name-as-kill
+     :active buffer-file-name
+     :help "Copy the current file name to the kill ring"]
+    "--"
+    ["Animate Image" image-toggle-animation :style toggle
+     :selected (let ((image (image-get-display-property)))
+                 (and image (image-animate-timer image)))
+     :active image-multi-frame
+     :help "Toggle image animation"]
+    ["Loop Animation"
+     (lambda () (interactive)
+       (setq image-animate-loop (not image-animate-loop))
+       ;; FIXME this is a hacky way to make it affect a currently
+       ;; animating image.
+       (when (let ((image (image-get-display-property)))
+               (and image (image-animate-timer image)))
+         (image-toggle-animation)
+         (image-toggle-animation)))
+     :style toggle :selected image-animate-loop
+     :active image-multi-frame
+     :help "Animate images once, or forever?"]
+    ["Reverse Animation" image-reverse-speed
+     :style toggle :selected (let ((image (image-get-display-property)))
+                               (and image (<
+                                           (image-animate-get-speed image)
+                                           0)))
+     :active image-multi-frame
+     :help "Reverse direction of this image's animation?"]
+    ["Speed Up Animation" image-increase-speed
+     :active image-multi-frame
+     :help "Speed up this image's animation"]
+    ["Slow Down Animation" image-decrease-speed
+     :active image-multi-frame
+     :help "Slow down this image's animation"]
+    ["Reset Animation Speed" image-reset-speed
+     :active image-multi-frame
+     :help "Reset the speed of this image's animation"]
+    ["Previous Frame" image-previous-frame :active image-multi-frame
+     :help "Show the previous frame of this image"]
+    ["Next Frame" image-next-frame :active image-multi-frame
+     :help "Show the next frame of this image"]
+    ["Goto Frame..." image-goto-frame :active image-multi-frame
+     :help "Show a specific frame of this image"]))
 
-(defvar image-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'image-toggle-display)
-    (define-key map "\C-c\C-x" 'image-toggle-hex-display)
-    map)
-  "Mode keymap for `image-minor-mode'.")
+(defvar-keymap image-minor-mode-map
+  :doc "Mode keymap for `image-minor-mode'."
+  "C-c C-c" #'image-toggle-display
+  "C-c C-x" #'image-toggle-hex-display)
 
 (defvar bookmark-make-record-function)
 
