@@ -1754,8 +1754,7 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	ATOM	32	> 1		Vector of Symbols
 	*	16	1		Integer
 	*	16	> 1		Vector of Integers
-	*	32	1		if small enough: fixnum
-					otherwise: bignum
+	*	32	1		Integer
 	*	32	> 1		Vector of the above
 
    When converting an object to C, it may be of the form (SYMBOL . <data>)

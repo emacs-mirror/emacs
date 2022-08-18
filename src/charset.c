@@ -1852,9 +1852,8 @@ although this usage is obsolescent.  */)
 
 DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 2, 0,
        doc: /* Encode the character CH into a code-point of CHARSET.
-Return the encoded code-point, a fixnum if its value is small enough,
-otherwise a bignum.
-Return nil if CHARSET doesn't support CH.  */)
+Return the encoded code-point as an integer,
+or nil if CHARSET doesn't support CH.  */)
   (Lisp_Object ch, Lisp_Object charset)
 {
   int c, id;

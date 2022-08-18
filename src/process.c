@@ -1209,8 +1209,8 @@ If PROCESS has not yet exited or died, return 0.  */)
 
 DEFUN ("process-id", Fprocess_id, Sprocess_id, 1, 1, 0,
        doc: /* Return the process id of PROCESS.
-This is the pid of the external process which PROCESS uses or talks to.
-It is a fixnum if the value is small enough, otherwise a bignum.
+This is the pid of the external process which PROCESS uses or talks to,
+an integer.
 For a network, serial, and pipe connections, this value is nil.  */)
   (register Lisp_Object process)
 {

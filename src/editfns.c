@@ -1172,8 +1172,7 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
-       doc: /* Return the effective uid of Emacs.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+       doc: /* Return the effective uid of Emacs, as an integer.  */)
   (void)
 {
   uid_t euid = geteuid ();
@@ -1181,8 +1180,7 @@ Value is a fixnum, if it's small enough, otherwise a bignum.  */)
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
-       doc: /* Return the real uid of Emacs.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+       doc: /* Return the real uid of Emacs, as an integer.  */)
   (void)
 {
   uid_t uid = getuid ();
@@ -1208,8 +1206,7 @@ Return nil if a group with such GID does not exists or is not known.  */)
 }
 
 DEFUN ("group-gid", Fgroup_gid, Sgroup_gid, 0, 0, 0,
-       doc: /* Return the effective gid of Emacs.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+       doc: /* Return the effective gid of Emacs, as an integer.  */)
   (void)
 {
   gid_t egid = getegid ();
@@ -1217,8 +1214,7 @@ Value is a fixnum, if it's small enough, otherwise a bignum.  */)
 }
 
 DEFUN ("group-real-gid", Fgroup_real_gid, Sgroup_real_gid, 0, 0, 0,
-       doc: /* Return the real gid of Emacs.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+       doc: /* Return the real gid of Emacs, as an integer.  */)
   (void)
 {
   gid_t gid = getgid ();
@@ -1306,8 +1302,7 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 }
 
 DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
-       doc: /* Return the process ID of Emacs, as a number.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+       doc: /* Return the process ID of Emacs, as an integer.  */)
   (void)
 {
   pid_t pid = getpid ();
