@@ -1978,8 +1978,8 @@ based on `image-mode'."
         (cur-win (selected-window)))
     (when buf
       (kill-buffer buf))
-    (when-let ((buf (find-file-other-window file)))
-      (display-buffer buf)
+    (when-let ((buf (find-file-noselect file nil t)))
+      (pop-to-buffer buf)
       (rename-buffer image-dired-display-image-buffer)
       (image-dired-display-image-mode)
       (select-window cur-win))))
