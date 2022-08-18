@@ -439,7 +439,8 @@ Lines are highlighted according to `ns-input-line'."
 
 ;;;; File handling.
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+(defun x-file-dialog (prompt dir &optional default_filename
+                             mustmatch only_dir_p)
   "SKIP: real doc in xfns.c."
   (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
