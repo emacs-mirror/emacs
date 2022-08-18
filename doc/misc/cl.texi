@@ -1381,19 +1381,10 @@ bar
 
 A @code{setq} of a symbol macro is treated the same as a @code{setf}.
 I.e., @code{(setq foo 4)} in the above would be equivalent to
-@code{(setf foo 4)}, which in turn expands to @code{(setf (car bar) 4)}.
-
-Likewise, a @code{let} or @code{let*} binding a symbol macro is
-treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
-Common Lisp, where the rules of lexical scoping cause a @code{let}
-binding to shadow a @code{symbol-macrolet} binding.  In this package,
-such shadowing does not occur, even when @code{lexical-binding} is
-@c See https://debbugs.gnu.org/12119
-@code{t}.  (This behavior predates the addition of lexical binding to
-Emacs Lisp, and may change in future to respect @code{lexical-binding}.)
-At present in this package, only @code{lexical-let} and
-@code{lexical-let*} will shadow a symbol macro.  @xref{Obsolete
-Lexical Binding}.
+@code{(setf foo 4)}, which in turn expands to @code{(setf (car bar)
+4)}.  A @code{let} (or @code{let*}, @code{lambda}, ...) binding of
+the same symbol will locally shadow the symbol macro as is the case in
+Common Lisp.
 
 There is no analogue of @code{defmacro} for symbol macros; all symbol
 macros are local.  A typical use of @code{cl-symbol-macrolet} is in the
