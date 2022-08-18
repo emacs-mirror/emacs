@@ -497,7 +497,8 @@ Optional argument SYNTAX must be specified if called non-interactively."
 	(setq reb-re-syntax syntax)
 	(when buffer
           (with-current-buffer buffer
-            (reb-initialize-buffer))))
+            (reb-initialize-buffer))
+          (message "Switched syntax to `%s'" reb-re-syntax)))
     (error "Invalid syntax: %s" syntax)))
 
 
@@ -819,7 +820,6 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (defun reb-restart-font-lock ()
   "Restart `font-lock-mode' to fit current regexp format."
-  (message "reb-restart-font-lock re-re-syntax=%s" reb-re-syntax)
   (with-current-buffer (get-buffer reb-buffer)
     (let ((font-lock-is-on font-lock-mode))
       (font-lock-mode -1)
