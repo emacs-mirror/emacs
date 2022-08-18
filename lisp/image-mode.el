@@ -754,9 +754,9 @@ Key bindings:
 (define-minor-mode image-minor-mode
   "Toggle Image minor mode in this buffer.
 
-Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display],
-to switch back to `image-mode' and display an image file as the
-actual image."
+Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display], \
+to switch back to
+`image-mode' and display an image file as the actual image."
   :lighter (:eval (if image-type (format " Image[%s]" image-type) " Image"))
   :group 'image
   :version "22.1"
