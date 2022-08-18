@@ -773,8 +773,6 @@ displays an image file as text."
     (major-mode-restore '(image-mode image-mode-as-text))
     ;; Restore `image-type' after `kill-all-local-variables' in `normal-mode'.
     (setq image-type previous-image-type)
-    ;; Enable image minor mode with `C-c C-c'.
-    (image-minor-mode 1)
     (unless (image-get-display-property)
       ;; Show the image file as text.
       (image-toggle-display-text))))
@@ -794,8 +792,10 @@ on these modes."
   (interactive)
   (image-mode-to-text)
   (hexl-mode)
-  (message "%s" (substitute-command-keys
-                 "Type \\[hexl-mode-exit] to view the image as an image")))
+  (image-minor-mode 1)
+  (message (substitute-command-keys
+            "Type \\[image-toggle-display] or \
+\\[image-toggle-hex-display] to view the image as an image")))
 
 (defun image-mode-as-text ()
   "Set a non-image mode as major mode in combination with image minor mode.
@@ -811,6 +811,7 @@ See commands `image-mode' and `image-minor-mode' for more information
 on these modes."
   (interactive)
   (image-mode-to-text)
+  (image-minor-mode 1)
   (message (substitute-command-keys
             "Type \\[image-toggle-display] to view the image as %s")
            (if (image-get-display-property)
@@ -986,14 +987,17 @@ was inserted."
                  (memq (intern (upcase (file-name-extension filename)) obarray)
                        imagemagick-types-inhibit)))))
 
+(declare-function hexl-mode-exit "hexl" (&optional arg))
+
 (defun image-toggle-hex-display ()
   "Toggle between image and hex display."
   (interactive)
-  (if (image-get-display-property)
-      (image-mode-as-hex)
-    (if (eq major-mode 'fundamental-mode)
-        (image-mode-as-hex)
-      (image-mode))))
+  (cond ((or (image-get-display-property) ; in `image-mode'
+             (eq major-mode 'fundamental-mode))
+         (image-mode-as-hex))
+        ((eq major-mode 'hexl-mode)
+         (hexl-mode-exit))
+        (t (error "That command is invalid here"))))
 
 (defun image-toggle-display ()
   "Toggle between image and text display.
@@ -1002,11 +1006,11 @@ If the current buffer is displaying an image file as an image,
 call `image-mode-as-text' to switch to text or hex display.
 Otherwise, display the image by calling `image-mode'."
   (interactive)
-  (if (image-get-display-property)
-      (image-mode-as-text)
-    (if (eq major-mode 'hexl-mode)
-        (image-mode-as-text)
-      (image-mode))))
+  (cond ((image-get-display-property) ; in `image-mode'
+         (image-mode-as-text))
+        ((eq major-mode 'hexl-mode)
+         (hexl-mode-exit))
+        ((image-mode))))
 
 (defun image-kill-buffer ()
   "Kill the current buffer."
