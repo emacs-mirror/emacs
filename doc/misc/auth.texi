@@ -652,14 +652,8 @@ before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.
 
-In Emacs 23 or later there is an option @code{auto-encryption-mode} to
-automatically decrypt @file{*.gpg} files.  It is enabled by default.
-If you are using earlier versions of Emacs, you will need:
-
-@lisp
-(require 'epa-file)
-(epa-file-enable)
-@end lisp
+There is an option @code{auto-encryption-mode} to automatically
+decrypt @file{*.gpg} files.  It is enabled by default.
 
 If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
 or EasyPG Assistant

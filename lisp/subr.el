@@ -1918,6 +1918,13 @@ be a list of the form returned by `event-start' and `event-end'."
 (define-obsolete-function-alias 'user-original-login-name
   #'user-login-name "28.1")
 
+;; These are in obsolete/autoload.el, but are commonly used by
+;; third-party scripts that assume that they exist without requiring
+;; autoload.  These should be removed when obsolete/autoload.el is
+;; removed.
+(autoload 'make-directory-autoloads "autoload" nil t)
+(autoload 'update-directory-autoloads "autoload" nil t)
+
 
 ;;;; Hook manipulation functions.
 
@@ -4076,6 +4083,12 @@ Otherwise, return nil."
     (when (consp def)
       (or (eq 'macro (car def))
           (and (autoloadp def) (memq (nth 4 def) '(macro t)))))))
+
+(defun compiled-function-p (object)
+  "Return non-nil if OBJECT is a function that has been compiled.
+Does not distinguish between functions implemented in machine code
+or byte-code."
+  (or (subrp object) (byte-code-function-p object)))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."

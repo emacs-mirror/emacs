@@ -755,26 +755,21 @@ external command."
 				      (eshell-stringify-list
 				       (flatten-tree args)))
 			      " "))
-	     (cmd (format "%s -nH %s"
-			  (pcase command
-			    ("egrep" "grep -E")
-			    ("fgrep" "grep -F")
-			    (x x))
-			  args))
+	     (cmd (format "%s -n %s" command args))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
 (defun eshell/grep (&rest args)
   "Use Emacs grep facility instead of calling external grep."
-  (eshell-grep "grep" args t))
+  (eshell-grep "grep" (append '("-H") args) t))
 
 (defun eshell/egrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -E."
-  (eshell-grep "egrep" args t))
+  (eshell-grep "grep" (append '("-EH") args) t))
 
 (defun eshell/fgrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -F."
-  (eshell-grep "fgrep" args t))
+  (eshell-grep "grep" (append '("-FH") args) t))
 
 (defun eshell/agrep (&rest args)
   "Use Emacs grep facility instead of calling external agrep."

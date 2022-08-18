@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001--2022 Free Software Foundation, Inc.
+@c Copyright (C) 1995--2022 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
@@ -13,7 +13,6 @@
 @section Frequently Asked Questions
 
 @menu
-* FAQ - Changes::
 * FAQ - Introduction::                       About Gnus and this FAQ.
 * FAQ 1 - Installation FAQ::                 Installation of Gnus.
 * FAQ 2 - Startup / Group buffer::           Start up questions and the
@@ -41,21 +40,6 @@ This is the new Gnus Frequently Asked Questions list.
 Please submit features and suggestions to the
 @email{ding@@gnus.org, ding list}.
 
-@node FAQ - Changes
-@subsection Changes
-
-
-
-@itemize @bullet
-
-@item
-2008-06-15: Adjust for message-fill-column.  Add x-face-file.
-Clarify difference between ding and gnu.emacs.gnus.  Remove
-reference to discontinued service.
-
-@item
-2006-04-15: Added tip on how to delete sent buffer on exit.
-@end itemize
 
 @node FAQ - Introduction
 @subsection Introduction
@@ -63,11 +47,11 @@ reference to discontinued service.
 This is the Gnus Frequently Asked Questions list.
 
 Gnus is a Usenet Newsreader and Electronic Mail User Agent implemented
-as a part of Emacs. It's been around in some form for almost a decade
-now, and has been distributed as a standard part of Emacs for much of
-that time. Gnus 5 is the latest (and greatest) incarnation. The
+as a part of Emacs.  It's been around in some form since the early
+1990s, and has been distributed as a standard part of Emacs for much
+of that time. Gnus 5 is the latest (and greatest) incarnation.  The
 original version was called GNUS, and was written by Masanobu UMEDA@.
-When autumn crept up in '94, Lars Magne Ingebrigtsen grew bored and
+When autumn crept up in 1994, Lars Magne Ingebrigtsen grew bored and
 decided to rewrite Gnus.
 
 Its biggest strength is the fact that it is extremely
@@ -84,11 +68,6 @@ would like to thank Steve Baur and Per Abrahamsen for doing a wonderful
 job with this FAQ before him. We would like to do the same: thanks,
 Justin!
 
-This version is much nicer than the unofficial hypertext
-versions that are archived at Utrecht, Oxford, Smart Pages, Ohio
-State, and other FAQ archives. See the resources question below
-if you want information on obtaining it in another format.
-
 The information contained here was compiled with the assistance
 of the Gnus development mailing list, and any errors or
 misprints are the Gnus team's fault, sorry.
@@ -98,11 +77,9 @@ misprints are the Gnus team's fault, sorry.
 
 @menu
 * FAQ 1-1::    What is the latest version of Gnus?
-* FAQ 1-2::    What's new in 5.10?
-* FAQ 1-3::    Where and how to get Gnus?
-* FAQ 1-4::    I sometimes read references to No Gnus and Oort Gnus,
+* FAQ 1-2::    Where and how to get Gnus?
+* FAQ 1-3::    I sometimes read references to No Gnus and Oort Gnus,
                what are those?
-* FAQ 1-5::    Which version of Emacs do I need?
 @end menu
 
 @node FAQ 1-1
@@ -112,48 +89,10 @@ What is the latest version of Gnus?
 
 @subsubheading Answer
 
-Jingle please: Gnus 5.10 is released, get it while it's
-hot! As well as the step in version number is rather
-small, Gnus 5.10 has tons of new features which you
-shouldn't miss. The current release (5.13) should be at
-least as stable as the latest release of the 5.8 series.
+The latest version of Gnus is bundled with Emacs.
 
 @node FAQ 1-2
 @subsubheading Question 1.2
-
-What's new in 5.10?
-
-@subsubheading Answer
-
-First of all, you should have a look into the file
-GNUS-NEWS in the toplevel directory of the Gnus tarball,
-there the most important changes are listed. Here's a
-short list of the changes I find especially
-important/interesting:
-
-@itemize @bullet
-
-@item
-Major rewrite of the Gnus agent, Gnus agent is now
-active by default.
-
-@item
-Many new article washing functions for dealing with
-ugly formatted articles.
-
-@item
-Anti Spam features.
-
-@item
-Message-utils now included in Gnus.
-
-@item
-New format specifiers for summary lines, e.g., %B for
-a complex trn-style thread tree.
-@end itemize
-
-@node FAQ 1-3
-@subsubheading Question 1.3
 
 Where and how to get Gnus?
 
@@ -161,31 +100,17 @@ Where and how to get Gnus?
 
 Gnus is bundled with Emacs.
 
-@node FAQ 1-4
-@subsubheading Question 1.4
+@node FAQ 1-3
+@subsubheading Question 1.3
 
 I sometimes read references to No Gnus and Oort Gnus,
 what are those?
 
 @subsubheading Answer
 
-Oort Gnus was the name of the development version of
-Gnus, which became Gnus 5.10 in autumn 2003. No Gnus is
-the name of the current development version which will
-once become Gnus 5.12 or Gnus 6. (If you're wondering why
-not 5.11, the odd version numbers are normally used for
-the Gnus versions bundled with Emacs)
-
-@node FAQ 1-5
-@subsubheading Question 1.5
-
-Which version of Emacs do I need?
-
-@subsubheading Answer
-
-Gnus 5.13 requires an Emacs version that is greater than or equal
-to Emacs 23.1, although there are some features that
-only work on Emacs 24.
+Oort Gnus was the name of the development version of Gnus, which
+became Gnus 5.10 in autumn 2003.  No Gnus was the name of the
+development version that became Gnus 5.12.
 
 @node FAQ 2 - Startup / Group buffer
 @subsection Startup / Group buffer
@@ -718,9 +643,8 @@ in @file{~/.gnus.el} to load enough old articles to prevent teared threads, repl
 all articles (Warning: Both settings enlarge the amount of data which is
 fetched when you enter a group and slow down the process of entering a group).
 
-If you already use Gnus 5.10, you can say
-@samp{/o N}
-In summary buffer to load the last N messages, this feature is not available in 5.8.8
+You can say @samp{/o N} in the summary buffer to load the last N
+messages.
 
 If you don't want all old messages, but the parent of the message you're just reading,
 you can say @samp{^}, if you want to retrieve the whole thread
@@ -820,11 +744,10 @@ Can I use some other browser than w3m to render my HTML-mails?
 
 @subsubheading Answer
 
-Only if you use Gnus 5.10 or younger. In this case you've got the
-choice between shr, w3m, links, lynx and html2text, which
-one is used can be specified in the variable
-mm-text-html-renderer, so if you want links to render your
-mail say
+You've got the choice between @samp{shr}, @samp{w3m}, @samp{links},
+and @samp{lynx}.  Which one is used is specified in the variable
+@code{mm-text-html-renderer}, so if you want links to render your
+mail, say:
 
 @example
 (setq mm-text-html-renderer 'links)
@@ -847,8 +770,7 @@ long lines'' (@samp{W w}), ``Decode ROT13''
 the dumb quoting used by many users of Microsoft products
 (@samp{W Y f} gives you full deuglify.
 See @samp{W Y C-h} or have a look at the menus for
-other deuglifications).  Outlook deuglify is only available since
-Gnus 5.10.
+other deuglifications).
 
 @node FAQ 4-9
 @subsubheading Question 4.9
@@ -1038,7 +960,7 @@ you'll find useful things like positioning the cursor and
 tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
 
-Since 5.10, Gnus offers you some very nice new specifiers,
+Gnus offers you some very nice new specifiers,
 e.g., %B which draws a thread-tree and %&user-date which
 gives you a date where the details are dependent of the
 articles age. Here's an example which uses both:
@@ -1245,7 +1167,7 @@ How to set stuff like From, Organization, Reply-To, signature...?
 @subsubheading Answer
 
 There are other ways, but you should use posting styles
-for this. (See below why).
+for this.  (See below why.)
 This example should make the syntax clear:
 
 @example
@@ -1329,19 +1251,14 @@ Is there a spell-checker? Perhaps even on-the-fly spell-checking?
 
 @subsubheading Answer
 
-You can use ispell.el to spell-check stuff in Emacs. So the
-first thing to do is to make sure that you've got either
-@uref{https://www.cs.hmc.edu/~geoff/ispell.html, ispell}
-or @uref{http://aspell.net, aspell}
-installed and in your Path. Then you need
-ispell.el
-and for on-the-fly spell-checking
-@uref{https://www-sop.inria.fr/members/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
-Ispell.el is shipped with Emacs,
-flyspell.el is shipped with Emacs, so there should be no need to install them
-manually.
+You can use ispell.el to spell-check stuff in Emacs, and flyspell.el
+for on-the-fly spell-checking.  So the first thing to do is to make
+sure that you've got either
+@uref{https://hunspell.github.io/, hunspell},
+@uref{https://www.cs.hmc.edu/~geoff/ispell.html, ispell} or
+@uref{http://aspell.net, aspell} installed and in your Path.
 
-Ispell.el assumes you use ispell, if you choose aspell say
+Ispell.el assumes you use ispell.  If you use aspell say
 
 @example
 (setq ispell-program-name "aspell")
@@ -1494,14 +1411,14 @@ Now you only have to tell Gnus to include the X-face in your postings by saying
 @end example
 @noindent
 
-in @file{~/.gnus.el}.  If you use Gnus 5.10, you can simply add an entry
+in @file{~/.gnus.el}.  You can add an entry
 
 @example
 (x-face-file "~/.xface")
 @end example
 @noindent
 
-to gnus-posting-styles.
+to @code{gnus-posting-styles}.
 
 @node FAQ 5-9
 @subsubheading Question 5.9
@@ -1519,21 +1436,6 @@ Put this in @file{~/.gnus.el}:
 @end example
 @noindent
 
-if you already use Gnus 5.10, if you still use 5.8.8 or
-5.9 try this instead:
-
-@example
-(with-eval-after-load "gnus-msg"
-  (unless (boundp 'gnus-confirm-mail-reply-to-news)
-    (defadvice gnus-summary-reply (around reply-in-news activate)
-      "Request confirmation when replying to news."
-      (interactive)
-      (when (or (not (gnus-news-group-p gnus-newsgroup-name))
-                (y-or-n-p "Really reply by mail to article author?"))
-        ad-do-it))))
-@end example
-@noindent
-
 @node FAQ 5-10
 @subsubheading Question 5.10
 
@@ -1541,14 +1443,7 @@ How to tell Gnus not to generate a sender header?
 
 @subsubheading Answer
 
-Since 5.10 Gnus doesn't generate a sender header by
-default. For older Gnus' try this in @file{~/.gnus.el}:
-
-@example
-(with-eval-after-load "message"
-  (add-to-list 'message-syntax-checks '(sender . disabled)))
-@end example
-@noindent
+Gnus doesn't generate a sender header by default.
 
 @node FAQ 5-11
 @subsubheading Question 5.11
@@ -1729,7 +1624,7 @@ more then one article."
 You can now say @samp{M-x
 my-archive-article} in summary buffer to
 archive the article under the cursor in a nnml
-group. (Change nnml to your preferred back end)
+group. (Change nnml to your preferred back end.)
 
 Of course you can also make sure the cache is enabled by saying
 
@@ -1756,7 +1651,7 @@ if you found the posting there, tell Google to display
 the raw message, look for the message-id, and say
 @samp{M-^ the@@message.id @key{RET}} in a
 summary buffer.
-Since Gnus 5.10 there's also a Gnus interface for
+There's a Gnus interface for
 groups.google.com which you can call with
 @samp{G W}) in group buffer.
 
@@ -1769,25 +1664,6 @@ search bodies, too try @samp{M-s}
 instead. Further on there are the
 gnus-summary-limit-to-foo functions, which can help you,
 too.
-
-Of course you can also use grep to search through your
-local mail, but this is both slow for big archives and
-inconvenient since you are not displaying the found mail
-in Gnus.  Here nnir comes into action.  Nnir is a front end
-to search engines like swish-e or swish++ and
-others.  You index your mail with one of those search
-engines and with the help of nnir you can search through
-the indexed mail and generate a temporary group with all
-messages which met your search criteria.  If this sounds
-cool to you, get nnir.el from
-@c FIXME Isn't this file in Gnus?
-@ignore
-@c Dead link 2013/7.
-@uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/}
-or
-@end ignore
-@uref{ftp://ftp.is.informatik.uni-duisburg.de/pub/src/emacs/}.
-Instructions on how to use it are at the top of the file.
 
 @node FAQ 6-4
 @subsubheading Question 6.4
@@ -1937,16 +1813,9 @@ So what was this thing about the Agent?
 The Gnus agent is part of Gnus, it allows you to fetch
 mail and news and store them on disk for reading them
 later when you're offline. It kind of mimics offline
-newsreaders like Forte Agent. If you want to use
-the Agent place the following in @file{~/.gnus.el} if you are
-still using 5.8.8 or 5.9 (it's the default since 5.10):
+newsreaders like Forte Agent.  It is enabled by default.
 
-@example
-(setq gnus-agent t)
-@end example
-@noindent
-
-Now you've got to select the servers whose groups can be
+You've got to select the servers whose groups can be
 stored locally.  To do this, open the server buffer
 (that is press @samp{^} while in the
 group buffer).  Now select a server by moving point to
@@ -2051,10 +1920,9 @@ I can't find anything in the Gnus manual about X
 @subsubheading Answer
 
 There's not only the Gnus manual but also the manuals for message,
-emacs-mime, sieve, EasyPG Assistant, and pgg. Those packages are
-distributed with Gnus and used by Gnus but aren't really part of core
-Gnus, so they are documented in different info files, you should have
-a look in those manuals, too.
+emacs-mime, sieve, and EasyPG Assistant.  Those packages are
+distributed with Emacs and used by Gnus.  They are documented in
+separate info files, so you should have a look in those manuals, too.
 
 @node FAQ 8-3
 @subsubheading Question 8.3
@@ -2161,12 +2029,12 @@ How to speed up the process of entering a group?
 
 @subsubheading Answer
 
-A speed killer is setting the variable
-gnus-fetch-old-headers to anything different from @code{nil},
-so don't do this if speed is an issue.
+A speed killer is setting the variable @code{gnus-fetch-old-headers}
+to anything different from @code{nil}, so don't do this if speed is an
+issue.
 
-You could increase the value of gc-cons-threshold
-by saying something like
+You could increase the value of @code{gc-cons-threshold} by saying
+something like:
 
 @example
 (setq gc-cons-threshold 3500000)
@@ -2203,10 +2071,6 @@ In Gnus terminology a back end is a virtual server, a layer
 between core Gnus and the real NNTP-, POP3-, IMAP- or
 whatever-server which offers Gnus a standardized interface
 to functions like "get message", "get Headers" etc.
-
-@item Emacs
-When the term Emacs is used in this FAQ, it means GNU
-Emacs.
 
 @item Message
 In this FAQ message means either a mail or a posting to a

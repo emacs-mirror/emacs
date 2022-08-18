@@ -8283,7 +8283,7 @@ encode_coding_object (struct coding_system *coding,
   ptrdiff_t chars = to - from;
   ptrdiff_t bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  ptrdiff_t saved_pt = -1, saved_pt_byte;
+  ptrdiff_t saved_pt = -1, saved_pt_byte UNINIT;
   bool need_marker_adjustment = 0;
   bool kill_src_buffer = 0;
   Lisp_Object old_deactivate_mark;

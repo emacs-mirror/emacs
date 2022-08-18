@@ -883,10 +883,7 @@ History
 
 * Gnus Versions::               What Gnus versions have been released.
 * Why?::                        What's the point of Gnus?
-* Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 
@@ -1806,8 +1803,7 @@ long as Gnus is active.
 @end menu
 
 You can customize the Group Mode tool bar, see @kbd{M-x
-customize-apropos @key{RET} gnus-group-tool-bar}.  This feature is only
-available in Emacs.
+customize-apropos @key{RET} gnus-group-tool-bar}.
 
 The tool bar icons are now (de)activated correctly depending on the
 cursor position.  Therefore, moving around in the Group Buffer is
@@ -4839,8 +4835,7 @@ group buffer (@pxref{Selecting a Group}).
 You can have as many summary buffers open as you wish.
 
 You can customize the Summary Mode tool bar, see @kbd{M-x
-customize-apropos @key{RET} gnus-summary-tool-bar}.  This feature is only
-available in Emacs.
+customize-apropos @key{RET} gnus-summary-tool-bar}.
 
 @kindex v @r{(Summary)}
 @cindex keys, reserved for users (Summary)
@@ -8621,14 +8616,6 @@ uuencoded files that have had trailing spaces deleted.
 @vindex gnus-uu-pre-uudecode-hook
 Hook run before sending a message to @code{uudecode}.
 
-@item gnus-uu-view-with-metamail
-@vindex gnus-uu-view-with-metamail
-@cindex metamail
-Non-@code{nil} means that @code{gnus-uu} will ignore the viewing
-commands defined by the rule variables and just fudge a @acronym{MIME}
-content type based on the file name.  The result will be fed to
-@code{metamail} for viewing.
-
 @item gnus-uu-save-in-digest
 @vindex gnus-uu-save-in-digest
 Non-@code{nil} means that @code{gnus-uu}, when asked to save without
@@ -9359,13 +9346,10 @@ Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
 Use @uref{http://w3m.sourceforge.net/, w3m}.
 
 @item links
-Use @uref{https://almende.github.io/chap-links-library/, CHAP Links}.
+Use @uref{http://links.twibright.com/, Links}.
 
 @item lynx
 Use @uref{https://lynx.browser.org/, Lynx}.
-
-@item html2text
-Use html2text---a simple @acronym{HTML} converter included with Gnus.
 
 @end table
 
@@ -11576,8 +11560,8 @@ things to work:
 To handle @acronym{PGP} and @acronym{PGP/MIME} messages, you have to
 install an OpenPGP implementation such as GnuPG@.  The Lisp interface
 to GnuPG included with Emacs is called EasyPG (@pxref{Top, ,EasyPG,
-epa, EasyPG Assistant user's manual}), but PGG (@pxref{Top, ,PGG, pgg,
-PGG Manual}), and Mailcrypt are also supported.
+epa, EasyPG Assistant user's manual}), but Mailcrypt is also
+supported.
 
 @item
 To handle @acronym{S/MIME} message, you need to install OpenSSL@.  OpenSSL 0.9.6
@@ -11615,18 +11599,16 @@ public-key matching the @samp{From:} header as the recipient;
 @item mml1991-use
 @vindex mml1991-use
 Symbol indicating elisp interface to OpenPGP implementation for
-@acronym{PGP} messages.  The default is @code{epg}, but @code{pgg},
-and @code{mailcrypt} are also supported although
-deprecated.  By default, Gnus uses the first available interface in
-this order.
+@acronym{PGP} messages.  The default is @code{epg}, but
+@code{mailcrypt} is also supported although deprecated.  By default,
+Gnus uses the first available interface in this order.
 
 @item mml2015-use
 @vindex mml2015-use
 Symbol indicating elisp interface to OpenPGP implementation for
 @acronym{PGP/MIME} messages.  The default is @code{epg}, but
-@code{pgg}, and @code{mailcrypt} are also supported
-although deprecated.  By default, Gnus uses the first available
-interface in this order.
+@code{mailcrypt} is also supported although deprecated.  By default,
+Gnus uses the first available interface in this order.
 
 @end table
 
@@ -15440,8 +15422,6 @@ files.  If a positive number, delete files older than number of days
 (the deletion will only happen when receiving new mail).  You may also
 set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
-@code{mail-source-delete-incoming} defaults to @code{10} in alpha Gnusae
-and @code{2} in released Gnusae.  @xref{Gnus Development}.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -17357,11 +17337,6 @@ changes to a wiki (e.g., @url{https://cliki.net/site/recent-changes}).
 @acronym{RSS} has a quite regular and nice interface, and it's
 possible to get the information Gnus needs to keep groups updated.
 
-Note: you had better use Emacs which supports the @code{utf-8} coding
-system because @acronym{RSS} uses UTF-8 for encoding non-@acronym{ASCII}
-text by default.  It is also used by default for non-@acronym{ASCII}
-group names.
-
 @kindex G R @r{(Group)}
 Use @kbd{G R} from the group buffer to subscribe to a feed---you will be
 prompted for the location, the title and the description of the feed.
@@ -17410,7 +17385,7 @@ The directory where @code{nnrss} stores its files.  The default is
 @vindex nnrss-file-coding-system
 The coding system used when reading and writing the @code{nnrss} groups
 data files.  The default is the value of
-@code{mm-universal-coding-system} (which defaults to @code{emacs-mule}).
+@code{mm-universal-coding-system} (which defaults to @code{utf-8-emacs}).
 
 @item nnrss-ignore-article-fields
 @vindex nnrss-ignore-article-fields
@@ -21962,7 +21937,7 @@ you can set up a local @acronym{IMAP} server, which you then access via
 @code{nnimap}.  This is a rather massive setup for accessing some mbox
 files, so just change to MH or Maildir already...  However, if you're
 really, really passionate about using mbox, you might want to look into
-the package @file{mairix.el}, which comes with Emacs 23.
+the package @file{mairix.el}, which comes with Emacs.
 
 @node What nnmairix does
 @subsection What nnmairix does
@@ -24216,8 +24191,7 @@ people have started putting nonsense addresses into their @code{From}
 lines.  I think this is counterproductive---it makes it difficult for
 people to send you legitimate mail in response to things you write, as
 well as making it difficult to see who wrote what.  This rewriting may
-perhaps be a bigger menace than the unsolicited commercial email itself
-in the end.
+perhaps be a bigger menace than the spam itself in the end.
 
 The biggest problem I have with email spam is that it comes in under
 false pretenses.  I press @kbd{g} and Gnus merrily informs me that I
@@ -24243,33 +24217,13 @@ This is annoying.  Here's what you can do about it.
 @cindex UCE
 @cindex unsolicited commercial email
 
-First, some background on spam.
-
-If you have access to e-mail, you are familiar with spam (technically
-termed @acronym{UCE}, Unsolicited Commercial E-mail).  Simply put, it
-exists because e-mail delivery is very cheap compared to paper mail,
-so only a very small percentage of people need to respond to an UCE to
-make it worthwhile to the advertiser.  Ironically, one of the most
-common spams is the one offering a database of e-mail addresses for
-further spamming.  Senders of spam are usually called @emph{spammers},
-but terms like @emph{vermin}, @emph{scum}, @emph{sociopaths}, and
-@emph{morons} are in common use as well.
-
 Spam comes from a wide variety of sources.  It is simply impossible to
-dispose of all spam without discarding useful messages.  A good
-example is the TMDA system, which requires senders
-unknown to you to confirm themselves as legitimate senders before
-their e-mail can reach you.  Without getting into the technical side
-of TMDA, a downside is clearly that e-mail from legitimate sources may
-be discarded if those sources can't or won't confirm themselves
-through the TMDA system.  Another problem with TMDA is that it
-requires its users to have a basic understanding of e-mail delivery
-and processing.
+dispose of all spam without discarding useful messages.
 
 The simplest approach to filtering spam is filtering, at the mail
 server or when you sort through incoming mail.  If you get 200 spam
-messages per day from @samp{random-address@@vmadmin.com}, you block
-@samp{vmadmin.com}.  If you get 200 messages about @samp{VIAGRA}, you
+messages per day from @samp{random-address@@example.org}, you block
+@samp{example.org}.  If you get 200 messages about @samp{VIAGRA}, you
 discard all messages with @samp{VIAGRA} in the message.  If you get
 lots of spam from Bulgaria, for example, you try to filter all mail
 from Bulgarian IPs.
@@ -24380,7 +24334,7 @@ In my experience, this will sort virtually everything into the right
 group.  You still have to check the @samp{spam} group from time to time to
 check for legitimate mail, though.  If you feel like being a good net
 citizen, you can even send off complaints to the proper authorities on
-each unsolicited commercial email---at your leisure.
+each spam---at your leisure.
 
 This works for me.  It allows people an easy way to contact me (they can
 just press @kbd{r} in the usual way), and I'm not bothered at all with
@@ -24396,8 +24350,8 @@ Be careful with this approach.  Spammers are wise to it.
 @cindex Vipul's Razor
 @cindex DCC
 
-The days where the hints in the previous section were sufficient in
-avoiding spam are coming to an end.  There are many tools out there
+The days where the hints in the previous section were sufficient to
+avoid spam are over.  There are many tools out there
 that claim to reduce the amount of spam you get.  This section could
 easily become outdated fast, as new products replace old, but
 fortunately most of these tools seem to have similar interfaces.  Even
@@ -24478,7 +24432,7 @@ spam.  And here is the nifty function:
 @subsection Hashcash
 @cindex hashcash
 
-A novel technique to fight spam is to require senders to do something
+One technique to fight spam is to require senders to do something
 costly and demonstrably unique for each message they send.  This has
 the obvious drawback that you cannot rely on everyone in the world
 using this technique, since it is not part of the Internet standards,
@@ -25135,8 +25089,8 @@ The @code{gnus-article-sort-by-chars} entry simplifies detection of
 false positives for me.  I receive lots of worms (sweN, @dots{}), that all
 have a similar size.  Grouping them by size (i.e., chars) makes finding
 other false positives easier.  (Of course worms aren't @i{spam}
-(@acronym{UCE}, @acronym{UBE}) strictly speaking.  Anyhow, bogofilter is
-an excellent tool for filtering those unwanted mails for me.)
+strictly speaking.  Anyhow, bogofilter is an excellent tool for
+filtering those unwanted mails for me.)
 
 @item @b{Ham folders:}
 
@@ -26917,10 +26871,7 @@ renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
 @menu
 * Gnus Versions::               What Gnus versions have been released.
 * Why?::                        What's the point of Gnus?
-* Compatibility::               Just how compatible is Gnus with @sc{gnus}?
 * Conformity::                  Gnus tries to conform to all standards.
-* Emacsen::                     Gnus can be run on a few modern Emacsen.
-* Gnus Development::            How Gnus is developed.
 * Contributors::                Oodles of people.
 * New Features::                Pointers to some of the new stuff in Gnus.
 @end menu
@@ -26998,71 +26949,6 @@ everywhere I could imagine it being useful.  By doing so, I'm inviting
 every one of you to explore and invent.
 
 May Gnus never be complete.  @kbd{C-u 100 M-x all-hail-emacs}.
-
-
-@node Compatibility
-@subsection Compatibility
-
-@cindex compatibility
-Gnus was designed to be fully compatible with @sc{gnus}.  Almost all key
-bindings have been kept.  More key bindings have been added, of course,
-but only in one or two obscure cases have old bindings been changed.
-
-Our motto is:
-@quotation
-@cartouche
-@center In a cloud bones of steel.
-@end cartouche
-@end quotation
-
-All commands have kept their names.  Some internal functions have changed
-their names.
-
-The @code{gnus-uu} package has changed drastically.  @xref{Decoding
-Articles}.
-
-One major compatibility question is the presence of several summary
-buffers.  All variables relevant while reading a group are
-buffer-local to the summary buffer they belong in.  Although many
-important variables have their values copied into their global
-counterparts whenever a command is executed in the summary buffer, this
-change might lead to incorrect values being used unless you are careful.
-
-All code that relies on knowledge of @sc{gnus} internals will probably
-fail.  To take two examples: Sorting @code{gnus-newsrc-alist} (or
-changing it in any way, as a matter of fact) is strictly verboten.  Gnus
-maintains a hash table that points to the entries in this alist (which
-speeds up many functions), and changing the alist directly will lead to
-peculiar results.
-
-@cindex hilit19
-@cindex highlighting
-Old hilit19 code does not work at all.  In fact, you should probably
-remove all hilit code from all Gnus hooks
-(@code{gnus-group-prepare-hook} and @code{gnus-summary-prepare-hook}).
-Gnus provides various integrated functions for highlighting.  These are
-faster and more accurate.  To make life easier for everybody, Gnus will
-by default remove all hilit calls from all hilit hooks.  Uncleanliness!
-Away!
-
-Packages like @code{expire-kill} will no longer work.  As a matter of
-fact, you should probably remove all old @sc{gnus} packages (and other
-code) when you start using Gnus.  More likely than not, Gnus already
-does what you have written code to make @sc{gnus} do.  (Snicker.)
-
-Even though old methods of doing things are still supported, only the
-new methods are documented in this manual.  If you detect a new method of
-doing something while reading this manual, that does not mean you have
-to stop doing it the old way.
-
-Gnus understands all @sc{gnus} startup files.
-
-@findex gnus-bug
-@cindex reporting bugs
-@cindex bugs
-Overall, a casual user who hasn't written much code that depends on
-@sc{gnus} internals should suffer no problems.  If problems occur,
-please let me know by issuing that magic command @kbd{M-x gnus-bug}.
 
 
 @node Conformity
@@ -27146,79 +27032,6 @@ If you ever notice Gnus acting non-compliant with regards to the texts
 mentioned above, don't hesitate to drop a note to Gnus Towers and let us
 know.
 
-
-@node Emacsen
-@subsection Emacsen
-@cindex Emacsen
-@cindex Mule
-@cindex Emacs
-
-This version of Gnus should work on:
-
-@itemize @bullet
-
-@item
-Emacs 23.1 and up.
-
-@end itemize
-
-This Gnus version will absolutely not work on any Emacsen older than
-that.  Not reliably, at least.  Older versions of Gnus may work on older
-Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
-20.7.
-
-@c No-merge comment: The paragraph added in v5-10 here must not be
-@c synced here!
-
-@node Gnus Development
-@subsection Gnus Development
-
-Gnus is developed in a two-phased cycle.  The first phase involves much
-discussion on the development mailing list @samp{ding@@gnus.org}, where people
-propose changes and new features, post patches and new back ends.  This
-phase is called the @dfn{alpha} phase, since the Gnusae released in this
-phase are @dfn{alpha releases}, or (perhaps more commonly in other
-circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
-unstable and should not be used by casual users.  Gnus alpha releases
-have names like ``Oort Gnus'' and ``No Gnus''.  @xref{Gnus Versions}.
-
-After futzing around for 10--100 alpha releases, Gnus is declared
-@dfn{frozen}, and only bug fixes are applied.  Gnus loses the prefix,
-and is called things like ``Gnus 5.10.1'' instead.  Normal people are
-supposed to be able to use these, and these are mostly discussed on the
-@samp{gnu.emacs.gnus} newsgroup.  This newgroup is mirrored to the
-mailing list @samp{info-gnus-english@@gnu.org} which is carried on Gmane
-as @samp{gmane.emacs.gnus.user}.  These releases are finally integrated
-in Emacs.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
-
-The division of discussion between the ding mailing list and the Gnus
-newsgroup is not purely based on publicity concerns.  It's true that
-having people write about the horrible things that an alpha Gnus release
-can do (sometimes) in a public forum may scare people off, but more
-importantly, talking about new experimental features that have been
-introduced may confuse casual users.  New features are frequently
-introduced, fiddled with, and judged to be found wanting, and then
-either discarded or totally rewritten.  People reading the mailing list
-usually keep up with these rapid changes, while people on the newsgroup
-can't be assumed to do so.
-
-So if you have problems with or questions about the alpha versions,
-direct those to the ding mailing list @samp{ding@@gnus.org}.  This list
-is also available on Gmane as @samp{gmane.emacs.gnus.general}.
-
-@cindex Incoming*
-@vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae,
-in particular, @code{mail-source-delete-incoming}.  This is to prevent
-lossage of mail if an alpha release hiccups while handling the mail.
-@xref{Mail Source Customization}.
 
 @node Contributors
 @subsection Contributors
@@ -29797,19 +29610,6 @@ Ahem.
 Make sure your computer is switched on.
 
 @item
-Make sure that you really load the current Gnus version.  If you have
-been running @sc{gnus}, you need to exit Emacs and start it up again before
-Gnus will work.
-
-@item
-Try doing an @kbd{M-x gnus-version}.  If you get something that looks
-like @c
-@samp{Gnus v5.13} @c Adjust ../Makefile.in if you change this line!
-@c
-you have the right files loaded.  Otherwise you have some old @file{.el}
-files lying around.  Delete these.
-
-@item
 Read the help group (@kbd{G h} in the group buffer) for a
 @acronym{FAQ} and a how-to.
 
@@ -29817,7 +29617,7 @@ Read the help group (@kbd{G h} in the group buffer) for a
 @vindex max-lisp-eval-depth
 Gnus works on many recursive structures, and in some extreme (and very
 rare) cases Gnus may recurse down ``too deeply'' and Emacs will beep at
-you.  If this happens to you, set @code{max-lisp-eval-depth} to 500 or
+you.  If this happens to you, set @code{max-lisp-eval-depth} to 2000 or
 something like that.
 @end enumerate
 
@@ -29828,10 +29628,9 @@ If all else fails, report the problem as a bug.
 
 @findex gnus-bug
 If you find a bug in Gnus, you can report it with the @kbd{M-x
-gnus-bug} command.  @kbd{M-x set-variable @key{RET} debug-on-error
-@key{RET} t @key{RET}}, and send me the backtrace.  I will fix bugs,
-but I can only fix them if you send me a precise description as to how
-to reproduce the bug.
+gnus-bug} command.  @kbd{M-x toggle-debug-on-error}, and send me the
+backtrace.  I will fix bugs, but I can only fix them if you send me a
+precise description as to how to reproduce the bug.
 
 You really can never be too detailed in a bug report.  Always use the
 @kbd{M-x gnus-bug} command when you make bug reports, even if it creates
@@ -29862,7 +29661,7 @@ edebug.  Debugging Lisp code is documented in the Elisp manual
 (@pxref{Debugging, , Debugging Lisp Programs, elisp, The GNU Emacs
 Lisp Reference Manual}).  To get you started with edebug, consider if
 you discover some weird behavior when pressing @kbd{c}, the first
-step is to do @kbd{C-h k c} and click on the hyperlink (Emacs only) in
+step is to do @kbd{C-h k c} and click on the hyperlink in
 the documentation buffer that leads you to the function definition,
 then press @kbd{M-x edebug-defun @key{RET}} with point inside that function,
 return to Gnus and press @kbd{c} to invoke the code.  You will be
@@ -29874,7 +29673,7 @@ evaluate expressions using @kbd{M-:} or inspect variables using
 @cindex elp
 @cindex profile
 @cindex slow
-Sometimes, a problem do not directly generate an elisp error but
+Sometimes, a problem do not directly generate an Emacs Lisp error but
 manifests itself by causing Gnus to be very slow.  In these cases, you
 can use @kbd{M-x toggle-debug-on-quit} and press @kbd{C-g} when things are
 slow, and then try to analyze the backtrace (repeating the procedure

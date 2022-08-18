@@ -301,6 +301,7 @@ If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
 If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
+If Exist stdckdint.in.h update stdckdint.in.h stdckdint.in-h
 If Exist gnulib.mk.in update gnulib.mk.in gnulib.mk-in
 Rem Only repository has the msdos/autogen directory
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp

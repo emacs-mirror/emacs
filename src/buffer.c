@@ -1160,7 +1160,8 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
     genbase = name;
   else
     {
-      char number[sizeof "-999999"];
+      enum { bug_52711 = true };  /* https://bugs.gnu.org/57211 */
+      char number[bug_52711 ? INT_BUFSIZE_BOUND (int) + 1 : sizeof "-999999"];
       EMACS_INT r = get_random ();
       eassume (0 <= r);
       int i = r % 1000000;
@@ -1562,6 +1563,7 @@ This does not change the name of the visited file (if any).  */)
   (register Lisp_Object newname, Lisp_Object unique)
 {
   register Lisp_Object tem, buf;
+  Lisp_Object requestedname = newname;
 
   CHECK_STRING (newname);
 
@@ -1578,7 +1580,8 @@ This does not change the name of the visited file (if any).  */)
       if (NILP (unique) && XBUFFER (tem) == current_buffer)
 	return BVAR (current_buffer, name);
       if (!NILP (unique))
-	newname = Fgenerate_new_buffer_name (newname, BVAR (current_buffer, name));
+	newname = Fgenerate_new_buffer_name (newname,
+	                                     BVAR (current_buffer, name));
       else
 	error ("Buffer name `%s' is in use", SDATA (newname));
     }
@@ -1598,7 +1601,7 @@ This does not change the name of the visited file (if any).  */)
   run_buffer_list_update_hook (current_buffer);
 
   call2 (intern ("uniquify--rename-buffer-advice"),
-         BVAR (current_buffer, name), unique);
+         requestedname, unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
@@ -6441,6 +6444,24 @@ If nil, these display shortcuts will always remain disabled.
 
 There is no reason to change that value except for debugging purposes.  */);
   XSETFASTINT (Vlong_line_threshold, 10000);
+
+  DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
+    doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.
+
+The value should be a positive integer.
+
+Shortcuts in the display code intended to speed up redisplay for long
+and truncated lines will automatically be enabled when a line's
+horizontal scroll amount is or about to become larger than the value
+of this variable.
+
+This variable has effect only in buffers which contain one or more
+lines whose length is above `long-line-threshold', which see.
+To disable redisplay shortcuts for long truncated line, set this
+variable to `most-positive-fixnum'.
+
+There is no reason to change that value except for debugging purposes.  */);
+  large_hscroll_threshold = 10000;
 
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);

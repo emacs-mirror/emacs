@@ -209,6 +209,20 @@ static unsigned short left_curly_arrow_bits[] = {
 static unsigned short right_curly_arrow_bits[] = {
    0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
 
+/* Large circle bitmap.  */
+/*
+  ........
+  ..xxxx..
+  .xxxxxx.
+  xxxxxxxx
+  xxxxxxxx
+  .xxxxxx.
+  ..xxxx..
+  ........
+*/
+static unsigned short large_circle_bits[] = {
+  0x3c, 0x7e, 0xff, 0xff, 0xff, 0xff, 0x7e, 0x3c};
+
 /* Reverse Overlay arrow bitmap.  A triangular arrow.  */
 /*
   ......xx
@@ -454,6 +468,7 @@ static struct fringe_bitmap standard_bitmaps[] =
   { FRBITS (down_arrow_bits),         8, 0, ALIGN_BITMAP_BOTTOM, 0 },
   { FRBITS (left_curly_arrow_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_curly_arrow_bits),  8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (large_circle_bits),       8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (left_triangle_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_triangle_bits),     8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (top_left_angle_bits),     8, 0, ALIGN_BITMAP_TOP,    0 },

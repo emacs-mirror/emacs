@@ -401,6 +401,10 @@ decode_float_time (double t, struct lisp_time *result)
   else
     {
       int scale = double_integer_scale (t);
+      /* FIXME: `double_integer_scale` often returns values that are
+         "pessimistic" (i.e. larger than necessary), so 3.5 gets converted
+         to (7881299347898368 . 2251799813685248) rather than (7 . 2).
+         On 64bit systems, this should not matter very much, tho.  */
       eassume (scale < flt_radix_power_size);
 
       if (scale < 0)
@@ -818,17 +822,6 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 
   if (NILP (specified_time))
     form = TIMEFORM_NIL;
-  else if (FLOATP (specified_time))
-    {
-      double d = XFLOAT_DATA (specified_time);
-      if (!isfinite (d))
-	time_error (isnan (d) ? EDOM : EOVERFLOW);
-      if (result)
-	decode_float_time (d, result);
-      else
-	*dresult = d;
-      return TIMEFORM_FLOAT;
-    }
   else if (CONSP (specified_time))
     {
       high = XCAR (specified_time);
@@ -867,6 +860,22 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 	 would be considerably trickier.  */
       if (! INTEGERP (low))
 	form = TIMEFORM_INVALID;
+    }
+  else if (FASTER_TIMEFNS && INTEGERP (specified_time))
+    {
+      decode_ticks_hz (specified_time, make_fixnum (1), result, dresult);
+      return form;
+    }
+  else if (FLOATP (specified_time))
+    {
+      double d = XFLOAT_DATA (specified_time);
+      if (!isfinite (d))
+	time_error (isnan (d) ? EDOM : EOVERFLOW);
+      if (result)
+	decode_float_time (d, result);
+      else
+	*dresult = d;
+      return TIMEFORM_FLOAT;
     }
 
   int err = decode_time_components (form, high, low, usec, psec,
@@ -1202,10 +1211,16 @@ time_cmp (Lisp_Object a, Lisp_Object b)
     return 0;
 
   /* Compare (X . Z) to (Y . Z) quickly if X and Y are fixnums.
-     Do not inspect Z, as it is OK to not signal if A and B are invalid.  */
-  if (FASTER_TIMEFNS && CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b))
-      && FIXNUMP (XCAR (a)) && FIXNUMP (XCAR (b)))
-    return XFIXNUM (XCAR (a)) - XFIXNUM (XCAR (b));
+     Do not inspect Z, as it is OK to not signal if A and B are invalid.
+     Also, compare X to Y quickly if X and Y are fixnums.  */
+  if (FASTER_TIMEFNS)
+    {
+      Lisp_Object x = a, y = b;
+      if (CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b)))
+	x = XCAR (a), y = XCAR (b);
+      if (FIXNUMP (x) && FIXNUMP (y))
+	return XFIXNUM (x) - XFIXNUM (y);
+    }
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
@@ -1714,21 +1729,29 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
 }
 
 DEFUN ("time-convert", Ftime_convert, Stime_convert, 1, 2, 0,
-       doc: /* Convert TIME value to a Lisp timestamp.
-With optional FORM, convert to that timestamp form.
+       doc: /* Convert TIME value to a Lisp timestamp of the given FORM.
 Truncate the returned value toward minus infinity.
 
-If FORM is nil (the default), return the same form as `current-time'.
 If FORM is a positive integer, return a pair of integers (TICKS . FORM),
 where TICKS is the number of clock ticks and FORM is the clock frequency
-in ticks per second.  If FORM is t, return (TICKS . PHZ), where
-PHZ is a suitable clock frequency in ticks per second.  If FORM is
-`integer', return an integer count of seconds.  If FORM is `list',
-return an integer list (HIGH LOW USEC PSEC), where HIGH has the most
-significant bits of the seconds, LOW has the least significant 16
-bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
+in ticks per second.
+
+If FORM is t, return (TICKS . PHZ), where PHZ is a suitable clock
+frequency in ticks per second.
+
+If FORM is `integer', return an integer count of seconds.
+
+If FORM is `list', return an integer list (HIGH LOW USEC PSEC), where
+HIGH has the most significant bits of the seconds, LOW has the least
+significant 16 bits, and USEC and PSEC are the microsecond and
+picosecond counts.
+
+If FORM is nil, the behavior depends on `current-time-list',
+but new code should not rely on it.  */)
      (Lisp_Object time, Lisp_Object form)
 {
+  /* FIXME: Any reason why we don't offer a `float` output format option as
+     well, since we accept it as input?  */
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))

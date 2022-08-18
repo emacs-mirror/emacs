@@ -260,9 +260,10 @@ Default is t."
   "Non-nil means that files will be viewed with metamail.
 The gnus-uu viewing functions will be ignored and gnus-uu will try
 to guess at a content-type based on file name suffixes.  Default
-it nil."
+is nil."
   :group 'gnus-extract
   :type 'boolean)
+(make-obsolete-variable 'gnus-uu-view-with-metamail "don't use it." "29.1")
 
 (defcustom gnus-uu-unmark-articles-not-decoded nil
   "If non-nil, gnus-uu will mark unsuccessfully decoded articles as unread.

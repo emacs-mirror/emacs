@@ -1055,6 +1055,13 @@ Derived from `tramp-postfix-host-format'.")
 (defconst tramp-unknown-id-integer -1
   "Integer used to denote an unknown user or group.")
 
+;;;###tramp-autoload
+(defconst tramp-root-id-string "root"
+  "String used to denote the root user or group.")
+
+(defconst tramp-root-id-integer 0
+  "Integer used to denote the root user or group.")
+
 ;;; File name format:
 
 (defun tramp-build-remote-file-name-spec-regexp ()
@@ -4097,9 +4104,10 @@ Let-bind it when necessary.")
 	(when (and (not tramp-allow-unsafe-temporary-files)
 		   (not backup-inhibited)
 		   (file-in-directory-p (car result) temporary-file-directory)
-		   (zerop (or (file-attribute-user-id
-			       (file-attributes filename 'integer))
-			      tramp-unknown-id-integer))
+		   (= (or (file-attribute-user-id
+			   (file-attributes filename 'integer))
+			  tramp-unknown-id-integer)
+		      tramp-root-id-integer)
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p
@@ -4482,9 +4490,10 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	  (when (and (not tramp-allow-unsafe-temporary-files)
 		     create-lockfiles
 		     (file-in-directory-p lockname temporary-file-directory)
-		     (zerop (or (file-attribute-user-id
-				 (file-attributes file 'integer))
-				tramp-unknown-id-integer))
+		     (= (or (file-attribute-user-id
+			     (file-attributes file 'integer))
+			    tramp-unknown-id-integer)
+			tramp-root-id-integer)
 		     (not (with-tramp-connection-property
 			      (tramp-get-process v) "unsafe-temporary-file"
 			    (yes-or-no-p
@@ -5840,14 +5849,16 @@ be granted."
      ;; User accessible and owned by user.
      (and
       (eq access (aref (file-attribute-modes file-attr) offset))
-      (or (equal remote-uid tramp-unknown-id-integer)
+      (or (equal remote-uid tramp-root-id-integer)
+	  (equal remote-uid tramp-unknown-id-integer)
 	  (equal remote-uid (file-attribute-user-id file-attr))
 	  (equal tramp-unknown-id-integer (file-attribute-user-id file-attr))))
      ;; Group accessible and owned by user's principal group.
      (and
       (eq access
 	  (aref (file-attribute-modes file-attr) (+ offset 3)))
-      (or (equal remote-gid tramp-unknown-id-integer)
+      (or (equal remote-gid tramp-root-id-integer)
+	  (equal remote-gid tramp-unknown-id-integer)
 	  (equal remote-gid (file-attribute-group-id file-attr))
 	  (equal tramp-unknown-id-integer
 		 (file-attribute-group-id file-attr)))))))
@@ -6007,11 +6018,11 @@ This handles also chrooted environments, which are not regarded as local."
       (tramp-make-tramp-file-name vec tramp-compat-temporary-file-directory))
      ;; On some systems, chown runs only for root.
      (or (zerop (user-uid))
-	 (zerop (tramp-get-remote-uid vec 'integer))))))
+	 (= (tramp-get-remote-uid vec 'integer) tramp-root-id-integer)))))
 
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
-  (with-tramp-connection-property vec "tmpdir"
+  (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
     (let ((dir
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
@@ -6093,9 +6104,10 @@ this file, if that variable is non-nil."
 	(when (and (not tramp-allow-unsafe-temporary-files)
 		   auto-save-default
 		   (file-in-directory-p result temporary-file-directory)
-		   (zerop (or (file-attribute-user-id
-			       (file-attributes filename 'integer))
-			      tramp-unknown-id-integer))
+		   (= (or (file-attribute-user-id
+			   (file-attributes filename 'integer))
+			  tramp-unknown-id-integer)
+		      tramp-root-id-integer)
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p

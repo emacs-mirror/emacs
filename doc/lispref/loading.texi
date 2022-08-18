@@ -440,7 +440,7 @@ similarly-named file in a directory earlier on @code{load-path}.
 For instance, suppose @code{load-path} is set to
 
 @example
-  ("/opt/emacs/site-lisp" "/usr/share/emacs/23.3/lisp")
+  ("/opt/emacs/site-lisp" "/usr/share/emacs/29.1/lisp")
 @end example
 
 @noindent

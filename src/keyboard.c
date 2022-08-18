@@ -1832,8 +1832,16 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 static Lisp_Object
 safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
-  return call0 (args[1]);
+  eassert (nargs >= 2 && nargs <= 4);
+  switch (nargs)
+    {
+    case 2:
+      return call0 (args[1]);
+    case 3:
+      return call1 (args[1], args[2]);
+    default:
+      return call2 (args[1], args[2], args[3]);
+    }
 }
 
 /* Subroutine for safe_run_hooks: handle an error by clearing out the function
@@ -1878,11 +1886,27 @@ safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
+  eassert (nargs >= 2 && nargs <= 4);
   /* Yes, run_hook_with_args works with args in the other order.  */
-  internal_condition_case_n (safe_run_hooks_1,
-			     2, ((Lisp_Object []) {args[1], args[0]}),
-			     Qt, safe_run_hooks_error);
+  switch (nargs)
+    {
+    case 2:
+      internal_condition_case_n (safe_run_hooks_1,
+				 2, ((Lisp_Object []) {args[1], args[0]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    case 3:
+      internal_condition_case_n (safe_run_hooks_1,
+				 3, ((Lisp_Object []) {args[1], args[0], args[2]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    default:
+      internal_condition_case_n (safe_run_hooks_1,
+				 4, ((Lisp_Object [])
+				     {args[1], args[0], args[2], args[3]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    }
   return Qnil;
 }
 
@@ -12650,10 +12674,17 @@ cancels any modification.  */);
 
   DEFSYM (Qdeactivate_mark, "deactivate-mark");
   DEFVAR_LISP ("deactivate-mark", Vdeactivate_mark,
-	       doc: /* If an editing command sets this to t, deactivate the mark afterward.
+    doc: /* Whether to deactivate the mark after an editing command.
 The command loop sets this to nil before each command,
 and tests the value when the command returns.
-Buffer modification stores t in this variable.  */);
+If an editing command sets this non-nil, deactivate the mark after
+the command returns.
+
+Buffer modifications store t in this variable.
+
+By default, deactivating the mark will save the contents of the region
+according to `select-active-regions', unless this is set to the symbol
+`dont-save'.  */);
   Vdeactivate_mark = Qnil;
   Fmake_variable_buffer_local (Qdeactivate_mark);
 

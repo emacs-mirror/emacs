@@ -143,14 +143,14 @@ list of semantic tokens found."
                         cvl nil     ;re-init the collected value list.
                         lte (car matchlist) ;Get the local matchlist entry.
                         )
-                  (if (or (byte-code-function-p (car lte))
+                  (if (or (compiled-function-p (car lte))
                           (listp (car lte)))
                       ;; In this case, we have an EMPTY match!  Make
                       ;; stuff up.
                       (setq cvl (list nil))))
 
                 (while (and lte
-                            (not (byte-code-function-p (car lte)))
+                            (not (compiled-function-p (car lte)))
                             (not (listp (car lte))))
 
                   ;; GRAMMAR SOURCE DEBUGGING!

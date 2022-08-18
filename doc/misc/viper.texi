@@ -2571,7 +2571,7 @@ The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
 of Viper.  They work only if Emacs runs as an application under X
-Windows (or under some other window system for which a port of GNU Emacs 20
+Windows (or under some other window system for which a port of GNU Emacs
 is available).  Clicking the mouse when Emacs is invoked in an Xterm window
 (using @code{emacs -nw}) will do no good.
 

@@ -80,7 +80,7 @@
   (should-parse '(eshell-named-command
                   "sh" (list "-c" "echo \"bar\" | rev >temp")))
   (with-substitute-for-temp
-   (eshell-command-result-p input "^$")
+   (eshell-match-command-output input "^$")
    (temp-should-string= "rab")))
 
 (em-extpipe-tests--deftest em-extpipe-test-2
@@ -91,7 +91,7 @@
      '((eshell-named-command "echo" (list (eshell-escape-arg "bar")))
        (eshell-named-command "sh" (list "-c" "rev >temp")))))
   (with-substitute-for-temp
-   (eshell-command-result-p input "^$")
+   (eshell-match-command-output input "^$")
    (temp-should-string= "rab")))
 
 (em-extpipe-tests--deftest em-extpipe-test-3 "foo *| bar | baz -d"
@@ -111,7 +111,7 @@
       (eshell-named-command "sh"
 			    (list "-c" "echo \"bar\" | rev"))))
   (with-substitute-for-temp
-   (eshell-command-result-p input "^$")
+   (eshell-match-command-output input "^$")
    (temp-buffer-should-string= "rab")))
 
 (em-extpipe-tests--deftest em-extpipe-test-5
@@ -177,7 +177,7 @@
   (should-parse '(eshell-named-command "sh" (list "-c" "tac <temp")))
   (with-substitute-for-temp
    (with-temp-buffer (insert "bar\nbaz\n") (write-file temp))
-   (eshell-command-result-p input "baz\nbar")))
+   (eshell-match-command-output input "baz\nbar")))
 
 (em-extpipe-tests--deftest em-extpipe-test-15 "echo \"bar\" *| cat"
   (skip-unless (executable-find "cat"))
@@ -185,8 +185,8 @@
    '(eshell-named-command "sh" (list "-c" "echo \"bar\" | cat")))
   (cl-letf (((symbol-function 'eshell/cat)
              (lambda (&rest _args) (eshell-print "nonsense"))))
-    (eshell-command-result-p input "bar")
-    (eshell-command-result-p "echo \"bar\" | cat" "nonsense")))
+    (eshell-match-command-output input "bar")
+    (eshell-match-command-output "echo \"bar\" | cat" "nonsense")))
 
 (em-extpipe-tests--deftest em-extpipe-test-16 "echo \"bar\" *| rev"
   (skip-unless (executable-find "rev"))
@@ -195,11 +195,11 @@
   (let ((eshell-prefer-lisp-functions t))
     (cl-letf (((symbol-function 'rev)
                (lambda (&rest _args) (eshell-print "nonsense"))))
-      (eshell-command-result-p input "rab")
-      (eshell-command-result-p "echo \"bar\" | rev" "nonsense"))))
+      (eshell-match-command-output input "rab")
+      (eshell-match-command-output "echo \"bar\" | rev" "nonsense"))))
 
 ;; Confirm we don't break input of sharp-quoted symbols (Bug#53518).
 (em-extpipe-tests--deftest em-extpipe-test-17 "funcall #'upcase foo"
-  (eshell-command-result-p input "FOO"))
+  (eshell-match-command-output input "FOO"))
 
 ;;; em-extpipe-tests.el ends here

@@ -43,7 +43,7 @@
                     (executable-find "echo")
                     (executable-find "sleep")))
   (with-temp-eshell
-   (eshell-command-result-p
+   (eshell-match-command-output
     ;; The first command is like `yes' but slower.  This is to prevent
     ;; it from taxing Emacs's process filter too much and causing a
     ;; hang.
@@ -56,36 +56,37 @@
 (ert-deftest esh-proc-test/pipeline-connection-type/no-pipeline ()
   "Test that all streams are PTYs when a command is not in a pipeline."
   (skip-unless (executable-find "sh"))
-  (should (equal (eshell-test-command-result esh-proc-test--detect-pty-cmd)
-                 ;; PTYs aren't supported on MS-Windows.
-                 (unless (eq system-type 'windows-nt)
-                   "stdin\nstdout\nstderr\n"))))
+  (eshell-command-result-equal
+   esh-proc-test--detect-pty-cmd
+   ;; PTYs aren't supported on MS-Windows.
+   (unless (eq system-type 'windows-nt)
+     "stdin\nstdout\nstderr\n")))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/first ()
   "Test that only stdin is a PTY when a command starts a pipeline."
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
-  (should (equal (eshell-test-command-result
-                  (concat esh-proc-test--detect-pty-cmd " | cat"))
-                 (unless (eq system-type 'windows-nt)
-                   "stdin\n"))))
+  (eshell-command-result-equal
+   (concat esh-proc-test--detect-pty-cmd " | cat")
+   (unless (eq system-type 'windows-nt)
+     "stdin\n")))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/middle ()
   "Test that all streams are pipes when a command is in the middle of a
 pipeline."
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
-  (should (equal (eshell-test-command-result
-                  (concat "echo | " esh-proc-test--detect-pty-cmd " | cat"))
-                 nil)))
+  (eshell-command-result-equal
+   (concat "echo | " esh-proc-test--detect-pty-cmd " | cat")
+   nil))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
   "Test that only output streams are PTYs when a command ends a pipeline."
   (skip-unless (executable-find "sh"))
-  (should (equal (eshell-test-command-result
-                  (concat "echo | " esh-proc-test--detect-pty-cmd))
-                 (unless (eq system-type 'windows-nt)
-                   "stdout\nstderr\n"))))
+  (eshell-command-result-equal
+   (concat "echo | " esh-proc-test--detect-pty-cmd)
+   (unless (eq system-type 'windows-nt)
+     "stdout\nstderr\n")))
 
 (ert-deftest esh-proc-test/kill-pipeline ()
   "Test that killing a pipeline of processes only emits a single
@@ -136,4 +137,4 @@ prompt.  See bug#54136."
    (kill-process (caar eshell-process-list))
    ;; Give `eshell-sentinel' a chance to run.
    (sit-for 0.1)
-   (eshell-match-result "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n")))
+   (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))

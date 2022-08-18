@@ -410,11 +410,12 @@ The string is used in `tramp-methods'.")
                 (tramp-copy-keep-date       t)))
 
  (add-to-list 'tramp-default-method-alist
-	      `(,tramp-local-host-regexp "\\`root\\'" "su"))
+	      `(,tramp-local-host-regexp
+		,(format "\\`%s\\'" tramp-root-id-string) "su"))
 
  (add-to-list 'tramp-default-user-alist
 	      `(,(concat "\\`" (regexp-opt '("su" "sudo" "doas" "ksu")) "\\'")
-	        nil "root"))
+	        nil ,tramp-root-id-string))
  ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
  ;; Do not add "plink" based methods, they ask interactively for the user.
  (add-to-list 'tramp-default-user-alist
@@ -1314,8 +1315,12 @@ component is used as the target of the symlink."
           ;; ... uid and gid
           (setq res-uid-string (read (current-buffer)))
           (setq res-gid-string (read (current-buffer)))
+	  (when (natnump res-uid-string)
+	    (setq res-uid-string (number-to-string res-uid-string)))
           (unless (stringp res-uid-string)
 	    (setq res-uid-string (symbol-name res-uid-string)))
+	  (when (natnump res-gid-string)
+	    (setq res-gid-string (number-to-string res-gid-string)))
           (unless (stringp res-gid-string)
 	    (setq res-gid-string (symbol-name res-gid-string)))
           ;; ... size
@@ -3096,7 +3101,7 @@ implementation will be used."
 	 (cond
 	  ;; Some predefined values, which aren't reported sometimes,
 	  ;; or would raise problems (all Stopped signals).
-	  ((= i 0) 0)
+	  ((zerop i) 0)
 	  ((string-equal (nth i signals) "HUP") "Hangup")
 	  ((string-equal (nth i signals) "INT") "Interrupt")
 	  ((string-equal (nth i signals) "QUIT") "Quit")
@@ -4205,14 +4210,17 @@ file exists and nonzero exit status otherwise."
     ;; by some sh implementations (eg, bash when called as sh) on
     ;; startup; this way, we avoid the startup file clobbering $PS1.
     ;; $PROMPT_COMMAND is another way to set the prompt in /bin/bash,
-    ;; it must be discarded as well.  $HISTFILE is set according to
-    ;; `tramp-histfile-override'.  $TERM and $INSIDE_EMACS set here to
-    ;; ensure they have the correct values when the shell starts, not
-    ;; just processes run within the shell.  (Which processes include
-    ;; our initial probes to ensure the remote shell is usable.)
-    ;; For the time being, we assume that all shells interpret -i as
-    ;; interactive shell.  Must be the last argument, because (for
-    ;; example) bash expects long options first.
+    ;; it must be discarded as well.  Some ssh daemons (for example,
+    ;; on Android devices) do not acknowledge the $PS1 setting in
+    ;; that call, so we make a further sanity check.  (Bug#57044)
+    ;; $HISTFILE is set according to `tramp-histfile-override'.  $TERM
+    ;; and $INSIDE_EMACS set here to ensure they have the correct
+    ;; values when the shell starts, not just processes run within the
+    ;; shell.  (Which processes include our initial probes to ensure
+    ;; the remote shell is usable.)  For the time being, we assume
+    ;; that all shells interpret -i as interactive shell.  Must be the
+    ;; last argument, because (for example) bash expects long options
+    ;; first.
     (tramp-send-command
      vec (format
 	  (concat
@@ -4228,7 +4236,21 @@ file exists and nonzero exit status otherwise."
 	      ""))
 	  (tramp-shell-quote-argument tramp-end-of-output)
 	  shell (or (tramp-get-sh-extra-args shell) ""))
-     t)
+     t t)
+
+    ;; Sanity check.
+    (tramp-barf-if-no-shell-prompt
+     (tramp-get-connection-process vec) 10
+     "Couldn't find remote shell prompt for %s" shell)
+    (unless
+	(tramp-check-for-regexp
+	 (tramp-get-connection-process vec) (regexp-quote tramp-end-of-output))
+      (tramp-message vec 5 "Setting shell prompt")
+      (tramp-send-command
+       vec (format "PS1=%s PS2='' PS3='' PROMPT_COMMAND=''"
+		   (tramp-shell-quote-argument tramp-end-of-output))
+       t))
+
     ;; Check proper HISTFILE setting.  We give up when not working.
     (when (and (stringp tramp-histfile-override)
 	       (file-name-directory tramp-histfile-override))
@@ -4255,8 +4277,10 @@ file exists and nonzero exit status otherwise."
 	      (with-tramp-connection-property vec "remote-shell"
 		;; CCC: "root" does not exist always, see my QNAP
 		;; TS-459.  Which check could we apply instead?
-		(tramp-send-command vec "echo ~root" t)
-		(if (or (string-match-p "^~root$" (buffer-string))
+		(tramp-send-command
+		 vec (format "echo ~%s" tramp-root-id-string) t)
+		(if (or (string-match-p
+			 (format "^~%s$" tramp-root-id-string) (buffer-string))
 			;; The default shell (ksh93) of OpenSolaris
 			;; and Solaris is buggy.  We've got reports
 			;; for "SunOS 5.10" and "SunOS 5.11" so far.
@@ -5524,10 +5548,14 @@ Nonexistent directories are removed from spec."
 	     ;; "--color=never" argument (for example on FreeBSD).
 	     (when (tramp-send-command-and-check
 		    vec (format "%s -lnd /" result))
-	       (when (tramp-send-command-and-check
-		      vec (format
-			   "%s --color=never -al %s"
-                           result (tramp-get-remote-null-device vec)))
+	       (when (and (tramp-send-command-and-check
+			   vec (format
+				"%s --color=never -al %s"
+				result (tramp-get-remote-null-device vec)))
+			  (not (string-match-p
+				(regexp-quote "\e")
+				(tramp-get-buffer-string
+				 (tramp-get-buffer vec)))))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))

@@ -89,6 +89,7 @@ non-nil.")
 
 (defconst nnml-version "nnml 1.0"
   "nnml version.")
+(make-obsolete-variable 'nnml-version 'emacs-version "29.1")
 
 (defvoo nnml-nov-file-name ".overview")
 

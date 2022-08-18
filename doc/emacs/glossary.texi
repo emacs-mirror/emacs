@@ -1457,8 +1457,8 @@ level by aborting (q.v.@:) and quitting (q.v.).  @xref{Quitting}.
 @item Transient Mark Mode
 The default behavior of the mark (q.v.@:) and region (q.v.), in which
 setting the mark activates it and highlights the region, is called
-Transient Mark mode.  In GNU Emacs 23 and onwards, it is enabled by
-default.  @xref{Disabled Transient Mark}.
+Transient Mark mode.  It is enabled by default.  @xref{Disabled
+Transient Mark}.
 
 @item Transposition
 Transposing two units of text means putting each one into the place

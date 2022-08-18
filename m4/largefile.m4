@@ -10,8 +10,10 @@
 # It does not set _LARGEFILE_SOURCE=1 on HP-UX/ia64 32-bit, although this
 # setting of _LARGEFILE_SOURCE is needed so that <stdio.h> declares fseeko
 # and ftello in C++ mode as well.
+# Fixed in Autoconf 2.72, which has AC_SYS_YEAR2038.
 AC_DEFUN([gl_SET_LARGEFILE_SOURCE],
 [
+ m4_ifndef([AC_SYS_YEAR2038], [
   AC_REQUIRE([AC_CANONICAL_HOST])
   AC_FUNC_FSEEKO
   case "$host_os" in
@@ -20,9 +22,10 @@ AC_DEFUN([gl_SET_LARGEFILE_SOURCE],
         [Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2).])
       ;;
   esac
+ ])
 ])
 
-# Work around a problem in Autoconf through at least 2.71 on glibc 2.34+
+# Work around a problem in Autoconf through 2.71 on glibc 2.34+
 # with _TIME_BITS.  Also, work around a problem in autoconf <= 2.69:
 # AC_SYS_LARGEFILE does not configure for large inodes on Mac OS X 10.5,
 # or configures them incorrectly in some cases.
@@ -43,6 +46,7 @@ m4_define([_AC_SYS_LARGEFILE_TEST_INCLUDES],
 ])
 ])# m4_version_prereq 2.70
 
+m4_ifndef([AC_SYS_YEAR2038], [
 
 # _AC_SYS_LARGEFILE_MACRO_VALUE(C-MACRO, VALUE,
 #                               CACHE-VAR,
@@ -118,6 +122,7 @@ AS_IF([test "$enable_largefile" != no],
     [64],
       [gl_YEAR2038_BODY([])])])
 ])# AC_SYS_LARGEFILE
+])# m4_ifndef AC_SYS_YEAR2038
 
 # Enable large files on systems where this is implemented by Gnulib, not by the
 # system headers.

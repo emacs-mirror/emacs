@@ -41,6 +41,7 @@ you to operate on the listed files.  @xref{Directories}.
 * Operating on Files::        How to copy, rename, print, compress, etc.
                                 either one file or several files.
 * Shell Commands in Dired::   Running a shell command on the marked files.
+* Shell Command Guessing::    Guessing shell commands for files.
 * Transforming File Names::   Using patterns to rename multiple files.
 * Comparison in Dired::       Running @code{diff} by way of Dired.
 * Subdirectories in Dired::   Adding subdirectories to the Dired buffer.
@@ -1120,6 +1121,73 @@ buffer (@pxref{Dired Updating}).
 
   @xref{Single Shell}, for information about running shell commands
 outside Dired.
+
+@node Shell Command Guessing
+@section Shell Command Guessing
+@cindex guessing shell commands for files (in Dired)
+
+Based upon the name of a file, Dired tries to guess what shell command
+you might want to apply to it.  For example, if you have point on a
+file named @file{foo.tar} and you press @kbd{!}, Dired will guess that
+you want to run @samp{tar xvf}, and suggest that as the default shell
+command.
+
+You can type @kbd{M-n} to get the default into the minibuffer for
+editing.  If there are several commands for a given file, type
+@kbd{M-n} several times to see each matching command in order.
+
+Dired only tries to guess a command for a single file, never for a
+list of marked files.
+
+@defvar dired-guess-shell-alist-default
+This variable specifies the predefined rules for guessing shell
+commands suitable for certain files.  Set this to @code{nil} to turn
+guessing off.  The elements of @code{dired-guess-shell-alist-user}
+(defined by the user) will override these rules.
+@end defvar
+
+@defvar dired-guess-shell-alist-user
+If non-@code{nil}, this variable specifies the user-defined alist of
+file regexps and their suggested commands.  These rules take
+precedence over the predefined rules in the variable
+@code{dired-guess-shell-alist-default} when
+@code{dired-do-shell-command} is run).  The default is @code{nil}.
+
+Each element of the alist looks like
+
+@example
+(@var{regexp} @var{command}@dots{})
+@end example
+
+@noindent
+where each @var{command} can either be a string or a Lisp expression
+that evaluates to a string.  If several commands are given, all of
+them will temporarily be pushed onto the history.
+
+A @samp{*} in the shell command stands for the file name that matched
+@var{regexp}.  When Emacs invokes the @var{command}, it replaces each
+instance of @samp{*} with the matched file name.
+
+To add rules for @samp{.foo} and @samp{.bar} file extensions, add this
+to your Init file:
+
+@example
+(setq dired-guess-shell-alist-user
+      (list
+       (list "\\.foo$" "@var{foo-command}")  ; fixed rule
+       ;; possibly more rules...
+       (list "\\.bar$"  ; rule with condition test
+             '(if @var{condition}
+                  "@var{bar-command-1}"
+                "@var{bar-command-2}"))))
+@end example
+
+@noindent
+This will override any predefined rules for the same extensions.
+@end defvar
+
+You can find more user options with @kbd{M-x customize-group @key{RET}
+dired-guess @key{RET}}.
 
 @node Transforming File Names
 @section Transforming File Names in Dired

@@ -57,6 +57,7 @@ included.")
 
 (defconst nneething-version "nneething 1.0"
   "nneething version.")
+(make-obsolete-variable 'nneething-version 'emacs-version "29.1")
 
 (defvoo nneething-current-directory nil
   "Current news group directory.")

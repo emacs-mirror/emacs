@@ -246,7 +246,7 @@ must be true for all conformant implementations:
                  ucs-normalize-tests--rule1-failing-for-partX
                  ucs-normalize-tests--rule1-holds-p
                  ucs-normalize-tests--rule2-holds-p))
-    (or (byte-code-function-p (symbol-function fun))
+    (or (compiled-function-p (symbol-function fun))
         (byte-compile fun)))
   (let ((ucs-normalize-tests--chars-part1 (make-char-table 'ucs-normalize-tests t)))
     (setq ucs-normalize-tests--part1-rule1-failed-lines

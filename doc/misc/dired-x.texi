@@ -92,7 +92,6 @@ For @file{dired-x.el} as distributed with GNU Emacs @value{EMACSVER}.
 * Introduction::
 * Installation::
 * Omitting Files in Dired::
-* Shell Command Guessing::
 * Virtual Dired::
 * Advanced Mark Commands::
 * Multiple Dired Directories::
@@ -135,9 +134,6 @@ Some features provided by Dired Extra:
 Omitting uninteresting files from Dired listing
 (@pxref{Omitting Files in Dired}).
 @item
-Guessing shell commands in Dired buffers
-(@pxref{Shell Command Guessing}).
-@item
 Running Dired command in non-Dired buffers
 (@pxref{Virtual Dired}).
 @item
@@ -165,8 +161,6 @@ When @file{dired-x.el} is loaded, some standard Dired functions from
 Dired}), if it is active.  @code{dired-find-buffer-nocreate} and
 @code{dired-initial-position} respect the value of
 @code{dired-find-subdir} (@pxref{Miscellaneous Commands}).
-@code{dired-read-shell-command} uses @code{dired-guess-shell-command}
-(@pxref{Shell Command Guessing}) to offer a smarter default command.
 
 @node Installation
 @chapter Installation
@@ -184,7 +178,6 @@ In your @file{~/.emacs} file, or in the system-wide initialization file
 (with-eval-after-load 'dired
   (require 'dired-x)
   ;; Set dired-x global variables here.  For example:
-  ;; (setq dired-guess-shell-gnutar "gtar")
   ;; (setq dired-x-hands-off-my-keys nil)
   ))
 (add-hook 'dired-mode-hook
@@ -435,111 +428,6 @@ Loading @file{dired-x.el} will install Dired Omit by putting
 @code{dired-omit-expunge} on your @code{dired-after-readin-hook}, and will
 call @code{dired-extra-startup}, which in turn calls @code{dired-omit-startup}
 in your @code{dired-mode-hook}.
-
-@node Shell Command Guessing
-@chapter Shell Command Guessing
-@cindex guessing shell commands for files.
-
-Based upon the name of a file, Dired tries to guess what shell
-command you might want to apply to it.  For example, if you have point
-on a file named @file{foo.tar} and you press @kbd{!}, Dired will guess
-you want to @samp{tar xvf} it and suggest that as the default shell
-command.
-
-The default is mentioned in brackets and you can type @kbd{M-n} to get
-the default into the minibuffer and then edit it, e.g., to change
-@samp{tar xvf} to @samp{tar tvf}.  If there are several commands for a given
-file, e.g., @samp{xtex} and @samp{dvips} for a @file{.dvi} file, you can type
-@kbd{M-n} several times to see each of the matching commands.
-
-Dired only tries to guess a command for a single file, never for a list
-of marked files.
-
-The following variables control guessing of shell commands:
-
-@defvar dired-guess-shell-alist-default
-This variable specifies the predefined rules for guessing shell
-commands suitable for certain files.  Set this to @code{nil} to turn
-guessing off.  The elements of @code{dired-guess-shell-alist-user}
-(defined by the user) will override these rules.
-@end defvar
-
-@defvar dired-guess-shell-alist-user
-If non-@code{nil}, this variables specifies the user-defined alist of
-file regexps and their suggested commands.  These rules take
-precedence over the predefined rules in the variable
-@code{dired-guess-shell-alist-default} (to which they are prepended)
-when @code{dired-do-shell-command} is run).  The default is
-@code{nil}.
-
-Each element of the alist looks like
-
-@example
-(@var{regexp} @var{command}@dots{})
-@end example
-
-@noindent
-where each @var{command} can either be a string or a Lisp expression
-that evaluates to a string.  If several commands are given, all of
-them will temporarily be pushed onto the history.
-
-A @samp{*} in the shell command stands for the file name that matched
-@var{regexp}.  When Emacs invokes the @var{command}, it replaces each
-instance of @samp{*} with the matched file name.
-
-You can set this variable in your @file{~/.emacs}.  For example,
-to add rules for @samp{.foo} and @samp{.bar} file extensions, write
-
-@example
-(setq dired-guess-shell-alist-user
-      (list
-       (list "\\.foo$" "@var{foo-command}");; fixed rule
-       ;; possibly more rules...
-       (list "\\.bar$";; rule with condition test
-              '(if @var{condition}
-                   "@var{bar-command-1}"
-                 "@var{bar-command-2}"))))
-@end example
-
-@noindent
-This will override any predefined rules for the same extensions.
-@end defvar
-
-@defvar dired-guess-shell-case-fold-search
-If this variable is non-@code{nil},
-@code{dired-guess-shell-alist-default} and
-@code{dired-guess-shell-alist-user} are matched case-insensitively.
-The default is @code{t}.
-@end defvar
-
-@cindex passing GNU Tar its @samp{z} switch.
-@defvar dired-guess-shell-gnutar
-If this variable is non-@code{nil}, it specifies the name of the GNU
-Tar executable (e.g., @file{tar} or @file{gnutar}).  GNU Tar's
-@samp{z} switch is used for compressed archives.  If you don't have
-GNU Tar, set this to @code{nil}: a pipe using @command{zcat} is then
-used instead.  The default is @code{nil}.
-@end defvar
-
-@cindex @code{gzip}
-@defvar dired-guess-shell-gzip-quiet
-A non-@code{nil} value of this variable means that @samp{-q} is passed
-to @command{gzip}, possibly overriding a verbose option in the @env{GZIP}
-environment variable.  The default is @code{t}.
-@end defvar
-
-@cindex @code{znew}
-@defvar dired-guess-shell-znew-switches nil
-This variable specifies a string of switches passed to @command{znew}.
-An example is @samp{-K} which will make @command{znew} keep a @file{.Z}
-file when it is smaller than the @file{.gz} file.  The default is
-@code{nil}: no additional switches are passed to @command{znew}.
-@end defvar
-
-@defvar dired-shell-command-history nil
-This variable holds the history list for commands that read
-dired-shell commands.
-@end defvar
 
 @node Virtual Dired
 @chapter Virtual Dired

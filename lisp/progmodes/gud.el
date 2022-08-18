@@ -1577,16 +1577,17 @@ into one that invokes an Emacs-enabled debugging session.
 	 (seen-e nil)
 	 (shift (lambda () (push (pop args) new-args))))
 
-    ;; Pass all switches and -e scripts through.
+    ;; Pass all switches and -E/-e scripts through.
     (while (and args
 		(string-match "^-" (car args))
 		(not (equal "-" (car args)))
 		(not (equal "--" (car args))))
-      (when (equal "-e" (car args))
+      (when (or (equal "-E" (car args)) (equal "-e" (car args)))
 	;; -e goes with the next arg, so shift one extra.
-	(or (funcall shift)
-	    ;; -e as the last arg is an error in Perl.
-	    (error "No code specified for -e"))
+	(funcall shift)
+	(or args
+	    ;; -E (or -e) as the last arg is an error in Perl.
+	    (error "No code specified for %s" (car new-args)))
 	(setq seen-e t))
       (funcall shift))
 
@@ -1697,7 +1698,7 @@ The directory containing the perl program becomes the initial
 working directory and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'perldb
-			    (concat (or (buffer-file-name) "-e 0") " "))))
+			    (concat (or (buffer-file-name) "-E 0") " "))))
 
   (gud-common-init command-line 'gud-perldb-massage-args
 		   'gud-perldb-marker-filter)

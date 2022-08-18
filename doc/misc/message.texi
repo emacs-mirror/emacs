@@ -1152,12 +1152,11 @@ programs are required to make things work, and some small general hints.
 @uref{https://www.gnupg.org/, GNU Privacy Guard} or
 @uref{https://www.openssl.org/, OpenSSL}.  The default Emacs interface
 to the S/MIME implementation is EasyPG (@pxref{Top,,EasyPG Assistant
-User's Manual, epa, EasyPG Assistant User's Manual}), which has been
-included in Emacs since version 23 and which relies on the command
-line tool @command{gpgsm} provided by @acronym{GnuPG}.  That tool
-implements certificate management, including certificate revocation
-and expiry, while such tasks need to be performed manually, if OpenSSL
-is used.
+User's Manual, epa, EasyPG Assistant User's Manual}), which is
+included in Emacs and relies on the command line tool @command{gpgsm}
+provided by @acronym{GnuPG}.  That tool implements certificate
+management, including certificate revocation and expiry, while such
+tasks need to be performed manually, if OpenSSL is used.
 
 The choice between EasyPG and OpenSSL is controlled by the variable
 @code{mml-smime-use}, which needs to be set to the value @code{epg}
@@ -1250,8 +1249,8 @@ as @uref{https://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
 implementations such as PGP 2.x and PGP 5.x are also supported.  The
 default Emacs interface to the PGP implementation is EasyPG
 (@pxref{Top,,EasyPG Assistant User's Manual, epa, EasyPG Assistant
-User's Manual}), but PGG (@pxref{Top, ,PGG, pgg, PGG Manual}) and
-Mailcrypt are also supported.  @xref{PGP Compatibility}.
+User's Manual}), but Mailcrypt is also supported.  @xref{PGP
+Compatibility}.
 
 As stated earlier, messages encrypted with OpenPGP can be formatted
 according to two different standards, namely @acronym{PGP} or
@@ -1340,8 +1339,7 @@ your PGP implementation, so we refer to it.
 If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
 discover that the receiver cannot understand what you send. One
-solution is to use PGP 2.x instead (e.g., if you use @code{pgg}, set
-@code{pgg-default-scheme} to @code{pgp}). You could also convince your
+solution is to use PGP 2.x instead. You could also convince your
 fellow PGP 2.x users to convert to GnuPG@.
 @vindex mml-signencrypt-style-alist
 As a final workaround, you can make the sign and encryption work in

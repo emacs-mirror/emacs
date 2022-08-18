@@ -4626,6 +4626,7 @@ Used to indicate buffer boundaries.
 Used for different types of fringe cursors.
 
 @item @code{exclamation-mark}, @code{question-mark}
+@itemx @code{large-circle}
 Not used by core Emacs features.
 @end table
 

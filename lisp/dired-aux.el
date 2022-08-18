@@ -780,20 +780,16 @@ which is replaced by the value returned by `dired-mark-prompt',
 with ARG and FILES as its arguments.  FILES should be a list of
 file names.  The result is used as the prompt.
 
-This normally reads using `read-shell-command', but if the
-`dired-x' package is loaded, use `dired-guess-shell-command' to
-offer a smarter default choice of shell command."
+Use `dired-guess-shell-command' to offer a smarter default choice
+of shell command."
   (minibuffer-with-setup-hook
       (lambda ()
 	(setq-local dired-aux-files files)
 	(setq-local minibuffer-default-add-function
                     #'dired-minibuffer-default-add-shell-commands))
     (setq prompt (format prompt (dired-mark-prompt arg files)))
-    (if (functionp 'dired-guess-shell-command)
-	(dired-mark-pop-up nil 'shell files
-			   'dired-guess-shell-command prompt files)
-      (dired-mark-pop-up nil 'shell files
-			 'read-shell-command prompt nil nil))))
+    (dired-mark-pop-up nil 'shell files
+                       'dired-guess-shell-command prompt files)))
 
 ;;;###autoload
 (defcustom dired-confirm-shell-command t
@@ -1069,6 +1065,265 @@ Return the result of `process-file' - zero for success."
          (unless (zerop res)
            (pop-to-buffer out-buffer))
          res)))))
+
+
+;;; Guess shell command
+
+;; * `dired-guess-shell-command' provides smarter defaults for
+;;    `dired-read-shell-command'.
+;;
+;; * `dired-guess-shell-command' calls `dired-guess-default' with list of
+;;    marked files.
+;;
+;; * Parse `dired-guess-shell-alist-user' and
+;;   `dired-guess-shell-alist-default' (in that order) for the first REGEXP
+;;   that matches the first file in the file list.
+;;
+;; * If the REGEXP matches all the entries of the file list then evaluate
+;;   COMMAND, which is either a string or a Lisp expression returning a
+;;   string.  COMMAND may be a list of commands.
+;;
+;; * Return this command to `dired-guess-shell-command' which prompts user
+;;   with it.  The list of commands is put into the list of default values.
+;;   If a command is used successfully then it is stored permanently in
+;;   `dired-shell-command-history'.
+
+;; Guess what shell command to apply to a file.
+(defvar dired-shell-command-history nil
+  "History list for commands that read dired-shell commands.")
+
+;; Default list of shell commands.
+
+;; NOTE: Use `gunzip -c' instead of `zcat' on `.gz' files.  Some do not
+;; install GNU zip's version of zcat.
+
+(autoload 'Man-support-local-filenames "man")
+(autoload 'vc-responsible-backend "vc")
+
+(defvar dired-guess-shell-alist-default
+  (list
+   (list "\\.tar\\'"
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " xvf")
+            "tar xvf")
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -xvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; tar -C " (file-name-sans-extension file) " -xvf"))
+         ;; List archive contents.
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " tvf")
+            "tar tvf"))
+
+   ;; REGEXPS for compressed archives must come before the .Z rule to
+   ;; be recognized:
+   (list "\\.tar\\.Z\\'"
+         ;; Untar it.
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " zxvf")
+            (concat "zcat * | tar xvf -"))
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+
+   ;; gzip'ed archives
+   (list "\\.t\\(ar\\.\\)?gz\\'"
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " zxvf")
+            (concat "gunzip -qc * | tar xvf -"))
+         ;; Extract files into a separate subdirectory
+         '(if dired-guess-shell-gnutar
+              (concat "mkdir " (file-name-sans-extension file)
+                      "; " dired-guess-shell-gnutar " -C "
+                      (file-name-sans-extension file) " -zxvf")
+            (concat "mkdir " (file-name-sans-extension file)
+                    "; gunzip -qc * | tar -C "
+                    (file-name-sans-extension file) " -xvf -"))
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" ""))
+         ;; List archive contents.
+         '(if dired-guess-shell-gnutar
+              (concat dired-guess-shell-gnutar " ztvf")
+            (concat "gunzip -qc * | tar tvf -")))
+
+   ;; bzip2'ed archives
+   (list "\\.t\\(ar\\.bz2\\|bz\\)\\'"
+         "bunzip2 -c * | tar xvf -"
+         ;; Extract files into a separate subdirectory
+         '(concat "mkdir " (file-name-sans-extension file)
+                  "; bunzip2 -c * | tar -C "
+                  (file-name-sans-extension file) " -xvf -")
+         ;; Optional decompression.
+         "bunzip2")
+
+   ;; xz'ed archives
+   (list "\\.t\\(ar\\.\\)?xz\\'"
+         "unxz -c * | tar xvf -"
+         ;; Extract files into a separate subdirectory
+         '(concat "mkdir " (file-name-sans-extension file)
+                  "; unxz -c * | tar -C "
+                  (file-name-sans-extension file) " -xvf -")
+         ;; Optional decompression.
+         "unxz")
+
+   '("\\.shar\\.Z\\'" "zcat * | unshar")
+   '("\\.shar\\.g?z\\'" "gunzip -qc * | unshar")
+
+   '("\\.e?ps\\'" "ghostview" "xloadimage" "lpr")
+   (list "\\.e?ps\\.g?z\\'" "gunzip -qc * | ghostview -"
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.e?ps\\.Z\\'" "zcat * | ghostview -"
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+
+   (list "\\.patch\\'"
+         '(if (eq (ignore-errors (vc-responsible-backend default-directory)) 'Git)
+              "cat * | git apply"
+            "cat * | patch"))
+   (list "\\.patch\\.g?z\\'" "gunzip -qc * | patch"
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.patch\\.Z\\'" "zcat * | patch"
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+
+   ;; The following four extensions are useful with dired-man ("N" key)
+   ;; FIXME "man ./" does not work with dired-do-shell-command,
+   ;; because there seems to be no way for us to modify the filename,
+   ;; only the command.  Hmph.  `dired-man' works though.
+   (list "\\.\\(?:[0-9]\\|man\\)\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t
+                   "cat * | tbl | nroff -man -h | col -b"))))
+   (list "\\.\\(?:[0-9]\\|man\\)\\.g?z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db)
+                   "man -l")
+                  ((eq loc 'man)
+                   "man ./")
+                  (t "gunzip -qc * | tbl | nroff -man -h | col -b")))
+         ;; Optional decompression.
+         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.[0-9]\\.Z\\'"
+         '(let ((loc (Man-support-local-filenames)))
+            (cond ((eq loc 'man-db) "man -l")
+                  ((eq loc 'man) "man ./")
+                  (t "zcat * | tbl | nroff -man -h | col -b")))
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+   '("\\.pod\\'" "perldoc" "pod2man * | nroff -man")
+
+   '("\\.dvi\\'" "xdvi" "dvips")	; preview and printing
+   '("\\.au\\'" "play")			; play Sun audiofiles
+   '("\\.mpe?g\\'\\|\\.avi\\'" "xine -p")
+   '("\\.ogg\\'" "ogg123")
+   '("\\.mp3\\'" "mpg123")
+   '("\\.wav\\'" "play")
+   '("\\.uu\\'" "uudecode")		; for uudecoded files
+   '("\\.hqx\\'" "mcvert")
+   '("\\.sh\\'" "sh")			; execute shell scripts
+   '("\\.xbm\\'" "bitmap")		; view X11 bitmaps
+   '("\\.gp\\'" "gnuplot")
+   '("\\.p[bgpn]m\\'" "xloadimage")
+   '("\\.gif\\'" "xloadimage")		; view gif pictures
+   '("\\.tif\\'" "xloadimage")
+   '("\\.png\\'" "display")		; xloadimage 4.1 doesn't grok PNG
+   '("\\.jpe?g\\'" "xloadimage")
+   '("\\.fig\\'" "xfig")		; edit fig pictures
+   '("\\.out\\'" "xgraph")		; for plotting purposes.
+   '("\\.tex\\'" "latex" "tex")
+   '("\\.texi\\(nfo\\)?\\'" "makeinfo" "texi2dvi")
+   '("\\.pdf\\'" "xpdf")
+   '("\\.doc\\'" "antiword" "strings")
+   '("\\.rpm\\'" "rpm -qilp" "rpm -ivh")
+   '("\\.dia\\'" "dia")
+   '("\\.mgp\\'" "mgp")
+
+   ;; Some other popular archivers.
+   (list "\\.zip\\'" "unzip" "unzip -l"
+         ;; Extract files into a separate subdirectory
+         '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
+                  " -d " (file-name-sans-extension file)))
+   '("\\.zoo\\'" "zoo x//")
+   '("\\.lzh\\'" "lharc x")
+   '("\\.arc\\'" "arc x")
+   '("\\.shar\\'" "unshar")
+   '("\\.rar\\'" "unrar x")
+   '("\\.7z\\'" "7z x")
+
+   ;; Compression.
+   (list "\\.g?z\\'" '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+   (list "\\.dz\\'" "dictunzip")
+   (list "\\.bz2\\'" "bunzip2")
+   (list "\\.xz\\'" "unxz")
+   (list "\\.Z\\'" "uncompress"
+         ;; Optional conversion to gzip format.
+         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+                  " " dired-guess-shell-znew-switches))
+
+   '("\\.sign?\\'" "gpg --verify"))
+  "Default alist used for shell command guessing.
+See `dired-guess-shell-alist-user'.")
+
+(defun dired-guess-default (files)
+  "Return a shell command, or a list of commands, appropriate for FILES.
+See `dired-guess-shell-alist-user'."
+  (let* ((case-fold-search dired-guess-shell-case-fold-search)
+         (programs
+          (delete-dups
+           (mapcar
+            (lambda (command)
+              (eval command `((file . ,(car files)))))
+            (seq-reduce
+             #'append
+             (mapcar #'cdr
+                     (seq-filter (lambda (elem)
+                                   (seq-every-p
+                                    (lambda (file)
+                                      (string-match-p (car elem) file))
+                                    files))
+                                 (append dired-guess-shell-alist-user
+                                         dired-guess-shell-alist-default)))
+             nil)))))
+    (if (length= programs 1)
+        (car programs)
+      programs)))
+
+;;;###autoload
+(defun dired-guess-shell-command (prompt files)
+  "Ask user with PROMPT for a shell command, guessing a default from FILES."
+  (let ((default (dired-guess-default files))
+        default-list val)
+    (if (null default)
+        ;; Nothing to guess
+        (read-shell-command prompt nil 'dired-shell-command-history)
+      (setq prompt (replace-regexp-in-string ": $" " " prompt))
+      (if (listp default)
+          ;; More than one guess
+          (setq default-list default
+                default (car default)
+                prompt (concat
+                        prompt
+                        (format "{%d guesses} " (length default-list))))
+        ;; Just one guess
+        (setq default-list (list default)))
+      ;; Put the first guess in the prompt but not in the initial value.
+      (setq prompt (concat prompt (format "[%s]: " default)))
+      ;; All guesses can be retrieved with M-n
+      (setq val (read-shell-command prompt nil
+                                    'dired-shell-command-history
+                                    default-list))
+      ;; If we got a return, then return default.
+      (if (equal val "") default val))))
 
 
 ;;; Commands that delete or redisplay part of the dired buffer

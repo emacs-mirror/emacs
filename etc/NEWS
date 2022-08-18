@@ -385,6 +385,10 @@ longer choke when a buffer on display contains long lines.  The
 variable 'long-line-threshold' controls whether and when these display
 optimizations are in effect.
 
+A companion variable 'large-hscroll-threshold' controls when another
+set of display optimizations are in effect, which are aimed
+specifically at speeding up display of long lines that are truncated.
+
 If you still experience slowdowns while editing files with long lines,
 this may be due to line truncation, or to one of the enabled minor
 modes, or to the current major mode.  Try turning off line truncation
@@ -395,6 +399,9 @@ and the major mode with 'M-x so-long-mode', or visit the file with
 
 Note that the display optimizations in these cases may cause the
 buffer to be occasionally mis-fontified.
+
+The new function 'long-line-optimizations-p' returns non-nil when
+these optimizations are in effect in the current buffer.
 
 +++
 ** New command to change the font size globally.
@@ -454,7 +461,7 @@ duplicated on its right-hand side.
 
 +++
 ** 'network-lookup-address-info' can now check numeric IP address validity.
-Specifying 'numeric as the new optional 'hints' argument makes it
+Specifying 'numeric' as the new optional 'hints' argument makes it
 check if the passed address is a valid IPv4/IPv6 address (without DNS
 traffic).
 
@@ -1152,6 +1159,12 @@ change the input method's translation rules, customize the user option
 
 ** Dired
 
++++
+*** 'dired-guess-shell-command' moved from dired-x to dired.
+This means that 'dired-do-shell-command' will now provide smarter
+defaults without first having to require 'dired-x'.  See the node
+"(emacs) Shell Command Guessing" in the Emacs manual for more details.
+
 ---
 *** 'dired-clean-up-buffers-too' moved from dired-x to dired.
 This means that Dired now offers to kill buffers visiting files and
@@ -1250,6 +1263,12 @@ be used as a file-local variable.
 If given a prefix, it will query the user for an argument to use for
 the run/continue command.
 
+---
+*** 'perldb' now recognizes '-E'.
+As of Perl 5.10, 'perl -E 0' behaves like 'perl -e 0' but also activates
+all optional features of the Perl version in use.  'perldb' now uses
+this invocation as its default.
+
 ** Customize
 
 ---
@@ -1264,7 +1283,6 @@ contents.
 Sets the value of the buffer-local variable 'whitespace-style' in
 'diff-mode' buffers.  By default, this variable is '(face trailing)',
 which preserves behavior from previous Emacs versions.
-
 
 ** Ispell
 
@@ -1342,9 +1360,9 @@ value there.
 +++
 *** You can now generate a backtrace from Lisp errors in redisplay.
 To do this, set the new variable 'backtrace-on-redisplay-error' to a
-non-nil value.  The backtrace will be written to buffer
-*Redisplay-trace*.  This buffer will not be automatically displayed in
-a window.
+non-nil value.  The backtrace will be written to a special buffer
+named "*Redisplay-trace*".  This buffer will not be automatically
+displayed in a window.
 
 ** Compile
 
@@ -1748,11 +1766,6 @@ The new ':doc-spec-function' element can be used to compute the
 ':doc-spec' element when the user asks for info on that particular
 mode (instead of at load time).
 
-** Subr-x
-
-+++
-*** New macro 'with-memoization' provides a very primitive form of memoization.
-
 ** Ansi-color
 
 ---
@@ -2006,6 +2019,11 @@ recently set.
 *** When editing a bookmark annotation, 'C-c C-k' will now cancel.
 It is bound to the new command 'bookmark-edit-annotation-cancel'.
 
+---
+*** New option 'bookmark-fringe-mark'.
+This option controls the bitmap used to indicate bookmarks in the
+fringe (or 'nil' to disable showing this marker).
+
 ** Exif
 
 ---
@@ -2042,7 +2060,7 @@ This command displays a buffer containing the page load history of
 the current WebKit widget, and allows you to navigate it.
 
 ---
-*** On X11, the WebKit inspector is now available inside xwidgets.
+*** On X, the WebKit inspector is now available inside xwidgets.
 To access the inspector, right click on the widget and select "Inspect
 Element".
 
@@ -2156,6 +2174,13 @@ Additionally, globs ending with '**/' or '***/' no longer raise an
 error, and now expand to all directories recursively (following
 symlinks in the latter case).
 
++++
+*** Lisp forms in Eshell now treat a 'nil' result as a failed exit status.
+When executing a command that looks like '(lisp form)', Eshell will
+set the exit status (available in the '$?' variable) to 2.  This
+allows commands like that to be used as conditionals.  To change this
+behavior, customize the new 'eshell-lisp-form-nil-is-failure' option.
+
 ** Shell
 
 ---
@@ -2236,10 +2261,10 @@ instead of also trying to ping it.  Customize the user option
 To respect Emacs naming conventions, the variable 'unread-bib-file'
 has been renamed to 'bib-unread-file'.  The following commands have
 also been renamed:
-  'addbib'           to  'bib-add'
-  'return-key-bib'   to  'bib-return-key'
-  'mark-bib'         to  'bib-mark'
-  'unread-bib'       to  'bib-unread'
+    'addbib'           to  'bib-add'
+    'return-key-bib'   to  'bib-return-key'
+    'mark-bib'         to  'bib-mark'
+    'unread-bib'       to  'bib-unread'
 
 ---
 *** proced.el shows system processes of remote hosts.
@@ -2558,6 +2583,18 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'compiled-function-p'.
+This returns non-nil if its argument is either a built-in, or a
+byte-compiled, or a natively-compiled function object, or a function
+loaded from a dynamic module.
+
+---
+** 'deactivate-mark' can have new value 'dont-save'.
+This value means that Emacs should deactivate the mark as usual, but
+without setting the primary selection, if 'select-active-regions' is
+enabled.
+
++++
 ** New 'declare' form 'interactive-args'.
 This can be used to specify what forms to put into 'command-history'
 when executing commands interactively.
@@ -2569,8 +2606,8 @@ compiler now emits a warning about this deprecated usage.
 
 +++
 ** Emacs now supports user-customizable and themable icons.
-These can be used for buttons in buffers and the like.  See
-'(elisp)Icons' and '(emacs)Icons' for details.
+These can be used for buttons in buffers and the like.  See the
+"(elisp) Icons" and "(emacs) Icons" nodes in the manuals for details.
 
 +++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
@@ -2631,11 +2668,13 @@ things to be saved.
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
----
-** 'symbol-file' can now report natively-compiled .eln files.
+** 'symbol-file' can now report natively-compiled ".eln" files.
 If Emacs was built with native-compilation enabled, Lisp programs can
 now call 'symbol-file' with the new optional 3rd argument non-nil to
-request the name of the .eln file which defined a given symbol.
+request the name of the ".eln" file which defined a given symbol.
+
++++
+** New macro 'with-memoization' provides a very primitive form of memoization.
 
 ** Themes
 
@@ -2867,7 +2906,7 @@ This is like 'get-text-property', but works on the 'display' text
 property.
 
 +++
-** New function 'add-text-display-property'.
+** New function 'add-display-text-property'.
 This is like 'put-text-property', but works on the 'display' text
 property.
 

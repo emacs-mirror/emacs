@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2021-2022 Free Software Foundation, Inc.
 
-;; Author: Stefan Kangas <stefan@marxist.se>
+;; Author: Stefan Kangas <stefankangas@gmail.com>
 
 ;; This file is part of GNU Emacs.
 

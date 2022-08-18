@@ -467,6 +467,18 @@ be marked unmodified, effectively ignoring those changes."
                         (equal ,hash (buffer-hash)))
                (restore-buffer-modified-p nil))))))))
 
+(defun emacs-etc--hide-local-variables ()
+  "Hide local variables.
+Used by `emacs-authors-mode' and `emacs-news-mode'."
+  (narrow-to-region (point-min)
+                    (save-excursion
+                      (goto-char (point-max))
+                      ;; Obfuscate to avoid this being interpreted
+                      ;; as a local variable section itself.
+                      (if (re-search-backward "^Local\sVariables:$" nil t)
+                          (progn (forward-line -1) (point))
+                        (point-max)))))
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here

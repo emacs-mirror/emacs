@@ -37,14 +37,16 @@
 ;;
 ;; See the srecode manual for specific details.
 
+;;; Code:
+
 (require 'eieio)
 (require 'mode-local)
 (load "srecode/loaddefs" nil 'nomessage)
 
 (defvar srecode-version "1.2"
   "Current version of the Semantic Recoder.")
+(make-obsolete-variable 'srecode-version 'emacs-version "29.1")
 
-;;; Code:
 (defgroup srecode nil
   "Semantic Recoder."
   :group 'extensions

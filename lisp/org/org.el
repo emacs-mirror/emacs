@@ -3807,10 +3807,6 @@ This is needed for font-lock setup.")
 (declare-function dired-get-filename
 		  "dired"
 		  (&optional localp no-error-if-not-filep))
-(declare-function iswitchb-read-buffer
-		  "iswitchb"
-		  (prompt &optional
-			  default require-match _predicate start matches-set))
 (declare-function org-agenda-change-all-lines
 		  "org-agenda"
 		  (newhead hdmarker &optional fixface just-this))
@@ -3844,7 +3840,6 @@ This is needed for font-lock setup.")
 (defvar calc-embedded-open-formula)
 (defvar calc-embedded-open-mode)
 (defvar font-lock-unfontify-region-function)
-(defvar iswitchb-temp-buflist)
 (defvar org-agenda-tags-todo-honor-ignore-options)
 (defvar remember-data-file)
 (defvar texmathp-why)

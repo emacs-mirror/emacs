@@ -167,31 +167,31 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
 
 (defun advice--interactive-form (function)
   "Like `interactive-form' but tries to avoid autoloading functions."
-  (when (commandp function)
-    (if (not (and (symbolp function) (autoloadp (indirect-function function))))
-        (interactive-form function)
+  (if (not (and (symbolp function) (autoloadp (indirect-function function))))
+      (interactive-form function)
+    (when (commandp function)
       `(interactive (advice-eval-interactive-spec
                      (cadr (interactive-form ',function)))))))
 
-(defun advice--make-interactive-form (function main)
+(defun advice--make-interactive-form (iff ifm)
   ;; TODO: make it so that interactive spec can be a constant which
   ;; dynamically checks the advice--car/cdr to do its job.
   ;; For that, advice-eval-interactive-spec needs to be more faithful.
-  (let* ((iff (advice--interactive-form function))
-         (ifm (advice--interactive-form main))
-         (fspec (cadr iff)))
+  (let* ((fspec (cadr iff)))
     (when (eq 'function (car-safe fspec)) ;; Macroexpanded lambda?
-      (setq fspec (nth 1 fspec)))
+      (setq fspec (eval fspec t)))
     (if (functionp fspec)
         `(funcall ',fspec ',(cadr ifm))
       (cadr (or iff ifm)))))
 
 
 (cl-defmethod oclosure-interactive-form ((ad advice) &optional _)
-  (let ((car (advice--car ad))
-        (cdr (advice--cdr ad)))
-    (when (or (commandp car) (commandp cdr))
-      `(interactive ,(advice--make-interactive-form car cdr)))))
+  (let* ((car (advice--car ad))
+         (cdr (advice--cdr ad))
+         (ifa (advice--interactive-form car))
+         (ifd (advice--interactive-form cdr)))
+    (when (or ifa ifd)
+      `(interactive ,(advice--make-interactive-form ifa ifd)))))
 
 (cl-defmethod cl-print-object ((object advice) stream)
   (cl-assert (advice--p object))

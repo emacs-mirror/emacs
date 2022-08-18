@@ -403,9 +403,9 @@ This selects the function used to render @acronym{HTML}.  The
 predefined renderers are selected by the symbols @code{shr},
 @code{gnus-w3m}, @code{w3m}@footnote{See
 @uref{http://emacs-w3m.namazu.org/} for more information about
-emacs-w3m}, @code{links}, @code{lynx}, @code{w3m-standalone} or
-@code{html2text}.  You can also specify a function, which will be
-called with a @acronym{MIME} handle as the argument.
+emacs-w3m}, @code{links}, @code{lynx}, or @code{w3m-standalone}.  You
+can also specify a function, which will be called with a
+@acronym{MIME} handle as the argument.
 
 @item mm-html-inhibit-images
 @vindex mm-html-inhibit-images

@@ -551,6 +551,11 @@ instead of just updating them with the new/changed autoloads."
          (updating (and (file-exists-p output-file) (not generate-full)))
          (defs nil))
 
+    ;; Allow the excluded files to be relative.
+    (setq excluded-files
+          (mapcar (lambda (file) (expand-file-name file dir))
+                  excluded-files))
+
     ;; Collect all the autoload data.
     (let ((progress (make-progress-reporter
                      (byte-compile-info
@@ -565,16 +570,15 @@ instead of just updating them with the new/changed autoloads."
                   (time-less-p output-time
                                (file-attribute-modification-time
                                 (file-attributes file))))
-          (setq defs (nconc
-		      (loaddefs-generate--parse-file
-                       file output-file
-                       ;; We only want the package name from the
-                       ;; excluded files.
-                       (and include-package-version
-                            (if (member (expand-file-name file) excluded-files)
-                                'only
-                              t)))
-                      defs))))
+          ;; If we're scanning for package versions, we want to look
+          ;; at the file even if it's excluded.
+          (let* ((excluded (member (expand-file-name file dir) excluded-files))
+                 (package-data
+                  (and include-package-version (if excluded 'only t))))
+            (when (or package-data (not excluded))
+              (setq defs (nconc (loaddefs-generate--parse-file
+                                 file output-file package-data)
+                                defs))))))
       (progress-reporter-done progress))
 
     ;; If we have no autoloads data, but we have EXTRA-DATA, then
@@ -589,7 +593,8 @@ instead of just updating them with the new/changed autoloads."
       ;; We have some data, so generate the loaddef files.  First
       ;; group per output file.
       (dolist (fdefs (seq-group-by #'car defs))
-        (let ((loaddefs-file (car fdefs)))
+        (let ((loaddefs-file (car fdefs))
+              hash)
           (with-temp-buffer
             (if (and updating (file-exists-p loaddefs-file))
                 (insert-file-contents loaddefs-file)
@@ -599,6 +604,7 @@ instead of just updating them with the new/changed autoloads."
               (when extra-data
                 (insert extra-data)
                 (ensure-empty-lines 1)))
+            (setq hash (buffer-hash))
             ;; Then group by source file (and sort alphabetically).
             (dolist (section (sort (seq-group-by #'cadr (cdr fdefs))
                                    (lambda (e1 e2)
@@ -635,9 +641,11 @@ instead of just updating them with the new/changed autoloads."
                     (loaddefs-generate--print-form def))
                   (unless (bolp)
                     (insert "\n")))))
-            (write-region (point-min) (point-max) loaddefs-file nil 'silent)
-            (byte-compile-info (file-relative-name loaddefs-file lisp-directory)
-                               t "GEN")))))))
+            ;; Only write the file if we actually made a change.
+            (unless (equal (buffer-hash) hash)
+              (write-region (point-min) (point-max) loaddefs-file nil 'silent)
+              (byte-compile-info
+               (file-relative-name loaddefs-file lisp-directory) t "GEN"))))))))
 
 (defun loaddefs-generate--print-form (def)
   "Print DEF in a format that makes sense for version control."
@@ -666,7 +674,9 @@ instead of just updating them with the new/changed autoloads."
         (insert "\\\n")))
     (while def
       (insert " ")
-      (prin1 (pop def) (current-buffer) t))
+      (prin1 (pop def) (current-buffer)
+             '(t (escape-newlines . t)
+                 (escape-control-characters . t))))
     (insert ")")))
 
 (defun loaddefs-generate--excluded-files ()

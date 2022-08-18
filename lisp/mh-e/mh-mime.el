@@ -1502,7 +1502,7 @@ a prefix argument NOCONFIRM."
     (after-find-file nil nil nil nil t)))
 
 ;; Shush compiler.
-(defvar mh-identity-pgg-default-user-id)
+(defvar mh-identity-gpg-default-user-id)
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt (method)
@@ -1513,7 +1513,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "encrypt" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "encrypt" mh-identity-gpg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-sign (method)
@@ -1524,7 +1524,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "sign" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "sign" mh-identity-gpg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-signencrypt (method)
@@ -1535,7 +1535,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "signencrypt" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "signencrypt" mh-identity-gpg-default-user-id))
 
 (defvar mh-mml-cryptographic-method-history ())
 
@@ -1569,9 +1569,9 @@ IDENTITY is optionally the default-user-id to use."
         (save-excursion
           (goto-char (point-min))
           (mh-goto-header-end 1)
-          (if mh-identity-pgg-default-user-id
+          (if mh-identity-gpg-default-user-id
               (mml-insert-tag 'secure 'method method 'mode mode
-                              'sender mh-identity-pgg-default-user-id)
+                              'sender mh-identity-gpg-default-user-id)
             (mml-insert-tag 'secure 'method method 'mode mode)))))))
 
 ;;;###mh-autoload

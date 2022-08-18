@@ -35,6 +35,7 @@
 
 
 (defconst nnagent-version "nnagent 1.0")
+(make-obsolete-variable 'nnagent-version 'emacs-version "29.1")
 
 (defvoo nnagent-directory nil
   "Internal variable."

@@ -672,6 +672,10 @@ The value must be a valid color name.  The widget provides completion
 for color names, as well as a sample and a button for selecting a
 color name from a list of color names shown in a @file{*Colors*}
 buffer.
+
+@item fringe-bitmap
+The value must be a valid fringe bitmap name.  The widget provides
+completion.
 @end table
 
 @node Composite Types

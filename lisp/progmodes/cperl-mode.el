@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -28,21 +28,14 @@
 
 ;;; Commentary:
 
-;; This version of the file contains support for the syntax added by
-;; the MooseX::Declare CPAN module, as well as Perl 5.10 keyword
-;; support.
-
 ;; You can either fine-tune the bells and whistles of this mode or
-;; bulk enable them by putting
+;; bulk enable them by putting this in your Init file:
 
-;; (setq cperl-hairy t)
-
-;; in your .emacs file.  (Emacs rulers do not consider it politically
-;; correct to make whistles enabled by default.)
+;;     (setq cperl-hairy t)
 
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
-;; or as help on variables `cperl-tips', `cperl-problems',         <<<<<<
-;; `cperl-praise', `cperl-speed'.				   <<<<<<
+;; or as help on variables `cperl-tips', `cperl-praise',           <<<<<<
+;; `cperl-speed'.                                                  <<<<<<
 ;;
 ;; Or search for "Short extra-docs" further down in this file for
 ;; details on how to use `cperl-mode' instead of `perl-mode' and lots
@@ -50,19 +43,18 @@
 
 ;; The mode information (on C-h m) provides some customization help.
 
-;; Faces used now: three faces for first-class and second-class keywords
+;; Faces used: three faces for first-class and second-class keywords
 ;; and control flow words, one for each: comments, string, labels,
 ;; functions definitions and packages, arrays, hashes, and variable
-;; definitions.  If you do not see all these faces, your font-lock does
-;; not define them, so you need to define them manually.
+;; definitions.
 
-;; This mode supports font-lock, imenu and mode-compile.  In the
-;; hairy version font-lock is on, but you should activate imenu
-;; yourself (note that mode-compile is not standard yet).  Well, you
-;; can use imenu from keyboard anyway (M-g i), but it is better
-;; to bind it like that:
+;; This mode supports imenu.  You can use imenu from the keyboard
+;; (M-g i), but you might prefer binding it like this:
+;;
+;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
 
-;; (define-key global-map [M-S-down-mouse-3] 'imenu)
+;; This version supports the syntax added by the MooseX::Declare CPAN
+;; module, as well as Perl 5.10 keyword support.
 
 ;;; Code:
 
@@ -886,8 +878,9 @@ In regular expressions (including character classes):
 (and (vectorp cperl-del-back-ch) (= (length cperl-del-back-ch) 1)
      (setq cperl-del-back-ch (aref cperl-del-back-ch 0)))
 
-(defun cperl-putback-char (c)		; Emacs 19
-  (push c unread-command-events))       ; Avoid undefined warning
+(defun cperl-putback-char (c)
+  (declare (obsolete nil "29.1"))
+  (push c unread-command-events))
 
 (defsubst cperl-put-do-not-fontify (from to &optional post)
   ;; If POST, do not do it with postponed fontification
@@ -1118,8 +1111,7 @@ Unless KEEP, removes the old indentation."
               (get-text-property (point) 'syntax-type))
             '(here-doc pod))]
      "----"
-     ["CPerl pretty print (experimental)" cperl-ps-print
-      (fboundp 'ps-extend-face-list)]
+     ["CPerl pretty print (experimental)" cperl-ps-print]
      "----"
      ["Syntaxify region" cperl-find-pods-heres-region
       (use-region-p)]
@@ -1132,15 +1124,6 @@ Unless KEEP, removes the old indentation."
      ["Class Hierarchy from TAGS" cperl-tags-hier-init t]
      ;;["Update classes" (cperl-tags-hier-init t) tags-table-list]
      ("Tags"
-      ;; ["Create tags for current file" cperl-etags t]
-      ;; ["Add tags for current file" (cperl-etags t) t]
-      ;; ["Create tags for Perl files in directory" (cperl-etags nil t) t]
-      ;; ["Add tags for Perl files in directory" (cperl-etags t t) t]
-      ;; ["Create tags for Perl files in (sub)directories"
-      ;;  (cperl-etags nil 'recursive) t]
-      ;; ["Add tags for Perl files in (sub)directories"
-      ;;  (cperl-etags t 'recursive) t])
-      ;; ;;? cperl-write-tags (&optional file erase recurse dir inbuffer)
       ["Create tags for current file" (cperl-write-tags nil t) t]
       ["Add tags for current file" (cperl-write-tags) t]
       ["Create tags for Perl files in directory"
@@ -1153,6 +1136,8 @@ Unless KEEP, removes the old indentation."
        (cperl-write-tags nil nil t t) t]))
     ("Perl docs"
      ["Define word at point" imenu-go-find-at-position
+      ;; This is from imenu-go.el.  I can't find it on any ELPA
+      ;; archive, so I'm not sure if it's still in use or not.
       (fboundp 'imenu-go-find-at-position)]
      ["Help on function" cperl-info-on-command t]
      ["Help on function at point" cperl-info-on-current-command t]
@@ -1888,25 +1873,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 	  (cperl-make-indent comment-column 1) ; Indent min 1
 	  c)))))
 
-;;(defun cperl-comment-indent-fallback ()
-;;  "Is called if the standard comment-search procedure fails.
-;;Point is at start of real comment."
-;;  (let ((c (current-column)) target cnt prevc)
-;;    (if (= c comment-column) nil
-;;      (setq cnt (skip-chars-backward " \t"))
-;;      (setq target (max (1+ (setq prevc
-;;			     (current-column))) ; Else indent at comment column
-;;		   comment-column))
-;;      (if (= c comment-column) nil
-;;	(delete-backward-char cnt)
-;;	(while (< prevc target)
-;;	  (insert "\t")
-;;	  (setq prevc (current-column)))
-;;	(if (> prevc target) (progn (delete-char -1) (setq prevc (current-column))))
-;;	(while (< prevc target)
-;;	  (insert " ")
-;;	  (setq prevc (current-column)))))))
-
 (defun cperl-indent-for-comment ()
   "Substitute for `indent-for-comment' in CPerl."
   (interactive)
@@ -2178,7 +2144,7 @@ to nil."
 		   (delete-char -1)
 		   (delete-char 1))))
 	   (if delete
-	       (cperl-putback-char cperl-del-back-ch))
+               (push cperl-del-back-ch unread-command-events))
 	   (if cperl-message-electric-keyword
 	       (message "Precede char by C-q to avoid expansion"))))))
 
@@ -2252,7 +2218,7 @@ to nil."
 		 (end-of-line)
 		 (setq really-delete t)))
 	   (if (and delete really-delete)
-	       (cperl-putback-char cperl-del-back-ch))))))
+               (push cperl-del-back-ch unread-command-events))))))
 
 (defun cperl-electric-else ()
   "Insert a construction appropriate after a keyword.
@@ -2289,7 +2255,7 @@ to nil."
 	   (cperl-indent-line)
 	   (forward-line -1)
 	   (cperl-indent-line)
-	   (cperl-putback-char cperl-del-back-ch)
+           (push cperl-del-back-ch unread-command-events)
 	   (setq this-command 'cperl-electric-else)
 	   (if cperl-message-electric-keyword
 	       (message "Precede char by C-q to avoid expansion"))))))
@@ -6030,7 +5996,7 @@ default function."
 		cperl-font-lock-keywords-2 (append
 					   t-font-lock-keywords-1
 					   cperl-font-lock-keywords-1)))
-	(if (fboundp 'ps-print-buffer) (cperl-ps-print-init))
+        (cperl-ps-print-init)
 	(setq cperl-faces-init t))
     (error (message "cperl-init-faces (ignored): %s" errs))))
 
@@ -7155,13 +7121,6 @@ One may build such TAGS files from CPerl mode menu."
 	      (nreverse
 	       (sort root-packages (default-value 'imenu-sort-function)))
 	    root-packages))))
-
-;;(x-popup-menu t
-;;   '(keymap "Name1"
-;;	    ("Ret1" "aa")
-;;	    ("Head1" "ab"
-;;	     keymap "Name2"
-;;	     ("Tail1" "x") ("Tail2" "y"))))
 
 (defun cperl-list-fold (list name limit)
   (let (list1 list2 elt1 (num 0))

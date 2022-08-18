@@ -760,7 +760,9 @@ decided heuristically.)"
           ;; If there's an edebug spec, use that to determine what the
           ;; name is.
           (when symbol
-            (let ((spec (get symbol 'edebug-form-spec)))
+            (let ((spec (or (get symbol 'edebug-form-spec)
+                            (and (eq (get symbol 'lisp-indent-function) 'defun)
+                                 (get 'defun 'edebug-form-spec)))))
               (save-excursion
                 (when (and (eq (car-safe spec) '&define)
                            (memq 'name spec))
@@ -768,6 +770,9 @@ decided heuristically.)"
                   (while (and spec (not name))
                     (let ((candidate (ignore-errors (read (current-buffer)))))
                       (when (eq (pop spec) 'name)
+                        (when (and (consp candidate)
+                                   (symbolp (car (delete 'quote candidate))))
+                          (setq candidate (car (delete 'quote candidate))))
                         (setq name candidate
                               spec nil))))))))
           ;; We didn't have an edebug spec (or couldn't find the
@@ -783,7 +788,7 @@ decided heuristically.)"
                      (symbolp (car (delete 'quote candidate))))
                 (setq name (car (delete 'quote candidate)))))))
           (when-let ((result (or name symbol)))
-            (symbol-name result)))))))
+            (and (symbolp result) (symbol-name result))))))))
 
 (defvar-keymap lisp-mode-shared-map
   :doc "Keymap for commands shared by all sorts of Lisp modes."

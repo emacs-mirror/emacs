@@ -2512,9 +2512,8 @@ means to decode using the coding-system set for the GDB process."
   ;; Record transactions if logging is enabled.
   (when gdb-enable-debug
     (push (cons 'recv string) gdb-debug-log)
-    (if (and gdb-debug-log-max
-	     (> (length gdb-debug-log) gdb-debug-log-max))
-	(setcdr (nthcdr (1- gdb-debug-log-max) gdb-debug-log) nil)))
+    (when gdb-debug-log-max
+      (setq gdb-debug-log (ntake gdb-debug-log-max gdb-debug-log))))
 
   ;; Recall the left over gud-marker-acc from last time.
   (setq gud-marker-acc (concat gud-marker-acc string))

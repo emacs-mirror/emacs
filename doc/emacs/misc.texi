@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1985--2022 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Miscellaneous Commands
@@ -2869,99 +2868,6 @@ you can switch between them as you please.  Some commands switch to a
 new major mode which provides a command to switch back.  These
 approaches give you more flexibility to go back to unfinished tasks in
 the order you choose.
-
-@ignore
-@c Apart from edt and viper, this is all obsolete.
-@c (Can't believe we were saying "most other editors" into 2014!)
-@c There seems no point having a node just for those, which both have
-@c their own manuals.
-@node Emulation
-@section Emulation
-@cindex emulating other editors
-@cindex other editors
-@cindex EDT
-@cindex vi
-@cindex WordStar
-
-  GNU Emacs can be programmed to emulate (more or less) most other
-editors.  Standard facilities can emulate these:
-
-@table @asis
-@item CRiSP/Brief (PC editor)
-@findex crisp-mode
-@vindex crisp-override-meta-x
-@findex scroll-all-mode
-@cindex CRiSP mode
-@cindex Brief emulation
-@cindex emulation of Brief
-@cindex mode, CRiSP
-@kbd{M-x crisp-mode} enables key bindings to emulate the CRiSP/Brief
-editor.  Note that this rebinds @kbd{M-x} to exit Emacs unless you set
-the variable @code{crisp-override-meta-x}.  You can also use the
-command @kbd{M-x scroll-all-mode} or set the variable
-@code{crisp-load-scroll-all} to emulate CRiSP's scroll-all feature
-(scrolling all windows together).
-
-@item EDT (DEC VMS editor)
-@findex edt-emulation-on
-@findex edt-emulation-off
-Turn on EDT emulation with @kbd{M-x edt-emulation-on}; restore normal
-command bindings with @kbd{M-x edt-emulation-off}.
-
-Most of the EDT emulation commands are keypad keys, and most standard
-Emacs key bindings are still available.  The EDT emulation rebindings
-are done in the global keymap, so there is no problem switching
-buffers or major modes while in EDT emulation.
-
-@item TPU (DEC VMS editor)
-@findex tpu-edt-on
-@cindex TPU
-@kbd{M-x tpu-edt-on} turns on emulation of the TPU editor emulating EDT.
-
-@item vi (Berkeley editor)
-@findex viper-mode
-Viper is an emulator for vi.  It implements several levels of
-emulation; level 1 is closest to vi itself, while level 5 departs
-somewhat from strict emulation to take advantage of the capabilities of
-Emacs.  To invoke Viper, type @kbd{M-x viper-mode}; it will guide you
-the rest of the way and ask for the emulation level.  @inforef{Top,
-Viper, viper}.
-
-@item vi (another emulator)
-@findex vi-mode
-@kbd{M-x vi-mode} enters a major mode that replaces the previously
-established major mode.  All of the vi commands that, in real vi, enter
-input mode are programmed instead to return to the previous major
-mode.  Thus, ordinary Emacs serves as vi's input mode.
-
-Because vi emulation works through major modes, it does not work
-to switch buffers during emulation.  Return to normal Emacs first.
-
-If you plan to use vi emulation much, you probably want to bind a key
-to the @code{vi-mode} command.
-
-@item vi (alternate emulator)
-@findex vip-mode
-@kbd{M-x vip-mode} invokes another vi emulator, said to resemble real vi
-more thoroughly than @kbd{M-x vi-mode}.  Input mode in this emulator
-is changed from ordinary Emacs so you can use @key{ESC} to go back to
-emulated vi command mode.  To get from emulated vi command mode back to
-ordinary Emacs, type @kbd{C-z}.
-
-This emulation does not work through major modes, and it is possible
-to switch buffers in various ways within the emulator.  It is not
-so necessary to assign a key to the command @code{vip-mode} as
-it is with @code{vi-mode} because terminating insert mode does
-not use it.
-
-@inforef{Top, VIP, vip}, for full information.
-
-@item WordStar (old wordprocessor)
-@findex wordstar-mode
-@kbd{M-x wordstar-mode} provides a major mode with WordStar-like
-key bindings.
-@end table
-@end ignore
 
 
 @node Hyperlinking
