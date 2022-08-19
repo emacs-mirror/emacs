@@ -348,34 +348,14 @@ this function and determine whether to activate tree-sitter features.
 
 
 @cindex Creating tree-sitter parsers
-To create a parser, we provide a buffer to parse and the language to
-use (@pxref{Language Definitions}).  Emacs provides several creation
-functions for different use cases.
+@defun treesit-parser-create language &optional buffer no-reuse
+To create a parser, we provide a @var{buffer} to keep track of and the
+@var{language} to use (@pxref{Language Definitions}).  If @var{buffer}
+is nil, the current buffer is used.
 
-@defun treesit-get-parser-create language
-This function is the most convenient one.  It gives you a parser that
-recognizes @var{language} for the current buffer.  The function
-checks if there already exists a parser suiting the need, and only
-creates a new one when it can't find one.
-
-@example
-@group
-;; Create a parser for C programming language.
-(treesit-get-parser-create 'c)
-    @c @result{} #<treesit-parser for c in *scratch*>
-@end group
-@end example
-@end defun
-
-@defun treesit-get-parser language
-This function is like @code{treesit-get-parser-create}, but it
-always creates a new parser.
-@end defun
-
-@defun treesit-parser-create buffer language
-This function is the most primitive, requiring both the buffer to
-associate to, and the language to use.  If @var{buffer} is nil, the
-current buffer is used.
+By default, this function reuses a parser if one already exists for
+@var{language} in @var{buffer}, if @var{no-reuse} is non-nil, this
+function always creates a new parser.
 @end defun
 
 Given a parser, we can query information about it:
