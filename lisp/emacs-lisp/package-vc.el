@@ -206,7 +206,11 @@ The output is written out into PKG-FILE."
         (when (length= texi-files 1)
           (call-process "install-info" nil nil nil
                         (concat "--dir=" dir-file)
-                        (car texi-files)))))))
+                        (car texi-files)))))
+
+    ;; Mark package as selected
+    (package--save-selected-packages
+     (cons name package-selected-packages))))
 
 (defun package-vc-sourced-packages-list ()
   "Generate a list of packages with VC data."
