@@ -12186,6 +12186,11 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       if (device)
 	x_dnd_keyboard_device = device->attachment;
     }
+  else
+    {
+      x_dnd_pointer_device = -1;
+      x_dnd_keyboard_device = -1;
+    }
 
 #endif
 
@@ -13401,18 +13406,17 @@ get_keysym_name (int keysym)
   return value;
 }
 
-/* Like XQueryPointer, but always use the right client pointer
-   device.  */
-
-Bool
-x_query_pointer (Display *dpy, Window w, Window *root_return,
-		 Window *child_return, int *root_x_return,
-		 int *root_y_return, int *win_x_return,
-		 int *win_y_return, unsigned int *mask_return)
+static Bool
+x_query_pointer_1 (struct x_display_info *dpyinfo,
+		   int client_pointer_device, Window w,
+		   Window *root_return, Window *child_return,
+		   int *root_x_return, int *root_y_return,
+		   int *win_x_return, int *win_y_return,
+		   unsigned int *mask_return)
 {
   Bool rc;
+  Display *dpy;
 #ifdef HAVE_XINPUT2
-  struct x_display_info *dpyinfo;
   bool had_errors;
   XIModifierState modifiers;
   XIButtonState buttons;
@@ -13421,9 +13425,10 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
   unsigned int state;
 #endif
 
+  dpy = dpyinfo->display;
+
 #ifdef HAVE_XINPUT2
-  dpyinfo = x_display_info_for_display (dpy);
-  if (dpyinfo && dpyinfo->client_pointer_device != -1)
+  if (client_pointer_device != -1)
     {
       /* Catch errors caused by the device going away.  This is not
 	 very expensive, since XIQueryPointer will sync anyway.  */
@@ -13461,6 +13466,31 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
 			win_y_return, mask_return);
 
   return rc;
+}
+
+Bool
+x_query_pointer (Display *dpy, Window w, Window *root_return,
+		 Window *child_return, int *root_x_return,
+		 int *root_y_return, int *win_x_return,
+		 int *win_y_return, unsigned int *mask_return)
+{
+  struct x_display_info *dpyinfo;
+
+  dpyinfo = x_display_info_for_display (dpy);
+
+  if (!dpyinfo)
+    emacs_abort ();
+
+#ifdef HAVE_XINPUT2
+  return x_query_pointer_1 (dpyinfo, dpyinfo->client_pointer_device,
+			    w, root_return, child_return, root_x_return,
+			    root_y_return, win_x_return, win_y_return,
+			    mask_return);
+#else
+  return x_query_pointer_1 (dpyinfo, -1, w, root_return, child_return,
+			    root_x_return, root_y_return, win_x_return,
+			    win_y_return, mask_return);
+#endif
 }
 
 /* Mouse clicks and mouse movement.  Rah.
@@ -16902,11 +16932,19 @@ x_dnd_update_tooltip_now (void)
 
   dpyinfo = FRAME_DISPLAY_INFO (x_dnd_frame);
 
+#ifndef HAVE_XINPUT2
   rc = XQueryPointer (dpyinfo->display,
 		      dpyinfo->root_window,
 		      &root, &child, &root_x,
 		      &root_y, &win_x, &win_y,
 		      &mask);
+#else
+  rc = x_query_pointer_1 (dpyinfo, x_dnd_pointer_device,
+			  dpyinfo->root_window,
+			  &root, &child, &root_x,
+			  &root_y, &win_x, &win_y,
+			  &mask);
+#endif
 
   if (rc)
     x_dnd_update_tooltip_position (root_x, root_y);
@@ -16926,12 +16964,17 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
   xm_drop_start_message dsmsg;
   bool was_frame;
 
-  if (XQueryPointer (dpyinfo->display,
-		     dpyinfo->root_window,
-		     &dummy, &dummy_child,
-		     &root_x, &root_y,
-		     &dummy_x, &dummy_y,
-		     &dummy_mask))
+  if (x_query_pointer_1 (dpyinfo,
+#ifdef HAVE_XINPUT2
+			 x_dnd_pointer_device,
+#else
+			 -1,
+#endif
+			 dpyinfo->root_window,
+			 &dummy, &dummy_child,
+			 &root_x, &root_y,
+			 &dummy_x, &dummy_y,
+			 &dummy_mask))
     {
       target = x_dnd_get_target_window (dpyinfo, root_x,
 					root_y, &target_proto,
