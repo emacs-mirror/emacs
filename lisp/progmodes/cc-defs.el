@@ -2071,8 +2071,8 @@ non-nil, a caret is prepended to invert the set."
     str))
 
 ;; Leftovers from (X)Emacs 19 compatibility.
-(defalias 'c-regexp-opt 'regexp-opt)
-(defalias 'c-regexp-opt-depth 'regexp-opt-depth)
+(define-obsolete-function-alias 'c-regexp-opt #'regexp-opt "29.1")
+(define-obsolete-function-alias 'c-regexp-opt-depth #'regexp-opt-depth "29.1")
 
 
 ;; Figure out what features this Emacs has
