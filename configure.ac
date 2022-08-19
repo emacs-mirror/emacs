@@ -4240,8 +4240,8 @@ if test "${with_native_compilation}" != "no"; then
         if test -n "`$BREW --prefix --installed libgccjit 2>/dev/null`"; then
           MAC_CFLAGS="-I$(dirname $($BREW ls -v libgccjit | \
                                                 grep libgccjit.h))"
-          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit| \
-                                            grep -E 'libgccjit\.(so|dylib)$'))"
+          MAC_LIBS="-L$(dirname $($BREW ls -v libgccjit \
+                                  | grep -m1 -E 'libgccjit\.(so|dylib)$'))"
         fi
       fi
 
