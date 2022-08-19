@@ -2716,12 +2716,15 @@ don't clear it."
          (t
           ;; Pass `cmd' rather than `final', for the backtrace's sake.
           (prog1 (call-interactively cmd record-flag keys)
-            (when (and (symbolp cmd)
-                       (get cmd 'byte-obsolete-info)
-                       (not (get cmd 'command-execute-obsolete-warned)))
+            (when-let ((info
+                        (and (symbolp cmd)
+                             (not (get cmd 'command-execute-obsolete-warned))
+                             (get cmd 'byte-obsolete-info))))
               (put cmd 'command-execute-obsolete-warned t)
               (message "%s" (macroexp--obsolete-warning
-                             cmd (get cmd 'byte-obsolete-info) "command"))))))))))
+                             cmd info "command"
+                             (help--key-description-fontified
+                              (where-is-internal (car info) nil t))))))))))))
 
 (defun command-execute--query (command)
   "Query the user whether to run COMMAND."
