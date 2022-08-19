@@ -2861,7 +2861,6 @@ See `edebug-behavior-alist' for implementations.")
 	      (this-command this-command)
 	      (current-prefix-arg nil)
 
-	      ;; More for Emacs 19
 	      (last-input-event nil)
 	      (last-command-event nil)
 	      (last-event-frame nil)

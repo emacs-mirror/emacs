@@ -150,7 +150,6 @@
 
 ;; This function uses calc-last-kill if possible to get an exact result,
 ;; otherwise it just parses the yanked string.
-;; Modified to use Emacs 19 extended concept of kill-ring. -- daveg 12/15/96
 ;;;###autoload
 (defun calc-yank-internal (radix thing-raw)
   "Internal common implementation for yank functions.
