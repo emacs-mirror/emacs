@@ -458,62 +458,60 @@ Typically \"page-%s.png\".")
 
 ;;;; DocView Keymaps
 
-(defvar doc-view-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map image-mode-map)
-    ;; Navigation in the document
-    (define-key map (kbd "n")         'doc-view-next-page)
-    (define-key map (kbd "p")         'doc-view-previous-page)
-    (define-key map (kbd "<next>")    'forward-page)
-    (define-key map (kbd "<prior>")   'backward-page)
-    (define-key map [remap forward-page]  'doc-view-next-page)
-    (define-key map [remap backward-page] 'doc-view-previous-page)
-    (define-key map (kbd "SPC")       'doc-view-scroll-up-or-next-page)
-    (define-key map (kbd "S-SPC")     'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "DEL")       'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "C-n")       'doc-view-next-line-or-next-page)
-    (define-key map (kbd "<down>")    'doc-view-next-line-or-next-page)
-    (define-key map (kbd "C-p")       'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "<up>")      'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "M-<")       'doc-view-first-page)
-    (define-key map (kbd "M->")       'doc-view-last-page)
-    (define-key map [remap goto-line] 'doc-view-goto-page)
-    (define-key map (kbd "RET")       'image-next-line)
-    ;; Zoom in/out.
-    (define-key map "+"               'doc-view-enlarge)
-    (define-key map "="               'doc-view-enlarge)
-    (define-key map "-"               'doc-view-shrink)
-    (define-key map "0"               'doc-view-scale-reset)
-    (define-key map [remap text-scale-adjust] 'doc-view-scale-adjust)
-    ;; Fit the image to the window
-    (define-key map "W"               'doc-view-fit-width-to-window)
-    (define-key map "H"               'doc-view-fit-height-to-window)
-    (define-key map "P"               'doc-view-fit-page-to-window)
-    (define-key map "F"               'doc-view-fit-window-to-page) ;F = frame
-    ;; Killing the buffer (and the process)
-    (define-key map (kbd "k")         'image-kill-buffer)
-    (define-key map (kbd "K")         'doc-view-kill-proc)
-    ;; Slicing the image
-    (define-key map (kbd "c s")       'doc-view-set-slice)
-    (define-key map (kbd "c m")       'doc-view-set-slice-using-mouse)
-    (define-key map (kbd "c b")       'doc-view-set-slice-from-bounding-box)
-    (define-key map (kbd "c r")       'doc-view-reset-slice)
-    ;; Centering the image
-    (define-key map (kbd "c h")       'doc-view-center-page-horizontally)
-    (define-key map (kbd "c v")       'doc-view-center-page-vertically)
-    ;; Searching
-    (define-key map (kbd "C-s")       'doc-view-search)
-    (define-key map (kbd "<find>")    'doc-view-search)
-    (define-key map (kbd "C-r")       'doc-view-search-backward)
-    ;; Show the tooltip
-    (define-key map (kbd "C-t")       'doc-view-show-tooltip)
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
-    ;; Open a new buffer with doc's text contents
-    (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    (define-key map (kbd "r")         'revert-buffer)
-    map)
-  "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+(defvar-keymap doc-view-mode-map
+  :doc "Keymap used by `doc-view-mode' when displaying a doc as a set of images."
+  :parent image-mode-map
+  ;; Navigation in the document
+  "n"       #'doc-view-next-page
+  "p"       #'doc-view-previous-page
+  "<next>"  #'forward-page
+  "<prior>" #'backward-page
+  "<remap> <forward-page>"  #'doc-view-next-page
+  "<remap> <backward-page>" #'doc-view-previous-page
+  "SPC"     #'doc-view-scroll-up-or-next-page
+  "S-SPC"   #'doc-view-scroll-down-or-previous-page
+  "DEL"     #'doc-view-scroll-down-or-previous-page
+  "C-n"     #'doc-view-next-line-or-next-page
+  "<down>"  #'doc-view-next-line-or-next-page
+  "C-p"     #'doc-view-previous-line-or-previous-page
+  "<up>"    #'doc-view-previous-line-or-previous-page
+  "M-<"     #'doc-view-first-page
+  "M->"     #'doc-view-last-page
+  "<remap> <goto-line>" #'doc-view-goto-page
+  "RET"     #'image-next-line
+  ;; Zoom in/out.
+  "+"       #'doc-view-enlarge
+  "="       #'doc-view-enlarge
+  "-"       #'doc-view-shrink
+  "0"       #'doc-view-scale-reset
+  "<remap> <text-scale-adjust>" #'doc-view-scale-adjust
+  ;; Fit the image to the window
+  "W"       #'doc-view-fit-width-to-window
+  "H"       #'doc-view-fit-height-to-window
+  "P"       #'doc-view-fit-page-to-window
+  "F"       #'doc-view-fit-window-to-page ;F = frame
+  ;; Killing the buffer (and the process)
+  "k"       #'image-kill-buffer
+  "K"       #'doc-view-kill-proc
+  ;; Slicing the image
+  "c s"     #'doc-view-set-slice
+  "c m"     #'doc-view-set-slice-using-mouse
+  "c b"     #'doc-view-set-slice-from-bounding-box
+  "c r"     #'doc-view-reset-slice
+  ;; Centering the image
+  "c h"     #'doc-view-center-page-horizontally
+  "c v"     #'doc-view-center-page-vertically
+  ;; Searching
+  "C-s"     #'doc-view-search
+  "<find>"  #'doc-view-search
+  "C-r"     #'doc-view-search-backward
+  ;; Show the tooltip
+  "C-t"     #'doc-view-show-tooltip
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display
+  ;; Open a new buffer with doc's text contents
+  "C-c C-t" #'doc-view-open-text
+  "r"       #'revert-buffer)
 
 (define-obsolete-function-alias 'doc-view-revert-buffer #'revert-buffer "27.1")
 (defvar revert-buffer-preserve-modes)
@@ -617,12 +615,10 @@ Typically \"page-%s.png\".")
      :help                      "Jump to the previous match or initiate a new search"]
     ))
 
-(defvar doc-view-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
-    map)
-  "Keymap used by `doc-view-minor-mode'.")
+(defvar-keymap doc-view-minor-mode-map
+  :doc "Keymap used by `doc-view-minor-mode'."
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display)
 
 (easy-menu-define doc-view-minor-mode-menu doc-view-minor-mode-map
   "Menu for Doc View minor mode."
@@ -2178,12 +2174,11 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Presentation mode
 
-(defvar doc-view-presentation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e" 'doc-view-presentation-exit)
-    (define-key map "q" 'doc-view-presentation-exit)
-    ;; (define-key map "C" 'doc-view-convert-all-pages)
-    map))
+(defvar-keymap doc-view-presentation-mode-map
+  "ESC"  #'doc-view-presentation-exit
+  "q"    #'doc-view-presentation-exit
+  ;; "C" #'doc-view-convert-all-pages
+  )
 
 (defvar-local doc-view-presentation--src-data nil)
 
