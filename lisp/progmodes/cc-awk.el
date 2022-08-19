@@ -887,7 +887,7 @@
 ;; subsequent use of movement functions, etc.  However, it seems that if font
 ;; lock _is_ enabled, we can always leave it to do the job.
 (defvar c-awk-old-ByLL 0)
-(make-variable-buffer-local 'c-awk-old-Byll)
+(make-variable-buffer-local 'c-awk-old-ByLL)
 ;; Just beyond logical line following the region which is about to be changed.
 ;; Set in c-awk-record-region-clear-NL and used in c-awk-after-change.
 
