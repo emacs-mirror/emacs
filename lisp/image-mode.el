@@ -778,11 +778,12 @@ displays an image file as text."
       (image-toggle-display-text))))
 
 (defun image-mode-as-hex ()
-  "Set a non-image mode as major mode in combination with image minor mode.
+  "Set `hexl-mode' as major mode in combination with image minor mode.
 A non-mage major mode found from `auto-mode-alist' or fundamental mode
 displays an image file as hex.  `image-minor-mode' provides the key
-\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode'
-to display an image file as the actual image.
+\\<image-mode-map>\\[image-toggle-hex-display] to switch back to `image-mode' \
+to display an image file as
+the actual image.
 
 You can use `image-mode-as-hex' in `auto-mode-alist' when you want to
 display an image file as hex initially.
@@ -1227,7 +1228,7 @@ tar mode buffers."
       (when (buffer-live-p archive-superior-buffer)
         (push (cons 'archive archive-superior-buffer) buffers)))
      (t
-      ;; Find a dired buffer.
+      ;; Find a Dired buffer.
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
           (when (and (derived-mode-p 'dired-mode)
@@ -1236,7 +1237,7 @@ tar mode buffers."
 	             (equal (file-truename dir)
 		            (file-truename default-directory)))
             (push (cons 'dired (current-buffer)) buffers))))
-      ;; If we can't find any buffers to navigate in, we open a dired
+      ;; If we can't find any buffers to navigate in, we open a Dired
       ;; buffer.
       (unless buffers
         (push (cons 'dired (find-file-noselect dir)) buffers)
@@ -1248,14 +1249,14 @@ tar mode buffers."
 
 (defun image-mode--next-file (file n)
   "Go to the next image file in the parent buffer of FILE.
-This is typically a dired buffer, but may also be a tar/archive buffer.
+This is typically a Dired buffer, but may also be a tar/archive buffer.
 Return the next image file from that buffer.
 If N is negative, go to the previous file."
   (let ((regexp (image-file-name-regexp))
         (buffers (image-mode--directory-buffers file))
         next)
     (dolist (buffer buffers)
-      ;; We do this traversal for all the dired buffers open on this
+      ;; We do this traversal for all the Dired buffers open on this
       ;; directory.  There probably is just one, but we want to move
       ;; point in all of them.
       (save-window-excursion
@@ -1304,8 +1305,8 @@ replacing the current Image mode buffer."
   (message "Copied %s" buffer-file-name))
 
 (defun image-mode-mark-file ()
-  "Mark the current file in the appropriate dired buffer(s).
-Any dired buffer that's opened to the current file's directory
+  "Mark the current file in the appropriate Dired buffer(s).
+Any Dired buffer that's opened to the current file's directory
 will have the line where the image appears (if any) marked.
 
 If no such buffer exists, it will be opened."
@@ -1315,8 +1316,8 @@ If no such buffer exists, it will be opened."
   (image-mode--mark-file buffer-file-name #'dired-mark "marked"))
 
 (defun image-mode-unmark-file ()
-  "Unmark the current file in the appropriate dired buffer(s).
-Any dired buffer that's opened to the current file's directory
+  "Unmark the current file in the appropriate Dired buffer(s).
+Any Dired buffer that's opened to the current file's directory
 will remove the mark from the line where the image appears (if
 any).
 
