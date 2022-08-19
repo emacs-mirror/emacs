@@ -388,7 +388,7 @@ size exceeds that, Emacs signals @var{treesit-buffer-too-large}
 with signal data being the buffer size.
 
 Once a parser is created, Emacs automatically adds it to the
-buffer-local parser list.  Every time a change is made to the buffer,
+internal parser list.  Every time a change is made to the buffer,
 Emacs updates parsers in this list so they can update their syntax
 tree incrementally.
 
@@ -412,8 +412,9 @@ the mean to handle a multi-language buffer; instead, set the ranges in
 which a parser should operate in.  @xref{Multiple Languages}.
 
 Because a parser parses lazily, when we narrow the buffer, the parser
-doesn't act immediately; as long as we don't query for a node while
-the buffer is narrowed, narrowing does not affect the parser.
+is not affected immediately; as long as we don't query for a node
+while the buffer is narrowed, the parser is oblivious of the
+narrowing.
 
 @cindex tree-sitter parse string
 @defun treesit-parse-string string language
