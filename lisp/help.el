@@ -566,13 +566,16 @@ To record all your input, use `open-dribble-file'."
 ;; Key bindings
 
 (defun help--key-description-fontified (keys &optional prefix)
-  "Like `key-description' but add face for \"*Help*\" buffers."
-  ;; We add both the `font-lock-face' and `face' properties here, as this
-  ;; seems to be the only way to get this to work reliably in any
-  ;; buffer.
-  (propertize (key-description keys prefix)
-              'font-lock-face 'help-key-binding
-              'face 'help-key-binding))
+  "Like `key-description' but add face for \"*Help*\" buffers.
+KEYS is the return value of `(where-is-internal \\='foo-cmd nil t)'.
+Return nil if KEYS is nil."
+  (when keys
+    ;; We add both the `font-lock-face' and `face' properties here, as this
+    ;; seems to be the only way to get this to work reliably in any
+    ;; buffer.
+    (propertize (key-description keys prefix)
+                'font-lock-face 'help-key-binding
+                'face 'help-key-binding)))
 
 (defcustom describe-bindings-outline t
   "Non-nil enables outlines in the output buffer of `describe-bindings'."

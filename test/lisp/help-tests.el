@@ -55,18 +55,24 @@
     (should (equal (help-split-fundoc nil t 'usage)  nil))
     (should (equal (help-split-fundoc nil t 'doc)    nil))))
 
+(ert-deftest help--key-description-fontified ()
+  (should (equal (help--key-description-fontified
+                  (where-is-internal #'next-line nil t))
+                 "C-n"))
+  (should-not (help--key-description-fontified nil)))
+
 
 ;;; substitute-command-keys
 
 (defmacro with-substitute-command-keys-test (&rest body)
   `(cl-flet* ((test
-               (lambda (orig result)
-                 (should (equal (substitute-command-keys orig)
-                                result))))
+                (lambda (orig result)
+                  (should (equal (substitute-command-keys orig)
+                                 result))))
               (test-re
-               (lambda (orig regexp)
-                 (should (string-match (concat "\\`" regexp "\\'")
-                                       (substitute-command-keys orig))))))
+                (lambda (orig regexp)
+                  (should (string-match (concat "\\`" regexp "\\'")
+                                        (substitute-command-keys orig))))))
      ,@body))
 
 (ert-deftest help-tests-substitute-command-keys/no-change ()
