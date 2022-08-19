@@ -1727,7 +1727,7 @@ Optional arg DIR, if non-nil, supplies a default directory.
 Optional arg MUSTMATCH, if non-nil, means the returned file or
 directory must exist.
 Optional arg INIT, if non-nil, provides a default file name to use.
-Optional arg DIR_ONLY_P, if non-nil, means choose only directories.  */)
+Optional arg DIR-ONLY-P, if non-nil, means choose only directories.  */)
   (Lisp_Object prompt, Lisp_Object dir, Lisp_Object mustmatch,
    Lisp_Object init, Lisp_Object dir_only_p)
 {
