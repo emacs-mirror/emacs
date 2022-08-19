@@ -941,12 +941,24 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (point-min))
   (point-max
    :eval (point-max))
+  (eol
+   :eval (eol))
+  (bol
+   :eval (bol))
+  (bolp
+   :eval (bolp))
+  (eolp
+   :eval (eolp))
   (line-beginning-position
    :eval (line-beginning-position))
   (line-end-position
    :eval (line-end-position))
   (buffer-size
    :eval (buffer-size))
+  (bobp
+   :eval (bobp))
+  (eobp
+   :eval (eobp))
   "Moving Around"
   (goto-char
    :no-eval (goto-char (point-max))

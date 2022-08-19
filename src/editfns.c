@@ -709,27 +709,10 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 }
 
 
-DEFUN ("line-beginning-position",
-       Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
-       doc: /* Return the character position of the first character on the current line.
-With optional argument N, scan forward N - 1 lines first.
-If the scan reaches the end of the buffer, return that position.
-
-This function ignores text display directionality; it returns the
-position of the first character in logical order, i.e. the smallest
-character position on the logical line.  See `vertical-motion' for
-movement by screen lines.
-
-This function constrains the returned position to the current field
-unless that position would be on a different line from the original,
-unconstrained result.  If N is nil or 1, and a front-sticky field
-starts at point, the scan stops as soon as it starts.  To ignore field
-boundaries, bind `inhibit-field-text-motion' to t.
-
-This function does not move point.  */)
-  (Lisp_Object n)
+static ptrdiff_t
+bol (Lisp_Object n, ptrdiff_t *out_count)
 {
-  ptrdiff_t charpos, bytepos, count;
+  ptrdiff_t bytepos, charpos, count;
 
   if (NILP (n))
     count = 0;
@@ -740,23 +723,88 @@ This function does not move point.  */)
       CHECK_INTEGER (n);
       count = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
     }
-
+  if (out_count)
+    *out_count = count;
   scan_newline_from_point (count, &charpos, &bytepos);
+  return charpos;
+}
 
+DEFUN ("bol", Fbol, Sbol, 0, 1, 0,
+       doc: /* Return the position of the first character on the current line.
+With optional argument N, scan forward N - 1 lines first.
+If the scan reaches the end of the buffer, return that position.
+
+This function ignores text display directionality; it returns the
+position of the first character in logical order, i.e. the smallest
+character position on the logical line.  See `vertical-motion' for
+movement by screen lines.
+
+This function does not move point.  Also see `line-beginning-position'.  */)
+  (Lisp_Object n)
+{
+  return make_fixnum (bol (n, NULL));
+}
+
+DEFUN ("line-beginning-position",
+       Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
+       doc: /* Return the position of the first character in the current line/field.
+This function is like `bol' (which see), but respects fields.
+
+This function constrains the returned position to the current field
+unless that position would be on a different line from the original,
+unconstrained result.  If N is nil or 1, and a front-sticky field
+starts at point, the scan stops as soon as it starts.  To ignore field
+boundaries, bind `inhibit-field-text-motion' to t.
+
+This function does not move point.  */)
+  (Lisp_Object n)
+{
+  ptrdiff_t count, charpos = (bol (n, &count));
   /* Return END constrained to the current input field.  */
   return Fconstrain_to_field (make_fixnum (charpos), make_fixnum (PT),
 			      count != 0 ? Qt : Qnil,
 			      Qt, Qnil);
 }
 
-DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
-       doc: /* Return the character position of the last character on the current line.
+static ptrdiff_t
+eol (Lisp_Object n)
+{
+  ptrdiff_t count;
+
+  if (NILP (n))
+    count = 1;
+  else if (FIXNUMP (n))
+    count = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n), BUF_BYTES_MAX);
+  else
+    {
+      CHECK_INTEGER (n);
+      count = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
+    }
+  return find_before_next_newline (PT, 0, count - (count <= 0),
+				   NULL);
+}
+
+DEFUN ("eol", Feol, Seol, 0, 1, 0,
+       doc: /* Return the position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
 This function ignores text display directionality; it returns the
 position of the last character in logical order, i.e. the largest
 character position on the line.
+
+This function does not move point.  Also see `line-end-position'.  */)
+  (Lisp_Object n)
+{
+  return make_fixnum (eol (n));
+}
+
+DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
+       doc: /* Return the position of the last character in the current line/field.
+With argument N not nil or 1, move forward N - 1 lines first.
+If scan reaches end of buffer, return that position.
+
+This function is like `eol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
 unless that would be on a different line from the original,
@@ -767,24 +815,8 @@ boundaries bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t clipped_n;
-  ptrdiff_t end_pos;
-  ptrdiff_t orig = PT;
-
-  if (NILP (n))
-    clipped_n = 1;
-  else if (FIXNUMP (n))
-    clipped_n = clip_to_bounds (-BUF_BYTES_MAX, XFIXNUM (n), BUF_BYTES_MAX);
-  else
-    {
-      CHECK_INTEGER (n);
-      clipped_n = NILP (Fnatnump (n)) ? -BUF_BYTES_MAX : BUF_BYTES_MAX;
-    }
-  end_pos = find_before_next_newline (orig, 0, clipped_n - (clipped_n <= 0),
-				      NULL);
-
   /* Return END_POS constrained to the current input field.  */
-  return Fconstrain_to_field (make_fixnum (end_pos), make_fixnum (orig),
+  return Fconstrain_to_field (make_fixnum (eol (n)), make_fixnum (PT),
 			      Qnil, Qt, Qnil);
 }
 
@@ -4610,6 +4642,8 @@ with an optional argument LOCK non-nil.  */);
 
   defsubr (&Sline_beginning_position);
   defsubr (&Sline_end_position);
+  defsubr (&Sbol);
+  defsubr (&Seol);
 
   defsubr (&Ssave_excursion);
   defsubr (&Ssave_current_buffer);

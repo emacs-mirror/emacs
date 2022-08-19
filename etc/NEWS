@@ -2588,6 +2588,11 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New functions 'eol' and 'bol'.
+These are like 'line-end-position' and 'line-beginning-position'
+(respectively), but ignore fields (and are more efficient).
+
++++
 ** New function 'compiled-function-p'.
 This returns non-nil if its argument is either a built-in, or a
 byte-compiled, or a natively-compiled function object, or a function
