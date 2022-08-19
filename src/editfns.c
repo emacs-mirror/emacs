@@ -759,7 +759,7 @@ boundaries, bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t count, charpos = (bol (n, &count));
+  ptrdiff_t count, charpos = bol (n, &count);
   /* Return END constrained to the current input field.  */
   return Fconstrain_to_field (make_fixnum (charpos), make_fixnum (PT),
 			      count != 0 ? Qt : Qnil,
