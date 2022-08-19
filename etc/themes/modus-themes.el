@@ -6,7 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Version: 2.5.0
+;; Version: 2.6.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -103,19 +103,19 @@ cover the blue-cyan-magenta side of the spectrum."
   :tag "Modus Themes")
 
 (defgroup modus-themes-faces ()
-  "Faces defined my `modus-operandi' and `modus-vivendi'."
+  "Faces defined by `modus-operandi' and `modus-vivendi'."
   :group 'modus-themes
   :link '(info-link "(modus-themes) Top")
   :prefix "modus-themes-"
   :tag "Modus Themes Faces")
 
-(defvar modus-themes--version "2.5.0"
+(defvar modus-themes--version "2.6.0"
   "Current version of the Modus themes.
 
-The version either is the last tagged release, such as '2.4.0',
-or an in-development version like '2.5.0-dev'.  As we use
-semantic versioning, tags of the '2.4.1' sort are not reported:
-those would count as part of '2.5.0-dev'.")
+The version either is the last tagged release, such as '1.0.0',
+or an in-development version like '1.1.0-dev'.  As we use
+semantic versioning, tags of the '1.0.1' sort are not reported:
+those would count as part of '1.1.0-dev'.")
 
 ;;;###autoload
 (defun modus-themes-version (&optional insert)
@@ -2270,7 +2270,7 @@ follows (order is not significant):
 
 The `popup' key takes the same values as `selection'.
 
-Apart from specifying each key separately, a fallback list is
+Apart from specfying each key separately, a fallback list is
 accepted.  This is only useful when the desired aesthetic is the
 same across all keys that are not explicitly referenced.  For
 example, this:
@@ -3239,7 +3239,7 @@ an alternative to the default value."
   "Search for `modus-themes--heading' weight in LIST."
   (catch 'found
     (dolist (elt list)
-      (when (memq elt modus-themes--heading-weights)
+      (when (memq elt modus-themes-weights)
         (throw 'found elt)))))
 
 (defun modus-themes--heading (level fg fg-alt bg bg-gray border)
@@ -4782,6 +4782,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(consult-narrow-indicator ((,class :foreground ,magenta-alt)))
     `(consult-preview-cursor ((,class :inherit modus-themes-intense-blue)))
     `(consult-preview-error ((,class :inherit modus-themes-intense-red)))
+    `(consult-preview-insertion ((,class :inherit modus-themes-special-warm)))
     `(consult-preview-line ((,class :background ,bg-hl-alt-intense)))
 ;;;;; corfu
     `(corfu-current ((,class :inherit modus-themes-completion-selected-popup)))
@@ -5464,8 +5465,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
                                                cyan cyan-faint
                                                blue-alt blue-alt-faint))))
     `(font-lock-warning-face ((,class :inherit modus-themes-bold
-                                      ,@(modus-themes--syntax-foreground
-                                         yellow yellow-alt-faint))))
+                                      ,@(modus-themes--syntax-comment
+                                         yellow red yellow-alt-faint red-faint))))
 ;;;;; forge
     `(forge-post-author ((,class :inherit bold :foreground ,fg-main)))
     `(forge-post-date ((,class :foreground ,fg-special-cold)))
@@ -6182,7 +6183,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(markdown-comment-face ((,class :inherit font-lock-comment-face)))
     `(markdown-footnote-marker-face ((,class :inherit bold :foreground ,cyan-alt)))
     `(markdown-footnote-text-face ((,class :inherit modus-themes-slant :foreground ,fg-main)))
-    `(markdown-gfm-checkbox-face ((,class :foreground ,cyan-alt-other)))
+    `(markdown-gfm-checkbox-face ((,class :foreground ,yellow-alt-other)))
     `(markdown-header-delimiter-face ((,class :inherit modus-themes-bold :foreground ,fg-dim)))
     `(markdown-header-face ((t nil)))
     `(markdown-header-face-1 ((,class :inherit modus-themes-heading-1)))
@@ -6357,6 +6358,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(mu4e-moved-face ((,class :inherit modus-themes-slant :foreground ,yellow)))
     `(mu4e-ok-face ((,class :inherit bold :foreground ,green)))
     `(mu4e-region-code ((,class :inherit modus-themes-special-calm)))
+    `(mu4e-related-face ((,class :inherit (italic shadow))))
     `(mu4e-replied-face ((,class :foreground ,blue)))
     `(mu4e-special-header-value-face ((,class :inherit message-header-subject)))
     `(mu4e-system-face ((,class :inherit modus-themes-slant :foreground ,fg-mark-del)))
@@ -6496,7 +6498,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
                                        bg-dim fg-special-cold
                                        bg-alt fg-alt))))
     `(org-block-end-line ((,class :inherit org-block-begin-line)))
-    `(org-checkbox (( )))
+    `(org-checkbox ((,class :foreground ,yellow-alt-other)))
     `(org-checkbox-statistics-done ((,class :inherit org-done)))
     `(org-checkbox-statistics-todo ((,class :inherit org-todo)))
     `(org-clock-overlay ((,class :background ,yellow-nuanced-bg :foreground ,red-alt-faint)))
@@ -6963,11 +6965,6 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(smerge-refined-changed (()))
     `(smerge-refined-removed ((,class :inherit modus-themes-diff-refine-removed)))
     `(smerge-upper ((,class :inherit modus-themes-diff-removed)))
-;;;;; solaire
-    `(solaire-default-face ((,class :inherit default :background ,bg-alt :foreground ,fg-dim)))
-    `(solaire-line-number-face ((,class :inherit solaire-default-face :foreground ,fg-unfocused)))
-    `(solaire-hl-line-face ((,class :background ,bg-active)))
-    `(solaire-org-hide-face ((,class :background ,bg-alt :foreground ,bg-alt)))
 ;;;;; spaceline
     `(spaceline-evil-emacs ((,class :inherit modus-themes-active-magenta)))
     `(spaceline-evil-insert ((,class :inherit modus-themes-active-green)))
