@@ -202,12 +202,6 @@ If nil, don't display a mark on the fringe."
   :set #'fringe-custom-set-bitmap
   :version "29.1")
 
-;; FIXME: No longer used.  Should be declared obsolete or removed.
-(defface bookmark-menu-heading
-  '((t (:inherit font-lock-type-face)))
-  "Face used to highlight the heading in bookmark menu buffers."
-  :version "22.1")
-
 (defface bookmark-face
   '((((class grayscale)
       (background light))
