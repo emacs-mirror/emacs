@@ -289,12 +289,10 @@ with wrapping around the current Info node."
 (defvar Info-isearch-initial-history nil)
 (defvar Info-isearch-initial-history-list nil)
 
-(defcustom Info-mode-hook
-  ;; Try to obey obsolete Info-fontify settings.
-  (unless (and (boundp 'Info-fontify) (null Info-fontify))
-    '(turn-on-font-lock))
+(defcustom Info-mode-hook '(turn-on-font-lock)
   "Hook run when activating Info Mode."
-  :type 'hook)
+  :type 'hook
+  :version "29.1")
 
 (defcustom Info-selection-hook nil
   "Hook run when an Info node is selected as the current node."
