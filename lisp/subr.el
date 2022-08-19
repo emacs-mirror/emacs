@@ -1866,8 +1866,6 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'inhibit-changing-match-data 'save-match-data "29.1")
 
 (make-obsolete 'run-window-configuration-change-hook nil "27.1")
-(make-obsolete 'process-filter-multibyte-p nil "23.1")
-(make-obsolete 'set-process-filter-multibyte nil "23.1")
 
 (make-obsolete-variable 'command-debug-status
                         "expect it to be removed in a future version." "25.2")

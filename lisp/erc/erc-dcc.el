@@ -357,10 +357,7 @@ Returns the newly created subprocess, or nil."
                                         :server t))
             (when (processp process)
               (when (fboundp 'set-process-coding-system)
-                (set-process-coding-system process 'binary 'binary))
-              (when (fboundp 'set-process-filter-multibyte)
-                (with-no-warnings       ; obsolete since 23.1
-                  (set-process-filter-multibyte process nil)))))
+                (set-process-coding-system process 'binary 'binary))))
         (file-error
          (unless (and (string= "Cannot bind server socket" (nth 1 err))
                       (string= "address already in use" (downcase (nth 2 err))))

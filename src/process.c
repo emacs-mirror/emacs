@@ -7773,46 +7773,6 @@ DEFUN ("process-coding-system",
 		XPROCESS (process)->encode_coding_system);
 }
 
-DEFUN ("set-process-filter-multibyte", Fset_process_filter_multibyte,
-       Sset_process_filter_multibyte, 2, 2, 0,
-       doc: /* Set multibyteness of the strings given to PROCESS's filter.
-If FLAG is non-nil, the filter is given multibyte strings.
-If FLAG is nil, the filter is given unibyte strings.  In this case,
-all character code conversion except for end-of-line conversion is
-suppressed.  */)
-  (Lisp_Object process, Lisp_Object flag)
-{
-  CHECK_PROCESS (process);
-
-  struct Lisp_Process *p = XPROCESS (process);
-  if (NILP (flag))
-    pset_decode_coding_system
-      (p, raw_text_coding_system (p->decode_coding_system));
-
-  /* If the sockets haven't been set up yet, the final setup part of
-     this will be called asynchronously. */
-  if (p->infd < 0 || p->outfd < 0)
-    return Qnil;
-
-  setup_process_coding_systems (process);
-
-  return Qnil;
-}
-
-DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
-       Sprocess_filter_multibyte_p, 1, 1, 0,
-       doc: /* Return t if a multibyte string is given to PROCESS's filter.*/)
-  (Lisp_Object process)
-{
-  CHECK_PROCESS (process);
-  struct Lisp_Process *p = XPROCESS (process);
-  if (p->infd < 0)
-    return Qnil;
-  eassert (p->infd < FD_SETSIZE);
-  struct coding_system *coding = proc_decode_coding_system[p->infd];
-  return (CODING_FOR_UNIBYTE (coding) ? Qnil : Qt);
-}
-
 
 
 
@@ -8808,8 +8768,6 @@ sentinel or a process filter function has an error.  */);
   defsubr (&Sinternal_default_process_filter);
   defsubr (&Sset_process_coding_system);
   defsubr (&Sprocess_coding_system);
-  defsubr (&Sset_process_filter_multibyte);
-  defsubr (&Sprocess_filter_multibyte_p);
 
  {
    Lisp_Object subfeatures = Qnil;
