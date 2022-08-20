@@ -1380,7 +1380,7 @@ This returns an error if any Emacs frames are X frames."
   '(
     ("etc/images/new" . ("document-new" "gtk-new"))
     ("etc/images/open" . ("document-open" "gtk-open"))
-    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/diropen" . "gtk-directory")
     ("etc/images/close" . ("window-close" "gtk-close"))
     ("etc/images/save" . ("document-save" "gtk-save"))
     ("etc/images/saveas" . ("document-save-as" "gtk-save-as"))
