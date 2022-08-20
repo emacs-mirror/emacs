@@ -23027,6 +23027,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (xkbevent->any.xkb_type == XkbNewKeyboardNotify
 	      || xkbevent->any.xkb_type == XkbMapNotify)
 	    {
+	      XkbRefreshKeyboardMapping (&xkbevent->map);
+
 	      if (dpyinfo->xkb_desc)
 		{
 		  if (XkbGetUpdatedMap (dpyinfo->display,
@@ -23035,11 +23037,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					 | XkbModifierMapMask
 					 | XkbVirtualModsMask),
 					dpyinfo->xkb_desc) == Success)
-		    {
-		      XkbGetNames (dpyinfo->display,
-				   XkbGroupNamesMask | XkbVirtualModNamesMask,
-				   dpyinfo->xkb_desc);
-		    }
+		    XkbGetNames (dpyinfo->display,
+				 XkbGroupNamesMask | XkbVirtualModNamesMask,
+				 dpyinfo->xkb_desc);
 		  else
 		    {
 		      XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
@@ -23061,7 +23061,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				 dpyinfo->xkb_desc);
 		}
 
-	      XkbRefreshKeyboardMapping (&xkbevent->map);
 	      x_find_modifier_meanings (dpyinfo);
 	    }
 	  else if (x_dnd_in_progress
