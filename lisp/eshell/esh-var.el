@@ -490,8 +490,11 @@ Possible variable references are:
                            ;; by `eshell-do-eval', which requires very
                            ;; particular forms in order to work
                            ;; properly.  See bug#54190.
-                           (list (function (lambda ()
-                                   (delete-file ,temp))))))
+                           (list (function
+                                  (lambda ()
+                                    (delete-file ,temp)
+                                    (when-let ((buffer (get-file-buffer ,temp)))
+                                      (kill-buffer buffer)))))))
                    (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()
