@@ -2685,86 +2685,30 @@ DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
-This allows the buffer's full text to be seen and edited.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after this function is called from low-level hooks, such as
-`jit-lock-functions' or `post-command-hook'.  */)
+This allows the buffer's full text to be seen and edited, unless
+the restrictions have been locked with `narrowing-lock', which see,
+in which case the the restrictions that were current when
+`narrowing-lock' was called are restored.  */)
   (void)
 {
-  if (! NILP (Vrestrictions_locked))
-    return Qnil;
-  if (BEG != BEGV || Z != ZV)
-    current_buffer->clip_changed = 1;
-  BEGV = BEG;
-  BEGV_BYTE = BEG_BYTE;
-  SET_BUF_ZV_BOTH (current_buffer, Z, Z_BYTE);
-  /* Changing the buffer bounds invalidates any recorded current column.  */
-  invalidate_current_column ();
-  return Qnil;
-}
-
-static void
-unwind_locked_begv (Lisp_Object point_min)
-{
-  SET_BUF_BEGV (current_buffer, XFIXNUM (point_min));
-}
-
-static void
-unwind_locked_zv (Lisp_Object point_max)
-{
-  SET_BUF_ZV (current_buffer, XFIXNUM (point_max));
-}
-
-/* Internal function for Fnarrow_to_region, meant to be used with a
-   third argument 'true', in which case it should be followed by "specbind
-   (Qrestrictions_locked, Qt)".  */
-Lisp_Object
-narrow_to_region_internal (Lisp_Object start, Lisp_Object end, bool lock)
-{
-  EMACS_INT s = fix_position (start), e = fix_position (end);
-
-  if (e < s)
+  if (NILP (Vnarrowing_locks))
     {
-      EMACS_INT tem = s; s = e; e = tem;
-    }
-
-  if (lock)
-    {
-      if (!(BEGV <= s && s <= e && e <= ZV))
-	args_out_of_range (start, end);
-
-      if (BEGV != s || ZV != e)
+      if (BEG != BEGV || Z != ZV)
 	current_buffer->clip_changed = 1;
-
-      record_unwind_protect (restore_point_unwind, Fpoint_marker ());
-      record_unwind_protect (unwind_locked_begv, Fpoint_min ());
-      record_unwind_protect (unwind_locked_zv, Fpoint_max ());
-
-      SET_BUF_BEGV (current_buffer, s);
-      SET_BUF_ZV (current_buffer, e);
+      BEGV = BEG;
+      BEGV_BYTE = BEG_BYTE;
+      SET_BUF_ZV_BOTH (current_buffer, Z, Z_BYTE);
     }
   else
     {
-      if (! NILP (Vrestrictions_locked))
-	return Qnil;
-
-      if (!(BEG <= s && s <= e && e <= Z))
-	args_out_of_range (start, end);
-
-      if (BEGV != s || ZV != e)
+      ptrdiff_t begv = XFIXNUM (Fcar (Fcdr (Fcar (Vnarrowing_locks))));
+      ptrdiff_t zv = XFIXNUM (Fcdr (Fcdr (Fcar (Vnarrowing_locks))));
+      if (begv != BEGV || zv != ZV)
 	current_buffer->clip_changed = 1;
-
-      SET_BUF_BEGV (current_buffer, s);
-      SET_BUF_ZV (current_buffer, e);
+      SET_BUF_BEGV (current_buffer, begv);
+      SET_BUF_ZV (current_buffer, zv);
     }
-
-  if (PT < s)
-    SET_PT (s);
-  if (e < PT)
-    SET_PT (e);
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
   return Qnil;
@@ -2781,14 +2725,91 @@ When calling from Lisp, pass two arguments START and END:
 positions (integers or markers) bounding the text that should
 remain visible.
 
-Note that, when the current buffer contains one or more lines whose
-length is above `long-line-threshold', Emacs may decide to leave, for
-performance reasons, the accessible portion of the buffer unchanged
-after this function is called from low-level hooks, such as
-`jit-lock-functions' or `post-command-hook'.  */)
+When restrictions have been locked with `narrowing-lock', which see,
+`narrow-to-region' can be used only within the limits of the
+restrictions that were current when `narrowing-lock' was called.  */)
   (Lisp_Object start, Lisp_Object end)
 {
-  return narrow_to_region_internal (start, end, false);
+  EMACS_INT s = fix_position (start), e = fix_position (end);
+
+  if (e < s)
+    {
+      EMACS_INT tem = s; s = e; e = tem;
+    }
+
+  if (NILP (Vnarrowing_locks))
+    {
+      if (!(BEG <= s && s <= e && e <= Z))
+	args_out_of_range (start, end);
+    }
+  else
+    {
+      ptrdiff_t begv = XFIXNUM (Fcar (Fcdr (Fcar (Vnarrowing_locks))));
+      ptrdiff_t zv = XFIXNUM (Fcdr (Fcdr (Fcar (Vnarrowing_locks))));
+      if (!(begv <= s && s <= e && e <= zv))
+	args_out_of_range (start, end);
+    }
+
+  if (BEGV != s || ZV != e)
+    current_buffer->clip_changed = 1;
+
+  SET_BUF_BEGV (current_buffer, s);
+  SET_BUF_ZV (current_buffer, e);
+
+  if (PT < s)
+    SET_PT (s);
+  if (e < PT)
+    SET_PT (e);
+  /* Changing the buffer bounds invalidates any recorded current column.  */
+  invalidate_current_column ();
+  return Qnil;
+}
+
+DEFUN ("narrowing-lock", Fnarrowing_lock, Snarrowing_lock, 1, 1, "",
+       doc: /* Lock the current narrowing with TAG.
+
+When restrictions are locked, `narrow-to-region' and `widen' can be
+used only within the limits of the restrictions that were current when
+`narrowing-lock' was called.  */)
+  (Lisp_Object tag)
+{
+  Fset (Qnarrowing_locks,
+	Fcons (Fcons (tag, Fcons (make_fixnum (BEGV), make_fixnum (ZV))),
+	       Vnarrowing_locks));
+  return Qnil;
+}
+
+DEFUN ("narrowing-unlock", Fnarrowing_unlock, Snarrowing_unlock, 1, 1, "",
+       doc: /* Unlock a narrowing locked with (narrowing-lock TAG).
+
+Unlocking restrictions locked with `narrowing-lock' should be used
+sparingly, after carefully considering the reasons why restrictions
+were locked.  Restrictions are typically locked around portions of
+code that would become too slow, and make Emacs unresponsive, if they
+were executed in a large buffer.  For example, restrictions are locked
+by Emacs around low-level hooks such as `fontification-functions' or
+`post-command-hook'.  */)
+  (Lisp_Object tag)
+{
+  if (EQ (Fcar (Fcar (Vnarrowing_locks)), tag))
+    Fset (Qnarrowing_locks, Fcdr (Vnarrowing_locks));
+  return Qnil;
+}
+
+static void
+unwind_narrow_to_region_locked (Lisp_Object tag)
+{
+  Fnarrowing_unlock (tag);
+  Fwiden ();
+}
+
+void
+narrow_to_region_locked (Lisp_Object begv, Lisp_Object zv, Lisp_Object tag)
+{
+  Fnarrow_to_region (begv, zv);
+  Fnarrowing_lock (tag);
+  record_unwind_protect (restore_point_unwind, Fpoint_marker ());
+  record_unwind_protect (unwind_narrow_to_region_locked, tag);
 }
 
 Lisp_Object
@@ -4601,14 +4622,13 @@ This variable is experimental; email 32252@debbugs.gnu.org if you need
 it to be non-nil.  */);
   binary_as_unsigned = false;
 
-  DEFSYM (Qrestrictions_locked, "restrictions-locked");
-  DEFVAR_LISP ("restrictions-locked", Vrestrictions_locked,
-	       doc: /* If non-nil, restrictions are currently locked.
-
-This happens when `narrow-to-region', which see, is called from Lisp
-with an optional argument LOCK non-nil.  */);
-  Vrestrictions_locked = Qnil;
-  Funintern (Qrestrictions_locked, Qnil);
+  DEFSYM (Qnarrowing_locks, "narrowing-locks");
+  DEFVAR_LISP ("narrowing-locks", Vnarrowing_locks,
+	       doc: /* Internal use only.
+List of narrowing locks in the current buffer.  */);
+  Vnarrowing_locks = Qnil;
+  Fmake_variable_buffer_local (Qnarrowing_locks);
+  Funintern (Qnarrowing_locks, Qnil);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
@@ -4701,6 +4721,8 @@ with an optional argument LOCK non-nil.  */);
   defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
+  defsubr (&Snarrowing_lock);
+  defsubr (&Snarrowing_unlock);
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }

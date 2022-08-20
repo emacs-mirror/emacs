@@ -3914,6 +3914,20 @@ See also `locate-user-emacs-file'.")
   "Return non-nil if the current buffer is narrowed."
   (/= (- (point-max) (point-min)) (buffer-size)))
 
+(defmacro with-locked-narrowing (start end tag &rest body)
+  "Execute BODY with restrictions set to START and END and locked with TAG.
+
+Inside BODY, `narrow-to-region' and `widen' can be used only
+within the START and END limits, unless the restrictions are
+unlocked by calling `narrowing-unlock' with TAG."
+  `(unwind-protect
+       (progn
+         (narrow-to-region ,start ,end)
+         (narrowing-lock ,tag)
+         ,@body)
+     (narrowing-unlock ,tag)
+     (widen)))
+
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
 Return a cons cell with the beginning and end of the found tag.
