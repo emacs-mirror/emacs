@@ -2692,6 +2692,8 @@ in which case the the restrictions that were current when
 `narrowing-lock' was called are restored.  */)
   (void)
 {
+  Fset (Qoutermost_narrowing, Qnil);
+
   if (NILP (Vnarrowing_locks))
     {
       if (BEG != BEGV || Z != ZV)
@@ -2708,6 +2710,8 @@ in which case the the restrictions that were current when
 	current_buffer->clip_changed = 1;
       SET_BUF_BEGV (current_buffer, begv);
       SET_BUF_ZV (current_buffer, zv);
+      if (EQ (Fcar (Fcar (Vnarrowing_locks)), Qoutermost_narrowing))
+	Fset (Qnarrowing_locks, Qnil);
     }
   /* Changing the buffer bounds invalidates any recorded current column.  */
   invalidate_current_column ();
@@ -2750,6 +2754,11 @@ restrictions that were current when `narrowing-lock' was called.  */)
 	args_out_of_range (start, end);
     }
 
+  Fset (Qoutermost_narrowing,
+	Fcons (Fcons (Qoutermost_narrowing,
+		      Fcons (make_fixnum (BEGV), make_fixnum (ZV))),
+	       Qnil));
+
   if (BEGV != s || ZV != e)
     current_buffer->clip_changed = 1;
 
@@ -2773,6 +2782,8 @@ used only within the limits of the restrictions that were current when
 `narrowing-lock' was called.  */)
   (Lisp_Object tag)
 {
+  if (NILP (Vnarrowing_locks))
+    Fset (Qnarrowing_locks, Voutermost_narrowing);
   Fset (Qnarrowing_locks,
 	Fcons (Fcons (tag, Fcons (make_fixnum (BEGV), make_fixnum (ZV))),
 	       Vnarrowing_locks));
@@ -4624,11 +4635,17 @@ it to be non-nil.  */);
 
   DEFSYM (Qnarrowing_locks, "narrowing-locks");
   DEFVAR_LISP ("narrowing-locks", Vnarrowing_locks,
-	       doc: /* Internal use only.
-List of narrowing locks in the current buffer.  */);
+	       doc: /* List of narrowing locks in the current buffer.  Internal use only.  */);
   Vnarrowing_locks = Qnil;
   Fmake_variable_buffer_local (Qnarrowing_locks);
   Funintern (Qnarrowing_locks, Qnil);
+
+  DEFSYM (Qoutermost_narrowing, "outermost-narrowing");
+  DEFVAR_LISP ("outermost-narrowing", Voutermost_narrowing,
+	       doc: /* Outermost narrowing bounds, if any.  Internal use only.  */);
+  Voutermost_narrowing = Qnil;
+  Fmake_variable_buffer_local (Qoutermost_narrowing);
+  Funintern (Qoutermost_narrowing, Qnil);
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);
