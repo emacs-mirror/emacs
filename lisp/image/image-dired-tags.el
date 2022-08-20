@@ -134,7 +134,7 @@ FILE-TAGS is an alist in the following form:
 ;;;###autoload
 (defun image-dired-tag-files (arg)
   "Tag marked file(s) in Dired.  With prefix ARG, tag file at point."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (let ((tag (completing-read
               "Tags to add (separate tags with a semicolon): "
               image-dired-tag-history nil nil nil 'image-dired-tag-history))
@@ -150,7 +150,7 @@ FILE-TAGS is an alist in the following form:
 
 (defun image-dired-tag-thumbnail ()
   "Tag current or marked thumbnails."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((tag (completing-read
               "Tags to add (separate tags with a semicolon): "
               image-dired-tag-history nil nil nil 'image-dired-tag-history)))
@@ -164,7 +164,7 @@ FILE-TAGS is an alist in the following form:
 (defun image-dired-delete-tag (arg)
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
-  (interactive "P")
+  (interactive "P" dired-mode)
   (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
                               nil nil nil 'image-dired-tag-history))
         files)
@@ -175,7 +175,7 @@ With prefix argument ARG, remove tag from file at point."
 
 (defun image-dired-tag-thumbnail-remove ()
   "Remove tag from current or marked thumbnails."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((tag (completing-read "Tag to remove: " image-dired-tag-history
                               nil nil nil 'image-dired-tag-history)))
     (image-dired--with-marked
@@ -231,7 +231,7 @@ FILE-COMMENTS is an alist on the following form:
 ;;;###autoload
 (defun image-dired-dired-comment-files ()
   "Add comment to current or marked files in Dired."
-  (interactive)
+  (interactive nil dired-mode)
   (let ((comment (image-dired-read-comment)))
     (image-dired-write-comments
      (mapcar
@@ -279,7 +279,7 @@ Optionally use old comment from FILE as initial value."
   "Edit comment and tags of current or marked image files.
 Edit comment and tags for all marked image files in an
 easy-to-use form."
-  (interactive)
+  (interactive nil dired-mode)
   (setq image-dired-widget-list nil)
   ;; Setup buffer.
   (let ((files (dired-get-marked-files)))

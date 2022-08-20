@@ -504,7 +504,7 @@ used or not.  If non-nil, use `display-buffer' instead of
 `image-dired-next-line-and-display' and
 `image-dired-previous-line-and-display' where we do not want the
 thumbnail buffer to be selected."
-  (interactive "P")
+  (interactive "P" nil dired-mode)
   (setq image-dired--generate-thumbs-start  (current-time))
   (let ((buf (image-dired-create-thumbnail-buffer))
         thumb-name files dired-buf)
@@ -566,7 +566,7 @@ never ask for confirmation."
   "Track the original file in the associated Dired buffer.
 See documentation for `image-dired-toggle-movement-tracking'.
 Interactive use only useful if `image-dired-track-movement' is nil."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
   (let* ((dired-buf (image-dired-associated-dired-buffer))
          (file-name (image-dired-original-file-name))
          (window (image-dired-get-buffer-window dired-buf)))
@@ -582,7 +582,7 @@ Tracking of the movements between thumbnail and Dired buffer so that
 they are \"mirrored\" in the dired buffer.  When this is on, moving
 around in the thumbnail or dired buffer will find the matching
 position in the other buffer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
   (setq image-dired-track-movement (not image-dired-track-movement))
   (message "Movement tracking %s" (if image-dired-track-movement "on" "off")))
 
@@ -603,7 +603,7 @@ On reaching end or beginning of buffer, stop and show a message.
 
 If optional argument WRAP-AROUND is non-nil, wrap around: if
 point is on the last image, move to the last one and vice versa."
-  (interactive "p")
+  (interactive "p" image-dired-thumbnail-mode)
   (setq arg (or arg 1))
   (let (pos)
     (dotimes (_ (abs arg))
@@ -633,7 +633,7 @@ point is on the last image, move to the last one and vice versa."
 Optional prefix ARG says how many images to move; the default is
 one image.  Negative means move forward.
 On reaching end or beginning of buffer, stop and show a message."
-  (interactive "p")
+  (interactive "p" image-dired-thumbnail-mode)
   (image-dired-forward-image (- (or arg 1))))
 
 (defun image-dired-next-line ()
@@ -1039,7 +1039,7 @@ With a negative prefix argument, prompt user for the delay."
 (defun image-dired-line-up ()
   "Line up thumbnails according to `image-dired-thumbs-per-row'.
 See also `image-dired-line-up-dynamic'."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
     (goto-char (point-min))
     (while (and (not (image-dired-image-at-point-p))
@@ -1076,7 +1076,7 @@ See also `image-dired-line-up-dynamic'."
 (defun image-dired-line-up-dynamic ()
   "Line up thumbnails images dynamically.
 Calculate how many thumbnails fit."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let* ((char-width (frame-char-width))
         (width (image-dired-window-width-pixels (image-dired-thumbnail-window)))
         (image-dired-thumbs-per-row
@@ -1090,7 +1090,7 @@ Calculate how many thumbnails fit."
 (defun image-dired-line-up-interactive ()
   "Line up thumbnails interactively.
 Ask user how many thumbnails should be displayed per row."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((image-dired-thumbs-per-row
          (string-to-number (read-string "How many thumbs per row: "))))
     (if (not (> image-dired-thumbs-per-row 0))
@@ -1099,7 +1099,7 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun image-dired-thumbnail-display-external ()
   "Display original image for thumbnail at point using external viewer."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (let ((file (image-dired-original-file-name)))
     (if (not (image-dired-image-at-point-p))
         (message "No thumbnail at point")
@@ -1131,7 +1131,7 @@ based on `image-mode'."
   "Display current thumbnail's original image in display buffer.
 See documentation for `image-dired-display-image' for more information.
 With prefix argument ARG, display image in its original size."
-  (interactive "P")
+  (interactive "P" image-dired-thumbnail-mode)
   (let ((file (image-dired-original-file-name)))
     (if (not (string-equal major-mode "image-dired-thumbnail-mode"))
         (message "Not in image-dired-thumbnail-mode")
@@ -1147,7 +1147,7 @@ The result of the rotation is displayed in the image display area
 and a confirmation is needed before the original image files is
 overwritten.  This confirmation can be turned off using
 `image-dired-rotate-original-ask-before-overwrite'."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-rotate-original "270"))
 
 (defun image-dired-rotate-original-right ()
@@ -1156,7 +1156,7 @@ The result of the rotation is displayed in the image display area
 and a confirmation is needed before the original image files is
 overwritten.  This confirmation can be turned off using
 `image-dired-rotate-original-ask-before-overwrite'."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (image-dired-rotate-original "90"))
 
 (defun image-dired-display-next-thumbnail-original (&optional arg)
@@ -1178,7 +1178,7 @@ With prefix ARG, move that many thumbnails."
 
 (defun image-dired-comment-thumbnail ()
   "Add comment to current thumbnail in thumbnail buffer."
-  (interactive)
+  (interactive nil image-dired-comment-thumbnail image-dired-display-image-mode)
   (let* ((file (image-dired-original-file-name))
          (comment (image-dired-read-comment file)))
     (image-dired-write-comments (list (cons file comment)))
@@ -1240,7 +1240,9 @@ for deletion instead."
 
 (defun image-dired-delete-marked ()
   "Delete current or marked thumbnails and associated images."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
+  (unless (derived-mode-p 'image-dired-thumbnail-mode)
+    (user-error "Not in `image-dired-thumbnail-mode'"))
   (image-dired--with-marked
    (image-dired-delete-char)
    (unless (bobp)
@@ -1718,14 +1720,14 @@ of the thumbnail file."
 (defun image-dired-rotate-thumbnail-left ()
   "Rotate thumbnail left (counter clockwise) 90 degrees."
   (declare (obsolete image-dired-refresh-thumb "29.1"))
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (with-suppressed-warnings ((obsolete image-dired-rotate-thumbnail))
     (image-dired-rotate-thumbnail "270")))
 
 (defun image-dired-rotate-thumbnail-right ()
   "Rotate thumbnail counter right (clockwise) 90 degrees."
   (declare (obsolete image-dired-refresh-thumb "29.1"))
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (with-suppressed-warnings ((obsolete image-dired-rotate-thumbnail))
     (image-dired-rotate-thumbnail "90")))
 

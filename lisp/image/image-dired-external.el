@@ -448,7 +448,7 @@ YYYY_MM_DD_HH_MM_DD_ORIG_FILE_NAME.jpg.  Used from
   "Set the ImageDescription EXIF tag for the original image.
 If the image already has a value for this tag, it is used as the
 default value at the prompt."
-  (interactive)
+  (interactive nil image-dired-thumbnail-mode)
   (if (not (image-dired-image-at-point-p))
       (message "No thumbnail at point")
     (let* ((file (image-dired-original-file-name))
