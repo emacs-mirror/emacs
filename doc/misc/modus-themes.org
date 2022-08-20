@@ -619,7 +619,7 @@ By default, customizing a theme-related user option through the Custom
 interfaces or with {{{kbd(M-x customize-set-variable)}}} will not reload the
 currently active Modus theme.
 
-Enable this behaviour by setting this variable to ~nil~.
+Enable this behavior by setting this variable to ~nil~.
 
 Regardless of this option, the active theme must be reloaded for changes
 to user options to take effect ([[#h:3f3c3728-1b34-437d-9d0c-b110f5b161a9][Enable and load]]).
@@ -1253,7 +1253,7 @@ accepts is as follows (order is not significant):
 
 The ~popup~ key takes the same values as ~selection~.
 
-Apart from specfying each key separately, a fallback list is accepted.
+Apart from specifying each key separately, a fallback list is accepted.
 This is only useful when the desired aesthetic is the same across all
 keys that are not explicitly referenced.  For example, this:
 
@@ -2171,7 +2171,7 @@ things with precision ([[#h:bf1c82f2-46c7-4eb2-ad00-dd11fdd8b53f][Customization 
 This section is of interest only to users who are prepared to maintain
 their own local tweaks and who are willing to deal with any possible
 incompatibilities between versioned releases of the themes.  As such,
-they are labelled as "do-it-yourself" or "DIY".
+they are labeled as "do-it-yourself" or "DIY".
 
 ** More accurate colors in terminal emulators
 :PROPERTIES:
@@ -2614,7 +2614,7 @@ this example:
 Whenever we enter a ~diff-mode~ buffer, we now get a magenta-colored
 region.
 
-Perhaps you may wish to generalise those findings in to a set of
+Perhaps you may wish to generalize those findings in to a set of
 functions that also accept an arbitrary face.  We shall leave the
 experimentation up to you.
 
@@ -2633,8 +2633,7 @@ contrast on an on-demand basis.
 
 One way to achieve this is to design a command that cycles through three
 distinct levels of intensity, though the following can be adapted to any
-kind of cyclic behaviour, such as to switch between red, green, and
-blue.
+kind of cyclic behavior, such as to switch between red, green, and blue.
 
 In the following example, we employ the ~modus-themes-color~ function
 which reads a symbol that represents an entry in the active theme's
@@ -3639,7 +3638,7 @@ it if you plan to control face attributes.
 :end:
 #+cindex: Org custom emphasis faces
 
-Org provides the user option ~org-emphasis-alist~ which assosiates a
+Org provides the user option ~org-emphasis-alist~ which associates a
 character with a face, list of faces, or face attributes.  The default
 specification of that variable looks like this:
 
@@ -4888,7 +4887,7 @@ The =git-gutter= and =git-gutter-fr= packages default to drawing bitmaps
 for the indicators they display (e.g. bitmap of a plus sign for added
 lines).  In Doom Emacs, these bitmaps are replaced with contiguous lines
 which may look nicer, but require a change to the foreground of the
-relevant faces to yield the desired colour combinations.
+relevant faces to yield the desired color combinations.
 
 Since this is Doom-specific, we urge users to apply changes in their
 local setup.  Below is some sample code, based on what we cover at
