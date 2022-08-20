@@ -29,7 +29,7 @@ s#^Running # Running #
 s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
 s#^make.*Error#  \\& #
-s#^Dumping under the name#  \\& #
+s#^Dumping under the name.*#  \\& #
 ' | \
 grep -E --line-buffered -v "^make|\
 ^Loading|\
