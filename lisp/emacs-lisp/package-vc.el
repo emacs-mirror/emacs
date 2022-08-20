@@ -206,7 +206,8 @@ The output is written out into PKG-FILE."
         (when (length= texi-files 1)
           (call-process "install-info" nil nil nil
                         (concat "--dir=" dir-file)
-                        (car texi-files)))))
+                        (car texi-files)))
+        (vc-ignore "/dir")))
 
     ;; Mark package as selected
     (package--save-selected-packages
