@@ -29,10 +29,13 @@
 (require 'ert)
 (require 'map)
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defmacro with-maps-do (var &rest body)
   "Successively bind VAR to an alist, plist, vector, and hash-table.
 Each map is built from the following alist data:
-  \\='((0 . 3) (1 . 4) (2 . 5)).
+  ((0 . 3) (1 . 4) (2 . 5))
 Evaluate BODY for each created map."
   (declare (indent 1) (debug (symbolp body)))
   (let ((alist (make-symbol "alist"))
@@ -84,17 +87,95 @@ Evaluate BODY for each created map."
   (with-empty-maps-do map
     (should (= 5 (map-elt map 0 5)))))
 
-(ert-deftest test-map-elt-testfn ()
+(ert-deftest test-map-elt-testfn-alist ()
+  "Test the default alist predicate of `map-elt'."
   (let* ((a (string ?a))
          (map `((,a . 0) (,(string ?b) . 1))))
-    (should (= (map-elt map a) 0))
-    (should (= (map-elt map "a") 0))
-    (should (= (map-elt map (string ?a)) 0))
-    (should (= (map-elt map "b") 1))
-    (should (= (map-elt map (string ?b)) 1))))
+    (should (= 0 (map-elt map a)))
+    (should (= 0 (map-elt map "a")))
+    (should (= 0 (map-elt map (string ?a))))
+    (should (= 1 (map-elt map "b")))
+    (should (= 1 (map-elt map (string ?b))))
+    (with-suppressed-warnings ((callargs map-elt))
+      (should (= 0 (map-elt map 'a nil #'string=)))
+      (should (= 1 (map-elt map 'b nil #'string=))))))
+
+(ert-deftest test-map-elt-testfn-plist ()
+  "Test the default plist predicate of `map-elt'."
+  (let* ((a (string ?a))
+         (map `(,a 0 "b" 1)))
+    (should-not (map-elt map "a"))
+    (should-not (map-elt map "b"))
+    (should-not (map-elt map (string ?a)))
+    (should-not (map-elt map (string ?b)))
+    (should (= 0 (map-elt map a)))
+    (with-suppressed-warnings ((callargs map-elt))
+      (should (= 0 (map-elt map a nil #'equal)))
+      (should (= 0 (map-elt map "a" nil #'equal)))
+      (should (= 0 (map-elt map (string ?a) nil #'equal)))
+      (should (= 1 (map-elt map "b" nil #'equal)))
+      (should (= 1 (map-elt map (string ?b) nil #'equal))))))
+
+(ert-deftest test-map-elt-gv ()
+  "Test the generalized variable `map-elt'."
+  (let ((sort (lambda (map) (sort (map-pairs map) #'car-less-than-car))))
+    (with-empty-maps-do map
+      ;; Empty map, without default.
+      (should-error (cl-incf (map-elt map 1)) :type 'wrong-type-argument)
+      (with-suppressed-warnings ((callargs map-elt))
+        (should-error (cl-incf (map-elt map 1.0 nil #'=))
+                      :type 'wrong-type-argument))
+      (should (map-empty-p map))
+      ;; Empty map, with default.
+      (if (vectorp map)
+          (progn
+            (should-error (cl-incf (map-elt map 1 3)) :type 'args-out-of-range)
+            (with-suppressed-warnings ((callargs map-elt))
+              (should-error (cl-incf (map-elt map 1 3 #'=))
+                            :type 'args-out-of-range))
+            (should (map-empty-p map)))
+        (should (= (cl-incf (map-elt map 1 3) 10) 13))
+        (with-suppressed-warnings ((callargs map-elt))
+          (should (= (cl-incf (map-elt map 2.0 5 #'=) 12) 17)))
+        (should (equal (funcall sort map) '((1 . 13) (2.0 . 17))))))
+    (with-maps-do map
+      ;; Nonempty map, without predicate.
+      (should (= (cl-incf (map-elt map 1 3) 10) 14))
+      (should (equal (funcall sort map) '((0 . 3) (1 . 14) (2 . 5))))
+      ;; Nonempty map, with predicate.
+      (with-suppressed-warnings ((callargs map-elt))
+        (pcase-exhaustive map
+          ((pred consp)
+           (should (= (cl-incf (map-elt map 2.0 6 #'=) 12) 17))
+           (should (equal (funcall sort map) '((0 . 3) (1 . 14) (2 . 17))))
+           (should (= (cl-incf (map-elt map 0 7 #'=) 13) 16))
+           (should (equal (funcall sort map) '((0 . 16) (1 . 14) (2 . 17)))))
+          ((pred vectorp)
+           (should-error (cl-incf (map-elt map 2.0 6 #'=))
+                         :type 'wrong-type-argument)
+           (should (equal (funcall sort map) '((0 . 3) (1 . 14) (2 . 5))))
+           (should (= (cl-incf (map-elt map 2 6 #'=) 12) 17))
+           (should (equal (funcall sort map) '((0 . 3) (1 . 14) (2 . 17))))
+           (should (= (cl-incf (map-elt map 0 7 #'=) 13) 16))
+           (should (equal (funcall sort map) '((0 . 16) (1 . 14) (2 . 17)))))
+          ((pred hash-table-p)
+           (should (= (cl-incf (map-elt map 2.0 6 #'=) 12) 18))
+           (should (member (funcall sort map)
+                           '(((0 . 3) (1 . 14) (2 . 5) (2.0 . 18))
+                             ((0 . 3) (1 . 14) (2.0 . 18) (2 . 5)))))
+           (should (= (cl-incf (map-elt map 0 7 #'=) 13) 16))
+           (should (member (funcall sort map)
+                           '(((0 . 16) (1 . 14) (2 . 5) (2.0 . 18))
+                             ((0 . 16) (1 . 14) (2.0 . 18) (2 . 5)))))))))))
 
 (ert-deftest test-map-elt-with-nil-value ()
   (should-not (map-elt '((a . 1) (b)) 'b 2)))
+
+(ert-deftest test-map-elt-signature ()
+  "Test that `map-elt' has the right advertised signature.
+See bug#58531#25 and bug#58563."
+  (should (equal (get-advertised-calling-convention (symbol-function 'map-elt))
+                 '(map key &optional default))))
 
 (ert-deftest test-map-put! ()
   (with-maps-do map
@@ -143,6 +224,24 @@ Evaluate BODY for each created map."
     (map-put! map (string ?a) (1+ val))
     (should (equal map '(("a" . 1))))
     (should-error (map-put! map (string ?a) val #'eq) :type 'map-not-inplace)))
+
+(ert-deftest test-map-put!-plist ()
+  "Test `map-put!' predicate on plists."
+  (let* ((a (string ?a))
+         (map (list a 0)))
+    (map-put! map a -1)
+    (should (equal map '("a" -1)))
+    (map-put! map 'a 2)
+    (should (equal map '("a" -1 a 2)))
+    (with-suppressed-warnings ((callargs map-put!))
+      (map-put! map 'a -3 #'string=))
+    (should (equal map '("a" -3 a 2)))))
+
+(ert-deftest test-map-put!-signature ()
+  "Test that `map-put!' has the right advertised signature.
+See bug#58531#25 and bug#58563."
+  (should (equal (get-advertised-calling-convention (symbol-function 'map-put!))
+                 '(map key value))))
 
 (ert-deftest test-map-put-alist-new-key ()
   "Regression test for Bug#23105."
@@ -395,12 +494,22 @@ Evaluate BODY for each created map."
         (alist '(("a" . 1) (a . 2))))
     (should (map-contains-key alist 'a))
     (should (map-contains-key plist 'a))
+    ;; FIXME: Why is no warning emitted for these (bug#58563#13)?
     (should (map-contains-key alist 'a #'eq))
     (should (map-contains-key plist 'a #'eq))
     (should (map-contains-key alist key))
+    (should (map-contains-key alist "a"))
+    (should (map-contains-key plist (string ?a) #'equal))
     (should-not (map-contains-key plist key))
     (should-not (map-contains-key alist key #'eq))
     (should-not (map-contains-key plist key #'eq))))
+
+(ert-deftest test-map-contains-key-signature ()
+  "Test that `map-contains-key' has the right advertised signature.
+See bug#58531#25 and bug#58563."
+  (should (equal (get-advertised-calling-convention
+                  (symbol-function 'map-contains-key))
+                 '(map key))))
 
 (ert-deftest test-map-some ()
   (with-maps-do map
@@ -515,19 +624,19 @@ Evaluate BODY for each created map."
     (should (equal alist '((key . value))))))
 
 (ert-deftest test-map-setf-alist-overwrite-key ()
-  (let ((alist '((key . value1))))
+  (let ((alist (list (cons 'key 'value1))))
     (should (equal (setf (map-elt alist 'key) 'value2)
                    'value2))
     (should (equal alist '((key . value2))))))
 
 (ert-deftest test-map-setf-plist-insert-key ()
-  (let ((plist '(key value)))
+  (let ((plist (list 'key 'value)))
     (should (equal (setf (map-elt plist 'key2) 'value2)
                    'value2))
     (should (equal plist '(key value key2 value2)))))
 
 (ert-deftest test-map-setf-plist-overwrite-key ()
-  (let ((plist '(key value)))
+  (let ((plist (list 'key 'value)))
     (should (equal (setf (map-elt plist 'key) 'value2)
                    'value2))
     (should (equal plist '(key value2)))))
@@ -535,14 +644,14 @@ Evaluate BODY for each created map."
 (ert-deftest test-hash-table-setf-insert-key ()
   (let ((ht (make-hash-table)))
     (should (equal (setf (map-elt ht 'key) 'value)
-		   'value))
+                   'value))
     (should (equal (map-elt ht 'key) 'value))))
 
 (ert-deftest test-hash-table-setf-overwrite-key ()
   (let ((ht (make-hash-table)))
     (puthash 'key 'value1 ht)
     (should (equal (setf (map-elt ht 'key) 'value2)
-		   'value2))
+                   'value2))
     (should (equal (map-elt ht 'key) 'value2))))
 
 (ert-deftest test-setf-map-with-function ()
@@ -551,8 +660,79 @@ Evaluate BODY for each created map."
     (setf (map-elt map 'foo)
           (funcall (lambda ()
                      (cl-incf num))))
+    (should (equal map '((foo . 1))))
     ;; Check that the function is only called once.
     (should (= num 1))))
+
+(ert-deftest test-map-plist-member ()
+  "Test `map--plist-member' and `map--plist-member-1'."
+  (dolist (mem '(map--plist-member map--plist-member-1))
+    ;; Lambda exercises Lisp implementation.
+    (dolist (= `(nil ,(lambda (a b) (eq a b))))
+      (should-not (funcall mem () 'a =))
+      (should-not (funcall mem '(a) 'b =))
+      (should-not (funcall mem '(a 1) 'b =))
+      (should (equal (funcall mem '(a) 'a =) '(a)))
+      (should (equal (funcall mem '(a . 1) 'a =) '(a . 1)))
+      (should (equal (funcall mem '(a 1 . b) 'a =) '(a 1 . b)))
+      (should (equal (funcall mem '(a 1 b) 'a =) '(a 1 b)))
+      (should (equal (funcall mem '(a 1 b) 'b =) '(b)))
+      (should (equal (funcall mem '(a 1 b . 2) 'a =) '(a 1 b . 2)))
+      (should (equal (funcall mem '(a 1 b . 2) 'b =) '(b . 2)))
+      (should (equal (funcall mem '(a 1 b 2) 'a =) '(a 1 b 2)))
+      (should (equal (funcall mem '(a 1 b 2) 'b =) '(b 2)))
+      (should (equal (should-error (funcall mem '(a . 1) 'b =))
+                     '(wrong-type-argument plistp (a . 1))))
+      (should (equal (should-error (funcall mem '(a 1 . b) 'b =))
+                     '(wrong-type-argument plistp (a 1 . b)))))
+    (should (equal (funcall mem '(a 1 b 2) "a" #'string=) '(a 1 b 2)))
+    (should (equal (funcall mem '(a 1 b 2) "b" #'string=) '(b 2)))))
+
+(ert-deftest test-map-plist-put ()
+  "Test `map--plist-put' and `map--plist-put-1'."
+  (dolist (put '(map--plist-put map--plist-put-1))
+    ;; Lambda exercises Lisp implementation.
+    (dolist (= `(nil ,(lambda (a b) (eq a b))))
+      (let ((l ()))
+        (should (equal (funcall put l 'a 1 =) '(a 1)))
+        (should-not l))
+      (let ((l (list 'a)))
+        (dolist (key '(a b))
+          (should (equal (should-error (funcall put l key 1 =))
+                         '(wrong-type-argument plistp (a)))))
+        (should (equal l '(a))))
+      (let ((l (cons 'a 1)))
+        (dolist (key '(a b))
+          (should (equal (should-error (funcall put l key 1 =))
+                         '(wrong-type-argument plistp (a . 1)))))
+        (should (equal l '(a . 1))))
+      (let ((l (cons 'a (cons 1 'b))))
+        (should (equal (funcall put l 'a 2 =) '(a 2 . b)))
+        (dolist (key '(b c))
+          (should (equal (should-error (funcall put l key 3 =))
+                         '(wrong-type-argument plistp (a 2 . b)))))
+        (should (equal l '(a 2 . b))))
+      (let ((l (list 'a 1 'b)))
+        (should (equal (funcall put l 'a 2 =) '(a 2 b)))
+        (dolist (key '(b c))
+          (should (equal (should-error (funcall put l key 3 =))
+                         '(wrong-type-argument plistp (a 2 b)))))
+        (should (equal l '(a 2 b))))
+      (let ((l (cons 'a (cons 1 (cons 'b 2)))))
+        (should (equal (funcall put l 'a 3 =) '(a 3 b . 2)))
+        (dolist (key '(b c))
+          (should (equal (should-error (funcall put l key 4 =))
+                         '(wrong-type-argument plistp (a 3 b . 2)))))
+        (should (equal l '(a 3 b . 2))))
+      (let ((l (list 'a 1 'b 2)))
+        (should (equal (funcall put l 'a 3 =) '(a 3 b 2)))
+        (should (equal (funcall put l 'b 4 =) '(a 3 b 4)))
+        (should (equal (funcall put l 'c 5 =) '(a 3 b 4 c 5)))
+        (should (equal l '(a 3 b 4 c 5)))))
+    (let ((l (list 'a 1 'b 2)))
+      (should (equal (funcall put l "a" 3 #'string=) '(a 3 b 2)))
+      (should (equal (funcall put l "b" 4 #'string=) '(a 3 b 4)))
+      (should (equal (funcall put l "c" 5 #'string=) '(a 3 b 4 "c" 5))))))
 
 (provide 'map-tests)
 ;;; map-tests.el ends here

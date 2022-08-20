@@ -1139,7 +1139,10 @@ final or penultimate step during initialization."))
   (should-not (plistp '(1 . 2)))
   (should (plistp '(1 2 3 4)))
   (should-not (plistp '(1 2 3)))
-  (should-not (plistp '(1 2 3 . 4))))
+  (should-not (plistp '(1 2 3 . 4)))
+  (let ((cycle (list 1 2 3)))
+    (nconc cycle cycle)
+    (should-not (plistp cycle))))
 
 (defun subr-tests--butlast-ref (list &optional n)
   "Reference implementation of `butlast'."

@@ -2473,15 +2473,15 @@ with PROP is done using PREDICATE, which defaults to `eq'.
 This function doesn't signal an error if PLIST is invalid.  */)
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
 {
-  Lisp_Object tail = plist;
   if (NILP (predicate))
     return plist_get (plist, prop);
 
+  Lisp_Object tail = plist;
   FOR_EACH_TAIL_SAFE (tail)
     {
       if (! CONSP (XCDR (tail)))
 	break;
-      if (!NILP (call2 (predicate, prop, XCAR (tail))))
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
 	return XCAR (XCDR (tail));
       tail = XCDR (tail);
     }
@@ -2489,7 +2489,7 @@ This function doesn't signal an error if PLIST is invalid.  */)
   return Qnil;
 }
 
-/* Faster version of the above that works with EQ only */
+/* Faster version of Fplist_get that works with EQ only.  */
 Lisp_Object
 plist_get (Lisp_Object plist, Lisp_Object prop)
 {
@@ -2498,7 +2498,7 @@ plist_get (Lisp_Object plist, Lisp_Object prop)
     {
       if (! CONSP (XCDR (tail)))
 	break;
-      if (EQ (prop, XCAR (tail)))
+      if (EQ (XCAR (tail), prop))
 	return XCAR (XCDR (tail));
       tail = XCDR (tail);
     }
@@ -2532,15 +2532,15 @@ use `(setq x (plist-put x prop val))' to be sure to use the new value.
 The PLIST is modified by side effects.  */)
   (Lisp_Object plist, Lisp_Object prop, Lisp_Object val, Lisp_Object predicate)
 {
-  Lisp_Object prev = Qnil, tail = plist;
   if (NILP (predicate))
     return plist_put (plist, prop, val);
+  Lisp_Object prev = Qnil, tail = plist;
   FOR_EACH_TAIL (tail)
     {
       if (! CONSP (XCDR (tail)))
 	break;
 
-      if (!NILP (call2 (predicate, prop, XCAR (tail))))
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
 	{
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
@@ -2558,6 +2558,7 @@ The PLIST is modified by side effects.  */)
   return plist;
 }
 
+/* Faster version of Fplist_put that works with EQ only.  */
 Lisp_Object
 plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
 {
@@ -2567,7 +2568,7 @@ plist_put (Lisp_Object plist, Lisp_Object prop, Lisp_Object val)
       if (! CONSP (XCDR (tail)))
 	break;
 
-      if (EQ (prop, XCAR (tail)))
+      if (EQ (XCAR (tail), prop))
 	{
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
@@ -2594,6 +2595,51 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
   set_symbol_plist
     (symbol, plist_put (XSYMBOL (symbol)->u.s.plist, propname, value));
   return value;
+}
+
+DEFUN ("plist-member", Fplist_member, Splist_member, 2, 3, 0,
+       doc: /* Return non-nil if PLIST has the property PROP.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using PREDICATE, which defaults to
+`eq'.
+
+Unlike `plist-get', this allows you to distinguish between a missing
+property and a property with the value nil.
+The value is actually the tail of PLIST whose car is PROP.  */)
+  (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
+{
+  if (NILP (predicate))
+    return plist_member (plist, prop);
+  Lisp_Object tail = plist;
+  FOR_EACH_TAIL (tail)
+    {
+      if (!NILP (call2 (predicate, XCAR (tail), prop)))
+	return tail;
+      tail = XCDR (tail);
+      if (! CONSP (tail))
+	break;
+    }
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
+  return Qnil;
+}
+
+/* Faster version of Fplist_member that works with EQ only.  */
+Lisp_Object
+plist_member (Lisp_Object plist, Lisp_Object prop)
+{
+  Lisp_Object tail = plist;
+  FOR_EACH_TAIL (tail)
+    {
+      if (EQ (XCAR (tail), prop))
+	return tail;
+      tail = XCDR (tail);
+      if (! CONSP (tail))
+	break;
+    }
+  CHECK_TYPE (NILP (tail), Qplistp, plist);
+  return Qnil;
 }
 
 DEFUN ("eql", Feql, Seql, 2, 2, 0,
@@ -3387,43 +3433,6 @@ FILENAME are suppressed.  */)
    out that some functions in the widget library (wid-edit.el) are the
    bottleneck of Widget operation.  Here is their translation to C,
    for the sole reason of efficiency.  */
-
-DEFUN ("plist-member", Fplist_member, Splist_member, 2, 3, 0,
-       doc: /* Return non-nil if PLIST has the property PROP.
-PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).
-
-The comparison with PROP is done using PREDICATE, which defaults to
-`eq'.
-
-Unlike `plist-get', this allows you to distinguish between a missing
-property and a property with the value nil.
-The value is actually the tail of PLIST whose car is PROP.  */)
-  (Lisp_Object plist, Lisp_Object prop, Lisp_Object predicate)
-{
-  Lisp_Object tail = plist;
-  if (NILP (predicate))
-    predicate = Qeq;
-  FOR_EACH_TAIL (tail)
-    {
-      if (!NILP (call2 (predicate, XCAR (tail), prop)))
-	return tail;
-      tail = XCDR (tail);
-      if (! CONSP (tail))
-	break;
-    }
-  CHECK_TYPE (NILP (tail), Qplistp, plist);
-  return Qnil;
-}
-
-/* plist_member isn't used much in the Emacs sources, so just provide
-   a shim so that the function name follows the same pattern as
-   plist_get/plist_put.  */
-Lisp_Object
-plist_member (Lisp_Object plist, Lisp_Object prop)
-{
-  return Fplist_member (plist, prop, Qnil);
-}
 
 DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
        doc: /* In WIDGET, set PROPERTY to VALUE.

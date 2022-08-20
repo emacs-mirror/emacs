@@ -635,13 +635,10 @@ of `with-connection-local-variables'.")
 (defsubst connection-local-normalize-criteria (criteria)
   "Normalize plist CRITERIA according to properties.
 Return a reordered plist."
-  (apply
-   #'append
-   (mapcar
-    (lambda (property)
-      (when (and (plist-member criteria property) (plist-get criteria property))
-        (list property (plist-get criteria property))))
-    '(:application :protocol :user :machine))))
+  (mapcan (lambda (property)
+            (let ((value (plist-get criteria property)))
+              (and value (list property value))))
+          '(:application :protocol :user :machine)))
 
 (defsubst connection-local-get-profiles (criteria)
   "Return the connection profiles list for CRITERIA.
