@@ -189,6 +189,13 @@ filename that EXTRACT returned."
 (defcustom ff-other-file-alist 'cc-other-file-alist
   "Alist of extensions to find given the current file's extension.
 
+The value could be an alist or a symbol whose value is an alist.
+Each element of the alist has the form
+
+  (REGEXP (ETXENSION...))
+
+where REGEXP is the regular expression matching a file's extension,
+and EXTENSIONs is the list of literal file-name extensions to search for.
 This list should contain the most used extensions before the others,
 since the search algorithm searches sequentially through each
 directory specified in `ff-search-directories'.  If a file is not found,
