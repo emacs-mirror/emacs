@@ -941,10 +941,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (point-min))
   (point-max
    :eval (point-max))
-  (pos-eol
-   :eval (pos-eol))
   (pos-bol
    :eval (pos-bol))
+  (pos-eol
+   :eval (pos-eol))
   (bolp
    :eval (bolp))
   (eolp
