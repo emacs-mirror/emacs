@@ -27799,6 +27799,24 @@ decode_mode_spec (struct window *w, register int c, int field_width,
   int width = min (field_width, FRAME_MESSAGE_BUF_SIZE (f));
   struct buffer *b = current_buffer;
 
+  ptrdiff_t buf_begv = BUF_BEGV (b);
+  ptrdiff_t buf_begv_byte = BUF_BEGV_BYTE (b);
+  ptrdiff_t buf_zv = BUF_ZV (b);
+  ptrdiff_t buf_zv_byte = BUF_ZV_BYTE (b);
+
+  /* If we're called during redisplay while a locked narrowing is in effect,
+     use the actual narrowing bounds instead.  */
+  Lisp_Object outermost_narrowing =
+    Fassq (Qoutermost_narrowing,
+	   Fbuffer_local_value (Qoutermost_narrowing, Fcurrent_buffer ()));
+  if (! NILP (outermost_narrowing))
+    {
+      buf_begv = XFIXNUM (Fcar (Fcdr (outermost_narrowing)));
+      buf_begv_byte = CHAR_TO_BYTE (buf_begv);
+      buf_zv = XFIXNUM (Fcdr (Fcdr (outermost_narrowing)));
+      buf_zv_byte = CHAR_TO_BYTE (buf_zv);
+    }
+
   obj = Qnil;
   *string = Qnil;
 
@@ -27924,14 +27942,14 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
     case 'i':
       {
-	ptrdiff_t size = ZV - BEGV;
+	ptrdiff_t size = buf_zv - buf_begv;
 	pint2str (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
 
     case 'I':
       {
-	ptrdiff_t size = ZV - BEGV;
+	ptrdiff_t size = buf_zv - buf_begv;
 	pint2hrstr (decode_mode_spec_buf, width, size);
 	return decode_mode_spec_buf;
       }
@@ -27957,11 +27975,11 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   when the buffer's restriction was changed, but the window
 	   wasn't yet redisplayed after that.  If that happens, we
 	   need to determine a new base line.  */
-	if (!(BUF_BEGV_BYTE (b) <= startpos_byte
-	      && startpos_byte <= BUF_ZV_BYTE (b)))
+	if (!(buf_begv_byte <= startpos_byte
+	      && startpos_byte <= buf_zv_byte))
 	  {
-	    startpos = BUF_BEGV (b);
-	    startpos_byte = BUF_BEGV_BYTE (b);
+	    startpos = buf_begv;
+	    startpos_byte = buf_begv_byte;
 	    w->base_line_pos = 0;
 	    w->base_line_number = 0;
 	  }
@@ -27973,7 +27991,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
 	/* If the buffer is very big, don't waste time.  */
 	if (FIXNUMP (Vline_number_display_limit)
-	    && BUF_ZV (b) - BUF_BEGV (b) > XFIXNUM (Vline_number_display_limit))
+	    && buf_zv - buf_begv > XFIXNUM (Vline_number_display_limit))
 	  {
 	    w->base_line_pos = 0;
 	    w->base_line_number = 0;
@@ -28006,13 +28024,13 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	   or too far away, or if we did not have one.
 	   "Too close" means it's plausible a scroll-down would
 	   go back past it.  */
-	if (startpos == BUF_BEGV (b))
+	if (startpos == buf_begv)
 	  {
 	    w->base_line_number = topline;
-	    w->base_line_pos = BUF_BEGV (b);
+	    w->base_line_pos = buf_begv;
 	  }
 	else if (nlines < height + 25 || nlines > height * 3 + 50
-		 || linepos == BUF_BEGV (b))
+		 || linepos == buf_begv)
 	  {
 	    ptrdiff_t limit = BUF_BEGV (b);
 	    ptrdiff_t limit_byte = BUF_BEGV_BYTE (b);
@@ -28077,7 +28095,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       break;
 
     case 'n':
-      if (BUF_BEGV (b) > BUF_BEG (b) || BUF_ZV (b) < BUF_Z (b))
+      if (buf_begv > BUF_BEG (b) || buf_zv < BUF_Z (b))
 	return " Narrow";
       break;
 
@@ -28086,8 +28104,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
         ptrdiff_t toppos = marker_position (w->start);
         ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-        ptrdiff_t begv = BUF_BEGV (b);
-        ptrdiff_t zv = BUF_ZV (b);
+        ptrdiff_t begv = buf_begv;
+        ptrdiff_t zv = buf_zv;
 
         if (zv <= botpos)
           return toppos <= begv ? "All" : "Bottom";
@@ -28105,8 +28123,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     case 'p':
       {
 	ptrdiff_t pos = marker_position (w->start);
-	ptrdiff_t begv = BUF_BEGV (b);
-	ptrdiff_t zv = BUF_ZV (b);
+	ptrdiff_t begv = buf_begv;
+	ptrdiff_t zv = buf_zv;
 
 	if (w->window_end_pos <= BUF_Z (b) - zv)
 	  return pos <= begv ? "All" : "Bottom";
@@ -28125,8 +28143,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
 	ptrdiff_t toppos = marker_position (w->start);
 	ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-	ptrdiff_t begv = BUF_BEGV (b);
-	ptrdiff_t zv = BUF_ZV (b);
+	ptrdiff_t begv = buf_begv;
+	ptrdiff_t zv = buf_zv;
 
 	if (zv <= botpos)
 	  return toppos <= begv ? "All" : "Bottom";
@@ -28145,8 +28163,8 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       {
         ptrdiff_t toppos = marker_position (w->start);
         ptrdiff_t botpos = BUF_Z (b) - w->window_end_pos;
-        ptrdiff_t begv = BUF_BEGV (b);
-        ptrdiff_t zv = BUF_ZV (b);
+        ptrdiff_t begv = buf_begv;
+        ptrdiff_t zv = buf_zv;
         int top_perc, bot_perc;
 
         if ((toppos <= begv) && (zv <= botpos))
