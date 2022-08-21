@@ -2589,6 +2589,11 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
+** New function 'make-obsolete-generalized-variable'.
+This can be used to mark setters used by 'setf' as obsolete, and the
+byte-compiler will then warn about using them.
+
++++
 ** New functions 'pos-eol' and 'pos-bol'.
 These are like 'line-end-position' and 'line-beginning-position'
 (respectively), but ignore fields (and are more efficient).

@@ -1355,16 +1355,22 @@ FORMAT and ARGS are as in `byte-compile-warn'."
   (let ((byte-compile-form-stack (cons arg byte-compile-form-stack)))
     (apply #'byte-compile-warn format args)))
 
-(defun byte-compile-warn-obsolete (symbol)
-  "Warn that SYMBOL (a variable or function) is obsolete."
+(defun byte-compile-warn-obsolete (symbol type)
+  "Warn that SYMBOL (a variable, function or generalized variable) is obsolete.
+TYPE is a string that say which one of these three types it is."
   (when (byte-compile-warning-enabled-p 'obsolete symbol)
-    (let* ((funcp (get symbol 'byte-obsolete-info))
-           (msg (macroexp--obsolete-warning
-                 symbol
-                 (or funcp (get symbol 'byte-obsolete-variable))
-                 (if funcp "function" "variable"))))
-      (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
-	(byte-compile-warn-x symbol "%s" msg)))))
+    (byte-compile-warn-x
+     symbol "%s"
+     (macroexp--obsolete-warning
+      symbol
+      (pcase type
+        ("function"
+         (get symbol 'byte-obsolete-info))
+        ("variable"
+         (get symbol 'byte-obsolete-variable))
+        ("generalized variable"
+         (get symbol 'byte-obsolete-generalized-variable)))
+      type))))
 
 (defun byte-compile-report-error (error-info &optional fill)
   "Report Lisp error in compilation.
@@ -1468,8 +1474,8 @@ when printing the error message."
 
 (defun byte-compile-function-warn (f nargs def)
   (when (and (get f 'byte-obsolete-info)
-             (byte-compile-warning-enabled-p 'obsolete f))
-    (byte-compile-warn-obsolete f))
+             (not (memq f byte-compile-not-obsolete-funcs)))
+    (byte-compile-warn-obsolete f "function"))
 
   ;; Check to see if the function will be available at runtime
   ;; and/or remember its arity if it's unknown.
@@ -3604,7 +3610,7 @@ lambda-expression."
                   ('set (not (eq access-type 'reference)))
                   ('get (eq access-type 'reference))
                   (_ t))))
-	 (byte-compile-warn-obsolete var))))
+	 (byte-compile-warn-obsolete var "variable"))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
   (let ((tmp (assq var byte-compile-variables)))

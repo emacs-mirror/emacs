@@ -92,6 +92,9 @@ DO must return an Elisp expression."
    (t
     (let* ((head (car place))
            (gf (function-get head 'gv-expander 'autoload)))
+      (when (and (symbolp head)
+                 (get head 'byte-obsolete-generalized-variable))
+        (byte-compile-warn-obsolete head "generalized variable"))
       (if gf (apply gf do (cdr place))
         (let ((me (macroexpand-1 place
                                  ;; (append macroexpand-all-environment
@@ -615,6 +618,18 @@ REF must have been previously obtained with `gv-ref'."
 ;;        ,@body)))
 
 ;;; Generalized variables.
+
+(defun make-obsolete-generalized-variable (obsolete-name current-name when)
+  "Make byte-compiler warn that generalized variable OBSOLETE-NAME is obsolete.
+The warning will say that CURRENT-NAME should be used instead.
+
+If CURRENT-NAME is a string, that is the `use instead' message.
+
+WHEN should be a string indicating when the variable was first
+made obsolete, for example a date or a release number."
+  (put obsolete-name 'byte-obsolete-generalized-variable
+       (purecopy (list current-name when)))
+  obsolete-name)
 
 ;; Some Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)
