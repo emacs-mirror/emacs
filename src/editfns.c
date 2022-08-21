@@ -748,7 +748,7 @@ This function does not move point.  Also see `line-beginning-position'.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the position of the first character in the current line/field.
-This function is like `bol' (which see), but respects fields.
+This function is like `pos-bol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
 unless that position would be on a different line from the original,
@@ -804,7 +804,7 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-This function is like `eol' (which see), but respects fields.
+This function is like `pos-eol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
 unless that would be on a different line from the original,
