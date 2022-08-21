@@ -2687,9 +2687,9 @@ DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
        doc: /* Remove restrictions (narrowing) from current buffer.
 
 This allows the buffer's full text to be seen and edited, unless
-the restrictions have been locked with `narrowing-lock', which see,
-in which case the the restrictions that were current when
-`narrowing-lock' was called are restored.  */)
+restrictions have been locked with `narrowing-lock', which see, in
+which case the restrictions that were current when `narrowing-lock'
+was called are restored.  */)
   (void)
 {
   Fset (Qoutermost_narrowing, Qnil);
@@ -2786,8 +2786,8 @@ used only within the limits of the restrictions that were current when
 
 Locking restrictions should be used sparingly, after carefully
 considering the potential adverse effects on the code that will be
-executed with locked restrictions.  It is meant to be used around
-portions of code that would become too slow, and make Emacs
+executed within locked restrictions.  It is typically meant to be used
+around portions of code that would become too slow, and make Emacs
 unresponsive, if they were executed in a large buffer.  For example,
 restrictions are locked by Emacs around low-level hooks such as
 `fontification-functions' or `post-command-hook'.

@@ -3919,14 +3919,17 @@ See also `locate-user-emacs-file'.")
 
 Inside BODY, `narrow-to-region' and `widen' can be used only
 within the START and END limits, unless the restrictions are
-unlocked by calling `narrowing-unlock' with TAG."
-  `(unwind-protect
-       (progn
-         (narrow-to-region ,start ,end)
-         (narrowing-lock ,tag)
-         ,@body)
-     (narrowing-unlock ,tag)
-     (widen)))
+unlocked by calling `narrowing-unlock' with TAG.  See
+`narrowing-lock' for a more detailed description.  The current
+restrictions, if any, are restored upon return."
+  `(save-restriction
+     (unwind-protect
+         (progn
+           (narrow-to-region ,start ,end)
+           (narrowing-lock ,tag)
+           ,@body)
+       (narrowing-unlock ,tag)
+       (widen))))
 
 (defun find-tag-default-bounds ()
   "Determine the boundaries of the default tag, based on text at point.
