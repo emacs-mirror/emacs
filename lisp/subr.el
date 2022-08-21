@@ -6904,10 +6904,7 @@ OBJECT if it is readable."
 
 (defun delete-line ()
   "Delete the current line."
-  (delete-region (line-beginning-position)
-                 (progn
-                   (forward-line 1)
-                   (point))))
+  (delete-region (pos-bol) (pos-bol 2)))
 
 (defun ensure-empty-lines (&optional lines)
   "Ensure that there are LINES number of empty lines before point.
