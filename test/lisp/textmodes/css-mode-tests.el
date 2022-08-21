@@ -435,7 +435,7 @@
                       'css-selector)
             (should-not (format "Didn't recognize %s as a selector"
                                 (buffer-substring-no-properties
-                                 (point) (line-end-position)))))))
+                                 (point) (pos-eol)))))))
       ;; Test many selectors.
       (dolist (selector selectors)
         (with-temp-buffer
@@ -451,7 +451,7 @@
                       'css-selector)
             (should-not (format "Didn't recognize %s as a selector"
                                 (buffer-substring-no-properties
-                                 (point) (line-end-position)))))))
+                                 (point) (pos-eol)))))))
       ;; Test wrong separators.
       (dolist (selector selectors)
         (with-temp-buffer
@@ -467,7 +467,7 @@
                     'css-selector)
             (should-not (format "Recognized %s as a selector"
                                 (buffer-substring-no-properties
-                                 (point) (line-end-position))))))))))
+                                 (point) (pos-eol))))))))))
 
 (ert-deftest scss-mode-test-selectors ()
   (let ((selectors
@@ -485,7 +485,7 @@
                       'css-selector)
             (should-not (format "Didn't recognize %s as a selector"
                                 (buffer-substring-no-properties
-                                 (point) (line-end-position))))))))))
+                                 (point) (pos-eol))))))))))
 
 
 (provide 'css-mode-tests)

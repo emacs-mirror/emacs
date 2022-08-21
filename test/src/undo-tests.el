@@ -460,11 +460,10 @@ Demonstrates bug 25599."
                  (delete-overlay ov))))))
       (save-excursion
         (goto-char (point-min))
-        (let ((ov (make-overlay (line-beginning-position 2)
-                                (line-end-position 2))))
+        (let ((ov (make-overlay (pos-bol 2) (pos-eol 2))))
           (overlay-put ov 'insert-in-front-hooks
                        (list overlay-modified)))))
-    (kill-region (point-min) (line-beginning-position 2))
+    (kill-region (point-min) (pos-bol 2))
     (undo-boundary)
     (undo)))
 

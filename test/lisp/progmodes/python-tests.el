@@ -1639,7 +1639,7 @@ a = (
 "
    (python-tests-look-at "- bar")
    (should (eq (car (python-indent-context)) :inside-string))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ",")
    (should (= (current-indentation) 0))))
 
@@ -1654,7 +1654,7 @@ a = (
 "
    (python-tests-look-at "- bar'''")
    (should (eq (car (python-indent-context)) :inside-string))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ",")
    (should (= (current-indentation) 0))))
 
@@ -1668,7 +1668,7 @@ def a():
 def b()
 "
    (python-tests-look-at "def b()")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (should (= (current-indentation) 0))))
 
@@ -1682,7 +1682,7 @@ if do:
 outside
 "
    (python-tests-look-at "else")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (should (= (current-indentation) 0))
    (python-tests-look-at "outside")
@@ -1699,7 +1699,7 @@ if do:
           that)
 "
    (python-tests-look-at "that)")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (python-tests-look-at "elif" -1)
    (should (= (current-indentation) 0))
@@ -1724,7 +1724,7 @@ def f():
 else
 "
    (python-tests-look-at "else")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (python-tests-look-at "else" -1)
    (should (= (current-indentation) 4))))
@@ -1984,7 +1984,7 @@ class C:
          (expected-mark-beginning-position
           (progn
             (python-tests-look-at "def __init__(self):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position-1
           (save-excursion
             (python-tests-look-at "self.b = 'b'")
@@ -2041,7 +2041,7 @@ class C:
           (progn
             (python-tests-look-at "def fun(self):")
             (python-tests-look-at "(self):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position
           (save-excursion
             (python-tests-look-at "return self.b")
@@ -2066,7 +2066,7 @@ def foo(x):
    (let ((expected-mark-beginning-position
           (progn
             (python-tests-look-at "def foo(x):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position (point-max)))
      (python-tests-look-at "return bar")
      (python-mark-defun 1)
@@ -2086,7 +2086,7 @@ def \\
          (expected-mark-beginning-position
           (progn
             (python-tests-look-at "def ")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position
           (save-excursion
             (python-tests-look-at "return x")
@@ -2438,21 +2438,21 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (point))
               (save-excursion
                 (python-tests-look-at "return wwrap")
-                (line-beginning-position))))
+                (pos-bol))))
    (should (= (save-excursion
                 (python-tests-look-at "def wrapped_f(*args):")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-beginning-position))))
+                (pos-bol))))
    (should (= (save-excursion
                 (python-tests-look-at "f(*args)")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-beginning-position))))))
+                (pos-bol))))))
 
 (ert-deftest python-nav-end-of-defun-3 ()
   (python-tests-with-temp-buffer
@@ -2765,14 +2765,14 @@ string
                 (point))
               (save-excursion
                 (python-tests-look-at "789")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v2 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
                 (point))
               (save-excursion
                 (python-tests-look-at "value4)")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v3 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
@@ -2780,7 +2780,7 @@ string
               (save-excursion
                 (python-tests-look-at
                  "'continue previous line')")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v4 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
@@ -3004,21 +3004,21 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-end-position))))
+                (pos-eol))))
    (end-of-line)
    (should (= (save-excursion
                 (python-nav-end-of-block)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "f(*args)")
    (should (= (save-excursion
                 (python-nav-end-of-block)
                 (point))
               (save-excursion
                 (python-tests-look-at "print 'After f(*args)'")
-                (line-end-position))))))
+                (pos-eol))))))
 
 (ert-deftest python-nav-end-of-block-2 ()
   "Ensure that `python-nav-end-of-block' does not enter an infinite loop."
@@ -3308,11 +3308,11 @@ if x:
 \tabcdefg
 "
      (python-tests-look-at "abcdefg")
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\tabcdef")))))
 
 (ert-deftest python-indent-dedent-line-backspace-3 ()
@@ -3325,27 +3325,27 @@ if x:
 \t abcdefg
 "
      (python-tests-look-at "abcdefg")
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\t abcdef"))
      (back-to-indentation)
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\tabcdef"))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "    abcdef"))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "abcdef")))))
 
 (ert-deftest python-bob-infloop-avoid ()
@@ -4358,11 +4358,11 @@ map(codecs.open('somefile'
 "
    (python-tests-look-at "ap(xx")
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
    (python-tests-look-at "('somefile'")
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (should (string= (python-eldoc--get-symbol-at-point) "codecs.open"))))
 
 (ert-deftest python-eldoc--get-symbol-at-point-2 ()
@@ -4875,7 +4875,7 @@ def long_function_name(
    (should (not (python-info-beginning-of-statement-p)))
    (python-tests-look-at "print (var_one)")
    (should (python-info-beginning-of-statement-p))
-   (goto-char (line-beginning-position))
+   (goto-char (pos-bol))
    (should (not (python-info-beginning-of-statement-p)))))
 
 (ert-deftest python-info-beginning-of-statement-p-2 ()
@@ -4895,7 +4895,7 @@ if width == 0 and height == 0 and \\
    (should (not (python-info-beginning-of-statement-p)))
    (python-tests-look-at "raise ValueError(")
    (should (python-info-beginning-of-statement-p))
-   (goto-char (line-beginning-position))
+   (goto-char (pos-bol))
    (should (not (python-info-beginning-of-statement-p)))))
 
 (ert-deftest python-info-end-of-statement-p-1 ()

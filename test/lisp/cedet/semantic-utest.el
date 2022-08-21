@@ -736,8 +736,8 @@ JAVE this thing would need to be recursive to handle java and csharp"
   (beginning-of-line)
   (setq semantic-utest-last-kill-pos (point))
   (setq semantic-utest-last-kill-text
-	(buffer-substring (point) (point-at-eol)))
-  (delete-region (point) (point-at-eol))
+        (buffer-substring (point) (pos-eol)))
+  (delete-region (point) (pos-eol))
   (insert insertme)
   (sit-for 0)
 )
@@ -745,7 +745,7 @@ JAVE this thing would need to be recursive to handle java and csharp"
 (defun semantic-utest-unkill-indicator ()
   "Unkill the last indicator."
   (goto-char semantic-utest-last-kill-pos)
-  (delete-region (point) (point-at-eol))
+  (delete-region (point) (pos-eol))
   (insert semantic-utest-last-kill-text)
   (sit-for 0)
   )
