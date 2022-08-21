@@ -728,17 +728,20 @@ for speeding up processing.")
   (while (let ((head (car-safe form)))
            (cond ((memq head '( progn inline save-excursion save-restriction
                                 save-current-buffer))
-                  (setq form (car (last form)))
+                  (setq form (car (last (cdr form))))
                   t)
-                 ((memq head '(let let* setq setcar setcdr))
+                 ((memq head '(let let*))
                   (setq form (car (last (cddr form))))
                   t)
                  ((memq head '( prog1 unwind-protect copy-sequence identity
                                 reverse nreverse sort))
                   (setq form (nth 1 form))
                   t)
-                 ((eq head 'mapc)
+                 ((memq head '(mapc setq setcar setcdr puthash))
                   (setq form (nth 2 form))
+                  t)
+                 ((memq head '(aset put function-put))
+                  (setq form (nth 3 form))
                   t))))
   form)
 
@@ -757,17 +760,18 @@ for speeding up processing.")
                            format format-message
                            substring substring-no-properties string-replace
                            replace-regexp-in-string symbol-name make-symbol
-                           compare-strings
+                           compare-strings string-distance
                            mapconcat
                            vector make-vector vconcat make-record record
                            regexp-quote regexp-opt
                            buffer-string buffer-substring
                            buffer-substring-no-properties
-                           current-buffer buffer-size
+                           current-buffer buffer-size get-buffer-create
                            point point-min point-max buffer-end count-lines
-                           following-char preceding-char max-char
+                           following-char preceding-char get-byte max-char
                            region-beginning region-end
                            line-beginning-position line-end-position
+                           pos-bol pos-eol
                            + - * / % 1+ 1- min max abs mod expt logb
                            logand logior logxor lognot ash logcount
                            floor ceiling round truncate
@@ -783,11 +787,13 @@ for speeding up processing.")
                            string-as-multibyte string-as-unibyte
                            string-to-multibyte string-to-unibyte
                            string-make-multibyte string-make-unibyte
+                           string-width char-width
                            make-hash-table hash-table-count
                            unibyte-char-to-multibyte multibyte-char-to-unibyte
                            sxhash sxhash-equal sxhash-eq sxhash-eql
                            sxhash-equal-including-properties
                            make-marker copy-marker point-marker mark-marker
+                           kbd key-description
                            always))
                   t)
                  ((eq head 'if)
@@ -1586,7 +1592,7 @@ See Info node `(elisp) Integer Basics'."
 	 keymap-parent
          lax-plist-get ldexp
          length length< length> length=
-         line-beginning-position line-end-position
+         line-beginning-position line-end-position pos-bol pos-eol
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-byte-code make-list make-string make-symbol mark marker-buffer max
