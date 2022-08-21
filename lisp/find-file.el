@@ -192,7 +192,7 @@ filename that EXTRACT returned."
 The value could be an alist or a symbol whose value is an alist.
 Each element of the alist has the form
 
-   (REGEXP (ETXENSION...))
+   (REGEXP (EXTENSION...))
 or
    (REGEXP FUNCTION)
 
