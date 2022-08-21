@@ -141,18 +141,6 @@ all the parts of PLACE that can be evaluated and then runs E.
   (declare (indent 2) (debug (sexp form def-body)))
   `(gv-get ,place (lambda ,vars ,@body)))
 
-(defun make-obsolete-generalized-variable (obsolete-name current-name when)
-  "Make byte-compiler warn that generalized variable OBSOLETE-NAME is obsolete.
-The warning will say that CURRENT-NAME should be used instead.
-
-If CURRENT-NAME is a string, that is the `use instead' message.
-
-WHEN should be a string indicating when the variable was first
-made obsolete, for example a date or a release number."
-  (put obsolete-name 'byte-obsolete-generalized-variable
-       (purecopy (list current-name when)))
-  obsolete-name)
-
 ;; Different ways to declare a generalized variable.
 ;;;###autoload
 (defmacro gv-define-expander (name handler)
@@ -407,7 +395,6 @@ The return value is the last VAL in the list.
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
-(make-obsolete-generalized-variable 'buffer-local-value nil "29.1")
 
 (gv-define-expander alist-get
   (lambda (do key alist &optional default remove testfn)
@@ -631,6 +618,18 @@ REF must have been previously obtained with `gv-ref'."
 ;;        ,@body)))
 
 ;;; Generalized variables.
+
+(defun make-obsolete-generalized-variable (obsolete-name current-name when)
+  "Make byte-compiler warn that generalized variable OBSOLETE-NAME is obsolete.
+The warning will say that CURRENT-NAME should be used instead.
+
+If CURRENT-NAME is a string, that is the `use instead' message.
+
+WHEN should be a string indicating when the variable was first
+made obsolete, for example a date or a release number."
+  (put obsolete-name 'byte-obsolete-generalized-variable
+       (purecopy (list current-name when)))
+  obsolete-name)
 
 ;; Some Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)

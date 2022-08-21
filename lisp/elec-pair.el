@@ -666,13 +666,12 @@ To toggle the mode in a single buffer, use `electric-pair-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-pair-local-mode
   "Toggle `electric-pair-mode' only in this buffer."
-  :lighter nil
+  :variable (buffer-local-value 'electric-pair-mode (current-buffer))
   (cond
    ((eq electric-pair-mode (default-value 'electric-pair-mode))
     (kill-local-variable 'electric-pair-mode))
    ((not (default-value 'electric-pair-mode))
     ;; Locally enabled, but globally disabled.
-    (make-local-variable 'electric-pair-mode)
     (electric-pair-mode 1)		  ; Setup the hooks.
     (setq-default electric-pair-mode nil) ; But keep it globally disabled.
     )))
