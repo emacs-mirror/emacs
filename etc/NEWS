@@ -2589,7 +2589,7 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 * Lisp Changes in Emacs 29.1
 
 +++
-** New functions 'eol' and 'bol'.
+** New functions 'pos-eol' and 'pos-bol'.
 These are like 'line-end-position' and 'line-beginning-position'
 (respectively), but ignore fields (and are more efficient).
 

@@ -729,7 +729,7 @@ bol (Lisp_Object n, ptrdiff_t *out_count)
   return charpos;
 }
 
-DEFUN ("bol", Fbol, Sbol, 0, 1, 0,
+DEFUN ("pos-bol", Fpos_bol, Spos_bol, 0, 1, 0,
        doc: /* Return the position of the first character on the current line.
 With optional argument N, scan forward N - 1 lines first.
 If the scan reaches the end of the buffer, return that position.
@@ -784,7 +784,7 @@ eol (Lisp_Object n)
 				   NULL);
 }
 
-DEFUN ("eol", Feol, Seol, 0, 1, 0,
+DEFUN ("pos-eol", Fpos_eol, Spos_eol, 0, 1, 0,
        doc: /* Return the position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
@@ -4642,8 +4642,8 @@ with an optional argument LOCK non-nil.  */);
 
   defsubr (&Sline_beginning_position);
   defsubr (&Sline_end_position);
-  defsubr (&Sbol);
-  defsubr (&Seol);
+  defsubr (&Spos_bol);
+  defsubr (&Spos_eol);
 
   defsubr (&Ssave_excursion);
   defsubr (&Ssave_current_buffer);
