@@ -2751,6 +2751,8 @@ limit of the locked restriction is used instead of the argument.  */)
       ptrdiff_t begv = XFIXNUM (Fcar (Fcdr (Fcar (Vnarrowing_locks))));
       ptrdiff_t zv = XFIXNUM (Fcdr (Fcdr (Fcar (Vnarrowing_locks))));
       if (s < begv) s = begv;
+      if (s > zv) s = zv;
+      if (e < begv) e = begv;
       if (e > zv) e = zv;
     }
 
