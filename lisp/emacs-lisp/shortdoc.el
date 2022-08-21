@@ -984,8 +984,13 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (following-char
    :no-eval (following-char)
    :eg-result 67)
+  (preceding-char
+   :no-eval (preceding-char)
+   :eg-result 38)
   (char-after
    :eval (char-after 45))
+  (char-before
+   :eval (char-before 13))
   (get-byte
    :no-eval (get-byte 45)
    :eg-result-string "#xff")
