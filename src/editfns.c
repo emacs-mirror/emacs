@@ -2731,7 +2731,9 @@ remain visible.
 
 When restrictions have been locked with `narrowing-lock', which see,
 `narrow-to-region' can be used only within the limits of the
-restrictions that were current when `narrowing-lock' was called.  */)
+restrictions that were current when `narrowing-lock' was called.  If
+the START or END arguments are outside these limits, the corresponding
+limit of the locked restriction is used instead of the argument.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   EMACS_INT s = fix_position (start), e = fix_position (end);
@@ -2741,17 +2743,15 @@ restrictions that were current when `narrowing-lock' was called.  */)
       EMACS_INT tem = s; s = e; e = tem;
     }
 
-  if (NILP (Vnarrowing_locks))
-    {
-      if (!(BEG <= s && s <= e && e <= Z))
-	args_out_of_range (start, end);
-    }
-  else
+  if (!(BEG <= s && s <= e && e <= Z))
+    args_out_of_range (start, end);
+
+  if (! NILP (Vnarrowing_locks))
     {
       ptrdiff_t begv = XFIXNUM (Fcar (Fcdr (Fcar (Vnarrowing_locks))));
       ptrdiff_t zv = XFIXNUM (Fcdr (Fcdr (Fcar (Vnarrowing_locks))));
-      if (!(begv <= s && s <= e && e <= zv))
-	args_out_of_range (start, end);
+      if (s < begv) s = begv;
+      if (e > zv) e = zv;
     }
 
   Fset (Qoutermost_narrowing,
@@ -2774,12 +2774,24 @@ restrictions that were current when `narrowing-lock' was called.  */)
   return Qnil;
 }
 
-DEFUN ("narrowing-lock", Fnarrowing_lock, Snarrowing_lock, 1, 1, "",
+DEFUN ("narrowing-lock", Fnarrowing_lock, Snarrowing_lock, 1, 1, 0,
        doc: /* Lock the current narrowing with TAG.
 
 When restrictions are locked, `narrow-to-region' and `widen' can be
 used only within the limits of the restrictions that were current when
-`narrowing-lock' was called.  */)
+`narrowing-lock' was called, unless the lock is removed with
+\(narrowing-unlock TAG).
+
+Locking restrictions should be used sparingly, after carefully
+considering the potential adverse effects on the code that will be
+executed with locked restrictions.  It is meant to be used around
+portions of code that would become too slow, and make Emacs
+unresponsive, if they were executed in a large buffer.  For example,
+restrictions are locked by Emacs around low-level hooks such as
+`fontification-functions' or `post-command-hook'.
+
+Locked restrictions are never visible on display, and can therefore
+not be used as a stronger variant of normal restrictions.  */)
   (Lisp_Object tag)
 {
   if (NILP (Vnarrowing_locks))
@@ -2790,7 +2802,7 @@ used only within the limits of the restrictions that were current when
   return Qnil;
 }
 
-DEFUN ("narrowing-unlock", Fnarrowing_unlock, Snarrowing_unlock, 1, 1, "",
+DEFUN ("narrowing-unlock", Fnarrowing_unlock, Snarrowing_unlock, 1, 1, 0,
        doc: /* Unlock a narrowing locked with (narrowing-lock TAG).
 
 Unlocking restrictions locked with `narrowing-lock' should be used
