@@ -82,6 +82,8 @@ pipeline."
 
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
   "Test that only output streams are PTYs when a command ends a pipeline."
+  ;; Repeated unreproducible errors.
+  :tags '(:unstable)
   (skip-unless (executable-find "sh"))
   (eshell-command-result-equal
    (concat "echo | " esh-proc-test--detect-pty-cmd)
