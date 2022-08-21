@@ -148,7 +148,6 @@ static int state[myrootCOUNT];
  */
 static void report(mps_arena_t arena, const char *pm, Bool discard)
 {
-  int found = 0;
   char mFound = '\0';
   mps_message_type_t type;
 
@@ -160,7 +159,6 @@ static void report(mps_arena_t arena, const char *pm, Bool discard)
 
     cdie(mps_message_get(&message, arena, type),
          "get");
-    found += 1;
 
     switch(type) {
       case mps_message_type_gc_start(): {
