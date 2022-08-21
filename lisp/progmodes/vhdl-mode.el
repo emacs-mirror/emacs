@@ -14958,8 +14958,8 @@ otherwise use cached data."
 
 (defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
                                         package-alist ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACKAGE-ALIST."
-  (if (not (or ent-alist conf-alist package-alist))
+  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PACKAGE-ALIST."
+  (if (not (or ent-alist-arg conf-alist-arg package-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
