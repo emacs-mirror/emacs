@@ -340,12 +340,13 @@ use `electric-indent-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-indent-local-mode
   "Toggle `electric-indent-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-indent-mode (current-buffer))
+  :lighter nil
   (cond
    ((eq electric-indent-mode (default-value 'electric-indent-mode))
     (kill-local-variable 'electric-indent-mode))
    ((not (default-value 'electric-indent-mode))
     ;; Locally enabled, but globally disabled.
+    (make-local-variable 'electric-indent-mode)
     (electric-indent-mode 1)                ; Setup the hooks.
     (setq-default electric-indent-mode nil) ; But keep it globally disabled.
     )))
@@ -484,12 +485,13 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 ;;;###autoload
 (define-minor-mode electric-layout-local-mode
   "Toggle `electric-layout-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-layout-mode (current-buffer))
+  :lighter nil
   (cond
    ((eq electric-layout-mode (default-value 'electric-layout-mode))
     (kill-local-variable 'electric-layout-mode))
    ((not (default-value 'electric-layout-mode))
     ;; Locally enabled, but globally disabled.
+    (make-local-variable 'electric-indent-mode)
     (electric-layout-mode 1)		  ; Setup the hooks.
     (setq-default electric-layout-mode nil) ; But keep it globally disabled.
     )))
@@ -661,12 +663,13 @@ use `electric-quote-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-quote-local-mode
   "Toggle `electric-quote-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-quote-mode (current-buffer))
+  :lighter nil
   (cond
    ((eq electric-quote-mode (default-value 'electric-quote-mode))
     (kill-local-variable 'electric-quote-mode))
    ((not (default-value 'electric-quote-mode))
     ;; Locally enabled, but globally disabled.
+    (make-local-variable 'electric-indent-mode)
     (electric-quote-mode 1)                ; Setup the hooks.
     (setq-default electric-quote-mode nil) ; But keep it globally disabled.
     )))

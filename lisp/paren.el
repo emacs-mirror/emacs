@@ -149,7 +149,7 @@ use `show-paren-local-mode'."
 ;;;###autoload
 (define-minor-mode show-paren-local-mode
   "Toggle `show-paren-mode' only in this buffer."
-  :variable (buffer-local-value 'show-paren-mode (current-buffer))
+  :lighter nil
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode
@@ -157,6 +157,7 @@ use `show-paren-local-mode'."
     (kill-local-variable 'show-paren-mode))
    ((not (default-value 'show-paren-mode))
     ;; Locally enabled, but globally disabled.
+    (make-local-variable 'show-paren-mode)
     (show-paren-mode 1)                ; Setup the timer.
     (setq-default show-paren-mode nil) ; But keep it globally disabled.
     )
