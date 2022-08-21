@@ -276,14 +276,14 @@ re-read the iCalendar file.")
 ;;; Define Back-End
 
 (org-export-define-derived-backend 'icalendar 'ascii
-  :translate-alist '((clock . ignore)
-		     (footnote-definition . ignore)
-		     (footnote-reference . ignore)
+  :translate-alist '((clock . nil)
+		     (footnote-definition . nil)
+		     (footnote-reference . nil)
 		     (headline . org-icalendar-entry)
                      (inner-template . org-icalendar-inner-template)
-		     (inlinetask . ignore)
-		     (planning . ignore)
-		     (section . ignore)
+		     (inlinetask . nil)
+		     (planning . nil)
+		     (section . nil)
 		     (template . org-icalendar-template))
   :options-alist
   '((:exclude-tags
