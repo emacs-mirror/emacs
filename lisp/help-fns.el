@@ -1155,6 +1155,15 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
 
+(defun help-fns--generalized-variable (function)
+  (when (get function 'gv-expander)
+    (insert (format-message "  `%s' is also a " function)
+            (buttonize "generalized variable"
+                       (lambda (_) (info "(elisp)Generalized Variables")))
+            ".\n")))
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--generalized-variable)
+
 
 ;; Variables
 
