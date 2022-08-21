@@ -2714,6 +2714,11 @@ Normally you should let-bind `byte-compile-warnings' before calling this,
 else the global value will be modified.
 
 (fn WARNING)")
+(autoload 'byte-compile-warn-obsolete "bytecomp" "\
+Warn that SYMBOL (a variable, function or generalized variable) is obsolete.
+TYPE is a string that say which one of these three types it is.
+
+(fn SYMBOL TYPE)")
 (autoload 'byte-force-recompile "bytecomp" "\
 Recompile every `.el' file in DIRECTORY that already has a `.elc' file.
 Files in subdirectories of DIRECTORY are processed also.
@@ -5150,13 +5155,9 @@ PersistMoniker=file://Folder.htt
 (fn)" t)
 (autoload 'conf-javaprop-mode "conf-mode" "\
 Conf Mode starter for Java properties files.
-Comments start with `#' but are also recognized with `//' or
-between `/*' and `*/'.
-For details see `conf-mode'.  Example:
+Comments start with `#'.  Example:
 
 # Conf mode font-locks this right with \\[conf-javaprop-mode] (Java properties)
-// another kind of comment
-/* yet another */
 
 name:value
 name=value
@@ -14553,7 +14554,7 @@ simple PLACEs such as (symbol-function \\='foo) which will also work in dynamic
 binding mode.
 
 (fn PLACE)" nil t)
-(register-definition-prefixes "gv" '("gv-"))
+(register-definition-prefixes "gv" '("gv-" "make-obsolete-generalized-variable"))
 
 
 ;;; Generated autoloads from play/handwrite.el
@@ -17086,9 +17087,8 @@ Key bindings:
 (autoload 'image-minor-mode "image-mode" "\
 Toggle Image minor mode in this buffer.
 
-Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display],
-to switch back to `image-mode' and display an image file as the
-actual image.
+Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display], to switch back to
+`image-mode' and display an image file as the actual image.
 
 This is a minor mode.  If called interactively, toggle the `Image
 minor mode' mode.  If the prefix argument is positive, enable the
