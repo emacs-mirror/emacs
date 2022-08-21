@@ -999,6 +999,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-value (delete-region (point-min) (point-max)))
   (erase-buffer
    :no-value (erase-buffer))
+  (delete-line
+   :no-value (delete-line))
   (insert
    :no-value (insert "This string will be inserted in the buffer\n"))
   (subst-char-in-region
