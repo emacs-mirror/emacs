@@ -2781,8 +2781,8 @@ DEFUN ("narrowing-lock", Fnarrowing_lock, Snarrowing_lock, 1, 1, 0,
 
 When restrictions are locked, `narrow-to-region' and `widen' can be
 used only within the limits of the restrictions that were current when
-`narrowing-lock' was called, unless the lock is removed with
-\(narrowing-unlock TAG).
+`narrowing-lock' was called, unless the lock is removed by calling
+`narrowing-unlock' with TAG.
 
 Locking restrictions should be used sparingly, after carefully
 considering the potential adverse effects on the code that will be
