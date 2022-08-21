@@ -13442,10 +13442,20 @@ x_query_pointer_1 (struct x_display_info *dpyinfo,
       x_uncatch_errors_after_check ();
 
       if (had_errors)
-	rc = XQueryPointer (dpyinfo->display, w, root_return,
-			    child_return, root_x_return,
-			    root_y_return, win_x_return,
-			    win_y_return, mask_return);
+	{
+	  /* If the specified client pointer is the display's client
+	     pointer, clear it now.  A new client pointer might not be
+	     found before the next call to x_query_pointer_1 and
+	     waiting for the error leads to excessive syncing.  */
+
+	  if (client_pointer_device == dpyinfo->client_pointer_device)
+	    dpyinfo->client_pointer_device = -1;
+
+	  rc = XQueryPointer (dpyinfo->display, w, root_return,
+			      child_return, root_x_return,
+			      root_y_return, win_x_return,
+			      win_y_return, mask_return);
+	}
       else
 	{
 	  state = 0;
