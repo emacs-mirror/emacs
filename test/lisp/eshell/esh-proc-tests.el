@@ -74,6 +74,8 @@
 (ert-deftest esh-proc-test/pipeline-connection-type/middle ()
   "Test that all streams are pipes when a command is in the middle of a
 pipeline."
+  ;; Repeated unreproducible errors.
+  :tags '(:unstable)
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
   (eshell-command-result-equal
