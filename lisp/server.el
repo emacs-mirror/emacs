@@ -544,7 +544,8 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
-      (cl-letf (((default-file-modes) ?\700)) (make-directory dir t))
+      (with-file-modes ?\700
+        (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
 
     ;; Check that it's safe for use.
@@ -691,7 +692,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	(server-ensure-safe-dir server-dir)
 	(when server-process
 	  (server-log (message "Restarting server")))
-	(cl-letf (((default-file-modes) ?\700))
+        (with-file-modes ?\700
 	  (add-hook 'suspend-tty-functions #'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions #'server-handle-delete-frame)
 	  (add-hook 'kill-emacs-query-functions

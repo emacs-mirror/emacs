@@ -633,24 +633,54 @@ made obsolete, for example a date or a release number."
 
 ;; Some Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)
+(make-obsolete-generalized-variable
+ 'buffer-file-name 'set-visited-file-name "29.1")
+
 (gv-define-setter buffer-modified-p (flag &optional buf)
   (macroexp-let2 nil buffer `(or ,buf (current-buffer))
     `(with-current-buffer ,buffer
        (set-buffer-modified-p ,flag))))
+(make-obsolete-generalized-variable
+ 'buffer-modified-p 'set-buffer-modified-p "29.1")
+
 (gv-define-simple-setter buffer-name rename-buffer t)
+(make-obsolete-generalized-variable 'buffer-name 'rename-buffer "29.1")
+
 (gv-define-setter buffer-string (store)
   `(insert (prog1 ,store (erase-buffer))))
+(make-obsolete-generalized-variable 'buffer-string nil "29.1")
+
 (gv-define-simple-setter buffer-substring cl--set-buffer-substring)
+(make-obsolete-generalized-variable 'buffer-substring nil "29.1")
+
 (gv-define-simple-setter current-buffer set-buffer)
+(make-obsolete-generalized-variable 'current-buffer 'set-buffer "29.1")
+
 (gv-define-simple-setter current-column move-to-column t)
+(make-obsolete-generalized-variable 'current-column 'move-to-column "29.1")
+
 (gv-define-simple-setter current-global-map use-global-map t)
+(make-obsolete-generalized-variable 'current-global-map 'use-global-map "29.1")
+
 (gv-define-setter current-input-mode (store)
   `(progn (apply #'set-input-mode ,store) ,store))
+(make-obsolete-generalized-variable 'current-input-mode nil "29.1")
+
 (gv-define-simple-setter current-local-map use-local-map t)
+(make-obsolete-generalized-variable 'current-local-map 'use-local-map "29.1")
+
 (gv-define-simple-setter current-window-configuration
                          set-window-configuration t)
+(make-obsolete-generalized-variable
+ 'current-window-configuration 'set-window-configuration "29.1")
+
 (gv-define-simple-setter default-file-modes set-default-file-modes t)
+(make-obsolete-generalized-variable
+ 'default-file-modes 'set-default-file-modes "29.1")
+
 (gv-define-simple-setter documentation-property put)
+(make-obsolete-generalized-variable 'documentation-property 'put "29.1")
+
 (gv-define-setter face-background (x f &optional s)
   `(set-face-background ,f ,x ,s))
 (gv-define-setter face-background-pixmap (x f &optional s)
@@ -661,43 +691,96 @@ made obsolete, for example a date or a release number."
 (gv-define-setter face-underline-p (x f &optional s)
   `(set-face-underline ,f ,x ,s))
 (gv-define-simple-setter file-modes set-file-modes t)
+
 (gv-define-setter frame-height (x &optional frame)
   `(set-frame-height (or ,frame (selected-frame)) ,x))
+(make-obsolete-generalized-variable 'frame-height 'set-frame-height "29.1")
+
 (gv-define-simple-setter frame-parameters modify-frame-parameters t)
 (gv-define-simple-setter frame-visible-p cl--set-frame-visible-p)
+(make-obsolete-generalized-variable 'frame-visible-p nil "29.1")
+
 (gv-define-setter frame-width (x &optional frame)
   `(set-frame-width (or ,frame (selected-frame)) ,x))
 (gv-define-simple-setter getenv setenv t)
 (gv-define-simple-setter get-register set-register)
+
 (gv-define-simple-setter global-key-binding global-set-key)
+(make-obsolete-generalized-variable 'global-key-binding 'global-set-key "29.1")
+
 (gv-define-simple-setter local-key-binding local-set-key)
+(make-obsolete-generalized-variable 'local-key-binding 'local-set-key "29.1")
+
 (gv-define-simple-setter mark set-mark t)
+(make-obsolete-generalized-variable 'mark 'set-mark "29.1")
+
 (gv-define-simple-setter mark-marker set-mark t)
+(make-obsolete-generalized-variable 'mark-marker 'set-mark "29.1")
+
 (gv-define-simple-setter marker-position set-marker t)
+(make-obsolete-generalized-variable 'marker-position 'set-marker "29.1")
+
 (gv-define-setter mouse-position (store scr)
   `(set-mouse-position ,scr (car ,store) (cadr ,store)
                        (cddr ,store)))
+(make-obsolete-generalized-variable 'mouse-position 'set-mouse-position "29.1")
+
 (gv-define-simple-setter point goto-char)
+(make-obsolete-generalized-variable 'point 'goto-char "29.1")
+
 (gv-define-simple-setter point-marker goto-char t)
+(make-obsolete-generalized-variable 'point-marker 'goto-char "29.1")
+
 (gv-define-setter point-max (store)
   `(progn (narrow-to-region (point-min) ,store) ,store))
+(make-obsolete-generalized-variable 'point-max 'narrow-to-region "29.1")
+
 (gv-define-setter point-min (store)
   `(progn (narrow-to-region ,store (point-max)) ,store))
+(make-obsolete-generalized-variable 'point-min 'narrow-to-region "29.1")
+
 (gv-define-setter read-mouse-position (store scr)
   `(set-mouse-position ,scr (car ,store) (cdr ,store)))
+(make-obsolete-generalized-variable
+ 'read-mouse-position 'set-mouse-position "29.1")
+
 (gv-define-simple-setter screen-height set-screen-height t)
+(make-obsolete-generalized-variable 'screen-height 'set-screen-height "29.1")
+
 (gv-define-simple-setter screen-width set-screen-width t)
+(make-obsolete-generalized-variable 'screen-width 'set-screen-width "29.1")
+
 (gv-define-simple-setter selected-window select-window)
+(make-obsolete-generalized-variable 'selected-window 'select-window "29.1")
+
 (gv-define-simple-setter selected-screen select-screen)
+(make-obsolete-generalized-variable 'selected-screen 'select-screen "29.1")
+
 (gv-define-simple-setter selected-frame select-frame)
+(make-obsolete-generalized-variable 'selected-frame 'select-frame "29.1")
+
 (gv-define-simple-setter standard-case-table set-standard-case-table)
+(make-obsolete-generalized-variable 'standard-case-table 'set-standard-case-table "29.1")
+
 (gv-define-simple-setter syntax-table set-syntax-table)
+(make-obsolete-generalized-variable 'syntax-table 'set-syntax-table "29.1")
+
 (gv-define-simple-setter visited-file-modtime set-visited-file-modtime t)
+(make-obsolete-generalized-variable
+ 'visited-file-modtime 'set-visited-file-modtime "29.1")
+
 (gv-define-setter window-height (store)
   `(progn (enlarge-window (- ,store (window-height))) ,store))
+(make-obsolete-generalized-variable 'window-height 'enlarge-window "29.1")
+
 (gv-define-setter window-width (store)
   `(progn (enlarge-window (- ,store (window-width)) t) ,store))
+(make-obsolete-generalized-variable 'window-width 'enlarge-window "29.1")
+
 (gv-define-simple-setter x-get-secondary-selection x-own-secondary-selection t)
+(make-obsolete-generalized-variable
+ 'x-get-secondary-selection 'x-own-secondary-selection "29.1")
+
 
 ;; More complex setf-methods.
 
