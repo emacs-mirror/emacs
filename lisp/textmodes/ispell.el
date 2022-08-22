@@ -1062,12 +1062,14 @@ calls it only when invoked interactively."
   (cl-pushnew (list dict '()) ispell-dictionary-alist :test #'equal)
   (ispell-hunspell-fill-dictionary-entry dict))
 
-(defun ispell-find-hunspell-dictionaries ()
+(defun ispell-find-hunspell-dictionaries (&optional dictionary)
   "Look for installed Hunspell dictionaries.
 Will initialize `ispell-hunspell-dictionary-alist' according
 to dictionaries found, and will remove aliases from the list
 in `ispell-dicts-name2locale-equivs-alist' if an explicit
-dictionary from that list was found."
+dictionary from that list was found.
+
+If DICTIONARY, check for that dictionary explicitly."
   (let ((hunspell-found-dicts
          (seq-filter
           (lambda (str)
@@ -1081,23 +1083,20 @@ dictionary from that list was found."
             (file-name-absolute-p str))
           (split-string
            (with-temp-buffer
-             (ispell-call-process ispell-program-name
-                            nil
-                            t
-                            nil
-                            "-D"
-                            ;; Use -a to prevent Hunspell from
-                            ;; trying to initialize its
-                            ;; curses/termcap UI, which causes it
-                            ;; to crash or fail to start in some
-                            ;; MS-Windows ports.
-                            "-a"
-                            ;; Hunspell 1.7.0 (and later?) won't
-                            ;; show LOADED DICTIONARY unless
-                            ;; there's at least one file argument
-                            ;; on the command line.  So we feed
-                            ;; it with the null device.
-                            null-device)
+             (apply #'ispell-call-process
+                    ispell-program-name nil t nil
+                    `("-D"
+                      ,@(and dictionary (list "-d" dictionary))
+                      ;; Use -a to prevent Hunspell from trying to
+                      ;; initialize its curses/termcap UI, which
+                      ;; causes it to crash or fail to start in some
+                      ;; MS-Windows ports.
+                      "-a"
+                      ;; Hunspell 1.7.0 (and later?) won't show LOADED
+                      ;; DICTIONARY unless there's at least one file
+                      ;; argument on the command line.  So we feed it
+                      ;; with the null device.
+                      ,null-device))
              (buffer-string))
            "[\n\r]+"
            t)))
@@ -1164,12 +1163,20 @@ dictionary from that list was found."
     ;; Parse and set values for default dictionary.
     (setq hunspell-default-dict (or hunspell-multi-dict
 				    (car hunspell-default-dict)))
+    ;; If we didn't find a dictionary based on the environment (i.e.,
+    ;; the locale and the DICTIONARY variable), try again if
+    ;; `ispell-dictionary' is set.
+    (when (and (not hunspell-default-dict)
+               (not dictionary)
+               ispell-dictionary)
+      (setq hunspell-default-dict
+            (ispell-find-hunspell-dictionaries ispell-dictionary)))
     ;; If hunspell-default-dict is nil, ispell-parse-hunspell-affix-file
     ;; will barf with an error message that doesn't help users figure
     ;; out what is wrong.  Produce an error message that points to the
     ;; root cause of the problem.
-    (or hunspell-default-dict
-        (error "Can't find Hunspell dictionary with a .aff affix file"))
+    (unless hunspell-default-dict
+      (error "Can't find Hunspell dictionary with a .aff affix file"))
     (setq hunspell-default-dict-entry
 	  (ispell-parse-hunspell-affix-file hunspell-default-dict))
     ;; Create an alist of found dicts with only names, except for default dict.
@@ -1179,7 +1186,8 @@ dictionary from that list was found."
       (cl-pushnew (if (string= dict hunspell-default-dict)
                       hunspell-default-dict-entry
                     (list dict))
-                  ispell-hunspell-dictionary-alist :test #'equal))))
+                  ispell-hunspell-dictionary-alist :test #'equal))
+    hunspell-default-dict))
 
 ;; Make ispell.el work better with enchant.
 
