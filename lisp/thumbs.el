@@ -294,6 +294,7 @@ smaller according to whether INCREMENT is 1 or -1."
     tn))
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
+(declare-function image-supported-file-p "image" (file))
 
 (defun thumbs-file-size (img)
   (let ((i (image-size

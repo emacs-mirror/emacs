@@ -4291,6 +4291,9 @@ restoring it to the state of a face that has never been customized."
 (defvar widget-fringe-bitmap-prompt-value-history nil
   "History of input to `widget-fringe-bitmap-prompt-value'.")
 
+;; In no-X builds, fringe.el isn't preloaded.
+(autoload 'fringe-bitmap-p "fringe")
+
 (define-widget 'fringe-bitmap 'symbol
   "A Lisp fringe bitmap name."
   :format "%v"
