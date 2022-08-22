@@ -443,9 +443,9 @@ specification.  If the key sequence that invoked the command has
 and @acronym{ASCII} characters, do not count where @samp{e} is concerned.
 
 @item f
-A file name of an existing file (@pxref{File Names}).  The default
-directory is @code{default-directory}.  Existing, Completion, Default,
-Prompt.
+A file name of an existing file (@pxref{File Names}).  @xref{Reading
+File Names} for details about default values.  Existing, Completion,
+Default, Prompt.
 
 @item F
 A file name.  The file need not exist.  Completion, Default, Prompt.
