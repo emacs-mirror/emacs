@@ -1618,10 +1618,13 @@ authentication tokens:
          (search-specs (auth-source-secrets-listify-pattern
                         (apply #'append (mapcar
                                       (lambda (k)
-                                        (if (or (null (plist-get spec k))
-                                                (eq t (plist-get spec k)))
-                                            nil
-                                          (list k (plist-get spec k))))
+                                        (let ((v (plist-get spec k)))
+                                          (if (or (null v)
+                                                  (eq t v))
+                                              nil
+                                            (list
+                                             k
+                                             (auth-source-ensure-strings v)))))
                                       search-keys))))
          ;; needed keys (always including host, login, port, and secret)
          (returned-keys (delete-dups (append
