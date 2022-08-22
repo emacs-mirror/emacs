@@ -7299,7 +7299,7 @@ or \"mark.*active\" at the prompt."
 
 (define-minor-mode indent-tabs-mode
   "Toggle whether indentation can insert TAB characters."
-  :global t :group 'indent :variable indent-tabs-mode)
+  :group 'indent)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
