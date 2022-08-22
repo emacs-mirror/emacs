@@ -396,19 +396,24 @@ add a final newline, whenever you save a file that really needs one."
      ;; transformed to "/2" on DOS/Windows.
      ,(concat temporary-file-directory "\\2") t))
   "Transforms to apply to buffer file name before making auto-save file name.
+
 Each transform is a list (REGEXP REPLACEMENT UNIQUIFY):
+
 REGEXP is a regular expression to match against the file name.
 If it matches, `replace-match' is used to replace the
 matching part with REPLACEMENT.
-If the optional element UNIQUIFY is non-nil, the auto-save file name is
-constructed by taking the directory part of the replaced file-name,
-concatenated with the buffer file name with all directory separators
-changed to `!' to prevent clashes.  This will not work
-correctly if your filesystem truncates the resulting name.
-If UNIQUIFY is one of the members of `secure-hash-algorithms',
-Emacs constructs the nondirectory part of the auto-save file name
-by applying that `secure-hash' to the buffer file name.  This
-avoids any risk of excessively long file names.
+
+If the optional element UNIQUIFY is nil, Emacs does not check for
+file name clashes, so using that is not recommended.  If UNIQUIFY
+is one of the members of `secure-hash-algorithms', Emacs
+constructs the nondirectory part of the auto-save file name by
+applying that `secure-hash' to the buffer file name.  This avoids
+any risk of excessively long file names.  Finally, if UNIQUIFY is
+any other value the auto-save file name is constructed by taking
+the directory part of the replaced file-name, concatenated with
+the buffer file name with all directory separators changed to `!'
+to prevent clashes.  This will not work correctly if your
+filesystem truncates the resulting name.
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
@@ -421,8 +426,13 @@ editing a remote file.
 On MS-DOS filesystems without long names this variable is always
 ignored."
   :group 'auto-save
-  :type '(repeat (list (regexp :tag "Regexp") (string :tag "Replacement")
-					   (boolean :tag "Uniquify")))
+  :type `(repeat (list (regexp :tag "Regexp")
+                       (string :tag "Replacement")
+                       (choice
+		        (const :tag "Uniquify" t)
+                        ,@(mapcar (lambda (algo)
+                                    (list 'const algo))
+                                  (secure-hash-algorithms)))))
   :initialize 'custom-initialize-delay
   :version "21.1")
 
