@@ -80,8 +80,12 @@ directory will be used.")
 (defun gamegrid-calculate-glyph-size ()
   "Calculate appropriate glyph size in pixels based on display resolution.
 Return a multiple of 8 no less than 16."
-  (let ((atts (car (display-monitor-attributes-list)))
+  (let (atts
         y-pitch)
+    (dolist (mon (display-monitor-attributes-list))
+      (when-let ((frames (alist-get 'frames mon))
+                 (match (memq (selected-frame) frames)))
+        (setq atts mon)))
     (setq y-pitch (cond
                    (atts
                     (/ (nth 4 (assq 'geometry atts))
