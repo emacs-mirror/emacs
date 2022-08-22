@@ -444,7 +444,7 @@ and @acronym{ASCII} characters, do not count where @samp{e} is concerned.
 
 @item f
 A file name of an existing file (@pxref{File Names}).  @xref{Reading
-File Names} for details about default values.  Existing, Completion,
+File Names}, for details about default values.  Existing, Completion,
 Default, Prompt.
 
 @item F
