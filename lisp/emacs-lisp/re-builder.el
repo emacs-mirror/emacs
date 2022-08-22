@@ -738,8 +738,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
           (let ((face (get-text-property (1- (point)) 'face)))
             (when (or (and (listp face)
                            (memq 'font-lock-string-face face))
-                      (eq 'font-lock-string-face face)
-                      t)
+                      (eq 'font-lock-string-face face))
               (throw 'found t))))))))
 
 (defface reb-regexp-grouping-backslash
