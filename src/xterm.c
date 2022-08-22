@@ -20270,7 +20270,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		block_input ();
 		XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-				RevertToParent, CurrentTime);
+				RevertToParent, event->xbutton.time);
 		if (FRAME_PARENT_FRAME (f))
 		  XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 		unblock_input ();
@@ -21852,8 +21852,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 		    {
 		      block_input ();
+#if defined HAVE_GTK3 || (!defined USE_GTK && !defined USE_X_TOOLKIT)
+		      if (device)
+			{
+			  /* This can generate XI_BadDevice if the
+			     device's attachment was destroyed
+			     server-side.  */
+			  x_ignore_errors_for_next_request (dpyinfo);
+			  XISetFocus (dpyinfo->display, device->attachment,
+				      /* Note that the input extension
+					 only supports RevertToParent-type
+					 behavior.  */
+				      FRAME_OUTER_WINDOW (f), xev->time);
+			  x_stop_ignoring_errors (dpyinfo);
+			}
+#else
+		      /* Non-no toolkit builds without GTK 3 use core
+			 events to handle focus.  */
 		      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-				      RevertToParent, CurrentTime);
+				      RevertToParent, xev->time);
+#endif
 		      if (FRAME_PARENT_FRAME (f))
 			XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 		      unblock_input ();
