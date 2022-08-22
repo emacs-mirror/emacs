@@ -74,8 +74,6 @@
 (ert-deftest esh-proc-test/pipeline-connection-type/middle ()
   "Test that all streams are pipes when a command is in the middle of a
 pipeline."
-  ;; Repeated unreproducible errors.
-  :tags '(:unstable)
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
   (eshell-command-result-equal
@@ -84,8 +82,6 @@ pipeline."
 
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
   "Test that only output streams are PTYs when a command ends a pipeline."
-  ;; Repeated unreproducible errors.
-  :tags '(:unstable)
   (skip-unless (executable-find "sh"))
   (eshell-command-result-equal
    (concat "echo | " esh-proc-test--detect-pty-cmd)

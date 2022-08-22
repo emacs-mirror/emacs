@@ -498,10 +498,16 @@ Returns what was actually sent, or nil if nothing was sent."
    ((eshell-processp target)
     (unless (stringp object)
       (setq object (eshell-stringify object)))
-    (condition-case nil
+    (condition-case err
         (process-send-string target object)
-      ;; If `process-send-string' raises an error, treat it as a broken pipe.
-      (error (signal 'eshell-pipe-broken (list target)))))
+      (error
+       ;; If `process-send-string' raises an error and the process has
+       ;; finished, treat it as a broken pipe.  Otherwise, just
+       ;; re-throw the signal.
+       (if (memq (process-status target)
+		 '(run stop open closed))
+           (signal (car err) (cdr err))
+         (signal 'eshell-pipe-broken (list target))))))
 
    ((consp target)
     (apply (car target) object (cdr target))))
