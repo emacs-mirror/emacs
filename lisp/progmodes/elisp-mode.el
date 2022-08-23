@@ -383,7 +383,9 @@ be used instead.
                      (setq sexp nil))
                     (`(lambda ,args . ,body)
                      (elisp--local-variables-1
-                      (append (remq '&optional (remq '&rest args)) vars)
+                      (let ((args (if (listp args) args)))
+                        ;; FIXME: Exit the loop if witness is in args.
+                        (append (remq '&optional (remq '&rest args)) vars))
                       (car (last body))))
                     (`(condition-case ,_ ,e) (elisp--local-variables-1 vars e))
                     (`(condition-case ,v ,_ . ,catches)
