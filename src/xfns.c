@@ -5156,7 +5156,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
 
-#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK \
+  && defined HAVE_CLOCK_GETTIME
       x_sync_init_fences (f);
 #endif
 #endif

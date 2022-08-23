@@ -7600,7 +7600,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 #ifndef USE_GTK
   struct frame *focus_frame;
   Time old_time;
-#if defined HAVE_XSYNC
+#if defined HAVE_XSYNC && defined HAVE_CLOCK_GETTIME
   uint64_t monotonic_time;
 #endif
 
@@ -27024,7 +27024,7 @@ x_free_frame_resources (struct frame *f)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
 
       /* Free sync fences.  */
-#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK && defined CLOCK_GETTIME
       x_sync_free_fences (f);
 #endif
     }
