@@ -27024,7 +27024,7 @@ x_free_frame_resources (struct frame *f)
 	XFreeCursor (FRAME_X_DISPLAY (f), f->output_data.x->bottom_left_corner_cursor);
 
       /* Free sync fences.  */
-#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK && defined CLOCK_GETTIME
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
       x_sync_free_fences (f);
 #endif
     }
