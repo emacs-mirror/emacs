@@ -921,21 +921,6 @@ Note that for @code{cl-getf} (as for @code{nthcdr}), the list argument
 of the function must itself be a valid @var{place} form.
 
 @item
-General Emacs Lisp functions:
-@example
-current-case-table                 file-modes
-face-background                    getenv
-face-font                          frame-parameters
-face-foreground                    frame-width
-face-stipple                       get-register
-face-underline-p                   x-get-selection
-@end example
-
-Most of these have directly corresponding ``set'' functions, like
-@code{set-face-foreground} for @code{face-foreground}, or
-@code{set-case-table} for @code{current-case-table}.
-
-@item
 A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
 where @var{subplace} is itself a valid generalized variable whose
 current value is a string, and where the value stored is also a
@@ -956,9 +941,6 @@ destination string.  For example:
 a
      @result{} ("hello" "wood")
 @end example
-
-The generalized variable @code{buffer-substring}, listed above,
-also works in this way by replacing a portion of the current buffer.
 
 @c FIXME?  Also 'eq'? (see cl-lib.el)
 

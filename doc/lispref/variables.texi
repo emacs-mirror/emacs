@@ -2679,16 +2679,21 @@ cdar      nthcdr
 A call to any of the following Emacs-specific functions:
 
 @smallexample
-alist-get                     process-get
-frame-parameter               process-sentinel
-terminal-parameter            window-buffer
-keymap-parent                 window-display-table
-match-data                    window-dedicated-p
-overlay-get                   window-hscroll
-overlay-start                 window-parameter
-overlay-end                   window-point
-process-buffer                window-start
-process-filter                default-value
+alist-get                     overlay-get
+face-background               overlay-start
+face-font                     overlay-end
+face-foreground               process-buffer
+face-stipple                  process-filter
+face-underline-p              process-get
+file-modes                    process-sentinel
+frame-parameter               window-buffer
+frame-parameters              window-display-table
+frame-width                   window-dedicated-p
+get-register                  window-hscroll
+getenv                        window-parameter
+terminal-parameter            window-point
+keymap-parent                 window-start
+match-data                    default-value
 @end smallexample
 @end itemize
 
