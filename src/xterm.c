@@ -27737,6 +27737,42 @@ xi_select_hierarchy_events (struct x_display_info *dpyinfo)
 
 #endif
 
+#if defined HAVE_XINPUT2 && defined HAVE_GTK3
+
+/* Look up whether or not GTK already initialized the X input
+   extension.
+
+   Value is 0 if GTK was not built with the input extension, or if it
+   was explictly disabled, 1 if GTK enabled the input extension and
+   the version was successfully determined, and 2 if that information
+   could not be determined.  */
+
+static int
+xi_check_toolkit (Display *display)
+{
+  GdkDisplay *gdpy;
+  GdkDeviceManager *manager;
+
+  gdpy = gdk_x11_lookup_xdisplay (display);
+  eassume (gdpy);
+  manager = gdk_display_get_device_manager (gdpy);
+
+  if (!strcmp (G_OBJECT_TYPE_NAME (manager),
+	       "GdkX11DeviceManagerXI2"))
+    return 1;
+
+  if (!strcmp (G_OBJECT_TYPE_NAME (manager),
+	       "GdkX11DeviceManagerCore"))
+    return 0;
+
+  /* Something changed in GDK so this information is no longer
+     available.  */
+
+  return 2;
+}
+
+#endif
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -28281,6 +28317,17 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   dpyinfo->client_pointer_device = -1;
 
+#ifdef HAVE_GTK3
+  /* GTK gets a chance to request use of the input extension first.
+     If we later try to enable it if GDK did not, then GTK will not
+     get the resulting extension events.  */
+
+  rc = xi_check_toolkit (dpyinfo->display);
+
+  if (!rc)
+    goto skip_xi_setup;
+#endif
+
   if (XQueryExtension (dpyinfo->display, "XInputExtension",
 		       &dpyinfo->xi2_opcode, &xi_first_event,
 		       &xi_first_error))
@@ -28377,9 +28424,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     }
 
   dpyinfo->xi2_version = minor;
-#ifndef HAVE_GTK3
  skip_xi_setup:
-#endif
   ;
 #endif
 
