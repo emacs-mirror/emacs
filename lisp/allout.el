@@ -4598,7 +4598,7 @@ by pops to non-distinctive yanks.  Bug..."
         (save-match-data
           (save-excursion
             (let* ((text-start allout-recent-prefix-end)
-                   (heading-end (point-at-eol)))
+                   (heading-end (line-end-position)))
               (goto-char text-start)
               (setq file-name
                     (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
@@ -4874,7 +4874,7 @@ siblings, even if the target topic is already closed."
   (interactive)
   (save-excursion
     (allout-back-to-heading)
-    (if (allout-hidden-p (point-at-eol))
+    (if (allout-hidden-p (line-end-position))
         (allout-show-current-subtree)
       (allout-hide-current-subtree))))
 ;;;_   > allout-show-current-branches ()
@@ -5537,7 +5537,7 @@ environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line)
     (let (;(beg (point))
-          (end (point-at-eol)))
+          (end (line-end-position)))
       (save-match-data
         (while (re-search-forward "\\\\"
   ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"

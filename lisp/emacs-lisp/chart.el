@@ -526,9 +526,9 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
 (defun chart-zap-chars (n)
   "Zap up to N chars without deleting EOLs."
   (if (not (eobp))
-      (if (< n (- (point-at-eol) (point)))
+      (if (< n (- (line-end-position) (point)))
 	  (delete-char n)
-	(delete-region (point) (point-at-eol)))))
+        (delete-region (point) (line-end-position)))))
 
 (defun chart-display-label (label dir zone start end &optional face)
   "Display LABEL in direction DIR in column/row ZONE between START and END.

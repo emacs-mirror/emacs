@@ -310,7 +310,7 @@ matches may be returned from the message body."
 				      (buffer-substring-no-properties
 				       opoint (point)))))
                 (if delete
-                    (delete-region (point-at-bol) (point)))))
+                    (delete-region (line-beginning-position) (point)))))
 	    (if list
 		value
 	      (and (not (string= value "")) value)))
@@ -326,7 +326,8 @@ matches may be returned from the message body."
                 (prog1
                     (buffer-substring-no-properties opoint (point))
                   (if delete
-                      (delete-region (point-at-bol) (1+ (point))))))))))))
+                      (delete-region (line-beginning-position)
+                                     (1+ (point))))))))))))
 
 ;; Parse a list of tokens separated by commas.
 ;; It runs from point to the end of the visible part of the buffer.

@@ -2185,7 +2185,7 @@ see `message-narrow-to-headers-or-head'."
    (progn
      (forward-line 1)
      (if (re-search-forward "^[^ \n\t]" nil t)
-	 (point-at-bol)
+         (line-beginning-position)
        (point-max))))
   (goto-char (point-min)))
 
@@ -3664,7 +3664,7 @@ Message buffers and is not meant to be called directly."
   (save-excursion
     (save-restriction
       (widen)
-      (let ((bound (+ (point-at-eol) 1)) case-fold-search)
+      (let ((bound (+ (line-end-position) 1)) case-fold-search)
         (goto-char (point-min))
         (not (search-forward (concat "\n" mail-header-separator "\n")
                              bound t))))))
@@ -5671,11 +5671,11 @@ Otherwise, generate and save a value for `canlock-password' first."
        (goto-char (point-max))
        (if (not (re-search-backward message-signature-separator nil t))
 	   t
-	 (setq sig-start (1+ (point-at-eol)))
+         (setq sig-start (1+ (line-end-position)))
 	 (setq sig-end
 	       (if (re-search-forward
 		    "<#/?\\(multipart\\|part\\|external\\|mml\\)" nil t)
-		   (- (point-at-bol) 1)
+                   (- (line-beginning-position) 1)
 		 (point-max)))
 	 (if (>= (count-lines sig-start sig-end) 5)
 	     (if (message-gnksa-enable-p 'signature)
@@ -6361,7 +6361,7 @@ Headers already prepared in the buffer are not modified."
 		      (forward-line -1)))
 		;; The value of this header was empty, so we clear
 		;; totally and insert the new value.
-		(delete-region (point) (point-at-eol))
+                (delete-region (point) (line-end-position))
 		;; If the header is optional, and the header was
 		;; empty, we can't insert it anyway.
 		(unless optionalp
@@ -6616,10 +6616,10 @@ beginning of a folded header)."
                 (or (eq (char-after) ?\s) (eq (char-after) ?\t)))
       (beginning-of-line 0)))
   (when (or (eq (char-after) ?\s) (eq (char-after) ?\t)
-            (search-forward ":" (point-at-eol) t))
+            (search-forward ":" (line-end-position) t))
     ;; We are a bit more lacks than the RFC and allow any positive number of WSP
     ;; characters.
-    (skip-chars-forward " \t" (point-at-eol))
+    (skip-chars-forward " \t" (line-end-position))
     (point)))
 
 (defun message-beginning-of-line (&optional n)
@@ -8642,7 +8642,7 @@ From headers in the original article."
 (autoload 'ecomplete-display-matches "ecomplete")
 
 (defun message--in-tocc-p ()
-  (and (memq (char-after (point-at-bol)) '(?C ?T ?\t ? ))
+  (and (memq (char-after (line-beginning-position)) '(?C ?T ?\t ? ))
        (message-point-in-header-p)
        (save-excursion
 	 (beginning-of-line)

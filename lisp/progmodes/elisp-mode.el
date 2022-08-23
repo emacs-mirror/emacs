@@ -1899,7 +1899,7 @@ or elsewhere, return a 1-line docstring."
           ;; go to the arg after `&rest'.
           (if (and key-have-value
                    (save-excursion
-                     (not (re-search-forward ":.*" (point-at-eol) t)))
+                     (not (re-search-forward ":.*" (line-end-position) t)))
                    (string-match "&rest \\([^ ()]*\\)" args))
               (setq index nil ; Skip next block based on positional args.
                     start (match-beginning 1)

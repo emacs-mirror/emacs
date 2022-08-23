@@ -917,7 +917,7 @@ arguments and pop open the results in a preview buffer."
 		       vals ""))))))
     (save-excursion
       (goto-char begin)
-      (goto-char (point-at-eol))
+      (goto-char (line-end-position))
       (unless (= (char-before (point)) ?\ ) (insert " "))
       (insert ":" header-arg) (when value (insert " " value)))))
 
@@ -1936,9 +1936,9 @@ region is not active then the point is demarcated."
              (let ((lang (nth 0 info))
                    (indent (make-string (current-indentation) ?\s)))
 	       (when (string-match "^[[:space:]]*$"
-				   (buffer-substring (point-at-bol)
-						     (point-at-eol)))
-		 (delete-region (point-at-bol) (point-at-eol)))
+                                   (buffer-substring (line-beginning-position)
+                                                     (line-end-position)))
+                 (delete-region (line-beginning-position) (line-end-position)))
                (insert (concat
 			(if (looking-at "^") "" "\n")
 			indent (if upper-case-p "#+END_SRC\n" "#+end_src\n")

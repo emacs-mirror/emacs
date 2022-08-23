@@ -1186,7 +1186,7 @@ Intended as the value of `indent-line-function'."
                  (skip-syntax-forward "w_")
                  (when (search-backward-regexp
                         cfengine-mode-syntax-functions-regex
-                        (point-at-bol)
+                        (line-beginning-position)
                         t)
                    (match-string 1)))))
         (and w (assq (intern w) flist))))))
@@ -1285,7 +1285,7 @@ see.  Use it by enabling `eldoc-mode'."
   "Return completions for function name around or before point."
   (let* ((bounds (save-excursion
                    (let ((p (point)))
-                     (skip-syntax-backward "w_" (point-at-bol))
+                     (skip-syntax-backward "w_" (line-beginning-position))
                      (list (point) p))))
          (syntax (cfengine3-make-syntax-cache))
          (flist (assq 'functions syntax)))

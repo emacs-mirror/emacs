@@ -3154,7 +3154,7 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 				       (min skip-region-start ispell-region-end)
 				     (marker-position ispell-region-end))))
 		(let* ((ispell-start (point))
-		       (ispell-end (min (point-at-eol) reg-end))
+                       (ispell-end (min (line-end-position) reg-end))
 		       ;; See if line must be prefixed by comment string to let ispell know this is
 		       ;; part of a comment string.  This is only supported in some modes.
 		       ;; In particular, this is not supported in autoconf mode where adding the
@@ -3167,7 +3167,8 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 				ispell-start ispell-end add-comment)))
 		  (ispell-print-if-debug
                    "ispell-region: string pos (%s->%s), eol: %s, [in-comment]: [%s], [add-comment]: [%s], [string]: [%s]\n"
-                   ispell-start ispell-end (point-at-eol) in-comment add-comment string)
+                   ispell-start ispell-end (line-end-position)
+                   in-comment add-comment string)
 		  (if add-comment		; account for comment chars added
 		      (setq ispell-start (- ispell-start (length add-comment))
 			    ;; Reset `in-comment' (and indirectly `add-comment') for new line
@@ -4104,7 +4105,7 @@ Includes LaTeX/Nroff modes and extended character mode."
     (goto-char (point-max))
     ;; Uses last occurrence of ispell-parsing-keyword
     (if (search-backward ispell-parsing-keyword nil t)
-	(let ((end (point-at-eol))
+        (let ((end (line-end-position))
 	      string)
 	  (search-forward ispell-parsing-keyword)
 	  (while (re-search-forward " *\\([^ \"]+\\)" end t)
@@ -4140,7 +4141,7 @@ Both should not be used to define a buffer-local dictionary."
 	(if (search-backward ispell-dictionary-keyword nil t)
 	    (progn
 	      (search-forward ispell-dictionary-keyword)
-	      (setq end (point-at-eol))
+              (setq end (line-end-position))
 	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		  (setq ispell-local-dictionary
 			(match-string-no-properties 1))))))
@@ -4148,7 +4149,7 @@ Both should not be used to define a buffer-local dictionary."
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
 	    (search-forward ispell-pdict-keyword)
-	    (setq end (point-at-eol))
+            (setq end (line-end-position))
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
@@ -4177,7 +4178,7 @@ Both should not be used to define a buffer-local dictionary."
     (while (search-forward ispell-words-keyword nil t)
       (or ispell-buffer-local-name
 	  (setq ispell-buffer-local-name (buffer-name)))
-      (let ((end (point-at-eol))
+      (let ((end (line-end-position))
 	    (ispell-casechars (ispell-get-casechars))
 	    string)
 	;; buffer-local words separated by a space, and can contain

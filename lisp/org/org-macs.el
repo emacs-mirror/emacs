@@ -1124,11 +1124,11 @@ the value in cadr."
 
 (defsubst org-get-at-bol (property)
   "Get text property PROPERTY at the beginning of line."
-  (get-text-property (point-at-bol) property))
+  (get-text-property (line-beginning-position) property))
 
 (defun org-get-at-eol (property n)
   "Get text property PROPERTY at the end of line less N characters."
-  (get-text-property (- (point-at-eol) n) property))
+  (get-text-property (- (line-end-position) n) property))
 
 (defun org-find-text-property-in-string (prop s)
   "Return the first non-nil value of property PROP in string S."

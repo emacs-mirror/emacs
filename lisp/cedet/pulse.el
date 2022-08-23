@@ -202,7 +202,7 @@ If POINT is nil or missing, the current point is used instead.
 Optional argument FACE specifies the face to do the highlighting."
   (save-excursion
     (goto-char (or point (point)))
-    (let ((start (point-at-bol))
+    (let ((start (line-beginning-position))
           (end (save-excursion
                  (end-of-line)
                  (when (not (eobp))

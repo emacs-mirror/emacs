@@ -474,7 +474,7 @@ for `smtpmail-try-auth-method'.")
                        (smtpmail--sanitize-error-message result))))))
 	(delete-file file-data)
 	(delete-file file-elisp)
-	(delete-region (point-at-bol) (point-at-bol 2)))
+        (delete-region (line-beginning-position) (line-beginning-position 2)))
       (write-region (point-min) (point-max) qfile))))
 
 (defun smtpmail--sanitize-error-message (string)
@@ -1057,7 +1057,8 @@ Returns an error if the server cannot be contacted."
     (while data-continue
       (with-current-buffer buffer
         (progress-reporter-update pr (point))
-        (setq sending-data (buffer-substring (point-at-bol) (point-at-eol)))
+        (setq sending-data (buffer-substring (line-beginning-position)
+                                             (line-end-position)))
 	(end-of-line 2)
         (setq data-continue (not (eobp))))
       (smtpmail-send-data-1 process sending-data))

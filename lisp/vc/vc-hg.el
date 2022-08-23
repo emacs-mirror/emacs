@@ -907,7 +907,7 @@ if we don't understand a construct, we signal
         ;; should cover the common cases.  Remember that we fall back
         ;; to regular hg commands if we see something we don't like.
         (save-restriction
-          (narrow-to-region (point) (point-at-eol))
+          (narrow-to-region (point) (line-end-position))
           (cond ((looking-at "[ \t]*\\(?:#.*\\)?$"))
                 ((looking-at "syntax:[ \t]*re[ \t]*$")
                  (setf default-syntax 'vc-hg--hgignore-add-pcre))

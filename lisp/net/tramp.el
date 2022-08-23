@@ -3203,7 +3203,7 @@ for all methods.  Resulting data are derived from default settings."
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (let (result)
-     (when (re-search-forward regexp (point-at-eol) t)
+     (when (re-search-forward regexp (line-end-position) t)
        (setq result (list nil (match-string match-level))))
      (or
       (> (skip-chars-forward skip-chars) 0)
@@ -3236,7 +3236,7 @@ Either user or host may be nil."
 	  (concat
 	   "^\\(" tramp-host-regexp "\\)"
 	   "\\([ \t]+" "\\(" tramp-user-regexp "\\)" "\\)?")))
-     (when (re-search-forward regexp (point-at-eol) t)
+     (when (re-search-forward regexp (line-end-position) t)
        (setq result (append (list (match-string 3) (match-string 1)))))
      (forward-line 1)
      result))
@@ -3318,7 +3318,7 @@ Host is always \"localhost\"."
 Host is always \"localhost\"."
    (let (result
 	 (regexp (concat "^\\(" tramp-user-regexp "\\):")))
-     (when (re-search-forward regexp (point-at-eol) t)
+     (when (re-search-forward regexp (line-end-position) t)
        (setq result (list (match-string 1) "localhost")))
      (forward-line 1)
      result))
@@ -3339,7 +3339,7 @@ Host is always \"localhost\"."
    "Return a (group host) tuple allowed to access.
 Host is always \"localhost\"."
    (let (result
-	 (split (split-string (buffer-substring (point) (point-at-eol)) ":")))
+         (split (split-string (buffer-substring (point) (line-end-position)) ":")))
      (when (member (user-login-name) (split-string (nth 3 split) "," 'omit))
        (setq result (list (nth 0 split) "localhost")))
      (forward-line 1)
@@ -3374,7 +3374,7 @@ User is always nil."
 User is always nil."
    (let (result
 	 (regexp (concat (regexp-quote registry) "\\\\\\(.+\\)")))
-     (when (re-search-forward regexp (point-at-eol) t)
+     (when (re-search-forward regexp (line-end-position) t)
        (setq result (list nil (match-string 1))))
      (forward-line 1)
      result))
@@ -4142,12 +4142,12 @@ Let-bind it when necessary.")
 	    (goto-char (point-min))
 	    (while (setq start
 			 (text-property-not-all
-			  (point) (point-at-eol) 'dired-filename t))
+                          (point) (line-end-position) 'dired-filename t))
 	      (delete-region
 	       start
-	       (or (text-property-any start (point-at-eol) 'dired-filename t)
-		   (point-at-eol)))
-	      (if (= (point-at-bol) (point-at-eol))
+               (or (text-property-any start (line-end-position) 'dired-filename t)
+                   (line-end-position)))
+              (if (= (line-beginning-position) (line-end-position))
 		  ;; Empty line.
 		  (delete-region (point) (progn (forward-line) (point)))
 		(forward-line)))))))))

@@ -135,7 +135,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 (defun gitmerge-get-sha1 ()
   "Get SHA1 from commit at point."
   (save-excursion
-    (goto-char (point-at-bol))
+    (goto-char (line-beginning-position))
     (when (looking-at "^[A-Z ]\\s-*\\([a-f0-9]+\\)")
       (match-string 1))))
 
@@ -187,7 +187,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	skip)
     (when commit
       (save-excursion
-	(goto-char (point-at-bol))
+        (goto-char (line-beginning-position))
 	(when (looking-at "^\\([A-Z ]\\)\\s-*\\([a-f0-9]+\\)")
 	  (setq skip (string= (match-string 1) " "))
 	  (goto-char (match-beginning 2))
@@ -195,7 +195,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	  (dolist (ct gitmerge--commits)
 	    (when (string-match commit (car ct))
 	      (setcdr ct (when skip "M"))))
-	  (goto-char (point-at-bol))
+          (goto-char (line-beginning-position))
 	  (setq buffer-read-only nil)
 	  (delete-char 1)
 	  (insert (if skip "M" " "))

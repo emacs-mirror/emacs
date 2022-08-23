@@ -544,11 +544,11 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 		    "Various"))))
 	(goto-char (point-min))
 	(when (re-search-forward "^Subject: ")
-	  (delete-region (point) (point-at-eol))
+          (delete-region (point) (line-end-position))
 	  (insert subject))
 	(goto-char (point-min))
 	(when (re-search-forward "^From:")
-	  (delete-region (point) (point-at-eol))
+          (delete-region (point) (line-end-position))
 	  (insert " " from))
 	(let ((message-forward-decoded-p t))
 	  (message-forward post t))))
@@ -1763,7 +1763,7 @@ Gnus might fail to display all of it.")
 	    (unless (looking-at (concat gnus-uu-begin-string "\\|"
 					gnus-uu-end-string))
 	      (when (not found)
-		(setq length (- (point-at-eol) (point-at-bol))))
+                (setq length (- (line-end-position) (line-beginning-position))))
 	      (setq found t)
 	      (beginning-of-line)
 	      (setq beg (point))
@@ -2068,7 +2068,7 @@ If no file has been included, the user will be asked for a file."
     (goto-char (point-min))
     (re-search-forward
      (concat "^" (regexp-quote mail-header-separator) "$") nil t)
-    (setq header (buffer-substring (point-min) (point-at-bol)))
+    (setq header (buffer-substring (point-min) (line-beginning-position)))
 
     (goto-char (point-min))
     (when gnus-uu-post-separate-description

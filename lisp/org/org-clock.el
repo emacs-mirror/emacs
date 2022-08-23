@@ -1317,7 +1317,7 @@ the default behavior."
       ;; Clock in at which position?
       (setq target-pos
 	    (if (and (eobp) (not (org-at-heading-p)))
-		(point-at-bol 0)
+                (line-beginning-position 0)
 	      (point)))
       (save-excursion
 	(when (and selected-task (marker-buffer selected-task))
@@ -1666,7 +1666,7 @@ to, overriding the existing value of `org-clock-out-switch-to-state'."
 	      (setq ts (match-string 2))
 	    (if fail-quietly (throw 'exit nil) (error "Clock start time is gone")))
 	  (goto-char (match-end 0))
-	  (delete-region (point) (point-at-eol))
+          (delete-region (point) (line-end-position))
 	  (insert "--")
 	  (setq te (org-insert-time-stamp (or at-time now) 'with-hm 'inactive))
 	  (setq s (org-time-convert-to-integer
@@ -1804,7 +1804,7 @@ Optional argument N tells to change by that many units."
     (goto-char org-clock-marker)
     (if (looking-back (concat "^[ \t]*" org-clock-string ".*")
 		      (line-beginning-position))
-	(progn (delete-region (1- (point-at-bol)) (point-at-eol))
+        (progn (delete-region (1- (line-beginning-position)) (line-end-position))
 	       (org-remove-empty-drawer-at (point)))
       (message "Clock gone, cancel the timer anyway")
       (sit-for 2)))
@@ -1946,7 +1946,7 @@ PROPNAME lets you set a custom text property instead of :org-clock-minutes."
 			       (aset ltimes l (+ (aref ltimes l) t1))))
 		  (setq time (aref ltimes level))
 		  (goto-char (match-beginning 0))
-		  (put-text-property (point) (point-at-eol)
+                  (put-text-property (point) (line-end-position)
 				     (or propname :org-clock-minutes) time)
 		  (when headline-filter
 		    (save-excursion
@@ -2114,7 +2114,7 @@ fontified, and then returned."
     (forward-line 2)
     (buffer-substring (point) (progn
 				(re-search-forward "^[ \t]*#\\+END" nil t)
-				(point-at-bol)))))
+                                (line-beginning-position)))))
 
 ;;;###autoload
 (defun org-clock-report (&optional arg)
@@ -2390,7 +2390,7 @@ the currently selected interval size."
   (setq n (prefix-numeric-value n))
   (and (memq dir '(left down)) (setq n (- n)))
   (save-excursion
-    (goto-char (point-at-bol))
+    (goto-char (line-beginning-position))
     (if (not (looking-at "^[ \t]*#\\+BEGIN:[ \t]+clocktable\\>.*?:block[ \t]+\\(\\S-+\\)"))
 	(user-error "Line needs a :block definition before this command works")
       (let* ((b (match-beginning 1)) (e (match-end 1))
@@ -3030,7 +3030,7 @@ Otherwise, return nil."
 	 ((not (match-end 2))
 	  (when (and (equal (marker-buffer org-clock-marker) (current-buffer))
 		     (> org-clock-marker (point))
-		     (<= org-clock-marker (point-at-eol)))
+                     (<= org-clock-marker (line-end-position)))
 	    ;; The clock is running here
 	    (setq org-clock-start-time
 		  (org-time-string-to-time (match-string 1)))

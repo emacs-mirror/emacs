@@ -855,7 +855,7 @@ If REGEXP is given, lines that match it will be deleted."
 	    (unless (bolp) (forward-line 1))
 	    (setq end (point))
 	    (goto-char (match-beginning 0))
-	    (delete-region (point-at-bol) end))))
+            (delete-region (line-beginning-position) end))))
       (goto-char (point-max))
       ;; Make sure that each dribble entry is a single line, so that
       ;; the "remove" code above works.
@@ -2173,7 +2173,7 @@ The info element is shared with the same element of
 	   (unless ignore-errors
 	     (gnus-message 3 "Warning - invalid active: %s"
 			   (buffer-substring
-			    (point-at-bol) (point-at-eol))))))
+                            (line-beginning-position) (line-end-position))))))
 	(forward-line 1)))))
 
 (defun gnus-groups-to-gnus-format (method &optional hashtb real-active)
@@ -2527,10 +2527,10 @@ The form should return either t or nil."
 	      ;; don't give a damn, frankly, my dear.
 	      (concat gnus-newsrc-options
 		      (buffer-substring
-		       (point-at-bol)
+                       (line-beginning-position)
 		       ;; Options may continue on the next line.
 		       (or (and (re-search-forward "^[^ \t]" nil 'move)
-				(point-at-bol))
+                                (line-beginning-position))
 			   (point)))))
 	(forward-line -1))
        (group
@@ -2592,8 +2592,8 @@ The form should return either t or nil."
 		;; The line was buggy.
 		(setq group nil)
 		(gnus-error 3.1 "Mangled line: %s"
-			    (buffer-substring (point-at-bol)
-					      (point-at-eol))))
+                            (buffer-substring (line-beginning-position)
+                                              (line-end-position))))
 	      nil))
 	  ;; Skip past ", ".  Spaces are invalid in these ranges, but
 	  ;; we allow them, because it's a common mistake to put a
@@ -2702,9 +2702,9 @@ The form should return either t or nil."
       (while (re-search-forward "[ \t]-n" nil t)
 	(setq eol
 	      (or (save-excursion
-		    (and (re-search-forward "[ \t]-n" (point-at-eol) t)
+                    (and (re-search-forward "[ \t]-n" (line-end-position) t)
 			 (- (point) 2)))
-		  (point-at-eol)))
+                  (line-end-position)))
 	;; Search for all "words"...
 	(while (re-search-forward "[^ \t,\n]+" eol t)
 	  (if (eq (char-after (match-beginning 0)) ?!)

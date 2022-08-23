@@ -1911,12 +1911,11 @@ be a list of the form returned by `event-start' and `event-end'."
 (defalias 'store-match-data #'set-match-data)
 (defalias 'chmod #'set-file-modes)
 (defalias 'mkdir #'make-directory)
-;; These are the XEmacs names:
-(defalias 'point-at-eol #'line-end-position)
-(defalias 'point-at-bol #'line-beginning-position)
 
-(define-obsolete-function-alias 'user-original-login-name
-  #'user-login-name "28.1")
+;; These were the XEmacs names, now obsolete:
+(define-obsolete-function-alias 'point-at-eol #'line-end-position "29.1")
+(define-obsolete-function-alias 'point-at-bol #'line-beginning-position "29.1")
+(define-obsolete-function-alias 'user-original-login-name #'user-login-name "28.1")
 
 ;; These are in obsolete/autoload.el, but are commonly used by
 ;; third-party scripts that assume that they exist without requiring

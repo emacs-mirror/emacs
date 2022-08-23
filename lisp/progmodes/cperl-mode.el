@@ -2081,7 +2081,7 @@ Affected by `cperl-electric-parens'."
   "Insert a construction appropriate after a keyword.
 Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
-  (let ((beg (point-at-bol))
+  (let ((beg (line-beginning-position))
 	(dollar (and (eq last-command-event ?$)
 		     (eq this-command 'self-insert-command)))
 	(delete (and (memq last-command-event '(?\s ?\n ?\t ?\f))
@@ -2224,7 +2224,7 @@ to nil."
   "Insert a construction appropriate after a keyword.
 Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
-  (let ((beg (point-at-bol)))
+  (let ((beg (line-beginning-position)))
     (and (save-excursion
            (skip-chars-backward "[:alpha:]")
 	   (cperl-after-expr-p nil "{;:"))
@@ -2264,8 +2264,8 @@ to nil."
   "Go to end of line, open a new line and indent appropriately.
 If in POD, insert appropriate lines."
   (interactive)
-  (let ((beg (point-at-bol))
-	(end (point-at-eol))
+  (let ((beg (line-beginning-position))
+        (end (line-end-position))
 	(pos (point)) start over cut res)
     (if (and				; Check if we need to split:
 					; i.e., on a boundary and inside "{...}"
@@ -2343,8 +2343,8 @@ If in POD, insert appropriate lines."
 		   (forward-paragraph -1)
 		   (forward-word-strictly 1)
 		   (setq pos (point))
-		   (setq cut (buffer-substring (point) (point-at-eol)))
-		   (delete-char (- (point-at-eol) (point)))
+                   (setq cut (buffer-substring (point) (line-end-position)))
+                   (delete-char (- (line-end-position) (point)))
 		   (setq res (expand-abbrev))
 		   (save-excursion
 		     (goto-char pos)
@@ -2823,7 +2823,7 @@ Will not look before LIM."
 					(point-max)))) ; do not loop if no syntaxification
 				  ;; label:
 				  (t
-				   (setq colon-line-end (point-at-eol))
+                                   (setq colon-line-end (line-end-position))
 				   (search-forward ":"))))
 			  ;; We are at beginning of code (NOT label or comment)
 			  ;; First, the following code counts
@@ -2866,7 +2866,7 @@ Will not look before LIM."
 				    (looking-at (concat cperl-sub-regexp "\\>"))))
 			     (setq p (nth 1 ; start of innermost containing list
 					  (parse-partial-sexp
-					   (point-at-bol)
+                                           (line-beginning-position)
 					   (point)))))
 			    (progn
 			      (goto-char (1+ p)) ; enclosing block on the same line
@@ -3109,7 +3109,7 @@ comment."
 Returns true if comment is found.  In POD will not move the point."
   ;; If the line is inside other syntax groups (qq-style strings, HERE-docs)
   ;; then looks for literal # or end-of-line.
-  (let (state stop-in cpoint (lim (point-at-eol)) pr e)
+  (let (state stop-in cpoint (lim (line-end-position)) pr e)
     (or cperl-font-locking
 	(cperl-update-syntaxification lim))
     (beginning-of-line)
@@ -4020,7 +4020,8 @@ recursive calls in starting lines of here-documents."
 			     "")
 		      tb (match-beginning 0))
 		(setq argument nil)
-		(put-text-property (point-at-bol) b 'first-format-line 't)
+                (put-text-property (line-beginning-position)
+                                   b 'first-format-line 't)
 		(if cperl-pod-here-fontify
 		    (while (and (eq (forward-line) 0)
 				(not (looking-at "^[.;]$")))
@@ -4996,7 +4997,7 @@ If `cperl-indent-region-fix-constructs', will improve spacing on
 conditional/loop constructs."
   (interactive)
   (save-excursion
-    (let ((tmp-end (point-at-eol)) top done)
+    (let ((tmp-end (line-end-position)) top done)
       (save-excursion
 	(beginning-of-line)
 	(while (null done)
@@ -5046,9 +5047,9 @@ conditional/loop constructs."
 			   "\\<\\(else\\|elsif\\|continue\\)\\>"))
 		  (progn
 		    (goto-char (match-end 0))
-		    (setq tmp-end (point-at-eol)))
+                    (setq tmp-end (line-end-position)))
 		(setq done t))))
-	  (setq tmp-end (point-at-eol)))
+          (setq tmp-end (line-end-position)))
 	(goto-char tmp-end)
 	(setq tmp-end (point-marker)))
       (if cperl-indent-region-fix-constructs
@@ -5061,7 +5062,7 @@ Returns some position at the last line."
   (interactive)
   (or end
       (setq end (point-max)))
-  (let ((ee (point-at-eol))
+  (let ((ee (line-end-position))
 	(cperl-indent-region-fix-constructs
 	 (or cperl-indent-region-fix-constructs 1))
 	p pp ml have-brace ret)
@@ -5237,7 +5238,7 @@ Returns some position at the last line."
 				(if (cperl-indent-line parse-data)
 				    (setq ret (cperl-fix-line-spacing end parse-data)))))))))))
 	(beginning-of-line)
-	(setq p (point) pp (point-at-eol)) ; May be different from ee.
+        (setq p (point) pp (line-end-position)) ; May be different from ee.
 	;; Now check whether there is a hanging `}'
 	;; Looking at:
 	;; } blah
@@ -7282,7 +7283,7 @@ Currently it is tuned to C and Perl syntax."
   ;; Get to the something meaningful
   (or (eobp) (eolp) (forward-char 1))
   (re-search-backward "[-[:alnum:]_:!&*+,./<=>?\\^|~$%@]"
-		      (point-at-bol)
+                      (line-beginning-position)
 		      'to-beg)
   ;;  (cond
   ;;   ((or (eobp) (looking-at "[][ \t\n{}();,]")) ; Not at a symbol

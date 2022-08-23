@@ -437,7 +437,7 @@ Otherwise, return NAME."
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
-	      (buffer-substring (point-min) (point-at-eol)))))))
+              (buffer-substring (point-min) (line-end-position)))))))
     ;; Nothing to do.
     name))
 

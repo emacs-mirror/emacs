@@ -1235,7 +1235,8 @@ Order is by depth-first search."
                     (let (new-l new-c)
                       (save-excursion
                         (goto-char offset)
-                        (setq new-l (1+ (count-lines (point-min) (point-at-bol)))
+                        (setq new-l (1+ (count-lines (point-min)
+                                                     (line-beginning-position)))
                               new-c (1+ (current-column)))
                         (format "%d:%d:" new-l new-c))))
 		""))

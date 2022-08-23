@@ -220,13 +220,13 @@ replacement is added."
 						   (error 0)))
 					       spec)))
 		  (when (> len 0)
-		    (goto-char (point-at-eol))
+                    (goto-char (line-end-position))
 		    (insert (propertize
 			     " " 'display
 			     (cons 'space
 				   (list :align-to (- (window-width) 1 len))))))
-		  (goto-char (point-at-eol))
-		  (setq point (point-at-eol))
+                  (goto-char (line-end-position))
+                  (setq point (line-end-position))
 		  (dolist (image spec)
 		    (unless (stringp image)
 		      (goto-char point)

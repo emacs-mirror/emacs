@@ -469,7 +469,7 @@ Return non-nil if it is necessary to update the local UIDL file."
 	      (delete-char -3)
 	      (if (eq (char-before) ?\))
 		  (insert ")\n ")
-		(goto-char (1+ (point-at-bol)))
+                (goto-char (1+ (line-beginning-position)))
 		(delete-region (point) (point-max)))))
 	  (when (eq (char-before) ? )
 	    (delete-char -2))

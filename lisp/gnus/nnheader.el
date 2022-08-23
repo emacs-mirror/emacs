@@ -188,7 +188,7 @@ on your system, you could say something like:
 
 (defsubst nnheader-header-value ()
   (skip-chars-forward " \t")
-  (buffer-substring (point) (point-at-eol)))
+  (buffer-substring (point) (line-end-position)))
 
 (autoload 'ietf-drums-unfold-fws "ietf-drums")
 
@@ -397,7 +397,7 @@ leaving the original buffer untouched."
 (autoload 'gnus-extract-message-id-from-in-reply-to "gnus-sum")
 
 (defun nnheader-parse-nov (&optional number)
-  (let ((eol (point-at-eol))
+  (let ((eol (line-end-position))
 	references in-reply-to x header)
       (setq header
 	    (make-full-mail-header
@@ -632,7 +632,7 @@ the line could be found."
       ;; This is invalid, but not all articles have Message-IDs.
       ()
     (mail-position-on-field "References")
-    (let ((begin (point-at-bol))
+    (let ((begin (line-beginning-position))
 	  (fill-column 78)
 	  (fill-prefix "\t"))
       (when references

@@ -107,7 +107,7 @@ This is currently needed for the mozrepl omniscient database."
 	  (when (looking-at "\\w\\|\\s_")
 	    (forward-sexp 1))
 	  (setq end (point))
-	  (unless (re-search-backward "\\s-" (point-at-bol) t)
+          (unless (re-search-backward "\\s-" (line-beginning-position) t)
 	    (beginning-of-line))
 	  (setq tmp (buffer-substring-no-properties (point) end))
 	  ;; (setq symlist

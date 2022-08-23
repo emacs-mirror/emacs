@@ -250,7 +250,7 @@ This should be called at the beginning of a line."
        ;; Filter localized strings
        ((looking-at (rx (group-n 1 (+ (in alnum "-"))) (* blank) "[")))
        (t (error "Malformed line: %s"
-                 (buffer-substring (point) (point-at-eol)))))
+                 (buffer-substring (point) (line-end-position)))))
       (forward-line))
     res))
 
@@ -265,7 +265,7 @@ Optional argument GROUP defaults to the string \"Desktop Entry\"."
       (forward-line))
     (unless (looking-at xdg-desktop-group-regexp)
       (error "Expected group name!  Instead saw: %s"
-             (buffer-substring (point) (point-at-eol))))
+             (buffer-substring (point) (line-end-position))))
     (when group
       (while (and (re-search-forward xdg-desktop-group-regexp nil t)
                   (not (equal (match-string 1) group)))))
