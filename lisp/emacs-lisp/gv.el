@@ -169,6 +169,18 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
         ;; (`(expand ,expander) `(gv-define-expand ,name ,expander))
         (_ (message "Unknown %s declaration %S" symbol handler) nil))))
 
+(defun make-obsolete-generalized-variable (obsolete-name current-name when)
+  "Make byte-compiler warn that generalized variable OBSOLETE-NAME is obsolete.
+The warning will say that CURRENT-NAME should be used instead.
+
+If CURRENT-NAME is a string, that is the `use instead' message.
+
+WHEN should be a string indicating when the variable was first
+made obsolete, for example a date or a release number."
+  (put obsolete-name 'byte-obsolete-generalized-variable
+       (purecopy (list current-name when)))
+  obsolete-name)
+
 ;; Additions for `declare'.  We specify the values as named aliases so
 ;; that `describe-variable' prints something useful; cf. Bug#40491.
 
@@ -395,6 +407,7 @@ The return value is the last VAL in the list.
 (gv-define-setter buffer-local-value (val var buf)
   (macroexp-let2 nil v val
     `(with-current-buffer ,buf (set (make-local-variable ,var) ,v))))
+(make-obsolete-generalized-variable 'buffer-local-value nil "29.1")
 
 (gv-define-expander alist-get
   (lambda (do key alist &optional default remove testfn)
@@ -618,18 +631,6 @@ REF must have been previously obtained with `gv-ref'."
 ;;        ,@body)))
 
 ;;; Generalized variables.
-
-(defun make-obsolete-generalized-variable (obsolete-name current-name when)
-  "Make byte-compiler warn that generalized variable OBSOLETE-NAME is obsolete.
-The warning will say that CURRENT-NAME should be used instead.
-
-If CURRENT-NAME is a string, that is the `use instead' message.
-
-WHEN should be a string indicating when the variable was first
-made obsolete, for example a date or a release number."
-  (put obsolete-name 'byte-obsolete-generalized-variable
-       (purecopy (list current-name when)))
-  obsolete-name)
 
 ;; Some Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)
