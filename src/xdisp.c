@@ -17323,6 +17323,7 @@ mark_window_display_accurate_1 (struct window *w, bool accurate_p)
 
       BUF_UNCHANGED_MODIFIED (b) = BUF_MODIFF (b);
       BUF_OVERLAY_UNCHANGED_MODIFIED (b) = BUF_OVERLAY_MODIFF (b);
+      BUF_CHARS_UNCHANGED_MODIFIED (b) = BUF_CHARS_MODIFF (b);
       BUF_BEG_UNCHANGED (b) = BUF_GPT (b) - BUF_BEG (b);
       BUF_END_UNCHANGED (b) = BUF_Z (b) - BUF_GPT (b);
 
@@ -19585,7 +19586,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Check whether the buffer to be displayed contains long lines.  */
   if (!NILP (Vlong_line_threshold)
       && !current_buffer->long_line_optimizations_p
-      && MODIFF - UNCHANGED_MODIFIED > 8)
+      && CHARS_MODIFF - CHARS_UNCHANGED_MODIFIED > 8)
     {
       ptrdiff_t cur, next, found, max = 0, threshold;
       threshold = XFIXNUM (Vlong_line_threshold);
