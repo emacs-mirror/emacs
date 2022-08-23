@@ -923,38 +923,17 @@ of the function must itself be a valid @var{place} form.
 @item
 General Emacs Lisp functions:
 @example
-buffer-file-name                   getenv
-buffer-modified-p                  global-key-binding
-buffer-name                        local-key-binding
-buffer-string                      mark
-buffer-substring                   mark-marker
-current-buffer                     marker-position
-current-case-table                 mouse-position
-current-column                     point
-current-global-map                 point-marker
-current-input-mode                 point-max
-current-local-map                  point-min
-current-window-configuration       read-mouse-position
-default-file-modes                 screen-height
-documentation-property             screen-width
-face-background                    selected-window
-face-font                          selected-screen
-face-foreground                    selected-frame
-face-stipple                       standard-case-table
-face-underline-p                   syntax-table
-file-modes                         visited-file-modtime
-frame-height                       window-height
-frame-parameters                   window-width
-frame-visible-p                    x-get-secondary-selection
-frame-width                        x-get-selection
-get-register
+current-case-table                 file-modes
+face-background                    getenv
+face-font                          frame-parameters
+face-foreground                    frame-width
+face-stipple                       get-register
+face-underline-p                   x-get-selection
 @end example
 
 Most of these have directly corresponding ``set'' functions, like
-@code{use-local-map} for @code{current-local-map}, or @code{goto-char}
-for @code{point}.  A few, like @code{point-min}, expand to longer
-sequences of code when they are used with @code{setf}
-(@code{(narrow-to-region x (point-max))} in this case).
+@code{set-face-foreground} for @code{face-foreground}, or
+@code{set-case-table} for @code{current-case-table}.
 
 @item
 A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
