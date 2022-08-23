@@ -45,7 +45,7 @@
   "Return the current thumbnail directory (from variable `image-dired-dir').
 Create the thumbnail directory if it does not exist."
   (let ((image-dired-dir (file-name-as-directory
-               (expand-file-name image-dired-dir))))
+                          (expand-file-name image-dired-dir))))
     (unless (file-directory-p image-dired-dir)
       (with-file-modes #o700
         (make-directory image-dired-dir t))

@@ -67,12 +67,12 @@ previous -ARG, if ARG<0) files."
                                 if (overlay-get ov 'thumb-file) return ov)))
          (if thumb-ov
              (delete-overlay thumb-ov)
-	   (put-image thumb-file image-pos)
-	   (setq overlay
+           (put-image thumb-file image-pos)
+           (setq overlay
                  (cl-loop for ov in (overlays-in (point) (1+ (point)))
                           if (overlay-get ov 'put-image) return ov))
-	   (overlay-put overlay 'image-file image-file)
-	   (overlay-put overlay 'thumb-file thumb-file)))))
+           (overlay-put overlay 'image-file image-file)
+           (overlay-put overlay 'thumb-file thumb-file)))))
    arg             ; Show or hide image on ARG next files.
    'show-progress) ; Update dired display after each image is updated.
   (add-hook 'dired-after-readin-hook
@@ -353,14 +353,14 @@ matching tag will be marked in the Dired buffer."
       ;; slow.  Don't bother about hits found in other directories
       ;; than the current one.
       (when (string= (file-name-as-directory
-		      (expand-file-name default-directory))
-		     (file-name-as-directory
-		      (file-name-directory curr-file)))
-	(setq curr-file (file-name-nondirectory curr-file))
-	(goto-char (point-min))
-	(when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
-	  (setq hits (+ hits 1))
-	  (dired-mark 1))))
+                      (expand-file-name default-directory))
+                     (file-name-as-directory
+                      (file-name-directory curr-file)))
+        (setq curr-file (file-name-nondirectory curr-file))
+        (goto-char (point-min))
+        (when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
+          (setq hits (+ hits 1))
+          (dired-mark 1))))
     (message "%d files with matching tag marked" hits)))
 
 (defun image-dired-dired-display-properties ()
@@ -374,11 +374,11 @@ matching tag will be marked in the Dired buffer."
          (message-log-max nil))
     (if file-name
         (message "%s"
-         (image-dired-format-properties-string
-          dired-buf
-          file-name
-          props
-          comment)))))
+                 (image-dired-format-properties-string
+                  dired-buf
+                  file-name
+                  props
+                  comment)))))
 
 (provide 'image-dired-dired)
 

@@ -297,9 +297,9 @@ and remove the cached thumbnail files between each trial run.")
    'image-dired-cmd-create-thumbnail-program)
   (let* ((width (int-to-string (image-dired-thumb-size 'width)))
          (height (int-to-string (image-dired-thumb-size 'height)))
-	 (modif-time (format-time-string
-		      "%s" (file-attribute-modification-time
-			    (file-attributes original-file))))
+         (modif-time (format-time-string
+                      "%s" (file-attribute-modification-time
+                            (file-attributes original-file))))
          (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
                                                        thumbnail-file))
          (spec
@@ -338,7 +338,7 @@ and remove the cached thumbnail files between each trial run.")
               (image-dired-debug-message
                (format-time-string
                 "Generated thumbnails in %s.%3N seconds"
-		(time-subtract nil
+                (time-subtract nil
                                image-dired--generate-thumbs-start))))
             (if (not (and (eq (process-status process) 'exit)
                           (zerop (process-exit-status process))))
@@ -410,7 +410,7 @@ The new file will be named THUMBNAIL-FILE."
         (image-dired-display-image image-dired-temp-rotate-image-file)
         (if (or (and image-dired-rotate-original-ask-before-overwrite
                      (y-or-n-p
-		      "Rotate to temp file OK.  Overwrite original image? "))
+                      "Rotate to temp file OK.  Overwrite original image? "))
                 (not image-dired-rotate-original-ask-before-overwrite))
             (progn
               (copy-file image-dired-temp-rotate-image-file file t)
@@ -455,8 +455,8 @@ default value at the prompt."
            (old-value (or (exif-field 'description (exif-parse-file file)) "")))
       (if (eq 0
               (image-dired-set-exif-data file "ImageDescription"
-                                   (read-string "Value of ImageDescription: "
-						old-value)))
+                                         (read-string "Value of ImageDescription: "
+                                                      old-value)))
           (message "Successfully wrote ImageDescription tag")
         (error "Could not write ImageDescription tag")))))
 

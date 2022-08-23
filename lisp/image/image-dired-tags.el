@@ -40,7 +40,7 @@ Return the last form in BODY."
   (declare (indent 0) (debug t))
   `(with-temp-buffer
      (if (file-exists-p image-dired-db-file)
-	 (insert-file-contents image-dired-db-file))
+         (insert-file-contents image-dired-db-file))
      ,@body))
 
 (defun image-dired-sane-db-file ()
@@ -71,65 +71,65 @@ FILE-TAGS is an alist in the following form:
   (image-dired-sane-db-file)
   (let (end file tag)
     (image-dired--with-db-file
-     (setq buffer-file-name image-dired-db-file)
-     (dolist (elt file-tags)
-       (setq file (car elt)
-	     tag (cdr elt))
-       (goto-char (point-min))
-       (if (search-forward-regexp (format "^%s.*$" file) nil t)
-	   (progn
-	     (setq end (point))
-	     (beginning-of-line)
-	     (when (not (search-forward (format ";%s" tag) end t))
-	       (end-of-line)
-	       (insert (format ";%s" tag))))
-	 (goto-char (point-max))
-	 (insert (format "%s;%s\n" file tag))))
-     (save-buffer))))
+      (setq buffer-file-name image-dired-db-file)
+      (dolist (elt file-tags)
+        (setq file (car elt)
+              tag (cdr elt))
+        (goto-char (point-min))
+        (if (search-forward-regexp (format "^%s.*$" file) nil t)
+            (progn
+              (setq end (point))
+              (beginning-of-line)
+              (when (not (search-forward (format ";%s" tag) end t))
+                (end-of-line)
+                (insert (format ";%s" tag))))
+          (goto-char (point-max))
+          (insert (format "%s;%s\n" file tag))))
+      (save-buffer))))
 
 (defun image-dired-remove-tag (files tag)
   "For all FILES, remove TAG from the image database."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
-   (setq buffer-file-name image-dired-db-file)
-   (let (end)
-     (unless (listp files)
-       (if (stringp files)
-	   (setq files (list files))
-	 (error "Files must be a string or a list of strings!")))
-     (dolist (file files)
-       (goto-char (point-min))
-       (when (search-forward-regexp (format "^%s;" file) nil t)
-	 (end-of-line)
-	 (setq end (point))
-	 (beginning-of-line)
-	 (when (search-forward-regexp
-                (format "\\(;%s\\)\\($\\|;\\)" tag) end t)
-	   (delete-region (match-beginning 1) (match-end 1))
-	   ;; Check if file should still be in the database. If
-	   ;; it has no tags or comments, it will be removed.
-	   (end-of-line)
-	   (setq end (point))
-	   (beginning-of-line)
-	   (when (not (search-forward ";" end t))
-	     (kill-line 1))))))
-   (save-buffer)))
+    (setq buffer-file-name image-dired-db-file)
+    (let (end)
+      (unless (listp files)
+        (if (stringp files)
+            (setq files (list files))
+          (error "Files must be a string or a list of strings!")))
+      (dolist (file files)
+        (goto-char (point-min))
+        (when (search-forward-regexp (format "^%s;" file) nil t)
+          (end-of-line)
+          (setq end (point))
+          (beginning-of-line)
+          (when (search-forward-regexp
+                 (format "\\(;%s\\)\\($\\|;\\)" tag) end t)
+            (delete-region (match-beginning 1) (match-end 1))
+            ;; Check if file should still be in the database. If
+            ;; it has no tags or comments, it will be removed.
+            (end-of-line)
+            (setq end (point))
+            (beginning-of-line)
+            (when (not (search-forward ";" end t))
+              (kill-line 1))))))
+    (save-buffer)))
 
 (defun image-dired-list-tags (file)
   "Read all tags for image FILE from the image database."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
-   (let (end (tags ""))
-     (when (search-forward-regexp (format "^%s" file) nil t)
-       (end-of-line)
-       (setq end (point))
-       (beginning-of-line)
-       (if (search-forward ";" end t)
-	   (if (search-forward "comment:" end t)
-	       (if (search-forward ";" end t)
-		   (setq tags (buffer-substring (point) end)))
-	     (setq tags (buffer-substring (point) end)))))
-     (split-string tags ";"))))
+    (let (end (tags ""))
+      (when (search-forward-regexp (format "^%s" file) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (if (search-forward ";" end t)
+            (if (search-forward "comment:" end t)
+                (if (search-forward ";" end t)
+                    (setq tags (buffer-substring (point) end)))
+              (setq tags (buffer-substring (point) end)))))
+      (split-string tags ";"))))
 
 ;;;###autoload
 (defun image-dired-tag-files (arg)
@@ -191,34 +191,34 @@ FILE-COMMENTS is an alist on the following form:
   (image-dired-sane-db-file)
   (let (end comment-beg-pos comment-end-pos file comment)
     (image-dired--with-db-file
-     (setq buffer-file-name image-dired-db-file)
-     (dolist (elt file-comments)
-       (setq file (car elt)
-	     comment (cdr elt))
-       (goto-char (point-min))
-       (if (search-forward-regexp (format "^%s.*$" file) nil t)
-	   (progn
-	     (setq end (point))
-	     (beginning-of-line)
-	     ;; Delete old comment, if any
-	     (when (search-forward ";comment:" end t)
-	       (setq comment-beg-pos (match-beginning 0))
-	       ;; Any tags after the comment?
-	       (if (search-forward ";" end t)
-		   (setq comment-end-pos (- (point) 1))
-		 (setq comment-end-pos end))
-	       ;; Delete comment tag and comment
-	       (delete-region comment-beg-pos comment-end-pos))
-	     ;; Insert new comment
-	     (beginning-of-line)
-	     (unless (search-forward ";" end t)
-	       (end-of-line)
-	       (insert ";"))
-	     (insert (format "comment:%s;" comment)))
-	 ;; File does not exist in database - add it.
-	 (goto-char (point-max))
-	 (insert (format "%s;comment:%s\n" file comment))))
-     (save-buffer))))
+      (setq buffer-file-name image-dired-db-file)
+      (dolist (elt file-comments)
+        (setq file (car elt)
+              comment (cdr elt))
+        (goto-char (point-min))
+        (if (search-forward-regexp (format "^%s.*$" file) nil t)
+            (progn
+              (setq end (point))
+              (beginning-of-line)
+              ;; Delete old comment, if any
+              (when (search-forward ";comment:" end t)
+                (setq comment-beg-pos (match-beginning 0))
+                ;; Any tags after the comment?
+                (if (search-forward ";" end t)
+                    (setq comment-end-pos (- (point) 1))
+                  (setq comment-end-pos end))
+                ;; Delete comment tag and comment
+                (delete-region comment-beg-pos comment-end-pos))
+              ;; Insert new comment
+              (beginning-of-line)
+              (unless (search-forward ";" end t)
+                (end-of-line)
+                (insert ";"))
+              (insert (format "comment:%s;" comment)))
+          ;; File does not exist in database - add it.
+          (goto-char (point-max))
+          (insert (format "%s;comment:%s\n" file comment))))
+      (save-buffer))))
 
 (defun image-dired-update-property (prop value)
   "Update text property PROP with value VALUE at point."
@@ -252,19 +252,19 @@ Optionally use old comment from FILE as initial value."
   "Get comment for file FILE."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
-   (let (end comment-beg-pos comment-end-pos comment)
-     (when (search-forward-regexp (format "^%s" file) nil t)
-       (end-of-line)
-       (setq end (point))
-       (beginning-of-line)
-       (when (search-forward ";comment:" end t)
-	 (setq comment-beg-pos (point))
-	 (if (search-forward ";" end t)
-	     (setq comment-end-pos (- (point) 1))
-	   (setq comment-end-pos end))
-	 (setq comment (buffer-substring
-			comment-beg-pos comment-end-pos))))
-     comment)))
+    (let (end comment-beg-pos comment-end-pos comment)
+      (when (search-forward-regexp (format "^%s" file) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (when (search-forward ";comment:" end t)
+          (setq comment-beg-pos (point))
+          (if (search-forward ";" end t)
+              (setq comment-end-pos (- (point) 1))
+            (setq comment-end-pos end))
+          (setq comment (buffer-substring
+                         comment-beg-pos comment-end-pos))))
+      comment)))
 
 
 ;;; Tag support
@@ -290,7 +290,7 @@ easy-to-use form."
     (remove-overlays)
     ;; Some help for the user.
     (widget-insert
-"\nEdit comments and tags for each image.  Separate multiple tags
+     "\nEdit comments and tags for each image.  Separate multiple tags
 with a comma.  Move forward between fields using TAB or RET.
 Move to the previous field using backtab (S-TAB).  Save by
 activating the Save button at the bottom of the form or cancel
@@ -301,41 +301,41 @@ the operation by activating the Cancel button.\n\n")
 
       (dolist (file files)
 
-       (setq thumb-file (image-dired-thumb-name file)
-             img (create-image thumb-file))
+        (setq thumb-file (image-dired-thumb-name file)
+              img (create-image thumb-file))
 
-       (insert-image img)
-       (widget-insert "\n\nComment: ")
-       (setq comment-widget
-             (widget-create 'editable-field
-                            :size 60
-                            :format "%v "
-                            :value (or (image-dired-get-comment file) "")))
-       (widget-insert "\nTags:    ")
-       (setq tag-widget
-             (widget-create 'editable-field
-                            :size 60
-                            :format "%v "
-                            :value (or (mapconcat
-                                        #'identity
-                                        (image-dired-list-tags file)
-                                        ",") "")))
-       ;; Save information in all widgets so that we can use it when
-       ;; the user saves the form.
-       (setq image-dired-widget-list
-             (append image-dired-widget-list
-                     (list (list file comment-widget tag-widget))))
-       (widget-insert "\n\n")))
+        (insert-image img)
+        (widget-insert "\n\nComment: ")
+        (setq comment-widget
+              (widget-create 'editable-field
+                             :size 60
+                             :format "%v "
+                             :value (or (image-dired-get-comment file) "")))
+        (widget-insert "\nTags:    ")
+        (setq tag-widget
+              (widget-create 'editable-field
+                             :size 60
+                             :format "%v "
+                             :value (or (mapconcat
+                                         #'identity
+                                         (image-dired-list-tags file)
+                                         ",") "")))
+        ;; Save information in all widgets so that we can use it when
+        ;; the user saves the form.
+        (setq image-dired-widget-list
+              (append image-dired-widget-list
+                      (list (list file comment-widget tag-widget))))
+        (widget-insert "\n\n")))
 
     ;; Footer with Save and Cancel button.
     (widget-insert "\n")
     (widget-create 'push-button
-                 :notify
-                 (lambda (&rest _ignore)
-                   (image-dired-save-information-from-widgets)
-                   (bury-buffer)
-                   (message "Done"))
-                 "Save")
+                   :notify
+                   (lambda (&rest _ignore)
+                     (image-dired-save-information-from-widgets)
+                     (bury-buffer)
+                     (message "Done"))
+                   "Save")
     (widget-insert " ")
     (widget-create 'push-button
                    :notify
@@ -356,12 +356,12 @@ tags to their respective image file.  Internal function used by
 `image-dired-dired-edit-comment-and-tags'."
   (let (file comment tag-string tag-list lst)
     (image-dired-write-comments
-          (mapcar
-           (lambda (widget)
-             (setq file (car widget)
-                   comment (widget-value (cadr widget)))
-             (cons file comment))
-           image-dired-widget-list))
+     (mapcar
+      (lambda (widget)
+        (setq file (car widget)
+              comment (widget-value (cadr widget)))
+        (cons file comment))
+      image-dired-widget-list))
     (image-dired-write-tags
      (dolist (widget image-dired-widget-list lst)
        (setq file (car widget)
