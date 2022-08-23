@@ -6655,7 +6655,7 @@ x_set_frame_alpha (struct frame *f)
 		    Starting and ending an update
  ***********************************************************************/
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
 
 /* Wait for an event matching PREDICATE to show up in the event
    queue, or TIMEOUT to elapse.
@@ -7029,7 +7029,7 @@ x_sync_handle_frame_drawn (struct x_display_info *dpyinfo,
 static void
 x_update_begin (struct frame *f)
 {
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* If F is double-buffered, we can make the entire frame center
      around XdbeSwapBuffers.  */
 #ifdef HAVE_XDBE
@@ -7138,7 +7138,7 @@ show_back_buffer (struct frame *f)
 
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     {
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
       /* Wait for drawing of the previous frame to complete before
 	 displaying this new frame.  */
       x_sync_wait_for_frame_drawn_event (f);
@@ -7157,7 +7157,7 @@ show_back_buffer (struct frame *f)
       swap_info.swap_action = XdbeCopied;
       XdbeSwapBuffers (FRAME_X_DISPLAY (f), &swap_info, 1);
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
       /* Finish the frame here.  */
       x_sync_update_finish (f);
 #endif
@@ -7211,7 +7211,7 @@ x_update_end (struct frame *f)
   /* If double buffering is disabled, finish the update here.
      Otherwise, finish the update when the back buffer is next
      displayed.  */
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
 #ifdef HAVE_XDBE
   if (!FRAME_X_DOUBLE_BUFFERED_P (f))
 #endif
@@ -7615,7 +7615,7 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
   if (!send_event || time > dpyinfo->last_user_time)
     dpyinfo->last_user_time = time;
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   if (!send_event)
     {
       /* See if the current CLOCK_MONOTONIC time is reasonably close
@@ -17995,7 +17995,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
             goto done;
           }
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
 	/* These messages are sent by the compositing manager after a
 	   frame is drawn under extended synchronization.  */
 	if (event->xclient.message_type

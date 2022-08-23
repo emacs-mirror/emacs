@@ -1119,7 +1119,7 @@ struct x_output
      frame.  */
   bool_bf waiting_for_frame_p : 1;
 
-#ifndef USE_GTK
+#if !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* Whether or not Emacs should wait for the compositing manager to
      draw frames before starting a new frame.  */
   bool_bf use_vsync_p : 1;
