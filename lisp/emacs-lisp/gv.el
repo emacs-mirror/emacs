@@ -764,7 +764,8 @@ REF must have been previously obtained with `gv-ref'."
 (make-obsolete-generalized-variable 'selected-frame 'select-frame "29.1")
 
 (gv-define-simple-setter standard-case-table set-standard-case-table)
-(make-obsolete-generalized-variable 'standard-case-table 'set-standard-case-table "29.1")
+(make-obsolete-generalized-variable
+ 'standard-case-table 'set-standard-case-table "29.1")
 
 (gv-define-simple-setter syntax-table set-syntax-table)
 (make-obsolete-generalized-variable 'syntax-table 'set-syntax-table "29.1")
