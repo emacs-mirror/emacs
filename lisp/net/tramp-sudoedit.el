@@ -512,7 +512,7 @@ the result will be a local, non-Tramp, file name."
 		    (tramp-compat-file-name-unquote localname)))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (point-at-eol) t)
+            (when (re-search-forward regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -752,7 +752,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (delete-region (point-min) (point))
     ;; Delete empty lines.
     (goto-char (point-min))
-    (while (and (not (eobp)) (= (point) (point-at-eol)))
+    (while (and (not (eobp)) (= (point) (line-end-position)))
       (forward-line))
     (delete-region (point-min) (point))
     (tramp-message vec 3 "Process has finished.")
@@ -841,7 +841,7 @@ In case there is no valid Lisp expression, it raises an error."
       (condition-case nil
 	  (prog1 (read (current-buffer))
 	    ;; Error handling.
-	    (when (re-search-forward "\\S-" (point-at-eol) t)
+            (when (re-search-forward "\\S-" (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
 		vec 'file-error

@@ -1188,7 +1188,7 @@ component is used as the target of the symlink."
 			     (tramp-shell-quote-argument localname)))
 		  (with-current-buffer (tramp-get-connection-buffer v)
 		    (goto-char (point-min))
-		    (buffer-substring (point-min) (point-at-eol))))
+                    (buffer-substring (point-min) (line-end-position))))
 
 		 ;; Use Perl implementation.
 		 ((and (tramp-get-remote-perl v)
@@ -1334,7 +1334,7 @@ component is used as the target of the symlink."
             (setq res-symlink-target
                   (if (looking-at-p "\"")
                       (read (current-buffer))
-                    (buffer-substring (point) (point-at-eol)))))
+                    (buffer-substring (point) (line-end-position)))))
 	  (forward-line)
           ;; ... file mode flags
 	  (read (current-buffer))
@@ -1416,7 +1416,7 @@ component is used as the target of the symlink."
 	       (format "%s -ild %s"
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
-	      (setq attr (buffer-substring (point) (point-at-eol))))
+              (setq attr (buffer-substring (point) (line-end-position))))
 	    (tramp-set-file-property
 	     v localname "visited-file-modtime-ild" attr))
 	  (setq last-coding-system-used coding-system-used)
@@ -1460,7 +1460,7 @@ of."
 		       (tramp-get-ls-command v)
 		       (tramp-shell-quote-argument localname)))
 	      (with-current-buffer (tramp-get-buffer v)
-		(setq attr (buffer-substring (point) (point-at-eol))))
+                (setq attr (buffer-substring (point) (line-end-position))))
 	      (equal
 	       attr
 	       (tramp-get-file-property
@@ -1517,7 +1517,7 @@ VEC or USER, or if there is no home directory, return nil."
 	       (concat "~" (or user (tramp-file-name-user vec))))))
     (with-current-buffer (tramp-get-buffer vec)
       (goto-char (point-min))
-      (buffer-substring (point) (point-at-eol)))))
+      (buffer-substring (point) (line-end-position)))))
 
 (defun tramp-sh-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
@@ -1582,7 +1582,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		       (tramp-shell-quote-argument localname))))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-	    (when (re-search-forward regexp (point-at-eol) t)
+            (when (re-search-forward regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -1817,7 +1817,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		   (tramp-error
 		    v 'file-error
 		    "tramp-sh-handle-file-name-all-completions: %s"
-		    (buffer-substring (point) (point-at-eol))))
+                    (buffer-substring (point) (line-end-position))))
 	       ;; For peace of mind, if buffer doesn't end in `fail'
 	       ;; then it should end in `ok'.  If neither are in the
 	       ;; buffer something went seriously wrong on the remote
@@ -1830,7 +1830,7 @@ ID-FORMAT valid values are `string' and `integer'."
 		  (tramp-shell-quote-argument localname) (buffer-string))))
 
 	     (while (zerop (forward-line -1))
-	       (push (buffer-substring (point) (point-at-eol)) result)))
+               (push (buffer-substring (point) (line-end-position)) result)))
 	   result))))))
 
 ;; cp, mv and ln
@@ -3124,7 +3124,8 @@ implementation will be used."
 		       (tramp-shell-quote-argument (format "kill -%d $$" i))))
 		     (with-current-buffer (tramp-get-connection-buffer vec)
 		       (goto-char (point-min))
-		       (buffer-substring (point-at-bol) (point-at-eol)))))
+                       (buffer-substring (line-beginning-position)
+                                         (line-end-position)))))
 	     (if (string-empty-p res)
 		 (format "Signal %d" i)
 	       res)))
@@ -4087,8 +4088,8 @@ This function expects to be in the right *tramp* buffer."
 	(when (search-backward "tramp_executable " nil t)
 	  (skip-chars-forward "^ ")
 	  (skip-chars-forward " ")
-	  (setq result (buffer-substring (point) (point-at-eol)))))
-    result)))
+          (setq result (buffer-substring (point) (line-end-position)))))
+      result)))
 
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
@@ -5276,7 +5277,7 @@ function waits for output unless NOOUTPUT is set."
 	    ;; A simple-minded busybox has sent " ^H" sequences.
 	    ;; Delete them.
 	    (goto-char (point-min))
-	    (when (re-search-forward "^\\(.\b\\)+$" (point-at-eol) t)
+            (when (re-search-forward "^\\(.\b\\)+$" (line-end-position) t)
 	      (forward-line 1)
 	      (delete-region (point-min) (point)))
 	    ;; Delete the prompt.
@@ -5368,7 +5369,7 @@ raises an error."
 		     (unless noerror signal-hook-function)))
 		(read (current-buffer)))
 	    ;; Error handling.
-	    (when (re-search-forward "\\S-" (point-at-eol) t)
+            (when (re-search-forward "\\S-" (line-end-position) t)
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error

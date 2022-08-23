@@ -383,7 +383,9 @@ be used instead.
                      (setq sexp nil))
                     (`(lambda ,args . ,body)
                      (elisp--local-variables-1
-                      (append (remq '&optional (remq '&rest args)) vars)
+                      (let ((args (if (listp args) args)))
+                        ;; FIXME: Exit the loop if witness is in args.
+                        (append (remq '&optional (remq '&rest args)) vars))
                       (car (last body))))
                     (`(condition-case ,_ ,e) (elisp--local-variables-1 vars e))
                     (`(condition-case ,v ,_ . ,catches)
@@ -1899,7 +1901,7 @@ or elsewhere, return a 1-line docstring."
           ;; go to the arg after `&rest'.
           (if (and key-have-value
                    (save-excursion
-                     (not (re-search-forward ":.*" (point-at-eol) t)))
+                     (not (re-search-forward ":.*" (line-end-position) t)))
                    (string-match "&rest \\([^ ()]*\\)" args))
               (setq index nil ; Skip next block based on positional args.
                     start (match-beginning 1)

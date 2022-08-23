@@ -1572,7 +1572,7 @@ START should be at the beginning of a line."
 				         font-lock-comment-delimiter-face)))
 	        (if (looking-back (or font-lock-comment-end-skip
 				      comment-end-skip)
-				  (point-at-bol) t)
+                                  (line-beginning-position) t)
 		    (put-text-property (match-beginning 0) (point) 'face
 				       font-lock-comment-delimiter-face))))
 	    (< (point) end))

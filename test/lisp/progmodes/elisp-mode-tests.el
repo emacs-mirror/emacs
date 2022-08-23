@@ -1084,7 +1084,7 @@ evaluation of BODY."
       (insert "f-test-compl")
       (completion-at-point)
       (goto-char (point-min))
-      (should (search-forward "f-test-complete-me" (line-end-position) t))
+      (should (search-forward "f-test-complete-me" (pos-eol) t))
       (goto-char (point-min))
       (should (string= (symbol-name (read (current-buffer)))
                        "elisp--foo-test-complete-me"))

@@ -367,7 +367,7 @@ all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
 # .pdmp containing the new autoloads.
 .PHONY: src-depending-on-lisp
 src-depending-on-lisp: lisp
-	${MAKE} -C src
+	${MAKE} -C src BIN_DESTDIR='$(BIN_DESTDIR)' ELN_DESTDIR='$(ELN_DESTDIR)'
 
 # If configure were to just generate emacsver.tex from emacsver.tex.in
 # in the normal way, the timestamp of emacsver.tex would always be

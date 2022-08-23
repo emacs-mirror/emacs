@@ -33,7 +33,10 @@ import lldb
 # Return the name of enumerator ENUM as a string.
 def enumerator_name(enum):
     enumerators = enum.GetType().GetEnumMembers()
-    return enumerators[enum.GetValueAsUnsigned()].GetName()
+    for enum_member in enumerators:
+        if enum.GetValueAsUnsigned() == enum_member.GetValueAsUnsigned():
+            return enum_member.GetName()
+    return None
 
 # A class wrapping an SBValue for a Lisp_Object, providing convenience
 # functions.
@@ -91,7 +94,6 @@ class Lisp_Object:
             self.unsigned = lisp_word.GetValueAsUnsigned()
         else:
             self.unsigned = self.lisp_obj.GetValueAsUnsigned()
-        pass
 
     # Initialize self.lisp_type to the C Lisp_Type enumerator of the
     # Lisp_Object, as a string.  Initialize self.pvec_type likewise to

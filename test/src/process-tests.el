@@ -160,8 +160,7 @@ process to complete."
                         (setq count (1+ count))))))))
       (set-process-query-on-exit-flag proc nil)
       (send-string proc "one\n")
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "1> "))
         (accept-process-output proc))   ; Read "one".
       (should (equal (buffer-string) "0> one\n1> "))
@@ -171,8 +170,7 @@ process to complete."
        (accept-process-output proc 1))  ; Can't read "two" yet.
       (should (equal (buffer-string) "0> one\n1> "))
       (set-process-filter proc nil)     ; Resume reading from proc.
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "2> "))
         (accept-process-output proc))   ; Read "Two".
       (should (equal (buffer-string) "0> one\n1> two\n2> "))))))

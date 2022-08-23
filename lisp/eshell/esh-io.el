@@ -501,7 +501,7 @@ Returns what was actually sent, or nil if nothing was sent."
     (condition-case nil
         (process-send-string target object)
       ;; If `process-send-string' raises an error, treat it as a broken pipe.
-      (error (signal 'eshell-pipe-broken target))))
+      (error (signal 'eshell-pipe-broken (list target)))))
 
    ((consp target)
     (apply (car target) object (cdr target))))

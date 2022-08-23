@@ -285,14 +285,14 @@ real :: x
 end")
     (f90-indent-line)
     (should (equal " function foo"
-                   (buffer-substring (point) (line-end-position))))
+                   (buffer-substring (point) (pos-eol))))
     (goto-char (point-max))
     (insert "\nmodule subroutine bar(x)
 real :: x
 end")
     (f90-indent-line)
     (should (equal " subroutine bar"
-                   (buffer-substring (point) (line-end-position))))))
+                   (buffer-substring (point) (pos-eol))))))
 
 
 ;;; f90-tests.el ends here

@@ -1447,7 +1447,7 @@ Of course, if exact position has been required, just put it there."
 		(if (org-at-table-p)
 		    (save-excursion
 		      (org-table-goto-line (nth 1 where))
-		      (point-at-bol))
+                      (line-beginning-position))
 		  (point))))))
     (with-current-buffer (buffer-base-buffer (current-buffer))
       (org-with-point-at pos

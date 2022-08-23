@@ -729,7 +729,7 @@ bol (Lisp_Object n, ptrdiff_t *out_count)
   return charpos;
 }
 
-DEFUN ("bol", Fbol, Sbol, 0, 1, 0,
+DEFUN ("pos-bol", Fpos_bol, Spos_bol, 0, 1, 0,
        doc: /* Return the position of the first character on the current line.
 With optional argument N, scan forward N - 1 lines first.
 If the scan reaches the end of the buffer, return that position.
@@ -748,7 +748,7 @@ This function does not move point.  Also see `line-beginning-position'.  */)
 DEFUN ("line-beginning-position",
        Fline_beginning_position, Sline_beginning_position, 0, 1, 0,
        doc: /* Return the position of the first character in the current line/field.
-This function is like `bol' (which see), but respects fields.
+This function is like `pos-bol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
 unless that position would be on a different line from the original,
@@ -784,7 +784,7 @@ eol (Lisp_Object n)
 				   NULL);
 }
 
-DEFUN ("eol", Feol, Seol, 0, 1, 0,
+DEFUN ("pos-eol", Fpos_eol, Spos_eol, 0, 1, 0,
        doc: /* Return the position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
@@ -804,7 +804,7 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
-This function is like `eol' (which see), but respects fields.
+This function is like `pos-eol' (which see), but respects fields.
 
 This function constrains the returned position to the current field
 unless that would be on a different line from the original,
@@ -4693,8 +4693,8 @@ it to be non-nil.  */);
 
   defsubr (&Sline_beginning_position);
   defsubr (&Sline_end_position);
-  defsubr (&Sbol);
-  defsubr (&Seol);
+  defsubr (&Spos_bol);
+  defsubr (&Spos_eol);
 
   defsubr (&Ssave_excursion);
   defsubr (&Ssave_current_buffer);

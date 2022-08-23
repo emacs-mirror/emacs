@@ -343,7 +343,7 @@ The INDENT level is ignored."
   "Return the text for the item on the current line."
   (beginning-of-line)
   (when (re-search-forward "[]>] " nil t)
-    (buffer-substring-no-properties (point) (point-at-eol))))
+    (buffer-substring-no-properties (point) (line-end-position))))
 
 (defun erc-speedbar-item-info ()
   "Display information about the current buffer on the current line."

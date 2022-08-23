@@ -32,6 +32,8 @@
   :group 'multimedia)
 
 (declare-function image-flush "image.c" (spec &optional frame))
+(declare-function clear-image-cache "image.c"
+                  (&optional filter animation-cache))
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)

@@ -948,7 +948,7 @@ out of NAME."
                (save-excursion
                  (re-search-backward (regexp-opt
                                       (mapcar 'car preferred-suffix-rules))
-                                     (point-at-bol)
+                                     (line-beginning-position)
                                      t))
              (push (cons "" (cdr (assoc (match-string 0) ; i.e. "(TeX-current-macro)"
                                         preferred-suffix-rules)))
@@ -962,7 +962,7 @@ out of NAME."
                                           (concat (car rule) name (cdr rule)))
                                         guess-rules)))
              (when (< (point-min) (point-max))
-               (buffer-substring (goto-char (point-min)) (point-at-eol))))))))
+               (buffer-substring (goto-char (point-min)) (line-end-position))))))))
 
 (defun ffap-tex (name)
   (ffap-tex-init)

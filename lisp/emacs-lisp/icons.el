@@ -189,8 +189,10 @@ present if the icon is represented by an image."
 (cl-defmethod icons--create ((_type (eql 'image)) icon keywords)
   (let ((file (if (file-name-absolute-p icon)
                   icon
-                (image-search-load-path icon))))
+                (and (fboundp 'image-search-load-path)
+                     (image-search-load-path icon)))))
     (and (display-images-p)
+         (fboundp 'image-supported-file-p)
          (image-supported-file-p file)
          (propertize
           " " 'display

@@ -565,7 +565,7 @@ returning the one at the supplied position."
 		      (buffer-substring
 		       (point)
 		       (progn
-			 (re-search-forward ":" (point-at-eol) t)
+                         (re-search-forward ":" (line-end-position) t)
 			 (1- (point))))))
 		(value (gnus-search-query-return-string
 			(when (looking-at-p "[\"/]") t))))

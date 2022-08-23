@@ -591,7 +591,7 @@ content of the sexp."
          (begin (previous-single-property-change end 'backtrace-form
                                                  nil (point-min))))
     (unless tag
-      (when (or (= end (point-max)) (> end (point-at-eol)))
+      (when (or (= end (point-max)) (> end (line-end-position)))
         (user-error "No form here to reformat"))
       (goto-char end)
       (setq pos end

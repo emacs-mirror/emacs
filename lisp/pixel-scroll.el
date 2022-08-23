@@ -570,11 +570,12 @@ the height of the current window."
                                  (window-header-line-height)
                                  (- max-y delta))))
          (point (posn-point posn))
-         (up-point (save-excursion
-                     (goto-char point)
-                     (vertical-motion (- (1+ scroll-margin)))
-                     (point))))
-    (when (> (point) up-point)
+         (up-point (and point
+                        (save-excursion
+                          (goto-char point)
+                          (vertical-motion (- (1+ scroll-margin)))
+                          (point)))))
+    (when (and point (> (point) up-point))
       (when (let ((pos-visible (pos-visible-in-window-p up-point nil t)))
               (or (eq (length pos-visible) 2)
                   (when-let* ((posn (posn-at-point up-point))
@@ -665,10 +666,11 @@ window being scrolled by DELTA pixels with an animation."
   "Scroll the current window up by DELTA pixels."
   (let ((max-height (- (window-text-height nil t)
                        (frame-char-height))))
-    (while (> delta max-height)
-      (pixel-scroll-precision-scroll-up-page max-height)
-      (setq delta (- delta max-height)))
-    (pixel-scroll-precision-scroll-up-page delta)))
+    (when (> max-height 0)
+      (while (> delta max-height)
+        (pixel-scroll-precision-scroll-up-page max-height)
+        (setq delta (- delta max-height)))
+      (pixel-scroll-precision-scroll-up-page delta))))
 
 ;; FIXME: This doesn't _always_ work when there's an image above the
 ;; current line that is taller than the window, and scrolling can

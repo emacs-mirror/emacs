@@ -252,7 +252,7 @@ That is tag names plus names defined in tag attribute `:rest'."
               (skip-chars-backward "\r\n\t")
               ;; If a grammar footer is found, skip it.
               (re-search-backward "^;;;\\s-+\\S-+\\s-+ends here"
-                                  (point-at-bol) t)
+                                  (line-beginning-position) t)
               (skip-chars-backward "\r\n\t")
               (point)))
            "\n"))

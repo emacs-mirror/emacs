@@ -406,7 +406,7 @@ Specify the :blank argument to enable this inserter.")
 	    ((eq (oref sti where) 'end)
 	     ;; If there is whitespace after pnt, then clear it out.
 	     (when (looking-at "\\s-*$")
-	       (delete-region (point) (point-at-eol)))
+               (delete-region (point) (line-end-position)))
 	     (when (not (eolp))
 	       (princ "\n")))
 	    )

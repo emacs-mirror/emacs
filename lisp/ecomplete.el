@@ -199,7 +199,7 @@ matches."
     (goto-char (point-min))
     (forward-line line)
     (save-restriction
-      (narrow-to-region (point) (point-at-eol))
+      (narrow-to-region (point) (line-end-position))
       (while (not (eobp))
 	;; Put the 'region face on any characters on this line that
 	;; aren't already highlighted.

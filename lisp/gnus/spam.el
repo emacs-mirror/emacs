@@ -2132,7 +2132,7 @@ See `spam-ifile-database'."
         ;; check the return now (we're back in the temp buffer)
         (goto-char (point-min))
         (if (not (eobp))
-            (setq category (buffer-substring (point) (point-at-eol))))
+            (setq category (buffer-substring (point) (line-end-position))))
         (when (not (zerop (length category))) ; we need a category here
           (if spam-ifile-all-categories
               (setq return category)
@@ -2321,7 +2321,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
       (with-temp-buffer
         (insert-file-contents file)
         (while (not (eobp))
-          (setq address (buffer-substring (point) (point-at-eol)))
+          (setq address (buffer-substring (point) (line-end-position)))
           (forward-line 1)
           ;; insert the e-mail address if detected, otherwise the raw data
           (unless (zerop (length address))

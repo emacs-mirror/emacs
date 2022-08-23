@@ -902,14 +902,14 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (interactive)
   (forward-line 1)
   (beginning-of-line)
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-prev ()
   "Go to the previous line in the Ddebug buffer."
   (interactive)
   (forward-line -1)
   (beginning-of-line)
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-next-expando ()
   "Go to the next line in the Ddebug buffer.
@@ -996,7 +996,7 @@ Do nothing if already contracted."
 	   (data-debug-current-line-expanded-p))
       (data-debug-contract-current-line)
     (data-debug-expand-current-line))
-  (skip-chars-forward "- *><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (line-end-position)))
 
 (defun data-debug-expand-or-contract-mouse (event)
   "Expand or contract anything at event EVENT."

@@ -2862,13 +2862,13 @@ See `term-prompt-regexp'."
 
 (defun term-move-to-column (column)
   (setq term-current-column column)
-  (let ((point-at-eol (line-end-position)))
+  (let ((line-end-position (line-end-position)))
     (move-to-column term-current-column t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
     ;; to default.
-    (when (> (point) point-at-eol)
-      (put-text-property point-at-eol (point) 'font-lock-face 'default))))
+    (when (> (point) line-end-position)
+      (put-text-property line-end-position (point) 'font-lock-face 'default))))
 
 ;; Move DELTA column right (or left if delta < 0 limiting at column 0).
 (defun term-move-columns (delta)

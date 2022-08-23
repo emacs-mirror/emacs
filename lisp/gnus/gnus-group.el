@@ -1204,7 +1204,7 @@ case interactively), the level will be updated by this command."
   (gnus-group-setup-buffer)
   (gnus-update-format-specifications nil 'group 'group-mode)
   (let ((case-fold-search nil)
-	(props (text-properties-at (point-at-bol)))
+        (props (text-properties-at (line-beginning-position)))
 	(empty (= (point-min) (point-max)))
 	(group (gnus-group-group-name))
 	number)
@@ -1724,24 +1724,24 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 
 (defun gnus-group-group-name ()
   "Get the name of the newsgroup on the current line."
-  (let ((group (get-text-property (point-at-bol) 'gnus-group)))
+  (let ((group (get-text-property (line-beginning-position) 'gnus-group)))
     (cond ((stringp group) group)
           (group (symbol-name group)))))
 
 (defun gnus-group-group-level ()
   "Get the level of the newsgroup on the current line."
-  (get-text-property (point-at-bol) 'gnus-level))
+  (get-text-property (line-beginning-position) 'gnus-level))
 
 (defun gnus-group-group-indentation ()
   "Get the indentation of the newsgroup on the current line."
-  (or (get-text-property (point-at-bol) 'gnus-indentation)
+  (or (get-text-property (line-beginning-position) 'gnus-indentation)
       (and gnus-group-indentation-function
 	   (funcall gnus-group-indentation-function))
       ""))
 
 (defun gnus-group-group-unread ()
   "Get the number of unread articles of the newsgroup on the current line."
-  (get-text-property (point-at-bol) 'gnus-unread))
+  (get-text-property (line-beginning-position) 'gnus-unread))
 
 (defun gnus-group-new-mail (group)
   (if (nnmail-new-mail-p group)
@@ -2095,14 +2095,14 @@ be permanent."
 				(looking-at "[][\C-@-*,/;-@\\^`{-\C-?]")))
 		       (prog1 t
 			 (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-					      (point-at-bol))))
+                                              (line-beginning-position))))
 		  (and (looking-at "[][\C-@-\t\v-*,/;-@\\^`{-\C-?]*$")
 		       (prog1 t
 			 (skip-chars-backward "][\C-@-\t\v-*,/;-@\\^`{-\C-?")
 			 (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-					      (point-at-bol))))
+                                              (line-beginning-position))))
 		  (string-match "\\`[][\C-@-\t\v-*,/;-@\\^`{-\C-?]*\\'"
-				(buffer-substring (point-at-bol) (point))))
+                                (buffer-substring (line-beginning-position) (point))))
 	      (when (looking-at regexp)
 		(match-string 1))
 	    (let (group distance)
@@ -2111,7 +2111,7 @@ be permanent."
 		      distance (- (match-beginning 1) (match-beginning 0))))
 	      (skip-chars-backward "][\C-@-\t\v-*,/;-@\\^`{-\C-?")
 	      (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-				   (point-at-bol))
+                                   (line-beginning-position))
 	      (if (looking-at regexp)
 		  (if (and group (<= distance (- start (match-end 0))))
 		      group
@@ -3948,10 +3948,10 @@ The killed newsgroups can be yanked by using \\[gnus-group-yank-group]."
 	   (count-lines
 	    (progn
 	      (goto-char begin)
-	      (point-at-bol))
+              (line-beginning-position))
 	    (progn
 	      (goto-char end)
-	      (point-at-bol))))))
+              (line-beginning-position))))))
     (goto-char begin)
     (beginning-of-line)			;Important when LINES < 1
     (gnus-group-kill-group lines)))

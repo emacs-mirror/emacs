@@ -437,8 +437,8 @@ I think it just returns t/nil dependent on if VAR has been defined."
         (progn
           (semantic-push-parser-warning
 	   (format "Skip %s" (buffer-substring-no-properties
-			      (point-at-bol) (point-at-eol)))
-	   (point-at-bol) (point-at-eol))
+                              (line-beginning-position) (line-end-position)))
+           (line-beginning-position) (line-end-position))
           nil)
       t)))
 
@@ -501,8 +501,10 @@ code to parse."
 
 	;; The if indicates to skip this preprocessor section
 	(let () ;; (pt nil)
-	  (semantic-push-parser-warning (format "Skip %s" (buffer-substring-no-properties (point-at-bol) (point-at-eol)))
-					(point-at-bol) (point-at-eol))
+          (semantic-push-parser-warning (format "Skip %s" (buffer-substring-no-properties
+                                                           (line-beginning-position)
+                                                           (line-end-position)))
+                                        (line-beginning-position) (line-end-position))
 	  (beginning-of-line)
 	  ;; (setq pt (point))
 	  ;; This skips only a section of a conditional.  Once that section

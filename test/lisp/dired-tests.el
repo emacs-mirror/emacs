@@ -313,7 +313,7 @@
                             (save-excursion
                               (goto-char 1)
                               (forward-line 1)
-                              (- (point-at-eol) (point)))))
+                              (- (pos-eol) (point)))))
            orig-len len diff pos line-nb)
       (make-directory subdir 'parents)
       (with-current-buffer (dired-noselect subdir)
@@ -331,7 +331,7 @@
           (forward-line 1)
           (let ((inhibit-read-only t)
                 (new-header "  test-bug27968"))
-            (delete-region (point) (point-at-eol))
+            (delete-region (point) (pos-eol))
             (when (= orig-len (length new-header))
               ;; Wow lucky guy! I must buy lottery today.
               (setq new-header (concat new-header " :-)")))

@@ -387,10 +387,12 @@ copy text to your preferred mail program.\n"
     (goto-char user-point)))
 
 (defun emacs-bug--system-description ()
-  (insert "\nIn " (emacs-version))
-  (if emacs-build-system
-      (insert " built on " emacs-build-system))
-  (insert "\n")
+  (let ((start (point)))
+    (insert "\nIn " (emacs-version))
+    (if emacs-build-system
+        (insert " built on " emacs-build-system))
+    (insert "\n")
+    (fill-region-as-paragraph start (point)))
 
   (if (stringp emacs-repository-version)
       (insert "Repository revision: " emacs-repository-version "\n"))

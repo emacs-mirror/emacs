@@ -862,7 +862,7 @@ all.  This may very well take some time.")
 		  (search-forward id nil t)) ; We find the ID.
 	;; And the id is in the fourth field.
 	(if (not (and (search-backward "\t" nil t 4)
-		      (not (search-backward"\t" (point-at-bol) t))))
+                      (not (search-backward"\t" (line-beginning-position) t))))
 	    (forward-line 1)
 	  (beginning-of-line)
 	  (setq found t)

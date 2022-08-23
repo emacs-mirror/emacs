@@ -5897,6 +5897,7 @@ REPORT-FN is Flymake's callback function."
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
 
 ;;; Completion predicates for M-x
+;; Commands that only make sense when editing Python code
 (dolist (sym '(python-check
                python-fill-paragraph
                python-indent-dedent-line
@@ -5928,6 +5929,13 @@ REPORT-FN is Flymake's callback function."
                python-shell-send-statement))
   (put sym 'completion-predicate #'python--completion-predicate))
 
+(defun python-shell--completion-predicate (_ buffer)
+  (provided-mode-derived-p
+   (buffer-local-value 'major-mode buffer)
+   'python-mode 'inferior-python-mode))
+
+;; Commands that only make sense in the Python shell or when editing
+;; Python code.
 (dolist (sym '(python-describe-at-point
                python-eldoc-at-point
                python-shell-completion-native-toggle
@@ -5940,7 +5948,7 @@ REPORT-FN is Flymake's callback function."
                python-shell-font-lock-turn-on
                python-shell-package-enable
                python-shell-completion-complete-or-indent  ))
-  (put sym 'completion-predicate #'python--completion-predicate))
+  (put sym 'completion-predicate #'python-shell--completion-predicate))
 
 (provide 'python)
 

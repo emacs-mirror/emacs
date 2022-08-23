@@ -133,7 +133,7 @@ DIR defaults to `default-directory'."
       (goto-char (point-min))
       (when (not (eobp))
 	(file-name-as-directory
-	 (buffer-substring (point) (point-at-eol)))))))
+         (buffer-substring (point) (line-end-position)))))))
 
 (defun cedet-gnu-global-version-check (&optional noerror)
   "Check the version of the installed GNU Global command.

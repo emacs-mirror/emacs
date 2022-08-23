@@ -1119,7 +1119,7 @@ struct x_output
      frame.  */
   bool_bf waiting_for_frame_p : 1;
 
-#ifndef USE_GTK
+#if !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   /* Whether or not Emacs should wait for the compositing manager to
      draw frames before starting a new frame.  */
   bool_bf use_vsync_p : 1;
@@ -1577,7 +1577,8 @@ extern void x_make_frame_invisible (struct frame *);
 extern void x_iconify_frame (struct frame *);
 extern void x_free_frame_resources (struct frame *);
 extern void x_wm_set_size_hint (struct frame *, long, bool);
-#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK \
+  && defined HAVE_CLOCK_GETTIME
 extern void x_sync_init_fences (struct frame *);
 #endif
 

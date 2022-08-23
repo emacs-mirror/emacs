@@ -818,13 +818,13 @@ visible, then highlight it."
 	       (goto-char (overlay-start region))
 	       (when (pos-visible-in-window-p
 		      (point) (get-buffer-window (current-buffer) 'visible))
-		 (if (< (overlay-end region) (point-at-eol))
+                 (if (< (overlay-end region) (line-end-position))
 		     (pulse-momentary-highlight-overlay
 		      region semantic-idle-symbol-highlight-face)
 		   ;; Not the same
 		   (pulse-momentary-highlight-region
 		    (overlay-start region)
-		    (point-at-eol)
+                    (line-end-position)
 		    semantic-idle-symbol-highlight-face))))
 	     ))
 	  ((vectorp region)
@@ -843,8 +843,8 @@ visible, then highlight it."
 			end t)
 		   ;; This is likely it, give it a try.
 		   (pulse-momentary-highlight-region
-		    start (if (<= end (point-at-eol)) end
-			    (point-at-eol))
+                    start (if (<= end (line-end-position)) end
+                            (line-end-position))
 		    semantic-idle-symbol-highlight-face)))
 	       ))))
     nil))

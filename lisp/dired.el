@@ -1262,13 +1262,13 @@ The return value is the target column for the file names."
     (dired-goto-next-file)
     ;; Use point difference instead of `current-column', because
     ;; the former works when `dired-hide-details-mode' is enabled.
-    (let* ((first (- (point) (point-at-bol)))
+    (let* ((first (- (point) (line-beginning-position)))
            (target first))
       (while (and (not (eobp))
                   (progn
                     (forward-line)
                     (dired-move-to-filename)))
-        (when-let* ((distance (- (point) (point-at-bol)))
+        (when-let* ((distance (- (point) (line-beginning-position)))
                     (higher (> distance target)))
           (setq target distance)))
       (and (/= first target) target))))
@@ -1284,7 +1284,7 @@ The return value is the target column for the file names."
         (while (dired-move-to-filename)
           ;; Use point difference instead of `current-column', because
           ;; the former works when `dired-hide-details-mode' is enabled.
-          (let ((distance (- target (- (point) (point-at-bol))))
+          (let ((distance (- target (- (point) (line-beginning-position))))
                 (inhibit-read-only t))
             (unless (zerop distance)
               (re-search-backward regexp nil t)

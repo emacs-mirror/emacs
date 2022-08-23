@@ -179,7 +179,7 @@ all.  This may very well take some time.")
 			(goto-char (match-end 0))
 			(setq num (string-to-number
 				   (buffer-substring
-				    (point) (point-at-eol))))
+                                    (point) (line-end-position))))
 			(goto-char start)
 			(< num article)))
 		      ;; Check that we are before an article with a
@@ -189,7 +189,7 @@ all.  This may very well take some time.")
 		      (progn
 			(setq num (string-to-number
 				   (buffer-substring
-				    (point) (point-at-eol))))
+                                    (point) (line-end-position))))
 			(> num article))
 		      ;; Discard any article numbers before the one we're
 		      ;; now looking at.
@@ -259,7 +259,7 @@ all.  This may very well take some time.")
 		  (if (search-forward (concat "\n" nnfolder-article-marker)
 				      nil t)
 		      (string-to-number (buffer-substring
-				      (point) (point-at-eol)))
+                                         (point) (line-end-position)))
 		    -1))))))))
 
 (deffoo nnfolder-request-group (group &optional server dont-check _info)

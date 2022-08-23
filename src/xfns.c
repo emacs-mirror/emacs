@@ -965,7 +965,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 	}
 #endif
 
-#if defined HAVE_XSYNC && !defined USE_GTK
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
       /* Frame synchronization can't be used in child frames since
 	 they are not directly managed by the compositing manager.
 	 Re-enabling vsync in former child frames also leads to
@@ -2421,7 +2421,7 @@ static void
 x_set_use_frame_synchronization (struct frame *f, Lisp_Object arg,
 				 Lisp_Object oldval)
 {
-#if !defined USE_GTK && defined HAVE_XSYNC
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   struct x_display_info *dpyinfo;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
@@ -5156,7 +5156,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       ((STRINGP (value)
 			 && !strcmp (SSDATA (value), "extended")) ? 2 : 1));
 
-#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK
+#if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK \
+  && defined HAVE_CLOCK_GETTIME
       x_sync_init_fences (f);
 #endif
 #endif

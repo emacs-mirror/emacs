@@ -633,7 +633,7 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
         (when (looking-at regexp-hunk) ; Hunk header.
           (throw 'headerp (point)))
         (forward-line -1)
-        (when (re-search-forward regexp-file (point-at-eol 4) t) ; File header.
+        (when (re-search-forward regexp-file (line-end-position 4) t) ; File header.
           (forward-line 0)
           (throw 'headerp (point)))
         (goto-char orig)

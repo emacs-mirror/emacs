@@ -147,13 +147,11 @@
                                     (string-to-number line-limit1))))
                 (goto-char (point-min))
                 (if (> limit-number 0)
-                    (should (= search-limit (line-beginning-position
-                                             (1+ limit-number))))
+                    (should (= search-limit (pos-bol (1+ limit-number))))
                   (should (= search-limit (point-max))))
                 (goto-char (point-max))
                 (if (< limit-number 0)
-                    (should (= start (line-beginning-position
-                                      (1+ limit-number))))
+                    (should (= start (pos-bol (1+ limit-number))))
                   (should (= start (point-min)))))
               (if (equal start1 "")
                   (should (equal ts-start time-stamp-start))

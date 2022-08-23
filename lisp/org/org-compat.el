@@ -1028,7 +1028,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
   (require 'org-agenda)
   (let (p m tp np dir txt)
     (cond
-     ((setq p (text-property-any (point-at-bol) (point-at-eol)
+     ((setq p (text-property-any (line-beginning-position) (line-end-position)
 				 'org-imenu t))
       (setq m (get-text-property p 'org-imenu-marker))
       (with-current-buffer (marker-buffer m)
@@ -1038,7 +1038,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
 			 (overlays-at (point))))
 	    (org-agenda-remove-restriction-lock 'noupdate)
 	  (org-agenda-set-restriction-lock 'subtree))))
-     ((setq p (text-property-any (point-at-bol) (point-at-eol)
+     ((setq p (text-property-any (line-beginning-position) (line-end-position)
 				 'speedbar-function 'speedbar-find-file))
       (setq tp (previous-single-property-change
 		(1+ p) 'speedbar-function)
@@ -1055,7 +1055,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
 	(org-agenda-set-restriction-lock 'file)))
      (t (user-error "Don't know how to restrict Org mode agenda")))
     (move-overlay org-speedbar-restriction-lock-overlay
-		  (point-at-bol) (point-at-eol))
+                  (line-beginning-position) (line-end-position))
     (setq current-prefix-arg nil)
     (org-agenda-maybe-redo)))
 

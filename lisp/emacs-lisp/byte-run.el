@@ -568,7 +568,6 @@ ACCESS-TYPE if non-nil should specify the kind of access that will trigger
        (purecopy (list current-name access-type when)))
   obsolete-name)
 
-
 (defmacro define-obsolete-variable-alias ( obsolete-name current-name when
                                            &optional docstring)
   "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.

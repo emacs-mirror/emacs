@@ -339,13 +339,13 @@ The following commands are available:
   (gnus-server-position-point))
 
 (defun gnus-server-server-name ()
-  (let ((server (get-text-property (point-at-bol) 'gnus-server)))
+  (let ((server (get-text-property (line-beginning-position) 'gnus-server)))
     (and server (symbol-name server))))
 
 (defun gnus-server-named-server ()
   "Return a server name that matches one of the names returned by
 `gnus-method-to-server'."
-  (let ((server (get-text-property (point-at-bol) 'gnus-named-server)))
+  (let ((server (get-text-property (line-beginning-position) 'gnus-named-server)))
     (and server (symbol-name server))))
 
 (defalias 'gnus-server-position-point 'gnus-goto-colon)
@@ -949,7 +949,7 @@ how new groups will be entered into the group buffer."
   (save-excursion
     (beginning-of-line)
     (let ((name (get-text-property (point) 'gnus-group)))
-      (when (re-search-forward ": \\(.*\\)$" (point-at-eol) t)
+      (when (re-search-forward ": \\(.*\\)$" (line-end-position) t)
 	(concat (gnus-method-to-server-name gnus-browse-current-method) ":"
 		(or name
 		    (match-string-no-properties 1)))))))

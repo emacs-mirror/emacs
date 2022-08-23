@@ -541,7 +541,7 @@ The sort function is chosen according to the value of
         (let ((inhibit-read-only t))
           (goto-char (point-min))
           (while (not (eobp))
-            (let* ((pos (point-at-eol))
+            (let* ((pos (line-end-position))
                    (item (get-text-property (point) :nt-item))
                    (age (newsticker--age item))
                    (selected (get-text-property (point) :nt-selected))
@@ -579,7 +579,8 @@ The sort function is chosen according to the value of
   (newsticker--treeview-list-clear-highlight)
   (with-current-buffer (newsticker--treeview-list-buffer)
     (let ((inhibit-read-only t))
-      (put-text-property (point-at-bol) (point-at-eol) :nt-selected t))
+      (put-text-property (line-beginning-position) (line-end-position)
+                         :nt-selected t))
     (newsticker--treeview-list-update-faces)))
 
 (defun newsticker--treeview-list-highlight-start ()
@@ -1080,7 +1081,7 @@ Arguments are ignored."
       (with-current-buffer (newsticker--treeview-tree-buffer)
         (goto-char pos)
         (move-overlay newsticker--tree-selection-overlay
-                      (point-at-bol) (1+ (point-at-eol))
+                      (line-beginning-position) (1+ (line-end-position))
                       (current-buffer)))
       (if (window-live-p (newsticker--treeview-tree-window))
           (set-window-point (newsticker--treeview-tree-window) pos)))))

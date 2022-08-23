@@ -1423,7 +1423,7 @@ Return either a paren token or a semantic list token depending on
 	;; to work properly.  Lets try and move over
 	;; whatever white space we matched to begin
 	;; with.
-	(skip-syntax-forward "-.'" (point-at-eol))
+        (skip-syntax-forward "-.'" (line-end-position))
       ;; We may need to back up so newlines or whitespace is generated.
       (if (bolp)
 	  (backward-char 1)))

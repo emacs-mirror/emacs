@@ -812,7 +812,7 @@ point at BOB."
                (setq str-terminator ?/))
              (re-search-forward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (point-at-eol) t))
+              (line-end-position) t))
             ((nth 7 parse)
              (forward-line))
             ((or (nth 4 parse)
@@ -1683,7 +1683,7 @@ point of view of font-lock.  It applies highlighting directly with
            (insert "=")
            (goto-char (match-beginning 2)))
        (setq js--tmp-location nil)
-       (goto-char (point-at-eol)))
+       (goto-char (line-end-position)))
      (when js--tmp-location
        (save-excursion
          (goto-char js--tmp-location)
@@ -2506,14 +2506,14 @@ the same column as the current line."
 	      (looking-at "[ \t\n]*}"))
 	    (save-excursion
 	      (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
-	  (js--re-search-backward "\\_<do\\_>" (point-at-bol) t)
+          (js--re-search-backward "\\_<do\\_>" (line-beginning-position) t)
 	  (or (looking-at "\\_<do\\_>")
 	      (let ((saved-indent (current-indentation)))
 		(while (and (js--re-search-backward "^\\s-*\\_<" nil t)
 			    (/= (current-indentation) saved-indent)))
 		(and (looking-at "\\s-*\\_<do\\_>")
 		     (not (js--re-search-forward
-			   "\\_<while\\_>" (point-at-eol) t))
+                           "\\_<while\\_>" (line-end-position) t))
 		     (= (current-indentation) saved-indent)))))))))
 
 
@@ -2525,7 +2525,7 @@ nil."
   (save-excursion
     (back-to-indentation)
     (when (save-excursion
-            (and (not (eq (point-at-bol) (point-min)))
+            (and (not (eq (line-beginning-position) (point-min)))
                  (not (looking-at "[{]"))
                  (js--re-search-backward "[[:graph:]]" nil t)
                  (progn
@@ -2546,8 +2546,8 @@ nil."
     (c-get-syntactic-indentation (list (cons symbol anchor)))))
 
 (defun js--same-line (pos)
-  (and (>= pos (point-at-bol))
-       (<= pos (point-at-eol))))
+  (and (>= pos (line-beginning-position))
+       (<= pos (line-end-position))))
 
 (defun js--multi-line-declaration-indentation ()
   "Helper function for `js--proper-indentation'.
@@ -2921,7 +2921,7 @@ return nil."
   "Indent the current line as JavaScript."
   (interactive)
   (let* ((parse-status
-          (save-excursion (syntax-ppss (point-at-bol))))
+          (save-excursion (syntax-ppss (line-beginning-position))))
          (offset (- (point) (save-excursion (back-to-indentation) (point)))))
     (unless (nth 3 parse-status)
       (indent-line-to (js--proper-indentation parse-status))

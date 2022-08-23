@@ -149,7 +149,8 @@ use `show-paren-local-mode'."
 ;;;###autoload
 (define-minor-mode show-paren-local-mode
   "Toggle `show-paren-mode' only in this buffer."
-  :variable (buffer-local-value 'show-paren-mode (current-buffer))
+  :variable ( show-paren-mode .
+              (lambda (val) (setq-local show-paren-mode val)))
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode

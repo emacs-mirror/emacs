@@ -459,7 +459,7 @@ the top done item should be the first done item."
                                  todo-date-pattern
 			         "\\( " diary-time-regexp "\\)?"
 			         (regexp-quote todo-nondiary-end) "?")
-		         (line-end-position) t)
+                         (pos-eol) t)
                         (forward-char)
                         (point)))
           (start1 (save-excursion (funcall find-start)))
@@ -854,7 +854,7 @@ item's date should be adjusted accordingly."
    (let ((current-prefix-arg t)         ; For todo-edit-item--header.
          (get-date (lambda ()
                      (save-excursion
-                       (todo-date-string-matcher (line-end-position))
+                       (todo-date-string-matcher (pos-eol))
                        (buffer-substring-no-properties (match-beginning 1)
                                                        (match-end 0))))))
      (should (equal (funcall get-date) "Jan 1, 2020"))
@@ -903,7 +903,7 @@ tab character."
      (todo-test--insert-item item 1)
      (re-search-forward (concat todo-date-string-start todo-date-pattern
 				(regexp-quote todo-nondiary-end) " ")
-			(line-end-position) t)
+			(pos-eol) t)
      (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
 
 (ert-deftest todo-test-multiline-item-indentation-2 () ; bug#43068
@@ -917,7 +917,7 @@ begin with a tab character."
      (todo-edit-item--text 'multiline)
      (insert (concat "\n" item1))
      (todo-edit-quit)
-     (goto-char (line-beginning-position))
+     (goto-char (pos-bol))
      (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
 
 (ert-deftest todo-test-multiline-item-indentation-3 ()
@@ -930,7 +930,7 @@ since all non-initial item lines must begin with whitespace."
           (item1 "Second line."))
      (todo-edit-file)
      (should (looking-at (regexp-quote item0)))
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (insert (concat "\n" item1))
      (should-error (todo-edit-quit) :type 'user-error))))
 

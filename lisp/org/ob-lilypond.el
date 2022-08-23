@@ -312,7 +312,7 @@ LINENO is the number of the erroneous line."
 	(progn
 	  (goto-char (point-min))
 	  (forward-line (- lineNo 1))
-	  (buffer-substring (point) (point-at-eol)))
+          (buffer-substring (point) (line-end-position)))
       nil)))
 
 (defun org-babel-lilypond-attempt-to-open-pdf (file-name &optional test)

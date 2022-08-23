@@ -39,16 +39,12 @@ C++ compiler to be present on your system.  If Emacs is not built with
 the option '--with-be-app', the resulting Emacs will only run in
 text-mode terminals.
 
-+++
-** Cairo drawing support has been enabled for Haiku builds.
 To enable Cairo support, ensure that the Cairo and FreeType
 development files are present on your system, and configure Emacs with
 '--with-be-cairo'.
 
----
-** Double buffering is now enabled on the Haiku operating system.
 Unlike X, there is no compile-time option to enable or disable
-double-buffering.  If you wish to disable double-buffering, change the
+double-buffering; it is always enabled.  To disable it, change the
 frame parameter 'inhibit-double-buffering' instead.
 
 ---
@@ -2585,11 +2581,42 @@ abbrevlist.el, assoc.el, complete.el, cust-print.el,
 erc-hecomplete.el, mailpost.el, mouse-sel.el, old-emacs-lock.el,
 patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 
+---
+** Many seldom-used generalized variables have been made obsolete.
+Emacs has a number of rather obscure generalized variables defined,
+that, for instance, allowed you to say things like:
+
+   (setf (point-min) 4)
+
+These never caught on and have been made obsolete.  The form above,
+for instance, is the same as saying
+
+   (narrow-to-region 4 (point-max))
+
+The following generalized variables have been made obsolete:
+'buffer-local-value', 'visited-file-name', 'buffer-modified-p',
+'buffer-name', 'buffer-string', 'buffer-substring', 'current-buffer',
+'current-column', 'current-global-map', 'current-input-mode',
+'current-local-map', 'current-window-configuration',
+'default-file-modes', 'documentation-property', 'frame-height',
+'frame-visible-p', 'global-key-binding', 'local-key-binding', 'mark',
+'mark-marker', 'marker-position', 'mouse-position', 'point',
+'point-marker', 'point-max', 'point-min', 'read-mouse-position',
+'screen-height', 'screen-width', 'selected-window', 'selected-screen',
+'selected-frame', 'standard-case-table', 'syntax-table',
+'visited-file-modtime', 'window-height', 'window-width' and
+'x-get-secondary-selection'.
+
 
 * Lisp Changes in Emacs 29.1
 
 +++
-** New functions 'eol' and 'bol'.
+** New function 'make-obsolete-generalized-variable'.
+This can be used to mark setters used by 'setf' as obsolete, and the
+byte-compiler will then warn about using them.
+
++++
+** New functions 'pos-eol' and 'pos-bol'.
 These are like 'line-end-position' and 'line-beginning-position'
 (respectively), but ignore fields (and are more efficient).
 

@@ -217,8 +217,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
      ((window-minibuffer-p) (other-window 1)))
     (when (/= minisize (window-height miniwin))
       (with-selected-window miniwin
-        (setf (window-height) minisize)))))
-
+        (enlarge-window (- minisize (window-height)))))))
 
 
 (defvar winner-point-alist nil)

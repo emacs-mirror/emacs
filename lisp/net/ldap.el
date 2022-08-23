@@ -694,7 +694,7 @@ an alist of attribute/value pairs."
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
-	  (setq dn (buffer-substring (point) (point-at-eol)))
+          (setq dn (buffer-substring (point) (line-end-position)))
 	  (forward-line 1)
           (while (looking-at "^\\([A-Za-z][-A-Za-z0-9]*\
 \\|[0-9]+\\(?:\\.[0-9]+\\)*\\)\\(;[-A-Za-z0-9]+\\)*[=:\t ]+\

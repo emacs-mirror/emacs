@@ -574,7 +574,7 @@ Other back ends might or might not work.")
 			      (gnus-group-get-parameter qualgroup 'folder)))
 		(progn
 		  (replace-match cur)
-		  (delete-region cpoint (point-at-bol))
+                  (delete-region cpoint (line-beginning-position))
 		  (forward-line)
 		  (setq cpoint (point)))
 	      (forward-line)))

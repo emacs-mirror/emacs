@@ -495,7 +495,7 @@ In other words, return all information but the name."
 (defun bookmark--set-fringe-mark ()
   "Apply a colorized overlay to the bookmarked location.
 See user option `bookmark-fringe-mark'."
-  (let ((bm (make-overlay (point-at-bol) (1+ (point-at-bol)))))
+  (let ((bm (make-overlay (pos-bol) (1+ (pos-bol)))))
     (overlay-put bm 'category 'bookmark)
     (overlay-put bm 'evaporate t)
     (overlay-put bm 'before-string
@@ -518,7 +518,7 @@ See user option `bookmark-fringe-mark'."
             (setq overlays
                   (save-excursion
                     (goto-char pos)
-                    (overlays-in (point-at-bol) (1+ (point-at-bol)))))
+                    (overlays-in (pos-bol) (1+ (pos-bol)))))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -1014,7 +1014,7 @@ the list of bookmarks.)"
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (line-end-position)))
+  (let ((eol (pos-eol)))
     (delete-region (point) eol)
     (when (and newline-too (= (following-char) ?\n))
       (delete-char 1))))
@@ -1221,7 +1221,7 @@ and then show any annotations for this bookmark."
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-fringe-mark
-    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
+    (let ((overlays (overlays-in (pos-bol) (1+ (pos-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))

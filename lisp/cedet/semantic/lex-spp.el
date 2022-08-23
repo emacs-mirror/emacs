@@ -826,7 +826,7 @@ Argument BEG and END specify the bounds of SYM in the buffer."
 	  (goto-char end)
 	  (setq arg-parsed
 		(semantic-lex-spp-one-token-and-move-for-macro
-		 ;; NOTE: This used to be (point-at-eol), but
+                 ;; NOTE: This used to be (line-end-position), but
 		 ;;       that was too close for multi-line arguments
 		 ;;       to a macro.  Point max may be too far if there
 		 ;;       is a typo in the buffer.
