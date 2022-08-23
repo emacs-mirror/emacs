@@ -2037,6 +2037,13 @@ Instead, use commands 'image-dired-refresh-thumb' to generate a new
 thumbnail, or 'image-rotate' to rotate the thumbnail without updating
 the thumbnail file.
 
+---
+*** HTML image gallery generation is now obsolete.
+The 'image-dired-gallery-generate' command and these user options are
+now obsolete: 'image-dired-gallery-thumb-image-root-url',
+'image-dired-gallery-hidden-tags', 'image-dired-gallery-dir',
+'image-dired-gallery-image-root-url'.
+
 ** Dired
 
 ---
