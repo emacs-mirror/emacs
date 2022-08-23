@@ -1,6 +1,6 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Old-Version: 1.02
@@ -263,7 +263,7 @@ format."
   (set-face-foreground face color)
   (set-face-background face color)
   (gamegrid-set-font face)
-  (set-face-background-pixmap face nil))
+  (set-face-stipple face nil))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))

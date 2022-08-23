@@ -938,9 +938,9 @@ current-window-configuration       read-mouse-position
 default-file-modes                 screen-height
 documentation-property             screen-width
 face-background                    selected-window
-face-background-pixmap             selected-screen
-face-font                          selected-frame
-face-foreground                    standard-case-table
+face-font                          selected-screen
+face-foreground                    selected-frame
+face-stipple                       standard-case-table
 face-underline-p                   syntax-table
 file-modes                         visited-file-modtime
 frame-height                       window-height

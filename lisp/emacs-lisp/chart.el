@@ -112,7 +112,7 @@ too much in text characters anyways.")
        (set-face-foreground nf "black")
        (if (and chart-face-use-pixmaps pl)
            (condition-case nil
-               (set-face-background-pixmap nf (car pl))
+               (set-face-stipple nf (car pl))
              (error (message "Cannot set background pixmap %s" (car pl)))))
        (push nf faces)
        (setq cl (cdr cl)

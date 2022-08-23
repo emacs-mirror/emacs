@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -583,9 +583,6 @@ with the `default' face (which is always completely specified)."
 			       nil))
 
 
-(defalias 'face-background-pixmap 'face-stipple)
-
-
 (defun face-underline-p (face &optional frame inherit)
  "Return non-nil if FACE specifies a non-nil underlining.
 If the optional argument FRAME is given, report on face FACE in that frame.
@@ -1051,9 +1048,6 @@ Use `set-face-attribute' to \"unspecify\" underlining."
    (let ((list (read-face-and-attribute :extend)))
      (list (car list) (if (cadr list) t))))
   (set-face-attribute face frame :extend extend-p))
-
-
-(defalias 'set-face-background-pixmap 'set-face-stipple)
 
 
 (defun invert-face (face &optional frame)
@@ -3178,6 +3172,9 @@ also the same size as FACE on FRAME, or fail."
   :type 'integer
   :group 'display)
 (make-obsolete-variable 'font-list-limit nil "24.3")
+
+(define-obsolete-function-alias 'face-background-pixmap #'face-stipple "29.1")
+(define-obsolete-function-alias 'set-face-background-pixmap #'set-face-stipple "29.1")
 
 (provide 'faces)
 
