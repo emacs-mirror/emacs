@@ -1702,7 +1702,7 @@ Point should be just after a string that matches TAG."
 ;;;###autoload
 (defalias 'next-file 'tags-next-file)
 (make-obsolete 'next-file
-               "use tags-next-file or fileloop-initialize and fileloop-next-file instead" "27.1")
+               "use `tags-next-file' or `fileloop-initialize' and `fileloop-next-file' instead" "27.1")
 ;;;###autoload
 (defun tags-next-file (&optional initialize novisit)
   "Select next file among files in current tags table.
