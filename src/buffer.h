@@ -274,7 +274,9 @@ struct buffer_text
        end_unchanged contain no useful information.  */
     modiff_count overlay_unchanged_modified;
 
-    /* CHARS_MODIFF as of last redisplay that finished.  */
+    /* CHARS_MODIFF as of last redisplay that finished.  It's used
+       when we only care about changes in actual buffer text, not in
+       any other kind of changes, like properties etc.  */
     modiff_count chars_unchanged_modified;
 
     /* Properties of this buffer's text.  */
