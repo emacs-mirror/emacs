@@ -851,15 +851,20 @@ resulting list of directory names.  For an empty path element (i.e.,
 a leading or trailing separator, or two adjacent separators), return
 nil (meaning `default-directory') as the associated list element."
   (when (stringp search-path)
-    (let ((spath (substitute-env-vars search-path)))
+    (let ((spath (substitute-env-vars search-path))
+          (double-slash-special-p
+           (memq system-type '(windows-nt cygwin ms-dos))))
       (mapcar (lambda (f)
                 (if (equal "" f) nil
                   (let ((dir (file-name-as-directory f)))
                     ;; Previous implementation used `substitute-in-file-name'
-                    ;; which collapse multiple "/" in front.  Do the same for
-                    ;; backward compatibility.
-                    (if (string-match "\\`/+" dir)
-                        (substring dir (1- (match-end 0))) dir))))
+                    ;; which collapses multiple "/" in front, while
+                    ;; preserving double slash where it matters.  Do
+                    ;; the same for backward compatibility.
+                    (if (string-match "\\`//+" dir)
+                        (substring dir (- (match-end 0)
+                                          (if double-slash-special-p 2 1)))
+                      dir))))
               (split-string spath path-separator)))))
 
 (defun cd-absolute (dir)
