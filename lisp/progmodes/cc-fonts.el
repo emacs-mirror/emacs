@@ -940,7 +940,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			'(c-decl-arg-start
 			  c-decl-end
 			  c-decl-id-start
-			  c-decl-type-start)))
+			  c-decl-type-start
+			  c-not-decl)))
 	     (1- (point))
 	   pos)
 	 limit 'c-type)))

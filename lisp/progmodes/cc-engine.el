@@ -10571,8 +10571,8 @@ This function might do hidden buffer changes."
 			backup-maybe-typeless
 			(when c-recognize-typeless-decls
 			  (or (not got-suffix)
-			      (not (looking-at
-				    c-after-suffixed-type-maybe-decl-key))))))
+			      (looking-at
+			       c-after-suffixed-type-maybe-decl-key)))))
 	       ;; Got an empty paren pair and a preceding type that probably
 	       ;; really is the identifier.  Shift the type backwards to make
 	       ;; the last one the identifier.  This is analogous to the
