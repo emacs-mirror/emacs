@@ -6627,9 +6627,14 @@ preserve markers and overlays, at the price of being slower."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (let ((revert-buffer-in-progress-p t)
-        (revert-buffer-preserve-modes preserve-modes))
+        (revert-buffer-preserve-modes preserve-modes)
+        (state (and (boundp 'read-only-mode--state)
+                    (list read-only-mode--state))))
     (funcall (or revert-buffer-function #'revert-buffer--default)
-             ignore-auto noconfirm)))
+             ignore-auto noconfirm)
+    (when state
+      (setq buffer-read-only (car state))
+      (setq-local read-only-mode--state (car state)))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.

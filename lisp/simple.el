@@ -10400,8 +10400,15 @@ command works by setting the variable `buffer-read-only', which
 does not affect read-only regions caused by text properties.  To
 ignore read-only status in a Lisp program (whether due to text
 properties or buffer state), bind `inhibit-read-only' temporarily
-to a non-nil value."
+to a non-nil value.
+
+Reverting a buffer will keep the readedness state set by using
+this command."
   :variable buffer-read-only
+  ;; We're saving this value here so that we can restore the
+  ;; readedness state after reverting the buffer to the value that's
+  ;; been explicitly set by the user.
+  (setq-local read-only-mode--state buffer-read-only)
   (cond
    ((and (not buffer-read-only) view-mode)
     (View-exit-and-edit)
