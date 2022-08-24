@@ -2943,8 +2943,7 @@ Return position where LINE begins."
        start-posn)))
 
 (defun gdb-pad-string (string padding)
-  (declare (obsolete string-pad "29.1"))
-  (string-pad string padding nil t))
+  (string-pad string (abs padding) nil (natnump padding)))
 
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
@@ -2962,8 +2961,7 @@ When non-nil, PROPERTIES will be added to the whole row when
 calling `gdb-table-string'."
   (let ((rows (gdb-table-rows table))
         (row-properties (gdb-table-row-properties table))
-        (column-sizes (gdb-table-column-sizes table))
-        (right-align (gdb-table-right-align table)))
+        (column-sizes (gdb-table-column-sizes table)))
     (when (not column-sizes)
       (setf (gdb-table-column-sizes table)
             (make-list (length row) 0)))
@@ -2973,9 +2971,7 @@ calling `gdb-table-string'."
           (append row-properties (list properties)))
     (setf (gdb-table-column-sizes table)
           (cl-mapcar (lambda (x s)
-                         (let ((new-x
-                                (max (abs x) (string-width (or s "")))))
-                           (if right-align new-x (- new-x))))
+                       (max (abs x) (string-width (or s ""))))
                        (gdb-table-column-sizes table)
                        row))
     ;; Avoid trailing whitespace at eol
@@ -2991,7 +2987,10 @@ calling `gdb-table-string'."
       (lambda (row properties)
         (apply #'propertize
                (mapconcat #'identity
-                          (cl-mapcar (lambda (s x) (string-pad s x nil t))
+                          (cl-mapcar (lambda (s x)
+                                       (string-pad
+                                        s x nil
+                                        (not (gdb-table-right-align table))))
                                      row column-sizes)
                           sep)
                properties))
