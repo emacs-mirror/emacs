@@ -441,7 +441,9 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   (setq view-page-size nil
 	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
-        buffer-read-only t))
+        buffer-read-only t)
+  ;; Make reverting the buffer preserve unreadableness.
+  (setq-local read-only-mode--state t))
 
 
 (define-obsolete-function-alias 'view-mode-enable 'view-mode "24.4")
