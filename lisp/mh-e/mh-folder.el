@@ -583,7 +583,7 @@ perform the operation on all messages in that region.
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer t)
   (setq-local
-   mh-colors-available-flag (mh-colors-available-p)
+   mh-colors-available-flag (display-color-p)
                                         ; Do we have colors available
    mh-current-folder (buffer-name)      ; Name of folder, a string
    mh-show-buffer (format "show-%s" (buffer-name)) ; Buffer that displays msgs

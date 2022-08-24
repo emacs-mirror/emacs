@@ -60,13 +60,6 @@ used in lieu of `search' in the CL package."
       (set-syntax-table syntax-table))))
 
 ;;;###mh-autoload
-(defun mh-colors-available-p ()
-  "Check if colors are available in the Emacs being used."
-  ;; FIXME: Can this be replaced with `display-color-p'?
-  (let ((color-cells (display-color-cells)))
-    (and (numberp color-cells) (>= color-cells 8))))
-
-;;;###mh-autoload
 (defun mh-colors-in-use-p ()
   "Check if colors are being used in the folder buffer."
   (and mh-colors-available-flag font-lock-mode))
@@ -1004,6 +997,9 @@ If the current line is too long truncate a part of it as well."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward mh-signature-separator-regexp nil t)))
+
+;;;###mh-autoload
+(define-obsolete-function-alias 'mh-colors-available-p #'display-color-p "29.1")
 
 (provide 'mh-utils)
 
