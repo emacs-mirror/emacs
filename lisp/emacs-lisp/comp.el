@@ -3198,7 +3198,11 @@ Fold the call in case."
       (+ (comp-cstr-add lval args))
       (- (comp-cstr-sub lval args))
       (1+ (comp-cstr-add lval `(,(car args) ,comp-cstr-one)))
-      (1- (comp-cstr-sub lval `(,(car args) ,comp-cstr-one))))))
+      (1- (comp-cstr-sub lval `(,(car args) ,comp-cstr-one)))
+      (record (when (comp-cstr-imm-vld-p (car args))
+                (comp-cstr-shallow-copy lval
+                                        (comp-type-spec-to-cstr
+                                         (comp-cstr-imm (car args)))))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
