@@ -9557,7 +9557,7 @@ point unchanged and return nil."
 	 (or (= paren-depth 0)
 	     (c-safe (goto-char (scan-lists (point) 1 paren-depth))))
 
-	 (<= (point) limit)
+	 (< (point) limit)
 
 	 ;; Skip over any trailing bit, such as "__attribute__".
 	 (progn
