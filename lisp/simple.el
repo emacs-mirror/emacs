@@ -10402,7 +10402,7 @@ ignore read-only status in a Lisp program (whether due to text
 properties or buffer state), bind `inhibit-read-only' temporarily
 to a non-nil value.
 
-Reverting a buffer will keep the readedness state set by using
+Reverting a buffer will keep the read-only status set by using
 this command."
   :variable buffer-read-only
   ;; We're saving this value here so that we can restore the
