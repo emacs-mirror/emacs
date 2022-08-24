@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'icons)
+;; (require 'skicons)
 
 (icons-define-set 'material
   '(("action/3d_rotation" "material/action/3d_rotation.svg" 24)

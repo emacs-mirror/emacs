@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'icons)
+;; (require 'skicons)
 
 (icons-define-set 'octicons
   '(("alert" "octicons/alert-16.svg" 16)
