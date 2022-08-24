@@ -107,6 +107,14 @@ Integer values are handled in the `range' slot.")
                         (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
                 :type list
                 :documentation "Type hierarchy.")
+  (pred-type-h (cl-loop with h = (make-hash-table :test #'eq)
+	                for class-name in (comp--all-classes)
+                        for pred = (get class-name 'cl-deftype-satisfies)
+                        when pred
+                          do (puthash pred class-name h)
+	                finally return h)
+               :type hash-table
+               :documentation "Hash pred -> type.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
                       :documentation "Serve memoization for
 `comp-union-typesets'.")

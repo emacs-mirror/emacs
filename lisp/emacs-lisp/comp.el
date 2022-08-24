@@ -641,11 +641,14 @@ Useful to hook into pass checkers.")
 
 (defun comp-known-predicate-p (predicate)
   "Return t if PREDICATE is known."
-  (when (gethash predicate comp-known-predicates-h) t))
+  (when (or (gethash predicate comp-known-predicates-h)
+            (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt)))
+    t))
 
 (defun comp-pred-to-cstr (predicate)
   "Given PREDICATE, return the corresponding constraint."
-  (gethash predicate comp-known-predicates-h))
+  (or (gethash predicate comp-known-predicates-h)
+      (gethash predicate (comp-cstr-ctxt-pred-type-h comp-ctxt))))
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
