@@ -3249,6 +3249,7 @@ To see the documentation for a defined struct type, use
 
 ;;; Add cl-struct support to pcase
 
+;;In use by comp.el
 (defun cl--struct-all-parents (class)
   (when (cl--struct-class-p class)
     (let ((res ())

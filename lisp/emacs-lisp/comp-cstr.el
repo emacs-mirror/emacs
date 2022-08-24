@@ -86,7 +86,27 @@ Integer values are handled in the `range' slot.")
   (ret nil :type (or comp-cstr comp-cstr-f)
        :documentation "Returned value."))
 
+(defun comp--cl-class-hierarchy (x)
+  "Given a class name `x' return its hierarchy."
+  `(,@(mapcar #'cl--struct-class-name (cl--struct-all-parents
+                                       (cl--struct-get-class x)))
+    atom
+    t))
+
+(defun comp--all-classes ()
+  "Return all non built-in type names currently defined."
+  (let (res)
+    (mapatoms (lambda (x)
+                (when (cl-find-class x)
+                  (push x res)))
+              obarray)
+    res))
+
 (cl-defstruct comp-cstr-ctxt
+  (typeof-types (append comp--typeof-builtin-types
+                        (mapcar #'comp--cl-class-hierarchy (comp--all-classes)))
+                :type list
+                :documentation "Type hierarchy.")
   (union-typesets-mem (make-hash-table :test #'equal) :type hash-table
                       :documentation "Serve memoization for
 `comp-union-typesets'.")
@@ -230,7 +250,7 @@ Return them as multiple value."
   (cl-loop
    named outer
    with found = nil
-   for l in comp--typeof-builtin-types
+   for l in (comp-cstr-ctxt-typeof-types comp-ctxt)
    do (cl-loop
        for x in l
        for i from (length l) downto 0
@@ -273,7 +293,7 @@ Return them as multiple value."
                (cl-loop
                 with types = (apply #'append typesets)
                 with res = '()
-                for lane in comp--typeof-builtin-types
+                for lane in (comp-cstr-ctxt-typeof-types comp-ctxt)
                 do (cl-loop
                     with last = nil
                     for x in lane

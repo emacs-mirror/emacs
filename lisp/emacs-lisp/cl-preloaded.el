@@ -113,6 +113,7 @@ supertypes from the most specific to least specific.")
         (record 'cl-slot-descriptor
                 name initform type props)))
 
+;; In use by comp.el
 (defun cl--struct-get-class (name)
   (or (if (not (symbolp name)) name)
       (cl--find-class name)
