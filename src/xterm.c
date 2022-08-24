@@ -19254,6 +19254,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case FocusIn:
+#if defined HAVE_XINPUT2						\
+  && (defined HAVE_GTK3 || (!defined USE_GTK && !defined USE_X_TOOLKIT))
+      /* If a FocusIn event is received (because the window manager
+	 sent us one), don't set the core focus if XInput 2 is
+	 enabled, since that would mess up the device-specific focus
+	 tracking.
+
+	 The long looking preprocessor conditional only enables this
+	 code on GTK 3 and no toolkit builds, since those are the only
+	 builds where focus is tracked specific to each master device.
+	 Other builds use core events and the client pointer to handle
+	 focus, much like on a build without XInput 2.  */
+      if (dpyinfo->supports_xi2)
+	goto OTHER;
+#endif
 #ifdef USE_GTK
       /* Some WMs (e.g. Mutter in Gnome Shell), don't unmap
          minimized/iconified windows; thus, for those WMs we won't get
@@ -19367,6 +19382,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case FocusOut:
+#if defined HAVE_XINPUT2						\
+  && (defined HAVE_GTK3 || (!defined USE_GTK && !defined USE_X_TOOLKIT))
+      /* If a FocusIn event is received (because the window manager
+	 sent us one), don't set the core focus if XInput 2 is
+	 enabled, since that would mess up the device-specific focus
+	 tracking.
+
+	 The long looking preprocessor conditional only enables this
+	 code on GTK 3 and no toolkit builds, since those are the only
+	 builds where focus is tracked specific to each master device.
+	 Other builds use core events and the client pointer to handle
+	 focus, much like on a build without XInput 2.  */
+      if (dpyinfo->supports_xi2)
+	goto OTHER;
+#endif
       x_detect_focus_change (dpyinfo, any, event, &inev.ie);
       goto OTHER;
 
