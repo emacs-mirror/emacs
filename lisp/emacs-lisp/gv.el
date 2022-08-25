@@ -706,6 +706,8 @@ REF must have been previously obtained with `gv-ref'."
 
 (gv-define-setter frame-width (x &optional frame)
   `(set-frame-width (or ,frame (selected-frame)) ,x))
+(make-obsolete-generalized-variable 'frame-width 'set-frame-width "29.1")
+
 (gv-define-simple-setter getenv setenv t)
 (gv-define-simple-setter get-register set-register)
 
