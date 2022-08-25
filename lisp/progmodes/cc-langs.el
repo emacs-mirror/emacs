@@ -403,7 +403,7 @@ The syntax tables aren't stored directly since they're quite large."
   t  (if (c-lang-const c-recognize-<>-arglists)
      `(lambda ()
 	;(if (c-lang-const c-recognize-<>-arglists)
-	(let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
+	(let ((table (funcall ',(c-lang-const c-make-mode-syntax-table))))
 	  (modify-syntax-entry ?\( "." table)
 	  (modify-syntax-entry ?\) "." table)
 	  (modify-syntax-entry ?\[ "." table)
