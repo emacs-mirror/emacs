@@ -27,16 +27,16 @@
 ;; wdired.el (the "w" is for writable) provides an alternative way of
 ;; renaming files.
 ;;
-;; Have you ever wanted to use C-x r t (string-rectangle), M-%
-;; (query-replace), M-c (capitalize-word), etc... to change the name of
-;; the files in a "dired" buffer?  Now you can do this.  All the power
-;; of Emacs commands are available when renaming files!
+;; Have you ever wanted to use `C-x r t' (`string-rectangle'), `M-%'
+;; (`query-replace'), `M-c' (`capitalize-word'), etc... to change the
+;; name of the files in a Dired buffer?  Now you can do this.  All the
+;; power of Emacs commands are available when renaming files!
 ;;
 ;; This package provides a function that makes the filenames of a
-;; dired buffer editable, by changing the buffer mode (which inhibits
-;; all of the commands of dired mode).  Here you can edit the names of
-;; one or more files and directories, and when you press C-c C-c, the
-;; renaming takes effect and you are back to dired mode.
+;; Dired buffer editable, by changing the buffer mode (which inhibits
+;; all of the commands of Dired mode).  Here you can edit the names of
+;; one or more files and directories, and when you press `C-c C-c',
+;; the renaming takes effect and you are back to dired mode.
 ;;
 ;; Other things you can do with WDired:
 ;;
@@ -48,7 +48,7 @@
 ;; - Change the permission bits of the filenames (in systems with a
 ;;   working unix-alike "chmod").  See and customize the variable
 ;;   `wdired-allow-to-change-permissions'.  To change a single char
-;;   (toggling between its two more usual values) you can press the
+;;   (toggling between its two more usual values), you can press the
 ;;   space bar over it or left-click the mouse.  To set any char to a
 ;;   specific value (this includes the SUID, SGID and STI bits) you
 ;;   can use the key labeled as the letter you want.  Please note that
@@ -58,18 +58,14 @@
 ;;
 ;; - Mark files for deletion, by deleting their whole filename.
 
-;;; Usage:
+;; * Usage:
 
-;; You can edit the names of the files by typing C-x C-q or by
-;; executing M-x wdired-change-to-wdired-mode.  Use C-c C-c when
-;; finished or C-c C-k to abort.  While editing filenames, a new
-;; submenu "WDired" is available at top level.  You can customize the
-;; behavior of this package from this menu.
-
-;;; Change Log:
-
-;; Previous versions with complete changelogs were posted to
-;; gnu.emacs.sources.
+;; You can edit the names of the files by typing `C-x C-q' or
+;; `M-x wdired-change-to-wdired-mode'.  Use `C-c C-c' when
+;; finished or `C-c C-k' to abort.
+;;
+;; You can customize the behavior of this package from the "WDired"
+;; menu or with `M-x customize-group RET wdired RET'.
 
 ;;; Code:
 
