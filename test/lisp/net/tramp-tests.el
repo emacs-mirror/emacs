@@ -3593,12 +3593,16 @@ This tests also `access-file', `file-readable-p',
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-stat tramp-test-vec))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (cons '(nil "perl" nil)
-		  tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (cons '(nil "perl" nil)
+		     tramp-connection-properties)))
+	 (progn
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (defmacro tramp--test-deftest-with-perl (test)
   "Define ert `TEST-with-perl'."
@@ -3612,15 +3616,19 @@ This tests also `access-file', `file-readable-p',
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
      (skip-unless (tramp-get-remote-perl tramp-test-vec))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (append
-	     '((nil "stat" nil)
-	       ;; See `tramp-sh-handle-file-truename'.
-	       (nil "readlink" nil))
-	     tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (append
+		'((nil "stat" nil)
+		  ;; See `tramp-sh-handle-file-truename'.
+		  (nil "readlink" nil))
+		tramp-connection-properties)))
+	 (progn
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (defmacro tramp--test-deftest-with-ls (test)
   "Define ert `TEST-with-ls'."
@@ -3633,16 +3641,20 @@ This tests also `access-file', `file-readable-p',
      :tags '(:expensive-test)
      (skip-unless (tramp--test-enabled))
      (skip-unless (tramp--test-sh-p))
-     (let ((default-directory ert-remote-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (append
-	     '((nil "perl" nil)
-	       (nil "stat" nil)
-	       ;; See `tramp-sh-handle-file-truename'.
-	       (nil "readlink" nil))
-	     tramp-connection-properties)))
-       (funcall (ert-test-body ert-test)))))
+     (if-let ((default-directory ert-remote-temporary-file-directory)
+	      (ert-test (ert-get-test ',test))
+	      (result (ert-test-most-recent-result ert-test))
+	      (tramp-connection-properties
+	       (append
+		'((nil "perl" nil)
+		  (nil "stat" nil)
+		  ;; See `tramp-sh-handle-file-truename'.
+		  (nil "readlink" nil))
+		tramp-connection-properties)))
+	 (progn
+	   (skip-unless (< (ert-test-result-duration result) 300))
+	   (funcall (ert-test-body ert-test)))
+       (ert-skip (format "Test `%s' must run before" ',test)))))
 
 (tramp--test-deftest-with-stat tramp-test18-file-attributes)
 
@@ -4598,7 +4610,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-shell-file-name ()
   "Return default remote shell."
-  (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
+  (if (file-exists-p
+       (concat
+	(file-remote-p ert-remote-temporary-file-directory) "/system/bin/sh"))
+      "/system/bin/sh" "/bin/sh"))
 
 (ert-deftest tramp-test28-process-file ()
   "Check `process-file'."
