@@ -577,7 +577,7 @@ for `smtpmail-try-auth-method'.")
                     (stringp result))
           (setq result (catch 'done
 		         (smtpmail-try-auth-method
-                          process (pop mechs) user password))))
+                          process (intern-soft (pop mechs)) user password))))
         ;; A string result is an error.
         (if (stringp result)
             (progn
