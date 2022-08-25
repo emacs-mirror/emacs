@@ -5730,6 +5730,39 @@ def \\
    (should (not (python-info-looking-at-beginning-of-defun)))
    (should (not (python-info-looking-at-beginning-of-defun nil t)))))
 
+(ert-deftest python-info-looking-at-beginning-of-block-1 ()
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if True:
+        pass
+    l = [x * 2
+         for x in range(5)
+         if x < 3]
+# if False:
+\"\"\"
+if 0:
+\"\"\"
+"
+   (python-tests-look-at "def f():")
+   (should (python-info-looking-at-beginning-of-block))
+   (forward-char)
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if True:")
+   (should (python-info-looking-at-beginning-of-block))
+   (forward-char)
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (beginning-of-line)
+   (should (python-info-looking-at-beginning-of-block))
+   (python-tests-look-at "for x")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if x < 3")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if False:")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if 0:")
+   (should (not (python-info-looking-at-beginning-of-block)))))
+
 (ert-deftest python-info-current-line-comment-p-1 ()
   (python-tests-with-temp-buffer
    "
@@ -6183,8 +6216,11 @@ class SomeClass:
 class SomeClass:
 
     def __init__(self, arg, kwarg=1):
+
     def filter(self, nums):
-    def __str__(self):"))))
+
+    def __str__(self):
+"))))
       (or enabled (hs-minor-mode -1)))))
 
 (ert-deftest python-hideshow-hide-levels-2 ()
@@ -6229,6 +6265,165 @@ class SomeClass:
         return '%s-%s' % (self.arg, self.kwarg)
 "))))
       (or enabled (hs-minor-mode -1)))))
+
+(ert-deftest python-hideshow-hide-levels-3 ()
+  "Should hide all blocks."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if 0:
+        l = [i for i in range(5)
+             if i < 3]
+        abc = o.match(1, 2, 3)
+
+def g():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-level 1)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+def f():
+
+def g():
+"))))
+
+(ert-deftest python-hideshow-hide-levels-4 ()
+  "Should hide 2nd level block."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if 0:
+        l = [i for i in range(5)
+             if i < 3]
+        abc = o.match(1, 2, 3)
+
+def g():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-level 2)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+def f():
+    if 0:
+
+def g():
+    pass
+"))))
+
+(ert-deftest python-hideshow-hide-all-1 ()
+  "Should hide all blocks."
+  (python-tests-with-temp-buffer
+   "if 0:
+
+    aaa
+    l = [i for i in range(5)
+         if i < 3]
+    ccc
+    abc = o.match(1, 2, 3)
+    ddd
+
+def f():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-all)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "if 0:
+
+def f():
+"))))
+
+(ert-deftest python-hideshow-hide-all-2 ()
+  "Should hide comments."
+  (python-tests-with-temp-buffer
+   "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"
+   (hs-minor-mode 1)
+   (hs-hide-all)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+# Multi line
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"))))
+
+(ert-deftest python-hideshow-hide-all-3 ()
+  "Should not hide comments when `hs-hide-comments-when-hiding-all' is nil."
+  (python-tests-with-temp-buffer
+   "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"
+   (hs-minor-mode 1)
+   (let ((hs-hide-comments-when-hiding-all nil))
+     (hs-hide-all))
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"))))
+
+(ert-deftest python-hideshow-hide-block-1 ()
+  "Should hide current block."
+  (python-tests-with-temp-buffer
+   "
+if 0:
+
+    aaa
+    l = [i for i in range(5)
+         if i < 3]
+    ccc
+    abc = o.match(1, 2, 3)
+    ddd
+
+def f():
+    pass
+"
+   (hs-minor-mode 1)
+   (python-tests-look-at "ddd")
+   (forward-line)
+   (hs-hide-block)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+if 0:
+
+def f():
+    pass
+"))))
 
 
 (ert-deftest python-tests--python-nav-end-of-statement--infloop ()

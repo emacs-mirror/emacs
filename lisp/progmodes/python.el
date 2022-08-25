@@ -1524,6 +1524,10 @@ marks the next defun after the ones already marked."
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
 
+(defvar python-nav-beginning-of-block-regexp
+  (python-rx line-start (* space) block-start)
+  "Regexp matching block start.")
+
 (defun python-nav--beginning-of-defun (&optional arg)
   "Internal implementation of `python-nav-beginning-of-defun'.
 With positive ARG search backwards, else search forwards."
@@ -4916,9 +4920,37 @@ Interactively, prompt for symbol."
 (defun python-hideshow-forward-sexp-function (_arg)
   "Python specific `forward-sexp' function for `hs-minor-mode'.
 Argument ARG is ignored."
-  (python-nav-end-of-defun)
-  (unless (python-info-current-line-empty-p)
-    (backward-char)))
+  (python-nav-end-of-block))
+
+(defun python-hideshow-find-next-block (regexp maxp comments)
+  "Python specific `hs-find-next-block' function for `hs-minor-mode'.
+Call `python-nav-forward-block' to find next block and check if
+block-start ends within MAXP.  If COMMENTS is not nil, comments
+are also searched.  REGEXP is passed to `looking-at' to set
+`match-data'."
+  (let* ((next-block (save-excursion
+                       (or (and
+                            (python-info-looking-at-beginning-of-block)
+                            (re-search-forward
+                             (python-rx block-start) maxp t))
+                           (and (python-nav-forward-block)
+                                (< (point) maxp)
+                                (re-search-forward
+                                 (python-rx block-start) maxp t))
+                           (1+ maxp))))
+         (next-comment
+          (or (when comments
+                (save-excursion
+                  (cl-loop while (re-search-forward "#" maxp t)
+                           if (python-syntax-context 'comment)
+                           return (point))))
+              (1+ maxp)))
+         (next-block-or-comment (min next-block next-comment)))
+    (when (<= next-block-or-comment maxp)
+      (goto-char next-block-or-comment)
+      (save-excursion
+        (beginning-of-line)
+        (looking-at regexp)))))
 
 
 ;;; Imenu
@@ -5415,6 +5447,16 @@ instead of the current physical line."
          (beginning-of-line 1)
          (looking-at python-nav-beginning-of-defun-regexp))))
 
+(defun python-info-looking-at-beginning-of-block ()
+  "Check if point is at the beginning of block."
+  (let ((pos (point)))
+    (save-excursion
+      (python-nav-beginning-of-statement)
+      (beginning-of-line)
+      (and
+       (<= (point) pos (+ (point) (current-indentation)))
+       (looking-at python-nav-beginning-of-block-regexp)))))
+
 (defun python-info-current-line-comment-p ()
   "Return non-nil if current line is a comment line."
   (char-equal
@@ -5870,14 +5912,17 @@ REPORT-FN is Flymake's callback function."
 
   (add-to-list
    'hs-special-modes-alist
-   '(python-mode
-     "\\s-*\\_<\\(?:def\\|class\\)\\_>"
+   `(python-mode
+     ,python-nav-beginning-of-block-regexp
      ;; Use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  This way parens at end of defun are properly hidden.
      ""
      "#"
      python-hideshow-forward-sexp-function
-     nil))
+     nil
+     python-nav-beginning-of-block
+     python-hideshow-find-next-block
+     python-info-looking-at-beginning-of-block))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
