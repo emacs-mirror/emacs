@@ -5886,6 +5886,14 @@ When you click the mouse when the mouse pointer is over a hot-spot, an
 event is composed by combining the @var{id} of the hot-spot with the
 mouse event; for instance, @code{[area4 mouse-1]} if the hot-spot's
 @var{id} is @code{area4}.
+
+Note that the map's coordinates should reflect the displayed image
+after all transforms have been done (rotation, scaling and so on), and
+also note that Emacs (by default) performs auto-scaling of images, so
+to make things match up, you should either specify @code{:scale 1.0}
+when creating the image, or use the result of
+@code{image-compute-scaling-factor} to compute the elements of the
+map.
 @end table
 
 @defun image-mask-p spec &optional frame
