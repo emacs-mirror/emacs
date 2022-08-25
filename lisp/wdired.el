@@ -46,11 +46,11 @@
 ;; - Change the target of symbolic links.
 ;;
 ;; - Change the permission bits of the filenames (in systems with a
-;;   working unix-alike `dired-chmod-program').  See and customize the
-;;   variable `wdired-allow-to-change-permissions'.  To change a single
-;;   char (toggling between its two more usual values) you can press
-;;   the space bar over it or left-click the mouse.  To set any char to
-;;   an specific value (this includes the SUID, SGID and STI bits) you
+;;   working unix-alike "chmod").  See and customize the variable
+;;   `wdired-allow-to-change-permissions'.  To change a single char
+;;   (toggling between its two more usual values) you can press the
+;;   space bar over it or left-click the mouse.  To set any char to a
+;;   specific value (this includes the SUID, SGID and STI bits) you
 ;;   can use the key labeled as the letter you want.  Please note that
 ;;   permissions of the links cannot be changed in that way, because
 ;;   the change would affect to their targets, and this would not be
@@ -127,8 +127,8 @@ If `advanced', the bits are freely editable.  You can use
 newlines), but if you want your changes to be useful, you better put a
 intelligible value.
 
-Anyway, the real change of the permissions is done by the external
-program `dired-chmod-program', which must exist."
+The real change of the permissions is done by the external
+program \"chmod\", which must exist."
   :type '(choice (const :tag "Not allowed" nil)
                  (const :tag "Toggle/set bits" t)
 		 (other :tag "Bits freely editable" advanced)))
