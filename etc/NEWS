@@ -162,6 +162,14 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
++++
+*** Explicitly-set readedness state is preserved when reverting a buffer.
+If you use the 'C-x C-q' command to change the read-only state of the
+buffer and then revert it, Emacs would previously use the file
+permission bits to determine whether the buffer should be read-only
+after reverting the buffer.  Emacs now remembers the decision made in
+'C-x C-q'.
+
 ---
 *** The Gtk selection face is no longer used for the region.
 The combination of a Gtk-controlled background and a foreground color
