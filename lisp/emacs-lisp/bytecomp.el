@@ -1356,6 +1356,7 @@ FORMAT and ARGS are as in `byte-compile-warn'."
   (let ((byte-compile-form-stack (cons arg byte-compile-form-stack)))
     (apply #'byte-compile-warn format args)))
 
+;;;###autoload
 (defun byte-compile-warn-obsolete (symbol type)
   "Warn that SYMBOL (a variable, function or generalized variable) is obsolete.
 TYPE is a string that say which one of these three types it is."
