@@ -134,9 +134,11 @@ Also see `grep-command-position'."
   :set #'grep-apply-setting)
 
 (defcustom grep-command-position nil
-  "Where point will be put when prompting for a grep command.
-If nil, put point at the end.  If not nil, this should be the
-column number where point should be set in `grep-command'."
+  "Where to put point when prompting for a grep command.
+This controls the placement of point in the minibuffer when Emacs
+prompts for the grep command.  If nil, put point at the end of
+the suggested command.  If non-nil, this should be the one-based
+position in the minibuffer where to place point."
   :type '(choice (const :tag "At the end" nil)
                  natnum))
 
