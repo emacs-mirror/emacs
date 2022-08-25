@@ -2303,6 +2303,8 @@ as a function from Lisp programs.
 @cindex startup (init file)
 @cindex XDG_CONFIG_HOME
 
+@c When updating this, also update ``Setting up a customization file''
+@c in efaq.texi.
   When Emacs is started, it normally tries to load a Lisp program from
 an @dfn{initialization file}, or @dfn{init file} for short.  This
 file, if it exists, specifies how to initialize Emacs for you.

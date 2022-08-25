@@ -693,9 +693,10 @@ of the file in parentheses, like this:
 @item
 You can create your own Info directory.  You can tell Emacs where that
 Info directory is by adding its pathname to the value of the variable
-@code{Info-default-directory-list}.  For example, to use a private Info
-directory which is a subdirectory of your home directory named @file{Info},
-you could put this in your init file:
+@code{Info-default-directory-list}.  For example, to use a private
+Info directory which is a subdirectory of your home directory named
+@file{Info}, you could put this in your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (add-to-list 'Info-default-directory-list "~/Info/")
@@ -1611,14 +1612,13 @@ is better to write ``Emacs and XEmacs.''
 @cindex Init file, locating
 @cindex Customization file, setting up
 
+When Emacs is started, it normally tries to load a Lisp program from
+an @dfn{initialization file}, or @dfn{init file} for short.  This
+file, if it exists, specifies how to initialize Emacs for you.
+Traditionally, file @file{~/.emacs} is used as the init file, although
+Emacs also looks at @file{~/.emacs.el}, @file{~/.emacs.d/init.el},
+@file{~/.config/emacs/init.el}, or other locations.
 @xref{Init File,,, emacs, The GNU Emacs Manual}.
-
-In general, new Emacs users should not be provided with init
-files, because this can cause confusing non-standard behavior.  Then
-they send questions to
-@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
-the help-gnu-emacs mailing list} asking why Emacs
-isn't behaving as documented.
 
 Emacs includes the Customize facility (@pxref{Using Customize}).  This
 allows users who are unfamiliar with Emacs Lisp to modify their
@@ -1631,9 +1631,12 @@ init file directly.  Simple configuration options are described
 rather completely in @ref{Init File,,, emacs, The GNU Emacs Manual},
 for users interested in performing frequently requested, basic tasks.
 
-Sometimes users are unsure as to where their init file is found.
-Visiting the file as @file{~/.emacs.el}, @file{~/.emacs}, or
-@file{~/.emacs.d/init.el} from Emacs will find the correct file.
+In general, new Emacs users should not be provided with init
+files, because this can cause confusing non-standard behavior.  Then
+they send questions to
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
+the help-gnu-emacs mailing list} asking why Emacs
+isn't behaving as documented.
 
 @node Using Customize
 @section How do I start using Customize?
@@ -1786,7 +1789,8 @@ You can similarly display the current column with
 @end lisp
 
 @noindent
-in your init file.  This feature is off by default.
+in your init file (@pxref{Setting up a customization file}).  This
+feature is off by default.
 
 The @code{"%c"} format specifier in the variable @code{mode-line-format}
 will insert the current column's value into the mode line.  See the
@@ -1832,7 +1836,7 @@ machine at which Emacs was invoked.  This is done by setting
 
 To modify the behavior such that frame titlebars contain the buffer's
 name regardless of the number of existing frames, include the following
-in your init file:
+in your init file (@pxref{Setting up a customization file}):
 
 @lisp
 (setq frame-title-format "%b")
@@ -1842,9 +1846,10 @@ in your init file:
 @section How do I turn on abbrevs by default just in mode @var{mymode}?
 @cindex Abbrevs, turning on by default
 
-Abbrev mode expands abbreviations as you type them.  To turn it on in a
-specific buffer, use @kbd{M-x abbrev-mode}.  To turn it on in every
-buffer by default, put this in your init file:
+Abbrev mode expands abbreviations as you type them.  To turn it on in
+a specific buffer, use @kbd{M-x abbrev-mode}.  To turn it on in every
+buffer by default, put this in your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (setq-default abbrev-mode t)
@@ -1894,7 +1899,8 @@ the script.  Use @kbd{C-h v} (or @kbd{M-x describe-variable}) on
 @cindex Highlighting and replacing text
 
 Use @code{delete-selection-mode}, which you can start automatically by
-placing the following Lisp form in your init file:
+placing the following Lisp form in your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (delete-selection-mode 1)
@@ -2032,9 +2038,10 @@ The default maximum line width is 70, determined by the variable
 To turn on @code{auto-fill-mode} just once for one buffer, use @kbd{M-x
 auto-fill-mode}.
 
-To turn it on for every buffer in a certain mode, you must use the hook
-for that mode.  For example, to turn on @code{auto-fill} mode for all
-text buffers, including the following in your init file:
+To turn it on for every buffer in a certain mode, you must use the
+hook for that mode.  For example, to turn on @code{auto-fill} mode for
+all text buffers, including the following in your init file
+(@pxref{Setting up a customization file}):
 
 @lisp
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
@@ -2089,7 +2096,8 @@ option:
 emacs -f server-start
 @end example
 
-or by invoking @code{server-start} from init file:
+or by invoking @code{server-start} from init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (if (@var{some conditions are met}) (server-start))
@@ -2160,7 +2168,8 @@ f()
 @}
 @end example
 
-@noindent To achieve this, add the following line to your init file:
+@noindent To achieve this, add the following line to your init file
+(@pxref{Setting up a customization file}):
 
 @lisp
 (c-set-offset 'case-label '+)
@@ -2211,7 +2220,8 @@ the line or the block according to what you just specified.
 
 @item
 If you don't like the result, go back to step 1.  Otherwise, add the
-following line to your init file:
+following line to your init file (@pxref{Setting up a customization
+file}):
 
 @lisp
 (c-set-offset '@var{syntactic-symbol} @var{offset})
@@ -2241,8 +2251,8 @@ customizations inside a C mode hook, like this:
 
 @noindent
 Using @code{c-mode-hook} avoids the need to put a @w{@code{(require
-'cc-mode)}} into your init file, because @code{c-set-offset}
-might be unavailable when @code{cc-mode} is not loaded.
+'cc-mode)}} into your init file, because @code{c-set-offset} might be
+unavailable when @code{cc-mode} is not loaded.
 
 Note that @code{c-mode-hook} runs for C source files only; use
 @code{c++-mode-hook} for C@t{++} sources, @code{java-mode-hook} for
@@ -2353,7 +2363,8 @@ new paragraph.  There are many packages available to deal with this
 @cindex Pairs of parentheses, highlighting
 @cindex Matching parentheses
 
-Call @code{show-paren-mode} in your init file:
+Call @code{show-paren-mode} in your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (show-paren-mode 1)
@@ -2460,7 +2471,7 @@ Emacs Lisp @dfn{form}:
 If you want it evaluated every time you run Emacs, put it in a file
 named @file{.emacs.d/init.el} in your home directory.  This is known
 as ``your init file,'' and contains all of your personal
-customizations.
+customizations (@pxref{Setting up a customization file}).
 
 @item
 You can type the form in the @file{*scratch*} buffer, and then type
@@ -2498,7 +2509,7 @@ about them.
 
 Set the default value of the variable @code{tab-width}.  For example, to set
 @key{TAB} stops every 10 characters, insert the following in your
-init file:
+init file (@pxref{Setting up a customization file}):
 
 @lisp
 (setq-default tab-width 10)
@@ -2640,8 +2651,9 @@ Quick command-line switch descriptions are also available.  For example,
 You probably don't want to do this, since backups are useful, especially
 when something goes wrong.
 
-To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
-load @code{dired-x} by adding the following to your init file:
+To avoid seeing backup files (and other ``uninteresting'' files) in
+Dired, load @code{dired-x} by adding the following to your init file
+(@pxref{Setting up a customization file}):
 
 @lisp
 (with-eval-after-load 'dired
@@ -2904,10 +2916,11 @@ Different levels of decoration are available, from slight to gaudy.
 More decoration means you need to wait more time for a buffer to be
 fontified (or a faster machine).  To control how decorated your
 buffers should become, set the value of
-@code{font-lock-maximum-decoration} in your init file, with a
-@code{nil} value indicating default (usually minimum) decoration, and a
-@code{t} value indicating the maximum decoration.  For the gaudiest
-possible look, then, include the line
+@code{font-lock-maximum-decoration} in your init file (@pxref{Setting
+up a customization file}), with a @code{nil} value indicating default
+(usually minimum) decoration, and a @code{t} value indicating the
+maximum decoration.  For the gaudiest possible look, then, include the
+line
 
 @lisp
 (setq font-lock-maximum-decoration t)
@@ -2941,7 +2954,8 @@ customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
 to a large value like, say, 10000.  For an explanation of what this
 means, @pxref{Auto Scrolling,,, emacs, The GNU Emacs Manual}.
 
-Alternatively, use the following Lisp form in your init file:
+Alternatively, use the following Lisp form in your init file
+(@pxref{Setting up a customization file}):
 
 @lisp
 (setq scroll-conservatively most-positive-fixnum)
@@ -2970,7 +2984,8 @@ default, a backslash (@samp{\}) will appear in the mode line.
 @cindex Single space following periods
 @cindex Periods, one space following
 
-Add the following line to your init file:
+Add the following line to your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
 (setq sentence-end-double-space nil)
@@ -2992,7 +3007,8 @@ escape sequences.  It is enabled by default.
 @cindex Fullscreen mode
 
 Beginning with Emacs 24.4 either run Emacs with the @samp{--maximized}
-command-line option or put the following form in your init file:
+command-line option or put the following form in your init file
+(@pxref{Setting up a customization file}):
 
 @lisp
 (add-hook 'emacs-startup-hook 'toggle-frame-maximized)
@@ -3123,7 +3139,8 @@ with the following Lisp form,
 The above solutions try to prevent the shell from producing the
 @samp{^M} characters in the first place.  If this is not possible
 (e.g., if you use a Windows shell), you can get Emacs to remove these
-characters from the buffer by adding this to your init file:
+characters from the buffer by adding this to your init file
+(@pxref{Setting up a customization file}):
 
 @smalllisp
 (add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
@@ -3145,8 +3162,8 @@ stty -icrnl -onlcr -echo susp ^Z
 @cindex @code{explicit-shell-file-name}
 This might happen because Emacs tries to look for the shell in a wrong
 place.  If you know where your shell executable is, set the variable
-@code{explicit-shell-file-name} in your init file to point to
-its full file name.
+@code{explicit-shell-file-name} in your init file (@pxref{Setting up a
+customization file}) to point to its full file name.
 
 @cindex Antivirus programs, and Shell Mode
 Some people have trouble with Shell Mode on MS-Windows because of
@@ -3712,9 +3729,10 @@ information is available from
 @cindex Keys, binding to commands
 @cindex Commands, binding keys to
 
-Keys can be bound to commands either interactively or in your
-init file.  To interactively bind keys for all modes, type
-@kbd{M-x global-set-key @key{RET} @var{key} @var{cmd} @key{RET}}.
+Keys can be bound to commands either interactively or in your init
+file (@pxref{Setting up a customization file}).  To interactively bind
+keys for all modes, type @kbd{M-x global-set-key @key{RET} @var{key}
+@var{cmd} @key{RET}}.
 
 To bind a key just in the current major mode, type @kbd{M-x
 local-set-key @key{RET} @var{key} @var{cmd} @key{RET}}.
@@ -3733,9 +3751,9 @@ command are required.  For example,
 @end lisp
 
 @noindent
-can be placed directly into the init file.  If the key binding is
-local, the command is used in conjunction with the @samp{add-hook} function.
-For example, in TeX mode, a local binding might be
+can be placed directly into your init file.  If the key binding is
+local, the command is used in conjunction with the @samp{add-hook}
+function.  For example, in TeX mode, a local binding might be
 
 @lisp
 (add-hook 'tex-mode-hook
@@ -3796,11 +3814,12 @@ of these forms before attempting to bind the key sequence:
 @section Why doesn't this [terminal or window-system setup] code work in my init file, but it works just fine after Emacs starts up?
 @cindex Terminal setup code in init file
 
-During startup, Emacs initializes itself according to a given code/file
-order.  If some of the code executed in your init file needs to
-be postponed until the initial terminal or window-system setup code has
-been executed but is not, then you will experience this problem (this
-code/file execution order is not enforced after startup).
+During startup, Emacs initializes itself according to a given
+code/file order.  If some of the code executed in your init file
+(@pxref{Setting up a customization file}) needs to be postponed until
+the initial terminal or window-system setup code has been executed but
+is not, then you will experience this problem (this code/file
+execution order is not enforced after startup).
 
 To postpone the execution of Emacs Lisp code until after terminal or
 window-system setup, treat the code as a @dfn{lambda list} and add it to
@@ -4249,7 +4268,8 @@ arrange for these two commands to run whenever you log in, e.g., by
 adding them to your window-system startup file, such as
 @file{~/.xsessionrc} or @file{~/.gnomerc}.
 
-Now, add the following line to your init file:
+Now, add the following line to your init file (@pxref{Setting up a
+customization file}):
 
 @lisp
   (add-to-list 'bdf-directory-list "/usr/share/emacs/fonts/bdf")
@@ -4329,8 +4349,9 @@ yourself by putting
 @end lisp
 
 @noindent
-in your init file.  You can automatically include an @samp{FCC} field
-by putting something like the following in your init file:
+in your init file (@pxref{Setting up a customization file}).  You can
+automatically include an @samp{FCC} field by putting something like
+the following in your init file:
 
 @lisp
 (setq mail-archive-file-name (expand-file-name "~/outgoing"))
