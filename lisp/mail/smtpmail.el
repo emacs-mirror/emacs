@@ -578,7 +578,7 @@ for `smtpmail-try-auth-method'.")
       (setq password (funcall password)))
     (let ((result (catch 'done
                     (if (and mech user password)
-		        (smtpmail-try-auth-method process mech user password)
+		        (smtpmail-try-auth-method process (intern-soft mech) user password)
                       ;; No mechanism, or no credentials.
                       mech))))
       (if (stringp result)
