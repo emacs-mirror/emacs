@@ -27,9 +27,6 @@ latest version of the FAQ is archived.
 The FAQ may be copied and redistributed under these conditions, except that
 the FAQ may not be embedded in a larger literary work unless that work
 itself allows free copying and redistribution.
-
-[This version has been heavily edited since it was included in the Emacs
-distribution in 1999.]
 @end quotation
 @end copying
 
@@ -545,11 +542,11 @@ printed manual}.
 @cindex Reference cards, in other languages
 @item
 You can get a printed reference card listing commands and keys to
-invoke them.  You can order one from the FSF for $2 (or 10 for $18),
-or you can print your own from the @file{etc/refcards/refcard.tex} or
-@file{etc/refcards/refcard.pdf} files in the Emacs distribution.
-The Emacs distribution comes with translations of the reference card
-into several languages; look for files named
+invoke them.  You can order one from the FSF, or you can print your
+own from the @file{etc/refcards/refcard.tex} or
+@file{etc/refcards/refcard.pdf} files in the Emacs distribution.  The
+Emacs distribution comes with translations of the reference card into
+several languages; look for files named
 @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang} is a
 two-letter code of the language.  For example, the German version of
 the reference card is in the files @file{etc/refcards/de-refcard.tex}
@@ -1808,9 +1805,8 @@ optional display.  Alternatively, you can use the
 customize @code{display-line-numbers-type} with the same value as you
 would use with @code{display-line-numbers}.
 
-There is also the @samp{linum} package (distributed with Emacs since
-version 23.1) which will henceforth become obsolete.  Users and
-developers are encouraged to use @samp{display-line-numbers} instead.
+There is also the @samp{linum} package which will henceforth become
+obsolete.  We recommend using @samp{display-line-numbers} instead.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -2318,8 +2314,8 @@ usage:  xset [-display host:dpy] option ...
 @cindex Previous line, indenting according to
 @cindex Text indentation
 
-Such behavior is automatic (in Text mode) in Emacs 20 and later.  From the
-@file{etc/NEWS} file for Emacs 20.2:
+Such behavior is automatic (in Text mode).  From the @file{etc/NEWS}
+file for Emacs 20.2:
 
 @example
 ** In Text mode, now only blank lines separate paragraphs.  This makes
@@ -3061,10 +3057,9 @@ Emacs has an inherent fixed limitation on the size of buffers.  This
 limit is stricter than the maximum size of objects supported by other
 programs on the same architecture.
 
-The maximum buffer size on 32-bit machines is 512 MBytes beginning
-with version 23.2.  If Emacs was built using the
-@code{--with-wide-int} flag, the maximum buffer size on 32-bit
-machines is 2 GB.
+The maximum buffer size on 32-bit machines is 512 MBytes.  If Emacs
+was built using the @code{--with-wide-int} flag, the maximum buffer
+size on 32-bit machines is 2 GB.
 
 Emacs compiled on a 64-bit machine can handle much larger buffers; up
 to @code{most-positive-fixnum} (2.3 exabytes).
@@ -3490,8 +3485,8 @@ and any Emacs Info files that might be in @file{/usr/local/share/info/}.
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
 @cindex macOS, Emacs for
-Beginning with version 22.1, Emacs supports macOS natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports macOS natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @cindex FAQ for Emacs on MS-Windows
 @cindex Emacs for MS-Windows
@@ -3500,8 +3495,8 @@ There is a separate FAQ for Emacs on MS-Windows,
 @pxref{Top,,,efaq-w32,FAQ for Emacs on MS Windows}.
 
 @cindex GNUstep, Emacs for
-Beginning with version 23.1, Emacs supports GNUstep natively.
-See the file @file{nextstep/INSTALL} in the distribution.
+Emacs supports GNUstep natively.  See the file @file{nextstep/INSTALL}
+in the distribution.
 
 @cindex MS-DOS, Emacs for
 @cindex DOS, Emacs for
@@ -4226,8 +4221,7 @@ Emacs Manual}.  For more sophisticated methods,
 @cindex bidirectional scripts
 
 Emacs supports display and editing of bidirectional scripts, such as
-Arabic, Farsi, and Hebrew, since version 24.1.
-@xref{New in Emacs 24, bidirectional display}.
+Arabic, Farsi, and Hebrew.
 
 
 @node How to add fonts
@@ -4368,8 +4362,7 @@ To expand them before this, use @kbd{M-x expand-mail-aliases}.
 Emacs normally only reads the @file{.mailrc} file once per session, when
 you start to compose your first mail message.  If you edit the file
 after this, you can use @kbd{M-x build-mail-aliases} to make Emacs
-reread it.  Prior to Emacs 24.1, this is not an interactive command, so
-you must instead type @kbd{M-: (build-mail-aliases) @key{RET}}.
+reread it.
 
 @item
 If you like, you can expand mail aliases as abbrevs, as soon as you
