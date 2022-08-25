@@ -1646,6 +1646,7 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
+        (edebugging edebug-all-defs)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1670,8 +1671,9 @@ Return the result of evaluation."
                          (elisp--eval-defun-1
                           (macroexpand form)))))
 	      (print-length eval-expression-print-length)
-	      (print-level eval-expression-print-level))
-          (eval-region beg end standard-output
+	      (print-level eval-expression-print-level)
+              (should-print (if (not edebugging) standard-output)))
+          (eval-region beg end should-print
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
                          ;; will make eval-region return.
