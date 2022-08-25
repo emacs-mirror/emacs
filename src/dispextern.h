@@ -2874,18 +2874,17 @@ typedef struct {
 INLINE void
 reset_mouse_highlight (Mouse_HLInfo *hlinfo)
 {
-
-    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
-    hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
-    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_window = Qnil;
-    hlinfo->mouse_face_overlay = Qnil;
-    hlinfo->mouse_face_past_end = false;
-    hlinfo->mouse_face_hidden = false;
-    hlinfo->mouse_face_defer = false;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+  hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_mouse_frame = NULL;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_past_end = false;
+  hlinfo->mouse_face_hidden = false;
+  hlinfo->mouse_face_defer = false;
 }
 
 /***********************************************************************

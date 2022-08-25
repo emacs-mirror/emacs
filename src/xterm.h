@@ -286,6 +286,12 @@ struct xi_device_t
   /* The frame that is currently this device's implicit keyboard
      focus, or NULL.  */
   struct frame *focus_implicit_frame;
+
+  /* The window on which the last motion event happened.  */
+  Window last_motion_window;
+
+  /* The rounded integer coordinates of the last motion event.  */
+  int last_motion_x, last_motion_y;
 };
 #endif
 
