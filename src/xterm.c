@@ -6905,16 +6905,22 @@ x_sync_update_begin (struct frame *f)
 static void
 x_sync_trigger_fence (struct frame *f, XSyncValue value)
 {
+  uint_fast64_t n, low, high, idx;
+
   /* Sync fences aren't supported by the X server.  */
   if (FRAME_DISPLAY_INFO (f)->xsync_major < 3
       || (FRAME_DISPLAY_INFO (f)->xsync_major == 3
 	  && FRAME_DISPLAY_INFO (f)->xsync_minor < 1))
     return;
 
-  bool idx = !! (XSyncValueLow32 (value) & 4);
+  low = XSyncValueLow32 (value);
+  high = XSyncValueHigh32 (value);
+
+  n = low | (high << 32);
+  idx = (n / 4) % 2;
 
 #ifdef FRAME_DEBUG
-  fprintf (stderr, "Triggering synchronization fence: %d\n", idx);
+  fprintf (stderr, "Triggering synchronization fence: %lu\n", idx);
 #endif
 
   XSyncTriggerFence (FRAME_X_DISPLAY (f),
