@@ -1764,6 +1764,12 @@ utility function used by commands like `dired-do-find-regexp' and
   :version "28.1"
   :package-version '(xref . "1.0.4"))
 
+(defmacro xref--with-connection-local-variables (&rest body)
+  (declare (debug t))
+  (if (>= emacs-major-version 27)
+      `(with-connection-local-variables ,@body)
+    `(progn ,@body)))
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
@@ -1810,13 +1816,14 @@ to control which program to use when looking for matches."
         (insert (mapconcat #'identity files "\0"))
         (setq default-directory dir)
         (setq status
-              (xref--process-file-region (point-min)
-                                         (point-max)
-                                         shell-file-name
-                                         output
-                                         nil
-                                         shell-command-switch
-                                         command)))
+              (xref--with-connection-local-variables
+               (xref--process-file-region (point-min)
+                                          (point-max)
+                                          shell-file-name
+                                          output
+                                          nil
+                                          shell-command-switch
+                                          command))))
       (goto-char (point-min))
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re))
