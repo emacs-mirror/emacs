@@ -49,7 +49,8 @@
 		(tramp-password-previous-hop t)))
 
  (add-to-list 'tramp-default-user-alist
-	      `("\\`sudoedit\\'" nil ,tramp-root-id-string))
+	      `(,(rx bos (literal tramp-sudoedit-method) eos)
+		nil ,tramp-root-id-string))
 
  (tramp-set-completion-function
   tramp-sudoedit-method tramp-completion-function-alist-su))
@@ -374,7 +375,9 @@ the result will be a local, non-Tramp, file name."
       (setq localname "~"))
     (unless (file-name-absolute-p localname)
       (setq localname (format "~%s/%s" user localname)))
-    (when (string-match "\\`~\\([^/]*\\)\\(.*\\)\\'" localname)
+    (when (string-match
+	   (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	   localname)
       (let ((uname (match-string 1 localname))
 	    (fname (match-string 2 localname))
 	    hname)
@@ -383,11 +386,11 @@ the result will be a local, non-Tramp, file name."
 	(when (setq hname (tramp-get-home-directory v uname))
 	  (setq localname (concat hname fname)))))
     ;; Do not keep "/..".
-    (when (string-match-p "^/\\.\\.?$" localname)
+    (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
       (setq localname "/"))
     ;; Do normal `expand-file-name' (this does "~user/", "/./" and "/../").
     (tramp-make-tramp-file-name
-     v (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+     v (if (string-prefix-p "~" localname)
 	   localname
 	 (tramp-run-real-handler
 	  #'expand-file-name (list localname))))))
@@ -470,7 +473,7 @@ the result will be a local, non-Tramp, file name."
 	(delq
 	 nil
 	 (mapcar
-	  (lambda (l) (and (not (string-match-p "^[[:space:]]*$" l)) l))
+	  (lambda (l) (and (not (string-match-p (rx bol (* space) eol) l)) l))
 	  (split-string
 	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
 	   "\n" 'omit))))))))
@@ -504,15 +507,17 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
-	    (regexp (concat "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\):"
-			    "\\([[:alnum:]_]+\\):" "\\([[:alnum:]_]+\\)")))
+	    (regexp (rx (group (+ (any "_" alnum))) ":"
+			(group (+ (any "_" alnum))) ":"
+			(group (+ (any "_" alnum))) ":"
+			(group (+ (any "_" alnum))))))
 	(when (and (tramp-sudoedit-remote-selinux-p v)
 		   (tramp-sudoedit-send-command
 		    v "ls" "-d" "-Z"
 		    (tramp-compat-file-name-unquote localname)))
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (goto-char (point-min))
-            (when (re-search-forward regexp (line-end-position) t)
+	    (when (re-search-forward regexp (line-end-position) t)
 	      (setq context (list (match-string 1) (match-string 2)
 				  (match-string 3) (match-string 4))))))
 	;; Return the context.
@@ -530,9 +535,9 @@ the result will be a local, non-Tramp, file name."
 	  (goto-char (point-min))
 	  (forward-line)
 	  (when (looking-at
-		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"
-			 "[[:space:]]+\\([[:digit:]]+\\)"))
+		 (rx (* space) (group (+ digit))
+		     (+ space) (group (+ digit))
+		     (+ space) (group (+ digit))))
 	    (list (string-to-number (match-string 1))
 		  ;; The second value is the used size.  We need the
 		  ;; free size.
@@ -841,7 +846,7 @@ In case there is no valid Lisp expression, it raises an error."
       (condition-case nil
 	  (prog1 (read (current-buffer))
 	    ;; Error handling.
-            (when (re-search-forward "\\S-" (line-end-position) t)
+	    (when (re-search-forward (rx (not space)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
 		vec 'file-error
@@ -855,7 +860,7 @@ In case there is no valid Lisp expression, it raises an error."
       (tramp-message vec 6 "\n%s" (buffer-string))
       (goto-char (point-max))
       ;(delete-blank-lines)
-      (while (looking-back "[ \t\n]+" nil 'greedy)
+      (while (looking-back (rx (+ (any " \t\n"))) nil 'greedy)
 	(delete-region (match-beginning 0) (point)))
       (when (> (point-max) (point-min))
 	(substring-no-properties (buffer-string))))))

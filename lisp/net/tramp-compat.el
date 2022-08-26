@@ -237,7 +237,7 @@ CONDITION can also be a list of error conditions."
     (lambda (from-string to-string in-string)
       (let (case-fold-search)
         (replace-regexp-in-string
-         (regexp-quote from-string) to-string in-string t t)))))
+         (rx (literal from-string)) to-string in-string t t)))))
 
 ;; Function `string-search' is new in Emacs 28.1.
 (defalias 'tramp-compat-string-search
@@ -245,7 +245,7 @@ CONDITION can also be a list of error conditions."
       #'string-search
     (lambda (needle haystack &optional start-pos)
       (let (case-fold-search)
-        (string-match-p (regexp-quote needle) haystack start-pos)))))
+        (string-match-p (rx (literal needle)) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.
 (defalias 'tramp-compat-make-lock-file-name

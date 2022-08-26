@@ -40,7 +40,8 @@
       "Format for `ert-resource-directory'.")
     (defvar ert-resource-directory-trim-left-regexp ""
       "Regexp for `string-trim' (left) used by `ert-resource-directory'.")
-    (defvar ert-resource-directory-trim-right-regexp "\\(-tests?\\)?\\.el"
+    (defvar ert-resource-directory-trim-right-regexp
+      (rx (? "-test" (? "s")) ".el")
       "Regexp for `string-trim' (right) used by `ert-resource-directory'.")
 
     (defmacro ert-resource-directory ()
@@ -615,13 +616,13 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (insert-directory tramp-archive-test-archive nil)
 	    (goto-char (point-min))
 	    (should
-	     (looking-at-p (regexp-quote tramp-archive-test-archive))))
+	     (looking-at-p (rx (literal tramp-archive-test-archive)))))
 	  (with-temp-buffer
 	    (insert-directory tramp-archive-test-archive "-al")
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (format "^.+ %s$" (regexp-quote tramp-archive-test-archive)))))
+	      (rx bol (+ nonl) " " (literal tramp-archive-test-archive) eol))))
 	  (with-temp-buffer
 	    (insert-directory
 	     (file-name-as-directory tramp-archive-test-archive)
@@ -629,15 +630,17 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (concat
-	       ;; There might be a summary line.
-	       "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
-	       ;; We don't know in which order the files appear.
-	       (format
-		"\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"
-		(regexp-opt (directory-files tramp-archive-test-archive))
-		(length (directory-files tramp-archive-test-archive)))))))
-
+	      (rx-to-string
+	       `(:
+		 ;; There might be a summary line.
+		 (? "total" (+ nonl) (+ digit) (? " ")
+		    (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
+		 ;; We don't know in which order the files appear.
+		 (= ,(length (directory-files tramp-archive-test-archive))
+		    (+ nonl) " "
+		    (regexp
+		     ,(regexp-opt (directory-files tramp-archive-test-archive)))
+		    (? " ->" (one-or-more nonl)) "\n"))))))
 	  ;; Check error case.
 	  (with-temp-buffer
 	    (should-error
@@ -727,7 +730,7 @@ This tests also `access-file', `file-readable-p' and `file-regular-p'."
 	  (setq attr (directory-files-and-attributes tmp-name 'full))
 	  (dolist (elt attr)
 	    (should (equal (file-attributes (car elt)) (cdr elt))))
-	  (setq attr (directory-files-and-attributes tmp-name nil "\\`b"))
+	  (setq attr (directory-files-and-attributes tmp-name nil (rx bos "b")))
 	  (should (equal (mapcar #'car attr) '("bar"))))
 
       ;; Cleanup.
@@ -914,11 +917,14 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
           (should
            (string-match
-	    (format
-	     "tramp-archive loaded: %s[[:ascii:]]+tramp-archive loaded: %s"
-	     (tramp-archive-file-name-p default-directory)
-	     (or (tramp-archive-file-name-p default-directory)
-		 (and enabled (tramp-archive-file-name-p file))))
+	    (rx "tramp-archive loaded: "
+		(literal (symbol-name
+			  (tramp-archive-file-name-p default-directory)))
+		(+ ascii)
+		"tramp-archive loaded: "
+		(literal (symbol-name
+			  (or (tramp-archive-file-name-p default-directory)
+			     (and enabled (tramp-archive-file-name-p file))))))
 	    (shell-command-to-string
 	     (format
 	      "%s -batch -Q -L %s --eval %s --eval %s"
@@ -955,9 +961,9 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (dolist (tae '(t nil))
       (should
        (string-match
-	(format
-	 "tramp-archive loaded: nil[[:ascii:]]+tramp-archive loaded: nil[[:ascii:]]+tramp-archive loaded: %s"
-	 tae)
+	(rx "tramp-archive loaded: nil" (+ ascii)
+	    "tramp-archive loaded: nil" (+ ascii)
+	    "tramp-archive loaded: " (literal (symbol-name tae)))
         (shell-command-to-string
          (format
 	  "%s -batch -Q -L %s --eval %s"
@@ -1005,7 +1011,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	     (apply
 	      'append
 	      (mapcar
-	       (lambda (x) (directory-files (concat dir x) 'full "uu\\'" 'sort))
+	       (lambda (x)
+		 (directory-files (concat dir x) 'full (rx "uu" eos) 'sort))
 	       '("~/src/libarchive-3.2.2/libarchive/test"
 		 "~/src/libarchive-3.2.2/cpio/test"
 		 "~/src/libarchive-3.2.2/tar/test"))))

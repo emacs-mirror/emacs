@@ -226,7 +226,8 @@ Return VALUE."
       (setq key (tramp-file-name-unify key file))
       (dolist (property (hash-table-keys (tramp-get-hash-table key)))
 	(when (string-match-p
-	       "^\\(directory-\\|file-name-all-completions\\|file-entries\\)"
+	       (rx
+		bos (| "directory-" "file-name-all-completions" "file-entries"))
 	       property)
 	  (tramp-flush-file-property key file property))))))
 
@@ -277,7 +278,7 @@ Remove also properties of all files in subdirectories."
 This is suppressed for temporary buffers."
   (save-match-data
     (unless (or (null (buffer-name))
-		(string-match-p "^\\( \\|\\*\\)" (buffer-name)))
+		(string-match-p (rx bos (| " " "*")) (buffer-name)))
       (let ((bfn (if (stringp (buffer-file-name))
 		     (buffer-file-name)
 		   default-directory))

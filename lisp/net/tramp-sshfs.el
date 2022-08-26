@@ -215,7 +215,7 @@ arguments to pass to the OPERATION."
 	  (progn
 	    ;; Read the expression.
 	    (goto-char (point-min))
-            (buffer-substring (point) (line-end-position)))
+	    (buffer-substring (point) (line-end-position)))
 	  ":" 'omit))))
    ;; The equivalent to `exec-directory'.
    `(,(tramp-file-local-name (expand-file-name default-directory)))))

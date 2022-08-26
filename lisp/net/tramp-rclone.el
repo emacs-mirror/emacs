@@ -186,7 +186,7 @@ arguments to pass to the OPERATION."
     (delq nil
 	  (mapcar
 	   (lambda (line)
-	     (when (string-match "^\\(\\S-+\\):$" line)
+	     (when (string-match (rx bol (group (+ (not space))) ":" eol) line)
 	       `(nil ,(match-string 1 line))))
 	   (tramp-process-lines nil tramp-rclone-program "listremotes")))))
 
@@ -300,11 +300,11 @@ file names."
 	(let (total used free)
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (when (looking-at "Total: [[:space:]]+\\([[:digit:]]+\\)")
+	    (when (looking-at (rx "Total: " (+ space) (group (+ digit))))
 	      (setq total (string-to-number (match-string 1))))
-	    (when (looking-at "Used: [[:space:]]+\\([[:digit:]]+\\)")
+	    (when (looking-at (rx "Used: " (+ space) (group (+ digit))))
 	      (setq used (string-to-number (match-string 1))))
-	    (when (looking-at "Free: [[:space:]]+\\([[:digit:]]+\\)")
+	    (when (looking-at (rx "Free: " (+ space) (group (+ digit))))
 	      (setq free (string-to-number (match-string 1))))
 	    (forward-line))
 	  (when used
@@ -343,7 +343,7 @@ file names."
 	  (tramp-rclone-maybe-open-connection v)
 	  ;; TODO: This shall be handled by `expand-file-name'.
 	  (setq localname
-		(replace-regexp-in-string "^\\." "" (or localname "")))
+		(replace-regexp-in-string (rx bol ".") "" (or localname "")))
 	  (format "%s%s" (tramp-fuse-mounted-p v) localname)))
     ;; It is a local file name.
     filename))

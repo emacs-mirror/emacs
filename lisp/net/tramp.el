@@ -64,7 +64,8 @@
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 
-;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU ELPA package.
+;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU
+;; ELPA package.
 ;;;###autoload (when (featurep 'tramp-compat)
 ;;;###autoload   (load "tramp-compat" 'noerror 'nomessage))
 
@@ -514,10 +515,10 @@ interpreted as a regular expression which always matches."
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
   (when (and (eq system-type 'windows-nt)
-             (not (string-match-p "sh$" tramp-encoding-shell)))
-    (list (format "\\`\\(%s\\|%s\\)\\'"
-		  (regexp-quote (downcase tramp-system-name))
-		  (regexp-quote (upcase tramp-system-name)))))
+             (not (string-match-p (rx "sh" eol) tramp-encoding-shell)))
+    (list (rx bos (group (| (literal (downcase tramp-system-name))
+			    (literal (upcase tramp-system-name))))
+	      eos)))
   "List of hosts, which run a restricted shell.
 This is a list of regular expressions, which denote hosts running
 a restricted shell like \"rbash\".  Those hosts can be used as
@@ -528,12 +529,11 @@ host runs a restricted shell, it shall be added to this list, too."
 
 ;;;###tramp-autoload
 (defcustom tramp-local-host-regexp
-  (concat
-   "\\`"
-   (regexp-opt
-    `("localhost" "localhost4" "localhost6" ,tramp-system-name "127.0.0.1" "::1")
-    t)
-   "\\'")
+  (rx bos
+      (regexp (regexp-opt
+	       `("localhost" "localhost4" "localhost6"
+		 ,tramp-system-name "127.0.0.1" "::1")))
+      eos)
   "Host names which are regarded as local host.
 If the local host runs a chrooted environment, set this to nil."
   :version "29.1"
@@ -580,8 +580,9 @@ followed by an equal number of backspaces to erase them will
 usually suffice.")
 
 (defconst tramp-echoed-echo-mark-regexp
-  (format "%s\\(\b\\( \b\\)?\\)\\{%d\\}"
-	  tramp-echo-mark-marker tramp-echo-mark-marker-length)
+  (rx-to-string
+   `(: ,tramp-echo-mark-marker
+       (= ,tramp-echo-mark-marker-length (group "\b" (? " \b")))))
   "Regexp which matches `tramp-echo-mark' as it gets echoed by \
 the remote shell.")
 
@@ -598,7 +599,7 @@ if you need to change this."
   :type 'string)
 
 (defcustom tramp-login-prompt-regexp
-  ".*\\(user\\|login\\)\\( .*\\)?: *"
+  (rx (* nonl) (group (| "user" "login")) (? (group " " (* nonl))) ":" (* " "))
   "Regexp matching login-like prompts.
 The regexp should match at end of buffer.
 
@@ -610,8 +611,11 @@ Sometimes the prompt is reported to look like \"login as:\"."
   ;; displayed at the beginning of the line (and Zsh uses it).
   ;; Allow also [] style prompts.  They can appear only during
   ;; connection initialization; Tramp redefines the prompt afterwards.
-  (concat "\\(?:^\\|\r\\)"
-	  "[^]#$%>\n]*#?[]#$%>] *\\(\e\\[[[:digit:];]*[[:alpha:]] *\\)*")
+  (rx (| bol "\r")
+      (* (not (any "\n#$%>]")))
+      (? "#") (any "#$%>]") (* space)
+      ;; Escape characters.
+      (* "[" (* (any ";" digit)) alpha (* space)))
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -626,7 +630,9 @@ This regexp must match both `tramp-initial-end-of-output' and
   :type 'regexp)
 
 (defcustom tramp-password-prompt-regexp
-  (format "^.*\\(%s\\).*:\^@? *" (regexp-opt password-word-equivalents))
+  (rx bol (* nonl)
+      (group (regexp (regexp-opt password-word-equivalents)))
+      (* nonl) ":" (? "\^@") (* space))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -640,36 +646,26 @@ The `sudo' program appears to insert a `^@' character into the prompt."
   :type 'regexp)
 
 (defcustom tramp-wrong-passwd-regexp
-  (concat "^.*"
-	  ;; These strings should be on the last line
-	  (regexp-opt '("Permission denied"
-			"Login incorrect"
-			"Login Incorrect"
-			"Connection refused"
-			"Connection closed"
-			"Timeout, server not responding."
-			"Sorry, try again."
-			"Name or service not known"
-			"Host key verification failed."
-			"No supported authentication methods left to try!")
-		      t)
-	  ".*"
-	  "\\|"
-	  "^.*\\("
-	  ;; Here comes a list of regexes, separated by \\|
-	  "Received signal [[:digit:]]+"
-	  "\\).*")
+  (rx bol (* nonl)
+      (| "Permission denied"
+	 "Login [Ii]ncorrect"
+	 "Connection refused"
+	 "Connection closed"
+	 "Timeout, server not responding."
+	 "Sorry, try again."
+	 "Name or service not known"
+	 "Host key verification failed."
+	 "No supported authentication methods left to try!"
+	 (: "Received signal " (+ digit)))
+      (* nonl))
   "Regexp matching a `login failed' message.
 The regexp should match at end of buffer."
   :type 'regexp)
 
 (defcustom tramp-yesno-prompt-regexp
-  (concat
-   (regexp-opt
-    '("Are you sure you want to continue connecting (yes/no)?"
-      "Are you sure you want to continue connecting (yes/no/[fingerprint])?")
-    t)
-   "\\s-*")
+  (rx "Are you sure you want to continue connecting (yes/no"
+      (? "/[fingerprint]") ")?"
+      (* space))
   "Regular expression matching all yes/no queries which need to be confirmed.
 The confirmation should be done with yes or no.
 The regexp should match at end of buffer.
@@ -677,11 +673,9 @@ See also `tramp-yn-prompt-regexp'."
   :type 'regexp)
 
 (defcustom tramp-yn-prompt-regexp
-  (concat
-   (regexp-opt '("Store key in cache? (y/n)"
-		 "Update cached key? (y/n, Return cancels connection)")
-               t)
-   "\\s-*")
+  (rx (| "Store key in cache? (y/n)"
+	 "Update cached key? (y/n, Return cancels connection)")
+      (* space))
   "Regular expression matching all y/n queries which need to be confirmed.
 The confirmation should be done with y or n.
 The regexp should match at end of buffer.
@@ -698,11 +692,10 @@ files conditionalize this setup based on the TERM environment variable."
   :type 'string)
 
 (defcustom tramp-terminal-prompt-regexp
-  (concat "\\("
-	  "TERM = (.*)"
-	  "\\|"
-	  "Terminal type\\? \\[.*\\]"
-	  "\\)\\s-*")
+  (rx (group
+       (| (: "TERM = (" (* nonl) ")")
+	  (: "Terminal type? [" (* nonl) "]")))
+      (* space))
   "Regular expression matching all terminal setting prompts.
 The regexp should match at end of buffer.
 The answer will be provided by `tramp-action-terminal', which see."
@@ -713,7 +706,7 @@ The answer will be provided by `tramp-action-terminal', which see."
 ;; "-no-antispoof".  However, since we don't know which PuTTY
 ;; version is installed, we must react interactively.
 (defcustom tramp-antispoof-regexp
-  (regexp-quote "Access granted. Press Return to begin session. ")
+  (rx (literal "Access granted. Press Return to begin session. "))
   "Regular expression matching plink's anti-spoofing message.
 The regexp should match at end of buffer."
   :version "27.1"
@@ -723,42 +716,42 @@ The regexp should match at end of buffer."
 ;; with their finger.  We must tell it to the user.
 ;; Added in OpenSSH 8.2.  I've tested it with yubikey.
 (defcustom tramp-security-key-confirm-regexp
-  "^\r*Confirm user presence for key .*[\r\n]*"
+  (rx bol (* "\r") "Confirm user presence for key " (* nonl) (* (any "\r\n")))
   "Regular expression matching security key confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-security-key-confirmed-regexp
-  "^\r*User presence confirmed[\r\n]*"
+  (rx bol (* "\r") "User presence confirmed" (* (any "\r\n")))
   "Regular expression matching security key confirmation message.
 The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-security-key-timeout-regexp
-  "^\r*sign_and_send_pubkey: signing failed for .*[\r\n]*"
+  (rx bol (* "\r") "sign_and_send_pubkey: signing failed for "
+      (* nonl) (* (any "\r\n")))
   "Regular expression matching security key timeout message.
 The regexp should match at end of buffer."
   :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
-  (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
-	  (regexp-opt '("Operation not permitted") t))
+  (rx (| (: "preserving times" (* nonl)) "set mode") ":" (* space)
+      "Operation not permitted")
   "Regular expression matching keep-date problems in (s)cp operations.
 Copying has been performed successfully already, so this message can
 be ignored safely."
   :type 'regexp)
 
 (defcustom tramp-copy-failed-regexp
-  (concat "\\(.+: "
-          (regexp-opt '("Permission denied"
-                        "not a regular file"
-                        "is a directory"
-                        "No such file or directory")
-                      t)
-          "\\)\\s-*")
+  (rx (+ nonl) ": "
+      (| "No such file or directory"
+	 "Permission denied"
+	 "is a directory"
+	 "not a regular file")
+      (* space))
   "Regular expression matching copy problems in (s)cp operations."
   :type 'regexp)
 
@@ -809,6 +802,23 @@ Customize.  See also `tramp-change-syntax'."
   :initialize #'custom-initialize-default
   :set #'tramp-set-syntax)
 
+(defvar tramp-prefix-format)
+(defvar tramp-prefix-regexp)
+(defvar tramp-method-regexp)
+(defvar tramp-postfix-method-format)
+(defvar tramp-postfix-method-regexp)
+(defvar tramp-prefix-ipv6-format)
+(defvar tramp-prefix-ipv6-regexp)
+(defvar tramp-postfix-ipv6-format)
+(defvar tramp-postfix-ipv6-regexp)
+(defvar tramp-postfix-host-format)
+(defvar tramp-postfix-host-regexp)
+(defvar tramp-remote-file-name-spec-regexp)
+(defvar tramp-file-name-structure)
+(defvar tramp-file-name-regexp)
+(defvar tramp-completion-method-regexp)
+(defvar tramp-completion-file-name-regexp)
+
 (defun tramp-set-syntax (symbol value)
   "Set SYMBOL to value VALUE.
 Used in user option `tramp-syntax'.  There are further variables
@@ -822,24 +832,25 @@ to be set, depending on VALUE."
   ;; Set the value:
   (set-default symbol value)
   ;; Reset the depending variables.
-  (with-no-warnings
-    (setq tramp-prefix-format (tramp-build-prefix-format)
-	  tramp-prefix-regexp (tramp-build-prefix-regexp)
-	  tramp-method-regexp (tramp-build-method-regexp)
-	  tramp-postfix-method-format (tramp-build-postfix-method-format)
-	  tramp-postfix-method-regexp (tramp-build-postfix-method-regexp)
-	  tramp-prefix-ipv6-format (tramp-build-prefix-ipv6-format)
-	  tramp-prefix-ipv6-regexp (tramp-build-prefix-ipv6-regexp)
-	  tramp-postfix-ipv6-format (tramp-build-postfix-ipv6-format)
-	  tramp-postfix-ipv6-regexp (tramp-build-postfix-ipv6-regexp)
-	  tramp-postfix-host-format (tramp-build-postfix-host-format)
-	  tramp-postfix-host-regexp (tramp-build-postfix-host-regexp)
-	  tramp-remote-file-name-spec-regexp
-	  (tramp-build-remote-file-name-spec-regexp)
-	  tramp-file-name-structure (tramp-build-file-name-structure)
-	  tramp-file-name-regexp (tramp-build-file-name-regexp)
-	  tramp-completion-file-name-regexp
-          (tramp-build-completion-file-name-regexp)))
+  (setq tramp-prefix-format (tramp-build-prefix-format)
+	tramp-prefix-regexp (tramp-build-prefix-regexp)
+	tramp-method-regexp (tramp-build-method-regexp)
+	tramp-postfix-method-format (tramp-build-postfix-method-format)
+	tramp-postfix-method-regexp (tramp-build-postfix-method-regexp)
+	tramp-prefix-ipv6-format (tramp-build-prefix-ipv6-format)
+	tramp-prefix-ipv6-regexp (tramp-build-prefix-ipv6-regexp)
+	tramp-postfix-ipv6-format (tramp-build-postfix-ipv6-format)
+	tramp-postfix-ipv6-regexp (tramp-build-postfix-ipv6-regexp)
+	tramp-postfix-host-format (tramp-build-postfix-host-format)
+	tramp-postfix-host-regexp (tramp-build-postfix-host-regexp)
+	tramp-remote-file-name-spec-regexp
+	(tramp-build-remote-file-name-spec-regexp)
+	tramp-file-name-structure (tramp-build-file-name-structure)
+	tramp-file-name-regexp (tramp-build-file-name-regexp)
+	tramp-completion-method-regexp
+        (tramp-build-completion-method-regexp)
+	tramp-completion-file-name-regexp
+        (tramp-build-completion-file-name-regexp))
   ;; Rearrange file name handlers.
   (tramp-register-file-name-handlers))
 
@@ -872,30 +883,31 @@ Raise an error if it is invalid."
   "Return `tramp-prefix-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-prefix-format-alist))
 
-(defvar tramp-prefix-format nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-prefix-format nil ; Initialized when defining `tramp-syntax'!
   "String matching the very beginning of Tramp file names.
 Used in `tramp-make-tramp-file-name'.")
 
 (defun tramp-build-prefix-regexp ()
   "Return `tramp-prefix-regexp'."
-  (concat "^" (regexp-quote tramp-prefix-format)))
+  (rx bol (literal (tramp-build-prefix-format))))
 
-(defvar tramp-prefix-regexp nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-prefix-regexp nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching the very beginning of Tramp file names.
 Should always start with \"^\".  Derived from `tramp-prefix-format'.")
 
 (defconst tramp-method-regexp-alist
-  '((default    . "[[:alnum:]-]+")
+  `((default . ,(rx (| (literal tramp-default-method-marker) (>= 2 alnum))))
     (simplified . "")
-    (separate   . "[[:alnum:]-]*"))
+    (separate
+     . ,(rx (? (| (literal tramp-default-method-marker) (>= 2 alnum))))))
   "Alist mapping Tramp syntax to regexps matching methods identifiers.")
 
 (defun tramp-build-method-regexp ()
   "Return `tramp-method-regexp' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-method-regexp-alist))
 
-(defvar tramp-method-regexp nil ;Initialized when defining `tramp-syntax'!
-  "Regexp matching methods identifiers.
+(defvar tramp-method-regexp nil ; Initialized when defining `tramp-syntax'!
+  "Regexp matching method identifiers.
 The `ftp' syntax does not support methods.")
 
 (defconst tramp-postfix-method-format-alist
@@ -908,47 +920,47 @@ The `ftp' syntax does not support methods.")
   "Return `tramp-postfix-method-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-postfix-method-format-alist))
 
-(defvar tramp-postfix-method-format nil ;Init'd when defining `tramp-syntax'!
+(defvar tramp-postfix-method-format nil ; Init'd when defining `tramp-syntax'!
   "String matching delimiter between method and user or host names.
 The `ftp' syntax does not support methods.
 Used in `tramp-make-tramp-file-name'.")
 
 (defun tramp-build-postfix-method-regexp ()
   "Return `tramp-postfix-method-regexp'."
-  (regexp-quote tramp-postfix-method-format))
+  (rx (literal (tramp-build-postfix-method-format))))
 
-(defvar tramp-postfix-method-regexp nil ;Init'd when defining `tramp-syntax'!
+(defvar tramp-postfix-method-regexp nil ; Init'd when defining `tramp-syntax'!
   "Regexp matching delimiter between method and user or host names.
 Derived from `tramp-postfix-method-format'.")
 
-(defconst tramp-user-regexp "[^/|: \t]+"
+(defconst tramp-user-regexp (rx (+ (not (any "/:|" space))))
   "Regexp matching user names.")
 
 (defconst tramp-prefix-domain-format "%"
   "String matching delimiter between user and domain names.")
 
-(defconst tramp-prefix-domain-regexp (regexp-quote tramp-prefix-domain-format)
+(defconst tramp-prefix-domain-regexp (rx (literal tramp-prefix-domain-format))
   "Regexp matching delimiter between user and domain names.
 Derived from `tramp-prefix-domain-format'.")
 
-(defconst tramp-domain-regexp "[[:alnum:]_.-]+"
+(defconst tramp-domain-regexp (rx (+ (any "._-" alnum)))
   "Regexp matching domain names.")
 
 (defconst tramp-user-with-domain-regexp
-  (concat "\\(" tramp-user-regexp "\\)"
-	        tramp-prefix-domain-regexp
-	  "\\(" tramp-domain-regexp "\\)")
+  (rx (group (regexp tramp-user-regexp))
+             (regexp tramp-prefix-domain-regexp)
+      (group (regexp tramp-domain-regexp)))
   "Regexp matching user names with domain names.")
 
 (defconst tramp-postfix-user-format "@"
   "String matching delimiter between user and host names.
 Used in `tramp-make-tramp-file-name'.")
 
-(defconst tramp-postfix-user-regexp (regexp-quote tramp-postfix-user-format)
+(defconst tramp-postfix-user-regexp (rx (literal tramp-postfix-user-format))
   "Regexp matching delimiter between user and host names.
 Derived from `tramp-postfix-user-format'.")
 
-(defconst tramp-host-regexp "[[:alnum:]_.%-]+"
+(defconst tramp-host-regexp (rx (+ (any "%._-" alnum)))
   "Regexp matching host names.")
 
 (defconst tramp-prefix-ipv6-format-alist
@@ -961,22 +973,22 @@ Derived from `tramp-postfix-user-format'.")
   "Return `tramp-prefix-ipv6-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-prefix-ipv6-format-alist))
 
-(defvar tramp-prefix-ipv6-format nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-prefix-ipv6-format nil ; Initialized when defining `tramp-syntax'!
   "String matching left hand side of IPv6 addresses.
 Used in `tramp-make-tramp-file-name'.")
 
 (defun tramp-build-prefix-ipv6-regexp ()
   "Return `tramp-prefix-ipv6-regexp'."
-  (regexp-quote tramp-prefix-ipv6-format))
+  (rx (literal tramp-prefix-ipv6-format)))
 
-(defvar tramp-prefix-ipv6-regexp nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-prefix-ipv6-regexp nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching left hand side of IPv6 addresses.
 Derived from `tramp-prefix-ipv6-format'.")
 
 ;; The following regexp is a bit sloppy.  But it shall serve our
 ;; purposes.  It covers also IPv4 mapped IPv6 addresses, like in
 ;; "::ffff:192.168.0.1".
-(defconst tramp-ipv6-regexp "\\(?:[[:alnum:]]*:\\)+[[:alnum:].]+"
+(defconst tramp-ipv6-regexp (rx (+ (* alnum) ":") (* (any "." alnum)))
   "Regexp matching IPv6 addresses.")
 
 (defconst tramp-postfix-ipv6-format-alist
@@ -989,38 +1001,38 @@ Derived from `tramp-prefix-ipv6-format'.")
   "Return `tramp-postfix-ipv6-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-postfix-ipv6-format-alist))
 
-(defvar tramp-postfix-ipv6-format nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-postfix-ipv6-format nil ; Initialized when defining `tramp-syntax'!
   "String matching right hand side of IPv6 addresses.
 Used in `tramp-make-tramp-file-name'.")
 
 (defun tramp-build-postfix-ipv6-regexp ()
   "Return `tramp-postfix-ipv6-regexp'."
-  (regexp-quote tramp-postfix-ipv6-format))
+  (rx (literal tramp-postfix-ipv6-format)))
 
-(defvar tramp-postfix-ipv6-regexp nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-postfix-ipv6-regexp nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching right hand side of IPv6 addresses.
 Derived from `tramp-postfix-ipv6-format'.")
 
 (defconst tramp-prefix-port-format "#"
   "String matching delimiter between host names and port numbers.")
 
-(defconst tramp-prefix-port-regexp (regexp-quote tramp-prefix-port-format)
+(defconst tramp-prefix-port-regexp (rx (literal tramp-prefix-port-format))
   "Regexp matching delimiter between host names and port numbers.
 Derived from `tramp-prefix-port-format'.")
 
-(defconst tramp-port-regexp "[[:digit:]]+"
+(defconst tramp-port-regexp (rx (+ digit))
   "Regexp matching port numbers.")
 
 (defconst tramp-host-with-port-regexp
-  (concat "\\(" tramp-host-regexp "\\)"
-	        tramp-prefix-port-regexp
-	  "\\(" tramp-port-regexp "\\)")
+  (rx (group (regexp tramp-host-regexp))
+             (regexp tramp-prefix-port-regexp)
+      (group (regexp tramp-port-regexp)))
   "Regexp matching host names with port numbers.")
 
 (defconst tramp-postfix-hop-format "|"
   "String matching delimiter after ad-hoc hop definitions.")
 
-(defconst tramp-postfix-hop-regexp (regexp-quote tramp-postfix-hop-format)
+(defconst tramp-postfix-hop-regexp (rx (literal tramp-postfix-hop-format))
   "Regexp matching delimiter after ad-hoc hop definitions.
 Derived from `tramp-postfix-hop-format'.")
 
@@ -1034,19 +1046,19 @@ Derived from `tramp-postfix-hop-format'.")
   "Return `tramp-postfix-host-format' according to `tramp-syntax'."
   (tramp-lookup-syntax tramp-postfix-host-format-alist))
 
-(defvar tramp-postfix-host-format nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-postfix-host-format nil ; Initialized when defining `tramp-syntax'!
   "String matching delimiter between host names and localnames.
 Used in `tramp-make-tramp-file-name'.")
 
 (defun tramp-build-postfix-host-regexp ()
   "Return `tramp-postfix-host-regexp'."
-  (regexp-quote tramp-postfix-host-format))
+  (rx (literal tramp-postfix-host-format)))
 
-(defvar tramp-postfix-host-regexp nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-postfix-host-regexp nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching delimiter between host names and localnames.
 Derived from `tramp-postfix-host-format'.")
 
-(defconst tramp-localname-regexp "[^\n\r]*\\'"
+(defconst tramp-localname-regexp (rx (* (not (any "\r\n"))) eos)
   "Regexp matching localnames.")
 
 (defconst tramp-unknown-id-string "UNKNOWN"
@@ -1067,16 +1079,20 @@ Derived from `tramp-postfix-host-format'.")
 (defun tramp-build-remote-file-name-spec-regexp ()
   "Construct a regexp matching a Tramp file name for a Tramp syntax.
 It is expected, that `tramp-syntax' has the proper value."
-  (concat
-           "\\("   tramp-method-regexp "\\)" tramp-postfix-method-regexp
-   "\\(?:" "\\("   tramp-user-regexp   "\\)" tramp-postfix-user-regexp   "\\)?"
-   "\\("   "\\(?:" tramp-host-regexp   "\\|"
-	           tramp-prefix-ipv6-regexp  "\\(?:" tramp-ipv6-regexp "\\)?"
-					     tramp-postfix-ipv6-regexp "\\)"
-	   "\\(?:" tramp-prefix-port-regexp  tramp-port-regexp "\\)?" "\\)?"))
+  (rx ;; Method.
+      (group (regexp tramp-method-regexp)) (regexp tramp-postfix-method-regexp)
+      ;; Optional user.
+      (? (group (regexp tramp-user-regexp)) (regexp tramp-postfix-user-regexp))
+      ;; Optional host.
+      (? (group (| (regexp tramp-host-regexp)
+                   (: (regexp tramp-prefix-ipv6-regexp)
+		      (? (regexp tramp-ipv6-regexp))
+		      (regexp tramp-postfix-ipv6-regexp)))
+      ;; Optional port.
+      (? (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))))))
 
 (defvar tramp-remote-file-name-spec-regexp
-   nil ;Initialized when defining `tramp-syntax'!
+  nil ; Initialized when defining `tramp-syntax'!
   "Regular expression matching a Tramp file name between prefix and postfix.")
 
 (defun tramp-build-file-name-structure ()
@@ -1084,15 +1100,15 @@ It is expected, that `tramp-syntax' has the proper value."
 It is expected, that `tramp-syntax' has the proper value.
 See `tramp-file-name-structure'."
   (list
-   (concat
-    tramp-prefix-regexp
-    "\\(" "\\(?:" tramp-remote-file-name-spec-regexp
-                  tramp-postfix-hop-regexp "\\)+" "\\)?"
-    tramp-remote-file-name-spec-regexp tramp-postfix-host-regexp
-    "\\(" tramp-localname-regexp "\\)")
+   (rx (regexp tramp-prefix-regexp)
+       (? (group (+ (regexp tramp-remote-file-name-spec-regexp)
+		    (regexp tramp-postfix-hop-regexp))))
+       (regexp tramp-remote-file-name-spec-regexp)
+       (regexp tramp-postfix-host-regexp)
+       (group (regexp tramp-localname-regexp)))
    5 6 7 8 1))
 
-(defvar tramp-file-name-structure nil ;Initialized when defining `tramp-syntax'!
+(defvar tramp-file-name-structure nil ; Initialized when defining `tramp-syntax'!
   "List detailing the Tramp file name structure.
 This is a list of six elements (REGEXP METHOD USER HOST FILE HOP).
 
@@ -1117,7 +1133,8 @@ See also `tramp-file-name-regexp'.")
   (car tramp-file-name-structure))
 
 ;;;###autoload
-(defconst tramp-initial-file-name-regexp "\\`/[^/:]+:[^/:]*:"
+(defconst tramp-initial-file-name-regexp
+  (rx bos "/" (+ (not (any "/:"))) ":" (* (not (any "/:"))) ":")
   "Value for `tramp-file-name-regexp' for autoload.
 It must match the initial `tramp-syntax' settings.")
 
@@ -1134,78 +1151,56 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
   :version "27.1"
   :type '(choice (const nil) regexp))
 
-(defconst tramp-completion-file-name-regexp-default
-  (concat
-   "\\`"
-   ;; `file-name-completion' uses absolute paths for matching.  This
-   ;; means that on W32 systems, something like "/ssh:host:~/path"
-   ;; becomes "c:/ssh:host:~/path".  See also `tramp-drop-volume-letter'.
-   (when (eq system-type 'windows-nt)
-       "\\(?:[[:alpha:]]:\\)?")
-   "/\\("
-   ;; Optional multi hop.
-   "\\([^/|:]+:[^/|:]*|\\)*"
-   ;; Last hop.
-   (if (memq system-type '(cygwin windows-nt))
-       ;; The method is either "-", or at least two characters.
-       "\\(-\\|[^/|:]\\{2,\\}\\)"
-     ;; At least one character for method.
-     "[^/|:]+")
-   ;; Method separator, user name and host name.
-   "\\(:[^/|:]*\\)?"
-   "\\)?\\'")
-  "Value for `tramp-completion-file-name-regexp' for default remoting.
-See `tramp-file-name-structure' for more explanations.
+(defconst tramp-volume-letter-regexp
+  (if (eq system-type 'windows-nt)
+      (rx bos alpha ":") "")
+  "Volume letter on MS Windows.")
 
-On W32 systems, the volume letter must be ignored.")
+;; `tramp-method-regexp' needs at least two characters, in order to
+;; distinguish from volume letter.  This is in the way when completing.
+(defconst tramp-completion-method-regexp-alist
+  `((default    . ,(rx (| (literal tramp-default-method-marker) (+ alnum))))
+    (simplified . "")
+    (separate   . ,(rx (| (literal tramp-default-method-marker) (* alnum)))))
+  "Alist mapping Tramp syntax to regexps matching completion methods.")
 
-(defconst tramp-completion-file-name-regexp-simplified
-  (concat
-   "\\`"
-   ;; Allow the volume letter at the beginning of the path.  See the
-   ;; comment in `tramp-completion-file-name-regexp-default' for more
-   ;; details.
-   (when (eq system-type 'windows-nt)
-     "\\(?:[[:alpha:]]:\\)?")
-   "/\\("
-   ;; Optional multi hop.
-   "\\([^/|:]*|\\)*"
-   ;; Last hop.
-   (if (memq system-type '(cygwin windows-nt))
-       ;; At least two characters.
-       "[^/|:]\\{2,\\}"
-     ;; At least one character.
-     "[^/|:]+")
-   "\\)?\\'")
-  "Value for `tramp-completion-file-name-regexp' for simplified style remoting.
-See `tramp-file-name-structure' for more explanations.
+(defun tramp-build-completion-method-regexp ()
+  "Return `tramp-completion-method-regexp' according to `tramp-syntax'."
+  (tramp-lookup-syntax tramp-completion-method-regexp-alist))
 
-On W32 systems, the volume letter must be ignored.")
-
-(defconst tramp-completion-file-name-regexp-separate
-  (concat
-   "\\`"
-   ;; Allow the volume letter at the beginning of the path.  See the
-   ;; comment in `tramp-completion-file-name-regexp-default' for more
-   ;; details.
-   (when (eq system-type 'windows-nt)
-     "\\(?:[[:alpha:]]:\\)?")
-   "/\\(\\[[^]]*\\)?\\'")
-  "Value for `tramp-completion-file-name-regexp' for separate remoting.
-See `tramp-file-name-structure' for more explanations.")
-
-(defconst tramp-completion-file-name-regexp-alist
-  `((default    . ,tramp-completion-file-name-regexp-default)
-    (simplified . ,tramp-completion-file-name-regexp-simplified)
-    (separate   . ,tramp-completion-file-name-regexp-separate))
-  "Alist mapping incomplete Tramp file names.")
+(defvar tramp-completion-method-regexp
+  nil ; Initialized when defining `tramp-syntax'!
+  "Regexp matching completion method identifiers.
+The `ftp' syntax does not support methods.")
 
 (defun tramp-build-completion-file-name-regexp ()
   "Return `tramp-completion-file-name-regexp' according to `tramp-syntax'."
-  (tramp-lookup-syntax tramp-completion-file-name-regexp-alist))
+  (if (eq tramp-syntax 'separate)
+      ;; FIXME: This shouldn't be necessary.
+      (rx bos "/" (? (group "[" (* (not (any "]"))))) eos)
+  (rx bos
+      ;; `file-name-completion' uses absolute paths for matching.
+      ;; This means that on W32 systems, something like
+      ;; "/ssh:host:~/path" becomes "c:/ssh:host:~/path".  See also
+      ;; `tramp-drop-volume-letter'.
+      (? (regexp tramp-volume-letter-regexp))
+      (regexp tramp-prefix-regexp)
+
+      ;; Optional multi hops.
+      (* (regexp tramp-remote-file-name-spec-regexp)
+         (regexp tramp-postfix-hop-regexp))
+
+      ;; Last hop.
+      (? (regexp tramp-completion-method-regexp)
+	 ;; Method separator, user name and host name.
+	 (? (regexp tramp-postfix-method-regexp)
+	    ;; This is a little bit lax, but it serves.
+	    (? (regexp tramp-host-regexp))))
+
+      eos)))
 
 (defvar tramp-completion-file-name-regexp
-   nil ;Initialized when defining `tramp-syntax'!
+   nil ; Initialized when defining `tramp-syntax'!
   "Regular expression matching file names handled by Tramp completion.
 This regexp should match partial Tramp file names only.
 
@@ -1218,14 +1213,8 @@ Also see `tramp-file-name-structure'.")
 
 ;;;###autoload
 (defconst tramp-autoload-file-name-regexp
-  (concat
-   "\\`/"
-   (if (memq system-type '(cygwin windows-nt))
-       ;; The method is either "-", or at least two characters.
-       "\\(-\\|[^/|:]\\{2,\\}\\)"
-     ;; At least one character for method.
-     "[^/|:]+")
-   ":")
+  ;; The method is either "-", or at least two characters.
+  (rx bos "/" (| "-" (>= 2 (not (any "/:|")))) ":")
   "Regular expression matching file names handled by Tramp autoload.
 It must match the initial `tramp-syntax' settings.  It should not
 match file names at root of the underlying local file system,
@@ -1528,7 +1517,7 @@ If VEC is a vector, check first in connection properties.
 Afterwards, check in `tramp-methods'.  If the `tramp-methods'
 entry does not exist, return nil."
   (let ((hash-entry
-	 (replace-regexp-in-string "^tramp-" "" (symbol-name param))))
+	 (replace-regexp-in-string (rx bos "tramp-") "" (symbol-name param))))
     (if (tramp-connection-property-p vec hash-entry)
 	;; We use the cached property.
 	(tramp-get-connection-property vec hash-entry)
@@ -1548,10 +1537,7 @@ entry does not exist, return nil."
   "Return t if NAME is a string with Tramp file name syntax."
   (and tramp-mode (stringp name)
        ;; No "/:" and "/c:".  This is not covered by `tramp-file-name-regexp'.
-       (not (string-match-p
-	     (if (memq system-type '(cygwin windows-nt))
-		 "^/[[:alpha:]]?:" "^/:")
-	     name))
+       (not (string-match-p (rx bos "/" (? alpha) ":") name))
        ;; Excluded file names.
        (or (null tramp-ignored-file-name-regexp)
 	   (not (string-match-p tramp-ignored-file-name-regexp name)))
@@ -1744,7 +1730,7 @@ See `tramp-dissect-file-name' for details."
   (let ((v (tramp-dissect-file-name
 	    (concat tramp-prefix-format
 		    (replace-regexp-in-string
-		     (concat tramp-postfix-hop-regexp "$")
+		     (rx (regexp tramp-postfix-hop-regexp) eos)
 		     tramp-postfix-host-format name))
 	    nodefault)))
     ;; Only some methods from tramp-sh.el do support multi-hops.
@@ -1797,7 +1783,7 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	;; Assure that the hops are in `tramp-default-proxies-alist'.
 	;; In tramp-archive.el, the slot `hop' is used for the archive
 	;; file name.
-	(unless (string-equal method "archive")
+	(unless (string-equal method tramp-archive-method)
 	  (tramp-add-hops (car args)))))
 
      (t (setq method (nth 0 args)
@@ -1840,7 +1826,7 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
    (replace-regexp-in-string
     tramp-prefix-regexp ""
     (replace-regexp-in-string
-     (concat tramp-postfix-host-regexp "$") tramp-postfix-hop-format
+     (rx (regexp tramp-postfix-host-regexp) eos) tramp-postfix-hop-format
      (tramp-make-tramp-file-name vec 'noloc)))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
@@ -1955,10 +1941,12 @@ of `current-buffer'."
 (put #'tramp-debug-buffer-name 'tramp-suppress-trace t)
 
 (defconst tramp-debug-outline-regexp
-  (concat
-   "[[:digit:]]+:[[:digit:]]+:[[:digit:]]+\\.[[:digit:]]+ " ;; Timestamp.
-   "\\(?:\\(#<thread .+>\\) \\)?" ;; Thread.
-   "[[:alnum:]-]+ (\\([[:digit:]]+\\)) #") ;; Function name, verbosity.
+  (rx ;; Timestamp.
+      (+ digit) ":" (+ digit) ":" (+ digit) "." (+ digit) " "
+      ;; Thread.
+      (? (group "#<thread " (+ nonl) ">") " ")
+       ;; Function name, verbosity.
+      (+ (any "-" alnum)) " (" (group (group (+ digit))) ") #")
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
 
 (defconst tramp-debug-font-lock-keywords
@@ -1967,7 +1955,7 @@ of `current-buffer'."
   ;; Also, in `font-lock-defaults' you can specify a function name for
   ;; the "KEYWORDS" part, so font-lock calls it to get the actual keywords!
   '(list
-    (concat "^\\(?:" tramp-debug-outline-regexp "\\).+")
+    (rx bol (regexp tramp-debug-outline-regexp) (+ nonl))
     '(1 font-lock-warning-face t t)
     '(0 (outline-font-lock-face) keep t))
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
@@ -2421,13 +2409,16 @@ letter into the file name.  This function removes it."
   (save-match-data
     (let ((quoted (tramp-compat-file-name-quoted-p name 'top))
 	  (result (tramp-compat-file-name-unquote name 'top)))
-      (setq result (if (string-match "\\`[[:alpha:]]:/" result)
-		     (replace-match "/" nil t result) result))
+      (setq result
+	    (if (string-match
+		 (rx (regexp tramp-volume-letter-regexp) "/") result)
+		(replace-match "/" nil t result) result))
       (if quoted (tramp-compat-file-name-quote result 'top) result))))
 
 ;;; Config Manipulation Functions:
 
-(defconst tramp-dns-sd-service-regexp "^_[-[:alnum:]]+\\._tcp$"
+(defconst tramp-dns-sd-service-regexp
+  (rx bol "_" (+ (any "-" alnum)) "._tcp" eol)
   "DNS-SD service regexp.")
 
 ;;;###tramp-autoload
@@ -2530,7 +2521,7 @@ coding system might not be determined.  This function repairs it."
 	;; We found a matching entry in `file-coding-system-alist'.
 	;; So we add a similar entry, but with the temporary file name
 	;; as regexp.
-	(push (cons (regexp-quote tmpname) (cdr elt)) result)))))
+	(push (cons (rx (literal tmpname)) (cdr elt)) result)))))
 
 (defun tramp-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
@@ -2808,14 +2799,12 @@ This avoids problems during autoload, when `load-path' contains
 remote file names."
   ;; We expect all other Tramp files in the same directory as tramp.el.
   (let* ((dir (expand-file-name (file-name-directory (locate-library "tramp"))))
-	 (files-regexp
-	  (format
-	   "^%s$"
-	   (regexp-opt
-	    (mapcar
-	     #'file-name-sans-extension
-	     (directory-files dir nil "\\`tramp.+\\.elc?\\'"))
-	    'paren))))
+	 (files (delete-dups
+		 (mapcar
+		  #'file-name-sans-extension
+		  (directory-files
+		   dir nil (rx bos "tramp" (+ nonl) ".el" (? "c") eos)))))
+	 (files-regexp (rx bol (: (regexp (regexp-opt files))) eol)))
     (mapatoms
      (lambda (atom)
        (when (and (functionp atom)
@@ -2960,11 +2949,9 @@ not in completion mode."
 
     ;; Suppress hop from completion.
     (when (string-match
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" "\\(" tramp-remote-file-name-spec-regexp
-	                tramp-postfix-hop-regexp
-	    "\\)+" "\\)")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (+ (regexp tramp-remote-file-name-spec-regexp)
+			 (regexp tramp-postfix-hop-regexp))))
 	   fullname)
       (setq hop (match-string 1 fullname)
 	    fullname (replace-match "" nil nil fullname 1)))
@@ -3046,68 +3033,62 @@ not in completion mode."
 ;; ["x" nil "" nil]     ["x" nil "y" nil]    ["x" nil "y" ""]
 ;; ["x" "" nil nil]     ["x" "y" nil nil]
 
-;; "/x:y@""/[x/y@"      "/x:y@z" "/[x/y@z"   "/x:y@z:" "/[x/y@z]"
-;;["x" "y" nil nil]     ["x" "y" "z" nil]    ["x" "y" "z" ""]
+;; "/x:y@" "/[x/y@"     "/x:y@z" "/[x/y@z"   "/x:y@z:" "/[x/y@z]"
+;; ["x" "y" nil nil]    ["x" "y" "z" nil]    ["x" "y" "z" ""]
 (defun tramp-completion-dissect-file-name (name)
   "Return a list of `tramp-file-name' structures for NAME.
 They are collected by `tramp-completion-dissect-file-name1'."
-  (let* ((x-nil "\\|\\(\\)")
-	 (tramp-completion-ipv6-regexp
-	  (format
-	   "[^%s]*"
-	   (if (zerop (length tramp-postfix-ipv6-format))
-	       tramp-postfix-host-format
-	     tramp-postfix-ipv6-format)))
-	 ;; "/method" "/[method"
+  (let* (;; "/method" "/[method"
 	 (tramp-completion-file-name-structure1
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp x-nil "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (? (regexp tramp-completion-method-regexp))) eol)
 	   1 nil nil nil))
 	 ;; "/method:user" "/[method/user"
 	 (tramp-completion-file-name-structure2
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
-	    "\\(" tramp-user-regexp x-nil   "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (regexp tramp-method-regexp))
+	       (regexp tramp-postfix-method-regexp)
+	       (group (? (regexp tramp-user-regexp))) eol)
 	   1 2 nil nil))
 	 ;; "/method:host" "/[method/host"
 	 (tramp-completion-file-name-structure3
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
-	    "\\(" tramp-host-regexp x-nil   "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (regexp tramp-method-regexp))
+	       (regexp tramp-postfix-method-regexp)
+	       (group (? (regexp tramp-host-regexp))) eol)
 	   1 nil 2 nil))
 	 ;; "/method:[ipv6" "/[method/ipv6"
 	 (tramp-completion-file-name-structure4
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
-	    tramp-prefix-ipv6-regexp
-	    "\\(" tramp-completion-ipv6-regexp x-nil "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (regexp tramp-method-regexp))
+	       (regexp tramp-postfix-method-regexp)
+	       (regexp tramp-prefix-ipv6-regexp)
+	       (group (? (regexp tramp-ipv6-regexp))) eol)
 	   1 nil 2 nil))
 	 ;; "/method:user@host" "/[method/user@host"
 	 (tramp-completion-file-name-structure5
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
-	    "\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
-	    "\\(" tramp-host-regexp x-nil   "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (regexp tramp-method-regexp))
+	       (regexp tramp-postfix-method-regexp)
+	       (group (regexp tramp-user-regexp))
+	       (regexp tramp-postfix-user-regexp)
+	       (group (? (regexp tramp-host-regexp))) eol)
 	   1 2 3 nil))
 	 ;; "/method:user@[ipv6" "/[method/user@ipv6"
 	 (tramp-completion-file-name-structure6
 	  (list
-	   (concat
-	    tramp-prefix-regexp
-	    "\\(" tramp-method-regexp "\\)" tramp-postfix-method-regexp
-	    "\\(" tramp-user-regexp "\\)"   tramp-postfix-user-regexp
-	    tramp-prefix-ipv6-regexp
-	    "\\(" tramp-completion-ipv6-regexp x-nil "\\)$")
+	   (rx (regexp tramp-prefix-regexp)
+	       (group (regexp tramp-method-regexp))
+	       (regexp tramp-postfix-method-regexp)
+	       (group (regexp tramp-user-regexp))
+	       (regexp tramp-postfix-user-regexp)
+	       (regexp tramp-prefix-ipv6-regexp)
+	       (group (? (regexp tramp-ipv6-regexp))) eol)
 	   1 2 3 nil)))
     (delq
      nil
@@ -3233,11 +3214,10 @@ Either user or host may be nil."
 Either user or host may be nil."
    (let (result
 	 (regexp
-	  (concat
-	   "^\\(" tramp-host-regexp "\\)"
-	   "\\([ \t]+" "\\(" tramp-user-regexp "\\)" "\\)?")))
+	  (rx bol (group (regexp tramp-host-regexp))
+	      (? (+ space) (group (regexp tramp-user-regexp))))))
      (when (re-search-forward regexp (line-end-position) t)
-       (setq result (append (list (match-string 3) (match-string 1)))))
+       (setq result (append (list (match-string 2) (match-string 1)))))
      (forward-line 1)
      result))
 
@@ -3249,7 +3229,7 @@ User is always nil."
 (defun tramp-parse-shosts-group ()
    "Return a (user host) tuple allowed to access.
 User is always nil."
-   (tramp-parse-group (concat "^\\(" tramp-host-regexp "\\)") 1 ","))
+   (tramp-parse-group (rx bol (group (regexp tramp-host-regexp))) 1 ","))
 
 (defun tramp-parse-sconfig (filename)
   "Return a list of (user host) tuples allowed to access.
@@ -3260,9 +3240,10 @@ User is always nil."
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (tramp-parse-group
-    (concat "\\(?:^[ \t]*Host\\)" "\\|" "\\(?:^.+\\)"
-	    "\\|" "\\(" tramp-host-regexp "\\)")
-    1 " \t"))
+    (rx (| (: bol (* space) "Host")
+	   (: bol (+ nonl)) ;; ???
+	   (group (regexp tramp-host-regexp))))
+    1 (rx space)))
 
 ;; Generic function.
 (defun tramp-parse-shostkeys-sknownhosts (dirname regexp)
@@ -3274,21 +3255,24 @@ User is always nil."
 	 (files (and (file-directory-p dirname) (directory-files dirname))))
     (cl-loop
      for f in files
-     when (and (not (string-match "^\\.\\.?$" f)) (string-match regexp f))
+     when (and (not (string-match-p (rx bol (** 1 2 ".") eol) f))
+	       (string-match regexp f))
      collect (list nil (match-string 1 f)))))
 
 (defun tramp-parse-shostkeys (dirname)
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
   (tramp-parse-shostkeys-sknownhosts
-   dirname (concat "^key_[[:digit:]]+_\\(" tramp-host-regexp "\\)\\.pub$")))
+   dirname
+   (rx bol "key_" (+ digit) "_" (group (regexp tramp-host-regexp)) ".pub" eol)))
 
 (defun tramp-parse-sknownhosts (dirname)
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
   (tramp-parse-shostkeys-sknownhosts
    dirname
-   (concat "^\\(" tramp-host-regexp "\\)\\.ssh-\\(dss\\|rsa\\)\\.pub$")))
+   (rx bol (group (regexp tramp-host-regexp))
+       ".ssh-" (| "dss" "rsa") ".pub" eol)))
 
 (defun tramp-parse-hosts (filename)
   "Return a list of (user host) tuples allowed to access.
@@ -3299,7 +3283,8 @@ User is always nil."
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (tramp-parse-group
-    (concat "^\\(" tramp-ipv6-regexp "\\|" tramp-host-regexp "\\)") 1 " \t"))
+    (rx bol (group (| (regexp tramp-ipv6-regexp) (regexp tramp-host-regexp))))
+    1 (rx space)))
 
 (defun tramp-parse-passwd (filename)
   "Return a list of (user host) tuples allowed to access.
@@ -3317,7 +3302,7 @@ Host is always \"localhost\"."
    "Return a (user host) tuple allowed to access.
 Host is always \"localhost\"."
    (let (result
-	 (regexp (concat "^\\(" tramp-user-regexp "\\):")))
+	 (regexp (rx bol (group (regexp tramp-user-regexp)) ":")))
      (when (re-search-forward regexp (line-end-position) t)
        (setq result (list (match-string 1) "localhost")))
      (forward-line 1)
@@ -3339,7 +3324,8 @@ Host is always \"localhost\"."
    "Return a (group host) tuple allowed to access.
 Host is always \"localhost\"."
    (let (result
-         (split (split-string (buffer-substring (point) (line-end-position)) ":")))
+	 (split
+	  (split-string (buffer-substring (point) (line-end-position)) ":")))
      (when (member (user-login-name) (split-string (nth 3 split) "," 'omit))
        (setq result (list (nth 0 split) "localhost")))
      (forward-line 1)
@@ -3367,13 +3353,13 @@ User is always nil."
 		     (tramp-parse-putty-group registry-or-dirname)))))
     ;; UNIX case.
     (tramp-parse-shostkeys-sknownhosts
-     registry-or-dirname (concat "^\\(" tramp-host-regexp "\\)$"))))
+     registry-or-dirname (rx bol (group (regexp tramp-host-regexp)) eol))))
 
 (defun tramp-parse-putty-group (registry)
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (let (result
-	 (regexp (concat (regexp-quote registry) "\\\\\\(.+\\)")))
+	 (regexp (rx (literal registry) "\\" (group (+ nonl)))))
      (when (re-search-forward regexp (line-end-position) t)
        (setq result (list nil (match-string 1))))
      (forward-line 1)
@@ -3773,7 +3759,9 @@ Let-bind it when necessary.")
       ;; Expand tilde.  Usually, the methods applying this handler do
       ;; not support tilde expansion.  But users could declare a
       ;; respective connection property.  (Bug#53847)
-      (when (string-match "\\`~\\([^/]*\\)\\(.*\\)\\'" localname)
+      (when (string-match
+	     (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	     localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
 	      hname)
@@ -3783,10 +3771,10 @@ Let-bind it when necessary.")
 	    (setq localname (concat hname fname)))))
       ;; Tilde expansion is not possible.
       (when (and (not tramp-tolerate-tilde)
-		 (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname))
+		 (string-prefix-p "~" localname))
 	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       ;; Do not keep "/..".
-      (when (string-match-p "^/\\.\\.?$" localname)
+      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
 	(setq localname "/"))
       ;; Do normal `expand-file-name' (this does "/./" and "/../").
       ;; `default-directory' is bound, because on Windows there would
@@ -3794,7 +3782,7 @@ Let-bind it when necessary.")
       (let ((default-directory tramp-compat-temporary-file-directory))
 	(tramp-make-tramp-file-name
 	 v (tramp-drop-volume-letter
-	    (if (string-match-p "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
+	    (if (string-prefix-p "~" localname)
 		localname
 	      (tramp-run-real-handler #'expand-file-name (list localname)))))))))
 
@@ -3805,7 +3793,10 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
-  (eq (file-attribute-type (file-attributes (file-truename filename))) t))
+  ;; `file-truename' could raise an error, for example due to a cyclic
+  ;; symlink.
+  (ignore-errors
+    (eq (file-attribute-type (file-attributes (file-truename filename))) t)))
 
 (defun tramp-handle-file-equal-p (filename1 filename2)
   "Like `file-equalp-p' for Tramp files."
@@ -3890,7 +3881,7 @@ Let-bind it when necessary.")
 		  ;; lower case letters.  This avoids us to create a
 		  ;; temporary file.
 		  (while (and (string-match-p
-			       "[[:lower:]]" (tramp-file-local-name candidate))
+			       (rx lower) (tramp-file-local-name candidate))
 			      (not (file-exists-p candidate)))
 		    (setq candidate
 			  (directory-file-name
@@ -3898,7 +3889,7 @@ Let-bind it when necessary.")
 		  ;; Nothing found, so we must use a temporary file
 		  ;; for comparison.
 		  (unless (string-match-p
-			   "[[:lower:]]" (tramp-file-local-name candidate))
+			   (rx lower) (tramp-file-local-name candidate))
 		    (setq tmpfile
 			  (let ((default-directory
 				 (file-name-directory filename)))
@@ -3933,7 +3924,8 @@ Let-bind it when necessary.")
 	   (and
 	    completion-ignored-extensions
 	    (string-match-p
-	     (concat (regexp-opt completion-ignored-extensions 'paren) "$") x)
+	     (rx (regexp (regexp-opt completion-ignored-extensions)) eos)
+	     x)
 	    ;; We remember the hit.
 	    (push x hits-ignored-extensions))))))
      ;; No match.  So we try again for ignored files.
@@ -3975,7 +3967,8 @@ Let-bind it when necessary.")
 	  ;; links.
 	  (when-let ((symlink (file-symlink-p filename)))
 	    (and (stringp symlink)
-		 (file-readable-p (concat (file-remote-p filename) symlink))))))))
+		 (file-readable-p
+		  (concat (file-remote-p filename) symlink))))))))
 
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for Tramp files."
@@ -4111,9 +4104,10 @@ Let-bind it when necessary.")
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p
-			   (concat
-			    "Backup file on local temporary directory, "
-			    "do you want to continue?")))))
+			   (eval-when-compile
+			     (concat
+			      "Backup file on local temporary directory, "
+			      "do you want to continue?"))))))
 	  (tramp-error v 'file-error "Unsafe backup file name"))))))
 
 (defun tramp-handle-insert-directory
@@ -4142,12 +4136,13 @@ Let-bind it when necessary.")
 	    (goto-char (point-min))
 	    (while (setq start
 			 (text-property-not-all
-                          (point) (line-end-position) 'dired-filename t))
+			  (point) (line-end-position) 'dired-filename t))
 	      (delete-region
 	       start
-               (or (text-property-any start (line-end-position) 'dired-filename t)
-                   (line-end-position)))
-              (if (= (line-beginning-position) (line-end-position))
+	       (or (text-property-any
+		    start (line-end-position) 'dired-filename t)
+		   (line-end-position)))
+	      (if (= (line-beginning-position) (line-end-position))
 		  ;; Empty line.
 		  (delete-region (point) (progn (forward-line) (point)))
 		(forward-line)))))))))
@@ -4269,15 +4264,13 @@ Let-bind it when necessary.")
 (defun tramp-ps-time ()
   "Read printed time oif \"ps\" in format \"[[DD-]hh:]mm:ss\".
 Return it as number of seconds.  Used in `tramp-process-attributes-ps-format'."
-  (search-forward-regexp "\\s-+")
-  (search-forward-regexp
-   (concat
-    "\\(?:" "\\(?:" "\\([0-9]+\\)-" "\\)?"
-                    "\\([0-9]+\\):" "\\)?"
-                    "\\([0-9]+\\):"
-                    ;; Seconds can also be a floating point number.
-                    "\\([0-9.]+\\)")
-   (line-end-position) 'noerror)
+  (search-forward-regexp (rx (+ space)))
+  (search-forward-regexp (rx (? (? (group (+ digit)) "-")
+				   (group (+ digit)) ":")
+			           (group (+ digit)) ":"
+			           ;; Seconds can also be a floating point num.
+			           (group (+ (any "." digit))))
+			 (line-end-position) 'noerror)
   (+ (* 24 60 60 (string-to-number (or (match-string 1) "0")))
         (* 60 60 (string-to-number (or (match-string 2) "0")))
            (* 60 (string-to-number (or (match-string 3) "0")))
@@ -4382,7 +4375,7 @@ It is not guaranteed, that all process attributes as described in
                 ;;  "%s" (buffer-substring (point) (line-end-position)))
                 (when (save-excursion
                         (search-forward-regexp
-                         "[[:digit:]]" (line-end-position) 'noerror))
+			 (rx digit) (line-end-position) 'noerror))
                   (setq res nil)
                   (dolist (elt tramp-process-attributes-ps-format)
                     (push
@@ -4391,16 +4384,17 @@ It is not guaranteed, that all process attributes as described in
                       (cond
                        ((eq (cdr elt) 'number) (read (current-buffer)))
                        ((eq (cdr elt) 'string)
-                        (search-forward-regexp "\\S-+")
+                        (search-forward-regexp (rx (+ (not space))))
                         (match-string 0))
                        ((numberp (cdr elt))
-                        (search-forward-regexp "\\s-+")
-                        (search-forward-regexp ".+" (+ (point) (cdr elt)))
+                        (search-forward-regexp (rx (+ space)))
+                        (search-forward-regexp
+			 (rx (+ nonl)) (+ (point) (cdr elt)))
                         (string-trim (match-string 0)))
                        ((fboundp (cdr elt))
                         (funcall (cdr elt)))
                        ((null (cdr elt))
-                        (search-forward-regexp "\\s-+")
+                        (search-forward-regexp (rx (+ whitespace)))
                         (buffer-substring (point) (line-end-position)))))
                      res))
                   ;; `nice' could be `-'.
@@ -4442,7 +4436,10 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 
 (defconst tramp-lock-file-info-regexp
   ;; USER@HOST.PID[:BOOT_TIME]
-  "\\`\\(.+\\)@\\(.+\\)\\.\\([[:digit:]]+\\)\\(?::\\([[:digit:]]+\\)\\)?\\'"
+  (rx bos (group (+ nonl))
+      "@" (group (+ nonl))
+      "." (group (+ digit))
+      (? ":" (group (+ digit))) eos)
   "The format of a lock file.")
 
 (defun tramp-handle-file-locked-p (file)
@@ -4497,9 +4494,10 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 		     (not (with-tramp-connection-property
 			      (tramp-get-process v) "unsafe-temporary-file"
 			    (yes-or-no-p
-			     (concat
-			      "Lock file on local temporary directory, "
-			      "do you want to continue?")))))
+			     (eval-when-compile
+			       (concat
+				"Lock file on local temporary directory, "
+				"do you want to continue?"))))))
 	    (tramp-error v 'file-error "Unsafe lock file name")))
 
 	;; Do the lock.
@@ -4538,7 +4536,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
       ;; The first condition is always true for absolute file names.
       ;; Included for safety's sake.
       (unless (or (file-name-directory file)
-		  (string-match-p "\\.elc?\\'" file))
+		  (string-match-p (rx ".el" (? "c") eos) file))
 	(tramp-error
 	 v 'file-error
 	 "File `%s' does not include a `.el' or `.elc' suffix" file)))
@@ -4571,9 +4569,9 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 		     tramp-prefix-format proxy tramp-postfix-host-format))
 	     (entry
 	      (list (and (stringp host-port)
-			 (concat "^" (regexp-quote host-port) "$"))
+			 (rx bol (literal host-port) eol))
 		    (and (stringp user-domain)
-			 (concat "^" (regexp-quote user-domain) "$"))
+			 (rx bol (literal user-domain) eol))
 		    (propertize proxy 'tramp-ad-hoc t))))
 	(tramp-message vec 5 "Add %S to `tramp-default-proxies-alist'" entry)
 	;; Add the hop.
@@ -4652,7 +4650,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	    (setq tramp-default-proxies-alist saved-tdpa)
 	    (tramp-user-error
 	     vec "Host name `%s' does not match `%s'" host previous-host))
-	  (setq previous-host (concat "^" (regexp-quote host) "$")))))
+	  (setq previous-host (rx bol (literal host) eol)))))
 
     ;; Result.
     target-alist))
@@ -4841,7 +4839,7 @@ support symbolic links."
 
 (defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
-  (let* ((asynchronous (string-match-p "[ \t]*&[ \t]*\\'" command))
+  (let* ((asynchronous (string-match-p (rx (* space) "&" (* space) eos) command))
 	 (command (substring command 0 asynchronous))
 	 current-buffer-p
 	 (output-buffer-p output-buffer)
@@ -5024,14 +5022,14 @@ BUFFER might be a list, in this case STDERR is separated."
       (let (process-environment)
 	;; Ignore in LOCALNAME everything before "//" or "/~".
 	(when (stringp localname)
-	  (if (string-match "//\\(/\\|~\\)" localname)
+	  (if (string-match-p (rx "//" (| "/" "~")) localname)
 	      (setq filename
                     (replace-regexp-in-string
-                     "\\`/+" "/" (substitute-in-file-name localname)))
+                     (rx bos (+ "/")) "/" (substitute-in-file-name localname)))
 	    (setq filename
 		  (concat (file-remote-p filename)
 			  (replace-regexp-in-string
-                           "\\`/+" "/"
+                           (rx bos (+ "/")) "/"
 			   ;; We must disable cygwin-mount file name
 			   ;; handlers and alike.
 			   (tramp-run-real-handler
@@ -5278,7 +5276,8 @@ Wait, until the connection buffer changes."
       (ignore set-message-function clear-message-function)
       (tramp-message vec 6 "\n%s" (buffer-string))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
-      (with-temp-message (replace-regexp-in-string "[\r\n]" "" (match-string 0))
+      (with-temp-message
+	  (replace-regexp-in-string (rx (any "\r\n")) "" (match-string 0))
 	;; Hide message in buffer.
 	(narrow-to-region (point-max) (point-max))
 	;; Wait for new output.
@@ -5614,7 +5613,7 @@ the remote host use line-endings as defined in the variable
         (tramp-flush-directory-properties vec "/"))
       (when (buffer-live-p buf)
 	(with-current-buffer buf
-          (when (and prompt (tramp-search-regexp (regexp-quote prompt)))
+          (when (and prompt (tramp-search-regexp (rx (literal prompt))))
 	    (delete-region (point) (point-max))))))))
 
 (defun tramp-get-inode (vec)
@@ -5818,7 +5817,7 @@ VEC is used for tracing."
 	  (while candidates
 	    (goto-char (point-min))
 	    (if (string-match-p
-		 (format "^%s\r?$" (regexp-quote (car candidates)))
+		 (rx bol (literal (car candidates)) (? "\r") eol)
 		 (buffer-string))
 		(setq locale (car candidates)
 		      candidates nil)
@@ -5926,7 +5925,9 @@ to cache the result.  Return the modified ATTR."
 		 (when (consp (car attr))
 		   (setcar attr
 			   (and (stringp (caar attr))
-				(string-match ".+ -> .\\(.+\\)." (caar attr))
+				(string-match
+				 (rx (+ nonl) " -> " nonl (group (+ nonl)) nonl)
+				 (caar attr))
 				(decode-coding-string
 				 (match-string 1 (caar attr)) 'utf-8))))
 		 ;; Set file's gid change bit.
@@ -6111,9 +6112,10 @@ this file, if that variable is non-nil."
 		   (not (with-tramp-connection-property
 			    (tramp-get-process v) "unsafe-temporary-file"
 			  (yes-or-no-p
-			   (concat
-			    "Autosave file on local temporary directory, "
-			    "do you want to continue?")))))
+			   (eval-when-compile
+			     (concat
+			      "Autosave file on local temporary directory, "
+			      "do you want to continue?"))))))
 	  (tramp-error v 'file-error "Unsafe autosave file name"))))))
 
 (defun tramp-subst-strs-in-string (alist string)
@@ -6124,7 +6126,7 @@ ALIST is of the form ((FROM . TO) ...)."
       (let* ((pr (car alist))
              (from (car pr))
              (to (cdr pr)))
-        (while (string-match (regexp-quote from) string)
+        (while (string-match (rx (literal from)) string)
           (setq string (replace-match to t t string)))
         (setq alist (cdr alist))))
     string))
@@ -6226,7 +6228,7 @@ verbosity of 6."
 	      (apply #'process-lines program args)
 	    (error
 	     (tramp-error vec (car err) (cdr err)))))
-    (tramp-message vec 6 "%s" result)
+    (tramp-message vec 6 "\n%s" (mapconcat #'identity result "\n"))
     result))
 
 (defun tramp-process-running-p (process-name)

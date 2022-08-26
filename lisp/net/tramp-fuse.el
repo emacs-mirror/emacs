@@ -51,7 +51,7 @@
   "Remove hidden files from FILES."
   (if tramp-fuse-remove-hidden-files
       (cl-remove-if
-       (lambda (x) (and (stringp x) (string-match-p "\\.fuse_hidden" x)))
+       (lambda (x) (and (stringp x) (string-match-p (rx ".fuse_hidden") x)))
        files)
     files))
 
@@ -69,10 +69,10 @@
 	       (tramp-fuse-local-file-name directory))))))))
     (if full
 	;; Massage the result.
-	(let ((local (concat
-		      "^" (regexp-quote
-			   (tramp-fuse-mount-point
-			    (tramp-dissect-file-name directory)))))
+	(let ((local (rx bol
+			 (literal
+			  (tramp-fuse-mount-point
+			   (tramp-dissect-file-name directory)))))
 	      (remote (directory-file-name
 		       (funcall
 			(if (tramp-compat-file-name-quoted-p directory)
@@ -179,8 +179,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (format
-                   "^\\(%s\\)\\s-" (regexp-quote (tramp-fuse-mount-spec vec)))
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) space)
 	          mount)
              (match-string 1 mount)))))))
 

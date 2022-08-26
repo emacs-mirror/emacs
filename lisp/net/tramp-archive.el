@@ -168,7 +168,8 @@
 It must be supported by libarchive(3).")
 
 ;; <https://unix-memo.readthedocs.io/en/latest/vfs.html>
-;;    read and write: tar, cpio, pax , gzip , zip, bzip2, xz, lzip, lzma, ar, mtree, iso9660, compress.
+;;    read and write: tar, cpio, pax , gzip , zip, bzip2, xz, lzip,
+;;                    lzma, ar, mtree, iso9660, compress.
 ;;    read only: 7-Zip, mtree, xar, lha/lzh, rar, microsoft cab.
 
 ;;;###autoload
@@ -183,14 +184,17 @@ It must be supported by libarchive(3).")
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  '(concat
-    "\\`" "\\(" ".+" "\\."
-      ;; Default suffixes ...
-      (regexp-opt tramp-archive-suffixes)
-      ;; ... with compression.
-      "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*"
-    "\\)" ;; \1
-    "\\(" "/" ".*" "\\)" "\\'"))) ;; \2
+  '(rx bos
+       ;; \1
+       (group
+	(+ nonl)
+	;; Default suffixes ...
+	"." (regexp (regexp-opt tramp-archive-suffixes))
+	;; ... with compression.
+	(? "." (regexp (regexp-opt tramp-archive-compression-suffixes))))
+       ;; \2
+       (group "/" (* nonl))
+       eos)))
 
 (put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
 

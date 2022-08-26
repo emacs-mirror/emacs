@@ -426,7 +426,7 @@ Otherwise, return NAME."
        (if (directory-name-p name) #'file-name-as-directory #'identity)
        (concat
 	dir
-	(unless (string-match-p (rx (seq bos (opt "/") eos)) localname)
+	(unless (string-match-p (rx bos (? "/") eos) localname)
 	  (with-tramp-file-property
 	      crypt-vec localname (concat (symbol-name op) "-file-name")
 	    (unless (tramp-crypt-send-command
@@ -437,7 +437,7 @@ Otherwise, return NAME."
 	       (if (eq op 'encrypt) "Encoding" "Decoding") name))
 	    (with-current-buffer (tramp-get-connection-buffer crypt-vec)
 	      (goto-char (point-min))
-              (buffer-substring (point-min) (line-end-position)))))))
+	      (buffer-substring (point-min) (line-end-position)))))))
     ;; Nothing to do.
     name))
 
@@ -554,7 +554,7 @@ localname."
 (defun tramp-crypt-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (let* ((encrypt-filename (tramp-crypt-encrypt-file-name filename))
-	 (encrypt-regexp (concat (regexp-quote encrypt-filename) "\\'"))
+	 (encrypt-regexp (rx (literal encrypt-filename) eos))
 	 tramp-crypt-enabled)
     (condition-case err
 	(access-file encrypt-filename string)
@@ -706,7 +706,7 @@ absolute file names."
       (mapcar
        (lambda (x)
 	 (replace-regexp-in-string
-	  (concat "^" (regexp-quote directory)) ""
+	  (rx bos (literal directory)) ""
 	  (tramp-crypt-decrypt-file-name x)))
        (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))))
 
