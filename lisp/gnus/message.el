@@ -3928,8 +3928,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
 	(if all-removed
 	    (goto-char start)
 	  (forward-line 1))))
-    ;; Delete blank lines at the start of the buffer.
-    (goto-char (point-min))
+    ;; Delete blank lines at the start of the cited text.
     (while (and (eolp) (not (eobp)))
       (delete-line))
     ;; Delete blank lines at the end of the buffer.
