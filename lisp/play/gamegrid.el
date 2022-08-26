@@ -347,6 +347,8 @@ format."
 	   (gamegrid-match-spec-list (cdr spec-list)))))
 
 (defun gamegrid-make-glyph (data-spec-list color-spec-list)
+  ;; image.el is not preloaded in --without-x builds.
+  (defvar image-scaling-factor)
   (let ((data (gamegrid-match-spec-list data-spec-list))
 	(color (gamegrid-match-spec-list color-spec-list))
         (image-scaling-factor 1.0))
