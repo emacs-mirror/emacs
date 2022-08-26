@@ -834,7 +834,8 @@ struct x_display_info
   bool server_time_monotonic_p;
 
   /* The time difference between the X server clock and the monotonic
-     clock, or 0 if unknown (FIXME: what if the difference is zero?).  */
+     clock, or 0 if unknown (if the difference is legitimately 0,
+     server_time_monotonic_p will be true).  */
   int_fast64_t server_time_offset;
 #endif
 };
