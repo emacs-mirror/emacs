@@ -661,10 +661,10 @@ Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
-Note that the -xrm option may have no effect when you make an Emacs
-process invoked with the -nw option a server and want to trace X
-protocol errors from subsequent invocations of emacsclient in a GUI
-frame.  In that case calling the initial Emacs via
+Note that the -xrm option may have no effect when you start a server
+in an Emacs session invoked with the -nw command-line option, and want
+to trace X protocol errors from GUI frames created by subsequent
+invocations of emacsclient.  In that case starting Emacs via
 
   emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
 
