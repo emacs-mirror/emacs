@@ -1512,7 +1512,7 @@ non-nil, the text will now be added to the Isearch instead.
 *** Changes for values 'no' and 'no-ding' of 'isearch-wrap-pause'.
 Now with these values the search will wrap around not only on repeating
 with 'C-s C-s', but also after typing a character.
-
+1
 +++
 *** New user option 'char-fold-override'.
 Non-nil means that the default definitions of equivalent characters
@@ -1525,10 +1525,23 @@ command accepts the Unicode name of an Emoji (for example, "smiling
 face" or "heart with arrow"), like 'C-x 8 e e', with minibuffer
 completion, and adds the Emoji into the search string.
 
+** Glyphless characters
+
 +++
-** New minor mode 'glyphless-display-mode'.
+*** New minor mode 'glyphless-display-mode'.
 This allows an easy way to toggle seeing all glyphless characters in
 the current buffer.
+
+*** The extra slot of 'glyphless-char-display' can now have cons values.
+The extra slot of the 'glyphless-char-display' char-table can now have
+values that are cons cells, specifying separate values for text-mode
+and GUI terminals.
+
+*** "Replacement character" feature for undisplayable characters on TTYs.
+The 'acronym' method of displaying glyphless characters on text-mode
+frames treats single-character acronyms specially: they are displayed
+without the surrounding [..] "box", thus in effect treating such
+"acronyms" as replacement characters.
 
 ** Registers
 

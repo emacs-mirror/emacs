@@ -2978,7 +2978,7 @@ bindings.  See also the face `tooltip'."
   :group 'help)
 
 (defface glyphless-char
-  '((((type tty)) :inherit underline)
+  '((((type tty)) :inherit escape-glyph :underline t)
     (((type pc)) :inherit escape-glyph)
     (t :height 0.6))
   "Face for displaying non-graphic characters (e.g. U+202A (LRE)).
