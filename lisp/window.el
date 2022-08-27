@@ -9044,10 +9044,7 @@ in some window."
       ;; vertical-motion returns a number that is 1 larger than it
       ;; should.  We need to fix that.
       (setq end-invisible-p
-            (and (or truncate-lines
-                     (and (natnump truncate-partial-width-windows)
-                          (< (window-total-width window)
-                             truncate-partial-width-windows)))
+            (and (or truncate-lines (truncated-partial-width-window-p window))
                  (save-excursion
                    (goto-char finish)
                    (> (- (current-column) (window-hscroll window))
@@ -10140,7 +10137,7 @@ semipermanent goal column for this command."
   (when goal-column
     ;; Move to the desired column.
     (if (and line-move-visual
-             (not (or truncate-lines truncate-partial-width-windows)))
+             (not (or truncate-lines (truncated-partial-width-window-p))))
         ;; Under line-move-visual, goal-column should be
         ;; interpreted in units of the frame's canonical character
         ;; width, which is exactly what vertical-motion does.
@@ -10449,7 +10446,7 @@ Otherwise, consult the value of `truncate-partial-width-windows'
     (let ((t-p-w-w (buffer-local-value 'truncate-partial-width-windows
 				       (window-buffer window))))
       (if (integerp t-p-w-w)
-	  (< (window-width window) t-p-w-w)
+	  (< (window-total-width window) t-p-w-w)
         t-p-w-w))))
 
 

@@ -7700,13 +7700,7 @@ not vscroll."
                  ;; Lines are not truncated...
                  (not
                   (and
-                   (or truncate-lines
-                       (and (integerp truncate-partial-width-windows)
-                            (< (window-total-width)
-                               truncate-partial-width-windows))
-                       (and truncate-partial-width-windows
-                            (not (integerp truncate-partial-width-windows))
-                            (not (window-full-width-p))))
+                   (or truncate-lines (truncated-partial-width-window-p))
                    ;; ...or if lines are truncated, this buffer
                    ;; doesn't have very long lines.
                    (long-line-optimizations-p)))
@@ -7718,13 +7712,7 @@ not vscroll."
                ;; Lines aren't truncated.
                (not
                 (and
-                 (or truncate-lines
-                     (and (integerp truncate-partial-width-windows)
-                          (< (window-total-width)
-                             truncate-partial-width-windows))
-                     (and truncate-partial-width-windows
-                          (not (integerp truncate-partial-width-windows))
-                          (not (window-full-width-p))))
+                 (or truncate-lines (truncated-partial-width-window-p))
                  (long-line-optimizations-p)))
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
@@ -7985,7 +7973,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 
 	;; Move to the desired column.
         (if (and line-move-visual
-                 (not (or truncate-lines truncate-partial-width-windows)))
+                 (not (or truncate-lines (truncated-partial-width-window-p))))
             ;; Under line-move-visual, goal-column should be
             ;; interpreted in units of the frame's canonical character
             ;; width, which is exactly what vertical-motion does.
