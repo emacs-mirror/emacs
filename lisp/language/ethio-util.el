@@ -794,15 +794,15 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
   "This function is deprecated."
   (interactive "*cInput number: 1.ö ‡  2.ö ‡‚  3.ö ‡ƒ  4.ö ‡„  5.ö ‡€")
   (cond
-   ((= arg ?1)
+   ((eq arg ?1)
     (insert "ö ‡"))
-   ((= arg ?2)
+   ((eq arg ?2)
     (insert "ö ‡‚"))
-   ((= arg ?3)
+   ((eq arg ?3)
     (insert "ö ‡ƒ"))
-   ((= arg ?4)
+   ((eq arg ?4)
     (insert "ö ‡„"))
-   ((= arg ?5)
+   ((eq arg ?5)
     (insert "ö ‡€"))
    (t
     (error ""))))
@@ -816,7 +816,7 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
   "Convert each fidel characters in the current buffer into a fidel-tex command."
   (interactive)
   (let ((buffer-read-only nil)
-	comp ch)
+	comp)
 
     ;; Special treatment for geminated characters.
     ;; Geminated characters la", etc. change into \geminateG{\laG}, etc.
@@ -835,21 +835,22 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
     ;; Special Ethiopic punctuation.
     (goto-char (point-min))
     (while (re-search-forward "\\ce[Â».?]\\|Â«\\ce" nil t)
-      (cond
-       ((= (setq ch (preceding-char)) ?\Â»)
-	(delete-char -1)
-	(insert "\\rquoteG"))
-       ((= ch ?.)
-	(delete-char -1)
-	(insert "\\dotG"))
-       ((= ch ??)
-	(delete-char -1)
-	(insert "\\qmarkG"))
-       (t
-	(forward-char -1)
-	(delete-char -1)
-	(insert "\\lquoteG")
-	(forward-char 1))))
+      (let ((ch (preceding-char)))
+        (cond
+         ((eq ch ?\Â»)
+	  (delete-char -1)
+	  (insert "\\rquoteG"))
+         ((eq ch ?.)
+	  (delete-char -1)
+	  (insert "\\dotG"))
+         ((eq ch ??)
+	  (delete-char -1)
+	  (insert "\\qmarkG"))
+         (t
+	  (forward-char -1)
+	  (delete-char -1)
+	  (insert "\\lquoteG")
+	  (forward-char 1)))))
 
     ;; Ethiopic characters to TeX macros
     (robin-invert-region (point-min) (point-max) "ethiopic-tex")

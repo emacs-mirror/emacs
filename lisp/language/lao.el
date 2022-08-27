@@ -60,9 +60,9 @@
 	   (len (length chars))
 	   ;; Replace `c', `t', `v' to consonant, tone, and vowel.
            (regexp (mapconcat (lambda (c)
-                                (cond ((= c ?c) consonant)
-                                      ((= c ?t) tone)
-                                      ((= c ?v) vowel-upper-lower)
+                                (cond ((eq c ?c) consonant)
+                                      ((eq c ?t) tone)
+                                      ((eq c ?v) vowel-upper-lower)
                                       (t (string c))))
 			      (cdr l) ""))
 	   ;; Element of composition-function-table.

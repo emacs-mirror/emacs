@@ -1999,20 +1999,20 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setq keep-going t)
 	  (setq tmp (aref byte-stack+-info (symbol-value (car lap0))))
 	  (setq rest (cdr rest))
-	  (cond ((= tmp 1)
+	  (cond ((eql tmp 1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted>" lap0)
 		 (setq lap (delq lap0 (delq lap1 lap))))
-		((= tmp 0)
+		((eql tmp 0)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted> discard" lap0)
 		 (setq lap (delq lap0 lap)))
-		((= tmp -1)
+		((eql tmp -1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\tdiscard discard" lap0)
 		 (setcar lap0 'byte-discard)
 		 (setcdr lap0 0))
-		((error "Optimizer error: too much on the stack"))))
+		(t (error "Optimizer error: too much on the stack"))))
 	 ;;
 	 ;; goto*-X X:  -->  X:
 	 ;;

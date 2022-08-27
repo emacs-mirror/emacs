@@ -8271,10 +8271,10 @@ CHAR is in [ugoa] and represents the category of users (Owner, Group,
 Others, or All) for whom to produce the mask.
 The bit-mask that is returned extracts from mode bits the access rights
 for the specified category of users."
-  (cond ((= char ?u) #o4700)
-	((= char ?g) #o2070)
-	((= char ?o) #o1007)
-	((= char ?a) #o7777)
+  (cond ((eq char ?u) #o4700)
+	((eq char ?g) #o2070)
+	((eq char ?o) #o1007)
+	((eq char ?a) #o7777)
         (t (error "%c: Bad `who' character" char))))
 
 (defun file-modes-char-to-right (char &optional from)
@@ -8282,22 +8282,22 @@ for the specified category of users."
 CHAR is in [rwxXstugo] and represents symbolic access permissions.
 If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
   (or from (setq from 0))
-  (cond ((= char ?r) #o0444)
-	((= char ?w) #o0222)
-	((= char ?x) #o0111)
-	((= char ?s) #o6000)
-	((= char ?t) #o1000)
+  (cond ((eq char ?r) #o0444)
+	((eq char ?w) #o0222)
+	((eq char ?x) #o0111)
+	((eq char ?s) #o6000)
+	((eq char ?t) #o1000)
 	;; Rights relative to the previous file modes.
-	((= char ?X) (if (= (logand from #o111) 0) 0 #o0111))
-	((= char ?u) (let ((uright (logand #o4700 from)))
-		       ;; FIXME: These divisions/shifts seem to be right
-                       ;; for the `7' part of the #o4700 mask, but not
-                       ;; for the `4' part.  Same below for `g' and `o'.
-		       (+ uright (/ uright #o10) (/ uright #o100))))
-	((= char ?g) (let ((gright (logand #o2070 from)))
-		       (+ gright (/ gright #o10) (* gright #o10))))
-	((= char ?o) (let ((oright (logand #o1007 from)))
-		       (+ oright (* oright #o10) (* oright #o100))))
+	((eq char ?X) (if (= (logand from #o111) 0) 0 #o0111))
+	((eq char ?u) (let ((uright (logand #o4700 from)))
+		        ;; FIXME: These divisions/shifts seem to be right
+                        ;; for the `7' part of the #o4700 mask, but not
+                        ;; for the `4' part.  Same below for `g' and `o'.
+		        (+ uright (/ uright #o10) (/ uright #o100))))
+	((eq char ?g) (let ((gright (logand #o2070 from)))
+		        (+ gright (/ gright #o10) (* gright #o10))))
+	((eq char ?o) (let ((oright (logand #o1007 from)))
+		        (+ oright (* oright #o10) (* oright #o100))))
         (t (error "%c: Bad right character" char))))
 
 (defun file-modes-rights-to-number (rights who-mask &optional from)

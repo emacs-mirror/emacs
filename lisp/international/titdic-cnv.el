@@ -281,7 +281,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
     (while (not (eobp))
       (let ((ch (following-char))
 	    (pos (point)))
-	(cond ((= ch ?C)		; COMMENT
+	(cond ((eq ch ?C)		; COMMENT
 	       (cond ((looking-at "COMMENT")
 		      (let ((pos (match-end 0))
 			    (to (progn (end-of-line) (point))))
@@ -295,7 +295,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 			(setq tit-comments
 			      (cons (buffer-substring-no-properties pos (point))
 				    tit-comments))))))
-	      ((= ch ?M)		; MULTICHOICE, MOVERIGHT, MOVELEFT
+	      ((eq ch ?M)		; MULTICHOICE, MOVERIGHT, MOVELEFT
 	       (cond ((looking-at "MULTICHOICE:[ \t]*")
 		      (goto-char (match-end 0))
 		      (setq tit-multichoice (looking-at "YES")))
@@ -305,7 +305,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 		     ((looking-at "MOVELEFT:[ \t]*")
 		      (goto-char (match-end 0))
 		      (setq tit-moveleft (tit-read-key-value)))))
-	      ((= ch ?P)		; PROMPT
+	      ((eq ch ?P)		; PROMPT
 	       (cond ((looking-at "PROMPT:[ \t]*")
 		      (goto-char (match-end 0))
 		      (setq tit-prompt (tit-read-key-value))
@@ -316,7 +316,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 			(if (or (eq (nth 1 split) 32)
 				(eq (nth 2 split) 32))
 			    (setq tit-prompt (substring tit-prompt 0 -1)))))))
-	      ((= ch ?B)		; BACKSPACE, BEGINDICTIONARY,
+	      ((eq ch ?B)		; BACKSPACE, BEGINDICTIONARY,
 					; BEGINPHRASE
 	       (cond ((looking-at "BACKSPACE:[ \t]*")
 		      (goto-char (match-end 0))
@@ -325,7 +325,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
 		      (setq tit-dictionary t))
 		     ((looking-at "BEGINPHRASE")
 		      (setq tit-dictionary nil))))
-	      ((= ch ?K)		; KEYPROMPT
+	      ((eq ch ?K)		; KEYPROMPT
 	       (cond ((looking-at "KEYPROMPT(\\(.*\\)):[ \t]*")
 		      (let ((key-char (match-string 1)))
 			(goto-char (match-end 0))
