@@ -223,20 +223,39 @@ form.")
                 ("x:/foo/bar/baz/" "z:/qux/foo/"))
                ("///foo/bar/" "$FOO/baz/;/qux/foo/"
                 ("//foo/bar//baz/" "/qux/foo/")))
-           '(("/foo/bar//baz/:/bar/foo/baz//" nil
-              ("/foo/bar//baz/" "/bar/foo/baz//"))
-             ("/foo/bar/:/bar/qux/:/qux/foo" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("//foo/bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo/bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo//bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo//bar/:/bar/qux/:/qux/foo" nil
-              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo/bar" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))
-             ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar//baz/" "/qux/foo/")))))
+           (if (eq system-type 'cygwin)
+               '(("/foo/bar//baz/:/bar/foo/baz//" nil
+                  ("/foo/bar//baz/" "/bar/foo/baz//"))
+                 ("/foo/bar/:/bar/qux/:/qux/foo" nil
+                  ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("//foo/bar/:/bar/qux/:/qux/foo/" nil
+                  ("//foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo/bar/:/bar/qux/:/qux/foo/" nil
+                  ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo//bar/:/bar/qux/:/qux/foo/" nil
+                  ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo//bar/:/bar/qux/:/qux/foo" nil
+                  ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo/bar" "$FOO/baz/:/qux/foo/"
+                  ("/foo/bar/baz/" "/qux/foo/"))
+                 ("///foo/bar/" "$FOO/baz/:/qux/foo/"
+                  ("//foo/bar//baz/" "/qux/foo/")))
+             '(("/foo/bar//baz/:/bar/foo/baz//" nil
+                ("/foo/bar//baz/" "/bar/foo/baz//"))
+               ("/foo/bar/:/bar/qux/:/qux/foo" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("//foo/bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo/bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo//bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo//bar/:/bar/qux/:/qux/foo" nil
+                ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo/bar" "$FOO/baz/:/qux/foo/"
+                ("/foo/bar/baz/" "/qux/foo/"))
+               ("//foo/bar/" "$FOO/baz/:/qux/foo/"
+                ("/foo/bar//baz/" "/qux/foo/"))))))
         (foo-env (getenv "FOO"))
         (bar-env (getenv "BAR")))
     (unwind-protect
