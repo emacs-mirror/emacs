@@ -786,7 +786,7 @@ Subexpression 2 must end right before the \\n.")
                nil
                '(1 'dired-broken-symlink)
                '(2 dired-symlink-face)
-               '(3 'dired-broken-symlink)))
+               '(3 '(face dired-broken-symlink dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a directory.
    (list dired-re-sym
@@ -798,7 +798,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 dired-directory-face)))
+               '(2 '(face dired-directory-face dired-symlink-filename t))))
    ;;
    ;; Symbolic link to a non-directory.
    (list dired-re-sym
@@ -812,7 +812,7 @@ Subexpression 2 must end right before the \\n.")
                '(dired-move-to-filename)
                nil
                '(1 dired-symlink-face)
-               '(2 'default)))
+               '(2 '(face default dired-symlink-filename t))))
    ;;
    ;; Sockets, pipes, block devices, char devices.
    (list dired-re-special

@@ -4512,21 +4512,35 @@ is a list of cons cells of the form (START . END)."
            (setq bounds (cdr bounds))))
        found))))
 
-(defun isearch-search-fun-in-text-property (search-fun property)
-  "Return the function to search inside text that has the specified PROPERTY.
+(defun isearch-search-fun-in-text-property (search-fun properties)
+  "Return the function to search inside text that has the specified PROPERTIES.
 The function will limit the search for matches only inside text which has
-this property in the current buffer.
+at least one of the text PROPERTIES.
 The argument SEARCH-FUN provides the function to search text, and
 defaults to the value of `isearch-search-fun-default' when nil."
+  (setq properties (ensure-list properties))
   (apply-partially
    #'search-within-boundaries
    search-fun
-   (lambda (pos) (get-text-property (if isearch-forward pos
-                                      (max (1- pos) (point-min)))
-                                    property))
-   (lambda (pos) (if isearch-forward
-                     (next-single-property-change pos property)
-                   (previous-single-property-change pos property)))))
+   (lambda (pos)
+     (let ((pos (if isearch-forward pos (max (1- pos) (point-min)))))
+       (seq-some (lambda (property)
+                   (get-text-property pos property))
+                 properties)))
+   (lambda (pos)
+     (let ((pos-list (if isearch-forward
+                         (mapcar (lambda (property)
+                                   (next-single-property-change
+                                    pos property))
+                                 properties)
+                       (mapcar (lambda (property)
+                                 (previous-single-property-change
+                                  pos property))
+                               properties))))
+       (setq pos-list (delq nil pos-list))
+       (when pos-list (if isearch-forward
+                          (seq-min pos-list)
+                        (seq-max pos-list)))))))
 
 (defun search-within-boundaries ( search-fun get-fun next-fun
                                   string &optional bound noerror count)

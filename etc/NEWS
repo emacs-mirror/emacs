@@ -2023,7 +2023,10 @@ the buffer will take you to that directory.
 *** Search and replace in Dired/Wdired supports more regexps.
 For example, the regexp ".*" will match only characters that are part
 of the file name.  Also "^.*$" can be used to match at the beginning
-of the file name and at the end of the file name.
+of the file name and at the end of the file name.  This is used only
+when searching on file names.  In Wdired this can be used when the new
+user option 'wdired-search-replace-filenames' is non-nil (which is the
+default).
 
 ** Bookmarks
 
