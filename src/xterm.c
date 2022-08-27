@@ -20626,11 +20626,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	bool must_free_data = false;
 	XIEvent *xi_event = (XIEvent *) event->xcookie.data;
+
 	/* Sometimes the event is already claimed by GTK, which
 	   will free its data in due course. */
-	if (!xi_event && XGetEventData (dpyinfo->display, &event->xcookie))
+	if (!xi_event)
 	  {
-	    must_free_data = true;
+	    if (XGetEventData (dpyinfo->display, &event->xcookie))
+	      must_free_data = true;
+
 	    xi_event = (XIEvent *) event->xcookie.data;
 	  }
 
@@ -20638,7 +20641,25 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	if (!xi_event)
 	  {
-	    eassert (!must_free_data);
+	    /* It may turn out that the event data has already been
+	       implicitly freed for various reasons up to and
+	       including XMenuActivate pushing some other event onto
+	       the foreign-event queue, or x_menu_wait_for_events
+	       calling XNextEvent through a timer that tries to wait
+	       for input.
+
+	       In that case, XGetEventData will return True, but
+	       cookie->data will be NULL.  Since handling such input
+	       events is not really important, we can afford to
+	       discard them.
+
+	       The way Xlib is currently implemented makes calling
+	       XFreeEventData unnecessary in this case, but call it
+	       anyway, since not doing so may lead to a memory leak in
+	       the future.  */
+
+	    if (must_free_data)
+	      XFreeEventData (dpyinfo->display, &event->xcookie);
 	    goto OTHER;
 	  }
 
