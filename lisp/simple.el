@@ -7717,13 +7717,15 @@ not vscroll."
 	       (not goal-column)
                ;; Lines aren't truncated.
                (not
-                (or truncate-lines
-                    (and (integerp truncate-partial-width-windows)
-                         (< (window-width)
-                            truncate-partial-width-windows))
-                    (and truncate-partial-width-windows
-                         (not (integerp truncate-partial-width-windows))
-                         (not (window-full-width-p)))))
+                (and
+                 (or truncate-lines
+                     (and (integerp truncate-partial-width-windows)
+                          (< (window-total-width)
+                             truncate-partial-width-windows))
+                     (and truncate-partial-width-windows
+                          (not (integerp truncate-partial-width-windows))
+                          (not (window-full-width-p))))
+                 (long-line-optimizations-p)))
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
