@@ -4278,7 +4278,7 @@ This macro is expanded at compile time to a form tailored for the mode
 in question, so MODE must be a constant.  Therefore MODE is not
 evaluated and should not be quoted."
   (declare (debug nil))
-  `(funcall ,(c-make-init-lang-vars-fun mode)))
+  `(funcall #',(c-make-init-lang-vars-fun mode)))
 
 
 (cc-provide 'cc-langs)
