@@ -2928,6 +2928,15 @@ hunk text is not found in the source file."
         (forward-line 1)))
     (nreverse props)))
 
+;;;###autoload
+(defun diff-vc-deduce-fileset ()
+  (let ((backend (vc-responsible-backend default-directory))
+        files)
+    (save-excursion
+      (goto-char (point-min))
+      (while (progn (diff-file-next) (not (eobp)))
+        (push (diff-find-file-name nil t) files)))
+    (list backend (nreverse files) nil nil 'patch)))
 
 (defun diff--filter-substring (str)
   (when diff-font-lock-prettify

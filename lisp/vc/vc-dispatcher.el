@@ -624,6 +624,8 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 (declare-function log-edit-empty-buffer-p "log-edit" ())
 
+(defvar vc-patch-string)
+
 (defun vc-log-edit (fileset mode backend)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
@@ -653,15 +655,17 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                       (mapcar
                        (lambda (file) (file-relative-name file root))
                        fileset))))
-	      (log-edit-diff-function . vc-diff)
+	      (log-edit-diff-function
+               . ,(if vc-patch-string 'log-edit-diff-patch 'vc-diff))
 	      (log-edit-vc-backend . ,backend)
-	      (vc-log-fileset . ,fileset))
+	      (vc-log-fileset . ,fileset)
+	      (vc-patch-string . ,vc-patch-string))
 	    nil
 	    mode)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend)
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend patch-string)
   "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
@@ -673,7 +677,8 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  Puts the log-entry buffer in major mode
 MODE, defaulting to `log-edit-mode' if MODE is nil.
 AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
-BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
+BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer.
+PATCH-STRING is a patch to check in."
   (let ((parent
          (if (vc-dispatcher-browsing)
              ;; If we are called from a directory browser, the parent buffer is
@@ -688,6 +693,8 @@ BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer."
     (setq-local vc-parent-buffer parent)
     (setq-local vc-parent-buffer-name
                 (concat " from " (buffer-name vc-parent-buffer)))
+    (when patch-string
+      (setq-local vc-patch-string patch-string))
     (vc-log-edit files mode backend)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
@@ -753,7 +760,8 @@ the buffer contents as a comment."
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
   (or (derived-mode-p 'vc-dir-mode)
-      (derived-mode-p 'dired-mode)))
+      (derived-mode-p 'dired-mode)
+      (derived-mode-p 'diff-mode)))
 
 ;; These are unused.
 ;; (defun vc-dispatcher-in-fileset-p (fileset)

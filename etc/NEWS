@@ -1580,6 +1580,12 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 This command marks files based on a regexp.  If given a prefix
 argument, unmark instead.
 
+*** 'C-x v v' on a diff buffer commits it as a patch.
+You can create a diff buffer by e.g. 'C-x v D' ('vc-root-diff'),
+then remove unnecessary hunks, and commit only part of your changes
+by typing 'C-x v v' in that diff buffer.  Currently this works only
+with Git.
+
 ---
 *** 'C-x v v' on an unregistered file will now use the most specific backend.
 Previously, if you had an SVN-covered "~/" directory, and a Git-covered

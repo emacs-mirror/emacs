@@ -247,6 +247,11 @@
 ;;   revision argument is only supported with some older VCSes, like
 ;;   RCS and CVS, and is otherwise silently ignored.
 ;;
+;; - checkin-patch (patch-string comment)
+;;
+;;   Commit a single patch PATCH-STRING to this backend, bypassing
+;;   the changes in filesets.  COMMENT is used as a check-in comment.
+;;
 ;; * find-revision (file rev buffer)
 ;;
 ;;   Fetch revision REV of file FILE and put it into BUFFER.
@@ -1102,6 +1107,8 @@ BEWARE: this function may change the current buffer."
       (vc-dir-deduce-fileset state-model-only-files))
      ((derived-mode-p 'dired-mode)
       (dired-vc-deduce-fileset state-model-only-files not-state-changing))
+     ((derived-mode-p 'diff-mode)
+      (diff-vc-deduce-fileset))
      ((setq backend (vc-backend buffer-file-name))
       (if state-model-only-files
 	(list backend (list buffer-file-name)
@@ -1114,7 +1121,8 @@ BEWARE: this function may change the current buffer."
            (or (buffer-file-name vc-parent-buffer)
 				(with-current-buffer vc-parent-buffer
 				  (or (derived-mode-p 'vc-dir-mode)
-				      (derived-mode-p 'dired-mode)))))
+				      (derived-mode-p 'dired-mode)
+				      (derived-mode-p 'diff-mode)))))
       (progn                  ;FIXME: Why not `with-current-buffer'? --Stef.
 	(set-buffer vc-parent-buffer)
 	(vc-deduce-fileset-1 not-state-changing allow-unregistered state-model-only-files)))
@@ -1230,6 +1238,8 @@ with, using the most specific one."
       (error "Fileset files are missing, so cannot be operated on"))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
+     ((eq model 'patch)
+      (vc-checkin files backend nil nil nil (buffer-string)))
      ((or (null state) (eq state 'unregistered))
       (cond (verbose
              (let ((backend (vc-read-backend "Backend to register to: ")))
@@ -1615,13 +1625,14 @@ Type \\[vc-next-action] to check in changes.")
      ".\n")
     (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
 
-(defun vc-checkin (files backend &optional comment initial-contents rev)
+(defun vc-checkin (files backend &optional comment initial-contents rev patch-string)
   "Check in FILES. COMMENT is a comment string; if omitted, a
 buffer is popped up to accept a comment.  If INITIAL-CONTENTS is
 non-nil, then COMMENT is used as the initial contents of the log
 entry buffer.
 The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
+The optional argument PATCH-STRING is a string to check in as a patch.
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (run-hooks 'vc-before-checkin-hook)
@@ -1643,7 +1654,9 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
        ;; vc-checkin-switches, but 'the' local buffer is
        ;; not a well-defined concept for filesets.
        (progn
-         (vc-call-backend backend 'checkin files comment rev)
+         (if patch-string
+             (vc-call-backend backend 'checkin-patch patch-string comment)
+           (vc-call-backend backend 'checkin files comment rev))
          (mapc #'vc-delete-automatic-version-backups files))
        `((vc-state . up-to-date)
          (vc-checkout-time . ,(file-attribute-modification-time
@@ -1651,7 +1664,8 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
          (vc-working-revision . nil)))
      (message "Checking in %s...done" (vc-delistify files)))
    'vc-checkin-hook
-   backend))
+   backend
+   patch-string))
 
 ;;; Additional entry points for examining version histories
 
@@ -1778,6 +1792,25 @@ objects, and finally killing buffer ORIGINAL."
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
+
+(defvar vc-patch-string nil)
+
+(defun vc-diff-patch-string (patch-string)
+  "Report diffs to be committed from the patch.
+Like `vc-diff-internal' but uses PATCH-STRING to display
+in the output buffer."
+  (let ((buffer "*vc-diff*"))
+    (vc-setup-buffer buffer)
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t))
+      (insert patch-string))
+    (setq buffer-read-only t)
+    (diff-mode)
+    (setq-local diff-vc-backend (vc-responsible-backend default-directory))
+    (setq-local revert-buffer-function (lambda (_ _) (vc-diff-patch-string)))
+    (setq-local vc-patch-string patch-string)
+    (pop-to-buffer (current-buffer))
+    (vc-run-delayed (vc-diff-finish (current-buffer) nil))))
 
 (defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
   "Report diffs between two revisions of a fileset.
