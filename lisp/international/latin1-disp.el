@@ -756,6 +756,7 @@ use either \\[customize] or the function `latin1-display'."
 	     (latin1-display-ucs-per-lynx 1)
 	   (latin1-display-ucs-per-lynx -1))))
 
+;;;###autoload
 (defun latin1-display-ucs-per-lynx (arg)
   "Set up Latin-1/ASCII display for Unicode characters.
 This uses the transliterations of the Lynx browser.
