@@ -35831,6 +35831,9 @@ which no font is found on graphical terminals, and characters that cannot
 be displayed by text-mode terminals.  Its value should be an ASCII acronym
 string, `hex-code', `empty-box', or `thin-space'.  The default is `hex-code'.
 
+With the obvious exception of `zero-width', all the other representations
+are displayed using the face `glyphless-char'.
+
 If a character has a non-nil entry in an active display table, the
 display table takes effect; in this case, Emacs does not consult
 `glyphless-char-display' at all.  */);
