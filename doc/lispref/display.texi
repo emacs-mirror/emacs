@@ -8563,7 +8563,7 @@ square brackets, @samp{[]}.
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot
 be encoded by the terminal's coding system.  Its value should be one
-of the above display methods, except @code{zero-width} or a cons cell.
+of the above display methods, except @code{zero-width}.
 
 If a character has a non-@code{nil} entry in an active display table,
 the display table takes effect; in this case, Emacs does not consult

@@ -1532,11 +1532,13 @@ completion, and adds the Emoji into the search string.
 This allows an easy way to toggle seeing all glyphless characters in
 the current buffer.
 
++++
 *** The extra slot of 'glyphless-char-display' can now have cons values.
 The extra slot of the 'glyphless-char-display' char-table can now have
 values that are cons cells, specifying separate values for text-mode
 and GUI terminals.
 
+---
 *** "Replacement character" feature for undisplayable characters on TTYs.
 The 'acronym' method of displaying glyphless characters on text-mode
 frames treats single-character acronyms specially: they are displayed
