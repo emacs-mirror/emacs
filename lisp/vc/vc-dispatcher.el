@@ -656,7 +656,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                        (lambda (file) (file-relative-name file root))
                        fileset))))
 	      (log-edit-diff-function
-               . ,(if vc-patch-string 'log-edit-diff-patch 'vc-diff))
+               . ,(if vc-patch-string 'log-edit-diff-patch 'log-edit-diff-fileset))
 	      (log-edit-vc-backend . ,backend)
 	      (vc-log-fileset . ,fileset)
 	      (vc-patch-string . ,vc-patch-string))

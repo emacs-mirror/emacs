@@ -2001,19 +2001,20 @@ state of each file in the fileset."
     (when buffer-file-name (vc-buffer-sync not-urgent))))
 
 ;;;###autoload
-(defun vc-diff (&optional historic not-urgent)
+(defun vc-diff (&optional historic not-urgent fileset)
   "Display diffs between file revisions.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to
-saving the buffer."
+saving the buffer.  The optional argument FILESET can override the
+deduced fileset."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
     (vc-maybe-buffer-sync not-urgent)
-    (let ((fileset (vc-deduce-fileset t)))
+    (let ((fileset (or fileset (vc-deduce-fileset t))))
       (vc-buffer-sync-fileset fileset not-urgent)
       (vc-diff-internal t fileset nil nil
 			(called-interactively-p 'interactive)))))
