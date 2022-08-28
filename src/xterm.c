@@ -952,7 +952,7 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("MULTIPLE", Xatom_MULTIPLE)
     ATOM_REFS_INIT ("INCR", Xatom_INCR)
     ATOM_REFS_INIT ("_EMACS_TMP_",  Xatom_EMACS_TMP)
-    ATOM_REFS_INIT ("EMACS_SERVER_TIME_PROP", Xatom_EMACS_SERVER_TIME_PROP)
+    ATOM_REFS_INIT ("_EMACS_SERVER_TIME_PROP", Xatom_EMACS_SERVER_TIME_PROP)
     ATOM_REFS_INIT ("TARGETS", Xatom_TARGETS)
     ATOM_REFS_INIT ("NULL", Xatom_NULL)
     ATOM_REFS_INIT ("ATOM", Xatom_ATOM)
@@ -13519,6 +13519,8 @@ x_query_pointer_1 (struct x_display_info *dpyinfo,
 
 	  xi_convert_button_state (&buttons, &state);
 	  *mask_return = state | modifiers.effective;
+
+	  XFree (buttons.mask);
 
 	  *root_x_return = lrint (root_x);
 	  *root_y_return = lrint (root_y);
