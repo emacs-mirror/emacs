@@ -55,6 +55,26 @@
    (eshell-match-command-output esh-proc-test--output-cmd
                                 "stdout\nstderr\n")))
 
+(ert-deftest esh-proc-test/output/stdout-to-buffer ()
+  "Check that redirecting only stdout works."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "%s > #<%s>" esh-proc-test--output-cmd bufname)
+      "stderr\n"))
+    (should (equal (buffer-string) "stdout\n"))))
+
+(ert-deftest esh-proc-test/output/stderr-to-buffer ()
+  "Check that redirecting only stderr works."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "%s 2> #<%s>" esh-proc-test--output-cmd bufname)
+      "stdout\n"))
+    (should (equal (buffer-string) "stderr\n"))))
+
 (ert-deftest esh-proc-test/output/stdout-and-stderr-to-buffer ()
   "Check that redirecting stdout and stderr works."
   (skip-unless (executable-find "sh"))
@@ -85,6 +105,16 @@
    (eshell-wait-for-subprocess)
    (should (= eshell-last-command-status 1))
    (should (eq eshell-last-command-result nil))))
+
+(ert-deftest esh-proc-test/exit-status/with-stderr-pipe ()
+  "Check that failed execution is properly recorded even with a pipe process."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-insert-command (format "sh -c 'exit 1' > #<%s>" bufname))
+     (eshell-wait-for-subprocess)
+     (should (= eshell-last-command-status 1))
+     (should (eq eshell-last-command-result nil)))))
 
 
 ;; Pipelines
