@@ -153,7 +153,7 @@ behavior for short-lived processes, see bug#18108."
 If either COMMAND or a subcommand in ARGS (e.g. git log) is a
 visual command, returns non-nil."
   (let ((command (file-name-nondirectory command)))
-    (and (eshell-interactive-output-p)
+    (and (eshell-interactive-output-p 'all)
          (or (member command eshell-visual-commands)
              (member (car args)
                      (cdr (assoc command eshell-visual-subcommands)))

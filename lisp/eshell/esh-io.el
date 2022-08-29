@@ -407,12 +407,20 @@ it defaults to `insert'."
     (error "Invalid redirection target: %s"
 	   (eshell-stringify target)))))
 
-(defun eshell-interactive-output-p ()
-  "Return non-nil if current handles are bound for interactive display."
-  (and (eq (car (aref eshell-current-handles
-		      eshell-output-handle)) t)
-       (eq (car (aref eshell-current-handles
-		      eshell-error-handle)) t)))
+(defun eshell-interactive-output-p (&optional index handles)
+  "Return non-nil if the specified handle is bound for interactive display.
+HANDLES is the set of handles to check; if nil, use
+`eshell-current-handles'.
+
+INDEX is the handle index to check.  If nil, check
+`eshell-output-handle'.  If `all', check both
+`eshell-output-handle' and `eshell-error-handle'."
+  (let ((handles (or handles eshell-current-handles))
+        (index (or index eshell-output-handle)))
+    (if (eq index 'all)
+        (and (eq (car (aref handles eshell-output-handle)) t)
+             (eq (car (aref handles eshell-error-handle)) t))
+      (eq (car (aref handles index)) t))))
 
 (defvar eshell-print-queue nil)
 (defvar eshell-print-queue-count -1)
