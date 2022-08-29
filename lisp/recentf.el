@@ -411,7 +411,8 @@ returned nil."
   "Convert file NAME to absolute, and canonicalize it.
 NAME is first passed to the function `expand-file-name', then to
 `recentf-filename-handlers' to post process it."
-  (recentf-apply-filename-handlers (expand-file-name name)))
+  (let ((non-essential t))
+    (recentf-apply-filename-handlers (expand-file-name name))))
 
 (defun recentf-include-p (filename)
   "Return non-nil if FILENAME should be included in the recent list.
