@@ -4033,11 +4033,12 @@ DOC is an optional documentation string."
          (file (gdb-mi--field frame 'fullname))
          (line (gdb-mi--field frame 'line)))
     (if file
-      (format "-data-disassemble -f %s -l %s -n -1 -- 0" file line)
-    ;; If we're unable to get a file name / line for $PC, simply
-    ;; follow $PC, disassembling the next 10 (x ~15 (on IA) ==
-    ;; 150 bytes) instructions.
-    "-data-disassemble -s $pc -e \"$pc + 150\" -- 0"))
+        (format "-data-disassemble -f %s -l %s -n -1 -- 0"
+                (file-local-name file) line)
+      ;; If we're unable to get a file name / line for $PC, simply
+      ;; follow $PC, disassembling the next 10 (x ~15 (on IA) ==
+      ;; 150 bytes) instructions.
+      "-data-disassemble -s $pc -e \"$pc + 150\" -- 0"))
   gdb-disassembly-handler
   ;; We update disassembly only after we have actual frame information
   ;; about all threads, so no there's `update' signal in this list
