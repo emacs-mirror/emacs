@@ -1913,8 +1913,10 @@ be a list of the form returned by `event-start' and `event-end'."
 (defalias 'mkdir #'make-directory)
 
 ;; These were the XEmacs names, now obsolete:
-(define-obsolete-function-alias 'point-at-eol #'line-end-position "29.1")
-(define-obsolete-function-alias 'point-at-bol #'line-beginning-position "29.1")
+(defalias 'point-at-eol #'line-end-position)
+(make-obsolete 'point-at-eol "use `line-end-position' or `pos-eol' instead." "29.1")
+(defalias 'point-at-bol #'line-beginning-position)
+(make-obsolete 'point-at-bol "use `line-beginning-position' or `pos-bol' instead." "29.1")
 (define-obsolete-function-alias 'user-original-login-name #'user-login-name "28.1")
 
 ;; These are in obsolete/autoload.el, but are commonly used by
