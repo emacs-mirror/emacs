@@ -204,7 +204,12 @@ The list of extensions should contain the most used extensions before the
 others, since the search algorithm searches sequentially through each
 directory specified in `ff-search-directories'.  If a file is not found,
 a new one is created with the first matching extension (`.cc' yields `.hh').
-This alist should be set by the major mode."
+This alist should be set by the major mode.
+
+Note: if an element of the alist names a FUNCTION as its cdr, that
+function must return a non-nil list of file-name extensions.  It cannot
+return nil, nor can it signal in any way a failure to find a suitable
+list of extensions."
   :type '(choice (repeat (list regexp (choice (repeat string) function)))
 		 symbol))
 
