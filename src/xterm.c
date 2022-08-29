@@ -21333,26 +21333,26 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      /* Also remember the mouse glyph and set
 			 mouse_moved.  */
 		      if (f != dpyinfo->last_mouse_glyph_frame
-			  || xev->event_x < r->x
-			  || xev->event_x >= r->x + r->width
-			  || xev->event_y < r->y
-			  || xev->event_y >= r->y + r->height)
+			  || lrint (xev->event_x) < r->x
+			  || lrint (xev->event_x) >= r->x + r->width
+			  || lrint (xev->event_y) < r->y
+			  || lrint (xev->event_y) >= r->y + r->height)
 			{
 			  f->mouse_moved = true;
 			  f->last_mouse_device = (source ? source->name
 						  : Qnil);
 			  dpyinfo->last_mouse_scroll_bar = NULL;
 
-			  remember_mouse_glyph (f, xev->event_x,
-						xev->event_y, r);
+			  remember_mouse_glyph (f, lrint (xev->event_x),
+						lrint (xev->event_y), r);
 			  dpyinfo->last_mouse_glyph_frame = f;
 			}
 		    }
 
 		  if (xev->root == dpyinfo->root_window)
 		    target = x_dnd_get_target_window (dpyinfo,
-						      xev->root_x,
-						      xev->root_y,
+						      lrint (xev->root_x),
+						      lrint (xev->root_y),
 						      &target_proto,
 						      &motif_style,
 						      &toplevel,
@@ -21490,14 +21490,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  if (x_dnd_last_window_is_frame && target != None)
 		    x_dnd_note_self_position (dpyinfo, target,
-					      xev->root_x, xev->root_y);
+					      lrint (xev->root_x),
+					      lrint (xev->root_y));
 		  else if (x_dnd_last_protocol_version != -1 && target != None)
 		    {
 		      dnd_state = xi_convert_event_state (xev);
 
 		      x_dnd_send_position (x_dnd_frame, target,
 					   x_dnd_last_protocol_version,
-					   xev->root_x, xev->root_y,
+					   lrint (xev->root_x),
+					   lrint (xev->root_y),
 					   x_dnd_selection_timestamp,
 					   x_dnd_wanted_action, 0,
 					   dnd_state);
@@ -21705,7 +21707,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 			  x_dnd_note_self_wheel (dpyinfo,
 						 x_dnd_last_seen_window,
-						 xev->root_x, xev->root_y,
+						 lrint (xev->root_x),
+						 lrint (xev->root_y),
 						 xev->detail, dnd_state,
 						 xev->time);
 			}
@@ -21713,7 +21716,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			x_dnd_send_position (x_dnd_frame,
 					     x_dnd_last_seen_window,
 					     x_dnd_last_protocol_version,
-					     xev->root_x, xev->root_y,
+					     lrint (xev->root_x),
+					     lrint (xev->root_y),
 					     xev->time, x_dnd_wanted_action,
 					     xev->detail, dnd_state);
 
@@ -21756,7 +21760,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			    {
 			      x_dnd_waiting_for_finish = false;
 			      x_dnd_note_self_drop (dpyinfo, x_dnd_last_seen_window,
-						    xev->root_x, xev->root_y, xev->time);
+						    lrint (xev->root_x),
+						    lrint (xev->root_y), xev->time);
 			    }
 			  else if (x_dnd_last_seen_window != None
 				   && x_dnd_last_protocol_version != -1)
@@ -21831,12 +21836,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				x_dnd_send_unsupported_drop (dpyinfo, (x_dnd_last_seen_toplevel != None
 								       ? x_dnd_last_seen_toplevel
 								       : x_dnd_last_seen_window),
-							     xev->root_x, xev->root_y, xev->time);
+							     lrint (xev->root_x),
+							     lrint (xev->root_y), xev->time);
 			    }
 			  else if (x_dnd_last_seen_toplevel != None)
 			    x_dnd_send_unsupported_drop (dpyinfo,
 							 x_dnd_last_seen_toplevel,
-							 xev->root_x, xev->root_y,
+							 lrint (xev->root_x),
+							 lrint (xev->root_y),
 							 xev->time);
 
 			  x_dnd_last_protocol_version = -1;
