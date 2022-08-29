@@ -718,8 +718,6 @@ It is the default value of the variable `top-level'."
     (let ((dir default-directory))
       (with-current-buffer "*Messages*"
         (messages-buffer-mode)
-        ;; Make it easy to do like "tail -f".
-        (setq-local window-point-insertion-type t)
         ;; Give *Messages* the same default-directory as *scratch*,
         ;; just to keep things predictable.
 	(setq default-directory (or dir (expand-file-name "~/")))))

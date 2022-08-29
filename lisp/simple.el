@@ -10431,7 +10431,9 @@ and setting it to nil."
     map))
 
 (define-derived-mode messages-buffer-mode special-mode "Messages"
-  "Major mode used in the \"*Messages*\" buffer.")
+  "Major mode used in the \"*Messages*\" buffer."
+  ;; Make it easy to do like "tail -f".
+  (setq-local window-point-insertion-type t))
 
 (defun messages-buffer ()
   "Return the \"*Messages*\" buffer.
