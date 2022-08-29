@@ -519,7 +519,7 @@ A string or a list of strings is returned."
     (goto-char b)
     (let (res)
       (while (< (point) e)
-	(let ((str (buffer-substring (point) (point-at-eol))))
+        (let ((str (buffer-substring (point) (line-end-position))))
 	  (unless (string= "" str)
 	    (push str res)))
 	(forward-line))

@@ -64,9 +64,13 @@
   :version "22.2"
   :group 'vc)
 
-(defcustom vc-bzr-program "bzr"
+(defcustom vc-bzr-program
+  (or (executable-find "bzr")
+      (executable-find "brz")
+      "bzr")
   "Name of the bzr command (excluding any arguments)."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
@@ -1004,19 +1008,17 @@ stream.  Standard error output is discarded."
                             ;; frob the results accordingly.
                             (file-relative-name dir (vc-bzr-root dir)))))
 
-(defvar vc-bzr-shelve-map
-  (let ((map (make-sparse-keymap)))
-    ;; Turn off vc-dir marking
-    (define-key map [mouse-2] #'ignore)
+(defvar-keymap vc-bzr-shelve-map
+  ;; Turn off vc-dir marking
+  "<mouse-2>"      #'ignore
 
-    (define-key map [down-mouse-3] #'vc-bzr-shelve-menu)
-    (define-key map "\C-k" #'vc-bzr-shelve-delete-at-point)
-    (define-key map "=" #'vc-bzr-shelve-show-at-point)
-    (define-key map "\C-m" #'vc-bzr-shelve-show-at-point)
-    (define-key map "A" #'vc-bzr-shelve-apply-and-keep-at-point)
-    (define-key map "P" #'vc-bzr-shelve-apply-at-point)
-    (define-key map "S" #'vc-bzr-shelve-snapshot)
-    map))
+  "<down-mouse-3>" #'vc-bzr-shelve-menu
+  "C-k"            #'vc-bzr-shelve-delete-at-point
+  "="              #'vc-bzr-shelve-show-at-point
+  "RET"            #'vc-bzr-shelve-show-at-point
+  "A"              #'vc-bzr-shelve-apply-and-keep-at-point
+  "P"              #'vc-bzr-shelve-apply-at-point
+  "S"              #'vc-bzr-shelve-snapshot)
 
 (defvar vc-bzr-shelve-menu-map
   (let ((map (make-sparse-keymap "Bzr Shelve")))

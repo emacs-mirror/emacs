@@ -371,7 +371,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	(goto-char (point-min))
 	(forward-line (1- number))
 	(when (re-search-forward gnus-cite-attribution-suffix
-				 (point-at-eol)
+                                 (line-end-position)
 				 t)
 	  (gnus-article-add-button (match-beginning 1) (match-end 1)
 				   'gnus-cite-toggle prefix))
@@ -756,7 +756,7 @@ See also the documentation for `gnus-article-highlight-citation'."
       ;; Each line.
       (setq begin (point)
 	    guess-limit (progn (skip-chars-forward "^> \t\r\n") (point))
-	    end (point-at-bol 2)
+            end (line-beginning-position 2)
 	    start end)
       (goto-char begin)
       ;; Ignore standard Supercite attribution prefix.
@@ -1105,8 +1105,8 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 				       "[\t [:alnum:]]+")))
 		       gnus-message-max-citation-depth))
 	  (mlist (make-list (* (1+ gnus-message-max-citation-depth) 2) nil))
-	  (start (point-at-bol))
-	  (end (point-at-eol)))
+          (start (line-beginning-position))
+          (end (line-end-position)))
       (setcar mlist start)
       (setcar (cdr mlist) end)
       (setcar (nthcdr (* cdepth 2) mlist) start)

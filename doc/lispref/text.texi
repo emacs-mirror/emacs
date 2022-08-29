@@ -243,10 +243,8 @@ using a function specified by the variable
 The default filter function consults the obsolete wrapper hook
 @code{filter-buffer-substring-functions} (see the documentation string
 of the macro @code{with-wrapper-hook} for the details about this
-obsolete facility), and the obsolete variable
-@code{buffer-substring-filters}.  If both of these are @code{nil}, it
-returns the unaltered text from the buffer, i.e., what
-@code{buffer-substring} would return.
+obsolete facility).  If it is @code{nil}, it returns the unaltered
+text from the buffer, i.e., what @code{buffer-substring} would return.
 
 If @var{delete} is non-@code{nil}, the function deletes the text
 between @var{start} and @var{end} after copying it, like
@@ -282,22 +280,12 @@ the same as those of @code{filter-buffer-substring}.
 
 The first hook function is passed a @var{fun} that is equivalent to
 the default operation of @code{filter-buffer-substring}, i.e., it
-returns the buffer-substring between @var{start} and @var{end}
-(processed by any @code{buffer-substring-filters}) and optionally
-deletes the original text from the buffer.  In most cases, the hook
-function will call @var{fun} once, and then do its own processing of
-the result.  The next hook function receives a @var{fun} equivalent to
-this, and so on.  The actual return value is the result of all the
-hook functions acting in sequence.
-@end defvar
-
-@defvar buffer-substring-filters
-The value of this obsolete variable should be a list of functions
-that accept a single string argument and return another string.
-The default @code{filter-buffer-substring} function passes the buffer
-substring to the first function in this list, and the return value of
-each function is passed to the next function.  The return value of the
-last function is passed to @code{filter-buffer-substring-functions}.
+returns the buffer-substring between @var{start} and @var{end} and
+optionally deletes the original text from the buffer.  In most cases,
+the hook function will call @var{fun} once, and then do its own
+processing of the result.  The next hook function receives a @var{fun}
+equivalent to this, and so on.  The actual return value is the result
+of all the hook functions acting in sequence.
 @end defvar
 
 @defun current-word &optional strict really-word
@@ -2378,6 +2366,9 @@ begins.  @xref{Usual Display}.
 amount of horizontal scrolling.  Consequently, a column value can be
 arbitrarily high.  The first (or leftmost) column is numbered 0.  They
 also ignore overlays and text properties, aside from invisibility.
+Invisible text is considered as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis (@pxref{Invisible Text}).
 
 @defun current-column
 This function returns the horizontal position of point, measured in
@@ -2451,6 +2442,10 @@ This function returns the indentation of the current line, which is
 the horizontal position of the first nonblank character.  If the
 contents are entirely blank, then this is the horizontal position of the
 end of the line.
+
+This function considers invisible text as having zero width, unless
+@code{buffer-invisibility-spec} specifies that invisible text should
+be displayed as ellipsis.  @xref{Invisible Text}.
 @end defun
 
 @deffn Command indent-to column &optional minimum
@@ -3406,7 +3401,7 @@ for @var{object} is the current buffer.
 Search for the next region that has text property @var{prop} set to
 @var{value} according to @var{predicate}.
 
-This function is modelled after @code{search-forward} and friends in
+This function is modeled after @code{search-forward} and friends in
 that it moves point, but it returns a structure that describes the
 match instead of returning it in @code{match-beginning} and friends.
 
@@ -3485,7 +3480,7 @@ This will give you a list of all those URLs.
 @end defun
 
 @defun text-property-search-backward prop &optional value predicate not-current
-This is just like @code{text-property-search-backward}, but searches
+This is just like @code{text-property-search-forward}, but searches
 backward instead.  Point is placed at the beginning of the matched
 region instead of the end, though.
 @end defun
@@ -5478,11 +5473,14 @@ available in this Emacs session.
 When libxml2 support is available, the following functions can be used
 to parse HTML or XML text into Lisp object trees.
 
-@defun libxml-parse-html-region start end &optional base-url discard-comments
+@defun libxml-parse-html-region &optional start end base-url discard-comments
 This function parses the text between @var{start} and @var{end} as
 HTML, and returns a list representing the HTML @dfn{parse tree}.  It
 attempts to handle real-world HTML by robustly coping with syntax
 mistakes.
+
+If @var{start} or @var{end} are @code{nil}, they default to the values
+from @code{point-min} and @code{point-max}, respectively.
 
 The optional argument @var{base-url}, if non-@code{nil}, should be a
 string specifying the base URL for relative URLs occurring in links.
@@ -5529,7 +5527,7 @@ buffer.  The argument @var{dom} should be a list as generated by
 @end defun
 
 @cindex parsing xml
-@defun libxml-parse-xml-region start end &optional base-url discard-comments
+@defun libxml-parse-xml-region &optional start end base-url discard-comments
 This function is the same as @code{libxml-parse-html-region}, except
 that it parses the text as XML rather than HTML (so it is stricter
 about syntax).

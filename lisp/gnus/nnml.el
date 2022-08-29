@@ -89,6 +89,7 @@ non-nil.")
 
 (defconst nnml-version "nnml 1.0"
   "nnml version.")
+(make-obsolete-variable 'nnml-version 'emacs-version "29.1")
 
 (defvoo nnml-nov-file-name ".overview")
 
@@ -600,7 +601,7 @@ non-nil.")
 		  (search-forward id nil t)) ; We find the ID.
 	;; And the id is in the fourth field.
 	(if (not (and (search-backward "\t" nil t 4)
-		      (not (search-backward "\t" (point-at-bol) t))))
+                      (not (search-backward "\t" (line-beginning-position) t))))
 	    (forward-line 1)
 	  (beginning-of-line)
 	  (setq found t)
@@ -754,7 +755,7 @@ article number.  This function is called narrowed to an article."
     (nnheader-insert-nov headers)))
 
 (defsubst nnml-header-value ()
-  (buffer-substring (match-end 0) (point-at-eol)))
+  (buffer-substring (match-end 0) (line-end-position)))
 
 (defun nnml-parse-head (chars &optional number)
   "Parse the head of the current buffer."
@@ -1060,7 +1061,7 @@ Use the nov database for the current group if available."
 					(regexp-quote
 					 (concat group ":" old-number-string))
 					"\\>")
-				(point-at-eol) t))
+                                (line-end-position) t))
 		      (replace-match
 		       (concat group ":" new-number-string)))
 		    ;; Save to the new file:
@@ -1108,7 +1109,7 @@ Use the nov database for the current group if available."
 				     (regexp-quote
 				      (concat group ":" old-number-string))
 				     "\\>")
-			     (point-at-eol) t)
+                             (line-end-position) t)
 			(replace-match
 			 (concat "\\1" group ":" new-number-string))))))
 		;; 4/ Possibly remove the article from the backlog:

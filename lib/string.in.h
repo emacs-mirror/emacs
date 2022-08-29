@@ -122,8 +122,12 @@ _GL_EXTERN_C void rpl_free (void *);
 #  undef _GL_ATTRIBUTE_DEALLOC_FREE
 #  define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (rpl_free, 1)
 # else
-#  if defined _MSC_VER
-_GL_EXTERN_C void __cdecl free (void *);
+#  if defined _MSC_VER && !defined free
+_GL_EXTERN_C
+#   if defined _DLL
+     __declspec (dllimport)
+#   endif
+     void __cdecl free (void *);
 #  else
 #   if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
 _GL_EXTERN_C void free (void *) throw ();
@@ -133,8 +137,12 @@ _GL_EXTERN_C void free (void *);
 #  endif
 # endif
 #else
-# if defined _MSC_VER
-_GL_EXTERN_C void __cdecl free (void *);
+# if defined _MSC_VER && !defined free
+_GL_EXTERN_C
+#   if defined _DLL
+     __declspec (dllimport)
+#   endif
+     void __cdecl free (void *);
 # else
 #  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
 _GL_EXTERN_C void free (void *) throw ();

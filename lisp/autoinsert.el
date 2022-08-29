@@ -67,7 +67,7 @@ Possible values:
 	other	insert if possible, but mark as unmodified.
 Insertion is possible when something appropriate is found in
 `auto-insert-alist'.  When the insertion is marked as unmodified, you can
-save it with  \\[write-file] RET.
+save it with  \\[write-file] \\`RET'.
 This variable is used when the function `auto-insert' is called, e.g.
 when you do (add-hook \\='find-file-hook \\='auto-insert).
 With \\[auto-insert], this is always treated as if it were t."
@@ -75,6 +75,9 @@ With \\[auto-insert], this is always treated as if it were t."
                  (const :tag "Do nothing" nil)
                  (other :tag "insert if possible, mark as unmodified."
                         not-modified)))
+
+;;;###autoload
+(put 'auto-insert 'safe-local-variable #'null)
 
 (defcustom auto-insert-query 'function
   "Non-nil means ask user before auto-inserting.

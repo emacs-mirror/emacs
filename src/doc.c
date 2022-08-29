@@ -346,7 +346,7 @@ string is passed through `substitute-command-keys'.  */)
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (EQ (doc, make_fixnum (0)))
+  if (BASE_EQ (doc, make_fixnum (0)))
     doc = Qnil;
   if (FIXNUMP (doc) || CONSP (doc))
     {
@@ -400,7 +400,7 @@ aren't strings.  */)
 	tem = Fget (indirect, prop);
     }
 
-  if (EQ (tem, make_fixnum (0)))
+  if (BASE_EQ (tem, make_fixnum (0)))
     tem = Qnil;
 
   /* See if we want to look for the string in the DOC file. */
@@ -637,7 +637,7 @@ default_to_grave_quoting_style (void)
   Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
 				     LEFT_SINGLE_QUOTATION_MARK);
   return (VECTORP (dv) && ASIZE (dv) == 1
-	  && EQ (AREF (dv, 0), make_fixnum ('`')));
+	  && BASE_EQ (AREF (dv, 0), make_fixnum ('`')));
 }
 
 DEFUN ("text-quoting-style", Ftext_quoting_style,

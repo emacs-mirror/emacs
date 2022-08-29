@@ -183,6 +183,16 @@
         (call-interactively #'eval-last-sexp)
         (should (equal (current-message) "66 (#o102, #x42, ?B)"))))))
 
+;;; eval-defun
+
+(ert-deftest eval-defun-prints-edebug-when-instrumented ()
+  (skip-unless (not noninteractive))
+  (with-temp-buffer
+    (let ((current-prefix-arg '(4)))
+      (erase-buffer) (insert "(defun foo ())") (message nil)
+      (call-interactively #'eval-defun)
+      (should (equal (current-message) "Edebug: foo")))))
+
 ;;; eldoc
 
 (defun elisp-mode-tests--face-propertized-string (string)
@@ -1084,7 +1094,7 @@ evaluation of BODY."
       (insert "f-test-compl")
       (completion-at-point)
       (goto-char (point-min))
-      (should (search-forward "f-test-complete-me" (line-end-position) t))
+      (should (search-forward "f-test-complete-me" (pos-eol) t))
       (goto-char (point-min))
       (should (string= (symbol-name (read (current-buffer)))
                        "elisp--foo-test-complete-me"))

@@ -261,9 +261,9 @@ VALUE is an integer representing BYTES characters."
     (set-buffer-multibyte nil)
     (if le
         (dotimes (i bytes)
-          (insert (logand (lsh value (* i -8)) 255)))
+          (insert (logand (ash value (* i -8)) 255)))
       (dotimes (i bytes)
-        (insert (logand (lsh value (* (- (1- bytes) i) -8)) 255))))
+        (insert (logand (ash value (* (- (1- bytes) i) -8)) 255))))
     (insert 0)
     (buffer-string)))
 

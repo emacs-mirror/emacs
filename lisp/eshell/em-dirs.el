@@ -168,9 +168,6 @@ Thus, this does not include the current directory.")
 (defvar eshell-last-dir-ring nil
   "The last directory that Eshell was in.")
 
-(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
-  "Value for the `INSIDE_EMACS' environment variable.")
-
 ;;; Functions:
 
 (defun eshell-dirs-initialize ()    ;Called from `eshell-mode' via intern-soft!
@@ -178,24 +175,26 @@ Thus, this does not include the current directory.")
   (setq-local eshell-variable-aliases-list
 	(append
 	 eshell-variable-aliases-list
-         `(("-" ,(lambda (indices)
-		   (if (not indices)
-		       (unless (ring-empty-p eshell-last-dir-ring)
-			 (expand-file-name
-			  (ring-ref eshell-last-dir-ring 0)))
-		     (expand-file-name
-		      (eshell-apply-indices eshell-last-dir-ring indices)))))
-	   ("+" "PWD")
-	   ("PWD" ,(lambda (_indices)
-		     (expand-file-name (eshell/pwd)))
-            t)
-	   ("OLDPWD" ,(lambda (_indices)
-		        (unless (ring-empty-p eshell-last-dir-ring)
-			  (expand-file-name
-			   (ring-ref eshell-last-dir-ring 0))))
-            t)
-           ("INSIDE_EMACS" eshell-inside-emacs
-            t))))
+         `(("-" ,(lambda (indices quoted)
+                   (if (not indices)
+                       (unless (ring-empty-p eshell-last-dir-ring)
+                         (expand-file-name
+                          (ring-ref eshell-last-dir-ring 0)))
+                     ;; Apply the first index, expand the file name,
+                     ;; and then apply the rest of the indices.
+                     (eshell-apply-indices
+                      (expand-file-name
+                       (eshell-apply-indices eshell-last-dir-ring
+                                             (list (car indices)) quoted))
+                      (cdr indices) quoted))))
+           ("+" "PWD")
+           ("PWD" ,(lambda () (expand-file-name (eshell/pwd)))
+            t t)
+           ("OLDPWD" ,(lambda ()
+                       (unless (ring-empty-p eshell-last-dir-ring)
+                         (expand-file-name
+                          (ring-ref eshell-last-dir-ring 0))))
+            t t))))
 
   (when eshell-cd-on-directory
     (setq-local eshell-interpreter-alist

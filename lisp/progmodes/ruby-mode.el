@@ -1147,7 +1147,7 @@ delimiter."
           (setq re (regexp-quote (or (match-string 4) (match-string 2))))
           (if (match-beginning 1) (setq re (concat "\\s *" re)))
           (let* ((id-end (goto-char (match-end 0)))
-                 (line-end-position (point-at-eol))
+                 (line-end-position (line-end-position))
                  (state (list in-string nest depth pcol indent)))
             ;; parse the rest of the line
             (while (and (> line-end-position (point))
@@ -1924,7 +1924,7 @@ It will be properly highlighted even when the call omits parens.")
                         (save-excursion
                           (forward-char -1)
                           (looking-back ruby-syntax-before-regexp-re
-                                        (point-at-bol))))
+                                        (line-beginning-position))))
                    ;; End of regexp.  We don't match the whole
                    ;; regexp at once because it can have
                    ;; string interpolation inside, or span
@@ -2456,6 +2456,13 @@ If there is no Rubocop config file, Rubocop will be passed a flag
   (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
   (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
   (setq-local end-of-defun-function #'ruby-end-of-defun)
+
+  ;; `outline-regexp' contains the first part of `ruby-indent-beg-re'
+  (setq-local outline-regexp (concat "^\\s *"
+                                     (regexp-opt '("class" "module" "def"))
+                                     "\\_>"))
+  (setq-local outline-level (lambda () (1+ (/ (current-indentation)
+                                              ruby-indent-level))))
 
   (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
   (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)

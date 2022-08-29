@@ -328,9 +328,6 @@ after special characters such as brace, comma, semi-colon, and colon."
   (c-update-modeline)
   (c-keep-region-active))
 
-(defalias 'c-toggle-auto-state 'c-toggle-auto-newline)
-(make-obsolete 'c-toggle-auto-state 'c-toggle-auto-newline "22.1")
-
 (defun c-toggle-hungry-state (&optional arg)
   "Toggle hungry-delete-key feature.
 Optional numeric ARG, if supplied, turns on hungry-delete when
@@ -2115,13 +2112,12 @@ with a brace block."
 	  (c-forward-syntactic-ws)
 	  (when (eq (char-after) ?\")
 	    (forward-sexp 1)
+	    (c-forward-syntactic-ws)
 	    (c-forward-token-2))	; over the comma and following WS.
-	  (buffer-substring-no-properties
-	   (point)
-	   (progn
-	     (c-forward-token-2)
-	     (c-backward-syntactic-ws)
-	     (point))))
+	  (setq pos (point))
+	  (and (zerop (c-forward-token-2))
+	       (progn (c-backward-syntactic-ws) t)
+	       (buffer-substring-no-properties pos (point))))
 
 	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
 	  ;; Move to the beginning of the method name.

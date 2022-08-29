@@ -52,24 +52,6 @@ method to use when posting."
 		 (const current)
 		 (sexp :tag "Methods" ,gnus-select-method)))
 
-(defcustom gnus-outgoing-message-group nil
-  "All outgoing messages will be put in this group.
-If you want to store all your outgoing mail and articles in the group
-\"nnml:archive\", you set this variable to that value.  This variable
-can also be a list of group names.
-
-If you want to have greater control over what group to put each
-message in, you can set this variable to a function that checks the
-current newsgroup name and then returns a suitable group name (or list
-of names)."
-  :group 'gnus-message
-  :type '(choice (const nil)
-		 (function)
-		 (string :tag "Group")
-		 (repeat :tag "List of groups" (string :tag "Group"))))
-
-(make-obsolete-variable 'gnus-outgoing-message-group 'gnus-message-archive-group "24.1")
-
 (defcustom gnus-mailing-list-groups nil
   "If non-nil a regexp matching groups that are really mailing lists.
 This is useful when you're reading a mailing list that has been
@@ -214,30 +196,6 @@ use this option with care."
 			  (repeat (symbol)))
  :parameter-document       "\
 List of charsets that are permitted to be unencoded.")
-
-(defcustom gnus-debug-files
-  '("gnus.el" "gnus-sum.el" "gnus-group.el"
-    "gnus-art.el" "gnus-start.el" "gnus-async.el"
-    "gnus-msg.el" "gnus-score.el" "gnus-win.el" "gnus-topic.el"
-    "gnus-agent.el" "gnus-cache.el" "gnus-srvr.el"
-    "mm-util.el" "mm-decode.el" "nnmail.el" "message.el")
-  "Files whose variables will be reported in `gnus-bug'."
-  :version "22.1"
-  :group 'gnus-message
-  :type '(repeat file))
-
-(make-obsolete-variable 'gnus-debug-files "it is no longer used." "24.1")
-
-(defcustom gnus-debug-exclude-variables
-  '(mm-mime-mule-charset-alist
-    nnmail-split-fancy message-minibuffer-local-map)
-  "Variables that should not be reported in `gnus-bug'."
-  :version "22.1"
-  :group 'gnus-message
-  :type '(repeat variable))
-
-(make-obsolete-variable
- 'gnus-debug-exclude-variables "it is no longer used." "24.1")
 
 (defcustom gnus-discouraged-post-methods
   '(nndraft nnml nnimap nnmaildir nnmh nnfolder nndir)
@@ -1665,7 +1623,7 @@ this is a reply."
 (defun gnus-inews-insert-gcc (&optional group)
   "Insert the Gcc to say where the article is to be archived."
   (let* ((group (or group gnus-newsgroup-name))
-         (var (or gnus-outgoing-message-group gnus-message-archive-group))
+         (var gnus-message-archive-group)
 	 (gcc-self-val
 	  (and group (not (gnus-virtual-group-p group))
 	       (gnus-group-find-parameter group 'gcc-self t)))

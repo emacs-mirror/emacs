@@ -166,7 +166,7 @@ source block, and the name of the temp file.")
 (defvar-local org-babel-comint-async-chunk-callback nil
   "Callback function to clean Babel async output results before insertion.
 Its single argument is a string consisting of output from the
-comint process.  It should return a string that will be be passed
+comint process.  It should return a string that will be passed
 to `org-babel-insert-result'.")
 
 (defvar-local org-babel-comint-async-dangling nil

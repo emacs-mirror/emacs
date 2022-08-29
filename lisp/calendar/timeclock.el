@@ -86,7 +86,7 @@
 
 (defcustom timeclock-workday (* 8 60 60)
   "The length of a work period in seconds."
-  :type 'integer)
+  :type 'natnum)
 
 (defvar timeclock--previous-workday nil)
 
@@ -1247,7 +1247,7 @@ HTML-P is non-nil, HTML markup is added."
 	       (time-out (vector (list t) (list t) (list t) (list t) (list t)))
 	       (breaks   (vector (list t) (list t) (list t) (list t) (list t)))
 	       (workday  (vector (list t) (list t) (list t) (list t) (list t)))
-	       (lengths  (vector '(0 0) thirty-days-ago three-months-ago
+	       (lengths  (vector 0 thirty-days-ago three-months-ago
 				 six-months-ago one-year-ago)))
 	  ;; collect statistics from complete timelog
 	  (dolist (day day-list)

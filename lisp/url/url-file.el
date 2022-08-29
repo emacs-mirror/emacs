@@ -26,7 +26,6 @@
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
-(require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
 
 (defvar url-allow-non-local-files nil
@@ -42,10 +41,10 @@ src=\"/ssh:host...\"> element, which can be disturbing.")
 (defun url-file-find-possibly-compressed-file (fname &rest _)
   "Find the exact file referenced by `fname'.
 This tries the common compression extensions, because things like
-ange-ftp and efs are not quite smart enough to realize when a server
-can do automatic decompression for them, and won't find `foo' if
-`foo.gz' exists, even though the FTP server would happily serve it up
-to them."
+ange-ftp is not quite smart enough to realize when a server can
+do automatic decompression for them, and won't find `foo' if
+`foo.gz' exists, even though the FTP server would happily serve
+it up to them."
   (let ((scratch nil)
 	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2" ".xz"))
 	(found nil))
@@ -174,7 +173,7 @@ to them."
 
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote
-	(url-find-file-dired filename)
+	(find-file filename)
       (with-current-buffer
 	  (setq buffer (generate-new-buffer " *url-file*"))
         (require 'mm-util)

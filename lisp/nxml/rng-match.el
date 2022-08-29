@@ -1154,7 +1154,7 @@ list may contain duplicates."
 	     (if (or (rng--ipattern-nullable
 		      (rng-data-deriv child value))
 		     (and (rng--ipattern-nullable child)
-			  (rng-blank-p value)))
+                          (string-blank-p value)))
 		 (rng--ipattern-after ipattern)
 	       rng-not-allowed-ipattern)))
 	  ((eq type 'data)

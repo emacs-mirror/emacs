@@ -24,6 +24,7 @@
 
 (require 'wid-edit)
 (require 'cus-edit)
+(require 'bytecomp)
 
 (ert-deftest custom-theme--load-path ()
   "Test `custom-theme--load-path' behavior."

@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -46,14 +46,10 @@
 ;; processing further, this is useful for checking the test
 ;; environment (like availability of features, external binaries, etc).
 ;;
-;; See ERT's info manual as well as the docstrings for more details.
-;; To compile the manual, run `makeinfo ert.texinfo' in the ERT
-;; directory, then C-u M-x info ert.info in Emacs to view it.
-;;
-;; To see some examples of tests written in ERT, see its self-tests in
-;; ert-tests.el.  Some of these are tricky due to the bootstrapping
-;; problem of writing tests for a testing tool, others test simple
-;; functions and are straightforward.
+;; See ERT's Info manual `(ert) Top' as well as the docstrings for
+;; more details.  To see some examples of tests written in ERT, see
+;; the test suite distributed with the Emacs source distribution (in
+;; the "test" directory).
 
 ;;; Code:
 
@@ -1696,7 +1692,7 @@ test packages depend on each other, it might be helpful.")
                          (string-match-p "^Running 0 tests" logfile-contents))
                   (insert (format "  <testsuite id=\"%s\" name=\"%s\" tests=\"1\" errors=\"1\" failures=\"0\" skipped=\"0\" time=\"0\" timestamp=\"%s\">\n"
                                   id test-report
-                                  (ert--format-time-iso8601 (current-time))))
+				  (ert--format-time-iso8601 nil)))
                   (insert (format "    <testcase name=\"Test report missing %s\" status=\"error\" time=\"0\">\n"
                                   (file-name-nondirectory test-report)))
                   (insert (format "      <error message=\"Test report missing %s\" type=\"error\">\n"
@@ -1817,8 +1813,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
     (unless (or (null tests) (zerop high))
       (message "\nLONG-RUNNING TESTS")
       (message "------------------")
-      (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
-      (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
+      (setq tests (ntake high (sort tests (lambda (x y) (> (car x) (car y))))))
       (message "%s" (mapconcat #'cdr tests "\n")))
     ;; More details on hydra and emba, where the logs are harder to get to.
     (when (and (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
@@ -2884,8 +2879,14 @@ To be used in the ERT results buffer."
   nil)
 
 (defun ert-test-erts-file (file &optional transform)
-  "Parse FILE as a file containing before/after parts.
-TRANSFORM will be called to get from before to after."
+  "Parse FILE as a file containing before/after parts (an erts file).
+
+This function puts the \"before\" section of an .erts file into a
+temporary buffer, calls the TRANSFORM function, and then compares
+the result with the \"after\" section.
+
+See Info node `(ert) erts files' for more information on how to
+write erts files."
   (with-temp-buffer
     (insert-file-contents file)
     (let ((gen-specs (list (cons 'dummy t)

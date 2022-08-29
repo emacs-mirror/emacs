@@ -1,11 +1,11 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
-;;
+
 ;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
-;;
-;; Author: Joakim Verona (joakim@verona.se)
-;;
+
+;; Author: Joakim Verona <joakim@verona.se>
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -18,8 +18,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;; --------------------------------------------------------------------
 
 ;;; Commentary:
 ;;
@@ -133,6 +131,8 @@ Interactively, URL defaults to the string looking like a url around point."
     (if new-session
         (xwidget-webkit-new-session url)
       (xwidget-webkit-goto-url url))))
+
+(function-put 'xwidget-webkit-browse-url 'browse-url-browser-kind 'internal)
 
 (defun xwidget-webkit-clone-and-split-below ()
   "Clone current URL into a new widget place in new window below.
@@ -963,7 +963,7 @@ You can retrieve the value with `xwidget-get'."
   (set-xwidget-plist xwidget
                      (plist-put (xwidget-plist xwidget) propname value)))
 
-(defvar xwidget-webkit-edit-mode-map (make-keymap))
+(defvar-keymap xwidget-webkit-edit-mode-map :full t)
 
 (define-key xwidget-webkit-edit-mode-map [backspace] 'xwidget-webkit-pass-command-event)
 (define-key xwidget-webkit-edit-mode-map [tab] 'xwidget-webkit-pass-command-event)
@@ -1109,8 +1109,9 @@ With argument, add COUNT copies of CHAR."
   (interactive)
   (xwidget-webkit-isearch-mode 0))
 
-(defvar xwidget-webkit-isearch-mode-map (make-keymap)
-  "The keymap used inside xwidget-webkit-isearch-mode.")
+(defvar-keymap xwidget-webkit-isearch-mode-map
+  :doc "The keymap used inside `xwidget-webkit-isearch-mode'."
+  :full t)
 
 (set-char-table-range (nth 1 xwidget-webkit-isearch-mode-map)
                       (cons 0 (max-char))

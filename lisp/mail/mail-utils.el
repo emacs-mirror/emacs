@@ -59,7 +59,7 @@ also the To field, unless this would leave an empty To field."
 (defun mail-string-delete (string start end)
   "Return a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
-  ;; FIXME: This is not used anywhere.  Make obsolete?
+  (declare (obsolete substring "29.1"))
   (if (null end) (substring string 0 start)
     (concat (substring string 0 start)
 	    (substring string end nil))))
@@ -239,12 +239,8 @@ comma-separated list, and return the pruned list."
   ;; Or just set the default directly in the defcustom.
   (if (null mail-dont-reply-to-names)
       (setq mail-dont-reply-to-names
-	     ;; `rmail-default-dont-reply-to-names' is obsolete.
-	    (let ((a (bound-and-true-p rmail-default-dont-reply-to-names))
-		  (b (if (> (length user-mail-address) 0)
-			 (concat "\\`" (regexp-quote user-mail-address) "\\'"))))
-	      (cond ((and a b) (concat a "\\|" b))
-		    ((or a b))))))
+            (if (> (length user-mail-address) 0)
+                (concat "\\`" (regexp-quote user-mail-address) "\\'"))))
   ;; Split up DESTINATIONS and match each element separately.
   (let ((start-pos 0) (cur-pos 0)
 	(case-fold-search t))
@@ -281,9 +277,6 @@ comma-separated list, and return the pruned list."
       (substring destinations (match-end 0))
     destinations))
 
-;; Legacy name
-(define-obsolete-function-alias 'rmail-dont-reply-to #'mail-dont-reply-to "24.1")
-
 
 ;;;###autoload
 (defun mail-fetch-field (field-name &optional last all list delete)
@@ -317,7 +310,7 @@ matches may be returned from the message body."
 				      (buffer-substring-no-properties
 				       opoint (point)))))
                 (if delete
-                    (delete-region (point-at-bol) (point)))))
+                    (delete-region (line-beginning-position) (point)))))
 	    (if list
 		value
 	      (and (not (string= value "")) value)))
@@ -333,7 +326,8 @@ matches may be returned from the message body."
                 (prog1
                     (buffer-substring-no-properties opoint (point))
                   (if delete
-                      (delete-region (point-at-bol) (1+ (point))))))))))))
+                      (delete-region (line-beginning-position)
+                                     (1+ (point))))))))))))
 
 ;; Parse a list of tokens separated by commas.
 ;; It runs from point to the end of the visible part of the buffer.

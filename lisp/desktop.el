@@ -481,7 +481,7 @@ If value is t, all buffers are restored immediately."
 (defcustom desktop-lazy-idle-delay 5
   "Idle delay before starting to create buffers.
 See `desktop-restore-eager'."
-  :type 'integer
+  :type 'natnum
   :group 'desktop
   :version "22.1")
 
@@ -701,7 +701,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
                                           -4))))
           ;; We should err on the safe side here: if any of the
           ;; executables is something like "emacs-nox" or "emacs-42.1"
-          ;; or "gemacs" or "xemacs", let's recognize them as well.
+          ;; or "gemacs", let's recognize them as well.
           (and (string-match-p "emacs" proc-cmd)
                (string-match-p "emacs" my-cmd))))))
 
@@ -791,7 +791,10 @@ if different)."
 
 ;; ----------------------------------------------------------------------------
 (unless noninteractive
-  (add-hook 'kill-emacs-query-functions #'desktop-kill))
+  (add-hook 'kill-emacs-query-functions #'desktop-kill)
+  ;; Certain things should be done even if
+  ;; `kill-emacs-query-functions' are not called.
+  (add-hook 'kill-emacs-hook #'desktop--on-kill))
 
 (defun desktop-kill ()
   "If `desktop-save-mode' is non-nil, do what `desktop-save' says to do.
@@ -818,12 +821,15 @@ is nil, ask the user where to save the desktop."
       (file-error
        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
 	 (signal (car err) (cdr err))))))
+  (desktop--on-kill)
+  t)
+
+(defun desktop--on-kill ()
   ;; If we own it, we don't anymore.
   (when (eq (emacs-pid) (desktop-owner))
     ;; Allow exiting Emacs even if we can't delete the desktop file.
     (ignore-error 'file-error
-      (desktop-release-lock)))
-  t)
+      (desktop-release-lock))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-list* (&rest args)

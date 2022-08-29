@@ -159,8 +159,8 @@ kqueue_compare_dir_list (Lisp_Object watch_object)
 	    (watch_object, Fcons (Qwrite, Qnil), XCAR (XCDR (old_entry)), Qnil);
 	/* Status change time has been changed, the file attributes
 	   have changed.  */
-	  if (NILP (Fequal (Fnth (make_fixnum (3), old_entry),
-			    Fnth (make_fixnum (3), new_entry))))
+	if (NILP (Fequal (Fnth (make_fixnum (3), old_entry),
+			  Fnth (make_fixnum (3), new_entry))))
 	  kqueue_generate_event
 	    (watch_object, Fcons (Qattrib, Qnil),
 	     XCAR (XCDR (old_entry)), Qnil);

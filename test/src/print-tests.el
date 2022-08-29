@@ -514,7 +514,7 @@ otherwise, use a different charset."
               (should (< lead (length numbers)))
               (should (<= lead loopback-index))
               (should (< loopback-index (length numbers)))
-              (let ((lead-part (butlast numbers (- (length numbers) lead)))
+              (let ((lead-part (take lead numbers))
                     (loop-part (nthcdr lead numbers)))
                 ;; The lead part must match exactly.
                 (should (equal lead-part (number-sequence 1 lead)))
@@ -529,6 +529,18 @@ otherwise, use a different charset."
                   (should (equal (% (- (length numbers) loopback-index) loop)
                                  0)))))))))))
 
+(ert-deftest test-print-unreadable-function-buffer ()
+  (let* ((buffer nil)
+         (callback-buffer nil)
+         (str (with-temp-buffer
+                (setq buffer (current-buffer))
+                (let ((print-unreadable-function
+                       (lambda (_object _escape)
+                         (setq callback-buffer (current-buffer))
+                         "tata")))
+                  (prin1-to-string (make-marker))))))
+      (should (eq callback-buffer buffer))
+      (should (equal str "tata"))))
 
 (provide 'print-tests)
 ;;; print-tests.el ends here

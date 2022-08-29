@@ -163,6 +163,7 @@ files.")
     ("Michael R. Cook" "Michael Cook")
     ("Michael Sperber" "Mike Sperber" "Michael Sperber \\[Mr. Preprocessor\\]")
     ("Michalis V" "^mvar")
+    ("Miha Rihtaršič" "Miha Rihtarsic")
     ("Mikio Nakajima" "Nakajima Mikio")
     ("Nelson Jose dos Santos Ferreira" "Nelson Ferreira")
     ("Noorul Islam" "Noorul Islam K M")
@@ -1882,7 +1883,7 @@ list of their contributions.\n")
 		(insert "\n "))
 	    (insert " " file))
 	  (insert "\n")))))
-    (insert "\nLocal" " Variables:\nmode: etc-authors\ncoding: "
+    (insert "\nLocal" " Variables:\nmode: emacs-authors\ncoding: "
 	    (symbol-name authors-coding-system) "\nEnd:\n")
     (message "Generating buffer %s... done" buffer-name)
     (unless noninteractive

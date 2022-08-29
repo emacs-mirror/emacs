@@ -292,8 +292,11 @@ The saved abbrevs are written to the file specified by
 
 (defun add-mode-abbrev (arg)
   "Define a mode-specific abbrev whose expansion is the last word before point.
+If there's an active region, use that as the expansion.
+
 Prefix argument ARG says how many words before point to use for the expansion;
 zero means the entire region is the expansion.
+
 A negative ARG means to undefine the specified abbrev.
 
 This command reads the abbreviation from the minibuffer.
@@ -303,7 +306,7 @@ if the abbreviation is already in the buffer, use that command to define
 a mode-specific abbrev by specifying its expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
-  (interactive "p")
+  (interactive "P")
   (add-abbrev
    (if only-global-abbrevs
        global-abbrev-table
@@ -313,8 +316,11 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 
 (defun add-global-abbrev (arg)
   "Define a global (all modes) abbrev whose expansion is last word before point.
+If there's an active region, use that as the expansion.
+
 Prefix argument ARG says how many words before point to use for the expansion;
 zero means the entire region is the expansion.
+
 A negative ARG means to undefine the specified abbrev.
 
 This command reads the abbreviation from the minibuffer.
@@ -324,15 +330,21 @@ if the abbreviation is already in the buffer, use that command to define
 a global abbrev by specifying its expansion in the minibuffer.
 
 Don't use this function in a Lisp program; use `define-abbrev' instead."
-  (interactive "p")
+  (interactive "P")
   (add-abbrev global-abbrev-table "Global" arg))
 
 (defun add-abbrev (table type arg)
-  (let ((exp (and (>= arg 0)
-		  (buffer-substring-no-properties
-		   (point)
-		   (if (= arg 0) (mark)
-		     (save-excursion (forward-word (- arg)) (point))))))
+  (let ((exp
+         (cond
+          ((or (and (null arg) (use-region-p))
+               (zerop (prefix-numeric-value arg)))
+           (buffer-substring-no-properties (region-beginning) (region-end)))
+          ((> (prefix-numeric-value arg) 0)
+	   (buffer-substring-no-properties
+	    (point)
+	    (save-excursion
+              (forward-word (- (prefix-numeric-value arg)))
+              (point))))))
 	name)
     (setq name
 	  (read-string (format (if exp "%s abbrev that expands into \"%s\": "
@@ -885,8 +897,8 @@ longer than the abbrev, the benefit of informing the user is not
 significant.  If you always want to be informed about existing
 abbrevs for the text you type, set this value to zero or less.
 This setting only applies if `abbrev-suggest' is non-nil."
-    :type 'number
-    :version "28.1")
+  :type 'natnum
+  :version "28.1")
 
 (defun abbrev--suggest-get-active-tables-including-parents ()
   "Return a list of all active abbrev tables, including parent tables."

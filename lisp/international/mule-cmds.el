@@ -1411,6 +1411,7 @@ This function is called with no argument.")
 Each element has the form:
    (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
 See the function `register-input-method' for the meanings of the elements.")
+;; Autoload if this file no longer dumped.
 ;;;###autoload
 (put 'input-method-alist 'risky-local-variable t)
 
@@ -2198,8 +2199,7 @@ See `set-language-info-alist' for use in programs."
 		    first nil))
 	    (dolist (elt l)
 	      (when (or (eq input-method elt)
-			(eq t (compare-strings language-name nil nil
-					       (nth 1 elt) nil nil t)))
+			(string-equal-ignore-case language-name (nth 1 elt)))
 		(when first
 		  (insert "Input methods:\n")
 		  (setq first nil))
@@ -2598,7 +2598,7 @@ Matching is done ignoring case and any hyphens and underscores in the
 names.  E.g. `ISO_8859-1' and `iso88591' both match `iso-8859-1'."
   (setq charset1 (replace-regexp-in-string "[-_]" "" charset1))
   (setq charset2 (replace-regexp-in-string "[-_]" "" charset2))
-  (eq t (compare-strings charset1 nil nil charset2 nil nil t)))
+  (string-equal-ignore-case charset1 charset2))
 
 (defvar locale-charset-alist nil
   "Coding system alist keyed on locale-style charset name.
@@ -3257,7 +3257,9 @@ as names, not numbers."
               "s" #'emoji-search
               "d" #'emoji-describe
               "r" #'emoji-recent
-              "l" #'emoji-list))
+              "l" #'emoji-list
+              "+" #'emoji-zoom-increase
+              "-" #'emoji-zoom-decrease))
 
 (defface confusingly-reordered
   '((((supports :underline (:style wave)))

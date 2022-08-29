@@ -130,7 +130,7 @@ be displayed instead."
 
 (defcustom rcirc-default-port 6667
   "The default port to connect to."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rcirc-default-nick (user-login-name)
   "Your nick."
@@ -267,6 +267,7 @@ The ARGUMENTS for each METHOD symbol are:
 Examples:
  ((\"Libera.Chat\" nickserv \"bob\" \"p455w0rd\")
   (\"Libera.Chat\" chanserv \"bob\" \"#bobland\" \"passwd99\")
+  (\"Libera.Chat\" certfp \"/path/to/key\" \"/path/to/cert\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
   (\"dal.net\" nickserv \"bob\" \"sekrit\" \"NickServ@services.dal.net\")
   (\"quakenet.org\" quakenet \"bobby\" \"sekrit\")
@@ -1345,33 +1346,30 @@ The list is updated automatically by `defun-rcirc-command'.")
   'set-rcirc-encode-coding-system
   "28.1")
 
-(defvar rcirc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'rcirc-send-input)
-    (define-key map (kbd "M-p") 'rcirc-insert-prev-input)
-    (define-key map (kbd "M-n") 'rcirc-insert-next-input)
-    (define-key map (kbd "TAB") 'completion-at-point)
-    (define-key map (kbd "C-c C-b") 'rcirc-browse-url)
-    (define-key map (kbd "C-c C-c") 'rcirc-edit-multiline)
-    (define-key map (kbd "C-c C-j") 'rcirc-cmd-join)
-    (define-key map (kbd "C-c C-k") 'rcirc-cmd-kick)
-    (define-key map (kbd "C-c C-l") 'rcirc-toggle-low-priority)
-    (define-key map (kbd "C-c C-d") 'rcirc-cmd-mode)
-    (define-key map (kbd "C-c C-m") 'rcirc-cmd-msg)
-    (define-key map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
-    (define-key map (kbd "C-c C-o") 'rcirc-omit-mode)
-    (define-key map (kbd "C-c C-p") 'rcirc-cmd-part)
-    (define-key map (kbd "C-c C-q") 'rcirc-cmd-query)
-    (define-key map (kbd "C-c C-t") 'rcirc-cmd-topic)
-    (define-key map (kbd "C-c C-n") 'rcirc-cmd-names)
-    (define-key map (kbd "C-c C-w") 'rcirc-cmd-whois)
-    (define-key map (kbd "C-c C-x") 'rcirc-cmd-quit)
-    (define-key map (kbd "C-c TAB") ; C-i
-      'rcirc-toggle-ignore-buffer-activity)
-    (define-key map (kbd "C-c C-s") 'rcirc-switch-to-server-buffer)
-    (define-key map (kbd "C-c C-a") 'rcirc-jump-to-first-unread-line)
-    map)
-  "Keymap for rcirc mode.")
+(defvar-keymap rcirc-mode-map
+  :doc "Keymap for rcirc mode."
+  "RET"     #'rcirc-send-input
+  "M-p"     #'rcirc-insert-prev-input
+  "M-n"     #'rcirc-insert-next-input
+  "TAB"     #'completion-at-point
+  "C-c C-b" #'rcirc-browse-url
+  "C-c C-c" #'rcirc-edit-multiline
+  "C-c C-j" #'rcirc-cmd-join
+  "C-c C-k" #'rcirc-cmd-kick
+  "C-c C-l" #'rcirc-toggle-low-priority
+  "C-c C-d" #'rcirc-cmd-mode
+  "C-c C-m" #'rcirc-cmd-msg
+  "C-c C-r" #'rcirc-cmd-nick ; rename
+  "C-c C-o" #'rcirc-omit-mode
+  "C-c C-p" #'rcirc-cmd-part
+  "C-c C-q" #'rcirc-cmd-query
+  "C-c C-t" #'rcirc-cmd-topic
+  "C-c C-n" #'rcirc-cmd-names
+  "C-c C-w" #'rcirc-cmd-whois
+  "C-c C-x" #'rcirc-cmd-quit
+  "C-c C-i" #'rcirc-toggle-ignore-buffer-activity
+  "C-c C-s" #'rcirc-switch-to-server-buffer
+  "C-c C-a" #'rcirc-jump-to-first-unread-line)
 
 (defvar-local rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
@@ -1389,6 +1387,21 @@ Each element looks like (FILENAME . TEXT).")
 (defvar-local rcirc-current-line 0
   "The current number of responses printed in this channel.
 This number is independent of the number of lines in the buffer.")
+
+(defun rcirc--electric-pair-inhibit (char)
+  "Check whether CHAR should be paired by `electric-pair-mode'.
+This uses the default value inhibition predicate (as set by
+`electric-pair-inhibit-predicate'), but ignores all text prior to
+the prompt so that mismatches parentheses by some other message
+does not confuse the pairing."
+  (let ((fallback (default-value 'electric-pair-inhibit-predicate)))
+    ;; The assumption is that this function is only bound by
+    ;; `rcirc-mode', and should never be the global default.
+    (cl-assert (not (eq fallback #'rcirc--electric-pair-inhibit)))
+    (save-restriction
+      (widen)
+      (narrow-to-region rcirc-prompt-start-marker (point-max))
+      (funcall fallback char))))
 
 (defun rcirc-mode (process target)
   "Initialize an IRC buffer for writing with TARGET.
@@ -1460,6 +1473,9 @@ PROCESS is the process object used for communication.
             'rcirc-completion-at-point nil 'local)
   (when rcirc-cycle-completion-flag
     (setq-local completion-cycle-threshold t))
+
+  (setq-local electric-pair-inhibit-predicate
+              #'rcirc--electric-pair-inhibit)
 
   (run-mode-hooks 'rcirc-mode-hook))
 
@@ -1624,7 +1640,7 @@ Create the buffer if it doesn't exist."
     (goto-char (point-max))
     (when (not (equal 0 (- (point) rcirc-prompt-end-marker)))
       ;; delete a trailing newline
-      (when (eq (point) (point-at-bol))
+      (when (eq (point) (line-beginning-position))
 	(delete-char -1))
       (let ((input (buffer-substring-no-properties
 		    rcirc-prompt-end-marker (point))))
@@ -1708,16 +1724,17 @@ extracted."
       (setq rcirc-parent-buffer parent)
       (insert text)
       (and (> pos 0) (goto-char pos))
-      (message "Type C-c C-c to return text to %s, or C-c C-k to cancel" parent))))
+      (message "Type %s to return text to %s, or %s to cancel"
+               (substitute-command-keys "\\[rcirc-multiline-minor-submit]")
+               parent
+               (substitute-command-keys "\\[rcirc-multiline-minor-cancel]")))))
 
-(defvar rcirc-multiline-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
-    (define-key map (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
-    (define-key map (kbd "C-c C-k") 'rcirc-multiline-minor-cancel)
-    (define-key map (kbd "ESC ESC ESC") 'rcirc-multiline-minor-cancel)
-    map)
-  "Keymap for multiline mode in rcirc.")
+(defvar-keymap rcirc-multiline-minor-mode-map
+  :doc "Keymap for multiline mode in rcirc."
+  "C-c C-c"     #'rcirc-multiline-minor-submit
+  "C-x C-s"     #'rcirc-multiline-minor-submit
+  "C-c C-k"     #'rcirc-multiline-minor-cancel
+  "ESC ESC ESC" #'rcirc-multiline-minor-cancel)
 
 (define-minor-mode rcirc-multiline-minor-mode
   "Minor mode for editing multiple lines in rcirc."
@@ -2265,12 +2282,10 @@ This function does not alter the INPUT string."
     (mapconcat rcirc-nick-filter sorted sep)))
 
 ;;; activity tracking
-(defvar rcirc-track-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-@") 'rcirc-next-active-buffer)
-    (define-key map (kbd "C-c C-SPC") 'rcirc-next-active-buffer)
-    map)
-  "Keymap for rcirc track minor mode.")
+(defvar-keymap rcirc-track-minor-mode-map
+  :doc "Keymap for rcirc track minor mode."
+  "C-c C-@"   #'rcirc-next-active-buffer
+  "C-c C-SPC" #'rcirc-next-active-buffer)
 
 (defcustom rcirc-track-abbrevate-flag t
   "Non-nil means `rcirc-track-minor-mode' should abbreviate names."
@@ -3298,7 +3313,7 @@ PROCESS is the process object for the current connection."
       (with-current-buffer chat-buffer
 	(rcirc-print process sender "NICK" old-nick new-nick)
 	(setq rcirc-target new-nick)
-	(rename-buffer (rcirc-generate-new-buffer-name process new-nick)))
+	(rename-buffer (rcirc-generate-new-buffer-name process new-nick) t))
       (setf rcirc-buffer-alist
             (cons (cons new-nick chat-buffer)
                   (delq (assoc-string old-nick rcirc-buffer-alist t)
@@ -3479,7 +3494,7 @@ form \"PARAMETER\" to enable a feature, \"PARAMETER=VALUE\" to
 configure a specific option or \"-PARAMETER\" to disable a
 previously specified feature.  SENDER is passed on to
 `rcirc-handler-generic'.  PROCESS is the process object for the
-current connection.  Note that this is not the behaviour as
+current connection.  Note that this is not the behavior as
 specified in RFC2812, where 005 stood for RPL_BOUNCE."
   (rcirc-handler-generic process "005" sender args text)
   (with-rcirc-process-buffer process

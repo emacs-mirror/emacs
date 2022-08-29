@@ -88,9 +88,6 @@ The functions get one argument, the first locked buffer found."
   :group 'emacs-lock
   :version "24.3")
 
-(define-obsolete-variable-alias 'emacs-lock-from-exiting
-  'emacs-lock-mode "24.1")
-
 (defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
 It can be one of the following values:
@@ -246,14 +243,6 @@ some major modes from being locked under some circumstances."
           (throw :continue t))))
     ;; continue standard unloading
     nil))
-
-;;; Compatibility
-
-(defun toggle-emacs-lock ()
-  "Toggle `emacs-lock-from-exiting' for the current buffer."
-  (declare (obsolete emacs-lock-mode "24.1"))
-  (interactive)
-  (call-interactively 'emacs-lock-mode))
 
 (provide 'emacs-lock)
 

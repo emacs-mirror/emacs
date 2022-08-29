@@ -252,7 +252,7 @@ That is tag names plus names defined in tag attribute `:rest'."
               (skip-chars-backward "\r\n\t")
               ;; If a grammar footer is found, skip it.
               (re-search-backward "^;;;\\s-+\\S-+\\s-+ends here"
-                                  (point-at-bol) t)
+                                  (line-beginning-position) t)
               (skip-chars-backward "\r\n\t")
               (point)))
            "\n"))
@@ -1123,8 +1123,6 @@ END is the limit of the search."
 ;;;; Define major mode
 ;;;;
 
-(define-obsolete-variable-alias 'semantic-grammar-syntax-table
-  'semantic-grammar-mode-syntax-table "24.1")
 (defvar semantic-grammar-mode-syntax-table
   (let ((table (make-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?\: "."     table) ;; COLON
@@ -1197,8 +1195,6 @@ END is the limit of the search."
   semantic-grammar-mode-keywords-1
   "Font Lock keywords used to highlight Semantic grammar buffers.")
 
-(define-obsolete-variable-alias 'semantic-grammar-map
-  'semantic-grammar-mode-map "24.1")
 (defvar semantic-grammar-mode-map
   (let ((km (make-sparse-keymap)))
 

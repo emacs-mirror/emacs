@@ -24,6 +24,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 (unless (featurep 'haiku)
   (error "%s: Loading haiku-win without having Haiku"
          invocation-name))
@@ -173,6 +174,31 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
                                           (insert "\n")))
                             (buffer-string))))))
 
+(eval-and-compile
+  (defun haiku-get-numeric-enum (name)
+    "Return the numeric value of the system enumerator NAME."
+    (or (get name 'haiku-numeric-enum)
+        (let ((value 0)
+              (offset 0)
+              (string (symbol-name name)))
+          (cl-loop for octet across string
+                   do (progn
+                        (when (or (< octet 0)
+                                  (> octet 255))
+                          (error "Out of range octet: %d" octet))
+                        (setq value
+                              (logior value
+                                      (ash octet
+                                           (- (* (1- (length string)) 8)
+                                              offset))))
+                        (setq offset (+ offset 8))))
+          (prog1 value
+            (put name 'haiku-enumerator-id value))))))
+
+(defmacro haiku-numeric-enum (name)
+  "Expand to the numeric value NAME as a system identifier."
+  (haiku-get-numeric-enum name))
+
 (declare-function x-open-connection "haikufns.c")
 (declare-function x-handle-args "common-win")
 (declare-function haiku-selection-data "haikuselect.c")
@@ -180,6 +206,7 @@ VALUE as a unibyte string, or nil if VALUE was not a string."
 (declare-function haiku-selection-owner-p "haikuselect.c")
 (declare-function haiku-put-resource "haikufns.c")
 (declare-function haiku-drag-message "haikuselect.c")
+(declare-function haiku-selection-timestamp "haikuselect.c")
 
 (defun haiku--handle-x-command-line-resources (command-line-resources)
   "Handle command line X resources specified with the option `-xrm'.
@@ -223,7 +250,7 @@ If TYPE is nil, return \"text/plain\"."
   "Find the types of data available from CLIPBOARD.
 CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
 `CLIPBOARD'.  Return the available types as a list of strings."
-  (mapcar #'car (haiku-selection-data clipboard nil)))
+  (delq 'type (mapcar #'car (haiku-selection-data clipboard nil))))
 
 (defun haiku-select-encode-xstring (_selection value)
   "Convert VALUE to a system message association.
@@ -236,7 +263,7 @@ under the type `text/plain;charset=iso-8859-1'."
                       (buffer-substring (nth 0 bounds)
                                         (nth 1 bounds)))))))
   (when (and (stringp value) (not (string-empty-p value)))
-    (list "text/plain;charset=iso-8859-1" 1296649541
+    (list "text/plain;charset=iso-8859-1" (haiku-numeric-enum MIME)
           (encode-coding-string value 'iso-latin-1))))
 
 (defun haiku-select-encode-utf-8-string (_selection value)
@@ -250,7 +277,7 @@ VALUE will be encoded as UTF-8 and stored under the type
                       (buffer-substring (nth 0 bounds)
                                         (nth 1 bounds)))))))
   (when (and (stringp value) (not (string-empty-p value)))
-    (list "text/plain" 1296649541
+    (list "text/plain" (haiku-numeric-enum MIME)
           (encode-coding-string value 'utf-8-unix))))
 
 (defun haiku-select-encode-file-name (_selection value)
@@ -262,12 +289,19 @@ or a pair of markers) and turns it into a file system reference."
 
 (cl-defmethod gui-backend-get-selection (type data-type
                                               &context (window-system haiku))
-  (if (eq data-type 'TARGETS)
-      (apply #'vector (mapcar #'intern
-                              (haiku-selection-targets type)))
-    (if (eq type 'XdndSelection)
-        haiku-dnd-selection-value
-      (haiku-selection-data type (haiku--selection-type-to-mime data-type)))))
+  (cond
+   ((eq data-type 'TARGETS)
+    (apply #'vector (mapcar #'intern
+                            (haiku-selection-targets type))))
+   ;; The timestamp here is really the number of times a program has
+   ;; put data into the selection.  But it always increases, so it
+   ;; makes sense if one imagines that time is frozen until
+   ;; immediately before that happens.
+   ((eq data-type 'TIMESTAMP)
+    (haiku-selection-timestamp type))
+   ((eq type 'XdndSelection) haiku-dnd-selection-value)
+   (t (haiku-selection-data type
+                            (haiku--selection-type-to-mime data-type)))))
 
 (cl-defmethod gui-backend-set-selection (type value
                                               &context (window-system haiku))
@@ -303,6 +337,21 @@ or a pair of markers) and turns it into a file system reference."
                                  (file-name-nondirectory default-filename)))
     (error "x-file-dialog on a tty frame")))
 
+(defun haiku-parse-drag-actions (message)
+  "Given the drag-and-drop message MESSAGE, retrieve the desired action."
+  (let ((actions (cddr (assoc "be:actions" message)))
+        (sorted nil))
+    (dolist (action (list (haiku-numeric-enum DDCP)
+                          (haiku-numeric-enum DDMV)
+                          (haiku-numeric-enum DDLN)))
+      (when (member action actions)
+        (push sorted action)))
+    (cond
+     ((eql (car sorted) (haiku-numeric-enum DDCP)) 'copy)
+     ((eql (car sorted) (haiku-numeric-enum DDMV)) 'move)
+     ((eql (car sorted) (haiku-numeric-enum DDLN)) 'link)
+     (t 'private))))
+
 (defun haiku-drag-and-drop (event)
   "Handle specified drag-n-drop EVENT."
   (interactive "e")
@@ -310,34 +359,35 @@ or a pair of markers) and turns it into a file system reference."
 	 (window (posn-window (event-start event))))
     (if (eq string 'lambda) ; This means the mouse moved.
         (dnd-handle-movement (event-start event))
-      (cond
-       ;; Don't allow dropping on something other than the text area.
-       ;; It does nothing and doesn't work with text anyway.
-       ((posn-area (event-start event)))
-       ((assoc "refs" string)
-        (with-selected-window window
-          (dolist (filename (cddr (assoc "refs" string)))
-            (dnd-handle-one-url window 'private
-                                (concat "file:" filename)))))
-       ((assoc "text/uri-list" string)
-        (dolist (text (cddr (assoc "text/uri-list" string)))
-          (let ((uri-list (split-string text "[\0\r\n]" t)))
-            (dolist (bf uri-list)
-              (dnd-handle-one-url window 'private bf)))))
-       ((assoc "text/plain" string)
-        (with-selected-window window
-          (dolist (text (cddr (assoc "text/plain" string)))
-            (unless mouse-yank-at-point
-              (goto-char (posn-point (event-start event))))
-            (dnd-insert-text window 'private
-                             (if (multibyte-string-p text)
-                                 text
-                               (decode-coding-string text 'undecided))))))
-       ((not (eq (cdr (assq 'type string))
-                 3003)) ; Type of the placeholder message Emacs uses
-                        ; to cancel a drop on C-g.
-        (message "Don't know how to drop any of: %s"
-                 (mapcar #'car string)))))))
+      (let ((action (haiku-parse-drag-actions string)))
+        (cond
+         ;; Don't allow dropping on something other than the text area.
+         ;; It does nothing and doesn't work with text anyway.
+         ((posn-area (event-start event)))
+         ((assoc "refs" string)
+          (with-selected-window window
+            (dolist (filename (cddr (assoc "refs" string)))
+              (dnd-handle-one-url window action
+                                  (concat "file:" filename)))))
+         ((assoc "text/uri-list" string)
+          (dolist (text (cddr (assoc "text/uri-list" string)))
+            (let ((uri-list (split-string text "[\0\r\n]" t)))
+              (dolist (bf uri-list)
+                (dnd-handle-one-url window action bf)))))
+         ((assoc "text/plain" string)
+          (with-selected-window window
+            (dolist (text (cddr (assoc "text/plain" string)))
+              (unless mouse-yank-at-point
+                (goto-char (posn-point (event-start event))))
+              (dnd-insert-text window action
+                               (if (multibyte-string-p text)
+                                   text
+                                 (decode-coding-string text 'undecided))))))
+         ((not (eq (cdr (assq 'type string))
+                   3003)) ; Type of the placeholder message Emacs uses
+                          ; to cancel a drop on C-g.
+          (message "Don't know how to drop any of: %s"
+                   (mapcar #'car string))))))))
 
 (define-key special-event-map [drag-n-drop] 'haiku-drag-and-drop)
 
@@ -359,8 +409,7 @@ take effect on menu items until the menu bar is updated again."
     (when (car mouse-position)
       (dnd-handle-movement (posn-at-x-y (cadr mouse-position)
                                         (cddr mouse-position)
-                                        (car mouse-position)))
-      (redisplay))))
+                                        (car mouse-position))))))
 
 (setq haiku-drag-track-function #'haiku-dnd-drag-handler)
 
@@ -392,7 +441,7 @@ take effect on menu items until the menu bar is updated again."
                   ;; Add B_MIME_TYPE to the message if the type was not
                   ;; previously specified, or the type if it was.
                   (push (or (get-text-property 0 'type maybe-string)
-                            1296649541)
+                            (haiku-numeric-enum MIME))
                         (alist-get (car selection-result) message
                                    nil nil #'equal))))
               (if (not (consp (cadr selection-result)))
@@ -410,7 +459,119 @@ take effect on menu items until the menu bar is updated again."
                           message allow-current-frame
                           follow-tooltip))))
 
-(add-variable-watcher 'use-system-tooltips #'haiku-use-system-tooltips-watcher)
+(add-variable-watcher 'use-system-tooltips
+                      #'haiku-use-system-tooltips-watcher)
+
+(defvar haiku-dnd-wheel-count nil
+  "Cons used to determine how many times the wheel has been turned.
+The car is just that; cdr is the timestamp of the last wheel
+movement.")
+
+(defvar haiku-last-wheel-direction nil
+  "Cons of two elements describing the direction the wheel last turned.
+The car is whether or not the movement was horizontal.
+The cdr is whether or not the movement was upwards or leftwards.")
+
+(defun haiku-note-wheel-click (timestamp)
+  "Note that the mouse wheel was moved at TIMESTAMP during drag-and-drop.
+Return the number of clicks that were made in quick succession."
+  (if (not (integerp double-click-time))
+      1
+    (let ((cell haiku-dnd-wheel-count))
+      (unless cell
+        (setq cell (cons 0 timestamp))
+        (setq haiku-dnd-wheel-count cell))
+      (when (< (cdr cell) (- timestamp double-click-time))
+        (setcar cell 0))
+      (setcar cell (1+ (car cell)))
+      (setcdr cell timestamp)
+      (car cell))))
+
+(defvar haiku-drag-wheel-function)
+
+(defun haiku-dnd-modifier-mask (mods)
+  "Return the internal modifier mask for the Emacs modifier state MODS.
+MODS is a single symbol, or a list of symbols such as `shift' or
+`control'."
+  (let ((mask 0))
+    (unless (consp mods)
+      (setq mods (list mods)))
+    (dolist (modifier mods)
+      (cond ((eq modifier 'shift)
+             (setq mask (logior mask ?\S-\0)))
+            ((eq modifier 'control)
+             (setq mask (logior mask ?\C-\0)))
+            ((eq modifier 'meta)
+             (setq mask (logior mask ?\M-\0)))
+            ((eq modifier 'hyper)
+             (setq mask (logior mask ?\H-\0)))
+            ((eq modifier 'super)
+             (setq mask (logior mask ?\s-\0)))
+            ((eq modifier 'alt)
+             (setq mask (logior mask ?\A-\0)))))
+    mask))
+
+(defun haiku-dnd-wheel-modifier-type (flags)
+  "Return the modifier type of an internal modifier mask.
+FLAGS is the internal modifier mask of a turn of the mouse wheel."
+  (let ((modifiers (logior ?\M-\0 ?\C-\0 ?\S-\0
+			   ?\H-\0 ?\s-\0 ?\A-\0)))
+    (catch 'type
+      (dolist (modifier mouse-wheel-scroll-amount)
+        (when (and (consp modifier)
+                   (eq (haiku-dnd-modifier-mask (car modifier))
+                       (logand flags modifiers)))
+          (throw 'type (cdr modifier))))
+      nil)))
+
+(defun haiku-handle-drag-wheel (frame x y horizontal up modifiers)
+  "Handle wheel movement during drag-and-drop.
+FRAME is the frame on top of which the wheel moved.
+X and Y are the frame-relative coordinates of the wheel movement.
+HORIZONTAL is whether or not the wheel movement was horizontal.
+UP is whether or not the wheel moved up (or left).
+MODIFIERS is the internal modifier mask of the wheel movement."
+  (when (not (equal haiku-last-wheel-direction
+                    (cons horizontal up)))
+    (setq haiku-last-wheel-direction
+          (cons horizontal up))
+    (when (consp haiku-dnd-wheel-count)
+      (setcar haiku-dnd-wheel-count 0)))
+  (let ((type (haiku-dnd-wheel-modifier-type modifiers))
+        (function (cond
+                   ((and (not horizontal) (not up))
+                    mwheel-scroll-up-function)
+                   ((not horizontal)
+                    mwheel-scroll-down-function)
+                   ((not up) (if mouse-wheel-flip-direction
+                                 mwheel-scroll-right-function
+                               mwheel-scroll-left-function))
+                   (t (if mouse-wheel-flip-direction
+                          mwheel-scroll-left-function
+                        mwheel-scroll-right-function))))
+        (timestamp (time-convert nil 1000))
+        (amt 1))
+    (cond ((and (eq type 'hscroll)
+                (not horizontal))
+           (setq function (if (not up)
+                              mwheel-scroll-left-function
+                            mwheel-scroll-right-function)))
+          ((and (eq type 'global-text-scale))
+           (setq function 'global-text-scale-adjust
+                 amt (if up 1 -1)))
+          ((and (eq type 'text-scale))
+           (setq function 'text-scale-adjust
+                 amt (if up 1 -1))))
+    (when function
+      (let ((posn (posn-at-x-y x y frame)))
+        (when (windowp (posn-window posn))
+          (with-selected-window (posn-window posn)
+            (funcall function
+                     (* amt
+                        (or (and (not mouse-wheel-progressive-speed) 1)
+                            (haiku-note-wheel-click (car timestamp)))))))))))
+
+(setq haiku-drag-wheel-function #'haiku-handle-drag-wheel)
 
 
 ;;;; Session management.

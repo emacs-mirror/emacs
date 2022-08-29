@@ -419,7 +419,7 @@
 ;;   AND you'd like the current time considered to be anything besides
 ;;   (vc-annotate-convert-time (current-time)) -- i.e. the current
 ;;   time with hours, minutes, and seconds included.  Probably safe to
-;;   ignore.  Return the current-time, in units of fractional days.
+;;   ignore.  Return the current time, in units of fractional days.
 ;;
 ;; - annotate-extract-revision-at-line ()
 ;;
@@ -824,7 +824,7 @@ for the backend you use."
   "Limit the number of items shown by the VC log commands.
 Zero means unlimited.
 Not all VC backends are able to support this feature."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom vc-allow-async-revert nil
   "Specifies whether the diff during \\[vc-revert] may be asynchronous.
@@ -2294,7 +2294,7 @@ changes from the current branch."
      ((vc-find-backend-function backend 'merge-branch)
       (vc-call-backend backend 'merge-branch))
      ;; Otherwise, do a per-file merge.
-     ((vc-find-backend-function backend 'merge)
+     ((vc-find-backend-function backend 'merge-file)
       (vc-buffer-sync)
       (dolist (file files)
 	(let* ((state (vc-state file))

@@ -113,6 +113,11 @@ the symbol of the calling function, for example."
 
 ;;; Emacs < 27.1 compatibility
 
+(if (version< emacs-version "27.1")
+    (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
+      (replace-buffer-contents source))
+  (defalias 'org-replace-buffer-contents #'replace-buffer-contents))
+
 (unless (fboundp 'proper-list-p)
   ;; `proper-list-p' was added in Emacs 27.1.  The function below is
   ;; taken from Emacs subr.el 200195e824b^.
@@ -929,6 +934,14 @@ Implements `define-error' for older emacsen."
     (put name 'error-conditions
          (copy-sequence (cons name (get 'error 'error-conditions))))))
 
+(unless (fboundp 'string-equal-ignore-case)
+  ;; From Emacs subr.el.
+  (defun string-equal-ignore-case (string1 string2)
+    "Like `string-equal', but case-insensitive.
+Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
+    (eq t (compare-strings string1 0 nil string2 0 nil t))))
+
 (unless (fboundp 'string-suffix-p)
   ;; From Emacs subr.el.
   (defun string-suffix-p (suffix string  &optional ignore-case)
@@ -1015,7 +1028,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
   (require 'org-agenda)
   (let (p m tp np dir txt)
     (cond
-     ((setq p (text-property-any (point-at-bol) (point-at-eol)
+     ((setq p (text-property-any (line-beginning-position) (line-end-position)
 				 'org-imenu t))
       (setq m (get-text-property p 'org-imenu-marker))
       (with-current-buffer (marker-buffer m)
@@ -1025,7 +1038,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
 			 (overlays-at (point))))
 	    (org-agenda-remove-restriction-lock 'noupdate)
 	  (org-agenda-set-restriction-lock 'subtree))))
-     ((setq p (text-property-any (point-at-bol) (point-at-eol)
+     ((setq p (text-property-any (line-beginning-position) (line-end-position)
 				 'speedbar-function 'speedbar-find-file))
       (setq tp (previous-single-property-change
 		(1+ p) 'speedbar-function)
@@ -1042,7 +1055,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
 	(org-agenda-set-restriction-lock 'file)))
      (t (user-error "Don't know how to restrict Org mode agenda")))
     (move-overlay org-speedbar-restriction-lock-overlay
-		  (point-at-bol) (point-at-eol))
+                  (line-beginning-position) (line-end-position))
     (setq current-prefix-arg nil)
     (org-agenda-maybe-redo)))
 
@@ -1120,10 +1133,8 @@ ELEMENT is the element at point."
 	  (and log
 	       (let ((drawer (org-element-lineage element '(drawer))))
 		 (and drawer
-		      (eq (compare-strings
-			   log nil nil
-			   (org-element-property :drawer-name drawer) nil nil t)
-			  t)))))
+		      (string-equal-ignore-case
+		       log (org-element-property :drawer-name drawer))))))
 	nil)
        (t
 	(cl-case (org-element-type element)

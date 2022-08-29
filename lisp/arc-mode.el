@@ -101,6 +101,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Configuration.
@@ -1072,22 +1073,31 @@ NEW-NAME."
     (user-error "Can't copy a list of files to a single file"))
   (save-excursion
     (dolist (file files)
-      (let ((write-to (if (file-directory-p new-name)
-                          (expand-file-name file new-name)
-                        new-name)))
+      (let* ((write-to (if (file-directory-p new-name)
+                           (expand-file-name file new-name)
+                         new-name))
+             (write-to-dir (file-name-directory write-to)))
         (when (and (file-exists-p write-to)
                    (not (yes-or-no-p (format "%s already exists; overwrite? "
                                              write-to))))
           (user-error "Not overwriting %s" write-to))
+        (unless (file-directory-p write-to-dir)
+          (make-directory write-to-dir t))
         (archive-goto-file file)
         (let* ((descr (archive-get-descr))
                (archive (buffer-file-name))
                (extractor (archive-name "extract"))
-               (ename (archive--file-desc-ext-file-name descr)))
-          (with-temp-buffer
-            (set-buffer-multibyte nil)
-            (archive--extract-file extractor archive ename)
-            (write-region (point-min) (point-max) write-to)))))))
+               (ename (archive--file-desc-ext-file-name descr))
+               ;; If the archive is remote, we have to copy it to a
+               ;; local file first to make extraction work.
+               (copy (archive-maybe-copy archive)))
+          (unwind-protect
+              (with-temp-buffer
+                (set-buffer-multibyte nil)
+                (archive--extract-file extractor copy ename)
+                (write-region (point-min) (point-max) write-to))
+            (unless (equal copy archive)
+              (delete-file copy))))))))
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
@@ -1317,6 +1327,8 @@ NEW-NAME."
 ;;; Section: IO stuff
 
 (defun archive-write-file-member ()
+  (unless (buffer-live-p archive-superior-buffer)
+    (error "The archive buffer no longer exists; can't save"))
   (save-excursion
     (save-restriction
       (message "Updating archive...")

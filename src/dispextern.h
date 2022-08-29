@@ -2287,6 +2287,8 @@ struct composition_it
      reverse order, and thus the grapheme clusters must be rendered
      from the last to the first.  */
   bool reversed_p;
+  /* Parent iterator. */
+  struct it *parent_it;
 
   /** The following members contain information about the current
       grapheme cluster.  */
@@ -2332,6 +2334,14 @@ struct it
      with which display_string was called.  */
   ptrdiff_t end_charpos;
 
+  /* Alternate begin position of the buffer that may be used to
+     optimize display (see the SET_WITH_NARROWED_BEGV macro).  */
+  ptrdiff_t narrowed_begv;
+
+  /* Alternate end position of the buffer that may be used to
+     optimize display.  */
+  ptrdiff_t narrowed_zv;
+
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
@@ -2341,9 +2351,6 @@ struct it
      over.  Used only in display_string and its subroutines; never
      used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
-
-  /* Position at which redisplay end trigger functions should be run.  */
-  ptrdiff_t redisplay_end_trigger_charpos;
 
   /* True means multibyte characters are enabled.  */
   bool_bf multibyte_p : 1;
@@ -2742,11 +2749,11 @@ struct it
   /* The line number of point's line, or zero if not computed yet.  */
   ptrdiff_t pt_lnum;
 
-  /* Number of pixels to offset tab stops due to width fixup of the
-     first glyph that crosses first_visible_x.  This is only needed on
-     GUI frames, only when display-line-numbers is in effect, and only
-     in hscrolled windows.  */
-  int tab_offset;
+  /* Number of pixels to adjust tab stops and stretch glyphs due to
+     width fixup of the first stretch glyph that crosses first_visible_x.
+     This is only needed on GUI frames, only when display-line-numbers
+     is in effect, and only in hscrolled windows.  */
+  int stretch_adjust;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
@@ -2867,18 +2874,17 @@ typedef struct {
 INLINE void
 reset_mouse_highlight (Mouse_HLInfo *hlinfo)
 {
-
-    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
-    hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
-    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_window = Qnil;
-    hlinfo->mouse_face_overlay = Qnil;
-    hlinfo->mouse_face_past_end = false;
-    hlinfo->mouse_face_hidden = false;
-    hlinfo->mouse_face_defer = false;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+  hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_mouse_frame = NULL;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_past_end = false;
+  hlinfo->mouse_face_hidden = false;
+  hlinfo->mouse_face_defer = false;
 }
 
 /***********************************************************************
@@ -3085,12 +3091,15 @@ struct image
   XFORM xform;
 #endif
 #ifdef HAVE_HAIKU
-  /* Non-zero if the image has not yet been transformed for display.  */
-  int have_be_transforms_p;
+  /* The affine transformation to apply to this image.  */
+  double transform[3][3];
 
-  double be_rotate;
-  double be_scale_x;
-  double be_scale_y;
+  /* The original width and height of the image.  */
+  int original_width, original_height;
+
+  /* Whether or not bilinear filtering should be used to "smooth" the
+     image.  */
+  bool use_bilinear_filtering;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
@@ -3393,6 +3402,9 @@ void mark_window_display_accurate (Lisp_Object, bool);
 void redisplay_preserve_echo_area (int);
 void init_iterator (struct it *, struct window *, ptrdiff_t,
                     ptrdiff_t, struct glyph_row *, enum face_id);
+ptrdiff_t get_narrowed_begv (struct window *, ptrdiff_t);
+ptrdiff_t get_narrowed_zv (struct window *, ptrdiff_t);
+ptrdiff_t get_closer_narrowed_begv (struct window *, ptrdiff_t);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);
@@ -3407,6 +3419,8 @@ int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
+extern bool display_working_on_window_p;
+extern void unwind_display_working_on_window (void);
 extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
@@ -3505,6 +3519,8 @@ extern unsigned row_hash (struct glyph_row *);
 
 extern bool buffer_flipping_blocked_p (void);
 
+extern void update_redisplay_ticks (int, struct window *);
+
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3533,6 +3549,7 @@ struct image_cache *make_image_cache (void);
 void free_image_cache (struct frame *);
 void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
+void image_prune_animation_caches (bool);
 bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
 ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);

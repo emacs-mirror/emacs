@@ -47,19 +47,6 @@
       (should (equal all-but-c
                      (sort (dired-get-marked-files 'local) #'string<))))))
 
-(ert-deftest dired-guess-default ()
-  (let ((dired-guess-shell-alist-user nil)
-        (dired-guess-shell-alist-default
-         '(("\\.png\\'" "display")
-           ("\\.gif\\'" "display" "xloadimage")
-           ("\\.gif\\'" "feh")
-           ("\\.jpe?g\\'" "xloadimage"))))
-    (should (equal (dired-guess-default '("/tmp/foo.png")) "display"))
-    (should (equal (dired-guess-default '("/tmp/foo.gif"))
-                   '("display" "xloadimage" "feh")))
-    (should (equal (dired-guess-default '("/tmp/foo.png" "/tmp/foo.txt"))
-                   nil))))
-
 (ert-deftest dired-x--string-to-number ()
   (should (= (dired-x--string-to-number "2.4K") 2457.6))
   (should (= (dired-x--string-to-number "2400") 2400))

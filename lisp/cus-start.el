@@ -398,6 +398,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
+             (record-all-keys keyboard boolean)
 	     ;; minibuf.c
 	     (minibuffer-follows-selected-frame
               minibuffer (choice (const :tag "Always" t)
@@ -833,6 +834,10 @@ since it could result in memory overflow and make Emacs crash."
              (x-scroll-event-delta-factor mouse float "29.1")
              (x-gtk-use-native-input keyboard boolean "29.1")
              (x-dnd-disable-motif-drag dnd boolean "29.1")
+             (x-auto-preserve-selections x
+                                         (choice (const :tag "Always preserve selections" t)
+                                                 (repeat symbol))
+                                         "29.1")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
@@ -873,6 +878,8 @@ since it could result in memory overflow and make Emacs crash."
                            (equal "x-scroll-event-delta-factor"
                                   (symbol-name symbol))
                            (equal "x-dnd-disable-motif-drag"
+                                  (symbol-name symbol))
+                           (equal "x-auto-preserve-selections"
                                   (symbol-name symbol)))
 		       (featurep 'x))
 		      ((string-match "\\`x-" (symbol-name symbol))

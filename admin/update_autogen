@@ -4,7 +4,7 @@
 ## Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
-## Maintainer: emacs-devel@gnu.org
+## Maintainer: Stefan Kangas <stefankangas@gmail.com>
 
 ## This file is part of GNU Emacs.
 
@@ -81,7 +81,6 @@ ldefs_flag=1
 lboot_flag=
 
 ## Parameters.
-ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
 sources="configure.ac lib/Makefile.am"
 ## Files to copy into autogendir.
@@ -177,8 +176,6 @@ modified=$(status ${autogendir:+$sources} ${ldefs_flag:+lisp}) || die
     echo "Running 'make maintainer-clean'..."
 
     make maintainer-clean #|| die "Cleaning error"
-
-    rm -f $ldefs_in
 }
 
 
@@ -289,18 +286,13 @@ make -C src "$@" bootstrap-emacs || die "make src error"
 
 echo "Running lisp/ make..."
 
-make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
+make -C lisp "$@" ldefs-boot.el EMACS=../src/bootstrap-emacs || die "make src error"
 
-
-## Ignore comment differences.
-[ ! "$lboot_flag" ] ||                      \
-    diff -q -I '^;' $ldefs_in $ldefs_out || \
-    cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
 
 # Refresh the prebuilt grammar-wy.el
 grammar_in=lisp/cedet/semantic/grammar-wy.el
 grammar_out=lisp/cedet/semantic/grm-wy-boot.el
-make -C admin/grammars/ ../../$grammar_in
+make -C admin/grammars/ ../../$grammar_in EMACS=../../src/bootstrap-emacs
 cp $grammar_in $grammar_out || die "cp grm_wy_boot error"
 
 

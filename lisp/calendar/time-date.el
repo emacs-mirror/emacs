@@ -171,15 +171,21 @@ If DATE lacks timezone information, GMT is assumed."
 	      (error "Invalid date: %s" date)))))))))
 
 ;;;###autoload
-(defalias 'time-to-seconds 'float-time)
+(defalias 'time-to-seconds #'float-time)
 
 ;;;###autoload
-(defalias 'seconds-to-time 'time-convert)
+(defun seconds-to-time (seconds)
+  "Convert SECONDS to a proper time, like `current-time' would."
+  ;; FIXME: Should we (declare (obsolete time-convert "27.1")) ?
+  (time-convert seconds 'list))
 
 ;;;###autoload
 (defun days-to-time (days)
   "Convert DAYS into a time value."
-  (let ((time (time-convert (* 86400 days))))
+  ;; FIXME: We should likely just pass `t' to `time-convert'.
+  ;; All uses I could find in Emacs, GNU ELPA, and NonGNU ELPA can handle
+  ;; any valid time representation as return value.
+  (let ((time (time-convert (* 86400 days) 'list)))
     ;; Traditionally, this returned a two-element list if DAYS was an integer.
     ;; Keep that tradition if time-convert outputs timestamps in list form.
     (if (and (integerp days) (consp (cdr time)))
@@ -196,7 +202,7 @@ TIME should be either a time value or a date-time string."
   (time-subtract nil time))
 
 ;;;###autoload
-(define-obsolete-function-alias 'subtract-time 'time-subtract "26.1")
+(define-obsolete-function-alias 'subtract-time #'time-subtract "26.1")
 
 ;;;###autoload
 (defun date-to-day (date)
@@ -256,10 +262,10 @@ Returns a floating point number."
 ;;;###autoload
 (defun safe-date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
-If DATE is malformed, return a time value of zeros."
+If DATE is malformed, return a time value of zero."
   (condition-case ()
       (date-to-time date)
-    (error '(0 0))))
+    (error 0)))
 
 
 ;;;###autoload
@@ -590,7 +596,7 @@ TIME is modified and returned."
   time)
 
 (defun decoded-time-period (time)
-  "Interpret DECODED as a period and return its length in seconds.
+  "Interpret TIME as a period and return its length in seconds.
 For computational purposes, years are 365 days long and months
 are 30 days long."
   (+ (if (consp (decoded-time-second time))

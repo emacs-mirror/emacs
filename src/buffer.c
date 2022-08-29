@@ -604,6 +604,7 @@ even if it is dead.  The return value is never nil.  */)
   set_buffer_intervals (b, NULL);
   BUF_UNCHANGED_MODIFIED (b) = 1;
   BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
+  BUF_CHARS_UNCHANGED_MODIFIED (b) = 1;
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
@@ -918,7 +919,8 @@ does not run the hooks `kill-buffer-hook',
       set_buffer_internal_1 (b);
       Fset (intern ("buffer-save-without-query"), Qnil);
       Fset (intern ("buffer-file-number"), Qnil);
-      Fset (intern ("buffer-stale-function"), Qnil);
+      if (!NILP (Flocal_variable_p (Qbuffer_stale_function, base_buffer)))
+	Fkill_local_variable (Qbuffer_stale_function);
       /* Cloned buffers need extra setup, to do things such as deep
 	 variable copies for list variables that might be mangled due
 	 to destructive operations in the indirect buffer. */
@@ -991,6 +993,7 @@ reset_buffer (register struct buffer *b)
   /* It is more conservative to start out "changed" than "unchanged".  */
   b->clip_changed = 0;
   b->prevent_redisplay_optimizations_p = 1;
+  b->long_line_optimizations_p = 0;
   bset_backed_up (b, Qnil);
   bset_local_minor_modes (b, Qnil);
   BUF_AUTOSAVE_MODIFF (b) = 0;
@@ -1075,7 +1078,7 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
           eassert (XSYMBOL (sym)->u.s.redirect == SYMBOL_LOCALIZED);
           /* Need not do anything if some other buffer's binding is
 	     now cached.  */
-          if (EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
+          if (BASE_EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
 	    {
 	      /* Symbol is set up for this buffer's old local value:
 	         swap it out!  */
@@ -1168,7 +1171,8 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
     genbase = name;
   else
     {
-      char number[sizeof "-999999"];
+      enum { bug_52711 = true };  /* https://bugs.gnu.org/57211 */
+      char number[bug_52711 ? INT_BUFSIZE_BOUND (int) + 1 : sizeof "-999999"];
       EMACS_INT r = get_random ();
       eassume (0 <= r);
       int i = r % 1000000;
@@ -1510,7 +1514,7 @@ state of the current buffer.  Use with care.  */)
 	 decrease SAVE_MODIFF and auto_save_modified or increase
 	 MODIFF.  */
       if (SAVE_MODIFF >= MODIFF)
-	SAVE_MODIFF = modiff_incr (&MODIFF);
+	SAVE_MODIFF = modiff_incr (&MODIFF, 1);
       if (EQ (flag, Qautosaved))
 	BUF_AUTOSAVE_MODIFF (b) = MODIFF;
     }
@@ -1570,6 +1574,7 @@ This does not change the name of the visited file (if any).  */)
   (register Lisp_Object newname, Lisp_Object unique)
 {
   register Lisp_Object tem, buf;
+  Lisp_Object requestedname = newname;
 
   CHECK_STRING (newname);
 
@@ -1586,7 +1591,8 @@ This does not change the name of the visited file (if any).  */)
       if (NILP (unique) && XBUFFER (tem) == current_buffer)
 	return BVAR (current_buffer, name);
       if (!NILP (unique))
-	newname = Fgenerate_new_buffer_name (newname, BVAR (current_buffer, name));
+	newname = Fgenerate_new_buffer_name (newname,
+	                                     BVAR (current_buffer, name));
       else
 	error ("Buffer name `%s' is in use", SDATA (newname));
     }
@@ -1606,7 +1612,7 @@ This does not change the name of the visited file (if any).  */)
   run_buffer_list_update_hook (current_buffer);
 
   call2 (intern ("uniquify--rename-buffer-advice"),
-         BVAR (current_buffer, name), unique);
+         requestedname, unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
@@ -1617,7 +1623,7 @@ This does not change the name of the visited file (if any).  */)
 static bool
 candidate_buffer (Lisp_Object b, Lisp_Object buffer)
 {
-  return (BUFFERP (b) && !EQ (b, buffer)
+  return (BUFFERP (b) && !BASE_EQ (b, buffer)
 	  && BUFFER_LIVE_P (XBUFFER (b))
 	  && !BUFFER_HIDDEN_P (XBUFFER (b)));
 }
@@ -1819,10 +1825,12 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     /* Query if the buffer is still modified.  */
     if (INTERACTIVE && modified)
       {
-	AUTO_STRING (format, "Buffer %s modified; kill anyway? ");
-	tem = do_yes_or_no_p (CALLN (Fformat, format, BVAR (b, name)));
-	if (NILP (tem))
+	/* Ask whether to kill the buffer, and exit if the user says
+	   "no".  */
+	if (NILP (call1 (Qkill_buffer__possibly_save, buffer)))
 	  return unbind_to (count, Qnil);
+	/* Recheck modified.  */
+	modified = BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
       }
 
     /* Delete the autosave file, if requested. */
@@ -1861,7 +1869,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      since anything can happen within do_yes_or_no_p.  */
 
   /* Don't kill the minibuffer now current.  */
-  if (EQ (buffer, XWINDOW (minibuf_window)->contents))
+  if (BASE_EQ (buffer, XWINDOW (minibuf_window)->contents))
     return Qnil;
 
   /* When we kill an ordinary buffer which shares its buffer text
@@ -1905,7 +1913,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      is the sole other buffer give up.  */
   XSETBUFFER (tem, current_buffer);
   if (EQ (tem, XWINDOW (minibuf_window)->contents)
-      && EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
+      && BASE_EQ (buffer, Fother_buffer (buffer, Qnil, Qnil)))
     return Qnil;
 
   /* Now there is no question: we can kill the buffer.  */
@@ -2453,6 +2461,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield (bidi_paragraph_cache, struct region_cache *);
   current_buffer->prevent_redisplay_optimizations_p = 1;
   other_buffer->prevent_redisplay_optimizations_p = 1;
+  swapfield (long_line_optimizations_p, bool_bf);
   swapfield (overlays_before, struct Lisp_Overlay *);
   swapfield (overlays_after, struct Lisp_Overlay *);
   swapfield (overlay_center, ptrdiff_t);
@@ -2472,12 +2481,12 @@ results, see Info node `(elisp)Swapping Text'.  */)
   bset_point_before_scroll (current_buffer, Qnil);
   bset_point_before_scroll (other_buffer, Qnil);
 
-  modiff_incr (&current_buffer->text->modiff);
-  modiff_incr (&other_buffer->text->modiff);
-  modiff_incr (&current_buffer->text->chars_modiff);
-  modiff_incr (&other_buffer->text->chars_modiff);
-  modiff_incr (&current_buffer->text->overlay_modiff);
-  modiff_incr (&other_buffer->text->overlay_modiff);
+  modiff_incr (&current_buffer->text->modiff, 1);
+  modiff_incr (&other_buffer->text->modiff, 1);
+  modiff_incr (&current_buffer->text->chars_modiff, 1);
+  modiff_incr (&other_buffer->text->chars_modiff, 1);
+  modiff_incr (&current_buffer->text->overlay_modiff, 1);
+  modiff_incr (&other_buffer->text->overlay_modiff, 1);
   current_buffer->text->beg_unchanged = current_buffer->text->gpt;
   current_buffer->text->end_unchanged = current_buffer->text->gpt;
   other_buffer->text->beg_unchanged = other_buffer->text->gpt;
@@ -2511,23 +2520,23 @@ results, see Info node `(elisp)Swapping Text'.  */)
       {
 	ws = Fcons (w, ws);
 	if (MARKERP (XWINDOW (w)->pointm)
-	    && (EQ (XWINDOW (w)->contents, buf1)
-		|| EQ (XWINDOW (w)->contents, buf2)))
+	    && (BASE_EQ (XWINDOW (w)->contents, buf1)
+		|| BASE_EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->pointm,
 		       make_fixnum
 		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
 		       XWINDOW (w)->contents);
 	/* Blindly copied from pointm part.  */
 	if (MARKERP (XWINDOW (w)->old_pointm)
-	    && (EQ (XWINDOW (w)->contents, buf1)
-		|| EQ (XWINDOW (w)->contents, buf2)))
+	    && (BASE_EQ (XWINDOW (w)->contents, buf1)
+		|| BASE_EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->old_pointm,
 		       make_fixnum
 		       (BUF_BEGV (XBUFFER (XWINDOW (w)->contents))),
 		       XWINDOW (w)->contents);
 	if (MARKERP (XWINDOW (w)->start)
-	    && (EQ (XWINDOW (w)->contents, buf1)
-		|| EQ (XWINDOW (w)->contents, buf2)))
+	    && (BASE_EQ (XWINDOW (w)->contents, buf1)
+		|| BASE_EQ (XWINDOW (w)->contents, buf2)))
 	  Fset_marker (XWINDOW (w)->start,
 		       make_fixnum
 		       (XBUFFER (XWINDOW (w)->contents)->last_window_start),
@@ -2537,10 +2546,11 @@ results, see Info node `(elisp)Swapping Text'.  */)
   }
 
   if (current_buffer->text->intervals)
-    (eassert (EQ (current_buffer->text->intervals->up.obj, buffer)),
+    (eassert (BASE_EQ (current_buffer->text->intervals->up.obj, buffer)),
      XSETBUFFER (current_buffer->text->intervals->up.obj, current_buffer));
   if (other_buffer->text->intervals)
-    (eassert (EQ (other_buffer->text->intervals->up.obj, Fcurrent_buffer ())),
+    (eassert (BASE_EQ (other_buffer->text->intervals->up.obj,
+		       Fcurrent_buffer ())),
      XSETBUFFER (other_buffer->text->intervals->up.obj, other_buffer));
 
   return Qnil;
@@ -3950,9 +3960,9 @@ for the rear of the overlay advance when text is inserted there
   else
     CHECK_BUFFER (buffer);
 
-  if (MARKERP (beg) && !EQ (Fmarker_buffer (beg), buffer))
+  if (MARKERP (beg) && !BASE_EQ (Fmarker_buffer (beg), buffer))
     signal_error ("Marker points into wrong buffer", beg);
-  if (MARKERP (end) && !EQ (Fmarker_buffer (end), buffer))
+  if (MARKERP (end) && !BASE_EQ (Fmarker_buffer (end), buffer))
     signal_error ("Marker points into wrong buffer", end);
 
   CHECK_FIXNUM_COERCE_MARKER (beg);
@@ -4015,7 +4025,7 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
   bset_redisplay (buf);
 
-  modiff_incr (&BUF_OVERLAY_MODIFF (buf));
+  modiff_incr (&BUF_OVERLAY_MODIFF (buf), 1);
 }
 
 /* Remove OVERLAY from LIST.  */
@@ -4070,9 +4080,9 @@ buffer.  */)
   if (NILP (Fbuffer_live_p (buffer)))
     error ("Attempt to move overlay to a dead buffer");
 
-  if (MARKERP (beg) && !EQ (Fmarker_buffer (beg), buffer))
+  if (MARKERP (beg) && !BASE_EQ (Fmarker_buffer (beg), buffer))
     signal_error ("Marker points into wrong buffer", beg);
-  if (MARKERP (end) && !EQ (Fmarker_buffer (end), buffer))
+  if (MARKERP (end) && !BASE_EQ (Fmarker_buffer (end), buffer))
     signal_error ("Marker points into wrong buffer", end);
 
   CHECK_FIXNUM_COERCE_MARKER (beg);
@@ -5622,7 +5632,7 @@ used.  */);
 
   DEFVAR_PER_BUFFER ("mode-line-format", &BVAR (current_buffer, mode_line_format),
 		     Qnil,
-		     doc: /* Template for displaying mode line for current buffer.
+		     doc: /* Template for displaying mode line for a window's buffer.
 
 The value may be nil, a string, a symbol or a list.
 
@@ -5634,6 +5644,9 @@ For any symbol other than t or nil, the symbol's value is processed as
  %-constructs (see below).  Also, unless the symbol has a non-nil
  `risky-local-variable' property, all properties in any strings, as
  well as all :eval and :propertize forms in the value, are ignored.
+
+When the value is processed, the window's buffer is temporarily the
+current buffer.
 
 A list whose car is a string or list is processed by processing each
  of the list elements recursively, as separate mode line constructs,
@@ -6436,6 +6449,37 @@ Since `clone-indirect-buffer' calls `make-indirect-buffer', this hook
 will run for `clone-indirect-buffer' calls as well.  */);
   Vclone_indirect_buffer_hook = Qnil;
 
+  DEFVAR_LISP ("long-line-threshold", Vlong_line_threshold,
+    doc: /* Line length above which to use redisplay shortcuts.
+
+The value should be a positive integer or nil.
+If the value is an integer, shortcuts in the display code intended
+to speed up redisplay for long lines will automatically be enabled
+in buffers which contain one or more lines whose length is above
+this threshold.
+If nil, these display shortcuts will always remain disabled.
+
+There is no reason to change that value except for debugging purposes.  */);
+  XSETFASTINT (Vlong_line_threshold, 10000);
+
+  DEFVAR_INT ("large-hscroll-threshold", large_hscroll_threshold,
+    doc: /* Horizontal scroll of truncated lines above which to use redisplay shortcuts.
+
+The value should be a positive integer.
+
+Shortcuts in the display code intended to speed up redisplay for long
+and truncated lines will automatically be enabled when a line's
+horizontal scroll amount is or about to become larger than the value
+of this variable.
+
+This variable has effect only in buffers which contain one or more
+lines whose length is above `long-line-threshold', which see.
+To disable redisplay shortcuts for long truncated line, set this
+variable to `most-positive-fixnum'.
+
+There is no reason to change that value except for debugging purposes.  */);
+  large_hscroll_threshold = 10000;
+
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
@@ -6488,6 +6532,10 @@ will run for `clone-indirect-buffer' calls as well.  */);
   defsubr (&Srestore_buffer_modified_p);
 
   DEFSYM (Qautosaved, "autosaved");
+
+  DEFSYM (Qkill_buffer__possibly_save, "kill-buffer--possibly-save");
+
+  DEFSYM (Qbuffer_stale_function, "buffer-stale-function");
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }

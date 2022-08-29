@@ -30,6 +30,8 @@
 ;; Bubbles is an implementation of the "Same Game", similar to "Same
 ;; GNOME" and many others, see <https://en.wikipedia.org/wiki/SameGame>.
 
+;;; Code:
+
 ;; ======================================================================
 
 ;;; History:
@@ -69,8 +71,6 @@
 ;;     Initial release. Tested with GNU Emacs 22.0.93 and 21.4.1.
 
 ;; ======================================================================
-
-;;; Code:
 
 (require 'gamegrid)
 
@@ -812,7 +812,7 @@ static char * dot3d_xpm[] = {
 (defvar-keymap bubbles-mode-map
   :doc "Mode map for `bubbles'."
   :name 'bubbles-mode-map
-  "q"   #'bubbles-quit
+  "q"   #'quit-window
   "C-j" #'bubbles-plop
   "SPC" #'bubbles-plop
   "C-m" #'bubbles-plop
@@ -871,7 +871,7 @@ static char * dot3d_xpm[] = {
     ["Save all settings" bubbles-save-settings]
     "---"
     ["New game" bubbles]
-    ["Quit" bubbles-quit]))
+    ["Quit" quit-window]))
 
 ;; bind menu to mouse
 (define-key bubbles-mode-map [down-mouse-3] bubbles-menu)
@@ -910,6 +910,7 @@ columns on its right towards the left.
 
 (defun bubbles-quit ()
   "Quit Bubbles."
+  (declare (obsolete quit-window "29.1"))
   (interactive nil bubbles-mode)
   (message "bubbles-quit")
   (bury-buffer))

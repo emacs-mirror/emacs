@@ -57,6 +57,7 @@ component group will show up when you enter the virtual group.")
 
 
 (defconst nnvirtual-version "nnvirtual 1.1")
+(make-obsolete-variable 'nnvirtual-version 'emacs-version "29.1")
 
 (defvoo nnvirtual-current-group nil)
 
@@ -386,7 +387,7 @@ lines have the correct component server prefix."
   (looking-at
    "[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t")
   (goto-char (match-end 0))
-  (unless (search-forward "\t" (point-at-eol) 'move)
+  (unless (search-forward "\t" (line-end-position) 'move)
     (insert "\t"))
 
   ;; Remove any spaces at the beginning of the Xref field.
@@ -402,8 +403,8 @@ lines have the correct component server prefix."
   ;; component server prefix.
   (save-restriction
     (narrow-to-region (point)
-		      (or (search-forward "\t" (point-at-eol) t)
-			  (point-at-eol)))
+                      (or (search-forward "\t" (line-end-position) t)
+                          (line-end-position)))
     (goto-char (point-min))
     (when (re-search-forward "Xref: *[^\n:0-9 ]+ *" nil t)
       (replace-match "" t t))

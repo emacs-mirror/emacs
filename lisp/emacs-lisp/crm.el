@@ -77,38 +77,29 @@
 
 ;;; Code:
 
-;; FIXME I don't see that this needs to exist as a separate variable.
-;; crm-separator should suffice.
-(defconst crm-default-separator "[ \t]*,[ \t]*"
-  "Default value of `crm-separator'.")
+(define-obsolete-variable-alias 'crm-default-separator 'crm-separator "29.1")
 
-(defvar crm-separator crm-default-separator
+(defvar crm-separator "[ \t]*,[ \t]*"
   "Separator regexp used for separating strings in `completing-read-multiple'.
-It should be a regexp that does not match the list of completion candidates.
-The default value is `crm-default-separator'.")
+It should be a regexp that does not match the list of completion candidates.")
 
-(defvar crm-local-completion-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    (define-key map [remap minibuffer-complete] #'crm-complete)
-    (define-key map [remap minibuffer-complete-word] #'crm-complete-word)
-    (define-key map [remap minibuffer-completion-help] #'crm-completion-help)
-    map)
-  "Local keymap for minibuffer multiple input with completion.
-Analog of `minibuffer-local-completion-map'.")
+(defvar-keymap crm-local-completion-map
+  :doc "Local keymap for minibuffer multiple input with completion.
+Analog of `minibuffer-local-completion-map'."
+  :parent minibuffer-local-completion-map
+  "<remap> <minibuffer-complete>"        #'crm-complete
+  "<remap> <minibuffer-complete-word>"   #'crm-complete-word
+  "<remap> <minibuffer-completion-help>" #'crm-completion-help)
 
-(defvar crm-local-must-match-map
-  (let ((map (make-sparse-keymap)))
-    ;; We'd want to have multiple inheritance here.
-    (set-keymap-parent map minibuffer-local-must-match-map)
-    (define-key map [remap minibuffer-complete] #'crm-complete)
-    (define-key map [remap minibuffer-complete-word] #'crm-complete-word)
-    (define-key map [remap minibuffer-completion-help] #'crm-completion-help)
-    (define-key map [remap minibuffer-complete-and-exit]
-      #'crm-complete-and-exit)
-    map)
-  "Local keymap for minibuffer multiple input with exact match completion.
-Analog of `minibuffer-local-must-match-map' for crm.")
+(defvar-keymap crm-local-must-match-map
+  :doc "Local keymap for minibuffer multiple input with exact match completion.
+Analog of `minibuffer-local-must-match-map' for crm."
+  ;; We'd want to have multiple inheritance here.
+  :parent minibuffer-local-must-match-map
+  "<remap> <minibuffer-complete>"          #'crm-complete
+  "<remap> <minibuffer-complete-word>"     #'crm-complete-word
+  "<remap> <minibuffer-completion-help>"   #'crm-completion-help
+  "<remap> <minibuffer-complete-and-exit>" #'crm-complete-and-exit)
 
 (defvar crm-completion-table nil
   "An alist whose elements' cars are strings, or an obarray.

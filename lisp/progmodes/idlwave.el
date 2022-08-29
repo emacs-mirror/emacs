@@ -1001,9 +1001,9 @@ Obsolete, if the IDL Assistant is being used for help."
   "List of modifiers to be used for the debugging commands.
 Will be used to bind debugging commands in the shell buffer and in all
 source buffers.  These are additional convenience bindings, the debugging
-commands are always available with the `C-c C-d' prefix.
+commands are always available with the \\`C-c C-d' prefix.
 If you set this to (control shift), this means setting a breakpoint will
-be on `C-S-b', compiling a source file on `C-S-c' etc.  Possible modifiers
+be on \\`C-S-b', compiling a source file on \\`C-S-c' etc.  Possible modifiers
 are `control', `meta', `super', `hyper', `alt', and `shift'."
   :group 'idlwave-shell-general-setup
   :type '(set :tag "Specify modifiers"
@@ -2004,7 +2004,7 @@ Returns non-nil if abbrev is left expanded."
 Moves to end of line if there is no comment delimiter.
 Ignores comment delimiters in strings.
 Returns point if comment found and nil otherwise."
-  (let ((eos (point-at-eol))
+  (let ((eos (line-end-position))
         (data (match-data))
         found)
     ;; Look for first comment delimiter not in a string
@@ -2054,7 +2054,7 @@ Also checks if the correct END statement has been used."
   ;;(backward-char 1)
   (let* ((pos (point-marker))
 	 (last-abbrev-marker (copy-marker last-abbrev-location))
-	 (eol-pos (point-at-eol))
+         (eol-pos (line-end-position))
 	 begin-pos end-pos end end1 )
     (if idlwave-reindent-end  (idlwave-indent-line))
     (setq last-abbrev-location (marker-position last-abbrev-marker))
@@ -3202,7 +3202,7 @@ ignored."
         (beginning-of-line)
         (setq bcl (point))
         (re-search-forward (concat "^[ \t]*" comment-start "+")
-			   (point-at-eol) t)
+                           (line-end-position) t)
         ;; Get the comment leader on the line and its length
         (setq pre (current-column))
         ;; the comment leader is the indentation plus exactly the
@@ -3210,7 +3210,8 @@ ignored."
         (setq fill-prefix-reg
               (concat
                (setq fill-prefix
-                     (regexp-quote (buffer-substring (point-at-bol) (point))))
+                     (regexp-quote (buffer-substring (line-beginning-position)
+                                                     (point))))
                "[^;]"))
 
         ;; Mark the beginning and end of the paragraph
@@ -3247,7 +3248,7 @@ ignored."
         ;; In the following while statements, after one iteration
         ;; point will be at the beginning of a line in which case
         ;; the while will not be executed for the
-        ;; the first paragraph line and thus will not affect the
+        ;; first paragraph line and thus will not affect the
         ;; indentation.
         ;;
         ;; First check to see if indentation is based on hanging indent.
@@ -3264,7 +3265,7 @@ ignored."
               (setq indent hang)
               (beginning-of-line)
               (while (> (point) start)
-                (re-search-forward comment-start-skip (point-at-eol) t)
+                (re-search-forward comment-start-skip (line-end-position) t)
                 (if (> (setq diff (- indent (current-column))) 0)
                     (progn
                       (if (>= here (point))
@@ -3286,7 +3287,7 @@ ignored."
             (setq indent
                   (min indent
                        (progn
-                         (re-search-forward comment-start-skip (point-at-eol) t)
+                         (re-search-forward comment-start-skip (line-end-position) t)
                          (current-column))))
             (forward-line -1)))
         (setq fill-prefix (concat fill-prefix
@@ -3296,7 +3297,7 @@ ignored."
         (setq first-indent
               (max
                (progn
-                 (re-search-forward comment-start-skip (point-at-eol) t)
+                 (re-search-forward comment-start-skip (line-end-position) t)
                  (current-column))
                indent))
 
@@ -3334,11 +3335,11 @@ If not found returns nil."
   (if idlwave-use-last-hang-indent
       (save-excursion
         (end-of-line)
-        (if (re-search-backward idlwave-hang-indent-regexp (point-at-bol) t)
+        (if (re-search-backward idlwave-hang-indent-regexp (line-beginning-position) t)
             (+ (current-column) (length idlwave-hang-indent-regexp))))
     (save-excursion
       (beginning-of-line)
-      (if (re-search-forward idlwave-hang-indent-regexp (point-at-eol) t)
+      (if (re-search-forward idlwave-hang-indent-regexp (line-end-position) t)
           (current-column)))))
 
 (defun idlwave-auto-fill ()
@@ -3386,7 +3387,7 @@ if `idlwave-auto-fill-split-string' is non-nil."
 		      ;; Remove whitespace between comment delimiter and
 		      ;; text, insert spaces for appropriate indentation.
 		      (beginning-of-line)
-		      (re-search-forward comment-start-skip (point-at-eol) t)
+                      (re-search-forward comment-start-skip (line-end-position) t)
 		      (delete-horizontal-space)
 		      (idlwave-indent-to indent)
 		      (goto-char (- (point-max) here)))))
@@ -3548,7 +3549,7 @@ constants - a double quote followed by an octal digit."
     ;; Because single and double quotes can quote each other we must
     ;; search for the string start from the beginning of line.
     (let* ((start (point))
-           (eol (point-at-eol))
+           (eol (line-end-position))
            (bq (progn (beginning-of-line) (point)))
            (endq (point))
            (data (match-data))
@@ -3626,7 +3627,7 @@ unless the optional second argument NOINDENT is non-nil."
 	   (setq s1 (downcase s1) s2 (downcase s2)))
 	  (idlwave-abbrev-change-case
 	   (setq s1 (upcase s1) s2 (upcase s2))))
-    (let ((beg (point-at-bol))
+    (let ((beg (line-beginning-position))
 	  end)
       (if (not (looking-at "\\s-*\n"))
 	  (open-line 1))
@@ -7528,7 +7529,7 @@ associated TAG, if any."
        (setq cl (pop sclasses))
        (let ((tags (idlwave-class-tags cl)))
 	 (while tags
-	   (if (eq t (compare-strings tag 0 nil (car tags) 0 nil t))
+	   (if (string-equal-ignore-case tag (car tags))
 	     (throw 'exit cl))
 	   (setq tags (cdr tags))))))))
 
@@ -8421,7 +8422,7 @@ was pressed."
 (defun idlwave-list-shell-load-path-shadows (&optional _arg)
   "List the load path shadows of all routines compiled under the shell.
 This is very useful for checking an IDL application.  Just compile the
-application, do RESOLVE_ALL, and `C-c C-i' to compile all referenced
+application, do RESOLVE_ALL, and \\`C-c C-i' to compile all referenced
 routines and update IDLWAVE internal info.  Then check for shadowing
 with this command."
   (interactive)
@@ -8811,7 +8812,7 @@ to reset the variable `idlwave-true-path-alist' to nil."
 
 ;; ----------------------------------------------------------------------------
 ;;
-;; Additions for use with imenu.el and func-menu.el
+;; Additions for use with imenu.el
 ;; (pop-up a list of IDL units in the current file).
 ;;
 
@@ -8835,16 +8836,7 @@ Assumes that point is at the beginning of the unit as found by
      "[a-zA-Z_][a-zA-Z0-9$_]+\\(::[a-zA-Z_][a-zA-Z0-9$_]+\\)?")
     (buffer-substring-no-properties begin (point))))
 
-(defalias 'idlwave-function-menu
-  (condition-case nil
-      (progn
-	(require 'func-menu)
-	'function-menu)
-    (error (condition-case nil
-	       (progn
-		 (require 'imenu)
-		 'imenu)
-	     (error nil)))))
+(define-obsolete-function-alias 'idlwave-function-menu #'imenu "29.1")
 
 (defun idlwave-edit-in-idlde ()
   "Edit the current file in IDL Development environment."
@@ -8864,7 +8856,7 @@ Assumes that point is at the beginning of the unit as found by
 ;; Menus - using easymenu.el
 (defvar idlwave-mode-menu-def
   '("IDLWAVE"
-    ["PRO/FUNC menu" idlwave-function-menu t]
+    ["PRO/FUNC menu" imenu t]
     ("Motion"
      ["Subprogram Start" idlwave-beginning-of-subprogram t]
      ["Subprogram End" idlwave-end-of-subprogram t]

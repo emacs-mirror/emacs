@@ -50,13 +50,10 @@ This file documents @w{@value{tramp} @value{trampver}}, a remote file
 editing package for Emacs.
 
 @value{tramp} stands for ``Transparent Remote (file) Access, Multiple
-Protocol''.  This package provides remote file editing, similar to
-Ange FTP@.
-
-The difference is that Ange FTP uses FTP to transfer files between the
-local and the remote host, whereas @value{tramp} uses a combination of
-@command{rsh} and @command{rcp} or other work-alike programs, such as
-@command{ssh}/@command{scp}.
+Protocol''.  This package provides an easy, convenient, and consistent
+interface to editing remote files transparently, just as if they are
+local files.  This extends to editing, version control, @code{dired},
+and more.
 
 You can find the latest version of this document on the web at
 @uref{@value{trampurl}}.
@@ -182,10 +179,10 @@ interface to remote files as if they are local files.  @value{tramp}'s
 transparency extends to editing, version control, and @code{dired}.
 
 @value{tramp} can access remote hosts using any number of access
-methods, such as @command{rsh}, @command{rlogin}, @command{telnet},
-and related programs.  If these programs can successfully pass
-@acronym{ASCII} characters, @value{tramp} can use them.
-@value{tramp} does not require or mandate 8-bit clean connections.
+methods, such as @command{ssh}, @command{scp}, @command{telnet}, and
+related programs.  If these programs can successfully pass
+@acronym{ASCII} characters, @value{tramp} can use them.  @value{tramp}
+does not require or mandate 8-bit clean connections.
 
 @value{tramp}'s most common access method is through @command{ssh}, a
 more secure alternative to @command{ftp} and other older access
@@ -233,10 +230,10 @@ first time connecting to that host, here's what happens:
 
 @itemize
 @item
-@value{tramp} invokes @samp{telnet @var{host}} or @samp{rsh @var{host}
--l @var{user}} and establishes an external process to connect to the
-remote host.  @value{tramp} communicates with the process through an
-Emacs buffer, which also shows output from the remote host.
+@value{tramp} invokes @samp{telnet @var{host}} or @samp{ssh -l
+@var{user} @var{host}} and establishes an external process to connect
+to the remote host.  @value{tramp} communicates with the process
+through an Emacs buffer, which also shows output from the remote host.
 
 @item
 The remote host may prompt for a login name (for @command{telnet}, for
@@ -246,7 +243,7 @@ followed by a newline.
 
 @item
 The remote host may then prompt for a password or passphrase (for
-@command{rsh} or for @command{telnet}).  @value{tramp} displays the
+@command{ssh} or for @command{telnet}).  @value{tramp} displays the
 password prompt in the minibuffer.  @value{tramp} then sends whatever
 is entered to the remote host, followed by a newline.
 
@@ -312,7 +309,7 @@ I hope this has provided you with a basic overview of what happens
 behind the scenes when you open a file with @value{tramp}.
 
 
-@c For the end user
+@c For the end user.
 @node Obtaining @value{tramp}
 @chapter Obtaining @value{tramp}
 @cindex obtaining @value{tramp}
@@ -669,6 +666,11 @@ may be used in your init file:
 @lisp
 (with-eval-after-load 'tramp (tramp-change-syntax 'simplified))
 @end lisp
+
+@vindex enable-remote-dir-locals
+Changing other variables via directory-local variables on a remote
+directory must be enabled by setting @code{enable-remote-dir-locals}
+to non-@code{nil}, @xref{Directory Variables, , , emacs}.
 
 
 @menu
@@ -2430,7 +2432,7 @@ example below:
 @end lisp
 
 @vindex password-word-equivalents
-This user option is, by default, initialised from
+This user option is, by default, initialized from
 @code{password-word-equivalents} when @value{tramp} is loaded, and it
 is usually more convenient to add new passphrases to that user option
 instead of altering this user option.
@@ -2973,14 +2975,31 @@ where @samp{192.168.0.26} is the Android device's IP address.
 (@pxref{Predefined connection information}).
 
 @item
-@value{tramp} requires preserving @env{PATH} environment variable from
-user settings.  Android devices prefer @file{/system/xbin} path over
-@file{/system/bin}.  Both of these are set as follows:
+On the Android device the directory names are prefixed with an
+application specific prefix, which is
+@file{/data/data/com.termux/files/usr/bin} instead of @file{/usr/bin}
+in the @code{Termux} case.  You must adapt the file names in
+@code{tramp-remote-path}, for example via connection-local
+@ifinfo
+settings (@pxref{Connection Variables, , , emacs}):
+@end ifinfo
+@ifnotinfo
+settings:
+@end ifnotinfo
 
 @lisp
 @group
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(add-to-list 'tramp-remote-path "/system/xbin")
+(connection-local-set-profile-variables
+ 'tramp-connection-local-termux-profile
+ `((tramp-remote-path
+    . ,(mapcar
+	(lambda (x)
+	  (if (stringp x) (concat "/data/data/com.termux/files" x) x))
+	(copy-tree tramp-remote-path)))))
+
+(connection-local-set-profiles
+ '(:application tramp :machine "192.168.0.26")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
@@ -2989,7 +3008,9 @@ When the Android device is not @samp{rooted}, specify a writable
 directory for temporary files:
 
 @lisp
-(add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "192.168.0.26")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
 @end lisp
 
 @item
@@ -3017,11 +3038,17 @@ the previous example, fix the connection properties as follows:
 @group
 (add-to-list 'tramp-connection-properties
              (list (regexp-quote "android") "remote-shell" "sh"))
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "android")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
+(connection-local-set-profiles
+ '(:application tramp :machine "android")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
 @noindent
-Open a remote connection with a more concise command @kbd{C-x C-f
+Open a remote connection with the more concise command @kbd{C-x C-f
 @trampfn{ssh,android,} @key{RET}}.
 @end itemize
 
@@ -3123,6 +3150,14 @@ auto-saved files to the same directory as the original file.
 @vindex tramp-auto-save-directory
 Alternatively, set the user option @code{tramp-auto-save-directory}
 to direct all auto saves to that location.
+
+@c Since Emacs 29.
+@vindex remote-file-name-inhibit-auto-save-visited
+An alternative to @code{auto-save-mode} is
+@code{auto-save-visited-mode}.  In this mode, auto-saving is identical
+to explicit saving.  If you want to disable this behavior for remote
+files, set user option
+@code{remote-file-name-inhibit-auto-save-visited} to non-@code{nil}.
 
 @vindex lock-file-name-transforms
 And still more issues to handle.  Since @w{Emacs 28}, file locks use a
@@ -3373,7 +3408,7 @@ names.  Beside the @code{default} value, @var{syntax} can be
 @item @code{simplified}
 @cindex simplified syntax
 
-The remote file name syntax is similar to the syntax used by Ange FTP@.
+This remote file name syntax is similar to the syntax used by Ange FTP@.
 A remote file name has the form
 @code{@value{prefix}user@@host@value{postfix}path/to/file}.  The
 @code{user@@} part is optional, and the method is determined by
@@ -3385,7 +3420,7 @@ A remote file name has the form
 @clear unified
 @set separate
 @include trampver.texi
-The remote file name syntax is similar to the syntax used by XEmacs.
+This remote file name syntax originated in the XEmacs text editor.
 A remote file name has the form
 @code{@trampfn{method,user@@host,path/to/file}}.  The @code{method}
 and @code{user@@} parts are optional.
@@ -4791,9 +4826,12 @@ authentication delays.  During these operations, @value{tramp}'s
 responsiveness slows down.  Some suggestions within the scope of
 @value{tramp}'s settings include:
 
+@itemize @minus
+@item
 Use an external method, such as @option{scp}, which are faster than
-internal methods.
+internal methods for large files.
 
+@item
 Keep the file @code{tramp-persistency-file-name}, which is where
 @value{tramp} caches remote information about hosts and files.  Caching
 is enabled by default.  Don't disable it.
@@ -4804,6 +4842,7 @@ files are not independently updated outside @value{tramp}'s control.
 That cache cleanup will be necessary if the remote directories or
 files are updated independent of @value{tramp}.
 
+@item
 Disable version control to avoid delays:
 
 @lisp
@@ -4823,9 +4862,17 @@ about, for example:
 (setq vc-handled-backends '(SVN Git))
 @end lisp
 
+@item
+@vindex remote-file-name-inhibit-locks
+Disable file locks.  Set @code{remote-file-name-inhibit-locks} to
+@code{t} if you know that different Emacs sessions are not modifying
+the same remote file.
+
+@item
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
+@end itemize
 
 
 @item
@@ -5325,13 +5372,6 @@ minibuffer:
   (before my-minibuffer-complete activate)
   (expand-abbrev))
 @end group
-
-@group
-;; If you use partial-completion-mode
-(defadvice PC-do-completion
-  (before my-PC-do-completion activate)
-  (expand-abbrev))
-@end group
 @end lisp
 
 The reduced typing: @kbd{C-x C-f xy @key{TAB}}.
@@ -5621,6 +5661,7 @@ Disable @value{tramp} file name completion:
 (customize-set-variable 'ido-enable-tramp-completion nil)
 @end lisp
 
+@c Obsolete since Emacs 29.1.
 @item
 @file{rlogin.el}
 
@@ -5679,10 +5720,19 @@ local host's root directory as @file{/ssh:example.com:}.
 To unload @value{tramp}, type @kbd{M-x tramp-unload-tramp @key{RET}}.
 Unloading @value{tramp} resets Ange FTP plugins also.
 @end itemize
+
+
+@item
+What is the difference between Ange FTP and @value{tramp}?
+
+The difference is that Ange FTP uses @command{ftp} to transfer files
+between the local and the remote host, whereas @value{tramp} uses a
+combination of @command{ssh} and @command{scp} or other work-alike
+programs.
 @end itemize
 
 
-@c For the developer
+@c For the developer.
 @node Files directories and localnames
 @chapter How file names, directories and localnames are mangled and managed
 
@@ -5811,15 +5861,15 @@ The verbosity levels are
 @*@indent @w{ 4}  activities
 @*@indent @w{ 5}  internal
 @*@indent @w{ 6}  sent and received strings
-@*@indent @w{ 7}  file caching
-@*@indent @w{ 8}  connection properties
+@*@indent @w{ 7}  connection properties
+@*@indent @w{ 8}  file caching
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 @*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
-essential to bug and problem analyses.  For @value{tramp} bug reports,
+essential to bug and problem analyzes.  For @value{tramp} bug reports,
 set the @code{tramp-verbose} level to 6 (@pxref{Bug Reports}).
 
 The debug buffer is in

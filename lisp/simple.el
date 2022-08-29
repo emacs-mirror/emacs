@@ -1402,15 +1402,17 @@ instead of deleted."
   :version "24.1")
 
 (setq region-extract-function
-  (lambda (method)
-    (when (region-beginning)
-      (cond
-       ((eq method 'bounds)
-        (list (cons (region-beginning) (region-end))))
-       ((eq method 'delete-only)
-        (delete-region (region-beginning) (region-end)))
-       (t
-        (filter-buffer-substring (region-beginning) (region-end) method))))))
+      (lambda (method)
+        ;; This call either signals an error (if there is no region)
+        ;; or returns a number.
+        (let ((beg (region-beginning)))
+          (cond
+           ((eq method 'bounds)
+            (list (cons beg (region-end))))
+           ((eq method 'delete-only)
+            (delete-region beg (region-end)))
+           (t
+            (filter-buffer-substring beg (region-end) method))))))
 
 (defvar region-insert-function
   (lambda (lines)
@@ -1507,9 +1509,22 @@ the actual saved text might be different from what was killed."
            (while (> n 0)
              ;; 'find-composition' will return (FROM TO ....) or nil.
              (setq cmp (find-composition pos))
-             (if cmp
-                 (setq pos (cadr cmp))
-               (setq pos (1+ pos)))
+             (setq pos
+                   (if cmp
+                       (let ((from (car cmp))
+                             (to (cadr cmp)))
+                         (cond
+                          ((= (length cmp) 2) ; static composition
+                           to)
+                          ;; TO can be at POS, in which case we want
+                          ;; to make sure we advance at least by 1
+                          ;; character.
+                          ((<= to pos)
+                           (1+ pos))
+                          (t
+                           (lgstring-glyph-boundary (nth 2 cmp)
+                                                    from (1+ pos)))))
+                     (1+ pos)))
              (setq n (1- n)))
            (delete-char (- pos start) killflag)))
 
@@ -1719,8 +1734,6 @@ from Lisp."
 	     words (if (= words 1) "" "s")
 	     chars (if (= chars 1) "" "s"))))
 
-(define-obsolete-function-alias 'count-lines-region 'count-words-region "24.1")
-
 (defun what-line ()
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
@@ -1907,17 +1920,19 @@ in *Help* buffer.  See also the command `describe-char'."
 		   bidi-fixer encoding-msg pos total percent col hscroll))))))
 
 ;; Initialize read-expression-map.  It is defined at C level.
-(defvar read-expression-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "\M-\t" 'completion-at-point)
-    ;; Might as well bind TAB to completion, since inserting a TAB char is
-    ;; much too rarely useful.
-    (define-key m "\t" 'completion-at-point)
-    (define-key m "\r" 'read--expression-try-read)
-    (define-key m "\n" 'read--expression-try-read)
-    (define-key m "\M-g\M-c" 'read-expression-switch-to-completions)
-    (set-keymap-parent m minibuffer-local-map)
-    m))
+(defvar-keymap read-expression-map
+  :parent minibuffer-local-map
+  "C-M-i" #'completion-at-point
+  ;; Might as well bind TAB to completion, since inserting a TAB char is
+  ;; much too rarely useful.
+  "TAB" #'completion-at-point
+  "M-g M-c" #'read-expression-switch-to-completions)
+
+(defvar-keymap read--expression-map
+  :doc "Keymap used by `read--expression'."
+  :parent read-expression-map
+  "RET" #'read--expression-try-read
+  "C-j" #'read--expression-try-read)
 
 (defun read-minibuffer (prompt &optional initial-contents)
   "Return a Lisp object read using the minibuffer, unevaluated.
@@ -1937,10 +1952,6 @@ is a string to insert in the minibuffer before reading.
 Such arguments are used as in `read-from-minibuffer'.)"
   ;; Used for interactive spec `X'.
   (eval (read--expression prompt initial-contents)))
-
-(defvar minibuffer-completing-symbol nil
-  "Non-nil means completing a Lisp symbol in the minibuffer.")
-(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1" 'get)
 
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.
@@ -2002,20 +2013,19 @@ display the result of expression evaluation."
 
 PROMPT and optional argument INITIAL-CONTENTS do the same as in
 function `read-from-minibuffer'."
-  (let ((minibuffer-completing-symbol t))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          ;; FIXME: instead of just applying the syntax table, maybe
-          ;; use a special major mode tailored to reading Lisp
-          ;; expressions from the minibuffer? (`emacs-lisp-mode'
-          ;; doesn't preserve the necessary keybindings.)
-          (set-syntax-table emacs-lisp-mode-syntax-table)
-          (add-hook 'completion-at-point-functions
-                    #'elisp-completion-at-point nil t)
-          (run-hooks 'eval-expression-minibuffer-setup-hook))
-      (read-from-minibuffer prompt initial-contents
-                            read-expression-map t
-                            'read-expression-history))))
+  (minibuffer-with-setup-hook
+      (lambda ()
+        ;; FIXME: instead of just applying the syntax table, maybe
+        ;; use a special major mode tailored to reading Lisp
+        ;; expressions from the minibuffer? (`emacs-lisp-mode'
+        ;; doesn't preserve the necessary keybindings.)
+        (set-syntax-table emacs-lisp-mode-syntax-table)
+        (add-hook 'completion-at-point-functions
+                  #'elisp-completion-at-point nil t)
+        (run-hooks 'eval-expression-minibuffer-setup-hook))
+    (read-from-minibuffer prompt initial-contents
+                          read--expression-map t
+                          'read-expression-history)))
 
 (defun read--expression-try-read ()
   "Try to read an Emacs Lisp expression in the minibuffer.
@@ -2198,7 +2208,7 @@ to get different commands to edit and resubmit."
 If it's nil, include all the commands.
 If it's a function, it will be called with two parameters: the
 symbol of the command and a buffer.  The predicate should return
-non-nil if the command should be present when doing `M-x TAB'
+non-nil if the command should be present when doing \\`M-x TAB'
 in that buffer."
   :version "28.1"
   :group 'completion
@@ -2207,9 +2217,64 @@ in that buffer."
                         command-completion-default-include-p)
                  (function :tag "Other function")))
 
-(defun read-extended-command ()
-  "Read command name to invoke in `execute-extended-command'.
-This function uses the `read-extended-command-predicate' user option."
+(defun execute-extended-command-cycle ()
+  "Choose the next version of the extended command predicates.
+See `extended-command-versions'."
+  (interactive)
+  (throw 'cycle
+         (cons (minibuffer-contents)
+               (- (point) (minibuffer-prompt-end)))))
+
+(defvar extended-command-versions
+  (list (list "M-x " (lambda () read-extended-command-predicate))
+        (list "M-X " #'command-completion--command-for-this-buffer-function))
+  "Alist of prompts and what the extended command predicate should be.
+This is used by the \\<minibuffer-local-must-match-map>\\[execute-extended-command-cycle] command when reading an extended command.")
+
+(defvar-keymap read-extended-command-mode-map
+  :doc "Local keymap added to the current map when reading an extended command."
+  "M-X" #'execute-extended-command-cycle)
+
+(define-minor-mode read-extended-command-mode
+  "Minor mode used for completion in `read-extended-command'.")
+
+(defun read-extended-command (&optional prompt)
+  "Read command name to invoke via `execute-extended-command'.
+Use `read-extended-command-predicate' to determine which commands
+to include among completion candidates.
+
+This function activates the `read-extended-command-mode' minor
+mode when reading the command name."
+  (let ((default-predicate read-extended-command-predicate)
+        (read-extended-command-predicate read-extended-command-predicate)
+        already-typed ret)
+    ;; If we have a prompt (which is the name of the version of the
+    ;; command), then set up the predicate from
+    ;; `extended-command-versions'.
+    (if (not prompt)
+        (setq prompt (caar extended-command-versions))
+      (setq read-extended-command-predicate
+            (funcall (cadr (assoc prompt extended-command-versions)))))
+    ;; Normally this will only execute once.
+    (while (not (stringp ret))
+      (when (consp (setq ret (catch 'cycle
+                               (read-extended-command-1 prompt
+                                                        already-typed))))
+        ;; But if the user hit `M-X', then we `throw'ed out to that
+        ;; `catch', and we cycle to the next setting.
+        (let ((next (or (cadr (memq (assoc prompt extended-command-versions)
+                                    extended-command-versions))
+                        ;; Last one; cycle back to the first.
+                        (car extended-command-versions))))
+          ;; Restore the user's default predicate.
+          (setq read-extended-command-predicate default-predicate)
+          ;; Then calculate the next.
+          (setq prompt (car next)
+                read-extended-command-predicate (funcall (cadr next))
+                already-typed ret))))
+    ret))
+
+(defun read-extended-command-1 (prompt initial-input)
   (let ((buffer (current-buffer)))
     (minibuffer-with-setup-hook
         (lambda ()
@@ -2218,6 +2283,8 @@ This function uses the `read-extended-command-predicate' user option."
                       (setq execute-extended-command--last-typed
                             (minibuffer-contents)))
                     nil 'local)
+          ;; This is so that we define the `M-X' toggling command.
+          (read-extended-command-mode)
           (setq-local minibuffer-default-add-function
 	              (lambda ()
 	                ;; Get a command name at point in the original buffer
@@ -2234,8 +2301,8 @@ This function uses the `read-extended-command-predicate' user option."
 		              (cons def (delete def all))
 		            all)))))
       ;; Read a string, completing from and restricting to the set of
-      ;; all defined commands.  Don't provide any initial input.
-      ;; Save the command read on the extended-command history list.
+      ;; all defined commands.  Save the command read on the
+      ;; extended-command history list.
       (completing-read
        (concat (cond
 	        ((eq current-prefix-arg '-) "- ")
@@ -2253,9 +2320,7 @@ This function uses the `read-extended-command-predicate' user option."
 	       ;; but actually a prompt other than "M-x" would be confusing,
 	       ;; because "M-x" is a well-known prompt to read a command
 	       ;; and it serves as a shorthand for "Extended command: ".
-               (if (memq 'shift (event-modifiers last-command-event))
-	           "M-X "
-	         "M-x "))
+               (or prompt "M-x "))
        (lambda (string pred action)
          (if (and suggest-key-bindings (eq action 'metadata))
 	     '(metadata
@@ -2294,12 +2359,12 @@ This function uses the `read-extended-command-predicate' user option."
                          (funcall read-extended-command-predicate sym buffer)
                        (error (message "read-extended-command-predicate: %s: %s"
                                        sym (error-message-string err))))))))
-       t nil 'extended-command-history))))
+       t initial-input 'extended-command-history))))
 
 (defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
-  (let ((modes (command-modes symbol)))
+  (when-let ((modes (command-modes symbol)))
     ;; Common fast case: Just a single mode.
     (if (null (cdr modes))
         (or (provided-mode-derived-p
@@ -2525,26 +2590,36 @@ minor modes), as well as commands bound in the active local key
 maps."
   (declare (interactive-only command-execute))
   (interactive
-   (let* ((execute-extended-command--last-typed nil)
-          (keymaps
-           ;; The major mode's keymap and any active minor modes.
-           (nconc
-            (and (current-local-map) (list (current-local-map)))
-            (mapcar
-             #'cdr
-             (seq-filter
-              (lambda (elem)
-                (symbol-value (car elem)))
-              minor-mode-map-alist))))
-          (read-extended-command-predicate
-           (lambda (symbol buffer)
-             (or (command-completion-using-modes-p symbol buffer)
-                 (where-is-internal symbol keymaps)))))
+   (let ((execute-extended-command--last-typed nil))
      (list current-prefix-arg
-           (read-extended-command)
+           (read-extended-command "M-X ")
            execute-extended-command--last-typed)))
   (with-suppressed-warnings ((interactive-only execute-extended-command))
     (execute-extended-command prefixarg command-name typed)))
+
+(defun command-completion--command-for-this-buffer-function ()
+  (let ((keymaps
+         ;; The major mode's keymap and any active minor modes.
+         (nconc
+          (and (current-local-map) (list (current-local-map)))
+          (mapcar
+           #'cdr
+           (seq-filter
+            (lambda (elem)
+              (symbol-value (car elem)))
+            minor-mode-map-alist)))))
+    (lambda (symbol buffer)
+      (or (command-completion-using-modes-p symbol buffer)
+          ;; Include commands that are bound in a keymap in the
+          ;; current buffer.
+          (and (where-is-internal symbol keymaps)
+               ;; But not if they have a command predicate that
+               ;; says that they shouldn't.  (This is the case
+               ;; for `ignore' and `undefined' and similar
+               ;; commands commonly found in keymaps.)
+               (or (null (get symbol 'completion-predicate))
+                   (funcall (get symbol 'completion-predicate)
+                            symbol buffer)))))))
 
 (cl-defgeneric function-documentation (function)
   "Extract the raw docstring info from FUNCTION.
@@ -2641,12 +2716,15 @@ don't clear it."
          (t
           ;; Pass `cmd' rather than `final', for the backtrace's sake.
           (prog1 (call-interactively cmd record-flag keys)
-            (when (and (symbolp cmd)
-                       (get cmd 'byte-obsolete-info)
-                       (not (get cmd 'command-execute-obsolete-warned)))
+            (when-let ((info
+                        (and (symbolp cmd)
+                             (not (get cmd 'command-execute-obsolete-warned))
+                             (get cmd 'byte-obsolete-info))))
               (put cmd 'command-execute-obsolete-warned t)
               (message "%s" (macroexp--obsolete-warning
-                             cmd (get cmd 'byte-obsolete-info) "command"))))))))))
+                             cmd info "command"
+                             (help--key-description-fontified
+                              (where-is-internal (car info) nil t))))))))))))
 
 (defun command-execute--query (command)
   "Query the user whether to run COMMAND."
@@ -3460,12 +3538,19 @@ Return what remains of the list."
            ;; If this records an obsolete save
            ;; (not matching the actual disk file)
            ;; then don't mark unmodified.
-           (when (or (equal time (visited-file-modtime))
-                     (and (consp time)
-                          (equal (list (car time) (cdr time))
-                                 (visited-file-modtime))))
-             (unlock-buffer)
-             (set-buffer-modified-p nil)))
+           (let ((visited-file-time (visited-file-modtime)))
+             ;; Indirect buffers don't have a visited file, so their
+             ;; file-modtime can be bogus.  In that case, use the
+             ;; modtime of the base buffer instead.
+             (if (and (numberp visited-file-time)
+                      (= visited-file-time 0)
+                      (buffer-base-buffer))
+                 (setq visited-file-time
+                      (with-current-buffer (buffer-base-buffer)
+                        (visited-file-modtime))))
+	     (when (time-equal-p time visited-file-time)
+               (unlock-buffer)
+               (set-buffer-modified-p nil))))
           ;; Element (nil PROP VAL BEG . END) is property change.
           (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))
            (when (or (> (point-min) beg) (< (point-max) end))
@@ -5284,17 +5369,6 @@ that `filter-buffer-substring' received.  It should return the
 buffer substring between BEG and END, after filtering.  If DELETE is
 non-nil, it should delete the text between BEG and END from the buffer.")
 
-(defvar buffer-substring-filters nil
-  "List of filter functions for `buffer-substring--filter'.
-Each function must accept a single argument, a string, and return a string.
-The buffer substring is passed to the first function in the list,
-and the return value of each function is passed to the next.
-As a special convention, point is set to the start of the buffer text
-being operated on (i.e., the first argument of `buffer-substring--filter')
-before these functions are called.")
-(make-obsolete-variable 'buffer-substring-filters
-                        'filter-buffer-substring-function "24.1")
-
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
 If DELETE is non-nil, delete the text between BEG and END from the buffer.
@@ -5315,20 +5389,15 @@ that are special to a buffer, and should not be copied into other buffers."
   "Default function to use for `filter-buffer-substring-function'.
 Its arguments and return value are as specified for `filter-buffer-substring'.
 Also respects the obsolete wrapper hook `filter-buffer-substring-functions'
-\(see `with-wrapper-hook' for details about wrapper hooks),
-and the abnormal hook `buffer-substring-filters'.
+(see `with-wrapper-hook' for details about wrapper hooks).
 No filtering is done unless a hook says to."
   (subr--with-wrapper-hook-no-warnings
     filter-buffer-substring-functions (beg end delete)
     (cond
-     ((or delete buffer-substring-filters)
+     (delete
       (save-excursion
         (goto-char beg)
-        (let ((string (if delete (delete-and-extract-region beg end)
-                        (buffer-substring beg end))))
-          (dolist (filter buffer-substring-filters)
-            (setq string (funcall filter string)))
-          string)))
+        (delete-and-extract-region beg end)))
      (t
       (buffer-substring beg end)))))
 
@@ -5391,7 +5460,7 @@ ring directly.")
 
 (defcustom kill-ring-max 120
   "Maximum length of kill ring before oldest elements are thrown away."
-  :type 'integer
+  :type 'natnum
   :group 'killing
   :version "29.1")
 
@@ -6667,7 +6736,8 @@ If Transient Mark mode is disabled, this function normally does
 nothing; but if FORCE is non-nil, it deactivates the mark anyway.
 
 Deactivating the mark sets `mark-active' to nil, updates the
-primary selection according to `select-active-regions', and runs
+primary selection according to `select-active-regions' (unless
+`deactivate-mark' is `dont-save'), and runs
 `deactivate-mark-hook'.
 
 If Transient Mark mode was temporarily enabled, reset the value
@@ -6678,6 +6748,7 @@ run `deactivate-mark-hook'."
     (when (and (if (eq select-active-regions 'only)
 		   (eq (car-safe transient-mark-mode) 'only)
 		 select-active-regions)
+               (not (eq deactivate-mark 'dont-save))
 	       (region-active-p)
 	       (display-selections-p))
       ;; The var `saved-region-selection', if non-nil, is the text in
@@ -6799,6 +6870,14 @@ point otherwise."
   :version "23.1"
   :group 'editing-basics)
 
+(defun use-region-beginning ()
+  "Return the start of the region if `use-region-p'."
+  (and (use-region-p) (region-beginning)))
+
+(defun use-region-end ()
+  "Return the end of the region if `use-region-p'."
+  (and (use-region-p) (region-end)))
+
 (defun use-region-p ()
   "Return t if the region is active and it is appropriate to act on it.
 This is used by commands that act specially on the region under
@@ -6809,7 +6888,11 @@ mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
-`use-empty-active-region'; in that case, use `region-active-p'."
+`use-empty-active-region'; in that case, use `region-active-p'.
+
+Also see the convenience functions `use-region-beginning' and
+`use-region-end', which may be handy when writing `interactive'
+specs."
   (and (region-active-p)
        (or use-empty-active-region (> (region-end) (region-beginning)))
        t))
@@ -6961,7 +7044,7 @@ is set to the buffer displayed in that window.")
 
 (defcustom mark-ring-max 16
   "Maximum size of mark ring.  Start discarding off end if gets this big."
-  :type 'integer
+  :type 'natnum
   :group 'editing-basics)
 
 (defvar global-mark-ring nil
@@ -6970,7 +7053,7 @@ is set to the buffer displayed in that window.")
 (defcustom global-mark-ring-max 16
   "Maximum size of global mark ring.  \
 Start discarding off end if gets this big."
-  :type 'integer
+  :type 'natnum
   :group 'editing-basics)
 
 (defun pop-to-mark-command ()
@@ -7216,7 +7299,7 @@ or \"mark.*active\" at the prompt."
 
 (define-minor-mode indent-tabs-mode
   "Toggle whether indentation can insert TAB characters."
-  :global t :group 'indent :variable indent-tabs-mode)
+  :group 'indent)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -7614,11 +7697,23 @@ not vscroll."
 		 ;; But don't vscroll in a keyboard macro.
 		 (not defining-kbd-macro)
 		 (not executing-kbd-macro)
+                 ;; Lines are not truncated...
+                 (not
+                  (and
+                   (or truncate-lines (truncated-partial-width-window-p))
+                   ;; ...or if lines are truncated, this buffer
+                   ;; doesn't have very long lines.
+                   (long-line-optimizations-p)))
 		 (line-move-partial arg noerror))
       (set-window-vscroll nil 0 t)
       (if (and line-move-visual
 	       ;; Display-based column are incompatible with goal-column.
 	       (not goal-column)
+               ;; Lines aren't truncated.
+               (not
+                (and
+                 (or truncate-lines (truncated-partial-width-window-p))
+                 (long-line-optimizations-p)))
 	       ;; When the text in the window is scrolled to the left,
 	       ;; display-based motion doesn't make sense (because each
 	       ;; logical line occupies exactly one screen line).
@@ -7878,7 +7973,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 
 	;; Move to the desired column.
         (if (and line-move-visual
-                 (not (or truncate-lines truncate-partial-width-windows)))
+                 (not (or truncate-lines (truncated-partial-width-window-p))))
             ;; Under line-move-visual, goal-column should be
             ;; interpreted in units of the frame's canonical character
             ;; width, which is exactly what vertical-motion does.
@@ -8055,10 +8150,11 @@ For motion by visual lines, see `beginning-of-visual-line'."
 	  (line-move (1- arg) t)))
 
     ;; Move to beginning-of-line, ignoring fields and invisible text.
-    (skip-chars-backward "^\n")
-    (while (and (not (bobp)) (invisible-p (1- (point))))
-      (goto-char (previous-char-property-change (point)))
-      (skip-chars-backward "^\n"))
+    (let ((inhibit-field-text-motion t))
+      (goto-char (line-beginning-position))
+      (while (and (not (bobp)) (invisible-p (1- (point))))
+        (goto-char (previous-char-property-change (point)))
+        (goto-char (line-beginning-position))))
 
     ;; Now find first visible char in the line.
     (while (and (< (point) orig) (invisible-p (point)))
@@ -8544,10 +8640,10 @@ constitute a word."
 (defcustom fill-prefix nil
   "String for filling to insert at front of new line, or nil for none."
   :type '(choice (const :tag "None" nil)
-		 string)
+                 string)
+  :safe #'string-or-null-p
   :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
-(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
 (defcustom auto-fill-inhibit-regexp nil
   "Regexp to match lines that should not be auto-filled."
@@ -8872,7 +8968,19 @@ presented."
   :global t :group 'mode-line)
 
 (define-minor-mode auto-save-mode
-  "Toggle auto-saving in the current buffer (Auto Save mode)."
+  "Toggle auto-saving in the current buffer (Auto Save mode).
+
+When this mode is enabled, Emacs periodically saves each file-visiting
+buffer in a separate \"auto-save file\".  This is a safety measure to
+prevent you from losing more than a limited amount of work if the
+system crashes.
+
+Auto-saving does not alter the file visited by the buffer: the visited
+file is changed only when you request saving it explicitly (such as
+with \\[save-buffer]).  If you want to save the buffer into its
+visited files automatically, use \\[auto-save-visited-mode]).
+
+For more details, see Info node `(emacs) Auto Save'."
   :variable ((and buffer-auto-save-file-name
                   ;; If auto-save is off because buffer has shrunk,
                   ;; then toggling should turn it on.
@@ -10282,8 +10390,15 @@ command works by setting the variable `buffer-read-only', which
 does not affect read-only regions caused by text properties.  To
 ignore read-only status in a Lisp program (whether due to text
 properties or buffer state), bind `inhibit-read-only' temporarily
-to a non-nil value."
+to a non-nil value.
+
+Reverting a buffer will keep the read-only status set by using
+this command."
   :variable buffer-read-only
+  ;; We're saving this value here so that we can restore the
+  ;; readedness state after reverting the buffer to the value that's
+  ;; been explicitly set by the user.
+  (setq-local read-only-mode--state buffer-read-only)
   (cond
    ((and (not buffer-read-only) view-mode)
     (View-exit-and-edit)
@@ -10551,6 +10666,49 @@ If the buffer doesn't exist, create it first."
   (interactive)
   (pop-to-buffer-same-window (get-scratch-buffer-create)))
 
+(defun kill-buffer--possibly-save (buffer)
+  (let ((response
+         (cadr
+          (read-multiple-choice
+           (format "Buffer %s modified; kill anyway?"
+                   (buffer-name))
+           '((?y "yes" "kill buffer without saving")
+             (?n "no" "exit without doing anything")
+             (?s "save and then kill" "save the buffer and then kill it"))
+           nil nil (not use-short-answers)))))
+    (if (equal response "no")
+        nil
+      (unless (equal response "yes")
+        (with-current-buffer buffer
+          (save-buffer)))
+      t)))
+
+(defsubst string-empty-p (string)
+  "Check whether STRING is empty."
+  (string= string ""))
+
+(defun read-signal-name ()
+  "Read a signal number or name."
+  (let ((value
+         (completing-read "Signal code or name: "
+                          (signal-names)
+                          nil
+                          (lambda (value)
+                            (or (string-match "\\`[0-9]+\\'" value)
+                                (member value (signal-names)))))))
+    (if (string-match "\\`[0-9]+\\'" value)
+        (string-to-number value)
+      (intern (concat "sig" (downcase value))))))
+
+(defun lax-plist-get (plist prop)
+  "Extract a value from a property list, comparing with `equal'."
+  (declare (obsolete plist-get "29.1"))
+  (plist-get plist prop #'equal))
+
+(defun lax-plist-put (plist prop val)
+  "Change value in PLIST of PROP to VAL, comparing with `equal'."
+  (declare (obsolete plist-put "29.1"))
+  (plist-put plist prop val #'equal))
 
 
 (provide 'simple)

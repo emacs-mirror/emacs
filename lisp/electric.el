@@ -340,7 +340,8 @@ use `electric-indent-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-indent-local-mode
   "Toggle `electric-indent-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-indent-mode (current-buffer))
+  :variable ( electric-indent-mode .
+              (lambda (val) (setq-local electric-indent-mode val)))
   (cond
    ((eq electric-indent-mode (default-value 'electric-indent-mode))
     (kill-local-variable 'electric-indent-mode))
@@ -484,7 +485,8 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 ;;;###autoload
 (define-minor-mode electric-layout-local-mode
   "Toggle `electric-layout-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-layout-mode (current-buffer))
+  :variable ( electric-layout-mode .
+              (lambda (val) (setq-local electric-layout-mode val)))
   (cond
    ((eq electric-layout-mode (default-value 'electric-layout-mode))
     (kill-local-variable 'electric-layout-mode))
@@ -540,6 +542,16 @@ closing double quote otherwise."
   :version "26.1"
   :type 'boolean :safe #'booleanp :group 'electricity)
 
+(defcustom electric-quote-replace-consecutive t
+  "Non-nil means to replace a pair of single quotes with a double quote.
+Two single quotes are replaced by the corresponding double quote
+when the second quote of the pair is entered (i.e. by typing ` or
+') by default.  If nil, the single quotes are not altered."
+  :version "29.1"
+  :type 'boolean
+  :safe #'booleanp
+  :group 'electricity)
+
 (defvar electric-quote-inhibit-functions ()
   "List of functions that should inhibit electric quoting.
 When the variable `electric-quote-mode' is non-nil, Emacs will
@@ -592,7 +604,9 @@ This requotes when a quoting key is typed."
                               (memq (char-syntax (char-before))
                                     '(?\s ?\())))
                         (setq backtick ?\')))
-               (cond ((search-backward (string q< backtick) (- (point) 2) t)
+               (cond ((and electric-quote-replace-consecutive
+                           (search-backward
+                            (string q< backtick) (- (point) 2) t))
                       (replace-match (string q<<))
                       (when (and electric-pair-mode
                                  (eq (cdr-safe
@@ -606,7 +620,8 @@ This requotes when a quoting key is typed."
                      ((search-backward "\"" (1- (point)) t)
                       (replace-match (string q<<))
                       (setq last-command-event q<<)))
-             (cond ((search-backward (string q> ?') (- (point) 2) t)
+             (cond ((and electric-quote-replace-consecutive
+                         (search-backward (string q> ?') (- (point) 2) t))
                     (replace-match (string q>>))
                     (setq last-command-event q>>))
                    ((search-backward "'" (1- (point)) t)
@@ -627,7 +642,7 @@ and text paragraphs, and these are selectively controlled with
 `electric-quote-paragraph'.
 
 Customize `electric-quote-chars' to use characters other than the
-ones listed here.
+ones listed here.  Also see `electric-quote-replace-consecutive'.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."
@@ -648,7 +663,8 @@ use `electric-quote-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-quote-local-mode
   "Toggle `electric-quote-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-quote-mode (current-buffer))
+  :variable ( electric-quote-mode .
+              (lambda (val) (setq-local electric-quote-mode val)))
   (cond
    ((eq electric-quote-mode (default-value 'electric-quote-mode))
     (kill-local-variable 'electric-quote-mode))

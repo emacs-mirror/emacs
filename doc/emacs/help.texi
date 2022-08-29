@@ -542,6 +542,11 @@ previous hyperlink.  These commands act cyclically; for instance,
 typing @key{TAB} at the last hyperlink moves back to the first
 hyperlink.
 
+@vindex help-clean-buttons
+  By default, many links in the help buffer are displayed surrounded
+by quote characters.  If the @code{help-clean-buttons} user option is
+non-@code{nil}, these quote characters are removed from the buffer.
+
 @kindex n @r{(Help mode)}
 @kindex p @r{(Help mode)}
 @findex help-goto-next-page

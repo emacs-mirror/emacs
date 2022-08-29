@@ -292,7 +292,7 @@ LDAP:
 (setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("ldaps://ldap.gnu.org"
                   base "ou=people,dc=gnu,dc=org"
                   binddn "gnu\\emacsuser"
@@ -346,10 +346,10 @@ configure EUDC for LDAP:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
-(setopt 'eudc-server-hotlist
+(setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("ldaps://ldap.gnu.org"
                   auth-source t)))
 @end lisp
@@ -376,9 +376,9 @@ and the @file{.emacs} expressions become:
 @lisp
 (with-eval-after-load "message"
   (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
-(setopt 'eudc-server-hotlist
+(setopt eudc-server-hotlist
         '(("" . bbdb) ("" . ldap)))
-(setopt 'ldap-host-parameters-alist
+(setopt ldap-host-parameters-alist
         '(("" auth-source t)))
 @end lisp
 
@@ -423,11 +423,12 @@ all macOS versions since 10.0 (which was released 2001).
 configurations.
 
 @file{eudcb-mab.el} reverse engineers the format of the database file
-used by the macOS Contacts app, and accesses its contents directly.
-While this may promise some performance advantages, it comes at the
-cost of using an undocumented interface.  Hence, users of
-@file{eudcb-mab.el} are recommended to double check the compatibility
-of @file{eudcb-mab.el} before upgrading to a new version of macOS.
+using the external command-line utility named contacts, which needs to
+be installed separately.  While this may promise some performance
+advantages, it comes at the cost of using an undocumented interface.
+Hence, users of @file{eudcb-mab.el} are recommended to double check
+the compatibility of @file{eudcb-mab.el} and the required, external
+command-line utility before upgrading to a new version of macOS.
 @file{eudcb-mab.el} is retained for backwards compatibility with
 existing configurations, and may be removed in a future release.
 

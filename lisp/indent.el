@@ -270,11 +270,8 @@ Negative values of ARG indent backward, so you can remove all
 indentation by specifying a large negative ARG."
   (interactive "r\nP\np")
   (if (and (not arg) interactive)
-      (progn
-        (message
-	 (substitute-command-keys
-	  "Indent region with \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop]."))
-        (set-transient-map indent-rigidly-map t #'deactivate-mark))
+      (set-transient-map indent-rigidly-map t #'deactivate-mark
+                         "Indent region with %k")
     (save-excursion
       (goto-char end)
       (setq end (point-marker))
@@ -737,7 +734,9 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
     (while (> count 0)
       (insert "0123456789")
       (setq count (1- count))))
-  (insert "\nTo install changes, type C-c C-c")
+  (insert (substitute-command-keys
+           (concat "\nTo install changes, type \\<edit-tab-stops-map>"
+                   "\\[edit-tab-stops-note-changes]")))
   (goto-char (point-min)))
 
 (defun edit-tab-stops-note-changes ()

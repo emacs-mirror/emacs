@@ -48,10 +48,10 @@
 ;; the contents of this package and how to use it.
 ;;
 ;; For more information about reStructuredText, see
-;; http://docutils.sourceforge.net/rst.html
+;; https://docutils.sourceforge.io/rst.html
 ;;
 ;; For full details on how to use the contents of this file, see
-;; http://docutils.sourceforge.net/docs/user/emacs.html
+;; https://docutils.sourceforge.io/docs/user/emacs.html
 ;;
 ;; There are a number of convenient key bindings provided by rst-mode.  For the
 ;; bindings, try C-c C-h when in rst-mode.  There are also many variables that
@@ -72,7 +72,7 @@
 ;;; DOWNLOAD
 
 ;; The latest release of this file lies in the docutils source code repository:
-;;   http://docutils.svn.sourceforge.net/svnroot/docutils/trunk/docutils/tools/editors/emacs/rst.el
+;;   https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/tools/editors/emacs/rst.el
 
 ;;; INSTALLATION
 
@@ -81,7 +81,7 @@
 ;;   (require 'rst)
 ;;
 ;; If you are using `.txt' as a standard extension for reST files as
-;; http://docutils.sourceforge.net/FAQ.html#what-s-the-standard-filename-extension-for-a-restructuredtext-file
+;; https://docutils.sourceforge.io/FAQ.html#what-s-the-standard-filename-extension-for-a-restructuredtext-file
 ;; suggests you may use one of the `Local Variables in Files' mechanism Emacs
 ;; provides to set the major mode automatically.  For instance you may use::
 ;;
@@ -274,7 +274,7 @@ in parentheses follows the development revision and the time stamp.")
 (defgroup rst nil "Support for reStructuredText documents."
   :group 'text
   :version "23.1"
-  :link '(url-link "http://docutils.sourceforge.net/rst.html"))
+  :link '(url-link "https://docutils.sourceforge.io/rst.html"))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -522,7 +522,7 @@ argument list for `rst-re'.")
 
 (defvar rst-re-alist) ; Forward declare to use it in `rst-re'.
 
-;; FIXME: Use `sregex' or `rx' instead of re-inventing the wheel.
+;; FIXME: Use `rx' instead of re-inventing the wheel.
 (rst-testcover-add-compose 'rst-re)
 (defun rst-re (&rest args)
   ;; testcover: ok.
@@ -2153,8 +2153,8 @@ around the cursor.  Then the following cases are distinguished.
 	    (end-of-line))
 	  nil)))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-adjust-section-title 'rst-adjust)
+(define-obsolete-function-alias 'rst-adjust-section-title
+  #'rst-adjust "29.1")
 
 (defun rst-adjust-region (demote)
   ;; testcover: ok.
@@ -2205,8 +2205,8 @@ Hierarchy is displayed in a temporary buffer."
 	  (insert "\n")
 	  (cl-incf level))))))
 
-;; Maintain an alias for backward compatibility.
-(defalias 'rst-display-adornments-hierarchy 'rst-display-hdr-hierarchy)
+(define-obsolete-function-alias 'rst-display-adornments-hierarchy
+  #'rst-display-hdr-hierarchy "29.1")
 
 ;; FIXME: Should accept an argument giving the hierarchy level to start with
 ;;        instead of the top of the hierarchy.
@@ -2231,8 +2231,8 @@ in order to adapt it to our preferred style."
        (goto-char marker) nil)
       (rst-update-section (nth level (rst-Hdr-preferred-adornments))))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-straighten-adornments 'rst-straighten-sections)
+(define-obsolete-function-alias 'rst-straighten-adornments
+  #'rst-straighten-sections "29.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2858,8 +2858,8 @@ file-write hook to always make it up-to-date automatically."
 ;;	    ;; Disable undo for the write file hook.
 ;;	    (let ((buffer-undo-list t)) (rst-toc-update) ))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-insert-update 'rst-toc-update)
+(define-obsolete-function-alias 'rst-toc-insert-update
+  #'rst-toc-update "29.1")
 
 (defconst rst-toc-buffer-name "*Table of Contents*"
   "Name of the Table of Contents buffer.")
@@ -2893,8 +2893,8 @@ selecting a section title moves the cursor to that section."
     (setq rst-toc-mode-return-wincfg wincfg)
     (goto-char (or target-pos (point-min)))))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-goto-section 'rst-toc-follow-link)
+(define-obsolete-function-alias 'rst-goto-section
+  #'rst-toc-follow-link "29.1")
 
 (defun rst-toc-follow-link (link-buf link-pnt kill)
   ;; testcover: ok.
@@ -2919,8 +2919,8 @@ error if there is no working link at the given position."
     ;;        the adornment is always completely visible.
     (recenter 5)))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-goto-section 'rst-toc-mode-follow-link-kill)
+(define-obsolete-function-alias 'rst-toc-mode-goto-section
+  #'rst-toc-mode-follow-link-kill "29.1")
 
 ;; FIXME: Cursor before or behind the list must be handled properly; before the
 ;;        list should jump to the top and behind the list to the last normal
@@ -2931,8 +2931,8 @@ error if there is no working link at the given position."
   (interactive)
   (rst-toc-follow-link (current-buffer) (point) t))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-mouse-goto 'rst-toc-mouse-follow-link)
+(define-obsolete-function-alias 'rst-toc-mode-mouse-goto
+  #'rst-toc-mouse-follow-link "29.1")
 
 (defun rst-toc-mouse-follow-link (event kill)
   ;; testcover: uncovered.
@@ -2942,8 +2942,8 @@ EVENT is the input event.  Kill TOC buffer if KILL."
   (rst-toc-follow-link (window-buffer (posn-window (event-end event)))
 		       (posn-point (event-end event)) kill))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-mode-mouse-goto-kill 'rst-toc-mode-mouse-follow-link-kill)
+(define-obsolete-function-alias 'rst-toc-mode-mouse-goto-kill
+  #'rst-toc-mode-mouse-follow-link-kill "29.1")
 
 (defun rst-toc-mode-mouse-follow-link-kill (event)
   ;; testcover: uncovered.
@@ -2952,8 +2952,8 @@ EVENT is the input event."
   (interactive "e")
   (rst-toc-mouse-follow-link event t))
 
-;; Maintain an alias for compatibility.
-(defalias 'rst-toc-quit-window 'rst-toc-mode-return)
+(define-obsolete-function-alias 'rst-toc-quit-window
+  #'rst-toc-mode-return "29.1")
 
 (defun rst-toc-mode-return (kill)
   ;; testcover: ok.
@@ -3569,8 +3569,6 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Font lock
 
-;; FIXME: The obsolete variables need to disappear.
-
 ;; The following versions have been done inside Emacs and should not be
 ;; replaced by `:package-version' attributes until a change.
 
@@ -3584,124 +3582,45 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-block-face 'rst-block
-  "All syntax marking up a special block."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-block-face
-                        "customize the face `rst-block' instead."
-                        "24.1")
-
 (defface rst-external '((t :inherit font-lock-type-face))
   "Face used for field names and interpreted text."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-external-face 'rst-external
-  "Field names and interpreted text."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-external-face
-                        "customize the face `rst-external' instead."
-                        "24.1")
 
 (defface rst-definition '((t :inherit font-lock-function-name-face))
   "Face used for all other defining constructs."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-definition-face 'rst-definition
-  "All other defining constructs."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-definition-face
-                        "customize the face `rst-definition' instead."
-                        "24.1")
-
 (defface rst-directive '((t :inherit font-lock-builtin-face))
   "Face used for directives and roles."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-directive-face 'rst-directive
-  "Directives and roles."
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-directive-face
-                        "customize the face `rst-directive' instead."
-                        "24.1")
 
 (defface rst-comment '((t :inherit font-lock-comment-face))
   "Face used for comments."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-comment-face 'rst-comment
-  "Comments."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-comment-face
-                        "customize the face `rst-comment' instead."
-                        "24.1")
-
 (defface rst-emphasis1 '((t :inherit italic))
   "Face used for simple emphasis."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-emphasis1-face 'rst-emphasis1
-  "Simple emphasis."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-emphasis1-face
-                        "customize the face `rst-emphasis1' instead."
-                        "24.1")
 
 (defface rst-emphasis2 '((t :inherit bold))
   "Face used for double emphasis."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-emphasis2-face 'rst-emphasis2
-  "Double emphasis."
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-emphasis2-face
-                        "customize the face `rst-emphasis2' instead."
-                        "24.1")
-
 (defface rst-literal '((t :inherit font-lock-string-face))
   "Face used for literal text."
   :version "24.1"
   :group 'rst-faces)
 
-(defcustom rst-literal-face 'rst-literal
-  "Literal text."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-literal-face
-                        "customize the face `rst-literal' instead."
-                        "24.1")
-
 (defface rst-reference '((t :inherit font-lock-variable-name-face))
   "Face used for references to a definition."
   :version "24.1"
   :group 'rst-faces)
-
-(defcustom rst-reference-face 'rst-reference
-  "References to a definition."
-  :version "24.1"
-  :group 'rst-faces
-  :type '(face))
-(make-obsolete-variable 'rst-reference-face
-                        "customize the face `rst-reference' instead."
-                        "24.1")
 
 (defface rst-transition '((t :inherit font-lock-keyword-face))
   "Face used for a transition."
@@ -3786,7 +3705,7 @@ of your own."
 
 (defvar rst-font-lock-keywords
   ;; The reST-links in the comments below all relate to sections in
-  ;; http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html.
+  ;; https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html.
   `(;; FIXME: Block markup is not recognized in blocks after explicit markup
     ;;        start.
 
@@ -3794,23 +3713,23 @@ of your own."
     ;; `Bullet Lists`_
     ;; FIXME: A bullet directly after a field name is not recognized.
     (,(rst-re 'lin-beg '(:grp bul-sta))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Enumerated Lists`_
     (,(rst-re 'lin-beg '(:grp enmany-sta))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Definition Lists`_
     ;; FIXME: missing.
     ;; `Field Lists`_
     (,(rst-re 'lin-beg '(:grp fld-tag) 'bli-sfx)
-     1 rst-external-face)
+     1 'rst-external)
     ;; `Option Lists`_
     (,(rst-re 'lin-beg '(:grp opt-tag (:shy optsep-tag opt-tag) "*")
 	      '(:alt "$" (:seq hws-prt "\\{2\\}")))
-     1 rst-block-face)
+     1 'rst-block)
     ;; `Line Blocks`_
     ;; Only for lines containing no more bar - to distinguish from tables.
     (,(rst-re 'lin-beg '(:grp "|" bli-sfx) "[^|\n]*$")
-     1 rst-block-face)
+     1 'rst-block)
 
     ;; `Tables`_
     ;; FIXME: missing
@@ -3818,22 +3737,22 @@ of your own."
     ;; All the `Explicit Markup Blocks`_
     ;; `Footnotes`_ / `Citations`_
     (,(rst-re 'lin-beg 'fnc-sta-2)
-     (1 rst-definition-face)
-     (2 rst-definition-face))
+     (1 'rst-definition)
+     (2 'rst-definition))
     ;; `Directives`_ / `Substitution Definitions`_
     (,(rst-re 'lin-beg 'dir-sta-3)
-     (1 rst-directive-face)
-     (2 rst-definition-face)
-     (3 rst-directive-face))
+     (1 'rst-directive)
+     (2 'rst-definition)
+     (3 'rst-directive))
     ;; `Hyperlink Targets`_
     (,(rst-re 'lin-beg
 	      '(:grp exm-sta "_" (:alt
 				  (:seq "`" ilcbkqdef-tag "`")
 				  (:seq (:alt "[^:\\\n]" "\\\\.") "+")) ":")
 	      'bli-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     (,(rst-re 'lin-beg '(:grp "__") 'bli-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
 
     ;; All `Inline Markup`_
     ;; Most of them may be multiline though this is uninteresting.
@@ -3841,16 +3760,16 @@ of your own."
     ;; FIXME: Condition 5 preventing fontification of e.g. "*" not implemented
     ;;        `Strong Emphasis`_.
     (,(rst-re 'ilm-pfx '(:grp "\\*\\*" ilcast-tag "\\*\\*") 'ilm-sfx)
-     1 rst-emphasis2-face)
+     1 'rst-emphasis2)
     ;; `Emphasis`_
     (,(rst-re 'ilm-pfx '(:grp "\\*" ilcast-tag "\\*") 'ilm-sfx)
-     1 rst-emphasis1-face)
+     1 'rst-emphasis1)
     ;; `Inline Literals`_
     (,(rst-re 'ilm-pfx '(:grp "``" ilcbkq-tag "``") 'ilm-sfx)
-     1 rst-literal-face)
+     1 'rst-literal)
     ;; `Inline Internal Targets`_
     (,(rst-re 'ilm-pfx '(:grp "_`" ilcbkq-tag "`") 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     ;; `Hyperlink References`_
     ;; FIXME: `Embedded URIs and Aliases`_ not considered.
     ;; FIXME: Directly adjacent marked up words are not fontified correctly
@@ -3858,28 +3777,28 @@ of your own."
     (,(rst-re 'ilm-pfx '(:grp (:alt (:seq "`" ilcbkq-tag "`")
 				    (:seq "\\sw" (:alt "\\sw" "-") "+\\sw"))
 			      "__?") 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Interpreted Text`_
     (,(rst-re 'ilm-pfx '(:grp (:shy ":" sym-tag ":") "?")
 	      '(:grp "`" ilcbkq-tag "`")
 	      '(:grp (:shy ":" sym-tag ":") "?") 'ilm-sfx)
-     (1 rst-directive-face)
-     (2 rst-external-face)
-     (3 rst-directive-face))
+     (1 'rst-directive)
+     (2 'rst-external)
+     (3 'rst-directive))
     ;; `Footnote References`_ / `Citation References`_
     (,(rst-re 'ilm-pfx '(:grp fnc-tag "_") 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Substitution References`_
     ;; FIXME: References substitutions like |this|_ or |this|__ are not
     ;;        fontified correctly.
     (,(rst-re 'ilm-pfx '(:grp sub-tag) 'ilm-sfx)
-     1 rst-reference-face)
+     1 'rst-reference)
     ;; `Standalone Hyperlinks`_
     ;; FIXME: This takes it easy by using a whitespace as delimiter.
     (,(rst-re 'ilm-pfx '(:grp uri-tag ":\\S +") 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
     (,(rst-re 'ilm-pfx '(:grp sym-tag "@" sym-tag ) 'ilm-sfx)
-     1 rst-definition-face)
+     1 'rst-definition)
 
     ;; Do all block fontification as late as possible so 'append works.
 
@@ -3906,18 +3825,18 @@ of your own."
     ;; `Comments`_
     ;; This is multiline.
     (,(rst-re 'lin-beg 'cmt-sta-1)
-     (1 rst-comment-face)
+     (1 'rst-comment)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit (match-end 1))
       nil
-      (0 rst-comment-face append)))
+      (0 'rst-comment append)))
     (,(rst-re 'lin-beg '(:grp exm-tag) '(:grp hws-tag) "$")
-     (1 rst-comment-face)
-     (2 rst-comment-face)
+     (1'rst-comment)
+     (2'rst-comment)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit 'next)
       nil
-      (0 rst-comment-face append)))
+      (0 'rst-comment append)))
 
     ;; FIXME: This is not rendered as comment::
     ;;        .. .. list-table::
@@ -3941,11 +3860,11 @@ of your own."
     ;; `Indented Literal Blocks`_
     ;; This is multiline.
     (,(rst-re 'lin-beg 'lit-sta-2)
-     (2 rst-block-face)
+     (2 'rst-block)
      (rst-font-lock-find-unindented-line-match
       (rst-font-lock-find-unindented-line-limit t)
       nil
-      (0 rst-literal-face append)))
+      (0 'rst-literal append)))
 
     ;; FIXME: `Quoted Literal Blocks`_ missing.
     ;; This is multiline.
@@ -3972,8 +3891,8 @@ of your own."
     ;;
     ;;   Indentation is not required for doctest blocks.
     (,(rst-re 'lin-beg '(:grp (:alt ">>>" ell-tag)) '(:grp ".+"))
-     (1 rst-block-face)
-     (2 rst-literal-face)))
+     (1 'rst-block)
+     (2 'rst-literal)))
   "Keywords to highlight in rst mode.")
 
 (defvar font-lock-beg)
@@ -4402,7 +4321,7 @@ buffer, if the region is not selected."
 
 ;; FIXME: Add `rst-compile-html-preview'.
 
-;; FIXME: Add support for `restview` (http://mg.pov.lt/restview/). May be a
+;; FIXME: Add support for `restview` (https://mg.pov.lt/restview/). May be a
 ;;        more general facility for calling commands on a reST file would make
 ;;        sense.
 

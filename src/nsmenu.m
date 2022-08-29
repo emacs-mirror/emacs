@@ -207,8 +207,6 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 

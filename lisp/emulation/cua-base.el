@@ -1144,15 +1144,15 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	    '(self-insert-command))
       def nil))
 
-(defvar cua-global-keymap (make-sparse-keymap)
-  "Global keymap for `cua-mode'; users may add to this keymap.")
+(defvar-keymap cua-global-keymap
+  :doc "Global keymap for `cua-mode'; users may add to this keymap.")
 
-(defvar cua--cua-keys-keymap (make-sparse-keymap))
-(defvar cua--prefix-override-keymap (make-sparse-keymap))
-(defvar cua--prefix-repeat-keymap (make-sparse-keymap))
-(defvar cua--global-mark-keymap (make-sparse-keymap)) ; Initialized when cua-gmrk.el is loaded
-(defvar cua--rectangle-keymap (make-sparse-keymap))   ; Initialized when cua-rect.el is loaded
-(defvar cua--region-keymap (make-sparse-keymap))
+(defvar-keymap cua--cua-keys-keymap)
+(defvar-keymap cua--prefix-override-keymap)
+(defvar-keymap cua--prefix-repeat-keymap)
+(defvar-keymap cua--global-mark-keymap) ; Initialized when cua-gmrk.el is loaded
+(defvar-keymap cua--rectangle-keymap)   ; Initialized when cua-rect.el is loaded
+(defvar-keymap cua--region-keymap)
 
 (defvar cua--ena-cua-keys-keymap nil)
 (defvar cua--ena-prefix-override-keymap nil)

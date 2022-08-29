@@ -87,15 +87,15 @@ threading."
 
 (defsubst hash-table-keys (hash-table)
   "Return a list of keys in HASH-TABLE."
-  (cl-loop for k being the hash-keys of hash-table collect k))
+  (let ((keys nil))
+    (maphash (lambda (k _) (push k keys)) hash-table)
+    keys))
 
 (defsubst hash-table-values (hash-table)
   "Return a list of values in HASH-TABLE."
-  (cl-loop for v being the hash-values of hash-table collect v))
-
-(defsubst string-empty-p (string)
-  "Check whether STRING is empty."
-  (string= string ""))
+  (let ((values nil))
+    (maphash (lambda (_ v) (push v values)) hash-table)
+    values))
 
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR.
@@ -107,13 +107,18 @@ characters; nil stands for the empty string."
 
 ;;;###autoload
 (defun string-truncate-left (string length)
-  "Truncate STRING to LENGTH, replacing initial surplus with \"...\"."
+  "If STRING is longer than LENGTH, return a truncated version.
+When truncating, \"...\" is always prepended to the string, so
+the resulting string may be longer than the original if LENGTH is
+3 or smaller."
   (let ((strlen (length string)))
     (if (<= strlen length)
 	string
       (setq length (max 0 (- length 3)))
-      (concat "..." (substring string (max 0 (- strlen 1 length)))))))
+      (concat "..." (substring string (min (1- strlen)
+                                           (max 0 (- strlen length))))))))
 
+;;;###autoload
 (defsubst string-blank-p (string)
   "Check whether STRING is either empty or only whitespace.
 The following characters count as whitespace here: space, tab, newline and
@@ -167,9 +172,13 @@ non-nil, return the last LENGTH characters instead.
 If CODING-SYSTEM is non-nil, STRING will be encoded before
 limiting, and LENGTH is interpreted as the number of bytes to
 limit the string to.  The result will be a unibyte string that is
-shorter than LENGTH, but will not contain \"partial\" characters,
-even if CODING-SYSTEM encodes characters with several bytes per
-character.
+shorter than LENGTH, but will not contain \"partial\"
+characters (or glyphs), even if CODING-SYSTEM encodes characters
+with several bytes per character.  If the coding system specifies
+prefix like the byte order mark (aka \"BOM\") or a shift-in sequence,
+their bytes will be normally counted as part of LENGTH.  This is
+the case, for instance, with `utf-16'.  If this isn't desired, use a
+coding system that doesn't specify a BOM, like `utf-16le' or `utf-16be'.
 
 When shortening strings for display purposes,
 `truncate-string-to-width' is almost always a better alternative
@@ -177,34 +186,55 @@ than this function."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (if coding-system
-      (let ((result nil)
-            (result-length 0)
-            (index (if end (1- (length string)) 0)))
-        ;; FIXME: This implementation, which uses encode-coding-char
-        ;; to encode the string one character at a time, is in general
-        ;; incorrect: coding-systems that produce prefix or suffix
-        ;; bytes, such as ISO-2022-based or UTF-8/16 with BOM, will
-        ;; produce those bytes for each character, instead of just
-        ;; once for the entire string.  encode-coding-char attempts to
-        ;; remove those extra bytes at least in some situations, but
-        ;; it cannot do that in all cases.  And in any case, producing
-        ;; what is supposed to be a UTF-16 or ISO-2022-CN encoded
-        ;; string which lacks the BOM bytes at the beginning and the
-        ;; charset designation sequences at the head and tail of the
-        ;; result will definitely surprise the callers in some cases.
-        (while (let ((encoded (encode-coding-char
-                               (aref string index) coding-system)))
-                 (and (<= (+ (length encoded) result-length) length)
-                      (progn
-                        (push encoded result)
-                        (cl-incf result-length (length encoded))
-                        (setq index (if end (1- index)
-                                      (1+ index))))
-                      (if end (> index -1)
-                        (< index (length string)))))
-          ;; No body.
-          )
-        (apply #'concat (if end result (nreverse result))))
+      ;; The previous implementation here tried to encode char by
+      ;; char, and then adding up the length of the encoded octets,
+      ;; but that's not reliably in the presence of BOM marks and
+      ;; ISO-2022-CN which may add charset designations at the
+      ;; start/end of each encoded char (which we don't want).  So
+      ;; iterate (with a binary search) instead to find the desired
+      ;; length.
+      (let* ((glyphs (string-glyph-split string))
+             (nglyphs (length glyphs))
+             (too-long (1+ nglyphs))
+             (stop (max (/ nglyphs 2) 1))
+             (gap stop)
+             candidate encoded found candidate-stop)
+        ;; We're returning the end of the string.
+        (when end
+          (setq glyphs (nreverse glyphs)))
+        (while (and (not found)
+                    (< stop too-long))
+          (setq encoded
+                (encode-coding-string (string-join (seq-take glyphs stop))
+                                      coding-system))
+          (cond
+           ((= (length encoded) length)
+            (setq found encoded
+                  candidate-stop stop))
+           ;; Too long; try shortening.
+           ((> (length encoded) length)
+            (setq too-long stop
+                  stop (max (- stop gap) 1)))
+           ;; Too short; try lengthening.
+           (t
+            (setq candidate encoded
+                  candidate-stop stop)
+            (setq stop
+                  (if (>= stop nglyphs)
+                      too-long
+                    (min (+ stop gap) nglyphs)))))
+          (setq gap (max (/ gap 2) 1)))
+        (cond
+         ((not (or found candidate))
+          "")
+         ;; We're returning the end, so redo the encoding.
+         (end
+          (encode-coding-string
+           (string-join (nreverse (seq-take glyphs candidate-stop)))
+           coding-system))
+         (t
+          (or found candidate))))
+    ;; Char-based version.
     (cond
      ((<= (length string) length) string)
      (end (substring string (- (length string) length)))
@@ -224,13 +254,9 @@ the string."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (let ((pad-length (- length (length string))))
-    (if (< pad-length 0)
-        string
-      (concat (and start
-                   (make-string pad-length (or padding ?\s)))
-              string
-              (and (not start)
-                   (make-string pad-length (or padding ?\s)))))))
+    (cond ((<= pad-length 0) string)
+          (start (concat (make-string pad-length (or padding ?\s)) string))
+          (t (concat string (make-string pad-length (or padding ?\s)))))))
 
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
@@ -265,6 +291,7 @@ it makes no sense to convert it to a string using
 		(set-buffer source-buffer)
 		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
 
+;;;###autoload
 (defmacro named-let (name bindings &rest body)
   "Looping construct taken from Scheme.
 Like `let', bind variables in BINDINGS and then evaluate BODY,
@@ -285,19 +312,6 @@ as the new values of the bound variables in the recursive invocation."
     `(funcall
       (cl-labels ((,name ,fargs . ,body)) #',name)
       . ,aargs)))
-
-(defmacro with-memoization (place &rest code)
-  "Return the value of CODE and stash it in PLACE.
-If PLACE's value is non-nil, then don't bother evaluating CODE
-and return the value found in PLACE instead."
-  (declare (indent 1) (debug (gv-place body)))
-  (gv-letplace (getter setter) place
-    `(or ,getter
-         ,(macroexp-let2 nil val (macroexp-progn code)
-            `(progn
-               ,(funcall setter val)
-               ,val)))))
-
 
 ;;;###autoload
 (defun string-pixel-width (string)
@@ -452,6 +466,18 @@ be marked unmodified, effectively ignoring those changes."
              (when (and (buffer-modified-p)
                         (equal ,hash (buffer-hash)))
                (restore-buffer-modified-p nil))))))))
+
+(defun emacs-etc--hide-local-variables ()
+  "Hide local variables.
+Used by `emacs-authors-mode' and `emacs-news-mode'."
+  (narrow-to-region (point-min)
+                    (save-excursion
+                      (goto-char (point-max))
+                      ;; Obfuscate to avoid this being interpreted
+                      ;; as a local variable section itself.
+                      (if (re-search-backward "^Local\sVariables:$" nil t)
+                          (progn (forward-line -1) (point))
+                        (point-max)))))
 
 (provide 'subr-x)
 

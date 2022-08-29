@@ -724,6 +724,7 @@ enum ns_return_frame_mode
    int em_whole;
    }
 
+- (void) mark;
 - (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
@@ -926,6 +927,9 @@ struct ns_output
   NSColor *cursor_color;
   NSColor *foreground_color;
   NSColor *background_color;
+  NSColor *relief_background_color;
+  NSColor *light_relief_color;
+  NSColor *dark_relief_color;
   EmacsToolbar *toolbar;
 #else
   void *view;
@@ -933,6 +937,9 @@ struct ns_output
   void *cursor_color;
   void *foreground_color;
   void *background_color;
+  void *relief_background_color;
+  void *light_relief_color;
+  void *dark_relief_color;
   void *toolbar;
 #endif
 
@@ -1373,4 +1380,7 @@ enum NSWindowTabbingMode
 #define NSBezelStyleRounded NSRoundedBezelStyle
 #define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
 #endif
+
+extern void mark_nsterm (void);
+
 #endif	/* HAVE_NS */

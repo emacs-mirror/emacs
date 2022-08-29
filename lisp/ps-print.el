@@ -8,20 +8,8 @@
 ;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.5
+;; Old-Version: 7.3.5
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
-
-(eval-when-compile (require 'cl-lib))
-
-(defconst ps-print-version "7.3.5"
-  "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
-
-Vinicius's last change version -- this file may have been edited as part of
-Emacs without changes to the version number.  When reporting bugs, please also
-report the version of Emacs, if any, that ps-print was distributed with.
-
-Please send all bug fixes and enhancements to
-	bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -1320,11 +1308,11 @@ Please send all bug fixes and enhancements to
 ;; Known bugs and limitations of ps-print
 ;; --------------------------------------
 ;;
-;; Automatic font-attribute detection doesn't work well, especially with
-;; hilit19 and older versions of get-create-face.  Users having problems with
-;; auto-font detection should use the lists `ps-italic-faces', `ps-bold-faces'
-;; and `ps-underlined-faces' and/or turn off automatic detection by setting
-;; `ps-auto-font-detect' to nil.
+;; Automatic font-attribute detection doesn't work well.  Users having
+;; problems with auto-font detection should use the lists
+;; `ps-italic-faces', `ps-bold-faces' and `ps-underlined-faces' and/or
+;; turn off automatic detection by setting `ps-auto-font-detect' to
+;; nil.
 ;;
 ;; Still too slow; could use some hand-optimization.
 ;;
@@ -1450,11 +1438,8 @@ Please send all bug fixes and enhancements to
 
 ;;; Code:
 
-
 (require 'lpr)
-
-;; Load Emacs definitions
-(require 'ps-def)
+(eval-when-compile (require 'cl-lib))
 
 ;; autoloads for secondary file
 (require 'ps-print-loaddefs)
@@ -2930,9 +2915,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
 
 ;;; Colors
 
-;; Printing color requires x-color-values.
 ;;;###autoload
-(defcustom ps-print-color-p (fboundp 'x-color-values)
+(defcustom ps-print-color-p t
   "Specify how buffer's text color is printed.
 
 Valid values are:
@@ -3601,7 +3585,6 @@ The table depends on the current ps-print setup."
     (mapconcat
      #'ps-print-quote
      (list
-      (concat "\n;;; (Emacs) ps-print version " ps-print-version "\n")
       ";; internal vars"
       (ps-comment-string "emacs-version     " emacs-version)
       (ps-comment-string "lpr-windows-system" lpr-windows-system)
@@ -4510,7 +4493,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix)
-  (or (ps-mark-active-p)
+  (or mark-active
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix)))
 
@@ -4733,6 +4716,10 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 (defun ps-output-boolean (name bool)
   (ps-output (format "/%s %s def\n" name (if bool "true" "false"))))
 
+;; Limit color RGB values to three decimals to cut down some on the
+;; size of the PostScript output.
+(defvar ps-color-format "%0.3f %0.3f %0.3f")
+(defvar ps-float-format "%0.3f ")
 
 (defun ps-output-frame-properties (name alist)
   (ps-output "/" name " ["
@@ -5348,7 +5335,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      ps-adobe-tag
      "%%Title: " (buffer-name)		; Take job name from name of
 					; first buffer printed
-     "\n%%Creator: ps-print v" ps-print-version
+     "\n%%Creator: GNU Emacs " emacs-version
      "\n%%For: " (user-full-name)       ;FIXME: may need encoding!
      "\n%%CreationDate: " (format-time-string "%T %b %d %Y") ;FIXME: encoding!
      "\n%%Orientation: "
@@ -5749,7 +5736,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	;; Set the color scale.  We do it here instead of in the defvar so
 	;; that ps-print can be dumped into emacs.  This expression can't be
 	;; evaluated at dump-time because X isn't initialized.
-	ps-color-p            (and ps-print-color-p (ps-color-device))
+        ps-color-p            (and ps-print-color-p (display-color-p))
 	ps-print-color-scale  (if ps-color-p
 				  (float (car (color-values "white")))
 				1.0)
@@ -5762,7 +5749,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq ps-default-bg 'frame-parameter)
 				 (frame-parameter nil 'background-color))
 				((eq ps-default-bg t)
-				 (ps-face-background-name 'default))
+                                 (face-background 'default nil t))
 				(t
 				 ps-default-bg))
 			       "unspecified-bg"
@@ -5776,7 +5763,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				((eq ps-default-fg 'frame-parameter)
 				 (frame-parameter nil 'foreground-color))
 				((eq ps-default-fg t)
-				 (ps-face-foreground-name 'default))
+                                 (face-foreground 'default nil t))
 				(t
 				 ps-default-fg))
 			       "unspecified-fg"
@@ -6312,6 +6299,22 @@ If FACE is not a valid face name, use default face."
       (setq ps-print-face-alist (cons face-map ps-print-face-alist)))
     face-map))
 
+(defun ps-face-bold-p (face)
+  (or (face-bold-p face)
+      (memq face ps-bold-faces)))
+
+(defun ps-face-italic-p (face)
+  (or (face-italic-p face)
+      (memq face ps-italic-faces)))
+
+(defun ps-face-strikeout-p (face)
+  (eq (face-attribute face :strike-through) t))
+
+(defun ps-face-overline-p (face)
+  (eq (face-attribute face :overline) t))
+
+(defun ps-face-box-p (face)
+  (not (memq (face-attribute face :box) '(nil unspecified))))
 
 (defun ps-screen-to-bit-face (face)
   (cons face
@@ -6321,20 +6324,41 @@ If FACE is not a valid face name, use default face."
 			(if (ps-face-strikeout-p face)  8 0)  ; strikeout
 			(if (ps-face-overline-p face)  16 0)  ; overline
 			(if (ps-face-box-p face)       64 0)) ; box
-		(ps-face-foreground-name face)
-		(ps-face-background-name face))))
+                (face-foreground face nil t)
+                (face-background face nil t))))
 
 
-(declare-function jit-lock-fontify-now "jit-lock" (&optional start end))
-(declare-function lazy-lock-fontify-region "lazy-lock" (beg end))
-
-;; to avoid compilation gripes
-(defun ps-print-ensure-fontified (start end)
-  (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
-	 (jit-lock-fontify-now start end))
-	((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
-	 (lazy-lock-fontify-region start end))))
-
+(defun ps-generate-postscript-with-faces1 (from to)
+  ;; Generate some PostScript.
+  (let ((face 'default)
+        (position to)
+        (property-change from)
+        (overlay-change from)
+        before-string after-string)
+    (while (< from to)
+      (and (< property-change to)       ; Don't search for property change
+                                        ; unless previous search succeeded.
+           (setq property-change (next-property-change from nil to)))
+      (and (< overlay-change to)        ; Don't search for overlay change
+                                        ; unless previous search succeeded.
+           (setq overlay-change (min (next-overlay-change from)
+                                     to)))
+      (setq position (min property-change overlay-change)
+            before-string nil
+            after-string nil)
+      (setq face
+            (cond ((invisible-p from)
+                   'emacs--invisible--face)
+                  ((get-char-property from 'face))
+                  (t 'default)))
+      ;; Plot up to this record.
+      (and before-string
+           (ps-plot-string before-string))
+      (ps-plot-with-face from position face)
+      (and after-string
+           (ps-plot-string after-string))
+      (setq from position))
+    (ps-plot-with-face from to face)))
 
 (defun ps-generate-postscript-with-faces (from to)
   ;; Some initialization...
@@ -6355,7 +6379,7 @@ If FACE is not a valid face name, use default face."
   ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
-    (ps-print-ensure-fontified from to)
+    (font-lock-ensure from to)
     (deactivate-mark)                   ;bug#16866.
     (ps-generate-postscript-with-faces1 from to)))
 
@@ -6415,7 +6439,7 @@ If FACE is not a valid face name, use default face."
 		(ps-end-job needs-begin-file)
 
 		;; Setting this variable tells the unwind form that the
-		;; the PostScript was generated without error.
+		;; PostScript was generated without error.
 		(setq completed-safely t))
 
 	    ;; Unwind form: If some bad mojo occurred while generating
@@ -6511,6 +6535,19 @@ If FACE is not a valid face name, use default face."
 
 (unless noninteractive
   (add-hook 'kill-emacs-query-functions #'ps-kill-emacs-check))
+
+(defconst ps-print-version "7.3.5"
+  "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
+
+Vinicius's last change version -- this file may have been edited as part of
+Emacs without changes to the version number.  When reporting bugs, please also
+report the version of Emacs, if any, that ps-print was distributed with.
+
+Please send all bug fixes and enhancements to
+  bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
+(make-obsolete-variable 'ps-print-version 'emacs-version "29.1")
+
+(define-obsolete-function-alias 'ps-print-ensure-fontified #'font-lock-ensure "29.1")
 
 (provide 'ps-print)
 

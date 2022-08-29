@@ -494,9 +494,8 @@ variable will be set to the representation."
       (if (not (string-equal " " (or space tildify-space-string)))
           (when space
             (setq tildify-space-string space))
-        (message (eval-when-compile
-                   (concat "Hard space is a single space character, tildify-"
-                           "mode won't have any effect, disabling.")))
+        (message (concat "Hard space is a single space character, tildify-"
+                         "mode won't have any effect, disabling."))
         (setq tildify-mode nil))))
   (if tildify-mode
       (add-hook 'post-self-insert-hook #'tildify-space nil t)

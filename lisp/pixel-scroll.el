@@ -570,11 +570,12 @@ the height of the current window."
                                  (window-header-line-height)
                                  (- max-y delta))))
          (point (posn-point posn))
-         (up-point (save-excursion
-                     (goto-char point)
-                     (vertical-motion (- (1+ scroll-margin)))
-                     (point))))
-    (when (> (point) up-point)
+         (up-point (and point
+                        (save-excursion
+                          (goto-char point)
+                          (vertical-motion (- (1+ scroll-margin)))
+                          (point)))))
+    (when (and point (> (point) up-point))
       (when (let ((pos-visible (pos-visible-in-window-p up-point nil t)))
               (or (eq (length pos-visible) 2)
                   (when-let* ((posn (posn-at-point up-point))
@@ -665,10 +666,11 @@ window being scrolled by DELTA pixels with an animation."
   "Scroll the current window up by DELTA pixels."
   (let ((max-height (- (window-text-height nil t)
                        (frame-char-height))))
-    (while (> delta max-height)
-      (pixel-scroll-precision-scroll-up-page max-height)
-      (setq delta (- delta max-height)))
-    (pixel-scroll-precision-scroll-up-page delta)))
+    (when (> max-height 0)
+      (while (> delta max-height)
+        (pixel-scroll-precision-scroll-up-page max-height)
+        (setq delta (- delta max-height)))
+      (pixel-scroll-precision-scroll-up-page delta))))
 
 ;; FIXME: This doesn't _always_ work when there's an image above the
 ;; current line that is taller than the window, and scrolling can
@@ -759,6 +761,10 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
   (interactive "e")
   (when pixel-scroll-precision-use-momentum
     (let ((window (mwheel-event-window event))
+          ;; The animations are smoother if the GC threshold is
+          ;; reduced for the duration of the animation.
+          (gc-cons-threshold (min most-positive-fixnum
+                                  (* gc-cons-threshold 3)))
           (state nil))
       (when (framep window)
         (setq window (frame-selected-window window)))
@@ -767,43 +773,43 @@ It is a vector of the form [ VELOCITY TIME SIGN ]."
                  (listp (aref state 0)))
         (condition-case nil
             (while-no-input
-              (unwind-protect (progn
-                                (aset state 0 (pixel-scroll-calculate-velocity state))
-                                (when (> (abs (aref state 0))
-                                         pixel-scroll-precision-momentum-min-velocity)
-                                  (let* ((velocity (aref state 0))
-                                         (original-velocity velocity)
-                                         (time-spent 0))
-                                    (if (> velocity 0)
-                                        (while (and (> velocity 0)
-                                                    (<= time-spent
-                                                        pixel-scroll-precision-momentum-seconds))
-                                          (when (> (round velocity) 0)
-                                            (with-selected-window window
-                                              (pixel-scroll-precision-scroll-up (round velocity))))
-                                          (setq velocity (- velocity
-                                                            (/ original-velocity
-                                                               (/ pixel-scroll-precision-momentum-seconds
-                                                                  pixel-scroll-precision-momentum-tick))))
-                                          (redisplay t)
-                                          (sit-for pixel-scroll-precision-momentum-tick)
-                                          (setq time-spent (+ time-spent
-                                                              pixel-scroll-precision-momentum-tick))))
-                                    (while (and (< velocity 0)
-                                                (<= time-spent
-                                                    pixel-scroll-precision-momentum-seconds))
-                                      (when (> (round (abs velocity)) 0)
-                                        (with-selected-window window
-                                          (pixel-scroll-precision-scroll-down (round
-                                                                               (abs velocity)))))
-                                      (setq velocity (+ velocity
-                                                        (/ (abs original-velocity)
-                                                           (/ pixel-scroll-precision-momentum-seconds
-                                                              pixel-scroll-precision-momentum-tick))))
-                                      (redisplay t)
-                                      (sit-for pixel-scroll-precision-momentum-tick)
-                                      (setq time-spent (+ time-spent
-                                                          pixel-scroll-precision-momentum-tick))))))
+              (unwind-protect
+                  (progn
+                    (aset state 0 (pixel-scroll-calculate-velocity state))
+                    (when (> (abs (aref state 0))
+                             pixel-scroll-precision-momentum-min-velocity)
+                      (let* ((velocity (aref state 0))
+                             (original-velocity velocity)
+                             (time-spent 0))
+                        (if (> velocity 0)
+                            (while (and (> velocity 0)
+                                        (<= time-spent
+                                            pixel-scroll-precision-momentum-seconds))
+                              (when (> (round velocity) 0)
+                                (with-selected-window window
+                                  (pixel-scroll-precision-scroll-up (round velocity))))
+                              (setq velocity (- velocity
+                                                (/ original-velocity
+                                                   (/ pixel-scroll-precision-momentum-seconds
+                                                      pixel-scroll-precision-momentum-tick))))
+                              (sit-for pixel-scroll-precision-momentum-tick)
+                              (setq time-spent (+ time-spent
+                                                  pixel-scroll-precision-momentum-tick))))
+                        (while (and (< velocity 0)
+                                    (<= time-spent
+                                        pixel-scroll-precision-momentum-seconds))
+                          (when (> (round (abs velocity)) 0)
+                            (with-selected-window window
+                              (pixel-scroll-precision-scroll-down (round
+                                                                   (abs velocity)))))
+                          (setq velocity (+ velocity
+                                            (/ (abs original-velocity)
+                                               (/ pixel-scroll-precision-momentum-seconds
+                                                  pixel-scroll-precision-momentum-tick))))
+                          (redisplay t)
+                          (sit-for pixel-scroll-precision-momentum-tick)
+                          (setq time-spent (+ time-spent
+                                              pixel-scroll-precision-momentum-tick))))))
                 (aset state 0 (make-ring 30))
                 (aset state 1 nil)))
           (beginning-of-buffer

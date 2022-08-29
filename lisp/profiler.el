@@ -38,7 +38,7 @@
 
 (defcustom profiler-sampling-interval 1000000
   "Default sampling interval in nanoseconds."
-  :type 'integer
+  :type 'natnum
   :group 'profiler)
 
 

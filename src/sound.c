@@ -361,10 +361,10 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
     return 0;
 
   sound = XCDR (sound);
-  attrs[SOUND_FILE] = Fplist_get (sound, QCfile);
-  attrs[SOUND_DATA] = Fplist_get (sound, QCdata);
-  attrs[SOUND_DEVICE] = Fplist_get (sound, QCdevice);
-  attrs[SOUND_VOLUME] = Fplist_get (sound, QCvolume);
+  attrs[SOUND_FILE] = plist_get (sound, QCfile);
+  attrs[SOUND_DATA] = plist_get (sound, QCdata);
+  attrs[SOUND_DEVICE] = plist_get (sound, QCdevice);
+  attrs[SOUND_VOLUME] = plist_get (sound, QCvolume);
 
 #ifndef WINDOWSNT
   /* File name or data must be specified.  */

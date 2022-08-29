@@ -374,7 +374,8 @@ number of keys.  Here's a very basic example:
 @end lisp
 
 This function creates a new sparse keymap, defines the keystrokes in
-@var{pairs}, and returns the new keymap.
+@var{pairs}, and returns the new keymap.  It signals an error if there
+are duplicate key bindings in @var{pairs}.
 
 @var{pairs} is a list of alternating key bindings and key definitions,
 as accepted by @code{keymap-set}.  In addition, the key can be the
@@ -438,7 +439,8 @@ variable.  This is what virtually all modes do---a mode called
 
 This macro defines @var{name} as a variable, passes @var{options}
 and @var{pairs} to @code{define-keymap}, and uses the result as the
-default value for the variable.
+default value for the variable.  It signals an error if there are
+duplicate key bindings in @var{pairs}.
 
 @var{options} is like the keywords in @code{define-keymap}, but
 there's an additional @code{:doc} keyword that provides the doc
@@ -579,11 +581,10 @@ override any non-@code{nil} binding in any other of the @var{maps}.
 @code{button-buffer-map} and @code{special-mode-map}:
 
 @example
-(defvar help-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map
-      (make-composed-keymap button-buffer-map special-mode-map))
-    ... map) ... )
+(defvar-keymap help-mode-map
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  ...)
 @end example
 
 
@@ -1063,6 +1064,20 @@ while @var{keymap} is active; it should return non-@code{nil} if
 The optional argument @var{on-exit}, if non-@code{nil}, specifies a
 function that is called, with no arguments, after @var{keymap} is
 deactivated.
+
+The optional argument @var{message} specifies the message to display
+after activating the transient map.  If @var{message} is a string, it
+is the format string for the message, and any @samp{%k} specifier in
+that string is replaced with the list of keys from the transient map.
+Any other non-@code{nil} value of @var{message} stands for the default
+message format @samp{Repeat with %k}.
+
+@vindex set-transient-map-timeout
+If the optional argument @var{timeout} is non-@code{nil}, it should be
+a number that specifies how many seconds of idle time to wait before
+deactivating @var{keymap}.  The value of the variable
+@code{set-transient-map-timeout}, if non-@code{nil}, overrides the
+value of this argument.
 
 This function works by adding and removing @var{keymap} from the
 variable @code{overriding-terminal-local-map}, which takes precedence
@@ -1869,6 +1884,7 @@ to make entries in @code{input-decode-map} beyond those that can be
 deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
 @end defvar
 
+@cindex function-key-map
 @defvar local-function-key-map
 This variable holds a keymap similar to @code{input-decode-map} except
 that it describes key sequences which should be translated to
@@ -2209,6 +2225,11 @@ If @var{no-remap} is @code{nil}, return the bindings for
 non-@code{nil}, return the bindings for @var{command}, ignoring the
 fact that it is remapped.
 @end table
+
+If a command maps to a key binding like @code{[some-event]}, and
+@code{some-event} has a symbol plist containing a non-@code{nil}
+@code{non-key-event} property, then that binding is ignored by
+@code{where-is-internal}.
 @end defun
 
 @deffn Command describe-bindings &optional prefix buffer-or-name

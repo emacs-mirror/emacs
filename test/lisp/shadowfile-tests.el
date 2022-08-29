@@ -55,10 +55,6 @@
       ert-remote-temporary-file-directory
       (ignore-errors (file-truename ert-remote-temporary-file-directory)))
 
-;; This should happen on hydra only.
-(when (getenv "EMACS_HYDRA_CI")
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-
 (defconst shadow-test-info-file
   (expand-file-name "shadows_test" temporary-file-directory)
   "File to keep shadow information in during tests.")

@@ -38,6 +38,7 @@
 ;;; Code:
 (require 'semantic/wisent)
 (eval-when-compile (require 'cl-lib))
+(require 'subr-x)   ; `string-pad'
 
 ;;;; -------------------
 ;;;; Misc. useful things
@@ -80,18 +81,13 @@
   `(dlet ,(wisent-context-bindings name)
      ,@body))
 
-;; Other utilities
-
 (defsubst wisent-pad-string (s n &optional left)
   "Fill string S with spaces.
 Return a new string of at least N characters.  Insert spaces on right.
 If optional LEFT is non-nil insert spaces on left."
-  (let ((i (length s)))
-    (if (< i n)
-        (if left
-            (concat (make-string (- n i) ?\ ) s)
-          (concat s (make-string (- n i) ?\ )))
-      s)))
+  (declare (obsolete string-pad "29.1"))
+  (string-pad s n nil left))
+
 
 ;;;; ------------------------
 ;;;; Environment dependencies
@@ -704,7 +700,7 @@ S must be a vector of integers."
       (setq i 1)
       (while (<= i nrules)
         (unless (aref ruseful i)
-          (wisent-log "#%s  " (wisent-pad-string (format "%d" i) 4))
+          (wisent-log "#%s  " (string-pad (format "%d" i) 4))
           (wisent-log "%s:" (wisent-tag (aref rlhs i)))
           (setq r (aref rrhs i))
           (while (natnump (aref ritem r))
@@ -2298,7 +2294,7 @@ there are any reduce/reduce conflicts."
       ;; Don't print rules disabled in `wisent-reduce-grammar-tables'.
       (when (aref ruseful i)
         (wisent-log "  %s  %s ->"
-                    (wisent-pad-string (number-to-string i) 6)
+                    (string-pad (number-to-string i) 6)
                     (wisent-tag (aref rlhs i)))
         (setq r (aref rrhs i))
         (if (> (aref ritem r) 0)

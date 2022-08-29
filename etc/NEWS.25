@@ -550,8 +550,8 @@ When you invoke 'shell' interactively, the '*shell*' buffer will now
 display in a new window.  However, you can customize this behavior via
 the 'display-buffer-alist' variable.  For example, to get
 the old behavior -- '*shell*' buffer displays in current window -- use
-(add-to-list 'display-buffer-alist
-     '("^\\*shell\\*$" . (display-buffer-same-window))).
+    (add-to-list 'display-buffer-alist
+         '("\\`\\*shell\\*\\'" . (display-buffer-same-window))).
 
 ** EIEIO
 *** The ':protection' slot option is not obeyed any more.
@@ -1264,7 +1264,7 @@ SWITCH-BUFFER to 'completion-table-dynamic'.
 
 ** window-configurations no longer record the buffers' marks.
 
-** 'inhibit-modification-hooks' now also inhibits lock-file checks, as
+** 'inhibit-modification-hooks' now also inhibits 'lock-file' checks, as
 well as active region handling.
 
 ** 'deactivate-mark' is now buffer-local.

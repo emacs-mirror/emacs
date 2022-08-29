@@ -348,8 +348,4 @@ INDENT is the current indentation level."
 
 (provide 'eieio-opt)
 
-;; Local variables:
-;; generated-autoload-file: "eieio-loaddefs.el"
-;; End:
-
 ;;; eieio-opt.el ends here

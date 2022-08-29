@@ -137,10 +137,13 @@ thin (i.e. 1-dot width) space."
 (set-char-table-range
  composition-function-table
  '(#x600 . #x74F)
- (list (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+"
-               1 #'arabic-shape-gstring)
-       (vector "[\u0600-\u074F\u200C\u200D]+"
+ (list (vector "[\u0600-\u074F\u200C\u200D]+"
                0 #'arabic-shape-gstring)))
+(set-char-table-range
+ composition-function-table
+ '(#x200C . #x200D)
+  (list (vector "[\u200C\u200D][\u0600-\u074F\u200C\u200D]+"
+                0 #'arabic-shape-gstring)))
 
 ;; The Egyptian Hieroglyph Format Controls were introduced in Unicode
 ;; Standard v12.0.  Apparently, they are not yet well supported in

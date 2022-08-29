@@ -31,7 +31,7 @@
 (require 'ert-x)
 
 (ert-deftest browse-url-tests-browser-kind ()
-  (should (eq (browse-url--browser-kind #'browse-url-w3 "gnu.org")
+  (should (eq (browse-url--browser-kind #'browse-url-emacs "gnu.org")
               'internal))
   (should
    (eq (browse-url--browser-kind #'browse-url-firefox "gnu.org")

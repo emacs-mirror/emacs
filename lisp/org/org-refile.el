@@ -465,9 +465,9 @@ prefix argument (`C-u C-u C-u C-c C-w')."
 	(unless (or (org-kill-is-subtree-p
 		     (buffer-substring region-start region-end))
 		    (prog1 org-refile-active-region-within-subtree
-		      (let ((s (point-at-eol)))
+                      (let ((s (line-end-position)))
 			(org-toggle-heading)
-			(setq region-end (+ (- (point-at-eol) s) region-end)))))
+                        (setq region-end (+ (- (line-end-position) s) region-end)))))
 	  (user-error "The region is not a (sequence of) subtree(s)")))
       (if (equal arg '(16))
 	  (org-refile-goto-last-stored)

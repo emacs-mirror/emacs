@@ -755,26 +755,21 @@ external command."
 				      (eshell-stringify-list
 				       (flatten-tree args)))
 			      " "))
-	     (cmd (format "%s -nH %s"
-			  (pcase command
-			    ("egrep" "grep -E")
-			    ("fgrep" "grep -F")
-			    (x x))
-			  args))
+	     (cmd (format "%s -n %s" command args))
 	     compilation-scroll-output)
 	(grep cmd)))))
 
 (defun eshell/grep (&rest args)
   "Use Emacs grep facility instead of calling external grep."
-  (eshell-grep "grep" args t))
+  (eshell-grep "grep" (append '("-H") args) t))
 
 (defun eshell/egrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -E."
-  (eshell-grep "egrep" args t))
+  (eshell-grep "grep" (append '("-EH") args) t))
 
 (defun eshell/fgrep (&rest args)
   "Use Emacs grep facility instead of calling external grep -F."
-  (eshell-grep "fgrep" args t))
+  (eshell-grep "grep" (append '("-FH") args) t))
 
 (defun eshell/agrep (&rest args)
   "Use Emacs grep facility instead of calling external agrep."
@@ -968,7 +963,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
   (if eshell-diff-window-config
       (set-window-configuration eshell-diff-window-config)))
 
-(defun nil-blank-string (string)
+(defun eshell-nil-blank-string (string)
   "Return STRING, or nil if STRING contains only blank characters."
   (cond
     ((string-match "[^[:blank:]]" string) string)
@@ -999,7 +994,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	    (condition-case nil
 		(diff-no-select
 		 old new
-		 (nil-blank-string (eshell-flatten-and-stringify args)))
+                 (eshell-nil-blank-string (eshell-flatten-and-stringify args)))
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))
@@ -1048,6 +1043,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
       (apply 'occur args))))
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
+
+(define-obsolete-function-alias 'nil-blank-string #'eshell-nil-blank-string "29.1")
 
 (provide 'em-unix)
 

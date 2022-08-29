@@ -568,7 +568,6 @@ The function invalidates the latest ancestor that is present."
 (provide 'mh-speed)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

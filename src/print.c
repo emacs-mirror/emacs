@@ -67,16 +67,17 @@ static Lisp_Object being_printed[PRINT_CIRCLE];
 /* Last char printed to stdout by printchar.  */
 static unsigned int printchar_stdout_last;
 
+struct print_buffer
+{
+  char *buffer;			/* Allocated buffer.  */
+  ptrdiff_t size;		/* Size of allocated buffer.  */
+  ptrdiff_t pos;		/* Chars stored in buffer.  */
+  ptrdiff_t pos_byte;		/* Bytes stored in buffer.  */
+};
+
 /* When printing into a buffer, first we put the text in this
    block, then insert it all at once.  */
-static char *print_buffer;
-
-/* Size allocated in print_buffer.  */
-static ptrdiff_t print_buffer_size;
-/* Chars stored in print_buffer.  */
-static ptrdiff_t print_buffer_pos;
-/* Bytes stored in print_buffer.  */
-static ptrdiff_t print_buffer_pos_byte;
+static struct print_buffer print_buffer;
 
 /* Vprint_number_table is a table, that keeps objects that are going to
    be printed, to allow use of #n= and #n# to express sharing.
@@ -95,117 +96,139 @@ bool print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 
 /* Low level output routines for characters and strings.  */
 
-/* Lisp functions to do output using a stream
-   must have the stream in a variable called printcharfun
-   and must start with PRINTPREPARE, end with PRINTFINISH.
-   Use printchar to output one character,
-   or call strout to output a block of characters.  */
-
-#define PRINTPREPARE							\
-   struct buffer *old = current_buffer;					\
-   ptrdiff_t old_point = -1, start_point = -1;				\
-   ptrdiff_t old_point_byte = -1, start_point_byte = -1;		\
-   specpdl_ref specpdl_count = SPECPDL_INDEX ();			\
-   bool free_print_buffer = 0;						\
-   bool multibyte							\
-     = !NILP (BVAR (current_buffer, enable_multibyte_characters));	\
-   Lisp_Object original = printcharfun;					\
-   if (NILP (printcharfun)) printcharfun = Qt;				\
-   if (BUFFERP (printcharfun))						\
-     {									\
-       if (XBUFFER (printcharfun) != current_buffer)			\
-	 Fset_buffer (printcharfun);					\
-       printcharfun = Qnil;						\
-     }									\
-   if (MARKERP (printcharfun))						\
-     {									\
-       ptrdiff_t marker_pos;						\
-       if (! XMARKER (printcharfun)->buffer)				\
-         error ("Marker does not point anywhere");			\
-       if (XMARKER (printcharfun)->buffer != current_buffer)		\
-         set_buffer_internal (XMARKER (printcharfun)->buffer);		\
-       marker_pos = marker_position (printcharfun);			\
-       if (marker_pos < BEGV || marker_pos > ZV)			\
-	 signal_error ("Marker is outside the accessible "		\
-		       "part of the buffer", printcharfun);		\
-       old_point = PT;							\
-       old_point_byte = PT_BYTE;					\
-       SET_PT_BOTH (marker_pos,						\
-		    marker_byte_position (printcharfun));		\
-       start_point = PT;						\
-       start_point_byte = PT_BYTE;					\
-       printcharfun = Qnil;						\
-     }									\
-   if (NILP (printcharfun))						\
-     {									\
-       Lisp_Object string;						\
-       if (NILP (BVAR (current_buffer, enable_multibyte_characters))	\
-	   && ! print_escape_multibyte)					\
-         specbind (Qprint_escape_multibyte, Qt);			\
-       if (! NILP (BVAR (current_buffer, enable_multibyte_characters))	\
-	   && ! print_escape_nonascii)					\
-         specbind (Qprint_escape_nonascii, Qt);				\
-       if (print_buffer != 0)						\
-	 {								\
-	   string = make_string_from_bytes (print_buffer,		\
-					    print_buffer_pos,		\
-					    print_buffer_pos_byte);	\
-	   record_unwind_protect (print_unwind, string);		\
-	 }								\
-       else								\
-	 {								\
-	   int new_size = 1000;						\
-	   print_buffer = xmalloc (new_size);				\
-	   print_buffer_size = new_size;				\
-	   free_print_buffer = 1;					\
-	 }								\
-       print_buffer_pos = 0;						\
-       print_buffer_pos_byte = 0;					\
-     }									\
-   if (EQ (printcharfun, Qt) && ! noninteractive)			\
-     setup_echo_area_for_printing (multibyte);
-
-#define PRINTFINISH							\
-   if (NILP (printcharfun))						\
-     {									\
-       if (print_buffer_pos != print_buffer_pos_byte			\
-	   && NILP (BVAR (current_buffer, enable_multibyte_characters)))\
-	 {								\
-	   USE_SAFE_ALLOCA;						\
-	   unsigned char *temp = SAFE_ALLOCA (print_buffer_pos + 1);	\
-	   copy_text ((unsigned char *) print_buffer, temp,		\
-		      print_buffer_pos_byte, 1, 0);			\
-	   insert_1_both ((char *) temp, print_buffer_pos,		\
-			  print_buffer_pos, 0, 1, 0);			\
-	   SAFE_FREE ();						\
-	 }								\
-       else								\
-	 insert_1_both (print_buffer, print_buffer_pos,			\
-			print_buffer_pos_byte, 0, 1, 0);		\
-       signal_after_change (PT - print_buffer_pos, 0, print_buffer_pos);\
-     }									\
-   if (free_print_buffer)						\
-     {									\
-       xfree (print_buffer);						\
-       print_buffer = 0;						\
-     }									\
-   unbind_to (specpdl_count, Qnil);					\
-   if (MARKERP (original))						\
-     set_marker_both (original, Qnil, PT, PT_BYTE);			\
-   if (old_point >= 0)							\
-     SET_PT_BOTH (old_point + (old_point >= start_point			\
-			       ? PT - start_point : 0),			\
-		  old_point_byte + (old_point_byte >= start_point_byte	\
-				    ? PT_BYTE - start_point_byte : 0));	\
-   set_buffer_internal (old);
+/* This is used to free the print buffer; we don't simply record xfree
+   since print_buffer can be reallocated during the printing.  */
+static void
+print_free_buffer (void)
+{
+  xfree (print_buffer.buffer);
+  print_buffer.buffer = NULL;
+}
 
 /* This is used to restore the saved contents of print_buffer
    when there is a recursive call to print.  */
-
 static void
 print_unwind (Lisp_Object saved_text)
 {
-  memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
+  memcpy (print_buffer.buffer, SDATA (saved_text), SCHARS (saved_text));
+}
+
+/* Lisp functions to do output using a stream must start with a call to
+   print_prepare, and end with calling print_finish.
+   Use printchar to output one character, or call strout to output a
+   block of characters.  */
+
+/* State carried between print_prepare and print_finish.  */
+struct print_context
+{
+  Lisp_Object printcharfun;
+  Lisp_Object old_printcharfun;
+  ptrdiff_t old_point, start_point;
+  ptrdiff_t old_point_byte, start_point_byte;
+  specpdl_ref specpdl_count;
+};
+
+static inline struct print_context
+print_prepare (Lisp_Object printcharfun)
+{
+  struct print_context pc = {
+    .old_printcharfun = printcharfun,
+    .old_point = -1,
+    .start_point = -1,
+    .old_point_byte = -1,
+    .start_point_byte = -1,
+    .specpdl_count = SPECPDL_INDEX (),
+  };
+  bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  record_unwind_current_buffer ();
+  specbind(Qprint__unreadable_callback_buffer, Fcurrent_buffer ());
+  if (NILP (printcharfun))
+    printcharfun = Qt;
+  if (BUFFERP (printcharfun))
+    {
+      if (XBUFFER (printcharfun) != current_buffer)
+	Fset_buffer (printcharfun);
+      printcharfun = Qnil;
+    }
+  if (MARKERP (printcharfun))
+    {
+      if (! XMARKER (printcharfun)->buffer)
+	error ("Marker does not point anywhere");
+      if (XMARKER (printcharfun)->buffer != current_buffer)
+	set_buffer_internal (XMARKER (printcharfun)->buffer);
+      ptrdiff_t marker_pos = marker_position (printcharfun);
+      if (marker_pos < BEGV || marker_pos > ZV)
+	signal_error ("Marker is outside the accessible part of the buffer",
+		      printcharfun);
+      pc.old_point = PT;
+      pc.old_point_byte = PT_BYTE;
+      SET_PT_BOTH (marker_pos, marker_byte_position (printcharfun));
+      pc.start_point = PT;
+      pc.start_point_byte = PT_BYTE;
+      printcharfun = Qnil;
+    }
+  if (NILP (printcharfun))
+    {
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters))
+	  && ! print_escape_multibyte)
+	specbind (Qprint_escape_multibyte, Qt);
+      if (! NILP (BVAR (current_buffer, enable_multibyte_characters))
+	  && ! print_escape_nonascii)
+	specbind (Qprint_escape_nonascii, Qt);
+      if (print_buffer.buffer != NULL)
+	{
+	  Lisp_Object string = make_string_from_bytes (print_buffer.buffer,
+						       print_buffer.pos,
+						       print_buffer.pos_byte);
+	  record_unwind_protect (print_unwind, string);
+	}
+      else
+	{
+	  int new_size = 1000;
+	  print_buffer.buffer = xmalloc (new_size);
+	  print_buffer.size = new_size;
+	  record_unwind_protect_void (print_free_buffer);
+	}
+      print_buffer.pos = 0;
+      print_buffer.pos_byte = 0;
+    }
+  if (EQ (printcharfun, Qt) && ! noninteractive)
+    setup_echo_area_for_printing (multibyte);
+  pc.printcharfun = printcharfun;
+  return pc;
+}
+
+static inline void
+print_finish (struct print_context *pc)
+{
+  if (NILP (pc->printcharfun))
+    {
+      if (print_buffer.pos != print_buffer.pos_byte
+	  && NILP (BVAR (current_buffer, enable_multibyte_characters)))
+	{
+	  USE_SAFE_ALLOCA;
+	  unsigned char *temp = SAFE_ALLOCA (print_buffer.pos + 1);
+	  copy_text ((unsigned char *) print_buffer.buffer, temp,
+		     print_buffer.pos_byte, 1, 0);
+	  insert_1_both ((char *) temp, print_buffer.pos,
+			 print_buffer.pos, 0, 1, 0);
+	  SAFE_FREE ();
+	}
+      else
+	insert_1_both (print_buffer.buffer, print_buffer.pos,
+		       print_buffer.pos_byte, 0, 1, 0);
+      signal_after_change (PT - print_buffer.pos, 0, print_buffer.pos);
+    }
+  if (MARKERP (pc->old_printcharfun))
+    set_marker_both (pc->old_printcharfun, Qnil, PT, PT_BYTE);
+  if (pc->old_point >= 0)
+    SET_PT_BOTH (pc->old_point
+		 + (pc->old_point >= pc->start_point
+		    ? PT - pc->start_point : 0),
+		 pc->old_point_byte
+		 + (pc->old_point_byte >= pc->start_point_byte
+		    ? PT_BYTE - pc->start_point_byte : 0));
+  unbind_to (pc->specpdl_count, Qnil);
 }
 
 /* Print character CH to the stdio stream STREAM.  */
@@ -293,13 +316,14 @@ printchar (unsigned int ch, Lisp_Object fun)
 
       if (NILP (fun))
 	{
-	  ptrdiff_t incr = len - (print_buffer_size - print_buffer_pos_byte);
+	  ptrdiff_t incr = len - (print_buffer.size - print_buffer.pos_byte);
 	  if (incr > 0)
-	    print_buffer = xpalloc (print_buffer, &print_buffer_size,
-				    incr, -1, 1);
-	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
-	  print_buffer_pos += 1;
-	  print_buffer_pos_byte += len;
+	    print_buffer.buffer = xpalloc (print_buffer.buffer,
+					   &print_buffer.size,
+					   incr, -1, 1);
+	  memcpy (print_buffer.buffer + print_buffer.pos_byte, str, len);
+	  print_buffer.pos += 1;
+	  print_buffer.pos_byte += len;
 	}
       else if (noninteractive)
 	{
@@ -358,12 +382,13 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
 {
   if (NILP (printcharfun))
     {
-      ptrdiff_t incr = size_byte - (print_buffer_size - print_buffer_pos_byte);
+      ptrdiff_t incr = size_byte - (print_buffer.size - print_buffer.pos_byte);
       if (incr > 0)
-	print_buffer = xpalloc (print_buffer, &print_buffer_size, incr, -1, 1);
-      memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
-      print_buffer_pos += size;
-      print_buffer_pos_byte += size_byte;
+	print_buffer.buffer = xpalloc (print_buffer.buffer,
+				       &print_buffer.size, incr, -1, 1);
+      memcpy (print_buffer.buffer + print_buffer.pos_byte, ptr, size_byte);
+      print_buffer.pos += size;
+      print_buffer.pos_byte += size_byte;
     }
   else if (noninteractive && EQ (printcharfun, Qt))
     {
@@ -471,8 +496,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);
-	      memcpy (SDATA (newstr), SDATA (string), chars);
-	      str_to_multibyte (SDATA (newstr), bytes, chars);
+	      str_to_multibyte (SDATA (newstr), SDATA (string), chars);
 	      string = newstr;
 	    }
 	}
@@ -528,14 +552,14 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).  */)
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
   CHECK_FIXNUM (character);
-  PRINTPREPARE;
-  printchar (XFIXNUM (character), printcharfun);
-  PRINTFINISH;
+  struct print_context pc = print_prepare (printcharfun);
+  printchar (XFIXNUM (character), pc.printcharfun);
+  print_finish (&pc);
   return character;
 }
 
 /* Print the contents of a unibyte C string STRING using PRINTCHARFUN.
-   The caller should arrange to put this inside PRINTPREPARE and PRINTFINISH.
+   The caller should arrange to put this inside print_prepare and print_finish.
    Do not use this on the contents of a Lisp string.  */
 
 static void
@@ -551,9 +575,9 @@ print_c_string (char const *string, Lisp_Object printcharfun)
 static void
 write_string (const char *data, Lisp_Object printcharfun)
 {
-  PRINTPREPARE;
-  print_c_string (data, printcharfun);
-  PRINTFINISH;
+  struct print_context pc = print_prepare (printcharfun);
+  print_c_string (data, pc.printcharfun);
+  print_finish (&pc);
 }
 
 
@@ -606,21 +630,21 @@ If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
 
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  PRINTPREPARE;
+  struct print_context pc = print_prepare (printcharfun);
 
   if (NILP (ensure))
     val = Qt;
   /* Difficult to check if at line beginning so abort.  */
-  else if (FUNCTIONP (printcharfun))
-    signal_error ("Unsupported function argument", printcharfun);
-  else if (noninteractive && !NILP (printcharfun))
+  else if (FUNCTIONP (pc.printcharfun))
+    signal_error ("Unsupported function argument", pc.printcharfun);
+  else if (noninteractive && !NILP (pc.printcharfun))
     val = printchar_stdout_last == 10 ? Qnil : Qt;
   else
     val = NILP (Fbolp ()) ? Qt : Qnil;
 
   if (!NILP (val))
-    printchar ('\n', printcharfun);
-  PRINTFINISH;
+    printchar ('\n', pc.printcharfun);
+  print_finish (&pc);
   return val;
 }
 
@@ -731,7 +755,7 @@ Optional argument OVERRIDES should be a list of settings for print-related
 variables.  An element in this list can be the symbol t, which means "reset
 all the values to their defaults".  Otherwise, an element should be a pair,
 where the `car' or the pair is the setting symbol, and the `cdr' is the
-value of of the setting to use for this `prin1' call.
+value of the setting to use for this `prin1' call.
 
 For instance:
 
@@ -751,9 +775,9 @@ means "use default values for all the print-related settings".  */)
   if (!NILP (overrides))
     print_bind_overrides (overrides);
 
-  PRINTPREPARE;
-  print (object, printcharfun, 1);
-  PRINTFINISH;
+  struct print_context pc = print_prepare (printcharfun);
+  print (object, pc.printcharfun, 1);
+  print_finish (&pc);
 
   return unbind_to (count, object);
 }
@@ -788,11 +812,10 @@ A printed representation of an object is text which describes that object.  */)
      No need for specbind, since errors deactivate the mark.  */
   Lisp_Object save_deactivate_mark = Vdeactivate_mark;
 
-  Lisp_Object printcharfun = Vprin1_to_string_buffer;
-  PRINTPREPARE;
-  print (object, printcharfun, NILP (noescape));
-  /* Make Vprin1_to_string_buffer be the default buffer after PRINTFINISH */
-  PRINTFINISH;
+  struct print_context pc = print_prepare (Vprin1_to_string_buffer);
+  print (object, pc.printcharfun, NILP (noescape));
+  /* Make Vprin1_to_string_buffer be the default buffer after print_finish */
+  print_finish (&pc);
 
   struct buffer *previous = current_buffer;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
@@ -837,15 +860,15 @@ is used instead.  */)
 {
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  PRINTPREPARE;
+  struct print_context pc = print_prepare (printcharfun);
   if (STRINGP (object)
       && !string_intervals (object)
       && NILP (Vprint_continuous_numbering))
     /* fast path for plain strings */
-    print_string (object, printcharfun);
+    print_string (object, pc.printcharfun);
   else
-    print (object, printcharfun, 0);
-  PRINTFINISH;
+    print (object, pc.printcharfun, 0);
+  print_finish (&pc);
   return object;
 }
 
@@ -876,11 +899,11 @@ is used instead.  */)
 {
   if (NILP (printcharfun))
     printcharfun = Vstandard_output;
-  PRINTPREPARE;
-  printchar ('\n', printcharfun);
-  print (object, printcharfun, 1);
-  printchar ('\n', printcharfun);
-  PRINTFINISH;
+  struct print_context pc = print_prepare (printcharfun);
+  printchar ('\n', pc.printcharfun);
+  print (object, pc.printcharfun, 1);
+  printchar ('\n', pc.printcharfun);
+  print_finish (&pc);
   return object;
 }
 
@@ -1657,6 +1680,17 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	 infinite recursion in the function called.  */
       Lisp_Object func = Vprint_unreadable_function;
       specbind (Qprint_unreadable_function, Qnil);
+
+      /* If we're being called from `prin1-to-string' or the like,
+	 we're now in the secret " prin1" buffer.  This can lead to
+	 problems if, for instance, the callback function switches a
+	 window to this buffer -- this will make Emacs segfault.  */
+      if (!NILP (Vprint__unreadable_callback_buffer)
+	  && !NILP (Fbuffer_live_p (Vprint__unreadable_callback_buffer)))
+	{
+	  record_unwind_current_buffer ();
+	  set_buffer_internal (XBUFFER (Vprint__unreadable_callback_buffer));
+	}
       Lisp_Object result = CALLN (Ffuncall, func, obj,
 				  escapeflag? Qt: Qnil);
       unbind_to (count, Qnil);
@@ -1731,10 +1765,10 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 
     case PVEC_USER_PTR:
       {
-	void *finalizer = XUSER_PTR (obj)->finalizer;
 	print_c_string ("#<user-ptr ", printcharfun);
 	int i = sprintf (buf, "ptr=%p finalizer=%p",
-			 XUSER_PTR (obj)->p, finalizer);
+			 XUSER_PTR (obj)->p,
+			 (void *) XUSER_PTR (obj)->finalizer);
 	strout (buf, i, i, printcharfun);
 	printchar ('>', printcharfun);
       }
@@ -2941,6 +2975,15 @@ printed.  If the function returns anything else, the object will not
 be printed.  */);
   Vprint_unreadable_function = Qnil;
   DEFSYM (Qprint_unreadable_function, "print-unreadable-function");
+
+  DEFVAR_LISP ("print--unreadable-callback-buffer",
+	       Vprint__unreadable_callback_buffer,
+	       doc: /* Dynamically bound to indicate current buffer.  */);
+  Vprint__unreadable_callback_buffer = Qnil;
+  DEFSYM (Qprint__unreadable_callback_buffer,
+	  "print--unreadable-callback-buffer");
+  /* Don't export this variable to Elisp.  */
+  Funintern (Qprint__unreadable_callback_buffer, Qnil);
 
   defsubr (&Sflush_standard_output);
 

@@ -701,7 +701,11 @@ on this process.
 @item e @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context outside of Edebug
 (@code{edebug-eval-expression}).  That is, Edebug tries to minimize
-its interference with the evaluation.  By default, this command
+its interference with the evaluation.  The result is shown in the echo
+area, or, if this command is given a prefix, pop up a new buffer and
+pretty-print the result there.
+
+By default, this command
 suppresses the debugger during evaluation, so that an error in the
 evaluated expression won't add a new error on top of the existing one.
 Set the @code{debug-allow-recursive-debug} user option to a
@@ -715,7 +719,8 @@ Evaluate expression @var{exp} in the context of Edebug itself
 Evaluate the expression before point, in the context outside of Edebug
 (@code{edebug-eval-last-sexp}).  With the prefix argument of zero
 (@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
-lists).
+lists).  Any other prefix will result in the value being
+pretty-printed in a separate buffer.
 @end table
 
 @cindex lexical binding (Edebug)
@@ -836,7 +841,6 @@ you continue execution, and recreated next time it is needed.
 
 @cindex printing (Edebug)
 @cindex printing circular structures
-@pindex cust-print
   If an expression in your program produces a value containing circular
 list structure, you may get an error when Edebug attempts to print it.
 

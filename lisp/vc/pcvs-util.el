@@ -38,6 +38,7 @@
   (apply #'append (mapcar (lambda (x) (if (listp x) x (list x))) xs)))
 
 (defun cvs-first (l &optional n)
+  ;; FIXME: Replace this with `seq-take'?
   (if (null n) (car l)
     (when l
       (let* ((nl (list (pop l)))
@@ -53,10 +54,9 @@
 The function returns a `cons' cell where the `car' contains
 elements of L for which P is true while the `cdr' contains
 the other elements.  The ordering among elements is maintained."
-  (let (car cdr)
-    (dolist (x l)
-      (if (funcall p x) (push x car) (push x cdr)))
-    (cons (nreverse car) (nreverse cdr))))
+  (let ((res (seq-group-by p l)))
+    (cons (cdr (assq t res))
+          (cdr (assq nil res)))))
 
 ;;;
 ;;; frame, window, buffer handling

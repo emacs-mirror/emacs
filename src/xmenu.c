@@ -232,6 +232,7 @@ static void
 x_menu_translate_generic_event (XEvent *event)
 {
   struct x_display_info *dpyinfo;
+  struct xi_device_t *device;
   XEvent copy;
   XIDeviceEvent *xev;
 
@@ -241,45 +242,52 @@ x_menu_translate_generic_event (XEvent *event)
     {
       eassert (!event->xcookie.data);
 
-      if (XGetEventData (dpyinfo->display, &event->xcookie))
+      switch (event->xcookie.evtype)
 	{
-	  switch (event->xcookie.evtype)
-	    {
-	    case XI_ButtonPress:
-	    case XI_ButtonRelease:
-	      xev = (XIDeviceEvent *) event->xcookie.data;
-	      copy.xbutton.type = (event->xcookie.evtype == XI_ButtonPress
-				   ? ButtonPress : ButtonRelease);
-	      copy.xbutton.serial = xev->serial;
-	      copy.xbutton.send_event = xev->send_event;
-	      copy.xbutton.display = dpyinfo->display;
-	      copy.xbutton.window = xev->event;
-	      copy.xbutton.root = xev->root;
-	      copy.xbutton.subwindow = xev->child;
-	      copy.xbutton.time = xev->time;
-	      copy.xbutton.x = lrint (xev->event_x);
-	      copy.xbutton.y = lrint (xev->event_y);
-	      copy.xbutton.x_root = lrint (xev->root_x);
-	      copy.xbutton.y_root = lrint (xev->root_y);
-	      copy.xbutton.state = xev->mods.effective;
-	      copy.xbutton.button = xev->detail;
-	      copy.xbutton.same_screen = True;
+	case XI_ButtonPress:
+	case XI_ButtonRelease:
 
-	      if (xev->buttons.mask_len)
-		{
-		  if (XIMaskIsSet (xev->buttons.mask, 1))
-		    copy.xbutton.state |= Button1Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 2))
-		    copy.xbutton.state |= Button2Mask;
-		  if (XIMaskIsSet (xev->buttons.mask, 3))
-		    copy.xbutton.state |= Button3Mask;
-		}
+	  if (!XGetEventData (dpyinfo->display, &event->xcookie))
+	    break;
 
-	      XPutBackEvent (dpyinfo->display, &copy);
+	  xev = (XIDeviceEvent *) event->xcookie.data;
+	  copy.xbutton.type = (event->xcookie.evtype == XI_ButtonPress
+			       ? ButtonPress : ButtonRelease);
+	  copy.xbutton.serial = xev->serial;
+	  copy.xbutton.send_event = xev->send_event;
+	  copy.xbutton.display = dpyinfo->display;
+	  copy.xbutton.window = xev->event;
+	  copy.xbutton.root = xev->root;
+	  copy.xbutton.subwindow = xev->child;
+	  copy.xbutton.time = xev->time;
+	  copy.xbutton.x = lrint (xev->event_x);
+	  copy.xbutton.y = lrint (xev->event_y);
+	  copy.xbutton.x_root = lrint (xev->root_x);
+	  copy.xbutton.y_root = lrint (xev->root_y);
+	  copy.xbutton.state = xi_convert_event_state (xev);
+	  copy.xbutton.button = xev->detail;
+	  copy.xbutton.same_screen = True;
 
-	      break;
-	    }
+	  device = xi_device_from_id (dpyinfo, xev->deviceid);
+
+	  /* I don't know the repercussions of changing
+	     device->grab on XI_ButtonPress events, so be safe and
+	     only do what is necessary to prevent the grab from
+	     being left invalid as XMenuActivate swallows
+	     events.  */
+	  if (device && xev->evtype == XI_ButtonRelease)
+	    device->grab &= ~(1 << xev->detail);
+
+	  XPutBackEvent (dpyinfo->display, &copy);
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
+
+	  break;
+
+	case XI_HierarchyChanged:
+	case XI_DeviceChanged:
+	  /* These events must always be handled.  */
+	  x_dispatch_event (event, dpyinfo->display);
+	  break;
 	}
     }
 }
@@ -397,7 +405,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xbutton.y = lrint (xev->event_y);
 		    copy.xbutton.x_root = lrint (xev->root_x);
 		    copy.xbutton.y_root = lrint (xev->root_y);
-		    copy.xbutton.state = xev->mods.effective;
+		    copy.xbutton.state = xi_convert_event_state (xev);
 		    copy.xbutton.button = xev->detail;
 		    copy.xbutton.same_screen = True;
 
@@ -411,16 +419,6 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 			so Motif thinks this is the case.  */
 		    copy.xbutton.state = 0;
 #endif
-
-		    if (xev->buttons.mask_len)
-		      {
-			if (XIMaskIsSet (xev->buttons.mask, 1))
-			  copy.xbutton.state |= Button1Mask;
-			if (XIMaskIsSet (xev->buttons.mask, 2))
-			  copy.xbutton.state |= Button2Mask;
-			if (XIMaskIsSet (xev->buttons.mask, 3))
-			  copy.xbutton.state |= Button3Mask;
-		      }
 
 		    break;
 		  }
@@ -442,7 +440,7 @@ popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo,
 		    copy.xkey.y = lrint (xev->event_y);
 		    copy.xkey.x_root = lrint (xev->root_x);
 		    copy.xkey.y_root = lrint (xev->root_y);
-		    copy.xkey.state = xev->mods.effective;
+		    copy.xkey.state = xi_convert_event_state (xev);
 		    copy.xkey.keycode = xev->detail;
 		    copy.xkey.same_screen = True;
 
@@ -996,8 +994,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
@@ -2529,6 +2525,10 @@ pop_down_menu (void *arg)
   struct pop_down_menu *data = arg;
   struct frame *f = data->frame;
   XMenu *menu = data->menu;
+#ifdef HAVE_XINPUT2
+  int i;
+  struct xi_device_t *device;
+#endif
 
   block_input ();
 #ifndef MSDOS
@@ -2548,6 +2548,17 @@ pop_down_menu (void *arg)
      results, and it is a pain to ask which are actually held now.  */
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
 
+#ifdef HAVE_XINPUT2
+  /* Likewise for XI grabs when the mouse is released on top of the
+     menu itself.  */
+
+  for (i = 0; i < FRAME_DISPLAY_INFO (f)->num_devices; ++i)
+    {
+      device = &FRAME_DISPLAY_INFO (f)->devices[i];
+      device->grab = 0;
+    }
+#endif
+
 #endif /* HAVE_X_WINDOWS */
 
   unblock_input ();
@@ -2558,6 +2569,9 @@ Lisp_Object
 x_menu_show (struct frame *f, int x, int y, int menuflags,
 	     Lisp_Object title, const char **error_name)
 {
+#ifdef HAVE_X_WINDOWS
+  Window dummy_window;
+#endif
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
@@ -2606,20 +2620,22 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
-  {
-    /* Adjust coordinates to relative to the outer (window manager) window. */
-    int left_off, top_off;
+  XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
-    x_real_pos_and_offsets (f, &left_off, NULL, &top_off, NULL,
-                            NULL, NULL, NULL, NULL, NULL);
+                         /* From-window, to-window.  */
+                         FRAME_X_WINDOW (f),
+                         FRAME_DISPLAY_INFO (f)->root_window,
 
-    x += left_off;
-    y += top_off;
-  }
-#endif /* HAVE_X_WINDOWS */
+                         /* From-position, to-position.  */
+                         x, y, &x, &y,
 
+                         /* Child of win.  */
+                         &dummy_window);
+#else
+  /* MSDOS without X support.  */
   x += f->left_pos;
   y += f->top_pos;
+#endif
 
   /* Create all the necessary panes and their items.  */
   maxwidth = maxlines = lines = i = 0;
@@ -2774,6 +2790,9 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   DEFER_SELECTIONS;
 
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+  /* When the input extension is in use, the owner_events grab will
+     report extension events on frames, which the XMenu library does
+     not normally understand.  */
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
 #endif

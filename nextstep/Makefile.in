@@ -26,6 +26,7 @@ srcdir = @srcdir@
 abs_builddir = @abs_builddir@
 abs_top_builddir = @abs_top_builddir@
 EXEEXT = @EXEEXT@
+DUMPING = @DUMPING@
 
 # abs_top_srcdir may contain ".."
 top_srcdir_abs = $(shell cd @top_srcdir@; pwd -P)
@@ -45,7 +46,11 @@ ns_check_file = @ns_appdir@/@ns_check_file@
 
 .PHONY: all
 
-all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_applibexecdir}/Emacs.pdmp
+ifeq ($(DUMPING),pdumper)
+ns_pdmp_target = ${ns_applibexecdir}/Emacs.pdmp
+endif
+
+all: ${ns_appdir} ${ns_appbindir}/Emacs ${ns_pdmp_target}
 
 ${ns_check_file}: ${ns_appdir}
 

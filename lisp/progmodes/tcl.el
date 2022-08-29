@@ -120,13 +120,13 @@
 
 (defcustom tcl-indent-level 4
   "Indentation of Tcl statements with respect to containing block."
-  :type 'integer)
-(put 'tcl-indent-level 'safe-local-variable #'integerp)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom tcl-continued-indent-level 4
   "Indentation of continuation line relative to first line of command."
-  :type 'integer)
-(put 'tcl-continued-indent-level 'safe-local-variable #'integerp)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom tcl-auto-newline nil
   "Non-nil means automatically newline before and after braces you insert."

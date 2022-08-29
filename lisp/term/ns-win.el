@@ -97,8 +97,6 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
-(define-obsolete-variable-alias 'ns-alternatives-map 'x-alternatives-map "24.1")
-
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'customize)
 (define-key global-map [?\s-'] 'next-window-any-frame)
@@ -437,13 +435,14 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir mustmatch init dir_only_p))
+		  (prompt &optional dir mustmatch init dir-only-p))
 
 ;;;; File handling.
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+(defun x-file-dialog (prompt dir &optional default-filename
+                             mustmatch only-dir-p)
   "SKIP: real doc in xfns.c."
-  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
+  (ns-read-file-name prompt dir mustmatch default-filename only-dir-p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
@@ -681,10 +680,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 
 ;;;; Pasteboard support.
-
-(define-obsolete-function-alias 'ns-store-cut-buffer-internal
-  'gui-set-selection "24.1")
-
 
 (defun ns-copy-including-secondary ()
   (interactive)

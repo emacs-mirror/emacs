@@ -108,30 +108,27 @@
             (macro-keywords-2
              "\\(primarydef\\|secondarydef\\|tertiarydef\\)")
             (args-keywords
-             (eval-when-compile
-               (regexp-opt
-                '("expr" "suffix" "text" "primary" "secondary" "tertiary")
-                t)))
+             (regexp-opt
+              '("expr" "suffix" "text" "primary" "secondary" "tertiary")
+              t))
             (type-keywords
-             (eval-when-compile
-              (regexp-opt
-               '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
-                 "string" "transform" "newinternal")
-               t)))
+             (regexp-opt
+              '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
+                "string" "transform" "newinternal")
+              t))
             (syntactic-keywords
-             (eval-when-compile
-              (regexp-opt
-               '("for" "forever" "forsuffixes" "endfor"
-                 "step" "until" "upto" "downto" "thru" "within"
-                 "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
-                 "let" "def" "vardef" "enddef" "mode_def"
-                 "true" "false" "known" "unknown" "and" "or" "not"
-                 "save" "interim" "inner" "outer" "relax"
-                 "begingroup" "endgroup" "expandafter" "scantokens"
-                 "generate" "input" "endinput" "end" "bye"
-                 "message" "errmessage" "errhelp" "special" "numspecial"
-                 "readstring" "readfrom" "write")
-               t)))
+             (regexp-opt
+              '("for" "forever" "forsuffixes" "endfor"
+                "step" "until" "upto" "downto" "thru" "within"
+                "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
+                "let" "def" "vardef" "enddef" "mode_def"
+                "true" "false" "known" "unknown" "and" "or" "not"
+                "save" "interim" "inner" "outer" "relax"
+                "begingroup" "endgroup" "expandafter" "scantokens"
+                "generate" "input" "endinput" "end" "bye"
+                "message" "errmessage" "errhelp" "special" "numspecial"
+                "readstring" "readfrom" "write")
+              t))
             )
         (list
          ;; embedded TeX code in btex ... etex
@@ -159,14 +156,14 @@
          (cons (concat "\\<" type-keywords "\\>"
                        "\\([ \t\f]+\\(\\sw+\\)\\)*")
                '((1 font-lock-type-face)
-                 (font-lock-match-meta-declaration-item-and-skip-to-next
+                 (meta-font-lock-match-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; argument declarations: expr, suffix, text, ...
          (cons (concat "\\<" args-keywords "\\>"
                        "\\([ \t\f]+\\(\\sw+\\|\\s_+\\)\\)*")
                '((1 font-lock-type-face)
-                 (font-lock-match-meta-declaration-item-and-skip-to-next
+                 (meta-font-lock-match-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; special case of arguments: expr x of y
@@ -196,8 +193,7 @@
      ))
   "Default expressions to highlight in Metafont or MetaPost mode.")
 
-
-(defun font-lock-match-meta-declaration-item-and-skip-to-next (limit)
+(defun meta-font-lock-match-declaration-item-and-skip-to-next (limit)
   ;; Match and move over Metafont/MetaPost declaration item after point.
   ;;
   ;; The expected syntax of an item is either "word" or "symbol",
@@ -441,8 +437,6 @@ If the list was changed, sort the list and remove duplicates first."
                    (insert close)))))))
       (nth 1 entry))))
 
-(define-obsolete-function-alias 'meta-complete-symbol
-  'completion-at-point "24.1")
 
 ;;; Indentation.
 
@@ -526,7 +520,7 @@ If the list was changed, sort the list and remove duplicates first."
            (looking-at meta-ignore-comment-regexp))
       (current-indentation))
      ;; Beginning of buffer.
-     ((eq (point-at-bol) (point-min))
+     ((eq (line-beginning-position) (point-min))
       0)
      ;; Backindent at end of environments.
      ((meta-indent-looking-at-code
@@ -564,14 +558,14 @@ If the list was changed, sort the list and remove duplicates first."
     (end-of-line)
     ;; Skip backward the comments.
     (let ((point-not-in-string (point)))
-      (while (search-backward comment-start (point-at-bol) t)
+      (while (search-backward comment-start (line-beginning-position) t)
 	(unless (meta-indent-in-string-p)
 	  (setq point-not-in-string (point))))
       (goto-char point-not-in-string))
     ;; Search for the end of the previous expression.
-    (if (search-backward ";" (point-at-bol) t)
+    (if (search-backward ";" (line-beginning-position) t)
 	(progn (while (and (meta-indent-in-string-p)
-			   (search-backward ";" (point-at-bol) t)))
+                           (search-backward ";" (line-beginning-position) t)))
 	       (if (= (char-after) ?\;)
 		   (forward-char)
 		 (beginning-of-line)))
@@ -806,14 +800,8 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
-(define-obsolete-variable-alias 'meta-mode-map 'meta-common-mode-map "24.1")
 (defvar meta-common-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; Comment Paragraphs:
-    ;; (define-key map "\M-a"      'backward-sentence)
-    ;; (define-key map "\M-e"      'forward-sentence)
-    ;; (define-key map "\M-h"      'mark-paragraph)
-    ;; (define-key map "\M-q"      'fill-paragraph)
     ;; Navigation:
     (define-key map "\M-\C-a"   'meta-beginning-of-defun)
     (define-key map "\M-\C-e"   'meta-end-of-defun)
@@ -830,10 +818,6 @@ The environment marked is the one that contains point or follows point."
     (define-key map "\C-c:"     'meta-uncomment-region)
     ;; Symbol Completion:
     (define-key map "\M-\t"     'completion-at-point)
-    ;; Shell Commands:
-    ;; (define-key map "\C-c\C-c"  'meta-command-file)
-    ;; (define-key map "\C-c\C-k"  'meta-kill-job)
-    ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
     map)
   "Keymap used in Metafont or MetaPost mode.")
 
@@ -858,10 +842,6 @@ The environment marked is the one that contains point or follows point."
         :active mark-active]
        "--"
        ["Complete Symbol"               completion-at-point t]
-;      "--"
-;      ["Command on Buffer"             meta-command-file t]
-;      ["Kill Job"                      meta-kill-job t]
-;      ["Recenter Output Buffer"        meta-recenter-output-buffer t]
        ))
 
 
@@ -941,6 +921,10 @@ The environment marked is the one that contains point or follows point."
   (setq-local meta-complete-list
               (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
                     (list "" 'ispell-complete-word))))
+
+(define-obsolete-function-alias
+  'font-lock-match-meta-declaration-item-and-skip-to-next
+  #'meta-font-lock-match-declaration-item-and-skip-to-next "29.1")
 
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)

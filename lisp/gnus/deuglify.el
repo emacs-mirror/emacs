@@ -223,6 +223,7 @@
 
 (defconst gnus-outlook-deuglify-version "1.5 Gnus version"
   "Version of gnus-outlook-deuglify.")
+(make-obsolete-variable 'gnus-outlook-deuglify-version 'emacs-version "29.1")
 
 ;;; User Customizable Variables:
 

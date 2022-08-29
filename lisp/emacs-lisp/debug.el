@@ -560,52 +560,53 @@ The environment used is the one when entering the activation frame at point."
   'backtrace-toggle-locals "28.1")
 
 
-(defvar debugger-mode-map
-  (let ((map (make-keymap)))
-    (set-keymap-parent map backtrace-mode-map)
-    (define-key map "b" 'debugger-frame)
-    (define-key map "c" 'debugger-continue)
-    (define-key map "j" 'debugger-jump)
-    (define-key map "r" 'debugger-return-value)
-    (define-key map "u" 'debugger-frame-clear)
-    (define-key map "d" 'debugger-step-through)
-    (define-key map "l" 'debugger-list-functions)
-    (define-key map "q" 'debugger-quit)
-    (define-key map "e" 'debugger-eval-expression)
-    (define-key map "R" 'debugger-record-expression)
-    (define-key map [mouse-2] 'push-button)
-    (easy-menu-define nil map ""
-      '("Debugger"
-        ["Step through" debugger-step-through
-         :help "Proceed, stepping through subexpressions of this expression"]
-        ["Continue" debugger-continue
-         :help "Continue, evaluating this expression without stopping"]
-        ["Jump" debugger-jump
-         :help "Continue to exit from this frame, with all debug-on-entry suspended"]
-        ["Eval Expression..." debugger-eval-expression
-         :help "Eval an expression, in an environment like that outside the debugger"]
-        ["Display and Record Expression" debugger-record-expression
-         :help "Display a variable's value and record it in `*Backtrace-record*' buffer"]
-        ["Return value..." debugger-return-value
-         :help "Continue, specifying value to return."]
-        "--"
-        ["Debug frame" debugger-frame
-         :help "Request entry to debugger when this frame exits"]
-        ["Cancel debug frame" debugger-frame-clear
-         :help "Do not enter debugger when this frame exits"]
-        ["List debug on entry functions" debugger-list-functions
-         :help "Display a list of all the functions now set to debug on entry"]
-        "--"
-        ["Next Line" next-line
-         :help "Move cursor down"]
-        ["Help for Symbol" backtrace-help-follow-symbol
-         :help "Show help for symbol at point"]
-        ["Describe Debugger Mode" describe-mode
-         :help "Display documentation for debugger-mode"]
-        "--"
-        ["Quit" debugger-quit
-         :help "Quit debugging and return to top level"]))
-    map))
+(defvar-keymap debugger-mode-map
+  :full t
+  :parent backtrace-mode-map
+  "b" #'debugger-frame
+  "c" #'debugger-continue
+  "j" #'debugger-jump
+  "r" #'debugger-return-value
+  "u" #'debugger-frame-clear
+  "d" #'debugger-step-through
+  "l" #'debugger-list-functions
+  "q" #'debugger-quit
+  "e" #'debugger-eval-expression
+  "R" #'debugger-record-expression
+
+  "<mouse-2>" #'push-button
+
+  :menu
+  '("Debugger"
+    ["Step through" debugger-step-through
+     :help "Proceed, stepping through subexpressions of this expression"]
+    ["Continue" debugger-continue
+     :help "Continue, evaluating this expression without stopping"]
+    ["Jump" debugger-jump
+     :help "Continue to exit from this frame, with all debug-on-entry suspended"]
+    ["Eval Expression..." debugger-eval-expression
+     :help "Eval an expression, in an environment like that outside the debugger"]
+    ["Display and Record Expression" debugger-record-expression
+     :help "Display a variable's value and record it in `*Backtrace-record*' buffer"]
+    ["Return value..." debugger-return-value
+     :help "Continue, specifying value to return."]
+    "--"
+    ["Debug frame" debugger-frame
+     :help "Request entry to debugger when this frame exits"]
+    ["Cancel debug frame" debugger-frame-clear
+     :help "Do not enter debugger when this frame exits"]
+    ["List debug on entry functions" debugger-list-functions
+     :help "Display a list of all the functions now set to debug on entry"]
+    "--"
+    ["Next Line" next-line
+     :help "Move cursor down"]
+    ["Help for Symbol" backtrace-help-follow-symbol
+     :help "Show help for symbol at point"]
+    ["Describe Debugger Mode" describe-mode
+     :help "Display documentation for debugger-mode"]
+    "--"
+    ["Quit" debugger-quit
+     :help "Quit debugging and return to top level"]))
 
 (put 'debugger-mode 'mode-class 'special)
 

@@ -1,7 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -26,9 +25,11 @@
 
 ;; This package provides the `view' minor mode documented in the Emacs
 ;; user's manual.
+;;
 ;; View mode entry and exit is done through the functions `view-mode-enter'
 ;; and `view-mode-exit'.  Use these functions to enter or exit `view-mode' from
 ;; Emacs Lisp programs.
+;;
 ;; We use both view- and View- as prefix for symbols.  View- is used as
 ;; prefix for commands that have a key binding.  view- is used for commands
 ;; without key binding.  The purpose of this is to make it easier for a
@@ -101,8 +102,6 @@ functions that enable or disable view mode.")
 
 (defvar-local view-old-buffer-read-only nil)
 
-(defvar-local view-old-Helper-return-blurb nil)
-
 (defvar-local view-page-size nil
   "Default number of lines to scroll by View page commands.
 If nil that means use the window size.")
@@ -112,18 +111,6 @@ If nil that means use the window size.")
 If nil that means use half the window size.")
 
 (defvar-local view-last-regexp nil) ; Global is better???
-
-(defvar-local view-return-to-alist nil
-  "What to do with used windows and where to go when finished viewing buffer.
-This is local in each buffer being viewed.
-It is added to by `view-mode-enter' when starting to view a buffer and
-subtracted from by `view-mode-exit' when finished viewing the buffer.
-
-See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
-`view-return-to-alist'.")
-(make-obsolete-variable
- 'view-return-to-alist "this variable is no longer used." "24.1")
-(put 'view-return-to-alist 'permanent-local t)
 
 (defvar-local view-exit-action nil
   "If non-nil, a function called when finished viewing.
@@ -454,15 +441,9 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   (setq view-page-size nil
 	view-half-page-size nil
 	view-old-buffer-read-only buffer-read-only
-	buffer-read-only t)
-  (if (boundp 'Helper-return-blurb)
-      (setq view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
-					      Helper-return-blurb)
-	    Helper-return-blurb
-	    (format "continue viewing %s"
-		    (if (buffer-file-name)
-			(file-name-nondirectory (buffer-file-name))
-		      (buffer-name))))))
+        buffer-read-only t)
+  ;; Make reverting the buffer preserve unreadableness.
+  (setq-local read-only-mode--state t))
 
 
 (define-obsolete-function-alias 'view-mode-enable 'view-mode "24.4")
@@ -482,44 +463,8 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; so that View mode stays off if read-only-mode is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
-  (if (boundp 'Helper-return-blurb)
-      (setq Helper-return-blurb view-old-Helper-return-blurb))
   (if buffer-read-only
       (setq buffer-read-only view-old-buffer-read-only)))
-
-;;;###autoload
-(defun view-return-to-alist-update (buffer &optional item)
-  "Update `view-return-to-alist' of buffer BUFFER.
-Remove from `view-return-to-alist' all entries referencing dead
-windows.  Optional argument ITEM non-nil means add ITEM to
-`view-return-to-alist' after purging.  For a description of items
-that can be added see the RETURN-TO-ALIST argument of the
-function `view-mode-exit'.  If `view-return-to-alist' contains an
-entry for the selected window, purge that entry from
-`view-return-to-alist' before adding ITEM."
-  (declare (obsolete "this function has no effect." "24.1"))
-  (with-current-buffer buffer
-    (when view-return-to-alist
-      (let* ((list view-return-to-alist)
-	     entry entry-window last)
-	(while list
-	  (setq entry (car list))
-	  (setq entry-window (car entry))
-	  (if (and (windowp entry-window)
-		   (or (and item (eq entry-window (selected-window)))
-		       (not (window-live-p entry-window))))
-	      ;; Remove that entry.
-	      (if last
-		  (setcdr last (cdr list))
-		(setq view-return-to-alist
-		      (cdr view-return-to-alist)))
-	    ;; Leave entry alone.
-	    (setq last entry))
-	  (setq list (cdr list)))))
-    ;; Add ITEM.
-    (when item
-      (setq view-return-to-alist
-	    (cons item view-return-to-alist)))))
 
 ;;;###autoload
 (defun view-mode-enter (&optional quit-restore exit-action)
@@ -987,6 +932,9 @@ If TIMES is negative, search backwards."
             (setq times (1- times))))))
   (and (zerop times)
        (looking-at ".*")))
+
+(defvar-local view-old-Helper-return-blurb nil)
+(make-obsolete 'view-old-Helper-return-blurb nil "29.1")
 
 (provide 'view)
 

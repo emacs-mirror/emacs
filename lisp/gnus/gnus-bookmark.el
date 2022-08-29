@@ -509,7 +509,7 @@ Optional argument SHOW means show them unconditionally."
             (let ((bmrk (gnus-bookmark-bmenu-bookmark)))
               (setq gnus-bookmark-bmenu-hidden-bookmarks
                     (cons bmrk gnus-bookmark-bmenu-hidden-bookmarks))
-	      (let ((start (point-at-eol)))
+              (let ((start (line-end-position)))
 		(move-to-column gnus-bookmark-bmenu-file-column t)
 		;; Strip off `mouse-face' from the white spaces region.
 		(if (display-mouse-p)
@@ -543,7 +543,7 @@ Optional argument SHOW means show them unconditionally."
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (delete-region (point) (point-at-eol))
+  (delete-region (point) (line-end-position))
   (if (and newline-too (looking-at "\n"))
       (delete-char 1)))
 

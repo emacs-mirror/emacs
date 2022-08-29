@@ -89,12 +89,11 @@
 ;;  underlining.  However, if the region is already underlined by some other
 ;;  overlays, there is no simple way to temporarily remove that residual
 ;;  underlining.  This problem occurs when a buffer is highlighted with
-;;  hilit19.el or font-lock.el packages.  If this residual highlighting gets
-;;  in the way, you can do the following.  Both font-lock.el and hilit19.el
-;;  provide commands for unhighlighting buffers.  You can either place these
-;;  commands in `ediff-prepare-buffer-hook' (which will unhighlight every
-;;  buffer used by Ediff) or you can execute them interactively, at any time
-;;  and on any buffer.
+;;  font-lock.el.  If this residual highlighting gets in the way, you
+;;  can use the font-lock.el commands for unhighlighting buffers.
+;;  Either place these commands in `ediff-prepare-buffer-hook' (which will
+;;  unhighlight every buffer used by Ediff) or execute them
+;;  interactively, which you can do at any time and in any buffer.
 
 
 ;;; Acknowledgments:
@@ -107,8 +106,6 @@
 ;;; Code:
 
 (require 'ediff-util)
-;; end pacifier
-
 (require 'ediff-init)
 (require 'ediff-mult)  ; required because of the registry stuff
 
@@ -283,7 +280,8 @@ deleted.
 Returns the buffer into which the file is visited.
 Also sets `ediff--magic-file-name' to indicate where the file's content
 has been saved (if not in `buffer-file-name')."
-  (let* ((file-magic (ediff-filename-magic-p file))
+  (let* ((file-magic (or (ediff-file-compressed-p file)
+                         (file-remote-p file)))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
     (cond ((not (file-readable-p file))
 	   (user-error "File `%s' does not exist or is not readable" file))

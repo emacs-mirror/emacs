@@ -252,7 +252,7 @@ WARNING: Changing the value of this variable will gravely affect the
          figure out what it should be based on your needs and on how
          quick the particular platform(s) you're operating on, and
          only then start programming in your custom strokes."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode."
@@ -1030,8 +1030,6 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (set-buffer standard-output)
     (help-mode)
     (help-print-return-message)))
-
-(define-obsolete-function-alias 'strokes-report-bug #'report-emacs-bug "24.1")
 
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.

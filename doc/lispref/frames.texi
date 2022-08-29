@@ -1746,15 +1746,16 @@ fit will be clipped by the window manager.
 @item fullscreen
 This parameter specifies whether to maximize the frame's width, height
 or both.  Its value can be @code{fullwidth}, @code{fullheight},
-@code{fullboth}, or @code{maximized}.  A @dfn{fullwidth} frame is as
-wide as possible, a @dfn{fullheight} frame is as tall as possible, and
-a @dfn{fullboth} frame is both as wide and as tall as possible.  A
-@dfn{maximized} frame is like a ``fullboth'' frame, except that it
-usually keeps its title bar and the buttons for resizing and closing
-the frame.  Also, maximized frames typically avoid hiding any task bar
-or panels displayed on the desktop.  A ``fullboth'' frame, on the
-other hand, usually omits the title bar and occupies the entire
-available screen space.
+@code{fullboth}, or @code{maximized}.@footnote{On PGTK frames, setting
+the values @code{fullheight} and @code{fullwidth} has no effect.}  A
+@dfn{fullwidth} frame is as wide as possible, a @dfn{fullheight} frame
+is as tall as possible, and a @dfn{fullboth} frame is both as wide and
+as tall as possible.  A @dfn{maximized} frame is like a ``fullboth''
+frame, except that it usually keeps its title bar and the buttons for
+resizing and closing the frame.  Also, maximized frames typically
+avoid hiding any task bar or panels displayed on the desktop.  A
+``fullboth'' frame, on the other hand, usually omits the title bar and
+occupies the entire available screen space.
 
 Full-height and full-width frames are more similar to maximized
 frames in this regard.  However, these typically display an external
@@ -2179,9 +2180,19 @@ If non-@code{nil}, the frame is visible on all virtual desktops on systems
 with virtual desktops.
 
 @vindex shaded@r{, a frame parameter}
-@item sticky
+@item shaded
 If non-@code{nil}, tell the window manager to display the frame in a
 way that its contents are hidden, leaving only the title bar.
+
+@vindex use-frame-synchronization@r{, a frame parameter}
+@item use-frame-synchronization
+If non-@code{nil}, synchronize the frame redisplay with the refresh
+rate of the monitor to avoid graphics tearing.  At present, this is
+only implemented on Haiku and the X window system inside no-toolkit
+and X toolkit builds, does not work correctly with toolkit scroll
+bars, and requires a compositing manager supporting the relevant
+display synchronization protocols.  The @code{synchronizeResize} X
+resource must also be set to the string @code{"extended"}.
 
 @vindex inhibit-double-buffering@r{, a frame parameter}
 @item inhibit-double-buffering
@@ -4090,6 +4101,20 @@ They can either be the same data types that are typically accepted by
 specific drag-n-drop protocol being used.  Plain text may be
 @code{"STRING"} or @code{"text/plain"}, for example.
 
+@vindex x-dnd-direct-save-function
+  However, @code{x-dnd-types-alist} does not handle a special kind of
+drop sent by a program which wants Emacs to save a file in a location
+Emacs must determine by itself.  These drops are handled via the
+variable @code{x-dnd-direct-save-function}, which should be a function
+that accepts two arguments.  If the first argument is non-@code{nil},
+then the second argument is a string describing the name (with no
+leading directory) that the other program recommends the file be saved
+under, and the function should return the complete file name under
+which it will be saved.  Otherwise, the file has already been saved,
+and the second argument is the complete name of the file.  The
+function should then perform whatever action is appropriate (i.e.,
+open the file or refresh the directory listing.)
+
 @cindex initiating drag-and-drop
   On capable window systems, Emacs also supports dragging contents
 from its frames to windows of other applications.
@@ -4186,6 +4211,13 @@ This function is like @code{dnd-begin-file-drag}, except that
 dropping multiple files, then the first file will be used instead.
 @end defun
 
+@defun dnd-direct-save file name &optional frame allow-same-frame
+This function is similar to @code{dnd-begin-file-drag} (with the
+default action of copy), but instead of specifying the action you
+specify the name of the copy created by the target program in
+@code{name}.
+@end defun
+
 @cindex initiating drag-and-drop, low-level
   The high-level interfaces described above are implemented on top of
 a lower-level primitive.  If you need to drag content other than files
@@ -4250,6 +4282,40 @@ The caller must cooperate with the target to fully perform the action
 chosen by the target.  For example, callers should delete the buffer
 text that was dragged if this function returns @code{XdndActionMove}.
 @end defun
+
+@cindex drag and drop protocols, X
+
+  On X Windows, several different drag-and-drop protocols are
+supported by @code{x-begin-drag}.  When dragging content that is known
+to not be supported by a specific drag-and-drop protocol, it might be
+desirable to turn that protocol off, by changing the values of the
+following variables:
+
+@defvar x-dnd-disable-motif-protocol
+When this is non-@code{nil}, the Motif drag and drop protocols are
+disabled, and dropping onto programs that only understand them will
+not work.
+@end defvar
+
+@defvar x-dnd-use-offix-drop
+When this is @code{nil}, the OffiX (old KDE) drag and drop protocol is
+disabled.  When this is the symbol @code{files}, the OffiX protocol
+will only be used if @code{"FILE_NAME"} is one of the targets given to
+@code{x-begin-drag}.  Any other value means to use the OffiX protocol
+to drop all supported content.
+@end defvar
+
+@defvar x-dnd-use-unsupported-drop
+When one of the @code{"STRING"}, @code{"UTF8_STRING"},
+@code{"COMPOUND_TEXT"} or @code{"TEXT"} targets is present in the list
+given to @code{x-begin-drag}, Emacs will try to use synthesized mouse
+events and the primary selection to insert the text if the drop target
+doesn't support any drag-and-drop protocol at all.
+
+A side effect is that Emacs will become the owner of the primary
+selection upon such a drop.  If that is not desired, then the drop
+emulation can be disabled by setting this variable to @code{nil}.
+@end defvar
 
 @node Color Names
 @section Color Names

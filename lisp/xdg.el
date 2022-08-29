@@ -171,13 +171,12 @@ file:///foo/bar.jpg"
 ;; https://www.freedesktop.org/wiki/Software/xdg-user-dirs/
 
 (defconst xdg-line-regexp
-  (eval-when-compile
-    (rx "XDG_"
-        (group-n 1 (or "DESKTOP" "DOWNLOAD" "TEMPLATES" "PUBLICSHARE"
-                       "DOCUMENTS" "MUSIC" "PICTURES" "VIDEOS"))
-        "_DIR=\""
-        (group-n 2 (or "/" "$HOME/") (*? (or (not (any "\"")) "\\\"")))
-        "\""))
+  (rx "XDG_"
+      (group-n 1 (or "DESKTOP" "DOWNLOAD" "TEMPLATES" "PUBLICSHARE"
+                     "DOCUMENTS" "MUSIC" "PICTURES" "VIDEOS"))
+      "_DIR=\""
+      (group-n 2 (or "/" "$HOME/") (*? (or (not (any "\"")) "\\\"")))
+      "\"")
   "Regexp matching non-comment lines in `xdg-user-dirs' config files.")
 
 (defvar xdg-user-dirs nil
@@ -251,7 +250,7 @@ This should be called at the beginning of a line."
        ;; Filter localized strings
        ((looking-at (rx (group-n 1 (+ (in alnum "-"))) (* blank) "[")))
        (t (error "Malformed line: %s"
-                 (buffer-substring (point) (point-at-eol)))))
+                 (buffer-substring (point) (line-end-position)))))
       (forward-line))
     res))
 
@@ -266,7 +265,7 @@ Optional argument GROUP defaults to the string \"Desktop Entry\"."
       (forward-line))
     (unless (looking-at xdg-desktop-group-regexp)
       (error "Expected group name!  Instead saw: %s"
-             (buffer-substring (point) (point-at-eol))))
+             (buffer-substring (point) (line-end-position))))
     (when group
       (while (and (re-search-forward xdg-desktop-group-regexp nil t)
                   (not (equal (match-string 1) group)))))

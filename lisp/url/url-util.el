@@ -27,8 +27,6 @@
 
 (require 'url-parse)
 (require 'url-vars)
-(autoload 'timezone-parse-date "timezone")
-(autoload 'timezone-make-date-arpa-standard "timezone")
 (autoload 'mail-header-extract "mailheader")
 
 (defvar url-parse-args-syntax-table
@@ -180,39 +178,28 @@ Will not do anything if `url-show-status' is nil."
   (format-time-string "%a, %d %b %Y %T GMT" specified-time t)))
 
 ;;;###autoload
-(defun url-eat-trailing-space (x)
-  "Remove spaces/tabs at the end of a string."
-  (let ((y (1- (length x)))
-	(skip-chars (list ?  ?\t ?\n)))
-    (while (and (>= y 0) (memq (aref x y) skip-chars))
-      (setq y (1- y)))
-    (substring x 0 (1+ y))))
+(define-obsolete-function-alias 'url-eat-trailing-space
+  #'string-trim-right "29.1")
 
 ;;;###autoload
-(defun url-strip-leading-spaces (x)
-  "Remove spaces at the front of a string."
-  (let ((y (1- (length x)))
-	(z 0)
-	(skip-chars (list ?  ?\t ?\n)))
-    (while (and (<= z y) (memq (aref x z) skip-chars))
-      (setq z (1+ z)))
-    (substring x z nil)))
-
+(define-obsolete-function-alias 'url-strip-leading-spaces
+  #'string-trim-left "29.1")
 
 (define-obsolete-function-alias 'url-pretty-length
   'file-size-human-readable "24.4")
 
 ;;;###autoload
-(defun url-display-percentage (fmt perc &rest args)
+(defun url-display-message (fmt &rest args)
+  "Like `message', but do nothing if `url-show-status' is nil."
   (when (and url-show-status
-	     (or (null url-current-object)
-		 (not (url-silent url-current-object))))
-    (if (null fmt)
-	(if (fboundp 'clear-progress-display)
-	    (clear-progress-display))
-      (if (and (fboundp 'progress-display) perc)
-	  (apply 'progress-display fmt perc args)
-	(apply 'message fmt args)))))
+             (not (and url-current-object (url-silent url-current-object)))
+             fmt)
+    (apply #'message fmt args)))
+
+;;;###autoload
+(defun url-display-percentage (fmt _perc &rest args)
+  (declare (obsolete url-display-message "29.1"))
+  (url-display-message fmt args))
 
 ;;;###autoload
 (defun url-percentage (x y)

@@ -41,10 +41,12 @@
   '((t :inherit variable-pitch))
   "Face used for a section.")
 
-(defvar shortdoc--groups nil)
+;;;###autoload
+(progn
+  (defvar shortdoc--groups nil)
 
-(defmacro define-short-documentation-group (group &rest functions)
-  "Add GROUP to the list of defined documentation groups.
+  (defmacro define-short-documentation-group (group &rest functions)
+    "Add GROUP to the list of defined documentation groups.
 FUNCTIONS is a list of elements on the form:
 
   (FUNC
@@ -88,8 +90,7 @@ string will be `read' and evaluated.
 
   (FUNC
    :no-eval EXAMPLE-FORM
-   :result RESULT-FORM   ;Use `:result-string' if value is in string form
-   )
+   :result RESULT-FORM)   ;Use `:result-string' if value is in string form
 
 Using `:no-value' is the same as using `:no-eval'.
 
@@ -102,17 +103,16 @@ execution of the documented form depends on some conditions.
 
   (FUNC
    :no-eval EXAMPLE-FORM
-   :eg-result RESULT-FORM ;Use `:eg-result-string' if value is in string form
-   )
+   :eg-result RESULT-FORM) ;Use `:eg-result-string' if value is in string form
 
 A FUNC form can have any number of `:no-eval' (or `:no-value'),
 `:no-eval*', `:result', `:result-string', `:eg-result' and
 `:eg-result-string' properties."
-  (declare (indent defun))
-  `(progn
-     (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
-                                  shortdoc--groups))
-     (push (cons ',group ',functions) shortdoc--groups)))
+    (declare (indent defun))
+    `(progn
+       (setq shortdoc--groups (delq (assq ',group shortdoc--groups)
+                                    shortdoc--groups))
+       (push (cons ',group ',functions) shortdoc--groups))))
 
 (define-short-documentation-group alist
   "Alist Basics"
@@ -243,6 +243,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))
+  (string-equal-ignore-case
+   :eval (string-equal-ignore-case "foo" "FOO"))
   (eq
    :eval (eq "foo" "foo"))
   (eql
@@ -353,6 +355,13 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (abbreviate-file-name
    :no-eval (abbreviate-file-name "/home/some-user")
    :eg-result "~some-user")
+  (file-parent-directory
+   :eval (file-parent-directory "/foo/bar")
+   :eval (file-parent-directory "~")
+   :eval (file-parent-directory "/tmp/")
+   :eval (file-parent-directory "foo/bar")
+   :eval (file-parent-directory "foo")
+   :eval (file-parent-directory "/"))
   "Quoted File Names"
   (file-name-quote
    :args (name)
@@ -494,7 +503,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (set-file-modes
    :no-value "(set-file-modes \"/tmp/foo\" #o644)")
   (set-file-times
-   :no-value (set-file-times "/tmp/foo" (current-time)))
+   :no-value (set-file-times "/tmp/foo"))
   "File Modes"
   (set-default-file-modes
    :no-value "(set-default-file-modes #o755)")
@@ -588,6 +597,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (nth 1 '(one two three)))
   (nthcdr
    :eval (nthcdr 1 '(one two three)))
+  (take
+   :eval (take 3 '(one two three four)))
+  (ntake
+   :eval (ntake 3 (list 'one 'two 'three 'four)))
   (elt
    :eval (elt '(one two three) 1))
   (car-safe
@@ -691,11 +704,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (plist-put
    :no-eval (setq plist (plist-put plist 'd 4))
    :eq-result (a 1 b 2 c 3 d 4))
-  (lax-plist-get
-   :eval (lax-plist-get '("a" 1 "b" 2 "c" 3) "b"))
-  (lax-plist-put
-   :no-eval (setq plist (lax-plist-put plist "d" 4))
-   :eq-result '("a" 1 "b" 2 "c" 3 "d" 4))
   (plist-member
    :eval (plist-member '(a 1 b 2 c 3) 'b))
   "Data About Lists"
@@ -894,6 +902,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-subseq '(a b c d e) 2 4))
   (seq-take
    :eval (seq-take '(a b c d e) 3))
+  (seq-split
+   :eval (seq-split [0 1 2 3 5] 2))
   (seq-take-while
    :eval (seq-take-while #'cl-evenp [2 4 9 6 5]))
   (seq-uniq
@@ -931,12 +941,24 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (point-min))
   (point-max
    :eval (point-max))
+  (pos-bol
+   :eval (pos-bol))
+  (pos-eol
+   :eval (pos-eol))
+  (bolp
+   :eval (bolp))
+  (eolp
+   :eval (eolp))
   (line-beginning-position
    :eval (line-beginning-position))
   (line-end-position
    :eval (line-end-position))
   (buffer-size
    :eval (buffer-size))
+  (bobp
+   :eval (bobp))
+  (eobp
+   :eval (eobp))
   "Moving Around"
   (goto-char
    :no-eval (goto-char (point-max))
@@ -962,8 +984,13 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (following-char
    :no-eval (following-char)
    :eg-result 67)
+  (preceding-char
+   :no-eval (preceding-char)
+   :eg-result 38)
   (char-after
    :eval (char-after 45))
+  (char-before
+   :eval (char-before 13))
   (get-byte
    :no-eval (get-byte 45)
    :eg-result-string "#xff")
@@ -972,6 +999,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-value (delete-region (point-min) (point-max)))
   (erase-buffer
    :no-value (erase-buffer))
+  (delete-line
+   :no-value (delete-line))
   (insert
    :no-value (insert "This string will be inserted in the buffer\n"))
   (subst-char-in-region
@@ -1175,9 +1204,6 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (ash
    :eval (ash 1 4)
    :eval (ash 16 -1))
-  (lsh
-   :eval (lsh 1 4)
-   :eval (lsh 16 -1))
   (logand
    :no-eval "(logand #b10 #b111)"
    :result-string "#b10")
@@ -1363,15 +1389,15 @@ If SAME-WINDOW, don't pop to a new window."
          'action (lambda (_)
                    (describe-function function))
          'follow-link t
-         'help-echo (purecopy "mouse-1, RET: describe function"))
+         'help-echo "mouse-1, RET: describe function")
       (insert-text-button
        (symbol-name function)
        'face 'button
        'action (lambda (_)
                  (info-lookup-symbol function 'emacs-lisp-mode))
        'follow-link t
-       'help-echo (purecopy "mouse-1, RET: show \
-function's documentation in the Info manual")))
+       'help-echo "mouse-1, RET: show \
+function's documentation in the Info manual"))
     (setq arglist-start (point))
     (insert ")\n")
     ;; Doc string.

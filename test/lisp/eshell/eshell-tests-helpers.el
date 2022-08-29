@@ -65,24 +65,36 @@ raise an error."
         (error "timed out waiting for subprocess(es)"))
       (sit-for 0.1))))
 
-(defun eshell-insert-command (text &optional func)
-  "Insert a command at the end of the buffer."
+(defun eshell-insert-command (command &optional func)
+  "Insert a COMMAND at the end of the buffer.
+After inserting, call FUNC.  If FUNC is nil, instead call
+`eshell-send-input'."
   (goto-char eshell-last-output-end)
-  (insert-and-inherit text)
+  (insert-and-inherit command)
   (funcall (or func 'eshell-send-input)))
 
-(defun eshell-match-result (regexp)
-  "Check that output of last command matches REGEXP."
-  (should
-   (string-match-p
+(defun eshell-match-output (regexp)
+  "Test whether the output of the last command matches REGEXP."
+  (string-match-p
     regexp (buffer-substring-no-properties
-            (eshell-beginning-of-output) (eshell-end-of-output)))))
+            (eshell-beginning-of-output) (eshell-end-of-output))))
 
-(defun eshell-command-result-p (text regexp &optional func)
-  "Insert a command at the end of the buffer."
-  (eshell-insert-command text func)
+(defun eshell-match-output--explainer (regexp)
+  "Explain the result of `eshell-match-output'."
+  `(mismatched-output
+    (command ,(buffer-substring-no-properties
+               eshell-last-input-start eshell-last-input-end))
+    (output ,(buffer-substring-no-properties
+              (eshell-beginning-of-output) (eshell-end-of-output)))
+    (regexp ,regexp)))
+
+(put 'eshell-match-output 'ert-explainer #'eshell-match-output--explainer)
+
+(defun eshell-match-command-output (command regexp &optional func)
+  "Insert a COMMAND at the end of the buffer and match the output with REGEXP."
+  (eshell-insert-command command func)
   (eshell-wait-for-subprocess)
-  (eshell-match-result regexp))
+  (should (eshell-match-output regexp)))
 
 (defvar eshell-history-file-name)
 
@@ -91,6 +103,27 @@ raise an error."
   (ert-with-temp-directory eshell-directory-name
     (let ((eshell-history-file-name nil))
       (eshell-command-result command))))
+
+(defun eshell-command-result--equal (_command actual expected)
+  "Compare the ACTUAL result of a COMMAND with its EXPECTED value."
+  (equal actual expected))
+
+(defun eshell-command-result--equal-explainer (command actual expected)
+  "Explain the result of `eshell-command-result--equal'."
+  `(nonequal-result
+    (command ,command)
+    (result ,actual)
+    (expected ,expected)))
+
+(put 'eshell-command-result--equal 'ert-explainer
+     #'eshell-command-result--equal-explainer)
+
+(defun eshell-command-result-equal (command result)
+  "Execute COMMAND non-interactively and compare it to RESULT."
+  (should (eshell-command-result--equal
+           command
+           (eshell-test-command-result command)
+           result)))
 
 (provide 'eshell-tests-helpers)
 

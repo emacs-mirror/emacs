@@ -307,9 +307,6 @@ Match group 1 is the name of the macro.")
 (defconst js--font-lock-keywords-2
   (append js--font-lock-keywords-1
           (list (list js--keyword-re 1 font-lock-keyword-face)
-                (list "\\_<for\\_>"
-                      "\\s-+\\(each\\)\\_>" nil nil
-                      (list 1 'font-lock-keyword-face))
                 (cons js--basic-type-re font-lock-type-face)
                 (cons js--constant-re font-lock-constant-face)))
   "Level two font lock keywords for `js-mode'.")
@@ -815,7 +812,7 @@ point at BOB."
                (setq str-terminator ?/))
              (re-search-forward
               (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (point-at-eol) t))
+              (line-end-position) t))
             ((nth 7 parse)
              (forward-line))
             ((or (nth 4 parse)
@@ -1686,7 +1683,7 @@ point of view of font-lock.  It applies highlighting directly with
            (insert "=")
            (goto-char (match-beginning 2)))
        (setq js--tmp-location nil)
-       (goto-char (point-at-eol)))
+       (goto-char (line-end-position)))
      (when js--tmp-location
        (save-excursion
          (goto-char js--tmp-location)
@@ -1830,22 +1827,23 @@ context."
 (defun js--class-decl-matcher (limit)
   "Font lock function used by `js-mode'.
 This performs fontification according to `js--class-styles'."
-  (cl-loop initially (js--ensure-cache limit)
-           while (re-search-forward js--quick-match-re limit t)
-           for orig-end = (match-end 0)
-           do (goto-char (match-beginning 0))
-           if (cl-loop for style in js--class-styles
-                       for decl-re = (plist-get style :class-decl)
-                       if (and (memq (plist-get style :framework)
-                                     js-enabled-frameworks)
-                               (memq (js-syntactic-context)
-                                     (plist-get style :contexts))
-                               decl-re
-                               (looking-at decl-re))
-                       do (goto-char (match-end 0))
-                       and return t)
-           return t
-           else do (goto-char orig-end)))
+  (when js-enabled-frameworks
+    (cl-loop initially (js--ensure-cache limit)
+             while (re-search-forward js--quick-match-re limit t)
+             for orig-end = (match-end 0)
+             do (goto-char (match-beginning 0))
+             if (cl-loop for style in js--class-styles
+                         for decl-re = (plist-get style :class-decl)
+                         if (and (memq (plist-get style :framework)
+                                       js-enabled-frameworks)
+                                 (memq (js-syntactic-context)
+                                       (plist-get style :contexts))
+                                 decl-re
+                                 (looking-at decl-re))
+                         do (goto-char (match-end 0))
+                         and return t)
+             return t
+             else do (goto-char orig-end))))
 
 (defconst js--font-lock-keywords
   '(js--font-lock-keywords-3 js--font-lock-keywords-1
@@ -2508,14 +2506,14 @@ the same column as the current line."
 	      (looking-at "[ \t\n]*}"))
 	    (save-excursion
 	      (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
-	  (js--re-search-backward "\\_<do\\_>" (point-at-bol) t)
+          (js--re-search-backward "\\_<do\\_>" (line-beginning-position) t)
 	  (or (looking-at "\\_<do\\_>")
 	      (let ((saved-indent (current-indentation)))
 		(while (and (js--re-search-backward "^\\s-*\\_<" nil t)
 			    (/= (current-indentation) saved-indent)))
 		(and (looking-at "\\s-*\\_<do\\_>")
 		     (not (js--re-search-forward
-			   "\\_<while\\_>" (point-at-eol) t))
+                           "\\_<while\\_>" (line-end-position) t))
 		     (= (current-indentation) saved-indent)))))))))
 
 
@@ -2527,7 +2525,7 @@ nil."
   (save-excursion
     (back-to-indentation)
     (when (save-excursion
-            (and (not (eq (point-at-bol) (point-min)))
+            (and (not (eq (line-beginning-position) (point-min)))
                  (not (looking-at "[{]"))
                  (js--re-search-backward "[[:graph:]]" nil t)
                  (progn
@@ -2548,8 +2546,8 @@ nil."
     (c-get-syntactic-indentation (list (cons symbol anchor)))))
 
 (defun js--same-line (pos)
-  (and (>= pos (point-at-bol))
-       (<= pos (point-at-eol))))
+  (and (>= pos (line-beginning-position))
+       (<= pos (line-end-position))))
 
 (defun js--multi-line-declaration-indentation ()
   "Helper function for `js--proper-indentation'.
@@ -2923,7 +2921,7 @@ return nil."
   "Indent the current line as JavaScript."
   (interactive)
   (let* ((parse-status
-          (save-excursion (syntax-ppss (point-at-bol))))
+          (save-excursion (syntax-ppss (line-beginning-position))))
          (offset (- (point) (save-excursion (back-to-indentation) (point)))))
     (unless (nth 3 parse-status)
       (indent-line-to (js--proper-indentation parse-status))
@@ -3489,6 +3487,13 @@ This function is intended for use in `after-change-functions'."
   ;; calls to syntax-propertize wherever it's really needed.
   ;;(syntax-propertize (point-max))
   )
+
+;;;###autoload
+(define-derived-mode js-json-mode js-mode "JSON"
+  (setq-local js-enabled-frameworks nil)
+  ;; Speed up `syntax-ppss': JSON files can be big but can't hold
+  ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
+  (setq-local syntax-propertize-function #'ignore))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply

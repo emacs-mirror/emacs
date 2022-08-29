@@ -7707,7 +7707,7 @@ non-nil, indentation is done before aligning."
        (save-excursion
 	 (goto-char begin)
 	 (let (element
-	       (eol (point-at-eol)))
+               (eol (line-end-position)))
 	   (setq element (nth 0 copy))
 	   (when (and (or (and (listp (car element))
 			       (memq major-mode (car element)))
@@ -7733,7 +7733,7 @@ space is inserted after the token in MATCH."
       ;; Determine the greatest whitespace distance to the alignment
       ;; character
       (goto-char begin)
-      (setq eol (point-at-eol)
+      (setq eol (line-end-position)
 	    bol (setq begin (progn (beginning-of-line) (point))))
       (while (< bol end)
 	(save-excursion
@@ -7750,13 +7750,13 @@ space is inserted after the token in MATCH."
 	      (setq max distance))))
 	(forward-line)
 	(setq bol (point)
-	      eol (point-at-eol))
+              eol (line-end-position))
 	(setq lines (1+ lines)))
       ;; Now insert enough maxs to push each assignment operator to
       ;; the same column.  We need to use 'lines' as a counter, since
       ;; the location of the mark may change
       (goto-char (setq bol begin))
-      (setq eol (point-at-eol))
+      (setq eol (line-end-position))
       (while (> lines 0)
   	(when (and (vhdl-re-search-forward match eol t)
 		   (save-excursion
@@ -7776,7 +7776,7 @@ space is inserted after the token in MATCH."
 	(beginning-of-line)
 	(forward-line)
 	(setq bol (point)
-	      eol (point-at-eol))
+              eol (line-end-position))
 	(setq lines (1- lines))))))
 
 (defun vhdl-align-region-groups (beg end &optional spacing
@@ -8647,7 +8647,7 @@ buffer."
 	   (forward-char)
 	   (vhdl-forward-syntactic-ws))
 	 (goto-char end)
-	 (when (> pos (point-at-eol))
+         (when (> pos (line-end-position))
 	   (error "ERROR:  Not within a generic/port clause"))
 	 ;; delete closing parenthesis on separate line (not supported style)
 	 (when (save-excursion (beginning-of-line) (looking-at "^\\s-*);"))
@@ -12838,7 +12838,7 @@ expressions (e.g. for index ranges of types and signals)."
   "Return the line number of the line containing point."
   (save-restriction
     (widen)
-    (1+ (count-lines (point-min) (point-at-bol)))))
+    (1+ (count-lines (point-min) (line-beginning-position)))))
 
 (defun vhdl-line-kill-entire (&optional arg)
   "Delete entire line."
@@ -12855,7 +12855,7 @@ expressions (e.g. for index ranges of types and signals)."
   "Copy current line."
   (interactive "p")
   (save-excursion
-    (let ((position (point-at-bol)))
+    (let ((position (line-beginning-position)))
       (forward-line (or arg 1))
       (copy-region-as-kill position (point)))))
 
@@ -14958,8 +14958,8 @@ otherwise use cached data."
 
 (defun vhdl-speedbar-insert-hierarchy ( ent-alist-arg conf-alist-arg
                                         package-alist ent-inst-list depth)
-  "Insert hierarchy of ENT-ALIST, CONF-ALIST, and PACKAGE-ALIST."
-  (if (not (or ent-alist conf-alist package-alist))
+  "Insert hierarchy of ENT-ALIST-ARG, CONF-ALIST-ARG, and PACKAGE-ALIST."
+  (if (not (or ent-alist-arg conf-alist-arg package-alist))
       (vhdl-speedbar-make-title-line "No VHDL design units!" depth)
     (let ((ent-alist ent-alist-arg)
           (conf-alist conf-alist-arg)
@@ -16752,7 +16752,7 @@ current project/directory."
   (let ((ent-alist ent-alist-arg)
 	(conf-alist conf-alist-arg)
 	(margin (current-indentation))
-	(beg (point-at-bol))
+        (beg (line-beginning-position))
 	ent-entry inst-entry inst-path inst-prev-path tmp-alist) ;; cons-key
     ;; insert block configuration (for architecture)
     (vhdl-insert-keyword "FOR ") (insert arch-name "\n")

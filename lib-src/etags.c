@@ -87,14 +87,6 @@ University of California, as described above. */
 
 #include <config.h>
 
-/* WIN32_NATIVE is for XEmacs.
-   MSDOS, WINDOWSNT, DOS_NT are for Emacs. */
-#ifdef WIN32_NATIVE
-# undef MSDOS
-# undef  WINDOWSNT
-# define WINDOWSNT
-#endif /* WIN32_NATIVE */
-
 #ifdef MSDOS
 # undef MSDOS
 # define MSDOS true
@@ -1431,6 +1423,16 @@ main (int argc, char **argv)
 	   setenv ("LC_COLLATE", "C", 1);
 	   setenv ("LC_ALL", "C", 1); */
 	char *cmd = xmalloc (8 * strlen (tagfile) + sizeof "sort -u -o '' ''");
+#if defined WINDOWSNT || defined MSDOS
+	/* Quote "like this".  No need to escape the quotes in the file name,
+	   since it is not allowed in file names on these systems.  */
+	char *z = stpcpy (cmd, "sort -u -o \"");
+	z = stpcpy (z, tagfile);
+	z = stpcpy (z, "\" \"");
+	z = stpcpy (z, tagfile);
+	stpcpy (z, "\"");
+#else
+	/* Quote 'like this', and escape the apostrophe in the file name.  */
 	char *z = stpcpy (cmd, "sort -u -o '");
 	char *escaped_tagfile = z;
 	for (; *tagfile; *z++ = *tagfile++)
@@ -1440,6 +1442,7 @@ main (int argc, char **argv)
 	z = stpcpy (z, "' '");
 	z = mempcpy (z, escaped_tagfile, escaped_tagfile_len);
 	strcpy (z, "'");
+#endif
 	return system (cmd);
       }
   return EXIT_SUCCESS;

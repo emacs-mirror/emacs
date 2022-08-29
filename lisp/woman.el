@@ -84,9 +84,7 @@
 ;; for temporary files outside the standard UN*X manual directory
 ;; structure.
 
-;; Or (3): Put the next two sexpr's in your .emacs:
-;; (autoload 'woman-dired-find-file "woman"
-;;   "In dired, run the WoMan man-page browser on this file." t)
+;; Or (3): Put this in your init file:
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
@@ -783,7 +781,7 @@ Built automatically from the customizable user options
 (defvar woman-uncompressed-file-regexp)	; for the compiler
 (defvar woman-file-compression-regexp)	; for the compiler
 
-(defun set-woman-file-regexp (symbol value)
+(defun woman-set-file-regexp (symbol value)
   "Bind SYMBOL to VALUE and set `woman-file-regexp' as per user customizations.
 Used as :set cookie by Customize when customizing the user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'."
@@ -808,7 +806,7 @@ in the ncurses package include `toe.1m', `form.3x', etc.
 Note: an optional compression regexp will be appended, so this regexp
 MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
-  :set #'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-file-compression-regexp
@@ -824,7 +822,7 @@ Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; not loaded by default!
   :version "24.1"                       ; added xz
   :type 'regexp
-  :set #'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-use-own-frame nil
@@ -841,10 +839,12 @@ Only useful when run on a graphic display such as X or MS-Windows."
   :tag "WoMan Formatting"
   :group 'woman)
 
-(defcustom woman-fill-column 65
-  "Right margin for formatted text -- default is 65."
-  :type 'integer
-  :group 'woman-formatting)
+;; This could probably be 80 to match 'Man-width'.
+(defcustom woman-fill-column 70
+  "Right margin for formatted text -- default is 70."
+  :type 'natnum
+  :group 'woman-formatting
+  :version "29.1")
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
@@ -902,7 +902,7 @@ Troff emulation is experimental and largely untested.
 (defcustom woman-fontify
   (or (display-color-p)
       (display-graphic-p)
-      (x-display-color-p))
+      (display-color-p))
   "If non-nil then WoMan assumes that face support is available.
 It defaults to a non-nil value if the display supports either colors
 or different fonts."
@@ -1151,7 +1151,7 @@ updated (e.g. to re-interpret the current directory).
 Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
-  ;; The following test is for non-interactive calls via gnudoit etc.
+  ;; The following test is for non-interactive calls via emacsclient, etc.
   (if (or (not (stringp topic)) (string-match-p "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
@@ -4580,10 +4580,10 @@ logging the message."
 
 (put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
 
-;; Obsolete.
-
 (defvar woman-version "0.551 (beta)" "WoMan version information.")
 (make-obsolete-variable 'woman-version 'emacs-version "28.1")
+
+(define-obsolete-function-alias 'set-woman-file-regexp 'woman-set-file-regexp "29.1")
 
 (provide 'woman)
 

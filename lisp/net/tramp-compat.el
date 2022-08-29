@@ -31,7 +31,7 @@
 
 (require 'auth-source)
 (require 'format-spec)
-(require 'ls-lisp)  ;; Due to `tramp-handle-insert-directory'.
+(require 'ls-lisp) ;; Due to `tramp-handle-insert-directory'.
 (require 'parse-time)
 (require 'shell)
 (require 'subr-x)
@@ -79,6 +79,7 @@ Add the extension of F, if existing."
 
 ;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' got
 ;; a second argument in Emacs 27.1.
+;;;###tramp-autoload
 (defalias 'tramp-compat-file-name-quoted-p
   (if (equal (func-arity #'file-name-quoted-p) '(1 . 2))
       #'file-name-quoted-p
@@ -234,17 +235,17 @@ CONDITION can also be a list of error conditions."
   (if (fboundp 'string-replace)
       #'string-replace
     (lambda (from-string to-string in-string)
-      (let ((case-fold-search nil))
+      (let (case-fold-search)
         (replace-regexp-in-string
-         (regexp-quote from-string) to-string in-string t t)))))
+         (rx (literal from-string)) to-string in-string t t)))))
 
 ;; Function `string-search' is new in Emacs 28.1.
 (defalias 'tramp-compat-string-search
   (if (fboundp 'string-search)
       #'string-search
     (lambda (needle haystack &optional start-pos)
-      (let ((case-fold-search nil))
-        (string-match-p (regexp-quote needle) haystack start-pos)))))
+      (let (case-fold-search)
+        (string-match-p (rx (literal needle)) haystack start-pos)))))
 
 ;; Function `make-lock-file-name' is new in Emacs 28.1.
 (defalias 'tramp-compat-make-lock-file-name
@@ -294,6 +295,64 @@ CONDITION can also be a list of error conditions."
           (setq secret (funcall secret)))
 	secret))))
 
+;; Function `take' is new in Emacs 29.1.
+(defalias 'tramp-compat-take
+  (if (fboundp 'take)
+      #'take
+    (lambda (n list)
+      (when (and (natnump n) (> n 0))
+	(if (>= n (length list))
+	    list (butlast list (- (length list) n)))))))
+
+;; Function `ntake' is new in Emacs 29.1.
+(defalias 'tramp-compat-ntake
+  (if (fboundp 'ntake)
+      #'ntake
+    (lambda (n list)
+      (when (and (natnump n) (> n 0))
+	(if (>= n (length list))
+	    list (nbutlast list (- (length list) n)))))))
+
+;; Function `string-equal-ignore-case' is new in Emacs 29.1.
+(defalias 'tramp-compat-string-equal-ignore-case
+  (if (fboundp 'string-equal-ignore-case)
+      #'string-equal-ignore-case
+    (lambda (string1 string2)
+      (eq t (compare-strings string1 nil nil string2 nil nil t)))))
+
+;; Function `auth-source-netrc-parse-all' is new in Emacs 29.1.
+;; `netrc-parse' has been obsoleted in parallel.
+(defalias 'tramp-compat-auth-source-netrc-parse-all
+  (if (fboundp 'auth-source-netrc-parse-all)
+      #'auth-source-netrc-parse-all
+    (lambda (&optional file)
+      (declare-function netrc-parse "netrc")
+      (autoload 'netrc-parse "netrc")
+      (netrc-parse file))))
+
+;; Function `replace-regexp-in-region' is new in Emacs 28.1.
+(defalias 'tramp-compat-replace-regexp-in-region
+  (if (fboundp 'replace-regexp-in-region)
+      #'replace-regexp-in-region
+    (lambda (regexp replacement &optional start end)
+      (if start
+	  (when (< start (point-min))
+            (error "Start before start of buffer"))
+	(setq start (point)))
+      (if end
+	  (when (> end (point-max))
+            (error "End after end of buffer"))
+	(setq end (point-max)))
+      (save-excursion
+	(let ((matches 0)
+              (case-fold-search nil))
+	  (goto-char start)
+	  (while (re-search-forward regexp end t)
+            (replace-match replacement t)
+            (setq matches (1+ matches)))
+	  (and (not (zerop matches))
+               matches))))))
+
 (dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
   (put (intern elt) 'tramp-suppress-trace t))
 
@@ -310,6 +369,6 @@ CONDITION can also be a list of error conditions."
 ;;   parentheses with a backslash in docstrings anymore.
 ;;
 ;; * Starting with Emacs 27.1, there's `make-empty-file'.  Could be
-;;   used instead of `write-region'.
+;;   used instead of `(write-region "" ...)'.
 
 ;;; tramp-compat.el ends here

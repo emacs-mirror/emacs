@@ -136,8 +136,7 @@ used."
   :type 'string
   :safe (lambda (v)
 	  (and (stringp v)
-	       (eq (compare-strings "RESULTS" nil nil v nil nil t)
-		   t))))
+	       (string-equal-ignore-case "RESULTS" v))))
 
 (defcustom org-babel-noweb-wrap-start "<<"
   "String used to begin a noweb reference in a code block.
@@ -489,13 +488,13 @@ arguments, imagine you'd like to set the file name output of a
 latex source block to a sha1 of its contents.  We could achieve
 this with:
 
-(defun org-src-sha ()
-  (let ((elem (org-element-at-point)))
-    (concat (sha1 (org-element-property :value elem)) \".svg\")))
+  (defun org-src-sha ()
+    (let ((elem (org-element-at-point)))
+      (concat (sha1 (org-element-property :value elem)) \".svg\")))
 
-(setq org-babel-default-header-args:latex
-      `((:results . \"file link replace\")
-        (:file . (lambda () (org-src-sha)))))
+  (setq org-babel-default-header-args:latex
+        `((:results . \"file link replace\")
+          (:file . (lambda () (org-src-sha)))))
 
 Because the closure is evaluated with point at the source block,
 the call to `org-element-at-point' above will always retrieve
@@ -918,7 +917,7 @@ arguments and pop open the results in a preview buffer."
 		       vals ""))))))
     (save-excursion
       (goto-char begin)
-      (goto-char (point-at-eol))
+      (goto-char (line-end-position))
       (unless (= (char-before (point)) ?\ ) (insert " "))
       (insert ":" header-arg) (when value (insert " " value)))))
 
@@ -1937,9 +1936,9 @@ region is not active then the point is demarcated."
              (let ((lang (nth 0 info))
                    (indent (make-string (current-indentation) ?\s)))
 	       (when (string-match "^[[:space:]]*$"
-				   (buffer-substring (point-at-bol)
-						     (point-at-eol)))
-		 (delete-region (point-at-bol) (point-at-eol)))
+                                   (buffer-substring (line-beginning-position)
+                                                     (line-end-position)))
+                 (delete-region (line-beginning-position) (line-end-position)))
                (insert (concat
 			(if (looking-at "^") "" "\n")
 			indent (if upper-case-p "#+END_SRC\n" "#+end_src\n")
@@ -2435,7 +2434,7 @@ INFO may provide the values of these header arguments (in the
 		       ;; Escape contents from "export" wrap.  Wrap
 		       ;; inline results within an export snippet with
 		       ;; appropriate value.
-		       ((eq t (compare-strings type nil nil "export" nil nil t))
+		       ((string-equal-ignore-case type "export")
 			(let ((backend (pcase split
 					 (`(,_) "none")
 					 (`(,_ ,b . ,_) b))))
@@ -2446,14 +2445,14 @@ INFO may provide the values of these header arguments (in the
 					   backend) "@@)}}}")))
 		       ;; Escape contents from "example" wrap.  Mark
 		       ;; inline results as verbatim.
-		       ((eq t (compare-strings type nil nil "example" nil nil t))
+		       ((string-equal-ignore-case type "example")
 			(funcall wrap
 				 opening-line closing-line
 				 nil nil
 				 "{{{results(=" "=)}}}"))
 		       ;; Escape contents from "src" wrap.  Mark
 		       ;; inline results as inline source code.
-		       ((eq t (compare-strings type nil nil "src" nil nil t))
+		       ((string-equal-ignore-case type "src")
 			(let ((inline-open
 			       (pcase split
 				 (`(,_)

@@ -417,7 +417,7 @@ q  trust status questionable.  -  trust status unspecified.
 					     'epa-key))
 		(setq keys (cons key keys))))
 	  (nreverse keys)))
-      (let ((key (get-text-property (point-at-bol) 'epa-key)))
+      (let ((key (get-text-property (line-beginning-position) 'epa-key)))
 	(if key
 	    (list key)))))
 

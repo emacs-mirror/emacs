@@ -2324,7 +2324,7 @@ Also prints current score to let user know he has scored."
 ;;;;
 
 (define-key dun-mode-map "\r" 'dun-parse)
-(defvar dungeon-batch-map (make-keymap))
+(defvar-keymap dungeon-batch-map :full t)
 (let (n)
   (setq n 32)
   (while (< 0 (setq n (- n 1)))

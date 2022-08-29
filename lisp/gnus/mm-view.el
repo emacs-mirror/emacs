@@ -86,7 +86,7 @@ This is only used if `mm-inline-large-images' is set to
 (defun mm-inline-image (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
-    (put-image
+    (insert-image
      (let ((image (mm-get-image handle)))
        (if (eq mm-inline-large-images 'resize)
            (gnus-rescale-image
@@ -98,7 +98,7 @@ This is only used if `mm-inline-large-images' is set to
 		    (truncate (* mm-inline-large-images-proportion
 				 (- (nth 3 edges) (nth 1 edges)))))))
          image))
-     b)
+     " ")
     (insert "\n")
     (mm-handle-set-undisplayer
      handle

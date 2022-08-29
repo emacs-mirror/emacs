@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.6.2
@@ -165,7 +165,7 @@
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
-(require 'lisp-mode) ;; for lisp-mode-symbol-regexp
+(require 'lisp-mode) ;; for lisp-mode-symbol regexp
 (eval-when-compile (require 'dired))     ;; for dired-map-over-marks
 (require 'lisp-mnt)
 
@@ -248,7 +248,7 @@ with these words enabled."
 ;;;###autoload(put 'checkdoc-spellcheck-documentation-flag 'safe-local-variable #'booleanp)
 
 (defvar checkdoc-ispell-lisp-words
-  '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp" "xemacs")
+  '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp")
   "List of words that are correct when spell-checking Lisp documentation.")
 ;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
 
@@ -1279,38 +1279,30 @@ TEXT, START, END and UNFIXABLE conform to
 ;;; Minor Mode specification
 ;;
 
-(defvar checkdoc-minor-mode-map
-  (let ((map (make-sparse-keymap))
-	(pmap (make-sparse-keymap)))
-    ;; Override some bindings
-    (define-key map "\C-\M-x" #'checkdoc-eval-defun)
-    (define-key map "\C-x`"   #'checkdoc-continue)
-    (define-key map [menu-bar emacs-lisp eval-buffer]
-      #'checkdoc-eval-current-buffer)
-    ;; Add some new bindings under C-c ?
-    (define-key pmap "x" #'checkdoc-defun)
-    (define-key pmap "X" #'checkdoc-ispell-defun)
-    (define-key pmap "`" #'checkdoc-continue)
-    (define-key pmap "~" #'checkdoc-ispell-continue)
-    (define-key pmap "s" #'checkdoc-start)
-    (define-key pmap "S" #'checkdoc-ispell-start)
-    (define-key pmap "d" #'checkdoc)
-    (define-key pmap "D" #'checkdoc-ispell)
-    (define-key pmap "b" #'checkdoc-current-buffer)
-    (define-key pmap "B" #'checkdoc-ispell-current-buffer)
-    (define-key pmap "e" #'checkdoc-eval-current-buffer)
-    (define-key pmap "m" #'checkdoc-message-text)
-    (define-key pmap "M" #'checkdoc-ispell-message-text)
-    (define-key pmap "c" #'checkdoc-comments)
-    (define-key pmap "C" #'checkdoc-ispell-comments)
-    (define-key pmap " " #'checkdoc-rogue-spaces)
+(defvar-keymap checkdoc-minor-mode-map
+  :doc "Keymap used to override evaluation key-bindings for documentation checking."
+  ;; Override some bindings
+  "C-M-x"     #'checkdoc-eval-defun
+  "C-x `"     #'checkdoc-continue
+  "<menu-bar> <emacs-lisp> <eval-buffer>"  #'checkdoc-eval-current-buffer
 
-    ;; bind our submap into map
-    (define-key map "\C-c?" pmap)
-    map)
-  "Keymap used to override evaluation key-bindings for documentation checking.")
-
-;; Add in a menubar with easy-menu
+  ;; Add some new bindings under C-c ?
+  "C-c ? x"   #'checkdoc-defun
+  "C-c ? X"   #'checkdoc-ispell-defun
+  "C-c ? `"   #'checkdoc-continue
+  "C-c ? ~"   #'checkdoc-ispell-continue
+  "C-c ? s"   #'checkdoc-start
+  "C-c ? S"   #'checkdoc-ispell-start
+  "C-c ? d"   #'checkdoc
+  "C-c ? D"   #'checkdoc-ispell
+  "C-c ? b"   #'checkdoc-current-buffer
+  "C-c ? B"   #'checkdoc-ispell-current-buffer
+  "C-c ? e"   #'checkdoc-eval-current-buffer
+  "C-c ? m"   #'checkdoc-message-text
+  "C-c ? M"   #'checkdoc-ispell-message-text
+  "C-c ? c"   #'checkdoc-comments
+  "C-c ? C"   #'checkdoc-ispell-comments
+  "C-c ? SPC" #'checkdoc-rogue-spaces)
 
 (easy-menu-define nil checkdoc-minor-mode-map
   "Checkdoc Minor Mode Menu."
@@ -1364,23 +1356,6 @@ checking of documentation strings.
 		    (mapconcat (lambda (e) (concat (car e)))
 			       checkdoc-common-verbs-wrong-voice "\\|")
 		    "\\)\\>"))))
-
-;; Profiler says this is not yet faster than just calling assoc
-;;(defun checkdoc-word-in-alist-vector (word vector)
-;;  "Check to see if WORD is in the car of an element of VECTOR.
-;;VECTOR must be sorted.  The CDR should be a replacement.  Since the
-;;word list is getting bigger, it is time for a quick bisecting search."
-;;  (let ((max (length vector)) (min 0) i
-;;	(found nil) (fw nil))
-;;    (setq i (/ max 2))
-;;    (while (and (not found) (/= min max))
-;;      (setq fw (car (aref vector i)))
-;;      (cond ((string= word fw) (setq found (cdr (aref vector i))))
-;;	    ((string< word fw) (setq max i))
-;;	    (t (setq min i)))
-;;      (setq i (/ (+ max min) 2))
-;;      )
-;;    found))
 
 ;;; Checking engines
 ;;
@@ -2007,6 +1982,7 @@ from the comment."
     (let ((defun (looking-at
                   "(\\(?:cl-\\)?def\\(un\\|macro\\|subst\\|advice\\|generic\\|method\\)"))
 	  (is-advice (looking-at "(defadvice"))
+          (defun-depth (ppss-depth (syntax-ppss)))
 	  (lst nil)
 	  (ret nil)
 	  (oo (make-vector 3 0)))	;substitute obarray for `read'
@@ -2022,11 +1998,17 @@ from the comment."
 	(setq ret (cons nil ret))
 	;; Interactive
 	(save-excursion
-	  (setq ret (cons
-		     (re-search-forward "^\\s-*(interactive"
-					(save-excursion (end-of-defun) (point))
-					t)
-		     ret)))
+          (push (and (re-search-forward "^\\s-*(interactive"
+				        (save-excursion
+                                          (end-of-defun)
+                                          (point))
+				        t)
+                     ;; Disregard `interactive' from other parts of
+                     ;; the function.
+                     (= (ppss-depth (syntax-ppss))
+                        (+ defun-depth 2))
+                     (point))
+                ret))
 	(skip-chars-forward " \t\n")
 	(let ((bss (buffer-substring (point) (save-excursion (forward-sexp 1)
 							     (point))))
@@ -2250,7 +2232,6 @@ nil."
 	(progn
           (ispell-set-spellchecker-params)    ; Initialize variables and dict alists.
           (ispell-accept-buffer-local-defs)   ; Use the correct dictionary.
-	  ;; This code copied in part from ispell.el Emacs 19.34
 	  (dolist (w checkdoc-ispell-lisp-words)
 	    (process-send-string ispell-process (concat "@" w "\n"))))
       (error (setq checkdoc-spellcheck-documentation-flag nil)))))
@@ -2361,8 +2342,6 @@ News agents may remove it"
 
 ;;; Comment checking engine
 ;;
-(defvar generate-autoload-cookie)
-
 (defun checkdoc-file-comments-engine ()
   "Return a message list if this file does not match the Emacs standard.
 This checks for style only, such as the first line, Commentary:,
@@ -2597,13 +2576,13 @@ The correct format is \"Foo\" or \"some-symbol: Foo\".  See also
     (unless (let ((case-fold-search nil))
               (looking-at (rx (or upper-case "%s"))))
       ;; A defined Lisp symbol is always okay.
-      (unless (and (looking-at (rx (group (regexp lisp-mode-symbol-regexp))))
+      (unless (and (looking-at (rx (group lisp-mode-symbol)))
                    (or (fboundp (intern (match-string 1)))
                        (boundp (intern (match-string 1)))))
         ;; Other Lisp symbols are sometimes okay.
         (rx-let ((c (? "\\\n")))        ; `c' is for a continued line
           (let ((case-fold-search nil)
-                (some-symbol (rx (regexp lisp-mode-symbol-regexp)
+                (some-symbol (rx lisp-mode-symbol
                                  c ":" c (+ (any " \t\n"))))
                 (lowercase-str (rx c (group (any "a-z") (+ wordchar)))))
             (if (looking-at some-symbol)
@@ -2628,7 +2607,7 @@ a space as a style error."
          (checkdoc-autofix-ask-replace
           (match-beginning 0) (match-end 0)
           (format-message
-           "`y-or-n-p' argument should end with \"? \".  Fix?")
+           "`y-or-n-p' argument should end with \"?\".  Fix?")
           "?\"" t))
         nil
       (checkdoc-create-error
@@ -2862,8 +2841,6 @@ function called to create the messages."
         (message "No Package Keyword Errors.")))))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
-
-;; Obsolete
 
 (define-obsolete-function-alias 'checkdoc-run-hooks
   #'run-hook-with-args-until-success "28.1")

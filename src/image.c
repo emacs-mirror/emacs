@@ -186,6 +186,10 @@ static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
 #endif
 
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+static void anim_prune_animation_cache (Lisp_Object);
+#endif
+
 #ifdef USE_CAIRO
 
 static Emacs_Pix_Container
@@ -1071,9 +1075,16 @@ struct image_type
      libraries on Windows), or NULL if none.  */
   bool (*init) (void);
   /* An initializer for the init field.  */
-# define IMAGE_TYPE_INIT(f) f
-#else
-# define IMAGE_TYPE_INIT(f)
+#endif
+#if defined HAVE_RSVG || defined HAVE_PNG || defined HAVE_GIF || \
+  defined HAVE_TIFF || defined HAVE_JPEG || defined HAVE_XPM || \
+  defined HAVE_NS || defined HAVE_HAIKU || defined HAVE_PGTK || \
+  defined HAVE_WEBP
+# ifdef WINDOWSNT
+#  define IMAGE_TYPE_INIT(f) f
+# else
+#  define IMAGE_TYPE_INIT(f)
+# endif
 #endif
 };
 
@@ -2120,18 +2131,34 @@ clear_image_caches (Lisp_Object filter)
 }
 
 DEFUN ("clear-image-cache", Fclear_image_cache, Sclear_image_cache,
-       0, 1, 0,
+       0, 2, 0,
        doc: /* Clear the image cache.
 FILTER nil or a frame means clear all images in the selected frame.
 FILTER t means clear the image caches of all frames.
 Anything else means clear only those images that refer to FILTER,
-which is then usually a filename.  */)
-  (Lisp_Object filter)
+which is then usually a filename.
+
+This function also clears the image animation cache.  If
+ANIMATION-CACHE is non-nil, only the image spec `eq' with
+ANIMATION-CACHE is removed, and other image cache entries are not
+evicted.  */)
+  (Lisp_Object filter, Lisp_Object animation_cache)
 {
+  if (!NILP (animation_cache))
+    {
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+      anim_prune_animation_cache (XCDR (animation_cache));
+#endif
+      return Qnil;
+    }
+
   if (! (NILP (filter) || FRAMEP (filter)))
     clear_image_caches (filter);
   else
     clear_image_cache (decode_window_system_frame (filter), Qt);
+
+  /* Also clear the animation caches.  */
+  image_prune_animation_caches (true);
 
   return Qnil;
 }
@@ -2199,21 +2226,6 @@ image_frame_cache_size (struct frame *f)
     }
   return total;
 }
-
-DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
-       doc: /* Return the size of the image cache.  */)
-  (void)
-{
-  Lisp_Object tail, frame;
-  size_t total = 0;
-
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_WINDOW_P (XFRAME (frame)))
-      total += image_frame_cache_size (XFRAME (frame));
-
-  return make_int (total);
-}
-
 
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
@@ -2309,8 +2321,8 @@ postprocess_image (struct frame *f, struct image *img)
 	  tem = XCDR (conversion);
 	  if (CONSP (tem))
 	    image_edge_detection (f, img,
-                                  Fplist_get (tem, QCmatrix),
-                                  Fplist_get (tem, QCcolor_adjustment));
+                                  plist_get (tem, QCmatrix),
+                                  plist_get (tem, QCcolor_adjustment));
 	}
     }
 }
@@ -2503,17 +2515,17 @@ compute_image_size (double width, double height,
    finally move the origin back to the top left of the image, which
    may now be a different corner.
 
-   Note that different GUI backends (X, Cairo, w32, NS) want the
-   transform matrix defined as transform from the original image to
-   the transformed image, while others want the matrix to describe the
-   transform of the space, which boils down to inverting the matrix.
+   Note that different GUI backends (X, Cairo, w32, NS, Haiku) want
+   the transform matrix defined as transform from the original image
+   to the transformed image, while others want the matrix to describe
+   the transform of the space, which boils down to inverting the
+   matrix.
 
    It's possible to pre-calculate the matrix multiplications and just
    generate one transform matrix that will do everything we need in a
    single step, but the maths for each element is much more complex
    and performing the steps separately makes for more readable code.  */
 
-#ifndef HAVE_HAIKU
 typedef double matrix3x3[3][3];
 
 static void
@@ -2528,7 +2540,6 @@ matrix3x3_mult (matrix3x3 a, matrix3x3 b, matrix3x3 result)
 	result[i][j] = sum;
       }
 }
-#endif /* not HAVE_HAIKU */
 
 static void
 compute_image_rotation (struct image *img, double *rotation)
@@ -2553,6 +2564,22 @@ compute_image_rotation (struct image *img, double *rotation)
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
+  bool flip;
+
+#if defined HAVE_HAIKU
+  matrix3x3 identity = {
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+  };
+
+  img->original_width = img->width;
+  img->original_height = img->height;
+  img->use_bilinear_filtering = false;
+
+  memcpy (&img->transform, identity, sizeof identity);
+#endif
+
 # if (defined HAVE_IMAGEMAGICK \
       && !defined DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE)
   /* ImageMagick images already have the correct transform.  */
@@ -2587,8 +2614,10 @@ image_set_transform (struct frame *f, struct image *img)
   double rotation = 0.0;
   compute_image_rotation (img, &rotation);
 
-#ifndef HAVE_HAIKU
-# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
+  /* Determine flipping.  */
+  flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
+
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
@@ -2602,6 +2631,10 @@ image_set_transform (struct frame *f, struct image *img)
     smoothing = !NILP (s);
 # endif
 
+#ifdef HAVE_HAIKU
+  img->use_bilinear_filtering = smoothing;
+#endif
+
   /* Perform scale transformation.  */
 
   matrix3x3 matrix
@@ -2611,7 +2644,7 @@ image_set_transform (struct frame *f, struct image *img)
 		  : img->width / (double) width),
 	[1][1] = (!IEEE_FLOATING_POINT && height == 0 ? DBL_MAX
 		  : img->height / (double) height),
-# elif defined HAVE_NTGUI || defined HAVE_NS
+# elif defined HAVE_NTGUI || defined HAVE_NS || defined HAVE_HAIKU
 	[0][0] = (!IEEE_FLOATING_POINT && img->width == 0 ? DBL_MAX
 		  : width / (double) img->width),
 	[1][1] = (!IEEE_FLOATING_POINT && img->height == 0 ? DBL_MAX
@@ -2626,26 +2659,65 @@ image_set_transform (struct frame *f, struct image *img)
   /* Perform rotation transformation.  */
 
   int rotate_flag = -1;
-  if (rotation == 0)
+
+  /* Haiku needs this, since the transformation is done on the basis
+     of the view, and not the image.  */
+#ifdef HAVE_HAIKU
+  int extra_tx, extra_ty;
+
+  extra_tx = 0;
+  extra_ty = 0;
+#endif
+
+  if (rotation == 0 && !flip)
     rotate_flag = 0;
   else
     {
 # if (defined USE_CAIRO || defined HAVE_XRENDER \
-      || defined HAVE_NTGUI || defined HAVE_NS)
+      || defined HAVE_NTGUI || defined HAVE_NS \
+      || defined HAVE_HAIKU)
       int cos_r, sin_r;
-      if (rotation == 90)
+      if (rotation == 0)
+	{
+	  /* FLIP is always true here.  As this will rotate by 0
+	     degrees, it has no visible effect.  Applying only
+	     translation matrix to the image would be sufficient for
+	     horizontal flipping, but writing special handling for
+	     this case would increase code complexity somewhat.  */
+	  cos_r = 1;
+	  sin_r = 0;
+	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+	  extra_ty = 0;
+#endif
+	}
+      else if (rotation == 90)
 	{
 	  width = img->height;
 	  height = img->width;
 	  cos_r = 0;
 	  sin_r = 1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_ty = height;
+	  extra_tx = 0;
+#endif
 	}
       else if (rotation == 180)
 	{
 	  cos_r = -1;
 	  sin_r = 0;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  if (!flip)
+	    extra_tx = width;
+	  extra_ty = height;
+#endif
 	}
       else if (rotation == 270)
 	{
@@ -2654,6 +2726,13 @@ image_set_transform (struct frame *f, struct image *img)
 	  cos_r = 0;
 	  sin_r = -1;
 	  rotate_flag = 1;
+
+#ifdef HAVE_HAIKU
+	  extra_tx = width;
+
+	  if (flip)
+	    extra_ty = height;
+#endif
 	}
 
       if (0 < rotate_flag)
@@ -2674,9 +2753,14 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (rot, u, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * -.5;
 	  t[2][1] = height * -.5;
+	  if (flip)
+	    {
+	      t[0][0] = -t[0][0];
+	      t[2][0] = -t[2][0];
+	    }
 	  matrix3x3_mult (t, v, matrix);
 #  else
 	  /* 1. Translate so (0, 0) is in the center of the image.  */
@@ -2694,9 +2778,10 @@ image_set_transform (struct frame *f, struct image *img)
 	  matrix3x3 v;
 	  matrix3x3_mult (u, rot, v);
 
-	  /* 3. Translate back.  */
+	  /* 3. Translate back.  Flip horizontally if requested.  */
 	  t[2][0] = width * .5;
 	  t[2][1] = height * .5;
+	  if (flip) t[0][0] = -t[0][0];
 	  matrix3x3_mult (v, t, matrix);
 #  endif
 	  img->width = width;
@@ -2757,35 +2842,17 @@ image_set_transform (struct frame *f, struct image *img)
   img->xform.eM22 = matrix[1][1];
   img->xform.eDx  = matrix[2][0];
   img->xform.eDy  = matrix[2][1];
-# endif
-#else
-  if (rotation != 0 &&
-      rotation != 90 &&
-      rotation != 180 &&
-      rotation != 270 &&
-      rotation != 360)
+# elif defined HAVE_HAIKU
+  /* Store the transform in the struct image for later.  */
+  memcpy (&img->transform, &matrix, sizeof matrix);
+
+  /* Also add the extra translations.   */
+  if (rotate_flag)
     {
-      image_error ("No native support for rotation by %g degrees",
-		   make_float (rotation));
-      return;
+      img->transform[0][2] = extra_tx;
+      img->transform[1][2] = extra_ty;
     }
-
-  rotation = fmod (rotation, 360.0);
-
-  if (rotation == 90 || rotation == 270)
-    {
-      int w = width;
-      width = height;
-      height = w;
-    }
-
-  img->have_be_transforms_p = rotation != 0 || (img->width != width) || (img->height != height);
-  img->be_rotate = rotation;
-  img->be_scale_x = 1.0 / (img->width / (double) width);
-  img->be_scale_y = 1.0 / (img->height / (double) height);
-  img->width = width;
-  img->height = height;
-#endif /* not HAVE_HAIKU */
+#endif
 }
 
 #endif /* HAVE_IMAGEMAGICK || HAVE_NATIVE_TRANSFORMS */
@@ -2972,6 +3039,11 @@ struct anim_cache
   /* A function to call to free the handle.  */
   void (*destructor) (void *);
   int index, width, height, frames;
+  /* This is used to be able to say something about the cache size.
+     We don't actually know how much memory the different libraries
+     actually use here (since these cache structures are opaque), so
+     this is mostly just the size of the original image file.  */
+  int byte_size;
   struct timespec update_time;
   struct anim_cache *next;
 };
@@ -2988,12 +3060,16 @@ anim_create_cache (Lisp_Object spec)
   cache->index = -1;
   cache->next = NULL;
   cache->spec = spec;
+  cache->byte_size = 0;
   return cache;
 }
 
-/* Discard cached images that haven't been used for a minute. */
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR is t, remove all animation cache entries.  If CLEAR is
+   anything other than nil or t, only remove the entries that have a
+   spec `eq' to CLEAR.  */
 static void
-anim_prune_animation_cache (void)
+anim_prune_animation_cache (Lisp_Object clear)
 {
   struct anim_cache **pcache = &anim_cache;
   struct timespec old = timespec_sub (current_timespec (),
@@ -3002,9 +3078,9 @@ anim_prune_animation_cache (void)
   while (*pcache)
     {
       struct anim_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
+      if (EQ (clear, Qt)
+	  || (EQ (clear, Qnil) && timespec_cmp (old, cache->update_time) > 0)
+	  || EQ (clear, cache->spec))
 	{
 	  if (cache->handle)
 	    cache->destructor (cache);
@@ -3013,6 +3089,8 @@ anim_prune_animation_cache (void)
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
+      else
+	pcache = &cache->next;
     }
 }
 
@@ -3022,7 +3100,7 @@ anim_get_animation_cache (Lisp_Object spec)
   struct anim_cache *cache;
   struct anim_cache **pcache = &anim_cache;
 
-  anim_prune_animation_cache ();
+  anim_prune_animation_cache (Qnil);
 
   while (1)
     {
@@ -3723,6 +3801,8 @@ enum xbm_keyword_index
   XBM_ALGORITHM,
   XBM_HEURISTIC_MASK,
   XBM_MASK,
+  XBM_DATA_WIDTH,
+  XBM_DATA_HEIGHT,
   XBM_LAST
 };
 
@@ -3744,7 +3824,9 @@ static const struct image_keyword xbm_format[XBM_LAST] =
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":data-width",	IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":data-height",	IMAGE_POSITIVE_INTEGER_VALUE,		0}
 };
 
 /* Tokens returned from xbm_scan.  */
@@ -3766,8 +3848,8 @@ enum xbm_token
    an entry `:file FILENAME' where FILENAME is a string.
 
    If the specification is for a bitmap loaded from memory it must
-   contain `:width WIDTH', `:height HEIGHT', and `:data DATA', where
-   WIDTH and HEIGHT are integers > 0.  DATA may be:
+   contain `:data-width WIDTH', `:data-height HEIGHT', and `:data DATA',
+   where WIDTH and HEIGHT are integers > 0.  DATA may be:
 
    1. a string large enough to hold the bitmap data, i.e. it must
    have a size >= (WIDTH + 7) / 8 * HEIGHT
@@ -3777,9 +3859,7 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
-   4. a string containing an in-memory XBM file.  WIDTH and HEIGHT
-   may not be specified in this case because they are defined in the
-   XBM file.
+   4. a string containing an in-memory XBM file.
 
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
@@ -3799,13 +3879,13 @@ xbm_image_p (Lisp_Object object)
 
   if (kw[XBM_FILE].count)
     {
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_DATA].count)
+      if (kw[XBM_DATA].count)
 	return 0;
     }
   else if (kw[XBM_DATA].count && xbm_file_p (kw[XBM_DATA].value))
     {
       /* In-memory XBM file.  */
-      if (kw[XBM_WIDTH].count || kw[XBM_HEIGHT].count || kw[XBM_FILE].count)
+      if (kw[XBM_FILE].count)
 	return 0;
     }
   else
@@ -3814,14 +3894,14 @@ xbm_image_p (Lisp_Object object)
       int width, height, stride;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
-      if (!kw[XBM_WIDTH].count
-	  || !kw[XBM_HEIGHT].count
+      if (!kw[XBM_DATA_WIDTH].count
+	  || !kw[XBM_DATA_HEIGHT].count
 	  || !kw[XBM_DATA].count)
 	return 0;
 
       data = kw[XBM_DATA].value;
-      width = XFIXNAT (kw[XBM_WIDTH].value);
-      height = XFIXNAT (kw[XBM_HEIGHT].value);
+      width = XFIXNAT (kw[XBM_DATA_WIDTH].value);
+      height = XFIXNAT (kw[XBM_DATA_HEIGHT].value);
 
       if (!kw[XBM_STRIDE].count)
 	stride = width;
@@ -4445,8 +4525,8 @@ xbm_load (struct frame *f, struct image *img)
       /* Get specified width, and height.  */
       if (!in_memory_file_p)
 	{
-	  img->width = XFIXNAT (fmt[XBM_WIDTH].value);
-	  img->height = XFIXNAT (fmt[XBM_HEIGHT].value);
+	  img->width = XFIXNAT (fmt[XBM_DATA_WIDTH].value);
+	  img->height = XFIXNAT (fmt[XBM_DATA_HEIGHT].value);
 	  eassert (img->width > 0 && img->height > 0);
 	  if (!check_image_size (f, img->width, img->height))
 	    {
@@ -8954,13 +9034,14 @@ gif_load (struct frame *f, struct image *img)
   struct anim_cache* cache = NULL;
   /* Which sub-image are we to display?  */
   Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+  int byte_size = 0;
 
   idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
 
   if (!NILP (image_number))
     {
       /* If this is an animated image, create a cache for it.  */
-      cache = anim_get_animation_cache (img->spec);
+      cache = anim_get_animation_cache (XCDR (img->spec));
       /* We have an old cache entry, so use it.  */
       if (cache->handle)
 	{
@@ -9007,6 +9088,14 @@ gif_load (struct frame *f, struct image *img)
 		image_error ("Cannot open `%s'", file);
 	      return false;
 	    }
+
+	  /* Get the file size so that we can report it in
+	     `image-cache-size'.  */
+	  struct stat st;
+	  FILE *fp = fopen (SSDATA (encoded_file), "rb");
+	  if (fstat (fileno (fp), &st) == 0)
+	    byte_size = st.st_size;
+	  fclose (fp);
 	}
       else
 	{
@@ -9021,6 +9110,7 @@ gif_load (struct frame *f, struct image *img)
 	  memsrc.bytes = SDATA (specified_data);
 	  memsrc.len = SBYTES (specified_data);
 	  memsrc.index = 0;
+	  byte_size = memsrc.len;
 
 #if GIFLIB_MAJOR < 5
 	  gif = DGifOpen (&memsrc, gif_read_from_memory);
@@ -9115,6 +9205,7 @@ gif_load (struct frame *f, struct image *img)
       cache->destructor = (void (*)(void *)) &gif_destroy;
       cache->width = width;
       cache->height = height;
+      cache->byte_size = byte_size;
     }
 
   img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
@@ -9652,7 +9743,7 @@ webp_load (struct frame *f, struct image *img)
       /* Animated image.  */
       int timestamp;
 
-      struct anim_cache* cache = anim_get_animation_cache (img->spec);
+      struct anim_cache* cache = anim_get_animation_cache (XCDR (img->spec));
       /* Get the next frame from the animation cache.  */
       if (cache->handle && cache->index == idx - 1)
 	{
@@ -9685,6 +9776,9 @@ webp_load (struct frame *f, struct image *img)
 	  /* In any case, we release the allocated memory when we
 	     purge the anim cache.  */
 	  webp_data.size = size;
+
+	  /* This is used just for reporting by `image-cache-size'.  */
+	  cache->byte_size = size;
 
 	  /* Get the width/height of the total image.  */
 	  WebPDemuxer* demux = WebPDemux (&webp_data);
@@ -10025,9 +10119,10 @@ imagemagick_create_cache (char *signature)
   return cache;
 }
 
-/* Discard cached images that haven't been used for a minute. */
+/* Discard cached images that haven't been used for a minute.  If
+   CLEAR, discard all cached animated images.  */
 static void
-imagemagick_prune_animation_cache (void)
+imagemagick_prune_animation_cache (bool clear)
 {
   struct animation_cache **pcache = &animation_cache;
   struct timespec old = timespec_sub (current_timespec (),
@@ -10036,15 +10131,15 @@ imagemagick_prune_animation_cache (void)
   while (*pcache)
     {
       struct animation_cache *cache = *pcache;
-      if (timespec_cmp (old, cache->update_time) <= 0)
-	pcache = &cache->next;
-      else
+      if (clear || timespec_cmp (old, cache->update_time) > 0)
 	{
 	  if (cache->wand)
 	    DestroyMagickWand (cache->wand);
 	  *pcache = cache->next;
 	  xfree (cache);
 	}
+      else
+	pcache = &cache->next;
     }
 }
 
@@ -10055,7 +10150,7 @@ imagemagick_get_animation_cache (MagickWand *wand)
   struct animation_cache *cache;
   struct animation_cache **pcache = &animation_cache;
 
-  imagemagick_prune_animation_cache ();
+  imagemagick_prune_animation_cache (false);
 
   while (1)
     {
@@ -11785,6 +11880,30 @@ The list of capabilities can include one or more of the following:
   return Qnil;
 }
 
+DEFUN ("image-cache-size", Fimage_cache_size, Simage_cache_size, 0, 0, 0,
+       doc: /* Return the size of the image cache.  */)
+  (void)
+{
+  Lisp_Object tail, frame;
+  size_t total = 0;
+
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_WINDOW_P (XFRAME (frame)))
+      total += image_frame_cache_size (XFRAME (frame));
+
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  struct anim_cache *pcache = anim_cache;
+  while (pcache)
+    {
+      total += pcache->byte_size;
+      pcache = pcache->next;
+    }
+#endif
+
+  return make_int (total);
+}
+
+
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
 Return t if TYPE is a supported image type.
@@ -11894,6 +12013,18 @@ lookup_image_type (Lisp_Object type)
   return NULL;
 }
 
+/* Prune the animation caches.  If CLEAR, remove all animation cache
+   entries.  */
+void
+image_prune_animation_caches (bool clear)
+{
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  anim_prune_animation_cache (clear? Qt: Qnil);
+#endif
+#ifdef HAVE_IMAGEMAGICK
+  imagemagick_prune_animation_cache (clear);
+#endif
+}
 
 void
 syms_of_image (void)
@@ -11938,6 +12069,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCtransform_smoothing, ":transform-smoothing");
   DEFSYM (QCcolor_adjustment, ":color-adjustment");
   DEFSYM (QCmask, ":mask");
+  DEFSYM (QCflip, ":flip");
 
   /* Other symbols.  */
   DEFSYM (Qlaplace, "laplace");

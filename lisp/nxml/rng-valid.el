@@ -110,14 +110,14 @@
 
 (defcustom rng-state-cache-distance 2000
   "Distance in characters between each parsing and validation state cache."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rng-validate-chunk-size 8000
   "Number of characters in a RELAX NG validation chunk.
 A validation chunk will be the smallest chunk that is at least this
 size and ends with a tag.  After validating a chunk, validation will
 continue only if Emacs is still idle."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom rng-validate-delay 1.5
   "Time in seconds that Emacs must be idle before starting a full validation.
@@ -1275,7 +1275,7 @@ Return nil at end of buffer, t otherwise."
 
 (defun rng-segment-blank-p (segment)
   (if (car segment)
-      (rng-blank-p (car segment))
+      (string-blank-p (car segment))
     (apply #'rng-region-blank-p
 	   (cdr segment))))
 
@@ -1303,7 +1303,7 @@ string between START and END."
 	((not (or (and whitespace
 		       (or (eq whitespace t)
 			   (if value
-			       (rng-blank-p value)
+                               (string-blank-p value)
 			     (rng-region-blank-p start end))))
 		  (rng-match-mixed-text)))
 	 (rng-mark-invalid "Text not allowed" start (or end (point))))))

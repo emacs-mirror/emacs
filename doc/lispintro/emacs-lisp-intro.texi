@@ -2020,7 +2020,6 @@ the arguments to the function @code{concat} are the strings
 @w{@code{"The "}} and @w{@code{" red foxes."}} and the list
 @code{(number-to-string (+ 2 fill-column))}.
 
-@c For GNU Emacs 22, need number-to-string
 @smallexample
 (concat "The " (number-to-string (+ 2 fill-column)) " red foxes.")
 @end smallexample
@@ -10297,9 +10296,8 @@ loop with a list.
 
 @cindex @file{*scratch*} buffer
 The function requires several lines for its output.  If you are
-reading this in a recent instance of GNU Emacs,
-@c GNU Emacs 21, GNU Emacs 22, or a later version,
-you can evaluate the following expression inside of Info, as usual.
+reading this in a recent instance of GNU Emacs, you can evaluate the
+following expression inside of Info, as usual.
 
 If you are using an earlier version of Emacs, you need to copy the
 necessary expressions to your @file{*scratch*} buffer and evaluate
@@ -15134,16 +15132,16 @@ Emacs may produce different results.)
 @end group
 
 @group
-(lengths-list-file "./lisp/makesum.el")
-     @result{} (85 181)
+(lengths-list-file "./lisp/hex-util.el")
+     @result{} (82 71)
 @end group
 
 @group
   (recursive-lengths-list-many-files
    '("./lisp/macros.el"
      "./lisp/mail/mailalias.el"
-     "./lisp/makesum.el"))
-       @result{} (283 263 480 90 38 32 29 95 178 180 321 218 324 85 181)
+     "./lisp/hex-util.el"))
+       @result{} (283 263 480 90 38 32 29 95 178 180 321 218 324 82 71)
 @end group
 @end smallexample
 
@@ -15235,27 +15233,13 @@ Sorting the list returned by the
 @code{recursive-lengths-list-many-files} function is straightforward;
 it uses the @code{<} function:
 
-@ignore
-2006 Oct 29
-In GNU Emacs 22,  eval
-(progn
-  (cd "/usr/local/share/emacs/22.0.50/")
-  (sort
-   (recursive-lengths-list-many-files
-    '("./lisp/macros.el"
-      "./lisp/mail/mailalias.el"
-      "./lisp/makesum.el"))
-   '<))
-
-@end ignore
-
 @smallexample
 @group
 (sort
  (recursive-lengths-list-many-files
   '("./lisp/macros.el"
     "./lisp/mailalias.el"
-    "./lisp/makesum.el"))
+    "./lisp/hex-util.el"))
  '<)
 @end group
 @end smallexample
@@ -15265,7 +15249,7 @@ In GNU Emacs 22,  eval
 which produces:
 
 @smallexample
-(29 32 38 85 90 95 178 180 181 218 263 283 321 324 480)
+(29 32 38 71 82 90 95 178 180 218 263 283 321 324 480)
 @end smallexample
 
 @noindent
@@ -15313,7 +15297,7 @@ as a list that looks like this (but with more elements):
 @group
 ("./lisp/macros.el"
  "./lisp/mail/rmail.el"
- "./lisp/makesum.el")
+ "./lisp/hex-util.el")
 @end group
 @end smallexample
 
@@ -17710,17 +17694,6 @@ or start GNU Emacs with the command @code{emacs -nbc}.
 @smallexample
 (setq grep-command "grep -i -nH -e ")
 @end smallexample
-
-@ignore
-@c Evidently, no longer needed in GNU Emacs 22
-
-item Automatically uncompress compressed files when visiting them
-
-smallexample
-(load "uncompress")
-end smallexample
-
-@end ignore
 
 @item Find an existing buffer, even if it has a different name@*
 This avoids problems with symbolic links.

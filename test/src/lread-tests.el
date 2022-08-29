@@ -128,7 +128,7 @@
     (save-excursion
       (goto-char (point-max))
       (skip-chars-backward "\n")
-      (buffer-substring (line-beginning-position) (point)))))
+      (buffer-substring (pos-bol) (point)))))
 
 (ert-deftest lread-tests--unescaped-char-literals ()
   "Check that loading warns about unescaped character
@@ -321,5 +321,22 @@ literals (Bug#20852)."
   ;; ?\LF should signal an error; \LF is ignored inside string literals.
   (should-error (read-from-string "?\\\n x"))
   (should (equal (read-from-string "\"a\\\nb\"") '("ab" . 6))))
+
+(ert-deftest lread-force-load-doc-strings ()
+  ;; Verify that lazy doc strings are loaded lazily by default,
+  ;; but eagerly with `force-load-doc-strings' set.
+  (let ((file (expand-file-name "lazydoc.el" (ert-resource-directory))))
+    (fmakunbound 'lazydoc-fun)
+    (load file)
+    (let ((f (symbol-function 'lazydoc-fun)))
+      (should (byte-code-function-p f))
+      (should (equal (aref f 4) (cons file 87))))
+
+    (fmakunbound 'lazydoc-fun)
+    (let ((load-force-doc-strings t))
+      (load file)
+      (let ((f (symbol-function 'lazydoc-fun)))
+        (should (byte-code-function-p f))
+        (should (equal (aref f 4) "My little\ndoc string\nhere"))))))
 
 ;;; lread-tests.el ends here

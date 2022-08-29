@@ -35,7 +35,6 @@
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
 (autoload 'gnus-completing-read "gnus-util")
 (autoload 'message-fetch-field "message")
-(autoload 'message-mark-active-p "message")
 (autoload 'message-info "message")
 (autoload 'fill-flowed-encode "flow-fill")
 (autoload 'message-posting-charset "message")
@@ -980,13 +979,10 @@ type detected."
 	  (symbol-name type) value))))))
 
 (defvar ange-ftp-name-format)
-(defvar efs-path-regexp)
 
 (defun mml-parse-file-name (path)
-  (if (if (boundp 'efs-path-regexp)
-	  (string-match efs-path-regexp path)
-	(if (boundp 'ange-ftp-name-format)
-	    (string-match (car ange-ftp-name-format) path)))
+  (if (and (boundp 'ange-ftp-name-format)
+           (string-match (car ange-ftp-name-format) path))
       (list (match-string 1 path) (match-string 2 path)
 	    (substring path (1+ (match-end 2))))
     path))
@@ -1239,7 +1235,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ;;
     ;;["Narrow" mml-narrow-to-part t]
     ["Quote MML in region" mml-quote-region
-     :active (message-mark-active-p)
+     :active mark-active
      :help "Quote MML tags in region"]
     ["Validate MML" mml-validate t]
     ["Preview" mml-preview t]
@@ -1517,7 +1513,7 @@ BUFFER is the name of the buffer to attach.  See
 
 (defun mml-attach-external (file &optional type description)
   "Attach an external file into the buffer.
-FILE is an ange-ftp/efs specification of the part location.
+FILE is an ange-ftp specification of the part location.
 TYPE is the MIME type to use."
   (interactive
    (let* ((file (mml-minibuffer-read-file "Attach external file: "))

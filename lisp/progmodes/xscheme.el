@@ -1,7 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, lisp
@@ -71,7 +70,9 @@ by the scheme process, so additional control-g's are to be ignored.")
 (defvar xscheme-string-receiver nil
   "Procedure to send the string argument from the scheme process.")
 
-(defconst default-xscheme-runlight
+(define-obsolete-variable-alias 'default-xscheme-runlight
+  'xscheme-default-runlight "29.1")
+(defconst xscheme-default-runlight
   '(": " xscheme-runlight-string)
   "Default global (shared) xscheme-runlight mode line format.")
 
@@ -240,7 +241,7 @@ With argument, asks for a command line."
    (list (read-buffer "Scheme interaction buffer: "
 		      xscheme-buffer-name
 		      t)))
-  (let ((process-name (verify-xscheme-buffer buffer-name nil)))
+  (let ((process-name (xscheme-verify-buffer buffer-name nil)))
     (setq-default xscheme-buffer-name buffer-name)
     (setq-default xscheme-process-name process-name)
     (setq-default xscheme-runlight-string
@@ -248,8 +249,8 @@ With argument, asks for a command line."
                     xscheme-runlight-string))
     (setq-default xscheme-runlight
 		  (if (eq (process-status process-name) 'run)
-		      default-xscheme-runlight
-		      ""))))
+                      xscheme-default-runlight
+                    ""))))
 
 (defun local-set-scheme-interaction-buffer (buffer-name)
   "Set the scheme interaction buffer for the current buffer."
@@ -257,7 +258,7 @@ With argument, asks for a command line."
    (list (read-buffer "Scheme interaction buffer: "
 		      xscheme-buffer-name
 		      t)))
-  (let ((process-name (verify-xscheme-buffer buffer-name t)))
+  (let ((process-name (xscheme-verify-buffer buffer-name t)))
     (setq-local xscheme-buffer-name buffer-name)
     (setq-local xscheme-process-name process-name)
     (setq-local xscheme-runlight
@@ -273,7 +274,7 @@ With argument, asks for a command line."
   (kill-local-variable 'xscheme-process-name)
   (kill-local-variable 'xscheme-runlight))
 
-(defun verify-xscheme-buffer (buffer-name localp)
+(defun xscheme-verify-buffer (buffer-name localp)
   (if (and localp (xscheme-process-buffer-current-p))
       (error "Cannot change the interaction buffer of an interaction buffer"))
   (let* ((buffer (get-buffer buffer-name))
@@ -921,8 +922,8 @@ the remaining input.")
 	(setq scheme-mode-line-process '(": " xscheme-runlight-string))
 	(xscheme-mode-line-initialize name)
 	(if (equal name (default-value 'xscheme-buffer-name))
-	    (setq-default xscheme-runlight default-xscheme-runlight))))
-  (if (or (eq xscheme-runlight default-xscheme-runlight)
+            (setq-default xscheme-runlight xscheme-default-runlight))))
+  (if (or (eq xscheme-runlight xscheme-default-runlight)
 	  (equal xscheme-runlight ""))
       (setq xscheme-runlight (list ": " 'xscheme-buffer-name ": " "?")))
   (rplaca (nthcdr 3 xscheme-runlight)
@@ -1179,6 +1180,8 @@ the remaining input.")
 		   (let ((state (parse-partial-sexp start (nth 2 state))))
 		     (if (nth 2 state) 'many 'one)))))
 	(set-syntax-table old-syntax-table)))))
+
+(define-obsolete-function-alias 'verify-xscheme-buffer #'xscheme-verify-buffer "29.1")
 
 (provide 'xscheme)
 

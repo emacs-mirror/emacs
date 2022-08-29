@@ -27,8 +27,8 @@
 ;; to the corresponding source file.
 
 ;; Inspired by Pavel Machek's patch-mode.el (<pavel@@atrey.karlin.mff.cuni.cz>)
-;; Some efforts were spent to have it somewhat compatible with XEmacs's
-;; diff-mode as well as with compilation-minor-mode
+;; Some efforts were spent to have it somewhat compatible with
+;; `compilation-minor-mode'.
 
 ;; Bugs:
 
@@ -146,6 +146,12 @@ and hunk-based syntax highlighting otherwise as a fallback."
                  (const :tag "Hunk-based only" hunk-only)
                  (const :tag "Highlight syntax" t)
                  (const :tag "Allow hunk-based fallback" hunk-also)))
+
+(defcustom diff-whitespace-style '(face trailing)
+  "Specify `whitespace-style' variable for `diff-mode' buffers."
+  :require 'whitespace
+  :type (get 'whitespace-style 'custom-type)
+  :version "29.1")
 
 (defvar diff-vc-backend nil
   "The VC backend that created the current Diff buffer, if any.")
@@ -627,7 +633,7 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
         (when (looking-at regexp-hunk) ; Hunk header.
           (throw 'headerp (point)))
         (forward-line -1)
-        (when (re-search-forward regexp-file (point-at-eol 4) t) ; File header.
+        (when (re-search-forward regexp-file (line-end-position 4) t) ; File header.
           (forward-line 0)
           (throw 'headerp (point)))
         (goto-char orig)
@@ -1476,9 +1482,6 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     ;; Added when diff--font-lock-prettify is non-nil!
     (cl-pushnew 'display font-lock-extra-managed-props)))
 
-(defvar whitespace-style)
-(defvar whitespace-trailing-regexp)
-
 (defvar-local diff-mode-read-only nil
   "Non-nil when read-only diff buffer uses short keys.")
 
@@ -1486,6 +1489,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
     (nconc minor-mode-map-alist
            (list (cons 'diff-mode-read-only diff-mode-shared-map))))
+
+(defvar whitespace-style)
+(defvar whitespace-trailing-regexp)
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
@@ -1572,7 +1578,7 @@ a diff with \\[diff-reverse-direction].
 This sets `whitespace-style' and `whitespace-trailing-regexp' so
 that Whitespace mode shows trailing whitespace problems on the
 modified lines of the diff."
-  (setq-local whitespace-style '(face trailing))
+  (setq-local whitespace-style diff-whitespace-style)
   (let ((style (save-excursion
 		 (goto-char (point-min))
                  ;; FIXME: For buffers filled from async processes, this search
@@ -2074,7 +2080,7 @@ For use in `add-log-current-defun-function'."
       (re-search-forward "^[^ ]" nil t))
     (pcase-let ((`(,buf ,_line-offset ,pos ,src ,dst ,switched)
                  (ignore-errors         ;Signals errors in place of prompting.
-                   ;; Use `noprompt' since this is used in which-func-mode
+                   ;; Use `noprompt' since this is used in which-function-mode
                    ;; and such.
                    (diff-find-source-location nil nil 'noprompt))))
       (when buf
@@ -2682,7 +2688,17 @@ fixed, visit it in a buffer."
                    ((and (null (match-string 4)) (match-string 5))
                     (concat "New " kind filemode newfile))
                    ((null (match-string 2))
-                    (concat "Deleted" kind filemode oldfile))
+                    ;; We used to use
+                    ;;     (concat "Deleted" kind filemode oldfile)
+                    ;; here but that misfires for `diff-buffers'
+                    ;; (see 24 Jun 2022 message in bug#54034).
+                    ;; AFAIK if (match-string 2) is nil then so is
+                    ;; (match-string 1), so "Deleted" doesn't sound right,
+                    ;; so better just let the header in plain sight for now.
+                    ;; FIXME: `diff-buffers' should maybe try to better
+                    ;; mimic Git's format with "a/" and "b/" so prettification
+                    ;; can "just work!"
+                    nil)
                    (t
                     (concat "Modified" kind filemode oldfile)))
                   'face '(diff-file-header diff-header))

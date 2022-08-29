@@ -929,7 +929,7 @@ macfont_descriptor_entity (CTFontDescriptorRef desc, Lisp_Object extra,
         cfnumber_get_font_symbolic_traits_value (num, &sym_traits);
       CFRelease (dict);
     }
-  if (EQ (AREF (entity, FONT_SIZE_INDEX), make_fixnum (0)))
+  if (BASE_EQ (AREF (entity, FONT_SIZE_INDEX), make_fixnum (0)))
     ASET (entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
   ASET (entity, FONT_EXTRA_INDEX, Fcopy_sequence (extra));
   name = CTFontDescriptorCopyAttribute (desc, kCTFontNameAttribute);
@@ -2645,6 +2645,9 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   font->pixel_size = size;
   font->driver = &macfont_driver;
   font->encoding_charset = font->repertory_charset = -1;
+  /* Clear font->space_width so macfont_monospace_width_multiplier may
+     not be confused by an uninitialized value.  */
+  font->space_width = 0;
 
   block_input ();
 
@@ -2653,7 +2656,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   macfont_info->cgfont = CTFontCopyGraphicsFont (macfont, NULL);
 
   val = assq_no_quit (QCdestination, AREF (entity, FONT_EXTRA_INDEX));
-  if (CONSP (val) && EQ (XCDR (val), make_fixnum (1)))
+  if (CONSP (val) && BASE_EQ (XCDR (val), make_fixnum (1)))
     macfont_info->screen_font = mac_screen_font_create_with_name (font_name,
                                                                   size);
   else

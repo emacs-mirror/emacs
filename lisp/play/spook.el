@@ -49,7 +49,7 @@
 
 (defcustom spook-phrase-default-count 15
   "Default number of phrases to insert."
-  :type 'integer)
+  :type 'natnum)
 
 ;;;###autoload
 (defun spook ()

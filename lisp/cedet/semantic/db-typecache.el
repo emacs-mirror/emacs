@@ -362,7 +362,7 @@ a master list."
 	  ;; don't include ourselves in this crazy list.
 	  (when (and i (not (eq i table))
 		     ;; @todo - This eieio fcn can be slow!  Do I need it?
-		     ;; (semanticdb-table-child-p i)
+		     ;; (cl-typep i 'semanticdb-table)
 		     )
 	    (setq incstream
 		  (semanticdb-typecache-merge-streams

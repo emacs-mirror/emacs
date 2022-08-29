@@ -168,7 +168,8 @@
 It must be supported by libarchive(3).")
 
 ;; <https://unix-memo.readthedocs.io/en/latest/vfs.html>
-;;    read and write: tar, cpio, pax , gzip , zip, bzip2, xz, lzip, lzma, ar, mtree, iso9660, compress.
+;;    read and write: tar, cpio, pax , gzip , zip, bzip2, xz, lzip,
+;;                    lzma, ar, mtree, iso9660, compress.
 ;;    read only: 7-Zip, mtree, xar, lha/lzh, rar, microsoft cab.
 
 ;;;###autoload
@@ -183,14 +184,17 @@ It must be supported by libarchive(3).")
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  '(concat
-    "\\`" "\\(" ".+" "\\."
-      ;; Default suffixes ...
-      (regexp-opt tramp-archive-suffixes)
-      ;; ... with compression.
-      "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*"
-    "\\)" ;; \1
-    "\\(" "/" ".*" "\\)" "\\'"))) ;; \2
+  '(rx bos
+       ;; \1
+       (group
+	(+ nonl)
+	;; Default suffixes ...
+	"." (regexp (regexp-opt tramp-archive-suffixes))
+	;; ... with compression.
+	(? "." (regexp (regexp-opt tramp-archive-compression-suffixes))))
+       ;; \2
+       (group "/" (* nonl))
+       eos)))
 
 (put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
 
@@ -227,7 +231,7 @@ It must be supported by libarchive(3).")
     (delete-file . tramp-archive-handle-not-implemented)
     ;; `diff-latest-backup-file' performed by default handler.
     (directory-file-name . tramp-archive-handle-directory-file-name)
-    (directory-files . tramp-handle-directory-files)
+    (directory-files . tramp-archive-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . tramp-archive-handle-not-implemented)
@@ -240,7 +244,7 @@ It must be supported by libarchive(3).")
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-archive-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-archive-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-archive-handle-file-local-copy)
     (file-locked-p . ignore)
@@ -309,7 +313,8 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 	     #'tramp-archive-file-name-p))
     (apply #'tramp-file-name-for-operation operation args)))
 
-(defun tramp-archive-run-real-handler (operation args)
+;;;###tramp-autoload
+(progn (defun tramp-archive-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
 First arg specifies the OPERATION, second arg ARGS is a list of
 arguments to pass to the OPERATION."
@@ -319,8 +324,12 @@ arguments to pass to the OPERATION."
 	    ,(and (eq inhibit-file-name-operation operation)
 		  inhibit-file-name-handlers)))
 	 (inhibit-file-name-operation operation))
-    (apply operation args)))
+    (apply operation args))))
 
+;; Starting with Emacs 29, `tramp-archive-file-name-handler' is
+;; autoloaded.  But it must still be in tramp-loaddefs.el for older
+;; Emacsen.
+;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archive")
 ;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
   "Invoke the file archive related OPERATION.
@@ -347,6 +356,13 @@ arguments to pass to the OPERATION."
 	        (tramp-archive-run-real-handler
                  #'file-directory-p (list archive)))
             (tramp-archive-run-real-handler operation args)
+	  ;; The default directory of the Tramp connection buffer
+	  ;; cannot be accessed.  (Bug#56628)
+	  ;; FIXME: It is superfluous to set it every single loop.
+	  ;; But there is no place to set it when creating the buffer.
+	  (with-current-buffer
+	      (tramp-get-buffer (tramp-archive-dissect-file-name filename))
+	    (setq default-directory (file-name-as-directory archive)))
           ;; Now run the handler.
           (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
 	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
@@ -604,6 +620,27 @@ offered."
       ;; example.  So we return `directory'.
       directory)))
 
+(defun tramp-archive-handle-directory-files
+    (directory &optional full match nosort count)
+  "Like `directory-files' for Tramp files."
+  (unless (file-exists-p directory)
+    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
+  (when (file-directory-p directory)
+    (setq directory (file-name-as-directory (expand-file-name directory)))
+    (let ((temp (nreverse (file-name-all-completions "" directory)))
+	  result item)
+
+      (while temp
+	(setq item (directory-file-name (pop temp)))
+	(when (or (null match) (string-match-p match item))
+	  (push (if full (concat directory item) item)
+		result)))
+      (unless nosort
+        (setq result (sort result #'string<)))
+      (when (and (natnump count) (> count 0))
+	(setq result (tramp-compat-ntake count result)))
+      result)))
+
 (defun tramp-archive-handle-dired-uncache (dir)
   "Like `dired-uncache' for file archives."
   (dired-uncache (tramp-archive-gvfs-file-name dir)))
@@ -615,6 +652,10 @@ offered."
 (defun tramp-archive-handle-file-executable-p (filename)
   "Like `file-executable-p' for file archives."
   (file-executable-p (tramp-archive-gvfs-file-name filename)))
+
+(defun tramp-archive-handle-file-exists-p (filename)
+  "Like `file-exists-p' for file archives."
+  (file-exists-p (tramp-archive-gvfs-file-name filename)))
 
 (defun tramp-archive-handle-file-local-copy (filename)
   "Like `file-local-copy' for file archives."

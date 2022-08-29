@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.4
+;; Old-Version: 4.4
 ;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -22,16 +22,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-(defconst ebnf-version "4.4"
-  "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
-
-Vinicius's last change version.  When reporting bugs, please also
-report the version of Emacs, if any, that ebnf2ps was running with.
-
-Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
-
-
 ;;; Commentary:
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -45,20 +35,12 @@ Please send all bug fixes and enhancements to
 ;;
 ;;        (require 'ebnf2ps)
 ;;
-;; ebnf2ps uses ps-print package (version 5.2.3 or later), so see ps-print to
+;; ebnf2ps uses ps-print package (bundled with Emacs), so see ps-print to
 ;; know how to set options like landscape printing, page headings, margins,
 ;; etc.
 ;;
-;; NOTE: ps-print zebra stripes and line number options doesn't have effect on
-;;       ebnf2ps, they behave as it's turned off.
-;;
-;; For good performance, be sure to byte-compile ebnf2ps.el, e.g.
-;;
-;;    M-x byte-compile-file <give the path to ebnf2ps.el when prompted>
-;;
-;; This will generate ebnf2ps.elc, which will be loaded instead of ebnf2ps.el.
-;;
-;; ebnf2ps was tested with GNU Emacs 20.4.1.
+;; NOTE: ps-print zebra stripes and line number options don't have an
+;;       effect on ebnf2ps, they behave as if it's turned off.
 ;;
 ;;
 ;; Using ebnf2ps
@@ -1154,9 +1136,6 @@ Please send all bug fixes and enhancements to
 (require 'ps-print)
 (eval-when-compile (require 'cl-lib))
 
-(and (string< ps-print-version "5.2.3")
-     (error "`ebnf2ps' requires `ps-print' package version 5.2.3 or later"))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -2037,7 +2016,6 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
   :group 'ebnf2ps)
 
 
-;; Printing color requires x-color-values.
 (defcustom ebnf-color-p t
   "Non-nil means use color."
   :type 'boolean
@@ -2456,8 +2434,6 @@ See also `ebnf-syntax-buffer'."
   "Return the current ebnf2ps setup."
   (format
    "
-;;; ebnf2ps.el version %s
-
 ;;; Emacs version %S
 
 \(setq ebnf-special-show-delimiter      %S
@@ -2526,7 +2502,6 @@ See also `ebnf-syntax-buffer'."
 
 ;;; ebnf2ps.el - end of settings
 "
-   ebnf-version
    emacs-version
    ebnf-special-show-delimiter
    (ps-print-quote ebnf-special-font)
@@ -2959,7 +2934,7 @@ See section \"Actions in Comments\" in ebnf2ps documentation.")
 
 
 (defvar ebnf-eps-file-alist nil
-"Alist associating file name with EPS header and footer.
+  "Alist associating file name with EPS header and footer.
 
 Each element has the following form:
 
@@ -4524,7 +4499,7 @@ end
 
 (defun ebnf-generate-eps (tree)
   (let* ((ebnf-tree tree)
-         (ps-color-p           (and ebnf-color-p (ps-color-device)))
+         (ps-color-p           (and ebnf-color-p (display-color-p)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (color-values "white")))
 				 1.0))
@@ -4626,7 +4601,7 @@ end
 
 (defun ebnf-generate (tree)
   (let* ((ebnf-tree tree)
-         (ps-color-p           (and ebnf-color-p (ps-color-device)))
+         (ps-color-p           (and ebnf-color-p (display-color-p)))
 	 (ps-print-color-scale (if ps-color-p
 				   (float (car (color-values "white")))
 				 1.0))
@@ -5243,11 +5218,7 @@ killed after process termination."
 	 (not (search-forward "& ebnf2ps v"
 			      (line-end-position)
 			      t))
-	 (progn
-	   ;; adjust creator comment
-	   (end-of-line)
-	   ;; (backward-char)
-	   (insert " & ebnf2ps v" ebnf-version)
+         (progn
 	   ;; insert ebnf settings & engine
 	   (goto-char (point-max))
 	   (search-backward "\n%%EndProlog\n")
@@ -5273,7 +5244,7 @@ killed after process termination."
        (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
        "\n%%Title: " filename
        "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
-       "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
+       "\n%%Creator: " (user-full-name) " (using GNU Emacs " emacs-version ")"
        "\n%%DocumentNeededResources: font "
        (or ebnf-fonts-required
 	   (setq ebnf-fonts-required
@@ -6351,6 +6322,15 @@ killed after process termination."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defconst ebnf-version "4.4"
+  "ebnf2ps.el, v 4.4 <2007/02/12 vinicius>
+
+Vinicius's last change version.  When reporting bugs, please also
+report the version of Emacs, if any, that ebnf2ps was running with.
+
+Please send all bug fixes and enhancements to
+  bug-gnu-emacs@gnu.org and Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>.")
+(make-obsolete-variable 'ebnf-version 'emacs-version "29.1")
 
 (provide 'ebnf2ps)
 

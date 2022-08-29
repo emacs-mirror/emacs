@@ -38,6 +38,7 @@
   "Alist of selection names to their values.")
 
 (defvar x-treat-local-requests-remotely)
+(defvar x-dnd-preserve-selection-data)
 
 ;; Define some replacements for functions used by the drag-and-drop
 ;; code on X when running under something else.
@@ -152,7 +153,8 @@ This function only tries to handle strings."
   ;; program with reasonably correct behavior, such as dtpad, gedit,
   ;; or Mozilla.
   ;;                ASCII            Latin-1       UTF-8
-  (let ((test-text "hello, everyone! sæl öllsömul! всем привет"))
+  (let ((test-text "hello, everyone! sæl öllsömul! всем привет")
+        (x-dnd-preserve-selection-data t))
     ;; Verify that dragging works.
     (should (eq (dnd-begin-text-drag test-text) 'copy))
     (should (eq (dnd-begin-text-drag test-text nil 'move) 'move))
@@ -187,7 +189,8 @@ This function only tries to handle strings."
         (normal-multibyte-file (expand-file-name
                                 (make-temp-name "тест-на-перетаскивание")
                                 temporary-file-directory))
-        (remote-temp-file (dnd-tests-make-temp-name)))
+        (remote-temp-file (dnd-tests-make-temp-name))
+        (x-dnd-preserve-selection-data t))
     ;; Touch those files if they don't exist.
     (unless (file-exists-p normal-temp-file)
       (write-region "" 0 normal-temp-file))
@@ -239,10 +242,17 @@ This function only tries to handle strings."
           ;; Test that the remote file was added to the list of files
           ;; to remove later.
           (should dnd-last-dragged-remote-file)
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Test that the remote file was removed.
           (should (progn
                     (dnd-begin-file-drag normal-temp-file)
                     (not dnd-last-dragged-remote-file)))
+          ;; Make sure the remote file removal hook was deleted.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Test that links to remote files can't be created.
           (should-error (dnd-begin-file-drag remote-temp-file nil 'link))
           ;; Test dragging a file with a multibyte filename.
@@ -273,7 +283,8 @@ This function only tries to handle strings."
          (expand-file-name (make-temp-name "dnd-test")
                            temporary-file-directory))
         (nonexistent-remote-file (dnd-tests-make-temp-name))
-        (nonexistent-remote-file-1 (dnd-tests-make-temp-name)))
+        (nonexistent-remote-file-1 (dnd-tests-make-temp-name))
+        (x-dnd-preserve-selection-data t))
     ;; Touch those files if they don't exist.
     (unless (file-exists-p normal-temp-file)
       (write-region "" 0 normal-temp-file))
@@ -294,12 +305,19 @@ This function only tries to handle strings."
           ;; Test that the remote file produced was added to the list
           ;; of files to remove upon the next call.
           (should dnd-last-dragged-remote-file)
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Two local files at the same time.
           (should (eq (dnd-begin-drag-files (list normal-temp-file
                                                   normal-temp-file-1))
                       'copy))
           ;; Test that the remote files were removed.
           (should-not dnd-last-dragged-remote-file)
+          ;; And so was the hook.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Test the selection data is correct.
           (let ((uri-list-data (cdr (dnd-tests-verify-selection-data 'text/uri-list)))
                 (username-data (dnd-tests-verify-selection-data 'text/x-xdnd-username))
@@ -343,6 +361,10 @@ This function only tries to handle strings."
                        ;; Make sure exactly two valid remote files
                        ;; were downloaded.
                        (eq (length dnd-last-dragged-remote-file) 2)))
+          ;; Make sure the appropriate hook is added so the remote
+          ;; files are removed when Emacs exits.
+          (should (memq #'dnd-remove-last-dragged-remote-file
+                        kill-emacs-hook))
           ;; Make sure links can't be created to remote files.
           (should-error (dnd-begin-drag-files (list normal-temp-file
                                                     remote-temp-file
@@ -353,6 +375,9 @@ This function only tries to handle strings."
                                                   normal-temp-file-1)
                                             nil 'link)
                       'link))
+          ;; Make sure the remote file removal hook was deleted.
+          (should-not (memq #'dnd-remove-last-dragged-remote-file
+                            kill-emacs-hook))
           ;; Make sure you can't drag an empty list of files.
           (should-error (dnd-begin-drag-files nil))
           ;; And when all remote files are inaccessible.
@@ -370,6 +395,47 @@ This function only tries to handle strings."
                  "file:///path/to/"))
   (should-not (dnd-get-local-file-uri "file://some-remote-host/path/to/foo"))
   (should-not (dnd-get-local-file-uri "file:///path/to/foo")))
+
+(ert-deftest dnd-tests-open-remote-url ()
+  ;; Expensive test to make sure opening an FTP URL during
+  ;; drag-and-drop works.
+  :tags '(:expensive-test)
+  ;; Don't run if there is no ftp client.
+  (skip-unless (executable-find "ftp"))
+  ;; Don't run this test if the FTP server isn't reachable.
+  (skip-unless (and (fboundp 'network-lookup-address-info)
+                    (network-lookup-address-info "ftp.gnu.org")))
+  ;; Make sure bug#56078 doesn't happen again.
+  (let ((url "ftp://anonymous@ftp.gnu.org/")
+        ;; This prints a bunch of annoying spaces to stdout.
+        (inhibit-message t))
+    (should (prog1 t (dnd-open-remote-url url 'private)))))
+
+(ert-deftest dnd-tests-direct-save ()
+  ;; This test just verifies that a direct save works; the window
+  ;; system specific test is in x-dnd-tests.el.  When running this
+  ;; interactively, keep in mind that there are only two file managers
+  ;; which are known to implement XDS correctly: System G (see
+  ;; http://nps-systemg.sourceforge.net), and Emacs itself.  GTK file
+  ;; managers such as Nautilus will not work, since they prefer the
+  ;; `text/uri-list' selection target to `XdndDirectSave0', contrary
+  ;; to the XDS specification.
+  (let ((window-system window-system)
+        (normal-temp-file (expand-file-name (make-temp-name "dnd-test")
+                                            temporary-file-directory)))
+    (unwind-protect
+        (progn
+          (unless (file-exists-p normal-temp-file)
+            (write-region "" 0 normal-temp-file))
+          (unless (eq window-system 'x)
+            ;; Use a window system that isn't X, since we only want to test
+            ;; the fallback code when run non-interactively.
+            (setq window-system 'haiku))
+          (should (eq (dnd-direct-save normal-temp-file
+                                       (make-temp-name "target-file-name"))
+                      'copy)))
+      (ignore-errors
+        (delete-file normal-temp-file)))))
 
 (provide 'dnd-tests)
 ;;; dnd-tests.el ends here

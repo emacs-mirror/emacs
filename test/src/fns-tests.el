@@ -852,24 +852,6 @@
     (should-not (plist-get d1 3))
     (should-not (plist-get d2 3))))
 
-(ert-deftest test-cycle-lax-plist-get ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-get c1 1))
-    (should (lax-plist-get c2 1))
-    (should (lax-plist-get d1 1))
-    (should (lax-plist-get d2 1))
-    (should-error (lax-plist-get c1 2) :type 'circular-list)
-    (should (lax-plist-get c2 2))
-    (should-error (lax-plist-get d1 2) :type 'wrong-type-argument)
-    (should (lax-plist-get d2 2))
-    (should-error (lax-plist-get c1 3) :type 'circular-list)
-    (should-error (lax-plist-get c2 3) :type 'circular-list)
-    (should-error (lax-plist-get d1 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-get d2 3) :type 'wrong-type-argument)))
-
 (ert-deftest test-cycle-plist-member ()
   (let ((c1 (cyc1 1))
         (c2 (cyc2 1 2))
@@ -906,24 +888,6 @@
     (should-error (plist-put d1 3 3) :type 'wrong-type-argument)
     (should-error (plist-put d2 3 3) :type 'wrong-type-argument)))
 
-(ert-deftest test-cycle-lax-plist-put ()
-  (let ((c1 (cyc1 1))
-        (c2 (cyc2 1 2))
-        (d1 (dot1 1))
-        (d2 (dot2 1 2)))
-    (should (lax-plist-put c1 1 1))
-    (should (lax-plist-put c2 1 1))
-    (should (lax-plist-put d1 1 1))
-    (should (lax-plist-put d2 1 1))
-    (should-error (lax-plist-put c1 2 2) :type 'circular-list)
-    (should (lax-plist-put c2 2 2))
-    (should-error (lax-plist-put d1 2 2) :type 'wrong-type-argument)
-    (should (lax-plist-put d2 2 2))
-    (should-error (lax-plist-put c1 3 3) :type 'circular-list)
-    (should-error (lax-plist-put c2 3 3) :type 'circular-list)
-    (should-error (lax-plist-put d1 3 3) :type 'wrong-type-argument)
-    (should-error (lax-plist-put d2 3 3) :type 'wrong-type-argument)))
-
 (ert-deftest test-cycle-equal ()
   (should-error (equal (cyc1 1) (cyc1 1)))
   (should-error (equal (cyc2 1 2) (cyc2 1 2))))
@@ -936,21 +900,9 @@
   "Test that `plist-get' doesn't signal an error on degenerate plists."
   (should-not (plist-get '(:foo 1 :bar) :bar)))
 
-(ert-deftest lax-plist-get/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-get '(:foo 1 :bar) :bar)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
 (ert-deftest plist-put/odd-number-of-elements ()
   "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
   (should (equal (should-error (plist-put '(:foo 1 :bar) :zot 2)
-                               :type 'wrong-type-argument)
-                 '(wrong-type-argument plistp (:foo 1 :bar)))))
-
-(ert-deftest lax-plist-put/odd-number-of-elements ()
-  "Check for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=27726."
-  (should (equal (should-error (lax-plist-put '(:foo 1 :bar) :zot 2)
                                :type 'wrong-type-argument)
                  '(wrong-type-argument plistp (:foo 1 :bar)))))
 
@@ -978,7 +930,7 @@
   (should (equal 1 (string-distance "ab" "a我b")))
   (should (equal 1 (string-distance "我" "她")))
 
-  ;; correct behaviour with empty strings
+  ;; correct behavior with empty strings
   (should (equal 0 (string-distance "" "")))
   (should (equal 0 (string-distance "" "" t)))
   (should (equal 1 (string-distance "x" "")))
@@ -1374,5 +1326,92 @@
     (setcdr (cdr loop) loop)
     (should-error (append loop '(end))
                   :type 'circular-list)))
+
+(ert-deftest test-plist ()
+  (let ((plist '(:a "b")))
+    (setq plist (plist-put plist :b "c"))
+    (should (equal (plist-get plist :b) "c"))
+    (should (equal (plist-member plist :b) '(:b "c"))))
+
+  (let ((plist '("1" "2" "a" "b")))
+    (setq plist (plist-put plist (copy-sequence "a") "c"))
+    (should-not (equal (plist-get plist (copy-sequence "a")) "c"))
+    (should-not (equal (plist-member plist (copy-sequence "a")) '("a" "c"))))
+
+  (let ((plist '("1" "2" "a" "b")))
+    (setq plist (plist-put plist (copy-sequence "a") "c" #'equal))
+    (should (equal (plist-get plist (copy-sequence "a") #'equal) "c"))
+    (should (equal (plist-member plist (copy-sequence "a") #'equal)
+                   '("a" "c")))))
+
+(ert-deftest fns--string-to-unibyte-multibyte ()
+  (dolist (str (list "" "a" "abc" "a\x00\x7fz" "a\xaa\xbbz" "\x80\xdd\xff"
+                     (apply #'unibyte-string (number-sequence 0 255))))
+    (ert-info ((prin1-to-string str) :prefix "str: ")
+      (should-not (multibyte-string-p str))
+      (let* ((u (string-to-unibyte str))   ; should be identity
+             (m (string-to-multibyte u))   ; lossless conversion
+             (mm (string-to-multibyte m))  ; should be identity
+             (uu (string-to-unibyte m))    ; also lossless
+             (ml (mapcar (lambda (c) (if (<= c #x7f) c (+ c #x3fff00))) u)))
+        (should-not (multibyte-string-p u))
+        (should (multibyte-string-p m))
+        (should (multibyte-string-p mm))
+        (should-not (multibyte-string-p uu))
+        (should (equal str u))
+        (should (equal m mm))
+        (should (equal str uu))
+        (should (equal (append m nil) ml)))))
+  (should-error (string-to-unibyte "å"))
+  (should-error (string-to-unibyte "ABC∀BC")))
+
+(defun fns-tests--take-ref (n list)
+  "Reference implementation of `take'."
+  (named-let loop ((m n) (tail list) (ac nil))
+    (if (and (> m 0) tail)
+        (loop (1- m) (cdr tail) (cons (car tail) ac))
+      (nreverse ac))))
+
+(ert-deftest fns--take-ntake ()
+  "Test `take' and `ntake'."
+  ;; Check errors and edge cases.
+  (should-error (take 'x '(a)))
+  (should-error (ntake 'x '(a)))
+  (should-error (take 1 'a))
+  (should-error (ntake 1 'a))
+  (should-error (take 2 '(a . b)))
+  (should-error (ntake 2 '(a . b)))
+  ;; Tolerate non-lists for a count of zero.
+  (should (equal (take 0 'a) nil))
+  (should (equal (ntake 0 'a) nil))
+  ;; But not non-numbers for empty lists.
+  (should-error (take 'x nil))
+  (should-error (ntake 'x nil))
+
+  (dolist (list '(nil (a) (a b) (a b c) (a b c d) (a . b) (a b . c)))
+    (ert-info ((prin1-to-string list) :prefix "list: ")
+      (let ((max (if (proper-list-p list)
+                     (+ 2 (length list))
+                   (safe-length list))))
+        (dolist (n (number-sequence -1 max))
+          (ert-info ((prin1-to-string n) :prefix "n: ")
+            (let* ((l (copy-tree list))
+                   (ref (fns-tests--take-ref n l)))
+              (should (equal (take n l) ref))
+              (should (equal l list))
+              (should (equal (ntake n l) ref))))))))
+
+  ;; Circular list.
+  (let ((list (list 'a 'b 'c)))
+    (setcdr (nthcdr 2 list) (cdr list)) ; list now (a b c b c b c ...)
+    (should (equal (take 0 list) nil))
+    (should (equal (take 1 list) '(a)))
+    (should (equal (take 2 list) '(a b)))
+    (should (equal (take 3 list) '(a b c)))
+    (should (equal (take 4 list) '(a b c b)))
+    (should (equal (take 5 list) '(a b c b c)))
+    (should (equal (take 10 list) '(a b c b c b c b c b)))
+
+    (should (equal (ntake 10 list) '(a b)))))
 
 ;;; fns-tests.el ends here

@@ -7385,7 +7385,7 @@
 2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
-	backends after sanitising on entry, because this never makes sense:
+	backends after sanitizing on entry, because this never makes sense:
 	If the articles have gone missing, then the data no longer exists on
 	the backend, and if they haven't, then Gnus is wrong, and shouldn't
 	overwrite anything anyway.
@@ -21361,7 +21361,7 @@
 	to get all the groups a message ID is in.
 
 	* spam-stat.el (spam-stat-split-fancy-spam-threshold)
-	(spam-stat-split-fancy): Change "threshhold" to "threshold".
+	(spam-stat-split-fancy): Fix typo for "threshold".
 	(spam-stat-score-buffer-user-functions): Add :number custom type.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>

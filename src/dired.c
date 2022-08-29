@@ -219,6 +219,13 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
     }
 #endif
 
+  if (!NILP (full) && !STRING_MULTIBYTE (directory))
+    { /* We will be concatenating 'directory' with local file name.
+         We always decode local file names, so in order to safely concatenate
+         them we need 'directory' to be decoded as well (bug#56469).  */
+      directory = DECODE_FILE (directory);
+    }
+
   ptrdiff_t directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
 
@@ -263,9 +270,20 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	  ptrdiff_t name_nbytes = SBYTES (name);
 	  ptrdiff_t nbytes = directory_nbytes + needsep + name_nbytes;
 	  ptrdiff_t nchars = SCHARS (directory) + needsep + SCHARS (name);
-	  finalname = make_uninit_multibyte_string (nchars, nbytes);
-	  if (nchars == nbytes)
-	    STRING_SET_UNIBYTE (finalname);
+	  /* DECODE_FILE may return non-ASCII unibyte strings (e.g. when
+             file-name-coding-system is 'binary'), so we don't know for sure
+             that the bytes we have follow our internal utf-8 representation
+             for multibyte strings.  If nchars == nbytes we don't need to
+             care and just return a unibyte string; and if not, that means
+             one of 'name' or 'directory' is multibyte, in which case we
+             presume that the other one would also be multibyte if it
+             contained non-ASCII.
+             FIXME: This last presumption is broken when 'directory' is
+             multibyte (with non-ASCII), and 'name' is unibyte with non-ASCII
+             (because file-name-coding-system is 'binary').  */
+	  finalname = (nchars == nbytes)
+	              ? make_uninit_string (nbytes)
+	              : make_uninit_multibyte_string (nchars, nbytes);
 	  memcpy (SDATA (finalname), SDATA (directory), directory_nbytes);
 	  if (needsep)
 	    SSET (finalname, directory_nbytes, DIRECTORY_SEP);
@@ -482,8 +500,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      decoded names in order to filter false positives, such as "a"
      falsely matching "a-ring".  */
   if (!NILP (file_encoding)
-      && !NILP (Fplist_get (Fcoding_system_plist (file_encoding),
-			    Qdecomposed_characters)))
+      && !NILP (plist_get (Fcoding_system_plist (file_encoding),
+			   Qdecomposed_characters)))
     {
       check_decoded = true;
       if (STRING_MULTIBYTE (file))
@@ -521,9 +539,9 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       name = DECODE_FILE (name);
       ptrdiff_t name_blen = SBYTES (name), name_len = SCHARS (name);
       if (completion_ignore_case
-	  && !EQ (Fcompare_strings (name, zero, file_len, file, zero, file_len,
-				    Qt),
-		  Qt))
+	  && !BASE_EQ (Fcompare_strings (name, zero, file_len, file, zero,
+					 file_len, Qt),
+		       Qt))
 	    continue;
 
       switch (dirent_type (dp))
@@ -603,10 +621,12 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 			skip = name_len - elt_len;
 			cmp_len = make_fixnum (elt_len);
 			if (skip < 0
-			    || !EQ (Fcompare_strings (name, make_fixnum (skip),
-						      Qnil,
-						      elt, zero, cmp_len, Qt),
-				    Qt))
+			    || !BASE_EQ (Fcompare_strings (name,
+							   make_fixnum (skip),
+							   Qnil,
+							   elt, zero, cmp_len,
+							   Qt),
+					 Qt))
 			  continue;
 		      }
 		    break;
@@ -637,10 +657,12 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 			skip = name_len - elt_len;
 			cmp_len = make_fixnum (elt_len);
 			if (skip < 0
-			    || !EQ (Fcompare_strings (name, make_fixnum (skip),
-						      Qnil,
-						      elt, zero, cmp_len, Qt),
-				    Qt))
+			    || !BASE_EQ (Fcompare_strings (name,
+							   make_fixnum (skip),
+							   Qnil,
+							   elt, zero, cmp_len,
+							   Qt),
+					 Qt))
 			  continue;
 		      }
 		    break;
@@ -699,7 +721,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	    = Fcompare_strings (name, zero, make_fixnum (compare),
 				file, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  if (!EQ (cmp, Qt))
+	  if (!BASE_EQ (cmp, Qt))
 	    continue;
 	}
 
@@ -722,7 +744,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	    = Fcompare_strings (bestmatch, zero, make_fixnum (compare),
 				name, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XFIXNUM (cmp)) - 1;
+	  ptrdiff_t matchsize = BASE_EQ (cmp, Qt)
+	                        ? compare : eabs (XFIXNUM (cmp)) - 1;
 
 	  if (completion_ignore_case)
 	    {
@@ -751,13 +774,13 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       EQ (Qt, cmp))
+		       BASE_EQ (Qt, cmp))
 		   && (cmp = Fcompare_strings (bestmatch, zero,
 					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
-		       ! EQ (Qt, cmp))))
+		       ! BASE_EQ (Qt, cmp))))
 		bestmatch = name;
 	    }
 	  bestmatchsize = matchsize;

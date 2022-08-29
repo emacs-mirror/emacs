@@ -241,13 +241,13 @@ See `kbd' for a descripion of KEYS."
                      (setq bits (+ bits
                                    (cdr
                                     (assq (aref word 0)
-                                          '((?A . ?\A-\^@) (?C . ?\C-\^@)
-                                            (?H . ?\H-\^@) (?M . ?\M-\^@)
-                                            (?s . ?\s-\^@) (?S . ?\S-\^@))))))
+                                          '((?A . ?\A-\0) (?C . ?\C-\0)
+                                            (?H . ?\H-\0) (?M . ?\M-\0)
+                                            (?s . ?\s-\0) (?S . ?\S-\0))))))
                      (setq prefix (+ prefix 2))
                      (setq word (substring word 2)))
                    (when (string-match "^\\^.$" word)
-                     (setq bits (+ bits ?\C-\^@))
+                     (setq bits (+ bits ?\C-\0))
                      (setq prefix (1+ prefix))
                      (setq word (substring word 1)))
                    (let ((found (assoc word '(("NUL" . "\0") ("RET" . "\r")
@@ -262,19 +262,19 @@ See `kbd' for a descripion of KEYS."
                        (setq word (vector n))))
                    (cond ((= bits 0)
                           (setq key word))
-                         ((and (= bits ?\M-\^@) (stringp word)
+                         ((and (= bits ?\M-\0) (stringp word)
                                (string-match "^-?[0-9]+$" word))
                           (setq key (mapcar (lambda (x) (+ x bits))
                                             (append word nil))))
                          ((/= (length word) 1)
                           (error "%s must prefix a single character, not %s"
                                  (substring orig-word 0 prefix) word))
-                         ((and (/= (logand bits ?\C-\^@) 0) (stringp word)
+                         ((and (/= (logand bits ?\C-\0) 0) (stringp word)
                                ;; We used to accept . and ? here,
                                ;; but . is simply wrong,
                                ;; and C-? is not used (we use DEL instead).
                                (string-match "[@-_a-z]" word))
-                          (setq key (list (+ bits (- ?\C-\^@)
+                          (setq key (list (+ bits (- ?\C-\0)
                                              (logand (aref word 0) 31)))))
                          (t
                           (setq key (list (+ bits (aref word 0)))))))))
@@ -313,7 +313,7 @@ Modifiers have to be specified in this order:
 which is
 
    Alt-Control-Hyper-Meta-Shift-super"
-  (declare (pure t) (side-effect-free t))
+  (declare (pure t) (side-effect-free error-free))
   (let ((case-fold-search nil))
     (and
      (stringp keys)
@@ -530,7 +530,8 @@ should be a MENU form as accepted by `easy-menu-define'.
                    (keymap keymap)
                    (prefix (define-prefix-command prefix nil name))
                    (full (make-keymap name))
-                   (t (make-sparse-keymap name)))))
+                   (t (make-sparse-keymap name))))
+          seen-keys)
       (when suppress
         (suppress-keymap keymap (eq suppress 'nodigits)))
       (when parent
@@ -544,6 +545,9 @@ should be a MENU form as accepted by `easy-menu-define'.
           (let ((def (pop definitions)))
             (if (eq key :menu)
                 (easy-menu-define nil keymap "" def)
+              (if (member key seen-keys)
+                  (error "Duplicate definition for key: %S %s" key keymap)
+                (push key seen-keys))
               (keymap-set keymap key def)))))
       keymap)))
 
@@ -571,9 +575,24 @@ as the variable documentation string.
           (push (pop defs) opts))))
     (unless (zerop (% (length defs) 2))
       (error "Uneven number of key/definition pairs: %s" defs))
+    (let ((defs defs)
+          key seen-keys)
+      (while defs
+        (setq key (pop defs))
+        (pop defs)
+        (when (not (eq key :menu))
+          (if (member key seen-keys)
+              (error "Duplicate definition for key '%s' in keymap '%s'"
+                     key variable-name)
+            (push key seen-keys)))))
     `(defvar ,variable-name
        (define-keymap ,@(nreverse opts) ,@defs)
        ,@(and doc (list doc)))))
+
+(defun make-non-key-event (symbol)
+  "Mark SYMBOL as an event that shouldn't be returned from `where-is'."
+  (put symbol 'non-key-event t)
+  symbol)
 
 (provide 'keymap)
 

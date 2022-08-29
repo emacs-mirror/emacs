@@ -57,6 +57,7 @@ included.")
 
 (defconst nneething-version "nneething 1.0"
   "nneething version.")
+(make-obsolete-variable 'nneething-version 'emacs-version "29.1")
 
 (defvoo nneething-current-directory nil
   "Current news group directory.")
@@ -245,7 +246,8 @@ included.")
 	(while map
 	  (if (and (member (cadr (car map)) files)
 		  ;; We also remove files that have changed mod times.
-		   (equal (file-attribute-modification-time (file-attributes
+		   (time-equal-p
+			  (file-attribute-modification-time (file-attributes
 				  (nneething-file-name (cadr (car map)))))
 			  (cadr (cdar map))))
 	      (progn

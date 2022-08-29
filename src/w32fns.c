@@ -797,13 +797,6 @@ w32_default_color_map (void)
   return (cmap);
 }
 
-DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
-       0, 0, 0, doc: /* Return the default color map.  */)
-  (void)
-{
-  return w32_default_color_map ();
-}
-
 static Lisp_Object
 w32_color_map_lookup (const char *colorname)
 {
@@ -1463,7 +1456,7 @@ w32_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
     return;
 
   if (STRINGP (arg) && STRINGP (oldval)
-      && EQ (Fstring_equal (oldval, arg), Qt))
+      && BASE_EQ (Fstring_equal (oldval, arg), Qt))
     return;
 
   if (SYMBOLP (arg) && SYMBOLP (oldval) && EQ (arg, oldval))
@@ -1486,7 +1479,7 @@ w32_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!NILP (arg) || NILP (oldval))
@@ -7575,7 +7568,23 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-  try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+  bool displayed = try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+  if (!displayed && NILP (Vx_max_tooltip_size))
+    {
+#ifdef ENABLE_CHECKING
+      struct glyph_row *row = w->desired_matrix->rows;
+      struct glyph_row *end =
+	w->desired_matrix->rows + w->desired_matrix->nrows;
+      while (row < end)
+	{
+	  if (!row->displays_text_p
+	      || row->ends_at_zv_p)
+	    break;
+	  ++row;
+	}
+      eassert (row < end && row->ends_at_zv_p);
+#endif
+    }
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
 				  make_fixnum (w->pixel_height), Qnil,
@@ -10212,21 +10221,21 @@ usage: (w32-notification-notify &rest PARAMS)  */)
   arg_plist = Flist (nargs, args);
 
   /* Icon.  */
-  lres = Fplist_get (arg_plist, QCicon);
+  lres = plist_get (arg_plist, QCicon);
   if (STRINGP (lres))
     icon = SSDATA (ENCODE_FILE (Fexpand_file_name (lres, Qnil)));
   else
     icon = (char *)"";
 
   /* Tip.  */
-  lres = Fplist_get (arg_plist, QCtip);
+  lres = plist_get (arg_plist, QCtip);
   if (STRINGP (lres))
     tip = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
     tip = (char *)"Emacs notification";
 
   /* Severity.  */
-  lres = Fplist_get (arg_plist, QClevel);
+  lres = plist_get (arg_plist, QClevel);
   if (NILP (lres))
     severity = Ni_None;
   else if (EQ (lres, Qinfo))
@@ -10239,14 +10248,14 @@ usage: (w32-notification-notify &rest PARAMS)  */)
     severity = Ni_Info;
 
   /* Title.  */
-  lres = Fplist_get (arg_plist, QCtitle);
+  lres = plist_get (arg_plist, QCtitle);
   if (STRINGP (lres))
     title = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
     title = (char *)"";
 
   /* Notification body text.  */
-  lres = Fplist_get (arg_plist, QCbody);
+  lres = plist_get (arg_plist, QCbody);
   if (STRINGP (lres))
     msg = SSDATA (code_convert_string_norecord (lres, Qutf_8, 1));
   else
@@ -10499,6 +10508,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   0, /* x_set_override_redirect */
   gui_set_no_special_glyphs,
   gui_set_alpha_background,
+  0, /* x_set_use_frame_synchronization */
 };
 
 void
@@ -10777,7 +10787,7 @@ bass-down, bass-boost, bass-up, treble-down, treble-up  */);
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* SKIP: real doc in xfns.c.  */);
-  Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+  Vx_max_tooltip_size = Qnil;
 
   DEFVAR_LISP ("x-no-window-manager", Vx_no_window_manager,
 	       doc: /* SKIP: real doc in xfns.c.  */);
@@ -10879,7 +10889,6 @@ keys when IME input is received.  */);
   /* W32 specific functions */
 
   defsubr (&Sw32_define_rgb_color);
-  defsubr (&Sw32_default_color_map);
   defsubr (&Sw32_display_monitor_attributes_list);
   defsubr (&Sw32_send_sys_command);
   defsubr (&Sw32_shell_execute);

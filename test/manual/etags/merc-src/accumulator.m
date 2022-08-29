@@ -616,7 +616,7 @@ identify_recursive_calls(PredId, ProcId, GoalStore, Ids) :-
     % Determine the variables which are members of the sets Out and Out',
     % and initialize the substitutions between the two sets.
     %
-    % This is done by identifing those variables whose instantiatedness change
+    % This is done by identifying those variables whose instantiatedness change
     % in the goals after the recursive call and are headvars.
     %
     % Note that we are only identifying the output variables which will need

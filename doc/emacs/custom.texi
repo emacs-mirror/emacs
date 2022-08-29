@@ -511,6 +511,9 @@ Set up a customization buffer for just one user option, @var{option}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer for just one face, @var{face}.
 
+@item M-x customize-icon @key{RET} @var{face} @key{RET}
+Set up a customization buffer for just one icon, @var{icon}.
+
 @item M-x customize-group @key{RET} @var{group} @key{RET}
 Set up a customization buffer for just one group, @var{group}.
 
@@ -2300,6 +2303,8 @@ as a function from Lisp programs.
 @cindex startup (init file)
 @cindex XDG_CONFIG_HOME
 
+@c When updating this, also update ``Setting up a customization file''
+@c in efaq.texi.
   When Emacs is started, it normally tries to load a Lisp program from
 an @dfn{initialization file}, or @dfn{init file} for short.  This
 file, if it exists, specifies how to initialize Emacs for you.
@@ -2448,6 +2453,9 @@ keys which send non-@acronym{ASCII} characters.
 @cindex Lisp object syntax
 Write a single-quote (@code{'}) followed by the Lisp object you want.
 @end table
+
+  For more information on the Emacs Lisp syntax, @pxref{Introduction,,,
+elisp, The Emacs Lisp Reference Manual}.
 
 @node Init Examples
 @subsection Init File Examples

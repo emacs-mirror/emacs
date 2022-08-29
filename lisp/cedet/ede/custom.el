@@ -35,7 +35,9 @@
 (require 'ede)
 (eval-when-compile (require 'eieio-custom))
 
-(defvar eieio-ede-old-variables nil
+(define-obsolete-variable-alias 'ede-eieio-old-variables
+  'eieio-ede-old-variables "29.1")
+(defvar ede-eieio-old-variables nil
   "The old variables for a project.")
 
 ;;; Customization Commands
@@ -50,7 +52,7 @@
   (let* ((ov (oref (ede-current-project) local-variables))
 	 (cp (ede-current-project)))
     (ede-customize cp)
-    (setq-local eieio-ede-old-variables ov)))
+    (setq-local ede-eieio-old-variables ov)))
 
 ;;;###autoload
 (defalias 'customize-project #'ede-customize-project)
@@ -178,9 +180,9 @@ OBJ is the target object to customize."
 ;; These hooks are used when finishing up a customization.
 (cl-defmethod eieio-done-customizing ((proj ede-project))
   "Call this when a user finishes customizing PROJ."
-  (let ((ov eieio-ede-old-variables)
+  (let ((ov ede-eieio-old-variables)
 	(nv (oref proj local-variables)))
-    (setq eieio-ede-old-variables nil)
+    (setq ede-eieio-old-variables nil)
     (while ov
       (if (not (assoc (car (car ov)) nv))
 	  (save-excursion

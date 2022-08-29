@@ -257,6 +257,19 @@ Evaluate BODY for each created sequence.
   (with-test-sequences (seq '())
     (should (equal (seq-uniq seq) '()))))
 
+(defun seq-tests--list-subseq-ref (list start &optional end)
+  "Reference implementation of `seq-subseq' for lists."
+  (let ((len (length list)))
+    (when (< start 0)
+      (setq start (+ start len)))
+    (unless end
+      (setq end len))
+    (when (< end 0)
+      (setq end (+ end len)))
+    (if (<= 0 start end len)
+        (take (- end start) (nthcdr start list))
+      (error "bad args"))))
+
 (ert-deftest test-seq-subseq ()
   (with-test-sequences (seq '(2 3 4 5))
     (should (equal (seq-subseq seq 0 4) seq))
@@ -275,7 +288,21 @@ Evaluate BODY for each created sequence.
   (should-error (seq-subseq [] -1))
   (should-error (seq-subseq "" -1))
   (should-not (seq-subseq '() 0))
-  (should-error (seq-subseq '() 0 -1)))
+  (should-error (seq-subseq '() 0 -1))
+
+  (dolist (list '(() (a b c d)))
+    (ert-info ((prin1-to-string list) :prefix "list: ")
+      (let ((len (length list)))
+        (dolist (start (number-sequence (- -2 len) (+ 2 len)))
+          (ert-info ((prin1-to-string start) :prefix "start: ")
+            (dolist (end (cons nil (number-sequence (- -2 len) (+ 2 len))))
+              (ert-info ((prin1-to-string end) :prefix "end: ")
+                (condition-case res
+                    (seq-tests--list-subseq-ref list start end)
+                  (error
+                   (should-error (seq-subseq list start end)))
+                  (:success
+                   (should (equal (seq-subseq list start end) res))))))))))))
 
 (ert-deftest test-seq-concatenate ()
   (with-test-sequences (seq '(2 4 6))
@@ -510,6 +537,45 @@ Evaluate BODY for each created sequence.
   (ert-deftest test-difference-with-nil ()
     (should (equal (seq-difference '(1 nil) '(2 nil))
                    '(1)))))
+
+(ert-deftest test-seq-split ()
+  (let ((seq [0 1 2 3 4 5 6 7 8 9 10]))
+    (should (equal seq (car (seq-split seq 20))))
+    (should (equal seq (car (seq-split seq 11))))
+    (should (equal (seq-split seq 10)
+                   '([0 1 2 3 4 5 6 7 8 9] [10])))
+    (should (equal (seq-split seq 5)
+                   '([0 1 2 3 4] [5 6 7 8 9] [10])))
+    (should (equal (seq-split seq 1)
+                   '([0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10])))
+    (should-error (seq-split seq 0))
+    (should-error (seq-split seq -10)))
+  (let ((seq '(0 1 2 3 4 5 6 7 8 9)))
+    (should (equal (seq-split seq 5)
+                   '((0 1 2 3 4) (5 6 7 8 9)))))
+  (let ((seq "0123456789"))
+    (should (equal (seq-split seq 2)
+                   '("01" "23" "45" "67" "89")))
+    (should (equal (seq-split seq 3)
+                   '("012" "345" "678" "9")))))
+
+(ert-deftest test-seq-uniq-list ()
+  (let ((list '(1 2 3)))
+    (should (equal (seq-uniq (append list list)) '(1 2 3))))
+  (let ((list '(1 2 3 2 1)))
+    (should (equal (seq-uniq list) '(1 2 3))))
+  (let ((list (list (substring "1")
+                    (substring "2")
+                    (substring "3")
+                    (substring "2")
+                    (substring "1"))))
+    (should (equal (seq-uniq list) '("1" "2" "3")))
+    (should (equal (seq-uniq list #'eq) '("1" "2" "3" "2" "1"))))
+  ;; Long lists have a different code path.
+  (let ((list (seq-map-indexed (lambda (_ i) i)
+			       (make-list 10000 nil))))
+    (should (= (length list) 10000))
+    (should (= (length (seq-uniq (append list list))) 10000))))
 
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

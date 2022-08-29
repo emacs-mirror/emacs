@@ -51,43 +51,37 @@
   "Remove hidden files from FILES."
   (if tramp-fuse-remove-hidden-files
       (cl-remove-if
-       (lambda (x) (and (stringp x) (string-match-p "\\.fuse_hidden" x)))
+       (lambda (x) (and (stringp x) (string-match-p (rx ".fuse_hidden") x)))
        files)
     files))
 
 (defun tramp-fuse-handle-directory-files
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
-  (unless (file-exists-p directory)
-    (tramp-error (tramp-dissect-file-name directory) 'file-missing directory))
-  (when (file-directory-p directory)
-    (setq directory (file-name-as-directory (expand-file-name directory)))
-    (with-parsed-tramp-file-name directory nil
-      (let ((result
-	     (tramp-compat-directory-files
-	      (tramp-fuse-local-file-name directory) full match nosort count)))
+  (let ((result
+	 (tramp-skeleton-directory-files directory full match nosort count
+	   ;; Some storage systems do not return "." and "..".
+	   (delete-dups
+	    (append
+	     '("." "..")
+	     (tramp-fuse-remove-hidden-files
+	      (tramp-compat-directory-files
+	       (tramp-fuse-local-file-name directory))))))))
+    (if full
 	;; Massage the result.
-	(when full
-	  (let ((local (concat "^" (regexp-quote (tramp-fuse-mount-point v))))
-		(remote (directory-file-name
-			 (funcall
-			  (if (tramp-compat-file-name-quoted-p directory)
-			      #'tramp-compat-file-name-quote #'identity)
-			  (file-remote-p directory)))))
-	    (setq result
-		  (mapcar
-		   (lambda (x) (replace-regexp-in-string local remote x))
-		   result))))
-	;; Some storage systems do not return "." and "..".
-	(dolist (item '(".." "."))
-	  (when (and (string-match-p (or match (regexp-quote item)) item)
-		     (not
-		      (member (if full (setq item (concat directory item)) item)
-			      result)))
-	    (setq result (cons item result))))
-	;; Return result.
-	(tramp-fuse-remove-hidden-files
-	 (if nosort result (sort result #'string<)))))))
+	(let ((local (rx bol
+			 (literal
+			  (tramp-fuse-mount-point
+			   (tramp-dissect-file-name directory)))))
+	      (remote (directory-file-name
+		       (funcall
+			(if (tramp-compat-file-name-quoted-p directory)
+			    #'tramp-compat-file-name-quote #'identity)
+			(file-remote-p directory)))))
+	  (mapcar
+	   (lambda (x) (replace-regexp-in-string local remote x))
+	   result))
+      result)))
 
 (defun tramp-fuse-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
@@ -153,7 +147,7 @@
 
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
-  (or (tramp-get-connection-property vec "mount-point" nil)
+  (or (tramp-get-connection-property vec "mount-point")
       (expand-file-name
        (concat
 	tramp-temp-name-prefix
@@ -177,7 +171,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
   ;; cannot use `with-tramp-file-property', because we don't want to
   ;; cache a nil result.
   (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
-    (or (tramp-get-file-property vec "/" "mounted" nil)
+    (or (tramp-get-file-property vec "/" "mounted")
         (let* ((default-directory tramp-compat-temporary-file-directory)
                (command (format "mount -t fuse.%s" (tramp-file-name-method vec)))
 	       (mount (shell-command-to-string command)))
@@ -185,8 +179,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (format
-                   "^\\(%s\\)\\s-" (regexp-quote (tramp-fuse-mount-spec vec)))
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) space)
 	          mount)
              (match-string 1 mount)))))))
 

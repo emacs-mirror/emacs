@@ -996,7 +996,7 @@ if for some reason a circle is in the inheritance graph."
 Each line corresponds to a class in a class tree.
 Letters do not insert themselves, they are commands.
 File operations in the tree buffer work on class tree data structures.
-E.g.\\[save-buffer] writes the tree to the file it was loaded from.
+E.g. \\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"

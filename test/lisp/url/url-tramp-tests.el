@@ -55,8 +55,12 @@
     (password-cache-remove key)
     (should-not (password-in-cache-p key)))
 
-  ;; "http" does not belong to `url-tramp-protocols'.
-  (should-not (url-tramp-convert-url-to-tramp "http://www.gnu.org")))
+  ;; "http" does not belong to `url-tramp-protocols'.  The string
+  ;; isn't changed, therefore.
+  (should
+   (string-equal
+    (url-tramp-convert-url-to-tramp "http://www.gnu.org")
+    "http://www.gnu.org")))
 
 (ert-deftest url-tramp-test-convert-tramp-to-url ()
   "Test that Tramp file names are converted into proper URLs."
@@ -75,8 +79,12 @@
     (url-tramp-convert-tramp-to-url "/telnet:user@remotehost#42:")
     "telnet://user@remotehost:42"))
 
-  ;; "sftp" does not belong to `url-tramp-protocols'.
-  (should-not (url-tramp-convert-tramp-to-url "/sftp:user@localhost:")))
+  ;; "sftp" does not belong to `url-tramp-protocols'.  The string
+  ;; isn't changed, therefore.
+  (should
+   (string-equal
+    (url-tramp-convert-tramp-to-url "/sftp:user@localhost:")
+    "/sftp:user@localhost:")))
 
 (provide 'url-tramp-tests)
 

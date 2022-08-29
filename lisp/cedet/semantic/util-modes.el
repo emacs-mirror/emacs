@@ -750,7 +750,7 @@ If there is no function, disable the header line."
 		    (if noshow
 			""
 		      (if semantic-stickyfunc-show-only-functions-p ""
-			(buffer-substring (point-at-bol) (point-at-eol))
+                        (buffer-substring (line-beginning-position) (line-end-position))
 			))
 		  ;; Go get the first line of this tag.
 		  (goto-char (semantic-tag-start tag))
@@ -765,7 +765,7 @@ If there is no function, disable the header line."
 		  ;; Without going to the tag-name we would get"void" in the
 		  ;; header line which is IMHO not really useful
 		  (search-forward (semantic-tag-name tag) nil t)
-		  (buffer-substring (point-at-bol) (point-at-eol))
+                  (buffer-substring (line-beginning-position) (line-end-position))
 		  ))))
 	   (start 0))
       (while (string-match "%" str start)
@@ -959,7 +959,7 @@ function was called, move the overlay."
 	    (goto-char (semantic-tag-start tag))
 	    (search-forward (semantic-tag-name tag) nil t)
 	    (overlay-put ol 'tag tag)
-	    (move-overlay ol (point-at-bol) (point-at-eol)))))))
+            (move-overlay ol (line-beginning-position) (line-end-position)))))))
   nil)
 
 (semantic-add-minor-mode 'semantic-highlight-func-mode

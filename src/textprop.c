@@ -88,7 +88,7 @@ modify_text_properties (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   BUF_COMPUTE_UNCHANGED (buf, b - 1, e);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  modiff_incr (&MODIFF);
+  modiff_incr (&MODIFF, 1);
 
   bset_point_before_scroll (current_buffer, Qnil);
 
@@ -1407,8 +1407,8 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
   /* If we want no properties for a whole string,
      get rid of its intervals.  */
   if (NILP (properties) && STRINGP (object)
-      && EQ (start, make_fixnum (0))
-      && EQ (end, make_fixnum (SCHARS (object))))
+      && BASE_EQ (start, make_fixnum (0))
+      && BASE_EQ (end, make_fixnum (SCHARS (object))))
     {
       if (!string_intervals (object))
 	return Qnil;
@@ -2249,7 +2249,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (i->plist, Qfront_sticky);
 		      if (TMEM (Qread_only, tem)
-			  || (NILP (Fplist_get (i->plist, Qread_only))
+			  || (NILP (plist_get (i->plist, Qread_only))
 			      && TMEM (Qcategory, tem)))
 			text_read_only (after);
 		    }
@@ -2269,7 +2269,7 @@ verify_interval_modification (struct buffer *buf,
 
 		      tem = textget (prev->plist, Qrear_nonsticky);
 		      if (! TMEM (Qread_only, tem)
-			  && (! NILP (Fplist_get (prev->plist,Qread_only))
+			  && (! NILP (plist_get (prev->plist,Qread_only))
 			      || ! TMEM (Qcategory, tem)))
 			text_read_only (before);
 		    }
@@ -2288,13 +2288,13 @@ verify_interval_modification (struct buffer *buf,
 
 		  tem = textget (i->plist, Qfront_sticky);
 		  if (TMEM (Qread_only, tem)
-		      || (NILP (Fplist_get (i->plist, Qread_only))
+		      || (NILP (plist_get (i->plist, Qread_only))
 			  && TMEM (Qcategory, tem)))
 		    text_read_only (after);
 
 		  tem = textget (prev->plist, Qrear_nonsticky);
 		  if (! TMEM (Qread_only, tem)
-		      && (! NILP (Fplist_get (prev->plist, Qread_only))
+		      && (! NILP (plist_get (prev->plist, Qread_only))
 			  || ! TMEM (Qcategory, tem)))
 		    text_read_only (after);
 		}

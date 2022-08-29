@@ -216,33 +216,28 @@ If ADVANCE is non-nil, move forward by one line afterwards."
       (while (re-search-forward re nil 'noerror)
         (tabulated-list-put-tag empty)))))
 
-(defvar tabulated-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap
-                            button-buffer-map
-                            special-mode-map))
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map (kbd "M-<left>") 'tabulated-list-previous-column)
-    (define-key map (kbd "M-<right>") 'tabulated-list-next-column)
-    (define-key map "S" 'tabulated-list-sort)
-    (define-key map "}" 'tabulated-list-widen-current-column)
-    (define-key map "{" 'tabulated-list-narrow-current-column)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'mouse-select-window)
-    map)
-  "Local keymap for `tabulated-list-mode' buffers.")
+(defvar-keymap tabulated-list-mode-map
+  :doc "Local keymap for `tabulated-list-mode' buffers."
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  "n"             #'next-line
+  "p"             #'previous-line
+  "M-<left>"      #'tabulated-list-previous-column
+  "M-<right>"     #'tabulated-list-next-column
+  "S"             #'tabulated-list-sort
+  "}"             #'tabulated-list-widen-current-column
+  "{"             #'tabulated-list-narrow-current-column
+  "<follow-link>" 'mouse-face
+  "<mouse-2>"     #'mouse-select-window)
 
-(defvar tabulated-list-sort-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1] 'tabulated-list-col-sort)
-    (define-key map [header-line mouse-2] 'tabulated-list-col-sort)
-    (define-key map [mouse-1] 'tabulated-list-col-sort)
-    (define-key map [mouse-2] 'tabulated-list-col-sort)
-    (define-key map "\C-m" 'tabulated-list-sort)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Local keymap for `tabulated-list-mode' sort buttons.")
+(defvar-keymap tabulated-list-sort-button-map
+  :doc "Local keymap for `tabulated-list-mode' sort buttons."
+  "<header-line> <mouse-1>" #'tabulated-list-col-sort
+  "<header-line> <mouse-2>" #'tabulated-list-col-sort
+  "<mouse-1>"               #'tabulated-list-col-sort
+  "<mouse-2>"               #'tabulated-list-col-sort
+  "RET"                     #'tabulated-list-sort
+  "<follow-link>"           'mouse-face)
 
 (defun tabulated-list-make-glyphless-char-display-table ()
   "Make the `glyphless-char-display' table used for text-mode frames.
@@ -470,7 +465,7 @@ changing `tabulated-list-sort-key'."
       (let* ((elt (car entries))
              (tabulated-list--near-rows
               (list
-               (or (tabulated-list-get-entry (point-at-bol 0)) (cadr elt))
+               (or (tabulated-list-get-entry (pos-bol 0)) (cadr elt))
                (cadr elt)
                (or (cadr (cadr entries)) (cadr elt))))
              (id (car elt)))
@@ -524,7 +519,7 @@ of column descriptors."
 	(insert (make-string x ?\s)))
     (let ((tabulated-list--near-rows ; Bind it if not bound yet (Bug#25506).
            (or (bound-and-true-p tabulated-list--near-rows)
-               (list (or (tabulated-list-get-entry (point-at-bol 0))
+               (list (or (tabulated-list-get-entry (pos-bol 0))
                          cols)
                      cols))))
       (dotimes (n ncols)
@@ -616,7 +611,7 @@ This function only changes the buffer contents; it does not alter
 	 (cols (tabulated-list-get-entry))
 	 (inhibit-read-only t))
     (when cols
-      (delete-region (line-beginning-position) (1+ (line-end-position)))
+      (delete-region (pos-bol) (1+ (pos-eol)))
       (list id cols))))
 
 (defun tabulated-list-set-col (col desc &optional change-entry-data)
@@ -630,8 +625,8 @@ by setting the appropriate slot of the vector originally used to
 print this entry.  If `tabulated-list-entries' has a list value,
 this is the vector stored within it."
   (let* ((opoint (point))
-	 (eol    (line-end-position))
-	 (pos    (line-beginning-position))
+         (eol    (pos-eol))
+         (pos    (pos-bol))
 	 (id     (tabulated-list-get-id pos))
 	 (entry  (tabulated-list-get-entry pos))
 	 (prop 'tabulated-list-column-name)
@@ -656,9 +651,9 @@ this is the vector stored within it."
       (goto-char pos)
       (let ((tabulated-list--near-rows
              (list
-              (tabulated-list-get-entry (point-at-bol 0))
+              (tabulated-list-get-entry (pos-bol 0))
               entry
-              (or (tabulated-list-get-entry (point-at-bol 2)) entry))))
+              (or (tabulated-list-get-entry (pos-bol 2)) entry))))
         (tabulated-list-print-col col desc (current-column)))
       (if change-entry-data
 	  (aset entry col desc))
@@ -790,7 +785,7 @@ If ARG is provided, move that many columns."
     (let ((prev (or (previous-single-property-change
                      (point) 'tabulated-list-column-name)
                     1)))
-      (unless (< prev (line-beginning-position))
+      (unless (< prev (pos-bol))
         (goto-char prev)))))
 
 ;;; The mode definition:

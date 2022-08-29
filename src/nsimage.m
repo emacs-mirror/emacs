@@ -142,7 +142,7 @@ ns_load_image (struct frame *f, struct image *img,
 
   eassert (valid_image_p (img->spec));
 
-  lisp_index = Fplist_get (XCDR (img->spec), QCindex);
+  lisp_index = plist_get (XCDR (img->spec), QCindex);
   index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
 
   if (STRINGP (spec_file))

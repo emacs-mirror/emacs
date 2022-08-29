@@ -239,14 +239,6 @@ will do all lineups."
 	      (const :tag "Declarations" declaration)
               (const :tag "Case statements" case)))
 
-(defvar pascal-toggle-completions nil
-  "If non-nil, `pascal-complete-word' tries all possible completions.
-Repeated use of \\[pascal-complete-word] then shows all
-completions in turn, instead of displaying a list of all possible
-completions.")
-(make-obsolete-variable 'pascal-toggle-completions
-                        'completion-cycle-threshold "24.1")
-
 (defcustom pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
   "Keywords for types used when completing a word in a declaration or parmlist.
@@ -282,7 +274,7 @@ are handled in another way, and should not be added to this list."
     (while (and (> nest 0)
 		(re-search-forward
 		 "[:=]\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)"
-		 (point-at-eol 2) t))
+                 (line-end-position 2) t))
       (cond ((match-beginning 1) (setq nest (1+ nest)))
 	    ((match-beginning 2) (setq nest (1- nest)))
 	    ((looking-at "[^(\n]+)") (setq nest 0))))))
@@ -291,7 +283,8 @@ are handled in another way, and should not be added to this list."
 (defun pascal-declaration-beg ()
   (let ((nest 1))
     (while (and (> nest 0)
-		(re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" (point-at-bol 0) t))
+                (re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)"
+                                    (line-beginning-position 0) t))
       (cond ((match-beginning 1) (setq nest 0))
 	    ((match-beginning 2) (setq nest (1- nest)))
 	    ((match-beginning 3) (setq nest (1+ nest)))))
@@ -299,7 +292,7 @@ are handled in another way, and should not be added to this list."
 
 
 (defsubst pascal-within-string ()
-  (nth 3 (parse-partial-sexp (point-at-bol) (point))))
+  (nth 3 (parse-partial-sexp (line-beginning-position) (point))))
 
 
 ;;;###autoload
@@ -396,7 +389,7 @@ See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
 	     (forward-char 1)
 	     (delete-horizontal-space))
 	    ((and (looking-at "(\\*\\|\\*[^)]")
-		  (not (save-excursion (search-forward "*)" (point-at-eol) t))))
+                  (not (save-excursion (search-forward "*)" (line-end-position) t))))
 	     (setq setstar t))))
     ;; If last line was a star comment line then this one shall be too.
     (if (null setstar)
@@ -715,7 +708,7 @@ on the line which ends a function or procedure named NAME."
     (if (and (looking-at "\\<end;")
 	     (not (save-excursion
 		    (end-of-line)
-		    (search-backward "{" (point-at-bol) t))))
+                    (search-backward "{" (line-beginning-position) t))))
 	(let ((type (car (pascal-calculate-indent))))
 	  (if (eq type 'declaration)
 	      ()
@@ -987,7 +980,7 @@ indent of the current line in parameterlist."
 	   (stpos (progn (goto-char (scan-lists (point) -1 1)) (point)))
 	   (stcol (1+ (current-column)))
 	   (edpos (progn (pascal-declaration-end)
-			 (search-backward ")" (point-at-bol) t)
+                         (search-backward ")" (line-beginning-position) t)
 			 (point)))
 	   (usevar (re-search-backward "\\<var\\>" stpos t)))
       (if arg (progn
@@ -1034,7 +1027,7 @@ indent of the current line in parameterlist."
 	(setq pascal--extra-indent (pascal-get-lineup-indent stpos edpos lineup))
 	(goto-char stpos)
 	(while (and (<= (point) edpos) (not (eobp)))
-	  (if (search-forward lineup (point-at-eol) 'move)
+          (if (search-forward lineup (line-end-position) 'move)
 	      (forward-char -1))
 	  (delete-horizontal-space)
 	  (indent-to pascal--extra-indent)
@@ -1061,7 +1054,7 @@ indent of the current line in parameterlist."
       (goto-char b)
       ;; Get rightmost position
       (while (< (point) e)
-	(and (re-search-forward reg (min e (point-at-eol 2)) 'move)
+        (and (re-search-forward reg (min e (line-end-position 2)) 'move)
 	     (cond ((match-beginning 1)
 		    ;; Skip record blocks
 		    (pascal-declaration-end))
@@ -1125,7 +1118,7 @@ indent of the current line in parameterlist."
 
       ;; Search through all reachable functions
       (while (pascal-beg-of-defun)
-        (if (re-search-forward pascal-str (point-at-eol) t)
+        (if (re-search-forward pascal-str (line-end-position) t)
             (progn (setq match (buffer-substring (match-beginning 2)
                                                  (match-end 2)))
                    (push match pascal-all)))
@@ -1142,17 +1135,17 @@ indent of the current line in parameterlist."
 	match)
     ;; Traverse lines
     (while (< (point) end)
-      (if (re-search-forward "[:=]" (point-at-eol) t)
+      (if (re-search-forward "[:=]" (line-end-position) t)
 	  ;; Traverse current line
 	  (while (and (re-search-backward
 		       (concat "\\((\\|\\<\\(var\\|type\\|const\\)\\>\\)\\|"
 			       pascal-symbol-re)
-		       (point-at-bol) t)
+                       (line-beginning-position) t)
 		      (not (match-end 1)))
 	    (setq match (buffer-substring (match-beginning 0) (match-end 0)))
 	    (if (string-match (concat "\\<" pascal-str) match)
                 (push match pascal-all))))
-      (if (re-search-forward "\\<record\\>" (point-at-eol) t)
+      (if (re-search-forward "\\<record\\>" (line-end-position) t)
 	  (pascal-declaration-end)
 	(forward-line 1)))
 
@@ -1195,7 +1188,7 @@ indent of the current line in parameterlist."
           (if (> start (prog1 (save-excursion (pascal-end-of-defun)
                                               (point))))
               ()                        ; Declarations not reachable
-            (if (search-forward "(" (point-at-eol) t)
+            (if (search-forward "(" (line-end-position) t)
                 ;; Check parameterlist
                 ;; FIXME: pascal-get-completion-decl doesn't understand
                 ;; the var declarations in parameter lists :-(
@@ -1253,7 +1246,7 @@ indent of the current line in parameterlist."
                 (or (eq state 'declaration) (eq state 'paramlist)
                     (and (eq state 'defun)
                          (save-excursion
-                           (re-search-backward ")[ \t]*:" (point-at-bol) t))))
+                           (re-search-backward ")[ \t]*:" (line-beginning-position) t))))
                 (save-excursion
                   (if (or (eq state 'paramlist) (eq state 'defun))
                       (pascal-beg-of-defun))
@@ -1296,13 +1289,6 @@ indent of the current line in parameterlist."
 	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point))))
     (when (> e b)
       (list b e #'pascal-completion))))
-
-(define-obsolete-function-alias 'pascal-complete-word
-  'completion-at-point "24.1")
-
-(define-obsolete-function-alias 'pascal-show-completions
-  'completion-help-at-point "24.1")
-
 
 (defun pascal-get-default-symbol ()
   "Return symbol around current point as a string."

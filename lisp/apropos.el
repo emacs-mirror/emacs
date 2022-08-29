@@ -1,7 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994-1995, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)
@@ -218,7 +217,7 @@ before `apropos-mode' makes it buffer-local.")
 
 (define-button-type 'apropos-symbol
   'face 'apropos-symbol
-  'help-echo "mouse-2, RET: Display more help on this symbol"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this symbol"
   'follow-link t
   'action #'apropos-symbol-button-display-help)
 
@@ -232,7 +231,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Function"
   'apropos-short-label "f"
   'face 'apropos-function-button
-  'help-echo "mouse-2, RET: Display more help on this function"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this function"
   'follow-link t
   'action (lambda (button)
 	    (describe-function (button-get button 'apropos-symbol))))
@@ -241,7 +240,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Macro"
   'apropos-short-label "m"
   'face 'apropos-function-button
-  'help-echo "mouse-2, RET: Display more help on this macro"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this macro"
   'follow-link t
   'action (lambda (button)
 	    (describe-function (button-get button 'apropos-symbol))))
@@ -250,7 +249,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Command"
   'apropos-short-label "c"
   'face 'apropos-function-button
-  'help-echo "mouse-2, RET: Display more help on this command"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this command"
   'follow-link t
   'action (lambda (button)
 	    (describe-function (button-get button 'apropos-symbol))))
@@ -264,7 +263,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Variable"
   'apropos-short-label "v"
   'face 'apropos-variable-button
-  'help-echo "mouse-2, RET: Display more help on this variable"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this variable"
   'follow-link t
   'action (lambda (button)
 	    (describe-variable (button-get button 'apropos-symbol))))
@@ -273,7 +272,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "User option"
   'apropos-short-label "o"
   'face 'apropos-user-option-button
-  'help-echo "mouse-2, RET: Display more help on this user option"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this user option"
   'follow-link t
   'action (lambda (button)
 	    (describe-variable (button-get button 'apropos-symbol))))
@@ -282,7 +281,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Face"
   'apropos-short-label "F"
   'face 'apropos-button
-  'help-echo "mouse-2, RET: Display more help on this face"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this face"
   'follow-link t
   'action (lambda (button)
 	    (describe-face (button-get button 'apropos-symbol))))
@@ -291,7 +290,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Group"
   'apropos-short-label "g"
   'face 'apropos-misc-button
-  'help-echo "mouse-2, RET: Display more help on this group"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this group"
   'follow-link t
   'action (lambda (button)
 	    (customize-group-other-window
@@ -301,7 +300,7 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Widget"
   'apropos-short-label "w"
   'face 'apropos-misc-button
-  'help-echo "mouse-2, RET: Display more help on this widget"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this widget"
   'follow-link t
   'action (lambda (button)
 	    (widget-browse-other-window (button-get button 'apropos-symbol))))
@@ -310,13 +309,13 @@ before `apropos-mode' makes it buffer-local.")
   'apropos-label "Properties"
   'apropos-short-label "p"
   'face 'apropos-misc-button
-  'help-echo "mouse-2, RET: Display more help on this plist"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this plist"
   'follow-link t
   'action (lambda (button)
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-library
-  'help-echo "mouse-2, RET: Display more help on this library"
+  'help-echo "\\`mouse-2', \\`RET': Display more help on this library"
   'follow-link t
   'action (lambda (button)
 	    (apropos-library (button-get button 'apropos-symbol))))
@@ -909,41 +908,39 @@ Returns list of symbols and documentation found."
   (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
-  (let ((standard-input (get-buffer-create " apropos-temp"))
-	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
-	f v sf sv)
-    (unwind-protect
-	(with-current-buffer standard-input
-	  (apropos-documentation-check-doc-file)
-	  (if do-all
-	      (mapatoms
-	       (lambda (symbol)
-		 (setq f (apropos-safe-documentation symbol)
-		       v (get symbol 'variable-documentation))
-		 (if (integerp v) (setq v nil))
-		 (setq f (apropos-documentation-internal f)
-		       v (apropos-documentation-internal v))
-		 (setq sf (apropos-score-doc f)
-		       sv (apropos-score-doc v))
-		 (if (or f v)
-		     (if (setq apropos-item
-			       (cdr (assq symbol apropos-accumulator)))
-			 (progn
-			   (if f
-			       (progn
-				 (setcar (nthcdr 1 apropos-item) f)
-				 (setcar apropos-item (+ (car apropos-item) sf))))
-			   (if v
-			       (progn
-				 (setcar (nthcdr 2 apropos-item) v)
-				 (setcar apropos-item (+ (car apropos-item) sv)))))
-		       (setq apropos-accumulator
-			     (cons (list symbol
-					 (+ (apropos-score-symbol symbol 2) sf sv)
-					 f v)
-				   apropos-accumulator)))))))
-	  (apropos-print nil "\n----------------\n" nil t))
-      (kill-buffer standard-input))))
+  (with-temp-buffer
+    (let ((standard-input (current-buffer))
+          (apropos-sort-by-scores apropos-documentation-sort-by-scores)
+          f v sf sv)
+      (apropos-documentation-check-doc-file)
+      (if do-all
+          (mapatoms
+           (lambda (symbol)
+             (setq f (apropos-safe-documentation symbol)
+                   v (get symbol 'variable-documentation))
+             (if (integerp v) (setq v nil))
+             (setq f (apropos-documentation-internal f)
+                   v (apropos-documentation-internal v))
+             (setq sf (apropos-score-doc f)
+                   sv (apropos-score-doc v))
+             (if (or f v)
+                 (if (setq apropos-item
+                           (cdr (assq symbol apropos-accumulator)))
+                     (progn
+                       (if f
+                           (progn
+                             (setcar (nthcdr 1 apropos-item) f)
+                             (setcar apropos-item (+ (car apropos-item) sf))))
+                       (if v
+                           (progn
+                             (setcar (nthcdr 2 apropos-item) v)
+                             (setcar apropos-item (+ (car apropos-item) sv)))))
+                   (setq apropos-accumulator
+                         (cons (list symbol
+                                     (+ (apropos-score-symbol symbol 2) sf sv)
+                                     f v)
+                               apropos-accumulator)))))))
+      (apropos-print nil "\n----------------\n" nil t))))
 
 
 (defun apropos-value-internal (predicate symbol function)
@@ -1334,14 +1331,14 @@ as a heading."
 
 (defun apropos-follow ()
   "Invokes any button at point, otherwise invokes the nearest label button."
-  (interactive)
+  (interactive nil apropos-mode)
   (button-activate
    (or (apropos-next-label-button (line-beginning-position))
        (error "There is nothing to follow here"))))
 
 (defun apropos-next-symbol ()
   "Move cursor down to the next symbol in an `apropos-mode' buffer."
-  (interactive)
+  (interactive nil apropos-mode)
   (forward-line)
   (while (and (not (eq (face-at-point) 'apropos-symbol))
               (< (point) (point-max)))
@@ -1349,7 +1346,7 @@ as a heading."
 
 (defun apropos-previous-symbol ()
   "Move cursor back to the last symbol in an `apropos-mode' buffer."
-  (interactive)
+  (interactive nil apropos-mode)
   (forward-line -1)
   (while (and (not (eq (face-at-point) 'apropos-symbol))
               (> (point) (point-min)))

@@ -3589,8 +3589,8 @@ font_open_by_name (struct frame *f, Lisp_Object name)
 
    The second is with frame F NULL.  In this case, DRIVER is globally
    registered in the variable `font_driver_list'.  All font-driver
-   implementations must call this function in its syms_of_XXXX
-   (e.g. syms_of_xfont).  */
+   implementations must call this function in its
+   syms_of_XXXX_for_pdumper (e.g. syms_of_xfont_for_pdumper).  */
 
 void
 register_font_driver (struct font_driver const *driver, struct frame *f)
@@ -4691,8 +4691,7 @@ Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
   VARIATION-SELECTOR is a character code of variation selector
     (#xFE00..#xFE0F or #xE0100..#xE01EF).
-  GLYPH-ID is a glyph code of the corresponding variation glyph,
-a fixnum, if it's small enough, otherwise a bignum.  */)
+  GLYPH-ID is a glyph code of the corresponding variation glyph, an integer.  */)
   (Lisp_Object font_object, Lisp_Object character)
 {
   unsigned variations[256];
@@ -4729,8 +4728,7 @@ a fixnum, if it's small enough, otherwise a bignum.  */)
    that apply to POSITION.  POSITION may be nil, in which case,
    FONT-SPEC is the font for displaying the character CH with the
    default face.  GLYPH-CODE is the glyph code in the font to use for
-   the character, it is a fixnum, if it is small enough, otherwise a
-   bignum.
+   the character, as an integer.
 
    For a text terminal, return a nonnegative integer glyph code for
    the character, or a negative integer if the character is not

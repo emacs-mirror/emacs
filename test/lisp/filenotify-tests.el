@@ -178,10 +178,6 @@ Return nil when any other file notification watch is still active."
       tramp-allow-unsafe-temporary-files
       (or tramp-allow-unsafe-temporary-files noninteractive))
 
-;; This should happen on hydra only.
-(when (getenv "EMACS_HYDRA_CI")
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-
 (defun file-notify--test-add-watch (file flags callback)
   "Like `file-notify-add-watch', but also passing FILE to CALLBACK."
   (file-notify-add-watch file flags

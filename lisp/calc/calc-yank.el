@@ -48,7 +48,7 @@
 	 (let ((stuff (calc-top-list n (- num n -1))))
 	   (calc-cursor-stack-index num)
            (unless calc-kill-line-numbering
-             (re-search-forward "\\=[0-9]+:\\s-+" (point-at-eol) t))
+             (re-search-forward "\\=[0-9]+:\\s-+" (line-end-position) t))
 	   (let ((first (point)))
 	     (calc-cursor-stack-index (- num n))
 	     (if (null nn)
@@ -150,7 +150,6 @@
 
 ;; This function uses calc-last-kill if possible to get an exact result,
 ;; otherwise it just parses the yanked string.
-;; Modified to use Emacs 19 extended concept of kill-ring. -- daveg 12/15/96
 ;;;###autoload
 (defun calc-yank-internal (radix thing-raw)
   "Internal common implementation for yank functions.
@@ -266,14 +265,16 @@ as well as set the contents of the Emacs register REGISTER to TEXT."
   "Return the CALCVAL portion of the contents of the Calc register REG,
 unless the TEXT portion doesn't match the contents of the Emacs register REG,
 in which case either return the contents of the Emacs register (if it is
-text) or nil."
+text or a number) or nil."
   (let ((cval (cdr (assq reg calc-register-alist)))
         (val (cdr (assq reg register-alist))))
-    (if (stringp val)
-        (if (and (stringp (car cval))
-                 (string= (car cval) val))
-            (cdr cval)
-          val))))
+    (cond
+     ((stringp val)
+      (if (and (stringp (car cval))
+               (string= (car cval) val))
+          (cdr cval)
+        val))
+     ((numberp val) (number-to-string val)))))
 
 (defun calc-copy-to-register (register start end &optional delete-flag)
   "Copy the lines in the region into register REGISTER.
@@ -303,10 +304,7 @@ Interactively, reads the register using `register-read-with-preview'."
 (defun calc-insert-register (register)
   "Insert the contents of register REGISTER.
 
-Interactively, reads the register using `register-read-with-preview'.
-
-Note that this command only works with Calc registers, and they
-have nothing to do with the Emacs-wide register mechanism."
+Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Insert register: ")))
   (if (eq major-mode 'calc-mode)
       (let ((val (calc-get-register register)))
@@ -412,8 +410,8 @@ Interactively, reads the register using `register-read-with-preview'."
 	    (setq single t)
 	  (setq arg (prefix-numeric-value arg))
 	  (if (= arg 0)
-	      (setq top (point-at-bol)
-		    bot (point-at-eol))
+              (setq top (line-beginning-position)
+                    bot (line-end-position))
 	    (save-excursion
 	      (setq top (point))
 	      (forward-line arg)
@@ -716,9 +714,9 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
-              (format-message "Press `C-c C-c'")
+              (substitute-command-keys "Press \\`C-c C-c'")
               (if allow-ret "" " or RET")
-              (format-message " to finish, `C-x k RET' to cancel.\n\n"))
+              (substitute-command-keys " to finish, \\`C-x k RET' to cancel.\n\n"))
              'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
     (setq-local calc-edit-top (point))))
 

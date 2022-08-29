@@ -55,6 +55,7 @@
 
 (defconst nnbabyl-version "nnbabyl 1.0"
   "nnbabyl version.")
+(make-obsolete-variable 'nnbabyl-version 'emacs-version "29.1")
 
 (defvoo nnbabyl-mbox-buffer nil)
 (defvoo nnbabyl-current-group nil)
@@ -306,7 +307,7 @@
        (while (re-search-forward
 	       "^X-Gnus-Newsgroup:"
 	       (save-excursion (search-forward "\n\n" nil t) (point)) t)
-	 (delete-region (point-at-bol) (progn (forward-line 1) (point))))
+         (delete-region (line-beginning-position) (progn (forward-line 1) (point))))
        (setq result (eval accept-form t))
        (kill-buffer (current-buffer))
        result)
@@ -423,7 +424,7 @@
 (defun nnbabyl-delete-mail (&optional force leave-delim)
   ;; Delete the current X-Gnus-Newsgroup line.
   (unless force
-    (delete-region (point-at-bol) (progn (forward-line 1) (point))))
+    (delete-region (line-beginning-position) (progn (forward-line 1) (point))))
   ;; Beginning of the article.
   (save-excursion
     (save-restriction
@@ -629,7 +630,8 @@
       (while (re-search-forward "^X-Gnus-Newsgroup: \\([^ ]+\\) "  nil t)
 	(if (gethash (setq id (match-string 1)) idents)
 	    (progn
-	      (delete-region (point-at-bol) (progn (forward-line 1) (point)))
+              (delete-region (line-beginning-position)
+                             (progn (forward-line 1) (point)))
 	      (nnheader-message 7 "Moving %s..." id)
 	      (nnbabyl-save-mail
 	       (nnmail-article-group 'nnbabyl-active-number)))

@@ -315,20 +315,6 @@ Setting this variable has an effect only before reading a mail."
   :version "21.1")
 
 ;;;###autoload
-(define-obsolete-variable-alias 'rmail-dont-reply-to-names
-  'mail-dont-reply-to-names "24.1")
-
-;; Prior to 24.1, this used to contain "\\`info-".
-;;;###autoload
-(defvar rmail-default-dont-reply-to-names nil
-  "Regexp specifying part of the default value of `mail-dont-reply-to-names'.
-This is used when the user does not set `mail-dont-reply-to-names'
-explicitly.")
-;;;###autoload
-(make-obsolete-variable 'rmail-default-dont-reply-to-names
-                        'mail-dont-reply-to-names "24.1")
-
-;;;###autoload
 (defcustom rmail-ignored-headers
   (purecopy
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
@@ -388,7 +374,7 @@ If nil, display all header fields except those matched by
 ;;;###autoload
 (defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:\\|message-id:")
   "Headers that should be stripped when retrying a failed message."
-  :type '(choice regexp (const nil :tag "None"))
+  :type '(choice regexp (const :value nil :tag "None"))
   :group 'rmail-headers
   :version "23.2")	   ; added x-detected-operating-system, x-spam
 
@@ -462,8 +448,8 @@ as argument, to ask the user that question."
 		 (const :tag "Confirm with y-or-n-p" y-or-n-p)
 		 (const :tag "Confirm with yes-or-no-p" yes-or-no-p))
   :version "21.1"
+  :risky t
   :group 'rmail-files)
-(put 'rmail-confirm-expunge 'risky-local-variable t)
 
 ;;;###autoload
 (defvar rmail-mode-hook nil
@@ -1465,9 +1451,7 @@ If so restore the actual mbox message collection."
   (setq-local font-lock-defaults
               '(rmail-font-lock-keywords
                 t t nil nil
-                (font-lock-maximum-size . nil)
-                (font-lock-dont-widen . t)
-                (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+                (font-lock-dont-widen . t)))
   (setq-local require-final-newline nil)
   (setq-local version-control 'never)
   (add-hook 'kill-buffer-hook #'rmail-mode-kill-summary nil t)

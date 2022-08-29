@@ -30,21 +30,19 @@
 
 ;;; Local Mode
 
-(defvar epa-mail-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "\C-c\C-ed" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-ev" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-es" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-ee" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-ei" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-eo" 'epa-insert-keys)
-    (define-key keymap "\C-c\C-e\C-d" 'epa-mail-decrypt)
-    (define-key keymap "\C-c\C-e\C-v" 'epa-mail-verify)
-    (define-key keymap "\C-c\C-e\C-s" 'epa-mail-sign)
-    (define-key keymap "\C-c\C-e\C-e" 'epa-mail-encrypt)
-    (define-key keymap "\C-c\C-e\C-i" 'epa-mail-import-keys)
-    (define-key keymap "\C-c\C-e\C-o" 'epa-insert-keys)
-    keymap))
+(defvar-keymap epa-mail-mode-map
+  "C-c C-e d"   #'epa-mail-decrypt
+  "C-c C-e v"   #'epa-mail-verify
+  "C-c C-e s"   #'epa-mail-sign
+  "C-c C-e e"   #'epa-mail-encrypt
+  "C-c C-e i"   #'epa-mail-import-keys
+  "C-c C-e o"   #'epa-insert-keys
+  "C-c C-e C-d" #'epa-mail-decrypt
+  "C-c C-e C-v" #'epa-mail-verify
+  "C-c C-e C-s" #'epa-mail-sign
+  "C-c C-e C-e" #'epa-mail-encrypt
+  "C-c C-e C-i" #'epa-mail-import-keys
+  "C-c C-e C-o" #'epa-insert-keys)
 
 (defvar epa-mail-mode-hook nil)
 (defvar epa-mail-mode-on-hook nil)

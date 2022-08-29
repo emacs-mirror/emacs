@@ -1,7 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -154,6 +153,9 @@ output of `find' (one file per line) when this function is called."
 ;; History of find-args values entered in the minibuffer.
 (defvar find-args-history nil)
 
+(defvar find-command-history nil
+  "History of commands passed interactively to `find-dired-with-command'.")
+
 (defvar dired-sort-inhibit)
 
 ;;;###autoload
@@ -167,10 +169,47 @@ except that the car of the variable `find-ls-option' specifies what to
 use in place of \"-ls\" as the final argument.
 
 Collect output in the \"*Find*\" buffer.  To kill the job before
-it finishes, type \\[kill-find]."
+it finishes, type \\[kill-find].
+
+For more information on how to write valid find expressions for
+ARGS, see Info node `(find) Finding Files'.  If you are not
+using GNU findutils (on macOS and *BSD systems), see instead the
+man page for \"find\"."
   (interactive (list (read-directory-name "Run find in directory: " nil "" t)
 		     (read-string "Run find (with args): " find-args
 				  '(find-args-history . 1))))
+  (setq find-args args                ; save for next interactive call
+	args (concat find-program " . "
+		     (if (string= args "")
+			 ""
+		       (concat
+			(shell-quote-argument "(")
+			" " args " "
+			(shell-quote-argument ")")
+			" "))
+		     (find-dired--escaped-ls-option)))
+  (find-dired-with-command dir args))
+
+;;;###autoload
+(defun find-dired-with-command (dir command)
+  "Run `find' and go into Dired mode on a buffer of the output.
+The user-supplied COMMAND is run after changing into DIR and should look like
+
+    find . GLOBALARGS \\( ARGS \\) -ls
+
+The car of the variable `find-ls-option' specifies what to
+use in place of \"-ls\" as the starting input.
+
+Collect output in the \"*Find*\" buffer.  To kill the job before
+it finishes, type \\[kill-find]."
+  (interactive
+   (list (read-directory-name "Run find in directory: " nil "" t)
+	 (read-string "Run find command: "
+                      (cons (concat find-program
+                                    " . \\(  \\) "
+                                    (find-dired--escaped-ls-option))
+                            (+ 1 (length find-program) (length " . \\( ")))
+		      find-command-history)))
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
@@ -199,25 +238,14 @@ it finishes, type \\[kill-find]."
     (kill-all-local-variables)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (setq default-directory dir
-	  find-args args	      ; save for next interactive call
-	  args (concat find-program " . "
-		       (if (string= args "")
-			   ""
-			 (concat
-			  (shell-quote-argument "(")
-			  " " args " "
-			  (shell-quote-argument ")")
-			  " "))
-		       (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|\\+\\)\\'"
-					 (car find-ls-option))
-			   (format "%s %s %s"
-				   (match-string 1 (car find-ls-option))
-				   (shell-quote-argument "{}")
-				   find-exec-terminator)
-			 (car find-ls-option))))
+    (setq default-directory dir)
     ;; Start the find process.
-    (shell-command (concat args "&") (current-buffer))
+    (shell-command (concat command "&") (current-buffer))
+    (let ((proc (get-buffer-process (current-buffer))))
+      ;; Initialize the process marker; it is used by the filter.
+      (move-marker (process-mark proc) (point) (current-buffer))
+      (set-process-filter proc #'find-dired-filter)
+      (set-process-sentinel proc #'find-dired-sentinel))
     (dired-mode dir (cdr find-ls-option))
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map (current-local-map))
@@ -226,7 +254,7 @@ it finishes, type \\[kill-find]."
     (setq-local dired-sort-inhibit t)
     (setq-local revert-buffer-function
                 (lambda (_ignore-auto _noconfirm)
-                  (find-dired dir find-args)))
+                  (find-dired-with-command dir command)))
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
 	;; will work even with nested dired format (dired-nstd.el,v 1.15
@@ -246,15 +274,20 @@ it finishes, type \\[kill-find]."
     ;; Make second line a ``find'' line in analogy to the ``total'' or
     ;; ``wildcard'' line.
     (let ((point (point)))
-      (insert "  " args "\n")
+      (insert "  " command "\n")
       (dired-insert-set-properties point (point)))
     (setq buffer-read-only t)
-    (let ((proc (get-buffer-process (current-buffer))))
-      (set-process-filter proc #'find-dired-filter)
-      (set-process-sentinel proc #'find-dired-sentinel)
-      ;; Initialize the process marker; it is used by the filter.
-      (move-marker (process-mark proc) (point) (current-buffer)))
     (setq mode-line-process '(":%s"))))
+
+(defun find-dired--escaped-ls-option ()
+  "Return the car of `find-ls-option' escaped for a shell command."
+  (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|\\+\\)\\'"
+		    (car find-ls-option))
+      (format "%s %s %s"
+	      (match-string 1 (car find-ls-option))
+	      (shell-quote-argument "{}")
+	      find-exec-terminator)
+    (car find-ls-option)))
 
 (defun kill-find ()
   "Kill the `find' process running in the current buffer."
@@ -286,7 +319,7 @@ See `find-name-arg' to customize the arguments."
 ;; Date: 10 May 91 17:50:00 GMT
 ;; Organization: University of Waterloo
 
-(defalias 'lookfor-dired 'find-grep-dired)
+(define-obsolete-function-alias 'lookfor-dired #'find-grep-dired "29.1")
 ;;;###autoload
 (defun find-grep-dired (dir regexp)
   "Find files in DIR that contain matches for REGEXP and start Dired on output.
@@ -385,10 +418,10 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (buffer-substring-no-properties
-                (next-single-property-change
-                 (point) 'dired-filename)
-                (line-end-position)))))
+               (when-let ((start
+                           (next-single-property-change
+                            (point) 'dired-filename)))
+               (buffer-substring-no-properties start (line-end-position))))))
 
 
 (provide 'find-dired)

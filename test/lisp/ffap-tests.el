@@ -28,6 +28,30 @@
 (require 'ert-x)
 (require 'ffap)
 
+(ert-deftest ffap-replace-file-component ()
+  (should (equal
+           (ffap-replace-file-component "/ftp:who@foo.com:/whatever" "/new")
+           "/ftp:who@foo.com:/new")))
+
+(ert-deftest ffap-file-remote-p ()
+  (dolist (test '(("/user@foo.bar.com:/pub" .
+                   "/user@foo.bar.com:/pub")
+                  ("/cssun.mathcs.emory.edu://dir" .
+                   "/cssun.mathcs.emory.edu:/dir")
+                  ("/ffap.el:80" .
+                   "/ffap.el:80")))
+    (let ((A (car test))
+          (B (cdr test)))
+      (should (equal (ffap-file-remote-p A) B)))))
+
+(ert-deftest ffap-machine-p ()
+  (should-not (ffap-machine-p "ftp"))
+  (should-not (ffap-machine-p "nonesuch"))
+  (should (eq (ffap-machine-p "ftp.mathcs.emory.edu") 'accept))
+  (should-not (ffap-machine-p "mathcs" 5678))
+  (should-not (ffap-machine-p "foo.bonk"))
+  (should (eq (ffap-machine-p "foo.bonk.com") 'accept)))
+
 (ert-deftest ffap-tests-25243 ()
   "Test for https://debbugs.gnu.org/25243 ."
   (ert-with-temp-file file

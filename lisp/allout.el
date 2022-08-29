@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Allout outline minor mode provides extensive outline formatting and
-;; and manipulation beyond standard Emacs outline mode.  Some features:
+;; manipulation beyond standard Emacs outline mode.  Some features:
 ;;
 ;;  - Classic outline-mode topic-oriented navigation and exposure adjustment
 ;;  - Topic-oriented editing including coherent topic and subtopic
@@ -394,9 +394,8 @@ else allout's special hanging-indent maintaining auto-fill function,
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
-Ie, it is indented to be just past the header prefix.  This is
-relevant mostly for use with `indented-text-mode', or other situations
-where auto-fill occurs."
+I.e., it is indented to be just past the header prefix.  This is
+relevant mostly for situations where auto-fill occurs."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-use-hanging-indents)
@@ -733,8 +732,6 @@ Set this var to the bullet you want to use for file cross-references."
 (put 'allout-presentation-padding 'safe-local-variable #'integerp)
 
 ;;;_  = allout-flattened-numbering-abbreviation
-(define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
-  'allout-flattened-numbering-abbreviation "24.1")
 (defcustom allout-flattened-numbering-abbreviation nil
   "If non-nil, `allout-flatten-exposed-to-buffer' abbreviates topic
 numbers to minimal amount with some context.  Otherwise, entire
@@ -1350,11 +1347,6 @@ their settings before `allout-mode' was started."
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
   "Hook run when allout mode starts.")
-;;;_   = allout-mode-deactivate-hook
-(define-obsolete-variable-alias 'allout-mode-deactivate-hook
-  'allout-mode-off-hook "24.1")
-(defvar allout-mode-deactivate-hook nil
-  "Hook run when allout mode ends.")
 ;;;_   = allout-exposure-category
 (defvar allout-exposure-category nil
   "Symbol for use as allout invisible-text overlay category.")
@@ -1707,7 +1699,7 @@ the HOT-SPOT Operation section.
 
         Misc commands:
         -------------
-M-x outlineify-sticky       Activate outline mode for current buffer,
+\\[allout-outlinify-sticky] Activate outline mode for current buffer,
                             and establish a default file-var setting
                             for `allout-layout'.
 \\[allout-mark-topic]       `allout-mark-topic'
@@ -1779,7 +1771,6 @@ hooks, by which independent code can cooperate with allout
 without changes to the allout core.  Here are key ones:
 
 `allout-mode-hook'
-`allout-mode-deactivate-hook' (deprecated)
 `allout-mode-off-hook'
 `allout-exposure-change-functions'
 `allout-structure-added-functions'
@@ -4607,7 +4598,7 @@ by pops to non-distinctive yanks.  Bug..."
         (save-match-data
           (save-excursion
             (let* ((text-start allout-recent-prefix-end)
-                   (heading-end (point-at-eol)))
+                   (heading-end (line-end-position)))
               (goto-char text-start)
               (setq file-name
                     (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
@@ -4883,7 +4874,7 @@ siblings, even if the target topic is already closed."
   (interactive)
   (save-excursion
     (allout-back-to-heading)
-    (if (allout-hidden-p (point-at-eol))
+    (if (allout-hidden-p (line-end-position))
         (allout-show-current-subtree)
       (allout-hide-current-subtree))))
 ;;;_   > allout-show-current-branches ()
@@ -5546,7 +5537,7 @@ environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line)
     (let (;(beg (point))
-          (end (point-at-eol)))
+          (end (line-end-position)))
       (save-match-data
         (while (re-search-forward "\\\\"
   ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"
@@ -6193,19 +6184,18 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 
 ;;;_ #9 miscellaneous
 ;;;_  : Mode:
-;;;_   > outlineify-sticky ()
-;; outlinify-sticky is correct spelling; provide this alias for sticklers:
+;;;_   > allout-outlinify-sticky ()
 ;;;###autoload
-(defalias 'outlinify-sticky #'outlineify-sticky)
+(define-obsolete-function-alias 'outlinify-sticky #'allout-outlinify-sticky "29.1")
 ;;;###autoload
-(defun outlineify-sticky (&optional _arg)
+(define-obsolete-function-alias 'outlineify-sticky #'allout-outlinify-sticky "29.1")
+;;;###autoload
+(defun allout-outlinify-sticky (&optional _arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
 See `allout-layout' and customization of `allout-auto-activation'
 for details on preparing Emacs for automatic allout activation."
-
   (interactive "P")
-
   (if (allout-mode-p) (allout-mode))    ; deactivate so we can re-activate...
   (allout-mode)
 

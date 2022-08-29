@@ -38,10 +38,11 @@
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
 
-;; Start a process that exits immediately.  Call WAIT-FUNCTION,
-;; possibly multiple times, to wait for the process to complete.
-(defun process-test-sentinel-wait-function-working-p (wait-function)
-  (let ((proc (start-process "test" nil "bash" "-c" "exit 20"))
+(defun process-test-wait-for-sentinel (proc exit-status &optional wait-function)
+  "Set a sentinel on PROC and wait for it to be called with EXIT-STATUS.
+Call WAIT-FUNCTION, possibly multiple times, to wait for the
+process to complete."
+  (let ((wait-function (or wait-function #'accept-process-output))
 	(sentinel-called nil)
 	(start-time (float-time)))
     (set-process-sentinel proc (lambda (_proc _msg)
@@ -50,21 +51,22 @@
 		    (> (- (float-time) start-time)
 		       process-test-sentinel-wait-timeout)))
       (funcall wait-function))
-    (cl-assert (eq (process-status proc) 'exit))
-    (cl-assert (= (process-exit-status proc) 20))
-    sentinel-called))
+    (should sentinel-called)
+    (should (eq (process-status proc) 'exit))
+    (should (= (process-exit-status proc) exit-status))))
 
 (ert-deftest process-test-sentinel-accept-process-output ()
   (skip-unless (executable-find "bash"))
   (with-timeout (60 (ert-fail "Test timed out"))
-  (should (process-test-sentinel-wait-function-working-p
-           #'accept-process-output))))
+    (let ((proc (start-process "test" nil "bash" "-c" "exit 20")))
+      (should (process-test-wait-for-sentinel proc 20)))))
 
 (ert-deftest process-test-sentinel-sit-for ()
   (skip-unless (executable-find "bash"))
   (with-timeout (60 (ert-fail "Test timed out"))
-  (should
-   (process-test-sentinel-wait-function-working-p (lambda () (sit-for 0.01 t))))))
+    (let ((proc (start-process "test" nil "bash" "-c" "exit 20")))
+      (should (process-test-wait-for-sentinel
+               proc 20 (lambda () (sit-for 0.01 t)))))))
 
 (when (eq system-type 'windows-nt)
   (ert-deftest process-test-quoted-batfile ()
@@ -97,17 +99,8 @@
 						    "echo hello stderr! >&2; "
 						    "exit 20"))
 			     :buffer stdout-buffer
-			     :stderr stderr-buffer))
-	 (sentinel-called nil)
-	 (start-time (float-time)))
-    (set-process-sentinel proc (lambda (_proc _msg)
-				 (setq sentinel-called t)))
-    (while (not (or sentinel-called
-		    (> (- (float-time) start-time)
-		       process-test-sentinel-wait-timeout)))
-      (accept-process-output))
-    (cl-assert (eq (process-status proc) 'exit))
-    (cl-assert (= (process-exit-status proc) 20))
+			     :stderr stderr-buffer)))
+    (process-test-wait-for-sentinel proc 20)
     (should (with-current-buffer stdout-buffer
 	      (goto-char (point-min))
 	      (looking-at "hello stdout!")))
@@ -118,8 +111,7 @@
 (ert-deftest process-test-stderr-filter ()
   (skip-unless (executable-find "bash"))
   (with-timeout (60 (ert-fail "Test timed out"))
-  (let* ((sentinel-called nil)
-	 (stderr-sentinel-called nil)
+  (let* ((stderr-sentinel-called nil)
 	 (stdout-output nil)
 	 (stderr-output nil)
 	 (stdout-buffer (generate-new-buffer "*stdout*"))
@@ -131,23 +123,14 @@
 					    (concat "echo hello stdout!; "
 						    "echo hello stderr! >&2; "
 						    "exit 20"))
-			     :stderr stderr-proc))
-	 (start-time (float-time)))
+			     :stderr stderr-proc)))
     (set-process-filter proc (lambda (_proc input)
 			       (push input stdout-output)))
-    (set-process-sentinel proc (lambda (_proc _msg)
-				 (setq sentinel-called t)))
     (set-process-filter stderr-proc (lambda (_proc input)
 				      (push input stderr-output)))
     (set-process-sentinel stderr-proc (lambda (_proc _input)
 					(setq stderr-sentinel-called t)))
-    (while (not (or sentinel-called
-		    (> (- (float-time) start-time)
-		       process-test-sentinel-wait-timeout)))
-      (accept-process-output))
-    (cl-assert (eq (process-status proc) 'exit))
-    (cl-assert (= (process-exit-status proc) 20))
-    (should sentinel-called)
+    (process-test-wait-for-sentinel proc 20)
     (should (equal 1 (with-current-buffer stdout-buffer
 		       (point-max))))
     (should (equal "hello stdout!\n"
@@ -177,8 +160,7 @@
                         (setq count (1+ count))))))))
       (set-process-query-on-exit-flag proc nil)
       (send-string proc "one\n")
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "1> "))
         (accept-process-output proc))   ; Read "one".
       (should (equal (buffer-string) "0> one\n1> "))
@@ -188,8 +170,7 @@
        (accept-process-output proc 1))  ; Can't read "two" yet.
       (should (equal (buffer-string) "0> one\n1> "))
       (set-process-filter proc nil)     ; Resume reading from proc.
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "2> "))
         (accept-process-output proc))   ; Read "Two".
       (should (equal (buffer-string) "0> one\n1> two\n2> "))))))
@@ -289,6 +270,77 @@
                   (error :got-error))))
     (should have-called-debugger))))
 
+(defun make-process/test-connection-type (ttys &rest args)
+  "Make a process and check whether its standard streams match TTYS.
+This calls `make-process', passing ARGS to adjust how the process
+is created.  TTYS should be a list of 3 boolean values,
+indicating whether the subprocess's stdin, stdout, and stderr
+should be a TTY, respectively."
+  (declare (indent 1))
+  (let* (;; MS-Windows doesn't support communicating via pty.
+         (ttys (if (eq system-type 'windows-nt) '(nil nil nil) ttys))
+         (expected-output (concat (and (nth 0 ttys) "stdin\n")
+                                  (and (nth 1 ttys) "stdout\n")
+                                  (and (nth 2 ttys) "stderr\n")))
+         (stdout-buffer (generate-new-buffer "*stdout*"))
+         (proc (apply
+                #'make-process
+                :name "test"
+                :command (list "sh" "-c"
+                               (concat "if [ -t 0 ]; then echo stdin; fi; "
+                                       "if [ -t 1 ]; then echo stdout; fi; "
+                                       "if [ -t 2 ]; then echo stderr; fi"))
+                :buffer stdout-buffer
+                args)))
+    (should (eq (and (process-tty-name proc 'stdin) t) (nth 0 ttys)))
+    (should (eq (and (process-tty-name proc 'stdout) t) (nth 1 ttys)))
+    (should (eq (and (process-tty-name proc 'stderr) t) (nth 2 ttys)))
+    (process-test-wait-for-sentinel proc 0)
+    (should (equal (with-current-buffer stdout-buffer (buffer-string))
+                   expected-output))))
+
+(ert-deftest make-process/connection-type/pty ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(t t t)
+    :connection-type 'pty))
+
+(ert-deftest make-process/connection-type/pty-2 ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(t t t)
+    :connection-type '(pty . pty)))
+
+(ert-deftest make-process/connection-type/pipe ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(nil nil nil)
+    :connection-type 'pipe))
+
+(ert-deftest make-process/connection-type/pipe-2 ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(nil nil nil)
+    :connection-type '(pipe . pipe)))
+
+(ert-deftest make-process/connection-type/in-pty ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(t nil nil)
+    :connection-type '(pty . pipe)))
+
+(ert-deftest make-process/connection-type/out-pty ()
+  (skip-unless (executable-find "sh"))
+  (make-process/test-connection-type '(nil t t)
+    :connection-type '(pipe . pty)))
+
+(ert-deftest make-process/connection-type/pty-with-stderr-buffer ()
+  (skip-unless (executable-find "sh"))
+  (let ((stderr-buffer (generate-new-buffer "*stderr*")))
+    (make-process/test-connection-type '(t t nil)
+      :connection-type 'pty :stderr stderr-buffer)))
+
+(ert-deftest make-process/connection-type/out-pty-with-stderr-buffer ()
+  (skip-unless (executable-find "sh"))
+  (let ((stderr-buffer (generate-new-buffer "*stderr*")))
+    (make-process/test-connection-type '(nil t nil)
+      :connection-type '(pipe . pty) :stderr stderr-buffer)))
+
 (ert-deftest make-process/file-handler/found ()
   "Check that the `:file-handler’ argument of `make-process’
 works as expected if a file name handler is found."
@@ -377,6 +429,58 @@ See Bug#30460."
   (should (network-lookup-address-info "localhost" 'ipv4))
   (when (ipv6-is-available)
     (should (network-lookup-address-info "localhost" 'ipv6)))))
+
+(ert-deftest lookup-hints-specification ()
+  "`network-lookup-address-info' should only accept valid hints arg."
+  (should-error (network-lookup-address-info "1.1.1.1" nil t))
+  (should-error (network-lookup-address-info "1.1.1.1" 'ipv4 t))
+  (should (network-lookup-address-info "1.1.1.1" nil 'numeric))
+  (should (network-lookup-address-info "1.1.1.1" 'ipv4 'numeric))
+  (when (ipv6-is-available)
+    (should-error (network-lookup-address-info "::1" nil t))
+    (should-error (network-lookup-address-info "::1" 'ipv6 't))
+    (should (network-lookup-address-info "::1" nil 'numeric))
+    (should (network-lookup-address-info "::1" 'ipv6 'numeric))))
+
+(ert-deftest lookup-hints-values ()
+  "`network-lookup-address-info' should succeed/fail in looking up various numeric IP addresses."
+  (let ((ipv4-invalid-addrs
+         '("localhost" "343.1.2.3" "1.2.3.4.5"))
+        ;; These are valid for IPv4 but invalid for IPv6
+        (ipv4-addrs
+         '("127.0.0.1" "127.0.1" "127.1" "127" "1" "0"
+           "0xe3010203" "0xe3.1.2.3" "227.0x1.2.3"
+           "034300201003" "0343.1.2.3" "227.001.2.3"))
+        (ipv6-only-invalid-addrs
+         '("fe80:1" "e301:203:1" "e301::203::1"
+           "1:2:3:4:5:6:7:8:9" "0xe301:203::1"
+           "343:10001:2::3"
+           ;; "00343:1:2::3" is invalid on GNU/Linux and FreeBSD, but
+           ;; valid on macOS.  macOS is wrong here, but such is life.
+           ))
+        ;; These are valid for IPv6 but invalid for IPv4
+        (ipv6-addrs
+         '("fe80::1" "e301::203:1" "e301:203::1"
+           "e301:0203::1" "::1" "::0"
+           "0343:1:2::3" "343:001:2::3")))
+    (dolist (a ipv4-invalid-addrs)
+      (should-not (network-lookup-address-info a nil 'numeric))
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv6-addrs)
+      (should-not (network-lookup-address-info a 'ipv4 'numeric)))
+    (dolist (a ipv4-addrs)
+      (should (network-lookup-address-info a nil 'numeric))
+      (should (network-lookup-address-info a 'ipv4 'numeric)))
+    (when (ipv6-is-available)
+      (dolist (a ipv4-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-only-invalid-addrs)
+        (should-not (network-lookup-address-info a 'ipv6 'numeric)))
+      (dolist (a ipv6-addrs)
+        (should (network-lookup-address-info a nil 'numeric))
+        (should (network-lookup-address-info a 'ipv6 'numeric))
+        (should (network-lookup-address-info (upcase a) nil 'numeric))
+        (should (network-lookup-address-info (upcase a) 'ipv6 'numeric))))))
 
 (ert-deftest lookup-unicode-domains ()
   "Unicode domains should fail."
@@ -908,35 +1012,6 @@ Return nil if FILENAME doesn't exist."
       (should (equal 2 (process-exit-status proc)))
       ;; ...and the change description should be "interrupt".
       (should (equal '("interrupt\n") events)))))
-
-(ert-deftest process-async-https-with-delay ()
-  "Bug#49449: asynchronous TLS connection with delayed completion."
-  (skip-unless (and internet-is-working (gnutls-available-p)))
-  (let* ((status nil)
-         (buf (url-http
-                 #s(url "https" nil nil "elpa.gnu.org" nil
-                        "/packages/archive-contents" nil nil t silent t t)
-                 (lambda (s) (setq status s))
-                 '(nil) nil 'tls)))
-    (unwind-protect
-        (progn
-          ;; Busy-wait for 1 s to allow for the TCP connection to complete.
-          (let ((delay 1.0)
-                (t0 (float-time)))
-            (while (< (float-time) (+ t0 delay))))
-          ;; Wait for the entire operation to finish.
-          (let ((limit 4.0)
-                (t0 (float-time)))
-            (while (and (null status)
-                        (< (float-time) (+ t0 limit)))
-              (sit-for 0.1)))
-          (should status)
-          (should-not (plist-get status ':error))
-          (should buf)
-          (should (> (buffer-size buf) 0))
-          )
-      (when buf
-        (kill-buffer buf)))))
 
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."

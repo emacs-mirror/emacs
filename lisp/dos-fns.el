@@ -231,9 +231,6 @@ returned unaltered."
 
 (add-hook 'before-init-hook 'dos-reevaluate-defcustoms)
 
-(define-obsolete-variable-alias
-  'register-name-alist 'dos-register-name-alist "24.1")
-
 (defvar dos-register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
@@ -242,8 +239,6 @@ returned unaltered."
 
 (defun dos-make-register ()
   (make-vector 8 0))
-
-(define-obsolete-function-alias 'make-register 'dos-make-register "24.1")
 
 (defun dos-register-value (regs name)
   (let ((where (cdr (assoc name dos-register-name-alist))))
@@ -255,8 +250,6 @@ returned unaltered."
 	  ((numberp where)
 	   (aref regs where))
 	  (t nil))))
-
-(define-obsolete-function-alias 'register-value 'dos-register-value "24.1")
 
 (defun dos-set-register-value (regs name value)
   (and (numberp value)
@@ -274,17 +267,12 @@ returned unaltered."
 		(aset regs where (logand value 65535))))))
   regs)
 
-(define-obsolete-function-alias
-  'set-register-value 'dos-set-register-value "24.1")
-
 (defsubst dos-intdos (regs)
   "Issue the DOS Int 21h with registers REGS.
 
 REGS should be a vector produced by `dos-make-register'
 and `dos-set-register-value', which see."
   (int86 33 regs))
-
-(define-obsolete-function-alias 'intdos 'dos-intdos "24.1")
 
 ;; Backward compatibility for obsolescent functions which
 ;; set screen size.
@@ -293,8 +281,6 @@ and `dos-set-register-value', which see."
   "Change the number of screen rows to 25."
   (interactive)
   (set-frame-size (selected-frame) 80 25))
-
-(define-obsolete-function-alias 'mode25 'dos-mode25 "24.1")
 
 (defun dos-mode4350 ()
   "Change the number of rows to 43 or 50.
@@ -306,8 +292,6 @@ that your video hardware might not support 50-line mode."
   (if (eq (frame-height (selected-frame)) 50)
       nil  ; the original built-in function returned nil
     (set-frame-size (selected-frame) 80 43)))
-
-(define-obsolete-function-alias 'mode4350 'dos-mode4350 "24.1")
 
 (provide 'dos-fns)
 

@@ -217,6 +217,16 @@ function.  For example:
 @end example
 @end defun
 
+@defun compiled-function-p object
+This function returns @code{t} if @var{object} is a function object
+that is not in the form of ELisp source code but something like
+machine code or byte code instead.  More specifically it returns
+@code{t} if the function is built-in (a.k.a.@: ``primitive'',
+@pxref{What Is a Function}), or byte-compiled (@pxref{Byte
+Compilation}), or natively-compiled (@pxref{Native Compilation}), or
+a function loaded from a dynamic module (@pxref{Dynamic Modules}).
+@end defun
+
 @defun subr-arity subr
 This works like @code{func-arity}, but only for built-in functions and
 without symbol indirection.  It signals an error for non-built-in
@@ -2497,6 +2507,34 @@ the current buffer.
 @item (modes @var{modes})
 Specify that this command is meant to be applicable for @var{modes}
 only.
+
+@item (interactive-args @var{arg} ...)
+Specify the arguments that should be stored for @code{repeat-command}.
+Each @var{arg} is on the form @code{@var{argument-name} @var{form}}.
+
+@item (pure @var{val})
+If @var{val} is non-@code{nil}, this function is @dfn{pure}
+(@pxref{What Is a Function}).  This is the same as the @code{pure}
+property of the function's symbol (@pxref{Standard Properties}).
+
+@item (side-effect-free @var{val})
+If @var{val} is non-@code{nil}, this function is free of side effects,
+so the byte compiler can ignore calls whose value is ignored.  This is
+the same as the @code{side-effect-free} property of the function's
+symbol, @pxref{Standard Properties}.
+
+@item (speed @var{n})
+Specify the value of @code{native-comp-speed} in effect for native
+compilation of this function (@pxref{Native-Compilation Variables}).
+This allows function-level control of the optimization level used for
+native code emitted for the function.  In particular, if @var{n} is
+@minus{}1, native compilation of the function will emit bytecode
+instead of native code for the function.
+
+@item no-font-lock-keyword
+This is valid for macros only.  Macros with this declaration are
+highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
+not specially as macros.
 @end table
 
 @end defmac

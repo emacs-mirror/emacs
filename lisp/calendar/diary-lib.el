@@ -100,11 +100,11 @@ are: `string', `symbol', `int', `tnil', `stringtnil'."
   :type '(repeat (list (regexp :tag "Regular expression")
                        (integer :tag "Sub-expression")
                        (symbol :tag "Attribute (e.g. :foreground)")
-                       (choice (const string :tag "A string")
-                               (const symbol :tag "A symbol")
-                               (const int :tag "An integer")
-                               (const tnil :tag "t or nil")
-                               (const stringtnil
+                       (choice (const :value string :tag "A string")
+                               (const :value symbol :tag "A symbol")
+                               (const :value int    :tag "An integer")
+                               (const :value tnil   :tag "t or nil")
+                               (const :value stringtnil
                                       :tag "A string, t, or nil"))))
   :group 'diary)
 
@@ -2465,8 +2465,8 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
-(defvar diary-fancy-overriding-map (make-sparse-keymap)
-  "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
+(defvar-keymap diary-fancy-overriding-map
+  :doc "Keymap overriding minor-mode maps in `diary-fancy-display-mode'.")
 
 (define-derived-mode diary-fancy-display-mode special-mode
   "Diary"

@@ -321,7 +321,7 @@ See bug#35036."
     ;; Stay at BOB.
     (forward-line -1)
     (save-restriction
-      (narrow-to-region (point) (line-end-position))
+      (narrow-to-region (point) (pos-eol))
       (should-not (delete-indentation))
       (should (equal (simple-test--buffer-substrings)
                      '("" . " second ")))
@@ -344,27 +344,23 @@ See bug#35036."
     (should (equal (simple-test--buffer-substrings)
                    '(" first " . "")))
     ;; Single line.
-    (should-not (delete-indentation
-                 nil (line-beginning-position) (1- (point))))
+    (should-not (delete-indentation nil (pos-bol) (1- (point))))
     (should (equal (simple-test--buffer-substrings)
                    '("" . " first ")))
-    (should-not (delete-indentation nil (1+ (point)) (line-end-position)))
+    (should-not (delete-indentation nil (1+ (point)) (pos-eol)))
     (should (equal (simple-test--buffer-substrings)
                    '(" " . "first ")))
-    (should-not (delete-indentation
-                 nil (line-beginning-position) (line-end-position)))
+    (should-not (delete-indentation nil (pos-bol) (pos-eol)))
     (should (equal (simple-test--buffer-substrings)
                    '("" . " first ")))
     ;; Multiple lines.
     (goto-char (point-max))
     (insert "\n second \n third \n fourth ")
     (goto-char (point-min))
-    (should-not (delete-indentation
-                 nil (line-end-position) (line-beginning-position 2)))
+    (should-not (delete-indentation nil (pos-eol) (pos-bol 2)))
     (should (equal (simple-test--buffer-substrings)
                    '(" first" . " second \n third \n fourth ")))
-    (should-not (delete-indentation
-                 nil (point) (1+ (line-beginning-position 2))))
+    (should-not (delete-indentation nil (point) (1+ (pos-bol 2))))
     (should (equal (simple-test--buffer-substrings)
                    '(" first second" . " third \n fourth ")))
     ;; Prefix argument overrides region.
@@ -808,7 +804,7 @@ See Bug#21722."
       (insert "a\nb\nc\nd\n")
       (goto-char (point-min))
       (forward-line (1- target-line))
-      (narrow-to-region (line-beginning-position) (line-end-position))
+      (narrow-to-region (pos-bol) (pos-eol))
       (should (equal (line-number-at-pos) 1))
       (should (equal (line-number-at-pos nil t) target-line)))))
 
@@ -817,7 +813,7 @@ See Bug#21722."
     (insert "a\nb\nc\nd\n")
     (goto-char (point-min))
     (forward-line 2)
-    (narrow-to-region (line-beginning-position) (line-end-position))
+    (narrow-to-region (pos-bol) (pos-eol))
     (should (equal (line-number-at-pos) 1))
     (line-number-at-pos nil t)
     (should (equal (line-number-at-pos) 1))))

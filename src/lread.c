@@ -131,25 +131,15 @@ static ptrdiff_t read_from_string_limit;
 /* Position in object from which characters are being read by `readchar'.  */
 static EMACS_INT readchar_offset;
 
-/* This contains the last string skipped with #@.  */
-static char *saved_doc_string;
-/* Length of buffer allocated in saved_doc_string.  */
-static ptrdiff_t saved_doc_string_size;
-/* Length of actual data in saved_doc_string.  */
-static ptrdiff_t saved_doc_string_length;
-/* This is the file position that string came from.  */
-static file_offset saved_doc_string_position;
+struct saved_string {
+  char *string;		        /* string in allocated buffer */
+  ptrdiff_t size;		/* allocated size of buffer */
+  ptrdiff_t length;		/* length of string in buffer */
+  file_offset position;		/* position in file the string came from */
+};
 
-/* This contains the previous string skipped with #@.
-   We copy it from saved_doc_string when a new string
-   is put in saved_doc_string.  */
-static char *prev_saved_doc_string;
-/* Length of buffer allocated in prev_saved_doc_string.  */
-static ptrdiff_t prev_saved_doc_string_size;
-/* Length of actual data in prev_saved_doc_string.  */
-static ptrdiff_t prev_saved_doc_string_length;
-/* This is the file position that string came from.  */
-static file_offset prev_saved_doc_string_position;
+/* The last two strings skipped with #@ (most recent first).  */
+static struct saved_string saved_strings[2];
 
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
@@ -1605,13 +1595,12 @@ Return t if the file exists and loads successfully.  */)
   if (!NILP (Ffboundp (Qdo_after_load_evaluation)))
     call1 (Qdo_after_load_evaluation, hist_file_name) ;
 
-  xfree (saved_doc_string);
-  saved_doc_string = 0;
-  saved_doc_string_size = 0;
-
-  xfree (prev_saved_doc_string);
-  prev_saved_doc_string = 0;
-  prev_saved_doc_string_size = 0;
+  for (int i = 0; i < ARRAYELTS (saved_strings); i++)
+    {
+      xfree (saved_strings[i].string);
+      saved_strings[i].string = NULL;
+      saved_strings[i].size = 0;
+    }
 
   if (!noninteractive && (NILP (nomessage) || force_load_messages))
     {
@@ -1735,13 +1724,24 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 	{
 	  if (!NILP (find_symbol_value (
 		       Qnative_comp_warning_on_missing_source)))
-	    call2 (intern_c_string ("display-warning"),
-		   Qcomp,
-		   CALLN (Fformat,
-			  build_string ("Cannot look-up eln file as no source "
-					"file was found for %s"),
-			  *filename));
-	  return;
+	    {
+	      /* If we have an installation without any .el files,
+		 there's really no point in giving a warning here,
+		 because that will trigger a cascade of warnings.  So
+		 just do a sanity check and refuse to do anything if we
+		 can't find even central .el files.  */
+	      if (NILP (Flocate_file_internal (build_string ("simple.el"),
+					       Vload_path,
+					       Qnil, Qnil)))
+		return;
+	      call2 (intern_c_string ("display-warning"),
+		     Qcomp,
+		     CALLN (Fformat,
+			    build_string ("Cannot look up eln file as "
+					  "no source file was found for %s"),
+			    *filename));
+	      return;
+	    }
 	}
     }
   Lisp_Object eln_rel_name = Fcomp_el_to_eln_rel_filename (src_name);
@@ -3045,7 +3045,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
   /* True if we saw an escape sequence specifying
      a single-byte character.  */
   bool force_singlebyte = false;
-  bool cancel = false;
   ptrdiff_t nchars = 0;
 
   int ch;
@@ -3074,8 +3073,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
 	    case ' ':
 	    case '\n':
 	      /* `\SPC' and `\LF' generate no characters at all.  */
-	      if (p == read_buffer)
-		cancel = true;
 	      continue;
 	    default:
 	      UNREAD (ch);
@@ -3141,15 +3138,6 @@ read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
   if (ch < 0)
     end_of_file_error ();
 
-  /* If purifying, and string starts with \ newline,
-     return zero instead.  This is for doc strings
-     that we are really going to find in etc/DOC.nn.nn.  */
-  if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
-    {
-      unbind_to (count, Qnil);
-      return make_fixnum (0);
-    }
-
   if (!force_multibyte && force_singlebyte)
     {
       /* READ_BUFFER contains raw 8-bit bytes and no multibyte
@@ -3175,7 +3163,7 @@ hash_table_from_plist (Lisp_Object plist)
   /* This is repetitive but fast and simple.  */
 #define ADDPARAM(name)					\
   do {							\
-    Lisp_Object val = Fplist_get (plist, Q ## name);	\
+    Lisp_Object val = plist_get (plist, Q ## name);	\
     if (!NILP (val))					\
       {							\
 	*par++ = QC ## name;				\
@@ -3190,7 +3178,7 @@ hash_table_from_plist (Lisp_Object plist)
   ADDPARAM (rehash_threshold);
   ADDPARAM (purecopy);
 
-  Lisp_Object data = Fplist_get (plist, Qdata);
+  Lisp_Object data = plist_get (plist, Qdata);
 
   /* Now use params to make a new hash table and fill it.  */
   Lisp_Object ht = Fmake_hash_table (par - params, params);
@@ -3446,55 +3434,93 @@ skip_lazy_string (Lisp_Object readcharfun)
 	 record the last string that we skipped,
 	 and record where in the file it comes from.  */
 
-      /* But first exchange saved_doc_string
-	 with prev_saved_doc_string, so we save two strings.  */
-      {
-	char *temp = saved_doc_string;
-	ptrdiff_t temp_size = saved_doc_string_size;
-	file_offset temp_pos = saved_doc_string_position;
-	ptrdiff_t temp_len = saved_doc_string_length;
-
-	saved_doc_string = prev_saved_doc_string;
-	saved_doc_string_size = prev_saved_doc_string_size;
-	saved_doc_string_position = prev_saved_doc_string_position;
-	saved_doc_string_length = prev_saved_doc_string_length;
-
-	prev_saved_doc_string = temp;
-	prev_saved_doc_string_size = temp_size;
-	prev_saved_doc_string_position = temp_pos;
-	prev_saved_doc_string_length = temp_len;
-      }
+      /* First exchange the two saved_strings.  */
+      verify (ARRAYELTS (saved_strings) == 2);
+      struct saved_string t = saved_strings[0];
+      saved_strings[0] = saved_strings[1];
+      saved_strings[1] = t;
 
       enum { extra = 100 };
-      if (saved_doc_string_size == 0)
+      struct saved_string *ss = &saved_strings[0];
+      if (ss->size == 0)
 	{
-	  saved_doc_string = xmalloc (nskip + extra);
-	  saved_doc_string_size = nskip + extra;
+	  ss->size = nskip + extra;
+	  ss->string = xmalloc (ss->size);
 	}
-      if (nskip > saved_doc_string_size)
+      else if (nskip > ss->size)
 	{
-	  saved_doc_string = xrealloc (saved_doc_string, nskip + extra);
-	  saved_doc_string_size = nskip + extra;
+	  ss->size = nskip + extra;
+	  ss->string = xrealloc (ss->string, ss->size);
 	}
 
       FILE *instream = infile->stream;
-      saved_doc_string_position = (file_tell (instream) - infile->lookahead);
+      ss->position = (file_tell (instream) - infile->lookahead);
 
-      /* Copy that many bytes into saved_doc_string.  */
+      /* Copy that many bytes into the saved string.  */
       ptrdiff_t i = 0;
       int c = 0;
       for (int n = min (nskip, infile->lookahead); n > 0; n--)
-	saved_doc_string[i++] = c = infile->buf[--infile->lookahead];
+	ss->string[i++] = c = infile->buf[--infile->lookahead];
       block_input ();
       for (; i < nskip && c >= 0; i++)
-	saved_doc_string[i] = c = getc (instream);
+	ss->string[i] = c = getc (instream);
       unblock_input ();
 
-      saved_doc_string_length = i;
+      ss->length = i;
     }
   else
     /* Skip that many bytes.  */
     skip_dyn_bytes (readcharfun, nskip);
+}
+
+/* Given a lazy-loaded string designator VAL, return the actual string.
+   VAL is (FILENAME . POS).  */
+static Lisp_Object
+get_lazy_string (Lisp_Object val)
+{
+  /* Get a doc string from the file we are loading.
+     If it's in a saved string, get it from there.
+
+     Here, we don't know if the string is a bytecode string or a doc
+     string.  As a bytecode string must be unibyte, we always return a
+     unibyte string.  If it is actually a doc string, caller must make
+     it multibyte.  */
+
+  /* We used to emit negative positions for 'user variables' (whose doc
+     strings started with an asterisk); take the absolute value for
+     compatibility.  */
+  EMACS_INT pos = eabs (XFIXNUM (XCDR (val)));
+  struct saved_string *ss = &saved_strings[0];
+  struct saved_string *ssend = ss + ARRAYELTS (saved_strings);
+  while (ss < ssend
+	 && !(pos >= ss->position && pos < ss->position + ss->length))
+    ss++;
+  if (ss >= ssend)
+    return get_doc_string (val, 1, 0);
+
+  ptrdiff_t start = pos - ss->position;
+  char *str = ss->string;
+  ptrdiff_t from = start;
+  ptrdiff_t to = start;
+
+  /* Process quoting with ^A, and find the end of the string,
+     which is marked with ^_ (037).  */
+  while (str[from] != 037)
+    {
+      int c = str[from++];
+      if (c == 1)
+	{
+	  c = str[from++];
+	  str[to++] = (c == 1 ? c
+		       : c == '0' ? 0
+		       : c == '_' ? 037
+		       : c);
+	}
+      else
+	str[to++] = c;
+    }
+
+  return make_unibyte_string (str + start, to - start);
 }
 
 
@@ -4238,6 +4264,15 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    XSETCDR (e->u.list.tail, obj);
 	    read_stack_pop ();
 	    obj = e->u.list.head;
+
+	    /* Hack: immediately convert (#$ . FIXNUM) to the corresponding
+	       string if load-force-doc-strings is set.  */
+	    if (load_force_doc_strings
+		&& BASE_EQ (XCAR (obj), Vload_file_name)
+		&& !NILP (XCAR (obj))
+		&& FIXNUMP (XCDR (obj)))
+	      obj = get_lazy_string (obj);
+
 	    break;
 	  }
 
@@ -4265,7 +4300,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		  /* Catch silly games like #1=#1# */
 		  invalid_syntax ("nonsensical self-reference", readcharfun);
 
-		/* Optimisation: since the placeholder is already
+		/* Optimization: since the placeholder is already
 		   a cons, repurpose it as the actual value.
 		   This allows us to skip the substitution below,
 		   since the placeholder is already referenced
@@ -4855,7 +4890,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   hash = hash_string (ptr, size_byte) % obsize;
   bucket = AREF (obarray, hash);
   oblookup_last_bucket_number = hash;
-  if (EQ (bucket, make_fixnum (0)))
+  if (BASE_EQ (bucket, make_fixnum (0)))
     ;
   else if (!SYMBOLP (bucket))
     /* Like CADR error message.  */
@@ -4877,7 +4912,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 
 /* Like 'oblookup', but considers 'Vread_symbol_shorthands',
    potentially recognizing that IN is shorthand for some other
-   longhand name, which is then then placed in OUT.  In that case,
+   longhand name, which is then placed in OUT.  In that case,
    memory is malloc'ed for OUT (which the caller must free) while
    SIZE_OUT and SIZE_BYTE_OUT respectively hold the character and byte
    sizes of the transformed symbol name.  If IN is not recognized

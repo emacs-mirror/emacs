@@ -5992,12 +5992,22 @@ sys_umask (int mode)
 #ifndef SYMBOLIC_LINK_FLAG_DIRECTORY
 #define SYMBOLIC_LINK_FLAG_DIRECTORY 0x1
 #endif
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x2
+#endif
 
 int
 symlink (char const *filename, char const *linkname)
 {
   char linkfn[MAX_UTF8_PATH], *tgtfn;
-  DWORD flags = 0;
+  /* The SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE flag is
+     supported from Windows 10 build 14972.  It is only supported if
+     Developer Mode is enabled, and is ignored if it isn't.  */
+  DWORD flags =
+    (os_subtype == OS_SUBTYPE_NT
+     && (w32_major_version > 10
+	 || (w32_major_version == 10 && w32_build_number >= 14972)))
+    ? SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE : 0;
   int dir_access, filename_ends_in_slash;
 
   /* Diagnostics follows Posix as much as possible.  */
@@ -6055,7 +6065,7 @@ symlink (char const *filename, char const *linkname)
      directory.  */
   filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
   if (dir_access == 0 || filename_ends_in_slash)
-    flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
+    flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
 
   tgtfn = (char *)map_w32_filename (filename, NULL);
   if (filename_ends_in_slash)
@@ -8573,6 +8583,7 @@ int
 sys_close (int fd)
 {
   int rc = -1;
+  bool reader_thread_exited = false;
 
   if (fd < 0)
     {
@@ -8583,6 +8594,13 @@ sys_close (int fd)
   if (fd < MAXDESC && fd_info[fd].cp)
     {
       child_process * cp = fd_info[fd].cp;
+      DWORD thrd_status = STILL_ACTIVE;
+
+      /* Thread handle will be NULL if we already called delete_child.  */
+      if (cp->thrd != NULL
+	  && GetExitCodeThread (cp->thrd, &thrd_status)
+	  && thrd_status != STILL_ACTIVE)
+	reader_thread_exited = true;
 
       fd_info[fd].cp = NULL;
 
@@ -8633,7 +8651,11 @@ sys_close (int fd)
      because socket handles are fully fledged kernel handles. */
   if (fd < MAXDESC)
     {
-      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0)
+      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0
+	  /* If the reader thread already exited, close the descriptor,
+	     since otherwise no one will close it, and we will be
+	     leaking descriptors.  */
+	  || reader_thread_exited)
 	{
 	  fd_info[fd].flags = 0;
 	  rc = _close (fd);
@@ -8641,10 +8663,11 @@ sys_close (int fd)
       else
 	{
 	  /* We don't close here descriptors open by pipe processes
-	     for reading from the pipe, because the reader thread
-	     might be stuck in _sys_read_ahead, and then we will hang
-	     here.  If the reader thread exits normally, it will close
-	     the descriptor; otherwise we will leave a zombie thread
+	     for reading from the pipe when the reader thread might
+	     still be running, since that thread might be stuck in
+	     _sys_read_ahead, and then we will hang here.  If the
+	     reader thread exits normally, it will close the
+	     descriptor; otherwise we will leave a zombie thread
 	     hanging around.  */
 	  rc = 0;
 	  /* Leave the flag set for the reader thread to close the
@@ -10953,19 +10976,19 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   dcb.EvtChar       = 0;
 
   /* Configure speed.  */
-  if (!NILP (Fplist_member (contact, QCspeed)))
-    tem = Fplist_get (contact, QCspeed);
+  if (!NILP (plist_member (contact, QCspeed)))
+    tem = plist_get (contact, QCspeed);
   else
-    tem = Fplist_get (p->childp, QCspeed);
+    tem = plist_get (p->childp, QCspeed);
   CHECK_FIXNUM (tem);
   dcb.BaudRate = XFIXNUM (tem);
-  childp2 = Fplist_put (childp2, QCspeed, tem);
+  childp2 = plist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
-  if (!NILP (Fplist_member (contact, QCbytesize)))
-    tem = Fplist_get (contact, QCbytesize);
+  if (!NILP (plist_member (contact, QCbytesize)))
+    tem = plist_get (contact, QCbytesize);
   else
-    tem = Fplist_get (p->childp, QCbytesize);
+    tem = plist_get (p->childp, QCbytesize);
   if (NILP (tem))
     tem = make_fixnum (8);
   CHECK_FIXNUM (tem);
@@ -10973,13 +10996,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     error (":bytesize must be nil (8), 7, or 8");
   dcb.ByteSize = XFIXNUM (tem);
   summary[0] = XFIXNUM (tem) + '0';
-  childp2 = Fplist_put (childp2, QCbytesize, tem);
+  childp2 = plist_put (childp2, QCbytesize, tem);
 
   /* Configure parity.  */
-  if (!NILP (Fplist_member (contact, QCparity)))
-    tem = Fplist_get (contact, QCparity);
+  if (!NILP (plist_member (contact, QCparity)))
+    tem = plist_get (contact, QCparity);
   else
-    tem = Fplist_get (p->childp, QCparity);
+    tem = plist_get (p->childp, QCparity);
   if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
     error (":parity must be nil (no parity), `even', or `odd'");
   dcb.fParity = FALSE;
@@ -11003,13 +11026,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.Parity = ODDPARITY;
       dcb.fErrorChar = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCparity, tem);
+  childp2 = plist_put (childp2, QCparity, tem);
 
   /* Configure stopbits.  */
-  if (!NILP (Fplist_member (contact, QCstopbits)))
-    tem = Fplist_get (contact, QCstopbits);
+  if (!NILP (plist_member (contact, QCstopbits)))
+    tem = plist_get (contact, QCstopbits);
   else
-    tem = Fplist_get (p->childp, QCstopbits);
+    tem = plist_get (p->childp, QCstopbits);
   if (NILP (tem))
     tem = make_fixnum (1);
   CHECK_FIXNUM (tem);
@@ -11020,13 +11043,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     dcb.StopBits = ONESTOPBIT;
   else if (XFIXNUM (tem) == 2)
     dcb.StopBits = TWOSTOPBITS;
-  childp2 = Fplist_put (childp2, QCstopbits, tem);
+  childp2 = plist_put (childp2, QCstopbits, tem);
 
   /* Configure flowcontrol.  */
-  if (!NILP (Fplist_member (contact, QCflowcontrol)))
-    tem = Fplist_get (contact, QCflowcontrol);
+  if (!NILP (plist_member (contact, QCflowcontrol)))
+    tem = plist_get (contact, QCflowcontrol);
   else
-    tem = Fplist_get (p->childp, QCflowcontrol);
+    tem = plist_get (p->childp, QCflowcontrol);
   if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
     error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
   dcb.fOutxCtsFlow	= FALSE;
@@ -11053,13 +11076,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.fOutX = TRUE;
       dcb.fInX = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCflowcontrol, tem);
+  childp2 = plist_put (childp2, QCflowcontrol, tem);
 
   /* Activate configuration.  */
   if (!SetCommState (hnd, &dcb))
     error ("SetCommState() failed");
 
-  childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
+  childp2 = plist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);
 }
 

@@ -68,6 +68,8 @@ not, conversion will fail."
     (imagemagick :command "convert" :probe ("-list" "format")))
   "List of supported image converters to try.")
 
+(defvar image-converter--extra-converters (make-hash-table :test #'equal))
+
 (defun image-converter-initialize ()
   "Determine the external image converter to be used.
 This also determines which external formats we can parse."
@@ -123,15 +125,21 @@ converted image data is returned as a string."
     (error "IMAGE-FORMAT should be a symbol like `image/png'"))
   (with-temp-buffer
     (set-buffer-multibyte nil)
-    (when-let ((err (image-converter--convert
-                     image-converter
-                     (if (listp image)
-                         (plist-get (cdr image) :file)
-                       image)
-                     (if (listp image)
-                         (plist-get (cdr image) :data-p)
-                       image-format))))
-      (error "%s" err))
+    (let* ((source (if (listp image)
+                       (plist-get (cdr image) :file)
+                     image))
+           (format (if (listp image)
+                       (plist-get (cdr image) :data-p)
+                     image-format))
+           (type (if format
+                     (image-converter--mime-type format)
+                   (file-name-extension source)))
+           (extra-converter (gethash type image-converter--extra-converters)))
+      (if extra-converter
+          (funcall extra-converter source format)
+        (when-let ((err (image-converter--convert
+                         image-converter source format)))
+          (error "%s" err))))
     (if (listp image)
         ;; Return an image object that's the same as we were passed,
         ;; but ignore the :type value.
@@ -244,20 +252,22 @@ Only suffixes that map to `image-mode' are returned."
        (cadr (split-string (symbol-name image-format) "/"))))
 
 (defun image-converter--convert-magick (type source image-format)
-  (let ((command (image-converter--value type :command)))
+  (let ((command (image-converter--value type :command))
+        (coding-system-for-read 'no-conversion))
     (unless (zerop (if image-format
                        ;; We have the image data in SOURCE.
                        (progn
                          (insert source)
-                         (apply #'call-process-region (point-min) (point-max)
-                                (car command) t t nil
-                                (append
-                                 (cdr command)
-                                 (list (format "%s:-"
-                                               (image-converter--mime-type
-                                                image-format))
+                         (let ((coding-system-for-write 'no-conversion))
+                           (apply #'call-process-region (point-min) (point-max)
+                                  (car command) t t nil
+                                  (append
+                                   (cdr command)
+                                   (list (format "%s:-"
+                                                 (image-converter--mime-type
+                                                  image-format))
                                        (concat image-convert-to-format
-                                               ":-")))))
+                                               ":-"))))))
                      ;; SOURCE is a file name.
                      (apply #'call-process (car command)
                             nil t nil
@@ -272,18 +282,20 @@ Only suffixes that map to `image-mode' are returned."
 (cl-defmethod image-converter--convert ((type (eql 'ffmpeg)) source
                                         image-format)
   "Convert using ffmpeg."
-  (let ((command (image-converter--value type :command)))
+  (let ((command (image-converter--value type :command))
+        (coding-system-for-read 'no-conversion))
     (unless (zerop (if image-format
                        (progn
                          (insert source)
-                         (apply #'call-process-region
-                                (point-min) (point-max) (car command)
-                                t '(t nil) nil
-                                (append
-                                 (cdr command)
-                                 (list "-i" "-"
-                                       "-c:v" image-convert-to-format
-                                       "-f" "image2pipe" "-"))))
+                         (let ((coding-system-for-write 'no-conversion))
+                           (apply #'call-process-region
+                                  (point-min) (point-max) (car command)
+                                  t '(t nil) nil
+                                  (append
+                                   (cdr command)
+                                   (list "-i" "-"
+                                         "-c:v" image-convert-to-format
+                                         "-f" "image2pipe" "-")))))
                      (apply #'call-process
                             (car command)
                             nil '(t nil) nil
@@ -293,6 +305,21 @@ Only suffixes that map to `image-mode' are returned."
                                           "-f" "image2pipe"
                                           "-")))))
       "ffmpeg error when converting")))
+
+;;;###autoload
+(defun image-converter-add-handler (suffix converter)
+  "Make Emacs use CONVERTER to parse image files that end with SUFFIX.
+CONVERTER is a function with two parameters, where the first is
+the file name or a string with the image data, and the second is
+non-nil if the first parameter is image data.  The converter
+should output the image in the current buffer, converted to
+`image-convert-to-format'."
+  (cl-pushnew suffix image-converter-file-name-extensions :test #'equal)
+  (setq image-converter-file-name-extensions
+        (sort image-converter-file-name-extensions #'string<))
+  (setq image-converter-regexp
+        (concat "\\." (regexp-opt image-converter-file-name-extensions) "\\'"))
+  (setf (gethash suffix image-converter--extra-converters) converter))
 
 (provide 'image-converter)
 

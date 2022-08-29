@@ -228,8 +228,9 @@ customizing the @code{isearch-wrap-pause} user option.  If it is
 @code{t} (the default), signal an error.  (Repeating the search will
 wrap around.)  If @code{no}, issue a @code{ding} and wrap immediately
 after reaching the last match.  If @code{no-ding}, wrap immediately,
-but don't @code{ding}.  Finally, if @code{nil}, never wrap, but just
-stop at the last match.
+but don't @code{ding}.  With the values @code{no} and @code{no-ding}
+the search will try to wrap around also on typing a character.
+Finally, if @code{nil}, never wrap, but just stop at the last match.
 
 @cindex search ring
 @findex isearch-ring-advance
@@ -1428,16 +1429,18 @@ of its accented cousins like @code{@"a} and @code{@'a}, i.e., the
 match disregards the diacritics that distinguish these
 variants.  In addition, @code{a} matches other characters that
 resemble it, or have it as part of their graphical representation,
-such as U+249C @sc{parenthesized latin small letter a} and U+2100
-@sc{account of} (which looks like a small @code{a} over @code{c}).
+such as U+00AA @sc{feminine ordinal indicator} and U+24D0
+@sc{circled latin small letter a} (which looks like a small @code{a}
+inside a circle).
 Similarly, the @acronym{ASCII} double-quote character @code{"} matches
 all the other variants of double quotes defined by the Unicode
 standard.  Finally, character folding can make a sequence of one or
 more characters match another sequence of a different length: for
 example, the sequence of two characters @code{ff} matches U+FB00
-@sc{latin small ligature ff}.  Character sequences that are not identical,
-but match under character folding are known as @dfn{equivalent
-character sequences}.
+@sc{latin small ligature ff} and the sequence @code{(a)} matches
+U+249C @sc{parenthesized latin small letter a}.  Character sequences
+that are not identical, but match under character folding are known as
+@dfn{equivalent character sequences}.
 
 @kindex M-s ' @r{(Incremental Search)}
 @findex isearch-toggle-char-fold

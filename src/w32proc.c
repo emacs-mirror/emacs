@@ -1287,10 +1287,21 @@ reader_thread (void *arg)
     }
   /* If this thread was reading from a pipe process, close the
      descriptor used for reading, as sys_close doesn't in that case.  */
-  if (fd_info[fd].flags == FILE_DONT_CLOSE)
+  if ((fd_info[fd].flags & FILE_DONT_CLOSE) == FILE_DONT_CLOSE)
     {
-      fd_info[fd].flags = 0;
-      _close (fd);
+      int i;
+      /* If w32.c:sys_close is still processing this descriptor, wait
+	 for a while for it to finish.  */
+      for (i = 0; i < 5; i++)
+	{
+	  if (fd_info[fd].flags == FILE_DONT_CLOSE)
+	    {
+	      fd_info[fd].flags = 0;
+	      _close (fd);
+	      break;
+	    }
+	  Sleep (5);
+	}
     }
   return 0;
 }

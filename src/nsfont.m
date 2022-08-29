@@ -1763,8 +1763,11 @@ syms_of_nsfont (void)
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qmedium, "medium");
+
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
-               doc: /* Internal use: maps font registry to Unicode script.  */);
+    doc: /* Internal map of font registry to Unicode script.  */);
+  Vns_reg_to_script = Qnil;
+
   pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
 }
 

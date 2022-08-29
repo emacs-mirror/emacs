@@ -87,9 +87,6 @@ Examples of image filename patterns to match:
   (iimage-mode-buffer t)
   (recenter-top-bottom arg))
 
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
-
 (defun turn-off-iimage-mode ()
   "Unconditionally turn off iimage mode."
   (interactive)

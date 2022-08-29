@@ -73,16 +73,16 @@
 
 (defcustom thumbs-per-line 4
   "Number of thumbnails per line to show in directory."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-max-image-number 16
- "Maximum number of images initially displayed in thumbs buffer."
-  :type 'integer)
+  "Maximum number of images initially displayed in thumbs buffer."
+  :type 'natnum)
 
 (defcustom thumbs-thumbsdir-max-size 50000000
   "Maximum size for thumbnails directory.
-When it reaches that size (in bytes), a warning is sent."
-  :type 'integer)
+When it reaches that size (in bytes), a warning is displayed."
+  :type 'natnum)
 
 ;; Unfortunately Windows XP has a program called CONVERT.EXE in
 ;; C:/WINDOWS/SYSTEM32/ for partitioning NTFS systems.  So Emacs
@@ -106,12 +106,12 @@ This must be the ImageMagick \"convert\" utility."
 
 (defcustom thumbs-relief 5
   "Size of button-like border around thumbnails."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-margin 2
   "Size of the margin around thumbnails.
 This is where you see the cursor."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-thumbsdir-auto-clean t
   "If set, delete older file in the thumbnails directory.
@@ -121,7 +121,7 @@ than `thumbs-thumbsdir-max-size'."
 
 (defcustom thumbs-image-resizing-step 10
   "Step by which to resize image as a percentage."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom thumbs-temp-dir temporary-file-directory
   "Temporary directory to use.
@@ -215,16 +215,17 @@ FILEIN is the input file,
 FILEOUT is the output file,
 ACTION is the command to send to convert.
 Optional arguments are:
-ARG any arguments to the ACTION command,
+ARG if non-nil, the argument of the ACTION command,
 OUTPUT-FORMAT is the file format to output (default is jpeg),
 ACTION-PREFIX is the symbol to place before the ACTION command
               (defaults to `-' but can sometimes be `+')."
-  (call-process thumbs-conversion-program nil nil nil
-		(or action-prefix "-")
-		action
-		(or arg "")
-		filein
-		(format "%s:%s"	(or output-format "jpeg") fileout)))
+  (let ((action-param (concat (or action-prefix "-") action))
+	(fileout-param (format "%s:%s" (or output-format "jpeg") fileout)))
+    (if arg
+	(call-process thumbs-conversion-program nil nil nil
+		      action-param arg filein fileout-param)
+      (call-process thumbs-conversion-program nil nil nil
+		    action-param filein fileout-param))))
 
 (defun thumbs-new-image-size (s increment)
   "New image (a cons of width x height)."
@@ -293,6 +294,7 @@ smaller according to whether INCREMENT is 1 or -1."
     tn))
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
+(declare-function image-supported-file-p "image" (file))
 
 (defun thumbs-file-size (img)
   (let ((i (image-size
@@ -610,7 +612,7 @@ ACTION and ARG should be a valid convert command."
     (thumbs-call-convert (or old thumbs-current-image-filename)
 			 tmp
 			 action
-			 (or arg ""))
+			 arg)
     (save-excursion
       (thumbs-insert-image tmp 'jpeg 0))
     (setq thumbs-current-tmp-filename tmp)))
@@ -703,27 +705,25 @@ ACTION and ARG should be a valid convert command."
 
 ;; thumbs-mode
 
-(defvar thumbs-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [return] 'thumbs-find-image-at-point)
-    (define-key map [mouse-2] 'thumbs-mouse-find-image)
-    (define-key map [(meta return)] 'thumbs-find-image-at-point-other-window)
-    (define-key map [(control return)] 'thumbs-set-image-at-point-to-root-window)
-    (define-key map [delete] 'thumbs-delete-images)
-    (define-key map [right] 'thumbs-forward-char)
-    (define-key map [left] 'thumbs-backward-char)
-    (define-key map [up] 'thumbs-backward-line)
-    (define-key map [down] 'thumbs-forward-line)
-    (define-key map "+" 'thumbs-show-more-images)
-    (define-key map "d" 'thumbs-dired)
-    (define-key map "m" 'thumbs-mark)
-    (define-key map "u" 'thumbs-unmark)
-    (define-key map "R" 'thumbs-rename-images)
-    (define-key map "x" 'thumbs-delete-images)
-    (define-key map "s" 'thumbs-show-name)
-    (define-key map "q" 'thumbs-kill-buffer)
-    map)
-  "Keymap for `thumbs-mode'.")
+(defvar-keymap thumbs-mode-map
+  :doc "Keymap for `thumbs-mode'."
+  "<return>"   #'thumbs-find-image-at-point
+  "<mouse-2>"  #'thumbs-mouse-find-image
+  "M-<return>" #'thumbs-find-image-at-point-other-window
+  "C-<return>" #'thumbs-set-image-at-point-to-root-window
+  "<delete>"   #'thumbs-delete-images
+  "<right>"    #'thumbs-forward-char
+  "<left>"     #'thumbs-backward-char
+  "<up>"       #'thumbs-backward-line
+  "<down>"     #'thumbs-forward-line
+  "+"          #'thumbs-show-more-images
+  "d"          #'thumbs-dired
+  "m"          #'thumbs-mark
+  "u"          #'thumbs-unmark
+  "R"          #'thumbs-rename-images
+  "x"          #'thumbs-delete-images
+  "s"          #'thumbs-show-name
+  "q"          #'thumbs-kill-buffer)
 
 (put 'thumbs-mode 'mode-class 'special)
 (define-derived-mode thumbs-mode
@@ -731,22 +731,20 @@ ACTION and ARG should be a valid convert command."
   "Preview images in a thumbnails buffer."
   (setq buffer-read-only t))
 
-(defvar thumbs-view-image-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [prior] 'thumbs-previous-image)
-    (define-key map [next] 'thumbs-next-image)
-    (define-key map "^" 'thumbs-display-thumbs-buffer)
-    (define-key map "-" 'thumbs-shrink-image)
-    (define-key map "+" 'thumbs-enlarge-image)
-    (define-key map "<" 'thumbs-rotate-left)
-    (define-key map ">" 'thumbs-rotate-right)
-    (define-key map "e" 'thumbs-emboss-image)
-    (define-key map "r" 'thumbs-resize-image)
-    (define-key map "s" 'thumbs-save-current-image)
-    (define-key map "q" 'thumbs-kill-buffer)
-    (define-key map "w" 'thumbs-set-root)
-    map)
-  "Keymap for `thumbs-view-image-mode'.")
+(defvar-keymap thumbs-view-image-mode-map
+  :doc "Keymap for `thumbs-view-image-mode'."
+  "<prior>" #'thumbs-previous-image
+  "<next>"  #'thumbs-next-image
+  "^"       #'thumbs-display-thumbs-buffer
+  "-"       #'thumbs-shrink-image
+  "+"       #'thumbs-enlarge-image
+  "<"       #'thumbs-rotate-left
+  ">"       #'thumbs-rotate-right
+  "e"       #'thumbs-emboss-image
+  "r"       #'thumbs-resize-image
+  "s"       #'thumbs-save-current-image
+  "q"       #'thumbs-kill-buffer
+  "w"       #'thumbs-set-root)
 
 ;; thumbs-view-image-mode
 (put 'thumbs-view-image-mode 'mode-class 'special)

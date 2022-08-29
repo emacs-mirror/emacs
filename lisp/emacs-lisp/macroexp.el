@@ -187,13 +187,15 @@ It should normally be a symbol with position and it defaults to FORM."
                msg))
     form)))
 
-(defun macroexp--obsolete-warning (fun obsolescence-data type)
+(defun macroexp--obsolete-warning (fun obsolescence-data type &optional key)
   (let ((instead (car obsolescence-data))
         (asof (nth 2 obsolescence-data)))
     (format-message
      "`%s' is an obsolete %s%s%s" fun type
      (if asof (concat " (as of " asof ")") "")
      (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
+           ((and instead key)
+            (format-message "; use `%s' (%s) instead." instead key))
            (instead (format-message "; use `%s' instead." instead))
            (t ".")))))
 
@@ -369,6 +371,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
+            (`(while)
+             (macroexp-warn-and-return
+              "missing `while' condition"
+              `(signal 'wrong-number-of-arguments '(while 0))
+              nil 'compile-only form))
             (`(setq ,(and var (pred symbolp)
                           (pred (not booleanp)) (pred (not keywordp)))
                     ,expr)
@@ -378,7 +385,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    form
                  `(,fn ,var ,new-expr))))
             (`(setq . ,args)
-             ;; Normalise to a sequence of (setq SYM EXPR).
+             ;; Normalize to a sequence of (setq SYM EXPR).
              ;; Malformed code is translated to code that signals an error
              ;; at run time.
              (let ((nargs (length args)))
@@ -796,8 +803,8 @@ test of free variables in the following ways:
         (if (eq (car-safe (car bt)) 'macroexpand-all) (setq bt (cdr bt)))
         (if macroexp--debug-eager
             (debug 'eager-macroexp-cycle)
-          (message "Warning: Eager macro-expansion skipped due to cycle:\n  %s"
-                   (mapconcat #'prin1-to-string (nreverse bt) " => ")))
+          (error "Eager macro-expansion skipped due to cycle:\n  %s"
+                 (mapconcat #'prin1-to-string (nreverse bt) " => ")))
         (push 'skip macroexp--pending-eager-loads)
         form))
      (t
@@ -811,7 +818,7 @@ test of free variables in the following ways:
          ;; Hopefully this shouldn't happen thanks to the cycle detection,
          ;; but in case it does happen, let's catch the error and give the
          ;; code a chance to macro-expand later.
-         (message "Eager macro-expansion failure: %S" err)
+         (error "Eager macro-expansion failure: %S" err)
          form))))))
 
 ;; ¡¡¡ Big Ugly Hack !!!
@@ -823,7 +830,7 @@ test of free variables in the following ways:
 (eval-when-compile
   (add-hook 'emacs-startup-hook
             (lambda ()
-              (and (not (byte-code-function-p
+              (and (not (compiled-function-p
                          (symbol-function 'macroexpand-all)))
                    (locate-library "macroexp.elc")
                    (load "macroexp.elc")))))

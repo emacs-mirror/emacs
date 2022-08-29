@@ -1277,6 +1277,12 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
       SET_TEXT_POS (pos, charpos, bytepos);
       *disp_pos = compute_display_string_pos (&pos, string, w, frame_window_p,
 					      disp_prop);
+      /* The factor of 100 below is a heuristic that needs to be
+	 tuned.  It means we consider 100 buffer positions examined by
+	 the above call roughly equivalent to the display engine
+	 iterating over a single buffer position.  */
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos)
+	update_redisplay_ticks ((*disp_pos - charpos) / 100 + 1, w);
     }
 
   /* Fetch the character at BYTEPOS.  */
@@ -1385,6 +1391,8 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
       SET_TEXT_POS (pos, charpos + *nchars, bytepos + *ch_len);
       *disp_pos = compute_display_string_pos (&pos, string, w, frame_window_p,
 					      disp_prop);
+      if (max_redisplay_ticks > 0 && *disp_pos > charpos + *nchars)
+	update_redisplay_ticks ((*disp_pos - charpos - *nchars) / 100 + 1, w);
     }
 
   return ch;
@@ -1583,6 +1591,9 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   return pos_byte;
 }
 
+/* This tracks how far we needed to search for first strong character.  */
+static ptrdiff_t nsearch_for_strong;
+
 /* On a 3.4 GHz machine, searching forward for a strong directional
    character in a long paragraph full of weaks or neutrals takes about
    1 ms for each 20K characters.  The number below limits each call to
@@ -1652,6 +1663,8 @@ find_first_strong_char (ptrdiff_t pos, ptrdiff_t bytepos, ptrdiff_t end,
       pos += *nchars;
       bytepos += *ch_len;
     }
+
+  nsearch_for_strong += pos - pos1;
   return type;
 }
 
@@ -1681,6 +1694,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
      calls to BYTE_TO_CHAR and its ilk.  */
   ptrdiff_t begbyte = string_p ? 0 : BEGV_BYTE;
   ptrdiff_t end = string_p ? bidi_it->string.schars : ZV;
+  ptrdiff_t pos = bidi_it->charpos;
+
+  nsearch_for_strong = 0;
 
   /* Special case for an empty buffer. */
   if (bytepos == begbyte && bidi_it->charpos == end)
@@ -1702,7 +1718,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
   else if (dir == NEUTRAL_DIR)	/* P2 */
     {
       ptrdiff_t ch_len, nchars;
-      ptrdiff_t pos, disp_pos = -1;
+      ptrdiff_t disp_pos = -1;
       int disp_prop = 0;
       bidi_type_t type;
       const unsigned char *s;
@@ -1800,6 +1816,14 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, bool no_default_p)
     bidi_it->level_stack[0].level = 0;
 
   bidi_line_init (bidi_it);
+
+  /* The factor of 50 below is a heuristic that needs to be tuned.  It
+     means we consider 50 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  ptrdiff_t nexamined = bidi_it->charpos - pos + nsearch_for_strong;
+  if (max_redisplay_ticks > 0 && nexamined > 0)
+    update_redisplay_ticks (nexamined / 50, bidi_it->w);
 }
 
 
@@ -2566,6 +2590,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
   bidi_bracket_type_t btype;
   bidi_type_t type = bidi_it->type;
   bool retval = false;
+  ptrdiff_t n = 0;
 
   /* When scanning backwards, we don't expect any unresolved bidi
      bracket characters.  */
@@ -2695,6 +2720,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 	    }
 	  old_sidx = bidi_it->stack_idx;
 	  type = bidi_resolve_weak (bidi_it);
+	  n++;
 	  /* Skip level runs excluded from this isolating run sequence.  */
 	  new_sidx = bidi_it->stack_idx;
 	  if (bidi_it->level_stack[new_sidx].level > current_level
@@ -2718,6 +2744,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 		      goto give_up;
 		    }
 		  type = bidi_resolve_weak (bidi_it);
+		  n++;
 		}
 	    }
 	  if (type == NEUTRAL_B
@@ -2794,6 +2821,12 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
     }
 
  give_up:
+  /* The factor of 20 below is a heuristic that needs to be tuned.  It
+     means we consider 20 buffer positions examined by this function
+     roughly equivalent to the display engine iterating over a single
+     buffer position.  */
+  if (max_redisplay_ticks > 0 && n > 0)
+    update_redisplay_ticks (n / 20 + 1, bidi_it->w);
   return retval;
 }
 
@@ -3363,6 +3396,7 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
   else
     {
       int new_level;
+      ptrdiff_t pos0 = bidi_it->charpos;
 
       /* If we are at end of level, its edges must be cached.  */
       if (end_flag)
@@ -3398,6 +3432,12 @@ bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, bool end_flag)
 	    bidi_cache_iterator_state (bidi_it, 1, 1);
 	  }
       } while (new_level >= level);
+      /* The factor of 50 below is a heuristic that needs to be
+	 tuned.  It means we consider 50 buffer positions examined by
+	 the above call roughly equivalent to the display engine
+	 iterating over a single buffer position.  */
+      if (max_redisplay_ticks > 0 && bidi_it->charpos > pos0)
+	update_redisplay_ticks ((bidi_it->charpos - pos0) / 50 + 1, bidi_it->w);
     }
 }
 

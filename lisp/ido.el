@@ -554,7 +554,7 @@ See `ido-last-directory-list' and `ido-save-directory-list-file'."
   "Maximum number of working directories to record.
 This is the list of directories where files have most recently been opened.
 See `ido-work-directory-list' and `ido-save-directory-list-file'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom ido-work-directory-list-ignore-regexps nil
   "List of regexps matching directories which should not be recorded.
@@ -3205,12 +3205,18 @@ instead removed from the current item list."
 ;; File list sorting
 
 (defun ido-file-lessp (a b)
-  ;; Simple compare two file names.
+  "Simple compare two file names."
+  (when ido-case-fold
+    (setq a (downcase a)
+          b (downcase b)))
   (string-lessp (ido-no-final-slash a) (ido-no-final-slash b)))
 
 
 (defun ido-file-extension-lessp (a b)
-  ;; Compare file names according to ido-file-extensions-order list.
+  "Compare file names according to ido-file-extensions-order list."
+  (when ido-case-fold
+    (setq a (downcase a)
+          b (downcase b)))
   (let ((n (compare-strings a 0 nil b 0 nil nil))
 	lessp p)
     (if (eq n t)
@@ -3960,7 +3966,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
     (if (and (eq last-command this-command) temp-buf)
 	;; scroll buffer
 	(let (win (buf (current-buffer)))
-	  (display-buffer temp-buf nil nil)
+	  (display-buffer temp-buf)
 	  (set-buffer temp-buf)
 	  (setq win (get-buffer-window temp-buf))
 	  (if (pos-visible-in-window-p (point-max) win)
@@ -3975,7 +3981,10 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 	  (set-buffer buf))
       (setq display-it t))
     (if (and ido-completion-buffer display-it)
-	(with-output-to-temp-buffer ido-completion-buffer
+	(with-temp-buffer-window ido-completion-buffer
+            '((display-buffer-reuse-window display-buffer-at-bottom)
+              (window-height . fit-window-to-buffer))
+            nil
 	  (let* ((comps
 		  (cond
 		   (ido-directory-too-big

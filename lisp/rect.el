@@ -218,7 +218,7 @@ The returned value has the form of (WIDTH . HEIGHT)."
 			  (point)))))
 
 (defun delete-extract-rectangle-line (startcol endcol lines fill)
-  (let ((pt (point-at-eol)))
+  (let ((pt (line-end-position)))
     (if (< (move-to-column startcol (if fill t 'coerce)) startcol)
 	(setcdr lines (cons (spaces-string (- endcol startcol))
 			    (cdr lines)))
@@ -397,17 +397,17 @@ no text on the right side of the rectangle."
 (defun open-rectangle-line (startcol endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (and (not fill)
-		 (= (point) (point-at-eol)))
+                 (= (point) (line-end-position)))
       (indent-to endcol))))
 
 (defun delete-whitespace-rectangle-line (startcol _endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
-    (unless (= (point) (point-at-eol))
-      (delete-region (point) (progn (skip-syntax-forward " " (point-at-eol))
+    (unless (= (point) (line-end-position))
+      (delete-region (point) (progn (skip-syntax-forward " " (line-end-position))
 				    (point))))))
 
 ;;;###autoload
-(defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
+(define-obsolete-function-alias 'close-rectangle #'delete-whitespace-rectangle "29.1")
 
 ;;;###autoload
 (defun delete-whitespace-rectangle (start end &optional fill)
@@ -536,7 +536,7 @@ Called from a program, takes three args; START, END and STRING."
    (apply-on-rectangle 'string-rectangle-line start end string t)))
 
 ;;;###autoload
-(defalias 'replace-rectangle 'string-rectangle)
+(define-obsolete-function-alias 'replace-rectangle #'string-rectangle "29.1")
 
 ;;;###autoload
 (defun string-insert-rectangle (start end string)
@@ -568,7 +568,7 @@ rectangle which were empty."
   (apply-on-rectangle 'clear-rectangle-line start end fill))
 
 (defun clear-rectangle-line (startcol endcol fill)
-  (let ((pt (point-at-eol)))
+  (let ((pt (line-end-position)))
     (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
       (if (and (not fill)
 	       (<= (save-excursion (goto-char pt) (current-column)) endcol))
@@ -634,18 +634,17 @@ with a prefix argument, prompt for START-AT and FORMAT."
 (add-function :around region-insert-function
               #'rectangle--insert-region)
 
-(defvar rectangle-mark-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\C-o] 'open-rectangle)
-    (define-key map [?\C-t] 'string-rectangle)
-    (define-key map [remap exchange-point-and-mark]
-      'rectangle-exchange-point-and-mark)
-    (dolist (cmd '(right-char left-char forward-char backward-char
-                   next-line previous-line))
-      (define-key map (vector 'remap cmd)
-        (intern (format "rectangle-%s" cmd))))
-    map)
-  "Keymap used while marking a rectangular region.")
+(defvar-keymap rectangle-mark-mode-map
+  :doc "Keymap used while marking a rectangular region."
+  "C-o" #'open-rectangle
+  "C-t" #'string-rectangle
+  "<remap> <exchange-point-and-mark>" #'rectangle-exchange-point-and-mark
+  "<remap> <right-char>"              #'rectangle-right-char
+  "<remap> <left-char>"               #'rectangle-left-char
+  "<remap> <forward-char>"            #'rectangle-forward-char
+  "<remap> <backward-char>"           #'rectangle-backward-char
+  "<remap> <next-line>"               #'rectangle-next-line
+  "<remap> <previous-line>"           #'rectangle-previous-line)
 
 ;;;###autoload
 (define-minor-mode rectangle-mark-mode
@@ -930,6 +929,27 @@ Ignores `line-move-visual'."
       (funcall orig rol)
     (mapc #'delete-overlay (nthcdr 5 rol))
     (setcar (cdr rol) nil)))
+
+(defun rectangle--duplicate-right (n)
+  "Duplicate the rectangular region N times on the right-hand side."
+  (let ((cols (rectangle--pos-cols (point) (mark))))
+    (apply-on-rectangle
+     (lambda (startcol endcol)
+       (let ((lines (list nil)))
+         (extract-rectangle-line startcol endcol lines)
+         (move-to-column endcol t)
+         (dotimes (_ n)
+           (insert (cadr lines)))))
+     (region-beginning) (region-end))
+    ;; Recompute the rectangle state; no crutches should be needed now.
+    (let ((p (point))
+          (m (mark)))
+      (rectangle--reset-crutches)
+      (goto-char m)
+      (move-to-column (cdr cols) t)
+      (set-mark (point))
+      (goto-char p)
+      (move-to-column (car cols) t))))
 
 (provide 'rect)
 

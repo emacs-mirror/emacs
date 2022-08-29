@@ -135,6 +135,11 @@ with the current prefix.  The files are chosen according to
 
 (defcustom help-enable-variable-value-editing nil
   "If non-nil, allow editing values in *Help* buffers.
+
+To edit the value of a variable, use \\[describe-variable] to
+display a \"*Help*\" buffer, move point after the text
+\"Its value is\" and type \\`e'.
+
 Values that aren't readable by the Emacs Lisp reader can't be
 edited even if this option is enabled."
   :type 'boolean
@@ -261,13 +266,9 @@ handling of autoloaded functions."
              (current-buffer)))
         (help-buffer-under-preparation t))
 
-    (help-setup-xref
-     (list (lambda (function buffer)
-             (let ((describe-function-orig-buffer
-                    (if (buffer-live-p buffer) buffer)))
-               (describe-function function)))
-           function describe-function-orig-buffer)
-     (called-interactively-p 'interactive))
+    (help-setup-xref (list #'describe-function--helper
+                           function describe-function-orig-buffer)
+                     (called-interactively-p 'interactive))
 
     (save-excursion
       (with-help-window (help-buffer)
@@ -617,7 +618,7 @@ the C sources, too."
   (pcase-dolist (`(,type . ,handler)
                  (list (cons "compiler macro"
                              (function-get function 'compiler-macro))
-                       (cons "`byte-compile' property"
+                       (cons (substitute-command-keys "`byte-compile' property")
                              (function-get function 'byte-compile))
                        (cons "byte-code optimizer"
                              (function-get function 'byte-optimizer))))
@@ -720,19 +721,22 @@ the C sources, too."
   ;; Ignore lambda constructs, keyboard macros, etc.
   (let* ((obsolete (and (symbolp function)
 			(get function 'byte-obsolete-info)))
-         (use (car obsolete)))
+         (use (car obsolete))
+         (start (point)))
     (when obsolete
-      (insert "  This "
+      (insert "This "
 	      (if (eq (car-safe (symbol-function function)) 'macro)
 		  "macro"
 		"function")
 	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat ";\n  " use))
-                    (use (format-message ";\n  use `%s' instead." use))
+      (insert (cond ((stringp use) (concat "; " use))
+                    (use (format-message "; use `%s' instead." use))
                     (t "."))
-              "\n"))))
+              "\n")
+      (fill-region-as-paragraph start (point))
+      (ensure-empty-lines))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--globalized-minor-mode)
@@ -783,15 +787,40 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
+(defun help-fns--first-release-regexp (symbol)
+  (let* ((name (symbol-name symbol))
+         (quoted (regexp-quote name)))
+    ;; We used to use just (concat "\\_<" (regexp-quote name) "\\_>"),
+    ;; which had the advantage of adapting to the various notational
+    ;; conventions we've used over the years in etc/NEWS*, but it was also
+    ;; leading to many false positives.  So we use a more restrictive regexp
+    ;; now (which can still lead to false positives, e.g. because we don't
+    ;; distinguish between occurrences of the same symbol for
+    ;; different purposes, such as function name, var name, face name,
+    ;; property name, ...).
+    (concat
+     ;; The main "canonical" occurrence of symbols is within '...'.
+     "'" quoted "'"
+     ;; Commands can also occur as `M-x blabla'.
+     "\\|M-x[ \t\n]+" quoted "\\_>"
+     ;; Other times we do '<key>' (<cmdname>).
+     "\\|(" quoted ")"
+     ;; Finally other times we just include sample code, which we will
+     ;; only recognize if it's indented by at least 2 spaces and start with
+     ;; an open paren.
+     "\\|^\\(?:  \\|\t\\)[ \t]*(\\(.*[( ']\\)?" quoted "\\_>")
+    ))
+
+
 (defun help-fns--first-release (symbol)
   "Return the likely first release that defined SYMBOL, or nil."
   ;; Code below relies on the etc/NEWS* files.
   ;; FIXME: Maybe we should also use the */ChangeLog* files when available.
   ;; FIXME: Maybe we should also look for announcements of the addition
   ;; of the *packages* in which the function is defined.
-  (let* ((name (symbol-name symbol))
-         (re (concat "\\_<" (regexp-quote name) "\\_>"))
+  (let* ((re (help-fns--first-release-regexp symbol))
          (news (directory-files data-directory t "\\`NEWS\\(\\'\\|\\.\\)"))
+         (case-fold-search nil)
          (place nil)
          (first nil))
     (with-temp-buffer
@@ -808,16 +837,59 @@ the C sources, too."
                 ;; Almost all entries are of the form "* ... in Emacs NN.MM."
                 ;; but there are also a few in the form "* Emacs NN.MM is a bug
                 ;; fix release ...".
-                (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
-                                             nil t))
-                    (message "Ref found in non-versioned section in %S"
-                             (file-name-nondirectory f))
+                (if (not (re-search-backward
+                          "^\\* \\(?:.* \\)?Emacs \\([0-9.]+[0-9]\\)"
+                          nil t))
+                    (message "Ref to %S found in non-versioned section in %S"
+                             symbol (file-name-nondirectory f))
                   (let ((version (match-string 1)))
                     (when (or (null first) (version< version first))
                       (setq place (list f pos))
                       (setq first version))))))))))
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
+
+;; (defun help-fns--check-first-releases ()
+;;   "Compare the old liberal regexp to the new more restrictive one."
+;;   (interactive)
+;;   (let* ((quoted nil)
+;;          (rx-fun (lambda (orig-fun symbol)
+;;                    (if quoted
+;;                        (funcall orig-fun symbol)
+;;                      (format "\\_<%s\\_>"
+;;                              (regexp-quote (symbol-name symbol))))))
+;;          (count
+;;           (let ((count 0))
+;;             (obarray-map (lambda (sym)
+;;                            (when (or (fboundp sym) (boundp sym))
+;;                              (cl-incf count)))
+;;                          obarray)
+;;             count))
+;;          (p (make-progress-reporter "Check first releases..." 0 count)))
+;;     (with-current-buffer (get-buffer-create "*Check-first-release*")
+;;       (unwind-protect
+;;           (progn
+;;             (advice-add 'help-fns--first-release-regexp :around rx-fun)
+;;             (erase-buffer)
+;;             (setq count 0)
+;;             (obarray-map
+;;              (lambda (sym)
+;;                (when (or (fboundp sym) (boundp sym))
+;;                  (cl-incf count)
+;;                  (progress-reporter-update p count)
+;;                  (let ((vt (progn (setq quoted t)
+;;                                   (help-fns--first-release sym)))
+;;                        (vnil (progn (setq quoted nil)
+;;                                     (help-fns--first-release sym))))
+;;                    (when (and vnil (not (equal vt vnil)))
+;;                      (insert (symbol-name sym)
+;;                              "\nnot-quoted: " (or vnil "nil")
+;;                              "\nquoted:     " (or vt "nil")
+;;                              "\n\n")))))
+;;              obarray)
+;;             (progress-reporter-done p))
+;;         (advice-remove 'help-fns--first-release-regexp rx-fun))
+;;       (display-buffer (current-buffer)))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-release)
@@ -860,7 +932,7 @@ the C sources, too."
                       (shortdoc-display-group group object
                                               help-window-keep-selected))
             'follow-link t
-            'help-echo (purecopy "mouse-1, RET: show documentation group")))
+            'help-echo "mouse-1, RET: show documentation group"))
          groups)
         (insert (if (= (length groups) 1)
                     " group.\n"
@@ -933,9 +1005,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                 (help-fns--analyze-function function))
                (file-name (find-lisp-object-file-name
                            function (if aliased 'defun def)))
-               (beg (if (and (or (byte-code-function-p def)
+               (beg (if (and (or (functionp def)
                                  (keymapp def)
-                                 (memq (car-safe def) '(macro lambda closure)))
+                                 (eq (car-safe def) 'macro))
                              (stringp file-name)
                              (help-fns--autoloaded-p function))
                         (concat
@@ -954,7 +1026,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
                  ((subr-native-elisp-p def)
-                  (concat beg "native compiled Lisp function"))
+                  (concat beg "native-compiled Lisp function"))
 		 ((subrp def)
 		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
 		                  "special form"
@@ -968,12 +1040,12 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                            (t "Lisp function"))))
 		 ((or (eq (car-safe def) 'macro)
 		      ;; For advised macros, def is a lambda
-		      ;; expression or a byte-code-function-p, so we
+		      ;; expression or a compiled-function-p, so we
 		      ;; need to check macros before functions.
 		      (macrop function))
 		  (concat beg "Lisp macro"))
 		 ((byte-code-function-p def)
-		  (concat beg "compiled Lisp function"))
+		  (concat beg "byte-compiled Lisp function"))
                  ((module-function-p def)
                   (concat beg "module function"))
 		 ((eq (car-safe def) 'lambda)
@@ -1039,6 +1111,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
          nil t)
         (ensure-empty-lines))))
 
+  (help-fns--obsolete function)
+
   (pcase-let* ((`(,real-function ,def ,_aliased ,real-def)
                 (help-fns--analyze-function function))
                (doc-raw (condition-case nil
@@ -1077,10 +1151,20 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
         (set-buffer-file-coding-system 'utf-8)))))
 
 ;; Add defaults to `help-fns-describe-function-functions'.
-(add-hook 'help-fns-describe-function-functions #'help-fns--obsolete)
 (add-hook 'help-fns-describe-function-functions #'help-fns--interactive-only)
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
+
+(defun help-fns--generalized-variable (function)
+  (when (and (get function 'gv-expander)
+             ;; Don't mention obsolete generalized variables.
+             (not (get function 'byte-obsolete-generalized-variable)))
+    (insert (format-message "  `%s' is also a " function)
+            (buttonize "generalized variable"
+                       (lambda (_) (info "(elisp)Generalized Variables")))
+            ".\n")))
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--generalized-variable)
 
 
 ;; Variables
@@ -1234,10 +1318,11 @@ it is displayed along with the global value."
 		    (terpri)
                     (let ((buf (current-buffer)))
                       (with-temp-buffer
-                        (lisp-mode-variables nil)
+                        (lisp-data-mode)
                         (set-syntax-table emacs-lisp-mode-syntax-table)
                         (insert print-rep)
                         (pp-buffer)
+                        (font-lock-ensure)
                         (let ((pp-buffer (current-buffer)))
                           (with-current-buffer buf
                             (insert-buffer-substring pp-buffer)))))
@@ -1332,6 +1417,7 @@ it is displayed along with the global value."
                              alias 'variable-documentation))))
 
 	      (with-current-buffer standard-output
+                (help-fns--var-obsolete variable)
 		(insert (or doc "Not documented as a variable.")))
 
               ;; Output the indented administrative bits.
@@ -1352,9 +1438,6 @@ it is displayed along with the global value."
 
 (defun help-fns--editable-variable (start end variable value buffer)
   (when (and (readablep value)
-             (or (not (symbolp value))
-                 (and (not (and (symbolp value) (boundp value)))
-                      (not (and (symbolp value) (fboundp value)))))
              help-enable-variable-value-editing)
     (add-text-properties
      start end
@@ -1362,6 +1445,7 @@ it is displayed along with the global value."
            'help-fns--edit-variable (list variable value buffer
                                           (current-buffer))
            'keymap (define-keymap
+                     :parent button-map
                      "e" #'help-fns-edit-variable)))))
 
 (defvar help-fns--edit-variable)
@@ -1369,8 +1453,8 @@ it is displayed along with the global value."
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
   "Edit the variable under point."
-  (interactive)
   (declare (completion ignore))
+  (interactive)
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
     (unless var
       (error "No variable under point"))
@@ -1378,19 +1462,22 @@ it is displayed along with the global value."
     (prin1 (nth 1 var) (current-buffer))
     (pp-buffer)
     (goto-char (point-min))
-    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
-            ";; C-c C-c to update the value and exit.\n\n")
     (help-fns--edit-value-mode)
+    (insert (format ";; Edit the `%s' variable.\n" (nth 0 var))
+            (substitute-command-keys
+             ";; `\\[help-fns-edit-mode-done]' to update the value and exit; \
+`\\[help-fns-edit-mode-cancel]' to cancel.\n\n"))
     (setq-local help-fns--edit-variable var)))
 
 (defvar-keymap help-fns--edit-value-mode-map
-  "C-c C-c" #'help-fns-edit-mode-done)
+  "C-c C-c" #'help-fns-edit-mode-done
+  "C-c C-k" #'help-fns-edit-mode-cancel)
 
 (define-derived-mode help-fns--edit-value-mode emacs-lisp-mode "Elisp"
   :interactive nil)
 
 (defun help-fns-edit-mode-done (&optional kill)
-  "Update the value of the variable and kill the buffer.
+  "Update the value of the variable being edited and kill the edit buffer.
 If KILL (the prefix), don't update the value, but just kill the
 current buffer."
   (interactive "P" help-fns--edit-value-mode)
@@ -1409,6 +1496,12 @@ current buffer."
     (when (buffer-live-p help-buffer)
       (with-current-buffer help-buffer
         (revert-buffer)))))
+
+(defun help-fns-edit-mode-cancel ()
+  "Kill the edit buffer and cancel editing of the value.
+This cancels value editing without updating the value."
+  (interactive nil help-fns--edit-value-mode)
+  (help-fns-edit-mode-done t))
 
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output
@@ -1452,8 +1545,8 @@ current buffer."
     (when safe-var
       (princ "  This variable is safe as a file local variable ")
       (princ "if its value\n  satisfies the predicate ")
-      (princ (if (byte-code-function-p safe-var)
-		 "which is a byte-compiled expression.\n"
+      (princ (if (compiled-function-p safe-var)
+		 "which is a compiled expression.\n"
 	       (format-message "`%s'.\n" safe-var))))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-risky)
@@ -1526,19 +1619,21 @@ variable.\n")))
       (princ watchpoints)
       (terpri))))
 
-(add-hook 'help-fns-describe-variable-functions #'help-fns--var-obsolete)
 (defun help-fns--var-obsolete (variable)
   (let* ((obsolete (get variable 'byte-obsolete-variable))
-	 (use (car obsolete)))
+	 (use (car obsolete))
+         (start (point)))
     (when obsolete
-      (princ "  This variable is obsolete")
+      (insert "This variable is obsolete")
       (if (nth 2 obsolete)
-          (princ (format " since %s" (nth 2 obsolete))))
-      (princ (cond ((stringp use) (concat ";\n  " use))
-		   (use (format-message ";\n  use `%s' instead."
-                                        (car obsolete)))
-		   (t ".")))
-      (terpri))))
+          (insert (format " since %s" (nth 2 obsolete))))
+      (insert (cond ((stringp use) (concat "; " use))
+		    (use (format-message "; use `%s' instead."
+                                         (car obsolete)))
+		    (t "."))
+              "\n")
+      (fill-region-as-paragraph start (point))
+      (ensure-empty-lines))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-alias)
 (defun help-fns--var-alias (variable)
@@ -1771,8 +1866,10 @@ current buffer and the selected frame, respectively."
                                (when (funcall testfn symbol)
                                  ;; Don't record the current entry in the stack.
                                  (setq help-xref-stack-item nil)
-                                 (cons name
-                                       (funcall descfn symbol buffer frame))))
+                                 (let ((help-xref-stack nil)
+                                       (help-xref-forward-stack nil))
+                                   (funcall descfn symbol buffer frame))
+                                 (cons name (buffer-string))))
                              describe-symbol-backends))))
              (single (null (cdr docs))))
         (while (cdr docs)
@@ -1793,6 +1890,8 @@ current buffer and the selected frame, respectively."
           ;; Don't record the `describe-variable' item in the stack.
           (setq help-xref-stack-item nil)
           (help-setup-xref (list #'describe-symbol symbol) nil))
+        (goto-char (point-max))
+        (help-xref--navigation-buttons)
         (goto-char (point-min))))))
 
 ;;;###autoload
@@ -2103,6 +2202,8 @@ documentation for the major and minor modes of that buffer."
        (when (and (commandp sym)
                   ;; Ignore aliases.
                   (not (symbolp (symbol-function sym)))
+                  ;; Ignore obsolete commands.
+                  (not (get sym 'byte-obsolete-info))
                   ;; Ignore everything bound.
                   (not (where-is-internal sym nil t))
                   (apply #'derived-mode-p (command-modes sym)))

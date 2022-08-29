@@ -659,13 +659,35 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
   ;; which it depends needs to be usable before cl-generic is loaded,
   ;; which imposes a significant burden on the bootstrap.
   (if (consp (lambda (x) (+ x 1)))
-      (lambda (exp) (eval exp t)) #'byte-compile))
+      (lambda (exp) (eval exp t))
+    ;; But do byte-compile the dispatchers once bootstrap is passed:
+    ;; the performance difference is substantial (like a 5x speedup on
+    ;; the `eieio' elisp-benchmark)).
+    ;; To avoid loading the byte-compiler during the final preload,
+    ;; see `cl--generic-prefill-dispatchers'.
+    #'byte-compile))
 
 (defun cl--generic-get-dispatcher (dispatch)
   (with-memoization
       ;; We need `copy-sequence` here because this `dispatch' object might be
       ;; modified by side-effect in `cl-generic-define-method' (bug#46722).
       (gethash (copy-sequence dispatch) cl--generic-dispatchers)
+
+    (when (and purify-flag ;FIXME: Is this a reliable test of the final dump?
+               (eq cl--generic-compiler #'byte-compile))
+      ;; We don't want to preload the byte-compiler!!
+      (error
+       "Missing cl-generic dispatcher in the prefilled cache!
+Missing for: %S
+You might need to add: %S"
+       (mapcar (lambda (x) (if (cl--generic-generalizer-p x)
+                          (cl--generic-generalizer-name x)
+                        x))
+               dispatch)
+       `(cl--generic-prefill-dispatchers
+         ,@(delq nil (mapcar #'cl--generic-prefill-generalizer-sample
+                             dispatch)))))
+
     ;; (message "cl--generic-get-dispatcher (%S)" dispatch)
     (let* ((dispatch-arg (car dispatch))
            (generalizers (cdr dispatch))
@@ -708,9 +730,6 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
       (funcall
        cl--generic-compiler
        `(lambda (generic dispatches-left methods)
-          ;; FIXME: We should find a way to expand `with-memoize' once
-          ;; and forall so we don't need `subr-x' when we get here.
-          (eval-when-compile (require 'subr-x))
           (let ((method-cache (make-hash-table :test #'eql)))
             (lambda (,@fixedargs &rest args)
               (let ,bindings
@@ -932,6 +951,20 @@ those methods.")
   "Support for the catch-all t specializer which always matches."
   (if (eq specializer t) (list cl--generic-t-generalizer)
     (error "Unknown specializer %S" specializer)))
+
+(defun cl--generic-prefill-generalizer-sample (x)
+  "Return an example specializer."
+  (if (not (cl--generic-generalizer-p x))
+      x
+    (pcase (cl--generic-generalizer-name x)
+      ('cl--generic-t-generalizer nil)
+      ('cl--generic-head-generalizer '(head 'x))
+      ('cl--generic-eql-generalizer '(eql 'x))
+      ('cl--generic-struct-generalizer 'cl--generic)
+      ('cl--generic-typeof-generalizer 'integer)
+      ('cl--generic-derived-generalizer '(derived-mode c-mode))
+      ('cl--generic-oclosure-generalizer 'oclosure)
+      (_ x))))
 
 (eval-when-compile
   ;; This macro is brittle and only really important in order to be
@@ -1330,6 +1363,7 @@ See the full list and their hierarchy in `cl--typeof-types'."
    (cl-call-next-method)))
 
 (cl--generic-prefill-dispatchers 0 integer)
+(cl--generic-prefill-dispatchers 1 integer)
 (cl--generic-prefill-dispatchers 0 cl--generic-generalizer integer)
 
 ;;; Dispatch on major mode.
@@ -1378,7 +1412,7 @@ Used internally for the (major-mode MODE) context specializers."
          (when (cl-typep class 'oclosure--class)
            (oclosure--class-allparents class)))))
 
-(cl-generic-define-generalizer cl-generic--oclosure-generalizer
+(cl-generic-define-generalizer cl--generic-oclosure-generalizer
   ;; Give slightly higher priority than the struct specializer, so that
   ;; for a generic function with methods dispatching structs and on OClosures,
   ;; we first try `oclosure-type' before `type-of' since `type-of' will return
@@ -1395,7 +1429,7 @@ Used internally for the (major-mode MODE) context specializers."
      ;; take place without requiring cl-lib.
      (let ((class (cl--find-class type)))
        (and (cl-typep class 'oclosure--class)
-            (list cl-generic--oclosure-generalizer))))
+            (list cl--generic-oclosure-generalizer))))
    (cl-call-next-method)))
 
 (cl--generic-prefill-dispatchers 0 oclosure)

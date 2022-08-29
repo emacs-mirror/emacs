@@ -483,6 +483,16 @@ The default value is just @code{'(all)}.
 installed will be ignored.  The @samp{muse} package will be listed in
 the package menu with the @samp{held} status.
 
+@findex package-recompile
+@findex package-recompile-all
+  Emacs byte code is quite stable, but it's possible for byte code to
+become outdated, or for the compiled files to rely on macros that have
+changed in new versions of Emacs.  You can use the command @w{@kbd{M-x
+package-recompile}} to recompile a particular package, or
+@w{@kbd{M-x package-recompile-all}} to recompile all the packages.  (The
+latter command might take quite a while to run if you have many
+installed packages.)
+
 @node Package Files
 @section Package Files and Directory Layout
 @cindex package directory

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2022-04-09.08}
+\def\texinfoversion{2022-08-20.19}
 %
 % Copyright 1985, 1986, 1988, 1990-2022 Free Software Foundation, Inc.
 %
@@ -725,32 +725,22 @@ where each line of input produces a line of output.}
   \dimen2 = \ht\strutbox
   \advance\dimen2 by \dp\strutbox
   \ifdim\dimen0 > \dimen2
+    % This is similar to the 'needspace' module in LaTeX.
+    % The first penalty allows a break if the end of the page is
+    % not too far away.  Following penalties and skips are discarded.
+    % Otherwise, require at least \dimen0 of vertical space.
     %
-    % Do a \strut just to make the height of this box be normal, so the
-    % normal leading is inserted relative to the preceding line.
-    % And a page break here is fine.
-    \vtop to #1\mil{\strut\vfil}%
-    %
-    % TeX does not even consider page breaks if a penalty added to the
-    % main vertical list is 10000 or more.  But in order to see if the
-    % empty box we just added fits on the page, we must make it consider
-    % page breaks.  On the other hand, we don't want to actually break the
-    % page after the empty box.  So we use a penalty of 9999.
-    %
-    % There is an extremely small chance that TeX will actually break the
-    % page at this \penalty, if there are no other feasible breakpoints in
-    % sight.  (If the user is using lots of big @group commands, which
-    % almost-but-not-quite fill up a page, TeX will have a hard time doing
-    % good page breaking, for example.)  However, I could not construct an
-    % example where a page broke at this \penalty; if it happens in a real
-    % document, then we can reconsider our strategy.
+    % (We used to use a \vtop to reserve space, but this had spacing issues
+    % when followed by a section heading, as it was not a "discardable item".
+    % This also has the benefit of providing glue before the page break if
+    % there isn't enough space.)
+    \vskip0pt plus \dimen0
+    \penalty-100
+    \vskip0pt plus -\dimen0
+    \vskip \dimen0
     \penalty9999
-    %
-    % Back up by the size of the box, whether we did a page break or not.
-    \kern -#1\mil
-    %
-    % Do not allow a page break right after this kern.
-    \nobreak
+    \vskip -\dimen0
+    \penalty0\relax % this hides the above glue from \safewhatsit and \dobreak
   \fi
 }
 
@@ -2558,7 +2548,7 @@ end
 \def\it{\fam=\itfam \setfontstyle{it}}
 \def\sl{\fam=\slfam \setfontstyle{sl}}
 \def\bf{\fam=\bffam \setfontstyle{bf}}\def\bfstylename{bf}
-\def\tt{\fam=\ttfam \setfontstyle{tt}}\def\ttstylename{tt}
+\def\tt{\fam=\ttfam \setfontstyle{tt}}
 
 % Texinfo sort of supports the sans serif font style, which plain TeX does not.
 % So we set up a \sf.
@@ -2691,6 +2681,14 @@ end
 %
 \def\ifmonospace{\ifdim\fontdimen3\font=0pt }
 
+% Check if internal flag is clear, i.e. has not been @set.
+\def\ifflagclear#1#2#3{%
+  \expandafter\ifx\csname SET#1\endcsname\relax
+  #2\else#3\fi
+}
+
+
+
 {
 \catcode`\'=\active
 \catcode`\`=\active
@@ -2707,14 +2705,14 @@ end
 %
 \def\codequoteright{%
   \ifmonospace
-    \expandafter\ifx\csname SETtxicodequoteundirected\endcsname\relax
-      \expandafter\ifx\csname SETcodequoteundirected\endcsname\relax
+    \ifflagclear{txicodequoteundirected}{%
+      \ifflagclear{codequoteundirected}{%
         '%
-      \else \char'15 \fi
-    \else \char'15 \fi
-   \else
-     '%
-   \fi
+      }{\char'15 }%
+    }{\char'15 }%
+  \else
+    '%
+  \fi
 }
 %
 % and a similar option for the left quote char vs. a grave accent.
@@ -2723,16 +2721,16 @@ end
 %
 \def\codequoteleft{%
   \ifmonospace
-    \expandafter\ifx\csname SETtxicodequotebacktick\endcsname\relax
-      \expandafter\ifx\csname SETcodequotebacktick\endcsname\relax
+    \ifflagclear{txicodequotebacktick}{%
+      \ifflagclear{codequotebacktick}{%
         % [Knuth] pp. 380,381,391
         % \relax disables Spanish ligatures ?` and !` of \tt font.
         \relax`%
-      \else \char'22 \fi
-    \else \char'22 \fi
-   \else
-     \relax`%
-   \fi
+      }{\char'22 }%
+    }{\char'22 }%
+  \else
+    \relax`%
+  \fi
 }
 
 % Commands to set the quote options.
@@ -2779,15 +2777,16 @@ end
 \def\dosmartslant#1#2{%
   \ifusingtt
     {{\ttsl #2}\let\next=\relax}%
-    {\def\next{{#1#2}\futurelet\next\smartitaliccorrection}}%
+    {\def\next{{#1#2}\smartitaliccorrection}}%
   \next
 }
 \def\smartslanted{\dosmartslant\sl}
 \def\smartitalic{\dosmartslant\it}
 
-% Output an italic correction unless \next (presumed to be the following
-% character) is such as not to need one.
-\def\smartitaliccorrection{%
+% Output an italic correction unless the following character is such as
+% not to need one.
+\def\smartitaliccorrection{\futurelet\next\smartitaliccorrectionx}
+\def\smartitaliccorrectionx{%
   \ifx\next,%
   \else\ifx\next-%
   \else\ifx\next.%
@@ -2798,18 +2797,18 @@ end
   \aftersmartic
 }
 
-% Unconditional use \ttsl, and no ic.  @var is set to this for defuns.
-\def\ttslanted#1{{\ttsl #1}}
+% @cite unconditionally uses \sl with \smartitaliccorrection.
+\def\cite#1{{\sl #1}\smartitaliccorrection}
 
-% @cite is like \smartslanted except unconditionally use \sl.  We never want
-% ttsl for book titles, do we?
-\def\cite#1{{\sl #1}\futurelet\next\smartitaliccorrection}
-
+% @var unconditionally uses \sl.  This gives consistency for
+% parameter names whether they are in @def, @table @code or a
+% regular paragraph.
+% The \null is to reset \spacefactor.
 \def\aftersmartic{}
 \def\var#1{%
   \let\saveaftersmartic = \aftersmartic
   \def\aftersmartic{\null\let\aftersmartic=\saveaftersmartic}%
-  \smartslanted{#1}%
+  {\sl #1}\smartitaliccorrection
 }
 
 \let\i=\smartitalic
@@ -2817,8 +2816,14 @@ end
 \let\dfn=\smartslanted
 \let\emph=\smartitalic
 
-% Explicit font changes: @r, @sc, undocumented @ii.
-\def\r#1{{\rm #1}}              % roman font
+% @r for roman font, used for code comment
+\def\r#1{{%
+  \usenormaldash % get --, --- ligatures even if in @code
+  \defcharsdefault  % in case on def line
+  \rm #1}}
+{\catcode`-=\active \gdef\usenormaldash{\let-\normaldash}}
+
+% @sc, undocumented @ii.
 \def\sc#1{{\smallcaps#1}}       % smallcaps font
 \def\ii#1{{\it #1}}             % italic font
 
@@ -2856,7 +2861,7 @@ end
 
 % @t, explicit typewriter.
 \def\t#1{%
-  {\tt \plainfrenchspacing #1}%
+  {\tt \defcharsdefault \plainfrenchspacing #1}%
   \null
 }
 
@@ -4432,7 +4437,7 @@ $$%
 
 \message{conditionals,}
 
-% @iftex, @ifnotdocbook, @ifnothtml, @ifnotinfo, @ifnotplaintext,
+% @iftex, @ifnotdocbook, @ifnothtml, @ifnotinfo, @ifnotlatex, @ifnotplaintext,
 % @ifnotxml always succeed.  They currently do nothing; we don't
 % attempt to check whether the conditionals are properly nested.  But we
 % have to remember that they are conditionals, so that @end doesn't
@@ -4446,6 +4451,7 @@ $$%
 \makecond{ifnotdocbook}
 \makecond{ifnothtml}
 \makecond{ifnotinfo}
+\makecond{ifnotlatex}
 \makecond{ifnotplaintext}
 \makecond{ifnotxml}
 
@@ -4458,10 +4464,12 @@ $$%
 \def\ifdocbook{\doignore{ifdocbook}}
 \def\ifhtml{\doignore{ifhtml}}
 \def\ifinfo{\doignore{ifinfo}}
+\def\iflatex{\doignore{iflatex}}
 \def\ifnottex{\doignore{ifnottex}}
 \def\ifplaintext{\doignore{ifplaintext}}
 \def\ifxml{\doignore{ifxml}}
 \def\ignore{\doignore{ignore}}
+\def\latex{\doignore{latex}}
 \def\menu{\doignore{menu}}
 \def\xml{\doignore{xml}}
 
@@ -4985,25 +4993,24 @@ $$%
 \catcode`\-=13
 \catcode`\`=13
   \gdef\indexnonalnumdisappear{%
-    \expandafter\ifx\csname SETtxiindexlquoteignore\endcsname\relax\else
+    \ifflagclear{txiindexlquoteignore}{}{%
       % @set txiindexlquoteignore makes us ignore left quotes in the sort term.
       % (Introduced for FSFS 2nd ed.)
       \let`=\empty
-    \fi
+    }%
     %
-    \expandafter\ifx\csname SETtxiindexbackslashignore\endcsname\relax\else
+    \ifflagclear{txiindexbackslashignore}{}{%
       \backslashdisappear
-    \fi
-    %
-    \expandafter\ifx\csname SETtxiindexhyphenignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexhyphenignore}{}{%
       \def-{}%
-    \fi
-    \expandafter\ifx\csname SETtxiindexlessthanignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexlessthanignore}{}{%
       \def<{}%
-    \fi
-    \expandafter\ifx\csname SETtxiindexatsignignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexatsignignore}{}{%
       \def\@{}%
-    \fi
+    }%
   }
 
   \gdef\indexnonalnumreappear{%
@@ -5295,9 +5302,7 @@ $$%
   %
   \atdummies
   %
-  \expandafter\ifx\csname SETtxiindexescapeisbackslash\endcsname\relax\else
-    \escapeisbackslash
-  \fi
+  \ifflagclear{txiindexescapeisbackslash}{}{\escapeisbackslash}%
   %
   % For texindex which always views { and } as separators.
   \def\{{\lbracechar{}}%
@@ -5481,9 +5486,9 @@ $$%
 % old index files using \ as the escape character.  Reading this would
 % at best lead to typesetting garbage, at worst a TeX syntax error.
 \def\printindexzz#1#2\finish{%
-  \expandafter\ifx\csname SETtxiindexescapeisbackslash\endcsname\relax
+  \ifflagclear{txiindexescapeisbackslash}{%
     \uccode`\~=`\\ \uppercase{\if\noexpand~}\noexpand#1
-      \expandafter\ifx\csname SETtxiskipindexfileswithbackslash\endcsname\relax
+      \ifflagclear{txiskipindexfileswithbackslash}{%
 \errmessage{%
 ERROR: A sorted index file in an obsolete format was skipped.
 To fix this problem, please upgrade your version of 'texi2dvi'
@@ -5499,15 +5504,15 @@ this, Texinfo will try to use index files in the old format.
 If you continue to have problems, deleting the index files and starting again
 might help (with 'rm \jobname.?? \jobname.??s')%
 }%
-      \else
+      }{%
         (Skipped sorted index file in obsolete format)
-      \fi
+      }%
     \else
       \begindoublecolumns
       \input \jobname.\indexname s
       \enddoublecolumns
     \fi
-  \else
+  }{%
     \begindoublecolumns
     \catcode`\\=0\relax
     %
@@ -5517,7 +5522,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \catcode`\@=0\relax
     \input \jobname.\indexname s
     \enddoublecolumns
-  \fi
+  }%
 }
 
 % These macros are used by the sorted index file itself.
@@ -7277,22 +7282,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 \let\Eraggedright\par
 
-\envdef\raggedleft{%
-  \parindent=0pt \leftskip0pt plus2em
-  \spaceskip.3333em \xspaceskip.5em \parfillskip=0pt
-  \hbadness=10000 % Last line will usually be underfull, so turn off
-                  % badness reporting.
-}
-\let\Eraggedleft\par
-
-\envdef\raggedcenter{%
-  \parindent=0pt \rightskip0pt plus1em \leftskip0pt plus1em
-  \spaceskip.3333em \xspaceskip.5em \parfillskip=0pt
-  \hbadness=10000 % Last line will usually be underfull, so turn off
-                  % badness reporting.
-}
-\let\Eraggedcenter\par
-
 
 % @quotation does normal linebreaking (hence we can't use \nonfillstart)
 % and narrows the margins.  We keep \parskip nonzero in general, since
@@ -7515,9 +7504,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % file; b) letting users define the frontmatter in as flexible order as
 % possible is desirable.
 %
-\def\copying{\checkenv{}\begingroup\scanargctxt\docopying}
-\def\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
-%
+\def\copying{\checkenv{}\begingroup\macrobodyctxt\docopying}
+{\catcode`\ =\other
+\gdef\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
+}
+
 \def\insertcopying{%
   \begingroup
     \parindent = 0pt  % paragraph indentation looks wrong on title page
@@ -7599,21 +7590,15 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 \def\Edefun{\endgraf\medbreak}
 
-% \makedefun{deffn} creates \deffn, \deffnx and \Edeffn;
-% the only thing remaining is to define \deffnheader.
+% \makedefun{deffoo}{ (definition of \deffooheader) }
 %
+% Define \deffoo, \deffoox  \Edeffoo and \deffooheader.
 \def\makedefun#1{%
   \expandafter\let\csname E#1\endcsname = \Edefun
   \edef\temp{\noexpand\domakedefun
     \makecsname{#1}\makecsname{#1x}\makecsname{#1header}}%
   \temp
 }
-
-% \domakedefun \deffn \deffnx \deffnheader { (defn. of \deffnheader) }
-%
-% Define \deffn and \deffnx, without parameters.
-% \deffnheader has to be defined explicitly.
-%
 \def\domakedefun#1#2#3{%
   \envdef#1{%
     \startdefun
@@ -7646,74 +7631,51 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi\fi
 }
 
-% \dosubind {index}{topic}{subtopic}
-%
-% If SUBTOPIC is present, precede it with a space, and call \doind.
-% (At some time during the 20th century, this made a two-level entry in an
-% index such as the operation index.  Nobody seemed to notice the change in
-% behaviour though.)
-\def\dosubind#1#2#3{%
-  \def\thirdarg{#3}%
-  \ifx\thirdarg\empty
-    \doind{#1}{#2}%
-  \else
-    \doind{#1}{#2\space#3}%
-  \fi
-}
-
 % Untyped functions:
 
 % @deffn category name args
-\makedefun{deffn}{\deffngeneral{}}
+\makedefun{deffn}#1 #2 #3\endheader{%
+  \doind{fn}{\code{#2}}%
+  \defname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+}
 
-% @deffn category class name args
-\makedefun{defop}#1 {\defopon{#1\ \putwordon}}
-
-% \defopon {category on}class name args
-\def\defopon#1#2 {\deffngeneral{\putwordon\ \code{#2}}{#1\ \code{#2}} }
-
-% \deffngeneral {subind}category name args
-%
-\def\deffngeneral#1#2 #3 #4\endheader{%
-  \dosubind{fn}{\code{#3}}{#1}%
-  \defname{#2}{}{#3}\magicamp\defunargs{#4\unskip}%
+% @defop category class name args
+\makedefun{defop}#1 {\defopheaderx{#1\ \putwordon}}
+\def\defopheaderx#1#2 #3 #4\endheader{%
+  \doind{fn}{\code{#3}\space\putwordon\ \code{#2}}%
+  \defname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
 }
 
 % Typed functions:
 
 % @deftypefn category type name args
-\makedefun{deftypefn}{\deftypefngeneral{}}
+\makedefun{deftypefn}#1 #2 #3 #4\endheader{%
+  \doind{fn}{\code{#3}}%
+  \doingtypefntrue
+  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+}
 
 % @deftypeop category class type name args
-\makedefun{deftypeop}#1 {\deftypeopon{#1\ \putwordon}}
-
-% \deftypeopon {category on}class type name args
-\def\deftypeopon#1#2 {\deftypefngeneral{\putwordon\ \code{#2}}{#1\ \code{#2}} }
-
-% \deftypefngeneral {subind}category type name args
-%
-\def\deftypefngeneral#1#2 #3 #4 #5\endheader{%
-  \dosubind{fn}{\code{#4}}{#1}%
+\makedefun{deftypeop}#1 {\deftypeopheaderx{#1\ \putwordon}}
+\def\deftypeopheaderx#1#2 #3 #4 #5\endheader{%
+  \doind{fn}{\code{#4}\space\putwordon\ \code{#1\ \code{#2}}}%
   \doingtypefntrue
-  \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
+  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Typed variables:
 
 % @deftypevr category type var args
-\makedefun{deftypevr}{\deftypecvgeneral{}}
+\makedefun{deftypevr}#1 #2 #3 #4\endheader{%
+  \doind{vr}{\code{#3}}%
+  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+}
 
 % @deftypecv category class type var args
-\makedefun{deftypecv}#1 {\deftypecvof{#1\ \putwordof}}
-
-% \deftypecvof {category of}class type var args
-\def\deftypecvof#1#2 {\deftypecvgeneral{\putwordof\ \code{#2}}{#1\ \code{#2}} }
-
-% \deftypecvgeneral {subind}category type var args
-%
-\def\deftypecvgeneral#1#2 #3 #4 #5\endheader{%
-  \dosubind{vr}{\code{#4}}{#1}%
-  \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
+\makedefun{deftypecv}#1 {\deftypecvheaderx{#1\ \putwordof}}
+\def\deftypecvheaderx#1#2 #3 #4 #5\endheader{%
+  \doind{vr}{\code{#4}\space\putwordof\ \code{#2}}%
+  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Untyped variables:
@@ -7722,10 +7684,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \makedefun{defvr}#1 {\deftypevrheader{#1} {} }
 
 % @defcv category class var args
-\makedefun{defcv}#1 {\defcvof{#1\ \putwordof}}
-
-% \defcvof {category of}class var args
-\def\defcvof#1#2 {\deftypecvof{#1}#2 {} }
+\makedefun{defcv}#1 {\defcvheaderx{#1\ \putwordof}}
+\def\defcvheaderx#1#2 {\deftypecvheaderx{#1}#2 {} }
 
 % Types:
 
@@ -7743,10 +7703,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \makedefun{defvar}{\defvrheader{\putwordDefvar} }
 \makedefun{defopt}{\defvrheader{\putwordDefopt} }
 \makedefun{deftypevar}{\deftypevrheader{\putwordDefvar} }
-\makedefun{defmethod}{\defopon\putwordMethodon}
-\makedefun{deftypemethod}{\deftypeopon\putwordMethodon}
-\makedefun{defivar}{\defcvof\putwordInstanceVariableof}
-\makedefun{deftypeivar}{\deftypecvof\putwordInstanceVariableof}
+\makedefun{defmethod}{\defopheaderx\putwordMethodon}
+\makedefun{deftypemethod}{\deftypeopheaderx\putwordMethodon}
+\makedefun{defivar}{\defcvheaderx\putwordInstanceVariableof}
+\makedefun{deftypeivar}{\deftypecvheaderx\putwordInstanceVariableof}
 
 % \defname, which formats the name of the @def (not the args).
 % #1 is the category, such as "Function".
@@ -7765,9 +7725,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \rettypeownlinefalse
   \ifdoingtypefn  % doing a typed function specifically?
     % then check user option for putting return type on its own line:
-    \expandafter\ifx\csname SETtxideftypefnnl\endcsname\relax \else
-      \rettypeownlinetrue
-    \fi
+    \ifflagclear{txideftypefnnl}{}{\rettypeownlinetrue}%
   \fi
   %
   % How we'll format the category name.  Putting it in brackets helps
@@ -7832,30 +7790,18 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \fi           % no return type
     #3% output function name
   }%
-  {\rm\enskip}% hskip 0.5 em of \rmfont
+  \ifflagclear{txidefnamenospace}{%
+    {\rm\enskip}% hskip 0.5 em of \rmfont
+  }{}%
   %
   \boldbrax
   % arguments will be output next, if any.
 }
 
-% Print arguments in slanted roman (not ttsl), inconsistently with using
-% tt for the name.  This is because literal text is sometimes needed in
-% the argument list (groff manual), and ttsl and tt are not very
-% distinguishable.  Prevent hyphenation at `-' chars.
-%
+% Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
-  % use sl by default (not ttsl),
-  % tt for the names.
-  \df \sl \hyphenchar\font=0
-  %
-  % On the other hand, if an argument has two dashes (for instance), we
-  % want a way to get ttsl.  We used to recommend @var for that, so
-  % leave the code in, but it's strange for @var to lead to typewriter.
-  % Nowadays we recommend @code, since the difference between a ttsl hyphen
-  % and a tt hyphen is pretty tiny.  @code also disables ?` !`.
-  \def\var##1{{\setregularquotes\ttslanted{##1}}}%
+  \df \ifdoingtypefn \tt \else \sl \fi
   #1%
-  \sl\hyphenchar\font=45
 }
 
 % We want ()&[] to print specially on the defun line.
@@ -7874,9 +7820,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % so TeX would otherwise complain about undefined control sequence.
 {
   \activeparens
-  \global\let(=\lparen \global\let)=\rparen
-  \global\let[=\lbrack \global\let]=\rbrack
-  \global\let& = \&
+  \gdef\defcharsdefault{%
+    \let(=\lparen \let)=\rparen
+    \let[=\lbrack \let]=\rbrack
+    \let& = \&%
+  }
+  \globaldefs=1 \defcharsdefault
 
   \gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}
   \gdef\magicamp{\let&=\amprm}
@@ -8060,24 +8009,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \catcode`\_=\other
   \catcode`\|=\other
   \catcode`\~=\other
+  \catcode`\@=\other
+  \catcode`\^^M=\other
+  \catcode`\\=\active
   \passthroughcharstrue
 }
 
-\def\scanargctxt{% used for copying and captions, not macros.
-  \scanctxt
-  \catcode`\@=\other
-  \catcode`\\=\other
-  \catcode`\^^M=\other
-}
-
-\def\macrobodyctxt{% used for @macro definitions
+\def\macrobodyctxt{% used for @macro definitions and @copying
   \scanctxt
   \catcode`\ =\other
-  \catcode`\@=\other
   \catcode`\{=\other
   \catcode`\}=\other
-  \catcode`\^^M=\other
-  \usembodybackslash
 }
 
 % Used when scanning braced macro arguments.  Note, however, that catcode
@@ -8086,14 +8028,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\macroargctxt{%
   \scanctxt
   \catcode`\ =\active
-  \catcode`\@=\other
-  \catcode`\^^M=\other
-  \catcode`\\=\active
 }
 
 \def\macrolineargctxt{% used for whole-line arguments without braces
   \scanctxt
-  \catcode`\@=\other
   \catcode`\{=\other
   \catcode`\}=\other
 }
@@ -8137,7 +8075,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
      \global\expandafter\let\csname ismacro.\the\macname\endcsname=1%
      \addtomacrolist{\the\macname}%
   \fi
-  \begingroup \macrobodyctxt
+  \begingroup \macrobodyctxt \usembodybackslash
   \ifrecursive \expandafter\parsermacbody
   \else \expandafter\parsemacbody
   \fi}
@@ -8941,7 +8879,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       % output the `[mynode]' via the macro below so it can be overridden.
       \xrefprintnodename\printedrefname
       %
-      \expandafter\ifx\csname SETtxiomitxrefpg\endcsname\relax
+      \ifflagclear{txiomitxrefpg}{%
         % But we always want a comma and a space:
         ,\space
         %
@@ -8956,7 +8894,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
                   \tokenafterxref ,%    @NL
         \else\ifx\tie\tokenafterxref ,% @tie
         \fi\fi\fi\fi\fi\fi
-      \fi
+      }{}%
     \fi\fi
   \fi
   \endlink
@@ -9604,7 +9542,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\caption{\docaption\thiscaption}
 \def\shortcaption{\docaption\thisshortcaption}
-\def\docaption{\checkenv\float \bgroup\scanargctxt\defcaption}
+\def\docaption{\checkenv\float \bgroup\scanctxt\defcaption}
 \def\defcaption#1#2{\egroup \def#1{#2}}
 
 % The parameter is the control sequence identifying the counter we are
@@ -10324,9 +10262,9 @@ directory should work if nowhere else does.}
   % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp
   % to the corresponding UTF-8 sequence.
   \gdef\parseXMLCharref{%
-    \ifnum\countUTFz < "A0\relax
+    \ifnum\countUTFz < "20\relax
       \errhelp = \EMsimple
-      \errmessage{Cannot define Unicode char value < 00A0}%
+      \errmessage{Cannot define Unicode char value < 0020}%
     \else\ifnum\countUTFz < "800\relax
       \parseUTFviiiA,%
       \parseUTFviiiB C\UTFviiiTwoOctetsName.,%
@@ -10396,6 +10334,103 @@ directory should work if nowhere else does.}
 % least make most of the characters not bomb out.
 %
 \def\unicodechardefs{%
+  \DeclareUnicodeCharacter{0020}{ } % space
+  \DeclareUnicodeCharacter{0021}{\char"21 }% % space to terminate number
+  \DeclareUnicodeCharacter{0022}{\char"22 }%
+  \DeclareUnicodeCharacter{0023}{\char"23 }%
+  \DeclareUnicodeCharacter{0024}{\char"24 }%
+  \DeclareUnicodeCharacter{0025}{\char"25 }%
+  \DeclareUnicodeCharacter{0026}{\char"26 }%
+  \DeclareUnicodeCharacter{0027}{\char"27 }%
+  \DeclareUnicodeCharacter{0028}{\char"28 }%
+  \DeclareUnicodeCharacter{0029}{\char"29 }%
+  \DeclareUnicodeCharacter{002A}{\char"2A }%
+  \DeclareUnicodeCharacter{002B}{\char"2B }%
+  \DeclareUnicodeCharacter{002C}{\char"2C }%
+  \DeclareUnicodeCharacter{002D}{\char"2D }%
+  \DeclareUnicodeCharacter{002E}{\char"2E }%
+  \DeclareUnicodeCharacter{002F}{\char"2F }%
+  \DeclareUnicodeCharacter{0030}{0}%
+  \DeclareUnicodeCharacter{0031}{1}%
+  \DeclareUnicodeCharacter{0032}{2}%
+  \DeclareUnicodeCharacter{0033}{3}%
+  \DeclareUnicodeCharacter{0034}{4}%
+  \DeclareUnicodeCharacter{0035}{5}%
+  \DeclareUnicodeCharacter{0036}{6}%
+  \DeclareUnicodeCharacter{0037}{7}%
+  \DeclareUnicodeCharacter{0038}{8}%
+  \DeclareUnicodeCharacter{0039}{9}%
+  \DeclareUnicodeCharacter{003A}{\char"3A }%
+  \DeclareUnicodeCharacter{003B}{\char"3B }%
+  \DeclareUnicodeCharacter{003C}{\char"3C }%
+  \DeclareUnicodeCharacter{003D}{\char"3D }%
+  \DeclareUnicodeCharacter{003E}{\char"3E }%
+  \DeclareUnicodeCharacter{003F}{\char"3F }%
+  \DeclareUnicodeCharacter{0040}{\char"40 }%
+  \DeclareUnicodeCharacter{0041}{A}%
+  \DeclareUnicodeCharacter{0042}{B}%
+  \DeclareUnicodeCharacter{0043}{C}%
+  \DeclareUnicodeCharacter{0044}{D}%
+  \DeclareUnicodeCharacter{0045}{E}%
+  \DeclareUnicodeCharacter{0046}{F}%
+  \DeclareUnicodeCharacter{0047}{G}%
+  \DeclareUnicodeCharacter{0048}{H}%
+  \DeclareUnicodeCharacter{0049}{I}%
+  \DeclareUnicodeCharacter{004A}{J}%
+  \DeclareUnicodeCharacter{004B}{K}%
+  \DeclareUnicodeCharacter{004C}{L}%
+  \DeclareUnicodeCharacter{004D}{M}%
+  \DeclareUnicodeCharacter{004E}{N}%
+  \DeclareUnicodeCharacter{004F}{O}%
+  \DeclareUnicodeCharacter{0050}{P}%
+  \DeclareUnicodeCharacter{0051}{Q}%
+  \DeclareUnicodeCharacter{0052}{R}%
+  \DeclareUnicodeCharacter{0053}{S}%
+  \DeclareUnicodeCharacter{0054}{T}%
+  \DeclareUnicodeCharacter{0055}{U}%
+  \DeclareUnicodeCharacter{0056}{V}%
+  \DeclareUnicodeCharacter{0057}{W}%
+  \DeclareUnicodeCharacter{0058}{X}%
+  \DeclareUnicodeCharacter{0059}{Y}%
+  \DeclareUnicodeCharacter{005A}{Z}%
+  \DeclareUnicodeCharacter{005B}{\char"5B }%
+  \DeclareUnicodeCharacter{005C}{\char"5C }%
+  \DeclareUnicodeCharacter{005D}{\char"5D }%
+  \DeclareUnicodeCharacter{005E}{\char"5E }%
+  \DeclareUnicodeCharacter{005F}{\char"5F }%
+  \DeclareUnicodeCharacter{0060}{\char"60 }%
+  \DeclareUnicodeCharacter{0061}{a}%
+  \DeclareUnicodeCharacter{0062}{b}%
+  \DeclareUnicodeCharacter{0063}{c}%
+  \DeclareUnicodeCharacter{0064}{d}%
+  \DeclareUnicodeCharacter{0065}{e}%
+  \DeclareUnicodeCharacter{0066}{f}%
+  \DeclareUnicodeCharacter{0067}{g}%
+  \DeclareUnicodeCharacter{0068}{h}%
+  \DeclareUnicodeCharacter{0069}{i}%
+  \DeclareUnicodeCharacter{006A}{j}%
+  \DeclareUnicodeCharacter{006B}{k}%
+  \DeclareUnicodeCharacter{006C}{l}%
+  \DeclareUnicodeCharacter{006D}{m}%
+  \DeclareUnicodeCharacter{006E}{n}%
+  \DeclareUnicodeCharacter{006F}{o}%
+  \DeclareUnicodeCharacter{0070}{p}%
+  \DeclareUnicodeCharacter{0071}{q}%
+  \DeclareUnicodeCharacter{0072}{r}%
+  \DeclareUnicodeCharacter{0073}{s}%
+  \DeclareUnicodeCharacter{0074}{t}%
+  \DeclareUnicodeCharacter{0075}{u}%
+  \DeclareUnicodeCharacter{0076}{v}%
+  \DeclareUnicodeCharacter{0077}{w}%
+  \DeclareUnicodeCharacter{0078}{x}%
+  \DeclareUnicodeCharacter{0079}{y}%
+  \DeclareUnicodeCharacter{007A}{z}%
+  \DeclareUnicodeCharacter{007B}{\char"7B }%
+  \DeclareUnicodeCharacter{007C}{\char"7C }%
+  \DeclareUnicodeCharacter{007D}{\char"7D }%
+  \DeclareUnicodeCharacter{007E}{\char"7E }%
+  % \DeclareUnicodeCharacter{007F}{} % DEL
+  %
   \DeclareUnicodeCharacter{00A0}{\tie}%
   \DeclareUnicodeCharacter{00A1}{\exclamdown}%
   \DeclareUnicodeCharacter{00A2}{{\tcfont \char162}}% 0242=cent
@@ -11080,24 +11115,26 @@ directory should work if nowhere else does.}
 % provide a definition macro to replace/pass-through a Unicode character
 %
 \def\DeclareUnicodeCharacterNative#1#2{%
-  \catcode"#1=\active
-  \def\dodeclareunicodecharacternative##1##2##3{%
+  \ifnum"#1>"7F % only make non-ASCII chars active
+    \catcode"#1=\active
+    \def\dodeclareunicodecharacternative##1##2##3{%
+      \begingroup
+        \uccode`\~="##2\relax
+        \uppercase{\gdef~}{%
+          \ifpassthroughchars
+            ##1%
+          \else
+            ##3%
+          \fi
+        }
+      \endgroup
+    }
     \begingroup
-      \uccode`\~="##2\relax
-      \uppercase{\gdef~}{%
-        \ifpassthroughchars
-          ##1%
-        \else
-          ##3%
-        \fi
-      }
+      \uccode`\.="#1\relax
+      \uppercase{\def\UTFNativeTmp{.}}%
+      \expandafter\dodeclareunicodecharacternative\UTFNativeTmp{#1}{#2}%
     \endgroup
-  }
-  \begingroup
-    \uccode`\.="#1\relax
-    \uppercase{\def\UTFNativeTmp{.}}%
-    \expandafter\dodeclareunicodecharacternative\UTFNativeTmp{#1}{#2}%
-  \endgroup
+  \fi
 }
 
 % Native Unicode handling (XeTeX and LuaTeX) character replacing definition.
@@ -11276,7 +11313,7 @@ directory should work if nowhere else does.}
   \textleading = 12.5pt
   %
   \internalpagesizes{160mm}{120mm}%
-                    {\voffset}{\hoffset}%
+                    {\voffset}{-11.4mm}%
                     {\bindingoffset}{8pt}%
                     {210mm}{148mm}%
   %
@@ -11358,6 +11395,7 @@ directory should work if nowhere else does.}
 \message{and turning on texinfo input format.}
 
 \def^^L{\par} % remove \outer, so ^L can appear in an @comment
+\catcode`\^^K = 10 % treat vertical tab as whitespace
 
 % DEL is a comment character, in case @c does not suffice.
 \catcode`\^^? = 14

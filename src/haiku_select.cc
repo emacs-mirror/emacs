@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <Application.h>
 #include <Clipboard.h>
 #include <Message.h>
 #include <Path.h>
@@ -46,6 +47,16 @@ static int64 count_primary = -1;
 
 /* The number of times the secondary selection has changed.  */
 static int64 count_secondary = -1;
+
+/* Whether or not we currently think Emacs owns the primary
+   selection.  */
+static bool owned_primary;
+
+/* Likewise for the secondary selection.  */
+static bool owned_secondary;
+
+/* And the clipboard.  */
+static bool owned_clipboard;
 
 static BClipboard *
 get_clipboard_object (enum haiku_clipboard clipboard)
@@ -111,53 +122,6 @@ be_find_clipboard_data_1 (BClipboard *cb, const char *type, ssize_t *len)
 }
 
 static void
-be_get_clipboard_targets_1 (BClipboard *cb, char **buf, int buf_size)
-{
-  BMessage *data;
-  char *name;
-  int32 count_found;
-  type_code type;
-  int32 i;
-  int index;
-
-  if (!cb->Lock ())
-    {
-      buf[0] = NULL;
-      return;
-    }
-
-  data = cb->Data ();
-  index = 0;
-
-  if (!data)
-    {
-      buf[0] = NULL;
-      cb->Unlock ();
-      return;
-    }
-
-  for (i = 0; (data->GetInfo (B_ANY_TYPE, i, &name,
-			     &type, &count_found)
-	       == B_OK); ++i)
-    {
-      if (type == B_MIME_TYPE)
-	{
-	  if (index < (buf_size - 1))
-	    {
-	      buf[index++] = strdup (name);
-
-	      if (!buf[index - 1])
-		break;
-	    }
-	}
-    }
-
-  buf[index] = NULL;
-
-  cb->Unlock ();
-}
-
-static void
 be_set_clipboard_data_1 (BClipboard *cb, const char *type, const char *data,
 			 ssize_t len, bool clear)
 {
@@ -197,14 +161,17 @@ be_update_clipboard_count (enum haiku_clipboard id)
     {
     case CLIPBOARD_CLIPBOARD:
       count_clipboard = system_clipboard->SystemCount ();
+      owned_clipboard = true;
       break;
 
     case CLIPBOARD_PRIMARY:
       count_primary = primary->SystemCount ();
+      owned_primary = true;
       break;
 
     case CLIPBOARD_SECONDARY:
       count_secondary = secondary->SystemCount ();
+      owned_secondary = true;
       break;
     }
 }
@@ -225,14 +192,6 @@ be_set_clipboard_data (enum haiku_clipboard id, const char *type,
 
   be_set_clipboard_data_1 (get_clipboard_object (id), type,
 			   data, len, clear);
-}
-
-void
-be_get_clipboard_targets (enum haiku_clipboard id, char **targets,
-			  int len)
-{
-  be_get_clipboard_targets_1 (get_clipboard_object (id), targets,
-			      len);
 }
 
 static bool
@@ -278,7 +237,7 @@ be_clipboard_owner_p (enum haiku_clipboard clipboard)
 }
 
 void
-init_haiku_select (void)
+be_clipboard_init (void)
 {
   system_clipboard = new BClipboard ("system");
   primary = new BClipboard ("primary");
@@ -487,4 +446,74 @@ be_unlock_clipboard (enum haiku_clipboard clipboard, bool discard)
     board->Commit ();
 
   board->Unlock ();
+}
+
+void
+be_handle_clipboard_changed_message (void)
+{
+  int64 n_clipboard, n_primary, n_secondary;
+
+  n_clipboard = system_clipboard->SystemCount ();
+  n_primary = primary->SystemCount ();
+  n_secondary = secondary->SystemCount ();
+
+  if (count_clipboard != -1
+      && (n_clipboard > count_clipboard + 1)
+      && owned_clipboard)
+    {
+      owned_clipboard = false;
+      haiku_selection_disowned (CLIPBOARD_CLIPBOARD,
+				n_clipboard);
+    }
+
+  if (count_primary != -1
+      && (n_primary > count_primary + 1)
+      && owned_primary)
+    {
+      owned_primary = false;
+      haiku_selection_disowned (CLIPBOARD_PRIMARY,
+				n_primary);
+    }
+
+  if (count_secondary != -1
+      && (n_secondary > count_secondary + 1)
+      && owned_secondary)
+    {
+      owned_secondary = false;
+      haiku_selection_disowned (CLIPBOARD_SECONDARY,
+				n_secondary);
+    }
+}
+
+void
+be_start_watching_selection (enum haiku_clipboard id)
+{
+  BClipboard *clipboard;
+
+  clipboard = get_clipboard_object (id);
+  clipboard->StartWatching (be_app);
+}
+
+bool
+be_selection_outdated_p (enum haiku_clipboard id, int64 count)
+{
+  if (id == CLIPBOARD_CLIPBOARD && count_clipboard > count)
+    return true;
+
+  if (id == CLIPBOARD_PRIMARY && count_primary > count)
+    return true;
+
+  if (id == CLIPBOARD_SECONDARY && count_secondary > count)
+    return true;
+
+  return false;
+}
+
+int64
+be_get_clipboard_count (enum haiku_clipboard id)
+{
+  BClipboard *clipboard;
+
+  clipboard = get_clipboard_object (id);
+  return clipboard->SystemCount ();
 }

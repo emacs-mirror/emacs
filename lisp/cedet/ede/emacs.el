@@ -59,7 +59,7 @@ Return a tuple of ( EMACSNAME . VERSION )."
 	    (file-exists-p (setq configure_ac "configure.in")))
 	(insert-file-contents configure_ac)
 	(goto-char (point-min))
-	(re-search-forward "AC_INIT(\\(?:GNU \\)?[eE]macs,\\s-*\\([0-9.]+\\)\\s-*[,)]")
+	(re-search-forward "AC_INIT(\\[?\\(?:GNU \\)?[eE]macs]?,\\s-*\\[?\\([0-9.]+\\)]?\\s-*[,)]")
 	(setq ver (match-string 1))
 	)
        )
@@ -80,7 +80,6 @@ ROOTPROJ is nil, since there is only one project."
   ;; Doesn't already exist, so let's make one.
   (let* ((vertuple (ede-emacs-version dir)))
     (ede-emacs-project
-     (car vertuple)
      :name (car vertuple)
      :version (cdr vertuple)
      :directory (file-name-as-directory dir)

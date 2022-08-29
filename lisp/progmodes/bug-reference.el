@@ -140,7 +140,7 @@ to the highlighted and clickable region."
                  t)))
         ;; All groups 2..10 are within bounds.
         (cons m-b1 m-e1)
-      ;; The regexp doesn't fulfil the contract of
+      ;; The regexp doesn't fulfill the contract of
       ;; bug-reference-bug-regexp, so fall back to the old behavior.
       (unless (member bug-reference-bug-regexp
                       bug-reference--nonconforming-regexps)

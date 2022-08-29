@@ -92,13 +92,13 @@ number."
 
 (defcustom Buffer-menu-size-width 7
   "Width of buffer size column in the Buffer Menu."
-  :type 'number
+  :type 'natnum
   :group 'Buffer-menu
   :version "24.3")
 
 (defcustom Buffer-menu-mode-width 16
   "Width of mode name column in the Buffer Menu."
-  :type 'number
+  :type 'natnum
   :group 'Buffer-menu)
 
 (defcustom Buffer-menu-use-frame-buffer-list t

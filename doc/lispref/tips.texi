@@ -689,6 +689,18 @@ line.  This looks nice in the source code, but looks bizarre when users
 view the documentation.  Remember that the indentation before the
 starting double-quote is not part of the string!
 
+@item
+When documentation should display an ASCII apostrophe or grave accent,
+use @samp{\\='} or @samp{\\=`} in the documentation string literal so
+that the character is displayed as-is.
+
+@item
+In documentation strings, do not quote expressions that are not Lisp symbols,
+as these expressions can stand for themselves.  For example, write
+@samp{Return the list (NAME TYPE RANGE) ...}@: instead of
+@samp{Return the list `(NAME TYPE RANGE)' ...}@: or
+@samp{Return the list \\='(NAME TYPE RANGE) ...}.
+
 @anchor{Docstring hyperlinks}
 @item
 @cindex curly quotes
@@ -700,7 +712,7 @@ two exceptions: write @code{t} and @code{nil} without surrounding
 punctuation.  For example:
 
 @example
- CODE can be `lambda', nil, or t.
+CODE can be `lambda', nil, or t.
 @end example
 
 Note that when Emacs displays these doc strings, Emacs will usually
@@ -856,7 +868,7 @@ find an alternate phrasing that conveys the meaning.
 @item
 Try to avoid using abbreviations such as ``e.g.'' (for ``for
 example''), ``i.e.'' (for ``that is''), ``no.'' (for ``number''),
-``c.f.'' (for ``in contrast to'') and ``w.r.t.'' (for ``with respect
+``cf.'' (for ``compare''/``see also'') and ``w.r.t.'' (for ``with respect
 to'') as much as possible.  It is almost always clearer and easier to
 read the expanded version.@footnote{We do use these occasionally, but
 try not to overdo it.}

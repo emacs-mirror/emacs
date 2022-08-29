@@ -133,9 +133,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.
 If given a prefix, mark all unpicked articles as read."
-  (interactive "P")
-  (declare (completion (lambda (s b)
-			 (completion-minor-mode-active-p s b 'gnus-pick-mode))))
+  (interactive "P" gnus-pick-mode)
   (if gnus-newsgroup-processable
       (progn
 	(gnus-summary-limit-to-articles nil)
@@ -688,7 +686,7 @@ it in the environment specified by BINDINGS."
 	(unless (zerop level)
 	  (gnus-tree-indent level)
 	  (insert (cadr gnus-tree-parent-child-edges))
-	  (setq col (- (setq beg (point)) (point-at-bol) 1))
+          (setq col (- (setq beg (point)) (line-beginning-position) 1))
 	  ;; Draw "|" lines upwards.
 	  (while (progn
 		   (forward-line -1)
@@ -712,7 +710,7 @@ it in the environment specified by BINDINGS."
 
 (defsubst gnus-tree-indent-vertical ()
   (let ((len (- (* (1+ gnus-tree-node-length) gnus-tmp-indent)
-		(- (point) (point-at-bol)))))
+                (- (point) (line-beginning-position)))))
     (when (> len 0)
       (insert (make-string len ? )))))
 

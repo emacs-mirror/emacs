@@ -1144,7 +1144,7 @@ error message."
 	      ;; Naive match found.  Qualify the match.
 	      (and (funcall (car order) pattern)
 		   ;; Make sure it is not a previous qualified match.
-		   (not (member (set-marker match-marker (point-at-bol))
+                   (not (member (set-marker match-marker (line-beginning-position))
 				tag-lines-already-matched))
 		   (throw 'qualified-match-found nil))
 	      (if next-line-after-failure-p
@@ -1314,11 +1314,11 @@ buffer-local values of tags table format variables."
 
       ;; Find the end of the tag and record the whole tag text.
       (search-forward "\177")
-      (setq tag-text (buffer-substring (1- (point)) (point-at-bol)))
+      (setq tag-text (buffer-substring (1- (point)) (line-beginning-position)))
       ;; If use-explicit is non-nil and explicit tag is present, use it as part of
       ;; return value. Else just skip it.
       (setq explicit-start (point))
-      (when (and (search-forward "\001" (point-at-bol 2) t)
+      (when (and (search-forward "\001" (line-beginning-position 2) t)
 		 use-explicit)
 	(setq tag-text (buffer-substring explicit-start (1- (point)))))
 
@@ -1705,7 +1705,7 @@ Point should be just after a string that matches TAG."
 ;;;###autoload
 (defalias 'next-file 'tags-next-file)
 (make-obsolete 'next-file
-               "use tags-next-file or fileloop-initialize and fileloop-next-file instead" "27.1")
+               "use `tags-next-file' or `fileloop-initialize' and `fileloop-next-file' instead" "27.1")
 ;;;###autoload
 (defun tags-next-file (&optional initialize novisit)
   "Select next file among files in current tags table.

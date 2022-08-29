@@ -91,6 +91,7 @@ message, a huge time saver for large mailboxes.")
 
 (defconst nnfolder-version "nnfolder 2.0"
   "nnfolder version.")
+(make-obsolete-variable 'nnfolder-version 'emacs-version "29.1")
 
 (defconst nnfolder-article-marker "X-Gnus-Article-Number: "
   "String used to demarcate what the article number for a message is.")
@@ -178,7 +179,7 @@ all.  This may very well take some time.")
 			(goto-char (match-end 0))
 			(setq num (string-to-number
 				   (buffer-substring
-				    (point) (point-at-eol))))
+                                    (point) (line-end-position))))
 			(goto-char start)
 			(< num article)))
 		      ;; Check that we are before an article with a
@@ -188,7 +189,7 @@ all.  This may very well take some time.")
 		      (progn
 			(setq num (string-to-number
 				   (buffer-substring
-				    (point) (point-at-eol))))
+                                    (point) (line-end-position))))
 			(> num article))
 		      ;; Discard any article numbers before the one we're
 		      ;; now looking at.
@@ -258,7 +259,7 @@ all.  This may very well take some time.")
 		  (if (search-forward (concat "\n" nnfolder-article-marker)
 				      nil t)
 		      (string-to-number (buffer-substring
-				      (point) (point-at-eol)))
+                                         (point) (line-end-position)))
 		    -1))))))))
 
 (deffoo nnfolder-request-group (group &optional server dont-check _info)
@@ -860,7 +861,8 @@ deleted.  Point is left where the deleted region was."
 		    (nnheader-find-file-noselect file t)))))
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
     (buffer-disable-undo)
-    (if (equal (cadr (assoc group nnfolder-scantime-alist))
+    (if (time-equal-p
+	       (cadr (assoc group nnfolder-scantime-alist))
 	       (file-attribute-modification-time (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
 	(if (file-exists-p file)

@@ -267,7 +267,9 @@ This has effect only if `search-invisible' is set to `open'."
     ))
   "Alist for initializing the hideshow variables for different modes.
 Each element has the form
-  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
+  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
+   FIND-BLOCK-BEGINNING-FUNC FIND-NEXT-BLOCK-FUNC
+   LOOKING-AT-BLOCK-START-P-FUNC).
 
 If non-nil, hideshow will use these values as regexps to define blocks
 and comments, respectively for major mode MODE.
@@ -287,6 +289,15 @@ cases, FORWARD-SEXP-FUNC specifies another function to use instead.
 
 See the documentation for `hs-adjust-block-beginning' to see what is the
 use of ADJUST-BEG-FUNC.
+
+See the documentation for `hs-find-block-beginning-func' to see
+what is the use of FIND-BLOCK-BEGINNING-FUNC.
+
+See the documentation for `hs-find-next-block-func' to see what
+is the use of FIND-NEXT-BLOCK-FUNC.
+
+See the documentation for `hs-looking-at-block-start-p-func' to
+see what is the use of LOOKING-AT-BLOCK-START-P-FUNC.
 
 If any of the elements is left nil or omitted, hideshow tries to guess
 appropriate values.  The regexps should not contain leading or trailing
@@ -433,6 +444,39 @@ It should not move the point.
 
 See `hs-c-like-adjust-block-beginning' for an example of using this.")
 
+(defvar-local hs-find-block-beginning-func #'hs-find-block-beginning
+  "Function used to do `hs-find-block-beginning'.
+It should reposition point at the beginning of the current block
+and return point, or nil if original point was not in a block.
+
+Specifying this function is necessary for languages such as
+Python, where regexp search and `syntax-ppss' check is not enough
+to find the beginning of the current block.")
+
+(defvar-local hs-find-next-block-func #'hs-find-next-block
+  "Function used to do `hs-find-next-block'.
+It should reposition point at next block start.
+
+It is called with three arguments REGEXP, MAXP, and COMMENTS.
+REGEXP is a regexp representing block start.  When block start is
+found, `match-data' should be set using REGEXP.  MAXP is a buffer
+position that bounds the search.  When COMMENTS is nil, comments
+should be skipped.  When COMMENTS is not nil, REGEXP matches not
+only beginning of a block but also beginning of a comment.  In
+this case, the function should find nearest block or comment.
+
+Specifying this function is necessary for languages such as
+Python, where regexp search is not enough to find the beginning
+of the next block.")
+
+(defvar-local hs-looking-at-block-start-p-func #'hs-looking-at-block-start-p
+  "Function used to do `hs-looking-at-block-start-p'.
+It should return non-nil if the point is at the block start.
+
+Specifying this function is necessary for languages such as
+Python, where `looking-at' and `syntax-ppss' check is not enough
+to check if the point is at the block start.")
+
 (defvar hs-headline nil
   "Text of the line where a hidden block begins, set during isearch.
 You can display this in the mode line by adding the symbol `hs-headline'
@@ -565,7 +609,7 @@ The block beginning is adjusted by `hs-adjust-block-beginning'
 and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (when (hs-looking-at-block-start-p)
+    (when (funcall hs-looking-at-block-start-p-func)
       (let ((mdata (match-data t))
             (header-end (match-end 0))
             p q ov)
@@ -672,7 +716,14 @@ function; and adjust-block-beginning function."
                                                      0 (1- (match-end 0)))
                                         c-start-regexp)))
               hs-forward-sexp-func (or (nth 4 lookup) #'forward-sexp)
-              hs-adjust-block-beginning (or (nth 5 lookup) #'identity)))
+              hs-adjust-block-beginning (or (nth 5 lookup) #'identity)
+              hs-find-block-beginning-func (or (nth 6 lookup)
+                                               #'hs-find-block-beginning)
+              hs-find-next-block-func (or (nth 7 lookup)
+                                          #'hs-find-next-block)
+              hs-looking-at-block-start-p-func
+              (or (nth 8 lookup)
+                  #'hs-looking-at-block-start-p)))
     (setq hs-minor-mode nil)
     (error "%s Mode doesn't support Hideshow Minor Mode"
            (format-mode-line mode-name))))
@@ -683,7 +734,7 @@ Return point, or nil if original point was not in a block."
   (let ((done nil)
         (here (point)))
     ;; look if current line is block start
-    (if (hs-looking-at-block-start-p)
+    (if (funcall hs-looking-at-block-start-p-func)
         (point)
       ;; look backward for the start of a block that contains the cursor
       (while (and (re-search-backward hs-block-start-regexp nil t)
@@ -698,19 +749,25 @@ Return point, or nil if original point was not in a block."
         (goto-char here)
         nil))))
 
+(defun hs-find-next-block (regexp maxp comments)
+  "Reposition point at next block-start.
+Skip comments if COMMENTS is nil, and search for REGEXP in
+region (point MAXP)."
+  (when (not comments)
+    (forward-comment (point-max)))
+  (and (< (point) maxp)
+       (re-search-forward regexp maxp t)))
+
 (defun hs-hide-level-recursive (arg minp maxp)
   "Recursively hide blocks ARG levels below point in region (MINP MAXP)."
-  (when (hs-find-block-beginning)
+  (when (funcall hs-find-block-beginning-func)
     (setq minp (1+ (point)))
     (funcall hs-forward-sexp-func 1)
     (setq maxp (1- (point))))
   (unless hs-allow-nesting
     (hs-discard-overlays minp maxp))
   (goto-char minp)
-  (while (progn
-           (forward-comment (buffer-size))
-           (and (< (point) maxp)
-                (re-search-forward hs-block-start-regexp maxp t)))
+  (while (funcall hs-find-next-block-func hs-block-start-regexp maxp nil)
     (when (save-match-data
 	    (not (nth 8 (syntax-ppss)))) ; not inside comments or strings
       (if (> arg 1)
@@ -747,8 +804,8 @@ and `case-fold-search' are both t."
           (goto-char (nth 0 c-reg))
         (end-of-line)
         (when (and (not c-reg)
-                   (hs-find-block-beginning)
-		   (hs-looking-at-block-start-p))
+                   (funcall hs-find-block-beginning-func)
+		   (funcall hs-looking-at-block-start-p-func))
           ;; point is inside a block
           (goto-char (match-end 0)))))
     (end-of-line)
@@ -790,10 +847,8 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                                    hs-c-start-regexp
                                    "\\)")
                          ""))))
-       (while (progn
-                (unless hs-hide-comments-when-hiding-all
-                  (forward-comment (point-max)))
-                (re-search-forward re (point-max) t))
+       (while (funcall hs-find-next-block-func re (point-max)
+                       hs-hide-comments-when-hiding-all)
          (if (match-beginning 1)
              ;; We have found a block beginning.
              (progn
@@ -838,8 +893,8 @@ Upon completion, point is repositioned and the normal hook
                       (<= (count-lines (car c-reg) (nth 1 c-reg)) 1)))
        (message "(not enough comment lines to hide)"))
       ((or c-reg
-	   (hs-looking-at-block-start-p)
-           (hs-find-block-beginning))
+	   (funcall hs-looking-at-block-start-p-func)
+           (funcall hs-find-block-beginning-func))
        (hs-hide-block-at-point end c-reg)
        (run-hooks 'hs-hide-hook))))))
 
@@ -868,9 +923,9 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
              (when (car c-reg)
                (setq p (car c-reg)
                      q (cadr c-reg))))
-            ((and (hs-find-block-beginning)
+            ((and (funcall hs-find-block-beginning-func)
                   ;; ugh, fresh match-data
-                  (hs-looking-at-block-start-p))
+                  (funcall hs-looking-at-block-start-p-func))
              (setq p (point)
                    q (progn (hs-forward-sexp (match-data t) 1) (point)))))
       (when (and p q)

@@ -109,7 +109,7 @@ are supported in this language environment."))
  "Tamil" '((charset unicode)
 	   (coding-system utf-8)
 	   (coding-priority utf-8)
-	   (input-method . "tamil-itrans")
+	   (input-method . "tamil-phonetic")
            (sample-text . "Tamil (தமிழ்)	வணக்கம்")
 	   (documentation . "\
 South Indian Language Tamil is supported in this language environment."))

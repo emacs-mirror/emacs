@@ -1156,8 +1156,8 @@ Can be set to a number, or to nil which means leave it as is."
   "The default indentation increment.
 This value is used for the `+' and `-' symbols in an indentation variable."
   :type 'integer
+  :safe #'integerp
   :group 'sh-indentation)
-(put 'sh-basic-offset 'safe-local-variable 'integerp)
 
 (defcustom sh-indent-comment t
   "How a comment line is to be indented.
@@ -1926,9 +1926,9 @@ With t, you get the latter as long as that would indent the continuation line
 deeper than the initial line."
   :version "25.1"
   :type '(choice
-          (const nil :tag "Never")
-          (const t   :tag "Only if needed to make it deeper")
-          (const always :tag "Always"))
+          (const :value nil    :tag "Never")
+          (const :value t      :tag "Only if needed to make it deeper")
+          (const :value always :tag "Always"))
   :group 'sh-indentation)
 
 (defun sh-smie--continuation-start-indent ()
@@ -2410,6 +2410,8 @@ Lines containing only comments are considered empty."
 The working directory is that of the buffer, and only environment variables
 are already set which is why you can mark a header within the script.
 
+The executed subshell is `sh-shell-file'.
+
 With a positive prefix ARG, instead of sending region, define header from
 beginning of buffer to point.  With a negative prefix ARG, instead of sending
 region, clear header."
@@ -2417,17 +2419,18 @@ region, clear header."
   (if flag
       (setq sh-header-marker (if (> (prefix-numeric-value flag) 0)
 				 (point-marker)))
-    (if sh-header-marker
-	(save-excursion
-	  (let (buffer-undo-list)
-	    (goto-char sh-header-marker)
-	    (append-to-buffer (current-buffer) start end)
-	    (shell-command-on-region (point-min)
-				     (setq end (+ sh-header-marker
-						  (- end start)))
-				     sh-shell-file)
-	    (delete-region sh-header-marker end)))
-      (shell-command-on-region start end (concat sh-shell-file " -")))))
+    (let ((shell-file-name sh-shell-file))
+      (if sh-header-marker
+	  (save-excursion
+	    (let (buffer-undo-list)
+	      (goto-char sh-header-marker)
+	      (append-to-buffer (current-buffer) start end)
+	      (shell-command-on-region (point-min)
+				       (setq end (+ sh-header-marker
+						    (- end start)))
+				       sh-shell-file)
+	      (delete-region sh-header-marker end)))
+        (shell-command-on-region start end (concat sh-shell-file " -"))))))
 
 
 (defun sh-remember-variable (var)

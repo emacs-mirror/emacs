@@ -634,9 +634,6 @@ for use at QPOS."
       (let ((qstr (funcall qfun completion)))
 	(cons qstr (length qstr))))))
 
-(defun completion--string-equal-p (s1 s2)
-  (eq t (compare-strings s1 nil nil s2 nil nil 'ignore-case)))
-
 (defun completion--twq-all (string ustring completions boundary
                                    _unquote requote)
   (when completions
@@ -650,7 +647,7 @@ for use at QPOS."
          (qfullprefix (substring string 0 qfullpos))
 	 ;; FIXME: This assertion can be wrong, e.g. in Cygwin, where
 	 ;; (unquote "c:\bin") => "/usr/bin" but (unquote "c:\") => "/".
-         ;;(cl-assert (completion--string-equal-p
+         ;;(cl-assert (string-equal-ignore-case
          ;;            (funcall unquote qfullprefix)
          ;;            (concat (substring ustring 0 boundary) prefix))
          ;;           t))
@@ -688,7 +685,7 @@ for use at QPOS."
                            (let* ((rest (substring completion
                                                    0 (length prefix)))
                                   (qrest (funcall qfun rest)))
-                             (if (completion--string-equal-p qprefix qrest)
+                             (if (string-equal-ignore-case qprefix qrest)
                                  (propertize qrest 'face
                                              'completions-common-part)
                                qprefix))))
@@ -696,7 +693,7 @@ for use at QPOS."
 		   ;; FIXME: Similarly here, Cygwin's mapping trips this
 		   ;; assertion.
                    ;;(cl-assert
-                   ;; (completion--string-equal-p
+                   ;; (string-equal-ignore-case
 		   ;;  (funcall unquote
 		   ;;           (concat (substring string 0 qboundary)
 		   ;;                   qcompletion))
@@ -1309,10 +1306,8 @@ when the buffer's text is already an exact match."
       ;; for appearance, the string is rewritten if the case changes.
       (let* ((comp-pos (cdr comp))
              (completion (car comp))
-             (completed (not (eq t (compare-strings completion nil nil
-                                                    string nil nil t))))
-             (unchanged (eq t (compare-strings completion nil nil
-                                               string nil nil nil))))
+             (completed (not (string-equal-ignore-case completion string)))
+             (unchanged (string-equal completion string)))
         (if unchanged
 	    (goto-char end)
           ;; Insert in minibuffer the chars we got.
@@ -1677,8 +1672,8 @@ DONT-CYCLE tells the function not to setup cycling."
                    map)))))))))
 
 (defvar minibuffer-confirm-exit-commands
-  '(completion-at-point minibuffer-complete
-    minibuffer-complete-word PC-complete PC-complete-word)
+  '( completion-at-point minibuffer-complete
+     minibuffer-complete-word)
   "List of commands which cause an immediately following
 `minibuffer-complete-and-exit' to ask for extra confirmation.")
 
@@ -2135,7 +2130,7 @@ and with BASE-SIZE appended as the last element."
         (lambda (elem)
           (let ((str
                  ;; Don't modify the string itself, but a copy, since the
-                 ;; the string may be read-only or used for other purposes.
+                 ;; string may be read-only or used for other purposes.
                  ;; Furthermore, since `completions' may come from
                  ;; display-completion-list, `elem' may be a list.
                  (if (consp elem)
@@ -2225,25 +2220,6 @@ These include:
      `exact'    - text is a valid completion but may be further
                   completed.")
 
-(defvar completion-annotate-function
-  nil
-  ;; Note: there's a lot of scope as for when to add annotations and
-  ;; what annotations to add.  E.g. completing-help.el allowed adding
-  ;; the first line of docstrings to M-x completion.  But there's
-  ;; a tension, since such annotations, while useful at times, can
-  ;; actually drown the useful information.
-  ;; So completion-annotate-function should be used parsimoniously, or
-  ;; else only used upon a user's request (e.g. we could add a command
-  ;; to completion-list-mode to add annotations to the current
-  ;; completions).
-  "Function to add annotations in the *Completions* buffer.
-The function takes a completion and should either return nil, or a string that
-will be displayed next to the completion.  The function can access the
-completion table and predicates via `minibuffer-completion-table' and related
-variables.")
-(make-obsolete-variable 'completion-annotate-function
-                        'completion-extra-properties "24.1")
-
 (defun completion--done (string &optional finished message)
   (let* ((exit-fun (plist-get completion-extra-properties :exit-function))
          (pre-msg (and exit-fun (current-message))))
@@ -2314,8 +2290,7 @@ variables.")
                                            minibuffer-completion-predicate))
              (ann-fun (or (completion-metadata-get all-md 'annotation-function)
                           (plist-get completion-extra-properties
-                                     :annotation-function)
-                          completion-annotate-function))
+                                     :annotation-function)))
              (aff-fun (or (completion-metadata-get all-md 'affixation-function)
                           (plist-get completion-extra-properties
                                      :affixation-function)))
@@ -2789,9 +2764,6 @@ Gets combined either with `minibuffer-local-completion-map' or
 with `minibuffer-local-must-match-map'."
   "SPC" nil)
 
-(defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
-(make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
-
 (defvar-keymap minibuffer-local-ns-map
   :doc "Local keymap for the minibuffer when spaces are not allowed."
   :parent minibuffer-local-map
@@ -3090,7 +3062,8 @@ such as making the current buffer visit no file in the case of
   :type 'boolean)
 
 (defcustom minibuffer-beginning-of-buffer-movement nil
-  "Control how the `M-<' command in the minibuffer behaves.
+  "Control how the \\<minibuffer-local-map>\\[minibuffer-beginning-of-buffer] \
+command in the minibuffer behaves.
 If non-nil, the command will go to the end of the prompt (if
 point is after the end of the prompt).  If nil, it will behave
 like the `beginning-of-buffer' command."
@@ -3159,8 +3132,9 @@ Fourth arg MUSTMATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an existing file.
-- a function, which will be called with the input as the argument.
-  If it returns a non-nil value, the minibuffer is exited with that value.
+- a function, which will be called with the input as the
+  argument.  If the function returns a non-nil value, the
+  minibuffer is exited with that argument as the value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -4428,27 +4402,41 @@ minibuffer, but don't quit the completions window."
 Like `minibuffer-complete' but completes on the history items
 instead of the default completion table."
   (interactive)
-  (let ((completions-sort nil)
-        (history (mapcar (lambda (h)
-                           ;; Support e.g. `C-x ESC ESC TAB' as
-                           ;; a replacement of `list-command-history'
-                           (if (consp h) (format "%S" h) h))
-                         (symbol-value minibuffer-history-variable))))
-    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
-                          history nil)))
+  (let* ((history (symbol-value minibuffer-history-variable))
+         (completions
+          (if (listp history)
+              ;; Support e.g. `C-x ESC ESC TAB' as
+              ;; a replacement of `list-command-history'
+              (mapcar (lambda (h)
+                        (if (stringp h) h (format "%S" h)))
+                      history)
+            (user-error "No history available"))))
+    ;; FIXME: Can we make it work for CRM?
+    (completion-in-region
+     (minibuffer--completion-prompt-end) (point-max)
+     (lambda (string pred action)
+       (if (eq action 'metadata)
+           '(metadata (display-sort-function . identity)
+                      (cycle-sort-function . identity))
+         (complete-with-action action completions string pred))))))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
 Like `minibuffer-complete' but completes on the default items
 instead of the completion table."
   (interactive)
-  (let ((completions-sort nil))
-    (when (and (not minibuffer-default-add-done)
-               (functionp minibuffer-default-add-function))
-      (setq minibuffer-default-add-done t
-            minibuffer-default (funcall minibuffer-default-add-function)))
-    (completion-in-region (minibuffer--completion-prompt-end) (point-max)
-                          (ensure-list minibuffer-default) nil)))
+  (when (and (not minibuffer-default-add-done)
+             (functionp minibuffer-default-add-function))
+    (setq minibuffer-default-add-done t
+          minibuffer-default (funcall minibuffer-default-add-function)))
+  (let ((completions (ensure-list minibuffer-default)))
+    (completion-in-region
+     (minibuffer--completion-prompt-end) (point-max)
+     (lambda (string pred action)
+       (if (eq action 'metadata)
+           '(metadata (display-sort-function . identity)
+                      (cycle-sort-function . identity))
+         (complete-with-action action completions string pred))))))
 
 (define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
 (define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)

@@ -340,7 +340,7 @@ Optional FORCE means to ignore the hash of known directories."
 ;;
 ;; These utilities will identify the "toplevel" of a project.
 ;;
-;; NOTE: These two -toplevel- functions return a directory even though
+;; NOTE: This -toplevel- function returns a directory even though
 ;;       the function name implies a project.
 
 (defun ede-toplevel-project (dir)
@@ -364,8 +364,6 @@ If DIR is not part of a project, return nil."
       (car ans))
 
      (t nil))))
-
-(defalias 'ede-toplevel-project-or-nil #'ede-toplevel-project)
 
 ;;; DIRECTORY CONVERSION STUFF
 ;;
@@ -535,6 +533,7 @@ Argument DIR is the directory to trim upwards."
 	nil
       fnd)))
 
+(define-obsolete-function-alias 'ede-toplevel-project-or-nil #'ede-toplevel-project "29.1")
 
 (provide 'ede/files)
 

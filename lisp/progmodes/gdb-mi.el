@@ -92,6 +92,7 @@
 (require 'cl-seq)
 (require 'bindat)
 (eval-when-compile (require 'pcase))
+(require 'subr-x)   ; `string-pad'
 
 (declare-function speedbar-change-initial-expansion-list
                   "speedbar" (new-default))
@@ -126,9 +127,9 @@ Possible value: main, $rsp, x+3.")
   "Address of memory display.")
 (defvar-local gdb-memory-last-address nil
   "Last successfully accessed memory address.")
-(defvar	gdb-memory-next-page nil
+(defvar gdb-memory-next-page nil
   "Address of next memory page for program memory buffer.")
-(defvar	gdb-memory-prev-page nil
+(defvar gdb-memory-prev-page nil
   "Address of previous memory page for program memory buffer.")
 (defvar-local gdb--memory-display-warning nil
   "Display warning on memory header if t.
@@ -684,7 +685,7 @@ Note that this variable only takes effect when variable
 Until there are such number of source windows on screen, GDB
 tries to open a new window when visiting a new source file; after
 that GDB starts to reuse existing source windows."
-  :type 'number
+  :type 'natnum
   :group 'gdb
   :version "28.1")
 
@@ -2112,7 +2113,7 @@ is running."
            (not (null gdb-running-threads-count))
            (> gdb-running-threads-count 0))))
 
-;; GUD displays the selected GDB frame.  This might might not be the current
+;; GUD displays the selected GDB frame.  This might not be the current
 ;; GDB frame (after up, down etc).  If no GDB frame is visible but the last
 ;; visited breakpoint is, use that window.
 (defun gdb-display-source-buffer (buffer)
@@ -2511,9 +2512,8 @@ means to decode using the coding-system set for the GDB process."
   ;; Record transactions if logging is enabled.
   (when gdb-enable-debug
     (push (cons 'recv string) gdb-debug-log)
-    (if (and gdb-debug-log-max
-	     (> (length gdb-debug-log) gdb-debug-log-max))
-	(setcdr (nthcdr (1- gdb-debug-log-max) gdb-debug-log) nil)))
+    (when gdb-debug-log-max
+      (setq gdb-debug-log (ntake gdb-debug-log-max gdb-debug-log))))
 
   ;; Recall the left over gud-marker-acc from last time.
   (setq gud-marker-acc (concat gud-marker-acc string))
@@ -2817,7 +2817,7 @@ END-CHAR is the ending delimiter; will stop at end-of-buffer otherwise."
               pieces)
         (forward-char))
        (t
-        (warn "Unrecognised escape char: %c" (following-char))))
+        (warn "Unrecognized escape char: %c" (following-char))))
       (setq start (point)))
     (push (buffer-substring start (1- (point))) pieces)
     (let ((s (apply #'concat (nreverse pieces))))
@@ -2943,7 +2943,7 @@ Return position where LINE begins."
        start-posn)))
 
 (defun gdb-pad-string (string padding)
-  (format (concat "%" (number-to-string padding) "s") string))
+  (string-pad string (abs padding) nil (natnump padding)))
 
 ;; gdb-table struct is a way to programmatically construct simple
 ;; tables. It help to reliably align columns of data in GDB buffers
@@ -2961,8 +2961,7 @@ When non-nil, PROPERTIES will be added to the whole row when
 calling `gdb-table-string'."
   (let ((rows (gdb-table-rows table))
         (row-properties (gdb-table-row-properties table))
-        (column-sizes (gdb-table-column-sizes table))
-        (right-align (gdb-table-right-align table)))
+        (column-sizes (gdb-table-column-sizes table)))
     (when (not column-sizes)
       (setf (gdb-table-column-sizes table)
             (make-list (length row) 0)))
@@ -2972,9 +2971,7 @@ calling `gdb-table-string'."
           (append row-properties (list properties)))
     (setf (gdb-table-column-sizes table)
           (cl-mapcar (lambda (x s)
-                         (let ((new-x
-                                (max (abs x) (string-width (or s "")))))
-                           (if right-align new-x (- new-x))))
+                       (max (abs x) (string-width (or s ""))))
                        (gdb-table-column-sizes table)
                        row))
     ;; Avoid trailing whitespace at eol
@@ -2985,13 +2982,16 @@ calling `gdb-table-string'."
   "Return TABLE as a string with columns separated with SEP."
   (let ((column-sizes (gdb-table-column-sizes table)))
     (mapconcat
-     'identity
+     #'identity
      (cl-mapcar
       (lambda (row properties)
-        (apply 'propertize
-               (mapconcat 'identity
-                          (cl-mapcar (lambda (s x) (gdb-pad-string s x))
-                                       row column-sizes)
+        (apply #'propertize
+               (mapconcat #'identity
+                          (cl-mapcar (lambda (s x)
+                                       (string-pad
+                                        s x nil
+                                        (not (gdb-table-right-align table))))
+                                     row column-sizes)
                           sep)
                properties))
       (gdb-table-rows table)
@@ -3688,10 +3688,11 @@ in `gdb-memory-format'."
           (dolist (row memory)
             (insert (concat (gdb-mi--field row 'addr) ":"))
             (dolist (column (gdb-mi--field row 'data))
-              (insert (gdb-pad-string column
-                                      (+ 2 (gdb-memory-column-width
-                                            gdb-memory-unit
-                                            gdb-memory-format)))))
+              (insert (string-pad column
+                                  (+ 2 (gdb-memory-column-width
+                                        gdb-memory-unit
+                                        gdb-memory-format))
+                                  nil t)))
             (newline)))
       ;; Show last page instead of empty buffer when out of bounds
       (when gdb-memory-last-address

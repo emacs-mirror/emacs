@@ -43,13 +43,11 @@
 (require 'gnus-uu)                      ; because of key prefix issues
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
+(require 'dig)
 
 (eval-when-compile
   (require 'cl-lib)
   (require 'hashcash))
-
-;; autoload query-dig
-(autoload 'query-dig "dig")
 
 ;; autoload spam-report
 (autoload 'spam-report-gmane "spam-report")
@@ -2008,7 +2006,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
             (unless matches
               (let ((query-string (concat ip "." server)))
                 (if spam-use-dig
-                    (let ((query-result (query-dig query-string)))
+                    (let ((query-result (dig-query query-string)))
                       (when query-result
                         (gnus-message 6 "(DIG): positive blackhole check `%s'"
                                       query-result)
@@ -2134,7 +2132,7 @@ See `spam-ifile-database'."
         ;; check the return now (we're back in the temp buffer)
         (goto-char (point-min))
         (if (not (eobp))
-            (setq category (buffer-substring (point) (point-at-eol))))
+            (setq category (buffer-substring (point) (line-end-position))))
         (when (not (zerop (length category))) ; we need a category here
           (if spam-ifile-all-categories
               (setq return category)
@@ -2323,7 +2321,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
       (with-temp-buffer
         (insert-file-contents file)
         (while (not (eobp))
-          (setq address (buffer-substring (point) (point-at-eol)))
+          (setq address (buffer-substring (point) (line-end-position)))
           (forward-line 1)
           ;; insert the e-mail address if detected, otherwise the raw data
           (unless (zerop (length address))

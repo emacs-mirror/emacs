@@ -141,7 +141,7 @@ For some project types, this will be the file that stores the project configurat
 In other projects types, this file is merely a unique identifier to this type of project.")
    (rootproject ; :initarg - no initarg, don't save this slot!
     :initform nil
-    :type (or null ede-project-placeholder-child)
+    :type (or null ede-project-placeholder)
     :documentation "Pointer to our root project.")
    )
   "Placeholder object for projects not loaded into memory.
@@ -171,7 +171,7 @@ For Automake based projects, each directory is treated as a project.")
 	    :label "Local Targets"
 	    :group (targets)
 	    :documentation "List of top level targets in this project.")
-   (locate-obj :type (or null ede-locate-base-child)
+   (locate-obj :type (or null ede-locate-base)
 	       :documentation
 	       "A locate object to use as a backup to `ede-expand-filename'.")
    (tool-cache :initarg :tool-cache
@@ -204,7 +204,7 @@ This is a URL to be sent to a web site for documentation.")
 		       :group name
 		       :documentation
 		       "A directory where web pages can be found by Emacs.
-For remote locations use a path compatible with ange-ftp or EFS.
+For remote locations use a path compatible with ange-ftp.
 You can also use TRAMP for use with rcp & scp.")
    (web-site-file :initarg :web-site-file
 		  :initform ""
@@ -214,7 +214,7 @@ You can also use TRAMP for use with rcp & scp.")
 		  :documentation
                   "A file which contains the website for this project.
 This file can be relative to slot `web-site-directory'.
-This can be a local file, use ange-ftp, EFS, or TRAMP.")
+This can be a local file, use ange-ftp or TRAMP.")
    (ftp-site :initarg :ftp-site
 	     :initform ""
 	     :type string

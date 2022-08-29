@@ -211,7 +211,7 @@ If you change this variable directly (without using customize)
 after starting `calendar', you should call `calendar-redraw' to
 update the calendar display to reflect the change, otherwise
 movement commands will not work correctly."
-  :type 'integer
+  :type 'natnum
   ;; Change the initialize so that if you reload calendar.el, it will not
   ;; cause a redraw.
   :initialize 'custom-initialize-default
@@ -511,7 +511,7 @@ Then redraw the calendar, if necessary."
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (calendar-set-layout-variable sym val 1))
-  :type 'integer
+  :type 'natnum
   :version "23.1")
 
 ;; FIXME calendar-month-column-width?
@@ -520,7 +520,7 @@ Then redraw the calendar, if necessary."
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (calendar-set-layout-variable sym val 3))
-  :type 'integer
+  :type 'natnum
   :version "23.1")
 
 (defun calendar-day-header-construct (&optional width)
@@ -553,7 +553,7 @@ Must be at least one less than `calendar-column-width'."
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (calendar-set-layout-variable sym val 2))
-  :type 'integer
+  :type 'natnum
   :version "23.1")
 
 (defcustom calendar-intermonth-header nil
@@ -565,7 +565,7 @@ See `calendar-intermonth-text'."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
+  :type '(choice (const :value nil :tag "Nothing")
                  (string :tag "Fixed string")
                  (sexp :value
                        (propertize "WK" 'font-lock-face
@@ -597,7 +597,7 @@ See also `calendar-intermonth-header'."
   :set (lambda (sym val)
          (set sym val)
          (calendar-redraw))
-  :type '(choice (const nil :tag "Nothing")
+  :type '(choice (const :value nil :tag "Nothing")
                  (string :tag "Fixed string")
                  (sexp :value
                        (propertize
@@ -742,9 +742,9 @@ Setting this variable directly does not take effect (if the
 calendar package is already loaded).  Rather, use either
 \\[customize] or the function `calendar-set-date-style'."
   :version "23.1"
-  :type '(choice (const american :tag "Month/Day/Year")
-                 (const european :tag "Day/Month/Year")
-                 (const iso      :tag "Year/Month/Day"))
+  :type '(choice (const :value american :tag "American (Month/Day/Year)")
+                 (const :value european :tag "European (Day/Month/Year)")
+                 (const :value iso      :tag "ISO 8601 (Year/Month/Day)"))
   :initialize 'custom-initialize-default
   :set (lambda (_symbol value)
          (calendar-set-date-style value))

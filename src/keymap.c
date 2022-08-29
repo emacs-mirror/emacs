@@ -1026,8 +1026,14 @@ DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
        doc: /* Return a copy of the keymap KEYMAP.
 
 Note that this is almost never needed.  If you want a keymap that's like
-another yet with a few changes, you should use map inheritance rather
-than copying.  I.e. something like:
+another yet with a few changes, you should use keymap inheritance rather
+than copying.  That is, something like:
+
+    (defvar-keymap foo-map
+      :parent <theirmap>
+      ...)
+
+Or, if you need to support Emacs versions older than 29:
 
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map <theirmap>)
@@ -2596,7 +2602,10 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
 
 - If DEFINITION is remapped to OTHER-COMMAND, normally return the
   bindings for OTHER-COMMAND.  But if NO-REMAP is non-nil, return the
-  bindings for DEFINITION instead, ignoring its remapping.  */)
+  bindings for DEFINITION instead, ignoring its remapping.
+
+Keys that are represented as events that have a `non-key-event' non-nil
+symbol property are ignored.  */)
   (Lisp_Object definition, Lisp_Object keymap, Lisp_Object firstonly, Lisp_Object noindirect, Lisp_Object no_remap)
 {
   /* The keymaps in which to search.  */
@@ -2720,7 +2729,12 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
 
       /* It is a true unshadowed match.  Record it, unless it's already
 	 been seen (as could happen when inheriting keymaps).  */
-      if (NILP (Fmember (sequence, found)))
+      if (NILP (Fmember (sequence, found))
+	  /* Filter out non key events.  */
+	  && !(VECTORP (sequence)
+	       && ASIZE (sequence) == 1
+	       && SYMBOLP (AREF (sequence, 0))
+	       && !NILP (Fget (AREF (sequence, 0), Qnon_key_event))))
 	found = Fcons (sequence, found);
 
       /* If firstonly is Qnon_ascii, then we can return the first
@@ -3461,4 +3475,6 @@ that describe key bindings.  That is why the default is nil.  */);
 
   DEFSYM (Qkey_parse, "key-parse");
   DEFSYM (Qkey_valid_p, "key-valid-p");
+
+  DEFSYM (Qnon_key_event, "non-key-event");
 }

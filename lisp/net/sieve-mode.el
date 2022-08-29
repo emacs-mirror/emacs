@@ -137,13 +137,11 @@
 
 ;; Key map definition
 
-(defvar sieve-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-l" #'sieve-upload)
-    (define-key map "\C-c\C-c" #'sieve-upload-and-kill)
-    (define-key map "\C-c\C-m" #'sieve-manage)
-    map)
-  "Key map used in sieve mode.")
+(defvar-keymap sieve-mode-map
+  :doc "Keymap used in sieve mode."
+  "C-c C-l" #'sieve-upload
+  "C-c C-c" #'sieve-upload-and-kill
+  "C-c RET" #'sieve-manage)
 
 ;; Menu
 

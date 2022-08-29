@@ -1711,7 +1711,7 @@ be used to fill comments.
     ;; comment.
     (when (save-excursion
             (beginning-of-line)
-            (comment-search-forward (point-at-eol) t))
+            (comment-search-forward (line-end-position) t))
       (goto-char (match-end 0)))
     (let ((ppss (syntax-ppss))
           (eol (line-end-position)))

@@ -35,6 +35,7 @@
 (require 'pp)
 (require 'tabulated-list)
 (require 'text-property-search)
+(require 'fringe) ; for builds --without-x
 (eval-when-compile (require 'cl-lib))
 
 ;;; Misc comments:
@@ -160,7 +161,7 @@ This includes the annotations column.")
 (defcustom bookmark-bmenu-file-column 30
   "Column at which to display filenames in a buffer listing bookmarks.
 You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-toggle-filenames]."
-  :type 'integer)
+  :type 'natnum)
 
 
 (defcustom bookmark-bmenu-toggle-filenames t
@@ -174,23 +175,32 @@ A non-nil value may result in truncated bookmark names."
 
 (defcustom bookmark-menu-length 70
   "Maximum length of a bookmark name displayed on a popup menu."
-  :type 'integer)
+  :type 'natnum)
 
 ;; FIXME: Is it really worth a customization option?
 (defcustom bookmark-search-delay 0.2
   "Time before `bookmark-bmenu-search' updates the display."
   :type  'number)
 
-(defcustom bookmark-set-fringe-mark t
-  "Whether to set a fringe mark at bookmarked lines."
-  :type  'boolean
-  :version "28.1")
+(define-fringe-bitmap 'bookmark-mark
+  [#b01111110
+   #b01111110
+   #b01111110
+   #b01111110
+   #b01111110
+   #b01111110
+   #b01100110
+   #b01000010])
 
-;; FIXME: No longer used.  Should be declared obsolete or removed.
-(defface bookmark-menu-heading
-  '((t (:inherit font-lock-type-face)))
-  "Face used to highlight the heading in bookmark menu buffers."
-  :version "22.1")
+(define-obsolete-variable-alias 'bookmark-set-fringe-mark
+  'bookmark-fringe-mark "29.1")
+
+(defcustom bookmark-fringe-mark 'bookmark-mark
+  "The fringe bitmap to mark bookmarked lines with.
+If nil, don't display a mark on the fringe."
+  :type '(choice (const nil) fringe-bitmap)
+  :set #'fringe-custom-set-bitmap
+  :version "29.1")
 
 (defface bookmark-face
   '((((class grayscale)
@@ -201,10 +211,10 @@ A non-nil value may result in truncated bookmark names."
      :foreground "LightGray")
     (((class color)
       (background light))
-     :background "White" :foreground "DarkOrange1")
+     :foreground "DarkOrange1" :distant-foreground "DarkOrange3")
     (((class color)
       (background dark))
-     :background "Black" :foreground "DarkOrange1"))
+     :foreground "DarkOrange1" :distant-foreground "Orange1"))
   "Face used to highlight current line."
   :version "28.1")
 
@@ -216,10 +226,10 @@ A non-nil value may result in truncated bookmark names."
 ;; Set up these bindings dumping time *only*;
 ;; if the user alters them, don't override the user when loading bookmark.el.
 
-;;;###autoload (define-key ctl-x-r-map "b" 'bookmark-jump)
-;;;###autoload (define-key ctl-x-r-map "m" 'bookmark-set)
-;;;###autoload (define-key ctl-x-r-map "M" 'bookmark-set-no-overwrite)
-;;;###autoload (define-key ctl-x-r-map "l" 'bookmark-bmenu-list)
+;;;###autoload (keymap-set ctl-x-r-map "b" #'bookmark-jump)
+;;;###autoload (keymap-set ctl-x-r-map "m" #'bookmark-set)
+;;;###autoload (keymap-set ctl-x-r-map "M" #'bookmark-set-no-overwrite)
+;;;###autoload (keymap-set ctl-x-r-map "l" #'bookmark-bmenu-list)
 
 ;;;###autoload
 (defvar-keymap bookmark-map
@@ -482,13 +492,10 @@ In other words, return all information but the name."
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
 
-(define-fringe-bitmap 'bookmark-fringe-mark
-  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
-
 (defun bookmark--set-fringe-mark ()
   "Apply a colorized overlay to the bookmarked location.
-See user option `bookmark-set-fringe-mark'."
-  (let ((bm (make-overlay (point-at-bol) (1+ (point-at-bol)))))
+See user option `bookmark-fringe-mark'."
+  (let ((bm (make-overlay (pos-bol) (1+ (pos-bol)))))
     (overlay-put bm 'category 'bookmark)
     (overlay-put bm 'evaporate t)
     (overlay-put bm 'before-string
@@ -499,7 +506,7 @@ See user option `bookmark-set-fringe-mark'."
 (defun bookmark--remove-fringe-mark (bm)
   "Remove a bookmark's colorized overlay.
 BM is a bookmark as returned from function `bookmark-get-bookmark'.
-See user option `bookmark-set-fringe'."
+See user option `bookmark-fringe-mark'."
   (let ((filename (cdr (assq 'filename bm)))
         (pos (cdr (assq 'position bm)))
         overlays found temp)
@@ -511,7 +518,7 @@ See user option `bookmark-set-fringe'."
             (setq overlays
                   (save-excursion
                     (goto-char pos)
-                    (overlays-in (point-at-bol) (1+ (point-at-bol)))))
+                    (overlays-in (pos-bol) (1+ (pos-bol)))))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -615,7 +622,7 @@ old one."
         ;; no prefix arg means just overwrite old bookmark.
         (let ((bm (bookmark-get-bookmark stripped-name)))
           ;; First clean up if previously location was fontified.
-          (when bookmark-set-fringe-mark
+          (when bookmark-fringe-mark
             (bookmark--remove-fringe-mark bm))
           ;; Modify using the new (NAME . ALIST) format.
           (setcdr bm alist))
@@ -931,7 +938,7 @@ still there, in order, if the topmost one is ever deleted."
            ;; Ask for an annotation buffer for this bookmark
            (when bookmark-use-annotations
              (bookmark-edit-annotation str))
-           (when bookmark-set-fringe-mark
+           (when bookmark-fringe-mark
              (bookmark--set-fringe-mark))))
     (setq bookmark-yank-point nil)
     (setq bookmark-current-buffer nil)))
@@ -966,7 +973,7 @@ it removes only the first instance of a bookmark with that name from
 the list of bookmarks.)"
   (interactive (list nil current-prefix-arg))
   (let ((prompt
-         (if no-overwrite "Append bookmark named" "Set bookmark named")))
+         (if no-overwrite "Add bookmark named" "Set bookmark named")))
     (bookmark-set-internal prompt name (if no-overwrite 'push 'overwrite))))
 
 ;;;###autoload
@@ -1007,7 +1014,7 @@ the list of bookmarks.)"
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (line-end-position)))
+  (let ((eol (pos-eol)))
     (delete-region (point) eol)
     (when (and newline-too (= (following-char) ?\n))
       (delete-char 1))))
@@ -1027,10 +1034,13 @@ annotations."
            bookmark-name)
 	  (format-message
            "#  All lines which start with a `#' will be deleted.\n")
-	  "#  Type C-c C-c when done.\n#\n"
+          (substitute-command-keys
+           (concat
+            "#  Type \\[bookmark-edit-annotation-confirm] when done.  Type "
+            "\\[bookmark-edit-annotation-cancel] to cancel.\n#\n"))
 	  "#  Author: " (user-full-name) " <" (user-login-name) "@"
 	  (system-name) ">\n"
-	  "#  Date:    " (current-time-string) "\n"))
+          "#  Date:   " (current-time-string) "\n"))
 
 
 (defvar bookmark-edit-annotation-text-func 'bookmark-default-annotation-text
@@ -1040,7 +1050,8 @@ It takes one argument, the name of the bookmark, as a string.")
 (defvar-keymap bookmark-edit-annotation-mode-map
   :doc "Keymap for editing an annotation of a bookmark."
   :parent text-mode-map
-  "C-c C-c" #'bookmark-send-edited-annotation)
+  "C-c C-c" #'bookmark-edit-annotation-confirm
+  "C-c C-k" #'bookmark-edit-annotation-cancel)
 
 (defun bookmark-insert-annotation (bookmark-name-or-record)
   "Insert annotation for BOOKMARK-NAME-OR-RECORD at point."
@@ -1054,12 +1065,32 @@ It takes one argument, the name of the bookmark, as a string.")
 (define-derived-mode bookmark-edit-annotation-mode
   text-mode "Edit Bookmark Annotation"
   "Mode for editing the annotation of bookmarks.
-When you have finished composing, type \\[bookmark-send-edited-annotation].
+\\<bookmark-edit-annotation-mode-map>\
+When you have finished composing, type \\[bookmark-edit-annotation-confirm] \
+or \\[bookmark-edit-annotation-cancel] to cancel.
 
 \\{bookmark-edit-annotation-mode-map}")
 
+(defmacro bookmark-edit-annotation--maybe-display-list (&rest body)
+  "Display bookmark list after editing if appropriate."
+  `(let ((from-bookmark-list bookmark--annotation-from-bookmark-list)
+         (old-buffer (current-buffer)))
+     ,@body
+     (quit-window)
+     (bookmark-bmenu-surreptitiously-rebuild-list)
+     (when from-bookmark-list
+       (pop-to-buffer (get-buffer bookmark-bmenu-buffer))
+       (goto-char (point-min))
+       (bookmark-bmenu-bookmark))
+     (kill-buffer old-buffer)))
 
-(defun bookmark-send-edited-annotation ()
+(defun bookmark-edit-annotation-cancel ()
+  "Cancel the current annotation edit."
+  (interactive nil bookmark-edit-annotation-mode)
+  (bookmark-edit-annotation--maybe-display-list
+   (message "Canceled by user")))
+
+(defun bookmark-edit-annotation-confirm ()
   "Use buffer contents as annotation for a bookmark.
 Lines beginning with `#' are ignored."
   (interactive nil bookmark-edit-annotation-mode)
@@ -1071,22 +1102,14 @@ Lines beginning with `#' are ignored."
         (bookmark-kill-line t)
       (forward-line 1)))
   ;; Take no chances with text properties.
-  (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
-        (bookmark-name bookmark-annotation-name)
-        (from-bookmark-list bookmark--annotation-from-bookmark-list)
-        (old-buffer (current-buffer)))
-    (bookmark-set-annotation bookmark-name annotation)
-    (bookmark-update-last-modified bookmark-name)
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (message "Annotation updated for \"%s\"" bookmark-name)
-    (quit-window)
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    (when from-bookmark-list
-      (pop-to-buffer (get-buffer bookmark-bmenu-buffer))
-      (goto-char (point-min))
-      (bookmark-bmenu-bookmark))
-    (kill-buffer old-buffer)))
+  (bookmark-edit-annotation--maybe-display-list
+   (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
+         (bookmark-name bookmark-annotation-name))
+     (bookmark-set-annotation bookmark-name annotation)
+     (bookmark-update-last-modified bookmark-name)
+     (setq bookmark-alist-modification-count
+           (1+ bookmark-alist-modification-count))
+     (message "Annotation updated for \"%s\"" bookmark-name))))
 
 
 (defun bookmark-edit-annotation (bookmark-name-or-record &optional from-bookmark-list)
@@ -1094,8 +1117,8 @@ Lines beginning with `#' are ignored."
 If optional argument FROM-BOOKMARK-LIST is non-nil, return to the
 bookmark list when editing is done."
   (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-  (bookmark-insert-annotation bookmark-name-or-record)
   (bookmark-edit-annotation-mode)
+  (bookmark-insert-annotation bookmark-name-or-record)
   (setq bookmark--annotation-from-bookmark-list from-bookmark-list)
   (setq bookmark-annotation-name bookmark-name-or-record))
 
@@ -1156,7 +1179,7 @@ it to the name of the bookmark currently being set, advancing
 (defun bookmark--watch-file-already-queried-p (new-mtime)
   ;; Don't ask repeatedly if user already said "no" to reloading a
   ;; file with this mtime:
-  (prog1 (equal new-mtime bookmark--watch-already-asked-mtime)
+  (prog1 (time-equal-p new-mtime bookmark--watch-already-asked-mtime)
     (setq bookmark--watch-already-asked-mtime new-mtime)))
 
 (defun bookmark-maybe-load-default-file ()
@@ -1169,7 +1192,7 @@ it to the name of the bookmark currently being set, advancing
               (let ((new-mtime (nth 5 (file-attributes
                                        (car bookmark-bookmarks-timestamp))))
                     (old-mtime (cdr bookmark-bookmarks-timestamp)))
-                (and (not (equal new-mtime old-mtime))
+		(and (not (time-equal-p new-mtime old-mtime))
                      (not (bookmark--watch-file-already-queried-p new-mtime))
                      (or (eq 'silent bookmark-watch-bookmark-file)
                          (yes-or-no-p
@@ -1197,8 +1220,8 @@ and then show any annotations for this bookmark."
     (if win (set-window-point win (point))))
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
-  (when bookmark-set-fringe-mark
-    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
+  (when bookmark-fringe-mark
+    (let ((overlays (overlays-in (pos-bol) (1+ (pos-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))
@@ -1420,9 +1443,9 @@ name."
              (read-from-minibuffer
               "New name: "
               nil
-              (let ((now-map (copy-keymap minibuffer-local-map)))
-                (define-key now-map "\C-w" 'bookmark-yank-word)
-                now-map)
+              (define-keymap
+                :parent minibuffer-local-map
+                "C-w" #'bookmark-yank-word)
               nil
               'bookmark-history))))
     (bookmark-set-name old-name final-new-name)
@@ -2554,6 +2577,12 @@ This also runs `bookmark-exit-hook'."
 
 
 (run-hooks 'bookmark-load-hook)
+
+
+;;; Obsolete:
+
+(define-obsolete-function-alias 'bookmark-send-edited-annotation
+  #'bookmark-edit-annotation-confirm "29.1")
 
 (provide 'bookmark)
 

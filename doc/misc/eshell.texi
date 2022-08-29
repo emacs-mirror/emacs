@@ -201,7 +201,7 @@ history and invoking commands in a script file.
 * Aliases::
 * History::
 * Completion::
-* for loop::
+* Control Flow::
 * Scripts::
 @end menu
 
@@ -219,12 +219,18 @@ same name; if there is no match, it then tries to execute it as an
 external command.
 
 The semicolon (@code{;}) can be used to separate multiple command
-invocations on a single line.  A command invocation followed by an
-ampersand (@code{&}) will be run in the background.  Eshell has no job
-control, so you can not suspend or background the current process, or
-bring a background process into the foreground.  That said, background
-processes invoked from Eshell can be controlled the same way as any
-other background process in Emacs.
+invocations on a single line.  You can also separate commands with
+@code{&&} or @code{||}. When using @code{&&}, Eshell will execute the
+second command only if the first succeeds (i.e.@: has an exit
+status of 0); with @code{||}, Eshell will execute the second command
+only if the first fails.
+
+A command invocation followed by an ampersand (@code{&}) will be run
+in the background.  Eshell has no job control, so you can not suspend
+or background the current process, or bring a background process into
+the foreground.  That said, background processes invoked from Eshell
+can be controlled the same way as any other background process in
+Emacs.
 
 @node Arguments
 @section Arguments
@@ -354,11 +360,11 @@ Giving the command @kbd{cd -} changes back to the previous working
 directory (this is the same as @kbd{cd $-}).
 
 @item
-The command @kbd{cd =} shows the directory stack.  Each line is
+The command @kbd{cd =} shows the directory ring.  Each line is
 numbered.
 
 @item
-With @kbd{cd =foo}, Eshell searches the directory stack for a directory
+With @kbd{cd =foo}, Eshell searches the directory ring for a directory
 matching the regular expression @samp{foo}, and changes to that
 directory.
 
@@ -845,45 +851,76 @@ For example, you could handle a subset of the options for the
 
 @end defmac
 
+@node Variables
+@section Variables
+Since Eshell is just an Emacs @acronym{REPL}@footnote{
+Short for ``Read-Eval-Print Loop''.
+}
+, it does not have its own scope, and simply stores variables the same
+you would in an Elisp program.  Eshell provides a command version of
+@code{setq} for convenience.
+
 @subsection Built-in variables
 Eshell knows a few built-in variables:
 
 @table @code
 
-@item $+
+@vindex $PWD
 @vindex $+
+@item $PWD
+@itemx $+
 This variable always contains the current working directory.
 
-@item $-
+@vindex $OLDPWD
 @vindex $-
+@item $OLDPWD
+@itemx $-
 This variable always contains the previous working directory (the
 current working directory from before the last @code{cd} command).
+When using @code{$-}, you can also access older directories in the
+directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
+working directory @emph{before} the previous one.
 
-@item $_
 @vindex $_
-It refers to the last argument of the last command.
+@item $_
+This refers to the last argument of the last command.  With a
+subscript, you can access any argument of the last command.  For
+example, @samp{$_[1]} refers to the second argument of the last
+command (excluding the command name itself).
 
-@item $$
 @vindex $$
-This is the result of the last command.  In case of an external
-command, it is @code{t} or @code{nil}.
+@item $$
+This is the result of the last command.  For external commands, it is
+@code{t} if the exit code was 0 or @code{nil} otherwise.
 
-@item $?
+@vindex eshell-lisp-form-nil-is-failure
 @vindex $?
-This variable contains the exit code of the last command (0 or 1 for
-Lisp functions, based on successful completion).
+@item $?
+This variable contains the exit code of the last command.  If the last
+command was a Lisp function, it is 0 for successful completion or 1
+otherwise.  If @code{eshell-lisp-form-nil-is-failure} is
+non-@code{nil}, then a command with a Lisp form, like
+@samp{(@var{command} @var{args}@dots{})}, that returns @code{nil} will
+set this variable to 2.
+
+@vindex $COLUMNS
+@vindex $LINES
+@item $COLUMNS
+@itemx $LINES
+These variables tell the number of columns and lines, respectively,
+that are currently visible in the Eshell window.  They are both
+copied to the environment, so external commands invoked from
+Eshell can consult them to do the right thing.
+
+@item $INSIDE_EMACS
+This variable indicates to external commands that they are being
+invoked from within Emacs so they can adjust their behavior if
+necessary.  Its value is @code{@var{emacs-version},eshell}.
 
 @end table
 
 @xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
 @samp{$2}, @dots{}, in alias definitions.
-
-@node Variables
-@section Variables
-Since Eshell is just an Emacs REPL@footnote{Read-Eval-Print Loop}, it
-does not have its own scope, and simply stores variables the same you
-would in an Elisp program.  Eshell provides a command version of
-@code{setq} for convenience.
 
 @node Aliases
 @section Aliases
@@ -981,19 +1018,46 @@ command for which this function provides completions; you can also name
 the function @code{pcomplete/MAJOR-MODE/COMMAND} to define completions
 for a specific major mode.
 
-@node for loop
-@section @code{for} loop
+@node Control Flow
+@section Control Flow
 Because Eshell commands can not (easily) be combined with lisp forms,
-Eshell provides a command-oriented @command{for}-loop for convenience.
-The syntax is as follows:
+Eshell provides command-oriented control flow statements for
+convenience.
 
-@example
-@code{for VAR in TOKENS @{ command invocation(s) @}}
-@end example
+Most of Eshell's control flow statements accept a @var{conditional}.
+This can take a few different forms.  If @var{conditional} is a dollar
+expansion, the condition is satisfied if the result is a
+non-@code{nil} value.  If @var{conditional} is a @samp{@{
+@var{subcommand} @}} or @samp{(@var{lisp form})}, the condition is
+satisfied if the command's exit status is 0.
 
-where @samp{TOKENS} is a space-separated sequence of values of
-@var{VAR} for each iteration.  This can even be the output of a
-command if @samp{TOKENS} is replaced with @samp{@{ command invocation @}}.
+@table @code
+
+@item if @var{conditional} @{ @var{true-commands} @}
+@itemx if @var{conditional} @{ @var{true-commands} @} @{ @var{false-commands} @}
+Evaluate @var{true-commands} if @var{conditional} is satisfied;
+otherwise, evaluate @var{false-commands}.
+
+@item unless @var{conditional} @{ @var{false-commands} @}
+@itemx unless @var{conditional} @{ @var{false-commands} @} @{ @var{true-commands} @}
+Evaluate @var{false-commands} if @var{conditional} is not satisfied;
+otherwise, evaluate @var{true-commands}.
+
+@item while @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} so long as @var{conditional} is
+satisfied.
+
+@item until @var{conditional} @{ @var{commands} @}
+Repeatedly evaluate @var{commands} until @var{conditional} is
+satisfied.
+
+@item for @var{var} in @var{list}@dots{} @{ @var{commands} @}
+Iterate over each element of of @var{list}, storing the element in
+@var{var} and evaluating @var{commands}.  If @var{list} is not a list,
+treat it as a list of one element.  If you specify multiple
+@var{lists}, this will iterate over each of them in turn.
+
+@end table
 
 @node Scripts
 @section Scripts
@@ -1045,7 +1109,7 @@ back to a number as above).  For example, @samp{$list("a" "b")c}
 returns @samp{("a" "bc")}.
 
 @item anything else
-Concatenate the string represenation of each value.
+Concatenate the string representation of each value.
 
 @end table
 
@@ -1570,7 +1634,7 @@ integration: using the remote shell's pipelining avoids copying the
 data which will flow through the pipeline to local Emacs buffers and
 then right back again.
 
-Eshell recognises a special syntax to make it easier to convert
+Eshell recognizes a special syntax to make it easier to convert
 pipelines so as to bypass Eshell's pipelining.  Prefixing at least one
 @code{|}, @code{<} or @code{>} with an asterisk marks a command as
 intended for the operating system shell.  To make it harder to invoke
@@ -1588,7 +1652,7 @@ nor the decoded data, into Emacs buffers, as would normally happen.
 The command is interpreted as extending up to the next @code{|}
 character which is not preceded by an unescaped asterisk following
 whitespace, or the end of the input if there is no such character.
-Thus, all @code{<} and @code{>} redirections occuring before the next
+Thus, all @code{<} and @code{>} redirections occurring before the next
 asterisk-unprefixed @code{|} are implicitly prefixed with (whitespace
 and) asterisks.  An exception is that Eshell-specific redirects right
 at the end of the command are excluded.  This allows input like this:
@@ -1784,11 +1848,6 @@ scrolls back.
 
 @item Menu support was removed, but never put back
 
-@item Using C-p and C-n with rebind gets into a locked state
-
-This happened a few times in Emacs 21, but has been irreproducible
-since.
-
 @item If an interactive process is currently running, @kbd{M-!} doesn't work
 
 @item Use a timer instead of @code{sleep-for} when killing child processes
@@ -1901,11 +1960,6 @@ glob match.
 @item A comma in a predicate list should mean OR
 
 At the moment, this is not supported.
-
-@item Error if a glob doesn't expand due to a predicate
-
-An error should be generated only if @code{eshell-error-if-no-glob} is
-non-@code{nil}.
 
 @item @samp{(+ @key{RET} @key{SPC} @key{TAB}} does not cause @code{indent-according-to-mode} to occur
 
@@ -2082,11 +2136,10 @@ it).
 
 @item Make the shell spawning commands be visual
 
-That is, make (@command{su}, @command{bash}, @command{telnet},
-@command{rlogin}, @command{rsh}, etc.)@: be part of
-@code{eshell-visual-commands}.  The only exception is if the shell is
-being used to invoke a single command.  Then, the behavior should be
-based on what that command is.
+That is, make (@command{su}, @command{bash}, @command{ssh}, etc.)@: be
+part of @code{eshell-visual-commands}.  The only exception is if the
+shell is being used to invoke a single command.  Then, the behavior
+should be based on what that command is.
 
 @item Create a smart viewing command named @command{open}
 

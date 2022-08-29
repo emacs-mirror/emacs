@@ -81,7 +81,7 @@ selection process starts again from the user's $HOME.")
 This means to show completions even when the current minibuffer contents
 is the same as was the initial input after minibuffer activation.
 This also means that if you traverse the list of completions with
-commands like `C-.' and just hit RET without typing any
+commands like \\`C-.' and just hit \\`RET' without typing any
 characters, the match under point will be chosen instead of the
 default."
   :type 'boolean
@@ -370,7 +370,7 @@ require user confirmation."
 (defun icomplete-fido-exit (force)
   "Attempt to exit minibuffer immediately with current input.
 Unless FORCE is non-nil (interactively with a prefix argument),
-honour a non-nil REQUIRE-MATCH argument to `completing-read' by
+honor a non-nil REQUIRE-MATCH argument to `completing-read' by
 trying to complete as much as possible and disallowing the exit
 if that doesn't produce a completion match."
   (interactive "P")
@@ -595,7 +595,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                           ;; select it -- again, as desired.
                           ;;
                           ;; FIXME: it's arguable that this second
-                          ;; behaviour should be a property of the
+                          ;; behavior should be a property of the
                           ;; completion table and not the completion
                           ;; frontend such as we have done
                           ;; here. However, it seems generically
@@ -840,13 +840,13 @@ by `group-function''s second \"transformation\" protocol."
                                           while (listp r)
                                           count 1))
            repeat total-space
-           for neighbour = nil
+           for neighbor = nil
            if (and preds (> space-above 0)) do
-           (push (setq neighbour (pop preds)) scroll-above)
+           (push (setq neighbor (pop preds)) scroll-above)
            (cl-decf space-above)
            else if (consp succs) collect
-           (setq neighbour (pop succs)) into scroll-below-aux
-           while neighbour
+           (setq neighbor (pop succs)) into scroll-below-aux
+           while neighbor
            finally (setq scroll-below scroll-below-aux))
   ;; Halfway there...
   (let* ((selected (propertize (car comps) 'icomplete-selected t))

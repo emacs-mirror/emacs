@@ -327,7 +327,7 @@ Example of a loop summing a list of numbers:
 
 @anchor{Tail recursion}
 Recursive calls to @var{name} that occur in @emph{tail
-positions} in @var{body} are guaranteed to be optimised as @emph{tail
+positions} in @var{body} are guaranteed to be optimized as @emph{tail
 calls}, which means that they will not consume any additional stack
 space no matter how deeply the recursion runs.  Such recursive calls
 will effectively jump to the top of the loop with new values for the
@@ -1363,7 +1363,7 @@ disappear without prior notice.
 
 The byte-compiler can also warn about lexical variables that are
 special in other Emacs Lisp files, often indicating a missing
-@code{defvar} declaration.  This useful but somewhat specialised check
+@code{defvar} declaration.  This useful but somewhat specialized check
 requires three steps:
 
 @enumerate
@@ -2679,17 +2679,46 @@ cdar      nthcdr
 A call to any of the following Emacs-specific functions:
 
 @smallexample
-alist-get                     process-get
-frame-parameter               process-sentinel
-terminal-parameter            window-buffer
-keymap-parent                 window-display-table
-match-data                    window-dedicated-p
-overlay-get                   window-hscroll
-overlay-start                 window-parameter
-overlay-end                   window-point
-process-buffer                window-start
-process-filter                default-value
+alist-get                     overlay-start
+default-value                 overlay-get
+face-background               process-buffer
+face-font                     process-filter
+face-foreground               process-get
+face-stipple                  process-sentinel
+face-underline-p              terminal-parameter
+file-modes                    window-buffer
+frame-parameter               window-dedicated-p
+frame-parameters              window-display-table
+get-register                  window-hscroll
+getenv                        window-parameter
+keymap-parent                 window-point
+match-data                    window-start
+overlay-end
 @end smallexample
+
+@item
+A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
+where @var{subplace} is itself a valid generalized variable whose
+current value is a string, and where the value stored is also a
+string.  The new string is spliced into the specified part of the
+destination string.  For example:
+
+@example
+(setq a (list "hello" "world"))
+     @result{} ("hello" "world")
+(cadr a)
+     @result{} "world"
+(substring (cadr a) 2 4)
+     @result{} "rl"
+(setf (substring (cadr a) 2 4) "o")
+     @result{} "o"
+(cadr a)
+     @result{} "wood"
+a
+     @result{} ("hello" "wood")
+@end example
+
+@c FIXME?  Also 'eq'? (see gv.el)
 @end itemize
 
 @noindent
@@ -2822,6 +2851,16 @@ expression manipulating @var{place} via @var{getter} and @var{setter}.
 
 Consult the source file @file{gv.el} for more details.
 
+@defun make-obsolete-generalized-variable obsolete-name current-name when
+This function makes the byte compiler warn that the generalized
+variable @var{obsolete-name} is obsolete.  If @var{current-name} is a
+symbol, then the warning message says to use @var{current-name}
+instead of @var{obsolete-name}.  If @var{current-name} is a string,
+this is the message.  @var{when} should be a string indicating when
+the variable was first made obsolete (usually a version number
+string).
+@end defun
+
 @cindex CL note---no @code{setf} functions
 @quotation
 @b{Common Lisp note:} Common Lisp defines another way to specify the
@@ -2843,7 +2882,7 @@ Common Lisp, this is not an error since the function @code{(setf
 it, that value won't be automatically restored.  Users usually set
 normal variables in their startup files, or use Customize
 (@pxref{Customization}) to set user options permanently, and various
-packages have various files wher they store the data (e.g., Gnus
+packages have various files where they store the data (e.g., Gnus
 stores this in @file{.newsrc.eld} and the URL library stores cookies
 in @file{~/.emacs.d/url/cookies}).
 

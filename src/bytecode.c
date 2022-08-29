@@ -176,8 +176,8 @@ DEFINE (Bmin, 0136)							\
 DEFINE (Bmult, 0137)							\
 									\
 DEFINE (Bpoint, 0140)							\
-/* Was Bmark in v17.  */						\
-DEFINE (Bsave_current_buffer, 0141) /* Obsolete.  */			\
+/* 0141 was Bmark in v17, Bsave_current_buffer in 18-19.  */		\
+DEFINE (Bsave_current_buffer_OBSOLETE, 0141)  /* Obsolete since 20. */	\
 DEFINE (Bgoto_char, 0142)						\
 DEFINE (Binsert, 0143)							\
 DEFINE (Bpoint_max, 0144)						\
@@ -194,7 +194,7 @@ DEFINE (Bbolp, 0156)							\
 DEFINE (Bbobp, 0157)							\
 DEFINE (Bcurrent_buffer, 0160)						\
 DEFINE (Bset_buffer, 0161)						\
-DEFINE (Bsave_current_buffer_1, 0162) /* Replacing Bsave_current_buffer.  */ \
+DEFINE (Bsave_current_buffer, 0162)					\
 /* 0163 was Bset_mark in v17.  */                                       \
 DEFINE (Binteractive_p, 0164) /* Obsolete since Emacs-24.1.  */		\
 									\
@@ -924,8 +924,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  record_unwind_protect_excursion ();
 	  NEXT;
 
-	CASE (Bsave_current_buffer): /* Obsolete since ??.  */
-	CASE (Bsave_current_buffer_1):
+	CASE (Bsave_current_buffer_OBSOLETE): /* Obsolete since 20.  */
+	CASE (Bsave_current_buffer):
 	  record_unwind_current_buffer ();
 	  NEXT;
 
@@ -1678,6 +1678,12 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
             /* TODO: Perhaps introduce another byte-code for switch when the
 	       number of cases is less, which uses a simple vector for linear
 	       search as the jump table.  */
+
+	    /* TODO: Instead of pushing the table in a separate
+	       Bconstant op, use an immediate argument (maybe separate
+	       switch opcodes for 1-byte and 2-byte constant indices).
+	       This would also get rid of some hacks that assume each
+	       Bswitch to be preceded by a Bconstant.  */
             Lisp_Object jmp_table = POP;
 	    if (BYTE_CODE_SAFE && !HASH_TABLE_P (jmp_table))
               emacs_abort ();

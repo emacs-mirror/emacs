@@ -55,18 +55,24 @@
     (should (equal (help-split-fundoc nil t 'usage)  nil))
     (should (equal (help-split-fundoc nil t 'doc)    nil))))
 
+(ert-deftest help--key-description-fontified ()
+  (should (equal (help--key-description-fontified
+                  (where-is-internal #'next-line nil t))
+                 "C-n"))
+  (should-not (help--key-description-fontified nil)))
+
 
 ;;; substitute-command-keys
 
 (defmacro with-substitute-command-keys-test (&rest body)
   `(cl-flet* ((test
-               (lambda (orig result)
-                 (should (equal (substitute-command-keys orig)
-                                result))))
+                (lambda (orig result)
+                  (should (equal (substitute-command-keys orig)
+                                 result))))
               (test-re
-               (lambda (orig regexp)
-                 (should (string-match (concat "\\`" regexp "\\'")
-                                       (substitute-command-keys orig))))))
+                (lambda (orig regexp)
+                  (should (string-match (concat "\\`" regexp "\\'")
+                                        (substitute-command-keys orig))))))
      ,@body))
 
 (ert-deftest help-tests-substitute-command-keys/no-change ()
@@ -93,18 +99,30 @@
   (with-substitute-command-keys-test
    (test "\\`C-m'" "C-m")
    (test "\\`C-m'\\`C-j'" "C-mC-j")
-   (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")))
+   (test "foo\\`C-m'bar\\`C-j'baz" "fooC-mbarC-jbaz")
+   (test "\\`M-x next-line'" "M-x next-line")
+   (test "\\`mouse-1'" "mouse-1")))
 
-(ert-deftest help-tests-substitute-command-keys/literal-key-sequence-errors ()
-  (should-error (substitute-command-keys "\\`'"))
-  (should-error (substitute-command-keys "\\`c-c'"))
-  (should-error (substitute-command-keys "\\`<foo bar baz>'")))
+(ert-deftest help-tests-substitute-command-keys/literal-key-sequence-ignore-invalid ()
+  "Ignore any invalid literal key sequence."
+  (with-substitute-command-keys-test
+   (test-re "ab\\`'cd" "ab\\\\[`'‘]['’]cd")
+   (test-re "\\`c-c'" "\\\\[`'‘]c-c['’]")
+   (test-re "\\`<foo bar baz>'" "\\\\[`'‘]<foo bar baz>['’]")))
 
-(ert-deftest help-tests-substitute-key-bindings/face-help-key-binding ()
-  (should (eq (get-text-property 0 'face (substitute-command-keys "\\[next-line]"))
-              'help-key-binding))
-  (should (eq (get-text-property 0 'face (substitute-command-keys "\\`f'"))
-              'help-key-binding)))
+(ert-deftest help-tests-substitute-key-bindings/help-key-binding-face ()
+  (let ((A (substitute-command-keys "\\[next-line]"))
+        (B (substitute-command-keys "\\`f'")))
+    (should (eq (get-text-property 0 'face A) 'help-key-binding))
+    (should (eq (get-text-property 0 'face B) 'help-key-binding))))
+
+(ert-deftest help-tests-substitute-key-bindings/help-key-binding-no-face ()
+  (let ((A (substitute-command-keys "\\[next-line]" t))
+        (B (substitute-command-keys "\\`f'" t)))
+    (should (eq (get-text-property 0 'face A) nil))
+    (should (eq (get-text-property 0 'face B) nil))
+    (should (equal A "C-n"))
+    (should (equal B "f"))))
 
 (defvar-keymap help-tests--test-keymap
   :doc "Just some keymap for testing."

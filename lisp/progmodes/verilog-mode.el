@@ -1824,7 +1824,7 @@ If set will become buffer local.")
 ;;
 
 (defsubst verilog-within-string ()
-  (nth 3 (parse-partial-sexp (point-at-bol) (point))))
+  (nth 3 (parse-partial-sexp (line-beginning-position) (point))))
 
 (defsubst verilog-string-match-fold (regexp string &optional start)
   "Like `string-match', but use `verilog-case-fold'.
@@ -1927,7 +1927,7 @@ This speeds up complicated regexp matches."
 		(search-forward substr bound noerror))
       (save-excursion
 	(beginning-of-line)
-	(setq done (re-search-forward regexp (point-at-eol) noerror)))
+        (setq done (re-search-forward regexp (line-end-position) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -1947,7 +1947,7 @@ This speeds up complicated regexp matches."
 		(search-backward substr bound noerror))
       (save-excursion
 	(end-of-line)
-	(setq done (re-search-backward regexp (point-at-bol) noerror)))
+        (setq done (re-search-backward regexp (line-beginning-position) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -4908,7 +4908,7 @@ primitive or interface named NAME."
        (or  kill-existing-comment
 	    (not (save-excursion
 		   (end-of-line)
-		   (search-backward "//" (point-at-bol) t)))))
+                   (search-backward "//" (line-beginning-position) t)))))
       (let ((nest 1) b e
 	    m
 	    (else (if (match-end 2) "!" " ")))
@@ -4961,7 +4961,7 @@ primitive or interface named NAME."
 	   (or kill-existing-comment
 	       (not (save-excursion
 		      (end-of-line)
-		      (search-backward "//" (point-at-bol) t)))))
+                      (search-backward "//" (line-beginning-position) t)))))
       (let ((type (car indent-str)))
 	(unless (eq type 'declaration)
           (unless (looking-at (concat "\\(" verilog-end-block-ordered-re "\\)[ \t]*:"))  ; ignore named ends
@@ -5458,9 +5458,11 @@ For example:
 becomes:
         // surefire lint_line_off UDDONX"
   (interactive)
-  (let ((buff (if (boundp 'next-error-last-buffer)
+  (let ((buff (if (boundp 'next-error-last-buffer) ;Added to Emacs-22.1
                   next-error-last-buffer
-                compilation-last-buffer)))
+                (verilog--suppressed-warnings
+                    ((obsolete compilation-last-buffer))
+                  compilation-last-buffer))))
     (when (buffer-live-p buff)
       (save-excursion
         (switch-to-buffer buff)
@@ -5501,7 +5503,7 @@ becomes:
                 (cond
                  ((looking-at "// surefire lint_off_line ")
                   (goto-char (match-end 0))
-                  (let ((lim (point-at-eol)))
+                  (let ((lim (line-end-position)))
                     (if (re-search-forward code lim 'move)
                         (throw 'already t)
                       (insert (concat " " code)))))
@@ -9956,7 +9958,7 @@ Use DEFAULT-DIR to anchor paths if non-nil."
 	       (verilog-point-text) filename))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq line (buffer-substring (point) (point-at-eol)))
+        (setq line (buffer-substring (point) (line-end-position)))
 	(forward-line 1)
 	(when (string-match "//" line)
 	  (setq line (substring line 0 (match-beginning 0))))
@@ -10878,10 +10880,10 @@ This repairs those mis-inserted by an AUTOARG."
             (setq out (replace-match
                        (concat (match-string 1 out)
                                (if (equal (match-string 3 out) ">>")
-                                   (int-to-string (lsh (string-to-number (match-string 2 out))
+                                   (int-to-string (ash (string-to-number (match-string 2 out))
                                                        (* -1 (string-to-number (match-string 4 out))))))
                                (if (equal (match-string 3 out) "<<")
-                                   (int-to-string (lsh (string-to-number (match-string 2 out))
+                                   (int-to-string (ash (string-to-number (match-string 2 out))
                                                        (string-to-number (match-string 4 out)))))
                                (if (equal (match-string 3 out) ">>>")
                                    (int-to-string (ash (string-to-number (match-string 2 out))
@@ -14756,7 +14758,7 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 	 (verilog-save-scan-cache
 	  (let (end-point)
 	    (goto-char end)
-	    (setq end-point (point-at-eol))
+            (setq end-point (line-end-position))
 	    (goto-char beg)
 	    (beginning-of-line)  ; scan entire line
 	    ;; delete overlays existing on this line

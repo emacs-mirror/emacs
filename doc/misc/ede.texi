@@ -1551,14 +1551,14 @@ This is a URL to be sent to a web site for documentation.
 @item :web-site-directory @*
 
 A directory where web pages can be found by Emacs.
-For remote locations use a path compatible with ange-ftp or EFS@.
+For remote locations use a path compatible with ange-ftp.
 You can also use TRAMP for use with rcp & scp.
 
 @item :web-site-file @*
 
 A file which contains the website for this project.
 This file can be relative to slot @code{web-site-directory}.
-This can be a local file, use ange-ftp, EFS, or TRAMP.
+This can be a local file, use ange-ftp or TRAMP.
 
 @item :ftp-site
 Type: @code{string} @*

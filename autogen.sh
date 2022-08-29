@@ -35,7 +35,7 @@
 progs="autoconf"
 
 ## Minimum versions we need:
-autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\[\([0-9\.]*\)]).*/\1/p' configure.ac`
 
 
 ## $1 = program, eg "autoconf".

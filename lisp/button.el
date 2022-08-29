@@ -623,12 +623,15 @@ itself will be used instead as the function argument.
 If HELP-ECHO, use that as the `help-echo' property.
 
 Also see `buttonize-region'."
-  (apply #'propertize string
-         (button--properties callback data help-echo)))
+  (let ((string
+         (apply #'propertize string
+                (button--properties callback data help-echo))))
+    ;; Add the face to the end so that it can be overridden.
+    (add-face-text-property 0 (length string) 'button t string)
+    string))
 
 (defun button--properties (callback data help-echo)
-  (list 'face 'button
-        'font-lock-face 'button
+  (list 'font-lock-face 'button
         'mouse-face 'highlight
         'help-echo help-echo
         'button t
@@ -647,7 +650,8 @@ itself will be used instead as the function argument.
 If HELP-ECHO, use that as the `help-echo' property.
 
 Also see `buttonize'."
-  (add-text-properties start end (button--properties callback data help-echo)))
+  (add-text-properties start end (button--properties callback data help-echo))
+  (add-face-text-property start end 'button t))
 
 (provide 'button)
 

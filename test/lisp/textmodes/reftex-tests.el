@@ -190,8 +190,8 @@
 
 (ert-deftest reftex-format-citation-test ()
   "Test `reftex-format-citation'."
-  (let ((entry (reftex-parse-bibtex-entry
-"@article{Foo13,
+  (let ((entry (reftex-parse-bibtex-entry "\
+@article{Foo13,
   author =    {Jane Roe and John Doe and Jane Q. Taxpayer},
   title =        {Some Article},
   journal =    {Some Journal},
@@ -202,6 +202,137 @@
     (should (string= (reftex-format-citation entry "%l:%A:%y:%t %j %P %a")
                      "Foo13:Jane Roe:2013:Some Article Some Journal 1 Jane Roe, John Doe \\& Jane Taxpayer"))))
 
+(ert-deftest reftex-all-used-citation-keys ()
+  "Test `reftex-all-used-citation-keys'.
+Take the cite macros provided by biblatex package as reference."
+  (ert-with-temp-directory temp-dir
+    (let ((tex-file (expand-file-name "keys.tex" temp-dir))
+          keys)
+      (with-temp-buffer
+        (insert "\
+\\documentclass{article}
+\\usepackage{biblatex}
+\\begin{document}
+
+Standard commands:
+\\cite[pre][pos]{cite:2022}
+\\Cite[pos]{Cite:2022}
+\\parencite{parencite:2022}
+\\Parencite[pre][]{Parencite:2022}
+\\footcite[][]{footcite:2022}
+\\footcitetext[pre][pos]{footcitetext:2022}
+
+Style specific commands:
+\\textcite{textcite:2022}
+\\Textcite[pos]{Textcite:2022}
+\\smartcite[pre][pos]{smartcite:2022}
+\\Smartcite[pre][]{Smartcite:2022}
+\\cite*[pre][pos]{cite*:2022}
+\\parencite*[][]{parencite*:2022}
+
+Style independent commands:
+\\autocite[pre][pos]{autocite:2022}
+\\autocite*[pos]{autocite*:2022}
+\\Autocite[pre][]{Autocite:2022}
+\\Autocite*{Autocite*:2022}
+
+Text commands:
+\\citeauthor[pre][pos]{citeauthor:2022}
+\\citeauthor*[pre][]{citeauthor*:2022}
+\\Citeauthor[pos]{Citeauthor:2022}
+\\Citeauthor*{Citeauthor*:2022}
+\\citetitle[][]{citetitle:2022}
+\\citetitle*[pre][pos]{citetitle*:2022}
+\\citeyear[pre][pos]{citeyear:2022}
+\\citeyear*[pre][pos]{citeyear*:2022}
+\\citedate[pre][pos]{citedate:2022}
+\\citedate*[pre][pos]{citedate*:2022}
+\\citeurl[pre][pos]{citeurl:2022}
+
+Special commands:
+\\nocite{nocite:2022}
+\\fullcite[pos]{fullcite:2022}
+\\footfullcite[][]{fullfootcite:2022}
+``volcite'' macros have different number of args.
+\\volcite{2}{volcite:2022}
+\\Volcite[pre]{1}{Volcite:2022}
+\\pvolcite{1}[pg]{pvolcite:2022}
+\\Pvolcite[pre]{2}[pg]{Pvolcite:2022}
+\\fvolcite[pre]{3}[pg]{fvolcite:2022}
+\\ftvolcite[pre]{3}[pg]{ftvolcite:2022}
+\\svolcite[pre]{2}[pg]{svolcite:2022}
+\\Svolcite[pre]{4}[pg]{Svolcite:2022}
+\\tvolcite[pre]{5}[pg]{tvolcite:2022}
+\\Tvolcite[pre]{2}[pg]{Tvolcite:2022}
+\\avolcite[pre]{3}[pg]{avolcite:2022}
+\\Avolcite[pre]{1}[pg]{Avolcite:2022}
+\\Notecite[pre]{Notecite:2022}
+\\pnotecite[pre]{pnotecite:2022}
+\\Pnotecite[pre]{Pnotecite:2022}
+\\fnotecite[pre]{fnotecite:2022}
+
+Natbib compatibility commands:
+\\citet{citet:2022}
+\\citet*[pre][pos]{citet*:2022}
+\\citep[pre][pos]{citep:2022}
+\\citep*[pos]{citep*:2022}
+\\citealt[pre][]{citealt:2022}
+\\citealt*[][]{citealt*:2022}
+\\citealp[pre][pos]{citealp:2022}
+\\citealp*{citealp*:2022}
+\\Citet[pre][pos]{Citet:2022}
+\\Citet*[pre][pos]{Citet*:2022}
+\\Citep[pre][pos]{Citep:2022}
+\\Citep*[pre][pos]{Citep*:2022}
+
+Test for bug#56655:
+There was a few \\% of increase in budget \\Citep*{bug:56655}.
+
+And this should be % \\cite{ignored}.
+\\end{document}")
+        (write-region (point-min) (point-max) tex-file))
+      (find-file tex-file)
+      (setq keys (reftex-all-used-citation-keys))
+      (should (equal (sort keys #'string<)
+                     (sort '(;; Standard commands:
+                             "cite:2022"      "Cite:2022"
+                             "parencite:2022" "Parencite:2022"
+                             "footcite:2022"  "footcitetext:2022"
+                             ;; Style specific commands:
+                             "textcite:2022"  "Textcite:2022"
+                             "smartcite:2022" "Smartcite:2022"
+                             "cite*:2022" "parencite*:2022"
+                             ;; Style independent commands:
+                             "autocite:2022"  "autocite*:2022"
+                             "Autocite:2022"  "Autocite*:2022"
+                             ;; Text commands
+                             "citeauthor:2022" "citeauthor*:2022"
+                             "Citeauthor:2022" "Citeauthor*:2022"
+                             "citetitle:2022"  "citetitle*:2022"
+                             "citeyear:2022"   "citeyear*:2022"
+                             "citedate:2022"   "citedate*:2022"
+                             "citeurl:2022"
+                             ;; Special commands:
+                             "nocite:2022"     "fullcite:2022"
+                             "fullfootcite:2022"
+                             "volcite:2022"   "Volcite:2022"
+                             "pvolcite:2022"  "Pvolcite:2022"
+                             "fvolcite:2022"  "ftvolcite:2022"
+                             "svolcite:2022"  "Svolcite:2022"
+                             "tvolcite:2022"  "Tvolcite:2022"
+                             "avolcite:2022"  "Avolcite:2022"
+                             "Notecite:2022"  "pnotecite:2022"
+                             "Pnotecite:2022" "fnotecite:2022"
+                             ;; Natbib compatibility commands:
+                             "citet:2022"   "citet*:2022"
+                             "citep:2022"   "citep*:2022"
+                             "citealt:2022" "citealt*:2022"
+                             "citealp:2022" "citealp*:2022"
+                             "Citet:2022"   "Citet*:2022"
+                             "Citep:2022"   "Citep*:2022"
+                             "bug:56655")
+                           #'string<)))
+      (kill-buffer (file-name-nondirectory tex-file)))))
 
 ;;; Autoload tests
 

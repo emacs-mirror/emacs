@@ -90,6 +90,20 @@ The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) the value of EXP."
+  ;; If this value has been set with `setopt' (for instance in
+  ;; ~/.emacs), we didn't necessarily know the type of the user option
+  ;; then.  So check now, and issue a warning if it's wrong.
+  (let ((value (get symbol 'custom-check-value)))
+    (when value
+      (let ((type (get symbol 'custom-type)))
+        (when (and type
+                   (boundp symbol)
+                   (eq (car value) (symbol-value symbol))
+                   ;; Check that the type is correct.
+                   (not (widget-apply (widget-convert type)
+                                      :match (car value))))
+          (warn "Value `%S' for `%s' does not match type %s"
+                value symbol type)))))
   (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
            (condition-case nil
@@ -896,7 +910,7 @@ symbol `set', then VALUE is the value to use.  If it is the symbol
 `reset', then SYMBOL will be removed from THEME (VALUE is ignored).
 
 See `custom-known-themes' for a list of known themes."
-  (unless (memq prop '(theme-value theme-face))
+  (unless (memq prop '(theme-value theme-face theme-icon))
     (error "Unknown theme property"))
   (let* ((old (get symbol prop))
 	 (setting (assq theme old))  ; '(theme value)
@@ -1678,6 +1692,7 @@ Each of the arguments ARGS has this form:
     (VARIABLE IGNORED)
 
 This means reset VARIABLE.  (The argument IGNORED is ignored)."
+  (declare (obsolete nil "29.1"))
     (apply #'custom-theme-reset-variables 'user args))
 
 (defun custom-add-choice (variable choice)

@@ -113,6 +113,9 @@
 (require 'pcomplete)
 (require 'ring)
 
+(defconst eshell-inside-emacs (format "%s,eshell" emacs-version)
+  "Value for the `INSIDE_EMACS' environment variable.")
+
 (defgroup eshell-var nil
   "Variable interpolation is introduced whenever the `$' character
 appears unquoted in any argument (except when that argument is
@@ -149,61 +152,69 @@ if they are quoted with a backslash."
 
 (defcustom eshell-variable-aliases-list
   `(;; for eshell.el
-    ("COLUMNS" ,(lambda (_indices) (window-body-width nil 'remap)) t)
-    ("LINES" ,(lambda (_indices) (window-body-height nil 'remap)) t)
+    ("COLUMNS" ,(lambda () (window-body-width nil 'remap)) t t)
+    ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
+    ("INSIDE_EMACS" eshell-inside-emacs t)
 
     ;; for eshell-cmd.el
-    ("_" ,(lambda (indices)
+    ("_" ,(lambda (indices quoted)
 	    (if (not indices)
 	        (car (last eshell-last-arguments))
 	      (eshell-apply-indices eshell-last-arguments
-				    indices))))
+				    indices quoted))))
     ("?" eshell-last-command-status)
     ("$" eshell-last-command-result)
+
+    ;; for em-alias.el and em-script.el
     ("0" eshell-command-name)
-    ("1" ,(lambda (_indices) (nth 0 eshell-command-arguments)))
-    ("2" ,(lambda (_indices) (nth 1 eshell-command-arguments)))
-    ("3" ,(lambda (_indices) (nth 2 eshell-command-arguments)))
-    ("4" ,(lambda (_indices) (nth 3 eshell-command-arguments)))
-    ("5" ,(lambda (_indices) (nth 4 eshell-command-arguments)))
-    ("6" ,(lambda (_indices) (nth 5 eshell-command-arguments)))
-    ("7" ,(lambda (_indices) (nth 6 eshell-command-arguments)))
-    ("8" ,(lambda (_indices) (nth 7 eshell-command-arguments)))
-    ("9" ,(lambda (_indices) (nth 8 eshell-command-arguments)))
-    ("*" ,(lambda (indices)
-	    (if (not indices)
-	        eshell-command-arguments
-	      (eshell-apply-indices eshell-command-arguments
-				    indices)))))
+    ("1" ,(lambda () (nth 0 eshell-command-arguments)) nil t)
+    ("2" ,(lambda () (nth 1 eshell-command-arguments)) nil t)
+    ("3" ,(lambda () (nth 2 eshell-command-arguments)) nil t)
+    ("4" ,(lambda () (nth 3 eshell-command-arguments)) nil t)
+    ("5" ,(lambda () (nth 4 eshell-command-arguments)) nil t)
+    ("6" ,(lambda () (nth 5 eshell-command-arguments)) nil t)
+    ("7" ,(lambda () (nth 6 eshell-command-arguments)) nil t)
+    ("8" ,(lambda () (nth 7 eshell-command-arguments)) nil t)
+    ("9" ,(lambda () (nth 8 eshell-command-arguments)) nil t)
+    ("*" eshell-command-arguments))
   "This list provides aliasing for variable references.
-Each member defines the name of a variable, and a Lisp value used to
+Each member is of the following form:
+
+  (NAME VALUE [COPY-TO-ENVIRONMENT] [SIMPLE-FUNCTION])
+
+NAME defines the name of the variable, VALUE is a Lisp value used to
 compute the string value that will be returned when the variable is
 accessed via the syntax `$NAME'.
 
-If the value is a function, call that function with two arguments: the
-list of the indices that was used in the reference, and whether the
-user is requesting the length of the ultimate element.  For example, a
-reference of `$NAME[10][20]' would result in the function for alias
-`NAME' being called (assuming it were aliased to a function), and the
-arguments passed to this function would be the list `(10 20)', and
+If VALUE is a function, its behavior depends on the value of
+SIMPLE-FUNCTION.  If SIMPLE-FUNCTION is nil, call VALUE with two
+arguments: the list of the indices that were used in the reference,
+and either t or nil depending on whether or not the variable was
+quoted with double quotes.  For example, if `NAME' were aliased
+to a function, a reference of `$NAME[10][20]' would result in that
+function being called with the arguments `((\"10\") (\"20\"))' and
 nil.
+If SIMPLE-FUNCTION is non-nil, call the function with no arguments
+and then pass its return value to `eshell-apply-indices'.
 
-If the value is a string, return the value for the variable with that
+If VALUE is a string, return the value for the variable with that
 name in the current environment.  If no variable with that name exists
 in the environment, but if a symbol with that same name exists and has
-a value bound to it, return its value instead.  You can prioritize
-symbol values over environment values by setting
-`eshell-prefer-lisp-variables' to t.
+a value bound to it, return that symbol's value instead.  You can
+prefer symbol values over environment values by setting the value
+of `eshell-prefer-lisp-variables' to t.
 
-If the value is a symbol, return the value bound to it.
+If VALUE is a symbol, return the value bound to it.
 
-If the value has any other type, signal an error.
+If VALUE has any other type, signal an error.
 
-Additionally, each member may specify if it should be copied to the
-environment of created subprocesses."
+Additionally, if COPY-TO-ENVIRONMENT is non-nil, the alias should be
+copied (a.k.a. \"exported\") to the environment of created subprocesses."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
-                               (const :tag "Use only in Eshell" nil))))
+                               (const :tag "Use only in Eshell" nil))
+                       (choice (const :tag "Call without argument" t)
+                               (const :tag "Call with 2 arguments" nil))))
   :risky t)
 
 (defvar-keymap eshell-var-mode-map
@@ -479,8 +490,11 @@ Possible variable references are:
                            ;; by `eshell-do-eval', which requires very
                            ;; particular forms in order to work
                            ;; properly.  See bug#54190.
-                           (list (function (lambda ()
-                                   (delete-file ,temp))))))
+                           (list (function
+                                  (lambda ()
+                                    (delete-file ,temp)
+                                    (when-let ((buffer (get-file-buffer ,temp)))
+                                      (kill-buffer buffer)))))))
                    (eshell-apply-indices ,temp indices ,eshell-current-quoted)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()
@@ -545,27 +559,35 @@ For example, \"[0 1][2]\" becomes:
   "Get the value for the variable NAME.
 INDICES is a list of index-lists (see `eshell-parse-indices').
 If QUOTED is non-nil, this was invoked inside double-quotes."
-  (let* ((alias (assoc name eshell-variable-aliases-list))
-	 (var (if alias
-		  (cadr alias)
-		name)))
-    (if (and alias (functionp var))
-	(funcall var indices)
-      (eshell-apply-indices
-       (cond
-	((stringp var)
-	 (let ((sym (intern-soft var)))
-	   (if (and sym (boundp sym)
-		    (or eshell-prefer-lisp-variables
-			(memq sym eshell--local-vars) ; bug#15372
-			(not (getenv var))))
-	       (symbol-value sym)
-	     (getenv var))))
-	((symbolp var)
-	 (symbol-value var))
-	(t
-	 (error "Unknown variable `%s'" (eshell-stringify var))))
-       indices quoted))))
+  (if-let ((alias (assoc name eshell-variable-aliases-list)))
+      (let ((target (nth 1 alias)))
+        (cond
+         ((functionp target)
+          (if (nth 3 alias)
+              (eshell-apply-indices (funcall target) indices quoted)
+            (condition-case nil
+	        (funcall target indices quoted)
+              (wrong-number-of-arguments
+               (display-warning
+                :warning (concat "Function for `eshell-variable-aliases-list' "
+                                 "entry should accept two arguments: INDICES "
+                                 "and QUOTED.'"))
+               (funcall target indices)))))
+         ((symbolp target)
+          (eshell-apply-indices (symbol-value target) indices quoted))
+         (t
+          (eshell-get-variable target indices quoted))))
+    (unless (stringp name)
+      (error "Unknown variable `%s'" (eshell-stringify name)))
+    (eshell-apply-indices
+     (let ((sym (intern-soft name)))
+       (if (and sym (boundp sym)
+		(or eshell-prefer-lisp-variables
+		    (memq sym eshell--local-vars) ; bug#15372
+		    (not (getenv name))))
+	   (symbol-value sym)
+	 (getenv name)))
+     indices quoted)))
 
 (defun eshell-apply-indices (value indices &optional quoted)
   "Apply to VALUE all of the given INDICES, returning the sub-result.

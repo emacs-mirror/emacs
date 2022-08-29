@@ -705,12 +705,13 @@ coding system will apply.  @xref{Default Coding Systems}.
 Initialize the type of device used to communicate with the subprocess.
 Possible values are @code{pty} to use a pty, @code{pipe} to use a
 pipe, or @code{nil} to use the default derived from the value of the
-@code{process-connection-type} variable.  This parameter and the value
-of @code{process-connection-type} are ignored if a non-@code{nil}
-value is specified for the @code{:stderr} parameter; in that case, the
-type will always be @code{pipe}.  On systems where ptys are not
-available (MS-Windows), this parameter is likewise ignored, and pipes
-are used unconditionally.
+@code{process-connection-type} variable.  If @var{type} is a cons cell
+@w{@code{(@var{input} . @var{output})}}, then @var{input} will be used
+for standard input and @var{output} for standard output (and standard
+error if @code{:stderr} is @code{nil}).
+
+On systems where ptys are not available (MS-Windows), this parameter
+is ignored, and pipes are used unconditionally.
 
 @item :noquery @var{query-flag}
 Initialize the process query flag to @var{query-flag}.
@@ -1242,15 +1243,24 @@ that are already closed, the value is either 0 or 256, depending on
 whether the connection was closed normally or abnormally.
 @end defun
 
-@defun process-tty-name process
+@defun process-tty-name process &optional stream
 This function returns the terminal name that @var{process} is using for
 its communication with Emacs---or @code{nil} if it is using pipes
 instead of a pty (see @code{process-connection-type} in
-@ref{Asynchronous Processes}).  If @var{process} represents a program
-running on a remote host, the terminal name used by that program on
-the remote host is provided as process property @code{remote-tty}.  If
-@var{process} represents a network, serial, or pipe connection, the
-value is @code{nil}.
+@ref{Asynchronous Processes}).  By default, this function returns the
+terminal name if any of @var{process}'s standard streams use a
+terminal.  If @var{stream} is one of @code{stdin}, @code{stdout}, or
+@code{stderr}, this function returns the terminal name (or @code{nil},
+as above) that @var{process} uses for that stream specifically.  You
+can use this to determine whether a particular stream uses a pipe or a
+pty.
+
+If @var{process} represents a program running on a remote host, this
+function returns the @emph{local} terminal name that communicates with
+@var{process}; you can get the terminal name used by that program on
+the remote host with the process property @code{remote-tty}.  If
+@var{process} represents a network, serial, or pipe connection, this
+function always returns @code{nil}.
 @end defun
 
 @defun process-coding-system process
@@ -1512,7 +1522,7 @@ This variable is a list of functions to be called for
 for @code{signal-process}.  These functions are called in the order of
 the list, until one of them returns non-@code{nil}.  The default
 function, which shall always be the last in this list, is
-@code{signal-default-interrupt-process}.
+@code{internal-default-signal-process}.
 
 This is the mechanism, how Tramp implements @code{signal-process}.
 @end defvar
@@ -1530,20 +1540,11 @@ a buffer, which is called the associated buffer of the process
 default filter discards the output.
 
   If the subprocess writes to its standard error stream, by default
-the error output is also passed to the process filter function.  If
-Emacs uses a pseudo-TTY (pty) for communication with the subprocess,
-then it is impossible to separate the standard output and standard
-error streams of the subprocess, because a pseudo-TTY has only one
-output channel.  In that case, if you want to keep the output to those
-streams separate, you should redirect one of them to a file---for
-example, by using an appropriate shell command via
-@code{start-process-shell-command} or a similar function.
-
-  Alternatively, you could use the @code{:stderr} parameter with a
+the error output is also passed to the process filter function.
+Alternatively, you could use the @code{:stderr} parameter with a
 non-@code{nil} value in a call to @code{make-process}
 (@pxref{Asynchronous Processes, make-process}) to make the destination
-of the error output separate from the standard output; in that case,
-Emacs will use pipes for communicating with the subprocess.
+of the error output separate from the standard output.
 
   When a subprocess terminates, Emacs reads any pending output,
 then stops reading output from that subprocess.  Therefore, if the
@@ -1959,7 +1960,6 @@ because @var{seconds} can be floating point to specify
 waiting a fractional number of seconds.  If @var{seconds} is 0, the
 function accepts whatever output is pending but does not wait.
 
-@c Emacs 22.1 feature
 If @var{process} is a process, and the argument @var{just-this-one} is
 non-@code{nil}, only output from that process is handled, suspending output
 from other processes until some output has been received from that
@@ -3204,20 +3204,39 @@ If the vector does not include the port number, @var{p}, or if
 @code{:@var{p}} suffix.
 @end defun
 
-@defun network-lookup-address-info name &optional family
-This function is used to perform hostname lookups on @var{name}, which
-is expected to be an ASCII-only string, otherwise an error is
-signaled. Call @code{puny-encode-domain} on @var{name}
-first if you wish to lookup internationalized hostnames.
+@defun network-lookup-address-info name &optional family hints
+This function perform hostname lookups on @var{name}, which is
+expected to be an ASCII-only string, otherwise it signals an error.  Call
+@code{puny-encode-domain} on @var{name} first if you wish to lookup
+internationalized hostnames.
 
-If successful it returns a list of Lisp representations of network
-addresses, otherwise it returns @code{nil}.  In the latter case, it
-also displays the error message hopefully explaining what went wrong.
+If successful, this function returns a list of Lisp representations of network
+addresses (@pxref{Network Processes}, for a description of the
+format), otherwise return @code{nil}.  In the latter case, it also logs
+an error message hopefully explaining what went wrong.
 
-By default both IPv4 and IPv6 lookups are attempted.  The optional
-argument @var{family} controls this behavior, specifying the symbol
-@code{ipv4} or @code{ipv6} restricts lookups to IPv4 and IPv6
+By default, this function attempts both IPv4 and IPv6 lookups.  The
+optional argument @var{family} controls this behavior, specifying the
+symbol @code{ipv4} or @code{ipv6} restricts lookups to IPv4 and IPv6
 respectively.
+
+If optional argument @var{hints} is @code{numeric}, the function
+treats the @var{name} as a numerical IP address (and does not perform DNS
+lookups).  This can be used to check whether a string is a valid
+numerical representation of an IP address, or to convert a numerical
+string to its canonical representation. e.g.@:
+
+@example
+(network-lookup-address-info "127.1" 'ipv4 'numeric)
+    @result{} ([127 0 0 1 0])
+
+(network-lookup-address-info "::1" nil 'numeric)
+    @result{} ([0 0 0 0 0 0 0 1 0])
+@end example
+
+Be warned that there are some surprising valid forms,
+especially for IPv4, e.g @samp{0xe3010203} and @samp{0343.1.2.3} are both
+valid, as are @samp{0} and @samp{1} (but they are invalid for IPv6).
 @end defun
 
 @node Serial Ports
@@ -3493,43 +3512,40 @@ any null bytes in the packed input string will appear in the unpacked
 output.
 
 @item strz &optional @var{len}
-If @var{len} is not provided: Variable-length null-terminated unibyte
-string (@pxref{Text Representations}).  When packing, the entire input
-string is copied to the packed output.  The following byte will be
-null (zero) unless a pre-allocated string was provided to
-@code{bindat-pack}, in which case that byte is left unmodified.  The
-length of the packed output is the length of the input string plus one
-(for the null terminator).  The input string must not contain any null
+If @var{len} is not provided, this is a variable-length
+null-terminated unibyte string (@pxref{Text Representations}).  When
+packing into @code{strz}, the entire input string is copied to the
+packed output followed by a null (zero) byte.  (If pre-allocated
+string is provided for packing into @code{strz}, that pre-allocated
+string should have enough space for the additional null byte appended
+to the output string contents, @pxref{Bindat Functions}).  The length
+of the packed output is the length of the input string plus one (for
+the null terminator).  The input string must not contain any null
 bytes.  If the input string is multibyte with only ASCII and
 @code{eight-bit} characters, it is converted to unibyte before it is
-packed; other multibyte strings signal an error.  When unpacking, the
-resulting string contains all bytes up to (but excluding) the null
-byte.
+packed; other multibyte strings signal an error.  When unpacking a
+@code{strz}, the resulting output string will contain all bytes up to
+(but excluding) the null byte that terminated the input string.
 
-@quotation Caution
-If a pre-allocated string is provided to @code{bindat-pack}, the
-packed output will not be properly null-terminated unless the
-pre-allocated string already has a null byte at the appropriate
-location.
-@end quotation
+If @var{len} is provided, @code{strz} behaves the same as @code{str},
+but with a couple of differences:
 
-If @var{len} is provided: @code{strz} behaves the same as @code{str}
-with one difference: When unpacking, the first null byte encountered
-in the packed string and all subsequent bytes are excluded from the
-unpacked result.
-
-@quotation Caution
-The packed output will not be null-terminated unless one of the
-following is true:
-@itemize
+@itemize @bullet
 @item
-The input string is shorter than @var{len} bytes and either no pre-allocated
-string was provided to @code{bindat-pack} or the appropriate byte in
-the pre-allocated string was already null.
+When packing, a null terminator is written after the packed input
+string if the number of characters in the input string is less than
+@var{len}.
+
 @item
-The input string contains a null byte within the first @var{len}
-bytes.
+When unpacking, the first null byte encountered in the packed string
+is interpreted as the terminating byte, and it and all subsequent
+bytes are excluded from the result of the unpacking.
 @end itemize
+
+@quotation Caution
+The packed output will not be null-terminated unless the input string
+is shorter than @var{len} bytes or it contains a null byte within the
+first @var{len} bytes.
 @end quotation
 
 @item vec @var{len} [@var{type}]
@@ -3550,7 +3566,7 @@ and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
-are left unchanged, which normally means they remain zero.
+left unchanged, which normally means they remain zero.
 When unpacking, this just returns nil.
 
 @item align @var{len}

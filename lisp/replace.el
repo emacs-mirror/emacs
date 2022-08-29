@@ -30,6 +30,7 @@
 
 (require 'text-mode)
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 (defcustom case-replace t
   "Non-nil means `query-replace' should preserve case in replacements."
@@ -156,7 +157,7 @@ is highlighted lazily using isearch lazy highlighting (see
 
 (defvar replace-count 0
   "Number of replacements done so far.
-See `replace-regexp' and `query-replace-regexp-eval'.")
+See `replace-regexp'.")
 
 (defun query-replace-descr (string)
   (setq string (copy-sequence string))
@@ -414,7 +415,7 @@ word boundaries.  A negative prefix arg means replace backward.
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search string to the minibuffer
 that reads FROM-STRING, or invoke replacements from
-incremental search with a key sequence like `C-s C-s M-%'
+incremental search with a key sequence like \\`C-s C-s M-%'
 to use its current search string as the string to replace.
 
 Matching is independent of case if both `case-fold-search'
@@ -471,8 +472,8 @@ To customize possible responses, change the bindings in `query-replace-map'."
 (defun query-replace-regexp (regexp to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
-what to do with it.  Type SPC or `y' to replace the match,
-DEL or `n' to skip and go to the next match.  For more directions,
+what to do with it.  Type \\`SPC' or \\`y' to replace the match,
+\\`DEL' or \\`n' to skip and go to the next match.  For more directions,
 type \\[help-command] at that time.
 
 In Transient Mark mode, if the mark is active, operate on the contents
@@ -480,12 +481,12 @@ of the region.  Otherwise, operate from point to the end of the buffer's
 accessible portion.
 
 When invoked interactively, matching a newline with `\\n' will not work;
-use `C-q C-j' instead.  To match a tab character (`\\t'), just press `TAB'.
+use \\`C-q C-j' instead.  To match a tab character (`\\t'), just press \\`TAB'.
 
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search regexp to the minibuffer
 that reads REGEXP, or invoke replacements from
-incremental search with a key sequence like `C-M-s C-M-s C-M-%'
+incremental search with a key sequence like \\`C-M-s C-M-s C-M-%'
 to use its current search regexp as the regexp to replace.
 
 Matching is independent of case if both `case-fold-search'
@@ -561,84 +562,6 @@ REGION-NONCONTIGUOUS-P are passed to `perform-replace' (which see)."
   (perform-replace regexp to-string t t delimited nil nil start end backward region-noncontiguous-p))
 
 (define-key esc-map [?\C-%] 'query-replace-regexp)
-
-(defun query-replace-regexp-eval (regexp to-expr &optional delimited start end region-noncontiguous-p)
-  "Replace some things after point matching REGEXP with the result of TO-EXPR.
-
-Interactive use of this function is deprecated in favor of the
-`\\,' feature of `query-replace-regexp'.  For non-interactive use, a loop
-using `search-forward-regexp' and `replace-match' is preferred.
-
-As each match is found, the user must type a character saying
-what to do with it.  Type SPC or `y' to replace the match,
-DEL or `n' to skip and go to the next match.  For more directions,
-type \\[help-command] at that time.
-
-TO-EXPR is a Lisp expression evaluated to compute each replacement.  It may
-reference `replace-count' to get the number of replacements already made.
-If the result of TO-EXPR is not a string, it is converted to one using
-`prin1-to-string' with the NOESCAPE argument (which see).
-
-For convenience, when entering TO-EXPR interactively, you can use `\\&'
-to stand for whatever matched the whole of REGEXP, and `\\N' (where
-N is a digit) to stand for whatever matched the Nth `\\(...\\)' (1-based)
-in REGEXP.
-
-Use `\\#&' or `\\#N' if you want a number instead of a string.
-In interactive use, `\\#' in itself stands for `replace-count'.
-
-In Transient Mark mode, if the mark is active, operate on the contents
-of the region.  Otherwise, operate from point to the end of the buffer's
-accessible portion.
-
-Use \\<minibuffer-local-map>\\[next-history-element] \
-to pull the last incremental search regexp to the minibuffer
-that reads REGEXP.
-
-Preserves case in each replacement if `case-replace' and `case-fold-search'
-are non-nil and REGEXP has no uppercase letters.
-
-Ignore read-only matches if `query-replace-skip-read-only' is non-nil,
-ignore hidden matches if `search-invisible' is nil, and ignore more
-matches using `isearch-filter-predicate'.
-
-If `replace-regexp-lax-whitespace' is non-nil, a space or spaces in the regexp
-to be replaced will match a sequence of whitespace chars defined by the
-regexp in `search-whitespace-regexp'.
-
-This function is not affected by `replace-char-fold'.
-
-Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
-only matches that are surrounded by word boundaries.
-Fourth and fifth arg START and END specify the region to operate on.
-
-Arguments REGEXP, DELIMITED, START, END, and REGION-NONCONTIGUOUS-P
-are passed to `perform-replace' (which see)."
-  (declare (obsolete "use the `\\,' feature of `query-replace-regexp'
-for interactive calls, and `search-forward-regexp'/`replace-match'
-for Lisp calls." "22.1"))
-  (interactive
-   (progn
-     (barf-if-buffer-read-only)
-     (let* ((from
-	     ;; Let-bind the history var to disable the "foo -> bar"
-	     ;; default.  Maybe we shouldn't disable this default, but
-	     ;; for now I'll leave it off.  --Stef
-	     (let ((query-replace-defaults nil))
-	       (query-replace-read-from "Query replace regexp" t)))
-	    (to (list (read-from-minibuffer
-		       (format "Query replace regexp %s with eval: "
-			       (query-replace-descr from))
-		       nil nil t query-replace-to-history-variable from t))))
-       ;; We make TO a list because replace-match-string-symbols requires one,
-       ;; and the user might enter a single token.
-       (replace-match-string-symbols to)
-       (list from (car to) current-prefix-arg
-	     (if (use-region-p) (region-beginning))
-	     (if (use-region-p) (region-end))
-	     (if (use-region-p) (region-noncontiguous-p))))))
-  (perform-replace regexp (cons #'replace-eval-replacement to-expr)
-		   t 'literal delimited nil nil start end nil region-noncontiguous-p))
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end region-noncontiguous-p)
   "Replace some matches for REGEXP with various strings, in rotation.
@@ -741,7 +664,10 @@ which will run faster and will not set the mark or print anything.
 \(You may need a more complex loop if FROM-STRING can match the null string
 and TO-STRING is also null.)"
   (declare (interactive-only
-	    "use `search-forward' and `replace-match' instead."))
+	    "use `search-forward' and `replace-match' instead.")
+           (interactive-args
+	    (start (use-region-beginning))
+	    (end (use-region-end))))
   (interactive
    (let ((common
 	  (query-replace-read-args
@@ -753,8 +679,7 @@ and TO-STRING is also null.)"
 		   (if (use-region-p) " in region" ""))
 	   nil)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
-	   (if (use-region-p) (region-beginning))
-	   (if (use-region-p) (region-end))
+	   (use-region-beginning) (use-region-end)
 	   (nth 3 common)
 	   (if (use-region-p) (region-noncontiguous-p)))))
   (perform-replace from-string to-string nil nil delimited nil nil start end backward region-noncontiguous-p))
@@ -894,6 +819,23 @@ by this function to the end of values available via
    (regexp-quote (or (car search-ring) ""))
    (car (symbol-value query-replace-from-history-variable))))
 
+(defvar-keymap read-regexp-map
+  :parent minibuffer-local-map
+  "M-c" #'read-regexp-toggle-case-folding)
+
+(defvar read-regexp--case-fold nil)
+
+(defun read-regexp-toggle-case-folding ()
+  (interactive)
+  (setq read-regexp--case-fold
+        (if (or (eq read-regexp--case-fold 'fold)
+                (and read-regexp--case-fold
+                     (not (eq read-regexp--case-fold 'inhibit-fold))))
+            'inhibit-fold
+          'fold))
+  (minibuffer-message "Case folding is now %s"
+                      (if (eq read-regexp--case-fold 'fold) "on" "off")))
+
 (defun read-regexp (prompt &optional defaults history)
   "Read and return a regular expression as a string.
 Prompt with the string PROMPT.  If PROMPT ends in \":\" (followed by
@@ -930,11 +872,14 @@ in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 The optional argument HISTORY is a symbol to use for the history list.
 If nil, use `regexp-history'.
 
-If the user has used the `M-c' command to specify case
+If the user has used the \\<read-regexp-map>\\[read-regexp-toggle-case-folding] command to specify case
 sensitivity, the returned string will have a text property named
 `case-fold' that has a value of either `fold' or
 `inhibit-fold'.  (It's up to the caller of `read-regexp' to
-respect this or not; see `read-regexp-case-fold-search'.)"
+respect this or not; see `read-regexp-case-fold-search'.)
+
+This command uses the `read-regexp-map' keymap while reading the
+regexp from the user."
   (let* ((defaults
 	   (if (and defaults (symbolp defaults))
 	       (cond
@@ -950,29 +895,15 @@ respect this or not; see `read-regexp-case-fold-search'.)"
 	 (suggestions (delete-dups (delq nil (delete "" suggestions))))
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
-         (case-fold case-fold-search)
+         ;; `read-regexp--case-fold' dynamically bound and may be
+         ;; altered by `M-c'.
+         (read-regexp--case-fold case-fold-search)
 	 (input (read-from-minibuffer
                  (if (string-match-p ":[ \t]*\\'" prompt)
                      prompt
                    (format-prompt prompt (and (length> default 0)
                                               (query-replace-descr default))))
-		 nil
-                 (define-keymap
-                   :parent minibuffer-local-map
-                   "M-c" (lambda ()
-                           (interactive)
-                           (setq case-fold
-                                 (if (or (eq case-fold 'fold)
-                                         (and case-fold
-                                              (not (eq case-fold
-                                                       'inhibit-fold))))
-                                     'inhibit-fold
-                                   'fold))
-                           (minibuffer-message
-                            "Case folding is now %s"
-                            (if (eq case-fold 'fold)
-                                "on"
-                              "off"))))
+		 nil read-regexp-map
                  nil (or history 'regexp-history) suggestions t))
          (result (if (equal input "")
 	             ;; Return the default value when the user enters
@@ -982,9 +913,9 @@ respect this or not; see `read-regexp-case-fold-search'.)"
     (when result
       (add-to-history (or history 'regexp-history) result))
     (if (and result
-             (or (eq case-fold 'fold)
-                 (eq case-fold 'inhibit-fold)))
-        (propertize result 'case-fold case-fold)
+             (or (eq read-regexp--case-fold 'fold)
+                 (eq read-regexp--case-fold 'inhibit-fold)))
+        (propertize result 'case-fold read-regexp--case-fold)
       (or result input))))
 
 (defun read-regexp-case-fold-search (regexp)
@@ -2430,9 +2361,8 @@ See also `multi-occur'."
       (if (>= (+ prev-line (length prev-after-lines))
 	      (- curr-line (length before-lines)))
 	  (setq prev-after-lines
-		(butlast prev-after-lines
-			 (- (length prev-after-lines)
-			    (- curr-line prev-line (length before-lines) 1))))
+                (take (- curr-line prev-line (length before-lines) 1)
+                      prev-after-lines))
 	;; Separate non-overlapping context lines with a dashed line.
 	(setq separator "-------\n")))
 
@@ -2713,10 +2643,9 @@ with three arguments, as if it were `search-forward'.")
 
 (defvar replace-re-search-function nil
   "Function to use when searching for regexps to replace.
-It is used by `query-replace-regexp', `replace-regexp',
-`query-replace-regexp-eval', and `map-query-replace-regexp'.
-It is called with three arguments, as if it were
-`re-search-forward'.")
+It is used by `query-replace-regexp', `replace-regexp', and
+`map-query-replace-regexp'.  It is called with three arguments,
+as if it were `re-search-forward'.")
 
 (defvar replace-regexp-function nil
   "Function to convert the FROM string of query-replace commands to a regexp.
@@ -2814,7 +2743,9 @@ to a regexp that is actually used for the search.")
 	    (isearch-case-fold-search case-fold)
 	    (isearch-forward (not backward))
 	    (isearch-other-end match-beg)
-	    (isearch-error nil))
+	    (isearch-error nil)
+	    (isearch-lazy-count nil)
+	    (lazy-highlight-buffer nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()

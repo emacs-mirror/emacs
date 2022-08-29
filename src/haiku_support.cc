@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <app/Application.h>
 #include <app/Cursor.h>
+#include <app/Clipboard.h>
 #include <app/Messenger.h>
 #include <app/Roster.h>
 
@@ -92,22 +93,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Some messages that Emacs sends to itself.  */
 enum
   {
-    SCROLL_BAR_UPDATE	  = 3000,
-    WAIT_FOR_RELEASE	  = 3001,
-    RELEASE_NOW		  = 3002,
-    CANCEL_DROP		  = 3003,
-    SHOW_MENU_BAR	  = 3004,
-    BE_MENU_BAR_OPEN	  = 3005,
-    QUIT_APPLICATION	  = 3006,
-    REPLAY_MENU_BAR	  = 3007,
-    FONT_FAMILY_SELECTED  = 3008,
-    FONT_STYLE_SELECTED	  = 3009,
-    FILE_PANEL_SELECTION  = 3010,
-    QUIT_PREVIEW_DIALOG	  = 3011,
-    SET_FONT_INDICES	  = 3012,
-    SET_PREVIEW_DIALOG	  = 3013,
-    UPDATE_PREVIEW_DIALOG = 3014,
-    SEND_MOVE_FRAME_EVENT = 3015,
+    SCROLL_BAR_UPDATE	     = 3000,
+    WAIT_FOR_RELEASE	     = 3001,
+    RELEASE_NOW		     = 3002,
+    CANCEL_DROP		     = 3003,
+    SHOW_MENU_BAR	     = 3004,
+    BE_MENU_BAR_OPEN	     = 3005,
+    QUIT_APPLICATION	     = 3006,
+    REPLAY_MENU_BAR	     = 3007,
+    FONT_FAMILY_SELECTED     = 3008,
+    FONT_STYLE_SELECTED	     = 3009,
+    FILE_PANEL_SELECTION     = 3010,
+    QUIT_PREVIEW_DIALOG	     = 3011,
+    SET_FONT_INDICES	     = 3012,
+    SET_PREVIEW_DIALOG	     = 3013,
+    UPDATE_PREVIEW_DIALOG    = 3014,
+    SEND_MOVE_FRAME_EVENT    = 3015,
+    SET_DISABLE_ANTIALIASING = 3016,
   };
 
 /* X11 keysyms that we use.  */
@@ -140,11 +142,14 @@ enum
 
 struct font_selection_dialog_message
 {
-  /* Whether or not font selection was cancelled.  */
+  /* Whether or not font selection was canceled.  */
   bool_bf cancel : 1;
 
   /* Whether or not a size was explicitly specified.  */
   bool_bf size_specified : 1;
+
+  /* Whether or not antialiasing should be disabled.  */
+  bool_bf disable_antialias : 1;
 
   /* The index of the selected font family.  */
   int family_idx;
@@ -183,10 +188,6 @@ static BMessage volatile *popup_track_message;
 /* Variable in which alert dialog threads return the selected button
    number.  */
 static int32 volatile alert_popup_value;
-
-/* The current window ID.  This is increased every time a frame is
-   created.  */
-static int current_window_id;
 
 /* The view that has the passive grab.  */
 static void *grab_view;
@@ -644,8 +645,12 @@ public:
   void
   MessageReceived (BMessage *msg)
   {
+    struct haiku_clipboard_changed_event rq;
+
     if (msg->what == QUIT_APPLICATION)
       Quit ();
+    else if (msg->what == B_CLIPBOARD_CHANGED)
+      haiku_write (CLIPBOARD_CHANGED_EVENT, &rq);
     else
       BApplication::MessageReceived (msg);
   }
@@ -689,7 +694,6 @@ public:
 		   was_shown_p (false),
 		   menu_bar_active_p (false),
 		   override_redirect_p (false),
-		   window_id (current_window_id),
 		   menus_begun (NULL),
 		   z_group (Z_GROUP_NONE),
 		   tooltip_p (false),
@@ -932,12 +936,11 @@ public:
     if (msg->WasDropped ())
       {
 	BPoint whereto;
-	int32 windowid;
+	int64 threadid;
 	struct haiku_drag_and_drop_event rq;
 
-	if (msg->FindInt32 ("emacs:window_id", &windowid) == B_OK
-	    && !msg->IsSourceRemote ()
-	    && windowid == this->window_id)
+	if (msg->FindInt64 ("emacs:thread_id", &threadid) == B_OK
+	    && threadid == find_thread (NULL))
 	  return;
 
 	whereto = msg->DropPoint ();
@@ -1493,7 +1496,6 @@ public:
 class EmacsView : public BView
 {
 public:
-  uint32_t previous_buttons;
   int looper_locked_count;
   BRegion sb_region;
   BRegion invalid_region;
@@ -1508,12 +1510,13 @@ public:
   BLocker cr_surface_lock;
 #endif
 
-  BPoint tt_absl_pos;
   BMessage *wait_for_release_message;
+  int64 grabbed_buttons;
+  BScreen screen;
+  bool use_frame_synchronization;
 
   EmacsView () : BView (BRect (0, 0, 0, 0), "Emacs",
 			B_FOLLOW_NONE, B_WILL_DRAW),
-		 previous_buttons (0),
 		 looper_locked_count (0),
 		 offscreen_draw_view (NULL),
 		 offscreen_draw_bitmap_1 (NULL),
@@ -1522,7 +1525,9 @@ public:
 		 cr_surface (NULL),
 		 cr_context (NULL),
 #endif
-		 wait_for_release_message (NULL)
+		 wait_for_release_message (NULL),
+		 grabbed_buttons (0),
+		 use_frame_synchronization (false)
   {
 
   }
@@ -1542,6 +1547,16 @@ public:
     if (grab_view == this)
       grab_view = NULL;
     grab_view_locker.Unlock ();
+  }
+
+  void
+  SetFrameSynchronization (bool sync)
+  {
+    if (LockLooper ())
+      {
+	use_frame_synchronization = sync;
+	UnlockLooper ();
+      }
   }
 
   void
@@ -1720,14 +1735,14 @@ public:
   void
   FlipBuffers (void)
   {
+    EmacsWindow *w;
     if (!LockLooper ())
       gui_abort ("Failed to lock looper during buffer flip");
     if (!offscreen_draw_view)
       gui_abort ("Failed to lock offscreen view during buffer flip");
 
     offscreen_draw_view->Sync ();
-
-    EmacsWindow *w = (EmacsWindow *) Window ();
+    w = (EmacsWindow *) Window ();
     w->shown_flag = 0;
 
     if (copy_bitmap &&
@@ -1747,6 +1762,11 @@ public:
 
     if (copy_bitmap->InitCheck () != B_OK)
       gui_abort ("Failed to init copy bitmap during buffer flip");
+
+    /* Wait for VBLANK.  If responding to the invalidation or buffer
+       flipping takes longer than the blanking period, we lose.  */
+    if (use_frame_synchronization)
+      screen.WaitForRetrace ();
 
     Invalidate (&invalid_region);
     invalid_region.MakeEmpty ();
@@ -1786,30 +1806,28 @@ public:
   MouseMoved (BPoint point, uint32 transit, const BMessage *drag_msg)
   {
     struct haiku_mouse_motion_event rq;
-    int32 windowid;
+    int64 threadid;
     EmacsWindow *window;
-    BToolTip *tooltip;
 
     window = (EmacsWindow *) Window ();
-    tooltip = ToolTip ();
 
-    rq.just_exited_p = transit == B_EXITED_VIEW;
+    if (transit == B_EXITED_VIEW)
+      rq.just_exited_p = true;
+    else
+      rq.just_exited_p = false;
+
     rq.x = point.x;
     rq.y = point.y;
     rq.window = window;
     rq.time = system_time ();
 
     if (drag_msg && (drag_msg->IsSourceRemote ()
-		     || drag_msg->FindInt32 ("emacs:window_id",
-					     &windowid) != B_OK
-		     || windowid != window->window_id))
+		     || drag_msg->FindInt64 ("emacs:thread_id",
+					     &threadid) != B_OK
+		     || threadid != find_thread (NULL)))
       rq.dnd_message = true;
     else
       rq.dnd_message = false;
-
-    if (tooltip)
-      tooltip->SetMouseRelativeLocation (BPoint (-(point.x - tt_absl_pos.x),
-						 -(point.y - tt_absl_pos.y)));
 
     if (!grab_view_locker.Lock ())
       gui_abort ("Couldn't lock grab view locker");
@@ -1826,42 +1844,51 @@ public:
   }
 
   void
-  BasicMouseDown (BPoint point, BView *scroll_bar)
+  BasicMouseDown (BPoint point, BView *scroll_bar, BMessage *message)
   {
     struct haiku_button_event rq;
-    uint32 mods, buttons;
+    int64 when;
+    int32 mods, buttons, button;
 
-    this->GetMouse (&point, &buttons, false);
+    if (message->FindInt64 ("when", &when) != B_OK
+	|| message->FindInt32 ("modifiers", &mods) != B_OK
+	|| message->FindInt32 ("buttons", &buttons) != B_OK)
+      return;
 
-    if (!grab_view_locker.Lock ())
-      gui_abort ("Couldn't lock grab view locker");
-    if (buttons)
-      grab_view = this;
-    grab_view_locker.Unlock ();
+    /* Find which button was pressed by comparing the previous button
+       mask to the current one.  This assumes that B_MOUSE_DOWN will
+       be sent for each button press.  */
+    button = buttons & ~grabbed_buttons;
+    grabbed_buttons = buttons;
+
+    if (!scroll_bar)
+      {
+	if (!grab_view_locker.Lock ())
+	  gui_abort ("Couldn't lock grab view locker");
+	grab_view = this;
+	grab_view_locker.Unlock ();
+      }
 
     rq.window = this->Window ();
     rq.scroll_bar = scroll_bar;
 
-    if (!(previous_buttons & B_PRIMARY_MOUSE_BUTTON)
-	&& (buttons & B_PRIMARY_MOUSE_BUTTON))
+    if (button == B_PRIMARY_MOUSE_BUTTON)
       rq.btn_no = 0;
-    else if (!(previous_buttons & B_SECONDARY_MOUSE_BUTTON)
-	     && (buttons & B_SECONDARY_MOUSE_BUTTON))
+    else if (button == B_SECONDARY_MOUSE_BUTTON)
       rq.btn_no = 2;
-    else if (!(previous_buttons & B_TERTIARY_MOUSE_BUTTON)
-	     && (buttons & B_TERTIARY_MOUSE_BUTTON))
+    else if (button == B_TERTIARY_MOUSE_BUTTON)
       rq.btn_no = 1;
     else
+      /* We don't know which button was pressed.  This usually happens
+	 when a B_MOUSE_UP is sent to a view that didn't receive a
+	 corresponding B_MOUSE_DOWN event, so simply ignore the
+	 message.  */
       return;
-
-    previous_buttons = buttons;
 
     rq.x = point.x;
     rq.y = point.y;
-
-    mods = modifiers ();
-
     rq.modifiers = 0;
+
     if (mods & B_SHIFT_KEY)
       rq.modifiers |= HAIKU_MODIFIER_SHIFT;
 
@@ -1878,61 +1905,75 @@ public:
       SetMouseEventMask (B_POINTER_EVENTS, (B_LOCK_WINDOW_FOCUS
 					    | B_NO_POINTER_HISTORY));
 
-    rq.time = system_time ();
+    rq.time = when;
     haiku_write (BUTTON_DOWN, &rq);
   }
 
   void
   MouseDown (BPoint point)
   {
-    BasicMouseDown (point, NULL);
+    BMessage *msg;
+    BLooper *looper;
+
+    looper = Looper ();
+    msg = (looper
+	   ? looper->CurrentMessage ()
+	   : NULL);
+
+    if (msg)
+      BasicMouseDown (point, NULL, msg);
   }
 
   void
-  BasicMouseUp (BPoint point, BView *scroll_bar)
+  BasicMouseUp (BPoint point, BView *scroll_bar, BMessage *message)
   {
     struct haiku_button_event rq;
-    uint32 buttons, mods;
+    int64 when;
+    int32 mods, button, buttons;
 
-    this->GetMouse (&point, &buttons, false);
+    if (message->FindInt64 ("when", &when) != B_OK
+	|| message->FindInt32 ("modifiers", &mods) != B_OK
+	|| message->FindInt32 ("buttons", &buttons) != B_OK)
+      return;
 
-    if (!grab_view_locker.Lock ())
-      gui_abort ("Couldn't lock grab view locker");
-    if (!buttons)
-      grab_view = NULL;
-    grab_view_locker.Unlock ();
-
-    if (!buttons && wait_for_release_message)
+    if (!scroll_bar)
       {
-	wait_for_release_message->SendReply (wait_for_release_message);
-	delete wait_for_release_message;
-	wait_for_release_message = NULL;
+	if (!grab_view_locker.Lock ())
+	  gui_abort ("Couldn't lock grab view locker");
+	if (!buttons)
+	  grab_view = NULL;
+	grab_view_locker.Unlock ();
+      }
 
-	previous_buttons = buttons;
+    button = (grabbed_buttons & ~buttons);
+    grabbed_buttons = buttons;
+
+    if (wait_for_release_message)
+      {
+	if (!grabbed_buttons)
+	  {
+	    wait_for_release_message->SendReply (wait_for_release_message);
+	    delete wait_for_release_message;
+	    wait_for_release_message = NULL;
+	  }
+
 	return;
       }
 
     rq.window = this->Window ();
     rq.scroll_bar = scroll_bar;
 
-    if ((previous_buttons & B_PRIMARY_MOUSE_BUTTON)
-	&& !(buttons & B_PRIMARY_MOUSE_BUTTON))
+    if (button == B_PRIMARY_MOUSE_BUTTON)
       rq.btn_no = 0;
-    else if ((previous_buttons & B_SECONDARY_MOUSE_BUTTON)
-	     && !(buttons & B_SECONDARY_MOUSE_BUTTON))
+    else if (button == B_SECONDARY_MOUSE_BUTTON)
       rq.btn_no = 2;
-    else if ((previous_buttons & B_TERTIARY_MOUSE_BUTTON)
-	     && !(buttons & B_TERTIARY_MOUSE_BUTTON))
+    else if (button == B_TERTIARY_MOUSE_BUTTON)
       rq.btn_no = 1;
     else
       return;
 
-    previous_buttons = buttons;
-
     rq.x = point.x;
     rq.y = point.y;
-
-    mods = modifiers ();
 
     rq.modifiers = 0;
     if (mods & B_SHIFT_KEY)
@@ -1947,14 +1988,23 @@ public:
     if (mods & B_OPTION_KEY)
       rq.modifiers |= HAIKU_MODIFIER_SUPER;
 
-    rq.time = system_time ();
+    rq.time = when;
     haiku_write (BUTTON_UP, &rq);
   }
 
   void
   MouseUp (BPoint point)
   {
-    BasicMouseUp (point, NULL);
+    BMessage *msg;
+    BLooper *looper;
+
+    looper = Looper ();
+    msg = (looper
+	   ? looper->CurrentMessage ()
+	   : NULL);
+
+    if (msg)
+      BasicMouseUp (point, NULL, msg);
   }
 };
 
@@ -1967,8 +2017,9 @@ public:
   float old_value;
   scroll_bar_info info;
 
-  /* True if button events should be passed to the parent.  */
-  bool handle_button;
+  /* How many button events were passed to the parent without
+     release.  */
+  int handle_button_count;
   bool in_overscroll;
   bool can_overscroll;
   bool maybe_overscroll;
@@ -1984,7 +2035,7 @@ public:
     : BScrollBar (BRect (x, y, x1, y1), NULL, NULL, 0, 0, horizontal_p ?
 		  B_HORIZONTAL : B_VERTICAL),
       dragging (0),
-      handle_button (false),
+      handle_button_count (0),
       in_overscroll (false),
       can_overscroll (false),
       maybe_overscroll (false),
@@ -2208,10 +2259,10 @@ public:
 	&& mods & B_CONTROL_KEY)
       {
 	/* Allow C-mouse-3 to split the window on a scroll bar.   */
-	handle_button = true;
+	handle_button_count += 1;
 	SetMouseEventMask (B_POINTER_EVENTS, (B_SUSPEND_VIEW_FOCUS
 					      | B_LOCK_WINDOW_FOCUS));
-	parent->BasicMouseDown (ConvertToParent (pt), this);
+	parent->BasicMouseDown (ConvertToParent (pt), this, message);
 
 	return;
       }
@@ -2274,14 +2325,23 @@ public:
   MouseUp (BPoint pt)
   {
     struct haiku_scroll_bar_drag_event rq;
+    BMessage *msg;
+    BLooper *looper;
 
     in_overscroll = false;
     maybe_overscroll = false;
 
-    if (handle_button)
+    if (handle_button_count)
       {
-	handle_button = false;
-	parent->BasicMouseUp (ConvertToParent (pt), this);
+	handle_button_count--;
+	looper = Looper ();
+	msg = (looper
+	       ? looper->CurrentMessage ()
+	       : NULL);
+
+	if (msg)
+	  parent->BasicMouseUp (ConvertToParent (pt),
+				this, msg);
 
 	return;
       }
@@ -2574,6 +2634,9 @@ class EmacsFontPreviewDialog : public BWindow
 	current_font = new BFont;
 	current_font->SetFamilyAndStyle (name, sname);
 
+	if (message->GetBool ("emacs:disable_antialiasing", false))
+	  current_font->SetFlags (B_DISABLE_ANTIALIASING);
+
 	if (size_name && strlen (size_name))
 	  {
 	    size = atoi (size_name);
@@ -2615,26 +2678,32 @@ public:
   }
 };
 
-class DualLayoutView : public BView
+class TripleLayoutView : public BView
 {
   BScrollView *view_1;
-  BView *view_2;
+  BView *view_2, *view_3;
 
   void
   FrameResized (float new_width, float new_height)
   {
     BRect frame;
-    float width, height;
+    float width, height, height_1, width_1;
+    float basic_height;
 
     frame = Frame ();
 
     view_2->GetPreferredSize (&width, &height);
+    view_3->GetPreferredSize (&width_1, &height_1);
+
+    basic_height = height + height_1;
 
     view_1->MoveTo (0, 0);
     view_1->ResizeTo (BE_RECT_WIDTH (frame),
-		      BE_RECT_HEIGHT (frame) - height);
-    view_2->MoveTo (2, BE_RECT_HEIGHT (frame) - height);
+		      BE_RECT_HEIGHT (frame) - basic_height);
+    view_2->MoveTo (2, BE_RECT_HEIGHT (frame) - basic_height);
     view_2->ResizeTo (BE_RECT_WIDTH (frame) - 4, height);
+    view_3->MoveTo (2, BE_RECT_HEIGHT (frame) - height_1);
+    view_3->ResizeTo (BE_RECT_WIDTH (frame) - 4, height_1);
 
     BView::FrameResized (new_width, new_height);
   }
@@ -2644,19 +2713,24 @@ class DualLayoutView : public BView
   MinSize (void)
   {
     float width, height;
+    float width_1, height_1;
     BSize size_1;
 
     size_1 = view_1->MinSize ();
     view_2->GetPreferredSize (&width, &height);
+    view_3->GetPreferredSize (&width_1, &height_1);
 
-    return BSize (std::max (size_1.width, width),
-		  std::max (size_1.height, height));
+    return BSize (std::max (size_1.width,
+			    std::max (width_1, width)),
+		  std::max (size_1.height, height + height_1));
   }
 
 public:
-  DualLayoutView (BScrollView *first, BView *second) : BView (NULL, B_FRAME_EVENTS),
-						       view_1 (first),
-						       view_2 (second)
+  TripleLayoutView (BScrollView *first, BView *second,
+		    BView *third) : BView (NULL, B_FRAME_EVENTS),
+				    view_1 (first),
+				    view_2 (second),
+				    view_3 (third)
   {
     FrameResized (801, 801);
   }
@@ -2665,13 +2739,14 @@ public:
 class EmacsFontSelectionDialog : public BWindow
 {
   BView basic_view;
+  BCheckBox antialias_checkbox;
   BCheckBox preview_checkbox;
   BSplitView split_view;
   BListView font_family_pane;
   BListView font_style_pane;
   BScrollView font_family_scroller;
   BScrollView font_style_scroller;
-  DualLayoutView style_view;
+  TripleLayoutView style_view;
   BObjectList<BStringItem> all_families;
   BObjectList<BStringItem> all_styles;
   BButton cancel_button, ok_button;
@@ -2706,6 +2781,9 @@ class EmacsFontSelectionDialog : public BWindow
     message.what = SET_FONT_INDICES;
     message.AddInt32 ("emacs:family", family);
     message.AddInt32 ("emacs:style", style);
+
+    if (antialias_checkbox.Value () == B_CONTROL_ON)
+      message.AddBool ("emacs:disable_antialiasing", true);
 
     message.AddString ("emacs:size",
 		       size_entry.Text ());
@@ -2834,6 +2912,11 @@ class EmacsFontSelectionDialog : public BWindow
 	rq.size = atoi (text);
 	rq.size_specified = rq.size > 0 || strlen (text);
 
+	if (antialias_checkbox.Value () == B_CONTROL_ON)
+	  rq.disable_antialias = true;
+	else
+	  rq.disable_antialias = false;
+
 	write_port (comm_port, 0, &rq, sizeof rq);
       }
     else if (msg->what == B_CANCEL)
@@ -2855,6 +2938,11 @@ class EmacsFontSelectionDialog : public BWindow
 	HidePreview ();
       }
     else if (msg->what == UPDATE_PREVIEW_DIALOG)
+      {
+	if (preview)
+	  UpdatePreview ();
+      }
+    else if (msg->what == SET_DISABLE_ANTIALIASING)
       {
 	if (preview)
 	  UpdatePreview ();
@@ -2881,6 +2969,7 @@ public:
 
     font_family_pane.RemoveSelf ();
     font_style_pane.RemoveSelf ();
+    antialias_checkbox.RemoveSelf ();
     preview_checkbox.RemoveSelf ();
     style_view.RemoveSelf ();
     font_family_scroller.RemoveSelf ();
@@ -2897,12 +2986,15 @@ public:
   EmacsFontSelectionDialog (bool monospace_only,
 			    int initial_family_idx,
 			    int initial_style_idx,
-			    int initial_size)
+			    int initial_size,
+			    bool initial_antialias)
     : BWindow (BRect (0, 0, 500, 500),
 	       "Select font from list",
 	       B_TITLED_WINDOW_LOOK,
 	       B_MODAL_APP_WINDOW_FEEL, 0),
       basic_view (NULL, 0),
+      antialias_checkbox ("Disable antialiasing", "Disable antialiasing",
+			  new BMessage (SET_DISABLE_ANTIALIASING)),
       preview_checkbox ("Show preview", "Show preview",
 			new BMessage (SET_PREVIEW_DIALOG)),
       font_family_pane (BRect (0, 0, 0, 0), NULL,
@@ -2917,7 +3009,8 @@ public:
       font_style_scroller (NULL, &font_style_pane,
 			   B_FOLLOW_ALL_SIDES,
 			   B_SUPPORTS_LAYOUT, false, true),
-      style_view (&font_style_scroller, &preview_checkbox),
+      style_view (&font_style_scroller, &antialias_checkbox,
+		  &preview_checkbox),
       all_families (20, true),
       all_styles (20, true),
       cancel_button ("Cancel", "Cancel",
@@ -2946,6 +3039,7 @@ public:
     split_view.AddChild (&font_family_scroller, 0.7);
     split_view.AddChild (&style_view, 0.3);
     style_view.AddChild (&font_style_scroller);
+    style_view.AddChild (&antialias_checkbox);
     style_view.AddChild (&preview_checkbox);
 
     basic_view.SetViewUIColor (B_PANEL_BACKGROUND_COLOR);
@@ -3007,6 +3101,9 @@ public:
 	sprintf (format_buffer, "%d", initial_size);
 	size_entry.SetText (format_buffer);
       }
+
+    if (!initial_antialias)
+      antialias_checkbox.SetValue (B_CONTROL_ON);
   }
 
   void
@@ -3222,6 +3319,41 @@ public:
   InitCheck (void)
   {
     return comm_port >= B_OK ? B_OK : comm_port;
+  }
+};
+
+/* A view that is added as a child of a tooltip's text view, and
+   prevents motion events from reaching it (thereby moving the
+   tooltip).  */
+class EmacsMotionSuppressionView : public BView
+{
+  void
+  AttachedToWindow (void)
+  {
+    BView *text_view, *tooltip_view;
+
+    /* We know that this view is a child of the text view, whose
+       parent is the tooltip view, and that the tooltip view has
+       already set its mouse event mask.  */
+
+    text_view = Parent ();
+
+    if (!text_view)
+      return;
+
+    tooltip_view = text_view->Parent ();
+
+    if (!tooltip_view)
+      return;
+
+    tooltip_view->SetEventMask (B_KEYBOARD_EVENTS, 0);
+  }
+
+public:
+  EmacsMotionSuppressionView (void) : BView (BRect (-1, -1, 1, 1),
+					     NULL, 0, 0)
+  {
+    return;
   }
 };
 
@@ -3474,8 +3606,8 @@ be_get_screen_dimensions (int *width, int *height)
 
   frame = screen.Frame ();
 
-  *width = 1 + frame.right - frame.left;
-  *height = 1 + frame.bottom - frame.top;
+  *width = BE_RECT_WIDTH (frame);
+  *height = BE_RECT_HEIGHT (frame);
 }
 
 /* Resize VIEW to WIDTH, HEIGHT.  */
@@ -4263,30 +4395,48 @@ BView_set_tooltip (void *view, const char *tooltip)
 
 /* Set VIEW's tooltip to a sticky tooltip at X by Y.  */
 void
-BView_set_and_show_sticky_tooltip (void *view, const char *tooltip,
-				   int x, int y)
+be_show_sticky_tooltip (void *view, const char *tooltip_text,
+			int x, int y)
 {
-  BToolTip *tip;
-  BView *vw = (BView *) view;
+  BToolTip *tooltip;
+  BView *vw, *tooltip_view;
+  BPoint point;
+
+  vw = (BView *) view;
+
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view while showing sticky tooltip");
-  vw->SetToolTip (tooltip);
-  tip = vw->ToolTip ();
-  BPoint pt;
-  EmacsView *ev = dynamic_cast<EmacsView *> (vw);
-  if (ev)
-    ev->tt_absl_pos = BPoint (x, y);
 
-  vw->GetMouse (&pt, NULL, 1);
-  pt.x -= x;
-  pt.y -= y;
+  vw->SetToolTip ((const char *) NULL);
 
-  pt.x = -pt.x;
-  pt.y = -pt.y;
+  /* If the tooltip text is empty, then a tooltip object won't be
+     created by SetToolTip.  */
+  if (tooltip_text[0] == '\0')
+    tooltip_text = " ";
 
-  tip->SetMouseRelativeLocation (pt);
-  tip->SetSticky (1);
-  vw->ShowToolTip (tip);
+  vw->SetToolTip (tooltip_text);
+
+  tooltip = vw->ToolTip ();
+
+  vw->GetMouse (&point, NULL, 1);
+  point.x -= x;
+  point.y -= y;
+
+  point.x = -point.x;
+  point.y = -point.y;
+
+  /* We don't have to make the tooltip sticky since not receiving
+     mouse movement is enough to prevent it from being hidden.  */
+  tooltip->SetMouseRelativeLocation (point);
+
+  /* Prevent the tooltip from moving in response to mouse
+     movement.  */
+  tooltip_view = tooltip->View ();
+
+  if (tooltip_view)
+    tooltip_view->AddChild (new EmacsMotionSuppressionView);
+
+  vw->ShowToolTip (tooltip);
   vw->UnlockLooper ();
 }
 
@@ -4950,13 +5100,17 @@ be_drag_message (void *view, void *message, bool allow_same_view,
   BMessage cancel_message (CANCEL_DROP);
   struct object_wait_info infos[2];
   ssize_t stat;
+  thread_id window_thread;
 
   block_input_function ();
 
-  if (!allow_same_view &&
-      (msg->ReplaceInt32 ("emacs:window_id", window->window_id)
-       == B_NAME_NOT_FOUND))
-    msg->AddInt32 ("emacs:window_id", window->window_id);
+  if (!allow_same_view)
+    window_thread = window->Looper ()->Thread ();
+
+  if (!allow_same_view
+      && (msg->ReplaceInt64 ("emacs:thread_id", window_thread)
+	  == B_NAME_NOT_FOUND))
+    msg->AddInt64 ("emacs:thread_id", window_thread);
 
   if (!vw->LockLooper ())
     gui_abort ("Failed to lock view looper for drag");
@@ -5096,7 +5250,8 @@ be_select_font (void (*process_pending_signals_function) (void),
 		haiku_font_family_or_style *style,
 		int *size, bool allow_monospace_only,
 		int initial_family, int initial_style,
-		int initial_size)
+		int initial_size, bool initial_antialias,
+		bool *disable_antialias)
 {
   EmacsFontSelectionDialog *dialog;
   struct font_selection_dialog_message msg;
@@ -5106,7 +5261,7 @@ be_select_font (void (*process_pending_signals_function) (void),
 
   dialog = new EmacsFontSelectionDialog (allow_monospace_only,
 					 initial_family, initial_style,
-					 initial_size);
+					 initial_size, initial_antialias);
   dialog->CenterOnScreen ();
 
   if (dialog->InitCheck () < B_OK)
@@ -5135,6 +5290,7 @@ be_select_font (void (*process_pending_signals_function) (void),
   memcpy (family, family_buffer, sizeof *family);
   memcpy (style, style_buffer, sizeof *style);
   *size = msg.size_specified ? msg.size : -1;
+  *disable_antialias = msg.disable_antialias;
 
   return true;
 }
@@ -5321,4 +5477,27 @@ be_get_explicit_workarea (int *x, int *y, int *width, int *height)
   *height = BE_RECT_HEIGHT (zoom);
 
   return true;
+}
+
+/* Clear the grab view.  This has to be called manually from some
+   places, since we don't get B_MOUSE_UP messages after a popup menu
+   is run.  */
+
+void
+be_clear_grab_view (void)
+{
+  if (grab_view_locker.Lock ())
+    {
+      grab_view = NULL;
+      grab_view_locker.Unlock ();
+    }
+}
+
+void
+be_set_use_frame_synchronization (void *view, bool sync)
+{
+  EmacsView *vw;
+
+  vw = (EmacsView *) view;
+  vw->SetFrameSynchronization (sync);
 }

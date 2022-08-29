@@ -301,6 +301,7 @@ packages in `package-directory-list'."
   :type 'directory
   :initialize #'custom-initialize-delay
   :risky t
+  :group 'applications
   :version "24.1")
 
 ;;;###autoload
@@ -319,6 +320,7 @@ These directories contain packages intended for system-wide; in
 contrast, `package-user-dir' contains packages for personal use."
   :type '(repeat directory)
   :initialize #'custom-initialize-delay
+  :group 'applications
   :risky t
   :version "24.1")
 
@@ -355,10 +357,10 @@ More specifically the value can be:
 
 This also applies to the \"archive-contents\" file that lists the
 contents of the archive."
-  :type '(choice (const nil :tag "Never")
-                 (const allow-unsigned :tag "Allow unsigned")
-                 (const t :tag "Check always")
-                 (const all :tag "Check all signatures"))
+  :type '(choice (const :value nil            :tag "Never")
+                 (const :value allow-unsigned :tag "Allow unsigned")
+                 (const :value t              :tag "Check always")
+                 (const :value all            :tag "Check all signatures"))
   :risky t
   :version "27.1")
 
@@ -418,22 +420,22 @@ synchronously."
 
 (defcustom package-name-column-width 30
   "Column width for the Package name in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-version-column-width 14
   "Column width for the Package version in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-status-column-width 12
   "Column width for the Package status in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 (defcustom package-archive-column-width 8
   "Column width for the Package archive in the package menu."
-  :type 'number
+  :type 'natnum
   :version "28.1")
 
 
@@ -627,6 +629,7 @@ called via `package-activate-all'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
 (put 'package-alist 'risky-local-variable t)
 
+;;;###autoload
 (defvar package-activated-list nil
   ;; FIXME: This should implicitly include all builtin packages.
   "List of the names of currently activated packages.")
@@ -720,8 +723,7 @@ REQUIREMENTS is a list of dependencies on other packages.
  where OTHER-VERSION is a string.
 
 EXTRA-PROPERTIES is currently unused."
-  (declare (indent defun))
-  ;; FIXME: Placeholder!  Should we keep it?
+  (declare (obsolete nil "29.1") (indent defun))
   (error "Don't call me!"))
 
 
@@ -786,10 +788,14 @@ byte-compilation of the new package to fail."
   (with-demoted-errors "Error in package--load-files-for-activation: %s"
     (let* (result
            (dir (package-desc-dir pkg-desc))
-           (load-path-sans-dir
-            (cl-remove-if (apply-partially #'string= dir)
-                          (or (bound-and-true-p find-function-source-path)
-                              load-path)))
+           ;; A previous implementation would skip `dir' itself.
+           ;; However, in normal use reloading from the same directory
+           ;; never happens anyway, while in certain cases external to
+           ;; Emacs a package in the same directory not necessary
+           ;; stays byte-identical, e.g.  during development.  Just
+           ;; don't special-case `dir'.
+           (effective-path (or (bound-and-true-p find-library-source-path)
+                               load-path))
            (files (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))
            (history (mapcar #'file-truename
                             (cl-remove-if-not #'stringp
@@ -797,8 +803,19 @@ byte-compilation of the new package to fail."
       (dolist (file files)
         (when-let ((library (package--library-stem
                              (file-relative-name file dir)))
-                   (canonical (locate-library library nil load-path-sans-dir))
-                   (found (member (file-truename canonical) history))
+                   (canonical (locate-library library nil effective-path))
+                   (truename (file-truename canonical))
+                   ;; Normally, all files in a package are compiled by
+                   ;; now, but don't assume that.  E.g. different
+                   ;; versions can add or remove `no-byte-compile'.
+                   (altname (if (string-suffix-p ".el" truename)
+                                (replace-regexp-in-string
+                                 "\\.el\\'" ".elc" truename t)
+                              (replace-regexp-in-string
+                               "\\.elc\\'" ".el" truename t)))
+                   (found (or (member truename history)
+                              (and (not (string= altname truename))
+                                   (member altname history))))
                    (recent-index (length found)))
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
@@ -1007,7 +1024,9 @@ untar into a directory named DIR; otherwise, signal an error."
   (unless (file-exists-p file)
     (require 'autoload)
     (let ((coding-system-for-write 'utf-8-emacs-unix))
-      (write-region (autoload-rubric file "package" nil) nil file nil 'silent)))
+      (with-suppressed-warnings ((obsolete autoload-rubric))
+        (write-region (autoload-rubric file "package" nil)
+                      nil file nil 'silent))))
   file)
 
 (defvar autoload-timestamps)
@@ -1311,7 +1330,7 @@ errors signaled by ERROR-FORM or by BODY).
 
 (cl-defun package--with-response-buffer-1 (url body &key async file error-function noerror &allow-other-keys)
   (if (string-match-p "\\`https?:" url)
-        (let ((url (concat url file)))
+        (let ((url (url-expand-file-name file url)))
           (if async
               (package--unless-error #'ignore
                 (url-retrieve
@@ -1646,6 +1665,7 @@ The variable `package-load-list' controls which packages to load."
       (require 'package)
       (package--activate-all)))))
 
+;;;###autoload
 (defun package--activate-all ()
   (dolist (elt (package--alist))
     (condition-case err
@@ -2067,7 +2087,10 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
          package-activated-list)
     ;; We used the quickstart: make it possible to use package-installed-p
     ;; even before package is fully initialized.
-    (memq package package-activated-list))
+    (or
+     (memq package package-activated-list)
+     ;; Also check built-in packages.
+     (package-built-in-p package min-version)))
    (t
     (or
      (let ((pkg-descs (cdr (assq package (package--alist)))))
@@ -2421,6 +2444,35 @@ object."
    (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
    'force 'nosave)
   (package-install pkg 'dont-select))
+
+;;;###autoload
+(defun package-recompile (pkg)
+  "Byte-compile package PKG again.
+PKG should be either a symbol, the package name, or a `package-desc'
+object."
+  (interactive (list (intern (completing-read
+                              "Recompile package: "
+                              (mapcar #'symbol-name
+                                      (mapcar #'car package-alist))))))
+  (let ((pkg-desc (if (package-desc-p pkg)
+                      pkg
+                    (cadr (assq pkg package-alist)))))
+    ;; Delete the old .elc files to ensure that we don't inadvertently
+    ;; load them (in case they contain byte code/macros that are now
+    ;; invalid).
+    (dolist (elc (directory-files-recursively
+                  (package-desc-dir pkg-desc) "\\.elc\\'"))
+      (delete-file elc))
+    (package--compile pkg-desc)))
+
+;;;###autoload
+(defun package-recompile-all ()
+  "Byte-compile all installed packages.
+This is meant to be used only in the case the byte-compiled files
+are invalid due to changed byte-code, macros or the like."
+  (interactive)
+  (pcase-dolist (`(_ ,pkg-desc) package-alist)
+    (package-recompile pkg-desc)))
 
 ;;;###autoload
 (defun package-autoremove ()
@@ -3478,7 +3530,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
         (let ((place (cdr desc))
               (out (copy-sequence (car desc))))
           (add-text-properties place (1+ place)
-                               '(face (bold font-lock-warning-face))
+                               '(face help-key-binding)
                                out)
           out))
     (package--prettify-quick-help-key (cons desc 0))))
@@ -3490,9 +3542,6 @@ The full list of keys can be viewed with \\[describe-mode]."
   (package--ensure-package-menu-mode)
   (message (mapconcat #'package--prettify-quick-help-key
                       package--quick-help-keys "\n")))
-
-(define-obsolete-function-alias
-  'package-menu-view-commentary 'package-menu-describe-package "24.1")
 
 (defun package-menu-get-status ()
   "Return status text of package at point in Package Menu."
@@ -4246,6 +4295,7 @@ activations need to be changed, such as when `package-load-list' is modified."
   (locate-user-emacs-file "package-quickstart.el")
   "Location of the file used to speed up activation of packages at startup."
   :type 'file
+  :group 'applications
   :initialize #'custom-initialize-delay
   :version "27.1")
 

@@ -31,25 +31,23 @@
 
 (require 'cl-lib)
 
-(defvar help-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap button-buffer-map
-                                                 special-mode-map))
-    (define-key map "n" 'help-goto-next-page)
-    (define-key map "p" 'help-goto-previous-page)
-    (define-key map "l" 'help-go-back)
-    (define-key map "r" 'help-go-forward)
-    (define-key map "\C-c\C-b" 'help-go-back)
-    (define-key map "\C-c\C-f" 'help-go-forward)
-    (define-key map [XF86Back] 'help-go-back)
-    (define-key map [XF86Forward] 'help-go-forward)
-    (define-key map "\C-c\C-c" 'help-follow-symbol)
-    (define-key map "s" 'help-view-source)
-    (define-key map "I" 'help-goto-lispref-info)
-    (define-key map "i" 'help-goto-info)
-    (define-key map "c" 'help-customize)
-    map)
-  "Keymap for Help mode.")
+(defvar-keymap help-mode-map
+  :doc "Keymap for Help mode."
+  :parent (make-composed-keymap button-buffer-map
+                                special-mode-map)
+  "n"             #'help-goto-next-page
+  "p"             #'help-goto-previous-page
+  "l"             #'help-go-back
+  "r"             #'help-go-forward
+  "C-c C-b"       #'help-go-back
+  "C-c C-f"       #'help-go-forward
+  "<XF86Back>"    #'help-go-back
+  "<XF86Forward>" #'help-go-forward
+  "C-c C-c"       #'help-follow-symbol
+  "s"             #'help-view-source
+  "I"             #'help-goto-lispref-info
+  "i"             #'help-goto-info
+  "c"             #'help-customize)
 
 (easy-menu-define help-mode-menu help-mode-map
   "Menu for Help mode."
@@ -386,8 +384,8 @@ The format is (FUNCTION ARGS...).")
   'help-function
   (lambda (file pos)
     (if help-window-keep-selected
-        (view-buffer (find-file-noselect file))
-      (view-buffer-other-window (find-file-noselect file)))
+        (view-file file)
+      (view-file-other-window file))
     (goto-char pos))
   'help-echo (purecopy "mouse-2, RET: show corresponding NEWS announcement"))
 
@@ -410,7 +408,7 @@ Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
-  (add-hook 'context-menu-functions 'help-mode-context-menu 5 t)
+  (add-hook 'context-menu-functions #'help-mode-context-menu 5 t)
   (setq-local tool-bar-map
               help-mode-tool-bar-map)
   (setq-local help-mode--current-data nil)
@@ -543,6 +541,12 @@ Each element has the form (NAME TESTFUN DESCFUN) where:
     and a frame), inserts the description of that symbol in the current buffer
     and returns that text as well.")
 
+(defcustom help-clean-buttons nil
+  "If non-nil, remove quotes around link buttons."
+  :version "29.1"
+  :type 'boolean
+  :group 'help)
+
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
   "Parse and hyperlink documentation cross-references in the given BUFFER.
@@ -669,21 +673,25 @@ that."
           (while (and (not (bobp)) (bolp))
             (delete-char -1))
           (insert "\n")
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n"))
-          ;; Make a back-reference in this buffer if appropriate.
-          (when help-xref-stack
-            (help-insert-xref-button help-back-label 'help-back
-                                     (current-buffer)))
-          ;; Make a forward-reference in this buffer if appropriate.
-          (when help-xref-forward-stack
-            (when help-xref-stack
-              (insert "\t"))
-            (help-insert-xref-button help-forward-label 'help-forward
-                                     (current-buffer)))
-          (when (or help-xref-stack help-xref-forward-stack)
-            (insert "\n")))
+          (help-xref--navigation-buttons))
         (set-buffer-modified-p old-modified)))))
+
+(defun help-xref--navigation-buttons ()
+  (let ((inhibit-read-only t))
+    (when (or help-xref-stack help-xref-forward-stack)
+      (ensure-empty-lines 1))
+    ;; Make a back-reference in this buffer if appropriate.
+    (when help-xref-stack
+      (help-insert-xref-button help-back-label 'help-back
+                               (current-buffer)))
+    ;; Make a forward-reference in this buffer if appropriate.
+    (when help-xref-forward-stack
+      (when help-xref-stack
+        (insert "\t"))
+      (help-insert-xref-button help-forward-label 'help-forward
+                               (current-buffer)))
+    (unless (bolp)
+      (insert "\n"))))
 
 ;;;###autoload
 (defun help-xref-button (match-number type &rest args)
@@ -691,12 +699,26 @@ that."
 MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  TYPE is the type of button to use.  Any remaining arguments are
 passed to the button's help-function when it is invoked.
-See `help-make-xrefs'."
+See `help-make-xrefs'.
+
+This function removes quotes surrounding the match if the
+variable `help-clean-buttons' is non-nil."
   ;; Don't mung properties we've added specially in some instances.
-  (unless (button-at (match-beginning match-number))
-    (make-text-button (match-beginning match-number)
-		      (match-end match-number)
-		      'type type 'help-args args)))
+  (let ((beg (match-beginning match-number))
+        (end (match-end match-number)))
+    (unless (button-at beg)
+      (make-text-button beg end 'type type 'help-args args)
+      (when (and help-clean-buttons
+                 (> beg (point-min))
+                 (save-excursion
+                   (goto-char (1- beg))
+                   (looking-at "['`‘]"))
+                 (< end (point-max))
+                 (save-excursion
+                   (goto-char end)
+                   (looking-at "['’]")))
+        (delete-region end (1+ end))
+        (delete-region (1- beg) beg)))))
 
 ;;;###autoload
 (defun help-insert-xref-button (string type &rest args)
@@ -740,7 +762,7 @@ See `help-make-xrefs'."
 ;; Additional functions for (re-)creating types of help buffers.
 
 ;;;###autoload
-(define-obsolete-function-alias 'help-xref-interned 'describe-symbol "25.1")
+(define-obsolete-function-alias 'help-xref-interned #'describe-symbol "25.1")
 
 
 ;; Navigation/hyperlinking with xrefs
@@ -810,7 +832,7 @@ The help buffers are divided into \"pages\" by the ^L character."
 
 (defun help-goto-previous-page ()
   "Go to the previous page (if any) in the current buffer.
-(If not at the start of a page, go to the start of the current page.)
+\(If not at the start of a page, go to the start of the current page.)
 
 The help buffers are divided into \"pages\" by the ^L character."
   (interactive nil help-mode)

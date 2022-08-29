@@ -27,6 +27,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include "xterm.h"		/* for struct selection_input_event */
 #endif
 
+#ifdef HAVE_PGTK
+#include "pgtkterm.h"		/* for struct selection_input_event */
+#endif
+
 INLINE_HEADER_BEGIN
 
 /* Most code should use this macro to access Lisp fields in struct kboard.  */
@@ -226,7 +230,7 @@ union buffered_input_event
 {
   ENUM_BF (event_kind) kind : EVENT_KIND_WIDTH;
   struct input_event ie;
-#ifdef HAVE_X11
+#if defined HAVE_X11 || defined HAVE_PGTK
   struct selection_input_event sie;
 #endif
 };

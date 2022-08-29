@@ -443,9 +443,9 @@ specification.  If the key sequence that invoked the command has
 and @acronym{ASCII} characters, do not count where @samp{e} is concerned.
 
 @item f
-A file name of an existing file (@pxref{File Names}).  The default
-directory is @code{default-directory}.  Existing, Completion, Default,
-Prompt.
+A file name of an existing file (@pxref{File Names}).  @xref{Reading
+File Names}, for details about default values.  Existing, Completion,
+Default, Prompt.
 
 @item F
 A file name.  The file need not exist.  Completion, Default, Prompt.
@@ -896,6 +896,10 @@ Interactive}), and also commands that are bound to locally active
 keymaps.  This command is the normal definition of @kbd{M-S-x}
 (that's ``meta shift x'').
 @end deffn
+
+Both these commands prompt for a command name, but with different
+completion rules.  You can toggle between these two modes by using the
+@kbd{M-S-x} command while being prompted.
 
 @node Distinguish Interactive
 @section Distinguish Interactive Calls
@@ -2074,7 +2078,7 @@ and @var{kind} as arguments.
 @item load-changed
 This xwidget event indicates that the @var{xwidget} has reached a
 particular point of the page-loading process.  When these events are
-sent, @var{arg} will contain a string that futher describes the status
+sent, @var{arg} will contain a string that further describes the status
 of the widget:
 
 @table @samp
@@ -2207,6 +2211,17 @@ portable code, use the variables @code{mouse-wheel-up-event},
 and @code{mouse-wheel-down-alternate-event} defined in
 @file{mwheel.el} to determine what event types to expect for the mouse
 wheel.
+
+@vindex mouse-wheel-left-event
+@vindex mouse-wheel-right-event
+Similarly, some mice can generate @code{mouse-wheel-left-event} and
+@code{mouse-wheel-right-event} and can be used to scroll if
+@code{mouse-wheel-tilt-scroll} is non-@code{nil}.  However, some mice
+also generate other events at the same time as they're generating
+these scroll events which may get in the way.  The way to fix this is
+generally to unbind these events (for instance, @code{mouse-6} or
+@code{mouse-7}, but this is very hardware and operating system
+dependent).
 
 @cindex @code{pinch} event
 @item (pinch @var{position} @var{dx} @var{dy} @var{scale} @var{angle})
@@ -2686,7 +2701,10 @@ the character at that position.
 @cindex timestamp of a mouse event
 @defun posn-timestamp position
 Return the timestamp in @var{position}.  This is the time at which the
-event occurred, in milliseconds.
+event occurred, in milliseconds.  Such a timestamp is reported
+relative to an arbitrary starting time that varies according to the
+window system in use.  On the X Window System, for example, it is the
+number of milliseconds since the X server was started.
 @end defun
 
   These functions compute a position list given particular buffer
@@ -2962,7 +2980,7 @@ returns the key sequence as a vector, never as a string.
 If an input character is upper-case (or has the shift modifier) and
 has no key binding, but its lower-case equivalent has one, then
 @code{read-key-sequence} converts the character to lower case.  (This
-behaviour can be disabled by setting the
+behavior can be disabled by setting the
 @code{translate-upper-case-key-bindings} user option to @code{nil}.)
 Note that @code{lookup-key} does not perform case conversion in this
 way.
@@ -3198,7 +3216,7 @@ causes it to evaluate @code{help-form} and display the result.  It
 then continues to wait for a valid input character, or keyboard-quit.
 @end defun
 
-@defun read-multiple-choice prompt choices &optional help-string show-help
+@defun read-multiple-choice prompt choices &optional help-string show-help long-form
 Ask user a multiple choice question.  @var{prompt} should be a string
 that will be displayed as the prompt.
 
@@ -3216,6 +3234,11 @@ description when the user types @kbd{?}.
 If optional argument @var{show-help} is non-@code{nil}, the help
 buffer will be displayed immediately, before any user input.  If it is
 a string, use it as the name of the help buffer.
+
+If optional argument @var{long-form} is non-@code{nil}, the user
+will have to type in long-form answers (using @code{completing-read})
+instead of hitting a single key.  The answers must be among the second
+elements of the values in the @var{choices} list.
 
 The return value is the matching value from @var{choices}.
 

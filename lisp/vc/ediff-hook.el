@@ -35,27 +35,19 @@
 ;;      (define-key menu-bar-tools-menu [ediff]
 ;;	'("Compare" . menu-bar-ediff-menu))
 
-;; Compiler pacifier
-(defvar ediff-menu)
-(defvar ediff-merge-menu)
-(defvar epatch-menu)
-(defvar ediff-misc-menu)
-;; end pacifier
-
 ;; allow menus to be set up without ediff-wind.el being loaded
 
-;; Emacs
 ;; initialize menu bar keymaps
 (defvar menu-bar-ediff-misc-menu
   (make-sparse-keymap "Ediff Miscellanea"))
 (fset 'menu-bar-ediff-misc-menu
       menu-bar-ediff-misc-menu)
-(defvar menu-bar-epatch-menu (make-sparse-keymap "Apply Patch"))
+(defvar-keymap menu-bar-epatch-menu :name "Apply Patch")
 (fset 'menu-bar-epatch-menu menu-bar-epatch-menu)
-(defvar menu-bar-ediff-merge-menu (make-sparse-keymap "Merge"))
+(defvar-keymap menu-bar-ediff-merge-menu :name "Merge")
 (fset 'menu-bar-ediff-merge-menu
       menu-bar-ediff-merge-menu)
-(defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
+(defvar-keymap menu-bar-ediff-menu :name "Compare")
 (fset 'menu-bar-ediff-menu menu-bar-ediff-menu)
 
 ;; define ediff compare menu

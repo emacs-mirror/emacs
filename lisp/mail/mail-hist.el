@@ -80,7 +80,7 @@ previous/next input.")
 (defcustom mail-hist-history-size (or kill-ring-max 1729)
   "The maximum number of elements in a mail field's history.
 Oldest elements are dumped first."
-  :type 'integer)
+  :type 'natnum)
 
 ;;;###autoload
 (defcustom mail-hist-keep-history t

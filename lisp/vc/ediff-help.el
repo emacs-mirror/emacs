@@ -24,10 +24,6 @@
 
 ;;; Code:
 
-;; Compiler pacifier start
-(defvar ediff-multiframe)
-;; end pacifier
-
 (require 'ediff-init)
 (defvar ediff-multiframe)
 
@@ -152,7 +148,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 
 
 ;; the keymap that defines clicks over the quick help regions
-(defvar ediff-help-region-map (make-sparse-keymap))
+(defvar-keymap ediff-help-region-map)
 
 (define-key ediff-help-region-map [mouse-2] #'ediff-help-for-quick-help)
 

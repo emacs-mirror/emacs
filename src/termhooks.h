@@ -209,30 +209,6 @@ enum event_kind
 				   representation of the dropped items.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-#ifdef HAVE_X_WINDOWS
-  UNSUPPORTED_DROP_EVENT,      /* Event sent when the regular C
-				  drag-and-drop machinery could not
-				  handle a drop to a window.
-
-			          .code is the XID of the window that
-			          could not be dropped to.
-
-			          .arg is a list of the local value of
-			          XdndSelection, a list of selection
-			          targets, and the intended action to
-			          be taken upon drop, and .timestamp
-			          gives the timestamp where the drop
-			          happened.
-
-				  .modifiers gives a number that
-				  determines if an event was already
-				  handled by
-				  `x_dnd_begin_drag_and_drop'.
-
-			          .x and .y give the coordinates of
-			          the drop originating from the root
-			          window.  */
-#endif
   USER_SIGNAL_EVENT,		/* A user signal.
                                    code is a number identifying it,
                                    index into lispy_user_signals.  */
@@ -877,6 +853,13 @@ struct terminal
      MENU_BAR_P if X and Y are in FRAME's toolkit menu bar, and true
      into TOOL_BAR_P if X and Y are in FRAME's toolkit tool bar.  */
   void (*toolkit_position_hook) (struct frame *, int, int, bool *, bool *);
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Called to determine if the mouse is grabbed on the given display.
+     If either dpyinfo->grabbed or this returns true, then the display
+     will be considered as grabbed.  */
+  bool (*any_grab_hook) (Display_Info *);
+#endif
 } GCALIGNED_STRUCT;
 
 INLINE bool

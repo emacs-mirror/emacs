@@ -49,7 +49,7 @@
   (add-hook 'eshell-pre-rewrite-command-hook
             #'eshell-rewrite-external-pipeline -20 t))
 
-(defmacro em-extpipe--or-with-catch (&rest disjuncts)
+(defmacro eshell-extpipe--or-with-catch (&rest disjuncts)
   "Evaluate DISJUNCTS like `or' but catch `eshell-incomplete'.
 
 If `eshell-incomplete' is thrown during the evaluation of a
@@ -118,7 +118,7 @@ as though it were Eshell syntax."
                        (if (re-search-forward pat next t)
                            (throw 'found (match-beginning 1))
                          (goto-char next)
-                         (while (em-extpipe--or-with-catch
+                         (while (eshell-extpipe--or-with-catch
                                  (eshell-parse-lisp-argument)
                                  (eshell-parse-backslash)
                                  (eshell-parse-double-quote)

@@ -149,12 +149,18 @@ enum { BEG = 1, BEG_BYTE = BEG };
 #define BUF_BEG_UNCHANGED(buf) ((buf)->text->beg_unchanged)
 #define BUF_END_UNCHANGED(buf) ((buf)->text->end_unchanged)
 
+#define BUF_CHARS_UNCHANGED_MODIFIED(buf) \
+  ((buf)->text->chars_unchanged_modified)
+
 #define UNCHANGED_MODIFIED \
   BUF_UNCHANGED_MODIFIED (current_buffer)
 #define OVERLAY_UNCHANGED_MODIFIED \
   BUF_OVERLAY_UNCHANGED_MODIFIED (current_buffer)
 #define BEG_UNCHANGED BUF_BEG_UNCHANGED (current_buffer)
 #define END_UNCHANGED BUF_END_UNCHANGED (current_buffer)
+
+#define CHARS_UNCHANGED_MODIFIED \
+  BUF_CHARS_UNCHANGED_MODIFIED (current_buffer)
 
 /* Functions to set PT in the current buffer, or another buffer.  */
 
@@ -237,9 +243,10 @@ struct buffer_text
     ptrdiff_t z_byte;		/* Byte pos of end of buffer.  */
     ptrdiff_t gap_size;		/* Size of buffer's gap.  */
     modiff_count modiff;	/* This counts buffer-modification events
-				   for this buffer.  It is incremented for
-				   each such event, and never otherwise
-				   changed.  */
+				   for this buffer.  It is increased
+				   logarithmically to the extent of the
+				   modification for each such event,
+				   and never otherwise changed.  */
     modiff_count chars_modiff;	/* This is modified with character change
 				   events for this buffer.  It is set to
 				   modiff for each such event, and never
@@ -266,6 +273,11 @@ struct buffer_text
        finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
        end_unchanged contain no useful information.  */
     modiff_count overlay_unchanged_modified;
+
+    /* CHARS_MODIFF as of last redisplay that finished.  It's used
+       when we only care about changes in actual buffer text, not in
+       any other kind of changes, like properties etc.  */
+    modiff_count chars_unchanged_modified;
 
     /* Properties of this buffer's text.  */
     INTERVAL intervals;
@@ -684,6 +696,10 @@ struct buffer
      slowing down en/decoding when a lot of these hooks are
      defined, as well as by with-temp-buffer, for example.  */
   bool_bf inhibit_buffer_hooks : 1;
+
+  /* Non-zero when the buffer contains long lines and specific
+     display optimizations must be used.  */
+  bool_bf long_line_optimizations_p : 1;
 
   /* List of overlays that end at or before the current center,
      in order of end-position.  */

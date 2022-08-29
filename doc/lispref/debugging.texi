@@ -77,6 +77,7 @@ debugger recursively.  @xref{Recursive Editing}.
 
 @menu
 * Error Debugging::       Entering the debugger when an error happens.
+* Debugging Redisplay::   Getting backtraces from redisplay errors.
 * Infinite Loops::        Stopping and debugging a program that doesn't exit.
 * Function Debugging::    Entering it when a certain function is called.
 * Variable Debugging::    Entering it when a variable is modified.
@@ -104,6 +105,10 @@ debugger each time this happens.  So if you want errors to enter the
 debugger, set the variable @code{debug-on-error} to non-@code{nil}.
 (The command @code{toggle-debug-on-error} provides an easy way to do
 this.)
+
+Note that, for technical reasons, you cannot use the facilities
+defined in this subsection to debug errors in Lisp that the redisplay
+code has invoked.  @xref{Debugging Redisplay}, for help with these.
 
 @defopt debug-on-error
 This variable determines whether the debugger is called when an error
@@ -212,6 +217,45 @@ file, use the option @samp{--debug-init}.  This binds
 @code{debug-on-error} to @code{t} while loading the init file, and
 bypasses the @code{condition-case} which normally catches errors in the
 init file.
+
+@node Debugging Redisplay
+@subsection Debugging Redisplay Errors
+@cindex redisplay errors
+@cindex debugging redisplay errors
+
+When an error occurs in Lisp code which redisplay has invoked, Emacs's
+usual debugging mechanisms are unusable, for technical reasons.  This
+subsection describes how to get a backtrace from such an error, which
+should be helpful in debugging it.
+
+These directions apply to Lisp forms used, for example, in
+@code{:eval} mode line constructs (@pxref{Mode Line Data}), and in all
+hooks invoked from redisplay, such as:
+
+@itemize
+@item
+@code{fontification-functions} (@pxref{Auto Faces}).
+@item
+@code{window-scroll-functions} (@pxref{Window Hooks}).
+@end itemize
+
+Note that if you have had an error in a hook function called from
+redisplay, the error handling might have removed this function from
+the hook.  You will thus need to reinitialize that hook somehow,
+perhaps with @code{add-hook}, to be able to replay the bug.
+
+To generate a backtrace in these circumstances, set the variable
+@code{backtrace-on-redisplay-error} to non-@code{nil}.  When the error
+occurs, Emacs will dump the backtrace to the buffer
+@file{*Redisplay-trace*}, but won't automatically display it in a
+window.  This is to avoid needlessly corrupting the redisplay you are
+debugging.  You will thus need to display the buffer yourself, with a
+command such as @code{switch-to-buffer-other-frame} @key{C-x 5 b}.
+
+@defvar backtrace-on-redisplay-error
+Set this variable to non-@code{nil} to enable the generation of a
+backtrace when an error occurs in any Lisp called from redisplay.
+@end defvar
 
 @node Infinite Loops
 @subsection Debugging Infinite Loops

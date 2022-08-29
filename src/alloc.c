@@ -479,7 +479,7 @@ enum mem_type
 static bool
 deadp (Lisp_Object x)
 {
-  return EQ (x, dead_object ());
+  return BASE_EQ (x, dead_object ());
 }
 
 #ifdef GC_MALLOC_CHECK
@@ -5334,6 +5334,7 @@ static void *
 pure_alloc (size_t size, int type)
 {
   void *result;
+  static bool pure_overflow_warned = false;
 
  again:
   if (type >= 0)
@@ -5358,6 +5359,12 @@ pure_alloc (size_t size, int type)
   if (pure_bytes_used <= pure_size)
     return result;
 
+  if (!pure_overflow_warned)
+    {
+      message ("Pure Lisp storage overflowed");
+      pure_overflow_warned = true;
+    }
+
   /* Don't allocate a large amount here,
      because it might get mmap'd and then its address
      might not be usable.  */
@@ -5375,9 +5382,6 @@ pure_alloc (size_t size, int type)
   goto again;
 }
 
-
-#ifdef HAVE_UNEXEC
-
 /* Print a warning if PURESIZE is too small.  */
 
 void
@@ -5388,8 +5392,6 @@ check_pure_size (void)
 	      " bytes needed)"),
 	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
-#endif
-
 
 /* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
    the non-Lisp data pool of the pure storage, and return its start
@@ -6224,6 +6226,10 @@ garbage_collect (void)
   mark_xterm ();
 #endif
 
+#ifdef HAVE_NS
+  mark_nsterm ();
+#endif
+
   /* Everything is now marked, except for the data in font caches,
      undo lists, and finalizers.  The first two are compacted by
      removing an items which aren't reachable otherwise.  */
@@ -6281,6 +6287,11 @@ garbage_collect (void)
 
   /* GC is complete: now we can run our finalizer callbacks.  */
   run_finalizers (&doomed_finalizers);
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Eject unused image cache entries.  */
+  image_prune_animation_caches (false);
+#endif
 
   if (!NILP (Vpost_gc_hook))
     {

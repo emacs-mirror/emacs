@@ -555,7 +555,7 @@ deleting the buffers that were opened."
     (when (re-search-forward (if (memq searchtype '(regexp tagregexp))
                                  searchtxt
                                (regexp-quote searchtxt))
-			     (point-at-eol)
+                             (line-end-position)
 			     t)
       (goto-char (match-beginning 0))
       )

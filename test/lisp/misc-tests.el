@@ -80,5 +80,59 @@
     (backward-to-word 3)
     (should (equal (point) 1))))
 
+(ert-deftest misc--duplicate-line ()
+  ;; Duplicate a line (twice).
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (duplicate-line 2)
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 7)))
+  ;; Duplicate a non-terminated line.
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char 2)
+    (duplicate-line)
+    (should (equal (buffer-string) "abc\nabc\n"))
+    (should (equal (point) 2))))
+
+(require 'rect)
+
+(ert-deftest misc--duplicate-dwim ()
+  ;; Duplicate a line.
+  (with-temp-buffer
+    (insert "abc\ndefg\nh\n")
+    (goto-char 7)
+    (duplicate-dwim 2)
+    (should (equal (buffer-string) "abc\ndefg\ndefg\ndefg\nh\n"))
+    (should (equal (point) 7)))
+
+  ;; Duplicate a region.
+  (with-temp-buffer
+    (insert "abc\ndef\n")
+    (set-mark 2)
+    (goto-char 7)
+    (transient-mark-mode)
+    (should (use-region-p))
+    (duplicate-dwim)
+    (should (equal (buffer-string) "abc\ndebc\ndef\n"))
+    (should (equal (point) 7))
+    (should (region-active-p))
+    (should (equal (mark) 2)))
+
+  ;; Duplicate a rectangular region.
+  (with-temp-buffer
+    (insert "x\n>a\n>bcde\n>fg\nyz\n")
+    (goto-char 4)
+    (rectangle-mark-mode)
+    (goto-char 15)
+    (rectangle-forward-char 1)
+    (duplicate-dwim)
+    (should (equal (buffer-string) "x\n>a  a  \n>bcdbcde\n>fg fg \nyz\n"))
+    (should (equal (point) 24))
+    (should (region-active-p))
+    (should rectangle-mark-mode)
+    (should (equal (mark) 4))))
+
 (provide 'misc-tests)
 ;;; misc-tests.el ends here

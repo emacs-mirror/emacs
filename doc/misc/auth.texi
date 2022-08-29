@@ -384,7 +384,7 @@ This function creates a new item in @var{collection} with label
 @var{item} and password @var{password}.  The label @var{item} does not
 have to be unique in @var{collection}.  @var{attributes} are key-value
 pairs set for the created item.  The keys are keyword symbols,
-starting with a colon.  Example:
+starting with a colon; values are strings.  Example:
 
 @example
 ;;; The collection is "session", the label is "my item"
@@ -465,6 +465,10 @@ then fall back to @file{~/.authinfo.gpg}.
                      "secrets:Login"
                      "~/.authinfo.gpg"))
 @end example
+
+Attribute values in the auth-source spec, which are not strings (like
+port numbers), are stringified prior calling the @file{secrets.el}
+functions.
 
 @node The Unix password store
 @chapter The Unix password store
@@ -652,14 +656,8 @@ before @file{~/.authinfo}, the auth-source library will try to
 read the GnuPG encrypted @file{.gpg} file first, before
 the unencrypted file.
 
-In Emacs 23 or later there is an option @code{auto-encryption-mode} to
-automatically decrypt @file{*.gpg} files.  It is enabled by default.
-If you are using earlier versions of Emacs, you will need:
-
-@lisp
-(require 'epa-file)
-(epa-file-enable)
-@end lisp
+There is an option @code{auto-encryption-mode} to automatically
+decrypt @file{*.gpg} files.  It is enabled by default.
 
 If you want your GnuPG passwords to be cached, set up @code{gpg-agent}
 or EasyPG Assistant

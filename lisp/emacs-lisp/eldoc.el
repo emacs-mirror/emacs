@@ -5,7 +5,7 @@
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
 ;; Created: 1995-10-06
-;; Version: 1.12.0
+;; Version: 1.13.0
 ;; Package-Requires: ((emacs "26.3"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -381,7 +381,6 @@ Also store it in `eldoc-last-message' and return that value."
 (defun eldoc-display-message-no-interference-p ()
   "Return nil if displaying a message would cause interference."
   (not (or executing-kbd-macro
-           (bound-and-true-p edebug-active)
            ;; The following configuration shows "Matches..." in the
            ;; echo area when point is after a closing bracket, which
            ;; conflicts with eldoc.
@@ -491,9 +490,9 @@ If INTERACTIVE, display it.  Else, return said buffer."
       (setq-local eldoc--doc-buffer-docs docs)
       (let ((inhibit-read-only t)
             (things-reported-on))
-        (erase-buffer) (setq buffer-read-only t)
+        (special-mode)
+        (erase-buffer)
         (setq-local nobreak-char-display nil)
-        (local-set-key "q" 'quit-window)
         (cl-loop for (docs . rest) on docs
                  for (this-doc . plist) = docs
                  for thing = (plist-get plist :thing)
@@ -551,12 +550,13 @@ Helper for `eldoc-display-in-echo-area'."
 (defun eldoc--echo-area-prefer-doc-buffer-p (truncatedp)
   "Tell if display in the echo area should be skipped.
 Helper for `eldoc-display-in-echo-area'.  If TRUNCATEDP the
-documentation to potentially appear in the echo are is truncated."
+documentation to potentially appear in the echo area is
+known to be truncated."
   (and (or (eq eldoc-echo-area-prefer-doc-buffer t)
            (and truncatedp
                 (eq eldoc-echo-area-prefer-doc-buffer
                     'maybe)))
-       (get-buffer-window eldoc--doc-buffer 'visible)))
+       (get-buffer-window eldoc--doc-buffer t)))
 
 (defun eldoc-display-in-echo-area (docs _interactive)
   "Display DOCS in echo area.
@@ -629,8 +629,7 @@ Honor `eldoc-echo-area-use-multiline-p' and
   "Display DOCS in a dedicated buffer.
 If INTERACTIVE is t, also display the buffer."
   (eldoc--format-doc-buffer docs)
-  (when interactive
-    (eldoc-doc-buffer)))
+  (when interactive (eldoc-doc-buffer t)))
 
 (defun eldoc-documentation-default ()
   "Show first doc string for item at point.
@@ -812,7 +811,7 @@ function passes responsibility to the functions in
 Other third-party values of `eldoc-documentation-strategy' should
 not use `eldoc--make-callback'.  They must find some alternate
 way to produce callbacks to feed to
-`eldoc-documentation-functions' and should endeavour to display
+`eldoc-documentation-functions' and should endeavor to display
 the docstrings eventually produced, using
 `eldoc-display-functions'."
   (let* (;; How many callbacks have been created by the strategy

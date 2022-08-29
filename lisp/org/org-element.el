@@ -2205,7 +2205,7 @@ CDR is a plist containing `:key', `:value', `:begin', `:end',
 	  (key (progn (looking-at "[ \t]*#\\+\\(\\S-*\\):")
 		      (upcase (match-string-no-properties 1))))
 	  (value (org-trim (buffer-substring-no-properties
-			    (match-end 0) (point-at-eol))))
+                            (match-end 0) (line-end-position))))
 	  (pos-before-blank (progn (forward-line) (point)))
 	  (end (progn (skip-chars-forward " \r\t\n" limit)
 		      (if (eobp) (point) (line-beginning-position)))))
@@ -4273,7 +4273,7 @@ This function assumes that current major mode is `org-mode'."
     (goto-char (point-min))
     (org-skip-whitespace)
     (org-element--parse-elements
-     (point-at-bol) (point-max)
+     (line-beginning-position) (point-max)
      ;; Start in `first-section' mode so text before the first
      ;; headline belongs to a section.
      'first-section nil granularity visible-only (list 'org-data nil))))
@@ -4391,6 +4391,7 @@ looking into captions:
 		       ;; every element it encounters.
 		       (and (not (eq category 'elements))
 			    (setq category 'elements))))))))
+         (--ignore-list (plist-get info :ignore-list))
 	 --acc)
     (letrec ((--walk-tree
 	      (lambda (--data)
@@ -4400,7 +4401,7 @@ looking into captions:
 		  (cond
 		   ((not --data))
 		   ;; Ignored element in an export context.
-		   ((and info (memq --data (plist-get info :ignore-list))))
+		   ((and info (memq --data --ignore-list)))
 		   ;; List of elements or objects.
 		   ((not --type) (mapc --walk-tree --data))
 		   ;; Unconditionally enter parse trees.
@@ -6206,12 +6207,12 @@ end of ELEM-A."
 	   (end-A (save-excursion
 		    (goto-char (org-element-property :end elem-A))
 		    (skip-chars-backward " \r\t\n")
-		    (point-at-eol)))
+                    (line-end-position)))
 	   (beg-B (org-element-property :begin elem-B))
 	   (end-B (save-excursion
 		    (goto-char (org-element-property :end elem-B))
 		    (skip-chars-backward " \r\t\n")
-		    (point-at-eol)))
+                    (line-end-position)))
 	   ;; Store inner overlays responsible for visibility status.
 	   ;; We also need to store their boundaries as they will be
 	   ;; removed from buffer.

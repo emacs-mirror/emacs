@@ -81,8 +81,7 @@ Intended to be used in the `interactive' spec of
     (let ((default (format "%S"
                            (cond ((eq variable 'unibyte) t)
                                  ((boundp variable)
-                                  (symbol-value variable)))))
-          (minibuffer-completing-symbol t))
+                                  (symbol-value variable))))))
       (read-from-minibuffer (format "Add %s with value: " variable)
                             nil read-expression-map t
                             'set-variable-value-history
@@ -502,24 +501,26 @@ from the MODE alist ignoring the input argument VALUE."
 		       ((and (symbolp (car b)) (stringp (car a))) nil)
 		       (t (string< (car a) (car b)))))))
              (current-buffer))
+      (when (eobp) (insert "\n"))
       (goto-char (point-min))
       (indent-sexp))))
 
 (defun dir-locals-to-string (variables)
   "Output alists of VARIABLES to string in dotted pair notation syntax."
-  (format "(%s)" (mapconcat
-                  (lambda (mode-variables)
-                    (format "(%S . %s)"
-                            (car mode-variables)
-                            (format "(%s)" (mapconcat
-                                            (lambda (variable-value)
-                                              (format "(%S . %s)"
-                                                      (car variable-value)
-                                                      (string-trim-right
-                                                       (pp-to-string
-                                                        (cdr variable-value)))))
-                                            (cdr mode-variables) "\n"))))
-                  variables "\n")))
+  (format "(%s)"
+          (mapconcat
+           (lambda (mode-variables)
+             (format "(%S . %s)"
+                     (car mode-variables)
+                     (format "(%s)" (mapconcat
+                                     (lambda (variable-value)
+                                       (format "(%S . %s)"
+                                               (car variable-value)
+                                               (string-trim-right
+                                                (pp-to-string
+                                                 (cdr variable-value)))))
+                                     (cdr mode-variables) "\n"))))
+           variables "\n")))
 
 ;;;###autoload
 (defun add-dir-local-variable (mode variable value)

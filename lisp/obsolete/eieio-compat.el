@@ -5,6 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
 ;; Package: eieio
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -248,29 +249,9 @@ Summary:
   nil)
 
 ;;;###autoload
-(defun eieio-defmethod (method args)
-  "Obsolete work part of an old version of the `defmethod' macro."
-  (declare (obsolete cl-defmethod "24.1"))
-  (eval `(defmethod ,method ,@args))
-  method)
-
-;;;###autoload
-(defun eieio-defgeneric (method doc-string)
-  "Obsolete work part of an old version of the `defgeneric' macro."
-  (declare (obsolete cl-defgeneric "24.1"))
-  (eval `(defgeneric ,method (x) ,@(if doc-string `(,doc-string))))
-  ;; Return the method
-  'method)
-
-;;;###autoload
 (defun eieio-defclass (cname superclasses slots options)
   (declare (obsolete eieio-defclass-internal "25.1"))
   (eval `(defclass ,cname ,superclasses ,slots ,@options)))
-
-
-;; Local Variables:
-;; generated-autoload-file: "eieio-loaddefs.el"
-;; End:
 
 (provide 'eieio-compat)
 

@@ -78,7 +78,7 @@
 ;; directory/username/host tracking: the only drawback is that you will
 ;; have to modify your shell start-up script.  It's worth it, believe me :).
 ;;
-;; When you rlogin/su/telnet and the account you access has a modified
+;; When you ssh/sudo/su and the account you access has a modified
 ;; startup script, you will be able to access the remote files as usual
 ;; with C-x C-f, if it's needed you will have to enter a password,
 ;; otherwise the file should get loaded straight away.
@@ -915,7 +915,7 @@ Term buffers are truncated from the top to be no greater than this number.
 Notice that a setting of 0 means \"don't truncate anything\".  This variable
 is buffer-local."
   :group 'term
-  :type 'integer
+  :type 'natnum
   :version "27.1")
 
 (defcustom term-bind-function-keys nil
@@ -1052,11 +1052,10 @@ underlying shell."
   "Change `term-escape-char' and keymaps that depend on it."
   (when term-escape-char
     ;; Undo previous term-set-escape-char.
-    (define-key term-raw-map term-escape-char 'term-send-raw))
+    (define-key term-raw-map term-escape-char 'term-send-raw)
+    (define-key term-raw-escape-map term-escape-char nil t))
   (setq term-escape-char (if (vectorp key) key (vector key)))
   (define-key term-raw-map term-escape-char term-raw-escape-map)
-  ;; FIXME: If we later call term-set-escape-char again with another key,
-  ;; we should undo this binding.
   (define-key term-raw-escape-map term-escape-char 'term-send-raw))
 
 (term-set-escape-char (or term-escape-char ?\C-c))
@@ -1446,10 +1445,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 (defun term-char-mode ()
   "Switch to char (\"raw\") sub-mode of term mode.
 Each character you type is sent directly to the inferior without
-intervention from Emacs, except for the escape character (usually C-c).
-
-This command will send existing partial lines to the terminal
-process."
+intervention from Emacs, except for the escape character (usually C-c)."
   (interactive)
   ;; FIXME: Emit message? Cfr ilisp-raw-message
   (when (term-in-line-mode)
@@ -1468,10 +1464,10 @@ process."
       (when (> (point) pmark)
 	(unwind-protect
 	    (progn
-	      (add-function :override term-input-sender #'term-send-string)
+	      (add-function :override (local 'term-input-sender) #'term-send-string)
 	      (end-of-line)
 	      (term-send-input))
-	  (remove-function term-input-sender #'term-send-string))))
+	  (remove-function (local 'term-input-sender) #'term-send-string))))
     (term-update-mode-line)))
 
 (defun term-line-mode  ()
@@ -2477,7 +2473,7 @@ Checks if STRING contains a password prompt as defined by
   "Long inputs send to term processes are broken up into chunks of this size.
 If your process is choking on big inputs, try lowering the value."
   :group 'term
-  :type 'integer)
+  :type 'natnum)
 
 (defun term-send-string (proc str)
   "Send to PROC the contents of STR as input.
@@ -2866,13 +2862,13 @@ See `term-prompt-regexp'."
 
 (defun term-move-to-column (column)
   (setq term-current-column column)
-  (let ((point-at-eol (line-end-position)))
+  (let ((line-end-position (line-end-position)))
     (move-to-column term-current-column t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
     ;; to default.
-    (when (> (point) point-at-eol)
-      (put-text-property point-at-eol (point) 'font-lock-face 'default))))
+    (when (> (point) line-end-position)
+      (put-text-property line-end-position (point) 'font-lock-face 'default))))
 
 ;; Move DELTA column right (or left if delta < 0 limiting at column 0).
 (defun term-move-columns (delta)
@@ -4377,7 +4373,7 @@ the process.  Any more args are arguments to PROGRAM."
 (defun ansi-term (program &optional new-buffer-name)
   "Start a terminal-emulator in a new buffer.
 This is almost the same as `term' apart from always creating a new buffer,
-and `C-x' being marked as a `term-escape-char'."
+and \\`C-x' being marked as a `term-escape-char'."
   (interactive (list (read-from-minibuffer "Run program: "
 					   (or explicit-shell-file-name
 					       (getenv "ESHELL")

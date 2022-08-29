@@ -45,6 +45,9 @@
   '(("Newsgroups" . nil)
     ("Followup-To" . nil)
     ("Message-ID" . nil)
+    ;; This header must be pre-encoded by the MTA, so avoid
+    ;; double-encoding it.
+    ("Content-Disposition" . default)
     ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|\\(In-\\)?Reply-To\\|Sender\
 \\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\|Disposition-Notification-To\\)" . address-mime)
     (t . mime))
@@ -172,7 +175,7 @@ This is either `base64' or `quoted-printable'."
    (progn
      (forward-line 1)
      (if (re-search-forward "^[^ \n\t]" nil t)
-	 (point-at-bol)
+         (line-beginning-position)
        (point-max))))
   (goto-char (point-min)))
 
@@ -678,14 +681,14 @@ Point moves to the end of the region."
 	     (goto-char b)
 	     (setq b (point-marker)
 		   e (set-marker (make-marker) e))
-	     (rfc2047-fold-region (point-at-bol) b)
+             (rfc2047-fold-region (line-beginning-position) b)
 	     (goto-char b)
 	     (skip-chars-backward "^ \t\n")
 	     (unless (= 0 (skip-chars-backward " \t"))
 	       ;; `crest' may contain whitespace and an open parenthesis.
 	       (setq crest (buffer-substring-no-properties (point) b)))
 	     (setq eword (rfc2047-encode-1
-			  (- b (point-at-bol))
+                          (- b (line-beginning-position))
 			  (replace-regexp-in-string
 			   "\n\\([ \t]?\\)" "\\1"
 			   (buffer-substring-no-properties b e))
@@ -821,18 +824,18 @@ Return the new end point."
     (goto-char (point-min))
     (let ((bol (save-restriction
 		 (widen)
-		 (point-at-bol)))
-	  (eol (point-at-eol)))
+                 (line-beginning-position)))
+          (eol (line-end-position)))
       (forward-line 1)
       (while (not (eobp))
 	(if (and (looking-at "[ \t]")
-		 (< (- (point-at-eol) bol) 76))
+                 (< (- (line-end-position) bol) 76))
 	    (delete-region eol (progn
 				 (goto-char eol)
 				 (skip-chars-forward "\r\n")
 				 (point)))
-	  (setq bol (point-at-bol)))
-	(setq eol (point-at-eol))
+          (setq bol (line-beginning-position)))
+        (setq eol (line-end-position))
 	(forward-line 1)))))
 
 (defun rfc2047-b-encode-string (string)

@@ -285,6 +285,7 @@
     (byte-compile
      `(lambda (limit)
 	(let (res)
+	  (c-skip-comments-and-strings limit)
 	  (while (and (setq res (re-search-forward ,regexp limit t))
 		      (progn
 			(goto-char (match-beginning 0))
@@ -300,43 +301,45 @@
     ;; with HIGHLIGHTS, a list of highlighters as specified on page
     ;; "Search-based Fontification" in the elisp manual.  If CHECK-POINT
     ;; is non-nil, we will check (< (point) limit) in the main loop.
-    `(while
-	 ,(if check-point
-	      `(and (< (point) limit)
-		    (re-search-forward ,regexp limit t))
-	    `(re-search-forward ,regexp limit t))
-       (unless (progn
-		 (goto-char (match-beginning 0))
-		 (c-skip-comments-and-strings limit))
-	 (goto-char (match-end 0))
-	 ,@(mapcar
-	    (lambda (highlight)
-	      (if (integerp (car highlight))
-		  ;; e.g. highlight is (1 font-lock-type-face t)
-		  (progn
-		    (unless (eq (nth 2 highlight) t)
-		      (error
-		       "The override flag must currently be t in %s"
-		       highlight))
-		    (when (nth 3 highlight)
-		      (error
-		       "The laxmatch flag may currently not be set in %s"
-		       highlight))
-		    `(save-match-data
-		       (c-put-font-lock-face
-			(match-beginning ,(car highlight))
-			(match-end ,(car highlight))
-			,(elt highlight 1))))
-		;; highlight is an "ANCHORED HIGHLIGHTER" of the form
-		;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
-		(when (nth 3 highlight)
-		  (error "Match highlights currently not supported in %s"
+    `(progn
+       (c-skip-comments-and-strings limit)
+       (while
+	   ,(if check-point
+		`(and (< (point) limit)
+		      (re-search-forward ,regexp limit t))
+	      `(re-search-forward ,regexp limit t))
+	 (unless (progn
+		   (goto-char (match-beginning 0))
+		   (c-skip-comments-and-strings limit))
+	   (goto-char (match-end 0))
+	   ,@(mapcar
+	      (lambda (highlight)
+		(if (integerp (car highlight))
+		    ;; e.g. highlight is (1 font-lock-type-face t)
+		    (progn
+		      (unless (eq (nth 2 highlight) t)
+			(error
+			 "The override flag must currently be t in %s"
 			 highlight))
-		`(progn
-		   ,(nth 1 highlight)
-		   (save-match-data ,(car highlight))
-		   ,(nth 2 highlight))))
-	    highlights))))
+		      (when (nth 3 highlight)
+			(error
+			 "The laxmatch flag may currently not be set in %s"
+			 highlight))
+		      `(save-match-data
+			 (c-put-font-lock-face
+			  (match-beginning ,(car highlight))
+			  (match-end ,(car highlight))
+			  ,(elt highlight 1))))
+		  ;; highlight is an "ANCHORED HIGHLIGHTER" of the form
+		  ;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
+		  (when (nth 3 highlight)
+		    (error "Match highlights currently not supported in %s"
+			   highlight))
+		  `(progn
+		     ,(nth 1 highlight)
+		     (save-match-data ,(car highlight))
+		     ,(nth 2 highlight))))
+	      highlights)))))
 
   (defun c-make-font-lock-search-function (regexp &rest highlights)
     ;; This function makes a byte compiled function that works much like
@@ -416,6 +419,8 @@
     ;; lambda more easily.
     (byte-compile
      `(lambda (limit)
+	(let ((lit-start (c-literal-start)))
+	  (when lit-start (goto-char lit-start)))
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
 	      (parse-sexp-lookup-properties
@@ -935,7 +940,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			'(c-decl-arg-start
 			  c-decl-end
 			  c-decl-id-start
-			  c-decl-type-start)))
+			  c-decl-type-start
+			  c-not-decl)))
 	     (1- (point))
 	   pos)
 	 limit 'c-type)))
@@ -1820,7 +1826,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (let (mode capture-default id-start id-end declaration sub-begin sub-end)
+  (let (mode capture-default id-start id-end declaration sub-begin sub-end tem)
     (while (and (< (point) limit)
 		(search-forward "[" limit t))
       (when (progn (backward-char)
@@ -1832,15 +1838,18 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			(char-after)))
 	;; Is the first element of the list a bare "=" or "&"?
 	(when mode
-	  (forward-char)
-	  (c-forward-syntactic-ws)
-	  (if (memq (char-after) '(?, ?\]))
-	      (progn
-		(setq capture-default mode)
-		(when (eq (char-after) ?,)
-		  (forward-char)
-		  (c-forward-syntactic-ws)))
-	    (c-backward-token-2)))
+	  (setq tem nil)
+	  (save-excursion
+	    (forward-char)
+	    (c-forward-syntactic-ws)
+	    (if (memq (char-after) '(?, ?\]))
+		(progn
+		  (setq capture-default mode)
+		  (when (eq (char-after) ?,)
+		    (forward-char)
+		    (c-forward-syntactic-ws))
+		  (setq tem (point)))))
+	  (if tem (goto-char tem)))
 
 	;; Go round the following loop once per captured item.  We use "\\s)"
 	;; rather than "\\]" here to avoid infinite looping in this situation:

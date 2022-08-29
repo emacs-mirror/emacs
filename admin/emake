@@ -20,7 +20,7 @@ if [ -f /proc/cpuinfo ]; then
 	sed 's/^[0-9]*/+/')))
 fi
 
-make -j$cores "$@" 2>&1 | \
+make FAST=true -j$cores "$@" 2>&1 | \
 sed -u 's# \.\./\.\./# #
 s# \.\./# #
 s#^Configuring local git # Configuring local git #
@@ -29,6 +29,7 @@ s#^Running # Running #
 s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
 s#^make.*Error#  \\& #
+s#^Dumping under the name.*#  \\& #
 ' | \
 grep -E --line-buffered -v "^make|\
 ^Loading|\
@@ -36,13 +37,13 @@ SCRAPE|\
 INFO.*Scraping.*[.] ?\$|\
 INFO.*Scraping.*done\$|\
 GEN.*etc/DOC|\
+GEN.*autoloads|\
 ^Waiting for git|\
 ^Finding pointers|\
 ^Using load-path|\
 ^Adding name|\
 ^Dump mode|\
 ^Dumping finger|\
-^Dumping under the name|\
 ^Byte counts|\
 ^Reloc counts|\
 ^Pure-hashed|\

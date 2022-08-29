@@ -808,6 +808,8 @@ INFO is the export communication channel, as a property list."
   (or (plist-get info :citations)
       (letrec ((cites nil)
                (tree (plist-get info :parse-tree))
+               (definition-cache (make-hash-table :test #'equal))
+               (definition-list nil)
                (find-definition
                 ;; Find definition for standard reference LABEL.  At
                 ;; this point, it is impossible to rely on
@@ -816,11 +818,21 @@ INFO is the export communication channel, as a property list."
                 ;; un-processed citation objects.  So we use
                 ;; a simplified version of the function above.
                 (lambda (label)
-                  (org-element-map tree 'footnote-definition
-                    (lambda (d)
-                      (and (equal label (org-element-property :label d))
-                           (or (org-element-contents d) "")))
-                    info t)))
+                  (or (gethash label definition-cache)
+                      (org-element-map
+                          (or definition-list
+                              (setq definition-list
+                                    (org-element-map
+                                        tree
+                                        'footnote-definition
+                                      #'identity info)))
+                          'footnote-definition
+                        (lambda (d)
+                          (and (equal label (org-element-property :label d))
+                               (puthash label
+                                        (or (org-element-contents d) "")
+                                        definition-cache)))
+                        info t))))
                (search-cites
                 (lambda (data)
                   (org-element-map data '(citation footnote-reference)
@@ -834,7 +846,8 @@ INFO is the export communication channel, as a property list."
                         (_
                          (let ((label (org-element-property :label datum)))
                            (funcall search-cites
-                                    (funcall find-definition label))))))
+                                    (funcall find-definition label)))))
+                      nil)
                     info nil 'footnote-definition t))))
         (funcall search-cites tree)
         (let ((result (nreverse cites)))

@@ -340,6 +340,44 @@ If @var{n} is zero, @code{nthcdr} returns all of
 @end example
 @end defun
 
+@defun take n list
+This function returns the @var{n} first elements of @var{list}.  Essentially,
+it returns the part of @var{list} that @code{nthcdr} skips.
+
+@code{take} returns @var{list} if shorter than @var{n} elements;
+it returns @code{nil} if @var{n} is zero or negative.
+
+@example
+@group
+(take 3 '(a b c d))
+     @result{} (a b c)
+@end group
+@group
+(take 10 '(a b c d))
+     @result{} (a b c d)
+@end group
+@group
+(take 0 '(a b c d))
+     @result{} nil
+@end group
+@end example
+@end defun
+
+@defun ntake n list
+This is a version of @code{take} that works by destructively modifying
+the list structure of the argument.  That makes it faster, but the
+original value of @var{list} may be lost.
+
+@code{ntake} returns @var{list} unmodified if shorter than @var{n}
+elements; it returns @code{nil} if @var{n} is zero or negative.
+Otherwise, it returns @var{list} truncated to its first @var{n}
+elements.
+
+This means that it is usually a good idea to use the return value and
+not just rely on the truncation effect unless @var{n} is known to be
+positive.
+@end defun
+
 @defun last list &optional n
 This function returns the last link of @var{list}.  The @code{car} of
 this link is the list's last element.  If @var{list} is null,
@@ -1925,9 +1963,10 @@ and later discarded; this is not possible with a property list.
   The following functions can be used to manipulate property lists.
 They all compare property names using @code{eq}.
 
-@defun plist-get plist property
+@defun plist-get plist property &optional predicate
 This returns the value of the @var{property} property stored in the
-property list @var{plist}.  It accepts a malformed @var{plist}
+property list @var{plist}.  Comparisons are done with @var{predicate},
+and defaults to @code{eq}.  It accepts a malformed @var{plist}
 argument.  If @var{property} is not found in the @var{plist}, it
 returns @code{nil}.  For example,
 
@@ -1943,9 +1982,10 @@ returns @code{nil}.  For example,
 @end example
 @end defun
 
-@defun plist-put plist property value
+@defun plist-put plist property value &optional predicate
 This stores @var{value} as the value of the @var{property} property in
-the property list @var{plist}.  It may modify @var{plist} destructively,
+the property list @var{plist}.  Comparisons are done with @var{predicate},
+and defaults to @code{eq}.  It may modify @var{plist} destructively,
 or it may construct a new list structure without altering the old.  The
 function returns the modified property list, so you can store that back
 in the place where you got @var{plist}.  For example,
@@ -1961,19 +2001,20 @@ in the place where you got @var{plist}.  For example,
 @end defun
 
 @defun lax-plist-get plist property
-Like @code{plist-get} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-get} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
 @defun lax-plist-put plist property value
-Like @code{plist-put} except that it compares properties
-using @code{equal} instead of @code{eq}.
+This obsolete function is like @code{plist-put} except that it
+compares properties using @code{equal} instead of @code{eq}.
 @end defun
 
-@defun plist-member plist property
+@defun plist-member plist property &optional predicate
 This returns non-@code{nil} if @var{plist} contains the given
-@var{property}.  Unlike @code{plist-get}, this allows you to distinguish
-between a missing property and a property with the value @code{nil}.
-The value is actually the tail of @var{plist} whose @code{car} is
-@var{property}.
+@var{property}.  Comparisons are done with @var{predicate}, and
+defaults to @code{eq}.  Unlike @code{plist-get}, this allows you to
+distinguish between a missing property and a property with the value
+@code{nil}.  The value is actually the tail of @var{plist} whose
+@code{car} is @var{property}.
 @end defun

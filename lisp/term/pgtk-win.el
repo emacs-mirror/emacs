@@ -38,6 +38,7 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
+(require 'pgtk-dnd)
 
 (defvar x-invocation-args)
 (defvar x-command-line-resources)
@@ -228,7 +229,7 @@ EVENT is a `preedit-text-event'."
   '(
     ("etc/images/new" . ("document-new" "gtk-new"))
     ("etc/images/open" . ("document-open" "gtk-open"))
-    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/diropen" . "gtk-directory")
     ("etc/images/close" . ("window-close" "gtk-close"))
     ("etc/images/save" . ("document-save" "gtk-save"))
     ("etc/images/saveas" . ("document-save-as" "gtk-save-as"))
@@ -388,6 +389,10 @@ Users should not call this function; see `device-class' instead."
             (8 'pad)))))))
 
 (defvaralias 'x-gtk-use-system-tooltips 'use-system-tooltips)
+
+
+(define-key special-event-map [drag-n-drop] #'pgtk-dnd-handle-drag-n-drop-event)
+(add-hook 'after-make-frame-functions #'pgtk-dnd-init-frame)
 
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)

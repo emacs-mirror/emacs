@@ -106,8 +106,10 @@ taken as the expansion.  For example, to define the abbrev @samp{foo} as
 mentioned above, insert the text @samp{find outer otter} and then type
 @kbd{C-u 3 C-x a g f o o @key{RET}}.
 
-  An argument of zero to @kbd{C-x a g} means to use the contents of the
-region as the expansion of the abbrev being defined.
+  If you're using @code{transient-mark-mode} (which is the default),
+the active region will be used as the expansion of the abbrev being
+defined.  If not, an argument of zero to @kbd{C-x a g} means to use
+the contents of the region.
 
 @kindex C-x a l
 @findex add-mode-abbrev

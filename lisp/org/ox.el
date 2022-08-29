@@ -80,6 +80,7 @@
 (require 'org-element)
 (require 'org-macro)
 (require 'tabulated-list)
+(require 'subr-x)
 
 (declare-function org-src-coderef-format "org-src" (&optional element))
 (declare-function org-src-coderef-regexp "org-src" (fmt &optional label))
@@ -1908,8 +1909,10 @@ Return a string."
 			   (org-element-property :archivedp data)))
 		  (let ((transcoder (org-export-transcoder data info)))
 		    (or (and (functionp transcoder)
-			     (broken-link-handler
-			      (funcall transcoder data nil info)))
+                             (if (eq type 'link)
+			         (broken-link-handler
+			          (funcall transcoder data nil info))
+                               (funcall transcoder data nil info)))
 			;; Export snippets never return a nil value so
 			;; that white spaces following them are never
 			;; ignored.
@@ -1923,28 +1926,34 @@ Return a string."
 			      (and (not greaterp)
 				   (memq type org-element-recursive-objects)))
 			     (contents
-			      (mapconcat
-			       (lambda (element) (org-export-data element info))
-			       (org-element-contents
-				(if (or greaterp objectp) data
-				  ;; Elements directly containing
-				  ;; objects must have their indentation
-				  ;; normalized first.
-				  (org-element-normalize-contents
-				   data
-				   ;; When normalizing first paragraph
-				   ;; of an item or
-				   ;; a footnote-definition, ignore
-				   ;; first line's indentation.
-				   (and
-				    (eq type 'paragraph)
-				    (memq (org-element-type parent)
-					  '(footnote-definition item))
-				    (eq (car (org-element-contents parent))
-					data)
-				    (eq (org-element-property :pre-blank parent)
-					0)))))
-			       "")))
+                              (let ((export-buffer (current-buffer)))
+                                (with-temp-buffer
+                                  (dolist (element (org-element-contents
+				                    (if (or greaterp objectp) data
+				                      ;; Elements directly containing
+				                      ;; objects must have their indentation
+				                      ;; normalized first.
+				                      (org-element-normalize-contents
+				                       data
+				                       ;; When normalizing first paragraph
+				                       ;; of an item or
+				                       ;; a footnote-definition, ignore
+				                       ;; first line's indentation.
+				                       (and
+				                        (eq type 'paragraph)
+				                        (memq (org-element-type parent)
+					                      '(footnote-definition item))
+				                        (eq (car (org-element-contents parent))
+					                    data)
+				                        (eq (org-element-property :pre-blank parent)
+					                    0))))))
+                                    (insert
+                                     ;; Use right local variable
+                                     ;; environment if there are, for
+                                     ;; example, #+BIND variables.
+                                     (with-current-buffer export-buffer
+                                       (org-export-data element info))))
+                                  (buffer-string)))))
 			(broken-link-handler
 			 (funcall transcoder data
 				  (if (not greaterp) contents
@@ -2956,11 +2965,12 @@ Return code as a string."
 		    (mapcar (lambda (o) (and (eq (nth 4 o) 'parse) (nth 1 o)))
 			    (append (org-export-get-all-options backend)
 				    org-export-options-alist))))
-	     tree)
+	     tree modified-tick)
 	;; Update communication channel and get parse tree.  Buffer
 	;; isn't parsed directly.  Instead, all buffer modifications
 	;; and consequent parsing are undertaken in a temporary copy.
 	(org-export-with-buffer-copy
+         (font-lock-mode -1)
 	 ;; Run first hook with current back-end's name as argument.
 	 (run-hook-with-args 'org-export-before-processing-hook
 			     (org-export-backend-name backend))
@@ -2972,6 +2982,7 @@ Return code as a string."
 	 ;; potentially invasive changes.
 	 (org-set-regexps-and-options)
 	 (org-update-radio-target-regexp)
+         (setq modified-tick (buffer-chars-modified-tick))
 	 ;;  Possibly execute Babel code.  Re-run a macro expansion
 	 ;;  specifically for {{{results}}} since inline source blocks
 	 ;;  may have generated some more.  Refresh buffer properties
@@ -2979,8 +2990,10 @@ Return code as a string."
 	 (when org-export-use-babel
 	   (org-babel-exp-process-buffer)
 	   (org-macro-replace-all '(("results" . "$1")) parsed-keywords)
-	   (org-set-regexps-and-options)
-	   (org-update-radio-target-regexp))
+           (unless (eq modified-tick (buffer-chars-modified-tick))
+	     (org-set-regexps-and-options)
+	     (org-update-radio-target-regexp))
+           (setq modified-tick (buffer-chars-modified-tick)))
 	 ;; Run last hook with current back-end's name as argument.
 	 ;; Update buffer properties and radio targets one last time
 	 ;; before parsing.
@@ -2988,8 +3001,10 @@ Return code as a string."
 	 (save-excursion
 	   (run-hook-with-args 'org-export-before-parsing-hook
 			       (org-export-backend-name backend)))
-	 (org-set-regexps-and-options)
-	 (org-update-radio-target-regexp)
+         (unless (eq modified-tick (buffer-chars-modified-tick))
+	   (org-set-regexps-and-options)
+	   (org-update-radio-target-regexp))
+         (setq modified-tick (buffer-chars-modified-tick))
 	 ;; Update communication channel with environment.
 	 (setq info
 	       (org-combine-plists
@@ -3748,28 +3763,33 @@ definition can be found, raise an error."
     (if (not label) (org-element-contents footnote-reference)
       (let ((cache (or (plist-get info :footnote-definition-cache)
 		       (let ((hash (make-hash-table :test #'equal)))
+                         ;; Cache all the footnotes in document for
+                         ;; later search.
+                         (org-element-map (plist-get info :parse-tree)
+                             '(footnote-definition footnote-reference)
+                           (lambda (f)
+		             ;; Skip any standard footnote reference
+		             ;; since those cannot contain a
+		             ;; definition.
+                             (unless (eq (org-element-property :type f) 'standard)
+                               (puthash
+                                (cons :element (org-element-property :label f))
+                                f
+                                hash)))
+                           info)
 			 (plist-put info :footnote-definition-cache hash)
 			 hash))))
 	(or
 	 (gethash label cache)
 	 (puthash label
-		  (org-element-map (plist-get info :parse-tree)
-		      '(footnote-definition footnote-reference)
-		    (lambda (f)
-		      (cond
-		       ;; Skip any footnote with a different label.
-		       ;; Also skip any standard footnote reference
-		       ;; with the same label since those cannot
-		       ;; contain a definition.
-		       ((not (equal (org-element-property :label f) label)) nil)
-		       ((eq (org-element-property :type f) 'standard) nil)
-		       ((org-element-contents f))
-		       ;; Even if the contents are empty, we can not
-		       ;; return nil since that would eventually raise
-		       ;; the error.  Instead, return the equivalent
-		       ;; empty string.
-		       (t "")))
-		    info t)
+                  (let ((hashed (gethash (cons :element label) cache)))
+                    (when hashed
+                      (or (org-element-contents hashed)
+		          ;; Even if the contents are empty, we can not
+		          ;; return nil since that would eventually raise
+		          ;; the error.  Instead, return the equivalent
+		          ;; empty string.
+                          "")))
 		  cache)
 	 (error "Definition not found for footnote %s" label))))))
 
@@ -4341,17 +4361,27 @@ significant."
   (let* ((search-cells (org-export-string-to-search-cell
 			(org-element-property :path link)))
 	 (link-cache (or (plist-get info :resolve-fuzzy-link-cache)
-			 (let ((table (make-hash-table :test #'eq)))
+			 (let ((table (make-hash-table :test #'equal)))
+                           ;; Cache all the element search cells.
+                           (org-element-map (plist-get info :parse-tree)
+		               (append pseudo-types '(target) org-element-all-elements)
+	                     (lambda (datum)
+		               (dolist (cell (org-export-search-cells datum))
+		                 (if (gethash cell table)
+                                     (push datum (gethash cell table))
+                                   (puthash cell (list datum) table)))))
 			   (plist-put info :resolve-fuzzy-link-cache table)
 			   table)))
 	 (cached (gethash search-cells link-cache 'not-found)))
     (if (not (eq cached 'not-found)) cached
       (let ((matches
-	     (org-element-map (plist-get info :parse-tree)
-		 (append pseudo-types '(target) org-element-all-elements)
-	       (lambda (datum)
-		 (and (org-export-match-search-cell-p datum search-cells)
-		      datum)))))
+             (let (result)
+               (dolist (search-cell search-cells)
+                 (setq result
+                       (nconc
+                        result
+	                (gethash search-cell link-cache))))
+               (delq nil result))))
 	(unless matches
 	  (signal 'org-link-broken (list (org-element-property :path link))))
 	(puthash
@@ -4378,15 +4408,27 @@ tree or a file name.  Assume LINK type is either \"id\" or
 \"custom-id\".  Throw an error if no match is found."
   (let ((id (org-element-property :path link)))
     ;; First check if id is within the current parse tree.
-    (or (org-element-map (plist-get info :parse-tree) 'headline
-	  (lambda (headline)
-	    (when (or (equal (org-element-property :ID headline) id)
-		      (equal (org-element-property :CUSTOM_ID headline) id))
-	      headline))
-	  info 'first-match)
-	;; Otherwise, look for external files.
-	(cdr (assoc id (plist-get info :id-alist)))
-	(signal 'org-link-broken (list id)))))
+    (or (let ((local-ids (or (plist-get info :id-local-cache)
+                             (let ((table (make-hash-table :test #'equal)))
+                               (org-element-map
+                                   (plist-get info :parse-tree)
+                                   'headline
+                                 (lambda (headline)
+                                   (let ((id (org-element-property :ID headline))
+                                         (custom-id (org-element-property :CUSTOM_ID headline)))
+                                     (when id
+                                       (unless (gethash id table)
+                                         (puthash id headline table)))
+                                     (when custom-id
+                                       (unless (gethash custom-id table)
+                                         (puthash custom-id headline table)))))
+                                 info)
+                               (plist-put info :id-local-cache table)
+                               table))))
+          (gethash id local-ids))
+        ;; Otherwise, look for external files.
+        (cdr (assoc id (plist-get info :id-alist)))
+        (signal 'org-link-broken (list id)))))
 
 (defun org-export-resolve-radio-link (link info)
   "Return radio-target object referenced as LINK destination.
@@ -4395,15 +4437,12 @@ INFO is a plist used as a communication channel.
 
 Return value can be a radio-target object or nil.  Assume LINK
 has type \"radio\"."
-  (let ((path (replace-regexp-in-string
-	       "[ \r\t\n]+" " " (org-element-property :path link))))
+  (let ((path (string-clean-whitespace (org-element-property :path link))))
     (org-element-map (plist-get info :parse-tree) 'radio-target
       (lambda (radio)
-	(and (eq (compare-strings
-		  (replace-regexp-in-string
-		   "[ \r\t\n]+" " " (org-element-property :value radio))
-		  nil nil path nil nil t)
-		 t)
+	(and (string-equal-ignore-case
+	      (string-clean-whitespace (org-element-property :value radio))
+              path)
 	     radio))
       info 'first-match)))
 
@@ -6440,7 +6479,7 @@ to send the output file through additional processing, e.g,
     (let ((outfile (org-export-output-file-name \".tex\" subtreep)))
       (org-export-to-file \\='latex outfile
         async subtreep visible-only body-only ext-plist
-        #'org-latex-compile)))
+        #\\='org-latex-compile)))
 
 When expressed as an anonymous function, using `lambda',
 POST-PROCESS needs to be quoted.

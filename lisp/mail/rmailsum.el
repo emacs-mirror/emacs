@@ -1480,11 +1480,10 @@ argument says to read a file name and use that file as the inbox."
 (declare-function rmail-output-read-file-name "rmailout" ())
 (declare-function mail-send-and-exit "sendmail" (&optional arg))
 
-(defvar rmail-summary-edit-map
-  (let ((map (nconc (make-sparse-keymap) text-mode-map)))
-    (define-key map "\C-c\C-c" #'rmail-cease-edit)
-    (define-key map "\C-c\C-]" #'rmail-abort-edit)
-    map))
+(defvar-keymap rmail-summary-edit-map
+  :parent text-mode-map
+  "C-c C-c" #'rmail-cease-edit
+  "C-c C-]" #'rmail-abort-edit)
 
 (defun rmail-summary-edit-current-message ()
   "Edit the contents of this message."
@@ -1728,8 +1727,6 @@ even if the header display is currently pruned."
 	(if (< i n)
 	    (rmail-summary-next-msg 1))))))
 
-(defalias 'rmail-summary-output-to-rmail-file 'rmail-summary-output)
-
 (declare-function rmail-output-as-seen "rmailout"
 		  (file-name &optional count noattribute from-gnus))
 
@@ -1874,6 +1871,9 @@ the summary is only showing a subset of messages."
 	(progn (rmail-pop-to-buffer rmail-buffer)
 	       (funcall sortfun reverse))
       (select-window selwin))))
+
+(define-obsolete-function-alias 'rmail-summary-output-to-rmail-file
+  #'rmail-summary-output "29.1")
 
 (provide 'rmailsum)
 

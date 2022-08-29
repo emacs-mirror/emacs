@@ -1004,9 +1004,6 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                nil
                (cons "Registry Marks" gnus-registry-misc-menus)))))
 
-(define-obsolete-function-alias 'gnus-registry-user-format-function-M
-  #'gnus-registry-article-marks-to-chars "24.1")
-
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M #'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)

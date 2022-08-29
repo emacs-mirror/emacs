@@ -73,18 +73,13 @@ representing names.  For instance:
 (defvar emoji--insert-buffer)
 
 ;;;###autoload
-(defun emoji-insert (&optional text)
-  "Choose and insert an emoji glyph.
-If TEXT (interactively, the prefix argument), choose the emoji
-by typing its Unicode Standard name (with completion), instead
-of selecting from emoji display."
-  (interactive "*P")
+(defun emoji-insert ()
+  "Choose and insert an emoji glyph."
+  (interactive "*")
   (emoji--init)
-  (if text
-      (emoji--choose-emoji)
-    (unless (fboundp 'emoji--command-Emoji)
-      (emoji--define-transient))
-    (funcall (intern "emoji--command-Emoji"))))
+  (unless (fboundp 'emoji--command-Emoji)
+    (emoji--define-transient))
+  (funcall (intern "emoji--command-Emoji")))
 
 ;;;###autoload
 (defun emoji-recent ()
@@ -699,6 +694,39 @@ We prefer the earliest unique letter."
             (funcall
              (emoji--define-transient
               (cons "Choose Emoji" (cons glyph derived))))))))))
+
+(defvar-keymap emoji-zoom-map
+  "+" #'emoji-zoom-increase
+  "-" #'emoji-zoom-decrease)
+
+;;;###autoload
+(defun emoji-zoom-increase (&optional factor)
+  "Increase the size of the character under point.
+FACTOR is the multiplication factor for the size."
+  (interactive)
+  (set-transient-map emoji-zoom-map t nil "Zoom with %k")
+  (let* ((factor (or factor 1.1))
+         (old (get-text-property (point) 'face))
+         (height (or (and (consp old)
+                          (plist-get old :height))
+                     1.0))
+         (inhibit-read-only t))
+    (with-silent-modifications
+      (if (consp old)
+          (add-text-properties
+           (point) (1+ (point))
+           (list 'face (plist-put (copy-sequence old) :height (* height factor))
+                 'rear-nonsticky t))
+        (add-face-text-property (point) (1+ (point))
+                                (list :height (* height factor)))
+        (put-text-property (point) (1+ (point))
+                           'rear-nonsticky t)))))
+
+;;;###autoload
+(defun emoji-zoom-decrease ()
+  "Decrease the size of the character under point."
+  (interactive)
+  (emoji-zoom-increase 0.9))
 
 (provide 'emoji)
 

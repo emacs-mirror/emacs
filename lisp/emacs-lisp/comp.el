@@ -45,7 +45,9 @@
 
 (defcustom native-comp-speed 2
   "Optimization level for native compilation, a number between -1 and 3.
- -1 functions are kept in bytecode form and no native compilation is performed.
+ -1 functions are kept in bytecode form and no native compilation is performed
+    (but *.eln files are still produced, and include the compiled code in
+    bytecode form).
   0 native compilation is performed with no optimizations.
   1 light optimizations.
   2 max optimization level fully adherent to the language semantic.
@@ -63,7 +65,7 @@ This is intended for debugging the compiler itself.
   2 emit debug symbols and dump pseudo C code.
   3 emit debug symbols and dump: pseudo C code, GCC intermediate
   passes and libgccjit log file."
-  :type 'integer
+  :type 'natnum
   :safe #'natnump
   :version "28.1")
 
@@ -74,7 +76,7 @@ This is intended for debugging the compiler itself.
   1 final LIMPLE is logged.
   2 LAP, final LIMPLE, and some pass info are logged.
   3 max verbosity."
-  :type 'integer
+  :type 'natnum
   :risky t
   :version "28.1")
 
@@ -111,7 +113,7 @@ during bootstrap."
   "Default number of subprocesses used for async native compilation.
 Value of zero means to use half the number of the CPU's execution units,
 or one if there's just one execution unit."
-  :type 'integer
+  :type 'natnum
   :risky t
   :version "28.1")
 
@@ -302,7 +304,7 @@ Useful to hook into pass checkers.")
     (bool-vector-subsetp (function (bool-vector bool-vector) boolean))
     (boundp (function (symbol) boolean))
     (buffer-end (function ((or number marker)) integer))
-    (buffer-file-name (function (&optional buffer) string))
+    (buffer-file-name (function (&optional buffer) (or string null)))
     (buffer-list (function (&optional frame) list))
     (buffer-local-variables (function (&optional buffer) list))
     (buffer-modified-p (function (&optional buffer) boolean))
@@ -319,8 +321,8 @@ Useful to hook into pass checkers.")
     (cdr (function (list) t))
     (cdr-safe (function (t) t))
     (ceiling (function (number &optional number) integer))
-    (char-after (function (&optional (or marker integer)) fixnum))
-    (char-before (function (&optional (or marker integer)) fixnum))
+    (char-after (function (&optional (or marker integer)) (or fixnum null)))
+    (char-before (function (&optional (or marker integer)) (or fixnum null)))
     (char-equal (function (integer integer) boolean))
     (char-or-string-p (function (t) boolean))
     (char-to-string (function (fixnum) string))
@@ -342,14 +344,21 @@ Useful to hook into pass checkers.")
     (current-buffer (function () buffer))
     (current-global-map (function () cons))
     (current-indentation (function () integer))
-    (current-local-map (function () cons))
-    (current-minor-mode-maps (function () cons))
+    (current-local-map (function () (or cons null)))
+    (current-minor-mode-maps (function () (or cons null)))
     (current-time (function () cons))
-    (current-time-string (function (&optional string boolean) string))
-    (current-time-zone (function (&optional string boolean) cons))
+    (current-time-string (function (&optional (or number list)
+                                              (or symbol string cons integer))
+                                   string))
+    (current-time-zone (function (&optional (or number list)
+                                            (or symbol string cons integer))
+                                 cons))
     (custom-variable-p (function (symbol) boolean))
     (decode-char (function (cons t) (or fixnum null)))
-    (decode-time (function (&optional string symbol symbol) cons))
+    (decode-time (function (&optional (or number list)
+                                      (or symbol string cons integer)
+                                      symbol)
+                           cons))
     (default-boundp (function (symbol) boolean))
     (default-value (function (symbol) t))
     (degrees-to-radians (function (number) float))
@@ -381,12 +390,14 @@ Useful to hook into pass checkers.")
     (file-writable-p (function (string) boolean))
     (fixnump (function (t) boolean))
     (float (function (number) float))
-    (float-time (function (&optional cons) float))
+    (float-time (function (&optional (or number list)) float))
     (floatp (function (t) boolean))
     (floor (function (number &optional number) integer))
     (following-char (function () fixnum))
     (format (function (string &rest t) string))
-    (format-time-string (function (string &optional cons symbol) string))
+    (format-time-string (function (string &optional (or number list)
+                                          (or symbol string cons integer))
+                                  string))
     (frame-first-window (function ((or frame window)) window))
     (frame-root-window (function (&optional (or frame window)) window))
     (frame-selected-window (function (&optional (or frame window)) window))
@@ -398,8 +409,8 @@ Useful to hook into pass checkers.")
     (get-buffer (function ((or buffer string)) (or buffer null)))
     (get-buffer-window (function (&optional (or buffer string) (or symbol (integer 0 0))) (or null window)))
     (get-file-buffer (function (string) (or null buffer)))
-    (get-largest-window (function (&optional t t t) window))
-    (get-lru-window (function (&optional t t t) window))
+    (get-largest-window (function (&optional t t t) (or window null)))
+    (get-lru-window (function (&optional t t t) (or window null)))
     (getenv (function (string &optional frame) (or null string)))
     (gethash (function (t hash-table &optional t) t))
     (hash-table-count (function (hash-table) integer))
@@ -448,7 +459,7 @@ Useful to hook into pass checkers.")
     (make-symbol (function (string) symbol))
     (mark (function (&optional t) (or integer null)))
     (mark-marker (function () marker))
-    (marker-buffer (function (marker) buffer))
+    (marker-buffer (function (marker) (or buffer null)))
     (markerp (function (t) boolean))
     (max (function ((or number marker) &rest (or number marker)) number))
     (max-char (function () fixnum))
@@ -457,7 +468,7 @@ Useful to hook into pass checkers.")
     (memq (function (t list) list))
     (memql (function (t list) list))
     (min (function ((or number marker) &rest (or number marker)) number))
-    (minibuffer-selected-window (function () window))
+    (minibuffer-selected-window (function () (or window null)))
     (minibuffer-window (function (&optional frame) window))
     (mod (function ((or number marker) (or number marker)) (or (integer 0 *) (float 0 *))))
     (mouse-movement-p (function (t) boolean))
@@ -475,8 +486,8 @@ Useful to hook into pass checkers.")
     (one-window-p (function (&optional t t) boolean))
     (overlayp (function (t) boolean))
     (parse-colon-path (function (string) cons))
-    (plist-get (function (list t) t))
-    (plist-member (function (list t) list))
+    (plist-get (function (list t &optional t) t))
+    (plist-member (function (list t &optional t) list))
     (point (function () integer))
     (point-marker (function () marker))
     (point-max (function () integer))
@@ -485,7 +496,7 @@ Useful to hook into pass checkers.")
     (previous-window (function (&optional window t t) window))
     (prin1-to-string (function (t &optional t t) string))
     (processp (function (t) boolean))
-    (proper-list-p (function (t) integer))
+    (proper-list-p (function (t) boolean))
     (propertize (function (string &rest t) string))
     (radians-to-degrees (function (number) float))
     (rassoc (function (t list) list))
@@ -518,7 +529,7 @@ Useful to hook into pass checkers.")
     (string-to-char (function (string) fixnum))
     (string-to-multibyte (function (string) string))
     (string-to-number (function (string &optional integer) number))
-    (string-to-syntax (function (string) cons))
+    (string-to-syntax (function (string) (or cons null)))
     (string< (function ((or string symbol) (or string symbol)) boolean))
     (string= (function ((or string symbol) (or string symbol)) boolean))
     (stringp (function (t) boolean))
@@ -540,7 +551,8 @@ Useful to hook into pass checkers.")
     (this-command-keys-vector (function () vector))
     (this-single-command-keys (function () vector))
     (this-single-command-raw-keys (function () vector))
-    (time-convert (function (t &optional (or boolean integer)) cons))
+    (time-convert (function ((or number list) &optional (or symbol integer))
+                            (or cons number)))
     (truncate (function (number &optional number) integer))
     (type-of (function (t) symbol))
     (unibyte-char-to-multibyte (function (fixnum) fixnum)) ;; byte is fixnum
@@ -3693,7 +3705,7 @@ Prepare every function for final compilation and drive the C back-end."
 				 (file-name-base output) "-")
 			 nil ".el")))
 	(with-temp-file temp-file
-          (insert ";; -*-coding: nil; -*-\n")
+          (insert ";; -*-coding: utf-8-emacs-unix; -*-\n")
           (mapc (lambda (e)
                   (insert (prin1-to-string e)))
                 expr))
@@ -4287,6 +4299,32 @@ of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))
     (native--compile-async files recursively load selector)))
+
+(defun native-compile-prune-cache ()
+  "Remove .eln files that aren't applicable to the current Emacs invocation."
+  (interactive)
+  (unless (featurep 'native-compile)
+    (user-error "This Emacs isn't built with native-compile support"))
+  (dolist (dir native-comp-eln-load-path)
+    ;; If a directory is non absolute it is assumed to be relative to
+    ;; `invocation-directory'.
+    (setq dir (expand-file-name dir invocation-directory))
+    (when (file-exists-p dir)
+      (dolist (subdir (directory-files dir t))
+        (when (and (file-directory-p subdir)
+                   (file-writable-p subdir)
+                   (not (equal (file-name-nondirectory
+                                (directory-file-name subdir))
+                               comp-native-version-dir)))
+          (message "Deleting %s..." subdir)
+          ;; We're being overly cautious here -- there shouldn't be
+          ;; anything but .eln files in these directories.
+          (dolist (eln (directory-files subdir t "\\.eln\\(\\.tmp\\)?\\'"))
+            (when (file-writable-p eln)
+              (delete-file eln)))
+          (when (directory-empty-p subdir)
+            (delete-directory subdir))))))
+  (message "Cache cleared"))
 
 (provide 'comp)
 

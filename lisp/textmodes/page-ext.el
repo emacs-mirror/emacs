@@ -515,13 +515,12 @@ resets the page-delimiter to the original value."
 (defvar pages-buffer-original-position)
 (defvar pages-buffer-original-page)
 
-(defun pages-directory
-  (pages-list-all-headers-p count-lines-p &optional regexp)
+(defun pages-directory (pages-list-all-headers-p count-lines-p &optional regexp)
   "Display a directory of the page headers in a temporary buffer.
 A header is the first non-blank line after the `page-delimiter'.
-\\[pages-directory-mode]
+\\<pages-directory-mode-map>
 You may move point to one of the lines in the temporary buffer,
-then use \\<pages-directory-goto> to go to the same line in the pages buffer.
+then use \\[pages-directory-goto] to go to the same line in the pages buffer.
 
 In interactive use:
 
@@ -587,7 +586,9 @@ directory for only the accessible portion of the buffer."
         (pages-directory-mode)
         (setq buffer-read-only nil)
         (insert
-         "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
+         (substitute-command-keys
+          "==== Pages Directory: use \\<pages-directory-mode-map>\
+\\[pages-directory-goto] to go to page under cursor. ====") "\n")
         (setq pages-buffer pages-target-buffer)
         (setq pages-pos-list nil))
 
@@ -772,7 +773,9 @@ directory."
           (goto-char (point-min))
           (delete-region (point) (line-end-position))
           (insert
-           "=== Address List Directory: use `C-c C-c' to go to page under cursor. ===")
+           (substitute-command-keys
+            "=== Address List Directory: use \\<pages-directory-mode-map>\
+\\[pages-directory-goto] to go to page under cursor. ==="))
           (set-buffer-modified-p nil)
           ))
     (error "No addresses file found!")))

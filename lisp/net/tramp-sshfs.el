@@ -215,7 +215,7 @@ arguments to pass to the OPERATION."
 	  (progn
 	    ;; Read the expression.
 	    (goto-char (point-min))
-	    (buffer-substring (point) (point-at-eol)))
+	    (buffer-substring (point) (line-end-position)))
 	  ":" 'omit))))
    ;; The equivalent to `exec-directory'.
    `(,(tramp-file-local-name (expand-file-name default-directory)))))
@@ -333,7 +333,7 @@ arguments to pass to the OPERATION."
 	;; them.
 	(when tmpinput (delete-file tmpinput))
 	(when process-file-side-effects
-          (tramp-flush-directory-properties v ""))))))
+          (tramp-flush-directory-properties v "/"))))))
 
 (defun tramp-sshfs-handle-rename-file
     (filename newname &optional ok-if-already-exists)
@@ -355,18 +355,15 @@ arguments to pass to the OPERATION."
 
 (defun tramp-sshfs-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-flush-file-properties v localname)
+  (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+    (tramp-skeleton-set-file-modes-times-uid-gid filename
       (tramp-compat-set-file-modes
        (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-set-file-times (filename &optional timestamp flag)
   "Like `set-file-times' for Tramp files."
-  (or (file-exists-p filename) (write-region "" nil filename nil 0))
-  (with-parsed-tramp-file-name filename nil
-    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
-      (tramp-flush-file-properties v localname)
+  (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+    (tramp-skeleton-set-file-modes-times-uid-gid filename
       (tramp-compat-set-file-times
        (tramp-fuse-local-file-name filename) timestamp flag))))
 
@@ -449,7 +446,7 @@ connection if a previous connection has died for some reason."
     (funcall orig-fun)))
 
 (add-function
- :around  (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
+ :around (symbol-function #'shell-mode) #'tramp-sshfs-tolerate-tilde)
 (add-hook 'tramp-sshfs-unload-hook
 	  (lambda ()
 	    (remove-function

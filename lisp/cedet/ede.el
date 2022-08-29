@@ -1,10 +1,10 @@
 ;;; ede.el --- Emacs Development Environment gloss  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2005, 2007-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
-;; Version: 1.2
+;; Version: 2.0
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,8 @@
 ;;
 ;;  (global-ede-mode t)
 
+;;; Code:
+
 (require 'cedet)
 (require 'cl-lib)
 (require 'eieio)
@@ -66,10 +68,11 @@
 
 (defconst ede-version "2.0"
   "Current version of the Emacs EDE.")
+(make-obsolete-variable 'ede-version 'emacs-version "29.1")
 
-;;; Code:
 (defun ede-version ()
   "Display the current running version of EDE."
+  (declare (obsolete emacs-version "29.1"))
   (interactive) (message "EDE %s" ede-version))
 
 (defgroup ede nil

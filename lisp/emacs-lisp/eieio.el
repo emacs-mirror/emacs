@@ -689,6 +689,7 @@ This class is not stored in the `parent' slot of a class vector."
 (define-obsolete-function-alias 'standard-class
   #'eieio-default-superclass "26.1")
 
+;;;###autoload
 (cl-defgeneric make-instance (class &rest initargs)
   "Make a new instance of CLASS based on INITARGS.
 For example:

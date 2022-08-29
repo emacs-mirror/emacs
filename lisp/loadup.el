@@ -32,9 +32,6 @@
 ;; If you add a file to be loaded here, keep the following points in mind:
 
 ;; i) If the file is no-byte-compile, explicitly load the .el version.
-;; Such files should (where possible) obey the doc-string conventions
-;; expected by make-docfile.  They should also be added to the
-;; uncompiled[] list in make-docfile.c.
 
 ;; ii) If the file is dumped with Emacs (on any platform), put the
 ;; load statement at the start of a line (leading whitespace is ok).
@@ -42,11 +39,9 @@
 ;; iii) If the file is _not_ dumped with Emacs, make sure the load
 ;; statement is _not_ at the start of a line.  See pcase for an example.
 
-;; These rules are so that src/Makefile can construct lisp.mk automatically.
-;; This ensures both that the Lisp files are compiled (if necessary)
-;; before the emacs executable is dumped, and that they are passed to
-;; make-docfile.  (Any that are not processed for DOC will not have
-;; doc strings in the dumped Emacs.)
+;; These rules are so that src/Makefile can construct lisp.mk
+;; automatically.  This ensures that the Lisp files are compiled (if
+;; necessary) before the emacs executable is dumped.
 
 ;;; Code:
 
@@ -159,8 +154,7 @@
 ;; Load-time macro-expansion can only take effect after setting
 ;; load-source-file-function because of where it is called in lread.c.
 (load "emacs-lisp/macroexp")
-(if (or (byte-code-function-p (symbol-function 'macroexpand-all))
-        (subr-native-elisp-p (symbol-function 'macroexpand-all)))
+(if (compiled-function-p (symbol-function 'macroexpand-all))
     nil
   ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
   ;; fail until pcase is explicitly loaded.  This also means that we have to
@@ -185,9 +179,10 @@
 ;; should be updated by overwriting it with an up-to-date copy of
 ;; loaddefs.el that is not corrupted by local changes.
 ;; admin/update_autogen can be used to update ldefs-boot.el periodically.
-(condition-case nil (load "loaddefs.el")
-  ;; In case loaddefs hasn't been generated yet.
-  (file-error (load "ldefs-boot.el")))
+(condition-case nil
+    (load "loaddefs")
+  (file-error
+   (load "ldefs-boot.el")))
 
 (let ((new (make-hash-table :test #'equal)))
   ;; Now that loaddefs has populated definition-prefixes, purify its contents.
@@ -253,6 +248,7 @@
   ;; A particularly demanding file to load; 1600 does not seem to be enough.
   (load "emacs-lisp/cl-generic"))
 (load "simple")
+(load "emacs-lisp/seq")
 (load "emacs-lisp/nadvice")
 (load "minibuffer") ;Needs cl-generic (and define-minor-mode).
 (load "frame")
@@ -346,10 +342,8 @@
         (load "term/ns-win"))))
 (if (featurep 'pgtk)
     (progn
+      (load "pgtk-dnd")
       (load "term/common-win")
-      ;; Don't load ucs-normalize.el unless uni-*.el files were
-      ;; already produced, because it needs uni-*.el files that might
-      ;; not be built early enough during bootstrap.
       (load "term/pgtk-win")))
 (if (fboundp 'x-create-frame)
     ;; Do it after loading term/foo-win.el since the value of the
@@ -397,6 +391,9 @@
   (or (equal lp load-path)
       (message "Warning: Change in load-path due to site-load will be \
 lost after dumping")))
+
+;; Used by `kill-buffer', for instance.
+(load "emacs-lisp/rmc")
 
 ;; Make sure default-directory is unibyte when dumping.  This is
 ;; because we cannot decode and encode it correctly (since the locale
@@ -481,17 +478,12 @@ lost after dumping")))
   ;; installed or if the source directory got moved.  This is set to be
   ;; a pair in the form of:
   ;;     (rel-filename-from-install-bin . rel-filename-from-local-bin).
-  (let ((h (make-hash-table :test #'eq))
-        (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
+  (let ((bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
         (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
     (when (and bin-dest-dir eln-dest-dir)
       (setq eln-dest-dir
             (concat eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
-      (mapatoms (lambda (s)
-                  (let ((f (symbol-function s)))
-                    (when (subr-native-elisp-p f)
-                      (puthash (subr-native-comp-unit f) nil h)))))
-      (maphash (lambda (cu _)
+      (maphash (lambda (_ cu)
                  (let* ((file (native-comp-unit-file cu))
                         (preloaded (equal (substring (file-name-directory file)
                                                      -10 -1)
@@ -511,7 +503,7 @@ lost after dumping")))
                                          bin-dest-dir)
                      ;; Relative filename from the built uninstalled binary.
                      (file-relative-name file invocation-directory)))))
-	       h))))
+	       comp-loaded-comp-units-h))))
 
 (when (hash-table-p purify-flag)
   (let ((strings 0)

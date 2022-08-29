@@ -64,7 +64,7 @@ The action to be taken can be further customized via
   :version "28.1"
   :type 'regexp)
 
-(defun erc--download-directory ()
+(defun eww--download-directory ()
   "Return the name of the download directory.
 If ~/Downloads/ exists, that will be used, and if not, the
 DOWNLOAD XDG user directory will be returned.  If that's
@@ -75,7 +75,7 @@ undefined, ~/Downloads/ is returned anyway."
         (file-name-as-directory dir))
       "~/Downloads/"))
 
-(defcustom eww-download-directory 'erc--download-directory
+(defcustom eww-download-directory 'eww--download-directory
   "Directory where files will downloaded.
 This should either be a directory name or a function (called with
 no parameters) that returns a directory name."
@@ -349,6 +349,8 @@ This can also be used on the command line directly:
 
 will start Emacs and browse the GNU web site."
   (interactive)
+  (unless command-line-args-left
+    (user-error "No URL given"))
   (eww (pop command-line-args-left)))
 
 
@@ -363,7 +365,9 @@ new buffer instead of reusing the default EWW buffer.
 
 If BUFFER, the data to be rendered is in that buffer.  In that
 case, this function doesn't actually fetch URL.  BUFFER will be
-killed after rendering."
+killed after rendering.
+
+For more information, see Info node `(eww) Top'."
   (interactive
    (let ((uris (eww-suggested-uris)))
      (list (read-string (format-prompt "Enter URL or keywords"
@@ -833,7 +837,7 @@ The renaming scheme is performed in accordance with
                (when url
                  (setq url (propertize url 'face 'variable-pitch))
                  (let* ((parsed (url-generic-parse-url url))
-                        (host-length (shr-string-pixel-width
+                        (host-length (string-pixel-width
                                       (propertize
                                        (format "%s://%s" (url-type parsed)
                                                (url-host parsed))
@@ -842,17 +846,17 @@ The renaming scheme is performed in accordance with
                    (cond
                     ;; The host bit is wider than the window, so nix
                     ;; the title.
-                    ((> (+ host-length (shr-string-pixel-width "xxxxx")) width)
+                    ((> (+ host-length (string-pixel-width "xxxxx")) width)
                      (setq title ""))
                     ;; Trim the title.
-                    ((> (+ (shr-string-pixel-width (concat title "xx"))
+                    ((> (+ (string-pixel-width (concat title "xx"))
                            host-length)
                         width)
                      (setq title
                            (concat
                             (eww--limit-string-pixelwise
                              title (- width host-length
-                                      (shr-string-pixel-width
+                                      (string-pixel-width
                                        (propertize "...: " 'face
                                                    'variable-pitch))))
                             (propertize "..." 'face 'variable-pitch)))))))
@@ -932,9 +936,9 @@ The renaming scheme is performed in accordance with
 
 (defun eww-links-at-point ()
   "Return list of URIs, if any, linked at point."
-  (remq nil
-	(list (get-text-property (point) 'shr-url)
-	      (get-text-property (point) 'image-url))))
+  (seq-filter #'stringp
+	      (list (get-text-property (point) 'shr-url)
+	            (get-text-property (point) 'image-url))))
 
 (defun eww-view-source ()
   "View the HTML source code of the current page."
@@ -1206,6 +1210,8 @@ instead of `browse-url-new-window-flag'."
     (eww-mode))
   (let ((url-allow-non-local-files t))
     (eww url)))
+
+(function-put 'eww-browse-url 'browse-url-browser-kind 'internal)
 
 (defun eww-back-url ()
   "Go to the previously displayed page."

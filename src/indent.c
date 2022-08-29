@@ -306,6 +306,8 @@ and point (e.g., control characters will have a width of 2 or 4, tabs
 will have a variable width).
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
+In a buffer with very long lines, the value will be an approximation,
+because calculating the exact number is very expensive.
 Whether the line is visible (if `selective-display' is t) has no effect;
 however, ^M is treated as end of line when `selective-display' is t.
 Text that has an invisible property is considered as having width 0, unless
@@ -313,6 +315,7 @@ Text that has an invisible property is considered as having width 0, unless
   (void)
 {
   Lisp_Object temp;
+
   XSETFASTINT (temp, current_column ());
   return temp;
 }
@@ -341,6 +344,14 @@ current_column (void)
       && MODIFF == last_known_column_modified)
     return last_known_column;
 
+  ptrdiff_t line_beg = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1,
+				     NULL, NULL, 1);
+
+  /* Avoid becoming abysmally slow for very long lines.  */
+  if (current_buffer->long_line_optimizations_p
+      && !NILP (Vlong_line_threshold)
+      && PT - line_beg > XFIXNUM (Vlong_line_threshold))
+    return PT - line_beg;	/* this is an approximation! */
   /* If the buffer has overlays, text properties,
      or multibyte characters, use a more general algorithm.  */
   if (buffer_intervals (current_buffer)
@@ -484,15 +495,15 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	     : MOST_POSITIVE_FIXNUM);
 
 	  plist = XCDR (val);
-	  if ((prop = Fplist_get (plist, QCwidth),
+	  if ((prop = plist_get (plist, QCwidth),
 	       RANGED_FIXNUMP (0, prop, INT_MAX))
-	      || (prop = Fplist_get (plist, QCrelative_width),
+	      || (prop = plist_get (plist, QCrelative_width),
 		  RANGED_FIXNUMP (0, prop, INT_MAX)))
 	    width = XFIXNUM (prop);
 	  else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
 		   && XFLOAT_DATA (prop) <= INT_MAX)
 	    width = (int)(XFLOAT_DATA (prop) + 0.5);
-	  else if ((prop = Fplist_get (plist, QCalign_to),
+	  else if ((prop = plist_get (plist, QCalign_to),
 		    RANGED_FIXNUMP (col, prop, align_to_max)))
 	    width = XFIXNUM (prop) - col;
 	  else if (FLOATP (prop) && col <= XFLOAT_DATA (prop)
@@ -514,7 +525,7 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	  /* For :relative-width, we need to multiply by the column
 	     width of the character at POS, if it is greater than 1.  */
 	  if (!NILP (plist)
-	      && !NILP (Fplist_get (plist, QCrelative_width))
+	      && !NILP (plist_get (plist, QCrelative_width))
 	      && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    {
 	      int b, wd;
@@ -556,12 +567,55 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
   ptrdiff_t scan, scan_byte, next_boundary, prev_pos, prev_bpos;
 
   scan = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &scan_byte, 1);
-  next_boundary = scan;
-  prev_pos = scan;
-  prev_bpos = scan_byte;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
+
+  if (current_buffer->long_line_optimizations_p)
+    {
+      bool lines_truncated = false;
+
+      if (!NILP (BVAR (current_buffer, truncate_lines)))
+	lines_truncated = true;
+      else if (!NILP (Vtruncate_partial_width_windows) && w
+	       && w->total_cols < FRAME_COLS (XFRAME (WINDOW_FRAME (w))))
+	{
+	  if (FIXNUMP (Vtruncate_partial_width_windows))
+	    lines_truncated =
+	      w->total_cols < XFIXNAT (Vtruncate_partial_width_windows);
+	  else
+	    lines_truncated = true;
+	}
+      /* Special optimization for buffers with long and truncated
+	 lines: assumes that each character is a single column.  */
+      if (lines_truncated)
+	{
+	  ptrdiff_t bolpos = scan;
+	  /* The newline which ends this line or ZV.  */
+	  ptrdiff_t eolpos =
+	    find_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, NULL, NULL, 1);
+
+	  scan = bolpos + goal;
+	  if (scan > end)
+	    scan = end;
+	  if (scan > eolpos)
+	    scan = (eolpos == ZV ? ZV : eolpos - 1);
+	  col = scan - bolpos;
+	  if (col > large_hscroll_threshold)
+	    {
+	      prev_col = col - 1;
+	      prev_pos = scan - 1;
+	      prev_bpos = CHAR_TO_BYTE (scan);
+	      goto endloop;
+	    }
+	  /* Restore the values we've overwritten above.  */
+	  scan = bolpos;
+	  col = 0;
+	}
+    }
+  next_boundary = scan;
+  prev_pos = scan;
+  prev_bpos = scan_byte;
 
   memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
@@ -877,8 +931,10 @@ The return value is the column where the insertion ends.  */)
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
        doc: /* Return the indentation of the current line.
-This is the horizontal position of the character
-following any initial whitespace.  */)
+This is the horizontal position of the character following any initial
+whitespace.
+Text that has an invisible property is considered as having width 0, unless
+`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
   (void)
 {
   ptrdiff_t posbyte;
@@ -996,6 +1052,9 @@ as displayed of the previous characters in the line.
 This function ignores line-continuation;
 there is no upper limit on the column number a character can have
 and horizontal scrolling has no effect.
+Text that has an invisible property is considered as having width 0,
+unless `buffer-invisibility-spec' specifies that it is replaced by
+an ellipsis.
 
 If specified column is within a character, point goes after that character.
 If it's past end of line, point goes to end of line.
@@ -1861,7 +1920,7 @@ vmotion (ptrdiff_t from, ptrdiff_t from_byte,
 
   /* If the window contains this buffer, use it for getting text properties.
      Otherwise use the current buffer as arg for doing that.  */
-  if (EQ (w->contents, Fcurrent_buffer ()))
+  if (BASE_EQ (w->contents, Fcurrent_buffer ()))
     text_prop_object = window;
   else
     text_prop_object = Fcurrent_buffer ();
@@ -2177,6 +2236,8 @@ whether or not it is currently displayed in some window.  */)
 	line_number_display_width (w, &lnum_width, &lnum_pixel_width);
       SET_TEXT_POS (pt, PT, PT_BYTE);
       itdata = bidi_shelve_cache ();
+      record_unwind_protect_void (unwind_display_working_on_window);
+      display_working_on_window_p = true;
       start_display (&it, w, pt);
       it.lnum_width = lnum_width;
       first_x = it.first_visible_x;
@@ -2333,7 +2394,15 @@ whether or not it is currently displayed in some window.  */)
 	     last line that it occupies.  */
 	  if (it_start < ZV)
 	    {
-	      while (IT_CHARPOS (it) <= it_start)
+	      if ((it.bidi_it.scan_dir > 0)
+		  ? IT_CHARPOS (it) < it_start
+		  : IT_CHARPOS (it) > it_start)
+		{
+		  it.vpos = 0;
+		  it.current_y = 0;
+		  move_it_by_lines (&it, 1);
+		}
+	      while (IT_CHARPOS (it) == it_start)
 		{
 		  it.vpos = 0;
 		  it.current_y = 0;

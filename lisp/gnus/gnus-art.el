@@ -268,7 +268,7 @@ This can also be a list of the above values."
 (defcustom gnus-hidden-properties
   ;; We use to have `intangible' here as well, but Emacs's command loop moves
   ;; point out of invisible text anyway, so `intangible' is clearly not
-  ;; needed there.  And XEmacs doesn't handle `intangible' anyway.
+  ;; needed there.
   '(invisible t)
   "Property list to use for hiding text."
   :type 'plist
@@ -743,7 +743,7 @@ Each element is a regular expression."
   "Face used for highlighting buttons in the article buffer.
 
 An article button is a piece of text that you can activate by pressing
-`RET' or `mouse-2' above it."
+\\`RET' or `mouse-2' above it."
   :type 'face
   :group 'gnus-article-buttons)
 
@@ -1091,9 +1091,9 @@ positive (negative), move point forward (backwards) this many
 parts.  When nil, redisplay article."
   :version "23.1" ;; No Gnus
   :group 'gnus-article-mime
-  :type '(choice (const nil :tag "Redisplay article.")
-		 (const 1 :tag "Next part.")
-		 (const 0 :tag "Current part.")
+  :type '(choice (const :value nil :tag "Redisplay article")
+                 (const :value 1   :tag "Next part")
+                 (const :value 0   :tag "Current part")
 		 integer))
 
 ;;;
@@ -1930,7 +1930,7 @@ always hide."
 	      (while (re-search-forward "^[^: \t]+:[ \t]*\n[^ \t]" nil t)
 		(forward-line -1)
 		(gnus-article-hide-text-type
-		 (point-at-bol)
+                 (line-beginning-position)
 		 (progn
 		   (end-of-line)
 		   (if (re-search-forward "^[^ \t]" nil t)
@@ -1939,8 +1939,8 @@ always hide."
 		 'boring-headers)))
 	     ;; Hide boring Newsgroups header.
 	     ((eq elem 'newsgroups)
-	      (when (gnus-string-equal
-		     (gnus-fetch-field "newsgroups")
+	      (when (string-equal-ignore-case
+		     (or (gnus-fetch-field "newsgroups") "")
 		     (gnus-group-real-name
 		      (if (boundp 'gnus-newsgroup-name)
 			  gnus-newsgroup-name
@@ -1954,7 +1954,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-address
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-address)))
@@ -1967,7 +1967,7 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and to to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in To
 			      (nth 1 (mail-extract-address-components to))
 			      to-list)))
@@ -1980,15 +1980,15 @@ always hide."
 			  gnus-newsgroup-name ""))))
 		(when (and cc to-list
 			   (ignore-errors
-			     (gnus-string-equal
+			     (string-equal-ignore-case
 			      ;; only one address in Cc
 			      (nth 1 (mail-extract-address-components cc))
 			      to-list)))
 		  (gnus-article-hide-header "cc"))))
 	     ((eq elem 'followup-to)
-	      (when (gnus-string-equal
-		     (message-fetch-field "followup-to")
-		     (message-fetch-field "newsgroups"))
+	      (when (string-equal-ignore-case
+		     (or (message-fetch-field "followup-to") "")
+		     (or (message-fetch-field "newsgroups") ""))
 		(gnus-article-hide-header "followup-to")))
 	     ((eq elem 'reply-to)
 	      (if (gnus-group-find-parameter
@@ -2060,7 +2060,7 @@ always hide."
     (goto-char (point-min))
     (when (re-search-forward (concat "^" header ":") nil t)
       (gnus-article-hide-text-type
-       (point-at-bol)
+       (line-beginning-position)
        (progn
 	 (end-of-line)
 	 (if (re-search-forward "^[^ \t]" nil t)
@@ -2081,7 +2081,7 @@ always hide."
 	(article-narrow-to-head)
 	(while (not (eobp))
 	  (cond
-	   ((< (setq column (- (point-at-eol) (point)))
+           ((< (setq column (- (line-end-position) (point)))
 	       gnus-article-normalized-header-length)
 	    (end-of-line)
 	    (insert (make-string
@@ -2092,7 +2092,7 @@ always hide."
 	     (progn
 	       (forward-char gnus-article-normalized-header-length)
 	       (point))
-	     (point-at-eol)
+             (line-end-position)
 	     'invisible t))
 	   (t
 	    ;; Do nothing.
@@ -2389,7 +2389,7 @@ fill width."
 	    (end-of-line)
 	    (when (>= (current-column) width)
 	      (narrow-to-region (min (1+ (point)) (point-max))
-				(point-at-bol))
+                                (line-beginning-position))
               (let ((goback (point-marker))
 		    (fill-column width))
                 (fill-paragraph nil)
@@ -2446,7 +2446,7 @@ fill width."
 	 (while (and (not (bobp))
 		     (looking-at "^[ \t]*$")
 		     (not (gnus-annotation-in-region-p
-			   (point) (point-at-eol))))
+                           (point) (line-end-position))))
 	   (forward-line -1))
 	 (forward-line 1)
 	 (point))))))
@@ -3583,9 +3583,10 @@ possible values."
 					      'original-date)
 		      bface (get-text-property (match-beginning 0) 'face)
 		      eface (get-text-property (match-end 0) 'face))
-		(delete-region (point-at-bol) (progn
-						(gnus-article-forward-header)
-						(point)))))
+                (delete-region (line-beginning-position)
+                               (progn
+                                 (gnus-article-forward-header)
+                                 (point)))))
 	    (when (and (not date)
 		       visible-date)
 	      (setq date visible-date))
@@ -4388,8 +4389,8 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 		(message-narrow-to-head)
 		(goto-char (point-max))
 		(forward-line -1)
-		(setq bface (get-text-property (point-at-bol) 'face)
-		      eface (get-text-property (1- (point-at-eol)) 'face))
+                (setq bface (get-text-property (line-beginning-position) 'face)
+                      eface (get-text-property (1- (line-end-position)) 'face))
 		(message-remove-header "X-Gnus-PGP-Verify")
 		(if (re-search-forward "^X-PGP-Sig:" nil t)
 		    (forward-line)
@@ -5925,7 +5926,7 @@ all parts."
 	    ;; Go to the displayed subpart, assuming this is
 	    ;; multipart/alternative.
 	    (setq part start
-		  end (point-at-eol))
+                  end (line-end-position))
 	    (while (and (not handle)
 			part
 			(< part end)
@@ -6825,9 +6826,9 @@ not have a face in `gnus-article-boring-faces'."
   "Read article specified by message-id around point."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (re-search-backward "[ \t]\\|^" (point-at-bol) t)
-    (re-search-forward "<?news:<?\\|<" (point-at-eol) t)
-    (if (re-search-forward "[^@ ]+@[^ \t>]+" (point-at-eol) t)
+    (re-search-backward "[ \t]\\|^" (line-beginning-position) t)
+    (re-search-forward "<?news:<?\\|<" (line-end-position) t)
+    (if (re-search-forward "[^@ ]+@[^ \t>]+" (line-end-position) t)
 	(let ((msg-id (concat "<" (match-string 0) ">")))
 	  (set-buffer gnus-summary-buffer)
 	  (gnus-summary-refer-article msg-id))
@@ -8180,7 +8181,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 		     (goto-char start)
 		     (string-match
 		      "\\(?:\"\\|\\(<\\)\\)[\t ]*\\(?:url[\t ]*:[\t ]*\\)?\\'"
-		      (buffer-substring (point-at-bol) start)))
+                      (buffer-substring (line-beginning-position) start)))
 		   (progn
 		     (setq url (list (buffer-substring start end))
 			   delim (if (match-beginning 1) ">" "\""))
@@ -8470,8 +8471,6 @@ url is put as the `gnus-button-url' overlay property on the button."
       (when comma
 	(dotimes (_ (with-temp-buffer
 		      (insert comma)
-		      ;; Note: the XEmacs version of `how-many' takes
-		      ;; no optional argument.
 		      (goto-char (point-min))
 		      (how-many ",")))
 	  (Info-index-next 1)))

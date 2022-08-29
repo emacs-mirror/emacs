@@ -14359,7 +14359,7 @@
 	* ldefs-boot.el: Likewise.
 
 	* textmodes/bibtex.el (bibtex-validate-globally): Fix typo in a
-	message text: "Duplicat" => "Duplicate".
+	message text.
 
 2006-01-06  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 

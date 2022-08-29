@@ -33,14 +33,10 @@
 (defvar reftex-select-shared-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
-    (substitute-key-definition
-     #'next-line #'reftex-select-next                      map global-map)
-    (substitute-key-definition
-     #'previous-line #'reftex-select-previous              map global-map)
-    (substitute-key-definition
-     #'keyboard-quit #'reftex-select-keyboard-quit         map global-map)
-    (substitute-key-definition
-     #'newline #'reftex-select-accept                      map global-map)
+    (define-key map [remap next-line] #'reftex-select-next)
+    (define-key map [remap previous-line] #'reftex-select-previous)
+    (define-key map [remap keyboard-quit] #'reftex-select-keyboard-quit)
+    (define-key map [remap newline] #'reftex-select-accept)
 
     (define-key map " " #'reftex-select-callback)
     (define-key map "n" #'reftex-select-next)
@@ -59,8 +55,6 @@
     (define-key map [follow-link] 'mouse-face)
     map))
 
-(define-obsolete-variable-alias
-  'reftex-select-label-map 'reftex-select-label-mode-map "24.1")
 (defvar reftex-select-label-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
@@ -109,8 +103,6 @@ During a selection process, these are the local bindings.
   ;; We do not set a local map - reftex-select-item does this.
   )
 
-(define-obsolete-variable-alias
-  'reftex-select-bib-map 'reftex-select-bib-mode-map "24.1")
 (defvar reftex-select-bib-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)

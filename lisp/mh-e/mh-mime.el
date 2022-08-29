@@ -379,10 +379,8 @@ do the work."
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-directory-name (format-prompt
-                                 "Store in directory"
-                                 mh-mime-save-parts-directory)
-                           "" mh-mime-save-parts-directory t ""))
+           (read-directory-name "Store in directory: "
+                                mh-mime-save-parts-directory nil t))
           ((stringp mh-mime-save-parts-default-directory)
            mh-mime-save-parts-default-directory)
           (t
@@ -394,18 +392,19 @@ do the work."
       (if (equal nil mh-mime-save-parts-default-directory)
           (setq mh-mime-save-parts-directory directory))
       (with-current-buffer (get-buffer-create mh-log-buffer)
-        (cd directory)
-        (setq mh-mime-save-parts-directory directory)
-        (let ((initial-size (mh-truncate-log-buffer)))
-          (apply #'call-process
-                 (expand-file-name command mh-progs) nil t nil
-                 (mh-list-to-string (list folder msg "-auto"
-                                          (if (not (mh-variant-p 'nmh))
-                                              "-store"))))
-          (if (> (buffer-size) initial-size)
-              (save-window-excursion
-                (switch-to-buffer-other-window mh-log-buffer)
-                (sit-for 3))))))))
+        (let (default-directory)
+          (cd directory)
+          (setq mh-mime-save-parts-directory directory)
+          (let ((initial-size (mh-truncate-log-buffer)))
+            (apply #'call-process
+                   (expand-file-name command mh-progs) nil t nil
+                   (mh-list-to-string (list folder msg "-auto"
+                                            (if (not (mh-variant-p 'nmh))
+                                                "-store"))))
+            (if (> (buffer-size) initial-size)
+                (save-window-excursion
+                  (switch-to-buffer-other-window mh-log-buffer)
+                  (sit-for 3)))))))))
 
 ;;;###mh-autoload
 (defun mh-toggle-mh-decode-mime-flag ()
@@ -1141,15 +1140,7 @@ this ;-)"
   "Check if show buffer is small.
 This is used to decide if smileys and graphical emphasis should be
 displayed."
-  (let ((max nil))
-    ;; FIXME: font-lock-maximum-size is obsolete.
-    (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
-      (cond ((numberp font-lock-maximum-size)
-             (setq max font-lock-maximum-size))
-            ((listp font-lock-maximum-size)
-             (setq max (cdr (or (assoc 'mh-show-mode font-lock-maximum-size)
-                                (assoc t font-lock-maximum-size)))))))
-    (or (not (numberp max)) (>= (/ max 8) (buffer-size)))))
+  (>= 64000 (buffer-size)))
 
 
 
@@ -1511,7 +1502,7 @@ a prefix argument NOCONFIRM."
     (after-find-file nil nil nil nil t)))
 
 ;; Shush compiler.
-(defvar mh-identity-pgg-default-user-id)
+(defvar mh-identity-gpg-default-user-id)
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-encrypt (method)
@@ -1522,7 +1513,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "encrypt" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "encrypt" mh-identity-gpg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-sign (method)
@@ -1533,7 +1524,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "sign" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "sign" mh-identity-gpg-default-user-id))
 
 ;;;###mh-autoload
 (defun mh-mml-secure-message-signencrypt (method)
@@ -1544,7 +1535,7 @@ message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
-  (mh-secure-message method "signencrypt" mh-identity-pgg-default-user-id))
+  (mh-secure-message method "signencrypt" mh-identity-gpg-default-user-id))
 
 (defvar mh-mml-cryptographic-method-history ())
 
@@ -1578,9 +1569,9 @@ IDENTITY is optionally the default-user-id to use."
         (save-excursion
           (goto-char (point-min))
           (mh-goto-header-end 1)
-          (if mh-identity-pgg-default-user-id
+          (if mh-identity-gpg-default-user-id
               (mml-insert-tag 'secure 'method method 'mode mode
-                              'sender mh-identity-pgg-default-user-id)
+                              'sender mh-identity-gpg-default-user-id)
             (mml-insert-tag 'secure 'method method 'mode mode)))))))
 
 ;;;###mh-autoload
@@ -1797,7 +1788,6 @@ initialized. Always use the command `mh-have-file-command'.")
 (provide 'mh-mime)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

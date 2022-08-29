@@ -48,6 +48,7 @@
 
 (defvoo nndir-status-string "" nil nnmh-status-string)
 (defconst nndir-version "nndir 1.0")
+(make-obsolete-variable 'nndir-version 'emacs-version "29.1")
 
 
 

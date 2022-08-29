@@ -319,6 +319,10 @@ by themselves.")
 Specify the :indent argument to enable automatic indentation when newlines
 occur in your template.")
 
+(cl-defmethod srecord-compile-inserter-newline-p
+    ((_ srecode-template-inserter-newline))
+  t)
+
 (cl-defmethod srecode-insert-method ((sti srecode-template-inserter-newline)
 				  dictionary)
   "Insert the STI inserter."
@@ -402,7 +406,7 @@ Specify the :blank argument to enable this inserter.")
 	    ((eq (oref sti where) 'end)
 	     ;; If there is whitespace after pnt, then clear it out.
 	     (when (looking-at "\\s-*$")
-	       (delete-region (point) (point-at-eol)))
+               (delete-region (point) (line-end-position)))
 	     (when (not (eolp))
 	       (princ "\n")))
 	    )

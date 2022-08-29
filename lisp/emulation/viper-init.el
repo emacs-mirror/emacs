@@ -71,7 +71,7 @@ In all likelihood, you don't need to bother with this setting."
 (defun viper-has-face-support-p ()
   (cond ((viper-window-display-p))
 	(viper-force-faces)
-        ((x-display-color-p))
+        ((display-color-p))
 	(t (memq window-system '(pc)))))
 
 
@@ -867,8 +867,8 @@ Should be set in `viper-custom-file-name'."
 (defvar-local viper-minibuffer-overlay nil)
 (put 'viper-minibuffer-overlay 'permanent-local t)
 
-;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
-;; This is needed because beginning with Emacs 19.26, the standard
+;; Hook, specific to Viper, which is run just *before* exiting the
+;; minibuffer.  This is needed because, the standard
 ;; `minibuffer-exit-hook' is run *after* exiting the minibuffer
 (defvar viper-minibuffer-exit-hook nil)
 

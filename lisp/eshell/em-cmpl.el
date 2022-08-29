@@ -158,14 +158,6 @@ to writing a completion function."
   (eshell-cmpl--custom-variable-docstring 'pcomplete-autolist)
   :type (get 'pcomplete-autolist 'custom-type))
 
-(defcustom eshell-cmpl-suffix-list (list ?/ ?:)
-  (eshell-cmpl--custom-variable-docstring 'pcomplete-suffix-list)
-  :type (get 'pcomplete-suffix-list 'custom-type)
-  :group 'pcomplete)
-;; Only labeled obsolete in 26.1, but all it does it set
-;; pcomplete-suffix-list, which is itself obsolete since 24.1.
-(make-obsolete-variable 'eshell-cmpl-suffix-list nil "24.1")
-
 (defcustom eshell-cmpl-recexact nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-recexact)
   :type (get 'pcomplete-recexact 'custom-type))
@@ -262,9 +254,6 @@ to writing a completion function."
               eshell-cmpl-ignore-case)
   (setq-local pcomplete-autolist
               eshell-cmpl-autolist)
-  (if (boundp 'pcomplete-suffix-list)
-      (setq-local pcomplete-suffix-list
-                  eshell-cmpl-suffix-list))
   (setq-local pcomplete-recexact
               eshell-cmpl-recexact)
   (setq-local pcomplete-man-function

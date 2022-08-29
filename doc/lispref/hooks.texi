@@ -280,7 +280,6 @@ kbd-macro-termination-hook
 signal-hook-function
 
 C functions:
-redisplay-end-trigger-functions
 x-lost-selection-functions
 x-sent-selection-functions
 
@@ -290,7 +289,6 @@ auto-fill-function
 command-error-function
 compose-chars-after-function
 composition-function-table
-deferred-action-function
 input-method-function
 load-read-function
 load-source-file-function

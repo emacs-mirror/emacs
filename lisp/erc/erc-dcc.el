@@ -191,9 +191,7 @@ compared with `erc-nick-equal-p' which is IRC case-insensitive."
                   test (cadr (plist-member elt prop)))
             ;; if the property exists and is equal, we continue, else, try the
             ;; next element of the list
-            (or (and (eq prop :nick) (if (>= emacs-major-version 28)
-                                         (string-search "!" val)
-                                       (string-match "!" val))
+            (or (and (eq prop :nick) (string-search "!" val)
                      test (string-equal test val))
                 (and (eq prop :nick)
                      test val
@@ -359,10 +357,7 @@ Returns the newly created subprocess, or nil."
                                         :server t))
             (when (processp process)
               (when (fboundp 'set-process-coding-system)
-                (set-process-coding-system process 'binary 'binary))
-              (when (fboundp 'set-process-filter-multibyte)
-                (with-no-warnings       ; obsolete since 23.1
-                  (set-process-filter-multibyte process nil)))))
+                (set-process-coding-system process 'binary 'binary))))
         (file-error
          (unless (and (string= "Cannot bind server socket" (nth 1 err))
                       (string= "address already in use" (downcase (nth 2 err))))
@@ -391,7 +386,7 @@ the accepted connection."
 (defcustom erc-dcc-get-default-directory nil
   "Default directory for incoming DCC file transfers.
 If this is nil, then the current value of `default-directory' is used."
-  :type '(choice (const nil :tag "Default directory") directory))
+  :type '(choice (const :value nil :tag "Default directory") directory))
 
 ;;;###autoload
 (defun erc-cmd-DCC (cmd &rest args)
@@ -659,13 +654,7 @@ that subcommand."
 
 (define-inline erc-dcc-unquote-filename (filename)
   (inline-quote
-   (if (>= emacs-major-version 28)
-       (string-replace
-        "\\\\" "\\"
-        (string-replace "\\\"" "\"" ,filename))
-     (replace-regexp-in-string
-      "\\\\\\\\" "\\"
-      (replace-regexp-in-string "\\\\\"" "\"" ,filename t t) t t))))
+   (string-replace "\\\\" "\\" (string-replace "\\\"" "\"" ,filename))))
 
 (defun erc-dcc-handle-ctcp-send (proc query nick login host to)
   "This is called if a CTCP DCC SEND subcommand is sent to the client.
@@ -987,7 +976,7 @@ The contents of the BUFFER will then be erased."
 
 ;; If people really need this, we can convert it into a proper option.
 
-(defvar erc-dcc--X-send-final-turbo-ack nil
+(defvar erc-dcc--send-final-turbo-ack nil
   "Workaround for maverick turbo senders that only require a final ACK.
 The only known culprit is WeeChat, with its xfer.network.fast_send
 option, which is on by default.  Leaving this set to nil and calling
@@ -1032,7 +1021,7 @@ rather than every 1024 byte block, but nobody seems to care."
        ;; Some senders want us to hang up.  Only observed w. TSEND.
        ((and (plist-get erc-dcc-entry-data :turbo)
              (= received-bytes (plist-get erc-dcc-entry-data :size)))
-        (when erc-dcc--X-send-final-turbo-ack
+        (when erc-dcc--send-final-turbo-ack
           (process-send-string proc (erc-pack-int received-bytes)))
         (delete-process proc))
        ((not (or (plist-get erc-dcc-entry-data :turbo)
@@ -1182,18 +1171,18 @@ other client."
          (proc (plist-get entry :peer))
          (parent-proc (plist-get entry :parent)))
     (erc-setup-buffer buffer)
-    ;; buffer is now the current buffer.
-    (erc-dcc-chat-mode)
-    (setq erc-server-process parent-proc)
-    (setq erc-dcc-from nick)
-    (setq erc-dcc-entry-data entry)
-    (setq erc-dcc-unprocessed-output "")
-    (setq erc-insert-marker (point-max-marker))
-    (setq erc-input-marker (make-marker))
-    (erc-display-prompt buffer (point-max))
-    (set-process-buffer proc buffer)
-    (add-hook 'kill-buffer-hook #'erc-dcc-chat-buffer-killed nil t)
-    (run-hook-with-args 'erc-dcc-chat-connect-hook proc)
+    (with-current-buffer buffer
+      (erc-dcc-chat-mode)
+      (setq erc-server-process parent-proc
+            erc-dcc-from nick
+            erc-dcc-entry-data entry
+            erc-dcc-unprocessed-output ""
+            erc-insert-marker (point-max-marker)
+            erc-input-marker (make-marker))
+      (erc-display-prompt buffer (point-max))
+      (set-process-buffer proc buffer)
+      (add-hook 'kill-buffer-hook #'erc-dcc-chat-buffer-killed nil t)
+      (run-hook-with-args 'erc-dcc-chat-connect-hook proc))
     buffer))
 
 (defun erc-dcc-chat-accept (entry parent-proc)

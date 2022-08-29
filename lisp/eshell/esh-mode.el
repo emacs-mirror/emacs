@@ -146,7 +146,7 @@ See variable `eshell-scroll-to-bottom-on-output' and function
 Eshell buffers are truncated from the top to be no greater than this
 number, if the function `eshell-truncate-buffer' is on
 `eshell-output-filter-functions'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom eshell-output-filter-functions
   '(eshell-postoutput-scroll-to-bottom
@@ -301,7 +301,8 @@ and the hook `eshell-exit-hook'."
   "Emacs shell interactive mode."
   (setq-local eshell-mode t)
 
-  (when eshell-status-in-mode-line
+  (when (and eshell-status-in-mode-line
+             (listp mode-line-format))
     (make-local-variable 'eshell-command-running-string)
     (let ((fmt (copy-sequence mode-line-format)))
       (setq-local mode-line-format fmt))
@@ -361,7 +362,11 @@ and the hook `eshell-exit-hook'."
       (unless module-shortname
 	(error "Invalid Eshell module name: %s" module-fullname))
       (unless (featurep (intern module-shortname))
-	(load module-shortname))))
+        (condition-case nil
+            (load module-shortname)
+          (error (lwarn 'eshell :error
+                        "Unable to load module `%s' (defined in `eshell-modules-list')"
+                        module-fullname))))))
 
   (unless (file-exists-p eshell-directory-name)
     (eshell-make-private-directory eshell-directory-name t))
@@ -1033,6 +1038,8 @@ This function could be in the list `eshell-output-filter-functions'."
   "Default bookmark handler for Eshell buffers."
   (let ((default-directory (bookmark-prop-get bookmark 'location)))
     (eshell)))
+
+(put 'eshell-bookmark-jump 'bookmark-handler-type "Eshell")
 
 (provide 'esh-mode)
 ;;; esh-mode.el ends here

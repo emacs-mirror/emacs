@@ -560,6 +560,12 @@ Representations}.
 @code{string-equal} is another name for @code{string=}.
 @end defun
 
+@defun string-equal-ignore-case string1 string2
+@code{string-equal-ignore-case} compares strings ignoring case
+differences, like @code{char-equal} when @code{case-fold-search} is
+@code{t}.
+@end defun
+
 @cindex locale-dependent string equivalence
 @defun string-collate-equalp string1 string2 &optional locale ignore-case
 This function returns @code{t} if @var{string1} and @var{string2} are
@@ -567,11 +573,19 @@ equal with respect to collation rules.  A collation rule is not only
 determined by the lexicographic order of the characters contained in
 @var{string1} and @var{string2}, but also further rules about
 relations between these characters.  Usually, it is defined by the
-@var{locale} environment Emacs is running with.
+@var{locale} environment Emacs is running with and by the Standard C
+library against which Emacs was linked@footnote{
+For more information about collation rules and their locale
+dependencies, see @uref{https://unicode.org/reports/tr10/, The Unicode
+Collation Algorithm}.  Some Standard C libraries, such as the
+@acronym{GNU} C Library (a.k.a.@: @dfn{glibc}) implement large
+portions of the Unicode Collation Algorithm and use the associated
+locale data, Common Locale Data Repository, or @acronym{CLDR}.
+}.
 
-For example, characters with different coding points but
-the same meaning might be considered as equal, like different grave
-accent Unicode characters:
+For example, characters with different code points but the same
+meaning, like different grave accent Unicode characters, might, in
+some locales, be considered as equal:
 
 @example
 @group
@@ -759,7 +773,8 @@ The strings are compared by the numeric values of their characters.
 For instance, @var{str1} is considered less than @var{str2} if
 its first differing character has a smaller numeric value.  If
 @var{ignore-case} is non-@code{nil}, characters are converted to
-upper-case before comparing them.  Unibyte strings are converted to
+upper-case, using the current buffer's case-table (@pxref{Case
+Tables}), before comparing them.  Unibyte strings are converted to
 multibyte for comparison (@pxref{Text Representations}), so that a
 unibyte string and its conversion to multibyte are always regarded as
 equal.

@@ -24,15 +24,14 @@
 ;;; Commentary:
 ;;
 ;; The "core" part of EIEIO is the implementation for the object
-;; system (such as eieio-defclass, or eieio-defmethod) but not the
-;; base classes for the object system, which are defined in EIEIO.
+;; system (such as eieio-defclass-internal, or cl-defmethod) but not
+;; the base classes for the object system, which are defined in EIEIO.
 ;;
 ;; See the commentary for eieio.el for more about EIEIO itself.
 
 ;;; Code:
 
 (require 'cl-lib)
-(require 'eieio-loaddefs nil t)
 
 ;;;
 ;; A few functions that are better in the official EIEIO src, but

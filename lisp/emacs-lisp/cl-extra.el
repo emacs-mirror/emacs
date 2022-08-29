@@ -71,8 +71,7 @@ numbers of different types (float vs. integer), and also compares
 strings case-insensitively."
   (cond ((eq x y) t)
 	((stringp x)
-	 (and (stringp y) (= (length x) (length y))
-              (eq (compare-strings x nil nil y nil nil t) t)))
+	 (and (stringp y) (string-equal-ignore-case x y)))
 	((numberp x)
 	 (and (numberp y) (= x y)))
 	((consp x)

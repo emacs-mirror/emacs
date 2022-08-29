@@ -87,7 +87,7 @@ This might not yet be honored by all index-building functions."
 (defcustom imenu-auto-rescan-maxout 600000
   "Imenu auto-rescan is disabled in buffers larger than this size (in bytes).
 Also see `imenu-max-index-time'."
-  :type 'integer
+  :type 'natnum
   :version "26.2")
 
 (defcustom imenu-use-popup-menu 'on-mouse
@@ -132,7 +132,7 @@ element should come before the second.  The arguments are cons cells;
 
 (defcustom imenu-max-items 25
   "Maximum number of elements in a mouse menu for Imenu."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom imenu-space-replacement "."
   "The replacement string for spaces in index names.
@@ -464,14 +464,14 @@ Non-nil arguments are in recursive calls."
   `(keymap ,title
            ,@(mapcar
               (lambda (item)
-                `(,(car item) ,(car item)
+                `(,(intern (car item)) ,(car item)
                   ,@(cond
                      ((imenu--subalist-p item)
                       (imenu--create-keymap (car item) (cdr item) cmd))
                      (t
                       (lambda () (interactive)
                         (if cmd (funcall cmd item) item))))))
-              alist)))
+              (seq-filter #'identity alist))))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."

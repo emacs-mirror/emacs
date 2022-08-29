@@ -61,7 +61,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "font.h"
 #include "xsettings.h"
-#include "pgtkselect.h"
 #include "emacsgtkfixed.h"
 
 #ifdef GDK_WINDOWING_WAYLAND
@@ -77,24 +76,35 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 static bool any_help_event_p;
 
-struct pgtk_display_info *x_display_list;	/* Chain of existing displays */
-extern Lisp_Object tip_frame;
+/* Chain of existing displays */
+struct pgtk_display_info *x_display_list;
 
-static struct event_queue_t
+struct event_queue_t
 {
   union buffered_input_event *q;
   int nr, cap;
-} event_q = {
-  NULL, 0, 0,
 };
+
+/* A queue of events that will be read by the read_socket_hook.  */
+static struct event_queue_t event_q;
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
    events resulting from clicking on a frame to select it).  */
-
 static Time ignore_next_mouse_click_timeout;
 
+/* The default Emacs icon .  */
 static Lisp_Object xg_default_icon_file;
+
+/* The current GdkDragContext of a drop.  */
+static GdkDragContext *current_drop_context;
+
+/* Whether or not current_drop_context was set from a drop
+   handler.  */
+static bool current_drop_context_drop;
+
+/* The time of the last drop.  */
+static guint32 current_drop_time;
 
 static void pgtk_delete_display (struct pgtk_display_info *);
 static void pgtk_clear_frame_area (struct frame *, int, int, int, int);
@@ -290,6 +300,9 @@ static void
 evq_enqueue (union buffered_input_event *ev)
 {
   struct event_queue_t *evq = &event_q;
+  struct frame *frame;
+  struct pgtk_display_info *dpyinfo;
+
   if (evq->cap == 0)
     {
       evq->cap = 4;
@@ -303,6 +316,27 @@ evq_enqueue (union buffered_input_event *ev)
     }
 
   evq->q[evq->nr++] = *ev;
+
+  if (ev->ie.kind != SELECTION_REQUEST_EVENT
+      && ev->ie.kind != SELECTION_CLEAR_EVENT)
+    {
+      frame = NULL;
+
+      if (WINDOWP (ev->ie.frame_or_window))
+	frame = WINDOW_XFRAME (XWINDOW (ev->ie.frame_or_window));
+
+      if (FRAMEP (ev->ie.frame_or_window))
+	frame = XFRAME (ev->ie.frame_or_window);
+
+      if (frame)
+	{
+	  dpyinfo = FRAME_DISPLAY_INFO (frame);
+
+	  if (dpyinfo->last_user_time < ev->ie.timestamp)
+	    dpyinfo->last_user_time = ev->ie.timestamp;
+	}
+    }
+
   raise (SIGIO);
 }
 
@@ -1550,6 +1584,8 @@ pgtk_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 		   ? CHAR_TABLE_REF (Vglyphless_char_display,
 				     glyph->u.glyphless.ch)
 		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (CONSP (acronym))
+		acronym = XCAR (acronym);
 	      if (STRINGP (acronym))
 		str = SSDATA (acronym);
 	    }
@@ -4809,16 +4845,16 @@ pgtk_any_window_to_frame (GdkWindow *window)
     return NULL;
 
   FOR_EACH_FRAME (tail, frame)
-  {
-    if (found)
-      break;
-    f = XFRAME (frame);
-    if (FRAME_PGTK_P (f))
-      {
-	if (pgtk_window_is_of_frame (f, window))
-	  found = f;
-      }
-  }
+    {
+      if (found)
+	break;
+      f = XFRAME (frame);
+      if (FRAME_PGTK_P (f))
+	{
+	  if (pgtk_window_is_of_frame (f, window))
+	    found = f;
+	}
+    }
 
   return found;
 }
@@ -5420,7 +5456,10 @@ window_state_event (GtkWidget *widget,
 		    gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->window_state.window);
+  GdkWindowState new_state;
   union buffered_input_event inev;
+
+  new_state = event->window_state.new_window_state;
 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
@@ -5428,7 +5467,7 @@ window_state_event (GtkWidget *widget,
 
   if (f)
     {
-      if (event->window_state.new_window_state & GDK_WINDOW_STATE_FOCUSED)
+      if (new_state & GDK_WINDOW_STATE_FOCUSED)
 	{
 	  if (FRAME_ICONIFIED_P (f))
 	    {
@@ -5444,17 +5483,24 @@ window_state_event (GtkWidget *widget,
 	}
     }
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_FULLSCREEN)
+  if (new_state & GDK_WINDOW_STATE_FULLSCREEN)
     store_frame_param (f, Qfullscreen, Qfullboth);
-  else if (event->window_state.new_window_state
-	   & GDK_WINDOW_STATE_MAXIMIZED)
+  else if (new_state & GDK_WINDOW_STATE_MAXIMIZED)
     store_frame_param (f, Qfullscreen, Qmaximized);
+  else if ((new_state & GDK_WINDOW_STATE_TOP_TILED)
+	   && (new_state & GDK_WINDOW_STATE_BOTTOM_TILED)
+	   && !(new_state & GDK_WINDOW_STATE_TOP_RESIZABLE)
+	   && !(new_state & GDK_WINDOW_STATE_BOTTOM_RESIZABLE))
+    store_frame_param (f, Qfullscreen, Qfullheight);
+  else if ((new_state & GDK_WINDOW_STATE_LEFT_TILED)
+	   && (new_state & GDK_WINDOW_STATE_RIGHT_TILED)
+	   && !(new_state & GDK_WINDOW_STATE_LEFT_RESIZABLE)
+	   && !(new_state & GDK_WINDOW_STATE_RIGHT_RESIZABLE))
+    store_frame_param (f, Qfullscreen, Qfullwidth);
   else
     store_frame_param (f, Qfullscreen, Qnil);
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_ICONIFIED)
+  if (new_state & GDK_WINDOW_STATE_ICONIFIED)
     SET_FRAME_ICONIFIED (f, true);
   else
     {
@@ -5464,8 +5510,7 @@ window_state_event (GtkWidget *widget,
       SET_FRAME_ICONIFIED (f, false);
     }
 
-  if (event->window_state.new_window_state
-      & GDK_WINDOW_STATE_STICKY)
+  if (new_state & GDK_WINDOW_STATE_STICKY)
     store_frame_param (f, Qsticky, Qt);
   else
     store_frame_param (f, Qsticky, Qnil);
@@ -5868,8 +5913,7 @@ construct_mouse_click (struct input_event *result,
 }
 
 static gboolean
-button_event (GtkWidget *widget,
-	      GdkEvent *event,
+button_event (GtkWidget *widget, GdkEvent *event,
 	      gpointer *user_data)
 {
   union buffered_input_event inev;
@@ -6124,40 +6168,219 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   return TRUE;
 }
 
-static void
-drag_data_received (GtkWidget *widget, GdkDragContext *context,
-		    gint x, gint y, GtkSelectionData *data,
-		    guint info, guint time, gpointer user_data)
+
+
+/* C part of drop handling code.
+   The Lisp part is in pgtk-dnd.el.  */
+
+static GdkDragAction
+symbol_to_drag_action (Lisp_Object act)
 {
-  struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
-  gchar **uris = gtk_selection_data_get_uris (data);
+  if (EQ (act, Qcopy))
+    return GDK_ACTION_COPY;
 
-  if (uris != NULL)
+  if (EQ (act, Qmove))
+    return GDK_ACTION_MOVE;
+
+  if (EQ (act, Qlink))
+    return GDK_ACTION_LINK;
+
+  if (EQ (act, Qprivate))
+    return GDK_ACTION_PRIVATE;
+
+  if (NILP (act))
+    return GDK_ACTION_DEFAULT;
+
+  signal_error ("Invalid drag acction", act);
+}
+
+static Lisp_Object
+drag_action_to_symbol (GdkDragAction action)
+{
+  switch (action)
     {
-      for (int i = 0; uris[i] != NULL; i++)
-	{
-	  union buffered_input_event inev;
-	  Lisp_Object arg = Qnil;
+    case GDK_ACTION_COPY:
+      return Qcopy;
 
-	  EVENT_INIT (inev.ie);
-	  inev.ie.kind = NO_EVENT;
-	  inev.ie.arg = Qnil;
+    case GDK_ACTION_MOVE:
+      return Qmove;
 
-	  arg = list2 (Qurl, build_string (uris[i]));
+    case GDK_ACTION_LINK:
+      return Qlink;
 
-	  inev.ie.kind = DRAG_N_DROP_EVENT;
-	  inev.ie.modifiers = 0;
-	  XSETINT (inev.ie.x, x);
-	  XSETINT (inev.ie.y, y);
-	  XSETFRAME (inev.ie.frame_or_window, f);
-	  inev.ie.arg = arg;
-	  inev.ie.timestamp = 0;
+    case GDK_ACTION_PRIVATE:
+      return Qprivate;
 
-	  evq_enqueue (&inev);
-	}
+    case GDK_ACTION_DEFAULT:
+    default:
+      return Qnil;
+    }
+}
+
+void
+pgtk_update_drop_status (Lisp_Object action, Lisp_Object event_time)
+{
+  guint32 time;
+
+  CONS_TO_INTEGER (event_time, guint32, time);
+
+  if (!current_drop_context || time < current_drop_time)
+    return;
+
+  gdk_drag_status (current_drop_context,
+		   symbol_to_drag_action (action),
+		   time);
+}
+
+void
+pgtk_finish_drop (Lisp_Object success, Lisp_Object event_time,
+		  Lisp_Object del)
+{
+  guint32 time;
+
+  CONS_TO_INTEGER (event_time, guint32, time);
+
+  if (!current_drop_context || time < current_drop_time)
+    return;
+
+  gtk_drag_finish (current_drop_context, !NILP (success),
+		   !NILP (del), time);
+
+  if (current_drop_context_drop)
+    g_clear_pointer (&current_drop_context,
+		     g_object_unref);
+}
+
+static void
+drag_leave (GtkWidget *widget, GdkDragContext *context,
+	    guint time, gpointer user_data)
+{
+  struct frame *f;
+  union buffered_input_event inev;
+
+  f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
+  if (current_drop_context)
+    {
+      if (current_drop_context_drop)
+	gtk_drag_finish (current_drop_context,
+			 FALSE, FALSE, current_drop_time);
+
+      g_clear_pointer (&current_drop_context,
+		       g_object_unref);
     }
 
-  gtk_drag_finish (context, TRUE, FALSE, time);
+  EVENT_INIT (inev.ie);
+
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = Qnil;
+  inev.ie.timestamp = time;
+
+  XSETINT (inev.ie.x, 0);
+  XSETINT (inev.ie.y, 0);
+  XSETFRAME (inev.ie.frame_or_window, f);
+
+  evq_enqueue (&inev);
+}
+
+static gboolean
+drag_motion (GtkWidget *widget, GdkDragContext *context,
+             gint x, gint y, guint time)
+
+{
+  struct frame *f;
+  union buffered_input_event inev;
+  GdkAtom name;
+  GdkDragAction suggestion;
+
+  f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
+  if (!f)
+    return FALSE;
+
+  if (current_drop_context)
+    {
+      if (current_drop_context_drop)
+	gtk_drag_finish (current_drop_context,
+			 FALSE, FALSE, current_drop_time);
+
+      g_clear_pointer (&current_drop_context,
+		       g_object_unref);
+    }
+
+  current_drop_context = g_object_ref (context);
+  current_drop_time = time;
+  current_drop_context_drop = false;
+
+  name = gdk_drag_get_selection (context);
+  suggestion = gdk_drag_context_get_suggested_action (context);
+
+  EVENT_INIT (inev.ie);
+
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = list4 (Qlambda, intern (gdk_atom_name (name)),
+		       make_uint (time),
+		       drag_action_to_symbol (suggestion));
+  inev.ie.timestamp = time;
+
+  XSETINT (inev.ie.x, x);
+  XSETINT (inev.ie.y, y);
+  XSETFRAME (inev.ie.frame_or_window, f);
+
+  evq_enqueue (&inev);
+
+  return TRUE;
+}
+
+static gboolean
+drag_drop (GtkWidget *widget, GdkDragContext *context,
+	   int x, int y, guint time, gpointer user_data)
+{
+  struct frame *f;
+  union buffered_input_event inev;
+  GdkAtom name;
+  GdkDragAction selected_action;
+
+  f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
+  if (!f)
+    return FALSE;
+
+  if (current_drop_context)
+    {
+      if (current_drop_context_drop)
+	gtk_drag_finish (current_drop_context,
+			 FALSE, FALSE, current_drop_time);
+
+      g_clear_pointer (&current_drop_context,
+		       g_object_unref);
+    }
+
+  current_drop_context = g_object_ref (context);
+  current_drop_time = time;
+  current_drop_context_drop = true;
+
+  name = gdk_drag_get_selection (context);
+  selected_action = gdk_drag_context_get_selected_action (context);
+
+  EVENT_INIT (inev.ie);
+
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = list4 (Qquote, intern (gdk_atom_name (name)),
+		       make_uint (time),
+		       drag_action_to_symbol (selected_action));
+  inev.ie.timestamp = time;
+
+  XSETINT (inev.ie.x, x);
+  XSETINT (inev.ie.y, y);
+  XSETFRAME (inev.ie.frame_or_window, f);
+
+  evq_enqueue (&inev);
+
+  return TRUE;
 }
 
 static void
@@ -6174,6 +6397,8 @@ pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
   evq_enqueue (&inev);
 }
 
+static gboolean pgtk_selection_event (GtkWidget *, GdkEvent *, gpointer);
+
 void
 pgtk_set_event_handler (struct frame *f)
 {
@@ -6184,9 +6409,9 @@ pgtk_set_event_handler (struct frame *f)
       return;
     }
 
-  gtk_drag_dest_set (FRAME_GTK_WIDGET (f), GTK_DEST_DEFAULT_ALL, NULL, 0,
-		     GDK_ACTION_COPY);
-  gtk_drag_dest_add_uri_targets (FRAME_GTK_WIDGET (f));
+  gtk_drag_dest_set (FRAME_GTK_WIDGET (f), 0, NULL, 0,
+		     (GDK_ACTION_MOVE | GDK_ACTION_COPY
+		      | GDK_ACTION_LINK | GDK_ACTION_PRIVATE));
 
   if (FRAME_GTK_OUTER_WIDGET (f))
     {
@@ -6225,14 +6450,24 @@ pgtk_set_event_handler (struct frame *f)
 		    G_CALLBACK (button_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "scroll-event",
 		    G_CALLBACK (scroll_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-clear-event",
-		    G_CALLBACK (pgtk_selection_lost), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "configure-event",
 		    G_CALLBACK (configure_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-data-received",
-		    G_CALLBACK (drag_data_received), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-leave",
+		    G_CALLBACK (drag_leave), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-motion",
+		    G_CALLBACK (drag_motion), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "drag-drop",
+		    G_CALLBACK (drag_drop), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "draw",
 		    G_CALLBACK (pgtk_handle_draw), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "property-notify-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-clear-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-request-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
+  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "selection-notify-event",
+		    G_CALLBACK (pgtk_selection_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "event",
 		    G_CALLBACK (pgtk_handle_event), NULL);
 }
@@ -6290,6 +6525,73 @@ same_x_server (const char *name1, const char *name2)
   return (seen_colon
 	  && (*name1 == '.' || *name1 == '\0')
 	  && (*name2 == '.' || *name2 == '\0'));
+}
+
+static struct frame *
+pgtk_find_selection_owner (GdkWindow *window)
+{
+  Lisp_Object tail, tem;
+  struct frame *f;
+
+  FOR_EACH_FRAME (tail, tem)
+    {
+      f = XFRAME (tem);
+
+      if (FRAME_PGTK_P (f)
+	  && (FRAME_GDK_WINDOW (f) == window))
+	return f;
+    }
+
+  return NULL;
+}
+
+static gboolean
+pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
+		      gpointer user_data)
+{
+  struct frame *f;
+  union buffered_input_event inev;
+
+  if (event->type == GDK_PROPERTY_NOTIFY)
+    pgtk_handle_property_notify (&event->property);
+  else if (event->type == GDK_SELECTION_CLEAR
+	   || event->type == GDK_SELECTION_REQUEST)
+    {
+      f = pgtk_find_selection_owner (event->selection.window);
+
+      if (f)
+	{
+	  EVENT_INIT (inev.ie);
+
+	  inev.sie.kind = (event->type == GDK_SELECTION_CLEAR
+			   ? SELECTION_CLEAR_EVENT
+			   : SELECTION_REQUEST_EVENT);
+
+	  SELECTION_EVENT_DPYINFO (&inev.sie) = FRAME_DISPLAY_INFO (f);
+	  SELECTION_EVENT_SELECTION (&inev.sie) = event->selection.selection;
+	  SELECTION_EVENT_TIME (&inev.sie) = event->selection.time;
+
+	  if (event->type == GDK_SELECTION_REQUEST)
+	    {
+	      /* FIXME: when does GDK destroy the requestor GdkWindow
+	         object?
+
+		 It would make sense to wait for the transfer to
+	         complete.  But I don't know if GDK actually does
+	         that.  */
+	      SELECTION_EVENT_REQUESTOR (&inev.sie) = event->selection.requestor;
+	      SELECTION_EVENT_TARGET (&inev.sie) = event->selection.target;
+	      SELECTION_EVENT_PROPERTY (&inev.sie) = event->selection.property;
+	    }
+
+	  evq_enqueue (&inev);
+	  return TRUE;
+	}
+    }
+  else if (event->type == GDK_SELECTION_NOTIFY)
+    pgtk_handle_selection_notify (&event->selection);
+
+  return FALSE;
 }
 
 /* Open a connection to X display DISPLAY_NAME, and return
@@ -6525,8 +6827,6 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   xsettings_initialize (dpyinfo);
 
-  pgtk_selection_init ();
-
   pgtk_im_init (dpyinfo);
 
   g_signal_connect (G_OBJECT (dpyinfo->gdpy), "seat-added",
@@ -6708,11 +7008,16 @@ syms_of_pgtkterm (void)
 
   DEFSYM (Qlatin_1, "latin-1");
 
-  xg_default_icon_file =
-    build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+  xg_default_icon_file
+    = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
+
+  DEFSYM (Qcopy, "copy");
+  DEFSYM (Qmove, "move");
+  DEFSYM (Qlink, "link");
+  DEFSYM (Qprivate, "private");
 
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
@@ -6997,9 +7302,4 @@ pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   unbind_to (count, Qnil);
 
   return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
-}
-
-void
-init_pgtkterm (void)
-{
 }

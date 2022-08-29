@@ -950,7 +950,6 @@ containing the data cached for that URL.
 @node Proxies
 @section Proxies and Gatewaying
 
-@c fixme: check/document url-ns stuff
 @cindex proxy servers
 @cindex proxies
 @cindex environment variables

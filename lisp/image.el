@@ -32,7 +32,8 @@
   :group 'multimedia)
 
 (declare-function image-flush "image.c" (spec &optional frame))
-(defalias 'image-refresh 'image-flush)
+(declare-function clear-image-cache "image.c"
+                  (&optional filter animation-cache))
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
@@ -177,6 +178,8 @@ or \"ffmpeg\") is installed."
   "+" #'image-increase-size
   "r" #'image-rotate
   "o" #'image-save
+  "h" #'image-flip-horizontally
+  "v" #'image-flip-vertically
   "C-<wheel-down>" #'image-mouse-decrease-size
   "C-<mouse-5>"    #'image-mouse-decrease-size
   "C-<wheel-up>"   #'image-mouse-increase-size
@@ -444,15 +447,6 @@ type if we can't otherwise guess it."
     (error "Invalid image type `%s'" type))
   type)
 
-
-(if (fboundp 'image-metadata)           ; eg not --without-x
-    (define-obsolete-function-alias 'image-extension-data
-      'image-metadata "24.1"))
-
-(define-obsolete-variable-alias
-    'image-library-alist
-    'dynamic-library-alist "24.1")
-
 ;;;###autoload
 (defun image-type-available-p (type)
   "Return t if image type TYPE is available.
@@ -620,7 +614,7 @@ means display it in the right marginal area."
       (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
-      (overlay-put overlay 'map image-map)
+      (overlay-put overlay 'keymap image-map)
       overlay)))
 
 
@@ -764,13 +758,15 @@ SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the properties `:type TYPE' and either `:file FILE' or
-`:data DATA', where TYPE is a symbol specifying the image type,
-e.g. `xbm', FILE is the file to load the image from, and DATA is a
-string containing the actual image data.  The specification whose TYPE
-is supported, and FILE exists, is used to construct the image
-specification to be returned.  Return nil if no specification is
-satisfied.
+least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file to load the image from, and DATA is a string
+containing the actual image data.  If the property `:type TYPE' is
+omitted or nil, try to determine the image type from its first few
+bytes of image data.  If that doesn't work, and the property `:file
+FILE' provide a file name, use its file extension as image type.
+If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.  Return nil if no
+specification is satisfied.
 
 If CACHE is non-nil, results are cached and returned on subsequent calls.
 
@@ -785,21 +781,43 @@ Image files should not be larger than specified by `max-image-size'."
           (let* ((spec (car specs))
 	         (type (plist-get spec :type))
 	         (data (plist-get spec :data))
-	         (file (plist-get spec :file))
-	         found)
-	    (when (image-type-available-p type)
-	      (cond ((stringp file)
-		     (if (setq found (image-search-load-path file))
-		         (setq image
-			       (cons 'image (plist-put (copy-sequence spec)
-						       :file found)))))
-		    ((not (null data))
-		     (setq image (cons 'image spec)))))
+	         (file (plist-get spec :file)))
+	    (cond
+             ((stringp file)
+	      (when (setq file (image-search-load-path file))
+                ;; At this point, remove the :type and :file properties.
+                ;; `create-image' will set them depending on image file.
+                (setq image (cons 'image (copy-sequence spec)))
+                (setf (image-property image :type) nil)
+                (setf (image-property image :file) nil)
+                (and (setq image (ignore-errors
+                                   (apply #'create-image file nil nil
+                                          (cdr image))))
+                     ;; Ensure, if a type has been provided, it is
+                     ;; consistent with the type returned by
+                     ;; `create-image'. If not, return nil.
+                     (not (null type))
+                     (not (eq type (image-property image :type)))
+                     (setq image nil))))
+	     ((not (null data))
+              ;; At this point, remove the :type and :data properties.
+              ;; `create-image' will set them depending on image data.
+              (setq image (cons 'image (copy-sequence spec)))
+              (setf (image-property image :type) nil)
+              (setf (image-property image :data) nil)
+	      (and (setq image (ignore-errors
+                                 (apply #'create-image data nil t
+                                        (cdr image))))
+                   ;; Ensure, if a type has been provided, it is
+                   ;; consistent with the type returned by
+                   ;; `create-image'. If not, return nil.
+                   (not (null type))
+                   (not (eq type (image-property image :type)))
+                   (setq image nil))))
 	    (setq specs (cdr specs))))
         (when cache
           (setf (gethash orig-specs find-image--cache) image))
         image)))
-
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
@@ -949,9 +967,10 @@ for the animation speed.  A negative value means to animate in reverse."
   (plist-put (cdr image) :animate-tardiness
              (+ (* (plist-get (cdr image) :animate-tardiness) 0.9)
                 (float-time (time-since target-time))))
-  (let ((buffer (plist-get (cdr image) :animate-buffer))
-        (position (plist-get (cdr image) :animate-position)))
-    (when (and (buffer-live-p buffer)
+  (let* ((buffer (plist-get (cdr image) :animate-buffer))
+         (position (plist-get (cdr image) :animate-position))
+         (continue-animation
+          (and (buffer-live-p buffer)
                ;; If we have a :animate-position setting, the caller
                ;; has requested that the animation be stopped if the
                ;; image is no longer displayed in the buffer.
@@ -968,7 +987,13 @@ for the animation speed.  A negative value means to animate in reverse."
                (or (< (plist-get (cdr image) :animate-tardiness) 2)
 		   (progn
 		     (message "Stopping animation; animation possibly too big")
-		     nil)))
+		     nil)))))
+    (if (not continue-animation)
+        ;; Eject from the animation cache since we've decided not to
+        ;; keep updating it.  This helps stop unbounded RAM usage when
+        ;; doing, for instance, `g' in an eww buffer with animated
+        ;; images.
+        (clear-image-cache nil image)
       (let* ((time (prog1 (current-time)
 		     (image-show-frame image n t)))
 	     (speed (image-animate-get-speed image))
@@ -1263,6 +1288,24 @@ changing the displayed image size does not affect the saved image."
           (insert (plist-get (cdr image) :data))))
       (write-region (point-min) (point-max)
                     (read-file-name "Write image to file: ")))))
+
+(defun image-flip-horizontally ()
+  "Horizontally flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-flush image)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(defun image-flip-vertically ()
+  "Vertically flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-rotate 180)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(define-obsolete-function-alias 'image-refresh #'image-flush "29.1")
 
 (provide 'image)
 

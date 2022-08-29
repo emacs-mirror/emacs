@@ -267,7 +267,7 @@ extern void _DebPrint (const char *fmt, ...);
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
-#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_fixnum (0)))
+#define RE_TRANSLATE_P(TBL) (!BASE_EQ (TBL, make_fixnum (0)))
 #endif
 
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.

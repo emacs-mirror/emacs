@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
-;; Version: 1.4.1
+;; Version: 1.5.0
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -645,9 +645,15 @@ SELECT is `quit', also quit the *xref* window."
              (xref-buffer (current-buffer)))
         (cond (select
                (if (eq select 'quit) (quit-window nil nil))
-               (select-window
-                (with-current-buffer xref-buffer
-                  (xref--show-pos-in-buf marker buf))))
+               (let* ((old-frame (selected-frame))
+                      (window (with-current-buffer xref-buffer
+                                (xref--show-pos-in-buf marker buf)))
+                      (frame (window-frame window)))
+                 ;; If we chose another frame, make sure it gets input
+                 ;; focus.
+                 (unless (eq frame old-frame)
+                   (select-frame-set-input-focus frame))
+                 (select-window window)))
               (t
                (save-selected-window
                  (xref--with-dedicated-window
@@ -1758,6 +1764,12 @@ utility function used by commands like `dired-do-find-regexp' and
   :version "28.1"
   :package-version '(xref . "1.0.4"))
 
+(defmacro xref--with-connection-local-variables (&rest body)
+  (declare (debug t))
+  (if (>= emacs-major-version 27)
+      `(with-connection-local-variables ,@body)
+    `(progn ,@body)))
+
 ;;;###autoload
 (defun xref-matches-in-files (regexp files)
   "Find all matches for REGEXP in FILES.
@@ -1804,18 +1816,20 @@ to control which program to use when looking for matches."
         (insert (mapconcat #'identity files "\0"))
         (setq default-directory dir)
         (setq status
-              (xref--process-file-region (point-min)
-                                         (point-max)
-                                         shell-file-name
-                                         output
-                                         nil
-                                         shell-command-switch
-                                         command)))
+              (xref--with-connection-local-variables
+               (xref--process-file-region (point-min)
+                                          (point-max)
+                                          shell-file-name
+                                          output
+                                          nil
+                                          shell-command-switch
+                                          command))))
       (goto-char (point-min))
       (when (and (/= (point-min) (point-max))
                  (not (looking-at grep-re))
                  ;; TODO: Show these matches as well somehow?
-                 (not (looking-at "Binary file .* matches")))
+                 ;; Matching both Grep's and Ripgrep 13's messages.
+                 (not (looking-at ".*[bB]inary file.* matches")))
         (user-error "Search failed with status %d: %s" status
                     (buffer-substring (point-min) (line-end-position))))
       (while (re-search-forward grep-re nil t)

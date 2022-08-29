@@ -613,7 +613,7 @@ pgtk_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!STRINGP (oldval) && NILP (oldval) == NILP (arg))
@@ -643,7 +643,7 @@ pgtk_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (STRINGP (arg))
     {
-      if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
+      if (STRINGP (oldval) && BASE_EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
   else if (!NILP (arg) || NILP (oldval))
@@ -991,6 +991,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
     pgtk_set_override_redirect,
     gui_set_no_special_glyphs,
     pgtk_set_alpha_background,
+    NULL,
   };
 
 
@@ -2043,7 +2044,7 @@ use `(length \(display-monitor-attributes-list TERMINAL))' instead.  */)
 
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-       doc: /* Return the height in millimeters of the the display TERMINAL.
+       doc: /* Return the height in millimeters of the display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
@@ -2084,7 +2085,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Return the width in millimeters of the the display TERMINAL.
+       doc: /* Return the width in millimeters of the display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
@@ -2125,7 +2126,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store, Sx_display_backing_store, 0, 1, 0,
-       doc: /* Return an indication of whether the the display TERMINAL does backing store.
+       doc: /* Return an indication of whether the display TERMINAL does backing store.
 The value may be `buffered', `retained', or `non-retained'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
@@ -2138,7 +2139,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class, Sx_display_visual_class, 0, 1, 0,
-       doc: /* Return the visual class of the the display TERMINAL.
+       doc: /* Return the visual class of the display TERMINAL.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
@@ -3130,6 +3131,10 @@ Text larger than the specified size is clipped.  */)
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object window, size, tip_buf;
+  bool displayed;
+#ifdef ENABLE_CHECKING
+  struct glyph_row *row, *end;
+#endif
   AUTO_STRING (tip, " *tip*");
 
   specbind (Qinhibit_redisplay, Qt);
@@ -3334,7 +3339,26 @@ Text larger than the specified size is clipped.  */)
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
-  try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+  displayed = try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
+
+  if (!displayed && NILP (Vx_max_tooltip_size))
+    {
+#ifdef ENABLE_CHECKING
+      row = w->desired_matrix->rows;
+      end = w->desired_matrix->rows + w->desired_matrix->nrows;
+
+      while (row < end)
+	{
+	  if (!row->displays_text_p
+	      || row->ends_at_zv_p)
+	    break;
+	  ++row;
+	}
+
+      eassert (row < end && row->ends_at_zv_p);
+#endif
+    }
+
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
 				  make_fixnum (w->pixel_height), Qnil,
@@ -3924,7 +3948,7 @@ syms_of_pgtkfns (void)
 
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
 	       doc: /* SKIP: real doc in xfns.c.  */);
-  Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
+  Vx_max_tooltip_size = Qnil;
 
   DEFSYM (Qmono, "mono");
   DEFSYM (Qassq_delete_all, "assq-delete-all");

@@ -210,17 +210,20 @@ HAVE_SECCOMP=@HAVE_SECCOMP@
 HAVE_LIBSECCOMP=@HAVE_LIBSECCOMP@
 LIBSECCOMP_LIBS=@LIBSECCOMP_LIBS@
 LIBSECCOMP_CFLAGS=@LIBSECCOMP_CFLAGS@
+SIZEOF_LONG=@SIZEOF_LONG@
 
 # Currently, we can only generate seccomp filter files for x86-64.
 ifeq ($(HAVE_SECCOMP),yes)
 ifeq ($(HAVE_LIBSECCOMP),yes)
 ifeq ($(shell uname -m),x86_64)
+ifeq ($(SIZEOF_LONG),8)
 # We require SECCOMP_RET_KILL_PROCESS, which is only available in
 # Linux 4.14 and later.
 ifeq ($(shell { echo 4.14; uname -r | cut -d . -f 1-2; } | \
               sort -C -t . -n -k 1,1 -k 2,2 && \
               echo 1),1)
 SECCOMP_FILTER=1
+endif
 endif
 endif
 endif

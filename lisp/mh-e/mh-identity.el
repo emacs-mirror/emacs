@@ -39,8 +39,10 @@
 
 (autoload 'mml-insert-tag "mml")
 
-(defvar-local mh-identity-pgg-default-user-id nil
-  "Holds the GPG key ID to be used by pgg.el.
+(define-obsolete-variable-alias 'mh-identity-pgg-default-user-id
+  'mh-identity-gpg-default-user-id "29.1")
+(defvar-local mh-identity-gpg-default-user-id nil
+  "Holds the GPG key ID.
 This is normally set as part of an Identity in
 `mh-identity-list'.")
 
@@ -202,15 +204,15 @@ See `mh-identity-list'."
 (defun mh-identity-handler-gpg-identity (_field action &optional value)
   "Process header FIELD \":pgg-default-user-id\".
 The ACTION is one of `remove' or `add'. If `add', the VALUE is added.
-The buffer-local variable `mh-identity-pgg-default-user-id' is set to
+The buffer-local variable `mh-identity-gpg-default-user-id' is set to
 VALUE when action `add' is selected."
   (cond
    ((or (equal action 'remove)
         (not value)
         (string= value ""))
-    (setq mh-identity-pgg-default-user-id nil))
+    (setq mh-identity-gpg-default-user-id nil))
    ((equal action 'add)
-    (setq mh-identity-pgg-default-user-id value))))
+    (setq mh-identity-gpg-default-user-id value))))
 
 ;;;###mh-autoload
 (defun mh-identity-handler-signature (_field action &optional value)
@@ -316,7 +318,6 @@ the header."
 (provide 'mh-identity)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

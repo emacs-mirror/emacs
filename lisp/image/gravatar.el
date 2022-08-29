@@ -45,7 +45,7 @@
   "Time to live in seconds for gravatar cache entries.
 If a requested gravatar has been cached for longer than this, it
 is retrieved anew.  The default value is 30 days."
-  :type 'integer
+  :type 'natnum
   ;; Restricted :type to number of seconds.
   :version "27.1"
   :group 'gravatar)

@@ -62,6 +62,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'kmacro)
 
 ;;; The user-level commands for editing macros.
@@ -72,11 +73,35 @@ Default nil means to write characters above \\177 in octal notation."
   :type 'boolean
   :group 'kmacro)
 
-(defvar edmacro-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'edmacro-finish-edit)
-    (define-key map "\C-c\C-q" #'edmacro-insert-key)
-    map))
+(defvar-keymap edmacro-mode-map
+  "C-c C-c" #'edmacro-finish-edit
+  "C-c C-q" #'edmacro-insert-key)
+
+(defface edmacro-label
+  '((default :inherit bold)
+    (((class color) (background dark)) :foreground "light blue")
+    (((min-colors 88) (class color) (background light)) :foreground "DarkBlue")
+    (((class color) (background light)) :foreground "blue")
+    (t :inherit bold))
+  "Face used for labels in `edit-kbd-macro'."
+  :version "29.1"
+  :group 'kmacro)
+
+(defvar edmacro-mode-font-lock-keywords
+  `((,(rx bol (group (or "Command" "Key" "Macro") ":")) 0 'edmacro-label)
+    (,(rx bol
+          (group ";; Keyboard Macro Editor.  Press ")
+          (group (*? any))
+          (group  " to finish; press "))
+     (1 'font-lock-comment-face)
+     (2 'help-key-binding)
+     (3 'font-lock-comment-face)
+     (,(rx (group (*? any))
+           (group " to cancel" (* any)))
+      nil nil
+      (1 'help-key-binding)
+      (2 'font-lock-comment-face)))
+    (,(rx (one-or-more ";") (zero-or-more any)) 0 'font-lock-comment-face)))
 
 (defvar edmacro-store-hook)
 (defvar edmacro-finish-hook)
@@ -86,7 +111,7 @@ Default nil means to write characters above \\177 in octal notation."
 (defun edit-kbd-macro (keys &optional prefix finish-hook store-hook)
   "Edit a keyboard macro.
 At the prompt, type any key sequence which is bound to a keyboard macro.
-Or, type `\\[kmacro-end-and-call-macro]' or RET to edit the last
+Or, type `\\[kmacro-end-and-call-macro]' or \\`RET' to edit the last
 keyboard macro, `\\[view-lossage]' to edit the last 300
 keystrokes as a keyboard macro, or `\\[execute-extended-command]'
 to edit a macro by its command name.
@@ -153,9 +178,18 @@ With a prefix argument, format the macro in a more concise way."
         (setq-local edmacro-original-buffer oldbuf)
         (setq-local edmacro-finish-hook finish-hook)
         (setq-local edmacro-store-hook store-hook)
+        (setq-local font-lock-defaults
+                    '(edmacro-mode-font-lock-keywords nil nil nil nil))
+        (setq font-lock-multiline nil)
 	(erase-buffer)
-	(insert ";; Keyboard Macro Editor.  Press C-c C-c to finish; "
-		"press C-x k RET to cancel.\n")
+        (insert (substitute-command-keys
+                 (concat
+                  ;; When editing this, make sure to update
+                  ;; `edmacro-mode-font-lock-keywords' to match.
+                  ";; Keyboard Macro Editor.  Press \\[edmacro-finish-edit] "
+                  "to finish; press \\[kill-buffer] \\`RET' to cancel.\n")
+                 ;; Use 'no-face argument to not conflict with font-lock.
+                 'no-face))
 	(insert ";; Original keys: " fmt "\n")
 	(unless store-hook
 	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
@@ -217,11 +251,12 @@ If VERBOSE is `1', put everything on one line.  If VERBOSE is omitted
 or nil, use a compact 80-column format."
   (and macro (symbolp macro) (setq macro (symbol-function macro)))
   (edmacro-format-keys (or macro last-kbd-macro) verbose))
+
 
 ;;; Commands for *Edit Macro* buffer.
 
 (defun edmacro-finish-edit ()
-  (interactive)
+  (interactive nil edmacro-mode)
   (unless (eq major-mode 'edmacro-mode)
     (error
      "This command is valid only in buffers created by `edit-kbd-macro'"))
@@ -332,7 +367,7 @@ or nil, use a compact 80-column format."
 
 (defun edmacro-insert-key (key)
   "Insert the written name of a KEY in the buffer."
-  (interactive "kKey to insert: ")
+  (interactive "kKey to insert: " edmacro-mode)
   (if (bolp)
       (insert (edmacro-format-keys key t) "\n")
     (insert (edmacro-format-keys key) " ")))
@@ -340,7 +375,7 @@ or nil, use a compact 80-column format."
 (defun edmacro-mode ()
   "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \
 \\[edmacro-finish-edit] to save and exit.
-To abort the edit, just kill this buffer with \\[kill-buffer] RET.
+To abort the edit, just kill this buffer with \\[kill-buffer] \\`RET'.
 
 Press \\[edmacro-insert-key] to insert the name of any key by typing the key.
 
@@ -412,6 +447,7 @@ doubt, use whitespace."
   (interactive)
   (error "This mode can be enabled only by `edit-kbd-macro'"))
 (put 'edmacro-mode 'mode-class 'special)
+
 
 ;;; Formatting a keyboard macro as human-readable text.
 
@@ -530,8 +566,8 @@ doubt, use whitespace."
                               ((integerp ch)
                                (concat
                                 (cl-loop for pf across "ACHMsS"
-                                         for bit in '(?\A-\^@ ?\C-\^@ ?\H-\^@
-                                                              ?\M-\^@ ?\s-\^@ ?\S-\^@)
+                                         for bit in '( ?\A-\0 ?\C-\0 ?\H-\0
+                                                       ?\M-\0 ?\s-\0 ?\S-\0)
                                          when (/= (logand ch bit) 0)
                                          concat (format "%c-" pf))
                                 (let ((ch2 (logand ch (1- (ash 1 18)))))
@@ -590,7 +626,7 @@ The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))
   (cl-loop for i below (length seq) do
-           (when (logand (aref seq i) 128)
+           (when (/= (logand (aref seq i) 128) 0)
              (setf (aref seq i) (logand (aref seq i) 127))))
   seq)
 
@@ -603,12 +639,8 @@ This function assumes that the events can be stored in a string."
 (defun edmacro-fix-menu-commands (macro &optional noerror)
   (if (vectorp macro)
       (let (result)
-        ;; Not preloaded in without-x builds.
+        ;; Not preloaded in a --without-x build.
         (require 'mwheel)
-        (defvar mouse-wheel-down-event)
-        (defvar mouse-wheel-left-event)
-        (defvar mouse-wheel-right-event)
-        (defvar mouse-wheel-up-event)
 	;; Make a list of the elements.
 	(setq macro (append macro nil))
 	(dolist (ev macro)
@@ -635,6 +667,7 @@ This function assumes that the events can be stored in a string."
 	;; Reverse them again and make them back into a vector.
 	(vconcat (nreverse result)))
     macro))
+
 
 ;;; Parsing a human-readable keyboard macro.
 

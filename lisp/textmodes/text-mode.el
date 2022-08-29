@@ -67,13 +67,11 @@
     st)
   "Syntax table used while in `text-mode'.")
 
-(defvar text-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\t" #'ispell-complete-word)
-    map)
-  "Keymap for `text-mode'.
-Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
-inherit all the commands defined in this map.")
+(defvar-keymap text-mode-map
+  :doc "Keymap for `text-mode'.
+Many other modes, such as `mail-mode' and `outline-mode', inherit
+all the commands defined in this map."
+  "C-M-i" #'ispell-complete-word)
 
 (easy-menu-define text-mode-menu text-mode-map
   "Menu for `text-mode'."
@@ -164,8 +162,6 @@ Turning on Paragraph-Indent minor mode runs the normal hook
     (remove-function (local 'indent-line-function)
                      #'indent-to-left-margin)))
 
-(defalias 'indented-text-mode #'text-mode)
-
 ;; This can be made a no-op once all modes that use text-mode-hook
 ;; are "derived" from text-mode.  (As of 2015/04, and probably well before,
 ;; the only one I can find that doesn't so derive is rmail-edit-mode.)
@@ -244,6 +240,8 @@ The argument NLINES says how many lines to center."
 	  ((< nlines 0)
 	   (setq nlines (1+ nlines))
 	   (forward-line -1)))))
+
+(define-obsolete-function-alias 'indented-text-mode #'text-mode "29.1")
 
 (provide 'text-mode)
 

@@ -802,7 +802,7 @@ that note messages to be refiled."
   "Return a list of message numbers from point to the end of the line.
 Expands ranges into set of individual numbers."
   (let ((msgs ())
-        (end-of-line (point-at-eol))
+        (end-of-line (line-end-position))
         num)
     (while (re-search-forward "[0-9]+" end-of-line t)
       (setq num (string-to-number (buffer-substring (match-beginning 0)
@@ -996,7 +996,6 @@ removed."
 (provide 'mh-seq)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

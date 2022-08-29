@@ -1,7 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: emacs-devel@gnu.org
@@ -24,11 +23,11 @@
 
 ;;; Commentary:
 
-;; This mode is intended to be used for telnet or rsh to a remote host;
-;; `telnet' and `rsh' are the two entry points.  Multiple telnet or rsh
-;; sessions are supported.
+;; This mode is intended to be used for telnet to a remote host;
+;; `telnet' is the entry point.  Multiple telnet sessions are
+;; supported.
 ;;
-;; Normally, input is sent to the remote telnet/rsh line-by-line, as you
+;; Normally, input is sent to the remote telnet line-by-line, as you
 ;; type RET or LFD.  C-c C-c sends a C-c to the remote immediately;
 ;; C-c C-z sends C-z immediately.  C-c C-q followed by any character
 ;; sends that character immediately.
@@ -61,14 +60,13 @@ PROGRAM says which program to run, to talk to that machine.
 LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-new-line "\r")
-(defvar telnet-mode-map
-  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key map "\C-m" #'telnet-send-input)
-    ;; (define-key map "\C-j" #'telnet-send-input)
-    (define-key map "\C-c\C-q" #'send-process-next-char)
-    (define-key map "\C-c\C-c" #'telnet-interrupt-subjob)
-    (define-key map "\C-c\C-z" #'telnet-c-z)
-    map))
+(defvar-keymap telnet-mode-map
+  :parent comint-mode-map
+  "RET"     #'telnet-send-input
+  ;; "C-j"  #'telnet-send-input
+  "C-c C-q" #'send-process-next-char
+  "C-c C-c" #'telnet-interrupt-subjob
+  "C-c C-z" #'telnet-c-z)
 
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
@@ -95,7 +93,7 @@ Should be set to the number of terminal writes telnet will make
 rejecting one login and prompting again for a username and password.")
 
 (defvar telnet-connect-command nil
-  "Command used to start the `telnet' (or `rsh') connection.")
+  "Command used to start the `telnet' connection.")
 
 (defun telnet-interrupt-subjob ()
   "Interrupt the program running through telnet on the remote host."
@@ -246,7 +244,7 @@ Normally input is edited in Emacs and sent a line at a time."
 (put 'telnet-mode 'mode-class 'special)
 
 (define-derived-mode telnet-mode comint-mode "Telnet"
-  "This mode is for using telnet (or rsh) from a buffer to another host.
+  "This mode is for using telnet from a buffer to another host.
 It has most of the same commands as `comint-mode'.
 There is a variable `telnet-interrupt-string' which is the character
 sent to try to stop execution of a job on the remote host.
@@ -261,6 +259,7 @@ Data is sent to the remote host when RET is typed."
   "Open a network login connection to host named HOST (a string).
 Communication with HOST is recorded in a buffer `*rsh-HOST*'.
 Normally input is edited in Emacs and sent a line at a time."
+  (declare (obsolete nil "29.1"))
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat "rsh-" host )))

@@ -128,7 +128,7 @@
 (defconst ediff-meta-buffer-verbose-message "Ediff Session Group Panel: %s
 
 Useful commands (type ? to hide them and free up screen):
-     button2, v, or RET over session record:   start that Ediff session
+     mouse-2, v, or RET over session record:   start that Ediff session
      M:\tin sessions invoked from here, brings back this group panel
      R:\tdisplay the registry of active Ediff sessions
      h:\tmark session for hiding (toggle)
@@ -144,20 +144,18 @@ Useful commands (type ? to hide them and free up screen):
 
 (ediff-defvar-local ediff-meta-buffer-map nil
   "The keymap for the meta buffer.")
-(defvar ediff-dir-diffs-buffer-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q" #'ediff-bury-dir-diffs-buffer)
-    (define-key map " " #'next-line)
-    (define-key map "n" #'next-line)
-    (define-key map "\C-?" #'previous-line)
-    (define-key map "p" #'previous-line)
-    (define-key map "C" #'ediff-dir-diff-copy-file)
-    (define-key map  [mouse-2] #'ediff-dir-diff-copy-file)
-    (define-key map [delete] #'previous-line)
-    (define-key map [backspace] #'previous-line)
-    map)
-  "Keymap for buffer showing differences between directories.")
+(defvar-keymap ediff-dir-diffs-buffer-map
+  :doc "Keymap for buffer showing differences between directories."
+  :suppress t
+  "q"           #'ediff-bury-dir-diffs-buffer
+  "SPC"         #'next-line
+  "n"           #'next-line
+  "DEL"         #'previous-line
+  "p"           #'previous-line
+  "C"           #'ediff-dir-diff-copy-file
+  "<mouse-2>"   #'ediff-dir-diff-copy-file
+  "<delete>"    #'previous-line
+  "<backspace>" #'previous-line)
 
 ;; Variable specifying the action to take when the use invokes ediff in the
 ;; meta buffer.  This is usually ediff-registry-action or ediff-filegroup-action
@@ -1236,7 +1234,7 @@ behavior."
       (insert "\t\t*** Directory Differences ***\n")
       (insert "
 Useful commands:
-  C,button2: over file name -- copy this file to directory that doesn't have it
+  C,mouse-2: over file name -- copy this file to directory that doesn't have it
           q: hide this buffer
       n,SPC: next line
       p,DEL: previous line\n\n")
@@ -1429,7 +1427,7 @@ Useful commands:
 This is a registry of all active Ediff sessions.
 
 Useful commands:
-     button2, `v', RET over a session record:  switch to that session
+     mouse-2, `v', RET over a session record:  switch to that session
      M over a session record:  display the associated session group
      R in any Ediff session:   display session registry
      n,SPC: next session
@@ -1861,7 +1859,6 @@ all marked sessions must be active."
 	    ;; handle an individual session with a live control buffer
 	    ((ediff-buffer-live-p session-buf)
 	     (ediff-with-current-buffer session-buf
-	       (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	       (ediff-recenter 'no-rehighlight)))
 
 	    ((ediff-problematic-session-p info)
@@ -2005,7 +2002,6 @@ all marked sessions must be active."
 	    (ediff-show-meta-buffer ctl-buf t)
 	  ;; it's a session buffer -- invoke go back to session
 	  (ediff-with-current-buffer ctl-buf
-	    (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	    (ediff-recenter 'no-rehighlight)))
       (beep)
       (message "You've selected a stale session --- try again")
@@ -2056,14 +2052,14 @@ all marked sessions must be active."
 	      ((and
 		(setq wind
 		      (ediff-get-visible-buffer-window ediff-registry-buffer))
-		(ediff-window-display-p))
+                (display-graphic-p))
 	       (select-window wind)
 	       (other-window 1)
 	       (set-window-buffer (selected-window) meta-buf))
 	      (t (ediff-skip-unsuitable-frames 'ok-unsplittable)
 		 (set-window-buffer (selected-window) meta-buf)))
 	))
-    (if (and (ediff-window-display-p)
+    (if (and (display-graphic-p)
 	     (window-live-p
 	      (setq wind (ediff-get-visible-buffer-window meta-buf))))
 	(progn
@@ -2117,14 +2113,14 @@ all marked sessions must be active."
 		(select-window ediff-window-B))
 	       ((and (setq wind
 			   (ediff-get-visible-buffer-window ediff-meta-buffer))
-		     (ediff-window-display-p))
+                     (display-graphic-p))
 		(select-window wind)
 		(other-window 1)
 		(set-window-buffer (selected-window) ediff-registry-buffer))
 	       (t (ediff-skip-unsuitable-frames 'ok-unsplittable)
 		  (set-window-buffer (selected-window) ediff-registry-buffer)))
 	))
-    (if (ediff-window-display-p)
+    (if (display-graphic-p)
 	(progn
 	  (setq frame
 		(window-frame

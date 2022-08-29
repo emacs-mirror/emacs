@@ -114,7 +114,13 @@ enum haiku_event_type
     DUMMY_EVENT,
     SCREEN_CHANGED_EVENT,
     MENU_BAR_LEFT,
+    CLIPBOARD_CHANGED_EVENT,
   };
+
+struct haiku_clipboard_changed_event
+{
+  char dummy;
+};
 
 struct haiku_screen_changed_event
 {
@@ -271,6 +277,7 @@ enum haiku_font_specification
     FSPEC_WIDTH	      = 1 << 7,
     FSPEC_LANGUAGE    = 1 << 8,
     FSPEC_INDICES     = 1 << 9,
+    FSPEC_ANTIALIAS   = 1 << 10,
   };
 
 typedef char haiku_font_family_or_style[64];
@@ -390,6 +397,10 @@ struct haiku_font_pattern
 
   /* Temporary field used during font enumeration.  */
   int oblique_seen_p;
+
+  /* Whether or not to enable antialiasing in the font.  This field is
+     special in that it's not handled by `BFont_open_pattern'.  */
+  int use_antialiasing;
 };
 
 struct haiku_scroll_bar_value_event
@@ -553,10 +564,8 @@ extern void BView_StrokeLine (void *, int, int, int, int);
 extern void BView_CopyBits (void *, int, int, int, int, int, int, int, int);
 extern void BView_InvertRect (void *, int, int, int, int);
 extern void BView_DrawBitmap (void *, void *, int, int, int, int, int, int,
-			      int, int);
+			      int, int, bool);
 extern void BView_DrawBitmapWithEraseOp (void *, void *, int, int, int, int);
-extern void BView_DrawMask (void *, void *, int, int, int, int,	int, int,
-			    int, int, uint32_t);
 extern void BView_DrawBitmapTiled (void *, void *, int, int,
 				   int, int, int, int, int, int);
 
@@ -565,8 +574,15 @@ extern void BView_set_view_cursor (void *, void *);
 extern void BView_move_frame (void *, int, int, int, int);
 extern void BView_scroll_bar_update (void *, int, int, int, int, bool);
 
-extern void *BBitmap_transform_bitmap (void *, void *, uint32_t, double,
-				       int, int);
+extern void *be_transform_bitmap (void *, void *, uint32_t, double,
+				  int, int, bool);
+extern void be_apply_affine_transform (void *, double, double, double,
+				       double, double, double);
+extern void be_apply_inverse_transform (double (*)[3], int, int, int *, int *);
+extern void be_draw_image_mask (void *, void *, int, int, int, int, int, int,
+				int, int, uint32_t);
+extern void be_draw_bitmap_with_mask (void *, void *, void *, int, int, int,
+				      int, int, int, int, int, bool);
 
 extern void be_get_display_resolution (double *, double *);
 extern void be_get_screen_dimensions (int *, int *);
@@ -632,8 +648,7 @@ extern int32 BAlert_go (void *, void (*) (void), void (*) (void),
 extern void BButton_set_enabled (void *, int);
 extern void BView_set_tooltip (void *, const char *);
 extern void BView_show_tooltip (void *);
-extern void BView_set_and_show_sticky_tooltip (void *, const char *,
-					       int, int);
+extern void be_show_sticky_tooltip (void *, const char *, int, int);
 
 extern void BAlert_delete (void *);
 
@@ -684,6 +699,7 @@ extern const char *be_find_setting (const char *);
 extern haiku_font_family_or_style *be_list_font_families (size_t *);
 extern void be_font_style_to_flags (char *, struct haiku_font_pattern *);
 extern void *be_open_font_at_index (int, int, float);
+extern void be_set_font_antialiasing (void *, bool);
 extern int be_get_ui_color (const char *, uint32_t *);
 
 extern void BMessage_delete (void *);
@@ -697,7 +713,8 @@ extern bool be_replay_menu_bar_event (void *, struct haiku_menu_bar_click_event 
 extern bool be_select_font (void (*) (void), bool (*) (void),
 			    haiku_font_family_or_style *,
 			    haiku_font_family_or_style *,
-			    int *, bool, int, int, int);
+			    int *, bool, int, int, int,
+			    bool, bool *);
 
 extern int be_find_font_indices (struct haiku_font_pattern *, int *, int *);
 extern status_t be_roster_launch (const char *, const char *, char **,
@@ -710,6 +727,8 @@ extern void be_set_window_fullscreen_mode (void *, enum haiku_fullscreen_mode);
 extern void be_lock_window (void *);
 extern void be_unlock_window (void *);
 extern bool be_get_explicit_workarea (int *, int *, int *, int *);
+extern void be_clear_grab_view (void);
+extern void be_set_use_frame_synchronization (void *, bool);
 #ifdef __cplusplus
 }
 

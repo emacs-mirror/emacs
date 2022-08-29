@@ -275,7 +275,8 @@ struct scroll_bar
 #define MAKE_FRAME_DIRTY(f)		(FRAME_DIRTY_P (f) = 1)
 #define FRAME_OUTPUT_DATA(f)		((f)->output_data.haiku)
 #define FRAME_HAIKU_WINDOW(f)		(FRAME_OUTPUT_DATA (f)->window)
-#define FRAME_HAIKU_VIEW(f)		((MAKE_FRAME_DIRTY (f)), FRAME_OUTPUT_DATA (f)->view)
+#define FRAME_HAIKU_VIEW(f)		(FRAME_OUTPUT_DATA (f)->view)
+#define FRAME_HAIKU_DRAWABLE(f)		((MAKE_FRAME_DIRTY (f)), FRAME_HAIKU_VIEW (f))
 #define FRAME_HAIKU_MENU_BAR(f)		(FRAME_OUTPUT_DATA (f)->menubar)
 #define FRAME_DISPLAY_INFO(f)		(FRAME_OUTPUT_DATA (f)->display_info)
 #define FRAME_FONT(f)			(FRAME_OUTPUT_DATA (f)->font)
@@ -287,7 +288,7 @@ struct scroll_bar
 #ifdef USE_BE_CAIRO
 #define FRAME_CR_CONTEXT(f)					\
   (FRAME_HAIKU_VIEW (f)						\
-   ? EmacsView_cairo_context (FRAME_HAIKU_VIEW (f))		\
+   ? EmacsView_cairo_context (FRAME_HAIKU_DRAWABLE (f))		\
    : NULL)
 #endif
 
@@ -333,6 +334,7 @@ extern Lisp_Object haiku_popup_dialog (struct frame *, Lisp_Object, Lisp_Object)
 extern void haiku_activate_menubar (struct frame *);
 extern void haiku_wait_for_event (struct frame *, int);
 extern void haiku_note_drag_motion (void);
+extern void haiku_note_drag_wheel (struct input_event *);
 
 extern void initialize_frame_menubar (struct frame *);
 
@@ -357,4 +359,6 @@ extern void haiku_end_cr_clip (cairo_t *);
 
 extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long *,
 					   unsigned long *);
+extern void haiku_handle_selection_clear (struct input_event *);
+extern void haiku_start_watching_selections (void);
 #endif /* _HAIKU_TERM_H_ */

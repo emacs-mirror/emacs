@@ -35,6 +35,7 @@
 #  --macro-prefix=gl \
 #  --no-vc-files \
 #  --avoid=btowc \
+#  --avoid=chmod \
 #  --avoid=close \
 #  --avoid=crypto/af_alg \
 #  --avoid=dup \
@@ -317,6 +318,7 @@ GL_GENERATE_IEEE754_H_CONDITION = @GL_GENERATE_IEEE754_H_CONDITION@
 GL_GENERATE_LIMITS_H_CONDITION = @GL_GENERATE_LIMITS_H_CONDITION@
 GL_GENERATE_MINI_GMP_H_CONDITION = @GL_GENERATE_MINI_GMP_H_CONDITION@
 GL_GENERATE_STDALIGN_H_CONDITION = @GL_GENERATE_STDALIGN_H_CONDITION@
+GL_GENERATE_STDCKDINT_H_CONDITION = @GL_GENERATE_STDCKDINT_H_CONDITION@
 GL_GENERATE_STDDEF_H_CONDITION = @GL_GENERATE_STDDEF_H_CONDITION@
 GL_GENERATE_STDINT_H_CONDITION = @GL_GENERATE_STDINT_H_CONDITION@
 GL_GNULIB_ACCESS = @GL_GNULIB_ACCESS@
@@ -327,6 +329,7 @@ GL_GNULIB_CALLOC_GNU = @GL_GNULIB_CALLOC_GNU@
 GL_GNULIB_CALLOC_POSIX = @GL_GNULIB_CALLOC_POSIX@
 GL_GNULIB_CANONICALIZE_FILE_NAME = @GL_GNULIB_CANONICALIZE_FILE_NAME@
 GL_GNULIB_CHDIR = @GL_GNULIB_CHDIR@
+GL_GNULIB_CHMOD = @GL_GNULIB_CHMOD@
 GL_GNULIB_CHOWN = @GL_GNULIB_CHOWN@
 GL_GNULIB_CLOSE = @GL_GNULIB_CLOSE@
 GL_GNULIB_CLOSEDIR = @GL_GNULIB_CLOSEDIR@
@@ -1029,6 +1032,7 @@ REPLACE_ALIGNED_ALLOC = @REPLACE_ALIGNED_ALLOC@
 REPLACE_CALLOC_FOR_CALLOC_GNU = @REPLACE_CALLOC_FOR_CALLOC_GNU@
 REPLACE_CALLOC_FOR_CALLOC_POSIX = @REPLACE_CALLOC_FOR_CALLOC_POSIX@
 REPLACE_CANONICALIZE_FILE_NAME = @REPLACE_CANONICALIZE_FILE_NAME@
+REPLACE_CHMOD = @REPLACE_CHMOD@
 REPLACE_CHOWN = @REPLACE_CHOWN@
 REPLACE_CLOSE = @REPLACE_CLOSE@
 REPLACE_CLOSEDIR = @REPLACE_CLOSEDIR@
@@ -1195,9 +1199,12 @@ SETTINGS_CFLAGS = @SETTINGS_CFLAGS@
 SETTINGS_LIBS = @SETTINGS_LIBS@
 SHELL = @SHELL@
 SIG_ATOMIC_T_SUFFIX = @SIG_ATOMIC_T_SUFFIX@
+SIZEOF_LONG = @SIZEOF_LONG@
 SIZE_T_SUFFIX = @SIZE_T_SUFFIX@
+SMALL_JA_DIC = @SMALL_JA_DIC@
 SQLITE3_LIBS = @SQLITE3_LIBS@
 STDALIGN_H = @STDALIGN_H@
+STDCKDINT_H = @STDCKDINT_H@
 STDDEF_H = @STDDEF_H@
 STDINT_H = @STDINT_H@
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
@@ -1314,6 +1321,7 @@ gl_GNULIB_ENABLED_lchmod_CONDITION = @gl_GNULIB_ENABLED_lchmod_CONDITION@
 gl_GNULIB_ENABLED_open_CONDITION = @gl_GNULIB_ENABLED_open_CONDITION@
 gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
 gl_GNULIB_ENABLED_scratch_buffer_CONDITION = @gl_GNULIB_ENABLED_scratch_buffer_CONDITION@
+gl_GNULIB_ENABLED_stdckdint_CONDITION = @gl_GNULIB_ENABLED_stdckdint_CONDITION@
 gl_GNULIB_ENABLED_strtoll_CONDITION = @gl_GNULIB_ENABLED_strtoll_CONDITION@
 gl_GNULIB_ENABLED_utimens_CONDITION = @gl_GNULIB_ENABLED_utimens_CONDITION@
 gl_LIBOBJDEPS = @gl_LIBOBJDEPS@
@@ -2263,7 +2271,7 @@ endif
 ifeq (,$(OMIT_GNULIB_MODULE_intprops))
 
 
-EXTRA_DIST += intprops.h
+EXTRA_DIST += intprops-internal.h intprops.h
 
 endif
 ## end   gnulib module intprops
@@ -2867,6 +2875,31 @@ EXTRA_DIST += stdalign.in.h
 
 endif
 ## end   gnulib module stdalign
+
+## begin gnulib module stdckdint
+ifeq (,$(OMIT_GNULIB_MODULE_stdckdint))
+
+ifneq (,$(gl_GNULIB_ENABLED_stdckdint_CONDITION))
+BUILT_SOURCES += $(STDCKDINT_H)
+
+# We need the following in order to create <stdckdint.h> when the system
+# doesn't have one that works with the given compiler.
+ifneq (,$(GL_GENERATE_STDCKDINT_H_CONDITION))
+stdckdint.h: stdckdint.in.h $(top_builddir)/config.status
+	$(gl_V_at)$(SED_HEADER_STDOUT) \
+	  $(srcdir)/stdckdint.in.h > $@-t
+	$(AM_V_at)mv $@-t $@
+else
+stdckdint.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += stdckdint.h stdckdint.h-t
+
+endif
+EXTRA_DIST += intprops-internal.h stdckdint.in.h
+
+endif
+## end   gnulib module stdckdint
 
 ## begin gnulib module stddef
 ifeq (,$(OMIT_GNULIB_MODULE_stddef))
@@ -3497,6 +3530,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''NEXT_SYS_STAT_H''@|$(NEXT_SYS_STAT_H)|g' \
 	      -e 's|@''WINDOWS_64_BIT_ST_SIZE''@|$(WINDOWS_64_BIT_ST_SIZE)|g' \
 	      -e 's|@''WINDOWS_STAT_TIMESPEC''@|$(WINDOWS_STAT_TIMESPEC)|g' \
+	      -e 's/@''GNULIB_CHMOD''@/$(GL_GNULIB_CHMOD)/g' \
 	      -e 's/@''GNULIB_FCHMODAT''@/$(GL_GNULIB_FCHMODAT)/g' \
 	      -e 's/@''GNULIB_FSTAT''@/$(GL_GNULIB_FSTAT)/g' \
 	      -e 's/@''GNULIB_FSTATAT''@/$(GL_GNULIB_FSTATAT)/g' \
@@ -3528,6 +3562,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''HAVE_MKNOD''@|$(HAVE_MKNOD)|g' \
 	      -e 's|@''HAVE_MKNODAT''@|$(HAVE_MKNODAT)|g' \
 	      -e 's|@''HAVE_UTIMENSAT''@|$(HAVE_UTIMENSAT)|g' \
+	      -e 's|@''REPLACE_CHMOD''@|$(REPLACE_CHMOD)|g' \
 	      -e 's|@''REPLACE_FCHMODAT''@|$(REPLACE_FCHMODAT)|g' \
 	      -e 's|@''REPLACE_FSTAT''@|$(REPLACE_FSTAT)|g' \
 	      -e 's|@''REPLACE_FSTATAT''@|$(REPLACE_FSTATAT)|g' \

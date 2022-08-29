@@ -36,13 +36,13 @@
 (defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-queue-timeout 5
   "How long to let a job live once it's started (in seconds)."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 ;;; Internal variables.

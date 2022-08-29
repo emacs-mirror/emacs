@@ -1547,7 +1547,7 @@ reversed."
     (if skip-rest
 	()
       ;; setup buffer
-      (if (setq wind (viper-get-visible-buffer-window buf))
+      (if (setq wind (get-buffer-window buf 'visible))
 	  ()
 	(setq wind (get-lru-window 'visible))
 	(set-window-buffer wind buf))

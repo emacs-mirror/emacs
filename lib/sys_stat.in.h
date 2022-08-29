@@ -391,7 +391,33 @@ struct stat
 #endif
 
 
-#if @GNULIB_MDA_CHMOD@
+#if @GNULIB_CHMOD@
+# if @REPLACE_CHMOD@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef chmod
+#   define chmod rpl_chmod
+#  endif
+_GL_FUNCDECL_RPL (chmod, int, (const char *filename, mode_t mode)
+                               _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (chmod, int, (const char *filename, mode_t mode));
+# elif defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef chmod
+#   define chmod _chmod
+#  endif
+/* Need to cast, because in mingw the last argument is 'int mode'.  */
+_GL_CXXALIAS_MDA_CAST (chmod, int, (const char *filename, mode_t mode));
+# else
+_GL_CXXALIAS_SYS (chmod, int, (const char *filename, mode_t mode));
+# endif
+_GL_CXXALIASWARN (chmod);
+#elif defined GNULIB_POSIXCHECK
+# undef chmod
+# if HAVE_RAW_DECL_CHMOD
+_GL_WARN_ON_USE (chmod, "chmod has portability problems - "
+                 "use gnulib module chmod for portability");
+# endif
+#elif @GNULIB_MDA_CHMOD@
 /* On native Windows, map 'chmod' to '_chmod', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::chmod always.  */

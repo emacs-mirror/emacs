@@ -1,0 +1,31 @@
+;; -*- mode: lisp-data; -*-
+((nick 1 "NICK tester"))
+((user 1 "USER user 0 * :tester")
+ (0.1 ":irc.foonet.org 001 dummy :Welcome to the foonet IRC Network dummy")
+ (0.0 ":irc.foonet.org 002 dummy :Your host is irc.foonet.org, running version oragono-2.6.1-937b9b02368748e5")
+ (0.0 ":irc.foonet.org 003 dummy :This server was created Fri, 24 Sep 2021 01:38:36 UTC")
+ (0.0 ":irc.foonet.org 004 dummy irc.foonet.org oragono-2.6.1-937b9b02368748e5 BERTZios CEIMRUabefhiklmnoqstuv Iabefhkloqv")
+ (0.0 ":irc.foonet.org 005 dummy AWAYLEN=390 BOT=B CASEMAPPING=ascii CHANLIMIT=#:100 CHANMODES=Ibe,k,fl,CEMRUimnstu CHANNELLEN=64 CHANTYPES=# ELIST=U EXCEPTS EXTBAN=,m FORWARD=f INVEX KICKLEN=390 :are supported by this server")
+ (0.1 ":irc.foonet.org 005 dummy MAXLIST=beI:60 MAXTARGETS=4 MODES MONITOR=100 NETWORK=foonet NICKLEN=32 PREFIX=(qaohv)~&@%+ STATUSMSG=~&@%+ TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,USERHOST:10,PRIVMSG:4,TAGMSG:4,NOTICE:4,MONITOR:100 TOPICLEN=390 UTF8MAPPING=rfc8265 UTF8ONLY WHOX :are supported by this server")
+ (0.1 ":irc.foonet.org 005 dummy draft/CHATHISTORY=100 :are supported by this server")
+ (0.0 ":irc.foonet.org 251 dummy :There are 0 users and 3 invisible on 1 server(s)")
+ (0.0 ":irc.foonet.org 252 dummy 0 :IRC Operators online")
+ (0.0 ":irc.foonet.org 253 dummy 0 :unregistered connections")
+ (0.0 ":irc.foonet.org 254 dummy 1 :channels formed")
+ (0.0 ":irc.foonet.org 255 dummy :I have 3 clients and 0 servers")
+ (0.0 ":irc.foonet.org 265 dummy 3 3 :Current local users 3, max 3")
+ (0.2 ":irc.foonet.org 266 dummy 3 3 :Current global users 3, max 3")
+ ;; Could arrive anytime around this point
+ (0.0 ":tester!~u@rpaau95je67ci.irc NICK :dummy")
+ (0.0 ":irc.foonet.org 422 dummy :MOTD File is missing")
+ ;; Playback
+ (0.01 ":bob!~u@ecnnh95wr67pv.net PRIVMSG dummy :back?")
+ )
+
+((mode-user 1.2 "MODE dummy +i")
+ (0.0 ":irc.foonet.org 221 dummy +i")
+ (0.0 ":irc.foonet.org NOTICE dummy :This server is in debug mode and is logging all user I/O. If you do not wish for everything you send to be readable by the server owner(s), please disconnect."))
+
+((renick 42.6 "NICK tester")
+ (0.01 ":dummy!~u@rpaau95je67ci.irc NICK tester")
+ (0.0 ":NickServ!NickServ@localhost NOTICE dummy :You're now logged in as tester"))

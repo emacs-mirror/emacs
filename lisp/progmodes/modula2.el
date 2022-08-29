@@ -101,9 +101,8 @@
 
 (defcustom m2-indent 5
   "This variable gives the indentation in Modula-2 mode."
-  :type 'integer)
-(put 'm2-indent 'safe-local-variable
-     (lambda (v) (or (null v) (integerp v))))
+  :type 'integer
+  :safe (lambda (v) (or (null v) (integerp v))))
 
 (defconst m2-smie-grammar
   ;; An official definition can be found as "M2R10.pdf".  This grammar does

@@ -109,7 +109,7 @@
 ;;
 ;; Extensively modified by Luke Lee in 2013 to support complete C expression
 ;; evaluation and argumented macro expansion; C++11, C++14, C++17, GCC
-;; extension literals and gcc/clang matching behaviours are supported in 2021.
+;; extension literals and gcc/clang matching behaviors are supported in 2021.
 ;; Various floating point types and operations are also supported but the
 ;; actual precision is limited by the Emacs internal floating representation,
 ;; which is the C data type "double" or IEEE binary64 format.
@@ -2521,8 +2521,7 @@ Turn off hiding by calling `show-ifdefs'."
             (or hide-ifdef-read-only hif-outside-read-only))
       (and hide-ifdef-verbose
            (message "Hiding done, %.1f seconds elapsed"
-                    (float-time (time-subtract (current-time)
-                                               hide-start-time)))))))
+		    (float-time (time-subtract nil hide-start-time)))))))
 
 
 (defun show-ifdefs (&optional start end)

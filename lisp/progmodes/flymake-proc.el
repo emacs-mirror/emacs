@@ -399,10 +399,7 @@ instead of reading master file from disk."
                    (not (string-match (format "\\.%s\\'" source-file-extension)
                                       inc-name))
                    (setq inc-name (concat inc-name "." source-file-extension)))
-              (when (eq t (compare-strings
-                           source-file-nondir nil nil
-                           inc-name (- (length inc-name)
-                                       (length source-file-nondir)) nil))
+              (when (string-suffix-p source-file-nondir inc-name)
                 (flymake-log 3 "inc-name=%s" inc-name)
                 (when (flymake-proc--check-include source-file-name inc-name
                                                    include-dirs)

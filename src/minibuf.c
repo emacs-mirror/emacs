@@ -427,8 +427,8 @@ No argument or nil as argument means use the current buffer as BUFFER.  */)
 {
   if (NILP (buffer))
     buffer = Fcurrent_buffer ();
-  return EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
-				     Vminibuffer_list))))
+  return BASE_EQ (buffer, (Fcar (Fnthcdr (make_fixnum (minibuf_level),
+					  Vminibuffer_list))))
     ? Qt
     : Qnil;
 }
@@ -1123,8 +1123,8 @@ read_minibuf_unwind (void)
  found:
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (exp_MB_frame, 0, 0, Qt); /* This also sets
-					     minibuf_window */
+    do_switch_frame (exp_MB_frame, 0, Qt); /* This also sets
+					      minibuf_window */
 
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  Don't depend on
@@ -1236,7 +1236,7 @@ read_minibuf_unwind (void)
   /* Restore the selected frame. */
   if (!EQ (exp_MB_frame, saved_selected_frame)
       && !NILP (exp_MB_frame))
-    do_switch_frame (saved_selected_frame, 0, 0, Qt);
+    do_switch_frame (saved_selected_frame, 0, Qt);
 }
 
 /* Replace the expired minibuffer in frame exp_MB_frame with the next less
@@ -1545,18 +1545,6 @@ function, instead of the usual behavior.  */)
   return unbind_to (count, result);
 }
 
-static Lisp_Object
-minibuf_conform_representation (Lisp_Object string, Lisp_Object basis)
-{
-  if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
-    return string;
-
-  if (STRING_MULTIBYTE (string))
-    return Fstring_make_unibyte (string);
-  else
-    return Fstring_make_multibyte (string);
-}
-
 static bool
 match_regexps (Lisp_Object string, Lisp_Object regexps,
 	       bool ignore_case)
@@ -1791,10 +1779,10 @@ or from one of the possible completions.  */)
 	      if (bestmatchsize != SCHARS (eltstring)
 		  || bestmatchsize != matchsize
 		  || (completion_ignore_case
-		      && !EQ (Fcompare_strings (old_bestmatch, zero, lcompare,
-						eltstring, zero, lcompare,
-						Qnil),
-			      Qt)))
+		      && !BASE_EQ (Fcompare_strings (old_bestmatch, zero,
+						     lcompare, eltstring, zero,
+						     lcompare, Qnil),
+				   Qt)))
 		/* Don't count the same string multiple times.  */
 		matchcount += matchcount <= 1;
 	      bestmatchsize = matchsize;
@@ -1817,7 +1805,7 @@ or from one of the possible completions.  */)
      don't change the case of what the user typed.  */
   if (completion_ignore_case && bestmatchsize == SCHARS (string)
       && SCHARS (bestmatch) > bestmatchsize)
-    return minibuf_conform_representation (string, bestmatch);
+    return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
@@ -2011,8 +1999,9 @@ REQUIRE-MATCH can take the following values:
   input, but she needs to confirm her choice if she called
   `minibuffer-complete' right before `minibuffer-complete-and-exit'
   and the input is not an element of COLLECTION.
-- a function, which will be called with the input as the parameter.
-  If it returns a non-nil value, the minibuffer is exited with that value.
+- a function, which will be called with the input as the
+  argument.  If the function returns a non-nil value, the
+  minibuffer is exited with that argument as the value.
 - anything else behaves like t except that typing RET does not exit if it
   does non-null completion.
 
@@ -2089,19 +2078,6 @@ the values STRING, PREDICATE and `lambda'.  */)
 		      SSDATA (string),
 		      SCHARS (string),
 		      SBYTES (string));
-      if (!SYMBOLP (tem))
-	{
-	  if (STRING_MULTIBYTE (string))
-	    string = Fstring_make_unibyte (string);
-	  else
-	    string = Fstring_make_multibyte (string);
-
-	  tem = oblookup (collection,
-			  SSDATA (string),
-			  SCHARS (string),
-			  SBYTES (string));
-	}
-
       if (completion_ignore_case && !SYMBOLP (tem))
 	{
 	  for (i = ASIZE (collection) - 1; i >= 0; i--)
@@ -2110,10 +2086,11 @@ the values STRING, PREDICATE and `lambda'.  */)
 	      if (SYMBOLP (tail))
 		while (1)
 		  {
-		    if (EQ (Fcompare_strings (string, make_fixnum (0), Qnil,
-					      Fsymbol_name (tail),
-					      make_fixnum (0) , Qnil, Qt),
-			   Qt))
+		    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
+						   Qnil,
+						   Fsymbol_name (tail),
+						   make_fixnum (0) , Qnil, Qt),
+				 Qt))
 		      {
 			tem = tail;
 			break;
@@ -2144,9 +2121,9 @@ the values STRING, PREDICATE and `lambda'.  */)
             if (BASE_EQ (tem, Qunbound)) continue;
             Lisp_Object strkey = (SYMBOLP (tem) ? Fsymbol_name (tem) : tem);
             if (!STRINGP (strkey)) continue;
-            if (EQ (Fcompare_strings (string, Qnil, Qnil,
-                                      strkey, Qnil, Qnil,
-                                      completion_ignore_case ? Qt : Qnil),
+            if (BASE_EQ (Fcompare_strings (string, Qnil, Qnil,
+					   strkey, Qnil, Qnil,
+					   completion_ignore_case ? Qt : Qnil),
                     Qt))
               goto found_matching_key;
           }

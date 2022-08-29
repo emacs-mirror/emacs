@@ -151,13 +151,13 @@ endif
 %.elc: %.el
 	$(AM_V_ELC)$(emacs) --batch -f batch-byte-compile $<
 
+ifdef EMACS_HYDRA_CI
+WRITE_LOG = 2>&1 | tee $@
+else
 ## Save logs, and show logs for failed tests.
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
-## On Hydra or Emba, always show logs for certain problematic tests.
-ifdef EMACS_HYDRA_CI
-lisp/net/tramp-tests.log \
-: WRITE_LOG = 2>&1 | tee $@
 endif
+## On Emba, always show logs for certain problematic tests.
 ifdef EMACS_EMBA_CI
 lisp/filenotify-tests.log lisp/net/tramp-tests.log src/emacs-module-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
@@ -240,7 +240,8 @@ $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
 SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d \
-                 ! \( -path "*resources*" -o -path "*auto-save-list" \) -print))
+		\( -name '*resources*' -prune \
+		   -o ! -name '*auto-save-list' -print \)))
 SUBDIR_TARGETS =
 
 define subdir_template
@@ -340,9 +341,17 @@ mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
 	rm -f ./*.tmp
 
+# If 'find' supports -delete, it also supports -path.  Otherwise, use
+# -prune and $(FIND_DELETE) instead.  -prune is incompatible with -delete.
+ifeq ($(FIND_DELETE),-delete)
+CLEAN_XML_FILES = '(' -name '*.xml' -a ! -path '*resources*' ')' -delete
+else
+CLEAN_XML_FILES = -name '*resources*' -prune -o -name '*.xml' $(FIND_DELETE)
+endif
+
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
-	find . '(' -name '*.xml' -a ! -path '*resources*' ')' $(FIND_DELETE)
+	find . $(CLEAN_XML_FILES)
 	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
 	  $(test_module_dir)/*.dll gmp.h

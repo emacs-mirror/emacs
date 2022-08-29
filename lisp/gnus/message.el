@@ -1411,7 +1411,7 @@ text and it replaces `self-insert-command' with the other command, e.g.
       (file-name-as-directory (expand-file-name "drafts" message-directory))
     "~/")
   "Directory where Message auto-saves buffers if Gnus isn't running.
-If nil, Message won't auto-save."
+If nil, Message won't auto-save, whether or not Gnus is running."
   :group 'message-buffers
   :link '(custom-manual "(message)Various Message Variables")
   :type '(choice directory (const :tag "Don't auto-save" nil)))
@@ -1468,11 +1468,11 @@ candidates:
       (memq feature message-shoot-gnksa-feet)))
 
 (defcustom message-hidden-headers '("^References:" "^Face:" "^X-Face:"
-				    "^X-Draft-From:")
+				    "^X-Draft-From:" "^In-Reply-To:")
   "Regexp of headers to be hidden when composing new messages.
 This can also be a list of regexps to match headers.  Or a list
 starting with `not' and followed by regexps."
-  :version "22.1"
+  :version "29.1"
   :group 'message
   :link '(custom-manual "(message)Message Headers")
   :type '(choice
@@ -2081,11 +2081,13 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 
 (defsubst message-delete-line (&optional n)
   "Delete the current line (and the next N lines)."
+  (declare (obsolete delete-line "29.1"))
   (delete-region (progn (beginning-of-line) (point))
 		 (progn (forward-line (or n 1)) (point))))
 
 (defun message-mark-active-p ()
   "Non-nil means the mark and region are currently active in this buffer."
+  (declare (obsolete mark-active "29.1"))
   mark-active)
 
 (defun message-unquote-tokens (elems)
@@ -2183,7 +2185,7 @@ see `message-narrow-to-headers-or-head'."
    (progn
      (forward-line 1)
      (if (re-search-forward "^[^ \n\t]" nil t)
-	 (point-at-bol)
+         (line-beginning-position)
        (point-max))))
   (goto-char (point-min)))
 
@@ -2384,7 +2386,7 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 		    (setq old-subject
 			  (message-strip-subject-re old-subject))
 		    (message-goto-subject)
-		    (message-delete-line)
+		    (delete-line)
 		    (insert (concat "Subject: "
 				    new-subject
 				    " (was: "
@@ -2499,12 +2501,12 @@ been made to before the user asked for a Crosspost."
     (while (re-search-backward
 	    (concat "^" (regexp-quote message-cross-post-note) ".*")
 	    head t)
-      (message-delete-line))
+      (delete-line))
     (message-goto-signature)
     (while (re-search-backward
 	    (concat "^" (regexp-quote message-followup-to-note) ".*")
 	    head t)
-      (message-delete-line))
+      (delete-line))
     ;; insert new note
     (if (message-goto-signature)
 	(re-search-backward message-signature-separator))
@@ -2576,7 +2578,7 @@ With prefix-argument just set Follow-Up, don't cross-post."
    (cond (cc-content
 	  (save-excursion
 	    (message-goto-to)
-	    (message-delete-line)
+	    (delete-line)
 	    (insert (concat "To: " cc-content "\n"))
 	    (save-restriction
 	      (message-narrow-to-headers)
@@ -2731,20 +2733,17 @@ Point is left at the beginning of the narrowed-to region."
   (interactive nil message-mode)
   (save-excursion
     (save-restriction
-      (let ((max (1+ (length message-header-format-alist)))
-	    rank)
+      (let ((max (1+ (length message-header-format-alist))))
 	(message-narrow-to-headers)
 	(while (re-search-forward "^[^ \n]+:" nil t)
 	  (put-text-property
 	   (match-beginning 0) (1+ (match-beginning 0))
 	   'message-rank
-	   (if (setq rank (length (memq (assq (intern (buffer-substring
-						       (match-beginning 0)
-						       (1- (match-end 0))))
-					      message-header-format-alist)
-					message-header-format-alist)))
-	       (- max rank)
-	     (1+ max)))))
+           (- max (length
+                   (memq (assq (intern (buffer-substring
+					(match-beginning 0) (1- (match-end 0))))
+			       message-header-format-alist)
+			 message-header-format-alist))))))
       (message-sort-headers-1))))
 
 (defun message-kill-address ()
@@ -2953,12 +2952,12 @@ Consider adding this function to `message-header-setup-hook'"
     ["Fill Yanked Message" message-fill-yanked-message t]
     ["Insert Signature" message-insert-signature t]
     ["Caesar (rot13) Message" message-caesar-buffer-body t]
-    ["Caesar (rot13) Region" message-caesar-region (message-mark-active-p)]
+    ["Caesar (rot13) Region" message-caesar-region mark-active]
     ["Elide Region" message-elide-region
-     :active (message-mark-active-p)
+     :active mark-active
      :help "Replace text in region with an ellipsis"]
     ["Delete Outside Region" message-delete-not-region
-     :active (message-mark-active-p)
+     :active mark-active
      :help "Delete all quoted text outside region"]
     ["Kill To Signature" message-kill-to-signature t]
     ["Newline and Reformat" message-newline-and-reformat t]
@@ -2966,7 +2965,7 @@ Consider adding this function to `message-header-setup-hook'"
     ["Spellcheck" ispell-message :help "Spellcheck this message"]
     "----"
     ["Insert Region Marked" message-mark-inserted-region
-     :active (message-mark-active-p) :help "Mark region with enclosing tags"]
+     :active mark-active :help "Mark region with enclosing tags"]
     ["Insert File Marked..." message-mark-insert-file
      :help "Insert file at point marked with enclosing tags"]
     ["Attach File..." mml-attach-file t]
@@ -3665,7 +3664,7 @@ Message buffers and is not meant to be called directly."
   (save-excursion
     (save-restriction
       (widen)
-      (let ((bound (+ (point-at-eol) 1)) case-fold-search)
+      (let ((bound (+ (line-end-position) 1)) case-fold-search)
         (goto-char (point-min))
         (not (search-forward (concat "\n" mail-header-separator "\n")
                              bound t))))))
@@ -3929,18 +3928,16 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
 	(if all-removed
 	    (goto-char start)
 	  (forward-line 1))))
-    ;; Delete blank lines at the start of the buffer.
-    (while (and (point-min)
-		(eolp)
-		(not (eobp)))
-      (message-delete-line))
+    ;; Delete blank lines at the start of the cited text.
+    (while (and (eolp) (not (eobp)))
+      (delete-line))
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
     (unless (eq (preceding-char) ?\n)
       (insert "\n"))
     (while (and (zerop (forward-line -1))
 		(looking-at "$"))
-      (message-delete-line)))
+      (delete-line)))
   ;; Do the indentation.
   (if (null message-yank-prefix)
       (indent-rigidly start (or end (mark t)) message-indentation-spaces)
@@ -4180,8 +4177,7 @@ See `message-citation-line-format'."
                  (setq fname (car names)
                        lname (string-join (cdr names) " ")))
                 ((> count 3)
-                 (setq fname (string-join (butlast names (- count 2))
-                                          " ")
+                 (setq fname (string-join (take 2 names) " ")
                        lname (string-join (nthcdr 2 names) " "))))
           (when (string-match "\\(.*\\),\\'" fname)
             (let ((newlname (match-string 1 fname)))
@@ -5145,9 +5141,9 @@ to find out how to use this."
       (let ((headers message-mh-deletable-headers))
 	(while headers
 	  (goto-char (point-min))
-	  (and (re-search-forward
-		(concat "^" (symbol-name (car headers)) ": *") nil t)
-	       (message-delete-line))
+	  (when (re-search-forward
+		 (concat "^" (symbol-name (car headers)) ": *") nil t)
+	    (delete-line))
 	  (pop headers))))
     (run-hooks 'message-send-mail-hook)
     ;; Pass it on to mh.
@@ -5674,11 +5670,11 @@ Otherwise, generate and save a value for `canlock-password' first."
        (goto-char (point-max))
        (if (not (re-search-backward message-signature-separator nil t))
 	   t
-	 (setq sig-start (1+ (point-at-eol)))
+         (setq sig-start (1+ (line-end-position)))
 	 (setq sig-end
 	       (if (re-search-forward
 		    "<#/?\\(multipart\\|part\\|external\\|mml\\)" nil t)
-		   (- (point-at-bol) 1)
+                   (- (line-beginning-position) 1)
 		 (point-max)))
 	 (if (>= (count-lines sig-start sig-end) 5)
 	     (if (message-gnksa-enable-p 'signature)
@@ -6279,7 +6275,7 @@ Headers already prepared in the buffer are not modified."
 	  (and (re-search-forward
 		(concat "^" (symbol-name (car headers)) ": *") nil t)
 	       (get-text-property (1+ (match-beginning 0)) 'message-deletable)
-	       (message-delete-line))
+	       (delete-line))
 	  (pop headers)))
       ;; Go through all the required headers and see if they are in the
       ;; articles already.  If they are not, or are empty, they are
@@ -6364,7 +6360,7 @@ Headers already prepared in the buffer are not modified."
 		      (forward-line -1)))
 		;; The value of this header was empty, so we clear
 		;; totally and insert the new value.
-		(delete-region (point) (point-at-eol))
+                (delete-region (point) (line-end-position))
 		;; If the header is optional, and the header was
 		;; empty, we can't insert it anyway.
 		(unless optionalp
@@ -6498,7 +6494,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
     ;; Tapdance around looong Message-IDs.
     (forward-line -1)
     (when (looking-at "[ \t]*$")
-      (message-delete-line))
+      (delete-line))
     (goto-char begin)
     (search-forward ":" nil t)
     (when (looking-at "\n[ \t]+")
@@ -6619,10 +6615,10 @@ beginning of a folded header)."
                 (or (eq (char-after) ?\s) (eq (char-after) ?\t)))
       (beginning-of-line 0)))
   (when (or (eq (char-after) ?\s) (eq (char-after) ?\t)
-            (search-forward ":" (point-at-eol) t))
+            (search-forward ":" (line-end-position) t))
     ;; We are a bit more lacks than the RFC and allow any positive number of WSP
     ;; characters.
-    (skip-chars-forward " \t" (point-at-eol))
+    (skip-chars-forward " \t" (line-end-position))
     (point)))
 
 (defun message-beginning-of-line (&optional n)
@@ -6881,13 +6877,14 @@ are not included."
     (or (bolp) (insert ?\n)))
   (insert (concat mail-header-separator "\n"))
   (forward-line -1)
-  ;; If a crash happens while replying, the auto-save file would *not* have a
-  ;; `References:' header if `message-generate-headers-first' was nil.
-  ;; Therefore, always generate it first.
+  ;; If a crash happens while replying, the auto-save file would *not*
+  ;; have a `References:' header if `message-generate-headers-first'
+  ;; was nil.  Therefore, always generate it first.  (And why not
+  ;; include the `In-Reply-To' header as well.)
   (let ((message-generate-headers-first
          (if (eq message-generate-headers-first t)
              t
-           (append message-generate-headers-first '(References)))))
+           (append message-generate-headers-first '(References In-Reply-To)))))
     (when (message-news-p)
       (when message-default-news-headers
         (insert message-default-news-headers)
@@ -8644,7 +8641,7 @@ From headers in the original article."
 (autoload 'ecomplete-display-matches "ecomplete")
 
 (defun message--in-tocc-p ()
-  (and (memq (char-after (point-at-bol)) '(?C ?T ?\t ? ))
+  (and (memq (char-after (line-beginning-position)) '(?C ?T ?\t ? ))
        (message-point-in-header-p)
        (save-excursion
 	 (beginning-of-line)

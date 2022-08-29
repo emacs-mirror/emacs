@@ -51,7 +51,15 @@
 #
 # make bootstrap
 #      Removes all the compiled files to force a new bootstrap from a
-#      clean slate, and then build in the normal way.
+#      clean slate, and then build in the normal way.  If the FAST Make
+#      variable is set, then the config.cache file isn't removed.  This
+#      allows you to say
+#
+#      ./configure -C
+#      make FAST=true bootstrap
+#
+#      and use the cached results from the configure run, which is much
+#      faster.
 #
 # make docs
 #      Make Emacs documentation files from their sources; requires makeinfo.
@@ -358,9 +366,16 @@ endif
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 
-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid)
+all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
+
+# Changes in lisp may require us to reconsider the build in src.  For
+# example, if loaddefs.{el,elc} were built in lisp, we need a new
+# .pdmp containing the new autoloads.
+.PHONY: src-depending-on-lisp
+src-depending-on-lisp: lisp
+	${MAKE} -C src BIN_DESTDIR='$(BIN_DESTDIR)' ELN_DESTDIR='$(ELN_DESTDIR)'
 
 # If configure were to just generate emacsver.tex from emacsver.tex.in
 # in the normal way, the timestamp of emacsver.tex would always be
@@ -455,18 +470,11 @@ lisp: src
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
-# Ideally, VCSWITNESS should be a file that is modified whenever the
-# repository registers a commit from either a local checkin or a
-# repository pull. In git there is no single file that guarantees
-# this, but the local log for the current head should be close enough.
-#
 # Pass an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
 # source directory of src/).
-dirstate = .git/logs/HEAD
-VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
-	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(BIN_DESTDIR)' \
+	$(MAKE) -C $@ BIN_DESTDIR='$(BIN_DESTDIR)' \
 		 ELN_DESTDIR='$(ELN_DESTDIR)' all
 
 blessmail: Makefile src
@@ -936,7 +944,7 @@ clean: $(clean_dirs:=_clean) clean-gsettings-schemas
 ### 'bootclean'
 ###      Delete all files that need to be remade for a clean bootstrap.
 top_bootclean=\
-	rm -f config.cache config.log ${srcdir}/doc/man/emacs.1
+	rm -f config.log ${srcdir}/doc/man/emacs.1
 
 ### 'distclean'
 ###      Delete all files from the current directory that are created by
@@ -946,7 +954,7 @@ top_bootclean=\
 ###      distribution.
 top_distclean=\
 	${top_bootclean}; \
-	rm -f config.status config.log~ \
+	rm -f config.cache config.status config.log~ \
 	  Makefile makefile lib/gnulib.mk ${SUBDIR_MAKEFILES}
 
 distclean_dirs = $(clean_dirs) leim lisp admin/grammars
@@ -966,6 +974,9 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	rm -rf native-lisp/ lisp/leim/ja-dic/
+ifndef FAST
+	rm -f config.cache
+endif
 	${top_bootclean}
 
 ### 'maintainer-clean'

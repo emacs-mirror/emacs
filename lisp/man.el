@@ -168,13 +168,14 @@ pushy      -- make the manpage the current buffer in the current window
 bully      -- make the manpage the current buffer and only window (sf)
 aggressive -- make the manpage the current buffer in the other window (sf)
 friendly   -- display manpage in the other window but don't make current (sf)
+thrifty    -- reuse an existing manpage window if possible (sf)
 polite     -- don't display manpage, but prints message and beep when ready
 quiet      -- like `polite', but don't beep
 meek       -- make no indication that the manpage is ready
 
 Any other value of `Man-notify-method' is equivalent to `meek'."
   :type '(radio (const newframe) (const pushy) (const bully)
-		(const aggressive) (const friendly)
+		(const aggressive) (const friendly) (const thrifty)
 		(const polite) (const quiet) (const meek))
   :group 'man)
 
@@ -1229,6 +1230,11 @@ See the variable `Man-notify-method' for the different notification behaviors."
        (and (frame-live-p saved-frame)
             (select-frame saved-frame))
        (display-buffer man-buffer 'not-this-window))
+      ('thrifty
+       (and (frame-live-p saved-frame)
+            (select-frame saved-frame))
+       (display-buffer man-buffer '(display-buffer-reuse-mode-window
+                                    (mode . Man-mode))))
       ('polite
        (beep)
        (message "Manual buffer %s is ready" (buffer-name man-buffer)))
@@ -1241,8 +1247,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
 (defun Man-softhyphen-to-minus ()
   ;; \255 is SOFT HYPHEN in Latin-N.  Versions of Debian man, at
   ;; least, emit it even when not in a Latin-N locale.
-  (unless (eq t (compare-strings "latin-" 0 nil
-				 current-language-environment 0 6 t))
+  (unless (string-prefix-p "latin-" current-language-environment t)
     (goto-char (point-min))
     (while (search-forward "­" nil t) (replace-match "-"))))
 

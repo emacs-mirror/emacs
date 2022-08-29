@@ -407,11 +407,10 @@ When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
     (setq version (process-get proc 'socks-server-protocol))
     (cond
      ((equal version 'http)
-      (setq request (format (eval-when-compile
-			      (concat
-			       "CONNECT %s:%d HTTP/1.0\r\n"
-			       "User-Agent: Emacs/SOCKS v1.0\r\n"
-			       "\r\n"))
+      (setq request (format (concat
+			     "CONNECT %s:%d HTTP/1.0\r\n"
+			     "User-Agent: Emacs/SOCKS v1.0\r\n"
+			     "\r\n")
 			    (cond
 			     ((equal atype socks-address-type-name) address)
 			     (t

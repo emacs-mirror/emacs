@@ -37,7 +37,7 @@
   "Default maximum time in seconds before cache files expire.
 Used by the function `url-cache-expired'."
   :version "24.1"
-  :type 'integer
+  :type 'natnum
   :group 'url-cache)
 
 ;; Cache manager

@@ -144,6 +144,7 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(require 'filenotify)
 (eval-when-compile (require 'subr-x))
 
 ;;;; Customization Options
@@ -224,18 +225,50 @@ are available (see Info node `(emacs)Document View')"
 (defcustom doc-view-resolution 100
   "Dots per inch resolution used to render the documents.
 Higher values result in larger images."
-  :type 'number)
-
-(defcustom doc-view-mutool-user-stylesheet nil
-  "User stylesheet to use when converting EPUB documents to PDF."
-  :type '(choice (const nil)
-                 (file :must-match t))
-  :version "29.1")
+  :type 'natnum)
 
 (defvar doc-view-doc-type nil
   "The type of document in the current buffer.
 Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
 `xps' or `oxps'.")
+
+(defvar doc-view--epub-stylesheet-watcher nil
+  "File watcher for `doc-view-epub-user-stylesheet'.")
+
+(defun doc-view--epub-reconvert (&optional _event)
+  "Reconvert all epub buffers.
+
+EVENT is unused, but necessary to work with the filenotify API."
+  (dolist (x (buffer-list))
+    (with-current-buffer x
+      (when (eq doc-view-doc-type 'epub)
+        (doc-view-reconvert-doc)))))
+
+(defun doc-view-custom-set-epub-user-stylesheet (option-name new-value)
+  "Setter for `doc-view-epub-user-stylesheet'.
+
+Reconverts existing epub buffers when the file used as a user
+stylesheet is switched, or its contents modified."
+  (set-default option-name new-value)
+  (file-notify-rm-watch doc-view--epub-stylesheet-watcher)
+  (doc-view--epub-reconvert)
+  (setq doc-view--epub-stylesheet-watcher
+         (when new-value
+           (file-notify-add-watch new-value '(change) #'doc-view--epub-reconvert))))
+
+(defcustom doc-view-epub-user-stylesheet nil
+  "User stylesheet to use when converting EPUB documents to PDF."
+  :type '(choice (const nil)
+                 (file :must-match t))
+  :version "29.1"
+  :set #'doc-view-custom-set-epub-user-stylesheet)
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defun doc-view-custom-set-epub-font-size (option-name new-value)
+  (set-default option-name new-value)
+  (doc-view--epub-reconvert))
 
 ;; FIXME: The doc-view-current-* definitions below are macros because they
 ;; map to accessors which we want to use via `setf' as well!
@@ -248,15 +281,6 @@ Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
 
 (defvar-local doc-view--current-cache-dir nil
   "Only used internally.")
-
-(defun doc-view-custom-set-epub-font-size (option-name new-value)
-  (set-default option-name new-value)
-  (dolist (x (buffer-list))
-    (with-current-buffer x
-      (when (eq doc-view-doc-type 'epub)
-        (delete-directory doc-view--current-cache-dir t)
-        (doc-view-initiate-display)
-        (doc-view-goto-page (doc-view-current-page))))))
 
 (defcustom doc-view-epub-font-size nil
   "Font size in points for EPUB layout."
@@ -277,7 +301,7 @@ scaling."
 Has only an effect if `doc-view-scale-internally' is non-nil and support for
 scaling is compiled into Emacs."
   :version "24.1"
-  :type 'number)
+  :type 'natnum)
 
 (defcustom doc-view-dvipdfm-program "dvipdfm"
   "Program to convert DVI files to PDF.
@@ -354,7 +378,8 @@ After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type 'integer)
+  :type '(choice natnum
+                 (const :value nil :tag "No refreshes")))
 
 (defcustom doc-view-continuous nil
   "In Continuous mode reaching the page edge advances to next/previous page.
@@ -433,62 +458,60 @@ Typically \"page-%s.png\".")
 
 ;;;; DocView Keymaps
 
-(defvar doc-view-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map image-mode-map)
-    ;; Navigation in the document
-    (define-key map (kbd "n")         'doc-view-next-page)
-    (define-key map (kbd "p")         'doc-view-previous-page)
-    (define-key map (kbd "<next>")    'forward-page)
-    (define-key map (kbd "<prior>")   'backward-page)
-    (define-key map [remap forward-page]  'doc-view-next-page)
-    (define-key map [remap backward-page] 'doc-view-previous-page)
-    (define-key map (kbd "SPC")       'doc-view-scroll-up-or-next-page)
-    (define-key map (kbd "S-SPC")     'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "DEL")       'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "C-n")       'doc-view-next-line-or-next-page)
-    (define-key map (kbd "<down>")    'doc-view-next-line-or-next-page)
-    (define-key map (kbd "C-p")       'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "<up>")      'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "M-<")       'doc-view-first-page)
-    (define-key map (kbd "M->")       'doc-view-last-page)
-    (define-key map [remap goto-line] 'doc-view-goto-page)
-    (define-key map (kbd "RET")       'image-next-line)
-    ;; Zoom in/out.
-    (define-key map "+"               'doc-view-enlarge)
-    (define-key map "="               'doc-view-enlarge)
-    (define-key map "-"               'doc-view-shrink)
-    (define-key map "0"               'doc-view-scale-reset)
-    (define-key map [remap text-scale-adjust] 'doc-view-scale-adjust)
-    ;; Fit the image to the window
-    (define-key map "W"               'doc-view-fit-width-to-window)
-    (define-key map "H"               'doc-view-fit-height-to-window)
-    (define-key map "P"               'doc-view-fit-page-to-window)
-    (define-key map "F"               'doc-view-fit-window-to-page) ;F = frame
-    ;; Killing the buffer (and the process)
-    (define-key map (kbd "k")         'image-kill-buffer)
-    (define-key map (kbd "K")         'doc-view-kill-proc)
-    ;; Slicing the image
-    (define-key map (kbd "c s")       'doc-view-set-slice)
-    (define-key map (kbd "c m")       'doc-view-set-slice-using-mouse)
-    (define-key map (kbd "c b")       'doc-view-set-slice-from-bounding-box)
-    (define-key map (kbd "c r")       'doc-view-reset-slice)
-    ;; Centering the image
-    (define-key map (kbd "c h")       'doc-view-center-page-horizontally)
-    (define-key map (kbd "c v")       'doc-view-center-page-vertically)
-    ;; Searching
-    (define-key map (kbd "C-s")       'doc-view-search)
-    (define-key map (kbd "<find>")    'doc-view-search)
-    (define-key map (kbd "C-r")       'doc-view-search-backward)
-    ;; Show the tooltip
-    (define-key map (kbd "C-t")       'doc-view-show-tooltip)
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
-    ;; Open a new buffer with doc's text contents
-    (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    (define-key map (kbd "r")         'revert-buffer)
-    map)
-  "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+(defvar-keymap doc-view-mode-map
+  :doc "Keymap used by `doc-view-mode' when displaying a doc as a set of images."
+  :parent image-mode-map
+  ;; Navigation in the document
+  "n"       #'doc-view-next-page
+  "p"       #'doc-view-previous-page
+  "<next>"  #'forward-page
+  "<prior>" #'backward-page
+  "<remap> <forward-page>"  #'doc-view-next-page
+  "<remap> <backward-page>" #'doc-view-previous-page
+  "SPC"     #'doc-view-scroll-up-or-next-page
+  "S-SPC"   #'doc-view-scroll-down-or-previous-page
+  "DEL"     #'doc-view-scroll-down-or-previous-page
+  "C-n"     #'doc-view-next-line-or-next-page
+  "<down>"  #'doc-view-next-line-or-next-page
+  "C-p"     #'doc-view-previous-line-or-previous-page
+  "<up>"    #'doc-view-previous-line-or-previous-page
+  "M-<"     #'doc-view-first-page
+  "M->"     #'doc-view-last-page
+  "<remap> <goto-line>" #'doc-view-goto-page
+  "RET"     #'image-next-line
+  ;; Zoom in/out.
+  "+"       #'doc-view-enlarge
+  "="       #'doc-view-enlarge
+  "-"       #'doc-view-shrink
+  "0"       #'doc-view-scale-reset
+  "<remap> <text-scale-adjust>" #'doc-view-scale-adjust
+  ;; Fit the image to the window
+  "W"       #'doc-view-fit-width-to-window
+  "H"       #'doc-view-fit-height-to-window
+  "P"       #'doc-view-fit-page-to-window
+  "F"       #'doc-view-fit-window-to-page ;F = frame
+  ;; Killing the buffer (and the process)
+  "k"       #'image-kill-buffer
+  "K"       #'doc-view-kill-proc
+  ;; Slicing the image
+  "c s"     #'doc-view-set-slice
+  "c m"     #'doc-view-set-slice-using-mouse
+  "c b"     #'doc-view-set-slice-from-bounding-box
+  "c r"     #'doc-view-reset-slice
+  ;; Centering the image
+  "c h"     #'doc-view-center-page-horizontally
+  "c v"     #'doc-view-center-page-vertically
+  ;; Searching
+  "C-s"     #'doc-view-search
+  "<find>"  #'doc-view-search
+  "C-r"     #'doc-view-search-backward
+  ;; Show the tooltip
+  "C-t"     #'doc-view-show-tooltip
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display
+  ;; Open a new buffer with doc's text contents
+  "C-c C-t" #'doc-view-open-text
+  "r"       #'revert-buffer)
 
 (define-obsolete-function-alias 'doc-view-revert-buffer #'revert-buffer "27.1")
 (defvar revert-buffer-preserve-modes)
@@ -592,12 +615,10 @@ Typically \"page-%s.png\".")
      :help                      "Jump to the previous match or initiate a new search"]
     ))
 
-(defvar doc-view-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
-    map)
-  "Keymap used by `doc-view-minor-mode'.")
+(defvar-keymap doc-view-minor-mode-map
+  :doc "Keymap used by `doc-view-minor-mode'."
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display)
 
 (easy-menu-define doc-view-minor-mode-menu doc-view-minor-mode-map
   "Menu for Doc View minor mode."
@@ -1178,12 +1199,12 @@ The test is performed using `doc-view-pdfdraw-program'."
       (when doc-view-epub-font-size
         (setq options (append options
                               (list (format "-S%s" doc-view-epub-font-size)))))
-      (when doc-view-mutool-user-stylesheet
+      (when doc-view-epub-user-stylesheet
         (setq options
               (append options
                       (list (format "-U%s"
                                     (expand-file-name
-                                     doc-view-mutool-user-stylesheet)))))))
+                                     doc-view-epub-user-stylesheet)))))))
     (doc-view-start-process
      "pdf->png" doc-view-pdfdraw-program
      `(,@(doc-view-pdfdraw-program-subcommand)
@@ -2153,12 +2174,11 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Presentation mode
 
-(defvar doc-view-presentation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e" 'doc-view-presentation-exit)
-    (define-key map "q" 'doc-view-presentation-exit)
-    ;; (define-key map "C" 'doc-view-convert-all-pages)
-    map))
+(defvar-keymap doc-view-presentation-mode-map
+  "ESC"  #'doc-view-presentation-exit
+  "q"    #'doc-view-presentation-exit
+  ;; "C" #'doc-view-convert-all-pages
+  )
 
 (defvar-local doc-view-presentation--src-data nil)
 
@@ -2260,7 +2280,7 @@ See the command `doc-view-mode' for more information on this mode."
     (add-hook 'bookmark-after-jump-hook show-fn-sym)
     (bookmark-default-handler bmk)))
 
-(put 'doc-view-bookmark-jump 'bookmark-handler-type "Docview")
+(put 'doc-view-bookmark-jump 'bookmark-handler-type "DocView")
 
 ;; Obsolete.
 

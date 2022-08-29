@@ -18,6 +18,24 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 
 * Installation Changes in Emacs 28.2
 
+** To install the Emacs binary in a non-standard directory, use '--bindir='.
+If you install Emacs in a way that places the Emacs executable file in
+a directory other than "${prefix}/bin", you will now need to specify
+that at configure time, if you build Emacs with native-compilation
+support.  To this end, add the '--bindir=DIRECTORY' switch to the
+command line of the 'configure' script, where DIRECTORY is the
+directory in which you will install the executable file "emacs".  This
+is required even if you place a symlink under "${prefix}/bin" that
+points to the real executable file in some other DIRECTORY.
+
+It is no longer enough to specify 'bindir=DIRECTORY' on the command
+line of the "make install" command.
+
+The reason for this new requirement is that Emacs needs to locate at
+startup the directory with its "*.eln" natively-compiled files for the
+preloaded Lisp packages, and the relative name of that directory needs
+therefore to be recorded in the executable as part of the build.
+
 
 * Startup Changes in Emacs 28.2
 
@@ -1431,7 +1449,7 @@ the entire buffer.
 
 *** 'so-long-target-modes' now includes 'fundamental-mode' by default.
 This means that 'global-so-long-mode' will also process files which were
-not recognised.  (This only has an effect if 'set-auto-mode' chooses
+not recognized.  (This only has an effect if 'set-auto-mode' chooses
 'fundamental-mode'; buffers which are simply in 'fundamental-mode' by
 default are unaffected.)
 
@@ -1659,7 +1677,7 @@ and variables.
 
 *** Lisp mode now uses 'common-lisp-indent-function'.
 To revert to the previous behavior,
-'(setq lisp-indent-function 'lisp-indent-function)' from 'lisp-mode-hook'.
+'(setq lisp-indent-function #'lisp-indent-function)' from 'lisp-mode-hook'.
 
 ** Change Logs and VC
 
@@ -1745,8 +1763,8 @@ If non-nil (the default), create registry entries for all messages.
 If nil, don't automatically create entries, they must be created
 manually.
 
-*** New user options to customise the summary line specs "%[" and "%]".
-Four new options introduced in customisation group
+*** New user options to customize the summary line specs "%[" and "%]".
+Four new options introduced in customization group
 'gnus-summary-format'.  These are 'gnus-sum-opening-bracket',
 'gnus-sum-closing-bracket', 'gnus-sum-opening-bracket-adopted', and
 'gnus-sum-closing-bracket-adopted'.  Their default values are "[", "]",
@@ -2084,7 +2102,7 @@ modified flag.  The default is nil, to preserve the old behavior.
 ** CC mode
 
 *** Added support for Doxygen documentation style.
-'doxygen' is now a valid 'c-doc-comment-style' which recognises all
+'doxygen' is now a valid 'c-doc-comment-style' which recognizes all
 comment styles supported by Doxygen (namely '///', '//!', '/** … */'
 and '/*! … */'.  'gtkdoc' remains the default for C and C++ modes; to
 use 'doxygen' by default one might evaluate:
@@ -2808,7 +2826,7 @@ different timezone causing a difference in the date.
 
 *** 'mspools-show' is now autoloaded.
 
-*** Loading dunnet.el in batch mode doesn't start the game any more.
+*** Loading 'dunnet' in batch mode doesn't start the game any more.
 Instead you need to do "emacs --batch -f dunnet" to start the game in
 batch mode.
 
@@ -3150,9 +3168,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'nnmail-fix-eudora-headers', 'non-iso-charset-alist',
 'nonascii-insert-offset', 'nonascii-translation-table',
 'password-read-and-add', 'pre-abbrev-expand-hook', 'princ-list',
-'print-help-return-message', 'process-filter-multibyte-p',
-'read-file-name-predicate', 'remember-buffer', 'rmail-highlight-face',
-'rmail-message-filter', 'semantic-after-idle-scheduler-reparse-hooks',
+'print-help-return-message', 'read-file-name-predicate',
+'remember-buffer', 'rmail-highlight-face', 'rmail-message-filter',
+'semantic-after-idle-scheduler-reparse-hooks',
 'semantic-after-toplevel-bovinate-hook',
 'semantic-before-idle-scheduler-reparse-hooks',
 'semantic-before-toplevel-bovination-hook',
@@ -3178,9 +3196,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'semantic-something-to-stream', 'semantic-tag-make-assoc-list',
 'semantic-token-type-parent', 'semantic-toplevel-bovine-cache',
 'semantic-toplevel-bovine-table', 'semanticdb-mode-hooks',
-'set-coding-priority', 'set-process-filter-multibyte',
-'shadows-compare-text-p', 'shell-dirtrack-toggle',
-'speedbar-navigating-speed', 'speedbar-update-speed', 't-mouse-mode',
+'set-coding-priority', 'shadows-compare-text-p',
+'shell-dirtrack-toggle', 'speedbar-navigating-speed',
+'speedbar-update-speed', 't-mouse-mode',
 'term-dynamic-simple-complete', 'tooltip-hook', 'tpu-have-ispell',
 'url-generate-unique-filename', 'url-temporary-directory',
 'vc-arch-command', 'vc-default-working-revision' (variable),

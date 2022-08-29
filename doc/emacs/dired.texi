@@ -41,6 +41,7 @@ you to operate on the listed files.  @xref{Directories}.
 * Operating on Files::        How to copy, rename, print, compress, etc.
                                 either one file or several files.
 * Shell Commands in Dired::   Running a shell command on the marked files.
+* Shell Command Guessing::    Guessing shell commands for files.
 * Transforming File Names::   Using patterns to rename multiple files.
 * Comparison in Dired::       Running @code{diff} by way of Dired.
 * Subdirectories in Dired::   Adding subdirectories to the Dired buffer.
@@ -844,6 +845,26 @@ This is like @samp{ln -s}.  The argument @var{new} is the directory to
 make the links in, or (if making just one link) the name to give the
 link.
 
+@findex dired-do-relsymlink
+@kindex Y @r{(Dired)}
+@item Y @var{new} @key{RET}
+Make relative symbolic links to the specified files
+(@code{dired-do-relsymlink}).  The argument @var{new} is the directory
+to make the links in, or (if making just one link) the name to give
+the link.  This is like @code{dired-do-symlink} but creates relative
+symbolic links.  For example:
+
+@example
+    foo -> ../bar/foo
+@end example
+
+@noindent
+It does not create absolute ones like:
+
+@example
+    foo -> /path/that/may/change/any/day/bar/foo
+@end example
+
 @findex dired-do-chmod
 @kindex M @r{(Dired)}
 @cindex changing file permissions (in Dired)
@@ -962,6 +983,18 @@ Load the specified Emacs Lisp files (@code{dired-do-load}).
 Byte compile the specified Emacs Lisp files
 (@code{dired-do-byte-compile}).  @xref{Byte Compilation,, Byte
 Compilation, elisp, The Emacs Lisp Reference Manual}.
+
+@findex dired-do-info
+@kindex I @r{(Dired)}
+@cindex running info on files (in Dired)
+@item I
+Run Info on this file (assumed to be a file in Info format).
+
+@findex dired-do-man
+@kindex N @r{(Dired)}
+@cindex running man on files (in Dired)
+@item N
+Run man on this file (assumed to be a file in @code{nroff} format).
 
 @kindex A @r{(Dired)}
 @findex dired-do-find-regexp
@@ -1089,6 +1122,73 @@ buffer (@pxref{Dired Updating}).
   @xref{Single Shell}, for information about running shell commands
 outside Dired.
 
+@node Shell Command Guessing
+@section Shell Command Guessing
+@cindex guessing shell commands for files (in Dired)
+
+Based upon the name of a file, Dired tries to guess what shell command
+you might want to apply to it.  For example, if you have point on a
+file named @file{foo.tar} and you press @kbd{!}, Dired will guess that
+you want to run @samp{tar xvf}, and suggest that as the default shell
+command.
+
+You can type @kbd{M-n} to get the default into the minibuffer for
+editing.  If there are several commands for a given file, type
+@kbd{M-n} several times to see each matching command in order.
+
+Dired only tries to guess a command for a single file, never for a
+list of marked files.
+
+@defvar dired-guess-shell-alist-default
+This variable specifies the predefined rules for guessing shell
+commands suitable for certain files.  Set this to @code{nil} to turn
+guessing off.  The elements of @code{dired-guess-shell-alist-user}
+(defined by the user) will override these rules.
+@end defvar
+
+@defvar dired-guess-shell-alist-user
+If non-@code{nil}, this variable specifies the user-defined alist of
+file regexps and their suggested commands.  These rules take
+precedence over the predefined rules in the variable
+@code{dired-guess-shell-alist-default} when
+@code{dired-do-shell-command} is run).  The default is @code{nil}.
+
+Each element of the alist looks like
+
+@example
+(@var{regexp} @var{command}@dots{})
+@end example
+
+@noindent
+where each @var{command} can either be a string or a Lisp expression
+that evaluates to a string.  If several commands are given, all of
+them will temporarily be pushed onto the history.
+
+A @samp{*} in the shell command stands for the file name that matched
+@var{regexp}.  When Emacs invokes the @var{command}, it replaces each
+instance of @samp{*} with the matched file name.
+
+To add rules for @samp{.foo} and @samp{.bar} file extensions, add this
+to your Init file:
+
+@example
+(setq dired-guess-shell-alist-user
+      (list
+       (list "\\.foo$" "@var{foo-command}")  ; fixed rule
+       ;; possibly more rules...
+       (list "\\.bar$"  ; rule with condition test
+             '(if @var{condition}
+                  "@var{bar-command-1}"
+                "@var{bar-command-2}"))))
+@end example
+
+@noindent
+This will override any predefined rules for the same extensions.
+@end defvar
+
+You can find more user options with @kbd{M-x customize-group @key{RET}
+dired-guess @key{RET}}.
+
 @node Transforming File Names
 @section Transforming File Names in Dired
 
@@ -1138,9 +1238,12 @@ Rename each of the selected files to a lower-case name
 @itemx % S @var{from} @key{RET} @var{to} @key{RET}
 @kindex % S @r{(Dired)}
 @findex dired-do-symlink-regexp
-These four commands rename, copy, make hard links and make soft links,
-in each case computing the new name by regular-expression substitution
-from the name of the old file.
+@itemx % Y @var{from} @key{RET} @var{to} @key{RET}
+@kindex % Y @r{(Dired)}
+@findex dired-do-relsymlink-regexp
+These five commands rename, copy, make hard links, make soft links,
+and make relative soft links, in each case computing the new name by
+regular-expression substitution from the name of the old file.
 @end table
 
   The four regular-expression substitution commands effectively
@@ -1298,6 +1401,12 @@ parent directory.
 @kindex > @r{(Dired)}
 @item >
 Move down to the next directory-file line (@code{dired-next-dirline}).
+
+@findex dired-goto-subdir
+@kindex M-G @r{(Dired)}
+@item M-G
+Prompt for a directory and move to its directory-file line
+(@code{dired-goto-subdir}).
 @end table
 
 @node Hiding Subdirectories

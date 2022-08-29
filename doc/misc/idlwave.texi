@@ -217,7 +217,7 @@ Integrity checks and auto-termination of logical blocks.
 @item
 Routine name space conflict search with likelihood-of-use ranking.
 @item
-Support for @file{imenu} (Emacs) and @file{func-menu} (XEmacs).
+Support for @file{imenu}.
 @item
 Documentation support.
 @item
@@ -392,7 +392,7 @@ that IDLWAVE has many more capabilities than covered here, which can
 be discovered by reading the entire manual, or hovering over the
 shoulder of your nearest IDLWAVE guru for a few days.
 
-It is assumed that you have access to Emacs or XEmacs with the full
+It is assumed that you have access to Emacs with the full
 IDLWAVE package including online help.  We also assume that you are
 familiar with Emacs and can read the nomenclature of key presses in
 Emacs (in particular, @kbd{C} stands for @key{CONTROL} and @kbd{M} for
@@ -1011,9 +1011,9 @@ Non-@code{nil} means use last match on line for
 @cindex Font lock
 
 Highlighting of keywords, comments, strings etc.@: can be accomplished
-with @code{font-lock}.  If you are using @code{global-font-lock-mode}
-(in Emacs), or have @code{font-lock} turned on in any other buffer in
-XEmacs, it should also automatically work in IDLWAVE buffers.  If you'd
+with @code{font-lock}.  If you are using @code{global-font-lock-mode},
+or have @code{font-lock-mode} turned on in any other buffer,
+it should also automatically work in IDLWAVE buffers.  If you'd
 prefer invoking font-lock individually by mode, you can enforce it in
 @code{idlwave-mode} with the following line in your @file{.emacs}:
 
@@ -2298,12 +2298,11 @@ Regexp matching the start of a document library header.
 @cindex Motion commands
 @cindex Program structure, moving through
 @cindex Code structure, moving through
-@cindex @file{Func-menu}, XEmacs package
-@cindex @file{Imenu}, Emacs package
+@cindex @file{Imenu}
 @cindex Function definitions, jumping to
 @cindex Procedure definitions, jumping to
 
-IDLWAVE supports both @file{Imenu} and @file{Func-menu}, two packages
+IDLWAVE supports @file{Imenu}, a package
 which make it easy to jump to the definitions of functions and
 procedures in the current file with a pop-up selection.  To bind
 @file{Imenu} to a mouse-press, use in your @file{.emacs}:
@@ -4022,7 +4021,7 @@ user is King!
 
 IDLWAVE was developed on a UNIX system.  However, thanks to the
 portability of Emacs, much of IDLWAVE does also work under different
-operating systems like Windows (with NTEmacs or NTXEmacs).
+operating systems like Windows (with NTEmacs).
 
 The only real problem is that there is no command-line version of IDL
 for Windows with which IDLWAVE can interact.  As a
@@ -4116,24 +4115,6 @@ console shell, the environment is set not from your usual shell
 configuration files (e.g., @file{.cshrc}), but from the file
 @file{~/.MacOSX/environment.plist}.  Either include your path settings
 there, or start Emacs and IDLWAVE from the shell.
-
-@item @strong{I get errors like @samp{Symbol's function is void:
-overlayp}}
-
-You don't have the @samp{fsf-compat} package installed, which IDLWAVE
-needs to run under XEmacs.  Install it, or find an XEmacs distribution
-which includes it by default.
-
-@item @strong{I'm getting errors like @samp{Symbol's value as variable is void:
-cl-builtin-gethash} on completion or routine info.}
-
-This error arises if you upgraded Emacs from 20.x to 21.x without
-re-installing IDLWAVE@.  Old Emacs and new Emacs are not byte-compatible
-in compiled lisp files.  Presumably, you kept the original .elc files in
-place, and this is the source of the error.  If you recompile (or just
-"make; make install") from source, it should resolve this problem.
-Another option is to recompile the @file{idlw*.el} files by hand using
-@kbd{M-x byte-compile-file}.
 
 @item @strong{@kbd{M-@key{TAB}} doesn't complete words, it switches
 windows on my desktop.}
@@ -4261,20 +4242,6 @@ help package appears with each IDL release (assuming the documentation
 is updated).
 Starting with IDL 6.2, the HTML help and its catalog are
 distributed with IDL, and so should never be inconsistent.
-
-@item @strong{I get errors such as @samp{void-variable
-browse-url-browser-function} or similar when attempting to load IDLWAVE
-under XEmacs.}
-
-You don't have the @samp{browse-url} (or other required) XEmacs package.
-Unlike Emacs, XEmacs distributes many packages separately from the
-main program.  IDLWAVE is actually among these, but is not always the
-most up to date.  When installing IDLWAVE as an XEmacs package, it
-should prompt you for required additional packages.  When installing it
-from source, it won't and you'll get this error.  The easiest solution
-is to install all the packages when you install XEmacs (the so-called
-@samp{sumo} bundle).  The minimum set of XEmacs packages required by
-IDLWAVE is @samp{fsf-compat, xemacs-base, mail-lib}.
 
 @end enumerate
 

@@ -316,8 +316,6 @@ If parsing fails, try to set this variable to nil."
                                        (option (choice :tag "Alternative" :value nil
                                                        (const nil) integer)))))))
 
-(define-obsolete-variable-alias 'bibtex-entry-field-alist
-  'bibtex-BibTeX-entry-alist "24.1")
 (defcustom bibtex-BibTeX-entry-alist
   '(("Article" "Article in Journal"
      (("author")
@@ -2217,6 +2215,7 @@ Point must be at beginning of preamble.  Do not move point."
 
 (defsubst bibtex-string= (str1 str2)
   "Return t if STR1 and STR2 are equal, ignoring case."
+  (declare (obsolete string-equal-ignore-case "29.1"))
   (eq t (compare-strings str1 0 nil str2 0 nil t)))
 
 (defun bibtex-delete-whitespace ()
@@ -2659,7 +2658,7 @@ Formats current entry according to variable `bibtex-entry-format'."
 
                     ;; update page dashes
                     (if (and (memq 'page-dashes format)
-                             (bibtex-string= field-name "pages")
+                             (string-equal-ignore-case field-name "pages")
                              (progn (goto-char beg-text)
                                     (looking-at
                                      "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
@@ -2712,7 +2711,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                     ;; use book title of crossref'd entry
                     (if (and (memq 'inherit-booktitle format)
                              empty-field
-                             (bibtex-string= field-name "booktitle")
+                             (string-equal-ignore-case field-name "booktitle")
                              crossref-key)
                         (let ((title (save-excursion
                                        (save-restriction
@@ -3505,7 +3504,7 @@ If NO-BUTTON is non-nil do not generate buttons."
           (let ((lst bibtex-generate-url-list) url)
             (while (and (not found) (setq url (car (pop lst))))
               (goto-char start)
-              (setq found (and (bibtex-string= name (car url))
+              (setq found (and (string-equal-ignore-case name (car url))
                                (re-search-forward (cdr url) end t))))))
       (unless found (goto-char end)))
     (if (and found (not no-button))
@@ -3661,7 +3660,11 @@ if that value is non-nil.
                                         ?\s)))))
     (if (and buffer-file-name enable-local-variables)
         (add-hook 'hack-local-variables-hook fun nil t)
-      (funcall fun))))
+      (funcall fun)))
+  ;; We may be using the mode programmatically to extract data, and we
+  ;; then need this to be set up first so that sexp-based movement
+  ;; commands don't bug out.
+  (font-lock-set-defaults))
 
 (defun bibtex-entry-alist (dialect)
   "Return entry-alist for DIALECT."
@@ -3673,14 +3676,6 @@ if that value is non-nil.
     (if (not (consp (nth 1 (car entry-alist))))
         ;; new format
         entry-alist
-      ;; Convert old format of `bibtex-entry-field-alist'
-      (unless (get var 'entry-list-format)
-        (put var 'entry-list-format "pre-24")
-        (message "Old format of `%s' (pre GNU Emacs 24).
-Please convert to the new format."
-                 (if (eq (indirect-variable 'bibtex-entry-field-alist) var)
-                     'bibtex-entry-field-alist var))
-        (sit-for 3))
       (let (lst)
         (dolist (entry entry-alist)
           (let ((fl (nth 1 entry)) req xref opt)
@@ -3960,7 +3955,7 @@ entry (for example, the year parts of the keys)."
 	(goto-char (1- (match-beginning 0)))
 	(bibtex-beginning-of-entry)
 	(if (and (looking-at bibtex-entry-head)
-                 (bibtex-string= type (bibtex-type-in-head))
+                 (string-equal-ignore-case type (bibtex-type-in-head))
                  ;; In case we found ourselves :-(
                  (not (equal key (setq tmp (bibtex-key-in-head)))))
 	  (setq other-key tmp
@@ -3969,7 +3964,7 @@ entry (for example, the year parts of the keys)."
 	(bibtex-end-of-entry)
 	(bibtex-skip-to-valid-entry)
 	(if (and (looking-at bibtex-entry-head)
-                 (bibtex-string= type (bibtex-type-in-head))
+                 (string-equal-ignore-case type (bibtex-type-in-head))
                  ;; In case we found ourselves :-(
                  (not (equal key (setq tmp (bibtex-key-in-head))))
                  (or (not other-key)
@@ -4010,9 +4005,9 @@ interactive calls."
   (interactive (list nil t))
   (unless field (setq field (car (bibtex-find-text-internal nil nil comma))))
   (if (string-search "@" field)
-      (cond ((bibtex-string= field "@string")
+      (cond ((string-equal-ignore-case field "@string")
              (message "String definition"))
-            ((bibtex-string= field "@preamble")
+            ((string-equal-ignore-case field "@preamble")
              (message "Preamble definition"))
             (t (message "Entry key")))
     (let* ((case-fold-search t)
@@ -4594,7 +4589,7 @@ Return t if test was successful, nil otherwise."
                         bounds field idx)
                    (while (setq bounds (bibtex-parse-field))
                      (let ((field-name (bibtex-name-in-field bounds)))
-                       (if (and (bibtex-string= field-name "month")
+                       (if (and (string-equal-ignore-case field-name "month")
                                 ;; Check only abbreviated month fields.
                                 (let ((month (bibtex-text-in-field-bounds bounds)))
                                   (not (or (string-match "\\`[\"{].+[\"}]\\'" month)
@@ -4675,7 +4670,7 @@ Return t if test was successful, nil otherwise."
             (while (re-search-forward bibtex-entry-head nil t)
               (setq entry-type (bibtex-type-in-head)
                     key (bibtex-key-in-head))
-              (if (or (and strings (bibtex-string= entry-type "string"))
+              (if (or (and strings (string-equal-ignore-case entry-type "string"))
                       (assoc-string entry-type bibtex-entry-alist t))
                   (if (member key key-list)
                       (push (format-message
@@ -5052,10 +5047,10 @@ At end of the cleaning process, the functions in
 	       (user-error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
-    (cond ((bibtex-string= entry-type "preamble")
+    (cond ((string-equal-ignore-case entry-type "preamble")
            ;; (bibtex-format-preamble)
            (user-error "No clean up of @Preamble entries"))
-          ((bibtex-string= entry-type "string")
+          ((string-equal-ignore-case entry-type "string")
            (setq entry-type 'string))
           ;; (bibtex-format-string)
           (t (bibtex-format-entry)))
@@ -5318,7 +5313,6 @@ entries from minibuffer."
     (goto-char (point-max))
     (message "Buffer is now parsable.  Please save it.")))
 
-(define-obsolete-function-alias 'bibtex-complete #'completion-at-point "24.1")
 (defun bibtex-completion-at-point-function ()
   (let ((pnt (point))
         (case-fold-search t)
@@ -5333,10 +5327,10 @@ entries from minibuffer."
                (>= pnt (bibtex-start-of-text-in-field bounds))
                (<= pnt (bibtex-end-of-text-in-field bounds)))
           (setq name (bibtex-name-in-field bounds t)
-                compl (cond ((bibtex-string= name "crossref")
+                compl (cond ((string-equal-ignore-case name "crossref")
                              ;; point is in crossref field
                              'crossref-key)
-                            ((bibtex-string= name "month")
+                            ((string-equal-ignore-case name "month")
                              ;; point is in month field
                              bibtex-predefined-month-strings)
                             ;; point is in other field
@@ -5495,7 +5489,7 @@ Return the URL or nil if none can be generated."
             (while (and (not url) (setq scheme (pop lst)))
               ;; Verify the match of `bibtex-font-lock-url' by
               ;; comparing with TEXT.
-              (when (and (bibtex-string= (caar scheme) name)
+              (when (and (string-equal-ignore-case (caar scheme) name)
                          (string-match (cdar scheme) text))
                 (setq url t scheme (cdr scheme)))))))
 

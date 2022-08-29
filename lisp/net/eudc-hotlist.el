@@ -32,29 +32,26 @@
 
 (require 'eudc)
 
-(defvar eudc-hotlist-menu nil)
 (defvar eudc-hotlist-list-beginning nil)
 
-(defvar eudc-hotlist-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" #'eudc-hotlist-add-server)
-    (define-key map "d" #'eudc-hotlist-delete-server)
-    (define-key map "s" #'eudc-hotlist-select-server)
-    (define-key map "t" #'eudc-hotlist-transpose-servers)
-    (define-key map "q" #'eudc-hotlist-quit-edit)
-    (define-key map "x" #'kill-current-buffer)
-    map))
+(defvar-keymap eudc-hotlist-mode-map
+  "a" #'eudc-hotlist-add-server
+  "d" #'eudc-hotlist-delete-server
+  "s" #'eudc-hotlist-select-server
+  "t" #'eudc-hotlist-transpose-servers
+  "q" #'eudc-hotlist-quit-edit
+  "x" #'kill-current-buffer)
 
 (define-derived-mode eudc-hotlist-mode fundamental-mode "EUDC-Servers"
   "Major mode used to edit the hotlist of servers.
 
-These are the special commands of this mode:
-    a -- Add a new server to the list.
-    d -- Delete the server at point from the list.
-    s -- Select the server at point.
-    t -- Transpose the server at point and the previous one
-    q -- Commit the changes and quit.
-    x -- Quit without committing the changes."
+These are the special commands of this mode:\\<eudc-hotlist-mode-map>
+    \\[eudc-hotlist-add-server] -- Add a new server to the list.
+    \\[eudc-hotlist-delete-server] -- Delete the server at point from the list.
+    \\[eudc-hotlist-select-server] -- Select the server at point.
+    \\[eudc-hotlist-transpose-servers] -- Transpose the server at point and the previous one
+    \\[eudc-hotlist-quit-edit] -- Commit the changes and quit.
+    \\[kill-current-buffer] -- Quit without committing the changes."
   (setq buffer-read-only t))
 
 ;;;###autoload

@@ -281,7 +281,7 @@ It is a function which takes two arguments, the directory and its parent."
   (set-buffer buffer)
   (insert find-lisp-line-indent
 	  (find-lisp-format file (file-attributes file 'string) (list "")
-			  (current-time))))
+			    nil)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Lifted from ls-lisp. We don't want to require it, because that

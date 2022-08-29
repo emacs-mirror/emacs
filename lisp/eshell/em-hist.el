@@ -55,7 +55,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(eval-when-compile (require 'subr-x)) ; `string-blank-p'
 
 (require 'ring)
 (require 'esh-opt)

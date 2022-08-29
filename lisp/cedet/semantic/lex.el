@@ -574,25 +574,24 @@ may need to be overridden for some special languages.")
 (defvar-local semantic-lex-number-expression
   ;; This expression was written by David Ponce for Java, and copied
   ;; here for C and any other similar language.
-  (eval-when-compile
-    (concat "\\("
-            "\\<[0-9]+[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[.][eE][-+]?[0-9]+[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[.][fFdD]\\>"
-            "\\|"
-            "\\<[0-9]+[.]"
-            "\\|"
-            "[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
-            "\\|"
-            "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
-            "\\|"
-            "\\<0[xX][[:xdigit:]]+[lL]?\\>"
-            "\\|"
-            "\\<[0-9]+[lLfFdD]?\\>"
-            "\\)"
-            ))
+  (concat "\\("
+          "\\<[0-9]+[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[.][eE][-+]?[0-9]+[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[.][fFdD]\\>"
+          "\\|"
+          "\\<[0-9]+[.]"
+          "\\|"
+          "[.][0-9]+\\([eE][-+]?[0-9]+\\)?[fFdD]?\\>"
+          "\\|"
+          "\\<[0-9]+[eE][-+]?[0-9]+[fFdD]?\\>"
+          "\\|"
+          "\\<0[xX][[:xdigit:]]+[lL]?\\>"
+          "\\|"
+          "\\<[0-9]+[lLfFdD]?\\>"
+          "\\)"
+          )
   "Regular expression for matching a number.
 If this value is nil, no number extraction is done during lex.
 This expression tries to match C and Java like numbers.
@@ -1424,7 +1423,7 @@ Return either a paren token or a semantic list token depending on
 	;; to work properly.  Lets try and move over
 	;; whatever white space we matched to begin
 	;; with.
-	(skip-syntax-forward "-.'" (point-at-eol))
+        (skip-syntax-forward "-.'" (line-end-position))
       ;; We may need to back up so newlines or whitespace is generated.
       (if (bolp)
 	  (backward-char 1)))

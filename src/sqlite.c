@@ -246,8 +246,10 @@ If FILE is nil, an in-memory database will be opened instead.  */)
   (Lisp_Object file)
 {
   Lisp_Object name;
-  int flags = (SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
-	       | SQLITE_OPEN_READWRITE);
+  int flags = (SQLITE_OPEN_CREATE  | SQLITE_OPEN_READWRITE);
+#ifdef SQLITE_OPEN_FULLMUTEX
+  flags |= SQLITE_OPEN_FULLMUTEX;
+#endif
 #ifdef SQLITE_OPEN_URI
   flags |= SQLITE_OPEN_URI;
 #endif

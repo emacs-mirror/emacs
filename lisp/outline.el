@@ -1,7 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986, 1993-1995, 1997, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: outlines
@@ -36,6 +35,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'icons)
 
 (defgroup outlines nil
   "Support for hierarchical outlining."
@@ -182,7 +182,7 @@ in the file it applies to.")
 This option controls, in Outline minor mode, where on a heading typing
 the key sequences bound to visibility-cycling commands like `outline-cycle'
 and `outline-cycle-buffer' will invoke those commands.  By default, you can
-invoke these commands by typing `TAB' and `S-TAB' anywhere on a heading line,
+invoke these commands by typing \\`TAB' and \\`S-TAB' anywhere on a heading line,
 but customizing this option can make those bindings be in effect only at
 specific positions on the heading, like only at the line's beginning or
 line's end.  This allows these keys to be bound to their usual commands,
@@ -281,23 +281,33 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defcustom outline-minor-mode-use-buttons nil
-  "If non-nil, use clickable buttons on the headings.
-Note that this feature is not meant to be used in editing
-buffers (yet) -- that will be amended in a future version.
+(defcustom outline-minor-mode-use-buttons '(derived-mode . help-mode)
+  "Whether to display clickable buttons on the headings.
+The value should be a `buffer-match-p' condition.
 
-The `outline-minor-mode-buttons' variable specifies how the
-buttons should look."
-  :type 'boolean
+These buttons can be used to hide and show the body under the heading.
+Note that this feature is not meant to be used in editing
+buffers (yet) -- that will be amended in a future version."
+  ;; FIXME -- is there a `buffer-match-p' defcustom type somewhere?
+  :type 'sexp
   :safe #'booleanp
   :version "29.1")
 
-(defcustom outline-minor-mode-buttons
-  '(("▶️" "🔽" outline--valid-emoji-p)
-    ("▶" "▼" outline--valid-char-p))
-  "List of close/open pairs to use if using buttons."
-  :type 'sexp
-  :version "29.1")
+(define-icon outline-open button
+  '((emoji "🔽")
+    (symbol " ▼ ")
+    (text " open "))
+  "Icon used for buttons for opening a section in outline buffers."
+  :version "29.1"
+  :help-echo "Open this section")
+
+(define-icon outline-close button
+  '((emoji "▶️")
+    (symbol " ▶ ")
+    (text " close "))
+  "Icon used for buttons for closing a section in outline buffers."
+  :version "29.1"
+  :help-echo "Close this section")
 
 
 (defvar outline-level #'outline-level
@@ -317,6 +327,7 @@ data reflects the `outline-regexp'.")
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
+(make-obsolete-variable 'outline-view-change-hook nil "29.1")
 
 (defvar outline-mode-hook nil
   "This hook is run when outline mode starts.")
@@ -381,9 +392,9 @@ After that, changing the prefix key requires manipulating keymaps."
 
 (defcustom outline-minor-mode-cycle nil
   "Enable visibility-cycling commands on headings in `outline-minor-mode'.
-If enabled, typing `TAB' on a heading line cycles the visibility
+If enabled, typing \\`TAB' on a heading line cycles the visibility
 state of that heading's body between `hide all', `headings only'
-and `show all' (`outline-cycle'), and typing `S-TAB' on a heading
+and `show all' (`outline-cycle'), and typing \\`S-TAB' on a heading
 line likewise cycles the visibility state of the whole buffer
 \(`outline-cycle-buffer').
 Typing these keys anywhere outside heading lines invokes their default
@@ -424,7 +435,7 @@ outline font-lock faces to those of major mode."
                          (goto-char (match-beginning 0))
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
-          (when outline-minor-mode-use-buttons
+          (when (and (outline--use-buttons-p) (outline-on-heading-p))
             (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
@@ -441,11 +452,10 @@ See the command `outline-mode' for more information on this mode."
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-highlight
-          (if (and global-font-lock-mode (font-lock-specified-p major-mode))
-              (progn
-                (font-lock-add-keywords nil outline-font-lock-keywords t)
-                (font-lock-flush))
-            (outline-minor-mode-highlight-buffer)))
+          (when (and global-font-lock-mode (font-lock-specified-p major-mode))
+            (font-lock-add-keywords nil outline-font-lock-keywords t)
+            (font-lock-flush))
+          (outline-minor-mode-highlight-buffer))
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
@@ -464,6 +474,10 @@ See the command `outline-mode' for more information on this mode."
     (remove-from-invisibility-spec '(outline . t))
     ;; When turning off outline mode, get rid of any outline hiding.
     (outline-show-all)))
+
+(defun outline--use-buttons-p ()
+  (and outline-minor-mode
+       (buffer-match-p outline-minor-mode-use-buttons (current-buffer))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
@@ -847,7 +861,6 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 		   (or outline-isearch-open-invisible-function
 		       #'outline-isearch-open-invisible))))
   (outline--fix-up-all-buttons from to)
-  ;; Seems only used by lazy-lock.  I.e. obsolete.
   (run-hooks 'outline-view-change-hook))
 
 (defun outline-reveal-toggle-invisible (o hidep)
@@ -969,25 +982,9 @@ If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
   (when (mouse-event-p event)
     (mouse-set-point event))
-  (when (and outline-minor-mode-use-buttons outline-minor-mode)
+  (when (outline--use-buttons-p)
     (outline--insert-close-button))
   (outline-flag-subtree t))
-
-(defun outline--make-button (type)
-  (cl-loop for (close open test) in outline-minor-mode-buttons
-           when (and (funcall test close) (funcall test open))
-           return (concat (if (eq type 'close)
-                              close
-                            open)
-                          " " (buffer-substring (point) (1+ (point))))))
-
-(defun outline--valid-emoji-p (string)
-  (when-let ((font (and (display-multi-font-p)
-                        (car (internal-char-font nil ?😀)))))
-    (font-has-char-p font (aref string 0))))
-
-(defun outline--valid-char-p (string)
-  (char-displayable-p (aref string 0)))
 
 (defun outline--make-button-overlay (type)
   (let ((o (seq-find (lambda (o)
@@ -998,35 +995,56 @@ If non-nil, EVENT should be a mouse event."
       (overlay-put o 'follow-link 'mouse-face)
       (overlay-put o 'mouse-face 'highlight)
       (overlay-put o 'outline-button t))
-    (overlay-put o 'display (outline--make-button type))
+    (let ((icon
+           (icon-elements (if (eq type 'close) 'outline-close 'outline-open)))
+          (inhibit-read-only t))
+      ;; In editing buffers we use overlays only, but in other buffers
+      ;; we use a mix of text properties, text and overlays to make
+      ;; movement commands work more logically.
+      (when (derived-mode-p 'special-mode)
+        (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face)))
+      (when-let ((image (plist-get icon 'image)))
+        (overlay-put o 'display image))
+      (overlay-put o 'display (plist-get icon 'string))
+      (overlay-put o 'face (plist-get icon 'face)))
     o))
 
 (defun outline--insert-open-button ()
-  (save-excursion
-    (beginning-of-line)
-    (let ((o (outline--make-button-overlay 'open)))
-      (overlay-put o 'help-echo "Click to hide")
-      (overlay-put o 'keymap
-                   (define-keymap
-                     "RET" #'outline-hide-subtree
-                     "<mouse-2>" #'outline-hide-subtree)))))
+  (with-silent-modifications
+    (save-excursion
+        (beginning-of-line)
+        (when (derived-mode-p 'special-mode)
+          (let ((inhibit-read-only t))
+            (insert "  ")
+            (beginning-of-line)))
+        (let ((o (outline--make-button-overlay 'open)))
+          (overlay-put o 'help-echo "Click to hide")
+          (overlay-put o 'keymap
+                       (define-keymap
+                         "RET" #'outline-hide-subtree
+                         "<mouse-2>" #'outline-hide-subtree))))))
 
 (defun outline--insert-close-button ()
-  (save-excursion
-    (beginning-of-line)
-    (let ((o (outline--make-button-overlay 'close)))
-      (overlay-put o 'help-echo "Click to show")
-      (overlay-put o 'keymap
-                   (define-keymap
-                     "RET" #'outline-show-subtree
-                     "<mouse-2>" #'outline-show-subtree)))))
+  (with-silent-modifications
+    (save-excursion
+        (beginning-of-line)
+        (when (derived-mode-p 'special-mode)
+          (let ((inhibit-read-only t))
+            (insert "  ")
+            (beginning-of-line)))
+        (let ((o (outline--make-button-overlay 'close)))
+          (overlay-put o 'help-echo "Click to show")
+          (overlay-put o 'keymap
+                       (define-keymap
+                         "RET" #'outline-show-subtree
+                         "<mouse-2>" #'outline-show-subtree))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when from
     (save-excursion
       (goto-char from)
       (setq from (line-beginning-position))))
-  (when outline-minor-mode-use-buttons
+  (when (outline--use-buttons-p)
     (outline-map-region
      (lambda ()
        ;; `outline--cycle-state' will fail if we're in a totally
@@ -1057,7 +1075,7 @@ If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
   (when (mouse-event-p event)
     (mouse-set-point event))
-  (when (and outline-minor-mode-use-buttons outline-minor-mode)
+  (when (outline--use-buttons-p)
     (outline--insert-open-button))
   (outline-flag-subtree nil))
 

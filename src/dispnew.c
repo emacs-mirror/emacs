@@ -2732,11 +2732,24 @@ set_frame_matrix_frame (struct frame *f)
    operations in window matrices of frame_matrix_frame.  */
 
 static void
-make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_matrix, int row)
+make_current (struct glyph_matrix *desired_matrix,
+	      struct glyph_matrix *current_matrix, int row)
 {
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, row);
   struct glyph_row *desired_row = MATRIX_ROW (desired_matrix, row);
   bool mouse_face_p = current_row->mouse_face_p;
+
+  /* If we aborted redisplay of this window, a row in the desired
+     matrix might not have its hash computed.  But update_window
+     relies on each row having its correct hash, so do it here if
+     needed.  */
+  if (!desired_row->hash
+      /* A glyph row that is not completely empty is unlikely to have
+	 a zero hash value.  */
+      && !(!desired_row->used[0]
+	   && !desired_row->used[1]
+	   && !desired_row->used[2]))
+    desired_row->hash = row_hash (desired_row);
 
   /* Do current_row = desired_row.  This exchanges glyph pointers
      between both rows, and does a structure assignment otherwise.  */
@@ -4284,11 +4297,11 @@ set_window_cursor_after_update (struct window *w)
       /* If we are showing a message instead of the mini-buffer,
 	 show the cursor for the message instead.  */
       && XWINDOW (minibuf_window) == w
-      && EQ (minibuf_window, echo_area_window)
+      && BASE_EQ (minibuf_window, echo_area_window)
       /* These cases apply only to the frame that contains
 	 the active mini-buffer window.  */
       && FRAME_HAS_MINIBUF_P (f)
-      && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
+      && BASE_EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
     {
       cx = cy = vpos = hpos = 0;
 
@@ -4948,13 +4961,13 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
 	   /* If we are showing a message instead of the mini-buffer,
 	      show the cursor for the message instead of for the
 	      (now hidden) mini-buffer contents.  */
-	   || (EQ (minibuf_window, selected_window)
-	       && EQ (minibuf_window, echo_area_window)
+	   || (BASE_EQ (minibuf_window, selected_window)
+	       && BASE_EQ (minibuf_window, echo_area_window)
 	       && !NILP (echo_area_buffer[0])))
 	  /* These cases apply only to the frame that contains
 	     the active mini-buffer window.  */
 	  && FRAME_HAS_MINIBUF_P (f)
-	  && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
+	  && BASE_EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
 	{
 	  int top = WINDOW_TOP_EDGE_LINE (XWINDOW (FRAME_MINIBUF_WINDOW (f)));
 	  int col;
@@ -6306,7 +6319,7 @@ pass nil for VARIABLE.  */)
     {
       if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (AREF (state, idx++), frame))
+      if (!BASE_EQ (AREF (state, idx++), frame))
 	goto changed;
       if (idx == ASIZE (state))
 	goto changed;
@@ -6321,7 +6334,7 @@ pass nil for VARIABLE.  */)
 	continue;
       if (idx == ASIZE (state))
 	goto changed;
-      if (!EQ (AREF (state, idx++), buf))
+      if (!BASE_EQ (AREF (state, idx++), buf))
 	goto changed;
       if (idx == ASIZE (state))
 	goto changed;

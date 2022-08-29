@@ -29,6 +29,7 @@
 (require 'mh-e)
 
 (require 'font-lock)
+(require 'mailabbrev)
 
 ;;; CL Replacements
 
@@ -57,13 +58,6 @@ used in lieu of `search' in the CL package."
           (backward-word n)
           (point))
       (set-syntax-table syntax-table))))
-
-;;;###mh-autoload
-(defun mh-colors-available-p ()
-  "Check if colors are available in the Emacs being used."
-  ;; FIXME: Can this be replaced with `display-color-p'?
-  (let ((color-cells (display-color-cells)))
-    (and (numberp color-cells) (>= color-cells 8))))
 
 ;;;###mh-autoload
 (defun mh-colors-in-use-p ()
@@ -444,10 +438,8 @@ no effect."
         (setq folder (format "%s/%s/" mh-current-folder-name
                              (substring folder 1))))
       ;; XXX: Purge empty strings from the list that split-string
-      ;; returns. In XEmacs, (split-string "+foo/" "/") returns
-      ;; ("+foo" "") while in GNU Emacs it returns ("+foo"). In the
-      ;; code it is assumed that the components list has no empty
-      ;; strings.
+      ;; returns. In the code it is assumed that the components list
+      ;; has no empty strings.
       (let ((components (delete "" (split-string folder "/")))
             (result ()))
         ;; Remove .. and . from the pathname.
@@ -1006,10 +998,12 @@ If the current line is too long truncate a part of it as well."
     (goto-char (point-min))
     (re-search-forward mh-signature-separator-regexp nil t)))
 
+;;;###mh-autoload
+(define-obsolete-function-alias 'mh-colors-available-p #'display-color-p "29.1")
+
 (provide 'mh-utils)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

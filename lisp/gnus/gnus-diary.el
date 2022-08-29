@@ -65,8 +65,9 @@ There are currently two built-in format functions:
 		 (const  :tag "french"  gnus-diary-delay-format-french)
 		 (symbol :tag "other")))
 
-(defconst gnus-diary-version nndiary-version
+(defconst gnus-diary-version "0.2-b14"
   "Current Diary back end version.")
+(make-obsolete-variable 'gnus-diary-version 'emacs-version "29.1")
 
 
 ;; Compatibility functions ==================================================
@@ -326,7 +327,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 	   (when (re-search-forward (concat "^" header ":") nil t)
 	     (unless (eq (char-after) ? )
 	       (insert " "))
-	     (setq value (buffer-substring (point) (point-at-eol)))
+             (setq value (buffer-substring (point) (line-end-position)))
 	     (and (string-match "[ \t]*\\([^ \t]+\\)[ \t]*" value)
 		  (setq value (match-string 1 value)))
 	     (condition-case ()
@@ -377,8 +378,9 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (defun gnus-diary-version ()
   "Current Diary back end version."
+  (declare (obsolete emacs-version "29.1"))
   (interactive)
-  (message "NNDiary version %s" nndiary-version))
+  (message "NNDiary version %s" gnus-diary-version))
 
 (provide 'gnus-diary)
 

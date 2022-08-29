@@ -403,7 +403,7 @@ The syntax tables aren't stored directly since they're quite large."
   t  (if (c-lang-const c-recognize-<>-arglists)
      `(lambda ()
 	;(if (c-lang-const c-recognize-<>-arglists)
-	(let ((table (funcall ,(c-lang-const c-make-mode-syntax-table))))
+	(let ((table (funcall ',(c-lang-const c-make-mode-syntax-table))))
 	  (modify-syntax-entry ?\( "." table)
 	  (modify-syntax-entry ?\) "." table)
 	  (modify-syntax-entry ?\[ "." table)
@@ -458,12 +458,14 @@ so that all identifiers are recognized as words.")
 	c-before-change-check-<>-operators
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
-	c-parse-quotes-before-change)
+	c-parse-quotes-before-change
+	c-before-change-fix-comment-escapes)
   (c objc) '(c-extend-region-for-CPP
 	     c-depropertize-CPP
 	     c-truncate-bs-cache
 	     c-before-change-check-unbalanced-strings
-	     c-parse-quotes-before-change)
+	     c-parse-quotes-before-change
+	     c-before-change-fix-comment-escapes)
   java '(c-parse-quotes-before-change
 	 c-before-change-check-unbalanced-strings
 	 c-before-change-check-<>-operators)
@@ -500,6 +502,7 @@ parameters \(point-min) and \(point-max).")
       c-after-change-mark-abnormal-strings
       c-change-expand-fl-region)
   (c objc) '(c-depropertize-new-text
+	     c-after-change-fix-comment-escapes
 	     c-after-change-escape-NL-in-string
 	     c-parse-quotes-after-change
 	     c-after-change-mark-abnormal-strings
@@ -507,6 +510,7 @@ parameters \(point-min) and \(point-max).")
 	     c-neutralize-syntax-in-CPP
 	     c-change-expand-fl-region)
   c++ '(c-depropertize-new-text
+	c-after-change-fix-comment-escapes
 	c-after-change-escape-NL-in-string
 	c-after-change-unmark-ml-strings
 	c-parse-quotes-after-change
@@ -846,7 +850,7 @@ This is of the form that fits inside [ ] in a regexp."
   "Regexp matching identifiers and keywords (with submatch 0).  Assumed
 to match if `c-symbol-start' matches on the same position."
   t    (concat (c-lang-const c-symbol-start)
-	       "[" (c-lang-const c-symbol-chars) "]*")
+	       "[" (c-lang-const c-symbol-chars) "]\\{,1000\\}")
   pike (concat
 	;; Use the value from C here since the operator backquote is
 	;; covered by the other alternative.
@@ -4274,7 +4278,7 @@ This macro is expanded at compile time to a form tailored for the mode
 in question, so MODE must be a constant.  Therefore MODE is not
 evaluated and should not be quoted."
   (declare (debug nil))
-  `(funcall ,(c-make-init-lang-vars-fun mode)))
+  `(funcall #',(c-make-init-lang-vars-fun mode)))
 
 
 (cc-provide 'cc-langs)

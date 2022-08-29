@@ -221,7 +221,7 @@ depend on the flags."
 
 (defcustom emerge-min-visible-lines 3
   "Number of lines to show above and below the flags when displaying a difference."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom emerge-temp-file-prefix
   (expand-file-name "emerge" temporary-file-directory)
@@ -1647,7 +1647,7 @@ the height of the merge window.
 (defun emerge-scroll-left (&optional arg)
   "Scroll left all three merge buffers, if they are in windows.
 If an argument is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  \\`C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -1675,7 +1675,7 @@ width of the A and B windows."
 (defun emerge-scroll-right (&optional arg)
   "Scroll right all three merge buffers, if they are in windows.
 If an argument is given, that is how many columns are scrolled, else nearly
-the width of the A and B windows.  `C-u -' alone as argument scrolls half the
+the width of the A and B windows.  \\`C-u -' alone as argument scrolls half the
 width of the A and B windows."
   (interactive "P")
   (emerge-operate-on-windows
@@ -2942,6 +2942,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 
 ;; Define a key if it (or a prefix) is not already defined in the map.
 (defun emerge-define-key-if-possible (keymap key definition)
+  (declare (obsolete keymap-set "29.1"))
   ;; look up the present definition of the key
   (let ((present (lookup-key keymap key)))
     (if (integerp present)
@@ -2959,6 +2960,7 @@ If some prefix of KEY has a non-prefix definition, it is redefined."
 If the name won't fit on one line, the minibuffer is expanded to hold it,
 and the command waits for a keystroke from the user.  If the keystroke is
 SPC, it is ignored; if it is anything else, it is processed as a command."
+  (declare (obsolete nil "29.1"))
   (interactive)
   (let ((name (buffer-file-name)))
     (or name

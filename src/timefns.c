@@ -212,7 +212,7 @@ tzlookup (Lisp_Object zone, bool settz)
 
   if (NILP (zone))
     return local_tz;
-  else if (EQ (zone, Qt) || EQ (zone, make_fixnum (0)))
+  else if (BASE_EQ (zone, make_fixnum (0)) || BASE2_EQ (zone, Qt))
     {
       zone_string = "UTC0";
       new_tz = utc_tz;
@@ -221,7 +221,7 @@ tzlookup (Lisp_Object zone, bool settz)
     {
       bool plain_integer = FIXNUMP (zone);
 
-      if (EQ (zone, Qwall))
+      if (BASE2_EQ (zone, Qwall))
 	zone_string = 0;
       else if (STRINGP (zone))
 	zone_string = SSDATA (ENCODE_SYSTEM (zone));
@@ -387,9 +387,9 @@ enum { flt_radix_power_size = DBL_MANT_DIG - DBL_MIN_EXP + 1 };
    equals FLT_RADIX**P.  */
 static Lisp_Object flt_radix_power;
 
-/* Convert T into an Emacs time *RESULT, truncating toward minus infinity.
-   Return zero if successful, an error number otherwise.  */
-static int
+/* Convert the finite number T into an Emacs time *RESULT, truncating
+   toward minus infinity.  Signal an error if unsuccessful.  */
+static void
 decode_float_time (double t, struct lisp_time *result)
 {
   Lisp_Object ticks, hz;
@@ -401,6 +401,11 @@ decode_float_time (double t, struct lisp_time *result)
   else
     {
       int scale = double_integer_scale (t);
+      /* FIXME: `double_integer_scale` often returns values that are
+         "pessimistic" (i.e. larger than necessary), so 3.5 gets converted
+         to (7881299347898368 . 2251799813685248) rather than (7 . 2).
+         On 64bit systems, this should not matter very much, tho.  */
+      eassume (scale < flt_radix_power_size);
 
       if (scale < 0)
 	{
@@ -412,8 +417,6 @@ decode_float_time (double t, struct lisp_time *result)
 	    which is typically better than signaling overflow.  */
 	  scale = 0;
 	}
-      else if (flt_radix_power_size <= scale)
-	return isnan (t) ? EDOM : EOVERFLOW;
 
       /* Compute TICKS, HZ such that TICKS / HZ exactly equals T, where HZ is
 	 T's frequency or 1, whichever is greater.  Here, “frequency” means
@@ -431,7 +434,6 @@ decode_float_time (double t, struct lisp_time *result)
     }
   result->ticks = ticks;
   result->hz = hz;
-  return 0;
 }
 
 /* Make a 4-element timestamp (HI LO US PS) from TICKS and HZ.
@@ -516,7 +518,7 @@ lisp_time_hz_ticks (struct lisp_time t, Lisp_Object hz)
   /* The idea is to return the floor of ((T.ticks * HZ) / T.hz).  */
 
   /* For speed, just return T.ticks if T.hz == HZ.  */
-  if (FASTER_TIMEFNS && EQ (t.hz, hz))
+  if (FASTER_TIMEFNS && BASE_EQ (t.hz, hz))
     return t.ticks;
 
   /* Check HZ for validity.  */
@@ -705,7 +707,7 @@ enum timeform
    TIMEFORM_TICKS_HZ /* fractional time: HI is ticks, LO is ticks per second */
   };
 
-/* From the valid form FORM and the time components HIGH, LOW, USEC
+/* From the non-float form FORM and the time components HIGH, LOW, USEC
    and PSEC, generate the corresponding time value.  If LOW is
    floating point, the other components should be zero and FORM should
    not be TIMEFORM_TICKS_HZ.
@@ -729,21 +731,12 @@ decode_time_components (enum timeform form,
 
     case TIMEFORM_TICKS_HZ:
       if (INTEGERP (high)
-	  && (!NILP (Fnatnump (low)) && !EQ (low, make_fixnum (0))))
+	  && !NILP (Fnatnump (low)) && !BASE_EQ (low, make_fixnum (0)))
 	return decode_ticks_hz (high, low, result, dresult);
       return EINVAL;
 
     case TIMEFORM_FLOAT:
-      {
-	double t = XFLOAT_DATA (low);
-	if (result)
-	  return decode_float_time (t, result);
-	else
-	  {
-	    *dresult = t;
-	    return 0;
-	  }
-      }
+      eassume (false);
 
     case TIMEFORM_NIL:
       return decode_ticks_hz (timespec_ticks (current_timespec ()),
@@ -829,8 +822,6 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
 
   if (NILP (specified_time))
     form = TIMEFORM_NIL;
-  else if (FLOATP (specified_time))
-    form = TIMEFORM_FLOAT;
   else if (CONSP (specified_time))
     {
       high = XCAR (specified_time);
@@ -870,6 +861,22 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
       if (! INTEGERP (low))
 	form = TIMEFORM_INVALID;
     }
+  else if (FASTER_TIMEFNS && INTEGERP (specified_time))
+    {
+      decode_ticks_hz (specified_time, make_fixnum (1), result, dresult);
+      return form;
+    }
+  else if (FLOATP (specified_time))
+    {
+      double d = XFLOAT_DATA (specified_time);
+      if (!isfinite (d))
+	time_error (isnan (d) ? EDOM : EOVERFLOW);
+      if (result)
+	decode_float_time (d, result);
+      else
+	*dresult = d;
+      return TIMEFORM_FLOAT;
+    }
 
   int err = decode_time_components (form, high, low, usec, psec,
 				    result, dresult);
@@ -878,7 +885,7 @@ decode_lisp_time (Lisp_Object specified_time, bool decode_secs_only,
   return form;
 }
 
-/* Convert a Lisp timestamp SPECIFIED_TIME to double.
+/* Convert a non-float Lisp timestamp SPECIFIED_TIME to double.
    Signal an error if unsuccessful.  */
 double
 float_time (Lisp_Object specified_time)
@@ -923,7 +930,7 @@ lisp_to_timespec (struct lisp_time t)
      yielding quotient Q (tv_sec) and remainder NS (tv_nsec).
      Return an invalid timespec if Q does not fit in time_t.
      For speed, prefer fixnum arithmetic if it works.  */
-  if (FASTER_TIMEFNS && EQ (t.hz, timespec_hz))
+  if (FASTER_TIMEFNS && BASE_EQ (t.hz, timespec_hz))
     {
       if (FIXNUMP (t.ticks))
 	{
@@ -942,7 +949,7 @@ lisp_to_timespec (struct lisp_time t)
       else
 	ns = mpz_fdiv_q_ui (*q, *xbignum_val (t.ticks), TIMESPEC_HZ);
     }
-  else if (FASTER_TIMEFNS && EQ (t.hz, make_fixnum (1)))
+  else if (FASTER_TIMEFNS && BASE_EQ (t.hz, make_fixnum (1)))
     {
       ns = 0;
       if (FIXNUMP (t.ticks))
@@ -1043,7 +1050,7 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 
   if (FASTER_TIMEFNS && FIXNUMP (b))
     {
-      if (EQ (b, make_fixnum (0)))
+      if (BASE_EQ (b, make_fixnum (0)))
 	return a;
 
       /* For speed, use EMACS_INT arithmetic if it will do.  */
@@ -1074,30 +1081,12 @@ lispint_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 static Lisp_Object
 time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 {
-  if (FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
-    {
-      double da = XFLOAT_DATA (a);
-      double db = float_time (b);
-      return make_float (subtract ? da - db : da + db);
-    }
   enum timeform aform, bform;
   struct lisp_time ta = lisp_time_struct (a, &aform);
-
-  if (FLOATP (b) && !isfinite (XFLOAT_DATA (b)))
-    return subtract ? make_float (-XFLOAT_DATA (b)) : b;
-
-  /* Subtract nil from nil correctly, and handle other eq values
-     quicker while we're at it.  Compare here rather than earlier, to
-     handle NaNs and check formats.  */
-  struct lisp_time tb;
-  if (EQ (a, b))
-    bform = aform, tb = ta;
-  else
-    tb = lisp_time_struct (b, &bform);
-
+  struct lisp_time tb = lisp_time_struct (b, &bform);
   Lisp_Object ticks, hz;
 
-  if (FASTER_TIMEFNS && EQ (ta.hz, tb.hz))
+  if (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz))
     {
       hz = ta.hz;
       ticks = lispint_arith (ta.ticks, tb.ticks, subtract);
@@ -1175,7 +1164,7 @@ time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
      either input used (TICKS . HZ) form or the result can't be expressed
      exactly in (HI LO US PS) form, otherwise the (HI LO US PS) form
      for backward compatibility.  */
-  return (EQ (hz, make_fixnum (1))
+  return (BASE_EQ (hz, make_fixnum (1))
 	  ? ticks
 	  : (!current_time_list
 	     || aform == TIMEFORM_TICKS_HZ
@@ -1201,29 +1190,37 @@ See `format-time-string' for the various forms of a time value.
 For example, nil stands for the current time.  */)
   (Lisp_Object a, Lisp_Object b)
 {
+  /* Subtract nil from nil correctly, and handle other eq values
+     quicker while we're at it.  This means (time-subtract X X) does
+     not signal an error if X is not a valid time value, but that's OK.  */
+  if (BASE_EQ (a, b))
+    return timespec_to_lisp ((struct timespec) {0});
+
   return time_arith (a, b, true);
 }
 
-/* Return negative, 0, positive if a < b, a == b, a > b respectively.
-   Return positive if either a or b is a NaN; this is good enough
-   for the current callers.  */
-static int
+/* Return negative, 0, positive if A < B, A == B, A > B respectively.
+   A and B should be Lisp time values.  */
+static EMACS_INT
 time_cmp (Lisp_Object a, Lisp_Object b)
 {
-  if ((FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
-      || (FLOATP (b) && !isfinite (XFLOAT_DATA (b))))
-    {
-      double da = FLOATP (a) ? XFLOAT_DATA (a) : 0;
-      double db = FLOATP (b) ? XFLOAT_DATA (b) : 0;
-      return da < db ? -1 : da != db;
-    }
-
   /* Compare nil to nil correctly, and handle other eq values quicker
-     while we're at it.  Compare here rather than earlier, to handle
-     NaNs.  This means (time-equal-p X X) does not signal an error if
-     X is not a valid time value, but that's OK.  */
-  if (EQ (a, b))
+     while we're at it.  This means (time-equal-p X X) does not signal
+     an error if X is not a valid time value, but that's OK.  */
+  if (BASE_EQ (a, b))
     return 0;
+
+  /* Compare (X . Z) to (Y . Z) quickly if X and Y are fixnums.
+     Do not inspect Z, as it is OK to not signal if A and B are invalid.
+     Also, compare X to Y quickly if X and Y are fixnums.  */
+  if (FASTER_TIMEFNS)
+    {
+      Lisp_Object x = a, y = b;
+      if (CONSP (a) && CONSP (b) && BASE_EQ (XCDR (a), XCDR (b)))
+	x = XCAR (a), y = XCAR (b);
+      if (FIXNUMP (x) && FIXNUMP (y))
+	return XFIXNUM (x) - XFIXNUM (y);
+    }
 
   /* Compare (ATICKS . AZ) to (BTICKS . BHZ) by comparing
      ATICKS * BHZ to BTICKS * AHZ.  */
@@ -1231,7 +1228,7 @@ time_cmp (Lisp_Object a, Lisp_Object b)
   struct lisp_time tb = lisp_time_struct (b, 0);
   mpz_t const *za = bignum_integer (&mpz[0], ta.ticks);
   mpz_t const *zb = bignum_integer (&mpz[1], tb.ticks);
-  if (! (FASTER_TIMEFNS && EQ (ta.hz, tb.hz)))
+  if (! (FASTER_TIMEFNS && BASE_EQ (ta.hz, tb.hz)))
     {
       /* This could be sped up by looking at the signs, sizes, and
 	 number of bits of the two sides; see how GMP does mpq_cmp.
@@ -1258,7 +1255,9 @@ DEFUN ("time-equal-p", Ftime_equal_p, Stime_equal_p, 2, 2, 0,
 See `format-time-string' for the various forms of a time value.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  return time_cmp (a, b) == 0 ? Qt : Qnil;
+  /* A nil arg compares unequal to a non-nil arg.  This also saves the
+     expense of current_timespec if either arg is nil.  */
+  return NILP (a) == NILP (b) && time_cmp (a, b) == 0 ? Qt : Qnil;
 }
 
 
@@ -1269,11 +1268,12 @@ instead of the current time.  See `format-time-string' for the various
 forms of a time value.
 
 WARNING: Since the result is floating point, it may not be exact.
-If precise time stamps are required, use either `encode-time',
+If precise time stamps are required, use either `time-convert',
 or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
-  return make_float (float_time (specified_time));
+  return (FLOATP (specified_time) ? specified_time
+	  : make_float (float_time (specified_time)));
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
@@ -1463,7 +1463,7 @@ usage: (format-time-string FORMAT-STRING &optional TIME ZONE)  */)
 }
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 3, 0,
-       doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
+       doc: /* Decode a timestamp into (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).
 The optional TIME is the time value to convert.  See
 `format-time-string' for the various forms of a time value.
 
@@ -1535,7 +1535,7 @@ usage: (decode-time &optional TIME ZONE FORM)  */)
 
   /* Compute SEC from LOCAL_TM.tm_sec and HZ.  */
   Lisp_Object hz = lt.hz, sec;
-  if (EQ (hz, make_fixnum (1)) || !EQ (form, Qt))
+  if (BASE_EQ (hz, make_fixnum (1)) || !BASE2_EQ (form, Qt))
     sec = make_fixnum (local_tm.tm_sec);
   else
     {
@@ -1685,7 +1685,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   struct lisp_time lt;
   decode_lisp_time (secarg, false, &lt, 0);
   Lisp_Object hz = lt.hz, sec, subsecticks;
-  if (FASTER_TIMEFNS && EQ (hz, make_fixnum (1)))
+  if (FASTER_TIMEFNS && BASE_EQ (hz, make_fixnum (1)))
     {
       sec = lt.ticks;
       subsecticks = make_fixnum (0);
@@ -1715,7 +1715,7 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
   if (tm.tm_wday < 0)
     time_error (mktime_errno);
 
-  if (EQ (hz, make_fixnum (1)))
+  if (BASE_EQ (hz, make_fixnum (1)))
     return (current_time_list
 	    ? list2 (hi_time (value), lo_time (value))
 	    : INT_TO_INTEGER (value));
@@ -1729,33 +1729,43 @@ usage: (encode-time TIME &rest OBSOLESCENT-ARGUMENTS)  */)
 }
 
 DEFUN ("time-convert", Ftime_convert, Stime_convert, 1, 2, 0,
-       doc: /* Convert TIME value to a Lisp timestamp.
-With optional FORM, convert to that timestamp form.
+       doc: /* Convert TIME value to a Lisp timestamp of the given FORM.
 Truncate the returned value toward minus infinity.
 
-If FORM is nil (the default), return the same form as `current-time'.
 If FORM is a positive integer, return a pair of integers (TICKS . FORM),
 where TICKS is the number of clock ticks and FORM is the clock frequency
-in ticks per second.  If FORM is t, return (TICKS . PHZ), where
-PHZ is a suitable clock frequency in ticks per second.  If FORM is
-`integer', return an integer count of seconds.  If FORM is `list',
-return an integer list (HIGH LOW USEC PSEC), where HIGH has the most
-significant bits of the seconds, LOW has the least significant 16
-bits, and USEC and PSEC are the microsecond and picosecond counts.  */)
+in ticks per second.
+
+If FORM is t, return (TICKS . PHZ), where PHZ is a suitable clock
+frequency in ticks per second.
+
+If FORM is `integer', return an integer count of seconds.
+
+If FORM is `list', return an integer list (HIGH LOW USEC PSEC), where
+HIGH has the most significant bits of the seconds, LOW has the least
+significant 16 bits, and USEC and PSEC are the microsecond and
+picosecond counts.
+
+If FORM is nil, the behavior depends on `current-time-list',
+but new code should not rely on it.  */)
      (Lisp_Object time, Lisp_Object form)
 {
+  /* FIXME: Any reason why we don't offer a `float` output format option as
+     well, since we accept it as input?  */
   struct lisp_time t;
   enum timeform input_form = decode_lisp_time (time, false, &t, 0);
   if (NILP (form))
     form = current_time_list ? Qlist : Qt;
-  if (EQ (form, Qlist))
+  if (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (form))
+    form = SYMBOL_WITH_POS_SYM (form);
+  if (BASE_EQ (form, Qlist))
     return ticks_hz_list4 (t.ticks, t.hz);
-  if (EQ (form, Qinteger))
+  if (BASE_EQ (form, Qinteger))
     return FASTER_TIMEFNS && INTEGERP (time) ? time : lisp_time_seconds (t);
-  if (EQ (form, Qt))
+  if (BASE_EQ (form, Qt))
     form = t.hz;
   if (FASTER_TIMEFNS
-      && input_form == TIMEFORM_TICKS_HZ && EQ (form, XCDR (time)))
+      && input_form == TIMEFORM_TICKS_HZ && BASE_EQ (form, XCDR (time)))
     return time;
   return Fcons (lisp_time_hz_ticks (t, form), form);
 }

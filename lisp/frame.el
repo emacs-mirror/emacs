@@ -2149,6 +2149,17 @@ frame's display)."
 (defalias 'display-multi-frame-p #'display-graphic-p)
 (defalias 'display-multi-font-p #'display-graphic-p)
 
+(defcustom tty-select-active-regions nil
+  "If non-nil, update PRIMARY window-system selection on text-mode frames.
+On a text-mode terminal that supports setSelection command, if
+this variable is non-nil, Emacs will set the PRIMARY selection
+from the active region, according to `select-active-regions'.
+This is currently supported only on xterm."
+  :group 'frames
+  :group 'killing
+  :version "29.1"
+  :type 'boolean)
+
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
@@ -2163,6 +2174,9 @@ frame's display)."
       (with-no-warnings
        (not (null dos-windows-version))))
      ((memq frame-type '(x w32 ns pgtk))
+      t)
+     ((and tty-select-active-regions
+           (terminal-parameter nil 'xterm--set-selection))
       t)
      (t
       nil))))
@@ -2827,7 +2841,7 @@ Values smaller than 0.2 sec are treated as 0.2 sec."
   "How many times to blink before using a solid cursor on NS, X, and MS-Windows.
 Use 0 or negative value to blink forever."
   :version "24.4"
-  :type 'integer
+  :type 'natnum
   :group 'cursor)
 
 (defvar blink-cursor-blinks-done 1

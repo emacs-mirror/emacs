@@ -37,15 +37,15 @@ enum haiku_clipboard
 #ifdef __cplusplus
 extern "C"
 {
-/* Also declared in haikuterm.h for use in emacs.c.  */
-extern void init_haiku_select (void);
 #endif
-/* Whether or not the selection was recently changed.  */
+/* Defined in haikuselect.c.  */
+extern void haiku_selection_disowned (enum haiku_clipboard, int64);
 
+/* Defined in haiku_select.cc.  */
+extern void be_clipboard_init (void);
 extern char *be_find_clipboard_data (enum haiku_clipboard, const char *, ssize_t *);
 extern void be_set_clipboard_data (enum haiku_clipboard, const char *, const char *,
 				   ssize_t, bool);
-extern void be_get_clipboard_targets (enum haiku_clipboard, char **, int);
 extern bool be_clipboard_owner_p (enum haiku_clipboard);
 extern void be_update_clipboard_count (enum haiku_clipboard);
 
@@ -64,6 +64,11 @@ extern int be_add_point_data (void *, const char *, float, float);
 extern int be_add_message_message (void *, const char *, void *);
 extern int be_lock_clipboard_message (enum haiku_clipboard, void **, bool);
 extern void be_unlock_clipboard (enum haiku_clipboard, bool);
+extern void be_handle_clipboard_changed_message (void);
+extern void be_start_watching_selection (enum haiku_clipboard);
+extern bool be_selection_outdated_p (enum haiku_clipboard, int64);
+extern int64 be_get_clipboard_count (enum haiku_clipboard);
+
 #ifdef __cplusplus
 };
 #endif

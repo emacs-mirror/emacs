@@ -117,8 +117,8 @@
   (cond ((fboundp 'libxml-parse-html-region) 'shr)
 	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
-	((executable-find "lynx") 'lynx)
-	((locate-library "html2text") 'html2text))
+        ((executable-find "lynx") 'lynx)
+        (t 'shr))
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
@@ -127,16 +127,14 @@ The defined renderer types are:
 `w3m': use emacs-w3m;
 `w3m-standalone': use plain w3m;
 `links': use links;
-`lynx': use lynx;
-`html2text': use html2text."
-  :version "27.1"
+`lynx': use lynx."
+  :version "29.1"
   :type '(choice (const shr)
                  (const gnus-w3m)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
 		 (const lynx)
-		 (const html2text)
 		 (function))
   :group 'mime-display)
 
@@ -193,7 +191,11 @@ before the external MIME handler is invoked."
   `(("image/p?jpeg"
      mm-inline-image
      ,(lambda (handle)
-       (mm-valid-and-fit-image-p 'jpeg handle)))
+        (mm-valid-and-fit-image-p 'jpeg handle)))
+    ("image/webp"
+     mm-inline-image
+     ,(lambda (handle)
+       (mm-valid-and-fit-image-p 'webp handle)))
     ("image/png"
      mm-inline-image
      ,(lambda (handle)

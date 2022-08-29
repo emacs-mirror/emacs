@@ -708,7 +708,7 @@ This function does not grok magic file names.  */)
   memset (data + prefix_len, 'X', nX);
   memcpy (data + prefix_len + nX, SSDATA (encoded_suffix), suffix_len);
   int kind = (NILP (dir_flag) ? GT_FILE
-	      : EQ (dir_flag, make_fixnum (0)) ? GT_NOCREATE
+	      : BASE_EQ (dir_flag, make_fixnum (0)) ? GT_NOCREATE
 	      : GT_DIR);
   int fd = gen_tempname (data, suffix_len, O_BINARY | O_CLOEXEC, kind);
   bool failed = fd < 0;
@@ -2601,9 +2601,9 @@ is case-insensitive.  */)
       if (err <= 0)
 	return err < 0 ? Qt : Qnil;
       Lisp_Object parent = file_name_directory (filename);
-      /* Avoid infinite loop if the root has trouble
-	 (impossible?).  */
-      if (!NILP (Fstring_equal (parent, filename)))
+      /* Avoid infinite loop if the root has trouble (if that's even possible).
+	 Without a parent, we just don't know and return nil as well.  */
+      if (!STRINGP (parent) || !NILP (Fstring_equal (parent, filename)))
 	return Qnil;
       filename = parent;
     }
@@ -3532,8 +3532,9 @@ DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 3,
 Only the 12 low bits of MODE are used.  If optional FLAG is `nofollow',
 do not follow FILENAME if it is a symbolic link.
 
-Interactively, mode bits are read by `read-file-modes', which accepts
-symbolic notation, like the `chmod' command from GNU Coreutils.  */)
+Interactively, prompt for FILENAME, and read MODE with
+`read-file-modes', which accepts symbolic notation, like the `chmod'
+command from GNU Coreutils.  */)
   (Lisp_Object filename, Lisp_Object mode, Lisp_Object flag)
 {
   CHECK_FIXNUM (mode);
@@ -5831,6 +5832,15 @@ See Info node `(elisp)Modification Time' for more details.  */)
   return Qnil;
 }
 
+Lisp_Object
+buffer_visited_file_modtime (struct buffer *buf)
+{
+  int ns = buf->modtime.tv_nsec;
+  if (ns < 0)
+    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
+  return make_lisp_time (buf->modtime);
+}
+
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
@@ -5840,10 +5850,7 @@ visited file doesn't exist.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
-  int ns = current_buffer->modtime.tv_nsec;
-  if (ns < 0)
-    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
-  return make_lisp_time (current_buffer->modtime);
+  return buffer_visited_file_modtime (current_buffer);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
@@ -5870,6 +5877,8 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
       current_buffer->modtime = mtime;
       current_buffer->modtime_size = -1;
     }
+  else if (current_buffer->base_buffer)
+    error ("An indirect buffer does not have a visited file");
   else
     {
       register Lisp_Object filename;

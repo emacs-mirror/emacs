@@ -38,7 +38,7 @@
   bytecomp-test-var)
 
 (defun bytecomp-test-identity (x)
-  "Identity, but hidden from some optimisations."
+  "Identity, but hidden from some optimizations."
   x)
 
 (defmacro bytecomp-test-loop (outer1 outer2 inner1 inner2)
@@ -556,7 +556,7 @@ inner loops respectively."
                               ((not x) 3)))
             '("a" "b" "c" "d" nil))
 
-    ;; `let' and `let*' optimisations with body being constant or variable
+    ;; `let' and `let*' optimizations with body being constant or variable
     (let* (a
            (b (progn (setq a (cons 1 a)) 2))
            (c (1+ b))
@@ -582,7 +582,7 @@ inner loops respectively."
     (let* (x y)
       'a)
 
-    ;; Check empty-list optimisations.
+    ;; Check empty-list optimizations.
     (mapcar (lambda (x) (member x nil)) '("a" 2 nil))
     (mapcar (lambda (x) (memql x nil)) '(a 2 nil))
     (mapcar (lambda (x) (memq x nil)) '(a nil))
@@ -597,7 +597,7 @@ inner loops respectively."
       (list (mapcar (lambda (x) (assoc (setq n (1+ n)) nil)) '(a "nil"))
             n))
 
-    ;; Exercise variable-aliasing optimisations.
+    ;; Exercise variable-aliasing optimizations.
     (let ((a (list 1)))
       (let ((b a))
         (let ((a (list 2)))
@@ -1579,6 +1579,76 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
       (should (equal (get fname 'pure) t))
       (should (equal (get fname 'lisp-indent-function) 1))
       (should (equal (aref bc 4) "tata\n\n(fn X)")))))
+
+(ert-deftest bytecomp-fun-attr-warn ()
+  ;; Check that warnings are emitted when doc strings, `declare' and
+  ;; `interactive' forms don't come in the proper order, or more than once.
+  (let* ((filename "fun-attr-warn.el")
+         (el (ert-resource-file filename))
+         (elc (concat el "c"))
+         (text-quoting-style 'grave))
+    (with-current-buffer (get-buffer-create "*Compile-Log*")
+      (let ((inhibit-read-only t))
+        (erase-buffer))
+      (byte-compile-file el)
+      (let ((expected
+             '("70:4: Warning: `declare' after `interactive'"
+               "74:4: Warning: Doc string after `interactive'"
+               "79:4: Warning: Doc string after `interactive'"
+               "84:4: Warning: Doc string after `declare'"
+               "89:4: Warning: Doc string after `declare'"
+               "96:4: Warning: `declare' after `interactive'"
+               "102:4: Warning: `declare' after `interactive'"
+               "108:4: Warning: `declare' after `interactive'"
+               "106:4: Warning: Doc string after `interactive'"
+               "114:4: Warning: `declare' after `interactive'"
+               "112:4: Warning: Doc string after `interactive'"
+               "118:4: Warning: Doc string after `interactive'"
+               "119:4: Warning: `declare' after `interactive'"
+               "124:4: Warning: Doc string after `interactive'"
+               "125:4: Warning: `declare' after `interactive'"
+               "130:4: Warning: Doc string after `declare'"
+               "136:4: Warning: Doc string after `declare'"
+               "142:4: Warning: Doc string after `declare'"
+               "148:4: Warning: Doc string after `declare'"
+               "159:4: Warning: More than one doc string"
+               "165:4: Warning: More than one doc string"
+               "171:4: Warning: More than one doc string"
+               "178:4: Warning: More than one doc string"
+               "186:4: Warning: More than one doc string"
+               "192:4: Warning: More than one doc string"
+               "200:4: Warning: More than one doc string"
+               "206:4: Warning: More than one doc string"
+               "215:4: Warning: More than one `declare' form"
+               "222:4: Warning: More than one `declare' form"
+               "230:4: Warning: More than one `declare' form"
+               "237:4: Warning: More than one `declare' form"
+               "244:4: Warning: More than one `interactive' form"
+               "251:4: Warning: More than one `interactive' form"
+               "258:4: Warning: More than one `interactive' form"
+               "257:4: Warning: `declare' after `interactive'"
+               "265:4: Warning: More than one `interactive' form"
+               "264:4: Warning: `declare' after `interactive'")))
+        (goto-char (point-min))
+        (let ((actual nil))
+          (while (re-search-forward
+                  (rx bol (* (not ":")) ":"
+                      (group (+ digit) ":" (+ digit) ": Warning: "
+                             (or "More than one " (+ nonl) " form"
+                                 (: (+ nonl) " after " (+ nonl))))
+                      eol)
+                  nil t)
+            (push (match-string 1) actual))
+          (setq actual (nreverse actual))
+          (should (equal actual expected)))))))
+
+(ert-deftest byte-compile-file/no-byte-compile ()
+  (let* ((src-file (ert-resource-file "no-byte-compile.el"))
+         (dest-file (make-temp-file "bytecomp-tests-" nil ".elc"))
+         (byte-compile-dest-file-function (lambda (_) dest-file)))
+    (should (eq (byte-compile-file src-file) 'no-byte-compile))
+    (should-not (file-exists-p dest-file))))
+
 
 ;; Local Variables:
 ;; no-byte-compile: t

@@ -52,9 +52,9 @@
 ;; mode.  So we call its innards instead.
 (defun whitespace-tests-whitespace-mode-on ()
   "Turn `whitespace-mode' on even in batch mode."
+  (setq whitespace-mode t)
   (whitespace-turn-on)
-  (whitespace-action-when-on)
-  (setq whitespace-mode t))
+  (whitespace-action-when-on))
 
 (ert-deftest whitespace-tests-display-tables ()
   "Test whitespace stores and restores the buffer display table - bug26892."
@@ -77,7 +77,6 @@
       ;test the stored display table is preserved
       (should (equal nil
                      (progn (whitespace-tests-whitespace-mode-on)
-                            (whitespace-tests-whitespace-mode-on)
                             (whitespace-turn-off)
                             buffer-display-table))))))
 

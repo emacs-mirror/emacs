@@ -122,7 +122,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
       (setq ticks (ash ticks 1))
       (setq hz (ash hz 1)))
     (let ((more-ticks (+ ticks trunc-s-ticks)))
-      (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
+      (time-convert (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz) t))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
   "Advance TIME by SECS seconds.
@@ -159,32 +159,42 @@ SECS may be a fraction."
   timer)
 
 (defun timer--activate (timer &optional triggered-p reuse-cell idle)
-  (if (and (timerp timer)
-	   (integerp (timer--high-seconds timer))
-	   (integerp (timer--low-seconds timer))
-	   (integerp (timer--usecs timer))
-	   (integerp (timer--psecs timer))
-	   (timer--function timer))
-      (let ((timers (if idle timer-idle-list timer-list))
-	    last)
-	;; Skip all timers to trigger before the new one.
-	(while (and timers (timer--time-less-p (car timers) timer))
-	  (setq last timers
-		timers (cdr timers)))
-	(if reuse-cell
-	    (progn
-	      (setcar reuse-cell timer)
-	      (setcdr reuse-cell timers))
-	  (setq reuse-cell (cons timer timers)))
-	;; Insert new timer after last which possibly means in front of queue.
-        (setf (cond (last (cdr last))
-                    (idle timer-idle-list)
-                    (t    timer-list))
-              reuse-cell)
-	(setf (timer--triggered timer) triggered-p)
-	(setf (timer--idle-delay timer) idle)
-	nil)
-    (error "Invalid or uninitialized timer")))
+  (let ((timers (if idle timer-idle-list timer-list))
+	last)
+    (cond
+     ((not (and (timerp timer)
+	        (integerp (timer--high-seconds timer))
+	        (integerp (timer--low-seconds timer))
+	        (integerp (timer--usecs timer))
+	        (integerp (timer--psecs timer))
+	        (timer--function timer)))
+      (error "Invalid or uninitialized timer"))
+     ;; FIXME: This is not reliable because `idle-delay' is only set late,
+     ;; by `timer-activate-when-idle' :-(
+     ;;((not (eq (not idle)
+     ;;          (not (timer--idle-delay timer))))
+     ;; (error "idle arg %S out of sync with idle-delay field of timer: %S"
+     ;;        idle timer))
+     ((memq timer timers)
+      (error "Timer already activated"))
+     (t
+      ;; Skip all timers to trigger before the new one.
+      (while (and timers (timer--time-less-p (car timers) timer))
+	(setq last timers
+	      timers (cdr timers)))
+      (if reuse-cell
+	  (progn
+	    (setcar reuse-cell timer)
+	    (setcdr reuse-cell timers))
+	(setq reuse-cell (cons timer timers)))
+      ;; Insert new timer after last which possibly means in front of queue.
+      (setf (cond (last (cdr last))
+                  (idle timer-idle-list)
+                  (t    timer-list))
+            reuse-cell)
+      (setf (timer--triggered timer) triggered-p)
+      (setf (timer--idle-delay timer) idle)
+      nil))))
 
 (defun timer-activate (timer &optional triggered-p reuse-cell)
   "Insert TIMER into `timer-list'.
@@ -216,7 +226,7 @@ the time of the current timer.  That's because the activated
 timer will fire right away."
   (timer--activate timer (not dont-wait) reuse-cell 'idle))
 
-(defalias 'disable-timeout 'cancel-timer)
+(defalias 'disable-timeout #'cancel-timer)
 
 (defun cancel-timer (timer)
   "Remove TIMER from the list of active timers."
@@ -430,7 +440,7 @@ The action is to call FUNCTION with arguments ARGS.
 
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
-  (apply 'run-at-time secs repeat function args))
+  (apply #'run-at-time secs repeat function args))
 
 (defun add-timeout (secs function object &optional repeat)
   "Add a timer to run SECS seconds from now, to call FUNCTION on OBJECT.
@@ -457,7 +467,7 @@ This function returns a timer object which you can use in `cancel-timer'."
   (interactive
    (list (read-from-minibuffer "Run after idle (seconds): " nil nil t)
 	 (y-or-n-p "Repeat each time Emacs is idle? ")
-	 (intern (completing-read "Function: " obarray 'fboundp t))))
+	 (intern (completing-read "Function: " obarray #'fboundp t))))
   (let ((timer (timer-create)))
     (timer-set-function timer function args)
     (timer-set-idle-time timer secs repeat)

@@ -90,7 +90,7 @@ s:abc:def:g;  # FIXME: the initial s is fontified like a label, and indented
 s'def'ghi'g;  # The middle ' should not end the quoting.
 s"ghi"ijk"g;  # The middle ' should not end the quoting.
 
-s#ijk#lmn#g;  # This is a regular expression sustitution.
+s#ijk#lmn#g;  # This is a regular expression substitution.
 
 s #lmn#opq#g; # FIXME: this should be a comment starting with "#lmn"
   /lmn/rst/g; # and this is the actual regular expression

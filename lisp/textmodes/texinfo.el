@@ -235,9 +235,6 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
   (define-key keymap "\C-c\C-t\C-r"    #'texinfo-tex-region)
   (define-key keymap "\C-c\C-t\C-b"    #'texinfo-tex-buffer))
 
-;; Mode documentation displays commands in reverse order
-;; from how they are listed in the texinfo-mode-map.
-
 (defvar texinfo-mode-map
   (let ((map (make-sparse-keymap)))
 
@@ -401,7 +398,7 @@ REPORT-FN is the callback function."
                                      source beg end type msg)
                             into diags
                             finally (funcall report-fn diags)))
-                       (flymake-log :warning "Cancelling obsolete check %s"
+                       (flymake-log :warning "Canceling obsolete check %s"
                                     proc))
                    (kill-buffer (process-buffer proc)))))))
       (process-send-region texinfo--flymake-proc (point-min) (point-max))
@@ -782,10 +779,10 @@ braces."
   nil
   (cond
    ;; parenthesis
-   ((looking-back "([^)]*" (point-at-bol 0))
+   ((looking-back "([^)]*" (line-beginning-position 0))
     "@pxref{")
    ;; beginning of sentence or buffer
-   ((or (looking-back (sentence-end) (point-at-bol 0))
+   ((or (looking-back (sentence-end) (line-beginning-position 0))
         (= (point) (point-min)))
     "@xref{")
    ;; bol or eol
@@ -793,7 +790,7 @@ braces."
     "@ref{")
    ;; inside word
    ((not (eq (char-syntax (char-after)) ? ))
-    (skip-syntax-backward "^ " (point-at-bol))
+    (skip-syntax-backward "^ " (line-beginning-position))
     "@ref{")
    ;; everything else
    (t

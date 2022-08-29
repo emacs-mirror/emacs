@@ -368,8 +368,8 @@ When non-nil and the last typed key (with or without modifiers)
 doesn't exist in the keymap attached by the `repeat-map' property,
 then don't activate that keymap for the next command.  So only the
 same keys among repeatable keys are allowed in the repeating sequence.
-For example, with a non-nil value, only `C-x u u' repeats undo,
-whereas `C-/ u' doesn't.
+For example, with a non-nil value, only \\`C-x u u' repeats undo,
+whereas \\`C-/ u' doesn't.
 
 You can also set the property `repeat-check-key' on the command symbol.
 This property can override the value of this variable.
@@ -418,7 +418,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                                    (and (commandp s)
                                         (get s 'repeat-map)
                                         (push (get s 'repeat-map) keymaps))))))
-      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'."
+      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'"
                (length commands)
                (length (delete-dups keymaps))))))
 
@@ -500,14 +500,17 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 (defun repeat-echo-message-string (keymap)
   "Return a string with a list of repeating keys."
   (let (keys)
-    (map-keymap (lambda (key _) (push key keys)) keymap)
+    (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
     (format-message "Repeat with %s%s"
                     (mapconcat (lambda (key)
-                                 (key-description (vector key)))
+                                 (substitute-command-keys
+                                  (format "\\`%s'"
+                                          (key-description (vector key)))))
                                keys ", ")
                     (if repeat-exit-key
-                        (format ", or exit with %s"
-                                (key-description repeat-exit-key))
+                        (substitute-command-keys
+                         (format ", or exit with \\`%s'"
+                                 (key-description repeat-exit-key)))
                       ""))))
 
 (defun repeat-echo-message (keymap)
@@ -557,21 +560,28 @@ Used in `repeat-mode'."
                          (push s (alist-get (get s 'repeat-map) keymaps)))))
       (with-help-window (help-buffer)
         (with-current-buffer standard-output
-          (princ "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
+          (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
 
-          (dolist (keymap (sort keymaps (lambda (a b) (string-lessp (car a) (car b)))))
-            (princ (format-message "`%s' keymap is repeatable by these commands:\n"
-                                   (car keymap)))
-            (dolist (command (sort (cdr keymap) 'string-lessp))
+          (dolist (keymap (sort keymaps (lambda (a b)
+                                          (when (and (symbolp (car a))
+                                                     (symbolp (car b)))
+                                            (string-lessp (car a) (car b))))))
+            (insert (format-message
+                     "`%s' keymap is repeatable by these commands:\n"
+                     (car keymap)))
+            (dolist (command (sort (cdr keymap) #'string-lessp))
               (let* ((info (help-fns--analyze-function command))
-                     (map (list (symbol-value (car keymap))))
+                     (map (list (if (symbolp (car keymap))
+                                    (symbol-value (car keymap))
+                                  (car keymap))))
                      (desc (mapconcat (lambda (key)
-                                        (format-message "`%s'" (key-description key)))
+                                        (propertize (key-description key)
+                                                    'face 'help-key-binding))
                                       (or (where-is-internal command map)
                                           (where-is-internal (nth 3 info) map))
                                       ", ")))
-                (princ (format-message " `%s' (bound to %s)\n" command desc))))
-            (princ "\n")))))))
+                (insert (format-message " `%s' (bound to %s)\n" command desc))))
+            (insert "\n")))))))
 
 (provide 'repeat)
 

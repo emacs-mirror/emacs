@@ -1862,12 +1862,24 @@ produce_glyphless_glyph (struct it *it, Lisp_Object acronym)
 	    acronym = CHAR_TABLE_REF (Vglyphless_char_display, it->c);
 	  if (CONSP (acronym))
 	    acronym = XCDR (acronym);
-	  buf[0] = '[';
 	  str = STRINGP (acronym) ? SSDATA (acronym) : "";
-	  for (len = 0; len < 6 && str[len] && ASCII_CHAR_P (str[len]); len++)
-	    buf[1 + len] = str[len];
-	  buf[1 + len] = ']';
-	  len += 2;
+	  /* A special kludgey feature for single-character acronyms:
+	     don't put them in a box, effectively treating them as a
+	     replacement character.  */
+	  if (STRINGP (acronym) && SCHARS (acronym) == 1)
+	    {
+	      buf[0] = str[0];
+	      len = 1;
+	    }
+	  else
+	    {
+	      buf[0] = '[';
+	      for (len = 0;
+		   len < 6 && str[len] && ASCII_CHAR_P (str[len]); len++)
+		buf[1 + len] = str[len];
+	      buf[1 + len] = ']';
+	      len += 2;
+	    }
 	}
       else
 	{

@@ -158,7 +158,7 @@
 ;;;###autoload
 (defcustom Info-split-threshold 262144
   "The number of characters by which `Info-split' splits an info file."
-  :type 'integer
+  :type 'natnum
   :version "23.1"
   :group 'texinfo)
 

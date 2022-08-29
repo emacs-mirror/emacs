@@ -248,9 +248,9 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 (defcustom tex-fontify-script t
   "If non-nil, fontify subscript and superscript strings."
   :type 'boolean
+  :safe #'booleanp
   :group 'tex
   :version "23.1")
-(put 'tex-fontify-script 'safe-local-variable #'booleanp)
 
 (defcustom tex-font-script-display '(-0.2 0.2)
   "How much to lower and raise subscript and superscript content.
@@ -983,14 +983,13 @@ Inherits `shell-mode-map' with a few additions.")
       (when (and slash (not comment))
 	(setq mode
 	      (if (looking-at
-		   (eval-when-compile
-		     (concat
-		      (regexp-opt '("documentstyle" "documentclass"
-				    "begin" "subsection" "section"
-				    "part" "chapter" "newcommand"
-				    "renewcommand" "RequirePackage")
-				  'words)
-		      "\\|NeedsTeXFormat{LaTeX")))
+		   (concat
+		    (regexp-opt '("documentstyle" "documentclass"
+				  "begin" "subsection" "section"
+				  "part" "chapter" "newcommand"
+				  "renewcommand" "RequirePackage")
+				'words)
+		    "\\|NeedsTeXFormat{LaTeX"))
 		  (if (and (looking-at
 			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
 			   ;; SliTeX is almost never used any more nowadays.
@@ -1242,11 +1241,10 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
               (apply-partially
                #'tildify-foreach-ignore-environments
                `(("\\\\\\\\" . "") ; do not remove this
-                 (,(eval-when-compile
-                     (concat "\\\\begin{\\("
-                             (regexp-opt '("verbatim" "math" "displaymath"
-                                           "equation" "eqnarray" "eqnarray*"))
-                             "\\)}"))
+                 (,(concat "\\\\begin{\\("
+                           (regexp-opt '("verbatim" "math" "displaymath"
+                                         "equation" "eqnarray" "eqnarray*"))
+                           "\\)}")
                   . ("\\\\end{" 1 "}"))
                  ("\\\\verb\\*?\\(.\\)" . (1))
                  ("\\$\\$?" . (0))
@@ -2126,11 +2124,10 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-compile-history nil)
 
 (defvar tex-input-files-re
-  (eval-when-compile
-    (concat "\\." (regexp-opt '("tex" "texi" "texinfo"
-				"bbl" "ind" "sty" "cls") t)
-	    ;; Include files with no dots (for directories).
-	    "\\'\\|\\`[^.]+\\'")))
+  (concat "\\." (regexp-opt '("tex" "texi" "texinfo"
+			      "bbl" "ind" "sty" "cls") t)
+	  ;; Include files with no dots (for directories).
+	  "\\'\\|\\`[^.]+\\'"))
 
 (defcustom tex-use-reftex t
   "If non-nil, use RefTeX's list of files to determine what command to use."
@@ -2499,10 +2496,8 @@ Only applies the FSPEC to the args part of FORMAT."
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
-    (setq compilation-last-buffer (current-buffer))
-    (compilation-forget-errors)
-    ;; Don't parse previous compilations.
-    (set-marker compilation-parsing-end (1- (point-max))))
+    (setq next-error-last-buffer (current-buffer))
+    (compilation-forget-errors))
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer)))
 

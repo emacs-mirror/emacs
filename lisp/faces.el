@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -583,9 +583,6 @@ with the `default' face (which is always completely specified)."
 			       nil))
 
 
-(defalias 'face-background-pixmap 'face-stipple)
-
-
 (defun face-underline-p (face &optional frame inherit)
  "Return non-nil if FACE specifies a non-nil underlining.
 If the optional argument FRAME is given, report on face FACE in that frame.
@@ -657,8 +654,8 @@ If FACE is a face-alias, get the documentation for the target face."
   (put face 'face-documentation (purecopy string)))
 
 
-(defalias 'face-doc-string 'face-documentation)
-(defalias 'set-face-doc-string 'set-face-documentation)
+(define-obsolete-function-alias 'face-doc-string #'face-documentation "29.1")
+(define-obsolete-function-alias 'set-face-doc-string #'set-face-documentation "29.1")
 
 
 
@@ -709,14 +706,14 @@ a.k.a. `regular'), `semi-expanded' (a.k.a. `demi-expanded'),
 
 `:height'
 
-VALUE specifies the relative or absolute height of the font.  An
-absolute height is an integer, and specifies font height in units
-of 1/10 pt.  A relative height is either a floating point number,
-which specifies a scaling factor for the underlying face height;
-or a function that takes a single argument (the underlying face
-height) and returns the new height.  Note that for the `default'
-face, you must specify an absolute height (since there is nothing
-for it to be relative to).
+VALUE specifies the relative or absolute font size (height of the
+font).  An absolute height is an integer, and specifies font height in
+units of 1/10 pt.  A relative height is either a floating point
+number, which specifies a scaling factor for the underlying face
+height; or a function that takes a single argument (the underlying
+face height) and returns the new height.  Note that for the `default'
+face, you must specify an absolute height (since there is nothing for
+it to be relative to).
 
 `:weight'
 
@@ -1051,9 +1048,6 @@ Use `set-face-attribute' to \"unspecify\" underlining."
    (let ((list (read-face-and-attribute :extend)))
      (list (car list) (if (cadr list) t))))
   (set-face-attribute face frame :extend extend-p))
-
-
-(defalias 'set-face-background-pixmap 'set-face-stipple)
 
 
 (defun invert-face (face &optional frame)
@@ -1883,7 +1877,7 @@ This value was determined experimentally.")
   "Whether RGB is more readable against white than black.
 RGB is a 3-element list (R G B), each component in the range [0,1].
 This predicate can be used both for determining a suitable (black or white)
-contrast colour with RGB as background and as foreground."
+contrast color with RGB as background and as foreground."
   (unless (<= 0 (apply #'min rgb) (apply #'max rgb) 1)
     (error "RGB components %S not in [0,1]" rgb))
   ;; Compute the relative luminance after gamma-correcting (assuming sRGB),
@@ -2037,7 +2031,7 @@ as backgrounds."
 	     (setq color (background-color-at-point))))
       (when (and convert-to-RGB
 		 (not (string-equal color "")))
-	(let ((components (x-color-values color)))
+        (let ((components (color-values color)))
 	  (unless (string-match-p "^#\\(?:[[:xdigit:]][[:xdigit:]][[:xdigit:]]\\)+$" color)
 	    (setq color (format "#%04X%04X%04X"
 				(logand 65535 (nth 0 components))
@@ -2046,18 +2040,29 @@ as backgrounds."
     (when msg (message "Color: `%s'" color))
     color))
 
-(defun face-at-point (&optional thing multiple)
-  "Return the face of the character after point.
-If it has more than one face, return the first one.
-If THING is non-nil try first to get a face name from the buffer.
-IF MULTIPLE is non-nil, return a list of all faces.
-Return nil if there is no face."
+(defun face-at-point (&optional text multiple)
+  "Return a face name from point in the current buffer.
+This function is meant to be used as a conveniency function for
+providing defaults when prompting the user for a face name.
+
+If TEXT is non-nil, return the text at point if it names an
+existing face.
+
+Otherwise, look at the faces in effect at point as text
+properties or overlay properties, and return one of these face
+names.
+
+IF MULTIPLE is non-nil, return a list of faces.
+
+Return nil if there is no face at point.
+
+This function is not meant for handling faces programatically; to
+do that, use `get-text-property' and `get-char-property'."
   (let (faces)
-    (if thing
-        ;; Try to get a face name from the buffer.
-        (let ((face (intern-soft (thing-at-point 'symbol))))
-          (if (facep face)
-              (push face faces))))
+    (when text
+      ;; Try to get a face name from the buffer.
+      (when-let ((face (thing-at-point 'face)))
+        (push face faces)))
     ;; Add the named faces that the `read-face-name' or `face' property uses.
     (let ((faceprop (or (get-char-property (point) 'read-face-name)
                         (get-char-property (point) 'face))))
@@ -2496,18 +2501,9 @@ default."
   "Basic face for highlighting."
   :group 'basic-faces)
 
-;; Region face: under NS, default to the system-defined selection
-;; color (optimized for the fixed white background of other apps),
-;; if background is light.
 (defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3" :extend t)
-    (((class color) (min-colors 88) (background light) (type gtk))
-     :distant-foreground "gtk_selection_fg_color"
-     :background "gtk_selection_bg_color" :extend t)
-    (((class color) (min-colors 88) (background light) (type ns))
-     :distant-foreground "ns_selection_fg_color"
-     :background "ns_selection_bg_color" :extend t)
     (((class color) (min-colors 88) (background light))
      :background "lightgoldenrod2" :extend t)
     (((class color) (min-colors 16) (background dark))
@@ -2982,7 +2978,7 @@ bindings.  See also the face `tooltip'."
   :group 'help)
 
 (defface glyphless-char
-  '((((type tty)) :inherit underline)
+  '((((type tty)) :inherit escape-glyph :underline t)
     (((type pc)) :inherit escape-glyph)
     (t :height 0.6))
   "Face for displaying non-graphic characters (e.g. U+202A (LRE)).
@@ -3176,6 +3172,9 @@ also the same size as FACE on FRAME, or fail."
   :type 'integer
   :group 'display)
 (make-obsolete-variable 'font-list-limit nil "24.3")
+
+(define-obsolete-function-alias 'face-background-pixmap #'face-stipple "29.1")
+(define-obsolete-function-alias 'set-face-background-pixmap #'set-face-stipple "29.1")
 
 (provide 'faces)
 

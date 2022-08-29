@@ -422,13 +422,20 @@ haiku_menu_show (struct frame *f, int x, int y, int menuflags,
   BView_convert_to_screen (view, &x, &y);
   unblock_input ();
 
+  unrequest_sigio ();
   popup_activated_p++;
   menu_item_selection = BMenu_run (menu, x, y,  haiku_menu_show_help,
 				   block_input, unblock_input,
 				   haiku_process_pending_signals_for_menu, NULL);
   popup_activated_p--;
+  request_sigio ();
 
   FRAME_DISPLAY_INFO (f)->grabbed = 0;
+
+  /* Clear the grab view manually.  There is a race condition here if
+     the window thread receives a button press between here and the
+     end of BMenu_run.  */
+  be_clear_grab_view ();
 
   if (menu_item_selection)
     {
@@ -627,8 +634,6 @@ set_frame_menubar (struct frame *f, bool deep_p)
 
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 

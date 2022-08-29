@@ -1065,35 +1065,39 @@ see the function `describe-fontset' for the format of the list."
 	    (help-xref-button 1 'help-input-method (match-string 1))))))))
 
 (defun list-input-methods-1 ()
-  (if (not input-method-alist)
-      (princ "
-No input method is available, perhaps because you have not
-installed LEIM (Libraries of Emacs Input Methods).")
-    (princ (substitute-command-keys
-            "LANGUAGE\n  NAME (`TITLE' in mode line)\n"))
-    (princ "    SHORT-DESCRIPTION\n------------------------------\n")
-    (setq input-method-alist
-	  (sort input-method-alist
-		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
+  (with-current-buffer standard-output
+    (if (not input-method-alist)
+        (insert "
+No input method is available.
 
-    (let (language)
-      (dolist (elt input-method-alist)
-	(when (not (equal language (nth 1 elt)))
-	  (setq language (nth 1 elt))
-	  (princ language)
-	  (terpri))
-	(princ (format-message
-                "  %s (`%s' in mode line)\n    %s\n"
-                (car elt)
-                (let ((title (nth 3 elt)))
-                  (if (and (consp title) (stringp (car title)))
-                      (car title)
-                    title))
-                ;; If the doc is multi-line, indent all
-                ;; non-blank lines. (Bug#8066)
-                (replace-regexp-in-string
-                 "\n\\(.\\)" "\n    \\1"
-                 (substitute-command-keys (or (nth 4 elt) "")))))))))
+This might indicate a problem with your Emacs installation, as
+LEIM (Libraries of Emacs Input Method) should normally always be
+installed together with Emacs.")
+      (insert (substitute-command-keys
+               "LANGUAGE\n  NAME (`TITLE' in mode line)\n"))
+      (insert "    SHORT-DESCRIPTION\n------------------------------\n")
+      (setq input-method-alist
+            (sort input-method-alist
+                  (lambda (x y) (string< (nth 1 x) (nth 1 y)))))
+
+      (let (language)
+        (dolist (elt input-method-alist)
+          (when (not (equal language (nth 1 elt)))
+            (setq language (nth 1 elt))
+            (insert "\n" (propertize language 'face 'help-for-help-header) "\n\n"))
+          (insert (format-message
+                   "  %s (`%s' in mode line)\n    %s\n"
+                   (car elt)
+                   (let ((title (nth 3 elt)))
+                     (if (and (consp title) (stringp (car title)))
+                         (car title)
+                       title))
+                   ;; If the doc is multi-line, indent all
+                   ;; non-blank lines. (Bug#8066)
+                   (replace-regexp-in-string
+                    "\n\\(.\\)" "\n    \\1"
+                    (substitute-command-keys (or (nth 4 elt) ""))))))))))
+
 
 ;;; DIAGNOSIS
 

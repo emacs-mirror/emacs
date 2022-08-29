@@ -24,6 +24,7 @@ the text is displayed.
 * Faces::                  How to change the display style using faces.
 * Colors::                 Specifying colors for faces.
 * Standard Faces::         The main predefined faces.
+* Icons::                  How to change how icons look.
 * Text Scale::             Increasing or decreasing text size in a buffer.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
@@ -851,10 +852,44 @@ This face is used to display on text-mode terminals the menu item that
 would be selected if you click a mouse or press @key{RET}.
 @end table
 
+@node Icons
+@section Icons
+@cindex icons, on clickable buttons
+
+Emacs sometimes displays clickable buttons (or other informative
+icons), and you can customize how these look on display.
+
+@vindex icon-preference
+The main customization point here is the @code{icon-preference} user
+option.  By using this, you can tell Emacs your overall preferences
+for icons.  This is a list of icon types, and the first icon type
+that's supported will be used.  The supported types are:
+
+@table @code
+@item image
+Use an image for the icon.
+
+@item emoji
+Use a colorful emoji for the icon.
+
+@item symbol
+Use a monochrome symbol for the icon.
+
+@item text
+Use a simple text for the icon.
+@end table
+
+In addition, each individual icon can be customized with @kbd{M-x
+customize-icon}, and themes can further alter the looks of the icons.
+
+To get a quick description of an icon, use the @kbd{M-x describe-icon}
+command.
+
 @node Text Scale
 @section Text Scale
 
-@cindex adjust buffer face height
+@cindex adjust buffer font size
+@cindex font size of @code{default} face, increase or decrease
 @findex text-scale-adjust
 @kindex C-x C-+
 @kindex C-x C--
@@ -862,17 +897,27 @@ would be selected if you click a mouse or press @key{RET}.
 @kindex C-x C-0
 @kindex C-wheel-down
 @kindex C-wheel-up
-  To increase the height of the default face in the current buffer,
-type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it, type @kbd{C-x
-C--}.  To restore the default (global) face height, type @kbd{C-x
-C-0}.  These keys are all bound to the same command,
+  To increase the font size of the @code{default} face in the current
+buffer, type @kbd{C-x C-+} or @kbd{C-x C-=}.  To decrease it, type
+@kbd{C-x C--}.  To restore the default (global) font size, type
+@kbd{C-x C-0}.  These keys are all bound to the same command,
 @code{text-scale-adjust}, which looks at the last key typed to
-determine which action to take.
+determine which action to take and adjusts the font size accordingly
+by changing the height of the default face.
+
+  Most faces don't have an explicit setting of the @code{:height}
+attribute, and thus inherit the height from the @code{default} face.
+Those faces are also scaled by the above commands.
+
+  Faces other than @code{default} that have an explicit setting of the
+@code{:height} attribute are not affected by these font size changes.
+The @code{header-line} face is an exception: it will be scaled even if
+it has an explicit setting of the @code{:height} attribute.
 
   Similarly, scrolling the mouse wheel with the @kbd{Ctrl} modifier
 pressed, when the mouse pointer is above buffer text, will increase or
-decrease the height of the default face, depending on the direction of
-the scrolling.
+decrease the font size of the affected faces, depending on the
+direction of the scrolling.
 
   The final key of these commands may be repeated without the leading
 @kbd{C-x}.  For instance, @kbd{C-x C-= C-= C-=} increases the face
@@ -882,21 +927,37 @@ of 1.2; to change this factor, customize the variable
 to the @code{text-scale-adjust} command restores the default height,
 the same as typing @kbd{C-x C-0}.
 
-@cindex increase buffer face height
+@cindex adjust global font size
+@findex global-text-scale-adjust
+@vindex global-text-scale-adjust-resizes-frames
+@kindex C-x C-M-+
+@kindex C-x C-M-=
+@kindex C-x C-M--
+@kindex C-x C-M-0
+@kindex C-M-wheel-down
+@kindex C-M-wheel-up
+  Similarly, to change the sizes of the fonts globally, type @kbd{C-x
+C-M-+}, @kbd{C-x C-M-=}, @kbd{C-x C-M--} or @kbd{C-x C-M-0}, or scroll
+the mouse wheel with both the @kbd{Ctrl} and @kbd{Meta} modifiers
+pressed.  To enable frame resizing when the font size is changed
+globally, customize the variable
+@code{global-text-scale-adjust-resizes-frames} (@pxref{Easy
+Customization}).
+
+@cindex increase buffer font size
 @findex text-scale-increase
-@cindex decrease buffer face height
+@cindex decrease buffer font size
 @findex text-scale-decrease
   The commands @code{text-scale-increase} and
-@code{text-scale-decrease} increase or decrease the height of the
-default face, just like @kbd{C-x C-+} and @kbd{C-x C--} respectively.
-You may find it convenient to bind to these commands, rather than
-@code{text-scale-adjust}.
+@code{text-scale-decrease} increase or decrease the size of the font
+in the current buffer, just like @kbd{C-x C-+} and @kbd{C-x C--}
+respectively.  You may find it convenient to bind to these commands,
+rather than @code{text-scale-adjust}.
 
-@cindex set buffer face height
+@cindex set buffer font size
 @findex text-scale-set
-  The command @code{text-scale-set} scales the height of the default
-face in the current buffer to an absolute level specified by its
-prefix argument.
+  The command @code{text-scale-set} scales the size of the font in the
+current buffer to an absolute level specified by its prefix argument.
 
 @findex text-scale-mode
   The above commands automatically enable the minor mode

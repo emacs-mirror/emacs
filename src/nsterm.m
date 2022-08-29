@@ -358,7 +358,7 @@ mod_of_kind (Lisp_Object modifier, Lisp_Object kind)
     return modifier;
   else
     {
-      Lisp_Object val = Fplist_get (modifier, kind);
+      Lisp_Object val = plist_get (modifier, kind);
       return SYMBOLP (val) ? val : Qnil;
     }
 }
@@ -2900,10 +2900,7 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
   for (int y = 0 ; y < h ; y++)
     for (int x = 0 ; x < w ; x++)
       {
-        /* XBM rows are always round numbers of bytes, with any unused
-           bits ignored.  */
-        int byte = y * (w/8 + (w%8 ? 1 : 0)) + x/8;
-        bool bit = bits[byte] & (0x80 >> x%8);
+        bool bit = bits[y] & (1 << (w - x - 1));
         if (bit)
           [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
       }
@@ -3103,16 +3100,21 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case NO_CURSOR:
       break;
     case FILLED_BOX_CURSOR:
+      /* The call to draw_phys_cursor_glyph can end up undoing the
+	 ns_focus, so unfocus here and regain focus later.  */
+      [ctx restoreGraphicsState];
+      ns_unfocus (f);
       draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+      ns_focus (f, &r, 1);
       break;
     case HOLLOW_BOX_CURSOR:
-      draw_phys_cursor_glyph (w, glyph_row, DRAW_NORMAL_TEXT);
-
       /* This works like it does in PostScript, not X Windows.  */
       [NSBezierPath strokeRect: NSInsetRect (r, 0.5, 0.5)];
+      [ctx restoreGraphicsState];
       break;
     case HBAR_CURSOR:
       NSRectFill (r);
+      [ctx restoreGraphicsState];
       break;
     case BAR_CURSOR:
       s = r;
@@ -3123,10 +3125,10 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
         s.origin.x += cursor_glyph->pixel_width - s.size.width;
 
       NSRectFill (s);
+      [ctx restoreGraphicsState];
       break;
     }
 
-  [ctx restoreGraphicsState];
   ns_unfocus (f);
 }
 
@@ -3475,6 +3477,35 @@ ns_draw_box (NSRect r, CGFloat hthickness, CGFloat vthickness,
     }
 }
 
+/* Set up colors for the relief lines around glyph string S.  */
+
+static void
+ns_setup_relief_colors (struct glyph_string *s)
+{
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+  NSColor *color;
+
+  if (s->face->use_box_color_for_shadows_p)
+    color = [NSColor colorWithUnsignedLong: s->face->box_color];
+  else
+    color = [NSColor colorWithUnsignedLong: s->face->background];
+
+  if (s->hl == DRAW_CURSOR)
+    color = FRAME_CURSOR_COLOR (s->f);
+
+  if (color == nil)
+    color = [NSColor grayColor];
+
+  if (color != di->relief_background_color)
+    {
+      [di->relief_background_color release];
+      di->relief_background_color = [color retain];
+      [di->light_relief_color release];
+      di->light_relief_color = [[color highlightWithLevel: 0.4] retain];
+      [di->dark_relief_color release];
+      di->dark_relief_color = [[color shadowWithLevel: 0.4] retain];
+    }
+}
 
 static void
 ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
@@ -3486,40 +3517,13 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
     of some sides not being drawn, and because the rect will be filled.
    -------------------------------------------------------------------------- */
 {
-  static NSColor *baseCol, *lightCol, *darkCol;
-  NSColor *newBaseCol;
   NSRect inner;
-  NSBezierPath *p;
-
-  baseCol = nil;
-  lightCol = nil;
-  newBaseCol = nil;
-  p = nil;
+  NSBezierPath *p = nil;
 
   NSTRACE ("ns_draw_relief");
 
   /* set up colors */
-
-  if (s->face->use_box_color_for_shadows_p)
-    newBaseCol = [NSColor colorWithUnsignedLong: s->face->box_color];
-  else
-    newBaseCol = [NSColor colorWithUnsignedLong: s->face->background];
-
-  if (s->hl == DRAW_CURSOR)
-    newBaseCol = FRAME_CURSOR_COLOR (s->f);
-
-  if (newBaseCol == nil)
-    newBaseCol = [NSColor grayColor];
-
-  if (newBaseCol != baseCol)  /* TODO: better check */
-    {
-      [baseCol release];
-      baseCol = [newBaseCol retain];
-      [lightCol release];
-      lightCol = [[baseCol highlightWithLevel: 0.4] retain];
-      [darkCol release];
-      darkCol = [[baseCol shadowWithLevel: 0.4] retain];
-    }
+  ns_setup_relief_colors (s);
 
   /* Calculate the inner rectangle.  */
   inner = outer;
@@ -3542,7 +3546,9 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
   if (bottom_p)
     inner.size.height -= hthickness;
 
-  [(raised_p ? lightCol : darkCol) set];
+  struct ns_output *di = FRAME_OUTPUT_DATA (s->f);
+
+  [(raised_p ? di->light_relief_color : di->dark_relief_color) set];
 
   if (top_p || left_p)
     {
@@ -3564,7 +3570,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
       [p fill];
     }
 
-  [(raised_p ? darkCol : lightCol) set];
+  [(raised_p ? di->dark_relief_color : di->light_relief_color) set];
 
   if (bottom_p || right_p)
     {
@@ -3626,7 +3632,7 @@ ns_draw_relief (NSRect outer, int hthickness, int vthickness, char raised_p,
 				   NSMaxY (outer) - 0.5)];
     }
 
-  [darkCol set];
+  [di->dark_relief_color set];
   [p stroke];
 
   if (vthickness > 1 && hthickness > 1)
@@ -3987,42 +3993,104 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
 
 static void
-ns_dumpglyphs_stretch (struct glyph_string *s)
+ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
-  NSRect glyphRect;
-  struct face *face = s->face;
-  NSColor *fgCol, *bgCol;
+  struct face *face;
 
-  if (!s->background_filled_p)
+  if (s->hl == DRAW_CURSOR
+      && !x_stretch_cursor_p)
     {
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
+      int width, background_width = s->background_width;
+      int x = s->x;
 
-      face = s->face;
-
-      bgCol = [NSColor colorWithUnsignedLong:NS_FACE_BACKGROUND (face)];
-      fgCol = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (face)];
-
-      if (s->hl == DRAW_CURSOR)
+      if (!s->row->reversed_p)
 	{
-	  fgCol = bgCol;
-	  bgCol = FRAME_CURSOR_COLOR (s->f);
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
+      else
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right (s->w, TEXT_AREA);
+
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
 	}
 
-      glyphRect = NSMakeRect (s->x, s->y, s->background_width, s->height);
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
-      [bgCol set];
+      if (s->hl == DRAW_CURSOR)
+	[FRAME_CURSOR_COLOR (s->f) set];
+      else
+	[[NSColor colorWithUnsignedLong: s->face->foreground] set];
 
-      NSRectFill (glyphRect);
+      NSRectFill (NSMakeRect (x, s->y, width, s->height));
 
-      /* Draw overlining, etc. on the stretch glyph (or the part of
-         the stretch glyph after the cursor).  If the glyph has a box,
-         then decorations will be drawn after drawing the box in
-         ns_draw_glyph_string, in order to prevent them from being
-         overwritten by the box.  */
-      if (s->face->box == FACE_NO_BOX)
-	ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
-				 NSMinX (glyphRect));
+      /* Clear rest using the GC of the original non-cursor face.  */
+      if (width < background_width)
+	{
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
 
-      s->background_filled_p = 1;
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
+
+	  if (s->row->mouse_face_p
+	      && cursor_in_mouse_face_p (s->w))
+	    {
+	      face = FACE_FROM_ID_OR_NULL (s->f,
+					   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+
+	      if (!s->face)
+		face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+	      prepare_face_for_display (s->f, face);
+
+	      [[NSColor colorWithUnsignedLong: face->background] set];
+	    }
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+	  NSRectFill (NSMakeRect (x, y, w, h));
+	}
+    }
+  else if (!s->background_filled_p)
+    {
+      int background_width = s->background_width;
+      int x = s->x, text_left_x = window_box_left (s->w, TEXT_AREA);
+
+      /* Don't draw into left fringe or scrollbar area except for
+         header line and mode line.  */
+      if (s->area == TEXT_AREA
+	  && x < text_left_x && !s->row->mode_line_p)
+	{
+	  background_width -= text_left_x - x;
+	  x = text_left_x;
+	}
+
+      if (!s->row->stipple_p)
+	s->row->stipple_p = s->stippled_p;
+
+      if (background_width > 0)
+	{
+	  if (s->hl == DRAW_CURSOR)
+	    [FRAME_CURSOR_COLOR (s->f) set];
+	  else
+	    [[NSColor colorWithUnsignedLong: s->face->background] set];
+
+	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
+	}
     }
 }
 
@@ -4173,6 +4241,8 @@ ns_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 		   ? CHAR_TABLE_REF (Vglyphless_char_display,
 				     glyph->u.glyphless.ch)
 		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
+	      if (CONSP (acronym))
+		acronym = XCAR (acronym);
 	      if (STRINGP (acronym))
 		str = SSDATA (acronym);
 	    }
@@ -4244,13 +4314,9 @@ ns_draw_glyph_string (struct glyph_string *s)
 	    n = ns_get_glyph_string_clip_rect (s->next, r);
 	    ns_focus (s->f, r, n);
             if (next->first_glyph->type != STRETCH_GLYPH)
-              {
-                ns_maybe_dumpglyphs_background (s->next, 1);
-              }
-            else
-              {
-                ns_dumpglyphs_stretch (s->next);
-              }
+	      ns_maybe_dumpglyphs_background (s->next, 1);
+	    else
+	      ns_draw_stretch_glyph_string (s->next);
 	    ns_unfocus (s->f);
             next->num_clips = 0;
           }
@@ -4290,7 +4356,7 @@ ns_draw_glyph_string (struct glyph_string *s)
       break;
 
     case STRETCH_GLYPH:
-      ns_dumpglyphs_stretch (s);
+      ns_draw_stretch_glyph_string (s);
       break;
 
     case CHAR_GLYPH:
@@ -9924,6 +9990,16 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   return ret;
 }
 
+- (void) mark
+{
+  if (window)
+    {
+      Lisp_Object win;
+      XSETWINDOW (win, window);
+      mark_object (win);
+    }
+}
+
 
 - (void)resetCursorRects
 {
@@ -10665,6 +10741,26 @@ ns_xlfd_to_fontname (const char *xlfd)
   return ret;
 }
 
+void
+mark_nsterm (void)
+{
+  NSTRACE ("mark_nsterm");
+  Lisp_Object tail, frame;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_NS_P (f))
+	{
+	  NSArray *subviews = [[FRAME_NS_VIEW (f) superview] subviews];
+	  for (int i = [subviews count] - 1; i >= 0; --i)
+	    {
+	      id scroller = [subviews objectAtIndex: i];
+	      if ([scroller isKindOfClass: [EmacsScroller class]])
+                  [scroller mark];
+	    }
+	}
+    }
+}
 
 void
 syms_of_nsterm (void)
@@ -10883,7 +10979,7 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 It is called with three arguments FRAME, X, and Y, whenever the user
 moves the mouse over an Emacs frame as part of a drag-and-drop
 operation.  FRAME is the frame the mouse is on top of, and X and Y are
-the frame-relative positions of the mouse in the X and Y axises
+the frame-relative positions of the mouse in the X and Y axes
 respectively.  */);
   Vns_drag_motion_function = Qns_handle_drag_motion;
 

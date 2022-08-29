@@ -1295,7 +1295,8 @@ command_loop_1 (void)
       /* Note that the value cell will never directly contain nil
 	 if the symbol is a local variable.  */
       if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpost_command_hook);
+	safe_run_hooks_maybe_narrowed (Qpost_command_hook,
+				       XWINDOW (selected_window));
 
       /* If displaying a message, resize the echo area window to fit
 	 that message's size exactly.  */
@@ -1305,9 +1306,6 @@ command_loop_1 (void)
       /* If there are warnings waiting, process them.  */
       if (!NILP (Vdelayed_warnings_list))
         safe_run_hooks (Qdelayed_warnings_hook);
-
-      if (!NILP (Vdeferred_action_list))
-	safe_run_hooks (Qdeferred_action_function);
     }
 
   /* Do this after running Vpost_command_hook, for consistency.  */
@@ -1333,6 +1331,7 @@ command_loop_1 (void)
 	display_malloc_warning ();
 
       Vdeactivate_mark = Qnil;
+      backtrace_yet = false;
 
       /* Don't ignore mouse movements for more than a single command
 	 loop.  (This flag is set in xdisp.c whenever the tool bar is
@@ -1345,7 +1344,7 @@ command_loop_1 (void)
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window)
+	  && BASE_EQ (minibuf_window, echo_area_window)
 	  && NUMBERP (Vminibuffer_message_timeout))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
@@ -1373,12 +1372,6 @@ command_loop_1 (void)
 	      Vunread_command_events = list1i (quit_char);
 	    }
 	}
-
-      /* If it has changed current-menubar from previous value,
-	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag)
-	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
-	call0 (Qrecompute_lucid_menubar);
 
       Vthis_command = Qnil;
       Vreal_this_command = Qnil;
@@ -1470,7 +1463,9 @@ command_loop_1 (void)
       }
       Vthis_command = cmd;
       Vreal_this_command = cmd;
-      safe_run_hooks (Qpre_command_hook);
+
+      safe_run_hooks_maybe_narrowed (Qpre_command_hook,
+				     XWINDOW (selected_window));
 
       already_adjusted = 0;
 
@@ -1501,7 +1496,14 @@ command_loop_1 (void)
             point_before_last_command_or_undo = PT;
             buffer_before_last_command_or_undo = current_buffer;
 
+	    /* Restart our counting of redisplay ticks before
+	       executing the command, so that we don't blame the new
+	       command for the sins of the previous one.  */
+	    update_redisplay_ticks (0, NULL);
+	    display_working_on_window_p = false;
+
             call1 (Qcommand_execute, Vthis_command);
+	    display_working_on_window_p = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
 	  /* Do not check display_hourglass_p here, because
@@ -1515,7 +1517,8 @@ command_loop_1 (void)
           }
       kset_last_prefix_arg (current_kboard, Vcurrent_prefix_arg);
 
-      safe_run_hooks (Qpost_command_hook);
+      safe_run_hooks_maybe_narrowed (Qpost_command_hook,
+				     XWINDOW (selected_window));
 
       /* If displaying a message, resize the echo area window to fit
 	 that message's size exactly.  Do this only if the echo area
@@ -1529,8 +1532,6 @@ command_loop_1 (void)
       /* If there are warnings waiting, process them.  */
       if (!NILP (Vdelayed_warnings_list))
         safe_run_hooks (Qdelayed_warnings_hook);
-
-      safe_run_hooks (Qdeferred_action_function);
 
       kset_last_command (current_kboard, Vthis_command);
       kset_real_last_command (current_kboard, Vreal_this_command);
@@ -1567,9 +1568,15 @@ command_loop_1 (void)
 	    call0 (Qdeactivate_mark);
 	  else
 	    {
+	      Lisp_Object symval;
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
-	      if (!NILP (Fwindow_system (Qnil))
+	      if ((!NILP (Fwindow_system (Qnil))
+		   || ((symval =
+			find_symbol_value (Qtty_select_active_regions),
+			(!EQ (symval, Qunbound) && !NILP (symval)))
+		       && !NILP (Fterminal_parameter (Qnil,
+						      Qxterm__set_selection))))
 		  /* Even if mark_active is non-nil, the actual buffer
 		     marker may not have been set yet (Bug#7044).  */
 		  && XMARKER (BVAR (current_buffer, mark))->buffer
@@ -1582,9 +1589,12 @@ command_loop_1 (void)
 		{
 		  Lisp_Object txt
 		    = call1 (Vregion_extract_function, Qnil);
+
 		  if (XFIXNUM (Flength (txt)) > 0)
 		    /* Don't set empty selections.  */
 		    call2 (Qgui_set_selection, QPRIMARY, txt);
+
+		  CALLN (Frun_hook_with_args, Qpost_select_region_hook, txt);
 		}
 
 	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
@@ -1822,8 +1832,16 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 static Lisp_Object
 safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
-  return call0 (args[1]);
+  eassert (nargs >= 2 && nargs <= 4);
+  switch (nargs)
+    {
+    case 2:
+      return call0 (args[1]);
+    case 3:
+      return call1 (args[1], args[2]);
+    default:
+      return call2 (args[1], args[2], args[3]);
+    }
 }
 
 /* Subroutine for safe_run_hooks: handle an error by clearing out the function
@@ -1832,7 +1850,7 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
+  eassert (nargs >= 2 && nargs <= 4);
   AUTO_STRING (format, "Error in %s (%S): %S");
   Lisp_Object hook = args[0];
   Lisp_Object fun = args[1];
@@ -1868,11 +1886,27 @@ safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs == 2);
+  eassert (nargs >= 2 && nargs <= 4);
   /* Yes, run_hook_with_args works with args in the other order.  */
-  internal_condition_case_n (safe_run_hooks_1,
-			     2, ((Lisp_Object []) {args[1], args[0]}),
-			     Qt, safe_run_hooks_error);
+  switch (nargs)
+    {
+    case 2:
+      internal_condition_case_n (safe_run_hooks_1,
+				 2, ((Lisp_Object []) {args[1], args[0]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    case 3:
+      internal_condition_case_n (safe_run_hooks_1,
+				 3, ((Lisp_Object []) {args[1], args[0], args[2]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    default:
+      internal_condition_case_n (safe_run_hooks_1,
+				 4, ((Lisp_Object [])
+				     {args[1], args[0], args[2], args[3]}),
+				 Qt, safe_run_hooks_error);
+      break;
+    }
   return Qnil;
 }
 
@@ -1887,6 +1921,33 @@ safe_run_hooks (Lisp_Object hook)
 
   specbind (Qinhibit_quit, Qt);
   run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  unbind_to (count, Qnil);
+}
+
+void
+safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qinhibit_quit, Qt);
+
+  if (current_buffer->long_line_optimizations_p)
+    narrow_to_region_internal (make_fixnum (get_narrowed_begv (w, PT)),
+			       make_fixnum (get_narrowed_zv (w, PT)),
+			       true);
+
+  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  unbind_to (count, Qnil);
+}
+
+void
+safe_run_hooks_2 (Lisp_Object hook, Lisp_Object arg1, Lisp_Object arg2)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  specbind (Qinhibit_quit, Qt);
+  run_hook_with_args (4, ((Lisp_Object []) {hook, hook, arg1, arg2}),
+		      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
@@ -2576,7 +2637,7 @@ read_char (int commandflag, Lisp_Object map,
 	       && (input_was_pending || !redisplay_dont_pause)))
 	{
 	  input_was_pending = input_pending;
-	  if (help_echo_showing_p && !EQ (selected_window, minibuf_window))
+	  if (help_echo_showing_p && !BASE_EQ (selected_window, minibuf_window))
 	    redisplay_preserve_echo_area (5);
 	  else
 	    redisplay ();
@@ -2924,7 +2985,7 @@ read_char (int commandflag, Lisp_Object map,
           goto exit;
         }
 
-      if (EQ (c, make_fixnum (-2)))
+      if (BASE_EQ (c, make_fixnum (-2)))
 	return c;
 
       if (CONSP (c) && EQ (XCAR (c), Qt))
@@ -3249,7 +3310,7 @@ read_char (int commandflag, Lisp_Object map,
       unbind_to (count, Qnil);
 
       redisplay ();
-      if (EQ (c, make_fixnum (040)))
+      if (BASE_EQ (c, make_fixnum (040)))
 	{
 	  cancel_echoing ();
 	  do
@@ -3307,6 +3368,11 @@ help_char_p (Lisp_Object c)
 static void
 record_char (Lisp_Object c)
 {
+  /* subr.el/read-passwd binds inhibit_record_char to avoid recording
+     passwords.  */
+  if (!record_all_keys && inhibit_record_char)
+    return;
+
   int recorded = 0;
 
   if (CONSP (c) && (EQ (XCAR (c), Qhelp_echo) || EQ (XCAR (c), Qmouse_movement)))
@@ -3720,7 +3786,7 @@ Time_to_position (Time encoded_pos)
 {
   if (encoded_pos <= INPUT_EVENT_POS_MAX)
     return encoded_pos;
-  Time encoded_pos_min = INPUT_EVENT_POS_MIN;
+  Time encoded_pos_min = position_to_Time (INPUT_EVENT_POS_MIN);
   eassert (encoded_pos_min <= encoded_pos);
   ptrdiff_t notpos = -1 - encoded_pos;
   return -1 - notpos;
@@ -3994,17 +4060,23 @@ kbd_buffer_get_event (KBOARD **kbp,
 	 We return nil for them.  */
       switch (event->kind)
       {
+#ifndef HAVE_HAIKU
       case SELECTION_REQUEST_EVENT:
       case SELECTION_CLEAR_EVENT:
 	{
-#ifdef HAVE_X11
+#if defined HAVE_X11 || HAVE_PGTK
 	  /* Remove it from the buffer before processing it,
 	     since otherwise swallow_events will see it
 	     and process it again.  */
 	  struct selection_input_event copy = event->sie;
 	  kbd_fetch_ptr = next_kbd_event (event);
 	  input_pending = readable_events (0);
+
+#ifdef HAVE_X11
 	  x_handle_selection_event (&copy);
+#else
+	  pgtk_handle_selection_event (&copy);
+#endif
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -4012,51 +4084,19 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 	}
         break;
+#else
+      case SELECTION_REQUEST_EVENT:
+	emacs_abort ();
 
-#ifdef HAVE_X_WINDOWS
-      case UNSUPPORTED_DROP_EVENT:
+      case SELECTION_CLEAR_EVENT:
 	{
-	  struct frame *f;
+	  struct input_event copy = event->ie;
 
 	  kbd_fetch_ptr = next_kbd_event (event);
 	  input_pending = readable_events (0);
-
-	  /* This means this event was already handled in
-	     `x_dnd_begin_drag_and_drop'.  */
-	  if (event->ie.modifiers < x_dnd_unsupported_event_level)
-	    break;
-
-	  f = XFRAME (event->ie.frame_or_window);
-
-	  if (!FRAME_LIVE_P (f))
-	    break;
-
-	  if (!NILP (Vx_dnd_unsupported_drop_function))
-	    {
-	      if (!NILP (call7 (Vx_dnd_unsupported_drop_function,
-				XCAR (XCDR (event->ie.arg)), event->ie.x,
-				event->ie.y, XCAR (XCDR (XCDR (event->ie.arg))),
-				make_uint (event->ie.code),
-				event->ie.frame_or_window,
-				make_int (event->ie.timestamp))))
-		break;
-	    }
-
-	  /* `x-dnd-unsupported-drop-function' could have deleted the
-	     event frame.  */
-	  if (!FRAME_LIVE_P (f))
-	    break;
-
-	  x_dnd_do_unsupported_drop (FRAME_DISPLAY_INFO (f),
-				     event->ie.frame_or_window,
-				     XCAR (event->ie.arg),
-				     XCAR (XCDR (event->ie.arg)),
-				     (Window) event->ie.code,
-				     XFIXNUM (event->ie.x),
-				     XFIXNUM (event->ie.y),
-				     event->ie.timestamp);
-	  break;
+	  haiku_handle_selection_clear (&copy);
 	}
+	break;
 #endif
 
       case MONITORS_CHANGED_EVENT:
@@ -4368,14 +4408,24 @@ kbd_buffer_get_event (KBOARD **kbp,
 static void
 process_special_events (void)
 {
-  for (union buffered_input_event *event = kbd_fetch_ptr;
-       event != kbd_store_ptr; event = next_kbd_event (event))
+  union buffered_input_event *event;
+#if defined HAVE_X11 || defined HAVE_PGTK || defined HAVE_HAIKU
+#ifndef HAVE_HAIKU
+  struct selection_input_event copy;
+#else
+  struct input_event copy;
+#endif
+  int moved_events;
+#endif
+
+  for (event = kbd_fetch_ptr;  event != kbd_store_ptr;
+       event = next_kbd_event (event))
     {
       /* If we find a stored X selection request, handle it now.  */
       if (event->kind == SELECTION_REQUEST_EVENT
 	  || event->kind == SELECTION_CLEAR_EVENT)
 	{
-#ifdef HAVE_X11
+#if defined HAVE_X11 || defined HAVE_PGTK
 
 	  /* Remove the event from the fifo buffer before processing;
 	     otherwise swallow_events called recursively could see it
@@ -4383,8 +4433,7 @@ process_special_events (void)
 	     between kbd_fetch_ptr and EVENT one slot to the right,
 	     cyclically.  */
 
-	  struct selection_input_event copy = event->sie;
-	  int moved_events;
+	  copy = event->sie;
 
 	  if (event < kbd_fetch_ptr)
 	    {
@@ -4400,7 +4449,33 @@ process_special_events (void)
 		   moved_events * sizeof *kbd_fetch_ptr);
 	  kbd_fetch_ptr = next_kbd_event (kbd_fetch_ptr);
 	  input_pending = readable_events (0);
+
+#ifdef HAVE_X11
 	  x_handle_selection_event (&copy);
+#else
+	  pgtk_handle_selection_event (&copy);
+#endif
+#elif defined HAVE_HAIKU
+	  if (event->ie.kind != SELECTION_CLEAR_EVENT)
+	    emacs_abort ();
+
+	  copy = event->ie;
+
+	  if (event < kbd_fetch_ptr)
+	    {
+	      memmove (kbd_buffer + 1, kbd_buffer,
+		       (event - kbd_buffer) * sizeof *kbd_buffer);
+	      kbd_buffer[0] = kbd_buffer[KBD_BUFFER_SIZE - 1];
+	      moved_events = kbd_buffer + KBD_BUFFER_SIZE - 1 - kbd_fetch_ptr;
+	    }
+	  else
+	    moved_events = event - kbd_fetch_ptr;
+
+	  memmove (kbd_fetch_ptr + 1, kbd_fetch_ptr,
+		   moved_events * sizeof *kbd_fetch_ptr);
+	  kbd_fetch_ptr = next_kbd_event (kbd_fetch_ptr);
+	  input_pending = readable_events (0);
+	  haiku_handle_selection_clear (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -4603,6 +4678,11 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
       /* If timer is ripe, run it if it hasn't been run.  */
       if (ripe)
 	{
+	  /* If we got here, presumably `decode_timer` has checked
+             that this timer has not yet been triggered.  */
+	  eassert (NILP (AREF (chosen_timer, 0)));
+	  /* In a production build, where assertions compile to
+	     nothing, we still want to play it safe here.  */
 	  if (NILP (AREF (chosen_timer, 0)))
 	    {
 	      specpdl_ref count = SPECPDL_INDEX ();
@@ -4621,8 +4701,8 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
-              /* But the caller must still wait for the next timer, so
-                 return 0 to indicate that.  */
+	      /* But the caller must still wait for the next timer, so
+		 return 0 to indicate that.  */
 	    }
 
 	  nexttime = make_timespec (0, 0);
@@ -5573,7 +5653,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       if (IMAGEP (object))
 	{
 	  Lisp_Object image_map, hotspot;
-	  if ((image_map = Fplist_get (XCDR (object), QCmap),
+	  if ((image_map = plist_get (XCDR (object), QCmap),
 	       !NILP (image_map))
 	      && (hotspot = find_hot_spot (image_map, dx, dy),
 		  CONSP (hotspot))
@@ -9498,7 +9578,7 @@ read_char_minibuf_menu_prompt (int commandflag,
       if (!FIXNUMP (obj) || XFIXNUM (obj) == -2
 	  || (! EQ (obj, menu_prompt_more_char)
 	      && (!FIXNUMP (menu_prompt_more_char)
-		  || ! EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char)))))))
+		  || ! BASE_EQ (obj, make_fixnum (Ctl (XFIXNUM (menu_prompt_more_char)))))))
 	{
 	  if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
 	    store_kbd_macro_char (obj);
@@ -11437,7 +11517,7 @@ quit_throw_to_read_char (bool from_signal)
   if (FRAMEP (internal_last_event_frame)
       && !EQ (internal_last_event_frame, selected_frame))
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
-		     0, 0, Qnil);
+		     0, Qnil);
 
   sys_longjmp (getcjmp, 1);
 }
@@ -12058,11 +12138,13 @@ syms_of_keyboard (void)
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
 
+  /* Hook run after the region is selected.  */
+  DEFSYM (Qpost_select_region_hook, "post-select-region-hook");
+
   DEFSYM (Qundo_auto__add_boundary, "undo-auto--add-boundary");
   DEFSYM (Qundo_auto__undoably_changed_buffers,
           "undo-auto--undoably-changed-buffers");
 
-  DEFSYM (Qdeferred_action_function, "deferred-action-function");
   DEFSYM (Qdelayed_warnings_hook, "delayed-warnings-hook");
   DEFSYM (Qfunction_key, "function-key");
 
@@ -12157,12 +12239,13 @@ syms_of_keyboard (void)
      apply_modifiers.  */
   DEFSYM (Qmodifier_cache, "modifier-cache");
 
-  DEFSYM (Qrecompute_lucid_menubar, "recompute-lucid-menubar");
   DEFSYM (Qactivate_menubar_hook, "activate-menubar-hook");
 
   DEFSYM (Qpolling_period, "polling-period");
 
   DEFSYM (Qgui_set_selection, "gui-set-selection");
+  DEFSYM (Qxterm__set_selection, "xterm--set-selection");
+  DEFSYM (Qtty_select_active_regions, "tty-select-active-regions");
 
   /* The primary selection.  */
   DEFSYM (QPRIMARY, "PRIMARY");
@@ -12591,31 +12674,54 @@ cancels any modification.  */);
 
   DEFSYM (Qdeactivate_mark, "deactivate-mark");
   DEFVAR_LISP ("deactivate-mark", Vdeactivate_mark,
-	       doc: /* If an editing command sets this to t, deactivate the mark afterward.
+    doc: /* Whether to deactivate the mark after an editing command.
 The command loop sets this to nil before each command,
 and tests the value when the command returns.
-Buffer modification stores t in this variable.  */);
+If an editing command sets this non-nil, deactivate the mark after
+the command returns.
+
+Buffer modifications store t in this variable.
+
+By default, deactivating the mark will save the contents of the region
+according to `select-active-regions', unless this is set to the symbol
+`dont-save'.  */);
   Vdeactivate_mark = Qnil;
   Fmake_variable_buffer_local (Qdeactivate_mark);
 
   DEFVAR_LISP ("pre-command-hook", Vpre_command_hook,
 	       doc: /* Normal hook run before each command is executed.
-If an unhandled error happens in running this hook,
-the function in which the error occurred is unconditionally removed, since
-otherwise the error might happen repeatedly and make Emacs nonfunctional.
+
+If an unhandled error happens in running this hook, the function in
+which the error occurred is unconditionally removed, since otherwise
+the error might happen repeatedly and make Emacs nonfunctional.
+
+Note that, when the current buffer contains one or more lines whose
+length is above `long-line-threshold', these hook functions are called
+with the buffer narrowed to a small portion around point, and the
+narrowing is locked (see `narrow-to-region'), so that these hook
+functions cannot use `widen' to gain access to other portions of
+buffer text.
 
 See also `post-command-hook'.  */);
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", Vpost_command_hook,
 	       doc: /* Normal hook run after each command is executed.
-If an unhandled error happens in running this hook,
-the function in which the error occurred is unconditionally removed, since
-otherwise the error might happen repeatedly and make Emacs nonfunctional.
+
+If an unhandled error happens in running this hook, the function in
+which the error occurred is unconditionally removed, since otherwise
+the error might happen repeatedly and make Emacs nonfunctional.
 
 It is a bad idea to use this hook for expensive processing.  If
 unavoidable, wrap your code in `(while-no-input (redisplay) CODE)' to
 avoid making Emacs unresponsive while the user types.
+
+Note that, when the current buffer contains one or more lines whose
+length is above `long-line-threshold', these hook functions are called
+with the buffer narrowed to a small portion around point, and the
+narrowing is locked (see `narrow-to-region'), so that these hook
+functions cannot use `widen' to gain access to other portions of
+buffer text.
 
 See also `pre-command-hook'.  */);
   Vpost_command_hook = Qnil;
@@ -12636,9 +12742,14 @@ See also `pre-command-hook'.  */);
 
   Fset (Qecho_area_clear_hook, Qnil);
 
-  DEFVAR_LISP ("lucid-menu-bar-dirty-flag", Vlucid_menu_bar_dirty_flag,
-	       doc: /* Non-nil means menu bar, specified Lucid style, needs to be recomputed.  */);
-  Vlucid_menu_bar_dirty_flag = Qnil;
+#ifdef USE_LUCID
+  DEFVAR_BOOL ("lucid--menu-grab-keyboard",
+               lucid__menu_grab_keyboard,
+               doc: /* If non-nil, grab keyboard during menu operations.
+This is only relevant when using the Lucid X toolkit.  It can be
+convenient to disable this for debugging purposes.  */);
+  lucid__menu_grab_keyboard = true;
+#endif
 
   DEFVAR_LISP ("menu-bar-final-items", Vmenu_bar_final_items,
 	       doc: /* List of menu bar items to move to the end of the menu bar.
@@ -12769,17 +12880,6 @@ This keymap works like `input-decode-map', but comes after `function-key-map'.
 Another difference is that it is global rather than terminal-local.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("deferred-action-list", Vdeferred_action_list,
-	       doc: /* List of deferred actions to be performed at a later time.
-The precise format isn't relevant here; we just check whether it is nil.  */);
-  Vdeferred_action_list = Qnil;
-
-  DEFVAR_LISP ("deferred-action-function", Vdeferred_action_function,
-	       doc: /* Function to call to handle deferred actions, after each command.
-This function is called with no arguments after each command
-whenever `deferred-action-list' is non-nil.  */);
-  Vdeferred_action_function = Qnil;
-
   DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
                doc: /* List of warnings to be displayed after this command.
 Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
@@ -12898,7 +12998,10 @@ This variable only has an effect when Transient Mark mode is enabled.
 
 If the value is `only', only temporarily active regions (usually made
 by mouse-dragging or shift-selection) set the window system's primary
-selection.  */);
+selection.
+
+If this variable causes the region to be set as the primary selection,
+`post-select-region-hook' is then run afterwards.  */);
   Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
@@ -12966,7 +13069,7 @@ Emacs allows binding both upper and lower case key sequences to
 commands.  However, if there is a lower case key sequence bound to a
 command, and the user enters an upper case key sequence that is not
 bound to a command, Emacs will use the lower case binding.  Setting
-this variable to nil inhibits this behaviour.  */);
+this variable to nil inhibits this behavior.  */);
   translate_upper_case_key_bindings = true;
 
   DEFVAR_BOOL ("input-pending-p-filter-events",
@@ -12991,6 +13094,27 @@ resolution of a monitor changes.  The hook should accept a single
 argument, which is the terminal on which the monitor configuration
 changed.  */);
   Vdisplay_monitors_changed_functions = Qnil;
+
+  DEFVAR_BOOL ("inhibit--record-char",
+	       inhibit_record_char,
+	       doc: /* If non-nil, don't record input events.
+This inhibits recording input events for the purposes of keyboard
+macros, dribble file, and `recent-keys'.
+Internal use only.  */);
+  inhibit_record_char = false;
+
+  DEFVAR_BOOL ("record-all-keys", record_all_keys,
+	       doc: /* Non-nil means record all keys you type.
+When nil, the default, characters typed as part of passwords are
+not recorded.  The non-nil value countermands `inhibit--record-char',
+which see.  */);
+  record_all_keys = false;
+
+  DEFVAR_LISP ("post-select-region-hook", Vpost_select_region_hook,
+    doc: /* Abnormal hook run after the region is selected.
+This usually happens as a result of `select-active-regions'.  The hook
+is called with one argument, the string that was selected.  */);;
+  Vpost_select_region_hook = Qnil;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }
@@ -13019,7 +13143,6 @@ syms_of_keyboard_for_pdumper (void)
   PDUMPER_RESET (num_input_keys, 0);
   PDUMPER_RESET (num_nonmacro_input_events, 0);
   PDUMPER_RESET_LV (Vlast_event_frame, Qnil);
-  PDUMPER_RESET_LV (Vdeferred_action_list, Qnil);
   PDUMPER_RESET_LV (Vdelayed_warnings_list, Qnil);
 
   /* Create the initial keyboard.  Qt means 'unset'.  */
@@ -13141,7 +13264,10 @@ mark_kboards (void)
     {
       /* These two special event types have no Lisp_Objects to mark.  */
       if (event->kind != SELECTION_REQUEST_EVENT
-	  && event->kind != SELECTION_CLEAR_EVENT)
+#ifndef HAVE_HAIKU
+	  && event->kind != SELECTION_CLEAR_EVENT
+#endif
+	  )
 	{
 	  mark_object (event->ie.x);
 	  mark_object (event->ie.y);

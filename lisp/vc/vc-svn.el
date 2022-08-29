@@ -224,12 +224,10 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
   (let (process-file-side-effects)
     (vc-svn-command "*vc*" 0 nil "info"))
   (let ((repo
-	 (save-excursion
-	   (and (progn
-		  (set-buffer "*vc*")
-		  (goto-char (point-min))
-		  (re-search-forward "Repository Root: *\\(.*\\)" nil t))
-		(match-string 1)))))
+         (with-current-buffer "*vc*"
+           (goto-char (point-min))
+           (when (re-search-forward "Repository Root: *\\(.*\\)" nil t)
+             (match-string 1)))))
     (concat
      (cond (repo
 	    (concat

@@ -189,7 +189,7 @@ When using `spam-stat-process-spam-directory' or
 been touched in this many days will be considered.  Without
 this filter, re-training spam-stat with several thousand messages
 will start to take a very long time."
-  :type 'number)
+  :type 'integer)
 
 (defvar spam-stat-last-saved-at nil
   "Time stamp of last change of spam-stat-file on this run")
@@ -422,7 +422,8 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
     (cond (spam-stat-dirty (message "Spam stat not loaded: spam-stat-dirty t"))
           ((or (not (boundp 'spam-stat-last-saved-at))
                (null spam-stat-last-saved-at)
-               (not (equal spam-stat-last-saved-at
+	       (not (time-equal-p
+			   spam-stat-last-saved-at
                            (file-attribute-modification-time
 			    (file-attributes spam-stat-file)))))
            (progn

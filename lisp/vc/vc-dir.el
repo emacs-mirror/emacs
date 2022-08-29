@@ -1467,17 +1467,13 @@ These are the commands available for use in the file status buffer:
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'vc-dir-status-warning)))
 
-(defvar vc-dir-status-mouse-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'vc-dir-toggle-mark)
-    map)
-  "Local keymap for toggling mark.")
+(defvar-keymap vc-dir-status-mouse-map
+  :doc "Local keymap for toggling mark."
+  "<mouse-2>" #'vc-dir-toggle-mark)
 
-(defvar vc-dir-filename-mouse-map
-   (let ((map (make-sparse-keymap)))
-     (define-key map [mouse-2] #'vc-dir-find-file-other-window)
-    map)
-  "Local keymap for visiting a file.")
+(defvar-keymap vc-dir-filename-mouse-map
+  :doc "Local keymap for visiting a file."
+  "<mouse-2>" #'vc-dir-find-file-other-window)
 
 (defun vc-default-dir-printer (_backend fileentry)
   "Pretty print FILEENTRY."

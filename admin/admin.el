@@ -488,10 +488,11 @@ the @import directive."
       (delete-region opoint (point))
       (search-forward "<meta http-equiv=\"Content-Style")
       (setq opoint (match-beginning 0)))
+    (search-forward "<title>")
+    (delete-region opoint (match-beginning 0))
     (search-forward "</title>\n")
-    (delete-region opoint (point))
-    (search-forward "<link href=")
-    (goto-char (match-beginning 0))
+    (when (search-forward "<link href=" nil t)
+      (goto-char (match-beginning 0)))
     (insert manual-links-string)
     (setq opoint (point))
     (search-forward "</head>")
@@ -617,7 +618,7 @@ style=\"text-align:left\">")
       ;; its original form.
       (when (or (search-forward "<ul class=\"menu\">" nil t)
 	        ;; FIXME?  The following search seems dangerously lax.
-	        (search-forward "<ul>"))
+	        (search-forward "<ul>" nil t))
         ;; Convert the list that Makeinfo made into a table.
         (replace-match "<table style=\"float:left\" width=\"100%\">")
         (forward-line 1)

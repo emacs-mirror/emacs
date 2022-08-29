@@ -210,7 +210,7 @@ LOCATION is used as the phone location for BBDB."
     (while (eudc-move-to-next-record)
       (and (overlays-at (point))
 	   (setq record (overlay-get (car (overlays-at (point))) 'eudc-record))
-	   (1+ nbrec)
+           (setq nbrec (1+ nbrec))
 	   (eudc-create-bbdb-record record t)))
     (message "%d records imported into BBDB" nbrec)))
 

@@ -75,8 +75,8 @@ See `tool-bar-mode' for more information."
       (tool-bar-mode (if (> (frame-parameter nil 'tool-bar-lines) 0) 0 1))
     (tool-bar-mode arg)))
 
-(defvar tool-bar-map (make-sparse-keymap)
-  "Keymap for the tool bar.
+(defvar-keymap tool-bar-map
+  :doc "Keymap for the tool bar.
 
 To override the global tool bar, define this variable
 buffer-locally and add the items you want to it with

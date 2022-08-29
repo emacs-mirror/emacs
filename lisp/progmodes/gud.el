@@ -334,7 +334,7 @@ Used to gray out relevant toolbar icons.")
                                     (">" . gud-down)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `gud-gdb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `gud-gdb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defun gud-set-repeat-map-property (keymap-symbol)
@@ -1054,7 +1054,7 @@ SKIP is the number of chars to skip on each line, it defaults to 0."
                                     ("l" . gud-refresh)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `sdb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `sdb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defun gud-sdb-marker-filter (string)
@@ -1301,7 +1301,7 @@ whereby $stopformat=1 produces an output format compatible with
               gud-irix-p)
       (define-key map "f" 'gud-finish))
     map)
-  "Keymap to repeat `dbx' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `dbx' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 ;; The process filter is also somewhat
@@ -1476,7 +1476,7 @@ and source-file directory for your debugger."
                                     (">" . gud-down)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `xdb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `xdb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defcustom gud-xdb-directories nil
@@ -1564,7 +1564,7 @@ directories if your program contains sources from more than one directory."
                                     ("l" . gud-refresh)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `perldb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `perldb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defun gud-perldb-massage-args (_file args)
@@ -1577,16 +1577,17 @@ into one that invokes an Emacs-enabled debugging session.
 	 (seen-e nil)
 	 (shift (lambda () (push (pop args) new-args))))
 
-    ;; Pass all switches and -e scripts through.
+    ;; Pass all switches and -E/-e scripts through.
     (while (and args
 		(string-match "^-" (car args))
 		(not (equal "-" (car args)))
 		(not (equal "--" (car args))))
-      (when (equal "-e" (car args))
+      (when (or (equal "-E" (car args)) (equal "-e" (car args)))
 	;; -e goes with the next arg, so shift one extra.
-	(or (funcall shift)
-	    ;; -e as the last arg is an error in Perl.
-	    (error "No code specified for -e"))
+	(funcall shift)
+	(or args
+	    ;; -E (or -e) as the last arg is an error in Perl.
+	    (error "No code specified for %s" (car new-args)))
 	(setq seen-e t))
       (funcall shift))
 
@@ -1697,7 +1698,7 @@ The directory containing the perl program becomes the initial
 working directory and source-file directory for your debugger."
   (interactive
    (list (gud-query-cmdline 'perldb
-			    (concat (or (buffer-file-name) "-e 0") " "))))
+			    (concat (or (buffer-file-name) "-E 0") " "))))
 
   (gud-common-init command-line 'gud-perldb-massage-args
 		   'gud-perldb-marker-filter)
@@ -1754,7 +1755,7 @@ working directory and source-file directory for your debugger."
                                     (">" . gud-down)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `pdb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `pdb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 ;; There's no guarantee that Emacs will hand the filter the entire
@@ -1871,7 +1872,7 @@ directory and source-file directory for your debugger."
                                     (">" . gud-down)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `guiler' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `guiler' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defun gud-guiler-marker-filter (string)
@@ -2398,7 +2399,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
                                     ("l" . gud-refresh)))
       (define-key map key cmd))
     map)
-  "Keymap to repeat `jdb' stepping instructions `C-x C-a C-n n n'.
+  "Keymap to repeat `jdb' stepping instructions \\`C-x C-a C-n n n'.
 Used in `repeat-mode'.")
 
 (defun gud-jdb-find-source-using-classpath (p)
@@ -3694,7 +3695,6 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   (message "Dereferencing is now %s."
 	   (if gud-tooltip-dereference "on" "off")))
 
-(defvar tooltip-use-echo-area)
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 (declare-function tooltip-strip-prompt "tooltip" (process output))
 
@@ -3708,8 +3708,7 @@ With arg, dereference expr if ARG is positive, otherwise do not dereference."
   "Process debugger output and show it in a tooltip window."
   (remove-function (process-filter process) #'gud-tooltip-process-output)
   (tooltip-show (tooltip-strip-prompt process output)
-		(or gud-tooltip-echo-area tooltip-use-echo-area
-                    (not tooltip-mode))))
+                (or gud-tooltip-echo-area (not tooltip-mode))))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR."
@@ -3753,8 +3752,7 @@ This function must return nil if it doesn't handle EVENT."
 		    (unless (null define-elt)
 		      (tooltip-show
 		       (cdr define-elt)
-		       (or gud-tooltip-echo-area tooltip-use-echo-area
-                           (not tooltip-mode)))
+                       (or gud-tooltip-echo-area (not tooltip-mode)))
 		      expr))))
 	    (when gud-tooltip-dereference
 	      (setq expr (concat "*" expr)))

@@ -1239,7 +1239,7 @@ comment at the start of cc-engine.el for more info."
 			   (not comma-delimited)
 			   (not (c-looking-at-inexpr-block lim nil t))
 			   (save-excursion
-			     (c-backward-token-2 1 t nil)
+			     (c-backward-token-2 1 t nil) ; Don't test the value
 			     (not (looking-at "=\\([^=]\\|$\\)")))
 			   (or
 			    (not c-opt-block-decls-with-vars-key)
@@ -1672,9 +1672,13 @@ comment at the start of cc-engine.el for more info."
 Return the result of `forward-comment' if it gets called, nil otherwise."
   `(if (not comment-end-can-be-escaped)
        (forward-comment -1)
-     (when (and (< (skip-syntax-backward " >") 0)
-		(eq (char-after) ?\n))
-       (forward-char))
+     (let ((dist (skip-syntax-backward " >")))
+       (when (and
+	      (< dist 0)
+	      (progn
+		(skip-syntax-forward " " (- (point) dist 1))
+		(eq (char-after) ?\n)))
+	 (forward-char)))
      (cond
       ((and (eq (char-before) ?\n)
 	    (eq (char-before (1- (point))) ?\\))
@@ -6837,7 +6841,7 @@ comment at the start of cc-engine.el for more info."
   (let ((type (c-syntactic-content from to c-recognize-<>-arglists)))
     (unless (gethash type c-found-types)
       (puthash type t c-found-types)
-      (when (and (not c-record-found-types) ; Only call `c-fontify-new-fount-type'
+      (when (and (not c-record-found-types) ; Only call `c-fontify-new-found-type'
 					; when we haven't "bound" c-found-types
 					; to itself in c-forward-<>-arglist.
 		 (eq (string-match c-symbol-key type) 0)
@@ -8289,9 +8293,10 @@ multi-line strings (but not C++, for example)."
 (defun c-forward-noise-clause ()
   ;; Point is at a c-noise-macro-with-parens-names macro identifier.  Go
   ;; forward over this name, any parenthesis expression which follows it, and
-  ;; any syntactic WS, ending up at the next token.  If there is an unbalanced
-  ;; paren expression, leave point at it.  Always Return t.
-  (c-forward-token-2)
+  ;; any syntactic WS, ending up at the next token or EOB.  If there is an
+  ;; unbalanced paren expression, leave point at it.  Always Return t.
+  (or (zerop (c-forward-token-2))
+      (goto-char (point-max)))
   (if (and (eq (char-after) ?\()
 	   (c-go-list-forward))
       (c-forward-syntactic-ws))
@@ -9454,7 +9459,8 @@ point unchanged and return nil."
 
 (defun c-forward-declarator (&optional limit accept-anon)
   ;; Assuming point is at the start of a declarator, move forward over it,
-  ;; leaving point at the next token after it (e.g. a ) or a ; or a ,).
+  ;; leaving point at the next token after it (e.g. a ) or a ; or a ,), or at
+  ;; end of buffer if there is no such token.
   ;;
   ;; Return a list (ID-START ID-END BRACKETS-AFTER-ID GOT-INIT DECORATED),
   ;; where ID-START and ID-END are the bounds of the declarator's identifier,
@@ -9494,44 +9500,44 @@ point unchanged and return nil."
 	   ;; of the while.  These are, e.g. "*" in "int *foo" or "(" and
 	   ;; "*" in "int (*foo) (void)" (Note similar code in
 	   ;; `c-forward-decl-or-cast-1'.)
-	      (while
-		  (cond
-		   ((looking-at c-decl-hangon-key)
-		    (c-forward-keyword-clause 1))
-		   ((and c-opt-cpp-prefix
-			 (looking-at c-noise-macro-with-parens-name-re))
-		    (c-forward-noise-clause))
-		   ((and (looking-at c-type-decl-prefix-key)
-			 (if (and (c-major-mode-is 'c++-mode)
-				  (match-beginning 4)) ; Was 3 - 2021-01-01
-			     ;; If the third submatch matches in C++ then
-			     ;; we're looking at an identifier that's a
-			     ;; prefix only if it specifies a member pointer.
-			     (progn
-			       (setq id-start (point))
-			       (c-forward-name)
-			       (if (save-match-data
-				     (looking-at "\\(::\\)"))
-				   ;; We only check for a trailing "::" and
-				   ;; let the "*" that should follow be
-				   ;; matched in the next round.
-				   t
-				 ;; It turned out to be the real identifier,
-				 ;; so flag that and stop.
-				 (setq got-identifier t)
-				 nil))
-			   t))
-		    (if (save-match-data
-			  (looking-at c-type-decl-operator-prefix-key))
-			(setq decorated t))
-		    (if (eq (char-after) ?\()
-			(progn
-			  (setq paren-depth (1+ paren-depth))
-			  (forward-char))
-		      (goto-char (or (match-end 1)
-				     (match-end 2))))
-		    (c-forward-syntactic-ws)
-		    t)))
+	   (while
+	       (cond
+		((looking-at c-decl-hangon-key)
+		 (c-forward-keyword-clause 1))
+		((and c-opt-cpp-prefix
+		      (looking-at c-noise-macro-with-parens-name-re))
+		 (c-forward-noise-clause))
+		((and (looking-at c-type-decl-prefix-key)
+		      (if (and (c-major-mode-is 'c++-mode)
+			       (match-beginning 4)) ; Was 3 - 2021-01-01
+			  ;; If the third submatch matches in C++ then
+			  ;; we're looking at an identifier that's a
+			  ;; prefix only if it specifies a member pointer.
+			  (progn
+			    (setq id-start (point))
+			    (c-forward-name)
+			    (if (save-match-data
+				  (looking-at "\\(::\\)"))
+				;; We only check for a trailing "::" and
+				;; let the "*" that should follow be
+				;; matched in the next round.
+				t
+			      ;; It turned out to be the real identifier,
+			      ;; so flag that and stop.
+			      (setq got-identifier t)
+			      nil))
+			t))
+		 (if (save-match-data
+		       (looking-at c-type-decl-operator-prefix-key))
+		     (setq decorated t))
+		 (if (eq (char-after) ?\()
+		     (progn
+		       (setq paren-depth (1+ paren-depth))
+		       (forward-char))
+		   (goto-char (or (match-end 1)
+				  (match-end 2))))
+		 (c-forward-syntactic-ws)
+		 t)))
 
 	   ;; If we haven't passed the identifier already, do it now.
 	   (unless got-identifier
@@ -9552,7 +9558,8 @@ point unchanged and return nil."
 	 (or (= paren-depth 0)
 	     (c-safe (goto-char (scan-lists (point) 1 paren-depth))))
 
-	 (<= (point) limit)
+	 (or (eq (point) (point-max))	; No token after identifier.
+	     (< (point) limit))
 
 	 ;; Skip over any trailing bit, such as "__attribute__".
 	 (progn
@@ -10566,8 +10573,8 @@ This function might do hidden buffer changes."
 			backup-maybe-typeless
 			(when c-recognize-typeless-decls
 			  (or (not got-suffix)
-			      (not (looking-at
-				    c-after-suffixed-type-maybe-decl-key))))))
+			      (looking-at
+			       c-after-suffixed-type-maybe-decl-key)))))
 	       ;; Got an empty paren pair and a preceding type that probably
 	       ;; really is the identifier.  Shift the type backwards to make
 	       ;; the last one the identifier.  This is analogous to the

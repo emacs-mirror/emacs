@@ -1898,7 +1898,7 @@ attempts.  Other zero-width assertions may also bring benefits by
 causing a match to fail early.
 
 @item
-Avoid or-patterns in favour of character alternatives: write
+Avoid or-patterns in favor of character alternatives: write
 @samp{[ab]} instead of @samp{a\|b}.  Recall that @samp{\s-} and @samp{\sw}
 are equivalent to @samp{[[:space:]]} and @samp{[[:word:]]}, respectively.
 
@@ -1933,7 +1933,7 @@ purposes.
 
 @ifnottex
 @item
-Consider using @code{rx} (@pxref{Rx Notation}); it can optimise some
+Consider using @code{rx} (@pxref{Rx Notation}); it can optimize some
 or-patterns automatically and will never introduce capturing groups
 unless explicitly requested.
 @end ifnottex

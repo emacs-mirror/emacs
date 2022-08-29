@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdlib.h>		/* for qsort */
+
 #include "lisp.h"
 #include "character.h"
 #include "composite.h"
@@ -1021,7 +1023,11 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 	  /* But we don't know where to stop the searching.  */
 	  endpos = NILP (string) ? BEGV - 1 : -1;
 	  /* Usually we don't reach ENDPOS because we stop searching
-	     at an uncomposable character (NL, LRE, etc).  */
+	     at an uncomposable character (NL, LRE, etc).  In buffers
+	     with long lines, however, NL might be far away, so
+	     pretend that the buffer is smaller.  */
+	  if (current_buffer->long_line_optimizations_p)
+	    endpos = get_closer_narrowed_begv (cmp_it->parent_it->w, charpos);
 	}
     }
   cmp_it->id = -1;
@@ -1513,10 +1519,11 @@ struct position_record
 /* Similar to find_composition, but find an automatic composition instead.
 
    This function looks for automatic composition at or near position
-   POS of OBJECT (a buffer or a string).  OBJECT defaults to the
-   current buffer.  It must be assured that POS is not within a static
-   composition.  Also, the current buffer must be displayed in some
-   window, otherwise the function will return FALSE.
+   POS of STRING object, either a buffer or a Lisp string.  If STRING
+   is nil, it defaults to the current buffer.  It must be assured that
+   POS is not within a static composition.  Also, the current buffer
+   must be displayed in some window, otherwise the function will
+   return FALSE.
 
    If LIMIT is negative, and there's no composition that includes POS
    (i.e. starts at or before POS and ends at or after POS), return
@@ -1525,8 +1532,8 @@ struct position_record
    MAX_AUTO_COMPOSITION_LOOKBACK, the maximum number of look-back for
    automatic compositions (3) -- this is a limitation imposed by
    composition rules in composition-function-table, which see.  If
-   BACKLIM is negative, it stands for the beginning of OBJECT: BEGV
-   for a buffer or position zero for a string.
+   BACKLIM is negative, it stands for the beginning of STRING object:
+   BEGV for a buffer or position zero for a string.
 
    If LIMIT is positive, search for a composition forward (LIMIT >
    POS) or backward (LIMIT < POS).  In this case, LIMIT bounds the
@@ -1535,18 +1542,21 @@ struct position_record
    function can find a composition that starts after POS.
 
    BACKLIM limits how far back is the function allowed to look in
-   OBJECT while trying to find a position where it is safe to start
-   searching forward for compositions.  Such a safe place is generally
-   the position after a character that can never be composed.
+   STRING object while trying to find a position where it is safe to
+   start searching forward for compositions.  Such a safe place is
+   generally the position after a character that can never be
+   composed.
 
    If BACKLIM is negative, that means the first character position of
-   OBJECT; this is useful when calling the function for the first time
-   for a given buffer or string, since it is possible that a
-   composition begins before POS.  However, if POS is very far from
-   the beginning of OBJECT, a negative value of BACKLIM could make the
-   function slow.  Also, in this case the function may return START
-   and END that do not include POS, something that is not necessarily
-   wanted, and needs to be explicitly checked by the caller.
+   STRING object; this is useful when calling the function for the
+   first time for a given buffer or string, since it is possible that
+   a composition begins before POS.  However, if POS is very far from
+   the beginning of STRING object, a negative value of BACKLIM could
+   make the function slow.  For that reason, when STRING is a buffer
+   or nil, we restrict the search back to the first newline before
+   POS.  Also, in this case the function may return START and END that
+   do not include POS, something that is not necessarily wanted, and
+   needs to be explicitly checked by the caller.
 
    When calling the function in a loop for the same buffer/string, the
    caller should generally set BACKLIM equal to POS, to avoid costly
@@ -1585,7 +1595,23 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
   cur.pos = pos;
   if (NILP (string))
     {
-      head = backlim < 0 ? BEGV : backlim, tail = ZV, stop = GPT;
+      if (backlim < 0)
+	{
+	  /* This assumes a newline can never be composed.  */
+	  head = find_newline (pos, -1, 0, -1, -1, NULL, NULL, false);
+	}
+      else
+	head = backlim;
+      if (current_buffer->long_line_optimizations_p)
+	{
+	  /* In buffers with very long lines, this function becomes very
+	     slow.  Pretend that the buffer is narrowed to make it fast.  */
+	  ptrdiff_t begv = get_closer_narrowed_begv (w, window_point (w));
+	  if (pos > begv)
+	    head = begv;
+	}
+      tail = ZV;
+      stop = GPT;
       cur.pos_byte = CHAR_TO_BYTE (cur.pos);
       cur.p = BYTE_POS_ADDR (cur.pos_byte);
     }
@@ -1871,7 +1897,8 @@ should be ignored.  */)
   else
     {
       CHECK_STRING (string);
-      validate_subarray (string, from, to, SCHARS (string), &frompos, &topos);
+      ptrdiff_t chars = SCHARS (string);
+      validate_subarray (string, from, to, chars, &frompos, &topos);
       if (! STRING_MULTIBYTE (string))
 	{
 	  ptrdiff_t i;
@@ -1881,9 +1908,10 @@ should be ignored.  */)
 	      error ("Attempt to shape unibyte text");
 	  /* STRING is a pure-ASCII string, so we can convert it (or,
 	     rather, its copy) to multibyte and use that thereafter.  */
-	  Lisp_Object string_copy = Fconcat (1, &string);
-	  STRING_SET_MULTIBYTE (string_copy);
-	  string = string_copy;
+	  /* FIXME: Not clear why we need to do that: AFAICT the rest of
+             the code should work on an ASCII-only unibyte string just
+             as well (bug#56347).  */
+	  string = make_multibyte_string (SSDATA (string), chars, chars);
 	}
       frombyte = string_char_to_byte (string, frompos);
     }
@@ -2028,6 +2056,54 @@ See `find-composition' for more details.  */)
   return Fcons (make_fixnum (start), Fcons (make_fixnum (end), tail));
 }
 
+static int
+compare_composition_rules (const void *r1, const void *r2)
+{
+  Lisp_Object vec1 = *(Lisp_Object *)r1, vec2 = *(Lisp_Object *)r2;
+
+  return XFIXNAT (AREF (vec2, 1)) - XFIXNAT (AREF (vec1, 1));
+}
+
+DEFUN ("composition-sort-rules", Fcomposition_sort_rules,
+       Scomposition_sort_rules, 1, 1, 0,
+       doc: /* Sort composition RULES by their LOOKBACK parameter.
+
+If RULES include just one rule, return RULES.
+Otherwise, return a new list of rules where all the rules are
+arranged in decreasing order of the LOOKBACK parameter of the
+rules (the second element of the rule's vector).  This is required
+when combining composition rules from different sources, because
+of the way buffer text is examined for matching one of the rules.  */)
+  (Lisp_Object rules)
+{
+  ptrdiff_t nrules;
+  USE_SAFE_ALLOCA;
+
+  CHECK_LIST (rules);
+  nrules = list_length (rules);
+  if (nrules > 1)
+    {
+      ptrdiff_t i;
+      Lisp_Object *sortvec;
+
+      SAFE_NALLOCA (sortvec, 1, nrules);
+      for (i = 0; i < nrules; i++)
+	{
+	  Lisp_Object elt = XCAR (rules);
+	  if (VECTORP (elt) && ASIZE (elt) == 3 && FIXNATP (AREF (elt, 1)))
+	    sortvec[i] = elt;
+	  else
+	    error ("Invalid composition rule in RULES argument");
+	  rules = XCDR (rules);
+	}
+      qsort (sortvec, nrules, sizeof (Lisp_Object), compare_composition_rules);
+      rules = Flist (nrules, sortvec);
+      SAFE_FREE ();
+    }
+
+  return rules;
+}
+
 
 void
 syms_of_composite (void)
@@ -2159,4 +2235,5 @@ This list is auto-generated, you should not need to modify it.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
   defsubr (&Sclear_composition_cache);
+  defsubr (&Scomposition_sort_rules);
 }

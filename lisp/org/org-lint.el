@@ -334,10 +334,8 @@ called with one argument, the key used for comparison."
    ast
    'node-property
    (lambda (property)
-     (and (eq (compare-strings "CUSTOM_ID" nil nil
-			       (org-element-property :key property) nil nil
-			       t)
-	      t)
+     (and (string-equal-ignore-case
+           "CUSTOM_ID" (org-element-property :key property))
 	  (org-element-property :value property)))
    (lambda (property _) (org-element-property :begin property))
    (lambda (key) (format "Duplicate CUSTOM_ID property \"%s\"" key))))

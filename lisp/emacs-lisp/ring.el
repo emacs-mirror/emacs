@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;;; User Functions:
 
 ;;;###autoload
@@ -50,6 +52,8 @@
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (cadr x))
        (vectorp (cddr x))))
+
+(cl-deftype ring () '(satisfies ring-p))
 
 ;;;###autoload
 (defun make-ring (size)

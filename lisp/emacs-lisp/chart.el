@@ -63,8 +63,7 @@
 (eval-when-compile (require 'cl-generic))
 
 ;;; Code:
-(define-obsolete-variable-alias 'chart-map 'chart-mode-map "24.1")
-(defvar chart-mode-map (make-sparse-keymap) "Keymap used in chart mode.")
+(defvar-keymap chart-mode-map :doc "Keymap used in chart mode.")
 
 (defvar-local chart-local-object nil
   "Local variable containing the locally displayed chart object.")
@@ -113,7 +112,7 @@ too much in text characters anyways.")
        (set-face-foreground nf "black")
        (if (and chart-face-use-pixmaps pl)
            (condition-case nil
-               (set-face-background-pixmap nf (car pl))
+               (set-face-stipple nf (car pl))
              (error (message "Cannot set background pixmap %s" (car pl)))))
        (push nf faces)
        (setq cl (cdr cl)
@@ -527,9 +526,9 @@ cons cells of the form (NAME . NUM).  See `sort' for more details."
 (defun chart-zap-chars (n)
   "Zap up to N chars without deleting EOLs."
   (if (not (eobp))
-      (if (< n (- (point-at-eol) (point)))
+      (if (< n (- (line-end-position) (point)))
 	  (delete-char n)
-	(delete-region (point) (point-at-eol)))))
+        (delete-region (point) (line-end-position)))))
 
 (defun chart-display-label (label dir zone start end &optional face)
   "Display LABEL in direction DIR in column/row ZONE between START and END.

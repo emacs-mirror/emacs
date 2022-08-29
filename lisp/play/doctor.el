@@ -1,7 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games
@@ -136,14 +135,14 @@ Like Text mode with Auto Fill mode
 except that RET when point is after a newline, or LFD at any time,
 reads the sentence before point, and prints the Doctor's answer."
   :interactive nil
-  (make-doctor-variables)
+  (doctor-make-variables)
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
 		 (doc$ doctor--please) (doc$ doctor--describe) your (doc$ doctor--problems) \.
 		 each time you are finished talking\, type \R\E\T twice \.))
   (insert "\n"))
 
-(defun make-doctor-variables ()
+(defun doctor-make-variables ()
   (setq-local doctor--typos
               (mapcar (lambda (x)
                         (put (car x) 'doctor-correction  (cadr x))
@@ -1577,13 +1576,14 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
                       (equal doctor-found 'killing))
                   (memq 'yourself doctor-sent)))
 	 (setq doctor--suicide-flag t)
-	 (doctor-type '(If you are really suicidal\, you might
-			   want to contact the Samaritans via
-			   E-mail: jo@samaritans.org or\, at your option\,
-			   anonymous E-mail: samaritans@anon.twwells.com\ \.
-                           or find a Befrienders crisis center at
-                           https://www.befrienders.org/\ \.
-			   (doc$ doctor--please) (doc$ doctor--continue) \.)))
+         (doctor-type '( If you are really suicidal\, you might
+                         want to contact the Samaritans via
+                         e-mail: jo@samaritans.org \.
+                         or find a Befrienders crisis center at
+                         https://www.befrienders.org/\ \.
+                         you can also find other suicide crisis lines at
+                         https://en.wikipedia.org/wiki/List_of_suicide_crisis_lines \.
+                         (doc$ doctor--please) (doc$ doctor--continue) \.)))
 	(t (doctor-type (doc$ doctor--deathlst)))))
 
 (defun doctor-foul ()
@@ -1618,6 +1618,8 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 
 
 (defun doctor-chat () (doctor-type (doc$ doctor--chatlst)))
+
+(define-obsolete-function-alias 'make-doctor-variables #'doctor-make-variables "29.1")
 
 (provide 'doctor)
 

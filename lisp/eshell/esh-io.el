@@ -254,6 +254,30 @@ a nil value of mode defaults to `insert'."
       (setq idx (1+ idx))))
   handles)
 
+(defun eshell-close-handles (&optional exit-code result handles)
+  "Close all of the current HANDLES, taking refcounts into account.
+If HANDLES is nil, use `eshell-current-handles'.
+
+EXIT-CODE is the process exit code (zero, if the command
+completed successfully).  If nil, then use the exit code already
+set in `eshell-last-command-status'.
+
+RESULT is the quoted value of the last command.  If nil, then use
+the value already set in `eshell-last-command-result'."
+  (when exit-code
+    (setq eshell-last-command-status exit-code))
+  (when result
+    (cl-assert (eq (car result) 'quote))
+    (setq eshell-last-command-result (cadr result)))
+  (let ((handles (or handles eshell-current-handles)))
+    (dotimes (idx eshell-number-of-handles)
+      (when-let ((handle (aref handles idx)))
+        (setcdr handle (1- (cdr handle)))
+	(when (= (cdr handle) 0)
+          (dolist (target (ensure-list (car (aref handles idx))))
+            (eshell-close-target target (= eshell-last-command-status 0)))
+          (setcar handle nil))))))
+
 (defun eshell-close-target (target status)
   "Close an output TARGET, passing STATUS as the result.
 STATUS should be non-nil on successful termination of the output."
@@ -276,8 +300,23 @@ STATUS should be non-nil on successful termination of the output."
    ;; If we're redirecting to a process (via a pipe, or process
    ;; redirection), send it EOF so that it knows we're finished.
    ((eshell-processp target)
-    (if (eq (process-status target) 'run)
-	(process-send-eof target)))
+    ;; According to POSIX.1-2017, section 11.1.9, when communicating
+    ;; via terminal, sending EOF causes all bytes waiting to be read
+    ;; to be sent to the process immediately.  Thus, if there are any
+    ;; bytes waiting, we need to send EOF twice: once to flush the
+    ;; buffer, and a second time to cause the next read() to return a
+    ;; size of 0, indicating end-of-file to the reading process.
+    ;; However, some platforms (e.g. Solaris) actually require sending
+    ;; a *third* EOF.  Since sending extra EOFs while the process is
+    ;; running are a no-op, we'll just send the maximum we'd ever
+    ;; need.  See bug#56025 for further details.
+    (let ((i 0)
+          ;; Only call `process-send-eof' once if communicating via a
+          ;; pipe (in truth, this just closes the pipe).
+          (max-attempts (if (process-tty-name target 'stdin) 3 1)))
+      (while (and (<= (cl-incf i) max-attempts)
+                  (eq (process-status target) 'run))
+        (process-send-eof target))))
 
    ;; A plain function redirection needs no additional arguments
    ;; passed.
@@ -289,32 +328,6 @@ STATUS should be non-nil on successful termination of the output."
    ;; passed along with it.
    ((consp target)
     (apply (car target) status (cdr target)))))
-
-(defun eshell-close-handles (exit-code &optional result handles)
-  "Close all of the current handles, taking refcounts into account.
-EXIT-CODE is the process exit code; mainly, it is zero, if the command
-completed successfully.  RESULT is the quoted value of the last
-command.  If nil, then the meta variables for keeping track of the
-last execution result should not be changed."
-  (let ((idx 0))
-    (cl-assert (or (not result) (eq (car result) 'quote)))
-    (setq eshell-last-command-status exit-code
-	  eshell-last-command-result (cadr result))
-    (while (< idx eshell-number-of-handles)
-      (let ((handles (or handles eshell-current-handles)))
-	(when (aref handles idx)
-	  (setcdr (aref handles idx)
-		  (1- (cdr (aref handles idx))))
-	  (when (= (cdr (aref handles idx)) 0)
-	    (let ((target (car (aref handles idx))))
-	      (if (not (listp target))
-		  (eshell-close-target target (= exit-code 0))
-		(while target
-		  (eshell-close-target (car target) (= exit-code 0))
-		  (setq target (cdr target)))))
-	    (setcar (aref handles idx) nil))))
-      (setq idx (1+ idx)))
-    nil))
 
 (defun eshell-kill-append (string)
   "Call `kill-append' with STRING, if it is indeed a string."
@@ -488,7 +501,7 @@ Returns what was actually sent, or nil if nothing was sent."
     (condition-case nil
         (process-send-string target object)
       ;; If `process-send-string' raises an error, treat it as a broken pipe.
-      (error (signal 'eshell-pipe-broken target))))
+      (error (signal 'eshell-pipe-broken (list target)))))
 
    ((consp target)
     (apply (car target) object (cdr target))))

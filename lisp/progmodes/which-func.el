@@ -61,6 +61,9 @@
 
 ;;; Code:
 
+;; So that we can use the edebug spec in `lisp-current-defun-name'.
+(require 'edebug)
+
 ;; Variables for customization
 ;; ---------------------------
 ;;
@@ -233,9 +236,6 @@ It creates the Imenu index for the buffer, if necessary."
 	(error
 	 (setq which-func-mode nil)
 	 (error "Error in which-func-update: %S" info))))))
-
-;;;###autoload
-(define-obsolete-function-alias 'which-func-mode 'which-function-mode "24.1")
 
 (defvar which-func-update-timer nil)
 

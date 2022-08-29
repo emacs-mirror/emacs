@@ -245,10 +245,6 @@ Blind aliases or users from /etc/passwd are not expanded."
    (t
     (mh-alias-ali alias))))
 
-(eval-and-compile
-  (require 'crm nil t)                 ; completing-read-multiple
-  (require 'multi-prompt nil t))
-
 ;;;###mh-autoload
 (defun mh-read-address (prompt)
   "Read an address from the minibuffer with PROMPT."
@@ -662,7 +658,6 @@ show buffer, the message in the show buffer doesn't match."
 (provide 'mh-alias)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -304,19 +304,17 @@ When nil, make them for files that have some already.
 The value `never' means do not make them."
   :type '(choice (const :tag "Never" never)
 		 (const :tag "If existing" nil)
-		 (other :tag "Always" t))
+                 (other :tag "Always" t))
+  :safe #'version-control-safe-local-p
   :group 'backup)
 
 (defun version-control-safe-local-p (x)
   "Return whether X is safe as local value for `version-control'."
   (or (booleanp x) (equal x 'never)))
 
-(put 'version-control 'safe-local-variable
-     #'version-control-safe-local-p)
-
 (defcustom dired-kept-versions 2
   "When cleaning directory, number of versions to keep."
-  :type 'integer
+  :type 'natnum
   :group 'backup
   :group 'dired)
 
@@ -330,16 +328,16 @@ If nil, ask confirmation.  Any other value prevents any trimming."
 
 (defcustom kept-old-versions 2
   "Number of oldest versions to keep when a new numbered backup is made."
-  :type 'integer
+  :type 'natnum
+  :safe #'natnump
   :group 'backup)
-(put 'kept-old-versions 'safe-local-variable 'integerp)
 
 (defcustom kept-new-versions 2
   "Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be greater than 0."
-  :type 'integer
+  :type 'natnum
+  :safe #'natnump
   :group 'backup)
-(put 'kept-new-versions 'safe-local-variable 'integerp)
 
 (defcustom require-final-newline nil
   "Whether to add a newline automatically at the end of the file.
@@ -398,19 +396,24 @@ add a final newline, whenever you save a file that really needs one."
      ;; transformed to "/2" on DOS/Windows.
      ,(concat temporary-file-directory "\\2") t))
   "Transforms to apply to buffer file name before making auto-save file name.
+
 Each transform is a list (REGEXP REPLACEMENT UNIQUIFY):
+
 REGEXP is a regular expression to match against the file name.
 If it matches, `replace-match' is used to replace the
 matching part with REPLACEMENT.
-If the optional element UNIQUIFY is non-nil, the auto-save file name is
-constructed by taking the directory part of the replaced file-name,
-concatenated with the buffer file name with all directory separators
-changed to `!' to prevent clashes.  This will not work
-correctly if your filesystem truncates the resulting name.
-If UNIQUIFY is one of the members of `secure-hash-algorithms',
-Emacs constructs the nondirectory part of the auto-save file name
-by applying that `secure-hash' to the buffer file name.  This
-avoids any risk of excessively long file names.
+
+If the optional element UNIQUIFY is nil, Emacs does not check for
+file name clashes, so using that is not recommended.  If UNIQUIFY
+is one of the members of `secure-hash-algorithms', Emacs
+constructs the nondirectory part of the auto-save file name by
+applying that `secure-hash' to the buffer file name.  This avoids
+any risk of excessively long file names.  Finally, if UNIQUIFY is
+any other value the auto-save file name is constructed by taking
+the directory part of the replaced file-name, concatenated with
+the buffer file name with all directory separators changed to `!'
+to prevent clashes.  This will not work correctly if your
+filesystem truncates the resulting name.
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
@@ -423,8 +426,13 @@ editing a remote file.
 On MS-DOS filesystems without long names this variable is always
 ignored."
   :group 'auto-save
-  :type '(repeat (list (regexp :tag "Regexp") (string :tag "Replacement")
-					   (boolean :tag "Uniquify")))
+  :type `(repeat (list (regexp :tag "Regexp")
+                       (string :tag "Replacement")
+                       (choice
+		        (const :tag "Uniquify" t)
+                        ,@(mapcar (lambda (algo)
+                                    (list 'const algo))
+                                  (secure-hash-algorithms)))))
   :initialize 'custom-initialize-delay
   :version "21.1")
 
@@ -443,18 +451,60 @@ idle for `auto-save-visited-interval' seconds."
          (when auto-save--timer
            (timer-set-idle-time auto-save--timer value :repeat))))
 
-(define-minor-mode auto-save-visited-mode
-  "Toggle automatic saving to file-visiting buffers on or off.
+(defcustom auto-save-visited-predicate nil
+  "Predicate function for `auto-save-visited-mode'.
 
-Unlike `auto-save-mode', this mode will auto-save buffer contents
-to the visited files directly and will also run all save-related
-hooks.  See Info node `Saving' for details of the save process.
+If non-nil, the value should be a function of no arguments; it
+will be called once in each file-visiting buffer when the time
+comes to auto-save.  A buffer will be saved only if the predicate
+function returns a non-nil value.
+
+For example, you could add this to your Init file to only save
+files that are both in Org mode and in a particular directory:
+
+    (setq auto-save-visited-predicate
+          (lambda () (and (eq major-mode \\='org-mode)
+                          (string-match \"^/home/skangas/org/\"
+                                        buffer-file-name))))
+
+If the value of this variable is not a function, it is ignored.
+This is the same as having a predicate that always returns
+non-nil."
+  :group 'auto-save
+  :type '(choice :tag "Function:"
+                 (const :tag "No extra predicate" :value nil)
+                 (function :tag "Predicate function" :value always))
+  :risky t
+  :version "29.1")
+
+(defcustom remote-file-name-inhibit-auto-save-visited nil
+  "When nil, `auto-save-visited-mode' will auto-save remote files.
+Any other value means that it will not."
+  :group 'auto-save
+  :type 'boolean
+  :version "29.1")
+
+(define-minor-mode auto-save-visited-mode
+  "Toggle automatic saving of file-visiting buffers to their files.
+
+When this mode is enabled, file-visiting buffers are automatically
+saved to their files.  This is in contrast to `auto-save-mode', which
+auto-saves those buffers to a separate file, leaving the original
+file intact.  See Info node `Saving' for details of the save process.
+
+The user option `auto-save-visited-interval' controls how often to
+auto-save a buffer into its visited file.
+
+You can use `auto-save-visited-predicate' to control which
+buffers are saved.
 
 You can also set the buffer-local value of the variable
 `auto-save-visited-mode' to nil.  A buffer where the buffer-local
 value of this variable is nil is ignored for the purpose of
 `auto-save-visited-mode', even if `auto-save-visited-mode' is
-enabled."
+enabled.
+
+For more details, see Info node `(emacs) Auto Save Files'."
   :group 'auto-save
   :global t
   (when auto-save--timer (cancel-timer auto-save--timer))
@@ -467,7 +517,11 @@ enabled."
              (and buffer-file-name
                   auto-save-visited-mode
                   (not (and buffer-auto-save-file-name
-                            auto-save-visited-file-name))))))))
+                            auto-save-visited-file-name))
+                  (or (not (file-remote-p buffer-file-name))
+                      (not remote-file-name-inhibit-auto-save-visited))
+                  (or (not (functionp auto-save-visited-predicate))
+                      (funcall auto-save-visited-predicate))))))))
 
 ;; The 'set' part is so we don't get a warning for using this variable
 ;; above, while still catching code that _sets_ the variable to get
@@ -533,8 +587,6 @@ location of point in the current buffer."
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-functions 'permanent-local t)
-(define-obsolete-variable-alias 'find-file-not-found-hooks
-    'find-file-not-found-functions "22.1")
 (defvar find-file-not-found-functions nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
@@ -799,15 +851,20 @@ resulting list of directory names.  For an empty path element (i.e.,
 a leading or trailing separator, or two adjacent separators), return
 nil (meaning `default-directory') as the associated list element."
   (when (stringp search-path)
-    (let ((spath (substitute-env-vars search-path)))
+    (let ((spath (substitute-env-vars search-path))
+          (double-slash-special-p
+           (memq system-type '(windows-nt cygwin ms-dos))))
       (mapcar (lambda (f)
                 (if (equal "" f) nil
                   (let ((dir (file-name-as-directory f)))
                     ;; Previous implementation used `substitute-in-file-name'
-                    ;; which collapse multiple "/" in front.  Do the same for
-                    ;; backward compatibility.
-                    (if (string-match "\\`/+" dir)
-                        (substring dir (1- (match-end 0))) dir))))
+                    ;; which collapses multiple "/" in front, while
+                    ;; preserving double slash where it matters.  Do
+                    ;; the same for backward compatibility.
+                    (if (string-match "\\`//+" dir)
+                        (substring dir (- (match-end 0)
+                                          (if double-slash-special-p 2 1)))
+                      dir))))
               (split-string spath path-separator)))))
 
 (defun cd-absolute (dir)
@@ -1115,10 +1172,17 @@ directory if it does not exist."
 	     (if (file-directory-p user-emacs-directory)
 		 (or (file-accessible-directory-p user-emacs-directory)
 		     (setq errtype "access"))
-	       (with-file-modes ?\700
-		 (condition-case nil
-		     (make-directory user-emacs-directory t)
-		   (error (setq errtype "create")))))
+               ;; We don't want to create HOME if it doesn't exist.
+               (if (and (not (file-exists-p "~"))
+                        (string-prefix-p
+                         (expand-file-name "~")
+                         (expand-file-name user-emacs-directory)))
+                   (setq errtype "create")
+                 ;; Create `user-emacs-directory'.
+	         (with-file-modes ?\700
+		   (condition-case nil
+		       (make-directory user-emacs-directory t)
+		     (error (setq errtype "create"))))))
 	     (when (and errtype
 			user-emacs-directory-warning
 			(not (get 'user-emacs-directory-warning 'this-session)))
@@ -1223,28 +1287,17 @@ Tip: You can use this expansion of remote identifier components
 ;; It's not clear what the best file for this to be in is, but given
 ;; it uses custom-initialize-delay, it is easier if it is preloaded
 ;; rather than autoloaded.
-(defcustom remote-shell-program
-  ;; This used to try various hard-coded places for remsh, rsh, and
-  ;; rcmd, trying to guess based on location whether "rsh" was
-  ;; "restricted shell" or "remote shell", but I don't see the point
-  ;; in this day and age.  Almost everyone will use ssh, and have
-  ;; whatever command they want to use in PATH.
-  (purecopy
-   (let ((list '("ssh" "remsh" "rcmd" "rsh")))
-     (while (and list
-		 (not (executable-find (car list)))
-		 (setq list (cdr list))))
-     (or (car list) "ssh")))
-  "Program to use to execute commands on a remote host (e.g. ssh or rsh)."
-  :version "24.3"			; ssh rather than rsh, etc
+(defcustom remote-shell-program (or (executable-find "ssh") "ssh")
+  "Program to use to execute commands on a remote host (i.e. ssh)."
+  :version "29.1"
   :initialize 'custom-initialize-delay
   :group 'environment
   :type 'file)
 
 (defcustom remote-file-name-inhibit-cache 10
   "Whether to use the remote file-name cache for read access.
-When nil, never expire cached values (caution)
-When t, never use the cache (safe, but may be slow)
+When nil, never expire cached values (caution).
+When t, never use the cache (safe, but may be slow).
 A number means use cached values for that amount of seconds since caching.
 
 The attributes of remote files are cached for better performance.
@@ -1388,7 +1441,7 @@ containing it, until no links are left at any level.
 	    ;; If these are equal, we have the (or a) root directory.
 	    (or (string= dir dirfile)
 		(and (file-name-case-insensitive-p dir)
-		     (eq (compare-strings dir 0 nil dirfile 0 nil t) t))
+		     (string-equal-ignore-case dir dirfile))
 		;; If this is the same dir we last got the truename for,
 		;; save time--don't recalculate.
 		(if (assoc dir (car prev-dirs))
@@ -2912,7 +2965,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.js[mx]?\\'" . javascript-mode)
      ;; https://en.wikipedia.org/wiki/.har
      ("\\.har\\'" . javascript-mode)
-     ("\\.json\\'" . javascript-mode)
+     ("\\.json\\'" . js-json-mode)
      ("\\.[ds]?va?h?\\'" . verilog-mode)
      ("\\.by\\'" . bovine-grammar-mode)
      ("\\.wy\\'" . wisent-grammar-mode)
@@ -3111,9 +3164,6 @@ major mode MODE.
 
 See also `auto-mode-alist'.")
 
-(define-obsolete-variable-alias 'inhibit-first-line-modes-regexps
-  'inhibit-file-local-variables-regexps "24.1")
-
 ;; TODO really this should be a list of modes (eg tar-mode), not regexps,
 ;; because we are duplicating info from auto-mode-alist.
 ;; TODO many elements of this list are also in auto-coding-alist.
@@ -3133,9 +3183,6 @@ specifications, but are not really, or they may be containers for
 member files with their own local variable sections, which are
 not appropriate for the containing file.
 The function `inhibit-local-variables-p' uses this.")
-
-(define-obsolete-variable-alias 'inhibit-first-line-modes-suffixes
-  'inhibit-local-variables-suffixes "24.1")
 
 (defvar inhibit-local-variables-suffixes nil
   "List of regexps matching suffixes to remove from file names.
@@ -3816,10 +3863,8 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 	(cond ((memq var ignored-local-variables)
 	       ;; Ignore any variable in `ignored-local-variables'.
 	       nil)
-              ((seq-some (lambda (elem)
-                           (and (eq (car elem) var)
-                                (eq (cdr elem) val)))
-                         ignored-local-variable-values)
+              ;; Ignore variables with the specified values.
+              ((member elt ignored-local-variable-values)
                nil)
 	      ;; Obey `enable-local-eval'.
 	      ((eq var 'eval)
@@ -4414,7 +4459,8 @@ This function returns either:
                   ;; The entry MTIME should match the most recent
                   ;; MTIME among matching files.
                   (and cached-files
-		       (equal (nth 2 dir-elt)
+		       (time-equal-p
+			      (nth 2 dir-elt)
 			      (let ((latest 0))
 				(dolist (f cached-files latest)
 				  (let ((f-time
@@ -4817,6 +4863,26 @@ Interactively, confirmation is required unless you supply a prefix argument."
     ;; It's likely that the VC status at the new location is different from
     ;; the one at the old location.
     (vc-refresh-state)))
+
+(defun rename-visited-file (new-location)
+  "Rename the file visited by the current buffer to NEW-LOCATION.
+This command also sets the visited file name.  If the buffer
+isn't visiting any file, that's all it does.
+
+Interactively, this prompts for NEW-LOCATION."
+  (interactive
+   (list (if buffer-file-name
+             (read-file-name "Rename visited file to: ")
+           (read-file-name "Set visited file name: "
+                           default-directory
+                           (expand-file-name
+                            (file-name-nondirectory (buffer-name))
+                            default-directory)))))
+  (when (and buffer-file-name
+             (file-exists-p buffer-file-name))
+    (rename-file buffer-file-name new-location))
+  (set-visited-file-name new-location nil t))
+
 
 (defun file-extended-attributes (filename)
   "Return an alist of extended attributes of file FILENAME.
@@ -5065,14 +5131,16 @@ extension, the value is \"\"."
             "")))))
 
 (defun file-name-with-extension (filename extension)
-  "Set the EXTENSION of a FILENAME.
+  "Return FILENAME modified to have the specified EXTENSION.
 The extension (in a file name) is the part that begins with the last \".\".
+This function removes any existing extension from FILENAME, and then
+appends EXTENSION to it.
 
-Trims a leading dot from the EXTENSION so that either \"foo\" or
-\".foo\" can be given.
+EXTENSION may include the leading dot; if it doesn't, this function
+will provide it.
 
-Errors if the FILENAME or EXTENSION are empty, or if the given
-FILENAME has the format of a directory.
+It is an error if FILENAME or EXTENSION is empty, or if FILENAME
+is in the form of a directory name according to `directory-name-p'.
 
 See also `file-name-sans-extension'."
   (let ((extn (string-trim-left extension "[.]")))
@@ -5117,6 +5185,24 @@ On most systems, this will be true:
                 components)
           (setq filename nil))))
     components))
+
+(defun file-parent-directory (filename)
+  "Return the directory name of the parent directory of FILENAME.
+If FILENAME is at the root of the filesystem, return nil.
+If FILENAME is relative, it is interpreted to be relative
+to `default-directory', and the result will also be relative."
+  (let* ((expanded-filename (expand-file-name filename))
+         (parent (file-name-directory (directory-file-name expanded-filename))))
+    (cond
+     ;; filename is at top-level, therefore no parent
+     ((or (null parent)
+          (file-equal-p parent expanded-filename))
+      nil)
+     ;; filename is relative, return relative parent
+     ((not (file-name-absolute-p filename))
+      (file-relative-name parent))
+     (t
+      parent))))
 
 (defcustom make-backup-file-name-function
   #'make-backup-file-name--default-function
@@ -5387,21 +5473,17 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
 	     ;; Test for different drive letters
 	     (not (eq t (compare-strings filename 0 2 directory 0 2 fold-case)))
 	     ;; Test for UNCs on different servers
-	     (not (eq t (compare-strings
-			 (progn
-			   (if (string-match "\\`//\\([^:/]+\\)/" filename)
-			       (match-string 1 filename)
-			     ;; Windows file names cannot have ? in
-			     ;; them, so use that to detect when
-			     ;; neither FILENAME nor DIRECTORY is a
-			     ;; UNC.
-			     "?"))
-			 0 nil
-			 (progn
-			   (if (string-match "\\`//\\([^:/]+\\)/" directory)
-			       (match-string 1 directory)
-			     "?"))
-			 0 nil t)))))
+	     (not (string-equal-ignore-case
+		   (if (string-match "\\`//\\([^:/]+\\)/" filename)
+		       (match-string 1 filename)
+		     ;; Windows file names cannot have ? in
+		     ;; them, so use that to detect when
+		     ;; neither FILENAME nor DIRECTORY is a
+		     ;; UNC.
+		     "?")
+		   (if (string-match "\\`//\\([^:/]+\\)/" directory)
+		       (match-string 1 directory)
+		     "?")))))
 	   ;; Test for different remote file system identification
 	   (not (equal fremote dremote)))
 	  filename
@@ -6550,9 +6632,14 @@ preserve markers and overlays, at the price of being slower."
   ;; interface, but leaving the programmatic interface the same.
   (interactive (list (not current-prefix-arg)))
   (let ((revert-buffer-in-progress-p t)
-        (revert-buffer-preserve-modes preserve-modes))
+        (revert-buffer-preserve-modes preserve-modes)
+        (state (and (boundp 'read-only-mode--state)
+                    (list read-only-mode--state))))
     (funcall (or revert-buffer-function #'revert-buffer--default)
-             ignore-auto noconfirm)))
+             ignore-auto noconfirm)
+    (when state
+      (setq buffer-read-only (car state))
+      (setq-local read-only-mode--state (car state)))))
 
 (defun revert-buffer--default (ignore-auto noconfirm)
   "Default function for `revert-buffer'.
@@ -7928,7 +8015,7 @@ If RESTART, restart Emacs after killing the current Emacs process."
                       ("Close Without Saving" . no-save)
                       ("Save All" . save-all)
                       ("Cancel" . cancel)))
-            ('cancel (user-error "Exit cancelled"))
+            ('cancel (user-error "Exit canceled"))
             ('save-all (save-some-buffers t)))
         (save-some-buffers arg t)))
   (let ((confirm confirm-kill-emacs))
@@ -8166,6 +8253,7 @@ arguments as the running Emacs)."
         (_
          (apply operation arguments))))))
 
+;;;###autoload
 (defsubst file-name-quoted-p (name &optional top)
   "Whether NAME is quoted with prefix \"/:\".
 If NAME is a remote file name and TOP is nil, check the local part of NAME."
@@ -8265,7 +8353,7 @@ such as `?d' for a directory, or `?l' for a symbolic link and will override
 the leading `-' char."
   (string
    (or filetype
-       (pcase (lsh mode -12)
+       (pcase (ash mode -12)
          ;; POSIX specifies that the file type is included in st_mode
          ;; and provides names for the file types but values only for
          ;; the permissions (e.g., S_IWOTH=2).

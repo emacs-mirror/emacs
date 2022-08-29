@@ -175,16 +175,15 @@ the list is tried until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-shell-program '("ssh %s imapd"
-				"rsh %s imapd"
-				"ssh %g ssh %s imapd"
-				"rsh %g rsh %s imapd")
+                                "ssh %g ssh %s imapd")
   "A list of strings, containing commands for IMAP connection.
 Within a string, %s is replaced with the server address, %p with port
 number on server, %g with `imap-shell-host', and %l with
 `imap-default-user'.  The program should read IMAP commands from stdin
 and write IMAP response to stdout.  Each entry in the list is tried
 until a successful connection is made."
-  :type '(repeat string))
+  :type '(repeat string)
+  :version "29.1")
 
 (defcustom imap-process-connection-type nil
   "Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell and SSL.
@@ -2557,7 +2556,7 @@ Return nil if no complete line has arrived."
 			      ;; next line for Courier IMAP bug.
 			      (skip-chars-forward " ")
 			      (point)))
-		(> (skip-chars-forward "^ )" (point-at-eol)) 0))
+                (> (skip-chars-forward "^ )" (line-end-position)) 0))
       (push (buffer-substring start (point)) flag-list))
     (cl-assert (eq (char-after) ?\)) nil "In imap-parse-flag-list 2")
     (imap-forward)

@@ -1210,8 +1210,8 @@ dump_queue_find_score_of_one_weight_queue (struct dump_queue *dump_queue,
 static Lisp_Object
 dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 {
-  eassert (EQ (Fhash_table_count (dump_queue->sequence_numbers),
-               Fhash_table_count (dump_queue->link_weights)));
+  eassert (BASE_EQ (Fhash_table_count (dump_queue->sequence_numbers),
+		    Fhash_table_count (dump_queue->link_weights)));
 
   eassert (XFIXNUM (Fhash_table_count (dump_queue->sequence_numbers))
 	   <= (dump_tailq_length (&dump_queue->fancy_weight_objects)
@@ -2701,7 +2701,7 @@ dump_hash_table (struct dump_context *ctx,
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_F8FE65D42F
+#if CHECK_STRUCTS && !defined HASH_buffer_AA373AEE10
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
@@ -2764,6 +2764,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
       DUMP_FIELD_COPY (out, buffer, own_text.end_unchanged);
       DUMP_FIELD_COPY (out, buffer, own_text.unchanged_modified);
       DUMP_FIELD_COPY (out, buffer, own_text.overlay_unchanged_modified);
+      DUMP_FIELD_COPY (out, buffer, own_text.chars_unchanged_modified);
       if (buffer->own_text.intervals)
         dump_field_fixup_later (ctx, out, buffer, &buffer->own_text.intervals);
       dump_field_lv_rawptr (ctx, out, buffer, &buffer->own_text.markers,
@@ -2813,6 +2814,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, prevent_redisplay_optimizations_p);
   DUMP_FIELD_COPY (out, buffer, clip_changed);
   DUMP_FIELD_COPY (out, buffer, inhibit_buffer_hooks);
+  DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
   dump_field_lv_rawptr (ctx, out, buffer, &buffer->overlays_before,
                         Lisp_Vectorlike, WEIGHT_NORMAL);
@@ -2909,6 +2911,9 @@ static dump_off
 dump_native_comp_unit (struct dump_context *ctx,
 		       struct Lisp_Native_Comp_Unit *comp_u)
 {
+  if (!CONSP (comp_u->file))
+    error ("Trying to dump non fixed-up eln file");
+
   /* Have function documentation always lazy loaded to optimize load-time.  */
   comp_u->data_fdoc_v = Qnil;
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
@@ -4038,6 +4043,8 @@ types.  */)
 
   if (!NILP (XCDR (Fall_threads ())))
     error ("No other Lisp threads can be running when this function is called");
+
+  check_pure_size ();
 
   /* Clear out any detritus in memory.  */
   do

@@ -456,9 +456,6 @@ variable, and is meant to be used in `compilation-filter-hook'."
       (_
        (ansi-color-apply-on-region compilation-filter-start (point))))))
 
-(define-obsolete-function-alias 'ansi-color-unfontify-region
-  'font-lock-default-unfontify-region "24.1")
-
 ;; Working with strings
 (defvar-local ansi-color-context nil
   "Context saved between two calls to `ansi-color-apply'.

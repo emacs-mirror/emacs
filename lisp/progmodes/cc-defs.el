@@ -425,23 +425,6 @@ to it is returned.  This function does not modify the point or the mark."
 
 (defvar lookup-syntax-properties)       ;XEmacs.
 
-(eval-and-compile
-  ;; Constant to decide at compilation time whether to use category
-  ;; properties.  Currently (2010-03) they're available only on GNU Emacs.
-  (defconst c-use-category
-    (with-temp-buffer
-      (let ((parse-sexp-lookup-properties t)
-	    (lookup-syntax-properties t))
-        (set-syntax-table (make-syntax-table))
-        (insert "<()>")
-        (put-text-property (point-min) (1+ (point-min))
-			   'category 'c-<-as-paren-syntax)
-        (put-text-property (+ 3 (point-min)) (+ 4 (point-min))
-			   'category 'c->-as-paren-syntax)
-        (goto-char (point-min))
-        (forward-sexp)
-        (= (point) (+ 4 (point-min)))))))
-
 (defmacro c-is-escaped (pos)
   ;; Are there an odd number of backslashes before POS?
   (declare (debug t))
@@ -811,15 +794,16 @@ right side of it."
 	       `(c-safe (scan-lists ,from ,count ,depth)))))
     (if limit
 	`(save-restriction
-	   (when ,limit
-	     ,(if (numberp count)
-		  (if (< count 0)
-		      `(narrow-to-region ,limit (point-max))
-		    `(narrow-to-region (point-min) ,limit))
-		`(if (< ,count 0)
-		     (narrow-to-region ,limit (point-max))
-		   (narrow-to-region (point-min) ,limit))))
-	   ,res)
+	   (let ((-limit- ,limit))
+	     (when -limit-
+	       ,(if (numberp count)
+		    (if (< count 0)
+			`(narrow-to-region -limit- (point-max))
+		      `(narrow-to-region (point-min) -limit-))
+		  `(if (< ,count 0)
+		       (narrow-to-region -limit- (point-max))
+		     (narrow-to-region (point-min) -limit-))))
+	     ,res))
       res)))
 
 
@@ -1147,11 +1131,13 @@ MODE is either a mode symbol or a list of mode symbols."
 			       (cc-bytecomp-fboundp 'delete-extent)
 			       (cc-bytecomp-fboundp 'map-extents))))
 
-(defconst c-<-as-paren-syntax '(4 . ?>))
-(put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax)
+(eval-and-compile
+  (defconst c-<-as-paren-syntax '(4 . ?>))
+  (put 'c-<-as-paren-syntax 'syntax-table c-<-as-paren-syntax))
 
-(defconst c->-as-paren-syntax '(5 . ?<))
-(put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax)
+(eval-and-compile
+  (defconst c->-as-paren-syntax '(5 . ?<))
+  (put 'c->-as-paren-syntax 'syntax-table c->-as-paren-syntax))
 
 ;; `c-put-char-property' is complex enough in XEmacs and Emacs < 21 to
 ;; make it a function.
@@ -1209,6 +1195,26 @@ MODE is either a mode symbol or a list of mode symbols."
 		    (eq `,property 'syntax-table))
 	   `((setq c-syntax-table-hwm (min c-syntax-table-hwm -pos-))))
        (put-text-property -pos- (1+ -pos-) ',property ,value))))
+
+(eval-and-compile
+  ;; Constant to decide at compilation time whether to use category
+  ;; properties.  Currently (2010-03) they're available only on GNU
+  ;; Emacs.  This defconst must follow the declarations of
+  ;; `c-<-as-paren-syntax' and `c->-as-paren-syntax'.
+  (defconst c-use-category
+    (eval-when-compile
+      (with-temp-buffer
+	(let ((parse-sexp-lookup-properties t)
+	      (lookup-syntax-properties t))
+          (set-syntax-table (make-syntax-table))
+          (insert "<()>")
+          (put-text-property (point-min) (1+ (point-min))
+			     'category 'c-<-as-paren-syntax)
+          (put-text-property (+ 3 (point-min)) (+ 4 (point-min))
+			     'category 'c->-as-paren-syntax)
+          (goto-char (point-min))
+          (forward-sexp)
+          (= (point) (+ 4 (point-min))))))))
 
 (defmacro c-get-char-property (pos property)
   ;; Get the value of the given property on the character at POS if
@@ -1646,7 +1652,7 @@ with value CHAR in the region [FROM to)."
   ;; toggle the property in all template brackets simultaneously and
   ;; cheaply.  We use this, for instance, in `c-parse-state'.
   (declare (debug t))
-  (if c-use-category
+  (if (eval-when-compile c-use-category)
       `(c-put-char-property ,pos 'category 'c-<-as-paren-syntax)
     `(c-put-char-property ,pos 'syntax-table c-<-as-paren-syntax)))
 
@@ -1661,7 +1667,7 @@ with value CHAR in the region [FROM to)."
   ;; toggle the property in all template brackets simultaneously and
   ;; cheaply.  We use this, for instance, in `c-parse-state'.
   (declare (debug t))
-  (if c-use-category
+  (if (eval-when-compile c-use-category)
       `(c-put-char-property ,pos 'category 'c->-as-paren-syntax)
     `(c-put-char-property ,pos 'syntax-table c->-as-paren-syntax)))
 
@@ -1675,7 +1681,9 @@ with value CHAR in the region [FROM to)."
   ;; toggle the property in all template brackets simultaneously and
   ;; cheaply.  We use this, for instance, in `c-parse-state'.
   (declare (debug t))
-  `(c-clear-char-property ,pos ,(if c-use-category ''category ''syntax-table)))
+  `(c-clear-char-property ,pos ,(if (eval-when-compile c-use-category)
+				    ''category
+				  ''syntax-table)))
 
 (defsubst c-suppress-<->-as-parens ()
   ;; Suppress the syntactic effect of all marked < and > as parens.  Note
@@ -1755,7 +1763,7 @@ with value CHAR in the region [FROM to)."
 
 (defmacro c-sc-scan-lists (from count depth)
   (declare (debug t))
-  (if c-use-category
+  (if (eval-when-compile c-use-category)
       `(scan-lists ,from ,count ,depth)
     (cond
      ((and (eq count 1) (eq depth 1))
@@ -1803,7 +1811,7 @@ with value CHAR in the region [FROM to)."
 (defmacro c-sc-parse-partial-sexp (from to &optional targetdepth stopbefore
 					oldstate)
   (declare (debug t))
-  (if c-use-category
+  (if (eval-when-compile c-use-category)
       `(parse-partial-sexp ,from ,to ,targetdepth ,stopbefore ,oldstate)
     `(c-sc-parse-partial-sexp-no-category ,from ,to ,targetdepth ,stopbefore
 					  ,oldstate)))
@@ -2063,8 +2071,8 @@ non-nil, a caret is prepended to invert the set."
     str))
 
 ;; Leftovers from (X)Emacs 19 compatibility.
-(defalias 'c-regexp-opt 'regexp-opt)
-(defalias 'c-regexp-opt-depth 'regexp-opt-depth)
+(define-obsolete-function-alias 'c-regexp-opt #'regexp-opt "29.1")
+(define-obsolete-function-alias 'c-regexp-opt-depth #'regexp-opt-depth "29.1")
 
 
 ;; Figure out what features this Emacs has

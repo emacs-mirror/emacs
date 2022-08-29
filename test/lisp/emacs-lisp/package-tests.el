@@ -638,6 +638,21 @@ but with a different end of line convention (bug#48137)."
       (package-refresh-contents)
       (should (equal (length package-archive-contents) 2)))))
 
+(ert-deftest package-test-package-installed-p ()
+  "Test package-installed-p before and after package initialization."
+  (with-package-test ()
+    ;; Verify that `package-installed-p' evaluates true for a built-in
+    ;; package, in this case `project', before package initialization.
+    (should (not package--initialized))
+    (should (package-installed-p 'project nil))
+    (should (not (package-installed-p 'imaginary-package nil)))
+
+    ;; The results don't change after package initialization.
+    (package-initialize)
+    (should package--initialized)
+    (should (package-installed-p 'project nil))
+    (should (not (package-installed-p 'imaginary-package nil)))))
+
 (ert-deftest package-test-describe-package ()
   "Test displaying help for a package."
 

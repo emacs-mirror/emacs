@@ -3103,92 +3103,92 @@ complete(328,10055
 add_active(340,10527
 parse(353,10949
 derived_analyses(364,11341
-build(378,11965
-buildact(392,12521
-mapsyn(412,13542
-add_edge(434,14278
-findcats(447,14758
-normalize_tree(465,15478
-normalize_trees(475,15856
-expandmng_tree(486,16248
-expandmng_trees(496,16614
-cat(511,17013
-subtree(644,21266
-hypothetical_mem(653,21565
-make_coor(667,22130
-start_up:-start_up688,23013
-tokenizeatom(710,23921
-tokenize(720,24348
-isoperator(752,25377
-isoptab(756,25431
-specialsymbol(765,25756
-sstab(771,25861
-parse_cgi(787,26347
-keyvalseq(792,26510
-andkeyvalseq(796,26609
-keyval(799,26688
-valseq(807,26920
-plusvalseq(810,27007
-val(816,27109
-argvals(824,27426
-commaargvals(828,27503
-atomval(833,27578
-atom(836,27640
-action(846,28004
-keyvalcgi(864,28649
-keyvalscgi(865,28670
-outsyn(868,28726
-act(876,29060
-actout(901,29906
-texttreelist(912,30089
-htmltreelist(918,30190
-fitchtreelist(924,30304
-pp_html_table_tree(938,30759
-pp_html_tree(949,31113
-pp_html_trees(988,32381
-pp_html_table_fitch_tree(999,32769
-pp_html_fitch_tree(1017,33672
-removeexp(1129,39002
-splitexp(1142,39490
-pp_exp(1155,39990
-map_word(1168,40249
-pp_exps(1180,40474
-pp_tree(1188,40777
-pp_trees(1216,41807
-pp_word_list(1225,42128
-pp_word(1231,42262
-pp_word_list_rest(1238,42569
-pp_cat(1248,42929
-pp_syn(1255,43196
-pp_syn_paren(1276,43899
-pp_paren(1293,44377
-pp_syn_back(1300,44661
-pp_bas_cat(1311,45001
-writecat(1322,45409
-writesubs(1351,46455
-writesups(1361,46757
-writelistsubs(1371,47090
-pp_lam(1380,47408
-pp_lam_bracket(1398,48022
-pp_lam_paren(1407,48338
-pp_rule(1429,49238
-member(1447,49866
-append_list(1451,49919
-append(1456,50010
-at_least_one_member(1460,50076
-numbervars(1464,50171
-reverse(1467,50209
-select(1471,50290
-select_last(1475,50357
-cat_atoms(1479,50436
-writelist(1485,50524
-write_lex_cat(1492,50676
-writebreaklex(1500,50988
-write_lex(1513,51265
-writebreak(1521,51541
-tt:-tt1531,51713
-mt:-mt1534,51784
-cmt:-cmt1537,51878
+build(378,11967
+buildact(392,12523
+mapsyn(412,13544
+add_edge(434,14280
+findcats(447,14760
+normalize_tree(465,15480
+normalize_trees(475,15858
+expandmng_tree(486,16250
+expandmng_trees(496,16616
+cat(511,17015
+subtree(644,21268
+hypothetical_mem(653,21567
+make_coor(667,22132
+start_up:-start_up688,23015
+tokenizeatom(710,23923
+tokenize(720,24350
+isoperator(752,25379
+isoptab(756,25433
+specialsymbol(765,25758
+sstab(771,25863
+parse_cgi(787,26349
+keyvalseq(792,26512
+andkeyvalseq(796,26611
+keyval(799,26690
+valseq(807,26922
+plusvalseq(810,27009
+val(816,27111
+argvals(824,27428
+commaargvals(828,27505
+atomval(833,27580
+atom(836,27642
+action(846,28006
+keyvalcgi(864,28651
+keyvalscgi(865,28672
+outsyn(868,28728
+act(876,29062
+actout(901,29908
+texttreelist(912,30091
+htmltreelist(918,30192
+fitchtreelist(924,30306
+pp_html_table_tree(938,30761
+pp_html_tree(949,31115
+pp_html_trees(988,32383
+pp_html_table_fitch_tree(999,32771
+pp_html_fitch_tree(1017,33674
+removeexp(1129,39004
+splitexp(1142,39492
+pp_exp(1155,39992
+map_word(1168,40251
+pp_exps(1180,40476
+pp_tree(1188,40779
+pp_trees(1216,41809
+pp_word_list(1225,42130
+pp_word(1231,42264
+pp_word_list_rest(1238,42571
+pp_cat(1248,42931
+pp_syn(1255,43198
+pp_syn_paren(1276,43901
+pp_paren(1293,44379
+pp_syn_back(1300,44663
+pp_bas_cat(1311,45003
+writecat(1322,45411
+writesubs(1351,46457
+writesups(1361,46759
+writelistsubs(1371,47092
+pp_lam(1380,47410
+pp_lam_bracket(1398,48024
+pp_lam_paren(1407,48340
+pp_rule(1429,49240
+member(1447,49868
+append_list(1451,49921
+append(1456,50012
+at_least_one_member(1460,50078
+numbervars(1464,50173
+reverse(1467,50211
+select(1471,50292
+select_last(1475,50359
+cat_atoms(1479,50438
+writelist(1485,50526
+write_lex_cat(1492,50678
+writebreaklex(1500,50990
+write_lex(1513,51267
+writebreak(1521,51543
+tt:-tt1531,51715
+mt:-mt1534,51786
+cmt:-cmt1537,51880
 
 pyt-src/server.py,1438
 class Controls:Controls17,358
@@ -4083,60 +4083,60 @@ merc-src/accumulator.m,3228
 :- func initialize_goal_store570,22060
 :- pred accu_store580,22421
 :- pred identify_recursive_calls601,23288
-:- pred identify_out_and_out_prime626,24396
-:- type accu_sets676,26425
-:- pred accu_stage1689,26977
-:- pred accu_stage1_2727,28347
-:- pred accu_sets_init781,30557
-:- func set_upto796,30984
-:- pred accu_before812,31498
-:- pred accu_assoc835,32477
-:- pred accu_construct862,33712
-:- pred accu_construct_assoc896,35307
-:- pred accu_update938,37069
-:- pred member_lessthan_goalid964,38219
-:- type accu_assoc975,38652
-:- pred accu_is_associative986,39138
-:- pred associativity_assertion1014,40263
-:- pred commutativity_assertion1037,41242
-:- pred accu_is_update1057,41952
-:- pred is_associative_construction1078,42802
-:- type accu_substs1095,43480
-:- type accu_base1103,43744
-:- pred accu_stage21124,44605
-:- pred accu_substs_init1179,46957
-:- pred acc_var_subst_init1194,47573
-:- pred create_new_var1207,48147
-:- pred accu_process_assoc_set1223,48862
-:- pred accu_has_heuristic1297,52081
-:- pred accu_heuristic1304,52336
-:- pred accu_process_update_set1318,52906
-:- pred accu_divide_base_case1380,55844
-:- pred accu_related1412,57146
-:- inst stored_goal_plain_call1444,58415
-:- pred lookup_call1449,58601
-:- pred accu_stage31470,59432
-:- pred acc_proc_info1508,61326
-:- pred acc_pred_info1556,63449
-:- pred accu_create_goal1600,65285
-:- func create_acc_call1621,66400
-:- pred create_orig_goal1634,66987
-:- pred create_acc_goal1662,68157
-:- func create_new_orig_recursive_goals1709,70225
-:- func create_new_recursive_goals1723,70918
-:- func create_new_base_goals1738,71717
-:- pred acc_unification1749,72156
-:- pred accu_top_level1766,72896
-:- pred update_accumulator_pred1856,76290
-:- func accu_rename1876,77253
-:- func base_case_ids1889,77784
-:- func base_case_ids_set1898,78048
-:- func accu_goal_list1905,78269
-:- pred calculate_goal_info1916,78680
-:- func chain_subst1932,79319
-:- pred chain_subst_21938,79482
-:- some [T] pred unravel_univ1956,80060
-:- pragma foreign_export1957,80116
+:- pred identify_out_and_out_prime626,24397
+:- type accu_sets676,26426
+:- pred accu_stage1689,26978
+:- pred accu_stage1_2727,28348
+:- pred accu_sets_init781,30558
+:- func set_upto796,30985
+:- pred accu_before812,31499
+:- pred accu_assoc835,32478
+:- pred accu_construct862,33713
+:- pred accu_construct_assoc896,35308
+:- pred accu_update938,37070
+:- pred member_lessthan_goalid964,38220
+:- type accu_assoc975,38653
+:- pred accu_is_associative986,39139
+:- pred associativity_assertion1014,40264
+:- pred commutativity_assertion1037,41243
+:- pred accu_is_update1057,41953
+:- pred is_associative_construction1078,42803
+:- type accu_substs1095,43481
+:- type accu_base1103,43745
+:- pred accu_stage21124,44606
+:- pred accu_substs_init1179,46958
+:- pred acc_var_subst_init1194,47574
+:- pred create_new_var1207,48148
+:- pred accu_process_assoc_set1223,48863
+:- pred accu_has_heuristic1297,52082
+:- pred accu_heuristic1304,52337
+:- pred accu_process_update_set1318,52907
+:- pred accu_divide_base_case1380,55845
+:- pred accu_related1412,57147
+:- inst stored_goal_plain_call1444,58416
+:- pred lookup_call1449,58602
+:- pred accu_stage31470,59433
+:- pred acc_proc_info1508,61327
+:- pred acc_pred_info1556,63450
+:- pred accu_create_goal1600,65286
+:- func create_acc_call1621,66401
+:- pred create_orig_goal1634,66988
+:- pred create_acc_goal1662,68158
+:- func create_new_orig_recursive_goals1709,70226
+:- func create_new_recursive_goals1723,70919
+:- func create_new_base_goals1738,71718
+:- pred acc_unification1749,72157
+:- pred accu_top_level1766,72897
+:- pred update_accumulator_pred1856,76291
+:- func accu_rename1876,77254
+:- func base_case_ids1889,77785
+:- func base_case_ids_set1898,78049
+:- func accu_goal_list1905,78270
+:- pred calculate_goal_info1916,78681
+:- func chain_subst1932,79320
+:- pred chain_subst_21938,79483
+:- some [T] pred unravel_univ1956,80061
+:- pragma foreign_export1957,80117
 
 c-src/c.c,76
 T f(1,0
