@@ -3686,6 +3686,12 @@ read_stack_push (struct read_stack_entry e)
   rdstack.stack[rdstack.sp++] = e;
 }
 
+static void
+read_stack_reset (intmax_t sp)
+{
+  eassert (sp <= rdstack.sp);
+  rdstack.sp = sp;
+}
 
 /* Read a Lisp object.
    If LOCATE_SYMS is true, symbols are read with position.  */
@@ -3699,6 +3705,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
   specpdl_ref count = SPECPDL_INDEX ();
 
   ptrdiff_t base_sp = rdstack.sp;
+  record_unwind_protect_intmax (read_stack_reset, base_sp);
 
   bool uninterned_symbol;
   bool skip_shorthand;
