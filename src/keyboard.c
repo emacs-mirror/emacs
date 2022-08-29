@@ -1827,21 +1827,15 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
     }
 }
 
-/* Subroutine for safe_run_hooks: run the hook, which is ARGS[1].  */
+/* Subroutine for safe_run_hooks: run the hook's function.
+   ARGS[0] holds the name of the hook, which we don't need here (we only use
+   it in the failure case of the internal_condition_case_n).  */
 
 static Lisp_Object
 safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
-  switch (nargs)
-    {
-    case 2:
-      return call0 (args[1]);
-    case 3:
-      return call1 (args[1], args[2]);
-    default:
-      return call2 (args[1], args[2], args[3]);
-    }
+  eassert (nargs >= 2);
+  return Ffuncall (nargs - 1, args + 1);
 }
 
 /* Subroutine for safe_run_hooks: handle an error by clearing out the function
@@ -1850,7 +1844,7 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
+  eassert (nargs >= 2);
   AUTO_STRING (format, "Error in %s (%S): %S");
   Lisp_Object hook = args[0];
   Lisp_Object fun = args[1];
@@ -1886,27 +1880,13 @@ safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
-  /* Yes, run_hook_with_args works with args in the other order.  */
-  switch (nargs)
-    {
-    case 2:
-      internal_condition_case_n (safe_run_hooks_1,
-				 2, ((Lisp_Object []) {args[1], args[0]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    case 3:
-      internal_condition_case_n (safe_run_hooks_1,
-				 3, ((Lisp_Object []) {args[1], args[0], args[2]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    default:
-      internal_condition_case_n (safe_run_hooks_1,
-				 4, ((Lisp_Object [])
-				     {args[1], args[0], args[2], args[3]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    }
+  eassert (nargs >= 2);
+  /* We need to swap args[0] and args[1] here or in `safe_run_hooks_1`.
+     It's more convenient to do it here.  */
+  Lisp_Object fun = args[0], hook = args[1];
+  args[0] = hook, args[1] = fun;
+  internal_condition_case_n (safe_run_hooks_1, nargs, args,
+                             Qt, safe_run_hooks_error);
   return Qnil;
 }
 
@@ -1920,7 +1900,8 @@ safe_run_hooks (Lisp_Object hook)
   specpdl_ref count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_quit, Qt);
-  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
+                      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
@@ -1936,7 +1917,8 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 			       make_fixnum (get_narrowed_zv (w, PT)),
 			       true);
 
-  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
+                      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
