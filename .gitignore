@@ -330,3 +330,4 @@ manual/
 
 # Ignore a directory used by dap-mode.
 .vscode
+/test/gmp.h
