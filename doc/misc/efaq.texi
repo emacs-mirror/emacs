@@ -3048,22 +3048,34 @@ $ fc-list :spacing=mono family | sed 's/ /\\ /g'
 You can now start Emacs inside @command{fbterm} with the command
 
 @example
+$ fbterm -- env TERM=fbterm emacs
+@end example
+
+In some versions of @command{fbterm}, setting @env{TERM} to
+@samp{fbterm} can be omitted.  To check whether it is needed, start
+Emacs inside @command{fbterm} with the command
+
+@example
 $ fbterm -- emacs
 @end example
+
+@noindent
+and type @kbd{M-x list-colors-display}.  If only 8 colors are
+displayed, it is necessary; if 256 colors are displayed, it isn't.
 
 You may want to add an alias for that command in your shell
 configuration file.  For example, if you use Bash, you can add the
 following line to your @file{~/.bashrc} file:
 
 @example
-alias emacs="fbterm -- emacs"
+alias emacs="fbterm -- env TERM=fbterm emacs"
 @end example
 
 @noindent
 or, if you use Emacs both in the Linux console and under X:
 
 @example
-[[ "$(tty)" =~ "/dev/tty" ]] && alias emacs="fbterm -- emacs"
+[[ "$(tty)" =~ "/dev/tty" ]] && alias emacs="fbterm -- env TERM=fbterm emacs"
 @end example
 
 The @command{fbterm} terminal emulator may define a number of key
@@ -3082,7 +3094,7 @@ start Emacs inside @command{fbterm} as root while ensuring that
 @command{fbterm} does not define any key bindings for its own use:
 
 @example
-# capsh --drop=cap_sys_tty_config -- -c "fbterm -- emacs"
+# capsh --drop=cap_sys_tty_config -- -c "fbterm -- env TERM=fbterm emacs"
 @end example
 
 Again you may want to add a shortcut for that command in the shell
@@ -3096,7 +3108,7 @@ you use Bash, you can add the following function in the root user
 @example
 function emacs ()
 @{
-  CMD="fbterm -- emacs "
+  CMD="fbterm -- env TERM=fbterm emacs "
   for ARG in "$@@"
   do
     CMD="$CMD '$ARG' "
