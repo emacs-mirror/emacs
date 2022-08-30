@@ -428,12 +428,15 @@ BOUND NOERROR COUNT are passed to `re-search-backward'."
   (re-search-backward (char-fold-to-regexp string) bound noerror count))
 
 
+;;;###autoload
 (defun describe-char-fold-equivalences (char &optional lax)
-  "Display characters equivalent to CHAR.
-Prompt for CHAR.  With no input, i.e. when CHAR is nil, by default
+  "Display characters equivalent to CHAR under character-folding.
+Prompt for CHAR (using `read-char-by-name', which see for how can
+you specify the character).  With no input, i.e. when CHAR is nil,
 describe all available character equivalences of `char-fold-to-regexp'.
-Interactively, a prefix arg means also include partially matching
-ligatures."
+Optional argument LAX (interactively, the prefix argument), if
+non-nil, means also include partially matching ligatures and
+non-canonical equivalences."
   (interactive (list (ignore-errors
                        (read-char-by-name
                         "Character (Unicode name or hex, default all): "))
