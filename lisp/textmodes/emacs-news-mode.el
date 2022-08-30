@@ -73,9 +73,11 @@
 
 (defun emacs-news--mode-common ()
   (setq-local font-lock-defaults '(emacs-news-mode-font-lock-keywords t))
-  (setq-local outline-regexp "\\(:? +\\)?\\(\\*+\\) "
+  ;; This `outline-regexp' matches leading spaces inserted
+  ;; by the current implementation of `outline-minor-mode-use-buttons'.
+  (setq-local outline-regexp "\\(?: +\\)?\\(\\*+\\) "
+              outline-level (lambda () (length (match-string 1)))
               outline-minor-mode-cycle t
-              outline-level (lambda () (length (match-string 2)))
               outline-minor-mode-highlight 'append)
   (outline-minor-mode)
   (emacs-etc--hide-local-variables))

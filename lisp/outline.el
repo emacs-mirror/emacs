@@ -427,15 +427,14 @@ outline font-lock faces to those of major mode."
     (goto-char (point-min))
     (let ((regexp (concat "^\\(?:" outline-regexp "\\).*$")))
       (while (re-search-forward regexp nil t)
-        (let ((overlay (make-overlay (match-beginning 0)
-                                     (match-end 0))))
+        (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
           (overlay-put overlay 'outline-overlay t)
-          (when (or (eq outline-minor-mode-highlight 'override)
+          ;; FIXME: Is it possible to override all underlying face attributes?
+          (when (or (memq outline-minor-mode-highlight '(append override))
                     (and (eq outline-minor-mode-highlight t)
-                         (goto-char (match-beginning 0))
-                         (not (get-text-property (point) 'face))))
+                         (not (get-text-property (match-beginning 0) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
-          (when (and (outline--use-buttons-p) (outline-on-heading-p))
+          (when (outline--use-buttons-p)
             (outline--insert-open-button)))
         (goto-char (match-end 0))))))
 
@@ -452,10 +451,12 @@ See the command `outline-mode' for more information on this mode."
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-highlight
-          (when (and global-font-lock-mode (font-lock-specified-p major-mode))
-            (font-lock-add-keywords nil outline-font-lock-keywords t)
-            (font-lock-flush))
-          (outline-minor-mode-highlight-buffer))
+          (if (and global-font-lock-mode (font-lock-specified-p major-mode))
+              (progn
+                (font-lock-add-keywords nil outline-font-lock-keywords t)
+                (font-lock-flush)
+                (outline--fix-up-all-buttons))
+            (outline-minor-mode-highlight-buffer)))
 	;; Turn off this mode if we change major modes.
 	(add-hook 'change-major-mode-hook
 		  (lambda () (outline-minor-mode -1))
