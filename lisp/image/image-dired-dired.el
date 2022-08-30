@@ -191,30 +191,27 @@ With prefix argument, move ARG lines."
           (select-window window))
       (message "Thumbnail buffer not visible"))))
 
-(defvar image-dired-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; (set-keymap-parent map dired-mode-map)
-    ;; Hijack previous and next line movement. Let C-p and C-b be
-    ;; though...
-    (define-key map "p" #'image-dired-dired-previous-line)
-    (define-key map "n" #'image-dired-dired-next-line)
-    (define-key map [up] #'image-dired-dired-previous-line)
-    (define-key map [down] #'image-dired-dired-next-line)
+(defvar-keymap image-dired-minor-mode-map
+  :doc "Keymap for `image-dired-minor-mode'."
+  ;; Hijack previous and next line movement.  Let C-p and C-b be
+  ;; though...
+  "p"      #'image-dired-dired-previous-line
+  "n"      #'image-dired-dired-next-line
+  "<up>"   #'image-dired-dired-previous-line
+  "<down>" #'image-dired-dired-next-line
 
-    (define-key map (kbd "C-S-n") #'image-dired-next-line-and-display)
-    (define-key map (kbd "C-S-p") #'image-dired-previous-line-and-display)
-    (define-key map (kbd "C-S-m") #'image-dired-mark-and-display-next)
+  "C-S-n"  #'image-dired-next-line-and-display
+  "C-S-p"  #'image-dired-previous-line-and-display
+  "C-S-m"  #'image-dired-mark-and-display-next
 
-    (define-key map "\C-td" #'image-dired-display-thumbs)
-    (define-key map [tab] #'image-dired-jump-thumbnail-buffer)
-    (define-key map "\C-ti" #'image-dired-dired-display-image)
-    (define-key map "\C-tx" #'image-dired-dired-display-external)
-    (define-key map "\C-ta" #'image-dired-display-thumbs-append)
-    (define-key map "\C-t." #'image-dired-display-thumb)
-    (define-key map "\C-tc" #'image-dired-dired-comment-files)
-    (define-key map "\C-tf" #'image-dired-mark-tagged-files)
-    map)
-  "Keymap for `image-dired-minor-mode'.")
+  "C-t d"  #'image-dired-display-thumbs
+  "<tab>"  #'image-dired-jump-thumbnail-buffer
+  "C-t i"  #'image-dired-dired-display-image
+  "C-t x"  #'image-dired-dired-display-external
+  "C-t a"  #'image-dired-display-thumbs-append
+  "C-t ."  #'image-dired-display-thumb
+  "C-t c"  #'image-dired-dired-comment-files
+  "C-t f"  #'image-dired-mark-tagged-files)
 
 (easy-menu-define image-dired-minor-mode-menu image-dired-minor-mode-map
   "Menu for `image-dired-minor-mode'."

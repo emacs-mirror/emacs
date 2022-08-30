@@ -819,84 +819,64 @@ You probably want to use this together with
           (select-window window))
       (message "Associated dired buffer not visible"))))
 
-(defvar image-dired-thumbnail-mode-line-up-map
-  (let ((map (make-sparse-keymap)))
-    ;; map it to "g" so that the user can press it more quickly
-    (define-key map "g" #'image-dired-line-up-dynamic)
-    ;; "f" for "fixed" number of thumbs per row
-    (define-key map "f" #'image-dired-line-up)
-    ;; "i" for "interactive"
-    (define-key map "i" #'image-dired-line-up-interactive)
-    map)
-  "Keymap for line-up commands in `image-dired-thumbnail-mode'.")
+(defvar-keymap image-dired-thumbnail-mode-map
+  :doc "Keymap for `image-dired-thumbnail-mode'."
+  "<right>"    #'image-dired-forward-image
+  "<left>"     #'image-dired-backward-image
+  "<up>"       #'image-dired-previous-line
+  "<down>"     #'image-dired-next-line
+  "C-f"        #'image-dired-forward-image
+  "C-b"        #'image-dired-backward-image
+  "C-p"        #'image-dired-previous-line
+  "C-n"        #'image-dired-next-line
 
-(defvar image-dired-thumbnail-mode-tag-map
-  (let ((map (make-sparse-keymap)))
-    ;; map it to "t" so that the user can press it more quickly
-    (define-key map "t" #'image-dired-tag-thumbnail)
-    ;; "r" for "remove"
-    (define-key map "r" #'image-dired-tag-thumbnail-remove)
-    map)
-  "Keymap for tag commands in `image-dired-thumbnail-mode'.")
+  "<"          #'image-dired-beginning-of-buffer
+  ">"          #'image-dired-end-of-buffer
+  "M-<"        #'image-dired-beginning-of-buffer
+  "M->"        #'image-dired-end-of-buffer
 
-(defvar image-dired-thumbnail-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [right] #'image-dired-forward-image)
-    (define-key map [left] #'image-dired-backward-image)
-    (define-key map [up] #'image-dired-previous-line)
-    (define-key map [down] #'image-dired-next-line)
-    (define-key map "\C-f" #'image-dired-forward-image)
-    (define-key map "\C-b" #'image-dired-backward-image)
-    (define-key map "\C-p" #'image-dired-previous-line)
-    (define-key map "\C-n" #'image-dired-next-line)
+  "d"          #'image-dired-flag-thumb-original-file
+  "<delete>"   #'image-dired-flag-thumb-original-file
+  "m"          #'image-dired-mark-thumb-original-file
+  "u"          #'image-dired-unmark-thumb-original-file
+  "U"          #'image-dired-unmark-all-marks
+  "."          #'image-dired-track-original-file
+  "<tab>"      #'image-dired-jump-original-dired-buffer
 
-    (define-key map "<" #'image-dired-beginning-of-buffer)
-    (define-key map ">" #'image-dired-end-of-buffer)
-    (define-key map (kbd "M-<") #'image-dired-beginning-of-buffer)
-    (define-key map (kbd "M->") #'image-dired-end-of-buffer)
+  "g g"        #'image-dired-line-up-dynamic
+  "g f"        #'image-dired-line-up
+  "g i"        #'image-dired-line-up-interactive
 
-    (define-key map "d" #'image-dired-flag-thumb-original-file)
-    (define-key map [delete] #'image-dired-flag-thumb-original-file)
-    (define-key map "m" #'image-dired-mark-thumb-original-file)
-    (define-key map "u" #'image-dired-unmark-thumb-original-file)
-    (define-key map "U" #'image-dired-unmark-all-marks)
-    (define-key map "." #'image-dired-track-original-file)
-    (define-key map [tab] #'image-dired-jump-original-dired-buffer)
+  "t t"        #'image-dired-tag-thumbnail
+  "t r"        #'image-dired-tag-thumbnail-remove
 
-    ;; add line-up map
-    (define-key map "g" image-dired-thumbnail-mode-line-up-map)
-    ;; add tag map
-    (define-key map "t" image-dired-thumbnail-mode-tag-map)
+  "RET"        #'image-dired-display-thumbnail-original-image
+  "C-<return>" #'image-dired-thumbnail-display-external
 
-    (define-key map "\C-m" #'image-dired-display-thumbnail-original-image)
-    (define-key map [C-return] #'image-dired-thumbnail-display-external)
+  "L"          #'image-dired-rotate-original-left
+  "R"          #'image-dired-rotate-original-right
 
-    (define-key map "L" #'image-dired-rotate-original-left)
-    (define-key map "R" #'image-dired-rotate-original-right)
+  "D"          #'image-dired-thumbnail-set-image-description
+  "S"          #'image-dired-slideshow-start
+  "C-d"        #'image-dired-delete-char
+  "SPC"        #'image-dired-display-next-thumbnail-original
+  "DEL"        #'image-dired-display-previous-thumbnail-original
+  "c"          #'image-dired-comment-thumbnail
 
-    (define-key map "D" #'image-dired-thumbnail-set-image-description)
-    (define-key map "S" #'image-dired-slideshow-start)
-    (define-key map "\C-d" #'image-dired-delete-char)
-    (define-key map " " #'image-dired-display-next-thumbnail-original)
-    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
-    (define-key map "c" #'image-dired-comment-thumbnail)
-
-    ;; Mouse
-    (define-key map [mouse-2] #'image-dired-mouse-display-image)
-    (define-key map [mouse-1] #'image-dired-mouse-select-thumbnail)
-    (define-key map [mouse-3] #'image-dired-mouse-select-thumbnail)
-    (define-key map [down-mouse-1] #'image-dired-mouse-select-thumbnail)
-    (define-key map [down-mouse-2] #'image-dired-mouse-select-thumbnail)
-    (define-key map [down-mouse-3] #'image-dired-mouse-select-thumbnail)
-    ;; Seems I must first set C-down-mouse-1 to undefined, or else it
-    ;; will trigger the buffer menu. If I try to instead bind
-    ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
-    ;; about C-mouse-1 not being defined afterwards. Annoying, but I
-    ;; probably do not completely understand mouse events.
-    (define-key map [C-down-mouse-1] #'undefined)
-    (define-key map [C-mouse-1] #'image-dired-mouse-toggle-mark)
-    map)
-  "Keymap for `image-dired-thumbnail-mode'.")
+  ;; Mouse
+  "<mouse-2>"        #'image-dired-mouse-display-image
+  "<mouse-1>"        #'image-dired-mouse-select-thumbnail
+  "<mouse-3>"        #'image-dired-mouse-select-thumbnail
+  "<down-mouse-1>"   #'image-dired-mouse-select-thumbnail
+  "<down-mouse-2>"   #'image-dired-mouse-select-thumbnail
+  "<down-mouse-3>"   #'image-dired-mouse-select-thumbnail
+  ;; Seems I must first set C-down-mouse-1 to undefined, or else it
+  ;; will trigger the buffer menu. If I try to instead bind
+  ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
+  ;; about C-mouse-1 not being defined afterwards. Annoying, but I
+  ;; probably do not completely understand mouse events.
+  "C-<down-mouse-1>" #'undefined
+  "C-<mouse-1>"      #'image-dired-mouse-toggle-mark)
 
 (easy-menu-define image-dired-thumbnail-mode-menu image-dired-thumbnail-mode-map
   "Menu for `image-dired-thumbnail-mode'."
@@ -930,21 +910,19 @@ You probably want to use this together with
      ["Refresh thumb" image-dired-refresh-thumb])
     ["Quit" quit-window]))
 
-(defvar image-dired-display-image-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "S" #'image-dired-slideshow-start)
-    (define-key map (kbd "SPC") #'image-dired-display-next-thumbnail-original)
-    (define-key map (kbd "DEL") #'image-dired-display-previous-thumbnail-original)
-    (define-key map "n" #'image-dired-display-next-thumbnail-original)
-    (define-key map "p" #'image-dired-display-previous-thumbnail-original)
-    (define-key map "m" #'image-dired-mark-thumb-original-file)
-    (define-key map "d" #'image-dired-flag-thumb-original-file)
-    (define-key map "u" #'image-dired-unmark-thumb-original-file)
-    (define-key map "U" #'image-dired-unmark-all-marks)
-    ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
-    (define-key map "o" nil) ; image-save
-    map)
-  "Keymap for `image-dired-display-image-mode'.")
+(defvar-keymap image-dired-display-image-mode-map
+  :doc "Keymap for `image-dired-display-image-mode'."
+  "S"   #'image-dired-slideshow-start
+  "SPC" #'image-dired-display-next-thumbnail-original
+  "DEL" #'image-dired-display-previous-thumbnail-original
+  "n"   #'image-dired-display-next-thumbnail-original
+  "p"   #'image-dired-display-previous-thumbnail-original
+  "m"   #'image-dired-mark-thumb-original-file
+  "d"   #'image-dired-flag-thumb-original-file
+  "u"   #'image-dired-unmark-thumb-original-file
+  "U"   #'image-dired-unmark-all-marks
+  ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
+  "o" nil)   ; image-save
 
 (define-derived-mode image-dired-thumbnail-mode
   special-mode "image-dired-thumbnail"
