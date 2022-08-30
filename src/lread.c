@@ -3702,10 +3702,12 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
   char *read_buffer = stackbuf;
   ptrdiff_t read_buffer_size = sizeof stackbuf;
   char *heapbuf = NULL;
-  specpdl_ref count = SPECPDL_INDEX ();
 
+  specpdl_ref base_pdl = SPECPDL_INDEX ();
   ptrdiff_t base_sp = rdstack.sp;
   record_unwind_protect_intmax (read_stack_reset, base_sp);
+
+  specpdl_ref count = SPECPDL_INDEX ();
 
   bool uninterned_symbol;
   bool skip_shorthand;
@@ -4354,7 +4356,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	}
     }
 
-  return unbind_to (count, obj);
+  return unbind_to (base_pdl, obj);
 }
 
 
