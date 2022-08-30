@@ -153,7 +153,7 @@
   "In-buffer document viewer.
 The viewer handles PDF, PostScript, DVI, DJVU, ODF, EPUB, CBZ,
 FB2, XPS and OXPS files, if the appropriate converter programs
-are available (see Info node `(emacs)Document View')"
+are available (see Info node `(emacs)Document View')."
   :link '(function-link doc-view)
   :version "22.2"
   :group 'applications
