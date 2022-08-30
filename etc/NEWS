@@ -1518,6 +1518,9 @@ with 'C-s C-s', but also after typing a character.
 Non-nil means that the default definitions of equivalent characters
 are overridden.
 
+*** New command 'describe-char-fold-equivalences'.
+It displays character equivalences used by `char-fold-to-regexp'.
+
 +++
 *** New command 'isearch-emoji-by-name'.
 It is bound to 'C-x 8 e RET' during an incremental search.  The
