@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (eval-and-compile
   (put 'char-fold-table 'char-table-extra-slots 1)
   (defconst char-fold--default-override nil)
