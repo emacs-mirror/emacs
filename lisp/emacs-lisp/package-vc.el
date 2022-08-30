@@ -169,7 +169,7 @@ The output is written out into PKG-FILE."
         (package-download-transaction
          (package-compute-transaction nil (delete-dups deps)))))
 
-    (let ((default-directory pkg-dir)
+    (let ((default-directory (file-name-as-directory pkg-dir))
           (name (package-desc-name pkg-desc))
           (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
       ;; Generate autoloads
@@ -180,7 +180,18 @@ The output is written out into PKG-FILE."
 
       ;; Generate package file
       (package-vc-generate-description-file pkg-desc pkg-file)
-      (vc-ignore (concat "/" (file-relative-name pkg-file default-directory))))
+      (vc-ignore (concat "/" (file-relative-name pkg-file default-directory)))
+
+      ;; Detect a manual
+      (when (executable-find "install-info")
+        ;; Only proceed if we can find an unambiguous TeXinfo file
+        (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
+              (dir-file (expand-file-name "dir" pkg-dir)))
+          (when (length= texi-files 1)
+            (call-process "install-info" nil nil nil
+                          (concat "--dir=" dir-file)
+                          (car texi-files)))
+          (vc-ignore "/dir"))))
 
     ;; Update package-alist.
     (let ((new-desc (package-load-descriptor pkg-dir)))
@@ -197,17 +208,6 @@ The output is written out into PKG-FILE."
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
         (package--reload-previously-loaded new-desc)))
-
-    ;; Detect a manual
-    (when (executable-find "install-info")
-      ;; Only proceed if we can find an unambiguous TeXinfo file
-      (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
-            (dir-file (expand-file-name "dir" pkg-dir)))
-        (when (length= texi-files 1)
-          (call-process "install-info" nil nil nil
-                        (concat "--dir=" dir-file)
-                        (car texi-files)))
-        (vc-ignore "/dir")))
 
     ;; Mark package as selected
     (package--save-selected-packages
