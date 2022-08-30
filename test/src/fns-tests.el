@@ -1412,6 +1412,14 @@
     (should (equal (take 5 list) '(a b c b c)))
     (should (equal (take 10 list) '(a b c b c b c b c b)))
 
-    (should (equal (ntake 10 list) '(a b)))))
+    (should (equal (ntake 10 list) '(a b))))
+
+  ;; Bignum N argument.
+  (let ((list (list 'a 'b 'c)))
+    (should (equal (take (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (take (- most-negative-fixnum 1) list) nil))
+    (should (equal (ntake (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (ntake (- most-negative-fixnum 1) list) nil))
+    (should (equal list '(a b c)))))
 
 ;;; fns-tests.el ends here
