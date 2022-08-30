@@ -15,8 +15,6 @@
   ;; Compositions confuse cursor movement.
   (setq-default auto-composition-mode "linux")
 
-  (ignore-errors (when gpm-mouse-mode (require 't-mouse) (gpm-mouse-enable)))
-
   ;; Don't translate ESC TAB to backtab as directed
   ;; by ncurses-6.3.
   (define-key input-decode-map "\e\t" nil)
