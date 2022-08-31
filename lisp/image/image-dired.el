@@ -1056,13 +1056,13 @@ See also `image-dired-line-up-dynamic'."
 Calculate how many thumbnails fit."
   (interactive nil image-dired-thumbnail-mode)
   (let* ((char-width (frame-char-width))
-        (width (image-dired-window-width-pixels (image-dired-thumbnail-window)))
-        (image-dired-thumbs-per-row
-         (/ width
-            (+ (* 2 image-dired-thumb-relief)
-               (* 2 image-dired-thumb-margin)
-               (image-dired-thumb-size 'width)
-               char-width))))
+         (width (window-body-width (image-dired-thumbnail-window) t))
+         (image-dired-thumbs-per-row
+          (/ width
+             (+ (* 2 image-dired-thumb-relief)
+                (* 2 image-dired-thumb-margin)
+                (image-dired-thumb-size 'width)
+                char-width))))
     (image-dired-line-up)))
 
 (defun image-dired-line-up-interactive ()
@@ -1368,7 +1368,7 @@ completely fit)."
 (defun image-dired-display-window-width (window)
   "Return width, in pixels, of WINDOW."
   (declare (obsolete nil "29.1"))
-  (- (image-dired-window-width-pixels window)
+  (- (window-body-width window t)
      image-dired-display-window-width-correction))
 
 (defun image-dired-display-window-height (window)
@@ -1535,10 +1535,8 @@ Dired."
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
 
-(defun image-dired-display-thumb-properties ()
-  "Display thumbnail properties in the echo area."
-  (declare (obsolete image-dired-update-header-line "29.1"))
-  (image-dired-update-header-line))
+(define-obsolete-function-alias 'image-dired-display-thumb-properties
+  #'image-dired-update-header-line "29.1")
 
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")

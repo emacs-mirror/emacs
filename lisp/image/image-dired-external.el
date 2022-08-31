@@ -142,8 +142,7 @@ Available format specifiers are the same as in
   :version "26.1"
   :type '(repeat (string :tag "Argument")))
 
-(defcustom image-dired-cmd-rotate-original-program
-  "jpegtran"
+(defcustom image-dired-cmd-rotate-original-program "jpegtran"
   "Executable used to rotate original image.
 Used together with `image-dired-cmd-rotate-original-options'."
   :type 'file)
@@ -171,8 +170,7 @@ original image file name and %t which is replaced by
 Used together with `image-dired-cmd-write-exif-data-options'."
   :type 'file)
 
-(defcustom image-dired-cmd-write-exif-data-options
-  '("-%t=%v" "%f")
+(defcustom image-dired-cmd-write-exif-data-options '("-%t=%v" "%f")
   "Arguments of command used to write EXIF data.
 Used with `image-dired-cmd-write-exif-data-program'.
 Available format specifiers are: %f which is replaced by

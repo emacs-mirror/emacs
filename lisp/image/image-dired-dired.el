@@ -81,7 +81,8 @@ previous -ARG, if ARG<0) files."
 (defun image-dired-dired-after-readin-hook ()
   "Relocate existing thumbnail overlays in Dired buffer after reverting.
 Move them to their corresponding files if they still exist.
-Otherwise, delete overlays."
+Otherwise, delete overlays.
+Used by `image-dired-dired-toggle-marked-thumbs'."
   (mapc (lambda (overlay)
           (when (overlay-get overlay 'put-image)
             (let* ((image-file (overlay-get overlay 'image-file))
@@ -289,12 +290,12 @@ With prefix argument ARG, create thumbnails even if they already exist
                    image-dired-external-viewer file)))
 
 ;;;###autoload
-(defun image-dired-dired-display-image (&optional arg)
+(defun image-dired-dired-display-image (&optional _)
   "Display current image file.
-See documentation for `image-dired-display-image' for more information.
-With prefix argument ARG, display image in its original size."
-  (interactive "P" dired-mode)
-  (image-dired-display-image (dired-get-filename) arg))
+See documentation for `image-dired-display-image' for more information."
+  (declare (advertised-calling-convention () "29.1"))
+  (interactive nil dired-mode)
+  (image-dired-display-image (dired-get-filename)))
 
 (defun image-dired-copy-with-exif-file-name ()
   "Copy file with unique name to main image directory.
