@@ -469,13 +469,18 @@ non-canonical equivalences."
       (with-help-window (help-buffer)
         (with-current-buffer standard-output
           (if char
-              (insert (mapconcat
-                       (lambda (c)
-                         (format "%s: \?\\N{%s}\n"
-                                 c
-                                 (or (get-char-code-property (string-to-char c) 'name)
-                                     (get-char-code-property (string-to-char c) 'old-name))))
-                       equivalences))
+              (insert
+               (mapconcat
+                (lambda (c)
+                  (format "%s: %s\n"
+                          c
+                          (mapconcat
+                           (lambda (ch)
+                             (format "?\\N{%s}"
+                                     (or (get-char-code-property ch 'name)
+                                         (get-char-code-property ch 'old-name))))
+                           c)))
+                equivalences))
             (insert "A list of char-fold equivalences for `char-fold-to-regexp':\n\n")
             (setq-local bidi-paragraph-direction 'left-to-right)
             (dolist (equiv (nreverse equivalences))
