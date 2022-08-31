@@ -536,13 +536,13 @@ The return value is the last VAL in the list.
        (funcall do `(error . ,args)
                 (lambda (v) `(progn ,v (error . ,args))))))
 
-(defmacro gv-synthetic-place (getter setter)
+(defun gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.
 GETTER and SETTER (typically obtained via `gv-letplace') get and
-set that place.  I.e. This macro allows you to do the \"reverse\" of what
-`gv-letplace' does.
-This macro only makes sense when used in a place."
-  (declare (gv-expander funcall))
+set that place.  I.e. this function allows you to do the
+\"reverse\" of what `gv-letplace' does.  This function only makes
+sense when used in a place."
+  (declare (gv-expander funcall) (compiler-macro (lambda (_) getter)))
   (ignore setter)
   getter)
 
