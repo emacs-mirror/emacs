@@ -20771,8 +20771,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		any = x_any_window_to_frame (dpyinfo, enter->event);
 
 #ifdef HAVE_XINPUT2_1
-	      xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid,
-						       true);
+	      /* xfwm4 selects for button events on the frame window,
+		 resulting in passive grabs being generated along with
+		 the delivery of emulated button events; this then
+		 interferes with scrolling, since device valuators
+		 will constantly be reset as the crossing events
+		 related to those grabs arrive.  The only way to
+		 remedy this is to never reset scroll valuators on a
+		 grab-related crossing event.  (bug#57476) */
+	      if (enter->mode != XINotifyUngrab
+		  && enter->mode != XINotifyGrab
+		  && enter->mode != XINotifyPassiveGrab
+		  && enter->mode != XINotifyPassiveUngrab)
+		xi_reset_scroll_valuators_for_device_id (dpyinfo, enter->deviceid,
+							 true);
 #endif
 
 	      {
@@ -20888,7 +20900,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 moves out of a frame (and not into one of its
 		 children, which we know about).  */
 #ifdef HAVE_XINPUT2_1
-	      if (leave->detail != XINotifyInferior && any)
+	      if (leave->detail != XINotifyInferior && any
+		  /* xfwm4 selects for button events on the frame
+		     window, resulting in passive grabs being
+		     generated along with the delivery of emulated
+		     button events; this then interferes with
+		     scrolling, since device valuators will constantly
+		     be reset as the crossing events related to those
+		     grabs arrive.  The only way to remedy this is to
+		     never reset scroll valuators on a grab-related
+		     crossing event.  (bug#57476) */
+		  && leave->mode != XINotifyUngrab
+		  && leave->mode != XINotifyGrab
+		  && leave->mode != XINotifyPassiveUngrab
+		  && leave->mode != XINotifyPassiveGrab)
 		xi_reset_scroll_valuators_for_device_id (dpyinfo,
 							 leave->deviceid, false);
 #endif
