@@ -27484,8 +27484,11 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
       eassert (XtIsWMShell (f->output_data.x->widget));
       shell = (WMShellWidget) f->output_data.x->widget;
 
-      shell->wm.size_hints.flags &= ~(PPosition | USPosition);
-      shell->wm.size_hints.flags |= flags & (PPosition | USPosition);
+      if (flags)
+	{
+	  shell->wm.size_hints.flags &= ~(PPosition | USPosition);
+	  shell->wm.size_hints.flags |= flags & (PPosition | USPosition);
+	}
 
       if (user_position)
 	{

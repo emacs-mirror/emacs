@@ -292,18 +292,20 @@ update_wm_hints (Widget wmshell, EmacsFrame ew)
   base_height = (wmshell->core.height - ew->core.height
 		 + (rounded_height - (char_height * ch)));
 
-  /* This is kind of sleazy, but I can't see how else to tell it to
-     make it mark the WM_SIZE_HINTS size as user specified.
-   */
-/*  ((WMShellWidget) wmshell)->wm.size_hints.flags |= USSize;*/
+  /* Ensure that Xt actually sets window manager hint flags specified
+     by the caller by making sure XtNminWidth (a relatively harmless
+     resource) always changes each time this function is invoked.  */
+  ew->emacs_frame.size_switch = !ew->emacs_frame.size_switch;
 
   XtVaSetValues (wmshell,
 		 XtNbaseWidth, (XtArgVal) base_width,
 		 XtNbaseHeight, (XtArgVal) base_height,
 		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
 		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
-		 XtNminWidth, (XtArgVal) base_width,
-		 XtNminHeight, (XtArgVal) base_height,
+		 XtNminWidth, (XtArgVal) (base_width
+					  + ew->emacs_frame.size_switch),
+		 XtNminHeight, (XtArgVal) (base_height
+					   + ew->emacs_frame.size_switch),
 		 NULL);
 }
 
@@ -354,6 +356,8 @@ EmacsFrameInitialize (Widget request, Widget new,
       fputs ("can't create an emacs frame widget without a frame\n", stderr);
       exit (1);
     }
+
+  ew->emacs_frame.size_switch = 1;
 
   update_from_various_frame_slots (ew);
   set_frame_size (ew);
