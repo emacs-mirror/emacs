@@ -76,17 +76,23 @@
 pipeline."
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
-  (eshell-command-result-equal
-   (concat "echo | " esh-proc-test--detect-pty-cmd " | cat")
-   nil))
+  ;; An `eshell-pipe-broken' signal might occur internally; let Eshell
+  ;; handle it!
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     (concat "echo hi | " esh-proc-test--detect-pty-cmd " | cat")
+     nil)))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
   "Test that only output streams are PTYs when a command ends a pipeline."
   (skip-unless (executable-find "sh"))
-  (eshell-command-result-equal
-   (concat "echo | " esh-proc-test--detect-pty-cmd)
-   (unless (eq system-type 'windows-nt)
-     "stdout\nstderr\n")))
+  ;; An `eshell-pipe-broken' signal might occur internally; let Eshell
+  ;; handle it!
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     (concat "echo hi | " esh-proc-test--detect-pty-cmd)
+     (unless (eq system-type 'windows-nt)
+       "stdout\nstderr\n"))))
 
 (ert-deftest esh-proc-test/kill-pipeline ()
   "Test that killing a pipeline of processes only emits a single
