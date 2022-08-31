@@ -26,7 +26,15 @@
 
 (require 'image-dired)
 
-(defcustom image-dired-append-when-browsing nil
+(defgroup image-dired-dired nil
+  "Dired specific commands for Image-Dired."
+  :prefix "image-dired-dired-"
+  :link '(info-link "(emacs) Image-Dired")
+  :group 'image-dired)
+
+(define-obsolete-variable-alias 'image-dired-append-when-browsing
+  'image-dired-dired-append-when-browsing "29.1")
+(defcustom image-dired-dired-append-when-browsing nil
   "Append thumbnails in thumbnail buffer when browsing.
 If non-nil, using `image-dired-next-line-and-display' and
 `image-dired-previous-line-and-display' will leave a trail of thumbnail
@@ -34,7 +42,6 @@ images in the thumbnail buffer.  If you enable this and want to clean
 the thumbnail buffer because it is filled with too many thumbnails,
 just call `image-dired-display-thumb' to display only the image at point.
 This value can be toggled using `image-dired-toggle-append-browsing'."
-  :group 'image-dired
   :type 'boolean)
 
 (defcustom image-dired-dired-disp-props t
@@ -43,7 +50,6 @@ Used by `image-dired-next-line-and-display',
 `image-dired-previous-line-and-display' and `image-dired-mark-and-display-next'.
 If the database file is large, this can slow down image browsing in
 Dired and you might want to turn it off."
-  :group 'image-dired
   :type 'boolean)
 
 ;;;###autoload
@@ -96,8 +102,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
   "Move to next Dired line and display thumbnail image."
   (interactive nil dired-mode)
   (dired-next-line 1)
-  (image-dired-display-thumbs
-   t (or image-dired-append-when-browsing nil) t)
+  (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
   (if image-dired-dired-disp-props
       (image-dired-dired-display-properties)))
 
@@ -105,18 +110,17 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
   "Move to previous Dired line and display thumbnail image."
   (interactive nil dired-mode)
   (dired-previous-line 1)
-  (image-dired-display-thumbs
-   t (or image-dired-append-when-browsing nil) t)
+  (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
   (if image-dired-dired-disp-props
       (image-dired-dired-display-properties)))
 
 (defun image-dired-toggle-append-browsing ()
-  "Toggle `image-dired-append-when-browsing'."
+  "Toggle `image-dired-dired-append-when-browsing'."
   (interactive nil dired-mode)
-  (setq image-dired-append-when-browsing
-        (not image-dired-append-when-browsing))
+  (setq image-dired-dired-append-when-browsing
+        (not image-dired-dired-append-when-browsing))
   (message "Append browsing %s"
-           (if image-dired-append-when-browsing
+           (if image-dired-dired-append-when-browsing
                "on"
              "off")))
 
@@ -124,8 +128,7 @@ Used by `image-dired-dired-toggle-marked-thumbs'."
   "Mark current file in Dired and display next thumbnail image."
   (interactive nil dired-mode)
   (dired-mark 1)
-  (image-dired-display-thumbs
-   t (or image-dired-append-when-browsing nil) t)
+  (image-dired-display-thumbs t image-dired-dired-append-when-browsing t)
   (if image-dired-dired-disp-props
       (image-dired-dired-display-properties)))
 
@@ -233,7 +236,7 @@ With prefix argument, move ARG lines."
      :selected image-dired-dired-disp-props]
     ["Toggle append browsing" image-dired-toggle-append-browsing
      :style toggle
-     :selected image-dired-append-when-browsing]
+     :selected image-dired-dired-append-when-browsing]
     ["Toggle movement tracking" image-dired-toggle-movement-tracking
      :style toggle
      :selected image-dired-track-movement]
