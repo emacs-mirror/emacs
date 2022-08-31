@@ -446,8 +446,7 @@ useful example of @code{sort}.
 @cindex seq library
 @cindex sequences, generalized
   The @file{seq.el} library provides the following additional sequence
-manipulation macros and functions, prefixed with @code{seq-}.  To use
-them, you must first load the @file{seq} library.
+manipulation macros and functions, prefixed with @code{seq-}.
 
   All functions defined in this library are free of side-effects;
 i.e., they do not modify any sequence (list, vector, or string) that
