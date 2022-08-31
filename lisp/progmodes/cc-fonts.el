@@ -934,17 +934,16 @@ casts and declarations are fontified.  Used on level 2 and higher."
     (save-excursion
       (let ((pos (point)))
 	(c-backward-syntactic-ws (max (- (point) 500) (point-min)))
-	(c-clear-char-properties
-	 (if (and (not (bobp))
-		  (memq (c-get-char-property (1- (point)) 'c-type)
-			'(c-decl-arg-start
-			  c-decl-end
-			  c-decl-id-start
-			  c-decl-type-start
-			  c-not-decl)))
-	     (1- (point))
-	   pos)
-	 limit 'c-type)))
+	(when (and (not (bobp))
+		   (memq (c-get-char-property (1- (point)) 'c-type)
+			 '(c-decl-arg-start
+			   c-decl-end
+			   c-decl-id-start
+			   c-decl-type-start
+			   c-not-decl)))
+	  (setq pos (1- (point))))
+	(c-clear-char-properties pos limit 'c-type)
+	(c-clear-char-properties pos limit 'c-<>-c-types-set)))
 
     ;; Update `c-state-cache' to the beginning of the region.  This will
     ;; make `c-beginning-of-syntax' go faster when it's used later on,

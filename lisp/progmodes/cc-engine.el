@@ -142,6 +142,11 @@
 ;;       Put on the brace which introduces a brace list and on the commas
 ;;       which separate the elements within it.
 ;;
+;; 'c-<>-c-types-set
+;;   This property is set on an opening angle bracket, and indicates that
+;;   any "," separators within the template/generic expression have been
+;;   marked with a 'c-type property value 'c-<>-arg-sep (see above).
+;;
 ;; 'c-awk-NL-prop
 ;;   Used in AWK mode to mark the various kinds of newlines.  See
 ;;   cc-awk.el.
@@ -6137,7 +6142,7 @@ comment at the start of cc-engine.el for more info."
 			(forward-char))))
 	  (backward-char)
 	  (if (let ((c-parse-and-markup-<>-arglists t)
-		    (c-restricted-<>-arglists t))
+		    c-restricted-<>-arglists)
 		(c-forward-<>-arglist nil)) ; Should always work.
 	      (when (> (point) to)
 		(setq bound-<> (point)))
@@ -8505,9 +8510,9 @@ multi-line strings (but not C++, for example)."
 	arg-start-pos)
     ;; If the '<' has paren open syntax then we've marked it as an angle
     ;; bracket arglist before, so skip to the end.
-    (if (and (not c-parse-and-markup-<>-arglists)
-	     syntax-table-prop-on-<)
-
+    (if (and syntax-table-prop-on-<
+	     (or (not c-parse-and-markup-<>-arglists)
+		 (c-get-char-property (point) 'c-<>-c-types-set)))
 	(progn
 	  (forward-char)
 	  (if (and (c-go-up-list-forward)
@@ -8604,6 +8609,7 @@ multi-line strings (but not C++, for example)."
 			       (c-unmark-<->-as-paren (point)))))
 		      (c-mark-<-as-paren start)
 		      (c-mark->-as-paren (1- (point)))
+		      (c-put-char-property start 'c-<>-c-types-set t)
 		      (c-truncate-lit-pos-cache start))
 		    (setq res t)
 		    nil))		; Exit the loop.
