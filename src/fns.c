@@ -1563,18 +1563,21 @@ If N is zero or negative, return nil.
 If N is greater or equal to the length of LIST, return LIST (or a copy).  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  if (BIGNUMP (n))
+  EMACS_INT m;
+  if (FIXNUMP (n))
+    {
+      m = XFIXNUM (n);
+      if (m <= 0)
+	return Qnil;
+    }
+  else if (BIGNUMP (n))
     {
       if (mpz_sgn (*xbignum_val (n)) < 0)
 	return Qnil;
-      CHECK_LIST (list);
-      return list;
+      m = MOST_POSITIVE_FIXNUM;
     }
-  if (!FIXNUMP (n))
+  else
     wrong_type_argument (Qintegerp, n);
-  EMACS_INT m = XFIXNUM (n);
-  if (m <= 0)
-    return Qnil;
   CHECK_LIST (list);
   if (NILP (list))
     return Qnil;
@@ -1602,18 +1605,21 @@ If N is greater or equal to the length of LIST, return LIST unmodified.
 Otherwise, return LIST after truncating it.  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  if (BIGNUMP (n))
+  EMACS_INT m;
+  if (FIXNUMP (n))
+    {
+      m = XFIXNUM (n);
+      if (m <= 0)
+	return Qnil;
+    }
+  else if (BIGNUMP (n))
     {
       if (mpz_sgn (*xbignum_val (n)) < 0)
 	return Qnil;
-      CHECK_LIST (list);
-      return list;
+      m = MOST_POSITIVE_FIXNUM;
     }
-  if (!FIXNUMP (n))
+  else
     wrong_type_argument (Qintegerp, n);
-  EMACS_INT m = XFIXNUM (n);
-  if (m <= 0)
-    return Qnil;
   CHECK_LIST (list);
   Lisp_Object tail = list;
   --m;
