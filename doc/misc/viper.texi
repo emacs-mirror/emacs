@@ -34,7 +34,7 @@ modify this GNU manual.''
 @titlepage
 @title Viper Is a Package for Emacs Rebels
 @subtitle a Vi emulator for Emacs
-@subtitle November 2008, Viper Version 3.11.2
+@subtitle July 2013, Viper Version 3.14.2
 
 @author Michael Kifer (Viper)
 @author Aamod Sane (VIP 4.4)
