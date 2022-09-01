@@ -431,15 +431,15 @@ BOUND NOERROR COUNT are passed to `re-search-backward'."
 ;;;###autoload
 (defun describe-char-fold-equivalences (char &optional lax)
   "Display characters equivalent to CHAR under character-folding.
-Prompt for CHAR (using `read-char-by-name', which see for how can
-you specify the character).  With no input, i.e. when CHAR is nil,
+Prompt for CHAR (using `read-char-by-name', which see for how to
+specify the character).  With no input, i.e. when CHAR is nil,
 describe all available character equivalences of `char-fold-to-regexp'.
 Optional argument LAX (interactively, the prefix argument), if
 non-nil, means also include partially matching ligatures and
 non-canonical equivalences."
   (interactive (list (ignore-errors
                        (read-char-by-name
-                        "Character (Unicode name or hex, default all): "))
+                        "Unicode name, single char, or hex, default all: " t))
                      current-prefix-arg))
   (require 'help-fns)
   (let ((help-buffer-under-preparation t))
