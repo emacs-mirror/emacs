@@ -20951,7 +20951,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 just looks up a top window on Xt builds.  */
 
 #ifdef HAVE_XINPUT2_1
-	      if (leave->detail != XINotifyInferior && f)
+	      if (leave->detail != XINotifyInferior && f
+		  && leave->mode != XINotifyUngrab
+		  && leave->mode != XINotifyGrab
+		  && leave->mode != XINotifyPassiveUngrab
+		  && leave->mode != XINotifyPassiveGrab)
 		xi_reset_scroll_valuators_for_device_id (dpyinfo,
 							 leave->deviceid, false);
 #endif
