@@ -7842,7 +7842,13 @@ lookup_glyphless_char_display (int c, struct it *it)
       && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display)) >= 1)
     {
       if (c >= 0)
-	glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
+	{
+	  glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
+	  if (CONSP (glyphless_method))
+	    glyphless_method = FRAME_WINDOW_P (it->f)
+	      ? XCAR (glyphless_method)
+	      : XCDR (glyphless_method);
+	}
       else
 	glyphless_method = XCHAR_TABLE (Vglyphless_char_display)->extras[0];
 
@@ -31773,9 +31779,9 @@ gui_produce_glyphs (struct it *it)
 	  /* When no suitable font is found, display this character by
 	     the method specified in the first extra slot of
 	     Vglyphless_char_display.  */
-	      Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
+	  Lisp_Object acronym = lookup_glyphless_char_display (-1, it);
 
-	      eassert (it->what == IT_GLYPHLESS);
+	  eassert (it->what == IT_GLYPHLESS);
 	  produce_glyphless_glyph (it, true,
 				   STRINGP (acronym) ? acronym : Qnil);
 	  goto done;
@@ -37109,16 +37115,20 @@ Each element, if non-nil, should be one of the following:
   `empty-box':  display as an empty box
   `thin-space': display as 1-pixel width space
   `zero-width': don't display
+Any other value is interpreted as `empty-box'.
 An element may also be a cons cell (GRAPHICAL . TEXT), which specifies the
 display method for graphical terminals and text terminals respectively.
 GRAPHICAL and TEXT should each have one of the values listed above.
 
-The char-table has one extra slot to control the display of a character for
-which no font is found.  This slot only takes effect on graphical terminals.
-Its value should be an ASCII acronym string, `hex-code', `empty-box', or
-`thin-space'.  It could also be a cons cell of any two of these, to specify
-separate values for graphical and text terminals.
-The default is `empty-box'.
+The char-table has one extra slot to control the display of characters
+for which no font is found on graphical terminals, and characters that
+cannot be displayed by text-mode terminals.  Its value should be an
+ASCII acronym string, `hex-code', `empty-box', or `thin-space'.  It
+could also be a cons cell of any two of these, to specify separate
+values for graphical and text terminals.  The default is `empty-box'.
+
+With the obvious exception of `zero-width', all the other representations
+are displayed using the face `glyphless-char'.
 
 If a character has a non-nil entry in an active display table, the
 display table takes effect; in this case, Emacs does not consult

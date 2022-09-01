@@ -4451,9 +4451,12 @@ Advanced commands:
   (setq buffer-read-only t)
   (setq Info-tag-table-marker (make-marker))
   (unless (or (display-multi-font-p)
-              (coding-system-equal
-               (coding-system-base (terminal-coding-system))
-               'utf-8))
+              (and (coding-system-equal
+                    (coding-system-base (terminal-coding-system))
+                    'utf-8)
+                   ;; The Linux console has limited character
+                   ;; repertoire even when its encoding is UTF-8.
+                   (not (equal (tty-type) "linux"))))
     (dolist (elt info-symbols-and-replacements)
       (let ((ch (car elt))
             (repl (cdr elt)))

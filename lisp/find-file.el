@@ -193,18 +193,32 @@ The value could be an alist or a symbol whose value is an alist.
 Each element of the alist has the form
 
    (REGEXP (EXTENSION...))
-or
-   (REGEXP FUNCTION)
 
 where REGEXP is the regular expression matching a file's extension,
-EXTENSIONs is the list of literal file-name extensions to search for,
-and FUNCTION is a function of one argument, the current file's name,
-that returns the list of extensions to search for.
-The list of extensions should contain the most used extensions before the
-others, since the search algorithm searches sequentially through each
-directory specified in `ff-search-directories'.  If a file is not found,
-a new one is created with the first matching extension (`.cc' yields `.hh').
-This alist should be set by the major mode."
+and EXTENSIONs is the list of literal file-name extensions to search
+for.  The list of extensions should contain the most used extensions
+before the others, since the search algorithm searches sequentially
+through each directory specified in `ff-search-directories'.
+
+Alist elements can also be of the form
+
+   (REGEXP FUNCTION)
+
+where FUNCTION is a function of one argument, the current file's name,
+that returns the list of possible names of the corresponding files, with
+or without leading directories.  Note the difference: FUNCTION returns
+the list of file names, not their extensions.  This is for the case when
+REGEXP is not enough to determine the file name of the other file.
+
+If a file is not found, a new one is created with the first
+matching extension or name (e.g., `.cc' yields `.hh').
+
+This alist should be set by the major mode.
+
+Note: if an element of the alist names a FUNCTION as its cdr, that
+function must return a non-nil list of file-names.  It cannot
+return nil, nor can it signal in any way a failure to find a suitable
+list of file names."
   :type '(choice (repeat (list regexp (choice (repeat string) function)))
 		 symbol))
 
@@ -615,7 +629,7 @@ name of the first file found."
             (while (and suffixes (not found))
 
               (setq filename (concat fname-stub this-suffix))
-              (setq file (concat dir "/" filename))
+              (setq file (expand-file-name filename dir))
 
               (if (not ff-quiet-mode)
                   (message "Finding %s..." file))

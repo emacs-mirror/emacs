@@ -1661,12 +1661,14 @@ GROUP must be one of these symbols:
                     like U+2069 (PDI) and U+202B (RLE).
   `variation-selectors':
                     Characters in the range U+FE00..U+FE0F and
-                    U+E0100..U+E01EF, used for selecting alternate glyph
-                    presentations, such as Emoji vs Text presentation, of
-                    the preceding character(s).
-  `no-font':        For GUI frames, characters for which no suitable
-                    font is found; for text-mode frames, characters
-                    that cannot be encoded by `terminal-coding-system'.
+                    U+E0100..U+E01EF, used for choosing between
+                    glyph variations, such as Emoji vs Text
+                    presentation, of the preceding character(s).
+  `no-font':        For GUI frames, characters for which no
+                    suitable font is found; for text-mode frames,
+                    characters that cannot be encoded by
+                    `terminal-coding-system' or those for which
+                    the terminal has no glyphs.
 
 METHOD must be one of these symbols:
   `zero-width': don't display.
@@ -1680,7 +1682,10 @@ METHOD must be one of these symbols:
 Do not set its value directly from Lisp; the value takes effect
 only via a custom `:set'
 function (`update-glyphless-char-display'), which updates
-`glyphless-char-display'."
+`glyphless-char-display'.
+
+See also the `glyphless-char' face, which is used to display the
+visual representation of these characters."
   :version "28.1"
   :type '(alist :key-type (symbol :tag "Character Group")
 		:value-type (symbol :tag "Display Method"))

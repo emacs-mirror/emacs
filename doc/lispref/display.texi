@@ -8554,6 +8554,7 @@ Display with @var{graphical} on graphical displays, and with
 must be one of the display methods described above.
 @end table
 
+@vindex glyphless-char@r{ face}
 @noindent
 The @code{thin-space}, @code{empty-box}, @code{hex-code}, and
 @acronym{ASCII} string display methods are drawn with the
@@ -8618,7 +8619,8 @@ codepoints (typically emojis).
 
 @item no-font
 Characters for which there is no suitable font, or which cannot be
-encoded by the terminal's coding system.
+encoded by the terminal's coding system, or those for which the
+text-mode terminal has no glyphs.
 @end table
 
 @c FIXME: this can also be 'acronym', but that's not currently
