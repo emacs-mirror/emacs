@@ -1315,7 +1315,9 @@ web.id
 ie
 gov.ie
 
-// il : http://www.isoc.org.il/domains/
+// il :         http://www.isoc.org.il/domains/
+// see also:    https://en.isoc.org.il/il-cctld/registration-rules
+// ISOC-IL      (operated by .il Registry)
 il
 ac.il
 co.il
@@ -1325,6 +1327,16 @@ k12.il
 muni.il
 net.il
 org.il
+// xn--4dbrk0ce ("Israel", Hebrew) : IL
+ישראל
+// xn--4dbgdty6c.xn--4dbrk0ce.
+אקדמיה.ישראל
+// xn--5dbhl8d.xn--4dbrk0ce.
+ישוב.ישראל
+// xn--8dbq2a.xn--4dbrk0ce.
+צהל.ישראל
+// xn--hebda8b.xn--4dbrk0ce.
+ממשל.ישראל
 
 // im : https://www.nic.im/
 // Submitted by registry <info@nic.im>
@@ -1344,18 +1356,47 @@ tv.im
 // Please note, that nic.in is not an official eTLD, but used by most
 // government institutions.
 in
-co.in
-firm.in
-net.in
-org.in
-gen.in
-ind.in
-nic.in
+5g.in
+6g.in
 ac.in
+ai.in
+am.in
+bihar.in
+biz.in
+business.in
+ca.in
+cn.in
+co.in
+com.in
+coop.in
+cs.in
+delhi.in
+dr.in
 edu.in
-res.in
+er.in
+firm.in
+gen.in
 gov.in
+gujarat.in
+ind.in
+info.in
+int.in
+internet.in
+io.in
+me.in
 mil.in
+net.in
+nic.in
+org.in
+pg.in
+post.in
+pro.in
+res.in
+travel.in
+tv.in
+uk.in
+up.in
+us.in
 
 // info : https://en.wikipedia.org/wiki/.info
 info
@@ -10871,6 +10912,10 @@ theshop.jp
 shopselect.net
 base.shop
 
+// BeagleBoard.org Foundation : https://beagleboard.org
+// Submitted by Jason Kridner <jkridner@beagleboard.org>
+beagleboard.io
+
 // Beget Ltd
 // Submitted by Lev Nekrasov <lnekrasov@beget.com>
 *.beget.app
@@ -11649,6 +11694,11 @@ dynv6.net
 // Submitted by Vladimir Dudr <info@e4you.cz>
 e4.cz
 
+// Easypanel : https://easypanel.io
+// Submitted by Andrei Canta <andrei@easypanel.io>
+easypanel.app
+easypanel.host
+
 // eero : https://eero.com/
 // Submitted by Yue Kang <eero-dynamic-dns@amazon.com>
 eero.online
@@ -11943,6 +11993,10 @@ id.forgerock.io
 // Submitted by Koen Rouwhorst <koenrh@framer.com>
 framer.app
 framercanvas.com
+framer.media
+framer.photos
+framer.website
+framer.wiki
 
 // Frusky MEDIA&PR : https://www.frusky.de
 // Submitted by Victor Pupynin <hallo@frusky.de>
@@ -13553,6 +13607,10 @@ small-web.org
 // Smoove.io : https://www.smoove.io/
 // Submitted by Dan Kozak <dan@smoove.io>
 vp4.me
+
+// Snowflake Inc : https://www.snowflake.com/
+// Submitted by Faith Olapade <faith.olapade@snowflake.com>
+streamlitapp.com
 
 // Snowplow Analytics : https://snowplowanalytics.com/
 // Submitted by Ian Streeter <ian@snowplowanalytics.com>
