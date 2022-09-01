@@ -7842,13 +7842,7 @@ lookup_glyphless_char_display (int c, struct it *it)
       && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (Vglyphless_char_display)) >= 1)
     {
       if (c >= 0)
-	{
-	  glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
-	  if (CONSP (glyphless_method))
-	    glyphless_method = FRAME_WINDOW_P (it->f)
-	      ? XCAR (glyphless_method)
-	      : XCDR (glyphless_method);
-	}
+	glyphless_method = CHAR_TABLE_REF (Vglyphless_char_display, c);
       else
 	glyphless_method = XCHAR_TABLE (Vglyphless_char_display)->extras[0];
 
