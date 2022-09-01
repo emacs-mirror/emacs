@@ -444,10 +444,10 @@ outline font-lock faces to those of major mode."
 
 See the command `outline-mode' for more information on this mode."
   :lighter " Outl"
-  :keymap (easy-mmode-define-keymap
-           `(([menu-bar] . ,outline-minor-mode-menu-bar-map)
-             (,outline-minor-mode-prefix . ,outline-mode-prefix-map))
-           :inherit outline-minor-mode-cycle-map)
+  :keymap (define-keymap
+            :parent outline-minor-mode-cycle-map
+            "<menu-bar>" outline-minor-mode-menu-bar-map
+            (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
         (when outline-minor-mode-highlight
