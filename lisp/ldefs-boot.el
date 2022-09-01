@@ -4004,6 +4004,16 @@ FROM is for internal use.  It specifies an index in the STRING
 from which to start.
 
 (fn STRING &optional LAX FROM)")
+(autoload 'describe-char-fold-equivalences "char-fold" "\
+Display characters equivalent to CHAR under character-folding.
+Prompt for CHAR (using `read-char-by-name', which see for how can
+you specify the character).  With no input, i.e. when CHAR is nil,
+describe all available character equivalences of `char-fold-to-regexp'.
+Optional argument LAX (interactively, the prefix argument), if
+non-nil, means also include partially matching ligatures and
+non-canonical equivalences.
+
+(fn CHAR &optional LAX)" t)
 (register-definition-prefixes "char-fold" '("char-fold-"))
 
 
@@ -5020,6 +5030,8 @@ evaluate `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{compilation-shell-minor-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -5042,6 +5054,8 @@ evaluate `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
+
+\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -7242,6 +7256,7 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t)
+(autoload 'diff-vc-deduce-fileset "diff-mode")
 (register-definition-prefixes "diff-mode" '("diff-"))
 
 
@@ -8389,7 +8404,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" '("P"))
+(fn PREFIX)" t)
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -9172,8 +9187,7 @@ the mode if ARG is nil, omitted, or is a positive number.
 Disable the mode if ARG is a negative number.
 
 To check whether the minor mode is enabled in the current buffer,
-evaluate `(buffer-local-value \\='electric-pair-mode
-(current-buffer))'.
+evaluate `electric-pair-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
@@ -9937,7 +9951,7 @@ When present, ID should be an opaque object used to identify the
 connection unequivocally.  This is rarely needed and not available
 interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" '((erc-select-read-args)))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" t)
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 ERC is a powerful, modular, and extensible IRC client.
@@ -9984,7 +9998,7 @@ symbol composed of letters from the Latin alphabet.)  This option is
 generally unneeded, however.  See info node `(erc) Connecting' for use
 cases.  Not available interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" t)
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -10200,7 +10214,9 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signalled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
+(function-put 'ert-deftest 'doc-string-elt 3)
+(function-put 'ert-deftest 'lisp-indent-function 2)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -12271,6 +12287,8 @@ evaluate `flymake-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{flymake-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
 Turn Flymake mode on.")
@@ -14186,7 +14204,9 @@ include it when specifying `grep-command'.
 
 In interactive usage, the actual value of this variable is set up
 by `grep-compute-defaults'; to change the default value, use
-\\[customize] or call the function `grep-apply-setting'.")
+\\[customize] or call the function `grep-apply-setting'.
+
+Also see `grep-command-position'.")
 (custom-autoload 'grep-command "grep" nil)
 (defvar grep-find-command nil "\
 The default find command for \\[grep-find].
@@ -15394,7 +15414,9 @@ it is disabled.
 (defvar hs-special-modes-alist (mapcar 'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
 Alist for initializing the hideshow variables for different modes.
 Each element has the form
-  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC).
+  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
+   FIND-BLOCK-BEGINNING-FUNC FIND-NEXT-BLOCK-FUNC
+   LOOKING-AT-BLOCK-START-P-FUNC).
 
 If non-nil, hideshow will use these values as regexps to define blocks
 and comments, respectively for major mode MODE.
@@ -15414,6 +15436,15 @@ cases, FORWARD-SEXP-FUNC specifies another function to use instead.
 
 See the documentation for `hs-adjust-block-beginning' to see what is the
 use of ADJUST-BEG-FUNC.
+
+See the documentation for `hs-find-block-beginning-func' to see
+what is the use of FIND-BLOCK-BEGINNING-FUNC.
+
+See the documentation for `hs-find-next-block-func' to see what
+is the use of FIND-NEXT-BLOCK-FUNC.
+
+See the documentation for `hs-looking-at-block-start-p-func' to
+see what is the use of LOOKING-AT-BLOCK-START-P-FUNC.
 
 If any of the elements is left nil or omitted, hideshow tries to guess
 appropriate values.  The regexps should not contain leading or trailing
@@ -15871,7 +15902,8 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
+(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -15882,7 +15914,9 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-sorter 'lisp-indent-function 1)
+(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -15921,7 +15955,9 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
+(function-put 'define-ibuffer-op 'lisp-indent-function 2)
+(function-put 'define-ibuffer-op 'doc-string-elt 3)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -15936,7 +15972,9 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-filter 'lisp-indent-function 2)
+(function-put 'define-ibuffer-filter 'doc-string-elt 2)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -18468,6 +18506,15 @@ changed if the display can render Unicode characters.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `latin1-display'.")
 (custom-autoload 'latin1-display-ucs-per-lynx "latin1-disp" nil)
+(autoload 'latin1-display-ucs-per-lynx "latin1-disp" "\
+Set up Latin-1/ASCII display for Unicode characters.
+This uses the transliterations of the Lynx browser.
+
+With argument ARG, turn such display on if ARG is positive, otherwise
+turn it off and display Unicode characters literally.  The display
+isn't changed if the display can render Unicode characters.
+
+(fn ARG)" t)
 (register-definition-prefixes "latin1-disp" '("latin1-display-"))
 
 
@@ -25313,6 +25360,8 @@ evaluate `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{rectangle-mark-mode-map}
+
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
 
@@ -31653,7 +31702,7 @@ the output buffer or changing the window configuration.
 Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally.")
 (custom-autoload 'tramp-mode "tramp" t)
-(defconst tramp-initial-file-name-regexp "\\`/[^/:]+:[^/:]*:" "\
+(defconst tramp-initial-file-name-regexp (rx bos "/" (+ (not (any "/:"))) ":" (* (not (any "/:"))) ":") "\
 Value for `tramp-file-name-regexp' for autoload.
 It must match the initial `tramp-syntax' settings.")
 (defvar tramp-file-name-regexp tramp-initial-file-name-regexp "\
@@ -31664,7 +31713,7 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 (defvar tramp-ignored-file-name-regexp nil "\
 Regular expression matching file names that are not under Tramp's control.")
 (custom-autoload 'tramp-ignored-file-name-regexp "tramp" t)
-(defconst tramp-autoload-file-name-regexp (concat "\\`/" (if (memq system-type '(cygwin windows-nt)) "\\(-\\|[^/|:]\\{2,\\}\\)" "[^/|:]+") ":") "\
+(defconst tramp-autoload-file-name-regexp (rx bos "/" (| "-" (>= 2 (not (any "/:|")))) ":") "\
 Regular expression matching file names handled by Tramp autoload.
 It must match the initial `tramp-syntax' settings.  It should not
 match file names at root of the underlying local file system,
@@ -31706,7 +31755,7 @@ It must be supported by libarchive(3).")
 List of suffixes which indicate a compressed file.
 It must be supported by libarchive(3).")
 (defmacro tramp-archive-autoload-file-name-regexp nil "\
-Regular expression matching archive file names." '(concat "\\`" "\\(" ".+" "\\." (regexp-opt tramp-archive-suffixes) "\\(?:" "\\." (regexp-opt tramp-archive-compression-suffixes) "\\)*" "\\)" "\\(" "/" ".*" "\\)" "\\'"))
+Regular expression matching archive file names." '(rx bos (group (+ nonl) "." (regexp (regexp-opt tramp-archive-suffixes)) (32 "." (regexp (regexp-opt tramp-archive-compression-suffixes)))) (group "/" (* nonl)) eos))
 (autoload 'tramp-archive-file-name-handler "tramp-archive")
 (defun tramp-archive-autoload-file-name-handler (operation &rest args) "\
 Load Tramp archive file name handler, and perform OPERATION." (defvar tramp-archive-autoload) (let ((default-directory temporary-file-directory) (tramp-archive-autoload tramp-archive-enabled)) (apply #'tramp-autoload-file-name-handler operation args)))
@@ -33030,9 +33079,10 @@ working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
 The optional argument NOT-URGENT non-nil means it is ok to say no to
-saving the buffer.
+saving the buffer.  The optional argument FILESET can override the
+deduced fileset.
 
-(fn &optional HISTORIC NOT-URGENT)" t)
+(fn &optional HISTORIC NOT-URGENT FILESET)" t)
 (autoload 'vc-diff-mergebase "vc" "\
 Report diffs between the merge base of REV1 and REV2 revisions.
 The merge base is a common ancestor between REV1 and REV2 revisions.
