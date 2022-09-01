@@ -5196,7 +5196,9 @@ to `default-directory', and the result will also be relative."
     (cond
      ;; filename is at top-level, therefore no parent
      ((or (null parent)
-          (file-equal-p parent expanded-filename))
+          ;; `equal' is enough, we don't need to resolve symlinks here
+          ;; with `file-equal-p', also for performance
+          (equal parent expanded-filename))
       nil)
      ;; filename is relative, return relative parent
      ((not (file-name-absolute-p filename))
