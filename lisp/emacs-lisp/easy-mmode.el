@@ -719,9 +719,7 @@ The M, BS, and ARGS arguments are as per that function.  DOC is
 the constant's documentation.
 
 This macro is deprecated; use `defvar-keymap' instead."
-  ;; FIXME: Declare obsolete in favor of `defvar-keymap'.  It is still
-  ;; used for `gud-menu-map' and `gud-minor-mode-map', so fix that first.
-  (declare (doc-string 3) (indent 1))
+  (declare (doc-string 3) (indent 1) (obsolete defvar-keymap "29.1"))
   `(defconst ,m
      (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
      ,doc))
