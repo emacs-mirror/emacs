@@ -20109,7 +20109,7 @@ This option also treats some characters in the `mule-unicode-...'
 charsets if you don't have a Unicode font with which to display them.
 
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `latin1-display'.")
+use either \\[customize] or the command `latin1-display'.")
 
 (custom-autoload 'latin1-display "latin1-disp" nil)
 
@@ -20128,7 +20128,7 @@ This uses the transliterations of the Lynx browser.  The display isn't
 changed if the display can render Unicode characters.
 
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `latin1-display'.")
+use either \\[customize] or the command `latin1-display-ucs-per-lynx'.")
 
 (custom-autoload 'latin1-display-ucs-per-lynx "latin1-disp" nil)
 
