@@ -936,7 +936,7 @@ Coding}.
 @cindex @env{INSIDE_EMACS} environment variable
   Emacs sets the environment variable @env{INSIDE_EMACS} in the
 subshell to @samp{@var{version},comint}, where @var{version} is the
-Emacs version (e.g., @samp{24.1}).  Programs can check this variable
+Emacs version (e.g., @samp{28.1}).  Programs can check this variable
 to determine whether they are running inside an Emacs subshell.
 
 @node Shell Mode

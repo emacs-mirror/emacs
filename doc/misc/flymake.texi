@@ -1,8 +1,8 @@
 \input texinfo   @c -*- mode: texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
-@set VERSION 1.2
-@set UPDATED September 2021
+@set VERSION 1.2.2
+@set UPDATED November 2021
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
 @syncodeindex pg cp
