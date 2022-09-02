@@ -1409,23 +1409,23 @@ USA
 
 @c It's hard to update this fairly.
 @c I wonder if it would be better to drop it in favor of AUTHORS?
-Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
+Contributors to GNU Emacs include Jari Aalto, Eric Abrahamsen, Per Abrahamsen, Tomas
 Abrahamsson, Jay K. Adams, Alon Albert, Michael Albinus, Nagy
 Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil Åström,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L. Baur, Jay Belanger, Alexander L. Belikoff,
-Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Stephen Berman, Karl
+Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Stephen Berman, Jonas Bernoulli, Karl
 Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
 Bockgård, Jan Böcker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Ken Brown, Stefan Bruda,
-Daniel Colascione,
+Damien Cassou, Daniel Colascione,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, Włodek Bzyl, Tino Calancha,
 Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
 Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
-Clark, Mike Clarkson, Glynn Clements, Andrew Cohen, Daniel Colascione,
+Clark, Mike Clarkson, Glynn Clements, Andrea Corallo, Andrew Cohen, Daniel Colascione,
 Christoph Conrad, Ludovic Courtès, Andrew Csillag,
-Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki
+Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Yue Daian, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
 Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
 Ding, Jan Djärv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
@@ -1433,36 +1433,36 @@ Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
 Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
 Eglen, Christian Egli, Torbjörn Einarsson, Tsugutomo Enami, David
 Engster, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick
-Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Karl Fogel, Gary
+Farnbach, Oscar Figueiredo, Fred Fish, Steve Fisk, Thomas Fitzsimmons, Karl Fogel, Gary
 Foster, Eric S. Fraga, Romain Francoise, Noah Friedman, Andreas
 Fuchs, Shigeru Fukaya, Xue Fuqiao, Hallvard Furuseth, Keith Gabryelski, Peter S.
 Galbraith, Kevin Gallagher, Fabián E. Gallina, Kevin Gallo, Juan León Lahoz García,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
-Gillespie, Bob Glickstein, Deepak Goel, David De La Harpe Golden, Boris
+Gillespie, Bob Glickstein, Nicolas Goaziou, Deepak Goel, David De La Harpe Golden, Boris
 Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
 Gripenstam, Kai Großjohann, Michael Gschwind, Bastien Guerry, Henry
 Guillaume, Dmitry Gutov, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
-Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Anders Holst,
-Jeffrey C. Honig, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
+Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Torsten Hilbrich, Anders Holst,
+Jeffrey C. Honig, Jürgen Hötzel, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
 Josefsson, Alexandre Julliard, Arne Jørgensen, Tomoji Kagatani,
-Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Ivan Kanis, David
+Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Stefan Kangas, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
 Klíč, Shuhei Kobayashi, Pavel Kobyakov, Larry K. Kolodney, David
 M. Koppelman, Koseki Yoshinori, Robert Krawitz, Sebastian Kremer,
-Ryszard Kubiak, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
-Landstrom, Mario Lang, Aaron Larson, James R. Larus, Vinicius Jose
+Ryszard Kubiak, Tak Kunihiro, Igor Kuzmin, David Kågedal, Daniel LaLiberte, Karl
+Landstrom, Mario Lang, Aaron Larson, James R. Larus, Gemini Lasswell, Vinicius Jose
 Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Christian
 Limpach, Lars Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link,
 Juri Linkov, Francis Litterio, Sergey Litvinov, Leo Liu, Emilio C. Lopes,
-Martin Lorentzon, Dave Love, Eric Ludlam, Károly Lőrentey, Sascha
+Martin Lorentzson, Dave Love, Eric Ludlam, Károly Lőrentey, Sascha
 Lüdecke, Greg McGary, Roland McGrath, Michael McNamara, Alan Mackenzie,
-Christopher J. Madsen, Neil M. Mager, Artur Malabarba, Ken Manheimer, Bill Mann,
+Christopher J. Madsen, Neil M. Mager, Arni Magnusson, Artur Malabarba, Ken Manheimer, Bill Mann,
 Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Jimmy Aguilar Mena, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
@@ -1478,7 +1478,7 @@ Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
 Persson, Jens Petersen, Nicolas Petton, Daniel Pfeiffer, Justus Piater, Richard L.
 Pieri, Fred Pierresteguy, François Pinard, Daniel Pittman, Christian
 Plaunt, Alexander Pohoyda, David Ponce, Noam Postavsky, Francesco A. Potortì,
-Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
+Michael D. Prange, Mukesh Prasad, Steve Purcell, Ken Raeburn, Marko Rahamaa, Ashwin
 Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, David
 Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
 Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
@@ -1492,7 +1492,7 @@ Rainer Schöpf, Raymond Scholz, Eric Schulte, Andreas Schwab, Randal
 Schwartz, Oliver Seidel, Manuel Serrano, Paul Sexton, Hovav Shacham,
 Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin Shivers, Tibor
 Šimko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
-David Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
+David Smith, JD Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
 South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Philipp Stephani, Peter Stephenson, Ken
 Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
