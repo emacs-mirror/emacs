@@ -722,11 +722,11 @@ MAJOR and MINOR should be strings.  MINOR is treated as a regexp
 in later lookups, and, therefore, you may need to escape it
 appropriately.
 
-The format of INFO is described in ‘mailcap-mime-data’.
+The format of INFO is described in `mailcap-mime-data'.
 
 STORAGE should be a symbol refering to a variable.  The value of
-this variable should have the same format as ‘mailcap-mime-data’.
-STORAGE defaults to ‘mailcap--computed-mime-data’.
+this variable should have the same format as `mailcap-mime-data'.
+STORAGE defaults to `mailcap--computed-mime-data'.
 
 None of this is enforced."
   (let* ((storage (or storage 'mailcap--computed-mime-data))
