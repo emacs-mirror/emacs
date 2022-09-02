@@ -170,6 +170,30 @@ which it refers to as @dfn{back ends}:
 
 @itemize @bullet
 
+@cindex git
+@item
+Git is a decentralized version control system originally invented by
+Linus Torvalds to support development of Linux (his kernel).  VC
+supports many common Git operations, but others, such as repository
+syncing, must be done from the command line.
+
+@cindex CVS
+@item
+CVS is the free version control system that was, until circa 2008,
+used by the majority of free software projects.  Since then, it has
+been superseded by newer systems.  CVS allows concurrent multi-user
+development either locally or over the network.  Unlike newer systems,
+it lacks support for atomic commits and file moving/renaming.  VC
+supports all basic editing operations under CVS.
+
+@cindex SVN
+@cindex Subversion
+@item
+Subversion (svn) is a free version control system designed to be
+similar to CVS but without its problems (e.g., it supports atomic
+commits of filesets, and versioning of directories, symbolic links,
+meta-data, renames, copies, and deletes).
+
 @cindex SCCS
 @item
 SCCS was the first version control system ever built, and was long ago
@@ -190,30 +214,6 @@ RCS is the free version control system around which VC was initially
 built.  It is relatively primitive: it cannot be used over the
 network, and works at the level of individual files.  Almost
 everything you can do with RCS can be done through VC.
-
-@cindex CVS
-@item
-CVS is the free version control system that was, until circa 2008,
-used by the majority of free software projects.  Since then, it has
-been superseded by newer systems.  CVS allows concurrent multi-user
-development either locally or over the network.  Unlike newer systems,
-it lacks support for atomic commits and file moving/renaming.  VC
-supports all basic editing operations under CVS.
-
-@cindex SVN
-@cindex Subversion
-@item
-Subversion (svn) is a free version control system designed to be
-similar to CVS but without its problems (e.g., it supports atomic
-commits of filesets, and versioning of directories, symbolic links,
-meta-data, renames, copies, and deletes).
-
-@cindex git
-@item
-Git is a decentralized version control system originally invented by
-Linus Torvalds to support development of Linux (his kernel).  VC
-supports many common Git operations, but others, such as repository
-syncing, must be done from the command line.
 
 @cindex hg
 @cindex Mercurial

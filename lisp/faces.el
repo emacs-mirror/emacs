@@ -666,21 +666,28 @@ If FACE is a face-alias, get the documentation for the target face."
 
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
-This function overrides the face attributes specified by FACE's
-face spec.  It is mostly intended for internal use only.
+This function overrides the face attributes specified by FACE's face spec.
+It is mostly intended for internal use.
 
-If FRAME is nil, set the attributes for all existing frames, as
-well as the default for new frames.  If FRAME is t, change the
-default for new frames only.  As an exception, to reset the value
-of some attribute to `unspecified' in a way that overrides the
-non-`unspecified' value defined by the face's spec in `defface',
-for new frames, you must explicitly call this function with FRAME
-set to t and the attribute's value set to `unspecified'; just
-using FRAME of nil will not affect new frames in this case.
+If FRAME is a frame, set the FACE's attributes only for that frame.  If
+FRAME is nil, set attribute values for all existing frames, as well as
+the default for new frames.  If FRAME is t, change the default values
+of attributes for new frames.
 
-ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a
-valid face attribute name.  All attributes can be set to
-`unspecified'; this fact is not further mentioned below.
+ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid face
+attribute name and VALUE must be a value that is valid for ATTRIBUTE,
+as described below for each attribute.
+
+In addition to the attribute values listed below, all attributes can
+also be set to the special value `unspecified', which means the face
+doesn't by itself specify a value for the attribute.
+
+When a new frame is created, attribute values in the FACE's `defface'
+spec normally override the `unspecified' values in the FACE's
+default attributes.  To avoid that, i.e. to cause ATTRIBUTE's value
+be reset to `unspecified' when creating new frames, disregarding
+what the FACE's face spec says, call this function with FRAME set to
+t and the ATTRIBUTE's value set to `unspecified'.
 
 The following attributes are recognized:
 
