@@ -439,7 +439,9 @@ non-nil, means also include partially matching ligatures and
 non-canonical equivalences."
   (interactive (list (ignore-errors
                        (read-char-by-name
-                        "Unicode name, single char, or hex, default all: " t))
+                        (format-prompt "Unicode name, single char, or hex"
+                                       "all")
+                        t))
                      current-prefix-arg))
   (require 'help-fns)
   (let ((help-buffer-under-preparation t))
