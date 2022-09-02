@@ -419,7 +419,10 @@ No problems result if this variable is not bound.
 	       (cond ((keymapp m) m)
                      ;; FIXME: `easy-mmode-define-keymap' is obsolete,
                      ;; so this form should also be obsolete somehow.
-		     ((listp m) (easy-mmode-define-keymap m))
+		     ((listp m)
+                      (with-suppressed-warnings ((obsolete
+                                                  easy-mmode-define-keymap))
+                        (easy-mmode-define-keymap m)))
 		     (t (error "Invalid keymap %S" m))))
 	     ,(format "Keymap for `%s'." mode-name)))
 
