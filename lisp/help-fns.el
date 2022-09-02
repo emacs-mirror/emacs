@@ -229,7 +229,7 @@ interactive command."
                (lambda (f) (if want-command
                           (commandp f)
                         (or (fboundp f) (get f 'function-documentation))))
-               t nil nil
+               'confirm nil nil
                (and fn (symbol-name fn)))))
     (unless (equal val "")
       (setq fn (intern val)))
@@ -424,7 +424,7 @@ If ALSO-C-SOURCE is non-nil, instead of returning `C-source',
 this function will attempt to locate the definition of OBJECT in
 the C sources, too."
   (let* ((autoloaded (autoloadp type))
-	 (file-name (or (and autoloaded (nth 1 type))
+	 (file-name (or (and autoloaded (autoload-file type))
 			(symbol-file
                          ;; FIXME: Why do we have this weird "If TYPE is the
                          ;; value returned by `symbol-function' for a function
@@ -2179,8 +2179,7 @@ documentation for the major and minor modes of that buffer."
 	;; Document the minor modes fully.
         (insert (buttonize
                  (propertize pretty-minor-mode 'help-minor-mode mode)
-                 (lambda (mode)
-                   (describe-function mode))
+                 #'describe-function
                  mode))
         (let ((indicator
                (format-mode-line (assq mode minor-mode-alist))))
@@ -2189,7 +2188,8 @@ documentation for the major and minor modes of that buffer."
 			      "no indicator"
 			    (format "indicator%s"
 				    indicator)))))
-	(insert (help-split-fundoc (documentation mode) nil 'doc)))))
+	(insert (or (help-split-fundoc (documentation mode) nil 'doc)
+	            "No docstring")))))
   (forward-line -1)
   (fill-paragraph nil)
   (forward-paragraph 1)
