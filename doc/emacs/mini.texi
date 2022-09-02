@@ -58,12 +58,8 @@ the default argument is shown with the user option
 Emacs hides the default argument as soon as you modify the contents of
 the minibuffer (since typing @key{RET} would no longer submit that
 default).  If you ever bring back the original minibuffer text, the
-prompt again shows the default.  Furthermore, if you change the
-variable @code{minibuffer-eldef-shorten-default} to a non-@code{nil}
-value, the default argument is displayed as @samp{[@var{default-arg}]}
-instead of @samp{(default @var{default-arg})}, saving some screen
-space.  To enable this minor mode, type @kbd{M-x
-minibuffer-electric-default-mode}.
+prompt again shows the default.  To enable this minor mode, type
+@kbd{M-x minibuffer-electric-default-mode}.
 
   Since the minibuffer appears in the echo area, it can conflict with
 other uses of the echo area.  If an error message or an informative

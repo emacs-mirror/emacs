@@ -64,6 +64,8 @@
   :type 'boolean
   :group 'minibuffer
   :version "24.3")
+(make-obsolete-variable 'minibuffer-eldef-shorten-default
+                        'minibuffer-default-prompt-format "29.1")
 
 (defvar minibuffer-default-in-prompt-regexps
   (minibuffer-default--in-prompt-regexps)

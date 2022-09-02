@@ -109,6 +109,12 @@ files when the Emacs session which locked it crashes, or was otherwise
 interrupted, and didn't exit gracefully.  See the "(emacs) Saving
 Emacs Sessions" node in the Emacs manual for more details.
 
+** Miscellaneous
+
++++
+*** User option 'minibuffer-eldef-shorten-default' is now obsolete.
+Customize the user option 'minibuffer-default-prompt-format' instead.
+
 
 * Startup Changes in Emacs 29.1
 
