@@ -3955,10 +3955,6 @@ x_window (struct frame *f, long window_prompting)
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
-  if (FRAME_X_EMBEDDED_P (f))
-    XReparentWindow (FRAME_X_DISPLAY (f), XtWindow (shell_widget),
-		     f->output_data.x->parent_desc, 0, 0);
-
   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
   initial_set_up_x_back_buffer (f);
   validate_x_resource_name ();
@@ -4132,7 +4128,7 @@ x_window (struct frame *f)
   block_input ();
   FRAME_X_WINDOW (f)
     = XCreateWindow (FRAME_X_DISPLAY (f),
-		     f->output_data.x->parent_desc,
+		     FRAME_DISPLAY_INFO (f)->root_window,
 		     f->left_pos,
 		     f->top_pos,
 		     FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
@@ -4956,6 +4952,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_window (f, window_prompting);
 #else
   x_window (f);
+#endif
+
+#ifndef USE_GTK
+  if (FRAME_X_EMBEDDED_P (f)
+      && !x_embed_frame (dpyinfo, f))
+    error ("The frame could not be embedded; does the embedder exist?");
 #endif
 
   x_icon (f, parms);

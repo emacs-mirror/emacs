@@ -18416,6 +18416,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       f = x_top_window_to_frame (dpyinfo, event->xreparent.window);
       if (f)
         {
+#ifndef USE_GTK
+	  if (FRAME_OUTPUT_DATA (f)->parent_desc
+	      && FRAME_X_EMBEDDED_P (f))
+	    {
+	      /* The frame's embedder was destroyed; mark the frame as
+		 no longer embedded, and map the frame.  An
+		 UnmapNotify event must have previously been received
+		 during the start of save-set processing.  */
+
+	      FRAME_X_OUTPUT (f)->explicit_parent = false;
+	      x_make_frame_visible (f);
+	    }
+#endif
+
 	  /* Maybe we shouldn't set this for child frames ??  */
 	  f->output_data.x->parent_desc = event->xreparent.parent;
 
@@ -27455,6 +27469,31 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
 
   return value;
 }
+
+#ifndef USE_GTK
+
+/* Set up XEmbed for F, and change its save set to handle the parent
+   being destroyed.  */
+
+bool
+x_embed_frame (struct x_display_info *dpyinfo, struct frame *f)
+{
+  bool rc;
+
+  x_catch_errors (dpyinfo->display);
+  /* Catch errors; the target window might no longer exist.  */
+  XReparentWindow (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		   FRAME_OUTPUT_DATA (f)->parent_desc, 0, 0);
+  rc = x_had_errors_p (dpyinfo->display);
+  x_uncatch_errors_after_check ();
+
+  if (rc)
+    return false;
+
+  return true;
+}
+
+#endif
 
 
 /* Setting window manager hints.  */
