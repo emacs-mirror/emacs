@@ -162,6 +162,17 @@ of 'user-emacs-directory'.
 
 * Incompatible changes in Emacs 29.1
 
+---
+*** 'show-paren-mode' is now disabled in 'special-mode' buffers.
+In Emacs versions previous to Emacs 28.1, 'show-paren-mode' defaulted
+off.  In Emacs 28.1, the mode was switched on in all buffers.  In
+Emacs 29.1, this was changed to be switched on in all editing-related
+buffers, but not in buffers that inherit from 'special-mode'.  To get
+back to how things worked in Emacs 28.1, put the following in your
+init file:
+
+  (setopt show-paren-predicate t)
+
 +++
 *** Explicitly-set read-only state is preserved when reverting a buffer.
 If you use the 'C-x C-q' command to change the read-only state of the

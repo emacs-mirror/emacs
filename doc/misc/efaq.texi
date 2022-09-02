@@ -2364,16 +2364,7 @@ new paragraph.  There are many packages available to deal with this
 @cindex Pairs of parentheses, highlighting
 @cindex Matching parentheses
 
-Call @code{show-paren-mode} in your init file (@pxref{Setting up a
-customization file}):
-
-@lisp
-(show-paren-mode 1)
-@end lisp
-
-You can also enable this mode by selecting the @samp{Paren Match
-Highlighting} option from the @samp{Options} menu of the Emacs menu bar
-at the top of any Emacs frame.
+By default, @code{show-paren-mode} is enabled in all editing buffers.
 
 Alternatives to this mode include:
 

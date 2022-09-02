@@ -834,10 +834,16 @@ of automatic matching.  Whenever point is before an opening delimiter
 or after a closing delimiter, the delimiter, its matching delimiter,
 and optionally the text between them are highlighted.  To toggle Show
 Paren mode globally, type @kbd{M-x show-paren-mode}.  To toggle it
-only in the current buffer, type @kbd{M-x show-paren-local-mode}.  To
-customize it, type @w{@kbd{M-x customize-group @key{RET} paren-showing}}.
-The customizable options which control the operation of this mode
-include:
+only in the current buffer, type @kbd{M-x show-paren-local-mode}.
+
+@vindex show-paren-predicate
+  By default, this mode is switched on in all buffers that are meant
+for editing, but is not enabled in buffers that show data.  This is
+controlled by the @code{show-paren-predicate} user option.
+
+  To customize the mode, type @w{@kbd{M-x customize-group @key{RET}
+paren-showing}}.  The customizable options which control the operation
+of this mode include:
 
 @itemize @bullet
 @item
