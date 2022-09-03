@@ -2571,7 +2571,8 @@ workaround."
       (with-current-buffer (get-buffer-create "*erc-protocol*")
         (save-excursion
           (goto-char (point-max))
-          (let ((inhibit-read-only t))
+          (let ((buffer-undo-list t)
+                (inhibit-read-only t))
             (insert (if outbound
                         (concat ts esid " >> " string)
                       ;; Cope with multi-line messages
