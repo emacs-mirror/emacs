@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'xdg)
+(eval-when-compile (require 'cl-lib))
 
 (defvar image-dired-dir)
 (defvar image-dired-thumbnail-storage)
