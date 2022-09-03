@@ -12740,6 +12740,25 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
 
     case XI_FocusOut:
       device->focus_frame = NULL;
+
+      /* So, unfortunately, the X Input Extension is implemented such
+	 that means XI_Leave events will not have their focus field
+	 set if the core focus is transferred to another window after
+	 an entry event that pretends to (or really does) set the
+	 implicit focus.  In addition, if the core focus is set, but
+	 the extension focus on the client pointer is not, all
+	 XI_Enter events will have their focus fields set, despite not
+	 actually changing the effective focus window.  Combined with
+	 almost all window managers not setting the focus on input
+	 extension devices, this means that Emacs will continue to
+	 think the implicit focus is set on one of its frames if the
+	 actual (core) focus is transferred to another window while
+	 the pointer remains inside a frame.  The only workaround in
+	 this case is to clear the implicit focus along with
+	 XI_FocusOut events, which is not correct at all, but better
+	 than leaving frames in an incorrectly-focused state.
+	 (bug#57468) */
+      device->focus_implicit_frame = NULL;
       break;
 
     case XI_Enter:
@@ -13163,7 +13182,13 @@ x_mouse_leave (struct x_display_info *dpyinfo)
       hlinfo->mouse_face_mouse_frame = NULL;
     }
 
-  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
+#ifdef HAVE_XINPUT2
+  if (!dpyinfo->supports_xi2)
+    /* I don't understand what the call below is supposed to do.  But
+       reading dpyinfo->x_focus_event_frame is invalid on input
+       extension builds, so disable it there.  */
+#endif
+    x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
 }
 #endif
 
