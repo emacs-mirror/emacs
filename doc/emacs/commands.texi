@@ -148,17 +148,24 @@ by dragging the mouse cursor.  All mouse actions can be bound to
 commands in the same way you bind keyboard events (@pxref{Keys}).
 
 @cindex mouse-1
-  When you click the left mouse button, Emacs receives a @code{mouse-1}
-event.  To see what command that event is bound to, you can say
-@kbd{C-h c} and then use the left mouse button.  Similarly, the middle
-mouse button is @code{mouse-2} and the left mouse button is
+  When you click the left mouse button, Emacs receives a
+@code{mouse-1} event.  To see what command that event is bound to, you
+can say @kbd{C-h c} and then use the left mouse button.  Similarly,
+the middle mouse button is @code{mouse-2} and the left mouse button is
 @code{mouse-3}.  If you have a mouse with a wheel, the wheel events
-are commonly bound to @code{mouse-4} and @code{mouse-5}, but that
-depends on the device.
+are commonly bound to either @code{wheel-down} or @code{wheel-up}, or
+@code{mouse-4} and @code{mouse-5}, but that depends on the operating
+system configuration.
 
-  For mouse-wheel events can also be @code{wheel-up} or
-@code{wheel-down}, and the easiest way to tell is to just use @kbd{C-h
-c} and then use the mouse.
+  In general, legacy X systems and terminals (@pxref{Text-Only Mouse})
+will report @code{mouse-4} and @code{mouse-5}, while all other systems
+will report @code{wheel-down} and @code{wheel-up}.
+
+  Some mice also have a horizontal scroll wheel, and touchpads usually
+support scrolling horizontally as well.  These events are reported as
+@code{wheel-left} and @code{wheel-right} on all systems other than
+terminals and legacy X systems, where they are @code{mouse-6} and
+@code{mouse-7}.
 
   You can also combine keyboard modifiers with mouse events, so you
 can bind a special command that triggers when you, for instance, holds
