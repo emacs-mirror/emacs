@@ -47,7 +47,7 @@ window displaying the @samp{*Help*} buffer will be reused instead.
   If you are looking for a certain feature, but don't know what it is
 called or where to look, we recommend three methods.  First, try an
 apropos command, then try searching the manual index, then look in the
-FAQ and the package keywords.
+FAQ and the package keywords, and finally try listing external packages.
 
 @table @kbd
 @item C-h a @var{topics} @key{RET}
@@ -70,6 +70,9 @@ This displays the Emacs FAQ, using Info.
 @item C-h p
 This displays the available Emacs packages based on keywords.
 @xref{Package Keywords}.
+
+@item M-x list-packages
+This displays a list of external packages.  @xref{Packages}.
 @end table
 
   @kbd{C-h} or @key{F1} mean ``help'' in various other contexts as
