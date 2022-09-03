@@ -141,7 +141,7 @@ use @key{F1} to display a list of commands starting with @key{ESC}.
 
 @node Mice
 @section Mice
-@cindexd mouse input
+@cindex mouse input
 
   By default, Emacs supports all the normal mouse actions like setting
 the cursor by clicking on the left mouse button, and selecting an area
