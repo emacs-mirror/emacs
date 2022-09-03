@@ -680,6 +680,24 @@ for which @var{predicate} returns @code{nil}.
 @end example
 @end defun
 
+@defun seq-remove-at-position sequence n
+@cindex removing from sequences
+  This function returns a copy of @var{sequence} where the element at
+  (zero-based) index @var{n} got removed. The result is a sequence of
+  the same type as @var{sequence}.
+
+@example
+@group
+(seq-remove-at-position [1 -1 3 -3 5] 0)
+@result{} [-1 3 -3 5]
+@end group
+@group
+(seq-remove-at-position [1 -1 3 -3 5] 3)
+@result{} [1 -1 3 5]
+@end group
+@end example
+@end defun
+
 @defun seq-reduce function sequence initial-value
 @cindex reducing sequences
   This function returns the result of calling @var{function} with

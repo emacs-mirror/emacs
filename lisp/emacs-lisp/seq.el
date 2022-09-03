@@ -347,6 +347,20 @@ list."
               sequence))
 
 ;;;###autoload
+(cl-defgeneric seq-remove-at-position (sequence n)
+  "Return a copy of SEQUENCE where the element at N got removed.
+
+N is the (zero-based) index of the element that should not be in
+the result.
+
+The result is a sequence of the same type as SEQUENCE."
+  (seq-concatenate
+   (let ((type (type-of sequence)))
+     (if (eq type 'cons) 'list type))
+   (seq-subseq sequence 0 n)
+   (seq-subseq sequence (1+ n))))
+
+;;;###autoload
 (cl-defgeneric seq-reduce (function sequence initial-value)
   "Reduce the function FUNCTION across SEQUENCE, starting with INITIAL-VALUE.
 

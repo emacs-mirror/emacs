@@ -2744,6 +2744,11 @@ The default timeout value can be defined by the new variable
 This returns a list of sub-sequences of the specified sequence.
 
 +++
+** New function 'seq-remove-at-position'.
+This function returns a copy of the specified sequence where the
+element at a given (zero-based) index got removed.
+
++++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
 These function now take an optional comparison predicate argument.
 
