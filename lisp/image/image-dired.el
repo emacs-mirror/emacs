@@ -323,7 +323,7 @@ Used by `image-dired-copy-with-exif-file-name'."
   :type 'string
   :version "29.1")
 
-(defcustom image-dired-show-all-from-dir-max-files 500
+(defcustom image-dired-show-all-from-dir-max-files 1000
   "Maximum number of files in directory before prompting.
 
 If there are more image files than this in a selected directory,
