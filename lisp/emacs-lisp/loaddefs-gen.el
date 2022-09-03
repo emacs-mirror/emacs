@@ -504,6 +504,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
       (generate-lisp-file-trailer
        file :provide (and (stringp feature) feature)
        :compile compile
+       :inhibit-native-compile t
        :inhibit-provide (not feature))
       (buffer-string))))
 
