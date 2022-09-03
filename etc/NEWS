@@ -357,6 +357,18 @@ startup.  Previously, these functions ignored
 'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
 ---
+** The 'rlogin' method in the URL library is now obsolete.
+Emacs will now display a warning if you request a URL like
+"rlogin://foo@example.org".
+
+---
+** Setting 'url-gateway-method' to 'rlogin' is now obsolete.
+Emacs will now display a warning when setting it to that value.
+The user options 'url-gateway-rlogin-host',
+'url-gateway-rlogin-parameters', and 'url-gateway-rlogin-user-name'
+are also obsolete.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.

@@ -28,8 +28,6 @@
 (require 'url-vars)
 (require 'url-parse)
 
-;; Fixme: support SSH explicitly or via a url-gateway-rlogin-program?
-
 (autoload 'socks-open-network-stream "socks")
 
 (defgroup url-gateway nil
@@ -51,17 +49,20 @@
   "What hostname to actually rlog into before doing a telnet."
   :type '(choice (const nil) string)
   :group 'url-gateway)
+(make-obsolete-variable 'url-gateway-rlogin-host nil "29.1")
 
 (defcustom url-gateway-rlogin-user-name nil
   "Username to log into the remote machine with when using rlogin."
   :type '(choice (const nil) string)
   :group 'url-gateway)
+(make-obsolete-variable 'url-gateway-rlogin-user-name nil "29.1")
 
 (defcustom url-gateway-rlogin-parameters '("telnet" "-8")
   "Parameters to `url-open-rlogin'.
 This list will be used as the parameter list given to rsh."
   :type '(repeat string)
   :group 'url-gateway)
+(make-obsolete-variable 'url-gateway-rlogin-parameters nil "29.1")
 
 (defcustom url-gateway-telnet-host nil
   "What hostname to actually login to before doing a telnet."
@@ -141,6 +142,7 @@ linked Emacs under SunOS 4.x."
 ;; Stolen from red gnus nntp.el
 (defun url-open-rlogin (name buffer host service)
   "Open a connection using rsh."
+  (declare (obsolete nil "29.1"))
   (if (not (stringp service))
       (setq service (int-to-string service)))
   (let ((proc (if url-gateway-rlogin-user-name
@@ -205,6 +207,9 @@ linked Emacs under SunOS 4.x."
 	(delete-region (point) (point-max)))
       proc)))
 
+(defvar url-gw-rlogin-obsolete-warned-once nil)
+(make-obsolete-variable url-gw-rlogin-obsolete-warned-once nil "29.1")
+
 ;;;###autoload
 (defun url-open-stream (name buffer host service &optional gateway-method)
   "Open a stream to HOST, possibly via a gateway.
@@ -255,7 +260,11 @@ overriding the value of `url-gateway-method'."
 			 ('telnet
 			  (url-open-telnet name buffer host service))
 			 ('rlogin
-			  (url-open-rlogin name buffer host service))
+                          (unless url-gw-rlogin-obsolete-warned-once
+                            (lwarn 'url :error "Setting `url-gateway-method' to `rlogin' is obsolete")
+                            (setq url-gw-rlogin-obsolete-warned-once t))
+                          (with-suppressed-warnings ((obsolete url-open-rlogin))
+                            (url-open-rlogin name buffer host service)))
 			 (_
 			  (error "Bad setting of url-gateway-method: %s"
 				 url-gateway-method))))))

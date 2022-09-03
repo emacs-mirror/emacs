@@ -350,13 +350,11 @@ Should be a symbol specifying how to get a connection from the local machine.
 
 Currently supported methods:
 `telnet': Run telnet in a subprocess to connect;
-`rlogin': Rlogin to another machine to connect;
 `socks': Connect through a socks server;
 `tls': Connect with TLS;
 `ssl': Connect with SSL (deprecated, use `tls' instead);
 `native': Connect directly."
   :type '(radio (const :tag "Telnet to gateway host" :value telnet)
-		(const :tag "Rlogin to gateway host" :value rlogin)
 		(const :tag "Use SOCKS proxy" :value socks)
 		(const :tag "Use SSL/TLS for all connections" :value tls)
 		(const :tag "Use SSL for all connections (obsolete)" :value ssl)
