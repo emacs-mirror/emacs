@@ -404,9 +404,12 @@ This returns @code{t} if @var{charcode} is a valid character, and
 
 @cindex maximum value of character codepoint
 @cindex codepoint, largest value
-@defun max-char
+@defun max-char &optional unicode
 This function returns the largest value that a valid character
-codepoint can have.
+codepoint can have in Emacs.  If the optional argument @var{unicode}
+is non-@code{nil}, it returns the largest character codepoint defined
+by the Unicode Standard (which is smaller than the maximum codepoint
+supported by Emacs).
 
 @example
 @group

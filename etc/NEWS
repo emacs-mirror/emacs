@@ -2789,6 +2789,12 @@ request the name of the ".eln" file which defined a given symbol.
 +++
 ** New macro 'with-memoization' provides a very primitive form of memoization.
 
++++
+** 'max-char' can now report the maximum codepoint according to Unicode.
+When called with a new optional argument UNICODE non-nil, 'max-char'
+will now report the maximum valid codepoint defined by the Unicode
+Standard.
+
 ** Themes
 
 ---
