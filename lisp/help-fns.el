@@ -424,7 +424,7 @@ If ALSO-C-SOURCE is non-nil, instead of returning `C-source',
 this function will attempt to locate the definition of OBJECT in
 the C sources, too."
   (let* ((autoloaded (autoloadp type))
-	 (file-name (or (and autoloaded (autoload-file type))
+	 (file-name (or (and autoloaded (nth 1 type))
 			(symbol-file
                          ;; FIXME: Why do we have this weird "If TYPE is the
                          ;; value returned by `symbol-function' for a function
