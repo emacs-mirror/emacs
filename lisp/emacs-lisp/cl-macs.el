@@ -3105,7 +3105,7 @@ To see the documentation for a defined struct type, use
                   `(and ,pred-form t)))
             forms)
       (push `(eval-and-compile
-               (put ',name 'cl-deftype-satisfies ',predicate))
+               (define-symbol-prop ',name 'cl-deftype-satisfies ',predicate))
             forms))
     (let ((pos 0) (descp descs))
       (while descp
@@ -3570,7 +3570,7 @@ and then returning foo."
        (cl-defun ,fname ,(if (memq '&whole args) (delq '&whole args)
                            (cons '_cl-whole-arg args))
          ,@body)
-       (put ',func 'compiler-macro #',fname))))
+       (define-symbol-prop ',func 'compiler-macro #',fname))))
 
 ;;;###autoload
 (defun cl-compiler-macroexpand (form)
@@ -3679,8 +3679,8 @@ macro that returns its `&whole' argument."
 The type name can then be used in `cl-typecase', `cl-check-type', etc."
   (declare (debug cl-defmacro) (doc-string 3) (indent 2))
   `(cl-eval-when (compile load eval)
-     (put ',name 'cl-deftype-handler
-          (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
+     (define-symbol-prop ',name 'cl-deftype-handler
+                         (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
 
 (cl-deftype extended-char () '(and character (not base-char)))
 ;; Define fixnum so `cl-typep' recognize it and the type check emitted
