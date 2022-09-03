@@ -19276,6 +19276,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
 				    event->xcrossing.send_event);
 
+#ifdef HAVE_XINPUT2
+      /* For whatever reason, the X server continues to deliver
+	 EnterNotify and LeaveNotify events despite us selecting for
+	 related XI_Enter and XI_Leave events.  It's not just our
+	 problem, since windows created by "xinput test-xi2" suffer
+	 from the same defect.  Simply ignore all such events while
+	 the input extension is enabled.  (bug#57468) */
+
+      if (dpyinfo->supports_xi2)
+	goto OTHER;
+#endif
+
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
 
@@ -19377,6 +19389,18 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
 				    event->xcrossing.send_event);
 
+#ifdef HAVE_XINPUT2
+      /* For whatever reason, the X server continues to deliver
+	 EnterNotify and LeaveNotify events despite us selecting for
+	 related XI_Enter and XI_Leave events.  It's not just our
+	 problem, since windows created by "xinput test-xi2" suffer
+	 from the same defect.  Simply ignore all such events while
+	 the input extension is enabled.  (bug#57468) */
+
+      if (dpyinfo->supports_xi2)
+	goto OTHER;
+#endif
+
 #ifdef HAVE_XWIDGETS
       {
 	struct xwidget_view *xvw = xwidget_view_from_window (event->xcrossing.window);
@@ -19402,14 +19426,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #else
       f = x_top_window_to_frame (dpyinfo, event->xcrossing.window);
 #endif
-#if defined USE_X_TOOLKIT && defined HAVE_XINPUT2 && !defined USE_MOTIF
-      /* The XI2 event mask is set on the frame widget, so this event
-	 likely originates from the shell widget, which we aren't
-	 interested in.  (But don't ignore this on Motif, since we
-	 want to clear the mouse face when a popup is active.)  */
-      if (dpyinfo->supports_xi2)
-	f = NULL;
-#endif
+
       if (f)
         {
 	  /* Now clear dpyinfo->last_mouse_motion_frame, or
