@@ -618,13 +618,7 @@ Signal an error if SEQUENCE is empty."
 
 (cl-defmethod seq-take ((list list) n)
   "Optimized implementation of `seq-take' for lists."
-  (if (eval-when-compile (fboundp 'take))
-      (take n list)
-    (let ((result '()))
-      (while (and list (> n 0))
-        (setq n (1- n))
-        (push (pop list) result))
-      (nreverse result))))
+  (take n list))
 
 (cl-defmethod seq-drop-while (pred (list list))
   "Optimized implementation of `seq-drop-while' for lists."
@@ -654,16 +648,6 @@ Signal an error if SEQUENCE is empty."
   (if (stringp sequence)
       sequence
     (concat sequence)))
-
-(defun seq--activate-font-lock-keywords ()
-  "Activate font-lock keywords for some symbols defined in seq."
-  (font-lock-add-keywords 'emacs-lisp-mode
-                          '("\\<seq-doseq\\>" "\\<seq-let\\>")))
-
-(unless (fboundp 'elisp--font-lock-flush-elisp-buffers)
-  ;; In Emacs≥25, (via elisp--font-lock-flush-elisp-buffers and a few others)
-  ;; we automatically highlight macros.
-  (add-hook 'emacs-lisp-mode-hook #'seq--activate-font-lock-keywords))
 
 (defun seq-split (sequence length)
   "Split SEQUENCE into a list of sub-sequences of at most LENGTH.
