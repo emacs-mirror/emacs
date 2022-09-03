@@ -185,7 +185,9 @@ by the Unicode Standard.  */
        attributes: const)
   (Lisp_Object unicode)
 {
-  return unicode ? make_fixnum (MAX_UNICODE_CHAR) : make_fixnum (MAX_CHAR);
+  return (!NILP (unicode)
+	  ? make_fixnum (MAX_UNICODE_CHAR)
+	  : make_fixnum (MAX_CHAR));
 }
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
