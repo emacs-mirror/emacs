@@ -6992,32 +6992,32 @@ CONDITION is either:
         (lambda (conditions)
           (catch 'match
             (dolist (condition conditions)
-              (when (cond
-                     ((eq condition t))
-                     ((stringp condition)
-                      (string-match-p condition (buffer-name buffer)))
-                     ((functionp condition)
-                      (if (eq 1 (cdr (func-arity condition)))
-                          (funcall condition buffer)
-                        (funcall condition buffer arg)))
-                     ((eq (car-safe condition) 'major-mode)
-                      (eq
-                       (buffer-local-value 'major-mode buffer)
-                       (cdr condition)))
-                     ((eq (car-safe condition) 'derived-mode)
-                      (provided-mode-derived-p
-                       (buffer-local-value 'major-mode buffer)
-                       (cdr condition)))
-                     ((eq (car-safe condition) 'not)
-                      (not (funcall match (cdr condition))))
-                     ((eq (car-safe condition) 'or)
-                      (funcall match (cdr condition)))
-                     ((eq (car-safe condition) 'and)
-                      (catch 'fail
-                        (dolist (c (cdr conditions))
-                          (unless (funcall match c)
-                            (throw 'fail nil)))
-                        t)))
+              (when (pcase condition
+                      ('t t)
+                      ((pred stringp)
+                       (string-match-p condition (buffer-name buffer)))
+                      ((pred functionp)
+                       (if (eq 1 (cdr (func-arity condition)))
+                           (funcall condition buffer)
+                         (funcall condition buffer arg)))
+                      (`(major-mode . ,mode)
+                       (eq
+                        (buffer-local-value 'major-mode buffer)
+                        mode))
+                      (`(derived-mode . ,mode)
+                       (provided-mode-derived-p
+                        (buffer-local-value 'major-mode buffer)
+                        mode))
+                      (`(not . ,cond)
+                       (not (funcall match cond)))
+                      (`(or . ,args)
+                       (funcall match args))
+                      (`(and . ,args)
+                       (catch 'fail
+                         (dolist (c args)
+                           (unless (funcall match (list c))
+                             (throw 'fail nil)))
+                         t)))
                 (throw 'match t)))))))
     (funcall match (list condition))))
 
