@@ -151,8 +151,6 @@ commands in the same way you bind them to keyboard events
 mouse in Emacs; @pxref{Mouse Commands}, and the sections that follow
 it, for more details about mouse commands in Emacs.
 
-@cindex wheel-down
-@cindex wheel-up
   When you click the left mouse button, Emacs receives a
 @code{mouse-1} event.  To see what command is bound to that event, you
 can type @kbd{C-h c} and then press the left mouse button.  Similarly,
@@ -166,8 +164,6 @@ system configuration.
 will report @code{mouse-4} and @code{mouse-5}, while all other systems
 will report @code{wheel-down} and @code{wheel-up}.
 
-@cindex wheel-left
-@cindex wheel-right
   Some mice also have a horizontal scroll wheel, and touchpads usually
 support scrolling horizontally as well.  These events are reported as
 @code{wheel-left} and @code{wheel-right} on all systems other than
