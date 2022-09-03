@@ -245,6 +245,11 @@ Theresa O'Connor wrote @file{json.el}, a file for parsing and
 generating JSON files.
 
 @item
+Andrea Corallo wrote the native compilation support in @file{comp.c}
+and @file{comp.el}, for compiling Emacs Lisp to native code using
+@samp{libgccjit}.
+
+@item
 Georges Brun-Cottan and Stefan Monnier wrote @file{easy-mmode.el}, a
 package for easy definition of major and minor modes.
 
