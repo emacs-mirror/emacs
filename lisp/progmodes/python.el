@@ -5,7 +5,7 @@
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.28
-;; Package-Requires: ((emacs "24.4") (cl-lib "1.0"))
+;; Package-Requires: ((emacs "24.4") (compat "28.1.2.1") (seq "2.23"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
@@ -245,6 +245,9 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'comint)
+(require 'compat nil 'noerror)
+(require 'project nil 'noerror)
+(require 'seq)
 (eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
 
 ;; Avoid compiler warnings
@@ -2304,6 +2307,16 @@ virtualenv."
   "`compilation-error-regexp-alist' for inferior Python."
   :type '(alist regexp))
 
+(defcustom python-shell-dedicated nil
+  "Whether to make Python shells dedicated by default.
+This option influences `run-python' when called without a prefix
+argument.  If `buffer' or `project', create a Python shell
+dedicated to the current buffer or its project (if one is found)."
+  :version "29.1"
+  :type '(choice (const :tag "To buffer" buffer)
+                 (const :tag "To project" project)
+                 (const :tag "Not dedicated" nil)))
+
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
 
@@ -2666,12 +2679,19 @@ from `python-shell-prompt-regexp',
 
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
-If DEDICATED is t returns a string with the form
-`python-shell-buffer-name'[`buffer-name'] else returns the value
-of `python-shell-buffer-name'."
-  (if dedicated
-      (format "%s[%s]" python-shell-buffer-name (buffer-name))
-    python-shell-buffer-name))
+If DEDICATED is nil, this is simply `python-shell-buffer-name'.
+If DEDICATED is `buffer' or `project', append the current buffer
+name respectively the current project name."
+  (pcase dedicated
+    ('nil python-shell-buffer-name)
+    ('project
+     (if-let ((proj (and (featurep 'project)
+                         (project-current))))
+         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
+                                                    (directory-file-name
+                                                     (project-root proj))))
+       python-shell-buffer-name))
+    (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
 (defun python-shell-internal-get-process-name ()
   "Calculate the appropriate process name for Internal Python process.
@@ -3129,8 +3149,8 @@ killed."
 Argument CMD defaults to `python-shell-calculate-command' return
 value.  When called interactively with `prefix-arg', it allows
 the user to edit such value and choose whether the interpreter
-should be DEDICATED for the current buffer.  When numeric prefix
-arg is other than 0 or 4 do not SHOW.
+should be DEDICATED to the current buffer or project.  When
+numeric prefix arg is other than 0 or 4 do not SHOW.
 
 For a given buffer and same values of DEDICATED, if a process is
 already running for it, it will do nothing.  This means that if
@@ -3144,13 +3164,25 @@ process buffer for a list of commands.)"
    (if current-prefix-arg
        (list
         (read-shell-command "Run Python: " (python-shell-calculate-command))
-        (y-or-n-p "Make dedicated process? ")
+        (alist-get (car (read-multiple-choice "Make dedicated process?"
+                                              '((?b "to buffer")
+                                                (?p "to project")
+                                                (?n "no"))))
+                   '((?b . buffer) (?p . project)))
         (= (prefix-numeric-value current-prefix-arg) 4))
-     (list (python-shell-calculate-command) nil t)))
-  (let ((buffer
-         (python-shell-make-comint
-          (or cmd (python-shell-calculate-command))
-          (python-shell-get-process-name dedicated) show)))
+     (list (python-shell-calculate-command)
+           python-shell-dedicated
+           t)))
+  (let* ((project (and (eq 'project dedicated)
+                       (featurep 'project)
+                       (project-current t)))
+         (default-directory (if project
+                                (project-root project)
+                              default-directory))
+         (buffer (python-shell-make-comint
+                  (or cmd (python-shell-calculate-command))
+                  (python-shell-get-process-name dedicated)
+                  show)))
     (get-buffer-process buffer)))
 
 (defun run-python-internal ()
@@ -3180,15 +3212,13 @@ startup."
 If current buffer is in `inferior-python-mode', return it."
   (if (derived-mode-p 'inferior-python-mode)
       (current-buffer)
-    (let* ((dedicated-proc-name (python-shell-get-process-name t))
-           (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
-           (global-proc-name  (python-shell-get-process-name nil))
-           (global-proc-buffer-name (format "*%s*" global-proc-name))
-           (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
-           (global-running (comint-check-proc global-proc-buffer-name)))
-      ;; Always prefer dedicated
-      (or (and dedicated-running dedicated-proc-buffer-name)
-          (and global-running global-proc-buffer-name)))))
+    (seq-some
+     (lambda (dedicated)
+       (let* ((proc-name (python-shell-get-process-name dedicated))
+              (buffer-name (format "*%s*" proc-name)))
+         (when (comint-check-proc buffer-name)
+           buffer-name)))
+     '(buffer project nil))))
 
 (defun python-shell-get-process ()
   "Return inferior Python process for current buffer."
