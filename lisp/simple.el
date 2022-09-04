@@ -6878,6 +6878,10 @@ point otherwise."
   "Return the end of the region if `use-region-p'."
   (and (use-region-p) (region-end)))
 
+(defun use-region-noncontiguous-p ()
+  "Return non-nil for a non-contiguous region if `use-region-p'."
+  (and (use-region-p) (region-noncontiguous-p)))
+
 (defun use-region-p ()
   "Return t if the region is active and it is appropriate to act on it.
 This is used by commands that act specially on the region under
@@ -6922,7 +6926,7 @@ see `region-noncontiguous-p' and `extract-rectangle-bounds'."
   "Return non-nil if the region contains several pieces.
 An example is a rectangular region handled as a list of
 separate contiguous regions for each line."
-  (cdr (region-bounds)))
+  (let ((bounds (region-bounds))) (and (cdr bounds) bounds)))
 
 (defun redisplay--unhighlight-overlay-function (rol)
   "If ROL is an overlay, call `delete-overlay'."
