@@ -682,9 +682,9 @@ for which @var{predicate} returns @code{nil}.
 
 @defun seq-remove-at-position sequence n
 @cindex removing from sequences
-  This function returns a copy of @var{sequence} where the element at
-  (zero-based) index @var{n} got removed. The result is a sequence of
-  the same type as @var{sequence}.
+This function returns a copy of @var{sequence} where the element at
+(zero-based) index @var{n} got removed.  The result is a sequence of
+the same type as @var{sequence}.
 
 @example
 @group
