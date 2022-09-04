@@ -539,7 +539,20 @@ collection clause."
                          ((p (gv-synthetic-place cl (lambda (v) `(setcar l ,v)))))
                        (cl-incf p)))
                    l)
-                 '(1))))
+                 '(1)))
+  ;; Make sure `gv-synthetic-place' isn't macro-expanded before
+  ;; `cl-letf' gets to see its `gv-expander'.
+  (should (equal
+           (condition-case err
+               (let ((x 1))
+                 (list x
+                       (cl-letf (((gv-synthetic-place (+ 1 2)
+                                                      (lambda (v) `(setq x ,v)))
+                                  7))
+                         x)
+                       x))
+             (error err))
+           '(1 7 3))))
 
 (ert-deftest cl-macs-loop-conditional-step-clauses ()
   "These tests failed under the initial fixes in #bug#29799."

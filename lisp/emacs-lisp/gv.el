@@ -87,7 +87,11 @@ with a (not necessarily copyable) Elisp expression that returns the value to
 set it to.
 DO must return an Elisp expression."
   (cond
-   ((symbolp place) (funcall do place (lambda (v) `(setq ,place ,v))))
+   ((symbolp place)
+    (let ((me (macroexpand-1 place macroexpand-all-environment)))
+      (if (eq me place)
+          (funcall do place (lambda (v) `(setq ,place ,v)))
+        (gv-get me do))))
    ((not (consp place)) (signal 'gv-invalid-place (list place)))
    (t
     (let* ((head (car place))

@@ -2762,7 +2762,7 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
                            (funcall setter vold)))
                        binds))))
     (let* ((binding (car bindings))
-           (place (macroexpand (car binding) macroexpand-all-environment)))
+           (place (car binding)))
       (gv-letplace (getter setter) place
         (macroexp-let2 nil vnew (cadr binding)
           (if (symbolp place)
