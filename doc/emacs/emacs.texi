@@ -148,7 +148,7 @@ Important General Concepts
                           function keys).
 * Keys::                Key sequences: what you type to request one
                           editing action.
-* Mice::                Using the mouse and keypads.
+* Mouse Input::         Using the mouse and keypads.
 * Commands::            Named functions run by key sequences to do editing.
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::             Stopping or killing Emacs.
