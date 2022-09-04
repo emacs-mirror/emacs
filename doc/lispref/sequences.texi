@@ -898,6 +898,27 @@ use instead of the default @code{equal}.
 @end example
 @end defun
 
+@defun seq-positions sequence elt &optional testfn
+  This function returns a list of the (zero-based) indices of the
+elements in @var{sequence} for which @var{testfn} returns
+non-@code{nil} when passed the element and @var{elt} as
+arguments. @var{testfn} defaults to @code{equal}.
+
+@example
+@group
+(seq-positions '(a b c a d) 'a)
+@result{} (0 3)
+@end group
+@group
+(seq-positions '(a b c a d) 'z)
+@result{} nil
+@end group
+@group
+(seq-positions '(11 5 7 12 9 15) 10 #'>=)
+@result{} (0 3 5)
+@end group
+@end example
+@end defun
 
 @defun seq-uniq sequence &optional function
   This function returns a list of the elements of @var{sequence} with

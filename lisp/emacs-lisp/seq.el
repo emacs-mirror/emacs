@@ -460,6 +460,23 @@ Equality is defined by the function TESTFN, which defaults to `equal'."
       nil)))
 
 ;;;###autoload
+(cl-defgeneric seq-positions (sequence elt &optional testfn)
+  "Return indices for which (TESTFN (seq-elt SEQUENCE index) ELT) is non-nil.
+
+TESTFN is a two-argument function which is passed each element of
+SEQUENCE as first argument and ELT as second. TESTFN defaults to
+`equal'.
+
+The result is a list of (zero-based) indices."
+  (let ((result '()))
+    (seq-do-indexed
+     (lambda (e index)
+       (when (funcall (or testfn #'equal) e elt)
+         (push index result)))
+     sequence)
+    (nreverse result)))
+
+;;;###autoload
 (cl-defgeneric seq-uniq (sequence &optional testfn)
   "Return a list of the elements of SEQUENCE with duplicates removed.
 TESTFN is used to compare elements, or `equal' if TESTFN is nil."

@@ -846,6 +846,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-find #'numberp '(a b 3 4 f 6)))
   (seq-position
    :eval (seq-position '(a b c) 'c))
+  (seq-positions
+   :eval (seq-positions '(a b c a d) 'a)
+   :eval (seq-positions '(a b c a d) 'z)
+   :eval (seq-positions '(11 5 7 12 9 15) 10 #'>=))
   (seq-length
    :eval (seq-length "abcde"))
   (seq-max

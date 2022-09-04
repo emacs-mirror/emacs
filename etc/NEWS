@@ -2743,6 +2743,11 @@ These can be used for buttons in buffers and the like.  See the
 "(elisp) Icons" and "(emacs) Icons" nodes in the manuals for details.
 
 +++
+** New function 'seq-positions'.
+This returns a list of the (zero-based) indices of elements matching a
+given predicate in the specified sequence.
+
++++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
 MESSAGE specifies a message to display after activating the transient
 map, including a special formatting spec to list available keys.
