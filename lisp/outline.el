@@ -288,8 +288,7 @@ The value should be a `buffer-match-p' condition.
 These buttons can be used to hide and show the body under the heading.
 Note that this feature is not meant to be used in editing
 buffers (yet) -- that will be amended in a future version."
-  ;; FIXME -- is there a `buffer-match-p' defcustom type somewhere?
-  :type 'sexp
+  :type 'buffer-predicate
   :safe #'booleanp
   :version "29.1")
 

@@ -123,7 +123,7 @@ On non-graphical frames, the context is shown in the echo area."
 The default is to enable the mode in all buffers that have don't
 derive from `special-mode', which means that it's on (by default)
 in all editing buffers."
-  :type 'sexp
+  :type 'buffer-predicate
   :safe #'booleanp
   :version "29.1")
 

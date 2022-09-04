@@ -4145,6 +4145,15 @@ is inline."
 (define-obsolete-function-alias 'widget-visibility-value-create
   #'widget-toggle-value-create "29.1")
 
+;;; Buffer predicates.
+(define-widget 'buffer-predicate 'lazy
+  "A buffer predicate."
+  :tag "Buffer predicate"
+  :type '(choice (const :tag "All buffers" t)
+                 (const :tag "No buffers" nil)
+                 ;; FIXME: This should be expanded somehow.
+                 sexp))
+
 (provide 'wid-edit)
 
 ;;; wid-edit.el ends here
