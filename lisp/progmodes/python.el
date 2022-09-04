@@ -34,7 +34,8 @@
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
 ;; package support, Shell syntax highlighting, Pdb tracking, Symbol
-;; completion, Skeletons, FFAP, Code Check, ElDoc, Imenu.
+;; completion, Skeletons, FFAP, Code Check, ElDoc, Imenu, Flymake,
+;; Import management.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -69,7 +70,7 @@
 ;; variables.  This example enables IPython globally:
 
 ;; (setq python-shell-interpreter "ipython"
-;;       python-shell-interpreter-args "-i")
+;;       python-shell-interpreter-args "--simple-prompt")
 
 ;; Using the "console" subcommand to start IPython in server-client
 ;; mode is known to fail intermittently due a bug on IPython itself
@@ -240,6 +241,21 @@
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
 
+;; Flymake: A Flymake backend, using the pyflakes program by default,
+;; is provided.  You can also use flake8 or pylint by customizing
+;; `python-flymake-command'.
+
+;; Import management: The commands `python-sort-imports',
+;; `python-add-import', `python-remove-import', and
+;; `python-fix-imports' automate the editing of import statements at
+;; the top of the buffer, which tend to be a tedious task in larger
+;; projects.  These commands require that the isort library is
+;; available to the interpreter pointed at by `python-interpreter'.
+;; The last command also requires pyflakes.  These dependencies can be
+;; installed, among other methods, with the following command:
+;;
+;;     pip install isort pyflakes
+
 ;;; Code:
 
 (require 'ansi-color)
@@ -268,6 +284,12 @@
   :version "24.3"
   :link '(emacs-commentary-link "python"))
 
+(defcustom python-interpreter "python"
+  "Python interpreter for noninteractive use.
+To customize the Python shell, modify `python-shell-interpreter'
+instead."
+  :version "29.1"
+  :type 'string)
 
 
 ;;; Bindings
@@ -306,6 +328,11 @@
     (define-key map "\C-c\C-v" #'python-check)
     (define-key map "\C-c\C-f" #'python-eldoc-at-point)
     (define-key map "\C-c\C-d" #'python-describe-at-point)
+    ;; Import management
+    (define-key map "\C-c\C-ia" #'python-add-import)
+    (define-key map "\C-c\C-if" #'python-fix-imports)
+    (define-key map "\C-c\C-ir" #'python-remove-import)
+    (define-key map "\C-c\C-is" #'python-sort-imports)
     ;; Utilities
     (substitute-key-definition #'complete-symbol #'completion-at-point
                                map global-map)
@@ -351,7 +378,17 @@
         ["Help on symbol" python-eldoc-at-point
          :help "Get help on symbol at point"]
         ["Complete symbol" completion-at-point
-         :help "Complete symbol before point"]))
+         :help "Complete symbol before point"]
+        "-----"
+        ["Add import" python-add-import
+         :help "Add an import statement to the top of this buffer"]
+        ["Remove import" python-remove-import
+         :help "Remove an import statement from the top of this buffer"]
+        ["Sort imports" python-sort-imports
+         :help "Sort the import statements at the top of this buffer"]
+        ["Fix imports" python-fix-imports
+         :help "Add missing imports and remove unused ones from the current buffer"]
+        ))
     map)
   "Keymap for `python-mode'.")
 
@@ -5852,6 +5889,225 @@ REPORT-FN is Flymake's callback function."
       (process-send-eof python--flymake-proc))))
 
 
+;;; Import management
+(defconst python--list-imports "\
+from isort import find_imports_in_stream, find_imports_in_paths
+from sys import argv, stdin
+
+query, files, result = argv[1] or None, argv[2:], {}
+
+if files:
+    imports = find_imports_in_paths(files, top_only=True)
+else:
+    imports = find_imports_in_stream(stdin, top_only=True)
+
+for imp in imports:
+    if query is None or query == (imp.alias or imp.attribute or imp.module):
+        key = (imp.module, imp.attribute or '', imp.alias or '')
+        if key not in result:
+            result[key] = imp.statement()
+
+for key in sorted(result):
+    print(result[key])
+"
+  "Script to list import statements in Python code.")
+
+(defvar python-import-history nil
+  "History variable for `python-import' commands.")
+
+(defun python--import-sources ()
+  "List files containing Python imports that may be useful in the current buffer."
+  (if-let (((featurep 'project))        ;For compatibility with Emacs < 26
+           (proj (project-current)))
+      (seq-filter (lambda (s) (string-match-p "\\.py[ciw]?\\'" s))
+                  (project-files proj))
+    (list default-directory)))
+
+(defun python--list-imports (name source)
+  "List all Python imports matching NAME in SOURCE.
+If NAME is nil, list all imports.  SOURCE can be a buffer or a
+list of file names or directories; the latter are searched
+recursively."
+  (let ((buffer (current-buffer)))
+    (with-temp-buffer
+      (let* ((temp (current-buffer))
+             (status (if (bufferp source)
+                         (with-current-buffer source
+                           (call-process-region (point-min) (point-max)
+                                                python-interpreter
+                                                nil (list temp nil) nil
+                                                "-c" python--list-imports
+                                                (or name "")))
+                       (with-current-buffer buffer
+                         (apply #'call-process
+                                python-interpreter
+                                nil (list temp nil) nil
+                                "-c" python--list-imports
+                                (or name "")
+                                (mapcar #'file-local-name source)))))
+             lines)
+        (unless (eq 0 status)
+          (error "%s exited with status %s (maybe isort is missing?)"
+                 python-interpreter status))
+        (goto-char (point-min))
+        (while (not (eobp))
+	  (push (buffer-substring-no-properties (point) (pos-eol))
+                lines)
+	  (forward-line 1))
+        (nreverse lines)))))
+
+(defun python--query-import (name source prompt)
+  "Read a Python import statement defining NAME.
+A list of candidates is produced by `python--list-imports' using
+the NAME and SOURCE arguments.  An interactive query, using the
+PROMPT string, is made unless there is a single candidate."
+  (let* ((cands (python--list-imports name source))
+         ;; Don't use DEF argument of `completing-read', so it is able
+         ;; to return the empty string.
+         (minibuffer-default-add-function
+          (lambda ()
+            (setq minibuffer-default (with-minibuffer-selected-window
+                                       (thing-at-point 'symbol)))))
+         (statement (cond ((and name (length= cands 1))
+                           (car cands))
+                          (prompt
+                           (completing-read prompt
+                                            (or cands python-import-history)
+                                            nil nil nil
+                                            'python-import-history)))))
+    (unless (string-empty-p statement)
+      statement)))
+
+(defun python--do-isort (&rest args)
+  "Edit the current buffer using isort called with ARGS.
+Return non-nil if the buffer was actually modified."
+  (let ((buffer (current-buffer)))
+    (with-temp-buffer
+      (let ((temp (current-buffer)))
+        (with-current-buffer buffer
+          (let ((status (apply #'call-process-region
+                               (point-min) (point-max)
+                               python-interpreter
+                               nil (list temp nil) nil
+                               "-m" "isort" "-" args))
+                (tick (buffer-chars-modified-tick)))
+            (unless (eq 0 status)
+              (error "%s exited with status %s (maybe isort is missing?)"
+                     python-interpreter status))
+            (replace-buffer-contents temp)
+            (not (eq tick (buffer-chars-modified-tick)))))))))
+
+;;;###autoload
+(defun python-add-import (name)
+  "Add an import statement to the current buffer.
+
+Interactively, ask for an import statement using all imports
+found in the current project as suggestions.  With a prefix
+argument, restrict the suggestions to imports defining the symbol
+at point.  If there is only one such suggestion, act without
+asking.
+
+When calling from Lisp, use a non-nil NAME to restrict the
+suggestions to imports defining NAME."
+  (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
+  (when-let ((statement (python--query-import name
+                                              (python--import-sources)
+                                              "Add import: ")))
+    (if (python--do-isort "--add" statement)
+        (message "Added `%s'" statement)
+      (message "(No changes in Python imports needed)"))))
+
+;;;###autoload
+(defun python-import-symbol-at-point ()
+  "Add an import statement for the symbol at point to the current buffer.
+This works like `python-add-import', but with the opposite
+behavior regarding the prefix argument."
+  (interactive nil)
+  (python-add-import (unless current-prefix-arg (thing-at-point 'symbol))))
+
+;;;###autoload
+(defun python-remove-import (name)
+  "Remove an import statement from the current buffer.
+
+Interactively, ask for an import statement to remove, displaying
+the imports of the current buffer as suggestions.  With a prefix
+argument, restrict the suggestions to imports defining the symbol
+at point.  If there is only one such suggestion, act without
+asking."
+  (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
+  (when-let ((statement (python--query-import name (current-buffer)
+                                              "Remove import: ")))
+    (if (python--do-isort "--rm" statement)
+        (message "Removed `%s'" statement)
+      (message "(No changes in Python imports needed)"))))
+
+;;;###autoload
+(defun python-sort-imports ()
+  "Sort Python imports in the current buffer."
+  (interactive)
+  (if (python--do-isort)
+      (message "Sorted imports")
+    (message "(No changes in Python imports needed)")))
+
+;;;###autoload
+(defun python-fix-imports ()
+  "Add missing imports and remove unused ones from the current buffer."
+  (interactive)
+  (let ((buffer (current-buffer))
+        undefined unused add remove)
+    ;; Compute list of undefined and unused names
+    (with-temp-buffer
+      (let ((temp (current-buffer)))
+        (with-current-buffer buffer
+          (call-process-region (point-min) (point-max)
+                               python-interpreter
+                               nil temp nil
+                               "-m" "pyflakes"))
+        (goto-char (point-min))
+        (when (looking-at-p ".* No module named pyflakes$")
+          (error "%s couldn't find pyflakes" python-interpreter))
+        (while (not (eobp))
+          (cond ((looking-at ".* undefined name '\\([^']+\\)'$")
+                 (push (match-string 1) undefined))
+                ((looking-at ".*'\\([^']+\\)' imported but unused$")
+                 (push (match-string 1) unused)))
+	  (forward-line 1))))
+    ;; Compute imports to be added
+    (dolist (name (seq-uniq undefined))
+      (when-let ((statement (python--query-import name
+                                                  (python--import-sources)
+                                                  (format "\
+Add import for undefined name `%s' (empty to skip): "
+                                                          name))))
+        (push statement add)))
+    ;; Compute imports to be removed
+    (dolist (name (seq-uniq unused))
+      ;; The unused imported names, as provided by pyflakes, are of
+      ;; the form "module.var" or "module.var as alias", independently
+      ;; of style of import statement used.
+      (let* ((filter
+              (lambda (statement)
+                (string= name
+                         (thread-last
+                           statement
+                           (replace-regexp-in-string "^\\(from\\|import\\) " "")
+                           (replace-regexp-in-string " import " ".")))))
+             (statements (seq-filter filter (python--list-imports nil buffer))))
+        (when (length= statements 1)
+          (push (car statements) remove))))
+    ;; Edit buffer and say goodbye
+    (if (not (or add remove))
+        (message "(No changes in Python imports needed)")
+      (apply #'python--do-isort
+             (append (mapcan (lambda (x) (list "--add" x)) add)
+                     (mapcan (lambda (x) (list "--rm" x)) remove)))
+      (message "%s" (concat (when add "Added ")
+                            (when add (string-join add ", "))
+                            (when remove (if add " and removed " "Removed "))
+                            (when remove (string-join remove ", " )))))))
+
+
+;;; Major mode
 (defun python-electric-pair-string-delimiter ()
   (when (and electric-pair-mode
              (memq last-command-event '(?\" ?\'))
@@ -5973,8 +6229,10 @@ REPORT-FN is Flymake's callback function."
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code
-(dolist (sym '(python-check
+(dolist (sym '(python-add-import
+               python-check
                python-fill-paragraph
+               python-fix-imports
                python-indent-dedent-line
                python-indent-dedent-line-backspace
                python-indent-guess-indent-offset
@@ -5999,9 +6257,11 @@ REPORT-FN is Flymake's callback function."
                python-nav-forward-statement
                python-nav-if-name-main
                python-nav-up-list
+               python-remove-import
                python-shell-send-buffer
                python-shell-send-defun
-               python-shell-send-statement))
+               python-shell-send-statement
+               python-sort-imports))
   (put sym 'completion-predicate #'python--completion-predicate))
 
 (defun python-shell--completion-predicate (_ buffer)
