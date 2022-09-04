@@ -1005,7 +1005,8 @@ If non-nil, EVENT should be a mouse event."
         (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face)))
       (when-let ((image (plist-get icon 'image)))
         (overlay-put o 'display image))
-      (overlay-put o 'display (plist-get icon 'string))
+      (overlay-put o 'display (concat (plist-get icon 'string)
+                                      (string (char-after (point)))))
       (overlay-put o 'face (plist-get icon 'face)))
     o))
 
