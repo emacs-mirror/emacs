@@ -13174,7 +13174,12 @@ x_detect_focus_change (struct x_display_info *dpyinfo, struct frame *frame,
 void
 x_mouse_leave (struct x_display_info *dpyinfo)
 {
-  Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+#if defined HAVE_XINPUT2 && !defined USE_X_TOOLKIT
+  struct xi_device_t *device;
+#endif
+  Mouse_HLInfo *hlinfo;
+
+  hlinfo = &dpyinfo->mouse_highlight;
 
   if (hlinfo->mouse_face_mouse_frame)
     {
@@ -13182,13 +13187,30 @@ x_mouse_leave (struct x_display_info *dpyinfo)
       hlinfo->mouse_face_mouse_frame = NULL;
     }
 
-#ifdef HAVE_XINPUT2
+#if defined HAVE_XINPUT2 && !defined USE_X_TOOLKIT
   if (!dpyinfo->supports_xi2)
-    /* I don't understand what the call below is supposed to do.  But
-       reading dpyinfo->x_focus_event_frame is invalid on input
-       extension builds, so disable it there.  */
+    /* The call below is supposed to reset the implicit focus and
+       revert the focus back to the last explicitly focused frame.  It
+       doesn't work on input extension builds because focus tracking
+       does not set x_focus_event_frame, and proceeds on a per-device
+       basis.  On such builds, clear the implicit focus of the client
+       pointer instead.  */
 #endif
     x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
+#if defined HAVE_XINPUT2 && !defined USE_X_TOOLKIT
+  else
+    {
+      if (dpyinfo->client_pointer_device == -1)
+	/* If there's no client pointer device, then no implicit focus
+	   is currently set.  */
+	return;
+
+      device = xi_device_from_id (dpyinfo, dpyinfo->client_pointer_device);
+
+      if (device)
+	device->focus_implicit_frame = NULL;
+    }
+#endif
 }
 #endif
 
