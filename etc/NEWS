@@ -2200,8 +2200,9 @@ Note that this historical web browser is different from Mozilla
 Firefox; it is its predecessor.
 
 ** Python Mode
+
 +++
-*** Project shells and a new user option 'python-shell-dedicated'
+*** Project shells and a new user option 'python-shell-dedicated'.
 When called with a prefix argument, 'run-python' now offers the choice
 of creating a shell dedicated to the current project.  This shell runs
 in the project root directory and is shared among all project buffers.
