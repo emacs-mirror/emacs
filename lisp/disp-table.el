@@ -296,6 +296,65 @@ in `.emacs'."
 	 (if (coding-system-p c) c 'latin-1))))
     (standard-display-european-internal)))
 
+
+;;;###autoload
+(defun standard-display-by-replacement-char (&optional repl from to)
+  "Produce code to display characters between FROM and TO using REPL.
+This function produces a buffer with code to set up `standard-display-table'
+such that characters that cannot be displayed by the terminal, and
+don't already have their display set up in `standard-display-table', will
+be represented by a replacement character.  You can evaluate the produced
+code to use the setup for the current Emacs session, or copy the code
+into your init file, to make Emacs use it for subsequent sessions.
+
+FROM and TO define the range of characters for which to produce the
+setup code for `standard-display-table'.  If they are omitted, they
+default to #x100 and #x10FFFF respectively, covering the entire
+non-ASCII range of Unicode characters.
+REPL is the replacement character to use.  If it's omitted, it defaults
+to #xFFFD, the Unicode replacement character, usually displayed as a
+black diamond with a question mark inside.
+The produced code sets up `standard-display-table' to show REPL with
+the `homoglyph' face, making the replacements stand out on display.
+
+This command is most useful with text-mode terminals, such as the
+Linux console, for which Emacs has a reliable way of determining
+which characters can be displayed and which cannot."
+  (interactive)
+  (or repl
+      (setq repl #xfffd))
+  (or (and from to (<= from to))
+      (setq from #x100
+	    to (max-char 'unicode)))
+  (let ((buf (get-buffer-create "*Display replacements*"))
+	(ch from)
+        (tbl standard-display-table)
+	first)
+    (with-current-buffer buf
+      (erase-buffer)
+      (insert "(let ((tbl standard-display-table))\n")
+      (while (<= ch to)
+	(cond
+	 ((or (char-displayable-p ch)
+	      (aref tbl ch))
+	  (setq ch (1+ ch)))
+	 (t
+	  (setq first ch)
+	  (while (and (<= ch to)
+		      (not (or (char-displayable-p ch)
+			       (aref tbl ch))))
+	    (setq ch (1+ ch)))
+	  (insert
+	   "  (set-char-table-range tbl '("
+	   (format "#x%x" first)
+	   " . "
+	   (format "#x%x" (1- ch))
+	   ")\n\                        (vconcat (list (make-glyph-code "
+	   (format "#x%x" repl) " 'homoglyph))))\n"))))
+      (insert ")\n"))
+    (pop-to-buffer buf)))
+
+
 (provide 'disp-table)
 
 ;;; disp-table.el ends here

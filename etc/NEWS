@@ -749,6 +749,15 @@ saved to the X primary selection, following the
 'select-active-regions' variable.  This support is enabled when
 'tty-select-active-regions' is non-nil.
 
+---
+*** New command to set up display of unsupported characters.
+The new command 'standard-display-by-replacement-char' produces Lisp
+code that sets up the 'standard-display-table' to use a replacement
+character for display of characters that the text-mode terminal
+doesn't support.  It is most useful with the Linux console and similar
+terminals, where Emacs has a reliable way of determining which
+characters have glyphs in the font loaded into the terminal's memory.
+
 ** ERT
 
 +++
