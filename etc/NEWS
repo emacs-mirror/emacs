@@ -30,6 +30,13 @@ This uses the popular sqlite3 library, and can be disabled by using
 the '--without-sqlite3' option to the 'configure' script.
 
 +++
+** Support for the WebP image format.
+This support is built by default when the libwebp library is
+available, and includes support for animated WebP images.  To disable
+WebP support, use the '--without-webp' configure flag.  Image
+specifiers can now use ':type webp'.
+
++++
 ** Emacs has been ported to the Haiku operating system.
 The configuration process should automatically detect and build for
 Haiku.  There is also an optional window-system port to Haiku, which
@@ -929,13 +936,6 @@ or is itself too long.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
 in addition to the ellipsis.  The default is nil in editing modes, but
 non-nil in 'special-mode' and its derivatives.
-
-+++
-** Support for the WebP image format.
-This support is built by default when the libwebp library is
-available, and includes support for animated WebP images.  To disable
-WebP support, use the '--without-webp' configure flag.  Image
-specifiers can now use ':type webp'.
 
 ** Windows
 
