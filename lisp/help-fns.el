@@ -516,7 +516,7 @@ the C sources, too."
           (remapped (command-remapping function)))
       (unless (memq remapped '(ignore undefined))
         (let* ((all-keys
-                (with-current-buffer orig-buffer
+                (with-current-buffer (or orig-buffer (current-buffer))
                   (where-is-internal
                    (or remapped function) overriding-local-map nil nil)))
                (seps (seq-group-by
