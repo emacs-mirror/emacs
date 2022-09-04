@@ -307,10 +307,14 @@ be represented by a replacement character.  You can evaluate the produced
 code to use the setup for the current Emacs session, or copy the code
 into your init file, to make Emacs use it for subsequent sessions.
 
-FROM and TO define the range of characters for which to produce the
-setup code for `standard-display-table'.  If they are omitted, they
-default to #x100 and #x10FFFF respectively, covering the entire
-non-ASCII range of Unicode characters.
+Interactively, the produced code arranges for any character in
+the range [#x100..#x10FFFF] that the terminal cannot display to
+be represented by the #xFFFD Unicode replacement character.
+
+When called from Lisp, FROM and TO define the range of characters for
+which to produce the setup code for `standard-display-table'.  If they
+are omitted, they default to #x100 and #x10FFFF respectively, covering
+the entire non-ASCII range of Unicode characters.
 REPL is the replacement character to use.  If it's omitted, it defaults
 to #xFFFD, the Unicode replacement character, usually displayed as a
 black diamond with a question mark inside.
