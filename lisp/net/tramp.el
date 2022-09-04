@@ -1431,9 +1431,14 @@ calling HANDLER.")
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.
 
-;; The basic structure for remote file names.  We must autoload it in
-;; tramp-loaddefs.el, because some functions, which need it, wouldn't
-;; work otherwise when unloading / reloading Tramp.  (Bug#50869)
+;; The basic structure for remote file names.
+
+;; Note: We started autoloading it in tramp-loaddefs.el, because some
+;; functions, which needed it, wouldn't work otherwise when unloading
+;; / reloading Tramp (Bug#50869).
+;; This bug is fixed in Emacs 29, but other parts of Tramp have grown
+;; dependencies on having this in tramp-loaddefs.el in the mean time,
+;; so .... here we are.
 ;;;###tramp-autoload(require 'cl-lib)
 ;;;###tramp-autoload
 (progn
