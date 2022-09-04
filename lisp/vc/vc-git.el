@@ -858,6 +858,45 @@ The car of the list is the current branch."
 
 ;;; STATE-CHANGING FUNCTIONS
 
+(defcustom vc-git-log-edit-summary-target-len nil
+  "Target length for Git commit summary lines.
+If a number, characters in Summary: lines beyond this length are
+displayed in the `vc-git-log-edit-summary-target-warning' face.
+
+By setting this to an integer around 50, you can improve the
+compatibility of your commit messages with Git commands that
+print the summary line in width-constrained contexts.  However,
+many commit summaries will need to exceed this length.
+
+See also `vc-git-log-edit-summary-max-len'."
+  :type '(choice (const :tag "No target" nil)
+                 (natnum :tag "Target length"))
+  :safe (lambda (x) (or (not x) (natnump x))))
+
+(defface vc-git-log-edit-summary-target-warning
+  '((t :inherit warning))
+  "Face for Git commit summary lines beyond the target length.
+See `vc-git-log-edit-summary-target-len'.")
+
+(defcustom vc-git-log-edit-summary-max-len 68
+  "Maximum length for Git commit summary lines.
+If a number, characters in summary lines beyond this length are
+displayed in the `vc-git-log-edit-summary-max-warning' face.
+
+It is good practice to avoid writing summary lines longer than
+this because otherwise the summary line will be truncated in many
+contexts in which Git commands display summary lines.
+
+See also `vc-git-log-edit-summary-target-len'."
+  :type '(choice (const :tag "No target" nil)
+                 (natnum :tag "Target length"))
+  :safe (lambda (x) (or (not x) (natnump x))))
+
+(defface vc-git-log-edit-summary-max-warning
+  '((t :inherit error))
+  "Face for Git commit summary lines beyond the maximum length.
+See `vc-git-log-edit-summary-max-len'.")
+
 (defun vc-git-create-repo ()
   "Create a new Git repository."
   (vc-git-command nil 0 nil "init"))
@@ -911,9 +950,32 @@ If toggling on, also insert its message into the buffer."
   "C-c C-n" #'vc-git-log-edit-toggle-no-verify
   "C-c C-e" #'vc-git-log-edit-toggle-amend)
 
+(defun vc-git--log-edit-summary-check (limit)
+  (and (re-search-forward "^Summary: " limit t)
+       (when-let ((regex
+                   (cond ((and (natnump vc-git-log-edit-summary-max-len)
+                               (natnump vc-git-log-edit-summary-target-len))
+                          (format ".\\{,%d\\}\\(.\\{,%d\\}\\)\\(.*\\)"
+                                  vc-git-log-edit-summary-target-len
+                                  (- vc-git-log-edit-summary-max-len
+                                     vc-git-log-edit-summary-target-len)))
+                         ((natnump vc-git-log-edit-summary-max-len)
+                          (format ".\\{,%d\\}\\(?2:.*\\)"
+                                  vc-git-log-edit-summary-max-len))
+                         ((natnump vc-git-log-edit-summary-target-len)
+                          (format ".\\{,%d\\}\\(.*\\)"
+                                  vc-git-log-edit-summary-target-len)))))
+         (re-search-forward regex limit t))))
+
 (define-derived-mode vc-git-log-edit-mode log-edit-mode "Log-Edit/git"
   "Major mode for editing Git log messages.
-It is based on `log-edit-mode', and has Git-specific extensions.")
+It is based on `log-edit-mode', and has Git-specific extensions."
+  (setq-local
+   log-edit-font-lock-keywords
+   (append log-edit-font-lock-keywords
+           '((vc-git--log-edit-summary-check
+	      (1 'vc-git-log-edit-summary-target-warning prepend t)
+              (2 'vc-git-log-edit-summary-max-warning prepend t))))))
 
 (defvar vc-git-patch-string nil)
 

@@ -1644,6 +1644,12 @@ directory in "~/foo/bar", using 'C-x v v' on a new, unregistered file
 in the Git repository in "~/foo/bar".  This makes this command
 consistent with 'vc-responsible-backend'.
 
+---
+*** Log Edit now font locks long Git commit summary lines.
+Writing shorter summary lines avoids truncation in contexts in which
+Git commands display summary lines.  See the two new variables
+'vc-git-log-edit-summary-target-len' and 'vc-git-log-edit-summary-max-len'.
+
 ** Message
 
 ---
