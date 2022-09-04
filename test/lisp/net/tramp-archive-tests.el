@@ -622,7 +622,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (rx bol (+ nonl) " " (literal tramp-archive-test-archive) eol))))
+	      (rx bol (+ nonl) space (literal tramp-archive-test-archive) eol))))
 	  (with-temp-buffer
 	    (insert-directory
 	     (file-name-as-directory tramp-archive-test-archive)
@@ -633,14 +633,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      (rx-to-string
 	       `(:
 		 ;; There might be a summary line.
-		 (? "total" (+ nonl) (+ digit) (? " ")
+		 (? "total" (+ nonl) (+ digit) (? space)
 		    (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
 		 ;; We don't know in which order the files appear.
 		 (= ,(length (directory-files tramp-archive-test-archive))
-		    (+ nonl) " "
+		    (+ nonl) space
 		    (regexp
 		     ,(regexp-opt (directory-files tramp-archive-test-archive)))
-		    (? " ->" (one-or-more nonl)) "\n"))))))
+		    (? " ->" (+ nonl)) "\n"))))))
 	  ;; Check error case.
 	  (with-temp-buffer
 	    (should-error

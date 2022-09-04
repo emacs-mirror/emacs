@@ -3222,13 +3222,13 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (insert-directory tmp-name1 "-al")
 	      (goto-char (point-min))
 	      (should
-	       (looking-at-p (rx bol (+ nonl) " " (literal tmp-name1) eol))))
+	       (looking-at-p (rx bol (+ nonl) space (literal tmp-name1) eol))))
 	    (with-temp-buffer
 	      (insert-directory (file-name-as-directory tmp-name1) "-al")
 	      (goto-char (point-min))
 	      (should
 	       (looking-at-p
-		(rx bol (+ nonl) " " (literal tmp-name1) "/" eol))))
+		(rx bol (+ nonl) space (literal tmp-name1) "/" eol))))
 	    (with-temp-buffer
 	      (insert-directory
 	       (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
@@ -3238,11 +3238,11 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		(rx-to-string
 		 `(:
 		   ;; There might be a summary line.
-		   (? "total" (+ nonl) (+ digit) (? " ")
+		   (? "total" (+ nonl) (+ digit) (? space)
 		      (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
 		   ;; We don't know in which order ".", ".." and "foo" appear.
 		   (= ,(length (directory-files tmp-name1))
-		      (+ nonl) " "
+		      (+ nonl) space
 		      (regexp ,(regexp-opt (directory-files tmp-name1)))
 		      (? " ->" (+ nonl)) "\n"))))))
 
@@ -6703,7 +6703,7 @@ Additionally, ls does not support \"--dired\"."
   "Check, whether the method needs a share."
   (and (tramp--test-gvfs-p)
        (string-match-p
-	(rx bol (or "afp" (: "dav" (opt "s")) "smb") eol)
+	(rx bol (| "afp" (: "dav" (? "s")) "smb") eol)
 	(file-remote-p ert-remote-temporary-file-directory 'method))))
 
 (defun tramp--test-sshfs-p ()

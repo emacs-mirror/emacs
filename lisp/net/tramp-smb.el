@@ -98,15 +98,14 @@ this variable \"client min protocol=NT1\"."
   "Regexp of SMB server identification.")
 
 (defconst tramp-smb-prompt
-  (rx bol (| (: (| "smb:" "PS") " " (+ nonl) "> ")
+  (rx bol (| (: (| "smb:" "PS") space (+ nonl) "> ")
 	     (: (+ space) "Server"
 		(+ space) "Comment" eol)))
   "Regexp used as prompt in smbclient or powershell.")
 
 (defconst tramp-smb-wrong-passwd-regexp
-  (regexp-opt
-   '("NT_STATUS_LOGON_FAILURE"
-     "NT_STATUS_WRONG_PASSWORD"))
+  (rx (| "NT_STATUS_LOGON_FAILURE"
+	 "NT_STATUS_WRONG_PASSWORD"))
   "Regexp for login error strings of SMB servers.")
 
 (defconst tramp-smb-errors
@@ -116,57 +115,56 @@ this variable \"client min protocol=NT1\"."
        "Call timed out: server did not respond"
        (: (+ (not space)) ": command not found")
        "Server doesn't support UNIX CIFS calls"
-       (regexp (regexp-opt
-		'(;; Samba.
-		  "ERRDOS"
-		  "ERRHRD"
-		  "ERRSRV"
-		  "ERRbadfile"
-		  "ERRbadpw"
-		  "ERRfilexists"
-		  "ERRnoaccess"
-		  "ERRnomem"
-		  "ERRnosuchshare"
-		  ;; See /usr/include/samba-4.0/core/ntstatus.h.
-		  ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
-		  ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
-		  ;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
-		  ;; Windows 6.3 (Windows Server 2012, Windows 10).
-		  "NT_STATUS_ACCESS_DENIED"
-		  "NT_STATUS_ACCOUNT_LOCKED_OUT"
-		  "NT_STATUS_BAD_NETWORK_NAME"
-		  "NT_STATUS_CANNOT_DELETE"
-		  "NT_STATUS_CONNECTION_DISCONNECTED"
-		  "NT_STATUS_CONNECTION_REFUSED"
-		  "NT_STATUS_CONNECTION_RESET"
-		  "NT_STATUS_DIRECTORY_NOT_EMPTY"
-		  "NT_STATUS_DUPLICATE_NAME"
-		  "NT_STATUS_FILE_IS_A_DIRECTORY"
-		  "NT_STATUS_HOST_UNREACHABLE"
-		  "NT_STATUS_IMAGE_ALREADY_LOADED"
-		  "NT_STATUS_INVALID_LEVEL"
-		  "NT_STATUS_INVALID_PARAMETER"
-		  "NT_STATUS_INVALID_PARAMETER_MIX"
-		  "NT_STATUS_IO_TIMEOUT"
-		  "NT_STATUS_LOGON_FAILURE"
-		  "NT_STATUS_NETWORK_ACCESS_DENIED"
-		  "NT_STATUS_NOT_IMPLEMENTED"
-		  "NT_STATUS_NO_LOGON_SERVERS"
-		  "NT_STATUS_NO_SUCH_FILE"
-		  "NT_STATUS_NO_SUCH_USER"
-		  "NT_STATUS_NOT_A_DIRECTORY"
-		  "NT_STATUS_NOT_SUPPORTED"
-		  "NT_STATUS_OBJECT_NAME_COLLISION"
-		  "NT_STATUS_OBJECT_NAME_INVALID"
-		  "NT_STATUS_OBJECT_NAME_NOT_FOUND"
-		  "NT_STATUS_OBJECT_PATH_SYNTAX_BAD"
-		  "NT_STATUS_PASSWORD_MUST_CHANGE"
-		  "NT_STATUS_RESOURCE_NAME_NOT_FOUND"
-		  "NT_STATUS_REVISION_MISMATCH"
-		  "NT_STATUS_SHARING_VIOLATION"
-		  "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
-		  "NT_STATUS_UNSUCCESSFUL"
-		  "NT_STATUS_WRONG_PASSWORD")))))
+       (| ;; Samba.
+	"ERRDOS"
+	"ERRHRD"
+	"ERRSRV"
+	"ERRbadfile"
+	"ERRbadpw"
+	"ERRfilexists"
+	"ERRnoaccess"
+	"ERRnomem"
+	"ERRnosuchshare"
+	;; See /usr/include/samba-4.0/core/ntstatus.h.
+	;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
+	;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
+	;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
+	;; Windows 6.3 (Windows Server 2012, Windows 10).
+	"NT_STATUS_ACCESS_DENIED"
+	"NT_STATUS_ACCOUNT_LOCKED_OUT"
+	"NT_STATUS_BAD_NETWORK_NAME"
+	"NT_STATUS_CANNOT_DELETE"
+	"NT_STATUS_CONNECTION_DISCONNECTED"
+	"NT_STATUS_CONNECTION_REFUSED"
+	"NT_STATUS_CONNECTION_RESET"
+	"NT_STATUS_DIRECTORY_NOT_EMPTY"
+	"NT_STATUS_DUPLICATE_NAME"
+	"NT_STATUS_FILE_IS_A_DIRECTORY"
+	"NT_STATUS_HOST_UNREACHABLE"
+	"NT_STATUS_IMAGE_ALREADY_LOADED"
+	"NT_STATUS_INVALID_LEVEL"
+	"NT_STATUS_INVALID_PARAMETER"
+	"NT_STATUS_INVALID_PARAMETER_MIX"
+	"NT_STATUS_IO_TIMEOUT"
+	"NT_STATUS_LOGON_FAILURE"
+	"NT_STATUS_NETWORK_ACCESS_DENIED"
+	"NT_STATUS_NOT_IMPLEMENTED"
+	"NT_STATUS_NO_LOGON_SERVERS"
+	"NT_STATUS_NO_SUCH_FILE"
+	"NT_STATUS_NO_SUCH_USER"
+	"NT_STATUS_NOT_A_DIRECTORY"
+	"NT_STATUS_NOT_SUPPORTED"
+	"NT_STATUS_OBJECT_NAME_COLLISION"
+	"NT_STATUS_OBJECT_NAME_INVALID"
+	"NT_STATUS_OBJECT_NAME_NOT_FOUND"
+	"NT_STATUS_OBJECT_PATH_SYNTAX_BAD"
+	"NT_STATUS_PASSWORD_MUST_CHANGE"
+	"NT_STATUS_RESOURCE_NAME_NOT_FOUND"
+	"NT_STATUS_REVISION_MISMATCH"
+	"NT_STATUS_SHARING_VIOLATION"
+	"NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
+	"NT_STATUS_UNSUCCESSFUL"
+	"NT_STATUS_WRONG_PASSWORD")))
   "Regexp for possible error strings of SMB servers.
 Used instead of analyzing error codes of commands.")
 
@@ -1658,11 +1656,11 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	   "")))
 
       ;; Sometimes we have discarded `substitute-in-file-name'.
-      (when (string-match (rx (group "$$") (group (| "/" eol))) localname)
+      (when (string-match (rx (group "$$") (| "/" eol)) localname)
 	(setq localname (replace-match "$" nil nil localname 1)))
 
       ;; A trailing space is not supported.
-      (when (string-match-p (rx " " eol) localname)
+      (when (string-match-p (rx space eol) localname)
 	(tramp-error
 	 vec 'file-error
 	 "Invalid file name %s" (tramp-make-tramp-file-name vec localname)))
@@ -1821,7 +1819,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	  (cl-return))
 
 	;; weekday.
-	(if (string-match-p (rx (group (+ wordchar)) eol) line)
+	(if (string-match-p (rx (+ wordchar) eol) line)
 	    (setq line (substring line 0 -5))
 	  (cl-return))
 
@@ -1856,7 +1854,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	;; localname.
 	(if (string-match
 	     (rx bol (+ space)
-		 (group (not space) (? (group (* nonl) (not space))))
+		 (group (not space) (? (* nonl) (not space)))
 		 (* space) eol)
 	     line)
 	    (setq localname (match-string 1 line))

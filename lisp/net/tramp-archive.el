@@ -185,14 +185,14 @@ It must be supported by libarchive(3).")
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
   '(rx bos
-       ;; \1
+       ;; This group is used in `tramp-archive-file-name-archive'.
        (group
 	(+ nonl)
 	;; Default suffixes ...
 	"." (regexp (regexp-opt tramp-archive-suffixes))
 	;; ... with compression.
 	(? "." (regexp (regexp-opt tramp-archive-compression-suffixes))))
-       ;; \2
+       ;; This group is used in `tramp-archive-file-name-localname'.
        (group "/" (* nonl))
        eos)))
 

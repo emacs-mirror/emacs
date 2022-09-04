@@ -316,6 +316,10 @@ It has been changed in GVFS 1.14.")
 (defconst tramp-gvfs-password-anonymous-supported 16
   "Operation supports anonymous users.")
 
+;; Since: 2.58
+(defconst tramp-gvfs-password-tcrypt 32
+  "Operation takes TCRYPT parameters.")
+
 ;; For the time being, we just need org.goa.Account and org.goa.Files
 ;; interfaces.  We document the other ones, just in case.
 
@@ -710,11 +714,10 @@ It has been changed in GVFS 1.14.")
       "unix::device")
     "GVFS file attributes."))
 
-(eval-and-compile
-  (defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
-    (rx blank (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
-	"=" (group (+? nonl)))
-    "Regexp to parse GVFS file attributes with `gvfs-ls'."))
+(defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
+  (rx blank (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
+      "=" (group (+? nonl)))
+  "Regexp to parse GVFS file attributes with `gvfs-ls'.")
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-info-regexp
   (rx bol (* blank) (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
@@ -1317,7 +1320,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::uid" attributes))
-		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
+		     (number-to-string tramp-unknown-id-integer)))
 	      (or (cdr (assoc "owner::user" attributes))
 		  (cdr (assoc "unix::uid" attributes))
 		  tramp-unknown-id-string)))
@@ -1325,7 +1328,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	    (if (eq id-format 'integer)
 		(string-to-number
 		 (or (cdr (assoc "unix::gid" attributes))
-		     (eval-when-compile (format "%s" tramp-unknown-id-integer))))
+		     (number-to-string tramp-unknown-id-integer)))
 	      (or (cdr (assoc "owner::group" attributes))
 		  (cdr (assoc "unix::gid" attributes))
 		  tramp-unknown-id-string)))
@@ -1726,7 +1729,7 @@ ID-FORMAT valid values are `string' and `integer'."
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
    (replace-regexp-in-string
-    (rx bol (* nonl) "/" (+ (not (any "/"))) eol) "\\1" object-path)))
+    (rx bol (* nonl) "/" (group (+ (not (any "/")))) eol) "\\1" object-path)))
 
 (defun tramp-gvfs-url-host (url)
   "Return the host name part of URL, a string.

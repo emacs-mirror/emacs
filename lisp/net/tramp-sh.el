@@ -414,15 +414,13 @@ The string is used in `tramp-methods'.")
 		,(rx bos (literal tramp-root-id-string) eos) "su"))
 
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (regexp (regexp-opt '("su" "sudo" "doas" "ksu"))) eos)
+	      `(,(rx bos (| "su" "sudo" "doas" "ksu") eos)
 	        nil ,tramp-root-id-string))
  ;; Do not add "ssh" based methods, otherwise ~/.ssh/config would be ignored.
  ;; Do not add "plink" based methods, they ask interactively for the user.
  (add-to-list 'tramp-default-user-alist
 	      `(,(rx bos
-		     (regexp
-		      (regexp-opt
-		       '("rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp")))
+		     (| "rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp")
 		     eos)
 	        nil ,(user-login-name))))
 
@@ -1250,7 +1248,7 @@ component is used as the target of the symlink."
 	  (tramp-do-file-attributes-with-perl v localname))
 	 (t (tramp-do-file-attributes-with-ls v localname)))))))
 
-(defconst tramp-sunos-unames (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+(defconst tramp-sunos-unames (rx (| "SunOS 5.10" "SunOS 5.11"))
   "Regexp to determine remote SunOS.")
 
 (defun tramp-sh--quoting-style-options (vec)
@@ -4237,10 +4235,9 @@ file exists and nonzero exit status otherwise."
     ;; first.
     (tramp-send-command
      vec (format
-	  (eval-when-compile
-	    (concat
-	     "exec env TERM='%s' INSIDE_EMACS='%s' "
-	     "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i"))
+	  (concat
+	   "exec env TERM='%s' INSIDE_EMACS='%s' "
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
           tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
@@ -4316,10 +4313,9 @@ file exists and nonzero exit status otherwise."
 			    default-shell
 			  (tramp-message
 			   vec 2
-			   (eval-when-compile
-			     (concat
-			      "Couldn't find a remote shell which groks tilde "
-			      "expansion, using `%s'"))
+			   (concat
+			    "Couldn't find a remote shell which groks tilde "
+			    "expansion, using `%s'")
 			   default-shell)))
 
 		  default-shell)))
@@ -4980,7 +4976,8 @@ Goes through the list `tramp-inline-compress-commands'."
 		     string
 		     (and
 		      (string-match
-		       (rx bol (+ (not (any " #"))) " " (+ (not space)) " "
+		       (rx bol (+ (not (any space "#"))) space
+			   (+ (not space)) space
 			   (group (+ (not space))) eol)
 		       string)
 		      (match-string 1 string))
@@ -5554,7 +5551,7 @@ Nonexistent directories are removed from spec."
 	(while candidates
 	  (goto-char (point-min))
 	  (if (string-match-p
-	       (rx bol (literal (car candidates))"%s" (? "\r") eol)
+	       (rx bol (literal (car candidates)) (? "\r") eol)
 	       (buffer-string))
 	      (setq locale (car candidates)
 		    candidates nil)

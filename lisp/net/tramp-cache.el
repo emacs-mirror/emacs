@@ -278,7 +278,7 @@ Remove also properties of all files in subdirectories."
 This is suppressed for temporary buffers."
   (save-match-data
     (unless (or (null (buffer-name))
-		(string-match-p (rx bos (| " " "*")) (buffer-name)))
+		(string-match-p (rx bos (| space "*")) (buffer-name)))
       (let ((bfn (if (stringp (buffer-file-name))
 		     (buffer-file-name)
 		   default-directory))

@@ -278,10 +278,10 @@ arguments to pass to the OPERATION."
 	       (name (match-string 6))
 	       (symlink-target
 		(and is-symlink
-		     (cadr (split-string name (rx (group (| " -> " "\n"))))))))
+		     (cadr (split-string name (rx (| " -> " "\n")))))))
 	  (push (list
 		 (if is-symlink
-		     (car (split-string name (rx (group (| " -> " "\n")))))
+		     (car (split-string name (rx (| " -> " "\n"))))
 		   name)
 		 (or is-dir symlink-target)
 		 1     ;link-count
@@ -560,10 +560,9 @@ Emacs dired can't find files."
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
        v (format
-	  (eval-when-compile
-	    (concat "touch -d %s %s %s 2>%s || "
-		    "touch -d %s %s %s 2>%s || "
-		    "touch -t %s %s %s"))
+	  (concat "touch -d %s %s %s 2>%s || "
+		  "touch -d %s %s %s 2>%s || "
+		  "touch -t %s %s %s")
 	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
 	  nofollow quoted-name (tramp-get-remote-null-device v)
 	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
@@ -1284,11 +1283,10 @@ connection if a previous connection has died for some reason."
 	    (tramp-message vec 5 "Checking system information")
 	    (tramp-adb-send-command
 	     vec
-	     (eval-when-compile
-	       (concat
-		"echo \\\"`getprop ro.product.model` "
-		"`getprop ro.product.version` "
-		"`getprop ro.build.version.release`\\\"")))
+	     (concat
+	      "echo \\\"`getprop ro.product.model` "
+	      "`getprop ro.product.version` "
+	      "`getprop ro.build.version.release`\\\""))
 	    (let ((old-getprop (tramp-get-connection-property vec "getprop"))
 		  (new-getprop
 		   (tramp-set-connection-property

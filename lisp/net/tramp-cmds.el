@@ -355,7 +355,7 @@ The remote connection identified by SOURCE is flushed by
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (regexp-quote (file-remote-p source))))
+		       (rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  "Enter new Tramp connection: "
 		  dir default 'confirm init #'file-directory-p)))))
@@ -466,7 +466,7 @@ For details, see `tramp-rename-files'."
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (regexp-quote (file-remote-p source))))
+		       (rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  (format "Change Tramp connection `%s': " source)
 		  dir default 'confirm init #'file-directory-p)))))

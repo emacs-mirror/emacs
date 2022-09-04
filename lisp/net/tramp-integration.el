@@ -86,7 +86,7 @@ special handling of `substitute-in-file-name'."
 (defun tramp-rfn-eshadow-update-overlay-regexp ()
   "An overlay covering the shadowed part of the filename."
   (rx-to-string
-   `(: (* (not (any ,tramp-postfix-host-format "/~"))) (or "/" "~"))))
+   `(: (* (not (any ,tramp-postfix-host-format "/~"))) (| "/" "~"))))
 
 (defun tramp-rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
@@ -218,11 +218,11 @@ NAME must be equal to `tramp-current-connection'."
    :mode 'tramp-info-lookup-mode :topic 'symbol
    :regexp (rx (+ (not (any "\t\n \"'(),[]`‘’"))))
    :doc-spec '(("(tramp)Function Index" nil
-		(rx bol " " (+ "-") " " (* nonl) ": ")
-		(rx (group (| " " eol))))
+		(rx bol space (+ "-") space (* nonl) ": ")
+		(rx (| space eol)))
 	       ("(tramp)Variable Index" nil
-		(rx bol " " (+ "-") " " (* nonl) ": ")
-		(rx (group (| " " eol))))))
+		(rx bol space (+ "-") space (* nonl) ": ")
+		(rx (| space eol)))))
 
   (add-hook
    'tramp-integration-unload-hook
