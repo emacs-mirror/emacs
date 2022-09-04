@@ -3746,7 +3746,10 @@ non-empty directories is allowed."
 		      (progress-reporter-update progress-reporter succ)
 		      (dired-fun-in-all-buffers
 		       (file-name-directory fn) (file-name-nondirectory fn)
-		       #'dired-delete-entry fn))
+		       #'dired-delete-entry fn)
+                      ;; For when FN's directory name is different
+                      ;; from the current buffer's dired-directory.
+                      (dired-delete-entry fn))
                   (quit (throw '--delete-cancel (message "OK, canceled")))
 		  (error ;; catch errors from failed deletions
 		   (dired-log "%s: %s\n" (car err) (error-message-string err))
