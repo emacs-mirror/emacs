@@ -2017,7 +2017,17 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
 
-      if (SYMBOLP (AREF (obj, 0)))
+      if (!size)
+	{
+	  /* This vector is empty and of unknown type.  Assume that it
+	     is a vector of integers.  */
+
+	  cs->data = NULL;
+	  cs->format = 32;
+	  cs->size = 0;
+	  type = QINTEGER;
+	}
+      else if (SYMBOLP (AREF (obj, 0)))
 	/* This vector is an ATOM set */
 	{
 	  void *data;
