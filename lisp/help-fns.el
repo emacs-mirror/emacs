@@ -510,13 +510,13 @@ the C sources, too."
 	     (src-file (locate-library file-name t nil 'readable)))
 	(and src-file (file-readable-p src-file) src-file))))))
 
-(defun help-fns--key-bindings (function orig-buffer)
+(defun help-fns--key-bindings (function)
   (when (commandp function)
     (let ((pt2 (with-current-buffer standard-output (point)))
           (remapped (command-remapping function)))
       (unless (memq remapped '(ignore undefined))
         (let* ((all-keys
-                (with-current-buffer (or orig-buffer (current-buffer))
+                (with-current-buffer describe-function-orig-buffer
                   (where-is-internal
                    (or remapped function) overriding-local-map nil nil)))
                (seps (seq-group-by
@@ -1131,7 +1131,7 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
          (string-match "\\([^\\]=\\|[^=]\\|\\`\\)\\\\[[{<]" doc-raw)
          (autoload-do-load real-def))
 
-    (help-fns--key-bindings function describe-function-orig-buffer)
+    (help-fns--key-bindings function)
     (with-current-buffer standard-output
       (let ((doc (condition-case nil
                      ;; FIXME: Maybe `help-fns--signature' should return `doc'
