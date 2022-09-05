@@ -944,6 +944,11 @@ non-nil in 'special-mode' and its derivatives.
 ** Windows
 
 +++
+*** New commands 'split-root-window-below' and 'split-root-window-right'.
+These commands split the root window in to, and are are bound to 'C-x
+7' and 'C-x 9' respectively.
+
++++
 *** New user option 'display-buffer-avoid-small-windows'.
 If non-nil, this should be a window height, a number.  Windows smaller
 than this will be avoided by 'display-buffer', if possible.

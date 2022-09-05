@@ -1472,18 +1472,34 @@ the new root window.
    For interactive use, Emacs provides two commands which always split
 the selected window.  These call @code{split-window} internally.
 
-@deffn Command split-window-right &optional size
-This function splits the selected window into two side-by-side
-windows, putting the selected window on the left.  If @var{size} is
-positive, the left window gets @var{size} columns; if @var{size} is
+@deffn Command split-window-right &optional size window-to-split
+This function splits the window @var{window-to-split} into two
+side-by-side windows, putting @var{window-to-split} on the left.
+@var{window-to-split} defaults to the selected window.  If @var{size}
+is positive, the left window gets @var{size} columns; if @var{size} is
 negative, the right window gets @minus{}@var{size} columns.
 @end deffn
 
-@deffn Command split-window-below &optional size
-This function splits the selected window into two windows, one above
-the other, leaving the upper window selected.  If @var{size} is
-positive, the upper window gets @var{size} lines; if @var{size} is
+@deffn Command split-window-below &optional size window-to-split
+This function splits the window @var{window-to-split} into two
+windows, one above the other, leaving the upper window selected.
+@var{window-to-split} defaults to the selected window.  If @var{size}
+is positive, the upper window gets @var{size} lines; if @var{size} is
 negative, the lower window gets @minus{}@var{size} lines.
+@end deffn
+
+@deffn Command split-root-window-below &optional size
+This function splits the whole frame in two.  The current window
+configuration is retained on the top, and a new window is created
+below, taking up the whole width of the frame.  @var{size} is treated
+as by @code{split-window-below}.
+@end deffn
+
+@deffn Command split-root-window-right &optional size
+This function splits the whole frame in two.  The current window
+configuration is retained on the left, and a new window is created on
+the right, taking up the whole height of the frame.  @var{size} is treated
+as by @code{split-window-right}.
 @end deffn
 
 @defopt split-window-keep-point
