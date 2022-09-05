@@ -3935,8 +3935,11 @@ display a message."
          when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
-                  (file-newer-than-file-p
-                   source-file (comp-el-to-eln-filename source-file)))
+                  ;; Skip compilation if `comp-el-to-eln-filename' fails
+                  ;; to find a writable directory.
+                  (with-demoted-errors "Async compilation :%S"
+                    (file-newer-than-file-p
+                     source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
                            (setq comp-async-compilation t)
                            (setq warning-fill-column most-positive-fixnum)
