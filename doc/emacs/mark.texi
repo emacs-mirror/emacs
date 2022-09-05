@@ -38,10 +38,11 @@ the mark; this turns off the highlighting.  You can also explicitly
 deactivate the mark at any time, by typing @kbd{C-g}
 (@pxref{Quitting}).
 
-  Many commands limit what they do to the active region.  For
-instance, the @kbd{M-%} command (which replaces matching text)
-normally works on the entire visible part of the buffer, but if you
-have an active region, it'll work on just that region instead.
+  Many commands limit the text on which they operate to the active
+region.  For instance, the @kbd{M-%} command (which replaces matching
+text) normally works on the entire accessible portion of the buffer,
+but if you have an active region, it'll work only on that region
+instead.
 
   The mark is useful even if it is not active.  For example, you can
 move to previous mark locations using the mark ring.  @xref{Mark
