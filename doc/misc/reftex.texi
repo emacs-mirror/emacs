@@ -3539,18 +3539,6 @@ as a label of type @code{?p}.  Argument count for this macro starts only
 after the @samp{@{step+@}}, also when specifying how to get
 context.
 
-@item
-@b{Viper mode}@*
-@cindex Viper mode
-@cindex Key bindings, problems with Viper mode
-@findex viper-harness-minor-mode
-With @i{Viper} mode prior to Vipers version 3.01, you need to protect
-@RefTeX{}'s keymaps with
-
-@lisp
-(viper-harness-minor-mode "reftex")
-@end lisp
-
 @end itemize
 
 @page
