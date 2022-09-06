@@ -24080,7 +24080,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 5 4)) package--builtin-versions)
+(push (purecopy '(org 9 5 5)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -38130,7 +38130,7 @@ Exit View mode and make the current buffer editable." t nil)
 
 ;;;### (autoloads nil "viper" "emulation/viper.el" (0 0 0 0))
 ;;; Generated autoloads from emulation/viper.el
-(push (purecopy '(viper 3 14 1)) package--builtin-versions)
+(push (purecopy '(viper 3 14 2)) package--builtin-versions)
 
 (autoload 'toggle-viper-mode "viper" "\
 Toggle Viper on/off.
@@ -39538,11 +39538,21 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
 ;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
 ;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
-;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
+;;;;;;  "international/charscript.el" "international/cp51932.el"
+;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
-;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
+;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
+;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
+;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
+;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
+;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
+;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
+;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
+;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
