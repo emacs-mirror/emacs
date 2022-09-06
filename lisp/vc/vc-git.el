@@ -862,6 +862,7 @@ The car of the list is the current branch."
   "Target length for Git commit summary lines.
 If a number, characters in Summary: lines beyond this length are
 displayed in the `vc-git-log-edit-summary-target-warning' face.
+A value of any other type means no highlighting.
 
 By setting this to an integer around 50, you can improve the
 compatibility of your commit messages with Git commands that
@@ -882,6 +883,7 @@ See `vc-git-log-edit-summary-target-len'.")
   "Maximum length for Git commit summary lines.
 If a number, characters in summary lines beyond this length are
 displayed in the `vc-git-log-edit-summary-max-warning' face.
+A value of any other type means no highlighting.
 
 It is good practice to avoid writing summary lines longer than
 this because otherwise the summary line will be truncated in many
