@@ -998,6 +998,7 @@ static const struct x_atom_ref x_atom_refs[] =
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST", Xatom_net_wm_sync_request)
     ATOM_REFS_INIT ("_NET_WM_SYNC_REQUEST_COUNTER", Xatom_net_wm_sync_request_counter)
     ATOM_REFS_INIT ("_NET_WM_SYNC_FENCES", Xatom_net_wm_sync_fences)
+    ATOM_REFS_INIT ("_NET_WM_BYPASS_COMPOSITOR", Xatom_net_wm_bypass_compositor)
     ATOM_REFS_INIT ("_NET_WM_FRAME_DRAWN", Xatom_net_wm_frame_drawn)
     ATOM_REFS_INIT ("_NET_WM_FRAME_TIMINGS", Xatom_net_wm_frame_timings)
     ATOM_REFS_INIT ("_NET_WM_USER_TIME", Xatom_net_wm_user_time)

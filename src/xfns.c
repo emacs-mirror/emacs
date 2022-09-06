@@ -2423,14 +2423,33 @@ x_set_use_frame_synchronization (struct frame *f, Lisp_Object arg,
 {
 #if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   struct x_display_info *dpyinfo;
+  unsigned long bypass_compositor;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (!NILP (arg) && FRAME_X_EXTENDED_COUNTER (f))
-    FRAME_X_OUTPUT (f)->use_vsync_p
-      = x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
+    {
+      FRAME_X_OUTPUT (f)->use_vsync_p
+	= x_wm_supports (f, dpyinfo->Xatom_net_wm_frame_drawn);
+
+      /* At the same time, write the bypass compositor property to the
+	 outer window.  2 means to never bypass the compositor, as we
+	 need its cooperation for frame synchronization.  */
+      bypass_compositor = 2;
+      XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		       dpyinfo->Xatom_net_wm_bypass_compositor,
+		       XA_CARDINAL, 32, PropModeReplace,
+		       (unsigned char *) &bypass_compositor, 1);
+    }
   else
-    FRAME_X_OUTPUT (f)->use_vsync_p = false;
+    {
+      FRAME_X_OUTPUT (f)->use_vsync_p = false;
+
+      /* Remove the compositor bypass property from the outer
+	 window.  */
+      XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		       dpyinfo->Xatom_net_wm_bypass_compositor);
+    }
 
   store_frame_param (f, Quse_frame_synchronization,
 		     FRAME_X_OUTPUT (f)->use_vsync_p ? Qt : Qnil);
