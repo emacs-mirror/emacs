@@ -1,5 +1,5 @@
 .\" See section COPYING for conditions for redistribution.
-.TH EMACSCLIENT 1 "2021-11-05" "GNU Emacs" "GNU"
+.TH EMACSCLIENT 1 "2022-09-05" "GNU Emacs" "GNU"
 .\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
 .\" other params are allowed: see man(7), man(1)
 .SH NAME
@@ -87,9 +87,12 @@ Use TCP configuration file FILENAME for communication.
 This can also be specified via the EMACS_SERVER_FILE environment variable.
 .TP
 .B \-n, \-\-no-wait
-Return
-immediately without waiting for you to "finish" the buffer in Emacs.
-If combined with --eval, this option is ignored.
+Return immediately without waiting for you to "finish" the buffer in
+Emacs.  If combined with --eval, this option is ignored.
+.TP
+.B \-w, \-\-timeout=N
+How long to wait, in seconds, for Emacs to respond before giving up.
+The default is 0, which means to wait forever.
 .TP
 .B \-nw, \-t, \-\-tty
 Open a new Emacs frame on the current terminal.

@@ -1003,9 +1003,14 @@ suspicious and could be malicious.
 ** Emacs server and client changes
 
 +++
-*** New command-line option '-r' for emacsclient.
+*** New command-line option '-r'/'--reuse-frame' for emacsclient.
 With this command-line option, Emacs reuses an existing graphical client
 frame if one exists; otherwise it creates a new frame.
+
++++
+*** New command-line option '-w N'/'--timeout=N' for emacsclient.
+With this command-line option, emacsclient will exit if Emacs does not
+respond within N seconds.  The default is to wait forever.
 
 +++
 *** 'server-stop-automatically' can be used to automatically stop the server.
