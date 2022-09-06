@@ -3047,6 +3047,19 @@ command, separated by commas:
 $ fc-list :spacing=mono family | sed 's/ /\\ /g'
 @end example
 
+@noindent
+Note that you can fine-tune the appearance of the fonts by adding
+attribute-value pairs, separated by colons, after each font name.  For
+example,
+
+@example
+font-names=DejaVu\ Sans\ Mono:style=bold:antialias=false
+@end example
+
+@noindent
+selects the bold style of the DejaVu Sans Mono font, and disables
+anti-aliasing.
+
 You can now start Emacs inside @command{fbterm} with the command
 
 @example
