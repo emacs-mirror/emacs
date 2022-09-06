@@ -55,8 +55,6 @@ char *w32_getenv (const char *);
 # include <sys/socket.h>
 # include <sys/un.h>
 
-# define DEFAULT_TIMEOUT (30)
-
 # define SOCKETS_IN_FILE_SYSTEM
 
 # define INVALID_SOCKET (-1)
@@ -67,6 +65,8 @@ char *w32_getenv (const char *);
 # define egetenv(VAR) getenv (VAR)
 
 #endif /* !WINDOWSNT */
+
+#define DEFAULT_TIMEOUT (30)
 
 #include <ctype.h>
 #include <errno.h>
@@ -1898,7 +1898,12 @@ set_socket_timeout (HSOCKET socket, int seconds)
   timeout.tv_usec = 0;
   setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
 #else
-  DWORD timeout = seconds * 1000;
+  DWORD timeout;
+
+  if (seconds > INT_MAX / 1000)
+    timeout = INT_MAX;
+  else
+    timeout = seconds * 1000;
   setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
 #endif
 }
