@@ -33,11 +33,12 @@
   `(skip-unless (and (display-images-p)
                      (image-type-available-p ,format))))
 
-;;;; Images
+
+;;;; Image data
 
 (defconst image-tests--images
   `((gif . ,(expand-file-name "test/data/image/black.gif"
-                               source-directory))
+                              source-directory))
     (jpeg . ,(expand-file-name "test/data/image/black.jpg"
                                source-directory))
     (pbm . ,(find-image '((:file "splash.svg" :type svg))))
@@ -51,6 +52,34 @@
     (xbm . ,(find-image '((:file "gnus/gnus.xbm" :type xbm))))
     (xpm . ,(find-image '((:file "splash.xpm" :type xpm))))))
 
+
+;;;; Load image
+
+(defmacro image-tests-make-load-image-test (type)
+  `(ert-deftest ,(intern (format "image-tests-load-image/%s"
+                                 (eval type t)))
+       ()
+     (image-skip-unless ,type)
+     (let* ((img (cdr (assq ,type image-tests--images)))
+            (file (if (listp img)
+                      (plist-get (cdr img) :file)
+                    img)))
+       (find-file file))
+     (should (equal major-mode 'image-mode))
+     ;; Cleanup
+     (kill-buffer (current-buffer))))
+
+(image-tests-make-load-image-test 'gif)
+(image-tests-make-load-image-test 'jpeg)
+(image-tests-make-load-image-test 'pbm)
+(image-tests-make-load-image-test 'png)
+(image-tests-make-load-image-test 'svg)
+(image-tests-make-load-image-test 'tiff)
+(image-tests-make-load-image-test 'webp)
+(image-tests-make-load-image-test 'xbm)
+(image-tests-make-load-image-test 'xpm)
+
+
 ;;;; image-test-size
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
@@ -126,6 +155,7 @@
   (skip-unless (not (display-images-p)))
   (should-error (image-size 'invalid-spec)))
 
+
 ;;;; image-mask-p
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
@@ -178,6 +208,7 @@
   (skip-unless (not (display-images-p)))
   (should-error (image-mask-p (cdr (assq 'xpm image-tests--images)))))
 
+
 ;;;; image-metadata
 
 (declare-function image-metadata "image.c" (spec &optional frame))
@@ -235,6 +266,7 @@
   (skip-unless (not (display-images-p)))
   (should-error (image-metadata (cdr (assq 'xpm image-tests--images)))))
 
+
 ;;;; ImageMagick
 
 (ert-deftest image-tests-imagemagick-types ()
@@ -242,6 +274,7 @@
   (when (fboundp 'imagemagick-types)
     (should (listp (imagemagick-types)))))
 
+
 ;;;; Initialization
 
 (ert-deftest image-tests-init-image-library ()
