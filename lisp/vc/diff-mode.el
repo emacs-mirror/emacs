@@ -2336,10 +2336,21 @@ Call FUN with two args (BEG and END) for each hunk."
   (let ((inhibit-read-only t))
     (undo arg)))
 
+(defcustom diff-add-log-use-relative-names nil
+  "Use relative file names when generating ChangeLog skeletons.
+The files will be relative to the root directory of the VC
+repository.  This option affects the behaviour of
+`diff-add-log-current-defuns'."
+  :type 'boolean
+  :safe #'booleanp
+  :version "29.1")
+
 (defun diff-add-log-current-defuns ()
   "Return an alist of defun names for the current diff.
 The elements of the alist are of the form (FILE . (DEFUN...)),
-where DEFUN... is a list of function names found in FILE."
+where DEFUN... is a list of function names found in FILE.  If
+`diff-add-log-use-relative-names' is non-nil, file names in the alist
+are relative to the root directory of the VC repository."
   (save-excursion
     (goto-char (point-min))
     (let* ((defuns nil)
@@ -2373,7 +2384,12 @@ where DEFUN... is a list of function names found in FILE."
           ;; hunks (e.g., "diff --git ..." etc).
           (re-search-forward diff-hunk-header-re nil t)
         (setq hunk-end (save-excursion (diff-end-of-hunk)))
-        (pcase-let* ((filename (substring-no-properties (diff-find-file-name)))
+        (pcase-let* ((filename (substring-no-properties
+                                (if diff-add-log-use-relative-names
+                                    (file-relative-name
+                                     (diff-find-file-name)
+                                     (vc-root-dir))
+                                  (diff-find-file-name))))
                      (=lines 0)
                      (+lines 0)
                      (-lines 0)

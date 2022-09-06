@@ -1340,6 +1340,11 @@ Sets the value of the buffer-local variable 'whitespace-style' in
 'diff-mode' buffers.  By default, this variable is '(face trailing)',
 which preserves behavior from previous Emacs versions.
 
++++
+*** New user option 'diff-add-log-use-relative-names'.
+If non-nil insert file names in ChangeLog skeletons relative to the
+VC root directory.
+
 ** Ispell
 
 ---
