@@ -546,11 +546,22 @@ The type returned can be `comment', `string' or `paren'."
         font-lock-string-face)
     font-lock-comment-face))
 
+(defconst python--f-string-start-regexp
+  (rx bow
+      (or "f" "F" "fr" "Fr" "fR" "FR" "rf" "rF" "Rf" "RF")
+      (or "\"" "\"\"\"" "'" "'''"))
+  "A regular expression matching the beginning of an f-string.
+
+See URL `https://docs.python.org/3/reference/lexical_analysis.html#string-and-bytes-literals'.")
+
 (defun python--f-string-p (ppss)
   "Return non-nil if the pos where PPSS was found is inside an f-string."
   (and (nth 3 ppss)
-       (let ((spos (1- (nth 8 ppss))))
-         (and (memq (char-after spos) '(?f ?F))
+       (let* ((spos (1- (nth 8 ppss)))
+              (before-quote
+               (buffer-substring-no-properties (max (- spos 4) (point-min))
+                                               (min (+ spos 2) (point-max)))))
+         (and (string-match-p python--f-string-start-regexp before-quote)
               (or (< (point-min) spos)
                   (not (memq (char-syntax (char-before spos)) '(?w ?_))))))))
 
@@ -569,7 +580,7 @@ the {...} holes that appear within f-strings."
     (while
         (progn
           (while (and (not (python--f-string-p ppss))
-                      (re-search-forward "\\<f['\"]" limit 'move))
+                      (re-search-forward python--f-string-start-regexp limit 'move))
             (setq ppss (syntax-ppss)))
           (< (point) limit))
       (cl-assert (python--f-string-p ppss))
