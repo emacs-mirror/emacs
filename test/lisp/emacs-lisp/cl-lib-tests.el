@@ -511,9 +511,6 @@
 
 
 (ert-deftest cl-lib-symbol-macrolet-hide ()
-  :expected-result :failed
-  ;; FIXME -- it's unclear what the semantics here should be, but
-  ;; 2dd1c2ab19f7fb99ecee flipped them.
   ;; bug#26325, bug#26073
   (should (equal (let ((y 5))
                    (cl-symbol-macrolet ((x y))

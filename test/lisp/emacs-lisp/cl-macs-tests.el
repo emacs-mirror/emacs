@@ -552,7 +552,14 @@ collection clause."
                          x)
                        x))
              (error err))
-           '(1 7 3))))
+           '(1 7 3)))
+  (should (equal
+           (let ((x (list 42)))
+             (cl-symbol-macrolet ((m (car x)))
+               (list m
+                     (cl-letf ((m 5)) m)
+                     m)))
+           '(42 5 42))))
 
 (ert-deftest cl-macs-loop-conditional-step-clauses ()
   "These tests failed under the initial fixes in #bug#29799."
