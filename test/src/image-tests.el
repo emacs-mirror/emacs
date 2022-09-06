@@ -187,8 +187,9 @@
 
 (ert-deftest image-tests-image-metadata/gif ()
   (image-skip-unless 'gif)
-  (should-not (image-metadata
-               (create-image (cdr (assq 'gif image-tests--images))))))
+  (should (memq 'delay
+                (image-metadata
+                 (create-image (cdr (assq 'gif image-tests--images)))))))
 
 (ert-deftest image-tests-image-metadata/jpeg ()
   (image-skip-unless 'jpeg)
@@ -214,8 +215,9 @@
 
 (ert-deftest image-tests-image-metadata/webp ()
   (image-skip-unless 'webp)
-  (should-not (image-metadata
-               (create-image (cdr (assq 'webp image-tests--images))))))
+  (should (memq 'delay
+                (image-metadata
+                 (create-image (cdr (assq 'webp image-tests--images)))))))
 
 (ert-deftest image-tests-image-metadata/xbm ()
   (image-skip-unless 'xbm)
