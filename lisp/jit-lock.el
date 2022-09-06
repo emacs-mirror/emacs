@@ -384,7 +384,7 @@ is active."
 	;; No deferral.
 	(let* ((cend (min (point-max) (+ start jit-lock-chunk-size)))
 	       (vend (next-single-property-change start 'invisible nil cend)))
-	  ;; FIXME: Presumably if we're called it means `start' is
+	  ;; Presumably if we're called it means `start' is
 	  ;; not at EOB (nor invisible) and hence (> vend start).
 	  (jit-lock-fontify-now start vend))
       ;; Record the buffer for later fontification.
