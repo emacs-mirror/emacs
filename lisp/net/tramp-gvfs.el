@@ -823,6 +823,7 @@ It has been changed in GVFS 1.14.")
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-gvfs-handle-get-home-directory)
     (tramp-get-remote-gid . tramp-gvfs-handle-get-remote-gid)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . tramp-gvfs-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-gvfs-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
@@ -1496,9 +1497,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 
     (while (string-match
 	    (rx bol (+ nonl) ":"
-		space (group (+ nonl)) ":"
-		space (group (regexp (regexp-opt tramp-gio-events)))
-		(? (group space (group (+ nonl)))) eol)
+		blank (group (+ nonl)) ":"
+		blank (group (regexp (regexp-opt tramp-gio-events)))
+		(? (group blank (group (+ nonl)))) eol)
 	    string)
 
       (let ((file (match-string 1 string))

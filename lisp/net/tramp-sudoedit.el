@@ -143,6 +143,7 @@ See `tramp-actions-before-shell' for more info.")
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-sudoedit-handle-get-home-directory)
     (tramp-get-remote-gid . tramp-sudoedit-handle-get-remote-gid)
+    (tramp-get-remote-groups . tramp-sudoedit-handle-get-remote-groups)
     (tramp-get-remote-uid . tramp-sudoedit-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sudoedit-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
@@ -473,7 +474,7 @@ the result will be a local, non-Tramp, file name."
 	(delq
 	 nil
 	 (mapcar
-	  (lambda (l) (and (not (string-match-p (rx bol (* space) eol) l)) l))
+	  (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
 	  (split-string
 	   (tramp-get-buffer-string (tramp-get-connection-buffer v))
 	   "\n" 'omit))))))))
@@ -535,9 +536,9 @@ the result will be a local, non-Tramp, file name."
 	  (goto-char (point-min))
 	  (forward-line)
 	  (when (looking-at
-		 (rx (* space) (group (+ digit))
-		     (+ space) (group (+ digit))
-		     (+ space) (group (+ digit))))
+		 (rx (* blank) (group (+ digit))
+		     (+ blank) (group (+ digit))
+		     (+ blank) (group (+ digit))))
 	    (list (string-to-number (match-string 1))
 		  ;; The second value is the used size.  We need the
 		  ;; free size.
@@ -732,6 +733,31 @@ ID-FORMAT valid values are `string' and `integer'."
       (tramp-sudoedit-send-command-and-read vec "id" "-g")
     (tramp-sudoedit-send-command-string vec "id" "-gn")))
 
+(defun tramp-sudoedit-handle-get-remote-groups (vec id-format)
+  "Like `tramp-get-remote-groups' for Tramp files.
+ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-groups'.
+  (tramp-sudoedit-send-command vec "id")
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    (let (groups-integer groups-string)
+      ;; Read the expression.
+      (goto-char (point-min))
+      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
+	(while (looking-at
+		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
+	  (setq groups-integer (cons (string-to-number (match-string 1))
+				     groups-integer)
+		groups-string (cons (match-string 2) groups-string))
+	  (goto-char (match-end 0))
+	  (skip-chars-forward ",")))
+      (tramp-set-connection-property
+       vec "groups-integer"
+       (setq groups-integer (nreverse groups-integer)))
+      (tramp-set-connection-property
+       vec "groups-string"
+       (setq groups-string (nreverse groups-string)))
+      (if (eq id-format 'integer) groups-integer groups-string))))
+
 (defun tramp-sudoedit-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
   (tramp-skeleton-set-file-modes-times-uid-gid filename
@@ -846,7 +872,7 @@ In case there is no valid Lisp expression, it raises an error."
       (condition-case nil
 	  (prog1 (read (current-buffer))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not space)) (line-end-position) t)
+	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
 		vec 'file-error

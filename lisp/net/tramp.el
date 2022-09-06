@@ -598,7 +598,7 @@ if you need to change this."
   :type 'string)
 
 (defcustom tramp-login-prompt-regexp
-  (rx (* nonl) (| "user" "login") (? space (* nonl)) ":" (* space))
+  (rx (* nonl) (| "user" "login") (? blank (* nonl)) ":" (* blank))
   "Regexp matching login-like prompts.
 The regexp should match at end of buffer.
 
@@ -612,9 +612,9 @@ Sometimes the prompt is reported to look like \"login as:\"."
   ;; connection initialization; Tramp redefines the prompt afterwards.
   (rx (| bol "\r")
       (* (not (any "\n#$%>]")))
-      (? "#") (any "#$%>]") (* space)
+      (? "#") (any "#$%>]") (* blank)
       ;; Escape characters.
-      (* "[" (* (any ";" digit)) alpha (* space)))
+      (* "[" (* (any ";" digit)) alpha (* blank)))
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -631,7 +631,7 @@ This regexp must match both `tramp-initial-end-of-output' and
 (defcustom tramp-password-prompt-regexp
   (rx bol (* nonl)
       (group (regexp (regexp-opt password-word-equivalents)))
-      (* nonl) ":" (? "\^@") (* space))
+      (* nonl) ":" (? "\^@") (* blank))
   "Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -664,7 +664,7 @@ The regexp should match at end of buffer."
 (defcustom tramp-yesno-prompt-regexp
   (rx "Are you sure you want to continue connecting (yes/no"
       (? "/[fingerprint]") ")?"
-      (* space))
+      (* blank))
   "Regular expression matching all yes/no queries which need to be confirmed.
 The confirmation should be done with yes or no.
 The regexp should match at end of buffer.
@@ -674,7 +674,7 @@ See also `tramp-yn-prompt-regexp'."
 (defcustom tramp-yn-prompt-regexp
   (rx (| "Store key in cache? (y/n)"
 	 "Update cached key? (y/n, Return cancels connection)")
-      (* space))
+      (* blank))
   "Regular expression matching all y/n queries which need to be confirmed.
 The confirmation should be done with y or n.
 The regexp should match at end of buffer.
@@ -693,7 +693,7 @@ files conditionalize this setup based on the TERM environment variable."
 (defcustom tramp-terminal-prompt-regexp
   (rx (| (: "TERM = (" (* nonl) ")")
 	 (: "Terminal type? [" (* nonl) "]"))
-      (* space))
+      (* blank))
   "Regular expression matching all terminal setting prompts.
 The regexp should match at end of buffer.
 The answer will be provided by `tramp-action-terminal', which see."
@@ -736,7 +736,7 @@ The regexp should match at end of buffer."
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
-  (rx (| (: "preserving times" (* nonl)) "set mode") ":" (* space)
+  (rx (| (: "preserving times" (* nonl)) "set mode") ":" (* blank)
       "Operation not permitted")
   "Regular expression matching keep-date problems in (s)cp operations.
 Copying has been performed successfully already, so this message can
@@ -749,7 +749,7 @@ be ignored safely."
 	 "Permission denied"
 	 "is a directory"
 	 "not a regular file")
-      (* space))
+      (* blank))
   "Regular expression matching copy problems in (s)cp operations."
   :type 'regexp)
 
@@ -931,7 +931,7 @@ Used in `tramp-make-tramp-file-name'.")
   "Regexp matching delimiter between method and user or host names.
 Derived from `tramp-postfix-method-format'.")
 
-(defconst tramp-user-regexp (rx (+ (not (any "/:|" space))))
+(defconst tramp-user-regexp (rx (+ (not (any "/:|" blank))))
   "Regexp matching user names.")
 
 (defconst tramp-prefix-domain-format "%"
@@ -1945,9 +1945,9 @@ of `current-buffer'."
 
 (defconst tramp-debug-outline-regexp
   (rx ;; Timestamp.
-      (+ digit) ":" (+ digit) ":" (+ digit) "." (+ digit) space
+      (+ digit) ":" (+ digit) ":" (+ digit) "." (+ digit) blank
       ;; Thread.
-      (? (group "#<thread " (+ nonl) ">") space)
+      (? (group "#<thread " (+ nonl) ">") blank)
        ;; Function name, verbosity.
       (+ (any "-" alnum)) " (" (group (+ digit)) ") #")
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
@@ -2636,8 +2636,8 @@ Must be handled by the callers."
       (tramp-get-default-directory (process-buffer (nth 0 args)))))
    ;; VEC.
    ((member operation
-	    '(tramp-get-home-directory
-	      tramp-get-remote-gid tramp-get-remote-uid))
+	    '(tramp-get-home-directory tramp-get-remote-gid
+	      tramp-get-remote-groups tramp-get-remote-uid))
     (tramp-make-tramp-file-name (nth 0 args)))
    ;; Unknown file primitive.
    (t (error "Unknown file I/O primitive: %s" operation))))
@@ -3218,7 +3218,7 @@ Either user or host may be nil."
    (let (result
 	 (regexp
 	  (rx bol (group (regexp tramp-host-regexp))
-	      (? (+ space) (group (regexp tramp-user-regexp))))))
+	      (? (+ blank) (group (regexp tramp-user-regexp))))))
      (when (re-search-forward regexp (line-end-position) t)
        (setq result (append (list (match-string 2) (match-string 1)))))
      (forward-line 1)
@@ -3243,10 +3243,10 @@ User is always nil."
    "Return a (user host) tuple allowed to access.
 User is always nil."
    (tramp-parse-group
-    (rx (| (: bol (* space) "Host")
+    (rx (| (: bol (* blank) "Host")
 	   (: bol (+ nonl)) ;; ???
 	   (group (regexp tramp-host-regexp))))
-    1 (rx space)))
+    1 (rx blank)))
 
 ;; Generic function.
 (defun tramp-parse-shostkeys-sknownhosts (dirname regexp)
@@ -3287,7 +3287,7 @@ User is always nil."
 User is always nil."
    (tramp-parse-group
     (rx bol (group (| (regexp tramp-ipv6-regexp) (regexp tramp-host-regexp))))
-    1 (rx space)))
+    1 (rx blank)))
 
 (defun tramp-parse-passwd (filename)
   "Return a list of (user host) tuples allowed to access.
@@ -4266,7 +4266,7 @@ Let-bind it when necessary.")
 (defun tramp-ps-time ()
   "Read printed time oif \"ps\" in format \"[[DD-]hh:]mm:ss\".
 Return it as number of seconds.  Used in `tramp-process-attributes-ps-format'."
-  (search-forward-regexp (rx (+ space)))
+  (search-forward-regexp (rx (+ blank)))
   (search-forward-regexp (rx (? (? (group (+ digit)) "-")
 				   (group (+ digit)) ":")
 			           (group (+ digit)) ":"
@@ -4386,17 +4386,17 @@ It is not guaranteed, that all process attributes as described in
                       (cond
                        ((eq (cdr elt) 'number) (read (current-buffer)))
                        ((eq (cdr elt) 'string)
-                        (search-forward-regexp (rx (+ (not space))))
+                        (search-forward-regexp (rx (+ (not blank))))
                         (match-string 0))
                        ((numberp (cdr elt))
-                        (search-forward-regexp (rx (+ space)))
+                        (search-forward-regexp (rx (+ blank)))
                         (search-forward-regexp
 			 (rx (+ nonl)) (+ (point) (cdr elt)))
                         (string-trim (match-string 0)))
                        ((fboundp (cdr elt))
                         (funcall (cdr elt)))
                        ((null (cdr elt))
-                        (search-forward-regexp (rx (+ whitespace)))
+                        (search-forward-regexp (rx (+ blank)))
                         (buffer-substring (point) (line-end-position)))))
                      res))
                   ;; `nice' could be `-'.
@@ -4840,7 +4840,7 @@ support symbolic links."
 
 (defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
-  (let* ((asynchronous (string-match-p (rx (* space) "&" (* space) eos) command))
+  (let* ((asynchronous (string-match-p (rx (* blank) "&" (* blank) eos) command))
 	 (command (substring command 0 asynchronous))
 	 current-buffer-p
 	 (output-buffer-p output-buffer)
@@ -5838,7 +5838,8 @@ be granted."
                       ((eq ?s access) 3)))
 	     (file-attr (file-attributes (tramp-make-tramp-file-name vec)))
 	     (remote-uid (tramp-get-remote-uid vec 'integer))
-	     (remote-gid (tramp-get-remote-gid vec 'integer)))
+	     (remote-gid (tramp-get-remote-gid vec 'integer))
+	     (remote-groups (tramp-get-remote-groups vec 'integer)))
     (or
      ;; Not a symlink.
      (eq t (file-attribute-type file-attr))
@@ -5861,7 +5862,12 @@ be granted."
 	  (equal remote-gid tramp-unknown-id-integer)
 	  (equal remote-gid (file-attribute-group-id file-attr))
 	  (equal tramp-unknown-id-integer
-		 (file-attribute-group-id file-attr)))))))
+		 (file-attribute-group-id file-attr))))
+     ;; Group accessible and owned by user's secondary group.
+     (and
+      (eq access
+	  (aref (file-attribute-modes file-attr) (+ offset 3)))
+      (member (file-attribute-group-id file-attr) remote-groups)))))
 
 (defmacro tramp-convert-file-attributes (vec localname id-format attr)
   "Convert `file-attributes' ATTR generated Tramp backend functions.
@@ -5998,6 +6004,16 @@ ID-FORMAT valid values are `string' and `integer'."
       ;; Ensure there is a valid result.
       (and (equal id-format 'integer) tramp-unknown-id-integer)
       (and (equal id-format 'string) tramp-unknown-id-string)))
+
+(defun tramp-get-remote-groups (vec id-format)
+  "The list of groups of the remote connection VEC, in ID-FORMAT.
+ID-FORMAT valid values are `string' and `integer'."
+  (or (and (tramp-file-name-p vec)
+	   (with-tramp-connection-property vec (format "groups-%s" id-format)
+	     (tramp-file-name-handler #'tramp-get-remote-groups vec id-format)))
+      ;; Ensure there is a valid result.
+      (and (equal id-format 'integer) (list tramp-unknown-id-integer))
+      (and (equal id-format 'string) (list tramp-unknown-id-string))))
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise.

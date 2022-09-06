@@ -147,6 +147,7 @@
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -186,7 +187,7 @@ arguments to pass to the OPERATION."
     (delq nil
 	  (mapcar
 	   (lambda (line)
-	     (when (string-match (rx bol (group (+ (not space))) ":" eol) line)
+	     (when (string-match (rx bol (group (+ (not blank))) ":" eol) line)
 	       `(nil ,(match-string 1 line))))
 	   (tramp-process-lines nil tramp-rclone-program "listremotes")))))
 
@@ -300,11 +301,11 @@ file names."
 	(let (total used free)
 	  (goto-char (point-min))
 	  (while (not (eobp))
-	    (when (looking-at (rx "Total: " (+ space) (group (+ digit))))
+	    (when (looking-at (rx "Total: " (+ blank) (group (+ digit))))
 	      (setq total (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Used: " (+ space) (group (+ digit))))
+	    (when (looking-at (rx "Used: " (+ blank) (group (+ digit))))
 	      (setq used (string-to-number (match-string 1))))
-	    (when (looking-at (rx "Free: " (+ space) (group (+ digit))))
+	    (when (looking-at (rx "Free: " (+ blank) (group (+ digit))))
 	      (setq free (string-to-number (match-string 1))))
 	    (forward-line))
 	  (when used

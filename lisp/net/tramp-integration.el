@@ -218,11 +218,11 @@ NAME must be equal to `tramp-current-connection'."
    :mode 'tramp-info-lookup-mode :topic 'symbol
    :regexp (rx (+ (not (any "\t\n \"'(),[]`‘’"))))
    :doc-spec '(("(tramp)Function Index" nil
-		(rx bol space (+ "-") space (* nonl) ": ")
-		(rx (| space eol)))
+		(rx bol blank (+ "-") blank (* nonl) ": ")
+		(rx (| blank eol)))
 	       ("(tramp)Variable Index" nil
-		(rx bol space (+ "-") space (* nonl) ": ")
-		(rx (| space eol)))))
+		(rx bol blank (+ "-") blank (* nonl) ": ")
+		(rx (| blank eol)))))
 
   (add-hook
    'tramp-integration-unload-hook

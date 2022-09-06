@@ -3222,13 +3222,13 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (insert-directory tmp-name1 "-al")
 	      (goto-char (point-min))
 	      (should
-	       (looking-at-p (rx bol (+ nonl) space (literal tmp-name1) eol))))
+	       (looking-at-p (rx bol (+ nonl) blank (literal tmp-name1) eol))))
 	    (with-temp-buffer
 	      (insert-directory (file-name-as-directory tmp-name1) "-al")
 	      (goto-char (point-min))
 	      (should
 	       (looking-at-p
-		(rx bol (+ nonl) space (literal tmp-name1) "/" eol))))
+		(rx bol (+ nonl) blank (literal tmp-name1) "/" eol))))
 	    (with-temp-buffer
 	      (insert-directory
 	       (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
@@ -3238,11 +3238,11 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 		(rx-to-string
 		 `(:
 		   ;; There might be a summary line.
-		   (? "total" (+ nonl) (+ digit) (? space)
+		   (? "total" (+ nonl) (+ digit) (? blank)
 		      (? (any "EGKMPTYZk")) (? "i") (? "B") "\n")
 		   ;; We don't know in which order ".", ".." and "foo" appear.
 		   (= ,(length (directory-files tmp-name1))
-		      (+ nonl) space
+		      (+ nonl) blank
 		      (regexp ,(regexp-opt (directory-files tmp-name1)))
 		      (? " ->" (+ nonl)) "\n"))))))
 

@@ -98,9 +98,9 @@ this variable \"client min protocol=NT1\"."
   "Regexp of SMB server identification.")
 
 (defconst tramp-smb-prompt
-  (rx bol (| (: (| "smb:" "PS") space (+ nonl) "> ")
-	     (: (+ space) "Server"
-		(+ space) "Comment" eol)))
+  (rx bol (| (: (| "smb:" "PS") blank (+ nonl) "> ")
+	     (: (+ blank) "Server"
+		(+ blank) "Comment" eol)))
   "Regexp used as prompt in smbclient or powershell.")
 
 (defconst tramp-smb-wrong-passwd-regexp
@@ -110,10 +110,10 @@ this variable \"client min protocol=NT1\"."
 
 (defconst tramp-smb-errors
   (rx (| ;; Connection error / timeout / unknown command.
-       (: "Connection" (? " to " (+ (not space))) " failed")
+       (: "Connection" (? " to " (+ (not blank))) " failed")
        "Read from server failed, maybe it closed the connection"
        "Call timed out: server did not respond"
-       (: (+ (not space)) ": command not found")
+       (: (+ (not blank)) ": command not found")
        "Server doesn't support UNIX CIFS calls"
        (| ;; Samba.
 	"ERRDOS"
@@ -298,6 +298,7 @@ See `tramp-actions-before-shell' for more info.")
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-smb-handle-get-home-directory)
     (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -884,28 +885,28 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (while (not (eobp))
 	    (cond
 	     ((looking-at
-	       (rx "Size:" (+ space) (group (+ digit)) (+ space)
-		   "Blocks:" (+ space) (+ digit) (+ space) (group (+ wordchar))))
+	       (rx "Size:" (+ blank) (group (+ digit)) (+ blank)
+		   "Blocks:" (+ blank) (+ digit) (+ blank) (group (+ wordchar))))
 	      (setq size (string-to-number (match-string 1))
 		    id (if (string-equal "directory" (match-string 2)) t
 			 (if (string-equal "symbolic" (match-string 2)) ""))))
 	     ((looking-at
-	       (rx "Inode:" (+ space) (group (+ digit)) (+ space)
-		   "Links:" (+ space) (group (+ digit))))
+	       (rx "Inode:" (+ blank) (group (+ digit)) (+ blank)
+		   "Links:" (+ blank) (group (+ digit))))
 	      (setq inode (string-to-number (match-string 1))
 		    link (string-to-number (match-string 2))))
 	     ((looking-at
-	       (rx "Access:" (+ space)
-		   "(" (+ digit) "/" (group (+ (not space))) ")" (+ space)
-		   "Uid:" (+ space) (group (+ digit)) (+ whitespace)
-		   "Gid:" (+ space) (group (+ digit))))
+	       (rx "Access:" (+ blank)
+		   "(" (+ digit) "/" (group (+ (not blank))) ")" (+ blank)
+		   "Uid:" (+ blank) (group (+ digit)) (+ blank)
+		   "Gid:" (+ blank) (group (+ digit))))
 	      (setq mode (match-string 1)
 		    uid (match-string 2)
 		    gid (match-string 3)))
 	     ((looking-at
-	       (rx "Access:" (+ space)
+	       (rx "Access:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq atime
@@ -917,9 +918,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (rx "Modify:" (+ space)
+	       (rx "Modify:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq mtime
@@ -931,9 +932,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (rx "Change:" (+ space)
+	       (rx "Change:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq ctime
@@ -1008,7 +1009,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (goto-char (point-min))
 	    (forward-line)
 	    (when (looking-at
-		   (rx (* space) (group (+ digit))
+		   (rx (* blank) (group (+ digit))
 		       " blocks of size " (group (+ digit))
 		       ". " (group (+ digit)) " blocks available"))
 	      (setq blocksize (string-to-number (match-string 2))
@@ -1660,7 +1661,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	(setq localname (replace-match "$" nil nil localname 1)))
 
       ;; A trailing space is not supported.
-      (when (string-match-p (rx space eol) localname)
+      (when (string-match-p (rx blank eol) localname)
 	(tramp-error
 	 vec 'file-error
 	 "Invalid file name %s" (tramp-make-tramp-file-name vec localname)))
@@ -1853,9 +1854,9 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 	;; localname.
 	(if (string-match
-	     (rx bol (+ space)
-		 (group (not space) (? (* nonl) (not space)))
-		 (* space) eol)
+	     (rx bol (+ blank)
+		 (group (not blank) (? (* nonl) (not blank)))
+		 (* blank) eol)
 	     line)
 	    (setq localname (match-string 1 line))
 	  (cl-return))))

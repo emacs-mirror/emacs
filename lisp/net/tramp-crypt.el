@@ -233,6 +233,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     ;; `tramp-get-home-directory' performed by default-handler.
     ;; `tramp-get-remote-gid' performed by default handler.
+    ;; `tramp-get-remote-groups' performed by default handler.
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)

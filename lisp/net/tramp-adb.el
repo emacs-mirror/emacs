@@ -55,7 +55,7 @@ It is used for TCP/IP devices."
 (defconst tramp-adb-method "adb"
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
-(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") space)
+(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") blank)
   "Regexp used as prompt in almquist shell."
   :type 'regexp
   :version "28.1"
@@ -71,20 +71,20 @@ It is used for TCP/IP devices."
   "Regexp for date time format in ls output."))
 
 (defconst tramp-adb-ls-date-regexp
-  (rx space (regexp tramp-adb-ls-date-year-regexp)
-      space (regexp tramp-adb-ls-date-time-regexp)
-      space)
+  (rx blank (regexp tramp-adb-ls-date-year-regexp)
+      blank (regexp tramp-adb-ls-date-time-regexp)
+      blank)
   "Regexp for date format in ls output.")
 
 (defconst tramp-adb-ls-toolbox-regexp
-  (rx bol (* space) (group (+ (any ".-" alpha)))		; \1 permissions
-      (? (+ space) (+ digit))			      ; links (Android 7/toybox)
-      (* space) (group (+ (not space)))				; \2 username
-      (+ space) (group (+ (not space)))				; \3 group
-      (+ space) (group (+ digit))				; \4 size
-      (+ space) (group (regexp tramp-adb-ls-date-year-regexp)
-		 space (regexp tramp-adb-ls-date-time-regexp))	; \5 date
-      space (group (* nonl)) eol)				; \6 filename
+  (rx bol (* blank) (group (+ (any ".-" alpha)))		; \1 permissions
+      (? (+ blank) (+ digit))			      ; links (Android 7/toybox)
+      (* blank) (group (+ (not blank)))				; \2 username
+      (+ blank) (group (+ (not blank)))				; \3 group
+      (+ blank) (group (+ digit))				; \4 size
+      (+ blank) (group (regexp tramp-adb-ls-date-year-regexp)
+		 blank (regexp tramp-adb-ls-date-time-regexp))	; \5 date
+      blank (group (* nonl)) eol)				; \6 filename
   "Regexp for ls output.")
 
 ;;;###tramp-autoload
@@ -180,6 +180,7 @@ It is used for TCP/IP devices."
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . tramp-adb-handle-get-remote-gid)
+    (tramp-get-remote-groups . tramp-adb-handle-get-remote-groups)
     (tramp-get-remote-uid . tramp-adb-handle-get-remote-uid)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -218,7 +219,7 @@ arguments to pass to the OPERATION."
 	(mapcar
 	 (lambda (line)
 	   (when (string-match
-		  (rx bol (group (+ (not space))) (+ space) "device" eol) line)
+		  (rx bol (group (+ (not blank))) (+ blank) "device" eol) line)
 	     ;; Replace ":" by "#".
 	     `(nil ,(tramp-compat-string-replace
 		     ":" tramp-prefix-port-format (match-string 1 line)))))
@@ -235,10 +236,10 @@ arguments to pass to the OPERATION."
 	(goto-char (point-min))
 	(forward-line)
 	(when (looking-at
-	       (rx (* space) (+ (not space))
-		   (+ space) (group (+ digit))
-		   (+ space) (group (+ digit))
-		   (+ space) (group (+ digit))))
+	       (rx (* blank) (+ (not blank))
+		   (+ blank) (group (+ digit))
+		   (+ blank) (group (+ digit))
+		   (+ blank) (group (+ digit))))
 	  ;; The values are given as 1k numbers, so we must change
 	  ;; them to number of bytes.
 	  (list (* 1024 (string-to-number (match-string 1)))
@@ -362,12 +363,12 @@ Emacs dired can't find files."
     (goto-char (point-min))
     (while
 	(search-forward-regexp
-	 (rx space (group space (regexp tramp-adb-ls-date-year-regexp) space))
+	 (rx blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
 	 nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
       (when (looking-at-p
-	     (rx (regexp tramp-adb-ls-date-time-regexp) (+ space) eol))
+	     (rx (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
@@ -466,7 +467,7 @@ Emacs dired can't find files."
 	     nil
 	     (mapcar
 	      (lambda (l)
-		(and (not (string-match-p (rx bol (* space) eol) l)) l))
+		(and (not (string-match-p (rx bol (* blank) eol) l)) l))
 	      (split-string (buffer-string) "\n")))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
@@ -717,9 +718,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (setcar result 0)
       (dolist (line signals)
 	(when (string-match
-	       (rx bol (* space) (group (+ digit))
-		   (+ space) (+ (not space))
-		   (+ space) (group alpha (* nonl)) eol)
+	       (rx bol (* blank) (group (+ digit))
+		   (+ blank) (+ (not blank))
+		   (+ blank) (group alpha (* nonl)) eol)
 	       line)
 	  (setcar
 	   (nthcdr (string-to-number (match-string 1 line)) result)
@@ -1066,6 +1067,31 @@ ID-FORMAT valid values are `string' and `integer'."
     (goto-char (point-min))
     (read (current-buffer))))
 
+(defun tramp-adb-handle-get-remote-groups (vec id-format)
+  "Like `tramp-get-remote-groups' for Tramp files.
+ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-groups'.
+  (tramp-adb-send-command vec "id")
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    (let (groups-integer groups-string)
+      ;; Read the expression.
+      (goto-char (point-min))
+      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
+	(while (looking-at
+		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
+	  (setq groups-integer (cons (string-to-number (match-string 1))
+				     groups-integer)
+		groups-string (cons (match-string 2) groups-string))
+	  (goto-char (match-end 0))
+	  (skip-chars-forward ",")))
+      (tramp-set-connection-property
+       vec "groups-integer"
+       (setq groups-integer (nreverse groups-integer)))
+      (tramp-set-connection-property
+       vec "groups-string"
+       (setq groups-string (nreverse groups-string)))
+      (if (eq id-format 'integer) groups-integer groups-string))))
+
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.
 E.g. a host name \"192.168.1.1#5555\" returns \"192.168.1.1:5555\"
@@ -1142,7 +1168,7 @@ error and non-nil on success."
 	  ;; We can't use stty to disable echo of command.  stty is said
 	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
 	  ;; isn't used any longer for Android.
-	  (delete-matching-lines (rx (literal command)))
+	  (delete-matching-lines (rx bol (literal command) eol))
 	  ;; When the local machine is W32, there are still trailing ^M.
 	  ;; There must be a better solution by setting the correct coding
 	  ;; system, but this requires changes in core Tramp.

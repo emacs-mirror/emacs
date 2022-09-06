@@ -179,7 +179,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) space)
+	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) blank)
 	          mount)
              (match-string 1 mount)))))))
 

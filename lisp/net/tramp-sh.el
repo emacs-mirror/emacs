@@ -1082,6 +1082,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-sh-handle-get-home-directory)
     (tramp-get-remote-gid . tramp-sh-handle-get-remote-gid)
+    (tramp-get-remote-groups . tramp-sh-handle-get-remote-groups)
     (tramp-get-remote-uid . tramp-sh-handle-get-remote-uid)
     (tramp-set-file-uid-gid . tramp-sh-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
@@ -1538,6 +1539,32 @@ ID-FORMAT valid values are `string' and `integer'."
      ((tramp-get-remote-perl vec) (tramp-get-remote-gid-with-perl vec id-format))
      ((tramp-get-remote-python vec)
       (tramp-get-remote-gid-with-python vec id-format)))))
+
+(defun tramp-sh-handle-get-remote-groups (vec id-format)
+  "Like `tramp-get-remote-groups' for Tramp files.
+ID-FORMAT valid values are `string' and `integer'."
+  ;; The result is cached in `tramp-get-remote-groups'.
+  (when (tramp-get-remote-id vec)
+    (tramp-send-command vec (tramp-get-remote-id vec)))
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    (let (groups-integer groups-string)
+      ;; Read the expression.
+      (goto-char (point-min))
+      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
+	(while (looking-at
+		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
+	  (setq groups-integer (cons (string-to-number (match-string 1))
+				     groups-integer)
+		groups-string (cons (match-string 2) groups-string))
+	  (goto-char (match-end 0))
+	  (skip-chars-forward ",")))
+      (tramp-set-connection-property
+       vec "groups-integer"
+       (setq groups-integer (nreverse groups-integer)))
+      (tramp-set-connection-property
+       vec "groups-string"
+       (setq groups-string (nreverse groups-string)))
+      (if (eq id-format 'integer) groups-integer groups-string))))
 
 (defun tramp-sh-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -2660,7 +2687,7 @@ The method used must be an out-of-band method."
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Check for "--dired" output.
 	  (when (re-search-backward
-		 (rx bol "//DIRED//" (+ space) (group (+ nonl)) eol)
+		 (rx bol "//DIRED//" (+ blank) (group (+ nonl)) eol)
 		 nil 'noerror)
 	    (let ((beg (match-beginning 1))
 		  (end (match-end 0)))
@@ -2733,7 +2760,7 @@ The method used must be an out-of-band method."
 	  ;; Try to insert the amount of free space.
 	  (goto-char (point-min))
 	  ;; First find the line to put it on.
-	  (when (and (re-search-forward (rx bol (group (* space) "total")) nil t)
+	  (when (and (re-search-forward (rx bol (group (* blank) "total")) nil t)
 		     ;; Emacs 29.1 or later.
 		     (not (fboundp 'dired--insert-disk-space)))
 	    (when-let ((available (get-free-disk-space ".")))
@@ -3837,7 +3864,7 @@ Fall back to normal file name handler if no Tramp handler exists."
           ((string-match
 	    (rx "Supported arguments for "
 		"GIO_USE_FILE_MONITOR environment variable:\n"
-		(* space) (group (+ alpha)) " - 20")
+		(* blank) (group (+ alpha)) " - 20")
 	    string)
 	   (setq pos (match-end 0))
            (intern
@@ -3849,10 +3876,10 @@ Fall back to normal file name handler if no Tramp handler exists."
       (setq string (tramp-compat-string-replace "\n\n" "\n" string))
 
       (while (string-match
-	      (rx bol (+ (not (any ":"))) ":" space
-		  (group (+ (not (any ":")))) ":" space
+	      (rx bol (+ (not (any ":"))) ":" blank
+		  (group (+ (not (any ":")))) ":" blank
 		  (group (regexp (regexp-opt tramp-gio-events)))
-		  (? space (group (+ (not (any ":"))))) eol)
+		  (? blank (group (+ (not (any ":"))))) eol)
 	      string)
 
         (let* ((file (match-string 1 string))
@@ -3926,9 +3953,9 @@ Fall back to normal file name handler if no Tramp handler exists."
 	  (goto-char (point-min))
 	  (forward-line)
 	  (when (looking-at
-		 (rx (? bol "/" (* (not space)) space) (* space)
-		     (group (+ digit)) (+ space)
-		     (group (+ digit)) (+ space)
+		 (rx (? bol "/" (* (not blank)) blank) (* blank)
+		     (group (+ digit)) (+ blank)
+		     (group (+ digit)) (+ blank)
 		     (group (+ digit))))
 	    (mapcar
 	     (lambda (d)
@@ -4068,7 +4095,7 @@ This function expects to be in the right *tramp* buffer."
       (unless (or ignore-path (tramp-check-remote-uname vec tramp-sunos-unames))
 	(tramp-send-command vec (format "which \\%s | wc -w" progname))
 	(goto-char (point-min))
-	(if (looking-at-p (rx bol (* space) "1" eol))
+	(if (looking-at-p (rx bol (* blank) "1" eol))
 	    (setq result (concat "\\" progname))))
       (unless result
 	(when ignore-tilde
@@ -4976,9 +5003,9 @@ Goes through the list `tramp-inline-compress-commands'."
 		     string
 		     (and
 		      (string-match
-		       (rx bol (+ (not (any space "#"))) space
-			   (+ (not space)) space
-			   (group (+ (not space))) eol)
+		       (rx bol (+ (not (any blank "#"))) blank
+			   (+ (not blank)) blank
+			   (group (+ (not blank))) eol)
 		       string)
 		      (match-string 1 string))
 		     found
@@ -5393,7 +5420,7 @@ raises an error."
 		     (unless noerror signal-hook-function)))
 		(read (current-buffer)))
 	    ;; Error handling.
-	    (when (re-search-forward (rx (not space)) (line-end-position) t)
+	    (when (re-search-forward (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (unless noerror
 		 (tramp-error
