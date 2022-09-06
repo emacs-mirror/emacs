@@ -382,7 +382,11 @@ is active."
                   (or (not (eq jit-lock-defer-time 0))
                       (input-pending-p))))
 	;; No deferral.
-	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
+	(let* ((cend (min (point-max) (+ start jit-lock-chunk-size)))
+	       (vend (next-single-property-change start 'invisible nil cend)))
+	  ;; FIXME: Presumably if we're called it means `start' is
+	  ;; not at EOB (nor invisible) and hence (> vend start).
+	  (jit-lock-fontify-now start vend))
       ;; Record the buffer for later fontification.
       (unless (memq (current-buffer) jit-lock-defer-buffers)
 	(push (current-buffer) jit-lock-defer-buffers))
