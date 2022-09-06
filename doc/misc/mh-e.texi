@@ -8654,28 +8654,11 @@ question, file a ticket and your question will become a new FAQ!
 @cindex getting MH-E
 @cindex obtaining MH-E
 
-Because MH-E is undergoing a phase of sustained growth, the version of
-MH-E in your Emacs is likely to be out of date although it is most
-likely to be more up to date than the copy that comes with the MH
-distribution in @file{miscellany/mh-e}.
-
-@cindex change log
-@cindex release notes
-
-New MH-E releases are always available for downloading at
-@uref{https://sourceforge.net/projects/mh-e/files/, SourceForge}
-before they appear in an Emacs release. You can read the release notes
-on that page to determine if the given release of MH-E is already
-installed in your version of Emacs. You can also read the change log
-to see if you are interested in what the given release of MH-E has to
-offer (although we have no doubt that you will be extremely interested
-in all new releases).
-
-@cindex Debian
-
-If you use Debian, you can install the Debian
-@uref{https://packages.debian.org/unstable/mail/mh-e, mh-e package}
-instead.
+Since MH-E 8.6 was released in 2016, its development migrated to the
+Emacs repository. MH-E is now only supported in the version of Emacs
+in which it appears. Old releases of MH-E are still available for
+download at @uref{https://sourceforge.net/projects/mh-e/files/,
+SourceForge}.
 
 @cindex files, @samp{MH-E-NEWS}
 @cindex files, @samp{README}
