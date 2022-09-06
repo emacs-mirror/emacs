@@ -1280,6 +1280,12 @@ This variable cannot be set in a Custom theme."
   :risky t
   :version "24.1")
 
+(defcustom custom-ensure-single-active-theme nil
+  "Non-nil means that `load-theme' should ensure only one theme is active."
+  :type 'boolean
+  :group 'customize
+  :version "29.1")
+
 (defun load-theme (theme &optional no-confirm no-enable)
   "Load Custom theme named THEME from its file and possibly enable it.
 The theme file is named THEME-theme.el, in one of the directories
@@ -1303,6 +1309,9 @@ This function is normally called through Customize when setting
 `custom-enabled-themes'.  If used directly in your init file, it
 should be called with a non-nil NO-CONFIRM argument, or after
 `custom-safe-themes' has been loaded.
+
+If `custom-ensure-single-active-theme' is non-nil, all other active
+themes will be disabled before THEME is enabled.
 
 Return t if THEME was successfully loaded, nil otherwise."
   (interactive
@@ -1367,6 +1376,9 @@ Return t if THEME was successfully loaded, nil otherwise."
       (setq tail (cdr tail)))
     (when found
       (put theme 'theme-settings (cons found (delq found settings)))))
+  ;; Check if the user only wants one theme to be active
+  (when custom-ensure-single-active-theme
+    (mapc #'disable-theme custom-enabled-themes))
   ;; Finally, enable the theme.
   (unless no-enable
     (enable-theme theme))
