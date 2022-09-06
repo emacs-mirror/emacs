@@ -213,13 +213,12 @@ more niceties about GNU Emacs and MH@. Now I'm fully hooked on both of
 them.
 
 The MH-E package is distributed with Emacs@footnote{Version
-@value{VERSION} of MH-E appeared in Emacs 24.4.
-It is compatible with MH versions 6.8.4 and
-higher, all versions of nmh, and GNU mailutils 1.0 and higher}, so you
-shouldn't have to do anything special to use it. Gnus is also
-required; version 5.10 or higher is recommended. This manual covers
-MH-E version @value{VERSION}. To help you decide which version you
-have, see @ref{Getting Started}.
+@value{VERSION} of MH-E appeared in Emacs 24.4. It is compatible with
+MH versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
+1.0 and higher}, so you shouldn't have to do anything special to use
+it. Gnus is also required; it is bundled with Emacs. This manual
+covers MH-E version @value{VERSION}. To help you decide which version
+you have, see @ref{Getting Started}.
 
 @findex help-with-tutorial
 @kindex C-h t
@@ -2712,8 +2711,7 @@ Drafts}).
 @cindex signed messages
 
 You can read encrypted or signed PGP or GPG messages with
-MH-E@footnote{This feature depends on post-5.10 versions of Gnus.
-@cite{MIME Security with OpenPGP} is documented in
+MH-E@footnote{@cite{MIME Security with OpenPGP} is documented in
 @uref{https://www.rfc-editor.org/rfc/rfc3156.txt, RFC 3156}. However,
 MH-E can also decrypt old-style PGP messages that are not in MIME
 format.}. This section assumes that you already have a good
@@ -8538,9 +8536,7 @@ If you're on a mailing list that is so voluminous that it is
 impossible to read every message, it usually better to read the
 mailing list like a newsgroup in a news reader. Emacs has a built-in
 newsreader called Gnus. The remainder of this appendix talks about how
-to use Gnus with an MH message store. The version of Gnus that was
-used to prepare this manual was 5.10. Versions 5.8 through 5.10 should
-work but versions prior to 5.8 use different options.
+to use Gnus with an MH message store.
 
 This table contains a list of Gnus options that you will have to
 modify. Note that for them to become accessible, you'll have to load
