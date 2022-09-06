@@ -5,7 +5,7 @@
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; Contributor: Thibault Polge <(concat "thibault" at-sign "thb.lt")>
 ;; URL: https://github.com/fniessen/emacs-leuven-dark-theme
-;; Version: 20220202.1126
+;; Version: 20220906.2016
 ;; Keywords: color theme
 
 ;; This file is part of GNU Emacs.
@@ -1082,6 +1082,8 @@ more...")
   ;; Add theme folder to `custom-theme-load-path' when installing over MELPA.
   (add-to-list 'custom-theme-load-path
                (file-name-as-directory (file-name-directory load-file-name))))
+
+(put 'leuven-dark 'dual-theme 'leuven) ;see `toggle-theme'
 
 (provide-theme 'leuven-dark)
 

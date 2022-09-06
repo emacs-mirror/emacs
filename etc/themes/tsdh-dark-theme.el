@@ -142,6 +142,8 @@
  '(widget-field ((t (:box (:line-width 2 :color "grey75" :style pressed-button)))))
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
+(put 'tsdh-dark 'dual-theme 'tsdh-light) ;see `toggle-theme'
+
 (provide-theme 'tsdh-dark)
 
 ;;; tsdh-dark-theme.el ends here
