@@ -26,8 +26,21 @@ This function returns non-nil if tree-sitter features are available
 for this Emacs instance.
 @end defun
 
-For using tree-sitter features in font-lock and indentation,
-@pxref{Parser-based Font Lock}, @pxref{Parser-based Indentation}.
+@defvar treesit-max-buffer-size
+This variable contains the maximum size of buffers in which
+tree-sitter can be activated.  Major modes should check this value
+when deciding whether to enable tree-sitter features.
+@end defvar
+
+@defun treesit-can-enable-p
+This function checks whether the current buffer is suitable for
+activating tree-sitter features.  It basically checks
+@code{treesit-available-p} and @var{treesit-max-buffer-size}.
+@end defun
+
+For tree-sitter integration with existing Emacs features,
+@pxref{Parser-based Font Lock}, @ref{Parser-based Indentation}, and
+@ref{List Motion}.
 
 To access the syntax tree of the text in a buffer, we need to first
 load a language definition and create a parser with it.  Next, we can
@@ -320,13 +333,6 @@ This section described how to create and configure a tree-sitter
 parser.  In Emacs, each tree-sitter parser is associated with a
 buffer.  As we edit the buffer, the associated parser is automatically
 kept up-to-date.
-
-@defvar treesit-disabled-modes
-Before creating a parser, it is perhaps good to check whether we
-should use tree-sitter at all.  Sometimes a user don't want to use
-tree-sitter features for a major mode.  To turn-off tree-sitter for a
-mode, they add that mode to this variable.
-@end defvar
 
 @defvar treesit-maximum-size
 If users want to turn off tree-sitter for buffers larger than a

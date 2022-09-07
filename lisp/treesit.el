@@ -35,11 +35,7 @@
   "Tree-sitter is an incremental parser."
   :group 'tools)
 
-(defcustom treesit-disabled-modes nil
-  "A list of major-modes for which tree-sitter support is disabled."
-  :type '(list symbol))
-
-(defcustom treesit-maximum-size (* 4 1024 1024)
+(defcustom treesit-max-buffer-size (* 4 1024 1024)
   "Maximum buffer size for enabling tree-sitter parsing."
   :type 'integer)
 
@@ -47,21 +43,12 @@
   "Return non-nil if tree-sitter features are available."
   (fboundp 'treesit-parser-create))
 
-(defun treesit-should-enable-p (&optional mode)
-  "Return non-nil if MODE should activate tree-sitter support.
-MODE defaults to the value of `major-mode'.  The result depends
-on the value of `treesit-disabled-modes',
-`treesit-maximum-size', and of course, whether tree-sitter is
-available on the system at all."
-  (let* ((mode (or mode major-mode))
-         (disabled (cl-loop
-                    for disabled-mode in treesit-disabled-modes
-                    if (provided-mode-derived-p mode disabled-mode)
-                    return t
-                    finally return nil)))
-    (and (treesit-available-p)
-         (not disabled)
-         (< (buffer-size) treesit-maximum-size))))
+(defun treesit-can-enable-p ()
+  "Return non-nil if current buffer can activate tree-sitter.
+Currently this function checks whether tree-sitter is available
+and the buffer size."
+  (and (treesit-available-p)
+       (< (buffer-size) treesit-maximum-size)))
 
 ;;; Parser API supplement
 
