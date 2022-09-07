@@ -128,8 +128,10 @@
    (eshell-match-command-output
     ;; The first command is like `yes' but slower.  This is to prevent
     ;; it from taxing Emacs's process filter too much and causing a
-    ;; hang.
-    (concat "sh -c 'while true; do echo y; sleep 1; done' | "
+    ;; hang.  Note that we use "|&" to connect the processes so that
+    ;; Emacs doesn't create an extra pipe process for the first "sh"
+    ;; invocation.
+    (concat "sh -c 'while true; do echo y; sleep 1; done' |& "
             "sh -c 'read NAME; echo ${NAME}'")
     "y\n")
    (eshell-wait-for-subprocess t)
