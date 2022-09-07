@@ -336,7 +336,14 @@ which characters can be displayed and which cannot."
 	first)
     (with-current-buffer buf
       (erase-buffer)
-      (insert "(let ((tbl standard-display-table))\n")
+      (insert "\
+;; Evaluate the Lisp code below to make Emacs show the standard
+;; replacement character as a substitute for each undisplayable character.
+;; One way to do that is with \"C-x h M-x eval-region RET\".
+;; Normally you would put this code in your Emacs initialization file,
+;; perhaps conditionally based on the type of terminal, so that
+;; this setup happens automatically on each startup.
+(let ((tbl standard-display-table))\n")
       (while (<= ch to)
 	(cond
 	 ((or (char-displayable-p ch)
