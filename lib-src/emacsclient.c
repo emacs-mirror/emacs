@@ -2170,8 +2170,6 @@ main (int argc, char **argv)
       if (rl <= 0)
         break;
 
-      if (msg_showed)
-	fprintf (stderr, "\nGot response from server");
       saw_response = true;
       string[rl] = '\0';
 
