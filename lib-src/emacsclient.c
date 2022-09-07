@@ -2149,9 +2149,9 @@ main (int argc, char **argv)
 	  act_on_signals (emacs_socket);
 	  rl = recv (emacs_socket, string, BUFSIZ, 0);
 	  retry = check_socket_timeout (rl);
-	  if (retry)
+	  if (retry && !saw_response)
 	    {
-	      if (timeout > 0 && !saw_response)
+	      if (timeout > 0)
 		{
 		  /* Don't retry if we were given a --timeout flag.  */
 		  fprintf (stderr, "\nServer not responding; timed out after %lu seconds",
