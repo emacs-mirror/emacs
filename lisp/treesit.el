@@ -862,9 +862,6 @@ indentation (target) is in green, current indentation is in red."
 (defun treesit-search-forward (pos-fn arg query &optional lang up-only)
   "Search forward for nodes that matches QUERY from current point.
 
-This is a more primitive function, you might want to use
-`treesit-search-beginning' or `treesit-search-end' instead.
-
 QUERY has to capture the node to match.  LANG specifies the
 language in which we search for nodes.  If LANG is nil, use the
 first parser in (`treesit-parser-list').
@@ -875,7 +872,7 @@ negative ARG means go backward.
 POS-FN can be either `treesit-node-start' or `treesit-node-end',
 or any function that takes a node and returns a position.
 
-If search succeeds, stop at the position returned by POS-FN and
+If the search succeeds, stop at the position returned by POS-FN and
 return the matched node.  Return nil if search failed.
 
 We search by traversing the parse tree, visiting every node
@@ -925,12 +922,12 @@ Stops at the beginning of matched node.
 
 QUERY has to capture the node to match.  LANG specifies the
 language in which we search for nodes.  If LANG is nil, use the
-first parser in (`treesit-parser-list').
+first parser in current buffer's parser list.
 
 Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
 
-If search succeeds, return the matched node.  Return nil if
+If the search succeeds, return the matched node.  Return nil if
 search failed.
 
 We search by traversing the parse tree, visiting every node
@@ -953,7 +950,7 @@ first parser in (`treesit-parser-list').
 Move forward/backward ARG times, positive ARG means go forward,
 negative ARG means go backward.
 
-If search succeeds, return the matched node.  Return nil if
+If the search succeeds, return the matched node.  Return nil if
 search failed.
 
 We search by traversing the parse tree, visiting every node

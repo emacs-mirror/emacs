@@ -834,6 +834,32 @@ a defun.  The function @code{end-of-defun} calls this function instead
 of using its normal method.
 @end defvar
 
+When tree-sitter support is available (@pxref{Parsing Program
+Source}), Emacs can find the beginning and end of a function according
+to the syntax tree.
+
+@defvar treesit-defun-query
+Set this variable to a tree-sitter query that matches defun
+definitions, then @code{treesit-beginning-of-defun} and
+@code{treesit-end-of-defun} can find the beginning and end of a defun.
+
+Make sure to use a compiled query for this variable, otherwise
+@code{treesit-beginning-of-defun} and @code{treesit-end-of-defun} will
+be very slow.
+@end defvar
+
+@defun treesit-beginning-of-defun &optional arg
+This function finds the beginning of a defun according to
+@var{treesit-defun-query}.  This function is suitable for the value of
+@var{beginning-of-defun-function}.
+@end defun
+
+@defun treesit-end-of-defun &optional arg
+This function finds the end of a defun according to
+@var{treesit-defun-query}.  This function is suitable for the value of
+@var{end-of-defun-function}.
+@end defun
+
 @node Skipping Characters
 @subsection Skipping Characters
 @cindex skipping characters

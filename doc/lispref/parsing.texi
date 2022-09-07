@@ -591,6 +591,38 @@ that spans the range from @var{beg} to @var{end}.  It is similar to
 for named child (@pxref{tree-sitter named node, named node}).
 @end defun
 
+@heading Searching for node
+
+@defun treesit-search-beginning query arg &optional lang up-only
+This function searches for the next node that @var{query} captures,
+starting at point.  Use the parser in current buffer that has
+@var{lang} as its language, if @var{lang} is nil, use the first parser
+in current buffer’s buffer list.
+
+This function stops at the @var{arg}'th match.  If @var{arg} is
+negative, search backward.  If the search succeeds, stop at the
+beginning of the matched node and return the node.  Return nil if
+search failed.
+
+By default, this function searches by traversing the parse tree depth
+first, starting from the node at point.  If @var{up-only} is non-nil,
+this function only go to siblings and parents, but never go down into
+children nodes.
+@end defun
+
+@defun treesit-search-end query arg &optional lang up-only
+This function is like @code{treesit-search-beginning}, but stops at
+the end of the matched node.
+@end defun
+
+@defun treesit-search-forward pos-fn arg query &optional lang up-only
+This function is like @code{treesit-search-beginning} and
+@code{treesit-search-end}, but instead of stopping at the beginning or
+end of the matched node, it determines where to stop by @var{pos-fn},
+where @var{pos-fn} is a function that takes a node and returns a
+position
+@end defun
+
 @heading More convenient functions
 
 @defun treesit-filter-child node pred &optional named
