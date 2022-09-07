@@ -1,7 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
@@ -173,15 +172,13 @@ Used to implement the option `icomplete-show-matches-on-no-input'.")
   (let ((non-essential t)) ;E.g. don't prompt for password!
     (icomplete-exhibit)))
 
-(defvar icomplete-minibuffer-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?\M-\t] #'icomplete-force-complete)
-    (define-key map [remap minibuffer-complete-and-exit] #'icomplete-ret)
-    (define-key map [?\C-j]  #'icomplete-force-complete-and-exit)
-    (define-key map [?\C-.]  #'icomplete-forward-completions)
-    (define-key map [?\C-,]  #'icomplete-backward-completions)
-    map)
-  "Keymap used by `icomplete-mode' in the minibuffer.")
+(defvar-keymap icomplete-minibuffer-map
+  :doc "Keymap used by `icomplete-mode' in the minibuffer."
+  "C-M-i" #'icomplete-force-complete
+  "C-j"   #'icomplete-force-complete-and-exit
+  "C-."   #'icomplete-forward-completions
+  "C-,"   #'icomplete-backward-completions
+  "<remap> <minibuffer-complete-and-exit>" #'icomplete-ret)
 
 (defun icomplete-ret ()
   "Exit minibuffer for icomplete."
@@ -393,22 +390,20 @@ if that doesn't produce a completion match."
              (delete-region (1+ (point)) (point-max)))))
         (t (call-interactively 'backward-delete-char))))
 
-(defvar icomplete-fido-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-k")     #'icomplete-fido-kill)
-    (define-key map (kbd "C-d")     #'icomplete-fido-delete-char)
-    (define-key map (kbd "RET")     #'icomplete-fido-ret)
-    (define-key map (kbd "C-m")     #'icomplete-fido-ret)
-    (define-key map (kbd "DEL")     #'icomplete-fido-backward-updir)
-    (define-key map (kbd "M-j")     #'icomplete-fido-exit)
-    (define-key map (kbd "C-s")     #'icomplete-forward-completions)
-    (define-key map (kbd "C-r")     #'icomplete-backward-completions)
-    (define-key map (kbd "<right>") #'icomplete-forward-completions)
-    (define-key map (kbd "<left>")  #'icomplete-backward-completions)
-    (define-key map (kbd "C-.")     #'icomplete-forward-completions)
-    (define-key map (kbd "C-,")     #'icomplete-backward-completions)
-    map)
-  "Keymap used by `fido-mode' in the minibuffer.")
+(defvar-keymap icomplete-fido-mode-map
+  :doc "Keymap used by `fido-mode' in the minibuffer."
+  "C-k"     #'icomplete-fido-kill
+  "C-d"     #'icomplete-fido-delete-char
+  "RET"     #'icomplete-fido-ret
+  "C-m"     #'icomplete-fido-ret
+  "DEL"     #'icomplete-fido-backward-updir
+  "M-j"     #'icomplete-fido-exit
+  "C-s"     #'icomplete-forward-completions
+  "C-r"     #'icomplete-backward-completions
+  "<right>" #'icomplete-forward-completions
+  "<left>"  #'icomplete-backward-completions
+  "C-."     #'icomplete-forward-completions
+  "C-,"     #'icomplete-backward-completions)
 
 (defun icomplete--fido-mode-setup ()
   "Setup `fido-mode''s minibuffer."
@@ -634,16 +629,14 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                  (completion--cache-all-sorted-completions beg end (cons comp all))))
        finally return all)))
 
-(defvar icomplete-vertical-mode-minibuffer-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-n")    #'icomplete-forward-completions)
-    (define-key map (kbd "C-p")    #'icomplete-backward-completions)
-    (define-key map (kbd "<down>") #'icomplete-forward-completions)
-    (define-key map (kbd "<up>")   #'icomplete-backward-completions)
-    (define-key map (kbd "M-<")    #'icomplete-vertical-goto-first)
-    (define-key map (kbd "M->")    #'icomplete-vertical-goto-last)
-    map)
-  "Keymap used by `icomplete-vertical-mode' in the minibuffer.")
+(defvar-keymap icomplete-vertical-mode-minibuffer-map
+  :doc "Keymap used by `icomplete-vertical-mode' in the minibuffer."
+  "C-n"    #'icomplete-forward-completions
+  "C-p"    #'icomplete-backward-completions
+  "<down>" #'icomplete-forward-completions
+  "<up>"   #'icomplete-backward-completions
+  "M-<"    #'icomplete-vertical-goto-first
+  "M->"    #'icomplete-vertical-goto-last)
 
 (defun icomplete--vertical-minibuffer-setup ()
   "Setup the minibuffer for vertical display of completion candidates."
