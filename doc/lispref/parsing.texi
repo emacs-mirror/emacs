@@ -26,18 +26,6 @@ This function returns non-nil if tree-sitter features are available
 for this Emacs instance.
 @end defun
 
-@defvar treesit-max-buffer-size
-This variable contains the maximum size of buffers in which
-tree-sitter can be activated.  Major modes should check this value
-when deciding whether to enable tree-sitter features.
-@end defvar
-
-@defun treesit-can-enable-p
-This function checks whether the current buffer is suitable for
-activating tree-sitter features.  It basically checks
-@code{treesit-available-p} and @var{treesit-max-buffer-size}.
-@end defun
-
 For tree-sitter integration with existing Emacs features,
 @pxref{Parser-based Font Lock}, @ref{Parser-based Indentation}, and
 @ref{List Motion}.
@@ -334,24 +322,17 @@ parser.  In Emacs, each tree-sitter parser is associated with a
 buffer.  As we edit the buffer, the associated parser is automatically
 kept up-to-date.
 
-@defvar treesit-maximum-size
-If users want to turn off tree-sitter for buffers larger than a
-particular size (because tree-sitter consumes memory ~10 times the
-buffer size for storing the syntax tree), they set this variable to
-that size.
+@defvar treesit-max-buffer-size
+This variable contains the maximum size of buffers in which
+tree-sitter can be activated.  Major modes should check this value
+when deciding whether to enable tree-sitter features.
 @end defvar
 
-@defun treesit-should-enable-p &optional mode
-This function returns non-nil if @var{mode} (default to the current
-major mode) should activate tree-sitter features.  The result depends
-on the value of @var{treesit-disabled-modes} and
-@var{treesit-maximum-size} described above.  The result also
-depends on, of course, the result of @code{treesit-avaliabe-p}.
-
-Writer of major modes or other packages are responsible for calling
-this function and determine whether to activate tree-sitter features.
+@defun treesit-can-enable-p
+This function checks whether the current buffer is suitable for
+activating tree-sitter features.  It basically checks
+@code{treesit-available-p} and @var{treesit-max-buffer-size}.
 @end defun
-
 
 @cindex Creating tree-sitter parsers
 @defun treesit-parser-create language &optional buffer no-reuse
