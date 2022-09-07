@@ -3883,12 +3883,12 @@ reasonably fast.
 @c if in the future more parser are supported, feel free to reorganize
 @c and rewrite this node to describe multiple parsers in parallel.
 
-Besides simple syntactic font lock and search-based font lock, Emacs
+Besides simple syntactic font lock and regexp-based font lock, Emacs
 also provides complete syntactic font lock with the help of a parser,
 currently provided by the tree-sitter library (@pxref{Parsing Program
 Source}).  Because it is an optional feature, parser-based font lock
 is less integrated with Emacs.  Most variables introduced in previous
-sections only apply to search-based font lock, except for
+sections only apply to regexp-based font lock, except for
 @var{font-lock-maximum-decoration}.
 
 @defun treesit-font-lock-enable
@@ -3897,20 +3897,50 @@ This function enables parser-based font lock in the current buffer.
 
 Parser-based font lock and other font lock mechanism are not mutually
 exclusive.  By default, if enabled, parser-based font lock runs first,
-then the simple syntactic font lock (if enabled), then search-based
+then the simple syntactic font lock (if enabled), then regexp-based
 font lock.
 
 Although parser-based font lock doesn't share the same customization
-variables with search-based font lock, parser-based font lock uses
-similar customization schemes.  Just like @var{font-lock-keywords} and
-@var{font-lock-defaults}, parser-based font lock has
-@var{treesit-font-lock-settings} and
-@var{treesit-font-lock-defaults}.
+variables with regexp-based font lock, parser-based font lock uses
+similar customization schemes.  The tree-sitter counterpart of
+@var{font-lock-keywords} is @var{treesit-font-lock-settings}.
+
+@defun treesit-font-lock-rules :keyword value query...
+This function is used to set @var{treesit-font-lock-settings}.  It
+takes care of compiling queries and other post-processing and outputs
+a value that @var{treesit-font-lock-settings} accepts.  An example:
+
+@example
+@group
+(treesit-font-lock-rules
+ :language 'javascript
+ '((true) @@font-lock-constant-face
+   (false) @@font-lock-constant-face)
+ :language 'html
+ "(script_element) @@font-lock-builtin-face")
+@end group
+@end example
+
+This function takes a list of text or s-exp queries.  Before each
+query, there are @var{:keyword} and @var{value} pairs that configures
+that query.  The @var{:lang} keyword sets the query’s language, and is
+currently the only recognized keyword.
+
+Capture names in @var{query} should be face names like
+@code{font-lock-keyword-face}.  The captured node will be fontified
+with that face.  Capture names can also be function names, in which
+case the function is called with (@var{start} @var{end} @var{node}),
+where @var{start} and @var{end} are the start and end position of the
+node in buffer, and @var{node} is the tree-sitter node object.  If a
+capture name is both a face and a function, the face takes priority.
+@end defun
 
 @defvar treesit-font-lock-settings
-A list of @var{setting}s for tree-sitter font lock.
+A list of @var{setting}s for tree-sitter font lock.  The exact format
+of this variable is considered internal.  One should always use
+@code{treesit-font-lock-rules} to set this variable.
 
-Each @var{setting} should look like
+Each @var{setting} is of form
 
 @example
 (@var{language} @var{query})
@@ -3920,39 +3950,6 @@ Each @var{setting} controls one parser (often of different language).
 And @var{language} is the language symbol (@pxref{Language
 Definitions}); @var{query} is either a string query or a sexp query
 (@pxref{Pattern Matching}).
-
-Capture names in @var{query} should be face names like
-@code{font-lock-keyword-face}.  The captured node will be fontified
-with that face.  Capture names can also be function names, in which
-case the function is called with (@var{start} @var{end} @var{node}),
-where @var{start} and @var{end} are the start and end position of the
-node in buffer, and @var{node} is the tree-sitter node object.  If a
-capture name is both a face and a function, face takes priority.
-
-Generally, major modes should set @var{treesit-font-lock-defaults},
-and let Emacs automatically populate this variable.
-@end defvar
-
-@defvar treesit-font-lock-defaults
-This variable stores defaults for tree-sitter font Lock.  It is a list
-of
-
-@example
-(@var{default} @var{:keyword} @var{value}...)
-@end example
-
-A @var{default} may be a symbol or a list of symbols (for different
-levels of fontification).  The symbol(s) can be a variable or a
-function.  If a symbol is both a variable and a function, it is used
-as a function.  Different levels of fontification can be controlled by
-@var{font-lock-maximum-decoration}.
-
-The symbol(s) in @var{default} should contain or return a
-@var{setting} as described in @var{treesit-font-lock-settings}.
-
-The rest @var{keyword}s and @var{value}s are additional settings that
-could be used to alter the fontification behavior.  Currently there
-aren't any.
 @end defvar
 
 Multi-language major modes should provide range functions in

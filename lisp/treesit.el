@@ -442,7 +442,10 @@ in-order.  START and END are passed to each range function."
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
-Each SETTING should look like
+The exact format of this variable is considered internal.  One
+should always use `treesit-font-lock-rules' to set this variable.
+
+Each SETTING is of form
 
     (LANGUAGE QUERY)
 
@@ -455,7 +458,28 @@ query.  See Info node `(elisp)Pattern Matching' for how to write
 a query in either string or s-expression form.  When using
 repeatedly, a compiled query is much faster than a string or sexp
 one, so it is recommend to compile your queries if it will be
-used over and over.
+used over and over.")
+
+(defun treesit-font-lock-rules (&rest args)
+  "Return a value suitable for `treesit-font-lock-settings'.
+
+Take a series of QUERIES in either string, s-expression or
+compiled form.  Same as in `treesit-font-lock-settings', for each
+query, captured nodes are highlighted with the capture name as
+its face.
+
+Before each QUERY there could be :KEYWORD VALUE pairs that
+configure the query (and only that query).  For example,
+
+    (treesit-font-lock-rules
+     :language 'javascript
+     '((true) @font-lock-constant-face
+       (false) @font-lock-constant-face)
+     :language 'html
+     \"(script_element) @font-lock-builtin-face\")
+
+For each QUERY, a :language keyword is required.  Currently the
+only recognized keyword is :language.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -463,39 +487,36 @@ with that face.  Capture names can also be function names, in
 which case the function is called with (START END NODE), where
 START and END are the start and end position of the node in
 buffer, and NODE is the tree-sitter node object.  If a capture
-name is both a face and a function, face takes priority.
+name is both a face and a function, the face takes priority.
 
-Generally, major modes should set
-`treesit-font-lock-defaults', and let Emacs automatically
-populate this variable.")
-
-(defvar-local treesit-font-lock-defaults nil
-  "Defaults for tree-sitter Font Lock specified by the major mode.
-
-This variable should be a list of
-
-    (DEFAULT :KEYWORD VALUE...)
-
-A DEFAULT may be a symbol or a list of symbols (specifying
-different levels of fontification).  The symbol(s) can be of a
-variable or a function.  If a symbol is both a variable and a
-function, it is used as a function.  Different levels of
-fontification can be controlled by
-`font-lock-maximum-decoration'.
-
-The symbol(s) in DEFAULT should contain or return a SETTING as
-explained in `treesit-font-lock-settings', which looks like
-
-    (LANGUAGE QUERY)
-
-KEYWORD and VALUE are additional settings could be used to alter
-fontification behavior.  Currently there aren't any.
-
-Multi-language major-modes should provide a range function for
-eacn language it supports in `treesit-range-functions', and
-Emacs will set the ranges accordingly before fontifing a region.
-See Info node `(elisp)Multiple Languages' for what does it mean
-to set ranges for a parser.")
+\(fn :KEYWORD VALUE QUERY...)"
+  (let (;; Tracks the current language that following queries will
+        ;; apply to.
+        (current-language nil)
+        ;; The list this function returns.
+        (result nil))
+    (while args
+      (let ((token (pop args)))
+        (pcase token
+          (:language
+           (let ((lang (pop args)))
+             (when (or (not (symbolp lang)) (null lang))
+               (signal 'wrong-type-argument `(symbolp ,lang)))
+             (setq current-language lang)))
+          ((pred treesit-query-p)
+           (when (null current-language)
+             (signal 'treesit-error
+                     `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
+           (if (treesit-compiled-query-p token)
+               (push `(,current-language token) result)
+             (push `(,current-language
+                     ,(treesit-query-compile current-language token))
+                   result))
+           ;; Clears any configurations set for this query.
+           (setq current-language nil))
+          (_ (signal 'treesit-error
+                     `("Unexpected value" token))))))
+    (nreverse result)))
 
 (defun treesit-font-lock-fontify-region (start end &optional loudly)
   "Fontify the region between START and END.
@@ -535,15 +556,6 @@ If LOUDLY is non-nil, message some debugging information."
 
 (defun treesit-font-lock-enable ()
   "Enable tree-sitter font-locking for the current buffer."
-  (let ((default (car treesit-font-lock-defaults))
-        (attributes (cdr treesit-font-lock-defaults)))
-    (ignore attributes)
-    (setq-local treesit-font-lock-settings
-                (font-lock-eval-keywords
-                 (font-lock-choose-keywords
-                  default
-	          (font-lock-value-in-major-mode
-                   font-lock-maximum-decoration)))))
   (setq-local font-lock-fontify-region-function
               #'treesit-font-lock-fontify-region)
   ;; If we don't set `font-lock-defaults' to some non-nil value,
