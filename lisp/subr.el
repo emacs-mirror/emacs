@@ -311,29 +311,13 @@ Then evaluate RESULT to get return value, default nil.
     (signal 'wrong-type-argument (list 'consp spec)))
   (unless (<= 2 (length spec) 3)
     (signal 'wrong-number-of-arguments (list '(2 . 3) (length spec))))
-  ;; It would be cleaner to create an uninterned symbol,
-  ;; but that uses a lot more space when many functions in many files
-  ;; use dolist.
-  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
-  (let ((temp '--dolist-tail--))
-    ;; This test does not matter much because both semantics are acceptable,
-    ;; but one is slightly faster with dynamic scoping and the other is
-    ;; slightly faster (and has cleaner semantics) with lexical scoping.
-    (if lexical-binding
-        `(let ((,temp ,(nth 1 spec)))
-           (while ,temp
-             (let ((,(car spec) (car ,temp)))
-               ,@body
-               (setq ,temp (cdr ,temp))))
-           ,@(cdr (cdr spec)))
-      `(let ((,temp ,(nth 1 spec))
-             ,(car spec))
-         (while ,temp
-           (setq ,(car spec) (car ,temp))
+  (let ((tail (make-symbol "tail")))
+    `(let ((,tail ,(nth 1 spec)))
+       (while ,tail
+         (let ((,(car spec) (car ,tail)))
            ,@body
-           (setq ,temp (cdr ,temp)))
-         ,@(if (cdr (cdr spec))
-               `((setq ,(car spec) nil) ,@(cdr (cdr spec))))))))
+           (setq ,tail (cdr ,tail))))
+       ,@(cdr (cdr spec)))))
 
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
@@ -346,33 +330,19 @@ in compilation warnings about unused variables.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (indent 1) (debug dolist))
-  ;; It would be cleaner to create an uninterned symbol,
-  ;; but that uses a lot more space when many functions in many files
-  ;; use dotimes.
-  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
-  (let ((temp '--dotimes-limit--)
-	(start 0)
-	(end (nth 1 spec)))
-    ;; This test does not matter much because both semantics are acceptable,
-    ;; but one is slightly faster with dynamic scoping and the other has
-    ;; cleaner semantics.
-    (if lexical-binding
-        (let ((counter '--dotimes-counter--))
-          `(let ((,temp ,end)
-                 (,counter ,start))
-             (while (< ,counter ,temp)
-               (let ((,(car spec) ,counter))
-                 ,@body)
-               (setq ,counter (1+ ,counter)))
-             ,@(if (cddr spec)
-                   ;; FIXME: This let often leads to "unused var" warnings.
-                   `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
-      `(let ((,temp ,end)
-             (,(car spec) ,start))
-         (while (< ,(car spec) ,temp)
-           ,@body
-           (setq ,(car spec) (1+ ,(car spec))))
-         ,@(cdr (cdr spec))))))
+  (let ((var (nth 0 spec))
+        (end (nth 1 spec))
+        (upper-bound (make-symbol "upper-bound"))
+        (counter (make-symbol "counter")))
+    `(let ((,upper-bound ,end)
+           (,counter 0))
+       (while (< ,counter ,upper-bound)
+         (let ((,var ,counter))
+           ,@body)
+         (setq ,counter (1+ ,counter)))
+       ,@(if (cddr spec)
+             ;; FIXME: This let often leads to "unused var" warnings.
+             `((let ((,var ,counter)) ,@(cddr spec)))))))
 
 (defmacro declare (&rest _specs)
   "Do not evaluate any arguments, and return nil.
