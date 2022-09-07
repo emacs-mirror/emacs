@@ -99,10 +99,11 @@
 
     (funcall test)
 
+    ;; A manual /JOIN command tells ERC we're done auto-reconnecting
     (with-current-buffer "FooNet" (erc-cmd-JOIN "#spam"))
 
-    (erc-d-t-wait-for 5 "Channel #spam shown when autojoined"
-      (eq (window-buffer) (get-buffer "#spam")))
+    (erc-d-t-ensure-for 1 "Newly joined chan ignores `erc-reconnect-display'"
+      (not (eq (window-buffer) (get-buffer "#spam"))))
 
     (ert-info ("Wait for auto reconnect")
       (with-current-buffer erc-server-buffer
@@ -114,43 +115,43 @@
       (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
         (funcall expect 10 "her elves come here anon")))))
 
-(ert-deftest erc-scenarios-base-reconnect-options--default ()
+(ert-deftest erc-scenarios-base-reconnect-options--buffer ()
   :tags '(:expensive-test)
-  (should (eq erc-join-buffer 'buffer))
+  (should (eq erc-join-buffer 'bury))
   (should-not erc-reconnect-display)
 
   ;; FooNet (the server buffer) is not switched to because it's
   ;; already current (but not shown) when `erc-open' is called.  See
   ;; related conditional guard towards the end of that function.
 
-  (erc-scenarios-common--base-reconnect-options
-   (lambda ()
-     (pop-to-buffer-same-window "*Messages*")
-
-     (erc-d-t-ensure-for 1 "Server buffer not shown"
-       (not (eq (window-buffer) (get-buffer "FooNet"))))
-
-     (erc-d-t-wait-for 5 "Channel #chan shown when autojoined"
-       (eq (window-buffer) (get-buffer "#chan"))))))
-
-(ert-deftest erc-scenarios-base-reconnect-options--bury ()
-  :tags '(:expensive-test)
-  (should (eq erc-join-buffer 'buffer))
-  (should-not erc-reconnect-display)
-
-  (let ((erc-reconnect-display 'bury))
+  (let ((erc-reconnect-display 'buffer))
     (erc-scenarios-common--base-reconnect-options
-
      (lambda ()
        (pop-to-buffer-same-window "*Messages*")
 
        (erc-d-t-ensure-for 1 "Server buffer not shown"
          (not (eq (window-buffer) (get-buffer "FooNet"))))
 
-       (erc-d-t-ensure-for 3 "Channel #chan not shown"
-         (not (eq (window-buffer) (get-buffer "#chan"))))
+       (erc-d-t-wait-for 5 "Channel #chan shown when autojoined"
+         (eq (window-buffer) (get-buffer "#chan")))))))
 
-       (eq (window-buffer) (messages-buffer))))))
+(ert-deftest erc-scenarios-base-reconnect-options--default ()
+  :tags '(:expensive-test)
+  (should (eq erc-join-buffer 'bury))
+  (should-not erc-reconnect-display)
+
+  (erc-scenarios-common--base-reconnect-options
+
+   (lambda ()
+     (pop-to-buffer-same-window "*Messages*")
+
+     (erc-d-t-ensure-for 1 "Server buffer not shown"
+       (not (eq (window-buffer) (get-buffer "FooNet"))))
+
+     (erc-d-t-ensure-for 3 "Channel #chan not shown"
+       (not (eq (window-buffer) (get-buffer "#chan"))))
+
+     (eq (window-buffer) (messages-buffer)))))
 
 ;; Upon reconnecting, playback for channel and target buffers is
 ;; routed correctly.  Autojoin is irrelevant here, but for the

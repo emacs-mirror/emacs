@@ -1651,7 +1651,7 @@ Defaults to the server buffer."
   "IRC port to use for encrypted connections if it cannot be \
 detected otherwise.")
 
-(defcustom erc-join-buffer 'buffer
+(defcustom erc-join-buffer 'bury
   "Determines how to display a newly created IRC buffer.
 
 The available choices are:
@@ -1662,6 +1662,7 @@ The available choices are:
   `bury'            - bury it in a new buffer,
   `buffer'          - in place of the current buffer,
   any other value  - in place of the current buffer."
+  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
   :group 'erc-buffers
   :type '(choice (const :tag "Split window and select" window)
                  (const :tag "Split window, don't select" window-noselect)
@@ -2148,7 +2149,7 @@ removed from the list will be disabled."
          (display-buffer buffer)
        (switch-to-buffer-other-window buffer)))
     ('window-noselect
-     (display-buffer buffer))
+     (display-buffer buffer '(nil (inhibit-same-window . t))))
     ('bury
      nil)
     ('frame
