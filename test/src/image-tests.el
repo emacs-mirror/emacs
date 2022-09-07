@@ -22,8 +22,11 @@
 ;;; Commentary:
 
 ;; Most of these tests will only run in a GUI session, and not with
-;; "make check".  Run them manually in an interactive session with
-;; `M-x eval-buffer' followed by `M-x ert'.
+;; "make check".  You must run them manually in an interactive session
+;; with, for example, `M-x eval-buffer' followed by `M-x ert'.
+;;
+;; To run these tests from the command line, try:
+;;     ./src/emacs -Q -l test/src/image-tests.el -eval "(ert t)"
 
 ;;; Code:
 
