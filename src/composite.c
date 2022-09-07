@@ -876,7 +876,8 @@ fill_gstring_body (Lisp_Object gstring)
 	}
       LGLYPH_SET_ADJUSTMENT (g, Qnil);
     }
-  if (i < LGSTRING_GLYPH_LEN (gstring))
+  len = LGSTRING_GLYPH_LEN (gstring);
+  for (; i < len; i++)
     LGSTRING_SET_GLYPH (gstring, i, Qnil);
 }
 
