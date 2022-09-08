@@ -1169,6 +1169,10 @@ Return the result of `process-file' - zero for success."
          ;; Optional decompression.
          "unxz")
 
+   ;; zstandard archives
+   `(,(rx (or ".tar.zst" ".tzst") eos) "unzstd -c %i | tar -xf -")
+   `(,(rx ".zst" eos)                  "unzstd --rm")
+
    '("\\.shar\\.Z\\'" "zcat * | unshar")
    '("\\.shar\\.g?z\\'" "gunzip -qc * | unshar")
 
