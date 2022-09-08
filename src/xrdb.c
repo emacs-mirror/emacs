@@ -589,14 +589,14 @@ main (int argc, char **argv)
       char query_class[90];
 
       printf ("Name: ");
-      gets (query_name);
+      fgets (query_name, 90, stdin);
 
       if (strlen (query_name))
 	{
 	  char *value;
 
 	  printf ("Class: ");
-	  gets (query_class);
+	  fgets (query_class, 90, stdin);
 
 	  value = x_get_string_resource (&xdb, query_name, query_class);
 
