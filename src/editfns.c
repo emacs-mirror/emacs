@@ -4603,10 +4603,7 @@ it to be non-nil.  */);
 
   DEFSYM (Qrestrictions_locked, "restrictions-locked");
   DEFVAR_LISP ("restrictions-locked", Vrestrictions_locked,
-	       doc: /* If non-nil, restrictions are currently locked.
-
-This happens when `narrow-to-region', which see, is called from Lisp
-with an optional argument LOCK non-nil.  */);
+	       doc: /* If non-nil, restrictions are currently locked.  */);
   Vrestrictions_locked = Qnil;
   Funintern (Qrestrictions_locked, Qnil);
 
