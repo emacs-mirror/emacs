@@ -1213,6 +1213,12 @@ change the input method's translation rules, customize the user option
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
+** ecomplete
+
+---
+*** New user option 'ecomplete-auto-select'.
+If non-nil and there's only one matching option, auto-select that.
+
 ** Dired
 
 +++

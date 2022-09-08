@@ -81,6 +81,11 @@ string that was matched."
 		(function-item :tag "Sort by newness" ecomplete-newness)
 		(function :tag "Other")))
 
+(defcustom ecomplete-auto-select nil
+  "Whether `ecomplete-display-matches' should automatically select a sole option."
+  :type 'boolean
+  :version "29.1")
+
 ;;; Internal variables.
 
 (defvar ecomplete-database nil)
@@ -159,10 +164,14 @@ string that was matched."
 (defun ecomplete-display-matches (type word &optional choose)
   "Display the top-rated elements TYPE that match WORD.
 If CHOOSE, allow the user to choose interactively between the
-matches."
+matches.
+
+Auto-select when `ecomplete-message-display-abbrev-auto-select' is
+non-nil and there is only a single completion option available."
   (let* ((matches (ecomplete-get-matches type word))
+         (match-list (and matches (split-string matches "\n")))
+         (max-lines (and matches (- (length match-list) 2)))
 	 (line 0)
-	 (max-lines (when matches (- (length (split-string matches "\n")) 2)))
 	 (message-log-max nil)
 	 command highlight)
     (if (not matches)
@@ -173,25 +182,31 @@ matches."
 	  (progn
 	    (message "%s" matches)
 	    nil)
-	(setq highlight (ecomplete-highlight-match-line matches line))
-	(let ((local-map (make-sparse-keymap))
-              (prev-func (lambda () (setq line (max (1- line) 0))))
-              (next-func (lambda () (setq line (min (1+ line) max-lines))))
-	      selected)
-	  (define-key local-map (kbd "RET")
-	    (lambda () (setq selected (nth line (split-string matches "\n")))))
-	  (define-key local-map (kbd "M-n") next-func)
-	  (define-key local-map (kbd "<down>") next-func)
-	  (define-key local-map (kbd "M-p") prev-func)
-	  (define-key local-map (kbd "<up>") prev-func)
-	  (let ((overriding-local-map local-map))
-	    (while (and (null selected)
-			(setq command (read-key-sequence highlight))
-			(lookup-key local-map command))
-	      (apply (key-binding command) nil)
-	      (setq highlight (ecomplete-highlight-match-line matches line))))
-	  (message (or selected "Abort"))
-	  selected)))))
+        (if (and ecomplete-auto-select
+                 max-lines
+                 (zerop max-lines))
+            ;; Auto-select when only one option is available.
+            (nth 0 match-list)
+          ;; Interactively choose from the filtered completions.
+	  (let ((local-map (make-sparse-keymap))
+                (prev-func (lambda () (setq line (max (1- line) 0))))
+                (next-func (lambda () (setq line (min (1+ line) max-lines))))
+	        selected)
+	    (define-key local-map (kbd "RET")
+                        (lambda () (setq selected (nth line match-list))))
+	    (define-key local-map (kbd "M-n") next-func)
+	    (define-key local-map (kbd "<down>") next-func)
+	    (define-key local-map (kbd "M-p") prev-func)
+	    (define-key local-map (kbd "<up>") prev-func)
+	    (let ((overriding-local-map local-map))
+              (setq highlight (ecomplete-highlight-match-line matches line))
+	      (while (and (null selected)
+			  (setq command (read-key-sequence highlight))
+			  (lookup-key local-map command))
+	        (apply (key-binding command) nil)
+	        (setq highlight (ecomplete-highlight-match-line matches line))))
+	    (message (or selected "Abort"))
+            selected))))))
 
 (defun ecomplete-highlight-match-line (matches line)
   (with-temp-buffer
