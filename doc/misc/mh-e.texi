@@ -330,8 +330,7 @@ Press the @key{TAB} key.
 Press the @key{DELETE} key.
 @c -------------------------
 @item @key{BS}
-Press the @key{BACKSPACE} key@footnote{If you are using Version 20 or
-earlier of Emacs, you will need to use the @key{DEL} key.}.
+Press the @key{BACKSPACE} key.
 @end table
 
 @cindex Emacs, prefix argument

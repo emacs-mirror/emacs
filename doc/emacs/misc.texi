@@ -2096,7 +2096,7 @@ If there is no response within that time, @command{emacsclient} will
 display a warning and exit.  The default is @samp{0}, which means to
 wait forever.
 
-@item --parent-id @var{id}
+@item --parent-id=@var{id}
 Open an @command{emacsclient} frame as a client frame in the parent X
 window with id @var{id}, via the XEmbed protocol.  Currently, this
 option is mainly useful for developers.

@@ -325,9 +325,9 @@ lines (in the given order!):
 @noindent
 in your @file{~/.emacs} file.  The @file{.emacs} file is placed in your
 home directory and it is be executed every time you invoke Emacs.  This is
-the place where all general Emacs customization takes place.  Beginning with
-version 20.0, Emacsen have an interactive interface, which simplifies the
-job of customization significantly.
+the place where all general Emacs customization takes place.  Emacs
+has an interactive interface (@kbd{M-x customize}), which simplifies
+the job of customization significantly.
 
 Viper also uses the file @file{~/.emacs.d/viper} for Viper-specific customization.
 The location of Viper customization file can be changed by setting the
