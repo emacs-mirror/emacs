@@ -1892,7 +1892,7 @@ safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
   Lisp_Object *newargs;
   SAFE_ALLOCA_LISP (newargs, nargs);
   newargs[0] = hook, newargs[1] = fun;
-  memcpy (args + 2, newargs + 2, (nargs - 2) * word_size);
+  memcpy (newargs + 2, args + 2, (nargs - 2) * word_size);
   internal_condition_case_n (safe_run_hooks_1, nargs, newargs,
                              Qt, safe_run_hooks_error);
   SAFE_FREE ();
