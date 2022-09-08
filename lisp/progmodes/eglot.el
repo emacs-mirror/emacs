@@ -2916,39 +2916,37 @@ for which LSP on-type-formatting should be requested."
       nil)))
 
 (defun eglot-imenu ()
-  "EGLOT's `imenu-create-index-function'."
+  "EGLOT's `imenu-create-index-function'.
+Returns a list as described in docstring of `imenu--index-alist'."
   (cl-labels
-      ((visit (_name one-obj-array)
-              (imenu-default-goto-function
-               nil (car (eglot--range-region
-                         (eglot--dcase (aref one-obj-array 0)
-                           (((SymbolInformation) location)
-                            (plist-get location :range))
-                           (((DocumentSymbol) selectionRange)
-                            selectionRange))))))
-       (unfurl (obj)
-               (eglot--dcase obj
-                 (((SymbolInformation)) (list obj))
-                 (((DocumentSymbol) name children)
-                  (cons obj
-                        (mapcar
-                         (lambda (c)
-                           (plist-put
-                            c :containerName
-                            (let ((existing (plist-get c :containerName)))
-                              (if existing (format "%s::%s" name existing)
-                                name))))
-                         (mapcan #'unfurl children)))))))
+      ((unfurl (obj)
+         (eglot--dcase obj
+           (((SymbolInformation)) (list obj))
+           (((DocumentSymbol) name children)
+            (cons obj
+                  (mapcar
+                   (lambda (c)
+                     (plist-put
+                      c :containerName
+                      (let ((existing (plist-get c :containerName)))
+                        (if existing (format "%s::%s" name existing)
+                          name))))
+                   (mapcan #'unfurl children)))))))
     (mapcar
      (pcase-lambda (`(,kind . ,objs))
        (cons
         (alist-get kind eglot--symbol-kind-names "Unknown")
         (mapcan (pcase-lambda (`(,container . ,objs))
-                  (let ((elems (mapcar (lambda (obj)
-                                         (list (plist-get obj :name)
-                                               `[,obj] ;; trick
-                                               #'visit))
-                                       objs)))
+                  (let ((elems (mapcar
+                                (lambda (obj)
+                                  (cons (plist-get obj :name)
+                                        (car (eglot--range-region
+                                              (eglot--dcase obj
+                                                (((SymbolInformation) location)
+                                                 (plist-get location :range))
+                                                (((DocumentSymbol) selectionRange)
+                                                 selectionRange))))))
+                                objs)))
                     (if container (list (cons container elems)) elems)))
                 (seq-group-by
                  (lambda (e) (plist-get e :containerName)) objs))))
