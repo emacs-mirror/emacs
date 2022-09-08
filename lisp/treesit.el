@@ -48,7 +48,7 @@
 Currently this function checks whether tree-sitter is available
 and the buffer size."
   (and (treesit-available-p)
-       (< (buffer-size) treesit-maximum-size)))
+       (< (buffer-size) treesit-max-buffer-size)))
 
 ;;; Parser API supplement
 
