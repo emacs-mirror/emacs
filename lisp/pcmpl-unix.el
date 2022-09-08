@@ -25,7 +25,7 @@
 
 (require 'pcomplete)
 
-;; User Variables:
+;;; User Variables
 
 (defcustom pcmpl-unix-group-file "/etc/group"
   "If non-nil, a string naming the group file on your system."
@@ -56,7 +56,7 @@ being via `pcmpl-ssh-known-hosts-file'."
   :group 'pcmpl-unix
   :version "24.1")
 
-;; Functions:
+;;; Shell builtins and core utilities
 
 ;;;###autoload
 (defun pcomplete/cd ()
@@ -69,34 +69,38 @@ being via `pcmpl-ssh-known-hosts-file'."
 ;;;###autoload
 (defun pcomplete/rmdir ()
   "Completion for `rmdir'."
-  (while (pcomplete-here (pcomplete-dirs))))
+  (while (if (string-prefix-p "-" (pcomplete-arg))
+             (pcomplete-here (pcomplete-from-help "rmdir --help"))
+           (pcomplete-here (pcomplete-dirs)))))
 
 ;;;###autoload
 (defun pcomplete/rm ()
-  "Completion for `rm'."
-  (let ((pcomplete-help "(fileutils)rm invocation"))
-    (pcomplete-opt "dfirRv")
-    (while (pcomplete-here (pcomplete-all-entries) nil
-			   #'expand-file-name))))
+  "Completion for the `rm' command."
+  (pcomplete-here-using-help "rm --help"))
 
 ;;;###autoload
 (defun pcomplete/xargs ()
   "Completion for `xargs'."
   (while (string-prefix-p "-" (pcomplete-arg 0))
-    (pcomplete-here (funcall pcomplete-default-completion-function)))
+    (pcomplete-here (pcomplete-from-help "xargs --help"))
+    (when (pcomplete-match "\\`-[adEIiLnPs]\\'") (pcomplete-here)))
   (funcall pcomplete-command-completion-function)
   (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
 	       pcomplete-default-completion-function)))
 
-;; FIXME: Add completion of sudo-specific arguments.
-(defalias 'pcomplete/sudo #'pcomplete/xargs)
-
 ;;;###autoload
-(defalias 'pcomplete/time 'pcomplete/xargs)
+(defun pcomplete/time ()
+  "Completion for the `time' command."
+  (pcomplete-opt "p")
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
 
 ;;;###autoload
 (defun pcomplete/which ()
   "Completion for `which'."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "which --help")))
   (while (pcomplete-here (funcall pcomplete-command-completion-function))))
 
 (defun pcmpl-unix-read-passwd-file (file)
@@ -129,24 +133,454 @@ documentation), this function returns nil."
       (pcmpl-unix-read-passwd-file pcmpl-unix-passwd-file)))
 
 ;;;###autoload
+(defun pcomplete/cat ()
+  "Completion for the `cat' command."
+  (pcomplete-here-using-help "cat --help"))
+
+;;;###autoload
+(defun pcomplete/tac ()
+  "Completion for the `tac' command."
+  (pcomplete-here-using-help "tac --help"))
+
+;;;###autoload
+(defun pcomplete/nl ()
+  "Completion for the `nl' command."
+  (pcomplete-here-using-help "nl --help"))
+
+;;;###autoload
+(defun pcomplete/od ()
+  "Completion for the `od' command."
+  (pcomplete-here-using-help "od --help"))
+
+;;;###autoload
+(defun pcomplete/base32 ()
+  "Completion for the `base32' and `base64' commands."
+  (pcomplete-here-using-help "base32 --help"))
+;;;###autoload
+(defalias 'pcomplete/base64 'pcomplete/base32)
+
+;;;###autoload
+(defun pcomplete/basenc ()
+  "Completion for the `basenc' command."
+  (pcomplete-here-using-help "basenc --help"))
+
+;;;###autoload
+(defun pcomplete/fmt ()
+  "Completion for the `fmt' command."
+  (pcomplete-here-using-help "fmt --help"))
+
+;;;###autoload
+(defun pcomplete/pr ()
+  "Completion for the `pr' command."
+  (pcomplete-here-using-help "pr --help"))
+
+;;;###autoload
+(defun pcomplete/fold ()
+  "Completion for the `fold' command."
+  (pcomplete-here-using-help "fold --help"))
+
+;;;###autoload
+(defun pcomplete/head ()
+  "Completion for the `head' command."
+  (pcomplete-here-using-help "head --help"))
+
+;;;###autoload
+(defun pcomplete/tail ()
+  "Completion for the `tail' command."
+  (pcomplete-here-using-help "tail --help"))
+
+;;;###autoload
+(defun pcomplete/split ()
+  "Completion for the `split' command."
+  (pcomplete-here-using-help "split --help"))
+
+;;;###autoload
+(defun pcomplete/csplit ()
+  "Completion for the `csplit' command."
+  (pcomplete-here-using-help "csplit --help"))
+
+;;;###autoload
+(defun pcomplete/wc ()
+  "Completion for the `wc' command."
+  (pcomplete-here-using-help "wc --help"))
+
+;;;###autoload
+(defun pcomplete/sum ()
+  "Completion for the `sum' command."
+  (pcomplete-here-using-help "sum --help"))
+
+;;;###autoload
+(defun pcomplete/cksum ()
+  "Completion for the `cksum' command."
+  (pcomplete-here-using-help "cksum --help"))
+
+;;;###autoload
+(defun pcomplete/b2sum ()
+  "Completion for the `b2sum' command."
+  (pcomplete-here-using-help "b2sum --help"))
+
+;;;###autoload
+(defun pcomplete/md5sum ()
+  "Completion for checksum commands."
+  (pcomplete-here-using-help "md5sum --help"))
+;;;###autoload(defalias 'pcomplete/sha1sum 'pcomplete/md5sum)
+;;;###autoload(defalias 'pcomplete/sha224sum 'pcomplete/md5sum)
+;;;###autoload(defalias 'pcomplete/sha256sum 'pcomplete/md5sum)
+;;;###autoload(defalias 'pcomplete/sha384sum 'pcomplete/md5sum)
+;;;###autoload(defalias 'pcomplete/sha521sum 'pcomplete/md5sum)
+
+;;;###autoload
+(defun pcomplete/sort ()
+  "Completion for the `sort' command."
+  (pcomplete-here-using-help "sort --help"))
+
+;;;###autoload
+(defun pcomplete/shuf ()
+  "Completion for the `shuf' command."
+  (pcomplete-here-using-help "shuf --help"))
+
+;;;###autoload
+(defun pcomplete/uniq ()
+  "Completion for the `uniq' command."
+  (pcomplete-here-using-help "uniq --help"))
+
+;;;###autoload
+(defun pcomplete/comm ()
+  "Completion for the `comm' command."
+  (pcomplete-here-using-help "comm --help"))
+
+;;;###autoload
+(defun pcomplete/ptx ()
+  "Completion for the `ptx' command."
+  (pcomplete-here-using-help "ptx --help"))
+
+;;;###autoload
+(defun pcomplete/tsort ()
+  "Completion for the `tsort' command."
+  (pcomplete-here-using-help "tsort --help"))
+
+;;;###autoload
+(defun pcomplete/cut ()
+  "Completion for the `cut' command."
+  (pcomplete-here-using-help "cut --help"))
+
+;;;###autoload
+(defun pcomplete/paste ()
+  "Completion for the `paste' command."
+  (pcomplete-here-using-help "paste --help"))
+
+;;;###autoload
+(defun pcomplete/join ()
+  "Completion for the `join' command."
+  (pcomplete-here-using-help "join --help"))
+
+;;;###autoload
+(defun pcomplete/tr ()
+  "Completion for the `tr' command."
+  (pcomplete-here-using-help "tr --help"))
+
+;;;###autoload
+(defun pcomplete/expand ()
+  "Completion for the `expand' command."
+  (pcomplete-here-using-help "expand --help"))
+
+;;;###autoload
+(defun pcomplete/unexpand ()
+  "Completion for the `unexpand' command."
+  (pcomplete-here-using-help "unexpand --help"))
+
+;;;###autoload
+(defun pcomplete/ls ()
+  "Completion for the `ls' command."
+  (pcomplete-here-using-help "ls --help"))
+;;;###autoload(defalias 'pcomplete/dir 'pcomplete/ls)
+;;;###autoload(defalias 'pcomplete/vdir 'pcomplete/ls)
+
+;;;###autoload
+(defun pcomplete/cp ()
+  "Completion for the `cp' command."
+  (pcomplete-here-using-help "cp --help"))
+
+;;;###autoload
+(defun pcomplete/dd ()
+  "Completion for the `dd' command."
+  (let ((operands (pcomplete-from-help "dd --help"
+                                       :argument "[a-z]+="
+                                       :narrow-start "\n\n"
+                                       :narrow-end "\n\n")))
+    (while
+        (cond ((pcomplete-match "\\`[io]f=\\(.*\\)" 0)
+               (pcomplete-here (pcomplete-entries)
+                               (pcomplete-match-string 1 0)))
+              (t (pcomplete-here operands))))))
+
+;;;###autoload
+(defun pcomplete/install ()
+  "Completion for the `install' command."
+  (pcomplete-here-using-help "install --help"))
+
+;;;###autoload
+(defun pcomplete/mv ()
+  "Completion for the `mv' command."
+  (pcomplete-here-using-help "mv --help"))
+
+;;;###autoload
+(defun pcomplete/shred ()
+  "Completion for the `shred' command."
+  (pcomplete-here-using-help "shred --help"))
+
+;;;###autoload
+(defun pcomplete/ln ()
+  "Completion for the `ln' command."
+  (pcomplete-here-using-help "ln --help"))
+
+;;;###autoload
+(defun pcomplete/mkdir ()
+  "Completion for the `mkdir' command."
+  (pcomplete-here-using-help "mkdir --help"))
+
+;;;###autoload
+(defun pcomplete/mkfifo ()
+  "Completion for the `mkfifo' command."
+  (pcomplete-here-using-help "mkfifo --help"))
+
+;;;###autoload
+(defun pcomplete/mknod ()
+  "Completion for the `mknod' command."
+  (pcomplete-here-using-help "mknod --help"))
+
+;;;###autoload
+(defun pcomplete/readlink ()
+  "Completion for the `readlink' command."
+  (pcomplete-here-using-help "readlink --help"))
+
+;;;###autoload
 (defun pcomplete/chown ()
   "Completion for the `chown' command."
-  (unless (pcomplete-match "\\`-")
-    (if (pcomplete-match "\\`[^.]*\\'" 0)
-	(pcomplete-here* (pcmpl-unix-user-names))
-      (if (pcomplete-match "\\.\\([^.]*\\)\\'" 0)
-	  (pcomplete-here* (pcmpl-unix-group-names)
-			   (pcomplete-match-string 1 0))
-	(pcomplete-here*))))
+  (while (pcomplete-match "\\`-" 0)
+    (pcomplete-here (pcomplete-from-help "chown --help")))
+  (if (pcomplete-match "\\`[^.]*\\'" 0)
+      (pcomplete-here* (pcmpl-unix-user-names))
+    (if (pcomplete-match "\\.\\([^.]*\\)\\'" 0)
+	(pcomplete-here* (pcmpl-unix-group-names)
+			 (pcomplete-match-string 1 0))
+      (pcomplete-here*)))
   (while (pcomplete-here (pcomplete-entries))))
 
 ;;;###autoload
 (defun pcomplete/chgrp ()
   "Completion for the `chgrp' command."
-  (unless (pcomplete-match "\\`-")
-    (pcomplete-here* (pcmpl-unix-group-names)))
+  (while (pcomplete-match "\\`-" 0)
+    (pcomplete-here (pcomplete-from-help "chgrp --help")))
+  (pcomplete-here* (pcmpl-unix-group-names))
   (while (pcomplete-here (pcomplete-entries))))
 
+;;;###autoload
+(defun pcomplete/chmod ()
+  "Completion for the `chmod' command."
+  (pcomplete-here-using-help "chmod --help"))
+
+;;;###autoload
+(defun pcomplete/touch ()
+  "Completion for the `touch' command."
+  (pcomplete-here-using-help "touch --help"))
+
+;;;###autoload
+(defun pcomplete/df ()
+  "Completion for the `df' command."
+  (pcomplete-here-using-help "df --help"))
+
+;;;###autoload
+(defun pcomplete/du ()
+  "Completion for the `du' command."
+  (pcomplete-here-using-help "du --help"))
+
+;;;###autoload
+(defun pcomplete/stat ()
+  "Completion for the `stat' command."
+  (pcomplete-here-using-help "stat --help"))
+
+;;;###autoload
+(defun pcomplete/sync ()
+  "Completion for the `sync' command."
+  (pcomplete-here-using-help "sync --help"))
+
+;;;###autoload
+(defun pcomplete/truncate ()
+  "Completion for the `truncate' command."
+  (pcomplete-here-using-help "truncate --help"))
+
+;;;###autoload
+(defun pcomplete/echo ()
+  "Completion for the `echo' command."
+  (pcomplete-here-using-help '("echo" "--help")))
+
+;;;###autoload
+(defun pcomplete/test ()
+  "Completion for the `test' command."
+  (pcomplete-here-using-help '("[" "--help")
+                             :margin "^ +\\([A-Z]+1 \\)?"))
+;;;###autoload(defalias (intern "pcomplete/[") 'pcomplete/test)
+
+;;;###autoload
+(defun pcomplete/tee ()
+  "Completion for the `tee' command."
+  (pcomplete-here-using-help "tee --help"))
+
+;;;###autoload
+(defun pcomplete/basename ()
+  "Completion for the `basename' command."
+  (pcomplete-here-using-help "basename --help"))
+
+;;;###autoload
+(defun pcomplete/dirname ()
+  "Completion for the `dirname' command."
+  (pcomplete-here-using-help "dirname --help"))
+
+;;;###autoload
+(defun pcomplete/pathchk ()
+  "Completion for the `pathchk' command."
+  (pcomplete-here-using-help "pathchk --help"))
+
+;;;###autoload
+(defun pcomplete/mktemp ()
+  "Completion for the `mktemp' command."
+  (pcomplete-here-using-help "mktemp --help"))
+
+;;;###autoload
+(defun pcomplete/realpath ()
+  "Completion for the `realpath' command."
+  (pcomplete-here-using-help "realpath --help"))
+
+;;;###autoload
+(defun pcomplete/id ()
+  "Completion for the `id' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "id --help")))
+  (while (pcomplete-here (pcmpl-unix-user-names))))
+
+;;;###autoload
+(defun pcomplete/groups ()
+  "Completion for the `groups' command."
+  (while (pcomplete-here (pcmpl-unix-user-names))))
+
+;;;###autoload
+(defun pcomplete/who ()
+  "Completion for the `who' command."
+  (pcomplete-here-using-help "who --help"))
+
+;;;###autoload
+(defun pcomplete/date ()
+  "Completion for the `date' command."
+  (pcomplete-here-using-help "date --help"))
+
+;;;###autoload
+(defun pcomplete/nproc ()
+  "Completion for the `nproc' command."
+  (pcomplete-here-using-help "nproc --help"))
+
+;;;###autoload
+(defun pcomplete/uname ()
+  "Completion for the `uname' command."
+  (pcomplete-here-using-help "uname --help"))
+
+;;;###autoload
+(defun pcomplete/hostname ()
+  "Completion for the `hostname' command."
+  (pcomplete-here-using-help "hostname --help"))
+
+;;;###autoload
+(defun pcomplete/uptime ()
+  "Completion for the `uptime' command."
+  (pcomplete-here-using-help "uptime --help"))
+
+;;;###autoload
+(defun pcomplete/chcon ()
+  "Completion for the `chcon' command."
+  (pcomplete-here-using-help "chcon --help"))
+
+;;;###autoload
+(defun pcomplete/runcon ()
+  "Completion for the `runcon' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "runcon --help"))
+    (when (pcomplete-match "\\`-[turl]\\'" 0) (pcomplete-here)))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/chroot ()
+  "Completion for the `chroot' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "chroot --help")))
+  (pcomplete-here (pcomplete-dirs))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/env ()
+  "Completion for the `env' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "env --help"))
+    (when (pcomplete-match "\\`-[uCS]\\'") (pcomplete-here)))
+  (while (pcomplete-match "=" 0) (pcomplete-here)) ; FIXME: Complete env vars
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/nice ()
+  "Completion for the `nice' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "nice --help"))
+    (pcomplete-here))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/nohup ()
+  "Completion for the `nohup' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "nohup --help")))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/stdbuf ()
+  "Completion for the `stdbuf' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "stdbuf --help"))
+    (when (pcomplete-match "\\`-[ioe]\\'") (pcomplete-here)))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/timeout ()
+  "Completion for the `timeout' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "timeout --help"))
+    (when (pcomplete-match "\\`-[ks]\\'") (pcomplete-here)))
+  (pcomplete-here)                      ; eat DURATION argument
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
+
+;;;###autoload
+(defun pcomplete/numfmt ()
+  "Completion for the `numfmt' command."
+  (pcomplete-here-using-help "numfmt --help"))
+
+;;;###autoload
+(defun pcomplete/seq ()
+  "Completion for the `seq' command."
+  (pcomplete-here-using-help "seq --help"))
+
+;;; Network commands
 
 ;; ssh support by Phil Hagelberg.
 ;; https://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
@@ -238,6 +672,18 @@ Includes files as well as host names followed by a colon."
 (defun pcomplete/telnet ()
   (pcomplete-opt "xl(pcmpl-unix-user-names)")
   (pcmpl-unix-complete-hostname))
+
+;;; Miscellaneous
+
+;;;###autoload
+(defun pcomplete/sudo ()
+  "Completion for the `sudo' command."
+  (while (string-prefix-p "-" (pcomplete-arg 0))
+    (pcomplete-here (pcomplete-from-help "sudo --help"))
+    (when (pcomplete-match "\\`-[CDghpRtTUu]\\'") (pcomplete-here)))
+  (funcall pcomplete-command-completion-function)
+  (funcall (or (pcomplete-find-completion-function (pcomplete-arg 1))
+	       pcomplete-default-completion-function)))
 
 (provide 'pcmpl-unix)
 

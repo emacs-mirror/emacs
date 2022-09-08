@@ -30,6 +30,7 @@
 (provide 'pcmpl-linux)
 
 (require 'pcomplete)
+(eval-when-compile (require 'rx))
 
 ;; Functions:
 
@@ -110,5 +111,72 @@ Test is done using `equal'."
       (pcomplete-pare-list
        (pcomplete-uniquify-list points)
        (cons "swap" (pcmpl-linux-mounted-directories))))))
+
+;;; systemd
+
+(defun pcmpl-linux--systemd-units (&rest args)
+  "Run `systemd list-units ARGS' and return the output as a list."
+  (with-temp-buffer
+    (apply #'call-process
+           "systemctl" nil '(t nil) nil
+           "list-units" "--full" "--legend=no" "--plain" args)
+    (goto-char (point-min))
+    (let (result)
+      (while (re-search-forward (rx bol (group (+ (not space)))
+                                    (+ space) (+ (not space))
+                                    (+ space) (group (+ (not space)))
+                                    (+ space) (+ (not space))
+                                    (+ space) (group (* nonl)))
+                                nil t)
+        (push (match-string 1) result)
+        (put-text-property 0 1 'pcomplete-annotation
+                           (concat " " (match-string 2))
+                           (car result))
+        (put-text-property 0 1 'pcomplete-description
+                           (match-string 3)
+                           (car result)))
+      (nreverse result))))
+
+;;;###autoload
+(defun pcomplete/systemctl ()
+  "Completion for the `systemctl' command."
+  (let ((subcmds (pcomplete-from-help
+                  "systemctl --help"
+                  :margin (rx bol "  " (group) alpha)
+                  :argument (rx (+ (any alpha ?-)))
+                  :metavar (rx (group (+ " " (>= 2 (any upper "[]|."))))))))
+    (while (not (member (pcomplete-arg 1) subcmds))
+      (if (string-prefix-p "-" (pcomplete-arg 0))
+          (pcomplete-here (pcomplete-from-help "systemctl --help"
+                                               :metavar "[^ ]+"
+                                               :separator " \\(\\)-"))
+        (pcomplete-here subcmds)))
+    (let ((subcmd (pcomplete-arg 1))
+          (context (if (member "--user" pcomplete-args) "--user" "--system")))
+      (while (pcase subcmd
+               ((guard (string-prefix-p "-" (pcomplete-arg 0)))
+                (pcomplete-here
+                 (pcomplete-from-help "systemctl --help")))
+               ;; TODO: suggest only relevant units to each subcommand
+               ("start"
+                (pcomplete-here
+                 (pcmpl-linux--systemd-units context "--state" "inactive,failed")))
+               ((or "restart" "stop")
+                (pcomplete-here
+                 (pcmpl-linux--systemd-units context "--state" "active")))
+               (_ (pcomplete-here
+                   (completion-table-in-turn
+                    (pcmpl-linux--systemd-units context "--all")
+                    (pcomplete-entries)))))))))
+
+;;;###autoload
+(defun pcomplete/journalctl ()
+  "Completion for the `journalctl' command."
+  (while (if (string-prefix-p "-" (pcomplete-arg 0))
+             (pcomplete-here (pcomplete-from-help "journalctl --help"
+                                                  :metavar "[^ ]+"
+                                                  :separator " \\(\\)-"))
+           (pcomplete-here (mapcar (lambda (s) (concat s "="))
+                                   (process-lines "journalctl" "--fields"))))))
 
 ;;; pcmpl-linux.el ends here
