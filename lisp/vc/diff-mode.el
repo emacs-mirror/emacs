@@ -2336,6 +2336,7 @@ Call FUN with two args (BEG and END) for each hunk."
   (let ((inhibit-read-only t))
     (undo arg)))
 
+;;;###autoload
 (defcustom diff-add-log-use-relative-names nil
   "Use relative file names when generating ChangeLog skeletons.
 The files will be relative to the root directory of the VC
