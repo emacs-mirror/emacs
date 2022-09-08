@@ -4614,6 +4614,9 @@ Argument MIME is non-nil if this is a mime message."
 		     "> ")
 	      (push (rmail-epa-decrypt-1 mime) decrypts))))
 
+      ;; Decode any base64-encoded mime sections.
+      (rmail-epa-decode)
+
       (when (and decrypts (rmail-buffers-swapped-p))
 	(when (y-or-n-p "Replace the original message? ")
           (when (eq major-mode 'rmail-mode)
@@ -4678,6 +4681,23 @@ Argument MIME is non-nil if this is a mime message."
       (unless decrypts
 	(error "Nothing to decrypt")))))
 
+;; Decode all base64-encoded mime sections, so that this change
+;; is made in the Rmail file, not just in the viewing buffer.
+(defun rmail-epa-decode ()
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "--------------[0-9a-zA-Z]+\n" nil t)
+      (let ((delim (concat (substring (match-string 0) 0 -1) "--\n")))
+        (when (looking-at "\
+Content-Type: text/[a-z]+; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: base64\n")
+          (goto-char (match-end 0))
+          (let ((start (point))
+                (inhibit-read-only t))
+            (search-forward delim)
+            (forward-line -1)
+            (base64-decode-region start (point))
+            (forward-line 1)))))))
 
 ;;;;  Desktop support
 
