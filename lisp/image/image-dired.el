@@ -767,7 +767,7 @@ according to `image-dired-marking-shows-next'."
      ,(when maybe-next
         '(if image-dired-marking-shows-next
              (image-dired-display-next-thumbnail-original)
-           (image-dired-next-line)))))
+           (image-dired-forward-image)))))
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
