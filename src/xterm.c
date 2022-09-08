@@ -28742,10 +28742,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 			  (RRScreenChangeNotifyMask
 			   | RRCrtcChangeNotifyMask
 			   | RROutputChangeNotifyMask
-			   /* Emacs doesn't actually need this, but GTK
-			      selects for it when the display is
+#ifdef USE_GTK
+			   /* Emacs doesn't actually need this, but
+			      GTK selects for it when the display is
 			      initialized.  */
-			   | RROutputPropertyNotifyMask));
+			   | RROutputPropertyNotifyMask
+#endif
+			   ));
 
 	  dpyinfo->last_monitor_attributes_list
 	    = Fx_display_monitor_attributes_list (term);
