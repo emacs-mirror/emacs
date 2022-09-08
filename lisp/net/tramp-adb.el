@@ -127,7 +127,7 @@ It is used for TCP/IP devices."
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-adb-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-adb-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -489,24 +489,50 @@ Emacs dired can't find files."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-executable-p"
-      (tramp-adb-send-command-and-check
-       v (format "test -x %s" (tramp-shell-quote-argument localname))))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (or (tramp-check-cached-permissions v ?x)
+	      (tramp-check-cached-permissions v ?s))
+	(tramp-adb-send-command-and-check
+	 v (format "test -x %s" (tramp-shell-quote-argument localname)))))))
+
+(defun tramp-adb-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  ;; `file-exists-p' is used as predicate in file name completion.
+  ;; We don't want to run it when `non-essential' is t, or there is
+  ;; no connection process yet.
+  (when (tramp-connectable-p filename)
+    (with-parsed-tramp-file-name filename nil
+      (with-tramp-file-property v localname "file-exists-p"
+	(if (tramp-file-property-p v localname "file-attributes")
+	    (not (null (tramp-get-file-property v localname "file-attributes")))
+	  (tramp-adb-send-command-and-check
+	   v (format "test -e %s" (tramp-shell-quote-argument localname))))))))
 
 (defun tramp-adb-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
-      (or (tramp-handle-file-readable-p filename)
-	  (tramp-adb-send-command-and-check
-	   v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (tramp-handle-file-readable-p filename)
+	(tramp-adb-send-command-and-check
+	 v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
 
 (defun tramp-adb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  (tramp-adb-send-command-and-check
-	   v (format "test -w %s" (tramp-shell-quote-argument localname)))
+	  (if (tramp-file-property-p v localname "file-attributes")
+	      ;; Examine `file-attributes' cache to see if request can
+	      ;; be satisfied without remote operation.
+	      (tramp-check-cached-permissions v ?w)
+	    (tramp-adb-send-command-and-check
+	     v (format "test -w %s" (tramp-shell-quote-argument localname))))
+	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
 	 (file-writable-p (file-name-directory filename)))))))
@@ -1040,57 +1066,23 @@ implementation will be used."
 (defun tramp-adb-handle-get-remote-uid (vec id-format)
   "Like `tramp-get-remote-uid' for Tramp files.
  ID-FORMAT valid values are `string' and `integer'."
- ;; The result is cached in `tramp-get-remote-uid'.
-  (tramp-adb-send-command
-   vec
-   (format "id -u%s %s"
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    ;; Read the expression.
-    (goto-char (point-min))
-    (read (current-buffer))))
+  (tramp-adb-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "uid-%s" id-format)))
 
 (defun tramp-adb-handle-get-remote-gid (vec id-format)
   "Like `tramp-get-remote-gid' for Tramp files.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-gid'.
-  (tramp-adb-send-command
-   vec
-   (format "id -g%s %s"
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    ;; Read the expression.
-    (goto-char (point-min))
-    (read (current-buffer))))
+  (tramp-adb-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "gid-%s" id-format)))
 
 (defun tramp-adb-handle-get-remote-groups (vec id-format)
   "Like `tramp-get-remote-groups' for Tramp files.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-groups'.
   (tramp-adb-send-command vec "id")
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (let (groups-integer groups-string)
-      ;; Read the expression.
-      (goto-char (point-min))
-      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
-	(while (looking-at
-		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
-	  (setq groups-integer (cons (string-to-number (match-string 1))
-				     groups-integer)
-		groups-string (cons (match-string 2) groups-string))
-	  (goto-char (match-end 0))
-	  (skip-chars-forward ",")))
-      (tramp-set-connection-property
-       vec "groups-integer"
-       (setq groups-integer (nreverse groups-integer)))
-      (tramp-set-connection-property
-       vec "groups-string"
-       (setq groups-string (nreverse groups-string)))
-      (if (eq id-format 'integer) groups-integer groups-string))))
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "groups-%s" id-format)))
 
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.
