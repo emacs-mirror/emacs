@@ -197,7 +197,8 @@ language-server/bin/php-language-server.php"))
                                 (clojure-mode . ("clojure-lsp"))
                                 (csharp-mode . ("omnisharp" "-lsp"))
                                 (purescript-mode . ("purescript-language-server" "--stdio"))
-                                (perl-mode . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run")))
+                                (perl-mode . ("perl" "-MPerl::LanguageServer" "-e" "Perl::LanguageServer::run"))
+                                (markdown-mode . ("marksman" "server")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
