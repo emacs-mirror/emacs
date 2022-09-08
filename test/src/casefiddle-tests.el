@@ -57,7 +57,7 @@
                     errors)))
           (setq expected (cdr expected)))))
     (when errors
-      (ert-fail (mapconcat (lambda (line) line) (nreverse errors) "")))))
+      (ert-fail (mapconcat #'identity (nreverse errors))))))
 
 
 (defconst casefiddle-tests--characters
@@ -98,7 +98,7 @@
                      errors)))
            (setq props (cdr props) tabs (cdr tabs) expected (cdr expected)))))
      (when errors
-       (mapconcat (lambda (line) line) (nreverse errors) "")))))
+       (mapconcat #'identity (nreverse errors))))))
 
 
 (ert-deftest casefiddle-tests-casing-character ()
@@ -116,7 +116,7 @@
                      errors)))
            (setq funcs (cdr funcs) expected (cdr expected)))))
      (when errors
-       (mapconcat (lambda (line) line) (nreverse errors) "")))))
+       (mapconcat (lambda (line) line) (nreverse errors))))))
 
 
 (ert-deftest casefiddle-tests-casing-word ()

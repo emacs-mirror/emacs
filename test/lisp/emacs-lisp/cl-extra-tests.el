@@ -77,7 +77,7 @@
         (fn3 (lambda (x _y _z) (string-to-char (format "%S" x)))))
     (should (equal lst (cl-map 'list fn1 lst)))
     (should (equal (vconcat lst2) (cl-map 'vector fn2 lst lst2)))
-    (should (equal (mapconcat (lambda (x) (format "%S" x)) lst "")
+    (should (equal (mapconcat (lambda (x) (format "%S" x)) lst)
                    (cl-map 'string fn3 lst lst2 lst3)))))
 
 (ert-deftest cl-extra-test-maplist ()

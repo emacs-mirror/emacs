@@ -614,9 +614,9 @@
   (should (string= (mapconcat #'identity '("Ä" "ø" "☭" "தமிழ்") "_漢字_")
                    "Ä_漢字_ø_漢字_☭_漢字_தமிழ்"))
   ;; vector
-  (should (string= (mapconcat #'identity ["a" "b"] "") "ab"))
+  (should (string= (mapconcat #'identity ["a" "b"]) "ab"))
   ;; bool-vector
-  (should (string= (mapconcat #'identity [nil nil] "") ""))
+  (should (string= (mapconcat #'identity [nil nil]) ""))
   (should-error (mapconcat #'identity [nil nil t])
                 :type 'wrong-type-argument))
 

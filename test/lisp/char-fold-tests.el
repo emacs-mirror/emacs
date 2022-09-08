@@ -26,7 +26,7 @@
 
 (defun char-fold--random-word (n)
   (mapconcat (lambda (_) (string (+ 9 (random 117))))
-             (make-list n nil) ""))
+             (make-list n nil)))
 
 (defun char-fold--ascii-upcase (string)
   "Like `upcase' but acts on ASCII characters only."

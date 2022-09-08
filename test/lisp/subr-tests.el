@@ -635,7 +635,7 @@ cf. Bug#25477."
   (let ((default "foo") res)
     (cl-letf (((symbol-function 'read-string)
                (lambda (_prompt &optional _init _hist def _inher-input) def)))
-      (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
+      (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default)))
       (should (string= default res)))))
 
 (ert-deftest subr-tests--gensym ()

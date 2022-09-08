@@ -200,8 +200,7 @@ this is exactly representable and is greater than
             nibbles)
       (setf v (nthcdr 4 v)))
     (mapconcat (lambda (n) (format "%X" n))
-               (nreverse nibbles)
-               "")))
+               (nreverse nibbles))))
 
 (defun test-bool-vector-count-consecutive-tc (desc)
   "Run a test case for `bool-vector-count-consecutive'.
