@@ -3622,7 +3622,9 @@ This tests also `access-file', `file-readable-p',
 	       (append
 		'((nil "stat" nil)
 		  ;; See `tramp-sh-handle-file-truename'.
-		  (nil "readlink" nil))
+		  (nil "readlink" nil)
+		  ;; See `tramp-sh-handle-get-remote-*'.
+		  (nil "id" nil))
 		tramp-connection-properties)))
 	 (progn
 	   (skip-unless (< (ert-test-result-duration result) 300))

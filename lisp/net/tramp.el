@@ -5838,8 +5838,7 @@ be granted."
                       ((eq ?s access) 3)))
 	     (file-attr (file-attributes (tramp-make-tramp-file-name vec)))
 	     (remote-uid (tramp-get-remote-uid vec 'integer))
-	     (remote-gid (tramp-get-remote-gid vec 'integer))
-	     (remote-groups (tramp-get-remote-groups vec 'integer)))
+	     (remote-gid (tramp-get-remote-gid vec 'integer)))
     (or
      ;; Not a symlink.
      (eq t (file-attribute-type file-attr))
@@ -5867,7 +5866,8 @@ be granted."
      (and
       (eq access
 	  (aref (file-attribute-modes file-attr) (+ offset 3)))
-      (member (file-attribute-group-id file-attr) remote-groups)))))
+      (member (file-attribute-group-id file-attr)
+	      (tramp-get-remote-groups vec 'integer))))))
 
 (defmacro tramp-convert-file-attributes (vec localname id-format attr)
   "Convert `file-attributes' ATTR generated Tramp backend functions.
@@ -6008,12 +6008,48 @@ ID-FORMAT valid values are `string' and `integer'."
 (defun tramp-get-remote-groups (vec id-format)
   "The list of groups of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  (or (and (tramp-file-name-p vec)
-	   (with-tramp-connection-property vec (format "groups-%s" id-format)
-	     (tramp-file-name-handler #'tramp-get-remote-groups vec id-format)))
-      ;; Ensure there is a valid result.
-      (and (equal id-format 'integer) (list tramp-unknown-id-integer))
-      (and (equal id-format 'string) (list tramp-unknown-id-string))))
+  (and (tramp-file-name-p vec)
+       (with-tramp-connection-property vec (format "groups-%s" id-format)
+	 (tramp-file-name-handler #'tramp-get-remote-groups vec id-format))))
+
+(defun tramp-read-id-output (vec)
+  "Read in connection buffer the output of the `id' command.
+Set connection properties \"{uid,gid.groups}-{integer,string}\"."
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    (let (uid-integer uid-string
+	  gid-integer gid-string
+	  groups-integer groups-string)
+      (goto-char (point-min))
+      ;; Read uid.
+      (when (re-search-forward
+	     (rx "uid=" (group (+ digit)) "(" (group (+ (any "_" word))) ")")
+	     nil 'noerror)
+	(setq uid-integer (string-to-number (match-string 1))
+	      uid-string (match-string 2)))
+      ;; Read gid.
+      (when (re-search-forward
+	     (rx "gid=" (group (+ digit)) "(" (group (+ (any "_" word))) ")")
+	     nil 'noerror)
+	(setq gid-integer (string-to-number (match-string 1))
+	      gid-string (match-string 2)))
+      ;; Read groups.
+      (when (re-search-forward (rx "groups=") nil 'noerror)
+	(while (looking-at
+		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
+	  (setq groups-integer (cons (string-to-number (match-string 1))
+				     groups-integer)
+		groups-string (cons (match-string 2) groups-string))
+	  (goto-char (match-end 0))
+	  (skip-chars-forward ",")))
+      ;; Set connection properties.
+      (tramp-set-connection-property vec "uid-integer" uid-integer)
+      (tramp-set-connection-property vec "uid-string" uid-string)
+      (tramp-set-connection-property vec "gid-integer" gid-integer)
+      (tramp-set-connection-property vec "gid-string" gid-string)
+      (tramp-set-connection-property
+       vec "groups-integer" (nreverse groups-integer))
+      (tramp-set-connection-property
+       vec "groups-string" (nreverse groups-string)))))
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise.

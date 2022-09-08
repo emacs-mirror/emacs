@@ -442,8 +442,13 @@ the result will be a local, non-Tramp, file name."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-executable-p"
-      (tramp-sudoedit-send-command
-       v "test" "-x" (tramp-compat-file-name-unquote localname)))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (or (tramp-check-cached-permissions v ?x)
+	      (tramp-check-cached-permissions v ?s))
+	(tramp-sudoedit-send-command
+	 v "test" "-x" (tramp-compat-file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
@@ -453,8 +458,10 @@ the result will be a local, non-Tramp, file name."
   (when (tramp-connectable-p filename)
     (with-parsed-tramp-file-name filename nil
       (with-tramp-file-property v localname "file-exists-p"
-	(tramp-sudoedit-send-command
-	 v "test" "-e" (tramp-compat-file-name-unquote localname))))))
+	(if (tramp-file-property-p v localname "file-attributes")
+	    (not (null (tramp-get-file-property v localname "file-attributes")))
+	  (tramp-sudoedit-send-command
+	   v "test" "-e" (tramp-compat-file-name-unquote localname)))))))
 
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
@@ -483,9 +490,12 @@ the result will be a local, non-Tramp, file name."
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
-      (or (tramp-handle-file-readable-p filename)
-	  (tramp-sudoedit-send-command
-	   v "test" "-r" (tramp-compat-file-name-unquote localname))))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (tramp-handle-file-readable-p filename)
+	(tramp-sudoedit-send-command
+	 v "test" "-r" (tramp-compat-file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -597,11 +607,16 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  (tramp-sudoedit-send-command
-	   v "test" "-w" (tramp-compat-file-name-unquote localname))
-	(let ((dir (file-name-directory filename)))
-	  (and (file-exists-p dir)
-	       (file-writable-p dir)))))))
+	  (if (tramp-file-property-p v localname "file-attributes")
+	      ;; Examine `file-attributes' cache to see if request can
+	      ;; be satisfied without remote operation.
+	      (tramp-check-cached-permissions v ?w)
+	    (tramp-sudoedit-send-command
+	     v "test" "-w" (tramp-compat-file-name-unquote localname)))
+	;; If file doesn't exist, check if directory is writable.
+	(and
+	 (file-directory-p (file-name-directory filename))
+	 (file-writable-p (file-name-directory filename)))))))
 
 (defun tramp-sudoedit-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
@@ -720,43 +735,23 @@ VEC or USER, or if there is no home directory, return nil."
 (defun tramp-sudoedit-handle-get-remote-uid (vec id-format)
   "The uid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-uid'.
-  (if (equal id-format 'integer)
-      (tramp-sudoedit-send-command-and-read vec "id" "-u")
-    (tramp-sudoedit-send-command-string vec "id" "-un")))
+  (tramp-sudoedit-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "uid-%s" id-format)))
 
 (defun tramp-sudoedit-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-gid'.
-  (if (equal id-format 'integer)
-      (tramp-sudoedit-send-command-and-read vec "id" "-g")
-    (tramp-sudoedit-send-command-string vec "id" "-gn")))
+  (tramp-sudoedit-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "gid-%s" id-format)))
 
 (defun tramp-sudoedit-handle-get-remote-groups (vec id-format)
   "Like `tramp-get-remote-groups' for Tramp files.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-groups'.
   (tramp-sudoedit-send-command vec "id")
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (let (groups-integer groups-string)
-      ;; Read the expression.
-      (goto-char (point-min))
-      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
-	(while (looking-at
-		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
-	  (setq groups-integer (cons (string-to-number (match-string 1))
-				     groups-integer)
-		groups-string (cons (match-string 2) groups-string))
-	  (goto-char (match-end 0))
-	  (skip-chars-forward ",")))
-      (tramp-set-connection-property
-       vec "groups-integer"
-       (setq groups-integer (nreverse groups-integer)))
-      (tramp-set-connection-property
-       vec "groups-string"
-       (setq groups-string (nreverse groups-string)))
-      (if (eq id-format 'integer) groups-integer groups-string))))
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "groups-%s" id-format)))
 
 (defun tramp-sudoedit-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."

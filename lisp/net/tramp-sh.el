@@ -783,6 +783,41 @@ characters need to be doubled.")
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
+(defconst tramp-perl-id
+  "%p -e '
+use strict;
+use warnings;
+use POSIX qw(getgroups);
+
+my ($user, $passwd, $uid, $gid) = getpwuid $< ;
+my $group = getgrgid $gid ;
+my @groups = map { $_ . \"(\" . getgrgid ($_) . \")\" } getgroups ();
+
+printf \"uid=%%d(%%s) gid=%%d(%%s) groups=%%s\\n\",
+  $uid, $user, $gid, $group, join \",\", @groups;' %n"
+  "Perl script printing `id' output.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
+(defconst tramp-python-id
+  "%y -c '
+import os, pwd, grp;
+
+def idform(id):
+  return \"{:d}({:s})\".format(id, grp.getgrgid(id)[0]);
+
+uid = os.getuid();
+user = pwd.getpwuid(uid)[0];
+gid = os.getgid();
+group = grp.getgrgid(gid)[0]
+groups = map(idform, os.getgrouplist(user, gid));
+
+print(\"uid={:d}({:s}) gid={:d}({:s}) groups={:s}\"
+      .format(uid, user, gid, group, \",\".join(groups)));' %n"
+  "Python script printing `id' output.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
 ;; These two use base64 encoding.
 (defconst tramp-perl-encode-with-module
   "%p -MMIME::Base64 -0777 -ne 'print encode_base64($_)' %n"
@@ -1524,10 +1559,16 @@ ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-uid'.
   (ignore-errors
     (cond
-     ((tramp-get-remote-id vec) (tramp-get-remote-uid-with-id vec id-format))
-     ((tramp-get-remote-perl vec) (tramp-get-remote-uid-with-perl vec id-format))
+     ((tramp-get-remote-id vec)
+      (tramp-send-command vec (tramp-get-remote-id vec)))
+     ((tramp-get-remote-perl vec)
+      (tramp-maybe-send-script vec tramp-perl-id "tramp_perl_id")
+      (tramp-send-command vec "tramp_perl_id"))
      ((tramp-get-remote-python vec)
-      (tramp-get-remote-uid-with-python vec id-format)))))
+      (tramp-maybe-send-script vec tramp-python-id "tramp_python_id")
+      (tramp-send-command vec "tramp_python_id")))
+    (tramp-read-id-output vec)
+    (tramp-get-connection-property vec (format "uid-%s" id-format))))
 
 (defun tramp-sh-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
@@ -1535,36 +1576,33 @@ ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-gid'.
   (ignore-errors
     (cond
-     ((tramp-get-remote-id vec) (tramp-get-remote-gid-with-id vec id-format))
-     ((tramp-get-remote-perl vec) (tramp-get-remote-gid-with-perl vec id-format))
+     ((tramp-get-remote-id vec)
+      (tramp-send-command vec (tramp-get-remote-id vec)))
+     ((tramp-get-remote-perl vec)
+      (tramp-maybe-send-script vec tramp-perl-id "tramp_perl_id")
+      (tramp-send-command vec "tramp_perl_id"))
      ((tramp-get-remote-python vec)
-      (tramp-get-remote-gid-with-python vec id-format)))))
+      (tramp-maybe-send-script vec tramp-python-id "tramp_python_id")
+      (tramp-send-command vec "tramp_python_id")))
+    (tramp-read-id-output vec)
+    (tramp-get-connection-property vec (format "gid-%s" id-format))))
 
 (defun tramp-sh-handle-get-remote-groups (vec id-format)
   "Like `tramp-get-remote-groups' for Tramp files.
 ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-groups'.
-  (when (tramp-get-remote-id vec)
-    (tramp-send-command vec (tramp-get-remote-id vec)))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (let (groups-integer groups-string)
-      ;; Read the expression.
-      (goto-char (point-min))
-      (when (re-search-forward (rx bol (+ nonl) "groups=") nil 'noerror)
-	(while (looking-at
-		(rx (group (+ digit)) "(" (group (+ (any "_" word))) ")"))
-	  (setq groups-integer (cons (string-to-number (match-string 1))
-				     groups-integer)
-		groups-string (cons (match-string 2) groups-string))
-	  (goto-char (match-end 0))
-	  (skip-chars-forward ",")))
-      (tramp-set-connection-property
-       vec "groups-integer"
-       (setq groups-integer (nreverse groups-integer)))
-      (tramp-set-connection-property
-       vec "groups-string"
-       (setq groups-string (nreverse groups-string)))
-      (if (eq id-format 'integer) groups-integer groups-string))))
+  (ignore-errors
+    (cond
+     ((tramp-get-remote-id vec)
+      (tramp-send-command vec (tramp-get-remote-id vec)))
+     ((tramp-get-remote-perl vec)
+      (tramp-maybe-send-script vec tramp-perl-id "tramp_perl_id")
+      (tramp-send-command vec "tramp_perl_id"))
+     ((tramp-get-remote-python vec)
+      (tramp-maybe-send-script vec tramp-python-id "tramp_python_id")
+      (tramp-send-command vec "tramp_python_id")))
+    (tramp-read-id-output vec)
+    (tramp-get-connection-property vec (format "groups-%s" id-format))))
 
 (defun tramp-sh-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1694,6 +1732,8 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-readable-p"
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
       (if (tramp-file-property-p v localname "file-attributes")
 	  (tramp-handle-file-readable-p filename)
 	(tramp-run-test "-r" filename)))))
@@ -1730,8 +1770,9 @@ ID-FORMAT valid values are `string' and `integer'."
 	      (tramp-check-cached-permissions v ?w)
 	    (tramp-run-test "-w" filename))
 	;; If file doesn't exist, check if directory is writable.
-	(and (file-exists-p (file-name-directory filename))
-	     (tramp-run-test "-w" (file-name-directory filename)))))))
+	(and
+	 (file-directory-p (file-name-directory filename))
+	 (file-writable-p (file-name-directory filename)))))))
 
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."
@@ -3971,15 +4012,15 @@ Fall back to normal file name handler if no Tramp handler exists."
 
 (defun tramp-expand-script (vec script)
   "Expand SCRIPT with remote files or commands.
-\"%a\", \"%h\", \"%l\", \"%o\", \"%p\", \"%r\" and \"%s\" format
-specifiers are replaced by the respective `awk', `hexdump', `ls',
-`od', `perl', `readlink' and `stat' commands.  \"%n\" is replaced
-by \"2>/dev/null\", and \"%t\" is replaced by a temporary file
-name.  If VEC is nil, the respective local commands are used.  If
-there is a format specifier which cannot be expanded, this
-function returns nil."
+\"%a\", \"%h\", \"%l\", \"%o\", \"%p\", \"%r\", \"%s\" and \"%y\"
+format specifiers are replaced by the respective `awk',
+`hexdump', `ls', `od', `perl', `readlink', `stat' and `python'
+commands.  \"%n\" is replaced by \"2>/dev/null\", and \"%t\" is
+replaced by a temporary file name.  If VEC is nil, the respective
+local commands are used.  If there is a format specifier which
+cannot be expanded, this function returns nil."
   (if (not (string-match-p
-	    (rx (| bol (not (any "%"))) "%" (any "ahlnoprst")) script))
+	    (rx (| bol (not (any "%"))) "%" (any "ahlnoprsty")) script))
       script
     (catch 'wont-work
       (let ((awk (when (string-match-p (rx (| bol (not (any "%"))) "%a") script)
@@ -4010,6 +4051,11 @@ function returns nil."
 		     (if vec
 			 (tramp-get-remote-perl vec) (executable-find "perl"))
 		     (throw 'wont-work nil))))
+	    (python (when (string-match-p (rx (| bol (not (any "%"))) "%y") script)
+		    (or
+		     (if vec
+			 (tramp-get-remote-python vec) (executable-find "python"))
+		     (throw 'wont-work nil))))
 	    (readlink (when (string-match-p
 			     (rx (| bol (not (any "%"))) "%r") script)
 			(or
@@ -4032,7 +4078,7 @@ function returns nil."
 	 script
 	 (format-spec-make
 	  ?a awk ?h hdmp ?l ls ?n dev ?o od ?p perl
-	  ?r readlink ?s stat ?t tmp))))))
+	  ?r readlink ?s stat ?t tmp ?y python))))))
 
 (defun tramp-maybe-send-script (vec script name)
   "Define in remote shell function NAME implemented as SCRIPT.
@@ -5816,35 +5862,8 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	  (while (and dl (setq result (tramp-find-executable vec cmd dl t t)))
 	    ;; Check POSIX parameter.
 	    (when (tramp-send-command-and-check vec (format "%s -u" result))
-	      (tramp-set-connection-property
-	       vec "uid-integer"
-	       (with-current-buffer (tramp-get-connection-buffer vec)
-		 (goto-char (point-min))
-		 (read (current-buffer))))
 	      (throw 'id-found result))
 	    (setq dl (cdr dl))))))))
-
-(defun tramp-get-remote-uid-with-id (vec id-format)
-  "Implement `tramp-get-remote-uid' for Tramp files using `id'."
-  ;; `tramp-get-remote-id' sets already connection property "uid-integer".
-  (with-tramp-connection-property vec (format "uid-%s" id-format)
-    (tramp-send-command-and-read
-     vec
-     (format "%s -u%s %s"
-	     (tramp-get-remote-id vec)
-	     (if (equal id-format 'integer) "" "n")
-	     (if (equal id-format 'integer)
-		 "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))))
-
-(defun tramp-get-remote-uid-with-perl (vec id-format)
-  "Implement `tramp-get-remote-uid' for Tramp files using a Perl script."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -le '%s'"
-	   (tramp-get-remote-perl vec)
-	   (if (equal id-format 'integer)
-	       "print $>"
-	     "print \"\\\"\", scalar getpwuid($>), \"\\\"\""))))
 
 (defun tramp-get-remote-python (vec)
   "Determine remote `python' command."
@@ -5852,46 +5871,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     (tramp-message vec 5 "Finding a suitable `python' command")
     (or (tramp-find-executable vec "python" (tramp-get-remote-path vec))
         (tramp-find-executable vec "python3" (tramp-get-remote-path vec)))))
-
-(defun tramp-get-remote-uid-with-python (vec id-format)
-  "Implement `tramp-get-remote-uid' for Tramp files using `python'."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -c \"%s\""
-	   (tramp-get-remote-python vec)
-	   (if (equal id-format 'integer)
-	       "import os; print (os.getuid())"
-    "import os, pwd; print ('\\\"' + pwd.getpwuid(os.getuid())[0] + '\\\"')"))))
-
-(defun tramp-get-remote-gid-with-id (vec id-format)
-  "Implement `tramp-get-remote-gid' for Tramp files using `id'."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -g%s %s"
-	   (tramp-get-remote-id vec)
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/"))))
-
-(defun tramp-get-remote-gid-with-perl (vec id-format)
-  "Implement `tramp-get-remote-gid' for Tramp files using a Perl script."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -le '%s'"
-	   (tramp-get-remote-perl vec)
-	   (if (equal id-format 'integer)
-	       "print ($)=~/(\\d+)/)"
-	     "print \"\\\"\", scalar getgrgid($)), \"\\\"\""))))
-
-(defun tramp-get-remote-gid-with-python (vec id-format)
-  "Implement `tramp-get-remote-gid' for Tramp files using `python'."
-  (tramp-send-command-and-read
-   vec
-   (format "%s -c \"%s\""
-	   (tramp-get-remote-python vec)
-	   (if (equal id-format 'integer)
-	       "import os; print (os.getgid())"
-    "import os, grp; print ('\\\"' + grp.getgrgid(os.getgid())[0] + '\\\"')"))))
 
 (defun tramp-get-remote-busybox (vec)
   "Determine remote `busybox' command."
