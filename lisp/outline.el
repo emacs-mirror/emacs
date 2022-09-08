@@ -1582,7 +1582,7 @@ and body between `hide all', `headings only' and `show all'.
 (defvar-local outline--cycle-buffer-state 'show-all
   "Internal variable used for tracking buffer cycle state.")
 
-(defun outline-cycle-buffer ()
+(defun outline-cycle-buffer (&optional level)
   "Cycle visibility state of the body lines of the whole buffer.
 
 This cycles the visibility of all the subheadings and bodies of all
@@ -1591,20 +1591,28 @@ the heading lines in the buffer.  It cycles them between `hide all',
 
 `Hide all' means hide all the buffer's subheadings and their bodies.
 `Headings only' means show all the subheadings, but not their bodies.
-`Show all' means show all the buffer's subheadings and their bodies."
-  (interactive)
-  (let (has-top-level)
+`Show all' means show all the buffer's subheadings and their bodies.
+
+With a prefix argument, show headings up to that LEVEL."
+  (interactive (list (when current-prefix-arg
+                       (prefix-numeric-value current-prefix-arg))))
+  (let (top-level)
     (save-excursion
       (goto-char (point-min))
-      (while (not (or has-top-level (eobp)))
-        (when (outline-on-heading-p t)
-          (when (= (funcall outline-level) 1)
-            (setq has-top-level t)))
+      (while (not (or (eq top-level 1) (eobp)))
+        (when-let ((level (and (outline-on-heading-p t)
+                               (funcall outline-level))))
+          (when (< level (or top-level most-positive-fixnum))
+            (setq top-level (max level 1))))
         (outline-next-heading)))
     (cond
+     (level
+      (outline-hide-sublevels level)
+      (setq outline--cycle-buffer-state 'all-heading)
+      (message "All headings up to level %s" level))
      ((and (eq outline--cycle-buffer-state 'show-all)
-           has-top-level)
-      (outline-hide-sublevels 1)
+           top-level)
+      (outline-hide-sublevels top-level)
       (setq outline--cycle-buffer-state 'top-level)
       (message "Top level headings"))
      ((or (eq outline--cycle-buffer-state 'show-all)
