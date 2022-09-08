@@ -350,7 +350,7 @@ If NAMED is non-nil, count named child only."
 
 ;;; Query API supplement
 
-(defun treesit-query-in (source query &optional beg end)
+(defun treesit-query-in (source query &optional beg end node-only)
   "Query the current buffer with QUERY.
 
 SOURCE can be a language symbol, a parser, or a node.  If a
@@ -366,7 +366,7 @@ one, so it is recommend to compile your queries if it will be
 used over and over.
 
 BEG and END, if _both_ non-nil, specifies the range in which the query
-is executed.
+is executed.  If NODE-ONLY non-nil, return a list of nodes.
 
 Raise an treesit-query-error if QUERY is malformed."
   (treesit-query-capture
@@ -375,7 +375,7 @@ Raise an treesit-query-error if QUERY is malformed."
           (treesit-parser-root-node source))
          ((treesit-node-p source) source))
    query
-   beg end))
+   beg end node-only))
 
 (defun treesit-query-string (string query language)
   "Query STRING with QUERY in LANGUAGE.

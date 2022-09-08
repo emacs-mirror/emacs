@@ -1678,7 +1678,7 @@ query.  */)
 
 DEFUN ("treesit-query-capture",
        Ftreesit_query_capture,
-       Streesit_query_capture, 2, 4, 0,
+       Streesit_query_capture, 2, 5, 0,
        doc: /* Query NODE with patterns in QUERY.
 
 Return a list of (CAPTURE_NAME . NODE).  CAPTURE_NAME is the name
@@ -1691,13 +1691,13 @@ query is much faster than a string or sexp one, so it is recommend to
 compile your queries if it will be used over and over.
 
 BEG and END, if both non-nil, specifies the range in which the query
-is executed.
+is executed.  If NODE-ONLY is non-nil, return a list of nodes.
 
 Signals treesit-query-error if QUERY is malformed or something else
 goes wrong.  You can use `treesit-query-validate' to debug the
 query.  */)
   (Lisp_Object node, Lisp_Object query,
-   Lisp_Object beg, Lisp_Object end)
+   Lisp_Object beg, Lisp_Object end, Lisp_Object node_only)
 {
   ts_check_node (node);
   if (!NILP (beg))
@@ -1775,11 +1775,20 @@ query.  */)
 	  TSQueryCapture capture = captures[idx];
 	  Lisp_Object captured_node =
 	    make_ts_node(lisp_parser, capture.node);
-	  const char *capture_name = ts_query_capture_name_for_id
-	    (ts_query, capture.index, &capture_name_len);
-	  Lisp_Object cap =
-	    Fcons (intern_c_string_1 (capture_name, capture_name_len),
-		   captured_node);
+
+	  Lisp_Object cap;
+	  if (NILP (node_only))
+	    {
+	      const char *capture_name = ts_query_capture_name_for_id
+		(ts_query, capture.index, &capture_name_len);
+	      cap =
+		Fcons (intern_c_string_1 (capture_name, capture_name_len),
+		       captured_node);
+	    }
+	  else
+	    {
+	      cap = captured_node;
+	    }
 	  result = Fcons (cap, result);
 	}
       /* Get predicates.  */
