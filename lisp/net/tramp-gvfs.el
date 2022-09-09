@@ -414,9 +414,10 @@ It has been changed in GVFS 1.14.")
 ;; </interface>
 
 (defconst tramp-goa-identity-regexp
-  (rx bol (? (group (regexp tramp-user-regexp)))
-      "@" (? (group (regexp tramp-host-regexp)))
-      (? ":" (group (regexp tramp-port-regexp))))
+  (tramp-compat-rx
+   bol (? (group (regexp tramp-user-regexp)))
+   "@" (? (group (regexp tramp-host-regexp)))
+   (? ":" (group (regexp tramp-port-regexp))))
   "Regexp matching GNOME Online Accounts \"PresentationIdentity\" property.")
 
 (defconst tramp-goa-interface-mail "org.gnome.OnlineAccounts.Mail"
@@ -715,13 +716,15 @@ It has been changed in GVFS 1.14.")
     "GVFS file attributes."))
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-ls-regexp
-  (rx blank (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
-      "=" (group (+? nonl)))
+  (tramp-compat-rx
+   blank (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
+   "=" (group (+? nonl)))
   "Regexp to parse GVFS file attributes with `gvfs-ls'.")
 
 (defconst tramp-gvfs-file-attributes-with-gvfs-info-regexp
-  (rx bol (* blank) (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
-      ":" (+ blank) (group (* nonl)) eol)
+  (tramp-compat-rx
+   bol (* blank) (group (regexp (regexp-opt tramp-gvfs-file-attributes)))
+   ":" (+ blank) (group (* nonl)) eol)
   "Regexp to parse GVFS file attributes with `gvfs-info'.")
 
 (defconst tramp-gvfs-file-system-attributes
@@ -731,16 +734,17 @@ It has been changed in GVFS 1.14.")
   "GVFS file system attributes.")
 
 (defconst tramp-gvfs-file-system-attributes-regexp
-  (rx bol (* blank)
-      (group (regexp (regexp-opt tramp-gvfs-file-system-attributes)))
-      ":" (+ blank) (group (* nonl)) eol)
+  (tramp-compat-rx
+   bol (* blank)
+   (group (regexp (regexp-opt tramp-gvfs-file-system-attributes)))
+   ":" (+ blank) (group (* nonl)) eol)
   "Regexp to parse GVFS file system attributes with `gvfs-info'.")
 
 (defconst tramp-gvfs-nextcloud-default-prefix "/remote.php/webdav"
   "Default prefix for owncloud / nextcloud methods.")
 
 (defconst tramp-gvfs-nextcloud-default-prefix-regexp
-  (rx (literal tramp-gvfs-nextcloud-default-prefix) eol)
+  (tramp-compat-rx (literal tramp-gvfs-nextcloud-default-prefix) eol)
   "Regexp of default prefix for owncloud / nextcloud methods.")
 
 
@@ -1162,7 +1166,7 @@ file names."
     (with-parsed-tramp-file-name name nil
       ;; If there is a default location, expand tilde.
       (when (string-match
-	     (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
 	      localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
@@ -1180,7 +1184,7 @@ file names."
       ;; We do not pass "/..".
       (if (string-match-p (rx bos (| "afp" (: "dav" (? "s")) "smb") eos) method)
 	  (when (string-match
-		 (rx bos "/" (+ (not (any "/"))) (group "/.." (? "/")))
+		 (tramp-compat-rx bos "/" (+ (not "/")) (group "/.." (? "/")))
 		 localname)
 	    (setq localname (replace-match "/" t t localname 1)))
 	(when (string-match (rx bol "/.." (? "/")) localname)
@@ -1216,20 +1220,22 @@ file names."
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  (goto-char (point-min))
 	  (while (looking-at
-		  (rx bol (group (+ nonl)) blank
-		      (group (+ digit)) blank
-		      "(" (group (+? nonl)) ")"
-		      (regexp tramp-gvfs-file-attributes-with-gvfs-ls-regexp)))
+		  (tramp-compat-rx
+		   bol (group (+ nonl)) blank
+		   (group (+ digit)) blank
+		   "(" (group (+? nonl)) ")"
+		   (regexp tramp-gvfs-file-attributes-with-gvfs-ls-regexp)))
 	    (let ((item (list (cons "type" (match-string 3))
 			      (cons "standard::size" (match-string 2))
 			      (cons "name" (match-string 1)))))
 	      (goto-char (1+ (match-end 3)))
 	      (while (looking-at
-		      (rx (regexp tramp-gvfs-file-attributes-with-gvfs-ls-regexp)
-			  (group
-			   (| (regexp
-			       tramp-gvfs-file-attributes-with-gvfs-ls-regexp)
-			      eol))))
+		      (tramp-compat-rx
+		       (regexp tramp-gvfs-file-attributes-with-gvfs-ls-regexp)
+		       (group
+			(| (regexp
+			    tramp-gvfs-file-attributes-with-gvfs-ls-regexp)
+			   eol))))
 		(push (cons (match-string 1) (match-string 2)) item)
 		(goto-char (match-end 2)))
 	      ;; Add display name as head.
@@ -1277,7 +1283,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
     (if (or (and (string-match-p
 		  (rx bol (| "afp" (: "dav" (? "s")) "smb") eol) method)
 		 (string-match-p
-		  (rx bol (? "/") (+ (not (any "/"))) eol) localname))
+		  (tramp-compat-rx bol (? "/") (+ (not "/")) eol) localname))
 	    (string-equal localname "/"))
 	(tramp-gvfs-get-root-attributes filename)
       (assoc
@@ -1477,7 +1483,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   (let* ((events (process-get proc 'events))
 	 (rest-string (process-get proc 'rest-string))
 	 (dd (tramp-get-default-directory (process-buffer proc)))
-	 (ddu (rx (literal (tramp-gvfs-url-file-name dd)))))
+	 (ddu (tramp-compat-rx (literal (tramp-gvfs-url-file-name dd)))))
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
     (tramp-message proc 6 "%S\n%s" proc string)
@@ -1496,10 +1502,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
       (delete-process proc))
 
     (while (string-match
-	    (rx bol (+ nonl) ":"
-		blank (group (+ nonl)) ":"
-		blank (group (regexp (regexp-opt tramp-gio-events)))
-		(? (group blank (group (+ nonl)))) eol)
+	    (tramp-compat-rx
+	     bol (+ nonl) ":"
+	     blank (group (+ nonl)) ":"
+	     blank (group (regexp (regexp-opt tramp-gio-events)))
+	     (? (group blank (group (+ nonl)))) eol)
 	    string)
 
       (let ((file (match-string 1 string))
@@ -1730,7 +1737,8 @@ ID-FORMAT valid values are `string' and `integer'."
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
    (replace-regexp-in-string
-    (rx bol (* nonl) "/" (group (+ (not (any "/")))) eol) "\\1" object-path)))
+    (tramp-compat-rx bol (* nonl) "/" (group (+ (not "/"))) eol) "\\1"
+    object-path)))
 
 (defun tramp-gvfs-url-host (url)
   "Return the host name part of URL, a string.
@@ -2005,8 +2013,9 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		(string-equal domain (tramp-file-name-domain vec))
 		(string-equal host (tramp-file-name-host vec))
 		(string-equal port (tramp-file-name-port vec))
-		(string-match-p (rx bol "/" (literal (or share "")))
-				(tramp-file-name-unquote-localname vec)))
+		(string-match-p
+		 (tramp-compat-rx bol "/" (literal (or share "")))
+		 (tramp-file-name-unquote-localname vec)))
 	   ;; Set mountpoint and location.
 	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
 	   (tramp-set-connection-property
@@ -2050,7 +2059,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 		   (tramp-media-device-port media) (tramp-file-name-port vec)))
 	 (localname (tramp-file-name-unquote-localname vec))
 	 (share (when (string-match
-		       (rx bol (? "/") (group (+ (not (any "/"))))) localname)
+		       (tramp-compat-rx bol (? "/") (group (+ (not "/"))))
+		       localname)
 		  (match-string 1 localname)))
 	 (ssl (if (string-match-p (rx bol (| "davs" "nextcloud")) method)
 		  "true" "false"))
@@ -2093,7 +2103,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (list (tramp-gvfs-mount-spec-entry "port" port)))))
 	 (mount-pref
           (if (and (string-match-p (rx bol "dav") method)
-                   (string-match (rx bol (? "/") (+ (not (any "/")))) localname))
+                   (string-match
+		    (tramp-compat-rx bol (? "/") (+ (not "/"))) localname))
               (match-string 0 localname)
 	    (tramp-gvfs-get-remote-prefix vec))))
 

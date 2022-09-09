@@ -411,7 +411,7 @@ The string is used in `tramp-methods'.")
 
  (add-to-list 'tramp-default-method-alist
 	      `(,tramp-local-host-regexp
-		,(rx bos (literal tramp-root-id-string) eos) "su"))
+		,(tramp-compat-rx bos (literal tramp-root-id-string) eos) "su"))
 
  (add-to-list 'tramp-default-user-alist
 	      `(,(rx bos (| "su" "sudo" "doas" "ksu") eos)
@@ -1635,10 +1635,11 @@ ID-FORMAT valid values are `string' and `integer'."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
-	    (regexp (rx (group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))))))
+	    (regexp (tramp-compat-rx
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))))))
 	(when (and (tramp-remote-selinux-p v)
 		   (tramp-send-command-and-check
 		    v (format
@@ -2828,7 +2829,8 @@ the result will be a local, non-Tramp, file name."
   ;; by `file-name-absolute-p'.
   (if (and (eq system-type 'windows-nt)
 	   (string-match-p
-	    (rx bol (| (: alpha ":") (: (literal null-device) eol))) name))
+	    (tramp-compat-rx bol (| (: alpha ":") (: (literal null-device) eol)))
+	    name))
       (tramp-run-real-handler #'expand-file-name (list name dir))
     ;; Unless NAME is absolute, concat DIR and NAME.
     (unless (file-name-absolute-p name)
@@ -2845,7 +2847,8 @@ the result will be a local, non-Tramp, file name."
 	;; supposed to find such a shell on the remote host.  Please
 	;; tell me about it when this doesn't work on your system.
 	(when (string-match
-	       (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	       (tramp-compat-rx
+		bos "~" (group (* (not "/"))) (group (* nonl)) eos)
 	       localname)
 	  (let ((uname (match-string 1 localname))
 		(fname (match-string 2 localname))
@@ -3917,10 +3920,11 @@ Fall back to normal file name handler if no Tramp handler exists."
       (setq string (tramp-compat-string-replace "\n\n" "\n" string))
 
       (while (string-match
-	      (rx bol (+ (not (any ":"))) ":" blank
-		  (group (+ (not (any ":")))) ":" blank
-		  (group (regexp (regexp-opt tramp-gio-events)))
-		  (? blank (group (+ (not (any ":"))))) eol)
+	      (tramp-compat-rx
+	       bol (+ (not ":")) ":" blank
+	       (group (+ (not ":"))) ":" blank
+	       (group (regexp (regexp-opt tramp-gio-events)))
+	       (? blank (group (+ (not ":")))) eol)
 	      string)
 
         (let* ((file (match-string 1 string))
@@ -4020,55 +4024,65 @@ replaced by a temporary file name.  If VEC is nil, the respective
 local commands are used.  If there is a format specifier which
 cannot be expanded, this function returns nil."
   (if (not (string-match-p
-	    (rx (| bol (not (any "%"))) "%" (any "ahlnoprsty")) script))
+	    (tramp-compat-rx (| bol (not "%")) "%" (any "ahlnoprsty")) script))
       script
     (catch 'wont-work
-      (let ((awk (when (string-match-p (rx (| bol (not (any "%"))) "%a") script)
+      (let ((awk (when (string-match-p
+			(tramp-compat-rx (| bol (not "%")) "%a") script)
 		   (or
 		    (if vec (tramp-get-remote-awk vec) (executable-find "awk"))
 		    (throw 'wont-work nil))))
-	    (hdmp (when (string-match-p (rx (| bol (not (any "%"))) "%h") script)
+	    (hdmp (when (string-match-p
+			 (tramp-compat-rx (| bol (not "%")) "%h") script)
 		    (or
 		     (if vec (tramp-get-remote-hexdump vec)
 		       (executable-find "hexdump"))
 		     (throw 'wont-work nil))))
-	    (dev (when (string-match-p (rx (| bol (not (any "%"))) "%n") script)
+	    (dev (when (string-match-p
+			(tramp-compat-rx (| bol (not "%")) "%n") script)
 		   (or
 		    (if vec (concat "2>" (tramp-get-remote-null-device vec))
 		      (if (eq system-type 'windows-nt) ""
 			(concat "2>" null-device)))
 		    (throw 'wont-work nil))))
-	    (ls (when (string-match-p (rx (| bol (not (any "%"))) "%l") script)
+	    (ls (when (string-match-p
+		       (tramp-compat-rx (| bol (not "%")) "%l") script)
 		  (format "%s %s"
 			  (or (tramp-get-ls-command vec)
 			      (throw 'wont-work nil))
 			  (tramp-sh--quoting-style-options vec))))
-	    (od (when (string-match-p (rx (| bol (not (any "%"))) "%o") script)
+	    (od (when (string-match-p
+		       (tramp-compat-rx (| bol (not "%")) "%o") script)
 		  (or (if vec (tramp-get-remote-od vec) (executable-find "od"))
 		      (throw 'wont-work nil))))
-	    (perl (when (string-match-p (rx (| bol (not (any "%"))) "%p") script)
+	    (perl (when (string-match-p
+			 (tramp-compat-rx (| bol (not "%")) "%p") script)
 		    (or
 		     (if vec
 			 (tramp-get-remote-perl vec) (executable-find "perl"))
 		     (throw 'wont-work nil))))
-	    (python (when (string-match-p (rx (| bol (not (any "%"))) "%y") script)
+	    (python (when (string-match-p
+			   (tramp-compat-rx (| bol (not "%")) "%y") script)
 		    (or
 		     (if vec
-			 (tramp-get-remote-python vec) (executable-find "python"))
+			 (tramp-get-remote-python vec)
+		       (executable-find "python"))
 		     (throw 'wont-work nil))))
 	    (readlink (when (string-match-p
-			     (rx (| bol (not (any "%"))) "%r") script)
+			     (tramp-compat-rx (| bol (not "%")) "%r") script)
 			(or
 			 (if vec
 			 (tramp-get-remote-readlink vec)
 		       (executable-find "readlink"))
 		     (throw 'wont-work nil))))
-	    (stat (when (string-match-p (rx (| bol (not (any "%"))) "%s") script)
+	    (stat (when (string-match-p
+			 (tramp-compat-rx (| bol (not "%")) "%s") script)
 		    (or
 		     (if vec
 			 (tramp-get-remote-stat vec) (executable-find "stat"))
 		     (throw 'wont-work nil))))
-	    (tmp (when (string-match-p (rx (| bol (not (any "%"))) "%t") script)
+	    (tmp (when (string-match-p
+			(tramp-compat-rx (| bol (not "%")) "%t") script)
 		   (or
 		    (if vec
 			(tramp-file-local-name (tramp-make-tramp-temp-name vec))
@@ -4329,7 +4343,8 @@ file exists and nonzero exit status otherwise."
      "Couldn't find remote shell prompt for %s" shell)
     (unless
 	(tramp-check-for-regexp
-	 (tramp-get-connection-process vec) (rx (literal tramp-end-of-output)))
+	 (tramp-get-connection-process vec)
+	 (tramp-compat-rx (literal tramp-end-of-output)))
       (tramp-wait-for-output (tramp-get-connection-process vec))
       (tramp-message vec 5 "Setting shell prompt")
       (tramp-send-command
@@ -4370,7 +4385,8 @@ file exists and nonzero exit status otherwise."
 		(tramp-send-command
 		 vec (format "echo ~%s" tramp-root-id-string) t)
 		(if (or (string-match-p
-			 (rx bol "~" (literal tramp-root-id-string) eol)
+			 (tramp-compat-rx
+			  bol "~" (literal tramp-root-id-string) eol)
 			 (buffer-string))
 			;; The default shell (ksh93) of OpenSolaris
 			;; and Solaris is buggy.  We've got reports
@@ -4409,9 +4425,9 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
     (condition-case nil
 	(tramp-wait-for-regexp
 	 proc timeout
-	 (rx (| (regexp shell-prompt-pattern)
-		(regexp tramp-shell-prompt-pattern))
-	     eos))
+	 (tramp-compat-rx
+	  (| (regexp shell-prompt-pattern) (regexp tramp-shell-prompt-pattern))
+	  eos))
       (error
        (delete-process proc)
        (apply #'tramp-error-with-buffer
@@ -4771,7 +4787,7 @@ Goes through the list `tramp-local-coding-commands' and
 
 		  (with-current-buffer (tramp-get-connection-buffer vec)
 		    (goto-char (point-min))
-		    (unless (looking-at-p (rx (literal magic)))
+		    (unless (looking-at-p (tramp-compat-rx (literal magic)))
 		      (throw 'wont-work-remote nil)))
 
 		  ;; `rem-enc' and `rem-dec' could be a string meanwhile.
@@ -4857,7 +4873,7 @@ Goes through the list `tramp-inline-compress-commands'."
 	              nil t))
               (throw 'next nil))
 	    (goto-char (point-min))
-	    (unless (looking-at-p (rx (literal magic)))
+	    (unless (looking-at-p (tramp-compat-rx (literal magic)))
 	      (throw 'next nil)))
           (tramp-message
 	   vec 5
@@ -4868,7 +4884,7 @@ Goes through the list `tramp-inline-compress-commands'."
 	    (throw 'next nil))
 	  (with-current-buffer (tramp-get-buffer vec)
 	    (goto-char (point-min))
-	    (unless (looking-at-p (rx (literal magic)))
+	    (unless (looking-at-p (tramp-compat-rx (literal magic)))
 	      (throw 'next nil)))
 	  (setq found t)))
 
@@ -5357,14 +5373,15 @@ function waits for output unless NOOUTPUT is set."
 	   ;; Busyboxes built with the EDITING_ASK_TERMINAL config
 	   ;; option send also escape sequences, which must be
 	   ;; ignored.
-	   (regexp (rx (* (not (any "#$\n")))
-		       (literal tramp-end-of-output)
-		       (? (regexp tramp-device-escape-sequence-regexp))
-		       (? "\r") eol))
+	   (regexp (tramp-compat-rx
+		    (* (not (any "#$\n")))
+		    (literal tramp-end-of-output)
+		    (? (regexp tramp-device-escape-sequence-regexp))
+		    (? "\r") eol))
 	   ;; Sometimes, the commands do not return a newline but a
 	   ;; null byte before the shell prompt, for example "git
 	   ;; ls-files -c -z ...".
-	   (regexp1 (rx (| bol "\000") (regexp regexp)))
+	   (regexp1 (tramp-compat-rx (| bol "\000") (regexp regexp)))
 	   (found (tramp-wait-for-regexp proc timeout regexp1)))
       (if found
 	  (let ((inhibit-read-only t))
@@ -5404,7 +5421,8 @@ the exit status."
   (let (cmd data)
     (if (and (stringp command)
 	     (string-match
-	      (rx (* nonl) "<<'" (literal tramp-end-of-heredoc) "'" (* nonl))
+	      (tramp-compat-rx
+	       (* nonl) "<<'" (literal tramp-end-of-heredoc) "'" (* nonl))
 	      command))
 	(setq cmd (match-string 0 command)
 	      data (substring command (match-end 0)))
@@ -5574,7 +5592,7 @@ Nonexistent directories are removed from spec."
 		    (tramp-get-method-parameter vec 'tramp-remote-shell-args)
 		    " ")
 		   (tramp-shell-quote-argument tramp-end-of-heredoc))
-		  'noerror (rx (literal tramp-end-of-heredoc)))
+		  'noerror (tramp-compat-rx (literal tramp-end-of-heredoc)))
 		 (progn
 		   (tramp-message
 		    vec 2 "Could not retrieve `tramp-own-remote-path'")
@@ -5624,7 +5642,7 @@ Nonexistent directories are removed from spec."
 	(while candidates
 	  (goto-char (point-min))
 	  (if (string-match-p
-	       (rx bol (literal (car candidates)) (? "\r") eol)
+	       (tramp-compat-rx bol (literal (car candidates)) (? "\r") eol)
 	       (buffer-string))
 	      (setq locale (car candidates)
 		    candidates nil)
@@ -5703,7 +5721,7 @@ Nonexistent directories are removed from spec."
 	vec (format "( %s / -nt / )" (tramp-get-test-command vec)))
        (with-current-buffer (tramp-get-buffer vec)
 	 (goto-char (point-min))
-	 (when (looking-at-p (rx (literal tramp-end-of-output)))
+	 (when (looking-at-p (tramp-compat-rx (literal tramp-end-of-output)))
 	   (format "%s %%s -nt %%s" (tramp-get-test-command vec)))))
      (progn
        (tramp-send-command

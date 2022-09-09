@@ -49,7 +49,7 @@
 		(tramp-password-previous-hop t)))
 
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (literal tramp-sudoedit-method) eos)
+	      `(,(tramp-compat-rx bos (literal tramp-sudoedit-method) eos)
 		nil ,tramp-root-id-string))
 
  (tramp-set-completion-function
@@ -377,7 +377,7 @@ the result will be a local, non-Tramp, file name."
     (unless (file-name-absolute-p localname)
       (setq localname (format "~%s/%s" user localname)))
     (when (string-match
-	   (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	   (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
 	   localname)
       (let ((uname (match-string 1 localname))
 	    (fname (match-string 2 localname))
@@ -518,10 +518,11 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name filename nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
-	    (regexp (rx (group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))) ":"
-			(group (+ (any "_" alnum))))))
+	    (regexp (tramp-compat-rx
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))) ":"
+		     (group (+ (any "_" alnum))))))
 	(when (and (tramp-sudoedit-remote-selinux-p v)
 		   (tramp-sudoedit-send-command
 		    v "ls" "-d" "-Z"

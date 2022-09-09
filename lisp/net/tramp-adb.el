@@ -71,20 +71,22 @@ It is used for TCP/IP devices."
   "Regexp for date time format in ls output."))
 
 (defconst tramp-adb-ls-date-regexp
-  (rx blank (regexp tramp-adb-ls-date-year-regexp)
-      blank (regexp tramp-adb-ls-date-time-regexp)
-      blank)
+  (tramp-compat-rx
+   blank (regexp tramp-adb-ls-date-year-regexp)
+   blank (regexp tramp-adb-ls-date-time-regexp)
+   blank)
   "Regexp for date format in ls output.")
 
 (defconst tramp-adb-ls-toolbox-regexp
-  (rx bol (* blank) (group (+ (any ".-" alpha)))		; \1 permissions
-      (? (+ blank) (+ digit))			      ; links (Android 7/toybox)
-      (* blank) (group (+ (not blank)))				; \2 username
-      (+ blank) (group (+ (not blank)))				; \3 group
-      (+ blank) (group (+ digit))				; \4 size
-      (+ blank) (group (regexp tramp-adb-ls-date-year-regexp)
-		 blank (regexp tramp-adb-ls-date-time-regexp))	; \5 date
-      blank (group (* nonl)) eol)				; \6 filename
+  (tramp-compat-rx
+   bol (* blank) (group (+ (any ".-" alpha)))			; \1 permissions
+   (? (+ blank) (+ digit))			      ; links (Android 7/toybox)
+   (* blank) (group (+ (not blank)))				; \2 username
+   (+ blank) (group (+ (not blank)))				; \3 group
+   (+ blank) (group (+ digit))					; \4 size
+   (+ blank) (group (regexp tramp-adb-ls-date-year-regexp)
+	      blank (regexp tramp-adb-ls-date-time-regexp))	; \5 date
+   blank (group (* nonl)) eol)					; \6 filename
   "Regexp for ls output.")
 
 ;;;###tramp-autoload
@@ -324,8 +326,8 @@ arguments to pass to the OPERATION."
 		     (tramp-shell-quote-argument
 		      (tramp-compat-file-name-concat localname ".."))))
 	  (tramp-compat-replace-regexp-in-region
-	   (rx (literal (tramp-compat-file-name-unquote
-			 (file-name-as-directory localname))))
+	   (tramp-compat-rx (literal (tramp-compat-file-name-unquote
+				      (file-name-as-directory localname))))
 	   "" (point-min))
 	  (widen)))
       (tramp-adb-sh-fix-ls-output)
@@ -363,12 +365,14 @@ Emacs dired can't find files."
     (goto-char (point-min))
     (while
 	(search-forward-regexp
-	 (rx blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
+	 (tramp-compat-rx
+	  blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
 	 nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
       (when (looking-at-p
-	     (rx (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
+	     (tramp-compat-rx
+	      (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
@@ -944,7 +948,7 @@ implementation will be used."
 		 (i 0)
 		 p)
 
-	    (when (string-match-p (rx multibyte) command)
+	    (when (string-match-p (tramp-compat-rx multibyte) command)
 	      (tramp-error
 	       v 'file-error "Cannot apply multi-byte command `%s'" command))
 
@@ -1136,7 +1140,7 @@ error and non-nil on success."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (string-match-p (rx multibyte) command)
+  (if (string-match-p (tramp-compat-rx multibyte) command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
 
@@ -1160,7 +1164,7 @@ error and non-nil on success."
 	  ;; We can't use stty to disable echo of command.  stty is said
 	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
 	  ;; isn't used any longer for Android.
-	  (delete-matching-lines (rx bol (literal command) eol))
+	  (delete-matching-lines (tramp-compat-rx bol (literal command) eol))
 	  ;; When the local machine is W32, there are still trailing ^M.
 	  ;; There must be a better solution by setting the correct coding
 	  ;; system, but this requires changes in core Tramp.
@@ -1283,7 +1287,7 @@ connection if a previous connection has died for some reason."
 
 	    ;; Change prompt.
 	    (tramp-set-connection-property
-	     p "prompt" (rx "///" (literal prompt) "#$"))
+	     p "prompt" (tramp-compat-rx "///" (literal prompt) "#$"))
 	    (tramp-adb-send-command
 	     vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
 

@@ -355,7 +355,7 @@ The remote connection identified by SOURCE is flushed by
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (rx (literal (file-remote-p source)))))
+		       (tramp-compat-rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  "Enter new Tramp connection: "
 		  dir default 'confirm init #'file-directory-p)))))
@@ -466,7 +466,7 @@ For details, see `tramp-rename-files'."
 		      (dir (tramp-rename-read-file-name-dir default))
 		      (init (tramp-rename-read-file-name-init default))
 		      (tramp-ignored-file-name-regexp
-		       (rx (literal (file-remote-p source)))))
+		       (tramp-compat-rx (literal (file-remote-p source)))))
 		 (read-file-name-default
 		  (format "Change Tramp connection `%s': " source)
 		  dir default 'confirm init #'file-directory-p)))))
@@ -621,10 +621,11 @@ buffer in your bug report.
     (unless (hash-table-p val)
       ;; Remove string quotation.
       (when (looking-at
-	     (rx bol (group (* anychar)) "\""          ;; \1 "
-		 (group "(base64-decode-string ") "\\" ;; \2 \
-		 (group "\"" (* anychar)) "\\"         ;; \3 \
-		 (group "\")") "\"" eol))              ;; \4 "
+	     (tramp-compat-rx
+	      bol (group (* anychar)) "\""          ;; \1 "
+	      (group "(base64-decode-string ") "\\" ;; \2 \
+	      (group "\"" (* anychar)) "\\"         ;; \3 \
+	      (group "\")") "\"" eol))              ;; \4 "
 	(replace-match "\\1\\2\\3\\4")
 	(beginning-of-line)
 	(insert " ;; Variable encoded due to non-printable characters.\n")))

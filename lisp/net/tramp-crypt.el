@@ -555,7 +555,7 @@ localname."
 (defun tramp-crypt-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (let* ((encrypt-filename (tramp-crypt-encrypt-file-name filename))
-	 (encrypt-regexp (rx (literal encrypt-filename) eos))
+	 (encrypt-regexp (tramp-compat-rx (literal encrypt-filename) eos))
 	 tramp-crypt-enabled)
     (condition-case err
 	(access-file encrypt-filename string)
@@ -707,7 +707,7 @@ absolute file names."
       (mapcar
        (lambda (x)
 	 (replace-regexp-in-string
-	  (rx bos (literal directory)) ""
+	  (tramp-compat-rx bos (literal directory)) ""
 	  (tramp-crypt-decrypt-file-name x)))
        (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))))
 

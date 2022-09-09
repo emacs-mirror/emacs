@@ -53,7 +53,7 @@
 ;;;###tramp-autoload
 (tramp--with-startup
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (literal tramp-smb-method) eos) nil nil))
+	      `(,(tramp-compat-rx bos (literal tramp-smb-method) eos) nil nil))
 
  ;; Add completion function for SMB method.
  (tramp-set-completion-function
@@ -92,9 +92,9 @@ this variable \"client min protocol=NT1\"."
   "Version string of the SMB client.")
 
 (defconst tramp-smb-server-version
-  (rx "Domain=[" (* (not (any "]"))) "] "
-      "OS=[" (* (not (any "]"))) "] "
-      "Server=[" (* (not (any "]"))) "]")
+  (tramp-compat-rx "Domain=[" (* (not "]")) "] "
+		   "OS=[" (* (not "]")) "] "
+		   "Server=[" (* (not "]")) "]")
   "Regexp of SMB server identification.")
 
 (defconst tramp-smb-prompt
@@ -729,7 +729,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (with-parsed-tramp-file-name name nil
       ;; Tilde expansion if necessary.
       (when (string-match
-	     (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
 	     localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
@@ -1082,7 +1082,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     ;; Check for matching entries.
 		     (mapcar
 		      (lambda (x)
-			(when (string-match-p (rx bol (literal base)) (nth 0 x))
+			(when (string-match-p
+			       (tramp-compat-rx bol (literal base)) (nth 0 x))
 			  x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
@@ -1632,7 +1633,7 @@ VEC or USER, or if there is no home directory, return nil."
   (save-match-data
     (let ((localname (tramp-file-name-unquote-localname vec)))
       (when (string-match
-	     (rx bol (? "/") (group (+ (not (any "/")))) "/") localname)
+	     (tramp-compat-rx bol (? "/") (group (+ (not "/"))) "/") localname)
 	(match-string 1 localname)))))
 
 (defun tramp-smb-get-localname (vec)
@@ -1643,7 +1644,8 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
       (setq
        localname
        (if (string-match
-	    (rx bol (? "/") (+ (not (any "/"))) (group "/" (* nonl))) localname)
+	    (tramp-compat-rx bol (? "/") (+ (not "/")) (group "/" (* nonl)))
+	    localname)
 	   ;; There is a share, separated by "/".
 	   (if (not (tramp-smb-get-cifs-capabilities vec))
 	       (mapconcat
@@ -1652,7 +1654,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	     (match-string 1 localname))
 	 ;; There is just a share.
 	 (if (string-match
-	      (rx bol (? "/") (group (+ (not (any "/")))) eol) localname)
+	      (tramp-compat-rx bol (? "/") (group (+ (not "/"))) eol) localname)
 	     (match-string 1 localname)
 	   "")))
 
@@ -1781,7 +1783,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 	;; Read share entries.
 	(when (string-match
-	       (rx bol "Disk|" (group (+ (not (any "|")))) "|") line)
+	       (tramp-compat-rx bol "Disk|" (group (+ (not "|"))) "|") line)
 	  (setq localname (match-string 1 line)
 		mode "dr-xr-xr-x"
 		size 0))

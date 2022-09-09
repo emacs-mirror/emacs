@@ -69,10 +69,11 @@
 	       (tramp-fuse-local-file-name directory))))))))
     (if full
 	;; Massage the result.
-	(let ((local (rx bol
-			 (literal
-			  (tramp-fuse-mount-point
-			   (tramp-dissect-file-name directory)))))
+	(let ((local (tramp-compat-rx
+		      bol
+		      (literal
+		       (tramp-fuse-mount-point
+			(tramp-dissect-file-name directory)))))
 	      (remote (directory-file-name
 		       (funcall
 			(if (tramp-compat-file-name-quoted-p directory)
@@ -179,7 +180,8 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
-	          (rx bol (group (literal (tramp-fuse-mount-spec vec))) blank)
+	          (tramp-compat-rx
+		   bol (group (literal (tramp-fuse-mount-spec vec))) blank)
 	          mount)
              (match-string 1 mount)))))))
 

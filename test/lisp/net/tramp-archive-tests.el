@@ -616,13 +616,15 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    (insert-directory tramp-archive-test-archive nil)
 	    (goto-char (point-min))
 	    (should
-	     (looking-at-p (rx (literal tramp-archive-test-archive)))))
+	     (looking-at-p
+	      (tramp-compat-rx (literal tramp-archive-test-archive)))))
 	  (with-temp-buffer
 	    (insert-directory tramp-archive-test-archive "-al")
 	    (goto-char (point-min))
 	    (should
 	     (looking-at-p
-	      (rx bol (+ nonl) blank (literal tramp-archive-test-archive) eol))))
+	      (tramp-compat-rx
+	       bol (+ nonl) blank (literal tramp-archive-test-archive) eol))))
 	  (with-temp-buffer
 	    (insert-directory
 	     (file-name-as-directory tramp-archive-test-archive)
@@ -917,14 +919,15 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	(dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
           (should
            (string-match
-	    (rx "tramp-archive loaded: "
-		(literal (symbol-name
-			  (tramp-archive-file-name-p default-directory)))
-		(+ ascii)
-		"tramp-archive loaded: "
-		(literal (symbol-name
-			  (or (tramp-archive-file-name-p default-directory)
-			     (and enabled (tramp-archive-file-name-p file))))))
+	    (tramp-compat-rx
+	     "tramp-archive loaded: "
+	     (literal (symbol-name
+		       (tramp-archive-file-name-p default-directory)))
+	     (+ ascii)
+	     "tramp-archive loaded: "
+	     (literal (symbol-name
+		       (or (tramp-archive-file-name-p default-directory)
+			   (and enabled (tramp-archive-file-name-p file))))))
 	    (shell-command-to-string
 	     (format
 	      "%s -batch -Q -L %s --eval %s --eval %s"
@@ -961,9 +964,10 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (dolist (tae '(t nil))
       (should
        (string-match
-	(rx "tramp-archive loaded: nil" (+ ascii)
-	    "tramp-archive loaded: nil" (+ ascii)
-	    "tramp-archive loaded: " (literal (symbol-name tae)))
+	(tramp-compat-rx
+	 "tramp-archive loaded: nil" (+ ascii)
+	 "tramp-archive loaded: nil" (+ ascii)
+	 "tramp-archive loaded: " (literal (symbol-name tae)))
         (shell-command-to-string
          (format
 	  "%s -batch -Q -L %s --eval %s"
