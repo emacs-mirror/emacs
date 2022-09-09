@@ -3104,8 +3104,8 @@ lambda-expression."
              ;; Check that the bit after the `interactive' spec is
              ;; just a list of symbols (i.e., modes).
 	     (unless (seq-every-p #'symbolp (cdr (cdr int)))
-	       (byte-compile-warn-x int "malformed interactive specc: %s"
-				    int))
+	       (byte-compile-warn-x
+                int "malformed `interactive' specification: %s" int))
              (setq command-modes (cdr (cdr int)))
 	     ;; If the interactive spec is a call to `list', don't
 	     ;; compile it, because `call-interactively' looks at the
