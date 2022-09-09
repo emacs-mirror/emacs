@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2022 Free Software Foundation, Inc.
+Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -11491,7 +11491,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
       {
 	g_object_unref (pixbuf);
-	return 0;
+	return false;
       }
 
     init_color_table ();
@@ -11536,7 +11536,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     image_put_x_image (f, img, ximg, 0);
   }
 
-  return 1;
+  return true;
 
  rsvg_error:
   if (rsvg_handle)
@@ -11547,11 +11547,11 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (css && !STRINGP (lcss))
     xfree (css);
 #endif
-  /* FIXME: Use error->message so the user knows what is the actual
-     problem with the image.  */
-  image_error ("Error parsing SVG image");
+  image_error ("Error parsing SVG image: %s",
+	       /* The -1 removes an extra newline.  */
+	       make_string (err->message, strlen (err->message) - 1));
   g_clear_error (&err);
-  return 0;
+  return false;
 }
 
 #endif	/* defined (HAVE_RSVG) */

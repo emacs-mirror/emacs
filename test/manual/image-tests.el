@@ -78,6 +78,17 @@
 (image-tests-make-load-image-test 'xbm)
 (image-tests-make-load-image-test 'xpm)
 
+(ert-deftest image-tests-load-image/svg-invalid ()
+  (with-temp-buffer
+    (pop-to-buffer (current-buffer))
+    (insert (propertize " "
+                        'display '(image :data
+                                         "invalid foo bar"
+                                         :type svg)))
+    (redisplay))
+  (with-current-buffer "*Messages*"
+    (should (string-search "XML parse error" (buffer-string)))))
+
 
 ;;;; image-test-size
 
