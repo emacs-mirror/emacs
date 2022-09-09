@@ -4179,6 +4179,7 @@ from Edebug instrumentation found in the backtrace."
     (backtrace-mode)
     (add-hook 'backtrace-goto-source-functions
               #'edebug--backtrace-goto-source nil t))
+  (edebug-backtrace-mode)
   (setq edebug-instrumented-backtrace-frames
         (backtrace-get-frames 'edebug-debugger
                               :constructor #'edebug--make-frame)
@@ -4254,6 +4255,14 @@ Save DEF-NAME, BEFORE-INDEX and AFTER-INDEX in FRAME."
   (setf (edebug--frame-def-name frame) (and before-index def-name))
   (setf (edebug--frame-before-index frame) before-index)
   (setf (edebug--frame-after-index frame) after-index))
+
+(defvar-keymap edebug-backtrace-mode-map
+  "s" #'backtrace-goto-source)
+
+(define-minor-mode edebug-backtrace-mode
+  "Minor mode for showing backtraces from edebug."
+  :lighter nil
+  :interactive nil)
 
 (defun edebug--backtrace-goto-source ()
   (let* ((index (backtrace-get-index))
