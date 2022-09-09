@@ -99,6 +99,7 @@
 (require 'pcomplete)
 (eval-when-compile (require 'files-x)) ;with-connection-local-variables
 (require 'subr-x)
+(eval-when-compile (require 'cl-lib))
 
 ;;; Customization and Buffer Variables
 
@@ -306,6 +307,22 @@ for Shell mode only."
 		 (const history)
 		 (const :tag "on" t))
   :group 'shell)
+
+(defcustom shell-comint-fl-enable t
+  "Enable highlighting of input in shell buffers.
+This variable only has effect when the shell is started.  Use the
+command `comint-fl-mode' to toggle highlighting of input."
+  :type 'boolean
+  :group 'shell
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom shell-indirect-setup-hook nil
+  "Hook run after setting up an indirect shell fontification buffer."
+  :type 'boolean
+  :group 'shell
+  :safe 'booleanp
+  :version "29.1")
 
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.
@@ -522,6 +539,8 @@ Shell buffers.  It implements `shell-completion-execonly' for
 
 (put 'shell-mode 'mode-class 'special)
 
+(defvar sh-shell-file)
+
 (define-derived-mode shell-mode comint-mode "Shell"
   "Major mode for interacting with an inferior shell.
 \\<shell-mode-map>
@@ -585,6 +604,11 @@ from `shell-mode-hook', Emacs will call the `ding' function
 whenever it receives the bell character in output from a
 command."
   :interactive nil
+  :after-hook
+  (and (null comint-use-prompt-regexp)
+       shell-comint-fl-enable
+       (comint-fl-mode))
+
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
   (setq-local paragraph-separate "\\'")
@@ -603,6 +627,19 @@ command."
   ;; sequences into `font-lock-face' properties.
   (setq-local ansi-color-apply-face-function #'shell-apply-ansi-color)
   (shell-reapply-ansi-color)
+
+  (add-hook 'comint-indirect-setup-hook
+            #'shell-indirect-setup-hook 'append t)
+  (setq comint-indirect-setup-function
+        (let ((shell shell--start-prog))
+          (lambda ()
+            (require 'sh-script)
+            (cl-letf
+                (((default-value 'sh-shell-file)
+                  (or shell sh-shell-file))
+                 (inhibit-message t)
+                 (message-log-max nil))
+              (sh-mode)))))
 
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
@@ -657,6 +694,10 @@ command."
         (setq-local comint-input-ring-file-prefix
                     ": [[:digit:]]+:[[:digit:]]+;")))
     (comint-read-input-ring t)))
+
+(defun shell-indirect-setup-hook ()
+  "Run `shell-indirect-setup-hook'."
+  (run-hooks 'shell-indirect-setup-hook))
 
 (defun shell-apply-ansi-color (beg end face)
   "Apply FACE as the ansi-color face for the text between BEG and END."
