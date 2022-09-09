@@ -80,14 +80,15 @@
 
 (ert-deftest image-tests-load-image/svg-invalid ()
   (with-temp-buffer
-    (pop-to-buffer (current-buffer))
-    (insert (propertize " "
-                        'display '(image :data
-                                         "invalid foo bar"
-                                         :type svg)))
-    (redisplay))
-  (with-current-buffer "*Messages*"
-    (should (string-search "XML parse error" (buffer-string)))))
+    (let ((messages-buffer-name (buffer-name (current-buffer))))
+      (with-temp-buffer
+        (pop-to-buffer (current-buffer))
+        (insert (propertize " "
+                            'display '(image :data
+                                             "invalid foo bar"
+                                             :type svg)))
+        (redisplay))
+      (should (string-search "XML parse error" (buffer-string))))))
 
 
 ;;;; image-test-size
