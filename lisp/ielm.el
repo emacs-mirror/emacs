@@ -472,6 +472,27 @@ nonempty, then flushes the buffer."
   ;; Set the process mark in the current buffer to POS.
   (set-marker (process-mark (get-buffer-process (current-buffer))) pos))
 
+;;; Input fontification
+
+(defcustom ielm-comint-fl-enable t
+  "Enable highlighting of input in ielm buffers.
+This variable only has effect when creating an ielm buffer.  Use
+the command `comint-fl-mode' to toggle highlighting of input in
+an already existing ielm buffer."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defcustom ielm-indirect-setup-hook nil
+  "Hook run after setting up an indirect ielm fontification buffer."
+  :type 'boolean
+  :safe 'booleanp
+  :version "29.1")
+
+(defun ielm-indirect-setup-hook ()
+  "Run `ielm-indirect-setup-hook'."
+  (run-hooks 'ielm-indirect-setup-hook))
+
 ;;; Major mode
 
 (define-derived-mode inferior-emacs-lisp-mode comint-mode "IELM"
@@ -526,6 +547,10 @@ The behavior of IELM may be customized with the following variables:
 Customized bindings may be defined in `ielm-map', which currently contains:
 \\{ielm-map}"
   :syntax-table emacs-lisp-mode-syntax-table
+  :after-hook
+  (and (null comint-use-prompt-regexp)
+       ielm-comint-fl-enable
+       (comint-fl-mode))
 
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (setq-local paragraph-separate "\\'")
@@ -563,6 +588,10 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   ;; font-lock support
   (setq-local font-lock-defaults
        '(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
+
+  (add-hook 'comint-indirect-setup-hook
+            #'ielm-indirect-setup-hook 'append t)
+  (setq comint-indirect-setup-function #'emacs-lisp-mode)
 
   ;; A dummy process to keep comint happy. It will never get any input
   (unless (comint-check-proc (current-buffer))
