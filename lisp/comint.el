@@ -1944,6 +1944,7 @@ Similarly for Soar, Scheme, etc."
               (when comint-highlight-input
                 (add-text-properties beg end
                                      '( font-lock-face comint-highlight-input
+                                        comint--fl-inhibit-fontification t
                                         front-sticky t )))
               (unless comint-use-prompt-regexp
                 ;; Give old user input a field property of `input', to
@@ -4011,6 +4012,234 @@ This function is intended to be included as an entry of
              (cons (point-marker) (match-string-no-properties 1 text)))))
 
 
+;;; Input fontification through an indirect buffer
+;;============================================================================
+;;
+;; Modes derived from `comint-mode' can set up fontification input
+;; text with the help of an indirect buffer whose major mode and
+;; font-lock settings are set accordingly.
+
+(defvar-local comint-indirect-setup-function nil
+  "Function to set up an indirect comint fontification buffer.
+This function is called by `comint-indirect-buffer' with zero
+arguments after making an indirect buffer.  It is usually set to
+a major-mode command whose font-locking is desired for input
+text.  In order to prevent possible mode hooks from running, the
+variable `delay-mode-hooks' is set to t prior to calling this
+function and `change-major-mode-hook' along with
+`after-change-major-mode-hook' are bound to nil.")
+
+(defcustom comint-indirect-setup-hook nil
+  "Hook run after setting up an indirect comint fontification buffer.
+It is run after the indirect buffer is set up for fontification
+of input regions."
+  :group 'comint
+  :type 'hook
+  :version "29.1")
+
+(defvar-local comint--indirect-buffer nil
+  "Indirect buffer used for input fontification.")
+
+(defvar-local comint--fl-saved-jit-lock-contextually nil)
+
+(define-minor-mode comint-fl-mode
+  "Enable input fontification in the current comint buffer.
+This minor mode is useful if the current major mode derives from
+`comint-mode' and if `comint-indirect-setup-function' is set.
+Comint modes that support input fontification usually set this
+variable buffer-locally to a major-mode command whose
+font-locking is desired for input text.
+
+Input text is fontified through an indirect buffer created with
+`comint-indirect-buffer', which see.
+
+This function signals an error if `comint-use-prompt-regexp' is
+non-nil.  Input fontification isn't compatible with this
+setting."
+  :lighter nil
+  (if comint-fl-mode
+      (let ((success nil))
+        (unwind-protect
+            (progn
+              (comint--fl-on)
+              (setq success t))
+          (unless success
+            (setq comint-fl-mode nil)
+            (comint--fl-off))))
+    (comint--fl-off)))
+
+(defun comint--fl-on ()
+  "Enable input fontification in the current comint buffer."
+  (comint--fl-off)
+
+  (when comint-use-prompt-regexp
+    (error
+     "Input fontification is incompatible with `comint-use-prompt-regexp'"))
+
+  (add-function :around (local 'font-lock-fontify-region-function)
+                #'comint--fl-fontify-region)
+  ;; `before-change-functions' are only run in the current buffer and
+  ;; not in its indirect buffers, which means that we must manually
+  ;; flush ppss cache
+  (add-hook 'before-change-functions
+            #'comint--fl-ppss-flush-indirect 99 t)
+
+  ;; Set up contextual fontification
+  (unless (booleanp jit-lock-contextually)
+    (setq comint--fl-saved-jit-lock-contextually
+          jit-lock-contextually)
+    (setq-local jit-lock-contextually t)
+    (when jit-lock-mode
+      (jit-lock-mode t))))
+
+(defun comint--fl-off ()
+  "Disable input fontification in the current comint buffer."
+  (remove-function (local 'font-lock-fontify-region-function)
+                   #'comint--fl-fontify-region)
+  (remove-hook 'before-change-functions
+               #'comint--fl-ppss-flush-indirect t)
+
+  ;; Reset contextual fontification
+  (when comint--fl-saved-jit-lock-contextually
+    (setq-local jit-lock-contextually
+                comint--fl-saved-jit-lock-contextually)
+    (setq comint--fl-saved-jit-lock-contextually nil)
+    (when jit-lock-mode
+      (jit-lock-mode t)))
+
+  (font-lock-flush))
+
+(defun comint--fl-ppss-flush-indirect (beg &rest rest)
+  (when-let ((buf (comint-indirect-buffer t)))
+    (with-current-buffer buf
+      (when (memq #'syntax-ppss-flush-cache before-change-functions)
+        (apply #'syntax-ppss-flush-cache beg rest)))))
+
+(defun comint--fl-fontify-region (fun beg end verbose)
+  "Fontify process output and user input in the current comint buffer.
+First, highlight the region between BEG and END using FUN.  Then
+highlight only the input text in the region with the help of an
+indirect buffer.  VERBOSE is passed to the fontify-region
+functions.  Skip fontification of input regions with non-nil
+`comint--fl-inhibit-fontification' text property."
+  (pcase (funcall fun beg end verbose)
+    (`(jit-lock-bounds ,beg1 . ,end1)
+     (setq beg beg1 end end1)))
+  (pcase
+      (let ((min (point-min))
+            (max (point-max)))
+        (with-current-buffer (comint-indirect-buffer)
+          (narrow-to-region min max)
+          (comint--intersect-regions
+           nil (lambda (beg end)
+                 (unless (get-text-property
+                          beg 'comint--fl-inhibit-fontification)
+                   (font-lock-fontify-region beg end verbose)))
+           beg end)))
+    (`((jit-lock-bounds ,beg1 . ,_) . (jit-lock-bounds ,_ . ,end1))
+     (setq beg (min beg beg1))
+     (setq end (max end end1))))
+
+  `(jit-lock-bounds ,beg . ,end))
+
+(defun comint--intersect-regions (fun-output fun-input beg end)
+  "Iterate over comint output and input regions between BEG and END.
+Divide the region specified by BEG and END into smaller regions
+that cover either process output (its `field' property is `output')
+or input (all remaining text).  Interchangeably call FUN-OUTPUT
+on each output region, and FUN-INPUT on each input region.
+
+FUN-OUTPUT and FUN-INPUT are passed two arguments, the beginning
+and end of the smaller region.  Before calling each function,
+narrow the buffer to the surrounding process output or input.  You
+can also pass nil as either function to skip its corresponding
+regions.
+
+Return a cons cell of return values of the first and last
+function called, or nil, if no function was called (if BEG = END)."
+  (let ((beg1 beg)
+        (end1 (copy-marker nil t))
+        (return-beg nil) (return-end nil)
+        (is-output (eq (get-text-property beg 'field) 'output)))
+    (setq end (copy-marker end t))
+
+    (while (< beg1 end)
+      (set-marker
+       end1 (or (if is-output
+                    (text-property-not-all beg1 end 'field 'output)
+                  (text-property-any beg1 end 'field 'output))
+                end))
+      (when-let ((fun (if is-output fun-output fun-input)))
+        (save-restriction
+          (let ((beg2 beg1)
+                (end2 end1))
+            (when (= beg2 beg)
+              (setq beg2 (field-beginning beg2)))
+            (when (= end2 end)
+              (setq end2 (field-end end2)))
+            ;; Narrow to the whole field surrounding the region
+            (narrow-to-region beg2 end2))
+          (setq return-end (list (funcall fun beg1
+                                          (marker-position end1)))))
+        (unless return-beg
+          (setq return-beg return-end)))
+      (setq beg1 (marker-position end1))
+      (setq is-output (not is-output)))
+
+    (set-marker end nil)
+    (set-marker end1 nil)
+    (when return-beg
+      (cons (car return-beg) (car return-end)))))
+
+(defun comint-indirect-buffer (&optional no-create)
+  "Return an indirect comint fontification buffer.
+If an indirect buffer for the current buffer already exists,
+return it, otherwise create it first and set it up by calling
+`comint-indirect-setup-function' with zero arguments, turning on
+font-lock, and running `comint-indirect-setup-hook'.  This setup
+happens with `delay-mode-hooks' set to t in order to prevent
+possible SETUP-FUN's mode hooks from running.
+
+If an indirect buffer doesn't exist and NO-CREATE is non-nil,
+return nil."
+  (or
+   comint--indirect-buffer
+   (unless no-create
+     (let ((setup-hook
+            (if (local-variable-p 'comint-indirect-setup-hook)
+                (list comint-indirect-setup-hook)))
+           (setup-fun comint-indirect-setup-function))
+
+       (add-hook 'change-major-mode-hook #'comint--indirect-cleanup
+                 nil t)
+
+       (with-current-buffer
+           (setq comint--indirect-buffer
+                 (make-indirect-buffer
+                  (current-buffer)
+                  (generate-new-buffer-name
+                   (concat " " (buffer-name) "-comint-indirect"))))
+         (setq-local delay-mode-hooks t)
+         (when setup-fun
+           (let ((change-major-mode-hook nil)
+                 (after-change-major-mode-hook nil))
+             (funcall setup-fun)))
+         (setq-local font-lock-dont-widen t)
+         (setq-local font-lock-support-mode nil)
+         (font-lock-mode)
+         (when setup-hook
+           (setq-local comint-indirect-setup-hook
+                       (car setup-hook)))
+         (run-hooks 'comint-indirect-setup-hook))
+       comint--indirect-buffer))))
+
+(defun comint--indirect-cleanup ()
+  (when comint--indirect-buffer
+    (kill-buffer comint--indirect-buffer)
+    (setq comint--indirect-buffer nil)))
+
+
+
 ;;; Converting process modes to use comint mode
 ;;============================================================================
 ;; The code in the Emacs 19 distribution has all been modified to use comint
