@@ -4012,21 +4012,21 @@ This function is intended to be included as an entry of
              (cons (point-marker) (match-string-no-properties 1 text)))))
 
 
-;;; Input fontification through an indirect buffer
+;;; Input fontification and indentation through an indirect buffer
 ;;============================================================================
 ;;
-;; Modes derived from `comint-mode' can set up fontification input
-;; text with the help of an indirect buffer whose major mode and
-;; font-lock settings are set accordingly.
+;; Modes derived from `comint-mode' can set up fontification and
+;; indentation of input text with the help of an indirect buffer whose
+;; major mode and font-lock settings are set accordingly.
 
 (defvar-local comint-indirect-setup-function nil
   "Function to set up an indirect comint fontification buffer.
 This function is called by `comint-indirect-buffer' with zero
 arguments after making an indirect buffer.  It is usually set to
-a major-mode command whose font-locking is desired for input
-text.  In order to prevent possible mode hooks from running, the
-variable `delay-mode-hooks' is set to t prior to calling this
-function and `change-major-mode-hook' along with
+a major-mode command whose font-locking and indentation are
+desired for input text.  In order to prevent possible mode hooks
+from running, the variable `delay-mode-hooks' is set to t prior
+to calling this function and `change-major-mode-hook' along with
 `after-change-major-mode-hook' are bound to nil.")
 
 (defcustom comint-indirect-setup-hook nil
@@ -4190,6 +4190,83 @@ function called, or nil, if no function was called (if BEG = END)."
     (set-marker end1 nil)
     (when return-beg
       (cons (car return-beg) (car return-end)))))
+
+(defun comint-indent-input-line (fun)
+  "Indent current line from comint process output or input.
+If point is on output, call FUN, otherwise indent the current
+line in the indirect buffer created by `comint-indirect-buffer',
+which see."
+  (if (or comint-use-prompt-regexp
+          (eq (get-text-property (point) 'field) 'output))
+      (funcall fun)
+    (let ((point (point))
+          (min (point-min))
+          (max (point-max)))
+      (unwind-protect
+          (with-current-buffer (comint-indirect-buffer)
+            (narrow-to-region min max)
+            (goto-char point)
+            (narrow-to-region (field-beginning) (field-end))
+            (unwind-protect (funcall indent-line-function)
+              (setq point (point))))
+        (goto-char point)))))
+
+(defun comint-indent-input-region (fun start end)
+  "Indent comint process output and input between START and END.
+Output text between START and END is indented with FUN and input
+text is indented in the indirect buffer created by
+`comint-indirect-buffer', which see."
+  (if comint-use-prompt-regexp
+      (funcall fun start end)
+    (let ((opoint (copy-marker (point)))
+          final-point)
+      (unwind-protect
+          (comint--intersect-regions
+           (lambda (start end)
+             (goto-char opoint)
+             (if (= opoint (point))
+                 (unwind-protect (funcall fun start end)
+                   (setq final-point (copy-marker (point))))
+               (funcall fun start end)))
+           (lambda (start end)
+             (let ((min (point-min))
+                   (max (point-max))
+                   (final-point1 nil))
+               (unwind-protect
+                   (with-current-buffer (comint-indirect-buffer)
+                     (narrow-to-region min max)
+                     (goto-char opoint)
+                     (if (= opoint (point))
+                         (unwind-protect
+                             (funcall indent-region-function start end)
+                           (setq final-point1 (point)))
+                       (funcall indent-region-function start end)))
+                 (when final-point1
+                   (setq final-point (copy-marker final-point1))))))
+           start end)
+        (if final-point
+            (progn
+              (goto-char final-point)
+              (set-marker final-point nil))
+          (goto-char opoint))
+        (set-marker opoint nil)))))
+
+(defun comint-indent-input-line-default ()
+  "Indent current line from comint process output or input.
+If point is on output, indent the current line according to the
+default value of `indent-line-function', otherwise indent the
+current line in the indirect buffer created by
+`comint-indirect-buffer', which see."
+  (comint-indent-input-line (default-value 'indent-line-function)))
+
+(defun comint-indent-input-region-default (start end)
+  "Indent comint process output and input between START and END.
+Output text between START and END is indented according to the
+default value of `indent-region-function' and input text is
+indented in the indirect buffer created by
+`comint-indirect-buffer', which see."
+  (comint-indent-input-region (default-value 'indent-line-function)
+                              start end))
 
 (defun comint-indirect-buffer (&optional no-create)
   "Return an indirect comint fontification buffer.

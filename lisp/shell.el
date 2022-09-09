@@ -653,6 +653,10 @@ command."
                  (message-log-max nil))
               (sh-mode)))))
 
+  (setq-local indent-line-function #'comint-indent-input-line-default)
+  (setq-local indent-region-function
+              #'comint-indent-input-region-default)
+
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (setq list-buffers-directory (expand-file-name default-directory))
