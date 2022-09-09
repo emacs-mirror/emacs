@@ -910,12 +910,12 @@ If RECURSED is non-nil, recurse into sublists."
   sym
   \\='sym
   (quote sym)
-  #'sym
+  #\\='sym
   (function sym)
   (lambda () ...)
   \\='(lambda () ...)
   (quote (lambda () ...))
-  #'(lambda () ...)
+  #\\='(lambda () ...)
   (function (lambda () ...))"
   (or (if binding
           (symbolp v)
@@ -930,7 +930,7 @@ If RECURSED is non-nil, recurse into sublists."
 (defun use-package-normalize-function (v)
   "Reduce functional constructions to one of two normal forms:
   sym
-  #'(lambda () ...)"
+  #\\='(lambda () ...)"
   (cond ((symbolp v) v)
         ((and (listp v)
               (memq (car v) '(quote function))
