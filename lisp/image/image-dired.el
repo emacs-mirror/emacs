@@ -1448,6 +1448,8 @@ of the thumbnail file."
   :type '(repeat (string :tag "Argument")))
 (make-obsolete-variable 'image-dired-cmd-rotate-thumbnail-options nil "29.1")
 
+(declare-function clear-image-cache "image.c" (&optional filter))
+
 (defun image-dired-rotate-thumbnail (degrees)
   "Rotate thumbnail DEGREES degrees."
   (declare (obsolete image-dired-refresh-thumb "29.1"))
