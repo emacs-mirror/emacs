@@ -912,7 +912,7 @@ byte-compiled.  Run with dynamic binding."
                             "next-line.*interactive use only.*forward-line")
 
 (bytecomp--define-warning-file-test "warn-lambda-malformed-interactive-spec.el"
-                            "malformed `interactive' specification")
+                            "malformed .interactive. specification")
 
 (bytecomp--define-warning-file-test "warn-obsolete-defun.el"
   "foo-obsolete. is an obsolete function (as of 99.99)")
