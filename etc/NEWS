@@ -3679,6 +3679,8 @@ to preserve the old behavior, apply
 '(take N LIST)' returns the first N elements of LIST; 'ntake' does
 the same but works by modifying LIST destructively.
 
+---
+** 'string-split' is now an alias for 'split-string'.
 
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
