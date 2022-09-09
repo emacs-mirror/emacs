@@ -5,6 +5,7 @@
          (sentence-end-double-space . t)
          (fill-column . 70)
 	 (emacs-lisp-docstring-fill-column . 65)
+         (vc-git-annotate-switches . "-w")
          (bug-reference-url-format . "https://debbugs.gnu.org/%s")
 	 (diff-add-log-use-relative-names . t)))
  (c-mode . ((c-file-style . "GNU")
