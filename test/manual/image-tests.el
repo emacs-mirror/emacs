@@ -88,7 +88,8 @@
                                              "invalid foo bar"
                                              :type svg)))
         (redisplay))
-      (should (string-search "XML parse error" (buffer-string))))))
+      ;; librsvg error: "... Start tag expected, '<' not found [3 times]"
+      (should (string-match "[Ee]rror.+Start tag expected" (buffer-string))))))
 
 
 ;;;; image-test-size
