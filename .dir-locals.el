@@ -28,6 +28,7 @@
                      (electric-quote-comment . nil)
                      (electric-quote-string . nil)
 	             (mode . bug-reference-prog)))
+ (lisp-data-mode . ((indent-tabs-mode . nil)))
  (texinfo-mode . ((electric-quote-comment . nil)
                   (electric-quote-string . nil)
 	          (mode . bug-reference-prog)))
