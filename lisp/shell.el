@@ -324,6 +324,16 @@ command `comint-fl-mode' to toggle highlighting of input."
   :safe 'booleanp
   :version "29.1")
 
+(defcustom shell-highlight-undef-enable nil
+  "Enable highlighting of undefined commands in shell buffers.
+This variable only has effect when the shell is started.  Use the
+command `shell-highlight-undef-mode' to toggle highlighting of
+undefined commands."
+  :type 'boolean
+  :group 'shell
+  :safe 'booleanp
+  :version "29.1")
+
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
@@ -605,9 +615,11 @@ whenever it receives the bell character in output from a
 command."
   :interactive nil
   :after-hook
-  (and (null comint-use-prompt-regexp)
-       shell-comint-fl-enable
-       (comint-fl-mode))
+  (unless comint-use-prompt-regexp
+    (if shell-comint-fl-enable
+        (comint-fl-mode))
+    (if shell-highlight-undef-enable
+        (shell-highlight-undef-mode)))
 
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
@@ -1522,6 +1534,218 @@ Returns t if successful."
       (set-process-filter proc old-filter))
     ;; Remove the prompt.
     (replace-regexp-in-string "\n.*\\'" "\n" result)))
+
+;;; Highlight undefined commands
+;;
+;; To highlight non-existent shell commands, customize
+;; `shell-highlight-undef-enable' to t.  To highlight some shell
+;; commands as aliases, add them to `shell-highlight-undef-aliases'.
+
+(defcustom shell-highlight-undef-aliases nil
+  "List of shell commands to highlight as a command alias."
+  :group 'shell
+  :type '(repeat string)
+  :version "29.1")
+
+(defface shell-highlight-undef-defined-face
+  '((t :inherit 'font-lock-function-name-face))
+  "Face used for existent shell commands."
+  :group 'shell
+  :version "29.1")
+
+(defface shell-highlight-undef-undefined-face
+  '((t :inherit 'font-lock-warning-face))
+  "Face used for non-existent shell commands."
+  :group 'shell
+  :version "29.1")
+
+(defface shell-highlight-undef-alias-face
+  '((t :inherit 'font-lock-variable-name-face))
+  "Face used for shell command aliases."
+  :group 'shell
+  :version "29.1")
+
+(defcustom shell-highlight-undef-remote-file-name-inhibit-cache nil
+  "Whether to use cache to determine fontification a shell command.
+When fontification of non-existent commands is enabled on a
+remote shell buffer, use cache to speed up searching for
+executable files on the remote machine.  This options is used to
+control expiry of this cache.  See
+`remote-file-name-inhibit-cache' for description."
+  :group 'faces
+  :type '(choice
+          (const :tag "Do not inhibit file name cache" nil)
+          (const :tag "Do not use file name cache" t)
+          (integer :tag "Do not use file name cache"
+                   :format "Do not use file name cache older than %v seconds"
+                   :value 10))
+  :version "29.1")
+
+(defvar shell--highlight-undef-exec-cache nil
+  "Cache of executable files found in `exec-path'.
+An alist, whose elements are of the form
+\(REMOTE TIME EXECUTABLES), where REMOTE is a string, returned by
+`file-remote-p', TIME is the return value of `float-time' end
+EXECUTABLES is a hash table with keys being the base-names of
+executable files.
+
+Cache expiry is controlled by the user option
+`remote-file-name-inhibit-cache'.")
+
+(defvar shell--highlight-undef-face 'shell-highlight-undef-defined-face)
+
+(defvar shell-highlight-undef-keywords
+  `((,#'shell-highlight-undef-matcher 6 shell--highlight-undef-face)))
+
+(defvar-local shell-highlight-undef-regexp regexp-unmatchable)
+
+(defun shell--highlight-undef-executable-find (command)
+  "Return non-nil if COMMAND is found in `exec-path'.
+Similar to `executable-find', but use cache stored in
+`shell--highlight-undef-exec-cache'."
+  (let ((remote (file-remote-p default-directory))
+        as ret found-in-cache delta-time)
+    (if (null remote)
+        (executable-find command)
+
+      (setq delta-time
+            shell-highlight-undef-remote-file-name-inhibit-cache)
+
+      (pcase (setq as (assoc remote shell--highlight-undef-exec-cache))
+        (`(,_ ,time ,hash)
+         (when (pcase delta-time
+                 ((pred numberp) (<= (float-time) (+ time delta-time)))
+                 ('t nil)
+                 ('nil t))
+           (setq ret (gethash command hash))
+           (setq found-in-cache t)))
+        (_ (setq as (list remote 0 (make-hash-table :test #'equal)))
+           (push as shell--highlight-undef-exec-cache)))
+
+      (if found-in-cache
+          ret
+        ;; Build cache
+        (setcar (cdr as) (float-time))
+        (let ((hash (clrhash (caddr as))))
+          (dolist (dir (exec-path))
+            (pcase-dolist (`(,f . ,attr)
+                           (condition-case nil
+                               (directory-files-and-attributes
+                                (concat remote dir) nil nil 'nosort 'integer)
+                             (file-error nil)))
+              ;; Approximation.  Assume every non-directory file in $PATH is an
+              ;; executable.  Alternatively, we could check
+              ;; `file-executable-p', but doing so for every file in $PATH is
+              ;; slow on remote machines.
+              (unless (eq t (file-attribute-type attr))
+                (puthash f t hash))))
+          (gethash command hash))))))
+
+(defun shell-highlight-undef-matcher (end)
+  "Matcher used to highlight shell commands up to END."
+  (when (re-search-forward shell-highlight-undef-regexp end t)
+    (save-match-data
+      (let ((cmd (match-string 6))
+            (beg (match-beginning 6)))
+        (setq shell--highlight-undef-face
+              (let* ((buf (buffer-base-buffer))
+                     (default-directory
+                      (if buf (buffer-local-value 'default-directory buf)
+                        default-directory)))
+                (cond
+                 ;; Don't highlight command output.  Mostly useful if
+                 ;; `comint-fl-mode' is disabled.
+                 ((text-property-any beg (point) 'field 'output)
+                  nil)
+                 ((member cmd shell-highlight-undef-aliases)
+                  'shell-highlight-undef-alias-face)
+                 ;; Check if it contains a directory separator
+                 ((file-name-directory cmd)
+                  (when (file-name-absolute-p cmd)
+                    (setq cmd (concat
+                               (or (bound-and-true-p comint-file-name-prefix)
+                                   (file-remote-p default-directory))
+                               cmd)))
+                  (if (or (file-executable-p cmd)
+                          (file-directory-p cmd))
+                      'shell-highlight-undef-defined-face
+                    'shell-highlight-undef-undefined-face))
+                 ((shell--highlight-undef-executable-find cmd)
+                  'shell-highlight-undef-defined-face)
+                 (t 'shell-highlight-undef-undefined-face))))))
+    t))
+
+(defvar-local shell--highlight-undef-indirect nil
+  "t if shell commands are fontified in `comint-indirect-buffer'.")
+
+(declare-function sh-feature "sh-script" (alist &optional function))
+(defvar sh-leading-keywords)
+(defvar sh-other-keywords)
+
+(define-minor-mode shell-highlight-undef-mode
+  "Highlight undefined shell commands and aliases.
+This minor mode is mostly useful in `shell-mode' buffers and
+works better if `comint-fl-mode' is enabled."
+  :init-value nil
+  (if shell--highlight-undef-indirect
+      (progn
+        (remove-hook 'comint-indirect-setup-hook shell--highlight-undef-indirect t)
+        (setq shell--highlight-undef-indirect nil)
+        (when-let ((buf (comint-indirect-buffer t)))
+          (with-current-buffer buf
+            (font-lock-remove-keywords nil shell-highlight-undef-keywords))))
+    (font-lock-remove-keywords nil shell-highlight-undef-keywords))
+  (remove-hook 'comint-fl-mode-hook
+               #'shell-highlight-undef-reset-mode t)
+
+  (when shell-highlight-undef-mode
+    (when comint-use-prompt-regexp
+      (setq shell-highlight-undef-mode nil)
+      (error
+       "`shell-highlight-undef-mode' is incompatible with `comint-use-prompt-regexp'"))
+
+    (require 'sh-script)
+
+    (let* ((regexp
+            ;; Adapted from `sh-font-lock-keywords-1'
+            (concat
+             "\\("
+             "[;(){}`|&]"
+             (if comint-fl-mode
+                 ;; `comint-fl-mode' already puts point-min on end of
+                 ;; prompt
+                 ""
+               (concat "\\|" comint-prompt-regexp))
+             "\\|^"
+             "\\)"
+             "[ \t]*\\(\\("
+             (regexp-opt (sh-feature sh-leading-keywords) t)
+             "[ \t]+\\)?"
+             (regexp-opt (append (sh-feature sh-leading-keywords)
+                                 (sh-feature sh-other-keywords))
+                         t)
+             "[ \t]+\\)?\\_<\\(\\(?:\\s_\\|\\sw\\|/\\)+\\)\\_>"))
+           (setup
+            (lambda ()
+              (setq shell-highlight-undef-regexp regexp)
+              (font-lock-add-keywords nil shell-highlight-undef-keywords t))))
+      (cond (comint-fl-mode
+             (setq shell--highlight-undef-indirect setup)
+             (if-let ((buf (comint-indirect-buffer t)))
+                 (with-current-buffer buf
+                   (funcall setup))
+               (add-hook 'comint-indirect-setup-hook setup nil t)))
+            (t (funcall setup))))
+
+    (add-hook 'comint-fl-mode-hook
+              #'shell-highlight-undef-reset-mode nil t))
+
+  (font-lock-flush))
+
+(defun shell-highlight-undef-reset-mode ()
+  "If `shell-highlight-undef-mode' is on, turn it off and on."
+  (when shell-highlight-undef-mode
+    (shell-highlight-undef-mode 1)))
 
 (provide 'shell)
 
