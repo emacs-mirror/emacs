@@ -3978,12 +3978,10 @@ x_dnd_do_unsupported_drop (struct x_display_info *dpyinfo,
   x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonPressMask, &event);
-  x_stop_ignoring_errors (dpyinfo);
 
   event.xbutton.type = ButtonRelease;
   event.xbutton.time = before + 2;
 
-  x_ignore_errors_for_next_request (dpyinfo);
   XSendEvent (dpyinfo->display, child,
 	      True, ButtonReleaseMask, &event);
   x_stop_ignoring_errors (dpyinfo);
@@ -6630,22 +6628,21 @@ x_set_frame_alpha (struct frame *f)
      Do this unconditionally as this function is called on reparent when
      alpha has not changed on the frame.  */
 
+  x_ignore_errors_for_next_request (dpyinfo);
+
   if (!FRAME_PARENT_FRAME (f))
     {
       parent = x_find_topmost_parent (f);
 
       if (parent != None)
 	{
-	  x_ignore_errors_for_next_request (dpyinfo);
 	  XChangeProperty (dpy, parent,
 			   dpyinfo->Xatom_net_wm_window_opacity,
 			   XA_CARDINAL, 32, PropModeReplace,
 			   (unsigned char *) &opac, 1);
-	  x_stop_ignoring_errors (dpyinfo);
 	}
     }
 
-  x_ignore_errors_for_next_request (dpyinfo);
   XChangeProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 		   XA_CARDINAL, 32, PropModeReplace,
 		   (unsigned char *) &opac, 1);
