@@ -1553,7 +1553,7 @@ Returns t if successful."
 
 (defface shell-highlight-undef-defined-face
   '((t :inherit 'font-lock-function-name-face))
-  "Face used for existent shell commands."
+  "Face used for existing shell commands."
   :group 'shell
   :version "29.1")
 
@@ -1570,12 +1570,12 @@ Returns t if successful."
   :version "29.1")
 
 (defcustom shell-highlight-undef-remote-file-name-inhibit-cache nil
-  "Whether to use cache to determine fontification a shell command.
-When fontification of non-existent commands is enabled on a
-remote shell buffer, use cache to speed up searching for
+  "Whether to inhibit cache for fontifying shell commands in remote buffers.
+When fontification of non-existent commands is enabled in a
+remote shell buffer, use a cache to speed up searching for
 executable files on the remote machine.  This options is used to
-control expiry of this cache.  See
-`remote-file-name-inhibit-cache' for description."
+control expiry of this cache.  See `remote-file-name-inhibit-cache'
+for description."
   :group 'faces
   :type '(choice
           (const :tag "Do not inhibit file name cache" nil)
@@ -1589,7 +1589,7 @@ control expiry of this cache.  See
   "Cache of executable files found in `exec-path'.
 An alist, whose elements are of the form
 \(REMOTE TIME EXECUTABLES), where REMOTE is a string, returned by
-`file-remote-p', TIME is the return value of `float-time' end
+`file-remote-p', TIME is the return value of `float-time', and
 EXECUTABLES is a hash table with keys being the base-names of
 executable files.
 
