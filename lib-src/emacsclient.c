@@ -1078,7 +1078,9 @@ set_tcp_socket (const char *local_server_file)
 
   /* The cast to 'const char *' is to avoid a compiler warning when
      compiling for MS-Windows sockets.  */
-  setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  int ret = setsockopt (s, SOL_SOCKET, SO_LINGER, (const char *) &l_arg, sizeof l_arg);
+  if (ret < 0)
+    sock_err_message ("setsockopt");
 
   /* Send the authentication.  */
   auth_string[AUTH_KEY_LENGTH] = '\0';
@@ -1892,11 +1894,13 @@ start_daemon_and_retry_set_socket (void)
 static void
 set_socket_timeout (HSOCKET socket, int seconds)
 {
+  int ret;
+
 #ifndef WINDOWSNT
   struct timeval timeout;
   timeout.tv_sec = seconds;
   timeout.tv_usec = 0;
-  setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
 #else
   DWORD timeout;
 
@@ -1904,8 +1908,11 @@ set_socket_timeout (HSOCKET socket, int seconds)
     timeout = INT_MAX;
   else
     timeout = seconds * 1000;
-  setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
+  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
 #endif
+
+  if (ret < 0)
+    sock_err_message ("setsockopt");
 }
 
 static bool
