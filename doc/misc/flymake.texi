@@ -801,6 +801,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
                        for type = (if (string-match "^warning" msg)
                                       :warning
                                     :error)
+                       when (and beg end)
                        collect (flymake-make-diagnostic source
                                                         beg
                                                         end
