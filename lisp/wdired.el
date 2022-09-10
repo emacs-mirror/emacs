@@ -1024,7 +1024,8 @@ Like original function but it skips read-only words."
         (setq filename (wdired-get-filename nil t))
         (if (= (length perms-new) 10)
             (condition-case nil
-                (set-file-modes filename (wdired-perms-to-number perms-new))
+		(set-file-modes filename (wdired-perms-to-number perms-new)
+				'nofollow)
               (error
                (setq errors (1+ errors))
                (dired-log "Setting mode of `%s' to `%s' failed\n\n"
