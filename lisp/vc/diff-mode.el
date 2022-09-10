@@ -279,20 +279,21 @@ and hunk-based syntax highlighting otherwise as a fallback."
   :doc "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'."
   (key-description diff-minor-mode-prefix) diff-mode-shared-map)
 
-(define-minor-mode diff-auto-refine-mode
-  "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).
+(with-suppressed-warnings ((obsolete diff-auto-refine-mode))
+  (define-minor-mode diff-auto-refine-mode
+    "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).
 
 Diff Auto Refine mode is a buffer-local minor mode used with
 `diff-mode'.  When enabled, Emacs automatically highlights
 changes in detail as the user visits hunks.  When transitioning
 from disabled to enabled, it tries to refine the current hunk, as
 well."
-  :group 'diff-mode :init-value nil :lighter nil ;; " Auto-Refine"
-  (if diff-auto-refine-mode
-      (progn
-        (customize-set-variable 'diff-refine 'navigation)
-        (condition-case-unless-debug nil (diff-refine-hunk) (error nil)))
-    (customize-set-variable 'diff-refine nil)))
+    :group 'diff-mode :init-value nil :lighter nil ;; " Auto-Refine"
+    (if diff-auto-refine-mode
+        (progn
+          (customize-set-variable 'diff-refine 'navigation)
+          (condition-case-unless-debug nil (diff-refine-hunk) (error nil)))
+      (customize-set-variable 'diff-refine nil))))
 (make-obsolete 'diff-auto-refine-mode "set `diff-refine' instead." "27.1")
 (make-obsolete-variable 'diff-auto-refine-mode
                         "set `diff-refine' instead." "27.1")
