@@ -4461,10 +4461,10 @@ FORMAT-ARGS is non-nil, PROMPT is used as a format control
 string, and FORMAT-ARGS are the arguments to be substituted into
 it.  See `format' for details.
 
-Both PROMTP and `minibuffer-default-prompt-format' are run
+Both PROMPT and `minibuffer-default-prompt-format' are run
 through `substitute-command-keys' (which see).  In particular,
-this means that single quotes may be adjusted for the current
-terminal.
+this means that single quotes may be displayed by equivalent
+characters, according to the capabilities of the terminal.
 
 If DEFAULT is a list, the first element is used as the default.
 If not, the element is used as is.
