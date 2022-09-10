@@ -158,9 +158,9 @@ COMMAND must be an interactive function or lambda form.
 KEYMAP, if present, should be a keymap variable or symbol.
 For example:
 
-  (bind-key \"M-h\" #'some-interactive-function my-mode-map)
+  (bind-key \"M-h\" #\\='some-interactive-function my-mode-map)
 
-  (bind-key \"M-h\" #'some-interactive-function \\='my-mode-map)
+  (bind-key \"M-h\" #\\='some-interactive-function \\='my-mode-map)
 
 If PREDICATE is non-nil, it is a form evaluated to determine when
 a key should be bound. It must return non-nil in such cases.
