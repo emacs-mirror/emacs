@@ -130,7 +130,20 @@ Provides some basic font locking and not much else."
               '(emacs-authors-mode-font-lock-keywords nil nil ((?_ . "w"))))
   (setq font-lock-multiline nil)
   (setq imenu-generic-expression emacs-authors-imenu-generic-expression)
-  (emacs-etc--hide-local-variables))
+  (emacs-etc--hide-local-variables)
+  (setq-local outline-regexp (rx (+ (not (any ":\n"))) ": "
+                                 (or "changed" "co-wrote" "wrote") " ")
+              outline-minor-mode-cycle t
+              outline-level
+              (lambda ()
+                (if (looking-at (rx bol
+                                    (or (or "  "
+                                            (seq "and " (or "co-wrote"
+                                                            "changed")))
+                                        eol)))
+                    2
+                  1)))
+  (outline-minor-mode))
 
 (define-obsolete-face-alias 'etc-authors-default 'emacs-authors-default "29.1")
 (define-obsolete-face-alias 'etc-authors-author 'emacs-authors-author "29.1")
