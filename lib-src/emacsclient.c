@@ -2161,7 +2161,7 @@ main (int argc, char **argv)
 	      if (timeout > 0)
 		{
 		  /* Don't retry if we were given a --timeout flag.  */
-		  fprintf (stderr, "\nServer not responding; timed out after %lu seconds",
+		  fprintf (stderr, "\nServer not responding; timed out after %ju seconds",
 			   timeout);
 		  retry = false;
 		}
