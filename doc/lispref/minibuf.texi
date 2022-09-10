@@ -490,6 +490,9 @@ If @var{default} is @code{nil}, there is no default value, and
 therefore no ``default value'' string is included in the result value.
 If @var{default} is a non-@code{nil} list, the first element of the
 list is used in the prompt.
+
+Both @var{prompt} and @code{minibuffer-default-prompt-format} are run
+through @code{substitute-command-keys} (@pxref{Keys in Documentation}).
 @end defun
 
 @defvar read-minibuffer-restore-windows

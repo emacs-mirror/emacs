@@ -2450,6 +2450,11 @@ when visiting JSON files.
 
 * Incompatible Lisp Changes in Emacs 29.1
 
++++
+** 'format-prompt' now uses 'substitute-command-keys'.
+This means that both the prompt and 'minibuffer-default-prompt-format'
+will have key definitions and single quotes handled specially.
+
 ---
 ** 'find-image' now uses 'create-image'.
 This means that images found through 'find-image' also have
