@@ -712,13 +712,13 @@ the C sources, too."
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
-      (insert (substitute-command-keys "  Parent mode: `"))
+      (insert (substitute-quotes "  Parent mode: `"))
       (let ((beg (point)))
         (insert (format "%s" parent-mode))
         (make-text-button beg (point)
                           'type 'help-function
                           'help-args (list parent-mode)))
-      (insert (substitute-command-keys "'.\n")))))
+      (insert (substitute-quotes "'.\n")))))
 
 (defun help-fns--obsolete (function)
   ;; Ignore lambda constructs, keyboard macros, etc.
@@ -1559,7 +1559,7 @@ This cancels value editing without updating the value."
     (princ "  This variable may be risky if used as a \
 file-local variable.\n")
     (when (assq variable safe-local-variable-values)
-      (princ (substitute-command-keys
+      (princ (substitute-quotes
               "  However, you have added it to \
 `safe-local-variable-values'.\n")))))
 
@@ -1609,8 +1609,8 @@ variable.\n")))
 	          (insert-text-button
 	           file 'type 'help-dir-local-var-def
                    'help-args (list variable file)))
-	        (princ (substitute-command-keys "'.\n"))))
-          (princ (substitute-command-keys
+                (princ (substitute-quotes "'.\n"))))
+          (princ (substitute-quotes
 	          "  This variable's value is file-local.\n")))))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-watchpoints)
@@ -1690,10 +1690,10 @@ variable.\n")))
      ((not permanent-local))
      ((bufferp locus)
       (princ
-       (substitute-command-keys
+       (substitute-quotes
         "  This variable's buffer-local value is permanent.\n")))
      (t
-      (princ (substitute-command-keys
+      (princ (substitute-quotes
 	      "  This variable's value is permanent \
 if it is given a local binding.\n"))))))
 
@@ -1770,9 +1770,9 @@ If FRAME is omitted or nil, use the selected frame."
                     (setq help-mode--current-data (list :symbol f))
                   (setq help-mode--current-data (list :symbol f
                                                       :file file-name))
-		  (princ (substitute-command-keys "Defined in `"))
+                (princ (substitute-quotes "Defined in `"))
 		  (princ (help-fns-short-filename file-name))
-		  (princ (substitute-command-keys "'"))
+                (princ (substitute-quotes "'"))
 		  ;; Make a hyperlink to the library.
 		  (save-excursion
 		    (re-search-backward

@@ -1260,9 +1260,9 @@ Otherwise, return a new string."
                   (cond
                    ((null this-keymap)
                     (insert "\nUses keymap "
-                            (substitute-command-keys "`")
+                            (substitute-quotes "`")
                             (symbol-name name)
-                            (substitute-command-keys "'")
+                            (substitute-quotes "'")
                             ", which is not currently defined.\n")
                     (unless generate-summary
                       (setq keymap nil)))
@@ -1290,6 +1290,18 @@ Otherwise, return a new string."
              ;; 3. Nothing to do -- next character.
              (t (forward-char 1)))))
         (buffer-string)))))
+
+(defun substitute-quotes (string)
+  "Substitute quote characters for display.
+Each grave accent \\=` is replaced by left quote, and each
+apostrophe \\=' is replaced by right quote.  Left and right quote
+characters are specified by `text-quoting-style'."
+  (cond ((eq (text-quoting-style) 'curve)
+         (string-replace "`" "‘"
+                         (string-replace "'" "’" string)))
+        ((eq (text-quoting-style) 'straight)
+         (string-replace "`" "'" string))
+        (t string)))
 
 (defvar help--keymaps-seen nil)
 (defun describe-map-tree (startmap &optional partial shadow prefix title

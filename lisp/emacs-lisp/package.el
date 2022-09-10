@@ -2648,7 +2648,7 @@ Helper function for `describe-package'."
                         "',\n             shadowing a ")
                        (propertize "built-in package"
                                    'font-lock-face 'package-status-built-in))
-             (insert (substitute-command-keys "'")))
+             (insert (substitute-quotes "'")))
            (if signed
                (insert ".")
              (insert " (unsigned)."))

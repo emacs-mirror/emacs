@@ -496,7 +496,7 @@ It includes all faces in list FACES."
       (princ (substitute-command-keys " in `"))
       (help-insert-xref-button (file-name-nondirectory fn)
 			       'help-theme-def fn)
-      (princ (substitute-command-keys "'")))
+      (princ (substitute-quotes "'")))
     (princ ".\n")
     (if (custom-theme-p theme)
 	(progn

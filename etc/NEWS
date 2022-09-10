@@ -145,6 +145,11 @@ reaches the end of the script, Emacs will exit with an exit code from
 the value of the final form.
 
 +++
+** New function 'substitute-quotes'.
+This function works like 'substitute-command-keys' but only
+substitutes quote characters.
+
++++
 ** Emacs now supports setting 'user-emacs-directory' via '--init-directory'.
 
 +++

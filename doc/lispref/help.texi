@@ -384,6 +384,11 @@ given a special face @code{help-key-binding}, but if the optional
 argument @var{no-face} is non-@code{nil}, the function doesn't add
 this face to the produced string.
 
+@defun substitute-quotes string
+This function works like @code{substitute-command-keys}, but only
+replaces quote characters.
+@end defun
+
 @cindex advertised binding
 If a command has multiple bindings, this function normally uses the
 first one it finds.  You can specify one particular key binding by

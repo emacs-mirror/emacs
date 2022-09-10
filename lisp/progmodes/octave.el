@@ -1722,12 +1722,12 @@ code line."
                  (dir (file-name-directory
                        (directory-file-name (file-name-directory file)))))
             (replace-match "" nil nil nil 1)
-            (insert (substitute-command-keys "`"))
+            (insert (substitute-quotes "`"))
             ;; Include the parent directory which may be regarded as
             ;; the category for the FN.
             (help-insert-xref-button (file-relative-name file dir)
                                      'octave-help-file fn)
-            (insert (substitute-command-keys "'"))))
+            (insert (substitute-quotes "'"))))
         ;; Make 'See also' clickable.
         (with-syntax-table octave-mode-syntax-table
           (when (re-search-forward "^\\s-*See also:" nil t)
