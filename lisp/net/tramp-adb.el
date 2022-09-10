@@ -491,7 +491,7 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -507,7 +507,7 @@ Emacs dired can't find files."
   ;; We don't want to run it when `non-essential' is t, or there is
   ;; no connection process yet.
   (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-tramp-file-property v localname "file-exists-p"
 	(if (tramp-file-property-p v localname "file-attributes")
 	    (not (null (tramp-get-file-property v localname "file-attributes")))
@@ -516,7 +516,7 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -527,7 +527,7 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
 	  (if (tramp-file-property-p v localname "file-attributes")

@@ -1515,7 +1515,9 @@ same connection.  Make a copy in order to avoid side effects."
 	       ;; doesn't happen for a while, it can be removed.
 	       (or (file-name-absolute-p localname)
 		   (tramp-error
-		    vec 'file-error "File `%s' must be absolute" localname))
+		    vec 'file-error
+		    "File `%s' must be absolute, please report a bug!"
+		    localname))
 	       (tramp-compat-file-name-unquote (directory-file-name localname)))
 	  (tramp-file-name-hop vec) nil))
   vec)
@@ -3434,7 +3436,7 @@ BODY is the backend specific code."
 BODY is the backend specific code."
   (declare (indent 5) (debug t))
   `(or
-    (with-parsed-tramp-file-name ,directory nil
+    (with-parsed-tramp-file-name (expand-file-name ,directory) nil
       (tramp-barf-if-file-missing v ,directory
 	(when (file-directory-p ,directory)
 	  (setq ,directory
@@ -3465,7 +3467,7 @@ BODY is the backend specific code."
 BODY is the backend specific code."
   (declare (indent 6) (debug t))
   `(or
-    (with-parsed-tramp-file-name ,directory nil
+    (with-parsed-tramp-file-name (expand-file-name ,directory) nil
       (tramp-barf-if-file-missing v ,directory
 	(when (file-directory-p ,directory)
 	  (let ((temp
@@ -3527,7 +3529,7 @@ BODY is the backend specific code."
   "Skeleton for `tramp-*-set-file-{modes,times,uid-gid}'.
 BODY is the backend specific code."
   (declare (indent 1) (debug t))
-  `(with-parsed-tramp-file-name ,filename nil
+  `(with-parsed-tramp-file-name (expand-file-name ,filename) nil
      (when (not (file-exists-p ,filename))
        (tramp-error v 'file-missing ,filename))
      (with-tramp-saved-file-properties
@@ -3708,7 +3710,7 @@ Let-bind it when necessary.")
   (filename newname &optional ok-if-already-exists)
   "Like `add-name-to-file' for Tramp files."
   (with-parsed-tramp-file-name
-      (if (tramp-tramp-file-p newname) newname filename) nil
+      (expand-file-name (if (tramp-tramp-file-p newname) newname filename)) nil
     (unless (tramp-equal-remote filename newname)
       (tramp-error
        v 'file-error
@@ -3845,7 +3847,7 @@ Let-bind it when necessary.")
   ;; We don't want to run it when `non-essential' is t, or there is
   ;; no connection process yet.
   (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-tramp-file-property v localname "file-exists-p"
 	(not (null (file-attributes filename)))))))
 
@@ -3993,7 +3995,7 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
       (or (tramp-check-cached-permissions v ?r)
 	  ;; `tramp-check-cached-permissions' doesn't handle symbolic
@@ -4092,7 +4094,7 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
 	  (tramp-check-cached-permissions v ?w)

@@ -211,6 +211,7 @@ This function is invoked by `tramp-rclone-handle-copy-file' and
 `tramp-rclone-handle-rename-file'.  It is an error if OP is neither
 of `copy' and `rename'.  FILENAME and NEWNAME must be absolute
 file names."
+  ;; FILENAME and NEWNAME are already expanded.
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 

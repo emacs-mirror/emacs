@@ -194,8 +194,8 @@ arguments to pass to the OPERATION."
        v 'file-error
        "add-name-to-file: %s"
        "only implemented for same method, same user, same host")))
-  (with-parsed-tramp-file-name filename v1
-    (with-parsed-tramp-file-name newname v2
+  (with-parsed-tramp-file-name (expand-file-name filename) v1
+    (with-parsed-tramp-file-name (expand-file-name newname) v2
 	;; Do the 'confirm if exists' thing.
 	(when (file-exists-p newname)
 	  ;; What to do?
@@ -235,6 +235,7 @@ This function is invoked by `tramp-sudoedit-handle-copy-file' and
 `tramp-sudoedit-handle-rename-file'.  It is an error if OP is
 neither of `copy' and `rename'.  FILENAME and NEWNAME must be
 absolute file names."
+  ;; FILENAME and NEWNAME are already expanded.
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
@@ -345,7 +346,7 @@ absolute file names."
 
 (defun tramp-sudoedit-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-flush-file-properties v localname)
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
@@ -403,7 +404,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-acl (filename)
   "Like `file-acl' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-acl"
       (let ((result (and (tramp-sudoedit-remote-acl-p v)
 			 (tramp-sudoedit-send-command-string
@@ -440,7 +441,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -456,7 +457,7 @@ the result will be a local, non-Tramp, file name."
   ;; We don't want to run it when `non-essential' is t, or there is
   ;; no connection process yet.
   (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-tramp-file-property v localname "file-exists-p"
 	(if (tramp-file-property-p v localname "file-attributes")
 	    (not (null (tramp-get-file-property v localname "file-attributes")))
@@ -488,7 +489,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -515,7 +516,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-selinux-context (filename)
   "Like `file-selinux-context' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
 	    (regexp (tramp-compat-rx
@@ -605,7 +606,7 @@ the result will be a local, non-Tramp, file name."
 
 (defun tramp-sudoedit-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
 	  (if (tramp-file-property-p v localname "file-attributes")
@@ -642,41 +643,38 @@ the result will be a local, non-Tramp, file name."
 If TARGET is a non-Tramp file, it is used verbatim as the target
 of the symlink.  If TARGET is a Tramp file, only the localname
 component is used as the target of the symlink."
-  (if (not (tramp-tramp-file-p (expand-file-name linkname)))
-      (tramp-run-real-handler
-       #'make-symbolic-link (list target linkname ok-if-already-exists))
+  (with-parsed-tramp-file-name (expand-file-name linkname) nil
+    ;; If TARGET is a Tramp name, use just the localname component.
+    ;; Don't check for a proper method.
+    (let ((non-essential t))
+      (when (and (tramp-tramp-file-p target)
+		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
+	(setq target (tramp-file-local-name (expand-file-name target)))))
 
-    (with-parsed-tramp-file-name linkname nil
-      ;; If TARGET is a Tramp name, use just the localname component.
-      ;; Don't check for a proper method.
-      (let ((non-essential t))
-	(when (and (tramp-tramp-file-p target)
-		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target (tramp-file-local-name (expand-file-name target)))))
+    ;; If TARGET is still remote, quote it.
+    (if (tramp-tramp-file-p target)
+	(make-symbolic-link
+	 (tramp-compat-file-name-quote target 'top)
+	 linkname ok-if-already-exists)
 
-      ;; If TARGET is still remote, quote it.
-      (if (tramp-tramp-file-p target)
-	  (make-symbolic-link (tramp-compat-file-name-quote target 'top)
-	   linkname ok-if-already-exists)
+      ;; Do the 'confirm if exists' thing.
+      (when (file-exists-p linkname)
+	;; What to do?
+	(if (or (null ok-if-already-exists) ; not allowed to exist
+		(and (numberp ok-if-already-exists)
+		     (not
+		      (yes-or-no-p
+		       (format
+			"File %s already exists; make it a link anyway?"
+			localname)))))
+	    (tramp-error v 'file-already-exists localname)
+	  (delete-file linkname)))
 
-	;; Do the 'confirm if exists' thing.
-	(when (file-exists-p linkname)
-	  ;; What to do?
-	  (if (or (null ok-if-already-exists) ; not allowed to exist
-		  (and (numberp ok-if-already-exists)
-		       (not
-			(yes-or-no-p
-			 (format
-			  "File %s already exists; make it a link anyway?"
-			  localname)))))
-	      (tramp-error v 'file-already-exists localname)
-	    (delete-file linkname)))
-
-	(tramp-flush-file-properties v localname)
-        (tramp-sudoedit-send-command
-	 v "ln" "-sf"
-	 (tramp-compat-file-name-unquote target)
-	 (tramp-compat-file-name-unquote localname))))))
+      (tramp-flush-file-properties v localname)
+      (tramp-sudoedit-send-command
+       v "ln" "-sf"
+       (tramp-compat-file-name-unquote target)
+       (tramp-compat-file-name-unquote localname)))))
 
 (defun tramp-sudoedit-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -706,7 +704,7 @@ component is used as the target of the symlink."
 
 (defun tramp-sudoedit-handle-set-file-selinux-context (filename context)
   "Like `set-file-selinux-context' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (when (and (consp context)
 	       (tramp-sudoedit-remote-selinux-p v))
       (let ((user (and (stringp (nth 0 context)) (nth 0 context)))

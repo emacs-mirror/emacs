@@ -1136,66 +1136,63 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 If TARGET is a non-Tramp file, it is used verbatim as the target
 of the symlink.  If TARGET is a Tramp file, only the localname
 component is used as the target of the symlink."
-  (if (not (tramp-tramp-file-p (expand-file-name linkname)))
-      (tramp-run-real-handler
-       #'make-symbolic-link (list target linkname ok-if-already-exists))
+  (with-parsed-tramp-file-name (expand-file-name linkname) nil
+    ;; If TARGET is a Tramp name, use just the localname component.
+    ;; Don't check for a proper method.
+    (let ((non-essential t))
+      (when (and (tramp-tramp-file-p target)
+		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
+	(setq target (tramp-file-local-name (expand-file-name target))))
+      ;; There could be a cyclic link.
+      (tramp-flush-file-properties
+       v (expand-file-name target (tramp-file-local-name default-directory))))
 
-    (with-parsed-tramp-file-name linkname nil
-      ;; If TARGET is a Tramp name, use just the localname component.
-      ;; Don't check for a proper method.
-      (let ((non-essential t))
-	(when (and (tramp-tramp-file-p target)
-		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target (tramp-file-local-name (expand-file-name target))))
-	;; There could be a cyclic link.
-	(tramp-flush-file-properties
-	 v (expand-file-name target (tramp-file-local-name default-directory))))
+    ;; If TARGET is still remote, quote it.
+    (if (tramp-tramp-file-p target)
+	(make-symbolic-link
+	 (tramp-compat-file-name-quote target 'top)
+	 linkname ok-if-already-exists)
 
-      ;; If TARGET is still remote, quote it.
-      (if (tramp-tramp-file-p target)
-	  (make-symbolic-link (tramp-compat-file-name-quote target 'top)
-	   linkname ok-if-already-exists)
+      (let ((ln (tramp-get-remote-ln v))
+	    (cwd (tramp-run-real-handler
+		  #'file-name-directory (list localname))))
+	(unless ln
+	  (tramp-error
+	   v 'file-error
+	   (concat "Making a symbolic link. "
+		   "ln(1) does not exist on the remote host.")))
 
-	(let ((ln (tramp-get-remote-ln v))
-	      (cwd (tramp-run-real-handler
-		    #'file-name-directory (list localname))))
-	  (unless ln
-	    (tramp-error
-	     v 'file-error
-	     (concat "Making a symbolic link. "
-		     "ln(1) does not exist on the remote host.")))
+	;; Do the 'confirm if exists' thing.
+	(when (file-exists-p linkname)
+	  ;; What to do?
+	  (if (or (null ok-if-already-exists) ; not allowed to exist
+		  (and (numberp ok-if-already-exists)
+		       (not
+			(yes-or-no-p
+			 (format
+			  "File %s already exists; make it a link anyway?"
+			  localname)))))
+	      (tramp-error v 'file-already-exists localname)
+	    (delete-file linkname)))
 
-	  ;; Do the 'confirm if exists' thing.
-	  (when (file-exists-p linkname)
-	    ;; What to do?
-	    (if (or (null ok-if-already-exists) ; not allowed to exist
-		    (and (numberp ok-if-already-exists)
-			 (not
-			  (yes-or-no-p
-			   (format
-			    "File %s already exists; make it a link anyway?"
-			    localname)))))
-		(tramp-error v 'file-already-exists localname)
-	      (delete-file linkname)))
+	(tramp-flush-file-properties v localname)
 
-	  (tramp-flush-file-properties v localname)
-
-	  ;; Right, they are on the same host, regardless of user,
-	  ;; method, etc.  We now make the link on the remote
-	  ;; machine.  This will occur as the user that TARGET belongs to.
-	  (and (tramp-send-command-and-check
-		v (format "cd %s" (tramp-shell-quote-argument cwd)))
-               (tramp-send-command-and-check
-		v (format
-		   "%s -sf %s %s" ln
-		   (tramp-shell-quote-argument target)
-		   ;; The command could exceed PATH_MAX, so we use
-		   ;; relative file names.  However, relative file
-		   ;; names could start with "-".
-		   ;; `tramp-shell-quote-argument' does not handle
-		   ;; this, we must do it ourselves.
-		   (tramp-shell-quote-argument
-                    (concat "./" (file-name-nondirectory localname)))))))))))
+	;; Right, they are on the same host, regardless of user,
+	;; method, etc.  We now make the link on the remote machine.
+	;; This will occur as the user that TARGET belongs to.
+	(and (tramp-send-command-and-check
+	      v (format "cd %s" (tramp-shell-quote-argument cwd)))
+             (tramp-send-command-and-check
+	      v (format
+		 "%s -sf %s %s" ln
+		 (tramp-shell-quote-argument target)
+		 ;; The command could exceed PATH_MAX, so we use
+		 ;; relative file names.  However, relative file names
+		 ;; could start with "-".
+		 ;; `tramp-shell-quote-argument' does not handle this,
+		 ;; we must do it ourselves.
+		 (tramp-shell-quote-argument
+                  (concat "./" (file-name-nondirectory localname))))))))))
 
 (defun tramp-sh-handle-file-truename (filename)
   "Like `file-truename' for Tramp files."
@@ -1259,7 +1256,7 @@ component is used as the target of the symlink."
   ;; We don't want to run it when `non-essential' is t, or there is
   ;; no connection process yet.
   (when (tramp-connectable-p filename)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-tramp-file-property v localname "file-exists-p"
 	(if (tramp-file-property-p v localname "file-attributes")
 	    (not (null (tramp-get-file-property v localname "file-attributes")))
@@ -1434,7 +1431,7 @@ component is used as the target of the symlink."
 	   (buffer-name)))
   (if time-list
       (tramp-run-real-handler #'set-visited-file-modtime (list time-list))
-    (let ((f (buffer-file-name))
+    (let ((f (expand-file-name (buffer-file-name)))
 	  coding-system-used)
       (with-parsed-tramp-file-name f nil
 	(let* ((remote-file-name-inhibit-cache t)
@@ -1632,7 +1629,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-selinux-context (filename)
   "Like `file-selinux-context' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-selinux-context"
       (let ((context '(nil nil nil nil))
 	    (regexp (tramp-compat-rx
@@ -1656,7 +1653,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-set-file-selinux-context (filename context)
   "Like `set-file-selinux-context' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (when (and (consp context)
 	       (tramp-remote-selinux-p v))
       (let ((user (and (stringp (nth 0 context)) (nth 0 context)))
@@ -1683,7 +1680,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-acl (filename)
   "Like `file-acl' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-acl"
       (when (and (tramp-remote-acl-p v)
 		 (tramp-send-command-and-check
@@ -1720,7 +1717,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -1731,7 +1728,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
@@ -1743,7 +1740,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     ;; `file-directory-p' is used as predicate for file name completion.
     ;; Sometimes, when a connection is not established yet, it is
     ;; desirable to return t immediately for "/method:foo:".  It can
@@ -1762,7 +1759,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
 	  (if (tramp-file-property-p v localname "file-attributes")
@@ -1777,7 +1774,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property
 	v localname
 	(format "file-ownership-preserved-p%s" (if group "-group" ""))
@@ -1914,8 +1911,8 @@ ID-FORMAT valid values are `string' and `integer'."
        v 'file-error
        "add-name-to-file: %s"
        "only implemented for same method, same user, same host")))
-  (with-parsed-tramp-file-name filename v1
-    (with-parsed-tramp-file-name newname v2
+  (with-parsed-tramp-file-name (expand-file-name filename) v1
+    (with-parsed-tramp-file-name (expand-file-name newname) v2
       (let ((ln (when v1 (tramp-get-remote-ln v1))))
 
 	;; Do the 'confirm if exists' thing.
@@ -2011,7 +2008,7 @@ ID-FORMAT valid values are `string' and `integer'."
 
 	;; When newname did exist, we have wrong cached values.
 	(when t2
-	  (with-parsed-tramp-file-name newname nil
+	  (with-parsed-tramp-file-name (expand-file-name newname) nil
 	    (tramp-flush-file-properties v localname)))))))
 
 (defun tramp-sh-handle-rename-file
@@ -2047,6 +2044,7 @@ This function is invoked by `tramp-sh-handle-copy-file' and
 `tramp-sh-handle-rename-file'.  It is an error if OP is neither
 of `copy' and `rename'.  FILENAME and NEWNAME must be absolute
 file names."
+  ;; FILENAME and NEWNAME are already expanded.
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
@@ -2159,6 +2157,7 @@ file names."
 First arg OP is either `copy' or `rename' and indicates the operation.
 FILENAME is the source file, NEWNAME the target file.
 KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
+  ;; FILENAME and NEWNAME are already expanded.
   ;; Check, whether file is too large.  Emacs checks in `insert-file-1'
   ;; and `find-file-noselect', but that's not called here.
   (abort-if-file-too-large
@@ -2201,6 +2200,7 @@ the file (for rename).  Both files must reside on the same host.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid from FILENAME."
+  ;; FILENAME and NEWNAME are already expanded.
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname))
 	(file-times (file-attribute-modification-time
@@ -2349,6 +2349,7 @@ the uid and gid from FILENAME."
     (op filename newname ok-if-already-exists keep-date)
   "Invoke `scp' program to copy.
 The method used must be an out-of-band method."
+  ;; FILENAME and NEWNAME are already expanded.
   (let* ((v1 (and (tramp-tramp-file-p filename)
 		  (tramp-dissect-file-name filename)))
 	 (v2 (and (tramp-tramp-file-p newname)
@@ -2584,7 +2585,7 @@ The method used must be an out-of-band method."
 
 (defun tramp-sh-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (setq filename (expand-file-name filename))
+  (setq filename (expand-file-name (expand-file-name filename)))
   (with-parsed-tramp-file-name filename nil
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
@@ -2602,7 +2603,7 @@ The method used must be an out-of-band method."
   (if (>= emacs-major-version 29)
       (tramp-run-real-handler #'dired-compress-file (list file))
     ;; Code stolen mainly from dired-aux.el.
-    (with-parsed-tramp-file-name file nil
+    (with-parsed-tramp-file-name (expand-file-name file) nil
       (tramp-flush-file-properties v localname)
       (let ((suffixes dired-compress-file-suffixes)
 	    suffix)

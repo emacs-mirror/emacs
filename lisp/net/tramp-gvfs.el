@@ -971,7 +971,7 @@ The global value will always be nil; it is bound where needed.")
 (defun tramp-gvfs-info (filename &optional arg)
   "Check FILENAME via `gvfs-info'.
 Set file property \"file-exists-p\" with the result."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-set-file-property
      v localname "file-exists-p"
      (tramp-gvfs-send-command
@@ -994,6 +994,7 @@ This function is invoked by `tramp-gvfs-handle-copy-file' and
 `tramp-gvfs-handle-rename-file'.  It is an error if OP is neither
 of `copy' and `rename'.  FILENAME and NEWNAME must be absolute
 file names."
+  ;; FILENAME and NEWNAME are already expanded.
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
@@ -1137,7 +1138,7 @@ file names."
 
 (defun tramp-gvfs-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-flush-file-properties v localname)
     (if (and delete-by-moving-to-trash trash)
 	(move-file-to-trash filename)
@@ -1207,7 +1208,7 @@ file names."
   ;; Don't modify `last-coding-system-used' by accident.
   (let ((last-coding-system-used last-coding-system-used)
 	result)
-    (with-parsed-tramp-file-name directory nil
+    (with-parsed-tramp-file-name (expand-file-name directory) nil
       (with-tramp-file-property v localname "directory-attributes"
 	(tramp-message v 5 "directory gvfs attributes: %s" localname)
 	;; Send command.
@@ -1253,7 +1254,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   ;; Don't modify `last-coding-system-used' by accident.
   (let ((last-coding-system-used last-coding-system-used)
 	result)
-    (with-parsed-tramp-file-name filename nil
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
       (with-tramp-file-property
 	  v localname
 	  (if file-system "file-system-attributes" "file-attributes")
@@ -1412,7 +1413,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 
 (defun tramp-gvfs-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
       (or (tramp-check-cached-permissions v ?x)
 	  (tramp-check-cached-permissions v ?s)))))

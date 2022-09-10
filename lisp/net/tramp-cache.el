@@ -285,7 +285,8 @@ This is suppressed for temporary buffers."
 	    (tramp-verbose 0))
 	(when (tramp-tramp-file-p bfn)
 	  (tramp-flush-file-properties
-	   (tramp-dissect-file-name bfn) (tramp-file-local-name bfn)))))))
+	   (tramp-dissect-file-name bfn)
+	   (tramp-file-local-name (expand-file-name bfn))))))))
 
 (add-hook 'before-revert-hook #'tramp-flush-file-function)
 (add-hook 'eshell-pre-command-hook #'tramp-flush-file-function)
