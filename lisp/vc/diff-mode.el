@@ -2341,7 +2341,7 @@ Call FUN with two args (BEG and END) for each hunk."
 (defcustom diff-add-log-use-relative-names nil
   "Use relative file names when generating ChangeLog skeletons.
 The files will be relative to the root directory of the VC
-repository.  This option affects the behaviour of
+repository.  This option affects the behavior of
 `diff-add-log-current-defuns'."
   :type 'boolean
   :safe #'booleanp
