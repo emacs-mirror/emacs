@@ -1372,25 +1372,6 @@ Return t if THEME was successfully loaded, nil otherwise."
     (enable-theme theme))
   t)
 
-(defun toggle-theme (&optional no-confirm no-enable)
-  "Toggle the current active theme by enabling its dual pair.
-The current theme will be immediately disabled before the dual
-theme has been enabled.  If THEME is not active an error will be
-raised.  If theme is nil For NO-CONFIRM and NO-ENABLE, see
-`load-theme'."
-  (interactive)
-  (cond
-   ((length= custom-enabled-themes 0)
-    (user-error "No theme is active, cannot toggle"))
-   ((length> custom-enabled-themes 1)
-    (user-error "More than one theme active, cannot unambiguously toggle")))
-  (let* ((theme (car custom-enabled-themes))
-         (dual (get theme 'dual-theme)))
-    (unless dual
-      (error "`%s' has no dual theme to toggle between" theme))
-    (disable-theme theme)
-    (load-theme dual no-confirm no-enable)))
-
 (defun custom-theme-load-confirm (hash)
   "Query the user about loading a Custom theme that may not be safe.
 The theme should be in the current buffer.  If the user agrees,

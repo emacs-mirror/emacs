@@ -515,8 +515,6 @@ It includes all faces in list FACES."
 			  (end-of-file nil)))))
             (and (eq (car-safe sexp) 'deftheme)
 		 (setq doc (nth 2 sexp)))))))
-    (when-let ((dual (get theme 'dual-theme)))
-      (princ (format " The dual theme is `%s'" dual)))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
 	       (substitute-command-keys doc)

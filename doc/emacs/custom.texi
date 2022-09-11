@@ -667,11 +667,6 @@ type @kbd{M-x disable-theme}.
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
 anywhere in Emacs and enter the theme name.
 
-@findex toggle-theme
-  Some themes have dual variants (most often these are light and dark
-pairs).  You can switch between these by typing @kbd{M-x
-toggle-theme}.  Note that this only works if only one theme is active.
-
 @node Creating Custom Themes
 @subsection Creating Custom Themes
 @cindex custom themes, creating

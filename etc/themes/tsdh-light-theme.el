@@ -104,8 +104,6 @@ Used and created by Tassilo Horn.")
  '(show-paren-mismatch ((t (:background "deep pink" :weight bold))))
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
-(put 'tsdh-light 'dual-theme 'tsdh-dark) ;see `toggle-theme'
-
 (provide-theme 'tsdh-light)
 
 ;;; tsdh-light-theme.el ends here

@@ -190,8 +190,6 @@ Semantic, and Ansi-Color faces are included.")
    `(ansi-color-bright-white ((,class (:background ,alum-1
 				       :foreground ,alum-1))))))
 
-(put 'tango-dark 'dual-theme 'tango) ;see `toggle-theme'
-
 (provide-theme 'tango-dark)
 
 ;;; tango-dark-theme.el ends here
