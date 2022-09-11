@@ -2933,17 +2933,6 @@ Using 'make-obsolete' on a theme is now supported.  This will make
 'load-theme' issue a warning when loading the theme.
 
 +++
-*** New command 'toggle-theme'
-If a theme defines a dual pair (e.g. a light or dark variant) this
-command can be used disable the current one and enable the other.
-
----
-*** New user option 'custom-ensure-single-active-theme'
-If non-nil, all themes will be disabled before a new theme is enabled,
-so that there is always at most one active theme at any time.
-
-
-+++
 ** New hook 'display-monitors-changed-functions'.
 It is called whenever the configuration of different monitors on a
 display changes.
