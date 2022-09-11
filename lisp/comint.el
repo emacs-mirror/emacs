@@ -4030,9 +4030,13 @@ to calling this function and `change-major-mode-hook' along with
 `after-change-major-mode-hook' are bound to nil.")
 
 (defcustom comint-indirect-setup-hook nil
-  "Hook run after setting up an indirect comint fontification buffer.
-It is run after the indirect buffer is set up for fontification
-of input regions."
+  "Hook run in an indirect buffer for input fontification.
+Input fontification and indentation, if enabled, is performed in
+an indirect buffer, whose major mode and syntax highlighting are
+set up according to `comint-indirect-setup-function'.  After this
+setup is done, run this hook with the indirect buffer as the
+current buffer.  This can be used to further customize
+fontification and other behaviour of the indirect buffer."
   :group 'comint
   :type 'hook
   :version "29.1")
@@ -4117,8 +4121,8 @@ setting."
 
 (defun comint--fl-fontify-region (fun beg end verbose)
   "Fontify process output and user input in the current comint buffer.
-First, highlight the region between BEG and END using FUN.  Then
-highlight only the input text in the region with the help of an
+First, fontify the region between BEG and END using FUN.  Then
+fontify only the input text in the region with the help of an
 indirect buffer.  VERBOSE is passed to the fontify-region
 functions.  Skip fontification of input regions with non-nil
 `comint--fl-inhibit-fontification' text property."

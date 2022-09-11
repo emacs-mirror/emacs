@@ -309,16 +309,23 @@ for Shell mode only."
   :group 'shell)
 
 (defcustom shell-comint-fl-enable t
-  "Enable highlighting of input in shell buffers.
+  "Enable fontification of input in shell buffers.
 This variable only has effect when the shell is started.  Use the
-command `comint-fl-mode' to toggle highlighting of input."
+command `comint-fl-mode' to toggle fontification of input."
   :type 'boolean
   :group 'shell
   :safe 'booleanp
   :version "29.1")
 
 (defcustom shell-indirect-setup-hook nil
-  "Hook run after setting up an indirect shell fontification buffer."
+  "Hook run in an indirect buffer for input fontification.
+Input fontification and indentation of a `shell-mode' buffer, if
+enabled, is performed in an indirect buffer, whose indentation
+and syntax highlighting is set up with `sh-mode'.  In addition to
+`comint-indirect-setup-hook', run this hook with the indirect
+buffer as the current buffer after its setup is done.  This can
+be used to further customize fontification and other behaviour of
+the indirect buffer."
   :type 'boolean
   :group 'shell
   :safe 'booleanp
@@ -1680,7 +1687,7 @@ Similar to `executable-find', but use cache stored in
     t))
 
 (defvar-local shell--highlight-undef-indirect nil
-  "t if shell commands are fontified in `comint-indirect-buffer'.")
+  "Non-nil if shell commands are fontified in `comint-indirect-buffer'.")
 
 (declare-function sh-feature "sh-script" (alist &optional function))
 (defvar sh-leading-keywords)
@@ -1700,7 +1707,7 @@ works better if `comint-fl-mode' is enabled."
             (font-lock-remove-keywords nil shell-highlight-undef-keywords))))
     (font-lock-remove-keywords nil shell-highlight-undef-keywords))
   (remove-hook 'comint-fl-mode-hook
-               #'shell-highlight-undef-reset-mode t)
+               #'shell-highlight-undef-mode-restart t)
 
   (when shell-highlight-undef-mode
     (when comint-use-prompt-regexp
@@ -1742,12 +1749,16 @@ works better if `comint-fl-mode' is enabled."
             (t (funcall setup))))
 
     (add-hook 'comint-fl-mode-hook
-              #'shell-highlight-undef-reset-mode nil t))
+              #'shell-highlight-undef-mode-restart nil t))
 
   (font-lock-flush))
 
-(defun shell-highlight-undef-reset-mode ()
-  "If `shell-highlight-undef-mode' is on, turn it off and on."
+(defun shell-highlight-undef-mode-restart ()
+  "If `shell-highlight-undef-mode' is on, restart it.
+`shell-highlight-undef-mode' performs its setup differently
+depending on `comint-fl-mode'.  It's useful to call this function
+when switching `comint-fl-mode' in order to make
+`shell-highlight-undef-mode' redo its setup."
   (when shell-highlight-undef-mode
     (shell-highlight-undef-mode 1)))
 

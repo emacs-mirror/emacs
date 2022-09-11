@@ -475,16 +475,23 @@ nonempty, then flushes the buffer."
 ;;; Input fontification
 
 (defcustom ielm-comint-fl-enable t
-  "Enable highlighting of input in ielm buffers.
+  "Enable fontification of input in ielm buffers.
 This variable only has effect when creating an ielm buffer.  Use
-the command `comint-fl-mode' to toggle highlighting of input in
+the command `comint-fl-mode' to toggle fontification of input in
 an already existing ielm buffer."
   :type 'boolean
   :safe 'booleanp
   :version "29.1")
 
 (defcustom ielm-indirect-setup-hook nil
-  "Hook run after setting up an indirect ielm fontification buffer."
+  "Hook run in an indirect buffer for input fontification.
+Input fontification and indentation of an IELM buffer, if
+enabled, is performed in an indirect buffer, whose indentation
+and syntax highlighting are set up with `emacs-lisp-mode'.  In
+addition to `comint-indirect-setup-hook', run this hook with the
+indirect buffer as the current buffer after its setup is done.
+This can be used to further customize fontification and other
+behaviour of the indirect buffer."
   :type 'boolean
   :safe 'booleanp
   :version "29.1")
