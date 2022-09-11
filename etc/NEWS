@@ -777,6 +777,16 @@ doesn't support.  It is most useful with the Linux console and similar
 terminals, where Emacs has a reliable way of determining which
 characters have glyphs in the font loaded into the terminal's memory.
 
+---
+*** New functions to set terminal output buffer size.
+The new functions 'tty--set-output-buffer-size' and
+'tty--output-buffer-size' allow setting and retrieving the output
+buffer size of a terminal device.  The default buffer size is and has
+always been BUFSIZ, which is defined in your system's stdio.h.  When
+you set a buffer size with 'tty--set-output-buffer-size', this also
+prevents Emacs from explicitly flushing the tty output stream, except
+at the end of display update.
+
 ** ERT
 
 +++
