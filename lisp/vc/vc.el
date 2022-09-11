@@ -1808,7 +1808,8 @@ in the output buffer."
     (setq buffer-read-only t)
     (diff-mode)
     (setq-local diff-vc-backend (vc-responsible-backend default-directory))
-    (setq-local revert-buffer-function (lambda (_ _) (vc-diff-patch-string)))
+    (setq-local revert-buffer-function
+                (lambda (_ _) (vc-diff-patch-string patch-string)))
     (setq-local vc-patch-string patch-string)
     (pop-to-buffer (current-buffer))
     (vc-run-delayed (vc-diff-finish (current-buffer) nil))))
