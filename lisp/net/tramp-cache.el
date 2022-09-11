@@ -28,7 +28,7 @@
 ;; An implementation of information caching for remote files.
 
 ;; Each connection, identified by a `tramp-file-name' structure or by
-;; a process, has a unique cache.  We distinguish 4 kind of caches,
+;; a process, has a unique cache.  We distinguish 5 kind of caches,
 ;; depending on the key:
 ;;
 ;; - localname is nil.  These are reusable properties.  Examples:
@@ -37,13 +37,14 @@
 ;;   host when starting a Perl script.  These properties are saved in
 ;;   the file `tramp-persistency-file-name'.
 ;;
-;; - localname is a string.  These are temporary properties, which are
-;;   related to the file localname is referring to.  Examples:
-;;   "file-exists-p" is t or nil, depending on the file existence, or
-;;   "file-attributes" caches the result of the function
+;; - localname is an absolute file name.  These are temporary
+;;   properties, which are related to the file localname is referring
+;;   to.  Examples: "file-exists-p" is t or nil, depending on the file
+;;   existence, or "file-attributes" caches the result of the function
 ;;   `file-attributes'.  These entries have a timestamp, and they
 ;;   expire after `remote-file-name-inhibit-cache' seconds if this
-;;   variable is set.
+;;   variable is set.  These properties are taken into account only if
+;;   the connection is established, or `non-essential' is nil.
 ;;
 ;; - The key is a process.  These are temporary properties related to
 ;;   an open connection.  Examples: "scripts" keeps shell script
@@ -135,39 +136,41 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 Return DEFAULT if not set."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
-  (let* ((hash (tramp-get-hash-table key))
-	 (cached (and (hash-table-p hash) (gethash property hash)))
-	 (cached-at (and (consp cached) (format-time-string "%T" (car cached))))
-	 (value default)
-	 cache-used)
+  (if (eq key tramp-cache-undefined) default
+    (let* ((hash (tramp-get-hash-table key))
+	   (cached (and (hash-table-p hash) (gethash property hash)))
+	   (cached-at
+	    (and (consp cached) (format-time-string "%T" (car cached))))
+	   (value default)
+	   cache-used)
 
-    (when ;; We take the value only if there is any, and
-	  ;; `remote-file-name-inhibit-cache' indicates that it is
-	  ;; still valid.  Otherwise, DEFAULT is set.
-	(and (consp cached)
-	     (or (null remote-file-name-inhibit-cache)
-		 (and (integerp remote-file-name-inhibit-cache)
-		      (time-less-p
-		       nil
-		       (time-add (car cached) remote-file-name-inhibit-cache)))
-		 (and (consp remote-file-name-inhibit-cache)
-		      (time-less-p
-		       remote-file-name-inhibit-cache (car cached)))))
-      (setq value (cdr cached)
-	    cache-used t))
+      (when ;; We take the value only if there is any, and
+	    ;; `remote-file-name-inhibit-cache' indicates that it is
+	    ;; still valid.  Otherwise, DEFAULT is set.
+	  (and (consp cached)
+	       (or (null remote-file-name-inhibit-cache)
+		   (and (integerp remote-file-name-inhibit-cache)
+			(time-less-p
+			 nil
+			 (time-add (car cached) remote-file-name-inhibit-cache)))
+		   (and (consp remote-file-name-inhibit-cache)
+			(time-less-p
+			 remote-file-name-inhibit-cache (car cached)))))
+	(setq value (cdr cached)
+	      cache-used t))
 
-    (tramp-message
-     key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
-     (tramp-file-name-localname key)
-     property value remote-file-name-inhibit-cache cache-used cached-at)
-    ;; For analysis purposes, count the number of getting this file attribute.
-    (when (>= tramp-verbose 10)
-      (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (and (boundp var) (numberp (symbol-value var))
-			   (symbol-value var))
-		      0)))
-	(set var (1+ val))))
-    value))
+      (tramp-message
+       key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
+       (tramp-file-name-localname key)
+       property value remote-file-name-inhibit-cache cache-used cached-at)
+      ;; For analysis purposes, count the number of getting this file attribute.
+      (when (>= tramp-verbose 10)
+	(let* ((var (intern (concat "tramp-cache-get-count-" property)))
+	       (val (or (and (boundp var) (numberp (symbol-value var))
+			     (symbol-value var))
+			0)))
+	  (set var (1+ val))))
+      value)))
 
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
@@ -180,19 +183,20 @@ Return DEFAULT if not set."
 Return VALUE."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
-  (let ((hash (tramp-get-hash-table key)))
-    ;; We put the timestamp there.
-    (puthash property (cons (current-time) value) hash)
-    (tramp-message
-     key 8 "%s %s %s" (tramp-file-name-localname key) property value)
-    ;; For analysis purposes, count the number of setting this file attribute.
-    (when (>= tramp-verbose 10)
-      (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (and (boundp var) (numberp (symbol-value var))
-			   (symbol-value var))
-		      0)))
-	(set var (1+ val))))
-    value))
+  (if (eq key tramp-cache-undefined) value
+    (let ((hash (tramp-get-hash-table key)))
+      ;; We put the timestamp there.
+      (puthash property (cons (current-time) value) hash)
+      (tramp-message
+       key 8 "%s %s %s" (tramp-file-name-localname key) property value)
+      ;; For analysis purposes, count the number of setting this file attribute.
+      (when (>= tramp-verbose 10)
+	(let* ((var (intern (concat "tramp-cache-set-count-" property)))
+	       (val (or (and (boundp var) (numberp (symbol-value var))
+			     (symbol-value var))
+			0)))
+	  (set var (1+ val))))
+      value)))
 
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
@@ -202,19 +206,22 @@ Return VALUE."
 ;;;###tramp-autoload
 (defun tramp-file-property-p (key file property)
   "Check whether PROPERTY of FILE is defined in the cache context of KEY."
-  (not (eq (tramp-get-file-property key file property tramp-cache-undefined)
-	   tramp-cache-undefined)))
+  (and
+   (not (eq key tramp-cache-undefined))
+   (not (eq (tramp-get-file-property key file property tramp-cache-undefined)
+	    tramp-cache-undefined))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-property (key file property)
   "Remove PROPERTY of FILE in the cache context of KEY."
   ;; Unify localname.  Remove hop from `tramp-file-name' structure.
   (setq key (tramp-file-name-unify key file))
-  (remhash property (tramp-get-hash-table key))
-  (tramp-message key 8 "%s %s" (tramp-file-name-localname key) property)
-  (when (>= tramp-verbose 10)
-    (let ((var (intern (concat "tramp-cache-set-count-" property))))
-      (makunbound var))))
+  (unless (eq key tramp-cache-undefined)
+    (remhash property (tramp-get-hash-table key))
+    (tramp-message key 8 "%s %s" (tramp-file-name-localname key) property)
+    (when (>= tramp-verbose 10)
+      (let ((var (intern (concat "tramp-cache-set-count-" property))))
+	(makunbound var)))))
 
 (defun tramp-flush-file-upper-properties (key file)
   "Remove some properties of FILE's upper directory."
@@ -224,12 +231,14 @@ Return VALUE."
 	       (file (directory-file-name file)))
       ;; Unify localname.  Remove hop from `tramp-file-name' structure.
       (setq key (tramp-file-name-unify key file))
-      (dolist (property (hash-table-keys (tramp-get-hash-table key)))
-	(when (string-match-p
-	       (rx
-		bos (| "directory-" "file-name-all-completions" "file-entries"))
-	       property)
-	  (tramp-flush-file-property key file property))))))
+      (unless (eq key tramp-cache-undefined)
+	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
+	  (when (string-match-p
+		 (rx
+		  bos (| "directory-" "file-name-all-completions"
+			 "file-entries"))
+		 property)
+	    (tramp-flush-file-property key file property)))))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)
@@ -237,14 +246,15 @@ Return VALUE."
   (let ((truename (tramp-get-file-property key file "file-truename")))
     ;; Unify localname.  Remove hop from `tramp-file-name' structure.
     (setq key (tramp-file-name-unify key file))
-    (tramp-message key 8 "%s" (tramp-file-name-localname key))
-    (remhash key tramp-cache-data)
-    ;; Remove file properties of symlinks.
-    (when (and (stringp truename)
-	       (not (string-equal file (directory-file-name truename))))
-      (tramp-flush-file-properties key truename))
-    ;; Remove selected properties of upper directory.
-    (tramp-flush-file-upper-properties key file)))
+    (unless (eq key tramp-cache-undefined)
+      (tramp-message key 8 "%s" (tramp-file-name-localname key))
+      (remhash key tramp-cache-data)
+      ;; Remove file properties of symlinks.
+      (when (and (stringp truename)
+		 (not (string-equal file (directory-file-name truename))))
+	(tramp-flush-file-properties key truename))
+      ;; Remove selected properties of upper directory.
+      (tramp-flush-file-upper-properties key file))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-directory-properties (key directory)
@@ -285,8 +295,7 @@ This is suppressed for temporary buffers."
 	    (tramp-verbose 0))
 	(when (tramp-tramp-file-p bfn)
 	  (tramp-flush-file-properties
-	   (tramp-dissect-file-name bfn)
-	   (tramp-file-local-name (expand-file-name bfn))))))))
+	   (tramp-dissect-file-name bfn) (tramp-file-local-name bfn)))))))
 
 (add-hook 'before-revert-hook #'tramp-flush-file-function)
 (add-hook 'eshell-pre-command-hook #'tramp-flush-file-function)
