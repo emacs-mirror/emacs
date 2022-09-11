@@ -1971,6 +1971,10 @@ xm_get_drag_window_1 (struct x_display_info *dpyinfo)
       && tmp_data)
     {
       drag_window = *(Window *) tmp_data;
+
+      /* This has the side effect of selecting for
+	 StructureNotifyMask, meaning that we will get notifications
+	 once it is deleted.  */
       rc = x_special_window_exists_p (dpyinfo, drag_window);
 
       if (!rc)
@@ -20706,6 +20710,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (event->xdestroywindow.window
 	  == dpyinfo->net_supported_window)
 	dpyinfo->net_supported_window = None;
+
+      if (event->xdestroywindow.window
+	  == dpyinfo->motif_drag_window)
+	/* We get DestroyNotify events for the drag window because
+	   x_special_window_exists_p selects for structure
+	   notification.  The drag window is not supposed to go away
+	   but not all clients obey that requirement when setting the
+	   drag window property.  */
+	dpyinfo->motif_drag_window = None;
 
       xft_settings_event (dpyinfo, event);
       break;
