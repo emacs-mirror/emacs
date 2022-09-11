@@ -1050,7 +1050,8 @@ Within directories, only files already under version control are noticed."
 	((derived-mode-p 'log-edit-mode) log-edit-vc-backend)
 	((derived-mode-p 'diff-mode)     diff-vc-backend)
         ;; Maybe we could even use comint-mode rather than shell-mode?
-	((derived-mode-p 'dired-mode 'shell-mode 'compilation-mode)
+	((derived-mode-p
+          'dired-mode 'shell-mode 'eshell-mode 'compilation-mode)
 	 (ignore-errors (vc-responsible-backend default-directory)))
 	(vc-mode (vc-backend buffer-file-name))))
 
