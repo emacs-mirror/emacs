@@ -4219,15 +4219,17 @@ Comparisons and replacements are done with fixed case."
         (error "End after end of buffer"))
     (setq end (point-max)))
   (save-excursion
-    (let ((matches 0)
-          (case-fold-search nil))
-      (goto-char start)
-      (while (search-forward string end t)
-        (delete-region (match-beginning 0) (match-end 0))
-        (insert replacement)
-        (setq matches (1+ matches)))
-      (and (not (zerop matches))
-           matches))))
+    (goto-char start)
+    (save-restriction
+      (narrow-to-region start end)
+      (let ((matches 0)
+            (case-fold-search nil))
+        (while (search-forward string nil t)
+          (delete-region (match-beginning 0) (match-end 0))
+          (insert replacement)
+          (setq matches (1+ matches)))
+        (and (not (zerop matches))
+             matches)))))
 
 (defun replace-regexp-in-region (regexp replacement &optional start end)
   "Replace REGEXP with REPLACEMENT in the region from START to END.
@@ -4254,14 +4256,16 @@ REPLACEMENT can use the following special elements:
         (error "End after end of buffer"))
     (setq end (point-max)))
   (save-excursion
-    (let ((matches 0)
-          (case-fold-search nil))
-      (goto-char start)
-      (while (re-search-forward regexp end t)
-        (replace-match replacement t)
-        (setq matches (1+ matches)))
-      (and (not (zerop matches))
-           matches))))
+    (goto-char start)
+    (save-restriction
+      (narrow-to-region start end)
+      (let ((matches 0)
+            (case-fold-search nil))
+          (while (re-search-forward regexp nil t)
+          (replace-match replacement t)
+          (setq matches (1+ matches)))
+        (and (not (zerop matches))
+             matches)))))
 
 (defun yank-handle-font-lock-face-property (face start end)
   "If `font-lock-defaults' is nil, apply FACE as a `face' property.
