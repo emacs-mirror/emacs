@@ -10558,8 +10558,6 @@ displaying that processes's buffer."
 (define-key ctl-x-map "{" 'shrink-window-horizontally)
 (define-key ctl-x-map "-" 'shrink-window-if-larger-than-buffer)
 (define-key ctl-x-map "+" 'balance-windows)
-(define-key ctl-x-map "7" 'split-root-window-below)
-(define-key ctl-x-map "9" 'split-root-window-right)
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
@@ -10589,6 +10587,16 @@ displaying that processes's buffer."
 (put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
 (put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)
 (put 'shrink-window 'repeat-map 'resize-window-repeat-map)
+
+(defvar-keymap window-prefix-map
+  :doc "Keymap for subcommands of \\`C-x w'."
+  "2" #'split-root-window-below
+  "3" #'split-root-window-right
+  "s" #'window-toggle-side-windows
+  "f" #'tear-off-window
+  "-" #'fit-window-to-buffer
+  "0" #'delete-windows-on)
+(define-key ctl-x-map "w" window-prefix-map)
 
 (provide 'window)
 
