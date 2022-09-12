@@ -276,7 +276,18 @@ one with the `xr' package."
   ;; to ignore the problematic string.
   ;; If TEST is nil, it is ignored without query.
   ;; Return the number of replacements.
-  (let ((n 0) file label match-data buf macro pos cell)
+  (let ((n 0)
+        (opt-re (concat "\\(?:{[^}{]*"
+                        "\\(?:{[^}{]*"
+                        "\\(?:{[^}{]*}[^}{]*\\)*"
+                        "}[^}{]*\\)*"
+                        "}[^][]*\\)*"))
+        (man-re (concat "\\(?:{[^}{]*"
+                        "\\(?:{[^}{]*"
+                        "\\(?:{[^}{]*}[^}{]*\\)*"
+                        "}[^}{]*\\)*"
+                        "}[^}{]*\\)*"))
+        file label match-data buf macro pos cell)
     (while (setq file (pop files))
       (setq buf (reftex-get-file-buffer-force file))
       (unless buf
@@ -301,7 +312,29 @@ one with the `xr' package."
                              (looking-at "\\\\ref[a-zA-Z]*[^a-zA-Z]")
                              (looking-at (format
                                           reftex-find-label-regexp-format
-                                          (regexp-quote label)))))
+                                          (regexp-quote label)))
+                             ;; In case the label-keyval is inside an
+                             ;; optional argument to \begin{env}
+                             (looking-at (concat
+                                          "\\\\begin[[:space:]]*{[^}]+}"
+                                          "[[:space:]]*"
+                                          "\\[[^][]*"
+                                          opt-re
+                                          (format
+                                           reftex-find-label-regexp-format
+                                           (regexp-quote label))
+                                          "[^]]*\\]"))
+                             ;; In case the label-keyval is inside the
+                             ;; first mandatory argument to \begin{env}
+                             (looking-at (concat
+                                          "\\\\begin[[:space:]]*{[^}]+}"
+                                          "[[:space:]]*"
+                                          "{[^}{]*"
+                                          man-re
+                                          (format
+                                           reftex-find-label-regexp-format
+                                           (regexp-quote label))
+                                          "[^}]*}"))))
                 ;; OK, we should replace it.
                 (set-match-data match-data)
                 (cond

@@ -334,6 +334,179 @@ And this should be % \\cite{ignored}.
                            #'string<)))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
+(ert-deftest reftex-renumber-simple-labels ()
+  "Test `reftex-renumber-simple-labels'.
+The function must recognize labels defined with macros like
+\\label and the ones as key=value option in optional or mandatory
+argument of other macros or environments."
+  (ert-with-temp-directory temp-dir
+    (let ((tex-file (expand-file-name "renumber.tex" temp-dir)))
+      (with-temp-buffer
+        (insert "\
+\\documentclass{article}
+\\usepackage{tcolorbox}
+\\tcbuselibrary{theorems}
+\\usepackage{fancyvrb}
+\\usepackage{listings}
+
+\\begin{document}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback                = white          ,
+    colframe               = red!50!black   ,
+    fonttitle              = \\bfseries      ,
+    description delimiters = {\\flqq}{\\frqq} ,
+    label                  = {problem:2}]{Prove RH2}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:2}
+  2
+\\end{equation}
+By \\eqref{eq:2} and \\ref{problem:2}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback=white,
+    colframe=red!50!black,
+    fonttitle=\\bfseries,
+    theorem label supplement={hypertarget={XYZ-##1}},
+    theorem full label supplement={code={\\marginnote{##1}}},
+    label={problem:1}]{Prove RH1}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:1}
+  1
+\\end{equation}
+
+\\Cref{problem:1} and \\pageref{eq:1}.
+
+\\begin{problem}[label={problem:6}]{Some Problem}{}
+  Problem
+\\end{problem}
+
+\\Ref{problem:6}.
+
+This is with fancyvrb package:
+\\begin{Verbatim}[reflabel={lst:6}]
+Some Verb Content
+\\end{Verbatim}
+
+\\pageref{lst:6}
+
+This is with listings package:
+\\begin{lstlisting}[language=elisp,caption=Some Caption,label={lst:3}]
+(car (cons 1 '(2)))
+\\end{lstlisting}
+
+\\ref{lst:3}
+
+\\end{document}")
+        (write-region (point-min) (point-max) tex-file))
+      ;; The label prefix must be known to RefTeX:
+      (add-to-list 'reftex-label-alist
+                   '("problem" ?p "problem:" "~\\ref{%s}"
+                     nil nil nil)
+                   t)
+      (add-to-list 'reftex-label-alist
+                   '("Verbatim" ?l "lst:" "~\\ref{%s}"
+                     nil nil nil)
+                   t)
+      ;; The environments must be known to RefTeX otherwise the labels
+      ;; aren't parsed correctly:
+      (add-to-list 'reftex-label-regexps
+                   (concat "\\\\begin{\\(?:problem\\|Verbatim\\)}"
+                           "\\[[^][]*"
+                           "\\(?:{[^}{]*"
+                           "\\(?:{[^}{]*"
+                           "\\(?:{[^}{]*}[^}{]*\\)*"
+                           "}[^}{]*\\)*"
+                           "}[^][]*\\)*"
+                           "\\<\\(?:ref\\)?label[[:space:]]*=[[:space:]]*"
+                           "{?\\(?1:[^] ,}\r\n\t%]+\\)"
+                           "[^]]*\\]")
+                   t)
+      ;; Always run this after changing `reftex-label-regexps':
+      (reftex-compile-variables)
+      (find-file tex-file)
+      ;; Silence the user query:
+      (cl-letf (((symbol-function 'yes-or-no-p) #'always))
+        (reftex-renumber-simple-labels))
+      (should (string= (buffer-string)
+                       "\
+\\documentclass{article}
+\\usepackage{tcolorbox}
+\\tcbuselibrary{theorems}
+\\usepackage{fancyvrb}
+\\usepackage{listings}
+
+\\begin{document}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback                = white          ,
+    colframe               = red!50!black   ,
+    fonttitle              = \\bfseries      ,
+    description delimiters = {\\flqq}{\\frqq} ,
+    label                  = {problem:1}]{Prove RH2}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:1}
+  2
+\\end{equation}
+By \\eqref{eq:1} and \\ref{problem:1}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback=white,
+    colframe=red!50!black,
+    fonttitle=\\bfseries,
+    theorem label supplement={hypertarget={XYZ-##1}},
+    theorem full label supplement={code={\\marginnote{##1}}},
+    label={problem:2}]{Prove RH1}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:2}
+  1
+\\end{equation}
+
+\\Cref{problem:2} and \\pageref{eq:2}.
+
+\\begin{problem}[label={problem:3}]{Some Problem}{}
+  Problem
+\\end{problem}
+
+\\Ref{problem:3}.
+
+This is with fancyvrb package:
+\\begin{Verbatim}[reflabel={lst:1}]
+Some Verb Content
+\\end{Verbatim}
+
+\\pageref{lst:1}
+
+This is with listings package:
+\\begin{lstlisting}[language=elisp,caption=Some Caption,label={lst:2}]
+(car (cons 1 '(2)))
+\\end{lstlisting}
+
+\\ref{lst:2}
+
+\\end{document}"))
+      (kill-buffer (file-name-nondirectory tex-file)))))
+
 ;;; Autoload tests
 
 ;; Test to check whether reftex autoloading mechanisms are working
