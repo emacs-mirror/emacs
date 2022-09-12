@@ -13213,8 +13213,13 @@ x_mouse_leave (struct x_display_info *dpyinfo)
 
       device = xi_device_from_id (dpyinfo, dpyinfo->client_pointer_device);
 
-      if (device)
-	device->focus_implicit_frame = NULL;
+      if (device && device->focus_implicit_frame)
+	{
+	  device->focus_implicit_frame = NULL;
+
+	  /* The focus might have changed; compute the new focus.  */
+	  xi_handle_focus_change (dpyinfo);
+	}
     }
 #endif
 }
