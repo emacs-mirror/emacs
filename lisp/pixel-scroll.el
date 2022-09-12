@@ -116,39 +116,37 @@ is always with pixel resolution.")
 
 (defvar mwheel-coalesce-scroll-events)
 
-(defvar pixel-scroll-precision-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [wheel-down] 'pixel-scroll-precision)
-    (define-key map [wheel-up] 'pixel-scroll-precision)
-    (define-key map [touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [mode-line wheel-down] 'pixel-scroll-precision)
-    (define-key map [mode-line wheel-up] 'pixel-scroll-precision)
-    (define-key map [mode-line touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [header-line wheel-down] 'pixel-scroll-precision)
-    (define-key map [header-line wheel-up] 'pixel-scroll-precision)
-    (define-key map [header-line touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [vertical-scroll-bar wheel-down] 'pixel-scroll-precision)
-    (define-key map [vertical-scroll-bar wheel-up] 'pixel-scroll-precision)
-    (define-key map [vertical-scroll-bar touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [tool-bar wheel-down] 'pixel-scroll-precision)
-    (define-key map [tool-bar wheel-up] 'pixel-scroll-precision)
-    (define-key map [tool-bar touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [left-margin wheel-down] 'pixel-scroll-precision)
-    (define-key map [left-margin wheel-up] 'pixel-scroll-precision)
-    (define-key map [left-margin touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [right-margin wheel-down] 'pixel-scroll-precision)
-    (define-key map [right-margin wheel-up] 'pixel-scroll-precision)
-    (define-key map [right-margin touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [left-fringe wheel-down] 'pixel-scroll-precision)
-    (define-key map [left-fringe wheel-up] 'pixel-scroll-precision)
-    (define-key map [left-fringe touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [right-fringe wheel-down] 'pixel-scroll-precision)
-    (define-key map [right-fringe wheel-up] 'pixel-scroll-precision)
-    (define-key map [right-fringe touch-end] 'pixel-scroll-start-momentum)
-    (define-key map [next] 'pixel-scroll-interpolate-down)
-    (define-key map [prior] 'pixel-scroll-interpolate-up)
-    map)
-  "The key map used by `pixel-scroll-precision-mode'.")
+(defvar-keymap pixel-scroll-precision-mode-map
+  :doc "The key map used by `pixel-scroll-precision-mode'."
+  "<wheel-down>"                       #'pixel-scroll-precision
+  "<wheel-up>"                         #'pixel-scroll-precision
+  "<touch-end>"                        #'pixel-scroll-start-momentum
+  "<mode-line> <wheel-down>"           #'pixel-scroll-precision
+  "<mode-line> <wheel-up>"             #'pixel-scroll-precision
+  "<mode-line> <touch-end>"            #'pixel-scroll-start-momentum
+  "<header-line> <wheel-down>"         #'pixel-scroll-precision
+  "<header-line> <wheel-up>"           #'pixel-scroll-precision
+  "<header-line> <touch-end>"          #'pixel-scroll-start-momentum
+  "<vertical-scroll-bar> <wheel-down>" #'pixel-scroll-precision
+  "<vertical-scroll-bar> <wheel-up>"   #'pixel-scroll-precision
+  "<vertical-scroll-bar> <touch-end>"  #'pixel-scroll-start-momentum
+  "<tool-bar> <wheel-down>"            #'pixel-scroll-precision
+  "<tool-bar> <wheel-up>"              #'pixel-scroll-precision
+  "<tool-bar> <touch-end>"             #'pixel-scroll-start-momentum
+  "<left-margin> <wheel-down>"         #'pixel-scroll-precision
+  "<left-margin> <wheel-up>"           #'pixel-scroll-precision
+  "<left-margin> <touch-end>"          #'pixel-scroll-start-momentum
+  "<right-margin> <wheel-down>"        #'pixel-scroll-precision
+  "<right-margin> <wheel-up>"          #'pixel-scroll-precision
+  "<right-margin> <touch-end>"         #'pixel-scroll-start-momentum
+  "<left-fringe> <wheel-down>"         #'pixel-scroll-precision
+  "<left-fringe> <wheel-up>"           #'pixel-scroll-precision
+  "<left-fringe> <touch-end>"          #'pixel-scroll-start-momentum
+  "<right-fringe> <wheel-down>"        #'pixel-scroll-precision
+  "<right-fringe> <wheel-up>"          #'pixel-scroll-precision
+  "<right-fringe> <touch-end>"         #'pixel-scroll-start-momentum
+  "<next>"                             #'pixel-scroll-interpolate-down
+  "<prior>"                            #'pixel-scroll-interpolate-up)
 
 (defcustom pixel-scroll-precision-use-momentum nil
   "If non-nil, continue to scroll the display after wheel movement stops.
