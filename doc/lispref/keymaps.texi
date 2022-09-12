@@ -2911,6 +2911,10 @@ The @code{:rtl} property specifies an alternative image to use for
 right-to-left languages.  Only the GTK+ version of Emacs supports this
 at present.
 
+Some toolkits display both an image and a text in the toolbar.  If you
+want to force using only the image, use a @code{:vert-only}
+non-@code{nil} property.
+
 Like the menu bar, the tool bar can display separators (@pxref{Menu
 Separators}).  Tool bar separators are vertical rather than
 horizontal, though, and only a single style is supported.  They are
