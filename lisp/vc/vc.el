@@ -2741,8 +2741,10 @@ with its diffs (if the underlying VCS supports that)."
 (defun vc-print-branch-log (branch)
   "Show the change log for BRANCH root in a window."
   (interactive
-   (list
-    (vc-read-revision "Branch to log: ")))
+   (let* ((backend (vc-responsible-backend default-directory))
+          (rootdir (vc-call-backend backend 'root default-directory)))
+     (list
+      (vc-read-revision "Branch to log: " (list rootdir) backend))))
   (when (equal branch "")
     (error "No branch specified"))
   (let* ((backend (vc-responsible-backend default-directory))
