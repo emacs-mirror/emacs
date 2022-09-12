@@ -950,9 +950,9 @@ non-nil in 'special-mode' and its derivatives.
 
 +++
 *** New commands 'split-root-window-below' and 'split-root-window-right'.
-These commands split the root window in two, and are are bound to 'C-x
-w 2' and 'C-x w 3' respectively.  A number of other useful
-window-related commands are now available under 'C-x w' too.
+These commands split the root window in two, and are bound to 'C-x w 2'
+and 'C-x w 3', respectively.  A number of other useful window-related
+commands are now available on the 'C-x w' prefix.
 
 +++
 *** New user option 'display-buffer-avoid-small-windows'.
