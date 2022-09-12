@@ -1472,4 +1472,8 @@ folded."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
+
 ;;; comp-tests.el ends here
