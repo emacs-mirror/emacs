@@ -4573,6 +4573,12 @@ With prefix argument, make it a temporary breakpoint."
         (was-macro               `(macro . ,unwrapped))
         (t                       unwrapped))))))
 
+(defun edebug--strip-plist (symbol)
+  "Remove edebug related properties from plist for SYMBOL."
+  (dolist (prop '( edebug edebug-behavior edebug-coverage
+                   edebug-freq-count ghost-edebug))
+    (cl-remprop symbol prop)))
+
 (defun edebug-remove-instrumentation (functions)
   "Remove Edebug instrumentation from FUNCTIONS.
 Interactively, the user is prompted for the function to remove
@@ -4604,6 +4610,7 @@ instrumentation for, defaulting to all functions."
   (dolist (symbol functions)
     (when-let ((unwrapped
                 (edebug--unwrap*-symbol-function symbol)))
+      (edebug--strip-plist symbol)
       (defalias symbol unwrapped)))
   (message "Removed edebug instrumentation from %s"
            (mapconcat #'symbol-name functions ", ")))
