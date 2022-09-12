@@ -3509,7 +3509,7 @@ Returns the tag list, or t for an error."
     (error t)))
 )
 
-;;; Tag Management -- etags  (old XEmacs compatibility part)
+;;; Tag Management -- etags
 ;;
 (defvar speedbar-fetch-etags-parse-list
   '(;; Note that java has the same parse-group as c
@@ -3552,10 +3552,7 @@ This variable is ignored if `speedbar-use-imenu-flag' is t."
 FLAG then becomes a member of etags command line arguments.  If flag
 is \"sort\", then toggle the value of `speedbar-sort-tags'.  If its
 value is \"show\" then toggle the value of
-`speedbar-show-unknown-files'.
-
-  This function is a convenience function for XEmacs menu created by
-Farzin Guilak <farzin@protocol.com>."
+`speedbar-show-unknown-files'."
   (interactive)
   (cond
    ((equal flag "sort")
