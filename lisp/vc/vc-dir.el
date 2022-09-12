@@ -356,7 +356,7 @@ See `run-hooks'."
     (define-key map "G" #'vc-dir-ignore)
 
     (let ((branch-map (make-sparse-keymap)))
-      (define-key map "B" branch-map)
+      (define-key map "b" branch-map)
       (define-key branch-map "c" #'vc-create-tag)
       (define-key branch-map "l" #'vc-print-branch-log)
       (define-key branch-map "s" #'vc-retrieve-tag))

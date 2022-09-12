@@ -1647,6 +1647,10 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 
 ** VC
 
+*** 'C-x v b' prefix key is used now for branch commands.
+'vc-print-branch-log' is bound to 'C-x v b l', and new commands are
+'vc-create-branch' ('C-x v b c') and 'vc-switch-branch' ('C-x v b s').
+
 +++
 *** New command '%' ('vc-dir-mark-by-regexp').
 This command marks files based on a regexp.  If given a prefix

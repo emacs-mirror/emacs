@@ -82,7 +82,7 @@
 ;; - annotate-time ()                              OK
 ;; - annotate-current-time ()                      NOT NEEDED
 ;; - annotate-extract-revision-at-line ()          OK
-;; TAG SYSTEM
+;; TAG/BRANCH SYSTEM
 ;; - create-tag (dir name branchp)                 OK
 ;; - retrieve-tag (dir name update)                OK
 ;; MISCELLANEOUS
@@ -1572,13 +1572,25 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 		    (expand-file-name fname (vc-git-root default-directory))))
 	  revision)))))
 
-;;; TAG SYSTEM
+;;; TAG/BRANCH SYSTEM
+
+(declare-function vc-read-revision "vc"
+                  (prompt &optional files backend default initial-input))
 
 (defun vc-git-create-tag (dir name branchp)
-  (let ((default-directory dir))
-    (and (vc-git-command nil 0 nil "update-index" "--refresh")
+  (let ((default-directory dir)
+        (start-point (when branchp (vc-read-revision
+                                    (format-prompt "Start point"
+                                                   (car (vc-git-branches)))
+                                    (list dir) 'Git))))
+    (and (or (zerop (vc-git-command nil t nil "update-index" "--refresh"))
+             (y-or-n-p "Modified files exist.  Proceed? ")
+             (user-error (format "Can't create %s with modified files"
+                                 (if branchp "branch" "tag"))))
          (if branchp
-             (vc-git-command nil 0 nil "checkout" "-b" name)
+             (vc-git-command nil 0 nil "checkout" "-b" name
+                             (when (and start-point (not (eq start-point "")))
+                               start-point))
            (vc-git-command nil 0 nil "tag" name)))))
 
 (defun vc-git-retrieve-tag (dir name _update)

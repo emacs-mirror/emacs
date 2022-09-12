@@ -449,7 +449,7 @@
 ;;
 ;;   Return the common ancestor between REV1 and REV2 revisions.
 
-;; TAG SYSTEM
+;; TAG/BRANCH SYSTEM
 ;;
 ;; - create-tag (dir name branchp)
 ;;
@@ -464,8 +464,9 @@
 ;; - retrieve-tag (dir name update)
 ;;
 ;;   Retrieve the version tagged by NAME of all registered files at or below DIR.
+;;   If NAME is a branch name, switch to that branch.
 ;;   If UPDATE is non-nil, then update buffers of any files in the
-;;   tag that are currently visited.  The default implementation
+;;   tag/branch that are currently visited.  The default implementation
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
 ;;   function to retrieve the corresponding revisions.
@@ -663,8 +664,6 @@
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line.  Replace
 ;;   vc-cvs-sticky-tag with that.
-;;
-;; - Add a primitives for switching to a branch (creating it if required.
 ;;
 ;; - Add the ability to list tags and branches.
 ;;
@@ -2433,7 +2432,23 @@ checked out in that new branch."
   (message "Making %s... done" (if branchp "branch" "tag")))
 
 ;;;###autoload
-(defun vc-retrieve-tag (dir name)
+(defun vc-create-branch (dir name)
+  "Descending recursively from DIR, make a branch called NAME.
+After a new branch is made, the files are checked out in that new branch.
+Uses `vc-create-tag' with the non-nil arg `branchp'."
+  (interactive
+   (let ((granularity
+          (vc-call-backend (vc-responsible-backend default-directory)
+                           'revision-granularity)))
+     (list
+      (if (eq granularity 'repository)
+          default-directory
+        (read-directory-name "Directory: " default-directory default-directory t))
+      (read-string "New branch name: " nil 'vc-revision-history))))
+  (vc-create-tag dir name t))
+
+;;;###autoload
+(defun vc-retrieve-tag (dir name &optional branchp)
   "For each file in or below DIR, retrieve their tagged version NAME.
 NAME can name a branch, in which case this command will switch to the
 named branch in the directory DIR.
@@ -2443,6 +2458,8 @@ If NAME is empty, it refers to the latest revisions of the current branch.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped).
+If the prefix argument BRANCHP is given, switch the branch
+and check out the files in that branch.
 This function runs the hook `vc-retrieve-tag-hook' when finished."
   (interactive
    (let* ((granularity
@@ -2458,15 +2475,21 @@ This function runs the hook `vc-retrieve-tag-hook' when finished."
              (read-directory-name "Directory: " default-directory nil t))))
      (list
       dir
-      (vc-read-revision (format-prompt "Tag name to retrieve" "latest revisions")
+      (vc-read-revision (format-prompt
+                         (if current-prefix-arg
+                             "Switch to branch"
+                           "Tag name to retrieve")
+                         "latest revisions")
                         (list dir)
-                        (vc-responsible-backend dir)))))
+                        (vc-responsible-backend dir))
+      current-prefix-arg)))
   (let* ((backend (vc-responsible-backend dir))
          (update (when (vc-call-backend backend 'update-on-retrieve-tag)
                    (yes-or-no-p "Update any affected buffers? ")))
 	 (msg (if (or (not name) (string= name ""))
 		  (format "Updating %s... " (abbreviate-file-name dir))
-	        (format "Retrieving tag %s into %s... "
+	        (format "Retrieving %s %s into %s... "
+                        (if branchp "branch" "tag")
 		        name (abbreviate-file-name dir)))))
     (message "%s" msg)
     (vc-call-backend backend 'retrieve-tag dir name update)
@@ -2474,6 +2497,25 @@ This function runs the hook `vc-retrieve-tag-hook' when finished."
     (run-hooks 'vc-retrieve-tag-hook)
     (message "%s" (concat msg "done"))))
 
+;;;###autoload
+(defun vc-switch-branch (dir name)
+  "Switch to the branch NAME in the directory DIR.
+If NAME is empty, it refers to the latest revisions of the current branch.
+Uses `vc-retrieve-tag' with the non-nil arg `branchp'."
+  (interactive
+   (let* ((granularity
+           (vc-call-backend (vc-responsible-backend default-directory)
+                            'revision-granularity))
+          (dir
+           (if (eq granularity 'repository)
+               (expand-file-name (vc-root-dir))
+             (read-directory-name "Directory: " default-directory nil t))))
+     (list
+      dir
+      (vc-read-revision (format-prompt "Switch to branch" "latest revisions")
+                        (list dir)
+                        (vc-responsible-backend dir)))))
+  (vc-retrieve-tag dir name t))
 
 ;; Miscellaneous other entry points
 
