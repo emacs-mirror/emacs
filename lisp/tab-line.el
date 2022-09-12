@@ -135,45 +135,35 @@ function `tab-line-tab-face-group'."
   :group 'tab-line-faces)
 
 
-(defvar tab-line-tab-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab-line down-mouse-1] 'tab-line-select-tab)
-    (define-key map [tab-line mouse-2] 'tab-line-close-tab)
-    (define-key map [tab-line down-mouse-3] 'tab-line-tab-context-menu)
-    (define-key map "\C-m" 'tab-line-select-tab)
-    map)
-  "Local keymap for `tab-line-mode' window tabs.")
+(defvar-keymap tab-line-tab-map
+  :doc "Local keymap for `tab-line-mode' window tabs."
+  "<tab-line> <down-mouse-1>" #'tab-line-select-tab
+  "<tab-line> <mouse-2>"      #'tab-line-close-tab
+  "<tab-line> <down-mouse-3>" #'tab-line-tab-context-menu
+  "RET" #'tab-line-select-tab)
 
-(defvar tab-line-add-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab-line down-mouse-1] 'tab-line-new-tab)
-    (define-key map [tab-line down-mouse-2] 'tab-line-new-tab)
-    (define-key map "\C-m" 'tab-line-new-tab)
-    map)
-  "Local keymap to add `tab-line-mode' window tabs.")
+(defvar-keymap tab-line-add-map
+  :doc "Local keymap to add `tab-line-mode' window tabs."
+  "<tab-line> <down-mouse-1>" #'tab-line-new-tab
+  "<tab-line> <down-mouse-2>" #'tab-line-new-tab
+  "RET" #'tab-line-new-tab)
 
-(defvar tab-line-tab-close-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab-line mouse-1] 'tab-line-close-tab)
-    (define-key map [tab-line mouse-2] 'tab-line-close-tab)
-    map)
-  "Local keymap to close `tab-line-mode' window tabs.")
+(defvar-keymap tab-line-tab-close-map
+  :doc "Local keymap to close `tab-line-mode' window tabs."
+  "<tab-line> <mouse-1>" #'tab-line-close-tab
+  "<tab-line> <mouse-2>" #'tab-line-close-tab)
 
-(defvar tab-line-left-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab-line down-mouse-1] 'tab-line-hscroll-left)
-    (define-key map [tab-line down-mouse-2] 'tab-line-hscroll-left)
-    (define-key map "\C-m" 'tab-line-new-tab)
-    map)
-  "Local keymap to scroll `tab-line-mode' window tabs to the left.")
+(defvar-keymap tab-line-left-map
+  :doc "Local keymap to scroll `tab-line-mode' window tabs to the left."
+  "<tab-line> <down-mouse-1>" #'tab-line-hscroll-left
+  "<tab-line> <down-mouse-2>" #'tab-line-hscroll-left
+  "RET" #'tab-line-new-tab)
 
-(defvar tab-line-right-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [tab-line down-mouse-1] 'tab-line-hscroll-right)
-    (define-key map [tab-line down-mouse-2] 'tab-line-hscroll-right)
-    (define-key map "\C-m" 'tab-line-new-tab)
-    map)
-  "Local keymap to scroll `tab-line-mode' window tabs to the right.")
+(defvar-keymap tab-line-right-map
+  :doc "Local keymap to scroll `tab-line-mode' window tabs to the right."
+  "<tab-line> <down-mouse-1>" #'tab-line-hscroll-right
+  "<tab-line> <down-mouse-2>" #'tab-line-hscroll-right
+  "RET" #'tab-line-new-tab)
 
 
 (defcustom tab-line-new-tab-choice t
