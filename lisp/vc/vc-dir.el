@@ -357,9 +357,9 @@ See `run-hooks'."
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
-      (define-key branch-map "c" #'vc-create-tag)
+      (define-key branch-map "c" #'vc-create-branch)
       (define-key branch-map "l" #'vc-print-branch-log)
-      (define-key branch-map "s" #'vc-retrieve-tag))
+      (define-key branch-map "s" #'vc-switch-branch))
 
     (let ((mark-map (make-sparse-keymap)))
       (define-key map "*" mark-map)
