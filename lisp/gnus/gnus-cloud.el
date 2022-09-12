@@ -84,6 +84,7 @@ easy interactive way to set this from the Server buffer."
 
 (defun gnus-cloud-make-chunk (elems)
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (insert (format "Gnus-Cloud-Version %s\n" gnus-cloud-version))
     (insert (gnus-cloud-insert-data elems))
     (buffer-string)))
