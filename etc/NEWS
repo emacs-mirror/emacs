@@ -2445,8 +2445,9 @@ The old name is still available as an obsolete function alias.
 These commands allow interactively cropping/eliding the image at
 point.  The commands are bound to keys 'c' and 'e' (respectively) in
 the local keymap over images.  They rely on external programs, by
-default 'convert' from ImageMagick and 'exiftool', to do the actual
-cropping/eliding of the image file.
+default 'convert' from ImageMagick, to do the actual cropping/eliding
+of the image file.  If the 'exiftool' program is available, it is used
+to optionally rotate images which have the :rotation property.
 
 +++
 ** New package 'oclosure'.
