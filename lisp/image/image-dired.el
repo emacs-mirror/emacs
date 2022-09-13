@@ -206,7 +206,6 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
 (defcustom image-dired-db-file
   (expand-file-name ".image-dired_db" image-dired-dir)
   "Database file where file names and their associated tags are stored."
-  :group 'image-dired
   :type 'file)
 
 (defcustom image-dired-rotate-original-ask-before-overwrite t
