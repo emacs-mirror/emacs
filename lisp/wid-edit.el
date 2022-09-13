@@ -3452,11 +3452,9 @@ It reads a directory name from an editable text field."
 (defvar widget-key-sequence-default-value [ignore]
   "Default value for an empty key sequence.")
 
-(defvar widget-key-sequence-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-field-keymap)
-    (define-key map [(control ?q)] 'widget-key-sequence-read-event)
-    map))
+(defvar-keymap widget-key-sequence-map
+  :parent widget-field-keymap
+  "C-q" #'widget-key-sequence-read-event)
 
 (define-widget 'key-sequence 'restricted-sexp
   "A key sequence.  This is obsolete; use the `key' type instead."

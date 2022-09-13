@@ -35,12 +35,10 @@
 
 ;;; The Mode.
 
-(defvar widget-browse-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map "q" #'bury-buffer)
-    map)
-  "Keymap for `widget-browse-mode'.")
+(defvar-keymap widget-browse-mode-map
+  :doc "Keymap for `widget-browse-mode'."
+  :parent widget-keymap
+  "q" #'bury-buffer)
 
 (easy-menu-define widget-browse-mode-customize-menu
     widget-browse-mode-map
@@ -245,11 +243,9 @@ VALUE is assumed to be a list of widgets."
 
 ;;; Widget Minor Mode.
 
-(defvar widget-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    map)
-  "Keymap used in Widget Minor Mode.")
+(defvar-keymap widget-minor-mode-map
+  :doc "Keymap used in Widget Minor Mode."
+  :parent widget-keymap)
 
 ;;;###autoload
 (define-minor-mode widget-minor-mode

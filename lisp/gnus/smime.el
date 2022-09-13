@@ -614,12 +614,10 @@ A string or a list of strings is returned."
 
 (defvar smime-buffer "*SMIME*")
 
-(defvar smime-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (define-key map "q" 'smime-exit)
-    (define-key map "f" 'smime-certificate-info)
-    map))
+(defvar-keymap smime-mode-map
+  :suppress t
+  "q" #'smime-exit
+  "f" #'smime-certificate-info)
 
 (autoload 'gnus-completing-read "gnus-util")
 

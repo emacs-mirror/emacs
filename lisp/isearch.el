@@ -832,17 +832,15 @@ This is like `describe-bindings', but displays only Isearch keys."
             :image '(isearch-tool-bar-image "left-arrow")))
     map))
 
-(defvar minibuffer-local-isearch-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\r"    'exit-minibuffer)
-    (define-key map "\M-\t" 'isearch-complete-edit)
-    (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
-    (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
-    (define-key map "\C-f"  'isearch-yank-char-in-minibuffer)
-    (define-key map [right] 'isearch-yank-char-in-minibuffer)
-    map)
-  "Keymap for editing Isearch strings in the minibuffer.")
+(defvar-keymap minibuffer-local-isearch-map
+  :doc "Keymap for editing Isearch strings in the minibuffer."
+  :parent minibuffer-local-map
+  "RET"     #'exit-minibuffer
+  "M-TAB"   #'isearch-complete-edit
+  "C-s"     #'isearch-forward-exit-minibuffer
+  "C-r"     #'isearch-reverse-exit-minibuffer
+  "C-f"     #'isearch-yank-char-in-minibuffer
+  "<right>" #'isearch-yank-char-in-minibuffer)
 
 ;; Internal variables declared globally for byte-compiler.
 ;; These are all set with setq while isearching

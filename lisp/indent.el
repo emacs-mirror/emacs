@@ -695,12 +695,10 @@ A value of nil means a tab stop every `tab-width' columns."
   :safe 'listp
   :type '(repeat integer))
 
-(defvar edit-tab-stops-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'edit-tab-stops-note-changes)
-    (define-key map "\C-c\C-c" 'edit-tab-stops-note-changes)
-    map)
-  "Keymap used in `edit-tab-stops'.")
+(defvar-keymap edit-tab-stops-map
+  :doc "Keymap used in `edit-tab-stops'."
+  "C-x C-s" #'edit-tab-stops-note-changes
+  "C-c C-c" #'edit-tab-stops-note-changes)
 
 (defvar edit-tab-stops-buffer nil
   "Buffer whose tab stops are being edited.

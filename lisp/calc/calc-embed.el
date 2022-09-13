@@ -207,9 +207,8 @@
 
 ;; The following is to take care of any minor modes which override
 ;; a Calc command.
-(defvar calc-override-minor-modes-map
-  (make-sparse-keymap)
-  "A list of keybindings that might be overwritten by minor modes.")
+(defvar-keymap calc-override-minor-modes-map
+  :doc "A list of keybindings that might be overwritten by minor modes.")
 
 ;; Add any keys that might be overwritten here.
 (define-key calc-override-minor-modes-map "`" 'calc-edit)

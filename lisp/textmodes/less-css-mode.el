@@ -209,10 +209,8 @@ directory by default."
     (modify-syntax-entry ?. "'" st)
     st))
 
-(defvar less-css-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'less-css-compile)
-    map))
+(defvar-keymap less-css-mode-map
+  "C-c C-c" #'less-css-compile)
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.less\\'" . less-css-mode))
 ;;;###autoload

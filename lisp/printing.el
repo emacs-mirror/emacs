@@ -5546,13 +5546,11 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 (defvar pr-i-ps-send    'printer)
 
 
-(defvar pr-interface-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map "q" 'pr-interface-quit)
-    (define-key map "?" 'pr-interface-help)
-    map)
-  "Keymap for `pr-interface'.")
+(defvar-keymap pr-interface-map
+  :doc "Keymap for `pr-interface'."
+  :parent widget-keymap
+  "q" #'pr-interface-quit
+  "?" #'pr-interface-help)
 
 (defmacro pr-interface-save (&rest body)
   `(with-current-buffer pr-i-buffer

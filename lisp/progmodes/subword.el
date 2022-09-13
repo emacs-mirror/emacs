@@ -79,12 +79,11 @@
   "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
   "Regexp used by `subword-backward-internal'.")
 
-(defvar subword-mode-map
+(defvar-keymap subword-mode-map
   ;; We originally remapped motion keys here, but now use Emacs core
   ;; hooks.  Leave this keymap around so that user additions to it
   ;; keep working.
-  (make-sparse-keymap)
-  "Keymap used in `subword-mode' minor mode.")
+  :doc "Keymap used in `subword-mode' minor mode.")
 
 ;;;###autoload
 (define-obsolete-function-alias

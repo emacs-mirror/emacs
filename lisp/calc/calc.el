@@ -1373,10 +1373,8 @@ Notations:  3.14e6     3.14 * 10^6
 	      (calc-check-defines))
 	  (setplist 'calc-define nil)))))
 
-(defvar calc-trail-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map calc-mode-map)
-    map))
+(defvar-keymap calc-trail-mode-map
+  :parent calc-mode-map)
 
 (defun calc--header-line (long short width &optional fudge)
   "Return a Calc header line appropriate for the buffer WIDTH.
