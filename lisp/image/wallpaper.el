@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))
+
 (defcustom wallpaper-commands
   '(
     ;; Sway (Wayland)
