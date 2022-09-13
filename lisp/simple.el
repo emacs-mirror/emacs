@@ -10717,6 +10717,10 @@ If the buffer doesn't exist, create it first."
   (plist-put plist prop val #'equal))
 
 
+(defun imagep (object)
+  "Return non-nil if OBJECT is an image."
+  (and (consp object) (eq (car object) 'image)))
+
 (provide 'simple)
 
 ;;; simple.el ends here
