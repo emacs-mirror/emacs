@@ -105,9 +105,11 @@
 
 (ert-deftest esh-var-test/interp-var-assoc ()
   "Interpolate alist variable with index"
-  (let ((eshell-test-value '(("foo" . 1))))
+  (let ((eshell-test-value '(("foo" . 1) (bar . 2))))
     (eshell-command-result-equal "echo $eshell-test-value[foo]"
-                                 1)))
+                                 1)
+    (eshell-command-result-equal "echo $eshell-test-value[#'bar]"
+                                 2)))
 
 (ert-deftest esh-var-test/interp-var-length-list ()
   "Interpolate length of list variable"
@@ -257,9 +259,11 @@ inside double-quotes"
 
 (ert-deftest esh-var-test/quoted-interp-var-assoc ()
   "Interpolate alist variable with index inside double-quotes"
-  (let ((eshell-test-value '(("foo" . 1))))
+  (let ((eshell-test-value '(("foo" . 1) (bar . 2))))
     (eshell-command-result-equal "echo \"$eshell-test-value[foo]\""
-                                 "1")))
+                                 "1")
+    (eshell-command-result-equal "echo \"$eshell-test-value[#'bar]\""
+                                 "2")))
 
 (ert-deftest esh-var-test/quoted-interp-var-length-list ()
   "Interpolate length of list variable inside double-quotes"
