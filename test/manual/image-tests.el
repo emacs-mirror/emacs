@@ -32,9 +32,9 @@
 ;;; Code:
 
 (defmacro image-skip-unless (format &rest condition)
-  `(skip-unless (or (and (display-images-p)
-                         (image-type-available-p ,format))
-                    ,@condition)))
+  `(skip-unless (and (and (display-images-p)
+                          (image-type-available-p ,format))
+                     ,@condition)))
 
 (defconst image-tests--images
   `((gif . ,(expand-file-name "test/data/image/black.gif"
@@ -222,7 +222,8 @@
 ;;       contain metadata.
 
 (ert-deftest image-tests-image-metadata/gif ()
-  (image-skip-unless 'gif (not w32-use-native-image-API))
+  (image-skip-unless 'gif
+                (not (bound-and-true-p w32-use-native-image-API)))
   (should (memq 'delay
                 (image-metadata
                  (create-image (cdr (assq 'gif image-tests--images)))))))
