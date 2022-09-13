@@ -1159,7 +1159,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
 
 (defun help-fns--generalized-variable (function)
-  (when (and (get function 'gv-expander)
+  (when (and (symbolp function)
+             (get function 'gv-expander)
              ;; Don't mention obsolete generalized variables.
              (not (get function 'byte-obsolete-generalized-variable)))
     (insert (format-message "  `%s' is also a " function)
