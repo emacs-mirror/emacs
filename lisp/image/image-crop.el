@@ -208,7 +208,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 	    ()
 	  (let ((pos (nth 8 (cadr event))))
 	    (cl-case state
-	      ('begin
+	      (begin
 	       (cond
 		((eq (car event) 'down-mouse-1)
 		 (setq state 'stretch
@@ -217,7 +217,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 		       (cl-getf area :top) (cdr pos)
 		       (cl-getf area :right) (car pos)
 		       (cl-getf area :bottom) (cdr pos)))))
-	      ('stretch
+	      (stretch
 	       (cond
 		((eq (car event) 'mouse-movement)
 		 (setf (cl-getf area :right) (car pos)
@@ -225,7 +225,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 		((memq (car event) '(mouse-1 drag-mouse-1))
 		 (setq state 'corner
 		       prompt "Choose corner to adjust (RET to crop)"))))
-	      ('corner
+	      (corner
 	       (cond
 		((eq (car event) 'down-mouse-1)
 		 ;; Find out what corner we're close to.
@@ -238,7 +238,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 		 (when corner
 		   (setq state 'adjust
 			 prompt "Adjust crop")))))
-	      ('adjust
+	      (adjust
 	       (cond
 		((memq (car event) '(mouse drag-mouse-1))
 		 (setq state 'corner
@@ -246,12 +246,12 @@ After cropping an image, it can be saved by `M-x image-save' or
 		((eq (car event) 'mouse-movement)
 		 (setf (cl-getf area (car corner)) (car pos)
 		       (cl-getf area (cadr corner)) (cdr pos)))))
-	      ('move-unclick
+	      (move-unclick
 	       (cond
 		((eq (car event) 'down-mouse-1)
 		 (setq state 'move-click
 		       prompt "Move"))))
-	      ('move-click
+	      (move-click
 	       (cond
 		((eq (car event) 'mouse-movement)
 		 (setf (cl-getf area :left) (car pos)

@@ -1262,7 +1262,7 @@ If N is negative, go to the previous file."
       (save-window-excursion
         (switch-to-buffer (cdr buffer) t t)
         (cl-case (car buffer)
-          ('dired
+          (dired
            (dired-goto-file file)
            (let (found)
              (while (and (not found)
@@ -1280,9 +1280,9 @@ If N is negative, go to the previous file."
                ;; If we didn't find a next/prev file, then restore
                ;; point.
                (dired-goto-file file))))
-          ('archive
+          (archive
            (setq next (archive-next-file-displayer file regexp n)))
-          ('tar
+          (tar
            (setq next (tar-next-file-displayer file regexp n))))))
     next))
 

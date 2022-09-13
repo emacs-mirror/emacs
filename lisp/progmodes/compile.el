@@ -1235,10 +1235,10 @@ POS and RES.")
         (if win (set-window-point win pos)))
       (when compilation-auto-jump-to-first-error
         (cl-case compilation-auto-jump-to-first-error
-          ('if-location-known
+          (if-location-known
            (when (compilation--file-known-p)
 	     (compile-goto-error)))
-          ('first-known
+          (first-known
            (let (match)
              (while (and (not (compilation--file-known-p))
                          (setq match (text-property-search-forward

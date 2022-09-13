@@ -370,8 +370,8 @@ currently being held down.  It should only be called upon a
                          ;; the standard (i.e. Qt programs).
                          "text/plain" "text/plain;charset=utf-8")
                        (cl-ecase action
-                         ('copy 'XdndActionCopy)
-                         ('move 'XdndActionMove))
+                         (copy 'XdndActionCopy)
+                         (move 'XdndActionMove))
                        frame nil allow-same-frame)))
     (cond
      ((eq return-value 'XdndActionCopy) 'copy)
@@ -457,9 +457,9 @@ currently being held down.  It should only be called upon a
                              ;; programs.
                              "_DT_NETFILE")
                            (cl-ecase action
-                             ('copy 'XdndActionCopy)
-                             ('move 'XdndActionMove)
-                             ('link 'XdndActionLink))
+                             (copy 'XdndActionCopy)
+                             (move 'XdndActionMove)
+                             (link 'XdndActionLink))
                            frame nil allow-same-frame)))
         (cond
          ((eq return-value 'XdndActionCopy) 'copy)
@@ -527,9 +527,9 @@ FILES will be dragged."
                            ;; and Haiku.
                            "FILE_NAME" "HOST_NAME")
                          (cl-ecase action
-                           ('copy 'XdndActionCopy)
-                           ('move 'XdndActionMove)
-                           ('link 'XdndActionLink))
+                           (copy 'XdndActionCopy)
+                           (move 'XdndActionMove)
+                           (link 'XdndActionLink))
                          frame nil allow-same-frame)))
       (cond
        ((eq return-value 'XdndActionCopy) 'copy)
