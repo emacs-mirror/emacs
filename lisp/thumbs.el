@@ -54,6 +54,7 @@
 ;;; Code:
 
 (require 'dired)
+(require 'wallpaper)
 (require 'cl-lib)			; for cl-gensym
 
 ;; CUSTOMIZATIONS
@@ -99,6 +100,8 @@ This must be the ImageMagick \"convert\" utility."
   :type 'string
   :version "28.1")
 
+(make-obsolete-variable 'thumbs-setroot-command
+                        'wallpaper-commands-alist "29.1")
 (defcustom thumbs-setroot-command
   "xloadimage -onroot -fullscreen *"
   "Command to set the root window."
@@ -425,6 +428,7 @@ Open another window."
 
 (defun thumbs-call-setroot-command (img)
   "Call the setroot program for IMG."
+  (declare (obsolete wallpaper-set "29.1"))
   (run-hooks 'thumbs-before-setroot-hook)
   (shell-command (string-replace
 		  "*"
@@ -435,15 +439,13 @@ Open another window."
 (defun thumbs-set-image-at-point-to-root-window ()
   "Set the image at point as the desktop wallpaper."
   (interactive)
-  (thumbs-call-setroot-command
-   (thumbs-current-image)))
+  (wallpaper-set (thumbs-current-image)))
 
 (defun thumbs-set-root ()
   "Set the current image as root."
   (interactive)
-  (thumbs-call-setroot-command
-   (or thumbs-current-tmp-filename
-       thumbs-current-image-filename)))
+  (wallpaper-set (or thumbs-current-tmp-filename
+                     thumbs-current-image-filename)))
 
 (defun thumbs-file-alist ()
   "Make an alist of elements (POS . FILENAME) for all images in thumb buffer."
@@ -756,12 +758,15 @@ ACTION and ARG should be a valid convert command."
 (defun thumbs-dired-setroot ()
   "In dired, call the setroot program on the image at point."
   (interactive)
-  (thumbs-call-setroot-command (dired-get-filename)))
+  (wallpaper-set (dired-get-filename)))
 
 ;; Modif to dired mode map
 (define-key dired-mode-map "\C-ta" 'thumbs-dired-show)
 (define-key dired-mode-map "\C-tm" 'thumbs-dired-show-marked)
 (define-key dired-mode-map "\C-tw" 'thumbs-dired-setroot)
+
+(make-obsolete-variable 'thumbs-before-setroot-hook nil "29.1")
+(make-obsolete-variable 'thumbs-after-setroot-hook nil "29.1")
 
 (define-obsolete-function-alias 'thumbs-image-type
   #'image-supported-file-p "29.1")
