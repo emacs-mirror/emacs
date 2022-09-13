@@ -79,6 +79,21 @@
 (image-tests-make-load-image-test 'xbm)
 (image-tests-make-load-image-test 'xpm)
 
+(ert-deftest image-tests-load-image/svg-too-big ()
+  (with-temp-buffer
+    (let* ((max-image-size 0)
+           (messages-buffer-name (buffer-name (current-buffer)))
+           (img (cdr (assq 'svg image-tests--images)))
+           (file (if (listp img)
+                     (plist-get (cdr img) :file)
+                   img)))
+      (save-excursion (find-file file))
+      (should (string-match-p "invalid image size" (buffer-string)))
+      ;; no annoying newlines
+      (should-not (string-match-p "^[ \t\n\r]+$" (buffer-string)))
+      ;; no annoying double error reporting
+      (should-not (string-match-p "error parsing" (buffer-string))))))
+
 (ert-deftest image-tests-load-image/svg-invalid ()
   (with-temp-buffer
     (let ((messages-buffer-name (buffer-name (current-buffer))))
@@ -90,7 +105,9 @@
                                              :type svg)))
         (redisplay))
       ;; librsvg error: "... Start tag expected, '<' not found [3 times]"
-      (should (string-match "[Ee]rror.+Start tag expected" (buffer-string))))))
+      (should (string-match-p "[Ee]rror.+Start tag expected" (buffer-string)))
+      ;; no annoying newlines
+      (should-not (string-match-p "^[ \t\n\r]+$" (buffer-string))))))
 
 
 ;;;; image-test-size
