@@ -11183,6 +11183,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   char *wrapped_contents = NULL;
   ptrdiff_t wrapped_size;
 
+  bool empty_errmsg = true;
+  const char *errmsg = "";
+  ptrdiff_t errlen = 0;
+
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
   char *css = NULL;
 #endif
@@ -11540,19 +11544,21 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   return true;
 
  rsvg_error:
-  if (!err || !err->message[0])
-    image_error ("Error parsing SVG image");
-  else
+  if (err && err->message[0])
     {
-      char *errmsg = err->message;
-      ptrdiff_t errlen = strlen (errmsg);
-
+      errmsg = err->message;
+      errlen = strlen (errmsg);
       /* Remove trailing whitespace from the error message text.  It
 	 has a newline at the end, and perhaps more whitespace.  */
-      while (c_isspace (errmsg[errlen - 1]))
+      while (errlen && c_isspace (errmsg[errlen - 1]))
 	errlen--;
-      image_error ("Error parsing SVG image: %s", make_string (errmsg, errlen));
+      empty_errmsg = errlen == 0;
     }
+
+  if (empty_errmsg)
+    image_error ("Error parsing SVG image");
+  else
+    image_error ("Error parsing SVG image: %s", make_string (errmsg, errlen));
 
   if (err)
     g_error_free (err);
