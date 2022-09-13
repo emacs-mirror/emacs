@@ -2430,6 +2430,13 @@ The old name is still available as an obsolete function alias.
 * New Modes and Packages in Emacs 29.1
 
 +++
+** New commands 'image-crop' and 'image-elide'.
+These commands allow interactively cropping/eliding the image under
+point.  These commands are bound to 'c' and 'e' (respectively) in the
+local keymap over images.  They rely on external programs to do the
+actual cropping/eliding of the image file.
+
++++
 ** New package 'oclosure'.
 Allows the creation of "functions with slots" or "function objects"
 via the macros 'oclosure-define' and 'oclosure-lambda'.

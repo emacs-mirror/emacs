@@ -178,6 +178,8 @@ or \"ffmpeg\") is installed."
   "+" #'image-increase-size
   "r" #'image-rotate
   "o" #'image-save
+  "c" #'image-crop
+  "e" #'image-elide
   "h" #'image-flip-horizontally
   "v" #'image-flip-vertically
   "C-<wheel-down>" #'image-mouse-decrease-size

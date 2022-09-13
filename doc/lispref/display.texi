@@ -6863,6 +6863,12 @@ A prefix means to rotate by 90 degrees counter-clockwise instead.
 
 @item o
 Save the image to a file (@code{image-save}).
+
+@item c
+Crop the image interactively (@code{image-crop}).
+
+@item e
+Elide a rectangle from the image interactively (@code{image-elide}).
 @end table
 
 @node Multi-Frame Images
