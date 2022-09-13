@@ -2431,10 +2431,11 @@ The old name is still available as an obsolete function alias.
 
 +++
 ** New commands 'image-crop' and 'image-elide'.
-These commands allow interactively cropping/eliding the image under
-point.  These commands are bound to 'c' and 'e' (respectively) in the
-local keymap over images.  They rely on external programs to do the
-actual cropping/eliding of the image file.
+These commands allow interactively cropping/eliding the image at
+point.  The commands are bound to keys 'c' and 'e' (respectively) in
+the local keymap over images.  They rely on external programs, by
+default 'convert' from ImageMagick and 'exiftool', to do the actual
+cropping/eliding of the image file.
 
 +++
 ** New package 'oclosure'.
