@@ -149,7 +149,7 @@ buffer's content."
                                       "»\t\n"
                                       "\n"
                                       " x"))
-    (execute-kbd-macro (kbd "<up> <home>"))
+    (execute-kbd-macro (kbd "<up> C-a"))
     (should (equal (point) 1))
     (should (whitespace-tests--faceup " \n"
                                       "\t\n"
@@ -187,7 +187,7 @@ buffer's content."
                                       "» x"))
 
     ;; Inserting content on line 2 should un-highlight lines 2 and 3.
-    (execute-kbd-macro (kbd "<up> <up> <end>"))
+    (execute-kbd-macro (kbd "<up> <up> C-e"))
     (should (equal (line-number-at-pos) 2))
     (should (equal (- (point) (line-beginning-position)) 1))
     (execute-kbd-macro (kbd "y <down> <down>"))
@@ -199,7 +199,7 @@ buffer's content."
 
     ;; Removing the content on line 2 should re-highlight lines 2 and
     ;; 3.
-    (execute-kbd-macro (kbd "<up> <up> <end>"))
+    (execute-kbd-macro (kbd "<up> <up> C-e"))
     (should (equal (line-number-at-pos) 2))
     (should (equal (- (point) (line-beginning-position)) 2))
     (execute-kbd-macro (kbd "DEL <down> <down>"))
@@ -288,7 +288,7 @@ buffer's content."
                                       " »"))
 
     ;; Inserting content on line 3 should un-highlight lines 2 and 3.
-    (execute-kbd-macro (kbd "<down> <down> <home>"))
+    (execute-kbd-macro (kbd "<down> <down> C-a"))
     (should (equal (line-number-at-pos) 3))
     (should (equal (- (point) (line-beginning-position)) 0))
     (execute-kbd-macro (kbd "y <up> <up>"))
@@ -300,7 +300,7 @@ buffer's content."
 
     ;; Removing the content on line 3 should re-highlight lines 2 and
     ;; 3.
-    (execute-kbd-macro (kbd "<down> <down> <home>"))
+    (execute-kbd-macro (kbd "<down> <down> C-a"))
     (should (equal (line-number-at-pos) 3))
     (should (equal (- (point) (line-beginning-position)) 0))
     (execute-kbd-macro (kbd "<deletechar> <up> <up>"))
