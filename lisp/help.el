@@ -725,8 +725,7 @@ in the selected window."
          ;; is selected from the context menu that should describe KEY
          ;; at the position of mouse click that opened the context menu.
          ;; When no mouse was involved, don't use `posn-set-point'.
-         (defn (if (or buffer
-                       (not (consp (event-end event))))
+         (defn (if buffer
                    (key-binding key t)
                  (save-excursion (posn-set-point (event-end event))
                                  (key-binding key t)))))
