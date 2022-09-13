@@ -775,11 +775,16 @@ compared by `eql'.
 \(fn EXPR (KEYLIST BODY...)...)"
   (declare (indent 1) (debug (form &rest (sexp body))))
   (macroexp-let2 macroexp-copyable-p temp expr
-    (let* ((head-list nil))
+    (let* ((head-list nil)
+           (has-otherwise nil))
       `(cond
         ,@(mapcar
            (lambda (c)
-             (cons (cond ((memq (car c) '(t otherwise)) t)
+             (cons (cond (has-otherwise
+                          (error "Misplaced t or `otherwise' clause"))
+                         ((memq (car c) '(t otherwise))
+                          (setq has-otherwise t)
+                          t)
                          ((eq (car c) 'cl--ecase-error-flag)
                           `(error "cl-ecase failed: %s, %s"
                                   ,temp ',(reverse head-list)))

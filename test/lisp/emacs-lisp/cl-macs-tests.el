@@ -747,4 +747,15 @@ collection clause."
       ;; Just make sure the forms can be instrumented.
       (eval-buffer))))
 
+(ert-deftest cl-case-error ()
+  "Test that `cl-case' and `cl-ecase' signal an error if a t or
+`otherwise' key is misplaced."
+  (dolist (form '((cl-case val (t 1) (123 2))
+                  (cl-ecase val (t 1) (123 2))
+                  (cl-ecase val (123 2) (t 1))))
+    (ert-info ((prin1-to-string form) :prefix "Form: ")
+      (let ((error (should-error (macroexpand form))))
+        (should (equal (cdr error)
+                       '("Misplaced t or `otherwise' clause")))))))
+
 ;;; cl-macs-tests.el ends here
