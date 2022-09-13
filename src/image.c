@@ -11552,8 +11552,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       while (c_isspace (errmsg[errlen - 1]))
 	errlen--;
       image_error ("Error parsing SVG image: %s", make_string (errmsg, errlen));
-      g_error_free (err);
     }
+
+  if (err)
+    g_error_free (err);
 
  done_error:
   if (rsvg_handle)
