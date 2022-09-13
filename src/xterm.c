@@ -18490,6 +18490,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		 during the start of save-set processing.  */
 
 	      FRAME_X_OUTPUT (f)->explicit_parent = false;
+
+	      /* Remove the leftover XEMBED_INFO property.  */
+	      XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+			       dpyinfo->Xatom_XEMBED_INFO);
 	      x_make_frame_visible (f);
 	    }
 #endif
