@@ -1472,6 +1472,11 @@ folded."
           (equal (comp-mvar-typeset mvar)
                  comp-tests-cond-rw-expected-type))))))))
 
+;; We don't want to byte compile this to avoid recording in the
+;; bytecode the architecture-dependent values of most-positive-fixnum
+;; and most-negative-fixnum, thus making the byte-compiled file
+;; non-portable.
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:
