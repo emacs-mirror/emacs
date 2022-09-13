@@ -860,6 +860,11 @@ Return a list of results."
 
 (cl-eval-when (compile eval load)
   (defconst comp-tests-type-spec-tests
+    ;; Why we quote everything here, you ask?  So that values of
+    ;; `most-positive-fixnum' and `most-negative-fixnum', which can be
+    ;; architecture-dependent, do not end up hardcoded in the
+    ;; resulting byte-compiled file, and thus we could run the same
+    ;; .elc file on several architectures without fear.
     '(
       ;; 1
       ((defun comp-tests-ret-type-spec-f (x)
