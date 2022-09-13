@@ -138,6 +138,7 @@
 
 (eval-when-compile
   (require 'cl-lib)
+  (require 'subr-x) ; for string-join
   (require 'wid-edit))
 
 (require 'image-dired-external)
@@ -704,7 +705,7 @@ comment."
                                 image-dired-display-image-mode)))
     (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
           (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
-          (props (mapconcat #'identity (get-text-property (point) 'tags) ", "))
+          (props (string-join (get-text-property (point) 'tags) ", "))
           (comment (get-text-property (point) 'comment))
           (message-log-max nil))
       (if file-name

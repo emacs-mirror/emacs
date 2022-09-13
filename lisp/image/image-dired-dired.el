@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x)) ; for string-join
+
 (require 'image-dired)
 
 (defgroup image-dired-dired nil
@@ -370,7 +372,7 @@ matching tag will be marked in the Dired buffer."
   (let* ((file (dired-get-filename))
          (file-name (file-name-nondirectory file))
          (dired-buf (buffer-name (current-buffer)))
-         (props (mapconcat #'identity (image-dired-list-tags file) ", "))
+         (props (string-join (image-dired-list-tags file) ", "))
          (comment (image-dired-get-comment file))
          (message-log-max nil))
     (if file-name
