@@ -11540,13 +11540,18 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   return true;
 
  rsvg_error:
-  if (err == NULL)
+  if (!err || !err->message[0])
     image_error ("Error parsing SVG image");
   else
     {
-      image_error ("Error parsing SVG image: %s",
-		   call2 (Qstring_trim_right, build_string (err->message),
-			  Qnil));
+      char *errmsg = err->message;
+      ptrdiff_t errlen = strlen (errmsg);
+
+      /* Remove trailing whitespace from the error message text.  It
+	 has a newline at the end, and perhaps more whitespace.  */
+      while (c_isspace (errmsg[errlen - 1]))
+	errlen--;
+      image_error ("Error parsing SVG image: %s", make_string (errmsg, errlen));
       g_error_free (err);
     }
 
@@ -12272,6 +12277,4 @@ The options are:
   /* MagickExportImagePixels is in 6.4.6-9, but not 6.4.4-10.  */
   imagemagick_render_type = 0;
 #endif
-
-  DEFSYM (Qstring_trim_right, "string-trim-right");
 }
