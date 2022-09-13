@@ -55,7 +55,6 @@
 ;;
 ;; file-name-non-directory;comment:comment-text;tag1;tag2;tag3;...;tagN
 ;;
-;;
 ;; PREREQUISITES
 ;; =============
 ;;
@@ -109,8 +108,6 @@
 ;; * From thumbs.el: Add an option for clean-up/max-size functionality
 ;;   for thumbnail directory.
 ;;
-;; * From thumbs.el: Add setroot function.
-;;
 ;; * Add `image-dired-display-thumbs-ring' and functions to cycle that.  Find out
 ;;   which is best, saving old batch just before inserting new, or
 ;;   saving the current batch in the ring when inserting it.  Adding
@@ -135,6 +132,7 @@
 
 (require 'dired)
 (require 'image-mode)
+(require 'wallpaper)
 (require 'widget)
 (require 'xdg)
 
@@ -861,6 +859,7 @@ You probably want to use this together with
   "SPC"        #'image-dired-display-next-thumbnail-original
   "DEL"        #'image-dired-display-previous-thumbnail-original
   "c"          #'image-dired-comment-thumbnail
+  "W"          #'image-dired-wallpaper-set
 
   ;; Mouse
   "<mouse-2>"        #'image-dired-mouse-display-image
@@ -1151,6 +1150,12 @@ With prefix ARG, move that many thumbnails."
 With prefix ARG, move that many thumbnails."
   (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
   (image-dired-display-next-thumbnail-original (- arg)))
+
+(defun image-dired-wallpaper-set (file)
+  "Set the wallpaper to FILE in a graphical environment."
+  (interactive (list (image-dired-original-file-name))
+               image-dired-thumbnail-mode)
+  (wallpaper-set file))
 
 
 ;;; Image Comments
