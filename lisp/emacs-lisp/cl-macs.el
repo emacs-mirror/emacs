@@ -788,6 +788,21 @@ compared by `eql'.
                          ((eq (car c) 'cl--ecase-error-flag)
                           `(error "cl-ecase failed: %s, %s"
                                   ,temp ',(reverse head-list)))
+                         ((null (car c))
+                          (macroexp-warn-and-return
+                           "Case nil will never match"
+                           nil 'suspicious))
+                         ((and (consp (car c)) (not (cddar c))
+                               (memq (caar c) '(quote function)))
+                          (macroexp-warn-and-return
+                           (format-message
+                            (concat "Case %s will match `%s'.  If "
+                                    "that's intended, write %s "
+                                    "instead.  Otherwise, don't "
+                                    "quote `%s'.")
+                            (car c) (caar c) (list (cadar c) (caar c))
+                            (cadar c))
+                           `(cl-member ,temp ',(car c)) 'suspicious))
                          ((listp (car c))
                           (setq head-list (append (car c) head-list))
                           `(cl-member ,temp ',(car c)))

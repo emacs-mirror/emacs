@@ -25,6 +25,8 @@
 (require 'cl-macs)
 (require 'edebug)
 (require 'ert)
+(require 'ert-x)
+(require 'pcase)
 
 
 ;;;; cl-loop tests -- many adapted from Steele's CLtL2
@@ -757,5 +759,35 @@ collection clause."
       (let ((error (should-error (macroexpand form))))
         (should (equal (cdr error)
                        '("Misplaced t or `otherwise' clause")))))))
+
+(ert-deftest cl-case-warning ()
+  "Test that `cl-case' and `cl-ecase' warn about suspicious
+constructs."
+  (pcase-dolist (`(,case . ,message)
+                 `((nil . "Case nil will never match")
+                   ('nil . ,(concat "Case 'nil will match `quote'.  "
+                                    "If that's intended, write "
+                                    "(nil quote) instead.  "
+                                    "Otherwise, don't quote `nil'."))
+                   ('t . ,(concat "Case 't will match `quote'.  "
+                                  "If that's intended, write "
+                                  "(t quote) instead.  "
+                                  "Otherwise, don't quote `t'."))
+                   ('foo . ,(concat "Case 'foo will match `quote'.  "
+                                    "If that's intended, write "
+                                    "(foo quote) instead.  "
+                                    "Otherwise, don't quote `foo'."))
+                   (#'foo . ,(concat "Case #'foo will match "
+                                     "`function'.  If that's "
+                                     "intended, write (foo function) "
+                                     "instead.  Otherwise, don't "
+                                     "quote `foo'."))))
+    (dolist (macro '(cl-case cl-ecase))
+      (let ((form `(,macro val (,case 1))))
+        (ert-info ((prin1-to-string form) :prefix "Form: ")
+          (ert-with-message-capture messages
+            (macroexpand form)
+            (should (equal messages
+                           (concat "Warning: " message "\n")))))))))
 
 ;;; cl-macs-tests.el ends here
