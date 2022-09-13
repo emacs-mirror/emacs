@@ -626,7 +626,10 @@ The renaming scheme is performed in accordance with
 	    (setq eww-history-position 0)
 	    (and last-coding-system-used
 		 (set-buffer-file-coding-system last-coding-system-used))
-	    (run-hooks 'eww-after-render-hook)))
+	    (run-hooks 'eww-after-render-hook)
+            ;; Enable undo again so that undo works in text input
+            ;; boxes.
+            (setq buffer-undo-list nil)))
       (kill-buffer data-buffer))))
 
 (defun eww-parse-headers ()
@@ -928,7 +931,8 @@ The renaming scheme is performed in accordance with
   ;; May be set later if there's a next/prev link.
   (setq-local multi-isearch-next-buffer-function nil)
   (unless (eq major-mode 'eww-mode)
-    (eww-mode)))
+    (eww-mode))
+  (buffer-disable-undo))
 
 (defun eww-current-url nil
   "Return URI of the Web page the current EWW buffer is visiting."

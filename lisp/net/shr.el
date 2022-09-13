@@ -1019,6 +1019,8 @@ the mouse click event."
 		(widen)
 		(let ((alt (buffer-substring start end))
 		      (properties (text-properties-at start))
+                      ;; We don't want to record these changes.
+                      (buffer-undo-list t)
 		      (inhibit-read-only t))
 		  (delete-region start end)
 		  (goto-char start)
