@@ -1989,6 +1989,12 @@ and is bound to "s p" in Image mode.
 *** Users can now add special image conversion functions.
 This is done via 'image-converter-add-handler'.
 
+---
+*** New library wallpaper.el.
+This library contains the command `wallpaper-set', which uses an
+external command to set the desktop background.  The new user option
+`wallpaper-commands' controls which command is being used.
+
 ** Image-Dired
 
 +++
