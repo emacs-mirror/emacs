@@ -631,13 +631,11 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
 outline.  @xref{Outline Views}.
 
   A quick and handy way to make an indirect buffer is with the command
-@kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
-buffer whose base buffer is the current buffer.  With a numeric
-argument, it prompts for the name of the indirect buffer; otherwise it
-uses the name of the current buffer, with a @samp{<@var{n}>} suffix
-added.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
-works like @kbd{M-x clone-indirect-buffer}, but it selects the new
-buffer in another window.
+@kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window}).  It creates
+and selects an indirect buffer whose base buffer is the current
+buffer.  With a numeric argument, it prompts for the name of the
+indirect buffer; otherwise it uses the name of the current buffer,
+with a @samp{<@var{n}>} suffix added.
 
   The more general way to make an indirect buffer is with the command
 @kbd{M-x make-indirect-buffer}.  It creates an indirect buffer
