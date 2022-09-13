@@ -11838,9 +11838,6 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 /***********************************************************************
 				Tests
  ***********************************************************************/
-
-#ifdef GLYPH_DEBUG
-
 DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
   (Lisp_Object spec)
@@ -11848,6 +11845,7 @@ DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
   return valid_image_p (spec) ? Qt : Qnil;
 }
 
+#ifdef GLYPH_DEBUG
 
 DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0,
        doc: /* */)
@@ -12240,9 +12238,9 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
   defsubr (&Simage_cache_size);
+  defsubr (&Simagep);
 
 #ifdef GLYPH_DEBUG
-  defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
 
