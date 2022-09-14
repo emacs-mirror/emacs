@@ -752,42 +752,44 @@ collection clause."
 (ert-deftest cl-case-error ()
   "Test that `cl-case' and `cl-ecase' signal an error if a t or
 `otherwise' key is misplaced."
-  (dolist (form '((cl-case val (t 1) (123 2))
-                  (cl-ecase val (t 1) (123 2))
-                  (cl-ecase val (123 2) (t 1))))
-    (ert-info ((prin1-to-string form) :prefix "Form: ")
-      (let ((error (should-error (macroexpand form))))
-        (should (equal (cdr error)
-                       '("Misplaced t or `otherwise' clause")))))))
+  (let ((text-quoting-style 'grave))
+    (dolist (form '((cl-case val (t 1) (123 2))
+                    (cl-ecase val (t 1) (123 2))
+                    (cl-ecase val (123 2) (t 1))))
+      (ert-info ((prin1-to-string form) :prefix "Form: ")
+                (let ((error (should-error (macroexpand form))))
+                  (should (equal (cdr error)
+                                 '("Misplaced t or `otherwise' clause"))))))))
 
 (ert-deftest cl-case-warning ()
   "Test that `cl-case' and `cl-ecase' warn about suspicious
 constructs."
-  (pcase-dolist (`(,case . ,message)
-                 `((nil . "Case nil will never match")
-                   ('nil . ,(concat "Case 'nil will match `quote'.  "
+  (let ((text-quoting-style 'grave))
+    (pcase-dolist (`(,case . ,message)
+                   `((nil . "Case nil will never match")
+                     ('nil . ,(concat "Case 'nil will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(nil quote) instead.  "
+                                      "Otherwise, don't quote `nil'."))
+                     ('t . ,(concat "Case 't will match `quote'.  "
                                     "If that's intended, write "
-                                    "(nil quote) instead.  "
-                                    "Otherwise, don't quote `nil'."))
-                   ('t . ,(concat "Case 't will match `quote'.  "
-                                  "If that's intended, write "
-                                  "(t quote) instead.  "
-                                  "Otherwise, don't quote `t'."))
-                   ('foo . ,(concat "Case 'foo will match `quote'.  "
-                                    "If that's intended, write "
-                                    "(foo quote) instead.  "
-                                    "Otherwise, don't quote `foo'."))
-                   (#'foo . ,(concat "Case #'foo will match "
-                                     "`function'.  If that's "
-                                     "intended, write (foo function) "
-                                     "instead.  Otherwise, don't "
-                                     "quote `foo'."))))
-    (dolist (macro '(cl-case cl-ecase))
-      (let ((form `(,macro val (,case 1))))
-        (ert-info ((prin1-to-string form) :prefix "Form: ")
-          (ert-with-message-capture messages
-            (macroexpand form)
-            (should (equal messages
-                           (concat "Warning: " message "\n")))))))))
+                                    "(t quote) instead.  "
+                                    "Otherwise, don't quote `t'."))
+                     ('foo . ,(concat "Case 'foo will match `quote'.  "
+                                      "If that's intended, write "
+                                      "(foo quote) instead.  "
+                                      "Otherwise, don't quote `foo'."))
+                     (#'foo . ,(concat "Case #'foo will match "
+                                       "`function'.  If that's "
+                                       "intended, write (foo function) "
+                                       "instead.  Otherwise, don't "
+                                       "quote `foo'."))))
+      (dolist (macro '(cl-case cl-ecase))
+        (let ((form `(,macro val (,case 1))))
+          (ert-info ((prin1-to-string form) :prefix "Form: ")
+                    (ert-with-message-capture messages
+                                              (macroexpand form)
+                                              (should (equal messages
+                                                             (concat "Warning: " message "\n"))))))))))
 
 ;;; cl-macs-tests.el ends here
