@@ -30,18 +30,24 @@
 (require 'svg)
 (require 'text-property-search)
 
+(defgroup image-crop ()
+  "Image cropping."
+  :group 'image)
+
 (defvar image-crop-exif-rotate nil
   "If non-nil, rotate images by updating exif data.
 If nil, rotate the images \"physically\".")
 
-(defvar image-crop-resize-command '("convert" "-resize" "%wx" "-" "%f:-")
+(defcustom image-crop-resize-command '("convert" "-resize" "%wx" "-" "%f:-")
   "Command to resize an image.
 The following `format-spec' elements are allowed:
 
 %w: Width.
-%f: Result file type.")
+%f: Result file type."
+  :type '(repeat string)
+  :version "29.1")
 
-(defvar image-crop-elide-command '("convert" "-draw" "rectangle %l,%t %r,%b"
+(defcustom image-crop-elide-command '("convert" "-draw" "rectangle %l,%t %r,%b"
                                    "-" "%f:-")
   "Command to make a rectangle inside an image.
 
@@ -50,9 +56,11 @@ The following `format-spec' elements are allowed:
 %t: Top.
 %r: Right.
 %b: Bottom.
-%f: Result file type.")
+%f: Result file type."
+  :type '(repeat string)
+  :version "29.1")
 
-(defvar image-crop-crop-command '("convert" "+repage" "-crop" "%wx%h+%l+%t"
+(defcustom image-crop-crop-command '("convert" "+repage" "-crop" "%wx%h+%l+%t"
 	                          "-" "%f:-")
   "Command to crop an image.
 
@@ -61,14 +69,18 @@ The following `format-spec' elements are allowed:
 %t: Top.
 %w: Width.
 %h: Height.
-%f: Result file type.")
+%f: Result file type."
+  :type '(repeat string)
+  :version "29.1")
 
-(defvar image-crop-rotate-command '("convert" "-rotate" "%r" "-" "%f:-")
+(defcustom image-crop-rotate-command '("convert" "-rotate" "%r" "-" "%f:-")
   "Command to rotate an image.
 
 The following `format-spec' elements are allowed:
 %r: Rotation (in degrees).
-%f: Result file type.")
+%f: Result file type."
+  :type '(repeat string)
+  :version "29.1")
 
 (defvar image-crop-buffer-text-function #'image-crop--default-buffer-text
   "Function to return the buffer text for the cropped image.
