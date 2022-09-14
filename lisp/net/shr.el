@@ -295,6 +295,11 @@ and other things:
               (make-composed-keymap shr-map image-map)
             shr-map))
 
+(defvar shr-url-transformer #'identity
+  "Function to transform URLs.
+It's called with the URL as the parameter, and should return the
+ URL to use.")
+
 ;; Public functions and commands.
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url discard-comments))
@@ -1489,7 +1494,9 @@ ones, in case fg and bg are nil."
                          (dom-attr dom 'name)))) ; Obsolete since HTML5.
       (push (cons id (set-marker (make-marker) start)) shr--link-targets))
     (when url
-      (shr-urlify (or shr-start start) (shr-expand-url url) title)
+      (shr-urlify (or shr-start start)
+                  (funcall shr-url-transformer (shr-expand-url url))
+                  title)
       ;; Check whether the URL is suspicious.
       (when-let ((warning (or (textsec-suspicious-p
                                (shr-expand-url url) 'url)

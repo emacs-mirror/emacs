@@ -1180,6 +1180,7 @@ the like."
                       '((url . eww--url-at-point))))
   (setq-local bookmark-make-record-function #'eww-bookmark-make-record)
   (buffer-disable-undo)
+  (setq-local shr-url-transformer #'eww--transform-url)
   (setq buffer-read-only t))
 
 (defun eww--url-at-point ()
