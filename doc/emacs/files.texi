@@ -2270,6 +2270,7 @@ behavior by using the options @code{image-auto-resize} and
 @code{image-auto-resize-on-window-resize}.
 
 @findex image-transform-fit-to-window
+@findex image-transform-set-percent
 @findex image-transform-set-scale
 @findex image-transform-reset
 To resize the image manually you can use the command
