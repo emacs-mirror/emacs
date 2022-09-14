@@ -2594,8 +2594,8 @@ will be handled."
   t    nil
   (c c++) '("extern" "inline" "register" "static")
   c    (append '("auto") (c-lang-const c-modifier-kwds))
-  c++  (append '("constexpr" "explicit" "friend" "mutable" "template"
-		 "thread_local" "virtual")
+  c++  (append '("consteval" "constexpr" "constinit" "explicit"
+		 "friend" "mutable" "template" "thread_local" "virtual")
 	       ;; "using" is now handled specially (2020-09-14).
 	       (c-lang-const c-modifier-kwds))
   objc '("auto" "bycopy" "byref" "extern" "in" "inout" "oneway" "out" "static")
