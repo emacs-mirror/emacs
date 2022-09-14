@@ -100,12 +100,11 @@ image data.")
 
 ;;;###autoload
 (defun image-elide (color &optional square)
-  "Elide a square from the image under point.
-If SQUARE (interactively, the prefix), elide a square instead of a
-rectangle from the image.
+  "Elide a rectangle from the image under point, filling it with COLOR.
+If SQUARE is non-nil (interactively, prefix arg), elide a square
+instead of a rectangle from the image.
 
-Interatively, the user will be prompted for the color to use, and
-defaults to black."
+Interactively, prompt for COLOR to use, defaulting to black."
   (interactive (list (read-color "Use color: ")
                      current-prefix-arg))
   (image-crop square (if (string-empty-p color)
@@ -114,14 +113,14 @@ defaults to black."
 ;;;###autoload
 (defun image-crop (&optional square elide)
   "Crop the image under point.
-If SQUARE (interactively, the prefix), crop a square instead of a
-rectangle from the image.
+If SQUARE is non-nil (interactively, prefix arg), crop a square
+instead of a rectangle from the image.
 
-If ELIDE, remove a rectangle from the image instead of cropping
-the image.  In that case ELIDE, should be the name of a color to
-use.
+If ELIDE is non-nil, remove a rectangle/square from the image
+instead of cropping the image.  In that case ELIDE should be
+the name of a color to fill the rectangle.
 
-After cropping an image, it can be saved by `M-x image-save' or
+After cropping an image, you can save it by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image."
   (interactive "P")
   (unless (image-type-available-p 'svg)
