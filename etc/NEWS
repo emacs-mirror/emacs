@@ -2739,7 +2739,7 @@ but switching to `ash` is generally much preferable.
 'pascal-last-completions', 'pascal-show-completions',
 'pascal-toggle-completions', 'pcomplete-arg-quote-list',
 'pcomplete-quote-argument', 'prolog-char-quote-workaround',
-'python-buffer, 'python-guess-indent', 'python-indent',
+'python-buffer', 'python-guess-indent', 'python-indent',
 'python-info-ppss-comment-or-string-p', 'python-info-ppss-context',
 'python-info-ppss-context-type', 'python-preoutput-result',
 'python-proc', 'python-send-receive', 'python-send-string',
