@@ -119,13 +119,17 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (repeat :tag "Argument List" :value ("") string))
   :version "23.1")
 
+;; We put the entire function into the autoload file so that we don't
+;; have to load a whole bunch of vc.*el files just to see whether the
+;; file-local variable is safe.
 ;;;###autoload
-(defun vc-git-annotate-switches-safe-p (switches)
-  "Check if local value of `vc-git-annotate-switches' is safe.
+(progn
+  (defun vc-git-annotate-switches-safe-p (switches)
+    "Check if local value of `vc-git-annotate-switches' is safe.
 Currently only \"-w\" (ignore whitespace) is considered safe, but
 this list might be extended in the future."
-  ;; TODO: Probably most options are perfectly safe.
-  (equal switches "-w"))
+    ;; TODO: Probably most options are perfectly safe.
+    (equal switches "-w")))
 
 (defcustom vc-git-annotate-switches nil
   "String or list of strings specifying switches for Git blame under VC.
