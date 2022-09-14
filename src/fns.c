@@ -2930,15 +2930,37 @@ FUNCTION must be a function of one argument, and must return a value
     return empty_unibyte_string;
   Lisp_Object *args;
   SAFE_ALLOCA_LISP (args, args_alloc);
+  if (EQ (function, Qidentity))
+    {
+      /* Fast path when no function call is necessary.  */
+      if (CONSP (sequence))
+	{
+	  Lisp_Object src = sequence;
+	  Lisp_Object *dst = args;
+	  do
+	    {
+	      *dst++ = XCAR (src);
+	      src = XCDR (src);
+	    }
+	  while (!NILP (src));
+	  goto concat;
+	}
+      else if (VECTORP (sequence))
+	{
+	  memcpy (args, XVECTOR (sequence)->contents, leni * sizeof *args);
+	  goto concat;
+	}
+    }
   ptrdiff_t nmapped = mapcar1 (leni, args, function, sequence);
-  ptrdiff_t nargs = 2 * nmapped - 1;
   eassert (nmapped == leni);
 
+ concat: ;
+  ptrdiff_t nargs = args_alloc;
   if (NILP (separator) || (STRINGP (separator) && SCHARS (separator) == 0))
-    nargs = nmapped;
+    nargs = leni;
   else
     {
-      for (ptrdiff_t i = nmapped - 1; i > 0; i--)
+      for (ptrdiff_t i = leni - 1; i > 0; i--)
         args[i + i] = args[i];
 
       for (ptrdiff_t i = 1; i < nargs; i += 2)
