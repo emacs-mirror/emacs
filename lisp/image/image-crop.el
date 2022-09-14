@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'svg)
+(require 'text-property-search)
 
 (defvar image-crop-exif-rotate nil
   "If non-nil, rotate images by updating exif data.
