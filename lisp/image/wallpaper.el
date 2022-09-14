@@ -112,7 +112,22 @@ You can also use \\[report-emacs-bug]."
                (executable-find (car cmd)))
           (throw 'found cmd)))))
 
+(defvar wallpaper-default-width 1080
+  "Default width used by `wallpaper-set'.
+This is only used when it can't be detected automatically.
+See also `wallpaper-default-height'.")
+
+(defvar wallpaper-default-height 1920
+  "Default height used by `wallpaper-set'.
+This is only used when it can't be detected automatically.
+See also `wallpaper-default-width'.")
+
 (declare-function haiku-set-wallpaper "term/haiku-win.el")
+
+(defun wallpaper--get-height-or-width (desc fun default)
+  (if (display-graphic-p)
+      (funcall fun)
+    (read-number (format "Wallpaper %s in pixels: " desc) default)))
 
 (defun wallpaper-set (file)
   "Set the desktop background to FILE in a graphical environment."
@@ -129,35 +144,41 @@ You can also use \\[report-emacs-bug]."
     (error "No such file: %s" file))
   (unless (file-readable-p file)
     (error "File is not readable: %s" file))
-  (when (display-graphic-p)
-    (if (featurep 'haiku)
-        (haiku-set-wallpaper file)
-      (let* ((command (wallpaper--find-command))
-             (fmt-spec `((?f . ,(expand-file-name file))
-                         (?h . ,(display-pixel-height))
-                         (?w . ,(display-pixel-width))))
-             (bufname (format " *wallpaper-%s*" (random)))
-             (process
-              (and command
-                   (apply #'start-process "set-wallpaper" bufname
-                          (car command)
-                          (mapcar (lambda (arg) (format-spec arg fmt-spec))
-                                  (cdr command))))))
-        (unless command
-          (error "Can't find a suitable command for setting the wallpaper"))
-        (wallpaper-debug "Using command %s" (car command))
-        (setf (process-sentinel process)
-              (lambda (process status)
-                (unwind-protect
-                    (unless (and (eq (process-status process) 'exit)
-                                 (zerop (process-exit-status process)))
-                      (message "command %S %s: %S" (string-join (process-command process) " ")
-                               (string-replace "\n" "" status)
-                               (with-current-buffer (process-buffer process)
-                                 (string-clean-whitespace (buffer-string)))))
-                  (ignore-errors
-                    (kill-buffer (process-buffer process))))))
-        process))))
+  (cond ((featurep 'haiku)
+         (haiku-set-wallpaper file))
+        (t
+         (let* ((command (wallpaper--find-command))
+                (fmt-spec `((?f . ,(expand-file-name file))
+                            (?h . ,(wallpaper--get-height-or-width
+                                    "height"
+                                    #'display-pixel-height
+                                    wallpaper-default-height))
+                            (?w . ,(wallpaper--get-height-or-width
+                                    "width"
+                                    #'display-pixel-width
+                                    wallpaper-default-width))))
+                (bufname (format " *wallpaper-%s*" (random)))
+                (process
+                 (and command
+                      (apply #'start-process "set-wallpaper" bufname
+                             (car command)
+                             (mapcar (lambda (arg) (format-spec arg fmt-spec))
+                                     (cdr command))))))
+           (unless command
+             (error "Can't find a suitable command for setting the wallpaper"))
+           (wallpaper-debug "Using command %s" (car command))
+           (setf (process-sentinel process)
+                 (lambda (process status)
+                   (unwind-protect
+                       (unless (and (eq (process-status process) 'exit)
+                                    (zerop (process-exit-status process)))
+                         (message "command %S %s: %S" (string-join (process-command process) " ")
+                                  (string-replace "\n" "" status)
+                                  (with-current-buffer (process-buffer process)
+                                    (string-clean-whitespace (buffer-string)))))
+                     (ignore-errors
+                       (kill-buffer (process-buffer process))))))
+           process))))
 
 (provide 'wallpaper)
 
