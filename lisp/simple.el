@@ -4563,85 +4563,81 @@ impose the use of a shell (with its need to quote arguments)."
 			 (set-marker (mark-marker) (point)
 				     (current-buffer)))))
 	;; Output goes in a separate buffer.
-	;; Preserve the match data in case called from a program.
-        ;; FIXME: It'd be ridiculous for an Elisp function to call
-        ;; shell-command and assume that it won't mess the match-data!
-	(save-match-data
-	  (if (string-match "[ \t]*&[ \t]*\\'" command)
-	      ;; Command ending with ampersand means asynchronous.
-              (let* ((buffer (get-buffer-create
-                              (or output-buffer shell-command-buffer-name-async)))
-                     (bname (buffer-name buffer))
-                     (proc (get-buffer-process buffer))
-                     (directory default-directory))
-		;; Remove the ampersand.
-		(setq command (substring command 0 (match-beginning 0)))
-		;; Ask the user what to do with already running process.
-		(when proc
-		  (cond
-		   ((eq async-shell-command-buffer 'confirm-kill-process)
-		    ;; If will kill a process, query first.
-                    (shell-command--same-buffer-confirm "Kill it")
-		    (kill-process proc))
-		   ((eq async-shell-command-buffer 'confirm-new-buffer)
-		    ;; If will create a new buffer, query first.
-                    (shell-command--same-buffer-confirm "Use a new buffer")
-                    (setq buffer (generate-new-buffer bname)))
-		   ((eq async-shell-command-buffer 'new-buffer)
-		    ;; It will create a new buffer.
-                    (setq buffer (generate-new-buffer bname)))
-		   ((eq async-shell-command-buffer 'confirm-rename-buffer)
-		    ;; If will rename the buffer, query first.
-                    (shell-command--same-buffer-confirm "Rename it")
-		    (with-current-buffer buffer
-		      (rename-uniquely))
-                    (setq buffer (get-buffer-create bname)))
-		   ((eq async-shell-command-buffer 'rename-buffer)
-		    ;; It will rename the buffer.
-		    (with-current-buffer buffer
-		      (rename-uniquely))
-                    (setq buffer (get-buffer-create bname)))))
-		(with-current-buffer buffer
-                  (shell-command-save-pos-or-erase)
-		  (setq default-directory directory)
-                  (require 'shell)
-                  (let ((process-environment
-                         (append
-                          (and (natnump async-shell-command-width)
-                               (list
-                                (format "COLUMNS=%d"
-                                        async-shell-command-width)))
-                          (comint-term-environment)
-                          process-environment)))
-		    (setq proc
-			  (start-process-shell-command "Shell" buffer command)))
-		  (setq mode-line-process '(":%s"))
-                  (shell-mode)
-                  (setq-local revert-buffer-function
-                              (lambda (&rest _)
-                                (async-shell-command command buffer)))
-                  (set-process-sentinel proc #'shell-command-sentinel)
-		  ;; Use the comint filter for proper handling of
-		  ;; carriage motion (see comint-inhibit-carriage-motion).
-                  (set-process-filter proc #'comint-output-filter)
-                  (if async-shell-command-display-buffer
-                      ;; Display buffer immediately.
-                      (display-buffer buffer '(nil (allow-no-window . t)))
-                    ;; Defer displaying buffer until first process output.
-                    ;; Use disposable named advice so that the buffer is
-                    ;; displayed at most once per process lifetime.
-                    (let ((nonce (make-symbol "nonce")))
-                      (add-function :before (process-filter proc)
-                                    (lambda (proc _string)
-                                      (let ((buf (process-buffer proc)))
-                                        (when (buffer-live-p buf)
-                                          (remove-function (process-filter proc)
-                                                           nonce)
-                                          (display-buffer buf))))
-                                    `((name . ,nonce)))))))
-	    ;; Otherwise, command is executed synchronously.
-	    (shell-command-on-region (point) (point) command
-				     output-buffer nil error-buffer)))))))
+	(if (string-match "[ \t]*&[ \t]*\\'" command)
+	    ;; Command ending with ampersand means asynchronous.
+            (let* ((buffer (get-buffer-create
+                            (or output-buffer shell-command-buffer-name-async)))
+                   (bname (buffer-name buffer))
+                   (proc (get-buffer-process buffer))
+                   (directory default-directory))
+	      ;; Remove the ampersand.
+	      (setq command (substring command 0 (match-beginning 0)))
+	      ;; Ask the user what to do with already running process.
+	      (when proc
+		(cond
+		 ((eq async-shell-command-buffer 'confirm-kill-process)
+		  ;; If will kill a process, query first.
+                  (shell-command--same-buffer-confirm "Kill it")
+		  (kill-process proc))
+		 ((eq async-shell-command-buffer 'confirm-new-buffer)
+		  ;; If will create a new buffer, query first.
+                  (shell-command--same-buffer-confirm "Use a new buffer")
+                  (setq buffer (generate-new-buffer bname)))
+		 ((eq async-shell-command-buffer 'new-buffer)
+		  ;; It will create a new buffer.
+                  (setq buffer (generate-new-buffer bname)))
+		 ((eq async-shell-command-buffer 'confirm-rename-buffer)
+		  ;; If will rename the buffer, query first.
+                  (shell-command--same-buffer-confirm "Rename it")
+		  (with-current-buffer buffer
+		    (rename-uniquely))
+                  (setq buffer (get-buffer-create bname)))
+		 ((eq async-shell-command-buffer 'rename-buffer)
+		  ;; It will rename the buffer.
+		  (with-current-buffer buffer
+		    (rename-uniquely))
+                  (setq buffer (get-buffer-create bname)))))
+	      (with-current-buffer buffer
+                (shell-command-save-pos-or-erase)
+		(setq default-directory directory)
+                (require 'shell)
+                (let ((process-environment
+                       (append
+                        (and (natnump async-shell-command-width)
+                             (list
+                              (format "COLUMNS=%d"
+                                      async-shell-command-width)))
+                        (comint-term-environment)
+                        process-environment)))
+		  (setq proc
+			(start-process-shell-command "Shell" buffer command)))
+		(setq mode-line-process '(":%s"))
+                (shell-mode)
+                (setq-local revert-buffer-function
+                            (lambda (&rest _)
+                              (async-shell-command command buffer)))
+                (set-process-sentinel proc #'shell-command-sentinel)
+		;; Use the comint filter for proper handling of
+		;; carriage motion (see comint-inhibit-carriage-motion).
+                (set-process-filter proc #'comint-output-filter)
+                (if async-shell-command-display-buffer
+                    ;; Display buffer immediately.
+                    (display-buffer buffer '(nil (allow-no-window . t)))
+                  ;; Defer displaying buffer until first process output.
+                  ;; Use disposable named advice so that the buffer is
+                  ;; displayed at most once per process lifetime.
+                  (let ((nonce (make-symbol "nonce")))
+                    (add-function :before (process-filter proc)
+                                  (lambda (proc _string)
+                                    (let ((buf (process-buffer proc)))
+                                      (when (buffer-live-p buf)
+                                        (remove-function (process-filter proc)
+                                                         nonce)
+                                        (display-buffer buf))))
+                                  `((name . ,nonce)))))))
+	  ;; Otherwise, command is executed synchronously.
+	  (shell-command-on-region (point) (point) command
+				   output-buffer nil error-buffer))))))
 
 (defun shell-command--same-buffer-confirm (action)
   (let ((help-form
