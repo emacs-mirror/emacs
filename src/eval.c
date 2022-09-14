@@ -211,15 +211,10 @@ backtrace_thread_next (struct thread_state *tstate, union specbinding *pdl)
 void
 init_eval_once (void)
 {
-  /* Don't forget to update docs (lispref node "Local Variables").  */
-#ifndef HAVE_NATIVE_COMP
-  max_specpdl_size = 1800; /* See bug#46818.  */
-  max_lisp_eval_depth = 800;
-#else
-  /* Original values increased for comp.el.  */
+  /* Don't forget to update docs
+     (lispref nodes "Local Variables" and "Eval").  */
   max_specpdl_size = 2500;
   max_lisp_eval_depth = 1600;
-#endif
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }

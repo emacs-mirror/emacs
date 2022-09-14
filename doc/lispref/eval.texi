@@ -846,7 +846,7 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 800.  If you set it to a value
+The default value of this variable is 1600.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
 reached.  Entry to the Lisp debugger increases the value, if there is
 little room left, to make sure the debugger itself has room to
