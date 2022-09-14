@@ -3458,6 +3458,14 @@ version 0.8 (8th May 2021), "contains state data that should persist
 between (application) restarts, but that is not important or portable
 enough to the user that it should be stored in $XDG_DATA_HOME".
 
+---
+*** New function 'xdg-current-desktop'.
+It returns a list of strings, corresponding to the colon-separated
+list of names in the 'XDG_CURRENT_DESKTOP' environment variable, which
+identify the current desktop environment.
+(This variable was introduced in XDG Desktop Entry Specification
+version 1.2.)
+
 +++
 ** New macro 'with-delayed-message'.
 This macro is like 'progn', but will output the specified message if

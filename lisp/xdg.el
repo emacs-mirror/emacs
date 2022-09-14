@@ -281,6 +281,18 @@ Optional argument GROUP defaults to the string \"Desktop Entry\"."
     (when (null (string-match-p "[^[:blank:]]" (car res))) (pop res))
     (nreverse res)))
 
+(defun xdg-current-desktop ()
+  "Return a list of strings identifying the current desktop environment.
+
+According to the XDG Desktop Entry Specification version 0.5:
+
+    If $XDG_CURRENT_DESKTOP is set then it contains a
+    colon-separated list of strings ... $XDG_CURRENT_DESKTOP
+    should have been set by the login manager, according to the
+    value of the DesktopNames found in the session file."
+  (when-let ((ret (getenv "XDG_CURRENT_DESKTOP")))
+    (string-split ret ":")))
+
 
 ;; MIME apps specification
 ;; https://standards.freedesktop.org/mime-apps-spec/mime-apps-spec-1.0.1.html

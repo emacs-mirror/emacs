@@ -59,6 +59,16 @@
   (should (equal (xdg-desktop-strings " ") nil))
   (should (equal (xdg-desktop-strings "a; ;") '("a" " "))))
 
+(ert-deftest xdg-current-desktop ()
+  (let ((env (getenv "XDG_CURRENT_DESKTOP")))
+    (unwind-protect
+        (progn
+          (setenv "XDG_CURRENT_DESKTOP" "KDE")
+          (should (equal (xdg-current-desktop) '("KDE")))
+          (setenv "XDG_CURRENT_DESKTOP" "ubuntu:GNOME")
+          (should (equal (xdg-current-desktop) '("ubuntu" "GNOME"))))
+      (setenv "XDG_CURRENT_DESKTOP" env))))
+
 (ert-deftest xdg-mime-associations ()
   "Test reading MIME associations from files."
   (let* ((apps (ert-resource-file "mimeapps.list"))
