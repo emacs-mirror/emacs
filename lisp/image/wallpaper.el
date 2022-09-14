@@ -1,4 +1,4 @@
-;;; wallpaper.el --- Set wallpaper using external command  -*- lexical-binding: t; -*-
+;;; wallpaper.el --- Set desktop wallpaper from Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -22,13 +22,20 @@
 
 ;;; Commentary:
 
-;; This library provides the command `wallpaper-set', which uses an
-;; external command to set the desktop background.  This is obviously
-;; a bit tricky to get right, as there is no lack of platforms, window
-;; managers, desktop environments and tools.
+;; This library provides the command `wallpaper-set', which sets the
+;; desktop background.
 ;;
-;; If this doesn't work in your environment, customize the user option
-;; `wallpaper-commands'.
+;; On GNU/Linux and other Unix-like systems, it uses an external
+;; command to set the desktop background.
+;;
+;; On Haiku, it uses the `haiku-set-wallpaper' function, which does
+;; not rely on any external commands.
+;;
+;; Finding an external command to use is obviously a bit tricky to get
+;; right, as there is no lack of platforms, window managers, desktop
+;; environments and tools.  However, it should be detected
+;; automatically in most cases.  If it doesn't work in your
+;; environment, customize the user option `wallpaper-commands'.
 
 ;;; Code:
 
@@ -130,7 +137,14 @@ See also `wallpaper-default-width'.")
     (read-number (format "Wallpaper %s in pixels: " desc) default)))
 
 (defun wallpaper-set (file)
-  "Set the desktop background to FILE in a graphical environment."
+  "Set the desktop background to FILE in a graphical environment.
+
+On GNU/Linux and other Unix-like systems, this relies on an
+external command.  Which command is being used depends on the
+user option `wallpaper-commands'.
+
+On Haiku, no external command is needed, so the value of
+`wallpaper-commands' is ignored."
   (interactive (list (and
                       (display-graphic-p)
                       (read-file-name "Set desktop background to: "

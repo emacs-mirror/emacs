@@ -1991,9 +1991,16 @@ This is done via 'image-converter-add-handler'.
 
 ---
 *** New library wallpaper.el.
-This library contains the command `wallpaper-set', which uses an
-external command to set the desktop background.  The new user option
-`wallpaper-commands' controls which command is being used.
+This library contains the command `wallpaper-set', which sets the
+desktop background.
+
+On GNU/Linux and other Unix-like systems, it uses an external command
+(such as "swaybg", "gm", "display" or "xloadimage").  A suitable
+command should be detected automatically in most cases, but can also
+be customized manually with the new user option `wallpaper-commands'.
+
+On Haiku, it uses the new function `haiku-set-wallpaper', which does
+not rely on any external command.
 
 ** Image-Dired
 
