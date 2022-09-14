@@ -10593,7 +10593,8 @@ displaying that processes's buffer."
   "2" #'split-root-window-below
   "3" #'split-root-window-right
   "s" #'window-toggle-side-windows
-  "f" #'tear-off-window
+  "^ f" #'tear-off-window
+  "^ t" #'tab-window-detach
   "-" #'fit-window-to-buffer
   "0" #'delete-windows-on)
 (define-key ctl-x-map "w" window-prefix-map)
