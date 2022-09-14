@@ -299,7 +299,7 @@ Initialization options:\n\
 -x                          to be used in #!/usr/bin/emacs -x\n\
                               and has approximately the same meaning\n\
 			      as -Q --script\n\
---terminal, -t DEVICE       use DEVICE for terminal I/O\n		\
+--terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --user, -u USER             load ~USER/.emacs instead of your own\n\
 \n\
 ",
