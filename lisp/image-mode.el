@@ -45,6 +45,7 @@
 (require 'image)
 (require 'exif)
 (require 'dired)
+(require 'wallpaper)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Image mode window-info management.
@@ -522,6 +523,9 @@ image as text, when opening such images in `image-mode'."
   "SPC"     #'image-scroll-up
   "S-SPC"   #'image-scroll-down
   "DEL"     #'image-scroll-down
+
+  ;; Misc
+  "W"       #'image-mode-wallpaper-set
 
   ;; Remapped
   "<remap> <forward-char>"           #'image-forward-hscroll
@@ -1387,7 +1391,18 @@ If no such buffer exists, it will be opened."
   (prog1 (bookmark-default-handler bmk)
     (when (not (string= image-type (bookmark-prop-get bmk 'image-type)))
       (image-toggle-display))))
+
 
+;;; Setting the wallpaper
+
+(defun image-mode-wallpaper-set ()
+  "Set the desktop background to the current image.
+This uses `wallpaper-set' (which see)."
+  (interactive nil image-mode)
+  (wallpaper-set buffer-file-name))
+
+
+;;; Image transformation
 
 (defsubst image-transform-width (width height)
   "Return the bounding box width of a rotated WIDTH x HEIGHT rectangle.

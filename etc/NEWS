@@ -1954,6 +1954,11 @@ up as necessary.  Unlike 'image-transform-fit-both', this does not
 only scale the image down, but up as well.  It is bound to "s w" in
 Image Mode by default.
 
+---
+*** New command 'image-mode-wallpaper-set'.
+This command sets the desktop background to the current image.  It is
+bound to "W" by default.
+
 +++
 *** 'image-transform-fit-to-(height|width)' are now obsolete.
 Use the new command 'image-transform-fit-to-window' instead.
@@ -2048,8 +2053,8 @@ associated with Image-Dired.
 
 ---
 *** New command 'image-dired-wallpaper-set'.
-This command sets the wallpaper to the image at point in the thumbnail
-buffer.  It is bound to 'W' by default.
+This command sets the desktop background to the image at point in the
+thumbnail buffer.  It is bound to 'W' by default.
 
 ---
 *** 'image-dired-slideshow-start' is now bound to 'S'.
