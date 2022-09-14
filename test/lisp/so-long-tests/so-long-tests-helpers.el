@@ -41,14 +41,14 @@
     (should (eq so-long--active t))
     ;; pcase fails here in Emacs 24.
     (cl-case action
-      ('so-long-mode
+      (so-long-mode
        (should (eq major-mode 'so-long-mode))
        (so-long-tests-assert-overrides)
        (so-long-tests-assert-preserved))
-      ('so-long-minor-mode
+      (so-long-minor-mode
        (should (eq so-long-minor-mode t))
        (so-long-tests-assert-overrides))
-      ('longlines-mode
+      (longlines-mode
        (should (eq longlines-mode t))))))
 
 (defun so-long-tests-assert-reverted (action)
@@ -61,14 +61,14 @@
     (should (eq so-long--active nil))
     ;; pcase fails here in Emacs 24.
     (cl-case action
-      ('so-long-mode
+      (so-long-mode
        (should-not (eq major-mode 'so-long-mode))
        (so-long-tests-assert-overrides-reverted)
        (so-long-tests-assert-preserved))
-      ('so-long-minor-mode
+      (so-long-minor-mode
        (should-not (eq so-long-minor-mode t))
        (so-long-tests-assert-overrides-reverted))
-      ('longlines-mode
+      (longlines-mode
        (should-not (eq longlines-mode t))))))
 
 (defun so-long-tests-assert-and-revert (action)
