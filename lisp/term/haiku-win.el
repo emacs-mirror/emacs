@@ -598,6 +598,45 @@ MODIFIERS is the internal modifier mask of the wheel movement."
     ;; the Deskbar will not, so kill ourself here.
     (unless cancel-shutdown (kill-emacs))))
 
+;;;; Wallpaper support.
+
+
+(declare-function haiku-write-node-attribute "haikuselect.c")
+(declare-function haiku-send-message "haikuselect.c")
+
+(defun haiku-set-wallpaper (file)
+  "Make FILE the wallpaper.
+Set the desktop background to the image FILE, on all workspaces,
+with an offset of 0, 0."
+  (let ((encoded-file (encode-coding-string
+                       (expand-file-name file)
+                       (or file-name-coding-system
+                           default-file-name-coding-system))))
+    ;; Write the necessary information to the desktop directory.
+    (haiku-write-node-attribute "/boot/home/Desktop"
+                                "be:bgndimginfo"
+                                (list '(type . 0)
+                                      '("be:bgndimginfoerasetext" bool t)
+                                      (list "be:bgndimginfopath" 'string
+                                            encoded-file)
+                                      '("be:bgndimginfoworkspaces" long
+                                        ;; This is a mask of all the
+                                        ;; workspaces the background
+                                        ;; image will be applied to.  It
+                                        ;; is treated as an unsigned
+                                        ;; value by the Tracker, despite
+                                        ;; the type being signed.
+                                        -1)
+                                      ;; Don't apply an offset
+                                      '("be:bgndimginfooffset" point (0 . 0))
+                                      ;; Don't stretch or crop or anything
+                                      '("be:bgndimginfomode" long 0)
+                                      ;; Don't apply a set
+                                      '("be:bgndimginfoset" long 0)))
+    ;; Tell the tracker to redisplay the wallpaper.
+    (haiku-send-message "application/x-vnd.Be-TRAK"
+                        (list (cons 'type (haiku-numeric-enum Tbgr))))))
+
 
 ;;;; Cursors.
 

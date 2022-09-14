@@ -724,6 +724,9 @@ extern void be_get_window_decorator_frame (void *, int *, int *, int *, int *);
 extern void be_send_move_frame_event (void *);
 extern void be_set_window_fullscreen_mode (void *, enum haiku_fullscreen_mode);
 
+extern status_t be_write_node_message (const char *, const char *, void *);
+extern void be_send_message (const char *, void *);
+
 extern void be_lock_window (void *);
 extern void be_unlock_window (void *);
 extern bool be_get_explicit_workarea (int *, int *, int *, int *);
