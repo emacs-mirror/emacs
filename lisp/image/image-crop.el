@@ -48,7 +48,8 @@ The following `format-spec' elements are allowed:
   :version "29.1")
 
 (defcustom image-crop-elide-command '("convert" "-draw" "rectangle %l,%t %r,%b"
-                                   "-" "%f:-")
+                                      "-fill" "%c"
+                                      "-" "%f:-")
   "Command to make a rectangle inside an image.
 
 The following `format-spec' elements are allowed:
@@ -56,12 +57,13 @@ The following `format-spec' elements are allowed:
 %t: Top.
 %r: Right.
 %b: Bottom.
+%c: Color.
 %f: Result file type."
   :type '(repeat string)
   :version "29.1")
 
 (defcustom image-crop-crop-command '("convert" "+repage" "-crop" "%wx%h+%l+%t"
-	                          "-" "%f:-")
+	                             "-" "%f:-")
   "Command to crop an image.
 
 The following `format-spec' elements are allowed:
@@ -97,12 +99,17 @@ original buffer text, and the second parameter is the cropped
 image data.")
 
 ;;;###autoload
-(defun image-elide (&optional square)
+(defun image-elide (color &optional square)
   "Elide a square from the image under point.
 If SQUARE (interactively, the prefix), elide a square instead of a
-rectangle from the image."
-  (interactive "P")
-  (image-crop square t))
+rectangle from the image.
+
+Interatively, the user will be prompted for the color to use, and
+defaults to black."
+  (interactive (list (read-color "Use color: ")
+                     current-prefix-arg))
+  (image-crop square (if (string-empty-p color)
+                         "black" color)))
 
 ;;;###autoload
 (defun image-crop (&optional square elide)
@@ -111,7 +118,8 @@ If SQUARE (interactively, the prefix), crop a square instead of a
 rectangle from the image.
 
 If ELIDE, remove a rectangle from the image instead of cropping
-the image.
+the image.  In that case ELIDE, should be the name of a color to
+use.
 
 After cropping an image, it can be saved by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image."
@@ -217,6 +225,7 @@ After cropping an image, it can be saved by `M-x image-save' or
                                   (?t . ,top)
                                   (?r . ,(+ left width))
                                   (?b . ,(+ top height))
+                                  (?c . ,elide)
                                   (?f . ,(cadr (split-string type "/")))))
 	 (image-crop--process image-crop-crop-command
                               `((?l . ,left)
