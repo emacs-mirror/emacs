@@ -52,7 +52,7 @@
     ;; Sway (Wayland)
     ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
     ;; Wayland General
-    ("wbg" %f)
+    ("wbg" "%f")
     ;; Gnome
     ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
     ;; KDE Plasma
