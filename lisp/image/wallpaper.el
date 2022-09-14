@@ -38,6 +38,8 @@
   '(
     ;; Sway (Wayland)
     ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
+    ;; Wayland General
+    ("wbg" %f)
     ;; Gnome
     ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
     ;; Other / General X
@@ -88,6 +90,9 @@ You can also use \\[report-emacs-bug]."
 (cl-defmethod wallpaper--check-command ((_type (eql 'swaybg)))
   (and (getenv "WAYLAND_DISPLAY")
        (getenv "SWAYSOCK")))
+
+(cl-defmethod wallpaper--check-command ((_type (eql 'wbg)))
+  (getenv "WAYLAND_DISPLAY"))
 
 (cl-defmethod wallpaper--check-command (_type)
   t)
