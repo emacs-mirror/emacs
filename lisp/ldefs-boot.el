@@ -33558,12 +33558,10 @@ case, and the process object in the asynchronous case.
 
 ;;; Generated autoloads from vc/vc-git.el
 
-(autoload 'vc-git-annotate-switches-safe-p "vc-git" "\
+(defun vc-git-annotate-switches-safe-p (switches) "\
 Check if local value of `vc-git-annotate-switches' is safe.
 Currently only \"-w\" (ignore whitespace) is considered safe, but
-this list might be extended in the future.
-
-(fn SWITCHES)")
+this list might be extended in the future." (equal switches "-w"))
 (put 'vc-git-annotate-switches 'safe-local-variable #'vc-git-annotate-switches-safe-p)
  (defun vc-git-registered (file)
   "Return non-nil if FILE is registered with git."
@@ -34722,6 +34720,11 @@ Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'." t)
 ;;; Generated autoloads from w32-vars.el
 
 (register-definition-prefixes "w32-vars" '("w32-"))
+
+
+;;; Generated autoloads from image/wallpaper.el
+
+(register-definition-prefixes "wallpaper" '("wallpaper-"))
 
 
 ;;; Generated autoloads from emacs-lisp/warnings.el
