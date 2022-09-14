@@ -43,6 +43,8 @@
     ("wbg" %f)
     ;; Gnome
     ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
+    ;; KDE Plasma
+    ("plasma-apply-wallpaperimage" "%f")
     ;; Other / General X
     ("gm" "display" "-size" "%wx%h" "-window" "root" "%f")
     ("display" "-resize" "%wx%h" "-window" "root" "%f")
@@ -87,6 +89,9 @@ You can also use \\[report-emacs-bug]."
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
   (member "GNOME" (xdg-current-desktop)))
+
+(cl-defmethod wallpaper--check-command ((_type (eql 'plasma-apply-wallpaperimage)))
+  (member "KDE" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'swaybg)))
   (and (getenv "WAYLAND_DISPLAY")
