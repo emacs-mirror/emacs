@@ -3452,11 +3452,13 @@ This means the vscroll will not be reset when set on a window that is
 ** XDG support
 
 ---
-*** New function 'xdg-state-home' returns 'XDG_STATE_HOME' environment variable.
-This new location, introduced in the XDG Base Directory Specification
-version 0.8 (8th May 2021), "contains state data that should persist
+*** New function 'xdg-state-home'.
+It returns the new 'XDG_STATE_HOME' environment variable.  It should
+point to a file name that "contains state data that should persist
 between (application) restarts, but that is not important or portable
 enough to the user that it should be stored in $XDG_DATA_HOME".
+(This variable was introduced in the XDG Base Directory Specification
+version 0.8 released on May 8, 2021.)
 
 ---
 *** New function 'xdg-current-desktop'.
