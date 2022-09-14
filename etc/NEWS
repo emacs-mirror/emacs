@@ -1988,6 +1988,14 @@ These commands horizontally and vertically flip the image under point.
 It allows setting the image size to a percentage of its original size,
 and is bound to "s p" in Image mode.
 
++++
+*** 'image-transform-original' renamed to 'image-transform-reset-to-original'.
+The old name was confusing, and is now an obsolete function alias.
+
++++
+*** 'image-transform-reset' renamed to 'image-transform-reset-to-initial'.
+The old name was confusing, and is now an obsolete function alias.
+
 ** Images
 
 +++

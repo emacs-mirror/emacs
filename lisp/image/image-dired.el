@@ -1508,14 +1508,14 @@ Dired."
 
 (defun image-dired-display-current-image-full ()
   "Display current image in full size."
-  (declare (obsolete image-transform-original "29.1"))
+  (declare (obsolete image-transform-reset-to-original "29.1"))
   (interactive nil image-dired-thumbnail-mode)
   (let ((file (image-dired-original-file-name)))
     (if file
         (progn
           (image-dired-display-image file)
           (with-current-buffer image-dired-display-image-buffer
-            (image-transform-original)))
+            (image-transform-reset-to-original)))
       (error "No original file name at point"))))
 
 (defun image-dired-display-current-image-sized ()
