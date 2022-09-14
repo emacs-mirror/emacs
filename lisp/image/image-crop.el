@@ -69,6 +69,20 @@ The following `format-spec' elements are allowed:
 %r: Rotation (in degrees).
 %f: Result file type.")
 
+(defvar image-crop-buffer-text-function #'image-crop--default-buffer-text
+  "Function to return the buffer text for the cropped image.
+After cropping an image, the displayed image will be updated to
+show the cropped image in the buffer.  Different modes will have
+different ways to represent this image data in a buffer.  For
+instance, an HTML-based mode might want to represent the image
+with <img src=\"data:...base64...\">, but that's up to the mode.
+
+The default action is to not alter the buffer text at all.
+
+The function is called with two arguments: The first is the
+original buffer text, and the second parameter is the cropped
+image data.")
+
 ;;;###autoload
 (defun image-elide (&optional square)
   "Elide a square from the image under point.
@@ -113,7 +127,21 @@ After cropping an image, it can be saved by `M-x image-save' or
 	   (svg (svg-create (car size) (cdr size)
 			    :xmlns:xlink "http://www.w3.org/1999/xlink"
 			    :stroke-width 5))
-	   (text (buffer-substring (pos-bol) (pos-eol)))
+           ;; We want to get the original text that's covered by the
+           ;; image so that we can restore it.
+           (image-start
+            (save-excursion
+              (let ((match (text-property-search-backward 'display image)))
+                (if match
+                    (prop-match-end match)
+                  (point-min)))))
+           (image-end
+            (save-excursion
+              (let ((match (text-property-search-forward 'display image)))
+                (if match
+                    (prop-match-beginning match)
+                  (point-max)))))
+	   (text (buffer-substring image-start image-end))
 	   (inhibit-read-only t)
            orig-data)
       (with-temp-buffer
@@ -132,7 +160,7 @@ After cropping an image, it can be saved by `M-x image-save' or
       (svg-embed svg data type t
 		 :width (car size)
 		 :height (cdr size))
-      (delete-region (pos-bol) (pos-eol))
+      (delete-region image-start image-end)
       (svg-insert-image svg)
       (let ((area (condition-case _
 		      (save-excursion
@@ -146,13 +174,14 @@ After cropping an image, it can be saved by `M-x image-save' or
                  (if elide "elided" "cropped"))
 	(delete-region (pos-bol) (pos-eol))
 	(if area
-	    (image-crop--crop-image-update area orig-data size type elide)
+	    (image-crop--crop-image-update
+             area orig-data size type elide text)
 	  ;; If the user didn't complete the crop, re-insert the
 	  ;; original image (and text).
 	  (insert text))
 	(undo-amalgamate-change-group undo-handle)))))
 
-(defun image-crop--crop-image-update (area data size type elide)
+(defun image-crop--crop-image-update (area data size type elide text)
   (let* ((image-scaling-factor 1)
 	 (osize (image-size (create-image data nil t) t))
 	 (factor (/ (float (car osize)) (car size)))
@@ -182,7 +211,8 @@ After cropping an image, it can be saved by `M-x image-save' or
                                 (?w . ,width)
                                 (?h . ,height)
                                 (?f . ,(cadr (split-string type "/"))))))
-       (buffer-string)))))
+       (buffer-string))
+     text)))
 
 (defun image-crop--crop-image-1 (svg &optional square image-width image-height op)
   (track-mouse
@@ -353,19 +383,12 @@ After cropping an image, it can be saved by `M-x image-save' or
          `((?w . ,(image-property image :width))
            (?f . ,(cadr (split-string content-type "/")))))))))
 
-(defun image-crop--insert-image-data (image)
+(defun image-crop--insert-image-data (image text)
   (insert-image
    (create-image image nil t
 		 :max-width (- (frame-pixel-width) 50)
 		 :max-height (- (frame-pixel-height) 150))
-   (format "<img src=\"data:%s;base64,%s\">"
-	   (image-crop--content-type image)
-	   ;; Get a base64 version of the image.
-	   (with-temp-buffer
-	     (set-buffer-multibyte nil)
-	     (insert image)
-	     (base64-encode-region (point-min) (point-max) t)
-	     (buffer-string)))
+   (funcall image-crop-buffer-text-function text image)
    nil nil t))
 
 (defun image-crop--process (command expansions)
@@ -377,6 +400,9 @@ After cropping an image, it can be saved by `M-x image-save' or
    (mapcar (lambda (elem)
              (format-spec elem expansions))
            (cdr command))))
+
+(defun image-crop--default-buffer-text (text _image)
+  (substring-no-properties text))
 
 (provide 'image-crop)
 
