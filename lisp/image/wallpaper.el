@@ -49,6 +49,7 @@
     ("gm" "display" "-size" "%wx%h" "-window" "root" "%f")
     ("display" "-resize" "%wx%h" "-window" "root" "%f")
     ("feh" "--bg-max" "%f")
+    ("xwallpaper" "--zoom" "%f")
     ("xloadimage" "-onroot" "-fullscreen" "%f")
     ("xsetbg" " %f")
     )
