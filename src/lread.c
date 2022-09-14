@@ -2914,20 +2914,17 @@ invalid_radix_integer (EMACS_INT radix, Lisp_Object readcharfun)
   invalid_syntax (buf, readcharfun);
 }
 
-/* Size of the fixed-size buffer used during reading.  */
-enum { stackbufsize = 1024 };
-
 /* Read an integer in radix RADIX using READCHARFUN to read
-   characters.  RADIX must be in the interval [2..36].  Use STACKBUF
-   for temporary storage as needed.  Value is the integer read.
+   characters.  RADIX must be in the interval [2..36].
+   Value is the integer read.
    Signal an error if encountering invalid read syntax.  */
 
 static Lisp_Object
-read_integer (Lisp_Object readcharfun, int radix,
-	      char stackbuf[VLA_ELEMS (stackbufsize)])
+read_integer (Lisp_Object readcharfun, int radix)
 {
+  char stackbuf[20];
   char *read_buffer = stackbuf;
-  ptrdiff_t read_buffer_size = stackbufsize;
+  ptrdiff_t read_buffer_size = sizeof stackbuf;
   char *p = read_buffer;
   char *heapbuf = NULL;
   int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
@@ -3028,11 +3025,11 @@ read_char_literal (Lisp_Object readcharfun)
 
 /* Read a string literal (preceded by '"').  */
 static Lisp_Object
-read_string_literal (char stackbuf[VLA_ELEMS (stackbufsize)],
-		     Lisp_Object readcharfun)
+read_string_literal (Lisp_Object readcharfun)
 {
+  char stackbuf[1024];
   char *read_buffer = stackbuf;
-  ptrdiff_t read_buffer_size = stackbufsize;
+  ptrdiff_t read_buffer_size = sizeof stackbuf;
   specpdl_ref count = SPECPDL_INDEX ();
   char *heapbuf = NULL;
   char *p = read_buffer;
@@ -3355,8 +3352,7 @@ string_props_from_rev_list (Lisp_Object elems, Lisp_Object readcharfun)
 
 /* Read a bool vector (preceded by "#&").  */
 static Lisp_Object
-read_bool_vector (char stackbuf[VLA_ELEMS (stackbufsize)],
-		  Lisp_Object readcharfun)
+read_bool_vector (Lisp_Object readcharfun)
 {
   ptrdiff_t length = 0;
   for (;;)
@@ -3374,7 +3370,7 @@ read_bool_vector (char stackbuf[VLA_ELEMS (stackbufsize)],
     }
 
   ptrdiff_t size_in_chars = bool_vector_bytes (length);
-  Lisp_Object str = read_string_literal (stackbuf, readcharfun);
+  Lisp_Object str = read_string_literal (readcharfun);
   if (STRING_MULTIBYTE (str)
       || !(size_in_chars == SCHARS (str)
 	   /* We used to print 1 char too many when the number of bits
@@ -3696,7 +3692,7 @@ read_stack_reset (intmax_t sp)
 static Lisp_Object
 read0 (Lisp_Object readcharfun, bool locate_syms)
 {
-  char stackbuf[stackbufsize];
+  char stackbuf[64];
   char *read_buffer = stackbuf;
   ptrdiff_t read_buffer_size = sizeof stackbuf;
   char *heapbuf = NULL;
@@ -3893,7 +3889,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	  case '&':
 	    /* #&N"..." -- bool-vector */
-	    obj = read_bool_vector (stackbuf, readcharfun);
+	    obj = read_bool_vector (readcharfun);
 	    break;
 
 	  case '!':
@@ -3909,17 +3905,17 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	  case 'x':
 	  case 'X':
-	    obj = read_integer (readcharfun, 16, stackbuf);
+	    obj = read_integer (readcharfun, 16);
 	    break;
 
 	  case 'o':
 	  case 'O':
-	    obj = read_integer (readcharfun, 8, stackbuf);
+	    obj = read_integer (readcharfun, 8);
 	    break;
 
 	  case 'b':
 	  case 'B':
-	    obj = read_integer (readcharfun, 2, stackbuf);
+	    obj = read_integer (readcharfun, 2);
 	    break;
 
 	  case '@':
@@ -3988,7 +3984,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		    /* #NrDIGITS -- radix-N number */
 		    if (n < 0 || n > 36)
 		      invalid_radix_integer (n, readcharfun);
-		    obj = read_integer (readcharfun, n, stackbuf);
+		    obj = read_integer (readcharfun, n);
 		    break;
 		  }
 		else if (n <= MOST_POSITIVE_FIXNUM && !NILP (Vread_circle))
@@ -4043,7 +4039,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
       break;
 
     case '"':
-      obj = read_string_literal (stackbuf, readcharfun);
+      obj = read_string_literal (readcharfun);
       break;
 
     case '\'':
