@@ -1989,20 +1989,6 @@ and is bound to "s p" in Image mode.
 *** Users can now add special image conversion functions.
 This is done via 'image-converter-add-handler'.
 
----
-*** New library wallpaper.el.
-This library contains the command `wallpaper-set', which sets the
-desktop background.
-
-On GNU/Linux and other Unix-like systems, it uses an external command
-(such as "swaybg", "gm", "display" or "xloadimage").  A suitable
-command should be detected automatically in most cases, but can also
-be customized manually with the new user options 'wallpaper-command'
-and 'wallpaper-command-args' if needed.
-
-On Haiku, it uses the new function `haiku-set-wallpaper', which does
-not rely on any external command.
-
 ** Image-Dired
 
 +++
@@ -2456,6 +2442,20 @@ the local keymap over images.  They rely on external programs, by
 default 'convert' from ImageMagick, to do the actual cropping/eliding
 of the image file.  If the 'exiftool' program is available, it is used
 to optionally rotate images which have the :rotation property.
+
+---
+** New package 'wallpaper'.
+This package provides the command `wallpaper-set', which sets the
+desktop background.
+
+On GNU/Linux and other Unix-like systems, it uses an external command
+(such as "swaybg", "gm", "display" or "xloadimage").  A suitable
+command should be detected automatically in most cases, but can also
+be customized manually with the new user options 'wallpaper-command'
+and 'wallpaper-command-args' if needed.
+
+On Haiku, it uses the new function `haiku-set-wallpaper', which does
+not rely on any external command.
 
 +++
 ** New package 'oclosure'.
