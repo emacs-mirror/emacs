@@ -138,8 +138,12 @@ After cropping an image, it can be saved by `M-x image-save' or
 		      (save-excursion
 			(forward-line 1)
 			(image-crop--crop-image-1
-                         svg square (car size) (cdr size)))
-		    (quit nil))))
+                         svg square (car size) (cdr size)
+                         (if elide "elide" "crop")))
+                    (quit nil))))
+        (message (substitute-command-keys
+                  "Type \\[image-save] to save %s image to file")
+                 (if elide "elided" "cropped"))
 	(delete-region (pos-bol) (pos-eol))
 	(if area
 	    (image-crop--crop-image-update area orig-data size type elide)
@@ -180,10 +184,15 @@ After cropping an image, it can be saved by `M-x image-save' or
                                 (?f . ,(cadr (split-string type "/"))))))
        (buffer-string)))))
 
-(defun image-crop--crop-image-1 (svg &optional square image-width image-height)
+(defun image-crop--crop-image-1 (svg &optional square image-width image-height op)
   (track-mouse
     (cl-loop
-     with prompt = (if square "Move square" "Set start point")
+     with prompt = (if square
+                       (format "Move square for %s" op)
+                     (format
+                      (substitute-command-keys
+                       "Select area for %s (click \\`mouse-1' and drag)")
+                      op))
      and state = (if square 'move-unclick 'begin)
      and area = (if square
 		    (list :left (- (/ image-width 2)
@@ -212,7 +221,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 	       (cond
 		((eq (car event) 'down-mouse-1)
 		 (setq state 'stretch
-		       prompt "Stretch to end point")
+                       prompt (format "Stretch to end point for %s" op))
 		 (setf (cl-getf area :left) (car pos)
 		       (cl-getf area :top) (cdr pos)
 		       (cl-getf area :right) (car pos)
@@ -224,7 +233,12 @@ After cropping an image, it can be saved by `M-x image-save' or
 		       (cl-getf area :bottom) (cdr pos)))
 		((memq (car event) '(mouse-1 drag-mouse-1))
 		 (setq state 'corner
-		       prompt "Choose corner to adjust (RET to crop)"))))
+                       prompt (format
+                               (substitute-command-keys
+                                (concat
+                                 "Type \\`RET' to %s, or click and drag "
+                                 "\\`mouse-1' to adjust corners"))
+                               op)))))
 	      (corner
 	       (cond
 		((eq (car event) 'down-mouse-1)
@@ -237,12 +251,15 @@ After cropping an image, it can be saved by `M-x image-save' or
 				 (:right :bottom))))
 		 (when corner
 		   (setq state 'adjust
-			 prompt "Adjust crop")))))
+                         prompt (format
+                                 (substitute-command-keys
+                                  "Adjusting %s area (release \\`mouse-1' to confirm)")
+                                 op))))))
 	      (adjust
 	       (cond
 		((memq (car event) '(mouse drag-mouse-1))
 		 (setq state 'corner
-		       prompt "Choose corner to adjust"))
+                       prompt (format "Choose corner to adjust area for %s" op)))
 		((eq (car event) 'mouse-movement)
 		 (setf (cl-getf area (car corner)) (car pos)
 		       (cl-getf area (cadr corner)) (cdr pos)))))
@@ -250,7 +267,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 	       (cond
 		((eq (car event) 'down-mouse-1)
 		 (setq state 'move-click
-		       prompt "Move"))))
+                       prompt (format "Move for %s" op)))))
 	      (move-click
 	       (cond
 		((eq (car event) 'mouse-movement)
@@ -258,7 +275,7 @@ After cropping an image, it can be saved by `M-x image-save' or
 		       (cl-getf area :right) (+ (car pos) image-height)))
 		((memq (car event) '(mouse-1 drag-mouse-1))
 		 (setq state 'move-unclick
-		       prompt "Click to move")))))))
+                       prompt (format "Click to move for %s" op))))))))
      do (svg-line svg (cl-getf area :left) (cl-getf area :top)
 		  (cl-getf area :right) (cl-getf area :top)
 		  :id "top-line" :stroke-color "white")
