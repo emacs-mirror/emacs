@@ -33,6 +33,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'subr-x))
+(require 'xdg)
 
 (defcustom wallpaper-commands
   '(
@@ -85,7 +86,7 @@ You can also use \\[report-emacs-bug]."
            (cdr args))))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
-  (equal (getenv "XDG_CURRENT_DESKTOP") "GNOME"))
+  (member "GNOME" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'swaybg)))
   (and (getenv "WAYLAND_DISPLAY")
