@@ -667,6 +667,9 @@ Key bindings:
                      "(New file)")
                  "Empty buffer"))
     (image-mode--display)
+    (setq-local image-crop-buffer-text-function
+                ;; Use the binary image data directly for the buffer text.
+                (lambda (_text image) image))
     ;; Ensure that we recognize externally parsed image formats in
     ;; commands like `n'.
     (when image-use-external-converter
