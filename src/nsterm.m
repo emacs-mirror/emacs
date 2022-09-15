@@ -7901,7 +7901,6 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   NSRect r = [win frame];
   NSArray *screens = [NSScreen screens];
   NSScreen *screen = [screens objectAtIndex: 0];
-  struct input_event ie;
 
   NSTRACE ("[EmacsView windowDidMove:]");
 
@@ -7917,6 +7916,8 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
       if (emacs_event)
 	{
+	  struct input_event ie;
+	  EVENT_INIT (ie);
 	  ie.kind = MOVE_FRAME_EVENT;
 	  XSETFRAME (ie.frame_or_window, emacsframe);
 	  XSETINT (ie.x, emacsframe->left_pos);
