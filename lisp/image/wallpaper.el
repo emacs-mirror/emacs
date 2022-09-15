@@ -167,7 +167,8 @@ systems, where a native API is used instead."
      (const :tag "xloadimage                  (X Window System)"  "xloadimage")
      (const :tag "xsetbg                      (X Window System)"  "xsetbg")
      (const :tag "osascript                   (macOS)"            "osascript"))
-    (const :tag "Other (specify)"         string))
+    (const :tag "Other (specify)"         string)
+    (const :tag "None" nil))
   :set #'wallpaper--set-wallpaper-command
   :group 'image
   :version "29.1")
