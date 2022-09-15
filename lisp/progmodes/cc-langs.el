@@ -456,6 +456,7 @@ so that all identifiers are recognized as words.")
 	c-depropertize-CPP
 	c-before-change-check-ml-strings
 	c-before-change-check-<>-operators
+	c-before-after-change-check-c++-modules
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change
@@ -516,6 +517,7 @@ parameters \(point-min) and \(point-max).")
 	c-parse-quotes-after-change
 	c-after-change-mark-abnormal-strings
 	c-extend-font-lock-region-for-macros
+	c-before-after-change-check-c++-modules
 	c-neutralize-syntax-in-CPP
 	c-restore-<>-properties
 	c-change-expand-fl-region)
@@ -1017,6 +1019,16 @@ e.g. identifiers with template arguments such as \"A<X,Y>\" in C++."
 		 "\\)*")
 	      "")))
 (c-lang-defvar c-identifier-key (c-lang-const c-identifier-key))
+
+(c-lang-defconst c-module-name-re
+  "This regexp matches (a component of) a module name.
+Currently (2022-09) just C++ Mode uses this."
+  t nil
+  c++ (concat (c-lang-const c-symbol-key)
+	      "\\(?:\\."
+	      (c-lang-const c-symbol-key)
+	      "\\)*"))
+(c-lang-defvar c-module-name-re (c-lang-const c-module-name-re))
 
 (c-lang-defconst c-identifier-last-sym-match
   ;; This was a docstring constant in 5.30 but it's no longer used.
@@ -2624,6 +2636,7 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t       nil
+  c++     '("export")
   objc    '("@class" "@defs" "@end" "@property" "@dynamic" "@synthesize"
 	    "@compatibility_alias")
   java    '("import" "package")
@@ -2937,7 +2950,8 @@ assumed to be set if this isn't nil."
 (c-lang-defconst c-<>-sexp-kwds
   ;; All keywords that can be followed by an angle bracket sexp.
   t (c--delete-duplicates (append (c-lang-const c-<>-type-kwds)
-				  (c-lang-const c-<>-arglist-kwds))
+				  (c-lang-const c-<>-arglist-kwds)
+				  (c-lang-const c-import-<>-kwds))
 			  :test 'string-equal))
 
 (c-lang-defconst c-opt-<>-sexp-key
@@ -3098,6 +3112,25 @@ This construct is \"<keyword> <expression> :\"."
 		      (c-lang-const c-before-label-kwds))
   idl  nil
   awk  nil)
+
+(c-lang-defconst c-import-<>-kwds
+  "Keywords which can start an expression like \"import <...>\" in C++20.
+The <, and > operators are like those of #include <...>, they are
+not really template operators."
+  t nil
+  c++ '("import"))
+
+(c-lang-defconst c-module-kwds
+  "The keywords which introduce module constructs in C++20 onwards."
+  t nil
+  c++ '("module" "import" "export"))
+
+(c-lang-defconst c-module-key
+  ;; Adorned regexp matching module declaration keywords, or nil if there are
+  ;; none.
+  t (if (c-lang-const c-module-kwds)
+	(c-make-keywords-re t (c-lang-const c-module-kwds))))
+(c-lang-defvar c-module-key (c-lang-const c-module-key))
 
 (c-lang-defconst c-constant-kwds
   "Keywords for constants."

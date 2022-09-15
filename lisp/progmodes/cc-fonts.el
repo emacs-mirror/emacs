@@ -112,8 +112,10 @@
 	 ;; In Emacs font-lock-builtin-face has traditionally been
 	 ;; used for preprocessor directives.
 	 'font-lock-builtin-face)
-	(t
-	 'font-lock-reference-face)))
+	((and (c-face-name-p 'font-lock-reference-face)
+	      (eq font-lock-reference-face 'font-lock-reference-face))
+	 'font-lock-reference-face)
+	(t 'font-lock-constant-face)))
 
 (cc-bytecomp-defvar font-lock-constant-face)
 
@@ -558,8 +560,10 @@ stuff.  Used on level 1 and higher."
 				 (c-lang-const c-opt-cpp-prefix)
 				 re
 				 (c-lang-const c-syntactic-ws)
-				 "\\(<[^>\n\r]*>?\\)")
-			 `(,(+ ncle-depth re-depth sws-depth 1)
+				 "\\(<\\([^>\n\r]*\\)>?\\)")
+			 `(,(+ ncle-depth re-depth sws-depth
+			       (if (featurep 'xemacs) 2 1)
+			       )
 			   font-lock-string-face t)
 			 `((let ((beg (match-beginning
 				       ,(+ ncle-depth re-depth sws-depth 1)))
@@ -877,6 +881,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 						  (match-end 2)
 						  c-reference-face-name))
 			(goto-char (match-end 1))))))))))
+
+      ;; Module declarations (e.g. in C++20).
+      ,@(when (c-major-mode-is 'c++-mode)
+	  '(c-font-lock-c++-modules))
 
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
@@ -1909,6 +1917,163 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (forward-char))))) ; over the terminating "]" or other close paren.
   nil)
 
+(defun c-forward-c++-module-name (limit)
+  ;; Is there a C++20 module name at point?  If so, return a cons of the start
+  ;; and end of that name, in which case point will be moved over the name and
+  ;; following whitespace.  Otherwise nil will be returned and point will be
+  ;; unmoved.  This function doesn't regard a partition as part of the name.
+  ;; The entire construct must end not after LIMIT.
+  (when (and
+	 (looking-at c-module-name-re)
+	 (<= (match-end 0) limit)
+	 (not (looking-at c-keywords-regexp)))
+    (goto-char (match-end 0))
+    (prog1 (cons (match-beginning 0) (match-end 0))
+      (c-forward-syntactic-ws limit))))
+
+(defun c-forward-c++-module-partition-name (limit)
+  ;; Is there a C++20 module partition name (starting with its colon) at
+  ;; point?  If so return a cons of the start and end of the name, not
+  ;; including the colon, in which case point will be move to after the name
+  ;; and following whitespace.  Otherwise nil will be returned and point not
+  ;; moved.  The entire construct must end not after LIMIT.
+  (when (and
+	 (eq (char-after) ?:)
+	 (progn
+	   (forward-char)
+	   (c-forward-syntactic-ws limit)
+	   (looking-at c-module-name-re))
+	 (<= (match-end 0) limit)
+	 (not (looking-at c-keywords-regexp)))
+    (goto-char (match-end 0))
+    (prog1 (cons (match-beginning 0) (match-end 0))
+      (c-forward-syntactic-ws limit))))
+
+(defun c-font-lock-c++-modules (limit)
+  ;; Fontify the C++20 module stanzas, characterised by the keywords `module',
+  ;; `export' and `import'.  Note that this has to be done by a function (as
+  ;; opposed to regexps) due to the presence of optional C++ attributes.
+  ;;
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  (while (and (< (point) limit)
+	      (re-search-forward 
+	       "\\<\\(module\\|export\\|import\\)\\>\\(?:[^_$]\\|$\\)"
+	       limit t))
+    (goto-char (match-end 1))
+    (let (name-bounds pos beg end
+		      module-names)	; A list of conses of start and end
+					; of pertinent module names
+      (unless (c-skip-comments-and-strings limit)
+	(when
+	    (cond
+	     ;; module foo...; Note we don't handle module; or module
+	     ;; :private; here, since they don't really need handling.
+	     ((save-excursion
+		(when (equal (match-string-no-properties 1) "export")
+		  (c-forward-syntactic-ws limit)
+		  (re-search-forward "\\=\\(module\\)\\>\\(?:[^_$]\\|$\\)"
+				     limit t))
+		(and (equal (match-string-no-properties 1) "module")
+		     (< (point) limit)
+		     (progn (c-forward-syntactic-ws limit)
+			    (setq name-bounds (c-forward-c++-module-name
+					       limit)))
+		     (setq pos (point))))
+	      (push name-bounds module-names)
+	      (goto-char pos)
+	      ;; Is there a partition name?
+	      (when (setq name-bounds (c-forward-c++-module-partition-name
+				       limit))
+		(push name-bounds module-names))
+	      t)
+
+	     ;; import
+	     ((save-excursion
+		(when (equal (match-string-no-properties 1) "export")
+		  (c-forward-syntactic-ws limit)
+		  (re-search-forward "\\=\\(import\\)\\>\\(?:[^_$]\\|$\\)"
+				     limit t))
+		(and (equal (match-string-no-properties 1) "import")
+		     (< (point) limit)
+		     (progn (c-forward-syntactic-ws limit)
+			    (setq pos (point)))))
+	      (goto-char pos)
+	      (cond
+	       ;; import foo;
+	       ((setq name-bounds (c-forward-c++-module-name limit))
+		(push name-bounds module-names)
+		t)
+	       ;; import :foo;
+	       ((setq name-bounds (c-forward-c++-module-partition-name limit))
+		(push name-bounds module-names)
+		t)
+	       ;; import "foo";
+	       ((and (eq (char-after) ?\")
+		     (setq pos (point))
+		     (c-safe (c-forward-sexp) t)) ; Should already have string face.
+		(when (eq (char-before) ?\")
+		  (setq beg pos
+			end (point)))
+		(c-forward-syntactic-ws limit)
+		t)
+	       ;; import <foo>;
+	       ((and (looking-at "<\\(?:\\\\.\\|[^\\\n\r\t>]\\)*\\(>\\)?")
+		     (< (match-end 0) limit))
+		(setq beg (point))
+		(goto-char (match-end 0))
+		(when (match-end 1)
+		  (setq end (point)))
+		(if (featurep 'xemacs)
+		    (c-put-font-lock-face
+		     (1+ beg) (if end (1- end) (point)) font-lock-string-face)
+		  (c-put-font-lock-face
+		   beg (or end (point)) font-lock-string-face))
+		(c-forward-syntactic-ws limit)
+		t)
+	       (t nil)))
+
+	     ;; export
+	     ;; There is no fontification to be done here, but we need to
+	     ;; skip over the declaration or declaration sequence.
+	     ((save-excursion
+		(when (equal (match-string-no-properties 0) "export")
+		  (c-forward-syntactic-ws limit)
+		  (setq pos (point))))
+	      (goto-char (point))
+	      (if (eq (char-after) ?{)
+		  ;; Declaration sequence.
+		  (unless (and (c-go-list-forward nil limit)
+			       (eq (char-before) ?}))
+		    (goto-char limit)
+		    nil)
+		;; Single declaration
+		(unless (c-end-of-decl-1)
+		  (goto-char limit)
+		  nil))))		; Nothing more to do, here.
+
+	  ;; Optional attributes?
+	  (while (and (c-looking-at-c++-attribute)
+		      (< (match-end 0) limit))
+	    (goto-char (match-end 0))
+	    (c-forward-syntactic-ws limit))
+	  ;; Finally, there must be a semicolon.
+	  (if (and (< (point) limit)
+		   (eq (char-after) ?\;))
+	      (progn
+		(forward-char)
+		;; Fontify any module names we've encountered.
+		(dolist (name module-names)
+		  (c-put-font-lock-face (car name) (cdr name)
+					c-reference-face-name)))
+	    ;; No semicolon, so put warning faces on any delimiters.
+	    (when beg
+	      (c-put-font-lock-face beg (1+ beg) font-lock-warning-face))
+	    (when end
+	      (c-put-font-lock-face (1- end) end font-lock-warning-face))))))))
 
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used

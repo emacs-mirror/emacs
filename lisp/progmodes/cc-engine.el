@@ -8156,6 +8156,40 @@ multi-line strings (but not C++, for example)."
     (c-truncate-lit-pos-cache c-neutralize-pos)))
 
 
+(defun c-before-after-change-check-c++-modules (beg end &optional _old_len)
+  ;; Extend the region (c-new-BEG c-new-END) as needed to enclose complete
+  ;; C++20 module statements.  This function is called solely from
+  ;; `c-get-state-before-change-functions' and `c-before-font-lock-functions'
+  ;; as part of the before-change and after-change processing for C++.
+  ;;
+  ;; Point is undefined both on entry and exit, and the return value has no
+  ;; significance.
+  (c-save-buffer-state (res bos lit-start)
+    (goto-char end)
+    (if (setq lit-start (c-literal-start))
+	(goto-char lit-start))
+    (when (>= (point) beg)
+      (setq res (c-beginning-of-statement-1 nil t)) ; t is IGNORE-LABELS
+      (setq bos (point))
+      (when (and (memq res '(same previous))
+		 (looking-at c-module-key))
+	(setq c-new-BEG (min c-new-BEG (point)))
+	(if (c-syntactic-re-search-forward
+	     ";" (min (+ (point) 500) (point-max)) t)
+	    (setq c-new-END (max c-new-END (point))))))
+    (when (or (not bos) (< beg bos))
+      (goto-char beg)
+      (when (not (c-literal-start))
+	(setq res (c-beginning-of-statement-1 nil t))
+	(setq bos (point))
+	(when (and (memq res '(same previous))
+		   (looking-at c-module-key))
+	  (setq c-new-BEG (min c-new-BEG (point)))
+	  (if (c-syntactic-re-search-forward
+	       ";" (min (+ (point) 500) (point-max)) t)
+	      (setq c-new-END (max c-new-END (point)))))))))
+
+
 ;; Handling of small scale constructs like types and names.
 
 ;; Dynamically bound variable that instructs `c-forward-type' to also
@@ -8474,25 +8508,40 @@ multi-line strings (but not C++, for example)."
 	;; recording of any found types that constitute an argument in
 	;; the arglist.
 	(c-record-found-types (if c-record-type-identifiers t)))
-    (if (catch 'angle-bracket-arglist-escape
-	  (setq c-record-found-types
-		(c-forward-<>-arglist-recur all-types)))
-	(progn
-	  (when (consp c-record-found-types)
-	    (let ((cur c-record-found-types))
-	      (while (consp (car-safe cur))
-		(c-fontify-new-found-type
-		 (buffer-substring-no-properties (caar cur) (cdar cur)))
-		(setq cur (cdr cur))))
-	    (setq c-record-type-identifiers
-		  ;; `nconc' doesn't mind that the tail of
-		  ;; `c-record-found-types' is t.
-		  (nconc c-record-found-types c-record-type-identifiers)))
-	  t)
+    ;; Special handling for C++20's "import <...>" operator.
+    (if (and (c-major-mode-is 'c++-mode)
+	     (save-excursion
+	       (and (zerop (c-backward-token-2))
+		    (looking-at "import\\>\\(?:[^_$]\\|$\\)"))))
+	(when (looking-at "<\\(?:\\\\.\\|[^\\\n\r\t>]\\)*\\(>\\)?")
+	  (if (match-beginning 1)	; A terminated <..>
+	      (progn
+		(when c-parse-and-markup-<>-arglists
+		  (c-mark-<-as-paren (point))
+		  (c-mark->-as-paren (match-beginning 1))
+		  (c-truncate-lit-pos-cache (point)))
+		(goto-char (match-end 1))
+		t)
+	    nil))
+      (if (catch 'angle-bracket-arglist-escape
+	    (setq c-record-found-types
+		  (c-forward-<>-arglist-recur all-types)))
+	  (progn
+	    (when (consp c-record-found-types)
+	      (let ((cur c-record-found-types))
+		(while (consp (car-safe cur))
+		  (c-fontify-new-found-type
+		   (buffer-substring-no-properties (caar cur) (cdar cur)))
+		  (setq cur (cdr cur))))
+	      (setq c-record-type-identifiers
+		    ;; `nconc' doesn't mind that the tail of
+		    ;; `c-record-found-types' is t.
+		    (nconc c-record-found-types c-record-type-identifiers)))
+	    t)
 
-      (setq c-found-types old-found-types)
-      (goto-char start)
-      nil)))
+	(setq c-found-types old-found-types)
+	(goto-char start)
+	nil))))
 
 (defun c-forward-<>-arglist-recur (all-types)
   ;; Recursive part of `c-forward-<>-arglist'.
