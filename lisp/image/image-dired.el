@@ -785,14 +785,6 @@ according to `image-dired-marking-shows-next'."
   (image-dired--do-mark-command t
     (dired-flag-file-deletion 1)))
 
-(defun image-dired-toggle-mark-thumb-original-file ()
-  "Toggle mark on original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired--do-mark-command nil
-    (if (image-dired-dired-file-marked-p)
-        (dired-unmark 1)
-      (dired-mark 1))))
-
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files in associated Dired buffer.
 Also update the marks in the thumbnail buffer."
@@ -1261,7 +1253,10 @@ Track this in associated Dired buffer if
 `image-dired-track-movement' is non-nil."
   (when image-dired-track-movement
     (image-dired-track-original-file))
-  (image-dired-toggle-mark-thumb-original-file))
+  (image-dired--do-mark-command nil
+    (if (image-dired-dired-file-marked-p)
+        (dired-unmark 1)
+      (dired-mark 1))))
 
 (defun image-dired-mouse-toggle-mark (event)
   "Use mouse EVENT to toggle Dired mark for thumbnail.
@@ -1371,6 +1366,15 @@ completely fit)."
   :type 'integer)
 (make-obsolete-variable 'image-dired-display-window-height-correction
                         "no longer used." "29.1")
+
+(defun image-dired-toggle-mark-thumb-original-file ()
+  "Toggle mark on original image file in associated Dired buffer."
+  (declare (obsolete nil "29.1"))
+  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (image-dired--do-mark-command nil
+    (if (image-dired-dired-file-marked-p)
+        (dired-unmark 1)
+      (dired-mark 1))))
 
 (defun image-dired-display-window-width (window)
   "Return width, in pixels, of WINDOW."
