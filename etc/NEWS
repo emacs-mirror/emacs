@@ -2009,55 +2009,22 @@ This is done via 'image-converter-add-handler'.
 This avoids converting images in the background, and makes Image-Dired
 noticeably faster.  New keybindings from 'image-mode' are now
 available in the "*image-dired-display-image*" buffer; press '?' or
-'h' in that buffer to see the full list.  Finally, some commands and
-user options that are no longer needed are now obsolete:
-'image-dired-cmd-create-temp-image-options',
-'image-dired-cmd-create-temp-image-program',
-'image-dired-display-current-image-full',
-'image-dired-display-current-image-sized',
-'image-dired-display-window-height-correction',
-'image-dired-display-window-width-correction',
-'image-dired-temp-image-file'.
+'h' in that buffer to see the full list.
 
 ---
 *** Navigation and marking commands now work in image display buffer.
 The following new bindings have been added:
-
-    n or SPC  image-dired-display-next-thumbnail-original
-    p or DEL  image-dired-display-previous-thumbnail-original
-    m         image-dired-mark-thumb-original-file
-    d         image-dired-flag-thumb-original-file
-    u         image-dired-unmark-thumb-original-file
-
----
-*** Reduce dependency on external "exiftool" command.
-The 'image-dired-copy-with-exif-file-name' no longer requires an
-external "exiftool" command to be available.  The user options
-'image-dired-cmd-read-exif-data-program' and
-'image-dired-cmd-read-exif-data-options' are now obsolete.
+- 'n', 'SPC' => 'image-dired-display-next-thumbnail-original'
+- 'p', 'DEL' => 'image-dired-display-previous-thumbnail-original'
+- 'm'        => 'image-dired-mark-thumb-original-file'
+- 'd'        => 'image-dired-flag-thumb-original-file'
+- 'u'        => 'image-dired-unmark-thumb-original-file'
 
 ---
-*** New command for the thumbnail buffer.
-The new command 'image-dired-unmark-all-marks' has been added.  It is
-bound to 'U' in the thumbnail and display buffer.
-
----
-*** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
-This standard allows sharing generated thumbnails across different
-programs.  Version 0.9.0 adds two larger thumbnail sizes: 512x512 and
-1024x1024 pixels.  See the user option 'image-dired-thumbnail-storage'
-to use it; it is not enabled by default.
-
----
-*** Support GraphicsMagick command line tools.
-Support for the GraphicsMagick command line tool ("gm") has been
-added, and is used instead of ImageMagick when it is available.
-
----
-*** New face 'image-dired-thumb-flagged'.
-If 'image-dired-thumb-mark' is non-nil (the default), this face is
-used for images that are flagged for deletion in the Dired buffer
-associated with Image-Dired.
+*** New command 'image-dired-unmark-all-marks'.
+It removes all marks from all files in the thumbnail and the
+associated Dired buffer, and is bound to 'U' in the thumbnail and
+display buffer.
 
 ---
 *** New command 'image-dired-wallpaper-set'.
@@ -2069,12 +2036,40 @@ thumbnail buffer.  It is bound to 'W' by default.
 It is bound in both the thumbnail and display buffer.
 
 ---
-*** The 'image-dired-slideshow-start' command no longer prompts.
-It no longer inconveniently prompts for a number of images and a
-delay: it runs indefinitely, but stops automatically on any command.
-You can set the delay with a prefix argument, or a negative prefix
-argument to prompt for a delay.  Customize the user option
-'image-dired-slideshow-delay' to change the default from 5 seconds.
+*** New user option 'image-dired-marking-shows-next'.
+If this option is non-nil (the default), marking, unmarking or
+flagging an image in either the thumbnail or display buffer shows the
+next image.
+
+---
+*** New face 'image-dired-thumb-flagged'.
+If 'image-dired-thumb-mark' is non-nil (the default), this face is
+used for images that are flagged for deletion in the Dired buffer
+associated with Image-Dired.
+
+---
+*** Image information is now shown in the header line.
+This replaces the message most navigation commands in the thumbnail
+buffer used to show at the bottom of the screen.
+
+---
+*** Support GraphicsMagick command line tools.
+Support for the GraphicsMagick command line tool ("gm") has been
+added, and is used instead of ImageMagick when it is available.
+
+---
+*** Support Thumbnail Managing Standard v0.9.0 (Dec 2020).
+This standard allows sharing generated thumbnails across different
+programs.  Version 0.9.0 adds two larger thumbnail sizes: 512x512 and
+1024x1024 pixels.  See the user option 'image-dired-thumbnail-storage'
+to use it; it is not enabled by default.
+
+---
+*** Reduce dependency on external "exiftool" command.
+The 'image-dired-copy-with-exif-file-name' no longer requires an
+external "exiftool" command to be available.  The user options
+'image-dired-cmd-read-exif-data-program' and
+'image-dired-cmd-read-exif-data-options' are now obsolete.
 
 ---
 *** Support for bookmark.el.
@@ -2083,15 +2078,12 @@ the thumbnail view, and will create a bookmark that opens the current
 directory in Image-Dired.
 
 ---
-*** New user option 'image-dired-marking-shows-next'.
-If this option is non-nil (the default), marking, unmarking or
-flagging an image in either the thumbnail or display buffer shows the
-next image.
-
----
-*** Image information is now shown in the header line.
-This replaces the message most navigation commands in the thumbnail
-buffer used to show at the bottom of the screen.
+*** The 'image-dired-slideshow-start' command no longer prompts.
+It no longer inconveniently prompts for a number of images and a
+delay: it runs indefinitely, but stops automatically on any command.
+You can set the delay with a prefix argument, or a negative prefix
+argument to prompt for a delay.  Customize the user option
+'image-dired-slideshow-delay' to change the default from 5 seconds.
 
 ---
 *** 'image-dired-display-properties-format' default has changed.
@@ -2108,17 +2100,30 @@ important as it used to be.  You can now also customize this option to
 nil to disable this confirmation completely.
 
 ---
-*** 'image-dired-rotate-thumbnail-(left|right)' is now obsolete.
-Instead, use commands 'image-dired-refresh-thumb' to generate a new
-thumbnail, or 'image-rotate' to rotate the thumbnail without updating
-the thumbnail file.
-
----
 *** HTML image gallery generation is now obsolete.
 The 'image-dired-gallery-generate' command and these user options are
 now obsolete: 'image-dired-gallery-thumb-image-root-url',
 'image-dired-gallery-hidden-tags', 'image-dired-gallery-dir',
 'image-dired-gallery-image-root-url'.
+
+---
+*** 'image-dired-rotate-thumbnail-(left|right)' is now obsolete.
+Instead, use commands 'image-dired-refresh-thumb' to generate a new
+thumbnail, or 'image-rotate' to rotate the thumbnail without updating
+the thumbnail file.
+
++++
+*** Some commands and user options are now obsolete.
+Since Image-Dired no longer converts images in the background before
+displaying them, some commands and user options that are no longer
+needed are now obsolete:
+'image-dired-cmd-create-temp-image-options',
+'image-dired-cmd-create-temp-image-program',
+'image-dired-display-current-image-full',
+'image-dired-display-current-image-sized',
+'image-dired-display-window-height-correction',
+'image-dired-display-window-width-correction',
+'image-dired-temp-image-file'.
 
 ** Dired
 
