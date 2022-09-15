@@ -11240,8 +11240,10 @@ globals_of_w32fns (void)
     get_proc_addr (user32_lib, "EnumDisplayMonitors");
   get_title_bar_info_fn = (GetTitleBarInfo_Proc)
     get_proc_addr (user32_lib, "GetTitleBarInfo");
+#ifndef CYGWIN
   system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
     get_proc_addr (user32_lib, "SystemParametersInfoW");
+#endif
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
