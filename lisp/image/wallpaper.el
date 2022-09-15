@@ -215,6 +215,7 @@ See also `wallpaper-default-width'.")
       (funcall fun)
     (read-number (format "Wallpaper %s in pixels: " desc) default)))
 
+(declare-function w32-set-wallpaper "w32fns.c")
 (declare-function haiku-set-wallpaper "term/haiku-win.el")
 
 (defun wallpaper-set (file)
