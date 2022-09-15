@@ -136,16 +136,17 @@ been set up by `rfn-eshadow-setup-minibuffer'."
           (getenv "PATH"))))
 
 (with-eval-after-load 'esh-util
-  (add-hook 'eshell-mode-hook
-	    #'tramp-eshell-directory-change)
-  (add-hook 'eshell-directory-change-hook
-	    #'tramp-eshell-directory-change)
-  (add-hook 'tramp-integration-unload-hook
-	    (lambda ()
-	      (remove-hook 'eshell-mode-hook
-			   #'tramp-eshell-directory-change)
-	      (remove-hook 'eshell-directory-change-hook
-			   #'tramp-eshell-directory-change))))
+  (unless (boundp 'eshell-path-env-list)
+    (add-hook 'eshell-mode-hook
+	      #'tramp-eshell-directory-change)
+    (add-hook 'eshell-directory-change-hook
+	      #'tramp-eshell-directory-change)
+    (add-hook 'tramp-integration-unload-hook
+	      (lambda ()
+	        (remove-hook 'eshell-mode-hook
+			     #'tramp-eshell-directory-change)
+	        (remove-hook 'eshell-directory-change-hook
+			     #'tramp-eshell-directory-change)))))
 
 ;;; Integration of recentf.el:
 

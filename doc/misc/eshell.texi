@@ -942,6 +942,16 @@ When using @code{$-}, you can also access older directories in the
 directory ring via subscripting, e.g.@: @samp{$-[1]} refers to the
 working directory @emph{before} the previous one.
 
+@vindex $PATH
+@item $PATH
+This specifies the directories to search for executable programs.  Its
+value is a string, separated by @code{":"} for Unix and GNU systems,
+and @code{";"} for MS systems.  This variable is connection-aware, so
+whenever you change the current directory to a different host
+(@pxref{Remote Files, , , emacs, The GNU Emacs Manual}),
+the value will automatically update to reflect the search path on that
+host.
+
 @vindex $_
 @item $_
 This refers to the last argument of the last command.  With a

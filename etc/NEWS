@@ -356,6 +356,11 @@ previous 'C-x ='.
 
 ** Eshell
 
+*** Eshell's PATH is now derived from 'exec-path'.
+For consistency with remote connections, Eshell now uses 'exec-path'
+to determine the execution path on the local system, instead of using
+the PATH environment variable directly.
+
 ---
 *** 'source' and '.' no longer accept the '--help' option.
 This is for compatibility with the shell versions of these commands,

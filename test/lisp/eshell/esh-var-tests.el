@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'tramp)
 (require 'ert)
 (require 'esh-mode)
 (require 'esh-var)
@@ -609,6 +610,65 @@ it, since the setter is nil."
   (with-temp-eshell
    (eshell-match-command-output "echo $INSIDE_EMACS[, 1]"
                                 "eshell")))
+
+(ert-deftest esh-var-test/path-var/local-directory ()
+  "Test using $PATH in a local directory."
+  (let ((expected-path (string-join (eshell-get-path t) (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output "echo $PATH" (regexp-quote expected-path)))))
+
+(ert-deftest esh-var-test/path-var/remote-directory ()
+  "Test using $PATH in a remote directory."
+  (skip-unless (eshell-tests-remote-accessible-p))
+  (let* ((default-directory ert-remote-temporary-file-directory)
+         (expected-path (string-join (eshell-get-path t) (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output "echo $PATH" (regexp-quote expected-path)))))
+
+(ert-deftest esh-var-test/path-var/set ()
+  "Test setting $PATH."
+  (let* ((path-to-set-list '("/some/path" "/other/path"))
+         (path-to-set (string-join path-to-set-list (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output (concat "set PATH " path-to-set)
+                                  (concat path-to-set "\n"))
+     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+     (should (equal (eshell-get-path t) path-to-set-list)))))
+
+(ert-deftest esh-var-test/path-var/set-locally ()
+  "Test setting $PATH temporarily for a single command."
+  (let* ((path-to-set-list '("/some/path" "/other/path"))
+         (path-to-set (string-join path-to-set-list (path-separator))))
+    (with-temp-eshell
+     (eshell-match-command-output (concat "set PATH " path-to-set)
+                                  (concat path-to-set "\n"))
+     (eshell-match-command-output "PATH=/local/path env"
+                                  "PATH=/local/path\n")
+     ;; After the last command, the previous $PATH value should be restored.
+     (eshell-match-command-output "echo $PATH" (concat path-to-set "\n"))
+     (should (equal (eshell-get-path t) path-to-set-list)))))
+
+(ert-deftest esh-var-test/path-var/preserve-across-hosts ()
+  "Test that $PATH can be set independently on multiple hosts."
+  (let ((local-directory default-directory)
+        local-path remote-path)
+    (with-temp-eshell
+     ;; Set the $PATH on localhost.
+     (eshell-insert-command "set PATH /local/path")
+     (setq local-path (eshell-last-output))
+     ;; `cd' to a remote host and set the $PATH there too.
+     (eshell-insert-command
+      (format "cd %s" ert-remote-temporary-file-directory))
+     (eshell-insert-command "set PATH /remote/path")
+     (setq remote-path (eshell-last-output))
+     ;; Return to localhost and check that $PATH is the value we set
+     ;; originally.
+     (eshell-insert-command (format "cd %s" local-directory))
+     (eshell-match-command-output "echo $PATH" (regexp-quote local-path))
+     ;; ... and do the same for the remote host.
+     (eshell-insert-command
+      (format "cd %s" ert-remote-temporary-file-directory))
+     (eshell-match-command-output "echo $PATH" (regexp-quote remote-path)))))
 
 (ert-deftest esh-var-test/last-status-var-lisp-command ()
   "Test using the \"last exit status\" ($?) variable with a Lisp command"

@@ -156,7 +156,14 @@ if they are quoted with a backslash."
     ("LINES" ,(lambda () (window-body-height nil 'remap)) t t)
     ("INSIDE_EMACS" eshell-inside-emacs t)
 
-    ;; for eshell-cmd.el
+    ;; for esh-ext.el
+    ("PATH" (,(lambda () (string-join (eshell-get-path t) (path-separator)))
+             . ,(lambda (_ value)
+                  (eshell-set-path value)
+                  value))
+     t t)
+
+    ;; for esh-cmd.el
     ("_" ,(lambda (indices quoted)
 	    (if (not indices)
 	        (car (last eshell-last-arguments))
@@ -249,7 +256,8 @@ copied (a.k.a. \"exported\") to the environment of created subprocesses."
   (setq-local eshell-subcommand-bindings
               (append
                '((process-environment (eshell-copy-environment))
-                 (eshell-variable-aliases-list eshell-variable-aliases-list))
+                 (eshell-variable-aliases-list eshell-variable-aliases-list)
+                 (eshell-path-env-list eshell-path-env-list))
                eshell-subcommand-bindings))
 
   (setq-local eshell-special-chars-inside-quoting
