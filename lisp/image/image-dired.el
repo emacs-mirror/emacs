@@ -293,12 +293,21 @@ For more information, see the documentation for
 `image-dired-toggle-movement-tracking'."
   :type 'boolean)
 
-(defcustom image-dired-display-properties-format "%b: %f (%t): %c"
+(defcustom image-dired-display-properties-format "%-40f %b %t %c"
   "Display format for thumbnail properties.
-%b is replaced with associated Dired buffer name, %f with file
-name (without path) of original image file, %t with the list of
-tags and %c with the comment."
-  :type 'string)
+This is used for the header line in the Image-Dired buffer.
+
+The following %-specs are replaced by `format-spec' before
+displaying:
+
+  \"%b\"  The associated Dired buffer name.
+  \"%f\"  The file name (without a directory) of the
+          original image file.
+  \"%t\"  The list of tags (from the Image-Dired database).
+  \"%c\"  The comment (from the Image-Dired database)."
+  :type 'string
+  :safe #'stringp
+  :version "29.1")
 
 (defcustom image-dired-external-viewer
   ;; TODO: Use mailcap, dired-guess-shell-alist-default,
