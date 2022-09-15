@@ -2467,8 +2467,8 @@ This package provides the command 'wallpaper-set', which sets the
 desktop background image.  Depending on the system and the desktop,
 this may require an external program (such as 'swaybg', 'gm',
 'display' or 'xloadimage').  If so, a suitable command should be
-detected automatically in most cases, and can also be customized
-manually if needed using the new user options 'wallpaper-command' and
+detected automatically in most cases.  It can also be customized
+manually if needed, using the new user options 'wallpaper-command' and
 'wallpaper-command-args'.
 
 +++
