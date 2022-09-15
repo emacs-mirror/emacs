@@ -237,13 +237,11 @@ options `wallpaper-command' and `wallpaper-command-args'.
 
 On MS-Windows and Haiku systems, no external command is needed,
 so the value of `wallpaper-commands' is ignored."
-  (interactive (list (and
-                      (display-graphic-p)
-                      (read-file-name "Set desktop background to: "
-                                      default-directory nil t nil
-                                      (lambda (fn)
-                                        (or (file-directory-p fn)
-                                            (string-match (image-file-name-regexp) fn)))))))
+  (interactive (list (read-file-name "Set desktop background to: "
+                                     default-directory nil t nil
+                                     (lambda (fn)
+                                       (or (file-directory-p fn)
+                                           (string-match (image-file-name-regexp) fn))))))
   (when (file-directory-p file)
     (error "Can't set wallpaper to a directory: %s" file))
   (unless (file-exists-p file)
