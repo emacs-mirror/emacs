@@ -512,7 +512,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
 (defun loaddefs-generate (dir output-file &optional excluded-files
                               extra-data include-package-version
                               generate-full)
-  "Generate loaddefs files for Lisp files in the directories DIRS.
+  "Generate loaddefs files for Lisp files in one or more directories given by DIR.
 DIR can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
@@ -520,7 +520,7 @@ binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified by DIRS.
+directories specified by DIR.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written

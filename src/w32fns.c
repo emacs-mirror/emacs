@@ -10447,6 +10447,51 @@ w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
   return (NULL);
 }
 
+#ifdef WINDOWSNT
+
+/***********************************************************************
+			    Wallpaper
+ ***********************************************************************/
+
+#if 0
+
+typedef BOOL (WINAPI * SystemParametersInfoW_Proc) (UINT,UINT,PVOID,UINT);
+static SystemParametersInfoW_Proc system_parameters_info_w_fn;
+
+DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
+       doc: /* Set the desktop wallpaper image to IMAGE-FILE. */)
+  (Lisp_Object image_file)
+{
+  Lisp_Object encoded = ENCODE_FILE (Fexpand_file_name (image_file, Qnil));
+  char *fname = SSDATA (encoded);
+
+  if (w32_unicode_filenames)
+    {
+    }
+  else
+    {
+      char fname_a[MAX_PATH];
+
+      if (filename_to_ansi (fname, fname_a) != 0)
+	error ("Wallpaper file %s does not exist or cannot be accessed", fname);
+
+      BOOL result = SystemParametersInfoA (SPI_SETDESKWALLPAPER, 0, fname_a,
+					   SPIF_SENDCHANGE);
+      if (!result)
+	{
+	  DWORD err = GetLastError ();
+	  if (err)
+	    error ("Could not set wallpaper: %s", w32_strerror (err));
+	  else
+	    error ("Could not set wallpaper");
+	}
+    }
+  return Qnil;
+}
+#endif
+
+#endif
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
