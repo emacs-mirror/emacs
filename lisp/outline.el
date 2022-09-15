@@ -1003,11 +1003,11 @@ If non-nil, EVENT should be a mouse event."
       ;; movement commands work more logically.
       (when (derived-mode-p 'special-mode)
         (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face)))
-      (when-let ((image (plist-get icon 'image)))
-        (overlay-put o 'display image))
-      (overlay-put o 'display (concat (plist-get icon 'string)
-                                      (string (char-after (point)))))
-      (overlay-put o 'face (plist-get icon 'face)))
+      (if-let ((image (plist-get icon 'image)))
+          (overlay-put o 'display image)
+        (overlay-put o 'display (concat (plist-get icon 'string)
+                                        (string (char-after (point)))))
+        (overlay-put o 'face (plist-get icon 'face))))
     o))
 
 (defun outline--insert-open-button ()
@@ -1041,11 +1041,11 @@ If non-nil, EVENT should be a mouse event."
                          "<mouse-2>" #'outline-show-subtree))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
-  (when from
-    (save-excursion
-      (goto-char from)
-      (setq from (line-beginning-position))))
   (when (outline--use-buttons-p)
+    (when from
+      (save-excursion
+        (goto-char from)
+        (setq from (line-beginning-position))))
     (outline-map-region
      (lambda ()
        ;; `outline--cycle-state' will fail if we're in a totally
