@@ -1274,8 +1274,9 @@ be finished later after the completion of an asynchronous subprocess."
                         name)
                   (eshell-search-path name)))))
       (if (not program)
-	  (eshell-error (format "which: no %s in (%s)\n"
-				name (getenv "PATH")))
+          (eshell-error (format "which: no %s in (%s)\n"
+                                name (string-join (eshell-get-path t)
+                                                  (path-separator))))
 	(eshell-printn program)))))
 
 (put 'eshell/which 'eshell-no-numeric-conversions t)
