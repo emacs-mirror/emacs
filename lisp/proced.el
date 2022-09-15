@@ -426,7 +426,14 @@ Important: the match ends just after the marker.")
   "Name of Proced Log buffer.")
 
 (defconst proced-help-string
-  "(n)ext, (p)revious, (m)ark, (u)nmark, (k)ill, (q)uit (type ? for more help)"
+  (concat "\\<proced-mode-map> "
+          "\\[next-line] next, "
+          "\\[previous-line] previous, "
+          "\\[proced-mark] mark, "
+          "\\[proced-unmark] unmark, "
+          "\\[proced-send-signal] kill, "
+          "\\[quit-window] quit "
+          "(type \\[proced-help] for more help)")
   "Help string for Proced.")
 
 (defconst proced-header-help-echo
@@ -1978,7 +1985,7 @@ STRING is an overall summary of the failures."
   (proced-why)
   (if (eq last-command 'proced-help)
       (describe-mode)
-    (message proced-help-string)))
+    (message (substitute-command-keys proced-help-string))))
 
 (defun proced-undo ()
   "Undo in a Proced buffer.
