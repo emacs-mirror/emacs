@@ -2463,17 +2463,13 @@ to optionally rotate images which have the :rotation property.
 
 ---
 ** New package 'wallpaper'.
-This package provides the command `wallpaper-set', which sets the
-desktop background.
-
-On GNU/Linux and other Unix-like systems, it uses an external command
-(such as "swaybg", "gm", "display" or "xloadimage").  A suitable
-command should be detected automatically in most cases, but can also
-be customized manually with the new user options 'wallpaper-command'
-and 'wallpaper-command-args' if needed.
-
-On Haiku, it uses the new function `haiku-set-wallpaper', which does
-not rely on any external command.
+This package provides the command 'wallpaper-set', which sets the
+desktop background image.  Depending on the system and the desktop,
+this may require an external program (such as 'swaybg', 'gm',
+'display' or 'xloadimage').  If so, a suitable command should be
+detected automatically in most cases, and can also be customized
+manually if needed using the new user options 'wallpaper-command' and
+'wallpaper-command-args'.
 
 +++
 ** New package 'oclosure'.

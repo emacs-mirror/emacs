@@ -240,7 +240,9 @@ On Haiku, no external command is needed, so the value of
     (error "No such file: %s" file))
   (unless (file-readable-p file)
     (error "File is not readable: %s" file))
-  (cond ((featurep 'haiku)
+  (cond ((eq system-type 'windows-nt)
+         (w32-set-wallpaper file))
+        ((featurep 'haiku)
          (haiku-set-wallpaper file))
         (t
          (let* ((fmt-spec `((?f . ,(expand-file-name file))
