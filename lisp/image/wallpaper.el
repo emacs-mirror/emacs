@@ -254,6 +254,8 @@ On Haiku, no external command is needed, so the value of
         ((featurep 'haiku)
          (haiku-set-wallpaper file))
         (t
+         (unless wallpaper-command
+           (error "Couldn't find a command to set the wallpaper with"))
          (let* ((fmt-spec `((?f . ,(expand-file-name file))
                             (?h . ,(wallpaper--get-height-or-width
                                     "height"
