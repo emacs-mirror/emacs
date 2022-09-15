@@ -2444,6 +2444,11 @@ remote host are shown.  Alternatively, the user option
 *** 'outlineify-sticky' command is renamed to 'allout-outlinify-sticky'.
 The old name is still available as an obsolete function alias.
 
+---
+*** 'edit-abbrevs' now uses font-locking.
+The new face 'abbrev-table-name' is used to display the abbrev table
+name.
+
 
 * New Modes and Packages in Emacs 29.1
 

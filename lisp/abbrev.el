@@ -1,7 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -1220,13 +1219,28 @@ SORTFUN is passed to `sort' to change the default ordering."
            (sort entries (lambda (x y)
                            (funcall sortfun (nth 2 x) (nth 2 y)))))))
 
+(defface abbrev-table-name
+  '((t :inherit font-lock-function-name-face))
+  "Face used for displaying the abbrev table name in `edit-abbrev-mode'."
+  :version "29.1")
+
+(defvar edit-abbrevs-mode-font-lock-keywords
+  `((,(rx bol "("
+          ;; lisp-mode-symbol-regexp
+          (regexp "\\(?:\\sw\\|\\s_\\|\\\\.\\)+")
+          ")" eol)
+     0 'abbrev-table-name)))
+
 ;; Keep it after define-abbrev-table, since define-derived-mode uses
 ;; define-abbrev-table.
 (define-derived-mode edit-abbrevs-mode fundamental-mode "Edit-Abbrevs"
   "Major mode for editing the list of abbrev definitions.
 This mode is for editing abbrevs in a buffer prepared by `edit-abbrevs',
 which see."
-  :interactive nil)
+  :interactive nil
+  (setq-local font-lock-defaults
+              '(edit-abbrevs-mode-font-lock-keywords nil nil ((?_ . "w"))))
+  (setq font-lock-multiline nil))
 
 (defun abbrev--possibly-save (query &optional arg)
   ;; Query mode.
