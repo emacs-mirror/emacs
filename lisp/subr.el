@@ -4028,8 +4028,9 @@ Otherwise, return nil."
 
 (defun list-of-strings-p (object)
   "Return t if OBJECT is nil or a list of strings."
-  (and (listp object)
-       (seq-every-p #'stringp object)))
+  (while (and (consp object) (stringp (car object)))
+    (setq object (cdr object)))
+  (null object))
 
 (defun booleanp (object)
   "Return t if OBJECT is one of the two canonical boolean values: t or nil.

@@ -1163,7 +1163,8 @@ final or penultimate step during initialization."))
   (should (list-of-strings-p nil))
   (should (list-of-strings-p '("a" "b")))
   (should-not (list-of-strings-p ["a" "b"]))
-  (should-not (list-of-strings-p '("a" nil "b"))))
+  (should-not (list-of-strings-p '("a" nil "b")))
+  (should-not (list-of-strings-p '("a" "b" . "c"))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
