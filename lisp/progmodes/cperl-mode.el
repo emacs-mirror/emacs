@@ -52,7 +52,7 @@
 ;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
 
 ;; This version supports the syntax added by the MooseX::Declare CPAN
-;; module, as well as Perl 5.10 keyword support.
+;; module, as well as Perl 5.10 keywords.
 
 ;;; Code:
 
