@@ -1158,5 +1158,12 @@ final or penultimate step during initialization."))
       (should (equal (butlast l n)
                      (subr-tests--butlast-ref l n))))))
 
+(ert-deftest test-list-of-strings-p ()
+  (should-not (list-of-strings-p 1))
+  (should (list-of-strings-p nil))
+  (should (list-of-strings-p '("a" "b")))
+  (should-not (list-of-strings-p ["a" "b"]))
+  (should-not (list-of-strings-p '("a" nil "b"))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

@@ -4026,6 +4026,11 @@ system's shell."
 Otherwise, return nil."
   (or (stringp object) (null object)))
 
+(defun list-of-strings-p (object)
+  "Return t if OBJECT is nil or a list of strings."
+  (and (listp object)
+       (seq-every-p #'stringp object)))
+
 (defun booleanp (object)
   "Return t if OBJECT is one of the two canonical boolean values: t or nil.
 Otherwise, return nil."
