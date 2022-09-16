@@ -99,6 +99,8 @@
 (cc-bytecomp-defun c-font-lock-invalid-string)
 (cc-bytecomp-defun c-font-lock-fontify-region)
 
+(cc-bytecomp-defvar font-lock-reference-face) ; For Emacs 29
+
 
 ;; Note that font-lock in XEmacs doesn't expand face names as
 ;; variables, so we have to use the (eval . FORM) in the font lock
@@ -165,9 +167,8 @@
 
 (defconst c-doc-markup-face-name
   (if (c-face-name-p 'font-lock-doc-markup-face)
-	 ;; If it happens to occur in the future.  (Well, the more
-	 ;; pragmatic reason is to get unique faces for the test
-	 ;; suite.)
+	 ;; Exists in Emacs 28+.  (For other emacsen, the pragmatic
+	 ;; reason is to get unique faces for the test suite.)
 	 'font-lock-doc-markup-face
     c-label-face-name))
 
