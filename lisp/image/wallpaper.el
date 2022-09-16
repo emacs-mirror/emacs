@@ -63,6 +63,9 @@
     ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
     ;; KDE Plasma
     ("plasma-apply-wallpaperimage" "%f")
+    ;; XFCE
+    ("xfconf-query" "-c" "xfce4-desktop" "-p"
+     "/backdrop/screen0/monitoreDP/workspace0/last-image" "-s" "%f")
     ;; macOS
     ("osascript" "-e" "tell application \"Finder\" to set desktop picture to POSIX file \"%f\"")
     ;; Other / General X
@@ -96,6 +99,9 @@ will be replaced as described in `wallpaper-command-args'.")
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'plasma-apply-wallpaperimage)))
   (member "KDE" (xdg-current-desktop)))
+
+(cl-defmethod wallpaper--check-command ((_type (eql 'xfconf-query)))
+  (member "XFCE" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'swaybg)))
   (and (getenv "WAYLAND_DISPLAY")
@@ -156,6 +162,7 @@ systems, where a native API is used instead."
     (radio
      (const :tag "gsettings                   (GNOME)"            "gsettings")
      (const :tag "plasma-apply-wallpaperimage (KDE Plasma)"       "plasma-apply-wallpaperimage")
+     (const :tag "xfconf-query                (XFCE)"             "xfconf-query")
      (const :tag "swaybg                      (Wayland/Sway)"     "swaybg")
      (const :tag "wbg                         (Wayland)"          "wbg")
      (const :tag "gm                          (X Window System)"  "gm")
