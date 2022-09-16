@@ -1058,7 +1058,11 @@ Otherwise, display the image by calling `image-mode'."
 
 (defun image-fit-to-window (window)
   "Adjust size of image to display it exactly in WINDOW boundaries."
-  (when (window-live-p window)
+  (when (and (window-live-p window)
+             ;; Don't resize anything if we're in the minibuffer
+             ;; (which may transitively change the window sizes if you
+             ;; hit TAB, for instance).
+             (not (minibuffer-window-active-p (selected-window))))
     (with-current-buffer (window-buffer window)
       (when (derived-mode-p 'image-mode)
         (let ((spec (image-get-display-property)))
