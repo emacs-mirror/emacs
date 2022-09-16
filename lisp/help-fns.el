@@ -457,7 +457,9 @@ the C sources, too."
 		     load-path '(".el" ".elc") 'readable))))))))
 
     (cond
-     ((and (not file-name) (subrp type))
+     ((and (not file-name)
+           (subrp type)
+           (not (subr-native-elisp-p type)))
       ;; A built-in function.  The form is from `describe-function-1'.
       (if (or (get-buffer " *DOC*")
               (and also-c-source
