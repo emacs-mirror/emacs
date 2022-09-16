@@ -6045,39 +6045,6 @@ Style of printout regulated by the variable `cperl-ps-print-face-properties'."
     (ps-extend-face-list cperl-ps-print-face-properties)
     (ps-print-buffer-with-faces file)))
 
-;; (defun cperl-ps-print-init ()
-;;   "Initialization of `ps-print' components for faces used in CPerl."
-;;   ;; Guard against old versions
-;;   (defvar ps-underlined-faces nil)
-;;   (defvar ps-bold-faces nil)
-;;   (defvar ps-italic-faces nil)
-;;   (setq ps-bold-faces
-;; 	(append '(font-lock-emphasized-face
-;; 		  cperl-array-face
-;; 		  font-lock-keyword-face
-;; 		  font-lock-variable-name-face
-;; 		  font-lock-constant-face
-;; 		  font-lock-reference-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face)
-;; 		ps-bold-faces))
-;;   (setq ps-italic-faces
-;; 	(append '(cperl-nonoverridable-face
-;; 		  font-lock-constant-face
-;; 		  font-lock-reference-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face)
-;; 		ps-italic-faces))
-;;   (setq ps-underlined-faces
-;; 	(append '(font-lock-emphasized-face
-;; 		  cperl-array-face
-;; 		  font-lock-other-emphasized-face
-;; 		  cperl-hash-face
-;; 		  cperl-nonoverridable-face font-lock-type-face)
-;; 		ps-underlined-faces))
-;;   (cons 'font-lock-type-face ps-underlined-faces))
-
-
 (cperl-windowed-init)
 
 (defconst cperl-styles-entries
