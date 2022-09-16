@@ -1,6 +1,6 @@
-# BidiMirroring-14.0.0.txt
-# Date: 2021-08-08, 22:55:00 GMT [KW, RP]
-# © 2021 Unicode®, Inc.
+# BidiMirroring-15.0.0.txt
+# Date: 2022-05-03, 18:47:00 GMT [KW, RP]
+# © 2022 Unicode®, Inc.
 # For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Unicode Character Database
@@ -15,7 +15,7 @@
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 14.0.0.
+# The repertoire covered by the file is Unicode 15.0.0.
 #
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.

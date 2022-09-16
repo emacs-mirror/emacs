@@ -463,7 +463,7 @@ of character properties.  In particular, Emacs supports the
 @uref{https://www.unicode.org/reports/tr23/, Unicode Character Property
 Model}, and the Emacs character property database is derived from the
 Unicode Character Database (@acronym{UCD}).  See the
-@uref{https://www.unicode.org/versions/Unicode14.0.0/ch04.pdf, Character
+@uref{https://www.unicode.org/versions/Unicode15.0.0/ch04.pdf, Character
 Properties chapter of the Unicode Standard}, for a detailed
 description of Unicode character properties and their meaning.  This
 section assumes you are already familiar with that chapter of the

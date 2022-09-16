@@ -270,6 +270,7 @@
 	(masaram-gondi #x11D00)
 	(gunjala-gondi #x11D60)
 	(makasar #x11EE0 #x11EF7)
+        (kawi #x11F04 #x11F41 #x11F4F)
 	(cuneiform #x12000)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
@@ -286,11 +287,13 @@
 	(byzantine-musical-symbol #x1D000)
 	(musical-symbol #x1D100)
 	(ancient-greek-musical-notation #x1D200)
+        (kaktovik-numeral #x1D2C0)
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
 	(nyiakeng-puachue-hmong #x1e100)
 	(toto #x1E290)
 	(wancho #x1e2c0)
+        (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
 	(mende-kikakui #x1E810)
 	(adlam #x1E900)
 	(indic-siyaq-number #x1ec71)
@@ -371,6 +374,7 @@
 	(knda . kannada)
 	(knd2 . kannada)
 	(kana . kana)	; Hiragana
+        (kawi . kawi)
 	(kali . kayah-li)
 	(khar . kharoshthi)
 	(kits . khitan-small-script)
@@ -410,6 +414,7 @@
 	(mymr . burmese)
         (nand . nandinagari)
 	(nbat . nabataean)
+        (nagm . nag-mundari)
 	(newa . newa)
 	(nko\  . nko)
 	(nshu . nushu)
@@ -810,6 +815,7 @@
                     siddham
                     modi
 		    makasar
+                    kawi
                     dives-akuru
 		    cuneiform
 		    egyptian
@@ -821,9 +827,11 @@
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
+                    kaktovik-numeral
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
                     toto
+                    nag-mundari
 		    adlam
                     tai-tham
 		    mahjong-tile

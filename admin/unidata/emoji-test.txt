@@ -1,13 +1,13 @@
 # emoji-test.txt
-# Date: 2021-08-26, 17:22:23 GMT
-# © 2021 Unicode®, Inc.
+# Date: 2022-08-12, 20:24:39 GMT
+# © 2022 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
-# For terms of use, see http://www.unicode.org/terms_of_use.html
+# For terms of use, see https://www.unicode.org/terms_of_use.html
 #
 # Emoji Keyboard/Display Test Data for UTS #51
-# Version: 14.0
+# Version: 15.0
 #
-# For documentation and usage, see http://www.unicode.org/reports/tr51
+# For documentation and usage, see https://www.unicode.org/reports/tr51
 #
 # This file provides data for testing which emoji forms should be in keyboards and which should also be displayed/processed.
 # Format: code points; status # emoji name
@@ -92,6 +92,7 @@
 1F62C                                                  ; fully-qualified     # 😬 E1.0 grimacing face
 1F62E 200D 1F4A8                                       ; fully-qualified     # 😮‍💨 E13.1 face exhaling
 1F925                                                  ; fully-qualified     # 🤥 E3.0 lying face
+1FAE8                                                  ; fully-qualified     # 🫨 E15.0 shaking face
 
 # subgroup: face-sleepy
 1F60C                                                  ; fully-qualified     # 😌 E0.6 relieved face
@@ -155,7 +156,7 @@
 
 # subgroup: face-negative
 1F624                                                  ; fully-qualified     # 😤 E0.6 face with steam from nose
-1F621                                                  ; fully-qualified     # 😡 E0.6 pouting face
+1F621                                                  ; fully-qualified     # 😡 E0.6 enraged face
 1F620                                                  ; fully-qualified     # 😠 E0.6 angry face
 1F92C                                                  ; fully-qualified     # 🤬 E5.0 face with symbols on mouth
 1F608                                                  ; fully-qualified     # 😈 E1.0 smiling face with horns
@@ -190,8 +191,7 @@
 1F649                                                  ; fully-qualified     # 🙉 E0.6 hear-no-evil monkey
 1F64A                                                  ; fully-qualified     # 🙊 E0.6 speak-no-evil monkey
 
-# subgroup: emotion
-1F48B                                                  ; fully-qualified     # 💋 E0.6 kiss mark
+# subgroup: heart
 1F48C                                                  ; fully-qualified     # 💌 E0.6 love letter
 1F498                                                  ; fully-qualified     # 💘 E0.6 heart with arrow
 1F49D                                                  ; fully-qualified     # 💝 E0.6 heart with ribbon
@@ -210,14 +210,20 @@
 2764 200D 1FA79                                        ; unqualified         # ❤‍🩹 E13.1 mending heart
 2764 FE0F                                              ; fully-qualified     # ❤️ E0.6 red heart
 2764                                                   ; unqualified         # ❤ E0.6 red heart
+1FA77                                                  ; fully-qualified     # 🩷 E15.0 pink heart
 1F9E1                                                  ; fully-qualified     # 🧡 E5.0 orange heart
 1F49B                                                  ; fully-qualified     # 💛 E0.6 yellow heart
 1F49A                                                  ; fully-qualified     # 💚 E0.6 green heart
 1F499                                                  ; fully-qualified     # 💙 E0.6 blue heart
+1FA75                                                  ; fully-qualified     # 🩵 E15.0 light blue heart
 1F49C                                                  ; fully-qualified     # 💜 E0.6 purple heart
 1F90E                                                  ; fully-qualified     # 🤎 E12.0 brown heart
 1F5A4                                                  ; fully-qualified     # 🖤 E3.0 black heart
+1FA76                                                  ; fully-qualified     # 🩶 E15.0 grey heart
 1F90D                                                  ; fully-qualified     # 🤍 E12.0 white heart
+
+# subgroup: emotion
+1F48B                                                  ; fully-qualified     # 💋 E0.6 kiss mark
 1F4AF                                                  ; fully-qualified     # 💯 E0.6 hundred points
 1F4A2                                                  ; fully-qualified     # 💢 E0.6 anger symbol
 1F4A5                                                  ; fully-qualified     # 💥 E0.6 collision
@@ -226,21 +232,20 @@
 1F4A8                                                  ; fully-qualified     # 💨 E0.6 dashing away
 1F573 FE0F                                             ; fully-qualified     # 🕳️ E0.7 hole
 1F573                                                  ; unqualified         # 🕳 E0.7 hole
-1F4A3                                                  ; fully-qualified     # 💣 E0.6 bomb
 1F4AC                                                  ; fully-qualified     # 💬 E0.6 speech balloon
 1F441 FE0F 200D 1F5E8 FE0F                             ; fully-qualified     # 👁️‍🗨️ E2.0 eye in speech bubble
 1F441 200D 1F5E8 FE0F                                  ; unqualified         # 👁‍🗨️ E2.0 eye in speech bubble
-1F441 FE0F 200D 1F5E8                                  ; unqualified         # 👁️‍🗨 E2.0 eye in speech bubble
+1F441 FE0F 200D 1F5E8                                  ; minimally-qualified # 👁️‍🗨 E2.0 eye in speech bubble
 1F441 200D 1F5E8                                       ; unqualified         # 👁‍🗨 E2.0 eye in speech bubble
 1F5E8 FE0F                                             ; fully-qualified     # 🗨️ E2.0 left speech bubble
 1F5E8                                                  ; unqualified         # 🗨 E2.0 left speech bubble
 1F5EF FE0F                                             ; fully-qualified     # 🗯️ E0.7 right anger bubble
 1F5EF                                                  ; unqualified         # 🗯 E0.7 right anger bubble
 1F4AD                                                  ; fully-qualified     # 💭 E1.0 thought balloon
-1F4A4                                                  ; fully-qualified     # 💤 E0.6 zzz
+1F4A4                                                  ; fully-qualified     # 💤 E0.6 ZZZ
 
-# Smileys & Emotion subtotal:		177
-# Smileys & Emotion subtotal:		177	w/o modifiers
+# Smileys & Emotion subtotal:		180
+# Smileys & Emotion subtotal:		180	w/o modifiers
 
 # group: People & Body
 
@@ -300,6 +305,18 @@
 1FAF4 1F3FD                                            ; fully-qualified     # 🫴🏽 E14.0 palm up hand: medium skin tone
 1FAF4 1F3FE                                            ; fully-qualified     # 🫴🏾 E14.0 palm up hand: medium-dark skin tone
 1FAF4 1F3FF                                            ; fully-qualified     # 🫴🏿 E14.0 palm up hand: dark skin tone
+1FAF7                                                  ; fully-qualified     # 🫷 E15.0 leftwards pushing hand
+1FAF7 1F3FB                                            ; fully-qualified     # 🫷🏻 E15.0 leftwards pushing hand: light skin tone
+1FAF7 1F3FC                                            ; fully-qualified     # 🫷🏼 E15.0 leftwards pushing hand: medium-light skin tone
+1FAF7 1F3FD                                            ; fully-qualified     # 🫷🏽 E15.0 leftwards pushing hand: medium skin tone
+1FAF7 1F3FE                                            ; fully-qualified     # 🫷🏾 E15.0 leftwards pushing hand: medium-dark skin tone
+1FAF7 1F3FF                                            ; fully-qualified     # 🫷🏿 E15.0 leftwards pushing hand: dark skin tone
+1FAF8                                                  ; fully-qualified     # 🫸 E15.0 rightwards pushing hand
+1FAF8 1F3FB                                            ; fully-qualified     # 🫸🏻 E15.0 rightwards pushing hand: light skin tone
+1FAF8 1F3FC                                            ; fully-qualified     # 🫸🏼 E15.0 rightwards pushing hand: medium-light skin tone
+1FAF8 1F3FD                                            ; fully-qualified     # 🫸🏽 E15.0 rightwards pushing hand: medium skin tone
+1FAF8 1F3FE                                            ; fully-qualified     # 🫸🏾 E15.0 rightwards pushing hand: medium-dark skin tone
+1FAF8 1F3FF                                            ; fully-qualified     # 🫸🏿 E15.0 rightwards pushing hand: dark skin tone
 
 # subgroup: hand-fingers-partial
 1F44C                                                  ; fully-qualified     # 👌 E0.6 OK hand
@@ -473,11 +490,11 @@
 1F932 1F3FE                                            ; fully-qualified     # 🤲🏾 E5.0 palms up together: medium-dark skin tone
 1F932 1F3FF                                            ; fully-qualified     # 🤲🏿 E5.0 palms up together: dark skin tone
 1F91D                                                  ; fully-qualified     # 🤝 E3.0 handshake
-1F91D 1F3FB                                            ; fully-qualified     # 🤝🏻 E3.0 handshake: light skin tone
-1F91D 1F3FC                                            ; fully-qualified     # 🤝🏼 E3.0 handshake: medium-light skin tone
-1F91D 1F3FD                                            ; fully-qualified     # 🤝🏽 E3.0 handshake: medium skin tone
-1F91D 1F3FE                                            ; fully-qualified     # 🤝🏾 E3.0 handshake: medium-dark skin tone
-1F91D 1F3FF                                            ; fully-qualified     # 🤝🏿 E3.0 handshake: dark skin tone
+1F91D 1F3FB                                            ; fully-qualified     # 🤝🏻 E14.0 handshake: light skin tone
+1F91D 1F3FC                                            ; fully-qualified     # 🤝🏼 E14.0 handshake: medium-light skin tone
+1F91D 1F3FD                                            ; fully-qualified     # 🤝🏽 E14.0 handshake: medium skin tone
+1F91D 1F3FE                                            ; fully-qualified     # 🤝🏾 E14.0 handshake: medium-dark skin tone
+1F91D 1F3FF                                            ; fully-qualified     # 🤝🏿 E14.0 handshake: dark skin tone
 1FAF1 1F3FB 200D 1FAF2 1F3FC                           ; fully-qualified     # 🫱🏻‍🫲🏼 E14.0 handshake: light skin tone, medium-light skin tone
 1FAF1 1F3FB 200D 1FAF2 1F3FD                           ; fully-qualified     # 🫱🏻‍🫲🏽 E14.0 handshake: light skin tone, medium skin tone
 1FAF1 1F3FB 200D 1FAF2 1F3FE                           ; fully-qualified     # 🫱🏻‍🫲🏾 E14.0 handshake: light skin tone, medium-dark skin tone
@@ -1455,7 +1472,7 @@
 1F575 1F3FF                                            ; fully-qualified     # 🕵🏿 E2.0 detective: dark skin tone
 1F575 FE0F 200D 2642 FE0F                              ; fully-qualified     # 🕵️‍♂️ E4.0 man detective
 1F575 200D 2642 FE0F                                   ; unqualified         # 🕵‍♂️ E4.0 man detective
-1F575 FE0F 200D 2642                                   ; unqualified         # 🕵️‍♂ E4.0 man detective
+1F575 FE0F 200D 2642                                   ; minimally-qualified # 🕵️‍♂ E4.0 man detective
 1F575 200D 2642                                        ; unqualified         # 🕵‍♂ E4.0 man detective
 1F575 1F3FB 200D 2642 FE0F                             ; fully-qualified     # 🕵🏻‍♂️ E4.0 man detective: light skin tone
 1F575 1F3FB 200D 2642                                  ; minimally-qualified # 🕵🏻‍♂ E4.0 man detective: light skin tone
@@ -1469,7 +1486,7 @@
 1F575 1F3FF 200D 2642                                  ; minimally-qualified # 🕵🏿‍♂ E4.0 man detective: dark skin tone
 1F575 FE0F 200D 2640 FE0F                              ; fully-qualified     # 🕵️‍♀️ E4.0 woman detective
 1F575 200D 2640 FE0F                                   ; unqualified         # 🕵‍♀️ E4.0 woman detective
-1F575 FE0F 200D 2640                                   ; unqualified         # 🕵️‍♀ E4.0 woman detective
+1F575 FE0F 200D 2640                                   ; minimally-qualified # 🕵️‍♀ E4.0 woman detective
 1F575 200D 2640                                        ; unqualified         # 🕵‍♀ E4.0 woman detective
 1F575 1F3FB 200D 2640 FE0F                             ; fully-qualified     # 🕵🏻‍♀️ E4.0 woman detective: light skin tone
 1F575 1F3FB 200D 2640                                  ; minimally-qualified # 🕵🏻‍♀ E4.0 woman detective: light skin tone
@@ -2302,7 +2319,7 @@
 1F3CC 1F3FF                                            ; fully-qualified     # 🏌🏿 E4.0 person golfing: dark skin tone
 1F3CC FE0F 200D 2642 FE0F                              ; fully-qualified     # 🏌️‍♂️ E4.0 man golfing
 1F3CC 200D 2642 FE0F                                   ; unqualified         # 🏌‍♂️ E4.0 man golfing
-1F3CC FE0F 200D 2642                                   ; unqualified         # 🏌️‍♂ E4.0 man golfing
+1F3CC FE0F 200D 2642                                   ; minimally-qualified # 🏌️‍♂ E4.0 man golfing
 1F3CC 200D 2642                                        ; unqualified         # 🏌‍♂ E4.0 man golfing
 1F3CC 1F3FB 200D 2642 FE0F                             ; fully-qualified     # 🏌🏻‍♂️ E4.0 man golfing: light skin tone
 1F3CC 1F3FB 200D 2642                                  ; minimally-qualified # 🏌🏻‍♂ E4.0 man golfing: light skin tone
@@ -2316,7 +2333,7 @@
 1F3CC 1F3FF 200D 2642                                  ; minimally-qualified # 🏌🏿‍♂ E4.0 man golfing: dark skin tone
 1F3CC FE0F 200D 2640 FE0F                              ; fully-qualified     # 🏌️‍♀️ E4.0 woman golfing
 1F3CC 200D 2640 FE0F                                   ; unqualified         # 🏌‍♀️ E4.0 woman golfing
-1F3CC FE0F 200D 2640                                   ; unqualified         # 🏌️‍♀ E4.0 woman golfing
+1F3CC FE0F 200D 2640                                   ; minimally-qualified # 🏌️‍♀ E4.0 woman golfing
 1F3CC 200D 2640                                        ; unqualified         # 🏌‍♀ E4.0 woman golfing
 1F3CC 1F3FB 200D 2640 FE0F                             ; fully-qualified     # 🏌🏻‍♀️ E4.0 woman golfing: light skin tone
 1F3CC 1F3FB 200D 2640                                  ; minimally-qualified # 🏌🏻‍♀ E4.0 woman golfing: light skin tone
@@ -2427,7 +2444,7 @@
 26F9 1F3FF                                             ; fully-qualified     # ⛹🏿 E2.0 person bouncing ball: dark skin tone
 26F9 FE0F 200D 2642 FE0F                               ; fully-qualified     # ⛹️‍♂️ E4.0 man bouncing ball
 26F9 200D 2642 FE0F                                    ; unqualified         # ⛹‍♂️ E4.0 man bouncing ball
-26F9 FE0F 200D 2642                                    ; unqualified         # ⛹️‍♂ E4.0 man bouncing ball
+26F9 FE0F 200D 2642                                    ; minimally-qualified # ⛹️‍♂ E4.0 man bouncing ball
 26F9 200D 2642                                         ; unqualified         # ⛹‍♂ E4.0 man bouncing ball
 26F9 1F3FB 200D 2642 FE0F                              ; fully-qualified     # ⛹🏻‍♂️ E4.0 man bouncing ball: light skin tone
 26F9 1F3FB 200D 2642                                   ; minimally-qualified # ⛹🏻‍♂ E4.0 man bouncing ball: light skin tone
@@ -2441,7 +2458,7 @@
 26F9 1F3FF 200D 2642                                   ; minimally-qualified # ⛹🏿‍♂ E4.0 man bouncing ball: dark skin tone
 26F9 FE0F 200D 2640 FE0F                               ; fully-qualified     # ⛹️‍♀️ E4.0 woman bouncing ball
 26F9 200D 2640 FE0F                                    ; unqualified         # ⛹‍♀️ E4.0 woman bouncing ball
-26F9 FE0F 200D 2640                                    ; unqualified         # ⛹️‍♀ E4.0 woman bouncing ball
+26F9 FE0F 200D 2640                                    ; minimally-qualified # ⛹️‍♀ E4.0 woman bouncing ball
 26F9 200D 2640                                         ; unqualified         # ⛹‍♀ E4.0 woman bouncing ball
 26F9 1F3FB 200D 2640 FE0F                              ; fully-qualified     # ⛹🏻‍♀️ E4.0 woman bouncing ball: light skin tone
 26F9 1F3FB 200D 2640                                   ; minimally-qualified # ⛹🏻‍♀ E4.0 woman bouncing ball: light skin tone
@@ -2462,7 +2479,7 @@
 1F3CB 1F3FF                                            ; fully-qualified     # 🏋🏿 E2.0 person lifting weights: dark skin tone
 1F3CB FE0F 200D 2642 FE0F                              ; fully-qualified     # 🏋️‍♂️ E4.0 man lifting weights
 1F3CB 200D 2642 FE0F                                   ; unqualified         # 🏋‍♂️ E4.0 man lifting weights
-1F3CB FE0F 200D 2642                                   ; unqualified         # 🏋️‍♂ E4.0 man lifting weights
+1F3CB FE0F 200D 2642                                   ; minimally-qualified # 🏋️‍♂ E4.0 man lifting weights
 1F3CB 200D 2642                                        ; unqualified         # 🏋‍♂ E4.0 man lifting weights
 1F3CB 1F3FB 200D 2642 FE0F                             ; fully-qualified     # 🏋🏻‍♂️ E4.0 man lifting weights: light skin tone
 1F3CB 1F3FB 200D 2642                                  ; minimally-qualified # 🏋🏻‍♂ E4.0 man lifting weights: light skin tone
@@ -2476,7 +2493,7 @@
 1F3CB 1F3FF 200D 2642                                  ; minimally-qualified # 🏋🏿‍♂ E4.0 man lifting weights: dark skin tone
 1F3CB FE0F 200D 2640 FE0F                              ; fully-qualified     # 🏋️‍♀️ E4.0 woman lifting weights
 1F3CB 200D 2640 FE0F                                   ; unqualified         # 🏋‍♀️ E4.0 woman lifting weights
-1F3CB FE0F 200D 2640                                   ; unqualified         # 🏋️‍♀ E4.0 woman lifting weights
+1F3CB FE0F 200D 2640                                   ; minimally-qualified # 🏋️‍♀ E4.0 woman lifting weights
 1F3CB 200D 2640                                        ; unqualified         # 🏋‍♀ E4.0 woman lifting weights
 1F3CB 1F3FB 200D 2640 FE0F                             ; fully-qualified     # 🏋🏻‍♀️ E4.0 woman lifting weights: light skin tone
 1F3CB 1F3FB 200D 2640                                  ; minimally-qualified # 🏋🏻‍♀ E4.0 woman lifting weights: light skin tone
@@ -3262,8 +3279,8 @@
 1FAC2                                                  ; fully-qualified     # 🫂 E13.0 people hugging
 1F463                                                  ; fully-qualified     # 👣 E0.6 footprints
 
-# People & Body subtotal:		2986
-# People & Body subtotal:		506	w/o modifiers
+# People & Body subtotal:		2998
+# People & Body subtotal:		508	w/o modifiers
 
 # group: Component
 
@@ -3306,6 +3323,8 @@
 1F405                                                  ; fully-qualified     # 🐅 E1.0 tiger
 1F406                                                  ; fully-qualified     # 🐆 E1.0 leopard
 1F434                                                  ; fully-qualified     # 🐴 E0.6 horse face
+1FACE                                                  ; fully-qualified     # 🫎 E15.0 moose
+1FACF                                                  ; fully-qualified     # 🫏 E15.0 donkey
 1F40E                                                  ; fully-qualified     # 🐎 E0.6 horse
 1F984                                                  ; fully-qualified     # 🦄 E1.0 unicorn
 1F993                                                  ; fully-qualified     # 🦓 E5.0 zebra
@@ -3373,6 +3392,9 @@
 1F9A9                                                  ; fully-qualified     # 🦩 E12.0 flamingo
 1F99A                                                  ; fully-qualified     # 🦚 E11.0 peacock
 1F99C                                                  ; fully-qualified     # 🦜 E11.0 parrot
+1FABD                                                  ; fully-qualified     # 🪽 E15.0 wing
+1F426 200D 2B1B                                        ; fully-qualified     # 🐦‍⬛ E15.0 black bird
+1FABF                                                  ; fully-qualified     # 🪿 E15.0 goose
 
 # subgroup: animal-amphibian
 1F438                                                  ; fully-qualified     # 🐸 E0.6 frog
@@ -3399,6 +3421,7 @@
 1F419                                                  ; fully-qualified     # 🐙 E0.6 octopus
 1F41A                                                  ; fully-qualified     # 🐚 E0.6 spiral shell
 1FAB8                                                  ; fully-qualified     # 🪸 E14.0 coral
+1FABC                                                  ; fully-qualified     # 🪼 E15.0 jellyfish
 
 # subgroup: animal-bug
 1F40C                                                  ; fully-qualified     # 🐌 E0.6 snail
@@ -3433,6 +3456,7 @@
 1F33B                                                  ; fully-qualified     # 🌻 E0.6 sunflower
 1F33C                                                  ; fully-qualified     # 🌼 E0.6 blossom
 1F337                                                  ; fully-qualified     # 🌷 E0.6 tulip
+1FABB                                                  ; fully-qualified     # 🪻 E15.0 hyacinth
 
 # subgroup: plant-other
 1F331                                                  ; fully-qualified     # 🌱 E0.6 seedling
@@ -3451,9 +3475,10 @@
 1F343                                                  ; fully-qualified     # 🍃 E0.6 leaf fluttering in wind
 1FAB9                                                  ; fully-qualified     # 🪹 E14.0 empty nest
 1FABA                                                  ; fully-qualified     # 🪺 E14.0 nest with eggs
+1F344                                                  ; fully-qualified     # 🍄 E0.6 mushroom
 
-# Animals & Nature subtotal:		151
-# Animals & Nature subtotal:		151	w/o modifiers
+# Animals & Nature subtotal:		159
+# Animals & Nature subtotal:		159	w/o modifiers
 
 # group: Food & Drink
 
@@ -3492,10 +3517,11 @@
 1F966                                                  ; fully-qualified     # 🥦 E5.0 broccoli
 1F9C4                                                  ; fully-qualified     # 🧄 E12.0 garlic
 1F9C5                                                  ; fully-qualified     # 🧅 E12.0 onion
-1F344                                                  ; fully-qualified     # 🍄 E0.6 mushroom
 1F95C                                                  ; fully-qualified     # 🥜 E3.0 peanuts
 1FAD8                                                  ; fully-qualified     # 🫘 E14.0 beans
 1F330                                                  ; fully-qualified     # 🌰 E0.6 chestnut
+1FADA                                                  ; fully-qualified     # 🫚 E15.0 ginger root
+1FADB                                                  ; fully-qualified     # 🫛 E15.0 pea pod
 
 # subgroup: food-prepared
 1F35E                                                  ; fully-qualified     # 🍞 E0.6 bread
@@ -3607,8 +3633,8 @@
 1FAD9                                                  ; fully-qualified     # 🫙 E14.0 jar
 1F3FA                                                  ; fully-qualified     # 🏺 E1.0 amphora
 
-# Food & Drink subtotal:		134
-# Food & Drink subtotal:		134	w/o modifiers
+# Food & Drink subtotal:		135
+# Food & Drink subtotal:		135	w/o modifiers
 
 # group: Travel & Places
 
@@ -3974,11 +4000,10 @@
 1F3AF                                                  ; fully-qualified     # 🎯 E0.6 bullseye
 1FA80                                                  ; fully-qualified     # 🪀 E12.0 yo-yo
 1FA81                                                  ; fully-qualified     # 🪁 E12.0 kite
+1F52B                                                  ; fully-qualified     # 🔫 E0.6 water pistol
 1F3B1                                                  ; fully-qualified     # 🎱 E0.6 pool 8 ball
 1F52E                                                  ; fully-qualified     # 🔮 E0.6 crystal ball
 1FA84                                                  ; fully-qualified     # 🪄 E13.0 magic wand
-1F9FF                                                  ; fully-qualified     # 🧿 E11.0 nazar amulet
-1FAAC                                                  ; fully-qualified     # 🪬 E14.0 hamsa
 1F3AE                                                  ; fully-qualified     # 🎮 E0.6 video game
 1F579 FE0F                                             ; fully-qualified     # 🕹️ E0.7 joystick
 1F579                                                  ; unqualified         # 🕹 E0.7 joystick
@@ -4013,8 +4038,8 @@
 1F9F6                                                  ; fully-qualified     # 🧶 E11.0 yarn
 1FAA2                                                  ; fully-qualified     # 🪢 E13.0 knot
 
-# Activities subtotal:		97
-# Activities subtotal:		97	w/o modifiers
+# Activities subtotal:		96
+# Activities subtotal:		96	w/o modifiers
 
 # group: Objects
 
@@ -4040,6 +4065,7 @@
 1FA73                                                  ; fully-qualified     # 🩳 E12.0 shorts
 1F459                                                  ; fully-qualified     # 👙 E0.6 bikini
 1F45A                                                  ; fully-qualified     # 👚 E0.6 woman’s clothes
+1FAAD                                                  ; fully-qualified     # 🪭 E15.0 folding hand fan
 1F45B                                                  ; fully-qualified     # 👛 E0.6 purse
 1F45C                                                  ; fully-qualified     # 👜 E0.6 handbag
 1F45D                                                  ; fully-qualified     # 👝 E0.6 clutch bag
@@ -4055,6 +4081,7 @@
 1F461                                                  ; fully-qualified     # 👡 E0.6 woman’s sandal
 1FA70                                                  ; fully-qualified     # 🩰 E12.0 ballet shoes
 1F462                                                  ; fully-qualified     # 👢 E0.6 woman’s boot
+1FAAE                                                  ; fully-qualified     # 🪮 E15.0 hair pick
 1F451                                                  ; fully-qualified     # 👑 E0.6 crown
 1F452                                                  ; fully-qualified     # 👒 E0.6 woman’s hat
 1F3A9                                                  ; fully-qualified     # 🎩 E0.6 top hat
@@ -4103,6 +4130,8 @@
 1FA95                                                  ; fully-qualified     # 🪕 E12.0 banjo
 1F941                                                  ; fully-qualified     # 🥁 E3.0 drum
 1FA98                                                  ; fully-qualified     # 🪘 E13.0 long drum
+1FA87                                                  ; fully-qualified     # 🪇 E15.0 maracas
+1FA88                                                  ; fully-qualified     # 🪈 E15.0 flute
 
 # subgroup: phone
 1F4F1                                                  ; fully-qualified     # 📱 E0.6 mobile phone
@@ -4275,7 +4304,7 @@
 1F5E1                                                  ; unqualified         # 🗡 E0.7 dagger
 2694 FE0F                                              ; fully-qualified     # ⚔️ E1.0 crossed swords
 2694                                                   ; unqualified         # ⚔ E1.0 crossed swords
-1F52B                                                  ; fully-qualified     # 🔫 E0.6 water pistol
+1F4A3                                                  ; fully-qualified     # 💣 E0.6 bomb
 1FA83                                                  ; fully-qualified     # 🪃 E13.0 boomerang
 1F3F9                                                  ; fully-qualified     # 🏹 E1.0 bow and arrow
 1F6E1 FE0F                                             ; fully-qualified     # 🛡️ E0.7 shield
@@ -4354,12 +4383,14 @@
 1FAA6                                                  ; fully-qualified     # 🪦 E13.0 headstone
 26B1 FE0F                                              ; fully-qualified     # ⚱️ E1.0 funeral urn
 26B1                                                   ; unqualified         # ⚱ E1.0 funeral urn
+1F9FF                                                  ; fully-qualified     # 🧿 E11.0 nazar amulet
+1FAAC                                                  ; fully-qualified     # 🪬 E14.0 hamsa
 1F5FF                                                  ; fully-qualified     # 🗿 E0.6 moai
 1FAA7                                                  ; fully-qualified     # 🪧 E13.0 placard
 1FAAA                                                  ; fully-qualified     # 🪪 E14.0 identification card
 
-# Objects subtotal:		304
-# Objects subtotal:		304	w/o modifiers
+# Objects subtotal:		310
+# Objects subtotal:		310	w/o modifiers
 
 # group: Symbols
 
@@ -4455,6 +4486,7 @@
 262E                                                   ; unqualified         # ☮ E1.0 peace symbol
 1F54E                                                  ; fully-qualified     # 🕎 E1.0 menorah
 1F52F                                                  ; fully-qualified     # 🔯 E0.6 dotted six-pointed star
+1FAAF                                                  ; fully-qualified     # 🪯 E15.0 khanda
 
 # subgroup: zodiac
 2648                                                   ; fully-qualified     # ♈ E0.6 Aries
@@ -4503,6 +4535,7 @@
 1F505                                                  ; fully-qualified     # 🔅 E1.0 dim button
 1F506                                                  ; fully-qualified     # 🔆 E1.0 bright button
 1F4F6                                                  ; fully-qualified     # 📶 E0.6 antenna bars
+1F6DC                                                  ; fully-qualified     # 🛜 E15.0 wireless
 1F4F3                                                  ; fully-qualified     # 📳 E0.6 vibration mode
 1F4F4                                                  ; fully-qualified     # 📴 E0.6 mobile phone off
 
@@ -4693,8 +4726,8 @@
 1F533                                                  ; fully-qualified     # 🔳 E0.6 white square button
 1F532                                                  ; fully-qualified     # 🔲 E0.6 black square button
 
-# Symbols subtotal:		302
-# Symbols subtotal:		302	w/o modifiers
+# Symbols subtotal:		304
+# Symbols subtotal:		304	w/o modifiers
 
 # group: Flags
 
@@ -4709,7 +4742,7 @@
 1F3F3 200D 1F308                                       ; unqualified         # 🏳‍🌈 E4.0 rainbow flag
 1F3F3 FE0F 200D 26A7 FE0F                              ; fully-qualified     # 🏳️‍⚧️ E13.0 transgender flag
 1F3F3 200D 26A7 FE0F                                   ; unqualified         # 🏳‍⚧️ E13.0 transgender flag
-1F3F3 FE0F 200D 26A7                                   ; unqualified         # 🏳️‍⚧ E13.0 transgender flag
+1F3F3 FE0F 200D 26A7                                   ; minimally-qualified # 🏳️‍⚧ E13.0 transgender flag
 1F3F3 200D 26A7                                        ; unqualified         # 🏳‍⚧ E13.0 transgender flag
 1F3F4 200D 2620 FE0F                                   ; fully-qualified     # 🏴‍☠️ E11.0 pirate flag
 1F3F4 200D 2620                                        ; minimally-qualified # 🏴‍☠ E11.0 pirate flag
@@ -4983,9 +5016,9 @@
 # Flags subtotal:		275	w/o modifiers
 
 # Status Counts
-# fully-qualified : 3624
-# minimally-qualified : 817
-# unqualified : 252
+# fully-qualified : 3655
+# minimally-qualified : 827
+# unqualified : 242
 # component : 9
 
 #EOF

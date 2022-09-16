@@ -425,6 +425,9 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 * Changes in Emacs 29.1
 
 ---
+** Emacs now supports Unicode Standard version 15.0.
+
+---
 ** New user option 'electric-quote-replace-consecutive'.
 
 ---
