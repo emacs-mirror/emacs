@@ -294,6 +294,7 @@ buffers (yet) -- that will be amended in a future version."
 
 (define-icon outline-open nil
   '((image "outline-open.svg" :height 15 :ascent center)
+    (image "outline-open.pbm" :height 15 :ascent center)
     (emoji "🔽")
     (symbol " ▼ ")
     (text " open "))
@@ -303,6 +304,7 @@ buffers (yet) -- that will be amended in a future version."
 
 (define-icon outline-close nil
   '((image "outline-close.svg" :height 15 :ascent center)
+    (image "outline-close.pbm" :height 15 :ascent center)
     (emoji "▶️")
     (symbol " ▶ ")
     (text " close "))
