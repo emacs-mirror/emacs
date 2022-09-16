@@ -778,69 +778,13 @@ Optional argument TYPE is type of output (nil means all)."
     (if (member type (list nil m))
 	(make-manuals-dist--1 root m))))
 
-(defun make-news-html-file (root version)
-  "Convert the NEWS file into an HTML file."
-  (interactive (let ((root
-                      (if noninteractive
-                          (or (pop command-line-args-left)
-                              default-directory)
-                        (read-directory-name "Emacs root directory: "
-                                             source-directory nil t))))
-                 (list root
-                       (read-string "Version number: " emacs-version))))
-  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
-  (let* ((dir (make-temp-file "emacs-news-file" t))
-         (orig (expand-file-name "etc/NEWS" root))
-         (new (expand-file-name (format "NEWS.%s.org" version) dir))
-         (html-file (format "%s.html" (file-name-base new)))
-         (copyright-years (format-time-string "%Y")))
-    (unwind-protect
-        (progn
-          (copy-file orig new)
-          (find-file new)
-
-          ;; Find the copyright range:
-          (goto-char (point-min))
-          (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
-          (setq copyright-years (match-string 1))
-
-          ;; Get rid of some unnecessary stuff:
-          (replace-regexp-in-region "^---$" "" (point-min) (point-max))
-          (replace-regexp-in-region "^\\+\\+\\+$" "" (point-min) (point-max))
-          (dolist (str '("\n"
-                         "GNU Emacs NEWS -- history of user-visible changes."
-                         "Temporary note:"
-                         "+++ indicates that all relevant manuals in doc/ have been updated."
-                         "--- means no change in the manuals is needed."
-                         "When you add a new item, use the appropriate mark if you are sure it"
-                         "applies, and please also update docstrings as needed."
-                         "You can narrow news to a specific version by calling 'view-emacs-news'"
-                         "with a prefix argument or by typing 'C-u C-h C-n'."))
-            (replace-string-in-region str "" (point-min) (point-max)))
-
-          ;; Use Org-mode markers for <code>.
-          (replace-regexp-in-region
-           ;; This could probably be improved quite a bit...
-           (rx "'" (group (+ (not (any "'\n")))) "'")
-           "~\\1~" (point-min) (point-max))
-
-          ;; Format Emacs Lisp.
-          (while (re-search-forward "^    " nil t)
-            (backward-paragraph)
-            (insert "\n#+begin_src emacs-lisp")
-            (forward-paragraph)
-            (insert "#+end_src\n"))
-
-          ;; Insert Org-mode export headers.
-          (goto-char (point-min))
-          (insert (format
-                   "\
+(defvar admin--org-export-headers-format "\
 #+title: GNU Emacs %s NEWS -- history of user-visible changes
 #+author:
-#+options: author:nil creator:nil toc:1 num:2 *:nil \\n:nil
+#+options: author:nil creator:nil toc:1 num:2 *:nil \\n:t ^:nil tex:nil
 #+language: en
-#+HTML_LINK_HOME: https://www.gnu.org/software/emacs
+#+HTML_LINK_HOME: /software/emacs
+#+HTML_LINK_UP: /software/emacs
 #+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/mini.css\" media=\"handheld\" />
 #+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/layout.min.css\" media=\"screen\" />
 #+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/print.min.css\" media=\"print\" />
@@ -852,12 +796,9 @@ Optional argument TYPE is type of output (nil means all)."
 of a GNU] \" width=\"129\" height=\"122\"/>
 </a>
 </div>
-#+END_EXPORT\n\n"
-                   version))
-          (org-mode)
-          (let ((org-html-postamble
-                 (format
-                  "
+#+END_EXPORT\n\n")
+
+(defvar admin--org-html-postamble "
 <p>
 Return to the <a href=\"/software/emacs/emacs.html\">GNU Emacs home page</a>.
 </p>
@@ -892,21 +833,129 @@ $Date: %s $
 <!-- timestamp end -->
 </p>
 </div>
-</div>"
-                  copyright-years
-                  ;; e.g. "2022/09/13 09:13:13"
-                  (format-time-string "%Y/%M/%y %H:%m:%S"))))
-            ;; Actually export.
-            (org-html-export-to-html)
-            ;; Kill the .org buffer.
-            (kill-buffer (current-buffer))
-            ;; Move file into place.
-            (let ((old (expand-file-name html-file dir))
-                  (new (expand-file-name html-file (expand-file-name "etc" root))))
-              (delete-file new)
-              (copy-file old new)
-              (find-file new))))
-      (delete-directory dir t))))
+</div>")
+
+(defun admin--require-external-package (pkg)
+  (package-initialize)
+  (require pkg nil t)
+  (unless (featurep pkg)
+    (when (yes-or-no-p (format "Package \"%s\" is missing.  Install now?" pkg))
+      (package-install pkg)
+      (require pkg nil t))))
+
+(defvar org-html-postamble)
+(defvar org-html-mathjax-template)
+(defun make-news-html-file (root version)
+  "Convert the NEWS file into an HTML file."
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
+                 (list root
+                       (read-string "Major version number: "
+                                    (number-to-string emacs-major-version)))))
+  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (admin--require-external-package 'htmlize)
+  (let* ((orig (expand-file-name "etc/NEWS" root))
+         (new (expand-file-name (format "etc/NEWS.%s.org" version) root))
+         (html-file (format "%s.html" (file-name-base new)))
+         (copyright-years (format-time-string "%Y")))
+    (copy-file orig new t)
+    (find-file new)
+
+    ;; Find the copyright range.
+    (goto-char (point-min))
+    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (setq copyright-years (match-string 1))
+
+    ;; Delete some unnecessary stuff.
+    (replace-regexp-in-region "^---$" "" (point-min) (point-max))
+    (replace-regexp-in-region "^\\+\\+\\+$" "" (point-min) (point-max))
+    (dolist (str '("\n"
+                   "GNU Emacs NEWS -- history of user-visible changes."
+                   "Temporary note:"
+                   "+++ indicates that all relevant manuals in doc/ have been updated."
+                   "--- means no change in the manuals is needed."
+                   "When you add a new item, use the appropriate mark if you are sure it"
+                   "applies, and please also update docstrings as needed."
+                   "You can narrow news to a specific version by calling 'view-emacs-news'"
+                   "with a prefix argument or by typing 'C-u C-h C-n'."))
+      (replace-string-in-region str "" (point-min) (point-max)))
+
+    ;; Escape some characters.
+    (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+
+    ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
+    (replace-regexp-in-region
+     (rx-let ((key (seq
+                    ;; Modifier (optional)
+                    (? (any "ACHMSs") "-")
+                    (or
+                     ;; single key
+                     (not (any " \n"))
+                     ;; "<return>" and "<remap> <foo>"
+                     (seq "<"
+                          (+ (any "A-Za-z-"))
+                          (+ (seq " " (+ (any "A-Za-z-"))))
+                          ">")
+                     "NUL" "RET" "LFD" "TAB"
+                     "ESC" "SPC" "DEL")))
+              (email (seq (+ (not (any " @\n")))
+                          "@"
+                          (+ (not (any " @\n")))))
+              (lisp-symbol (regexp lisp-mode-symbol-regexp)))
+       (rx "'" (group
+                (or lisp-symbol
+                    email
+                    (seq "M-x " lisp-symbol)
+                    (seq key (+ " " key))))
+           "'"))
+     "~\\1~" (point-min) (point-max))
+
+    ;; Format code blocks.
+    (while (re-search-forward "^    " nil t)
+      (let ((elisp-block (looking-at "(")))
+        (backward-paragraph)
+        (insert (if elisp-block
+                    "\n#+BEGIN_SRC emacs-lisp"
+                  "\n#+BEGIN_EXAMPLE"))
+        (forward-paragraph)
+        (insert (if elisp-block
+                    "#+END_SRC\n"
+                  "#+END_EXAMPLE\n"))))
+
+    ;; Delete buffer local variables.
+    (goto-char (point-max))
+    (when (re-search-backward "Local variables:")
+      (forward-line -1)
+      (delete-region (point) (point-max)))
+
+    ;; Insert Org-mode export headers.
+    (goto-char (point-min))
+    (insert (format admin--org-export-headers-format version))
+    (org-mode)
+    (save-buffer)
+
+    ;; Make the HTML export.
+    (let* ((org-html-postamble
+            (format admin--org-html-postamble
+                    copyright-years
+                    ;; e.g. "2022/09/13 09:13:13"
+                    (format-time-string "%Y/%M/%y %H:%m:%S")))
+           (org-html-mathjax-template "")
+           (htmlize-output-type 'css))
+      (org-html-export-as-html))
+
+    ;; Write HTML to file.
+    (let ((new (expand-file-name html-file (expand-file-name "etc" root))))
+      (write-file new)
+      (unless noninteractive
+        (find-file new)
+        (html-mode))
+      (message "Successfully exported HTML to %s" new))))
 
 
 ;; Stuff to check new `defcustom's got :version tags.

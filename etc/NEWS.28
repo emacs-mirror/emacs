@@ -386,7 +386,7 @@ the current buffer and the text "GNU Emacs" instead of the value of
 your init file:
 
     (setq frame-title-format '(multiple-frames "%b"
-                              ("" invocation-name "@" system-name)))
+                               ("" invocation-name "@" system-name)))
 
 *** New frame parameter 'drag-with-tab-line'.
 This parameter, similar to 'drag-with-header-line', allows moving frames
@@ -3958,7 +3958,6 @@ and enable the MS-Windows native Input Method Editor (IME) at run
 time.  A companion function 'w32-get-ime-open-status' returns the
 current IME activation status.
 
---
 ** On macOS, 's-<left>' and 's-<right>' are now bound to
 'move-beginning-of-line' and 'move-end-of-line' respectively.  The commands
 to select previous/next frame are still bound to 's-~' and 's-`'.

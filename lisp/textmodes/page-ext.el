@@ -1,7 +1,6 @@
 ;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1991, 1993-1994, 2001-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1990-2022 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
 ;; (according to ack.texi)
@@ -25,20 +24,20 @@
 ;;; Commentary:
 
 ;; You may use these commands to handle an address list or other
-;; small data base.
+;; small database.
 
 
 ;;; Summary
 
 ;; The current page commands are:
 
-;;     forward-page         C-x ]
-;;     backward-page        C-x [
-;;     narrow-to-page       C-x p
-;;     count-lines-page     C-x l
-;;     mark-page            C-x C-p  (change this to C-x C-p C-m)
-;;     sort-pages           not bound
-;;     what-page            not bound
+;;     `forward-page'         C-x ]
+;;     `backward-page'        C-x [
+;;     `narrow-to-page'       C-x p
+;;     `count-lines-page'     C-x l
+;;     `mark-page'            C-x C-p  (change this to C-x C-p C-m)
+;;     `sort-pages'           not bound
+;;     `what-page'            not bound
 
 ;; The new page handling commands all use `C-x C-p' as a prefix.  This
 ;; means that the key binding for `mark-page' must be changed.
@@ -47,15 +46,15 @@
 
 ;; New page handling commands:
 
-;;     pages-next-page                  C-x C-p C-n
-;;     pages-previous-page              C-x C-p C-p
-;;     pages-search                     C-x C-p C-s
-;;     pages-add-new-page               C-x C-p C-a
-;;     pages-sort-buffer                C-x C-p s
-;;     pages-set-delimiter              C-x C-p C-l
-;;     pages-directory                  C-x C-p C-d
-;;     pages-directory-for-addresses    C-x C-p d
-;;        pages-directory-goto          C-c C-c
+;;     `pages-next-page'                  C-x C-p C-n
+;;     `pages-previous-page'              C-x C-p C-p
+;;     `pages-search'                     C-x C-p C-s
+;;     `pages-add-new-page'               C-x C-p C-a
+;;     `pages-sort-buffer'                C-x C-p s
+;;     `pages-set-delimiter'              C-x C-p C-l
+;;     `pages-directory'                  C-x C-p C-d
+;;     `pages-directory-for-addresses'    C-x C-p d
+;;        `pages-directory-goto'          C-c C-c
 
 
 ;;; Using the page commands
@@ -103,8 +102,8 @@
 ;;
 ;;   2. The first line of text in each entry is the `heading line'; it
 ;;      will appear in the pages-directory-buffer which is constructed
-;;      using the `C-x C-p C-d' (pages-directory) command or the `C-x
-;;      C-p d' (pages-directory-for-addresses) command.
+;;      using the `C-x C-p C-d' (`pages-directory') command or the
+;;      `C-x C-p d' (`pages-directory-for-addresses') command.
 ;;
 ;;      The heading line may be on the same line as the page-delimiter
 ;;      or it may follow after.  It is the first non-blank line on the
@@ -163,17 +162,18 @@
 ;; `pages-previous-page', `pages-add-new-page', `mark-page', and `pages-search'
 ;; commands.
 
-;; You may use either the `C-x C-p d' (pages-directory-for-addresses)
-;; or the `C-x C-p C-d' (pages-directory) command to construct and
+;; You may use either the `C-x C-p d' (`pages-directory-for-addresses')
+;; or the `C-x C-p C-d' (`pages-directory') command to construct and
 ;; display a directory of all the heading lines.
 
 ;; In the directory, you may position the cursor over a heading line
-;; and type `C-c C-c' (pages-directory-goto) to go to the entry to
+;; and type `C-c C-c' (`pages-directory-goto') to go to the entry to
 ;; which it refers in the pages buffer.
 
-;; You can type `C-c C-p C-a' (pages-add-new-page) to add a new entry in the
-;; pages buffer or address file.  This is the same command you use to
-;; add a new entry when you are in the pages buffer or address file.
+;; You can type `C-c C-p C-a' (`pages-add-new-page') to add a new
+;; entry in the pages buffer or address file.  This is the same
+;; command you use to add a new entry when you are in the pages buffer
+;; or address file.
 
 ;; If you wish, you may create several different directories,
 ;; one for each different buffer.

@@ -268,7 +268,6 @@ doc/misc/cc-mode.ss
 doc/misc/modus-themes.texi
 doc/misc/org.texi
 etc/DOC
-etc/NEWS*.html
 etc/refcards/emacsver.tex
 gnustmp*
 /info/

@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;; This code provides the picture-mode commands documented in the Emacs
+;; This code provides the `picture-mode' commands documented in the Emacs
 ;; manual.  The screen is treated as a semi-infinite quarter-plane with
-;; support for rectangle operations and `etch-a-sketch' character
+;; support for rectangle operations and "etch-a-sketch" character
 ;; insertion in any of eight directions.
 
 ;;; Code:
@@ -96,7 +96,7 @@ If scan reaches end of buffer, stop there without error."
 
 (defun picture-forward-column (arg &optional interactive)
   "Move cursor right, making whitespace if necessary.
-With argument, move that many columns."
+With prefix argument ARG, move that many columns."
   (interactive "^p\nd")
   (let (deactivate-mark)
     (picture-update-desired-column interactive)
@@ -110,14 +110,14 @@ With argument, move that many columns."
 
 (defun picture-backward-column (arg &optional interactive)
   "Move cursor left, making whitespace if necessary.
-With argument, move that many columns."
+With prefix argument ARG, move that many columns."
   (interactive "^p\nd")
   (picture-update-desired-column interactive)
   (picture-forward-column (- arg)))
 
 (defun picture-move-down (arg)
   "Move vertically down, making whitespace if necessary.
-With argument, move that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "^p")
   (let (deactivate-mark)
     (picture-update-desired-column nil)
@@ -134,7 +134,7 @@ With argument, move that many lines."
 
 (defun picture-move-up (arg)
   "Move vertically up, making whitespace if necessary.
-With argument, move that many lines."
+With prefix argument ARG, move that many lines."
   (interactive "^p")
   (picture-update-desired-column nil)
   (picture-move-down (- arg)))
@@ -161,36 +161,36 @@ With argument, move that many lines."
 
 (defun picture-movement-nw (&optional arg)
   "Move up and left after self-inserting character in Picture mode.
-With prefix argument, move up and two-column left."
+With prefix argument ARG, move up and two-column left."
   (interactive "P")
   (picture-set-motion -1 (if arg -2 -1)))
 
 (defun picture-movement-ne (&optional arg)
   "Move up and right after self-inserting character in Picture mode.
-With prefix argument, move up and two-column right."
+With prefix argument ARG, move up and two-column right."
   (interactive "P")
   (picture-set-motion -1 (if arg 2 1)))
 
 (defun picture-movement-sw (&optional arg)
   "Move down and left after self-inserting character in Picture mode.
-With prefix argument, move down and two-column left."
+With prefix argument ARG, move down and two-column left."
   (interactive "P")
   (picture-set-motion 1 (if arg -2 -1)))
 
 (defun picture-movement-se (&optional arg)
   "Move down and right after self-inserting character in Picture mode.
-With prefix argument, move down and two-column right."
+With prefix argument ARG, move down and two-column right."
   (interactive "P")
   (picture-set-motion 1 (if arg 2 1)))
 
-(defun picture-set-motion (vert horiz)
+(defun picture-set-motion (vertical horizontal)
   "Set VERTICAL and HORIZONTAL increments for movement in Picture mode.
 The mode line is updated to reflect the current direction."
-  (setq picture-vertical-step vert
-	picture-horizontal-step horiz)
+  (setq picture-vertical-step vertical
+        picture-horizontal-step horizontal)
   (setq mode-name
 	(format "Picture:%s"
-		(nth (+ 2 (% horiz 3) (* 5 (1+ (% vert 2))))
+                (nth (+ 2 (% horizontal 3) (* 5 (1+ (% vertical 2))))
 		     '(wnw nw up ne ene Left left none right Right
 			   wsw sw down se ese))))
   (force-mode-line-update)
@@ -305,9 +305,9 @@ Use \"\\[command-apropos] picture-movement\" to see those commands."
 
 (defun picture-clear-line (arg)
   "Clear out rest of line; if at end of line, advance to next line.
-Cleared-out line text goes into the kill ring, as do newlines that are
-advanced over.  With argument, clear out (and save in kill ring) that
-many lines."
+Cleared-out line text goes into the kill ring, as do newlines
+that are advanced over.  With prefix argument ARG, clear out (and
+save in kill ring) that many lines."
   (interactive "P")
   (if arg
       (progn
@@ -320,7 +320,8 @@ many lines."
 
 (defun picture-newline (arg)
   "Move to the beginning of the following line.
-With argument, moves that many lines (up, if negative argument);
+With prefix argument ARG, move that many lines (up, if negative
+argument);
 always moves to the beginning of a line."
   (interactive "^p")
   (let ((start (point))
@@ -466,8 +467,11 @@ If no such character is found, move to beginning of line."
 
 (defun picture-tab (&optional arg)
   "Tab transparently (just move point) to next tab stop.
-With prefix arg, overwrite the traversed text with spaces.  The tab stop
-list can be changed by \\[picture-set-tab-stops] and \\[edit-tab-stops].
+With prefix argument ARG, overwrite the traversed text with
+spaces.  The tab stop list can be changed by \
+\\<picture-mode-map>\\[picture-set-tab-stops] and
+\\[edit-tab-stops].
+
 See also documentation for variable `picture-tab-chars'."
   (interactive "^P")
   (let* ((opoint (point)))
@@ -515,10 +519,11 @@ Interactively, reads the register using `register-read-with-preview'."
 
 (defun picture-yank-rectangle (&optional insertp)
   "Overlay rectangle saved by \\[picture-clear-rectangle].
-The rectangle is positioned with upper left corner at point, overwriting
-existing text.  With prefix argument, the rectangle is inserted instead,
-shifting existing text.  Leaves mark at one corner of rectangle and
-point at the other (diagonally opposed) corner."
+The rectangle is positioned with upper left corner at point,
+overwriting existing text.  With prefix argument INSERTP, the
+rectangle is inserted instead, shifting existing text.  Leave
+mark at one corner of rectangle and point at the
+other (diagonally opposed) corner."
   (interactive "P")
   (if (not (consp picture-killed-rectangle))
       (error "No rectangle saved")
@@ -536,10 +541,11 @@ regardless of where you click."
 
 (defun picture-yank-rectangle-from-register (register &optional insertp)
   "Overlay rectangle saved in REGISTER.
-The rectangle is positioned with upper left corner at point, overwriting
-existing text.  With prefix argument, the rectangle is
-inserted instead, shifting existing text.  Leaves mark at one corner
-of rectangle and point at the other (diagonally opposed) corner.
+The rectangle is positioned with upper left corner at point,
+overwriting existing text.  With prefix argument INSERTP, the
+rectangle is inserted instead, shifting existing text.  Leave
+mark at one corner of rectangle and point at the
+other (diagonally opposed) corner.
 
 Interactively, reads the register using `register-read-with-preview'."
   (interactive (list (register-read-with-preview "Rectangle from register: ")
@@ -552,7 +558,7 @@ Interactively, reads the register using `register-read-with-preview'."
 (defun picture-insert-rectangle (rectangle &optional insertp)
   "Overlay RECTANGLE with upper left corner at point.
 Optional argument INSERTP, if non-nil causes RECTANGLE to be inserted.
-Leaves the region surrounding the rectangle."
+Leave the region surrounding the rectangle."
   (let ((indent-tabs-mode nil))
     (if (not insertp)
 	(save-excursion
@@ -570,7 +576,7 @@ Leaves the region surrounding the rectangle."
      (if (= (current-column) 0) 1 0)))
 
 (defun picture-draw-rectangle (start end)
-  "Draw a rectangle around region."
+  "Draw a rectangle around region from START to END."
   (interactive "*r")                    ; start will be less than end
   (let* ((sl     (picture-current-line))
          (sc     (current-column))
