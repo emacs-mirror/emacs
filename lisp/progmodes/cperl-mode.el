@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
-;; Author: Ilya Zakharevich
+;; Author: Ilya Zakharevich <ilyaz@cpan.org>
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
@@ -23,8 +23,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-;; Corrections made by Ilya Zakharevich ilyaz@cpan.org
 
 ;;; Commentary:
 
