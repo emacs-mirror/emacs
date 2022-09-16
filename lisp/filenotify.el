@@ -339,6 +339,7 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
   "Add a watch for FILE in DIR with FLAGS, using inotify."
   (inotify-add-watch dir
                      (append
+                      '(dont-follow)
                       (and (memq 'change flags)
                            '(create delete delete-self modify move-self move))
                       (and (memq 'attribute-change flags)

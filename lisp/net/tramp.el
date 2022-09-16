@@ -5173,8 +5173,10 @@ of."
   ;; The descriptor must be a process object.
   (unless (processp proc)
     (tramp-error proc 'file-notify-error "Not a valid descriptor %S" proc))
-  ;; There might be pending output.
-  (while (tramp-accept-process-output proc 0))
+  ;; There might be pending output.  Avoid problems with reentrant
+  ;; call of Tramp.
+  (ignore-errors
+    (while (tramp-accept-process-output proc 0)))
   (tramp-message proc 6 "Kill %S" proc)
   (delete-process proc))
 

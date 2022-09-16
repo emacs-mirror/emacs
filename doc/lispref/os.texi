@@ -3175,6 +3175,9 @@ This is not detected by this function, and so a non-@code{nil} return
 value does not guarantee that changes on @var{file} will be actually
 notified.
 
+If @var{file} is a symlink, it doesn't follow that link.  Just
+@var{file} itself will be watched.
+
 @var{flags} is a list of conditions to set what will be watched for.
 It can include the following symbols:
 

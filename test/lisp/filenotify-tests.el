@@ -1571,6 +1571,115 @@ the file watch."
 (file-notify--deftest-remote file-notify-test10-sufficient-resources
   "Check `file-notify-test10-sufficient-resources' for remote files.")
 
+(ert-deftest file-notify-test11-symlinks ()
+  "Check that file notification do not follow symbolic links."
+  :tags '(:expensive-test)
+  (skip-unless (file-notify--test-local-enabled))
+
+  (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
+        file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
+
+  ;; Symlink a file.
+  (unwind-protect
+      (progn
+	(write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
+        (make-symbolic-link file-notify--test-tmpfile1 file-notify--test-tmpfile)
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; Writing to either the symlink or the target should not
+        ;; raise any event.
+        (file-notify--test-with-actions nil
+          (write-region
+           "another text" nil file-notify--test-tmpfile nil 'no-message)
+          (write-region
+           "another text" nil file-notify--test-tmpfile1 nil 'no-message))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; Changing timestamp of the target should not raise any
+        ;; event.  We don't use `nofollow'.
+        (file-notify--test-with-actions nil
+          (set-file-times file-notify--test-tmpfile1 '(0 0))
+          (set-file-times file-notify--test-tmpfile '(0 0)))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; Changing timestamp of the symlink shows the event.
+        (file-notify--test-with-actions '(attribute-changed)
+          (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow))
+
+        ;; Deleting the target should not raise any event.
+        (file-notify--test-with-actions nil
+          (delete-file file-notify--test-tmpfile1)
+          (delete-file file-notify--test-tmpfile))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; The environment shall be cleaned up.
+	(file-notify-rm-watch file-notify--test-desc)
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup))
+
+  (setq file-notify--test-tmpfile1 (file-notify--test-make-temp-name)
+        file-notify--test-tmpfile (file-notify--test-make-temp-name))
+
+  ;; Symlink a directory.
+  (unwind-protect
+      (let ((tmpfile (expand-file-name "foo" file-notify--test-tmpfile))
+            (tmpfile1 (expand-file-name "foo" file-notify--test-tmpfile1)))
+	(make-directory file-notify--test-tmpfile1)
+        (make-symbolic-link file-notify--test-tmpfile1 file-notify--test-tmpfile)
+	(write-region "any text" nil tmpfile1 nil 'no-message)
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; None of the actions on a file in the symlinked directory will be reported.
+        (file-notify--test-with-actions nil
+          (write-region "another text" nil tmpfile nil 'no-message)
+          (write-region "another text" nil tmpfile1 nil 'no-message)
+          (set-file-times tmpfile '(0 0))
+          (set-file-times tmpfile '(0 0) 'nofollow)
+          (set-file-times tmpfile1 '(0 0))
+          (set-file-times tmpfile1 '(0 0) 'nofollow)
+          (delete-file tmpfile)
+          (delete-file tmpfile1))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; The environment shall be cleaned up.
+        (delete-directory file-notify--test-tmpdir 'recursive)
+	(file-notify-rm-watch file-notify--test-desc)
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test11-symlinks
+  "Check `file-notify-test11-symlinks' for remote files.")
+
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."
   (interactive "p")
