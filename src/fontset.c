@@ -922,8 +922,6 @@ face_for_char (struct frame *f, struct face *face, int c,
   int face_id;
   int id;
 
-  eassert (fontset_id_valid_p (face->fontset));
-
   if (ASCII_CHAR_P (c) || CHAR_BYTE8_P (c))
     return face->ascii_face->id;
 
@@ -969,6 +967,7 @@ face_for_char (struct frame *f, struct face *face, int c,
 #endif
     }
 
+  eassert (fontset_id_valid_p (face->fontset));
   fontset = FONTSET_FROM_ID (face->fontset);
   eassert (!BASE_FONTSET_P (fontset));
 
