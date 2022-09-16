@@ -6867,8 +6867,8 @@ Save the image to a file (@code{image-save}).
 @item c
 Crop the image interactively (@code{image-crop}).
 
-@item e
-Elide a rectangle from the image interactively (@code{image-elide}).
+@item x
+Cut a rectangle from the image interactively (@code{image-cut}).
 @end table
 
 @node Multi-Frame Images

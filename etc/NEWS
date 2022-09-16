@@ -2464,13 +2464,12 @@ name.
 * New Modes and Packages in Emacs 29.1
 
 +++
-** New commands 'image-crop' and 'image-elide'.
-These commands allow interactively cropping/eliding the image at
-point.  The commands are bound to keys 'c' and 'e' (respectively) in
+** New commands 'image-crop' and 'image-cut.
+These commands allow interactively cropping/cutting the image at
+point.  The commands are bound to keys 'c' and 'x' (respectively) in
 the local keymap over images.  They rely on external programs, by
 default 'convert' from ImageMagick, to do the actual cropping/eliding
-of the image file.  If the 'exiftool' program is available, it is used
-to optionally rotate images which have the :rotation property.
+of the image file.
 
 ---
 ** New package 'wallpaper'.
