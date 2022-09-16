@@ -4028,6 +4028,7 @@ Otherwise, return nil."
 
 (defun list-of-strings-p (object)
   "Return t if OBJECT is nil or a list of strings."
+  (declare (pure t) (side-effect-free error-free))
   (while (and (consp object) (stringp (car object)))
     (setq object (cdr object)))
   (null object))
