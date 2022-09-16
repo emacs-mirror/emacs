@@ -1014,7 +1014,7 @@ responsible for the given file."
                           (lambda (backend)
                             (when-let ((dir (vc-call-backend
                                              backend 'responsible-p file)))
-                              (cons backend dir)))
+                              (cons backend (expand-file-name dir))))
                           vc-handled-backends))))
         ;; Just a single response (or none); use it.
         (if (< (length dirs) 2)
