@@ -202,7 +202,7 @@ present if the icon is represented by an image."
                             :height (if (eq height 'line)
                                         (window-default-line-height)
                                       height)
-                            :scale 1)
+                            :scale 1 :ascent 'center)
             (create-image file))))))
 
 (cl-defmethod icons--create ((_type (eql 'emoji)) icon _keywords)
