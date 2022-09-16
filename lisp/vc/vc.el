@@ -1014,6 +1014,10 @@ responsible for the given file."
                           (lambda (backend)
                             (when-let ((dir (vc-call-backend
                                              backend 'responsible-p file)))
+                              ;; We run DIR through `expand-file-name'
+                              ;; so that abbreviated directories, such
+                              ;; as "~/", wouldn't look "less specific"
+                              ;; due to their artificially shorter length.
                               (cons backend (expand-file-name dir))))
                           vc-handled-backends))))
         ;; Just a single response (or none); use it.
