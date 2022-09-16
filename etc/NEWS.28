@@ -16,6 +16,33 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
 
+* Installation Changes in Emacs 28.3
+
+
+* Startup Changes in Emacs 28.3
+
+
+* Changes in Emacs 28.3
+
+
+* Editing Changes in Emacs 28.3
+
+
+* Changes in Specialized Modes and Packages in Emacs 28.3
+
+
+* New Modes and Packages in Emacs 28.3
+
+
+* Incompatible Lisp Changes in Emacs 28.3
+
+
+* Lisp Changes in Emacs 28.3
+
+
+* Changes in Emacs 28.3 on Non-Free Operating Systems
+
+
 * Installation Changes in Emacs 28.2
 
 ** To install the Emacs binary in a non-standard directory, use '--bindir='.
@@ -3257,12 +3284,13 @@ completing on commands from buffers in major modes derived from
 MODE..., or, if it's a minor mode, when that minor mode is enabled in
 the current buffer.
 
-Note that these forms will only have their effect if the
+Note that these forms will only have their effect for 'M-x' if the
 'read-extended-command-predicate' user option is customized to call
 'command-completion-default-include-p' or a similar function.  The
 default value of 'read-extended-command-predicate' is nil, which means
 no commands that match what you have typed are excluded from being
-completion candidates.
+completion candidates.  The forms will, however, be used by 'M-S-x' by
+default.
 
 ** 'define-minor-mode' now takes an ':interactive' argument.
 This can be used for specifying which modes this minor mode is meant
