@@ -3016,7 +3016,7 @@ and closing parentheses and brackets."
 	       ;; Now it is a hash reference
 	       (+ cperl-indent-level cperl-close-paren-offset))
 	     ;; Labels do not take :: ...
-	     (if (looking-at "\\(\\w\\|_\\)+[ \t]*:")
+	     (if (looking-at "\\(\\w\\|_\\)+[ \t]*:[^:]")
 		 (if (> (current-indentation) cperl-min-label-indent)
 		     (- (current-indentation) cperl-label-offset)
 		   ;; Do not move `parse-data', this should

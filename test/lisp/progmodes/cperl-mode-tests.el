@@ -1103,4 +1103,7 @@ as a regex."
     (funcall cperl-test-mode)
     (should-not (nth 3 (syntax-ppss 3)))))
 
+(ert-deftest test-indentation ()
+  (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
+
 ;;; cperl-mode-tests.el ends here
