@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1994, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -615,61 +615,57 @@ Leaves the region surrounding the rectangle."
 
 (defalias 'picture-delete-char 'delete-char)
 
-(defvar picture-mode-map
-  (let ((map (make-keymap)))
-    (define-key map [remap self-insert-command] 'picture-self-insert)
-    (define-key map [remap completion-separator-self-insert-command]
-			  'picture-self-insert)
-    (define-key map [remap completion-separator-self-insert-autofilling]
-			  'picture-self-insert)
-    (define-key map [remap forward-char] 'picture-forward-column)
-    (define-key map [remap right-char] 'picture-forward-column)
-    (define-key map [remap backward-char] 'picture-backward-column)
-    (define-key map [remap left-char] 'picture-backward-column)
-    (define-key map [remap delete-char] 'picture-clear-column)
-      ;; There are two possibilities for what is normally on DEL.
-    (define-key map [remap backward-delete-char-untabify]
-      'picture-backward-clear-column)
-    (define-key map [remap delete-backward-char] 'picture-backward-clear-column)
-    (define-key map [remap kill-line] 'picture-clear-line)
-    (define-key map [remap open-line] 'picture-open-line)
-    (define-key map [remap newline] 'picture-newline)
-    (define-key map [remap newline-and-indent] 'picture-duplicate-line)
-    (define-key map [remap next-line] 'picture-move-down)
-    (define-key map [remap previous-line] 'picture-move-up)
-    (define-key map [remap move-beginning-of-line] 'picture-beginning-of-line)
-    (define-key map [remap move-end-of-line] 'picture-end-of-line)
-    (define-key map [remap mouse-set-point] 'picture-mouse-set-point)
-    (define-key map "\C-c\C-d" 'picture-delete-char)
-    (define-key map "\t" 'picture-tab)
-    (define-key map "\e\t" 'picture-tab-search)
-    (define-key map "\C-c\t" 'picture-set-tab-stops)
-    (define-key map "\C-c\C-k" 'picture-clear-rectangle)
-    (define-key map "\C-c\C-w" 'picture-clear-rectangle-to-register)
-    (define-key map "\C-c\C-y" 'picture-yank-rectangle)
-    (define-key map "\C-c\C-x" 'picture-yank-rectangle-from-register)
-    (define-key map "\C-c\C-r" 'picture-draw-rectangle)
-    (define-key map "\C-c\C-c" 'picture-mode-exit)
-    (define-key map "\C-c\C-f" 'picture-motion)
-    (define-key map "\C-c\C-b" 'picture-motion-reverse)
-    (define-key map "\C-c<" 'picture-movement-left)
-    (define-key map "\C-c>" 'picture-movement-right)
-    (define-key map "\C-c^" 'picture-movement-up)
-    (define-key map "\C-c." 'picture-movement-down)
-    (define-key map "\C-c`" 'picture-movement-nw)
-    (define-key map "\C-c'" 'picture-movement-ne)
-    (define-key map "\C-c/" 'picture-movement-sw)
-    (define-key map "\C-c\\" 'picture-movement-se)
-    (define-key map [(control ?c) left]  'picture-movement-left)
-    (define-key map [(control ?c) right] 'picture-movement-right)
-    (define-key map [(control ?c) up]    'picture-movement-up)
-    (define-key map [(control ?c) down]  'picture-movement-down)
-    (define-key map [(control ?c) home]  'picture-movement-nw)
-    (define-key map [(control ?c) prior] 'picture-movement-ne)
-    (define-key map [(control ?c) end]   'picture-movement-sw)
-    (define-key map [(control ?c) next]  'picture-movement-se)
-    map)
-  "Keymap used in `picture-mode'.")
+(defvar-keymap picture-mode-map
+  :doc "Keymap used in `picture-mode'."
+  :full t
+  "<remap> <self-insert-command>"           #'picture-self-insert
+  "<remap> <completion-separator-self-insert-command>" #'picture-self-insert
+  "<remap> <completion-separator-self-insert-autofilling>" #'picture-self-insert
+  "<remap> <forward-char>"                  #'picture-forward-column
+  "<remap> <right-char>"                    #'picture-forward-column
+  "<remap> <backward-char>"                 #'picture-backward-column
+  "<remap> <left-char>"                     #'picture-backward-column
+  "<remap> <delete-char>"                   #'picture-clear-column
+  ;; There are two possibilities for what is normally on DEL.
+  "<remap> <backward-delete-char-untabify>" #'picture-backward-clear-column
+  "<remap> <delete-backward-char>"          #'picture-backward-clear-column
+  "<remap> <kill-line>"                     #'picture-clear-line
+  "<remap> <open-line>"                     #'picture-open-line
+  "<remap> <newline>"                       #'picture-newline
+  "<remap> <newline-and-indent>"            #'picture-duplicate-line
+  "<remap> <next-line>"                     #'picture-move-down
+  "<remap> <previous-line>"                 #'picture-move-up
+  "<remap> <move-beginning-of-line>"        #'picture-beginning-of-line
+  "<remap> <move-end-of-line>"              #'picture-end-of-line
+  "<remap> <mouse-set-point>"               #'picture-mouse-set-point
+  "C-c C-d"     #'picture-delete-char
+  "TAB"         #'picture-tab
+  "M-TAB"       #'picture-tab-search
+  "C-c TAB"     #'picture-set-tab-stops
+  "C-c C-k"     #'picture-clear-rectangle
+  "C-c C-w"     #'picture-clear-rectangle-to-register
+  "C-c C-y"     #'picture-yank-rectangle
+  "C-c C-x"     #'picture-yank-rectangle-from-register
+  "C-c C-r"     #'picture-draw-rectangle
+  "C-c C-c"     #'picture-mode-exit
+  "C-c C-f"     #'picture-motion
+  "C-c C-b"     #'picture-motion-reverse
+  "C-c <"       #'picture-movement-left
+  "C-c >"       #'picture-movement-right
+  "C-c ^"       #'picture-movement-up
+  "C-c ."       #'picture-movement-down
+  "C-c `"       #'picture-movement-nw
+  "C-c '"       #'picture-movement-ne
+  "C-c /"       #'picture-movement-sw
+  "C-c \\"      #'picture-movement-se
+  "C-c <left>"  #'picture-movement-left
+  "C-c <right>" #'picture-movement-right
+  "C-c <up>"    #'picture-movement-up
+  "C-c <down>"  #'picture-movement-down
+  "C-c <home>"  #'picture-movement-nw
+  "C-c <prior>" #'picture-movement-ne
+  "C-c <end>"   #'picture-movement-sw
+  "C-c <next>"  #'picture-movement-se)
 
 (defcustom picture-mode-hook nil
   "If non-nil, its value is called on entry to Picture mode.
