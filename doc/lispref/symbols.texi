@@ -613,7 +613,10 @@ file-local evaluation forms.  @xref{File Local Variables}.
 
 @item safe-local-variable
 The value specifies a function for determining safe file-local values
-for the named variable.  @xref{File Local Variables}.
+for the named variable.  @xref{File Local Variables}.  Since this
+value is consulted when loading files, the function should be
+efficient and should ideally not lead to loading any libraries to
+determine the safeness (e.g., it should not be an autoloaded function).
 
 @item side-effect-free
 @cindex @code{side-effect-free} property
