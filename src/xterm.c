@@ -17152,8 +17152,6 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	      x_dnd_waiting_for_finish = false;
 	      target = None;
 	    }
-
-	  x_dnd_last_seen_toplevel = toplevel;
 	}
 
       if (target != x_dnd_last_seen_window)
@@ -17184,6 +17182,7 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 	    }
 
 	  x_dnd_action = None;
+	  x_dnd_last_seen_toplevel = toplevel;
 	  x_dnd_last_seen_window = target;
 	  x_dnd_last_protocol_version = target_proto;
 	  x_dnd_last_motif_style = motif_style;
@@ -17211,6 +17210,8 @@ x_dnd_update_state (struct x_display_info *dpyinfo, Time timestamp)
 						 target, &emsg);
 	    }
 	}
+      else
+	x_dnd_last_seen_toplevel = toplevel;
 
       if (x_dnd_last_window_is_frame && target != None)
 	x_dnd_note_self_position (dpyinfo, target, root_x, root_y);
@@ -19679,8 +19680,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    x_dnd_waiting_for_finish = false;
 		    target = None;
 		  }
-
-		x_dnd_last_seen_toplevel = toplevel;
 	      }
 
 	    if (target != x_dnd_last_seen_window)
@@ -19732,6 +19731,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  }
 
 		x_dnd_action = None;
+		x_dnd_last_seen_toplevel = toplevel;
 		x_dnd_last_seen_window = target;
 		x_dnd_last_protocol_version = target_proto;
 		x_dnd_last_motif_style = motif_style;
@@ -19760,6 +19760,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						       target, &emsg);
 		  }
 	      }
+	    else
+	      x_dnd_last_seen_toplevel = toplevel;
 
 	    if (x_dnd_last_window_is_frame && target != None)
 	      x_dnd_note_self_position (dpyinfo, target,
@@ -21550,8 +21552,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  x_dnd_waiting_for_finish = false;
 			  target = None;
 			}
-
-		      x_dnd_last_seen_toplevel = toplevel;
 		    }
 
 		  if (target != x_dnd_last_seen_window)
@@ -21605,6 +21605,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			}
 
 		      x_dnd_action = None;
+		      x_dnd_last_seen_toplevel = toplevel;
 		      x_dnd_last_seen_window = target;
 		      x_dnd_last_protocol_version = target_proto;
 		      x_dnd_last_motif_style = motif_style;
@@ -21633,6 +21634,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 							     target, &emsg);
 			}
 		    }
+		  else
+		    x_dnd_last_seen_toplevel = toplevel;
 
 		  if (x_dnd_last_window_is_frame && target != None)
 		    x_dnd_note_self_position (dpyinfo, target,
