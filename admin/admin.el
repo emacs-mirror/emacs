@@ -951,10 +951,13 @@ $Date: %s $
           (forward-line -1)
           (insert (format
                    (concat
+                    "#+HTML: <p>&nbsp;</p>\n"
+                    "* Changes in Emacs %s.%s\n"
                     ;; Add anchor to allow linking to
                     ;; e.g. "NEWS.28.html#28.1".
-                    "#+HTML: <p id=\"%s.%s\">&nbsp;</p>\n"
-                    "* Changes in Emacs %s.%s\n")
+                    ":PROPERTIES:\n"
+                    ":CUSTOM_ID: %s.%s\n"
+                    ":END:\n")
                    last-major last-minor
                    last-major last-minor)))))
 
