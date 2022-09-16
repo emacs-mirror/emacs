@@ -298,6 +298,9 @@ name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
 Return the return value of the slave command in the synchronous
 case, and the process object in the asynchronous case."
+  (when vc-tor
+    (push command flags)
+    (setq command "torsocks"))
   ;; FIXME: file-relative-name can return a bogus result because
   ;; it doesn't look at the actual file-system to see if symlinks
   ;; come into play.
@@ -310,8 +313,7 @@ case, and the process object in the asynchronous case."
 	 ;; due to potential truncation of long messages.
 	 (message-truncate-lines t)
 	 (full-command
-	  (concat (if vc-tor "torsocks " "")
-                  (if (string= (substring command -1) "\n")
+	  (concat (if (string= (substring command -1) "\n")
 		      (substring command 0 -1)
 		    command)
 		  " " (vc-delistify flags)
