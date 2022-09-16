@@ -4048,14 +4048,10 @@ Returns non-nil if any false statements are found.
 (put 'checkdoc-force-history-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-permit-comma-termination-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-spellcheck-documentation-flag 'safe-local-variable #'booleanp)
-(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
+(put 'checkdoc-ispell-list-words 'safe-local-variable #'list-of-strings-p)
 (put 'checkdoc-arguments-in-order-flag 'safe-local-variable #'booleanp)
 (put 'checkdoc-verb-check-experimental-flag 'safe-local-variable #'booleanp)
-(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
-(autoload 'checkdoc-list-of-strings-p "checkdoc" "\
-Return t when OBJ is a list of strings.
-
-(fn OBJ)")
+(put 'checkdoc-symbol-words 'safe-local-variable #'list-of-strings-p)
 (put 'checkdoc-proper-noun-regexp 'safe-local-variable 'stringp)
 (put 'checkdoc-common-verbs-regexp 'safe-local-variable 'stringp)
 (autoload 'checkdoc "checkdoc" "\
@@ -16943,25 +16939,31 @@ should output the image in the current buffer, converted to
 
 ;;; Generated autoloads from image/image-crop.el
 
-(autoload 'image-elide "image-crop" "\
-Elide a square from the image under point.
-If SQUARE (interactively, the prefix), elide a square instead of a
-rectangle from the image.
+(autoload 'image-cut "image-crop" "\
+Cut a rectangle from the image under point.
+Interactively, if given a prefix, prompt for COLOR to use.
+Otherwise, default to `image-cut-color'.
 
-(fn &optional SQUARE)" t)
+(fn &optional COLOR)" t)
 (autoload 'image-crop "image-crop" "\
 Crop the image under point.
-If SQUARE (interactively, the prefix), crop a square instead of a
-rectangle from the image.
+If CUT is non-nil, remove a rectangle from the image instead of
+cropping the image.  In that case CUT should be the name of a
+color to fill the rectangle.
 
-If ELIDE, remove a rectangle from the image instead of cropping
-the image.
+While cropping the image, the following key bindings are available:
 
-After cropping an image, it can be saved by `M-x image-save' or
+`q':   Exit without changing anything.
+`RET': Crop/cut the image.
+`m':   Make mouse movements move the rectangle instead of altering the
+       rectangle shape.
+`s':   Same as `m', but make the rectangle into a square first.
+
+After cropping an image, you can save it by `M-x image-save' or
 \\<image-map>\\[image-save] when point is over the image.
 
-(fn &optional SQUARE ELIDE)" t)
-(register-definition-prefixes "image-crop" '("image-crop-"))
+(fn &optional CUT)" t)
+(register-definition-prefixes "image-crop" '("image-c"))
 
 
 ;;; Generated autoloads from image/image-dired.el
@@ -18756,7 +18758,7 @@ See `linum-mode' for more information on Linum mode.
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 (put 'generated-autoload-load-name 'safe-local-variable 'stringp)
 (autoload 'loaddefs-generate "loaddefs-gen" "\
-Generate loaddefs files for Lisp files in the directories DIRS.
+Generate loaddefs files for Lisp files in one or more directories given by DIR.
 DIR can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
@@ -18764,7 +18766,7 @@ binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified by DIRS.
+directories specified by DIR.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -23282,6 +23284,13 @@ Completion rules for the `cvs' command.")
 (register-definition-prefixes "pcmpl-cvs" '("pcmpl-cvs-"))
 
 
+;;; Generated autoloads from pcmpl-git.el
+
+(autoload 'pcomplete/git "pcmpl-git" "\
+Completion for the `git' command.")
+(register-definition-prefixes "pcmpl-git" '("pcmpl-git--"))
+
+
 ;;; Generated autoloads from pcmpl-gnu.el
 
 (autoload 'pcomplete/gzip "pcmpl-gnu" "\
@@ -23294,7 +23303,16 @@ Completion for GNU `make'.")
 Completion for the GNU tar utility.")
 (autoload 'pcomplete/find "pcmpl-gnu" "\
 Completion for the GNU find utility.")
-(defalias 'pcomplete/gdb 'pcomplete/xargs)
+(autoload 'pcomplete/awk "pcmpl-gnu" "\
+Completion for the `awk' command.")
+(autoload 'pcomplete/gpg "pcmpl-gnu" "\
+Completion for the `gpg` command.")
+(autoload 'pcomplete/gdb "pcmpl-gnu" "\
+Completion for the `gdb' command.")
+(autoload 'pcomplete/emacs "pcmpl-gnu" "\
+Completion for the `emacs' command.")
+(autoload 'pcomplete/emacsclient "pcmpl-gnu" "\
+Completion for the `emacsclient' command.")
 (register-definition-prefixes "pcmpl-gnu" '("pcmpl-gnu-" "pcomplete/find"))
 
 
@@ -23306,6 +23324,10 @@ Completion for GNU/Linux `kill', using /proc filesystem.")
 Completion for GNU/Linux `umount'.")
 (autoload 'pcomplete/mount "pcmpl-linux" "\
 Completion for GNU/Linux `mount'.")
+(autoload 'pcomplete/systemctl "pcmpl-linux" "\
+Completion for the `systemctl' command.")
+(autoload 'pcomplete/journalctl "pcmpl-linux" "\
+Completion for the `journalctl' command.")
 (register-definition-prefixes "pcmpl-linux" '("pcmpl-linux-" "pcomplete-pare-list"))
 
 
@@ -23313,6 +23335,8 @@ Completion for GNU/Linux `mount'.")
 
 (autoload 'pcomplete/rpm "pcmpl-rpm" "\
 Completion for the `rpm' command.")
+(autoload 'pcomplete/dnf "pcmpl-rpm" "\
+Completion for the `dnf' command.")
 (register-definition-prefixes "pcmpl-rpm" '("pcmpl-rpm-"))
 
 
@@ -23324,16 +23348,174 @@ Completion for `cd'.")
 (autoload 'pcomplete/rmdir "pcmpl-unix" "\
 Completion for `rmdir'.")
 (autoload 'pcomplete/rm "pcmpl-unix" "\
-Completion for `rm'.")
+Completion for the `rm' command.")
 (autoload 'pcomplete/xargs "pcmpl-unix" "\
 Completion for `xargs'.")
-(defalias 'pcomplete/time 'pcomplete/xargs)
+(autoload 'pcomplete/time "pcmpl-unix" "\
+Completion for the `time' command.")
 (autoload 'pcomplete/which "pcmpl-unix" "\
 Completion for `which'.")
+(autoload 'pcomplete/cat "pcmpl-unix" "\
+Completion for the `cat' command.")
+(autoload 'pcomplete/tac "pcmpl-unix" "\
+Completion for the `tac' command.")
+(autoload 'pcomplete/nl "pcmpl-unix" "\
+Completion for the `nl' command.")
+(autoload 'pcomplete/od "pcmpl-unix" "\
+Completion for the `od' command.")
+(autoload 'pcomplete/base32 "pcmpl-unix" "\
+Completion for the `base32' and `base64' commands.")
+(defalias 'pcomplete/base64 'pcomplete/base32)
+(autoload 'pcomplete/basenc "pcmpl-unix" "\
+Completion for the `basenc' command.")
+(autoload 'pcomplete/fmt "pcmpl-unix" "\
+Completion for the `fmt' command.")
+(autoload 'pcomplete/pr "pcmpl-unix" "\
+Completion for the `pr' command.")
+(autoload 'pcomplete/fold "pcmpl-unix" "\
+Completion for the `fold' command.")
+(autoload 'pcomplete/head "pcmpl-unix" "\
+Completion for the `head' command.")
+(autoload 'pcomplete/tail "pcmpl-unix" "\
+Completion for the `tail' command.")
+(autoload 'pcomplete/split "pcmpl-unix" "\
+Completion for the `split' command.")
+(autoload 'pcomplete/csplit "pcmpl-unix" "\
+Completion for the `csplit' command.")
+(autoload 'pcomplete/wc "pcmpl-unix" "\
+Completion for the `wc' command.")
+(autoload 'pcomplete/sum "pcmpl-unix" "\
+Completion for the `sum' command.")
+(autoload 'pcomplete/cksum "pcmpl-unix" "\
+Completion for the `cksum' command.")
+(autoload 'pcomplete/b2sum "pcmpl-unix" "\
+Completion for the `b2sum' command.")
+(autoload 'pcomplete/md5sum "pcmpl-unix" "\
+Completion for checksum commands.")
+(defalias 'pcomplete/sha1sum 'pcomplete/md5sum)
+(defalias 'pcomplete/sha224sum 'pcomplete/md5sum)
+(defalias 'pcomplete/sha256sum 'pcomplete/md5sum)
+(defalias 'pcomplete/sha384sum 'pcomplete/md5sum)
+(defalias 'pcomplete/sha521sum 'pcomplete/md5sum)
+(autoload 'pcomplete/sort "pcmpl-unix" "\
+Completion for the `sort' command.")
+(autoload 'pcomplete/shuf "pcmpl-unix" "\
+Completion for the `shuf' command.")
+(autoload 'pcomplete/uniq "pcmpl-unix" "\
+Completion for the `uniq' command.")
+(autoload 'pcomplete/comm "pcmpl-unix" "\
+Completion for the `comm' command.")
+(autoload 'pcomplete/ptx "pcmpl-unix" "\
+Completion for the `ptx' command.")
+(autoload 'pcomplete/tsort "pcmpl-unix" "\
+Completion for the `tsort' command.")
+(autoload 'pcomplete/cut "pcmpl-unix" "\
+Completion for the `cut' command.")
+(autoload 'pcomplete/paste "pcmpl-unix" "\
+Completion for the `paste' command.")
+(autoload 'pcomplete/join "pcmpl-unix" "\
+Completion for the `join' command.")
+(autoload 'pcomplete/tr "pcmpl-unix" "\
+Completion for the `tr' command.")
+(autoload 'pcomplete/expand "pcmpl-unix" "\
+Completion for the `expand' command.")
+(autoload 'pcomplete/unexpand "pcmpl-unix" "\
+Completion for the `unexpand' command.")
+(autoload 'pcomplete/ls "pcmpl-unix" "\
+Completion for the `ls' command.")
+(defalias 'pcomplete/dir 'pcomplete/ls)
+(defalias 'pcomplete/vdir 'pcomplete/ls)
+(autoload 'pcomplete/cp "pcmpl-unix" "\
+Completion for the `cp' command.")
+(autoload 'pcomplete/dd "pcmpl-unix" "\
+Completion for the `dd' command.")
+(autoload 'pcomplete/install "pcmpl-unix" "\
+Completion for the `install' command.")
+(autoload 'pcomplete/mv "pcmpl-unix" "\
+Completion for the `mv' command.")
+(autoload 'pcomplete/shred "pcmpl-unix" "\
+Completion for the `shred' command.")
+(autoload 'pcomplete/ln "pcmpl-unix" "\
+Completion for the `ln' command.")
+(autoload 'pcomplete/mkdir "pcmpl-unix" "\
+Completion for the `mkdir' command.")
+(autoload 'pcomplete/mkfifo "pcmpl-unix" "\
+Completion for the `mkfifo' command.")
+(autoload 'pcomplete/mknod "pcmpl-unix" "\
+Completion for the `mknod' command.")
+(autoload 'pcomplete/readlink "pcmpl-unix" "\
+Completion for the `readlink' command.")
 (autoload 'pcomplete/chown "pcmpl-unix" "\
 Completion for the `chown' command.")
 (autoload 'pcomplete/chgrp "pcmpl-unix" "\
 Completion for the `chgrp' command.")
+(autoload 'pcomplete/chmod "pcmpl-unix" "\
+Completion for the `chmod' command.")
+(autoload 'pcomplete/touch "pcmpl-unix" "\
+Completion for the `touch' command.")
+(autoload 'pcomplete/df "pcmpl-unix" "\
+Completion for the `df' command.")
+(autoload 'pcomplete/du "pcmpl-unix" "\
+Completion for the `du' command.")
+(autoload 'pcomplete/stat "pcmpl-unix" "\
+Completion for the `stat' command.")
+(autoload 'pcomplete/sync "pcmpl-unix" "\
+Completion for the `sync' command.")
+(autoload 'pcomplete/truncate "pcmpl-unix" "\
+Completion for the `truncate' command.")
+(autoload 'pcomplete/echo "pcmpl-unix" "\
+Completion for the `echo' command.")
+(autoload 'pcomplete/test "pcmpl-unix" "\
+Completion for the `test' command.")
+(defalias (intern "pcomplete/[") 'pcomplete/test)
+(autoload 'pcomplete/tee "pcmpl-unix" "\
+Completion for the `tee' command.")
+(autoload 'pcomplete/basename "pcmpl-unix" "\
+Completion for the `basename' command.")
+(autoload 'pcomplete/dirname "pcmpl-unix" "\
+Completion for the `dirname' command.")
+(autoload 'pcomplete/pathchk "pcmpl-unix" "\
+Completion for the `pathchk' command.")
+(autoload 'pcomplete/mktemp "pcmpl-unix" "\
+Completion for the `mktemp' command.")
+(autoload 'pcomplete/realpath "pcmpl-unix" "\
+Completion for the `realpath' command.")
+(autoload 'pcomplete/id "pcmpl-unix" "\
+Completion for the `id' command.")
+(autoload 'pcomplete/groups "pcmpl-unix" "\
+Completion for the `groups' command.")
+(autoload 'pcomplete/who "pcmpl-unix" "\
+Completion for the `who' command.")
+(autoload 'pcomplete/date "pcmpl-unix" "\
+Completion for the `date' command.")
+(autoload 'pcomplete/nproc "pcmpl-unix" "\
+Completion for the `nproc' command.")
+(autoload 'pcomplete/uname "pcmpl-unix" "\
+Completion for the `uname' command.")
+(autoload 'pcomplete/hostname "pcmpl-unix" "\
+Completion for the `hostname' command.")
+(autoload 'pcomplete/uptime "pcmpl-unix" "\
+Completion for the `uptime' command.")
+(autoload 'pcomplete/chcon "pcmpl-unix" "\
+Completion for the `chcon' command.")
+(autoload 'pcomplete/runcon "pcmpl-unix" "\
+Completion for the `runcon' command.")
+(autoload 'pcomplete/chroot "pcmpl-unix" "\
+Completion for the `chroot' command.")
+(autoload 'pcomplete/env "pcmpl-unix" "\
+Completion for the `env' command.")
+(autoload 'pcomplete/nice "pcmpl-unix" "\
+Completion for the `nice' command.")
+(autoload 'pcomplete/nohup "pcmpl-unix" "\
+Completion for the `nohup' command.")
+(autoload 'pcomplete/stdbuf "pcmpl-unix" "\
+Completion for the `stdbuf' command.")
+(autoload 'pcomplete/timeout "pcmpl-unix" "\
+Completion for the `timeout' command.")
+(autoload 'pcomplete/numfmt "pcmpl-unix" "\
+Completion for the `numfmt' command.")
+(autoload 'pcomplete/seq "pcmpl-unix" "\
+Completion for the `seq' command.")
 (autoload 'pcomplete/ssh "pcmpl-unix" "\
 Completion rules for the `ssh' command.")
 (defalias 'pcomplete/rsh #'pcomplete/ssh)
@@ -23341,13 +23523,25 @@ Completion rules for the `ssh' command.")
 Completion rules for the `scp' command.
 Includes files as well as host names followed by a colon.")
 (autoload 'pcomplete/telnet "pcmpl-unix")
+(autoload 'pcomplete/sudo "pcmpl-unix" "\
+Completion for the `sudo' command.")
 (register-definition-prefixes "pcmpl-unix" '("pcmpl-" "pcomplete/"))
 
 
 ;;; Generated autoloads from pcmpl-x.el
 
+(autoload 'pcomplete/tex "pcmpl-x" "\
+Completion for the `tex' command.")
+(defalias 'pcomplete/pdftex 'pcomplete/tex)
+(defalias 'pcomplete/latex 'pcomplete/tex)
+(defalias 'pcomplete/pdflatex 'pcomplete/tex)
+(autoload 'pcomplete/luatex "pcmpl-x" "\
+Completion for the `luatex' command.")
+(defalias 'pcomplete/lualatex 'pcomplete/luatex)
 (autoload 'pcomplete/tlmgr "pcmpl-x" "\
 Completion for the `tlmgr' command.")
+(autoload 'pcomplete/rg "pcmpl-x" "\
+Completion for the `rg' command.")
 (autoload 'pcomplete/ack "pcmpl-x" "\
 Completion for the `ack' command.
 Start an argument with `-' to complete short options and `--' for
@@ -23358,6 +23552,8 @@ Completion for the `ag' command.")
 (autoload 'pcomplete/bcc32 "pcmpl-x" "\
 Completion function for Borland's C++ compiler.")
 (defalias 'pcomplete/bcc 'pcomplete/bcc32)
+(autoload 'pcomplete/rclone "pcmpl-x" "\
+Completion for the `rclone' command.")
 (register-definition-prefixes "pcmpl-x" '("pcmpl-x-"))
 
 
@@ -33558,11 +33754,7 @@ case, and the process object in the asynchronous case.
 
 ;;; Generated autoloads from vc/vc-git.el
 
-(defun vc-git-annotate-switches-safe-p (switches) "\
-Check if local value of `vc-git-annotate-switches' is safe.
-Currently only \"-w\" (ignore whitespace) is considered safe, but
-this list might be extended in the future." (equal switches "-w"))
-(put 'vc-git-annotate-switches 'safe-local-variable #'vc-git-annotate-switches-safe-p)
+(put 'vc-git-annotate-switches 'safe-local-variable (lambda (switches) (equal switches "-w")))
  (defun vc-git-registered (file)
   "Return non-nil if FILE is registered with git."
   (if (vc-find-root file ".git")       ; Short cut.
