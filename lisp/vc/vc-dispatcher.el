@@ -704,7 +704,11 @@ PATCH-STRING is a patch to check in."
       (erase-buffer)
       (when (stringp comment) (insert comment)))
     (if (or (not comment) initial-contents)
-	(message "%s  Type C-c C-c when done" msg)
+        (message (substitute-command-keys
+                  (if (eq major-mode 'log-edit-mode)
+                      "%s  Type \\[log-edit-done] when done"
+                    "%s  Type \\`C-c C-c' when done"))
+                 msg)
       (vc-finish-logentry (eq comment t)))))
 
 ;; vc-finish-logentry is typically called from a log-edit buffer (see

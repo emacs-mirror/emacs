@@ -1627,7 +1627,9 @@ Type \\[vc-next-action] to check in changes.")
      (format "I stole the lock on %s, " file-description)
      (current-time-string)
      ".\n")
-    (message "Please explain why you stole the lock.  Type C-c C-c when done.")))
+    (message
+     (substitute-command-keys
+      "Please explain why you stole the lock.  Type \\`C-c C-c' when done"))))
 
 (defun vc-checkin (files backend &optional comment initial-contents rev patch-string)
   "Check in FILES. COMMENT is a comment string; if omitted, a
