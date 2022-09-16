@@ -2053,6 +2053,11 @@ This replaces the message most navigation commands in the thumbnail
 buffer used to show at the bottom of the screen.
 
 ---
+*** PDF support.
+Image-Dired now displays thumbnails for PDF files.  Type 'RET' on a
+PDF file in the thumbnail buffer to visit the corresponding PDF.
+
+---
 *** Support GraphicsMagick command line tools.
 Support for the GraphicsMagick command line tool ("gm") has been
 added, and is used instead of ImageMagick when it is available.

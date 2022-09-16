@@ -69,7 +69,7 @@ previous -ARG, if ARG<0) files."
          thumb-file
          overlay)
      (when (and image-file
-                (string-match-p (image-file-name-regexp) image-file))
+                (string-match-p (image-dired--file-name-regexp) image-file))
        (setq thumb-file (image-dired-get-thumbnail-image image-file))
        ;; If image is not already added, then add it.
        (let ((thumb-ov (cl-loop for ov in (overlays-in (point) (1+ (point)))

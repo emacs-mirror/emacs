@@ -356,6 +356,11 @@ This affects the following commands:
 
 ;;; Util functions
 
+(defun image-dired--file-name-regexp ()
+  (let ((image-file-name-extensions
+         (append '("pdf") image-file-name-extensions)))
+    (image-file-name-regexp)))
+
 (defun image-dired-insert-image (file type relief margin)
   "Insert image FILE of image TYPE, using RELIEF and MARGIN, at point."
   (let ((i `(image :type ,type
@@ -366,7 +371,7 @@ This affects the following commands:
 
 (defun image-dired-get-thumbnail-image (file)
   "Return the image descriptor for a thumbnail of image file FILE."
-  (unless (string-match-p (image-file-name-regexp) file)
+  (unless (string-match-p (image-dired--file-name-regexp) file)
     (error "%s is not a valid image file" file))
   (let* ((thumb-file (image-dired-thumb-name file))
          (thumb-attr (file-attributes thumb-file)))
@@ -538,8 +543,8 @@ thumbnail buffer to be selected."
 ;;;###autoload
 (defun image-dired-show-all-from-dir (dir)
   "Make a thumbnail buffer for all images in DIR and display it.
-Any file matching `image-file-name-regexp' is considered an image
-file.
+Any file matching `image-dired--file-name-regexp' is considered an
+image file.
 
 If the number of image files in DIR exceeds
 `image-dired-show-all-from-dir-max-files', ask for confirmation
@@ -547,7 +552,7 @@ before creating the thumbnail buffer.  If that variable is nil,
 never ask for confirmation."
   (interactive "DImage-Dired: ")
   (dired dir)
-  (dired-mark-files-regexp (image-file-name-regexp))
+  (dired-mark-files-regexp (image-dired--file-name-regexp))
   (let ((files (dired-get-marked-files nil nil nil t)))
     (cond ((and (null (cdr files)))
            (message "No image files in directory"))
@@ -1091,10 +1096,9 @@ Ask user how many thumbnails should be displayed per row."
                        image-dired-external-viewer file)))))
 
 (defun image-dired-display-image (file &optional _ignored)
-  "Display image FILE in image buffer.
-Use this when you want to display the image, in a new window.
-The window will use `image-dired-display-image-mode' which is
-based on `image-mode'."
+  "Display image FILE in a the image buffer window.
+If it is an image, the window will use `image-dired-display-image-mode'
+which is based on `image-mode'."
   (declare (advertised-calling-convention (file) "29.1"))
   (setq file (expand-file-name file))
   (when (not (file-exists-p file))
@@ -1106,7 +1110,10 @@ based on `image-mode'."
     (when-let ((buf (find-file-noselect file nil t)))
       (pop-to-buffer buf)
       (rename-buffer image-dired-display-image-buffer)
-      (image-dired-display-image-mode)
+      (if (string-match (image-file-name-regexp) file)
+          (image-dired-display-image-mode)
+        ;; Support visiting PDF files.
+        (normal-mode))
       (select-window cur-win))))
 
 (defun image-dired-display-thumbnail-original-image (&optional arg)
@@ -1114,14 +1121,15 @@ based on `image-mode'."
 See documentation for `image-dired-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P" image-dired-thumbnail-mode)
+  (unless (string-equal major-mode "image-dired-thumbnail-mode")
+    (user-error "Not in `image-dired-thumbnail-mode'"))
   (let ((file (image-dired-original-file-name)))
-    (if (not (string-equal major-mode "image-dired-thumbnail-mode"))
-        (message "Not in image-dired-thumbnail-mode")
-      (if (not (image-dired-image-at-point-p))
-          (message "No thumbnail at point")
-        (if (not file)
-            (message "No original file name found")
-          (image-dired-display-image file arg))))))
+    (cond ((not (image-dired-image-at-point-p))
+           (message "No thumbnail at point"))
+          ((not file)
+           (message "No original file name found"))
+          (t
+           (image-dired-display-image file arg)))))
 
 (defun image-dired-rotate-original-left ()
   "Rotate original image left (counter clockwise) 90 degrees.
