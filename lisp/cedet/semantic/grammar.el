@@ -1148,9 +1148,9 @@ END is the limit of the search."
 
 (defvar semantic-grammar-mode-keywords-1
   `(("\\(\\<%%\\>\\|\\<%[{}]\\)"
-     0 font-lock-reference-face)
+     0 font-lock-constant-face)
     ("\\(%\\)\\(\\(\\sw\\|\\s_\\)+\\)"
-     (1 font-lock-reference-face)
+     (1 font-lock-constant-face)
      (2 font-lock-keyword-face))
     ("\\<error\\>"
      0 (unless (semantic-grammar-in-lisp-p) 'bold))
@@ -1167,7 +1167,8 @@ END is the limit of the search."
     (,semantic-grammar-lex-c-char-re
      0 ,(if (boundp 'font-lock-constant-face)
             'font-lock-constant-face
-          'font-lock-string-face) t)
+          'font-lock-string-face)
+     t)
     ;; Must highlight :keyword here, because ':' is a punctuation in
     ;; grammar mode!
     ("[\r\n\t ]+:\\sw+\\>"
