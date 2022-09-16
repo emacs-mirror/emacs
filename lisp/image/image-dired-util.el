@@ -38,7 +38,7 @@
 (defvar image-dired-debug nil
   "Non-nil means enable debug messages.")
 
-(defun image-dired-debug-message (&rest args)
+(defun image-dired-debug (&rest args)
   "Display debug message ARGS when `image-dired-debug' is non-nil."
   (when image-dired-debug
     (apply #'message args)))
@@ -46,8 +46,9 @@
 (defun image-dired-dir ()
   "Return the current thumbnail directory (from variable `image-dired-dir').
 Create the thumbnail directory if it does not exist."
-  (let ((image-dired-dir (file-name-as-directory
-                          (expand-file-name image-dired-dir))))
+  (let ((image-dired-dir
+         (file-name-as-directory
+          (expand-file-name image-dired-dir))))
     (unless (file-directory-p image-dired-dir)
       (with-file-modes #o700
         (make-directory image-dired-dir t))

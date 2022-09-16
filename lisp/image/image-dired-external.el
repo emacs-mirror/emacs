@@ -311,15 +311,17 @@ and remove the cached thumbnail files between each trial run.")
 
     ;; Thumbnail file creation processes begin here and are marshaled
     ;; in a queue by `image-dired-create-thumb'.
-    (setq process
-          (apply #'start-process "image-dired-create-thumbnail" nil
-                 image-dired-cmd-create-thumbnail-program
-                 (mapcar
-                  (lambda (arg) (format-spec arg spec))
-                  (if (memq image-dired-thumbnail-storage
-                            image-dired--thumbnail-standard-sizes)
-                      image-dired-cmd-create-standard-thumbnail-options
-                    image-dired-cmd-create-thumbnail-options))))
+    (let ((cmd image-dired-cmd-create-thumbnail-program)
+          (args (mapcar
+                 (lambda (arg) (format-spec arg spec))
+                 (if (memq image-dired-thumbnail-storage
+                           image-dired--thumbnail-standard-sizes)
+                     image-dired-cmd-create-standard-thumbnail-options
+                   image-dired-cmd-create-thumbnail-options))))
+      (image-dired-debug "Running %s %s" cmd (string-join args " "))
+      (setq process
+            (apply #'start-process "image-dired-create-thumbnail" nil
+                   cmd args)))
 
     (setf (process-sentinel process)
           (lambda (process status)
@@ -327,7 +329,7 @@ and remove the cached thumbnail files between each trial run.")
             (cl-decf image-dired-queue-active-jobs)
             (image-dired-thumb-queue-run)
             (when (= image-dired-queue-active-jobs 0)
-              (image-dired-debug-message
+              (image-dired-debug
                (format-time-string
                 "Generated thumbnails in %s.%3N seconds"
                 (time-subtract nil
