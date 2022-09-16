@@ -986,8 +986,6 @@ If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
   (when (mouse-event-p event)
     (mouse-set-point event))
-  (when (outline--use-buttons-p)
-    (outline--insert-close-button))
   (outline-flag-subtree t))
 
 (defun outline--make-button-overlay (type)
@@ -1052,12 +1050,12 @@ If non-nil, EVENT should be a mouse event."
         (setq from (line-beginning-position))))
     (outline-map-region
      (lambda ()
-       ;; `outline--cycle-state' will fail if we're in a totally
-       ;; collapsed buffer -- but in that case, we're not in a
-       ;; `show-all' situation.
-       (if (eq (ignore-errors (outline--cycle-state)) 'show-all)
-           (outline--insert-open-button)
-         (outline--insert-close-button)))
+       (if (save-excursion
+             (outline-end-of-heading)
+             (seq-some (lambda (o) (eq (overlay-get o 'invisible) 'outline))
+                       (overlays-at (point))))
+           (outline--insert-close-button)
+         (outline--insert-open-button)))
      (or from (point-min)) (or to (point-max)))))
 
 (define-obsolete-function-alias 'hide-subtree #'outline-hide-subtree "25.1")
@@ -1080,8 +1078,6 @@ If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
   (when (mouse-event-p event)
     (mouse-set-point event))
-  (when (outline--use-buttons-p)
-    (outline--insert-open-button))
   (outline-flag-subtree nil))
 
 (define-obsolete-function-alias 'show-subtree #'outline-show-subtree "25.1")
