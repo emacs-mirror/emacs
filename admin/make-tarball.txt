@@ -52,11 +52,12 @@ General steps (for each step, check for possible errors):
       ./autogen.sh
       ./configure --with-native-compilation && make
 
-    For a release (as opposed to pretest), delete any left-over "---"
-    and "+++" markers from etc/NEWS, as well as the "Temporary note"
-    section at the beginning of that file, and commit etc/NEWS if it
-    was modified.  For a bug fix release (e.g. 28.2), delete any empty
-    headlines too.
+    For a release (as opposed to pretest), visit etc/NEWS and use the
+    "M-x emacs-news-delete-temporary-markers" command to delete any
+    left-over "---" and "+++" markers from etc/NEWS, as well as the
+    "Temporary note" section at the beginning of that file, and commit
+    etc/NEWS if it was modified.  For a bug fix release (e.g. 28.2),
+    delete any empty headlines too.
 
 2.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
 
