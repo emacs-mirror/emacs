@@ -107,7 +107,7 @@ as was already the case for all the non-preloaded files.
 ** Emacs Sessions (Desktop)
 
 +++
-*** New option to load a locked desktop if locking Emacs is not running.
+*** New user option to load a locked desktop if locking Emacs is not running.
 The option 'desktop-load-locked-desktop' can now be set to the value
 'check-pid', which means to allow loading a locked ".emacs.desktop"
 file if the Emacs process which locked it is no longer running on the
@@ -189,7 +189,7 @@ buffers, but not in buffers that inherit from 'special-mode'.  To get
 back to how things worked in Emacs 28.1, put the following in your
 init file:
 
-  (setopt show-paren-predicate t)
+    (setopt show-paren-predicate t)
 
 +++
 *** Explicitly-set read-only state is preserved when reverting a buffer.
@@ -1588,7 +1588,7 @@ Non-nil means that the default definitions of equivalent characters
 are overridden.
 
 *** New command 'describe-char-fold-equivalences'.
-It displays character equivalences used by `char-fold-to-regexp'.
+It displays character equivalences used by 'char-fold-to-regexp'.
 
 +++
 *** New command 'isearch-emoji-by-name'.
@@ -1681,7 +1681,7 @@ consistent with 'vc-responsible-backend'.
 ---
 *** Log Edit now font locks long Git commit summary lines.
 Writing shorter summary lines avoids truncation in contexts in which
-Git commands display summary lines.  See the two new variables
+Git commands display summary lines.  See the two new user options
 'vc-git-log-edit-summary-target-len' and 'vc-git-log-edit-summary-max-len'.
 
 ** Message
@@ -1951,16 +1951,16 @@ as opposed to via the command-line.
 *** New command 'image-transform-fit-to-window'.
 This command fits the image to the current window by scaling down or
 up as necessary.  Unlike 'image-transform-fit-both', this does not
-only scale the image down, but up as well.  It is bound to "s w" in
+only scale the image down, but up as well.  It is bound to 's w' in
 Image Mode by default.
 
 ---
 *** New command 'image-mode-wallpaper-set'.
 This command sets the desktop background to the current image.  It is
-bound to "W" by default.
+bound to 'W' by default.
 
 +++
-*** 'image-transform-fit-to-(height|width)' are now obsolete.
+*** 'image-transform-fit-to-{height,width}' are now obsolete.
 Use the new command 'image-transform-fit-to-window' instead.
 The keybinding for 'image-transform-fit-to-width' is now 's i'.
 
@@ -1986,7 +1986,7 @@ These commands horizontally and vertically flip the image under point.
 +++
 *** New command 'image-transform-set-percent'.
 It allows setting the image size to a percentage of its original size,
-and is bound to "s p" in Image mode.
+and is bound to 's p' in Image mode.
 
 +++
 *** 'image-transform-original' renamed to 'image-transform-reset-to-original'.
@@ -2107,7 +2107,7 @@ now obsolete: 'image-dired-gallery-thumb-image-root-url',
 'image-dired-gallery-image-root-url'.
 
 ---
-*** 'image-dired-rotate-thumbnail-(left|right)' is now obsolete.
+*** 'image-dired-rotate-thumbnail-{left,right}' are now obsolete.
 Instead, use commands 'image-dired-refresh-thumb' to generate a new
 thumbnail, or 'image-rotate' to rotate the thumbnail without updating
 the thumbnail file.
@@ -2178,9 +2178,9 @@ recently set.
 It is bound to the new command 'bookmark-edit-annotation-cancel'.
 
 ---
-*** New option 'bookmark-fringe-mark'.
+*** New user option 'bookmark-fringe-mark'.
 This option controls the bitmap used to indicate bookmarks in the
-fringe (or 'nil' to disable showing this marker).
+fringe (or nil to disable showing this marker).
 
 ** Exif
 
@@ -2282,7 +2282,7 @@ in the project root directory and is shared among all project buffers.
 
 Without a prefix argument, the kind of shell (buffer-dedicated,
 project-dedicated or global) is specified by the new
-'python-shell-dedicated' variable.
+'python-shell-dedicated' user option.
 
 ** Ruby Mode
 
@@ -2308,14 +2308,15 @@ automatically insert the Tramp prefix.  The automatic insertion
 applies only when 'default-directory' is remote and the command is a
 Lisp function.  This frees you from having to keep track of whether
 commands are Lisp function or external when supplying absolute file
-name arguments.  See "Electric forward slash" in the Eshell manual.
+name arguments.  See the "(eshell) Electric forward slash" node in the
+Eshell manual for details.
 
 +++
 *** Improved support for redirection operators in Eshell.
 Eshell now supports a wider variety of redirection operators.  For
 example, you can now redirect both stdout and stderr via '&>' or
 duplicate one output handle to another via 'NEW-FD>&OLD-FD'.  For more
-information, see "Redirections" in the Eshell manual.
+information, see the "(eshell) Redirection" node in the Eshell manual.
 
 +++
 *** Double-quoting an Eshell expansion now treats the result as a single string.
@@ -2434,7 +2435,7 @@ instead of also trying to ping it.  Customize the user option
 *** The 'run-dig' command is now obsolete; use 'dig' instead.
 
 ---
-*** Some `bib-mode' commands and variables have been renamed.
+*** Some 'bib-mode' commands and variables have been renamed.
 To respect Emacs naming conventions, the variable 'unread-bib-file'
 has been renamed to 'bib-unread-file'.  The following commands have
 also been renamed:
@@ -2468,15 +2469,15 @@ name.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'c' and 'x' (respectively) in
 the local keymap over images.  They rely on external programs, by
-default 'convert' from ImageMagick, to do the actual cropping/eliding
+default "convert" from ImageMagick, to do the actual cropping/eliding
 of the image file.
 
 ---
 ** New package 'wallpaper'.
 This package provides the command 'wallpaper-set', which sets the
 desktop background image.  Depending on the system and the desktop,
-this may require an external program (such as 'swaybg', 'gm',
-'display' or 'xloadimage').  If so, a suitable command should be
+this may require an external program (such as "swaybg", "gm",
+"display" or "xloadimage").  If so, a suitable command should be
 detected automatically in most cases.  It can also be customized
 manually if needed, using the new user options 'wallpaper-command' and
 'wallpaper-command-args'.
@@ -2687,7 +2688,7 @@ It's been obsolete since Emacs-22.1, actually.
 negative arguments, and is generally slower than 'ash', which should be
 used instead.  This warning can be suppressed by surrounding calls to
 'lsh' with the construct '(with-suppressed-warnings ((suspicious lsh)) ...)',
-but switching to `ash` is generally much preferable.
+but switching to 'ash' is generally much preferable.
 
 ---
 ** Some functions and variables obsolete since Emacs 24 have been removed:
@@ -2837,12 +2838,12 @@ patcomp.el, pc-mode.el, pc-select.el, s-region.el, and sregex.el.
 Emacs has a number of rather obscure generalized variables defined,
 that, for instance, allowed you to say things like:
 
-   (setf (point-min) 4)
+    (setf (point-min) 4)
 
 These never caught on and have been made obsolete.  The form above,
 for instance, is the same as saying
 
-   (narrow-to-region 4 (point-max))
+    (narrow-to-region 4 (point-max))
 
 The following generalized variables have been made obsolete:
 'buffer-file-name', 'buffer-local-value', 'buffer-modified-p',
