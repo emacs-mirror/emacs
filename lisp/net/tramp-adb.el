@@ -95,7 +95,7 @@ It is used for TCP/IP devices."
  (add-to-list 'tramp-methods
 	      `(,tramp-adb-method
                 (tramp-login-program ,tramp-adb-program)
-                (tramp-login-args    (("shell")))
+                (tramp-login-args    (("-s" "%d") ("shell")))
                 (tramp-direct-async  t)
 	        (tramp-tmpdir        "/data/local/tmp")
                 (tramp-default-port  5555)))
@@ -256,7 +256,7 @@ arguments to pass to the OPERATION."
 	  v localname (format "file-attributes-%s" id-format)
 	(and
 	 (tramp-adb-send-command-and-check
-	  v (format "%s -d -l %s"
+	  v (format "%s -d -l %s | cat"
 		    (tramp-adb-get-ls-command v)
 		    (tramp-shell-quote-argument localname)))
 	 (with-current-buffer (tramp-get-buffer v)
@@ -315,20 +315,25 @@ arguments to pass to the OPERATION."
 			       full match id-format nosort count)
 	 (with-current-buffer (tramp-get-buffer v)
 	   (when (tramp-adb-send-command-and-check
-		  v (format "%s -a -l %s"
+		  v (format "%s -a -l %s | cat"
 			    (tramp-adb-get-ls-command v)
 			    (tramp-shell-quote-argument localname)))
-	     ;; We insert also filename/. and filename/.., because "ls" doesn't.
-	     ;; Looks like it does include them in toybox, since Android 6.
+	     ;; We insert also filename/. and filename/.., because
+	     ;; "ls" doesn't on some file systems, like "sdcard".
 	     (unless (re-search-backward "\\.$" nil t)
 	       (narrow-to-region (point-max) (point-max))
 	       (tramp-adb-send-command
-		v (format "%s -d -a -l %s %s"
+		v (format "%s -d -a -l %s %s | cat"
 			  (tramp-adb-get-ls-command v)
 			  (tramp-shell-quote-argument
 			   (tramp-compat-file-name-concat localname "."))
 			  (tramp-shell-quote-argument
 			   (tramp-compat-file-name-concat localname ".."))))
+	       (tramp-compat-replace-regexp-in-region
+		(regexp-quote
+		 (tramp-compat-file-name-unquote
+		  (file-name-as-directory localname)))
+		"" (point-min))
 	       (widen)))
 	   (tramp-adb-sh-fix-ls-output)
 	   (let ((result (tramp-do-parse-file-attributes-with-ls
@@ -474,7 +479,7 @@ Emacs dired can't find files."
    (with-parsed-tramp-file-name (expand-file-name directory) nil
      (with-tramp-file-property v localname "file-name-all-completions"
        (tramp-adb-send-command
-	v (format "%s -a %s"
+	v (format "%s -a %s | cat"
 		  (tramp-adb-get-ls-command v)
 		  (tramp-shell-quote-argument localname)))
        (mapcar
@@ -485,9 +490,8 @@ Emacs dired can't find files."
 	(with-current-buffer (tramp-get-buffer v)
 	  (delete-dups
 	   (append
-	    ;; In older Android versions, "." and ".." are not
-	    ;; included.  In newer versions (toybox, since Android 6)
-	    ;; they are.  We fix this by `delete-dups'.
+	    ;; On some file systems like "sdcard", "." and ".." are
+	    ;; not included.  We fix this by `delete-dups'.
 	    '("." "..")
 	    (delq
 	     nil
@@ -1270,9 +1274,8 @@ connection if a previous connection has died for some reason."
 	(with-tramp-progress-reporter vec 3 "Opening adb shell connection"
 	  (let* ((coding-system-for-read 'utf-8-dos) ; Is this correct?
 		 (process-connection-type tramp-process-connection-type)
-		 (args (if (> (length host) 0)
-			   (list "-s" device "shell")
-			 (list "shell")))
+		 (args (tramp-expand-args
+			vec 'tramp-login-args ?d (or device "")))
 		 (p (let ((default-directory
 			    tramp-compat-temporary-file-directory))
 		      (apply #'start-process (tramp-get-connection-name vec) buf

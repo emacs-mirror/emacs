@@ -1053,12 +1053,14 @@ file names."
 		       ;; code in case of direct copy/move.  Apply
 		       ;; sanity checks.
 		       (or (not equal-remote)
-			   (tramp-gvfs-send-command
-			    v "gvfs-info" (tramp-gvfs-url-file-name newname))
-			   (eq op 'copy)
-			   (not (tramp-gvfs-send-command
-				 v "gvfs-info"
-				 (tramp-gvfs-url-file-name filename)))))
+			   (and
+			    (tramp-gvfs-send-command
+			     v "gvfs-info"
+			     (tramp-gvfs-url-file-name newname))
+			    (or (eq op 'copy)
+				(not (tramp-gvfs-send-command
+				      v "gvfs-info"
+				      (tramp-gvfs-url-file-name filename)))))))
 
 		(if (or (not equal-remote)
 			(and equal-remote

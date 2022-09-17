@@ -2704,14 +2704,31 @@ where @samp{192.168.0.26} is the Android device's IP address.
 (@pxref{Predefined connection information}).
 
 @item
-@value{tramp} requires preserving @env{PATH} environment variable from
-user settings.  Android devices prefer @file{/system/xbin} path over
-@file{/system/bin}.  Both of these are set as follows:
+On the Android device the directory names are prefixed with an
+application specific prefix, which is
+@file{/data/data/com.termux/files/usr/bin} instead of @file{/usr/bin}
+in the @code{Termux} case.  You must adapt the file names in
+@code{tramp-remote-path}, for example via connection-local
+@ifinfo
+settings (@pxref{Connection Variables, , , emacs}):
+@end ifinfo
+@ifnotinfo
+settings:
+@end ifnotinfo
 
 @lisp
 @group
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(add-to-list 'tramp-remote-path "/system/xbin")
+(connection-local-set-profile-variables
+ 'tramp-connection-local-termux-profile
+ `((tramp-remote-path
+    . ,(mapcar
+	(lambda (x)
+	  (if (stringp x) (concat "/data/data/com.termux/files" x) x))
+	(copy-tree tramp-remote-path)))))
+
+(connection-local-set-profiles
+ '(:application tramp :machine "192.168.0.26")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
@@ -2720,7 +2737,9 @@ When the Android device is not @samp{rooted}, specify a writable
 directory for temporary files:
 
 @lisp
-(add-to-list 'tramp-remote-process-environment "TMPDIR=$HOME")
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "192.168.0.26")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
 @end lisp
 
 @item
@@ -2748,11 +2767,17 @@ the previous example, fix the connection properties as follows:
 @group
 (add-to-list 'tramp-connection-properties
              (list (regexp-quote "android") "remote-shell" "sh"))
+(add-to-list 'tramp-connection-properties
+             (list (regexp-quote "android")
+		   "tmpdir" "/data/data/com.termux/files/home/tmp"))
+(connection-local-set-profiles
+ '(:application tramp :machine "android")
+ 'tramp-connection-local-termux-profile)
 @end group
 @end lisp
 
 @noindent
-Open a remote connection with a more concise command @kbd{C-x C-f
+Open a remote connection with the more concise command @kbd{C-x C-f
 @trampfn{ssh,android,} @key{RET}}.
 @end itemize
 
@@ -4385,9 +4410,12 @@ authentication delays.  During these operations, @value{tramp}'s
 responsiveness slows down.  Some suggestions within the scope of
 @value{tramp}'s settings include:
 
+@itemize @minus
+@item
 Use an external method, such as @option{scp}, which are faster than
-internal methods.
+internal methods for large files.
 
+@item
 Keep the file @code{tramp-persistency-file-name}, which is where
 @value{tramp} caches remote information about hosts and files.  Caching
 is enabled by default.  Don't disable it.
@@ -4398,6 +4426,7 @@ files are not independently updated outside @value{tramp}'s control.
 That cache cleanup will be necessary if the remote directories or
 files are updated independent of @value{tramp}.
 
+@item
 Disable version control to avoid delays:
 
 @lisp
@@ -4417,9 +4446,17 @@ about, for example:
 (setq vc-handled-backends '(SVN Git))
 @end lisp
 
+@item
+@vindex remote-file-name-inhibit-locks
+Disable file locks.  Set @code{remote-file-name-inhibit-locks} to
+@code{t} if you know that different Emacs sessions are not modifying
+the same remote file.
+
+@item
 Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
+@end itemize
 
 
 @item

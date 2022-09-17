@@ -3138,20 +3138,21 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	      (goto-char (point-min))
 	      (should
 	       (looking-at-p (format "^.+ %s/$" (regexp-quote tmp-name1)))))
-	    (with-temp-buffer
-	      (insert-directory
-	       (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
-	      (goto-char (point-min))
-	      (should
-	       (looking-at-p
-		(concat
-		 ;; There might be a summary line.
-		 "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
-		 ;; We don't know in which order ".", ".." and "foo" appear.
-		 (format
-		  "\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"
-		  (regexp-opt (directory-files tmp-name1))
-		  (length (directory-files tmp-name1)))))))
+	    (let ((directory-files (directory-files tmp-name1)))
+	      (with-temp-buffer
+		(insert-directory
+		 (file-name-as-directory tmp-name1) "-al" nil 'full-directory-p)
+		(goto-char (point-min))
+		(should
+		 (looking-at-p
+		  (concat
+		   ;; There might be a summary line.
+		   "\\(total.+[[:digit:]]+ ?[kKMGTPEZY]?i?B?\n\\)?"
+		   ;; We don't know in which order ".", ".." and "foo" appear.
+		   (format
+		    "\\(.+ %s\\( ->.+\\)?\n\\)\\{%d\\}"
+		    (regexp-opt directory-files)
+		    (length directory-files)))))))
 
 	    ;; Check error cases.
 	    (when (and (tramp--test-supports-set-file-modes-p)
@@ -4005,7 +4006,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			    (file-attributes tmp-name1))))
 	    ;; Skip the test, if the remote handler is not able to set
 	    ;; the correct time.
-	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)))
+	    ;; Some remote machines cannot resolve seconds.  So we use a minute.
+	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 60)))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
 	    (unless (tramp-compat-time-equal-p
@@ -4016,7 +4018,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (tramp-compat-time-equal-p
                 (tramp-compat-file-attribute-modification-time
 		 (file-attributes tmp-name1))
-		(seconds-to-time 1)))
+		(seconds-to-time 60)))
 	      (write-region "bla" nil tmp-name2)
 	      (should (file-exists-p tmp-name2))
 	      (should (file-newer-than-file-p tmp-name2 tmp-name1))
@@ -4027,12 +4029,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	      ;; regular files, there shouldn't be a difference.
 	      (when (tramp--test-emacs28-p)
 		(with-no-warnings
-		  (set-file-times tmp-name1 (seconds-to-time 1) 'nofollow)
+		  (set-file-times tmp-name1 (seconds-to-time 60) 'nofollow)
 		  (should
 		   (tramp-compat-time-equal-p
                     (tramp-compat-file-attribute-modification-time
 		     (file-attributes tmp-name1))
-		    (seconds-to-time 1)))))))
+		    (seconds-to-time 60)))))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4439,7 +4441,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
 (defun tramp--test-shell-file-name ()
   "Return default remote shell."
-  (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
+  (if (file-exists-p
+       (concat
+	(file-remote-p tramp-test-temporary-file-directory) "/system/bin/sh"))
+      "/system/bin/sh" "/bin/sh"))
 
 (ert-deftest tramp-test28-process-file ()
   "Check `process-file'."
@@ -6815,7 +6820,8 @@ Use the \"ls\" command."
        "银河系漫游指南系列"
        "Автостопом по гала́ктике"
        ;; Use codepoints without a name.  See Bug#31272.
-       "bung"
+       ;; Works on some Android systems only.
+       (unless (tramp--test-adb-p) "bung")
        ;; Use codepoints from Supplementary Multilingual Plane (U+10000
        ;; to U+1FFFF).
        "🌈🍒👋")
@@ -7354,7 +7360,7 @@ Since it unloads Tramp, it shall be the last test to run."
   (should-not (cl--find-class 'tramp-file-name))
   (mapatoms
    (lambda (x)
-     (and (functionp x)
+     (and (functionp x) (null (autoloadp (symbol-function x)))
           (string-match-p "tramp-file-name" (symbol-name x))
           (ert-fail (format "Structure function `%s' still exists" x)))))
 
