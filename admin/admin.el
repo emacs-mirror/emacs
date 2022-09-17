@@ -883,30 +883,17 @@ $Date: %s $
 
     ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
     (replace-regexp-in-region
-     (rx-let ((key (seq
-                    ;; Modifier (optional)
-                    (? (any "ACHMSs") "-")
-                    (or
-                     ;; single key
-                     (not (any " \n"))
-                     ;; "<return>" and "<remap> <foo>"
-                     (seq "<"
-                          (+ (any "A-Za-z-"))
-                          (+ (seq " " (+ (any "A-Za-z-"))))
-                          ">")
-                     "NUL" "RET" "LFD" "TAB"
-                     "ESC" "SPC" "DEL")))
-              (email (seq (+ (not (any " @\n")))
-                          "@"
-                          (+ (not (any " @\n")))))
-              (lisp-symbol (regexp lisp-mode-symbol-regexp)))
-       (rx "'" (group
-                (or lisp-symbol
-                    email
-                    (seq "M-x " lisp-symbol)
-                    (seq key (+ " " key))))
-           "'"))
-     "~\\1~" (point-min) (point-max))
+     (rx (or (: (group (in " \t\n("))
+                "'"
+                (group (+ (or (not (in "'\n"))
+                              (: "'" (not (in " .,\t\n)"))))))
+                "'"
+                (group (in ",.;:!? \t\n)")))
+             ;; Buffer names, e.g. "*scratch*".
+             (: "\""
+                (group-n 2 "*" (+ (not (in "*\""))) "*")
+                "\"")))
+     "\\1~\\2~\\3" (point-min) (point-max))
 
     ;; Format code blocks.
     (while (re-search-forward "^    " nil t)
