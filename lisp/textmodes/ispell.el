@@ -740,7 +740,8 @@ Otherwise returns the library directory name, if that is defined."
   "Execute the forms in BODY with a reasonable `default-directory'."
   (declare (indent 0) (debug t))
   `(let ((default-directory default-directory))
-     (unless (file-accessible-directory-p default-directory)
+     (unless (and (not (file-remote-p default-directory))
+                  (file-accessible-directory-p default-directory))
        (setq default-directory (expand-file-name "~/")))
      ,@body))
 
