@@ -238,16 +238,16 @@ original file with `image-dired-temp-rotate-image-file'."
 The value of this option is ignored if Image-Dired is customized
 to use the Thumbnail Managing Standard; the standard sizes will
 be used instead.  See `image-dired-thumbnail-storage'."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom image-dired-thumb-relief 2
   "Size of button-like border around thumbnails."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom image-dired-thumb-margin 2
   "Size of the margin around thumbnails.
 This is where you see the cursor."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom image-dired-thumb-visible-marks t
   "Make marks and flags visible in thumbnail buffer.
@@ -288,7 +288,7 @@ and No line-up means that no automatic line-up will be done."
 
 (defcustom image-dired-thumbs-per-row 3
   "Number of thumbnails to display per row in thumb buffer."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom image-dired-track-movement t
   "The current state of the tracking and mirroring.
@@ -1346,13 +1346,13 @@ Track this in associated Dired buffer if
                         'image-dired-thumb-size "29.1")
 (defcustom image-dired-thumb-width image-dired-thumb-size
   "Width of thumbnails, in pixels."
-  :type 'integer)
+  :type 'natnum)
 
 (make-obsolete-variable 'image-dired-thumb-height
                         'image-dired-thumb-size "29.1")
 (defcustom image-dired-thumb-height image-dired-thumb-size
   "Height of thumbnails, in pixels."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom image-dired-temp-image-file
   (expand-file-name ".image-dired_temp" image-dired-dir)
