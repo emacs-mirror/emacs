@@ -1428,12 +1428,32 @@ emacs, The GNU Emacs Manual}.)
 be a call to @code{deftheme}, and the last form should be a call to
 @code{provide-theme}.
 
-@defmac deftheme theme &optional doc
+@defmac deftheme theme &optional doc &rest properties
 This macro declares @var{theme} (a symbol) as the name of a Custom
 theme.  The optional argument @var{doc} should be a string describing
 the theme; this is the description shown when the user invokes the
 @code{describe-theme} command or types @kbd{?} in the @samp{*Custom
-Themes*} buffer.
+Themes*} buffer.  The remaining arguments @var{properties} are used
+pass a property list with theme attributes.
+
+The following attributes are supported:
+
+@table @code
+@item :family
+A symbol designating what ``family'' a theme belongs to.  A
+@dfn{family} of themes is a set of similar themes that differ by minor
+aspects, such as face colors that are meant for the light vs dark
+background of the frame.
+@item :kind
+A symbol.  If a theme is enabled and this property has the value
+@code{color-scheme}, then the @code{theme-choose-variant} command will
+look for other available themes that belong to the same family in
+order to switch the themes.  Other values are currently unspecified
+and should not be used.
+@item :background-mode
+A symbol, either @code{light} or @code{dark}.  This attribute is
+currently unused, but should still be specified.
+@end table
 
 Two special theme names are disallowed (using them causes an error):
 @code{user} is a dummy theme that stores the user's direct

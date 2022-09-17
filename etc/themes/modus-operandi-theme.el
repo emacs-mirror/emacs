@@ -71,4 +71,6 @@ which corresponds to a minimum contrast in relative luminance of
 
   (provide-theme 'modus-operandi))
 
+;;;###theme-autoload (put 'modus-operandi 'theme-properties '(:background-mode light :kind color-scheme :family modus))
+
 ;;; modus-operandi-theme.el ends here

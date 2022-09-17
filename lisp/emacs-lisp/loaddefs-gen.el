@@ -283,6 +283,12 @@ expression, in which case we want to handle forms differently."
            ,@(when-let ((safe (plist-get props :safe)))
                `((put ',varname 'safe-local-variable ,safe))))))
 
+     ;; Extract theme properties.
+     ((eq car 'deftheme)
+      (let* ((name (car-safe (cdr-safe form)))
+	     (props (nthcdr 3 form)))
+	`(put ',name 'theme-properties (list ,@props))))
+
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for
       ;; third party packages, it can be convenient to explicitly autoload

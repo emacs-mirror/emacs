@@ -667,6 +667,16 @@ type @kbd{M-x disable-theme}.
 the @file{*Custom Themes*} buffer; or type @kbd{M-x describe-theme}
 anywhere in Emacs and enter the theme name.
 
+@findex theme-choose-variant
+Some themes have variants (most often just two: light and dark).  You
+can switch to another variant using @kbd{M-x theme-choose-variant}.
+If the currently active theme has only one other variant, it will be
+selected; if there are more variants, the command will prompt you
+which one to switch to.
+
+Note that @code{theme-choose-variant} only works if a single theme
+is active.
+
 @node Creating Custom Themes
 @subsection Creating Custom Themes
 @cindex custom themes, creating

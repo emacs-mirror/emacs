@@ -71,4 +71,6 @@ which corresponds to a minimum contrast in relative luminance of
 
   (provide-theme 'modus-vivendi))
 
+;;;###theme-autoload (put 'modus-vivendi 'theme-properties '(:background-mode dark :kind color-scheme :family modus))
+
 ;;; modus-vivendi-theme.el ends here
