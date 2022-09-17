@@ -26,7 +26,25 @@
 ;; sequences. Handlers for OSC 2, 7 and 8 (for window title, current
 ;; directory and hyperlinks respectively) are provided.
 
+;; The function `osc-compilation-filter' can be added to
+;; `compilation-filter-hook' to collect OSC sequences in compilation
+;; buffers. The variable `osc-for-compilation-buffer' tells what to do
+;; with collected sequences.
+
 ;;; Code:
+
+(defconst osc-control-seq-regexp
+  ;; See ECMA 48, section 8.3.89 "OSC - OPERATING SYSTEM COMMAND".
+  "\e\\][\x08-\x0D]*[\x20-\x7E]*\\(\a\\|\e\\\\\\)"
+  "Regexp matching an OSC control sequence.")
+
+(defun osc-filter-region (begin end)
+  "Filter out all OSC control sequences from region BEGIN to END."
+  (save-excursion
+    (goto-char begin)
+    ;; Delete escape sequences.
+    (while (re-search-forward osc-control-seq-regexp end t)
+      (delete-region (match-beginning 0) (match-end 0)))))
 
 (defvar-local osc-handlers '(("2" . osc-window-title-handler)
                              ("7" . osc-directory-tracker)
@@ -135,6 +153,36 @@ This function is intended to be included as an entry of
   (setq osc-hyperlink--state
         (and (string-match ";\\(.+\\)" text)
              (cons (point-marker) (match-string-no-properties 1 text)))))
+
+(defcustom osc-for-compilation-buffer 'filter
+  "Determines what to do of OSC escape sequences in compilation output.
+If nil, do nothing.
+
+If the symbol `filter', then filter out all OSC control sequences.
+
+If anything else (such as t), then collect OSC control sequences
+and call appropriate handler as described in `osc-handlers'.
+
+In order for this to have any effect, `osc-compilation-filter'
+must be in `compilation-filter-hook'."
+  :type '(choice (const :tag "Do nothing" nil)
+                 (const :tag "Filter" filter)
+                 (other :tag "Translate" t))
+  :group 'osc
+  :version "29.0")
+
+;;;###autoload
+(defun osc-compilation-filter ()
+  "Maybe collect OSC control sequences.
+This function depends on the `osc-for-compilation-buffer'
+variable, and is meant to be used in `compilation-filter-hook'."
+  (let ((inhibit-read-only t))
+    (pcase osc-for-compilation-buffer
+      ('nil nil)
+      ('filter
+       (osc-filter-region compilation-filter-start (point)))
+      (_
+       (osc-apply-on-region compilation-filter-start (point))))))
 
 (provide 'osc)
 ;;; osc.el ends here
