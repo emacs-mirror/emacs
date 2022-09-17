@@ -23,12 +23,13 @@
 ;;; Commentary:
 
 ;; Interpretation of OSC (Operating System Commands) escape
-;; sequences. Handlers for OSC 7 and 8 (for current directory and
-;; hyperlinks respectively) are provided.
+;; sequences. Handlers for OSC 2, 7 and 8 (for window title, current
+;; directory and hyperlinks respectively) are provided.
 
 ;;; Code:
 
-(defvar-local osc-handlers '(("7" . osc-directory-tracker)
+(defvar-local osc-handlers '(("2" . osc-window-title-handler)
+                             ("7" . osc-directory-tracker)
                              ("8" . osc-hyperlink-handler))
   "Alist of handlers for OSC escape sequences.
 See `osc-apply-on-region' for details.")
@@ -66,6 +67,18 @@ point where the escape sequence was located."
                 (funcall fun code text)))
           (put-text-property pos0 end 'invisible t)
           (setq osc--marker (copy-marker pos0)))))))
+
+;; Window title handling (OSC 2)
+
+(defvar-local osc-window-title nil)
+(defun osc-window-title-handler (_ text)
+  "Set value of `osc-window-title' from an OSC 2 escape sequence.
+The variable `osc-window-title' can be referred to in
+`frame-title-format' to dynamically set the frame title.
+
+This function is intended to be included as an entry of
+`osc-handlers'."
+  (setq osc-window-title text))
 
 ;; Current directory tracking (OSC 7)
 
