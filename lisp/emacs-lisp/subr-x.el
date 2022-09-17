@@ -97,6 +97,7 @@ threading."
     (maphash (lambda (_ v) (push v values)) hash-table)
     values))
 
+;;;###autoload
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR.
 Optional argument SEPARATOR must be a string, a vector, or a list of
