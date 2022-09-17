@@ -224,7 +224,7 @@ If non-nil, ask user for confirmation before overwriting the
 original file with `image-dired-temp-rotate-image-file'."
   :type 'boolean)
 
-(defcustom image-dired--thumb-size
+(defcustom image-dired-thumb-size
   ;; This is ignored when using the Thumbnail Managing Standard, but
   ;; this provides a better default (e.g., when 'image-dired-thumbnail-storage'
   ;; is `image-dired' in a directory local variables).
