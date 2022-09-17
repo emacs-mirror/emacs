@@ -158,35 +158,45 @@
 (defcustom image-dired-dir (locate-user-emacs-file "image-dired/")
   "Directory where thumbnail images are stored.
 
-The value of this option will be ignored if Image-Dired is
-customized to use the Thumbnail Managing Standard; they will be
-saved in \"$XDG_CACHE_HOME/thumbnails/\" instead.  See
+The value of this option is ignored if Image-Dired is customized
+to use the Thumbnail Managing Standard; they will be saved in
+\"$XDG_CACHE_HOME/thumbnails/\" instead.  See
 `image-dired-thumbnail-storage'."
   :type 'directory)
 
-(defcustom image-dired-thumbnail-storage 'use-image-dired-dir
+(defcustom image-dired-thumbnail-storage 'image-dired
   "How `image-dired' stores thumbnail files.
-There are two ways that Image-Dired can store and generate
-thumbnails.  If you set this variable to one of the two following
-values, they will be stored in the JPEG format:
+There are three ways that Image-Dired can store and generate
+thumbnails:
 
-- `use-image-dired-dir' means that the thumbnails are stored in a
-  central directory.
+ 1. According to the \"Thumbnail Managing Standard\", which allows
+    sharing of thumbnails across different programs.  Thumbnails
+    will be stored in \"$XDG_CACHE_HOME/thumbnails/\"
 
-- `per-directory' means that each thumbnail is stored in a
-  subdirectory called \".image-dired\" in the same directory
-  where the image file is.
+    Set this user option to one of the following values:
 
-It can also use the \"Thumbnail Managing Standard\", which allows
-sharing of thumbnails across different programs.  Thumbnails will
-be stored in \"$XDG_CACHE_HOME/thumbnails/\" instead of in
-`image-dired-dir'.  Thumbnails are saved in the PNG format, and
-can be one of the following sizes:
+    - `standard' means use thumbnails sized 128x128.
+    - `standard-large' means use thumbnails sized 256x256.
+    - `standard-x-large' means use thumbnails sized 512x512.
+    - `standard-xx-large' means use thumbnails sized 1024x1024.
 
-- `standard' means use thumbnails sized 128x128.
-- `standard-large' means use thumbnails sized 256x256.
-- `standard-x-large' means use thumbnails sized 512x512.
-- `standard-xx-large' means use thumbnails sized 1024x1024.
+ 2. In the Image-Dired specific directory indicated by
+    `image-dired-dir'.
+
+    Set this user option to `image-dired' to use it (or
+    `use-image-dired-dir', which means the same thing for
+    backwards-compatibility reasons).
+
+ 3. In a subdirectory \".image-dired\" in the same directory
+    where the image files are.
+
+    Set this user option to `per-directory' to use it.
+
+To change the default size of thumbnails with (2) and (3) above,
+customize `image-dired-thumb-size'.
+
+With Thumbnail Managing Standard, save thumbnails in the PNG
+format, as mandated by that standard, and otherwise as JPEG.
 
 For more information on the Thumbnail Managing Standard, see:
 https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"

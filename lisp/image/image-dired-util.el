@@ -81,7 +81,9 @@ See also `image-dired-thumbnail-storage'."
             ;; MD5 is mandated by the Thumbnail Managing Standard.
             (concat (md5 (concat "file://" (expand-file-name file))) ".png")
             (expand-file-name thumbdir (xdg-cache-home)))))
-        ((eq 'use-image-dired-dir image-dired-thumbnail-storage)
+        ((or (eq 'image-dired image-dired-thumbnail-storage)
+             ;; Maintained for backwards compatibility:
+             (eq 'use-image-dired-dir image-dired-thumbnail-storage))
          (let* ((f (expand-file-name file))
                 (hash
                  (md5 (file-name-as-directory (file-name-directory f)))))
