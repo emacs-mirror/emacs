@@ -20,9 +20,18 @@ if [ -f /proc/cpuinfo ]; then
 	sed 's/^[0-9]*/+/')))
 fi
 
-[[ "X$1" == "X--no-color" ]] && { NOCOLOR=1; shift; } || NOCOLOR=0
-[[ "X$1" == "X--no-check" ]] && { NOCHECK=1; shift; } || NOCHECK=0
-[[ "X$1" == "X--no-fast" ]] && { FASTOPT=""; shift; } || FASTOPT="FAST=true"
+NOCOLOR=0
+NOCHECK=0
+FASTOPT="FAST=true"
+QUIETER=0
+while :
+do
+    [[ "X$1" == "X--no-color" ]] && { NOCOLOR=1; shift; continue; }
+    [[ "X$1" == "X--no-check" ]] && { NOCHECK=1; shift; continue; }
+    [[ "X$1" == "X--no-fast" ]] && { FASTOPT=""; shift; continue; }
+    [[ "X$1" == "X--quieter" ]] && { QUIETER=1; shift; continue; }
+    break
+done
 
 make $FASTOPT -j$cores "$@" 2>&1 | \
 sed -u 's# \.\./\.\./# #
@@ -106,7 +115,12 @@ do
   C=""
   (($NOCOLOR == 0)) && [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
   (($NOCOLOR == 0)) && [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
-  [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+  if (($QUIETER == 0))
+  then
+      [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+  else
+      [[ "X$C" == "X" ]] && printf "%-80s\r" "$REPLY" || printf "$C%-80s\033[0m\n" "$REPLY"
+  fi
 done
 
 # If make failed, exit now with its error code.
