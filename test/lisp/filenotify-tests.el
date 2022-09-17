@@ -1575,6 +1575,8 @@ the file watch."
   "Check that file notification do not follow symbolic links."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
+  ;; This test does not work for kqueue (yet).
+  (skip-unless (not (string-equal (file-notify--test-library) "kqueue")))
 
   (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
         file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
@@ -1583,7 +1585,12 @@ the file watch."
   (unwind-protect
       (progn
 	(write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
-        (make-symbolic-link file-notify--test-tmpfile1 file-notify--test-tmpfile)
+        ;; Some systems, like MS Windows w/o sufficient privileges, do
+        ;; not allow creation of symbolic links.
+        (condition-case nil
+            (make-symbolic-link
+             file-notify--test-tmpfile1 file-notify--test-tmpfile)
+	  (error (ert-skip "`make-symbolic-link' not supported")))
 	(should
 	 (setq file-notify--test-desc
 	       (file-notify--test-add-watch
@@ -1616,8 +1623,21 @@ the file watch."
         (should-not file-notify--test-events)
 
         ;; Changing timestamp of the symlink shows the event.
-        (file-notify--test-with-actions '(attribute-changed)
-          (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow))
+        (file-notify--test-with-actions
+	 (cond
+	  ;; w32notify does not distinguish between `changed' and
+	  ;; `attribute-changed'.
+	  ((string-equal (file-notify--test-library) "w32notify")
+	   '(changed))
+	  ;; GFam{File,Directory}Monitor, GKqueueFileMonitor and
+	  ;; GPollFileMonitor do not report the `attribute-changed'
+	  ;; event.
+	  ((memq (file-notify--test-monitor)
+                 '(GFamFileMonitor GFamDirectoryMonitor
+                   GKqueueFileMonitor GPollFileMonitor))
+           '())
+          (t '(attribute-changed)))
+         (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow))
 
         ;; Deleting the target should not raise any event.
         (file-notify--test-with-actions nil
@@ -1653,7 +1673,8 @@ the file watch."
                 '(attribute-change change) #'file-notify--test-event-handler)))
         (should (file-notify-valid-p file-notify--test-desc))
 
-        ;; None of the actions on a file in the symlinked directory will be reported.
+        ;; None of the actions on a file in the symlinked directory
+        ;; will be reported.
         (file-notify--test-with-actions nil
           (write-region "another text" nil tmpfile nil 'no-message)
           (write-region "another text" nil tmpfile1 nil 'no-message)

@@ -3814,7 +3814,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 		(concat "create,modify,move,moved_from,moved_to,move_self,"
 			"delete,delete_self,ignored"))
 	       ((memq 'attribute-change flags) "attrib,ignored"))
-	      sequence `(,command "-mq" "-e" ,events ,localname)
+	      sequence `(,command "-mPq" "-e" ,events ,localname)
 	      ;; Make events a list of symbols.
 	      events
 	      (mapcar
