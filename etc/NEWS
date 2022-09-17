@@ -1024,6 +1024,12 @@ The apropos commands will now select the apropos window if
 If the symbol at point is a keymap, 'describe-keymap' suggests it as
 the default candidate.
 
+---
+*** New command 'help-quick' displays an overview of common commands.
+The command pops up a buffer at the bottom of the screen with a few
+helpful commands for various tasks.  You can toggle the display using
+'C-h q'.
+
 ** Outline Mode
 
 +++
