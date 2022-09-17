@@ -22,6 +22,8 @@
 
 ;;; Commentary:
 
+;; See the description of the `image-dired' package.
+
 ;;; Code:
 
 (require 'xdg)

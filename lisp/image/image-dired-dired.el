@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; See the description of the `image-dired' package.
+
 ;;; Code:
 
 (eval-when-compile (require 'subr-x)) ; for string-join
