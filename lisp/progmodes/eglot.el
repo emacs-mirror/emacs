@@ -796,6 +796,9 @@ treated as in `eglot-dbind'."
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
+(cl-defmethod initialize-instance :before ((_server eglot-lsp-server) &optional args)
+  (cl-remf args :initializationOptions))
+
 
 ;;; Process management
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
@@ -929,10 +932,10 @@ be guessed."
          (base-prompt
           (and interactive
                "Enter program to execute (or <host>:<port>): "))
-         (program-guess
+         (full-program-invocation
           (and program
-               (combine-and-quote-strings (cl-subst ":autoport:"
-                                                    :autoport guess))))
+               (cl-every #'stringp guess)
+               (combine-and-quote-strings guess)))
          (prompt
           (and base-prompt
                (cond (current-prefix-arg base-prompt)
@@ -942,25 +945,23 @@ be guessed."
                      ((and program
                            (not (file-name-absolute-p program))
                            (not (eglot--executable-find program t)))
-                      (concat (format "[eglot] I guess you want to run `%s'"
-                                      program-guess)
-                              (format ", but I can't find `%s' in PATH!" program)
-                              "\n" base-prompt)))))
+                      (if full-program-invocation
+                          (concat (format "[eglot] I guess you want to run `%s'"
+                                          full-program-invocation)
+                                  (format ", but I can't find `%s' in PATH!"
+                                          program)
+                                  "\n" base-prompt)
+                        (eglot--error
+                         (concat "`%s' not found in PATH, but can't form"
+                                 " an interactive prompt for to fix %s!")
+                         program guess))))))
          (contact
           (or (and prompt
-                   (let ((s (read-shell-command
-                             prompt
-                             program-guess
-                             'eglot-command-history)))
-                     (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
-                                       (string-trim s))
-                         (list (match-string 1 s)
-                               (string-to-number (match-string 2 s)))
-                       (cl-subst
-                        :autoport ":autoport:" (split-string-and-unquote s)
-                        :test #'equal))))
-              guess
-              (eglot--error "Couldn't guess for `%s'!" managed-mode))))
+                   (read-shell-command
+                    prompt
+                    full-program-invocation
+                    'eglot-command-history))
+              guess)))
     (list managed-mode (eglot--current-project) class contact language-id)))
 
 (defvar eglot-lsp-context)
