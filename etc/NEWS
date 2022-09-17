@@ -2623,7 +2623,7 @@ non-nil.
 
 ** ERC
 
-*** Starting with Emacs 28.1 and ERC 5.4, see the ERC-NEWS file for
+Starting with Emacs 28.1 and ERC 5.4, see the ERC-NEWS file for
 user-visible changes in ERC.
 
 ** Xwidget Webkit mode
