@@ -224,28 +224,20 @@ If non-nil, ask user for confirmation before overwriting the
 original file with `image-dired-temp-rotate-image-file'."
   :type 'boolean)
 
-(defcustom image-dired-thumb-size
-  (cond
-   ((eq 'standard image-dired-thumbnail-storage) 128)
-   ((eq 'standard-large image-dired-thumbnail-storage) 256)
-   ((eq 'standard-x-large image-dired-thumbnail-storage) 512)
-   ((eq 'standard-xx-large image-dired-thumbnail-storage) 1024)
-   (t 100))
-  "Size of thumbnails, in pixels.
-This is the default size for both `image-dired-thumb-width'
-and `image-dired-thumb-height'.
-
-The value of this option will be ignored if Image-Dired is
-customized to use the Thumbnail Managing Standard; the standard
-sizes will be used instead.  See `image-dired-thumbnail-storage'."
-  :type 'integer)
-
-(defcustom image-dired-thumb-width image-dired-thumb-size
-  "Width of thumbnails, in pixels."
-  :type 'integer)
-
-(defcustom image-dired-thumb-height image-dired-thumb-size
-  "Height of thumbnails, in pixels."
+(defcustom image-dired--thumb-size
+  ;; This is ignored when using the Thumbnail Managing Standard, but
+  ;; this provides a better default (e.g., when 'image-dired-thumbnail-storage'
+  ;; is `image-dired' in a directory local variables).
+  (pcase image-dired-thumbnail-storage
+    ('standard 128)
+    ('standard-large 256)
+    ('standard-x-large 512)
+    ('standard-xx-large 1024)
+    (_ 100))
+  "Default size of thumbnails in pixels.
+The value of this option is ignored if Image-Dired is customized
+to use the Thumbnail Managing Standard; the standard sizes will
+be used instead.  See `image-dired-thumbnail-storage'."
   :type 'integer)
 
 (defcustom image-dired-thumb-relief 2
@@ -1053,7 +1045,7 @@ See also `image-dired-line-up-dynamic'."
           (thumb-width-chars
            (ceiling (/ (+ (* 2 image-dired-thumb-relief)
                           (* 2 image-dired-thumb-margin)
-                          (image-dired-thumb-size 'width))
+                          (image-dired--thumb-size))
                        (float (frame-char-width))))))
       (while (not (eobp))
         (forward-char)
@@ -1080,7 +1072,7 @@ Calculate how many thumbnails fit."
           (/ width
              (+ (* 2 image-dired-thumb-relief)
                 (* 2 image-dired-thumb-margin)
-                (image-dired-thumb-size 'width)
+                (image-dired--thumb-size)
                 char-width))))
     (image-dired-line-up)))
 
@@ -1349,6 +1341,18 @@ Track this in associated Dired buffer if
 ;;;###autoload
 (define-obsolete-function-alias 'image-dired-setup-dired-keybindings
   #'image-dired-minor-mode "26.1")
+
+(make-obsolete-variable 'image-dired-thumb-width
+                        'image-dired-thumb-size "29.1")
+(defcustom image-dired-thumb-width image-dired-thumb-size
+  "Width of thumbnails, in pixels."
+  :type 'integer)
+
+(make-obsolete-variable 'image-dired-thumb-height
+                        'image-dired-thumb-size "29.1")
+(defcustom image-dired-thumb-height image-dired-thumb-size
+  "Height of thumbnails, in pixels."
+  :type 'integer)
 
 (defcustom image-dired-temp-image-file
   (expand-file-name ".image-dired_temp" image-dired-dir)

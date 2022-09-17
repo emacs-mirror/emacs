@@ -38,8 +38,6 @@
 (defvar image-dired-dir)
 (defvar image-dired-main-image-directory)
 (defvar image-dired-rotate-original-ask-before-overwrite)
-(defvar image-dired-thumb-height)
-(defvar image-dired-thumb-width)
 (defvar image-dired-thumbnail-storage)
 
 (defgroup image-dired-external nil
@@ -62,12 +60,12 @@ Used together with `image-dired-cmd-create-thumbnail-options'."
     (if (executable-find "gm") (cons "convert" opts) opts))
   "Options of command used to create thumbnail image.
 Used with `image-dired-cmd-create-thumbnail-program'.
-Available format specifiers are: %w which is replaced by
-`image-dired-thumb-width', %h which is replaced by `image-dired-thumb-height',
-%f which is replaced by the file name of the original image and %t
-which is replaced by the file name of the thumbnail file."
-  :version "29.1"
-  :type '(repeat (string :tag "Argument")))
+Available format specifiers are:
+    %s, %w and %h, which are replaced by `image-dired-thumb-size'
+    %f which is replaced by the file name of the original image and
+    %t which is replaced by the file name of the thumbnail file."
+  :type '(repeat (string :tag "Argument"))
+  :version "29.1")
 
 (defcustom image-dired-cmd-pngnq-program
   ;; Prefer pngquant to pngnq-s9 as it is faster on my machine.
@@ -193,17 +191,15 @@ which is replaced by the tag value."
 
 ;;; Creating thumbnails
 
-(defun image-dired-thumb-size (dimension)
-  "Return thumb size depending on `image-dired-thumbnail-storage'.
-DIMENSION should be either the symbol `width' or `height'."
-  (cond
-   ((eq 'standard image-dired-thumbnail-storage) 128)
-   ((eq 'standard-large image-dired-thumbnail-storage) 256)
-   ((eq 'standard-x-large image-dired-thumbnail-storage) 512)
-   ((eq 'standard-xx-large image-dired-thumbnail-storage) 1024)
-   (t (cl-ecase dimension
-        (width image-dired-thumb-width)
-        (height image-dired-thumb-height)))))
+(defun image-dired--thumb-size (&optional _)
+  "Return thumb size depending on `image-dired-thumbnail-storage'."
+  (declare (advertised-calling-convention () "29.1"))
+  (pcase image-dired-thumbnail-storage
+    ('standard 128)
+    ('standard-large 256)
+    ('standard-x-large 512)
+    ('standard-xx-large 1024)
+    (_ image-dired-thumb-size)))
 
 (defvar image-dired--generate-thumbs-start nil
   "Time when `display-thumbs' was called.")
@@ -289,21 +285,17 @@ and remove the cached thumbnail files between each trial run.")
   "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE."
   (image-dired--check-executable-exists
    'image-dired-cmd-create-thumbnail-program)
-  (let* ((width (int-to-string (image-dired-thumb-size 'width)))
-         (height (int-to-string (image-dired-thumb-size 'height)))
+  (let* ((size (number-to-string (image-dired--thumb-size)))
          (modif-time (format-time-string
                       "%s" (file-attribute-modification-time
                             (file-attributes original-file))))
          (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
                                                        thumbnail-file))
-         (spec
-          (list
-           (cons ?w width)
-           (cons ?h height)
-           (cons ?m modif-time)
-           (cons ?f original-file)
-           (cons ?q thumbnail-nq8-file)
-           (cons ?t thumbnail-file)))
+         (spec `((?s ,size) (?w ,size) (?h ,size)
+                 (?m ,modif-time)
+                 (?f ,original-file)
+                 (?q ,thumbnail-nq8-file)
+                 (?t ,thumbnail-file)))
          (thumbnail-dir (file-name-directory thumbnail-file))
          process)
     (when (not (file-exists-p thumbnail-dir))
@@ -468,6 +460,8 @@ default value at the prompt."
     (apply #'call-process image-dired-cmd-write-exif-data-program nil nil nil
            (mapcar (lambda (arg) (format-spec arg spec))
                    image-dired-cmd-write-exif-data-options))))
+
+(define-obsolete-function-alias 'image-dired-thumb-size #'image-dired--thumb-size "29.1")
 
 (provide 'image-dired-external)
 

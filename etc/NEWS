@@ -2118,6 +2118,11 @@ important as it used to be.  You can now also customize this option to
 nil to disable this confirmation completely.
 
 ---
+*** 'image-dired-thumb-(height|width)' are now obsolete.
+Customize 'image-dired-thumb-size' instead, which will set both the
+height and width.
+
+---
 *** HTML image gallery generation is now obsolete.
 The 'image-dired-gallery-generate' command and these user options are
 now obsolete: 'image-dired-gallery-thumb-image-root-url',
