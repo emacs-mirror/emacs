@@ -74,7 +74,6 @@
 (require 'filenotify)
 (require 'ert)
 (require 'array)
-(require 'json)
 
 ;; ElDoc is preloaded in Emacs, so `require'-ing won't guarantee we are
 ;; using the latest version from GNU Elpa when we load eglot.el.  Use an
@@ -2222,8 +2221,7 @@ format described above.")
       (insert (jsonrpc--json-encode conf))
       (with-no-warnings
         (require 'json)
-        (require 'json-mode)
-        (json-mode)
+        (when (require 'json-mode nil t) (json-mode))
         (json-pretty-print-buffer))
       (pop-to-buffer (current-buffer)))))
 
