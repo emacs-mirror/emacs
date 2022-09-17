@@ -27354,6 +27354,16 @@ x_free_frame_resources (struct frame *f)
   if (f == hlinfo->mouse_face_mouse_frame)
     reset_mouse_highlight (hlinfo);
 
+#ifdef HAVE_XINPUT2
+  /* Consider a frame being unfocused with no following FocusIn event
+     while an older focus from another seat exists.  The client
+     pointer should then revert to the other seat, so handle potential
+     focus changes.  */
+
+  if (dpyinfo->supports_xi2)
+    xi_handle_focus_change (dpyinfo);
+#endif
+
   unblock_input ();
 }
 
