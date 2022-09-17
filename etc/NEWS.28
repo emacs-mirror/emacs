@@ -1319,18 +1319,18 @@ comma-separated list.
 *** New commands to filter the package list.
 The filter commands are bound to the following keys:
 
-key             binding
----             -------
-/ a             package-menu-filter-by-archive
-/ d             package-menu-filter-by-description
-/ k             package-menu-filter-by-keyword
-/ N             package-menu-filter-by-name-or-description
-/ n             package-menu-filter-by-name
-/ s             package-menu-filter-by-status
-/ v             package-menu-filter-by-version
-/ m             package-menu-filter-marked
-/ u             package-menu-filter-upgradable
-/ /             package-menu-clear-filter
+    key             binding
+    ---             -------
+    / a             package-menu-filter-by-archive
+    / d             package-menu-filter-by-description
+    / k             package-menu-filter-by-keyword
+    / N             package-menu-filter-by-name-or-description
+    / n             package-menu-filter-by-name
+    / s             package-menu-filter-by-status
+    / v             package-menu-filter-by-version
+    / m             package-menu-filter-marked
+    / u             package-menu-filter-upgradable
+    / /             package-menu-clear-filter
 
 *** Option to automatically native-compile packages upon installation.
 Customize the user option 'package-native-compile' to enable automatic
@@ -2623,7 +2623,7 @@ non-nil.
 
 ** ERC
 
-*** Starting with Emacs 28.1 and ERC 5.4, see the ERC-NEWS file for
+Starting with Emacs 28.1 and ERC 5.4, see the ERC-NEWS file for
 user-visible changes in ERC.
 
 ** Xwidget Webkit mode

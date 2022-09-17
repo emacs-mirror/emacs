@@ -781,7 +781,7 @@ Optional argument TYPE is type of output (nil means all)."
 (defvar admin--org-export-headers-format "\
 #+title: GNU Emacs %s NEWS -- history of user-visible changes
 #+author:
-#+options: author:nil creator:nil toc:1 num:2 *:nil \\n:t ^:nil tex:nil
+#+options: author:nil creator:nil toc:2 num:3 *:nil \\n:t ^:nil tex:nil
 #+language: en
 #+HTML_LINK_HOME: /software/emacs
 #+HTML_LINK_UP: /software/emacs
@@ -859,12 +859,13 @@ $Date: %s $
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (admin--require-external-package 'htmlize)
-  (let* ((orig (expand-file-name "etc/NEWS" root))
-         (new (expand-file-name (format "etc/NEWS.%s.org" version) root))
-         (html-file (format "%s.html" (file-name-base new)))
+  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+         (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
+         (html (format "%s.html" (file-name-base orgfile)))
          (copyright-years (format-time-string "%Y")))
-    (copy-file orig new t)
-    (find-file new)
+    (delete-file orgfile)
+    (copy-file newsfile orgfile t)
+    (find-file orgfile)
 
     ;; Find the copyright range.
     (goto-char (point-min))
@@ -890,30 +891,17 @@ $Date: %s $
 
     ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
     (replace-regexp-in-region
-     (rx-let ((key (seq
-                    ;; Modifier (optional)
-                    (? (any "ACHMSs") "-")
-                    (or
-                     ;; single key
-                     (not (any " \n"))
-                     ;; "<return>" and "<remap> <foo>"
-                     (seq "<"
-                          (+ (any "A-Za-z-"))
-                          (+ (seq " " (+ (any "A-Za-z-"))))
-                          ">")
-                     "NUL" "RET" "LFD" "TAB"
-                     "ESC" "SPC" "DEL")))
-              (email (seq (+ (not (any " @\n")))
-                          "@"
-                          (+ (not (any " @\n")))))
-              (lisp-symbol (regexp lisp-mode-symbol-regexp)))
-       (rx "'" (group
-                (or lisp-symbol
-                    email
-                    (seq "M-x " lisp-symbol)
-                    (seq key (+ " " key))))
-           "'"))
-     "~\\1~" (point-min) (point-max))
+     (rx (or (: (group (in " \t\n("))
+                "'"
+                (group (+ (or (not (in "'\n"))
+                              (: "'" (not (in " .,\t\n)"))))))
+                "'"
+                (group (in ",.;:!? \t\n)")))
+             ;; Buffer names, e.g. "*scratch*".
+             (: "\""
+                (group-n 2 "*" (+ (not (in "*\""))) "*")
+                "\"")))
+     "\\1~\\2~\\3" (point-min) (point-max))
 
     ;; Format code blocks.
     (while (re-search-forward "^    " nil t)
@@ -939,6 +927,37 @@ $Date: %s $
     (org-mode)
     (save-buffer)
 
+    ;; Make everything one level lower.
+    (goto-char (point-min))
+    (while (re-search-forward (rx bol (group (+ "*")) " ") nil t)
+      (replace-match "*\\1" nil nil nil 1))
+
+    ;; Insert anchors for different versions.
+    (goto-char (point-min))
+    (let (last-major last-minor)
+      (while (re-search-forward (rx bol "** " (+ (not "\n")) "in Emacs "
+                                    (group digit digit) "." (group digit)
+                                    eol)
+                                nil t)
+        (unless (and (equal (match-string 1) last-major)
+                     (equal (match-string 2) last-minor))
+          (setq last-major (match-string 1))
+          (setq last-minor (match-string 2))
+          (forward-line -1)
+          (insert (format
+                   (concat
+                    "#+HTML: <p>&nbsp;</p>\n"
+                    "* Changes in Emacs %s.%s\n"
+                    ;; Add anchor to allow linking to
+                    ;; e.g. "NEWS.28.html#28.1".
+                    ":PROPERTIES:\n"
+                    ":CUSTOM_ID: %s.%s\n"
+                    ":END:\n")
+                   last-major last-minor
+                   last-major last-minor)))))
+
+    (save-buffer)
+
     ;; Make the HTML export.
     (let* ((org-html-postamble
             (format admin--org-html-postamble
@@ -950,12 +969,12 @@ $Date: %s $
       (org-html-export-as-html))
 
     ;; Write HTML to file.
-    (let ((new (expand-file-name html-file (expand-file-name "etc" root))))
-      (write-file new)
+    (let ((html (expand-file-name html (expand-file-name "etc" root))))
+      (write-file html)
       (unless noninteractive
-        (find-file new)
+        (find-file html)
         (html-mode))
-      (message "Successfully exported HTML to %s" new))))
+      (message "Successfully exported HTML to %s" html))))
 
 
 ;; Stuff to check new `defcustom's got :version tags.
