@@ -233,12 +233,13 @@ original file with `image-dired-temp-rotate-image-file'."
     ('standard-large 256)
     ('standard-x-large 512)
     ('standard-xx-large 1024)
-    (_ 100))
+    (_ 128))
   "Default size of thumbnails in pixels.
 The value of this option is ignored if Image-Dired is customized
 to use the Thumbnail Managing Standard; the standard sizes will
 be used instead.  See `image-dired-thumbnail-storage'."
-  :type 'natnum)
+  :type 'natnum
+  :version "29.1")
 
 (defcustom image-dired-thumb-relief 2
   "Size of button-like border around thumbnails."
