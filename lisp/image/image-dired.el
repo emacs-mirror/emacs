@@ -882,12 +882,7 @@ You probably want to use this together with
   "<down-mouse-1>"   #'image-dired-mouse-select-thumbnail
   "<down-mouse-2>"   #'image-dired-mouse-select-thumbnail
   "<down-mouse-3>"   #'image-dired-mouse-select-thumbnail
-  ;; Seems I must first set C-down-mouse-1 to undefined, or else it
-  ;; will trigger the buffer menu.  If I try to instead bind
-  ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
-  ;; about C-mouse-1 not being defined afterwards.  Annoying, but I
-  ;; probably do not completely understand mouse events.
-  "C-<down-mouse-1>" #'undefined
+  "C-<down-mouse-1>" #'ignore           ; Don't open the buffer menu.
   "C-<mouse-1>"      #'image-dired-mouse-toggle-mark)
 
 (easy-menu-define image-dired-thumbnail-mode-menu image-dired-thumbnail-mode-map
