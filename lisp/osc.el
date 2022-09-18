@@ -39,7 +39,7 @@
   "Regexp matching an OSC control sequence.")
 
 (defun osc-filter-region (begin end)
-  "Filter out all OSC control sequences from region BEGIN to END."
+  "Filter out all OSC control sequences from region between BEGIN and END."
   (save-excursion
     (goto-char begin)
     ;; Delete escape sequences.
@@ -57,16 +57,16 @@ See `osc-apply-on-region' for details.")
 ;; position of an escape sequence without termination.
 
 (defun osc-apply-on-region (begin end)
-  "Interpret OSC escape sequences in region.
-This function search for escape sequences of the forms
+  "Interpret OSC escape sequences in region between BEGIN and END.
+This function searches for escape sequences of the forms
 
     ESC ] command ; text BEL
     ESC ] command ; text ESC \\
 
 Every occurrence of such escape sequences is removed from the
-buffer.  Then, if `command' is a key of the local variable
-`osc-handlers' alist, the corresponding value, which should be a
-function, is called with `command' and `text' as arguments, with
+buffer.  Then, if `command' is a key in the alist that is the value
+of the local variable `osc-handlers', that key's value, which should
+be a function, is called with `command' and `text' as arguments, with
 point where the escape sequence was located."
   (save-excursion
     (goto-char (or osc--marker begin))
@@ -91,11 +91,11 @@ point where the escape sequence was located."
 (defvar-local osc-window-title nil)
 (defun osc-window-title-handler (_ text)
   "Set value of `osc-window-title' from an OSC 2 escape sequence.
-The variable `osc-window-title' can be referred to in
+The variable `osc-window-title' can then be referenced in
 `frame-title-format' to dynamically set the frame title.
 
-This function is intended to be included as an entry of
-`osc-handlers'."
+This function is intended to be included as an element of the
+list that is the value of `osc-handlers'."
   (setq osc-window-title text))
 
 ;; Current directory tracking (OSC 7)
@@ -106,10 +106,10 @@ This function is intended to be included as an entry of
 (defun osc-directory-tracker (_ text)
   "Update `default-directory' from OSC 7 escape sequences.
 
-This function is intended to be included as an entry of
-`osc-handlers'.  You should moreover arrange for your shell to
-print the appropriate escape sequence at each prompt, say with
-the following command:
+This function is intended to be included as an element of the
+the list that is the value of `osc-handlers'.  You should arrange
+for your shell to print the appropriate escape sequence at each prompt,
+such as with the following command:
 
     printf \"\\e]7;file://%s%s\\e\\\\\" \"$HOSTNAME\" \"$PWD\"
 
@@ -142,8 +142,8 @@ and `shell-dirtrack-mode'."
 
 (defun osc-hyperlink-handler (_ text)
   "Create a hyperlink from an OSC 8 escape sequence.
-This function is intended to be included as an entry of
-`osc-handlers'."
+This function is intended to be included as an elemnt of the list
+that is the value of `osc-handlers'."
   (when osc-hyperlink--state
     (let ((start (car osc-hyperlink--state))
           (url (cdr osc-hyperlink--state)))
@@ -155,29 +155,30 @@ This function is intended to be included as an entry of
              (cons (point-marker) (match-string-no-properties 1 text)))))
 
 (defcustom osc-for-compilation-buffer 'filter
-  "Determines what to do of OSC escape sequences in compilation output.
+  "What to do with OSC escape sequences in compilation output.
+
 If nil, do nothing.
 
 If the symbol `filter', then filter out all OSC control sequences.
 
-If anything else (such as t), then collect OSC control sequences
-and call appropriate handler as described in `osc-handlers'.
+If any other non-nil value, then collect OSC control sequences
+and call the appropriate handlers as described in `osc-handlers'.
 
 In order for this to have any effect, `osc-compilation-filter'
 must be in `compilation-filter-hook'."
   :type '(choice (const :tag "Do nothing" nil)
-                 (const :tag "Filter" filter)
-                 (other :tag "Translate" t))
+                 (const :tag "Filter out OSC" filter)
+                 (other :tag "Translate OSC" t))
   :group 'osc
-  :version "29.0")
+  :version "29.1")
 
 (defvar compilation-filter-start)
 
 ;;;###autoload
 (defun osc-compilation-filter ()
   "Maybe collect OSC control sequences.
-This function depends on the `osc-for-compilation-buffer'
-variable, and is meant to be used in `compilation-filter-hook'."
+This function depends on the variable `osc-for-compilation-buffer',
+and is meant to be used in `compilation-filter-hook'."
   (let ((inhibit-read-only t))
     (pcase osc-for-compilation-buffer
       ('nil nil)
