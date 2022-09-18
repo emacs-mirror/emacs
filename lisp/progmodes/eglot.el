@@ -3260,8 +3260,7 @@ If NOERROR, return predicate, else erroring function."
 (defun eglot--glob-emit-{} (arg self next)
   (let ((alternatives (split-string (substring arg 1 (1- (length arg))) ",")))
     `(,self ()
-            (or ,@(cl-loop for alt in alternatives
-                           collect `(re-search-forward ,(concat "\\=" alt) nil t))
+            (or (re-search-forward ,(concat "\\=" (regexp-opt alternatives)) nil t)
                 (error "Failed matching any of %s" ',alternatives))
             (,next))))
 
