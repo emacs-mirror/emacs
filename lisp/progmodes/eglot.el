@@ -2257,8 +2257,7 @@ format described above.")
                       collect (if (keywordp section) section
                                 (intern (format ":%s" section)))
                       collect v))
-        val
-        eglot--{})))
+        val)))
 
 (defun eglot-signal-didChangeConfiguration (server)
   "Send a `:workspace/didChangeConfiguration' signal to SERVER.
@@ -2268,7 +2267,8 @@ When called interactively, use the currently active server"
    server :workspace/didChangeConfiguration
    (list
     :settings
-    (eglot--workspace-configuration-plist server))))
+    (or (eglot--workspace-configuration-plist server)
+        eglot--{}))))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql workspace/configuration)) &key items)
