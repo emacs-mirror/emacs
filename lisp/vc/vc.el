@@ -1046,6 +1046,7 @@ Within directories, only files already under version control are noticed."
 (defvar log-edit-vc-backend)
 (defvar diff-vc-backend)
 (defvar diff-vc-revisions)
+(defvar vc-want-edit-command-p)
 
 (defun vc-deduce-backend ()
   (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
@@ -2744,17 +2745,26 @@ with its diffs (if the underlying VCS supports that)."
     (setq vc-parent-buffer-name nil)))
 
 ;;;###autoload
-(defun vc-print-branch-log (branch)
-  "Show the change log for BRANCH root in a window."
+(defun vc-print-branch-log (branch &optional arg)
+  "Show the change log for BRANCH root in a window.
+Optional prefix ARG non-nil requests an opportunity for the user
+to edit the VC shell command that will be run to generate the
+log."
+  ;; The original motivation for ARG was to make it possible to
+  ;; produce a log of more than one Git branch without modifying the
+  ;; print-log VC API.  The user can append the other branches to the
+  ;; command line arguments to 'git log'.  See bug#57807.
   (interactive
    (let* ((backend (vc-responsible-backend default-directory))
           (rootdir (vc-call-backend backend 'root default-directory)))
      (list
-      (vc-read-revision "Branch to log: " (list rootdir) backend))))
+      (vc-read-revision "Branch to log: " (list rootdir) backend)
+      current-prefix-arg)))
   (when (equal branch "")
     (error "No branch specified"))
   (let* ((backend (vc-responsible-backend default-directory))
-         (rootdir (vc-call-backend backend 'root default-directory)))
+         (rootdir (vc-call-backend backend 'root default-directory))
+         (vc-want-edit-command-p arg))
     (vc-print-log-internal backend
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))

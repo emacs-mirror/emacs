@@ -1089,35 +1089,30 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 (defvar compilation-directory)
 (defvar compilation-arguments)
+(defvar vc-want-edit-command-p)
 
 (defun vc-git--pushpull (command prompt extra-args)
   "Run COMMAND (a string; either push or pull) on the current Git branch.
 If PROMPT is non-nil, prompt for the Git command to run."
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
-	 (git-program vc-git-program)
-	 args)
-    ;; If necessary, prompt for the exact command.
-    ;; TODO if pushing, prompt if no default push location - cf bzr.
-    (when prompt
-      (setq args (split-string
-		  (read-shell-command
-                   (format "Git %s command: " command)
-                   (format "%s %s" git-program command)
-                   'vc-git-history)
-		  " " t))
-      (setq git-program (car  args)
-	    command     (cadr args)
-	    args        (cddr args)))
-    (setq args (nconc args extra-args))
+         ;; TODO if pushing, prompt if no default push location - cf bzr.
+         (vc-want-edit-command-p prompt))
     (require 'vc-dispatcher)
-    (apply #'vc-do-async-command buffer root git-program command args)
+    (when vc-want-edit-command-p
+      (with-current-buffer (get-buffer-create buffer)
+        (add-hook 'vc-pre-command-functions
+                  (pcase-lambda (_ _ `(,new-command . ,new-args))
+                    (setq command new-command extra-args new-args))
+                  nil t)))
+    (apply #'vc-do-async-command
+           buffer root vc-git-program command extra-args)
     (with-current-buffer buffer
       (vc-run-delayed
         (vc-compilation-mode 'git)
         (setq-local compile-command
-                    (concat git-program " " command " "
-                            (mapconcat #'identity args " ")))
+                    (concat vc-git-program " " command " "
+                            (mapconcat #'identity extra-args " ")))
         (setq-local compilation-directory root)
         ;; Either set `compilation-buffer-name-function' locally to nil
         ;; or use `compilation-arguments' to set `name-function'.

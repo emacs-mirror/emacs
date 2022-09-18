@@ -156,6 +156,9 @@ BEWARE: Despite its name, this variable is not itself a hook!")
 (defvar vc-parent-buffer-name nil)
 (put 'vc-parent-buffer-name 'permanent-local t)
 
+(defvar vc-want-edit-command-p nil
+  "If non-nil, let user edit the VC shell command before running it.")
+
 ;; Common command execution logic
 
 (defun vc-process-filter (p s)
@@ -262,6 +265,12 @@ CODE should be a function of no arguments."
   (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
 
+(defvar vc-pre-command-functions nil
+  "Hook run at the beginning of `vc-do-command'.
+Each function is called inside the buffer in which the command
+will be run and is passed 3 arguments: the COMMAND, the FILES and
+the FLAGS.")
+
 (defvar vc-post-command-functions nil
   "Hook run at the end of `vc-do-command'.
 Each function is called inside the buffer in which the command was run
@@ -296,8 +305,27 @@ FILE-OR-LIST is the name of a working file; it may be a list of
 files or be nil (to execute commands that don't expect a file
 name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
+
+If `vc-want-edit-command-p' is non-nil, prompt the user to edit
+COMMAND and FLAGS before execution.
+
 Return the return value of the slave command in the synchronous
 case, and the process object in the asynchronous case."
+  (when vc-want-edit-command-p
+    (let* ((files-separator-p (string= "--" (car (last flags))))
+           (edited (split-string-and-unquote
+                    (read-shell-command
+                     (format "Edit VC command & arguments%s: "
+                             (if file-or-list
+                                 " (files list to be appended)"
+                               ""))
+                     (combine-and-quote-strings
+                      (cons command (remq nil (if files-separator-p
+                                                  (butlast flags)
+                                                flags))))))))
+      (setq command (car edited)
+            flags (nconc (cdr edited)
+                         (and files-separator-p '("--"))))))
   (when vc-tor
     (push command flags)
     (setq command "torsocks"))
@@ -327,6 +355,8 @@ case, and the process object in the asynchronous case."
 		       (string= (buffer-name) buffer))
 		  (eq buffer (current-buffer)))
 	(vc-setup-buffer buffer))
+      (run-hook-with-args 'vc-pre-command-functions
+		          command file-or-list flags)
       ;; If there's some previous async process still running, just kill it.
       (let ((squeezed (remq nil flags))
 	    (inhibit-read-only t)
@@ -386,22 +416,25 @@ Send the output to BUFFER, which should be a buffer or the name
 of a buffer, which is created.
 ROOT should be the directory in which the command should be run.
 Display the buffer in some window, but don't select it."
-  (let* ((dir default-directory)
-	 (inhibit-read-only t)
-	 window new-window-start)
+  (letrec ((dir default-directory)
+	   (inhibit-read-only t)
+           (fun (lambda (command _ args)
+                  (remove-hook 'vc-pre-command-functions fun)
+                  (goto-char (point-max))
+                  (unless (eq (point) (point-min))
+	            (insert "\n"))
+                  (setq new-window-start (point))
+                  (insert "Running \"" command)
+                  (dolist (arg args)
+	            (insert " " arg))
+                  (insert "\"...\n")))
+	   (window nil) (new-window-start nil))
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
     (with-current-buffer buffer
       (setq default-directory root)
-      (goto-char (point-max))
-      (unless (eq (point) (point-min))
-	(insert "\n"))
-      (setq new-window-start (point))
-      (insert "Running \"" command)
-      (dolist (arg args)
-	(insert " " arg))
-      (insert "\"...\n")
+      (add-hook 'vc-pre-command-functions fun)
       ;; Run in the original working directory.
       (let ((default-directory dir))
 	(apply #'vc-do-command t 'async command nil args)))
