@@ -2436,14 +2436,14 @@ Enabling this minor mode turns on hiding header material, like
 'elide-head' and 'elide-head-show' are now obsolete.
 
 *** New package 'osc'.
-Support for OSC ("Operating System Command") espace sequences has been
+Support for OSC ("Operating System Command") escape sequences has been
 extracted from 'comint.el' in order to provide interpretation of OSC
-escape sequences in compilation buffers.
+sequences in compilation buffers.
 
 Adding the new function 'osc-compilation-filter' to
-'compilation-filter-hook' enables interpretation of OSC ("Operating
-System Command") escape sequences in compilation buffers. By default,
-all sequences are filtered out.
+'compilation-filter-hook' enables interpretation of OSC escape
+sequences in compilation buffers.  By default, all sequences are
+filtered out.
 
 A handler for OSC 2, the command to set a window title, is provided.
 
