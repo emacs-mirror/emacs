@@ -109,8 +109,8 @@ FILE-TAGS is an alist in the following form:
           (when (search-forward-regexp
                  (format "\\(;%s\\)\\($\\|;\\)" tag) end t)
             (delete-region (match-beginning 1) (match-end 1))
-            ;; Check if file should still be in the database. If
-            ;; it has no tags or comments, it will be removed.
+            ;; Check if file should still be in the database.
+            ;; If it has no tags or comments, it will be removed.
             (end-of-line)
             (setq end (point))
             (beginning-of-line)

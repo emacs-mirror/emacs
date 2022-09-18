@@ -47,7 +47,7 @@
 ;; browsing the thumbnail buffer was slow too.  image-dired.el will not
 ;; create thumbnails until they are needed and the browsing is done
 ;; quickly and easily in Dired.  I copied a great deal of ideas and
-;; code from there though... :)
+;; code from there though...  :)
 ;;
 ;;  `image-dired' stores the thumbnail files in `image-dired-dir'
 ;; using the file name format ORIGNAME.thumb.ORIGEXT.  For example
@@ -672,10 +672,10 @@ On reaching end or beginning of buffer, stop and show a message."
   (let ((goal-column (current-column)))
     (forward-line -1)
     (move-to-column goal-column))
-  ;; If we end up in an empty spot, back up to the next
-  ;; thumbnail. This should only happen if the user deleted a
-  ;; thumbnail and did not refresh, so it is not very common. But we
-  ;; can handle it in a good manner, so why not?
+  ;; If we end up in an empty spot, back up to the next thumbnail.
+  ;; This should only happen if the user deleted a thumbnail and did
+  ;; not refresh, so it is not very common.  But we can handle it in a
+  ;; good manner, so why not?
   (if (not (image-dired-image-at-point-p))
       (image-dired-backward-image))
   (if image-dired-track-movement
@@ -883,9 +883,9 @@ You probably want to use this together with
   "<down-mouse-2>"   #'image-dired-mouse-select-thumbnail
   "<down-mouse-3>"   #'image-dired-mouse-select-thumbnail
   ;; Seems I must first set C-down-mouse-1 to undefined, or else it
-  ;; will trigger the buffer menu. If I try to instead bind
+  ;; will trigger the buffer menu.  If I try to instead bind
   ;; C-down-mouse-1 to `image-dired-mouse-toggle-mark', I get a message
-  ;; about C-mouse-1 not being defined afterwards. Annoying, but I
+  ;; about C-mouse-1 not being defined afterwards.  Annoying, but I
   ;; probably do not completely understand mouse events.
   "C-<down-mouse-1>" #'undefined
   "C-<mouse-1>"      #'image-dired-mouse-toggle-mark)
@@ -996,7 +996,7 @@ With a negative prefix argument, prompt user for the delay."
                    (string-to-number
                     (let ((delay (number-to-string image-dired-slideshow-delay)))
                       (read-string
-                       (format-prompt "Delay, in seconds. Decimals are accepted" delay))
+                       (format-prompt "Delay, in seconds.  Decimals are accepted" delay))
                       delay))))))
     (setq image-dired--slideshow-timer
           (run-with-timer
@@ -1856,7 +1856,7 @@ when using per-directory thumbnail file storage"))
 ;;                 `(,(file-attribute-access-time fattribs)
 ;;                   ,(file-attribute-size fattribs) ,f)))
 ;;             (directory-files (image-dired-dir) t ".+\\.thumb\\..+$"))
-;;            ;; Sort function. Compare time between two files.
+;;            ;; Sort function.  Compare time between two files.
 ;;            (lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
 ;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
