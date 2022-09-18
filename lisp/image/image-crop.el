@@ -29,6 +29,7 @@
 
 (require 'svg)
 (require 'text-property-search)
+(eval-when-compile (require 'subr-x))
 
 (defgroup image-crop ()
   "Image cropping."
@@ -149,6 +150,7 @@ After cropping an image, you can save it by `M-x image-save' or
 		  (data
 		   (image-crop--content-type data))))
 	   (image-scaling-factor 1)
+           (orig-point (point))
 	   (size (image-size image t))
 	   (svg (svg-create (car size) (cdr size)
 			    :xmlns:xlink "http://www.w3.org/1999/xlink"
@@ -186,25 +188,27 @@ After cropping an image, you can save it by `M-x image-save' or
       (svg-embed svg data type t
 		 :width (car size)
 		 :height (cdr size))
-      (delete-region image-start image-end)
-      (svg-insert-image svg)
-      (let ((area (condition-case _
-		      (save-excursion
-			(forward-line 1)
-			(image-crop--crop-image-1
-                         svg (if cut "cut" "crop")))
-                    (quit nil))))
-        (message (substitute-command-keys
-                  "Type \\[image-save] to save %s image to file")
-                 (if cut "cut" "cropped"))
-	(delete-region (pos-bol) (pos-eol))
-	(if area
-	    (image-crop--crop-image-update
-             area orig-data size type cut text)
-	  ;; If the user didn't complete the crop, re-insert the
-	  ;; original image (and text).
-	  (insert text))
-	(undo-amalgamate-change-group undo-handle)))))
+      (with-buffer-unmodified-if-unchanged
+        (delete-region image-start image-end)
+        (svg-insert-image svg)
+        (let ((area (condition-case _
+		        (save-excursion
+			  (forward-line 1)
+			  (image-crop--crop-image-1
+                           svg (if cut "cut" "crop")))
+                      (quit nil))))
+          (message (substitute-command-keys
+                    "Type \\[image-save] to save %s image to file")
+                   (if cut "cut" "cropped"))
+	  (delete-region (pos-bol) (pos-eol))
+	  (if area
+	      (image-crop--crop-image-update
+               area orig-data size type cut text)
+	    ;; If the user didn't complete the crop, re-insert the
+	    ;; original image (and text).
+	    (insert text)
+            (goto-char orig-point))
+	  (undo-amalgamate-change-group undo-handle))))))
 
 (defun image-crop--crop-image-update (area data size type cut text)
   (let* ((image-scaling-factor 1)
