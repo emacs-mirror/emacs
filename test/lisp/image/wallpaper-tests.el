@@ -23,6 +23,17 @@
 (require 'ert-x)
 (require 'wallpaper)
 
+(ert-deftest wallpaper--find-command/return-string ()
+  (should (and (wallpaper--find-command)
+               (stringp (wallpaper--find-command)))))
+
+(ert-deftest wallpaper--find-command-args/return-list ()
+  (should (and (wallpaper--find-command-args)
+               (listp (wallpaper--find-command-args)))))
+
+(ert-deftest wallpaper--image-file-regexp/return-string ()
+  (should (stringp (wallpaper--image-file-regexp))))
+
 (ert-deftest wallpaper--get-default-file/empty-gives-nil ()
   (with-temp-buffer
     (should-not (wallpaper--get-default-file))))
