@@ -168,7 +168,7 @@
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
-  (declare (debug body))
+  (declare (debug (body)))
   `(with-temp-buffer
     (help-mode)
     ;; Trick `help-buffer' into using the temp buffer.

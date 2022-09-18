@@ -370,7 +370,7 @@
 
 (defmacro dired-test-with-temp-dirs (just-empty-dirs &rest body)
   "Helper macro for Bug#27940 test."
-  (declare (indent 1) (debug body))
+  (declare (indent 1) (debug (body)))
   (let ((dir (make-symbol "dir")))
     `(ert-with-temp-directory ,dir
        (let* ((dired-deletion-confirmer (lambda (_) "yes")) ; Suppress prompts.

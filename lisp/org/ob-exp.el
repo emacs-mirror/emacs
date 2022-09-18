@@ -65,7 +65,7 @@ to avoid evaluating code on export should use the header argument
 Source is located in `org-babel-exp-reference-buffer'.  The value
 returned is the value of the last form in BODY.  Assume that
 point is at the beginning of the Babel block."
-  (declare (indent 1) (debug body))
+  (declare (indent 1) (debug (body)))
   `(let ((source (get-text-property (point) 'org-reference)))
      ;; Source blocks created during export process (e.g., by other
      ;; source blocks) are not referenced.  In this case, do not move
