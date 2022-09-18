@@ -2433,7 +2433,9 @@ A value of zero means TTY uses the system's default value.  */)
   (Lisp_Object tty)
 {
   struct terminal *terminal = decode_tty_terminal (tty);
-  return make_fixnum (terminal->display_info.tty->output_buffer_size);
+  if (terminal)
+    return make_fixnum (terminal->display_info.tty->output_buffer_size);
+  error ("Not a tty terminal");
 }
 
 
