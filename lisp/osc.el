@@ -171,6 +171,8 @@ must be in `compilation-filter-hook'."
   :group 'osc
   :version "29.0")
 
+(defvar compilation-filter-start)
+
 ;;;###autoload
 (defun osc-compilation-filter ()
   "Maybe collect OSC control sequences.
