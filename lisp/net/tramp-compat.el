@@ -36,6 +36,7 @@
 (require 'shell)
 (require 'subr-x)
 
+(declare-function tramp-compat-rx "tramp")
 (declare-function tramp-error "tramp")
 (declare-function tramp-file-name-handler "tramp")
 (declare-function tramp-tramp-file-p "tramp")

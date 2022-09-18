@@ -43,8 +43,7 @@
 ;;   existence, or "file-attributes" caches the result of the function
 ;;   `file-attributes'.  These entries have a timestamp, and they
 ;;   expire after `remote-file-name-inhibit-cache' seconds if this
-;;   variable is set.  These properties are taken into account only if
-;;   the connection is established, or `non-essential' is nil.
+;;   variable is set.
 ;;
 ;; - The key is a process.  These are temporary properties related to
 ;;   an open connection.  Examples: "scripts" keeps shell script
