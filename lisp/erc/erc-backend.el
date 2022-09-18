@@ -643,6 +643,10 @@ The current buffer is given by BUFFER."
   (let ((p (plist-put parameters :nowait t)))
     (apply #'open-network-stream name buffer host service p)))
 
+(cl-defmethod erc--register-connection ()
+  "Perform opening IRC protocol exchange with server."
+  (erc-login))
+
 (defvar erc--server-connect-dumb-ipv6-regexp
   ;; Not for validation (gives false positives).
   (rx bot "[" (group (+ (any xdigit digit ":.")) (? "%" (+ alnum))) "]" eot))
@@ -697,7 +701,7 @@ TLS (see `erc-session-client-certificate' for more details)."
         ;; waiting for a non-blocking connect - keep the user informed
         (erc-display-message nil nil buffer "Opening connection..\n")
       (message "%s...done" msg)
-      (erc-login)) ))
+      (erc--register-connection))))
 
 (defun erc-server-reconnect ()
   "Reestablish the current IRC connection.
@@ -897,7 +901,7 @@ Conditionally try to reconnect and take appropriate action."
                   cproc (process-status cproc) event erc-server-quitting))
         (if (string-match "^open" event)
             ;; newly opened connection (no wait)
-            (erc-login)
+            (erc--register-connection)
           ;; assume event is 'failed
           (erc-with-all-buffers-of-server cproc nil
                                           (setq erc-server-connected nil))
