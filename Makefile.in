@@ -366,7 +366,58 @@ endif
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 
-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+all:
+	$(MAKE) actual-all || $(MAKE) advice-on-failure make-target=all exit-status=$$?
+	$(MAKE) sanity-check make-target=all
+
+# This target is used by the 'bootstrap' target in GNUmakefile, instead of 'all'.
+bootstrap-all:
+	$(MAKE) actual-all || $(MAKE) advice-on-failure make-target=bootstrap exit-status=$$?
+	$(MAKE) sanity-check make-target=bootstrap
+
+.PHONY: bootstrap-all actual-all advice-on-failure sanity-check
+
+actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+
+# ADVICE-ON-FAILURE-BEGIN:all
+#   You might try to:
+#   - run "make bootstrap", which might fix the problem
+#   - run "make V=1", which displays the full commands invoked by make,
+#     to further investigate the problem
+# ADVICE-ON-FAILURE-END:all
+
+# ADVICE-ON-FAILURE-BEGIN:bootstrap
+#   You might try to:
+#   - run "git clean -fdx" and run "make bootstrap" again, which might
+#     fix the problem
+#     !BEWARE! "git clean -fdx" deletes all files that are not under
+#     !BEWARE! version control, which means that all changes to such
+#     !BEWARE! files will be lost and cannot be restored later
+#   - run "make V=1", which displays the full commands invoked by make,
+#     to further investigate the problem
+# ADVICE-ON-FAILURE-END:bootstrap
+
+advice-on-failure:
+	@echo
+	@echo "  \"make ${make-target}\" failed with exit status ${exit-status}."
+	@cat Makefile | \
+	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
+	  sed 's/^# //' | grep -v '^ADVICE-ON-FAILURE-'
+	@echo
+	@exit ${exit-status}
+
+sanity-check:
+	@v=$$(src/emacs${EXEEXT} --batch --eval \
+	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
+	  2> /dev/null); \
+	[ "X$$v" == "X3628800" ] && exit 0; \
+	echo; \
+	echo "  \"make ${make-target}\" succeeded, but Emacs is not functional."; \
+	cat Makefile | \
+	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
+	  sed 's/^# //' | grep -v '^ADVICE-ON-FAILURE-'; \
+	echo; \
+	exit 1
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
 
@@ -1170,7 +1221,11 @@ check-info: info
 ### This first cleans the lisp subdirectory, removing all compiled
 ### Lisp files.  Then re-run make to build all the files anew.
 
-.PHONY: bootstrap
+.PHONY: bootstrap actual-bootstrap
+
+bootstrap:
+	$(MAKE) actual-bootstrap || $(MAKE) advice-on-failure make-target=bootstrap exit-status=$$?
+	$(MAKE) sanity-check make-target=bootstrap
 
 # Without a 'configure' variable, bootstrapping does the following:
 #  * Remove files to start from a bootstrap-clean slate.
@@ -1181,7 +1236,7 @@ check-info: info
 #  * Remove files to start from an extraclean slate.
 #  * Do the actual build, during which the 'configure' variable is
 #    used (see the Makefile goal in GNUmakefile).
-bootstrap:
+actual-bootstrap:
 ifndef configure
 	$(MAKE) bootstrap-clean
 	cd $(srcdir) && ./autogen.sh autoconf
@@ -1189,7 +1244,7 @@ ifndef configure
 else
 	$(MAKE) extraclean
 endif
-	$(MAKE) all
+	$(MAKE) actual-all
 
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
 .PHONY: preferred-branch-is-current unchanged-history-files
