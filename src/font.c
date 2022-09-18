@@ -4041,7 +4041,7 @@ which kind of font it is.  It must be one of `font-spec', `font-entity',
     return (FONT_ENTITY_P (object) ? Qt : Qnil);
   if (EQ (extra_type, Qfont_object))
     return (FONT_OBJECT_P (object) ? Qt : Qnil);
-  wrong_type_argument (intern ("font-extra-type"), extra_type);
+  wrong_type_argument (Qfont_extra_type, extra_type); ;
 }
 
 DEFUN ("font-spec", Ffont_spec, Sfont_spec, 0, MANY, 0,
@@ -5594,6 +5594,7 @@ syms_of_font (void)
   DEFSYM (QL2R, "L2R");
   DEFSYM (QR2L, "R2L");
 
+  DEFSYM (Qfont_extra_type, "font-extra-type");
   DEFSYM (Qfont_driver_superseded_by, "font-driver-superseded-by");
 
   scratch_font_spec = Ffont_spec (0, NULL);
