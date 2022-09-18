@@ -178,7 +178,7 @@ Return nil when any other file notification watch is still active."
 
 (setq file-notify-debug nil
       password-cache-expiry nil
-      tramp-verbose (when (getenv "EMACS_EMBA_CI") 10 0)
+      tramp-verbose (if (getenv "EMACS_EMBA_CI") 10 0)
 
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
