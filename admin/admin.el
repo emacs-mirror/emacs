@@ -963,7 +963,7 @@ $Date: %s $
             (format admin--org-html-postamble
                     copyright-years
                     ;; e.g. "2022/09/13 09:13:13"
-                    (format-time-string "%Y/%M/%y %H:%m:%S")))
+                    (format-time-string "%Y/%m/%d %H:%m:%S")))
            (org-html-mathjax-template "")
            (htmlize-output-type 'css))
       (org-html-export-as-html))
