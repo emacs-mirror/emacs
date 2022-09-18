@@ -877,6 +877,7 @@ You probably want to use this together with
 
   ;; Mouse
   "<mouse-2>"        #'image-dired-mouse-display-image
+  "<double-mouse-1>" #'image-dired-mouse-display-image
   "<mouse-1>"        #'image-dired-mouse-select-thumbnail
   "<mouse-3>"        #'image-dired-mouse-select-thumbnail
   "<down-mouse-1>"   #'image-dired-mouse-select-thumbnail
