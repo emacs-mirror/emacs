@@ -3217,6 +3217,26 @@ process buffer for a list of commands.)"
                   show)))
     (get-buffer-process buffer)))
 
+(defun python-shell-restart (&optional show)
+  "Restart the Python shell.
+Optional argument SHOW (interactively, the prefix argument), if
+non-nil, means also display the Python shell buffer."
+  (interactive "P")
+  (with-current-buffer
+      (or (and (derived-mode-p 'inferior-python-mode)
+               (current-buffer))
+          (seq-some (lambda (dedicated)
+                      (get-buffer (format "*%s*" (python-shell-get-process-name
+                                                  dedicated))))
+                    '(buffer project nil))
+          (user-error "No Python shell"))
+    (when-let ((proc (get-buffer-process (current-buffer))))
+      (kill-process proc)
+      (while (accept-process-output proc)))
+    (python-shell-make-comint (python-shell-calculate-command)
+                              (string-trim (buffer-name) "\\*" "\\*")
+                              show)))
+
 (defun run-python-internal ()
   "Run an inferior Internal Python process.
 Input and output via buffer named after
