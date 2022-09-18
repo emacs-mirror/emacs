@@ -139,7 +139,6 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'subr-x) ; for string-join
   (require 'wid-edit))
 
 (require 'image-dired-external)

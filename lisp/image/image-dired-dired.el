@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x)) ; for string-join
-
 (require 'image-dired)
 
 (defgroup image-dired-dired nil
