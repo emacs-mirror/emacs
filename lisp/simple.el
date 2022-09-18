@@ -2465,9 +2465,13 @@ Also see `suggest-key-bindings'."
 
 (defun execute-extended-command--shorter (name typed)
   (let ((candidates '())
+        commands
         (max (length typed))
         (len 1)
         binding)
+    ;; Precompute a list of commands once to avoid repeated `commandp' testing
+    ;; of symbols in the `completion-try-completion' call inside the loop below
+    (mapatoms (lambda (s) (when (commandp s) (push s commands))))
     (while (and (not binding)
                 (progn
                   (unless candidates
@@ -2480,8 +2484,8 @@ Also see `suggest-key-bindings'."
       (input-pending-p)    ;Dummy call to trigger input-processing, bug#23002.
       (let ((candidate (pop candidates)))
         (when (equal name
-                       (car-safe (completion-try-completion
-                                  candidate obarray 'commandp len)))
+                     (car-safe (completion-try-completion
+                                candidate commands nil len)))
           (setq binding candidate))))
     binding))
 
