@@ -300,6 +300,7 @@ instead."
     (define-key map [remap backward-sentence] #'python-nav-backward-block)
     (define-key map [remap forward-sentence] #'python-nav-forward-block)
     (define-key map [remap backward-up-list] #'python-nav-backward-up-list)
+    (define-key map [remap up-list] #'python-nav-up-list)
     (define-key map [remap mark-defun] #'python-mark-defun)
     (define-key map "\C-c\C-j" #'imenu)
     ;; Indent specific
