@@ -77,17 +77,20 @@ If the value calls for a frame without a minibuffer, and you have
 not created a minibuffer frame on your own, a minibuffer frame is
 created according to `minibuffer-frame-alist'.
 
-You can specify geometry-related options for just the initial
-frame by setting this variable in your init file; however, they
-won't take effect until Emacs reads your init file, which happens
-after creating the initial frame.  If you want the initial frame
-to have the proper geometry as soon as it appears, you need to
-use this three-step process:
+Emacs reads your main init file after creating the initial frame,
+so setting it there won't have the expected effect.  Instead, you
+can set it in `early-init-file'.
+
+If you're using X, and you want (for instance) to have different
+geometries on different displays, you need to use this three-step
+process:
+
 * Specify X resources to give the geometry you want.
 * Set `default-frame-alist' to override these options so that they
   don't affect subsequent frames.
-* Set `initial-frame-alist' in a way that matches the X resources,
-  to override what you put in `default-frame-alist'."
+* Set `initial-frame-alist' in your normal init file in a way
+  that matches the X resources, to override what you put in
+  `default-frame-alist'."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
