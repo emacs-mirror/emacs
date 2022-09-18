@@ -178,14 +178,15 @@ and above."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom native-comp-driver-options nil
+(defcustom native-comp-driver-options (when (eq system-type 'darwin)
+                                        '("-Wl,-w"))
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type '(repeat string)                ; FIXME is this right?
+  :type '(repeat string)
   :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
