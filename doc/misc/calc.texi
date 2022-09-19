@@ -10392,7 +10392,6 @@ memory than it would otherwise, but it's guaranteed to fix the problem.
 @cindex Recursion depth
 @cindex ``Computation got stuck'' message
 @cindex @code{max-lisp-eval-depth}
-@cindex @code{max-specpdl-size}
 Calc uses recursion in many of its calculations.  Emacs Lisp keeps a
 variable @code{max-lisp-eval-depth} which limits the amount of recursion
 possible in an attempt to recover from program bugs.  If a calculation
@@ -10405,9 +10404,6 @@ The limit is always increased (multiplied) by a factor of two.  There
 is also an @kbd{I M} (@code{calc-less-recursion-depth}) command which
 decreases this limit by a factor of two, down to a minimum value of 200.
 The default value is 1000.
-
-These commands also double or halve @code{max-specpdl-size}, another
-internal Lisp recursion limit.  The minimum value for this limit is 600.
 
 @node Caches
 @subsection Caches

@@ -129,7 +129,7 @@ contains an infinite loop.  When Edebug is instrumenting code
 containing very large quoted lists, it may reach this limit and give
 the error message \"Too deep - perhaps infinite loop in spec?\".
 Make this limit larger to countermand that, but you may also need to
-increase `max-lisp-eval-depth' and `max-specpdl-size'."
+increase `max-lisp-eval-depth'."
   :type 'integer
   :version "26.1")
 
@@ -1107,8 +1107,7 @@ purpose by adding an entry to this alist, and setting
 	edebug-best-error
 	edebug-error-point
 	;; Do this once here instead of several times.
-	(max-lisp-eval-depth (+ 800 max-lisp-eval-depth))
-	(max-specpdl-size (+ 2000 max-specpdl-size)))
+	(max-lisp-eval-depth (+ 800 max-lisp-eval-depth)))
     (let ((no-match
            (catch 'no-match
              (setq result (edebug-read-and-maybe-wrap-form1))
@@ -2317,7 +2316,6 @@ and run its entry function, and set up `edebug-before' and
               ;; but not inside an unwind-protect.
               ;; Doing it here also keeps it from growing too large.
               (max-lisp-eval-depth (+ 100 max-lisp-eval-depth)) ; too much??
-              (max-specpdl-size (+ 200 max-specpdl-size))
 
               (debugger edebug-debugger) ; only while edebug is active.
               (edebug-outside-debug-on-error debug-on-error)

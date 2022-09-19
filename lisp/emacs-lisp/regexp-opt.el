@@ -133,7 +133,6 @@ usually more efficient than that of a simplified version:
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)
-	   (max-specpdl-size 10000)
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (open (cond ((stringp paren) paren) (paren "\\(")))

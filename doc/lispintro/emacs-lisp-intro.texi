@@ -10100,9 +10100,8 @@ resources; as it happens, methods that people find easy---that are
 frugal of mental resources---sometimes use considerable computer
 resources.  Emacs was designed to run on machines that we now consider
 limited and its default settings are conservative.  You may want to
-increase the values of @code{max-specpdl-size} and
-@code{max-lisp-eval-depth}.  In my @file{.emacs} file, I set them to
-15 and 30 times their default value.}.
+increase the value of @code{max-lisp-eval-depth}.  In my @file{.emacs}
+file, I set it to 30 times its default value.}.
 
 @menu
 * while::                       Causing a stretch of code to repeat.

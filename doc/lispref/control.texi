@@ -2366,11 +2366,6 @@ of the @var{cleanup-forms} themselves exits nonlocally (via a
 guaranteed to evaluate the rest of them.  If the failure of one of the
 @var{cleanup-forms} has the potential to cause trouble, then protect
 it with another @code{unwind-protect} around that form.
-
-The number of currently active @code{unwind-protect} forms counts,
-together with the number of local variable bindings, against the limit
-@code{max-specpdl-size} (@pxref{Definition of max-specpdl-size,, Local
-Variables}).
 @end defspec
 
   For example, here we make an invisible buffer for temporary use, and

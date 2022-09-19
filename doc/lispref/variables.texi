@@ -358,27 +358,6 @@ Variables}); a few variables have terminal-local bindings
 like ordinary local bindings, but they are localized depending on
 where you are in Emacs.
 
-@defopt max-specpdl-size
-@anchor{Definition of max-specpdl-size}
-@cindex variable limit error
-@cindex evaluation error
-@cindex infinite recursion
-This variable defines the limit on the total number of local variable
-bindings and @code{unwind-protect} cleanups (@pxref{Cleanups,,
-Cleaning Up from Nonlocal Exits}) that are allowed before Emacs
-signals an error (with data @code{"Variable binding depth exceeds
-max-specpdl-size"}).
-
-This limit, with the associated error when it is exceeded, is one way
-that Lisp avoids infinite recursion on an ill-defined function.
-@code{max-lisp-eval-depth} provides another limit on depth of nesting.
-@xref{Definition of max-lisp-eval-depth,, Eval}.
-
-The default value is 2500.  Entry to the Lisp debugger increases the
-value, if there is little room left, to make sure the debugger itself
-has room to execute.
-@end defopt
-
 @node Void Variables
 @section When a Variable is Void
 @cindex @code{void-variable} error

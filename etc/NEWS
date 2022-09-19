@@ -3806,6 +3806,12 @@ the same but works by modifying LIST destructively.
 ---
 ** 'string-split' is now an alias for 'split-string'.
 
++++
+** The variable 'max-specpdl-size' has been made obsolete.
+Now 'max-lisp-eval-depth' alone is used for limiting Lisp recursion
+and stack usage.  'max-specpdl-size' is still present as a plain
+variable for compatibility but its limiting powers have been taken away.
+
 
 * Changes in Emacs 29.1 on Non-Free Operating Systems
 

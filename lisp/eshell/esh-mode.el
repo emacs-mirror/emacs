@@ -331,7 +331,6 @@ and the hook `eshell-exit-hook'."
   (setq-local require-final-newline nil)
 
   (setq-local max-lisp-eval-depth (max 3000 max-lisp-eval-depth))
-  (setq-local max-specpdl-size (max 6000 max-lisp-eval-depth))
 
   (setq-local eshell-last-input-start (point-marker))
   (setq-local eshell-last-input-end (point-marker))

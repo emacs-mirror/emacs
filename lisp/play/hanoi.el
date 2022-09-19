@@ -149,10 +149,9 @@ BITS must be of length nrings.  Start at START-TIME."
   (setq show-trailing-whitespace nil)
   (unwind-protect
       (let*
-	  (;; These lines can cause Emacs to crash if you ask for too
-	   ;; many rings.  If you uncomment them, on most systems you
+	  (;; This line can cause Emacs to crash if you ask for too
+	   ;; many rings.  If you uncomment it, on most systems you
 	   ;; can get 10,000+ rings.
-	   ;;(max-specpdl-size (max max-specpdl-size (* nrings 15)))
 	   ;;(max-lisp-eval-depth (max max-lisp-eval-depth (+ nrings 20)))
 	   (vert (not hanoi-horizontal-flag))
 	   (pole-width (length (format "%d" (max 0 (1- nrings)))))

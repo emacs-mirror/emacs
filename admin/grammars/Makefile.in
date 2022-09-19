@@ -35,7 +35,7 @@ unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH
 
 EMACS = ${top_builddir}/src/emacs
 emacs = "${EMACS}" -batch --no-site-file --no-site-lisp \
-  --eval '(setq max-specpdl-size 5000)' --eval '(setq load-prefer-newer t)'
+  --eval '(setq load-prefer-newer t)'
 
 make_bovine = ${emacs} -l semantic/bovine/grammar -f bovine-batch-make-parser
 make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
