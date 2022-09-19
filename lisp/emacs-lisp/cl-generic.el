@@ -425,11 +425,13 @@ the specializer used will be the one returned by BODY."
                 ;; only called with explicit arguments.
                 (uses-cnm (macroexp--fgrep `((,cnm) (,nmp)) nbody))
                 (λ-lift (mapcar #'car uses-cnm)))
-           (if (not uses-cnm)
-               (cons nil
-                     `#'(lambda (,@args)
-                          ,@(car parsed-body)
-                          ,nbody))
+           (cond
+            ((not uses-cnm)
+             (cons nil
+                   `#'(lambda (,@args)
+                        ,@(car parsed-body)
+                        ,nbody)))
+            (lexical-binding
              (cons 'curried
                    `#'(lambda (,nm) ;Called when constructing the effective method.
                         (let ((,nmp (if (cl--generic-isnot-nnm-p ,nm)
@@ -465,7 +467,20 @@ the specializer used will be the one returned by BODY."
                               ;; A destructuring-bind would do the trick
                               ;; as well when/if it's more efficient.
                               (apply (lambda (,@λ-lift ,@args) ,nbody)
-                                     ,@λ-lift ,arglist)))))))))
+                                     ,@λ-lift ,arglist)))))))
+            (t
+             (cons t
+                 `#'(lambda (,cnm ,@args)
+                      ,@(car parsed-body)
+                      ,(macroexp-warn-and-return
+                        "cl-defmethod used without lexical-binding"
+                        (if (not (assq nmp uses-cnm))
+                            nbody
+                          `(let ((,nmp (lambda ()
+                                         (cl--generic-isnot-nnm-p ,cnm))))
+                             ,nbody))
+                        'lexical t)))))
+           ))
         (f (error "Unexpected macroexpansion result: %S" f))))))
 
 (put 'cl-defmethod 'function-documentation
