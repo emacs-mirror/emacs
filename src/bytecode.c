@@ -1431,7 +1431,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  NEXT;
 
 	CASE (Binteractive_p):	/* Obsolete since 24.1.  */
-	  PUSH (call0 (intern ("interactive-p")));
+	  PUSH (call0 (Qinteractive_p));
 	  NEXT;
 
 	CASE (Bforward_char):
@@ -1749,6 +1749,8 @@ get_byte_code_arity (Lisp_Object args_template)
 void
 syms_of_bytecode (void)
 {
+  DEFSYM (Qinteractive_p, "interactive-p");
+
   defsubr (&Sbyte_code);
   defsubr (&Sinternal_stack_stats);
 

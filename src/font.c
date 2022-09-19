@@ -5555,6 +5555,10 @@ syms_of_font (void)
 
   DEFSYM (Qopentype, "opentype");
 
+  /* Currently used by hbfont.c, which has no syms_of_hbfont function
+     of its own.  */
+  DEFSYM (Qcanonical_combining_class, "canonical-combining-class");
+
   /* Important character set symbols.  */
   DEFSYM (Qascii_0, "ascii-0");
   DEFSYM (Qiso8859_1, "iso8859-1");

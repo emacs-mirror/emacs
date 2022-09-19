@@ -5540,15 +5540,15 @@ On MS Windows, this returns nothing useful.  */)
   switch (DoesBackingStore (dpyinfo->screen))
     {
     case Always:
-      result = intern ("always");
+      result = Qalways;
       break;
 
     case WhenMapped:
-      result = intern ("when-mapped");
+      result = Qwhen_mapped;
       break;
 
     case NotUseful:
-      result = intern ("not-useful");
+      result = Qnot_useful;
       break;
 
     default:
@@ -5577,22 +5577,22 @@ If omitted or nil, that stands for the selected frame's display.
   switch (dpyinfo->visual_info.class)
     {
     case StaticGray:
-      result = intern ("static-gray");
+      result = Qstatic_gray;
       break;
     case GrayScale:
-      result = intern ("gray-scale");
+      result = Qgray_scale;
       break;
     case StaticColor:
-      result = intern ("static-color");
+      result = Qstatic_color;
       break;
     case PseudoColor:
-      result = intern ("pseudo-color");
+      result = Qpseudo_color;
       break;
     case TrueColor:
-      result = intern ("true-color");
+      result = Qtrue_color;
       break;
     case DirectColor:
-      result = intern ("direct-color");
+      result = Qdirect_color;
       break;
     default:
       error ("Display has an unknown visual class");
@@ -8309,9 +8309,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
       disptype = Qmono;
     else if (FRAME_X_VISUAL_INFO (f)->class == GrayScale
              || FRAME_X_VISUAL_INFO (f)->class == StaticGray)
-      disptype = intern ("grayscale");
+      disptype = Qgrayscale;
     else
-      disptype = intern ("color");
+      disptype = Qcolor;
 
     if (NILP (Fframe_parameter (frame, Qdisplay_type)))
       {
@@ -8973,8 +8973,8 @@ Text larger than the specified size is clipped.  */)
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
-		     intern ("x-hide-tip"));
+  tip_timer = call3 (Qrun_at_time, timeout, Qnil,
+		     Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -10071,6 +10071,23 @@ eliminated in future versions of Emacs.  */);
 
   /* Tell Emacs about this window system.  */
   Fprovide (Qx, Qnil);
+
+  /* Used by Fx_show_tip.  */
+  DEFSYM (Qrun_at_time, "run-at-time");
+  DEFSYM (Qx_hide_tip, "x-hide-tip");
+
+  /* Used by display class and backing store reporting functions.  */
+  DEFSYM (Qalways, "always");
+  DEFSYM (Qwhen_mapped, "when-mapped");
+  DEFSYM (Qnot_useful, "not-useful");
+  DEFSYM (Qstatic_gray, "static-gray");
+  DEFSYM (Qgray_scale, "gray-scale");
+  DEFSYM (Qstatic_color, "static-color");
+  DEFSYM (Qpseudo_color, "pseudo-color");
+  DEFSYM (Qtrue_color, "true-color");
+  DEFSYM (Qdirect_color, "direct-color");
+  DEFSYM (Qgrayscale, "grayscale");
+  DEFSYM (Qcolor, "color");
 
 #ifdef HAVE_XINPUT2
   DEFSYM (Qxinput2, "xinput2");

@@ -380,26 +380,26 @@ bootstrap-all:
 actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
 
 # ADVICE-ON-FAILURE-BEGIN:all
-#   You might try to:
-#   - run "make bootstrap", which might fix the problem
-#   - run "make V=1", which displays the full commands invoked by make,
-#     to further investigate the problem
+# It can help to run "make bootstrap", which can resolve many build
+# failures caused by incrementally building from a previously built
+# checkout.
+
+# Failing that, running "make V=1" will cause Make to display the full
+# commands it invokes to build Emacs, which helps to investigate the
+# problem.
 # ADVICE-ON-FAILURE-END:all
 
 # ADVICE-ON-FAILURE-BEGIN:bootstrap
-#   You might try to:
-#   - run "git clean -fdx" and run "make bootstrap" again, which might
-#     fix the problem
-#     !BEWARE! "git clean -fdx" deletes all files that are not under
-#     !BEWARE! version control, which means that all changes to such
-#     !BEWARE! files will be lost and cannot be restored later
-#   - run "make V=1", which displays the full commands invoked by make,
-#     to further investigate the problem
+# If "make bootstrap" failed, try running "make extraclean" and then
+# "make bootstrap" again.  If that still fails and you are building
+# Emacs from a repository checkout, run "git clean -fdx" and retry
+# "make bootstrap".  Otherwise, please report a bug by sending email
+# to bug-gnu-emacs@gnu.org.
 # ADVICE-ON-FAILURE-END:bootstrap
 
 advice-on-failure:
 	@echo
-	@echo "  \"make ${make-target}\" failed with exit status ${exit-status}."
+	@echo "make ${make-target}\" failed with exit status ${exit-status}."
 	@cat Makefile | \
 	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
 	  sed 's/^# //' | grep -v '^ADVICE-ON-FAILURE-'
