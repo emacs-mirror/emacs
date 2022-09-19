@@ -137,11 +137,10 @@ Return nil when any other file notification watch is still active."
 
 (defun file-notify--test-cleanup ()
   "Cleanup after a test."
-  (when (getenv "EMACS_EMBA_CI")
-    (dolist (buf (tramp-list-tramp-buffers))
-      (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
-      (kill-buffer buf)))
-
+  ;; (when (getenv "EMACS_EMBA_CI")
+  ;;   (dolist (buf (tramp-list-tramp-buffers))
+  ;;     (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
+  ;;     (kill-buffer buf)))
   (file-notify-rm-all-watches)
 
   (ignore-errors
@@ -178,8 +177,8 @@ Return nil when any other file notification watch is still active."
 
 (setq file-notify-debug nil
       password-cache-expiry nil
-      tramp-verbose (if (getenv "EMACS_EMBA_CI") 10 0)
-
+      ;; tramp-verbose (if (getenv "EMACS_EMBA_CI") 10 0)
+      tramp-verbose 0
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
       (or tramp-allow-unsafe-temporary-files noninteractive))
