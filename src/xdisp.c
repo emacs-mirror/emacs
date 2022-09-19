@@ -1960,15 +1960,18 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  int top_x_before_string = it3.current_x;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
-		     CHARPOS, or until the first newline from the
-		     display string, which signals the end of the
-		     display line.  */
+		     at or beyond CHARPOS, or until the first newline
+		     from the display string, which signals the end of
+		     the display line.  */
 		  while (get_next_display_element (&it3))
 		    {
 		      if (!EQ (it3.object, string))
 			top_x_before_string = it3.current_x;
 		      PRODUCE_GLYPHS (&it3);
-		      if (IT_CHARPOS (it3) == charpos
+		      if ((it3.bidi_it.scan_dir == 1
+			   && IT_CHARPOS (it3) >= charpos)
+			  || (it3.bidi_it.scan_dir == -1
+			      && IT_CHARPOS (it3) <= charpos)
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
 			break;
 		      it3_moved = true;
