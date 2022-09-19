@@ -383,20 +383,25 @@ actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lis
 #   You might try to:
 #   - run "make bootstrap", which might fix the problem
 #   - run "make V=1", which displays the full commands invoked by make,
-#     to further investigate the problem
+#   ​  to further investigate the problem
 # ADVICE-ON-FAILURE-END:all
 
 # ADVICE-ON-FAILURE-BEGIN:bootstrap
 #   You might try to:
-#   - run "make bootstrap configure=default", to rebuild Emacs with the
-#     default configuration options, which might fix the problem
+#   - run "make extraclean" and run "make" again (or, equivalently, run
+#   ​  "make bootstrap configure=default"), to rebuild Emacs with the
+#   ​  default configuration options, which might fix the problem
 #   - run "git clean -fdx" and run "make bootstrap" again, which might
-#     fix the problem if "git boostrap configure=default" did not
-#     !BEWARE! "git clean -fdx" deletes all files that are not under
-#     !BEWARE! version control, which means that all changes to such
-#     !BEWARE! files will be lost and cannot be restored later
+#   ​  fix the problem if "make bootstrap configure=default" did not
+#   ​  !BEWARE! "git clean -fdx" deletes all files that are not under
+#   ​  !BEWARE! version control, which means that all changes to such
+#   ​  !BEWARE! files will be lost and cannot be restored later
 #   - run "make V=1", which displays the full commands invoked by make,
-#     to further investigate the problem
+#   ​  to further investigate the problem
+#   - report the problem and ask for help by sending an email to
+#   ​  bug-gnu-emacs@gnu.org, mentioning at least the build error
+#   ​  message, the platform, and the repository revision displayed by
+#   ​  "git rev-parse HEAD"
 # ADVICE-ON-FAILURE-END:bootstrap
 
 advice-on-failure:
