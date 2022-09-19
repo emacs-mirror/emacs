@@ -378,6 +378,31 @@ to writing a completion function."
 	   args)
 	  posns)))
 
+(defun eshell--pcomplete-executables ()
+  "Complete amongst a list of directories and executables.
+
+Wrapper for `pcomplete-executables' or `pcomplete-dirs-or-entries',
+depending on the value of `eshell-force-execution'.
+
+Adds path prefix to candidates independent of `action' value."
+  ;; `pcomplete-entries' returns filenames without path on `action' to
+  ;; use current string directory as done in `completion-file-name-table'
+  ;; when `action' is nil to construct executable candidates.
+  (let ((table (if eshell-force-execution
+                   (pcomplete-dirs-or-entries nil #'file-readable-p)
+                 (pcomplete-executables))))
+    (lambda (string pred action)
+      (let ((cands (funcall table string pred action)))
+        (if (eq action t)
+            (let ((specdir (file-name-directory string)))
+              (mapcar
+               (lambda (cand)
+                 (if (stringp cand)
+                     (file-name-concat specdir cand)
+                   cand))
+               cands))
+          cands)))))
+
 (defun eshell--complete-commands-list ()
   "Generate list of applicable, visible commands."
   ;; Building the commands list can take quite a while, especially over Tramp
@@ -392,9 +417,7 @@ to writing a completion function."
     (completion-table-dynamic
      (lambda (filename)
        (if (file-name-directory filename)
-           (if eshell-force-execution
-               (pcomplete-dirs-or-entries nil #'file-readable-p)
-             (pcomplete-executables))
+           (eshell--pcomplete-executables)
 	 (let* ((paths (eshell-get-path))
 		(cwd (file-name-as-directory
 		      (expand-file-name default-directory)))
