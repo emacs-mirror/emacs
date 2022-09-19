@@ -342,7 +342,7 @@ string is passed through `substitute-command-keys'.  */)
     doc = module_function_documentation (XMODULE_FUNCTION (fun));
 #endif
   else
-    doc = call1 (intern ("function-documentation"), fun);
+    doc = call1 (Qfunction_documentation, fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
