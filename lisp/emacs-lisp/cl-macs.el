@@ -792,7 +792,7 @@ compared by `eql'.
                           (macroexp-warn-and-return
                            "Case nil will never match"
                            nil 'suspicious))
-                         ((and (consp (car c)) (not (cddar c))
+                         ((and (consp (car c)) (cdar c) (not (cddar c))
                                (memq (caar c) '(quote function)))
                           (macroexp-warn-and-return
                            (format-message
