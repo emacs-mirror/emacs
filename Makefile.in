@@ -388,8 +388,10 @@ actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lis
 
 # ADVICE-ON-FAILURE-BEGIN:bootstrap
 #   You might try to:
+#   - run "git bootstrap configure=default", to rebuild Emacs with the
+#     default configuration options, which might fix the problem
 #   - run "git clean -fdx" and run "make bootstrap" again, which might
-#     fix the problem
+#     fix the problem if "git boostrap configure=default" did not
 #     !BEWARE! "git clean -fdx" deletes all files that are not under
 #     !BEWARE! version control, which means that all changes to such
 #     !BEWARE! files will be lost and cannot be restored later
