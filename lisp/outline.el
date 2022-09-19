@@ -315,7 +315,7 @@ Note that this feature is meant to be used in editing buffers."
   '((image "outline-open.svg" "outline-open.pbm" :height 15)
     (emoji "🔽")
     (symbol " ▼ ")
-    (text " v "))
+    (text " open "))
   "Icon used for buttons for opened sections in outline buffers."
   :version "29.1"
   :help-echo "Close this section")
@@ -324,7 +324,7 @@ Note that this feature is meant to be used in editing buffers."
   '((image "outline-close.svg" "outline-close.pbm" :height 15)
     (emoji "▶️")
     (symbol " ▶ ")
-    (text " > "))
+    (text " close "))
   "Icon used for buttons for closed sections in outline buffers."
   :version "29.1"
   :help-echo "Open this section")
@@ -332,8 +332,7 @@ Note that this feature is meant to be used in editing buffers."
 (define-icon outline-close-rtl outline-close
   '((image "outline-close.svg" "outline-close.pbm" :height 15 :rotation 180)
     (emoji "◀️")
-    (symbol " ◀ ")
-    (text " < "))
+    (symbol " ◀ "))
   "Right-to-left icon used for buttons in closed outline sections."
   :version "29.1")
 
