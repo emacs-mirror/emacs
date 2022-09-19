@@ -594,7 +594,18 @@ equivalently just return ALIST without NAME.")
 
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
-  (let ((record (funcall bookmark-make-record-function)))
+  (let* ((bookmark-search-size
+          ;; If we're in a buffer that's visiting an encrypted file,
+          ;; don't include any context in the bookmark file, because
+          ;; that would leak (possibly secret) data.
+          (if (and buffer-file-name
+                   (or (and (fboundp 'epa-file-name-p)
+                            (epa-file-name-p buffer-file-name))
+                       (and (fboundp 'tramp-crypt-file-name-p)
+                            (tramp-crypt-file-name-p buffer-file-name))))
+              0
+            bookmark-search-size))
+         (record (funcall bookmark-make-record-function)))
     ;; Set up default name if the function does not provide one.
     (unless (stringp (car record))
       (if (car record) (push nil record))

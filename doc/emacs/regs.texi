@@ -381,7 +381,8 @@ jump to the bookmark.
 @code{bookmark-jump} can find the proper position even if the file is
 modified slightly.  The variable @code{bookmark-search-size} says how
 many characters of context to record on each side of the bookmark's
-position.
+position.  (In buffers that are visiting encrypted files, no context
+is saved in the bookmarks file no matter the value of this variable.)
 
   Here are some additional commands for working with bookmarks:
 
