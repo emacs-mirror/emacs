@@ -341,6 +341,10 @@ data reflects the `outline-regexp'.")
   :safe #'booleanp
   :version "22.1")
 
+(defvar outline-imenu-generic-expression
+  (list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0))
+  "Value for `imenu-generic-expression' in Outline mode.")
+
 ;;;###autoload
 (define-derived-mode outline-mode text-mode "Outline"
   "Set major mode for editing outlines with selective display.
@@ -375,8 +379,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
               (concat paragraph-separate "\\|\\(?:" outline-regexp "\\)"))
   (setq-local font-lock-defaults
               '(outline-font-lock-keywords t nil nil backward-paragraph))
-  (setq-local imenu-generic-expression
-	      (list (list nil (concat "^\\(?:" outline-regexp "\\).*$") 0)))
+  (setq-local imenu-generic-expression outline-imenu-generic-expression)
   (add-hook 'change-major-mode-hook #'outline-show-all nil t)
   (add-hook 'hack-local-variables-hook #'outline-apply-default-state nil t))
 
