@@ -36,11 +36,11 @@
 (define-derived-mode gnus-custom-mode fundamental-mode "Gnus Customize"
   "Major mode for editing Gnus customization buffers.
 
-The following commands are available:
+The following commands are available:\\<widget-keymap>
 
 \\[widget-forward]		Move to next button or editable field.
 \\[widget-backward]		Move to previous button or editable field.
-\\[widget-button-click]		Activate button under the mouse pointer.
+\\[widget-button-click]	Activate button under the mouse pointer.
 \\[widget-button-press]		Activate button under point.
 
 Entry to this mode calls the value of `gnus-custom-mode-hook'
