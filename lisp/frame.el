@@ -64,7 +64,7 @@ handles the corresponding kind of display.")
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "Alist of parameters for the initial X window frame.
+  "Alist of parameters for the initial window-system (a.k.a. \"GUI\") frame.
 You can set this in your init file; for example,
 
  (setq initial-frame-alist
