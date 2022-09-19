@@ -2285,13 +2285,15 @@ When called interactively, use the currently active server"
                          (project-root (eglot--project server)))))
                 (setq-local major-mode (eglot--major-mode server))
                 (hack-dir-local-variables-non-file-buffer)
-                (plist-get (eglot--workspace-configuration-plist server) section
-                           (lambda (section wsection)
-                             (string=
-                              (if (keywordp wsection)
-                                  (substring (symbol-name wsection) 1)
-                                wsection)
-                              section))))))
+                (cl-loop for (wsection o)
+                         on (eglot--workspace-configuration-plist server)
+                         by #'cddr
+                         when (string=
+                               (if (keywordp wsection)
+                                   (substring (symbol-name wsection) 1)
+                                 wsection)
+                               section)
+                         return o))))
           items)))
 
 (defun eglot--signal-textDocument/didChange ()
