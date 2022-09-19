@@ -55,10 +55,6 @@
 (defvar wallpaper--default-commands
   ;; When updating this, also update the custom :type for `wallpaper-command'.
   '(
-    ;; Sway (Wayland)
-    ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
-    ;; Wayland General
-    ("wbg" "%f")
     ;; Gnome
     ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
     ;; KDE Plasma
@@ -66,6 +62,10 @@
     ;; XFCE
     ("xfconf-query" "-c" "xfce4-desktop" "-p"
      "/backdrop/screen0/monitoreDP/workspace0/last-image" "-s" "%f")
+    ;; Sway (Wayland)
+    ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
+    ;; Wayland General
+    ("wbg" "%f")
     ;; macOS
     ("osascript" "-e" "tell application \"Finder\" to set desktop picture to POSIX file \"%f\"")
     ;; Other / General X
