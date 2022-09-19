@@ -5363,7 +5363,10 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 The function is called with the same 3 arguments (BEG END DELETE)
 that `filter-buffer-substring' received.  It should return the
 buffer substring between BEG and END, after filtering.  If DELETE is
-non-nil, it should delete the text between BEG and END from the buffer.")
+non-nil, it should delete the text between BEG and END from the buffer.
+
+The default value is `buffer-substring--filter', and nil means
+the same as the default.")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
@@ -5379,7 +5382,9 @@ Use `filter-buffer-substring' instead of `buffer-substring',
 you want to allow filtering to take place.  For example, major or minor
 modes can use `filter-buffer-substring-function' to exclude text properties
 that are special to a buffer, and should not be copied into other buffers."
-  (funcall filter-buffer-substring-function beg end delete))
+  (funcall (or filter-buffer-substring-function
+               #'buffer-substring--filter)
+           beg end delete))
 
 (defun buffer-substring--filter (beg end &optional delete)
   "Default function to use for `filter-buffer-substring-function'.
