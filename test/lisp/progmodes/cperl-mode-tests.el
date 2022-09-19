@@ -723,6 +723,18 @@ created by CPerl mode, so skip it for Perl mode."
 
 ;;; Tests for issues reported in the Bug Tracker
 
+(ert-deftest cperl-test-bug-997 ()
+  "Test that we distinguish a regexp match when there's nothing before it."
+  (let ((code "# some comment\n\n/fontify me/;\n"))
+    (with-temp-buffer
+      (funcall cperl-test-mode)
+      (insert code)
+      (font-lock-ensure)
+      (goto-char (point-min))
+      (search-forward "/f")
+      (should (equal (get-text-property (point) 'face)
+                     'font-lock-string-face)))))
+
 (defun cperl-test--run-bug-10483 ()
   "Runs a short program, intended to be under timer scrutiny.
 This function is intended to be used by an Emacs subprocess in

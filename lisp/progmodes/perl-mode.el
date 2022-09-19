@@ -280,6 +280,7 @@
                                       (backward-sexp 1)
                                       (member (buffer-substring (point) end)
                                               perl--syntax-exp-intro-keywords)))
+                               (bobp)
                                (memq (char-before)
                                      '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[))))))
                nil ;; A division sign instead of a regexp-match.
