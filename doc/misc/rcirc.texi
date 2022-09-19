@@ -177,7 +177,7 @@ using a different nick.  This will prompt you for four things:
 @cindex server, connecting
 @cindex Libera.Chat network
 @item IRC Server
-What server do you want to connect to? All the servers in a particular
+What server do you want to connect to?  All the servers in a particular
 network are equivalent.  Some networks use a round-robin system where
 a single server redirects new connections to a random server in the
 network.  @code{irc.libera.chat} is such a server for the Libera.Chat
@@ -970,16 +970,16 @@ because @code{rcirc-define-command} is not yet available, and without
 @cindex bouncer
 
 Some bouncers multiplex connections to various servers, but have to
-modify nicks and channel names to make this work. The channel
+modify nicks and channel names to make this work.  The channel
 @code{#emacs} on @code{irc.libera.chat} becomes
 @code{#emacs/irc.libera.chat}.
 
 @vindex rcirc-nick-filter
 @vindex rcirc-channel-filter
 The options @code{rcirc-nick-filter} and @code{rcirc-channel-filter}
-can be used to make this feel more natural. When set to functions,
+can be used to make this feel more natural.  When set to functions,
 these will be used to change how nicks and channel names are
-displayed. A simple configuration to fix the above example might be:
+displayed.  A simple configuration to fix the above example might be:
 
 @smallexample
 (defun my/rcirc-remove-suffix (STR)
