@@ -3916,11 +3916,11 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;; sequences.
 
 ;; Aliases defined for reverse compatibility
-(defalias 'comint-osc-handlers 'osc-handlers)
+(defvaralias 'comint-osc-handlers 'osc-handlers)
 (defalias 'comint-osc-directory-tracker 'osc-directory-tracker)
 (defalias 'comint-osc-hyperlink-handler 'osc-hyperlink-handler)
 (defalias 'comint-osc-hyperlink 'osc-hyperlink)
-(defalias 'comint-osc-hyperlink-map 'osc-hyperlink-map)
+(defvaralias 'comint-osc-hyperlink-map 'osc-hyperlink-map)
 
 (defun comint-osc-process-output (_)
   "Interpret OSC escape sequences in comint output.

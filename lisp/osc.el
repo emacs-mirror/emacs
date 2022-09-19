@@ -22,14 +22,14 @@
 
 ;;; Commentary:
 
-;; Interpretation of OSC (Operating System Commands) escape
-;; sequences. Handlers for OSC 2, 7 and 8 (for window title, current
-;; directory and hyperlinks respectively) are provided.
+;; Interpretation of OSC (Operating System Commands) escape sequences.
+;; Handlers for OSC 2, 7 and 8 (for window title, current directory
+;; and hyperlinks respectively) are provided.
 
 ;; The function `osc-compilation-filter' can be added to
 ;; `compilation-filter-hook' to collect OSC sequences in compilation
-;; buffers. The variable `osc-for-compilation-buffer' tells what to do
-;; with collected sequences.
+;; buffers.  The variable `osc-for-compilation-buffer' tells what to
+;; do with collected sequences.
 
 ;;; Code:
 
