@@ -1003,6 +1003,11 @@ addition to ellipsis to show that a section is hidden.  Using
 @kbd{RET} (or clicking on the button with a mouse) will toggle
 displaying the section.
 
+@vindex outline-minor-mode-use-margins
+  If @code{outline-minor-mode-use-margins} is non-@code{nil}, Outline
+minor mode will use the window margins in addition to ellipsis to show
+that a section is hidden.
+
 @vindex outline-minor-mode-cycle
   If the @code{outline-minor-mode-cycle} user option is
 non-@code{nil}, the @kbd{TAB} and @kbd{S-@key{TAB}} keys are enabled on the
