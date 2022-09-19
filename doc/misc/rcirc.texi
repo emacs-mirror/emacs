@@ -859,6 +859,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Changing the time stamp format::
 * Defining a new command::
 * Using rcirc with bouncers::
+* Dealing with Bridge Bots::
 @end menu
 
 @node Skipping /away messages using handlers
@@ -991,6 +992,46 @@ displayed. A simple configuration to fix the above example might be:
 (setq rcirc-nick-filter #'my/rcirc-remove-suffix
       rcirc-channel-filter #'local/rcirc-soju-suffix)
 @end smallexample
+
+@node Dealing with Bridge Bots
+@section Dealing with Bridge Bots
+@cindex bridge
+
+It is increasingly common for IRC channels to be ``bridged'' onto
+other networks such as XMPP, Matrix, etc.  Sometimes the software does
+a good job at mapping each non-IRC user into an IRC user, but more
+often than not it doesn't.  In that case you might receive a message
+like:
+
+@example
+@verbatim
+09:47 <bridge> <john> I am not on IRC
+@end verbatim
+@end example
+
+where @samp{bridge} is a bot responsible for sending messages back and
+forth between networks, and @samp{john} is the user name of someone on
+a different network.  Note that the bot indicates this within the
+message (@verb{|<john> I am not on IRC|}) that appears in your chat
+buffer.
+
+@vindex rcirc-bridge-bot-alist
+If this annoys you, the user option @code{rcirc-bridge-bot-alist} may
+be of use.  It consists of descriptions of what users are these kinds
+of ``bridge bots'' and how they format their messages.  To handle the
+above example, we might set the user option to:
+
+@example
+(setopt rcirc-bridge-bot-alist
+        '(("bridge" . "<\\(.+?\\)>[[:space:]]+")))
+@end example
+
+If there is an entry for the current user, @code{rcirc} will take the
+associated regular expression and try to find a match in the message
+string.  If it manages to find anything, the matching expression is
+deleted from the message.  The regular expression must contain at
+least one group that will match the user name of the bridged message.
+This will then be used to replace the username of the bridge bot.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

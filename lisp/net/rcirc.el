@@ -1925,7 +1925,8 @@ PROCESS is the process object for the current connection."
     rcirc-markup-my-nick
     rcirc-markup-urls
     rcirc-markup-keywords
-    rcirc-markup-bright-nicks)
+    rcirc-markup-bright-nicks
+    rcirc-markup-bridge-bots)
   "List of functions used to manipulate text before it is printed.
 
 Each function takes two arguments, SENDER, and RESPONSE.  The
@@ -2220,24 +2221,27 @@ PROCESS is the process object for the current connection."
           (puthash nick newchans rcirc-nick-table)
         (remhash nick rcirc-nick-table)))))
 
+(defvar rcirc-pseudo-nicks)
 (defun rcirc-channel-nicks (process target)
   "Return the list of nicks associated with TARGET sorted by last activity.
 PROCESS is the process object for the current connection."
   (when target
     (if (rcirc-channel-p target)
-        (with-rcirc-process-buffer process
-          (let (nicks)
-            (maphash
-             (lambda (k v)
-               (let ((record (assoc-string target v t)))
-                 (if record
-                     (setq nicks (cons (cons k (cdr record)) nicks)))))
-             rcirc-nick-table)
-            (mapcar (lambda (x) (car x))
-                    (sort nicks (lambda (x y)
-                                  (let ((lx (or (cdr x) 0))
-                                        (ly (or (cdr y) 0)))
-                                    (< ly lx)))))))
+        (let ((pseudo-nicks (mapcar #'list rcirc-pseudo-nicks)))
+          (with-rcirc-process-buffer process
+            (let (nicks)
+              (maphash
+               (lambda (k v)
+                 (let ((record (assoc-string target v t)))
+                   (if record
+                       (setq nicks (cons (cons k (cdr record)) nicks)))))
+               rcirc-nick-table)
+              (mapcar (lambda (x) (car x))
+                      (sort (nconc pseudo-nicks nicks)
+                            (lambda (x y)
+                              (let ((lx (or (cdr x) 0))
+                                    (ly (or (cdr y) 0)))
+                                (< ly lx))))))))
       (list target))))
 
 (defun rcirc-ignore-update-automatic (nick)
@@ -2910,6 +2914,78 @@ If ARG is given, opens the URL in a new browser window."
                 (parse-iso8601-time-string time))))
     (insert (rcirc-facify (format-time-string rcirc-time-format time)
                           'rcirc-timestamp))))
+
+(defvar-local rcirc-pseudo-nicks '()
+  "List of virtual nicks detected in a channel.
+These are collected by `rcirc-markup-bridge-bots' and don't
+constitute actual users in the current channel.  Usually these
+are bridged via a some bot as described in
+`rcirc-bridge-bot-alist'.")
+
+(defcustom rcirc-bridge-bot-alist '()
+  "Alist for handling bouncers by `rcirc-markup-bridge-bots'.
+Each entry has the form (NAME . REGEXP), where NAME is the user
+name of a bouncer and REGEXP is a pattern used to match the
+message.  The matching part of the message will be stripped from
+the message, and the first match group will replace the user name
+of the bot.  Any matched name will noted and used in some cases
+for nick completion."
+  :type '(alist :key-type (string :tag "Bot name")
+                :value-type regexp)
+  :version "29.1")
+
+(defface rcirc-bridged-nick
+  '((((class color) (min-colors 88) (background light)) :background "SlateGray1")
+    (((class color) (min-colors 88) (background dark))  :background "DarkSlateGray4")
+    (((class color) (min-colors 16) (background light)) :background "LightBlue")
+    (((class color) (min-colors 16) (background dark))  :background "DarkSlateGray")
+    (t :background "blue"))
+  "Face used for pseudo-nick ."
+  :version "29.1")
+
+(defun rcirc-markup-bridge-bots (sender response)
+  "Detect and reformat bridged messages to appear more natural.
+The user option `rcirc-bridge-bot-alist' specified what SENDER to
+handle.  This function only operates on direct messages (as
+indicated by RESPONSE)."
+  (catch 'quit
+    (atomic-change-group
+      (save-match-data
+        (when-let* (((string= response "PRIVMSG"))
+                    (regexp (alist-get sender rcirc-bridge-bot-alist
+                                       nil nil #'string=))
+                    ((search-forward-regexp regexp nil t))
+                    (nick (match-string-no-properties 1)))
+          (replace-match "")            ;delete the bot string
+          (unless (member nick rcirc-pseudo-nicks)
+            (push nick rcirc-pseudo-nicks))
+          (goto-char (point-min))
+          (let ((fmt (alist-get "PRIVMSG" rcirc-response-formats
+                                nil nil #'string=))
+                (hl-face (cond ((member sender rcirc-bright-nicks)
+                                'rcirc-bright-nick)
+                               ((member sender rcirc-dim-nicks)
+                                'rcirc-dim-nick)
+                               (t 'rcirc-other-nick)))
+                hl-username-p)
+            (when (string-match (rx (* "%%") "%" (group (or ?N ?n))) fmt)
+              (when (string= (match-string 1 fmt) "N")
+                (setq hl-username-p t))
+              (search-forward-regexp
+               (format-spec
+                (alist-get "PRIVMSG" rcirc-response-formats
+                           nil nil #'string=)
+                `((?m . "") (?r . "") (?t . "") (?f . "")
+                  (?N . ,(rx (group (+? nonl))))
+                  (?n . ,(rx (group (+? nonl))))))
+               nil t)
+              (replace-match
+               (propertize
+                nick
+                'help-echo (format "Message bridged via %s" sender)
+                'face `(,@(and hl-username-p (list hl-face))
+                        rcirc-bridged-nick))
+               nil t nil 1))))))))
 
 (defun rcirc-markup-attributes (_sender _response)
   "Highlight IRC markup, indicated by ASCII control codes."
