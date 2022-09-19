@@ -970,8 +970,8 @@ static const struct x_atom_ref x_atom_refs[] =
     /* Ghostscript support.  */
     ATOM_REFS_INIT ("DONE", Xatom_DONE)
     ATOM_REFS_INIT ("PAGE", Xatom_PAGE)
-    ATOM_REFS_INIT ("SCROLLBAR", Xatom_Scrollbar)
-    ATOM_REFS_INIT ("HORIZONTAL_SCROLLBAR", Xatom_Horizontal_Scrollbar)
+    ATOM_REFS_INIT ("_EMACS_SCROLLBAR", Xatom_Scrollbar)
+    ATOM_REFS_INIT ("_EMACS_HORIZONTAL_SCROLLBAR", Xatom_Horizontal_Scrollbar)
     ATOM_REFS_INIT ("_XEMBED", Xatom_XEMBED)
     /* EWMH */
     ATOM_REFS_INIT ("_NET_WM_STATE", Xatom_net_wm_state)
@@ -18103,12 +18103,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         if (event->xclient.message_type == dpyinfo->Xatom_Scrollbar)
           {
             x_scroll_bar_to_input_event (event, &inev.ie);
+
+	    /* Unprotect the first window to be sent in a
+	       ClientMessage event, since it is now on the stack and
+	       thereby subject to garbage collection.  */
+	    x_unprotect_window_for_callback (dpyinfo);
+
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
           }
         else if (event->xclient.message_type == dpyinfo->Xatom_Horizontal_Scrollbar)
           {
             x_horizontal_scroll_bar_to_input_event (event, &inev.ie);
+
+	    /* Unprotect the first window to be sent in a
+	       ClientMessage event, since it is now on the stack and
+	       thereby subject to garbage collection.  */
+	    x_unprotect_window_for_callback (dpyinfo);
+
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
           }
@@ -23708,12 +23720,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       kbd_buffer_store_buffered_event (&inev, hold_quit);
       count++;
     }
-
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  if (event->xany.type == ClientMessage
-      && inev.ie.kind == SCROLL_BAR_CLICK_EVENT)
-    x_unprotect_window_for_callback (dpyinfo);
-#endif
 
   if (do_help
       && !(hold_quit && hold_quit->kind != NO_EVENT))
