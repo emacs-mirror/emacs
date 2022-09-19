@@ -6131,7 +6131,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
   unbind_to (count, Qnil);
 
-  return CALLN (Fapply, intern ("concat"), Fnreverse (acc));
+  return CALLN (Fapply, Qconcat, Fnreverse (acc));
 }
 
 #endif	/* USE_CAIRO */
@@ -29833,6 +29833,9 @@ syms_of_xterm (void)
 
   x_dnd_unsupported_drop_data = Qnil;
   staticpro (&x_dnd_unsupported_drop_data);
+
+  /* Used by x_cr_export_frames.  */
+  DEFSYM (Qconcat, "concat");
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");
