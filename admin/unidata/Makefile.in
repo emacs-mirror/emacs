@@ -138,7 +138,8 @@ gen-clean:
 	rm -f ${unidir}/charscript.el*
 	rm -f ${unidir}/emoji-zwj.el*
 	rm -f ${unifiles} ${unidir}/charprop.el
-	rm -f ${unidir}/emoji-labels.el*
+	rm -f ${unidir}/emoji-labels.el ${unidir}/idna-mapping.el \
+		${unidir}/uni-confusable.el ${unidir}/uni-scripts.el
 ## ref: https://lists.gnu.org/r/emacs-devel/2013-11/msg01029.html
 
 maintainer-clean: gen-clean distclean
