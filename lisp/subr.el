@@ -1859,6 +1859,14 @@ be a list of the form returned by `event-start' and `event-end'."
 ;; in warnings when using `values' in let-bindings.
 ;;(make-obsolete-variable 'values "no longer used" "28.1")
 
+(defvar max-specpdl-size 2500
+  "Former limit on specbindings, now without effect.
+This variable used to limit the size of the specpdl stack which,
+among other things, holds dynamic variable bindings and `unwind-protect'
+activations.  To prevent runaway recursion, use `max-lisp-eval-depth'
+instead; it will indirectly limit the specpdl stack size as well.")
+(make-obsolete-variable 'max-specpdl-size nil "29.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 

@@ -80,6 +80,7 @@
               outline-minor-mode-cycle t
               outline-minor-mode-highlight 'append)
   (outline-minor-mode)
+  (setq-local imenu-generic-expression outline-imenu-generic-expression)
   (emacs-etc--hide-local-variables))
 
 ;;;###autoload

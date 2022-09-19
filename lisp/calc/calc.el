@@ -1625,8 +1625,7 @@ See calc-keypad for details."
 	  (error
 	   (if (and (eq (car err) 'error)
 		    (stringp (nth 1 err))
-		    (string-match "max-specpdl-size\\|max-lisp-eval-depth"
-				  (nth 1 err)))
+		    (string-search "max-lisp-eval-depth" (nth 1 err)))
                (error (substitute-command-keys
                        "Computation got stuck or ran too long.  Type \\`M' to increase the limit"))
 	     (setq calc-aborted-prefix nil)

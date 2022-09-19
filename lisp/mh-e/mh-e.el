@@ -2831,9 +2831,7 @@ removed and entries from `mh-invisible-header-fields' are added."
         (setq mh-invisible-header-fields-compiled
               (concat
                "^"
-               ;; workaround for insufficient default
-               (let ((max-specpdl-size 1000))
-                 (regexp-opt fields t))))
+               (regexp-opt fields t)))
       (setq mh-invisible-header-fields-compiled nil))))
 
 ;; Compile invisible header fields.

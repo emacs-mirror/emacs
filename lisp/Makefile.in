@@ -70,9 +70,7 @@ BYTE_COMPILE_FLAGS = \
   --eval "(setq load-prefer-newer t byte-compile-warnings 'all)" \
 	$(BYTE_COMPILE_EXTRA_FLAGS)
 # ... but we must prefer .elc files for those in the early bootstrap.
-# A larger `max-specpdl-size' is needed for emacs-lisp/comp.el.
-compile-first: BYTE_COMPILE_FLAGS = \
-  --eval '(setq max-specpdl-size 5000)' $(BYTE_COMPILE_EXTRA_FLAGS)
+compile-first: BYTE_COMPILE_FLAGS = $(BYTE_COMPILE_EXTRA_FLAGS)
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  They're ordered by size, so we use
@@ -342,8 +340,8 @@ compile-first: $(COMPILE_FIRST)
 
 .PHONY: compile-targets
 # TARGETS is set dynamically in the recursive call from 'compile-main'.
-# Do not build comp.el unless necessary not to exceed max-specpdl-size and
-# max-lisp-eval-depth in normal builds.
+# Do not build comp.el unless necessary not to exceed max-lisp-eval-depth
+# in normal builds.
 ifneq ($(HAVE_NATIVE_COMP),yes)
 compile-targets: $(filter-out ./emacs-lisp/comp-cstr.elc,$(filter-out ./emacs-lisp/comp.elc,$(TARGETS)))
 else

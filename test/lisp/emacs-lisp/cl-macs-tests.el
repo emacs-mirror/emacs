@@ -792,4 +792,15 @@ constructs."
                                               (should (equal messages
                                                              (concat "Warning: " message "\n"))))))))))
 
+(ert-deftest cl-case-no-warning ()
+  "Test that `cl-case' and `cl-ecase' don't warn in some valid cases.
+See Bug#57915."
+  (dolist (case '(quote (quote) function (function)))
+    (dolist (macro '(cl-case cl-ecase))
+      (let ((form `(,macro val (,case 1))))
+        (ert-info ((prin1-to-string form) :prefix "Form: ")
+          (ert-with-message-capture messages
+            (macroexpand form)
+            (should (string-empty-p messages))))))))
+
 ;;; cl-macs-tests.el ends here

@@ -3718,7 +3718,6 @@ This is part of `cperl-find-pods-heres' (below)."
           overshoot
           warning-message)))
 
-;; Debugging this may require (setq max-specpdl-size 2000)...
 (defun cperl-find-pods-heres (&optional min max non-inter end ignore-max end-of-here-doc)
   "Scan the buffer for hard-to-parse Perl constructions.
 If `cperl-pod-here-fontify' is non-nil after evaluation,

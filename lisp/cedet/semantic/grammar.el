@@ -1009,7 +1009,6 @@ Return non-nil if there were no errors, nil if errors."
              packagename (byte-compile-dest-file packagename))
             (let (;; Some complex grammar table expressions need a few
                   ;; more resources than the default.
-                  (max-specpdl-size    (max 3000 max-specpdl-size))
                   (max-lisp-eval-depth (max 1000 max-lisp-eval-depth))
                   )
               ;; byte compile the resultant file
