@@ -395,6 +395,10 @@ actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lis
 # Emacs from a repository checkout, run "git clean -fdx" and retry
 # "make bootstrap".  Otherwise, please report a bug by sending email
 # to bug-gnu-emacs@gnu.org.
+#
+# Take care: "git clean -fdx" deletes all files that are not under
+# version control, which means that all changes to such files will be
+# lost and cannot be restored later.
 # ADVICE-ON-FAILURE-END:bootstrap
 
 advice-on-failure:
