@@ -490,6 +490,10 @@ See the command `outline-mode' for more information on this mode."
   :keymap (define-keymap
             :parent outline-minor-mode-cycle-map
             "<menu-bar>" outline-minor-mode-menu-bar-map
+            "<left-margin> <mouse-1>" 'outline-cycle
+            "<right-margin> <mouse-1>" 'outline-cycle
+            "<left-margin> S-<mouse-1>" 'outline-cycle-buffer
+            "<right-margin> S-<mouse-1>" 'outline-cycle-buffer
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
@@ -1051,9 +1055,10 @@ Note that this does not hide the lines preceding the first heading line."
   "Hide everything after this heading at deeper levels.
 If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
-  (when (mouse-event-p event)
-    (mouse-set-point event))
-  (outline-flag-subtree t))
+  (save-excursion
+    (when (mouse-event-p event)
+      (mouse-set-point event))
+    (outline-flag-subtree t)))
 
 (defun outline--make-button-overlay (type)
   (let ((o (seq-find (lambda (o)
@@ -1061,6 +1066,7 @@ If non-nil, EVENT should be a mouse event."
                      (overlays-at (point)))))
     (unless o
       (setq o (make-overlay (point) (1+ (point))))
+      (overlay-put o 'evaporate t)
       (overlay-put o 'follow-link 'mouse-face)
       (overlay-put o 'mouse-face 'highlight)
       (overlay-put o 'outline-button t))
@@ -1088,8 +1094,7 @@ If non-nil, EVENT should be a mouse event."
                      (overlays-at (point)))))
     (unless o
       (setq o (make-overlay (point) (1+ (point))))
-      (overlay-put o 'follow-link 'mouse-face)
-      (overlay-put o 'mouse-face 'highlight)
+      (overlay-put o 'evaporate t)
       (overlay-put o 'outline-margin t))
     (let ((icon (icon-elements (if (eq type 'close)
                                    (if outline--use-rtl
@@ -1111,11 +1116,7 @@ If non-nil, EVENT should be a mouse event."
     (save-excursion
       (beginning-of-line)
       (if use-margins
-          (let ((o (outline--make-margin-overlay 'open)))
-            (overlay-put o 'help-echo "Click to hide")
-            (overlay-put o 'keymap
-                         (define-keymap
-                           "<mouse-2>" #'outline-hide-subtree)))
+          (outline--make-margin-overlay 'open)
         (when (derived-mode-p 'special-mode)
           (let ((inhibit-read-only t))
             (insert "  ")
@@ -1125,19 +1126,14 @@ If non-nil, EVENT should be a mouse event."
           (overlay-put o 'keymap
                        (define-keymap
                          "RET" #'outline-hide-subtree
-                         "<mouse-2>" #'outline-hide-subtree
-                         "<left-margin> <mouse-1>" #'outline-hide-subtree)))))))
+                         "<mouse-2>" #'outline-hide-subtree)))))))
 
 (defun outline--insert-close-button (&optional use-margins)
   (with-silent-modifications
     (save-excursion
       (beginning-of-line)
       (if use-margins
-          (let ((o (outline--make-margin-overlay 'close)))
-            (overlay-put o 'help-echo "Click to show")
-            (overlay-put o 'keymap
-                         (define-keymap
-                           "<mouse-2>" #'outline-show-subtree)))
+          (outline--make-margin-overlay 'close)
         (when (derived-mode-p 'special-mode)
           (let ((inhibit-read-only t))
             (insert "  ")
@@ -1147,8 +1143,7 @@ If non-nil, EVENT should be a mouse event."
           (overlay-put o 'keymap
                        (define-keymap
                          "RET" #'outline-show-subtree
-                         "<mouse-2>" #'outline-show-subtree
-                         "<left-margin> <mouse-1>" #'outline-show-subtree)))))))
+                         "<mouse-2>" #'outline-show-subtree)))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when (or outline--use-buttons outline--use-margins)
@@ -1182,11 +1177,13 @@ If non-nil, EVENT should be a mouse event."
 (define-obsolete-function-alias 'hide-leaves #'outline-hide-leaves "25.1")
 
 (defun outline-show-subtree (&optional event)
-  "Show everything after this heading at deeper levels."
+  "Show everything after this heading at deeper levels.
+If non-nil, EVENT should be a mouse event."
   (interactive (list last-nonmenu-event))
-  (when (mouse-event-p event)
-    (mouse-set-point event))
-  (outline-flag-subtree nil))
+  (save-excursion
+    (when (mouse-event-p event)
+      (mouse-set-point event))
+    (outline-flag-subtree nil)))
 
 (define-obsolete-function-alias 'show-subtree #'outline-show-subtree "25.1")
 
@@ -1661,7 +1658,7 @@ Return either `hide-all', `headings-only', or `show-all'."
     (< (save-excursion (outline-next-heading) (point))
        (save-excursion (outline-end-of-subtree) (point)))))
 
-(defun outline-cycle ()
+(defun outline-cycle (&optional event)
   "Cycle visibility state of the current heading line's body.
 
 This cycles the visibility of the current heading line's subheadings
@@ -1669,23 +1666,28 @@ and body between `hide all', `headings only' and `show all'.
 
 `Hide all' means hide all the subheadings and their bodies.
 `Headings only' means show the subheadings, but not their bodies.
-`Show all' means show all the subheadings and their bodies."
-  (interactive)
-  (condition-case nil
-      (pcase (outline--cycle-state)
-        ('hide-all
-         (if (outline-has-subheading-p)
-             (progn (outline-show-children)
-                    (message "Only headings"))
+`Show all' means show all the subheadings and their bodies.
+
+If non-nil, EVENT should be a mouse event."
+  (interactive (list last-nonmenu-event))
+  (save-excursion
+    (when (mouse-event-p event)
+      (mouse-set-point event))
+    (condition-case nil
+        (pcase (outline--cycle-state)
+          ('hide-all
+           (if (outline-has-subheading-p)
+               (progn (outline-show-children)
+                      (message "Only headings"))
+             (outline-show-subtree)
+             (message "Show all")))
+          ('headings-only
            (outline-show-subtree)
-           (message "Show all")))
-        ('headings-only
-         (outline-show-subtree)
-         (message "Show all"))
-        ('show-all
-         (outline-hide-subtree)
-         (message "Hide all")))
-    (outline-before-first-heading nil)))
+           (message "Show all"))
+          ('show-all
+           (outline-hide-subtree)
+           (message "Hide all")))
+      (outline-before-first-heading nil))))
 
 (defvar-local outline--cycle-buffer-state 'show-all
   "Internal variable used for tracking buffer cycle state.")
