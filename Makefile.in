@@ -417,7 +417,7 @@ sanity-check:
 	@v=$$(src/emacs${EXEEXT} --batch --eval \
 	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
 	  2> /dev/null); \
-	[ "X$$v" == "X3628800" ] && exit 0; \
+	[ "X$$v" = "X3628800" ] && exit 0; \
 	echo; \
 	echo "  \"make ${make-target}\" succeeded, but Emacs is not functional."; \
 	cat Makefile | \
