@@ -112,8 +112,10 @@
 (eval-when-compile (require 'cl-lib))
 ;; Sometimes, compilation fails with "Variable binding depth exceeds
 ;; max-specpdl-size".  Shall be fixed in Emacs 27.
-(eval-and-compile
-  (let ((max-specpdl-size (* 2 max-specpdl-size))) (require 'tramp-gvfs)))
+(with-no-warnings ;; max-specpdl-size
+  (eval-and-compile
+    (let ((max-specpdl-size (* 2 max-specpdl-size)))
+      (require 'tramp-gvfs))))
 
 (autoload 'dired-uncache "dired")
 (autoload 'url-tramp-convert-url-to-tramp "url-tramp")
@@ -343,6 +345,7 @@ arguments to pass to the OPERATION."
           (tramp-register-file-name-handlers)
           (tramp-archive-run-real-handler operation args))
 
+      (with-no-warnings ;; max-specpdl-size
       (let* ((filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
 	     (archive (tramp-archive-file-name-archive filename))
@@ -376,7 +379,7 @@ arguments to pass to the OPERATION."
 	      (setq args (cons operation args)))
 	    (if fn
 	        (save-match-data (apply (cdr fn) args))
-	      (tramp-archive-run-real-handler operation args)))))))
+	      (tramp-archive-run-real-handler operation args))))))))
 
 ;;;###autoload
 (progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)

@@ -2505,6 +2505,7 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
       result))))
 
 (when tramp-gvfs-enabled
+  (with-no-warnings ;; max-specpdl-size
   ;; Suppress D-Bus error messages and Tramp traces.
   (let (;; Sometimes, it fails with "Variable binding depth exceeds
 	;; max-specpdl-size".  Shall be fixed in Emacs 27.
@@ -2562,7 +2563,7 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
      "mtp"
      (mapcar
       (lambda (method) `(tramp-parse-media-names ,(format "_%s._tcp" method)))
-      tramp-media-methods))))
+      tramp-media-methods)))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
