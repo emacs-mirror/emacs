@@ -1204,7 +1204,10 @@ Otherwise, return a new string."
                 (delete-char 2)
                 (let* ((fun (intern (buffer-substring (point) (1- end-point))))
                        (key (with-current-buffer orig-buf
-                              (where-is-internal fun keymap t))))
+                              (where-is-internal fun
+                                                 (and keymap
+                                                      (list keymap))
+                                                 t))))
                   (if (not key)
                       ;; Function is not on any key.
                       (let ((op (point)))
