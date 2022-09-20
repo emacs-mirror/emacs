@@ -1504,7 +1504,11 @@ which may actually result in an URL rather than a filename."
         (progn
           (push elem file-name-handler-alist)
           (if (ffap-url-p guess)
-              (read-file-name prompt guess guess)
+              ;; We're using the default file name prompter here -- it
+              ;; allows you to switch back to reading a file name,
+              ;; while other prompters, like ido, really expect a
+              ;; file, and don't allow you to edit it if it's an URL.
+              (funcall #'read-file-name-default prompt guess guess)
             (unless guess
               (setq guess default-directory))
             (unless (ffap-file-remote-p guess)
