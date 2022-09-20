@@ -897,7 +897,14 @@ is non-@code{nil}, the colors expressing the age of each line are
 applied to the background color, leaving the foreground at its default
 color.
 
-  When you give a prefix argument to this command, Emacs reads two
+@vindex vc-annotate-switches
+  You can customize the @code{annotate} options that @kbd{C-x v g}
+uses by customizing @code{vc-@var{backend}-annotate-switches} and
+@code{vc-annotate-switches}.  They function similarly to
+@code{vc-@var{backend}-diff-switches} and @code{vc-diff-switches},
+described above.
+
+  When you give a prefix argument to @kbd{C-x v g}, Emacs reads two
 arguments using the minibuffer: the revision to display and annotate
 (instead of the current file contents), and the time span in days the
 color range should cover.
