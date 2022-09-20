@@ -370,7 +370,7 @@ haikufont_maybe_handle_special_family (Lisp_Object family,
       BFont_populate_fixed_family (ptn);
       return 1;
     }
-  else if (EQ (family, intern ("Sans Serif")))
+  else if (EQ (family, QSans_Serif))
     {
       BFont_populate_plain_family (ptn);
       return 1;
@@ -1320,6 +1320,7 @@ syms_of_haikufont_for_pdumper (void)
 void
 syms_of_haikufont (void)
 {
+  DEFSYM (QSans_Serif, "Sans Serif");
   DEFSYM (Qfontsize, "fontsize");
   DEFSYM (Qfixed, "fixed");
   DEFSYM (Qplain, "plain");

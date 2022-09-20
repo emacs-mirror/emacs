@@ -4349,7 +4349,7 @@ haiku_term_init (void)
     emacs_abort ();
 
   color_file = Fexpand_file_name (build_string ("rgb.txt"),
-				  Fsymbol_value (intern ("data-directory")));
+				  Fsymbol_value (Qdata_directory));
   color_map = Fx_load_color_file (color_file);
 
   if (NILP (color_map))
@@ -4633,6 +4633,8 @@ syms_of_haikuterm (void)
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qoption, "option");
   DEFSYM (Qcommand, "command");
+
+  DEFSYM (Qdata_directory, "data-directory");
 
   DEFVAR_LISP ("haiku-meta-keysym", Vhaiku_meta_keysym,
      doc: /* Which key Emacs uses as the meta modifier.
