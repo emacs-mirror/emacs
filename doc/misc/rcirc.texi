@@ -531,7 +531,7 @@ This variable is used for the default nick.  It defaults to the login
 name returned by @code{user-login-name}.
 
 @example
-(setq rcirc-default-nick "kensanata")
+(setopt rcirc-default-nick "kensanata")
 @end example
 
 @item rcirc-default-port
@@ -557,7 +557,7 @@ to the name returned by @code{user-full-name}.  If you want to hide
 your full name, you might want to set it to some pseudonym.
 
 @example
-(setq rcirc-default-full-name "Curious Minds Want To Know")
+(setopt rcirc-default-full-name "Curious Minds Want To Know")
 @end example
 
 @item rcirc-authinfo
@@ -575,10 +575,10 @@ followed by the arguments this method requires.
 Here is an example to illustrate how you would set it:
 
 @example
-(setq rcirc-authinfo
-      '(("Libera.Chat" nickserv "bob" "p455w0rd")
-        ("Libera.Chat" chanserv "bob" "#bobland" "passwd99")
-        ("bitlbee" bitlbee "robert" "sekrit")))
+(setopt rcirc-authinfo
+        '(("Libera.Chat" nickserv "bob" "p455w0rd")
+          ("Libera.Chat" chanserv "bob" "#bobland" "passwd99")
+          ("bitlbee" bitlbee "robert" "sekrit")))
 @end example
 
 And here are the valid method symbols and the arguments they require:
@@ -821,7 +821,7 @@ You can control which notices get omitted via the
 omit away messages:
 
 @example
-(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
+(setopt rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
 @end example
 
 @vindex rcirc-omit-threshold
@@ -840,7 +840,7 @@ and @code{NAMES} messages, after reconnecting, you can configure
 @code{rcirc-omit-unless-requested} to hide:
 
 @example
-(setq rcirc-omit-unless-requested '("TOPIC" "NAMES"))
+(setopt rcirc-omit-unless-requested '("TOPIC" "NAMES"))
 @end example
 
 Now NAMES will only be displayed, after it has been requested via the
@@ -934,7 +934,7 @@ Manual}, for details.
 how to include the date in the time stamp:
 
 @example
-(setq rcirc-time-format "%Y-%m-%d %H:%M ")
+(setopt rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
 
 @findex rcirc-when
@@ -989,8 +989,8 @@ displayed.  A simple configuration to fix the above example might be:
         (substring str 0 (match-beginning 0))
       str)))
 
-(setq rcirc-nick-filter #'my/rcirc-remove-suffix
-      rcirc-channel-filter #'local/rcirc-soju-suffix)
+(setopt rcirc-nick-filter #'my/rcirc-remove-suffix
+        rcirc-channel-filter #'local/rcirc-soju-suffix)
 @end smallexample
 
 @node Dealing with Bridge Bots
