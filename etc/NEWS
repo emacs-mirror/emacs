@@ -181,7 +181,7 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 +++
-*** bookmarks no longer include context for encrypted files.
+*** Bookmarks no longer include context for encrypted files.
 If you're visiting an encrypted file, setting a bookmark no longer
 includes excerpts from that buffer in the bookmarks file.
 
