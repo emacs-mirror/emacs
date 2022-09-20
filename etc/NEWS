@@ -390,6 +390,12 @@ The user options 'url-gateway-rlogin-host',
 are also obsolete.
 
 ---
+** The linum.el library is now obsolete.
+We recommend using either the built-in `display-line-numbers-mode', or
+the `nlinum' package from GNU ELPA instead.  The former has better
+performance, but the latter is closer to a drop-in replacement.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.

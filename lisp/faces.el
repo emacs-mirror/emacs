@@ -2548,7 +2548,6 @@ default."
   :version "21.1"
   :group 'basic-faces)
 
-;; Definition stolen from linum.el.
 (defface line-number
   '((t :inherit (shadow default)))
   "Face for displaying line numbers.

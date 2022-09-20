@@ -1686,12 +1686,6 @@ and the one to use when terminating the selection.
 More specifically do what's needed to make ibuffer.el the default, or
 just an extension of buff-menu.el.
 
-** Replace linum.el with nlinum.el
-https://lists.gnu.org/r/emacs-devel/2013-08/msg00379.html
-
-(Since Emacs 26 introduced native line numbers, this item is
-probably obsolete.)
-
 ** Merge sendmail.el and messages.el
 Probably not a complete merge, but at least arrange for messages.el to
 be a derived mode of sendmail.el.  Or arrange for messages.el to be

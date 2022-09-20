@@ -1810,9 +1810,6 @@ optional display.  Alternatively, you can use the
 customize @code{display-line-numbers-type} with the same value as you
 would use with @code{display-line-numbers}.
 
-There is also the @samp{linum} package which will henceforth become
-obsolete.  We recommend using @samp{display-line-numbers} instead.
-
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
 @cindex Titlebar, displaying the current file name in
