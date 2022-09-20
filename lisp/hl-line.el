@@ -154,6 +154,12 @@ non-selected window.  Hl-Line mode uses the function
 When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
 line about point in the selected window only."
   :group 'hl-line
+  ;; If the global mode is switched on, then `M-x hl-line-mode' should
+  ;; switch the mode off in this buffer.
+  (when global-hl-line-mode
+    (setq hl-line-mode nil)
+    (setq-local global-hl-line-mode nil)
+    (global-hl-line-unhighlight))
   (if hl-line-mode
       (progn
         ;; In case `kill-all-local-variables' is called.
