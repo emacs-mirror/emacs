@@ -1013,7 +1013,10 @@ such as if there are no commands in the file, the value of `tex-default-mode'
 says which mode to use."
   (tex-common-initialization))
 
-(advice-add 'tex-mode :around #'tex--redirect-to-submode)
+(advice-add 'tex-mode :around #'tex--redirect-to-submode
+            ;; Give it lower precedence than normal advice, so
+            ;; AUCTeX's advice takes precedence over it.
+            '((depth . 50)))
 (defvar tex-mode--recursing nil)
 (defun tex--redirect-to-submode (orig-fun)
   "Redirect to one of the submodes when called directly."
