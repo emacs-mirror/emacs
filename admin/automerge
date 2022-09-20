@@ -35,6 +35,8 @@
 ## it with the -d option in the repository directory, in case a pull
 ## updates this script while it is working.
 
+set -o nounset
+
 die ()                 # write error to stderr and exit
 {
     [ $# -gt 0 ] && echo "$PN: $*" >&2

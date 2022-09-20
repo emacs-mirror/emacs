@@ -31,6 +31,8 @@
 # updated and some should not be, due to registration numbers, so
 # this script leaves these copyright years alone for now.
 
+set -o nounset
+
 : ${UPDATE_COPYRIGHT_USE_INTERVALS=1}
 export UPDATE_COPYRIGHT_USE_INTERVALS
 
