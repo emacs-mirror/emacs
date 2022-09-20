@@ -1087,18 +1087,34 @@ Derived from `tramp-postfix-host-format'.")
 (defun tramp-build-remote-file-name-spec-regexp ()
   "Construct a regexp matching a Tramp file name for a Tramp syntax.
 It is expected, that `tramp-syntax' has the proper value."
-  (tramp-compat-rx
-   ;; Method.
-   (group (regexp tramp-method-regexp)) (regexp tramp-postfix-method-regexp)
-   ;; Optional user.  This includes domain.
-   (? (group (regexp tramp-user-regexp)) (regexp tramp-postfix-user-regexp))
-   ;; Optional host.
-   (? (group (| (regexp tramp-host-regexp)
-                (: (regexp tramp-prefix-ipv6-regexp)
-		   (? (regexp tramp-ipv6-regexp))
-		   (regexp tramp-postfix-ipv6-regexp)))
-   ;; Optional port.
-   (? (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))))))
+  ;; Starting with Emacs 27, we can use `rx-let'.
+  (let* ((user-regexp
+	  (tramp-compat-rx
+	   (group-n 6 (regexp tramp-user-regexp))
+	   (regexp tramp-postfix-user-regexp)))
+	 (host-regexp
+	  (tramp-compat-rx
+	   (group-n 7 (| (regexp tramp-host-regexp)
+			 (: (regexp tramp-prefix-ipv6-regexp)
+			    (? (regexp tramp-ipv6-regexp))
+			    (regexp tramp-postfix-ipv6-regexp)))
+		    ;; Optional port.
+		    (? (regexp tramp-prefix-port-regexp)
+		       (regexp tramp-port-regexp)))))
+	 (user-host-regexp
+	  (if (eq tramp-syntax 'simplified)
+	      ;; There must be either user or host.
+	      (tramp-compat-rx
+	       (| (: (regexp user-regexp) (? (regexp host-regexp)))
+		  (: (? (regexp user-regexp)) (regexp host-regexp))))
+	    (tramp-compat-rx
+	     (? (regexp user-regexp)) (? (regexp host-regexp))))))
+    (tramp-compat-rx
+     ;; Method.
+     (group-n 5 (regexp tramp-method-regexp))
+     (regexp tramp-postfix-method-regexp)
+     ;; User and host.
+     (regexp user-host-regexp))))
 
 (defvar tramp-remote-file-name-spec-regexp
   nil ; Initialized when defining `tramp-syntax'!
@@ -3904,9 +3920,7 @@ Let-bind it when necessary.")
 	      (with-tramp-progress-reporter v 5 "Checking case-insensitive"
 		;; The idea is to compare a file with lower case
 		;; letters with the same file with upper case letters.
-		(let ((candidate
-		       (tramp-compat-file-name-unquote
-			(directory-file-name filename)))
+		(let ((candidate (directory-file-name filename))
 		      case-fold-search
 		      tmpfile)
 		  ;; Check, whether we find an existing file with
