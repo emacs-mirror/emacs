@@ -118,7 +118,6 @@
 ;;
 ;;     Other interactive functions (that could be bound if desired):
 ;; `highlight-changes-mode'
-;; `highlight-changes-toggle-visibility'
 ;; `highlight-changes-remove-highlight'
 ;; `highlight-compare-with-file'
 ;; `highlight-compare-buffers'
