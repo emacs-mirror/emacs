@@ -788,6 +788,36 @@ under timeout control."
       (should (string-match
                "poop ('foo', \n      'bar')" (buffer-string))))))
 
+(ert-deftest cperl-test-bug-11996 ()
+  "Verify that we give the right syntax property to a backslash operator."
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "cperl-bug-11996.pl"))
+    (funcall cperl-test-mode)
+    (font-lock-ensure)
+    (goto-char (point-min))
+    (re-search-forward "\\(\\\\(\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax ".")))
+      ;; `forward-sexp' shouldn't complain.
+      (forward-sexp)
+      (should (char-equal (char-after) ?\;)))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax "\\")))
+      (should (equal (get-text-property (point) 'face) 'font-lock-string-face)))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax "\\"))))
+    (re-search-forward "\\(\\\\\"\\)")
+    (save-excursion
+      (goto-char (match-beginning 1))
+      (should (equal (syntax-after (point)) (string-to-syntax ".")))
+      (should (equal (get-text-property (1+ (point)) 'face)
+                     'font-lock-string-face)))))
+
 (ert-deftest cperl-test-bug-14343 ()
   "Verify that inserting text into a HERE-doc string with Elisp
 does not break fontification."
