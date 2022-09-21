@@ -12647,9 +12647,11 @@ xi_handle_focus_change (struct x_display_info *dpyinfo)
 	  else
 	    dpyinfo->client_pointer_device = device->device_id;
 	}
-
-      if (device->focus_implicit_frame
-	  && device->focus_implicit_time > time)
+      /* Even if the implicit focus was set after the explicit focus
+	 on this specific device, the explicit focus is what really
+	 matters.  So use it instead.  */
+      else if (device->focus_implicit_frame
+	       && device->focus_implicit_time > time)
 	{
 	  new = device->focus_implicit_frame;
 	  time = device->focus_implicit_time;
