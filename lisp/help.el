@@ -1208,6 +1208,12 @@ Otherwise, return a new string."
                                                  (and keymap
                                                       (list keymap))
                                                  t))))
+                  ;; If we're looking in a particular keymap which has
+                  ;; no binding, then we need to redo the lookup, with
+                  ;; the global map as well this time.
+                  (when (and (not key) keymap)
+                    (setq key (with-current-buffer orig-buf
+                                (where-is-internal fun keymap t))))
                   (if (not key)
                       ;; Function is not on any key.
                       (let ((op (point)))
