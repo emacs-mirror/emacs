@@ -1079,7 +1079,7 @@ to the offending pattern and highlight the pattern."
                   (message (nth 0 data))
                   (start (nth 1 data)))
              (erase-buffer)
-             (insert query)
+             (insert (treesit-query-expand query))
              (goto-char start)
              (search-forward " " nil t)
              (put-text-property start (point) 'face 'error)
