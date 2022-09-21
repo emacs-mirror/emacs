@@ -1727,10 +1727,11 @@ query.  */)
 				  &error_offset, &error_type);
       if (lisp_query == NULL)
 	{
-	  xsignal2 (Qtreesit_query_error,
+	  xsignal3 (Qtreesit_query_error,
 		    build_string
 		    (ts_query_error_to_string (error_type)),
-		    make_fixnum (error_offset + 1));
+		    make_fixnum (error_offset + 1),
+		    build_pure_c_string("Debug the query with `treesit-query-validate'"));
 	}
       /* We don't need need to free TS_QUERY and CURSOR, they are stored
 	 in a lisp object, which is tracked by gc.  */
