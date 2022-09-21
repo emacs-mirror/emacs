@@ -163,11 +163,11 @@
                             (treesit-node-text
                              (cdr entry))))
                     (treesit-query-capture root-node query))))))
-      ;; Test `treesit-expand-query'.
+      ;; Test `treesit-query-expand'.
       (should
        (equal
         "(type field: (_) @capture .) ? * + \"return\""
-        (treesit-expand-query
+        (treesit-query-expand
          '((type field: (_) @capture :anchor)
            :? :* :+ "return")))))))
 
