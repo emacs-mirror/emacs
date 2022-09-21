@@ -200,12 +200,8 @@ With prefix argument, move ARG lines."
 
 (defvar-keymap image-dired-minor-mode-map
   :doc "Keymap for `image-dired-minor-mode'."
-  ;; Hijack previous and next line movement.  Let C-p and C-b be
-  ;; though...
-  "p"      #'image-dired-dired-previous-line
-  "n"      #'image-dired-dired-next-line
-  "<up>"   #'image-dired-dired-previous-line
-  "<down>" #'image-dired-dired-next-line
+  "<remap> <dired-previous-line>" #'image-dired-dired-previous-line
+  "<remap> <dired-next-line>"     #'image-dired-dired-next-line
 
   "C-S-n"  #'image-dired-next-line-and-display
   "C-S-p"  #'image-dired-previous-line-and-display
@@ -252,8 +248,8 @@ With prefix argument, move ARG lines."
 ;;;###autoload
 (define-minor-mode image-dired-minor-mode
   "Setup easy-to-use keybindings for the commands to be used in Dired mode.
-Note that n, p and <down> and <up> will be hijacked and bound to
-`image-dired-dired-next-line' and `image-dired-dired-previous-line'."
+
+\\{image-dired-minor-mode-map}"
   :keymap image-dired-minor-mode-map)
 
 (declare-function clear-image-cache "image.c" (&optional filter))
