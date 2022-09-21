@@ -298,7 +298,8 @@ buffers (yet) -- that will be amended in a future version."
 (defvar-local outline--use-rtl nil
   "Non-nil when direction of clickable buttons is right-to-left.")
 
-(defcustom outline-minor-mode-use-margins '(derived-mode . special-mode)
+(defcustom outline-minor-mode-use-margins '(and (derived-mode . special-mode)
+                                                (not (derived-mode . help-mode)))
   "Whether to display clickable buttons in the margins.
 The value should be a `buffer-match-p' condition.
 
@@ -312,7 +313,7 @@ Note that this feature is meant to be used in editing buffers."
   "Non-nil when buffer displays clickable buttons in the margins.")
 
 (define-icon outline-open nil
-  '((image "outline-open.svg" "outline-open.pbm" :height 15)
+  '((image "outline-open.svg" "outline-open.pbm" :height (0.8 . em))
     (emoji "🔽")
     (symbol " ▼ ")
     (text " open "))
@@ -321,7 +322,7 @@ Note that this feature is meant to be used in editing buffers."
   :help-echo "Close this section")
 
 (define-icon outline-close nil
-  '((image "outline-close.svg" "outline-close.pbm" :height 15)
+  '((image "outline-close.svg" "outline-close.pbm" :height (0.8 . em))
     (emoji "▶️")
     (symbol " ▶ ")
     (text " close "))
@@ -330,7 +331,8 @@ Note that this feature is meant to be used in editing buffers."
   :help-echo "Open this section")
 
 (define-icon outline-close-rtl outline-close
-  '((image "outline-close.svg" "outline-close.pbm" :height 15 :rotation 180)
+  '((image "outline-close.svg" "outline-close.pbm" :height (0.8 . em)
+           :rotation 180)
     (emoji "◀️")
     (symbol " ◀ "))
   "Right-to-left icon used for buttons in closed outline sections."
@@ -536,23 +538,26 @@ See the command `outline-mode' for more information on this mode."
 	;; Cause use of ellipses for invisible text.
 	(add-to-invisibility-spec '(outline . t))
 	(outline-apply-default-state))
+    (setq line-move-ignore-invisible nil)
+    ;; Cause use of ellipses for invisible text.
+    (remove-from-invisibility-spec '(outline . t))
+    ;; When turning off outline mode, get rid of any outline hiding.
+    (outline-show-all)
     (when outline-minor-mode-highlight
       (if font-lock-fontified
           (font-lock-remove-keywords nil outline-font-lock-keywords))
-      (remove-overlays nil nil 'outline-overlay t)
-      (font-lock-flush))
+      (font-lock-flush)
+      (remove-overlays nil nil 'outline-overlay t))
+    (when outline--use-buttons
+      (remove-overlays nil nil 'outline-button t))
     (when outline--use-margins
+      (remove-overlays nil nil 'outline-margin t)
       (if outline--use-rtl
           (setq-local right-margin-width (1- right-margin-width))
         (setq-local left-margin-width (1- left-margin-width)))
       (setq-local fringes-outside-margins nil)
       ;; Force removal of margins
-      (set-window-buffer nil (window-buffer)))
-    (setq line-move-ignore-invisible nil)
-    ;; Cause use of ellipses for invisible text.
-    (remove-from-invisibility-spec '(outline . t))
-    ;; When turning off outline mode, get rid of any outline hiding.
-    (outline-show-all)))
+      (set-window-buffer nil (window-buffer)))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
