@@ -2516,6 +2516,7 @@ symbols."
           ((eq frame-type 'pgtk)
            (pgtk-device-class name))
           (t (cond
+              ((not name) nil)
               ((string= name "Virtual core pointer")
                'core-pointer)
               ((string= name "Virtual core keyboard")
