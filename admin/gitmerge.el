@@ -634,12 +634,18 @@ Branch FROM will be prepended to the list."
       (with-current-buffer
 	  (gitmerge-setup-log-buffer gitmerge--commits gitmerge--from)
 	(goto-char (point-min))
-	(insert (propertize "Commands: " 'font-lock-face 'bold)
-		"(s) Toggle skip, (l) Show log, (d) Show diff, "
-		"(f) Show files, (m) Start merge\n"
-		(propertize "Flags:    " 'font-lock-face 'bold)
-		"(C) Detected backport (cherry-mark), (R) Matches skip "
-		"regexp, (M) Manually picked\n\n")
+        (insert (substitute-command-keys
+                 (concat
+                  (propertize "Commands: " 'font-lock-face 'bold)
+                  "\\<gitmerge-mode-map>"
+                  "(\\[gitmerge-toggle-skip]) Toggle skip, "
+                  "(\\[gitmerge-show-log]) Show log, "
+                  "(\\[gitmerge-show-diff]) Show diff, "
+                  "(\\[gitmerge-show-files]) Show files, "
+                  "(\\[gitmerge-start-merge]) Start merge\n"
+                  (propertize "Flags:    " 'font-lock-face 'bold)
+                  "(C) Detected backport (cherry-mark), (R) Matches skip "
+                  "regexp, (M) Manually picked\n\n")))
 	(gitmerge-mode)
 	(pop-to-buffer (current-buffer))
 	(if noninteractive (gitmerge-start-merge))))))
