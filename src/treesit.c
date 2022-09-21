@@ -627,7 +627,7 @@ make_ts_query (Lisp_Object query, const TSLanguage *language,
 	       uint32_t *error_offset, TSQueryError *error_type)
 {
   if (CONSP (query))
-    query = Ftreesit_expand_query (query);
+    query = Ftreesit_query_expand (query);
   char *source = SSDATA (query);
 
   TSQuery *ts_query = ts_query_new (language, source, strlen (source),
@@ -1360,11 +1360,9 @@ If any one of NODE1 and NODE2 is nil, return nil.  */)
 
 /*** Query functions */
 
-/* If we decide to pre-load tree-sitter.el, maybe we can implement
-   this function in Lisp.  */
-DEFUN ("treesit-expand-pattern",
-       Ftreesit_expand_pattern,
-       Streesit_expand_pattern, 1, 1, 0,
+DEFUN ("treesit-pattern-expand",
+       Ftreesit_pattern_expand,
+       Streesit_pattern_expand, 1, 1, 0,
        doc: /* Expand PATTERN to its string form.
 
 PATTERN can be
@@ -1406,16 +1404,16 @@ explanation.  */)
   if (VECTORP (pattern) || CONSP (pattern))
     return concat3 (opening_delimeter,
 		    Fmapconcat (intern_c_string
-				("treesit-expand-pattern"),
+				("treesit-pattern-expand"),
 				pattern,
 				build_pure_c_string (" ")),
 		    closing_delimiter);
   return CALLN (Fformat, build_pure_c_string("%S"), pattern);
 }
 
-DEFUN ("treesit-expand-query",
-       Ftreesit_expand_query,
-       Streesit_expand_query, 1, 1, 0,
+DEFUN ("treesit-query-expand",
+       Ftreesit_query_expand,
+       Streesit_query_expand, 1, 1, 0,
        doc: /* Expand sexp QUERY to its string form.
 
 A PATTERN in QUERY can be
@@ -1438,7 +1436,7 @@ Consult Info node `(elisp)Pattern Matching' form detailed
 explanation.  */)
   (Lisp_Object query)
 {
-  return Fmapconcat (intern_c_string ("treesit-expand-pattern"),
+  return Fmapconcat (intern_c_string ("treesit-pattern-expand"),
 		     query, build_pure_c_string (" "));
 }
 
@@ -1922,8 +1920,8 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_node_descendant_for_range);
   defsubr (&Streesit_node_eq);
 
-  defsubr (&Streesit_expand_pattern);
-  defsubr (&Streesit_expand_query);
+  defsubr (&Streesit_pattern_expand);
+  defsubr (&Streesit_query_expand);
   defsubr (&Streesit_query_compile);
   defsubr (&Streesit_query_capture);
 }
