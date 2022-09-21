@@ -540,8 +540,10 @@ The return value is the last VAL in the list.
   "Special place described by its setter and getter.
 GETTER and SETTER (typically obtained via `gv-letplace') get and
 set that place.  I.e. this function allows you to do the
-\"reverse\" of what `gv-letplace' does.  This function only makes
-sense when used in a place."
+\"reverse\" of what `gv-letplace' does.
+
+This function is only useful when used in conjunction with
+generalized variables in place forms."
   (declare (gv-expander funcall) (compiler-macro (lambda (_) getter)))
   (ignore setter)
   getter)
