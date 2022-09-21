@@ -382,7 +382,7 @@ If nil, display all header fields except those matched by
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const :value nil :tag "None"))
   :group 'rmail-headers
-  :version "23.2")
+  :version "29.1")
 
 ;;;###autoload
 (defcustom rmail-highlighted-headers (purecopy "^From:\\|^Subject:")
