@@ -1369,16 +1369,6 @@ If no such buffer exists, it will be opened."
       (message "%s%s" (capitalize (substring string 0 1))
                (substring string 1)))))
 
-(defun image-mode--images-in-directory (file)
-  (let* ((dir (file-name-directory buffer-file-name))
-	 (files (directory-files dir nil
-				 (image-file-name-regexp) t)))
-    ;; Add the current file to the list of images if necessary, in
-    ;; case it does not match `image-file-name-regexp'.
-    (unless (member file files)
-      (push file files))
-    (sort files 'string-lessp)))
-
 
 ;;; Support for bookmark.el
 (declare-function bookmark-make-record-default
@@ -1630,6 +1620,17 @@ ROTATION should be in degrees."
 	image-transform-scale 1
         image--transform-smoothing nil)
   (image-toggle-display-image))
+
+(defun image-mode--images-in-directory (file)
+  (declare (obsolete nil "29.1"))
+  (let* ((dir (file-name-directory buffer-file-name))
+         (files (directory-files dir nil
+                                 (image-file-name-regexp) t)))
+    ;; Add the current file to the list of images if necessary, in
+    ;; case it does not match `image-file-name-regexp'.
+    (unless (member file files)
+      (push file files))
+    (sort files 'string-lessp)))
 
 (define-obsolete-function-alias 'image-transform-original #'image-transform-reset-to-original "29.1")
 (define-obsolete-function-alias 'image-transform-reset #'image-transform-reset-to-initial "29.1")
