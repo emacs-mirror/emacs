@@ -1538,7 +1538,7 @@ POS can be a buffer position or a button"
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
 (defun flymake--tabulated-entries-1 (diags project-root)
-  "Helper for `flymake--diagnostic-buffer-entries'.
+  "Helper for `flymake--diagnostics-buffer-entries'.
 PROJECT-ROOT indicates that each entry should be preceded by the
 filename of the diagnostic relative to that directory."
   (cl-loop

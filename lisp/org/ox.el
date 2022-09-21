@@ -4642,7 +4642,7 @@ from the export back-end."
 ;; a given element, excluded.  Note: "-n" switches reset that count.
 ;;
 ;; `org-export-unravel-code' extracts source code (along with a code
-;; references alist) from an `element-block' or `src-block' type
+;; references alist) from an `example-block' or `src-block' type
 ;; element.
 ;;
 ;; `org-export-format-code' applies a formatting function to each line

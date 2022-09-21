@@ -202,7 +202,7 @@ The basic syntax is:
   [a-b]  [a-b]   matches a character or range
   [^a]   [^a]    excludes a character or range
 
-If any characters in PATTERN have the text property `eshell-escaped'
+If any characters in PATTERN have the text property `escaped'
 set to true, then these characters will match themselves in the
 resulting regular expression."
   (let ((matched-in-pattern 0)          ; How much of PATTERN handled

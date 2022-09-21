@@ -34,8 +34,7 @@
   "Initialize a new configure.ac in ROOTDIR for PROGRAM using TESTFILE.
 ROOTDIR is the root directory of a given autoconf controlled project.
 PROGRAM is the program to be configured.
-TESTFILE is the file used with AC_INIT.
-Configure the initial configure script using `autoconf-new-automake-string'."
+TESTFILE is the file used with AC_INIT."
   (interactive "DRoot Dir: \nsProgram: \nsTest File: ")
   (require 'ede/srecode)
   (if (bufferp rootdir)

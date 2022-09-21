@@ -6492,7 +6492,7 @@ during redisplay provided a significant, non-scrolling change of a
 window has been detected.  For simplicity, these hooks and the
 functions they call will be collectively referred to as @dfn{window
 change functions}.  As any hook, these hooks can be set either
-globally of buffer-locally via the @var{local} argument of
+globally or buffer-locally via the @var{local} argument of
 @code{add-hook} (@pxref{Setting Hooks}) when the hook is installed.
 
 @cindex window buffer change

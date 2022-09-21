@@ -767,7 +767,7 @@ VALUE must be a translation table to use on encoding.
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
-`after-insert-functions' are called.  This function is passed one
+`after-insert-file-functions' are called.  This function is passed one
 argument: the number of characters in the text to convert, with
 point at the start of the text.  The function should leave point
 and the match data unchanged, and should return the new character

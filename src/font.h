@@ -660,7 +660,7 @@ struct font_driver
 
   /* Optional.
      Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
-     position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND,
+     position of frame S->f with S->face and S->gc.  If WITH_BACKGROUND,
      fill the background in advance.  It is assured that WITH_BACKGROUND
      is false when (FROM > 0 || TO < S->nchars).  */
   int (*draw) (struct glyph_string *s, int from, int to,

@@ -70,7 +70,7 @@ number of repetitions actually used."
 
 (defun benchmark--adaptive (func time)
   "Measure the run time of FUNC, calling it enough times to last TIME seconds.
-Result is (REPETITIONS . DATA) where DATA is as returned by `branchmark-call'."
+Result is (REPETITIONS . DATA) where DATA is as returned by `benchmark-call'."
   (named-let loop ((repetitions 1)
                    (data (let ((x (list 0))) (setcdr x x) x)))
     ;; (message "Running %d iteration" repetitions)

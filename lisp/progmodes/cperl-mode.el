@@ -3162,7 +3162,7 @@ Returns true if comment is found.  In POD will not move the point."
 Mark as generic string if STRING, as generic comment otherwise.
 A single character is marked as punctuation and directly
 fontified.  Do nothing if BEGIN and END are equal.  If
-`cperl-use-syntax-text-property' is nil, just fontify."
+`cperl-use-syntax-table-text-property' is nil, just fontify."
   (if (and cperl-use-syntax-table-text-property
            (> end begin))
       (progn
