@@ -3575,6 +3575,12 @@ identify the current desktop environment.
 (This variable was introduced in XDG Desktop Entry Specification
 version 1.2.)
 
+---
+*** New function 'xdg-session-type'.
+It returns the 'XDG_SESSION_TYPE' environment variable.  (This is not
+part of any official standard; see the man page pam_systemd(8) for
+more information.)
+
 +++
 ** New macro 'with-delayed-message'.
 This macro is like 'progn', but will output the specified message if

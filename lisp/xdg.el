@@ -30,6 +30,7 @@
 ;; - Thumbnail Managing Standard
 ;; - xdg-user-dirs configuration
 ;; - Desktop Entry Specification
+;; - Unofficial extension $XDG_SESSION_TYPE from systemd
 
 ;;; Code:
 
@@ -396,6 +397,18 @@ Results are cached in `xdg-mime-table'."
         (when files
           (put 'xdg-mime-table 'mtime (current-time)))
         (puthash subtype (delq nil files) (cdr (assoc type xdg-mime-table)))))))
+
+
+;; Unofficial extension from systemd.
+
+(defun xdg-session-type ()
+  "Return the value of $XDG_SESSION_TYPE.
+Should be one of \"unspecified\", \"tty\", \"x11\", \"wayland\",
+or \"mir\".
+
+This is not part of any official Freedesktop.org standard, but is
+documented in the man page `pam_systemd'."
+  (getenv "XDG_SESSION_TYPE"))
 
 (provide 'xdg)
 
