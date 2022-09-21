@@ -248,6 +248,9 @@ Linum mode is a buffer-local minor mode."
 (defconst linum-version "0.9x")
 (make-obsolete-variable 'linum-version 'emacs-version "28.1")
 
+(make-obsolete 'linum-mode #'display-line-numbers-mode "29.1")
+(make-obsolete 'global-linum-mode #'global-display-line-numbers-mode "29.1")
+
 (provide 'linum)
 
 ;;; linum.el ends here
