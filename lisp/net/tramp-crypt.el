@@ -852,6 +852,14 @@ WILDCARD is not supported."
     (tramp-compat-funcall
      'unlock-file (tramp-crypt-encrypt-file-name filename))))
 
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'tramp-crypt-file-name-p)
+  (add-hook 'tramp-crypt-unload-hook
+	    (lambda ()
+	      (remove-hook 'bookmark-inhibit-context-functions
+			   #'tramp-crypt-file-name-p))))
+
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-crypt 'force)))

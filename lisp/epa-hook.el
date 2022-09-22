@@ -92,6 +92,10 @@ interface, update `file-name-handler-alist'."
   "Say whether FILE is handled by `epa-file'."
   (and auto-encryption-mode (string-match-p epa-file-name-regexp file)))
 
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'epa-file-name-p))
+
 (define-minor-mode auto-encryption-mode
   "Toggle automatic file encryption/decryption (Auto Encryption mode)."
   :global t :init-value t :group 'epa-file :version "23.1"

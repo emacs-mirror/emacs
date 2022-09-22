@@ -522,6 +522,21 @@ parameters."
 
 ;; (mapcar #'auth-source-backend-parse auth-sources)
 
+(defun auth-source-file-name-p (file)
+  "Say whether FILE is used by `auth-sources'."
+  (let* ((backends (mapcar #'auth-source-backend-parse auth-sources))
+         (files
+          (mapcar (lambda (x)
+                    (when (member (slot-value x 'type) '(json netrc plstore))
+                      (slot-value x 'source)))
+                  backends)))
+    (member (expand-file-name file)
+            (mapcar #'expand-file-name (remq nil files)))))
+
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'auth-source-file-name-p))
+
 (cl-defun auth-source-search (&rest spec
                               &key max require create delete
                               &allow-other-keys)

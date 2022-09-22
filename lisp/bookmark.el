@@ -592,6 +592,14 @@ NAME is a suggested name for the constructed bookmark.  It can be nil
 in which case a default heuristic will be used.  The function can also
 equivalently just return ALIST without NAME.")
 
+(defcustom bookmark-inhibit-context-functions nil
+  "List of functions to call before making a bookmark record.
+The functions take `buffer-file-name' as argument.  If any of
+these functions returns non-nil, the bookmark does not record
+context strings from the current buffer."
+  :type 'hook
+  :version "29.1")
+
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
   (let* ((bookmark-search-size
@@ -599,10 +607,8 @@ equivalently just return ALIST without NAME.")
           ;; don't include any context in the bookmark file, because
           ;; that would leak (possibly secret) data.
           (if (and buffer-file-name
-                   (or (and (fboundp 'epa-file-name-p)
-                            (epa-file-name-p buffer-file-name))
-                       (and (fboundp 'tramp-crypt-file-name-p)
-                            (tramp-crypt-file-name-p buffer-file-name))))
+                   (not (run-hook-with-args-until-success
+                         'bookmark-inhibit-context-functions buffer-file-name)))
               0
             bookmark-search-size))
          (record (funcall bookmark-make-record-function)))
