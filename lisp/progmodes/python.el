@@ -245,7 +245,9 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'comint)
-(eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
+(eval-when-compile (require 'subr-x))   ;For `string-empty-p' and `string-join'.
+(require 'treesit)
+(require 'pcase)
 
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
@@ -265,6 +267,11 @@
   :version "24.3"
   :link '(emacs-commentary-link "python"))
 
+(defcustom python-use-tree-sitter nil
+  "If non-nil, `python-mode' tries to use tree-sitter.
+Currently `python-mode' uses tree-sitter for font-locking, imenu,
+and movement functions."
+  :type 'boolean)
 
 
 ;;; Bindings
@@ -899,6 +906,136 @@ is used to limit the scan."
   "Dotty syntax table for Python files.
 It makes underscores and dots word constituent chars.")
 
+;;; Tree-sitter font-lock
+
+;; NOTE: Tree-sitter and font-lock works differently so this can't
+;; merge with `python-font-lock-keywords-level-2'.
+
+(defvar python--treesit-keywords
+  '("as" "assert" "async" "await" "break" "class" "continue" "def"
+    "del" "elif" "else" "except" "exec" "finally" "for" "from"
+    "global" "if" "import" "lambda" "nonlocal" "pass" "print"
+    "raise" "return" "try" "while" "with" "yield"))
+
+(defvar python--treesit-builtins
+  '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
+    "bytes" "callable" "chr" "classmethod" "compile" "complex"
+    "delattr" "dict" "dir" "divmod" "enumerate" "eval" "exec"
+    "filter" "float" "format" "frozenset" "getattr" "globals"
+    "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+    "issubclass" "iter" "len" "list" "locals" "map" "max"
+    "memoryview" "min" "next" "object" "oct" "open" "ord" "pow"
+    "print" "property" "range" "repr" "reversed" "round" "set"
+    "setattr" "slice" "sorted" "staticmethod" "str" "sum" "super"
+    "tuple" "type" "vars" "zip" "__import__"))
+
+(defvar python--treesit-constants
+  '("Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
+    "copyright" "credits" "exit" "license" "quit"))
+
+(defvar python--treesit-operators
+  '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
+    "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"
+    "and" "in" "is" "not" "or"))
+
+(defvar python--treesit-special-attributes
+  '("__annotations__" "__closure__" "__code__"
+    "__defaults__" "__dict__" "__doc__" "__globals__"
+    "__kwdefaults__" "__name__" "__module__" "__package__"
+    "__qualname__" "__all__"))
+
+(defvar python--treesit-exceptions
+  '(;; Python 2 and 3:
+    "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+    "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
+    "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
+    "GeneratorExit" "IOError" "ImportError" "ImportWarning"
+    "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
+    "LookupError" "MemoryError" "NameError" "NotImplementedError"
+    "OSError" "OverflowError" "PendingDeprecationWarning"
+    "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
+    "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
+    "TypeError" "UnboundLocalError" "UnicodeDecodeError"
+    "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
+    "UnicodeWarning" "UserWarning" "ValueError" "Warning"
+    "ZeroDivisionError"
+    ;; Python 2:
+    "StandardError"
+    ;; Python 3:
+    "BlockingIOError" "BrokenPipeError" "ChildProcessError"
+    "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
+    "ConnectionResetError" "FileExistsError" "FileNotFoundError"
+    "InterruptedError" "IsADirectoryError" "NotADirectoryError"
+    "PermissionError" "ProcessLookupError" "RecursionError"
+    "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+    ;; OS specific
+    "VMSError" "WindowsError"
+    ))
+
+(defun python--treesit-fontify-string (beg end _)
+  "Fontify string between BEG and END.
+Do not fontify the initial f for f-strings."
+  (let ((beg (if (eq (char-after beg) ?f)
+                 (1+ beg) beg)))
+    (put-text-property beg end 'face 'font-lock-string-face)))
+
+(defvar python--treesit-settings
+  (treesit-font-lock-rules
+   :language 'python
+   `(;; Queries for def and class.
+     (function_definition
+      name: (identifier) @font-lock-function-name-face)
+
+     (class_definition
+      name: (identifier) @font-lock-type-face)
+
+     ;; Comment and string.
+     (comment) @font-lock-comment-face
+
+     (string) @python--treesit-fontify-string
+     ((string) @font-lock-doc-face
+      (:match "^\"\"\"" @font-lock-doc-face))
+     (interpolation (identifier) @font-lock-variable-name-face)
+
+     ;; Keywords, builtins, and constants.
+     [,@python--treesit-keywords] @font-lock-keyword-face
+
+     ((identifier) @font-lock-keyword-face
+      (:match "^self$" @font-lock-keyword-face))
+
+     ((identifier) @font-lock-builtin-face
+      (:match ,(rx-to-string
+                `(seq bol
+                      (or ,@python--treesit-builtins
+                          ,@python--treesit-special-attributes)
+                      eol))
+              @font-lock-builtin-face))
+
+     [(true) (false) (none)] @font-lock-constant-face
+
+     ;; Escape sequences
+     (escape_sequence) @font-lock-constant-face
+
+     ;; Variable names.
+     (assignment left: (identifier)
+                 @font-lock-variable-name-face)
+     (pattern_list (identifier)
+                   @font-lock-variable-name-face)
+     (tuple_pattern (identifier)
+                    @font-lock-variable-name-face)
+     (list_pattern (identifier)
+                   @font-lock-variable-name-face)
+     (list_splat_pattern (identifier)
+                         @font-lock-variable-name-face)
+
+     ;; Types and decorators.
+     (decorator) @font-lock-type-face
+     ((identifier) @font-lock-type-face
+      (:match ,(rx-to-string
+                `(seq bol (or ,@python--treesit-exceptions)
+                      eol))
+              @font-lock-type-face))
+     (type (identifier) @font-lock-type-face))))
 
 ;;; Indentation
 
@@ -5106,6 +5243,73 @@ To this:
               (python-imenu-format-parent-item-jump-label-function fn))
           (python-imenu-create-index))))))
 
+;;; Tree-sitter imenu
+;;
+;; This works, but is slower than the native functions, presumably
+;; because traversing the parser tree is slower than scanning the
+;; text.  Also I'm sure this consumes more memory as we allocate
+;; memory for every node in the tree.
+
+(defun python--imenu-treesit-create-index (&optional node)
+  "Return tree Imenu alist for the current Python buffer.
+
+Change `python-imenu-format-item-label-function',
+`python-imenu-format-parent-item-label-function',
+`python-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted.
+
+NODE is the root node of the subtree you want to build an index
+of.  If nil, use the root node of the whole parse tree.
+
+Similar to `python-imenu-create-index' but use tree-sitter."
+  (let* ((node (or node (treesit-buffer-root-node 'python)))
+         (children (treesit-node-children node t))
+         (subtrees (mapcan #'python--imenu-treesit-create-index
+                           children))
+         (type (pcase (treesit-node-type node)
+                ("function_definition" 'def)
+                ("class_definition" 'class)
+                (_ nil)))
+         (name (when type
+                 (treesit-node-text
+                  (treesit-node-child-by-field-name
+                   node "name") t))))
+    (cond
+     ;; 1. This node is a function/class and doesn't have children.
+     ((and type (not subtrees))
+      (let ((label
+             (funcall python-imenu-format-item-label-function
+                           type name)))
+        (list (cons label
+                    (set-marker (make-marker)
+                                (treesit-node-start node))))))
+     ;; 2. This node is a function/class and has children.
+     ((and type subtrees)
+      (let ((parent-label
+             (funcall python-imenu-format-parent-item-label-function
+                      type name))
+            (jump-label
+             (funcall python-imenu-format-parent-item-jump-label-function
+                      type name)))
+        `((,parent-label
+           ,(cons jump-label (set-marker (make-marker)
+                                         (treesit-node-start node)))
+           ,@subtrees))))
+     ;; 3. This node is not a function/class.
+     ((not type) subtrees))))
+
+(defun python--imenu-treesit-create-flat-index ()
+  "Return flat outline of the current Python buffer for Imenu.
+
+Change `python-imenu-format-item-label-function',
+`python-imenu-format-parent-item-label-function',
+`python-imenu-format-parent-item-jump-label-function' to
+customize how labels are formatted.
+
+Similar to `python-imenu-create-flat-index' but use
+tree-sitter."
+  (python-imenu-create-flat-index
+   (python--imenu-treesit-create-index)))
 
 ;;; Misc helpers
 
@@ -5170,6 +5374,29 @@ since it returns nil if point is not inside a defun."
         (and names
              (concat (and type (format "%s " type))
                      (mapconcat #'identity names ".")))))))
+
+(defun python-info-treesit-current-defun (&optional include-type)
+  "Identical to `python-info-current-defun' but use tree-sitter.
+For INCLUDE-TYPE see `python-info-current-defun'."
+  (let ((node (treesit-node-at (point)))
+        (name-list ())
+        (type 'def))
+    (cl-loop while node
+             if (pcase (treesit-node-type node)
+                  ("function_definition"
+                   (setq type 'def))
+                  ("class_definition"
+                   (setq type 'class))
+                  (_ nil))
+             do (push (treesit-node-text
+                       (treesit-node-child-by-field-name node "name")
+                       t)
+                      name-list)
+             do (setq node (treesit-node-parent node))
+             finally return (concat (if include-type
+                                        (format "%s " type)
+                                      "")
+                                    (string-join name-list ".")))))
 
 (defun python-info-current-symbol (&optional replace-self)
   "Return current symbol using dotty syntax.
@@ -5851,13 +6078,20 @@ REPORT-FN is Flymake's callback function."
 
   (setq-local forward-sexp-function python-forward-sexp-function)
 
-  (setq-local font-lock-defaults
+  (if (and python-use-tree-sitter
+           (treesit-can-enable-p))
+      (progn
+        (setq-local font-lock-defaults '(nil t))
+        (setq-local treesit-font-lock-settings
+                    python--treesit-settings)
+        (treesit-font-lock-enable))
+    (setq-local font-lock-defaults
               `(,python-font-lock-keywords
                 nil nil nil nil
                 (font-lock-syntactic-face-function
                  . python-font-lock-syntactic-face-function)
                 (font-lock-extend-after-change-region-function
-                 . python-font-lock-extend-region)))
+                 . python-font-lock-extend-region))))
 
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)
@@ -5892,7 +6126,11 @@ REPORT-FN is Flymake's callback function."
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
 
-  (add-hook 'which-func-functions #'python-info-current-defun nil t)
+  (if (and python-use-tree-sitter
+             (treesit-can-enable-p))
+      (add-hook 'which-func-functions
+                #'python-info-treesit-current-defun nil t)
+    (add-hook 'which-func-functions #'python-info-current-defun nil t))
 
   (setq-local skeleton-further-elements
               '((abbrev-mode nil)
