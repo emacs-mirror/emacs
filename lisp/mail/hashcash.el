@@ -308,6 +308,7 @@ Set ASYNC to t to start asynchronous calculation.  (See
     (save-excursion
       (save-restriction
 	(message-narrow-to-headers)
+        (goto-char (point-max))
 	(let ((to (hashcash-strip-quoted-names (mail-fetch-field "To" nil t)))
 	      (cc (hashcash-strip-quoted-names (mail-fetch-field "Cc" nil t)))
 	      (ng (hashcash-strip-quoted-names (mail-fetch-field "Newsgroups"
