@@ -23000,24 +23000,36 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  any_changed = true;
 			}
 
-		      x_catch_errors (dpyinfo->display);
-		      info = XIQueryDevice (dpyinfo->display, hev->info[i].deviceid,
-					    &ndevices);
-		      x_uncatch_errors ();
+		      /* Under unknown circumstances, multiple
+			 XIDeviceEnabled events are sent at once,
+			 causing the device to be duplicated.  Check
+			 that the device doesn't exist before adding
+			 it.  */
 
-		      if (info && info->enabled)
+		      if (!xi_device_from_id (dpyinfo,
+					      hev->info[i].deviceid))
 			{
-			  dpyinfo->devices
-			    = xrealloc (dpyinfo->devices, (sizeof *dpyinfo->devices
-							   * ++dpyinfo->num_devices));
-			  memset (dpyinfo->devices + dpyinfo->num_devices - 1,
-				  0, sizeof *dpyinfo->devices);
-			  device = &dpyinfo->devices[dpyinfo->num_devices - 1];
-			  xi_populate_device_from_info (device, info);
-			}
+			  x_catch_errors (dpyinfo->display);
+			  info = XIQueryDevice (dpyinfo->display,
+						hev->info[i].deviceid,
+						&ndevices);
+			  x_uncatch_errors ();
 
-		      if (info)
-			XIFreeDeviceInfo (info);
+			  if (info && info->enabled)
+			    {
+			      dpyinfo->devices
+				= xrealloc (dpyinfo->devices,
+					    (sizeof *dpyinfo->devices
+					     * ++dpyinfo->num_devices));
+			      memset (dpyinfo->devices + dpyinfo->num_devices - 1,
+				      0, sizeof *dpyinfo->devices);
+			      device = &dpyinfo->devices[dpyinfo->num_devices - 1];
+			      xi_populate_device_from_info (device, info);
+			    }
+
+			  if (info)
+			    XIFreeDeviceInfo (info);
+			}
 		    }
 		  else if (hev->info[i].flags & XIDeviceDisabled)
 		    disabled[n_disabled++] = hev->info[i].deviceid;
