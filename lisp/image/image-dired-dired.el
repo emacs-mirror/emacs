@@ -202,19 +202,10 @@ With prefix argument, move ARG lines."
   :doc "Keymap for `image-dired-minor-mode'."
   "<remap> <dired-previous-line>" #'image-dired-dired-previous-line
   "<remap> <dired-next-line>"     #'image-dired-dired-next-line
-
   "C-S-n"  #'image-dired-next-line-and-display
   "C-S-p"  #'image-dired-previous-line-and-display
   "C-S-m"  #'image-dired-mark-and-display-next
-
-  "C-t d"  #'image-dired-display-thumbs
-  "<tab>"  #'image-dired-jump-thumbnail-buffer
-  "C-t i"  #'image-dired-dired-display-image
-  "C-t x"  #'image-dired-dired-display-external
-  "C-t a"  #'image-dired-display-thumbs-append
-  "C-t ."  #'image-dired-display-thumb
-  "C-t c"  #'image-dired-dired-comment-files
-  "C-t f"  #'image-dired-mark-tagged-files)
+  "<tab>"  #'image-dired-jump-thumbnail-buffer)
 
 (easy-menu-define image-dired-minor-mode-menu image-dired-minor-mode-map
   "Menu for `image-dired-minor-mode'."
