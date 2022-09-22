@@ -238,9 +238,39 @@ With prefix argument, move ARG lines."
 
 ;;;###autoload
 (define-minor-mode image-dired-minor-mode
-  "Setup easy-to-use keybindings for the commands to be used in Dired mode.
+  "Setup easy-to-use keybindings for Image-Dired in Dired mode.
 
-\\{image-dired-minor-mode-map}"
+This minor mode adds these additional bindings:
+\\<image-dired-minor-mode-map>
+  \\[image-dired-next-line-and-display]		Move to next line and display \
+thumbnail image.
+  \\[image-dired-previous-line-and-display]		Move to previous line \
+and display thumbnail image.
+  \\[image-dired-mark-and-display-next]		Mark current file and display \
+next thumbnail image.
+  \\[image-dired-jump-thumbnail-buffer]		Jump to thumbnail buffer.
+
+For reference, these are the default Image-Dired bindings that
+are always available in Dired:
+\\<dired-mode-map>
+  \\[image-dired-display-thumbs]		Display thumbnails of all marked files.
+  \\[image-dired-tag-files]		Tag marked file(s).
+  \\[image-dired-delete-tag]		Remove tag for selected file(s).
+  \\[image-dired-jump-thumbnail-buffer]		Jump to thumbnail buffer.
+  \\[image-dired-dired-display-image]		Display current image file.
+  \\[image-dired-dired-display-external]		Display file at point \
+using an external viewer.
+  \\[image-dired-display-thumbs-append]		Append thumbnails to \
+thumbnail buffer.
+  \\[image-dired-display-thumb]		Display thumbnails of all marked files.
+  \\[image-dired-dired-comment-files]		Add comment to current or \
+marked files in Dired.
+  \\[image-dired-mark-tagged-files]		Use REGEXP to mark files with \
+matching tag.
+  \\[image-dired-dired-toggle-marked-thumbs]	Toggle thumbnails in \
+front of file names.
+  \\[image-dired-dired-edit-comment-and-tags]		Edit comment and tags \
+of marked images."
   :keymap image-dired-minor-mode-map)
 
 (declare-function clear-image-cache "image.c" (&optional filter))
