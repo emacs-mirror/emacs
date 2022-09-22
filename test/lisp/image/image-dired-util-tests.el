@@ -20,21 +20,35 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'image-dired)
 (require 'image-dired-util)
+(require 'xdg)
 
-(ert-deftest image-dired-thumb-name ()
+(ert-deftest image-dired-thumb-name/standard ()
   (let ((image-dired-thumbnail-storage 'standard))
     (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
-    (should (equal (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
-                   "4abfc97f9a5d3c4c519bfb23e4da8b90.png")))
-  (let ((image-dired-thumbnail-storage 'image-dired))
-    (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
-    (should (equal (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
-                   "foo_5baffb8d7984b3088db58efd7d8909c5.thumb.jpg")))
+    (should (string-search (xdg-cache-home)
+                           (image-dired-thumb-name "foo.jpg")))
+    (should (string-match (rx (in "0-9a-f") ".png")
+                          (image-dired-thumb-name "foo.jpg")))))
+
+(ert-deftest image-dired-thumb-name/image-dired ()
+  ;; Avoid trying to create `image-dired-dir'.
+  (ert-with-temp-directory dir
+    (let ((image-dired-dir dir)
+          (image-dired-thumbnail-storage 'image-dired))
+      (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
+      (should (equal (file-name-nondirectory
+                      ;; The checksum is based on the directory name.
+                      (image-dired-thumb-name "/some/path/foo.jpg"))
+                     "foo_45fff7fcc4a0945679b7b11dec36a82d.thumb.jpg")))))
+
+(ert-deftest image-dired-thumb-name/per-directory ()
   (let ((image-dired-thumbnail-storage 'per-directory))
     (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
-    (should (equal (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
+    (should (equal (file-name-nondirectory
+                    (image-dired-thumb-name "foo.jpg"))
                    "foo.thumb.jpg"))))
 
 ;;; image-dired-util-tests.el ends here
