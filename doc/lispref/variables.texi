@@ -2570,15 +2570,15 @@ is a set of forms that can be generalized variables in Lisp.
 
 The @code{setf} macro is the most basic way to operate on generalized
 variables.  The @code{setf} form is like @code{setq}, except that it
-accepts arbitrary place forms on the left side rather than just
-symbols.  For example, @code{(setf (car a) b)} sets the car of
-@code{a} to @code{b}, doing the same operation as @code{(setcar a b)},
-but without you having to use two separate functions for setting and
-accessing this type of place.
+accepts arbitrary place forms in the first (left) argument of each
+pair rather than just symbols.  For example, @code{(setf (car a) b)}
+sets the car of @code{a} to @code{b}, doing the same operation as
+@code{(setcar a b)}, but without you having to use two separate
+functions for setting and accessing this type of place.
 
 @defmac setf [place form]@dots{}
-This macro evaluates @var{form} and stores it in @var{place}, which
-must be a valid generalized variable form.  If there are several
+This macro evaluates @var{form} and stores its value in @var{place},
+which must be a valid generalized variable form.  If there are several
 @var{place} and @var{form} pairs, the assignments are done sequentially
 just as with @code{setq}.  @code{setf} returns the value of the last
 @var{form}.
