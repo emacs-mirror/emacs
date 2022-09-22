@@ -1531,15 +1531,16 @@ See Info node `(elisp) Integer Basics'."
 
 (put 'set 'byte-optimizer #'byte-optimize-set)
 (defun byte-optimize-set (form)
-  (let ((var (car-safe (cdr-safe form))))
-    (cond
-     ((and (eq (car-safe var) 'quote) (consp (cdr var)))
-      `(setq ,(cadr var) ,@(cddr form)))
-     ((and (eq (car-safe var) 'make-local-variable)
-	   (eq (car-safe (setq var (car-safe (cdr var)))) 'quote)
-	   (consp (cdr var)))
-      `(progn ,(cadr form) (setq ,(cadr var) ,@(cddr form))))
-     (t form))))
+  (pcase (cdr form)
+    ;; Make sure we only turn `set' into `setq' for dynamic variables.
+    (`((quote ,(and var (guard (and (symbolp var)
+                                    (not (macroexp--const-symbol-p var))
+                                    (not (assq var byte-optimize--lexvars))))))
+       ,newval)
+     `(setq ,var ,newval))
+    (`(,(and ml `(make-local-variable ,(and v `(quote ,_)))) ,newval)
+     `(progn ,ml (,(car form) ,v ,newval)))
+    (_ form)))
 
 ;; enumerating those functions which need not be called if the returned
 ;; value is not used.  That is, something like

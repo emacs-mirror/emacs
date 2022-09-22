@@ -59,6 +59,8 @@ inner loops respectively."
        (setq i (1- i)))
      res))
 
+(defvar bytecomp-tests--xx nil)
+
 (defconst bytecomp-tests--test-cases
   '(
     ;; some functional tests
@@ -692,6 +694,16 @@ inner loops respectively."
            (f (lambda ()
                 (let ((y x)) (list y 3 y)))))
       (funcall f))
+
+    ;; Test rewriting of `set' to `setq' (only done on dynamic variables).
+    (let ((xx 1)) (set 'xx 2) xx)
+    (let ((bytecomp-tests--xx 1))
+      (set 'bytecomp-tests--xx 2)
+      bytecomp-tests--xx)
+    (let ((aaa 1)) (set (make-local-variable 'aaa) 2) aaa)
+    (let ((bytecomp-tests--xx 1))
+      (set (make-local-variable 'bytecomp-tests--xx) 2)
+      bytecomp-tests--xx)
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -952,9 +964,6 @@ byte-compiled.  Run with dynamic binding."
 
 (bytecomp--define-warning-file-test "warn-variable-set-constant.el"
                             "attempt to set constant")
-
-(bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
-                            "variable reference to nonvariable")
 
 (bytecomp--define-warning-file-test "warn-variable-setq-nonvariable.el"
                             "attempt to set non-variable")
