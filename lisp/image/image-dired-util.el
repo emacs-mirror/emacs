@@ -127,6 +127,10 @@ See also `image-dired-thumbnail-storage'."
 
 (defun image-dired-display-window ()
   "Return window where `image-dired-display-image-buffer' is visible."
+  ;; This is obsolete as it is currently unused.  Once the window
+  ;; handling gets a rethink, there may or may not be a need to
+  ;; un-obsolete it again.
+  (declare (obsolete nil "29.1"))
   (get-window-with-predicate
    (lambda (window)
      (equal (buffer-name (window-buffer window)) image-dired-display-image-buffer))
@@ -141,6 +145,10 @@ See also `image-dired-thumbnail-storage'."
 
 (defun image-dired-associated-dired-buffer-window ()
   "Return window where associated Dired buffer is visible."
+  ;; This is obsolete as it is currently unused.  Once the window
+  ;; handling gets a rethink, there may or may not be a need to
+  ;; un-obsolete it again.
+  (declare (obsolete nil "29.1"))
   (let (buf)
     (if (image-dired-image-at-point-p)
         (progn
