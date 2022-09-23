@@ -972,48 +972,80 @@ This is used by `image-dired-slideshow-start'."
 (defvar image-dired--slideshow-timer nil
   "Slideshow timer.")
 
-(defvar image-dired--slideshow-initial nil)
+(defvar image-dired--slideshow-current-delay image-dired-slideshow-delay)
 
 (defun image-dired--slideshow-step ()
-  "Step to next image in a slideshow."
+  "Step to the next image in a slideshow."
   (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
       (with-current-buffer buf
         (image-dired-display-next-thumbnail-original))
     (image-dired--slideshow-stop)))
 
+(defun image-dired--slideshow-start-timer ()
+  (image-dired--slideshow-stop-timer)
+  (setq image-dired--slideshow-timer
+        (run-with-timer image-dired--slideshow-current-delay
+                        image-dired--slideshow-current-delay
+                        'image-dired--slideshow-step)))
+
+(defun image-dired--slideshow-stop-timer ()
+  (when image-dired--slideshow-timer
+    (cancel-timer image-dired--slideshow-timer)
+    (setq image-dired--slideshow-timer nil)))
+
 (defun image-dired-slideshow-start (&optional arg)
-  "Start a slideshow, waiting `image-dired-slideshow-delay' between images.
+  "Start a slideshow, waiting `image-dired-slideshow-delay' seconds between images.
 
 With prefix argument ARG, wait that many seconds before going to
 the next image.
 
 With a negative prefix argument, prompt user for the delay."
   (interactive "P" image-dired-thumbnail-mode image-dired-display-image-mode)
-  (let ((delay (if (not arg)
-                   image-dired-slideshow-delay
-                 (if (> arg 0)
-                     arg
-                   (string-to-number
-                    (let ((delay (number-to-string image-dired-slideshow-delay)))
-                      (read-string
-                       (format-prompt "Delay, in seconds.  Decimals are accepted" delay))
-                      delay))))))
-    (setq image-dired--slideshow-timer
-          (run-with-timer
-           0 delay
-           'image-dired--slideshow-step))
-    (add-hook 'post-command-hook 'image-dired--slideshow-stop)
-    (setq image-dired--slideshow-initial t)
-    (message "Running slideshow; use any command to stop")))
+  (let ((delay
+         (cond ((not arg)
+                image-dired-slideshow-delay)
+               ((> arg 0)
+                arg)
+               ((<= arg 0)
+                (string-to-number
+                 (let ((delay (number-to-string image-dired-slideshow-delay)))
+                   (read-string
+                    (format-prompt "Delay, in seconds.  Decimals are accepted"
+                                   delay))
+                   delay))))))
+    (image-dired-display-thumbnail-original-image)
+    (setq image-dired--slideshow-current-delay delay)
+    (add-hook 'post-command-hook 'image-dired--slideshow-stop)))
+
+(defun image-dired--slideshow-show-message (&optional suffix)
+  "Helper function for `image-dired--slideshow-stop'."
+  (message (substitute-command-keys
+            (format
+             (concat
+              "\\[image-dired-display-next-thumbnail-original] next, "
+              "\\[image-dired-display-previous-thumbnail-original] previous, "
+              "\\[image-dired-display-thumbnail-original-image] pause/unpause, "
+              "any other command to stop%s")
+             (or suffix "")))))
 
 (defun image-dired--slideshow-stop ()
-  "Cancel slideshow."
-  ;; Make sure we don't immediately stop after
-  ;; `image-dired-slideshow-start'.
-  (unless image-dired--slideshow-initial
-    (remove-hook 'post-command-hook 'image-dired--slideshow-stop)
-    (cancel-timer image-dired--slideshow-timer))
-  (setq image-dired--slideshow-initial nil))
+  "Cancel the currently active slideshow."
+  (cond
+   ((memq this-command
+          '( image-dired-slideshow-start
+             image-dired-display-next-thumbnail-original
+             image-dired-display-previous-thumbnail-original))
+    (image-dired--slideshow-start-timer)
+    (image-dired--slideshow-show-message))
+   ((eq this-command 'image-dired-display-thumbnail-original-image)
+    (let ((pause image-dired--slideshow-timer))
+      (if pause
+          (image-dired--slideshow-stop-timer)
+        (image-dired--slideshow-start-timer))
+      (image-dired--slideshow-show-message (and pause "  [PAUSED]"))))
+   (t
+    (image-dired--slideshow-stop-timer)
+    (remove-hook 'post-command-hook 'image-dired--slideshow-stop))))
 
 
 ;;; Thumbnail mode (cont. 3)

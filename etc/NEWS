@@ -2083,7 +2083,9 @@ thumbnail buffer.  It is bound to 'W' by default.
 
 ---
 *** 'image-dired-slideshow-start' is now bound to 'S'.
-It is bound in both the thumbnail and display buffer.
+It is bound in both the thumbnail and display buffer, and no longer
+prompts for a timeout; use a numerical prefix (e.g. 'C-u 8 S') to set
+the timeout.
 
 ---
 *** New user option 'image-dired-marking-shows-next'.
