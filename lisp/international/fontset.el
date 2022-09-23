@@ -982,7 +982,11 @@
     (set-fontset-font "fontset-default" symbol-subgroup
                       "-*-fixed-medium-*-*-*-*-*-*-*-*-*-iso10646-1"
                       nil 'prepend))
-  ;; This sets up the Emoji codepoints to use prettier fonts.
+  ;; This sets up the Emoji codepoints to use prettier fonts:
+  ;;  this is fallback, if they don't have color Emoji capabilities...
+  (set-fontset-font "fontset-default" 'emoji
+                    '("Noto Emoji" . "iso10646-1") nil 'prepend)
+  ;;  ...and this is if they do
   (set-fontset-font "fontset-default" 'emoji
                     '("Noto Color Emoji" . "iso10646-1") nil 'prepend)
 
