@@ -62,6 +62,16 @@
     ;; XFCE
     ("xfconf-query" "-c" "xfce4-desktop" "-p"
      "/backdrop/screen0/monitoreDP/workspace0/last-image" "-s" "%f")
+    ;; LXDE
+    ("pcmanfm" "--set-wallpaper=%f")
+    ;; LXQt
+    ("pcmanfm-qt" "--set-wallpaper=%f") ; "--wallpaper-mode=MODE"
+    ;; ;; Mate
+    ;; ("gsettings" "set" "org.mate.background" "picture-filename" "%f")
+    ;; ;; Cinnamon
+    ;; ("gsettings" "set" "org.cinnamon.desktop.background" "picture-uri" "file://%f")
+    ;; ;; Deepin
+    ;; ("gsettings" "set" "com.deepin.wrap.gnome.desktop.background" "picture-uri" "file://%f")
     ;; Sway (Wayland)
     ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
     ;; Wayland General
@@ -95,13 +105,40 @@ In each of the command line arguments, \"%f\", \"%h\" and \"%w\"
 will be replaced as described in `wallpaper-command-args'.")
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
-  (member "GNOME" (xdg-current-desktop)))
+  (or (member (downcase (env "DESKTOP_SESSION"))
+              '("gnome" "gnome" "gnome-wayland" "gnome-xorg"
+                "unity" "ubuntu" "pantheon" "budgie-desktop"
+                "pop"))
+      (member "GNOME" (xdg-current-desktop))
+      (member "Budgie" (xdg-current-desktop))
+      (member "GNOME-Classic" (xdg-current-desktop))))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'plasma-apply-wallpaperimage)))
   (member "KDE" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'xfconf-query)))
-  (member "XFCE" (xdg-current-desktop)))
+  (or (member (lowercase (env "DESKTOP_SESSION"))
+              '("xubuntu" "ubuntustudio"))
+      (member "XFCE" (xdg-current-desktop))))
+
+(cl-defmethod wallpaper--check-command ((_type (eql 'pcmanf)))
+  (member "LXDE" (xdg-current-desktop)))
+
+(cl-defmethod wallpaper--check-command ((_type (eql 'pcmanf-qt)))
+  (or (member (lowercase (env "DESKTOP_SESSION"))
+              '("lubuntu" "lxqt"))
+      (member "LXQt" (xdg-current-desktop))))
+
+;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
+;;   (or (equal "mate" (lowercase (env "DESKTOP_SESSION")))
+;;       (member "MATE" (xdg-current-desktop))))
+
+;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
+;;   (or (equal "cinnamon" (lowercase (env "DESKTOP_SESSION")))
+;;       (member "X-Cinnamon" (xdg-current-desktop))))
+
+;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
+;;   (member "Deepin" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'swaybg)))
   (and (getenv "WAYLAND_DISPLAY")
@@ -163,6 +200,8 @@ systems, where a native API is used instead."
      (const :tag "gsettings                   (GNOME)"            "gsettings")
      (const :tag "plasma-apply-wallpaperimage (KDE Plasma)"       "plasma-apply-wallpaperimage")
      (const :tag "xfconf-query                (XFCE)"             "xfconf-query")
+     (const :tag "pcmanf                      (LXDE)"             "pcmanf")
+     (const :tag "pcmanf-qt                   (LXQt)"             "pcmanf-qt")
      (const :tag "swaybg                      (Wayland/Sway)"     "swaybg")
      (const :tag "wbg                         (Wayland)"          "wbg")
      (const :tag "gm                          (X Window System)"  "gm")
