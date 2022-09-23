@@ -6207,8 +6207,7 @@ If WHERE is `summary', the summary mode line format will be used."
       ;; Update the mode line.
       (setq mode-line-buffer-identification
 	    (gnus-mode-line-buffer-identification
-	     (list (propertize mode-string
-			       'face 'mode-line-buffer-id))))
+	     (list mode-string)))
       (set-buffer-modified-p t))))
 
 (defun gnus-create-xref-hashtb (from-newsgroup headers unreads)

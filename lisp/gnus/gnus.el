@@ -310,12 +310,15 @@ be set in `.emacs' instead."
   :type 'boolean)
 
 (defun gnus-mode-line-buffer-identification (line)
-  (let ((str (car-safe line)))
+  (let* ((str (car-safe line))
+         (str (if (stringp str)
+                  (car (propertized-buffer-identification str))
+                str)))
     (if (or (not (fboundp 'find-image))
 	    (not (display-graphic-p))
 	    (not (stringp str))
 	    (not (string-match "^Gnus:" str)))
-	line
+	(list str)
       (let ((load-path (append (mm-image-load-path) load-path)))
 	;; Add the Gnus logo.
 	(add-text-properties

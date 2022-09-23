@@ -1717,9 +1717,7 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 	  (setq mode-string (substring mode-string 0 (- max-len 4))))
 	(prog1
 	    (setq mode-line-buffer-identification
-		  (gnus-mode-line-buffer-identification
-		   (list (propertize mode-string
-				     'face 'mode-line-buffer-id))))
+		  (gnus-mode-line-buffer-identification (list mode-string)))
 	  (set-buffer-modified-p modified))))))
 
 (defun gnus-group-group-name ()
