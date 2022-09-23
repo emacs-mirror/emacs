@@ -31,6 +31,11 @@
 (require 'text-property-search)
 (eval-when-compile (require 'subr-x))
 
+(defvar image-scaling-factor)
+(declare-function image-property "image.el" (image property))
+(declare-function image-size "image.c" (spec &optional pixels frame))
+(declare-function imagep "image.c" (spec))
+
 (defgroup image-crop ()
   "Image cropping."
   :group 'image)

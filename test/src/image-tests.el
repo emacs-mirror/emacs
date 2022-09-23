@@ -23,6 +23,10 @@
 
 (require 'ert)
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+(declare-function image-mask-p "image.c" (spec &optional frame))
+(declare-function image-metadata "image.c" (spec &optional frame))
+
 (defconst image-tests--images
   `((gif . ,(expand-file-name "test/data/image/black.gif"
                               source-directory))
