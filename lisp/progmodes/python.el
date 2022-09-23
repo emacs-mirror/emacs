@@ -5505,11 +5505,11 @@ operator."
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS.
 When CHECK-STATEMENT is non-nil, the current statement is checked
 instead of the current physical line."
-  (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
-       (save-excursion
-         (when check-statement
-           (python-nav-beginning-of-statement))
-         (beginning-of-line 1)
+  (save-excursion
+    (when check-statement
+      (python-nav-beginning-of-statement))
+    (beginning-of-line 1)
+    (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
          (looking-at python-nav-beginning-of-defun-regexp))))
 
 (defun python-info-looking-at-beginning-of-block ()

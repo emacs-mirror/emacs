@@ -2342,6 +2342,21 @@ class C:
                 (beginning-of-line)
                 (point))))))
 
+(ert-deftest python-nav-beginning-of-defun-6 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+    def foo(self):
+        pass
+"
+   (python-tests-look-at "self")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (beginning-of-line)
+                (point))))))
+
 (ert-deftest python-nav-end-of-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -2471,6 +2486,26 @@ def \\
                 (point))
               (save-excursion
                 (point-max))))))
+
+(ert-deftest python-end-of-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+    def a(self
+          ):
+        pass
+
+    def b(self):
+        pass
+"
+   (should (= (save-excursion
+                (python-tests-look-at "def a")
+                (end-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def b")
+                (forward-line -1)
+                (point))))))
 
 (ert-deftest python-nav-backward-defun-1 ()
   (python-tests-with-temp-buffer
@@ -5733,6 +5768,19 @@ def \\
    (python-tests-look-at "pass")
    (should (not (python-info-looking-at-beginning-of-defun)))
    (should (not (python-info-looking-at-beginning-of-defun nil t)))))
+
+(ert-deftest python-info-looking-at-beginning-of-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+def foo(arg=\"default\"):  # Comment
+    pass
+"
+   (python-tests-look-at "arg")
+   (should (python-info-looking-at-beginning-of-defun))
+   (python-tests-look-at "default")
+   (should (python-info-looking-at-beginning-of-defun))
+   (python-tests-look-at "Comment")
+   (should (python-info-looking-at-beginning-of-defun))))
 
 (ert-deftest python-info-looking-at-beginning-of-block-1 ()
   (python-tests-with-temp-buffer
