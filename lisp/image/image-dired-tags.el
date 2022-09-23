@@ -35,34 +35,34 @@
 
 (defvar image-dired-dir)
 (defvar image-dired-thumbnail-storage)
-(defvar image-dired-db-file)
+(defvar image-dired-tags-db-file)
 
 (defmacro image-dired--with-db-file (&rest body)
-  "Run BODY in a temp buffer containing `image-dired-db-file'.
+  "Run BODY in a temp buffer containing `image-dired-tags-db-file'.
 Return the last form in BODY."
   (declare (indent 0) (debug t))
   `(with-temp-buffer
-     (if (file-exists-p image-dired-db-file)
-         (insert-file-contents image-dired-db-file))
+     (if (file-exists-p image-dired-tags-db-file)
+         (insert-file-contents image-dired-tags-db-file))
      ,@body))
 
 (defun image-dired-sane-db-file ()
-  "Check if `image-dired-db-file' exists.
+  "Check if `image-dired-tags-db-file' exists.
 If not, try to create it (including any parent directories).
 Signal error if there are problems creating it."
-  (or (file-exists-p image-dired-db-file)
+  (or (file-exists-p image-dired-tags-db-file)
       (let (dir buf)
         (unless (file-directory-p (setq dir (file-name-directory
-                                             image-dired-db-file)))
+                                             image-dired-tags-db-file)))
           (with-file-modes #o700
             (make-directory dir t)))
         (with-current-buffer (setq buf (create-file-buffer
-                                        image-dired-db-file))
+                                        image-dired-tags-db-file))
           (with-file-modes #o600
-            (write-file image-dired-db-file)))
+            (write-file image-dired-tags-db-file)))
         (kill-buffer buf)
-        (file-exists-p image-dired-db-file))
-      (error "Could not create %s" image-dired-db-file)))
+        (file-exists-p image-dired-tags-db-file))
+      (error "Could not create %s" image-dired-tags-db-file)))
 
 (defvar image-dired-tag-history nil "Variable holding the tag history.")
 
@@ -74,7 +74,7 @@ FILE-TAGS is an alist in the following form:
   (image-dired-sane-db-file)
   (let (end file tag)
     (image-dired--with-db-file
-      (setq buffer-file-name image-dired-db-file)
+      (setq buffer-file-name image-dired-tags-db-file)
       (dolist (elt file-tags)
         (setq file (car elt)
               tag (cdr elt))
@@ -94,7 +94,7 @@ FILE-TAGS is an alist in the following form:
   "For all FILES, remove TAG from the image database."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
-    (setq buffer-file-name image-dired-db-file)
+    (setq buffer-file-name image-dired-tags-db-file)
     (let (end)
       (unless (listp files)
         (if (stringp files)
@@ -194,7 +194,7 @@ FILE-COMMENTS is an alist on the following form:
   (image-dired-sane-db-file)
   (let (end comment-beg-pos comment-end-pos file comment)
     (image-dired--with-db-file
-      (setq buffer-file-name image-dired-db-file)
+      (setq buffer-file-name image-dired-tags-db-file)
       (dolist (elt file-comments)
         (setq file (car elt)
               comment (cdr elt))

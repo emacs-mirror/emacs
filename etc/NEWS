@@ -2158,6 +2158,9 @@ nil to disable this confirmation completely.
 *** 'image-dired-thumb-size' increased to 128.
 
 ---
+*** 'image-dired-db-file' renamed to 'image-dired-tags-db-file'.
+
+---
 *** 'image-dired-thumb-{height,width}' are now obsolete.
 Customize 'image-dired-thumb-size' instead, which will set both the
 height and width.

@@ -98,7 +98,7 @@
 ;;   option `image-dired-thumbnail-storage'.
 ;;
 ;; * WARNING: The "database" format used might be changed so keep a
-;;   backup of `image-dired-db-file' when testing new versions.
+;;   backup of `image-dired-tags-db-file' when testing new versions.
 ;;
 ;; TODO
 ;; ====
@@ -211,7 +211,9 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
                  (const :tag "Per-directory" per-directory))
   :version "29.1")
 
-(defcustom image-dired-db-file
+(define-obsolete-variable-alias 'image-dired-db-file
+  'image-dired-tags-db-file "29.1")
+(defcustom image-dired-tags-db-file
   (expand-file-name ".image-dired_db" image-dired-dir)
   "Database file where file names and their associated tags are stored."
   :type 'file)
