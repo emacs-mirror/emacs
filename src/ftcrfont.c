@@ -570,8 +570,12 @@ ftcrhbfont_begin_hb_font (struct font *font, double *position_unit)
   hb_font_t *hb_font = fthbfont_begin_hb_font (font, position_unit);
   /* HarfBuzz 5 correctly scales bitmap-only fonts without position
      unit adjustment.
-     (https://github.com/harfbuzz/harfbuzz/issues/489) */
-  if (!hb_version_atleast (5, 0, 0)
+     (https://github.com/harfbuzz/harfbuzz/issues/489)
+
+     Update: HarfBuzz 5.2.0 no longer does this for an hb_font_t font
+     object created from a given FT_Face.
+     (https://github.com/harfbuzz/harfbuzz/issues/3788) */
+  if ((hb_version_atleast (5, 2, 0) || !hb_version_atleast (5, 0, 0))
       && ftcrfont_info->bitmap_position_unit)
     *position_unit = ftcrfont_info->bitmap_position_unit;
 
