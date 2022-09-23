@@ -974,12 +974,12 @@ This is used by `image-dired-slideshow-start'."
 
 (defvar image-dired--slideshow-initial nil)
 
-(defun image-dired-slideshow-step ()
+(defun image-dired--slideshow-step ()
   "Step to next image in a slideshow."
   (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
       (with-current-buffer buf
         (image-dired-display-next-thumbnail-original))
-    (image-dired-slideshow-stop)))
+    (image-dired--slideshow-stop)))
 
 (defun image-dired-slideshow-start (&optional arg)
   "Start a slideshow, waiting `image-dired-slideshow-delay' between images.
@@ -1001,17 +1001,17 @@ With a negative prefix argument, prompt user for the delay."
     (setq image-dired--slideshow-timer
           (run-with-timer
            0 delay
-           'image-dired-slideshow-step))
-    (add-hook 'post-command-hook 'image-dired-slideshow-stop)
+           'image-dired--slideshow-step))
+    (add-hook 'post-command-hook 'image-dired--slideshow-stop)
     (setq image-dired--slideshow-initial t)
     (message "Running slideshow; use any command to stop")))
 
-(defun image-dired-slideshow-stop ()
+(defun image-dired--slideshow-stop ()
   "Cancel slideshow."
   ;; Make sure we don't immediately stop after
   ;; `image-dired-slideshow-start'.
   (unless image-dired--slideshow-initial
-    (remove-hook 'post-command-hook 'image-dired-slideshow-stop)
+    (remove-hook 'post-command-hook 'image-dired--slideshow-stop)
     (cancel-timer image-dired--slideshow-timer))
   (setq image-dired--slideshow-initial nil))
 
@@ -1826,6 +1826,8 @@ when using per-directory thumbnail file storage"))
       (insert "  </body>\n")
       (insert "</html>"))))
 
+(define-obsolete-function-alias 'image-dired-slideshow-step #'image-dired--slideshow-step "29.1")
+(define-obsolete-function-alias 'image-dired-slideshow-stop #'image-dired--slideshow-stop "29.1")
 (define-obsolete-function-alias 'image-dired-create-display-image-buffer
   #'ignore "29.1")
 (define-obsolete-function-alias 'image-dired-create-gallery-lists
