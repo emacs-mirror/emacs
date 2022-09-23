@@ -18109,7 +18109,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    /* Unprotect the first window to be sent in a
 	       ClientMessage event, since it is now on the stack and
 	       thereby subject to garbage collection.  */
-	    x_unprotect_window_for_callback (dpyinfo);
+	    if (event->xclient.serial
+		>= dpyinfo->first_valid_scroll_bar_req)
+	      x_unprotect_window_for_callback (dpyinfo);
 
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
@@ -18121,7 +18123,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    /* Unprotect the first window to be sent in a
 	       ClientMessage event, since it is now on the stack and
 	       thereby subject to garbage collection.  */
-	    x_unprotect_window_for_callback (dpyinfo);
+	    if (event->xclient.serial
+		>= dpyinfo->first_valid_scroll_bar_req)
+	      x_unprotect_window_for_callback (dpyinfo);
 
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
@@ -27338,6 +27342,16 @@ x_free_frame_resources (struct frame *f)
       /* Free sync fences.  */
 #if defined HAVE_XSYNCTRIGGERFENCE && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
       x_sync_free_fences (f);
+#endif
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+      /* Since the frame was destroyed, we can no longer guarantee
+	 that scroll bar events will be received.  Clear
+	 protected_windows, and ignore any preceding scroll bar events
+	 that happen to still be deliverable.  */
+      dpyinfo->n_protected_windows = 0;
+      dpyinfo->first_valid_scroll_bar_req
+	= XNextRequest (dpyinfo->display);
 #endif
     }
 

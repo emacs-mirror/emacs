@@ -839,6 +839,15 @@ struct x_display_info
      server_time_monotonic_p will be true).  */
   int_fast64_t server_time_offset;
 #endif
+
+#if defined USE_TOOLKIT_SCROLL_BARS
+  /* Serial number of the first scroll bar event to start listening
+     to.  This is necessary because protected_windows is display
+     local, but the destruction of a frame's edit window may cause
+     event windows to vanish before they are delivered, leading to
+     windows remaining protected indefinitely.  */
+  unsigned long first_valid_scroll_bar_req;
+#endif
 };
 
 #ifdef HAVE_X_I18N
