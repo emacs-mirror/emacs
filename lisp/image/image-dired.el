@@ -408,6 +408,8 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
     (add-text-properties
      beg end
      (list 'image-dired-thumbnail t
+           ;; Disable `image-map' on thumbnails.
+           'keymap nil
            'original-file-name original-file-name
            'associated-dired-buffer associated-dired-buffer
            'tags (image-dired-list-tags original-file-name)
