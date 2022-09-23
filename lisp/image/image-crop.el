@@ -143,6 +143,8 @@ After cropping an image, you can save it by `M-x image-save' or
   (let ((image (get-text-property (point) 'display)))
     (unless (imagep image)
       (user-error "No image under point"))
+    (when (overlays-at (point))
+      (user-error "Can't edit images that have overlays"))
     ;; We replace the image under point with an SVG image that looks
     ;; just like that image.  That allows us to draw lines over it.
     ;; At the end, we replace that SVG with a cropped version of the
