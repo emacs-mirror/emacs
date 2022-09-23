@@ -105,10 +105,11 @@ In each of the command line arguments, \"%f\", \"%h\" and \"%w\"
 will be replaced as described in `wallpaper-command-args'.")
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
-  (or (member (downcase (env "DESKTOP_SESSION"))
-              '("gnome" "gnome" "gnome-wayland" "gnome-xorg"
-                "unity" "ubuntu" "pantheon" "budgie-desktop"
-                "pop"))
+  (or (and (getenv "DESKTOP_SESSION")
+           (member (downcase (getenv "DESKTOP_SESSION"))
+                   '("gnome" "gnome" "gnome-wayland" "gnome-xorg"
+                     "unity" "ubuntu" "pantheon" "budgie-desktop"
+                     "pop")))
       (member "GNOME" (xdg-current-desktop))
       (member "Budgie" (xdg-current-desktop))
       (member "GNOME-Classic" (xdg-current-desktop))))
@@ -117,24 +118,28 @@ will be replaced as described in `wallpaper-command-args'.")
   (member "KDE" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'xfconf-query)))
-  (or (member (lowercase (env "DESKTOP_SESSION"))
-              '("xubuntu" "ubuntustudio"))
+  (or (and (getenv "DESKTOP_SESSION")
+           (member (downcase (getenv "DESKTOP_SESSION"))
+                   '("xubuntu" "ubuntustudio")))
       (member "XFCE" (xdg-current-desktop))))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'pcmanf)))
   (member "LXDE" (xdg-current-desktop)))
 
 (cl-defmethod wallpaper--check-command ((_type (eql 'pcmanf-qt)))
-  (or (member (lowercase (env "DESKTOP_SESSION"))
+  (or (member (and (getenv "DESKTOP_SESSION")
+                   (downcase (getenv "DESKTOP_SESSION")))
               '("lubuntu" "lxqt"))
       (member "LXQt" (xdg-current-desktop))))
 
 ;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
-;;   (or (equal "mate" (lowercase (env "DESKTOP_SESSION")))
+;;   (or (and (getenv "DESKTOP_SESSION")
+;;            (equal "mate" (downcase (getenv "DESKTOP_SESSION"))))
 ;;       (member "MATE" (xdg-current-desktop))))
 
 ;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
-;;   (or (equal "cinnamon" (lowercase (env "DESKTOP_SESSION")))
+;;   (or (equal "cinnamon" (and (getenv "DESKTOP_SESSION")
+;;                              (downcase (getenv "DESKTOP_SESSION"))))
 ;;       (member "X-Cinnamon" (xdg-current-desktop))))
 
 ;; (cl-defmethod wallpaper--check-command ((_type (eql 'gsettings)))
