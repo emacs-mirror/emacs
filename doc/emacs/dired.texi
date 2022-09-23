@@ -1641,7 +1641,7 @@ or through an external viewer.  This is different from Image mode
   To enter Image-Dired, mark the image files you want to look at in
 the Dired buffer, using @kbd{m} as usual.  Then type @kbd{C-t d}
 (@code{image-dired-display-thumbs}).  This creates and switches to a
-buffer containing image-dired, corresponding to the marked files.
+buffer containing Image-Dired, corresponding to the marked files.
 
   You can also enter Image-Dired directly by typing @kbd{M-x
 image-dired}.  This prompts for a directory; specify one that has
@@ -1660,10 +1660,9 @@ display the next image.  Typing @key{DEL}
 the previous thumbnail and displays that instead.
 
 @vindex image-dired-external-viewer
-  To view the image in its original size, either provide a prefix
-argument (@kbd{C-u}) before pressing @key{RET}, or type
-@kbd{C-@key{RET}} (@code{image-dired-thumbnail-display-external}) to
-display the image in an external viewer.  You must first configure
+  Type @kbd{C-@key{RET}}
+(@code{image-dired-thumbnail-display-external}) to display the image
+in an external viewer.  You must first configure
 @code{image-dired-external-viewer}.
 
   You can delete images through Image-Dired also.  Type @kbd{d}
@@ -1674,9 +1673,9 @@ image from the thumbnail buffer with @kbd{C-d}
 
   More advanced features include @dfn{image tags}, which are metadata
 used to categorize image files.  The tags are stored in a plain text
-file configured by @code{image-dired-db-file}.
+file configured by @code{image-dired-tags-db-file}.
 
-  To tag image files, mark them in the dired buffer (you can also mark
+  To tag image files, mark them in the Dired buffer (you can also mark
 files in Dired from the thumbnail buffer by typing @kbd{m}) and type
 @kbd{C-t t} (@code{image-dired-tag-files}).  This reads the tag name
 in the minibuffer.  To mark files having a certain tag, type @kbd{C-t f}

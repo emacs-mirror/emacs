@@ -2157,7 +2157,7 @@ nil to disable this confirmation completely.
 ---
 *** 'image-dired-thumb-size' increased to 128.
 
----
++++
 *** 'image-dired-db-file' renamed to 'image-dired-tags-db-file'.
 
 ---
