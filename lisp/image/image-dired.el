@@ -199,7 +199,7 @@ format, as mandated by that standard, and otherwise as JPEG.
 For more information on the Thumbnail Managing Standard, see:
 https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html"
   :type '(choice :tag "How to store thumbnail files"
-                 (const :tag "Use image-dired-dir" use-image-dired-dir)
+                 (const :tag "Use image-dired-dir" image-dired)
                  (const :tag "Thumbnail Managing Standard (normal 128x128)"
                         standard)
                  (const :tag "Thumbnail Managing Standard (large 256x256)"
