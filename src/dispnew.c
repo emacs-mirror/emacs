@@ -1810,8 +1810,11 @@ allocate_matrices_for_window_redisplay (struct window *w)
 	  if (w->desired_matrix == NULL)
 	    {
 	      w->desired_matrix = new_glyph_matrix (NULL);
-	      w->current_matrix = new_glyph_matrix (NULL);
+	      eassert (w->current_matrix == NULL);
 	    }
+
+	  if (w->current_matrix == NULL)
+	    w->current_matrix = new_glyph_matrix (NULL);
 
 	  dim.width = required_matrix_width (w);
 	  dim.height = required_matrix_height (w);
