@@ -176,7 +176,7 @@ After cropping an image, you can save it by `M-x image-save' or
                   (point-max)))))
 	   (text (buffer-substring image-start image-end))
 	   (inhibit-read-only t)
-           orig-data)
+           orig-data svg-end)
       (with-temp-buffer
 	(set-buffer-multibyte nil)
 	(if (null data)
@@ -196,6 +196,7 @@ After cropping an image, you can save it by `M-x image-save' or
       (with-buffer-unmodified-if-unchanged
         (delete-region image-start image-end)
         (svg-insert-image svg)
+        (setq svg-end (point))
         (let ((area (condition-case _
 		        (save-excursion
 			  (forward-line 1)
@@ -205,7 +206,7 @@ After cropping an image, you can save it by `M-x image-save' or
           (message (substitute-command-keys
                     "Type \\[image-save] to save %s image to file")
                    (if cut "cut" "cropped"))
-	  (delete-region (pos-bol) (pos-eol))
+	  (delete-region image-start svg-end)
 	  (if area
 	      (image-crop--crop-image-update
                area orig-data size type cut text)
