@@ -605,17 +605,9 @@ position in the other buffer."
   (setq image-dired-track-movement (not image-dired-track-movement))
   (message "Movement tracking %s" (if image-dired-track-movement "on" "off")))
 
-(defun image-dired--display-thumb-properties-fun ()
-  (let ((old-buf (current-buffer))
-        (old-point (point)))
-    (lambda ()
-      (when (and (equal (current-buffer) old-buf)
-                 (= (point) old-point))
-        (ignore-errors
-          (image-dired-update-header-line))))))
 
 (defun image-dired-forward-image (&optional arg wrap-around)
-  "Move to next image and display properties.
+  "Move to next image in the thumbnail buffer.
 Optional prefix ARG says how many images to move; the default is
 one image.  Negative means move backwards.
 On reaching end or beginning of buffer, stop and show a message.
@@ -643,12 +635,12 @@ point is on the last image, move to the last one and vice versa."
                                 (- (point-max) 2)))
                    (image-dired-update-header-line))
           (message "At %s image" (if (> arg 0) "last" "first"))
-          (run-at-time 1 nil (image-dired--display-thumb-properties-fun))))))
+          (image-dired-update-header-line)))))
   (when image-dired-track-movement
     (image-dired-track-original-file)))
 
 (defun image-dired-backward-image (&optional arg)
-  "Move to previous image and display properties.
+  "Move to previous image in the thumbnail buffer.
 Optional prefix ARG says how many images to move; the default is
 one image.  Negative means move forward.
 On reaching end or beginning of buffer, stop and show a message."
@@ -656,7 +648,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (image-dired-forward-image (- (or arg 1))))
 
 (defun image-dired-next-line ()
-  "Move to next line and display properties."
+  "Move to next line in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
   (let ((goal-column (current-column)))
     (forward-line 1)
@@ -669,7 +661,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (image-dired-update-header-line))
 
 (defun image-dired-previous-line ()
-  "Move to previous line and display properties."
+  "Move to previous line in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
   (let ((goal-column (current-column)))
     (forward-line -1)
@@ -685,7 +677,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (image-dired-update-header-line))
 
 (defun image-dired-beginning-of-buffer ()
-  "Move to the first image in the buffer and display properties."
+  "Move to the first image in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
   (goto-char (point-min))
   (while (and (not (image-at-point-p))
@@ -696,7 +688,7 @@ On reaching end or beginning of buffer, stop and show a message."
   (image-dired-update-header-line))
 
 (defun image-dired-end-of-buffer ()
-  "Move to the last image in the buffer and display properties."
+  "Move to the last image in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
   (goto-char (point-max))
   (while (and (not (image-at-point-p))
@@ -1131,7 +1123,7 @@ Ask user how many thumbnails should be displayed per row."
                        image-dired-external-viewer file)))))
 
 (defun image-dired-display-image (file &optional _ignored)
-  "Display image FILE in a the image buffer window.
+  "Display image FILE in the image buffer window.
 If it is an image, the window will use `image-dired-display-image-mode'
 which is based on `image-mode'."
   (declare (advertised-calling-convention (file) "29.1"))
@@ -1206,12 +1198,9 @@ With prefix ARG, move that many thumbnails."
                image-dired-thumbnail-mode)
   (wallpaper-set file))
 
-
-;;; Image Comments
-
 (defun image-dired-comment-thumbnail ()
   "Add comment to current thumbnail in thumbnail buffer."
-  (interactive nil image-dired-comment-thumbnail image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode)
   (let* ((file (image-dired-original-file-name))
          (comment (image-dired-read-comment file)))
     (image-dired-write-comments (list (cons file comment)))
@@ -1365,6 +1354,7 @@ Track this in associated Dired buffer if
     (goto-char (point-min))))
 
 (put 'image-dired-bookmark-jump 'bookmark-handler-type "Image-Dired")
+
 
 ;;; Obsolete
 
