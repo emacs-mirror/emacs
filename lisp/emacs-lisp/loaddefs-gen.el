@@ -287,10 +287,14 @@ expression, in which case we want to handle forms differently."
       ;; In Emacs this is normally handled separately by cus-dep.el, but for
       ;; third party packages, it can be convenient to explicitly autoload
       ;; a group.
-      (let ((groupname (nth 1 form)))
+      (let ((groupname (nth 1 form))
+            (parent (eval (plist-get form :group) t)))
         `(let ((loads (get ',groupname 'custom-loads)))
            (if (member ',file loads) nil
-             (put ',groupname 'custom-loads (cons ',file loads))))))
+             (put ',groupname 'custom-loads (cons ',file loads))
+             ,@(when parent
+               `((put ',parent 'custom-loads
+                      (cons ',groupname (get ',parent 'custom-loads)))))))))
 
      ;; When processing a macro expansion, any expression
      ;; before a :autoload-end should be included.  These are typically (put
