@@ -45,7 +45,6 @@
 (require 'image)
 (require 'exif)
 (require 'dired)
-(require 'wallpaper)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Image mode window-info management.

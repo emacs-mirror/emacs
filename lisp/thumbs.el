@@ -54,7 +54,6 @@
 ;;; Code:
 
 (require 'dired)
-(require 'wallpaper)
 (require 'cl-lib)			; for cl-gensym
 
 ;; CUSTOMIZATIONS

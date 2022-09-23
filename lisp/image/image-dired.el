@@ -133,7 +133,6 @@
 
 (require 'dired)
 (require 'image-mode)
-(require 'wallpaper)
 (require 'widget)
 (require 'xdg)
 

@@ -279,6 +279,7 @@ See also `wallpaper-default-width'.")
 (declare-function w32-set-wallpaper "w32fns.c")
 (declare-function haiku-set-wallpaper "term/haiku-win.el")
 
+;;;###autoload
 (defun wallpaper-set (file)
   "Set the desktop background to FILE in a graphical environment.
 
