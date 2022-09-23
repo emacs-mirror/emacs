@@ -1096,22 +1096,25 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 If PROMPT is non-nil, prompt for the Git command to run."
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
+         (git-program vc-git-program)
          ;; TODO if pushing, prompt if no default push location - cf bzr.
          (vc-want-edit-command-p prompt))
     (require 'vc-dispatcher)
     (when vc-want-edit-command-p
       (with-current-buffer (get-buffer-create buffer)
         (add-hook 'vc-pre-command-functions
-                  (pcase-lambda (_ _ `(,new-command . ,new-args))
-                    (setq command new-command extra-args new-args))
+                  (lambda (&rest args)
+                    (setq git-program (car args)
+                          command (caaddr args)
+                          extra-args (cdaddr args)))
                   nil t)))
     (apply #'vc-do-async-command
-           buffer root vc-git-program command extra-args)
+           buffer root git-program command extra-args)
     (with-current-buffer buffer
       (vc-run-delayed
         (vc-compilation-mode 'git)
         (setq-local compile-command
-                    (concat vc-git-program " " command " "
+                    (concat git-program " " command " "
                             (mapconcat #'identity extra-args " ")))
         (setq-local compilation-directory root)
         ;; Either set `compilation-buffer-name-function' locally to nil
