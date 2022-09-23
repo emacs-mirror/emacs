@@ -136,6 +136,7 @@ and reference them using the function `class-option'."
         (accessors ()))
 
     ;; Collect the accessors we need to define.
+    (setq slots (mapcar (lambda (x) (if (consp x) x (list x))) slots))
     (pcase-dolist (`(,sname . ,soptions) slots)
       (let* ((acces   (plist-get soptions :accessor))
 	     (initarg (plist-get soptions :initarg))
