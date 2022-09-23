@@ -553,7 +553,7 @@ If the number of image files in DIR exceeds
 `image-dired-show-all-from-dir-max-files', ask for confirmation
 before creating the thumbnail buffer.  If that variable is nil,
 never ask for confirmation."
-  (interactive "DImage-Dired: ")
+  (interactive "DImage-Dired (directory): ")
   (dired dir)
   (dired-mark-files-regexp (image-dired--file-name-regexp))
   (let ((files (dired-get-marked-files nil nil nil t)))
