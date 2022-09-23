@@ -607,8 +607,8 @@ context strings from the current buffer."
           ;; don't include any context in the bookmark file, because
           ;; that would leak (possibly secret) data.
           (if (and buffer-file-name
-                   (not (run-hook-with-args-until-success
-                         'bookmark-inhibit-context-functions buffer-file-name)))
+                   (run-hook-with-args-until-success
+                    'bookmark-inhibit-context-functions buffer-file-name))
               0
             bookmark-search-size))
          (record (funcall bookmark-make-record-function)))
