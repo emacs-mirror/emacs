@@ -293,11 +293,14 @@ easy-to-use form."
     (remove-overlays)
     ;; Some help for the user.
     (widget-insert
-     "\nEdit comments and tags for each image.  Separate multiple tags
-with a comma.  Move forward between fields using TAB or RET.
-Move to the previous field using backtab (S-TAB).  Save by
-activating the Save button at the bottom of the form or cancel
-the operation by activating the Cancel button.\n\n")
+     (substitute-command-keys
+      "\\<widget-field-keymap>
+Edit comments and tags for each image.  Separate multiple tags
+with a comma.  Move forward between fields using \\[widget-forward] \
+or \\[widget-field-activate].
+Move to the previous field using \\[widget-backward].  Save by
+activating the \"Save\" button at the bottom of the form or
+cancel the operation by activating the \"Cancel\" button.\n\n"))
     ;; Here comes all images and a comment and tag field for each
     ;; image.
     (let (thumb-file img comment-widget tag-widget)
