@@ -209,6 +209,23 @@ are available (see Info node `(emacs)Document View')."
           function)
   :version "24.4")
 
+(defcustom doc-view-mupdf-use-svg (image-type-available-p 'svg)
+  "Whether to use svg images for PDF files."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom doc-view-svg-background "white"
+  "Background color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
+
+(defcustom doc-view-svg-foreground "black"
+  "Foreground color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
+
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
     ;; sources.
@@ -1562,6 +1579,9 @@ ARGS is a list of image descriptors."
 			    (setq args `(,@args :width ,doc-view-image-width)))
                           (unless (member :transform-smoothing args)
                             (setq args `(,@args :transform-smoothing t)))
+                          (when (eq doc-view--image-type 'svg)
+                            (setq args `(,@args :background ,doc-view-svg-background
+                                               :foreground ,doc-view-svg-foreground)))
 			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))
@@ -1983,7 +2003,11 @@ If BACKWARD is non-nil, jump to the previous match."
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
                  ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
-                 (_     (list doc-view-pdf->png-converter-function  'png  "png")))))
+                 (_ (if (and (eq doc-view-pdf->png-converter-function
+                                 #'doc-view-pdf->png-converter-mupdf)
+                             doc-view-mupdf-use-svg)
+                        (list doc-view-pdf->png-converter-function 'svg "svg")
+                      (list doc-view-pdf->png-converter-function 'png "png"))))))
     (setq-local doc-view-single-page-converter-function conv-function)
     (setq-local doc-view--image-type type)
     (setq-local doc-view--image-file-pattern (concat "page-%s." extension))))
