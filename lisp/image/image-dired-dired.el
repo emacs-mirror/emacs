@@ -206,11 +206,10 @@ With prefix argument, move ARG lines."
   "C-S-n"  #'image-dired-next-line-and-display
   "C-S-p"  #'image-dired-previous-line-and-display
   "C-S-m"  #'image-dired-mark-and-display-next
-  "<tab>"  #'image-dired-jump-thumbnail-buffer)
+  "<tab>"  #'image-dired-jump-thumbnail-buffer
 
-(easy-menu-define image-dired-minor-mode-menu image-dired-minor-mode-map
-  "Menu for `image-dired-minor-mode'."
-  '("Image-dired"
+  :menu
+  '("Image-Dired"
     ["Display thumb for next file" image-dired-next-line-and-display]
     ["Display thumb for previous file" image-dired-previous-line-and-display]
     ["Mark and display next" image-dired-mark-and-display-next]

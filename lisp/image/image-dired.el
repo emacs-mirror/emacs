@@ -890,10 +890,9 @@ You probably want to use this together with
   "<remap> <beginning-of-buffer>"    #'image-dired-beginning-of-buffer
   "<remap> <end-of-buffer>"          #'image-dired-end-of-buffer
   "<remap> <move-beginning-of-line>" #'image-dired-move-beginning-of-line
-  "<remap> <move-end-of-line>"       #'image-dired-move-end-of-line)
+  "<remap> <move-end-of-line>"       #'image-dired-move-end-of-line
 
-(easy-menu-define image-dired-thumbnail-mode-menu image-dired-thumbnail-mode-map
-  "Menu for `image-dired-thumbnail-mode'."
+  :menu
   '("Image-Dired"
     ["Display image" image-dired-display-thumbnail-original-image]
     ["Display in external viewer" image-dired-thumbnail-display-external]
