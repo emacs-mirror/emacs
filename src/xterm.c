@@ -14385,17 +14385,23 @@ x_protect_window_for_callback (struct x_display_info *dpyinfo,
   return true;
 }
 
-static void
+static Lisp_Object
 x_unprotect_window_for_callback (struct x_display_info *dpyinfo)
 {
+  Lisp_Object window;
+
   if (!dpyinfo->n_protected_windows)
-    emacs_abort ();
+    return Qnil;
+
+  window = dpyinfo->protected_windows[0];
 
   dpyinfo->n_protected_windows--;
 
   if (dpyinfo->n_protected_windows)
     memmove (dpyinfo->protected_windows, &dpyinfo->protected_windows[1],
 	     sizeof (Lisp_Object) * dpyinfo->n_protected_windows);
+
+  return window;
 }
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -14462,30 +14468,34 @@ x_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
    in *IEVENT.  */
 
 static void
-x_scroll_bar_to_input_event (const XEvent *event,
+x_scroll_bar_to_input_event (struct x_display_info *dpyinfo,
+			     const XEvent *event,
 			     struct input_event *ievent)
 {
-  const XClientMessageEvent *ev = &event->xclient;
   Lisp_Object window;
-  struct window *w;
 
-  /* See the comment in the function above.  */
-  intptr_t iw0 = ev->data.l[0];
-  intptr_t iw1 = ev->data.l[1];
-  intptr_t iw = (iw0 << 31 << 1) + (iw1 & 0xffffffffu);
-  w = (struct window *) iw;
+  /* Every time a scroll bar ClientMessage event is sent, the window
+     is pushed onto a queue that is traced for garbage collection.
+     Every time we need a window for a read scroll bar event, we
+     simply read from the other side of the queue.  */
+  window = x_unprotect_window_for_callback (dpyinfo);
 
-  XSETWINDOW (window, w);
+  if (NILP (window))
+    {
+      /* This means we are getting extra scroll bar events for some
+	 reason, and shouldn't be possible in practice.  */
+      EVENT_INIT (*ievent);
+      return;
+    }
 
   ievent->kind = SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
   ievent->arg = Qnil;
-  ievent->timestamp
-    = x_get_last_toolkit_time (FRAME_DISPLAY_INFO (XFRAME (w->frame)));
+  ievent->timestamp = x_get_last_toolkit_time (dpyinfo);
   ievent->code = 0;
-  ievent->part = ev->data.l[2];
-  ievent->x = make_fixnum (ev->data.l[3]);
-  ievent->y = make_fixnum (ev->data.l[4]);
+  ievent->part = event->xclient.data.l[2];
+  ievent->x = make_fixnum (event->xclient.data.l[3]);
+  ievent->y = make_fixnum (event->xclient.data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -14493,30 +14503,34 @@ x_scroll_bar_to_input_event (const XEvent *event,
    input event in *IEVENT.  */
 
 static void
-x_horizontal_scroll_bar_to_input_event (const XEvent *event,
+x_horizontal_scroll_bar_to_input_event (struct x_display_info *dpyinfo,
+					const XEvent *event,
 					struct input_event *ievent)
 {
-  const XClientMessageEvent *ev = &event->xclient;
   Lisp_Object window;
-  struct window *w;
 
-  /* See the comment in the function above.  */
-  intptr_t iw0 = ev->data.l[0];
-  intptr_t iw1 = ev->data.l[1];
-  intptr_t iw = (iw0 << 31 << 1) + (iw1 & 0xffffffffu);
-  w = (struct window *) iw;
+  /* Every time a scroll bar ClientMessage event is sent, the window
+     is pushed onto a queue that is traced for garbage collection.
+     Every time we need a window for a read scroll bar event, we
+     simply read from the other side of the queue.  */
+  window = x_unprotect_window_for_callback (dpyinfo);
 
-  XSETWINDOW (window, w);
+  if (NILP (window))
+    {
+      /* This means we are getting extra scroll bar events for some
+	 reason, and shouldn't be possible in practice.  */
+      EVENT_INIT (*ievent);
+      return;
+    }
 
   ievent->kind = HORIZONTAL_SCROLL_BAR_CLICK_EVENT;
   ievent->frame_or_window = window;
   ievent->arg = Qnil;
-  ievent->timestamp
-    = x_get_last_toolkit_time (FRAME_DISPLAY_INFO (XFRAME (w->frame)));
+  ievent->timestamp = x_get_last_toolkit_time (dpyinfo);
   ievent->code = 0;
-  ievent->part = ev->data.l[2];
-  ievent->x = make_fixnum (ev->data.l[3]);
-  ievent->y = make_fixnum (ev->data.l[4]);
+  ievent->part = event->xclient.data.l[2];
+  ievent->x = make_fixnum (event->xclient.data.l[3]);
+  ievent->y = make_fixnum (event->xclient.data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -18104,28 +18118,21 @@ handle_one_xevent (struct x_display_info *dpyinfo,
            we construct an input_event.  */
         if (event->xclient.message_type == dpyinfo->Xatom_Scrollbar)
           {
-            x_scroll_bar_to_input_event (event, &inev.ie);
-
-	    /* Unprotect the first window to be sent in a
-	       ClientMessage event, since it is now on the stack and
-	       thereby subject to garbage collection.  */
-	    if (event->xclient.serial
-		>= dpyinfo->first_valid_scroll_bar_req)
-	      x_unprotect_window_for_callback (dpyinfo);
+	    /* Convert the scroll bar event to an input event using
+	       the first window entered into the scroll bar event
+	       queue. */
+            x_scroll_bar_to_input_event (dpyinfo, event, &inev.ie);
 
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
           }
         else if (event->xclient.message_type == dpyinfo->Xatom_Horizontal_Scrollbar)
           {
-            x_horizontal_scroll_bar_to_input_event (event, &inev.ie);
-
-	    /* Unprotect the first window to be sent in a
-	       ClientMessage event, since it is now on the stack and
-	       thereby subject to garbage collection.  */
-	    if (event->xclient.serial
-		>= dpyinfo->first_valid_scroll_bar_req)
-	      x_unprotect_window_for_callback (dpyinfo);
+	    /* Convert the horizontal scroll bar event to an input
+	       event using the first window entered into the scroll
+	       bar event queue. */
+            x_horizontal_scroll_bar_to_input_event (dpyinfo, event,
+						    &inev.ie);
 
 	    *finish = X_EVENT_GOTO_OUT;
             goto done;
@@ -27347,11 +27354,8 @@ x_free_frame_resources (struct frame *f)
 #ifdef USE_TOOLKIT_SCROLL_BARS
       /* Since the frame was destroyed, we can no longer guarantee
 	 that scroll bar events will be received.  Clear
-	 protected_windows, and ignore any preceding scroll bar events
-	 that happen to still be deliverable.  */
+	 protected_windows.  */
       dpyinfo->n_protected_windows = 0;
-      dpyinfo->first_valid_scroll_bar_req
-	= XNextRequest (dpyinfo->display);
 #endif
     }
 
