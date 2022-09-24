@@ -675,16 +675,14 @@ point is on the last image, move to the last one and vice versa."
                    (forward-char (if (> arg 0) 1 -1)))
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
-          (progn (goto-char pos)
-                 (image-dired--update-header-line))
+          (goto-char pos)
         (if wrap-around
-            (progn (goto-char (if (> arg 0)
-                                  (point-min)
-                                ;; There are two spaces after the last image.
-                                (- (point-max) 2)))
-                   (image-dired--update-header-line))
-          (message "At %s image" (if (> arg 0) "last" "first"))
-          (image-dired--update-header-line)))))
+            (goto-char (if (> arg 0)
+                           (point-min)
+                         ;; There are two spaces after the last image.
+                         (- (point-max) 2)))
+          (message "At %s image" (if (> arg 0) "last" "first"))))))
+  (image-dired--update-header-line)
   (when image-dired-track-movement
     (image-dired-track-original-file)))
 
