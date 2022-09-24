@@ -2099,6 +2099,11 @@ associated Dired buffer, and is bound to 'U' in the thumbnail and
 display buffer.
 
 ---
+*** New command 'image-dired-copy-filename-as-kill'.
+It copies the name of the marked or current image to the kill ring,
+and is bound to "w" in the thumbnail buffer.
+
+---
 *** New command 'image-dired-wallpaper-set'.
 This command sets the desktop background to the image at point in the
 thumbnail buffer.  It is bound to 'W' by default.
