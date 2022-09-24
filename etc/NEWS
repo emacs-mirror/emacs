@@ -400,7 +400,7 @@ performance, but the latter is closer to a drop-in replacement.
 
 ---
 ** The thumbs.el library is now obsolete.
-We recommend using `M-x image-dired' instead.
+We recommend using 'M-x image-dired' instead.
 
 ---
 ** The autoarg.el library is now marked obsolete.
@@ -1371,7 +1371,7 @@ This controls how statements like the following are indented:
     foo &&
         bar
 
-*** New Flymake backend using the ShellCheck program
+*** New Flymake backend using the ShellCheck program.
 It is enabled by default, but requires that the external "shellcheck"
 command is installed.
 
@@ -2311,6 +2311,10 @@ and friends.
 
 ** Tramp
 
++++
+*** New connection method "docker".
+It allows accessing environments provided by Docker.
+
 ---
 *** Tramp supports abbreviating remote home directories now.
 When calling 'abbreviate-file-name' on a Tramp file name, the result
@@ -2640,7 +2644,7 @@ didn't work well in most files in the past, either, but it will now
 signal an error in any file.)
 
 In addition, files are scanned in a slightly different way.
-Previously ';;;###' specs inside a top-level form (i.e., something
+Previously, ';;;###' specs inside a top-level form (i.e., something
 like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
 
@@ -2919,7 +2923,7 @@ functions.
 
 ---
 ** '?\' at the end of a line now signals an error.
-Previously it produced a nonsense value, -1, that was never intended.
+Previously, it produced a nonsense value, -1, that was never intended.
 
 ---
 ** Some libraries obsolete since Emacs 24.1 and 24.3 have been removed:

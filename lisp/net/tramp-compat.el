@@ -50,6 +50,10 @@
   (warn "Tramp has been compiled with Emacs %s, this is Emacs %s"
 	tramp-compat-emacs-compiled-version emacs-version))
 
+(with-eval-after-load 'docker-tramp
+  (warn (concat "Package `docker-tramp' has been obsoleted, "
+		"please use integrated package `tramp-docker'")))
+
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
 ;; avoid them in cases we know what we do.

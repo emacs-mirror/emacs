@@ -903,6 +903,15 @@ supports changing the remote login shell @command{/bin/sh}.
 Check the @samp{Share SSH connections if possible} control for that
 session.
 
+@item @option{docker}
+@cindex method @option{docker}
+@cindex @option{docker} method
+
+Integration for Docker containers.  A container is accessed via
+@file{@trampfn{docker,user@@container,/path/to/file}}, where
+@samp{user} is the (optional) user that you want to use, and
+@samp{container} is the id or name of the container.
+
 @end table
 
 
@@ -1763,36 +1772,30 @@ They can be installed with Emacs's Package Manager.  This includes
 @c @item ibuffer-tramp.el
 @c Contact Svend Sorensen <svend@@ciffer.net>
 
-@item docker-tramp
-@cindex method @option{docker}
-@cindex @option{docker} method
-Integration for Docker containers.  A container is accessed via
-@file{@trampfn{docker,user@@container,/path/to/file}}, where
-@samp{user} is the (optional) user that you want to use, and
-@samp{container} is the id or name of the container.
-
 @item kubernetes-tramp
 @cindex method @option{kubectl}
 @cindex @option{kubectl} method
-Integration for Docker containers deployed in a Kubernetes cluster.
-It is derived from @samp{docker-tramp}.  A container is accessed via
+Integration for Docker containers deployed in a Kubernetes cluster.  A
+container is accessed via
 @file{@trampfn{kubectl,user@@container,/path/to/file}}, @samp{user}
-and @samp{container} have the same meaning as in @samp{docker-tramp}.
+and @samp{container} have the same meaning as with the @option{docker}
+method.
 
 @item lxc-tramp
 @cindex method @option{lxc}
 @cindex @option{lxc} method
 Integration for LXC containers.  A container is accessed via
 @file{@trampfn{lxc,container,/path/to/file}}, @samp{container} has the
-same meaning as in @samp{docker-tramp}.  A @samp{user} specification
-is ignored.
+same meaning as with the @option{docker} method.  A @samp{user}
+specification is ignored.
 
 @item lxd-tramp
 @cindex method @option{lxd}
 @cindex @option{lxd} method
 Integration for LXD containers.  A container is accessed via
 @file{@trampfn{lxd,user@@container,/path/to/file}}, @samp{user} and
-@samp{container} have the same meaning as in @samp{docker-tramp}.
+@samp{container} have the same meaning as with the @option{docker}
+method.
 
 @item magit-tramp
 @cindex method @option{git}
