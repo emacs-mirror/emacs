@@ -2113,9 +2113,20 @@ used for images that are flagged for deletion in the Dired buffer
 associated with Image-Dired.
 
 ---
-*** Image information is now shown in the header line.
-This replaces the message most navigation commands in the thumbnail
-buffer used to show at the bottom of the screen.
+*** Image information is now shown in the header line of the thumbnail buffer.
+This replaces the message that most navigation commands in the
+thumbnail buffer used to show at the bottom of the screen.
+
+---
+*** New specifiers for 'image-dired-display-properties-format'.
+This is used to format the new header line.  The new specifiers are:
+"%d" for the name of the directory that the file is in, "%n" for
+file's number in the thumbnail buffer, and "%s" for the file size.
+
+The default format has been updated to use this.  If you prefer the
+old format, add this to your Init file:
+
+    (setopt image-dired-display-properties-format "%b: %f (%t): %c")
 
 ---
 *** PDF support.
@@ -2154,12 +2165,6 @@ delay: it runs indefinitely, but stops automatically on any command.
 You can set the delay with a prefix argument, or a negative prefix
 argument to prompt for a delay.  Customize the user option
 'image-dired-slideshow-delay' to change the default from 5 seconds.
-
----
-*** 'image-dired-display-properties-format' default has changed.
-If you prefer the old format, add this to your Init file:
-
-    (setopt image-dired-display-properties-format "%b: %f (%t): %c")
 
 +++
 *** 'image-dired-show-all-from-dir-max-files' increased to 1000.

@@ -166,7 +166,7 @@ but the other way around."
         (when found
           (if (setq window (image-dired-thumbnail-window))
               (set-window-point window (point)))
-          (image-dired-update-header-line))))))
+          (image-dired--update-header-line))))))
 
 (defun image-dired-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
@@ -387,17 +387,18 @@ matching tag will be marked in the Dired buffer."
 (defun image-dired-dired-display-properties ()
   "Display properties for Dired file in the echo area."
   (interactive nil dired-mode)
-  (let* ((file (dired-get-filename))
-         (file-name (file-name-nondirectory file))
+  (let* ((file-name (dired-get-filename))
          (dired-buf (buffer-name (current-buffer)))
-         (props (string-join (image-dired-list-tags file) ", "))
-         (comment (image-dired-get-comment file))
+         (image-count "")               ; TODO
+         (props (string-join (image-dired-list-tags file-name) ", "))
+         (comment (image-dired-get-comment file-name))
          (message-log-max nil))
     (if file-name
         (message "%s"
                  (image-dired-format-properties-string
                   dired-buf
                   file-name
+                  image-count
                   props
                   comment)))))
 

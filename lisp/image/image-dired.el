@@ -298,16 +298,19 @@ For more information, see the documentation for
 `image-dired-toggle-movement-tracking'."
   :type 'boolean)
 
-(defcustom image-dired-display-properties-format "%-40f %b %t %c"
+(defcustom image-dired-display-properties-format "%n %d/%f %s %t %c"
   "Display format for thumbnail properties.
 This is used for the header line in the Image-Dired buffer.
 
 The following %-specs are replaced by `format-spec' before
 displaying:
 
-  \"%b\"  The associated Dired buffer name.
   \"%f\"  The file name (without a directory) of the
           original image file.
+  \"%n\"  The number of this image out of the total (e.g. 1/10).
+  \"%b\"  The associated Dired buffer name.
+  \"%d\"  The name of the directory that the file is in.
+  \"%s\"  The image file size.
   \"%t\"  The list of tags (from the Image-Dired database).
   \"%c\"  The comment (from the Image-Dired database)."
   :type 'string
@@ -392,9 +395,10 @@ This affects the following commands:
     thumb-file))
 
 (defun image-dired-insert-thumbnail ( file original-file-name
-                                      associated-dired-buffer)
+                           associated-dired-buffer image-number)
   "Insert thumbnail image FILE.
-Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
+Add text properties ORIGINAL-FILE-NAME, ASSOCIATED-DIRED-BUFFER
+and IMAGE-NUMBER."
   (let (beg end)
     (setq beg (point))
     (image-dired-insert-image
@@ -418,6 +422,7 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
            'keymap nil
            'original-file-name original-file-name
            'associated-dired-buffer associated-dired-buffer
+           'image-number image-number
            'tags (image-dired-list-tags original-file-name)
            'mouse-face 'highlight
            'comment (image-dired-get-comment original-file-name)))))
@@ -510,6 +515,8 @@ Restore any changes to the window configuration made by calling
         (t
          (image-dired-line-up-dynamic))))
 
+(defvar-local image-dired--number-of-thumbnails nil)
+
 ;;;###autoload
 (defun image-dired-display-thumbs (&optional arg append do-not-pop)
   "Display thumbnails of all marked files, in `image-dired-thumbnail-buffer'.
@@ -542,11 +549,15 @@ thumbnail buffer to be selected."
     (with-current-buffer buf
       (let ((inhibit-read-only t))
         (if (not append)
-            (erase-buffer)
+            (progn
+              (setq image-dired--number-of-thumbnails 0)
+              (erase-buffer))
           (goto-char (point-max)))
         (dolist (file files)
           (let ((thumb (image-dired--get-create-thumbnail-file file)))
-            (image-dired-insert-thumbnail thumb file dired-buf))))
+            (image-dired-insert-thumbnail
+             thumb file dired-buf
+             (cl-incf image-dired--number-of-thumbnails)))))
       (if do-not-pop
           (display-buffer buf)
         (pop-to-buffer buf))
@@ -580,7 +591,7 @@ never ask for confirmation."
              (dired-unmark-all-marks))
            (pop-to-buffer image-dired-thumbnail-buffer)
            (setq default-directory dir)
-           (image-dired-update-header-line))
+           (image-dired--update-header-line))
           (t (message "Image-Dired canceled")))))
 
 ;;;###autoload
@@ -635,15 +646,15 @@ point is on the last image, move to the last one and vice versa."
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
           (progn (goto-char pos)
-                 (image-dired-update-header-line))
+                 (image-dired--update-header-line))
         (if wrap-around
             (progn (goto-char (if (> arg 0)
                                   (point-min)
                                 ;; There are two spaces after the last image.
                                 (- (point-max) 2)))
-                   (image-dired-update-header-line))
+                   (image-dired--update-header-line))
           (message "At %s image" (if (> arg 0) "last" "first"))
-          (image-dired-update-header-line)))))
+          (image-dired--update-header-line)))))
   (when image-dired-track-movement
     (image-dired-track-original-file)))
 
@@ -667,7 +678,7 @@ On reaching end or beginning of buffer, stop and show a message."
      (image-dired--movement-ensure-point-pos ,reverse)
      (when image-dired-track-movement
        (image-dired-track-original-file))
-     (image-dired-update-header-line)))
+     (image-dired--update-header-line)))
 
 (defmacro image-dired--movement-command-line (&optional reverse)
   `(image-dired--movement-command
@@ -710,36 +721,46 @@ On reaching end or beginning of buffer, stop and show a message."
 
 ;;; Header line
 
-(defun image-dired-format-properties-string (buf file props comment)
+(defun image-dired-format-properties-string (buf file image-count props comment)
   "Format display properties.
-BUF is the associated Dired buffer, FILE is the original image file
-name, PROPS is a stringified list of tags and COMMENT is the image file's
+BUF is the associated Dired buffer, FILE is the original image
+file name, IMAGE-COUNT is a string like \"N/M\" where N is the
+number of this image and M is the total number of images, PROPS
+is a stringified list of tags, and COMMENT is the image file's
 comment."
   (format-spec
    image-dired-display-properties-format
-   (list
-    (cons ?b (or buf ""))
-    (cons ?f file)
-    (cons ?t (or props ""))
-    (cons ?c (or comment "")))))
+   `((?b . ,(or buf ""))
+     (?d . ,(file-name-nondirectory
+             (directory-file-name
+              (file-name-directory file))))
+     (?f . ,(file-name-nondirectory file))
+     (?n . ,image-count)
+     (?s . ,(file-size-human-readable
+             (file-attribute-size
+              (file-attributes file))))
+     (?t . ,(or props ""))
+     (?c . ,(or comment "")))))
 
-(defun image-dired-update-header-line ()
+(defun image-dired--update-header-line ()
   "Update image information in the header line."
-  (when (and (not (eobp))
-             (memq major-mode '(image-dired-thumbnail-mode
-                                image-dired-display-image-mode)))
-    (let ((file-name (file-name-nondirectory (image-dired-original-file-name)))
+  (when (derived-mode-p 'image-dired-thumbnail-mode)
+    (let ((file-name (image-dired-original-file-name))
           (dired-buf (buffer-name (image-dired-associated-dired-buffer)))
+          (image-count (format "%s/%s"
+                               (get-text-property (point) 'image-number)
+                               image-dired--number-of-thumbnails))
           (props (string-join (get-text-property (point) 'tags) ", "))
           (comment (get-text-property (point) 'comment))
           (message-log-max nil))
-      (if file-name
-          (setq header-line-format
-                (image-dired-format-properties-string
-                 dired-buf
-                 file-name
-                 props
-                 comment))))))
+      (when file-name
+        (setq header-line-format
+              (image-dired-format-properties-string
+               dired-buf
+               file-name
+               image-count
+               props
+               comment))))))
 
 
 ;;; Marking and flagging
@@ -956,6 +977,8 @@ Use `image-dired-minor-mode' to get a nice setup."
 Resized or in full-size."
   :interactive nil
   :group 'image-dired
+  (setq-local column-number-mode nil)
+  (setq-local line-number-mode nil)
   (add-hook 'file-name-at-point-functions #'image-dired-file-name-at-point nil t))
 
 
@@ -1220,7 +1243,7 @@ overwritten.  This confirmation can be turned off using
          (comment (image-dired-read-comment file)))
     (image-dired-write-comments (list (cons file comment)))
     (image-dired-update-property 'comment comment))
-  (image-dired-update-header-line))
+  (image-dired--update-header-line))
 
 
 ;;; Mouse support
@@ -1251,7 +1274,7 @@ non-nil."
     (image-dired-backward-image))
   (if image-dired-track-movement
       (image-dired-track-original-file))
-  (image-dired-update-header-line))
+  (image-dired--update-header-line))
 
 
 
@@ -1622,9 +1645,6 @@ Dired."
                   (cons (list tag file) (cdr image-dired-tag-file-list))))
       (setq image-dired-tag-file-list (list (list tag file))))))
 
-(define-obsolete-function-alias 'image-dired-display-thumb-properties
-  #'image-dired-update-header-line "29.1")
-
 (defvar image-dired-slideshow-count 0
   "Keeping track on number of images in slideshow.")
 (make-obsolete-variable 'image-dired-slideshow-count "no longer used." "29.1")
@@ -1881,6 +1901,8 @@ when using per-directory thumbnail file storage"))
   #'image-dired--thumb-update-marks "29.1")
 (define-obsolete-function-alias 'image-dired-get-thumbnail-image
   #'image-dired--get-create-thumbnail-file "29.1")
+(define-obsolete-function-alias 'image-dired-display-thumb-properties
+  #'image-dired--update-header-line "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
