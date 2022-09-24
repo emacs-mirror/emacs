@@ -1089,7 +1089,6 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 (defvar compilation-directory)
 (defvar compilation-arguments)
-(defvar vc-want-edit-command-p)
 
 (defun vc-git--pushpull (command prompt extra-args)
   "Run COMMAND (a string; either push or pull) on the current Git branch.

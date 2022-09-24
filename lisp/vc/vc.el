@@ -1046,7 +1046,6 @@ Within directories, only files already under version control are noticed."
 (defvar log-edit-vc-backend)
 (defvar diff-vc-backend)
 (defvar diff-vc-revisions)
-(defvar vc-want-edit-command-p)
 
 (defun vc-deduce-backend ()
   (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
