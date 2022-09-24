@@ -843,20 +843,6 @@ You probably want to use this together with
 
 (defvar-keymap image-dired-thumbnail-mode-map
   :doc "Keymap for `image-dired-thumbnail-mode'."
-  "<right>"    #'image-dired-forward-image
-  "<left>"     #'image-dired-backward-image
-  "<up>"       #'image-dired-previous-line
-  "<down>"     #'image-dired-next-line
-  "C-f"        #'image-dired-forward-image
-  "C-b"        #'image-dired-backward-image
-  "C-p"        #'image-dired-previous-line
-  "C-n"        #'image-dired-next-line
-
-  "<"          #'image-dired-beginning-of-buffer
-  ">"          #'image-dired-end-of-buffer
-  "M-<"        #'image-dired-beginning-of-buffer
-  "M->"        #'image-dired-end-of-buffer
-
   "d"          #'image-dired-flag-thumb-original-file
   "<delete>"   #'image-dired-flag-thumb-original-file
   "m"          #'image-dired-mark-thumb-original-file
@@ -897,6 +883,12 @@ You probably want to use this together with
   "C-<down-mouse-1>" #'ignore           ; Don't open the buffer menu.
   "C-<mouse-1>"      #'image-dired-mouse-toggle-mark
 
+  "<remap> <forward-char>"           #'image-dired-forward-image
+  "<remap> <backward-char>"          #'image-dired-backward-image
+  "<remap> <next-line>"              #'image-dired-next-line
+  "<remap> <previous-line>"          #'image-dired-previous-line
+  "<remap> <beginning-of-buffer>"    #'image-dired-beginning-of-buffer
+  "<remap> <end-of-buffer>"          #'image-dired-end-of-buffer
   "<remap> <move-beginning-of-line>" #'image-dired-move-beginning-of-line
   "<remap> <move-end-of-line>"       #'image-dired-move-end-of-line)
 
