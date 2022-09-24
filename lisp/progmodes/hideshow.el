@@ -740,6 +740,8 @@ and `case-fold-search' are both t."
 
 (defun hs-already-hidden-p ()
   "Return non-nil if point is in an already-hidden block, otherwise nil."
+  ;; FIXME: We should probably also consider ourselves "in" a hidden block
+  ;; when point is right at the edge after a hidden block (bug#52092).
   (save-excursion
     (let ((c-reg (hs-inside-comment-p)))
       (if (and c-reg (nth 0 c-reg))
@@ -893,7 +895,7 @@ The hook `hs-hide-hook' is run; see `run-hooks'."
   "Toggle hiding/showing of a block.
 See `hs-hide-block' and `hs-show-block'.
 Argument E should be the event that triggered this action."
-  (interactive)
+  (interactive (list last-nonmenu-event))
   (hs-life-goes-on
    (posn-set-point (event-end e))
    (if (hs-already-hidden-p)
