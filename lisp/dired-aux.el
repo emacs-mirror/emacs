@@ -2880,6 +2880,10 @@ of `dired-dwim-target', which see.
 
 Also see `dired-do-revert-buffer'."
   (interactive "P")
+  (when (seq-find (lambda (file)
+                    (member (file-name-nondirectory file) '("." "..")))
+                  (dired-get-marked-files nil arg))
+    (user-error "Can't rename \".\" or \"..\" files"))
   (dired-do-create-files 'move #'dired-rename-file
 			 "Move" arg dired-keep-marker-rename "Rename"))
 
