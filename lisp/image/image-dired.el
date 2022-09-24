@@ -316,14 +316,16 @@ displaying:
 (defcustom image-dired-external-viewer
   ;; TODO: Use mailcap, dired-guess-shell-alist-default,
   ;; dired-view-command-alist.
-  (cond ((executable-find "display"))
-        ((executable-find "xli"))
+  (cond ((executable-find "display") "display")
+        ((executable-find "feh") "feh")
+        ((executable-find "gm") "gm display")
+        ((executable-find "xli") "xli")
         ((executable-find "qiv") "qiv -t")
-        ((executable-find "feh") "feh"))
+        ((executable-find "xloadimage") "xloadimage"))
   "Name of external viewer.
 Including parameters.  Used when displaying original image from
 `image-dired-thumbnail-mode'."
-  :version "28.1"
+  :version "29.1"
   :type '(choice string
                  (const :tag "Not Set" nil)))
 
@@ -1119,8 +1121,9 @@ Ask user how many thumbnails should be displayed per row."
         (message "No thumbnail at point")
       (if (not file)
           (message "No original file name found")
-        (start-process "image-dired-thumb-external" nil
-                       image-dired-external-viewer file)))))
+        (apply #'start-process "image-dired-thumb-external" nil
+               (append (string-split image-dired-external-viewer " ")
+                       (list file)))))))
 
 (defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in the image buffer window.
