@@ -3551,7 +3551,12 @@ of lines before the signature intact."
 
 (defun message-newline-and-reformat (&optional arg not-break)
   "Insert four newlines, and then reformat if inside quoted text.
-Prefix arg means justify as well."
+Prefix arg means justify as well.
+
+This function tries to guess what the quote prefix is based on
+the text on the current line before point.  If point is at the
+start of the line, the formatted text (if any) is filled without
+a quote prefix."
   (interactive (list (if current-prefix-arg 'full)) message-mode)
   (unless (message-in-body-p)
     (error "This command only works in the body of the message"))
