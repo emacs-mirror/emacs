@@ -108,19 +108,26 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
                    (format "%s\n%s" name doc)
                  (format "%s" name))
              (or doc "No documentation")))))
-     "\n")))
+     "\n"
+     (and
+      (eq how :override)
+      (concat
+       (format-message
+        "\nThis is an :override advice, which means that `%s' isn't\n" function)
+       "run at all, and the documentation below may be irrelevant.\n")))))
 
 (defun advice--make-docstring (function)
   "Build the raw docstring for FUNCTION, presumably advised."
   (let* ((flist (indirect-function function))
          (docfun nil)
          (macrop (eq 'macro (car-safe flist)))
-         (docstring nil))
+         (before nil)
+         (after nil))
     (when macrop
       (setq flist (cdr flist)))
     (if (and (autoloadp flist)
              (get function 'advice--pending))
-        (setq docstring
+        (setq after
               (advice--make-single-doc (get function 'advice--pending)
                                        function macrop))
       (while (advice--p flist)
@@ -130,9 +137,13 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
         ;; object instead!  So here we try to undo the damage.
         (when (integerp (aref flist 4))
           (setq docfun flist))
-        (setq docstring (concat docstring (advice--make-single-doc
-                                           flist function macrop))
-              flist (advice--cdr flist))))
+        (let ((doc-bit (advice--make-single-doc flist function macrop)))
+          ;; We want :overrides to go to the front, because they mean
+          ;; that the doc string may be irrelevant.
+          (if (eq (advice--how flist) :override)
+              (setq before (concat before doc-bit))
+            (setq after (concat after doc-bit))))
+        (setq flist (advice--cdr flist))))
     (unless docfun
       (setq docfun flist))
     (let* ((origdoc (unless (eq function docfun) ;Avoid inf-loops.
@@ -145,12 +156,17 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
                         (if (stringp arglist) t
                           (help--make-usage-docstring function arglist)))
                     (setq origdoc (cdr usage)) (car usage)))
-      (help-add-fundoc-usage (concat origdoc
-                                     (if (string-suffix-p "\n" origdoc)
-                                         "\n"
-                                       "\n\n")
-                                     docstring)
-                             usage))))
+      (help-add-fundoc-usage
+       (with-temp-buffer
+         (when before
+           (insert before)
+           (ensure-empty-lines 1))
+         (insert origdoc)
+         (when after
+           (ensure-empty-lines 1)
+           (insert after))
+         (buffer-string))
+       usage))))
 
 (defun advice-eval-interactive-spec (spec)
   "Evaluate the interactive spec SPEC."
