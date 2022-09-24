@@ -482,7 +482,7 @@ user option 'global-text-scale-adjust-resizes-frames' controls whether
 the frames are resized when the font size is changed.
 
 +++
-** New function 'file-parent-directory'.
+** New function 'file-name-parent-directory'.
 Get the parent directory of a file.
 
 ** New config variable 'syntax-wholeline-max' to reduce the cost of long lines.
