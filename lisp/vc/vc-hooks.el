@@ -882,7 +882,8 @@ In the latter case, VC mode is deactivated for this buffer."
   "="   #'vc-diff
   "D"   #'vc-root-diff
   "~"   #'vc-revision-other-window
-  "x"   #'vc-delete-file)
+  "x"   #'vc-delete-file
+  "!"   #'vc-edit-next-command)
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 

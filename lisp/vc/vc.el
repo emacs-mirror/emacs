@@ -1917,8 +1917,11 @@ Return t if the buffer had changes, nil otherwise."
       (setq files (cadr vc-fileset))
       (setq backend (car vc-fileset))))
    ((null backend) (setq backend (vc-backend (car files)))))
-  (let ((completion-table
-         (vc-call-backend backend 'revision-completion-table files)))
+  ;; Override any `vc-filter-command-function' value, as user probably
+  ;; doesn't want to edit the command to get the completions.
+  (let* ((vc-filter-command-function #'list)
+         (completion-table
+          (vc-call-backend backend 'revision-completion-table files)))
     (if completion-table
         (completing-read prompt completion-table
                          nil nil initial-input 'vc-revision-history default)
@@ -2744,28 +2747,17 @@ with its diffs (if the underlying VCS supports that)."
     (setq vc-parent-buffer-name nil)))
 
 ;;;###autoload
-(defun vc-print-branch-log (branch &optional arg)
-  "Show the change log for BRANCH root in a window.
-Optional prefix ARG non-nil requests an opportunity for the user
-to edit the VC shell command that will be run to generate the
-log."
-  ;; The original motivation for ARG was to make it possible to
-  ;; produce a log of more than one Git branch without modifying the
-  ;; print-log VC API.  The user can append the other branches to the
-  ;; command line arguments to 'git log'.  See bug#57807.
+(defun vc-print-branch-log (branch)
+  "Show the change log for BRANCH root in a window."
   (interactive
    (let* ((backend (vc-responsible-backend default-directory))
           (rootdir (vc-call-backend backend 'root default-directory)))
      (list
-      (vc-read-revision "Branch to log: " (list rootdir) backend)
-      current-prefix-arg)))
+      (vc-read-revision "Branch to log: " (list rootdir) backend))))
   (when (equal branch "")
     (error "No branch specified"))
   (let* ((backend (vc-responsible-backend default-directory))
-         (rootdir (vc-call-backend backend 'root default-directory))
-         (vc-filter-command-function (if arg
-                                         #'vc-user-edit-command
-                                       vc-filter-command-function)))
+         (rootdir (vc-call-backend backend 'root default-directory)))
     (vc-print-log-internal backend
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))
@@ -3242,6 +3234,33 @@ log entries should be gathered."
 	  nil)))
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
+
+(defvar vc-filter-command-function)
+
+;;;###autoload
+(defun vc-edit-next-command ()
+  "Request editing the next VC shell command before execution.
+This is a prefix command.  It affects only a VC command executed
+immediately after this one."
+  (interactive)
+  (letrec ((minibuffer-depth (minibuffer-depth))
+           (command this-command)
+           (keys (key-description (this-command-keys)))
+           (old vc-filter-command-function)
+           (echofun (lambda () keys))
+           (postfun
+            (lambda ()
+              (unless (or (eq this-command command)
+                          (> (minibuffer-depth) minibuffer-depth))
+                (remove-hook 'post-command-hook postfun)
+                (remove-hook 'prefix-command-echo-keystrokes-functions
+                             echofun)
+                (setq vc-filter-command-function old)))))
+    (add-hook 'post-command-hook postfun)
+    (add-hook 'prefix-command-echo-keystrokes-functions echofun)
+    (setq vc-filter-command-function
+          (lambda (&rest args)
+            (apply #'vc-user-edit-command (apply old args))))))
 
 (defun vc-default-responsible-p (_backend _file)
   "Indicate whether BACKEND is responsible for FILE.

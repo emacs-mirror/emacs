@@ -1754,6 +1754,13 @@ commands.
 This command marks files based on a regexp.  If given a prefix
 argument, unmark instead.
 
++++
+*** New command 'C-x v !' ('vc-edit-next-command')
+This prefix command requests editing of the next VC shell command
+before execution.  For example, in a Git repository, you can produce a
+log of more than one branch by typing 'C-x v ! C-x v b l' and then
+appending additional branch names to the 'git log' command.
+
 ---
 *** 'C-x v v' in a diffs buffer allows to commit only some of the changes.
 This command is intended to allow you to commit only some of the
