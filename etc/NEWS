@@ -1705,6 +1705,11 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 
 ** VC
 
+---
+*** New command 'vc-pull-and-push'.
+This commands first does a "pull" command, and if that is successful,
+do a "push" command afterwards.
+
 +++
 *** 'C-x v b' prefix key is used now for branch commands.
 'vc-print-branch-log' is bound to 'C-x v b l', and new commands are

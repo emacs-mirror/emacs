@@ -197,7 +197,7 @@ Another is that undo information is not kept."
 
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
-(defun vc--process-sentinel (p code)
+(defun vc--process-sentinel (p code &optional success)
   (let ((buf (process-buffer p)))
     ;; Impatient users sometime kill "slow" buffers; check liveness
     ;; to avoid "error in process sentinel: Selecting deleted buffer".
@@ -218,7 +218,7 @@ Another is that undo information is not kept."
             ;; each sentinel read&set process-mark, but since `cmd' needs
             ;; to work both for async and sync processes, this would be
             ;; difficult to achieve.
-            (vc-exec-after code)
+            (vc-exec-after code success)
             (move-marker m (point)))
           ;; But sometimes the sentinels really want to move point.
           (when vc-sentinel-movepoint
@@ -235,11 +235,14 @@ Another is that undo information is not kept."
                                 'help-echo
                                 "A command is in progress in this buffer"))))
 
-(defun vc-exec-after (code)
+(defun vc-exec-after (code &optional success)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
 Else, add CODE to the process' sentinel.
-CODE should be a function of no arguments."
+CODE should be a function of no arguments.
+
+If SUCCESS, it should be a process object.  Only run CODE if the
+SUCCESS process has a zero exit code."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
@@ -250,13 +253,15 @@ CODE should be a function of no arguments."
      ((or (null proc) (eq (process-status proc) 'exit))
       ;; Make sure we've read the process's output before going further.
       (when proc (accept-process-output proc))
-      (if (functionp code) (funcall code) (eval code t)))
+      (when (or (not success)
+                (zerop (process-exit-status success)))
+        (if (functionp code) (funcall code) (eval code t))))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
       (vc-set-mode-line-busy-indicator)
       (letrec ((fun (lambda (p _msg)
                       (remove-function (process-sentinel p) fun)
-                      (vc--process-sentinel p code))))
+                      (vc--process-sentinel p code success))))
         (add-function :after (process-sentinel proc) fun)))
      (t (error "Unexpected process state"))))
   nil)
@@ -410,11 +415,14 @@ case, and the process object in the asynchronous case."
 			      command file-or-list flags))
 	status))))
 
+(defvar vc--inhibit-change-window-start nil)
+
 (defun vc-do-async-command (buffer root command &rest args)
   "Run COMMAND asynchronously with ARGS, displaying the result.
 Send the output to BUFFER, which should be a buffer or the name
 of a buffer, which is created.
 ROOT should be the directory in which the command should be run.
+The process object is returned.
 Display the buffer in some window, but don't select it."
   (letrec ((dir default-directory)
 	   (inhibit-read-only t)
@@ -428,7 +436,9 @@ Display the buffer in some window, but don't select it."
                   (dolist (arg args)
 	            (insert " " arg))
                   (insert "\"...\n")))
-	   (window nil) (new-window-start nil))
+	   (window nil)
+           (new-window-start nil)
+           (proc nil))
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
@@ -437,11 +447,12 @@ Display the buffer in some window, but don't select it."
       (add-hook 'vc-pre-command-functions fun)
       ;; Run in the original working directory.
       (let ((default-directory dir))
-	(apply #'vc-do-command t 'async command nil args)))
+	(setq proc (apply #'vc-do-command t 'async command nil args))))
     (setq window (display-buffer buffer))
-    (if window
-	(set-window-start window new-window-start))
-    buffer))
+    (when (and window
+               (not vc--inhibit-change-window-start))
+      (set-window-start window new-window-start))
+    proc))
 
 (defvar compilation-error-regexp-alist)
 

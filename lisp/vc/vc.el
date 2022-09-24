@@ -2975,6 +2975,28 @@ It also signals an error in a Bazaar bound branch."
         (vc-call-backend backend 'push arg)
       (user-error "VC push is unsupported for `%s'" backend))))
 
+;;;###autoload
+(defun vc-pull-and-push (&optional arg)
+  "First pull, and then push the current branch.
+The push will only be performed if the pull operation was successful.
+
+You must be visiting a version controlled file, or in a `vc-dir' buffer.
+
+On a distributed version control system, this runs a \"pull\"
+operation on the current branch, prompting for the precise
+command if required.  Optional prefix ARG non-nil forces a prompt
+for the VCS command to run.  If this is successful, a \"push\"
+operation will then be done.
+
+On a non-distributed version control system, this signals an error.
+It also signals an error in a Bazaar bound branch."
+  (interactive "P")
+  (let* ((vc-fileset (vc-deduce-fileset t))
+	 (backend (car vc-fileset)))
+    (if (vc-find-backend-function backend 'pull-and-push)
+        (vc-call-backend backend 'pull-and-push arg)
+      (user-error "VC pull-and-push is unsupported for `%s'" backend))))
+
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
 If version backups should be used for FILE, and there exists

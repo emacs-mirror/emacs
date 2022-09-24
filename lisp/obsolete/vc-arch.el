@@ -311,7 +311,7 @@ Only the value `maybe' can be trusted :-(."
 
 ;; dir-status-files called from vc-dir, which loads vc,
 ;; which loads vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defun vc-arch-dir-status-files (dir _files callback)
   "Run `tla inventory' for DIR and pass results to CALLBACK.
