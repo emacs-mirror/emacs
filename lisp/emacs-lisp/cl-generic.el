@@ -94,11 +94,6 @@
 ;; This second one is closely related to what we do here (and that's
 ;; the name "generalizer" comes from).
 
-;; The autoloads.el mechanism which adds package--builtin-versions
-;; maintenance to loaddefs.el doesn't work for preloaded packages (such
-;; as this one), so we have to do it by hand!
-(push (purecopy '(cl-generic 1 0)) package--builtin-versions)
-
 ;; Note: For generic functions that dispatch on several arguments (i.e. those
 ;; which use the multiple-dispatch feature), we always use the same "tagcodes"
 ;; and the same set of arguments on which to dispatch.  This works, but is
