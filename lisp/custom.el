@@ -1707,6 +1707,13 @@ If a choice with the same tag already exists, no action is taken."
       (put variable 'custom-type
            (append choices (list choice))))))
 
+(defun custom--add-custom-loads (symbol loads)
+  ;; Don't overwrite existing `custom-loads'.
+  (dolist (load (get symbol 'custom-loads))
+    (unless (memq load loads)
+      (push load loads)))
+  (put symbol 'custom-loads loads))
+
 (provide 'custom)
 
 ;;; custom.el ends here
