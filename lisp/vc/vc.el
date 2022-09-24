@@ -2764,7 +2764,9 @@ log."
     (error "No branch specified"))
   (let* ((backend (vc-responsible-backend default-directory))
          (rootdir (vc-call-backend backend 'root default-directory))
-         (vc-want-edit-command-p arg))
+         (vc-filter-command-function (if arg
+                                         #'vc-user-edit-command
+                                       vc-filter-command-function)))
     (vc-print-log-internal backend
                            (list rootdir) branch t
                            (when (> vc-log-show-limit 0) vc-log-show-limit))))

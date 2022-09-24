@@ -1094,23 +1094,23 @@ It is based on `log-edit-mode', and has Git-specific extensions."
 (defun vc-git--pushpull (command prompt extra-args)
   "Run COMMAND (a string; either push or pull) on the current Git branch.
 If PROMPT is non-nil, prompt for the Git command to run."
+  (require 'vc-dispatcher)
   (let* ((root (vc-git-root default-directory))
 	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
          (git-program vc-git-program)
          ;; TODO if pushing, prompt if no default push location - cf bzr.
-         (vc-want-edit-command-p prompt)
-         proc)
-    (require 'vc-dispatcher)
-    (when vc-want-edit-command-p
-      (with-current-buffer (get-buffer-create buffer)
-        (add-hook 'vc-pre-command-functions
-                  (lambda (&rest args)
-                    (setq git-program (car args)
-                          command (caaddr args)
-                          extra-args (cdaddr args)))
-                  nil t)))
-    (setq proc (apply #'vc-do-async-command
-                      buffer root git-program command extra-args))
+         (vc-filter-command-function
+          (if prompt
+              (lambda (&rest args)
+                (cl-destructuring-bind (&whole args git _ flags)
+                    (apply #'vc-user-edit-command args)
+                  (setq git-program git
+                        command (car flags)
+                        extra-args (cdr flags))
+                  args))
+            vc-filter-command-function))
+         (proc (apply #'vc-do-async-command
+                      buffer root git-program command extra-args)))
     (with-current-buffer buffer
       (vc-run-delayed
         (vc-compilation-mode 'git)
