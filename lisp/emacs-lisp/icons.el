@@ -203,7 +203,7 @@ present if the icon is represented by an image."
                                         (window-default-line-height)
                                       height)
                             :scale 1
-                            :rotation (plist-get keywords :rotation)
+                            :rotation (or (plist-get keywords :rotation) 0)
                             :ascent (if (plist-member keywords :ascent)
                                         (plist-get keywords :ascent)
                                       'center))
