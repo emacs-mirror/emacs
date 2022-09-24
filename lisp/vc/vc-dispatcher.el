@@ -425,7 +425,7 @@ case, and the process object in the asynchronous case."
 			        command file-or-list flags))
 	  status)))))
 
-(defvar vc--inhibit-change-window-start nil)
+(defvar vc--inhibit-async-window nil)
 
 (defun vc-do-async-command (buffer root command &rest args)
   "Run COMMAND asynchronously with ARGS, displaying the result.
@@ -436,7 +436,7 @@ The process object is returned.
 Display the buffer in some window, but don't select it."
   (let ((dir default-directory)
 	(inhibit-read-only t)
-	window new-window-start proc)
+        new-window-start proc)
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))
@@ -459,10 +459,9 @@ Display the buffer in some window, but don't select it."
                   (insert "\"...\n")
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
-    (setq window (display-buffer buffer))
-    (when (and window
-               (not vc--inhibit-change-window-start))
-      (set-window-start window new-window-start))
+    (unless vc--inhibit-async-window
+      (when-let ((window (display-buffer buffer)))
+        (set-window-start window new-window-start)))
     proc))
 
 (defvar compilation-error-regexp-alist)

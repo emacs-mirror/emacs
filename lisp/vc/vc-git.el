@@ -1150,11 +1150,11 @@ for the Git command to run."
       (with-current-buffer (process-buffer proc)
         (if (and (eq (process-status proc) 'exit)
                  (zerop (process-exit-status proc)))
-            (let ((vc--inhibit-change-window-start t))
+            (let ((vc--inhibit-async-window t))
               (vc-git-push nil))
           (vc-exec-after
            (lambda ()
-             (let ((vc--inhibit-change-window-start t))
+             (let ((vc--inhibit-async-window t))
                (vc-git-push nil)))
            proc))))))
 
