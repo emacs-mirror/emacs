@@ -375,18 +375,21 @@ This affects the following commands:
                    :margin ,margin)))
     (insert-image i)))
 
-(defun image-dired-get-thumbnail-image (file)
+(defun image-dired--get-create-thumbnail-file (file)
   "Return the image descriptor for a thumbnail of image file FILE."
   (unless (string-match-p (image-dired--file-name-regexp) file)
     (error "%s is not a valid image file" file))
   (let* ((thumb-file (image-dired-thumb-name file))
          (thumb-attr (file-attributes thumb-file)))
-    (when (or (not thumb-attr)
-              (time-less-p (file-attribute-modification-time thumb-attr)
-                           (file-attribute-modification-time
-                            (file-attributes file))))
-      (image-dired-create-thumb file thumb-file))
-    (create-image thumb-file)))
+    (if (or (not thumb-attr)
+            (time-less-p (file-attribute-modification-time thumb-attr)
+                         (file-attribute-modification-time
+                          (file-attributes file))))
+        (image-dired-create-thumb file thumb-file)
+      (image-dired-debug "Found thumb for %s: %s"
+                         (file-name-nondirectory file)
+                         (file-name-nondirectory thumb-file)))
+    thumb-file))
 
 (defun image-dired-insert-thumbnail ( file original-file-name
                                       associated-dired-buffer)
@@ -531,7 +534,7 @@ thumbnail buffer to be selected."
   (interactive "P" nil dired-mode)
   (setq image-dired--generate-thumbs-start  (current-time))
   (let ((buf (image-dired-create-thumbnail-buffer))
-        thumb-name files dired-buf)
+        files dired-buf)
     (if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
@@ -541,11 +544,9 @@ thumbnail buffer to be selected."
         (if (not append)
             (erase-buffer)
           (goto-char (point-max)))
-        (dolist (curr-file files)
-          (setq thumb-name (image-dired-thumb-name curr-file))
-          (when (not (file-exists-p thumb-name))
-            (image-dired-create-thumb curr-file thumb-name))
-          (image-dired-insert-thumbnail thumb-name curr-file dired-buf)))
+        (dolist (file files)
+          (let ((thumb (image-dired--get-create-thumbnail-file file)))
+            (image-dired-insert-thumbnail thumb file dired-buf))))
       (if do-not-pop
           (display-buffer buf)
         (pop-to-buffer buf))
@@ -1872,6 +1873,7 @@ when using per-directory thumbnail file storage"))
 (define-obsolete-function-alias 'image-dired-slideshow-stop #'image-dired--slideshow-stop "29.1")
 (define-obsolete-function-alias 'image-dired-create-display-image-buffer
   #'ignore "29.1")
+;; These can't use the #' quote as they point to obsolete names.
 (define-obsolete-function-alias 'image-dired-create-gallery-lists
   'image-dired--create-gallery-lists "29.1")
 (define-obsolete-function-alias 'image-dired-add-to-file-comment-list
@@ -1882,6 +1884,8 @@ when using per-directory thumbnail file storage"))
   'image-dired--hidden-p "29.1")
 (define-obsolete-function-alias 'image-dired-thumb-update-marks
   #'image-dired--thumb-update-marks "29.1")
+(define-obsolete-function-alias 'image-dired-get-thumbnail-image
+  #'image-dired--get-create-thumbnail-file "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
