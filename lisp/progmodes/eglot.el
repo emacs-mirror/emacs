@@ -957,10 +957,11 @@ be guessed."
                          program guess))))))
          (contact
           (or (and prompt
-                   (read-shell-command
-                    prompt
-                    full-program-invocation
-                    'eglot-command-history))
+                   (split-string-and-unquote
+                    (read-shell-command
+                     prompt
+                     full-program-invocation
+                     'eglot-command-history)))
               guess)))
     (list managed-mode (eglot--current-project) class contact language-id)))
 
