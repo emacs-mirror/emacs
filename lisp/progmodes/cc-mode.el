@@ -1421,6 +1421,13 @@ Note that the style variables are always made local to the buffer."
       (c-clear-syn-tab (point)))
      (t (c-benign-error "c-remove-string-fences: Wrong position")))))
 
+(defvar c-open-string-opener nil
+  "The position of the opening delimiter of an unterminated string or nil.
+This is valid only immediately after a buffer change, and refers
+only to an opener in the (logical) line containing the END
+position of `after-change-functions'.")
+(make-variable-buffer-local 'c-open-string-opener)
+
 (defun c-before-change-check-unbalanced-strings (beg end)
   ;; If BEG or END is inside an unbalanced string, remove the syntax-table
   ;; text property from respectively the start or end of the string.  Also
@@ -1685,13 +1692,14 @@ Note that the style variables are always made local to the buffer."
 	    (c-put-syn-tab (1- (point)) '(15))
 	    (c-put-syn-tab (match-end 0) '(15))
 	    (setq c-new-BEG (min c-new-BEG (point))
-		  c-new-END (max c-new-END (match-end 0))))
+		  c-new-END (max c-new-END (match-end 0)))
+	    (setq c-open-string-opener (1- (point))))
 	   ((or (eq (match-end 0) (point-max))
 		(eq (char-after (match-end 0)) ?\\)) ; \ at EOB
 	    (c-put-syn-tab (1- (point)) '(15))
 	    (setq c-new-BEG (min c-new-BEG (point))
 		  c-new-END (max c-new-END (match-end 0))) ; Do we need c-new-END?
-	    ))
+	    (setq c-open-string-opener (1- (point)))))
 	  (goto-char (min (1+ (match-end 0)) (point-max))))
 	(setq s nil)))))
 
@@ -2130,6 +2138,7 @@ with // and /*, not more generic line and block comments."
        ;; (c-new-BEG c-new-END) will be the region to fontify.
        (setq c-new-BEG beg  c-new-END end)
        (setq c-maybe-stale-found-type nil)
+       (setq c-open-string-opener nil)
        ;; A workaround for syntax-ppss's failure to notice syntax-table text
        ;; property changes.
        (when (fboundp 'syntax-ppss)
@@ -2698,11 +2707,9 @@ This function is called from `c-common-init', once per mode initialization."
 At the time of call, point is just after the newly inserted CHAR.
 
 When CHAR is \" and not within a comment, t will be returned if
-the quotes on the current line are already balanced (i.e. if the
-last \" is not marked with a string fence syntax-table text
-property).  For other cases, the default value of
-`electric-pair-inhibit-predicate' is called and its value
-returned.
+the quotes on the current line are already balanced.  For other
+cases, the default value of `electric-pair-inhibit-predicate' is
+called and its value returned.
 
 This function is the appropriate value of
 `electric-pair-inhibit-predicate' for CC Mode modes, which mark
@@ -2710,11 +2717,7 @@ invalid strings with such a syntax table text property on the
 opening \" and the next unescaped end of line."
   (if (and (eq char ?\")
 	   (not (memq (cadr (c-semi-pp-to-literal (1- (point)))) '(c c++))))
-      (let ((last-quote (save-match-data
-			  (save-excursion
-			    (goto-char (c-point 'eoll))
-			    (search-backward "\"")))))
-	(not (equal (c-get-char-property last-quote 'c-fl-syn-tab) '(15))))
+      (not c-open-string-opener)
     (funcall (default-value 'electric-pair-inhibit-predicate) char)))
 
 
