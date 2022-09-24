@@ -776,18 +776,21 @@ Should be called from commands in `image-dired-thumbnail-mode'."
            ,@body))
      (user-error "No such buffer: %s" image-dired-thumbnail-buffer)))
 
-(defmacro image-dired--do-mark-command (maybe-next update &rest body)
-  "Helper macro for the mark, unmark and flag commands.
-Run BODY in Dired buffer.
+(defmacro image-dired--do-mark-command (maybe-next update-mark &rest body)
+  "Run BODY in Dired buffer.
+Helper macro for the mark, unmark and flag commands.
+
 If MAYBE-NEXT is non-nil, show next image according to
 `image-dired-marking-shows-next'.
-If UPDATE is non-nil, call `image-dired-thumb-update-marks' too."
+
+If UPDATE-MARK is non-nil, also update the mark in the thumbnail
+buffer with `image-dired--thumb-update-mark-at-point'."
   (declare (indent defun) (debug t))
   `(image-dired--with-thumbnail-buffer
      (image-dired--on-file-in-dired-buffer
        ,@body)
-     ,(when update
-        '(image-dired-thumb-update-marks))
+     ,(when update-mark
+        '(image-dired--thumb-update-mark-at-point))
      ,(when maybe-next
         '(if image-dired-marking-shows-next
              (image-dired-display-next-thumbnail-original)
@@ -818,7 +821,7 @@ Also update the marks in the thumbnail buffer."
   (image-dired--do-mark-command nil t
     (dired-unmark-all-marks))
   (image-dired--with-thumbnail-buffer
-    (image-dired-thumb-update-marks)))
+    (image-dired--thumb-update-marks)))
 
 (defun image-dired-jump-original-dired-buffer ()
   "Jump to the Dired buffer associated with the current image file.
@@ -1287,7 +1290,18 @@ for deletion instead."
   (image-dired--on-file-in-dired-buffer
     (dired-do-delete)))
 
-(defun image-dired-thumb-update-marks ()
+(defun image-dired--thumb-update-mark-at-point ()
+  (with-silent-modifications
+    (cond ((image-dired-thumb-file-marked-p)
+           (add-face-text-property (point) (1+ (point))
+                                   'image-dired-thumb-mark))
+          ((image-dired-thumb-file-flagged-p)
+           (add-face-text-property (point) (1+ (point))
+                                   'image-dired-thumb-flagged))
+          (t (remove-text-properties (point) (1+ (point))
+                                     '(face image-dired-thumb-mark))))))
+
+(defun image-dired--thumb-update-marks ()
   "Update the marks in the thumbnail buffer."
   (when image-dired-thumb-visible-marks
     (with-current-buffer image-dired-thumbnail-buffer
@@ -1295,15 +1309,7 @@ for deletion instead."
         (goto-char (point-min))
         (let ((inhibit-read-only t))
           (while (not (eobp))
-            (with-silent-modifications
-              (cond ((image-dired-thumb-file-marked-p)
-                     (add-face-text-property (point) (1+ (point))
-                                             'image-dired-thumb-mark))
-                    ((image-dired-thumb-file-flagged-p)
-                     (add-face-text-property (point) (1+ (point))
-                                             'image-dired-thumb-flagged))
-                    (t (remove-text-properties (point) (1+ (point))
-                                               '(face image-dired-thumb-mark)))))
+            (image-dired--thumb-update-mark-at-point)
             (forward-char 2)))))))
 
 (defun image-dired-mouse-toggle-mark-1 ()
@@ -1334,7 +1340,7 @@ Track this in associated Dired buffer if
     (mouse-set-point event)
     (goto-char (posn-point (event-end event)))
     (image-dired-mouse-toggle-mark-1))
-  (image-dired-thumb-update-marks))
+  (image-dired--thumb-update-marks))
 
 
 ;;; bookmark.el support
@@ -1580,7 +1586,7 @@ Dired."
                      (dired-unmark 1)
                    (dired-mark 1)))
                 ((eq command 'flag) (dired-flag-file-deletion 1)))
-          (image-dired-thumb-update-marks))))))
+          (image-dired--thumb-update-marks))))))
 
 (defun image-dired-display-current-image-full ()
   "Display current image in full size."
@@ -1874,6 +1880,8 @@ when using per-directory thumbnail file storage"))
   'image-dired--add-to-tag-file-lists "29.1")
 (define-obsolete-function-alias 'image-dired-hidden-p
   'image-dired--hidden-p "29.1")
+(define-obsolete-function-alias 'image-dired-thumb-update-marks
+  #'image-dired--thumb-update-marks "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
