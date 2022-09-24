@@ -574,10 +574,11 @@ never ask for confirmation."
                       "Directory contains more than %d image files.  Proceed?"
                       image-dired-show-all-from-dir-max-files))))
            (image-dired-display-thumbs)
+           (let ((inhibit-message t))
+             (dired-unmark-all-marks))
            (pop-to-buffer image-dired-thumbnail-buffer)
            (setq default-directory dir)
-           (image-dired-update-header-line)
-           (image-dired-unmark-all-marks))
+           (image-dired-update-header-line))
           (t (message "Image-Dired canceled")))))
 
 ;;;###autoload
@@ -588,17 +589,15 @@ never ask for confirmation."
 
 (defun image-dired-track-original-file ()
   "Track the original file in the associated Dired buffer.
-See documentation for `image-dired-toggle-movement-tracking'.
-Interactive use only useful if `image-dired-track-movement' is nil."
+See `image-dired-toggle-movement-tracking'.  Interactive use is
+only useful if `image-dired-track-movement' is nil."
   (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
-  (let* ((dired-buf (image-dired-associated-dired-buffer))
-         (file-name (image-dired-original-file-name))
-         (window (image-dired-get-buffer-window dired-buf)))
-    (and (buffer-live-p dired-buf) file-name
-         (with-current-buffer dired-buf
-           (if (not (dired-goto-file file-name))
-               (message "Could not track file")
-             (if window (set-window-point window (point))))))))
+  (let ((file-name (image-dired-original-file-name)))
+    (image-dired--with-dired-buffer
+      (if (not (dired-goto-file file-name))
+          (message "Could not find image in Dired buffer for tracking")
+        (when-let (window (image-dired-get-buffer-window (current-buffer)))
+          (set-window-point window (point)))))))
 
 (defun image-dired-toggle-movement-tracking ()
   "Turn on and off `image-dired-track-movement'.
@@ -760,13 +759,11 @@ for.  The default is to look for `dired-marker-char'."
   "Run BODY with point on file at point in Dired buffer.
 Should be called from commands in `image-dired-thumbnail-mode'."
   (declare (indent defun) (debug t))
-  `(let ((file-name (image-dired-original-file-name))
-         (dired-buf (image-dired-associated-dired-buffer)))
-     (if (not (and dired-buf file-name))
-         (message "No image, or image with correct properties, at point")
-       (with-current-buffer dired-buf
+  `(if-let ((file-name (image-dired-original-file-name)))
+       (image-dired--with-dired-buffer
          (when (dired-goto-file file-name)
-           ,@body)))))
+           ,@body))
+     (message "No image with correct properties at point")))
 
 (defmacro image-dired--with-thumbnail-buffer (&rest body)
   (declare (indent defun) (debug t))
@@ -827,15 +824,13 @@ Also update the marks in the thumbnail buffer."
 You probably want to use this together with
 `image-dired-track-original-file'."
   (interactive nil image-dired-thumbnail-mode)
-  (let ((buf (image-dired-associated-dired-buffer))
-        window frame)
-    (setq window (image-dired-get-buffer-window buf))
-    (if window
+  (image-dired--with-dired-buffer
+    (if-let ((window (image-dired-get-buffer-window (current-buffer))))
         (progn
-          (if (not (equal (selected-frame) (setq frame (window-frame window))))
-              (select-frame-set-input-focus frame))
+          (if (not (equal (selected-frame) (window-frame window)))
+              (select-frame-set-input-focus (window-frame window)))
           (select-window window))
-      (message "Associated dired buffer not visible"))))
+      (message "Associated Dired buffer not visible"))))
 
 
 ;;; Major modes
@@ -1266,15 +1261,13 @@ non-nil."
   "Check if file is marked in associated Dired buffer.
 If optional argument FLAGGED is non-nil, check if file is flagged
 for deletion instead."
-  (let ((file-name (image-dired-original-file-name))
-        (dired-buf (image-dired-associated-dired-buffer)))
-    (when (and dired-buf file-name)
-      (with-current-buffer dired-buf
-        (save-excursion
-          (when (dired-goto-file file-name)
-            (if flagged
-                (image-dired-dired-file-flagged-p)
-              (image-dired-dired-file-marked-p))))))))
+  (let ((file-name (image-dired-original-file-name)))
+    (image-dired--with-dired-buffer
+      (save-excursion
+        (when (dired-goto-file file-name)
+          (if flagged
+              (image-dired-dired-file-flagged-p)
+            (image-dired-dired-file-marked-p)))))))
 
 (defun image-dired-thumb-file-flagged-p ()
   "Check if file is flagged for deletion in associated Dired buffer."
@@ -1290,7 +1283,7 @@ for deletion instead."
    (unless (bobp)
      (backward-char)))
   (image-dired--line-up-with-method)
-  (with-current-buffer (image-dired-associated-dired-buffer)
+  (image-dired--on-file-in-dired-buffer
     (dired-do-delete)))
 
 (defun image-dired-thumb-update-marks ()
@@ -1310,7 +1303,7 @@ for deletion instead."
                                              'image-dired-thumb-flagged))
                     (t (remove-text-properties (point) (1+ (point))
                                                '(face image-dired-thumb-mark)))))
-            (forward-char)))))))
+            (forward-char 2)))))))
 
 (defun image-dired-mouse-toggle-mark-1 ()
   "Toggle Dired mark for current thumbnail.

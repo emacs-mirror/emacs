@@ -118,6 +118,21 @@ See also `image-dired-thumbnail-storage'."
   "Get associated Dired buffer at point."
   (get-text-property (point) 'associated-dired-buffer))
 
+(defmacro image-dired--with-dired-buffer (&rest body)
+  "Run BODY in associated Dired buffer.
+Should be used by commands in `image-dired-thumbnail-mode'."
+  (declare (indent defun) (debug t))
+  (let ((file (make-symbol "file"))
+        (dired-buf (make-symbol "dired-buf")))
+    `(let ((,file (image-dired-original-file-name))
+           (,dired-buf (image-dired-associated-dired-buffer)))
+       (unless ,file
+         (error "No image at point"))
+       (unless (and ,dired-buf (buffer-live-p ,dired-buf))
+         (error "Cannot find associated Dired buffer for image: %s" ,file))
+       (with-current-buffer ,dired-buf
+         ,@body))))
+
 (defun image-dired-get-buffer-window (buf)
   "Return window where buffer BUF is."
   (get-window-with-predicate
