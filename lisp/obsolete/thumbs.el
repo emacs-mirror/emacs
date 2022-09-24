@@ -5,6 +5,7 @@
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: Multimedia
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +24,11 @@
 
 ;;; Commentary:
 
+;; NOTE: This library was made obsolete in Emacs 29.1.
+;;       We recommend using `M-x image-dired' instead.
+;;
+;; --------------------
+;;
 ;; This package create two new modes: `thumbs-mode' and `thumbs-view-image-mode'.
 ;; It is used for basic browsing and viewing of images from within Emacs.
 ;; Minimal image manipulation functions are also available via external
@@ -387,6 +393,7 @@ and SAME-WINDOW to show thumbs in the same window."
 
 ;;;###autoload
 (defalias 'thumbs 'thumbs-show-from-dir)
+(make-obsolete 'thumbs 'image-dired "29.1")
 
 (defun thumbs-find-image (img &optional num otherwin)
   (let ((buffer (current-buffer)))

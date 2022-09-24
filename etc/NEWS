@@ -399,6 +399,10 @@ the 'nlinum' package from GNU ELPA instead.  The former has better
 performance, but the latter is closer to a drop-in replacement.
 
 ---
+** The thumbs.el library is now obsolete.
+We recommend using `M-x image-dired' instead.
+
+---
 ** The autoarg.el library is now marked obsolete.
 This library provides the 'autoarg-mode' and 'autoarg-kp-mode' minor
 modes to emulate the behavior of the historical editor Twenex Emacs.
