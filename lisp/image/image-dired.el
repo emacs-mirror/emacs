@@ -655,56 +655,57 @@ On reaching end or beginning of buffer, stop and show a message."
   (interactive "p" image-dired-thumbnail-mode)
   (image-dired-forward-image (- (or arg 1))))
 
+(defun image-dired--movement-ensure-point-pos (&optional reverse)
+  "Ensure point is on an image."
+  (while (and (not (image-at-point-p))
+              (not (if reverse (bobp) (eobp))))
+    (forward-char (if reverse -1 1))))
+
+(defmacro image-dired--movement-command (to &optional reverse)
+  `(progn
+     (goto-char ,to)
+     (image-dired--movement-ensure-point-pos ,reverse)
+     (when image-dired-track-movement
+       (image-dired-track-original-file))
+     (image-dired-update-header-line)))
+
+(defmacro image-dired--movement-command-line (&optional reverse)
+  `(image-dired--movement-command
+     (let ((goal-column (current-column)))
+       (forward-line ,(if reverse -1 1))
+       (move-to-column goal-column)
+       (point))
+     ,reverse))
+
 (defun image-dired-next-line ()
   "Move to next line in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (let ((goal-column (current-column)))
-    (forward-line 1)
-    (move-to-column goal-column))
-  ;; If we end up in an empty spot, back up to the next thumbnail.
-  (if (not (image-dired-image-at-point-p))
-      (image-dired-backward-image))
-  (if image-dired-track-movement
-      (image-dired-track-original-file))
-  (image-dired-update-header-line))
+  (image-dired--movement-command-line))
 
 (defun image-dired-previous-line ()
   "Move to previous line in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (let ((goal-column (current-column)))
-    (forward-line -1)
-    (move-to-column goal-column))
-  ;; If we end up in an empty spot, back up to the next thumbnail.
-  ;; This should only happen if the user deleted a thumbnail and did
-  ;; not refresh, so it is not very common.  But we can handle it in a
-  ;; good manner, so why not?
-  (if (not (image-dired-image-at-point-p))
-      (image-dired-backward-image))
-  (if image-dired-track-movement
-      (image-dired-track-original-file))
-  (image-dired-update-header-line))
+  (image-dired--movement-command-line 'reverse))
 
 (defun image-dired-beginning-of-buffer ()
   "Move to the first image in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (goto-char (point-min))
-  (while (and (not (image-at-point-p))
-              (not (eobp)))
-    (forward-char 1))
-  (when image-dired-track-movement
-    (image-dired-track-original-file))
-  (image-dired-update-header-line))
+  (image-dired--movement-command (point-min)))
 
 (defun image-dired-end-of-buffer ()
   "Move to the last image in the thumbnail buffer."
   (interactive nil image-dired-thumbnail-mode)
-  (goto-char (point-max))
-  (while (and (not (image-at-point-p))
-              (not (bobp)))
-    (forward-char -1))
-  (when image-dired-track-movement
-    (image-dired-track-original-file))
-  (image-dired-update-header-line))
+  (image-dired--movement-command (point-max) 'reverse))
+
+(defun image-dired-move-beginning-of-line ()
+  "Move to the beginning of current line in thumbnail buffer."
+  (interactive nil image-dired-thumbnail-mode)
+  (image-dired--movement-command (pos-bol)))
+
+(defun image-dired-move-end-of-line ()
+  "Move to the end of current line in thumbnail buffer."
+  (interactive nil image-dired-thumbnail-mode)
+  (image-dired--movement-command (pos-eol) 'reverse))
 
 
 ;;; Header line
@@ -894,7 +895,10 @@ You probably want to use this together with
   "<down-mouse-2>"   #'image-dired-mouse-select-thumbnail
   "<down-mouse-3>"   #'image-dired-mouse-select-thumbnail
   "C-<down-mouse-1>" #'ignore           ; Don't open the buffer menu.
-  "C-<mouse-1>"      #'image-dired-mouse-toggle-mark)
+  "C-<mouse-1>"      #'image-dired-mouse-toggle-mark
+
+  "<remap> <move-beginning-of-line>" #'image-dired-move-beginning-of-line
+  "<remap> <move-end-of-line>"       #'image-dired-move-end-of-line)
 
 (easy-menu-define image-dired-thumbnail-mode-menu image-dired-thumbnail-mode-map
   "Menu for `image-dired-thumbnail-mode'."
