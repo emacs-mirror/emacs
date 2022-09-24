@@ -2129,6 +2129,15 @@ old format, add this to your Init file:
     (setopt image-dired-display-properties-format "%b: %f (%t): %c")
 
 ---
+*** New faces for the header line of the thumbnail buffer.
+These faces correspond to different parts of the header line, as
+specified in 'image-dired-display-properties-format':
+- 'image-dired-thumb-header-file-name'
+- 'image-dired-thumb-header-directory-name'
+- 'image-dired-thumb-header-file-size'
+- 'image-dired-thumb-header-image-count'
+
+---
 *** PDF support.
 Image-Dired now displays thumbnails for PDF files.  Type 'RET' on a
 PDF file in the thumbnail buffer to visit the corresponding PDF.

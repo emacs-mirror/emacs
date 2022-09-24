@@ -259,22 +259,6 @@ deletion."
   :type 'boolean
   :version "28.1")
 
-(defface image-dired-thumb-mark
-  '((((class color) (min-colors 16)) :background "DarkOrange")
-    (((class color)) :foreground "yellow"))
-  "Face for marked images in thumbnail buffer."
-  :version "29.1")
-
-(defface image-dired-thumb-flagged
-  '((((class color) (min-colors 88) (background light)) :background "Red3")
-    (((class color) (min-colors 88) (background dark))  :background "Pink")
-    (((class color) (min-colors 16) (background light)) :background "Red3")
-    (((class color) (min-colors 16) (background dark))  :background "Pink")
-    (((class color) (min-colors 8)) :background "red")
-    (t :inverse-video t))
-  "Face for images flagged for deletion in thumbnail buffer."
-  :version "29.1")
-
 (defcustom image-dired-line-up-method 'dynamic
   "Default method for line-up of thumbnails in thumbnail buffer.
 Used by `image-dired-display-thumbs' and other functions that needs
@@ -360,6 +344,52 @@ This affects the following commands:
     `image-dired-mark-thumb-original-file'   (bound to \\[image-dired-mark-thumb-original-file])
     `image-dired-unmark-thumb-original-file' (bound to \\[image-dired-unmark-thumb-original-file])"
   :type 'boolean
+  :version "29.1")
+
+
+;;; Faces
+
+;;;; Header line
+
+(defface image-dired-thumb-header-file-name
+  '((default :weight bold))
+  "Face for the file name in the header line of the thumbnail buffer."
+  :version "29.1")
+
+(defface image-dired-thumb-header-directory-name
+  '((default :inherit header-line))
+  "Face for the directory name in the header line of the thumbnail buffer."
+  :version "29.1")
+
+(defface -image-dired-thumb-header-file-size
+  '((((class color) (min-colors 88)) :foreground "cadet blue")
+    (((class color) (min-colors 16)) :foreground "black")
+    (default :inherit header-line))
+  "Face for the file size in the header line of the thumbnail buffer."
+  :version "29.1")
+
+(defface image-dired-thumb-header-image-count
+  '((default :inherit header-line))
+  "Face for the image count in the header line of the thumbnail buffer."
+  :version "29.1")
+
+;;;; Thumbnail buffer
+
+(defface image-dired-thumb-mark
+  '((((class color) (min-colors 16)) :background "DarkOrange")
+    (((class color)) :foreground "yellow")
+    (default :inherit header-line))
+  "Face for marked images in thumbnail buffer."
+  :version "29.1")
+
+(defface image-dired-thumb-flagged
+  '((((class color) (min-colors 88) (background light)) :background "Red3")
+    (((class color) (min-colors 88) (background dark))  :background "Pink")
+    (((class color) (min-colors 16) (background light)) :background "Red3")
+    (((class color) (min-colors 16) (background dark))  :background "Pink")
+    (((class color) (min-colors 8)) :background "red")
+    (t :inverse-video t))
+  "Face for images flagged for deletion in thumbnail buffer."
   :version "29.1")
 
 
@@ -731,14 +761,19 @@ comment."
   (format-spec
    image-dired-display-properties-format
    `((?b . ,(or buf ""))
-     (?d . ,(file-name-nondirectory
-             (directory-file-name
-              (file-name-directory file))))
-     (?f . ,(file-name-nondirectory file))
-     (?n . ,image-count)
-     (?s . ,(file-size-human-readable
-             (file-attribute-size
-              (file-attributes file))))
+     (?d . ,(propertize
+             (file-name-nondirectory
+              (directory-file-name
+               (file-name-directory file)))
+             'face 'image-dired-thumb-header-directory-name))
+     (?f . ,(propertize (file-name-nondirectory file)
+                        'face 'image-dired-thumb-header-file-name))
+     (?n . ,(propertize image-count
+                        'face 'image-dired-thumb-header-image-count))
+     (?s . ,(propertize (file-size-human-readable
+                         (file-attribute-size
+                          (file-attributes file)))
+                        'face 'image-dired-thumb-header-file-size))
      (?t . ,(or props ""))
      (?c . ,(or comment "")))))
 
