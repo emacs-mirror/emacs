@@ -4,6 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
@@ -36,11 +37,6 @@
 ;;   where the place that we want to modify is a `symbol-function'.
 
 ;;; Code:
-
-;; The autoloads.el mechanism which adds package--builtin-versions
-;; maintenance to loaddefs.el doesn't work for preloaded packages (such
-;; as this one), so we have to do it by hand!
-(push (purecopy '(nadvice 1 0)) package--builtin-versions)
 
 (oclosure-define (advice
                   (:predicate advice--p)
