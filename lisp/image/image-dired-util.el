@@ -85,19 +85,22 @@ See also `image-dired-thumbnail-storage'."
              ;; Maintained for backwards compatibility:
              (eq 'use-image-dired-dir image-dired-thumbnail-storage))
          (let* ((f (expand-file-name file))
-                (hash
-                 (md5 (file-name-as-directory (file-name-directory f)))))
-           (format "%s%s%s.thumb.%s"
-                   (file-name-as-directory (expand-file-name (image-dired-dir)))
-                   (file-name-base f)
-                   (if hash (concat "_" hash) "")
-                   (file-name-extension f))))
+                (hash (md5 (file-name-as-directory (file-name-directory f)))))
+           (expand-file-name
+            (format "%s%s.thumb.%s"
+                    (file-name-base f)
+                    (if hash (concat "_" hash) "")
+                    (file-name-extension f))
+            (image-dired-dir))))
         ((eq 'per-directory image-dired-thumbnail-storage)
          (let ((f (expand-file-name file)))
-           (format "%s.image-dired/%s.thumb.%s"
-                   (file-name-directory f)
-                   (file-name-base f)
-                   (file-name-extension f))))))
+           (expand-file-name
+            (format "%s.thumb.%s"
+                    (file-name-base f)
+                    (file-name-extension f))
+            (expand-file-name
+             ".image-dired"
+             (file-name-directory f)))))))
 
 (defvar image-dired-thumbnail-buffer "*image-dired*"
   "Image-Dired's thumbnail buffer.")

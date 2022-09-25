@@ -28,6 +28,10 @@
 (ert-deftest image-dired-thumb-name/standard ()
   (let ((image-dired-thumbnail-storage 'standard))
     (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
+    (should (file-name-absolute-p (image-dired-thumb-name "/tmp/foo.jpg")))
+    (should (equal
+             (file-name-directory (image-dired-thumb-name "foo.jpg"))
+             (file-name-directory (image-dired-thumb-name "/tmp/foo.jpg"))))
     (should (string-search (xdg-cache-home)
                            (image-dired-thumb-name "foo.jpg")))
     (should (string-match (rx (in "0-9a-f") ".png")
@@ -39,6 +43,10 @@
     (let ((image-dired-dir dir)
           (image-dired-thumbnail-storage 'image-dired))
       (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
+      (should (file-name-absolute-p (image-dired-thumb-name "/tmp/foo.jpg")))
+      (should (equal
+               (file-name-directory (image-dired-thumb-name "foo.jpg"))
+               (file-name-directory (image-dired-thumb-name "/tmp/foo.jpg"))))
       (should (equal (file-name-nondirectory
                       ;; The checksum is based on the directory name.
                       (image-dired-thumb-name "/some/path/foo.jpg"))
@@ -47,6 +55,12 @@
 (ert-deftest image-dired-thumb-name/per-directory ()
   (let ((image-dired-thumbnail-storage 'per-directory))
     (should (file-name-absolute-p (image-dired-thumb-name "foo.jpg")))
+    (should (file-name-absolute-p (image-dired-thumb-name "/tmp/foo.jpg")))
+    (should (equal
+             (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
+             (file-name-nondirectory (image-dired-thumb-name "/tmp/foo.jpg"))))
+    (should (equal (file-name-split (image-dired-thumb-name "/tmp/foo.jpg"))
+                   '("" "tmp" ".image-dired" "foo.thumb.jpg")))
     (should (equal (file-name-nondirectory
                     (image-dired-thumb-name "foo.jpg"))
                    "foo.thumb.jpg"))))
