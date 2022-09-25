@@ -1458,7 +1458,7 @@ name."
   (let ((final-new-name
          (or new-name   ; use second arg, if non-nil
              (read-from-minibuffer
-              "New name: "
+              (format-prompt "Rename \"%s\" to" nil old-name)
               nil
               (define-keymap
                 :parent minibuffer-local-map
