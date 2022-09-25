@@ -6143,7 +6143,7 @@ REPORT-FN is Flymake's callback function."
   (if (and python-use-tree-sitter
            (treesit-can-enable-p))
       (setq-local imenu-create-index-function
-                  #'python-treesit-imenu-create-index)
+                  #'python-imenu-treesit-create-index)
     (setq-local imenu-create-index-function
                 #'python-imenu-create-index))
 
