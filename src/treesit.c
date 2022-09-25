@@ -1805,6 +1805,358 @@ query.  */)
   return Fnreverse (result);
 }
 
+/*** Navigation */
+
+/* Return the next/previous named/unnamed sibling of NODE.  FORWARD
+   controls the direction and NAMED controls the nameness.
+ */
+static TSNode
+ts_traverse_sibling_helper (TSNode node, bool forward, bool named)
+{
+  if (forward)
+    {
+      if (named)
+	return ts_node_next_named_sibling (node);
+      else
+	return ts_node_next_sibling (node);
+    }
+  else
+    {
+      if (named)
+	return ts_node_prev_named_sibling (node);
+      else
+	return ts_node_prev_sibling (node);
+    }
+}
+
+/* Return true if NODE matches PRED.  PRED can be a string or a
+   function.  This function doesn't check for PRED's type.  */
+static bool
+ts_traverse_match_predicate
+(TSNode node, Lisp_Object pred, Lisp_Object parser)
+{
+  if (STRINGP (pred))
+    {
+      const char *type = ts_node_type (node);
+      return (fast_c_string_match_ignore_case
+	      (pred, type, strlen (type)) >= 0);
+    }
+  else
+    {
+      Lisp_Object lisp_node = make_ts_node (parser, node);
+      return !NILP (CALLN (Ffuncall, pred, lisp_node));
+    }
+
+}
+
+/* Traverse the parse tree starting from ROOT (but ROOT is not
+   matches against PRED).  PRED can be a function (takes a node and
+   returns nil/non-nil),or a string (treated as regexp matching the
+   node's type, ignores case, must be all single byte characters).  If
+   the node satisfies PRED , terminate, set ROOT to that node, and
+   return true.  If no node satisfies PRED, return FALSE.  PARSER is
+   the parser of ROOT.
+
+   LIMIT is the number of levels we descend in the tree.  If NO_LIMIT
+   is true, LIMIT is ignored.  FORWARD controls the direction in which
+   we traverse the tree, true means forward, false backward.  If NAMED
+   is true, only traverse named nodes, if false, all nodes.  If
+   SKIP_ROOT is true, don't match ROOT.  */
+static bool
+ts_search_dfs
+(TSNode *root, Lisp_Object pred, Lisp_Object parser,
+ bool named, bool forward, ptrdiff_t limit, bool no_limit,
+ bool skip_root)
+{
+  /* TSTreeCursor doesn't allow us to move backward, so we can't use
+     it.  We could use limit == -1 to indicate no_limit == true, but
+     separating them is safer.  */
+  TSNode node = *root;
+
+  if (!skip_root && ts_traverse_match_predicate (node, pred, parser))
+    {
+      *root = node;
+      return true;
+    }
+
+  if (!no_limit && limit <= 0)
+    return false;
+  else
+    {
+      int count = named ?
+	ts_node_named_child_count( node)
+	: ts_node_child_count (node);
+      for (int offset=0; offset < count; offset++)
+	{
+	  uint32_t idx = forward ? offset
+	    : count - offset - 1;
+	  TSNode child = ts_node_child (node, idx);
+
+	  if (!ts_node_is_null (child)
+	      && ts_search_dfs (&child, pred, parser, named,
+				forward, limit - 1, no_limit, false))
+	    {
+	      *root = child;
+	      return true;
+	    }
+	}
+      return false;
+    }
+}
+
+/* Go thought the whole tree linearly depth first, starting from
+   START.  PRED, PARSER, NAMED, FORWARD are the same as in
+   ts_search_subtre.  If UP_ONLY is true, never go to children, only
+   sibling and parents.  If SKIP_START is true, don'tt match
+   START.  */
+static bool
+ts_search_forward
+(TSNode *start, Lisp_Object pred, Lisp_Object parser,
+ bool named, bool forward, bool up_only, bool skip_start)
+{
+  TSNode node = *start;
+
+  if (!up_only && ts_search_dfs
+      (start, pred, parser, named, forward, 0, true, skip_start))
+    return true;
+
+  TSNode next = ts_traverse_sibling_helper(node, forward, named);
+  while (ts_node_is_null (next))
+    {
+      node = ts_node_parent (node);
+      if (ts_node_is_null (node))
+	return false;
+
+      if (ts_traverse_match_predicate (node, pred, parser))
+	{
+	  *start = node;
+	  return false;
+	}
+      next = ts_traverse_sibling_helper(node, forward, named);
+    }
+  if (ts_search_forward
+      (&next, pred, parser, named, forward, up_only, false))
+    {
+      *start = next;
+      return true;
+    }
+  else
+    return false;
+}
+
+DEFUN ("treesit-search-subtree",
+       Ftreesit_search_subtree,
+       Streesit_search_subtree, 2, 5, 0,
+       doc: /* Traverse the parse tree depth-first.
+
+Traverse the subtree of NODE, and match PREDICATE with each node along
+the way.  PREDICATE is a regexp string that matches against each
+node's type, or a function that takes a node and returns nil/non-nil.
+
+By default, only traverse named nodes, if ALL is non-nil, traverse all
+nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
+non-nil, we only traverse that number of levels down in the tree.
+
+Return the first matched node, or nil if none matches.  */)
+  (Lisp_Object node, Lisp_Object predicate, Lisp_Object all,
+   Lisp_Object backward, Lisp_Object limit)
+{
+  CHECK_TS_NODE (node);
+  CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
+	      list3 (Qor, Qstringp, Qfunctionp), predicate);
+  CHECK_SYMBOL (all);
+  CHECK_SYMBOL (backward);
+
+  ptrdiff_t the_limit = 0;
+  bool no_limit = false;
+  if (NILP (limit))
+      no_limit = true;
+  else
+    {
+      CHECK_FIXNUM (limit);
+      the_limit = XFIXNUM (limit);
+    }
+
+  TSNode ts_node = XTS_NODE (node)->node;
+  Lisp_Object parser = XTS_NODE (node)->parser;
+  if (ts_search_dfs
+      (&ts_node, predicate, parser, NILP (all),
+       NILP (backward), the_limit, no_limit, false))
+    {
+      return make_ts_node (parser, ts_node);
+    }
+  else
+    return Qnil;
+}
+
+DEFUN ("treesit-search-forward",
+       Ftreesit_search_forward,
+       Streesit_search_forward, 2, 5, 0,
+       doc: /* Search for node in the parse tree.
+
+Start traversing the tree from node START, and match PREDICATE with
+each node along the way (except START).  PREDICATE is a regexp string
+that matches against each node's type, or a function that takes a node
+and returns nil/non-nil.
+
+By default, only search for named nodes, if ALL is non-nil, search for
+all nodes.  If BACKWARD is non-nil, search backwards.
+
+Return the first matched node, or nil if none matches.
+
+For a tree like the below where START is marked 1, traverse as
+numbered:
+                16
+                |
+       3--------4-----------8
+       |        |           |
+  o--o-+--1  5--+--6    9---+-----12
+  |  |    |        |    |         |
+  o  o    2        7  +-+-+    +--+--+
+                      |   |    |  |  |
+                      10  11   13 14 15
+
+If UP is non-nil, only traverse to siblings and parents.  In that
+case, only 1 3 4 8 16 would be traversed.  */)
+  (Lisp_Object start, Lisp_Object predicate, Lisp_Object all,
+   Lisp_Object backward, Lisp_Object up)
+{
+  CHECK_TS_NODE (start);
+  CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
+	      list3 (Qor, Qstringp, Qfunctionp), predicate);
+  CHECK_SYMBOL (all);
+  CHECK_SYMBOL (backward);
+  CHECK_SYMBOL (up);
+
+  TSNode ts_start = XTS_NODE (start)->node;
+  Lisp_Object parser = XTS_NODE (start)->parser;
+  if (ts_search_forward
+      (&ts_start, predicate, parser, NILP (all),
+       NILP (backward), !NILP (up), true))
+    {
+      return make_ts_node (parser, ts_start);
+    }
+  else
+    return Qnil;
+}
+
+/* Recursively traverse the tree under CURSOR, and append the result
+   subtree to PARENT's cdr.  See more in `ts_build_sparse_tree'.  */
+static void
+ts_build_sparse_tree
+(TSTreeCursor *cursor, Lisp_Object parent, Lisp_Object pred,
+ Lisp_Object process_fn, ptrdiff_t limit,
+ bool no_limit, Lisp_Object parser)
+{
+
+  TSNode node = ts_tree_cursor_current_node (cursor);
+  bool match = ts_traverse_match_predicate (node, pred, parser);
+  if (match)
+    {
+      /* If this node matches pred, add a new node to the parent's
+	 children list.  */
+      Lisp_Object lisp_node = make_ts_node (parser, node);
+      if (!NILP (process_fn))
+	{
+	  lisp_node = CALLN (Ffuncall, process_fn, lisp_node);
+	}
+      Lisp_Object this = Fcons (lisp_node, Qnil);
+      Fsetcdr (parent, Fcons (this, Fcdr (parent)));
+      /* Now for children nodes, this is the new parent.  */
+      parent = this;
+    }
+  /* Go through each child.  */
+  if ((no_limit || limit > 0)
+      && ts_tree_cursor_goto_first_child (cursor))
+    {
+      do
+	{
+	  /* Make sure not to use node after the recursive funcall.
+	     Then C compilers should be smart enough not to copy NODE
+	     to stack.  */
+	  ts_build_sparse_tree
+	    (cursor, parent, pred, process_fn,
+	     limit - 1, no_limit, parser);
+	}
+      while (ts_tree_cursor_goto_next_sibling (cursor));
+      /* Don't forget to come back to this node.  */
+      ts_tree_cursor_goto_parent (cursor);
+    }
+  /* Before we go, reverse children in the sparse tree.  */
+  if (match)
+    {
+      /* When match == true, "parent" is actually the node we added in
+	 this layer (parent = this).  */
+      Fsetcdr (parent, Fnreverse (Fcdr (parent)));
+    }
+}
+
+DEFUN ("treesit-induce-sparse-tree",
+       Ftreesit_induce_sparse_tree,
+       Streesit_induce_sparse_tree, 2, 4, 0,
+       doc: /* Create a sparse tree of ROOT's subtree.
+
+Basically, take the subtree under ROOT, and comb it so only the nodes
+that match PREDICATE are left, like picking out grapes on the vine.
+PREDICATE is a regexp string that matches against each node's type.
+
+For a subtree on the left that consist of both numbers and letters, if
+PREDICATE is "is letter", the returned tree is the one on the right.
+
+	a                 a              a
+	|                 |              |
+    +---+---+         +---+---+      +---+---+
+    |   |   |         |   |   |      |   |   |
+    b   1   2         b   |   |      b   c   d
+	|   |     =>      |   |  =>      |
+	c   +--+          c   +          e
+	|   |  |          |   |
+     +--+   d  4       +--+   d
+     |  |              |
+     e  5              e
+
+If PROCESS-FN is non-nil, instead of returning the matched nodes, pass
+each node to PROCESS-FN use the return value instead.  If non-nil,
+LIMIT is the number of levels to go down from ROOT.
+
+Each node in the returned tree looks like (NODE . (CHILD ...)).  The
+root of this tree might be nil, if ROOT doesn't match PREDICATE.  If
+no node matches PRED, return nil.
+
+PREDICATE can also be a function that takes a node and returns
+nil/non-nil, but it is slower and more memory consuming than
+regexp.  */)
+  (Lisp_Object root, Lisp_Object predicate, Lisp_Object process_fn,
+   Lisp_Object limit)
+{
+  CHECK_TS_NODE (root);
+  CHECK_TYPE (STRINGP (predicate) || FUNCTIONP (predicate),
+	      list3 (Qor, Qstringp, Qfunctionp), predicate);
+
+  if (!NILP (process_fn))
+    CHECK_TYPE (FUNCTIONP (process_fn), Qfunctionp, process_fn);
+  ptrdiff_t the_limit = 0;
+  bool no_limit = false;
+  if (NILP (limit))
+      no_limit = true;
+  else
+    {
+      CHECK_FIXNUM (limit);
+      the_limit = XFIXNUM (limit);
+    }
+
+  TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (root)->node);
+  Lisp_Object parser = XTS_NODE (root)->parser;
+  Lisp_Object parent = Fcons (Qnil, Qnil);
+  ts_build_sparse_tree
+    (&cursor, parent, predicate, process_fn,
+     the_limit, no_limit, parser);
+  if (NILP (Fcdr (parent)))
+    return Qnil;
+  else
+    return parent;
+}
+
 /*** Initialization */
 
 /* Initialize the tree-sitter routines.  */
@@ -1834,6 +2186,8 @@ syms_of_treesit (void)
   DEFSYM (Quser_emacs_directory,
 	  "user-emacs-directory");
   DEFSYM (Qtreesit_parser_deleted, "treesit-parser-deleted");
+
+  DEFSYM (Qor, "or");
 
   define_error (Qtreesit_error, "Generic tree-sitter error", Qerror);
   define_error (Qtreesit_query_error, "Query pattern is malformed",
@@ -1925,4 +2279,8 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_query_expand);
   defsubr (&Streesit_query_compile);
   defsubr (&Streesit_query_capture);
+
+  defsubr (&Streesit_search_subtree);
+  defsubr (&Streesit_search_forward);
+  defsubr (&Streesit_induce_sparse_tree);
 }

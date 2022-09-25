@@ -722,9 +722,27 @@ indentation (target) is in green, current indentation is in red."
 
 ;;; Search
 
+(defun treesit-search-forward-goto
+    (start predicate side &optional all backward up)
+  "Search for node in the parse tree and move point to it.
 
+Start traversing the tree from node START, and match PREDICATE with
+each node along the way (except START).  PREDICATE can be either a
+regexp that matches against each node's type, or a function that takes
+a node and returns nil/non-nil for match/no match.
 
+If a node matches, move to that node and return the node,
+otherwise return nil.  SIDE controls whether we move to the start
+or end of the matches node, it can be either \\='start or
+\\='end.
 
+ALL, BACKWARD, and UP are the same as in `treesit-search-forward'."
+  (when-let ((node (treesit-search-forward
+                    start predicate all backward up)))
+    (pcase side
+      ('start (goto-char (treesit-node-start node)))
+      ('end (goto-char (treesit-node-end node))))
+    node))
 
 ;;; Debugging
 

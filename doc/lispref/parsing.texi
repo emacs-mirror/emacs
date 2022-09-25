@@ -580,11 +580,116 @@ for named child (@pxref{tree-sitter named node, named node}).
 
 @heading Searching for node
 
+@defun treesit-search-subtree node predicate &optional all backward limit
+This function traverses the subtree of @var{node}, and match
+@var{predicate} with each node along the way.  And @var{predicate} is
+a regexp that matches against each node's type, or a function that
+takes a node and returns nil/non-nil.  If a node matches, that node is
+returned, if no node ever matches, nil is returned.
 
+By default, this function only traverses named nodes, if @var{all} is
+non-nil, it traverses all nodes.  If @var{backward} is non-nil, it
+traverse backwards.  If @var{limit} is non-nil, it only traverses that
+number of levels down in the tree.
 @end defun
 
+@defun treesit-search-forward start predicate &optional all backward up
+This function is somewhat similar to @code{treesit-search-subtree}.
+It also traverse the parse tree and match each node with
+@var{predicate} (except for @var{start}), where @var{predicate} can be
+a regexp or a function.  For a tree like the below where @var{start}
+is marked 1, this function will traverse as numbered:
+
+@example
+@group
+              o
+              |
+     3--------4-----------8
+     |        |           |
+o--o-+--1  5--+--6    9---+-----12
+|  |    |        |    |         |
+o  o    2        7  +-+-+    +--+--+
+                    |   |    |  |  |
+                    10  11   13 14 15
+@end group
+@end example
+
+Same as in @code{treesit-search-subtree}, this function only searches
+for named nodes by default.  But if @var{all} is non-nil, it searches
+for all nodes.  And If @var{backward} is non-nil, it searches
+backwards.
+
+If @var{up} is non-nil, this function will only traverse to siblings
+and parents.  In that case, only 1 3 4 8 would be traversed.
 @end defun
 
+@defun treesit-search-forward-goto start predicate side &optional all backward up
+For those who want to not only search for a node but also move to it,
+this is the function to use.  Parameter @var{start}, @var{predicate},
+@var{all}, @var{backward}, and @var{up} are the same as in
+@code{treesit-search-forward}.  And @var{side} controls which side of
+the matched no do we stop at, it can be @code{'start} or @code{'end}.
+
+Beware of this common pitfall:
+
+@example
+@group
+;; This will not move point forward.
+(while (treesit-search-forward-goto
+        (treesit-node-at (point))
+        "xxx"
+        'start)
+  ...)
+
+;; This is will move point forward.
+(let ((node (treesit-node-at (point))))
+  (while (setq node (treesit-search-forward-goto
+                     node "xxx" 'start))
+    ...))
+@end group
+@end example
+
+The exact reason why is left as an exercise for the reader.
+@end defun
+
+@defun treesit-induce-sparse-tree root predicate &optional process-fn limit
+This function creates a sparse tree of @var{root}'s subtree.
+
+Basically, it takes the subtree under @var{root}, and combs it so only
+the nodes that match @var{predicate} are left, like picking out grapes
+on the vine.  Like previous functions, @var{predicate} can be a regexp
+string that matches against each node's type, or a function that takes
+a node and return nil/non-nil.
+
+For example, for a subtree on the left that consist of both numbers
+and letters, if @var{predicate} is ``is letter'', the returned tree is
+the one on the right.
+
+@example
+@group
+    a                 a              a
+    |                 |              |
++---+---+         +---+---+      +---+---+
+|   |   |         |   |   |      |   |   |
+b   1   2         b   |   |      b   c   d
+    |   |     =>      |   |  =>      |
+    c   +--+          c   +          e
+    |   |  |          |   |
+ +--+   d  4       +--+   d
+ |  |              |
+ e  5              e
+@end group
+@end example
+
+If @var{process-fn} is non-nil, instead of returning the matched
+nodes, pass each node to @var{process-fn} use the return value
+instead.  If non-nil, @var{limit} is the number of levels to go down
+from @var{root}.
+
+Each node in the returned tree looks like @code{(@var{node}
+. (@var{child} ...))}.  The root of this tree might be nil, if
+@var{root} doesn't match @var{pred}.  If no node matches
+@var{predicate}, return nil.
 @end defun
 
 @heading More convenient functions
