@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2017 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2022 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"	/* for ENCODE_SYSTEM */
 #include "menu.h"
+#include "pdumper.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -152,9 +153,9 @@ w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
    This way we can safely execute Lisp code.  */
 
 void
-x_activate_menubar (struct frame *f)
+w32_activate_menubar (struct frame *f)
 {
-  set_frame_menubar (f, false, true);
+  set_frame_menubar (f, true);
 
   /* Lock out further menubar changes while active.  */
   f->output_data.w32->menubar_active = 1;
@@ -187,7 +188,7 @@ menubar_selection_callback (struct frame *f, void * client_data)
   i = 0;
   while (i < f->menu_bar_items_used)
     {
-      if (EQ (AREF (vector, i), Qnil))
+      if (NILP (AREF (vector, i)))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
 	  prefix = entry;
@@ -257,12 +258,10 @@ menubar_selection_callback (struct frame *f, void * client_data)
 }
 
 
-/* Set the contents of the menubar widgets of frame F.
-   The argument FIRST_TIME is currently ignored;
-   it is set the first time this is called, from initialize_frame_menubar.  */
+/* Set the contents of the menubar widgets of frame F.  */
 
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -286,7 +285,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      ptrdiff_t specpdl_count = SPECPDL_INDEX ();
+      specpdl_ref specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -510,7 +509,7 @@ initialize_frame_menubar (struct frame *f)
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
-  set_frame_menubar (f, true, true);
+  set_frame_menubar (f, true);
 }
 
 /* Get rid of the menu bar of frame F, and free its storage.
@@ -557,10 +556,8 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
   HMENU menu;
   POINT pos;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
-  widget_value **submenu_stack
-    = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
-  Lisp_Object *subprefix_stack
-    = (Lisp_Object *) alloca (menu_items_used * word_size);
+  widget_value **submenu_stack;
+  Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   bool first_pane;
 
@@ -575,6 +572,11 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
       return Qnil;
     }
 
+  USE_SAFE_ALLOCA;
+
+  submenu_stack = SAFE_ALLOCA (menu_items_used * sizeof (widget_value *));
+  subprefix_stack = SAFE_ALLOCA (menu_items_used * word_size);
+
   block_input ();
 
   /* Create a tree of widget_value objects
@@ -588,7 +590,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -780,7 +782,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
       i = 0;
       while (i < menu_items_used)
 	{
-	  if (EQ (AREF (menu_items, i), Qnil))
+	  if (NILP (AREF (menu_items, i)))
 	    {
 	      subprefix_stack[submenu_depth++] = prefix;
 	      prefix = entry;
@@ -817,6 +819,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
 			  entry = Fcons (subprefix_stack[j], entry);
 		    }
 		  unblock_input ();
+		  SAFE_FREE ();
 		  return entry;
 		}
 	      i += MENU_ITEMS_ITEM_LENGTH;
@@ -831,6 +834,7 @@ w32_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   unblock_input ();
+  SAFE_FREE ();
   return Qnil;
 }
 
@@ -1407,7 +1411,8 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 		 Windows alike.  MSVC headers get it right; hopefully,
 		 MinGW headers will, too.  */
 	      eassert (STRINGP (wv->help));
-	      info.dwItemData = (ULONG_PTR) XUNTAG (wv->help, Lisp_String);
+	      info.dwItemData = (ULONG_PTR) XUNTAG (wv->help, Lisp_String,
+						    struct Lisp_String);
 	    }
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
@@ -1467,7 +1472,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 {
   if (get_menu_item_info)
     {
-      struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
+      struct frame *f = w32_window_to_frame (&one_w32_display_info, owner);
       Lisp_Object frame, help;
 
       /* No help echo on owner-draw menu items, or when the keyboard
@@ -1483,7 +1488,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	     crash Emacs when we try to display those "strings".  It
 	     is unclear why we get these dwItemData, or what they are:
 	     sometimes they point to a wchar_t string that is the menu
-	     title, sometimes to someting that doesn't look like text
+	     title, sometimes to something that doesn't look like text
 	     at all.  (The problematic data also comes with the 0x0800
 	     bit set, but this bit is not documented, so we don't want
 	     to depend on it.)  */
@@ -1571,7 +1576,7 @@ w32_free_menu_strings (HWND hwnd)
 /* The following is used by delayed window autoselection.  */
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
-       doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
+       doc: /* SKIP: real doc in xmenu.c.  */)
   (void)
 {
   struct frame *f;
@@ -1585,6 +1590,7 @@ syms_of_w32menu (void)
   globals_of_w32menu ();
 
   current_popup_menu = NULL;
+  PDUMPER_IGNORE (current_popup_menu);
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
   DEFSYM (Qunsupported__w32_dialog, "unsupported--w32-dialog");
@@ -1606,9 +1612,13 @@ globals_of_w32menu (void)
 #ifndef NTGUI_UNICODE
   /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
-  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
-  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
-  unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
-  unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
+  get_menu_item_info = (GetMenuItemInfoA_Proc)
+    get_proc_addr (user32, "GetMenuItemInfoA");
+  set_menu_item_info = (SetMenuItemInfoA_Proc)
+    get_proc_addr (user32, "SetMenuItemInfoA");
+  unicode_append_menu = (AppendMenuW_Proc)
+    get_proc_addr (user32, "AppendMenuW");
+  unicode_message_box = (MessageBoxW_Proc)
+    get_proc_addr (user32, "MessageBoxW");
 #endif /* !NTGUI_UNICODE */
 }

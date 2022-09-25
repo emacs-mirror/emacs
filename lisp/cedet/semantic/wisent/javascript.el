@@ -1,8 +1,8 @@
-;;; semantic/wisent/javascript.el --- javascript parser support
+;;; semantic/wisent/javascript.el --- javascript parser support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2022 Free Software Foundation, Inc.
 
-;; Author: Eric Ludlam <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
 
 ;; This file is part of GNU Emacs.
@@ -64,13 +64,13 @@ to this variable NAME."
 ;; the tags created by the javascript parser.
 ;; Local context
 (define-mode-local-override semantic-get-local-variables
-  javascript-mode ()
+  js-mode ()
   "Get local values from a specific context.
 This function overrides `get-local-variables'."
   ;; Does javascript have identifiable local variables?
   nil)
 
-(define-mode-local-override semantic-tag-protection javascript-mode (tag &optional parent)
+(define-mode-local-override semantic-tag-protection js-mode (_tag &optional _parent)
   "Return protection information about TAG with optional PARENT.
 This function returns on of the following symbols:
    nil         - No special protection.  Language dependent.
@@ -85,14 +85,14 @@ The default behavior (if not overridden with `tag-protection'
 is to return a symbol based on type modifiers."
   nil)
 
-(define-mode-local-override semantic-analyze-scope-calculate-access javascript-mode (type scope)
+(define-mode-local-override semantic-analyze-scope-calculate-access js-mode (_type _scope)
   "Calculate the access class for TYPE as defined by the current SCOPE.
 Access is related to the :parents in SCOPE.  If type is a member of SCOPE
-then access would be 'private.  If TYPE is inherited by a member of SCOPE,
-the access would be 'protected.  Otherwise, access is 'public."
+then access would be `private'.  If TYPE is inherited by a member of SCOPE,
+the access would be `protected'.  Otherwise, access is `public'."
   nil)
 
-(define-mode-local-override semantic-ctxt-current-symbol javascript-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-symbol js-mode (&optional point)
   "Return the current symbol the cursor is on at POINT in a list.
 This is a very simple implementation for Javascript symbols.  It
 will at maximum do one split, so that the first part is seen as
@@ -101,29 +101,23 @@ This is currently needed for the mozrepl omniscient database."
   (save-excursion
     (if point (goto-char point))
     (let* ((case-fold-search semantic-case-fold)
-	   symlist tmp end)
+	   tmp end) ;; symlist
       (with-syntax-table semantic-lex-syntax-table
 	(save-excursion
 	  (when (looking-at "\\w\\|\\s_")
 	    (forward-sexp 1))
 	  (setq end (point))
-	  (unless (re-search-backward "\\s-" (point-at-bol) t)
+          (unless (re-search-backward "\\s-" (line-beginning-position) t)
 	    (beginning-of-line))
 	  (setq tmp (buffer-substring-no-properties (point) end))
+	  ;; (setq symlist
 	  (if (string-match "\\(.+\\)\\." tmp)
-	    (setq symlist (list (match-string 1 tmp)
-				(substring tmp (1+ (match-end 1)) (length tmp))))
-	    (setq symlist (list tmp))))))))
+	      (list (match-string 1 tmp)
+		    (substring tmp (1+ (match-end 1)) (length tmp)))
+	    (list tmp)))))));; )
 
 ;;; Setup Function
 ;;
-;; Since javascript-mode is an alias for js-mode, let it inherit all
-;; the overrides.
-(define-child-mode js-mode javascript-mode)
-
-;; Since javascript-mode is an alias for js-mode, let it inherit all
-;; the overrides.
-(define-child-mode js-mode javascript-mode)
 
 ;; In semantic-imenu.el, not part of Emacs.
 (defvar semantic-imenu-summary-function)
@@ -134,14 +128,14 @@ This is currently needed for the mozrepl omniscient database."
   (wisent-javascript-jv-wy--install-parser)
   (setq
    ;; Lexical Analysis
-   semantic-lex-analyzer 'javascript-lexer-jv
+   semantic-lex-analyzer #'javascript-lexer-jv
    semantic-lex-number-expression semantic-java-number-regexp
    ;; semantic-lex-depth nil ;; Full lexical analysis
    ;; Parsing
-   semantic-tag-expand-function 'wisent-javascript-jv-expand-tag
+   semantic-tag-expand-function #'wisent-javascript-jv-expand-tag
    ;; Environment
-   semantic-imenu-summary-function 'semantic-format-tag-name
-   imenu-create-index-function 'semantic-create-imenu-index
+   semantic-imenu-summary-function #'semantic-format-tag-name
+   imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character ";"
    ))
 

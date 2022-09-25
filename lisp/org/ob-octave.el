@@ -1,10 +1,10 @@
 ;;; ob-octave.el --- Babel Functions for Octave and Matlab -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -30,10 +30,10 @@
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 
 (declare-function matlab-shell "ext:matlab-mode")
 (declare-function matlab-shell-run-region "ext:matlab-mode")
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-default-header-args:matlab '())
 (defvar org-babel-default-header-args:octave '())
@@ -45,8 +45,8 @@
 
 (defvar org-babel-matlab-with-emacs-link nil
   "If non-nil use matlab-shell-run-region for session evaluation.
-  This will use EmacsLink if (matlab-with-emacs-link) evaluates
-  to a non-nil value.")
+This will use EmacsLink if (matlab-with-emacs-link) evaluates
+to a non-nil value.")
 
 (defvar org-babel-matlab-emacs-link-wrapper-method
   "%s
@@ -136,7 +136,8 @@ specifying a variable of the same value."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input nil t)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-matlab-initiate-session (&optional session params)
@@ -163,7 +164,7 @@ create.  Return the initialized session."
 	  (current-buffer))))))
 
 (defun org-babel-octave-evaluate
-  (session body result-type &optional matlabp)
+    (session body result-type &optional matlabp)
   "Pass BODY to the octave process in SESSION.
 If RESULT-TYPE equals `output' then return the outputs of the
 statements in BODY, if RESULT-TYPE equals `value' then return the
@@ -180,12 +181,12 @@ value of the last statement in BODY, as elisp."
     (pcase result-type
       (`output (org-babel-eval cmd body))
       (`value (let ((tmp-file (org-babel-temp-file "octave-")))
-	       (org-babel-eval
-		cmd
-		(format org-babel-octave-wrapper-method body
-			(org-babel-process-file-name tmp-file 'noquote)
-			(org-babel-process-file-name tmp-file 'noquote)))
-	       (org-babel-octave-import-elisp-from-file tmp-file))))))
+	        (org-babel-eval
+		 cmd
+		 (format org-babel-octave-wrapper-method body
+			 (org-babel-process-file-name tmp-file 'noquote)
+			 (org-babel-process-file-name tmp-file 'noquote)))
+	        (org-babel-octave-import-elisp-from-file tmp-file))))))
 
 (defun org-babel-octave-evaluate-session
     (session body result-type &optional matlabp)
@@ -230,20 +231,19 @@ value of the last statement in BODY, as elisp."
 			 org-babel-octave-eoe-indicator
 		       org-babel-octave-eoe-output)
 		     t full-body)
-		  (insert full-body) (comint-send-input nil t)))) results)
+		  (insert full-body) (comint-send-input nil t))))
+	 results)
     (pcase result-type
       (`value
        (org-babel-octave-import-elisp-from-file tmp-file))
       (`output
        (setq results
 	     (if matlabp
-		 (cdr (reverse (delq "" (mapcar
-					 #'org-babel-strip-quotes
-					 (mapcar #'org-trim raw)))))
+		 (cdr (reverse (delq "" (mapcar #'org-strip-quotes
+						(mapcar #'org-trim raw)))))
 	       (cdr (member org-babel-octave-eoe-output
-			    (reverse (mapcar
-				      #'org-babel-strip-quotes
-				      (mapcar #'org-trim raw)))))))
+			    (reverse (mapcar #'org-strip-quotes
+					     (mapcar #'org-trim raw)))))))
        (mapconcat #'identity (reverse results) "\n")))))
 
 (defun org-babel-octave-import-elisp-from-file (file-name)
@@ -254,13 +254,11 @@ This removes initial blank and comment lines and then calls
     (with-temp-file temp-file
       (insert-file-contents file-name)
       (re-search-forward "^[ \t]*[^# \t]" nil t)
-      (if (< (setq beg (point-min))
-	     (setq end (point-at-bol)))
-	  (delete-region beg end)))
+      (when (< (setq beg (point-min))
+               (setq end (line-beginning-position)))
+	(delete-region beg end)))
     (org-babel-import-elisp-from-file temp-file '(16))))
 
 (provide 'ob-octave)
-
-
 
 ;;; ob-octave.el ends here

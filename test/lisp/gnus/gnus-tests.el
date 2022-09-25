@@ -1,6 +1,6 @@
-;;; gnus-tests.el --- Wrapper for the Gnus tests
+;;; gnus-tests.el --- Wrapper for the Gnus tests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 
@@ -26,8 +26,6 @@
 
 ;;; Code:
 ;; registry.el is required by gnus-registry.el but this way we're explicit.
-(eval-when-compile (require 'cl))
-
 (require 'registry)
 (require 'gnus-registry)
 

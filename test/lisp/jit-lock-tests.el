@@ -1,6 +1,6 @@
-;;; jit-lock-tests.el --- tests for jit-lock
+;;; jit-lock-tests.el --- tests for jit-lock  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 
@@ -58,3 +58,5 @@
     (with-silent-modifications
       (put-text-property (point-min) (point-max) 'fontified t))
     (jit-lock-fontify-now (point-min) (point-max))))
+
+;;; jit-lock-tests.el ends here

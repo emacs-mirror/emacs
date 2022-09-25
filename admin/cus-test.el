@@ -1,9 +1,8 @@
-;;; cus-test.el --- tests for custom types and load problems
+;;; cus-test.el --- tests for custom types and load problems  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998, 2000, 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002-2022 Free Software Foundation, Inc.
 
-;; Author: Markus Rost <markus.rost@mathematik.uni-regensburg.de>
-;; Maintainer: Markus Rost <rost@math.ohio-state.edu>
+;; Author: Markus Rost <rost@math.uni-bielefeld.de>
 ;; Created: 13 Sep 1998
 ;; Keywords: maint
 
@@ -37,6 +36,13 @@
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs [all]
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
+;;
+;; or as a part of the test suite with
+;;
+;;   make -C test test-custom-opts
+;;   make -C test test-custom-deps
+;;   make -C test test-custom-libs
+;;   make -C test test-custom-noloads
 ;;
 ;; in the emacs source directory.
 ;;
@@ -113,6 +119,7 @@ Names should be as they appear in loaddefs.el.")
 ;; This avoids a hang of `cus-test-apropos' in 21.2.
 ;; (add-to-list 'cus-test-skip-list 'sh-alias-alist)
 
+(defvar viper-mode)
 (or noninteractive
     ;; Never Viperize.
     (setq viper-mode nil))
@@ -149,7 +156,7 @@ Names should be as they appear in loaddefs.el.")
   "Set by `cus-test-apropos' to a list of options with :get property.")
 
 (defvar cus-test-vars-with-changed-state nil
-  "Set by `cus-test-apropos' to a list of options with state 'changed.")
+  "Set by `cus-test-apropos' to a list of options with state \\='changed.")
 
 (defvar cus-test-deps-errors nil
   "List of require/load problems found by `cus-test-deps'.")
@@ -197,7 +204,7 @@ The detected problematic options are stored in `cus-test-errors'."
 		mismatch)
 	   (when (default-boundp symbol)
 	     (push (funcall get symbol) values)
-	     (push (eval (car (get symbol 'standard-value))) values))
+	     (push (eval (car (get symbol 'standard-value)) t) values))
 	   (if (boundp symbol)
 	       (push (symbol-value symbol) values))
 	   ;; That does not work.
@@ -223,7 +230,7 @@ The detected problematic options are stored in `cus-test-errors'."
 		      (get symbol 'standard-value))))
 	     (and (consp c-value)
 		  (boundp symbol)
-		  (not (equal (eval (car c-value)) (symbol-value symbol)))
+		  (not (equal (eval (car c-value) t) (symbol-value symbol)))
 		  (add-to-list 'cus-test-vars-with-changed-state symbol)))
 
 	   (if mismatch
@@ -240,7 +247,7 @@ The detected problematic options are stored in `cus-test-errors'."
 (defun cus-test-cus-load-groups (&optional cus-load)
   "Return a list of current custom groups.
 If CUS-LOAD is non-nil, include groups from cus-load.el."
-  (append (mapcar 'cdr custom-current-group-alist)
+  (append (mapcar #'cdr custom-current-group-alist)
 	  (if cus-load
 	      (with-temp-buffer
 		(insert-file-contents (locate-library "cus-load.el"))
@@ -265,7 +272,7 @@ currently defined groups."
 	(if group
 	    (memq symbol groups)
 	  (or
-	   ;; (user-variable-p symbol)
+           ;; (custom-variable-p symbol)
 	   (get symbol 'standard-value)
 	   ;; (get symbol 'saved-value)
 	   (get symbol 'custom-type)))
@@ -291,7 +298,7 @@ currently defined groups."
   "Call `custom-load-symbol' on all atoms."
   (interactive)
   (if noninteractive (let (noninteractive) (require 'dunnet)))
-  (mapatoms 'custom-load-symbol)
+  (mapatoms #'custom-load-symbol)
   (run-hooks 'cus-test-after-load-libs-hook))
 
 (defmacro cus-test-load-1 (&rest body)
@@ -320,7 +327,8 @@ If it is \"all\", load all Lisp files."
       (lambda (file)
 	(condition-case alpha
 	    (unless (member file cus-test-libs-noloads)
-	      (load (file-name-sans-extension (expand-file-name file lispdir)))
+	      (load (file-name-sans-extension (expand-file-name file lispdir))
+                    nil t)
 	      (push file cus-test-libs-loaded))
 	  (error
 	   (push (cons file alpha) cus-test-libs-errors)
@@ -347,8 +355,10 @@ Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
     (prog1
 	;; Hack to remove leading "./".
 	(mapcar (lambda (e) (substring e 2))
-		(apply 'process-lines find-program
-		       "-name" "obsolete" "-prune" "-o"
+		(apply #'process-lines find-program
+		       "." "-name" "obsolete" "-prune" "-o"
+                       "-name" "ldefs-boot.el" "-prune" "-o"
+                       "-name" "*loaddefs.el" "-prune" "-o"
 		       "-name" "[^.]*.el" ; ignore .dir-locals.el
 		       (if all
 			   '("-print")
@@ -371,7 +381,9 @@ This function is suitable for batch mode.  E.g., invoke
 
 in the Emacs source directory.
 Normally only tests options belonging to files in loaddefs.el.
-If optional argument ALL is non-nil, test all files with defcustoms."
+If optional argument ALL is non-nil, test all files with defcustoms.
+
+Returns a list of variables with suspicious types."
   (interactive)
   (and noninteractive
        command-line-args-left
@@ -383,9 +395,12 @@ If optional argument ALL is non-nil, test all files with defcustoms."
   (message "Running %s" 'cus-test-apropos)
   (cus-test-apropos "")
   (if (not cus-test-errors)
-      (message "No problems found")
+      (progn
+        (message "No problems found")
+        nil)
     (message "The following options might have problems:")
-    (cus-test-message cus-test-errors)))
+    (cus-test-message cus-test-errors)
+    cus-test-errors))
 
 (defun cus-test-deps ()
   "Run a verbose version of `custom-load-symbol' on all atoms.
@@ -538,7 +553,7 @@ in the Emacs source directory."
 	(message "No options not loaded by custom-load-symbol found")
       (message "The following options were not loaded by custom-load-symbol:")
       (cus-test-message
-       (sort cus-test-vars-not-cus-loaded 'string<)))
+       (sort cus-test-vars-not-cus-loaded #'string<)))
 
     (dolist (o groups-loaded)
       (setq groups-not-loaded (delete o groups-not-loaded)))
@@ -546,7 +561,7 @@ in the Emacs source directory."
     (if (not groups-not-loaded)
 	(message "No groups not in cus-load.el found")
       (message "The following groups are not in cus-load.el:")
-      (cus-test-message (sort groups-not-loaded 'string<)))))
+      (cus-test-message (sort groups-not-loaded #'string<)))))
 
 (provide 'cus-test)
 

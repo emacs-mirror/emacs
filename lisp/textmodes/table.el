@@ -1,6 +1,6 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -61,7 +61,7 @@
 ;; holders.  Amazingly there have been no direct support for WYSIWYG
 ;; table editing tasks in Emacs.  Many people must have experienced
 ;; manipulating existing overwrite-mode and picture-mode for this task
-;; and only dreamed of having such a lisp package which supports this
+;; and only dreamed of having such a Lisp package which supports this
 ;; specific task directly.  Certainly, I have been one of them.  The
 ;; most difficult part of dealing with table editing in Emacs probably
 ;; is how to realize localized rectangular editing effect.  Emacs has
@@ -339,8 +339,8 @@
 ;; When using `table-cell-map-hook' do not use `local-set-key'.
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (local-set-key [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (local-set-key [<key sequence>] '<function>)))
 ;;
 ;; Adding the above to your init file is a common way to customize a
 ;; mode specific keymap.  However it does not work for this package.
@@ -349,8 +349,8 @@
 ;; explicitly.  The correct way of achieving above task is:
 ;;
 ;;   (add-hook 'table-cell-map-hook
-;;     (function (lambda ()
-;;       (define-key table-cell-map [<key sequence>] '<function>))))
+;;     (lambda ()
+;;       (define-key table-cell-map [<key sequence>] '<function>)))
 ;;
 ;; -----
 ;; Menu:
@@ -383,7 +383,7 @@
 ;; There is no artificial-intelligence magic in this package.  The
 ;; definition of a table and the cells inside the table is reasonably
 ;; limited in order to achieve acceptable performance in the
-;; interactive operation under Emacs lisp implementation.  A valid
+;; interactive operation under Emacs Lisp implementation.  A valid
 ;; table is a rectangular text area completely filled with valid
 ;; cells.  A valid cell is a rectangle text area, which four borders
 ;; consist of valid border characters.  Cells can not be nested one to
@@ -567,10 +567,6 @@
 ;; Consider the use of `:box' face attribute under Emacs 21
 ;; Consider the use of `modification-hooks' text property instead of
 ;; rebinding the keymap
-;; Maybe provide complete XEmacs support in the future however the
-;; "extent" is the single largest obstacle lying ahead, read the
-;; document in Emacs info.
-;; (progn (require 'info) (Info-find-node "elisp" "Not Intervals"))
 ;;
 ;;
 ;; ---------------
@@ -590,7 +586,7 @@
 ;; attempt of implementing the table feature to Emacs.  This greatly
 ;; motivated me to follow through to its completion.
 ;;
-;; Kenichi Handa <handa@etl.go.jp> kindly guided me through to
+;; Kenichi Handa <handa@gnu.org> kindly guided me through to
 ;; overcome many technical issues while I was struggling with quail
 ;; related internationalization problems.
 ;;
@@ -624,13 +620,6 @@
 (defvar flyspell-mode)
 (defvar real-last-command)
 (defvar delete-selection-mode)
-;; This is evil!!
-;; (eval-when-compile
-;;   (unless (fboundp 'set-face-property)
-;;     (defun set-face-property (face prop value)))
-;;   (unless (fboundp 'unibyte-char-to-multibyte)
-;;     (defun unibyte-char-to-multibyte (char)))
-;;   (defun table--point-in-cell-p (&optional location)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -764,6 +753,18 @@ the cell contents dynamically."
   :type 'string
   :group 'table)
 
+(defcustom table-latex-environment "tabular"
+  "Tabular-compatible environment to use when generating latex.
+The value should be a string suitable for use as a LaTeX environment
+that's compatible with the \"tabular\" protocol, such as \"tabular\"
+and \"longtable\"."
+  :tag "Latex environment used to export tables"
+  :type '(choice
+	  (const :tag "tabular" "tabular")
+	  (const :tag "longtable"  "longtable")
+          string)
+  :version "29.1")
+
 (defcustom table-cals-thead-rows 1
   "Number of top rows to become header rows in CALS table."
   :tag "CALS Header Rows"
@@ -797,6 +798,8 @@ simply by any key input."
   "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
+(make-obsolete-variable 'table-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom table-point-entered-cell-hook nil
   "List of functions to be called after point entered a table cell."
@@ -812,13 +815,6 @@ simply by any key input."
   "Yank handler for tables.")
 
 (setplist 'table-disable-incompatibility-warning nil)
-
-(defvar table-disable-menu (null (and (locate-library "easymenu")
-				      (require 'easymenu)
-				      (fboundp 'easy-menu-add-item)))
-  "When non-nil, use of menu by table package is disabled.
-It must be set before loading this package `table.el' for the first
-time.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -869,20 +865,21 @@ time.")
   "Timer id for deferred cell update.")
 (defvar table-inhibit-update nil
   "Non-nil inhibits implicit cell and cache updates.
-It inhibits `table-with-cache-buffer' to update data in both direction, cell to cache and cache to cell.")
+It inhibits `table-with-cache-buffer' to update data in both directions,
+cell to cache and cache to cell.")
 (defvar table-inhibit-auto-fill-paragraph nil
   "Non-nil inhibits auto fill paragraph when `table-with-cache-buffer' exits.
-This is always set to nil at the entry to `table-with-cache-buffer' before executing body forms.")
-(defvar table-mode-indicator nil
-  "For mode line indicator")
+This is always set to nil at the entry to `table-with-cache-buffer' before
+executing body forms.")
+(defvar-local table-mode-indicator nil
+  "For mode line indicator.")
 ;; This is not a real minor-mode but placed in the minor-mode-alist
 ;; so that we can show the indicator on the mode line handy.
-(make-variable-buffer-local 'table-mode-indicator)
 (unless (assq table-mode-indicator minor-mode-alist)
   (push '(table-mode-indicator (table-fixed-width-mode " Fixed-Table" " Table"))
         minor-mode-alist))
 
-(defconst table-source-languages '(html latex cals)
+(defconst table-source-languages '(html latex cals wiki mediawiki)
   "Supported source languages.")
 (defvar table-source-info-plist nil
   "General storage for temporary information used while generating source.")
@@ -930,16 +927,16 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 ;; refill the table cache.  If the command were not listed fast
 ;; typing can cause unwanted cache refill.
 (defconst table-cell-bindings
-  '(([(control i)]	. table-forward-cell)
-    ([(control I)]	. table-backward-cell)
+  '(([(control ?i)]	. table-forward-cell)
+    ([(control ?I)]	. table-backward-cell)
     ([tab]		. table-forward-cell)
     ([(shift backtab)]	. table-backward-cell) ; for HPUX console keyboard
     ([(shift iso-lefttab)]    . table-backward-cell) ; shift-tab on a microsoft natural keyboard and redhat linux
     ([(shift tab)]	. table-backward-cell)
     ([backtab]          . table-backward-cell) ; for terminals (e.g., xterm)
     ([return]		. *table--cell-newline)
-    ([(control m)]	. *table--cell-newline)
-    ([(control j)]	. *table--cell-newline-and-indent)
+    ([(control ?m)]	. *table--cell-newline)
+    ([(control ?j)]	. *table--cell-newline-and-indent)
     ([mouse-3]		. *table--present-cell-popup-menu)
     ([(control ?>)]	. table-widen-cell)
     ([(control ?<)]	. table-narrow-cell)
@@ -961,6 +958,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (completion-separator-self-insert-autofilling . *table--cell-self-insert-command)
     (completion-separator-self-insert-command . *table--cell-self-insert-command)
     (delete-char . *table--cell-delete-char)
+    (delete-forward-char . *table--cell-delete-char)
     (delete-backward-char . *table--cell-delete-backward-char)
     (backward-delete-char . *table--cell-delete-backward-char)
     (backward-delete-char-untabify . *table--cell-delete-backward-char)
@@ -972,7 +970,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (describe-bindings . *table--cell-describe-bindings)
     (dabbrev-expand . *table--cell-dabbrev-expand)
     (dabbrev-completion . *table--cell-dabbrev-completion))
-  "List of cons cells consisting of (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
+  "List of the form (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
 
 (defvar table-command-list
   ;; Construct the real contents of the `table-command-list'.
@@ -1202,35 +1200,27 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
       :help "Move point backward by cell(s)"])
     ))
 
-;; XEmacs causes an error when encountering unknown keywords in the
-;; menu definition.  Specifically the :help keyword is new in Emacs 21
-;; and causes error for the XEmacs function `check-menu-syntax'.  IMHO
-;; it is unwise to generate an error for unknown keywords because it
-;; kills the nice backward compatible extensibility of keyword use.
-;; Unknown keywords should be quietly ignore so that future extension
-;; does not cause a problem in the old implementation.  Sigh...
-(when (featurep 'xemacs)
-  (defun table--tweak-menu-for-xemacs (menu)
-    (cond
-     ((listp menu)
-      (mapcar #'table--tweak-menu-for-xemacs menu))
-     ((vectorp menu)
-      (let ((len (length menu)))
-        (dotimes (i len)
-          ;; replace :help with something harmless.
-          (if (eq (aref menu i) :help) (aset menu i :included)))))))
-  (mapcar #'table--tweak-menu-for-xemacs
-          (list table-global-menu table-cell-menu))
-  (defvar mark-active t))
-
 ;; register table menu under global tools menu
-(unless table-disable-menu
-  (easy-menu-define table-global-menu-map nil "Table global menu" table-global-menu)
-  (if (featurep 'xemacs)
-      (progn
-	(easy-menu-add-item nil '("Tools") table-global-menu-map))
-    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
-    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") table-global-menu-map)))
+(easy-menu-define table-global-menu-map nil
+  "Table global menu." table-global-menu)
+(easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
+(easy-menu-add-item (current-global-map)
+                    '("menu-bar" "tools") table-global-menu-map)
+
+;;;###autoload
+(define-minor-mode table-fixed-width-mode
+  "Cell width is fixed when this is non-nil.
+Normally it should be nil for allowing automatic cell width expansion
+that widens a cell when it is necessary.  When non-nil, typing in a
+cell does not automatically expand the cell width.  A word that is too
+long to fit in a cell is chopped into multiple lines.  The chopped
+location is indicated by `table-word-continuation-char'.  This
+variable's value can be toggled by \\[table-fixed-width-mode] at
+run-time."
+  :tag "Fix Cell Width"
+  :group 'table
+  (table--finish-delayed-tasks)
+  (table--update-cell-face))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -1256,43 +1246,49 @@ original buffer's point is moved to the location that corresponds to
 the last cache point coordinate."
   (declare (debug (body)) (indent 0))
   (let ((height-expansion (make-symbol "height-expansion-var-symbol"))
-	(width-expansion (make-symbol "width-expansion-var-symbol")))
-    `(let (,height-expansion ,width-expansion)
+	(width-expansion (make-symbol "width-expansion-var-symbol"))
+        (fixed-width (make-symbol "fixed-width")))
+    `(let ((,fixed-width table-fixed-width-mode)
+           ,height-expansion ,width-expansion)
        ;; make sure cache has valid data unless it is explicitly inhibited.
        (unless table-inhibit-update
 	 (table-recognize-cell))
        (with-current-buffer (get-buffer-create table-cache-buffer-name)
-	 ;; goto the cell coordinate based on `table-cell-cache-point-coordinate'.
-	 (set-mark (table--goto-coordinate table-cell-cache-mark-coordinate))
-	 (table--goto-coordinate table-cell-cache-point-coordinate)
-	 (table--untabify-line)
-	 ;; always reset before executing body forms because auto-fill behavior is the default.
-	 (setq table-inhibit-auto-fill-paragraph nil)
-	 ;; do the body
-	 ,@body
-	 ;; fill paragraph unless the body does not want to by setting `table-inhibit-auto-fill-paragraph'.
-	 (unless table-inhibit-auto-fill-paragraph
-	   (if (and table-cell-info-justify
-		    (not (eq table-cell-info-justify 'left)))
-	       (table--fill-region (point-min) (point-max))
-	     (table--fill-region
-	      (save-excursion (forward-paragraph -1) (point))
-	      (save-excursion (forward-paragraph 1) (point)))))
-	 ;; keep the updated cell coordinate.
-	 (setq table-cell-cache-point-coordinate (table--get-coordinate))
-	 ;; determine the cell width expansion.
-	 (setq ,width-expansion (table--measure-max-width))
-	 (if (<= ,width-expansion table-cell-info-width) nil
-	   (table--fill-region (point-min) (point-max) ,width-expansion)
-	   ;; keep the updated cell coordinate.
-	   (setq table-cell-cache-point-coordinate (table--get-coordinate)))
-	 (setq ,width-expansion (- ,width-expansion table-cell-info-width))
-	 ;; determine the cell height expansion.
-	 (if (looking-at "\\s *\\'") nil
-	   (goto-char (point-min))
-	   (if (re-search-forward "\\(\\s *\\)\\'" nil t)
-	       (goto-char (match-beginning 1))))
-	 (setq ,height-expansion (- (cdr (table--get-coordinate)) (1- table-cell-info-height))))
+         (let ((table-fixed-width-mode ,fixed-width))
+	   ;; Go to the cell coordinate based on
+	   ;; `table-cell-cache-point-coordinate'.
+	   (set-mark (table--goto-coordinate table-cell-cache-mark-coordinate))
+	   (table--goto-coordinate table-cell-cache-point-coordinate)
+	   (table--untabify-line)
+	   ;; Always reset before executing body forms because
+	   ;; auto-fill behavior is the default.
+	   (setq table-inhibit-auto-fill-paragraph nil)
+	   ;; Do the body
+	   ,@body
+	   ;; Fill paragraph unless the body does not want to by
+	   ;; setting `table-inhibit-auto-fill-paragraph'.
+	   (unless table-inhibit-auto-fill-paragraph
+	     (if (and table-cell-info-justify
+		      (not (eq table-cell-info-justify 'left)))
+	         (table--fill-region (point-min) (point-max))
+	       (table--fill-region
+	        (save-excursion (forward-paragraph -1) (point))
+	        (save-excursion (forward-paragraph 1) (point)))))
+	   ;; Keep the updated cell coordinate.
+	   (setq table-cell-cache-point-coordinate (table--get-coordinate))
+	   ;; Determine the cell width expansion.
+	   (setq ,width-expansion (table--measure-max-width))
+	   (if (<= ,width-expansion table-cell-info-width) nil
+	     (table--fill-region (point-min) (point-max) ,width-expansion)
+	     ;; Keep the updated cell coordinate.
+	     (setq table-cell-cache-point-coordinate (table--get-coordinate)))
+	   (setq ,width-expansion (- ,width-expansion table-cell-info-width))
+	   ;; Determine the cell height expansion.
+	   (if (looking-at "\\s *\\'") nil
+	     (goto-char (point-min))
+	     (if (re-search-forward "\\(\\s *\\)\\'" nil t)
+	         (goto-char (match-beginning 1))))
+	   (setq ,height-expansion (- (cdr (table--get-coordinate)) (1- table-cell-info-height)))))
        ;; now back to the table buffer.
        ;; expand the cell width in the table buffer if necessary.
        (if (> ,width-expansion 0)
@@ -1310,12 +1306,8 @@ the last cache point coordinate."
        ;; set up the update timer unless it is explicitly inhibited.
        (unless table-inhibit-update
 	 (table--update-cell)))))
-(if (or (featurep 'xemacs)
-	(null (fboundp 'font-lock-add-keywords))) nil
-  ;; Color it as a keyword.
-  (font-lock-add-keywords
-   'emacs-lisp-mode
-   '("\\<table-with-cache-buffer\\>")))
+;; Color it as a keyword.
+(font-lock-add-keywords 'emacs-lisp-mode '("\\<table-with-cache-buffer\\>"))
 
 (defmacro table-put-source-info (prop value)
   "Register source generation information."
@@ -1347,17 +1339,16 @@ the last cache point coordinate."
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
     (defalias func-symbol
-      `(lambda
-         (&rest args)
-         ,doc-string
-         (interactive)
-         (let ((table-inhibit-update t)
-               (deactivate-mark nil))
-           (table--finish-delayed-tasks)
-           (table-recognize-cell 'force)
-           (table-with-cache-buffer
-             (call-interactively ',command)
-             (setq table-inhibit-auto-fill-paragraph t)))))
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (let ((table-inhibit-update t)
+              (deactivate-mark nil))
+          (table--finish-delayed-tasks)
+          (table-recognize-cell 'force)
+          (table-with-cache-buffer
+           (call-interactively command)
+           (setq table-inhibit-auto-fill-paragraph t)))))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1379,17 +1370,16 @@ the last cache point coordinate."
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
     (defalias func-symbol
-      `(lambda
-         (&rest args)
-         ,doc-string
-         (interactive)
-         (table--finish-delayed-tasks)
-         (table-recognize-cell 'force)
-         (table-with-cache-buffer
-           (table--remove-cell-properties (point-min) (point-max))
-           (table--remove-eol-spaces (point-min) (point-max))
-           (call-interactively ',command))
-         (table--finish-delayed-tasks)))
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (table--remove-cell-properties (point-min) (point-max))
+         (table--remove-eol-spaces (point-min) (point-max))
+         (call-interactively command))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1401,19 +1391,18 @@ the last cache point coordinate."
            insert))
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
-    (fset func-symbol
-          `(lambda
-             (&rest args)
-             ,doc-string
-             (interactive)
-             (table--finish-delayed-tasks)
-             (table-recognize-cell 'force)
-             (table-with-cache-buffer
-               (call-interactively ',command)
-               (table--untabify (point-min) (point-max))
-               (table--fill-region (point-min) (point-max))
-               (setq table-inhibit-auto-fill-paragraph t))
-             (table--finish-delayed-tasks)))
+    (defalias func-symbol
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (call-interactively command)
+         (table--untabify (point-min) (point-max))
+         (table--fill-region (point-min) (point-max))
+         (setq table-inhibit-auto-fill-paragraph t))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1425,18 +1414,17 @@ the last cache point coordinate."
            fill-paragraph))
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
-    (fset func-symbol
-          `(lambda
-             (&rest args)
-             ,doc-string
-             (interactive)
-             (table--finish-delayed-tasks)
-             (table-recognize-cell 'force)
-             (table-with-cache-buffer
-               (let ((fill-column table-cell-info-width))
-                 (call-interactively ',command))
-               (setq table-inhibit-auto-fill-paragraph t))
-             (table--finish-delayed-tasks)))
+    (defalias func-symbol
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (let ((fill-column table-cell-info-width))
+           (call-interactively command))
+         (setq table-inhibit-auto-fill-paragraph t))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1533,7 +1521,7 @@ Move the point under the table as shown below.
     +--------------+------+--------------------------------+
     -!-
 
-Type M-x table-insert-row instead of \\[table-insert-row-column].  \\[table-insert-row-column] does not work
+Type \\[table-insert-row] instead of \\[table-insert-row-column].  \\[table-insert-row-column] does not work
 when the point is outside of the table.  This insertion at
 outside of the table effectively appends a row at the end.
 
@@ -1847,11 +1835,11 @@ See `table-insert-row' and `table-insert-column'."
      (list (intern (let ((completion-ignore-case t)
 			 (default (car table-insert-row-column-history)))
 		     (downcase (completing-read
-				(format "Insert %s row%s/column%s (default %s): "
-					(if (> n 1) (format "%d" n) "a")
-					(if (> n 1) "s" "")
-					(if (> n 1) "s" "")
-					default)
+				(format-prompt
+                                 "Insert %s row%s/column%s" default
+				 (if (> n 1) (format "%d" n) "a")
+				 (if (> n 1) "s" "")
+				 (if (> n 1) "s" ""))
 				'(("row") ("column"))
 				nil t nil 'table-insert-row-column-history default))))
 	   n)))
@@ -1998,7 +1986,7 @@ is negative the cell becomes inactive, meaning that the cell becomes
 plain text and loses all the table specific features."
   (interactive "i\ni\np")
   (table--make-cell-map)
-  (if (or force (not (memq (table--get-last-command) table-command-list)))
+  (if (or force (not (memq real-last-command table-command-list)))
       (let* ((cell (table--probe-cell (called-interactively-p 'interactive)))
 	     (cache-buffer (get-buffer-create table-cache-buffer-name))
 	     (modified-flag (buffer-modified-p))
@@ -2046,8 +2034,6 @@ plain text and loses all the table specific features."
 		    (erase-buffer)
 		    (table--insert-rectangle rectangle)))))
 	  (restore-buffer-modified-p modified-flag))
-	(if (featurep 'xemacs)
-	    (table--warn-incompatibility))
 	cell)))
 
 ;;;###autoload
@@ -2415,7 +2401,9 @@ table's rectangle structure."
   "Move point forward to the beginning of the next cell.
 With argument ARG, do it ARG times;
 a negative argument ARG = -N means move backward N cells.
-Do not specify NO-RECOGNIZE and UNRECOGNIZE. They are for internal use only.
+
+Do not specify NO-RECOGNIZE and UNRECOGNIZE.  They are for
+internal use only.
 
 Sample Cell Traveling Order (In Irregular Table Cases)
 
@@ -2446,8 +2434,7 @@ You can actually try how it works in this buffer.  Press
 +--+  |4 |  |4 |  +--+	|5 +--+--+6 |  |3 +--+--+4 |  |5 |     |6 |
 |5 +--+  |  |  +--+5 |	|  |7 |8 |  |  |  |5 |6 |  |  |  |     |  |
 |  |6 |  |  |  |6 |  |	+--+--+--+--+  +--+--+--+--+  +--+-----+--+
-+--+--+--+  +--+--+--+
-"
++--+--+--+  +--+--+--+"
   ;; After modifying this function, test against the above tables in
   ;; the doc string.  It is quite tricky.  The tables above do not
   ;; mean to cover every possible cases of cell layout, of course.
@@ -2559,7 +2546,7 @@ DIRECTION is one of symbols; right, left, above or below."
 				 (caar direction-list)))
 	   (completion-ignore-case t))
       (intern (downcase (completing-read
-			 (format "Span into (default %s): " default-direction)
+			 (format-prompt "Span into" default-direction)
 			 direction-list
 			 nil t nil 'table-cell-span-direction-history default-direction))))))
   (unless (memq direction '(right left above below))
@@ -2693,7 +2680,8 @@ Creates a cell above and a cell below the current point location."
 ;;;###autoload
 (defun table-split-cell-horizontally ()
   "Split current cell horizontally.
-Creates a cell on the left and a cell on the right of the current point location."
+Creates a cell on the left and a cell on the right of the current
+point location."
   (interactive "*")
   (table-recognize-cell 'force)
   (let* ((o-coordinate (table--get-coordinate))
@@ -2722,7 +2710,7 @@ Creates a cell on the left and a cell on the right of the current point location
 				   ("Title"
 				    ("Split" . "split") ("Left" . "left") ("Right" . "right"))))
 		 (downcase (completing-read
-			    (format "Existing cell contents to (default %s): " default)
+			    (format-prompt "Existing cell contents to" default)
 			    '(("split") ("left") ("right"))
 			    nil t nil 'table-cell-split-contents-to-history default)))))))
     (unless (eq contents-to 'split)
@@ -2794,7 +2782,7 @@ ORIENTATION is a symbol either horizontally or vertically."
 	   (completion-ignore-case t)
 	   (default (car table-cell-split-orientation-history)))
       (intern (downcase (completing-read
-			 (format "Split orientation (default %s): " default)
+			 (format-prompt "Split orientation" default)
 			 '(("horizontally") ("vertically"))
 			 nil t nil 'table-cell-split-orientation-history default))))))
   (unless (memq orientation '(horizontally vertically))
@@ -2814,7 +2802,7 @@ WHAT is a symbol `cell', `row' or `column'.  JUSTIFY is a symbol
 		(completion-ignore-case t)
 		(default (car table-target-history)))
 	   (intern (downcase (completing-read
-			      (format "Justify what (default %s): " default)
+			      (format-prompt "Justify what" default)
 			      '(("cell") ("row") ("column"))
 			      nil t nil 'table-target-history default))))
 	 (table--query-justification)))
@@ -2866,21 +2854,6 @@ or `top', `middle', `bottom' or `none' for vertical."
 	  (goto-char (car cell))
 	  (table-recognize-cell 'force)
 	  (table--justify-cell-contents justify))))))
-
-;;;###autoload
-(define-minor-mode table-fixed-width-mode
-  "Cell width is fixed when this is non-nil.
-Normally it should be nil for allowing automatic cell width expansion
-that widens a cell when it is necessary.  When non-nil, typing in a
-cell does not automatically expand the cell width.  A word that is too
-long to fit in a cell is chopped into multiple lines.  The chopped
-location is indicated by `table-word-continuation-char'.  This
-variable's value can be toggled by \\[table-fixed-width-mode] at
-run-time."
-  :tag "Fix Cell Width"
-  :group 'table
-  (table--finish-delayed-tasks)
-  (table--update-cell-face))
 
 ;;;###autoload
 (defun table-query-dimension (&optional where)
@@ -2939,35 +2912,35 @@ WHERE is provided the cell and table at that location is reported."
 (defun table-generate-source (language &optional dest-buffer caption)
   "Generate source of the current table in the specified language.
 LANGUAGE is a symbol that specifies the language to describe the
-structure of the table.  It must be either `html', `latex' or `cals'.
-The resulted source text is inserted into DEST-BUFFER and the buffer
-object is returned.  When DEST-BUFFER is omitted or nil the default
-buffer specified in `table-dest-buffer-name' is used.  In this case
-the content of the default buffer is erased prior to the generation.
-When DEST-BUFFER is non-nil it is expected to be either a destination
-buffer or a name of the destination buffer.  In this case the
-generated result is inserted at the current point in the destination
-buffer and the previously existing contents in the buffer are
-untouched.
+structure of the table.  It must be either `html', `latex', `cals',
+`wiki', or `mediawiki'.
+The function inserts the resulting source text into DEST-BUFFER, and
+returns the buffer object.  When DEST-BUFFER is omitted or nil, the
+function uses the default buffer specified in `table-dest-buffer-name'.
+In this case, the function erases the default buffer prior to the
+source generation.
+When DEST-BUFFER is non-nil, it should be either a destination
+buffer or a name of the destination buffer.  In that case, the
+function inserts the generated result at point in the destination
+buffer, and leaves the previous contents of the buffer untouched.
 
 References used for this implementation:
 
 HTML:
-        URL `http://www.w3.org'
+        URL `https://www.w3.org'
 
 LaTeX:
-        URL `http://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
+        URL `https://www.maths.tcd.ie/~dwilkins/LaTeXPrimer/Tables.html'
 
 CALS (DocBook DTD):
-        URL `http://www.oasis-open.org/html/a502.htm'
-        URL `http://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751'
-"
+        URL `https://www.oasis-open.org/html/a502.htm'
+        URL `https://www.oreilly.com/catalog/docbook/chapter/book/table.html#AEN114751'"
   (interactive
    (let* ((_ (unless (table--probe-cell) (error "Table not found here")))
 	  (completion-ignore-case t)
 	  (default (car table-source-language-history))
 	  (language (downcase (completing-read
-			       (format "Language (default %s): " default)
+			       (format-prompt "Language" default)
 			       table-source-languages
 			       nil t nil 'table-source-language-history default))))
      (list
@@ -3016,8 +2989,8 @@ CALS (DocBook DTD):
 		(setq col-list (cons (car lu-coordinate) col-list)))
 	      (unless (memq (cdr lu-coordinate) row-list)
 		(setq row-list (cons (cdr lu-coordinate) row-list))))))
-	(setq col-list (sort col-list '<))
-	(setq row-list (sort row-list '<))
+	(setq col-list (sort col-list #'<))
+	(setq row-list (sort row-list #'<))
 	(message "Generating source...")
 	;; clear the source generation property list
 	(setplist 'table-source-info-plist nil)
@@ -3064,7 +3037,8 @@ CALS (DocBook DTD):
 		"")))
      ((eq language 'latex)
       (insert (format "%% This LaTeX table template is generated by emacs %s\n" emacs-version)
-	      "\\begin{tabular}{|" (apply 'concat (make-list (length col-list) "l|")) "}\n"
+	      "\\begin{" table-latex-environment "}{|"
+              (apply #'concat (make-list (length col-list) "l|")) "}\n"
 	      "\\hline\n"))
      ((eq language 'cals)
       (insert (format "<!-- This CALS table template is generated by emacs %s -->\n" emacs-version)
@@ -3077,7 +3051,11 @@ CALS (DocBook DTD):
       (table-put-source-info 'row-type (if (zerop table-cals-thead-rows) "tbody" "thead"))
       (set-marker-insertion-type (table-get-source-info 'colspec-marker) nil) ;; insert after
       (insert (format "    <%s valign=\"top\">\n" (table-get-source-info 'row-type))))
-     )))
+     ((eq language 'mediawiki)
+      (insert (format
+               "<!-- This HTML table template is generated by Emacs %s -->\n"
+               emacs-version))
+      (insert "{|\n")))))
 
 (defun table--generate-source-epilogue (dest-buffer language _col-list _row-list)
   "Generate and insert source epilogue into DEST-BUFFER."
@@ -3086,15 +3064,16 @@ CALS (DocBook DTD):
      ((eq language 'html)
       (insert "</table>\n"))
      ((eq language 'latex)
-      (insert "\\end{tabular}\n"))
+      (insert "\\end{" table-latex-environment "}\n"))
      ((eq language 'cals)
       (set-marker-insertion-type (table-get-source-info 'colspec-marker) t) ;; insert before
       (save-excursion
 	(goto-char (table-get-source-info 'colspec-marker))
-	(dolist (col (sort (table-get-source-info 'colnum-list) '<))
+	(dolist (col (sort (table-get-source-info 'colnum-list) #'<))
           (insert (format "    <colspec colnum=\"%d\" colname=\"c%d\"/>\n" col col))))
       (insert (format "    </%s>\n  </tgroup>\n</table>\n" (table-get-source-info 'row-type))))
-     )))
+     ((eq language 'mediawiki)
+      (insert "|}\n")))))
 
 (defun table--generate-source-scan-rows (dest-buffer language _origin-cell col-list row-list)
   "Generate and insert source rows into DEST-BUFFER."
@@ -3106,7 +3085,11 @@ CALS (DocBook DTD):
 	(insert "  <tr>\n"))
        ((eq language 'cals)
 	(insert "      <row>\n"))
-       ))
+       ((eq language 'wiki)
+	(insert "|"))
+       ((and (eq language 'mediawiki)
+             (> (table-get-source-info 'current-row) 1))
+	(insert "|-\n"))))
     (table--generate-source-cells-in-a-row dest-buffer language col-list row-list)
     (with-current-buffer dest-buffer
       (cond
@@ -3116,7 +3099,9 @@ CALS (DocBook DTD):
 	(insert "      </row>\n")
 	(unless (/= (table-get-source-info 'current-row) table-cals-thead-rows)
 	  (insert (format "    </%s>\n" (table-get-source-info 'row-type)))
-	  (insert (format "    <%s valign=\"top\">\n" (table-put-source-info 'row-type "tbody")))))))
+	  (insert (format "    <%s valign=\"top\">\n" (table-put-source-info 'row-type "tbody")))))
+       ((eq language 'wiki)
+	(insert "|\n"))))
     (table-put-source-info 'current-row (1+ (table-get-source-info 'current-row)))
     (setq row-list (cdr row-list))))
 
@@ -3185,7 +3170,8 @@ CALS (DocBook DTD):
 		       (not (memq valign '(top none))))
 		  (insert " valign=\"" (symbol-name valign) "\""))
 	      (insert ">\n"))
-	     ))
+	     ((memq language '(wiki mediawiki))
+	      (insert "|"))))
 	  (table--generate-source-cell-contents dest-buffer language cell)
 	  (with-current-buffer dest-buffer
 	    (cond
@@ -3193,7 +3179,10 @@ CALS (DocBook DTD):
 	      (insert (format"    </%s>\n" (table-get-source-info 'cell-type))))
 	     ((eq language 'cals)
 	      (insert "        </entry>\n"))
-	     ))
+	     ((eq language 'wiki)
+	      (insert "|"))
+	     ((eq language 'mediawiki)
+	      (insert ?\n))))
 	  (table-forward-cell 1 t)
 	  (table-put-source-info 'current-column (table-get-source-info 'next-column))
 	  ))))
@@ -3218,11 +3207,7 @@ CALS (DocBook DTD):
 	  (while (and (re-search-forward "$" nil t)
 		      (not (eobp)))
 	    (insert "<br />")
-	    (forward-char 1)))
-	(unless (and table-html-delegate-spacing-to-user-agent
-		     (progn
-		       (goto-char (point-min))
-		       (looking-at "\\s *\\'")))))
+	    (forward-char 1))))
        ((eq language 'cals)
 	(table--remove-eol-spaces (point-min) (point-max))
 	(if (re-search-forward "\\s +\\'" nil t)
@@ -3232,14 +3217,15 @@ CALS (DocBook DTD):
     (with-current-buffer dest-buffer
       (let ((beg (point)))
 	(insert cell-contents)
-	(indent-rigidly beg (point)
-			(cond
-			 ((eq language 'html) 6)
-			 ((eq language 'cals) 10)))
-	(insert ?\n)))))
+	(when (memq language '(html cals))
+	  (indent-rigidly beg (point)
+			  (cond
+			   ((eq language 'html) 6)
+			   ((eq language 'cals) 10)))
+	(insert ?\n))))))
 
 (defun table--cell-horizontal-char-p (c)
-  "Test if character C is one of the horizontal characters"
+  "Test if character C is one of the horizontal characters."
   (memq c (string-to-list table-cell-horizontal-chars)))
 
 (defun table--generate-source-scan-lines (dest-buffer _language origin-cell tail-cell col-list row-list)
@@ -3282,34 +3268,33 @@ Currently this method is for LaTeX only."
 	  (let* ((span 1) ;; spanning length
 		 (first-p t) ;; first in a row
 		 (insert-column ;; a function that processes one column/multicolumn
-		  (function
-		   (lambda (from to)
-		     (let ((line (table--buffer-substring-and-trim
-				  (table--goto-coordinate (cons from y))
-				  (table--goto-coordinate (cons to y)))))
-		       ;; escape special characters
-		       (with-temp-buffer
-			 (insert line)
-			 (goto-char (point-min))
-			 (while (re-search-forward "\\([#$~_^%{}]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
-			   (if (match-beginning 1)
-			       (save-excursion
-				 (goto-char (match-beginning 1))
-				 (insert  "\\"))
-			     (if (match-beginning 2)
-				 (replace-match "$\\backslash$" t t)
-			       (replace-match (concat "$" (match-string 3) "$")) t t)))
-			 (setq line (buffer-substring (point-min) (point-max))))
-		       ;; insert a column separator and column/multicolumn contents
-		       (with-current-buffer dest-buffer
-			 (unless first-p
-			   (insert (if (eq (char-before) ?\s) "" " ") "& "))
-			 (if (> span 1)
-			     (insert (format "\\multicolumn{%d}{%sl|}{%s}" span (if first-p "|" "") line))
-			   (insert line)))
-		       (setq first-p nil)
-		       (setq span 1)
-		       (setq start (nth i col-list)))))))
+                  (lambda (from to)
+                    (let ((line (table--buffer-substring-and-trim
+                                 (table--goto-coordinate (cons from y))
+                                 (table--goto-coordinate (cons to y)))))
+                      ;; escape special characters
+                      (with-temp-buffer
+                        (insert line)
+                        (goto-char (point-min))
+                        (while (re-search-forward "\\([#$~_^%{}&]\\)\\|\\(\\\\\\)\\|\\([<>|]\\)" nil t)
+                          (if (match-beginning 1)
+                              (save-excursion
+                                (goto-char (match-beginning 1))
+                                (insert  "\\"))
+                            (if (match-beginning 2)
+                                (replace-match "$\\backslash$" t t)
+                              (replace-match (concat "$" (match-string 3) "$")) t t)))
+                        (setq line (buffer-substring (point-min) (point-max))))
+                      ;; insert a column separator and column/multicolumn contents
+                      (with-current-buffer dest-buffer
+                        (unless first-p
+                          (insert (if (eq (char-before) ?\s) "" " ") "& "))
+                        (if (> span 1)
+                            (insert (format "\\multicolumn{%d}{%sl|}{%s}" span (if first-p "|" "") line))
+                          (insert line)))
+                      (setq first-p nil)
+                      (setq span 1)
+                      (setq start (nth i col-list))))))
 	    (setq start x0)
 	    (setq i 1)
 	    (while (setq c (nth i border-char-list))
@@ -3378,7 +3363,7 @@ Example:
 	   (let* ((completion-ignore-case t)
 		  (default (car table-sequence-justify-history)))
 	     (intern (downcase (completing-read
-				(format "Justify (default %s): " default)
+				(format-prompt "Justify" default)
 				'(("left") ("center") ("right"))
 				nil t nil 'table-sequence-justify-history default)))))))
   (unless (or (called-interactively-p 'interactive) (table--probe-cell))
@@ -3515,9 +3500,9 @@ column must consists from cells of same width."
       (let ((cell-list (table--vertical-cell-list 'top-to-bottom)))
 	(unless
 	    (and (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (car cell))))) cell-list))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (car cell)))) cell-list))
 		 (table--uniform-list-p
-		  (mapcar (function (lambda (cell) (car (table--get-coordinate (cdr cell))))) cell-list)))
+                  (mapcar (lambda (cell) (car (table--get-coordinate (cdr cell)))) cell-list)))
 	  (error "Cells in this column are not in uniform width"))
 	(unless lu-coord
 	  (setq lu-coord (table--get-coordinate (caar cell-list))))
@@ -3659,8 +3644,7 @@ independently.
 
 By applying `table-release', which does the opposite process, the
 contents become once again plain text.  `table-release' works as
-companion command to `table-capture' this way.
-"
+companion command to `table-capture' this way."
   (interactive
    (let ((col-delim-regexp)
 	 (row-delim-regexp))
@@ -3680,7 +3664,7 @@ companion command to `table-capture' this way.
 	(if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) 'left
 	  (intern
 	   (downcase (completing-read
-		      (format "Justify (default %s): " default)
+		      (format-prompt "Justify" default)
 		      '(("left") ("center") ("right"))
 		      nil t nil 'table-capture-justify-history default)))))
       (if (and (string= col-delim-regexp "") (string= row-delim-regexp "")) "1"
@@ -3876,16 +3860,13 @@ converts a table into plain text without frames.  It is a companion to
       (setq table-cell-map map)
       (fset 'table-cell-map map)))
   ;; Add menu for table cells.
-  (unless table-disable-menu
-    (easy-menu-define table-cell-menu-map table-cell-map
-      "Table cell menu" table-cell-menu)
-    (if (featurep 'xemacs)
-	(easy-menu-add table-cell-menu)))
+  (easy-menu-define table-cell-menu-map table-cell-map
+    "Table cell menu" table-cell-menu)
   (run-hooks 'table-cell-map-hook))
 
 ;; Create the keymap after running the user init file so that the user
 ;; modification to the global-map is accounted.
-(add-hook 'after-init-hook 'table--make-cell-map t)
+(add-hook 'after-init-hook #'table--make-cell-map t)
 
 (defun *table--cell-self-insert-command ()
   "Table cell version of `self-insert-command'."
@@ -4071,16 +4052,15 @@ key             binding
 (defun *table--present-cell-popup-menu (event)
   "Present and handle cell popup menu."
   (interactive "e")
-  (unless table-disable-menu
-    (select-window (posn-window (event-start event)))
-    (goto-char (posn-point (event-start event)))
-    (let ((item-list (x-popup-menu event table-cell-menu-map))
-	  (func table-cell-menu-map))
-      (while item-list
-	(setq func (nth 3 (assoc (car item-list) func)))
-	(setq item-list (cdr item-list)))
-      (if (and (symbolp func) (fboundp func))
-	  (call-interactively func)))))
+  (select-window (posn-window (event-start event)))
+  (goto-char (posn-point (event-start event)))
+  (let ((item-list (x-popup-menu event table-cell-menu-map))
+        (func table-cell-menu-map))
+    (while item-list
+      (setq func (nth 3 (assoc (car item-list) func)))
+      (setq item-list (cdr item-list)))
+    (if (and (symbolp func) (fboundp func))
+        (call-interactively func))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -4093,7 +4073,7 @@ When the optional parameter NOW is nil it only sets up the update
 timer.  If it is non-nil the function copies the contents of the cell
 cache buffer into the designated cell in the table buffer."
   (if (null table-update-timer) nil
-    (table--cancel-timer table-update-timer)
+    (cancel-timer table-update-timer)
     (setq table-update-timer nil))
   (if (or (not now)
 	  (and (boundp 'quail-converting)
@@ -4101,17 +4081,20 @@ cache buffer into the designated cell in the table buffer."
 	  (and (boundp 'quail-translating)
 	       quail-translating))
       (setq table-update-timer
-	    (table--set-timer table-time-before-update
-			      (function table--update-cell)
-			      'now))
+            (run-with-idle-timer table-time-before-update
+                                 nil
+                                 (function table--update-cell)
+                                 'now))
     (save-current-buffer
       (set-buffer table-cell-buffer)
       (let ((cache-buffer (get-buffer-create table-cache-buffer-name))
 	    (org-coord (table--get-coordinate))
+            (fixed table-fixed-width-mode)
 	    (in-cell (equal (table--cell-to-coord (table--probe-cell))
 			    (cons table-cell-info-lu-coordinate table-cell-info-rb-coordinate)))
 	    rectangle)
 	(set-buffer cache-buffer)
+        (setq-local table-fixed-width-mode fixed)
 	(setq rectangle
 	      (extract-rectangle
 	       1
@@ -4136,13 +4119,14 @@ cache buffer into the designated cell in the table buffer."
 (defun table--update-cell-widened (&optional now)
   "Update the contents of the cells that are affected by widening operation."
   (if (null table-widen-timer) nil
-    (table--cancel-timer table-widen-timer)
+    (cancel-timer table-widen-timer)
     (setq table-widen-timer nil))
   (if (not now)
       (setq table-widen-timer
-	    (table--set-timer (+ table-time-before-update table-time-before-reformat)
-			      (function table--update-cell-widened)
-			      'now))
+            (run-with-idle-timer (+ table-time-before-update table-time-before-reformat)
+                                 nil
+                                 (function table--update-cell-widened)
+                                 'now))
     (save-current-buffer
       (if table-update-timer
 	  (table--update-cell 'now))
@@ -4175,13 +4159,14 @@ cache buffer into the designated cell in the table buffer."
 (defun table--update-cell-heightened (&optional now)
   "Update the contents of the cells that are affected by heightening operation."
   (if (null table-heighten-timer) nil
-    (table--cancel-timer table-heighten-timer)
+    (cancel-timer table-heighten-timer)
     (setq table-heighten-timer nil))
   (if (not now)
       (setq table-heighten-timer
-	    (table--set-timer (+ table-time-before-update table-time-before-reformat)
-			      (function table--update-cell-heightened)
-			      'now))
+            (run-with-idle-timer (+ table-time-before-update table-time-before-reformat)
+                                 nil
+                                 (function table--update-cell-heightened)
+                                 'now))
     (save-current-buffer
       (if table-update-timer
 	  (table--update-cell 'now))
@@ -4226,21 +4211,21 @@ cache buffer into the designated cell in the table buffer."
     (1- (cdr (table--get-coordinate (car (table--vertical-cell-list t t))))))))
 
 (defun table-goto-top-right-corner ()
-  "Move point to top right corner of the current table and return the char position."
+  "Move point to top right corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
     (1- (cdr (table--get-coordinate (car (table--vertical-cell-list t t))))))))
 
 (defun table-goto-bottom-left-corner ()
-  "Move point to bottom left corner of the current table and return the char position."
+  "Move point to bottom left corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (1- (car (table--get-coordinate (car (table--horizontal-cell-list t t)))))
     (1+ (cdr (table--get-coordinate (cdr (table--vertical-cell-list nil t))))))))
 
 (defun table-goto-bottom-right-corner ()
-  "Move point to bottom right corner of the current table and return the char position."
+  "Move point to bottom right corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
@@ -4267,13 +4252,8 @@ cache buffer into the designated cell in the table buffer."
 PROMPT-HISTORY is a cons cell which car is the prompt string and the
 cdr is the history symbol."
   (let ((default (car (symbol-value (cdr prompt-history)))))
-    (read-from-minibuffer
-     (format "%s (default %s): " (car prompt-history) default)
-     "" nil nil (cdr prompt-history) default))
-  (and (featurep 'xemacs)
-       (equal (car (symbol-value (cdr prompt-history))) "")
-       (set (cdr prompt-history)
-	    (cdr (symbol-value (cdr prompt-history)))))
+    (read-from-minibuffer (format-prompt (car prompt-history) default)
+                          "" nil nil (cdr prompt-history) default))
   (car (symbol-value (cdr prompt-history))))
 
 (defun table--buffer-substring-and-trim (beg end)
@@ -4330,7 +4310,7 @@ Returns the coordinate of the final point location."
   (let* ((completion-ignore-case t)
 	 (default (car table-justify-history)))
     (intern (downcase (completing-read
-		       (format "Justify (default %s): " default)
+		       (format-prompt "Justify" default)
 		       '(("left") ("center") ("right") ("top") ("middle") ("bottom") ("none"))
 		       nil t nil 'table-justify-history default)))))
 
@@ -4573,7 +4553,7 @@ grow into."
 
 (defun table--untabify-line (&optional from)
   "Untabify current line.
-Unlike save-excursion this guarantees preserving the cursor location
+Unlike `save-excursion' this guarantees preserving the cursor location
 even when the point is on a tab character which is to be removed.
 Optional FROM narrows the subject operation from this point to the end
 of line."
@@ -4584,10 +4564,7 @@ of line."
 
 (defun table--untabify (beg end)
   "Wrapper to raw untabify."
-  (untabify beg end)
-  (if (featurep 'xemacs)
-      ;; Cancel strange behavior of xemacs
-      (message "")))
+  (untabify beg end))
 
 (defun table--multiply-string (string multiplier)
   "Multiply string and return it."
@@ -4733,8 +4710,7 @@ in the list."
 
 (defun table--cell-insert-char (char &optional overwrite)
   "Insert CHAR inside a table cell."
-  (let ((delete-selection-p (and (boundp 'delete-selection-mode)
-				 delete-selection-mode
+  (let ((delete-selection-p (and delete-selection-mode
 				 transient-mark-mode mark-active
 				 (not buffer-read-only)))
 	(mark-coordinate (table--transcoord-table-to-cache (table--get-coordinate (mark t)))))
@@ -4959,10 +4935,11 @@ When optional LOCATION is provided the test is performed at that location."
 	   (save-excursion
 	     (goto-char location)
 	     (table--probe-cell))
-	 (table--probe-cell))))
+	 (table--probe-cell))
+       t))
 
 (defun table--region-in-cell-p (beg end)
-  "Return t when location BEG and END are in a valid table cell in the current buffer."
+  "Return t when location BEG and END are in a valid table cell in current buffer."
   (and (table--at-cell-p (min beg end))
        (save-excursion
 	 (let ((cell-beg (progn (goto-char beg) (table--probe-cell))))
@@ -4970,7 +4947,7 @@ When optional LOCATION is provided the test is performed at that location."
 		(equal cell-beg (progn (goto-char end) (table--probe-cell))))))))
 
 (defun table--at-cell-p (position &optional object at-column)
-  "Returns non-nil if POSITION has table-cell property in OBJECT.
+  "Return non-nil if POSITION has table-cell property in OBJECT.
 OBJECT is optional and defaults to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil."
   (if (and at-column (stringp object))
@@ -5062,7 +5039,7 @@ Focus only on the corner pattern.  Further cell validity check is required."
        (get-text-property (point) 'table-cell)))
 
 (defun table--probe-cell (&optional abort-on-error)
-  "Probes a table cell around the point.
+  "Probe a table cell around the point.
 Searches for the left upper corner and the right bottom corner of a table
 cell which contains the current point location.
 
@@ -5115,7 +5092,7 @@ signals error if the optional ABORT-ON-ERROR is non-nil."
 
 (defun table--insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
-Same as insert-rectangle except that mark operation is eliminated."
+Same as `insert-rectangle' except that mark operation is eliminated."
   (let ((lines rectangle)
 	(insertcolumn (current-column))
 	(first t))
@@ -5171,7 +5148,7 @@ and the right cell border character."
 
 (defun table--put-cell-face-property (beg end &optional object)
   "Put cell face property."
-  (put-text-property beg end 'face 'table-cell object))
+  (put-text-property beg end 'font-lock-face 'table-cell object))
 
 (defun table--put-cell-keymap-property (beg end &optional object)
   "Put cell keymap property."
@@ -5198,7 +5175,7 @@ instead of the current buffer and returns the OBJECT."
 				   'table-cell nil
 				   'table-justify nil
 				   'table-valign nil
-				   'face nil
+				   'font-lock-face nil
 				   'rear-nonsticky nil
 				   'cursor-sensor-functions nil
 				   'keymap nil)
@@ -5208,9 +5185,7 @@ instead of the current buffer and returns the OBJECT."
 
 (defun table--update-cell-face ()
   "Update cell face according to the current mode."
-  (if (featurep 'xemacs)
-      (set-face-property 'table-cell 'underline table-fixed-width-mode)
-    (set-face-inverse-video 'table-cell table-fixed-width-mode)))
+  (set-face-inverse-video 'table-cell table-fixed-width-mode))
 
 (table--update-cell-face)
 
@@ -5220,11 +5195,11 @@ instead of the current buffer and returns the OBJECT."
       (get-text-property (1- (cdr cell)) property)))
 
 (defun table--get-cell-justify-property (cell)
-  "Get cell's justify property."
+  "Get CELL's justify property."
   (table--get-property cell 'table-justify))
 
 (defun table--get-cell-valign-property (cell)
-  "Get cell's vertical alignment property."
+  "Get CELL's vertical alignment property."
   (table--get-property cell 'table-valign))
 
 (defun table--put-property  (cell property value)
@@ -5235,11 +5210,11 @@ instead of the current buffer and returns the OBJECT."
     (put-text-property (1- end) end property value)))
 
 (defun table--put-cell-justify-property (cell justify)
-  "Put cell's justify property."
+  "Put CELL's JUSTIFY property."
   (table--put-property cell 'table-justify justify))
 
 (defun table--put-cell-valign-property (cell valign)
-  "Put cell's vertical alignment property."
+  "Put CELL's vertical alignment property."
   (table--put-property cell 'table-valign valign))
 
 (defun table--point-entered/left-cell-function (_window _oldpos dir)
@@ -5263,27 +5238,11 @@ This feature is disabled when `table-disable-incompatibility-warning'
 is non-nil.  The warning is done only once per session for each item."
   (unless (and table-disable-incompatibility-warning
 	       (not (called-interactively-p 'interactive)))
-    (cond ((and (featurep 'xemacs)
-		(not (get 'table-disable-incompatibility-warning 'xemacs)))
-	   (put 'table-disable-incompatibility-warning 'xemacs t)
-	   (display-warning 'table
-	    "
-*** Warning ***
-
-Table package mostly works fine under XEmacs, however, due to the
-peculiar implementation of text property under XEmacs, cell splitting
-and any undo operation of table exhibit some known strange problems,
-such that a border characters dissolve into adjacent cells.  Please be
-aware of this.
-
-"
-	    :warning))
-	  ((and (boundp 'flyspell-mode)
-		flyspell-mode
-		(not (get 'table-disable-incompatibility-warning 'flyspell)))
-	   (put 'table-disable-incompatibility-warning 'flyspell t)
-	   (display-warning 'table
-	    "
+    (when (and flyspell-mode
+	       (not (get 'table-disable-incompatibility-warning 'flyspell)))
+      (put 'table-disable-incompatibility-warning 'flyspell t)
+      (display-warning 'table
+	               "
 *** Warning ***
 
 Flyspell minor mode is known to be incompatible with this table
@@ -5291,8 +5250,7 @@ package.  The flyspell version 1.5d at URL `http://kaolin.unice.fr/~serrano'
 works better than the previous versions however not fully compatible.
 
 "
-	    :warning))
-	  )))
+	               :warning))))
 
 (defun table--cell-blank-str (&optional n)
   "Return blank table cell string of length N."
@@ -5301,7 +5259,7 @@ works better than the previous versions however not fully compatible.
     str))
 
 (defun table--remove-eol-spaces (beg end &optional bol force)
-  "Remove spaces at the end of each line in the BEG END region of the current buffer.
+  "Remove spaces at the end of each line in the BEG END region of current buffer.
 When optional BOL is non-nil spaces at the beginning of line are
 removed.  When optional FORCE is non-nil removal operation is enforced
 even when point is within the removal area."
@@ -5338,7 +5296,6 @@ Current buffer must already be set to the cache buffer."
     (setq justify (or justify table-cell-info-justify))
     (and justify
 	 (not (eq justify 'left))
-	 (not (featurep 'xemacs))
 	 (set-marker-insertion-type marker-point t))
     (table--remove-eol-spaces (point-min) (point-max))
     (if table-fixed-width-mode
@@ -5351,7 +5308,7 @@ Current buffer must already be set to the cache buffer."
     (set-marker marker-point nil)))
 
 (defun table--fill-region-strictly (beg end)
-  "Fill region strictly so that no line exceeds fill-column.
+  "Fill region strictly so that no line exceeds `fill-column'.
 When a word exceeds fill-column the word is chopped into pieces.  The
 chopped location is indicated with table-word-continuation-char."
   (or (and (markerp beg) (markerp end))
@@ -5443,7 +5400,8 @@ point"
 
 (defun table--transcoord-table-to-cache (&optional coordinate)
   "Transpose COORDINATE from table coordinate system to cache coordinate system.
-When COORDINATE is omitted or nil the point in current buffer is assumed in place."
+When COORDINATE is omitted or nil the point in current buffer is
+assumed in place."
   (table--offset-coordinate
    (or coordinate (table--get-coordinate))
    table-cell-info-lu-coordinate
@@ -5451,7 +5409,8 @@ When COORDINATE is omitted or nil the point in current buffer is assumed in plac
 
 (defun table--transcoord-cache-to-table (&optional coordinate)
   "Transpose COORDINATE from cache coordinate system to table coordinate system.
-When COORDINATE is omitted or nil the point in current buffer is assumed in place."
+When COORDINATE is omitted or nil the point in current buffer is
+assumed in place."
   (table--offset-coordinate
    (or coordinate (table--get-coordinate))
    table-cell-info-lu-coordinate))
@@ -5484,27 +5443,24 @@ It returns COLUMN unless STR contains some wide characters."
 	idx
       nil)))
 
+
+;;;; Obsolete.
+
+(defvar table-disable-menu nil
+  "When non-nil, use of menu by table package is disabled.
+It must be set before loading this package `table.el' for the first
+time.")
+(make-obsolete-variable 'table-disable-menu "no longer used." "28.1")
+
 (defun table--set-timer (seconds func args)
   "Generic wrapper for setting up a timer."
-  (if (featurep 'xemacs)
-      ;; the picky xemacs refuses to accept zero
-      (add-timeout (if (zerop seconds) 0.01 seconds) func args nil)
-    ;;(run-at-time seconds nil func args)))
-    ;; somehow run-at-time causes strange problem under Emacs 20.7
-    ;; this problem does not show up under Emacs 21.0.90
-    (run-with-idle-timer seconds nil func args)))
-
-(defun table--cancel-timer (timer)
-  "Generic wrapper for canceling a timer."
-  (if (featurep 'xemacs)
-      (disable-timeout timer)
-    (cancel-timer timer)))
+  (declare (obsolete run-with-idle-timer "28.1"))
+  (run-with-idle-timer seconds nil func args))
 
 (defun table--get-last-command ()
   "Generic wrapper for getting the real last command."
-  (if (boundp 'real-last-command)
-      real-last-command
-    last-command))
+  (declare (obsolete real-last-command "28.1"))
+  real-last-command)
 
 (run-hooks 'table-load-hook)
 

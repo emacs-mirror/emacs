@@ -1,6 +1,6 @@
-;;; ede-proj-prog.el --- EDE Generic Project program support
+;;; ede-proj-prog.el --- EDE Generic Project program support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2001, 2005, 2008-2017 Free Software Foundation,
+;; Copyright (C) 1998-2001, 2005, 2008-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -25,7 +25,6 @@
 ;;
 ;; Handle building programs from object files in and EDE Project file.
 
-(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-obj)
 
@@ -91,11 +90,11 @@ Note: Currently only used for Automake projects."
 (cl-defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile-program))
   "Insert variables needed by the compiler THIS."
   (cl-call-next-method)
-  (let ((lf (mapconcat 'identity (oref this ldflags) " ")))
+  (let ((lf (mapconcat #'identity (oref this ldflags) " ")))
     (with-slots (ldlibs) this
       (if ldlibs
 	  (setq lf
-		(concat lf " -l" (mapconcat 'identity ldlibs " -l")))))
+		(concat lf " -l" (mapconcat #'identity ldlibs " -l")))))
     ;; LDFLAGS as needed.
     (when (and lf (not (string= "" lf)))
       (ede-pmake-insert-variable-once "LDDEPS" (insert lf)))))

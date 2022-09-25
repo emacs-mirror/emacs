@@ -1,10 +1,11 @@
 ;;; ob-awk.el --- Babel Functions for Awk            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
+;; Maintainer: Tyler Smith <tyler@plantarum.ca>
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -48,8 +49,8 @@
   body)
 
 (defun org-babel-execute:awk (body params)
-  "Execute a block of Awk code with org-babel.  This function is
-called by `org-babel-execute-src-block'"
+  "Execute a block of Awk code with org-babel.
+This function is called by `org-babel-execute-src-block'."
   (message "executing Awk source code block")
   (let* ((result-params (cdr (assq :result-params params)))
          (cmd-line (cdr (assq :cmd-line params)))
@@ -58,12 +59,12 @@ called by `org-babel-execute-src-block'"
 	 (code-file (let ((file (org-babel-temp-file "awk-")))
                       (with-temp-file file (insert full-body)) file))
 	 (stdin (let ((stdin (cdr (assq :stdin params))))
-		   (when stdin
-		     (let ((tmp (org-babel-temp-file "awk-stdin-"))
-			   (res (org-babel-ref-resolve stdin)))
-		       (with-temp-file tmp
-			 (insert (org-babel-awk-var-to-awk res)))
-		       tmp))))
+		  (when stdin
+		    (let ((tmp (org-babel-temp-file "awk-stdin-"))
+			  (res (org-babel-ref-resolve stdin)))
+		      (with-temp-file tmp
+			(insert (org-babel-awk-var-to-awk res)))
+		      tmp))))
          (cmd (mapconcat #'identity
 			 (append
 			  (list org-babel-awk-command
@@ -105,7 +106,5 @@ called by `org-babel-execute-src-block'"
      (t (funcall echo-var var)))))
 
 (provide 'ob-awk)
-
-
 
 ;;; ob-awk.el ends here

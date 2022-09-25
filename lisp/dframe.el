@@ -1,12 +1,9 @@
-;;; dframe --- dedicate frame support modes  -*- lexical-binding:t -*-
+;;; dframe.el --- dedicate frame support modes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-
-(defvar dframe-version "1.3"
-  "The current version of the dedicated frame library.")
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +37,7 @@
 ;; * Frame/buffer killing hooks
 ;; * Mouse-3 position relative menu
 ;; * Mouse motion, help-echo hacks
-;; * Mouse clicking, double clicking, & XEmacs image clicking hack
+;; * Mouse clicking & double clicking
 ;; * Mode line hacking
 ;; * Utilities for use in a program covering:
 ;;    o keymap massage for some actions
@@ -56,7 +53,6 @@
 ;; 1) (require 'dframe)
 ;; 2) Variable Setup:
 ;;   -frame-parameters -- Frame parameters for Emacs.
-;;   -frame-plist -- Frame parameters for XEmacs.
 ;;   -- Not on parameter lists: They can optionally include width
 ;;      and height.  If width or height is not included, then it will
 ;;      be provided to match the originating frame.  In general,
@@ -112,13 +108,9 @@
 
 ;;; Code:
 
-;;; Compatibility functions
-;;
-(defalias 'dframe-frame-parameter
-  (if (fboundp 'frame-parameter) 'frame-parameter
-    (lambda (frame parameter)
-      "Return FRAME's PARAMETER value."
-      (cdr (assoc parameter (frame-parameters frame))))))
+
+(define-obsolete-function-alias 'dframe-frame-parameter
+  'frame-parameter "27.1")
 
 
 ;;; Variables
@@ -128,16 +120,12 @@
   :prefix "dframe-"
   :group 'dframe)
 
-(defvar dframe-have-timer-flag (if (fboundp 'display-graphic-p)
-				   (display-graphic-p)
-				 window-system)
+(defvar dframe-have-timer-flag (display-graphic-p)
   "Non-nil means that timers are available for this Emacs.
 This is nil for terminals, since updating a frame in a terminal
 is not useful to the user.")
 
-(defcustom dframe-update-speed
-  (if (featurep 'xemacs) 2		; 1 is too obtrusive in XEmacs
-    1)
+(defcustom dframe-update-speed 1
   "Idle time in seconds needed before dframe will update itself.
 Updates occur to allow dframe to display directory information
 relevant to the buffer you are currently editing."
@@ -156,42 +144,35 @@ selected frame and the focus will change to that frame."
   :group 'dframe
   :type 'hook)
 
-(defvar dframe-track-mouse-function nil
+(defvar-local dframe-track-mouse-function nil
   "A function to call when the mouse is moved in the given frame.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-track-mouse-function)
 
-(defvar dframe-help-echo-function nil
+(defvar-local dframe-help-echo-function nil
   "A function to call when help-echo is used in newer versions of Emacs.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-help-echo-function)
 
-(defvar dframe-mouse-click-function nil
+(defvar-local dframe-mouse-click-function nil
   "A function to call when the mouse is clicked.
 Valid clicks are mouse 2, our double mouse 1.")
-(make-variable-buffer-local 'dframe-mouse-click-function)
 
-(defvar dframe-mouse-position-function nil
+(defvar-local dframe-mouse-position-function nil
   "A function to call to position the cursor for a mouse click.")
-(make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil
   "Never set this by hand.  Value is t when S-mouse activity occurs.")
 
-(defvar dframe-timer nil
+(defvar-local dframe-timer nil
   "The dframe timer used for updating the buffer.")
-(make-variable-buffer-local 'dframe-timer)
 
-(defvar dframe-attached-frame nil
+(defvar-local dframe-attached-frame nil
   "The frame which started a frame mode.
 This is the frame from which all interesting activities will go
 for the mode using dframe.")
-(make-variable-buffer-local 'dframe-attached-frame)
 
-(defvar dframe-controlled nil
+(defvar-local dframe-controlled nil
   "Is this buffer controlled by a dedicated frame.
 Local to those buffers, as a function called that created it.")
-(make-variable-buffer-local 'dframe-controlled)
 
 (defun dframe-update-keymap (map)
   "Update the keymap MAP for dframe default bindings."
@@ -204,40 +185,28 @@ Local to those buffers, as a function called that created it.")
 			     'dframe-switch-buffer-attached-frame
 			     map global-map)
 
-  (if (featurep 'xemacs)
-      (progn
-	;; mouse bindings so we can manipulate the items on each line
-	(define-key map 'button2 'dframe-click)
-	(define-key map '(shift button2) 'dframe-power-click)
-	;; Info doc fix from Bob Weiner
-	(if (featurep 'infodoc)
-	    nil
-	  (define-key map 'button3 'dframe-popup-kludge))
-	)
+  ;; mouse bindings so we can manipulate the items on each line
+  ;; (define-key map [down-mouse-1] 'dframe-double-click)
+  (define-key map [follow-link] 'mouse-face)
+  (define-key map [mouse-2] 'dframe-click)
+  ;; This is the power click for new frames, or refreshing a cache
+  (define-key map [S-mouse-2] 'dframe-power-click)
+  ;; This adds a small unnecessary visual effect
+  ;;(define-key map [down-mouse-2] 'dframe-quick-mouse)
 
-    ;; mouse bindings so we can manipulate the items on each line
-    ;; (define-key map [down-mouse-1] 'dframe-double-click)
-    (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'dframe-click)
-    ;; This is the power click for new frames, or refreshing a cache
-    (define-key map [S-mouse-2] 'dframe-power-click)
-    ;; This adds a small unnecessary visual effect
-    ;;(define-key map [down-mouse-2] 'dframe-quick-mouse)
+  (define-key map [down-mouse-3] 'dframe-popup-kludge)
 
-    (define-key map [down-mouse-3] 'dframe-popup-kludge)
+  ;; This lets the user scroll as if we had a scrollbar... well maybe not
+  (define-key map [mode-line mouse-2] 'dframe-mouse-hscroll)
+  ;; another handy place users might click to get our menu.
+  (define-key map [mode-line down-mouse-1]
+    'dframe-popup-kludge)
 
-    ;; This lets the user scroll as if we had a scrollbar... well maybe not
-    (define-key map [mode-line mouse-2] 'dframe-mouse-hscroll)
-    ;; another handy place users might click to get our menu.
-    (define-key map [mode-line down-mouse-1]
-      'dframe-popup-kludge)
+  ;; We can't switch buffers with the buffer mouse menu.  Lets hack it.
+  (define-key map [C-down-mouse-1] 'dframe-hack-buffer-menu)
 
-    ;; We can't switch buffers with the buffer mouse menu.  Lets hack it.
-    (define-key map [C-down-mouse-1] 'dframe-hack-buffer-menu)
-
-    ;; Lastly, we want to track the mouse.  Play here
-    (define-key map [mouse-movement] 'dframe-track-mouse)
-    ))
+  ;; Lastly, we want to track the mouse.  Play here
+  (define-key map [mouse-movement] 'dframe-track-mouse))
 
 (defun dframe-live-p (frame)
   "Return non-nil if FRAME is currently available."
@@ -288,6 +257,7 @@ CREATE-HOOK is a hook to run after creating a frame."
 	(set frame-var nil))
     ;; Set this as our currently attached frame
     (setq dframe-attached-frame (selected-frame))
+    (run-hooks 'dframe-setup-hook)
     (run-hooks popup-hook)
     ;; Updated the buffer passed in to contain all the hacks needed
     ;; to make it work well in a dedicated window.
@@ -295,49 +265,20 @@ CREATE-HOOK is a hook to run after creating a frame."
       ;; Declare this buffer a dedicated frame
       (setq dframe-controlled local-mode-fn)
 
-      (if (featurep 'xemacs)
-	  (progn
-	    ;; Hack the XEmacs mouse-motion handler
-	    (set (make-local-variable 'mouse-motion-handler)
-		 'dframe-track-mouse-xemacs)
-	    ;; Hack the double click handler
-	    (make-local-variable 'mouse-track-click-hook)
-	    (add-hook 'mouse-track-click-hook
-		      (lambda (event count)
-			(if (/= (event-button event) 1)
-			    nil		; Do normal operations.
-			  (cond ((eq count 1)
-				 (dframe-quick-mouse event))
-				((or (eq count 2)
-				     (eq count 3))
-				 (dframe-click event)
-				 (dframe-quick-mouse event)))
-			  ;; Don't do normal operations.
-			  t))))
-	;; Enable mouse tracking in emacs
-	(if dframe-track-mouse-function
-	    (set (make-local-variable 'track-mouse) t))) ;this could be messy.
-;;;;  DISABLED: This causes problems for users with multiple frames.
-;;;;       ;; Set this up special just for the passed in buffer
-;;;;       ;; Terminal minibuffer stuff does not require this.
-;;;;       (if (and (or (assoc 'minibuffer parameters)
-;;;; 		   ;; XEmacs plist is not an association list
-;;;; 		   (member 'minibuffer parameters))
-;;;; 	       window-system (not (eq window-system 'pc))
-;;;; 	       (null default-minibuffer-frame))
-;;;; 	  (progn
-;;;; 	    (make-local-variable 'default-minibuffer-frame)
-;;;; 	    (setq default-minibuffer-frame dframe-attached-frame))
-;;;; 	)
+      ;; Enable mouse tracking in emacs
+      (if dframe-track-mouse-function
+          (setq-local track-mouse t)) ;this could be messy.
+
       ;; Override `temp-buffer-show-hook' so that help and such
       ;; put their stuff into a frame other than our own.
       ;; Correct use of `temp-buffer-show-function': Bob Weiner
       (if (and (boundp 'temp-buffer-show-hook)
 	       (boundp 'temp-buffer-show-function))
-	  (progn (make-local-variable 'temp-buffer-show-hook)
-		 (setq temp-buffer-show-hook temp-buffer-show-function)))
-      (make-local-variable 'temp-buffer-show-function)
-      (setq temp-buffer-show-function 'dframe-temp-buffer-show-function)
+	  ;; FIXME: Doesn't this get us into an inf-loop when the
+          ;; `temp-buffer-show-function' runs `temp-buffer-show-hook'
+          ;; (as is normally the case)?
+          (setq-local temp-buffer-show-hook temp-buffer-show-function))
+      (setq-local temp-buffer-show-function 'dframe-temp-buffer-show-function)
       ;; If this buffer is killed, we must make sure that we destroy
       ;; the frame the dedicated window is in.
       (add-hook 'kill-buffer-hook (lambda ()
@@ -349,8 +290,7 @@ CREATE-HOOK is a hook to run after creating a frame."
                                               (funcall dframe-controlled -1)
                                               (set buffer-var nil)
                                               )))))
-		t t)
-      )
+		t t))
     ;; Get the frame to work in
     (if (frame-live-p (symbol-value cache-var))
 	(progn
@@ -358,51 +298,48 @@ CREATE-HOOK is a hook to run after creating a frame."
 	  (make-frame-visible (symbol-value frame-var))
 	  (select-frame (symbol-value frame-var))
 	  (set-window-dedicated-p (selected-window) nil)
-	  (if (not (eq (current-buffer) (symbol-value buffer-var)))
-	      (switch-to-buffer (symbol-value buffer-var)))
+	  (unless (eq (current-buffer) (symbol-value buffer-var))
+            ;; To avoid that 'switch-to-buffer-obey-display-actions'
+            ;; butts in, use plain 'set-window-buffer' (Bug#37840).
+            (set-window-buffer nil (symbol-value buffer-var)))
 	  (set-window-dedicated-p (selected-window) t)
 	  (raise-frame (symbol-value frame-var))
 	  )
       (if (frame-live-p (symbol-value frame-var))
 	  (raise-frame (symbol-value frame-var))
 	(set frame-var
-	      (if (featurep 'xemacs)
-		  ;; Only guess height if it is not specified.
-		  (if (member 'height parameters)
-		      (make-frame parameters)
-		    (make-frame (nconc (list 'height
-					     (dframe-needed-height))
-				       parameters)))
-		(let* ((mh (dframe-frame-parameter dframe-attached-frame
-						   'menu-bar-lines))
-		       (paramsa
-			;; Only add a guessed height if one is not specified
-			;; in the input parameters.
-			(if (assoc 'height parameters)
-			    parameters
-			  (append
-			   parameters
-			   (list (cons 'height (+ (or mh 0) (frame-height)))))))
-		       (params
-			;; Only add a guessed width if one is not specified
-			;; in the input parameters.
-			(if (assoc 'width parameters)
-			    paramsa
-			  (append
-			   paramsa
-			   (list (cons 'width (frame-width))))))
-		       (frame
-			(if (not (eq window-system 'x))
-			    (make-frame params)
-			  (let ((x-pointer-shape x-pointer-top-left-arrow)
-				(x-sensitive-text-pointer-shape
-				 x-pointer-hand2))
-			    (make-frame params)))))
-		  frame)))
+             (let* ((mh (frame-parameter dframe-attached-frame
+                                         'menu-bar-lines))
+		    (paramsa
+		     ;; Only add a guessed height if one is not specified
+		     ;; in the input parameters.
+		     (if (assoc 'height parameters)
+			 parameters
+		       (append
+			parameters
+			(list (cons 'height (+ (or mh 0) (frame-height)))))))
+		    (params
+		     ;; Only add a guessed width if one is not specified
+		     ;; in the input parameters.
+		     (if (assoc 'width parameters)
+			 paramsa
+		       (append
+			paramsa
+			(list (cons 'width (frame-width))))))
+		    (frame
+		     (if (not (eq window-system 'x))
+			 (make-frame params)
+		       (let ((x-pointer-shape x-pointer-top-left-arrow)
+			     (x-sensitive-text-pointer-shape
+			      x-pointer-hand2))
+			 (make-frame params)))))
+	       frame))
 	;; Put the buffer into the frame
 	(save-excursion
 	  (select-frame (symbol-value frame-var))
-	  (switch-to-buffer (symbol-value buffer-var))
+          ;; To avoid that 'switch-to-buffer-obey-display-actions'
+          ;; butts in, use plain 'set-window-buffer' (Bug#37840).
+	  (set-window-buffer nil (symbol-value buffer-var))
 	  (set-window-dedicated-p (selected-window) t))
 	;; Run hooks (like reposition)
 	(run-hooks create-hook)
@@ -415,29 +352,21 @@ CREATE-HOOK is a hook to run after creating a frame."
 	;; On a terminal, raise the frame or the user will
 	;; be confused.
 	(if (not window-system)
-	    (select-frame (symbol-value frame-var)))
-	))) )
-
-(defun dframe-reposition-frame (new-frame parent-frame location)
-  "Move NEW-FRAME to be relative to PARENT-FRAME.
-LOCATION can be one of `random', `left', `right', `left-right', or `top-bottom'."
-  (if (featurep 'xemacs)
-      (dframe-reposition-frame-xemacs new-frame parent-frame location)
-    (dframe-reposition-frame-emacs new-frame parent-frame location)))
+	    (select-frame (symbol-value frame-var)))))))
 
 ;; Not defined in builds without X, but behind window-system test.
 (declare-function x-display-pixel-width "xfns.c" (&optional terminal))
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
 
-(defun dframe-reposition-frame-emacs (new-frame parent-frame location)
+(defun dframe-reposition-frame (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
 LOCATION can be one of `random', `left-right', `top-bottom', or
 a cons cell indicating a position of the form (LEFT . TOP)."
   ;; Position dframe.
   ;; Do no positioning if not on a windowing system,
   (unless (or (not window-system) (eq window-system 'pc))
-    (let* ((pfx (dframe-frame-parameter parent-frame 'left))
-	   (pfy (dframe-frame-parameter parent-frame 'top))
+    (let* ((pfx (frame-parameter parent-frame 'left))
+           (pfy (frame-parameter parent-frame 'top))
 	   (pfw (+ (tool-bar-pixel-width parent-frame)
 		   (frame-pixel-width parent-frame)))
 	   (pfh (frame-pixel-height parent-frame))
@@ -512,22 +441,6 @@ a cons cell indicating a position of the form (LEFT . TOP)."
 			       (list (cons 'left newleft)
 				     (cons 'top newtop))))))
 
-(defun dframe-reposition-frame-xemacs (_new-frame _parent-frame _location)
-  "Move NEW-FRAME to be relative to PARENT-FRAME.
-LOCATION can be one of `random', `left-right', or `top-bottom'."
-  ;; Not yet implemented
-  )
-
-;; XEmacs function only.
-(defun dframe-needed-height (&optional frame)
-  "The needed height for the tool bar FRAME (in characters)."
-  (or frame (setq frame (selected-frame)))
-  ;; The 1 is the missing mode line or minibuffer
-  (+ 1 (/ (frame-pixel-height frame)
-	  ;; This obscure code avoids a byte compiler warning in Emacs.
-	  (let ((f 'face-height))
-	    (funcall f 'default frame)))))
-
 (defun dframe-detach (frame-var cache-var buffer-var)
   "Detach the frame in symbol FRAME-VAR.
 CACHE-VAR and BUFFER-VAR are symbols as in `dframe-frame-mode'."
@@ -539,20 +452,24 @@ CACHE-VAR and BUFFER-VAR are symbols as in `dframe-frame-mode'."
       (set cache-var nil)
       ;; FIXME: Looks very suspicious.  Luckily this function is unused.
       (make-variable-buffer-local frame-var)
-      (set frame-var oldframe)
-      )))
+      (set frame-var oldframe))))
 
 ;;; Special frame event proxies
-;;
-(if (boundp 'special-event-map)
-    (progn
-      (define-key special-event-map [make-frame-visible]
-	'dframe-handle-make-frame-visible)
-      (define-key special-event-map [iconify-frame]
-	'dframe-handle-iconify-frame)
-      (define-key special-event-map [delete-frame]
-	'dframe-handle-delete-frame))
-  )
+(defvar dframe-setup-hook nil
+  "Used for setting frame special event bindings.")
+
+(defun dframe-set-special-events ()
+  (define-key special-event-map [make-frame-visible]
+    'dframe-handle-make-frame-visible)
+  (define-key special-event-map [iconify-frame]
+    'dframe-handle-iconify-frame)
+  (define-key special-event-map [delete-frame]
+    'dframe-handle-delete-frame)
+  ;; Only need to run once.
+  (remove-hook 'dframe-setup-hook #'dframe-set-special-events))
+
+(when (boundp 'special-event-map)
+  (add-hook 'dframe-setup-hook #'dframe-set-special-events))
 
 (defvar dframe-make-frame-visible-function nil
   "Function used when a dframe controlled frame is de-iconified.
@@ -742,16 +659,10 @@ who requested the timer.  NULL-ON-ERROR is ignored."
 (defun dframe-set-timer-internal (timeout &optional _null-on-error)
   "Apply a timer with TIMEOUT to call the dframe timer manager."
   (when dframe-timer
-    (if (featurep 'xemacs)
-	(delete-itimer dframe-timer)
-      (cancel-timer dframe-timer))
+    (cancel-timer dframe-timer)
     (setq dframe-timer nil))
   (when timeout
-    (setq dframe-timer
-	  (if (featurep 'xemacs)
-	      (start-itimer "dframe" 'dframe-timer-fn
-			    timeout timeout t)
-	    (run-with-idle-timer timeout t 'dframe-timer-fn)))))
+    (setq dframe-timer (run-with-idle-timer timeout t 'dframe-timer-fn))))
 
 (defun dframe-timer-fn ()
   "Called due to the dframe timer.
@@ -762,90 +673,38 @@ Evaluates all cached timer functions in sequence."
 	(funcall (car l)))
       (setq l (cdr l)))))
 
-;;; Menu hacking for mouse-3
-;;
-(defconst dframe-pass-event-to-popup-mode-menu
-  (let (max-args)
-    (and (fboundp 'popup-mode-menu)
-         (fboundp 'function-max-args)
-         (setq max-args (function-max-args 'popup-mode-menu))
-         (not (zerop max-args))))
-  "The EVENT arg to `popup-mode-menu' was introduced in XEmacs 21.4.0.")
-
-;; In XEmacs, we make popup menus work on the item over mouse (as
-;; opposed to where the point happens to be.)  We attain this by
-;; temporarily moving the point to that place.
-;;    Hrvoje Niksic <hniksic@srce.hr>
-(defalias 'dframe-popup-kludge
-  (if (featurep 'xemacs)
-      (lambda (event)                        ; XEmacs.
-        "Pop up a menu related to the clicked on item.
-Must be bound to EVENT."
-        (interactive "e")
-        (save-excursion
-          (if dframe-pass-event-to-popup-mode-menu
-              (popup-mode-menu event)
-            (goto-char (event-closest-point event))
-            (beginning-of-line)
-            (forward-char (min 5 (- (line-end-position)
-                                    (line-beginning-position))))
-            (popup-mode-menu))
-          ;; Wait for menu to bail out.  `popup-mode-menu' (and other popup
-          ;; menu functions) return immediately.
-          (let (new)
-            (while (not (misc-user-event-p (setq new (next-event))))
-              (dispatch-event new))
-            (dispatch-event new))))
-
-    (lambda (e)                              ; Emacs.
-      "Pop up a menu related to the clicked on item.
+(defun dframe-popup-kludge (e)
+  "Pop up a menu related to the clicked on item.
 Must be bound to event E."
-      (interactive "e")
-      (save-excursion
-        (mouse-set-point e)
-        ;; This gets the cursor where the user can see it.
-        (if (not (bolp)) (forward-char -1))
-        (sit-for 0)
-	(if (fboundp 'mouse-menu-major-mode-map)
-	    (popup-menu (mouse-menu-major-mode-map) e)
-	  (with-no-warnings	  ; don't warn about obsolete fallback
-	    (mouse-major-mode-menu e nil)))))))
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point e)
+    ;; This gets the cursor where the user can see it.
+    (if (not (bolp)) (forward-char -1))
+    (sit-for 0)
+    (popup-menu (mouse-menu-major-mode-map) e)))
 
 ;;; Interactive user functions for the mouse
 ;;
-(defalias 'dframe-mouse-event-p
-  (if (featurep 'xemacs)
-      'button-press-event-p
-    (lambda (event)
-      "Return t if the event is a mouse related event."
-      (if (and (listp event)
-               (member (event-basic-type event)
-                       '(mouse-1 mouse-2 mouse-3)))
-          t
-        nil))))
+(defun dframe-mouse-event-p (event)
+  "Return t if the event is a mouse related event."
+  (if (and (listp event)
+           (member (event-basic-type event)
+                   '(mouse-1 mouse-2 mouse-3)))
+      t
+    nil))
 
 (defun dframe-track-mouse (event)
   "For motion EVENT, display info about the current line."
   (interactive "e")
   (when (and dframe-track-mouse-function
-	     (or (featurep 'xemacs) ;; XEmacs always safe?
-		 (windowp (posn-window (event-end event))) ; Sometimes
+	     (windowp (posn-window (event-end event)))) ; Sometimes
 					; there is no window to jump into.
-		 ))
-
     (funcall dframe-track-mouse-function event)))
-
-(defun dframe-track-mouse-xemacs (event)
-  "For motion EVENT, display info about the current line."
-  (if (functionp (default-value 'mouse-motion-handler))
-      (funcall (default-value 'mouse-motion-handler) event))
-  (if dframe-track-mouse-function
-      (funcall dframe-track-mouse-function event)))
 
 (defun dframe-help-echo (_window &optional buffer position)
   "Display help based context.
-The context is in WINDOW, viewing BUFFER, at POSITION.
-BUFFER and POSITION are optional because XEmacs doesn't use them."
+The context is in WINDOW, viewing BUFFER, at POSITION."
   (when (and (not dframe-track-mouse-function)
 	     (bufferp buffer)
 	     dframe-help-echo-function)
@@ -856,22 +715,8 @@ BUFFER and POSITION are optional because XEmacs doesn't use them."
 	  (funcall dframe-help-echo-function))))))
 
 (defun dframe-mouse-set-point (e)
-  "Set point based on event E.
-Handles clicking on images in XEmacs."
-  (if (and (featurep 'xemacs)
-           (save-excursion
-             (save-window-excursion
-               (mouse-set-point e)
-               (event-over-glyph-p e))))
-      ;; We are in XEmacs, and clicked on a picture
-      (let ((ext (event-glyph-extent e)))
-	;; This position is back inside the extent where the
-	;; junk we pushed into the property list lives.
-	(if (extent-end-position ext)
-	    (goto-char (1- (extent-end-position ext)))
-	  (mouse-set-point e)))
-    ;; We are not in XEmacs, OR we didn't click on a picture.
-    (mouse-set-point e)))
+  "Set point based on event E."
+  (mouse-set-point e))
 
 (defun dframe-quick-mouse (e)
   "Since mouse events are strange, this will keep the mouse nicely positioned.
@@ -906,7 +751,6 @@ E is the event causing the click."
 This must be bound to a mouse event.
 This should be bound to mouse event E."
   (interactive "e")
-  ;; Emacs only.  XEmacs handles this via `mouse-track-click-hook'.
   (cond ((eq (car e) 'down-mouse-1)
 	 (dframe-mouse-set-point e))
 	((eq (car e) 'mouse-1)
@@ -927,15 +771,7 @@ redirected into a window on the attached frame."
   (if dframe-attached-frame (dframe-select-attached-frame))
   (pop-to-buffer buffer nil)
   (other-window -1)
-  ;; Fix for using this hook on some platforms: Bob Weiner
-  (cond ((not (featurep 'xemacs))
-	 (run-hooks 'temp-buffer-show-hook))
-	((fboundp 'run-hook-with-args)
-	 (run-hook-with-args 'temp-buffer-show-hook buffer))
-	((and (boundp 'temp-buffer-show-hook)
-	      (listp temp-buffer-show-hook))
-	 (mapcar (function (lambda (hook) (funcall hook buffer)))
-		 temp-buffer-show-hook))))
+  (run-hooks 'temp-buffer-show-hook))
 
 (defun dframe-hack-buffer-menu (_e)
   "Control mouse 1 is buffer menu.
@@ -943,9 +779,7 @@ This hack overrides it so that the right thing happens in the main
 Emacs frame, not in the dedicated frame.
 Argument E is the event causing this activity."
   (interactive "e")
-  (let ((fn (lookup-key global-map (if (featurep 'xemacs)
-                                       '(control button1)
-				     [C-down-mouse-1])))
+  (let ((fn (lookup-key global-map [C-down-mouse-1]))
 	(oldbuff (current-buffer))
 	(newbuff nil))
     (unwind-protect
@@ -971,25 +805,28 @@ broken because of the dedicated frame."
       (switch-to-buffer buffer)
     (call-interactively 'switch-to-buffer nil nil)))
 
-;; XEmacs: this can be implemented using mode line keymaps, but there
-;; is no use, as we have horizontal scrollbar (as the docstring
-;; hints.)
 (defun dframe-mouse-hscroll (e)
   "Read a mouse event E from the mode line, and horizontally scroll.
-If the mouse is being clicked on the far left, or far right of the
-mode-line.  This is only useful for non-XEmacs."
+If the mouse is being clicked on the far left, or far right of
+the mode-line."
   (interactive "e")
   (let* ((x-point (car (nth 2 (car (cdr e)))))
 	 (pixels-per-10-col (/ (* 10 (frame-pixel-width))
 			       (frame-width)))
-	 (click-col (1+ (/ (* 10 x-point) pixels-per-10-col)))
-	 )
+	 (click-col (1+ (/ (* 10 x-point) pixels-per-10-col))))
     (cond ((< click-col 3)
 	   (scroll-left 2))
 	  ((> click-col (- (window-width) 5))
 	   (scroll-right 2))
 	  (t (dframe-message
 	      "Click on the edge of the mode line to scroll left/right")))))
+
+
+;;; Obsolete
+
+(defvar dframe-version "1.3"
+  "The current version of the dedicated frame library.")
+(make-obsolete-variable 'dframe-version 'emacs-version "28.1")
 
 (provide 'dframe)
 

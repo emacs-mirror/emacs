@@ -1,17 +1,17 @@
 /* count-leading-zeros.h -- counts the number of leading 0 bits in a word.
-   Copyright (C) 2012-2017 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Eric Blake.  */
@@ -30,11 +30,16 @@ _GL_INLINE_HEADER_BEGIN
 # define COUNT_LEADING_ZEROS_INLINE _GL_INLINE
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Assuming the GCC builtin is BUILTIN and the MSC builtin is MSC_BUILTIN,
    expand to code that computes the number of leading zeros of the local
    variable 'x' of type TYPE (an unsigned integer type) and return it
    from the current function.  */
-#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) \
+    || (__clang_major__ >= 4)
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER
@@ -71,7 +76,7 @@ COUNT_LEADING_ZEROS_INLINE int
 count_leading_zeros_32 (unsigned int x)
 {
   /* <https://github.com/gibsjose/BitHacks>
-     <http://www.fit.vutbr.cz/~ibarina/pub/bithacks.pdf> */
+     <https://www.fit.vutbr.cz/~ibarina/pub/bithacks.pdf> */
   static const char de_Bruijn_lookup[32] = {
     31, 22, 30, 21, 18, 10, 29, 2, 20, 17, 15, 13, 9, 6, 28, 1,
     23, 19, 11, 3, 16, 14, 7, 24, 12, 4, 8, 25, 5, 26, 27, 0
@@ -100,13 +105,15 @@ count_leading_zeros_l (unsigned long int x)
   COUNT_LEADING_ZEROS (__builtin_clzl, _BitScanReverse, unsigned long int);
 }
 
-#if HAVE_UNSIGNED_LONG_LONG_INT
 /* Compute and return the number of leading zeros in X. */
 COUNT_LEADING_ZEROS_INLINE int
 count_leading_zeros_ll (unsigned long long int x)
 {
   COUNT_LEADING_ZEROS (__builtin_clzll, _BitScanReverse64,
                        unsigned long long int);
+}
+
+#ifdef __cplusplus
 }
 #endif
 

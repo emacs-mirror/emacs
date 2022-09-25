@@ -1,12 +1,12 @@
-# pselect.m4 serial 4
-dnl Copyright (C) 2011-2017 Free Software Foundation, Inc.
+# pselect.m4 serial 10
+dnl Copyright (C) 2011-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
 AC_DEFUN([gl_FUNC_PSELECT],
 [
-  AC_REQUIRE([gl_HEADER_SYS_SELECT])
+  AC_REQUIRE([gl_SYS_SELECT_H])
   AC_REQUIRE([AC_C_RESTRICT])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   AC_CHECK_FUNCS_ONCE([pselect])
@@ -37,7 +37,8 @@ AC_DEFUN([gl_FUNC_PSELECT],
 #endif
 #include <unistd.h>
 #include <errno.h>
-]],[[
+]GL_MDA_DEFINES],
+[[
   fd_set set;
   dup2(0, 16);
   FD_ZERO(&set);
@@ -51,10 +52,12 @@ AC_DEFUN([gl_FUNC_PSELECT],
       [gl_cv_func_pselect_detects_ebadf=no],
           [
            case "$host_os" in
-                    # Guess yes on glibc systems.
-            *-gnu*) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
-                    # If we don't know, assume the worst.
-            *)      gl_cv_func_pselect_detects_ebadf="guessing no" ;;
+                             # Guess yes on Linux systems.
+            linux-* | linux) gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                             # Guess yes on glibc systems.
+            *-gnu* | gnu*)   gl_cv_func_pselect_detects_ebadf="guessing yes" ;;
+                             # If we don't know, obey --enable-cross-guesses.
+            *)               gl_cv_func_pselect_detects_ebadf="$gl_cross_guess_normal" ;;
            esac
           ])
       ])

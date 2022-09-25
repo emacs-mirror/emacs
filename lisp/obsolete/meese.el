@@ -1,4 +1,4 @@
-;;; meese.el --- protect the impressionable young minds of America
+;;; meese.el --- protect the impressionable young minds of America  -*- lexical-binding: t; -*-
 
 ;; This is in the public domain on account of being distributed since
 ;; 1985 or 1986 without a copyright notice.

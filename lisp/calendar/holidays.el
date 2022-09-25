@@ -1,10 +1,10 @@
-;;; holidays.el --- holiday functions for the calendar package
+;;; holidays.el --- holiday functions for the calendar package  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2017 Free Software
+;; Copyright (C) 1989-1990, 1992-1994, 1997, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: holidays, calendar
 ;; Package: calendar
 
@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'calendar)
-(load "hol-loaddefs" nil t)
+(load "holiday-loaddefs" nil t)
 
 (defgroup holidays nil
   "Holidays support in calendar."
@@ -64,8 +64,7 @@
     (holiday-float 11 4 4 "Thanksgiving")))
   "General holidays.  Default value is for the United States.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-general-holidays 'risky-local-variable t)
 
@@ -86,8 +85,7 @@ See the documentation for `calendar-holidays' for details."
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
   :version "23.1"                       ; added more holidays
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-oriental-holidays 'risky-local-variable t)
 
@@ -95,8 +93,7 @@ See the documentation for `calendar-holidays' for details."
 (defcustom holiday-local-holidays nil
   "Local holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-local-holidays 'risky-local-variable t)
 
@@ -104,8 +101,7 @@ See the documentation for `calendar-holidays' for details."
 (defcustom holiday-other-holidays nil
   "User defined holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-other-holidays 'risky-local-variable t)
 
@@ -122,8 +118,8 @@ See the documentation for `calendar-holidays' for details."
   "Jewish holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
-  :version "23.1"            ; removed dependency on hebrew-holidays-N
-  :group 'holidays)
+  :version "23.1")            ; removed dependency on hebrew-holidays-N
+
 ;;;###autoload
 (put 'holiday-hebrew-holidays 'risky-local-variable t)
 
@@ -141,8 +137,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-advent 0 "Advent")))))
   "Christian holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-christian-holidays 'risky-local-variable t)
 
@@ -162,8 +157,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-islamic 12 10 "Id-al-Adha")))))
   "Islamic holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-islamic-holidays 'risky-local-variable t)
 
@@ -183,8 +177,7 @@ See the documentation for `calendar-holidays' for details."
          (holiday-fixed 11 28 "Ascension of `Abdu’l-Bahá")))))
   "Bahá’í holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-bahai-holidays 'risky-local-variable t)
 
@@ -204,8 +197,7 @@ See the documentation for `calendar-holidays' for details."
                            calendar-daylight-time-zone-name)))))
   "Sun-related holidays.
 See the documentation for `calendar-holidays' for details."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'holiday-solar-holidays 'risky-local-variable t)
 
@@ -318,13 +310,12 @@ to the list.  To include the phases of the moon, add
 
      (lunar-phases)
 
-to the holiday list, where `lunar-phases' is an Emacs-Lisp function that
+to the holiday list, where `lunar-phases' is an Emacs Lisp function that
 you've written to return a (possibly empty) list of the relevant VISIBLE dates
 with descriptive strings such as
 
      (((2 6 1989) \"New Moon\") ((2 12 1989) \"First Quarter Moon\") ... )."
-  :type 'sexp
-  :group 'holidays)
+  :type 'sexp)
 ;;;###autoload
 (put 'calendar-holidays 'risky-local-variable t)
 
@@ -336,14 +327,14 @@ with descriptive strings such as
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let (res h err)
+  (let (res h)
     (sort
      (dolist (p calendar-holidays res)
        (if (setq h (if calendar-debug-sexp
                        (let ((debug-on-error t))
-                         (eval p))
+                         (eval p t))
                      (condition-case err
-                         (eval p)
+                         (eval p t)
                        (error
                         (display-warning
                          'holidays
@@ -399,7 +390,7 @@ use instead of point."
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
 If called with an optional prefix argument ARG, prompts for month and year.
-This function is suitable for execution in a init file."
+This function is suitable for execution in an init file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
@@ -408,6 +399,36 @@ This function is suitable for execution in a init file."
            (displayed-month (calendar-extract-month date))
            (displayed-year (calendar-extract-year date)))
       (calendar-list-holidays))))
+
+(defun holiday-available-holiday-lists ()
+  "Return a list of all holiday lists.
+This is used by `list-holidays', and you can customize the return
+value by using `add-function'."
+  (delq
+   nil
+   (list
+    (cons "All" calendar-holidays)
+    (cons "Equinoxes/Solstices"
+          (list (list 'solar-equinoxes-solstices)))
+    (if holiday-general-holidays
+        (cons "General" holiday-general-holidays))
+    (if holiday-local-holidays
+        (cons "Local" holiday-local-holidays))
+    (if holiday-other-holidays
+        (cons "Other" holiday-other-holidays))
+    (if holiday-christian-holidays
+        (cons "Christian" holiday-christian-holidays))
+    (if holiday-hebrew-holidays
+        (cons "Hebrew" holiday-hebrew-holidays))
+    (if holiday-islamic-holidays
+        (cons "Islamic" holiday-islamic-holidays))
+    (if holiday-bahai-holidays
+        (cons "Bahá’í" holiday-bahai-holidays))
+    (if holiday-oriental-holidays
+        (cons "Oriental" holiday-oriental-holidays))
+    (if holiday-solar-holidays
+        (cons "Solar" holiday-solar-holidays))
+    (cons "Ask" nil))))
 
 ;; rms: "Emacs commands to display a list of something generally start
 ;; with `list-'.  Please make `list-holidays' the principal name."
@@ -430,47 +451,28 @@ documentation of `calendar-holidays' for a list of the variables
 that control the choices, as well as a description of the format
 of a holiday list.
 
-The optional LABEL is used to label the buffer created."
+The optional LABEL is used to label the buffer created.
+
+The list of holiday lists is computed by the
+`holiday-available-holiday-lists' and you can alter the results
+by redefining that function, or use `add-function' to add
+values."
   (interactive
-   (let* ((start-year (calendar-read
-                       "Starting year of holidays (>0): "
+   (let* ((start-year (calendar-read-sexp
+                       "Starting year of holidays (>0)"
                        (lambda (x) (> x 0))
-                       (number-to-string (calendar-extract-year
-                                       (calendar-current-date)))))
-          (end-year (calendar-read
-                     (format "Ending year (inclusive) of holidays (>=%s): "
-                             start-year)
+                       (calendar-extract-year (calendar-current-date))))
+          (end-year (calendar-read-sexp
+                     "Ending year (inclusive) of holidays (>=%s)"
                      (lambda (x) (>= x start-year))
-                     (number-to-string start-year)))
+                     start-year
+                     start-year))
           (completion-ignore-case t)
-          (lists
-           (list
-            (cons "All" calendar-holidays)
-            (cons "Equinoxes/Solstices"
-                  (list (list 'solar-equinoxes-solstices)))
-            (if holiday-general-holidays
-                (cons "General" holiday-general-holidays))
-            (if holiday-local-holidays
-                (cons "Local" holiday-local-holidays))
-            (if holiday-other-holidays
-                (cons "Other" holiday-other-holidays))
-            (if holiday-christian-holidays
-                (cons "Christian" holiday-christian-holidays))
-            (if holiday-hebrew-holidays
-                (cons "Hebrew" holiday-hebrew-holidays))
-            (if holiday-islamic-holidays
-                (cons "Islamic" holiday-islamic-holidays))
-            (if holiday-bahai-holidays
-                (cons "Bahá’í" holiday-bahai-holidays))
-            (if holiday-oriental-holidays
-                (cons "Oriental" holiday-oriental-holidays))
-            (if holiday-solar-holidays
-                (cons "Solar" holiday-solar-holidays))
-            (cons "Ask" nil)))
+          (lists (holiday-available-holiday-lists))
           (choice (capitalize
                    (completing-read "List (TAB for choices): " lists nil t)))
           (which (if (string-equal choice "Ask")
-                     (eval (read-variable "Enter list name: "))
+                     (symbol-value (read-variable "Enter list name: "))
                    (cdr (assoc choice lists))))
           (name (if (string-equal choice "Equinoxes/Solstices")
                     choice
@@ -492,7 +494,7 @@ The optional LABEL is used to label the buffer created."
       (calendar-increment-month displayed-month displayed-year 3)
       (setq s (calendar-absolute-from-gregorian
                (list displayed-month 1 displayed-year))))
-    (save-excursion
+    (save-current-buffer
       (calendar-in-read-only-buffer holiday-buffer
         (calendar-set-mode-line
          (if (= y1 y2)
@@ -522,7 +524,6 @@ strings describing those holidays that apply on DATE, or nil if none do."
           (setq holiday-list (append holiday-list (cdr h)))))))
 
 
-;; Formerly cal-tex-list-holidays.
 (defun holiday-in-range (d1 d2)
   "Generate a list of all holidays in range from absolute date D1 to D2."
   (let* ((start (calendar-gregorian-from-absolute d1))
@@ -537,7 +538,7 @@ strings describing those holidays that apply on DATE, or nil if none do."
                  3)))
          holidays in-range a)
     (calendar-increment-month displayed-month displayed-year 1)
-    (dotimes (_idummy number-of-intervals)
+    (dotimes (_ number-of-intervals)
       (setq holidays (append holidays (calendar-holiday-list)))
       (calendar-increment-month displayed-month displayed-year 3))
     (dolist (hol holidays)
@@ -691,19 +692,19 @@ the holiday description of `date'.  If `date' is visible in the
 calendar window, the holiday STRING is on that date.  If date is
 nil, or if the date is not visible, there is no holiday."
   (let ((m displayed-month)
-        (y displayed-year)
-        year date)
+        (y displayed-year))
     (calendar-increment-month m y -1)
     (holiday-filter-visible-calendar
-     (list
-      (progn
-        (setq year y
-              date (eval sexp))
-        (list date (if date (eval string))))
-      (progn
-        (setq year (1+ y)
-              date (eval sexp))
-        (list date (if date (eval string))))))))
+     (calendar-dlet (year date)
+       (list
+        (progn
+          (setq year y
+                date (eval sexp t))
+          (list date (if date (eval string t))))
+        (progn
+          (setq year (1+ y)
+                date (eval sexp t))
+          (list date (if date (eval string t)))))))))
 
 
 (defun holiday-advent (&optional n string)

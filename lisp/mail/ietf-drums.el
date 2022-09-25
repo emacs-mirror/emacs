@@ -1,6 +1,6 @@
-;;; ietf-drums.el --- Functions for parsing RFC822bis headers
+;;; ietf-drums.el --- Functions for parsing RFC 2822 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -20,24 +20,14 @@
 
 ;;; Commentary:
 
-;; DRUMS is an IETF Working Group that works (or worked) on the
-;; successor to RFC822, "Standard For The Format Of Arpa Internet Text
-;; Messages".  This library is based on
-;; draft-ietf-drums-msg-fmt-05.txt, released on 1998-08-05.
-
-;; Pending a real regression self test suite, Simon Josefsson added
-;; various self test expressions snipped from bug reports, and their
-;; expected value, below.  I you believe it could be useful, please
-;; add your own test cases, or write a real self test suite, or just
-;; remove this.
-
-;; <m3oekvfd50.fsf@whitebox.m5r.de>
-;; (ietf-drums-parse-address "'foo' <foo@example.com>")
-;; => ("foo@example.com" . "'foo'")
+;; DRUMS is an IETF Working Group that worked on Internet RFC 2822,
+;; the successor to RFC 822 and the predecessor of RFC 5322.  This
+;; library is based on draft-ietf-drums-msg-fmt-05.txt, released on
+;; 1998-08-05.
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar ietf-drums-no-ws-ctl-token "\001-\010\013\014\016-\037\177"
   "US-ASCII control characters excluding CR, LF and white space.")
@@ -75,13 +65,28 @@ backslash and doublequote.")
     (modify-syntax-entry ?\' "_" table)
     table))
 
+(defvar ietf-drums-comment-syntax-table
+  (let ((table (copy-syntax-table ietf-drums-syntax-table)))
+    (modify-syntax-entry ?\" "w" table)
+    table)
+  "In comments, DQUOTE is normal and does not start a string.")
+
+(defun ietf-drums--skip-comment ()
+  ;; From just before the start of a comment, go to the end.  Returns
+  ;; point.  If the comment is unterminated, go to point-max.
+  (condition-case ()
+      (with-syntax-table ietf-drums-comment-syntax-table
+	(forward-sexp 1))
+    (scan-error (goto-char (point-max))))
+  (point))
+
 (defun ietf-drums-token-to-list (token)
   "Translate TOKEN into a list of characters."
   (let ((i 0)
-	b e c out range)
+	b c out range)
     (while (< i (length token))
       (setq c (aref token i))
-      (incf i)
+      (cl-incf i)
       (cond
        ((eq c ?-)
 	(if b
@@ -90,7 +95,7 @@ backslash and doublequote.")
        (range
 	(while (<= b c)
 	  (push (make-char 'ascii b) out)
-	  (incf b))
+	  (cl-incf b))
 	(setq range nil))
        ((= i (length token))
 	(push (make-char 'ascii c) out))
@@ -115,18 +120,11 @@ backslash and doublequote.")
 	(setq c (char-after))
 	(cond
 	 ((eq c ?\")
-	  (condition-case err
+	  (condition-case nil
 	      (forward-sexp 1)
 	    (error (goto-char (point-max)))))
 	 ((eq c ?\()
-	  (delete-region
-	       (point)
-	       (condition-case nil
-		   (with-syntax-table (copy-syntax-table ietf-drums-syntax-table)
-		     (modify-syntax-entry ?\" "w")
-		     (forward-sexp 1)
-		     (point))
-		 (error (point-max)))))
+	  (delete-region (point) (ietf-drums--skip-comment)))
 	 (t
 	  (forward-char 1))))
       (buffer-string))))
@@ -140,9 +138,11 @@ backslash and doublequote.")
 	(setq c (char-after))
 	(cond
 	 ((eq c ?\")
-	  (forward-sexp 1))
+	  (condition-case ()
+	      (forward-sexp 1)
+	    (scan-error (goto-char (point-max)))))
 	 ((eq c ?\()
-	  (forward-sexp 1))
+          (ietf-drums--skip-comment))
 	 ((memq c '(?\  ?\t ?\n ?\r))
 	  (delete-char 1))
 	 (t
@@ -150,7 +150,7 @@ backslash and doublequote.")
       (buffer-string))))
 
 (defun ietf-drums-get-comment (string)
-  "Return the first comment in STRING."
+  "Return the last comment in STRING."
   (with-temp-buffer
     (ietf-drums-init string)
     (let (result c)
@@ -185,8 +185,27 @@ STRING is assumed to be a string that is extracted from
 the Content-Transfer-Encoding header of a mail."
   (ietf-drums-remove-garbage (inline (ietf-drums-strip string))))
 
-(defun ietf-drums-parse-address (string)
-  "Parse STRING and return a MAILBOX / DISPLAY-NAME pair."
+(declare-function rfc2047-decode-string "rfc2047" (string &optional address-mime))
+
+(defun ietf-drums-parse-address (string &optional decode)
+  "Parse STRING and return a MAILBOX / DISPLAY-NAME pair.
+STRING here is supposed to be an RFC822(bis) mail address, and
+will commonly look like, for instance:
+
+  \"=?utf-8?Q?Andr=C3=A9?= <andre@example.com>\"
+
+If you have an already-decoded address, like
+
+  \"André <andre@example.com>\"
+
+this function can't be used to parse that.  Instead, use
+`mail-header-parse-address-lax' to make a guess at what's the
+name and what's the address.
+
+If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
+(that's the \"=?utf...q...=?\") stuff."
+  (when decode
+    (require 'rfc2047))
   (with-temp-buffer
     (let (display-name mailbox c display-string)
       (ietf-drums-init string)
@@ -228,15 +247,17 @@ the Content-Transfer-Encoding header of a mail."
       ;; If we found no display-name, then we look for comments.
       (if display-name
 	  (setq display-string
-		(mapconcat 'identity (reverse display-name) " "))
+		(mapconcat #'identity (reverse display-name) " "))
 	(setq display-string (ietf-drums-get-comment string)))
       (if (not mailbox)
 	  (when (and display-string
-		     (string-match "@" display-string))
+		     (string-search "@" display-string))
 	    (cons
-	     (mapconcat 'identity (nreverse display-name) "")
+	     (mapconcat #'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))
-	(cons mailbox display-string)))))
+	(cons mailbox (if (and decode display-string)
+                          (rfc2047-decode-string display-string)
+                        display-string))))))
 
 (defun ietf-drums-parse-addresses (string &optional rawp)
   "Parse STRING and return a list of MAILBOX / DISPLAY-NAME pairs.
@@ -286,9 +307,13 @@ a list of address strings."
     (replace-match " " t t))
   (goto-char (point-min)))
 
+(declare-function ietf-drums-parse-date-string "ietf-drums-date"
+                  (time-string &optional error? no-822?))
+
 (defun ietf-drums-parse-date (string)
   "Return an Emacs time spec from STRING."
-  (apply 'encode-time (parse-time-string string)))
+  (require 'ietf-drums-date)
+  (encode-time (ietf-drums-parse-date-string string)))
 
 (defun ietf-drums-narrow-to-header ()
   "Narrow to the header section in the current buffer."

@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -72,6 +72,7 @@
 
 (require 'esh-mode)
 (require 'esh-util)
+(require 'em-dirs)
 
 (eval-when-compile
   (require 'cl-lib)
@@ -91,31 +92,30 @@ variable names, arguments, etc."
 (defcustom eshell-cmpl-load-hook nil
   "A list of functions to run when `eshell-cmpl' is loaded."
   :version "24.1"			; removed eshell-cmpl-initialize
-  :type 'hook
-  :group 'eshell-cmpl)
+  :type 'hook)
 
 (defcustom eshell-show-lisp-completions nil
   "If non-nil, include Lisp functions in the command completion list.
 If this variable is nil, Lisp completion can still be done in command
 position by using M-TAB instead of TAB."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-show-lisp-alternatives t
   "If non-nil, and no other completions found, show Lisp functions.
 Setting this variable means nothing if `eshell-show-lisp-completions'
 is non-nil."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-no-completion-during-jobs t
   "If non-nil, don't allow completion while a process is running."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-command-completions-alist
   '(("acroread" . "\\.pdf\\'")
     ("xpdf"     . "\\.pdf\\'")
+    ("gunzip"   . "\\.t?gz\\'")
+    ("bunzip2"  . "\\.t?bz2\\'")
+    ("unxz"     . "\\.t?xz\\'")
     ("ar"       . "\\.[ao]\\'")
     ("gcc"      . "\\.[Cc]\\([Cc]\\|[Pp][Pp]\\)?\\'")
     ("g++"      . "\\.[Cc]\\([Cc]\\|[Pp][Pp]\\)?\\'")
@@ -133,184 +133,155 @@ is non-nil."
   "An alist that defines simple argument type correlations.
 This is provided for common commands, as a simplistic alternative
 to writing a completion function."
-  :type '(repeat (cons string regexp))
-  :group 'eshell-cmpl)
+  :type '(repeat (cons string regexp)))
+
+(defun eshell-cmpl--custom-variable-docstring (pcomplete-var)
+  "Generate the docstring of a variable derived from a pcomplete-* variable."
+  (format "%s\n\nIts value is assigned to `%s' locally after eshell starts."
+          (documentation-property pcomplete-var
+                                  'variable-documentation t)
+          (symbol-name pcomplete-var)))
 
 (defcustom eshell-cmpl-file-ignore "~\\'"
-  (documentation-property 'pcomplete-file-ignore
-			  'variable-documentation)
-  :type (get 'pcomplete-file-ignore 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-file-ignore)
+  :type (get 'pcomplete-file-ignore 'custom-type))
 
 (defcustom eshell-cmpl-dir-ignore "\\`\\(\\.\\.?\\|CVS\\)/\\'"
-  (documentation-property 'pcomplete-dir-ignore
-			  'variable-documentation)
-  :type (get 'pcomplete-dir-ignore 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-dir-ignore)
+  :type (get 'pcomplete-dir-ignore 'custom-type))
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
-  (documentation-property 'pcomplete-ignore-case
-			  'variable-documentation)
-  :type (get 'pcomplete-ignore-case 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'completion-ignore-case)
+  :type (get 'completion-ignore-case 'custom-type))
 
 (defcustom eshell-cmpl-autolist nil
-  (documentation-property 'pcomplete-autolist
-			  'variable-documentation)
-  :type (get 'pcomplete-autolist 'custom-type)
-  :group 'eshell-cmpl)
-
-(defcustom eshell-cmpl-suffix-list (list ?/ ?:)
-  (documentation-property 'pcomplete-suffix-list
-			  'variable-documentation)
-  :type (get 'pcomplete-suffix-list 'custom-type)
-  :group 'pcomplete)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-autolist)
+  :type (get 'pcomplete-autolist 'custom-type))
 
 (defcustom eshell-cmpl-recexact nil
-  (documentation-property 'pcomplete-recexact
-			  'variable-documentation)
-  :type (get 'pcomplete-recexact 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-recexact)
+  :type (get 'pcomplete-recexact 'custom-type))
 
-(defcustom eshell-cmpl-man-function 'man
-  (documentation-property 'pcomplete-man-function
-			  'variable-documentation)
-  :type (get 'pcomplete-man-function 'custom-type)
-  :group 'eshell-cmpl)
+(defcustom eshell-cmpl-man-function #'man
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-man-function)
+  :type (get 'pcomplete-man-function 'custom-type))
 
-(defcustom eshell-cmpl-compare-entry-function 'file-newer-than-file-p
-  (documentation-property 'pcomplete-compare-entry-function
-			  'variable-documentation)
-  :type (get 'pcomplete-compare-entry-function 'custom-type)
-  :group 'eshell-cmpl)
+(defcustom eshell-cmpl-compare-entry-function #'file-newer-than-file-p
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-compare-entry-function)
+  :type (get 'pcomplete-compare-entry-function 'custom-type))
 
 (defcustom eshell-cmpl-expand-before-complete nil
-  (documentation-property 'pcomplete-expand-before-complete
-			  'variable-documentation)
-  :type (get 'pcomplete-expand-before-complete 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-expand-before-complete)
+  :type (get 'pcomplete-expand-before-complete 'custom-type))
 
 (defcustom eshell-cmpl-cycle-completions t
-  (documentation-property 'pcomplete-cycle-completions
-			  'variable-documentation)
-  :type (get 'pcomplete-cycle-completions 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-cycle-completions)
+  :type (get 'pcomplete-cycle-completions 'custom-type))
 
 (defcustom eshell-cmpl-cycle-cutoff-length 5
-  (documentation-property 'pcomplete-cycle-cutoff-length
-			  'variable-documentation)
-  :type (get 'pcomplete-cycle-cutoff-length 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-cycle-cutoff-length)
+  :type (get 'pcomplete-cycle-cutoff-length 'custom-type))
 
 (defcustom eshell-cmpl-restore-window-delay 1
-  (documentation-property 'pcomplete-restore-window-delay
-			  'variable-documentation)
-  :type (get 'pcomplete-restore-window-delay 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-restore-window-delay)
+  :type (get 'pcomplete-restore-window-delay 'custom-type))
 
 (defcustom eshell-command-completion-function
-  (function
-   (lambda ()
-     (pcomplete-here (eshell-complete-commands-list))))
-  (documentation-property 'pcomplete-command-completion-function
-			  'variable-documentation)
-  :type (get 'pcomplete-command-completion-function 'custom-type)
-  :group 'eshell-cmpl)
+  (lambda ()
+    (pcomplete-here (eshell--complete-commands-list)))
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-command-completion-function)
+  :type (get 'pcomplete-command-completion-function 'custom-type))
 
 (defcustom eshell-cmpl-command-name-function
-  'eshell-completion-command-name
-  (documentation-property 'pcomplete-command-name-function
-			  'variable-documentation)
-  :type (get 'pcomplete-command-name-function 'custom-type)
-  :group 'eshell-cmpl)
+  #'eshell-completion-command-name
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-command-name-function)
+  :type (get 'pcomplete-command-name-function 'custom-type))
 
 (defcustom eshell-default-completion-function
-  (function
-   (lambda ()
-     (while (pcomplete-here
-	     (pcomplete-dirs-or-entries
-	      (cdr (assoc (funcall eshell-cmpl-command-name-function)
-			  eshell-command-completions-alist)))))))
-  (documentation-property 'pcomplete-default-completion-function
-			  'variable-documentation)
-  :type (get 'pcomplete-default-completion-function 'custom-type)
-  :group 'eshell-cmpl)
+  (lambda ()
+    (while (pcomplete-here
+            (pcomplete-dirs-or-entries
+             (cdr (assoc (funcall eshell-cmpl-command-name-function)
+                         eshell-command-completions-alist))))))
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-default-completion-function)
+  :type (get 'pcomplete-default-completion-function 'custom-type))
 
 (defcustom eshell-cmpl-use-paring t
-  (documentation-property 'pcomplete-use-paring 'variable-documentation)
-  :type (get 'pcomplete-use-paring 'custom-type)
-  :group 'eshell-cmpl)
+  (eshell-cmpl--custom-variable-docstring 'pcomplete-use-paring)
+  :type (get 'pcomplete-use-paring 'custom-type))
 
 ;;; Functions:
 
 (defun eshell-complete-lisp-symbol ()
   "Try to complete the text around point as a Lisp symbol."
   (interactive)
-  (let ((completion-at-point-functions '(lisp-completion-at-point)))
+  (let ((completion-at-point-functions '(elisp-completion-at-point)))
     (completion-at-point)))
 
-(defun eshell-cmpl-initialize ()
+(defvar-keymap eshell-cmpl-mode-map
+  "C-i"       #'completion-at-point
+  ;; jww (1999-10-19): Will this work on anything but X?
+  "<backtab>" #'pcomplete-reverse
+  "M-?"       #'completion-help-at-point
+  "C-M-i"     #'eshell-complete-lisp-symbol
+  ;; C-c prefix:
+  "C-c M-h"   #'eshell-completion-help
+  "C-c TAB"   #'pcomplete-expand-and-complete
+  "C-c C-i"   #'pcomplete-expand-and-complete
+  "C-c SPC"   #'pcomplete-expand)
+
+(define-minor-mode eshell-cmpl-mode
+  "Minor mode that provides a keymap when `eshell-cmpl' active.
+
+\\{eshell-cmpl-mode-map}"
+  :keymap eshell-cmpl-mode-map)
+
+(defun eshell-cmpl-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the completions module."
-  (set (make-local-variable 'pcomplete-command-completion-function)
-       eshell-command-completion-function)
-  (set (make-local-variable 'pcomplete-command-name-function)
-       eshell-cmpl-command-name-function)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       eshell-default-completion-function)
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'eshell-complete-parse-arguments)
-  (set (make-local-variable 'pcomplete-file-ignore)
-       eshell-cmpl-file-ignore)
-  (set (make-local-variable 'pcomplete-dir-ignore)
-       eshell-cmpl-dir-ignore)
-  (set (make-local-variable 'pcomplete-ignore-case)
-       eshell-cmpl-ignore-case)
-  (set (make-local-variable 'pcomplete-autolist)
-       eshell-cmpl-autolist)
-  (set (make-local-variable 'pcomplete-suffix-list)
-       eshell-cmpl-suffix-list)
-  (set (make-local-variable 'pcomplete-recexact)
-       eshell-cmpl-recexact)
-  (set (make-local-variable 'pcomplete-man-function)
-       eshell-cmpl-man-function)
-  (set (make-local-variable 'pcomplete-compare-entry-function)
-       eshell-cmpl-compare-entry-function)
-  (set (make-local-variable 'pcomplete-expand-before-complete)
-       eshell-cmpl-expand-before-complete)
-  (set (make-local-variable 'pcomplete-cycle-completions)
-       eshell-cmpl-cycle-completions)
-  (set (make-local-variable 'pcomplete-cycle-cutoff-length)
-       eshell-cmpl-cycle-cutoff-length)
-  (set (make-local-variable 'pcomplete-restore-window-delay)
-       eshell-cmpl-restore-window-delay)
-  (set (make-local-variable 'pcomplete-use-paring)
-       eshell-cmpl-use-paring)
+  (setq-local pcomplete-command-completion-function
+              eshell-command-completion-function)
+  (setq-local pcomplete-command-name-function
+              eshell-cmpl-command-name-function)
+  (setq-local pcomplete-default-completion-function
+              eshell-default-completion-function)
+  (setq-local pcomplete-parse-arguments-function
+              #'eshell-complete-parse-arguments)
+  (setq-local pcomplete-file-ignore
+              eshell-cmpl-file-ignore)
+  (setq-local pcomplete-dir-ignore
+              eshell-cmpl-dir-ignore)
+  (setq-local completion-ignore-case
+              eshell-cmpl-ignore-case)
+  (setq-local pcomplete-autolist
+              eshell-cmpl-autolist)
+  (setq-local pcomplete-recexact
+              eshell-cmpl-recexact)
+  (setq-local pcomplete-man-function
+              eshell-cmpl-man-function)
+  (setq-local pcomplete-compare-entry-function
+              eshell-cmpl-compare-entry-function)
+  (setq-local pcomplete-expand-before-complete
+              eshell-cmpl-expand-before-complete)
+  (setq-local pcomplete-cycle-completions
+              eshell-cmpl-cycle-completions)
+  (setq-local pcomplete-cycle-cutoff-length
+              eshell-cmpl-cycle-cutoff-length)
+  (setq-local pcomplete-restore-window-delay
+              eshell-cmpl-restore-window-delay)
+  (setq-local pcomplete-use-paring
+              eshell-cmpl-use-paring)
   ;; `comint-file-name-quote-list' should only be set after all the
   ;; load-hooks for any other extension modules have been run, which
   ;; is true at the time `eshell-mode-hook' is run
   (add-hook 'eshell-mode-hook
-	    (function
-	     (lambda ()
-	       (set (make-local-variable 'comint-file-name-quote-list)
-		    eshell-special-chars-outside-quoting))) nil t)
-  (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
-  (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
-  (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
-  (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
-  (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
-  (define-key eshell-command-map [(control ?i)]
-    'pcomplete-expand-and-complete)
-  (define-key eshell-command-map [space] 'pcomplete-expand)
-  (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
+            (lambda ()
+              (setq-local comint-file-name-quote-list
+                          eshell-special-chars-outside-quoting))
+            nil t)
+  (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil t)
-  ;; jww (1999-10-19): Will this work on anything but X?
-  (if (featurep 'xemacs)
-      (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
-  (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
+  (eshell-cmpl-mode))
 
 (defun eshell-completion-command-name ()
   "Return the command name, possibly sans globbing."
@@ -329,18 +300,24 @@ to writing a completion function."
       (describe-prefix-bindings)
     (call-interactively 'pcomplete-help)))
 
+(defun eshell--pcomplete-insert-tab ()
+  (if (not pcomplete-allow-modifications)
+      (throw 'pcompleted nil)
+    (insert-and-inherit "\t")
+    (throw 'pcompleted t)))
+
 (defun eshell-complete-parse-arguments ()
   "Parse the command line arguments for `pcomplete-argument'."
   (when (and eshell-no-completion-during-jobs
-	     (eshell-interactive-process))
-    (insert-and-inherit "\t")
-    (throw 'pcompleted t))
+	     (eshell-interactive-process-p))
+    (eshell--pcomplete-insert-tab))
   (let ((end (point-marker))
 	(begin (save-excursion (eshell-bol) (point)))
 	(posns (list t))
 	args delim)
-    (when (memq this-command '(pcomplete-expand
-			       pcomplete-expand-and-complete))
+    (when (and pcomplete-allow-modifications
+	       (memq this-command '(pcomplete-expand
+			            pcomplete-expand-and-complete)))
       (run-hook-with-args 'eshell-expand-input-functions begin end)
       (if (= begin end)
 	  (end-of-line))
@@ -353,14 +330,11 @@ to writing a completion function."
 	       (setq begin (1+ (cadr delim))
 		     args (eshell-parse-arguments begin end)))
 	      ((eq (car delim) ?\()
-	       (eshell-complete-lisp-symbol)
-	       (throw 'pcompleted t))
+	       (throw 'pcompleted (elisp-completion-at-point)))
 	      (t
-	       (insert-and-inherit "\t")
-	       (throw 'pcompleted t))))
+	       (eshell--pcomplete-insert-tab))))
     (when (get-text-property (1- end) 'comment)
-      (insert-and-inherit "\t")
-      (throw 'pcompleted t))
+      (eshell--pcomplete-insert-tab))
     (let ((pos begin))
       (while (< pos end)
 	(if (get-text-property pos 'arg-begin)
@@ -385,95 +359,109 @@ to writing a completion function."
       (nconc args (list ""))
       (nconc posns (list (point))))
     (cons (mapcar
-	   (function
-	    (lambda (arg)
-	      (let ((val
-		     (if (listp arg)
-			 (let ((result
-				(eshell-do-eval
-				 (list 'eshell-commands arg) t)))
-			   (cl-assert (eq (car result) 'quote))
-			   (cadr result))
-		       arg)))
-		(if (numberp val)
-		    (setq val (number-to-string val)))
-		(or val ""))))
+           (lambda (arg)
+             (let ((val
+                    (if (listp arg)
+                        (let ((result
+                               (eshell-do-eval
+                                (list 'eshell-commands arg) t)))
+                          (cl-assert (eq (car result) 'quote))
+                          (cadr result))
+                      arg)))
+               (cond ((numberp val)
+                      (setq val (number-to-string val)))
+                     ;; expand .../ etc that only eshell understands to
+                     ;; standard ../../
+                     ((and (stringp val)) (string-match "\\.\\.\\.+/" val)
+                      (setq val (eshell-expand-multiple-dots val))))
+               (or val "")))
 	   args)
 	  posns)))
 
-(defun eshell-complete-commands-list ()
-  "Generate list of applicable, visible commands."
-  (let ((filename (pcomplete-arg)) glob-name)
-    (if (file-name-directory filename)
-        (if eshell-force-execution
-            (pcomplete-dirs-or-entries nil 'file-readable-p)
-          (pcomplete-executables))
-      (if (and (> (length filename) 0)
-	       (eq (aref filename 0) eshell-explicit-command-char))
-	  (setq filename (substring filename 1)
-		pcomplete-stub filename
-		glob-name t))
-      (let* ((paths (eshell-parse-colon-path eshell-path-env))
-	     (cwd (file-name-as-directory
-		   (expand-file-name default-directory)))
-	     (path "") (comps-in-path ())
-	     (file "") (filepath "") (completions ()))
-        (if (eshell-under-windows-p)
-            (push "." paths))
-	;; Go thru each path in the search path, finding completions.
-	(while paths
-	  (setq path (file-name-as-directory
-		      (expand-file-name (or (car paths) ".")))
-		comps-in-path
-		(and (file-accessible-directory-p path)
-		     (file-name-all-completions filename path)))
-	  ;; Go thru each completion found, to see whether it should
-	  ;; be used.
-	  (while comps-in-path
-	    (setq file (car comps-in-path)
-		  filepath (concat path file))
-	    (if (and (not (member file completions)) ;
-		     (or (string-equal path cwd)
-			 (not (file-directory-p filepath)))
-                     (if eshell-force-execution
-                         (file-readable-p filepath)
-                       (file-executable-p filepath)))
-		(setq completions (cons file completions)))
-	    (setq comps-in-path (cdr comps-in-path)))
-	  (setq paths (cdr paths)))
-	;; Add aliases which are currently visible, and Lisp functions.
-	(pcomplete-uniqify-list
-	 (if glob-name
-	     completions
-	   (setq completions
-		 (append (and (eshell-using-module 'eshell-alias)
-			      (funcall (symbol-function 'eshell-alias-completions)
-				       filename))
-			 (eshell-winnow-list
-			  (mapcar
-			   (function
-			    (lambda (name)
-			      (substring name 7)))
-			   (all-completions (concat "eshell/" filename)
-					    obarray 'functionp))
-			  nil '(eshell-find-alias-function))
-			 completions))
-	   (append (and (or eshell-show-lisp-completions
-			    (and eshell-show-lisp-alternatives
-				 (null completions)))
-			(all-completions filename obarray 'functionp))
-		   completions)))))))
+(defun eshell--pcomplete-executables ()
+  "Complete amongst a list of directories and executables.
 
-(defun eshell-pcomplete (&optional interactively)
-  "Eshell wrapper for `pcomplete'."
-  (interactive "p")
-  ;; Pretend to be pcomplete so that cycling works (bug#13293).
-  (setq this-command 'pcomplete)
-  (condition-case nil
-      (if interactively
-	  (call-interactively 'pcomplete)
-	(pcomplete))
-    (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
+Wrapper for `pcomplete-executables' or `pcomplete-dirs-or-entries',
+depending on the value of `eshell-force-execution'.
+
+Adds path prefix to candidates independent of `action' value."
+  ;; `pcomplete-entries' returns filenames without path on `action' to
+  ;; use current string directory as done in `completion-file-name-table'
+  ;; when `action' is nil to construct executable candidates.
+  (let ((table (if eshell-force-execution
+                   (pcomplete-dirs-or-entries nil #'file-readable-p)
+                 (pcomplete-executables))))
+    (lambda (string pred action)
+      (let ((cands (funcall table string pred action)))
+        (if (eq action t)
+            (let ((specdir (file-name-directory string)))
+              (mapcar
+               (lambda (cand)
+                 (if (stringp cand)
+                     (file-name-concat specdir cand)
+                   cand))
+               cands))
+          cands)))))
+
+(defun eshell--complete-commands-list ()
+  "Generate list of applicable, visible commands."
+  ;; Building the commands list can take quite a while, especially over Tramp
+  ;; (bug#41423), so do it lazily.
+  (let ((glob-name
+	 ;; When a command is specified using `eshell-explicit-command-char',
+         ;; that char is not part of the command and hence not part of what
+         ;; we complete.  Adjust `pcomplete-stub' accordingly!
+	 (if (and (> (length pcomplete-stub) 0)
+	          (eq (aref pcomplete-stub 0) eshell-explicit-command-char))
+	     (setq pcomplete-stub (substring pcomplete-stub 1)))))
+    (completion-table-dynamic
+     (lambda (filename)
+       (if (file-name-directory filename)
+           (eshell--pcomplete-executables)
+	 (let* ((paths (eshell-get-path))
+		(cwd (file-name-as-directory
+		      (expand-file-name default-directory)))
+		(filepath "") (completions ()))
+	   ;; Go thru each path in the search path, finding completions.
+	   (dolist (path paths)
+	     (setq path (file-name-as-directory
+		         (expand-file-name (or path "."))))
+	     ;; Go thru each completion found, to see whether it should
+	     ;; be used.
+	     (dolist (file (and (file-accessible-directory-p path)
+		                (file-name-all-completions filename path)))
+	       (setq filepath (concat path file))
+	       (if (and (not (member file completions)) ;
+			(or (string-equal path cwd)
+			    (not (file-directory-p filepath)))
+			;; FIXME: Those repeated file tests end up
+			;; very costly over Tramp, we should cache the result.
+			(if eshell-force-execution
+                            (file-readable-p filepath)
+                          (file-executable-p filepath)))
+		   (push file completions))))
+	   ;; Add aliases which are currently visible, and Lisp functions.
+	   (pcomplete-uniquify-list
+	    (if glob-name
+	        completions
+	      (setq completions
+		    (append (if (fboundp 'eshell-alias-completions)
+			        (eshell-alias-completions filename))
+			    (eshell-winnow-list
+			     (mapcar
+                              (lambda (name)
+                                (substring name 7))
+			      (all-completions (concat "eshell/" filename)
+					       obarray #'functionp))
+			     nil '(eshell-find-alias-function))
+			    completions))
+	      (append (and (or eshell-show-lisp-completions
+			       (and eshell-show-lisp-alternatives
+				    (null completions)))
+			   (all-completions filename obarray #'functionp))
+		      completions)))))))))
+
+(define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
 (provide 'em-cmpl)
 

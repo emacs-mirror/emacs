@@ -1,6 +1,6 @@
-;; unidata-gen.el -- Create files containing character property data.
+;;; unidata-gen.el --- Create files containing character property data  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -77,7 +77,7 @@
 ;;	2nd: function to call to get a property value,
 ;;	     or an index number of C function to decode the value,
 ;;	     or nil if the value can be directly got from the table.
-;;	3nd: function to call to put a property value,
+;;	3rd: function to call to put a property value,
 ;;	     or an index number of C function to encode the value,
 ;;	     or nil if the value can be directly stored in the table.
 ;;	4th: function to call to get a description of a property value, or nil
@@ -89,6 +89,7 @@
 ;; PROPn: string representing the nth property value
 
 (eval-when-compile (require 'cl-lib))
+(require 'generate-lisp-file)
 
 (defvar unidata-list nil)
 
@@ -209,9 +210,15 @@ Property value is one of the following symbols:
       ;; The assignment of default values to blocks of code points
       ;; follows the file DerivedBidiClass.txt from the Unicode
       ;; Character Database (UCD).
-      (L (#x0600 #x06FF AL) (#xFB50 #xFDFF AL) (#xFE70 #xFEFF AL)
-	 (#x0590 #x05FF R) (#x07C0 #x08FF R)
-	 (#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
+      (L (#x0600 #x07BF AL) (#x0860 #x08FF AL) (#xFB50 #xFDCF AL)
+         (#xFDF0 #xFDFF AL) (#xFE70 #xFEFF AL) (#x10D00 #x10D3F AL)
+         (#x10EC0 #x10EFF AL) (#x10F30 #x10F6F AL) (#x1EC70 #x1ECBF AL)
+         (#x1ED00 #x1ED4F AL) (#x1EE00 #x1EEFF AL)
+	 (#x0590 #x05FF R) (#x07C0 #x085F R) (#xFB1D #xFB4F R)
+         (#x10800 #x10CFF R) (#x10D40 #x10EBF R) (#x10F00 #x10F2F R)
+         (#x10F70 #x10FFF R) (#x1E800 #x1EC6F R) (#x1ECC0 #x1ECFF R)
+         (#x1ED50 #x1EDFF R) (#x1EF00 #x1EFFF R)
+         (#x20A0 #x20CF ET))
       ;; The order of elements must be in sync with bidi_type_t in
       ;; src/dispextern.h.
       (L R EN AN BN B AL LRE LRO RLE RLO PDF LRI RLI FSI PDI
@@ -349,13 +356,10 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (n o c)))))
 
 ;; Functions to access the above data.
-(defsubst unidata-prop-prop (proplist) (nth 0 proplist))
-(defsubst unidata-prop-index (proplist) (nth 1 proplist))
-(defsubst unidata-prop-generator (proplist) (nth 2 proplist))
-(defsubst unidata-prop-docstring (proplist) (nth 3 proplist))
-(defsubst unidata-prop-describer (proplist) (nth 4 proplist))
-(defsubst unidata-prop-default (proplist) (nth 5 proplist))
-(defsubst unidata-prop-val-list (proplist) (nth 6 proplist))
+(cl-defstruct (unidata-prop
+               (:type list)
+               (:constructor nil))
+  prop index generator docstring describer default val-list)
 
 
 ;; SIMPLE TABLE
@@ -383,11 +387,11 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 ;;   3rd: 0 (corresponding to uniprop_encode_character in chartab.c)
 ;;   4th to 5th: nil
 
-(defun unidata-gen-table-character (prop prop-idx &rest ignore)
+(defun unidata-gen-table-character (prop prop-idx &rest _ignore)
   (let ((table (make-char-table 'char-code-property-table))
 	(vec (make-vector 128 0))
 	(tail unidata-list)
-	elt range val idx slot)
+	elt range val)
     (if (functionp prop-idx)
 	(setq tail (funcall prop-idx)
 	      prop-idx 1))
@@ -395,13 +399,13 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (setq elt (car tail) tail (cdr tail))
       (setq range (car elt)
 	    val (nth prop-idx elt))
-      (if (= (length val) 0)
-	  (setq val nil)
-	(setq val (string-to-number val 16)))
+      (setq val (if (= (length val) 0)
+	            nil
+	          (string-to-number val 16)))
       (if (consp range)
 	  (if val
 	      (set-char-table-range table range val))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
 	       first-index last-index)
 	  (fillarray vec 0)
@@ -419,8 +423,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		  (setq first-index last-index)))
 	    (setq tail (cdr tail)))
 	  (when first-index
-	    (let ((str (string 1 first-index))
-		  c)
+	    (let ((str (string 1 first-index)))
 	      (while (<= first-index last-index)
 		(setq str (format "%s%c"  str (or (aref vec first-index) 0))
 		      first-index (1+ first-index)))
@@ -502,7 +505,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	;;     bidi.c:bidi_get_type and bidi.c:bidi_get_category.
 	(bidi-warning "\
 ** Found new bidi-class `%s', please update bidi.c and dispextern.h")
-	tail elt range val val-code idx slot
+	tail elt range val val-code
 	prev-range-data)
     (setq val-list (cons nil (copy-sequence val-list)))
     (setq tail val-list val-code 0)
@@ -510,9 +513,9 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
     (while tail
       (setcar tail (cons (car tail) val-code))
       (setq tail (cdr tail) val-code (1+ val-code)))
-    (if (consp default-value)
-	(setq default-value (copy-sequence default-value))
-      (setq default-value (list default-value)))
+    (setq default-value (if (consp default-value)
+	                    (copy-sequence default-value)
+	                  (list default-value)))
     (setcar default-value
 	    (unidata-encode-val val-list (car default-value)))
     (set-char-table-range table t (car default-value))
@@ -548,7 +551,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		(if (< from (logand to #x1FFF80))
 		    (setq from (logand to #x1FFF80)))
 		(setq prev-range-data (cons (cons from to) val-code)))))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
 	       str count new-val from to vcode)
 	  (fillarray vec (car default-value))
@@ -602,17 +605,17 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	  (if (= count 128)
 	      (if val
 		  (set-char-table-range table (cons start limit) val-code))
-	    (if (= val-code 0)
-		(set-char-table-range table (cons start limit) str)
-	      (if (> count 2)
-		  (setq str (concat str (string val-code (+ count 128))))
-		(if (= count 2)
-		    (setq str (concat str (string val-code val-code)))
-		  (setq str (concat str (string val-code)))))
-	      (set-char-table-range table (cons start limit) str))))))
+	    (set-char-table-range table (cons start limit)
+		                  (if (= val-code 0)
+		                      str
+		                    (concat str (if (> count 2)
+		                                    (string val-code (+ count 128))
+		                                  (if (= count 2)
+		                                      (string val-code val-code)
+		                                    (string val-code))))))))))
 
     (set-char-table-extra-slot table 0 prop)
-    (set-char-table-extra-slot table 4 (vconcat (mapcar 'car val-list)))
+    (set-char-table-extra-slot table 4 (vconcat (mapcar #'car val-list)))
     table))
 
 (defun unidata-gen-table-symbol (prop index default-value val-list)
@@ -679,8 +682,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
   (let ((beg 0)
 	(end 0)
 	(len1 (length l1))
-	(len2 (length l2))
-	result)
+	(len2 (length l2)))
     (when (< len1 16)
       (while (and l1 (eq (car l1) (car l2)))
 	(setq beg (1+ beg)
@@ -688,13 +690,13 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (while (and (< end len1) (< end len2)
 		  (eq (nth (- len1 end 1) l1) (nth (- len2 end 1) l2)))
 	(setq end (1+ end))))
-    (if (= (+ beg end) 0)
-	(setq result (list -1))
-      (setq result (list (+ (* beg 16) (+ beg (- len1 end))))))
-    (while (< end len2)
-      (setcdr result (cons (nth (- len2 end 1) l2) (cdr result)))
-      (setq end (1+ end)))
-    result))
+    (let ((result (list (if (= (+ beg end) 0)
+	                    -1
+	                  (+ (* beg 16) (+ beg (- len1 end)))))))
+      (while (< end len2)
+        (push (nth (- len2 end 1) l2) (cdr result))
+        (setq end (1+ end)))
+      result)))
 
 ;; Return a compressed form of the vector VEC.  Each element of VEC is
 ;; a list of symbols of which names can be concatenated to form a
@@ -703,7 +705,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 ;; elements is usually small.
 
 (defun unidata-word-list-compress (vec)
-  (let (last-elt last-idx diff-head tail elt val)
+  (let (last-elt last-idx diff-head elt val)
     (dotimes (i 128)
       (setq elt (aref vec i))
       (when elt
@@ -761,14 +763,14 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
    ((stringp val)
     (if (> (aref val 0) 0)
 	val
-      (let* ((first-char (lsh (lsh char -7) 7))
+      (let* ((first-char (ash (ash char -7) 7))
 	     (word-table (aref (char-table-extra-slot table 4) 0))
 	     (i 1)
 	     (len (length val))
 	     (vec (make-vector 128 nil))
 	     (idx 0)
 	     (case-fold-search nil)
-	     c word-list tail-list last-list word diff-head)
+	     c word-list tail-list last-list diff-head)
 	(while (< i len)
 	  (setq c (aref val i))
 	  (if (< c 3)
@@ -784,7 +786,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			  (setq diff-head
 				(prog1 (aref val i) (setq i (1+ i)))))
 		      (setq tail-list (nthcdr (% diff-head 16) last-list))
-		      (dotimes (i (/ diff-head 16))
+		      (dotimes (_ (/ diff-head 16))
 			(setq word-list (nconc word-list (list (car l)))
 			      l (cdr l))))))
 	    (setq word-list
@@ -808,7 +810,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			  (setcdr tail (cons elt (cdr tail)))
 			  (setcar tail " ")))
 		    (setq tail (cddr tail)))
-		  (setq name (apply 'concat name))))
+		  (setq name (apply #'concat name))))
 	    (aset table c name)
 	    (if (= c char)
 		(setq val name))))
@@ -865,14 +867,14 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
    ((stringp val)
     (if (> (aref val 0) 0)
 	val
-      (let* ((first-char (lsh (lsh char -7) 7))
+      (let* ((first-char (ash (ash char -7) 7))
 	     (word-table (char-table-extra-slot table 4))
 	     (i 1)
 	     (len (length val))
 	     (vec (make-vector 128 nil))
 	     (idx 0)
 	     (case-fold-search nil)
-	     c word-list tail-list last-list word diff-head)
+	     c word-list tail-list last-list diff-head)
 	(while (< i len)
 	  (setq c (aref val i))
 	  (if (< c 3)
@@ -888,7 +890,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			  (setq diff-head
 				(prog1 (aref val i) (setq i (1+ i)))))
 		      (setq tail-list (nthcdr (% diff-head 16) last-list))
-		      (dotimes (i (/ diff-head 16))
+		      (dotimes (_ (/ diff-head 16))
 			(setq word-list (nconc word-list (list (car l)))
 			      l (cdr l))))))
 	    (setq word-list
@@ -945,7 +947,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	(word-list (list nil))
 	word-table
 	block-list block-word-table block-end
-	tail elt range val idx slot)
+	tail elt range val idx)
     (setq tail unidata-list)
     (setq block-end -1)
     (while tail
@@ -982,11 +984,9 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		(if slot
 		    (nconc slot (list range))
 		  (push (list val range) block-list))))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
-	       (first tail)
-	       (vec (make-vector 128 nil))
-	       c name len)
+	       (vec (make-vector 128 nil)))
 	  (if (<= start block-end)
 	      ;; START overlap with the previous block.
 	      (aset table range (nth prop-idx elt))
@@ -1037,10 +1037,10 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			       (cdr (assq elt word-list))))
 		  (setcar tail (string code))
 		  (setq tail (cdr tail)))
-		(aset vec i (mapconcat 'identity (aref vec i) "")))))
+		(aset vec i (mapconcat #'identity (aref vec i) "")))))
 	  (set-char-table-range
 	   table (cons idx (+ idx 127))
-	   (mapconcat 'identity vec "")))))
+	   (mapconcat #'identity vec "")))))
 
     (setq block-word-table (make-vector (length block-list) nil))
     (setq idx 0)
@@ -1083,22 +1083,21 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata--ensure-compiled (&rest funcs)
   (dolist (fun funcs)
-    (or (byte-code-function-p (symbol-function fun))
-	(byte-compile fun))))
+    (unless (compiled-function-p (symbol-function fun))
+      (byte-compile fun))))
 
-(defun unidata-gen-table-name (prop index &rest ignore)
+(defun unidata-gen-table-name (prop index &rest _ignore)
   (let* ((table (unidata-gen-table-word-list prop index 'unidata-split-name))
 	 (word-tables (char-table-extra-slot table 4)))
     (unidata--ensure-compiled 'unidata-get-name 'unidata-put-name)
     (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-name))
     (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-name))
 
-    (if (eq prop 'name)
-	(set-char-table-extra-slot table 4
+    (set-char-table-extra-slot table 4
+			       (if (eq prop 'name)
 				   (vector (car word-tables)
 					   (cdr word-tables)
-					   unidata-name-jamo-name-table))
-      (set-char-table-extra-slot table 4
+					   unidata-name-jamo-name-table)
 				 (vector (car word-tables))))
     table))
 
@@ -1107,24 +1106,25 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       str
     (let ((len (length str))
 	  (l nil)
-	  (idx 0)
-	  c)
+	  (idx 0))
       (if (= len 0)
 	  nil
 	(dotimes (i len)
-	  (setq c (aref str i))
-	  (if (= c 32)
-	      (setq l (if (= (aref str idx) ?<)
-			  (cons (intern (substring str (1+ idx) (1- i))) l)
-			(cons (string-to-number (substring str idx i) 16) l))
-		    idx (1+ i))))
-	(if (= (aref str idx) ?<)
-	    (setq l (cons (intern (substring str (1+ idx) (1- len))) l))
-	  (setq l (cons (string-to-number (substring str idx len) 16) l)))
+	  (let ((c (aref str i)))
+	    (when (= c ?\s)
+	      (push (if (= (aref str idx) ?<)
+		        (intern (substring str (1+ idx) (1- i)))
+		      (string-to-number (substring str idx i) 16))
+		    l)
+	      (setq idx (1+ i)))))
+	(push (if (= (aref str idx) ?<)
+	          (intern (substring str (1+ idx) (1- len)))
+	        (string-to-number (substring str idx len) 16))
+	      l)
 	(nreverse l)))))
 
 
-(defun unidata-gen-table-decomposition (prop index &rest ignore)
+(defun unidata-gen-table-decomposition (prop index &rest _ignore)
   (let* ((table (unidata-gen-table-word-list prop index 'unidata-split-decomposition))
 	 (word-tables (char-table-extra-slot table 4)))
     (unidata--ensure-compiled 'unidata-get-decomposition
@@ -1167,7 +1167,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
         (forward-line)))
     result))
 
-(defun unidata-gen-table-special-casing (prop prop-idx &rest ignore)
+(defun unidata-gen-table-special-casing (prop prop-idx &rest _ignore)
   (let ((table (make-char-table 'char-code-property-table)))
     (set-char-table-extra-slot table 0 prop)
     (mapc (lambda (entry)
@@ -1175,7 +1175,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
               ;; If character maps to a single character, the mapping is already
               ;; covered by regular casing property.  Don’t store those.
               (when (/= (length v) 1)
-                (set-char-table-range table ch (apply 'string v)))))
+                (set-char-table-range table ch (apply #'string v)))))
           (or unidata-gen-table-special-casing--cache
               (setq unidata-gen-table-special-casing--cache
                     (unidata-gen-table-special-casing--do-load))))
@@ -1184,7 +1184,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 
 (defun unidata-describe-general-category (val)
   (cdr (assq val
-	     '((nil . "Uknown")
+	     '((nil . "Unknown")
 	       (Lu . "Letter, Uppercase")
 	       (Ll . "Letter, Lowercase")
 	       (Lt . "Letter, Titlecase")
@@ -1353,7 +1353,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
         ;; unidata-gen-table-special-casing--do-load and there is no other file
         ;; to compare those values with.  This is why we’re skipping the check
         ;; for special casing properties.
-        (unless (eq generator 'unidata-gen-table-special-casing)
+        (unless (eq generator #'unidata-gen-table-special-casing)
           (setq table (progn
                         (message "Generating %S table..." prop)
                         (funcall generator prop index default-value val-list))
@@ -1369,19 +1369,21 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
                   (and (stringp val1)
                        (= (length val1) 0)
                        (setq val1 nil))
-                  (if val1
-                      (cond ((eq generator 'unidata-gen-table-symbol)
-                             (setq val1 (intern val1)))
-                            ((eq generator 'unidata-gen-table-integer)
-                             (setq val1 (string-to-number val1)))
-                            ((eq generator 'unidata-gen-table-character)
-                             (setq val1 (string-to-number val1 16)))
-                            ((eq generator 'unidata-gen-table-decomposition)
-                             (setq val1 (unidata-split-decomposition val1))))
-                    (cond ((eq prop 'decomposition)
-                           (setq val1 (list char)))
-                          ((eq prop 'bracket-type)
-                           (setq val1 'n))))
+                  (setq val1
+                        (if val1
+                            (cond ((eq generator #'unidata-gen-table-symbol)
+                                   (intern val1))
+                                  ((eq generator #'unidata-gen-table-integer)
+                                   (string-to-number val1))
+                                  ((eq generator #'unidata-gen-table-character)
+                                   (string-to-number val1 16))
+                                  ((eq generator #'unidata-gen-table-decomposition)
+                                   (unidata-split-decomposition val1))
+                                  (t val1))
+                          (cond ((eq prop 'decomposition)
+                                 (list char))
+                                ((eq prop 'bracket-type)
+                                 'n))))
                   (setq val2 (aref table char))
                   (when decoder
                     (setq val2 (funcall decoder char val2 table)))
@@ -1413,7 +1415,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	 (copyright (with-temp-buffer
 		      (insert-file-contents
 		       (expand-file-name "copyright.html" unidata-dir))
-		      (re-search-forward "^Copyright .*Unicode, Inc.")
+		      (re-search-forward "Copyright .*Unicode, Inc.")
 		      (match-string 0))))
     (or unidata-list (unidata-setup-list unidata-text-file))
     (let* ((basename (file-name-nondirectory file))
@@ -1421,12 +1423,13 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (or elt (user-error "Unknown output file: %s" basename))
       (or noninteractive (message "Generating %s..." file))
       (with-temp-file file
-        (insert ";; " copyright "
-;; Generated from Unicode data files by unidata-gen.el.
-;; The sources for this file are found in the admin/unidata/ directory in
-;; the Emacs sources.  The Unicode data files are used under the
-;; Unicode Terms of Use, as contained in the file copyright.html in that
-;; same directory.\n")
+        (generate-lisp-file-heading
+         basename 'unidata-gen-file
+         :commentary (concat copyright "  \
+The sources for this file are found in the admin/unidata/ directory in \
+the Emacs sources.  The Unicode data files are used under the \
+Unicode Terms of Use, as contained in the file copyright.html in that \
+same directory."))
         (dolist (proplist (cdr elt))
           (let ((prop (unidata-prop-prop proplist))
                 (index (unidata-prop-index proplist))
@@ -1444,37 +1447,189 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
               (set-char-table-extra-slot table 3 describer))
             (insert (format "(define-char-code-property '%S\n  %S\n  %S)\n"
                             prop table docstring))))
-        (insert ";; Local Variables:\n"
-                ";; coding: utf-8\n"
-                ";; version-control: never\n"
-                ";; no-byte-compile: t\n"
-                ";; no-update-autoloads: t\n"
-                ";; End:\n\n"
-                (format ";; %s ends here\n" basename)))))
+        (generate-lisp-file-trailer basename :inhibit-provide t))))
   (or noninteractive (message "Generating %s...done" file)))
 
-(defun unidata-gen-charprop (&optional charprop-file)
+(defun unidata-gen-charprop (&optional charprop-file text)
   (or charprop-file (setq charprop-file (pop command-line-args-left)))
   (with-temp-file charprop-file
-    (insert ";; Automatically generated by unidata-gen.el.\n"
-            ";; See the admin/unidata/ directory in the Emacs sources.\n")
-    (dolist (elt unidata-file-alist)
-      (dolist (proplist (cdr elt))
-	(insert (format "(define-char-code-property '%S %S\n  %S)\n"
-			(unidata-prop-prop proplist) (car elt)
-			(unidata-prop-docstring proplist)))))
+    (generate-lisp-file-heading
+     charprop-file 'unidata-gen-charprop
+     :commentary "See the admin/unidata/ directory in the Emacs sources.")
+    (if text
+        (insert text)
+      (dolist (elt unidata-file-alist)
+        (dolist (proplist (cdr elt))
+	  (insert (format "(define-char-code-property '%S %S\n  %S)\n"
+			  (unidata-prop-prop proplist) (car elt)
+			  (unidata-prop-docstring proplist))))))
     (or noninteractive (message "Writing %s..." charprop-file))
-    (insert "\n"
-	    "(provide 'charprop)\n"
-	    "\n"
-	    ";; Local Variables:\n"
-	    ";; coding: utf-8\n"
-	    ";; version-control: never\n"
-	    ";; no-byte-compile: t\n"
-	    ";; no-update-autoloads: t\n"
-	    ";; End:\n\n"
-	    (format ";; %s ends here\n"
-		    (file-name-nondirectory charprop-file)))))
+    (generate-lisp-file-trailer charprop-file)))
+
+(defun unidata-gen-scripts (&optional file)
+  ;; Running from Makefile.
+  (unless file
+    (setq file (pop command-line-args-left)))
+  (let ((aliases (unidata-gen--read-script-aliases))
+        (table (make-char-table nil))
+        (segmented (make-hash-table :test #'equal)))
+    ;; First parse the scripts.
+    (with-temp-buffer
+      (unidata-gen--insert-file "Scripts.txt")
+      (while (not (eobp))
+        ;; 1700..1711    ; Tagalog # Lo  [18] TAGALOG LETTER A..TAGALOG
+        (when (looking-at "\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^ ]+\\) +#")
+          (let ((start (string-to-number (match-string 1) 16))
+                (end (and (match-string 2)
+                          (string-to-number (match-string 2) 16)))
+                (scripts (list (intern (string-replace
+                                        "_" "-"
+                                        (downcase (match-string 3)))))))
+            (set-char-table-range
+             table (if end (cons start end) start) scripts)))
+        (forward-line 1)))
+
+    ;; Then parse the file that lists "other scripts" that characters
+    ;; may appear in, and add those.
+    (with-temp-buffer
+      (unidata-gen--insert-file "ScriptExtensions.txt")
+      (while (not (eobp))
+        ;; 102E0         ; Arab Copt # Mn       COPTIC EPACT THOUSANDS MARK
+        (when (looking-at "\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^#]+\\)")
+          (let ((start (string-to-number (match-string 1) 16))
+                (end (and (match-string 2)
+                          (string-to-number (match-string 2) 16)))
+                (scripts
+                 (mapcar
+                  (lambda (alias)
+                    (intern (string-replace
+                             "_" "-" (downcase
+                                      (gethash alias aliases)))))
+                 (split-string (string-trim (match-string 3))))))
+            (dolist (script scripts)
+              (dotimes (i (- (1+ (or end start)) start))
+                (set-char-table-range
+                 table (+ i start)
+                 (append (elt table (+ i start)) (list script)))))))
+        (forward-line 1)))
+
+    ;; Then go through the data and collect into buckets based on
+    ;; identical script lists.
+    (map-char-table
+     (lambda (key value)
+       ;; `map-char-table' is reused, so copy it.
+       (push (if (consp key)
+                 (cons (car key) (cdr key))
+               key)
+             ;; Keep the first element first, but sort the rest.
+             (gethash (cons (car value)
+                            (sort (remq (car value) value) #'string<))
+                      segmented)))
+     table)
+
+    ;; Then go through the data and collect into buckets based on
+    (let ((scripts nil))
+      (maphash
+       (lambda (segment chars)
+         (push (cons segment chars) scripts))
+       segmented)
+      (setq scripts (sort scripts (lambda (s1 s2)
+                                    (string< (caar s1) (caar s2)))))
+      (with-temp-buffer
+        (insert "(textsec--create-script-table '(\n")
+        (dolist (script scripts)
+          (insert "(" (prin1-to-string (car script)) "\n")
+          (insert " " (prin1-to-string (cdr script)))
+          (insert ")\n"))
+        (insert "))\n")
+        ;; Write the file.
+        (unidata-gen-charprop file (buffer-string))))))
+
+(defun unidata-gen--read-script-aliases ()
+  (let ((aliases (make-hash-table :test #'equal)))
+    (with-temp-buffer
+      (unidata-gen--insert-file "PropertyValueAliases.txt")
+      (unless (re-search-forward "^# Script " nil t)
+        (error "Can't find the Script section"))
+      (forward-line 2)
+      (while (looking-at "sc *;")
+        (let ((elem (split-string (buffer-substring (point) (line-end-position))
+                                  ";" nil "[ \t]+")))
+          (setf (gethash (nth 1 elem) aliases)
+                (nth 2 elem)))
+        (forward-line 1))
+      aliases)))
+
+(defun unidata-gen--insert-file (name)
+  (insert-file-contents
+   (expand-file-name (concat "../admin/unidata/" name)
+                     data-directory)))
+
+(defun unidata-gen-confusable (&optional file)
+  ;; Running from Makefile.
+  (unless file
+    (setq file (pop command-line-args-left)))
+  (let ((regexp
+         (concat "^\\([[:xdigit:]]+\\)"
+                 "[ \t]*;[ \t]*"
+                 "\\([[:space:][:xdigit:]]+\\)"
+                 "[ \t]*;"))
+        (map (make-hash-table)))
+    (with-temp-buffer
+      (unidata-gen--insert-file "confusables.txt")
+      (while (re-search-forward regexp nil t)
+        (let ((from (match-string 1))
+              (to (string-trim (match-string 2))))
+          (setf (gethash (string-to-number from 16) map)
+                (apply #'string (mapcar (lambda (string)
+                                          (string-to-number string 16))
+                                        (split-string to)))))))
+    (with-temp-buffer
+      (insert "(defconst uni-confusable-table\n")
+      (let ((print-length nil))
+        (prin1 map (current-buffer)))
+      (insert ")")
+      (unidata-gen-charprop file (buffer-string)))))
+
+(defun unidata-gen-idna-mapping (&optional file)
+  ;; Running from Makefile.
+  (unless file
+    (setq file (pop command-line-args-left)))
+  (let ((map (make-char-table nil)))
+    (with-temp-buffer
+      (unidata-gen--insert-file "IdnaMappingTable.txt")
+      (while (re-search-forward "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)? +; +\\([^ ]+\\) +\\(?:; +\\([ 0-9A-F]+\\)\\)?"
+                                nil t)
+        (let ((start (match-string 1))
+              (end (match-string 2))
+              (status (match-string 3))
+              (mapped (match-string 4)))
+          ;; Make reading the file slightly faster by using `t'
+          ;; instead of `disallowed' all over the place.
+          (when (string-match-p "\\`disallowed" status)
+            (setq status "t"))
+          (unless (or (equal status "valid")
+                      (equal status "deviation"))
+            (set-char-table-range
+             map
+             (if end
+                 (cons (string-to-number start 16)
+                       (string-to-number end 16))
+               (string-to-number start 16))
+             (cond
+              ((equal status "mapped")
+               (apply #'string
+                      (mapcar (lambda (char)
+                                (string-to-number char 16))
+                              (split-string (string-trim mapped)))))
+              (t
+               (intern status))))))))
+    (with-temp-buffer
+      (insert "(defconst idna-mapping-table\n")
+      (let ((print-length nil))
+        (prin1 map (current-buffer)))
+      (insert ")")
+      (unidata-gen-charprop file (buffer-string)))))
 
 
 

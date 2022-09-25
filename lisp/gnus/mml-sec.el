@@ -1,6 +1,6 @@
-;;; mml-sec.el --- A package with security functions for MML documents
+;;; mml-sec.el --- A package with security functions for MML documents  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 (require 'gnus-util)
 (require 'epg)
@@ -140,7 +140,7 @@ by default identifies the used encryption keys, giving away the
 Bcc'ed identities.  Clearly, this contradicts the original goal of
 *blind* copies.
 For an academic paper explaining the problem, see URL
-`http://crypto.stanford.edu/portia/papers/bb-bcc.pdf'.
+`https://crypto.stanford.edu/portia/papers/bb-bcc.pdf'.
 Use this variable to specify e-mail addresses whose owners do not
 mind if they are identifiable as recipients.  This may be useful if
 you use Bcc headers to encrypt e-mails to yourself."
@@ -167,9 +167,9 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 	(if (or (eq style 'separate)
 		(eq style 'combined))
 	    ;; valid style setting?
-	    (setf (second style-item) style)
+	    (setf (cadr style-item) style)
 	  ;; otherwise, just return the current value
-	  (second style-item))
+	  (cadr style-item))
       (message "Warning, attempt to set invalid signencrypt style"))))
 
 ;;; Security functions
@@ -236,9 +236,9 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 		 (re-search-forward
 		  (concat "^" (regexp-quote mail-header-separator) "\n") nil t))
 	     (goto-char (match-end 0))
-	     (apply 'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
+	     (apply #'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
 						(cons method tags))))
-	    (t (error "The message is corrupted. No mail header separator"))))))
+            (t (error "The message is corrupted.  No mail header separator"))))))
 
 (defvar mml-secure-method
   (if (equal mml-default-encrypt-method mml-default-sign-method)
@@ -250,7 +250,7 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
   "Add MML tags to sign this MML part.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part
    (or method mml-secure-method mml-default-sign-method)
    'sign))
@@ -259,53 +259,56 @@ Use METHOD if given.  Else use `mml-secure-method' or
   "Add MML tags to encrypt this MML part.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part
    (or method mml-secure-method mml-default-sign-method)))
 
 (defun mml-secure-sign-pgp ()
   "Add MML tags to PGP sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgp" 'sign))
 
 (defun mml-secure-sign-pgpauto ()
   "Add MML tags to PGP-auto sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpauto" 'sign))
 
 (defun mml-secure-sign-pgpmime ()
   "Add MML tags to PGP/MIME sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpmime" 'sign))
 
 (defun mml-secure-sign-smime ()
   "Add MML tags to S/MIME sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "smime" 'sign))
 
 (defun mml-secure-encrypt-pgp ()
   "Add MML tags to PGP encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgp"))
 
 (defun mml-secure-encrypt-pgpmime ()
   "Add MML tags to PGP/MIME encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpmime"))
 
 (defun mml-secure-encrypt-smime ()
   "Add MML tags to S/MIME encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "smime"))
 
-(defun mml-secure-is-encrypted-p ()
-  "Check whether secure encrypt tag is present."
+(defun mml-secure-is-encrypted-p (&optional tag-present)
+  "Whether the current buffer contains a mail message that should be encrypted.
+If TAG-PRESENT, say whether the <#secure tag is present anywhere
+in the buffer."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward
-     (concat "^" (regexp-quote mail-header-separator) "\n"
-	     "<#secure[^>]+encrypt")
-     nil t)))
+    (message-goto-body)
+    (if tag-present
+	(re-search-forward "<#secure[^>]+encrypt" nil t)
+      (skip-chars-forward "[ \t\n")
+      (looking-at "<#secure[^>]+encrypt"))))
 
 (defun mml-secure-bcc-is-safe ()
   "Check whether usage of Bcc is safe (or absent).
@@ -325,7 +328,7 @@ either an error is raised or not."
 	    (unless (yes-or-no-p "Message for encryption contains Bcc header.\
   This may give away all Bcc'ed identities to all recipients.\
   Are you sure that this is safe?\
-  (Customize `mml-secure-safe-bcc-list' to avoid this warning.) ")
+  (Customize `mml-secure-safe-bcc-list' to avoid this warning.)")
 	      (error "Aborted"))))))))
 
 ;; defuns that add the proper <#secure ...> tag to the top of the message body
@@ -346,16 +349,16 @@ either an error is raised or not."
 	      (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	     (goto-char (setq insert-loc (match-end 0)))
 	     (unless (looking-at "<#secure")
-	       (apply 'mml-insert-tag
-		'secure 'method method 'mode mode tags)))
+	       (apply #'mml-insert-tag
+		      'secure 'method method 'mode mode tags)))
 	    (t (error
-		"The message is corrupted. No mail header separator"))))
+                "The message is corrupted.  No mail header separator"))))
     (when (eql insert-loc (point))
       (forward-line 1))))
 
 (defun mml-unsecure-message ()
   "Remove security related MML tags from message."
-  (interactive)
+  (interactive nil mml-mode)
   (save-excursion
     (goto-char (point-max))
     (when (re-search-backward "^<#secure.*>\n" nil t)
@@ -364,73 +367,73 @@ either an error is raised or not."
 
 (defun mml-secure-message-sign (&optional method)
   "Add MML tags to sign the entire message.
-Use METHOD if given. Else use `mml-secure-method' or
+Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'sign))
 
 (defun mml-secure-message-sign-encrypt (&optional method)
   "Add MML tag to sign and encrypt the entire message.
-Use METHOD if given. Else use `mml-secure-method' or
+Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'signencrypt))
 
 (defun mml-secure-message-encrypt (&optional method)
   "Add MML tag to encrypt the entire message.
-Use METHOD if given. Else use `mml-secure-method' or
+Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'encrypt))
 
 (defun mml-secure-message-sign-smime ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "smime" 'sign))
 
 (defun mml-secure-message-sign-pgp ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgp" 'sign))
 
 (defun mml-secure-message-sign-pgpmime ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgpmime" 'sign))
 
 (defun mml-secure-message-sign-pgpauto ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgpauto" 'sign))
 
 (defun mml-secure-message-encrypt-smime (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "smime" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgp (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgp" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgpmime (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgpmime" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgpauto (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgpauto" (if dontsign 'encrypt 'signencrypt)))
 
 ;;; Common functionality for mml1991.el, mml2015.el, mml-smime.el
@@ -497,7 +500,8 @@ https://debbugs.gnu.org/cgi/bugreport.cgi?bug=18718"
   'mml2015-sign-with-sender 'mml-secure-openpgp-sign-with-sender "25.1")
 ;mml1991-sign-with-sender did never exist.
 (defcustom mml-secure-openpgp-sign-with-sender nil
-  "If t, use message sender to find an OpenPGP key to sign with."
+  "If t, use message sender to find an OpenPGP key to sign with.
+Also use message's sender with GnuPG's --sender option."
   :group 'mime-security
   :type 'boolean)
 
@@ -554,10 +558,10 @@ customized in this variable."
   "For CONTEXT, USAGE, and NAME record fingerprint(s) of KEYS.
 If optional SAVE is not nil, save customized fingerprints.
 Return keys."
-  (assert keys)
+  (cl-assert keys)
   (let* ((usage-prefs (mml-secure-cust-usage-lookup context usage))
 	 (curr-fprs (cdr (assoc name (cdr usage-prefs))))
-	 (key-fprs (mapcar 'mml-secure-fingerprint keys))
+	 (key-fprs (mapcar #'mml-secure-fingerprint keys))
 	 (new-fprs (cl-union curr-fprs key-fprs :test 'equal)))
     (if curr-fprs
 	(setcdr (assoc name (cdr usage-prefs)) new-fprs)
@@ -621,7 +625,7 @@ Passphrase caching in Emacs is NOT recommended.  Use gpg-agent instead."
 		    mml-smime-passphrase-cache-expiry)
 	       mml-secure-passphrase-cache-expiry))))
 
-(defun mml-secure-passphrase-callback (context key-id standard)
+(defun mml-secure-passphrase-callback (context key-id _standard)
   "Ask for passphrase in CONTEXT for KEY-ID for STANDARD.
 The passphrase is read and cached."
   ;; Based on mml2015-epg-passphrase-callback.
@@ -647,6 +651,7 @@ The passphrase is read and cached."
       (when passphrase
 	(let ((password-cache-expiry (mml-secure-cache-expiry-interval
 				      (epg-context-protocol context))))
+	  ;; FIXME test passphrase works before caching it.
 	  (password-cache-add password-cache-key-id passphrase))
 	(mml-secure-add-secret-key-id password-cache-key-id)
 	(copy-sequence passphrase)))))
@@ -658,10 +663,14 @@ The passphrase is read and cached."
     (catch 'break
       (dolist (uid uids nil)
 	(if (and (stringp (epg-user-id-string uid))
+                 (car (ignore-errors
+			(mail-header-parse-address
+			 (epg-user-id-string uid))))
 		 (equal (downcase (car (mail-header-parse-address
 					(epg-user-id-string uid))))
-			(downcase (car (mail-header-parse-address
-					recipient))))
+			(downcase (or (car (mail-header-parse-address
+					    recipient))
+				      recipient)))
 		 (not (memq (epg-user-id-validity uid)
 			    '(revoked expired))))
 	    (throw 'break t))))))
@@ -722,7 +731,7 @@ Otherwise, NAME is treated as user ID, for which no keys are returned if it
 is expired or revoked.
 If optional JUSTONE is not nil, return the first key instead of a list."
   (let* ((keys (epg-list-keys context name))
-	 (iskeyid (string-match "\\(0x\\)?\\([0-9a-fA-F]\\{8,\\}\\)" name))
+	 (iskeyid (string-match "\\(0x\\)?\\([[:xdigit:]]\\{8,\\}\\)" name))
 	 (fingerprint (match-string 2 name))
 	 result)
     (when (and iskeyid (>= (length keys) 2))
@@ -789,7 +798,7 @@ When `mml-secure-fail-when-key-problem' is t, fail with an error in case of
 outdated or multiple keys."
   (let* ((nname (mml-secure-normalize-cust-name name))
 	 (fprs (mml-secure-cust-fpr-lookup context usage nname))
-	 (usable-fprs (mapcar 'mml-secure-fingerprint keys)))
+	 (usable-fprs (mapcar #'mml-secure-fingerprint keys)))
     (if fprs
 	(if (gnus-subsetp fprs usable-fprs)
 	    (mml-secure-filter-keys keys fprs)
@@ -900,17 +909,19 @@ If no one is selected, symmetric encryption will be performed.  "
 	(error "No recipient specified")))
     recipients))
 
-(defun mml-secure-epg-encrypt (protocol cont &optional sign)
+(defun mml-secure-epg-encrypt (protocol _cont &optional sign)
   ;; Based on code appearing inside mml2015-epg-encrypt.
   (let* ((context (epg-make-context protocol))
-	 (config (epg-configuration))
+	 (config (epg-find-configuration 'OpenPGP))
 	 (sender (message-options-get 'message-sender))
 	 (recipients (mml-secure-recipients protocol context config sender))
 	 (signer-names (mml-secure-signer-names protocol sender))
 	 cipher signers)
     (when sign
       (setq signers (mml-secure-signers context signer-names))
-      (setf (epg-context-signers context) signers))
+      (setf (epg-context-signers context) signers)
+      (when (and (eq 'OpenPGP protocol) mml-secure-openpgp-sign-with-sender)
+        (setf (epg-context-sender context) sender)))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)
       (setf (epg-context-textmode context) t))
@@ -930,6 +941,48 @@ If no one is selected, symmetric encryption will be performed.  "
        (signal (car error) (cdr error))))
     cipher))
 
+(defun mml-secure-sender-sign-query (protocol sender)
+  "Query whether to use SENDER to sign when using PROTOCOL.
+PROTOCOL will be `OpenPGP' or `CMS' (smime).
+This can also save the resulting value of
+`mml-secure-smime-sign-with-sender' or
+`mml-secure-openpgp-sign-with-sender' via Customize.
+Returns non-nil if the user has chosen to use SENDER."
+  (let ((buffer (get-buffer-create "*MML sender signing options*"))
+        (options '((?a "always" "Sign using this sender now and sign with message sender in future.")
+                   (?s "session only" "Sign using this sender now, and sign with message sender for this session only.")
+                   (?n "no" "Do not sign this message (and error out)")))
+        answer done val)
+    (save-window-excursion
+      (pop-to-buffer buffer)
+      (erase-buffer)
+      (insert (format "No %s signing key was found for this message.\nThe sender of this message is \"%s\".\nWould you like to attempt looking up a signing key based on it?"
+                      (if (eq protocol 'OpenPGP)
+                          "openpgp" "smime")
+                      sender))
+      (while (not done)
+        (setq answer (read-multiple-choice "Sign this message using the sender?" options))
+        (cl-case (car answer)
+          (?a
+           (if (eq protocol 'OpenPGP)
+               (progn
+                 (setq mml-secure-openpgp-sign-with-sender t)
+                 (customize-save-variable
+		  'mml-secure-openpgp-sign-with-sender t))
+             (setq mml-secure-smime-sign-with-sender t)
+             (customize-save-variable 'mml-secure-smime-sign-with-sender t))
+           (setq done t
+                 val t))
+          (?s
+           (if (eq protocol 'OpenPGP)
+               (setq mml-secure-openpgp-sign-with-sender t)
+             (setq mml-secure-smime-sign-with-sender t))
+           (setq done t
+                 val t))
+          (?n
+           (setq done t)))))
+    val))
+
 (defun mml-secure-epg-sign (protocol mode)
   ;; Based on code appearing inside mml2015-epg-sign.
   (let* ((context (epg-make-context protocol))
@@ -937,9 +990,28 @@ If no one is selected, symmetric encryption will be performed.  "
 	 (signer-names (mml-secure-signer-names protocol sender))
 	 (signers (mml-secure-signers context signer-names))
 	 signature micalg)
+    (unless signers
+      (if (and (not noninteractive)
+	       (mml-secure-sender-sign-query protocol sender))
+          (setq signer-names (mml-secure-signer-names protocol sender)
+                signers (mml-secure-signers context signer-names)))
+      (unless signers
+        (let ((maybe-msg
+               (if (or mml-secure-smime-sign-with-sender
+                       mml-secure-openpgp-sign-with-sender)
+                   "."
+                 "; try setting `mml-secure-smime-sign-with-sender' or 'mml-secure-openpgp-sign-with-sender'.")))
+          ;; If `mml-secure-smime-sign-with-sender' or
+          ;; `mml-secure-openpgp-sign-with-sender' are already non-nil
+          ;; then there's no point advising the user to examine them.
+          ;; If there are any other variables worth examining, please
+          ;; improve this error message by having it mention them.
+          (error "Couldn't find any signer names%s" maybe-msg))))
     (when (eq 'OpenPGP protocol)
       (setf (epg-context-armor context) t)
-      (setf (epg-context-textmode context) t))
+      (setf (epg-context-textmode context) t)
+      (when mml-secure-openpgp-sign-with-sender
+        (setf (epg-context-sender context) sender)))
     (setf (epg-context-signers context) signers)
     (when (mml-secure-cache-passphrase-p protocol)
       (epg-context-set-passphrase-callback
@@ -950,7 +1022,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	      (if (eq 'OpenPGP protocol)
 		  (epg-sign-string context (buffer-string) mode)
 		(epg-sign-string context
-				 (replace-regexp-in-string
+				 (string-replace
 				  "\n" "\r\n" (buffer-string))
 				 t))
 	      mml-secure-secret-key-id-list nil)

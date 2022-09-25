@@ -1,6 +1,6 @@
-;;; semantic/chart.el --- Utilities for use with semantic tag tables
+;;; semantic/chart.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2001, 2003, 2005, 2008-2017 Free Software
+;; Copyright (C) 1999-2001, 2003, 2005, 2008-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -29,6 +29,8 @@
 (require 'chart)
 (require 'semantic/db)
 (require 'semantic/find)
+(require 'semantic/db-typecache)
+(require 'semantic/scope)
 
 ;;; Code:
 
@@ -41,7 +43,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
   (interactive)
   (let* ((stream (semantic-something-to-tag-table
 		  (or tagtable (current-buffer))))
-	 (names (mapcar 'cdr semantic-symbol->name-assoc-list))
+	 (names (mapcar #'cdr semantic-symbol->name-assoc-list))
 	 (nums (mapcar
 		(lambda (symname)
 		  (length
@@ -55,7 +57,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
 		       nums "Volume")
     ))
 
-(defun semantic-chart-database-size (&optional tagtable)
+(defun semantic-chart-database-size (&optional _tagtable)
   "Create a bar chart representing the size of each file in semanticdb.
 Each bar represents how many toplevel tags in TAGTABLE
 exist in each database entry.
@@ -66,7 +68,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
     (error "Semanticdb is not enabled"))
   (let* ((db semanticdb-current-database)
 	 (dbt (semanticdb-get-database-tables db))
-	 (names (mapcar 'car
+	 (names (mapcar #'car
 			(object-assoc-list
 			 'file
 			 dbt)))
@@ -82,8 +84,8 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
 	 (nums nil)
 	 (fh (/ (- (frame-height) 7) 4)))
     (setq numnuts (sort numnuts (lambda (a b) (> (car a) (car b)))))
-    (setq names (mapcar 'cdr numnuts)
-	  nums (mapcar 'car numnuts))
+    (setq names (mapcar #'cdr numnuts)
+	  nums (mapcar #'car numnuts))
     (if (> (length names) fh)
 	(progn
 	  (setcdr (nthcdr fh names) nil)
@@ -140,14 +142,9 @@ items are charted.  TAGTABLE is passed to
 		       nums "Complexity (Lines of code)")
     ))
 
-(declare-function semanticdb-get-typecache "semantic/db-typecache")
-(declare-function semantic-calculate-scope "semantic/scope")
-
 (defun semantic-chart-analyzer ()
   "Chart the extent of the context analysis."
   (interactive)
-  (require 'semantic/db-typecache)
-  (require 'semantic/scope)
   (let* ((p (semanticdb-find-translate-path nil nil))
 	 (plen (length p))
 	 (tab semanticdb-current-table)

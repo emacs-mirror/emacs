@@ -1,11 +1,11 @@
 ;;; ob-scheme.el --- Babel Functions for Scheme      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	    Michael Gauland
 ;; Keywords: literate programming, reproducible research, scheme
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -40,8 +40,10 @@
 ;;; Code:
 (require 'ob)
 (require 'geiser nil t)
+(require 'geiser-impl nil t)
 (defvar geiser-repl--repl)             ; Defined in geiser-repl.el
 (defvar geiser-impl--implementation)   ; Defined in geiser-impl.el
+(defvar geiser-scheme-implementation)  ; Defined in geiser-impl.el
 (defvar geiser-default-implementation) ; Defined in geiser-impl.el
 (defvar geiser-active-implementations) ; Defined in geiser-impl.el
 (defvar geiser-debug-show-debug-p)     ; Defined in geiser-debug.el
@@ -70,7 +72,8 @@
 (defun org-babel-expand-body:scheme (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (let ((vars (org-babel--get-vars params))
-	(prepends (cdr (assq :prologue params))))
+	(prepends (cdr (assq :prologue params)))
+	(postpends (cdr (assq :epilogue params))))
     (concat (and prepends (concat prepends "\n"))
 	    (if (null vars) body
 	      (format "(let (%s)\n%s\n)"
@@ -79,7 +82,8 @@
 			 (format "%S" (print `(,(car var) ',(cdr var)))))
 		       vars
 		       "\n      ")
-		      body)))))
+		      body))
+	    (and postpends (concat "\n" postpends)))))
 
 
 (defvar org-babel-scheme-repl-map (make-hash-table :test #'equal)
@@ -101,20 +105,19 @@
   (puthash session-name buffer org-babel-scheme-repl-map))
 
 (defun org-babel-scheme-get-buffer-impl (buffer)
-  "Returns the scheme implementation geiser associates with the buffer."
+  "Return the scheme implementation geiser associates with the buffer."
   (with-current-buffer (set-buffer buffer)
     geiser-impl--implementation))
 
 (defun org-babel-scheme-get-repl (impl name)
-  "Switch to a scheme REPL, creating it if it doesn't exist:"
+  "Switch to a scheme REPL, creating it if it doesn't exist."
   (let ((buffer (org-babel-scheme-get-session-buffer name)))
     (or buffer
 	(progn
 	  (run-geiser impl)
-	  (if name
-	      (progn
-		(rename-buffer name t)
-		(org-babel-scheme-set-session-buffer name (current-buffer))))
+	  (when name
+	    (rename-buffer name t)
+	    (org-babel-scheme-set-session-buffer name (current-buffer)))
 	  (current-buffer)))))
 
 (defun org-babel-scheme-make-session-name (buffer name impl)
@@ -131,7 +134,7 @@ org-babel-scheme-execute-with-geiser will use a temporary session."
 	(name)))
 
 (defmacro org-babel-scheme-capture-current-message (&rest body)
-  "Capture current message in both interactive and noninteractive mode"
+  "Capture current message in both interactive and noninteractive mode."
   `(if noninteractive
        (let ((original-message (symbol-function 'message))
              (current-message nil))
@@ -147,10 +150,11 @@ org-babel-scheme-execute-with-geiser will use a temporary session."
        (current-message))))
 
 (defun org-babel-scheme-execute-with-geiser (code output impl repl)
-  "Execute code in specified REPL. If the REPL doesn't exist, create it
-using the given scheme implementation.
+  "Execute code in specified REPL.
+If the REPL doesn't exist, create it using the given scheme
+implementation.
 
-Returns the output of executing the code if the output parameter
+Returns the output of executing the code if the OUTPUT parameter
 is true; otherwise returns the last value."
   (let ((result nil))
     (with-temp-buffer
@@ -174,7 +178,8 @@ is true; otherwise returns the last value."
 		(geiser-debug-show-debug-p nil))
 	    (let ((ret (geiser-eval-region (point-min) (point-max))))
 	      (setq result (if output
-			       (geiser-eval--retort-output ret)
+			       (or (geiser-eval--retort-output ret)
+				   "Geiser Interpreter produced no output")
 			     (geiser-eval--retort-result-str ret "")))))
 	  (when (not repl)
 	    (save-current-buffer (set-buffer repl-buffer)
@@ -198,7 +203,7 @@ Emacs-lisp table, otherwise return the results as a string."
 
 (defun org-babel-execute:scheme (body params)
   "Execute a block of Scheme code with org-babel.
-This function is called by `org-babel-execute-src-block'"
+This function is called by `org-babel-execute-src-block'."
   (let* ((source-buffer (current-buffer))
 	 (source-buffer-name (replace-regexp-in-string ;; zap surrounding *
 			      "^ ?\\*\\([^*]+\\)\\*" "\\1"
@@ -207,11 +212,13 @@ This function is called by `org-babel-execute-src-block'"
       (let* ((result-type (cdr (assq :result-type params)))
 	     (impl (or (when (cdr (assq :scheme params))
 			 (intern (cdr (assq :scheme params))))
+		       geiser-scheme-implementation
 		       geiser-default-implementation
 		       (car geiser-active-implementations)))
 	     (session (org-babel-scheme-make-session-name
 		       source-buffer-name (cdr (assq :session params)) impl))
 	     (full-body (org-babel-expand-body:scheme body params))
+	     (result-params (cdr (assq :result-params params)))
 	     (result
 	      (org-babel-scheme-execute-with-geiser
 	       full-body		       ; code
@@ -225,7 +232,9 @@ This function is called by `org-babel-execute-src-block'"
 				     (cdr (assq :colnames params)))
 		(org-babel-pick-name (cdr (assq :rowname-names params))
 				     (cdr (assq :rownames params))))))
-	  (org-babel-scheme--table-or-string table))))))
+	  (org-babel-result-cond result-params
+	    result
+	    (org-babel-scheme--table-or-string table)))))))
 
 (provide 'ob-scheme)
 

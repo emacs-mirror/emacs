@@ -26,7 +26,7 @@
 
 	current_column: Now returns EMACS_INT, fixing some iftc
 	that was introduced in the 2002-06-02 change "temporarily"; see
-	<https://lists.gnu.org/archive/html/emacs-devel/2002-06/msg00039.html>.
+	<https://lists.gnu.org/r/emacs-devel/2002-06/msg00039.html>.
 	* bytecode.c (Fbyte_code): Don't cast current_column () to int.
 	* cmds.c (internal_self_insert): Likewise.
 	* indent.c (Fcurrent_column): Likewise.
@@ -91,7 +91,7 @@
 
 	* fileio.c (Fmake_symbolic_link): Treat ENOSYS specially, and
 	generate a special message for it.  Suggested by Eli Zaretskii in
-	<https://lists.gnu.org/archive/html/emacs-devel/2011-02/msg00995.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-02/msg00995.html>.
 	(Frename_file, Fmake_symbolic_link, Ffile_symlink_p):
 	Simplify the code by assuming that the readlink and symlink calls
 	exist, even if they always fail on this host.
@@ -154,7 +154,7 @@
 
 	* dired.c (Ffile_attributes): Increase size of modes from 10 to 12
 	as per recent filemodestring API change.  Reported by Jonas Öster in
-	<https://lists.gnu.org/archive/html/emacs-devel/2011-02/msg01069.html>.
+	<https://lists.gnu.org/r/emacs-devel/2011-02/msg01069.html>.
 
 2011-02-23  Ben Key  <bkey76@gmail.com>
 
@@ -947,7 +947,7 @@
 	(c_string_pos, number_of_chars, message_dolog):
 	(message_log_check_duplicate, set_message_1, store_mode_line_noprop):
 	(display_mode_element, display_string):
-	Switch between char * and unsigned char * to stay compatible wth
+	Switch between char * and unsigned char * to stay compatible with
 	C89 pointer rules.
 
 	* regex.c: Conform to C89 pointer rules.
@@ -7244,9 +7244,9 @@
 	* xdisp.c (try_scrolling): Compute the limit for searching point
 	in forward scroll from scroll_max, instead of an arbitrary limit
 	of 10 screen lines.
-	See https://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	See https://lists.gnu.org/r/emacs-devel/2010-06/msg00766.html
 	and
-	https://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
+	https://lists.gnu.org/r/emacs-devel/2010-06/msg00773.html
 	for details.
 
 2010-06-16  Glenn Morris  <rgm@gnu.org>
@@ -7346,7 +7346,7 @@
 	* window.c (Fselect_window): Move `record_buffer' up to the
 	beginning of this function, so the buffer gets recorded
 	even if the selected window does not change.
-	https://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00137.html
+	https://lists.gnu.org/r/emacs-devel/2010-06/msg00137.html
 
 2010-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -7688,7 +7688,7 @@
 	* fileio.c (Fdelete_file): Change interactive spec to use
 	`read-file-name' like in `find-file-read-args' where the default
 	value is `default-directory' instead of `buffer-file-name'.
-	https://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00533.html
+	https://lists.gnu.org/r/emacs-devel/2010-05/msg00533.html
 
 2010-05-20  Kevin Ryde  <user42@zip.com.au>
 
@@ -7962,7 +7962,7 @@
 
 	* xdisp.c (init_iterator): Don't turn on bidi reordering in
 	unibyte buffers.  See
-	https://lists.gnu.org/archive/html/emacs-devel/2010-05/msg00263.html.
+	https://lists.gnu.org/r/emacs-devel/2010-05/msg00263.html.
 
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
@@ -8910,9 +8910,9 @@
 
 	* xdisp.c (display_line): Don't write beyond the last glyph row in
 	the desired matrix.  Fixes a crash in "emacs -nw" (bug#5972), see
-	https://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00075.html
+	https://lists.gnu.org/r/emacs-devel/2010-04/msg00075.html
 	and
-	https://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00213.html
+	https://lists.gnu.org/r/emacs-devel/2010-04/msg00213.html
 
 2010-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -9492,7 +9492,7 @@
 	* coding.c (decode_coding_ccl): Fix previous change for the
 	multibyte case.
 	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
-	case that the output buffer is fullfilled.
+	case that the output buffer is fulfilled.
 	(encode_coding): Setup ccl program here.
 
 2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -9772,10 +9772,10 @@
 2010-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_ccl): Don't setup ccl program here.
-	Fix for the case that the output buffer is fullfilled.
+	Fix for the case that the output buffer is fulfilled.
 	(decode_coding): Setup ccl program here.  Keep looping when the
 	decoder stopped because the output buffer is
-	fullfilled (bug#5534).
+	fulfilled (bug#5534).
 
 	* ccl.c (ccl_driver): Never reset ic to CCL_HEADER_MAIN.
 
@@ -10126,7 +10126,7 @@
 
 2010-01-06  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* font.c (font_open_entity): Enable chache and call cached_font_ok
+	* font.c (font_open_entity): Enable cache and call cached_font_ok
 	for the driver if defined.
 	(QCuser_spec): New symbol.
 	(font_spec_from_name): Save name as user-spec.
@@ -11510,7 +11510,7 @@
 
 	* frame.c (xrdb_get_resource): Return nil for empty string resources;
 	some parts of Emacs code (like font selection) don't grok them.
-	See https://lists.gnu.org/archive/html/emacs-devel/2009-09/msg00528.html
+	See https://lists.gnu.org/r/emacs-devel/2009-09/msg00528.html
 
 2009-09-24  Andreas Schwab  <schwab@redhat.com>
 
@@ -22399,7 +22399,7 @@
 	* Makefile.in (${lispsource}international/charprop.el):
 	Delete this target.
 
-	* search.c (boyer_moore): Fix incorrect synching of the trunk and
+	* search.c (boyer_moore): Fix incorrect syncing of the trunk and
 	emacs-unicode-2.
 
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -23177,7 +23177,7 @@
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (face_for_overlay_string): Call lookup_face with
-	correct arguments (fix of synching with the trunk).
+	correct arguments (fix of syncing with the trunk).
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -23186,7 +23186,7 @@
 	Delete argument prop_index.
 	(font_property_table): Change arguments to validator.  Change Callers.
 	(font_lispy_object): Delete.
-	(font_at): Use font_find_object instead fo font_lispy_object.
+	(font_at): Use font_find_object instead of font_lispy_object.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -23923,7 +23923,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (NSTATICS): Increas to 0x600.
+	* alloc.c (NSTATICS): Increase to 0x600.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -25309,12 +25309,12 @@
 
 	* coding.c (enum iso_code_class_type): Delete ISO_carriage_return.
 	(CODING_GET_INFO): Delete argument eol_type.  Change callers.
-	(decode_coding_utf_8): Don't do eol converion.
+	(decode_coding_utf_8): Don't do eol conversion.
 	(detect_coding_utf_16): Check coding->src_chars, not
 	coding->src_bytes.  Add heuristics for those that have no signature.
 	(decode_coding_emacs_mule, decode_coding_iso_2022)
 	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
-	Don't do eol converion.
+	Don't do eol conversion.
 	(adjust_coding_eol_type): Return a new coding system.
 	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
 	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
@@ -25952,7 +25952,7 @@
 	(font_list): The argument REGISTRY is now a list of registry names.
 	(choose_face_font): If we are choosing an ASCII font, and ATTRS
 	specifies an explicit font name, return the name as is.  Make a
-	list of registy names.
+	list of registry names.
 
 	* xfns.c (x_set_font, x_create_tip_frame): Adjust for the change
 	of x_new_fontset.
@@ -26647,7 +26647,7 @@
 	(fontset_set): Delete.
 	(fontset_face): New arg FACE.  Return face ID, not face.
 	Complete re-write to handle new fontset structure.  Change caller.
-	(free_face_fontset): Use ASET istead of AREF (X) = Y.
+	(free_face_fontset): Use ASET instead of AREF (X) = Y.
 	(face_for_char): Don't call lookup_face.
 	(make_fontset_for_ascii_face): New arg FACE.
 	(fs_load_font): New arg CHARSET_ID.  Don't check
@@ -31141,7 +31141,7 @@
 	* term.c (term_mouse_highlight): Remove unused variables.
 	(Fterm_open_connection): Set gpm_zerobased to 1.
 	(term_mouse_movement, term_mouse_click, handle_one_term_event):
-	Use zero based co-ordinates.
+	Use zero based coordinates.
 	(handle_one_term_event): Report a drag as mouse movement too.
 
 	* Makefile.in (MOUSE_SUPPORT): Define for HAVE_GPM.
@@ -31385,7 +31385,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2007-2017 Free Software Foundation, Inc.
+  Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,8 +1,8 @@
-;;; srecode/filters.el --- Filters for use in template variables.
+;;; srecode/filters.el --- Filters for use in template variables.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 

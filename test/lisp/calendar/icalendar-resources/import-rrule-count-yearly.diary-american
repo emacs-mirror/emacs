@@ -1,0 +1,1 @@
+&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2007)) 09:00-11:30 rrule count yearly

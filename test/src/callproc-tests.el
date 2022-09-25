@@ -1,6 +1,6 @@
 ;;; callproc-tests.el --- callproc.c tests -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -16,6 +16,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+
+;;; Commentary:
+;;
+;; Unit tests for src/callproc.c.
 
 ;;; Code:
 
@@ -37,3 +42,38 @@
         (split-string-and-unquote (buffer-string)))
     (should (equal initial-shell "nil"))
     (should-not (equal initial-shell shell))))
+
+(ert-deftest call-process-w32-debug-spawn-error ()
+  "Check that debugger runs on `call-process' failure (Bug#33016)."
+  (skip-unless (eq system-type 'windows-nt))
+  (let* ((debug-on-error t)
+         (have-called-debugger nil)
+         (debugger (lambda (&rest _)
+                     (setq have-called-debugger t)
+                     ;; Allow entering the debugger later in the same
+                     ;; test run, before going back to the command
+                     ;; loop.
+                     (setq internal-when-entered-debugger -1))))
+    (should (eq :got-error ;; NOTE: `should-error' would inhibit debugger.
+                (condition-case-unless-debug ()
+                    ;; On MS-Windows, "nul.FOO" resolves to the null
+                    ;; device, and thus acts like an always-empty
+                    ;; file, for any FOO, in any directory.  So
+                    ;; c:/null.exe passes Emacs' test for the file's
+                    ;; existence, and ensures we hit an error in the
+                    ;; w32 process spawn code.
+                    (call-process "c:/nul.exe")
+                  (error :got-error))))
+    (should have-called-debugger)))
+
+(ert-deftest call-process-region-entire-buffer-with-delete ()
+  "Check that Bug#40576 is fixed."
+  (let ((emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless (file-executable-p emacs))
+    (with-temp-buffer
+      (insert "Buffer contents\n")
+      (should
+       (eq (call-process-region nil nil emacs :delete nil nil "--version") 0))
+      (should (eq (buffer-size) 0)))))
+
+;;; callproc-tests.el ends here

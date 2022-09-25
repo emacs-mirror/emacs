@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2017 Free
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2022 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
@@ -15,11 +15,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+/* Since 2010-03, 073589f4, Emacs 24.1, this file is only used
+   by the MS-DOS port of Emacs.  */
+
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
+
+#include <stdlib.h>
 #include <sys/file.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include <intprops.h>
 
 #include "lisp.h"
 #include "tparam.h"
@@ -262,14 +269,7 @@ char PC;
 void
 tputs (register const char *str, int nlines, int (*outfun) (int))
 {
-  register int padcount = 0;
-  register int speed;
-
-  speed = baud_rate;
-  /* For quite high speeds, convert to the smaller
-     units to avoid overflow.  */
-  if (speed > 10000)
-    speed = - speed / 100;
+  int padcount = 0;
 
   if (!str)
     return;
@@ -293,21 +293,13 @@ tputs (register const char *str, int nlines, int (*outfun) (int))
     (*outfun) (*str++);
 
   /* PADCOUNT is now in units of tenths of msec.
-     SPEED is measured in characters per 10 seconds
-     or in characters per .1 seconds (if negative).
-     We use the smaller units for larger speeds to avoid overflow.  */
-  padcount *= speed;
-  padcount += 500;
-  padcount /= 1000;
-  if (speed < 0)
-    padcount = -padcount;
-  else
-    {
-      padcount += 50;
-      padcount /= 100;
-    }
+     BAUD_RATE is measured in characters per 10 seconds.
+     Compute PADFACTOR = 100000 * (how many padding bytes are needed).  */
+  intmax_t padfactor;
+  if (INT_MULTIPLY_WRAPV (padcount, baud_rate, &padfactor))
+    padfactor = baud_rate < 0 ? INTMAX_MIN : INTMAX_MAX;
 
-  while (padcount-- > 0)
+  for (; 50000 <= padfactor; padfactor -= 100000)
     (*outfun) (PC);
 }
 
@@ -423,7 +415,7 @@ tgetent (char *bp, const char *name)
     }
 
   if (!termcap_name || !filep)
-    termcap_name = TERMCAP_FILE;
+    termcap_name = (char *) TERMCAP_FILE;
 
   /* Here we know we must search a file and termcap_name has its name.  */
 

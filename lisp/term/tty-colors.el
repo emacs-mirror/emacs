@@ -1,6 +1,6 @@
-;;; tty-colors.el --- color support for character terminals
+;;; tty-colors.el --- color support for character terminals  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org
@@ -820,18 +820,20 @@ Value is the modified color alist for FRAME."
   "Return COLOR in canonical form.
 A canonicalized color name is all-lower case, with any blanks removed."
   (let ((case-fold-search nil))
-    (if (string-match "[A-Z ]" color)
+    (if (string-match-p "[A-Z ]" color)
 	(replace-regexp-in-string " +" "" (downcase color))
       color)))
 
-(defun tty-color-24bit (rgb)
-  "Return pixel value on 24-bit terminals. Return nil if RGB is
-nil or not on 24-bit terminal."
-  (when (and rgb (= (display-color-cells) 16777216))
-    (let ((r (lsh (car rgb) -8))
-	  (g (lsh (cadr rgb) -8))
-	  (b (lsh (nth 2 rgb) -8)))
-      (logior (lsh r 16) (lsh g 8) b))))
+(defun tty-color-24bit (rgb &optional display)
+  "Return 24-bit color pixel value for RGB value on DISPLAY.
+DISPLAY can be a display name or a frame, and defaults to the
+selected frame's display.
+If DISPLAY is not on a 24-but TTY terminal, return nil."
+  (when (and rgb (= (display-color-cells display) 16777216))
+    (let ((r (ash (car rgb) -8))
+	  (g (ash (cadr rgb) -8))
+	  (b (ash (nth 2 rgb) -8)))
+      (logior (ash r 16) (ash g 8) b))))
 
 (defun tty-color-define (name index &optional rgb frame)
   "Specify a tty color by its NAME, terminal INDEX and RGB values.
@@ -850,7 +852,7 @@ If FRAME is not specified or is nil, it defaults to the selected frame."
       (error "Invalid specification for tty color \"%s\"" name))
   (tty-modify-color-alist
    (append (list (tty-color-canonicalize name)
-		 (or (tty-color-24bit rgb) index))
+		 (or (tty-color-24bit rgb frame) index))
 	   rgb)
    frame))
 
@@ -893,9 +895,9 @@ FRAME defaults to the selected frame."
 	;; never consider it for approximating another color.
 	(if try-rgb
 	    (progn
-	      (setq try-r (lsh (car try-rgb) -8)
-		    try-g (lsh (cadr try-rgb) -8)
-		    try-b (lsh (nth 2 try-rgb) -8))
+	      (setq try-r (ash (car try-rgb) -8)
+		    try-g (ash (cadr try-rgb) -8)
+		    try-b (ash (nth 2 try-rgb) -8))
 	      (setq dif-r (- r try-r)
 		    dif-g (- g try-g)
 		    dif-b (- b try-b))
@@ -917,67 +919,19 @@ FRAME defaults to the selected frame."
 The result is a list of integer RGB values--(RED GREEN BLUE).
 These values range from 0 to 65535; white is (65535 65535 65535).
 
-The returned value reflects the standard X definition of COLOR,
-regardless of whether the terminal can display it, so the return value
-should be the same regardless of what display is being used."
-  (let ((len (length color)))
-    (cond ((and (>= len 4) ;; X-style "#XXYYZZ" color spec
-		(eq (aref color 0) ?#)
-		(member (aref color 1)
-			'(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
-			     ?a ?b ?c ?d ?e ?f)))
-	   ;; Translate the string "#XXYYZZ" into a list
-	   ;; of numbers (XX YY ZZ).  If the primary colors
-	   ;; are specified with less than 4 hex digits,
-	   ;; the used digits represent the most significant
-	   ;; bits of the value (e.g. #XYZ = #X000Y000Z000).
-	   (let* ((ndig (/ (- len 1) 3))
-		  (i1 1)
-		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig)))
-	     (list
-	      (lsh
-	       (string-to-number (substring color i1 i2) 16)
-	       (* 4 (- 4 ndig)))
-	      (lsh
-	       (string-to-number (substring color i2 i3) 16)
-	       (* 4 (- 4 ndig)))
-	      (lsh
-	       (string-to-number (substring color i3) 16)
-	       (* 4 (- 4 ndig))))))
-	  ((and (>= len 9) ;; X-style RGB:xx/yy/zz color spec
-		(string= (substring color 0 4) "rgb:"))
-	   ;; Translate the string "RGB:XX/YY/ZZ" into a list
-	   ;; of numbers (XX YY ZZ).  If fewer than 4 hex
-	   ;; digits are used, they represent the fraction
-	   ;; of the maximum value (RGB:X/Y/Z = #XXXXYYYYZZZZ).
-	   (let* ((ndig (/ (- len 3) 3))
-		  (maxval (1- (ash 1 (* 4 (- ndig 1)))))
-		  (i1 4)
-		  (i2 (+ i1 ndig))
-		  (i3 (+ i2 ndig)))
-	     (list
-	      (/ (* (string-to-number
-		     (substring color i1 (- i2 1)) 16)
-		    255)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i2 (- i3 1)) 16)
-		    255)
-		 maxval)
-	      (/ (* (string-to-number
-		     (substring color i3) 16)
-		    255)
-		 maxval))))
-	  (t
-	   (cdr (assoc color color-name-rgb-alist))))))
+The returned value reflects the standard Emacs definition of
+COLOR (see the info node `(emacs) Colors'), regardless of whether
+the terminal can display it, so the return value should be the
+same regardless of what display is being used."
+  (or (color-values-from-color-spec color)
+      (cdr (assoc color color-name-rgb-alist))))
 
 (defun tty-color-translate (color &optional frame)
   "Given a color COLOR, return the index of the corresponding TTY color.
 
-COLOR must be a string that is either the color's name, or its X-style
-specification like \"#RRGGBB\" or \"RGB:rr/gg/bb\", where each primary.
-color can be given with 1 to 4 hex digits.
+COLOR must be a string that is either the color's name, or its
+color triplet specification like \"#RRGGBB\" or \"rgb:RR/GG/BB\",
+where each primary color can be given with 1 to 4 hex digits.
 
 If COLOR is a color name that is found among supported colors in
 `tty-color-alist', the associated index is returned.  Otherwise, the
@@ -985,7 +939,7 @@ RGB values of the color, either as given by the argument or from
 looking up the name in `color-name-rgb-alist', are used to find the
 supported color that is the best approximation for COLOR in the RGB
 space.
-If COLOR is neither a valid X RGB specification of the color, nor a
+If COLOR is neither a valid RGB specification of the color, nor a
 name of a color in `color-name-rgb-alist', the returned value is nil.
 
 If FRAME is unspecified or nil, it defaults to the selected frame."
@@ -1026,7 +980,7 @@ might need to be approximated if it is not supported directly."
 	  (or (assoc color (tty-color-alist frame))
 	      (let ((rgb (tty-color-standard-values color)))
 		(and rgb
-		     (let ((pixel (tty-color-24bit rgb)))
+		     (let ((pixel (tty-color-24bit rgb frame)))
 		       (or (and pixel (cons color (cons pixel rgb)))
 			   (tty-color-approximate rgb frame)))))))))
 

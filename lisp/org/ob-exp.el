@@ -1,11 +1,11 @@
 ;;; ob-exp.el --- Exportation of Babel Source Blocks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -32,9 +32,8 @@
 (declare-function org-element-type "org-element" (element))
 (declare-function org-escape-code-in-string "org-src" (s))
 (declare-function org-export-copy-buffer "ox" ())
-(declare-function org-fill-template "org" (template alist))
-(declare-function org-get-indentation "org" (&optional line))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
+(declare-function org-in-archived-heading-p "org" (&optional no-inheritance))
 
 (defvar org-src-preserve-indentation)
 
@@ -58,9 +57,13 @@ returned is the value of the last form in BODY.  Assume that
 point is at the beginning of the Babel block."
   (declare (indent 1) (debug body))
   `(let ((source (get-text-property (point) 'org-reference)))
-     (with-current-buffer org-babel-exp-reference-buffer
+     ;; Source blocks created during export process (e.g., by other
+     ;; source blocks) are not referenced.  In this case, do not move
+     ;; point at all.
+     (with-current-buffer (if source org-babel-exp-reference-buffer
+			    (current-buffer))
        (org-with-wide-buffer
-	(goto-char source)
+	(when source (goto-char source))
 	,@body))))
 
 (defun org-babel-exp-src-block ()
@@ -81,7 +84,7 @@ none ---- do not display either code or results upon export
 Assume point is at block opening line."
   (interactive)
   (save-excursion
-    (let* ((info (org-babel-get-src-block-info 'light))
+    (let* ((info (org-babel-get-src-block-info))
 	   (lang (nth 0 info))
 	   (raw-params (nth 2 info))
 	   hash)
@@ -104,7 +107,7 @@ Assume point is at block opening line."
 				   (symbol-value lang-headers))
 			      (append (org-babel-params-from-properties lang)
 				      (list raw-params)))))))
-	  (setf hash (org-babel-sha1-hash info)))
+	  (setf hash (org-babel-sha1-hash info :export)))
 	(org-babel-exp-do-export info 'block hash)))))
 
 (defcustom org-babel-exp-call-line-template
@@ -155,7 +158,8 @@ this template."
 	      ;; encountered.
 	      (goto-char (point-min))
 	      (while (re-search-forward regexp nil t)
-		(unless (save-match-data (org-in-commented-heading-p))
+		(unless (save-match-data (or (org-in-commented-heading-p)
+					     (org-in-archived-heading-p)))
 		  (let* ((object? (match-end 1))
 			 (element (save-match-data
 				    (if object? (org-element-context)
@@ -206,14 +210,17 @@ this template."
 					      (progn (goto-char end)
 						     (skip-chars-forward " \t")
 						     (point)))
-			     ;; Otherwise: remove inline src block but
-			     ;; preserve following white spaces.  Then
-			     ;; insert value.
+			     ;; Otherwise: remove inline source block
+			     ;; but preserve following white spaces.
+			     ;; Then insert value.
 			     (delete-region begin end)
 			     (insert replacement)))))
 		      ((or `babel-call `inline-babel-call)
-		       (org-babel-exp-do-export (org-babel-lob-get-info element)
-						'lob)
+                       (org-babel-exp-do-export
+                        (or (org-babel-lob-get-info element)
+                            (user-error "Unknown Babel reference: %s"
+                                        (org-element-property :call element)))
+                        'lob)
 		       (let ((rep
 			      (org-fill-template
 			       org-babel-exp-call-line-template
@@ -240,7 +247,7 @@ this template."
 			   (insert rep))))
 		      (`src-block
 		       (let ((match-start (copy-marker (match-beginning 0)))
-			     (ind (org-get-indentation)))
+			     (ind (current-indentation)))
 			 ;; Take care of matched block: compute
 			 ;; replacement string.  In particular, a nil
 			 ;; REPLACEMENT means the block is left as-is
@@ -278,17 +285,18 @@ this template."
 		    (set-marker begin nil)
 		    (set-marker end nil)))))
 	  (kill-buffer org-babel-exp-reference-buffer)
-	  (remove-text-properties (point-min) (point-max) '(org-reference)))))))
+          (remove-text-properties (point-min) (point-max)
+                                  '(org-reference nil)))))))
 
 (defun org-babel-exp-do-export (info type &optional hash)
   "Return a string with the exported content of a code block.
 The function respects the value of the :exports header argument."
   (let ((silently (lambda () (let ((session (cdr (assq :session (nth 2 info)))))
-			  (unless (equal "none" session)
-			    (org-babel-exp-results info type 'silent)))))
+			       (unless (equal "none" session)
+			         (org-babel-exp-results info type 'silent)))))
 	(clean (lambda () (if (eq type 'inline)
-			 (org-babel-remove-inline-result)
-		       (org-babel-remove-result info)))))
+			      (org-babel-remove-inline-result)
+		            (org-babel-remove-result info)))))
     (pcase (or (cdr (assq :exports (nth 2 info))) "code")
       ("none" (funcall silently) (funcall clean) "")
       ("code" (funcall silently) (funcall clean) (org-babel-exp-code info type))
@@ -352,9 +360,12 @@ replaced with its value."
   (org-fill-template
    (if (eq type 'inline)
        org-babel-exp-inline-code-template
-       org-babel-exp-code-template)
+     org-babel-exp-code-template)
    `(("lang"  . ,(nth 0 info))
-     ("body"  . ,(org-escape-code-in-string (nth 1 info)))
+     ;; Inline source code should not be escaped.
+     ("body"  . ,(let ((body (nth 1 info)))
+                   (if (eq type 'inline) body
+                     (org-escape-code-in-string body))))
      ("switches" . ,(let ((f (nth 3 info)))
 		      (and (org-string-nw-p f) (concat " " f))))
      ("flags" . ,(let ((f (assq :flags (nth 2 info))))
@@ -385,10 +396,10 @@ inhibit insertion of results into the buffer."
 	(setf (nth 1 info) body)
 	(setf (nth 2 info)
 	      (org-babel-exp--at-source
-		(org-babel-process-params
-		 (org-babel-merge-params
-		  (nth 2 info)
-		  `((:results . ,(if silent "silent" "replace")))))))
+		  (org-babel-process-params
+		   (org-babel-merge-params
+		    (nth 2 info)
+		    `((:results . ,(if silent "silent" "replace")))))))
 	(pcase type
 	  (`block (org-babel-execute-src-block nil info))
 	  (`inline
@@ -400,9 +411,7 @@ inhibit insertion of results into the buffer."
 	  (`lob
 	   (save-excursion
 	     (goto-char (nth 5 info))
-	     (let (org-confirm-babel-evaluate)
-	       (org-babel-execute-src-block nil info)))))))))
-
+	     (org-babel-execute-src-block nil info))))))))
 
 (provide 'ob-exp)
 

@@ -1,8 +1,8 @@
-;;; croatian.el -- Quail package for inputting Croatian  -*-coding: utf-8;-*-
+;;; croatian.el --- Quail package for inputting Croatian  -*-coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
-;; Author: Hrvoje Nikšić <hniksic@xemacs.org>
+;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.

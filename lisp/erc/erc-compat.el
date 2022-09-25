@@ -1,10 +1,10 @@
-;;; erc-compat.el --- ERC compatibility code for XEmacs
+;;; erc-compat.el --- ERC compatibility code for older Emacsen  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: emacs-devel@gnu.org
-;; URL: http://www.emacswiki.org/cgi-bin/wiki/ERC
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; URL: https://www.emacswiki.org/emacs/ERC
 
 ;; This file is part of GNU Emacs.
 
@@ -25,32 +25,39 @@
 
 ;; This mostly defines stuff that cannot be worked around easily.
 
+;; ERC depends on the `compat' library from GNU ELPA for supporting
+;; older versions of Emacs.  See this discussion for additional info:
+;; https://lists.gnu.org/archive/html/emacs-devel/2022-07/msg00512.html
+
 ;;; Code:
 
-(require 'format-spec)
+(require 'compat nil 'noerror)
 
-;;;###autoload (autoload 'erc-define-minor-mode "erc-compat")
-(defalias 'erc-define-minor-mode 'define-minor-mode)
-(put 'erc-define-minor-mode 'edebug-form-spec 'define-minor-mode)
+;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
+(define-obsolete-function-alias 'erc-define-minor-mode
+  #'define-minor-mode "28.1")
 
 (defun erc-decode-coding-string (s coding-system)
   "Decode S using CODING-SYSTEM."
+  (declare (obsolete decode-coding-string "28.1"))
   (decode-coding-string s coding-system t))
 
 (defun erc-encode-coding-string (s coding-system)
   "Encode S using CODING-SYSTEM.
 Return the same string, if the encoding operation is trivial.
 See `erc-encoding-coding-alist'."
+  (declare (obsolete encode-coding-string "28.1"))
   (encode-coding-string s coding-system t))
 
-(defalias 'erc-propertize 'propertize)
-(defalias 'erc-view-mode-enter 'view-mode-enter)
+(define-obsolete-function-alias 'erc-propertize #'propertize "28.1")
+(define-obsolete-function-alias 'erc-view-mode-enter #'view-mode-enter "28.1")
 (autoload 'help-function-arglist "help-fns")
-(defalias 'erc-function-arglist 'help-function-arglist)
-(defalias 'erc-delete-dups 'delete-dups)
-(defalias 'erc-replace-regexp-in-string 'replace-regexp-in-string)
+(define-obsolete-function-alias 'erc-function-arglist #'help-function-arglist "28.1")
+(define-obsolete-function-alias 'erc-delete-dups #'delete-dups "28.1")
+(define-obsolete-function-alias 'erc-replace-regexp-in-string #'replace-regexp-in-string "28.1")
 
 (defun erc-set-write-file-functions (new-val)
+  (declare (obsolete nil "28.1"))
   (set (make-local-variable 'write-file-functions) new-val))
 
 (defvar erc-emacs-build-time
@@ -58,40 +65,30 @@ See `erc-encoding-coding-alist'."
       emacs-build-time
     (format-time-string "%Y-%m-%d" emacs-build-time))
   "Time at which Emacs was dumped out, or nil if not available.")
+(make-obsolete-variable 'erc-emacs-build-time 'emacs-build-time "28.1")
+(define-obsolete-variable-alias 'erc-user-emacs-directory 'user-emacs-directory "28.1")
 
-;; Emacs 21 and XEmacs do not have user-emacs-directory, but XEmacs
-;; has user-init-directory.
-(defvar erc-user-emacs-directory
-  (cond ((boundp 'user-emacs-directory)
-	 user-emacs-directory)
-	((boundp 'user-init-directory)
-	 user-init-directory)
-	(t "~/.emacs.d/"))
-  "Directory beneath which additional per-user Emacs-specific files
-are placed.
-Note that this should end with a directory separator.")
-
-;; XEmacs's `replace-match' does not replace matching subexpressions in strings.
 (defun erc-replace-match-subexpression-in-string
-  (newtext string match subexp start &optional fixedcase literal)
+  (newtext string _match subexp _start &optional fixedcase literal)
   "Replace the subexpression SUBEXP of the last match in STRING with NEWTEXT.
 MATCH is the text which matched the subexpression (see `match-string').
 START is the beginning position of the last match (see `match-beginning').
 See `replace-match' for explanations of FIXEDCASE and LITERAL."
-  (cond ((featurep 'xemacs)
-	 (string-match match string start)
-	 (replace-match newtext fixedcase literal string))
-	(t (replace-match newtext fixedcase literal string subexp))))
+  (declare (obsolete replace-match "28.1"))
+  (replace-match newtext fixedcase literal string subexp))
 
-(defalias 'erc-with-selected-window 'with-selected-window)
-(defalias 'erc-cancel-timer 'cancel-timer)
-(defalias 'erc-make-obsolete 'make-obsolete)
-(defalias 'erc-make-obsolete-variable 'make-obsolete-variable)
+(define-obsolete-function-alias 'erc-with-selected-window
+  #'with-selected-window "28.1")
+(define-obsolete-function-alias 'erc-cancel-timer #'cancel-timer "28.1")
+(define-obsolete-function-alias 'erc-make-obsolete #'make-obsolete "28.1")
+(define-obsolete-function-alias 'erc-make-obsolete-variable
+  #'make-obsolete-variable "28.1")
 
-;; Provide a simpler replacement for `member-if'
+;; Provide a simpler replacement for `cl-member-if'
 (defun erc-member-if (predicate list)
   "Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches."
+  (declare (obsolete cl-member-if "28.1"))
   (let ((ptr list))
     (catch 'found
       (while ptr
@@ -99,11 +96,12 @@ Return the sublist of LIST whose car matches."
 	  (throw 'found ptr))
 	(setq ptr (cdr ptr))))))
 
-;; Provide a simpler replacement for `delete-if'
+;; Provide a simpler replacement for `cl-delete-if'
 (defun erc-delete-if (predicate seq)
   "Remove all items satisfying PREDICATE in SEQ.
 This is a destructive function: it reuses the storage of SEQ
 whenever possible."
+  (declare (obsolete cl-delete-if "28.1"))
   ;; remove from car
   (while (when (funcall predicate (car seq))
 	   (setq seq (cdr seq))))
@@ -119,11 +117,12 @@ whenever possible."
       (setq next (cdr ptr))))
   seq)
 
-;; Provide a simpler replacement for `remove-if-not'
+;; Provide a simpler replacement for `cl-remove-if-not'
 (defun erc-remove-if-not (predicate seq)
   "Remove all items not satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ to
 avoid corrupting the original SEQ."
+  (declare (obsolete cl-remove-if-not "28.1"))
   (let (newseq)
     (dolist (el seq)
       (when (funcall predicate el)
@@ -135,6 +134,7 @@ avoid corrupting the original SEQ."
   "Return the subsequence of SEQ from START to END.
 If END is omitted, it defaults to the length of the sequence.
 If START or END is negative, it counts from the end."
+  (declare (obsolete cl-subseq "28.1"))
   (if (stringp seq) (substring seq start end)
     (let (len)
       (and end (< end 0) (setq end (+ end (setq len (length seq)))))
@@ -161,6 +161,5 @@ If START or END is negative, it counts from the end."
 ;;; erc-compat.el ends here
 ;;
 ;; Local Variables:
-;; indent-tabs-mode: t
-;; tab-width: 8
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; End:

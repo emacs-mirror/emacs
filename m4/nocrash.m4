@@ -1,5 +1,5 @@
-# nocrash.m4 serial 4
-dnl Copyright (C) 2005, 2009-2017 Free Software Foundation, Inc.
+# nocrash.m4 serial 5
+dnl Copyright (C) 2005, 2009-2022 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -53,7 +53,7 @@ nocrash_init (void)
   /* Allocate a port on which the thread shall listen for exceptions.  */
   if (mach_port_allocate (self, MACH_PORT_RIGHT_RECEIVE, &our_exception_port)
       == KERN_SUCCESS) {
-    /* See http://web.mit.edu/darwin/src/modules/xnu/osfmk/man/mach_port_insert_right.html.  */
+    /* See https://web.mit.edu/darwin/src/modules/xnu/osfmk/man/mach_port_insert_right.html.  */
     if (mach_port_insert_right (self, our_exception_port, our_exception_port,
                                 MACH_MSG_TYPE_MAKE_SEND)
         == KERN_SUCCESS) {
@@ -72,14 +72,14 @@ nocrash_init (void)
            for a particular thread.  This has the effect that when our exception
            port gets the message, the thread specific exception port has already
            been asked, and we don't need to bother about it.
-           See http://web.mit.edu/darwin/src/modules/xnu/osfmk/man/task_set_exception_ports.html.  */
+           See https://web.mit.edu/darwin/src/modules/xnu/osfmk/man/task_set_exception_ports.html.  */
         task_set_exception_ports (self, mask, our_exception_port,
                                   EXCEPTION_DEFAULT, MACHINE_THREAD_STATE);
       }
     }
   }
 }
-#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#elif defined _WIN32 && ! defined __CYGWIN__
 /* Avoid a crash on native Windows.  */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

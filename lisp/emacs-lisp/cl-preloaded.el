@@ -1,6 +1,6 @@
 ;;; cl-preloaded.el --- Preloaded part of the CL library  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc
+;; Copyright (C) 2015-2022  Free Software Foundation, Inc
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -50,6 +50,49 @@
         (apply #'error string (append sargs args))
       (signal 'cl-assertion-failed `(,form ,@sargs)))))
 
+(defconst cl--typeof-types
+  ;; Hand made from the source code of `type-of'.
+  '((integer number number-or-marker atom)
+    (symbol-with-pos symbol atom) (symbol atom) (string array sequence atom)
+    (cons list sequence)
+    ;; Markers aren't `numberp', yet they are accepted wherever integers are
+    ;; accepted, pretty much.
+    (marker number-or-marker atom)
+    (overlay atom) (float number atom) (window-configuration atom)
+    (process atom) (window atom)
+    ;; FIXME: We'd want to put `function' here, but that's only true
+    ;; for those `subr's which aren't special forms!
+    (subr atom)
+    ;; FIXME: We should probably reverse the order between
+    ;; `compiled-function' and `byte-code-function' since arguably
+    ;; `subr' and also "compiled functions" but not "byte code functions",
+    ;; but it would require changing the value returned by `type-of' for
+    ;; byte code objects, which risks breaking existing code, which doesn't
+    ;; seem worth the trouble.
+    (compiled-function byte-code-function function atom)
+    (module-function function atom)
+    (buffer atom) (char-table array sequence atom)
+    (bool-vector array sequence atom)
+    (frame atom) (hash-table atom) (terminal atom)
+    (thread atom) (mutex atom) (condvar atom)
+    (font-spec atom) (font-entity atom) (font-object atom)
+    (vector array sequence atom)
+    (user-ptr atom)
+    ;; Plus, really hand made:
+    (null symbol list sequence atom))
+  "Alist of supertypes.
+Each element has the form (TYPE . SUPERTYPES) where TYPE is one of
+the symbols returned by `type-of', and SUPERTYPES is the list of its
+supertypes from the most specific to least specific.")
+
+(defconst cl--all-builtin-types
+  (delete-dups (copy-sequence (apply #'append cl--typeof-types))))
+
+(defun cl--struct-name-p (name)
+  "Return t if NAME is a valid structure name for `cl-defstruct'."
+  (and name (symbolp name) (not (keywordp name))
+       (not (memq name cl--all-builtin-types))))
+
 ;; When we load this (compiled) file during pre-loading, the cl--struct-class
 ;; code below will need to access the `cl-struct' info, since it's considered
 ;; already as its parent (because `cl-struct' was defined while the file was
@@ -61,7 +104,7 @@
 (fset 'cl--make-slot-desc
       ;; To break circularity, we pre-define the slot constructor by hand.
       ;; It's redefined a bit further down as part of the cl-defstruct of
-      ;; cl--slot-descriptor.
+      ;; cl-slot-descriptor.
       ;; BEWARE: Obviously, it's important to keep the two in sync!
       (lambda (name &optional initform type props)
         (record 'cl-slot-descriptor
@@ -91,12 +134,11 @@
                             (get name 'cl-struct-print))
           (cl--find-class name)))))
 
-(defun cl--plist-remove (plist member)
-  (cond
-   ((null plist) nil)
-   ((null member) plist)
-   ((eq plist member) (cddr plist))
-   (t `(,(car plist) ,(cadr plist) ,@(cl--plist-remove (cddr plist) member)))))
+(defun cl--plist-to-alist (plist)
+  (let ((res '()))
+    (while plist
+      (push (cons (pop plist) (pop plist)) res))
+    (nreverse res)))
 
 (defun cl--struct-register-child (parent tag)
   ;; Can't use (cl-typep parent 'cl-structure-class) at this stage
@@ -104,12 +146,13 @@
   (while (recordp parent)
     (add-to-list (cl--struct-class-children-sym parent) tag)
     ;; Only register ourselves as a child of the leftmost parent since structs
-    ;; can only only have one parent.
+    ;; can only have one parent.
     (setq parent (car (cl--struct-class-parents parent)))))
 
 ;;;###autoload
 (defun cl-struct-define (name docstring parent type named slots children-sym
                               tag print)
+  (cl-check-type name (satisfies cl--struct-name-p))
   (unless type
     ;; Legacy defstruct, using tagged vectors.  Enable backward compatibility.
     (cl-old-struct-compat-mode 1))
@@ -130,12 +173,14 @@
                        (i 0)
                        (offset (if type 0 1)))
                    (dolist (slot slots)
-                     (let* ((props (cddr slot))
-                            (typep (plist-member props :type))
-                            (type (if typep (cadr typep) t)))
+                     (let* ((props (cl--plist-to-alist (cddr slot)))
+                            (typep (assq :type props))
+                            (type (if (null typep) t
+                                    (setq props (delq typep props))
+                                    (cdr typep))))
                        (aset v i (cl--make-slot-desc
                                   (car slot) (nth 1 slot)
-                                  type (cl--plist-remove props typep))))
+                                  type props)))
                      (puthash (car slot) (+ i offset) index-table)
                      (cl-incf i))
                    v))
@@ -194,7 +239,7 @@
   (name nil :type symbol)               ;The type name.
   (docstring nil :type string)
   (parents nil :type (list-of cl--class)) ;The included struct.
-  (slots nil :type (vector cl--slot-descriptor))
+  (slots nil :type (vector cl-slot-descriptor))
   (index-table nil :type hash-table)
   (tag nil :type symbol) ;Placed in cl-tag-slot.  Holds the struct-class object.
   (type nil :type (memq (vector list)))
@@ -269,6 +314,17 @@
 (cl-assert (cl-struct-p (cl--find-class 'cl-structure-object)))
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-class)))
 (cl-assert (cl--class-p (cl--find-class 'cl-structure-object)))
+
+(defun cl--class-allparents (class)
+  (let ((parents ())
+        (classes (list class)))
+    ;; BFS precedence.  FIXME: Use a topological sort.
+    (while (let ((class (pop classes)))
+             (cl-pushnew (cl--class-name class) parents)
+             (setq classes
+                   (append classes
+                           (cl--class-parents class)))))
+    (nreverse parents)))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie

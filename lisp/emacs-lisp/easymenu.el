@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996, 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2022 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -23,26 +23,18 @@
 
 ;;; Commentary:
 
+;; The `easy-menu-define' macro provides a convenient way to define
+;; pop-up menus and/or menu bar menus.
+;;
 ;; This is compatible with easymenu.el by Per Abrahamsen
 ;; but it is much simpler as it doesn't try to support other Emacs versions.
 ;; The code was mostly derived from lmenu.el.
 
 ;;; Code:
 
-(defvar easy-menu-precalculate-equivalent-keybindings nil
-  "Determine when equivalent key bindings are computed for easy-menu menus.
-It can take some time to calculate the equivalent key bindings that are shown
-in a menu.  If the variable is on, then this calculation gives a (maybe
-noticeable) delay when a mode is first entered.  If the variable is off, then
-this delay will come when a menu is displayed the first time.  If you never use
-menus, turn this variable off, otherwise it is probably better to keep it on.")
-(make-obsolete-variable
- 'easy-menu-precalculate-equivalent-keybindings nil "23.1")
-
 (defsubst easy-menu-intern (s)
   (if (stringp s) (intern s) s))
 
-;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a pop-up menu and/or menu bar menu specified by MENU.
 If SYMBOL is non-nil, define SYMBOL as a function to pop up the
@@ -70,6 +62,17 @@ pairs:
     ENABLE is an expression.  The menu is enabled for selection
     if the expression evaluates to a non-nil value.  `:enable' is
     an alias for `:active'.
+
+ :label FORM
+    FORM is an expression that is dynamically evaluated and whose
+    value serves as the menu's label (the default is the first
+    element of MENU).
+
+ :help HELP
+    HELP is a string, the help to display for the menu.
+    In a GUI this is a \"tooltip\" on the menu button.  (Though
+    in Lucid :help is not shown for the top-level menu bar, only
+    for sub-menus.)
 
 The rest of the elements in MENU are menu items.
 A menu item can be a vector of three elements:
@@ -139,7 +142,7 @@ solely of dashes is displayed as a menu separator.
 
 Alternatively, a menu item can be a list with the same format as
 MENU.  This is a submenu."
-  (declare (indent defun) (debug (symbolp body)))
+  (declare (indent defun) (debug (symbolp body)) (doc-string 3))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
@@ -162,7 +165,6 @@ This is expected to be bound to a mouse event."
                       ""))
                 (cons menu props)))))
 
-;;;###autoload
 (defun easy-menu-do-define (symbol maps doc menu)
   ;; We can't do anything that might differ between Emacs dialects in
   ;; `easy-menu-define' in order to make byte compiled files
@@ -172,20 +174,25 @@ This is expected to be bound to a mouse event."
     (when symbol
       (set symbol keymap)
       (defalias symbol
-	`(lambda (event) ,doc (interactive "@e")
-	   ;; FIXME: XEmacs uses popup-menu which calls the binding
-	   ;; while x-popup-menu only returns the selection.
+	(lambda (event) (:documentation doc) (interactive "@e")
 	   (x-popup-menu event
-			 (or (and (symbolp ,symbol)
+			 (or (and (symbolp keymap)
 				  (funcall
-				   (or (plist-get (get ,symbol 'menu-prop)
+				   (or (plist-get (get keymap 'menu-prop)
 						  :filter)
-				       'identity)
-				   (symbol-function ,symbol)))
-			     ,symbol)))))
+                                       #'identity)
+				   (symbol-function keymap)))
+			     keymap))))
+      ;; These symbols are commands, but not interesting for users
+      ;; to `M-x TAB'.
+      (function-put symbol 'completion-predicate #'ignore))
     (dolist (map (if (keymapp maps) (list maps) maps))
       (define-key map
-        (vector 'menu-bar (easy-menu-intern (car menu)))
+        (vector 'menu-bar (if (symbolp (car menu))
+                              (car menu)
+                            ;; If a string, then use the downcased
+                            ;; version for greater backwards compatibility.
+                            (intern (downcase (car menu)))))
         (easy-menu-binding keymap (car menu))))))
 
 (defun easy-menu-filter-return (menu &optional name)
@@ -211,7 +218,6 @@ If NAME is provided, it is used for the keymap."
 If it holds a list, this is expected to be a list of keys already seen in the
 menu we're processing.  Else it means we're not processing a menu.")
 
-;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
   "Create a menu called MENU-NAME with items described in MENU-ITEMS.
 MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
@@ -226,14 +232,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
       (let ((arg (cadr menu-items)))
         (setq menu-items (cddr menu-items))
         (pcase keyword
-          (`:filter
+          (:filter
            (setq filter (lambda (menu)
                           (easy-menu-filter-return (funcall arg menu)
                                                    menu-name))))
-          ((or `:enable `:active) (setq enable (or arg ''nil)))
-          (`:label (setq label arg))
-          (`:help (setq help arg))
-          ((or `:included `:visible) (setq visible (or arg ''nil))))))
+          ((or :enable :active) (setq enable (or arg ''nil)))
+          (:label (setq label arg))
+          (:help (setq help arg))
+          ((or :included :visible) (setq visible (or arg ''nil))))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true-p visible)))
@@ -249,7 +255,7 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
                      ;; anyway, so we'd better not convert it at all (it will
                      ;; be converted on the fly by easy-menu-filter-return).
                      menu-items
-                   (append menu (mapcar 'easy-menu-convert-item menu-items))))
+                   (append menu (mapcar #'easy-menu-convert-item menu-items))))
       (when prop
 	(setq menu (easy-menu-make-symbol menu 'noexp))
 	(put menu 'menu-prop prop))
@@ -325,15 +331,15 @@ ITEM defines an item as in `easy-menu-define'."
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
 		(pcase keyword
-                  ((or `:included `:visible) (setq visible (or arg ''nil)))
-                  (`:key-sequence (setq cache arg cache-specified t))
-                  (`:keys (setq keys arg no-name nil))
-                  (`:label (setq label arg))
-                  ((or `:active `:enable) (setq active (or arg ''nil)))
-                  (`:help (setq prop (cons :help (cons arg prop))))
-                  (`:suffix (setq suffix arg))
-                  (`:style (setq style arg))
-                  (`:selected (setq selected (or arg ''nil)))))
+                  ((or :included :visible) (setq visible (or arg ''nil)))
+                  (:key-sequence (setq cache arg cache-specified t))
+                  (:keys (setq keys arg no-name nil))
+                  (:label (setq label arg))
+                  ((or :active :enable) (setq active (or arg ''nil)))
+                  (:help (setq prop (cons :help (cons arg prop))))
+                  (:suffix (setq suffix arg))
+                  (:style (setq style arg))
+                  (:selected (setq selected (or arg ''nil)))))
 	      (if suffix
 		  (setq label
 			(if (stringp suffix)
@@ -464,10 +470,9 @@ When non-nil, NOEXP indicates that CALLBACK cannot be an expression
                   ;; `functionp' is probably not needed.
                   (functionp callback) noexp)
               callback
-	    `(lambda () (interactive) ,callback)))
+	    (eval `(lambda () (interactive) ,callback) t)))
     command))
 
-;;;###autoload
 (defun easy-menu-change (path name items &optional before map)
   "Change menu found at PATH as item NAME to contain ITEMS.
 PATH is a list of strings for locating the menu that
@@ -487,32 +492,20 @@ To implement dynamic menus, either call this from
 `menu-bar-update-hook' or use a menu filter."
   (easy-menu-add-item map path (easy-menu-create-menu name items) before))
 
-;; XEmacs needs the following two functions to add and remove menus.
-;; In Emacs this is done automatically when switching keymaps, so
-;; here easy-menu-remove and easy-menu-add are a noops.
-(defalias 'easy-menu-remove 'ignore
-  "Remove MENU from the current menu bar.
-Contrary to XEmacs, this is a nop on Emacs since menus are automatically
-\(de)activated when the corresponding keymap is (de)activated.
+(defalias 'easy-menu-remove #'ignore)
+(make-obsolete 'easy-menu-remove "this was always a no-op in Emacs \
+and can be safely removed." "28.1")
 
-\(fn MENU)")
-
-(defalias 'easy-menu-add #'ignore
-  "Add the menu to the menubar.
-On Emacs this is a nop, because menus are already automatically
-activated when the corresponding keymap is activated.  On XEmacs
-this is needed to actually add the menu to the current menubar.
-
-You should call this once the menu and keybindings are set up
-completely and menu filter functions can be expected to work.
-
-\(fn MENU &optional MAP)")
+(defalias 'easy-menu-add #'ignore)
+(make-obsolete 'easy-menu-add "this was always a no-op in Emacs \
+and can be safely removed." "28.1")
 
 (defun add-submenu (menu-path submenu &optional before in-menu)
   "Add submenu SUBMENU in the menu at MENU-PATH.
 If BEFORE is non-nil, add before the item named BEFORE.
 If IN-MENU is non-nil, follow MENU-PATH in IN-MENU.
 This is a compatibility function; use `easy-menu-add-item'."
+  (declare (obsolete easy-menu-add-item "28.1"))
   (easy-menu-add-item (or in-menu (current-global-map))
 		      (cons "menu-bar" menu-path)
 		      submenu before))
@@ -658,7 +651,7 @@ In some cases we use that to select between the local and global maps."
 	    (let* ((name (if path (format "%s" (car (reverse path)))))
 		   (newmap (make-sparse-keymap name)))
 	      (define-key (or map (current-local-map))
-		(apply 'vector (mapcar 'easy-menu-intern path))
+		(apply #'vector (mapcar #'easy-menu-intern path))
 		(if name (cons name newmap) newmap))
 	      newmap))))
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))

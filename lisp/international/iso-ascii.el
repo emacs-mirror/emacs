@@ -1,6 +1,6 @@
-;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals
+;;; iso-ascii.el --- set up char tables for ISO 8859/1 on ASCII terminals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1987, 1995, 1998, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1987, 1995, 1998, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Howard Gayle
@@ -41,8 +41,7 @@
 
 (defcustom iso-ascii-convenient nil
   "Non-nil means `iso-ascii' should aim for convenience, not precision."
-  :type 'boolean
-  :group 'iso-ascii)
+  :type 'boolean)
 
 (defvar iso-ascii-display-table (make-display-table)
   "Display table used for ISO-ASCII mode.")
@@ -163,10 +162,7 @@
 (iso-ascii-display 255 "\"y") ; small y with diaeresis or umlaut mark
 
 (define-minor-mode iso-ascii-mode
-  "Toggle ISO-ASCII mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil."
+  "Toggle ISO-ASCII mode."
   :variable ((eq standard-display-table iso-ascii-display-table)
              . (lambda (v)
                  (setq standard-display-table

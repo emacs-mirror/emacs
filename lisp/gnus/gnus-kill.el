@@ -1,6 +1,6 @@
-;;; gnus-kill.el --- kill commands for Gnus
+;;; gnus-kill.el --- kill commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -25,16 +25,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
-
 (require 'gnus)
 (require 'gnus-art)
 (require 'gnus-range)
-
-(defcustom gnus-kill-file-mode-hook nil
-  "Hook for Gnus kill file mode."
-  :group 'gnus-score-kill
-  :type 'hook)
 
 (defcustom gnus-kill-expiry-days 7
   "Number of days before expiring unused kill file entries."
@@ -73,18 +66,15 @@ of time."
 ;;; Gnus Kill File Mode
 ;;;
 
-(defvar gnus-kill-file-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map emacs-lisp-mode-map)
-    (gnus-define-keymap map
-      "\C-c\C-k\C-s" gnus-kill-file-kill-by-subject
-      "\C-c\C-k\C-a" gnus-kill-file-kill-by-author
-      "\C-c\C-k\C-t" gnus-kill-file-kill-by-thread
-      "\C-c\C-k\C-x" gnus-kill-file-kill-by-xref
-      "\C-c\C-a" gnus-kill-file-apply-buffer
-      "\C-c\C-e" gnus-kill-file-apply-last-sexp
-      "\C-c\C-c" gnus-kill-file-exit)
-    map))
+(defvar-keymap gnus-kill-file-mode-map
+  :parent emacs-lisp-mode-map
+  "C-c C-k C-s" #'gnus-kill-file-kill-by-subject
+  "C-c C-k C-a" #'gnus-kill-file-kill-by-author
+  "C-c C-k C-t" #'gnus-kill-file-kill-by-thread
+  "C-c C-k C-x" #'gnus-kill-file-kill-by-xref
+  "C-c C-a" #'gnus-kill-file-apply-buffer
+  "C-c C-e" #'gnus-kill-file-apply-last-sexp
+  "C-c C-c" #'gnus-kill-file-exit)
 
 (define-derived-mode gnus-kill-file-mode emacs-lisp-mode "Kill"
   "Major mode for editing kill files.
@@ -282,7 +272,7 @@ If NEWSGROUP is nil, the global kill file is selected."
     (save-excursion
       (save-window-excursion
 	(pop-to-buffer gnus-summary-buffer)
-	(eval (car (read-from-string string)))))))
+	(eval (car (read-from-string string)) t)))))
 
 (defun gnus-kill-file-apply-last-sexp ()
   "Apply sexp before point in current buffer to current newsgroup."
@@ -296,7 +286,7 @@ If NEWSGROUP is nil, the global kill file is selected."
 	(save-excursion
 	  (save-window-excursion
 	    (pop-to-buffer gnus-summary-buffer)
-	    (eval (car (read-from-string string))))))
+	    (eval (car (read-from-string string)) t))))
     (ding) (gnus-message 2 "No newsgroup is selected.")))
 
 (defun gnus-kill-file-exit ()
@@ -344,7 +334,7 @@ Returns the number of articles marked as read."
 			   (gnus-newsgroup-kill-file gnus-newsgroup-name)))
 	 (unreads (length gnus-newsgroup-unreads))
 	 (gnus-summary-inhibit-highlight t)
-	 beg)
+	 ) ;; beg
     (setq gnus-newsgroup-kill-headers nil)
     ;; If there are any previously scored articles, we remove these
     ;; from the `gnus-newsgroup-headers' list that the score functions
@@ -357,10 +347,9 @@ Returns the number of articles marked as read."
 	    (let ((headers gnus-newsgroup-headers))
 	      (if gnus-kill-killed
 		  (setq gnus-newsgroup-kill-headers
-			(mapcar (lambda (header) (mail-header-number header))
-				headers))
+			(mapcar #'mail-header-number headers))
 		(while headers
-		  (unless (gnus-member-of-range
+		  (unless (range-member-p
 			   (mail-header-number (car headers))
 			   gnus-newsgroup-killed)
 		    (push (mail-header-number (car headers))
@@ -389,7 +378,7 @@ Returns the number of articles marked as read."
 
       (gnus-set-mode-line 'summary)
 
-      (if beg
+      (if nil ;; beg
 	  (let ((nunreads (- unreads (length gnus-newsgroup-unreads))))
 	    (or (eq nunreads 0)
 		(gnus-message 6 "Marked %d articles as read" nunreads))
@@ -411,9 +400,9 @@ Returns the number of articles marked as read."
 	      (eq (car form) 'gnus-lower))
 	  (progn
 	    (delete-region beg (point))
-	    (insert (or (eval form) "")))
+	    (insert (or (eval form t) "")))
 	(with-current-buffer gnus-summary-buffer
-	  (ignore-errors (eval form)))))
+	  (ignore-errors (eval form t)))))
     (and (buffer-modified-p)
 	 gnus-kill-save-kill-file
 	 (save-buffer))
@@ -443,7 +432,7 @@ Returns the number of articles marked as read."
 	;; The "f:+" command marks everything *but* the matches as read,
 	;; so we simply first match everything as read, and then unmark
 	;; PATTERN later.
-	(when (string-match "\\+" commands)
+	(when (string-search "+" commands)
 	  (gnus-kill "from" ".")
 	  (setq commands "m"))
 
@@ -568,7 +557,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 			 ((functionp form)
 			  (funcall form))
 			 (t
-			  (eval form)))))
+			  (eval form t)))))
 	  ;; Search article body.
 	  (let ((gnus-current-article nil) ;Save article pointer.
 		(gnus-last-article nil)
@@ -586,7 +575,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 		    ((functionp form)
 		     (funcall form))
 		    (t
-		     (eval form)))))))
+		     (eval form t)))))))
       did-kill)))
 
 (defun gnus-execute (field regexp form &optional backward unread)
@@ -607,20 +596,17 @@ marked as read or ticked are ignored."
        ((cond ((fboundp
 		(setq function
 		      (intern-soft
-		       (concat "mail-header-" (downcase field)))))
-	       (setq function `(lambda (h) (,function h))))
+		       (concat "mail-header-" (downcase field))))))
 	      ((when (setq extras
 			   (member (downcase field)
 				   (mapcar (lambda (header)
 					     (downcase (symbol-name header)))
 					   gnus-extra-headers)))
 		 (setq function
-		       `(lambda (h)
-			  (gnus-extra-header
-			   (quote ,(nth (- (length gnus-extra-headers)
-					   (length extras))
-					gnus-extra-headers))
-			   h)))))))
+		       (let ((type (nth (- (length gnus-extra-headers)
+				           (length extras))
+				        gnus-extra-headers)))
+			 (lambda (h) (gnus-extra-header type h))))))))
        ;; Signal error.
        (t
 	(error "Unknown header field: \"%s\"" field)))
@@ -650,7 +636,7 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
   (let* ((gnus-newsrc-options-n
 	  (gnus-newsrc-parse-options
 	   (concat "options -n "
-		   (mapconcat 'identity command-line-args-left " "))))
+		   (mapconcat #'identity command-line-args-left " "))))
 	 (gnus-expert-user t)
 	 (mail-sources nil)
 	 (gnus-use-dribble-file nil)
@@ -662,7 +648,7 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 	 gnus-options-not-subscribe)
     ;; Eat all arguments.
     (setq command-line-args-left nil)
-    (gnus-slave)
+    (gnus-child)
     ;; Apply kills to specified newsgroups in command line arguments.
     (setq newsrc (cdr gnus-newsrc-alist))
     (while (setq info (pop newsrc))

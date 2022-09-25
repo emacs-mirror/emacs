@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2017 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2022 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -26,7 +26,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 */
 
 /* This should be the first include, as it may set up #defines affecting
-   interpretation of even the system includes. */
+   interpretation of even the system includes.  */
 #include <config.h>
 
 #include "lisp.h"
@@ -36,14 +36,73 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "coding.h"
 
 
+#if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+# define COLORSPACE_NAME NSCalibratedRGBColorSpace
+#else
+# define COLORSPACE_NAME                                                \
+  ((ns_use_srgb_colorspace && NSAppKitVersionNumber >= NSAppKitVersionNumber10_7) \
+   ? NSDeviceRGBColorSpace : NSCalibratedRGBColorSpace)
+#endif
+
 
 /* ==========================================================================
 
    C interface.  This allows easy calling from C files.  We could just
    compile everything as Objective-C, but that might mean slower
-   compilation and possible difficulties on some platforms..
+   compilation and possible difficulties on some platforms.
 
    ========================================================================== */
+
+bool
+ns_can_use_native_image_api (Lisp_Object type)
+{
+  NSString *imageType = @"unknown";
+  NSArray *types;
+
+  NSTRACE ("ns_can_use_native_image_api");
+
+  if (EQ (type, Qnative_image))
+    return YES;
+
+#ifdef NS_IMPL_COCOA
+  /* Work out the UTI of the image type.  */
+  if (EQ (type, Qjpeg))
+    imageType = @"public.jpeg";
+  else if (EQ (type, Qpng))
+    imageType = @"public.png";
+  else if (EQ (type, Qgif))
+    imageType = @"com.compuserve.gif";
+  else if (EQ (type, Qtiff))
+    imageType = @"public.tiff";
+  else if (EQ (type, Qsvg))
+    imageType = @"public.svg-image";
+  else if (EQ (type, Qheic))
+    imageType = @"public.heic";
+
+  /* NSImage also supports a host of other types such as PDF and BMP,
+     but we don't yet support these in image.c.  */
+
+  types = [NSImage imageTypes];
+#else
+  /* Work out the image type.  */
+  if (EQ (type, Qjpeg))
+    imageType = @"jpeg";
+  else if (EQ (type, Qpng))
+    imageType = @"png";
+  else if (EQ (type, Qgif))
+    imageType = @"gif";
+  else if (EQ (type, Qtiff))
+    imageType = @"tiff";
+
+  types = [NSImage imageFileTypes];
+#endif
+
+  /* Check if the type is supported on this system.  */
+  if ([types indexOfObject:imageType] != NSNotFound)
+    return YES;
+  else
+    return NO;
+}
 
 void *
 ns_image_from_XBM (char *bits, int width, int height,
@@ -52,7 +111,7 @@ ns_image_from_XBM (char *bits, int width, int height,
   NSTRACE ("ns_image_from_XBM");
   return [[EmacsImage alloc] initFromXBM: (unsigned char *) bits
                                    width: width height: height
-                                      fg: fg bg: bg];
+                                      fg: fg bg: bg reverseBytes: YES];
 }
 
 void *
@@ -83,8 +142,8 @@ ns_load_image (struct frame *f, struct image *img,
 
   eassert (valid_image_p (img->spec));
 
-  lisp_index = Fplist_get (XCDR (img->spec), QCindex);
-  index = INTEGERP (lisp_index) ? XFASTINT (lisp_index) : 0;
+  lisp_index = plist_get (XCDR (img->spec), QCindex);
+  index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
 
   if (STRINGP (spec_file))
     {
@@ -109,9 +168,11 @@ ns_load_image (struct frame *f, struct image *img,
   if (![eImg setFrame: index])
     {
       add_to_log ("Unable to set index %d for image %s",
-                  make_number (index), img->spec);
+                  make_fixnum (index), img->spec);
       return 0;
     }
+
+  img->lisp_data = [eImg getMetadata];
 
   size = [eImg size];
   img->width = size.width;
@@ -120,7 +181,6 @@ ns_load_image (struct frame *f, struct image *img,
   /* 4) set img->pixmap = emacsimage */
   img->pixmap = eImg;
 
-  img->lisp_data = [eImg getMetadata];
   return 1;
 }
 
@@ -135,6 +195,24 @@ int
 ns_image_height (void *img)
 {
   return [(id)img size].height;
+}
+
+void
+ns_image_set_size (void *img, int width, int height)
+{
+  [(EmacsImage *)img setSize:NSMakeSize (width, height)];
+}
+
+void
+ns_image_set_transform (void *img, double m[3][3])
+{
+  [(EmacsImage *)img setTransform:m];
+}
+
+void
+ns_image_set_smoothing (void *img, bool smooth)
+{
+  [(EmacsImage *)img setSmoothing:smooth];
 }
 
 unsigned long
@@ -159,6 +237,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   [(EmacsImage *)img setAlphaAtX: x Y: y to: a];
 }
 
+size_t
+ns_image_size_in_bytes (void *img)
+{
+  return [(EmacsImage *)img sizeInBytes];
+}
 
 /* ==========================================================================
 
@@ -173,31 +256,26 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   NSImageRep *imgRep;
   Lisp_Object found;
   EmacsImage *image;
+  NSString *filename;
 
   /* Search bitmap-file-path for the file, if appropriate.  */
-  found = x_find_image_file (file);
+  found = image_find_image_file (file);
   if (!STRINGP (found))
     return nil;
-  found = ENCODE_FILE (found);
+  filename = [NSString stringWithLispString:found];
 
-  image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithUTF8String: SSDATA (found)]];
+  image = [[EmacsImage alloc] initByReferencingFile:filename];
 
   image->bmRep = nil;
-#ifdef NS_IMPL_COCOA
-  imgRep = [NSBitmapImageRep imageRepWithData:[image TIFFRepresentation]];
-#else
-  imgRep = [image bestRepresentationForDevice: nil];
-#endif
-  if (imgRep == nil)
+  if (![image isValid])
     {
       [image release];
       return nil;
     }
+  imgRep = [[image representations] firstObject];
 
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
-
-  [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
+  [image setName:filename];
 
   return image;
 }
@@ -207,14 +285,28 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 {
   [stippleMask release];
   [bmRep release];
+  [transform release];
   [super dealloc];
 }
 
 
+- (id)copyWithZone:(NSZone *)zone
+{
+  EmacsImage *copy = [super copyWithZone:zone];
+
+  copy->stippleMask = [stippleMask copyWithZone:zone];
+  copy->bmRep = [bmRep copyWithZone:zone];
+  copy->transform = [transform copyWithZone:zone];
+
+  return copy;
+}
+
+
 /* Create image from monochrome bitmap. If both FG and BG are 0
-   (black), set the background to white and make it transparent. */
+   (black), set the background to white and make it transparent.  */
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
-           fg: (unsigned long)fg bg: (unsigned long)bg
+                         fg: (unsigned long)fg bg: (unsigned long)bg
+               reverseBytes: (BOOL)reverse
 {
   unsigned char *planes[5];
   unsigned char bg_alpha = 0xff;
@@ -225,7 +317,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                                     pixelsWide: w pixelsHigh: h
                                     bitsPerSample: 8 samplesPerPixel: 4
                                     hasAlpha: YES isPlanar: YES
-                                    colorSpaceName: NSCalibratedRGBColorSpace
+                                    colorSpaceName: COLORSPACE_NAME
                                     bytesPerRow: w bitsPerPixel: 0];
 
   [bmRep getBitmapDataPlanes: planes];
@@ -237,7 +329,9 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   {
-    /* pull bits out to set the (bytewise) alpha mask */
+    /* Pull bits out to set the (bytewise) alpha mask.  */
+    unsigned char swt[16] = {0, 8, 4, 12, 2, 10, 6, 14,
+                             1, 9, 5, 13, 3, 11, 7, 15};
     int i, j, k;
     unsigned char *s = bits;
     unsigned char *rr = planes[0];
@@ -252,11 +346,18 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     unsigned char bgb = bg & 0xff;
     unsigned char c;
 
-    int idx = 0;
     for (j = 0; j < h; ++j)
       for (i = 0; i < w; )
         {
           c = *s++;
+
+          /* XBM files have the bits in reverse order within each byte
+             as compared to our fringe bitmaps.  This function deals
+             with both so has to be able to handle the bytes in either
+             order.  */
+          if (reverse)
+            c = swt[c >> 4] | (swt[c & 0xf] << 4);
+
           for (k = 0; i < w && k < 8; ++k, ++i)
             {
               if (c & 0x80)
@@ -273,54 +374,12 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                   *bb++ = bgb;
                   *alpha++ = bg_alpha;
                 }
-              idx++;
               c <<= 1;
             }
         }
   }
 
-  xbm_fg = fg;
   [self addRepresentation: bmRep];
-  return self;
-}
-
-/* Set color for a bitmap image.  */
-- (instancetype)setXBMColor: (NSColor *)color
-{
-  NSSize s = [self size];
-  unsigned char *planes[5];
-  EmacsCGFloat r, g, b, a;
-  NSColor *rgbColor;
-
-  if (bmRep == nil || color == nil)
-    return self;
-
-  if ([color colorSpaceName] != NSCalibratedRGBColorSpace)
-    rgbColor = [color colorUsingColorSpaceName: NSCalibratedRGBColorSpace];
-  else
-    rgbColor = color;
-
-  [rgbColor getRed: &r green: &g blue: &b alpha: &a];
-
-  [bmRep getBitmapDataPlanes: planes];
-
-  {
-    int i, len = s.width*s.height;
-    int rr = r * 0xff, gg = g * 0xff, bb = b * 0xff;
-    unsigned char fgr = (xbm_fg >> 16) & 0xff;
-    unsigned char fgg = (xbm_fg >> 8) & 0xff;
-    unsigned char fgb = xbm_fg & 0xff;
-
-    for (i = 0; i < len; ++i)
-      if (planes[0][i] == fgr && planes[1][i] == fgg && planes[2][i] == fgb)
-        {
-          planes[0][i] = rr;
-          planes[1][i] = gg;
-          planes[2][i] = bb;
-        }
-    xbm_fg = ((rr << 16) & 0xff0000) + ((gg << 8) & 0xff00) + (bb & 0xff);
-  }
-
   return self;
 }
 
@@ -337,7 +396,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                                   /* keep things simple for now */
                                   bitsPerSample: 8 samplesPerPixel: 4 /*RGB+A*/
                                   hasAlpha: YES isPlanar: YES
-                                  colorSpaceName: NSCalibratedRGBColorSpace
+                                  colorSpaceName: COLORSPACE_NAME
                                   bytesPerRow: width bitsPerPixel: 0];
 
   [bmRep getBitmapDataPlanes: pixmapData];
@@ -348,7 +407,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 
-/* attempt to pull out pixmap data from a BitmapImageRep; returns NO if fails */
+/* Attempt to pull out pixmap data from a BitmapImageRep; returns NO if fails.  */
 - (void) setPixmapData
 {
   NSEnumerator *reps;
@@ -372,21 +431,22 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 
-/* note; this and next work only for image created with initForXPMWithDepth,
-         initFromSkipXBM, or where setPixmapData was called successfully */
+/* Note: this and next work only for image created with initForXPMWithDepth,
+         initFromSkipXBM, or where setPixmapData was called successfully.  */
 /* return ARGB */
 - (unsigned long) getPixelAtX: (int)x Y: (int)y
 {
   if (bmRep == nil)
     return 0;
 
-  /* this method is faster but won't work for bitmaps */
+  /* This method is faster but won't work for bitmaps.  */
   if (pixmapData[0] != NULL)
     {
       int loc = x + y * [self size].width;
-      return (pixmapData[3][loc] << 24) /* alpha */
-       | (pixmapData[0][loc] << 16) | (pixmapData[1][loc] << 8)
-       | (pixmapData[2][loc]);
+      return (((unsigned long) pixmapData[3][loc] << 24) /* alpha */
+              | ((unsigned long) pixmapData[0][loc] << 16)
+              | ((unsigned long) pixmapData[1][loc] << 8)
+              | (unsigned long) pixmapData[2][loc]);
     }
   else
     {
@@ -443,7 +503,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 }
 
-/* returns a pattern color, which is cached here */
+/* Returns a pattern color, which is cached here.  */
 - (NSColor *)stippleMask
 {
   if (stippleMask == nil)
@@ -451,7 +511,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   return stippleMask;
 }
 
-/* Find the first NSBitmapImageRep which has multiple frames. */
+/* Find the first NSBitmapImageRep which has multiple frames.  */
 - (NSBitmapImageRep *)getAnimatedBitmapImageRep
 {
   for (NSImageRep * r in [self representations])
@@ -467,7 +527,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 }
 
 /* If the image has multiple frames, get a count of them and the
-   animation delay, if available. */
+   animation delay, if available.  */
 - (Lisp_Object)getMetadata
 {
   Lisp_Object metadata = Qnil;
@@ -481,14 +541,14 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                       floatValue];
 
       if (frames > 1)
-        metadata = Fcons (Qcount, Fcons (make_number (frames), metadata));
+        metadata = Fcons (Qcount, Fcons (make_fixnum (frames), metadata));
       if (delay > 0)
         metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
     }
   return metadata;
 }
 
-/* Attempt to set the animation frame to be displayed. */
+/* Attempt to set the animation frame to be displayed.  */
 - (BOOL)setFrame: (unsigned int) index
 {
   NSBitmapImageRep * bm = [self getAnimatedBitmapImageRep];
@@ -497,7 +557,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     {
       int frames = [[bm valueForProperty:NSImageFrameCount] intValue];
 
-      /* If index is invalid, give up. */
+      /* If index is invalid, give up.  */
       if (index < 0 || index > frames)
         return NO;
 
@@ -506,8 +566,39 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   /* Setting the frame has succeeded, or the image doesn't have
-     multiple frames. */
+     multiple frames.  */
   return YES;
 }
+
+- (void)setTransform: (double[3][3]) m
+{
+  transform = [[NSAffineTransform transform] retain];
+  NSAffineTransformStruct tm
+    = { m[0][0], m[0][1], m[1][0], m[1][1], m[2][0], m[2][1]};
+  [transform setTransformStruct:tm];
+}
+
+- (void)setSmoothing: (BOOL) s
+{
+  smoothing = s;
+}
+
+/* Approximate allocated size of image in bytes.  */
+- (size_t) sizeInBytes
+{
+  size_t bytes = 0;
+  NSImageRep *rep;
+  NSEnumerator *reps = [[self representations] objectEnumerator];
+  while ((rep = (NSImageRep *) [reps nextObject]))
+    {
+      if ([rep respondsToSelector: @selector (bytesPerRow)])
+        {
+          NSBitmapImageRep *bmr = (NSBitmapImageRep *) rep;
+          bytes += [bmr bytesPerRow] * [bmr numberOfPlanes] * [bmr pixelsHigh];
+        }
+    }
+  return bytes;
+}
+
 
 @end

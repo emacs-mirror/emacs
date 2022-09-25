@@ -1,8 +1,8 @@
-;;; semantic/db-ref.el --- Handle cross-db file references
+;;; semantic/db-ref.el --- Handle cross-db file references  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -67,7 +67,7 @@ will be added to the database that INCLUDE-TAG refers to."
       (object-add-to-list refdbt 'db-refs dbt)
       t)))
 
-(cl-defmethod semanticdb-check-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-check-references ((_dbt semanticdb-abstract-table))
   "Check and cleanup references in the database DBT.
 Abstract tables would be difficult to reference."
   ;; Not sure how an abstract table can have references.
@@ -80,7 +80,7 @@ Abstract tables would be difficult to reference."
 
 (cl-defmethod semanticdb-check-references ((dbt semanticdb-table))
   "Check and cleanup references in the database DBT.
-Any reference to a file that cannot be found, or whos file no longer
+Any reference to a file that cannot be found, or whose file no longer
 refers to DBT will be removed."
   (let ((refs (oref dbt db-refs))
 	(myexpr (concat "\\<" (oref dbt file)))
@@ -88,7 +88,7 @@ refers to DBT will be removed."
     (while refs
       (let* ((ok t)
 	     (db (car refs))
-	     (f (when (semanticdb-table-child-p db)
+	     (f (when (cl-typep db 'semanticdb-table)
 		  (semanticdb-full-filename db)))
 	     )
 
@@ -109,7 +109,7 @@ refers to DBT will be removed."
 	  ))
       (setq refs (cdr refs)))))
 
-(cl-defmethod semanticdb-refresh-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-refresh-references ((_dbt semanticdb-abstract-table))
   "Refresh references to DBT in other files."
   ;; alternate tables can't be edited, so can't be changed.
   nil
@@ -162,8 +162,7 @@ refreshed before dumping the result."
   (let* ((tab semanticdb-current-table)
 	 (myrefs (oref tab db-refs))
 	 (myinc (semanticdb-includes-in-table tab))
-	 (adbc (semanticdb-ref-adebug "DEBUG"
-				      :i-depend-on myrefs
+	 (adbc (semanticdb-ref-adebug :i-depend-on myrefs
 				      :local-table tab
 				      :i-include myinc)))
     (data-debug-new-buffer "*References ADEBUG*")

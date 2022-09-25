@@ -1,6 +1,6 @@
 ;;; ring.el --- handle rings of items   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: extensions
@@ -42,6 +42,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 ;;; User Functions:
 
 ;;;###autoload
@@ -50,6 +52,8 @@
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (cadr x))
        (vectorp (cddr x))))
+
+(cl-deftype ring () '(satisfies ring-p))
 
 ;;;###autoload
 (defun make-ring (size)
@@ -189,17 +193,28 @@ Raise error if ITEM is not in the RING."
 (defun ring-extend (ring x)
   "Increase the size of RING by X."
   (when (and (integerp x) (> x 0))
-    (let* ((hd       (car ring))
-	   (length   (ring-length ring))
-	   (size     (ring-size ring))
-	   (old-vec  (cddr ring))
-	   (new-vec  (make-vector (+ size x) nil)))
-      (setcdr ring (cons length new-vec))
-      ;; If the ring is wrapped, the existing elements must be written
-      ;; out in the right order.
-      (dotimes (j length)
-	(aset new-vec j (aref old-vec (mod (+ hd j) size))))
-      (setcar ring 0))))
+    (ring-resize ring (+ x (ring-size ring)))))
+
+(defun ring-resize (ring size)
+  "Set the size of RING to SIZE.
+If the new size is smaller, then the oldest items in the ring are
+discarded."
+  (when (integerp size)
+    (let ((length (ring-length ring))
+	  (new-vec (make-vector size nil)))
+      (if (= length 0)
+          (setcdr ring (cons 0 new-vec))
+        (let* ((hd (car ring))
+	       (old-size (ring-size ring))
+	       (old-vec (cddr ring))
+               (copy-length (min size length))
+               (copy-hd (mod (+ hd (- length copy-length)) length)))
+          (setcdr ring (cons copy-length new-vec))
+          ;; If the ring is wrapped, the existing elements must be written
+          ;; out in the right order.
+          (dotimes (j copy-length)
+	    (aset new-vec j (aref old-vec (mod (+ copy-hd j) old-size))))
+          (setcar ring 0))))))
 
 (defun ring-insert+extend (ring item &optional grow-p)
   "Like `ring-insert', but if GROW-P is non-nil, then enlarge ring.
@@ -236,8 +251,6 @@ If SEQ is already a ring, return it."
 		  (not (equal (ring-ref ring 0) (elt seq count))))
 	  (ring-insert-at-beginning ring (elt seq count))))
       ring)))
-
-;;; provide ourself:
 
 (provide 'ring)
 

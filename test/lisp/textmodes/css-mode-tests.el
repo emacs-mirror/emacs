@@ -1,24 +1,26 @@
 ;;; css-mode-tests.el --- Test suite for CSS mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -26,6 +28,7 @@
 
 (require 'css-mode)
 (require 'ert)
+(require 'ert-x)
 (require 'seq)
 
 (ert-deftest css-test-property-values ()
@@ -58,7 +61,7 @@
 
   ;; Check that the `color' property doesn't cause infinite recursion
   ;; because it refers to the value class of the same name.
-  (should (= (length (css--property-values "color")) 152)))
+  (should (= (length (css--property-values "color")) 154)))
 
 (ert-deftest css-test-property-value-cache ()
   "Test that `css--property-value-cache' is in use."
@@ -85,7 +88,7 @@
     (insert "body { top: 0; }")
     (goto-char 7)
     (should (equal (css-current-defun-name) "body"))
-    (goto-char 18)
+    (goto-char 15)
     (should (equal (css-current-defun-name) "body"))))
 
 (ert-deftest css-test-current-defun-name-nested ()
@@ -140,20 +143,20 @@
     (css-mode)
     (insert "body:a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "active" completions))
-      (should-not (member "disabled" completions))
+      (should (member ":active" completions))
+      (should-not (member ":disabled" completions))
       ;; Don't include pseudo-elements
-      (should-not (member "after" completions)))))
+      (should-not (member "::after" completions)))))
 
 (ert-deftest css-test-complete-pseudo-element ()
   (with-temp-buffer
     (css-mode)
     (insert "body::a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "after" completions))
-      (should-not (member "disabled" completions))
+      (should (member "::after" completions))
+      (should-not (member "::disabled" completions))
       ;; Don't include pseudo-classes
-      (should-not (member "active" completions)))))
+      (should-not (member ":active" completions)))))
 
 (ert-deftest css-test-complete-at-rule ()
   (with-temp-buffer
@@ -244,6 +247,99 @@
       (should (member "body" completions))
       (should-not (member "article" completions)))))
 
+(ert-deftest css-test-color-to-4-dpc ()
+  (should (equal (css--color-to-4-dpc "#ffffff")
+                 (css--color-to-4-dpc "#fff")))
+  (should (equal (css--color-to-4-dpc "#aabbcc")
+                 (css--color-to-4-dpc "#abc")))
+  (should (equal (css--color-to-4-dpc "#fab")
+                 "#ffffaaaabbbb"))
+  (should (equal (css--color-to-4-dpc "#fafbfc")
+                 "#fafafbfbfcfc")))
+
+(ert-deftest css-test-format-hex ()
+  (should (equal (css--format-hex "#fff") "#fff"))
+  (should (equal (css--format-hex "#ffffff") "#fff"))
+  (should (equal (css--format-hex "#aabbcc") "#abc"))
+  (should (equal (css--format-hex "#12ff34") "#12ff34"))
+  (should (equal (css--format-hex "#aabbccdd") "#abcd"))
+  (should (equal (css--format-hex "#aabbccde") "#aabbccde"))
+  (should (equal (css--format-hex "#abcdef") "#abcdef")))
+
+(ert-deftest css-test-named-color-to-hex ()
+  (dolist (item '(("black" "#000")
+                  ("white" "#fff")
+                  ("salmon" "#fa8072")))
+    (with-temp-buffer
+      (css-mode)
+      (insert (nth 0 item))
+      (css--named-color-to-hex)
+      (should (equal (buffer-string) (nth 1 item))))))
+
+(ert-deftest css-test-format-rgba-alpha ()
+  (should (equal (css--format-rgba-alpha 0) "0"))
+  (should (equal (css--format-rgba-alpha 0.0) "0"))
+  (should (equal (css--format-rgba-alpha 0.00001) "0"))
+  (should (equal (css--format-rgba-alpha 1) "1"))
+  (should (equal (css--format-rgba-alpha 1.0) "1"))
+  (should (equal (css--format-rgba-alpha 1.00001) "1"))
+  (should (equal (css--format-rgba-alpha 0.10000) "0.1"))
+  (should (equal (css--format-rgba-alpha 0.100001) "0.1"))
+  (should (equal (css--format-rgba-alpha 0.2524334) "0.25")))
+
+(ert-deftest css-test-hex-to-rgb ()
+  (dolist (item '(("#000" "rgb(0, 0, 0)")
+                  ("#000000" "rgb(0, 0, 0)")
+                  ("#fff" "rgb(255, 255, 255)")
+                  ("#ffffff" "rgb(255, 255, 255)")
+                  ("#ffffff80" "rgba(255, 255, 255, 0.5)")
+                  ("#fff0" "rgba(255, 255, 255, 0)")
+                  ("#fff8" "rgba(255, 255, 255, 0.53)")
+                  ("#ffff" "rgba(255, 255, 255, 1)")))
+    (with-temp-buffer
+      (css-mode)
+      (insert (nth 0 item))
+      (css--hex-to-rgb)
+      (should (equal (buffer-string) (nth 1 item))))))
+
+(ert-deftest css-test-rgb-to-named-color-or-hex ()
+  (dolist (item '(("rgb(0, 0, 0)" "black")
+                  ("rgb(255, 255, 255)" "white")
+                  ("rgb(255, 255, 240)" "ivory")
+                  ("rgb(18, 52, 86)" "#123456")
+                  ("rgba(18, 52, 86, 0.5)" "#12345680")
+                  ("rgba(18, 52, 86, 50%)" "#12345680")
+                  ("rgba(50%, 50%, 50%, 50%)" "#80808080")))
+    (with-temp-buffer
+      (css-mode)
+      (insert (nth 0 item))
+      (css--rgb-to-named-color-or-hex)
+      (should (equal (buffer-string) (nth 1 item))))))
+
+(ert-deftest css-test-cycle-color-format ()
+  (with-temp-buffer
+    (css-mode)
+    (insert "black")
+    (css-cycle-color-format)
+    (should (equal (buffer-string) "#000"))
+    (css-cycle-color-format)
+    (should (equal (buffer-string) "rgb(0, 0, 0)"))
+    (css-cycle-color-format)
+    (should (equal (buffer-string) "black"))))
+
+(ert-deftest css-test-join-nested-selectors ()
+  (should (equal (css--join-nested-selectors '("div" "&:hover"))
+                 "div:hover"))
+  (should
+   (equal (css--join-nested-selectors '("a" "&::before, &::after"))
+          "a::before, a::after"))
+  (should
+   (equal (css--join-nested-selectors
+           '("article" "& > .front-page" "& h1, & h2"))
+          "article > .front-page h1, article > .front-page h2"))
+  (should (equal (css--join-nested-selectors '(".link" "& + &"))
+                 ".link + .link")))
+
 (ert-deftest css-mdn-symbol-guessing ()
   (dolist (item '(("@med" "ia" "@media")
                   ("@keyframes " "{" "@keyframes")
@@ -263,11 +359,11 @@
 (ert-deftest css-test-rgb-parser ()
   (with-temp-buffer
     (css-mode)
-    (dolist (input '("255, 0, 127"
-                     "255, /* comment */ 0, 127"
-                     "255 0 127"
-                     "255, 0, 127, 0.75"
-                     "255 0 127 / 0.75"
+    (dolist (input '("255, 0, 128"
+                     "255, /* comment */ 0, 128"
+                     "255 0 128"
+                     "255, 0, 128, 0.75"
+                     "255 0 128 / 0.75"
                      "100%, 0%, 50%"
                      "100%, 0%, 50%, 0.115"
                      "100% 0% 50%"
@@ -275,7 +371,7 @@
       (erase-buffer)
       (save-excursion
         (insert input ")"))
-      (should (equal (css--rgb-color) "#ff007f")))))
+      (should (equal (css--rgb-color) "#ff0080")))))
 
 (ert-deftest css-test-hsl-parser ()
   (with-temp-buffer
@@ -295,6 +391,18 @@
         (insert input ")"))
       (should (equal (css--hsl-color) "#ff0000")))))
 
+(ert-deftest css-test-hex-color ()
+  (should (equal (css--hex-color "#abc") "#abc"))
+  (should (equal (css--hex-color "#abcd") "#abc"))
+  (should (equal (css--hex-color "#aabbcc") "#aabbcc"))
+  (should (equal (css--hex-color "#aabbccdd") "#aabbcc")))
+
+(ert-deftest css-test-hex-alpha ()
+  (should (equal (css--hex-alpha "#abcd") "d"))
+  (should-not (css--hex-alpha "#abc"))
+  (should (equal (css--hex-alpha "#aabbccdd") "dd"))
+  (should-not (css--hex-alpha "#aabbcc")))
+
 (ert-deftest css-test-named-color ()
   (dolist (text '("@mixin black" "@include black"))
     (with-temp-buffer
@@ -303,6 +411,82 @@
                                       (backward-word)
                                       (point))
                                     "black")))))
+
+(ert-deftest css-mode-test-indent ()
+  (with-current-buffer
+      (find-file-noselect (ert-resource-file "test-indent.css"))
+    (let ((orig (buffer-string)))
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
+(ert-deftest css-mode-test-selectors ()
+  (let ((selectors
+         (with-temp-buffer
+           (insert-file-contents (ert-resource-file "css-selectors.txt"))
+           (string-lines (buffer-string)))))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " {\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol)))))))
+      ;; Test many selectors.
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " ")
+          (dotimes (_ (random 5))
+            (insert (seq-random-elt '(" , " " > " " + "))
+                    (seq-random-elt selectors)))
+          (insert "{\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol)))))))
+      ;; Test wrong separators.
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (css-mode)
+          (insert selector " ")
+          (dotimes (_ (1+ (random 5)))
+            (insert (seq-random-elt '("=" " @ "))
+                    (seq-random-elt selectors)))
+          (insert "{\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (when (eq (get-text-property (point) 'face)
+                    'css-selector)
+            (should-not (format "Recognized %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol))))))))))
+
+(ert-deftest scss-mode-test-selectors ()
+  (let ((selectors
+         (with-temp-buffer
+           (insert-file-contents (ert-resource-file "scss-selectors.txt"))
+           (string-lines (buffer-string)))))
+    (with-suppressed-warnings ((interactive-only font-lock-debug-fontify))
+      (dolist (selector selectors)
+        (with-temp-buffer
+          (scss-mode)
+          (insert selector " {\n}\n")
+          (font-lock-debug-fontify)
+          (goto-char (point-min))
+          (unless (eq (get-text-property (point) 'face)
+                      'css-selector)
+            (should-not (format "Didn't recognize %s as a selector"
+                                (buffer-substring-no-properties
+                                 (point) (pos-eol))))))))))
+
 
 (provide 'css-mode-tests)
 ;;; css-mode-tests.el ends here

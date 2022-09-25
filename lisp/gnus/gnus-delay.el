@@ -1,6 +1,6 @@
-;;; gnus-delay.el --- Delayed posting of articles
+;;; gnus-delay.el --- Delayed posting of articles  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -44,24 +44,20 @@
 
 (defcustom gnus-delay-group "delayed"
   "Group name for storing delayed articles."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-header "X-Gnus-Delayed"
   "Header name for storing info about delayed articles."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-default-delay "3d"
   "Default length of delay."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-default-hour 8
   "If deadline is given as date, then assume this time of day."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-delay)
+  :type 'integer)
 
 ;;;###autoload
 (defun gnus-delay-article (delay)
@@ -75,14 +71,18 @@ DELAY is a string, giving the length of the time.  Possible values are:
   variable `gnus-delay-default-hour', minute and second are zero.
 
 * hh:mm for a specific time.  Use 24h format.  If it is later than this
-  time, then the deadline is tomorrow, else today."
-  (interactive
-   (list (read-string
-	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
-	  gnus-delay-default-delay)))
+  time, then the deadline is tomorrow, else today.
+
+The value of `message-draft-headers' determines which headers are
+generated when the article is delayed.  Remaining headers are
+generated when the article is sent."
+  (interactive (list (read-string
+		      "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
+		      gnus-delay-default-delay))
+	       message-mode)
   ;; Allow spell checking etc.
   (run-hooks 'message-send-hook)
-  (let (num unit days year month day hour minute deadline)
+  (let (num unit year month day hour minute deadline) ;; days
     (cond ((string-match
 	    "\\([0-9][0-9][0-9]?[0-9]?\\)-\\([0-9]+\\)-\\([0-9]+\\)"
 	    delay)
@@ -98,19 +98,15 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (setq hour   (string-to-number (match-string 1 delay))
 		 minute (string-to-number (match-string 2 delay)))
 	   ;; Use current time, except...
-	   (setq deadline (apply 'vector (decode-time)))
+	   (setq deadline (decode-time nil nil t))
 	   ;; ... for minute and hour.
-	   (aset deadline 1 minute)
-	   (aset deadline 2 hour)
-	   ;; Convert to seconds.
-	   (setq deadline (float-time (apply 'encode-time
-					     (append deadline nil))))
+	   (setq deadline (apply #'encode-time (car deadline) minute hour
+				 (nthcdr 3 deadline)))
 	   ;; If this time has passed already, add a day.
-	   (when (< deadline (float-time))
-	     (setq deadline (+ 86400 deadline))) ; 86400 secs/day
+	   (when (time-less-p deadline nil)
+	     (setq deadline (time-add 86400 deadline))) ; 86400 secs/day
 	   ;; Convert seconds to date header.
-	   (setq deadline (message-make-date
-			   (seconds-to-time deadline))))
+	   (setq deadline (message-make-date deadline)))
 	  ((string-match "\\([0-9]+\\)\\s-*\\([mhdwMY]\\)" delay)
 	   (setq num (match-string 1 delay))
 	   (setq unit (match-string 2 delay))
@@ -128,8 +124,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 		  (setq delay (* num 60 60)))
 		 (t
 		  (setq delay (* num 60))))
-	   (setq deadline (message-make-date
-			   (seconds-to-time (+ (float-time) delay)))))
+	   (setq deadline (message-make-date (time-add nil delay))))
 	  (t (error "Malformed delay `%s'" delay)))
     (message-add-header (format "%s: %s" gnus-delay-header deadline)))
   (set-buffer-modified-p t)
@@ -164,18 +159,15 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	       nil t)
 	      (progn
 		(setq deadline (nnheader-header-value))
-		(setq deadline (apply 'encode-time
-				      (parse-time-string deadline)))
-		(setq deadline (time-since deadline))
-		(when (and (>= (nth 0 deadline) 0)
-			   (>= (nth 1 deadline) 0))
+		(setq deadline (encode-time (parse-time-string deadline)))
+		(unless (time-less-p nil deadline)
 		  (message "Sending delayed article %d" article)
 		  (gnus-draft-send article group)
 		  (message "Sending delayed article %d...done" article)))
 	    (message "Delay header missing for article %d" article)))))))
 
 ;;;###autoload
-(defun gnus-delay-initialize (&optional no-keymap no-check)
+(defun gnus-delay-initialize (&optional _no-keymap no-check)
   "Initialize the gnus-delay package.
 This sets up a key binding in `message-mode' to delay a message.
 This tells Gnus to look for delayed messages after getting new news.
@@ -183,7 +175,7 @@ This tells Gnus to look for delayed messages after getting new news.
 The optional arg NO-KEYMAP is ignored.
 Checking delayed messages is skipped if optional arg NO-CHECK is non-nil."
   (unless no-check
-    (add-hook 'gnus-get-new-news-hook 'gnus-delay-send-queue)))
+    (add-hook 'gnus-get-new-news-hook #'gnus-delay-send-queue)))
 
 (provide 'gnus-delay)
 

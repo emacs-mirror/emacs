@@ -1,6 +1,6 @@
-;;; cc-cmds.el --- user level commands for CC Mode
+;;; cc-cmds.el --- user level commands for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -47,11 +47,14 @@
 ;; Silence the compiler.
 (cc-bytecomp-defvar filladapt-mode)	; c-fill-paragraph contains a kludge
 					; which looks at this.
+(cc-bytecomp-defun electric-pair-post-self-insert-function)
+(cc-bytecomp-defvar c-indent-to-body-directives)
+(cc-bytecomp-defun c-restore-string-fences)
+(cc-bytecomp-defun c-clear-string-fences)
+(defvar c-syntactic-context)
 
 ;; Indentation / Display syntax functions
 (defvar c-fix-backslashes t)
-
-(defvar c-syntactic-context)
 
 (defun c-indent-line (&optional syntax quiet ignore-point-pos)
   "Indent the current line according to the syntactic context,
@@ -60,10 +63,9 @@ syntactic information for the current line.  Be silent about syntactic
 errors if the optional argument QUIET is non-nil, even if
 `c-report-syntactic-errors' is non-nil.  Normally the position of
 point is used to decide where the old indentation is on a lines that
-is otherwise empty \(ignoring any line continuation backslash), but
+is otherwise empty (ignoring any line continuation backslash), but
 that's not done if IGNORE-POINT-POS is non-nil.  Returns the amount of
 indentation change \(in columns)."
-
   (let ((line-cont-backslash (save-excursion
 			       (end-of-line)
 			       (eq (char-before) ?\\)))
@@ -210,35 +212,36 @@ and takes care to set the indentation before calling
   "Show syntactic information for current line.
 With universal argument, inserts the analysis as a comment on that line."
   (interactive "P")
-  (let* ((c-parsing-error nil)
-	 (syntax (if (boundp 'c-syntactic-context)
-		     ;; Use `c-syntactic-context' in the same way as
-		     ;; `c-indent-line', to be consistent.
-		     c-syntactic-context
-		   (c-save-buffer-state nil
-		     (c-guess-basic-syntax)))))
-    (if (not (consp arg))
-	(let (elem pos ols)
-	  (message "Syntactic analysis: %s" syntax)
-	  (unwind-protect
-	      (progn
-		(while syntax
-		  (setq elem (pop syntax))
-		  (when (setq pos (c-langelem-pos elem))
-		    (push (c-put-overlay pos (1+ pos)
-					 'face 'highlight)
-			  ols))
-		  (when (setq pos (c-langelem-2nd-pos elem))
-		    (push (c-put-overlay pos (1+ pos)
-					 'face 'secondary-selection)
-			  ols)))
-		(sit-for 10))
-	    (while ols
-	      (c-delete-overlay (pop ols)))))
-      (indent-for-comment)
-      (insert-and-inherit (format "%s" syntax))
-      ))
-  (c-keep-region-active))
+  (c-with-string-fences
+   (let* ((c-parsing-error nil)
+	  (syntax (if (boundp 'c-syntactic-context)
+		      ;; Use `c-syntactic-context' in the same way as
+		      ;; `c-indent-line', to be consistent.
+		      c-syntactic-context
+		    (c-save-buffer-state nil
+		      (c-guess-basic-syntax)))))
+     (if (not (consp arg))
+	 (let (elem pos ols)
+	   (message "Syntactic analysis: %s" syntax)
+	   (unwind-protect
+	       (progn
+		 (while syntax
+		   (setq elem (pop syntax))
+		   (when (setq pos (c-langelem-pos elem))
+		     (push (c-put-overlay pos (1+ pos)
+					  'face 'highlight)
+			   ols))
+		   (when (setq pos (c-langelem-2nd-pos elem))
+		     (push (c-put-overlay pos (1+ pos)
+					  'face 'secondary-selection)
+			   ols)))
+		 (sit-for 10))
+	     (while ols
+	       (c-delete-overlay (pop ols)))))
+       (indent-for-comment)
+       (insert-and-inherit (format "%s" syntax))
+       ))
+   (c-keep-region-active)))
 
 (defun c-syntactic-information-on-region (from to)
   "Insert a comment with the syntactic analysis on every line in the region."
@@ -325,9 +328,6 @@ after special characters such as brace, comma, semi-colon, and colon."
   (c-update-modeline)
   (c-keep-region-active))
 
-(defalias 'c-toggle-auto-state 'c-toggle-auto-newline)
-(make-obsolete 'c-toggle-auto-state 'c-toggle-auto-newline "22.1")
-
 (defun c-toggle-hungry-state (&optional arg)
   "Toggle hungry-delete-key feature.
 Optional numeric ARG, if supplied, turns on hungry-delete when
@@ -390,6 +390,16 @@ This action does nothing when the mode only has one comment style."
 	(if c-block-comment-flag
 	    (concat " " c-block-comment-ender)
 	  ""))
+  ;; If necessary, invert the sense of fontification of wrong style comments.
+  (when (and c-mark-wrong-style-of-comment
+	     font-lock-mode
+	     c-block-comment-starter
+	     c-block-comment-ender)
+    (save-excursion
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(c-font-lock-flush (point-min) (point-max)))))
   (c-update-modeline)
   (c-keep-region-active))
 
@@ -404,23 +414,25 @@ argument is supplied, or `c-hungry-delete-key' is nil, or point is
 inside a literal then the function in the variable
 `c-backspace-function' is called."
   (interactive "*P")
-  (if (c-save-buffer-state ()
-	(or (not c-hungry-delete-key)
-	    arg
-	    (c-in-literal)))
-      (funcall c-backspace-function (prefix-numeric-value arg))
-    (c-hungry-delete-backwards)))
+  (c-with-string-fences
+   (if (c-save-buffer-state ()
+	 (or (not c-hungry-delete-key)
+	     arg
+	     (c-in-literal)))
+       (funcall c-backspace-function (prefix-numeric-value arg))
+     (c-hungry-delete-backwards))))
 
 (defun c-hungry-delete-backwards ()
   "Delete the preceding character or all preceding whitespace
 back to the previous non-whitespace character.
 See also \\[c-hungry-delete-forward]."
   (interactive)
-  (let ((here (point)))
-    (c-skip-ws-backward)
-    (if (/= (point) here)
-	(delete-region (point) here)
-      (funcall c-backspace-function 1))))
+  (c-with-string-fences
+   (let ((here (point)))
+     (c-skip-ws-backward)
+     (if (/= (point) here)
+	 (delete-region (point) here)
+       (funcall c-backspace-function 1)))))
 
 (defalias 'c-hungry-backspace 'c-hungry-delete-backwards)
 
@@ -432,23 +444,26 @@ argument is supplied, or `c-hungry-delete-key' is nil, or point is
 inside a literal then the function in the variable `c-delete-function'
 is called."
   (interactive "*P")
-  (if (c-save-buffer-state ()
-	(or (not c-hungry-delete-key)
-	    arg
-	    (c-in-literal)))
-      (funcall c-delete-function (prefix-numeric-value arg))
-    (c-hungry-delete-forward)))
+  (c-with-string-fences
+   (if
+       (c-save-buffer-state ()
+	 (or (not c-hungry-delete-key)
+	     arg
+	     (c-in-literal)))
+       (funcall c-delete-function (prefix-numeric-value arg))
+     (c-hungry-delete-forward))))
 
 (defun c-hungry-delete-forward ()
   "Delete the following character or all following whitespace
 up to the next non-whitespace character.
 See also \\[c-hungry-delete-backwards]."
   (interactive)
-  (let ((here (point)))
-    (c-skip-ws-forward)
-    (if (/= (point) here)
-	(delete-region (point) here)
-      (funcall c-delete-function 1))))
+  (c-with-string-fences
+   (let ((here (point)))
+     (c-skip-ws-forward)
+     (if (/= (point) here)
+	 (delete-region (point) here)
+       (funcall c-delete-function 1)))))
 
 ;; This function is only used in XEmacs.
 (defun c-electric-delete (arg)
@@ -469,7 +484,7 @@ function to control that."
 
 ;; This function is only used in XEmacs.
 (defun c-hungry-delete ()
-  "Delete a non-whitespace char, or all whitespace up to the next non-whitespace char.
+  "Delete non-whitespace char, or all whitespace up to next non-whitespace char.
 The direction of deletion depends on the configuration: If the
 function `delete-forward-p' is defined and returns non-nil, it deletes
 forward using `c-hungry-delete-forward'.  Otherwise it deletes
@@ -484,35 +499,68 @@ function to control that."
       (c-hungry-delete-forward)
     (c-hungry-delete-backwards)))
 
+(defvar c--unsafe-post-self-insert-hook-functions
+  '(electric-pair-post-self-insert-function)
+    "Known unsafe functions when members of `post-self-insert-hook' in CC Mode.")
+
+(defun c--call-post-self-insert-hook-more-safely-1 ()
+  ;; Call post-self-insert-hook, having removed from `post-self-insert-hook'
+  ;; functions known not to be safe to CC Mode.  The result is of no
+  ;; significance.  Note that the hook call is NOT absolutely safe.
+  (let ((src post-self-insert-hook)
+	dest)
+    (while src
+      (cond
+       ((memq (car src) c--unsafe-post-self-insert-hook-functions))
+       ((eq (car src) t)
+	(let ((src (default-value 'post-self-insert-hook)))
+	  (while src
+	    (unless (memq (car src) c--unsafe-post-self-insert-hook-functions)
+	      (push (car src) dest))
+	    (setq src (cdr src)))))
+       (t (push (car src) dest)))
+      (setq src (cdr src)))
+    (mapc #'funcall (nreverse dest)))) ; Preserve the order of the functions.
+
+(defmacro c--call-post-self-insert-hook-more-safely ()
+  ;; Call post-self-insert-hook, if such exists.  See comment for
+  ;; `c--call-post-self-insert-hook-more-safely-1'.  This macro should be
+  ;; invoked OUTSIDE of `c-with-string-fences'.
+  (if (boundp 'post-self-insert-hook)
+      '(c--call-post-self-insert-hook-more-safely-1)
+    '(progn)))
+
 (defun c-electric-pound (arg)
   "Insert a \"#\".
 If `c-electric-flag' is set, handle it specially according to the variable
 `c-electric-pound-behavior'.  If a numeric ARG is supplied, or if point is
 inside a literal or a macro, nothing special happens."
   (interactive "*P")
-  (if (c-save-buffer-state ()
-	(or arg
-	    (not c-electric-flag)
-	    (not (memq 'alignleft c-electric-pound-behavior))
-	    (save-excursion
-	      (skip-chars-backward " \t")
-	      (not (bolp)))
-	    (save-excursion
-	      (and (= (forward-line -1) 0)
-		   (progn (end-of-line)
-			  (eq (char-before) ?\\))))
-	    (c-in-literal)))
-      ;; do nothing special
-      (self-insert-command (prefix-numeric-value arg))
-    ;; place the pound character at the left edge
-    (let ((pos (- (point-max) (point)))
-	  (bolp (bolp)))
-      (beginning-of-line)
-      (delete-horizontal-space)
-      (insert (c-last-command-char))
-      (and (not bolp)
-	   (goto-char (- (point-max) pos)))
-      )))
+  (c-with-string-fences
+   (if (c-save-buffer-state ()
+	 (or arg
+	     (not c-electric-flag)
+	     (not (memq 'alignleft c-electric-pound-behavior))
+	     (save-excursion
+	       (skip-chars-backward " \t")
+	       (not (bolp)))
+	     (save-excursion
+	       (and (= (forward-line -1) 0)
+		    (progn (end-of-line)
+			   (eq (char-before) ?\\))))
+	     (c-in-literal)))
+       ;; do nothing special
+       (let (post-self-insert-hook)	; Disable random functionality.
+	 (self-insert-command (prefix-numeric-value arg)))
+     ;; place the pound character at the left edge
+     (let ((pos (- (point-max) (point)))
+	   (bolp (bolp)))
+       (beginning-of-line)
+       (delete-horizontal-space)
+       (insert (c-last-command-char))
+       (and (not bolp)
+	    (goto-char (- (point-max) pos))))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-point-syntax ()
   ;; Return the syntactic context of the construct at point.  (This is NOT
@@ -694,6 +742,134 @@ inside a literal or a macro, nothing special happens."
 			    t))))
 	  (goto-char (- (point-max) pos))))))
 
+(defun c-do-brace-electrics (before after)
+  ;; Point is just after a brace.  Indent the various lines, add any required
+  ;; auto newlines, and apply pertinent clean ups.  It is assumed that the
+  ;; caller has checked that point is at EOL if need be, and that the brace is
+  ;; not in a comment or string, and suchlike.
+  ;;
+  ;; BEFORE and AFTER qualify the newlines required before and after the
+  ;; brace as follows:
+  ;; If
+  ;;  o - nil: insert a newline or not according to `c-hanging-braces-alist'.
+  ;;  o - 'ignore: don't insert a newline.
+  ;;  o - 'assume: insert a newline.
+  ;;
+  ;; The return value has no significance.
+  (let (;; shut this up too
+	(c-echo-syntactic-information-p nil)
+	newlines
+	ln-syntax br-syntax syntax)  ; Syntactic context of the original line,
+					; of the brace itself, of the line the
+					; brace ends up on.
+    (c-save-buffer-state ((c-syntactic-indentation-in-macros t)
+			  (c-auto-newline-analysis t))
+      (setq ln-syntax (c-guess-basic-syntax)))
+    (if c-syntactic-indentation
+	(c-indent-line ln-syntax))
+
+    (when c-auto-newline
+      (backward-char)
+      (setq br-syntax (c-point-syntax)
+	    newlines (c-brace-newlines br-syntax))
+
+      ;; Insert the BEFORE newline, if wanted, and reindent the newline.
+      (if (or (and (null before) (memq 'before newlines)
+		   (> (current-column) (current-indentation)))
+	      (eq before 'assume))
+	  (if c-syntactic-indentation
+	      ;; Only a plain newline for now - it's indented
+	      ;; after the cleanups when the line has its final
+	      ;; appearance.
+	      (newline)
+	    (c-newline-and-indent)))
+      (forward-char)
+
+      ;; `syntax' is the syntactic context of the line which ends up
+      ;; with the brace on it.
+      (setq syntax (if (memq 'before newlines) br-syntax ln-syntax))
+
+      ;; Do all appropriate clean ups
+      (let ((here (point))
+	    (pos (- (point-max) (point)))
+	    mbeg mend
+	    )
+
+	;; `}': clean up empty defun braces
+	(when (c-save-buffer-state ()
+		(and (memq 'empty-defun-braces c-cleanup-list)
+		     (eq (c-last-command-char) ?\})
+		     (c-intersect-lists '(defun-close class-close inline-close)
+					syntax)
+		     (progn
+		       (forward-char -1)
+		       (c-skip-ws-backward)
+		       (eq (char-before) ?\{))
+		     ;; make sure matching open brace isn't in a comment
+		     (not (c-in-literal))))
+	  (delete-region (point) (1- here))
+	  (setq here (- (point-max) pos)))
+	(goto-char here)
+
+	;; `}': compact to a one-liner defun?
+	(save-match-data
+	  (when
+	      (and (eq (c-last-command-char) ?\})
+		   (memq 'one-liner-defun c-cleanup-list)
+		   (c-intersect-lists '(defun-close) syntax)
+		   (c-try-one-liner))
+	    (setq here (- (point-max) pos))))
+
+	;; `{': clean up brace-else-brace and brace-elseif-brace
+	(when (eq (c-last-command-char) ?\{)
+	  (cond
+	   ((and (memq 'brace-else-brace c-cleanup-list)
+		 (re-search-backward
+		  (concat "}"
+			  "\\([ \t\n]\\|\\\\\n\\)*"
+			  "else"
+			  "\\([ \t\n]\\|\\\\\n\\)*"
+			  "{"
+			  "\\=")
+		  nil t))
+	    (delete-region (match-beginning 0) (match-end 0))
+	    (insert-and-inherit "} else {"))
+	   ((and (memq 'brace-elseif-brace c-cleanup-list)
+		 (progn
+		   (goto-char (1- here))
+		   (setq mend (point))
+		   (c-skip-ws-backward)
+		   (setq mbeg (point))
+		   (eq (char-before) ?\)))
+		 (zerop (c-save-buffer-state nil (c-backward-token-2 1 t)))
+		 (eq (char-after) ?\()
+		 (re-search-backward
+		  (concat "}"
+			  "\\([ \t\n]\\|\\\\\n\\)*"
+			  "else"
+			  "\\([ \t\n]\\|\\\\\n\\)+"
+			  "if"
+			  "\\([ \t\n]\\|\\\\\n\\)*"
+			  "\\=")
+		  nil t))
+	    (delete-region mbeg mend)
+	    (goto-char mbeg)
+	    (insert ?\ ))))
+
+	(goto-char (- (point-max) pos))
+
+	;; Indent the line after the cleanups since it might
+	;; very well indent differently due to them, e.g. if
+	;; c-indent-one-line-block is used together with the
+	;; one-liner-defun cleanup.
+	(when c-syntactic-indentation
+	  (c-indent-line)))
+
+      ;; does a newline go after the brace?
+      (if (or (and (null after) (memq 'after newlines))
+	      (eq after 'assume))
+	  (c-newline-and-indent)))))
+
 (defun c-electric-brace (arg)
   "Insert a brace.
 
@@ -713,148 +889,61 @@ settings of `c-cleanup-list' are done."
 
   (interactive "*P")
   (let (safepos literal
-	;; We want to inhibit blinking the paren since this would be
-	;; most disruptive.  We'll blink it ourselves later on.
-	(old-blink-paren blink-paren-function)
-	blink-paren-function case-fold-search)
+		;; We want to inhibit blinking the paren since this would be
+		;; most disruptive.  We'll blink it ourselves later on.
+		(old-blink-paren blink-paren-function)
+		blink-paren-function case-fold-search
+		(at-eol (looking-at "[ \t]*\\\\?$"))
+		(active-region (and (fboundp 'use-region-p) (use-region-p)))
+		got-pair-} electric-pair-deletion)
 
-    (c-save-buffer-state ()
-      (setq safepos (c-safe-position (point) (c-parse-state))
-	    literal (c-in-literal safepos)))
+    (c-with-string-fences
+     (c-save-buffer-state ()
+       (setq safepos (c-safe-position (point) (c-parse-state))
+	     literal (c-in-literal safepos)))
 
-    ;; Insert the brace.  Note that expand-abbrev might reindent
-    ;; the line here if there's a preceding "else" or something.
-    (self-insert-command (prefix-numeric-value arg))
+     ;; Insert the brace.  Note that expand-abbrev might reindent
+     ;; the line here if there's a preceding "else" or something.
+     (let (post-self-insert-hook)  ; the only way to get defined functionality
+					; from `self-insert-command'.
+       (self-insert-command (prefix-numeric-value arg))))
 
-    (when (and c-electric-flag (not literal) (not arg))
-      (if (not (looking-at "[ \t]*\\\\?$"))
-	  (if c-syntactic-indentation
-	      (indent-according-to-mode))
+    ;; Emulate `electric-pair-mode', outside of `c-with-string-fences'.
+    (when (and (boundp 'electric-pair-mode)
+	       electric-pair-mode)
+      (let ((size (buffer-size))
+	    post-self-insert-hook)
+	(electric-pair-post-self-insert-function)
+	(setq got-pair-} (and at-eol
+			      (eq (c-last-command-char) ?{)
+			      (eq (char-after) ?}))
+	      electric-pair-deletion (< (buffer-size) size))))
 
-	(let ( ;; shut this up too
-	      (c-echo-syntactic-information-p nil)
-	      newlines
-	      ln-syntax br-syntax syntax) ; Syntactic context of the original line,
-			; of the brace itself, of the line the brace ends up on.
-	  (c-save-buffer-state ((c-syntactic-indentation-in-macros t)
-				(c-auto-newline-analysis t))
-	    (setq ln-syntax (c-guess-basic-syntax)))
-	  (if c-syntactic-indentation
-	      (c-indent-line ln-syntax))
+    (c-with-string-fences
+     ;; Perform any required CC Mode electric actions.
+     (cond
+      ((or literal arg (not c-electric-flag) active-region))
+      ((not at-eol)
+       (c-indent-line))
+      (electric-pair-deletion
+       (c-indent-line)
+       (c-do-brace-electrics 'ignore nil))
+      (t (c-do-brace-electrics nil nil)
+	 (when got-pair-}
+	   (save-excursion
+	     (forward-char)
+	     (c-do-brace-electrics 'assume 'ignore))
+	   (c-indent-line))))
 
-	  (when c-auto-newline
-	    (backward-char)
-	    (setq br-syntax (c-point-syntax)
-		  newlines (c-brace-newlines br-syntax))
-
-	    ;; Insert the BEFORE newline, if wanted, and reindent the newline.
-	    (if (and (memq 'before newlines)
-		     (> (current-column) (current-indentation)))
-		(if c-syntactic-indentation
-		    ;; Only a plain newline for now - it's indented
-		    ;; after the cleanups when the line has its final
-		    ;; appearance.
-		    (newline)
-		  (c-newline-and-indent)))
-	    (forward-char)
-
-	    ;; `syntax' is the syntactic context of the line which ends up
-	    ;; with the brace on it.
-	    (setq syntax (if (memq 'before newlines) br-syntax ln-syntax))
-
-	    ;; Do all appropriate clean ups
-	    (let ((here (point))
-		  (pos (- (point-max) (point)))
-		  mbeg mend
-		  )
-
-	      ;; `}': clean up empty defun braces
-	      (when (c-save-buffer-state ()
-		      (and (memq 'empty-defun-braces c-cleanup-list)
-			   (eq (c-last-command-char) ?\})
-			   (c-intersect-lists '(defun-close class-close inline-close)
-					      syntax)
-			   (progn
-			     (forward-char -1)
-			     (c-skip-ws-backward)
-			     (eq (char-before) ?\{))
-			   ;; make sure matching open brace isn't in a comment
-			   (not (c-in-literal))))
-		(delete-region (point) (1- here))
-		(setq here (- (point-max) pos)))
-	      (goto-char here)
-
-	      ;; `}': compact to a one-liner defun?
-	      (save-match-data
-		(when
-		    (and (eq (c-last-command-char) ?\})
-			 (memq 'one-liner-defun c-cleanup-list)
-			 (c-intersect-lists '(defun-close) syntax)
-			 (c-try-one-liner))
-		  (setq here (- (point-max) pos))))
-
-	      ;; `{': clean up brace-else-brace and brace-elseif-brace
-	      (when (eq (c-last-command-char) ?\{)
-		(cond
-		 ((and (memq 'brace-else-brace c-cleanup-list)
-		       (re-search-backward
-			(concat "}"
-				"\\([ \t\n]\\|\\\\\n\\)*"
-				"else"
-				"\\([ \t\n]\\|\\\\\n\\)*"
-				"{"
-				"\\=")
-			nil t))
-		  (delete-region (match-beginning 0) (match-end 0))
-		  (insert-and-inherit "} else {"))
-		 ((and (memq 'brace-elseif-brace c-cleanup-list)
-		       (progn
-			 (goto-char (1- here))
-			 (setq mend (point))
-			 (c-skip-ws-backward)
-			 (setq mbeg (point))
-			 (eq (char-before) ?\)))
-		       (zerop (c-save-buffer-state nil (c-backward-token-2 1 t)))
-		       (eq (char-after) ?\()
-		      ; (progn
-			; (setq tmp (point))
-			 (re-search-backward
-			  (concat "}"
-				  "\\([ \t\n]\\|\\\\\n\\)*"
-				  "else"
-				  "\\([ \t\n]\\|\\\\\n\\)+"
-				  "if"
-				  "\\([ \t\n]\\|\\\\\n\\)*"
-				  "\\=")
-			  nil t);)
-		       ;(eq (match-end 0) tmp);
-			 )
-		  (delete-region mbeg mend)
-		  (goto-char mbeg)
-		  (insert ?\ ))))
-
-	      (goto-char (- (point-max) pos))
-
-	      ;; Indent the line after the cleanups since it might
-	      ;; very well indent differently due to them, e.g. if
-	      ;; c-indent-one-line-block is used together with the
-	      ;; one-liner-defun cleanup.
-	      (when c-syntactic-indentation
-		(c-indent-line)))
-
-	    ;; does a newline go after the brace?
-	    (if (memq 'after newlines)
-		(c-newline-and-indent))
-	    ))))
-
-    ;; blink the paren
-    (and (eq (c-last-command-char) ?\})
-	 (not executing-kbd-macro)
-	 old-blink-paren
-	 (save-excursion
-	   (c-save-buffer-state nil
-	     (c-backward-syntactic-ws safepos))
-	   (funcall old-blink-paren)))))
+     ;; blink the paren
+     (and (eq (c-last-command-char) ?\})
+	  (not executing-kbd-macro)
+	  old-blink-paren
+	  (save-excursion
+	    (c-save-buffer-state nil
+	      (c-backward-syntactic-ws safepos))
+	    (funcall old-blink-paren)))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-slash (arg)
   "Insert a slash character.
@@ -875,37 +964,40 @@ If a numeric ARG is supplied, point is inside a literal, or
 `c-syntactic-indentation' is nil or `c-electric-flag' is nil, indentation
 is inhibited."
   (interactive "*P")
-  (let ((literal (c-save-buffer-state () (c-in-literal)))
-	indentp
-	;; shut this up
-	(c-echo-syntactic-information-p nil))
+  (c-with-string-fences
+   (let ((literal (c-save-buffer-state () (c-in-literal)))
+	 indentp
+	 ;; shut this up
+	 (c-echo-syntactic-information-p nil))
 
-    ;; comment-close-slash cleanup?  This DOESN'T need `c-electric-flag' or
-    ;; `c-syntactic-indentation' set.
-    (when (and (not arg)
-	       (eq literal 'c)
-	       (memq 'comment-close-slash c-cleanup-list)
-	       (eq (c-last-command-char) ?/)
-	       (looking-at (concat "[ \t]*\\("
-				   (regexp-quote comment-end) "\\)?$"))
-	; (eq c-block-comment-ender "*/") ; C-style comments ALWAYS end in */
-	       (save-excursion
-		 (save-restriction
-		   (narrow-to-region (point-min) (point))
-		   (back-to-indentation)
-		   (looking-at (concat c-current-comment-prefix "[ \t]*$")))))
-      (delete-region (progn (forward-line 0) (point))
-		     (progn (end-of-line) (point)))
-      (insert-char ?* 1)) ; the / comes later. ; Do I need a t (retain sticky properties) here?
+     ;; comment-close-slash cleanup?  This DOESN'T need `c-electric-flag' or
+     ;; `c-syntactic-indentation' set.
+     (when (and (not arg)
+		(eq literal 'c)
+		(memq 'comment-close-slash c-cleanup-list)
+		(eq (c-last-command-char) ?/)
+		(looking-at (concat "[ \t]*\\("
+				    (regexp-quote comment-end) "\\)?$"))
+					; (eq c-block-comment-ender "*/") ; C-style comments ALWAYS end in */
+		(save-excursion
+		  (save-restriction
+		    (narrow-to-region (point-min) (point))
+		    (back-to-indentation)
+		    (looking-at (concat c-current-comment-prefix "[ \t]*$")))))
+       (delete-region (progn (forward-line 0) (point))
+		      (progn (end-of-line) (point)))
+       (insert-char ?* 1)) ; the / comes later. ; Do I need a t (retain sticky properties) here?
 
-    (setq indentp (and (not arg)
-		       c-syntactic-indentation
-		       c-electric-flag
-		       (eq (c-last-command-char) ?/)
-		       (eq (char-before) (if literal ?* ?/))))
-    (self-insert-command (prefix-numeric-value arg))
-    (if indentp
-	(indent-according-to-mode))))
+     (setq indentp (and (not arg)
+			c-syntactic-indentation
+			c-electric-flag
+			(eq (c-last-command-char) ?/)
+			(eq (char-before) (if literal ?* ?/))))
+     (let (post-self-insert-hook)	; Disable random functionality.
+       (self-insert-command (prefix-numeric-value arg)))
+     (if indentp
+	 (indent-according-to-mode))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-star (arg)
   "Insert a star character.
@@ -916,25 +1008,27 @@ supplied, point is inside a literal, or `c-syntactic-indentation' is nil,
 this indentation is inhibited."
 
   (interactive "*P")
-  (self-insert-command (prefix-numeric-value arg))
-  ;; if we are in a literal, or if arg is given do not reindent the
-  ;; current line, unless this star introduces a comment-only line.
-  (if (c-save-buffer-state ()
-	(and c-syntactic-indentation
-	     c-electric-flag
-	     (not arg)
-	     (eq (c-in-literal) 'c)
-	     (eq (char-before) ?*)
-	     (save-excursion
-	       (forward-char -1)
-	       (skip-chars-backward "*")
-	       (if (eq (char-before) ?/)
-		   (forward-char -1))
-	       (skip-chars-backward " \t")
-	       (bolp))))
-      (let (c-echo-syntactic-information-p) ; shut this up
-	(indent-according-to-mode))
-    ))
+  (c-with-string-fences
+   (let (post-self-insert-hook)		; Disable random functionality.
+     (self-insert-command (prefix-numeric-value arg)))
+   ;; if we are in a literal, or if arg is given do not reindent the
+   ;; current line, unless this star introduces a comment-only line.
+   (if (c-save-buffer-state ()
+	 (and c-syntactic-indentation
+	      c-electric-flag
+	      (not arg)
+	      (eq (c-in-literal) 'c)
+	      (eq (char-before) ?*)
+	      (save-excursion
+		(forward-char -1)
+		(skip-chars-backward "*")
+		(if (eq (char-before) ?/)
+		    (forward-char -1))
+		(skip-chars-backward " \t")
+		(bolp))))
+       (let (c-echo-syntactic-information-p) ; shut this up
+	 (indent-according-to-mode))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-semi&comma (arg)
   "Insert a comma or semicolon.
@@ -954,59 +1048,61 @@ reindented unless `c-syntactic-indentation' is nil.
 semicolon following a defun might be cleaned up, depending on the
 settings of `c-cleanup-list'."
   (interactive "*P")
-  (let* (lim literal c-syntactic-context
-	 (here (point))
-	 ;; shut this up
-	 (c-echo-syntactic-information-p nil))
+  (c-with-string-fences
+   (let* (lim literal c-syntactic-context
+	      (here (point))
+	      ;; shut this up
+	      (c-echo-syntactic-information-p nil))
 
-    (c-save-buffer-state ()
-      (setq lim (c-most-enclosing-brace (c-parse-state))
-	    literal (c-in-literal lim)))
+     (c-save-buffer-state ()
+       (setq lim (c-most-enclosing-brace (c-parse-state))
+	     literal (c-in-literal lim)))
 
-    (self-insert-command (prefix-numeric-value arg))
+     (let (post-self-insert-hook)	; Disable random functionality.
+       (self-insert-command (prefix-numeric-value arg)))
 
-    (if (and c-electric-flag (not literal) (not arg))
-	;; do all cleanups and newline insertions if c-auto-newline is on.
-	(if (or (not c-auto-newline)
-		(not (looking-at "[ \t]*\\\\?$")))
-	    (if c-syntactic-indentation
-		(c-indent-line))
-	  ;; clean ups: list-close-comma or defun-close-semi
-	  (let ((pos (- (point-max) (point))))
-	    (if (c-save-buffer-state ()
-		  (and (or (and
-			    (eq (c-last-command-char) ?,)
-			    (memq 'list-close-comma c-cleanup-list))
-			   (and
-			    (eq (c-last-command-char) ?\;)
-			    (memq 'defun-close-semi c-cleanup-list)))
-		       (progn
-			 (forward-char -1)
-			 (c-skip-ws-backward)
-			 (eq (char-before) ?}))
-		       ;; make sure matching open brace isn't in a comment
-		       (not (c-in-literal lim))))
-		(delete-region (point) here))
-	    (goto-char (- (point-max) pos)))
-	  ;; reindent line
-	  (when c-syntactic-indentation
-	    (setq c-syntactic-context (c-guess-basic-syntax))
-	    (c-indent-line c-syntactic-context))
-	  ;; check to see if a newline should be added
-	  (let ((criteria c-hanging-semi&comma-criteria)
-		answer add-newline-p)
-	    (while criteria
-	      (setq answer (funcall (car criteria)))
-	      ;; only nil value means continue checking
-	      (if (not answer)
-		  (setq criteria (cdr criteria))
-		(setq criteria nil)
-		;; only 'stop specifically says do not add a newline
-		(setq add-newline-p (not (eq answer 'stop)))
-		))
-	    (if add-newline-p
-		(c-newline-and-indent))
-	    )))))
+     (if (and c-electric-flag (not literal) (not arg))
+	 ;; do all cleanups and newline insertions if c-auto-newline is on.
+	 (if (or (not c-auto-newline)
+		 (not (looking-at "[ \t]*\\\\?$")))
+	     (if c-syntactic-indentation
+		 (c-indent-line))
+	   ;; clean ups: list-close-comma or defun-close-semi
+	   (let ((pos (- (point-max) (point))))
+	     (if (c-save-buffer-state ()
+		   (and (or (and
+			     (eq (c-last-command-char) ?,)
+			     (memq 'list-close-comma c-cleanup-list))
+			    (and
+			     (eq (c-last-command-char) ?\;)
+			     (memq 'defun-close-semi c-cleanup-list)))
+			(progn
+			  (forward-char -1)
+			  (c-skip-ws-backward)
+			  (eq (char-before) ?}))
+			;; make sure matching open brace isn't in a comment
+			(not (c-in-literal lim))))
+		 (delete-region (point) here))
+	     (goto-char (- (point-max) pos)))
+	   ;; reindent line
+	   (when c-syntactic-indentation
+	     (setq c-syntactic-context (c-guess-basic-syntax))
+	     (c-indent-line c-syntactic-context))
+	   ;; check to see if a newline should be added
+	   (let ((criteria c-hanging-semi&comma-criteria)
+		 answer add-newline-p)
+	     (while criteria
+	       (setq answer (funcall (car criteria)))
+	       ;; only nil value means continue checking
+	       (if (not answer)
+		   (setq criteria (cdr criteria))
+		 (setq criteria nil)
+		 ;; only 'stop specifically says do not add a newline
+		 (setq add-newline-p (not (eq answer 'stop)))
+		 ))
+	     (if add-newline-p
+		 (c-newline-and-indent)))))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-colon (arg)
   "Insert a colon.
@@ -1027,88 +1123,90 @@ reindented unless `c-syntactic-indentation' is nil.
 `c-cleanup-list'."
 
   (interactive "*P")
-  (let* ((bod (c-point 'bod))
-	 (literal (c-save-buffer-state () (c-in-literal bod)))
-	 newlines is-scope-op
-	 ;; shut this up
-	 (c-echo-syntactic-information-p nil))
-    (self-insert-command (prefix-numeric-value arg))
-    ;; Any electric action?
-    (if (and c-electric-flag (not literal) (not arg))
-	;; Unless we're at EOL, only re-indentation happens.
-	(if (not (looking-at "[ \t]*\\\\?$"))
-	    (if c-syntactic-indentation
-		(indent-according-to-mode))
+  (c-with-string-fences
+   (let* ((bod (c-point 'bod))
+	  (literal (c-save-buffer-state () (c-in-literal bod)))
+	  newlines is-scope-op
+	  ;; shut this up
+	  (c-echo-syntactic-information-p nil))
+     (let (post-self-insert-hook)	; Disable random functionality.
+       (self-insert-command (prefix-numeric-value arg)))
+     ;; Any electric action?
+     (if (and c-electric-flag (not literal) (not arg))
+	 ;; Unless we're at EOL, only re-indentation happens.
+	 (if (not (looking-at "[ \t]*\\\\?$"))
+	     (if c-syntactic-indentation
+		 (indent-according-to-mode))
 
-	  ;; scope-operator clean-up?
-	  (let ((pos (- (point-max) (point)))
-		(here (point)))
-	    (if (c-save-buffer-state ()	; Why do we need this? [ACM, 2003-03-12]
-		  (and c-auto-newline
-		       (memq 'scope-operator c-cleanup-list)
-		       (eq (char-before) ?:)
-		       (progn
-			 (forward-char -1)
-			 (c-skip-ws-backward)
-			 (eq (char-before) ?:))
-		       (not (c-in-literal))
-		       (not (eq (char-after (- (point) 2)) ?:))))
-		(progn
-		  (delete-region (point) (1- here))
-		  (setq is-scope-op t)))
-	    (goto-char (- (point-max) pos)))
+	   ;; scope-operator clean-up?
+	   (let ((pos (- (point-max) (point)))
+		 (here (point)))
+	     (if (c-save-buffer-state () ; Why do we need this? [ACM, 2003-03-12]
+		   (and c-auto-newline
+			(memq 'scope-operator c-cleanup-list)
+			(eq (char-before) ?:)
+			(progn
+			  (forward-char -1)
+			  (c-skip-ws-backward)
+			  (eq (char-before) ?:))
+			(not (c-in-literal))
+			(not (eq (char-after (- (point) 2)) ?:))))
+		 (progn
+		   (delete-region (point) (1- here))
+		   (setq is-scope-op t)))
+	     (goto-char (- (point-max) pos)))
 
-	  ;; indent the current line if it's done syntactically.
-	  (if c-syntactic-indentation
-	      ;; Cannot use the same syntax analysis as we find below,
-	      ;; since that's made with c-syntactic-indentation-in-macros
-	      ;; always set to t.
-	      (indent-according-to-mode))
+	   ;; indent the current line if it's done syntactically.
+	   (if c-syntactic-indentation
+	       ;; Cannot use the same syntax analysis as we find below,
+	       ;; since that's made with c-syntactic-indentation-in-macros
+	       ;; always set to t.
+	       (indent-according-to-mode))
 
-	  ;; Calculate where, if anywhere, we want newlines.
-	  (c-save-buffer-state
-	      ((c-syntactic-indentation-in-macros t)
-	       (c-auto-newline-analysis t)
-	       ;; Turn on syntactic macro analysis to help with auto newlines
-	       ;; only.
-	       (syntax (c-guess-basic-syntax))
-	       (elem syntax))
-	    ;; Translate substatement-label to label for this operation.
-	    (while elem
-	      (if (eq (car (car elem)) 'substatement-label)
-		  (setcar (car elem) 'label))
-	      (setq elem (cdr elem)))
-	    ;; some language elements can only be determined by checking
-	    ;; the following line.  Let's first look for ones that can be
-	    ;; found when looking on the line with the colon
-	    (setq newlines
-		  (and c-auto-newline
-		       (or (c-lookup-lists '(case-label label access-label)
-					   syntax c-hanging-colons-alist)
-			   (c-lookup-lists '(member-init-intro inher-intro)
-					   (progn
-					     (insert ?\n)
-					     (unwind-protect
-						 (c-guess-basic-syntax)
-					       (delete-char -1)))
-					   c-hanging-colons-alist)))))
-	  ;; does a newline go before the colon?  Watch out for already
-	  ;; non-hung colons.  However, we don't unhang them because that
-	  ;; would be a cleanup (and anti-social).
-	  (if (and (memq 'before newlines)
-		   (not is-scope-op)
-		   (save-excursion
-		     (skip-chars-backward ": \t")
-		     (not (bolp))))
-	      (let ((pos (- (point-max) (point))))
-		(forward-char -1)
-		(c-newline-and-indent)
-		(goto-char (- (point-max) pos))))
-	  ;; does a newline go after the colon?
-	  (if (and (memq 'after (cdr-safe newlines))
-		   (not is-scope-op))
-	      (c-newline-and-indent))
-	  ))))
+	   ;; Calculate where, if anywhere, we want newlines.
+	   (c-save-buffer-state
+	       ((c-syntactic-indentation-in-macros t)
+		(c-auto-newline-analysis t)
+		;; Turn on syntactic macro analysis to help with auto newlines
+		;; only.
+		(syntax (c-guess-basic-syntax))
+		(elem syntax))
+	     ;; Translate substatement-label to label for this operation.
+	     (while elem
+	       (if (eq (car (car elem)) 'substatement-label)
+		   (setcar (car elem) 'label))
+	       (setq elem (cdr elem)))
+	     ;; some language elements can only be determined by checking
+	     ;; the following line.  Let's first look for ones that can be
+	     ;; found when looking on the line with the colon
+	     (setq newlines
+		   (and c-auto-newline
+			(or (c-lookup-lists '(case-label label access-label)
+					    syntax c-hanging-colons-alist)
+			    (c-lookup-lists '(member-init-intro inher-intro)
+					    (progn
+					      (insert ?\n)
+					      (unwind-protect
+						  (c-guess-basic-syntax)
+						(delete-char -1)))
+					    c-hanging-colons-alist)))))
+	   ;; does a newline go before the colon?  Watch out for already
+	   ;; non-hung colons.  However, we don't unhang them because that
+	   ;; would be a cleanup (and anti-social).
+	   (if (and (memq 'before newlines)
+		    (not is-scope-op)
+		    (save-excursion
+		      (skip-chars-backward ": \t")
+		      (not (bolp))))
+	       (let ((pos (- (point-max) (point))))
+		 (forward-char -1)
+		 (c-newline-and-indent)
+		 (goto-char (- (point-max) pos))))
+	   ;; does a newline go after the colon?
+	   (if (and (memq 'after (cdr-safe newlines))
+		    (not is-scope-op))
+	       (c-newline-and-indent))))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-lt-gt (arg)
   "Insert a \"<\" or \">\" character.
@@ -1122,56 +1220,85 @@ finishes a C++ style stream operator in C++ mode.  Exceptions are when a
 numeric argument is supplied, or the point is inside a literal."
 
   (interactive "*P")
-  (let ((c-echo-syntactic-information-p nil)
+  (let (template-delim include-delim
+	(c-echo-syntactic-information-p nil)
 	final-pos found-delim case-fold-search)
 
-    (self-insert-command (prefix-numeric-value arg))
-    (setq final-pos (point))
+    (c-with-string-fences
+     (let (post-self-insert-hook)	; Disable random functionality.
+       (self-insert-command (prefix-numeric-value arg)))
+     (setq final-pos (point))
 
-;;;; 2010-01-31: There used to be code here to put a syntax-table text
-;;;; property on the new < or > and its mate (if any) when they are template
-;;;; parens.  This is now done in an after-change function.
+;;;;  2010-01-31: There used to be code here to put a syntax-table text
+;;;;  property on the new < or > and its mate (if any) when they are template
+;;;;  parens.  This is now done in an after-change function.
 
-    ;; Indent the line if appropriate.
-    (when (and c-electric-flag c-syntactic-indentation c-recognize-<>-arglists)
-      (setq found-delim
-	    (if (eq (c-last-command-char) ?<)
-		;; If a <, basically see if it's got "template" before it .....
-		(or (and (progn
-			   (backward-char)
-			   (= (point)
-			      (progn (c-beginning-of-current-token) (point))))
-			 (progn
-			   (c-backward-token-2)
-			   (looking-at c-opt-<>-sexp-key)))
-		    ;; ..... or is a C++ << operator.
-		    (and (c-major-mode-is 'c++-mode)
-			 (progn
-			   (goto-char (1- final-pos))
-			   (c-beginning-of-current-token)
-			   (looking-at "<<"))
-			 (>= (match-end 0) final-pos)))
+     (when (and (not arg)
+		(not (c-save-buffer-state () (c-in-literal))))
+       ;; Have we got a delimiter on a #include directive?
+       (beginning-of-line)
+       (setq include-delim
+	     (and
+	      (looking-at c-cpp-include-key)
+	      (if (eq (c-last-command-char) ?<)
+		  (eq (match-end 0) (1- final-pos))
+		(goto-char (1- final-pos))
+		(skip-chars-backward "^<>" (c-point 'bol))
+		(eq (char-before) ?<))))
+       (goto-char final-pos)
 
-	      ;; It's a >.  Either a template/generic terminator ...
-	      (or (c-get-char-property (1- final-pos) 'syntax-table)
-		  ;; or a C++ >> operator.
-		  (and (c-major-mode-is 'c++-mode)
-		       (progn
-			 (goto-char (1- final-pos))
-			 (c-beginning-of-current-token)
-			 (looking-at ">>"))
-		       (>= (match-end 0) final-pos))))))
+       ;; Indent the line if appropriate.
+       (when (and c-electric-flag c-syntactic-indentation c-recognize-<>-arglists)
+	 (setq found-delim
+	       (if (eq (c-last-command-char) ?<)
+		   ;; If a <, basically see if it's got "template" before it .....
+		   (or (and (progn
+			      (backward-char)
+			      (= (point)
+				 (progn (c-beginning-of-current-token) (point))))
+			    (progn
+			      (c-backward-token-2)
+			      (looking-at c-opt-<>-sexp-key))
+			    (setq template-delim t))
+		       ;; ..... or is a C++ << operator.
+		       (and (c-major-mode-is 'c++-mode)
+			    (progn
+			      (goto-char (1- final-pos))
+			      (c-beginning-of-current-token)
+			      (looking-at "<<"))
+			    (>= (match-end 0) final-pos)))
 
-    (goto-char final-pos)
+		 ;; It's a >.  Either a template/generic terminator ...
+		 (or (and (c-get-char-property (1- final-pos) 'syntax-table)
+			  (setq template-delim t))
+		     ;; or a C++ >> operator.
+		     (and (c-major-mode-is 'c++-mode)
+			  (progn
+			    (goto-char (1- final-pos))
+			    (c-beginning-of-current-token)
+			    (looking-at ">>"))
+			  (>= (match-end 0) final-pos)))))
+	 (goto-char final-pos)
+
+	 (when found-delim
+	   (indent-according-to-mode)))))
+
+    ;; On the off chance that < and > are configured as pairs in
+    ;; electric-pair-mode.
+    (when (and (boundp 'electric-pair-mode) electric-pair-mode
+	       (or template-delim include-delim))
+      (let (post-self-insert-hook)
+	(electric-pair-post-self-insert-function)))
+
     (when found-delim
-      (indent-according-to-mode)
       (when (and (eq (char-before) ?>)
 		 (not executing-kbd-macro)
 		 blink-paren-function)
 	;; From now (2016-01-01), the syntax-table text properties on < and >
 	;; are applied in an after-change function, not during redisplay.  Hence
 	;; we no longer need to call (sit-for 0) for blink paren to work.
-	(funcall blink-paren-function)))))
+	(funcall blink-paren-function))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-paren (arg)
   "Insert a parenthesis.
@@ -1186,98 +1313,115 @@ removed; see the variable `c-cleanup-list'.
 Also, if `c-electric-flag' and `c-auto-newline' are both non-nil, some
 newline cleanups are done if appropriate; see the variable `c-cleanup-list'."
   (interactive "*P")
-  (let ((literal (c-save-buffer-state () (c-in-literal)))
+  (let ((literal (c-save-buffer-state ()
+		   (c-with-string-fences (c-in-literal))))
 	;; shut this up
 	(c-echo-syntactic-information-p nil)
 	case-fold-search)
-    (self-insert-command (prefix-numeric-value arg))
+    (let (post-self-insert-hook) ; The only way to get defined functionality
+					; from `self-insert-command'.
+      (self-insert-command (prefix-numeric-value arg)))
 
     (if (and (not arg) (not literal))
-	(let* (	;; We want to inhibit blinking the paren since this will
+	(let* (;; We want to inhibit blinking the paren since this will
 	       ;; be most disruptive.  We'll blink it ourselves
 	       ;; afterwards.
 	       (old-blink-paren blink-paren-function)
 	       blink-paren-function)
-	  (if (and c-syntactic-indentation c-electric-flag)
-	      (indent-according-to-mode))
+	  (c-with-string-fences
+	   (if (and c-syntactic-indentation c-electric-flag)
+	       (indent-according-to-mode))
 
-	  ;; If we're at EOL, check for new-line clean-ups.
-	  (when (and c-electric-flag c-auto-newline
-		     (looking-at "[ \t]*\\\\?$"))
+	   ;; If we're at EOL, check for new-line clean-ups.
+	   (when (and c-electric-flag c-auto-newline
+		      (looking-at "[ \t]*\\\\?$"))
 
-	    ;; clean up brace-elseif-brace
-	    (when
-		(and (memq 'brace-elseif-brace c-cleanup-list)
-		     (eq (c-last-command-char) ?\()
-		     (re-search-backward
-		      (concat "}"
-			      "\\([ \t\n]\\|\\\\\n\\)*"
-			      "else"
-			      "\\([ \t\n]\\|\\\\\n\\)+"
-			      "if"
-			      "\\([ \t\n]\\|\\\\\n\\)*"
-			      "("
-			      "\\=")
-		      nil t)
-		     (not  (c-save-buffer-state () (c-in-literal))))
-	      (delete-region (match-beginning 0) (match-end 0))
-	      (insert-and-inherit "} else if ("))
+	     ;; clean up brace-elseif-brace
+	     (when
+		 (and (memq 'brace-elseif-brace c-cleanup-list)
+		      (eq (c-last-command-char) ?\()
+		      (re-search-backward
+		       (concat "}"
+			       "\\([ \t\n]\\|\\\\\n\\)*"
+			       "else"
+			       "\\([ \t\n]\\|\\\\\n\\)+"
+			       "if"
+			       "\\([ \t\n]\\|\\\\\n\\)*"
+			       "("
+			       "\\=")
+		       nil t)
+		      (not  (c-save-buffer-state () (c-in-literal))))
+	       (delete-region (match-beginning 0) (match-end 0))
+	       (insert-and-inherit "} else if ("))
 
-	    ;; clean up brace-catch-brace
-	    (when
-		(and (memq 'brace-catch-brace c-cleanup-list)
-		     (eq (c-last-command-char) ?\()
-		     (re-search-backward
-		      (concat "}"
-			      "\\([ \t\n]\\|\\\\\n\\)*"
-			      "catch"
-			      "\\([ \t\n]\\|\\\\\n\\)*"
-			      "("
-			      "\\=")
-		      nil t)
-		     (not  (c-save-buffer-state () (c-in-literal))))
-	      (delete-region (match-beginning 0) (match-end 0))
-	      (insert-and-inherit "} catch (")))
+	     ;; clean up brace-catch-brace
+	     (when
+		 (and (memq 'brace-catch-brace c-cleanup-list)
+		      (eq (c-last-command-char) ?\()
+		      (re-search-backward
+		       (concat "}"
+			       "\\([ \t\n]\\|\\\\\n\\)*"
+			       "catch"
+			       "\\([ \t\n]\\|\\\\\n\\)*"
+			       "("
+			       "\\=")
+		       nil t)
+		      (not  (c-save-buffer-state () (c-in-literal))))
+	       (delete-region (match-beginning 0) (match-end 0))
+	       (insert-and-inherit "} catch ("))))
 
-	  ;; Check for clean-ups at function calls.  These two DON'T need
-	  ;; `c-electric-flag' or `c-syntactic-indentation' set.
-	  ;; Point is currently just after the inserted paren.
-	  (let (beg (end (1- (point))))
-	    (cond
+	  ;; Apply `electric-pair-mode' stuff.
+	  (when (and (boundp 'electric-pair-mode)
+		     electric-pair-mode)
+	    (let (post-self-insert-hook)
+	      (electric-pair-post-self-insert-function)))
 
-	     ;; space-before-funcall clean-up?
-	     ((and (memq 'space-before-funcall c-cleanup-list)
-		   (eq (c-last-command-char) ?\()
-		   (save-excursion
-		     (backward-char)
-		     (skip-chars-backward " \t")
-		     (setq beg (point))
-		     (and (c-save-buffer-state () (c-on-identifier))
-                          ;; Don't add a space into #define FOO()....
-                          (not (and (c-beginning-of-macro)
-                                    (c-forward-over-cpp-define-id)
-                                    (eq (point) beg))))))
-	      (save-excursion
-		(delete-region beg end)
-		(goto-char beg)
-		(insert ?\ )))
+	  (c-with-string-fences
+	   ;; Check for clean-ups at function calls.  These two DON'T need
+	   ;; `c-electric-flag' or `c-syntactic-indentation' set.
+	   ;; Point is currently just after the inserted paren.
+	   (let (beg (end (1- (point))))
+	     (cond
 
-	     ;; compact-empty-funcall clean-up?
-		  ((c-save-buffer-state ()
-		     (and (memq 'compact-empty-funcall c-cleanup-list)
-			  (eq (c-last-command-char) ?\))
-			  (save-excursion
-			    (c-safe (backward-char 2))
-			    (when (looking-at "()")
-			      (setq end (point))
-			      (skip-chars-backward " \t")
-			      (setq beg (point))
-			      (c-on-identifier)))))
-		   (delete-region beg end))))
+	      ;; space-before-funcall clean-up?
+	      ((and (memq 'space-before-funcall c-cleanup-list)
+		    (eq (c-last-command-char) ?\()
+		    (save-excursion
+		      (backward-char)
+		      (skip-chars-backward " \t")
+		      (setq beg (point))
+		      (and (c-save-buffer-state () (c-on-identifier))
+                           ;; Don't add a space into #define FOO()....
+                           (not (and (c-beginning-of-macro)
+                                     (c-forward-over-cpp-define-id)
+                                     (eq (point) beg))))))
+	       (save-excursion
+		 (delete-region beg end)
+		 (goto-char beg)
+		 (insert ?\ )))
+
+	      ;; compact-empty-funcall clean-up?
+	      ((c-save-buffer-state ()
+		 (and (memq 'compact-empty-funcall c-cleanup-list)
+		      (eq (c-last-command-char) ?\))
+		      (save-excursion
+			(c-safe (backward-char 2))
+			(when (looking-at "()")
+			  (setq end (point))
+			  (skip-chars-backward " \t")
+			  (setq beg (point))
+			  (c-on-identifier)))))
+	       (delete-region beg end)))))
 	  (and (eq last-input-event ?\))
 	       (not executing-kbd-macro)
 	       old-blink-paren
-	       (funcall old-blink-paren))))))
+	       (funcall old-blink-paren)))
+
+      ;; Apply `electric-pair-mode' stuff inside a string or comment.
+      (when (and (boundp 'electric-pair-mode) electric-pair-mode)
+	(let (post-self-insert-hook)
+	  (electric-pair-post-self-insert-function)))))
+  (c--call-post-self-insert-hook-more-safely))
 
 (defun c-electric-continued-statement ()
   "Reindent the current line if appropriate.
@@ -1310,6 +1454,98 @@ keyword on the line, the keyword is not inserted inside a literal, and
 	  (indent-according-to-mode)
 	(delete-char -2)))))
 
+(defun c-align-cpp-indent-to-body ()
+  "Align a \"#pragma\" line under the previous line.
+This function is intented for use as a member of `c-special-indent-hook'."
+  (when (assq 'cpp-macro c-syntactic-context)
+    (when
+	(save-excursion
+	  (save-match-data
+	    (back-to-indentation)
+	    (and
+	     (looking-at (concat c-opt-cpp-symbol "[ \t]*\\([a-zA-Z0-9_]+\\)"))
+	     (member (match-string-no-properties 1)
+		     c-cpp-indent-to-body-directives))))
+      (c-indent-line (delete '(cpp-macro) c-syntactic-context)))))
+
+(defvar c-cpp-indent-to-body-flag nil)
+;; Non-nil when CPP directives such as "#pragma" should be indented to under
+;; the preceding statement.
+(make-variable-buffer-local 'c-cpp-indent-to-body-flag)
+
+(defun c-electric-pragma ()
+  "Reindent the current line if appropriate.
+
+This function is used to reindent a preprocessor line when the
+symbol for the directive, typically \"pragma\", triggers this
+function as a hook function of an abbreviation.
+
+The \"#\" of the preprocessor construct is aligned under the
+first anchor point of the line's syntactic context.
+
+The line is reindented if the construct is not in a string or
+comment, there is exactly one \"#\" contained in optional
+whitespace before it on the current line, and `c-electric-flag'
+and `c-syntactic-indentation' are both non-nil."
+  (save-excursion
+    (save-match-data
+      (when
+	  (and
+	   c-cpp-indent-to-body-flag
+	   c-electric-flag
+	   c-syntactic-indentation
+	   last-abbrev-location
+	   c-opt-cpp-symbol		; "#" or nil.
+	   (progn (back-to-indentation)
+		  (looking-at (concat c-opt-cpp-symbol "[ \t]*")))
+	   (>= (match-end 0) last-abbrev-location)
+	   (not (c-literal-limits)))
+	(c-indent-line (delete '(cpp-macro) (c-guess-basic-syntax)))))))
+
+(defun c-add-indent-to-body-to-abbrev-table (d)
+  ;; Create an abbreviation table entry for the directive D, and add it to the
+  ;; current abbreviation table.  Existing abbreviation (e.g. for "else") do
+  ;; not get overwritten.
+  (when (and c-buffer-is-cc-mode
+	     local-abbrev-table
+	     (not (abbrev-symbol d local-abbrev-table)))
+    (condition-case nil
+	(define-abbrev local-abbrev-table d d 'c-electric-pragma 0 t)
+      (wrong-number-of-arguments
+       (define-abbrev local-abbrev-table d d 'c-electric-pragma)))))
+
+(defun c-clear-stale-indent-to-body-abbrevs ()
+  ;; Fill in this comment.  FIXME!!!
+  (when (fboundp 'abbrev-get)
+    (mapatoms (lambda (a)
+		(when (and (abbrev-get a ':system) ; Preserve a user's abbrev!
+			   (not (member (symbol-name a) c-std-abbrev-keywords))
+			   (not (member (symbol-name a)
+					c-cpp-indent-to-body-directives)))
+		  (unintern a local-abbrev-table)))
+	      local-abbrev-table)))
+
+(defun c-toggle-cpp-indent-to-body (&optional arg)
+  "Toggle the C preprocessor indent-to-body feature.
+When enabled, preprocessor directives which are words in
+`c-indent-to-body-directives' are indented as if they were statements.
+
+Optional numeric ARG, if supplied, turns on the feature when positive,
+turns it off when negative, and just toggles it when zero or
+left out."
+  (interactive "P")
+  (setq c-cpp-indent-to-body-flag
+	(c-calculate-state arg c-cpp-indent-to-body-flag))
+  (if c-cpp-indent-to-body-flag
+      (progn
+	(c-clear-stale-indent-to-body-abbrevs)
+	(mapc 'c-add-indent-to-body-to-abbrev-table
+	      c-cpp-indent-to-body-directives)
+	(add-hook 'c-special-indent-hook 'c-align-cpp-indent-to-body nil t))
+    (remove-hook 'c-special-indent-hook 'c-align-cpp-indent-to-body t))
+  (message "c-cpp-indent-to-body %sabled"
+	   (if c-cpp-indent-to-body-flag "en" "dis")))
+
 
 
 (declare-function subword-forward "subword" (&optional arg))
@@ -1330,19 +1566,6 @@ keyword on the line, the keyword is not inserted inside a literal, and
 (declare-function c-backward-subword "ext:cc-subword" (&optional arg))
 
 ;; "nomenclature" functions + c-scope-operator.
-(defun c-forward-into-nomenclature (&optional arg)
-  "Compatibility alias for `c-forward-subword'."
-  (interactive "p")
-  (if (fboundp 'subword-mode)
-      (progn
-        (require 'subword)
-        (subword-forward arg))
-    (require 'cc-subword)
-    (c-forward-subword arg)))
-(make-obsolete 'c-forward-into-nomenclature
-               (if (fboundp 'subword-mode) 'subword-forward 'c-forward-subword)
-               "23.2")
-
 (defun c-backward-into-nomenclature (&optional arg)
   "Compatibility alias for `c-backward-subword'."
   (interactive "p")
@@ -1383,7 +1606,7 @@ No indentation or other \"electric\" behavior is performed."
 	 (let ((eo-block (point))
 	       bod)
 	   (and (eq (char-before) ?\})
-		(eq (car (c-beginning-of-decl-1 lim)) 'previous)
+		(memq (car (c-beginning-of-decl-1 lim)) '(same previous))
 		(setq bod (point))
 		;; Look for struct or union or ...  If we find one, it might
 		;; be the return type of a function, or the like.  Exclude
@@ -1397,6 +1620,16 @@ No indentation or other \"electric\" behavior is performed."
 		(not (eq (char-before) ?_))
 		(c-syntactic-re-search-forward "[;=([{]" eo-block t t t)
 		(eq (char-before) ?\{)
+		;; Exclude the entire "struct {...}" being the type of a
+		;; function being declared.
+		(not
+		 (and
+		  (c-go-up-list-forward)
+		  (eq (char-before) ?})
+		  (progn (c-forward-syntactic-ws)
+			 (c-syntactic-re-search-forward
+			  "[;=([{]" nil t t t))
+		  (eq (char-before) ?\()))
 		bod)))))
 
 (defun c-where-wrt-brace-construct ()
@@ -1419,8 +1652,8 @@ No indentation or other \"electric\" behavior is performed."
   ;;
   ;; This function might do hidden buffer changes.
   (save-excursion
-    (let* (kluge-start
-	   decl-result brace-decl-p
+    (let* (knr-start knr-res
+	   decl-result
 	   (start (point))
 	   (paren-state (c-parse-state))
 	   (least-enclosing (c-least-enclosing-brace paren-state)))
@@ -1431,65 +1664,73 @@ No indentation or other \"electric\" behavior is performed."
 	'in-block)
        ((c-in-function-trailer-p)
 	'in-trailer)
-       ((and (not least-enclosing)
-	     (consp paren-state)
-	     (consp (car paren-state))
-	     (eq start (cdar paren-state)))
+       ((or (and (eq (char-before) ?\;)
+		 (save-excursion
+		   (backward-char)
+		   (c-in-function-trailer-p)))
+	    (and (not least-enclosing)
+		 (consp paren-state)
+		 (consp (car paren-state))
+		 (eq start (cdar paren-state))
+		 (or
+		  (save-excursion
+		    (c-forward-syntactic-ws)
+		    (or (not (looking-at c-symbol-start))
+			(looking-at c-keywords-regexp)))
+		  (save-excursion
+		    (goto-char (caar paren-state))
+		    (c-beginning-of-decl-1)
+		    (not (looking-at c-defun-type-name-decl-key))))))
 	'at-function-end)
        (t
-	;; Find the start of the current declaration.  NOTE: If we're in the
-	;; variables after a "struct/eval" type block, we don't get to the
-	;; real declaration here - we detect and correct for this later.
-
-	;;If we're in the parameters' parens, move back out of them.
-	(if least-enclosing (goto-char least-enclosing))
 	;; Kluge so that c-beginning-of-decl-1 won't go back if we're already
 	;; at a declaration.
 	(if (or (and (eolp) (not (eobp))) ; EOL is matched by "\\s>"
-		(not (looking-at
-"\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\|\\s!\\)")))
+		(not (c-looking-at-non-alphnumspace)))
 	    (forward-char))
-	(setq kluge-start (point))
-	(setq decl-result
-	      (car (c-beginning-of-decl-1
-		    ;; NOTE: If we're in a K&R region, this might be the start
-		    ;; of a parameter declaration, not the actual function.
-		    ;; It might also leave us at a label or "label" like
-		    ;; "private:".
-		    (and least-enclosing ; LIMIT for c-b-of-decl-1
-			 (c-safe-position least-enclosing paren-state)))))
 
-	;; Has the declaration we've gone back to got braces?
-	(or (eq decl-result 'label)
-	    (setq brace-decl-p
-		  (save-excursion
-		    (and (c-syntactic-re-search-forward "[;{]" nil t t)
-			 (or (eq (char-before) ?\{)
-			     (and c-recognize-knr-p
-				  ;; Might have stopped on the
-				  ;; ';' in a K&R argdecl.  In
-				  ;; that case the declaration
-				  ;; should contain a block.
-				  (c-in-knr-argdecl)))))))
-
-	(cond
-	 ((or (eq decl-result 'label)	; e.g. "private:" or invalid syntax.
-	      (= (point) kluge-start))	; might be BOB or unbalanced parens.
-	  'outwith-function)
-	 ((eq decl-result 'same)
-	  (if brace-decl-p
-	      (if (eq (point) start)
-		  'at-header
+	(if (and least-enclosing
+		 (eq (char-after least-enclosing) ?\())
+	    (c-go-list-forward least-enclosing))
+	(c-forward-syntactic-ws)
+	(setq knr-start (point))
+	(if (and (c-syntactic-re-search-forward "[;{]" nil t t)
+		 (eq (char-before) ?\{))
+	    (progn
+	      (backward-char)
+	      (cond
+	       ((or (progn
+		      (c-backward-syntactic-ws)
+		      (<= (point) start))
+		    (and c-recognize-knr-p
+			 (and (setq knr-res (c-in-knr-argdecl))
+			      (<= knr-res knr-start))))
 		'in-header)
-	    'outwith-function))
-	 ((eq decl-result 'previous)
-	  (if (and (not brace-decl-p)
-		   (c-in-function-trailer-p))
-	      'at-function-end
-	    'outwith-function))
-	 (t (error
-	     "c-where-wrt-brace-construct: c-beginning-of-decl-1 returned %s"
-	     decl-result))))))))
+	       ((and knr-res
+		     (goto-char knr-res)
+		     (c-backward-syntactic-ws))) ; Always returns nil.
+	       (t
+		(when (eq (char-before) ?\))
+		  ;; The `c-go-list-backward' is a precaution against
+		  ;; `c-beginning-of-decl-1' spuriously finding a C++ lambda
+		  ;; function inside the parentheses.
+		  (c-go-list-backward))
+		(setq decl-result
+		      (car (c-beginning-of-decl-1
+			    (and least-enclosing
+				 (c-safe-position
+				  least-enclosing paren-state)))))
+		(cond
+		 ((> (point) start)
+		  'outwith-function)
+		 ((eq decl-result 'same)
+		  (if (eq (point) start)
+		      'at-header
+		    'in-header))
+		 (t (error
+		     "c-where-wrt-brace-construct: c-beginning-of-decl-1 returned %s"
+		     decl-result))))))
+	  'outwith-function))))))
 
 (defun c-backward-to-nth-BOF-{ (n where)
   ;; Skip to the opening brace of the Nth function before point.  If
@@ -1512,9 +1753,11 @@ No indentation or other \"electric\" behavior is performed."
     (goto-char (c-least-enclosing-brace (c-parse-state)))
     (setq n (1- n)))
    ((eq where 'in-header)
-    (c-syntactic-re-search-forward "{")
-    (backward-char)
-    (setq n (1- n)))
+    (let ((encl-paren (c-least-enclosing-brace (c-parse-state))))
+      (if encl-paren (goto-char encl-paren))
+      (c-syntactic-re-search-forward "{" nil t t)
+      (backward-char)
+      (setq n (1- n))))
    ((memq where '(at-header outwith-function at-function-end in-trailer))
     (c-syntactic-skip-backward "^}")
     (when (eq (char-before) ?\})
@@ -1595,15 +1838,18 @@ No indentation or other \"electric\" behavior is performed."
       nil)))
 
 (eval-and-compile
-  (defmacro c-while-widening-to-decl-block (condition)
+  (defmacro c-while-widening-to-decl-block (condition &optional no-where)
     ;; Repeatedly evaluate CONDITION until it returns nil.  After each
     ;; evaluation, if `c-defun-tactic' is set appropriately, widen to innards
     ;; of the next enclosing declaration block (e.g. namespace, class), or the
     ;; buffer's original restriction.
     ;;
+    ;; If NO-WHERE is non-nil, don't compile in a `(setq where ....)'.
+    ;;
     ;; This is a very special purpose macro, which assumes the existence of
     ;; several variables.  It is for use only in c-beginning-of-defun and
     ;; c-end-of-defun.
+    (declare (debug t))
     `(while
 	 (and ,condition
 	      (eq c-defun-tactic 'go-outward)
@@ -1611,7 +1857,10 @@ No indentation or other \"electric\" behavior is performed."
        (setq paren-state (c-whack-state-after lim paren-state))
        (setq lim (c-widen-to-enclosing-decl-scope
 		  paren-state orig-point-min orig-point-max))
-       (setq where 'in-block))))
+       ,@(if (not no-where)
+	     `((setq where 'in-block))))))
+
+(def-edebug-spec c-while-widening-to-decl-block t)
 
 (defun c-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -1634,73 +1883,77 @@ defun."
       (c-region-is-active-p)
       (push-mark))
 
-  (c-save-buffer-state
-      (beginning-of-defun-function
-       end-of-defun-function
-       (paren-state (c-parse-state))
-       (orig-point-min (point-min)) (orig-point-max (point-max))
-       lim		    ; Position of { which has been widened to.
-       where pos case-fold-search)
+  (c-with-string-fences
+   (c-save-buffer-state
+       (beginning-of-defun-function
+	end-of-defun-function
+	(paren-state (c-parse-state))
+	(orig-point-min (point-min)) (orig-point-max (point-max))
+	lim		    ; Position of { which has been widened to.
+	where pos case-fold-search)
 
-    (save-restriction
-      (if (eq c-defun-tactic 'go-outward)
-	  (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace.
-		     paren-state orig-point-min orig-point-max)))
+     (save-restriction
+       (if (eq c-defun-tactic 'go-outward)
+	   (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace.
+		      paren-state orig-point-min orig-point-max)))
 
-      ;; Move back out of any macro/comment/string we happen to be in.
-      (c-beginning-of-macro)
-      (setq pos (c-literal-start))
-      (if pos (goto-char pos))
+       ;; Move back out of any macro/comment/string we happen to be in.
+       (c-beginning-of-macro)
+       (setq pos (c-literal-start))
+       (if pos (goto-char pos))
 
-      (setq where (c-where-wrt-brace-construct))
+       (setq where (c-where-wrt-brace-construct))
 
-      (if (< arg 0)
-	  ;; Move forward to the closing brace of a function.
-	  (progn
-	    (if (memq where '(at-function-end outwith-function))
-		(setq arg (1+ arg)))
-	    (if (< arg 0)
-		(c-while-widening-to-decl-block
-		 (< (setq arg (- (c-forward-to-nth-EOF-} (- arg) where))) 0)))
-	    ;; Move forward to the next opening brace....
-	    (when (and (= arg 0)
-		       (progn
-			 (c-while-widening-to-decl-block
-			  (not (c-syntactic-re-search-forward "{" nil 'eob)))
-			 (eq (char-before) ?{)))
-	      (backward-char)
-	      ;; ... and backward to the function header.
-	      (c-beginning-of-decl-1)
-	      t))
+       (if (< arg 0)
+	   ;; Move forward to the closing brace of a function.
+	   (progn
+	     (if (memq where '(at-function-end outwith-function))
+		 (setq arg (1+ arg)))
+	     (if (< arg 0)
+		 (c-while-widening-to-decl-block
+		  (< (setq arg (- (c-forward-to-nth-EOF-\;-or-} (- arg) where))) 0)))
+	     (prog1
+		 ;; Move forward to the next opening brace....
+		 (when (and (= arg 0)
+			    (progn
+			      (c-while-widening-to-decl-block
+			       (not (c-syntactic-re-search-forward "{" nil 'eob)))
+			      (eq (char-before) ?{)))
+		   (backward-char)
+		   ;; ... and backward to the function header.
+		   (c-beginning-of-decl-1)
+		   t)
+	       (c-keep-region-active)))
 
-	;; Move backward to the opening brace of a function, making successively
-	;; larger portions of the buffer visible as necessary.
-	(when (> arg 0)
-	  (c-while-widening-to-decl-block
-	   (> (setq arg (c-backward-to-nth-BOF-{ arg where)) 0)))
+	 ;; Move backward to the opening brace of a function, making successively
+	 ;; larger portions of the buffer visible as necessary.
+	 (when (> arg 0)
+	   (c-while-widening-to-decl-block
+	    (> (setq arg (c-backward-to-nth-BOF-{ arg where)) 0)))
 
-	(when (eq arg 0)
-	  ;; Go backward to this function's header.
-	  (c-beginning-of-decl-1)
+	 (when (eq arg 0)
+	   ;; Go backward to this function's header.
+	   (c-beginning-of-decl-1)
 
-	  (setq pos (point))
-	  ;; We're now there, modulo comments and whitespace.
-	  ;; Try to be line oriented; position point at the closest
-	  ;; preceding boi that isn't inside a comment, but if we hit
-	  ;; the previous declaration then we use the current point
-	  ;; instead.
-	  (while (and (/= (point) (c-point 'boi))
-		      (c-backward-single-comment)))
-	  (if (/= (point) (c-point 'boi))
-	      (goto-char pos)))
+	   (setq pos (point))
+	   ;; We're now there, modulo comments and whitespace.
+	   ;; Try to be line oriented; position point at the closest
+	   ;; preceding boi that isn't inside a comment, but if we hit
+	   ;; the previous declaration then we use the current point
+	   ;; instead.
+	   (while (and (/= (point) (c-point 'boi))
+		       (c-backward-single-comment)))
+	   (if (/= (point) (c-point 'boi))
+	       (goto-char pos)))
 
-	(c-keep-region-active)
-	(= arg 0)))))
+	 (c-keep-region-active)
+	 (= arg 0))))))
 
-(defun c-forward-to-nth-EOF-} (n where)
-  ;; Skip to the closing brace of the Nth function after point.  If
-  ;; point is inside a function, this counts as the first.  Point must be
-  ;; outside any comment/string or macro.
+(defun c-forward-to-nth-EOF-\;-or-} (n where)
+  ;; Skip to the closing brace or semicolon of the Nth function after point.
+  ;; We move to a semicolon only for things like structs which don't end at a
+  ;; closing brace.  If point is inside a function, this counts as the first.
+  ;; Point must be outside any comment/string or macro.
   ;;
   ;; N must be strictly positive.
   ;; WHERE describes the position of point, one of the symbols `at-header',
@@ -1722,23 +1975,27 @@ defun."
     (forward-sexp)
     (setq n (1- n)))
    ((eq where 'in-trailer)
-    (c-syntactic-skip-backward "^}")
+    ;; The actual movement is done below.
     (setq n (1- n)))
    ((memq where '(at-function-end outwith-function at-header in-header))
+    (if (eq where 'in-header)
+	(let ((pos (c-least-enclosing-brace (c-parse-state))))
+	  (if pos (c-go-list-forward pos))))
+    (when (c-syntactic-re-search-forward "{" nil 'eob t)
+      (backward-char)
+      (forward-sexp)
+      (setq n (1- n))))
+   (t (error "c-forward-to-nth-EOF-\\;-or-}: `where' is %s" where)))
+
+  ;; Each time round the loop, go forward to a "}" at the outermost level.
+  (while (and (> n 0) (not (eobp)))
     (when (c-syntactic-re-search-forward "{" nil 'eob)
       (backward-char)
       (forward-sexp)
       (setq n (1- n))))
-   (t (error "c-forward-to-nth-EOF-}: `where' is %s" where)))
 
-  ;; Each time round the loop, go forward to a "}" at the outermost level.
-  (while (and (> n 0) (not (eobp)))
-					;(c-parse-state)	; This call speeds up the following one by a factor
-					; of ~6.  Hmmm.  2006/4/5.
-    (when (c-syntactic-re-search-forward "{" nil 'eob)
-      (backward-char)
-      (forward-sexp))
-    (setq n (1- n)))
+  (when (c-in-function-trailer-p)
+    (c-syntactic-re-search-forward ";" nil 'eob t))
   n)
 
 (defun c-end-of-defun (&optional arg)
@@ -1757,19 +2014,76 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
       (c-region-is-active-p)
       (push-mark))
 
+  (c-with-string-fences
+   (c-save-buffer-state
+       (beginning-of-defun-function
+	end-of-defun-function
+	(paren-state (c-parse-state))
+	(orig-point-min (point-min)) (orig-point-max (point-max))
+	lim
+	where pos case-fold-search)
+
+     (save-restriction
+       (if (eq c-defun-tactic 'go-outward)
+	   (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace
+		      paren-state orig-point-min orig-point-max)))
+
+       ;; Move back out of any macro/comment/string we happen to be in.
+       (c-beginning-of-macro)
+       (setq pos (c-literal-start))
+       (if pos (goto-char pos))
+
+       (setq where (c-where-wrt-brace-construct))
+
+       (if (< arg 0)
+	   ;; Move backwards to the } of a function
+	   (progn
+	     (if (memq where '(at-header outwith-function))
+		 (setq arg (1+ arg)))
+	     (if (< arg 0)
+		 (c-while-widening-to-decl-block
+		  (< (setq arg (- (c-backward-to-nth-BOF-{ (- arg) where))) 0)))
+	     (if (= arg 0)
+		 (c-while-widening-to-decl-block
+		  (progn (c-syntactic-skip-backward "^}")
+			 (not (eq (char-before) ?}))))))
+
+	 ;; Move forward to the } of a function
+	 (if (> arg 0)
+	     (c-while-widening-to-decl-block
+	      (> (setq arg (c-forward-to-nth-EOF-\;-or-} arg where)) 0))))
+
+       ;; Do we need to move forward from the brace to the semicolon?
+       (when (eq arg 0)
+	 (if (c-in-function-trailer-p)	; after "}" of struct/enum, etc.
+	     (c-syntactic-re-search-forward ";"))
+
+	 (setq pos (point))
+	 ;; We're there now, modulo comments and whitespace.
+	 ;; Try to be line oriented; position point after the next
+	 ;; newline that isn't inside a comment, but if we hit the
+	 ;; next declaration then we use the current point instead.
+	 (while (and (not (bolp))
+		     (not (looking-at "\\s *$"))
+		     (c-forward-single-comment)))
+	 (cond ((bolp))
+	       ((looking-at "\\s *$")
+		(forward-line 1))
+	       (t
+		(goto-char pos))))
+
+       (c-keep-region-active)
+       (= arg 0)))))
+
+(defun c-defun-name-1 ()
+  "Return name of current defun, at current narrowing, or nil if there isn't one.
+\"Defun\" here means a function, or other top level construct
+with a brace block."
   (c-save-buffer-state
-      (beginning-of-defun-function
-       end-of-defun-function
-       (paren-state (c-parse-state))
-       (orig-point-min (point-min)) (orig-point-max (point-max))
-       lim
-       where pos case-fold-search)
+      (beginning-of-defun-function end-of-defun-function
+       where pos decl0 decl type-pos tag-pos case-fold-search)
 
-    (save-restriction
-      (if (eq c-defun-tactic 'go-outward)
-	  (setq lim (c-widen-to-enclosing-decl-scope ; e.g. class, namespace
-		     paren-state orig-point-min orig-point-max)))
-
+    (save-excursion
       ;; Move back out of any macro/comment/string we happen to be in.
       (c-beginning-of-macro)
       (setq pos (c-literal-start))
@@ -1777,137 +2091,216 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
 
       (setq where (c-where-wrt-brace-construct))
 
-      (if (< arg 0)
-	  ;; Move backwards to the } of a function
-	  (progn
-	    (if (memq where '(at-header outwith-function))
-		(setq arg (1+ arg)))
-	    (if (< arg 0)
-		(c-while-widening-to-decl-block
-		 (< (setq arg (- (c-backward-to-nth-BOF-{ (- arg) where))) 0)))
-	    (if (= arg 0)
-		(c-while-widening-to-decl-block
-		 (progn (c-syntactic-skip-backward "^}")
-			(not (eq (char-before) ?}))))))
+      ;; Move to the beginning of the current defun, if any, if we're not
+      ;; already there.
+      (if (memq where '(outwith-function at-function-end))
+	  nil
+	(unless (eq where 'at-header)
+	  (c-backward-to-nth-BOF-{ 1 where)
+	  (c-beginning-of-decl-1))
+	(when (looking-at c-typedef-key)
+	  (goto-char (match-end 0))
+	  (c-forward-syntactic-ws))
+	(setq type-pos (point))
 
-	;; Move forward to the } of a function
-	(if (> arg 0)
-	    (c-while-widening-to-decl-block
-	     (> (setq arg (c-forward-to-nth-EOF-} arg where)) 0))))
+	;; Pick out the defun name, according to the type of defun.
+	(cond
+	 ((looking-at "DEFUN\\s-*(")	;"DEFUN\\_>") think of XEmacs!
+	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
+	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
+	  (down-list 1)
+	  (c-forward-syntactic-ws)
+	  (when (eq (char-after) ?\")
+	    (forward-sexp 1)
+	    (c-forward-syntactic-ws)
+	    (c-forward-token-2))	; over the comma and following WS.
+	  (setq pos (point))
+	  (and (zerop (c-forward-token-2))
+	       (progn (c-backward-syntactic-ws) t)
+	       (buffer-substring-no-properties pos (point))))
 
-      ;; Do we need to move forward from the brace to the semicolon?
-      (when (eq arg 0)
-	(if (c-in-function-trailer-p)	; after "}" of struct/enum, etc.
-	    (c-syntactic-re-search-forward ";"))
+	 ((and (c-major-mode-is 'objc-mode) (looking-at "[-+]\\s-*("))     ; Objective-C method
+	  ;; Move to the beginning of the method name.
+	  (c-forward-token-2 2 t)
+	  (let* ((class
+		  (save-excursion
+		    (when (re-search-backward
+			   "^\\s-*@\\(implementation\\|class\\|interface\\)\\s-+\\(\\sw+\\)" nil t)
+		      (match-string-no-properties 2))))
+		 (limit (save-excursion (re-search-forward "[;{]" nil t)))
+		 (method (when (re-search-forward "\\(\\sw+:?\\)" limit t)
+			   (match-string-no-properties 1))))
+	    (when (and class method)
+	      ;; Add the parameter labels onto name.  They always end in ':'.
+	      (while (re-search-forward "\\(\\sw+:\\)" limit 1)
+		(setq method (concat method (match-string-no-properties 1))))
+	      (concat "[" class " " method "]"))))
 
-	(setq pos (point))
-	;; We're there now, modulo comments and whitespace.
-	;; Try to be line oriented; position point after the next
-	;; newline that isn't inside a comment, but if we hit the
-	;; next declaration then we use the current point instead.
-	(while (and (not (bolp))
-		    (not (looking-at "\\s *$"))
-		    (c-forward-single-comment)))
-	(cond ((bolp))
-	      ((looking-at "\\s *$")
-	       (forward-line 1))
-	      (t
-	       (goto-char pos))))
-
-      (c-keep-region-active)
-      (= arg 0))))
+	 (t				; Normal function or initializer.
+	  (when (looking-at c-defun-type-name-decl-key) ; struct, etc.
+	    (goto-char (match-end 0))
+	    (c-forward-syntactic-ws)
+	    (setq tag-pos (point))
+	    (goto-char type-pos))
+	  (setq decl0 (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil))
+	  (when (consp decl0)
+	    (goto-char (car decl0))
+	    (setq decl (c-forward-declarator)))
+	  (and decl
+	       (car decl) (cadr decl)
+	       (buffer-substring-no-properties
+		(if (eq (car decl) tag-pos)
+		    type-pos
+		  (car decl))
+		(cadr decl)))))))))
 
 (defun c-defun-name ()
   "Return the name of the current defun, or NIL if there isn't one.
 \"Defun\" here means a function, or other top level construct
-with a brace block."
-  (interactive)
-  (c-save-buffer-state
-      (beginning-of-defun-function end-of-defun-function
-       where pos name-end case-fold-search)
-
+with a brace block, at the outermost level of nesting."
+  (c-save-buffer-state ()
     (save-restriction
       (widen)
-      (save-excursion
-	;; Move back out of any macro/comment/string we happen to be in.
-	(c-beginning-of-macro)
-	(setq pos (c-literal-start))
-	(if pos (goto-char pos))
+      (c-defun-name-1))))
 
-	(setq where (c-where-wrt-brace-construct))
+(defun c-declaration-limits-1 (near)
+  ;; Return a cons of the beginning and end position of the current
+  ;; declaration or macro in the current narrowing.  If there is no current
+  ;; declaration or macro, return nil, unless NEAR is non-nil, in which case
+  ;; the closest following one is chosen instead (if there is any).  The end
+  ;; position is at the next line, providing there is one before the
+  ;; declaration.
+  ;;
+  ;; This function might do hidden buffer changes.
+  (save-excursion
+    (let ((start (point))
+	  (paren-state (c-parse-state))
+	  lim pos end-pos where)
+      (or
+       ;; Note: Some code duplication in `c-beginning-of-defun' and
+       ;; `c-end-of-defun'.
+       (catch 'exit
+	 (unless (c-safe
+		   (goto-char (c-least-enclosing-brace paren-state))
+		   ;; If we moved to the outermost enclosing paren
+		   ;; then we can use c-safe-position to set the
+		   ;; limit. Can't do that otherwise since the
+		   ;; earlier paren pair on paren-state might very
+		   ;; well be part of the declaration we should go
+		   ;; to.
+		   (setq lim (c-safe-position (point) paren-state))
+		   ;; We might have a struct foo {...} as the type of the
+		   ;; function, so set LIM back one further block.
+		   (if (eq (char-before lim) ?})
+		       (setq lim
+			     (or
+			      (save-excursion
+				(and
+				 (c-go-list-backward lim)
+				 (let ((paren-state-1 (c-parse-state)))
+				   (c-safe-position
+				    (point) paren-state-1))))
+			      (point-min))))
+		   t)
+	   ;; At top level.  Make sure we aren't inside a literal.
+	   (setq pos (c-literal-start
+		      (c-safe-position (point) paren-state)))
+	   (if pos (goto-char pos)))
 
-	;; Move to the beginning of the current defun, if any, if we're not
-	;; already there.
-	(if (eq where 'outwith-function)
-	    nil
-	  (unless (eq where 'at-header)
-	    (c-backward-to-nth-BOF-{ 1 where)
-	    (c-beginning-of-decl-1))
-	  (when (looking-at c-typedef-key)
-	    (goto-char (match-end 0))
-	    (c-forward-syntactic-ws))
+	 (when (c-beginning-of-macro)
+	   (throw 'exit
+		  (cons (point)
+			(save-excursion
+			  (c-end-of-macro)
+			  (forward-line 1)
+			  (point)))))
 
-	  ;; Pick out the defun name, according to the type of defun.
-	  (cond
-	   ;; struct, union, enum, or similar:
-	   ((looking-at c-type-prefix-key)
-	    (let ((key-pos (point)))
-	      (c-forward-token-2 1)	; over "struct ".
-	      (cond
-	       ((looking-at c-symbol-key)	; "struct foo { ..."
-		(buffer-substring-no-properties key-pos (match-end 0)))
-	       ((eq (char-after) ?{)	; "struct { ... } foo"
-		(when (c-go-list-forward)
-		  (c-forward-syntactic-ws)
-		  (when (looking-at c-symbol-key) ; a bit bogus - there might
-						  ; be several identifiers.
-		    (match-string-no-properties 0)))))))
+	 (setq pos (point))
+	 (setq where (and (not (save-excursion (c-beginning-of-macro)))
+			  (c-where-wrt-brace-construct)))
+	 (when (and (not (eq where 'at-header))
+		    (or (and near
+			     (memq where
+				   '(at-function-end outwith-function))
+			     ;; Check we're not inside a declaration without
+			     ;; braces.
+			     (save-excursion
+			       (memq (car (c-beginning-of-decl-1 lim))
+				     '(previous label))))
+			(eq (car (c-beginning-of-decl-1 lim)) 'previous)
+			(= pos (point))))
+	   ;; We moved back over the previous defun.  Skip to the next
+	   ;; one.  Not using c-forward-syntactic-ws here since we
+	   ;; should not skip a macro.  We can also be directly after
+	   ;; the block in a `c-opt-block-decls-with-vars-key'
+	   ;; declaration, but then we won't move significantly far
+	   ;; here.
+	   (goto-char pos)
+	   (c-forward-comments)
 
-	   ((looking-at "DEFUN\\s-*(") ;"DEFUN\\_>") think of XEmacs!
-	    ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
-	    ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
-	    (down-list 1)
-	    (c-forward-syntactic-ws)
-	    (when (eq (char-after) ?\")
-	      (forward-sexp 1)
-	      (c-forward-token-2))	; over the comma and following WS.
-	    (buffer-substring-no-properties
-	     (point)
-	     (progn
-	       (c-forward-token-2)
-	       (when (looking-at ":")  ; CLISP: DEFUN(PACKAGE:LISP-SYMBOL,...)
-		 (skip-chars-forward "^,"))
-	       (c-backward-syntactic-ws)
-	       (point))))
+	   (when (and near (c-beginning-of-macro))
+	     (throw 'exit
+		    (cons (point)
+			  (save-excursion
+			    (c-end-of-macro)
+			    (forward-line 1)
+			    (point))))))
 
-	   ((looking-at "DEF[a-zA-Z0-9_]* *( *\\([^, ]*\\) *,")
-	    ;; DEFCHECKER(sysconf_arg,prefix=_SC,default=, ...) ==> sysconf_arg
-	    ;; DEFFLAGSET(syslog_opt_flags,LOG_PID ...) ==> syslog_opt_flags
-	    (match-string-no-properties 1))
+	 (if (eobp) (throw 'exit nil))
 
-	   ;; Objc selectors.
-	   ((assq 'objc-method-intro (c-guess-basic-syntax))
-	    (let ((bound (save-excursion (c-end-of-statement) (point)))
-		  (kw-re (concat "\\(?:" c-symbol-key "\\)?:"))
-		  (stretches))
-	      (when (c-syntactic-re-search-forward c-symbol-key bound t t t)
-		(push (match-string-no-properties 0) stretches)
-		(while (c-syntactic-re-search-forward kw-re bound t t t)
-		  (push (match-string-no-properties 0) stretches)))
-	      (apply 'concat (nreverse stretches))))
+	 ;; Check if `c-beginning-of-decl-1' put us after the block in a
+	 ;; declaration that doesn't end there.  We're searching back and
+	 ;; forth over the block here, which can be expensive.
+	 (setq pos (point))
+	 (if (and c-opt-block-decls-with-vars-key
+		  (progn
+		    (c-backward-syntactic-ws)
+		    (eq (char-before) ?}))
+		  (eq (car (c-beginning-of-decl-1))
+		      'previous)
+		  (save-excursion
+		    (c-end-of-decl-1)
+		    (and (> (point) pos)
+			 (setq end-pos (point)))))
+	     nil
+	   (goto-char pos))
 
-	   (t
-	    ;; Normal function or initializer.
-	    (when (c-syntactic-re-search-forward "[{(]" nil t)
-	      (backward-char)
-	      (c-backward-syntactic-ws)
-	      (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
-		(c-backward-token-2)
-		(c-backward-syntactic-ws))
-	      (setq name-end (point))
-	      (c-back-over-compound-identifier)
-	      (and (looking-at c-symbol-start)
-		   (buffer-substring-no-properties (point) name-end))))))))))
+	 (if (or (and (not near) (> (point) start))
+		 (not (eq (c-where-wrt-brace-construct) 'at-header)))
+	     nil
+
+	   ;; Try to be line oriented; position the limits at the
+	   ;; closest preceding boi, and after the next newline, that
+	   ;; isn't inside a comment, but if we hit a neighboring
+	   ;; declaration then we instead use the exact declaration
+	   ;; limit in that direction.
+	   (cons (progn
+		   (setq pos (point))
+		   (while (and (/= (point) (c-point 'boi))
+			       (c-backward-single-comment)))
+		   (if (/= (point) (c-point 'boi))
+		       pos
+		     (point)))
+		 (progn
+		   (if end-pos
+		       (goto-char end-pos)
+		     (c-end-of-decl-1))
+		   (setq pos (point))
+		   (while (and (not (bolp))
+			       (not (looking-at "\\s *$"))
+			       (c-forward-single-comment)))
+		   (cond ((bolp)
+			  (point))
+			 ((looking-at "\\s *$")
+			  (forward-line 1)
+			  (point))
+			 (t
+			  pos))))))
+       (and (not near)
+	    (goto-char (point-min))
+	    (c-forward-decl-or-cast-1 -1 nil nil)
+	    (eq (char-after) ?\{)
+	    (cons (point-min) (point-max)))))))
 
 (defun c-declaration-limits (near)
   ;; Return a cons of the beginning and end positions of the current
@@ -1918,138 +2311,70 @@ with a brace block."
   ;; declaration.
   ;;
   ;; This function might do hidden buffer changes.
-  (save-excursion
-    (save-restriction
-      (let ((start (point))
-	    (paren-state (c-parse-state))
-	    lim pos end-pos where)
-	;; Narrow enclosing brace blocks out, as required by the values of
-	;; `c-defun-tactic', `near', and the position of point.
-	(when (eq c-defun-tactic 'go-outward)
-	  (let ((bounds
-		 (save-restriction
-		   (if (and (not (save-excursion (c-beginning-of-macro)))
-			    (save-restriction
-			      (c-narrow-to-most-enclosing-decl-block)
-			      (memq (c-where-wrt-brace-construct)
-				    '(at-function-end outwith-function)))
-			    (not near))
-		       (c-narrow-to-most-enclosing-decl-block nil 2)
-		     (c-narrow-to-most-enclosing-decl-block))
-		   (cons (point-min) (point-max)))))
-	    (narrow-to-region (car bounds) (cdr bounds))))
-	(setq paren-state (c-parse-state))
+  (save-restriction
+    ;; Narrow enclosing brace blocks out, as required by the values of
+    ;; `c-defun-tactic', `near', and the position of point.
+    (when (eq c-defun-tactic 'go-outward)
+      (let ((bounds
+	     (save-restriction
+	       (if (and (not (save-excursion (c-beginning-of-macro)))
+			(save-restriction
+			  (c-narrow-to-most-enclosing-decl-block)
+			  (memq (c-where-wrt-brace-construct)
+				'(at-function-end outwith-function)))
+			(not near))
+		   (c-narrow-to-most-enclosing-decl-block nil 2)
+		 (c-narrow-to-most-enclosing-decl-block))
+	       (cons (point-min) (point-max)))))
+	(narrow-to-region (car bounds) (cdr bounds))))
+    (c-declaration-limits-1 near)))
 
-	(or
-	 ;; Note: Some code duplication in `c-beginning-of-defun' and
-	 ;; `c-end-of-defun'.
-	 (catch 'exit
-	   (unless (c-safe
-		     (goto-char (c-least-enclosing-brace paren-state))
-		     ;; If we moved to the outermost enclosing paren
-		     ;; then we can use c-safe-position to set the
-		     ;; limit. Can't do that otherwise since the
-		     ;; earlier paren pair on paren-state might very
-		     ;; well be part of the declaration we should go
-		     ;; to.
-		     (setq lim (c-safe-position (point) paren-state))
-		     t)
-	     ;; At top level.  Make sure we aren't inside a literal.
-	     (setq pos (c-literal-start
-			(c-safe-position (point) paren-state)))
-	     (if pos (goto-char pos)))
+(defun c-defun-name-and-limits (near)
+  ;; Return a cons of the name and limits (itself a cons) of the current
+  ;; top-level declaration or macro, or nil of there is none.
+  ;;
+  ;; If `c-defun-tactic' is 'go-outward, we return the name and limits of the
+  ;; most tightly enclosing declaration or macro.  Otherwise, we return that
+  ;; at the file level.
+  (save-restriction
+    (widen)
+    (if (eq c-defun-tactic 'go-outward)
+	(c-save-buffer-state ((paren-state (c-parse-state))
+			      (orig-point-min (point-min))
+			      (orig-point-max (point-max))
+			      lim name limits)
+	  (setq lim (c-widen-to-enclosing-decl-scope
+		     paren-state orig-point-min orig-point-max))
+	  (and lim (setq lim (1- lim)))
+	  (c-while-widening-to-decl-block (not (setq name (c-defun-name-1))) t)
+	  (when name
+	    (setq limits (c-declaration-limits-1 near))
+	    (cons name limits)))
+      (c-save-buffer-state ((name (c-defun-name))
+			    (limits (c-declaration-limits near)))
+	(and name limits (cons name limits))))))
 
-	   (when (c-beginning-of-macro)
-	     (throw 'exit
-		    (cons (point)
-			  (save-excursion
-			    (c-end-of-macro)
-			    (forward-line 1)
-			    (point)))))
-
-	   (setq pos (point))
-	   (setq where (and (not (save-excursion (c-beginning-of-macro)))
-			    (c-where-wrt-brace-construct)))
-	   (when (and (not (eq where 'at-header))
-		      (or (and near
-			       (memq where
-				     '(at-function-end outwith-function)))
-			  (eq (car (c-beginning-of-decl-1 lim)) 'previous)
-			  (= pos (point))))
-	     ;; We moved back over the previous defun.  Skip to the next
-	     ;; one.  Not using c-forward-syntactic-ws here since we
-	     ;; should not skip a macro.  We can also be directly after
-	     ;; the block in a `c-opt-block-decls-with-vars-key'
-	     ;; declaration, but then we won't move significantly far
-	     ;; here.
-	     (goto-char pos)
-	     (c-forward-comments)
-
-	     (when (and near (c-beginning-of-macro))
-	       (throw 'exit
-		      (cons (point)
-			    (save-excursion
-			      (c-end-of-macro)
-			      (forward-line 1)
-			      (point))))))
-
-	   (if (eobp) (throw 'exit nil))
-
-	   ;; Check if `c-beginning-of-decl-1' put us after the block in a
-	   ;; declaration that doesn't end there.  We're searching back and
-	   ;; forth over the block here, which can be expensive.
-	   (setq pos (point))
-	   (if (and c-opt-block-decls-with-vars-key
-		    (progn
-		      (c-backward-syntactic-ws)
-		      (eq (char-before) ?}))
-		    (eq (car (c-beginning-of-decl-1))
-			'previous)
-		    (save-excursion
-		      (c-end-of-decl-1)
-		      (and (> (point) pos)
-			   (setq end-pos (point)))))
-	       nil
-	     (goto-char pos))
-
-	   (if (and (not near) (> (point) start))
-	       nil
-
-	     ;; Try to be line oriented; position the limits at the
-	     ;; closest preceding boi, and after the next newline, that
-	     ;; isn't inside a comment, but if we hit a neighboring
-	     ;; declaration then we instead use the exact declaration
-	     ;; limit in that direction.
-	     (cons (progn
-		     (setq pos (point))
-		     (while (and (/= (point) (c-point 'boi))
-				 (c-backward-single-comment)))
-		     (if (/= (point) (c-point 'boi))
-			 pos
-		       (point)))
-		   (progn
-		     (if end-pos
-			 (goto-char end-pos)
-		       (c-end-of-decl-1))
-		     (setq pos (point))
-		     (while (and (not (bolp))
-				 (not (looking-at "\\s *$"))
-				 (c-forward-single-comment)))
-		     (cond ((bolp)
-			    (point))
-			   ((looking-at "\\s *$")
-			    (forward-line 1)
-			    (point))
-			   (t
-			    pos))))))
-	 (and (not near)
-	      (goto-char (point-min))
-	      (c-forward-decl-or-cast-1 -1 nil nil)
-	      (eq (char-after) ?\{)
-	      (cons (point-min) (point-max))))))))
+(defun c-display-defun-name (&optional arg)
+  "Display the name of the current CC mode defun and the position in it.
+With a prefix arg, push the name onto the kill ring too."
+  (interactive "P")
+  (c-with-string-fences
+   (save-restriction
+     (widen)
+     (c-save-buffer-state ((name-and-limits (c-defun-name-and-limits nil))
+			   (name (car name-and-limits))
+			   (limits (cdr name-and-limits))
+			   (point-bol (c-point 'bol)))
+       (when name
+	 (message "%s.  Line %s/%s." name
+		  (1+ (count-lines (car limits) (max point-bol (car limits))))
+		  (count-lines (car limits) (cdr limits)))
+	 (if arg (kill-new name))
+	 (sit-for 3 t))))))
+(put 'c-display-defun-name 'isearch-scroll t)
 
 (defun c-mark-function ()
-  "Put mark at end of the current top-level declaration or macro, point at beginning.
+  "Put mark at end of current top-level declaration or macro, point at beginning.
 If point is not inside any then the closest following one is
 chosen.  Each successive call of this command extends the marked
 region by one function.
@@ -2061,38 +2386,38 @@ As opposed to \\[c-beginning-of-defun] and \\[c-end-of-defun], this
 function does not require the declaration to contain a brace block."
   (interactive)
 
-  (let (decl-limits case-fold-search)
-    (c-save-buffer-state nil
-      ;; We try to be line oriented, unless there are several
-      ;; declarations on the same line.
-      (if (looking-at c-syntactic-eol)
-	  (c-backward-token-2 1 nil (c-point 'bol)))
-      (setq decl-limits (c-declaration-limits t)))
+  (c-with-string-fences
+   (let (decl-limits case-fold-search)
+     (c-save-buffer-state nil
+       ;; We try to be line oriented, unless there are several
+       ;; declarations on the same line.
+       (if (looking-at c-syntactic-eol)
+	   (c-backward-token-2 1 nil (c-point 'bol)))
+       (setq decl-limits (c-declaration-limits t)))
 
-    (if (not decl-limits)
-	(error "Cannot find any declaration")
-      (let* ((extend-region-p
-	      (and (eq this-command 'c-mark-function)
-		   (eq last-command 'c-mark-function)))
-	     (push-mark-p (and (eq this-command 'c-mark-function)
-			       (not extend-region-p)
-			       (not (c-region-is-active-p)))))
-	(if push-mark-p (push-mark))
-	(if extend-region-p
-	    (progn
-	      (exchange-point-and-mark)
-	      (setq decl-limits (c-declaration-limits t))
-	      (when (not decl-limits)
-		(exchange-point-and-mark)
-		(error "Cannot find any declaration"))
-	      (goto-char (cdr decl-limits))
-	      (exchange-point-and-mark))
-	  (goto-char (car decl-limits))
-	  (push-mark (cdr decl-limits) nil t))))))
+     (if (not decl-limits)
+	 (error "Cannot find any declaration")
+       (let* ((extend-region-p
+	       (and (eq this-command 'c-mark-function)
+		    (eq last-command 'c-mark-function)))
+	      (push-mark-p (and (eq this-command 'c-mark-function)
+				(not extend-region-p)
+				(not (c-region-is-active-p)))))
+	 (if push-mark-p (push-mark))
+	 (if extend-region-p
+	     (progn
+	       (exchange-point-and-mark)
+	       (setq decl-limits (c-declaration-limits t))
+	       (when (not decl-limits)
+		 (exchange-point-and-mark)
+		 (error "Cannot find any declaration"))
+	       (goto-char (cdr decl-limits))
+	       (exchange-point-and-mark))
+	   (goto-char (car decl-limits))
+	   (push-mark (cdr decl-limits) nil t)))))))
 
 (defun c-cpp-define-name ()
   "Return the name of the current CPP macro, or NIL if we're not in one."
-  (interactive)
   (let (case-fold-search)
     (save-excursion
       (and c-opt-cpp-macro-define-start
@@ -2639,10 +2964,13 @@ function does not require the declaration to contain a brace block."
 			 (c-looking-at-special-brace-list)))
 	       (or allow-early-stop (/= here last))
 	       (save-excursion	; Is this a check that we're NOT at top level?
-;;;; NO!  This seems to check that (i) EITHER we're at the top level; OR (ii) The next enclosing
-;;;; level of bracketing is a '{'.  HMM.  Doesn't seem to make sense.
-;;;; 2003/8/8 This might have something to do with the GCC extension "Statement Expressions", e.g.
-;;;; while ({stmt1 ; stmt2 ; exp ;}).  This form excludes such Statement Expressions.
+;;;;  NO!  This seems to check that (i) EITHER we're at the top level;
+;;;;  OR (ii) The next enclosing  level of bracketing is a '{'.  HMM.
+;;;;  Doesn't seem to make sense.
+;;;;  2003/8/8 This might have something to do with the GCC extension
+;;;;  "Statement Expressions", e.g.
+;;;;  while ({stmt1 ; stmt2 ; exp ;}).
+;;;;  This form excludes such Statement Expressions.
 		 (or (not (c-safe (up-list -1) t))
 		     (= (char-after) ?{))))
 	  (goto-char last)
@@ -2723,85 +3051,86 @@ be more \"DWIM:ey\"."
 		     nil t))
   (if (< count 0)
       (c-end-of-statement (- count) lim sentence-flag)
-    (c-save-buffer-state
-	((count (or count 1))
-	 last ; start point for going back ONE chunk.  Updated each chunk movement.
-	 (macro-fence
-	  (save-excursion (and (not (bobp)) (c-beginning-of-macro) (point))))
-	 res				; result from sub-function call
-	 not-bos			; "not beginning-of-statement"
-	 (range (c-collect-line-comments (c-literal-limits lim)))) ; (start.end) of current literal or NIL
+  (c-with-string-fences
+   (c-save-buffer-state
+       ((count (or count 1))
+	last ; start point for going back ONE chunk.  Updated each chunk movement.
+	(macro-fence
+	 (save-excursion (and (not (bobp)) (c-beginning-of-macro) (point))))
+	res				; result from sub-function call
+	not-bos				; "not beginning-of-statement"
+	(range (c-collect-line-comments (c-literal-limits lim)))) ; (start.end) of current literal or NIL
 
-      ;; Go back one statement at each iteration of the following loop.
-      (while (and (/= count 0)
-		  (or (not lim) (> (point) lim)))
-	;; Go back one "chunk" each time round the following loop, stopping
-	;; when we reach a statement boundary, etc.
-	(setq last (point))
-	(while
-	    (cond ; Each arm of this cond returns NIL on reaching a desired
-		  ; statement boundary, non-NIL otherwise.
-	     ((bobp)
-	      (setq count 0)
-	      nil)
+     ;; Go back one statement at each iteration of the following loop.
+     (while (and (/= count 0)
+		 (or (not lim) (> (point) lim)))
+       ;; Go back one "chunk" each time round the following loop, stopping
+       ;; when we reach a statement boundary, etc.
+       (setq last (point))
+       (while
+	   (cond     ; Each arm of this cond returns NIL on reaching a desired
+					; statement boundary, non-NIL otherwise.
+	    ((bobp)
+	     (setq count 0)
+	     nil)
 
-	     (range		   ; point is within or approaching a literal.
-	      (cond
-	       ;; Single line string or sentence-flag is null => skip the
-	       ;; entire literal.
-	       ((or (null sentence-flag)
-		    (c-one-line-string-p range))
-		(goto-char (car range))
-		(setq range (c-ascertain-preceding-literal))
-		;; N.B. The following is essentially testing for an AWK regexp
-		;; at BOS:
-		;; Was the previous non-ws thing an end of statement?
-		(save-excursion
-		  (if macro-fence
-		      (c-backward-comments)
-		    (c-backward-syntactic-ws))
-		  (not (or (bobp) (c-after-statement-terminator-p)))))
+	    (range		   ; point is within or approaching a literal.
+	     (cond
+	      ;; Single line string or sentence-flag is null => skip the
+	      ;; entire literal.
+	      ((or (null sentence-flag)
+		   (c-one-line-string-p range))
+	       (goto-char (car range))
+	       (setq range (c-ascertain-preceding-literal))
+	       ;; N.B. The following is essentially testing for an AWK regexp
+	       ;; at BOS:
+	       ;; Was the previous non-ws thing an end of statement?
+	       (save-excursion
+		 (if macro-fence
+		     (c-backward-comments)
+		   (c-backward-syntactic-ws))
+		 (not (or (bobp) (c-after-statement-terminator-p)))))
 
-	       ;; Comment inside a statement or a multi-line string.
-	       (t (when (setq res ; returns non-nil when we go out of the literal
-			      (if (eq (c-literal-type range) 'string)
-				  (c-beginning-of-sentence-in-string range)
-				(c-beginning-of-sentence-in-comment range)))
-		    (setq range (c-ascertain-preceding-literal)))
-		  res)))
+	      ;; Comment inside a statement or a multi-line string.
+	      (t (when (setq res ; returns non-nil when we go out of the literal
+			     (if (eq (c-literal-type range) 'string)
+				 (c-beginning-of-sentence-in-string range)
+			       (c-beginning-of-sentence-in-comment range)))
+		   (setq range (c-ascertain-preceding-literal)))
+		 res)))
 
-	     ;; Non-literal code.
-	     (t (setq res (c-back-over-illiterals macro-fence))
-		(setq not-bos	       ; "not reached beginning-of-statement".
-		      (or (= (point) last)
-			  (memq (char-after) '(?\) ?\}))
-			  (and
-			   (car res)
-			   ;; We're at a tentative BOS.  The next form goes
-			   ;; back over WS looking for an end of previous
-			   ;; statement.
-			   (not (save-excursion
-				  (if macro-fence
-				      (c-backward-comments)
-				    (c-backward-syntactic-ws))
-				  (or (bobp) (c-after-statement-terminator-p)))))))
-		;; Are we about to move backwards into or out of a
-		;; preprocessor command?  If so, locate its beginning.
-		(when (eq (cdr res) 'macro-boundary)
-		  (save-excursion
-		    (beginning-of-line)
-		    (setq macro-fence
-			  (and (not (bobp))
-			       (progn (c-skip-ws-backward) (c-beginning-of-macro))
-			       (point)))))
-		;; Are we about to move backwards into a literal?
-		(when (memq (cdr res) '(macro-boundary literal))
-		  (setq range (c-ascertain-preceding-literal)))
-		not-bos))
-	  (setq last (point)))
+	    ;; Non-literal code.
+	    (t (setq res (c-back-over-illiterals macro-fence))
+	       (setq not-bos	       ; "not reached beginning-of-statement".
+		     (or (= (point) last)
+			 (memq (char-after) '(?\) ?\}))
+			 (and
+			  (car res)
+			  ;; We're at a tentative BOS.  The next form goes
+			  ;; back over WS looking for an end of previous
+			  ;; statement.
+			  (not (save-excursion
+				 (if macro-fence
+				     (c-backward-comments)
+				   (c-backward-syntactic-ws))
+				 (or (bobp) (c-after-statement-terminator-p)))))))
+	       ;; Are we about to move backwards into or out of a
+	       ;; preprocessor command?  If so, locate its beginning.
+	       (when (eq (cdr res) 'macro-boundary)
+		 (save-excursion
+		   (beginning-of-line)
+		   (setq macro-fence
+			 (and (not (bobp))
+			      (progn (c-skip-ws-backward) (c-beginning-of-macro))
+			      (point)))))
+	       ;; Are we about to move backwards into a literal?
+	       (when (memq (cdr res) '(macro-boundary literal))
+		 (setq range (c-ascertain-preceding-literal)))
+	       not-bos))
+	 (setq last (point)))
 
-	(if (/= count 0) (setq count (1- count))))
-      (c-keep-region-active))))
+       (if (/= count 0) (setq count (1- count))))
+     (c-keep-region-active)))))
 
 (defun c-end-of-statement (&optional count lim sentence-flag)
   "Go to the end of the innermost C statement.
@@ -2819,78 +3148,79 @@ sentence motion in or near comments and multiline strings."
   (setq count (or count 1))
   (if (< count 0) (c-beginning-of-statement (- count) lim sentence-flag)
 
-    (c-save-buffer-state
-	(here ; start point for going forward ONE statement.  Updated each statement.
-	 (macro-fence
-	  (save-excursion
-	    (and (not (eobp)) (c-beginning-of-macro)
-		 (progn (c-end-of-macro) (point)))))
-	 res
-	 (range (c-collect-line-comments (c-literal-limits lim)))) ; (start.end) of current literal or NIL
+  (c-with-string-fences
+   (c-save-buffer-state
+       (here ; start point for going forward ONE statement.  Updated each statement.
+	(macro-fence
+	 (save-excursion
+	   (and (not (eobp)) (c-beginning-of-macro)
+		(progn (c-end-of-macro) (point)))))
+	res
+	(range (c-collect-line-comments (c-literal-limits lim)))) ; (start.end) of current literal or NIL
 
-      ;; Go back/forward one statement at each iteration of the following loop.
-      (while (and (/= count 0)
-		  (or (not lim) (< (point) lim)))
-	(setq here (point))		; ONLY HERE is HERE updated
+     ;; Go back/forward one statement at each iteration of the following loop.
+     (while (and (/= count 0)
+		 (or (not lim) (< (point) lim)))
+       (setq here (point))		; ONLY HERE is HERE updated
 
-	;; Go forward one "chunk" each time round the following loop, stopping
-	;; when we reach a statement boundary, etc.
-	(while
-	    (cond    ; Each arm of this cond returns NIL on reaching a desired
-		     ; statement boundary, non-NIL otherwise.
-	     ((eobp)
-	      (setq count 0)
-	      nil)
+       ;; Go forward one "chunk" each time round the following loop, stopping
+       ;; when we reach a statement boundary, etc.
+       (while
+	   (cond     ; Each arm of this cond returns NIL on reaching a desired
+					; statement boundary, non-NIL otherwise.
+	    ((eobp)
+	     (setq count 0)
+	     nil)
 
-	     (range			; point is within a literal.
-	      (cond
-	       ;; sentence-flag is null => skip the entire literal.
-	       ;; or a Single line string.
-	       ((or (null sentence-flag)
-		    (c-one-line-string-p range))
-		(goto-char (cdr range))
-		(setq range (c-ascertain-following-literal))
-		;; Is there a virtual semicolon here (e.g. for AWK)?
-		(not (c-at-vsemi-p)))
+	    (range			; point is within a literal.
+	     (cond
+	      ;; sentence-flag is null => skip the entire literal.
+	      ;; or a Single line string.
+	      ((or (null sentence-flag)
+		   (c-one-line-string-p range))
+	       (goto-char (cdr range))
+	       (setq range (c-ascertain-following-literal))
+	       ;; Is there a virtual semicolon here (e.g. for AWK)?
+	       (not (c-at-vsemi-p)))
 
-	       ;; Comment or multi-line string.
-	       (t (when (setq res ; gets non-nil when we go out of the literal
-			      (if (eq (c-literal-type range) 'string)
-				  (c-end-of-sentence-in-string range)
-				(c-end-of-sentence-in-comment range)))
-		    (setq range (c-ascertain-following-literal)))
-		  ;; If we've just come forward out of a literal, check for
-		  ;; vsemi.  (N.B. AWK can't have a vsemi after a comment, but
-		  ;; some other language may do in the future)
-		  (and res
-		       (not (c-at-vsemi-p))))))
+	      ;; Comment or multi-line string.
+	      (t (when (setq res  ; gets non-nil when we go out of the literal
+			     (if (eq (c-literal-type range) 'string)
+				 (c-end-of-sentence-in-string range)
+			       (c-end-of-sentence-in-comment range)))
+		   (setq range (c-ascertain-following-literal)))
+		 ;; If we've just come forward out of a literal, check for
+		 ;; vsemi.  (N.B. AWK can't have a vsemi after a comment, but
+		 ;; some other language may do in the future)
+		 (and res
+		      (not (c-at-vsemi-p))))))
 
-	     ;; Non-literal code.
-	     (t (setq res (c-forward-over-illiterals macro-fence
-						     (> (point) here)))
-		;; Are we about to move forward into or out of a
-		;; preprocessor command?
-		(when (eq (cdr res) 'macro-boundary)
-		  (setq macro-fence
-			(save-excursion
-			  (if macro-fence
-			      (progn
-				(end-of-line)
-				(and (not (eobp))
-				     (progn (c-skip-ws-forward)
-					    (c-beginning-of-macro))
-				     (progn (c-end-of-macro)
-					    (point))))
-			    (and (not (eobp))
-				 (c-beginning-of-macro)
-				 (progn (c-end-of-macro) (point)))))))
-		;; Are we about to move forward into a literal?
-		(when (memq (cdr res) '(macro-boundary literal))
-		  (setq range (c-ascertain-following-literal)))
-		(car res))))
+	    ;; Non-literal code.
+	    (t (setq res (c-forward-over-illiterals macro-fence
+						    (> (point) here)))
+	       ;; Are we about to move forward into or out of a
+	       ;; preprocessor command?
+	       (when (eq (cdr res) 'macro-boundary)
+		 (setq macro-fence
+		       (save-excursion
+			 (if macro-fence
+			     (progn
+			       (end-of-line)
+			       (and (not (eobp))
+				    (progn (c-skip-ws-forward)
+					   (c-beginning-of-macro))
+				    (progn (c-end-of-macro)
+					   (point))))
+			   (and (not (eobp))
+				(c-beginning-of-macro)
+				(progn (c-end-of-macro) (point)))))))
+	       ;; Are we about to move forward into a literal?
+	       (when (memq (cdr res) '(macro-boundary literal))
+		 (setq range (c-ascertain-following-literal)))
+	       (car res))))
 
-	(if (/= count 0) (setq count (1- count))))
-      (c-keep-region-active))))
+       (if (/= count 0) (setq count (1- count))))
+     (c-keep-region-active)))))
 
 
 ;; set up electric character functions to work with pending-del,
@@ -3074,12 +3404,12 @@ directives."
 
 (defun c-backward-conditional (count &optional target-depth with-else)
   "Move back across a preprocessor conditional, leaving mark behind.
-A prefix argument acts as a repeat count.  With a negative argument,
+A prefix argument acts as a repeat COUNT.  With a negative argument,
 move forward across a preprocessor conditional.
 
 The optional arguments TARGET-DEPTH and WITH-ELSE are historical,
 and have the same meanings as in `c-scan-conditionals'.  If you
-are calling c-forward-conditional from a program, you might want
+are calling `c-forward-conditional' from a program, you might want
 to call `c-scan-conditionals' directly instead."
   (interactive "p")
   (let ((new-point (c-scan-conditionals (- count) target-depth with-else)))
@@ -3092,7 +3422,7 @@ to call `c-scan-conditionals' directly instead."
 A prefix argument acts as a repeat count.  With a negative argument,
 move backward across a preprocessor conditional.
 
-If there aren't enough conditionals after \(or before) point, an
+If there aren't enough conditionals after (or before) point, an
 error is signaled.
 
 \"#elif\" is treated like \"#else\" followed by \"#if\", except that
@@ -3105,7 +3435,8 @@ to call `c-scan-conditionals' directly instead."
   (interactive "p")
   (let ((new-point (c-scan-conditionals count target-depth with-else)))
     (push-mark)
-    (goto-char new-point)))
+    (goto-char new-point))
+  (c-keep-region-active))
 
 (defun c-scan-conditionals (count &optional target-depth with-else)
   "Scan forward across COUNT preprocessor conditionals.
@@ -3228,127 +3559,130 @@ prefix argument is equivalent to -1.
   depending on the variable `indent-tabs-mode'."
 
   (interactive "P")
-  (let ((indent-function
-	 (if c-syntactic-indentation
-	     (symbol-function 'indent-according-to-mode)
-	   (lambda ()
-	     (let ((c-macro-start c-macro-start)
-		   (steps (if (equal arg '(4))
-			      -1
-			    (prefix-numeric-value arg))))
-	       (c-shift-line-indentation (* steps c-basic-offset))
-	       (when (and c-auto-align-backslashes
-			  (save-excursion
-			    (end-of-line)
-			    (eq (char-before) ?\\))
-			  (c-query-and-set-macro-start))
-		 ;; Realign the line continuation backslash if inside a macro.
-		 (c-backslash-region (point) (point) nil t)))
-	     ))))
-    (if (and c-syntactic-indentation arg)
-	;; If c-syntactic-indentation and got arg, always indent this
-	;; line as C and shift remaining lines of expression the same
-	;; amount.
-	(let ((shift-amt (save-excursion
-			   (back-to-indentation)
-			   (current-column)))
-	      beg end)
-	  (c-indent-line)
-	  (setq shift-amt (- (save-excursion
-			       (back-to-indentation)
-			       (current-column))
-			     shift-amt))
-	  (save-excursion
-	    (if (eq c-tab-always-indent t)
-		(beginning-of-line))	; FIXME!!! What is this here for?  ACM 2005/10/31
-	    (setq beg (point))
-	    (c-forward-sexp 1)
-	    (setq end (point))
-	    (goto-char beg)
-	    (forward-line 1)
-	    (setq beg (point)))
-	  (if (> end beg)
-	      (indent-code-rigidly beg end shift-amt "#")))
-      ;; Else use c-tab-always-indent to determine behavior.
-      (cond
-       ;; CASE 1: indent when at column zero or in line's indentation,
-       ;; otherwise insert a tab
-       ((not c-tab-always-indent)
-	(if (save-excursion
-	      (skip-chars-backward " \t")
-	      (not (bolp)))
-	    (funcall c-insert-tab-function)
-	  (funcall indent-function)))
-       ;; CASE 2: just indent the line
-       ((eq c-tab-always-indent t)
-	(funcall indent-function))
-       ;; CASE 3: if in a literal, insert a tab, but always indent the
-       ;; line
-       (t
-	(if (c-save-buffer-state () (c-in-literal))
-	    (funcall c-insert-tab-function))
-	(funcall indent-function)
-	)))))
+  (c-with-string-fences
+   (let ((indent-function
+	  (if c-syntactic-indentation
+	      (symbol-function 'indent-according-to-mode)
+	    (lambda ()
+	      (let ((c-macro-start c-macro-start)
+		    (steps (if (equal arg '(4))
+			       -1
+			     (prefix-numeric-value arg))))
+		(c-shift-line-indentation (* steps c-basic-offset))
+		(when (and c-auto-align-backslashes
+			   (save-excursion
+			     (end-of-line)
+			     (eq (char-before) ?\\))
+			   (c-query-and-set-macro-start))
+		  ;; Realign the line continuation backslash if inside a macro.
+		  (c-backslash-region (point) (point) nil t)))
+	      ))))
+     (if (and c-syntactic-indentation arg)
+	 ;; If c-syntactic-indentation and got arg, always indent this
+	 ;; line as C and shift remaining lines of expression the same
+	 ;; amount.
+	 (let ((shift-amt (save-excursion
+			    (back-to-indentation)
+			    (current-column)))
+	       beg end)
+	   (c-indent-line)
+	   (setq shift-amt (- (save-excursion
+				(back-to-indentation)
+				(current-column))
+			      shift-amt))
+	   (save-excursion
+	     (if (eq c-tab-always-indent t)
+		 (beginning-of-line)) ; FIXME!!! What is this here for?  ACM 2005/10/31
+	     (setq beg (point))
+	     (c-forward-sexp 1)
+	     (setq end (point))
+	     (goto-char beg)
+	     (forward-line 1)
+	     (setq beg (point)))
+	   (if (> end beg)
+	       (indent-code-rigidly beg end shift-amt "#")))
+       ;; Else use c-tab-always-indent to determine behavior.
+       (cond
+	;; CASE 1: indent when at column zero or in line's indentation,
+	;; otherwise insert a tab
+	((not c-tab-always-indent)
+	 (if (save-excursion
+	       (skip-chars-backward " \t")
+	       (not (bolp)))
+	     (funcall c-insert-tab-function)
+	   (funcall indent-function)))
+	;; CASE 2: just indent the line
+	((eq c-tab-always-indent t)
+	 (funcall indent-function))
+	;; CASE 3: if in a literal, insert a tab, but always indent the
+	;; line
+	(t
+	 (if (c-save-buffer-state () (c-in-literal))
+	     (funcall c-insert-tab-function))
+	 (funcall indent-function)
+	 ))))))
 
 (defun c-indent-exp (&optional shutup-p)
   "Indent each line in the balanced expression following point syntactically.
 If optional SHUTUP-P is non-nil, no errors are signaled if no
 balanced expression is found."
   (interactive "*P")
-  (let ((here (point-marker))
-	end)
-    (set-marker-insertion-type here t)
-    (unwind-protect
-	(let ((start (save-restriction
-		       ;; Find the closest following open paren that
-		       ;; ends on another line.
-		       (narrow-to-region (point-min) (c-point 'eol))
-		       (let (beg (end (point)))
-			 (while (and (setq beg (c-down-list-forward end))
-				     (setq end (c-up-list-forward beg))))
-			 (and beg
-			      (eq (char-syntax (char-before beg)) ?\()
-			      (1- beg))))))
-	  ;; sanity check
-	  (if (not start)
-	     (unless shutup-p
-	       (error "Cannot find start of balanced expression to indent"))
-	    (goto-char start)
-	    (setq end (c-safe (scan-sexps (point) 1)))
-	    (if (not end)
-		(unless shutup-p
-		  (error "Cannot find end of balanced expression to indent"))
-	      (forward-line)
-	      (if (< (point) end)
-		  (c-indent-region (point) end)))))
-      (goto-char here)
-      (set-marker here nil))))
+  (c-with-string-fences
+   (let ((here (point-marker))
+	 end)
+     (set-marker-insertion-type here t)
+     (unwind-protect
+	 (let ((start (save-restriction
+			;; Find the closest following open paren that
+			;; ends on another line.
+			(narrow-to-region (point-min) (c-point 'eol))
+			(let (beg (end (point)))
+			  (while (and (setq beg (c-down-list-forward end))
+				      (setq end (c-up-list-forward beg))))
+			  (and beg
+			       (eq (char-syntax (char-before beg)) ?\()
+			       (1- beg))))))
+	   ;; sanity check
+	   (if (not start)
+	       (unless shutup-p
+		 (error "Cannot find start of balanced expression to indent"))
+	     (goto-char start)
+	     (setq end (c-safe (scan-sexps (point) 1)))
+	     (if (not end)
+		 (unless shutup-p
+		   (error "Cannot find end of balanced expression to indent"))
+	       (forward-line)
+	       (if (< (point) end)
+		   (c-indent-region (point) end)))))
+       (goto-char here)
+       (set-marker here nil)))))
 
 (defun c-indent-defun ()
   "Indent the current top-level declaration or macro syntactically.
 In the macro case this also has the effect of realigning any line
 continuation backslashes, unless `c-auto-align-backslashes' is nil."
   (interactive "*")
-  (let ((here (point-marker)) decl-limits case-fold-search)
-    (unwind-protect
-	(progn
-	  (c-save-buffer-state nil
-	    ;; We try to be line oriented, unless there are several
-	    ;; declarations on the same line.
-	    (if (looking-at c-syntactic-eol)
-		(c-backward-token-2 1 nil (c-point 'bol))
-	      (c-forward-token-2 0 nil (c-point 'eol)))
-	    (setq decl-limits (c-declaration-limits nil)))
-	  (if decl-limits
-	      (c-indent-region (car decl-limits)
-			       (cdr decl-limits))))
-      (goto-char here)
-      (set-marker here nil))))
+  (c-with-string-fences
+   (let ((here (point-marker)) decl-limits case-fold-search)
+     (unwind-protect
+	 (progn
+	   (c-save-buffer-state nil
+	     ;; We try to be line oriented, unless there are several
+	     ;; declarations on the same line.
+	     (if (looking-at c-syntactic-eol)
+		 (c-backward-token-2 1 nil (c-point 'bol))
+	       (c-forward-token-2 0 nil (c-point 'eol)))
+	     (setq decl-limits (c-declaration-limits nil)))
+	   (if decl-limits
+	       (c-indent-region (car decl-limits)
+				(cdr decl-limits))))
+       (goto-char here)
+       (set-marker here nil)))))
 
 (defun c-indent-region (start end &optional quiet)
-  "Indent syntactically every line whose first char is between START
-and END inclusive.  If the optional argument QUIET is non-nil then no
-syntactic errors are reported, even if `c-report-syntactic-errors' is
+  "Indent syntactically lines whose first char is between START and END inclusive.
+If the optional argument QUIET is non-nil then no syntactic
+errors are reported, even if `c-report-syntactic-errors' is
 non-nil."
   (save-excursion
     (goto-char end)
@@ -3423,9 +3757,10 @@ starting on the current line.
 Otherwise reindent just the current line."
   (interactive
    (list current-prefix-arg (c-region-is-active-p)))
-  (if region
-      (c-indent-region (region-beginning) (region-end))
-    (c-indent-command arg)))
+  (c-with-string-fences
+   (if region
+       (c-indent-region (region-beginning) (region-end))
+     (c-indent-command arg))))
 
 ;; for progress reporting
 (defvar c-progress-info nil)
@@ -3446,7 +3781,7 @@ Otherwise reindent just the current line."
 				    (save-excursion
 				      (goto-char end)
 				      (point-marker))
-				    (nth 1 (current-time))
+				    (time-convert nil 'integer)
 				    context))
       (message "Indenting region..."))
    ))
@@ -3454,7 +3789,7 @@ Otherwise reindent just the current line."
 (defun c-progress-update ()
   (if (not (and c-progress-info c-progress-interval))
       nil
-    (let ((now (nth 1 (current-time)))
+    (let ((now (time-convert nil 'integer))
 	  (start (aref c-progress-info 0))
 	  (end (aref c-progress-info 1))
 	  (lastsecs (aref c-progress-info 2)))
@@ -3918,14 +4253,18 @@ command to conveniently insert and align the necessary backslashes."
 	    ;; `comment-prefix' on a line and indent it to find the
 	    ;; correct column and the correct mix of tabs and spaces.
 	    (setq res
-		  (let (tmp-pre tmp-post)
+		  (let (tmp-pre tmp-post at-close)
 		    (unwind-protect
 			(progn
 
 			  (goto-char (car lit-limits))
 			  (if (looking-at comment-start-regexp)
-			      (goto-char (min (match-end 0)
-					      comment-text-end))
+			      (progn
+				(goto-char (min (match-end 0)
+						comment-text-end))
+				(setq
+				 at-close
+				 (looking-at c-block-comment-ender-regexp)))
 			    (forward-char 2)
 			    (skip-chars-forward " \t"))
 
@@ -3941,8 +4280,13 @@ command to conveniently insert and align the necessary backslashes."
 					   (save-excursion
 					     (skip-chars-backward " \t")
 					     (point))
-					   (point)))))
-
+					   (point))))
+			    ;; If hard up against the comment ender, the
+			    ;; prefix must end in at least two spaces.
+			    (when at-close
+			      (or (string-match "\\s \\s +\\'" comment-prefix)
+				  (setq comment-prefix
+					(concat comment-prefix " ")))))
 			  (setq tmp-pre (point-marker))
 
 			  ;; We insert an extra non-whitespace character
@@ -4503,15 +4847,16 @@ If point is in any other situation, i.e. in normal code, do nothing.
 
 Optional prefix ARG means justify paragraph as well."
   (interactive "*P")
-  (let ((fill-paragraph-function
-	 ;; Avoid infinite recursion.
-	 (if (not (eq fill-paragraph-function 'c-fill-paragraph))
-	     fill-paragraph-function)))
-    (c-mask-paragraph t nil 'fill-paragraph arg))
-  ;; Always return t.  This has the effect that if filling isn't done
-  ;; above, it isn't done at all, and it's therefore effectively
-  ;; disabled in normal code.
-  t)
+  (c-with-string-fences
+   (let ((fill-paragraph-function
+	  ;; Avoid infinite recursion.
+	  (if (not (eq fill-paragraph-function 'c-fill-paragraph))
+	      fill-paragraph-function)))
+     (c-mask-paragraph t nil 'fill-paragraph arg))
+   ;; Always return t.  This has the effect that if filling isn't done
+   ;; above, it isn't done at all, and it's therefore effectively
+   ;; disabled in normal code.
+   t))
 
 (defun c-do-auto-fill ()
   ;; Do automatic filling if not inside a context where it should be
@@ -4543,180 +4888,169 @@ If a fill prefix is specified, it overrides all the above."
   ;; used from auto-fill itself, that's normally disabled to avoid
   ;; unnecessary recursion.
   (interactive)
-  (let ((fill-prefix fill-prefix)
-	(do-line-break
-	 (lambda ()
-	   (delete-horizontal-space)
-	   (if soft
-	       (insert-and-inherit ?\n)
-	     (newline (if allow-auto-fill nil 1)))))
-	;; Already know the literal type and limits when called from
-	;; c-context-line-break.
-	(c-lit-limits c-lit-limits)
-	(c-lit-type c-lit-type)
-	(c-macro-start c-macro-start))
+  (c-with-string-fences
+   (let ((fill-prefix fill-prefix)
+	 (do-line-break
+	  (lambda ()
+	    (delete-horizontal-space)
+	    (if soft
+		(insert-and-inherit ?\n)
+	      (newline (if allow-auto-fill nil 1)))))
+	 ;; Already know the literal type and limits when called from
+	 ;; c-context-line-break.
+	 (c-lit-limits c-lit-limits)
+	 (c-lit-type c-lit-type)
+	 (c-macro-start c-macro-start))
 
-    (c-save-buffer-state ()
-      (when (not (eq c-auto-fill-prefix t))
-	;; Called from do-auto-fill.
-	(unless c-lit-limits
-	  (setq c-lit-limits (c-literal-limits nil nil t)))
-	(unless c-lit-type
-	  (setq c-lit-type (c-literal-type c-lit-limits)))
-	(if (memq (cond ((c-query-and-set-macro-start) 'cpp)
-			((null c-lit-type) 'code)
-			(t c-lit-type))
-		  c-ignore-auto-fill)
-	    (setq fill-prefix t)	; Used as flag in the cond.
-	  (if (and (null c-auto-fill-prefix)
-		   (eq c-lit-type 'c)
-		   (<= (c-point 'bol) (car c-lit-limits)))
-	      ;; The adaptive fill function has generated a prefix, but
-	      ;; we're on the first line in a block comment so it'll be
-	      ;; wrong.  Ignore it to guess a better one below.
-	      (setq fill-prefix nil)
-	    (when (and (eq c-lit-type 'c++)
-		       (not (string-match (concat "\\`[ \t]*"
-						  c-line-comment-starter)
-					  (or fill-prefix ""))))
-	      ;; Kludge: If the function that adapted the fill prefix
-	      ;; doesn't produce the required comment starter for line
-	      ;; comments, then we ignore it.
-	      (setq fill-prefix nil)))
-	  )))
+     (c-save-buffer-state ()
+       (when (not (eq c-auto-fill-prefix t))
+	 ;; Called from do-auto-fill.
+	 (unless c-lit-limits
+	   (setq c-lit-limits (c-literal-limits nil nil t)))
+	 (unless c-lit-type
+	   (setq c-lit-type (c-literal-type c-lit-limits)))
+	 (if (memq (cond ((c-query-and-set-macro-start) 'cpp)
+			 ((null c-lit-type) 'code)
+			 (t c-lit-type))
+		   c-ignore-auto-fill)
+	     (setq fill-prefix t)	; Used as flag in the cond.
+	   (if (and (null c-auto-fill-prefix)
+		    (eq c-lit-type 'c)
+		    (<= (c-point 'bol) (car c-lit-limits)))
+	       ;; The adaptive fill function has generated a prefix, but
+	       ;; we're on the first line in a block comment so it'll be
+	       ;; wrong.  Ignore it to guess a better one below.
+	       (setq fill-prefix nil)
+	     (when (and (eq c-lit-type 'c++)
+			(not (string-match (concat "\\`[ \t]*"
+						   c-line-comment-starter)
+					   (or fill-prefix ""))))
+	       ;; Kludge: If the function that adapted the fill prefix
+	       ;; doesn't produce the required comment starter for line
+	       ;; comments, then we ignore it.
+	       (setq fill-prefix nil)))
+	   )))
 
-    (cond ((eq fill-prefix t)
-	   ;; A call from do-auto-fill which should be ignored.
-	   )
-	  (fill-prefix
-	   ;; A fill-prefix overrides anything.
-	   (funcall do-line-break)
-	   (insert-and-inherit fill-prefix))
-	  ((c-save-buffer-state ()
-	     (unless c-lit-limits
-	       (setq c-lit-limits (c-literal-limits)))
-	     (unless c-lit-type
-	       (setq c-lit-type (c-literal-type c-lit-limits)))
-	     (memq c-lit-type '(c c++)))
-	   ;; Some sort of comment.
-	   (if (or comment-multi-line
-		   (save-excursion
-		     (goto-char (car c-lit-limits))
-		     (end-of-line)
-		     (< (point) (cdr c-lit-limits))))
-	       ;; Inside a comment that should be continued.
-	       (let ((fill (c-save-buffer-state nil
-			     (c-guess-fill-prefix
-			      (setq c-lit-limits
-				    (c-collect-line-comments c-lit-limits))
-			      c-lit-type)))
-		     (pos (point))
-		     (start-col (current-column))
-		     (comment-text-end
-		      (or (and (eq c-lit-type 'c)
-			       (save-excursion
-				 (goto-char (- (cdr c-lit-limits) 2))
-				 (if (looking-at "\\*/") (point))))
-			  (cdr c-lit-limits))))
-		 ;; Skip forward past the fill prefix in case
-		 ;; we're standing in it.
-		 ;;
-		 ;; FIXME: This doesn't work well in cases like
-		 ;;
-		 ;; /* Bla bla bla bla bla
-		 ;;         bla bla
-		 ;;
-		 ;; If point is on the 'B' then the line will be
-		 ;; broken after "Bla b".
-		 ;;
-		 ;; If we have an empty comment, /*   */, the next
-		 ;; lot of code pushes point to the */.  We fix
-		 ;; this by never allowing point to end up to the
-		 ;; right of where it started.
-		 (while (and (< (current-column) (cdr fill))
-			     (not (eolp)))
-		   (forward-char 1))
-		 (if (and (> (point) comment-text-end)
-			  (> (c-point 'bol) (car c-lit-limits)))
-		     (progn
-		       ;; The skip takes us out of the (block)
-		       ;; comment; insert the fill prefix at bol
-		       ;; instead and keep the position.
-		       (setq pos (copy-marker pos t))
-		       (beginning-of-line)
-		       (insert-and-inherit (car fill))
-		       (if soft (insert-and-inherit ?\n) (newline 1))
-		       (goto-char pos)
-		       (set-marker pos nil))
-		   ;; Don't break in the middle of a comment starter
-		   ;; or ender.
-		   (cond ((> (point) comment-text-end)
-			  (goto-char comment-text-end))
-			 ((< (point) (+ (car c-lit-limits) 2))
-			  (goto-char (+ (car c-lit-limits) 2))))
-		   (funcall do-line-break)
-		   (insert-and-inherit (car fill))
-		   (if (> (current-column) start-col)
-		       (move-to-column start-col)))) ; can this hit the
-					             ; middle of a TAB?
-	     ;; Inside a comment that should be broken.
-	     (let ((comment-start comment-start)
-		   (comment-end comment-end)
-		   col)
-	       (if (eq c-lit-type 'c)
-		   (unless (string-match "[ \t]*/\\*" comment-start)
-		     (setq comment-start "/* " comment-end " */"))
-		 (unless (string-match "[ \t]*//" comment-start)
-		   (setq comment-start "// " comment-end "")))
-	       (setq col (save-excursion
-			   (back-to-indentation)
-			   (current-column)))
-	       (funcall do-line-break)
-	       (when (and comment-end (not (equal comment-end "")))
-		 (forward-char -1)
-		 (insert-and-inherit comment-end)
-		 (forward-char 1))
-	       ;; c-comment-indent may look at the current
-	       ;; indentation, so let's start out with the same
-	       ;; indentation as the previous one.
-	       (indent-to col)
-	       (insert-and-inherit comment-start)
-	       (indent-for-comment))))
-	  ((c-query-and-set-macro-start)
-	   ;; In a macro.
-	   (unless (looking-at "[ \t]*\\\\$")
-	     ;; Do not clobber the alignment of the line continuation
-	     ;; slash; c-backslash-region might look at it.
-	     (delete-horizontal-space))
-	   ;; Got an asymmetry here: In normal code this command
-	   ;; doesn't indent the next line syntactically, and otoh a
-	   ;; normal syntactically indenting newline doesn't continue
-	   ;; the macro.
-	   (c-newline-and-indent (if allow-auto-fill nil 1)))
-	  (t
-	   ;; Somewhere else in the code.
-	   (let ((col (save-excursion
+     (cond ((eq fill-prefix t)
+	    ;; A call from do-auto-fill which should be ignored.
+	    )
+	   (fill-prefix
+	    ;; A fill-prefix overrides anything.
+	    (funcall do-line-break)
+	    (insert-and-inherit fill-prefix))
+	   ((c-save-buffer-state ()
+	      (unless c-lit-limits
+		(setq c-lit-limits (c-literal-limits)))
+	      (unless c-lit-type
+		(setq c-lit-type (c-literal-type c-lit-limits)))
+	      (memq c-lit-type '(c c++)))
+	    ;; Some sort of comment.
+	    (if (or comment-multi-line
+		    (save-excursion
+		      (goto-char (car c-lit-limits))
+		      (end-of-line)
+		      (< (point) (cdr c-lit-limits))))
+		;; Inside a comment that should be continued.
+		(let ((fill (c-save-buffer-state nil
+			      (c-guess-fill-prefix
+			       (setq c-lit-limits
+				     (c-collect-line-comments c-lit-limits))
+			       c-lit-type)))
+		      (pos (point))
+		      (comment-text-end
+		       (or (and (eq c-lit-type 'c)
+				(save-excursion
+				  (goto-char (- (cdr c-lit-limits) 2))
+				  (if (looking-at "\\*/") (point))))
+			   (cdr c-lit-limits))))
+		  ;; Skip forward past the fill prefix in case
+		  ;; we're standing in it.
+		  ;;
+		  ;; FIXME: This doesn't work well in cases like
+		  ;;
+		  ;; /* Bla bla bla bla bla
+		  ;;         bla bla
+		  ;;
+		  ;; If point is on the 'B' then the line will be
+		  ;; broken after "Bla b".
+		  ;;
+		  ;; If we have an empty comment, /*   */, the next
+		  ;; lot of code pushes point to the */.  We fix
+		  ;; this by never allowing point to end up to the
+		  ;; right of where it started.
+		  (while (and (< (current-column) (cdr fill))
+			      (not (eolp)))
+		    (forward-char 1))
+		  (if (and (> (point) comment-text-end)
+			   (> (c-point 'bol) (car c-lit-limits)))
+		      (progn
+			;; The skip takes us out of the (block)
+			;; comment; insert the fill prefix at bol
+			;; instead and keep the position.
+			(setq pos (copy-marker pos t))
 			(beginning-of-line)
-			(while (and (looking-at "[ \t]*\\\\?$")
-				    (= (forward-line -1) 0)))
-			(current-indentation))))
-	     (funcall do-line-break)
-	     (indent-to col))))))
+			(insert-and-inherit (car fill))
+			(if soft (insert-and-inherit ?\n) (newline 1))
+			(goto-char pos)
+			(set-marker pos nil))
+		    ;; Don't break in the middle of a comment starter
+		    ;; or ender.
+		    (cond ((> (point) comment-text-end)
+			   (goto-char comment-text-end))
+			  ((< (point) (+ (car c-lit-limits) 2))
+			   (goto-char (+ (car c-lit-limits) 2))))
+		    (funcall do-line-break)
+		    (insert-and-inherit (car fill))
+		    (if (and (looking-at c-block-comment-ender-regexp)
+			     (memq (char-before) '(?\  ?\t)))
+			(backward-char)))) ; can this hit the
+					; middle of a TAB?
+	      ;; Inside a comment that should be broken.
+	      (let ((comment-start comment-start)
+		    (comment-end comment-end)
+		    col)
+		(if (eq c-lit-type 'c)
+		    (unless (string-match "[ \t]*/\\*" comment-start)
+		      (setq comment-start "/* " comment-end " */"))
+		  (unless (string-match "[ \t]*//" comment-start)
+		    (setq comment-start "// " comment-end "")))
+		(setq col (save-excursion
+			    (back-to-indentation)
+			    (current-column)))
+		(funcall do-line-break)
+		(when (and comment-end (not (equal comment-end "")))
+		  (forward-char -1)
+		  (insert-and-inherit comment-end)
+		  (forward-char 1))
+		;; c-comment-indent may look at the current
+		;; indentation, so let's start out with the same
+		;; indentation as the previous one.
+		(indent-to col)
+		(insert-and-inherit comment-start)
+		(indent-for-comment))))
+	   ((c-query-and-set-macro-start)
+	    ;; In a macro.
+	    (unless (looking-at "[ \t]*\\\\$")
+	      ;; Do not clobber the alignment of the line continuation
+	      ;; slash; c-backslash-region might look at it.
+	      (delete-horizontal-space))
+	    ;; Got an asymmetry here: In normal code this command
+	    ;; doesn't indent the next line syntactically, and otoh a
+	    ;; normal syntactically indenting newline doesn't continue
+	    ;; the macro.
+	    (c-newline-and-indent (if allow-auto-fill nil 1)))
+	   (t
+	    ;; Somewhere else in the code.
+	    (let ((col (save-excursion
+			 (beginning-of-line)
+			 (while (and (looking-at "[ \t]*\\\\?$")
+				     (= (forward-line -1) 0)))
+			 (current-indentation))))
+	      (funcall do-line-break)
+	      (indent-to col)))))))
 
 (defalias 'c-comment-line-break-function 'c-indent-new-comment-line)
 (make-obsolete 'c-comment-line-break-function 'c-indent-new-comment-line "21.1")
-
-;; advice for indent-new-comment-line for older Emacsen
-(unless (boundp 'comment-line-break-function)
-  (defvar c-inside-line-break-advice nil)
-  (defadvice indent-new-comment-line (around c-line-break-advice
-					     activate preactivate)
-    "Call `c-indent-new-comment-line' if in CC Mode."
-    (if (or c-inside-line-break-advice
-	    (not c-buffer-is-cc-mode))
-	ad-do-it
-      (let ((c-inside-line-break-advice t))
-	(c-indent-new-comment-line (ad-get-arg 0))))))
 
 (defun c-context-line-break ()
   "Do a line break suitable to the context.
@@ -4740,63 +5074,65 @@ When point is inside a string, only insert a backslash when it is also
 inside a preprocessor directive."
 
   (interactive "*")
-  (let* (c-lit-limits c-lit-type
-	 (c-macro-start c-macro-start)
-	 case-fold-search)
+  (c-with-string-fences
+   (let* (c-lit-limits c-lit-type
+		       (c-macro-start c-macro-start)
+		       case-fold-search)
 
-    (c-save-buffer-state ()
-      (setq c-lit-limits (c-literal-limits nil nil t)
-	    c-lit-type (c-literal-type c-lit-limits))
-      (when (eq c-lit-type 'c++)
-	(setq c-lit-limits (c-collect-line-comments c-lit-limits)))
-      (c-query-and-set-macro-start))
+     (c-save-buffer-state ()
+       (setq c-lit-limits (c-literal-limits nil nil t)
+	     c-lit-type (c-literal-type c-lit-limits))
+       (when (eq c-lit-type 'c++)
+	 (setq c-lit-limits (c-collect-line-comments c-lit-limits)))
+       (c-query-and-set-macro-start))
 
-    (cond
-     ((or (eq c-lit-type 'c)
-	  (and (eq c-lit-type 'c++) ; C++ comment, but not at the very end of it.
-	       (< (save-excursion
-		    (skip-chars-forward " \t")
-		    (point))
-		  (1- (cdr c-lit-limits))))
-	  (and (numberp c-macro-start)	; Macro, but not at the very end of
+     (cond
+      ((or (eq c-lit-type 'c)
+	   (and (eq c-lit-type 'c++) ; C++ comment, but not at the very end of it.
+		(< (save-excursion
+		     (skip-chars-forward " \t")
+		     (point))
+		   (1- (cdr c-lit-limits))))
+	   (and (numberp c-macro-start)	; Macro, but not at the very end of
 					; it, not in a string, and not in the
 					; cpp keyword.
-	       (not (eq c-lit-type 'string))
-	       (or (not (looking-at "\\s *$"))
-		   (eq (char-before) ?\\))
-	       (<= (save-excursion
-		     (goto-char c-macro-start)
-		     (if (looking-at c-opt-cpp-start)
-			 (goto-char (match-end 0)))
-		     (point))
-		   (point))))
-      (let ((comment-multi-line t)
-	    (fill-prefix nil))
-	(c-indent-new-comment-line nil t)))
+		(not (eq c-lit-type 'string))
+		(or (not (looking-at "\\s *$"))
+		    (eq (char-before) ?\\))
+		(<= (save-excursion
+		      (goto-char c-macro-start)
+		      (if (looking-at c-opt-cpp-start)
+			  (goto-char (match-end 0)))
+		      (point))
+		    (point))))
+       (let ((comment-multi-line t)
+	     (fill-prefix nil))
+	 (c-indent-new-comment-line nil t)))
 
-     ((eq c-lit-type 'string)
-      (if (and (numberp c-macro-start)
-	       (not (eq (char-before) ?\\)))
-	  (insert ?\\))
-      (newline))
+      ((eq c-lit-type 'string)
+       (if (and (numberp c-macro-start)
+		(not (eq (char-before) ?\\)))
+	   (insert ?\\))
+       (newline))
 
-     (t (delete-horizontal-space)
-	(newline)
-      ;; c-indent-line may look at the current indentation, so let's
-      ;; start out with the same indentation as the previous line.
-	(let ((col (save-excursion
-		     (backward-char)
-		     (forward-line 0)
-		     (while (and (looking-at "[ \t]*\\\\?$")
-				 (= (forward-line -1) 0)))
-		     (current-indentation))))
-	  (indent-to col))
-     (indent-according-to-mode)))))
+      (t (delete-horizontal-space)
+	 (newline)
+	 ;; c-indent-line may look at the current indentation, so let's
+	 ;; start out with the same indentation as the previous line.
+	 (let ((col (save-excursion
+		      (backward-char)
+		      (forward-line 0)
+		      (while (and (looking-at "[ \t]*\\\\?$")
+				  (= (forward-line -1) 0)))
+		      (current-indentation))))
+	   (indent-to col))
+	 (indent-according-to-mode))))))
 
 (defun c-context-open-line ()
   "Insert a line break suitable to the context and leave point before it.
-This is the `c-context-line-break' equivalent to `open-line', which is
-normally bound to C-o.  See `c-context-line-break' for the details."
+This is the `c-context-line-break' equivalent to `open-line'
+\(bound to \\[open-line]).  See `c-context-line-break' for the
+details."
   (interactive "*")
   (let ((here (point)))
     (unwind-protect

@@ -1,6 +1,6 @@
-;;; threads.el --- tests for threads.
+;;; thread-tests.el --- tests for threads. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,31 +19,65 @@
 
 ;;; Code:
 
+(require 'thread)
+
+;; Declare the functions in case Emacs has been configured --without-threads.
+(declare-function all-threads "thread.c" ())
+(declare-function condition-mutex "thread.c" (cond))
+(declare-function condition-name "thread.c" (cond))
+(declare-function condition-notify "thread.c" (cond &optional all))
+(declare-function condition-wait "thread.c" (cond))
+(declare-function current-thread "thread.c" ())
+(declare-function make-condition-variable "thread.c" (mutex &optional name))
+(declare-function make-mutex "thread.c" (&optional name))
+(declare-function make-thread "thread.c" (function &optional name))
+(declare-function mutex-lock "thread.c" (mutex))
+(declare-function mutex-unlock "thread.c" (mutex))
+(declare-function thread--blocker "thread.c" (thread))
+(declare-function thread-live-p "thread.c" (thread))
+(declare-function thread-join "thread.c" (thread))
+(declare-function thread-last-error "thread.c" (&optional cleanup))
+(declare-function thread-name "thread.c" (thread))
+(declare-function thread-signal "thread.c" (thread error-symbol data))
+(declare-function thread-yield "thread.c" ())
+(defvar main-thread)
+
 (ert-deftest threads-is-one ()
-  "test for existence of a thread"
+  "Test for existence of a thread."
+  (skip-unless (featurep 'threads))
   (should (current-thread)))
 
 (ert-deftest threads-threadp ()
-  "test of threadp"
+  "Test of threadp."
+  (skip-unless (featurep 'threads))
   (should (threadp (current-thread))))
 
 (ert-deftest threads-type ()
-  "test of thread type"
+  "Test of thread type."
+  (skip-unless (featurep 'threads))
   (should (eq (type-of (current-thread)) 'thread)))
 
 (ert-deftest threads-name ()
-  "test for name of a thread"
+  "Test for name of a thread."
+  (skip-unless (featurep 'threads))
   (should
    (string= "hi bob" (thread-name (make-thread #'ignore "hi bob")))))
 
-(ert-deftest threads-alive ()
-  "test for thread liveness"
+(ert-deftest threads-live ()
+  "Test for thread liveness."
+  (skip-unless (featurep 'threads))
   (should
-   (thread-alive-p (make-thread #'ignore))))
+   (thread-live-p (make-thread #'ignore))))
 
 (ert-deftest threads-all-threads ()
-  "simple test for all-threads"
+  "Simple test for `all-threads'."
+  (skip-unless (featurep 'threads))
   (should (listp (all-threads))))
+
+(ert-deftest threads-main-thread ()
+  "Simple test for `all-threads'."
+  (skip-unless (featurep 'threads))
+  (should (eq main-thread (car (all-threads)))))
 
 (defvar threads-test-global nil)
 
@@ -51,7 +85,8 @@
   (setq threads-test-global 23))
 
 (ert-deftest threads-basic ()
-  "basic thread test"
+  "Basic thread test."
+  (skip-unless (featurep 'threads))
   (should
    (progn
      (setq threads-test-global nil)
@@ -61,18 +96,29 @@
      threads-test-global)))
 
 (ert-deftest threads-join ()
-  "test of thread-join"
+  "Test of `thread-join'."
+  (skip-unless (featurep 'threads))
   (should
    (progn
      (setq threads-test-global nil)
      (let ((thread (make-thread #'threads-test-thread1)))
-       (thread-join thread)
-       (and threads-test-global
-	    (not (thread-alive-p thread)))))))
+       (and (= (thread-join thread) 23)
+            (= threads-test-global 23)
+            (not (thread-live-p thread)))))))
 
 (ert-deftest threads-join-self ()
-  "cannot thread-join the current thread"
+  "Cannot `thread-join' the current thread."
+  (skip-unless (featurep 'threads))
   (should-error (thread-join (current-thread))))
+
+(ert-deftest threads-join-error ()
+  "Test of error signaling from `thread-join'."
+  :tags '(:unstable)
+  (skip-unless (featurep 'threads))
+  (let ((thread (make-thread #'threads-call-error)))
+    (while (thread-live-p thread)
+      (thread-yield))
+    (should-error (thread-join thread))))
 
 (defvar threads-test-binding nil)
 
@@ -82,7 +128,8 @@
   (setq threads-test-global 23))
 
 (ert-deftest threads-let-binding ()
-  "simple test of threads and let bindings"
+  "Simple test of threads and let bindings."
+  (skip-unless (featurep 'threads))
   (should
    (progn
      (setq threads-test-global nil)
@@ -93,19 +140,23 @@
 	  threads-test-global))))
 
 (ert-deftest threads-mutexp ()
-  "simple test of mutexp"
+  "Simple test of `mutexp'."
+  (skip-unless (featurep 'threads))
   (should-not (mutexp 'hi)))
 
 (ert-deftest threads-mutexp-2 ()
-  "another simple test of mutexp"
+  "Another simple test of `mutexp'."
+  (skip-unless (featurep 'threads))
   (should (mutexp (make-mutex))))
 
 (ert-deftest threads-mutex-type ()
-  "type-of mutex"
+  "type-of mutex."
+  (skip-unless (featurep 'threads))
   (should (eq (type-of (make-mutex)) 'mutex)))
 
 (ert-deftest threads-mutex-lock-unlock ()
-  "test mutex-lock and unlock"
+  "Test `mutex-lock' and unlock."
+  (skip-unless (featurep 'threads))
   (should
    (let ((mx (make-mutex)))
      (mutex-lock mx)
@@ -113,7 +164,8 @@
      t)))
 
 (ert-deftest threads-mutex-recursive ()
-  "test mutex-lock and unlock"
+  "Test mutex recursion."
+  (skip-unless (featurep 'threads))
   (should
    (let ((mx (make-mutex)))
      (mutex-lock mx)
@@ -133,7 +185,8 @@
   (mutex-unlock threads-mutex))
 
 (ert-deftest threads-mutex-contention ()
-  "test of mutex contention"
+  "Test of mutex contention."
+  (skip-unless (featurep 'threads))
   (should
    (progn
      (setq threads-mutex (make-mutex))
@@ -153,8 +206,9 @@
   (mutex-lock threads-mutex))
 
 (ert-deftest threads-mutex-signal ()
-  "test signaling a blocked thread"
-  (should
+  "Test signaling a blocked thread."
+  (skip-unless (featurep 'threads))
+  (should-error
    (progn
      (setq threads-mutex (make-mutex))
      (setq threads-mutex-key nil)
@@ -163,14 +217,17 @@
        (while (not threads-mutex-key)
 	 (thread-yield))
        (thread-signal thr 'quit nil)
-       (thread-join thr))
-     t)))
+       ;; `quit' is not catched by `should-error'.  We must indicate it.
+       (condition-case nil
+           (thread-join thr)
+         (quit (signal 'error nil)))))))
 
 (defun threads-test-io-switch ()
   (setq threads-test-global 23))
 
 (ert-deftest threads-io-switch ()
-  "test that accept-process-output causes thread switch"
+  "Test that `accept-process-output' causes thread switch."
+  (skip-unless (featurep 'threads))
   (should
    (progn
      (setq threads-test-global nil)
@@ -180,60 +237,72 @@
      threads-test-global)))
 
 (ert-deftest threads-condvarp ()
-  "simple test of condition-variable-p"
+  "Simple test of `condition-variable-p'."
+  (skip-unless (featurep 'threads))
   (should-not (condition-variable-p 'hi)))
 
 (ert-deftest threads-condvarp-2 ()
-  "another simple test of condition-variable-p"
+  "Another simple test of `condition-variable-p'."
+  (skip-unless (featurep 'threads))
   (should (condition-variable-p (make-condition-variable (make-mutex)))))
 
 (ert-deftest threads-condvar-type ()
   "type-of condvar"
+  (skip-unless (featurep 'threads))
   (should (eq (type-of (make-condition-variable (make-mutex)))
 	      'condition-variable)))
 
 (ert-deftest threads-condvar-mutex ()
-  "simple test of condition-mutex"
+  "Simple test of `condition-mutex'."
+  (skip-unless (featurep 'threads))
   (should
    (let ((m (make-mutex)))
      (eq m (condition-mutex (make-condition-variable m))))))
 
 (ert-deftest threads-condvar-name ()
-  "simple test of condition-name"
+  "Simple test of `condition-name'."
+  (skip-unless (featurep 'threads))
   (should
      (eq nil (condition-name (make-condition-variable (make-mutex))))))
 
 (ert-deftest threads-condvar-name-2 ()
-  "another simple test of condition-name"
+  "Another simple test of `condition-name'."
+  (skip-unless (featurep 'threads))
   (should
      (string= "hi bob"
 	      (condition-name (make-condition-variable (make-mutex)
 						       "hi bob")))))
-(defun call-error ()
+
+(defun threads-call-error ()
   "Call `error'."
   (error "Error is called"))
 
 ;; This signals an error internally; the error should be caught.
-(defun thread-custom ()
-  (defcustom thread-custom-face 'highlight
+(defun threads-custom ()
+  (defcustom threads-custom-face 'highlight
     "Face used for thread customizations."
     :type 'face
     :group 'widget-faces))
 
-(ert-deftest thread-errors ()
+(ert-deftest threads-errors ()
   "Test what happens when a thread signals an error."
+  (skip-unless (featurep 'threads))
   (let (th1 th2)
-    (setq th1 (make-thread #'call-error "call-error"))
+    (setq th1 (make-thread #'threads-call-error "call-error"))
     (should (threadp th1))
-    (while (thread-alive-p th1)
+    (while (thread-live-p th1)
       (thread-yield))
     (should (equal (thread-last-error)
                    '(error "Error is called")))
-    (setq th2 (make-thread #'thread-custom "thread-custom"))
+    (should (equal (thread-last-error 'cleanup)
+                   '(error "Error is called")))
+    (should-not (thread-last-error))
+    (setq th2 (make-thread #'threads-custom "threads-custom"))
     (should (threadp th2))))
 
-(ert-deftest thread-sticky-point ()
+(ert-deftest threads-sticky-point ()
   "Test bug #25165 with point movement in cloned buffer."
+  (skip-unless (featurep 'threads))
   (with-temp-buffer
     (insert "Lorem ipsum dolor sit amet, consectetur adipiscing elit.")
     (goto-char (point-min))
@@ -242,15 +311,35 @@
     (sit-for 1)
     (should (= (point) 21))))
 
-(ert-deftest thread-signal-early ()
+(ert-deftest threads-signal-early ()
   "Test signaling a thread as soon as it is started by the OS."
+  (skip-unless (featurep 'threads))
   (let ((thread
-         (make-thread #'(lambda ()
-                          (while t (thread-yield))))))
+         (make-thread (lambda ()
+                        (while t (thread-yield))))))
     (thread-signal thread 'error nil)
     (sit-for 1)
-    (should-not (thread-alive-p thread))
+    (should-not (thread-live-p thread))
     (should (equal (thread-last-error) '(error)))))
+
+(ert-deftest threads-signal-main-thread ()
+  "Test signaling the main thread."
+  (skip-unless (featurep 'threads))
+  ;; We cannot use `ert-with-message-capture', because threads do not
+  ;; know let-bound variables.
+  (with-current-buffer "*Messages*"
+    (let (buffer-read-only)
+      (erase-buffer))
+    (let ((thread
+           (make-thread (lambda () (thread-signal main-thread 'error nil)))))
+      (while (thread-live-p thread)
+        (thread-yield))
+      (read-event nil nil 0.1)
+      ;; No error has been raised, which is part of the test.
+      (should
+       (string-match
+        (format-message "Error %s: (error nil)" thread)
+        (buffer-string ))))))
 
 (defvar threads-condvar nil)
 
@@ -263,7 +352,8 @@
     (condition-wait threads-condvar)))
 
 (ert-deftest threads-condvar-wait ()
-  "test waiting on conditional variable"
+  "Test waiting on conditional variable."
+  (skip-unless (featurep 'threads))
   (let ((cv-mutex (make-mutex))
         new-thread)
     ;; We could have spurious threads from the previous tests still
@@ -274,7 +364,7 @@
     (setq new-thread (make-thread #'threads-test-condvar-wait))
 
     ;; Make sure new-thread is alive.
-    (should (thread-alive-p new-thread))
+    (should (thread-live-p new-thread))
     (should (= (length (all-threads)) 2))
     ;; Wait for new-thread to become blocked on the condvar.
     (while (not (eq (thread--blocker new-thread) threads-condvar))
@@ -287,7 +377,7 @@
     (sleep-for 0.1)
     ;; Make sure the thread is still there.  This used to fail due to
     ;; a bug in thread.c:condition_wait_callback.
-    (should (thread-alive-p new-thread))
+    (should (thread-live-p new-thread))
     (should (= (length (all-threads)) 2))
     (should (eq (thread--blocker new-thread) threads-condvar))
 
@@ -298,4 +388,34 @@
     (should (= (length (all-threads)) 1))
     (should (equal (thread-last-error) '(error "Die, die, die!")))))
 
-;;; threads.el ends here
+(ert-deftest threads-test-bug33073 ()
+  (skip-unless (fboundp 'make-thread))
+  (let ((th (make-thread 'ignore)))
+    (should-not (equal th main-thread))))
+
+(defvar threads-test--var 'global)
+
+(ert-deftest threads-test-bug48990 ()
+  (skip-unless (fboundp 'make-thread))
+  (let ((buf1 (generate-new-buffer " thread-test"))
+        (buf2 (generate-new-buffer " thread-test")))
+    (with-current-buffer buf1
+      (setq-local threads-test--var 'local1))
+    (with-current-buffer buf2
+      (setq-local threads-test--var 'local2))
+    (let ((seen nil))
+      (with-current-buffer buf1
+        (should (eq threads-test--var 'local1))
+        (make-thread (lambda () (setq seen threads-test--var))))
+      (with-current-buffer buf2
+        (should (eq threads-test--var 'local2))
+        (let ((threads-test--var 'let2))
+          (should (eq threads-test--var 'let2))
+          (while (not seen)
+            (thread-yield))
+          (should (eq threads-test--var 'let2))
+          (should (eq seen 'local1)))
+        (should (eq threads-test--var 'local2)))
+      (should (eq threads-test--var 'global)))))
+
+;;; thread-tests.el ends here

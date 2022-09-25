@@ -1,6 +1,6 @@
-;;; data-tests.el --- tests for src/data.c
+;;; data-tests.el --- tests for src/data.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,13 +23,21 @@
 
 (require 'cl-lib)
 
+(defconst data-tests--float-greater-than-fixnums (+ 1.0 most-positive-fixnum)
+  "A floating-point value that is greater than all fixnums.
+It is also as small as conveniently possible, to make the tests sharper.
+Adding 1.0 to `most-positive-fixnum' should suffice on all
+practical Emacs platforms, since the result is a power of 2 and
+this is exactly representable and is greater than
+`most-positive-fixnum', which is just less than a power of 2.")
+
 (ert-deftest data-tests-= ()
   (should-error (=))
   (should (= 1))
   (should (= 2 2))
   (should (= 9 9 9 9 9 9 9 9 9))
   (should (= most-negative-fixnum (float most-negative-fixnum)))
-  (should-not (= most-positive-fixnum (+ 1.0 most-positive-fixnum)))
+  (should-not (= most-positive-fixnum data-tests--float-greater-than-fixnums))
   (should-not (apply #'= '(3 8 3)))
   (should-error (= 9 9 'foo))
   ;; Short circuits before getting to bad arg
@@ -40,7 +48,7 @@
   (should (< 1))
   (should (< 2 3))
   (should (< -6 -1 0 2 3 4 8 9 999))
-  (should (< 0.5 most-positive-fixnum (+ 1.0 most-positive-fixnum)))
+  (should (< 0.5 most-positive-fixnum data-tests--float-greater-than-fixnums))
   (should-not (apply #'< '(3 8 3)))
   (should-error (< 9 10 'foo))
   ;; Short circuits before getting to bad arg
@@ -51,7 +59,7 @@
   (should (> 1))
   (should (> 3 2))
   (should (> 6 1 0 -2 -3 -4 -8 -9 -999))
-  (should (> (+ 1.0 most-positive-fixnum) most-positive-fixnum 0.5))
+  (should (> data-tests--float-greater-than-fixnums most-positive-fixnum 0.5))
   (should-not (apply #'> '(3 8 3)))
   (should-error (> 9 8 'foo))
   ;; Short circuits before getting to bad arg
@@ -62,7 +70,7 @@
   (should (<= 1))
   (should (<= 2 3))
   (should (<= -6 -1 -1 0 0 0 2 3 4 8 999))
-  (should (<= 0.5 most-positive-fixnum (+ 1.0 most-positive-fixnum)))
+  (should (<= 0.5 most-positive-fixnum data-tests--float-greater-than-fixnums))
   (should-not (apply #'<= '(3 8 3 3)))
   (should-error (<= 9 10 'foo))
   ;; Short circuits before getting to bad arg
@@ -73,7 +81,7 @@
   (should (>= 1))
   (should (>= 3 2))
   (should (>= 666 1 0 0 -2 -3 -3 -3 -4 -8 -8 -9 -999))
-  (should (>= (+ 1.0 most-positive-fixnum) most-positive-fixnum))
+  (should (>= data-tests--float-greater-than-fixnums most-positive-fixnum))
   (should-not (apply #'>= '(3 8 3)))
   (should-error (>= 9 8 'foo))
   ;; Short circuits before getting to bad arg
@@ -97,7 +105,7 @@
   (should (= 2 (min 3 2)))
   (should (= -999 (min 666 1 0 0 -2 -3 -3 -3 -4 -8 -8 -9 -999)))
   (should (= most-positive-fixnum
-             (min (+ 1.0 most-positive-fixnum) most-positive-fixnum)))
+             (min data-tests--float-greater-than-fixnums most-positive-fixnum)))
   (should (= 3 (apply #'min '(3 8 3))))
   (should-error (min 9 8 'foo))
   (should-error (min (make-marker)))
@@ -105,15 +113,17 @@
   (should (isnan (min 0.0e+NaN)))
   (should (isnan (min 0.0e+NaN 1 2)))
   (should (isnan (min 1.0 0.0e+NaN)))
-  (should (isnan (min 1.0 0.0e+NaN 1.1))))
+  (should (isnan (min 1.0 0.0e+NaN 1.1)))
+  (should (isnan (min 1.0 0.0e+NaN 1.1 (1+ most-positive-fixnum))))
+  (should (isnan (max 1.0 0.0e+NaN 1.1 (1+ most-positive-fixnum)))))
 
 (defun data-tests-popcnt (byte)
   "Calculate the Hamming weight of BYTE."
   (if (< byte 0)
       (setq byte (lognot byte)))
-  (setq byte (- byte (logand (lsh byte -1) #x55555555)))
-  (setq byte (+ (logand byte #x33333333) (logand (lsh byte -2) #x33333333)))
-  (lsh (* (logand (+ byte (lsh byte -4)) #x0f0f0f0f) #x01010101) -24))
+  (if (zerop byte)
+      0
+    (+ (logand byte 1) (data-tests-popcnt (ash byte -1)))))
 
 (ert-deftest data-tests-logcount ()
   (should (cl-loop for n in (number-sequence -255 255)
@@ -164,7 +174,7 @@
            sum 1))
 
 (defun test-bool-vector-bv-from-hex-string (desc)
-  (let (bv nchars nibbles)
+  (let (bv nibbles)
     (dolist (c (string-to-list desc))
       (push (string-to-number
              (char-to-string c)
@@ -176,29 +186,28 @@
         (dotimes (_ 4)
           (aset bv i (> (logand 1 n) 0))
           (cl-incf i)
-          (setf n (lsh n -1)))))
+          (setf n (ash n -1)))))
     bv))
 
 (defun test-bool-vector-to-hex-string (bv)
   (let (nibbles (v (cl-coerce bv 'list)))
     (while v
       (push (logior
-             (lsh (if (nth 0 v) 1 0) 0)
-             (lsh (if (nth 1 v) 1 0) 1)
-             (lsh (if (nth 2 v) 1 0) 2)
-             (lsh (if (nth 3 v) 1 0) 3))
+             (ash (if (nth 0 v) 1 0) 0)
+             (ash (if (nth 1 v) 1 0) 1)
+             (ash (if (nth 2 v) 1 0) 2)
+             (ash (if (nth 3 v) 1 0) 3))
             nibbles)
       (setf v (nthcdr 4 v)))
     (mapconcat (lambda (n) (format "%X" n))
-               (nreverse nibbles)
-               "")))
+               (nreverse nibbles))))
 
 (defun test-bool-vector-count-consecutive-tc (desc)
-  "Run a test case for bool-vector-count-consecutive.
+  "Run a test case for `bool-vector-count-consecutive'.
 DESC is a string describing the test.  It is a sequence of
 hexadecimal digits describing the bool vector.  We exhaustively
 test all counts at all possible positions in the vector by
-comparing the subr with a much slower lisp implementation."
+comparing the subr with a much slower Lisp implementation."
   (let ((bv (test-bool-vector-bv-from-hex-string desc)))
     (cl-loop
      for lf in '(nil t)
@@ -234,9 +243,9 @@ comparing the subr with a much slower lisp implementation."
 
 (defun test-bool-vector-apply-mock-op (mock a b c)
   "Compute (slowly) the correct result of a bool-vector set operation."
-  (let (changed nv)
+  (let (changed)
     (cl-assert (eql (length b) (length c)))
-    (if a (setf nv a)
+    (unless a
       (setf a (make-bool-vector (length b) nil))
       (setf changed t))
 
@@ -314,7 +323,7 @@ comparing the subr with a much slower lisp implementation."
 
 (defvar binding-test-some-local 'some)
 (with-current-buffer binding-test-buffer-A
-  (set (make-local-variable 'binding-test-some-local) 'local))
+  (setq-local binding-test-some-local 'local))
 
 (ert-deftest binding-test-manual ()
   "A test case from the elisp manual."
@@ -328,12 +337,54 @@ comparing the subr with a much slower lisp implementation."
     (should (eq binding-test-some-local 'local))))
 
 (ert-deftest binding-test-setq-default ()
-  "Test that a setq-default has no effect when there is a local binding."
+  "Test that a `setq-default' has no effect when there is a local binding."
   (with-current-buffer binding-test-buffer-B
     ;; This variable is not local in this buffer.
     (let ((binding-test-some-local 'something-else))
       (setq-default binding-test-some-local 'new-default))
     (should (eq binding-test-some-local 'some))))
+
+(ert-deftest data-tests--let-buffer-local ()
+  (let ((blvar (make-symbol "blvar")))
+    (set-default blvar nil)
+    (make-variable-buffer-local blvar)
+
+    (dolist (var (list blvar 'left-margin))
+      (let ((def (default-value var)))
+        (with-temp-buffer
+          (should (equal def (symbol-value var)))
+          (cl-progv (list var) (list 42)
+            (should (equal (symbol-value var) 42))
+            (should (equal (default-value var) (symbol-value var)))
+            (set var 123)
+            (should (not (local-variable-p var)))
+            (should (equal (symbol-value var) 123))
+            (should (equal (default-value var) (symbol-value var)))) ;bug#44733
+          (should (equal (symbol-value var) def))
+          (should (equal (default-value var) (symbol-value var))))
+        (should (equal (default-value var) def))))))
+
+(ert-deftest data-tests--let-buffer-local-no-unwind-other-buffers ()
+  "Test that a let-binding for a buffer-local unwinds only current-buffer."
+  (let ((blvar (make-symbol "blvar")))
+    (set-default blvar 0)
+    (make-variable-buffer-local blvar)
+    (dolist (var (list blvar 'left-margin))
+      (let* ((def (default-value var))
+             (newdef (+ def 1))
+             (otherbuf (generate-new-buffer "otherbuf")))
+        (with-temp-buffer
+          (cl-progv (list var) (list newdef)
+            (with-current-buffer otherbuf
+              (set var 123)
+              (should (local-variable-p var))
+              (should (equal (symbol-value var) 123))
+              (should (equal (default-value var) newdef))))
+          (with-current-buffer otherbuf
+            (should (local-variable-p var))
+            (should (equal (symbol-value var) 123))
+            (should (equal (default-value var) def)))
+          )))))
 
 (ert-deftest binding-test-makunbound ()
   "Tests of makunbound, from the manual."
@@ -347,29 +398,61 @@ comparing the subr with a much slower lisp implementation."
 		   (eq binding-test-some-local 'outer))))))
 
 (ert-deftest binding-test-defvar-bool ()
-  "Test DEFVAR_BOOL"
+  "Test DEFVAR_BOOL."
   (let ((display-hourglass 5))
     (should (eq display-hourglass t))))
 
 (ert-deftest binding-test-defvar-int ()
-  "Test DEFVAR_INT"
+  "Test DEFVAR_INT."
   (should-error (setq gc-cons-threshold 5.0) :type 'wrong-type-argument))
 
 (ert-deftest binding-test-set-constant-t ()
-  "Test setting the constant t"
+  "Test setting the constant t."
   (with-no-warnings (should-error (setq t 'bob) :type 'setting-constant)))
 
 (ert-deftest binding-test-set-constant-nil ()
-  "Test setting the constant nil"
+  "Test setting the constant nil."
   (with-no-warnings (should-error (setq nil 'bob) :type 'setting-constant)))
 
 (ert-deftest binding-test-set-constant-keyword ()
-  "Test setting a keyword constant"
+  "Test setting a keyword constant."
   (with-no-warnings (should-error (setq :keyword 'bob) :type 'setting-constant)))
 
-(ert-deftest binding-test-set-constant-nil ()
-  "Test setting a keyword to itself"
+(ert-deftest binding-test-set-constant-itself ()
+  "Test setting a keyword to itself."
   (with-no-warnings (should (setq :keyword :keyword))))
+
+(ert-deftest data-tests--set-default-per-buffer ()
+  :expected-result t ;; Not fixed yet!
+  ;; FIXME: Performance tests are inherently unreliable.
+  ;; Using wall-clock time makes it even worse, so don't bother unless
+  ;; we have the primitive to measure cpu-time.
+  (skip-unless (fboundp 'current-cpu-time))
+  ;; Test performance of set-default on DEFVAR_PER_BUFFER variables.
+  ;; More specifically, test the problem seen in bug#41029 where setting
+  ;; the default value of a variable takes time proportional to the
+  ;; number of buffers.
+  (when (fboundp 'current-cpu-time)     ; silence byte-compiler
+    (let* ((fun #'error)
+           (test (lambda ()
+                   (with-temp-buffer
+                     (let ((st (car (current-cpu-time))))
+                       (dotimes (_ 1000)
+                         (let ((case-fold-search 'data-test))
+                           ;; Use an indirection through a mutable var
+                           ;; to try and make sure the byte-compiler
+                           ;; doesn't optimize away the let bindings.
+                           (funcall fun)))
+                       ;; FIXME: Handle the wraparound, if any.
+                       (- (car (current-cpu-time)) st)))))
+           (_ (setq fun #'ignore))
+           (time1 (funcall test))
+           (bufs (mapcar (lambda (_) (generate-new-buffer " data-test"))
+                         (make-list 1000 nil)))
+           (time2 (funcall test)))
+      (mapc #'kill-buffer bufs)
+      ;; Don't divide one time by the other since they may be 0.
+      (should (< time2 (* time1 5))))))
 
 ;; More tests to write -
 ;; kill-local-variable
@@ -474,7 +557,7 @@ comparing the subr with a much slower lisp implementation."
         (should-have-watch-data `(data-tests-lvar 3 set ,buf1)))
       (should-have-watch-data `(data-tests-lvar 1 unlet ,buf1))
       (setq-default data-tests-lvar 4)
-      (should-have-watch-data `(data-tests-lvar 4 set nil))
+      (should-have-watch-data '(data-tests-lvar 4 set nil))
       (with-temp-buffer
         (setq buf2 (current-buffer))
         (setq data-tests-lvar 1)
@@ -491,7 +574,7 @@ comparing the subr with a much slower lisp implementation."
         (kill-all-local-variables)
         (should-have-watch-data `(data-tests-lvar nil makunbound ,buf2)))
       (setq-default data-tests-lvar 4)
-      (should-have-watch-data `(data-tests-lvar 4 set nil))
+      (should-have-watch-data '(data-tests-lvar 4 set nil))
       (makunbound 'data-tests-lvar)
       (should-have-watch-data '(data-tests-lvar nil makunbound nil))
       (setq data-tests-lvar 5)
@@ -499,3 +582,194 @@ comparing the subr with a much slower lisp implementation."
       (remove-variable-watcher 'data-tests-lvar collect-watch-data)
       (setq data-tests-lvar 6)
       (should (null watch-data)))))
+
+(ert-deftest data-tests-kill-all-local-variables () ;bug#30846
+  (with-temp-buffer
+    (setq-local data-tests-foo1 1)
+    (setq-local data-tests-foo2 2)
+    (setq-local data-tests-foo3 3)
+    (let ((oldfoo2 nil))
+      (add-variable-watcher 'data-tests-foo2
+                            (lambda (&rest _)
+                              (setq oldfoo2 (bound-and-true-p data-tests-foo2))))
+      (kill-all-local-variables)
+      (should (equal oldfoo2 '2)) ;Watcher is run before changing the var.
+      (should (not (or (bound-and-true-p data-tests-foo1)
+                       (bound-and-true-p data-tests-foo2)
+                       (bound-and-true-p data-tests-foo3)))))))
+
+(ert-deftest data-tests-bignum ()
+  (should (bignump (+ most-positive-fixnum 1)))
+  (let ((f0 (+ (float most-positive-fixnum) 1))
+        (f-1 (- (float most-negative-fixnum) 1))
+        (b0 (+ most-positive-fixnum 1))
+        (b-1 (- most-negative-fixnum 1)))
+    (should (> b0 -1))
+    (should (> b0 f-1))
+    (should (> b0 b-1))
+    (should (>= b0 -1))
+    (should (>= b0 f-1))
+    (should (>= b0 b-1))
+    (should (>= b-1 b-1))
+
+    (should (< -1 b0))
+    (should (< f-1 b0))
+    (should (< b-1 b0))
+    (should (<= -1 b0))
+    (should (<= f-1 b0))
+    (should (<= b-1 b0))
+    (should (<= b-1 b-1))
+
+    (should (= (+ f0 b0) (+ b0 f0)))
+    (should (= (+ f0 b-1) (+ b-1 f0)))
+    (should (= (+ f-1 b0) (+ b0 f-1)))
+    (should (= (+ f-1 b-1) (+ b-1 f-1)))
+
+    (should (= (* f0 b0) (* b0 f0)))
+    (should (= (* f0 b-1) (* b-1 f0)))
+    (should (= (* f-1 b0) (* b0 f-1)))
+    (should (= (* f-1 b-1) (* b-1 f-1)))
+
+    (should (= b0 f0))
+    (should (= b0 b0))
+
+    (should (/= b0 f-1))
+    (should (/= b0 b-1))
+
+    (should (/= b0 0.0e+NaN))
+    (should (/= b-1 0.0e+NaN))))
+
+(ert-deftest data-tests-+ ()
+  (should-not (fixnump (+ most-positive-fixnum most-positive-fixnum)))
+  (should (> (+ most-positive-fixnum most-positive-fixnum) most-positive-fixnum))
+  (should (eq (- (+ most-positive-fixnum most-positive-fixnum)
+                 (+ most-positive-fixnum most-positive-fixnum))
+              0)))
+
+(ert-deftest data-tests-/ ()
+  (let* ((x (* most-positive-fixnum 8))
+         (y (* most-negative-fixnum 8))
+         (z (- y)))
+    (should (= most-positive-fixnum (/ x 8)))
+    (should (= most-negative-fixnum (/ y 8)))
+    (should (= -1 (/ y z)))
+    (should (= -1 (/ z y)))
+    (should (= 0 (/ x (* 2 x))))
+    (should (= 0 (/ y (* 2 y))))
+    (should (= 0 (/ z (* 2 z))))))
+
+(ert-deftest data-tests-number-predicates ()
+  (should (fixnump 0))
+  (should (fixnump most-negative-fixnum))
+  (should (fixnump most-positive-fixnum))
+  (should (integerp (+ most-positive-fixnum 1)))
+  (should (integer-or-marker-p (+ most-positive-fixnum 1)))
+  (should (numberp (+ most-positive-fixnum 1)))
+  (should (number-or-marker-p (+ most-positive-fixnum 1)))
+  (should (natnump (+ most-positive-fixnum 1)))
+  (should-not (fixnump (+ most-positive-fixnum 1)))
+  (should (bignump (+ most-positive-fixnum 1))))
+
+(ert-deftest data-tests-number-to-string ()
+  (let* ((s "99999999999999999999999999999")
+         (v (read s)))
+    (should (equal (number-to-string v) s))))
+
+(ert-deftest data-tests-1+ ()
+  (should (> (1+ most-positive-fixnum) most-positive-fixnum))
+  (should (fixnump (1+ (1- most-negative-fixnum)))))
+
+(ert-deftest data-tests-1- ()
+  (should (< (1- most-negative-fixnum) most-negative-fixnum))
+  (should (fixnump (1- (1+ most-positive-fixnum)))))
+
+(ert-deftest data-tests-logand ()
+  (should (= -1 (logand) (logand -1) (logand -1 -1)))
+  (let ((n (1+ most-positive-fixnum)))
+    (should (= (logand -1 n) n)))
+  (let ((n (* 2 most-negative-fixnum)))
+    (should (= (logand -1 n) n))))
+
+(ert-deftest data-tests-logcount-2 ()
+  (should (= (logcount (read "#xffffffffffffffffffffffffffffffff")) 128)))
+
+(ert-deftest data-tests-logior ()
+  (should (= -1 (logior -1) (logior -1 -1)))
+  (should (= -1 (logior most-positive-fixnum most-negative-fixnum))))
+
+(ert-deftest data-tests-logxor ()
+  (should (= -1 (logxor -1) (logxor -1 -1 -1)))
+  (let ((n (1+ most-positive-fixnum)))
+    (should (= (logxor -1 n) (lognot n)))))
+
+(ert-deftest data-tests-minmax ()
+  (let ((a (- most-negative-fixnum 1))
+        (b (+ most-positive-fixnum 1))
+        (c 0))
+    (should (= (min a b c) a))
+    (should (= (max a b c) b))))
+
+(defun data-tests-check-sign (x y)
+  (should (eq (cl-signum x) (cl-signum y))))
+
+(ert-deftest data-tests-%-mod ()
+  (let* ((b1 (+ most-positive-fixnum 1))
+         (nb1 (- b1))
+         (b3 (+ most-positive-fixnum 3))
+         (nb3 (- b3)))
+    (data-tests-check-sign (% 1 3) (% b1 b3))
+    (data-tests-check-sign (mod 1 3) (mod b1 b3))
+    (data-tests-check-sign (% 1 -3) (% b1 nb3))
+    (data-tests-check-sign (mod 1 -3) (mod b1 nb3))
+    (data-tests-check-sign (% -1 3) (% nb1 b3))
+    (data-tests-check-sign (mod -1 3) (mod nb1 b3))
+    (data-tests-check-sign (% -1 -3) (% nb1 nb3))
+    (data-tests-check-sign (mod -1 -3) (mod nb1 nb3))))
+
+(ert-deftest data-tests-mod-0 ()
+  (dolist (num (list (1- most-negative-fixnum) -1 0 1
+                     (1+ most-positive-fixnum)))
+    (should-error (mod num 0)))
+  (when (ignore-errors (/ 0.0 0))
+    (should (equal (abs (mod 0.0 0)) (abs (- 0.0 (/ 0.0 0)))))))
+
+(ert-deftest data-tests-ash-lsh ()
+  (should (= (ash most-negative-fixnum 1)
+             (* most-negative-fixnum 2)))
+  (should (= (ash 0 (* 2 most-positive-fixnum)) 0))
+  (should (= (ash 1000 (* 2 most-negative-fixnum)) 0))
+  (should (= (ash -1000 (* 2 most-negative-fixnum)) -1))
+  (should (= (ash (* 2 most-negative-fixnum) (* 2 most-negative-fixnum)) -1))
+  (should (= (ash (* 2 most-negative-fixnum) -1)
+	     most-negative-fixnum))
+  (with-suppressed-warnings ((suspicious lsh))
+    (should (= (lsh most-negative-fixnum 1)
+               (* most-negative-fixnum 2)))
+    (should (= (lsh most-positive-fixnum -1) (/ most-positive-fixnum 2)))
+    (should (= (lsh most-negative-fixnum -1) (lsh (- most-negative-fixnum) -1)))
+    (should (= (lsh -1 -1) most-positive-fixnum))
+    (should-error (lsh (1- most-negative-fixnum) -1))))
+
+(ert-deftest data-tests-make-local-forwarded-var () ;bug#34318
+  ;; Boy, this bug is tricky to trigger.  You need to:
+  ;; - call make-local-variable on a forwarded var (i.e. one that
+  ;;   has a corresponding C var linked via DEFVAR_(LISP|INT|BOOL))
+  ;; - cause the C code to modify this variable from the C side of the
+  ;;   forwarding, but this needs to happen before the var is accessed
+  ;;   from the Lisp side and before we switch to another buffer.
+  ;; The trigger in bug#34318 doesn't exist any more because the C code has
+  ;; changed.  Instead I found the trigger below.
+  (with-temp-buffer
+    (setq last-coding-system-used 'bug34318)
+    (make-local-variable 'last-coding-system-used)
+    ;; This should set last-coding-system-used to `no-conversion'.
+    (decode-coding-string "hello" nil)
+    (should (equal (list last-coding-system-used
+                         (default-value 'last-coding-system-used))
+                   '(no-conversion bug34318)))))
+
+(ert-deftest data-tests-make_symbol_constant ()
+  "Can't set variable marked with 'make_symbol_constant'."
+  (should-error (setq most-positive-fixnum 1) :type 'setting-constant))
+
+;;; data-tests.el ends here

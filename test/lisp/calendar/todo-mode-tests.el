@@ -1,6 +1,6 @@
 ;;; todo-mode-tests.el --- tests for todo-mode.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;; Keywords: calendar
@@ -25,45 +25,36 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'todo-mode)
 
-(defvar todo-test-data-dir
-  (file-truename
-   (expand-file-name "todo-mode-resources/"
-                     (file-name-directory (or load-file-name
-                                              buffer-file-name))))
-  "Base directory of todo-mode.el test data files.")
-
-(defvar todo-test-file-1 (expand-file-name "todo-test-1.todo"
-                                           todo-test-data-dir)
+(defvar todo-test-file-1 (ert-resource-file "todo-test-1.todo")
   "Todo mode test file.")
 
-(defvar todo-test-archive-1 (expand-file-name "todo-test-1.toda"
-                                              todo-test-data-dir)
+(defvar todo-test-archive-1 (ert-resource-file "todo-test-1.toda")
   "Todo Archive mode test file.")
 
 (defmacro with-todo-test (&rest body)
-  "Set up an isolated todo-mode test environment."
+  "Set up an isolated `todo-mode' test environment."
   (declare (debug (body)))
-  `(let* ((todo-test-home (make-temp-file "todo-test-home-" t))
-          ;; Since we change HOME, clear this to avoid a conflict
-          ;; e.g. if Emacs runs within the user's home directory.
-          (abbreviated-home-dir nil)
-          (process-environment (cons (format "HOME=%s" todo-test-home)
-                                     process-environment))
-          (todo-directory todo-test-data-dir)
-          (todo-default-todo-file (todo-short-file-name
-				   (car (funcall todo-files-function)))))
-     (unwind-protect
-         (progn ,@body)
-       ;; Restore pre-test-run state of test files.
-       (dolist (f (directory-files todo-directory))
-         (let ((buf (get-file-buffer f)))
-           (when buf
-             (with-current-buffer buf
-               (restore-buffer-modified-p nil)
-               (kill-buffer)))))
-       (delete-directory todo-test-home t))))
+  `(ert-with-temp-directory todo-test-home
+     (let* (;; Since we change HOME, clear this to avoid a conflict
+            ;; e.g. if Emacs runs within the user's home directory.
+            (abbreviated-home-dir nil)
+            (process-environment (cons (format "HOME=%s" todo-test-home)
+                                       process-environment))
+            (todo-directory (ert-resource-directory))
+            (todo-default-todo-file (todo-short-file-name
+                                 (car (funcall todo-files-function)))))
+       (unwind-protect
+           (progn ,@body)
+         ;; Restore pre-test-run state of test files.
+         (dolist (f (directory-files todo-directory))
+           (let ((buf (get-file-buffer f)))
+             (when buf
+               (with-current-buffer buf
+                 (restore-buffer-modified-p nil)
+                 (kill-buffer)))))))))
 
 (defun todo-test--show (num &optional archive)
   "Display category NUM of test todo file.
@@ -384,7 +375,7 @@ priority and the done item should be the first done item."
 (ert-deftest todo-test-move-item05 ()   ; bug#27609
   "Test moving multiple todo and done items to another category.
 Both types of item should be moved en bloc to the new category,
-and the the top todo item should have the provided priority and
+and the top todo item should have the provided priority and
 the top done item should be the first done item."
   (with-todo-test
    (todo-test--show 1)
@@ -413,8 +404,15 @@ the top done item should be the first done item."
      (should (todo-done-item-p))
      (forward-line -1)
      (should (looking-at todo-category-done))
-     ;; Make sure marked items are no longer in first category.
-     (todo-backward-category)
+     ;; Make sure marked items are no longer in first category.  Since
+     ;; cat1 now contains no todo or done items but does have archived
+     ;; items, todo-backward-category would skip it by default, so
+     ;; prevent this. (FIXME: Without this let-binding,
+     ;; todo-backward-category selects the nonempty cat4 and this test
+     ;; fails as expected when run interactively but not in a batch
+     ;; run -- why?)
+     (let (todo-skip-archived-categories)
+       (todo-backward-category))
      (should (eq (point-min) (point-max))) ; All todo items were moved.
      ;; This passes when run interactively but fails in a batch run:
      ;; the message is displayed but (current-message) evaluates to
@@ -461,7 +459,7 @@ the top done item should be the first done item."
                                  todo-date-pattern
 			         "\\( " diary-time-regexp "\\)?"
 			         (regexp-quote todo-nondiary-end) "?")
-		         (line-end-position) t)
+                         (pos-eol) t)
                         (forward-char)
                         (point)))
           (start1 (save-excursion (funcall find-start)))
@@ -561,16 +559,17 @@ source file is different."
      ;; Headers in the todo file are still hidden.
      (should (equal (overlay-get (todo-get-overlay 'header) 'display) "")))))
 
-(defun todo-test--insert-item (item &optional priority)
+(defun todo-test--insert-item (item &optional priority
+                                    _arg diary-type date-type time where)
   "Insert string ITEM into current category with priority PRIORITY.
-Use defaults for all other item insertion parameters.  This
-provides a noninteractive API for todo-insert-item for use in
-automatic testing."
+The remaining arguments (except _ARG, which is ignored) specify
+item insertion parameters.  This provides a noninteractive API
+for todo-insert-item for use in automatic testing."
   (cl-letf (((symbol-function 'read-from-minibuffer)
-             (lambda (_prompt) item))
+             (lambda (_prompt &rest _) item))
             ((symbol-function 'read-number) ; For todo-set-item-priority
              (lambda (_prompt &optional _default) (or priority 1))))
-    (todo-insert-item--basic)))
+    (todo-insert-item--basic nil diary-type date-type time where)))
 
 (ert-deftest todo-test-toggle-item-header07 () ; bug#27609
   "Test display of hidden item header under todo-insert-item."
@@ -581,6 +580,359 @@ automatic testing."
      (todo-test--insert-item item 1)
      (should (equal (overlay-get (todo-get-overlay 'header) 'display) "")))))
 
+(defun todo-test--done-items-separator (&optional eol)
+  "Set up test of command interaction with done items separator.
+With non-nil argument EOL, return the position at the end of the
+separator, otherwise, return the position at the beginning."
+  (todo-test--show 1)
+  (goto-char (point-max))
+  ;; See comment about recentering in todo-test-raise-lower-priority.
+  (set-window-buffer nil (current-buffer))
+  (todo-toggle-view-done-items)
+  ;; FIXME: Point should now be on the first done item, and in batch
+  ;; testing it is, so we have to move back one line to the done items
+  ;; separator; but for some reason, in the graphical test
+  ;; environment, it stays on the last empty line of the todo items
+  ;; section, so there we have to advance one character to the done
+  ;; items separator.
+  (if (display-graphic-p)
+      (forward-char)
+    (forward-line -1))
+  (if eol (forward-char)))
+
+(ert-deftest todo-test-done-items-separator01-bol () ; bug#32343
+  "Test item copying and here insertion at BOL of separator.
+Both should be user errors."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let* ((copy-err "Item copying is not valid here")
+          (here-err "Item insertion is not valid here")
+          (insert-item-test (lambda (where)
+                              (should-error (todo-insert-item--basic
+                                             nil nil nil nil where)))))
+     (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
+     (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
+
+(ert-deftest todo-test-done-items-separator01-eol () ; bug#32343
+  "Test item copying and here insertion at EOL of separator.
+Both should be user errors."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let* ((copy-err "Item copying is not valid here")
+          (here-err "Item insertion is not valid here")
+          (insert-item-test (lambda (where)
+                              (should-error (todo-insert-item--basic
+                                             nil nil nil nil where)))))
+     (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
+     (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
+
+(ert-deftest todo-test-done-items-separator02-bol () ; bug#32343
+  "Test item editing commands at BOL of done items separator.
+They should all be noops."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (should-not (todo-item-done))
+   (should-not (todo-raise-item-priority))
+   (should-not (todo-lower-item-priority))
+   (should-not (called-interactively-p #'todo-set-item-priority))
+   (should-not (called-interactively-p #'todo-move-item))
+   (should-not (called-interactively-p #'todo-delete-item))
+   (should-not (called-interactively-p #'todo-edit-item))))
+
+(ert-deftest todo-test-done-items-separator02-eol () ; bug#32343
+  "Test item editing command at EOL of done items separator.
+They should all be noops."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (should-not (todo-item-done))
+   (should-not (todo-raise-item-priority))
+   (should-not (todo-lower-item-priority))
+   (should-not (called-interactively-p #'todo-set-item-priority))
+   (should-not (called-interactively-p #'todo-move-item))
+   (should-not (called-interactively-p #'todo-delete-item))
+   (should-not (called-interactively-p #'todo-edit-item))))
+
+(ert-deftest todo-test-done-items-separator03-bol () ; bug#32343
+  "Test item marking at BOL of done items separator.
+This should be a noop, adding no marks to the category."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (call-interactively #'todo-toggle-mark-item)
+   (should-not (assoc (todo-current-category) todo-categories-with-marks))))
+
+(ert-deftest todo-test-done-items-separator03-eol () ; bug#32343
+  "Test item marking at EOL of done items separator.
+This should be a noop, adding no marks to the category."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (call-interactively #'todo-toggle-mark-item)
+   (should-not (assoc (todo-current-category) todo-categories-with-marks))))
+
+(ert-deftest todo-test-done-items-separator04-bol () ; bug#32343
+  "Test moving to previous item from BOL of done items separator.
+This should move point to the last not done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let ((last-item (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-previous-item)
+                      (todo-item-string))))
+     (should (string= last-item (save-excursion
+                                  (todo-previous-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator04-eol () ; bug#32343
+  "Test moving to previous item from EOL of done items separator.
+This should move point to the last not done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let ((last-item (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-previous-item)
+                      (todo-item-string))))
+     (should (string= last-item (save-excursion
+                                  (todo-previous-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator05-bol () ; bug#32343
+  "Test moving to next item from BOL of done items separator.
+This should move point to the first done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let ((first-done (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-next-item)
+                      (todo-item-string))))
+     (should (string= first-done (save-excursion
+                                  (todo-next-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator05-eol () ; bug#32343
+  "Test moving to next item from EOL of done items separator.
+This should move point to the first done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let ((first-done (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-next-item)
+                      (todo-item-string))))
+     (should (string= first-done (save-excursion
+                                  (todo-next-item)
+                                  (todo-item-string)))))))
+
+;; Item highlighting uses hl-line-mode, which enables highlighting in
+;; post-command-hook.  For some reason, in the test environment, the
+;; hook function is not automatically run, so after enabling item
+;; highlighting, use ert-simulate-command around the next command,
+;; which explicitly runs the hook function.
+(ert-deftest todo-test-done-items-separator06-bol () ; bug#32343
+  "Test enabling item highlighting at BOL of done items separator.
+Subsequently moving to an item should show it highlighted."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (call-interactively #'todo-toggle-item-highlighting)
+   (ert-simulate-command '(todo-previous-item))
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
+
+(ert-deftest todo-test-done-items-separator06-eol () ; bug#32343
+  "Test enabling item highlighting at EOL of done items separator.
+Subsequently moving to an item should show it highlighted."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (todo-toggle-item-highlighting)
+   (forward-line -1)
+   (ert-simulate-command '(todo-previous-item))
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
+
+(ert-deftest todo-test-done-items-separator07 () ; bug#32343
+  "Test item highlighting when crossing done items separator.
+The highlighting should remain enabled."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (todo-previous-item)
+   (todo-toggle-item-highlighting)
+   (todo-next-item)               ; Now on empty line above separator.
+   (forward-line)                 ; Now on separator.
+   (ert-simulate-command '(forward-line)) ; Now on first done item.
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
+
+(ert-deftest todo-test-current-file-in-edit-mode () ; bug#32437
+  "Test the value of todo-current-todo-file in todo-edit-mode."
+  (with-todo-test
+   (todo-test--show 1)
+   ;; The preceding calls todo-mode but does not run pre-command-hook
+   ;; in the test environment, thus failing to set
+   ;; todo-global-current-todo-file, which is needed for the test
+   ;; after todo-edit-item--text.  So force the hook function to run.
+   (ert-simulate-command '(todo-mode))
+   (let ((curfile todo-current-todo-file))
+     (should (equal curfile todo-test-file-1))
+     (todo-edit-item--text 'multiline)
+     (should (equal todo-current-todo-file curfile))
+     (todo-edit-quit)
+     (todo-edit-file)
+     (should (equal todo-current-todo-file curfile))
+     (todo-edit-quit))
+   (todo-find-archive)
+   (let ((curfile todo-current-todo-file))
+     (should (equal curfile todo-test-archive-1))
+     (todo-edit-file)
+     (should (equal todo-current-todo-file curfile)))))
+
+(ert-deftest todo-test-edit-quit () ; bug#32437
+  "Test result of exiting todo-edit-mode on a whole file.
+Exiting should return to the same todo-mode or todo-archive-mode
+buffer from which the editing command was invoked."
+  (with-todo-test
+   (todo-test--show 1)
+   (let ((buf (current-buffer)))
+     (todo-edit-file)
+     (todo-edit-quit)
+     (should (eq (current-buffer) buf))
+     (should (eq major-mode 'todo-mode))
+   (todo-find-archive)
+   (let ((buf (current-buffer)))
+     (todo-edit-file)
+     (todo-edit-quit)
+     (should (eq (current-buffer) buf))
+     (should (eq major-mode 'todo-archive-mode))))))
+
+(defun todo-test--add-file (file cat)
+  "Add file FILE with category CAT to todo-files and show it.
+This provides a noninteractive API for todo-add-file for use in
+automatic testing."
+  (let ((file0 (ert-resource-file (concat file ".todo")))
+        todo-add-item-if-new-category)  ; Don't need an item in cat.
+    (cl-letf (((symbol-function 'todo-read-file-name)
+               (lambda (_prompt) file0))
+              ((symbol-function 'todo-read-category)
+               (lambda (_prompt &optional _match-type _file) (cons cat file0))))
+      (call-interactively 'todo-add-file) ; Interactive to call todo-show.
+      (todo-add-category file0 cat))))
+
+(defun todo-test--delete-file ()
+  "Delete current todo file without prompting."
+  (cl-letf (((symbol-function 'yes-or-no-p)
+             (lambda (_prompt) t)))
+    (todo-delete-file)))
+
+(ert-deftest todo-test-add-and-delete-file () ; bug#32627
+  "Test adding a new todo file and then deleting it.
+Calling todo-show should display the last current todo file, not
+necessarily the new file.  After deleting the new file, todo-show
+should display the previously current (or default) todo file."
+  (with-todo-test
+   (todo-show)
+   (should (equal todo-current-todo-file todo-test-file-1))
+   (let* ((file (concat todo-directory "todo-test-2.todo"))
+          (file-nb (file-name-base file))
+          (cat "cat21"))
+     (todo-test--add-file file-nb cat)  ; Add new file and show it.
+     (should (equal todo-current-todo-file file))
+     (todo-quit)   ; Quitting todo-mode displays previous buffer.
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (switch-to-buffer "*scratch*")
+     (todo-show)   ; Show the last current todo-file (not the new one).
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (switch-to-buffer (get-file-buffer file)) ; Back to new file.
+     (should (equal todo-current-todo-file file))
+     (todo-test--delete-file)
+     (todo-show)                        ; Back to old file.
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (delete-file (concat file "~")))))
+
+(ert-deftest todo-test-edit-item-date-month () ; bug#42976 #3 and #4
+  "Test incrementing and decrementing the month of an item's date.
+If the change in month crosses a year boundary, the year of the
+item's date should be adjusted accordingly."
+  (with-todo-test
+   (todo-test--show 4)
+   (let ((current-prefix-arg t)         ; For todo-edit-item--header.
+         (get-date (lambda ()
+                     (save-excursion
+                       (todo-date-string-matcher (pos-eol))
+                       (buffer-substring-no-properties (match-beginning 1)
+                                                       (match-end 0))))))
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 0)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Feb 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -1)
+     (should (equal (funcall get-date) "Dec 1, 2019"))
+     (todo-edit-item--header 'month 1)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 12)
+     (should (equal (funcall get-date) "Jan 1, 2021"))
+     (todo-edit-item--header 'month -12)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month -13)
+     (should (equal (funcall get-date) "Dec 1, 2018"))
+     (todo-edit-item--header 'month 7)
+     (should (equal (funcall get-date) "Jul 1, 2019"))
+     (todo-edit-item--header 'month 6)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 23)
+     (should (equal (funcall get-date) "Dec 1, 2021"))
+     (todo-edit-item--header 'month -23)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 24)
+     (should (equal (funcall get-date) "Jan 1, 2022"))
+     (todo-edit-item--header 'month -24)
+     (should (equal (funcall get-date) "Jan 1, 2020"))
+     (todo-edit-item--header 'month 25)
+     (should (equal (funcall get-date) "Feb 1, 2022"))
+     (todo-edit-item--header 'month -25)
+     (should (equal (funcall get-date) "Jan 1, 2020")))))
+
+(ert-deftest todo-test-multiline-item-indentation-1 ()
+  "Test inserting a multine item containing a hard line break.
+After insertion the second line of the item should begin with a
+tab character."
+  (with-todo-test
+   (let* ((item0 "Test inserting a multine item")
+          (item1 "containing a hard line break.")
+          (item (concat item0 "\n" item1)))
+     (todo-test--show 1)
+     (todo-test--insert-item item 1)
+     (re-search-forward (concat todo-date-string-start todo-date-pattern
+				(regexp-quote todo-nondiary-end) " ")
+			(pos-eol) t)
+     (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
+
+(ert-deftest todo-test-multiline-item-indentation-2 () ; bug#43068
+  "Test editing an item by adding text on a new line.
+After quitting todo-edit-mode the second line of the item should
+begin with a tab character."
+  (with-todo-test
+   (todo-test--show 2)
+   (let* ((item0 (todo-item-string))
+          (item1 "Second line."))
+     (todo-edit-item--text 'multiline)
+     (insert (concat "\n" item1))
+     (todo-edit-quit)
+     (goto-char (pos-bol))
+     (should (looking-at (regexp-quote (concat item0 "\n\t" item1)))))))
+
+(ert-deftest todo-test-multiline-item-indentation-3 ()
+  "Test adding an unindented new line to an item using todo-edit-file.
+Attempting to quit todo-edit-mode should signal a user-error,
+since all non-initial item lines must begin with whitespace."
+  (with-todo-test
+   (todo-test--show 2)
+   (let* ((item0 (todo-item-string))
+          (item1 "Second line."))
+     (todo-edit-file)
+     (should (looking-at (regexp-quote item0)))
+     (goto-char (pos-eol))
+     (insert (concat "\n" item1))
+     (should-error (todo-edit-quit) :type 'user-error))))
 
 (provide 'todo-mode-tests)
 ;;; todo-mode-tests.el ends here

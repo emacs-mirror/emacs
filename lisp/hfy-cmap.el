@@ -1,15 +1,14 @@
-;;; hfy-cmap.el --- Fallback colour name -> rgb mapping for `htmlfontify'
+;;; hfy-cmap.el --- Fallback color name -> rgb mapping for `htmlfontify'  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2003, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2022 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
 ;; Filename: hfy-cmap.el
-;; Keywords: colour, rgb
+;; Keywords: color, rgb
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
-;; Maintainer: Vivek Dasmohapatra <vivek@etla.org>
 ;; Created: 2002-01-20
-;; Description: fallback code for colour name -> rgb mapping
+;; Description: fallback code for color name -> rgb mapping
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 ;; Last-Updated: Sat 2003-02-15 03:49:32 +0000
 
@@ -32,7 +31,11 @@
 
 ;;; Code:
 
-(defconst hfy-fallback-colour-map
+(define-obsolete-variable-alias
+  'hfy-fallback-colour-map
+  'hfy-fallback-color-map "27.1")
+
+(defconst hfy-fallback-color-map
   '(("snow"                    65535 64250 64250)
     ("ghost white"             63736 63736 65535)
     ("GhostWhite"              63736 63736 65535)
@@ -786,7 +789,11 @@
     ("light green"             37008 61166 37008)
     ("LightGreen"              37008 61166 37008)) )
 
-(defvar hfy-rgb-txt-colour-map nil)
+(define-obsolete-variable-alias
+  'hfy-rgb-txt-colour-map
+  'hfy-rgb-txt-color-map "27.1")
+
+(defvar hfy-rgb-txt-color-map nil)
 
 (defvar hfy-rgb-load-path
   (list "/etc/X11"
@@ -802,50 +809,54 @@
 (defconst hfy-rgb-regex
   "^\\s-*\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\([0-9]+\\)\\s-+\\(.+\\)\\s-*$")
 
+(defun hfy-cmap--parse-buffer (buffer)
+  (with-current-buffer buffer
+    (let ((end-of-rgb 0)
+          result)
+      (goto-char (point-min))
+      (htmlfontify-unload-rgb-file)
+      (while (/= end-of-rgb 1)
+        (if (looking-at hfy-rgb-regex)
+            (push (list (match-string 4)
+                        (string-to-number (match-string 1))
+                        (string-to-number (match-string 2))
+                        (string-to-number (match-string 3)))
+                  result))
+        (setq end-of-rgb (forward-line)))
+      result)))
+
 ;;;###autoload
 (defun htmlfontify-load-rgb-file (&optional file)
   "Load an X11 style rgb.txt FILE.
 Search `hfy-rgb-load-path' if FILE is not specified.
-Loads the variable `hfy-rgb-txt-colour-map', which is used by
-`hfy-fallback-colour-values'."
+Loads the variable `hfy-rgb-txt-color-map', which is used by
+`hfy-fallback-color-values'."
   (interactive
    (list
     (read-file-name "rgb.txt (equivalent) file: " "" nil t (hfy-rgb-file))))
-  (let ((rgb-buffer   nil)
-	(end-of-rgb     0)
-	(rgb-txt      nil))
-    (if (and (setq rgb-txt (or file (hfy-rgb-file)))
-	     (file-readable-p rgb-txt))
-	(with-current-buffer
-            (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
-          (goto-char (point-min))
-	  (htmlfontify-unload-rgb-file)
-	  (while (/= end-of-rgb 1)
-	    (if (looking-at hfy-rgb-regex)
-		(setq hfy-rgb-txt-colour-map
-		      (cons (list (match-string 4)
-				  (string-to-number (match-string 1))
-				  (string-to-number (match-string 2))
-				  (string-to-number (match-string 3)))
-			    hfy-rgb-txt-colour-map)) )
-	    (setq end-of-rgb (forward-line)))
-	  (kill-buffer rgb-buffer)))))
+  (let ((rgb-buffer nil)
+        (rgb-txt (or file (hfy-rgb-file))))
+    (when (and rgb-txt
+               (file-readable-p rgb-txt))
+      (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
+      (when-let ((result (hfy-cmap--parse-buffer rgb-buffer)))
+        (setq hfy-rgb-txt-color-map result))
+      (kill-buffer rgb-buffer))))
 
 (defun htmlfontify-unload-rgb-file ()
   "Unload the current color name -> rgb translation map."
   (interactive)
-  (setq hfy-rgb-txt-colour-map nil))
+  (setq hfy-rgb-txt-color-map nil))
 
 ;;;###autoload
-(defun hfy-fallback-colour-values (colour-string)
+(defun hfy-fallback-color-values (color-string)
   "Use a fallback method for obtaining the rgb values for a color."
-  (cdr (assoc-string colour-string (or hfy-rgb-txt-colour-map
-                                       hfy-fallback-colour-map))) )
+  (cdr (assoc-string color-string (or hfy-rgb-txt-color-map
+				      hfy-fallback-color-map))) )
+(define-obsolete-function-alias
+  'hfy-fallback-colour-values
+  'hfy-fallback-color-values "27.1")
 
 (provide 'hfy-cmap)
-
-;; Local Variables:
-;; generated-autoload-file: "htmlfontify-loaddefs.el"
-;; End:
 
 ;;; hfy-cmap.el ends here

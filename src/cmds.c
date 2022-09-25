@@ -1,6 +1,6 @@
 /* Simple built-in editing commands.
 
-Copyright (C) 1985, 1993-1998, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1998, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,21 +31,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 static int internal_self_insert (int, EMACS_INT);
 
-DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
-       doc: /* Return buffer position N characters after (before if N negative) point.  */)
-  (Lisp_Object n)
-{
-  CHECK_NUMBER (n);
-
-  return make_number (PT + XINT (n));
-}
-
 /* Add N to point; or subtract N if FORWARD is false.  N defaults to 1.
    Validate the new location.  Return nil.  */
 static Lisp_Object
 move_point (Lisp_Object n, bool forward)
 {
-  /* This used to just set point to point + XINT (n), and then check
+  /* This used to just set point to point + XFIXNUM (n), and then check
      to see if it was within boundaries.  But now that SET_PT can
      potentially do a lot of stuff (calling entering and exiting
      hooks, etcetera), that's not a good approach.  So we validate the
@@ -56,9 +47,9 @@ move_point (Lisp_Object n, bool forward)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n);
+    CHECK_FIXNUM (n);
 
-  new_point = PT + (forward ? XINT (n) : - XINT (n));
+  new_point = PT + (forward ? XFIXNUM (n) : - XFIXNUM (n));
 
   if (new_point < BEGV)
     {
@@ -108,6 +99,7 @@ DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
 Precisely, if point is on line I, move to the start of line I + N
 \("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
+Interactively, N is the numeric prefix argument and defaults to 1.
 
 Returns the count of lines left to move.  If moving forward,
 that is N minus number of lines moved; if backward, N plus number
@@ -121,28 +113,36 @@ it as a line moved across, even though there is no next line to
 go to its beginning.  */)
   (Lisp_Object n)
 {
-  ptrdiff_t opoint = PT, pos, pos_byte, shortage, count;
+  ptrdiff_t opoint = PT, pos, pos_byte, count;
+  bool excessive = false;
 
   if (NILP (n))
     count = 1;
   else
     {
-      CHECK_NUMBER (n);
-      count = XINT (n);
+      CHECK_INTEGER (n);
+      if (FIXNUMP (n)
+	  && -BUF_BYTES_MAX <= XFIXNUM (n) && XFIXNUM (n) <= BUF_BYTES_MAX)
+	count = XFIXNUM (n);
+      else
+	{
+	  count = !NILP (Fnatnump (n)) ? BUF_BYTES_MAX : -BUF_BYTES_MAX;
+	  excessive = true;
+	}
     }
 
-  shortage = scan_newline_from_point (count, &pos, &pos_byte);
+  ptrdiff_t counted = scan_newline_from_point (count, &pos, &pos_byte);
 
   SET_PT_BOTH (pos, pos_byte);
 
-  if (shortage > 0
-      && (count <= 0
-	  || (ZV > BEGV
-	      && PT != opoint
-	      && (FETCH_BYTE (PT_BYTE - 1) != '\n'))))
-    shortage--;
-
-  return make_number (count <= 0 ? - shortage : shortage);
+  ptrdiff_t shortage = count - (count <= 0) - counted;
+  if (shortage != 0)
+    shortage -= (count <= 0 ? -1
+		  : (BEGV < ZV && PT != opoint
+		     && FETCH_BYTE (PT_BYTE - 1) != '\n'));
+  return (excessive
+	  ? CALLN (Fplus, make_fixnum (shortage - count), n)
+	  : make_fixnum (shortage));
 }
 
 DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "^p",
@@ -151,7 +151,7 @@ With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 
 This function constrains point to the current field unless this moves
-point to a different line than the original, unconstrained result.
+point to a different line from the original, unconstrained result.
 If N is nil or 1, and a front-sticky field starts at point, the point
 does not move.  To ignore field boundaries bind
 `inhibit-field-text-motion' to t, or use the `forward-line' function
@@ -162,9 +162,9 @@ instead.  For instance, `(forward-line 0)' does the same thing as
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n);
+    CHECK_FIXNUM (n);
 
-  SET_PT (XINT (Fline_beginning_position (n)));
+  SET_PT (XFIXNUM (Fline_beginning_position (n)));
 
   return Qnil;
 }
@@ -176,7 +176,7 @@ If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
 
 This function constrains point to the current field unless this moves
-point to a different line than the original, unconstrained result.  If
+point to a different line from the original, unconstrained result.  If
 N is nil or 1, and a rear-sticky field ends at point, the point does
 not move.  To ignore field boundaries bind `inhibit-field-text-motion'
 to t.  */)
@@ -187,15 +187,15 @@ to t.  */)
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
-    CHECK_NUMBER (n);
+    CHECK_FIXNUM (n);
 
   while (1)
     {
-      newpos = XINT (Fline_end_position (n));
+      newpos = XFIXNUM (Fline_end_position (n));
       SET_PT (newpos);
 
       if (PT > newpos
-	  && FETCH_CHAR (PT - 1) == '\n')
+	  && FETCH_BYTE (PT_BYTE - 1) == '\n')
 	{
 	  /* If we skipped over a newline that follows
 	     an invisible intangible run,
@@ -206,11 +206,11 @@ to t.  */)
 	  break;
 	}
       else if (PT > newpos && PT < ZV
-	       && FETCH_CHAR (PT) != '\n')
+	       && FETCH_BYTE (PT_BYTE) != '\n')
 	/* If we skipped something intangible
 	   and now we're not really at eol,
 	   keep going.  */
-	n = make_number (1);
+	n = make_fixnum (1);
       else
 	break;
     }
@@ -230,15 +230,15 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
 {
   EMACS_INT pos;
 
-  CHECK_NUMBER (n);
+  CHECK_FIXNUM (n);
 
-  if (eabs (XINT (n)) < 2)
+  if (eabs (XFIXNUM (n)) < 2)
     call0 (Qundo_auto_amalgamate);
 
-  pos = PT + XINT (n);
+  pos = PT + XFIXNUM (n);
   if (NILP (killflag))
     {
-      if (XINT (n) < 0)
+      if (XFIXNUM (n) < 0)
 	{
 	  if (pos < BEGV)
 	    xsignal0 (Qbeginning_of_buffer);
@@ -260,11 +260,10 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
   return Qnil;
 }
 
-/* Note that there's code in command_loop_1 which typically avoids
-   calling this.  */
-DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
+DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 2,
+       "(list (prefix-numeric-value current-prefix-arg) last-command-event)",
        doc: /* Insert the character you type.
-Whichever character you type to run this command is inserted.
+Whichever character C you type to run this command is inserted.
 The numeric prefix argument N says how many times to repeat the insertion.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
@@ -272,23 +271,27 @@ After insertion, `internal-auto-fill' is called if
 `auto-fill-function' is non-nil and if the `auto-fill-chars' table has
 a non-nil value for the inserted character.  At the end, it runs
 `post-self-insert-hook'.  */)
-  (Lisp_Object n)
+  (Lisp_Object n, Lisp_Object c)
 {
-  CHECK_NUMBER (n);
+  CHECK_FIXNUM (n);
 
-  if (XINT (n) < 0)
-    error ("Negative repetition argument %"pI"d", XINT (n));
+  /* Backward compatibility.  */
+  if (NILP (c))
+    c = last_command_event;
 
-  if (XFASTINT (n) < 2)
+  if (XFIXNUM (n) < 0)
+    error ("Negative repetition argument %"pI"d", XFIXNUM (n));
+
+  if (XFIXNAT (n) < 2)
     call0 (Qundo_auto_amalgamate);
 
   /* Barf if the key that invoked this was not a character.  */
-  if (!CHARACTERP (last_command_event))
+  if (!CHARACTERP (c))
     bitch_at_user ();
   else {
     int character = translate_char (Vtranslation_table_for_input,
-				    XINT (last_command_event));
-    int val = internal_self_insert (character, XFASTINT (n));
+				    XFIXNUM (c));
+    int val = internal_self_insert (character, XFIXNAT (n));
     if (val == 2)
       Fset (Qundo_auto__this_command_amalgamating, Qnil);
     frame_make_pointer_invisible (SELECTED_FRAME ());
@@ -360,7 +363,7 @@ internal_self_insert (int c, EMACS_INT n)
       if (EQ (overwrite, Qoverwrite_mode_binary))
 	chars_to_delete = min (n, PTRDIFF_MAX);
       else if (c != '\n' && c2 != '\n'
-	       && (cwidth = XFASTINT (Fchar_width (make_number (c)))) != 0)
+	       && (cwidth = XFIXNAT (Fchar_width (make_fixnum (c)))) != 0)
 	{
 	  ptrdiff_t pos = PT;
 	  ptrdiff_t pos_byte = PT_BYTE;
@@ -378,7 +381,7 @@ internal_self_insert (int c, EMACS_INT n)
 		 character.  In that case, the new point is set after
 		 that character.  */
 	      ptrdiff_t actual_clm
-		= XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
+		= XFIXNAT (Fmove_to_column (make_fixnum (target_clm), Qnil));
 
 	      chars_to_delete = PT - pos;
 
@@ -387,8 +390,8 @@ internal_self_insert (int c, EMACS_INT n)
 		  /* We will delete too many columns.  Let's fill columns
 		     by spaces so that the remaining text won't move.  */
 		  ptrdiff_t actual = PT_BYTE;
-		  DEC_POS (actual);
-		  if (FETCH_CHAR (actual) == '\t')
+		  actual -= prev_char_len (actual);
+		  if (FETCH_BYTE (actual) == '\t')
 		    /* Rather than add spaces, let's just keep the tab. */
 		    chars_to_delete--;
 		  else
@@ -408,11 +411,11 @@ internal_self_insert (int c, EMACS_INT n)
       && NILP (BVAR (current_buffer, read_only))
       && PT > BEGV
       && (SYNTAX (!NILP (BVAR (current_buffer, enable_multibyte_characters))
-		  ? XFASTINT (Fprevious_char ())
-		  : UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
+		  ? XFIXNAT (Fprevious_char ())
+		  : UNIBYTE_TO_CHAR (XFIXNAT (Fprevious_char ())))
 	  == Sword))
     {
-      EMACS_INT modiff = MODIFF;
+      modiff_count modiff = MODIFF;
       Lisp_Object sym;
 
       sym = call0 (Qexpand_abbrev);
@@ -421,11 +424,11 @@ internal_self_insert (int c, EMACS_INT n)
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
       if (SYMBOLP (sym) && ! NILP (sym)
-	  && ! NILP (XSYMBOL (sym)->function)
-	  && SYMBOLP (XSYMBOL (sym)->function))
+	  && ! NILP (XSYMBOL (sym)->u.s.function)
+	  && SYMBOLP (XSYMBOL (sym)->u.s.function))
 	{
 	  Lisp_Object prop;
-	  prop = Fget (XSYMBOL (sym)->function, intern ("no-self-insert"));
+	  prop = Fget (XSYMBOL (sym)->u.s.function, intern ("no-self-insert"));
 	  if (! NILP (prop))
 	    return 1;
 	}
@@ -439,17 +442,21 @@ internal_self_insert (int c, EMACS_INT n)
       int mc = ((NILP (BVAR (current_buffer, enable_multibyte_characters))
 		 && SINGLE_BYTE_CHAR_P (c))
 		? UNIBYTE_TO_CHAR (c) : c);
-      Lisp_Object string = Fmake_string (make_number (n), make_number (mc));
+      Lisp_Object string = Fmake_string (make_fixnum (n), make_fixnum (mc),
+					 Qnil);
 
       if (spaces_to_insert)
 	{
-	  tem = Fmake_string (make_number (spaces_to_insert),
-			      make_number (' '));
+	  tem = Fmake_string (make_fixnum (spaces_to_insert),
+			      make_fixnum (' '), Qnil);
 	  string = concat2 (string, tem);
 	}
 
-      replace_range (PT, PT + chars_to_delete, string, 1, 1, 1, 0);
-      Fforward_char (make_number (n));
+      ptrdiff_t to;
+      if (INT_ADD_WRAPV (PT, chars_to_delete, &to))
+	to = PTRDIFF_MAX;
+      replace_range (PT, to, string, 1, 1, 1, 0, false);
+      Fforward_char (make_fixnum (n));
     }
   else if (n > 1)
     {
@@ -514,7 +521,6 @@ syms_of_cmds (void)
 This is run after inserting the character.  */);
   Vpost_self_insert_hook = Qnil;
 
-  defsubr (&Sforward_point);
   defsubr (&Sforward_char);
   defsubr (&Sbackward_char);
   defsubr (&Sforward_line);
@@ -523,25 +529,4 @@ This is run after inserting the character.  */);
 
   defsubr (&Sdelete_char);
   defsubr (&Sself_insert_command);
-}
-
-void
-keys_of_cmds (void)
-{
-  int n;
-
-  initial_define_key (global_map, Ctl ('I'), "self-insert-command");
-  for (n = 040; n < 0177; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-#ifdef MSDOS
-  for (n = 0200; n < 0240; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-#endif
-  for (n = 0240; n < 0400; n++)
-    initial_define_key (global_map, n, "self-insert-command");
-
-  initial_define_key (global_map, Ctl ('A'), "beginning-of-line");
-  initial_define_key (global_map, Ctl ('B'), "backward-char");
-  initial_define_key (global_map, Ctl ('E'), "end-of-line");
-  initial_define_key (global_map, Ctl ('F'), "forward-char");
 }

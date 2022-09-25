@@ -1,6 +1,6 @@
 ;;; rng-maint.el --- commands for RELAX NG maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -226,11 +226,9 @@
 
 (defun rng-time-function (function &rest args)
   (let* ((start (current-time))
-	 (val (apply function args))
-	 (end (current-time)))
+	 (val (apply function args)))
     (message "%s ran in %g seconds"
-	     function
-	     (float-time (time-subtract end start)))
+	     function (float-time (time-since start)))
     val))
 
 (defun rng-time-tokenize-buffer ()

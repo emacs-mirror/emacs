@@ -1,8 +1,8 @@
 ;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
-;; Author: Emmanuel Briot  <briot@gnat.com>
+;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
 ;; Keywords: xml, data
 
@@ -83,7 +83,7 @@
 ;;;  Macros to parse the list
 
 (defconst xml-undefined-entity "?"
-  "What to substitute for undefined entities")
+  "What to substitute for undefined entities.")
 
 (defconst xml-default-ns '(("" . "")
 			   ("xml" . "http://www.w3.org/XML/1998/namespace")
@@ -176,11 +176,11 @@ See also `xml-get-attribute-or-nil'."
 
 ;; [4] NameStartChar
 ;; See the definition of word syntax in `xml-syntax-table'.
-(defconst xml-name-start-char-re (concat "[[:word:]:_]"))
+(defconst xml-name-start-char-re "[[:word:]:_]")
 
 ;; [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7
 ;;                 | [#x0300-#x036F] | [#x203F-#x2040]
-(defconst xml-name-char-re (concat "[-0-9.[:word:]:_·̀-ͯ‿-⁀]"))
+(defconst xml-name-char-re "[[:word:]:_.0-9\u00B7\u0300-\u036F\u203F\u2040-]")
 
 ;; [5] Name     ::= NameStartChar (NameChar)*
 (defconst xml-name-re (concat xml-name-start-char-re xml-name-char-re "*"))
@@ -194,13 +194,13 @@ See also `xml-get-attribute-or-nil'."
 ;; [8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
 (defconst xml-nmtokens-re (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
 
-;; [66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
-(defconst xml-char-ref-re  "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
+;; [66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [[:xdigit:]]+ ';'
+(defconst xml-char-ref-re  "\\(?:&#[0-9]+;\\|&#x[[:xdigit:]]+;\\)")
 
 ;; [68] EntityRef   ::= '&' Name ';'
 (defconst xml-entity-ref (concat "&" xml-name-re ";"))
 
-(defconst xml-entity-or-char-ref-re (concat "&\\(?:#\\(x\\)?\\([0-9a-fA-F]+\\)\\|\\("
+(defconst xml-entity-or-char-ref-re (concat "&\\(?:#\\(x\\)?\\([[:xdigit:]]+\\)\\|\\("
 					    xml-name-re "\\)\\);"))
 
 ;; [69] PEReference ::= '%' Name ';'
@@ -245,7 +245,6 @@ See also `xml-get-attribute-or-nil'."
 ;; [54] AttType    ::= StringType | TokenizedType | EnumeratedType
 ;; [55] StringType ::= 'CDATA'
 (defconst xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re
-				  "\\|" xml-notation-type-re
 				  "\\|" xml-enumerated-type-re "\\)"))
 
 ;; [60] DefaultDecl ::= '#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
@@ -613,8 +612,8 @@ references."
 	(if (setq ref (match-string 2))
 	    (progn  ; Numeric char reference
 	      (setq val (save-match-data
-			  (decode-char 'ucs (string-to-number
-					     ref (if (match-string 1) 16)))))
+                          (string-to-number
+                           ref (if (match-string 1) 16))))
 	      (and (null val)
 		   xml-validating-parser
 		   (error "XML: (Validity) Invalid character reference `%s'"
@@ -656,7 +655,7 @@ Leave point at the first non-blank character after the tag."
       (setq name (xml-maybe-do-ns (match-string-no-properties 1) nil xml-ns))
       (goto-char end-pos)
 
-      ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
+      ;; See also: https://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
 
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?
@@ -718,10 +717,10 @@ This follows the rule [28] in the XML specifications."
     (cond ((looking-at "PUBLIC\\s-+")
 	   (goto-char (match-end 0))
 	   (unless (or (re-search-forward
-			"\\=\"\\([[:space:][:alnum:]-'()+,./:=?;!*#@$_%]*\\)\""
+			"\\=\"\\([[:space:][:alnum:]'()+,./:=?;!*#@$_%-]*\\)\""
 			nil t)
 		       (re-search-forward
-			"\\='\\([[:space:][:alnum:]-()+,./:=?;!*#@$_%]*\\)'"
+			"\\='\\([[:space:][:alnum:]()+,./:=?;!*#@$_%-]*\\)'"
 			nil t))
 	     (error "XML: Missing Public ID"))
 	   (let ((pubid (match-string-no-properties 1)))
@@ -890,7 +889,7 @@ This follows the rule [28] in the XML specifications."
 The replacement text is obtained by replacing character
 references and parameter-entity references."
   (let ((ref-re (eval-when-compile
-		  (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([0-9a-fA-F]+\\)\\|%\\("
+		  (concat "\\(?:&#\\([0-9]+\\)\\|&#x\\([[:xdigit:]]+\\)\\|%\\("
 			  xml-name-re "\\)\\);")))
 	children)
     (while (string-match ref-re string)
@@ -899,11 +898,11 @@ references and parameter-entity references."
 	    ref val)
 	(cond ((setq ref (match-string 1 string))
 	       ;; Decimal character reference
-	       (setq val (decode-char 'ucs (string-to-number ref)))
+               (setq val (string-to-number ref))
 	       (if val (push (string val) children)))
 	      ;; Hexadecimal character reference
 	      ((setq ref (match-string 2 string))
-	       (setq val (decode-char 'ucs (string-to-number ref 16)))
+               (setq val (string-to-number ref 16))
 	       (if val (push (string val) children)))
 	      ;; Parameter entity reference
 	      ((setq ref (match-string 3 string))
@@ -923,11 +922,11 @@ references and parameter-entity references."
 	(progn
 	  (setq elem     (match-string-no-properties 1 string)
 		modifier (match-string-no-properties 2 string))
-	  (if (string-match-p "|" elem)
+	  (if (string-search "|" elem)
 	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
 				       (split-string elem "|"))))
-	    (if (string-match-p "," elem)
+	    (if (string-search "," elem)
 		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ",")))))))
@@ -963,7 +962,7 @@ STRING is assumed to occur in an XML attribute value."
 	(if ref
 	    ;; [4.6] Character references are included as
 	    ;; character data.
-	    (let ((val (decode-char 'ucs (string-to-number ref (if is-hex 16)))))
+            (let ((val (string-to-number ref (if is-hex 16))))
 	      (push (cond (val (string val))
 			  (xml-validating-parser
 			   (error "XML: (Validity) Undefined character `x%s'" ref))
@@ -1016,7 +1015,10 @@ The first line is indented with the optional INDENT-STRING."
 
 (defalias 'xml-print 'xml-debug-print)
 
-(defun xml-escape-string (string)
+(defconst xml-invalid-characters-re
+  "[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD\U00010000-\U0010FFFF]")
+
+(defun xml-escape-string (string &optional noerror)
   "Convert STRING into a string containing valid XML character data.
 Replace occurrences of &<>\\='\" in STRING with their default XML
 entity references (e.g., replace each & with &amp;).
@@ -1024,9 +1026,20 @@ entity references (e.g., replace each & with &amp;).
 XML character data must not contain & or < characters, nor the >
 character under some circumstances.  The XML spec does not impose
 restriction on \" or \\=', but we just substitute for these too
-\(as is permitted by the spec)."
+\(as is permitted by the spec).
+
+If STRING contains characters that are invalid in XML (as defined
+by https://www.w3.org/TR/xml/#charsets), operate depending on the
+value of NOERROR: if it is non-nil, remove them; else, signal an
+error of type `xml-invalid-character'."
   (with-temp-buffer
     (insert string)
+    (goto-char (point-min))
+    (while (re-search-forward xml-invalid-characters-re nil t)
+      (if noerror
+          (replace-match "")
+        (signal 'xml-invalid-character
+                (list (char-before) (match-beginning 0)))))
     (dolist (substitution '(("&" . "&amp;")
 			    ("<" . "&lt;")
 			    (">" . "&gt;")
@@ -1036,6 +1049,9 @@ restriction on \" or \\=', but we just substitute for these too
       (while (search-forward (car substitution) nil t)
 	(replace-match (cdr substitution) t t nil)))
     (buffer-string)))
+
+(define-error 'xml-invalid-character "Invalid XML character"
+  'wrong-type-argument)
 
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
@@ -1072,6 +1088,19 @@ The first line is indented with INDENT-STRING."
 		      (stringp (car tree))))
 	(insert ?\n indent-string))
       (insert ?< ?/ (symbol-name (xml-node-name xml)) ?>))))
+
+;;;###autoload
+(defun xml-remove-comments (beg end)
+  "Remove XML/HTML comments in the region between BEG and END.
+All text between the <!-- ... --> markers will be removed."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char beg)
+      (while (search-forward "<!--" nil t)
+        (let ((start (match-beginning 0)))
+          (when (search-forward "-->" nil t)
+            (delete-region start (point))))))))
 
 (provide 'xml)
 

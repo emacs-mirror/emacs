@@ -1,0 +1,1 @@
+&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2011 9 19)) 09:00-11:30 rrule count every second year

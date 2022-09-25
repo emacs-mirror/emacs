@@ -1,9 +1,8 @@
-;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
+;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.2
 ;; Package: ebnf2ps
@@ -39,11 +38,7 @@
 ;; -----------
 ;;
 ;;	See the URL:
-;;	`http://www.ietf.org/rfc/rfc2234.txt'
-;;	or
-;;	`http://www.faqs.org/rfcs/rfc2234.html'
-;;	or
-;;	`http://www.rnp.br/ietf/rfc/rfc2234.txt'
+;;	`https://www.ietf.org/rfc/rfc2234.txt'
 ;;	("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;
@@ -475,11 +470,10 @@
     (aset ebnf-abn-token-table ?\; 'comment)))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-abn-non-terminal-chars
-  (ebnf-range-regexp "-_0-9A-Za-z" ?\240 ?\377))
+  "-_0-9A-Za-z\u00a0-\u00ff")
 (defconst ebnf-abn-non-terminal-letter-chars
-  (ebnf-range-regexp "A-Za-z" ?\240 ?\377))
+  "A-Za-z\u00a0-\u00ff")
 
 
 (defun ebnf-abn-lex ()
@@ -536,13 +530,14 @@ See documentation for variable `ebnf-abn-lex'."
 	(let ((prose-p (= (following-char) ?<)))
 	  (when prose-p
 	    (forward-char)
-	    (or (looking-at ebnf-abn-non-terminal-letter-chars)
+	    (or (looking-at (concat "[" ebnf-abn-non-terminal-letter-chars "]"))
 		(error "Invalid prose value")))
 	  (setq ebnf-abn-lex
 		(ebnf-buffer-substring ebnf-abn-non-terminal-chars))
 	  (when prose-p
 	    (or (= (following-char) ?>)
 		(error "Invalid prose value"))
+            (forward-char)
 	    (setq ebnf-abn-lex (concat "<" ebnf-abn-lex ">"))))
 	'non-terminal)
        ;; equal: =, =/
@@ -573,9 +568,8 @@ See documentation for variable `ebnf-abn-lex'."
     (not eor-p)))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-abn-comment-chars
-  (ebnf-range-regexp "^\n\000-\010\016-\037" ?\177 ?\237))
+  "^\n\000-\010\016-\037\177\u0080-\u009f")
 
 
 (defun ebnf-abn-skip-comment ()
@@ -613,9 +607,8 @@ See documentation for variable `ebnf-abn-lex'."
   (ebnf-buffer-substring ebnf-abn-comment-chars))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-abn-string-chars
-  (ebnf-range-regexp " -!#-~" ?\240 ?\377))
+  " !#-~\u00a0-\u00ff")
 
 
 (defun ebnf-abn-string ()
@@ -641,7 +634,7 @@ See documentation for variable `ebnf-abn-lex'."
      (let* ((char  (following-char))
 	    (chars (cond ((or (= char ?B) (= char ?b)) "01")
 			 ((or (= char ?D) (= char ?d)) "0-9")
-			 ((or (= char ?X) (= char ?x)) "0-9A-Fa-f")
+			 ((or (= char ?X) (= char ?x)) "[:xdigit:]")
 			 (t (error "Invalid terminal value")))))
        (forward-char)
        (or (> (skip-chars-forward chars ebnf-limit) 0)

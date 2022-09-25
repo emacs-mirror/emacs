@@ -38,7 +38,6 @@ Con@TeX{}t
 @set SUPPORTADDRESS @AUCTeX{} user mailing list (@email{auctex@@gnu.org})
 @set DEVELADDRESS @AUCTeX{} developer mailing list (@email{auctex-devel@@gnu.org})
 @set BUGADDRESS @AUCTeX{} bug mailing list (@email{bug-auctex@@gnu.org})
-@set XEMACSFTP @uref{ftp://ftp.xemacs.org/pub/xemacs/packages/,XEmacs FTP site}
 @c %**end of header
 
 @copying
@@ -46,7 +45,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -249,77 +248,7 @@ reports or suggestions.
 @cindex Installation
 
 @RefTeX{} has been bundled and pre-installed with Emacs since
-version 20.2.  It has also been bundled and pre-installed with XEmacs
-19.16--20.x.  XEmacs 21.x users want to install the corresponding
-plug-in package which is available from the @value{XEMACSFTP}.  See the
-XEmacs 21.x documentation on package installation for details.
-
-Users of earlier Emacs distributions (including Emacs 19) or people
-craving for new features and bugs can get a copy of the @RefTeX{}
-distribution from the maintainer's web page.  @xref{Imprint}, for more
-information.  The following instructions will guide you through the
-process of installing such a distribution.
-
-@subsection Building and Installing
-
-Note: Currently installation is supported for Emacs only.  XEmacs users
-might want to refer to the @RefTeX{} package available through the
-package system of XEmacs.
-
-@subsubheading Installation with make
-
-In order to install RefTeX, unpack the distribution and edit the header
-of the Makefile.  Basically, you need to change the path specifications
-for Emacs Lisp files and info files.  Also, enter the name of your Emacs
-executable (usually either @samp{emacs} or @samp{xemacs}).
-
-Then, type
-
-@example
-make
-make install
-@end example
-
-to compile and install the code and documentation.
-
-Per default @RefTeX{} is installed in its own subdirectory which might
-not be on your load path.  In this case, add it to load path with a
-command like the following, replacing the sample directory with the one
-where @RefTeX{} is installed in your case.
-
-@example
-(add-to-list 'load-path "/path/to/reftex")
-@end example
-
-Put this command into your init file before other @RefTeX{}-related
-settings.
-
-@subsubheading Installation by Hand
-
-If you want to get your hands dirty, there is also the possibility to
-install by manually copying files.
-
-@enumerate a
-@item
-Copy the reftex*.el lisp files to a directory on your load path.  Make
-sure that no old copy of @RefTeX{} shadows these files.
-@item
-Byte compile the files.  The sequence of compiling should be:
-reftex-var.el, reftex.el, and then all the others.
-@item
-Copy the info file reftex.info to the info directory.
-@end enumerate
-
-@subsection Loading @RefTeX{}
-
-In order to make the most important functions for entering @RefTeX{}
-mode available add the following line to your init file.
-
-@example
-(require 'reftex)
-@end example
-
-@subsection Entering @RefTeX{} Mode
+version 20.2.
 
 @findex turn-on-reftex
 @findex reftex-mode
@@ -725,9 +654,9 @@ variable @code{reftex-auto-recenter-toc}.
 
 @end table
 
-@vindex reftex-toc-map
+@vindex reftex-toc-mode-map
 In order to define additional commands for the @file{*toc*} buffer, the
-keymap @code{reftex-toc-map} may be used.
+keymap @code{reftex-toc-mode-map} may be used.
 
 @findex reftex-toc-recenter
 @vindex reftex-auto-recenter-toc
@@ -1088,9 +1017,9 @@ document and let you select a label from there (@pxref{LaTeX xr Package,,xr}).
 
 @end table
 
-@vindex reftex-select-label-map
+@vindex reftex-select-label-mode-map
 In order to define additional commands for the selection process, the
-keymap @code{reftex-select-label-map} may be used.
+keymap @code{reftex-select-label-mode-map} may be used.
 
 @node Builtin Label Environments
 @section Builtin Label Environments
@@ -1710,8 +1639,8 @@ customizing @code{reftex-ref-macro-prompt} and relying only on the
 selection facilities provided in the last step.
 
 In the last step, i.e., the label selection, two key bindings are
-provided to set the reference macro.  Type @key{v} in order to cycle
-forward through the list of available macros or @key{V} to cycle
+provided to set the reference macro.  Type @kbd{v} in order to cycle
+forward through the list of available macros or @kbd{V} to cycle
 backward.  The mode line of the selection buffer shows the macro
 currently selected.
 
@@ -1732,8 +1661,8 @@ seems inconvenient to you.@footnote{You could, e.g., bind
 @cindex LaTeX packages, @code{varioref}
 @cindex @code{fancyref}, LaTeX package
 @cindex LaTeX packages, @code{fancyref}
-@vindex reftex-vref-is-default (deprecated)
-@vindex reftex-fref-is-default (deprecated)
+@vindex reftex-vref-is-default @r{(deprecated)}
+@vindex reftex-fref-is-default @r{(deprecated)}
 In former versions of @RefTeX{} only support for @code{varioref} and
 @code{fancyref} was included.  @code{varioref} is a @LaTeX{} package to
 create cross-references with page information.  @code{fancyref} is a
@@ -1938,9 +1867,9 @@ entries.
 
 @end table
 
-@vindex reftex-select-bib-map
+@vindex reftex-select-bib-mode-map
 In order to define additional commands for this selection process, the
-keymap @code{reftex-select-bib-map} may be used.
+keymap @code{reftex-select-bib-mode-map} may be used.
 
 Note that if you do not use Emacs to edit the @BibTeX{} database files,
 @RefTeX{} will ask if the related buffers should be updated once it
@@ -2896,9 +2825,8 @@ default.  If you want to have these key bindings available, set in your
 Note that this variable has to be set before @RefTeX{} is loaded to
 have an effect.
 
-@vindex reftex-load-hook
-Changing and adding to @RefTeX{}'s key bindings is best done in the hook
-@code{reftex-load-hook}.  For information on the keymaps
+Changing and adding to @RefTeX{}'s key bindings is best done using
+@code{with-eval-after-load}.  For information on the keymaps
 which should be used to add keys, see @ref{Keymaps and Hooks}.
 
 @node Faces
@@ -3260,9 +3188,9 @@ with the @kbd{g} key.  To get this behavior, use instead
 
 @AUCTeX{} is without doubt the best major mode for editing @TeX{} and @LaTeX{}
 files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
-If @AUCTeX{} is not part of your Emacs distribution, you can get
-it@footnote{XEmacs 21.x users may want to install the corresponding
-XEmacs package.} by FTP from the @value{AUCTEXSITE}.
+You can get it from its website at @value{AUCTEXSITE}, but since
+it is available from GNU ELPA, you can simply install it from @kbd{M-x
+list-packages}.
 
 @menu
 * AUCTeX-RefTeX Interface::          How both packages work together
@@ -3295,11 +3223,11 @@ The following list describes the individual parts of the interface.
 @itemize @bullet
 @item
 @findex reftex-label
-@vindex LaTeX-label-function, @r{AUCTeX}
+@vindex LaTeX-label-function@r{, AUCTeX}
 @kindex C-c C-e
 @kindex C-c C-s
-@findex LaTeX-section, @r{AUCTeX}
-@findex TeX-insert-macro, @r{AUCTeX}
+@findex LaTeX-section@r{, AUCTeX}
+@findex TeX-insert-macro@r{, AUCTeX}
 @b{@AUCTeX{} calls @code{reftex-label} to insert labels}@*
 When a new section is created with @kbd{C-c C-s}, or a new environment
 is inserted with @kbd{C-c C-e}, @AUCTeX{} normally prompts for a label to
@@ -3327,15 +3255,15 @@ have to rescan the buffer in order to see it.
 
 @item
 @findex reftex-arg-label
-@findex TeX-arg-label, @r{AUCTeX function}
+@findex TeX-arg-label@r{, AUCTeX function}
 @findex reftex-arg-ref
-@findex TeX-arg-ref, @r{AUCTeX function}
+@findex TeX-arg-ref@r{, AUCTeX function}
 @findex reftex-arg-cite
-@findex TeX-arg-cite, @r{AUCTeX function}
+@findex TeX-arg-cite@r{, AUCTeX function}
 @findex reftex-arg-index
-@findex TeX-arg-index, @r{AUCTeX function}
-@findex TeX-insert-macro, @r{AUCTeX function}
-@kindex C-c @key{RET}
+@findex TeX-arg-index@r{, AUCTeX function}
+@findex TeX-insert-macro@r{, AUCTeX function}
+@kindex C-c RET
 @b{@RefTeX{} supplies macro arguments}@* When you insert a macro
 interactively with @kbd{C-c @key{RET}}, @AUCTeX{} normally prompts for
 macro arguments.  Internally, it uses the functions
@@ -3357,7 +3285,7 @@ Labels}).
 @node Style Files
 @subsection Style Files
 @cindex Style files, AUCTeX
-@findex TeX-add-style-hook, @r{AUCTeX}
+@findex TeX-add-style-hook@r{, AUCTeX}
 Style files are Emacs Lisp files which are evaluated by @AUCTeX{} in
 association with the @code{\documentclass} and @code{\usepackage}
 commands of a document (@pxref{Style Files,,,auctex}). Support for
@@ -3396,7 +3324,7 @@ style file of @AUCTeX{} for example contains the following:
 @end lisp
 
 @noindent
-@findex LaTeX-add-environments, @r{AUCTeX}
+@findex LaTeX-add-environments@r{, AUCTeX}
 while a package @code{myprop} defining a @code{proposition} environment
 with @code{\newtheorem} might use
 
@@ -3611,30 +3539,6 @@ as a label of type @code{?p}.  Argument count for this macro starts only
 after the @samp{@{step+@}}, also when specifying how to get
 context.
 
-@item
-@b{Idle timers in XEmacs}@*
-@cindex Idle timer restart
-@vindex reftex-use-itimer-in-xemacs
-In XEmacs, idle timer restart does not work reliably after fast
-keystrokes.  Therefore @RefTeX{} currently uses the post command
-hook to start the timer used for automatic crossref information.  When
-this bug gets fixed, a real idle timer can be requested with
-@lisp
-(setq reftex-use-itimer-in-xemacs t)
-@end lisp
-
-@item
-@b{Viper mode}@*
-@cindex Viper mode
-@cindex Key bindings, problems with Viper mode
-@findex viper-harness-minor-mode
-With @i{Viper} mode prior to Vipers version 3.01, you need to protect
-@RefTeX{}'s keymaps with
-
-@lisp
-(viper-harness-minor-mode "reftex")
-@end lisp
-
 @end itemize
 
 @page
@@ -3645,7 +3549,7 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @cindex Acknowledgments
 @cindex Thanks
 @cindex Bug reports
-@cindex @code{http}, @RefTeX{} home page
+@cindex @code{http}, @RefTeX{} website
 @cindex @code{ftp}, @RefTeX{} site
 
 @c dominik@@science.uva.nl
@@ -3664,7 +3568,7 @@ the @value{BUGADDRESS}.
 
 There are also several Usenet groups which have competent readers who
 might be able to help: @code{comp.emacs}, @code{gnu.emacs.help},
-@code{comp.emacs.xemacs}, and @code{comp.text.tex}.
+and @code{comp.text.tex}.
 
 Thanks to the people on the Net who have used @RefTeX{} and helped
 developing it with their reports.  In particular thanks to @i{Ralf
@@ -3697,7 +3601,7 @@ MicroEmacs at the time).
 Here is a summary of @RefTeX{}'s commands which can be executed from
 @LaTeX{} files.  Command which are executed from the special buffers are
 not described here.  All commands are available from the @code{Ref}
-menu.  See @xref{Key Bindings}.
+menu.  @xref{Key Bindings}.
 
 @deffn Command reftex-toc
 Show the table of contents for the current document.  When called with
@@ -4040,7 +3944,7 @@ Normal hook which is run when a @file{*toc*} buffer is
 created.
 @end deffn
 
-@deffn Keymap reftex-toc-map
+@deffn Keymap reftex-toc-mode-map
 The keymap which is active in the @file{*toc*} buffer.
 (@pxref{Table of Contents}).
 @end deffn
@@ -4505,7 +4409,7 @@ Normal hook which is run when a selection buffer enters
 @code{reftex-select-label-mode}.
 @end deffn
 
-@deffn Keymap reftex-select-label-map
+@deffn Keymap reftex-select-label-mode-map
 The keymap which is active in the labels selection process
 (@pxref{Referencing Labels}).
 @end deffn
@@ -4618,7 +4522,7 @@ return the string to insert into the buffer.
 
 @defopt reftex-cite-prompt-optional-args
 Non-@code{nil} means, prompt for empty optional arguments in cite macros.
-When an entry in @code{reftex-cite-format} ist given with square brackets to
+When an entry in @code{reftex-cite-format} is given with square brackets to
 indicate optional arguments (for example @samp{\\cite[][]@{%l@}}), RefTeX can
 prompt for values.  Possible values are:
 @example
@@ -4666,7 +4570,7 @@ Normal hook which is run when a selection buffer enters
 @code{reftex-select-bib-mode}.
 @end deffn
 
-@deffn Keymap reftex-select-bib-map
+@deffn Keymap reftex-select-bib-mode-map
 The keymap which is active in the citation-key selection process
 (@pxref{Creating Citations}).
 @end deffn
@@ -4689,7 +4593,7 @@ Footer to insert in BibTeX files generated by
 @end defopt
 
 
-@node Options - Index Support, Options - Viewing Cross-References, Options - Creating Citations,  Options
+@node Options - Index Support
 @section Index Support
 @cindex Options, Index support
 @cindex Index support, options
@@ -4872,7 +4776,7 @@ into blocks.  Sorting will then preserve blocks, so that lines are
 re-arranged only within blocks.
 @end defopt
 
-@defopt reftex-index-phrases-map
+@defopt reftex-index-phrases-mode-map
 Keymap for the Index Phrases buffer.
 @end defopt
 
@@ -4904,7 +4808,7 @@ the document.  This flag can be toggled from within the @file{*Index*}
 buffer with the @kbd{f} key.
 @end defopt
 
-@deffn Keymap reftex-index-map
+@deffn Keymap reftex-index-mode-map
 The keymap which is active in the @file{*Index*} buffer
 (@pxref{Index Support}).
 @end deffn
@@ -5318,10 +5222,6 @@ argument.
 
 @deffn Keymap reftex-mode-map
 The keymap for @RefTeX{} mode.
-@end deffn
-
-@deffn {Normal Hook} reftex-load-hook
-Normal hook which is being run when loading @file{reftex.el}.
 @end deffn
 
 @deffn {Normal Hook} reftex-mode-hook
@@ -5897,8 +5797,8 @@ buffer).
 @noindent @b{Version 3.12}
 @itemize @bullet
 @item
-There are 3 new keymaps for customization: @code{reftex-toc-map},
-@code{reftex-select-label-map}, @code{reftex-select-bib-map}.
+There are 3 new keymaps for customization: @code{reftex-toc-mode-map},
+@code{reftex-select-label-mode-map}, @code{reftex-select-bib-mode-map}.
 @item
 Refontification uses more standard font-lock stuff.
 @item

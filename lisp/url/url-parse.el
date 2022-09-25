@@ -1,6 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -95,17 +95,6 @@ If the specified port number is the default, return nil."
 	    (if port (format ":%d" (url-port urlobj)))
 	    (or file "/")
 	    (if frag (concat "#" frag)))))
-
-(defun url-recreate-url-attributes (urlobj)
-  "Recreate the attributes of an URL string from the parsed URLOBJ."
-  (declare (obsolete nil "24.3"))
-  (when (url-attributes urlobj)
-    (concat ";"
-	    (mapconcat (lambda (x)
-                         (if (cdr x)
-                             (concat (car x) "=" (cdr x))
-                           (car x)))
-                       (url-attributes urlobj) ";"))))
 
 ;;;###autoload
 (defun url-generic-parse-url (url)
@@ -209,7 +198,7 @@ parses to
 	    ;; 3.3. Path
 	    (skip-chars-forward "^?#")
 	    ;; 3.4. Query
-	    (when (looking-at "?")
+	    (when (looking-at "\\?")
 	      (skip-chars-forward "^#"))
 	    (setq file (buffer-substring save-pos (point)))
 	    ;; 3.5 Fragment

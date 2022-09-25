@@ -1,13 +1,12 @@
-;;; isearchb --- a marriage between iswitchb and isearch
+;;; isearchb.el --- a marriage between iswitchb and isearch  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 16 Apr 2004
 ;; Version: 1.5
 ;; Keywords: lisp
-;; X-URL: http://www.newartisans.com/johnw/emacs.html
 
 ;; This file is part of GNU Emacs.
 
@@ -77,7 +76,9 @@
 
 ;;; Code:
 
-(require 'iswitchb)                     ;FIXME: Don't rely on iswitchb!
+;; FIXME: Don't rely on iswitchb!  See bug#36260.
+(with-suppressed-warnings ((obsolete iswitchb))
+  (require 'iswitchb))
 
 (defgroup isearchb nil
   "Switch between buffers using a mechanism like isearch."
@@ -87,13 +88,11 @@
   "Number of idle seconds before isearchb turns itself off.
 If nil, don't use a timeout."
   :type '(choice (integer :tag "Seconds")
-		 (const :tag "Disable" nil))
-  :group 'isearchb)
+                 (const :tag "Disable" nil)))
 
 (defcustom isearchb-show-completions t
   "If non-nil, show possible completions in the minibuffer."
-  :type 'boolean
-  :group 'isearchb)
+  :type 'boolean)
 
 (defvar isearchb-start-buffer nil)
 (defvar isearchb-last-buffer nil)

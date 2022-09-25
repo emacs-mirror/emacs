@@ -6,8 +6,10 @@
 # This implementation will be obsolete once we can assume Autoconf 2.70
 # or later is installed everywhere a Gnulib program might be developed.
 
+m4_version_prereq([2.70], [], [
 
-# Copyright (C) 2001-2017 Free Software Foundation, Inc.
+
+# Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -369,7 +371,7 @@ dnl		just the module.  Instead, define the (private) symbol
 dnl		_STDC_C99, which suppresses a bogus failure in <stdbool.h>.
 dnl		The resulting compiler passes the test case here, and that's
 dnl		good enough.  For more, please see the thread starting at:
-dnl            https://lists.gnu.org/archive/html/autoconf/2010-12/msg00059.html
+dnl            https://lists.gnu.org/r/autoconf/2010-12/msg00059.html
 dnl Tru64	-c99
 dnl with extended modes being tried first.
 [[-std=gnu99 -std=c99 -c99 -AC99 -D_STDC_C99= -qlanglvl=extc1x -qlanglvl=extc99]], [$1], [$2])[]dnl
@@ -458,7 +460,7 @@ dnl preferably extc11.
 # --------------
 # Do not use AU_ALIAS here and in AC_PROG_CC_C99 and AC_PROG_CC_STDC,
 # as that'd be incompatible with how Automake redefines AC_PROG_CC.  See
-# <https://lists.gnu.org/archive/html/autoconf/2012-10/msg00048.html>.
+# <https://lists.gnu.org/r/autoconf/2012-10/msg00048.html>.
 AU_DEFUN([AC_PROG_CC_C89],
   [AC_REQUIRE([AC_PROG_CC])],
   [$0 is obsolete; use AC_PROG_CC]
@@ -822,3 +824,6 @@ dnl Tru64	N/A (no support)
 dnl with extended modes being tried first.
 [[-std=gnu++11 -std=c++11 -std=gnu++0x -std=c++0x -qlanglvl=extended0x -AA]], [$1], [$2])[]dnl
 ])# _AC_PROG_CXX_CXX11
+
+
+])# m4_version_prereq

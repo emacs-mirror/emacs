@@ -1,6 +1,6 @@
-;;; message-mode-tests.el --- Tests for message-mode  -*- lexical-binding: t; -*-
+;;; message-tests.el --- Tests for message-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 
@@ -29,6 +29,8 @@
 (require 'ert)
 (require 'ert-x)
 
+(require 'cl-lib)
+
 (ert-deftest message-mode-propertize ()
   (with-temp-buffer
     (unwind-protect
@@ -45,14 +47,10 @@
           (setq-local parse-sexp-lookup-properties t)
           (backward-sexp)
           (should (string= "here's an opener "
-                           (buffer-substring-no-properties
-                            (line-beginning-position)
-                            (point))))
+                           (buffer-substring-no-properties (pos-bol) (point))))
           (forward-sexp)
           (should (string= "and here's a closer )"
-                           (buffer-substring-no-properties
-                            (line-beginning-position)
-                            (point)))))
+                           (buffer-substring-no-properties (pos-bol) (point)))))
       (set-buffer-modified-p nil))))
 
 
@@ -97,7 +95,90 @@
         (should (string= stripped-was
                          (message-strip-subject-trailing-was with-was)))))))
 
+(ert-deftest message-all-recipients ()
+  (ert-with-test-buffer (:name "message")
+    (insert "To: Person 1 <p1@p1.org>, Person 2 <p2@p2.org>\n")
+    (insert "Cc: Person 3 <p3@p3.org>, Person 4 <p4@p4.org>\n")
+    (insert "Bcc: Person 5 <p5@p5.org>, Person 6 <p6@p6.org>\n")
+    (should (equal (message-all-recipients)
+                   '(("Person 1" "p1@p1.org")
+                     ("Person 2" "p2@p2.org")
+                     ("Person 3" "p3@p3.org")
+                     ("Person 4" "p4@p4.org")
+                     ("Person 5" "p5@p5.org")
+                     ("Person 6" "p6@p6.org"))))))
+
+(ert-deftest message-all-epg-keys-available-p ()
+  (skip-unless (epg-check-configuration (epg-find-configuration 'OpenPGP)))
+  (let ((person1 '("Person 1" "p1@p1.org"))
+        (person2 '("Person 2" "p2@p2.org"))
+        (person3 '("Person 3" "p3@p3.org"))
+        (recipients nil)
+        (keyring '("p1@p1.org" "p2@p2.org")))
+    (cl-letf (((symbol-function 'epg-list-keys)
+               (lambda (_ email) (cl-find email keyring :test #'string=)))
+              ((symbol-function 'message-all-recipients)
+               (lambda () recipients)))
+
+      (setq recipients (list))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person2))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person3))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person3))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person3 person1))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person2 person3))
+      (should-not (message-all-epg-keys-available-p)))))
+
+(ert-deftest message-alter-repeat-address ()
+  (should (equal (message--alter-repeat-address
+                  "Lars Ingebrigtsen <larsi@gnus.org>")
+                 "Lars Ingebrigtsen <larsi@gnus.org>"))
+
+  (should (equal (message--alter-repeat-address
+                      "\"larsi@gnus.org\" <larsi@gnus.org>")
+                     "larsi@gnus.org")))
+
+(ert-deftest message-replace-header ()
+  (with-temp-buffer
+    (save-excursion
+      (insert "From: dang@gnus.org
+To: user1,
+    user2
+Cc: user3,
+    user4
+--text follows this line--
+Hello.
+"))
+    (save-excursion
+      (message-replace-header "From" "ding@gnus.org")
+      (should (cl-search "ding" (message-field-value "From"))))
+    (save-excursion
+      (message-replace-header "From" "dong@gnus.org" "To")
+      (should (cl-search "dong" (message-field-value "From")))
+      (should (re-search-forward "From:"))
+      (should-error (re-search-forward "To:"))
+      (should (re-search-forward "Cc:")))
+    (save-excursion
+      (message-replace-header "From" "dang@gnus.org" (split-string "To Cc"))
+      (should (cl-search "dang" (message-field-value "From")))
+      (should (re-search-forward "From:"))
+      (should-error (re-search-forward "To:"))
+      ;; That this isn't so is probably a bug from 1997.
+      ;; (should-error (re-search-forward "Cc:"))
+      )))
 
 (provide 'message-mode-tests)
 
-;;; message-mode-tests.el ends here
+;;; message-tests.el ends here

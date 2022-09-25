@@ -1,11 +1,12 @@
 ;;; ob-perl.el --- Babel Functions for Perl          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Authors: Dan Davison
 ;;	 Eric Schulte
+;; Maintainer: Corwin Brust
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -151,7 +152,5 @@ return the value of the last statement in BODY, as elisp."
           (org-babel-import-elisp-from-file tmp-file '(16)))))))
 
 (provide 'ob-perl)
-
-
 
 ;;; ob-perl.el ends here

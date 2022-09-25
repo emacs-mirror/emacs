@@ -1,6 +1,6 @@
-;;; gnutls-tests.el --- Test suite for gnutls.el
+;;; gnutls-tests.el --- Test suite for gnutls.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 
@@ -26,9 +26,17 @@
 ;;; Code:
 
 (require 'ert)
-(require 'cl)
+(require 'cl-lib)
 (require 'gnutls)
 (require 'hex-util)
+
+(declare-function gnutls-symmetric-decrypt "gnutls.c")
+(declare-function gnutls-symmetric-encrypt "gnutls.c")
+(declare-function gnutls-hash-mac "gnutls.c")
+(declare-function gnutls-hash-digest "gnutls.c")
+(declare-function gnutls-ciphers "gnutls.c")
+(declare-function gnutls-digests "gnutls.c")
+(declare-function gnutls-macs "gnutls.c")
 
 (defvar gnutls-tests-message-prefix "")
 
@@ -46,22 +54,22 @@
 
 (defvar gnutls-tests-tested-macs
   (when (gnutls-available-p)
-    (remove-duplicates
-     (append (mapcar 'cdr gnutls-tests-internal-macs-upcased)
-             (mapcar 'car (gnutls-macs))))))
+    (cl-remove-duplicates
+     (append (mapcar #'cdr gnutls-tests-internal-macs-upcased)
+             (mapcar #'car (gnutls-macs))))))
 
 (defvar gnutls-tests-tested-digests
   (when (gnutls-available-p)
-    (remove-duplicates
-     (append (mapcar 'cdr gnutls-tests-internal-macs-upcased)
-             (mapcar 'car (gnutls-digests))))))
+    (cl-remove-duplicates
+     (append (mapcar #'cdr gnutls-tests-internal-macs-upcased)
+             (mapcar #'car (gnutls-digests))))))
 
 (defvar gnutls-tests-tested-ciphers
   (when (gnutls-available-p)
-    (remove-duplicates
-    ; these cause FPEs or SEGVs
-     (remove-if (lambda (e) (memq e '(ARCFOUR-128)))
-                (mapcar 'car (gnutls-ciphers))))))
+    (cl-remove-duplicates
+     ;; these cause FPEs or SEGVs
+     (cl-remove-if (lambda (e) (memq e '(ARCFOUR-128)))
+                   (mapcar #'car (gnutls-ciphers))))))
 
 (defvar gnutls-tests-mondo-strings
   (list
@@ -154,7 +162,7 @@
                     ("0cc175b9c0f1b6a831c399e269772661" "a" MD5)
                     ("a9993e364706816aba3e25717850c26c9cd0d89d" "abc" SHA1)
                     ("a9993e364706816aba3e25717850c26c9cd0d89d" "abc" "SHA1"))) ; check string ID for digest
-      (destructuring-bind (hash input mac) test
+      (pcase-let ((`(,hash ,input ,mac) test))
         (let ((plist (cdr (assq mac macs)))
               result resultb)
         (gnutls-tests-message "%s %S" mac plist)
@@ -178,7 +186,7 @@
                     ("81568ba71fa2c5f33cc84bf362466988f98eba3735479100b4e8908acad87ac4" "more and more data goes into a file to exceed the buffer size" "very long key goes here to exceed the key size" SHA256)
                     ("4bc830005783a73b8112f4bd5f4aa5f92e05b51e9b55c0cd6f9a7bee48371def" "more and more data goes into a file to exceed the buffer size" "" "SHA256") ; check string ID for HMAC
                     ("4bc830005783a73b8112f4bd5f4aa5f92e05b51e9b55c0cd6f9a7bee48371def" "more and more data goes into a file to exceed the buffer size" "" SHA256)))
-      (destructuring-bind (hash input key mac) test
+      (pcase-let ((`(,hash ,input ,key ,mac) test))
         (let ((plist (cdr (assq mac macs)))
               result)
           (gnutls-tests-message "%s %S" mac plist)
@@ -214,7 +222,7 @@
   (let ((keys '("mykey" "mykey2"))
         (inputs gnutls-tests-mondo-strings)
         (ivs '("" "-abc123-" "init" "ini2"))
-        (ciphers (remove-if
+        (ciphers (cl-remove-if
                   (lambda (c) (plist-get (cdr (assq c (gnutls-ciphers)))
                                     :cipher-aead-capable))
                   gnutls-tests-tested-ciphers)))
@@ -241,6 +249,7 @@
 
 (ert-deftest test-gnutls-005-aead-ciphers ()
   "Test the GnuTLS AEAD ciphers"
+  :tags '(:expensive-test)
   (skip-unless (memq 'AEAD-ciphers (gnutls-available-p)))
   (setq gnutls-tests-message-prefix "AEAD verification: ")
   (let ((keys '("mykey" "mykey2"))
@@ -252,7 +261,7 @@
                  "auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data auth and auth of data "
                  "AUTH data and more data to go over the block limit!"
                  "AUTH data and more data to go over the block limit"))
-        (ciphers (remove-if
+        (ciphers (cl-remove-if
                   (lambda (c) (or (null (plist-get (cdr (assq c (gnutls-ciphers)))
                                               :cipher-aead-capable))))
                   gnutls-tests-tested-ciphers))

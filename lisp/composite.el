@@ -1,13 +1,13 @@
-;;; composite.el --- support character composition
+;;; composite.el --- support character composition  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Author: Kenichi HANDA <handa@etl.go.jp>
+;; Author: Kenichi Handa <handa@gnu.org>
 ;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
 ;; Package: emacs
@@ -119,7 +119,7 @@ RULE is a cons of global and new reference point symbols
 	      (setq nref (cdr (assq nref reference-point-alist))))
 	  (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
 	      (error "Invalid composition rule: %S" rule))
-	  (logior (lsh xoff 16) (lsh yoff 8) (+ (* gref 12) nref)))
+	  (logior (ash xoff 16) (ash yoff 8) (+ (* gref 12) nref)))
       (error "Invalid composition rule: %S" rule))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
@@ -130,8 +130,8 @@ RULE is a cons of global and new reference point symbols
 (defun decode-composition-rule (rule-code)
   (or (and (natnump rule-code) (< rule-code #x1000000))
       (error "Invalid encoded composition rule: %S" rule-code))
-  (let ((xoff (lsh rule-code -16))
-	(yoff (logand (lsh rule-code -8) #xFF))
+  (let ((xoff (ash rule-code -16))
+	(yoff (logand (ash rule-code -8) #xFF))
 	gref nref)
     (setq rule-code (logand rule-code #xFF)
 	  gref (car (rassq (/ rule-code 12) reference-point-alist))
@@ -337,8 +337,9 @@ When Automatic Composition mode is on, this function also finds a
 chunk of text that is automatically composed.  If such a chunk is
 found closer to POS than the position that has `composition'
 property, the value is a list of FROM, TO, and a glyph-string
-that specifies how the chunk is to be composed.  See the function
-`composition-get-gstring' for the format of the glyph-string."
+that specifies how the chunk is to be composed; DETAIL-P is
+ignored in this case.  See the function `composition-get-gstring'
+for the format of the glyph-string."
   (let ((result (find-composition-internal pos limit string detail-p)))
     (if (and detail-p (> (length result) 3) (nth 2 result) (not (nth 3 result)))
 	;; This is a valid rule-base composition.
@@ -381,8 +382,8 @@ This function is the default value of `compose-chars-after-function'."
 			   (looking-at pattern))
 			 (<= (match-end 0) limit))
 		    (setq result
-			  (funcall func pos (match-end 0) font-obj object)))
-	      (setq result (funcall func pos limit font-obj  object)))
+			  (funcall func pos (match-end 0) font-obj object nil)))
+	      (setq result (funcall func pos limit font-obj  object nil)))
 	    (if result (setq tail nil))))))
     result))
 
@@ -442,8 +443,10 @@ after a sequence of character events."
 (defsubst lglyph-set-adjustment (glyph &optional xoff yoff wadjust)
   (aset glyph 9 (vector (or xoff 0) (or yoff 0) (or wadjust 0))))
 
+;; Return the shallow Copy of GLYPH.
 (defsubst lglyph-copy (glyph) (copy-sequence glyph))
 
+;; Insert GLYPH at the index IDX of GSTRING.
 (defun lgstring-insert-glyph (gstring idx glyph)
   (let ((nglyphs (lgstring-glyph-len gstring))
 	(i idx))
@@ -458,6 +461,37 @@ after a sequence of character events."
       (setq i (1- i)))
     (lgstring-set-glyph gstring i glyph)
     gstring))
+
+;; Remove glyph at IDX from GSTRING.
+(defun lgstring-remove-glyph (gstring idx)
+  (setq gstring (copy-sequence gstring))
+  (lgstring-set-id gstring nil)
+  (let ((len (length gstring)))
+    (setq idx (+ idx 3))
+    (while (< idx len)
+      (aset gstring (1- idx) (aref gstring idx))
+      (setq idx (1+ idx)))
+    (aset gstring (1- len) nil))
+  gstring)
+
+(defun lgstring-glyph-boundary (gstring startpos endpos)
+  "Return buffer position at or after ENDPOS where grapheme from GSTRING ends.
+STARTPOS is the position where the grapheme cluster starts; it is returned
+by `find-composition'."
+  (let ((nglyphs (lgstring-glyph-len gstring))
+        (idx 0)
+        glyph found)
+    (while (and (not found) (< idx nglyphs))
+      (setq glyph (lgstring-glyph gstring idx))
+      (cond
+       ((or (null glyph)
+            (= (+ startpos (lglyph-from glyph)) endpos))
+        (setq found endpos))
+       ((>= (+ startpos (lglyph-to glyph)) endpos)
+        (setq found (+ startpos (lglyph-to glyph) 1)))
+       (t
+        (setq idx (1+ idx)))))
+    (or found endpos)))
 
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))
@@ -509,8 +543,9 @@ after a sequence of character events."
       (setq from (1+ from)))
     gstring))
 
-(defun compose-gstring-for-graphic (gstring)
-  "Compose glyph-string GSTRING for graphic display.
+(defun compose-gstring-for-graphic (gstring direction)
+  "Compose glyph-string GSTRING under bidi DIRECTION for graphic display.
+DIRECTION is either L2R or R2L, or nil if unknown.
 Combining characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each combining character is composed as a spacing character by
@@ -539,12 +574,17 @@ All non-spacing characters have this function in
      ;; This sequence doesn't start with a proper base character.
      ((memq (get-char-code-property (lgstring-char gstring 0)
 				    'general-category)
-	    '(Mn Mc Me Zs Zl Zp Cc Cf Cs))
+            ;; "Improper" base characters are of the following general
+            ;; categories:
+            ;;   Mark (nonspacing, combining, enclosing)
+            ;;   Separator (line, paragraph)
+            ;;   Other (control, format, surrogate)
+	    '(Mn Mc Me Zl Zp Cc Cf Cs))
       nil)
 
      ;; A base character and the following non-spacing characters.
      (t
-      (let ((gstr (font-shape-gstring gstring)))
+      (let ((gstr (font-shape-gstring gstring direction)))
 	(if (and gstr
 		 (> (lglyph-to (lgstring-glyph gstr 0)) 0))
 	    gstr
@@ -572,7 +612,6 @@ All non-spacing characters have this function in
 		       (as (lglyph-ascent glyph))
 		       (de (lglyph-descent glyph))
 		       (ce (/ (+ lb rb) 2))
-		       (w (lglyph-width glyph))
 		       xoff yoff)
 		  (cond
 		   ((and class (>= class 200) (<= class 240))
@@ -631,14 +670,16 @@ All non-spacing characters have this function in
 			  de (+ de yoff)))
 		   ((and (= class 0)
 			 (eq (get-char-code-property (lglyph-char glyph)
-						     'general-category) 'Me))
+                                                     ;; Me = enclosing mark
+						     'general-category)
+			     'Me))
 		    ;; Artificially laying out glyphs in an enclosing
 		    ;; mark is difficult.  All we can do is to adjust
 		    ;; the x-offset and width of the base glyph to
 		    ;; align it at the center of the glyph of the
 		    ;; enclosing mark hoping that the enclosing mark
 		    ;; is big enough.  We also have to adjust the
-		    ;; x-offset and width of the mark ifself properly
+		    ;; x-offset and width of the mark itself properly
 		    ;; depending on how the glyph is designed.
 
 		    ;; (non-spacing or not).  For instance, when we
@@ -671,12 +712,10 @@ All non-spacing characters have this function in
 	      (setq i (1+ i))))
 	  gstring))))))
 
-(defun compose-gstring-for-dotted-circle (gstring)
+(defun compose-gstring-for-dotted-circle (gstring direction)
   (let* ((dc (lgstring-glyph gstring 0)) ; glyph of dotted-circle
-	 (dc-id (lglyph-code dc))
 	 (fc (lgstring-glyph gstring 1)) ; glyph of the following char
-	 (fc-id (lglyph-code fc))
-	 (gstr (and nil (font-shape-gstring gstring))))
+	 (gstr (and nil (font-shape-gstring gstring direction))))
     (if (and gstr
 	     (or (= (lgstring-glyph-len gstr) 1)
 		 (and (= (lgstring-glyph-len gstr) 2)
@@ -725,9 +764,20 @@ All non-spacing characters have this function in
      unicode-category-table))
   ;; for dotted-circle
   (aset composition-function-table #x25CC
-	`([,(purecopy ".\\c^") 0 compose-gstring-for-dotted-circle])))
+	`([,(purecopy ".\\c^") 0 compose-gstring-for-dotted-circle]))
+  ;; For prettier display of fractions
+  (set-char-table-range
+   composition-function-table
+   #x2044
+   ;; We use font-shape-gstring so that if the font doesn't support
+   ;; fractional display, the characters are shown separately, not as
+   ;; a composed cluster.
+   (list (vector (purecopy "[1-9][0-9][0-9]\u2044[0-9]+")
+                 3 'font-shape-gstring)
+         (vector (purecopy "[1-9][0-9]\u2044[0-9]+") 2 'font-shape-gstring)
+         (vector (purecopy "[1-9]\u2044[0-9]+") 1 'font-shape-gstring))))
 
-(defun compose-gstring-for-terminal (gstring)
+(defun compose-gstring-for-terminal (gstring _direction)
   "Compose glyph-string GSTRING for terminal display.
 Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
@@ -756,7 +806,8 @@ prepending a space before it."
 					    'general-category)
 		    'Cf)
 		(progn
-		  ;; Compose by replacing with a space.
+		  ;; Compose Cf (format) control characters by
+		  ;; replacing with a space.
 		  (lglyph-set-char glyph 32)
 		  (lglyph-set-width glyph 1)
 		  (setq i (1+ i)))
@@ -783,11 +834,41 @@ prepending a space before it."
 	      (setq i (1+ i)))))))
     gstring))
 
+(defun compose-gstring-for-variation-glyph (gstring _direction)
+  "Compose glyph-string GSTRING for graphic display.
+GSTRING must have two glyphs; the first is a glyph for a han character,
+and the second is a glyph for a variation selector."
+  (let* ((font (lgstring-font gstring))
+	 (han (lgstring-char gstring 0))
+	 (vs (lgstring-char gstring 1))
+	 (glyphs (font-variation-glyphs font han))
+	 (g0 (lgstring-glyph gstring 0))
+	 (g1 (lgstring-glyph gstring 1)))
+    (catch 'tag
+      (dolist (elt glyphs)
+	(if (= (car elt) vs)
+	    (progn
+	      (lglyph-set-code g0 (cdr elt))
+	      (lglyph-set-from-to g0 (lglyph-from g0) (lglyph-to g1))
+	      (lgstring-set-glyph gstring 1 nil)
+	      (throw 'tag gstring)))))))
 
-(defun auto-compose-chars (func from to font-object string)
+;; We explicitly don't handle #xFE0F (VS-16) here, because that's
+;; taken care of by font_range in font.c, which will check for an
+;; emoji font for codepoints used in compositions even if they're not
+;; emoji themselves, and thus choose the Emoji presentation for them
+;; when followed by VS-16.  VS-15 *is* handled here, because if it's
+;; handled in font_range, we end up choosing the Emoji presentation
+;; rather than the Text presentation.
+(let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
+  (set-char-table-range composition-function-table '(#xFE00 . #xFE0E) elt)
+  (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
+
+(defun auto-compose-chars (func from to font-object string direction)
   "Compose the characters at FROM by FUNC.
-FUNC is called with one argument GSTRING which is built for characters
-in the region FROM (inclusive) and TO (exclusive).
+FUNC is called with two arguments: GSTRING, which is built for
+characters in the region FROM (inclusive) and TO (exclusive);
+and DIRECTION, which is the bidi directionality of the characters.
 
 If the character are composed on a graphic display, FONT-OBJECT
 is a font to use.  Otherwise, FONT-OBJECT is nil, and the function
@@ -804,7 +885,7 @@ This function is the default value of `auto-composition-function' (which see)."
 	gstring
       (or (fontp font-object 'font-object)
 	  (setq func 'compose-gstring-for-terminal))
-      (funcall func gstring))))
+      (funcall func gstring direction))))
 
 (put 'auto-composition-mode 'permanent-local t)
 
@@ -814,9 +895,6 @@ This function is the default value of `auto-composition-function' (which see)."
 ;;;###autoload
 (define-minor-mode auto-composition-mode
   "Toggle Auto Composition mode.
-With a prefix argument ARG, enable Auto Composition mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 When Auto Composition mode is enabled, text characters are
 automatically composed by functions registered in
@@ -832,19 +910,14 @@ Auto Composition mode in all buffers (this is the default)."
 ;;;###autoload
 (define-minor-mode global-auto-composition-mode
   "Toggle Auto Composition mode in all buffers.
-With a prefix argument ARG, enable it if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable it if ARG is
-omitted or nil.
 
 For more information on Auto Composition mode, see
-`auto-composition-mode' ."
+`auto-composition-mode'."
   :global t
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
 
 (provide 'composite)
-
-
 
 ;;; composite.el ends here

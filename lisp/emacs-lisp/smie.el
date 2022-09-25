@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -52,16 +52,24 @@
 ;;   error because the parser just automatically does something.  Better yet,
 ;;   we can afford to use a sloppy grammar.
 
+;; The benefits of this approach were presented in the following article,
+;; which includes a kind of tutorial to get started with SMIE:
+;;
+;;     SMIE: Weakness is Power!  Auto-indentation with incomplete information
+;;     Stefan Monnier, <Programming> Journal 2020, volumn 5, issue 1.
+;;     doi: 10.22152/programming-journal.org/2021/5/1
+
 ;; A good background to understand the development (especially the parts
 ;; building the 2D precedence tables and then computing the precedence levels
 ;; from it) can be found in pages 187-194 of "Parsing techniques" by Dick Grune
 ;; and Ceriel Jacobs (BookBody.pdf available at
-;; http://dickgrune.com/Books/PTAPG_1st_Edition/).
+;; https://dickgrune.com/Books/PTAPG_1st_Edition/).
 ;;
 ;; OTOH we had to kill many chickens, read many coffee grounds, and practice
 ;; untold numbers of black magic spells, to come up with the indentation code.
 ;; Since then, some of that code has been beaten into submission, but the
-;; smie-indent-keyword is still pretty obscure.
+;; `smie-indent-keyword' function is still pretty obscure.
+
 
 ;; Conflict resolution:
 ;;
@@ -239,7 +247,7 @@ be either:
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
   ;; the repetition, maybe).
-  (let* ((nts (mapcar 'car bnf))        ;Non-terminals.
+  (let* ((nts (mapcar #'car bnf))        ;Non-terminals.
          (first-ops-table ())
          (last-ops-table ())
          (first-nts-table ())
@@ -258,7 +266,7 @@ be either:
                 (push resolver precs))
                (t (error "Unknown resolver %S" resolver))))
             (apply #'smie-merge-prec2s over
-                   (mapcar 'smie-precs->prec2 precs))))
+                   (mapcar #'smie-precs->prec2 precs))))
          again)
     (dolist (rules bnf)
       (let ((nt (car rules))
@@ -489,7 +497,7 @@ CSTS is a list of pairs representing arcs in a graph."
                      res))
                  cycle)))
     (mapconcat
-     (lambda (elems) (mapconcat 'identity elems "="))
+     (lambda (elems) (mapconcat #'identity elems "="))
      (append names (list (car names)))
      " < ")))
 
@@ -533,9 +541,9 @@ PREC2 is a table as returned by `smie-precs->prec2' or
                      (setq y (cons nil (cons nil nil)))
                      (push (cons (cdr k) y) table))
                    (pcase v
-                     (`= (push (cons x y) eqs))
-                     (`< (push (cons x y) csts))
-                     (`> (push (cons y x) csts))
+                     ('= (push (cons x y) eqs))
+                     ('< (push (cons x y) csts))
+                     ('> (push (cons y x) csts))
                      (_ (error "SMIE error: prec2 has %S↦%S which ∉ {<,+,>}"
                                k v))))))
              prec2)
@@ -559,7 +567,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
     ;; Then eliminate trivial constraints iteratively.
     (let ((i 0))
       (while csts
-        (let ((rhvs (mapcar 'cdr csts))
+        (let ((rhvs (mapcar #'cdr csts))
               (progress nil))
           (dolist (cst csts)
             (unless (memq (car cst) rhvs)
@@ -612,8 +620,8 @@ PREC2 is a table as returned by `smie-precs->prec2' or
     (dolist (x (gethash :smie-open/close-alist prec2))
       (let* ((token (car x))
              (cons (pcase (cdr x)
-                     (`closer (cddr (assoc token table)))
-                     (`opener (cdr (assoc token table))))))
+                     ('closer (cddr (assoc token table)))
+                     ('opener (cdr (assoc token table))))))
         ;; `cons' can be nil for openers/closers which only contain
         ;; "atomic" elements.
         (when cons
@@ -649,8 +657,8 @@ use syntax-tables to handle them in efficient C code.")
 Same calling convention as `smie-forward-token-function' except
 it should move backward to the beginning of the previous token.")
 
-(defalias 'smie-op-left 'car)
-(defalias 'smie-op-right 'cadr)
+(defalias 'smie-op-left #'car)
+(defalias 'smie-op-right #'cadr)
 
 (defun smie-default-backward-token ()
   (forward-comment (- (point)))
@@ -702,7 +710,11 @@ Possible return values:
   (catch 'return
     (let ((levels
            (if (stringp halfsexp)
-               (prog1 (list (cdr (assoc halfsexp smie-grammar)))
+               (prog1 (list (or (cdr (assoc halfsexp smie-grammar))
+                                (when (string-match "\\`\\s(\\|\\s)\\(\\)\\'"
+                                                    halfsexp)
+                                  (if (match-end 1) '(0 nil) '(nil 0)))
+                                (error "Unknown token: %S" halfsexp)))
                  (setq halfsexp nil)))))
       (while
           (let* ((pos (point))
@@ -962,8 +974,7 @@ I.e. a good choice can be:
 (defcustom smie-blink-matching-inners t
   "Whether SMIE should blink to matching opener for inner keywords.
 If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"."
-  :type 'boolean
-  :group 'smie)
+  :type 'boolean)
 
 (defun smie-blink-matching-check (start end)
   (save-excursion
@@ -1129,8 +1140,7 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
 
 (defcustom smie-indent-basic 4
   "Basic amount of indentation."
-  :type 'integer
-  :group 'smie)
+  :type 'integer)
 
 (defvar smie-rules-function #'ignore
   "Function providing the indentation rules.
@@ -1177,7 +1187,7 @@ designed specifically for use in this function.")
 	(and ;; (looking-at comment-start-skip) ;(bug#16041).
 	 (forward-comment (point-max))))))
 
-(defalias 'smie-rule-hanging-p 'smie-indent--hanging-p)
+(defalias 'smie-rule-hanging-p #'smie-indent--hanging-p)
 (defun smie-indent--hanging-p ()
   "Return non-nil if the current token is \"hanging\".
 A hanging keyword is one that's at the end of a line except it's not at
@@ -1193,7 +1203,7 @@ the beginning of a line."
 	       (funcall smie--hanging-eolp-function)
                (point))))))
 
-(defalias 'smie-rule-bolp 'smie-indent--bolp)
+(defalias 'smie-rule-bolp #'smie-indent--bolp)
 (defun smie-indent--bolp ()
   "Return non-nil if the current token is the first on the line."
   (save-excursion (skip-chars-backward " \t") (bolp)))
@@ -1291,9 +1301,9 @@ Only meaningful when called from within `smie-rules-function'."
   (let ((afterpos (save-excursion
                     (let ((tok (funcall smie-forward-token-function)))
                       (unless tok
-                        (with-demoted-errors
-                          (error "smie-rule-separator: can't skip token %s"
-                                 smie--token))))
+                        (funcall (if debug-on-error #'error #'message)
+                                 "smie-rule-separator: Can't skip token %s"
+                                 smie--token)))
                     (skip-chars-forward " ")
                     (unless (eolp) (point)))))
     (or (and afterpos
@@ -1352,9 +1362,9 @@ Only meaningful when called from within `smie-rules-function'."
           (funcall smie-rules-function :elem 'basic))
       smie-indent-basic))
 
-(defun smie-indent--rule (method token
-                          ;; FIXME: Too many parameters.
-                          &optional after parent base-pos)
+(defun smie-indent--rule ( method token
+                           ;; FIXME: Too many parameters.
+                           &optional after parent base-pos)
   "Compute indentation column according to `smie-rules-function'.
 METHOD and TOKEN are passed to `smie-rules-function'.
 AFTER is the position after TOKEN, if known.
@@ -1397,7 +1407,9 @@ BASE-POS is the position relative to which offsets should be applied."
     (funcall smie-rules-function method token)))
 
 (defun smie-indent-forward-token ()
-  "Skip token forward and return it, along with its levels."
+  "Skip token forward and return it, along with its levels.
+Point should be between tokens when calling this function (i.e.,
+not in the middle of a string/comment)."
   (let ((tok (funcall smie-forward-token-function)))
     (cond
      ((< 0 (length tok)) (assoc tok smie-grammar))
@@ -1409,7 +1421,7 @@ BASE-POS is the position relative to which offsets should be applied."
       (forward-sexp 1)
       nil)
      ((eobp) nil)
-     (t (error "Bumped into unknown token")))))
+     (t (error "Bumped into unknown token: %S" tok)))))
 
 (defun smie-indent-backward-token ()
   "Skip token backward and return it, along with its levels."
@@ -1446,9 +1458,9 @@ in order to figure out the indentation of some other (further down) point."
   (and (smie-indent--bolp)
        (save-excursion
          (comment-normalize-vars)
-         (re-search-forward (concat comment-start-skip
+         (re-search-forward (concat "\\(?:" comment-start-skip "\\)"
                                     "fixindent"
-                                    comment-end-skip)
+                                    "\\(?:" comment-end-skip "\\)")
                             ;; 1+ to account for the \n comment termination.
                             (1+ (line-end-position)) t))
        (current-column)))
@@ -1648,11 +1660,33 @@ should not be computed on the basis of the following token."
          (let ((ppss (syntax-ppss)))
            (save-excursion
              (forward-line -1)
-             (if (<= (point) (nth 8 ppss))
-                 (progn (goto-char (1+ (nth 8 ppss))) (current-column))
-               (skip-chars-forward " \t")
-               (if (looking-at (regexp-quote continue))
-                   (current-column))))))))
+             (let ((start (nth 8 ppss)))
+               (if (<= (point) start)
+                   (progn
+                     (goto-char start)
+                     (if (not (and comment-start-skip
+                                   (looking-at comment-start-skip)))
+                         (forward-char 1)
+                       (goto-char (match-end 0))
+                       (skip-chars-backward " \t")
+                       ;; Try to align the first char of the comment-continue
+                       ;; with the second char of the comment-start or the
+                       ;; first char if the comment-start is made of
+                       ;; a single char.  E.g.
+                       ;;
+                       ;;     /* foo
+                       ;;      * bar */
+                       ;;
+                       ;; but
+                       ;;
+                       ;;     { foo
+                       ;;     | bar }
+                       (goto-char (if (eq (point) (1+ start))
+                                      start (1+ start))))
+                     (current-column))
+                 (skip-chars-forward " \t")
+                 (if (looking-at (regexp-quote continue))
+                     (current-column)))))))))
 
 (defun smie-indent-comment-close ()
   (and (boundp 'comment-end-skip)
@@ -1776,15 +1810,17 @@ Each function is called with no argument, shouldn't move point, and should
 return either nil if it has no opinion, or an integer representing the column
 to which that point should be aligned, if we were to reindent it.")
 
+(defalias 'smie--funcall #'funcall) ;Debugging/tracing convenience indirection.
+
 (defun smie-indent-calculate ()
   "Compute the indentation to use for point."
-  (run-hook-with-args-until-success 'smie-indent-functions))
+  (run-hook-wrapped 'smie-indent-functions #'smie--funcall))
 
 (defun smie-indent-line ()
   "Indent current line using the SMIE indentation engine."
   (interactive)
   (let* ((savep (point))
-	 (indent (or (with-demoted-errors
+	 (indent (or (with-demoted-errors "SMIE Error: %S"
                        (save-excursion
                          (forward-line 0)
                          (skip-chars-forward " \t")
@@ -1810,7 +1846,9 @@ to which that point should be aligned, if we were to reindent it.")
                            (move-to-column fc)
                            (syntax-ppss))))
         (while
-            (and (with-demoted-errors
+            ;; We silence the error completely since errors are "normal" in
+            ;; some cases and an error message would be annoying (bug#19342).
+            (and (ignore-error scan-error
                    (save-excursion
                      (let ((end (point))
                            (bsf nil)    ;Best-so-far.
@@ -1856,10 +1894,10 @@ KEYWORDS are additional arguments, which can use the following keywords:
     (let ((k (pop keywords))
           (v (pop keywords)))
       (pcase k
-        (`:forward-token
-         (set (make-local-variable 'smie-forward-token-function) v))
-        (`:backward-token
-         (set (make-local-variable 'smie-backward-token-function) v))
+        (:forward-token
+         (setq-local smie-forward-token-function v))
+        (:backward-token
+         (setq-local smie-backward-token-function v))
         (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))
     (when ca
@@ -1982,7 +2020,7 @@ value with which to replace it."
   ;; FIXME improve value-type.
   :type '(choice (const nil)
                  (alist :key-type symbol))
-  :initialize 'custom-initialize-set
+  :initialize #'custom-initialize-set
   :set #'smie-config--setter)
 
 (defun smie-config-local (rules)
@@ -2086,10 +2124,9 @@ position corresponding to each rule."
                         (throw 'found (list kind token
                                             (or (nth 3 rewrite) res)))))))))
          (default-new (smie-config--guess-value sig))
-         (newstr (read-string (format "Adjust rule (%S %S -> %S) to%s: "
-                                      (nth 0 sig) (nth 1 sig) (nth 2 sig)
-                                      (if (not default-new) ""
-                                        (format " (default %S)" default-new)))
+         (newstr (read-string (format-prompt
+                               "Adjust rule (%S %S -> %S) to" default-new
+                               (nth 0 sig) (nth 1 sig) (nth 2 sig))
                               nil nil (format "%S" default-new)))
          (new (car (read-from-string newstr))))
     (let ((old (rassoc sig smie-config--buffer-local)))

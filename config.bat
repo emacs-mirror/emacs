@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2017 Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2022 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -189,9 +189,6 @@ rm -f junk.c junk junk.exe
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
 
-rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
-if exist dir.h ren dir.h vmsdir.h
-
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile makefile.tmp
 copy Makefile.in+deps.mk makefile.tmp
@@ -222,6 +219,10 @@ sed -e "/^LIBXML2_LIBS *=/s/=/= -lxml2 -lz -liconv/" <Makefile >makefile.tmp
 sed -e "/^LIBXML2_CFLAGS *=/s|=|= -I/dev/env/DJDIR/include/libxml2|" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src7
+Rem Create .d files for new files in src/
+If Not Exist deps\stamp mkdir deps
+for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
@@ -273,6 +274,7 @@ Echo Configuring the lib directory...
 If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
+If Exist c++defs.h update c++defs.h cxxdefs.h
 If Exist alloca.in.h update alloca.in.h alloca.in-h
 If Exist byteswap.in.h update byteswap.in.h byteswap.in-h
 If Exist dirent.in.h update dirent.in.h dirent.in-h
@@ -280,32 +282,45 @@ If Exist errno.in.h update errno.in.h errno.in-h
 If Exist execinfo.in.h update execinfo.in.h execinfo.in-h
 If Exist fcntl.in.h update fcntl.in.h fcntl.in-h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist getopt-cdefs.in.h update getopt-cdefs.in.h getopt-cdefs.in-h
+If Exist ieee754.in.h update ieee754.in.h ieee754.in-h
 If Exist inttypes.in.h update inttypes.in.h inttypes.in-h
-If Exist stdarg.in.h update stdarg.in.h stdarg.in-h
-If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
-If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist limits.in.h update limits.in.h limits.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
-If Exist stdalign.in.h update stdalign.in.h  stdalign.in-h
+If Exist signal.in.h update signal.in.h signal.in-h
+If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h
 If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
 If Exist string.in.h update string.in.h string.in-h
+If Exist sys_random.in.h update sys_random.in.h sys_random.in-h
 If Exist sys_select.in.h update sys_select.in.h sys_select.in-h
 If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
-If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist sys_time.in.h update sys_time.in.h sys_time.in-h
+If Exist sys_types.in.h update sys_types.in.h sys_types.in-h
 If Exist time.in.h update time.in.h time.in-h
 If Exist unistd.in.h update unistd.in.h unistd.in-h
+If Exist stdckdint.in.h update stdckdint.in.h stdckdint.in-h
+If Exist gnulib.mk.in update gnulib.mk.in gnulib.mk-in
 Rem Only repository has the msdos/autogen directory
 If Exist Makefile.in sed -f ../msdos/sedlibcf.inp < Makefile.in > makefile.tmp
 If Exist ..\msdos\autogen\Makefile.in sed -f ../msdos/sedlibcf.inp < ..\msdos\autogen\Makefile.in > makefile.tmp
 sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
 rm -f makefile.tmp
-Rem Create .Po files for new files in lib/
+sed -f ../msdos/sedlibcf.inp < gnulib.mk-in > gnulib.tmp
+sed -f ../msdos/sedlibmk.inp < gnulib.tmp > gnulib.mk
+rm -f gnulib.tmp
+Rem Create directories in lib/ that MKDIR_P is supposed to create
+Rem but I have no idea how to do that on MS-DOS.
+mkdir sys
+Rem Create .d files for new files in lib/ and lib/malloc/
 If Not Exist deps\stamp mkdir deps
 for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
 echo deps-stamp > deps\stamp
+If Not Exist deps\malloc\stamp mkdir deps\malloc
+for %%f in (malloc\*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\malloc\stamp
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...

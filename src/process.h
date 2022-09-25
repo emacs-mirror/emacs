@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,7 +41,7 @@ enum { PROCESS_OPEN_FDS = 6 };
 
 struct Lisp_Process
   {
-    struct vectorlike_header header;
+    union vectorlike_header header;
 
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
@@ -117,9 +117,7 @@ struct Lisp_Process
 
     /* The thread a process is linked to, or nil for any thread.  */
     Lisp_Object thread;
-
-    /* After this point, there are no Lisp_Objects any more.  */
-    /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
+    /* After this point, there are no Lisp_Objects.  */
 
     /* Process ID.  A positive value is a child process ID.
        Zero is for pseudo-processes such as network or serial connections,
@@ -129,6 +127,8 @@ struct Lisp_Process
     pid_t pid;
     /* Descriptor by which we read from this process.  */
     int infd;
+    /* Byte-count modulo (UINTMAX_MAX + 1) for process output read from `infd'.  */
+    uintmax_t nbytes_read;
     /* Descriptor by which we write to this process.  */
     int outfd;
     /* Descriptors that were created for this process and that need
@@ -156,8 +156,9 @@ struct Lisp_Process
     /* True means kill silently if Emacs is exited.
        This is the inverse of the `query-on-exit' flag.  */
     bool_bf kill_without_query : 1;
-    /* True if communicating through a pty.  */
-    bool_bf pty_flag : 1;
+    /* True if communicating through a pty for input or output.  */
+    bool_bf pty_in : 1;
+    bool_bf pty_out : 1;
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
     bool_bf inherit_coding_system_flag : 1;
@@ -192,7 +193,8 @@ struct Lisp_Process
     gnutls_session_t gnutls_state;
     gnutls_certificate_client_credentials gnutls_x509_cred;
     gnutls_anon_client_credentials_t gnutls_anon_cred;
-    gnutls_x509_crt_t gnutls_certificate;
+    gnutls_x509_crt_t *gnutls_certificates;
+    int gnutls_certificates_length;
     unsigned int gnutls_peer_verification;
     unsigned int gnutls_extra_peer_verification;
     int gnutls_log_level;
@@ -200,7 +202,7 @@ struct Lisp_Process
     bool_bf gnutls_p : 1;
     bool_bf gnutls_complete_negotiation_p : 1;
 #endif
-};
+  } GCALIGNED_STRUCT;
 
 INLINE bool
 PROCESSP (Lisp_Object a)
@@ -218,7 +220,7 @@ INLINE struct Lisp_Process *
 XPROCESS (Lisp_Object a)
 {
   eassert (PROCESSP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Process);
 }
 
 /* Every field in the preceding structure except for the first two
@@ -263,7 +265,7 @@ enum
 
 /* Defined in callproc.c.  */
 
-extern Lisp_Object encode_current_directory (void);
+extern Lisp_Object get_current_directory (bool);
 extern void record_kill_process (struct Lisp_Process *, Lisp_Object);
 
 /* Defined in sysdep.c.  */
@@ -283,6 +285,7 @@ extern bool kbd_on_hold_p (void);
 typedef void (*fd_callback) (int fd, void *data);
 
 extern void add_read_fd (int fd, fd_callback func, void *data);
+extern void add_non_keyboard_read_fd (int fd, fd_callback func, void *data);
 extern void delete_read_fd (int fd);
 extern void add_write_fd (int fd, fd_callback func, void *data);
 extern void delete_write_fd (int fd);
@@ -290,13 +293,16 @@ extern void catch_child_signal (void);
 extern void restore_nofile_limit (void);
 
 #ifdef WINDOWSNT
-extern Lisp_Object network_interface_list (void);
+extern Lisp_Object network_interface_list (bool full, unsigned short match);
 extern Lisp_Object network_interface_info (Lisp_Object);
 #endif
 
 extern Lisp_Object remove_slash_colon (Lisp_Object);
 
 extern void update_processes_for_thread_death (Lisp_Object);
+extern void dissociate_controlling_tty (void);
+
+extern int open_channel_for_module (Lisp_Object);
 
 INLINE_HEADER_END
 

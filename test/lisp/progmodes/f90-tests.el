@@ -1,8 +1,9 @@
-;;; f90-tests.el --- tests for progmodes/f90.el
+;;; f90-tests.el --- tests for progmodes/f90.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -20,9 +21,6 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file does not have "test" in the name, because it lives under
-;; a test/ directory, so that would be superfluous.
 
 ;;; Code:
 
@@ -98,7 +96,7 @@ end subroutine test")
     (insert "(/ x /)")
     (f90-do-auto-fill)
     (beginning-of-line)
-    (skip-chars-forward "[ \t]")
+    (skip-chars-forward " \t")
     (should (equal "&(/" (buffer-substring (point) (+ 3 (point)))))))
 
 ;; TODO bug#5593
@@ -256,21 +254,45 @@ end program prog")
     (should (= 5 (current-indentation)))))
 
 (ert-deftest f90-test-bug25039 ()
-  "Test for https://debbugs.gnu.org/25039 ."
+  "Test for https://debbugs.gnu.org/25039 and 28786."
   (with-temp-buffer
     (f90-mode)
     (insert "program prog
 select type (a)
-class is (c1)
-x = 1
 type is (t1)
 x = 2
+class is (c1)
+x = 1
+class default
+x=3
 end select
 end program prog")
     (f90-indent-subprogram)
     (forward-line -3)
-    (should (= 2 (current-indentation))) ; type is
+    (should (= 2 (current-indentation))) ; class default
     (forward-line -2)
-    (should (= 2 (current-indentation))))) ; class is
+    (should (= 2 (current-indentation))) ; class is
+    (forward-line -2)
+    (should (= 2 (current-indentation))))) ; type is
+
+(ert-deftest f90-test-bug38415 ()
+  "Test for https://debbugs.gnu.org/38415 ."
+  (with-temp-buffer
+    (f90-mode)
+    (setq-local f90-smart-end 'no-blink)
+    (insert "module function foo(x)
+real :: x
+end")
+    (f90-indent-line)
+    (should (equal " function foo"
+                   (buffer-substring (point) (pos-eol))))
+    (goto-char (point-max))
+    (insert "\nmodule subroutine bar(x)
+real :: x
+end")
+    (f90-indent-line)
+    (should (equal " subroutine bar"
+                   (buffer-substring (point) (pos-eol))))))
+
 
 ;;; f90-tests.el ends here

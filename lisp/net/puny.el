@@ -1,6 +1,6 @@
-;;; puny.el --- translate non-ASCII domain names to ASCII
+;;; puny.el --- translate non-ASCII domain names to ASCII  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, net
@@ -23,10 +23,11 @@
 ;;; Commentary:
 
 ;; Written by looking at
-;; http://stackoverflow.com/questions/183485/can-anyone-recommend-a-good-free-javascript-for-punycode-to-unicode-conversion
+;; https://stackoverflow.com/questions/183485/can-anyone-recommend-a-good-free-javascript-for-punycode-to-unicode-conversion
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'seq)
 
 (defun puny-encode-domain (domain)
@@ -34,14 +35,15 @@
 For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   ;; The vast majority of domain names are not IDNA domain names, so
   ;; add a check first to avoid doing unnecessary work.
-  (if (string-match "\\'[[:ascii:]]+\\'" domain)
+  (if (string-match "\\`[[:ascii:]]+\\'" domain)
       domain
-    (mapconcat 'puny-encode-string (split-string domain "[.]") ".")))
+    (mapconcat #'puny-encode-string (split-string domain "[.]") ".")))
 
 (defun puny-encode-string (string)
   "Encode STRING according to the IDNA/punycode algorithm.
 This is used to encode non-ASCII domain names.
 For instance, \"bücher\" => \"xn--bcher-kva\"."
+  (setq string (downcase (string-glyph-compose string)))
   (let ((ascii (seq-filter (lambda (char)
                              (< char 128))
                            string)))
@@ -56,13 +58,16 @@ For instance, \"bücher\" => \"xn--bcher-kva\"."
 (defun puny-decode-domain (domain)
   "Decode DOMAIN according to the IDNA/punycode algorithm.
 For instance, \"xn--ff-2sa.org\" => \"fśf.org\"."
-  (mapconcat 'puny-decode-string (split-string domain "[.]") "."))
+  (mapconcat #'puny-decode-string (split-string domain "[.]") "."))
 
 (defun puny-decode-string (string)
   "Decode an IDNA/punycode-encoded string.
 For instance \"xn--bcher-kva\" => \"bücher\"."
   (if (string-match "\\`xn--" string)
-      (puny-decode-string-internal (substring string 4))
+      (condition-case nil
+          (puny-decode-string-internal (substring string 4))
+        ;; If the string is invalid Punycode, just return the string.
+        (args-out-of-range string))
     string))
 
 (defconst puny-initial-n 128)
@@ -71,7 +76,7 @@ For instance \"xn--bcher-kva\" => \"bücher\"."
 (defconst puny-damp 700)
 (defconst puny-tmin 1)
 (defconst puny-tmax 26)
-(defconst puny-skew 28)
+(defconst puny-skew 38)
 
 ;; 0-25  a-z
 ;; 26-36 0-9
@@ -192,12 +197,12 @@ For instance \"xn--bcher-kva\" => \"bücher\"."
         (cl-incf i)))
     (buffer-string)))
 
-;; http://www.unicode.org/reports/tr39/#Restriction_Level_Detection
-;; http://www.unicode.org/reports/tr31/#Table_Candidate_Characters_for_Inclusion_in_Identifiers
+;; https://www.unicode.org/reports/tr39/#Restriction_Level_Detection
+;; https://www.unicode.org/reports/tr31/#Table_Candidate_Characters_for_Inclusion_in_Identifiers
 
 (defun puny-highly-restrictive-string-p (string)
   "Say whether STRING is \"highly restrictive\" in the Unicode IDNA sense.
-See http://www.unicode.org/reports/tr39/#Restriction_Level_Detection
+See https://www.unicode.org/reports/tr39/#Restriction_Level_Detection
 for details.  The main idea is that if you're mixing
 scripts (like latin and cyrillic), you may confuse the user by
 using homographs."

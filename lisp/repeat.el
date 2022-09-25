@@ -1,10 +1,10 @@
 ;;; repeat.el --- convenient way to repeat the previous command  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
-;; Version: 0.51
+;; Old-Version: 0.51
 ;; Keywords: convenience, vi, repeat
 
 ;; This file is part of GNU Emacs.
@@ -84,10 +84,6 @@
 ;;   C-u - C-x TAB  [outdent rigidly one character]
 ;;         C-x {    shrink-window-horizontally
 ;;         C-x }    enlarge-window-horizontally
-
-;; This command was first called `vi-dot', because
-;; it was inspired by the `.' command in the vi editor,
-;; but it was renamed to make its name more meaningful.
 
 ;;; Code:
 
@@ -180,11 +176,11 @@ that variable on the theory they're doing more good than harm; `repeat' does
 that, and usually does do more good than harm.  However, like all do-gooders,
 sometimes `repeat' gets surprising results from its altruism.  The value of
 this function is always whether the value of `this-command' would've been
-'repeat if `repeat' hadn't modified it."
+`repeat' if `repeat' hadn't modified it."
   (= repeat-num-input-keys-at-repeat num-input-keys))
 
 ;; An example of the use of (repeat-is-really-this-command) may still be
-;; available in <http://www.eskimo.com/~seldon/dotemacs.el>; search for
+;; available in <https://www.eskimo.com/~seldon/dotemacs.el>; search for
 ;; "defun wm-switch-buffer".
 
 ;;;;; ******************* THE REPEAT COMMAND ITSELF ******************* ;;;;;
@@ -222,7 +218,7 @@ recently executed command not bound to an input event\"."
    ((null last-repeatable-command)
     (error "There is nothing to repeat"))
    ((eq last-repeatable-command 'mode-exit)
-    (error "last-repeatable-command is mode-exit & can't be repeated"))
+    (error "`last-repeatable-command' is `mode-exit' and can't be repeated"))
    ((memq last-repeatable-command repeat-too-dangerous)
     (error "Command %S too dangerous to repeat automatically"
 	   last-repeatable-command)))
@@ -243,9 +239,7 @@ recently executed command not bound to an input event\"."
            (car (memq last-command-event
                       (listify-key-sequence
                        repeat-on-final-keystroke))))))
-    (if (memq last-repeatable-command '(exit-minibuffer
-					minibuffer-complete-and-exit
-					self-insert-and-exit))
+    (if (eq last-repeatable-command (caar command-history))
         (let ((repeat-command (car command-history)))
           (repeat-message "Repeating %S" repeat-command)
           (eval repeat-command))
@@ -334,6 +328,260 @@ recently executed command not bound to an input event\"."
 ;; Ah, hell, it's all going to fall into a black hole someday anyway.
 
 ;;;;; ************************* EMACS CONTROL ************************* ;;;;;
+
+
+;; And now for something completely different.
+
+;;; repeat-mode
+
+(defcustom repeat-exit-key nil
+  "Key that stops the modal repeating of keys in sequence.
+For example, you can set it to <return> like `isearch-exit'."
+  :type '(choice (const :tag "No special key to exit repeating sequence" nil)
+                 (key-sequence :tag "Key that exits repeating sequence"))
+  :group 'convenience
+  :version "28.1")
+
+(defcustom repeat-exit-timeout nil
+  "Break the repetition chain of keys after specified timeout.
+When a number, exit the transient repeating mode after idle time
+of the specified number of seconds.
+You can also set the property `repeat-exit-timeout' on the command symbol.
+This property can override the value of this variable."
+  :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
+                 (number :tag "Timeout in seconds to exit repeating"))
+  :group 'convenience
+  :version "28.1")
+
+(defvar repeat-exit-timer nil
+  "Timer activated after the last key typed in the repeating key sequence.")
+
+(defcustom repeat-keep-prefix nil
+  "Whether to keep the prefix arg of the previous command when repeating."
+  :type 'boolean
+  :group 'convenience
+  :version "28.1")
+
+(defcustom repeat-check-key t
+  "Whether to check that the last key exists in the repeat map.
+When non-nil and the last typed key (with or without modifiers)
+doesn't exist in the keymap attached by the `repeat-map' property,
+then don't activate that keymap for the next command.  So only the
+same keys among repeatable keys are allowed in the repeating sequence.
+For example, with a non-nil value, only \\`C-x u u' repeats undo,
+whereas \\`C-/ u' doesn't.
+
+You can also set the property `repeat-check-key' on the command symbol.
+This property can override the value of this variable.
+When the variable value is non-nil, but the property value is `no',
+then don't check the last key.  Also when the variable value is nil,
+but the property value is `t', then check the last key."
+  :type 'boolean
+  :group 'convenience
+  :version "28.1")
+
+(defcustom repeat-echo-function #'repeat-echo-message
+  "Function to display a hint about available keys.
+Function is called after every repeatable command with one argument:
+a repeating map, or nil after deactivating the transient repeating mode."
+  :type '(choice (const :tag "Show hints in the echo area"
+                        repeat-echo-message)
+                 (const :tag "Show indicator in the mode line"
+                        repeat-echo-mode-line)
+                 (const :tag "No visual feedback" ignore)
+                 (function :tag "Function"))
+  :group 'convenience
+  :version "28.1")
+
+(defvar repeat-in-progress nil
+  "Non-nil when the repeating transient map is active.")
+
+;;;###autoload
+(defvar repeat-map nil
+  "The value of the repeating transient map for the next command.
+A command called from the map can set it again to the same map when
+the map can't be set on the command symbol property `repeat-map'.")
+
+;;;###autoload
+(define-minor-mode repeat-mode
+  "Toggle Repeat mode.
+When Repeat mode is enabled, and the command symbol has the property named
+`repeat-map', this map is activated temporarily for the next command.
+See `describe-repeat-maps' for a list of all repeatable commands."
+  :global t :group 'convenience
+  (if (not repeat-mode)
+      (remove-hook 'post-command-hook 'repeat-post-hook)
+    (add-hook 'post-command-hook 'repeat-post-hook)
+    (let* ((keymaps nil)
+           (commands (all-completions
+                      "" obarray (lambda (s)
+                                   (and (commandp s)
+                                        (get s 'repeat-map)
+                                        (push (get s 'repeat-map) keymaps))))))
+      (message "Repeat mode is enabled for %d commands and %d keymaps; see `describe-repeat-maps'"
+               (length commands)
+               (length (delete-dups keymaps))))))
+
+(defvar repeat--prev-mb '(0)
+  "Previous minibuffer state.")
+
+(defun repeat--command-property (property)
+  (or (and (symbolp this-command)
+           (get this-command property))
+      (and (symbolp real-this-command)
+           (get real-this-command property))))
+
+(defun repeat-check-key (key map)
+  "Check if the last key is suitable to activate the repeating MAP."
+  (let* ((prop (repeat--command-property 'repeat-check-key))
+         (check-key (unless (eq prop 'no) (or prop repeat-check-key))))
+    (or (not check-key)
+        (lookup-key map (vector key))
+        ;; Try without modifiers:
+        (lookup-key map (vector (event-basic-type key))))))
+
+(defun repeat-post-hook ()
+  "Function run after commands to set transient keymap for repeatable keys."
+  (let ((was-in-progress repeat-in-progress))
+    (setq repeat-in-progress nil)
+    (when repeat-mode
+      (let ((rep-map (or repeat-map (repeat--command-property 'repeat-map))))
+        (when rep-map
+          (when (and (symbolp rep-map) (boundp rep-map))
+            (setq rep-map (symbol-value rep-map)))
+          (let ((map (copy-keymap rep-map)))
+
+            (when (and
+                   ;; Detect changes in the minibuffer state to allow repetitions
+                   ;; in the same minibuffer, but not when the minibuffer is activated
+                   ;; in the middle of repeating sequence (bug#47566).
+                   (or (< (minibuffer-depth) (car repeat--prev-mb))
+                       (eq current-minibuffer-command (cdr repeat--prev-mb)))
+                   (or (not repeat-keep-prefix) prefix-arg)
+                   (repeat-check-key last-command-event map))
+
+              ;; Messaging
+              (unless prefix-arg
+                (funcall repeat-echo-function map))
+
+              ;; Adding an exit key
+              (when repeat-exit-key
+                (define-key map repeat-exit-key 'ignore))
+
+              (when (and repeat-keep-prefix (not prefix-arg))
+                (setq prefix-arg current-prefix-arg))
+
+              (setq repeat-in-progress t)
+              (let ((exitfun (set-transient-map map)))
+
+                (when repeat-exit-timer
+                  (cancel-timer repeat-exit-timer)
+                  (setq repeat-exit-timer nil))
+
+                (let* ((prop (repeat--command-property 'repeat-exit-timeout))
+                       (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
+                  (when timeout
+                    (setq repeat-exit-timer
+                          (run-with-idle-timer
+                           timeout nil
+                           (lambda ()
+                             (setq repeat-in-progress nil)
+                             (funcall exitfun)
+                             (funcall repeat-echo-function nil))))))))))))
+
+    (setq repeat-map nil)
+    (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
+    (when (and was-in-progress (not repeat-in-progress))
+      (when repeat-exit-timer
+        (cancel-timer repeat-exit-timer)
+        (setq repeat-exit-timer nil))
+      (funcall repeat-echo-function nil))))
+
+(defun repeat-echo-message-string (keymap)
+  "Return a string with a list of repeating keys."
+  (let (keys)
+    (map-keymap (lambda (key cmd) (and cmd (push key keys))) keymap)
+    (format-message "Repeat with %s%s"
+                    (mapconcat (lambda (key)
+                                 (substitute-command-keys
+                                  (format "\\`%s'"
+                                          (key-description (vector key)))))
+                               keys ", ")
+                    (if repeat-exit-key
+                        (substitute-command-keys
+                         (format ", or exit with \\`%s'"
+                                 (key-description repeat-exit-key)))
+                      ""))))
+
+(defun repeat-echo-message (keymap)
+  "Display available repeating keys in the echo area."
+  (let ((message-log-max nil))
+    (if keymap
+        (let ((message (repeat-echo-message-string keymap)))
+          (if (current-message)
+              (message "%s [%s]" (current-message) message)
+            (message "%s" message)))
+      (let ((message (current-message)))
+        (when message
+          (cond
+           ((string-prefix-p "Repeat with " message)
+            (message nil))
+           ((string-search " [Repeat with " message)
+            (message "%s" (replace-regexp-in-string
+                           " \\[Repeat with .*\\'" "" message)))))))))
+
+(defvar repeat-echo-mode-line-string
+  (propertize "[Repeating...] " 'face 'mode-line-emphasis)
+  "String displayed in the mode line in repeating mode.")
+
+(defun repeat-echo-mode-line (keymap)
+  "Display the repeat indicator in the mode line."
+  (if keymap
+      (unless (assq 'repeat-in-progress mode-line-modes)
+        (add-to-list 'mode-line-modes (list 'repeat-in-progress
+                                            repeat-echo-mode-line-string)))
+    (force-mode-line-update t)))
+
+(declare-function help-fns--analyze-function "help-fns" (function))
+
+(defun describe-repeat-maps ()
+  "Describe mappings of commands repeatable by symbol property `repeat-map'.
+Used in `repeat-mode'."
+  (interactive)
+  (require 'help-fns)
+  (let ((help-buffer-under-preparation t))
+    (help-setup-xref (list #'describe-repeat-maps)
+                     (called-interactively-p 'interactive))
+    (let ((keymaps nil))
+      (all-completions
+       "" obarray (lambda (s)
+                    (and (commandp s)
+                         (get s 'repeat-map)
+                         (push s (alist-get (get s 'repeat-map) keymaps)))))
+      (with-help-window (help-buffer)
+        (with-current-buffer standard-output
+          (insert "A list of keymaps used by commands with the symbol property `repeat-map'.\n\n")
+
+          (dolist (keymap (sort keymaps (lambda (a b)
+                                          (when (and (symbolp (car a))
+                                                     (symbolp (car b)))
+                                            (string-lessp (car a) (car b))))))
+            (insert (format-message
+                     "`%s' keymap is repeatable by these commands:\n"
+                     (car keymap)))
+            (dolist (command (sort (cdr keymap) #'string-lessp))
+              (let* ((info (help-fns--analyze-function command))
+                     (map (list (if (symbolp (car keymap))
+                                    (symbol-value (car keymap))
+                                  (car keymap))))
+                     (desc (mapconcat (lambda (key)
+                                        (propertize (key-description key)
+                                                    'face 'help-key-binding))
+                                      (or (where-is-internal command map)
+                                          (where-is-internal (nth 3 info) map))
+                                      ", ")))
+                (insert (format-message " `%s' (bound to %s)\n" command desc))))
+            (insert "\n")))))))
 
 (provide 'repeat)
 

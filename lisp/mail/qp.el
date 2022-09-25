@@ -1,6 +1,6 @@
-;;; qp.el --- Quoted-Printable functions
+;;; qp.el --- Quoted-Printable functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -115,8 +115,7 @@ encode lines starting with \"From\"."
     (setq class "\010-\012\014\040-\074\076-\177"))
   (save-excursion
     (goto-char from)
-    (if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
-			   to t)
+    (if (re-search-forward "[^\x0-\x7f\x80-\xff]" to t)
 	(error "Multibyte character in QP encoding region"))
     (save-restriction
       (narrow-to-region from to)
@@ -126,7 +125,7 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     (format "=%02X" (char-after))
+	     (format "=%02X" (get-byte))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
       (goto-char (point-min))
@@ -135,7 +134,7 @@ encode lines starting with \"From\"."
 	(while (not (eolp))
 	  (insert
 	   (prog1
-	       (format "=%02X" (char-after))
+	       (format "=%02X" (get-byte))
 	     (delete-char 1)))))
       (let ((ultra
 	     (and (boundp 'mm-use-ultra-safe-encoding)

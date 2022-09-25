@@ -1,6 +1,6 @@
-;;; pgg-parse.el --- OpenPGP packet parsing
+;;; pgg-parse.el --- OpenPGP packet parsing  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999, 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -35,10 +35,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  ;; For Emacs <22.2 and XEmacs.
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup pgg-parse ()
   "OpenPGP packet parsing."
@@ -47,14 +44,12 @@
 (defcustom pgg-parse-public-key-algorithm-alist
   '((1 . RSA) (2 . RSA-E) (3 . RSA-S) (16 . ELG-E) (17 . DSA) (20 . ELG))
   "Alist of the assigned number to the public key algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-parse-symmetric-key-algorithm-alist
   '((1 . IDEA) (2 . 3DES) (4 . CAST5) (5 . SAFER-SK128))
   "Alist of the assigned number to the symmetric key algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -62,7 +57,6 @@
   '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2) (8 . SHA256) (9 . SHA384)
     (10 . SHA512))
   "Alist of the assigned number to the cryptographic hash algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -71,7 +65,6 @@
     (1 . ZIP)
     (2 . ZLIB))
   "Alist of the assigned number to the compression algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -90,13 +83,11 @@
     (48 . "Certification revocation signature")
     (64 . "Timestamp signature."))
   "Alist of the assigned number to the signature type."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-ignore-packet-checksum t; XXX
   "If non-nil checksum of each ascii armored packet will be ignored."
-  :group 'pgg-parse
   :type 'boolean)
 
 (defvar pgg-armor-header-lines
@@ -119,17 +110,17 @@
   )
 
 (defmacro pgg-parse-time-field (bytes)
-  `(list (logior (lsh (car ,bytes) 8)
+  `(list (logior (ash (car ,bytes) 8)
 		 (nth 1 ,bytes))
-	 (logior (lsh (nth 2 ,bytes) 8)
+	 (logior (ash (nth 2 ,bytes) 8)
 		 (nth 3 ,bytes))
 	 0))
 
 (defmacro pgg-byte-after (&optional pos)
-  `(pgg-char-int (char-after ,(or pos `(point)))))
+  `(pgg-char-int (char-after ,(or pos '(point)))))
 
 (defmacro pgg-read-byte ()
-  `(pgg-char-int (char-after (prog1 (point) (forward-char)))))
+  '(pgg-char-int (char-after (prog1 (point) (forward-char)))))
 
 (defmacro pgg-read-bytes-string (nbytes)
   `(buffer-substring
@@ -151,7 +142,7 @@
   ;; `(string-to-number-list (pgg-read-body-string ,ptag))
   )
 
-(defalias 'pgg-skip-bytes 'forward-char)
+(defalias 'pgg-skip-bytes #'forward-char)
 
 (defmacro pgg-skip-header (ptag)
   `(pgg-skip-bytes (nth 2 ,ptag)))
@@ -187,21 +178,21 @@
       (ccl-execute-on-string pgg-parse-crc24 h string)
       (format "%c%c%c"
 	      (logand (aref h 1) 255)
-	      (logand (lsh (aref h 2) -8) 255)
+	      (logand (ash (aref h 2) -8) 255)
 	      (logand (aref h 2) 255)))))
 
 (defmacro pgg-parse-length-type (c)
   `(cond
     ((< ,c 192) (cons ,c 1))
     ((< ,c 224)
-     (cons (+ (lsh (- ,c 192) 8)
+     (cons (+ (ash (- ,c 192) 8)
 	      (pgg-byte-after (+ 2 (point)))
 	      192)
 	   2))
     ((= ,c 255)
-     (cons (cons (logior (lsh (pgg-byte-after (+ 2 (point))) 8)
+     (cons (cons (logior (ash (pgg-byte-after (+ 2 (point))) 8)
 			 (pgg-byte-after (+ 3 (point))))
-		 (logior (lsh (pgg-byte-after (+ 4 (point))) 8)
+		 (logior (ash (pgg-byte-after (+ 4 (point))) 8)
 			 (pgg-byte-after (+ 5 (point)))))
 	   5))
     (t;partial body length
@@ -213,13 +204,13 @@
     (if (zerop (logand 64 ptag));Old format
 	(progn
 	  (setq length-type (logand ptag 3)
-		length-type (if (= 3 length-type) 0 (lsh 1 length-type))
-		content-tag (logand 15 (lsh ptag -2))
+		length-type (if (= 3 length-type) 0 (ash 1 length-type))
+		content-tag (logand 15 (ash ptag -2))
 		packet-bytes 0
 		header-bytes (1+ length-type))
 	  (dotimes (i length-type)
 	    (setq packet-bytes
-		  (logior (lsh packet-bytes 8)
+		  (logior (ash packet-bytes 8)
 			  (pgg-byte-after (+ 1 i (point)))))))
       (setq content-tag (logand 63 ptag)
 	    length-type (pgg-parse-length-type
@@ -229,7 +220,7 @@
     (list content-tag packet-bytes header-bytes)))
 
 (defun pgg-parse-packet (ptag)
-  (case (car ptag)
+  (cl-case (car ptag)
     (1 ;Public-Key Encrypted Session Key Packet
      (pgg-parse-public-key-encrypted-session-key-packet ptag))
     (2 ;Signature Packet
@@ -282,7 +273,7 @@
 	  (1+ (cdr length-type)))))
 
 (defun pgg-parse-signature-subpacket (ptag)
-  (case (car ptag)
+  (cl-case (car ptag)
     (2 ;signature creation time
      (cons 'creation-time
 	   (let ((bytes (pgg-read-bytes 4)))
@@ -320,10 +311,10 @@
 	   (let ((name-bytes (pgg-read-bytes 2))
 		 (value-bytes (pgg-read-bytes 2)))
 	     (cons (pgg-read-bytes-string
-		    (logior (lsh (car name-bytes) 8)
+		    (logior (ash (car name-bytes) 8)
 			    (nth 1 name-bytes)))
 		   (pgg-read-bytes-string
-		    (logior (lsh (car value-bytes) 8)
+		    (logior (ash (car value-bytes) 8)
 			    (nth 1 value-bytes)))))))
     (21 ;preferred hash algorithms
      (cons 'preferred-hash-algorithm
@@ -348,7 +339,7 @@
     ;; 100 to 110 = internal or user-defined
     ))
 
-(defun pgg-parse-signature-packet (ptag)
+(defun pgg-parse-signature-packet (_ptag)
   (let* ((signature-version (pgg-byte-after))
 	 (result (list (cons 'version signature-version)))
 	 hashed-material field n)
@@ -383,7 +374,7 @@
       (pgg-set-alist result
 		     'hash-algorithm (pgg-read-byte))
       (when (>= 10000 (setq n (pgg-read-bytes 2)
-			    n (logior (lsh (car n) 8)
+			    n (logior (ash (car n) 8)
 				      (nth 1 n))))
 	(save-restriction
 	  (narrow-to-region (point)(+ n (point)))
@@ -394,7 +385,7 @@
 			  #'pgg-parse-signature-subpacket)))
 	  (goto-char (point-max))))
       (when (>= 10000 (setq n (pgg-read-bytes 2)
-			    n (logior (lsh (car n) 8)
+			    n (logior (ash (car n) 8)
 				      (nth 1 n))))
 	(save-restriction
 	  (narrow-to-region (point)(+ n (point)))
@@ -414,7 +405,7 @@
 		       pgg-parse-hash-algorithm-alist)))
     result))
 
-(defun pgg-parse-public-key-encrypted-session-key-packet (ptag)
+(defun pgg-parse-public-key-encrypted-session-key-packet (_ptag)
   (let (result)
     (pgg-set-alist result
 		   'version (pgg-read-byte))
@@ -428,7 +419,7 @@
 			      pgg-parse-public-key-algorithm-alist)))
     result))
 
-(defun pgg-parse-symmetric-key-encrypted-session-key-packet (ptag)
+(defun pgg-parse-symmetric-key-encrypted-session-key-packet (_ptag)
   (let (result)
     (pgg-set-alist result
 		   'version
@@ -439,7 +430,7 @@
 			      pgg-parse-symmetric-key-algorithm-alist)))
     result))
 
-(defun pgg-parse-public-key-packet (ptag)
+(defun pgg-parse-public-key-packet (_ptag)
   (let* ((key-version (pgg-read-byte))
 	 (result (list (cons 'version key-version)))
 	 field)
@@ -505,8 +496,7 @@
 (defun pgg-parse-armor (string)
   (with-temp-buffer
     (buffer-disable-undo)
-    (unless (featurep 'xemacs)
-      (set-buffer-multibyte nil))
+    (set-buffer-multibyte nil)
     (insert string)
     (pgg-decode-armor-region (point-min)(point))))
 

@@ -1,0 +1,11 @@
+/dev/sdb1 / ext3 rw,relatime,errors=remount-ro 0 0
+proc /proc proc rw,noexec,nosuid,nodev 0 0
+/sys /sys sysfs rw,noexec,nosuid,nodev 0 0
+varrun /var/run tmpfs rw,noexec,nosuid,nodev,mode=0755 0 0
+varlock /var/lock tmpfs rw,noexec,nosuid,nodev,mode=1777 0 0
+udev /dev tmpfs rw,mode=0755 0 0
+devshm /dev/shm tmpfs rw 0 0
+devpts /dev/pts devpts rw,gid=5,mode=620 0 0
+lrm /lib/modules/2.6.24-16-generic/volatile tmpfs rw 0 0
+securityfs /sys/kernel/security securityfs rw 0 0
+gvfs-fuse-daemon /home/alice/.gvfs fuse.gvfs-fuse-daemon rw,nosuid,nodev,user=alice 0 0

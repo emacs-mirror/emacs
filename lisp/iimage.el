@@ -1,6 +1,6 @@
-;;; iimage.el --- Inline image minor mode.
+;;; iimage.el --- Inline image minor mode.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: KOSEKI Yoshinori <kose@meadowy.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -50,9 +50,8 @@
   :group 'image)
 
 (defcustom iimage-mode-image-search-path nil
-  "List of directories to search for image files for iimage-mode."
-  :type '(choice (const nil) (repeat directory))
-  :group 'iimage)
+  "List of directories to search for image files for `iimage-mode'."
+  :type '(choice (const nil) (repeat directory)))
 
 (defvar iimage-mode-image-filename-regex
   (concat "[-+./_0-9a-zA-Z]+\\."
@@ -74,26 +73,19 @@ Examples of image filename patterns to match:
     \\=`file://foo.png\\='
     \\[\\[foo.gif]]
     <foo.png>
-     foo.JPG
-"
-  :type '(alist :key-type regexp :value-type integer)
-  :group 'iimage)
+     foo.JPG"
+  :type '(alist :key-type regexp :value-type integer))
 
-(defvar iimage-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-l" 'iimage-recenter)
-    map)
-  "Keymap used in `iimage-mode'.")
+(defvar-keymap iimage-mode-map
+  :doc "Keymap used in `iimage-mode'."
+  "C-l" #'iimage-recenter)
 
 (defun iimage-recenter (&optional arg)
   "Re-draw images and recenter."
   (interactive "P")
   (iimage-mode-buffer nil)
   (iimage-mode-buffer t)
-  (recenter arg))
-
-;;;###autoload
-(define-obsolete-function-alias 'turn-on-iimage-mode 'iimage-mode "24.1")
+  (recenter-top-bottom arg))
 
 (defun turn-off-iimage-mode ()
   "Unconditionally turn off iimage mode."
@@ -116,6 +108,7 @@ Examples of image filename patterns to match:
 (defun iimage-mode-buffer (arg)
   "Display images if ARG is non-nil, undisplay them otherwise."
   (let ((image-path (cons default-directory iimage-mode-image-search-path))
+        (edges (window-inside-pixel-edges (get-buffer-window)))
 	file)
     (with-silent-modifications
       (save-excursion
@@ -128,12 +121,18 @@ Examples of image filename patterns to match:
               ;; remove them either (we may leave some of ours, and we
               ;; may remove other packages's display properties).
               (if arg
-                  (add-text-properties (match-beginning 0) (match-end 0)
-                                       `(display ,(create-image file)
-                                         modification-hooks
-                                         (iimage-modification-hook)))
-                (remove-text-properties (match-beginning 0) (match-end 0)
-                                        '(display modification-hooks))))))))))
+                  (add-text-properties
+                   (match-beginning 0) (match-end 0)
+                   `(display
+                     ,(create-image file nil nil
+                                    :max-width (- (nth 2 edges) (nth 0 edges))
+				    :max-height (- (nth 3 edges) (nth 1 edges)))
+                     keymap ,image-map
+                     modification-hooks
+                     (iimage-modification-hook)))
+                (remove-list-of-text-properties
+                 (match-beginning 0) (match-end 0)
+                 '(display modification-hooks))))))))))
 
 ;;;###autoload
 (define-minor-mode iimage-mode nil

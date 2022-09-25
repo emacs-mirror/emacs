@@ -1,6 +1,6 @@
-;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support
+;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2000, 2007, 2009-2017 Free Software Foundation,
+;; Copyright (C) 1998-2000, 2007, 2009-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -34,8 +34,7 @@
   "This target consists of aux files such as READMEs and COPYING.")
 
 (defvar ede-aux-source
-  (ede-sourcecode "ede-aux-source-txt"
-		  :name "Auxiliary Text"
+  (ede-sourcecode :name "Auxiliary Text"
 		  :sourcepattern "^[A-Z]+$\\|\\.txt$")
   "Miscellaneous fields definition.")
 

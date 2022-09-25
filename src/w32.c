@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2017 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
+#include <nproc.h>
 
 /* Include (most) CRT headers *before* ms-w32.h.  */
 #include <ms-w32.h>
@@ -70,6 +71,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #undef localtime
 
+#undef clock
+
 char *sys_ctime (const time_t *);
 int sys_chdir (const char *);
 int sys_creat (const char *, int);
@@ -86,6 +89,7 @@ struct tm *sys_localtime (const time_t *);
    compiler to emit a warning about sys_strerror having no
    prototype.  */
 char *sys_strerror (int);
+clock_t sys_clock (void);
 
 #ifdef HAVE_MODULES
 extern void dynlib_reset_last_error (void);
@@ -227,6 +231,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef connect
 #undef htons
 #undef ntohs
+#undef htonl
+#undef ntohl
 #undef inet_addr
 #undef gethostname
 #undef gethostbyname
@@ -240,7 +246,21 @@ typedef struct _REPARSE_DATA_BUFFER {
 #undef recvfrom
 #undef sendto
 
+/* We need at least XP level for GetAdaptersAddresses stuff.  */
+#if _WIN32_WINNT < 0x0501
+# undef ORIG_WIN32_WINNT
+# define ORIG_WIN32_WINNT _WIN32_WINNT
+# undef _WIN32_WINNT
+# define _WIN32_WINNT 0x0501
+#endif
+
 #include <iphlpapi.h>	/* should be after winsock2.h */
+
+#ifdef ORIG_WIN32_WINNT
+# undef _WIN32_WINNT
+# define _WIN32_WINNT ORIG_WIN32_WINNT
+# undef ORIG_WIN32_WINNT
+#endif
 
 #include <wincrypt.h>
 
@@ -326,6 +346,12 @@ static BOOL g_b_init_set_file_security_a;
 static BOOL g_b_init_set_named_security_info_w;
 static BOOL g_b_init_set_named_security_info_a;
 static BOOL g_b_init_get_adapters_info;
+static BOOL g_b_init_get_adapters_addresses;
+static BOOL g_b_init_reg_open_key_ex_w;
+static BOOL g_b_init_reg_query_value_ex_w;
+static BOOL g_b_init_expand_environment_strings_w;
+static BOOL g_b_init_get_user_default_ui_language;
+static BOOL g_b_init_get_console_font_size;
 
 BOOL g_b_init_compare_string_w;
 BOOL g_b_init_debug_break_process;
@@ -500,10 +526,36 @@ typedef BOOL (WINAPI *IsValidSecurityDescriptor_Proc) (PSECURITY_DESCRIPTOR);
 typedef DWORD (WINAPI *GetAdaptersInfo_Proc) (
     PIP_ADAPTER_INFO pAdapterInfo,
     PULONG pOutBufLen);
+typedef DWORD (WINAPI *GetAdaptersAddresses_Proc) (
+    ULONG,
+    ULONG,
+    PVOID,
+    PIP_ADAPTER_ADDRESSES,
+    PULONG);
 
 int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
 int (WINAPI *pWideCharToMultiByte)(UINT,DWORD,LPCWSTR,int,LPSTR,int,LPCSTR,LPBOOL);
 DWORD multiByteToWideCharFlags;
+typedef LONG (WINAPI *RegOpenKeyExW_Proc) (HKEY,LPCWSTR,DWORD,REGSAM,PHKEY);
+typedef LONG (WINAPI *RegQueryValueExW_Proc) (HKEY,LPCWSTR,LPDWORD,LPDWORD,LPBYTE,LPDWORD);
+typedef DWORD (WINAPI *ExpandEnvironmentStringsW_Proc) (LPCWSTR,LPWSTR,DWORD);
+typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
+
+typedef COORD (WINAPI *GetConsoleFontSize_Proc) (HANDLE, DWORD);
+
+#if _WIN32_WINNT < 0x0501
+typedef struct
+{
+  DWORD nFont;
+  COORD dwFontSize;
+} CONSOLE_FONT_INFO;
+#endif
+
+typedef BOOL (WINAPI *GetCurrentConsoleFont_Proc) (
+    HANDLE,
+    BOOL,
+    CONSOLE_FONT_INFO *);
+
 
   /* ** A utility function ** */
 static BOOL
@@ -529,8 +581,6 @@ static Lisp_Object ltime (ULONGLONG);
 /* Get total user and system times for get-internal-run-time.
    Returns a list of integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
-Lisp_Object w32_get_internal_run_time (void);
-
 Lisp_Object
 w32_get_internal_run_time (void)
 {
@@ -570,8 +620,8 @@ open_process_token (HANDLE ProcessHandle,
     {
       g_b_init_open_process_token = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Open_Process_Token =
-        (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
+      s_pfn_Open_Process_Token = (OpenProcessToken_Proc)
+        get_proc_addr (hm_advapi32, "OpenProcessToken");
     }
   if (s_pfn_Open_Process_Token == NULL)
     {
@@ -602,8 +652,8 @@ get_token_information (HANDLE TokenHandle,
     {
       g_b_init_get_token_information = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Token_Information =
-        (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
+      s_pfn_Get_Token_Information = (GetTokenInformation_Proc)
+        get_proc_addr (hm_advapi32, "GetTokenInformation");
     }
   if (s_pfn_Get_Token_Information == NULL)
     {
@@ -638,8 +688,8 @@ lookup_account_sid (LPCTSTR lpSystemName,
     {
       g_b_init_lookup_account_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Lookup_Account_Sid =
-        (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
+      s_pfn_Lookup_Account_Sid = (LookupAccountSid_Proc)
+        get_proc_addr (hm_advapi32, LookupAccountSid_Name);
     }
   if (s_pfn_Lookup_Account_Sid == NULL)
     {
@@ -671,9 +721,8 @@ get_sid_sub_authority (PSID pSid, DWORD n)
     {
       g_b_init_get_sid_sub_authority = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Sid_Sub_Authority =
-        (GetSidSubAuthority_Proc) GetProcAddress (
-            hm_advapi32, "GetSidSubAuthority");
+      s_pfn_Get_Sid_Sub_Authority = (GetSidSubAuthority_Proc)
+        get_proc_addr (hm_advapi32, "GetSidSubAuthority");
     }
   if (s_pfn_Get_Sid_Sub_Authority == NULL)
     {
@@ -696,9 +745,8 @@ get_sid_sub_authority_count (PSID pSid)
     {
       g_b_init_get_sid_sub_authority_count = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Sid_Sub_Authority_Count =
-        (GetSidSubAuthorityCount_Proc) GetProcAddress (
-            hm_advapi32, "GetSidSubAuthorityCount");
+      s_pfn_Get_Sid_Sub_Authority_Count = (GetSidSubAuthorityCount_Proc)
+        get_proc_addr (hm_advapi32, "GetSidSubAuthorityCount");
     }
   if (s_pfn_Get_Sid_Sub_Authority_Count == NULL)
     {
@@ -727,9 +775,8 @@ get_security_info (HANDLE handle,
     {
       g_b_init_get_security_info = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Info =
-        (GetSecurityInfo_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityInfo");
+      s_pfn_Get_Security_Info = (GetSecurityInfo_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityInfo");
     }
   if (s_pfn_Get_Security_Info == NULL)
     {
@@ -763,9 +810,8 @@ get_file_security (const char *lpFileName,
 	{
 	  g_b_init_get_file_security_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Get_File_SecurityW =
-	    (GetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
-						   "GetFileSecurityW");
+	  s_pfn_Get_File_SecurityW = (GetFileSecurityW_Proc)
+            get_proc_addr (hm_advapi32, "GetFileSecurityW");
 	}
       if (s_pfn_Get_File_SecurityW == NULL)
 	{
@@ -785,9 +831,8 @@ get_file_security (const char *lpFileName,
 	{
 	  g_b_init_get_file_security_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Get_File_SecurityA =
-	    (GetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
-						   "GetFileSecurityA");
+	  s_pfn_Get_File_SecurityA = (GetFileSecurityA_Proc)
+            get_proc_addr (hm_advapi32, "GetFileSecurityA");
 	}
       if (s_pfn_Get_File_SecurityA == NULL)
 	{
@@ -822,9 +867,8 @@ set_file_security (const char *lpFileName,
 	{
 	  g_b_init_set_file_security_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_File_SecurityW =
-	    (SetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
-						    "SetFileSecurityW");
+	  s_pfn_Set_File_SecurityW = (SetFileSecurityW_Proc)
+            get_proc_addr (hm_advapi32, "SetFileSecurityW");
 	}
       if (s_pfn_Set_File_SecurityW == NULL)
 	{
@@ -843,9 +887,8 @@ set_file_security (const char *lpFileName,
 	{
 	  g_b_init_set_file_security_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_File_SecurityA =
-	    (SetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
-						    "SetFileSecurityA");
+	  s_pfn_Set_File_SecurityA = (SetFileSecurityA_Proc)
+            get_proc_addr (hm_advapi32, "SetFileSecurityA");
 	}
       if (s_pfn_Set_File_SecurityA == NULL)
 	{
@@ -883,9 +926,8 @@ set_named_security_info (LPCTSTR lpObjectName,
 	{
 	  g_b_init_set_named_security_info_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_Named_Security_InfoW =
-	    (SetNamedSecurityInfoW_Proc) GetProcAddress (hm_advapi32,
-							 "SetNamedSecurityInfoW");
+	  s_pfn_Set_Named_Security_InfoW = (SetNamedSecurityInfoW_Proc)
+            get_proc_addr (hm_advapi32, "SetNamedSecurityInfoW");
 	}
       if (s_pfn_Set_Named_Security_InfoW == NULL)
 	{
@@ -905,9 +947,8 @@ set_named_security_info (LPCTSTR lpObjectName,
 	{
 	  g_b_init_set_named_security_info_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_Named_Security_InfoA =
-	    (SetNamedSecurityInfoA_Proc) GetProcAddress (hm_advapi32,
-							 "SetNamedSecurityInfoA");
+	  s_pfn_Set_Named_Security_InfoA = (SetNamedSecurityInfoA_Proc)
+            get_proc_addr (hm_advapi32, "SetNamedSecurityInfoA");
 	}
       if (s_pfn_Set_Named_Security_InfoA == NULL)
 	{
@@ -937,9 +978,8 @@ get_security_descriptor_owner (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_owner = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Owner =
-        (GetSecurityDescriptorOwner_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorOwner");
+      s_pfn_Get_Security_Descriptor_Owner = (GetSecurityDescriptorOwner_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorOwner");
     }
   if (s_pfn_Get_Security_Descriptor_Owner == NULL)
     {
@@ -966,9 +1006,8 @@ get_security_descriptor_group (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_group = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Group =
-        (GetSecurityDescriptorGroup_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorGroup");
+      s_pfn_Get_Security_Descriptor_Group = (GetSecurityDescriptorGroup_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorGroup");
     }
   if (s_pfn_Get_Security_Descriptor_Group == NULL)
     {
@@ -996,9 +1035,8 @@ get_security_descriptor_dacl (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_dacl = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Dacl =
-        (GetSecurityDescriptorDacl_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorDacl");
+      s_pfn_Get_Security_Descriptor_Dacl = (GetSecurityDescriptorDacl_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorDacl");
     }
   if (s_pfn_Get_Security_Descriptor_Dacl == NULL)
     {
@@ -1023,9 +1061,8 @@ is_valid_sid (PSID sid)
     {
       g_b_init_is_valid_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Is_Valid_Sid =
-        (IsValidSid_Proc) GetProcAddress (
-            hm_advapi32, "IsValidSid");
+      s_pfn_Is_Valid_Sid = (IsValidSid_Proc)
+        get_proc_addr (hm_advapi32, "IsValidSid");
     }
   if (s_pfn_Is_Valid_Sid == NULL)
     {
@@ -1047,9 +1084,8 @@ equal_sid (PSID sid1, PSID sid2)
     {
       g_b_init_equal_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Equal_Sid =
-        (EqualSid_Proc) GetProcAddress (
-            hm_advapi32, "EqualSid");
+      s_pfn_Equal_Sid = (EqualSid_Proc)
+        get_proc_addr (hm_advapi32, "EqualSid");
     }
   if (s_pfn_Equal_Sid == NULL)
     {
@@ -1071,9 +1107,8 @@ get_length_sid (PSID sid)
     {
       g_b_init_get_length_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Length_Sid =
-        (GetLengthSid_Proc) GetProcAddress (
-            hm_advapi32, "GetLengthSid");
+      s_pfn_Get_Length_Sid = (GetLengthSid_Proc)
+        get_proc_addr (hm_advapi32, "GetLengthSid");
     }
   if (s_pfn_Get_Length_Sid == NULL)
     {
@@ -1095,9 +1130,8 @@ copy_sid (DWORD destlen, PSID dest, PSID src)
     {
       g_b_init_copy_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Copy_Sid =
-        (CopySid_Proc) GetProcAddress (
-            hm_advapi32, "CopySid");
+      s_pfn_Copy_Sid = (CopySid_Proc)
+        get_proc_addr (hm_advapi32, "CopySid");
     }
   if (s_pfn_Copy_Sid == NULL)
     {
@@ -1121,9 +1155,9 @@ get_native_system_info (LPSYSTEM_INFO lpSystemInfo)
       if (g_b_init_get_native_system_info == 0)
 	{
 	  g_b_init_get_native_system_info = 1;
-	  s_pfn_Get_Native_System_Info =
-	    (GetNativeSystemInfo_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						      "GetNativeSystemInfo");
+	  s_pfn_Get_Native_System_Info = (GetNativeSystemInfo_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "GetNativeSystemInfo");
 	}
       if (s_pfn_Get_Native_System_Info != NULL)
 	s_pfn_Get_Native_System_Info (lpSystemInfo);
@@ -1145,9 +1179,9 @@ get_system_times (LPFILETIME lpIdleTime,
   if (g_b_init_get_system_times == 0)
     {
       g_b_init_get_system_times = 1;
-      s_pfn_Get_System_times =
-	(GetSystemTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-					     "GetSystemTimes");
+      s_pfn_Get_System_times = (GetSystemTimes_Proc)
+        get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GetSystemTimes");
     }
   if (s_pfn_Get_System_times == NULL)
     return FALSE;
@@ -1175,9 +1209,9 @@ create_symbolic_link (LPCSTR lpSymlinkFilename,
       if (g_b_init_create_symbolic_link_w == 0)
 	{
 	  g_b_init_create_symbolic_link_w = 1;
-	  s_pfn_Create_Symbolic_LinkW =
-	    (CreateSymbolicLinkW_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						     "CreateSymbolicLinkW");
+	  s_pfn_Create_Symbolic_LinkW = (CreateSymbolicLinkW_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "CreateSymbolicLinkW");
 	}
       if (s_pfn_Create_Symbolic_LinkW == NULL)
 	{
@@ -1210,9 +1244,9 @@ create_symbolic_link (LPCSTR lpSymlinkFilename,
       if (g_b_init_create_symbolic_link_a == 0)
 	{
 	  g_b_init_create_symbolic_link_a = 1;
-	  s_pfn_Create_Symbolic_LinkA =
-	    (CreateSymbolicLinkA_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						     "CreateSymbolicLinkA");
+	  s_pfn_Create_Symbolic_LinkA = (CreateSymbolicLinkA_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "CreateSymbolicLinkA");
 	}
       if (s_pfn_Create_Symbolic_LinkA == NULL)
 	{
@@ -1255,9 +1289,9 @@ is_valid_security_descriptor (PSECURITY_DESCRIPTOR pSecurityDescriptor)
   if (g_b_init_is_valid_security_descriptor == 0)
     {
       g_b_init_is_valid_security_descriptor = 1;
-      s_pfn_Is_Valid_Security_Descriptor_Proc =
-	(IsValidSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-							"IsValidSecurityDescriptor");
+      s_pfn_Is_Valid_Security_Descriptor_Proc = (IsValidSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "IsValidSecurityDescriptor");
     }
   if (s_pfn_Is_Valid_Security_Descriptor_Proc == NULL)
     {
@@ -1289,12 +1323,14 @@ convert_sd_to_sddl (PSECURITY_DESCRIPTOR SecurityDescriptor,
       g_b_init_convert_sd_to_sddl = 1;
 #ifdef _UNICODE
       s_pfn_Convert_SD_To_SDDL =
-	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertSecurityDescriptorToStringSecurityDescriptorW");
+	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertSecurityDescriptorToStringSecurityDescriptorW");
 #else
       s_pfn_Convert_SD_To_SDDL =
-	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertSecurityDescriptorToStringSecurityDescriptorA");
+	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertSecurityDescriptorToStringSecurityDescriptorA");
 #endif
     }
   if (s_pfn_Convert_SD_To_SDDL == NULL)
@@ -1332,12 +1368,14 @@ convert_sddl_to_sd (LPCTSTR StringSecurityDescriptor,
       g_b_init_convert_sddl_to_sd = 1;
 #ifdef _UNICODE
       s_pfn_Convert_SDDL_To_SD =
-	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertStringSecurityDescriptorToSecurityDescriptorW");
+	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertStringSecurityDescriptorToSecurityDescriptorW");
 #else
       s_pfn_Convert_SDDL_To_SD =
-	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertStringSecurityDescriptorToSecurityDescriptorA");
+	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertStringSecurityDescriptorToSecurityDescriptorA");
 #endif
     }
   if (s_pfn_Convert_SDDL_To_SD == NULL)
@@ -1369,11 +1407,131 @@ get_adapters_info (PIP_ADAPTER_INFO pAdapterInfo, PULONG pOutBufLen)
       hm_iphlpapi = LoadLibrary ("Iphlpapi.dll");
       if (hm_iphlpapi)
 	s_pfn_Get_Adapters_Info = (GetAdaptersInfo_Proc)
-	  GetProcAddress (hm_iphlpapi, "GetAdaptersInfo");
+	  get_proc_addr (hm_iphlpapi, "GetAdaptersInfo");
     }
   if (s_pfn_Get_Adapters_Info == NULL)
     return ERROR_NOT_SUPPORTED;
   return s_pfn_Get_Adapters_Info (pAdapterInfo, pOutBufLen);
+}
+
+static DWORD WINAPI
+get_adapters_addresses (ULONG family, PIP_ADAPTER_ADDRESSES pAdapterAddresses, PULONG pOutBufLen)
+{
+  static GetAdaptersAddresses_Proc s_pfn_Get_Adapters_Addresses = NULL;
+  HMODULE hm_iphlpapi = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return ERROR_NOT_SUPPORTED;
+
+  if (g_b_init_get_adapters_addresses == 0)
+    {
+      g_b_init_get_adapters_addresses = 1;
+      hm_iphlpapi = LoadLibrary ("Iphlpapi.dll");
+      if (hm_iphlpapi)
+	s_pfn_Get_Adapters_Addresses = (GetAdaptersAddresses_Proc)
+	  get_proc_addr (hm_iphlpapi, "GetAdaptersAddresses");
+    }
+  if (s_pfn_Get_Adapters_Addresses == NULL)
+    return ERROR_NOT_SUPPORTED;
+  ULONG flags = GAA_FLAG_SKIP_ANYCAST
+    | GAA_FLAG_SKIP_MULTICAST
+    | GAA_FLAG_SKIP_DNS_SERVER;
+  return s_pfn_Get_Adapters_Addresses (family, flags, NULL, pAdapterAddresses, pOutBufLen);
+}
+
+static LONG WINAPI
+reg_open_key_ex_w (HKEY hkey, LPCWSTR lpSubKey, DWORD ulOptions,
+		   REGSAM samDesired, PHKEY phkResult)
+{
+  static RegOpenKeyExW_Proc s_pfn_Reg_Open_Key_Ex_w = NULL;
+  HMODULE hm_advapi32 = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return ERROR_NOT_SUPPORTED;
+
+  if (g_b_init_reg_open_key_ex_w == 0)
+    {
+      g_b_init_reg_open_key_ex_w = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      if (hm_advapi32)
+	s_pfn_Reg_Open_Key_Ex_w = (RegOpenKeyExW_Proc)
+	  get_proc_addr (hm_advapi32, "RegOpenKeyExW");
+    }
+  if (s_pfn_Reg_Open_Key_Ex_w == NULL)
+    return ERROR_NOT_SUPPORTED;
+  return s_pfn_Reg_Open_Key_Ex_w (hkey, lpSubKey, ulOptions,
+				  samDesired, phkResult);
+}
+
+static LONG WINAPI
+reg_query_value_ex_w (HKEY hkey, LPCWSTR lpValueName, LPDWORD lpReserved,
+		      LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
+{
+  static RegQueryValueExW_Proc s_pfn_Reg_Query_Value_Ex_w = NULL;
+  HMODULE hm_advapi32 = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return ERROR_NOT_SUPPORTED;
+
+  if (g_b_init_reg_query_value_ex_w == 0)
+    {
+      g_b_init_reg_query_value_ex_w = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      if (hm_advapi32)
+	s_pfn_Reg_Query_Value_Ex_w = (RegQueryValueExW_Proc)
+	  get_proc_addr (hm_advapi32, "RegQueryValueExW");
+    }
+  if (s_pfn_Reg_Query_Value_Ex_w == NULL)
+    return ERROR_NOT_SUPPORTED;
+  return s_pfn_Reg_Query_Value_Ex_w (hkey, lpValueName, lpReserved,
+				     lpType, lpData, lpcbData);
+}
+
+static DWORD WINAPI
+expand_environment_strings_w (LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
+{
+  static ExpandEnvironmentStringsW_Proc s_pfn_Expand_Environment_Strings_w = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return ERROR_NOT_SUPPORTED;
+
+  if (g_b_init_expand_environment_strings_w == 0)
+    {
+      g_b_init_expand_environment_strings_w = 1;
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      if (hm_kernel32)
+	s_pfn_Expand_Environment_Strings_w = (ExpandEnvironmentStringsW_Proc)
+	  get_proc_addr (hm_kernel32, "ExpandEnvironmentStringsW");
+    }
+  if (s_pfn_Expand_Environment_Strings_w == NULL)
+    {
+      errno = ENOSYS;
+      return FALSE;
+    }
+  return s_pfn_Expand_Environment_Strings_w (lpSrc, lpDst, nSize);
+}
+
+static LANGID WINAPI
+get_user_default_ui_language (void)
+{
+  static GetUserDefaultUILanguage_Proc s_pfn_GetUserDefaultUILanguage = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return 0;
+
+  if (g_b_init_get_user_default_ui_language == 0)
+    {
+      g_b_init_get_user_default_ui_language = 1;
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      if (hm_kernel32)
+	s_pfn_GetUserDefaultUILanguage = (GetUserDefaultUILanguage_Proc)
+	  get_proc_addr (hm_kernel32, "GetUserDefaultUILanguage");
+    }
+  if (s_pfn_GetUserDefaultUILanguage == NULL)
+    return 0;
+  return s_pfn_GetUserDefaultUILanguage ();
 }
 
 
@@ -1706,7 +1864,40 @@ filename_from_ansi (const char *fn_in, char *fn_out)
 /* The directory where we started, in UTF-8. */
 static char startup_dir[MAX_UTF8_PATH];
 
-/* Get the current working directory.  */
+/* Get the current working directory.  The caller must arrange for CWD
+   to be allocated with enough space to hold a 260-char directory name
+   in UTF-8.  IOW, the space should be at least MAX_UTF8_PATH bytes.  */
+static void
+w32_get_current_directory (char *cwd)
+{
+  /* FIXME: Do we need to resolve possible symlinks in startup_dir?
+     Does it matter anywhere in Emacs?  */
+  if (w32_unicode_filenames)
+    {
+      wchar_t wstartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
+	emacs_abort ();
+      filename_from_utf16 (wstartup_dir, cwd);
+    }
+  else
+    {
+      char astartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
+	emacs_abort ();
+      filename_from_ansi (astartup_dir, cwd);
+    }
+}
+
+/* For external callers.  Used by 'main' in emacs.c.  */
+void
+w32_init_current_directory (void)
+{
+  w32_get_current_directory (startup_dir);
+}
+
+/* Return the original directory where Emacs started.  */
 char *
 getcwd (char *dir, int dirsize)
 {
@@ -1771,11 +1962,10 @@ buf_prev (int from)
   return prev_idx;
 }
 
-static void
-sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
+unsigned
+w32_get_nproc (void)
 {
   SYSTEM_INFO sysinfo;
-  FILETIME ft_idle, ft_user, ft_kernel;
 
   /* Initialize the number of processors on this machine.  */
   if (num_of_processors <= 0)
@@ -1790,6 +1980,25 @@ sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
       if (num_of_processors <= 0)
 	num_of_processors = 1;
     }
+  return num_of_processors;
+}
+
+/* Emulate Gnulib's 'num_processors'.  We cannot use the Gnulib
+   version because it unconditionally calls APIs that aren't available
+   on old MS-Windows versions.  */
+unsigned long
+num_processors (enum nproc_query query)
+{
+  /* We ignore QUERY.  */
+  return w32_get_nproc ();
+}
+
+static void
+sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
+{
+  FILETIME ft_idle, ft_user, ft_kernel;
+
+  (void) w32_get_nproc ();
 
   /* TODO: Take into account threads that are ready to run, by
      sampling the "\System\Processor Queue Length" performance
@@ -1905,6 +2114,13 @@ getloadavg (double loadavg[], int nelem)
       loadavg[elem] = avg;
     }
 
+  /* Always return at least one element, otherwise load-average
+     returns nil, and Lisp programs might decide we cannot measure
+     system load.  For example, jit-lock-stealth-load's defcustom
+     might decide that feature is "unsupported".  */
+  if (elem == 0)
+    loadavg[elem++] = 0.09;	/* < display-time-load-average-threshold */
+
   return elem;
 }
 
@@ -1978,7 +2194,9 @@ getpwuid (unsigned uid)
 struct group *
 getgrgid (gid_t gid)
 {
-  return &dflt_group;
+  if (gid == dflt_passwd.pw_gid)
+    return &dflt_group;
+  return NULL;
 }
 
 struct passwd *
@@ -1991,7 +2209,29 @@ getpwnam (char *name)
     return pw;
 
   if (xstrcasecmp (name, pw->pw_name))
-    return NULL;
+    {
+      /* Mimic what init_editfns does with these environment
+	 variables, so that the likes of ~USER is recognized by
+	 expand-file-name even if $LOGNAME gives a name different from
+	 the real username produced by the process token.  */
+      char *logname = getenv ("LOGNAME");
+      char *username = getenv ("USERNAME");
+      if ((logname || username)
+	  && xstrcasecmp (name, logname ? logname : username) == 0)
+	{
+	  static struct passwd alias_user;
+	  static char alias_name[PASSWD_FIELD_SIZE];
+
+	  memcpy (&alias_user, &dflt_passwd, sizeof dflt_passwd);
+	  alias_name[0] = '\0';
+	  strncat (alias_name, logname ? logname : username,
+		   PASSWD_FIELD_SIZE - 1);
+	  alias_user.pw_name = alias_name;
+	  pw = &alias_user;
+	}
+      else
+	return NULL;
+    }
 
   return pw;
 }
@@ -2180,8 +2420,13 @@ rand_as183 (void)
 int
 random (void)
 {
-  /* rand_as183 () gives us 15 random bits...hack together 30 bits.  */
+  /* rand_as183 () gives us 15 random bits...hack together 30 bits for
+     Emacs with 32-bit EMACS_INT, and at least 31 bit for wider EMACS_INT.  */
+#if EMACS_INT_MAX > INT_MAX
+  return ((rand_as183 () << 30) | (rand_as183 () << 15) | rand_as183 ());
+#else
   return ((rand_as183 () << 15) | rand_as183 ());
+#endif
 }
 
 void
@@ -2191,6 +2436,26 @@ srandom (int seed)
   ix = rand () % RAND_MAX_X;
   iy = rand () % RAND_MAX_Y;
   iz = rand () % RAND_MAX_Z;
+}
+
+/* Emulate explicit_bzero.  This is to avoid using the Gnulib version,
+   because it calls SecureZeroMemory at will, disregarding systems
+   older than Windows XP, which didn't have that function.  We want to
+   avoid having that function as dependency in builds that need to
+   support systems older than Windows XP, otherwise Emacs will refuse
+   to start on those systems.  */
+void
+explicit_bzero (void *buf, size_t len)
+{
+#if _WIN32_WINNT >= 0x0501
+  /* We are compiling for XP or newer, most probably with MinGW64.
+     We can use SecureZeroMemory.  */
+  SecureZeroMemory (buf, len);
+#else
+  memset (buf, 0, len);
+  /* Compiler barrier.  */
+  asm volatile ("" ::: "memory");
+#endif
 }
 
 /* Return the maximum length in bytes of a multibyte character
@@ -2522,7 +2787,7 @@ unsetenv (const char *name)
   /* It is safe to use 'alloca' with 32K size, since the stack is at
      least 2MB, and we set it to 8MB in the link command line.  */
   var = alloca (name_len + 2);
-  strncpy (var, name, name_len);
+  memcpy (var, name, name_len);
   var[name_len++] = '=';
   var[name_len] = '\0';
   return _putenv (var);
@@ -2574,53 +2839,6 @@ sys_putenv (char *str)
 }
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
-
-LPBYTE
-w32_get_resource (const char *key, LPDWORD lpdwtype)
-{
-  LPBYTE lpvalue;
-  HKEY hrootkey = NULL;
-  DWORD cbData;
-
-  /* Check both the current user and the local machine to see if
-     we have any resources.  */
-
-  if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-          RegCloseKey (hrootkey);
-	  return (lpvalue);
-	}
-
-      xfree (lpvalue);
-
-      RegCloseKey (hrootkey);
-    }
-
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
-	  && (lpvalue = xmalloc (cbData)) != NULL
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-          RegCloseKey (hrootkey);
-	  return (lpvalue);
-	}
-
-      xfree (lpvalue);
-
-      RegCloseKey (hrootkey);
-    }
-
-  return (NULL);
-}
 
 /* The argv[] array holds ANSI-encoded strings, and so this function
    works with ANS_encoded strings.  */
@@ -2728,7 +2946,8 @@ init_environment (char ** argv)
 	   MSIE 5.  */
 	ShGetFolderPath_fn get_folder_path;
 	get_folder_path = (ShGetFolderPath_fn)
-	  GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
+	  get_proc_addr (GetModuleHandle ("shell32.dll"),
+                                "SHGetFolderPathA");
 
 	if (get_folder_path != NULL)
 	  {
@@ -2749,6 +2968,32 @@ init_environment (char ** argv)
                      LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
                      locale_name, sizeof (locale_name)))
     {
+      /* Microsoft are migrating away of locale IDs, replacing them
+	 with locale names, such as "en-US", and are therefore
+	 deprecating the APIs which use LCID etc.  As part of that
+	 deprecation, they don't bother inventing LCID and LANGID
+	 codes for new locales and language/culture combinations;
+	 instead, those get LCID of 0xC000 and LANGID of 0x2000, for
+	 which the LCID/LANGID oriented APIs return "ZZZ" as the
+	 "language name".  Such "language name" is useless for our
+	 purposes.  So we instead use the default UI language, in the
+	 hope of getting something usable.  */
+      if (strcmp (locale_name, "ZZZ") == 0)
+	{
+	  LANGID lang_id = get_user_default_ui_language ();
+
+	  if (lang_id != 0)
+	    {
+	      /* Disregard the sorting order differences between cultures.  */
+	      LCID def_lcid = MAKELCID (lang_id, SORT_DEFAULT);
+	      char locale_name_def[32];
+
+	      if (GetLocaleInfo (def_lcid,
+				 LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
+				 locale_name_def, sizeof (locale_name_def)))
+		strcpy (locale_name, locale_name_def);
+	    }
+	}
       for (i = 0; i < N_ENV_VARS; i++)
         {
           if (strcmp (env_vars[i].name, "LANG") == 0)
@@ -2805,7 +3050,7 @@ init_environment (char ** argv)
 	    int dont_free = 0;
 	    char bufc[SET_ENV_BUF_SIZE];
 
-	    if ((lpval = w32_get_resource (env_vars[i].name, &dwType)) == NULL
+	    if ((lpval = w32_get_resource (REG_ROOT, env_vars[i].name, &dwType)) == NULL
 		/* Also ignore empty environment variables.  */
 		|| *lpval == 0)
 	      {
@@ -2859,8 +3104,7 @@ init_environment (char ** argv)
 		if (strcmp (env_vars[i].name, "HOME") == 0 && !appdata)
 		  Vdelayed_warnings_list
                     = Fcons
-                    (listn (CONSTYPE_HEAP, 2,
-                            intern ("initialization"), build_string
+		    (list2 (intern ("initialization"), build_string
                             ("Use of `C:\\.emacs' without defining `HOME'\n"
                              "in the environment is deprecated, "
                              "see `Windows HOME' in the Emacs manual.")),
@@ -2929,24 +3173,7 @@ init_environment (char ** argv)
   }
 
   /* Remember the initial working directory for getcwd.  */
-  /* FIXME: Do we need to resolve possible symlinks in startup_dir?
-     Does it matter anywhere in Emacs?  */
-  if (w32_unicode_filenames)
-    {
-      wchar_t wstartup_dir[MAX_PATH];
-
-      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
-	emacs_abort ();
-      filename_from_utf16 (wstartup_dir, startup_dir);
-    }
-  else
-    {
-      char astartup_dir[MAX_PATH];
-
-      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
-	emacs_abort ();
-      filename_from_ansi (astartup_dir, startup_dir);
-    }
+  w32_get_current_directory (startup_dir);
 
   {
     static char modname[MAX_PATH];
@@ -3018,17 +3245,8 @@ fdutimens (int fd, char const *file, struct timespec const timespec[2])
       return _futime (fd, &_ut);
     }
   else
-    {
-      struct utimbuf ut;
-
-      ut.actime = timespec[0].tv_sec;
-      ut.modtime = timespec[1].tv_sec;
-      /* Call 'utime', which is implemented below, not the MS library
-	 function, which fails on directories.  */
-      return utime (file, &ut);
-    }
+    return utimensat (fd, file, timespec, 0);
 }
-
 
 /* ------------------------------------------------------------------------- */
 /* IO support and wrapper functions for the Windows API. */
@@ -3130,22 +3348,7 @@ GetCachedVolumeInformation (char * root_dir)
   /* NULL for root_dir means use root from current directory.  */
   if (root_dir == NULL)
     {
-      if (w32_unicode_filenames)
-	{
-	  wchar_t curdirw[MAX_PATH];
-
-	  if (GetCurrentDirectoryW (MAX_PATH, curdirw) == 0)
-	    return NULL;
-	  filename_from_utf16 (curdirw, default_root);
-	}
-      else
-	{
-	  char curdira[MAX_PATH];
-
-	  if (GetCurrentDirectoryA (MAX_PATH, curdira) == 0)
-	    return NULL;
-	  filename_from_ansi (curdira, default_root);
-	}
+      w32_get_current_directory (default_root);
       parse_root (default_root, (const char **)&root_dir);
       *root_dir = 0;
       root_dir = default_root;
@@ -3305,8 +3508,6 @@ is_fat_volume (const char * name, const char ** pPath)
 /* Convert all slashes in a filename to backslashes, and map filename
    to a valid 8.3 name if necessary.  The result is a pointer to a
    static buffer, so CAVEAT EMPTOR!  */
-const char *map_w32_filename (const char *, const char **);
-
 const char *
 map_w32_filename (const char * name, const char ** pPath)
 {
@@ -3821,7 +4022,7 @@ logon_network_drive (const char *path)
     return;
 
   n_slashes = 2;
-  strncpy (share, path, MAX_UTF8_PATH);
+  strncpy (share, path, MAX_UTF8_PATH - 1);
   /* Truncate to just server and share name.  */
   for (p = share + 2; *p && p < share + MAX_UTF8_PATH; p++)
     {
@@ -3965,7 +4166,11 @@ faccessat (int dirfd, const char * path, int mode, int flags)
 	  /* FALLTHROUGH */
 	  FALLTHROUGH;
 	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_NOT_READY:
 	case ERROR_BAD_NETPATH:
+	case ERROR_BAD_NET_NAME:
 	  errno = ENOENT;
 	  break;
 	default:
@@ -4054,13 +4259,36 @@ w32_accessible_directory_p (const char *dirname, ptrdiff_t dirlen)
       /* In case DIRNAME cannot be expressed in characters from the
 	 current ANSI codepage.  */
       if (_mbspbrk (pat_a, "?"))
-	dh = INVALID_HANDLE_VALUE;
-      else
-	dh = FindFirstFileA (pat_a, &dfd_a);
+	{
+	  errno = ENOENT;
+	  return 0;
+	}
+      dh = FindFirstFileA (pat_a, &dfd_a);
     }
 
   if (dh == INVALID_HANDLE_VALUE)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_NO_MORE_FILES:
+	case ERROR_BAD_NETPATH:
+	  errno = ENOENT;
+	  break;
+	case ERROR_NOT_READY:
+	  errno = ENODEV;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
     return 0;
+    }
   FindClose (dh);
   return 1;
 }
@@ -4148,10 +4376,9 @@ sys_chdir (const char * path)
     }
 }
 
-int
-sys_chmod (const char * path, int mode)
+static int
+chmod_worker (const char * path, int mode)
 {
-  path = chase_symlinks (map_w32_filename (path, NULL));
   if (w32_unicode_filenames)
     {
       wchar_t path_w[MAX_PATH];
@@ -4166,6 +4393,20 @@ sys_chmod (const char * path, int mode)
       filename_to_ansi (path, path_a);
       return _chmod (path_a, mode);
     }
+}
+
+int
+sys_chmod (const char * path, int mode)
+{
+  path = chase_symlinks (map_w32_filename (path, NULL));
+  return chmod_worker (path, mode);
+}
+
+int
+lchmod (const char * path, mode_t mode)
+{
+  path = map_w32_filename (path, NULL);
+  return chmod_worker (path, mode);
 }
 
 int
@@ -4419,10 +4660,57 @@ sys_open (const char * path, int oflag, int mode)
   return res;
 }
 
+/* This is not currently used, but might be needed again at some
+   point; DO NOT DELETE!  */
+#if 0
+int
+openat (int fd, const char * path, int oflag, int mode)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for openat.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, path)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      path = fullname;
+    }
+
+  return sys_open (path, oflag, mode);
+}
+#endif
+
 int
 fchmod (int fd, mode_t mode)
 {
   return 0;
+}
+
+int
+fchmodat (int fd, char const *path, mode_t mode, int flags)
+{
+  /* Rely on a hack: an open directory is modeled as file descriptor 0,
+     as in fstatat.  FIXME: Add proper support for fchmodat.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      if (_snprintf (fullname, sizeof fullname, "%s/%s", dir_pathname, path)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      path = fullname;
+    }
+
+  return
+    flags == AT_SYMLINK_NOFOLLOW ? lchmod (path, mode) : sys_chmod (path, mode);
 }
 
 int
@@ -4452,7 +4740,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     {
       char * o;
       char * p;
@@ -4742,7 +5030,7 @@ convert_time (FILETIME ft)
 }
 
 static void
-convert_from_time_t (time_t time, FILETIME * pft)
+convert_from_timespec (struct timespec time, FILETIME * pft)
 {
   ULARGE_INTEGER tmp;
 
@@ -4753,7 +5041,8 @@ convert_from_time_t (time_t time, FILETIME * pft)
     }
 
   /* time in 100ns units since 1-Jan-1601 */
-  tmp.QuadPart = (ULONGLONG) time * 10000000L + utc_base;
+  tmp.QuadPart =
+    (ULONGLONG) time.tv_sec * 10000000L + time.tv_nsec / 100 + utc_base;
   pft->dwHighDateTime = tmp.HighPart;
   pft->dwLowDateTime = tmp.LowPart;
 }
@@ -5420,8 +5709,8 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
   return stat_worker (name, st, ! (flags & AT_SYMLINK_NOFOLLOW));
 }
 
-/* Provide fstat and utime as well as stat for consistent handling of
-   file timestamps. */
+/* Provide fstat and utimensat as well as stat for consistent handling
+   of file timestamps. */
 int
 fstat (int desc, struct stat * buf)
 {
@@ -5532,23 +5821,65 @@ fstat (int desc, struct stat * buf)
   return 0;
 }
 
-/* A version of 'utime' which handles directories as well as
-   files.  */
+/* Emulate utimensat.  */
 
 int
-utime (const char *name, struct utimbuf *times)
+utimensat (int fd, const char *name, const struct timespec times[2], int flag)
 {
-  struct utimbuf deftime;
+  struct timespec ltimes[2];
   HANDLE fh;
   FILETIME mtime;
   FILETIME atime;
+  DWORD flags_and_attrs = FILE_FLAG_BACKUP_SEMANTICS;
+
+  /* Rely on a hack: an open directory is modeled as file descriptor 0.
+     This is good enough for the current usage in Emacs, but is fragile.
+
+     FIXME: Add proper support for utimensat.
+     Gnulib does this and can serve as a model.  */
+  char fullname[MAX_UTF8_PATH];
+
+  if (fd != AT_FDCWD)
+    {
+      char lastc = dir_pathname[strlen (dir_pathname) - 1];
+
+      if (_snprintf (fullname, sizeof fullname, "%s%s%s",
+		     dir_pathname, IS_DIRECTORY_SEP (lastc) ? "" : "/", name)
+	  < 0)
+	{
+	  errno = ENAMETOOLONG;
+	  return -1;
+	}
+      name = fullname;
+    }
 
   if (times == NULL)
     {
-      deftime.modtime = deftime.actime = time (NULL);
-      times = &deftime;
+      memset (ltimes, 0, sizeof (ltimes));
+      ltimes[0] = ltimes[1] = current_timespec ();
+    }
+  else
+    {
+      if (times[0].tv_nsec == UTIME_OMIT && times[1].tv_nsec == UTIME_OMIT)
+	return 0;		/* nothing to do */
+      if ((times[0].tv_nsec != UTIME_NOW && times[0].tv_nsec != UTIME_OMIT
+	   && !(0 <= times[0].tv_nsec && times[0].tv_nsec < 1000000000))
+	  || (times[1].tv_nsec != UTIME_NOW && times[1].tv_nsec != UTIME_OMIT
+	      && !(0 <= times[1].tv_nsec && times[1].tv_nsec < 1000000000)))
+	{
+	  errno = EINVAL;	/* reject invalid timespec values */
+	  return -1;
+	}
+
+      memcpy (ltimes, times, sizeof (ltimes));
+      if (ltimes[0].tv_nsec == UTIME_NOW)
+	ltimes[0] = current_timespec ();
+      if (ltimes[1].tv_nsec == UTIME_NOW)
+	ltimes[1] = current_timespec ();
     }
 
+  if (flag == AT_SYMLINK_NOFOLLOW)
+    flags_and_attrs |= FILE_FLAG_OPEN_REPARSE_POINT;
   if (w32_unicode_filenames)
     {
       wchar_t name_utf16[MAX_PATH];
@@ -5562,7 +5893,7 @@ utime (const char *name, struct utimbuf *times)
 			   allows other processes to delete files inside it,
 			   while we have the directory open.  */
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			0, OPEN_EXISTING, flags_and_attrs, NULL);
     }
   else
     {
@@ -5573,13 +5904,26 @@ utime (const char *name, struct utimbuf *times)
 
       fh = CreateFileA (name_ansi, FILE_WRITE_ATTRIBUTES,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-			0, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			0, OPEN_EXISTING, flags_and_attrs, NULL);
     }
   if (fh != INVALID_HANDLE_VALUE)
     {
-      convert_from_time_t (times->actime, &atime);
-      convert_from_time_t (times->modtime, &mtime);
-      if (!SetFileTime (fh, NULL, &atime, &mtime))
+      FILETIME *patime, *pmtime;
+      if (ltimes[0].tv_nsec == UTIME_OMIT)
+	patime = NULL;
+      else
+	{
+	  convert_from_timespec (ltimes[0], &atime);
+	  patime = &atime;
+	}
+      if (ltimes[1].tv_nsec == UTIME_OMIT)
+	pmtime = NULL;
+      else
+	{
+	  convert_from_timespec (ltimes[1], &mtime);
+	  pmtime = &mtime;
+	}
+      if (!SetFileTime (fh, NULL, patime, pmtime))
 	{
 	  CloseHandle (fh);
 	  errno = EACCES;
@@ -5648,12 +5992,22 @@ sys_umask (int mode)
 #ifndef SYMBOLIC_LINK_FLAG_DIRECTORY
 #define SYMBOLIC_LINK_FLAG_DIRECTORY 0x1
 #endif
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x2
+#endif
 
 int
 symlink (char const *filename, char const *linkname)
 {
   char linkfn[MAX_UTF8_PATH], *tgtfn;
-  DWORD flags = 0;
+  /* The SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE flag is
+     supported from Windows 10 build 14972.  It is only supported if
+     Developer Mode is enabled, and is ignored if it isn't.  */
+  DWORD flags =
+    (os_subtype == OS_SUBTYPE_NT
+     && (w32_major_version > 10
+	 || (w32_major_version == 10 && w32_build_number >= 14972)))
+    ? SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE : 0;
   int dir_access, filename_ends_in_slash;
 
   /* Diagnostics follows Posix as much as possible.  */
@@ -5711,7 +6065,7 @@ symlink (char const *filename, char const *linkname)
      directory.  */
   filename_ends_in_slash = IS_DIRECTORY_SEP (filename[strlen (filename) - 1]);
   if (dir_access == 0 || filename_ends_in_slash)
-    flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
+    flags |= SYMBOLIC_LINK_FLAG_DIRECTORY;
 
   tgtfn = (char *)map_w32_filename (filename, NULL);
   if (filename_ends_in_slash)
@@ -5964,7 +6318,7 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  lname_size = strlen (resolved) + 1;
 	  if (lname_size <= buf_size)
 	    size_to_copy = lname_size;
-	  strncpy (buf, resolved, size_to_copy);
+	  memcpy (buf, resolved, size_to_copy);
 	  /* Success!  */
 	  retval = size_to_copy;
 	}
@@ -6126,6 +6480,17 @@ chase_symlinks (const char *file)
   return target;
 }
 
+/* Return non-zero if FILE's filesystem supports symlinks.  */
+bool
+symlinks_supported (const char *file)
+{
+  if (is_windows_9x () != TRUE
+      && get_volume_info (file, NULL)
+      && (volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    return true;
+  return false;
+}
+
 
 /* Posix ACL emulation.  */
 
@@ -6135,7 +6500,7 @@ acl_valid (acl_t acl)
   return is_valid_security_descriptor ((PSECURITY_DESCRIPTOR)acl) ? 0 : -1;
 }
 
-char *
+char * ATTRIBUTE_MALLOC
 acl_to_text (acl_t acl, ssize_t *size)
 {
   LPTSTR str_acl;
@@ -6226,7 +6591,17 @@ acl_get_file (const char *fname, acl_type_t type)
 	      if (!get_file_security (fname, si, psd, sd_len, &sd_len))
 		{
 		  xfree (psd);
-		  errno = EIO;
+		  err = GetLastError ();
+		  if (err == ERROR_NOT_SUPPORTED
+		      || err == ERROR_ACCESS_DENIED
+		      || err == ERROR_INVALID_FUNCTION)
+		    errno = ENOTSUP;
+		  else if (err == ERROR_FILE_NOT_FOUND
+			   || err == ERROR_PATH_NOT_FOUND
+			   || err == ERROR_INVALID_NAME)
+		    errno = ENOENT;
+		  else
+		    errno = EIO;
 		  psd = NULL;
 		}
 	    }
@@ -6237,6 +6612,13 @@ acl_get_file (const char *fname, acl_type_t type)
 		      be encoded in the current ANSI codepage. */
 		   || err == ERROR_INVALID_NAME)
 	    errno = ENOENT;
+	  else if (err == ERROR_NOT_SUPPORTED
+		   /* ERROR_ACCESS_DENIED or ERROR_INVALID_FUNCTION is
+		      what we get for a volume mounted by WebDAV,
+		      which evidently doesn't support ACLs.  */
+		   || err == ERROR_ACCESS_DENIED
+		   || err == ERROR_INVALID_FUNCTION)
+	    errno = ENOTSUP;
 	  else
 	    errno = EIO;
 	}
@@ -6498,16 +6880,16 @@ w32_copy_file (const char *from, const char *to,
      FIXME?  */
   else if (!keep_time)
     {
-      struct timespec now;
+      struct timespec tnow[2];
       DWORD attributes;
 
+      tnow[0] = tnow[1] = current_timespec ();
       if (w32_unicode_filenames)
 	{
 	  /* Ensure file is writable while its times are set.  */
 	  attributes = GetFileAttributesW (to_w);
 	  SetFileAttributesW (to_w, attributes & ~FILE_ATTRIBUTE_READONLY);
-	  now = current_timespec ();
-	  if (set_file_times (-1, to, now, now))
+	  if (utimensat (AT_FDCWD, to, tnow, 0))
 	    {
 	      /* Restore original attributes.  */
 	      SetFileAttributesW (to_w, attributes);
@@ -6522,8 +6904,7 @@ w32_copy_file (const char *from, const char *to,
 	{
 	  attributes = GetFileAttributesA (to_a);
 	  SetFileAttributesA (to_a, attributes & ~FILE_ATTRIBUTE_READONLY);
-	  now = current_timespec ();
-	  if (set_file_times (-1, to, now, now))
+	  if (utimensat (AT_FDCWD, to, tnow, 0))
 	    {
 	      SetFileAttributesA (to_a, attributes);
 	      if (acl)
@@ -6560,8 +6941,8 @@ create_toolhelp32_snapshot (DWORD Flags, DWORD Ignored)
     {
       g_b_init_create_toolhelp32_snapshot = 1;
       s_pfn_Create_Toolhelp32_Snapshot = (CreateToolhelp32Snapshot_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"CreateToolhelp32Snapshot");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "CreateToolhelp32Snapshot");
     }
   if (s_pfn_Create_Toolhelp32_Snapshot == NULL)
     {
@@ -6579,8 +6960,8 @@ process32_first (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
     {
       g_b_init_process32_first = 1;
       s_pfn_Process32_First = (Process32First_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"Process32First");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "Process32First");
     }
   if (s_pfn_Process32_First == NULL)
     {
@@ -6598,8 +6979,8 @@ process32_next (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
     {
       g_b_init_process32_next = 1;
       s_pfn_Process32_Next = (Process32Next_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"Process32Next");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "Process32Next");
     }
   if (s_pfn_Process32_Next == NULL)
     {
@@ -6625,8 +7006,8 @@ open_thread_token (HANDLE ThreadHandle,
     {
       g_b_init_open_thread_token = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Open_Thread_Token =
-        (OpenThreadToken_Proc) GetProcAddress (hm_advapi32, "OpenThreadToken");
+      s_pfn_Open_Thread_Token = (OpenThreadToken_Proc)
+        get_proc_addr (hm_advapi32, "OpenThreadToken");
     }
   if (s_pfn_Open_Thread_Token == NULL)
     {
@@ -6655,8 +7036,8 @@ impersonate_self (SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
     {
       g_b_init_impersonate_self = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Impersonate_Self =
-        (ImpersonateSelf_Proc) GetProcAddress (hm_advapi32, "ImpersonateSelf");
+      s_pfn_Impersonate_Self = (ImpersonateSelf_Proc)
+        get_proc_addr (hm_advapi32, "ImpersonateSelf");
     }
   if (s_pfn_Impersonate_Self == NULL)
     {
@@ -6678,8 +7059,8 @@ revert_to_self (void)
     {
       g_b_init_revert_to_self = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Revert_To_Self =
-        (RevertToSelf_Proc) GetProcAddress (hm_advapi32, "RevertToSelf");
+      s_pfn_Revert_To_Self = (RevertToSelf_Proc)
+        get_proc_addr (hm_advapi32, "RevertToSelf");
     }
   if (s_pfn_Revert_To_Self == NULL)
     {
@@ -6705,7 +7086,7 @@ get_process_memory_info (HANDLE h_proc,
       hm_psapi = LoadLibrary ("Psapi.dll");
       if (hm_psapi)
 	s_pfn_Get_Process_Memory_Info = (GetProcessMemoryInfo_Proc)
-	  GetProcAddress (hm_psapi, "GetProcessMemoryInfo");
+	  get_proc_addr (hm_psapi, "GetProcessMemoryInfo");
     }
   if (s_pfn_Get_Process_Memory_Info == NULL)
     {
@@ -6730,8 +7111,8 @@ get_process_working_set_size (HANDLE h_proc,
     {
       g_b_init_get_process_working_set_size = 1;
       s_pfn_Get_Process_Working_Set_Size = (GetProcessWorkingSetSize_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GetProcessWorkingSetSize");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GetProcessWorkingSetSize");
     }
   if (s_pfn_Get_Process_Working_Set_Size == NULL)
     {
@@ -6753,8 +7134,8 @@ global_memory_status (MEMORYSTATUS *buf)
     {
       g_b_init_global_memory_status = 1;
       s_pfn_Global_Memory_Status = (GlobalMemoryStatus_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GlobalMemoryStatus");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GlobalMemoryStatus");
     }
   if (s_pfn_Global_Memory_Status == NULL)
     {
@@ -6776,8 +7157,8 @@ global_memory_status_ex (MEMORY_STATUS_EX *buf)
     {
       g_b_init_global_memory_status_ex = 1;
       s_pfn_Global_Memory_Status_Ex = (GlobalMemoryStatusEx_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GlobalMemoryStatusEx");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GlobalMemoryStatusEx");
     }
   if (s_pfn_Global_Memory_Status_Ex == NULL)
     {
@@ -6805,7 +7186,7 @@ list_system_processes (void)
 	   res = process32_next  (h_snapshot, &proc_entry))
 	{
 	  proc_id = proc_entry.th32ProcessID;
-	  proclist = Fcons (make_fixnum_or_float (proc_id), proclist);
+	  proclist = Fcons (INT_TO_INTEGER (proc_id), proclist);
 	}
 
       CloseHandle (h_snapshot);
@@ -6963,8 +7344,8 @@ system_process_attributes (Lisp_Object pid)
   double pcpu;
   BOOL result = FALSE;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  CHECK_NUMBER (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XFIXNUM (pid);
 
   h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
 
@@ -6993,12 +7374,12 @@ system_process_attributes (Lisp_Object pid)
 		}
 	      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
 	      attrs = Fcons (Fcons (Qppid,
-				    make_fixnum_or_float (pe.th32ParentProcessID)),
+				    INT_TO_INTEGER (pe.th32ParentProcessID)),
 			     attrs);
-	      attrs = Fcons (Fcons (Qpri, make_number (pe.pcPriClassBase)),
+	      attrs = Fcons (Fcons (Qpri, make_fixnum (pe.pcPriClassBase)),
 			     attrs);
 	      attrs = Fcons (Fcons (Qthcount,
-				    make_fixnum_or_float (pe.cntThreads)),
+				    INT_TO_INTEGER (pe.cntThreads)),
 			     attrs);
 	      found_proc = 1;
 	      break;
@@ -7146,17 +7527,18 @@ system_process_attributes (Lisp_Object pid)
 	CloseHandle (token);
     }
 
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (euid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (euid)), attrs);
   tem = make_unibyte_string (uname, ulength);
   attrs = Fcons (Fcons (Quser,
 			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
 		 attrs);
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (egid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (egid)), attrs);
   tem = make_unibyte_string (gname, glength);
   attrs = Fcons (Fcons (Qgroup,
 			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
 		 attrs);
 
+  memstex.dwLength = sizeof (memstex);
   if (global_memory_status_ex (&memstex))
 #if __GNUC__ || (defined (_MSC_VER) && _MSC_VER >= 1300)
     totphys = memstex.ullTotalPhys / 1024.0;
@@ -7181,12 +7563,12 @@ system_process_attributes (Lisp_Object pid)
       SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
-			    make_fixnum_or_float (mem_ex.PageFaultCount)),
+			    INT_TO_INTEGER (mem_ex.PageFaultCount)),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
-			    make_fixnum_or_float (mem_ex.PrivateUsage / 1024)),
+			    INT_TO_INTEGER (mem_ex.PrivateUsage / 1024)),
 		     attrs);
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rss)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7196,9 +7578,9 @@ system_process_attributes (Lisp_Object pid)
       SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
-			    make_fixnum_or_float (mem.PageFaultCount)),
+			    INT_TO_INTEGER (mem.PageFaultCount)),
 		     attrs);
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rss)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7207,7 +7589,7 @@ system_process_attributes (Lisp_Object pid)
     {
       DWORD rss = maxrss / 1024;
 
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (maxrss / 1024)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (maxrss / 1024)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7289,6 +7671,8 @@ int (PASCAL *pfn_WSACleanup) (void);
 
 u_short (PASCAL *pfn_htons) (u_short hostshort);
 u_short (PASCAL *pfn_ntohs) (u_short netshort);
+u_long (PASCAL *pfn_htonl) (u_long hostlong);
+u_long (PASCAL *pfn_ntohl) (u_long netlong);
 unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
 int (PASCAL *pfn_gethostname) (char * name, int namelen);
 struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
@@ -7349,8 +7733,8 @@ init_winsock (int load_now)
     return TRUE;
 
   pfn_SetHandleInformation
-    = (void *) GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			       "SetHandleInformation");
+    = (void *) get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                     "SetHandleInformation");
 
   winsock_lib = LoadLibrary ("Ws2_32.dll");
 
@@ -7359,7 +7743,7 @@ init_winsock (int load_now)
       /* dynamically link to socket functions */
 
 #define LOAD_PROC(fn) \
-      if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
+      if ((pfn_##fn = (void *) get_proc_addr (winsock_lib, #fn)) == NULL) \
         goto fail;
 
       LOAD_PROC (WSAStartup);
@@ -7379,6 +7763,8 @@ init_winsock (int load_now)
       LOAD_PROC (shutdown);
       LOAD_PROC (htons);
       LOAD_PROC (ntohs);
+      LOAD_PROC (htonl);
+      LOAD_PROC (ntohl);
       LOAD_PROC (inet_addr);
       LOAD_PROC (gethostname);
       LOAD_PROC (gethostbyname);
@@ -7394,8 +7780,8 @@ init_winsock (int load_now)
 #undef LOAD_PROC
 
       /* Try loading functions not available before XP.  */
-      pfn_getaddrinfo = (void *) GetProcAddress (winsock_lib, "getaddrinfo");
-      pfn_freeaddrinfo = (void *) GetProcAddress (winsock_lib, "freeaddrinfo");
+      pfn_getaddrinfo = (void *) get_proc_addr (winsock_lib, "getaddrinfo");
+      pfn_freeaddrinfo = (void *) get_proc_addr (winsock_lib, "freeaddrinfo");
       /* Paranoia: these two functions should go together, so if one
 	 is absent, we cannot use the other.  */
       if (pfn_getaddrinfo == NULL)
@@ -7758,6 +8144,19 @@ sys_ntohs (u_short netshort)
 {
   return (winsock_lib != NULL) ?
     pfn_ntohs (netshort) : netshort;
+}
+u_long
+sys_htonl (u_long hostlong)
+{
+  return (winsock_lib != NULL) ?
+    pfn_htonl (hostlong) : hostlong;
+}
+
+u_long
+sys_ntohl (u_long netlong)
+{
+  return (winsock_lib != NULL) ?
+    pfn_ntohl (netlong) : netlong;
 }
 
 unsigned long
@@ -8194,7 +8593,8 @@ fcntl (int s, int cmd, int options)
 int
 sys_close (int fd)
 {
-  int rc;
+  int rc = -1;
+  bool reader_thread_exited = false;
 
   if (fd < 0)
     {
@@ -8205,6 +8605,13 @@ sys_close (int fd)
   if (fd < MAXDESC && fd_info[fd].cp)
     {
       child_process * cp = fd_info[fd].cp;
+      DWORD thrd_status = STILL_ACTIVE;
+
+      /* Thread handle will be NULL if we already called delete_child.  */
+      if (cp->thrd != NULL
+	  && GetExitCodeThread (cp->thrd, &thrd_status)
+	  && thrd_status != STILL_ACTIVE)
+	reader_thread_exited = true;
 
       fd_info[fd].cp = NULL;
 
@@ -8249,14 +8656,36 @@ sys_close (int fd)
 	}
     }
 
-  if (fd >= 0 && fd < MAXDESC)
-    fd_info[fd].flags = 0;
-
   /* Note that sockets do not need special treatment here (at least on
      NT and Windows 95 using the standard tcp/ip stacks) - it appears that
      closesocket is equivalent to CloseHandle, which is to be expected
      because socket handles are fully fledged kernel handles. */
-  rc = _close (fd);
+  if (fd < MAXDESC)
+    {
+      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0
+	  /* If the reader thread already exited, close the descriptor,
+	     since otherwise no one will close it, and we will be
+	     leaking descriptors.  */
+	  || reader_thread_exited)
+	{
+	  fd_info[fd].flags = 0;
+	  rc = _close (fd);
+	}
+      else
+	{
+	  /* We don't close here descriptors open by pipe processes
+	     for reading from the pipe when the reader thread might
+	     still be running, since that thread might be stuck in
+	     _sys_read_ahead, and then we will hang here.  If the
+	     reader thread exits normally, it will close the
+	     descriptor; otherwise we will leave a zombie thread
+	     hanging around.  */
+	  rc = 0;
+	  /* Leave the flag set for the reader thread to close the
+	     descriptor.  */
+	  fd_info[fd].flags = FILE_DONT_CLOSE;
+	}
+    }
 
   return rc;
 }
@@ -8342,6 +8771,11 @@ pipe2 (int * phandles, int pipe2_flags)
 	{
 	  _close (phandles[0]);
 	  _close (phandles[1]);
+	  /* Since we close the handles, set them to -1, so as to
+	     avoid an assertion violation if the caller then tries to
+	     close the handle again (emacs_close will abort otherwise
+	     if errno is EBADF).  */
+	  phandles[0] = phandles[1] = -1;
 	  errno = EMFILE;
 	  rc = -1;
 	}
@@ -8365,7 +8799,7 @@ int
 _sys_read_ahead (int fd)
 {
   child_process * cp;
-  int rc;
+  int rc = 0;
 
   if (fd < 0 || fd >= MAXDESC)
     return STATUS_READ_ERROR;
@@ -8390,13 +8824,14 @@ _sys_read_ahead (int fd)
     {
       rc = _read (fd, &cp->chr, sizeof (char));
 
-      /* Give subprocess time to buffer some more output for us before
-	 reporting that input is available; we need this because Windows 95
-	 connects DOS programs to pipes by making the pipe appear to be
-	 the normal console stdout - as a result most DOS programs will
-	 write to stdout without buffering, ie. one character at a
-	 time.  Even some W32 programs do this - "dir" in a command
-	 shell on NT is very slow if we don't do this. */
+      /* Optionally give subprocess time to buffer some more output
+	 for us before reporting that input is available; we may need
+	 this because Windows 9X connects DOS programs to pipes by
+	 making the pipe appear to be the normal console stdout -- as
+	 a result most DOS programs will write to stdout without
+	 buffering, i.e., one character at a time.  Even some W32
+	 programs do this -- "dir" in a command shell on NT is very
+	 slow if we don't do this.  */
       if (rc > 0)
 	{
 	  int wait = w32_pipe_read_delay;
@@ -9134,7 +9569,7 @@ network_interface_get_info (Lisp_Object ifname)
 			 res);
 	  else if (strcmp (namebuf, SSDATA (ifname)) == 0)
 	    {
-	      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+	      Lisp_Object hwaddr = Fmake_vector (make_fixnum (6), Qnil);
 	      register struct Lisp_Vector *p = XVECTOR (hwaddr);
 	      Lisp_Object flags = Qnil;
 	      int n;
@@ -9163,11 +9598,11 @@ network_interface_get_info (Lisp_Object ifname)
 
 	      /* Hardware address and its family.  */
 	      for (n = 0; n < adapter->AddressLength; n++)
-		p->contents[n] = make_number ((int) adapter->Address[n]);
+		p->contents[n] = make_fixnum ((int) adapter->Address[n]);
 	      /* Windows does not support AF_LINK or AF_PACKET family
 		 of addresses.  Use an arbitrary family number that is
 		 identical to what GNU/Linux returns.  */
-	      res = Fcons (Fcons (make_number (1), hwaddr), res);
+	      res = Fcons (Fcons (make_fixnum (1), hwaddr), res);
 
 	      /* Network mask.  */
 	      sa.sin_family = AF_INET;
@@ -9229,9 +9664,9 @@ network_interface_get_info (Lisp_Object ifname)
 					 Fcons (intern ("up"), Qnil))), Qnil);
 	      /* 772 is what 3 different GNU/Linux systems report for
 		 the loopback interface.  */
-	      res = Fcons (Fcons (make_number (772),
-				  Fmake_vector (make_number (6),
-						make_number (0))),
+	      res = Fcons (Fcons (make_fixnum (772),
+				  Fmake_vector (make_fixnum (6),
+						make_fixnum (0))),
 			   res);
 	      sa.sin_addr.s_addr = sys_inet_addr ("255.0.0.0");
 	      res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
@@ -9255,10 +9690,276 @@ network_interface_get_info (Lisp_Object ifname)
   return res;
 }
 
-Lisp_Object
-network_interface_list (void)
+static bool
+address_prefix_match (int family, struct sockaddr *address,
+		      struct sockaddr *prefix_address, ULONG prefix_len)
 {
-  return network_interface_get_info (Qnil);
+  UINT8 *address_data;
+  UINT8 *prefix_address_data;
+  int i;
+
+  if (family == AF_INET6)
+    {
+      address_data = (UINT8 *) &(((struct sockaddr_in6 *) address)->sin6_addr);
+      prefix_address_data =
+	(UINT8 *) &(((struct sockaddr_in6 *) prefix_address)->sin6_addr);
+    }
+  else
+    {
+      address_data = (UINT8 *) &(((struct sockaddr_in *) address)->sin_addr);
+      prefix_address_data =
+	(UINT8 *) &(((struct sockaddr_in *) prefix_address)->sin_addr);
+    }
+
+  for (i = 0; i < prefix_len >> 3; i++)
+    {
+      if (address_data[i] != prefix_address_data[i])
+	return false;
+    }
+
+  if (prefix_len % 8)
+    return (prefix_address_data[i] ==
+	    (address_data[i] & (0xff << (8 - prefix_len % 8))));
+
+  return true;
+}
+
+Lisp_Object
+network_interface_list (bool full, unsigned short match)
+{
+  ULONG ainfo_len = sizeof (IP_ADAPTER_ADDRESSES);
+  ULONG family = match;
+  IP_ADAPTER_ADDRESSES *adapter, *ainfo = xmalloc (ainfo_len);
+  DWORD retval = get_adapters_addresses (family, ainfo, &ainfo_len);
+  Lisp_Object res = Qnil;
+
+  if (retval == ERROR_BUFFER_OVERFLOW)
+    {
+      ainfo = xrealloc (ainfo, ainfo_len);
+      retval = get_adapters_addresses (family, ainfo, &ainfo_len);
+    }
+
+  if (retval != ERROR_SUCCESS)
+    {
+      xfree (ainfo);
+      return res;
+    }
+
+  /* For the below, we need some winsock functions, so make sure
+     the winsock DLL is loaded.  If we cannot successfully load
+     it, they will have no use of the information we provide,
+     anyway, so punt.  */
+  if (!winsock_lib && !init_winsock (1))
+    return res;
+
+  int eth_count = 0, tr_count = 0, fddi_count = 0, ppp_count = 0;
+  int sl_count = 0, wlan_count = 0, lo_count = 0, ifx_count = 0;
+  int tnl_count = 0;
+  int if_num;
+  char namebuf[MAX_ADAPTER_NAME_LENGTH + 4];
+  static const char *ifmt[] = {
+    "eth%d", "tr%d", "fddi%d", "ppp%d", "sl%d", "wlan%d",
+    "lo%d", "ifx%d", "tunnel%d"
+  };
+  enum {
+    NONE = -1,
+    ETHERNET = 0,
+    TOKENRING = 1,
+    FDDI = 2,
+    PPP = 3,
+    SLIP = 4,
+    WLAN = 5,
+    LOOPBACK = 6,
+    OTHER_IF = 7,
+    TUNNEL = 8
+  } ifmt_idx;
+
+  for (adapter = ainfo; adapter; adapter = adapter->Next)
+    {
+
+      /* Present Unix-compatible interface names, instead of the
+         Windows names, which are really GUIDs not readable by
+         humans.  */
+
+      switch (adapter->IfType)
+        {
+        case IF_TYPE_ETHERNET_CSMACD:
+          /* Windows before Vista reports wireless adapters as
+             Ethernet.  Work around by looking at the Description
+             string.  */
+          {
+          char description[MAX_UTF8_PATH];
+          if (filename_from_utf16 (adapter->Description, description) == 0
+              && strstr (description, "Wireless "))
+            {
+              ifmt_idx = WLAN;
+              if_num = wlan_count++;
+            }
+          else
+            {
+              ifmt_idx = ETHERNET;
+              if_num = eth_count++;
+            }
+          }
+          break;
+        case IF_TYPE_ISO88025_TOKENRING:
+          ifmt_idx = TOKENRING;
+          if_num = tr_count++;
+          break;
+        case IF_TYPE_FDDI:
+          ifmt_idx = FDDI;
+          if_num = fddi_count++;
+          break;
+        case IF_TYPE_PPP:
+          ifmt_idx = PPP;
+          if_num = ppp_count++;
+          break;
+        case IF_TYPE_SLIP:
+          ifmt_idx = SLIP;
+          if_num = sl_count++;
+          break;
+        case IF_TYPE_IEEE80211:
+          ifmt_idx = WLAN;
+          if_num = wlan_count++;
+          break;
+        case IF_TYPE_SOFTWARE_LOOPBACK:
+          ifmt_idx = LOOPBACK;
+          if_num = lo_count++;
+          break;
+        case IF_TYPE_TUNNEL:
+          ifmt_idx = TUNNEL;
+          if_num = tnl_count++;
+          break;
+        default:
+          ifmt_idx = OTHER_IF;
+          if_num = ifx_count++;
+          break;
+        }
+      sprintf (namebuf, ifmt[ifmt_idx], if_num);
+
+      IP_ADAPTER_UNICAST_ADDRESS *address;
+      for (address = adapter->FirstUnicastAddress; address; address = address->Next)
+        {
+          int len;
+          int addr_len;
+          uint32_t *maskp;
+          uint32_t *addrp;
+          Lisp_Object elt = Qnil;
+          struct sockaddr *ifa_addr = address->Address.lpSockaddr;
+
+          if (ifa_addr == NULL)
+            continue;
+          if (match && ifa_addr->sa_family != match)
+            continue;
+
+          struct sockaddr_in ipv4;
+#ifdef AF_INET6
+          struct sockaddr_in6 ipv6;
+#endif
+          struct sockaddr *sin;
+
+          if (ifa_addr->sa_family == AF_INET)
+            {
+              ipv4.sin_family = AF_INET;
+              ipv4.sin_port = 0;
+              DECLARE_POINTER_ALIAS (sin_in, struct sockaddr_in, ifa_addr);
+              addrp = (uint32_t *)&sin_in->sin_addr;
+              maskp = (uint32_t *)&ipv4.sin_addr;
+              sin = (struct sockaddr *)&ipv4;
+              len = sizeof (struct sockaddr_in);
+              addr_len = 1;
+            }
+#ifdef AF_INET6
+          else if (ifa_addr->sa_family == AF_INET6)
+            {
+              ipv6.sin6_family = AF_INET6;
+              ipv6.sin6_port = 0;
+              DECLARE_POINTER_ALIAS (sin_in6, struct sockaddr_in6, ifa_addr);
+              addrp = (uint32_t *)&sin_in6->sin6_addr;
+              maskp = (uint32_t *)&ipv6.sin6_addr;
+              sin = (struct sockaddr *)&ipv6;
+              len = sizeof (struct sockaddr_in6);
+              addr_len = 4;
+            }
+#endif
+          else
+            continue;
+
+          Lisp_Object addr = conv_sockaddr_to_lisp (ifa_addr, len);
+
+          if (full)
+            {
+              /* GetAdaptersAddress returns information in network
+                 byte order, so convert from host to network order
+                 when generating the netmask.  */
+              int i;
+              ULONG numbits;
+	      if (w32_major_version >= 6) /* Vista or later */
+		{
+#if _WIN32_WINNT >= 0x0600
+		  numbits = address->OnLinkPrefixLength;
+#else
+		  /* Kludge alert!  OnLinkPrefixLength is only defined
+		     when compiling for Vista and later.  */
+		  numbits = *(UINT8 *) (&address->LeaseLifetime + 1);
+#endif
+		}
+	      else		/* Windows XP */
+		{
+		  IP_ADAPTER_PREFIX *prefix = adapter->FirstPrefix;
+		  numbits = 0;
+		  for ( ; prefix; prefix = prefix->Next)
+		    {
+		      /* We want the longest matching prefix.  */
+		      if ((prefix->Address.lpSockaddr->sa_family
+			   == ifa_addr->sa_family)
+			  && (prefix->PrefixLength > numbits)
+			  && address_prefix_match (ifa_addr->sa_family,
+						   ifa_addr,
+						   prefix->Address.lpSockaddr,
+						   prefix->PrefixLength))
+			numbits = prefix->PrefixLength;
+		    }
+		  if (!numbits)
+		    numbits = (ifa_addr->sa_family == AF_INET6) ? 128 : 32;
+		}
+              for (i = 0; i < addr_len; i++)
+                {
+                  if (numbits >= 32)
+                    {
+                      maskp[i] = -1U;
+                      numbits -= 32;
+                    }
+                  else if (numbits)
+                    {
+                      maskp[i] = sys_htonl (-1U << (32 - numbits));
+                      numbits = 0;
+                    }
+                  else
+                    {
+                      maskp[i] = 0;
+                    }
+                }
+              elt = Fcons (conv_sockaddr_to_lisp (sin, len), elt);
+              uint32_t mask;
+              for (i = 0; i < addr_len; i++)
+                {
+                  mask = maskp[i];
+                  maskp[i] = (addrp[i] & mask) | ~mask;
+
+                }
+              elt = Fcons (conv_sockaddr_to_lisp (sin, len), elt);
+              elt = Fcons (addr, elt);
+            }
+          else
+            {
+              elt = addr;
+            }
+          res = Fcons (Fcons (build_string (namebuf), elt), res);
+        }
+    }
+  xfree (ainfo);
+  return res;
 }
 
 Lisp_Object
@@ -9266,6 +9967,215 @@ network_interface_info (Lisp_Object ifname)
 {
   CHECK_STRING (ifname);
   return network_interface_get_info (ifname);
+}
+
+
+/* Workhorse for w32-read-registry, which see.  */
+Lisp_Object
+w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
+{
+  HKEY hkey = NULL;
+  LONG status;
+  DWORD vsize, vtype;
+  LPBYTE pvalue;
+  Lisp_Object val, retval;
+  const char *key, *value_name = NULL;
+  /* The following sizes are according to size limitations
+     documented in MSDN.  */
+  wchar_t key_w[255+1];
+  wchar_t value_w[16*1024+1];
+  bool use_unicode = is_windows_9x () == 0;
+
+  if (use_unicode)
+    {
+      Lisp_Object encoded_key, encoded_vname;
+
+      /* Convert input strings to UTF-16.  */
+      encoded_key = code_convert_string_norecord (lkey, Qutf_16le, 1);
+      memcpy (key_w, SSDATA (encoded_key), SBYTES (encoded_key));
+      /* wchar_t strings need to be terminated by 2 null bytes.  */
+      key_w [SBYTES (encoded_key)/2] = L'\0';
+      encoded_vname = code_convert_string_norecord (lname, Qutf_16le, 1);
+      memcpy (value_w, SSDATA (encoded_vname), SBYTES (encoded_vname));
+      value_w[SBYTES (encoded_vname)/2] = L'\0';
+
+      /* Mirror the slashes, if required.  */
+      for (int i = 0; i < SBYTES (encoded_key)/2; i++)
+	{
+	  if (key_w[i] == L'/')
+	    key_w[i] = L'\\';
+	}
+      if ((status = reg_open_key_ex_w (rootkey, key_w, 0,
+				       KEY_READ, &hkey)) == ERROR_NOT_SUPPORTED
+	  || (status = reg_query_value_ex_w (hkey, value_w, NULL, NULL, NULL,
+					     &vsize)) == ERROR_NOT_SUPPORTED
+	  || status != ERROR_SUCCESS)
+	{
+	  if (hkey)
+	    RegCloseKey (hkey);
+	  if (status != ERROR_NOT_SUPPORTED)
+	    return Qnil;
+	  use_unicode = 0;	/* fall back to non-Unicode calls */
+	}
+    }
+  if (!use_unicode)
+    {
+      /* Need to copy LKEY because we are going to modify it.  */
+      Lisp_Object local_lkey = Fcopy_sequence (lkey);
+
+      /* Mirror the slashes.  Note: this has to be done before
+	 encoding, because after encoding we cannot guarantee that a
+	 slash '/' always stands for itself, it could be part of some
+	 multibyte sequence.  */
+      for (int i = 0; i < SBYTES (local_lkey); i++)
+	{
+	  if (SSDATA (local_lkey)[i] == '/')
+	    SSDATA (local_lkey)[i] = '\\';
+	}
+
+      key = SSDATA (ENCODE_SYSTEM (local_lkey));
+      value_name = SSDATA (ENCODE_SYSTEM (lname));
+
+      if ((status = RegOpenKeyEx (rootkey, key, 0,
+				  KEY_READ, &hkey)) != ERROR_SUCCESS
+	  || (status = RegQueryValueEx (hkey, value_name, NULL,
+					NULL, NULL, &vsize)) != ERROR_SUCCESS)
+	{
+	  if (hkey)
+	    RegCloseKey (hkey);
+	  return Qnil;
+	}
+    }
+
+  pvalue = xzalloc (vsize);
+  if (use_unicode)
+    status = reg_query_value_ex_w (hkey, value_w, NULL, &vtype, pvalue, &vsize);
+  else
+    status = RegQueryValueEx (hkey, value_name, NULL, &vtype, pvalue, &vsize);
+  if (status != ERROR_SUCCESS)
+    {
+      xfree (pvalue);
+      RegCloseKey (hkey);
+      return Qnil;
+    }
+
+  switch (vtype)
+    {
+      case REG_NONE:
+	retval = Qt;
+	break;
+      case REG_DWORD:
+	retval = INT_TO_INTEGER (*((DWORD *)pvalue));
+	break;
+      case REG_QWORD:
+	retval = INT_TO_INTEGER (*((long long *)pvalue));
+	break;
+      case REG_BINARY:
+	{
+	  int i;
+	  unsigned char *dbuf = (unsigned char *)pvalue;
+
+	  val = make_uninit_vector (vsize);
+	  for (i = 0; i < vsize; i++)
+	    ASET (val, i, make_fixnum (dbuf[i]));
+
+	  retval = val;
+	  break;
+	}
+      case REG_SZ:
+	if (use_unicode)
+	  {
+	    /* pvalue ends with 2 null bytes, but we need only one,
+	       and AUTO_STRING_WITH_LEN will add it.  */
+	    if (pvalue[vsize - 1] == '\0')
+	      vsize -= 2;
+	    AUTO_STRING_WITH_LEN (sval, (char *)pvalue, vsize);
+	    retval = from_unicode (sval);
+	  }
+	else
+	  {
+	    /* Don't waste a byte on the terminating null character,
+	       since make_unibyte_string will add one anyway.  */
+	    if (pvalue[vsize - 1] == '\0')
+	      vsize--;
+	    retval = DECODE_SYSTEM (make_unibyte_string (pvalue, vsize));
+	  }
+	break;
+      case REG_EXPAND_SZ:
+	if (use_unicode)
+	  {
+	    wchar_t expanded_w[32*1024];
+	    DWORD dsize = sizeof (expanded_w) / 2;
+	    DWORD produced = expand_environment_strings_w ((wchar_t *)pvalue,
+							   expanded_w,
+							   dsize);
+	    if (produced > 0 && produced < dsize)
+	      {
+		AUTO_STRING_WITH_LEN (sval, (char *)expanded_w,
+				      produced * 2 - 2);
+		retval = from_unicode (sval);
+	      }
+	    else
+	      {
+		if (pvalue[vsize - 1] == '\0')
+		  vsize -= 2;
+		AUTO_STRING_WITH_LEN (sval, (char *)pvalue, vsize);
+		retval = from_unicode (sval);
+	      }
+	  }
+	else
+	  {
+	    char expanded[32*1024]; /* size limitation according to MSDN */
+	    DWORD produced = ExpandEnvironmentStrings ((char *)pvalue,
+						       expanded,
+						       sizeof (expanded));
+	    if (produced > 0 && produced < sizeof (expanded))
+	      retval = make_unibyte_string (expanded, produced - 1);
+	    else
+	      {
+		if (pvalue[vsize - 1] == '\0')
+		  vsize--;
+		retval = make_unibyte_string (pvalue, vsize);
+	      }
+
+	    retval = DECODE_SYSTEM (retval);
+	  }
+	break;
+      case REG_MULTI_SZ:
+	if (use_unicode)
+	  {
+	    wchar_t *wp = (wchar_t *)pvalue;
+
+	    val = Qnil;
+	    do {
+	      size_t wslen = wcslen (wp);
+	      AUTO_STRING_WITH_LEN (sval, (char *)wp, wslen * 2);
+	      val = Fcons (from_unicode (sval), val);
+	      wp += wslen + 1;
+	    } while (*wp);
+	  }
+	else
+	  {
+	    char *p = (char *)pvalue;
+
+	    val = Qnil;
+	    do {
+	      size_t slen = strlen (p);
+
+	      val = Fcons (DECODE_SYSTEM (make_unibyte_string (p, slen)), val);
+	      p += slen + 1;
+	    } while (*p);
+	  }
+
+	retval = Fnreverse (val);
+	break;
+      default:
+	error ("unsupported registry data type: %d", (int)vtype);
+    }
+
+  xfree (pvalue);
+  RegCloseKey (hkey);
+  return retval;
 }
 
 
@@ -9282,6 +10192,32 @@ sys_localtime (const time_t *t)
   return localtime (t);
 }
 
+/* The Windows CRT implementation of 'clock' doesn't really return CPU
+   time of the process (it returns the elapsed time since the process
+   started), so we provide a better emulation here, if possible.  */
+clock_t
+sys_clock (void)
+{
+  if (get_process_times_fn)
+    {
+      FILETIME create, exit, kernel, user;
+      HANDLE proc = GetCurrentProcess ();
+      if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
+        {
+          LARGE_INTEGER user_int, kernel_int, total;
+          user_int.LowPart = user.dwLowDateTime;
+          user_int.HighPart = user.dwHighDateTime;
+          kernel_int.LowPart = kernel.dwLowDateTime;
+          kernel_int.HighPart = kernel.dwHighDateTime;
+          total.QuadPart = user_int.QuadPart + kernel_int.QuadPart;
+	  /* We could redefine CLOCKS_PER_SEC to provide a finer
+	     resolution, but with the basic 15.625 msec resolution of
+	     the Windows clock, it doesn't really sound worth the hassle.  */
+	  return total.QuadPart / (10000000 / CLOCKS_PER_SEC);
+        }
+    }
+  return clock ();
+}
 
 
 /* Try loading LIBRARY_ID from the file(s) specified in
@@ -9391,10 +10327,12 @@ check_windows_init_file (void)
 	 need to ENCODE_FILE here, but we do need to convert the file
 	 names from UTF-8 to ANSI.  */
       init_file = build_string ("term/w32-win");
-      fd = openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil, 0);
+      fd =
+	openp (Vload_path, init_file, Fget_load_suffixes (), NULL, Qnil, 0, 0);
       if (fd < 0)
 	{
-	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path, Qnil);
+	  Lisp_Object load_path_print = Fprin1_to_string (Vload_path,
+							  Qnil, Qnil);
 	  char *init_file_name = SSDATA (init_file);
 	  char *load_path = SSDATA (load_path_print);
 	  char *buffer = alloca (1024
@@ -9457,6 +10395,10 @@ term_ntproc (int ignored)
   term_winsock ();
 
   term_w32select ();
+
+#if HAVE_NATIVE_IMAGE_API
+  w32_gdiplus_shutdown ();
+#endif
 }
 
 void
@@ -9579,6 +10521,13 @@ shutdown_handler (DWORD type)
       || type == CTRL_LOGOFF_EVENT    /* User logs off.  */
       || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
     {
+      /* If we are being shut down in noninteractive mode, we don't
+	 care about the message stack, so clear it to avoid abort in
+	 shut_down_emacs.  This happens when an noninteractive Emacs
+	 is invoked as a subprocess of Emacs, and the parent wants to
+	 kill us, e.g. because it's about to exit.  */
+      if (noninteractive)
+	clear_message_stack ();
       /* Shut down cleanly, making sure autosave files are up to date.  */
       shut_down_emacs (0, Qnil);
     }
@@ -9592,7 +10541,7 @@ shutdown_handler (DWORD type)
 HANDLE
 maybe_load_unicows_dll (void)
 {
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     {
       HANDLE ret = LoadLibrary ("Unicows.dll");
       if (ret)
@@ -9603,10 +10552,10 @@ maybe_load_unicows_dll (void)
 	     pointers, and assign the correct addresses to these
 	     pointers at program startup (see emacs.c, which calls
 	     this function early on).  */
-	  pMultiByteToWideChar =
-	    (MultiByteToWideChar_Proc)GetProcAddress (ret, "MultiByteToWideChar");
-	  pWideCharToMultiByte =
-	    (WideCharToMultiByte_Proc)GetProcAddress (ret, "WideCharToMultiByte");
+	  pMultiByteToWideChar = (MultiByteToWideChar_Proc)
+            get_proc_addr (ret, "MultiByteToWideChar");
+	  pWideCharToMultiByte = (WideCharToMultiByte_Proc)
+            get_proc_addr (ret, "WideCharToMultiByte");
           multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
 	  return ret;
 	}
@@ -9646,6 +10595,224 @@ maybe_load_unicows_dll (void)
     }
 }
 
+/* Relocate a directory specified by epaths.h, using the location of
+   our binary as an anchor.  Note: this runs early during startup, so
+   we cannot rely on the usual file-related facilities, and in
+   particular the argument is assumed to be a unibyte string in system
+   codepage encoding.  */
+const char *
+w32_relocate (const char *epath_dir)
+{
+  if (strncmp (epath_dir, "%emacs_dir%/", 12) == 0)
+    {
+      static char relocated_dir[MAX_PATH];
+
+      /* Replace "%emacs_dir%" with the parent of the directory where
+	 our binary lives.  Note that init_environment was not yet
+	 called, so we cannot rely on emacs_dir being set in the
+	 environment.  */
+      if (GetModuleFileNameA (NULL, relocated_dir, MAX_PATH))
+	{
+	  char *p = _mbsrchr (relocated_dir, '\\');
+
+	  if (p)
+	    {
+	      *p = '\0';
+	      if ((p = _mbsrchr (relocated_dir, '\\')) != NULL)
+		{
+		  strcpy (p, epath_dir + 11);
+		  epath_dir = relocated_dir;
+		}
+	    }
+	}
+    }
+  return epath_dir;
+}
+
+/* Return the full absolute name of the running executable.  If the
+   executable is a symlink, resolve it.
+
+   Note: this function is called early during startup, when Unicode
+   file names are not yet supported.  Thus the result must be an
+   ANSI-encoded string.  */
+char *
+w32_my_exename (void)
+{
+  static char exename[MAX_PATH];
+  if (!GetModuleFileNameA (NULL, exename, MAX_PATH))
+    return NULL;
+  /* The caller expects us to resolve all possible symlinks in the
+     last component of exename, i.e. if the executable itself is a
+     symlink to a file in another directory.  */
+  if (get_volume_info (exename, NULL)
+      && (volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    {
+      /* chase_symlinks wants its argument in UTF-8.  */
+      char exename_utf8[MAX_UTF8_PATH];
+      filename_from_ansi (exename, exename_utf8);
+
+      /* If EXENAME is a symlink, replace it with its target.  */
+      char *tgt = chase_symlinks (exename_utf8);
+      if (tgt != exename_utf8)
+	filename_to_ansi (tgt, exename);
+    }
+
+  return exename;
+}
+
+/* Emulate Posix 'realpath'.  This is needed in
+   comp-el-to-eln-rel-filename.  */
+char *
+realpath (const char *file_name, char *resolved_name)
+{
+  char *tgt = chase_symlinks (file_name);
+  char target[MAX_UTF8_PATH];
+
+  if (tgt == file_name)
+    {
+      /* If FILE_NAME is not a symlink, chase_symlinks returns its
+	 argument, possibly not in canonical absolute form.  Make sure
+	 we return a canonical file name.  */
+      if (w32_unicode_filenames)
+	{
+	  wchar_t file_w[MAX_PATH], tgt_w[MAX_PATH];
+
+	  filename_to_utf16 (file_name, file_w);
+	  if (GetFullPathNameW (file_w, MAX_PATH, tgt_w, NULL) == 0)
+	    return NULL;
+	  filename_from_utf16 (tgt_w, target);
+	}
+      else
+	{
+	  char file_a[MAX_PATH], tgt_a[MAX_PATH];
+
+	  filename_to_ansi (file_name, file_a);
+	  if (GetFullPathNameA (file_a, MAX_PATH, tgt_a, NULL) == 0)
+	    return NULL;
+	  filename_from_ansi (tgt_a, target);
+	}
+      tgt = target;
+    }
+
+  if (resolved_name)
+    return strcpy (resolved_name, tgt);
+  return xstrdup (tgt);
+}
+
+static void
+get_console_font_size (HANDLE hscreen, int *font_width, int *font_height)
+{
+  static GetCurrentConsoleFont_Proc s_pfn_Get_Current_Console_Font = NULL;
+  static GetConsoleFontSize_Proc s_pfn_Get_Console_Font_Size = NULL;
+
+  /* Default guessed values, for when we cannot obtain the actual ones.  */
+  *font_width = 8;
+  *font_height = 12;
+
+  if (!is_windows_9x ())
+    {
+      if (g_b_init_get_console_font_size == 0)
+	{
+	  HMODULE hm_kernel32 = LoadLibrary ("Kernel32.dll");
+	  if (hm_kernel32)
+	    {
+	      s_pfn_Get_Current_Console_Font = (GetCurrentConsoleFont_Proc)
+		get_proc_addr (hm_kernel32, "GetCurrentConsoleFont");
+	      s_pfn_Get_Console_Font_Size = (GetConsoleFontSize_Proc)
+		get_proc_addr (hm_kernel32, "GetConsoleFontSize");
+	    }
+	  g_b_init_get_console_font_size = 1;
+	}
+    }
+  if (s_pfn_Get_Current_Console_Font && s_pfn_Get_Console_Font_Size)
+    {
+      CONSOLE_FONT_INFO font_info;
+
+      if (s_pfn_Get_Current_Console_Font (hscreen, FALSE, &font_info))
+	{
+	  COORD font_size = s_pfn_Get_Console_Font_Size (hscreen,
+							 font_info.nFont);
+	  if (font_size.X > 0)
+	    *font_width = font_size.X;
+	  if (font_size.Y > 0)
+	    *font_height = font_size.Y;
+	}
+    }
+}
+
+/* A replacement for Posix execvp, used to restart Emacs.  This is
+   needed because the low-level Windows API to start processes accepts
+   the command-line arguments as a single string, so we cannot safely
+   use the MSVCRT execvp emulation, because elements of argv[] that
+   have embedded blanks and tabs will not be passed correctly to the
+   restarted Emacs.  */
+int
+w32_reexec_emacs (char *cmd_line, const char *wdir)
+{
+  STARTUPINFO si;
+  BOOL status;
+  PROCESS_INFORMATION proc_info;
+  DWORD dwCreationFlags = NORMAL_PRIORITY_CLASS;
+
+  GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
+  if (inhibit_window_system)
+    {
+      HANDLE screen_handle;
+      CONSOLE_SCREEN_BUFFER_INFO screen_info;
+
+      screen_handle = GetStdHandle (STD_OUTPUT_HANDLE);
+      if (screen_handle != INVALID_HANDLE_VALUE
+	  && GetConsoleScreenBufferInfo (screen_handle, &screen_info))
+	{
+	  int font_width, font_height;
+
+	  /* Make the restarted Emacs's console window the same
+	     dimensions as ours.  */
+	  si.dwXCountChars = screen_info.dwSize.X;
+	  si.dwYCountChars = screen_info.dwSize.Y;
+	  get_console_font_size (screen_handle, &font_width, &font_height);
+	  si.dwXSize =
+	    (screen_info.srWindow.Right - screen_info.srWindow.Left + 1)
+	    * font_width;
+	  si.dwYSize =
+	    (screen_info.srWindow.Bottom - screen_info.srWindow.Top + 1)
+	    * font_height;
+	  si.dwFlags |= STARTF_USESIZE | STARTF_USECOUNTCHARS;
+	}
+      /* This is a kludge: it causes the restarted "emacs -nw" to have
+	 a new console window created for it, and that new window
+	 might have different (default) properties, not the ones of
+	 the parent process's console window.  But without this,
+	 restarting Emacs in the -nw mode simply doesn't work,
+	 probably because the parent's console is still in use.
+	 FIXME!  */
+      dwCreationFlags = CREATE_NEW_CONSOLE;
+    }
+
+  /* Make sure we are in the original directory, in case the command
+     line specifies the program as a relative file name.  */
+  chdir (wdir);
+
+  status = CreateProcess (NULL,		/* no program, take from command line */
+			  cmd_line,	/* command line */
+			  NULL,
+			  NULL,		/* thread attributes */
+			  FALSE,	/* unherit handles? */
+			  dwCreationFlags,
+			  NULL,		/* environment */
+			  wdir,		/* initial directory */
+			  &si,		/* startup info */
+			  &proc_info);
+  if (status)
+    {
+      CloseHandle (proc_info.hThread);
+      CloseHandle (proc_info.hProcess);
+      exit (0);
+    }
+  errno = ENOEXEC;
+  return -1;
+}
+
 /*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable
@@ -9657,7 +10824,7 @@ globals_of_w32 (void)
   HMODULE kernel32 = GetModuleHandle ("kernel32.dll");
 
   get_process_times_fn = (GetProcessTimes_Proc)
-    GetProcAddress (kernel32, "GetProcessTimes");
+    get_proc_addr (kernel32, "GetProcessTimes");
 
   DEFSYM (QCloaded_from, ":loaded-from");
 
@@ -9699,8 +10866,14 @@ globals_of_w32 (void)
   g_b_init_set_named_security_info_w = 0;
   g_b_init_set_named_security_info_a = 0;
   g_b_init_get_adapters_info = 0;
+  g_b_init_get_adapters_addresses = 0;
+  g_b_init_reg_open_key_ex_w = 0;
+  g_b_init_reg_query_value_ex_w = 0;
+  g_b_init_expand_environment_strings_w = 0;
   g_b_init_compare_string_w = 0;
   g_b_init_debug_break_process = 0;
+  g_b_init_get_user_default_ui_language = 0;
+  g_b_init_get_console_font_size = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
@@ -9727,6 +10900,10 @@ globals_of_w32 (void)
 #endif
 
   w32_crypto_hprov = (HCRYPTPROV)0;
+
+  /* We need to forget about libraries that were loaded during the
+     dumping process (e.g. libgccjit) */
+  Vlibrary_cache = Qnil;
 }
 
 /* For make-serial-process  */
@@ -9810,33 +10987,33 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   dcb.EvtChar       = 0;
 
   /* Configure speed.  */
-  if (!NILP (Fplist_member (contact, QCspeed)))
-    tem = Fplist_get (contact, QCspeed);
+  if (!NILP (plist_member (contact, QCspeed)))
+    tem = plist_get (contact, QCspeed);
   else
-    tem = Fplist_get (p->childp, QCspeed);
-  CHECK_NUMBER (tem);
-  dcb.BaudRate = XINT (tem);
-  childp2 = Fplist_put (childp2, QCspeed, tem);
+    tem = plist_get (p->childp, QCspeed);
+  CHECK_FIXNUM (tem);
+  dcb.BaudRate = XFIXNUM (tem);
+  childp2 = plist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
-  if (!NILP (Fplist_member (contact, QCbytesize)))
-    tem = Fplist_get (contact, QCbytesize);
+  if (!NILP (plist_member (contact, QCbytesize)))
+    tem = plist_get (contact, QCbytesize);
   else
-    tem = Fplist_get (p->childp, QCbytesize);
+    tem = plist_get (p->childp, QCbytesize);
   if (NILP (tem))
-    tem = make_number (8);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 7 && XINT (tem) != 8)
+    tem = make_fixnum (8);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 7 && XFIXNUM (tem) != 8)
     error (":bytesize must be nil (8), 7, or 8");
-  dcb.ByteSize = XINT (tem);
-  summary[0] = XINT (tem) + '0';
-  childp2 = Fplist_put (childp2, QCbytesize, tem);
+  dcb.ByteSize = XFIXNUM (tem);
+  summary[0] = XFIXNUM (tem) + '0';
+  childp2 = plist_put (childp2, QCbytesize, tem);
 
   /* Configure parity.  */
-  if (!NILP (Fplist_member (contact, QCparity)))
-    tem = Fplist_get (contact, QCparity);
+  if (!NILP (plist_member (contact, QCparity)))
+    tem = plist_get (contact, QCparity);
   else
-    tem = Fplist_get (p->childp, QCparity);
+    tem = plist_get (p->childp, QCparity);
   if (!NILP (tem) && !EQ (tem, Qeven) && !EQ (tem, Qodd))
     error (":parity must be nil (no parity), `even', or `odd'");
   dcb.fParity = FALSE;
@@ -9860,30 +11037,30 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.Parity = ODDPARITY;
       dcb.fErrorChar = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCparity, tem);
+  childp2 = plist_put (childp2, QCparity, tem);
 
   /* Configure stopbits.  */
-  if (!NILP (Fplist_member (contact, QCstopbits)))
-    tem = Fplist_get (contact, QCstopbits);
+  if (!NILP (plist_member (contact, QCstopbits)))
+    tem = plist_get (contact, QCstopbits);
   else
-    tem = Fplist_get (p->childp, QCstopbits);
+    tem = plist_get (p->childp, QCstopbits);
   if (NILP (tem))
-    tem = make_number (1);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 1 && XINT (tem) != 2)
+    tem = make_fixnum (1);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 1 && XFIXNUM (tem) != 2)
     error (":stopbits must be nil (1 stopbit), 1, or 2");
-  summary[2] = XINT (tem) + '0';
-  if (XINT (tem) == 1)
+  summary[2] = XFIXNUM (tem) + '0';
+  if (XFIXNUM (tem) == 1)
     dcb.StopBits = ONESTOPBIT;
-  else if (XINT (tem) == 2)
+  else if (XFIXNUM (tem) == 2)
     dcb.StopBits = TWOSTOPBITS;
-  childp2 = Fplist_put (childp2, QCstopbits, tem);
+  childp2 = plist_put (childp2, QCstopbits, tem);
 
   /* Configure flowcontrol.  */
-  if (!NILP (Fplist_member (contact, QCflowcontrol)))
-    tem = Fplist_get (contact, QCflowcontrol);
+  if (!NILP (plist_member (contact, QCflowcontrol)))
+    tem = plist_get (contact, QCflowcontrol);
   else
-    tem = Fplist_get (p->childp, QCflowcontrol);
+    tem = plist_get (p->childp, QCflowcontrol);
   if (!NILP (tem) && !EQ (tem, Qhw) && !EQ (tem, Qsw))
     error (":flowcontrol must be nil (no flowcontrol), `hw', or `sw'");
   dcb.fOutxCtsFlow	= FALSE;
@@ -9910,13 +11087,13 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
       dcb.fOutX = TRUE;
       dcb.fInX = TRUE;
     }
-  childp2 = Fplist_put (childp2, QCflowcontrol, tem);
+  childp2 = plist_put (childp2, QCflowcontrol, tem);
 
   /* Activate configuration.  */
   if (!SetCommState (hnd, &dcb))
     error ("SetCommState() failed");
 
-  childp2 = Fplist_put (childp2, QCsummary, build_string (summary));
+  childp2 = plist_put (childp2, QCsummary, build_string (summary));
   pset_childp (p, childp2);
 }
 
@@ -9938,6 +11115,7 @@ register_aux_fd (int infd)
     }
   fd_info[ infd ].cp = cp;
   fd_info[ infd ].hnd = (HANDLE) _get_osfhandle (infd);
+  fd_info[ infd ].flags |= FILE_DONT_CLOSE;
 }
 
 #ifdef HAVE_GNUTLS

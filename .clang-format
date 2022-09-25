@@ -1,10 +1,10 @@
 Language: Cpp
-BasedOnStyle: LLVM
+BasedOnStyle: GNU
 AlignEscapedNewlinesLeft: true
 AlwaysBreakAfterReturnType: TopLevelDefinitions
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: GNU
-ColumnLimit: 80
+ColumnLimit: 70
 ContinuationIndentWidth: 2
 ForEachMacros: [FOR_EACH_TAIL, FOR_EACH_TAIL_SAFE]
 IncludeCategories:

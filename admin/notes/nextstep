@@ -65,9 +65,6 @@ functions are:
 Currently ctrl-g is not detected in as many circumstances as other emacsen.
 It is not certain whether this is due to the means of event loop integration,
 or errors of omission in the NS code.  This is an area for improvement.
-Also, see the article here and its containing thread:
-
-http://article.gmane.org/gmane.emacs.devel/92021/match=handling%5fsignal
 
 
 

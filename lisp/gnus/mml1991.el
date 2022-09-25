@@ -1,6 +1,6 @@
-;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
+;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -25,9 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'mm-util))
+(eval-when-compile (require 'mm-util))
 
 (require 'mm-encode)
 (require 'mml-sec)
@@ -84,7 +82,7 @@ Whether the passphrase is cached at all is controlled by
 (defvar mml1991-decrypt-function 'mailcrypt-decrypt)
 (defvar mml1991-verify-function 'mailcrypt-verify)
 
-(defun mml1991-mailcrypt-sign (cont)
+(defun mml1991-mailcrypt-sign (_cont)
   (let ((text (current-buffer))
 	headers signature
 	(result-buffer (get-buffer-create "*GPG Result*")))
@@ -120,7 +118,7 @@ Whether the passphrase is cached at all is controlled by
 (declare-function mc-encrypt-generic "ext:mc-toplev"
                   (&optional recipients scheme start end from sign))
 
-(defun mml1991-mailcrypt-encrypt (cont &optional sign)
+(defun mml1991-mailcrypt-encrypt (_cont &optional sign)
   (let ((text (current-buffer))
 	(mc-pgp-always-sign
 	 (or mc-pgp-always-sign
@@ -173,8 +171,9 @@ Whether the passphrase is cached at all is controlled by
 (defvar pgg-default-user-id)
 (defvar pgg-errors-buffer)
 (defvar pgg-output-buffer)
+(defvar pgg-text-mode)
 
-(defun mml1991-pgg-sign (cont)
+(defun mml1991-pgg-sign (_cont)
   (let ((pgg-text-mode t)
 	(pgg-default-user-id (or (message-options-get 'mml-sender)
 				 pgg-default-user-id))
@@ -211,7 +210,7 @@ Whether the passphrase is cached at all is controlled by
        (buffer-string)))
     t))
 
-(defun mml1991-pgg-encrypt (cont &optional sign)
+(defun mml1991-pgg-encrypt (_cont &optional sign)
   (goto-char (point-min))
   (when (re-search-forward "^$" nil t)
     (let ((cte (save-restriction
@@ -244,7 +243,6 @@ Whether the passphrase is cached at all is controlled by
 (defvar epg-user-id-alist)
 
 (autoload 'epg-make-context "epg")
-(autoload 'epg-passphrase-callback-function "epg")
 (autoload 'epa-select-keys "epa")
 (autoload 'epg-list-keys "epg")
 (autoload 'epg-context-set-armor "epg")
@@ -260,9 +258,8 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-configuration "epg-config")
 (autoload 'epg-expand-group "epg-config")
 
-(defun mml1991-epg-sign (cont)
-  (let ((inhibit-redisplay t)
-	headers cte)
+(defun mml1991-epg-sign (_cont)
+  (let (headers cte)
     ;; Don't sign headers.
     (goto-char (point-min))
     (when (re-search-forward "^$" nil t)
@@ -277,6 +274,8 @@ Whether the passphrase is cached at all is controlled by
 	(mm-decode-content-transfer-encoding cte)))
     (let* ((pair (mml-secure-epg-sign 'OpenPGP 'clear))
 	   (signature (car pair)))
+      (unless (stringp signature)
+        (error "Signature failed"))
       (delete-region (point-min) (point-max))
       (insert
        (with-temp-buffer

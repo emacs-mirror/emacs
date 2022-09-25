@@ -1,8 +1,8 @@
-;;; srecode/extract.el --- Extract content from previously inserted macro.
+;;; srecode/extract.el --- Extract content from previously inserted macro.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -88,7 +88,7 @@ the dictionary entries were for that block of text."
     (save-restriction
       (narrow-to-region start end)
       (let ((dict (srecode-create-dictionary t))
-	    (state (srecode-extract-state "state"))
+	    (state (srecode-extract-state))
 	    )
 	(goto-char start)
 	(srecode-extract-method template dict state)
@@ -139,49 +139,47 @@ Uses STATE to maintain the current extraction state."
 
 ;;; Inserter Base Extractors
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter))
   "Return non-nil if this inserter can extract values."
   nil)
 
-(cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter)
-				     start end dict state)
+(cl-defmethod srecode-inserter-extract ((_ins srecode-template-inserter)
+				        _start _end _dict _state)
   "Extract text from START/END and store in DICT.
 Return nil as this inserter will extract nothing."
   nil)
 
 ;;; Variable extractor is simple and can extract later.
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-variable))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-variable))
   "Return non-nil if this inserter can extract values."
   'later)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-variable)
-				     start end vdict state)
+				        start end vdict _state)
   "Extract text from START/END and store in VDICT.
 Return t if something was extracted.
 Return nil if this inserter doesn't need to extract anything."
   (srecode-dictionary-set-value vdict
-				(oref ins :object-name)
+				(oref ins object-name)
 				(buffer-substring-no-properties
-				 start end)
-				)
+				 start end))
   t)
 
 ;;; Section Inserter
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-section-start))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-section-start))
   "Return non-nil if this inserter can extract values."
   'now)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-section-start)
-				     start end indict state)
+				        _start _end indict state)
   "Extract text from START/END and store in INDICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."
-  (let ((name (oref ins :object-name))
+  (let ((name (oref ins object-name))
 	(subdict (srecode-create-dictionary indict))
-	(allsubdict nil)
-	)
+	(allsubdict nil))
 
     ;; Keep extracting till we can extract no more.
     (while (condition-case nil
@@ -203,12 +201,12 @@ Return nil if nothing was extracted."
 
 ;;; Include Extractor must extract now.
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-include))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-include))
   "Return non-nil if this inserter can extract values."
   'now)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-include)
-				     start end dict state)
+				        start _end dict state)
   "Extract text from START/END and store in DICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."
@@ -217,10 +215,10 @@ Return nil if nothing was extracted."
   ;; There are two modes for includes.  One is with no dict,
   ;; so it is inserted straight.  If the dict has a name, then
   ;; we need to run once per dictionary occurrence.
-  (if (not (string= (oref ins :object-name) ""))
+  (if (not (string= (oref ins object-name) ""))
       ;; With a name, do the insertion.
       (let ((subdict (srecode-dictionary-add-section-dictionary
-		      dict (oref ins :object-name))))
+		      dict (oref ins object-name))))
 	(error "Need to implement include w/ name extractor")
 	;; Recurse into the new template while no errors.
 	(while (condition-case nil

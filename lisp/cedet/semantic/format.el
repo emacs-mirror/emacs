@@ -1,6 +1,6 @@
-;;; semantic/format.el --- Routines for formatting tags
+;;; semantic/format.el --- Routines for formatting tags  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -32,7 +32,6 @@
 ;;
 
 ;;; Code:
-(eval-when-compile (require 'font-lock))
 (require 'semantic)
 (require 'semantic/tag-ls)
 (require 'ezimage)
@@ -67,7 +66,7 @@ COLOR indicates that the generated text should be colored using
 
 (defvar semantic-format-tag-custom-list
   (append '(radio)
-	  (mapcar (lambda (f) (list 'const f))
+	  (mapcar (lambda (f) (list 'function-item f))
 		  semantic-format-tag-functions)
 	  '(function))
   "A List used by customizable variables to choose a tag to text function.
@@ -79,25 +78,19 @@ Images can be used as icons instead of some types of text strings."
   :group 'semantic
   :type 'boolean)
 
-(defvar semantic-function-argument-separator ","
+(defvar-local semantic-function-argument-separator ","
   "Text used to separate arguments when creating text from tags.")
-(make-variable-buffer-local 'semantic-function-argument-separator)
 
-(defvar semantic-format-parent-separator "::"
+(defvar-local semantic-format-parent-separator "::"
   "Text used to separate names when between namespaces/classes and functions.")
-(make-variable-buffer-local 'semantic-format-parent-separator)
 
 (defvar semantic-format-face-alist
   `( (function . font-lock-function-name-face)
      (variable . font-lock-variable-name-face)
      (type . font-lock-type-face)
      ;; These are different between Emacsen.
-     (include . ,(if (featurep 'xemacs)
-		     'font-lock-preprocessor-face
-		   'font-lock-constant-face))
-     (package . ,(if (featurep 'xemacs)
-		     'font-lock-preprocessor-face
-		   'font-lock-constant-face))
+     (include . ,'font-lock-constant-face)
+     (package . , 'font-lock-constant-face)
      ;; Not a tag, but instead a feature of output
      (label . font-lock-string-face)
      (comment . font-lock-comment-face)
@@ -111,7 +104,7 @@ Override the value locally if a language supports other tag types.
 When adding new elements, try to use symbols also returned by the parser.
 The form of an entry in this list is of the form:
  ( SYMBOL .  FACE )
-where SYMBOL is a tag type symbol used with semantic.  FACE
+where SYMBOL is a tag type symbol used with semantic, and FACE
 is a symbol representing a face.
 Faces used are generated in `font-lock' for consistency, and will not
 be used unless font lock is a feature.")
@@ -123,38 +116,33 @@ be used unless font lock is a feature.")
   "Apply onto TEXT a color associated with FACE-CLASS.
 FACE-CLASS is a tag type found in `semantic-format-face-alist'.
 See that variable for details on adding new types."
-  (if (featurep 'font-lock)
-      (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
-	    (newtext (concat text)))
-	(put-text-property 0 (length text) 'face face newtext)
-	newtext)
-    text))
+  (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
+        (newtext (concat text)))
+    (put-text-property 0 (length text) 'face face newtext)
+    newtext))
 
 (defun semantic--format-colorize-merge-text (precoloredtext face-class)
   "Apply onto PRECOLOREDTEXT a color associated with FACE-CLASS.
 FACE-CLASS is a tag type found in `semantic-formatface-alist'.
 See that variable for details on adding new types."
   (let ((face (cdr-safe (assoc face-class semantic-format-face-alist)))
-	(newtext (concat precoloredtext))
-	)
-    (if (featurep 'xemacs)
-	(add-text-properties 0 (length newtext) (list 'face face) newtext)
-      (alter-text-property 0 (length newtext) 'face
-			   (lambda (current-face)
-			     (let ((cf
-				    (cond ((facep current-face)
-					   (list current-face))
-					  ((listp current-face)
-					   current-face)
-					  (t nil)))
-				   (nf
-				    (cond ((facep face)
-					   (list face))
-					  ((listp face)
-					   face)
-					  (t nil))))
-			       (append cf nf)))
-			   newtext))
+	(newtext (concat precoloredtext)))
+    (alter-text-property 0 (length newtext) 'face
+			 (lambda (current-face)
+			   (let ((cf
+				  (cond ((facep current-face)
+					 (list current-face))
+					((listp current-face)
+					 current-face)
+					(t nil)))
+				 (nf
+				  (cond ((facep face)
+					 (list face))
+					((listp face)
+					 face)
+					(t nil))))
+			     (append cf nf)))
+			 newtext)
     newtext))
 
 ;;; Function Arguments
@@ -174,7 +162,7 @@ COLOR specifies if color should be used."
 	       (car args) nil color 'variable))
 	    out)
       (setq args (cdr args)))
-    (mapconcat 'identity (nreverse out) semantic-function-argument-separator)
+    (mapconcat #'identity (nreverse out) semantic-function-argument-separator)
     ))
 
 ;;; Data Type
@@ -212,7 +200,7 @@ Argument COLOR specifies to colorize the text."
 ;;; Abstract formatting functions
 ;;
 
-(defun semantic-format-tag-prin1 (tag &optional parent color)
+(defun semantic-format-tag-prin1 (tag &optional _parent _color)
   "Convert TAG to a string that is the print name for TAG.
 PARENT and COLOR are ignored."
   (format "%S" tag))
@@ -249,7 +237,7 @@ The name is the shortest possible representation.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
 
-(defun semantic-format-tag-name-default (tag &optional parent color)
+(defun semantic-format-tag-name-default (tag &optional _parent color)
   "Return an abbreviated string describing TAG.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors."
@@ -414,7 +402,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
       (concat file ": " proto))))
 
 (define-overloadable-function semantic-format-tag-short-doc (tag &optional parent color)
-  "Display a short form of TAG's documentation. (Comments, or docstring.)
+  "Display a short form of TAG's documentation.  (Comments, or docstring.)
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
 
@@ -512,7 +500,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 		      args
 		      (if (eq class 'type) "}" ")"))))
     (when mods
-      (setq mods (concat (mapconcat 'identity mods " ") " ")))
+      (setq mods (concat (mapconcat #'identity mods " ") " ")))
     (concat (or mods "")
 	    (if type (concat type " "))
 	    name

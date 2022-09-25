@@ -1,7 +1,6 @@
-;;; ede-proj-info.el --- EDE Generic Project texinfo support
+;;; ede-proj-info.el --- EDE Generic Project texinfo support  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1998-2001, 2004, 2007-2017 Free Software Foundation,
-;;; Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -43,15 +42,13 @@ All other sources should be included independently."))
   "Target for a single info file.")
 
 (defvar ede-makeinfo-source
-  (ede-sourcecode "ede-makeinfo-source"
-		  :name "Texinfo"
+  (ede-sourcecode :name "Texinfo"
 		  :sourcepattern "\\.texi?$"
 		  :garbagepattern '("*.info*" "*.html"))
   "Texinfo source code definition.")
 
 (defvar ede-makeinfo-compiler
   (ede-compiler
-   "ede-makeinfo-compiler"
    :name "makeinfo"
    :variables '(("MAKEINFO" . "makeinfo"))
    :commands '("$(MAKEINFO) $<")
@@ -62,7 +59,6 @@ All other sources should be included independently."))
 
 (defvar ede-texi2html-compiler
   (ede-compiler
-   "ede-texi2html-compiler"
    :name "texi2html"
    :variables '(("TEXI2HTML" . "makeinfo -html"))
    :commands '("makeinfo -o $@ $<")
@@ -73,7 +69,7 @@ All other sources should be included independently."))
 ;;; Makefile generation
 ;;
 (cl-defmethod ede-proj-configure-add-missing
-  ((this ede-proj-target-makefile-info))
+  ((_this ede-proj-target-makefile-info))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   (not (ede-expand-filename (ede-toplevel) "texinfo.tex")))
@@ -100,7 +96,7 @@ when working in Automake mode."
 	(insert menu))
       ;; Now insert the rest of the source elsewhere
       (ede-pmake-insert-variable-shared sv
-	(insert (mapconcat 'identity src " ")))
+	(insert (mapconcat #'identity src " ")))
       (if moresource
 	  (error "Texinfo files should not have moresource")))))
 

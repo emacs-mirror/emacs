@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2017 Free Software Foundation,
+@c Copyright (C) 1990--1994, 1998, 2001--2022 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -20,11 +20,12 @@ function @code{eval}.
 
 @ifnottex
 @menu
-* Intro Eval::  Evaluation in the scheme of things.
-* Forms::       How various sorts of objects are evaluated.
-* Quoting::     Avoiding evaluation (to put constants in the program).
-* Backquote::   Easier construction of list structure.
-* Eval::        How to invoke the Lisp interpreter explicitly.
+* Intro Eval::     Evaluation in the scheme of things.
+* Forms::          How various sorts of objects are evaluated.
+* Quoting::        Avoiding evaluation (to put constants in the program).
+* Backquote::      Easier construction of list structure.
+* Eval::           How to invoke the Lisp interpreter explicitly.
+* Deferred Eval::  Deferred and lazy evaluation of forms.
 @end menu
 
 @node Intro Eval
@@ -86,6 +87,7 @@ also temporarily alter the environment by binding variables
 (@pxref{Local Variables}).
 
 @cindex side effect
+@anchor{Definition of side effect}
   Evaluating a form may also make changes that persist; these changes
 are called @dfn{side effects}.  An example of a form that produces a
 side effect is @code{(setq foo 1)}.
@@ -127,6 +129,7 @@ with the other types, which are self-evaluating forms.
 @cindex vector evaluation
 @cindex literal evaluation
 @cindex self-evaluating form
+@cindex form, self-evaluating
 
   A @dfn{self-evaluating form} is any form that is not a list or
 symbol.  Self-evaluating forms evaluate to themselves: the result of
@@ -155,6 +158,12 @@ contents unchanged.
 @end group
 @end example
 
+  A self-evaluating form yields a value that becomes part of the program,
+and you should not try to modify it via @code{setcar}, @code{aset} or
+similar operations.  The Lisp interpreter might unify the constants
+yielded by your program's self-evaluating forms, so that these
+constants might share structure.  @xref{Mutability}.
+
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
 However, it is quite unusual to do this for types that lack a read
@@ -179,6 +188,8 @@ program.  Here is an example:
 @node Symbol Forms
 @subsection Symbol Forms
 @cindex symbol evaluation
+@cindex symbol forms
+@cindex forms, symbol
 
   When a symbol is evaluated, it is treated as a variable.  The result
 is the variable's value, if it has one.  If the symbol has no value as
@@ -215,6 +226,7 @@ its value ordinarily cannot be changed.  @xref{Constant Variables}.
 @node Classifying Lists
 @subsection Classification of List Forms
 @cindex list form evaluation
+@cindex forms, list
 
   A form that is a nonempty list is either a function call, a macro
 call, or a special form, according to its first element.  These three
@@ -320,7 +332,6 @@ or just
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
 
-@c Emacs 19 feature
 @defun indirect-function function &optional noerror
 @anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If
@@ -339,7 +350,8 @@ Here is how you could define @code{indirect-function} in Lisp:
 
 @example
 (defun indirect-function (function)
-  (if (symbolp function)
+  (if (and function
+           (symbolp function))
       (indirect-function (symbol-function function))
     function))
 @end example
@@ -349,6 +361,7 @@ Here is how you could define @code{indirect-function} in Lisp:
 @subsection Evaluation of Function Forms
 @cindex function form evaluation
 @cindex function call
+@cindex forms, function call
 
   If the first element of a list being evaluated is a Lisp function
 object, byte-code object or primitive function object, then that list is
@@ -372,6 +385,7 @@ body form becomes the value of the function call.
 @node Macro Forms
 @subsection Lisp Macro Evaluation
 @cindex macro call evaluation
+@cindex forms, macro call
 
   If the first element of a list being evaluated is a macro object, then
 the list is a @dfn{macro call}.  When a macro call is evaluated, the
@@ -418,9 +432,10 @@ expansion.
 @node Special Forms
 @subsection Special Forms
 @cindex special forms
+@cindex forms, special
 @cindex evaluation of special forms
 
-  A @dfn{special form} is a primitive function specially marked so that
+  A @dfn{special form} is a primitive specially marked so that
 its arguments are not all evaluated.  Most special forms define control
 structures or perform variable bindings---things which functions cannot
 do.
@@ -506,9 +521,6 @@ Emacs Lisp with a reference to where each is described.
 @item setq-default
 @pxref{Creating Buffer-Local}
 
-@item track-mouse
-@pxref{Mouse Tracking}
-
 @item unwind-protect
 @pxref{Nonlocal Exits}
 
@@ -542,6 +554,7 @@ described in @ref{Autoload}.
 
 @node Quoting
 @section Quoting
+@cindex forms, quote
 
   The special form @code{quote} returns its single argument, as written,
 without evaluating it.  This provides a way to include constant symbols
@@ -551,6 +564,8 @@ and vectors.)
 
 @defspec quote object
 This special form returns @var{object}, without evaluating it.
+The returned value might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 @end defspec
 
 @cindex @samp{'} for quoting
@@ -579,17 +594,23 @@ Here are some examples of expressions that use @code{quote}:
 @end group
 @group
 ''foo
-     @result{} (quote foo)
+     @result{} 'foo
 @end group
 @group
 '(quote foo)
-     @result{} (quote foo)
+     @result{} 'foo
 @end group
 @group
 ['foo]
-     @result{} [(quote foo)]
+     @result{} ['foo]
 @end group
 @end example
+
+  Although the expressions @code{(list '+ 1 2)} and @code{'(+ 1 2)}
+both yield lists equal to @code{(+ 1 2)}, the former yields a
+freshly-minted mutable list whereas the latter yields a list
+built from conses that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 
   Other quoting constructs include @code{function} (@pxref{Anonymous
 Functions}), which causes an anonymous lambda expression written in Lisp
@@ -601,13 +622,16 @@ only part of a list, while computing and substituting other parts.
 @cindex backquote (list substitution)
 @cindex ` (list substitution)
 @findex `
+@cindex forms, backquote
 
   @dfn{Backquote constructs} allow you to quote a list, but
 selectively evaluate elements of that list.  In the simplest case, it
-is identical to the special form @code{quote}
+is identical to the special form
 @iftex
+@code{quote}.
 @end iftex
 @ifnottex
+@code{quote}
 (described in the previous section; @pxref{Quoting}).
 @end ifnottex
 For example, these two forms yield identical results:
@@ -685,6 +709,10 @@ Here are some examples:
 @end group
 @end example
 
+If a subexpression of a backquote construct has no substitutions or
+splices, it acts like @code{quote} in that it yields conses,
+vectors and strings that might be shared and should not be modified.
+@xref{Self-Evaluating Forms}.
 
 @node Eval
 @section Eval
@@ -802,7 +830,7 @@ This variable defines the maximum depth allowed in calls to @code{eval},
 @code{apply}, and @code{funcall} before an error is signaled (with error
 message @code{"Lisp nesting exceeds max-lisp-eval-depth"}).
 
-This limit, with the associated error when it is exceeded, is one way
+This limit, with the associated error when it is exceeded, is how
 Emacs Lisp avoids infinite recursion on an ill-defined function.  If
 you increase the value of @code{max-lisp-eval-depth} too much, such
 code can cause stack overflow instead.  On some systems, this overflow
@@ -818,14 +846,11 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 800.  If you set it to a value
+The default value of this variable is 1600.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is
 reached.  Entry to the Lisp debugger increases the value, if there is
 little room left, to make sure the debugger itself has room to
 execute.
-
-@code{max-specpdl-size} provides another limit on nesting.
-@xref{Definition of max-specpdl-size,, Local Variables}.
 @end defopt
 
 @defvar values
@@ -834,8 +859,13 @@ expressions that were read, evaluated, and printed from buffers
 (including the minibuffer) by the standard Emacs commands which do
 this.  (Note that this does @emph{not} include evaluation in
 @file{*ielm*} buffers, nor evaluation using @kbd{C-j}, @kbd{C-x C-e},
-and similar evaluation commands in @code{lisp-interaction-mode}.)  The
-elements are ordered most recent first.
+and similar evaluation commands in @code{lisp-interaction-mode}.)
+
+This variable is obsolete, and will be removed in a future version,
+since it constantly enlarges the memory footprint of the Emacs
+process.  For that reason, we recommend against using it.
+
+The elements of @code{values} are ordered most recent first.
 
 @example
 @group
@@ -852,8 +882,8 @@ values
 @end group
 @end example
 
-This variable is useful for referring back to values of forms recently
-evaluated.  It is generally a bad idea to print the value of
+This variable could be useful for referring back to values of forms
+recently evaluated.  It is generally a bad idea to print the value of
 @code{values} itself, since this may be very long.  Instead, examine
 particular elements, like this:
 
@@ -877,3 +907,115 @@ particular elements, like this:
 @end group
 @end example
 @end defvar
+
+@node Deferred Eval
+@section Deferred and Lazy Evaluation
+
+@cindex deferred evaluation
+@cindex lazy evaluation
+
+
+  Sometimes it is useful to delay the evaluation of an expression, for
+example if you want to avoid performing a time-consuming calculation
+if it turns out that the result is not needed in the future of the
+program.  The @file{thunk} library provides the following functions
+and macros to support such @dfn{deferred evaluation}:
+
+@cindex thunk
+@defmac thunk-delay forms@dots{}
+Return a @dfn{thunk} for evaluating the @var{forms}.  A thunk is a
+closure (@pxref{Closures}) that inherits the lexical environment of the
+@code{thunk-delay} call.  Using this macro requires
+@code{lexical-binding}.
+@end defmac
+
+@defun thunk-force thunk
+Force @var{thunk} to perform the evaluation of the forms specified in
+the @code{thunk-delay} that created the thunk.  The result of the
+evaluation of the last form is returned.  The @var{thunk} also
+``remembers'' that it has been forced: Any further calls of
+@code{thunk-force} with the same @var{thunk} will just return the same
+result without evaluating the forms again.
+@end defun
+
+@defmac thunk-let (bindings@dots{}) forms@dots{}
+This macro is analogous to @code{let} but creates ``lazy'' variable
+bindings.  Any binding has the form @w{@code{(@var{symbol}
+@var{value-form})}}.  Unlike @code{let}, the evaluation of any
+@var{value-form} is deferred until the binding of the according
+@var{symbol} is used for the first time when evaluating the
+@var{forms}.  Any @var{value-form} is evaluated at most once.  Using
+this macro requires @code{lexical-binding}.
+@end defmac
+
+Example:
+
+@example
+@group
+(defun f (number)
+  (thunk-let ((derived-number
+              (progn (message "Calculating 1 plus 2 times %d" number)
+                     (1+ (* 2 number)))))
+    (if (> number 10)
+        derived-number
+      number)))
+@end group
+
+@group
+(f 5)
+@result{} 5
+@end group
+
+@group
+(f 12)
+@print{} Calculating 1 plus 2 times 12
+@result{} 25
+@end group
+
+@end example
+
+Because of the special nature of lazily bound variables, it is an error
+to set them (e.g.@: with @code{setq}).
+
+
+@defmac thunk-let* (bindings@dots{}) forms@dots{}
+This is like @code{thunk-let} but any expression in @var{bindings} is allowed
+to refer to preceding bindings in this @code{thunk-let*} form.  Using
+this macro requires @code{lexical-binding}.
+@end defmac
+
+@example
+@group
+(thunk-let* ((x (prog2 (message "Calculating x...")
+                    (+ 1 1)
+                  (message "Finished calculating x")))
+             (y (prog2 (message "Calculating y...")
+                    (+ x 1)
+                  (message "Finished calculating y")))
+             (z (prog2 (message "Calculating z...")
+                    (+ y 1)
+                  (message "Finished calculating z")))
+             (a (prog2 (message "Calculating a...")
+                    (+ z 1)
+                  (message "Finished calculating a"))))
+  (* z x))
+
+@print{} Calculating z...
+@print{} Calculating y...
+@print{} Calculating x...
+@print{} Finished calculating x
+@print{} Finished calculating y
+@print{} Finished calculating z
+@result{} 8
+
+@end group
+@end example
+
+@code{thunk-let} and @code{thunk-let*} use thunks implicitly: their
+expansion creates helper symbols and binds them to thunks wrapping the
+binding expressions.  All references to the original variables in the
+body @var{forms} are then replaced by an expression that calls
+@code{thunk-force} with the according helper variable as the argument.
+So, any code using @code{thunk-let} or @code{thunk-let*} could be
+rewritten to use thunks, but in many cases using these macros results
+in nicer code than using thunks explicitly.

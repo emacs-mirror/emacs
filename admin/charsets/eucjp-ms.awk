@@ -21,7 +21,7 @@
 # Commentary:
 
 # eucJP-ms is one of eucJP-open encoding defined at this page:
-#  http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
+#  https://web.archive.org/web/20120207064433/http://home.m05.itscom.net/numa/cde/ucs-conv/appendix.html
 # This program reads the mapping file EUC-JP-MS (of glibc) and
 # generates the Elisp file eucjp-ms.el that defines two translation
 # tables 'eucjp-ms-decode' and 'eucjp-ms-encode'.
@@ -38,7 +38,7 @@ BEGIN {
   JISX0208_FROM2 = "/xf5/xa1";
   JISX0212_FROM = "/x8f/xf3/xf3";
 
-  print ";;; eucjp-ms.el -- translation table for eucJP-ms";
+  print ";;; eucjp-ms.el --- translation table for eucJP-ms  -*- lexical-binding:t -*-";
   print ";;; Automatically generated from /usr/share/i18n/charmaps/EUC-JP-MS.gz";
   print "(let ((map";
   print "       '(;JISEXT<->UNICODE";
@@ -93,15 +93,17 @@ function write_entry (unicode) {
 
 END {
   print ")))";
-  print "  (mapc #'(lambda (x)";
+  print "  (setq map";
+  print "    (mapcar";
+  print "	(lambda (x)";
   print "	    (let ((code (logand (car x) #x7F7F)))";
   print "	      (if (integerp (cdr x))";
-  print "		  (setcar x (decode-char 'japanese-jisx0208 code))";
-  print "		(setcar x (decode-char 'japanese-jisx0212 code))";
-  print "		(setcdr x (cadr x)))))";
-  print "	map)";
+  print "		  (cons (decode-char 'japanese-jisx0208 code) (cdr x))";
+  print "		(cons (decode-char 'japanese-jisx0212 code)"
+  print "		      (cadr x)))))";
+  print "	map))";
   print "  (define-translation-table 'eucjp-ms-decode map)";
-  print "  (mapc #'(lambda (x)";
+  print "  (mapc (lambda (x)";
   print "	    (let ((tmp (car x)))";
   print "	      (setcar x (cdr x)) (setcdr x tmp)))";
   print "	map)";

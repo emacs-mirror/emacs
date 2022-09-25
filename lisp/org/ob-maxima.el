@@ -1,11 +1,11 @@
 ;;; ob-maxima.el --- Babel Functions for Maxima      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research, maxima
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,9 +27,7 @@
 ;; Org-Babel support for evaluating maxima entries.
 ;;
 ;; This differs from most standard languages in that
-;;
 ;; 1) there is no such thing as a "session" in maxima
-;;
 ;; 2) we are adding the "cmdline" header argument
 
 ;;; Code:
@@ -125,9 +123,6 @@ of the same value."
       (concat "[" (mapconcat #'org-babel-maxima-elisp-to-maxima val ", ") "]")
     (format "%s" val)))
 
-
 (provide 'ob-maxima)
-
-
 
 ;;; ob-maxima.el ends here

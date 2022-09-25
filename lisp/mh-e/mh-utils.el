@@ -1,10 +1,9 @@
-;;; mh-utils.el --- MH-E general utilities
+;;; mh-utils.el --- MH-E general utilities  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -25,14 +24,12 @@
 
 ;;; Commentary:
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 
 (require 'font-lock)
+(require 'mailabbrev)
 
 ;;; CL Replacements
 
@@ -41,9 +38,9 @@
   "Return the position of last occurrence of CHAR in STRING.
 If CHAR is not present in STRING then return nil. The function is
 used in lieu of `search' in the CL package."
-  (loop for index from (1- (length string)) downto 0
-        when (equal (aref string index) char) return index
-        finally return nil))
+  (cl-loop for index from (1- (length string)) downto 0
+           when (equal (aref string index) char) return index
+           finally return nil))
 
 
 
@@ -56,18 +53,11 @@ used in lieu of `search' in the CL package."
   (let ((syntax-table (syntax-table)))
     (unwind-protect
         (save-excursion
-          (mh-mail-abbrev-make-syntax-table)
+          (mail-abbrev-make-syntax-table)
           (set-syntax-table mail-abbrev-syntax-table)
           (backward-word n)
           (point))
       (set-syntax-table syntax-table))))
-
-;;;###mh-autoload
-(defun mh-colors-available-p ()
-  "Check if colors are available in the Emacs being used."
-  (or (featurep 'xemacs)
-      (let ((color-cells (mh-display-color-cells)))
-        (and (numberp color-cells) (>= color-cells 8)))))
 
 ;;;###mh-autoload
 (defun mh-colors-in-use-p ()
@@ -82,16 +72,13 @@ used in lieu of `search' in the CL package."
 ;;;###mh-autoload
 (defun mh-make-local-vars (&rest pairs)
   "Initialize local variables according to the variable-value PAIRS."
+  (declare (obsolete setq-local "29.1"))
   (while pairs
     (set (make-local-variable (car pairs)) (car (cdr pairs)))
     (setq pairs (cdr (cdr pairs)))))
 
 ;;;###mh-autoload
-(defun mh-mapc (function list)
-  "Apply FUNCTION to each element of LIST for side effects only."
-  (while list
-    (funcall function (car list))
-    (setq list (cdr list))))
+(define-obsolete-function-alias 'mh-mapc #'mapc "29.1")
 
 (defvar mh-pick-regexp-chars ".*$["
   "List of special characters in pick regular expressions.")
@@ -104,9 +91,9 @@ PICK-EXPR is a list of strings. Return nil if PICK-EXPR is nil."
     (dolist (string pick-expr)
       (when (and string
                  (not (string-equal string "")))
-        (loop for i from 0 to (1- (length mh-pick-regexp-chars)) do
-              (let ((s (string ?\\ (aref mh-pick-regexp-chars i))))
-                (setq string (mh-replace-regexp-in-string s s string t t))))
+        (cl-loop for i from 0 to (1- (length mh-pick-regexp-chars)) do
+                 (let ((s (string ?\\ (aref mh-pick-regexp-chars i))))
+                   (setq string (replace-regexp-in-string s s string t t))))
         (setq quoted-pick-expr (append quoted-pick-expr (list string)))))
     quoted-pick-expr))
 
@@ -123,34 +110,32 @@ Ignores case when searching for OLD."
 
 ;;; Logo Display
 
-(defvar mh-logo-cache nil)
+;;;###mh-autoload
+(defmacro mh--with-image-load-path (&rest body)
+  "Load `image' and eval BODY with `image-load-path' set appropriately."
+  (declare (debug t) (indent 0))
+  `(progn
+     ;; Not preloaded in without-x builds.
+     (require 'image)
+     (defvar image-load-path)
+     (declare-function image-load-path-for-library "image")
+     (let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+            (image-load-path (cons (car load-path) image-load-path)))
+       ,@body)))
 
-;; Shush compiler.
-(defvar image-load-path)
+(defvar mh-logo-cache nil)
 
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
-  (mh-do-in-gnu-emacs
-    (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-           (image-load-path (cons (car load-path)
-                                  (when (boundp 'image-load-path)
-                                    image-load-path))))
-      (add-text-properties
-       0 2
-       `(display ,(or mh-logo-cache
-                      (setq mh-logo-cache
-                            (mh-funcall-if-exists
-                             find-image '((:type xpm :ascent center
-                                                 :file "mh-logo.xpm"))))))
-       (car mode-line-buffer-identification))))
-  (mh-do-in-xemacs
-    (setq modeline-buffer-identification
-          (list
-           (if mh-modeline-glyph
-               (cons modeline-buffer-id-left-extent mh-modeline-glyph)
-             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
-           (cons modeline-buffer-id-right-extent " %17b")))))
+  (mh--with-image-load-path
+    (add-text-properties
+     0 2
+     `(display ,(or mh-logo-cache
+                    (setq mh-logo-cache
+                          (find-image '(( :type xpm :ascent center
+                                          :file "mh-logo.xpm" ))))))
+     (car mode-line-buffer-identification))))
 
 
 
@@ -177,6 +162,7 @@ been set. This hook can be used the change the value of these
 variables if you need to run with different values between MH and
 MH-E."
   (unless mh-find-path-run
+    (or mh-variant-in-use (mh-variant-set mh-variant))
     ;; Sanity checks.
     (if (and (getenv "MH")
              (not (file-readable-p (getenv "MH"))))
@@ -269,11 +255,10 @@ and displayed in a help buffer."
   (interactive)
   (let* ((help (or help-messages
                   (cdr (assoc nil (assoc major-mode mh-help-messages)))))
-         (text (substitute-command-keys (mapconcat 'identity help ""))))
+         (text (substitute-command-keys (mapconcat #'identity help ""))))
     (with-electric-help
-     (function
-      (lambda ()
-        (insert text)))
+     (lambda ()
+       (insert text))
      mh-help-buffer)))
 
 ;;;###mh-autoload
@@ -300,7 +285,7 @@ and displayed in a help buffer."
 This is the inverse of `mh-read-msg-list', which expands ranges.
 Message lists passed to MH programs should be processed by this
 function to avoid exceeding system command line argument limits."
-  (let ((msgs (sort (copy-sequence messages) 'mh-greaterp))
+  (let ((msgs (sort (copy-sequence messages) #'mh-greaterp))
         (range-high nil)
         (prev -1)
         (ranges nil))
@@ -374,7 +359,7 @@ the cursor is not pointing to a message."
           (mh-exec-cmd-daemon "folders" 'mh-collect-folder-names-filter
                               "-recurse" "-fast"))))
 
-(defun mh-collect-folder-names-filter (process output)
+(defun mh-collect-folder-names-filter (_process output)
   "Read folder names.
 PROCESS is the flists process that was run to collect folder
 names and the function is called when OUTPUT is available."
@@ -382,7 +367,7 @@ names and the function is called when OUTPUT is available."
         (prevailing-match-data (match-data))
         line-end folder)
     (unwind-protect
-        (while (setq line-end (string-match "\n" output position))
+        (while (setq line-end (string-search "\n" output position))
           (setq folder (format "+%s%s"
                                mh-flists-partial-line
                                (substring output position line-end)))
@@ -402,15 +387,15 @@ names and the function is called when OUTPUT is available."
          (child2 (and parent (substring parent (1+ (or parent-slash 0)))))
          (grand-parent (and parent-slash (substring parent 0 parent-slash)))
          (cache-entry (gethash parent mh-sub-folders-cache)))
-    (unless (loop for x in cache-entry when (equal (car x) child1) return t
-                  finally return nil)
+    (unless (cl-loop for x in cache-entry when (equal (car x) child1) return t
+                     finally return nil)
       (push (list child1) cache-entry)
       (setf (gethash parent mh-sub-folders-cache)
             (sort cache-entry (lambda (x y) (string< (car x) (car y)))))
       (when parent
-        (loop for x in (gethash grand-parent mh-sub-folders-cache)
-              when (equal (car x) child2)
-              do (progn (setf (cdr x) t) (return)))))))
+        (cl-loop for x in (gethash grand-parent mh-sub-folders-cache)
+                 when (equal (car x) child2)
+                 do (progn (setf (cdr x) t) (cl-return)))))))
 
 (defun mh-normalize-folder-name (folder &optional empty-string-okay
                                         dont-remove-trailing-slash
@@ -453,10 +438,8 @@ no effect."
         (setq folder (format "%s/%s/" mh-current-folder-name
                              (substring folder 1))))
       ;; XXX: Purge empty strings from the list that split-string
-      ;; returns. In XEmacs, (split-string "+foo/" "/") returns
-      ;; ("+foo" "") while in GNU Emacs it returns ("+foo"). In the
-      ;; code it is assumed that the components list has no empty
-      ;; strings.
+      ;; returns. In the code it is assumed that the components list
+      ;; has no empty strings.
       (let ((components (delete "" (split-string folder "/")))
             (result ()))
         ;; Remove .. and . from the pathname.
@@ -513,8 +496,8 @@ they will not be returned."
     ;; folder is specified, ensure it is nil to avoid adding the
     ;; folder to the folder-list and adding a slash to it.
     (when folder
-      (setq folder (mh-replace-regexp-in-string "^\\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
+      (setq folder (replace-regexp-in-string "^\\+" "" folder))
+      (setq folder (replace-regexp-in-string "/+$" "" folder))
       (if (equal folder "")
           (setq folder nil)))
     ;; Add provided folder to list, unless all folders are asked for.
@@ -522,12 +505,12 @@ they will not be returned."
     (unless (null folder)
       (setq folder-list (list folder))
       (setq folder (concat folder "/")))
-    (loop for f in (mh-sub-folders folder) do
-          (setq folder-list
-                (append folder-list
-                        (if (mh-children-p f)
-                            (mh-folder-list (concat folder (car f)))
-                          (list (concat folder (car f)))))))
+    (cl-loop for f in (mh-sub-folders folder) do
+             (setq folder-list
+                   (append folder-list
+                           (if (mh-children-p f)
+                               (mh-folder-list (concat folder (car f)))
+                             (list (concat folder (car f)))))))
     folder-list))
 
 ;;;###mh-autoload
@@ -539,15 +522,20 @@ results of the actual folders call.
 If optional argument ADD-TRAILING-SLASH-FLAG is non-nil then a
 slash is added to each of the sub-folder names that may have
 nested folders within them."
-  (let* ((folder (mh-normalize-folder-name folder nil nil t))
+  ;; In most cases we want to remove a trailing slash.  We keep the
+  ;; slash for "+/", because it refers to folders in the system root
+  ;; directory, whereas "+" refers to the user's top-level folders.
+  (let* ((folder (mh-normalize-folder-name folder nil
+                                           (string= folder "+/")
+                                           t))
          (match (gethash folder mh-sub-folders-cache 'no-result))
          (sub-folders (cond ((eq match 'no-result)
                              (setf (gethash folder mh-sub-folders-cache)
                                    (mh-sub-folders-actual folder)))
                             (t match))))
     (if add-trailing-slash-flag
-        (mapcar #'(lambda (x)
-                    (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
+        (mapcar (lambda (x)
+                  (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
                 sub-folders)
       sub-folders)))
 
@@ -566,7 +554,6 @@ Expects FOLDER to have already been normalized with
   (let ((arg-list `(,(expand-file-name "folders" mh-progs)
                     nil (t nil) nil "-noheader" "-norecurse" "-nototal"
                     ,@(if (stringp folder) (list folder) ())))
-        (results ())
         (current-folder (concat
                          (with-temp-buffer
                            (call-process (expand-file-name "folder" mh-progs)
@@ -575,33 +562,48 @@ Expects FOLDER to have already been normalized with
                          "+")))
     (with-temp-buffer
       (apply #'call-process arg-list)
-      (goto-char (point-min))
-      (while (not (and (eolp) (bolp)))
-        (goto-char (mh-line-end-position))
-        (let ((start-pos (mh-line-beginning-position))
-              (has-pos (search-backward " has "
-                                        (mh-line-beginning-position) t)))
-          (when (integerp has-pos)
-            (while (equal (char-after has-pos) ? )
-              (decf has-pos))
-            (incf has-pos)
-            (while (equal (char-after start-pos) ? )
-              (incf start-pos))
-            (let* ((name (buffer-substring start-pos has-pos))
-                   (first-char (aref name 0))
-                   (last-char (aref name (1- (length name)))))
-              (unless (member first-char '(?. ?# ?,))
-                (when (and (equal last-char ?+) (equal name current-folder))
-                  (setq name (substring name 0 (1- (length name)))))
-                (push
-                 (cons name
-                       (search-forward "(others)" (mh-line-end-position) t))
-                 results))))
-          (forward-line 1))))
+      (mh-sub-folders-parse folder current-folder))))
+
+(defun mh-sub-folders-parse (folder current-folder)
+  "Parse the results of \"folders FOLDER\" and return a list of sub-folders.
+CURRENT-FOLDER is the result of \"folder -fast\".
+FOLDER will be nil or start with '+'; CURRENT-FOLDER will end with '+'.
+This function is a testable helper of `mh-sub-folders-actual'."
+  (let ((results ()))
+    (goto-char (point-min))
+    (while (not (and (eolp) (bolp)))
+      (goto-char (line-end-position))
+      (let ((start-pos (line-beginning-position))
+            (has-pos (search-backward " has "
+                                      (line-beginning-position) t)))
+        (when (integerp has-pos)
+          (while (equal (char-after has-pos) ? )
+            (cl-decf has-pos))
+          (cl-incf has-pos)
+          (while (equal (char-after start-pos) ? )
+            (cl-incf start-pos))
+          (let* ((name (buffer-substring start-pos has-pos))
+                 (first-char (aref name 0))
+                 (second-char (and (length> name 1) (aref name 1)))
+                 (last-char (aref name (1- (length name)))))
+            (unless (member first-char '(?. ?# ?,))
+              (when (and (equal last-char ?+) (equal name current-folder))
+                (setq name (substring name 0 (1- (length name)))))
+              ;; nmh outputs double slash in root folder, e.g., "//tmp"
+              (when (and (equal first-char ?/) (equal second-char ?/))
+                (setq name (substring name 1)))
+              (push
+               (cons name
+                     (search-forward "(others)" (line-end-position) t))
+               results))))
+        (forward-line 1)))
     (setq results (nreverse results))
     (when (stringp folder)
       (setq results (cdr results))
       (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
+        (when (equal "+/" folder)
+          ;; folder "+/" includes a trailing slash
+          (cl-decf folder-name-len))
         (setq results (mapcar (lambda (f)
                                 (cons (substring (car f) folder-name-len)
                                       (cdr f)))
@@ -621,7 +623,7 @@ Here we will need to invalidate the cached sub-folders of +foo,
 otherwise completion on +foo won't tell us about the option
 +foo/bar!"
   (remhash folder mh-sub-folders-cache)
-  (block ancestor-found
+  (cl-block ancestor-found
     (let ((parent folder)
           (one-ancestor-found nil)
           last-slash)
@@ -630,7 +632,7 @@ otherwise completion on +foo won't tell us about the option
         (unless (eq (gethash parent  mh-sub-folders-cache 'none) 'none)
           (remhash parent mh-sub-folders-cache)
           (if one-ancestor-found
-              (return-from ancestor-found)
+              (cl-return-from ancestor-found)
             (setq one-ancestor-found t))))
       (remhash nil mh-sub-folders-cache))))
 
@@ -671,7 +673,7 @@ three arguments so we bind this variable to t or nil.
 This variable should never be set.")
 
 (defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-folder-completion-map " " 'minibuffer-complete)  ;Why???
+(define-key mh-folder-completion-map " " #'minibuffer-complete)  ;Why???
 
 (defvar mh-speed-flists-inhibit-flag nil)
 
@@ -702,11 +704,11 @@ See Info node `(elisp) Programmed Completion' for details."
                           (name (substring name 1))
                           (t ""))))
     (cond ((eq (car-safe flag) 'boundaries)
-           (list* 'boundaries
-                  (let ((slash (mh-search-from-end ?/ orig-name)))
-                    (if slash (1+ slash)
-                      (if (string-match "\\`\\+" orig-name) 1 0)))
-                  (if (cdr flag) (string-match "/" (cdr flag)))))
+           (cl-list* 'boundaries
+                     (let ((slash (mh-search-from-end ?/ orig-name)))
+                       (if slash (1+ slash)
+                         (if (string-match "\\`\\+" orig-name) 1 0)))
+                     (if (cdr flag) (string-search "/" (cdr flag)))))
           ((eq flag nil)
            (let ((try-res
                   (try-completion
@@ -721,6 +723,8 @@ See Info node `(elisp) Programmed Completion' for details."
            (all-completions
             remainder (mh-sub-folders last-complete t) predicate))
           ((eq flag 'lambda)
+           ;; FIXME: if name starts with "/", `path' will end
+           ;; being a relative name without a leading + nor / !?  --Stef
            (let ((path (concat (unless (and (> (length name) 1)
                                             (eq (aref name 1) ?/))
                                  mh-user-path)
@@ -729,17 +733,12 @@ See Info node `(elisp) Programmed Completion' for details."
                    ((equal path mh-user-path) nil)
                    (t (file-directory-p path))))))))
 
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar completion-root-regexp))
-
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.
 If ALLOW-ROOT-FOLDER-FLAG is non-nil then \"+\" is allowed to be
 a folder name corresponding to `mh-user-path'."
   (mh-normalize-folder-name
-   (let ((completion-root-regexp "^[+/]")
-         (minibuffer-local-completion-map mh-folder-completion-map)
+   (let ((minibuffer-local-completion-map mh-folder-completion-map)
          (mh-allow-root-folder-flag allow-root-folder-flag))
      (completing-read prompt 'mh-folder-completion-function nil nil nil
                       'mh-folder-hist default))
@@ -758,10 +757,9 @@ function will accept the folder +, which means all folders when
 used in searching."
   (if (null default)
       (setq default ""))
-  (let* ((default-string (cond (default-string (format " (default %s)" default-string))
-                               ((equal "" default) "")
-                               (t (format " (default %s)" default))))
-         (prompt (format "%s folder%s: " prompt default-string))
+  (let* ((default-string (or default-string
+                             (if (equal default "") nil default)))
+         (prompt (format-prompt "%s folder" default-string prompt))
          (mh-current-folder-name mh-current-folder)
          read-name folder-name)
     (while (and (setq read-name (mh-folder-completing-read
@@ -876,18 +874,18 @@ in this situation."
     ;; In this situation, rfc822-goto-eoh doesn't go to the end of the
     ;; header. The replacement allows From_ lines in the mail header.
     (goto-char (point-min))
-    (loop for p = (re-search-forward
-                   "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
-          do (cond ((null p) (return))
-                   (t (goto-char (match-beginning 0))
-                      (unless (looking-at "From ") (return))
-                      (goto-char p))))
+    (cl-loop for p = (re-search-forward
+                      "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
+             do (cond ((null p) (cl-return))
+                      (t (goto-char (match-beginning 0))
+                         (unless (looking-at "From ") (cl-return))
+                         (goto-char p))))
     (point)))
 
 ;;;###mh-autoload
 (defun mh-header-field-beginning ()
   "Move to the beginning of the current header field.
-Handles RFC 822 continuation lines."
+Handle RFC 822 (or later) continuation lines."
   (beginning-of-line)
   (while (looking-at "^[ \t]")
     (forward-line -1)))
@@ -895,7 +893,7 @@ Handles RFC 822 continuation lines."
 ;;;###mh-autoload
 (defun mh-header-field-end ()
   "Move to the end of the current header field.
-Handles RFC 822 continuation lines."
+Handle RFC 822 (or later) continuation lines."
   (forward-line 1)
   (while (looking-at "^[ \t]")
     (forward-line 1))
@@ -918,17 +916,13 @@ Handles RFC 822 continuation lines."
 (defun mh-letter-skipped-header-field-p (field)
   "Check if FIELD is to be skipped."
   (let ((field (downcase field)))
-    (loop for x in mh-compose-skipped-header-fields
-          when (equal (downcase x) field) return t
-          finally return nil)))
+    (cl-loop for x in mh-compose-skipped-header-fields
+             when (equal (downcase x) field) return t
+             finally return nil)))
 
 (defvar mh-hidden-header-keymap
   (let ((map (make-sparse-keymap)))
-    (mh-do-in-gnu-emacs
-      (define-key map [mouse-2] 'mh-letter-toggle-header-field-display-button))
-    (mh-do-in-xemacs
-      (define-key map '(button2)
-        'mh-letter-toggle-header-field-display-button))
+    (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button)
     map))
 
 ;;;###mh-autoload
@@ -962,9 +956,9 @@ is hidden, if positive then the field is displayed."
                      (and (numberp arg)
                           (>= arg 0))
                      (and (eq arg 'long)
-                          (> (mh-line-beginning-position 5) end)))
+                          (> (line-beginning-position 5) end)))
                  (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (mh-line-end-position) t)
+                 (search-forward ":" (line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
                 ;; XXX Redesign to make usable by user. Perhaps use a positive
                 ;; numeric prefix to make that many lines visible.
@@ -1004,10 +998,12 @@ If the current line is too long truncate a part of it as well."
     (goto-char (point-min))
     (re-search-forward mh-signature-separator-regexp nil t)))
 
+;;;###mh-autoload
+(define-obsolete-function-alias 'mh-colors-available-p #'display-color-p "29.1")
+
 (provide 'mh-utils)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

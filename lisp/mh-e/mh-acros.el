@@ -1,6 +1,6 @@
-;;; mh-acros.el --- macros used in MH-E
+;;; mh-acros.el --- macros used in MH-E  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -36,51 +36,34 @@
 ;; because it's pointless to compile a file full of macros. But we
 ;; kept the name.
 
-;;; Change Log:
-
 ;;; Code:
 
-(require 'cl)
+(require 'cl-lib)
 
 
 
 ;;; Compatibility
 
-;; TODO: Replace `cl' with `cl-lib'.
-;; `cl' is deprecated in Emacs 24.3. Use `cl-lib' instead. However,
-;; we'll likely have to insert `cl-' before each use of a Common Lisp
-;; function.
-;;;###mh-autoload
-(defmacro mh-require-cl ()
-  "Macro to load \"cl\" if needed.
-
-Emacs coding conventions require that the \"cl\" package not be
-required at runtime. However, the \"cl\" package in Emacs 21.4
-and earlier left \"cl\" routines in their macro expansions. In
-particular, the expansion of (setf (gethash ...) ...) used
-functions in \"cl\" at run time. This macro recognizes that and
-loads \"cl\" appropriately."
-  (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
-      `(require 'cl)
-    `(eval-when-compile (require 'cl))))
-
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
-  (declare (debug t))
+  (declare (obsolete progn "29.1") (debug t) (indent defun))
   (unless (featurep 'xemacs) `(progn ,@body)))
-(put 'mh-do-in-gnu-emacs 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
   "Execute BODY if in XEmacs."
-  (declare (debug t))
+  (declare (obsolete ignore "29.1") (debug t) (indent defun))
   (when (featurep 'xemacs) `(progn ,@body)))
-(put 'mh-do-in-xemacs 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-funcall-if-exists (function &rest args)
   "Call FUNCTION with ARGS as parameters if it exists."
+  (declare (obsolete "use `(when (fboundp 'foo) (foo))' instead." "29.1")
+           (debug (symbolp body)))
+  ;; FIXME: Not clear when this should be used.  If the function happens
+  ;; not to exist at compile-time (e.g. because the corresponding package
+  ;; wasn't loaded), then it won't ever be used :-(
   (when (fboundp function)
     `(when (fboundp ',function)
        (funcall ',function ,@args))))
@@ -90,24 +73,26 @@ loads \"cl\" appropriately."
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
-  `(if (fboundp ',function)
-       (defalias ',name ',function)
-     (defun ,name ,arg-list ,@body)))
-(put 'defun-mh 'lisp-indent-function 'defun)
-(put 'defun-mh 'doc-string-elt 4)
+  (declare (obsolete defun "29.1")
+           (indent defun) (doc-string 4)
+           (debug (&define name symbolp sexp def-body)))
+  `(defalias ',name
+     (if (fboundp ',function)
+         ',function
+       (lambda ,arg-list ,@body))))
 
 ;;;###mh-autoload
 (defmacro defmacro-mh (name macro arg-list &rest body)
   "Create macro NAME.
 If MACRO exists, then NAME becomes an alias for MACRO.
 Otherwise, create macro NAME with ARG-LIST and BODY."
+  (declare (obsolete defmacro "29.1")
+           (indent defun) (doc-string 4)
+           (debug (&define name symbolp sexp def-body)))
   (let ((defined-p (fboundp macro)))
     (if defined-p
         `(defalias ',name ',macro)
       `(defmacro ,name ,arg-list ,@body))))
-(put 'defmacro-mh 'lisp-indent-function 'defun)
-(put 'defmacro-mh 'doc-string-elt 4)
-
 
 
 ;;; Miscellaneous
@@ -117,65 +102,20 @@ Otherwise, create macro NAME with ARG-LIST and BODY."
   "Make HOOK local if needed.
 XEmacs and versions of GNU Emacs before 21.1 require
 `make-local-hook' to be called."
+  (declare (obsolete nil "29.1"))
   (when (and (fboundp 'make-local-hook)
              (not (get 'make-local-hook 'byte-obsolete-info)))
     `(make-local-hook ,hook)))
 
 ;;;###mh-autoload
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
-  "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
-In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
-check if variable `transient-mark-mode' is active."
-  (cond ((featurep 'xemacs)             ;XEmacs
-         `(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
-        ((not check-transient-mark-mode-flag) ;GNU Emacs
-         `(and (boundp 'mark-active) mark-active))
-        (t                              ;GNU Emacs
-         `(and (boundp 'transient-mark-mode) transient-mark-mode
-               (boundp 'mark-active) mark-active))))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar struct)
-  (defvar x)
-  (defvar y))
-
-;;;###mh-autoload
-(defmacro mh-defstruct (name-spec &rest fields)
-  "Replacement for `defstruct' from the \"cl\" package.
-The `defstruct' in the \"cl\" library produces compiler warnings,
-and generates code that uses functions present in \"cl\" at
-run-time. This is a partial replacement, that avoids these
-issues.
-
-NAME-SPEC declares the name of the structure, while FIELDS
-describes the various structure fields. Lookup `defstruct' for
-more details."
-  (let* ((struct-name (if (atom name-spec) name-spec (car name-spec)))
-         (conc-name (or (and (consp name-spec)
-                             (cadr (assoc :conc-name (cdr name-spec))))
-                        (format "%s-" struct-name)))
-         (predicate (intern (format "%s-p" struct-name)))
-         (constructor (or (and (consp name-spec)
-                               (cadr (assoc :constructor (cdr name-spec))))
-                          (intern (format "make-%s" struct-name))))
-         (field-names (mapcar #'(lambda (x) (if (atom x) x (car x))) fields))
-         (field-init-forms (mapcar #'(lambda (x) (and (consp x) (cadr x)))
-                                   fields))
-         (struct (gensym "S"))
-         (x (gensym "X"))
-         (y (gensym "Y")))
-    `(progn
-       (defun* ,constructor (&key ,@(mapcar* #'(lambda (x y) (list x y))
-                                             field-names field-init-forms))
-         (list (quote ,struct-name) ,@field-names))
-       (defun ,predicate (arg)
-         (and (consp arg) (eq (car arg) (quote ,struct-name))))
-       ,@(loop for x from 1
-               for y in field-names
-               collect `(defmacro ,(intern (format "%s%s" conc-name y)) (z)
-                          (list 'nth ,x z)))
-       (quote ,struct-name))))
+  "If CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
+variable `transient-mark-mode' is active."
+  (declare (obsolete nil "29.1"))
+  (cond ((not check-transient-mark-mode-flag)
+         'mark-active)
+        (t
+         '(and transient-mark-mode mark-active))))
 
 ;;;###mh-autoload
 (defmacro with-mh-folder-updating (save-modification-flag &rest body)
@@ -184,7 +124,7 @@ Execute BODY, which can modify the folder buffer without having to
 worry about file locking or the read-only flag, and return its result.
 If SAVE-MODIFICATION-FLAG is non-nil, the buffer's modification flag
 is unchanged, otherwise it is cleared."
-  (declare (debug t))
+  (declare (debug t) (indent defun))
   (setq save-modification-flag (car save-modification-flag)) ; CL style
   `(prog1
        (let ((mh-folder-updating-mod-flag (buffer-modified-p))
@@ -196,14 +136,13 @@ is unchanged, otherwise it is cleared."
            (mh-set-folder-modified-p mh-folder-updating-mod-flag)))
      ,@(if (not save-modification-flag)
            '((mh-set-folder-modified-p nil)))))
-(put 'with-mh-folder-updating 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-in-show-buffer (show-buffer &rest body)
   "Format is (mh-in-show-buffer (SHOW-BUFFER) &body BODY).
 Display buffer SHOW-BUFFER in other window and execute BODY in it.
 Stronger than `save-excursion', weaker than `save-window-excursion'."
-  (declare (debug t))
+  (declare (debug t) (indent defun))
   (setq show-buffer (car show-buffer))  ; CL style
   `(let ((mh-in-show-buffer-saved-window (selected-window)))
      (switch-to-buffer-other-window ,show-buffer)
@@ -212,27 +151,22 @@ Stronger than `save-excursion', weaker than `save-window-excursion'."
          (progn
            ,@body)
        (select-window mh-in-show-buffer-saved-window))))
-(put 'mh-in-show-buffer 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-do-at-event-location (event &rest body)
   "Switch to the location of EVENT and execute BODY.
-After BODY has been executed return to original window. The
-modification flag of the buffer in the event window is
+After BODY has been executed return to original window.
+The modification flag of the buffer in the event window is
 preserved."
-  (declare (debug t))
+  (declare (debug t) (indent defun))
   (let ((event-window (make-symbol "event-window"))
         (event-position (make-symbol "event-position"))
         (original-window (make-symbol "original-window"))
         (original-position (make-symbol "original-position"))
         (modified-flag (make-symbol "modified-flag")))
     `(save-excursion
-       (let* ((,event-window
-               (or (mh-funcall-if-exists posn-window (event-start ,event))
-                   (mh-funcall-if-exists event-window ,event)))
-              (,event-position
-               (or (mh-funcall-if-exists posn-point (event-start ,event))
-                   (mh-funcall-if-exists event-closest-point ,event)))
+       (let* ((,event-window (posn-window (event-start ,event)))
+              (,event-position (posn-point (event-start ,event)))
               (,original-window (selected-window))
               (,original-position (progn
                                    (set-buffer (window-buffer ,event-window))
@@ -247,7 +181,6 @@ preserved."
            (goto-char ,original-position)
            (set-marker ,original-position nil)
            (select-window ,original-window))))))
-(put 'mh-do-at-event-location 'lisp-indent-hook 'defun)
 
 
 
@@ -263,10 +196,10 @@ preserved."
   "Iterate over region.
 
 VAR is bound to the message on the current line as we loop
-starting from BEGIN till END. In each step BODY is executed.
+starting from BEGIN till END.  In each step BODY is executed.
 
 If VAR is nil then the loop is executed without any binding."
-  (declare (debug (symbolp body)))
+  (declare (debug (symbolp body)) (indent defun))
   (unless (symbolp var)
     (error "Can not bind the non-symbol %s" var))
   (let ((binding-needed-flag var))
@@ -278,7 +211,6 @@ If VAR is nil then the loop is executed without any binding."
            (let ,(if binding-needed-flag `((,var (mh-get-msg-num t))) ())
              ,@body))
          (forward-line 1)))))
-(put 'mh-iterate-on-messages-in-region 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-iterate-on-range (var range &rest body)
@@ -287,12 +219,12 @@ If VAR is nil then the loop is executed without any binding."
 VAR is bound to each message in turn in a loop over RANGE, which
 can be a message number, a list of message numbers, a sequence, a
 region in a cons cell, or a MH range (something like last:20) in
-a string. In each iteration, BODY is executed.
+a string.  In each iteration, BODY is executed.
 
 The parameter RANGE is usually created with
 `mh-interactive-range' in order to provide a uniform interface to
 MH-E functions."
-  (declare (debug (symbolp body)))
+  (declare (debug (symbolp body)) (indent defun))
   (unless (symbolp var)
     (error "Can not bind the non-symbol %s" var))
   (let ((binding-needed-flag var)
@@ -320,13 +252,42 @@ MH-E functions."
                   (when (gethash v ,seq-hash-table)
                     (let ,(if binding-needed-flag `((,var v)) ())
                       ,@body))))))))
-(put 'mh-iterate-on-range 'lisp-indent-hook 'defun)
+
+(defmacro mh-dlet* (binders &rest body)
+  "Like `let*' but always dynamically scoped."
+  (declare (debug let) (indent 1))
+  ;; Works in both lexical and non-lexical mode.
+  `(progn
+     (with-suppressed-warnings ((lexical
+                                 ,@(mapcar (lambda (binder)
+                                             (if (consp binder)
+                                                 (car binder)
+                                               binder))
+                                           binders)))
+       ,@(mapcar (lambda (binder)
+                   `(defvar ,(if (consp binder) (car binder) binder)))
+                 binders)
+       (let* ,binders ,@body))))
+
+;; Emacs 24 made flet obsolete and suggested either cl-flet or
+;; cl-letf. This macro is based upon gmm-flet from Gnus.
+(defmacro mh-flet (bindings &rest body)
+  "Make temporary overriding function definitions.
+That is, temporarily rebind the functions listed in BINDINGS and then
+execute BODY.  BINDINGS is a list containing one or more lists of the
+form (FUNCNAME ARGLIST BODY...), similar to defun."
+  (declare (indent 1) (debug ((&rest (sexp sexp &rest form)) &rest form)))
+  (if (fboundp 'cl-letf)
+      `(cl-letf ,(mapcar (lambda (binding)
+                           `((symbol-function ',(car binding))
+                             (lambda ,@(cdr binding))))
+                         bindings)
+         ,@body)
+    `(flet ,bindings ,@body)))
 
 (provide 'mh-acros)
 
 ;; Local Variables:
-;; no-byte-compile: t
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -1,10 +1,10 @@
-;;; password-cache.el --- Read passwords, possibly using a password cache.
+;;; password-cache.el --- Read passwords, possibly using a password cache.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2003-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2003-2022 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 2003-12-21
-;; Keywords: password cache passphrase key
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
@@ -31,7 +31,8 @@
 ;; ;; Minibuffer prompt for password.
 ;;  => "foo"
 ;;
-;; (password-cache-add "test" "foo")
+;; (password-cache-add "test" (read-passwd "Password? "))
+;; ;; Minibuffer prompt from read-passwd, which returns "foo".
 ;;  => nil
 
 ;; (password-read "Password? " "test")
@@ -81,7 +82,8 @@ regulate cache behavior."
   "Check if KEY is in the cache."
   (and password-cache
        key
-       (gethash key password-data)))
+       (not (eq (gethash key password-data 'password-cache-no-data)
+                'password-cache-no-data))))
 
 (defun password-read (prompt &optional key)
   "Read password, for use with KEY, from user, or from cache if wanted.
@@ -92,22 +94,6 @@ The variable `password-cache' control whether the cache is used."
   (or (password-read-from-cache key)
       (read-passwd prompt)))
 
-(defun password-read-and-add (prompt &optional key)
-  "Read password, for use with KEY, from user, or from cache if wanted.
-Then store the password in the cache.  Uses `password-read' and
-`password-cache-add'.  Custom variables `password-cache' and
-`password-cache-expiry' regulate cache behavior.
-
-Warning: the password is cached without checking that it is
-correct.  It is better to check the password before caching.  If
-you must use this function, take care to check passwords and
-remove incorrect ones from the cache."
-  (declare (obsolete password-read "23.1"))
-  (let ((password (password-read prompt key)))
-    (when (and password key)
-      (password-cache-add key password))
-    password))
-
 (defun password-cache-remove (key)
   "Remove password indexed by KEY from password cache.
 This is typically run by a timer setup from `password-cache-add',
@@ -117,15 +103,15 @@ that a password is invalid, so that `password-read' query the
 user again."
   (let ((password (gethash key password-data)))
     (when (stringp password)
-      (if (fboundp 'clear-string)
-          (clear-string password)
-        (fillarray password ?_)))
+      (clear-string password))
     (remhash key password-data)))
 
 (defun password-cache-add (key password)
   "Add password to cache.
 The password is removed by a timer after `password-cache-expiry' seconds."
-  (when (and password-cache-expiry (null (gethash key password-data)))
+  (when (and password-cache-expiry
+             (eq (gethash key password-data 'password-cache-no-data)
+                 'password-cache-no-data))
     (run-at-time password-cache-expiry nil
 		 #'password-cache-remove
 		 key))

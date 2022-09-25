@@ -337,7 +337,7 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
   return other == node;
 }
 
-/* Remove NODE from TREE and return it. NODE must exist in TREE.*/
+/* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
 
 struct interval_node*
 interval_tree_remove (struct interval_tree *tree, struct interval_node *node)

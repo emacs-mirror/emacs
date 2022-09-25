@@ -1,6 +1,6 @@
-;;; url-domsuf.el --- Say what domain names can have cookies set.
+;;; url-domsuf.el --- Say what domain names can have cookies set.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;; The rules for what domains can have cookies set is defined here:
-;; http://publicsuffix.org/list/
+;; https://publicsuffix.org/list/
 
 ;;; Code:
 
@@ -86,17 +86,6 @@
 	     (string= entry upper-domain))
 	(setq allowedp nil))))
     allowedp))
-
-;; Tests:
-
-;; TODO convert to a proper test.
-;; (url-domsuf-cookie-allowed-p "com") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.bd") => t
-;; (url-domsuf-cookie-allowed-p "bar.bd") => nil
-;; (url-domsuf-cookie-allowed-p "co.uk") => nil
-;; (url-domsuf-cookie-allowed-p "foo.bar.hokkaido.jo") => t
-;; (url-domsuf-cookie-allowed-p "bar.yokohama.jp") => nil
-;; (url-domsuf-cookie-allowed-p "city.yokohama.jp") => t
 
 (provide 'url-domsuf)
 

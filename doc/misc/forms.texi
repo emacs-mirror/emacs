@@ -6,6 +6,7 @@
 @setfilename ../../info/forms.info
 @settitle Forms Mode User's Manual
 @include docstyle.texi
+@include emacsver.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @syncodeindex ky cp
@@ -19,7 +20,8 @@
 @copying
 This file documents Forms mode, a form-editing major mode for GNU Emacs.
 
-Copyright @copyright{} 1989, 1997, 2001--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1997, 2001--2022 Free Software Foundation,
+Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -46,7 +48,7 @@ modify this GNU manual.''
 @sp 4
 @center Forms-Mode version 2
 @sp 1
-@center for GNU Emacs 22.1
+@center for GNU Emacs @value{EMACSVER}
 @sp 1
 @center April 2007
 @sp 5
@@ -263,14 +265,14 @@ prompted for confirmation before the record is deleted unless a numeric
 argument has been provided.
 
 @findex forms-search-forward
-@kindex C-c C-s @var{regexp} @key{RET}
+@kindex C-c C-s @var{regexp} RET
 @item C-c C-s @var{regexp} @key{RET}
 Search forward for @var{regexp} in all records following this one
 (@code{forms-search-forward}).  If found, this record is shown.
 If you give an empty argument, the previous regexp is used again.
 
 @findex forms-search-backward
-@kindex C-c C-r @var{regexp} @key{RET}
+@kindex C-c C-r @var{regexp} RET
 @item C-c C-r @var{regexp} @key{RET}
 Search backward for @var{regexp} in all records following this one
 (@code{forms-search-backward}).  If found, this record is shown.
@@ -334,25 +336,25 @@ The following function key definitions are set up in Forms mode
 (whether read-only or not):
 
 @table @kbd
-@kindex next
-@item next
+@kindex NEXT
+@item @key{NEXT}
 forms-next-record
 
-@kindex prior
-@item prior
+@kindex PRIOR
+@item @key{PRIOR}
 forms-prev-record
 
-@kindex begin
-@item begin
+@kindex BEGIN
+@item @key{BEGIN}
 forms-first-record
 
-@kindex end
-@item end
+@kindex END
+@item @key{END}
 forms-last-record
 
-@kindex S-Tab
+@kindex S-TAB
 @findex forms-prev-field
-@item S-Tab
+@item S-@key{TAB}
 forms-prev-field
 @end table
 
@@ -431,7 +433,7 @@ file.  Example:
 If the control file does not set @code{forms-format-list} a default
 format is used.  In this situation, Forms mode will deduce the number of
 fields from the data file providing this file exists and
-@code{forms-number-of-records} has not been set in the control file.
+@code{forms-number-of-fields} has not been set in the control file.
 
 The control file can optionally set the following additional Forms mode
 variables.  Most of them have default values that are good for most
@@ -657,15 +659,6 @@ displayed record.  You cannot delete or modify the fixed, explanatory
 text that comes from string formatting elements, but you can modify the
 actual field contents.
 
-@ignore
-@c This is for the Emacs 18 version only.
-If the contents of the forms cannot be recognized properly, this is
-signaled using a descriptive text.  @xref{Error Messages}, for more info.
-The cursor will indicate the last part of the forms which was
-successfully parsed.  It's important to avoid entering field contents
-that would cause confusion with the field-separating fixed text.
-@end ignore
-
 If the variable @code{forms-modified-record-filter} is non-@code{nil},
 it is called as a function before the new data is written to the data
 file.  The function receives one argument, a vector that contains the
@@ -793,23 +786,6 @@ The first element of a list which is an element of
 @item Forms format error: invalid element @var{xx}
 A list element was supplied in @code{forms-format-list} which was not a
 string, number or list.
-
-@ignore
-@c This applies to Emacs 18 only.
-@c Error messages generated while a modified form is being analyzed.
-
-@item Parse error: not looking at `...'
-When re-parsing the contents of a forms, the text shown could not
-be found.
-
-@item Parse error: cannot find `...'
-When re-parsing the contents of a forms, the text shown, which
-separates two fields, could not be found.
-
-@item Parse error: cannot parse adjacent fields @var{xx} and @var{yy}
-Fields @var{xx} and @var{yy} were not separated by text, so could not be
-parsed again.
-@end ignore
 
 @item Warning: this record has @var{xx} fields instead of @var{yy}
 The number of fields in this record in the data file did not match

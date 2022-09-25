@@ -1,10 +1,10 @@
-;;; cal-menu.el --- calendar functions for menu bar and popup menu support
+;;; cal-menu.el --- calendar functions for menu bar and popup menu support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, popup menus, menu bar
 ;; Package: calendar
@@ -100,13 +100,13 @@
         ;; Show 11 years--5 before, 5 after year of middle month.
         ;; We used to use :suffix rather than :label and bumped into
         ;; an easymenu bug:
-        ;; https://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01813.html
+        ;; https://lists.gnu.org/r/emacs-devel/2007-11/msg01813.html
         ;; The bug has since been fixed.
         (dotimes (i 11)
           (push (vector (format "hol-year-%d" i)
-                        `(lambda ()
-                           (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))))
+                        (lambda ()
+                          (interactive)
+                          (holiday-list (+ displayed-year (- i 5))))
                         :label `(format "For Year %d"
                                        (+ displayed-year ,(- i 5))))
                 l))
@@ -182,6 +182,8 @@ Signals an error if popups are unavailable."
 (autoload 'diary-list-entries "diary-lib")
 ;; Autoloaded in diary-lib.
 (declare-function calendar-check-holidays "holidays" (date))
+
+(defvar diary-list-include-blanks)
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.

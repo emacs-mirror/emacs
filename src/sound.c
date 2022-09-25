@@ -1,6 +1,8 @@
 /* sound.c -- sound support.
 
-Copyright (C) 1998-1999, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1998-1999, 2001-2022 Free Software Foundation, Inc.
+
+Author: Gerd Moellmann <gerd@gnu.org>
 
 This file is part of GNU Emacs.
 
@@ -17,8 +19,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
-   driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
+/* Tested with Luigi's driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
 
 /*
   Modified by Ben Key <Bkey1@tampabay.rr.com> to add a partial
@@ -71,12 +72,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <soundcard.h>
 #endif
 #ifdef HAVE_ALSA
-#ifdef ALSA_SUBDIR_INCLUDE
 #include <alsa/asoundlib.h>
-#else
-#include <asoundlib.h>
-#endif /* ALSA_SUBDIR_INCLUDE */
-#endif /* HAVE_ALSA */
+#endif
 
 /* END: Non Windows Includes */
 
@@ -296,17 +293,21 @@ static int do_play_sound (const char *, unsigned long);
 #ifndef WINDOWSNT
 /* Like perror, but signals an error.  */
 
-static _Noreturn void
+static AVOID
 sound_perror (const char *msg)
 {
   int saved_errno = errno;
 
   turn_on_atimers (1);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   {
     sigset_t unblocked;
     sigemptyset (&unblocked);
+#ifdef USABLE_SIGIO
     sigaddset (&unblocked, SIGIO);
+#else
+    sigaddset (&unblocked, SIGPOLL);
+#endif
     pthread_sigmask (SIG_UNBLOCK, &unblocked, 0);
   }
 #endif
@@ -360,10 +361,10 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
     return 0;
 
   sound = XCDR (sound);
-  attrs[SOUND_FILE] = Fplist_get (sound, QCfile);
-  attrs[SOUND_DATA] = Fplist_get (sound, QCdata);
-  attrs[SOUND_DEVICE] = Fplist_get (sound, QCdevice);
-  attrs[SOUND_VOLUME] = Fplist_get (sound, QCvolume);
+  attrs[SOUND_FILE] = plist_get (sound, QCfile);
+  attrs[SOUND_DATA] = plist_get (sound, QCdata);
+  attrs[SOUND_DEVICE] = plist_get (sound, QCdevice);
+  attrs[SOUND_VOLUME] = plist_get (sound, QCvolume);
 
 #ifndef WINDOWSNT
   /* File name or data must be specified.  */
@@ -384,9 +385,9 @@ parse_sound (Lisp_Object sound, Lisp_Object *attrs)
   /* Volume must be in the range 0..100 or unspecified.  */
   if (!NILP (attrs[SOUND_VOLUME]))
     {
-      if (INTEGERP (attrs[SOUND_VOLUME]))
+      if (FIXNUMP (attrs[SOUND_VOLUME]))
 	{
-	  EMACS_INT volume = XINT (attrs[SOUND_VOLUME]);
+	  EMACS_INT volume = XFIXNUM (attrs[SOUND_VOLUME]);
 	  if (! (0 <= volume && volume <= 100))
 	    return 0;
 	}
@@ -701,7 +702,7 @@ static void
 vox_configure (struct sound_device *sd)
 {
   int val;
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   sigset_t oldset, blocked;
 #endif
 
@@ -711,9 +712,13 @@ vox_configure (struct sound_device *sd)
      interrupted by a signal.  Block the ones we know to cause
      troubles.  */
   turn_on_atimers (0);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   sigemptyset (&blocked);
+#ifdef USABLE_SIGIO
   sigaddset (&blocked, SIGIO);
+#else
+  sigaddset (&blocked, SIGPOLL);
+#endif
   pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 #endif
 
@@ -747,7 +752,7 @@ vox_configure (struct sound_device *sd)
     }
 
   turn_on_atimers (1);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
   pthread_sigmask (SIG_SETMASK, &oldset, 0);
 #endif
 }
@@ -763,10 +768,14 @@ vox_close (struct sound_device *sd)
       /* On GNU/Linux, it seems that the device driver doesn't like to
 	 be interrupted by a signal.  Block the ones we know to cause
 	 troubles.  */
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       sigset_t blocked, oldset;
       sigemptyset (&blocked);
+#ifdef USABLE_SIGIO
       sigaddset (&blocked, SIGIO);
+#else
+      sigaddset (&blocked, SIGPOLL);
+#endif
       pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
 #endif
       turn_on_atimers (0);
@@ -775,7 +784,7 @@ vox_close (struct sound_device *sd)
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
 
       turn_on_atimers (1);
-#ifdef USABLE_SIGIO
+#if defined (USABLE_SIGIO) || defined (USABLE_SIGPOLL)
       pthread_sigmask (SIG_SETMASK, &oldset, 0);
 #endif
 
@@ -873,7 +882,7 @@ vox_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 #define DEFAULT_ALSA_SOUND_DEVICE "default"
 #endif
 
-static _Noreturn void
+static AVOID
 alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
@@ -1118,7 +1127,7 @@ alsa_write (struct sound_device *sd, const char *buffer, ptrdiff_t nbytes)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
 
-  /* The the third parameter to snd_pcm_writei is frames, not bytes. */
+  /* The third parameter to snd_pcm_writei is frames, not bytes. */
   int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
   ptrdiff_t nwritten = 0;
   int err;
@@ -1350,7 +1359,7 @@ Internal use only, use `play-sound' instead.  */)
   (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
 #ifdef WINDOWSNT
   unsigned long ui_volume_tmp = UINT_MAX;
@@ -1373,8 +1382,9 @@ Internal use only, use `play-sound' instead.  */)
   if (STRINGP (attrs[SOUND_FILE]))
     {
       /* Open the sound file.  */
-      current_sound->fd = openp (list1 (Vdata_directory),
-				 attrs[SOUND_FILE], Qnil, &file, Qnil, false);
+      current_sound->fd =
+	openp (list1 (Vdata_directory), attrs[SOUND_FILE], Qnil, &file, Qnil,
+	       false, false);
       if (current_sound->fd < 0)
 	sound_perror ("Could not open sound file");
 
@@ -1399,8 +1409,8 @@ Internal use only, use `play-sound' instead.  */)
   /* Set up a device.  */
   current_sound_device->file = attrs[SOUND_DEVICE];
 
-  if (INTEGERP (attrs[SOUND_VOLUME]))
-    current_sound_device->volume = XFASTINT (attrs[SOUND_VOLUME]);
+  if (FIXNUMP (attrs[SOUND_VOLUME]))
+    current_sound_device->volume = XFIXNAT (attrs[SOUND_VOLUME]);
   else if (FLOATP (attrs[SOUND_VOLUME]))
     current_sound_device->volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
 
@@ -1422,9 +1432,9 @@ Internal use only, use `play-sound' instead.  */)
 
   file = Fexpand_file_name (attrs[SOUND_FILE], Vdata_directory);
   file = ENCODE_FILE (file);
-  if (INTEGERP (attrs[SOUND_VOLUME]))
+  if (FIXNUMP (attrs[SOUND_VOLUME]))
     {
-      ui_volume_tmp = XFASTINT (attrs[SOUND_VOLUME]);
+      ui_volume_tmp = XFIXNAT (attrs[SOUND_VOLUME]);
     }
   else if (FLOATP (attrs[SOUND_VOLUME]))
     {

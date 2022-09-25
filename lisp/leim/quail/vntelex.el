@@ -1,8 +1,8 @@
-;;; vntelex.el --- Quail package for Vietnamese by Telex method
+;;; vntelex.el --- Quail package for Vietnamese by Telex method  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
-;; Author:   Werner Lemberg <wl@gnu.org>
+;; Author: Werner Lemberg <wl@gnu.org>
 ;; Keywords: multilingual, input method, Vietnamese
 
 ;; This file is part of GNU Emacs.

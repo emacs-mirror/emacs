@@ -1,0 +1,94 @@
+Copyright (C) 2001-2022 Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+		      Precompiled Distributions of
+			   Emacs for Windows
+
+                           Jan 14, 2021
+
+  This directory contains precompiled distributions for GNU Emacs on
+  Windows
+
+IMPORTANT LEGAL REMINDER
+========================
+
+If you want to redistribute any of the precompiled distributions of
+Emacs, be careful to check the implications of the GPL.  For instance,
+if you put the compiled file from this directory on an Internet site,
+you must arrange to distribute the source files of the SAME version.
+
+Making a link to our copy of the source is NOT sufficient, since we
+might upgrade to a new version while you are still distributing the
+old binaries.
+
+
+Windows Binaries
+================
+
+Currently, we provide three different binary packages for Emacs, which
+are:
+
+emacs-$VERSION-installer.exe
+
+Contains Emacs with dependencies as an installer
+package.  Mostly, this is the best one to install.
+
+emacs-$VERSION.zip
+
+Contains Emacs with dependencies.  This contains the same files as the
+installer but as a zip file which some users may prefer.
+
+emacs-$VERSION-no-deps.zip
+
+Contains Emacs without any dependencies. This may be useful if you
+wish to install where the dependencies are already available, or if
+you want the small possible Emacs.
+
+In addition, we provide the following files which will not be useful
+for most end-users.
+
+emacs-$VERSION-deps.zip
+
+The dependencies. Unzipping this file on top of
+emacs-$VERSION-no-deps.zip should result in the same install as
+emacs-$VERSION.zip.
+
+emacs-$VERSION-deps-mingw-w64-src.zip
+
+The source for the dependencies.  Source for Emacs itself is available
+in the main distribution tarball.  These dependencies were produced
+from an updated msys2 at the point of the first pre-test.  It is not
+intended that these will be updated after that point.
+
+Source for Emacs itself is found in the directory above.
+
+Snapshots
+=========
+
+We also distribute "snapshots" of Emacs built at points throughout the
+development cycle, for those interested in following this cycle.  They
+are not recommended for normal users; however, they are useful for
+people who want to report bugs against the current master.
+
+The files follow the same naming convention, but also include a date
+(and sometimes information about their branch).  The Emacs source at
+the time of these builds is also distributed.
+
+
+LICENSE
+======
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.

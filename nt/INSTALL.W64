@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2017 Free Software Foundation, Inc.
+  Copyright (c) 2015-2022 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
@@ -22,7 +22,7 @@ MinGW-w64 provides a complete runtime for projects built with GCC for 64-bit
 Windows -- it's located at http://mingw-w64.org/.
 
 MSYS2 is a Cygwin-derived software distribution for Windows which provides
-build tools for MinGW-w64 -- see http://msys2.github.io/.
+build tools for MinGW-w64 -- see https://msys2.github.io/.
 
 ** Download and install MinGW-w64 and MSYS2
 
@@ -35,27 +35,15 @@ Run this file to install MSYS2 in your preferred directory, e.g. the default
 C:\msys64 -- this will install MinGW-w64 also.  Note that directory names
 containing spaces may cause problems.
 
-Then you'll need to add the following directories to your Windows PATH
-environment variable:
-
-  c:\msys64\usr\bin;c:\msys64\mingw64\bin
-
-you can do this through Control Panel / System and Security / System /
-Advanced system settings / Environment Variables / Edit path.
-
-Adding these directories to your PATH tells Emacs where to find the DLLs it
-needs to run, and some optional commands like grep and find.  These commands
-will also be available at the Windows console.
-
 ** Download and install the necessary packages
 
-Run msys2_shell.bat in your MSYS2 directory and you will see a BASH window
+Run c:/msys64/msys2.exe in your MSYS2 directory and you will see a BASH window
 opened.
 
 In the BASH prompt, use the following command to install the necessary
 packages (you can copy and paste it into the shell with Shift + Insert):
 
-  pacman -S base-devel \
+  pacman -S --needed base-devel \
   mingw-w64-x86_64-toolchain \
   mingw-w64-x86_64-xpm-nox \
   mingw-w64-x86_64-libtiff \
@@ -63,17 +51,21 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-libpng \
   mingw-w64-x86_64-libjpeg-turbo \
   mingw-w64-x86_64-librsvg \
-  mingw-w64-x86_64-liblcms2 \
+  mingw-w64-x86_64-libwebp \
+  mingw-w64-x86_64-lcms2 \
+  mingw-w64-x86_64-jansson \
   mingw-w64-x86_64-libxml2 \
   mingw-w64-x86_64-gnutls \
-  mingw-w64-x86_64-zlib
+  mingw-w64-x86_64-zlib \
+  mingw-w64-x86_64-harfbuzz
 
 The packages include the base developer tools (autoconf, grep, make, etc.),
 the compiler toolchain (gcc, gdb, etc.), several image libraries, an XML
-library, the GnuTLS (transport layer security) library, and zlib for
-decompressing text.  Only the first three packages are required (base-devel,
-toolchain, xpm-nox); the rest are optional.  You can select only part of the
-libraries if you don't need them all.
+library, the GnuTLS (transport layer security) library, zlib for
+decompressing text, and HarfBuzz for use as the shaping engine.  Only the
+first three packages are required (base-devel,  toolchain, xpm-nox); the
+rest are optional.  You can select only part of the libraries if you don't
+need them all.
 
 You now have a complete build environment for Emacs.
 
@@ -126,7 +118,7 @@ Now you're ready to build and install Emacs with autogen, configure, make,
 and make install.
 
 First we need to switch to the MinGW-w64 environment.  Exit the MSYS2 BASH
-console and run mingw64_shell.bat in the C:\msys64 folder, then cd back to
+console and run mingw64.exe in the C:\msys64 folder, then cd back to
 your Emacs source directory, e.g.:
 
   cd /c/emacs/emacs-26
@@ -150,11 +142,10 @@ which 'make install' will use - in this example we set it to C:\emacs\emacs-26.
 If a prefix is not specified the files will be put in the standard Unix
 directories located in your C:\msys64 directory, but this is not recommended.
 
-Note also that we need to disable Imagemagick because Emacs does not yet
-support it on Windows.
+Note also that we need to disable D-Bus because Emacs does not yet
+support them on Windows.
 
-  PKG_CONFIG_PATH=/mingw64/lib/pkgconfig \
-  ./configure --prefix=/c/emacs/emacs-26 --without-imagemagick
+  ./configure --prefix=/c/emacs/emacs-26 --without-dbus
 
 ** Run make
 
@@ -192,6 +183,14 @@ To test it out, run
 
 and if all went well, you will have a new 64-bit version of Emacs.
 
+When running Emacs from outside the mingw64 shell, you will need to
+add c:\msys64\mingw64\bin to your Windows PATH, or copy the needed
+DLLs into Emacs' bin/ directory.  Otherwise features such as TLS which
+depend on those DLLs will be missing.
+
+You can do this through Control Panel / System and Security / System /
+Advanced system settings / Environment Variables / Edit path.
+
 * Make a shortcut
 
 To make a shortcut to run the new Emacs, right click on the location where you
@@ -201,6 +200,51 @@ runemacs.exe in the bin folder of the new Emacs, and give it a name.
 You can set any command line options by right clicking on the resulting
 shortcut, select Properties, then add any options to the Target command,
 e.g. --debug-init.
+
+* Troubleshooting
+
+** Missing mingw64.exe launcher
+
+Older versions of Msys2 may lack the mingw64.exe launcher program.  If
+you have them, running mingw64_shell.bat or "msys2_shell.cmd -mingw64"
+should work instead.
+
+Alternatively, install mingw64.exe with
+
+    pacman -S msys/msys2-launcher-git
+
+** Configure errors
+
+*** Check that mingw64 gcc is accessible
+
+Errors like
+
+    configure: error: Emacs does not support 'x86_64-pc-msys' systems.
+
+or
+
+    checking the compiler's target... configure: error: Impossible to obtain gcc compiler target.
+
+indicate you didn't use the mingw64 launcher, or you didn't install
+gcc.  It's also possible you have something in ~/.bashrc or ~/.profile
+which modifies PATH or MSYSTEM to an unexpected value, preventing gcc
+from being found.  At the mingw64 bash shell, running
+
+    gcc -v
+
+should give output which includes the text
+
+    Target: x86_64-w64-mingw32
+
+*** Check your $PKG_CONFIG_PATH
+
+For a typical MSYS2 install, running
+
+    echo $PKG_CONFIG_PATH
+
+at the mingw64 bash shell should give print a value starting with
+'/mingw64/lib/pkgconfig'.  Incorrect values may prevent configure from
+finding installed libraries.
 
 * Credits
 

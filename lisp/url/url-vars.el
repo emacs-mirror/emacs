@@ -1,7 +1,6 @@
-;;; url-vars.el --- Variables for Uniform Resource Locator tool
+;;; url-vars.el --- Variables for Uniform Resource Locator tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2017 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -20,10 +19,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Code:
+;;; Commentary:
 
-(defconst url-version "Emacs"
-  "Version number of URL package.")
+;;; Code:
 
 (defgroup url nil
   "Uniform Resource Locator tool."
@@ -54,17 +52,18 @@
   :group 'url)
 
 
-(defvar url-current-object nil
+(defvar-local url-current-object nil
   "A parsed representation of the current URL.")
 
-(defvar url-current-mime-headers nil
+(defvar-local url-current-mime-headers nil
   "A parsed representation of the MIME headers for the current URL.")
 
-(mapc 'make-variable-buffer-local
-      '(
-	url-current-object
-	url-current-mime-headers
-	))
+(defvar-local url-current-lastloc nil
+  "A parsed representation of the URL to be considered as the last location.
+Use of this value on outbound connections is subject to
+`url-privacy-level' and `url-lastloc-privacy-level'.  This is never set
+by the url library, applications are expected to set this
+variable in buffers representing a displayed location.")
 
 (defcustom url-honor-refresh-requests t
   "Whether to do automatic page reloads.
@@ -117,7 +116,7 @@ Valid symbols are:
 email    -- the email address
 os       -- the operating system info
 emacs    -- the version of Emacs
-lastloc  -- the last location
+lastloc  -- the last location (see also `url-lastloc-privacy-level')
 agent    -- do not send the User-Agent string
 cookies  -- never accept HTTP cookies
 
@@ -131,7 +130,7 @@ Samples:
 This variable controls several other variables and is _NOT_ automatically
 updated.  Call the function `url-setup-privacy-info' after modifying this
 variable."
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (sym val) (set-default sym val) (url-setup-privacy-info))
   :type '(radio (const :tag "None (you believe in the basic goodness of humanity)"
 		       :value none)
@@ -148,6 +147,23 @@ variable."
 			   (const :tag "Last location" :value lastloc)
 			   (const :tag "Browser identification" :value agent)
 			   (const :tag "No cookies" :value cookie)))
+  :group 'url)
+
+(defcustom url-lastloc-privacy-level 'domain-match
+  "Further restrictions on sending the last location.
+This value is only consulted if `url-privacy-level' permits
+sending last location in the first place.
+
+Valid values are:
+none          -- Always send last location.
+domain-match  -- Send last location if the new location is within the
+                 same domain
+host-match    -- Send last location if the new location is on the
+                 same host"
+  :version "27.1"
+  :type '(radio (const :tag "Always send" none)
+                (const :tag "Domains match" domain-match)
+                (const :tag "Hosts match" host-match))
   :group 'url)
 
 (defvar url-inhibit-uncompression nil "Do not do decompression if non-nil.")
@@ -187,10 +203,10 @@ from the ACCESS_proxy environment variables."
   :type 'boolean
   :group 'url-cache)
 
-(defvar url-mime-separator-chars (mapcar 'identity
-					(concat "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-						"abcdefghijklmnopqrstuvwxyz"
-						"0123456789'()+_,-./=?"))
+(defvar url-mime-separator-chars (append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+					 "abcdefghijklmnopqrstuvwxyz"
+					 "0123456789'()+_,-./=?"
+					 nil)
   "Characters allowable in a MIME multipart separator.")
 
 (defcustom url-bad-port-list
@@ -223,26 +239,22 @@ Should be an assoc list of headers/contents.")
   "String to send in the Accept-encoding: field in HTTP requests.")
 
 (defvar mm-mime-mule-charset-alist)
-(declare-function mm-coding-system-p "mm-util" (cs))
 
 ;; Perhaps the first few should actually be given decreasing `q's and
 ;; the list should be trimmed significantly.
-;; Fixme: do something sane if we don't have `sort-coding-systems'
-;; (Emacs 20, XEmacs).
 (defun url-mime-charset-string ()
   "Generate a list of preferred MIME charsets for HTTP requests.
 Generated according to current coding system priorities."
   (require 'mm-util)
-  (if (fboundp 'sort-coding-systems)
-      (let ((ordered (sort-coding-systems
-		      (let (accum)
-			(dolist (elt mm-mime-mule-charset-alist)
-			  (if (mm-coding-system-p (car elt))
-			      (push (car elt) accum)))
-			(nreverse accum)))))
-	(concat (format "%s;q=1, " (pop ordered))
-		(mapconcat 'symbol-name ordered ";q=0.5, ")
-		";q=0.5"))))
+  (let ((ordered (sort-coding-systems
+		  (let (accum)
+		    (dolist (elt mm-mime-mule-charset-alist)
+		      (if (coding-system-p (car elt))
+			  (push (car elt) accum)))
+		    (nreverse accum)))))
+    (concat (format "%s;q=1, " (pop ordered))
+	    (mapconcat #'symbol-name ordered ";q=0.5, ")
+	    ";q=0.5")))
 
 (defvar url-mime-charset-string nil
   "String to send in the Accept-charset: field in HTTP requests.
@@ -250,9 +262,8 @@ The MIME charset corresponding to the most preferred coding system is
 given priority 1 and the rest are given priority 0.5.")
 
 (defun url-set-mime-charset-string ()
+  (declare (obsolete nil "27.1"))
   (setq url-mime-charset-string (url-mime-charset-string)))
-;; Regenerate if the language environment changes.
-(add-hook 'set-language-environment-hook 'url-set-mime-charset-string)
 
 ;; Fixme: set from the locale.
 (defcustom url-mime-language-string nil
@@ -287,15 +298,8 @@ get the first available language (as opposed to the default)."
 (defcustom url-max-password-attempts 5
   "Maximum number of times a password will be prompted for.
 Applies when a protected document is denied by the server."
-  :type 'integer
+  :type 'natnum
   :group 'url)
-
-(defcustom url-temporary-directory (or (getenv "TMPDIR") "/tmp")
-  "Where temporary files go."
-  :type 'directory
-  :group 'url-file)
-(make-obsolete-variable 'url-temporary-directory
-			'temporary-file-directory "23.1")
 
 (defcustom url-show-status t
   "Whether to show a running total of bytes transferred.
@@ -306,7 +310,7 @@ a terminal with a slow modem."
 
 (defvar url-using-proxy nil
   "Either nil or the fully qualified proxy URL in use, e.g.
-http://www.example.com/")
+https://www.example.com/")
 
 (defcustom url-news-server nil
   "The default news server from which to get newsgroups/articles.
@@ -327,7 +331,7 @@ undefined."
 (defcustom url-max-redirections 30
   "The maximum number of redirection requests to honor in a HTTP connection.
 A negative number means to honor an unlimited number of redirection requests."
-  :type 'integer
+  :type 'natnum
   :group 'url)
 
 (defcustom url-confirmation-func 'y-or-n-p
@@ -346,13 +350,11 @@ Should be a symbol specifying how to get a connection from the local machine.
 
 Currently supported methods:
 `telnet': Run telnet in a subprocess to connect;
-`rlogin': Rlogin to another machine to connect;
 `socks': Connect through a socks server;
 `tls': Connect with TLS;
 `ssl': Connect with SSL (deprecated, use `tls' instead);
 `native': Connect directly."
   :type '(radio (const :tag "Telnet to gateway host" :value telnet)
-		(const :tag "Rlogin to gateway host" :value rlogin)
 		(const :tag "Use SOCKS proxy" :value socks)
 		(const :tag "Use SSL/TLS for all connections" :value tls)
 		(const :tag "Use SSL for all connections (obsolete)" :value ssl)
@@ -393,7 +395,7 @@ Should be one of:
 (defvar url-lazy-message-time 0)
 
 ;; Fixme: We may not be able to run SSL.
-(defvar url-extensions-header "Security/Digest Security/SSL")
+(defvar url-extensions-header nil)
 
 (defvar url-parse-syntax-table
   (copy-syntax-table emacs-lisp-mode-syntax-table)
@@ -409,6 +411,8 @@ Should be one of:
   "Hook run after initializing the URL library."
   :group 'url
   :type 'hook)
+(make-obsolete-variable 'url-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defconst url-working-buffer " *url-work")
 
@@ -417,6 +421,15 @@ Should be one of:
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
-(provide 'url-vars)
+(defun url-interactive-p ()
+  "Non-nil when the current request is from an interactive context."
+  (not (or url-request-noninteractive
+           (bound-and-true-p url-http-noninteractive))))
 
+;; Obsolete
+
+(defconst url-version "Emacs" "Version number of URL package.")
+(make-obsolete-variable 'url-version 'emacs-version "28.1")
+
+(provide 'url-vars)
 ;;; url-vars.el ends here

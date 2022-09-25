@@ -1,6 +1,6 @@
-;;; dissociate.el --- scramble text amusingly for Emacs
+;;; dissociate.el --- scramble text amusingly for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: games

@@ -5,7 +5,7 @@ Some documentation tips culled from emacs-devel postings.
 
 ** Manual indices
 
-https://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00400.html
+https://lists.gnu.org/r/emacs-devel/2008-10/msg00400.html
 
 For example, this text:
 
@@ -51,7 +51,7 @@ combine them into a single entry, e.g.:
 
 ** Point is a proper name
 
-https://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00414.html
+https://lists.gnu.org/r/emacs-devel/2008-10/msg00414.html
 
 In Emacs tradition, we treat "point" as a proper name when it refers
 to the current editing location. It should not have an article.
@@ -65,7 +65,7 @@ referring to point, please fix it.
 
 ** Don't use passive verbs
 
-https://lists.gnu.org/archive/html/emacs-devel/2008-10/msg00414.html
+https://lists.gnu.org/r/emacs-devel/2008-10/msg00414.html
 
 Documentation is clearer if it avoids the passive voice whenever
 possible.  For example, rather than saying "Point does not move", say
@@ -80,7 +80,7 @@ often provides important information which makes the text clearer, too.
 
 *** Why Antinews is useful
 
-https://lists.gnu.org/archive/html/emacs-devel/2008-11/msg00893.html
+https://lists.gnu.org/r/emacs-devel/2008-11/msg00893.html
 
 The usefulness of Antinews is to help people who buy the printed
 manual and are still using the previous Emacs version.  That's why we
@@ -91,7 +91,7 @@ Of course, we try to make it amusing as well.
 
 *** Don't mention in Antinews too many features absent in old versions
 
-https://lists.gnu.org/archive/html/emacs-devel/2008-11/msg01054.html
+https://lists.gnu.org/r/emacs-devel/2008-11/msg01054.html
 
 Since the purpose of Antinews is to help people use the previous Emacs
 version, there is usually no need to mention features that are simply
@@ -114,4 +114,4 @@ In those cases, the user might have trouble figuring out how to use
 the old version without some sort of help.
 
 ** To indicate possession, write Emacs's rather than Emacs'.
-https://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00649.html
+https://lists.gnu.org/r/emacs-devel/2012-02/msg00649.html

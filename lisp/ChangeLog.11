@@ -6395,7 +6395,7 @@
 	* vc-svn.el (vc-svn-checkin): Use `nconc' instead of `list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
 	Shawn Boyette <mdxi@collapsar.net> in
-	https://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
+	https://lists.gnu.org/r/emacs-devel/2004-05/msg00442.html.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -13392,7 +13392,7 @@
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Add Java ANt error detection as described in document
-	http://ant.apache.org/faq.html
+	https://ant.apache.org/faq.html
 
 2003-08-12  Juri Linkov  <juri@jurta.org>  (tiny change)
 
@@ -14321,7 +14321,7 @@ See ChangeLog.10 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-  Copyright (C) 2003-2011, 2013-2017 Free Software Foundation, Inc.
+  Copyright (C) 2003-2011, 2013-2022 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

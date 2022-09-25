@@ -1,9 +1,8 @@
-;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)
+;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.2
 ;; Package: ebnf2ps
@@ -39,12 +38,12 @@
 ;; ------------
 ;;
 ;;	See the URL:
-;;	`http://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
+;;	`https://www.w3.org/TR/2004/REC-xml-20040204/#sec-notation'
 ;;	(Extensible Markup Language (XML) 1.0 (Third Edition))
 ;;
 ;;
 ;; rule ::= symbol '::=' expression
-;; /* rules are separated by at least one blank line. */
+;; /* rules are separated by at least one blank line.  */
 ;;
 ;; expression ::= concatenation ('|' concatenation)*
 ;;
@@ -406,11 +405,10 @@
     (aset ebnf-ebx-token-table ?/  'comment)))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-non-terminal-chars
-  (ebnf-range-regexp "-_A-Za-z" ?\240 ?\377))
+  "-_A-Za-z\u00a0-\u00ff")
 (defconst ebnf-ebx-non-terminal-letter-chars
-  (ebnf-range-regexp "A-Za-z" ?\240 ?\377))
+  "A-Za-z\u00a0-\u00ff")
 
 
 (defun ebnf-ebx-lex ()
@@ -489,9 +487,8 @@ See documentation for variable `ebnf-ebx-lex'."
        ))))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-constraint-chars
-  (ebnf-range-regexp "^\000-\010\016-\037]" ?\177 ?\237))
+  "^\000-\010\016-\037]\177\u0080-\u009f")
 
 
 (defun ebnf-ebx-skip-constraint ()
@@ -518,11 +515,10 @@ See documentation for variable `ebnf-ebx-lex'."
     (not eor-p)))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-comment-chars
-  (ebnf-range-regexp "^\000-\010\016-\037\\*" ?\177 ?\237))
+  "^\000-\010\016-\037*\177\u0080-\u009f")
 (defconst ebnf-ebx-filename-chars
-  (ebnf-range-regexp "^\000-\037\\*" ?\177 ?\237))
+  "^\000-\037*\177\u0080-\u009f")
 
 
 (defun ebnf-ebx-skip-comment ()
@@ -582,11 +578,10 @@ See documentation for variable `ebnf-ebx-lex'."
       (concat fname (make-string nchar ?*)))))
 
 
-;; replace the range "\240-\377" (see `ebnf-range-regexp').
 (defconst ebnf-ebx-double-string-chars
-  (ebnf-range-regexp "\t -!#-~" ?\240 ?\377))
+  "\t -!#-~\u00a0-\u00ff")
 (defconst ebnf-ebx-single-string-chars
-  (ebnf-range-regexp "\t -&(-~" ?\240 ?\377))
+  "\t -&(-~\u00a0-\u00ff")
 
 
 (defun ebnf-ebx-string (delim)
@@ -659,7 +654,7 @@ See documentation for variable `ebnf-ebx-lex'."
       (or no-error
 	  (error "Invalid hexadecimal character"))
     (forward-char)
-    (or (> (skip-chars-forward "0-9A-Fa-f" ebnf-limit) 0)
+    (or (> (skip-chars-forward "[:xdigit:]" ebnf-limit) 0)
 	(error "Invalid hexadecimal character"))))
 
 

@@ -1,7 +1,8 @@
 ;;; ox-texinfo.el --- Texinfo Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 ;; Author: Jonathan Leech-Pepin <jonathan.leechpepin at gmail dot com>
+;; Maintainer: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -83,7 +84,8 @@
   :filters-alist
   '((:filter-headline . org-texinfo--filter-section-blank-lines)
     (:filter-parse-tree . org-texinfo--normalize-headlines)
-    (:filter-section . org-texinfo--filter-section-blank-lines))
+    (:filter-section . org-texinfo--filter-section-blank-lines)
+    (:filter-final-output . org-texinfo--untabify))
   :menu-entry
   '(?i "Export to Texinfo"
        ((?t "As TEXI file" org-texinfo-export-to-texinfo)
@@ -146,10 +148,12 @@ If nil it will default to `buffer-file-coding-system'."
 (defcustom org-texinfo-classes
   '(("info"
      "@documentencoding AUTO\n@documentlanguage AUTO"
-     ("@chapter %s" "@unnumbered %s" "@appendix %s")
-     ("@section %s" "@unnumberedsec %s" "@appendixsec %s")
-     ("@subsection %s" "@unnumberedsubsec %s" "@appendixsubsec %s")
-     ("@subsubsection %s" "@unnumberedsubsubsec %s" "@appendixsubsubsec %s")))
+     ("@chapter %s" "@unnumbered %s" "@chapheading %s" "@appendix %s")
+     ("@section %s" "@unnumberedsec %s" "@heading %s" "@appendixsec %s")
+     ("@subsection %s" "@unnumberedsubsec %s" "@subheading %s"
+      "@appendixsubsec %s")
+     ("@subsubsection %s" "@unnumberedsubsubsec %s" "@subsubheading %s"
+      "@appendixsubsubsec %s")))
   "Alist of Texinfo classes and associated header and structure.
 If #+TEXINFO_CLASS is set in the buffer, use its value and the
 associated information.  Here is the structure of a class
@@ -157,8 +161,8 @@ definition:
 
   (class-name
     header-string
-    (numbered-1 unnumbered-1 appendix-1)
-    (numbered-2 unnumbered-2 appendix-2)
+    (numbered-1 unnumbered-1 unnumbered-no-toc-1 appendix-1)
+    (numbered-2 unnumbered-2 unnumbered-no-toc-2 appendix-2)
     ...)
 
 
@@ -192,17 +196,18 @@ following the header string.  For each sectioning level, a number
 of strings is specified.  A %s formatter is mandatory in each
 section string and will be replaced by the title of the section."
   :group 'org-export-texinfo
-  :version "26.1"
-  :package-version '(Org . "9.1")
+  :version "27.1"
+  :package-version '(Org . "9.2")
   :type '(repeat
 	  (list (string :tag "Texinfo class")
 		(string :tag "Texinfo header")
 		(repeat :tag "Levels" :inline t
 			(choice
 			 (list :tag "Heading"
-			       (string :tag "  numbered")
-			       (string :tag "unnumbered")
-			       (string :tag "  appendix")))))))
+			       (string :tag "         numbered")
+			       (string :tag "       unnumbered")
+			       (string :tag "unnumbered-no-toc")
+			       (string :tag "         appendix")))))))
 
 ;;;; Headline
 
@@ -263,7 +268,7 @@ be placed after the end of the title."
   :group 'org-export-texinfo
   :type 'boolean)
 
-(defcustom org-texinfo-table-scientific-notation "%s\\,(%s)"
+(defcustom org-texinfo-table-scientific-notation nil
   "Format string to display numbers in scientific notation.
 
 The format should have \"%s\" twice, for mantissa and exponent
@@ -405,6 +410,10 @@ If two strings share the same prefix (e.g. \"ISO-8859-1\" and
 
 ;;; Internal Functions
 
+(defun org-texinfo--untabify (s _backend _info)
+  "Remove TAB characters in string S."
+  (replace-regexp-in-string "\t" (make-string tab-width ?\s) s))
+
 (defun org-texinfo--filter-section-blank-lines (headline _backend _info)
   "Filter controlling number of blank lines after a section."
   (replace-regexp-in-string "\n\\(?:\n[ \t]*\\)*\\'" "\n\n" headline))
@@ -412,8 +421,8 @@ If two strings share the same prefix (e.g. \"ISO-8859-1\" and
 (defun org-texinfo--normalize-headlines (tree _backend info)
   "Normalize headlines in TREE.
 
-BACK-END is the symbol specifying back-end used for export. INFO
-is a plist used as a communication channel.
+BACK-END is the symbol specifying back-end used for export.
+INFO is a plist used as a communication channel.
 
 Make sure every headline in TREE contains a section, since those
 are required to install a menu.  Also put exactly one blank line
@@ -458,22 +467,42 @@ INFO is a plist used as a communication channel.  See
 
 (defun org-texinfo--get-node (datum info)
   "Return node or anchor associated to DATUM.
-DATUM is an element or object.  INFO is a plist used as
-a communication channel.  The function guarantees the node or
-anchor name is unique."
+DATUM is a headline, a radio-target or a target.  INFO is a plist
+used as a communication channel.  The function guarantees the
+node or anchor name is unique."
   (let ((cache (plist-get info :texinfo-node-cache)))
     (or (cdr (assq datum cache))
 	(let* ((salt 0)
 	       (basename
 		(org-texinfo--sanitize-node
-		 (if (eq (org-element-type datum) 'headline)
-		     (org-texinfo--sanitize-title
-		      (org-export-get-alt-title datum info) info)
-		   (org-export-get-reference datum info))))
+		 (pcase (org-element-type datum)
+		   (`headline
+		    (org-texinfo--sanitize-title
+		     (org-export-get-alt-title datum info) info))
+		   (`radio-target
+		    (org-export-data (org-element-contents datum) info))
+		   (`target
+		    (org-element-property :value datum))
+		   (_
+		    (or (org-element-property :name datum)
+			(org-export-get-reference datum info))))))
 	       (name basename))
-	  ;; Ensure NAME is unique and not reserved node name "Top".
-	  (while (or (equal name "Top") (rassoc name cache))
-	    (setq name (concat basename (format " %d" (cl-incf salt)))))
+	  ;; Org exports deeper elements before their parents.  If two
+	  ;; node names collide -- e.g., they have the same title --
+	  ;; within the same hierarchy, the second one would get the
+	  ;; smaller node name.  This is counter-intuitive.
+	  ;; Consequently, we ensure that every parent headline gets
+	  ;; its node beforehand.  As a recursive operation, this
+	  ;; achieves the desired effect.
+	  (let ((parent (org-element-lineage datum '(headline))))
+	    (when (and parent (not (assq parent cache)))
+	      (org-texinfo--get-node parent info)
+	      (setq cache (plist-get info :texinfo-node-cache))))
+	  ;; Ensure NAME is unique and not reserved node name "Top",
+          ;; no matter what case is used.
+	  (while (or (string-equal "Top" (capitalize name))
+                     (rassoc name cache))
+	    (setq name (concat basename (format " (%d)" (cl-incf salt)))))
 	  (plist-put info :texinfo-node-cache (cons (cons datum name) cache))
 	  name))))
 
@@ -495,14 +524,7 @@ periods, commas and colons."
 TITLE is a string or a secondary string.  INFO is the current
 export state, as a plist."
   (org-export-data-with-backend
-   title
-   (org-export-create-backend
-    :parent 'texinfo
-    :transcoders '((footnote-reference . ignore)
-		   (link . (lambda (object c i) c))
-		   (radio-target . (lambda (object c i) c))
-		   (target . ignore)))
-   info))
+   title (org-export-toc-entry-backend 'texinfo) info))
 
 (defun org-texinfo--sanitize-content (text)
   "Escape special characters in string TEXT.
@@ -517,20 +539,13 @@ float, as a string.  CAPTION and SHORT are, respectively, the
 caption and shortcaption used for the float, as secondary
 strings (e.g., returned by `org-export-get-caption')."
   (let* ((backend
-	  (org-export-create-backend
-	   :parent 'texinfo
-	   :transcoders '((link . (lambda (object c i) c))
-			  (radio-target . (lambda (object c i) c))
-			  (target . ignore))))
+	  (org-export-toc-entry-backend 'texinfo
+	    (cons 'footnote-reference
+		  (lambda (f c i) (org-export-with-backend 'texinfo f c i)))))
 	 (short-backend
-	  (org-export-create-backend
-	   :parent 'texinfo
-	   :transcoders '((footnote-reference . ignore)
-			  (inline-src-block . ignore)
-			  (link . (lambda (object c i) c))
-			  (radio-target . (lambda (object c i) c))
-			  (target . ignore)
-			  (verbatim . ignore))))
+	  (org-export-toc-entry-backend 'texinfo
+	    '(inline-src-block . ignore)
+	    '(verbatim . ignore)))
 	 (short-str
 	  (if (and short caption)
 	      (format "@shortcaption{%s}\n"
@@ -546,6 +561,14 @@ strings (e.g., returned by `org-export-get-caption')."
 	    "")))
     (format "@float %s%s\n%s\n%s%s@end float"
 	    type (if label (concat "," label) "") value caption-str short-str)))
+
+(defun org-texinfo--sectioning-structure (info)
+  "Return sectioning structure used in the document.
+INFO is a plist holding export options."
+  (let ((class (plist-get info :texinfo-class)))
+    (pcase (assoc class (plist-get info :texinfo-classes))
+      (`(,_ ,_ . ,sections) sections)
+      (_ (user-error "Unknown Texinfo class: %S" class)))))
 
 ;;; Template
 
@@ -564,7 +587,7 @@ holding export options."
     (concat
      "\\input texinfo    @c -*- texinfo -*-\n"
      "@c %**start of header\n"
-     (let ((file (or (plist-get info :texinfo-filename)
+     (let ((file (or (org-strip-quotes (plist-get info :texinfo-filename))
 		     (let ((f (plist-get info :output-file)))
 		       (and f (concat (file-name-sans-extension f) ".info"))))))
        (and file (format "@setfilename %s\n" file)))
@@ -588,7 +611,8 @@ holding export options."
 	 "^@documentencoding \\(AUTO\\)$"
 	 coding
 	 (replace-regexp-in-string
-	  "^@documentlanguage \\(AUTO\\)$" language header t nil 1) t nil 1)))
+	  "^@documentlanguage \\(AUTO\\)$" language header t nil 1)
+	 t nil 1)))
      ;; Additional header options set by #+TEXINFO_HEADER.
      (let ((texinfo-header (plist-get info :texinfo-header)))
        (and texinfo-header (org-element-normalize-string texinfo-header)))
@@ -694,7 +718,7 @@ contextual information."
   "Transcode a CENTER-BLOCK element from Org to Texinfo.
 CONTENTS holds the contents of the block.  INFO is a plist used
 as a communication channel."
-  contents)
+  (replace-regexp-in-string "\\(^\\).*?\\S-" "@center " contents nil nil 1))
 
 ;;;; Clock
 
@@ -813,7 +837,7 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 (defun org-texinfo-fixed-width (fixed-width _contents _info)
   "Transcode a FIXED-WIDTH element from Org to Texinfo.
 CONTENTS is nil.  INFO is a plist holding contextual information."
-  (format "@example\n%s@end example"
+  (format "@example\n%s\n@end example"
 	  (org-remove-indentation
 	   (org-texinfo--sanitize-content
 	    (org-element-property :value fixed-width)))))
@@ -825,90 +849,92 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 
 FOOTNOTE is the footnote to define.  CONTENTS is nil.  INFO is a
 plist holding contextual information."
-  (let ((def (org-export-get-footnote-definition footnote info)))
+  (let* ((contents (org-export-get-footnote-definition footnote info))
+         (data (org-export-data contents info)))
     (format "@footnote{%s}"
-	    (org-trim (org-export-data def info)))))
+            ;; It is invalid to close a footnote on a line starting
+            ;; with "@end".  As a safety net, we leave a newline
+            ;; character before the closing brace.  However, when the
+            ;; footnote ends with a paragraph, it is visually pleasing
+            ;; to move the brace right after its end.
+            (if (eq 'paragraph (org-element-type (org-last contents)))
+                (org-trim data)
+              data))))
 
 ;;;; Headline
-
-(defun org-texinfo--structuring-command (headline info)
-  "Return Texinfo structuring command string for HEADLINE element.
-Return nil if HEADLINE is to be ignored, `plain-list' if it
-should be exported as a plain-list item.  INFO is a plist holding
-contextual information."
-  (cond
-   ((org-element-property :footnote-section-p headline) nil)
-   ((org-not-nil (org-export-get-node-property :COPYING headline t)) nil)
-   ((org-export-low-level-p headline info) 'plain-list)
-   (t
-    (let ((class (plist-get info :texinfo-class)))
-      (pcase (assoc class (plist-get info :texinfo-classes))
-	(`(,_ ,_ . ,sections)
-	 (pcase (nth (1- (org-export-get-relative-level headline info))
-		     sections)
-	   (`(,numbered ,unnumbered ,appendix)
-	    (cond
-	     ((org-not-nil (org-export-get-node-property :APPENDIX headline t))
-	      appendix)
-	     ((org-not-nil (org-export-get-node-property :INDEX headline t))
-	      unnumbered)
-	     ((org-export-numbered-headline-p headline info) numbered)
-	     (t unnumbered)))
-	   (`nil 'plain-list)
-	   (_ (user-error "Invalid Texinfo class specification: %S" class))))
-	(_ (user-error "Invalid Texinfo class specification: %S" class)))))))
 
 (defun org-texinfo-headline (headline contents info)
   "Transcode a HEADLINE element from Org to Texinfo.
 CONTENTS holds the contents of the headline.  INFO is a plist
 holding contextual information."
-  (let ((section-fmt (org-texinfo--structuring-command headline info)))
-    (when section-fmt
-      (let* ((todo
-	      (and (plist-get info :with-todo-keywords)
-		   (let ((todo (org-element-property :todo-keyword headline)))
-		     (and todo (org-export-data todo info)))))
-	     (todo-type (and todo (org-element-property :todo-type headline)))
-	     (tags (and (plist-get info :with-tags)
-			(org-export-get-tags headline info)))
-	     (priority (and (plist-get info :with-priority)
-			    (org-element-property :priority headline)))
-	     (text (org-texinfo--sanitize-title
-		    (org-element-property :title headline) info))
-	     (full-text
-	      (funcall (plist-get info :texinfo-format-headline-function)
-		       todo todo-type priority text tags))
-	     (contents
-	      (concat "\n"
-		      (if (org-string-nw-p contents)
-			  (concat "\n" contents)
-			"")
-		      (let ((index (org-element-property :INDEX headline)))
-			(and (member index '("cp" "fn" "ky" "pg" "tp" "vr"))
-			     (format "\n@printindex %s\n" index))))))
-	(cond
-	 ((eq section-fmt 'plain-list)
-	  (let ((numbered? (org-export-numbered-headline-p headline info)))
-	    (concat (and (org-export-first-sibling-p headline info)
-			 (format "@%s\n" (if numbered? 'enumerate 'itemize)))
-		    "@item\n" full-text "\n"
-		    contents
-		    (if (org-export-last-sibling-p headline info)
-			(format "@end %s" (if numbered? 'enumerate 'itemize))
-		      "\n"))))
-	 (t
-	  (concat (format "@node %s\n" (org-texinfo--get-node headline info))
-		  (format section-fmt full-text)
-		  contents)))))))
+  (cond
+   ((org-element-property :footnote-section-p headline) nil)
+   ((org-not-nil (org-export-get-node-property :COPYING headline t)) nil)
+   (t
+    (let* ((index (let ((i (org-export-get-node-property :INDEX headline t)))
+		    (and (member i '("cp" "fn" "ky" "pg" "tp" "vr")) i)))
+	   (numbered? (org-export-numbered-headline-p headline info))
+	   (notoc? (org-export-excluded-from-toc-p headline info))
+	   (command
+	    (and
+             (not (org-export-low-level-p headline info))
+	     (let ((sections (org-texinfo--sectioning-structure info)))
+               (pcase (nth (1- (org-export-get-relative-level headline info))
+			   sections)
+		 (`(,numbered ,unnumbered ,unnumbered-no-toc ,appendix)
+		  (cond
+		   ((org-not-nil
+		     (org-export-get-node-property :APPENDIX headline t))
+		    appendix)
+		   (numbered? numbered)
+		   (index unnumbered)
+		   (notoc? unnumbered-no-toc)
+		   (t unnumbered)))
+		 (`nil nil)
+		 (_ (user-error "Invalid Texinfo class specification: %S"
+				(plist-get info :texinfo-class)))))))
+	   (todo
+	    (and (plist-get info :with-todo-keywords)
+		 (let ((todo (org-element-property :todo-keyword headline)))
+		   (and todo (org-export-data todo info)))))
+	   (todo-type (and todo (org-element-property :todo-type headline)))
+	   (tags (and (plist-get info :with-tags)
+		      (org-export-get-tags headline info)))
+	   (priority (and (plist-get info :with-priority)
+			  (org-element-property :priority headline)))
+	   (text (org-texinfo--sanitize-title
+		  (org-element-property :title headline) info))
+	   (full-text
+	    (funcall (plist-get info :texinfo-format-headline-function)
+		     todo todo-type priority text tags))
+	   (contents
+	    (concat "\n"
+		    (if (org-string-nw-p contents) (concat "\n" contents) "")
+		    (and index (format "\n@printindex %s\n" index))))
+           (node (org-texinfo--get-node headline info)))
+      (if (not command)
+	  (concat (and (org-export-first-sibling-p headline info)
+		       (format "@%s\n" (if numbered? 'enumerate 'itemize)))
+		  (format "@item\n@anchor{%s}%s\n" node full-text)
+		  contents
+		  (if (org-export-last-sibling-p headline info)
+		      (format "@end %s" (if numbered? 'enumerate 'itemize))
+		    "\n"))
+	(concat
+	 ;; Even if HEADLINE is using @subheading and al., leave an
+	 ;; anchor so cross-references in the Org document still work.
+	 (format (if notoc? "@anchor{%s}\n" "@node %s\n") node)
+	 (format command full-text)
+	 contents))))))
 
 (defun org-texinfo-format-headline-default-function
-  (todo _todo-type priority text tags)
+    (todo _todo-type priority text tags)
   "Default format function for a headline.
 See `org-texinfo-format-headline-function' for details."
-  (concat (when todo (format "@strong{%s} " todo))
-	  (when priority (format "@emph{#%s} " priority))
+  (concat (and todo (format "@strong{%s} " todo))
+	  (and priority (format "@emph{#%s} " priority))
 	  text
-	  (when tags (format " :%s:" (mapconcat 'identity tags ":")))))
+	  (and tags (concat " " (org-make-tag-string tags)))))
 
 ;;;; Inline Src Block
 
@@ -939,14 +965,14 @@ holding contextual information."
 	     todo todo-type priority title tags contents)))
 
 (defun org-texinfo-format-inlinetask-default-function
-  (todo _todo-type priority title tags contents)
-  "Default format function for a inlinetasks.
+    (todo _todo-type priority title tags contents)
+  "Default format function for inlinetasks.
 See `org-texinfo-format-inlinetask-function' for details."
   (let ((full-title
 	 (concat (when todo (format "@strong{%s} " todo))
 		 (when priority (format "#%c " priority))
 		 title
-		 (when tags (format ":%s:" (mapconcat #'identity tags ":"))))))
+		 (when tags (org-make-tag-string tags)))))
     (format "@center %s\n\n%s\n" full-title contents)))
 
 ;;;; Italic
@@ -1017,15 +1043,17 @@ CONTENTS is nil.  INFO is a plist holding contextual information."
 
 (defun org-texinfo--@ref (datum description info)
   "Return @ref command for element or object DATUM.
-DESCRIPTION is the name of the section to print, as a string."
+DESCRIPTION is the printed name of the section, as a string, or
+nil."
   (let ((node-name (org-texinfo--get-node datum info))
 	;; Sanitize DESCRIPTION for cross-reference use.  In
-	;; particular, remove colons as they seem to cause (even
-	;; within @asis{...} to the Texinfo reader.
-	(title (replace-regexp-in-string
-		"[ \t]*:+" ""
-		(replace-regexp-in-string "," "@comma{}" description))))
-    (if (equal title node-name)
+	;; particular, remove colons as they seem to cause pain (even
+	;; within @asis{...}) to the Texinfo reader.
+	(title (and description
+		    (replace-regexp-in-string
+		     "[ \t]*:+" ""
+		     (replace-regexp-in-string "," "@comma{}" description)))))
+    (if (or (not title) (equal title node-name))
 	(format "@ref{%s}" node-name)
       (format "@ref{%s, , %s}" node-name title))))
 
@@ -1038,13 +1066,15 @@ INFO is a plist holding contextual information.  See
 	 (raw-path (org-element-property :path link))
 	 ;; Ensure DESC really exists, or set it to nil.
 	 (desc (and (not (string= desc "")) desc))
-	 (path (cond
-		((member type '("http" "https" "ftp"))
-		 (concat type ":" raw-path))
-		((string= type "file") (org-export-file-uri raw-path))
-		(t raw-path))))
+	 (path (org-texinfo--sanitize-content
+		(cond
+		 ((member type '("http" "https" "ftp"))
+		  (concat type ":" raw-path))
+		 ((string-equal type "file")
+		  (org-export-file-uri raw-path))
+		 (t raw-path)))))
     (cond
-     ((org-export-custom-protocol-maybe link desc 'texinfo))
+     ((org-export-custom-protocol-maybe link desc 'texinfo info))
      ((org-export-inline-image-p link org-texinfo-inline-image-rules)
       (org-texinfo--inline-image link info))
      ((equal type "radio")
@@ -1058,8 +1088,7 @@ INFO is a plist holding contextual information.  See
 	       (org-export-resolve-id-link link info))))
 	(pcase (org-element-type destination)
 	  (`nil
-	   (format org-texinfo-link-with-unknown-path-format
-		   (org-texinfo--sanitize-content path)))
+	   (format org-texinfo-link-with-unknown-path-format path))
 	  ;; Id link points to an external file.
 	  (`plain-text
 	   (if desc (format "@uref{file://%s,%s}" destination desc)
@@ -1073,24 +1102,11 @@ INFO is a plist holding contextual information.  See
 			       (org-element-type
 				(org-element-property :parent destination))))))
 	   (let ((headline (org-element-lineage destination '(headline) t)))
-	     (org-texinfo--@ref
-	      headline
-	      (or desc (org-texinfo--sanitize-title
-			(org-element-property :title headline) info))
-	      info)))
-	  (_
-	   (org-texinfo--@ref
-	    destination
-	    (or desc
-		(pcase (org-export-get-ordinal destination info)
-		  ((and (pred integerp) n) (number-to-string n))
-		  ((and (pred consp) n) (mapconcat #'number-to-string n "."))
-		  (_ "???")))		;cannot guess the description
-	    info)))))
+	     (org-texinfo--@ref headline desc info)))
+	  (_ (org-texinfo--@ref destination desc info)))))
      ((string= type "mailto")
       (format "@email{%s}"
-	      (concat (org-texinfo--sanitize-content path)
-		      (and desc (concat ", " desc)))))
+	      (concat path (and desc (concat ", " desc)))))
      ;; External link with a description part.
      ((and path desc) (format "@uref{%s, %s}" path desc))
      ;; External link without a description part.
@@ -1111,7 +1127,9 @@ current state of the export, as a plist."
 	 (path  (org-element-property :path link))
 	 (filename
 	  (file-name-sans-extension
-	   (if (file-name-absolute-p path) (expand-file-name path) path)))
+	   (if (file-name-absolute-p path)
+               (expand-file-name path)
+             (file-relative-name path))))
 	 (extension (file-name-extension path))
 	 (attributes (org-export-read-attribute :attr_texinfo parent))
 	 (height (or (plist-get attributes :height) ""))
@@ -1167,19 +1185,19 @@ is an integer, build the menu recursively, down to this depth."
   (cond
    ((not level)
     (org-texinfo--format-entries (org-texinfo--menu-entries scope info) info))
-   ((zerop level) nil)
+   ((zerop level) "\n")
    (t
-    (org-element-normalize-string
-     (mapconcat
-      (lambda (h)
-	(let ((entries (org-texinfo--menu-entries h info)))
-	  (when entries
-	    (concat
-	     (format "%s\n\n%s\n"
-		     (org-export-data (org-export-get-alt-title h info) info)
-		     (org-texinfo--format-entries entries info))
-	     (org-texinfo--build-menu h info (1- level))))))
-      (org-texinfo--menu-entries scope info) "\n")))))
+    (mapconcat
+     (lambda (h)
+       (let ((entries (org-texinfo--menu-entries h info)))
+	 (when entries
+	   (concat
+	    (format "%s\n\n%s\n"
+		    (org-export-data (org-export-get-alt-title h info) info)
+		    (org-texinfo--format-entries entries info))
+	    (org-texinfo--build-menu h info (1- level))))))
+     (org-texinfo--menu-entries scope info)
+     ""))))
 
 (defun org-texinfo--format-entries (entries info)
   "Format all direct menu entries in SCOPE, as a string.
@@ -1192,7 +1210,7 @@ a plist containing contextual information."
 	      ;; Colons are used as a separator between title and node
 	      ;; name.  Remove them.
 	      (replace-regexp-in-string
-	       "[ \t]+:+" ""
+	       "[ \t]*:+" ""
 	       (org-texinfo--sanitize-title
 		(org-export-get-alt-title h info) info)))
 	     (node (org-texinfo--get-node h info))
@@ -1215,12 +1233,15 @@ holding contextual information."
 			       :texinfo-entries-cache)))
 	 (cached-entries (gethash scope cache 'no-cache)))
     (if (not (eq cached-entries 'no-cache)) cached-entries
-      (puthash scope
-	       (cl-remove-if
-		(lambda (h)
-		  (org-not-nil (org-export-get-node-property :COPYING h t)))
-		(org-export-collect-headlines info 1 scope))
-	       cache))))
+      (let* ((sections (org-texinfo--sectioning-structure info))
+             (max-depth (length sections)))
+        (puthash scope
+	         (cl-remove-if
+		  (lambda (h)
+		    (or (org-not-nil (org-export-get-node-property :COPYING h t))
+                        (< max-depth (org-export-get-relative-level h info))))
+		  (org-export-collect-headlines info 1 scope))
+	         cache)))))
 
 ;;;; Node Property
 
@@ -1254,13 +1275,23 @@ contextual information."
 		  (if (string-prefix-p "@" i) i (concat "@" i))))
 	 (table-type (plist-get attr :table-type))
 	 (type (org-element-property :type plain-list))
+	 (enum
+	  (cond ((not (eq type 'ordered)) nil)
+		((plist-member attr :enum) (plist-get attr :enum))
+		(t
+		 ;; Texinfo only supports initial counters, i.e., it
+		 ;; cannot change the numbering mid-list.
+		 (let ((first-item (car (org-element-contents plain-list))))
+		   (org-element-property :counter first-item)))))
 	 (list-type (cond
 		     ((eq type 'ordered) "enumerate")
 		     ((eq type 'unordered) "itemize")
 		     ((member table-type '("ftable" "vtable")) table-type)
 		     (t "table"))))
     (format "@%s\n%s@end %s"
-	    (if (eq type 'descriptive) (concat list-type " " indic) list-type)
+	    (cond ((eq type 'descriptive) (concat list-type " " indic))
+		  (enum (format "%s %s" list-type enum))
+		  (t list-type))
 	    contents
 	    list-type)))
 
@@ -1290,8 +1321,13 @@ contextual information."
     (when (plist-get info :preserve-breaks)
       (setq output (replace-regexp-in-string
 		    "\\(\\\\\\\\\\)?[ \t]*\n" " @*\n" output)))
-    ;; Return value.
-    output))
+    ;; Reverse sentence ending.  A sentence can end with a capital
+    ;; letter.  Use non-breaking space if it shouldn't.
+    (let ((case-fold-search nil))
+      (replace-regexp-in-string
+       "[A-Z]\\([.?!]\\)\\(?:[])]\\|'\\{1,2\\}\\)?\\(?: \\|$\\)"
+       "@\\1"
+       output nil nil 1))))
 
 ;;;; Planning
 
@@ -1341,11 +1377,12 @@ holding contextual information."
   "Transcode a QUOTE-BLOCK element from Org to Texinfo.
 CONTENTS holds the contents of the block.  INFO is a plist
 holding contextual information."
-  (let* ((title (org-element-property :name quote-block))
-	 (start-quote (concat "@quotation"
-			      (if title
-				  (format " %s" title)))))
-    (format "%s\n%s@end quotation" start-quote contents)))
+  (let ((tag (org-export-read-attribute :attr_texinfo quote-block :tag))
+	(author (org-export-read-attribute :attr_texinfo quote-block :author)))
+    (format "@quotation%s\n%s%s\n@end quotation"
+	    (if tag (concat " " tag) "")
+	    contents
+	    (if author (concat "\n@author " author) ""))))
 
 ;;;; Radio Target
 
@@ -1364,9 +1401,12 @@ contextual information."
 CONTENTS holds the contents of the section.  INFO is a plist
 holding contextual information."
   (let ((parent (org-export-get-parent-headline section)))
-    (when parent			;ignore very first section
+    (when parent   ;first section is handled in `org-texinfo-template'
       (org-trim
-       (concat contents "\n" (org-texinfo-make-menu parent info))))))
+       (concat contents
+	       "\n"
+	       (and (not (org-export-excluded-from-toc-p parent info))
+		    (org-texinfo-make-menu parent info)))))))
 
 ;;;; Special Block
 
@@ -1566,7 +1606,7 @@ channel."
 
 (defun org-texinfo-verse-block (_verse-block contents _info)
   "Transcode a VERSE-BLOCK element from Org to Texinfo.
-CONTENTS is verse block contents. INFO is a plist holding
+CONTENTS is verse block contents.  INFO is a plist holding
 contextual information."
   (format "@display\n%s@end display" contents))
 
@@ -1575,7 +1615,7 @@ contextual information."
 
 ;;;###autoload
 (defun org-texinfo-export-to-texinfo
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to a Texinfo file.
 
 If narrowing is active in the current buffer, only export its
@@ -1608,9 +1648,25 @@ Return output file's name."
     (org-export-to-file 'texinfo outfile
       async subtreep visible-only body-only ext-plist)))
 
+(defun org-texinfo-export-to-texinfo-batch ()
+  "Export Org file INFILE to Texinfo file OUTFILE, in batch mode.
+Overwrites existing output file.
+Usage: emacs -batch -f org-texinfo-export-to-texinfo-batch INFILE OUTFILE"
+  (or noninteractive (user-error "Batch mode use only"))
+  (let ((infile (pop command-line-args-left))
+	(outfile (pop command-line-args-left))
+	(org-export-coding-system org-texinfo-coding-system)
+        (make-backup-files nil))
+    (unless (file-readable-p infile)
+      (message "File `%s' not readable" infile)
+      (kill-emacs 1))
+    (with-temp-buffer
+      (insert-file-contents infile)
+      (org-export-to-file 'texinfo outfile))))
+
 ;;;###autoload
 (defun org-texinfo-export-to-info
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to Texinfo then process through to INFO.
 
 If narrowing is active in the current buffer, only export its
@@ -1645,7 +1701,7 @@ Return INFO file's name."
 	(org-export-coding-system org-texinfo-coding-system))
     (org-export-to-file 'texinfo outfile
       async subtreep visible-only body-only ext-plist
-      (lambda (file) (org-texinfo-compile file)))))
+      #'org-texinfo-compile)))
 
 ;;;###autoload
 (defun org-texinfo-publish-to-texinfo (plist filename pub-dir)

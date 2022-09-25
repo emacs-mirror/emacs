@@ -1,8 +1,8 @@
-;;; vc-filewise.el --- common functions for file-oriented back ends.
+;;; vc-filewise.el --- common functions for file-oriented back ends.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1996, 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
 
-;; Author:     FSF (see vc.el for full credits)
+;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
@@ -82,3 +82,5 @@ If the file is not registered, or the master name is not known, return nil."
 	nil))))				; Not registered
 
 (provide 'vc-filewise)
+
+;;; vc-filewise.el ends here

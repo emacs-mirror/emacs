@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros
@@ -62,6 +62,17 @@ Append keys to the last keyboard macro without re-executing it.
 @item C-x C-k r
 Run the last keyboard macro on each line that begins in the region
 (@code{apply-macro-to-region-lines}).
+@item C-x (
+Start defining a keyboard macro (old style)
+(@code{kmacro-start-macro}); with a prefix argument, append keys to
+the last macro.
+@item C-x )
+End a macro definition (old style) (@code{kmacro-end-macro}); prefix
+argument serves as the repeat count for executing the macro.
+@item C-x e
+Execute the most recently defined keyboard macro
+(@code{kmacro-end-and-call-macro}); prefix argument serves as repeat
+count.
 @end table
 
 @kindex F3
@@ -91,7 +102,7 @@ are in the process of defining one, or calls the last macro
 otherwise.)  You can also supply @key{F4} with a numeric prefix
 argument @samp{n}, which means to invoke the macro @samp{n} times.  An
 argument of zero repeats the macro indefinitely, until it gets an
-error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{BREAK}}).
+error or you type @kbd{C-g} (or, on MS-DOS, @kbd{C-@key{Break}}).
 
   The above example demonstrates a handy trick that you can employ
 with keyboard macros: if you wish to repeat an operation at regularly
@@ -157,15 +168,24 @@ definition, type @kbd{C-x )} (@code{kmacro-end-macro}).  To execute
 the most recent macro, type @kbd{C-x e}
 (@code{kmacro-end-and-call-macro}).  If you enter @kbd{C-x e} while
 defining a macro, the macro is terminated and executed immediately.
-Immediately after typing @kbd{C-x e}, you can type @key{e} repeatedly
+Immediately after typing @kbd{C-x e}, you can type @kbd{e} repeatedly
 to immediately repeat the macro one or more times.  You can also give
-@kbd{C-x e} a repeat argument, just like @key{F4}.
+@kbd{C-x e} a repeat argument, just like @key{F4} (when it is used to
+execute a macro).
 
   @kbd{C-x )} can be given a repeat count as an argument.  This means
 to repeat the macro right after defining it.  The macro definition
 itself counts as the first repetition, since it is executed as you
 define it, so @kbd{C-u 4 C-x )} executes the macro immediately 3
 additional times.
+
+@findex kmacro-redisplay
+@kindex C-x C-k d
+  While executing a long-running keyboard macro, it can sometimes be
+useful to trigger a redisplay (to show how far we've gotten).  The
+@kbd{C-x C-k d} command can be used for this.  As a not very useful
+example, @kbd{C-x ( M-f C-x C-k d C-x )} will create a macro that will
+redisplay once per iteration when saying @kbd{C-u 42 C-x e}.
 
 @node Keyboard Macro Ring
 @section The Keyboard Macro Ring
@@ -236,10 +256,17 @@ determined by the customizable variable @code{kmacro-ring-max}.
 @section The Keyboard Macro Counter
 
   Each keyboard macro has an associated counter, which is initialized
-to 0 when you start defining the macro.  This counter allows you to
-insert a number into the buffer that depends on the number of times
-the macro has been called.  The counter is incremented each time its
-value is inserted into the buffer.
+to 0 when you start defining the macro.  This @dfn{current counter}
+allows you to insert a number into the buffer that depends on the
+number of times the macro has been called.  The counter is normally
+incremented each time its value is inserted into the buffer.
+
+In addition to the current counter, keyboard macros also maintain the
+@dfn{previous counter}, which records the value the current counter
+had last time it was incremented or set.  Note that incrementing the
+current counter by zero, e.g., with @w{@kbd{C-u 0 C-x C-k C-i}}, also
+records the value of the current counter as the previous counter
+value.
 
 @table @kbd
 @item @key{F3}
@@ -265,8 +292,8 @@ value of the keyboard macro's counter into the buffer, and increments
 the counter by 1.  (If you are not defining a macro, @key{F3} begins a
 macro definition instead.  @xref{Basic Keyboard Macro}.)  You can use
 a numeric prefix argument to specify a different increment.  If you
-just specify a @kbd{C-u} prefix, that is the same as an increment of
-zero: it inserts the current counter value without changing it.
+just specify a @kbd{C-u} prefix, that inserts the previous counter
+value, and doesn't change the current value.
 
   As an example, let us show how the keyboard macro counter can be
 used to build a numbered list.  Consider the following key sequence:
@@ -379,7 +406,7 @@ macro definition is executed.  It is up to you to leave point and the
 text in a state such that the rest of the macro will do what you want.
 @end table
 
-  @kbd{C-u C-x q}, which is @kbd{C-x q} with a numeric argument,
+  @kbd{C-u C-x q}, which is @kbd{C-x q} with a prefix argument,
 performs a completely different function.  It enters a recursive edit
 reading input from the keyboard, both when you type it during the
 definition of the macro, and when it is executed from the macro.  During
@@ -412,7 +439,7 @@ name to execute the last keyboard macro, in its current form.  (If you
 later add to the definition of this macro, that does not alter the
 name's definition as a macro.)  The macro name is a Lisp symbol, and
 defining it in this way makes it a valid command name for calling with
-@kbd{M-x} or for binding a key to with @code{global-set-key}
+@kbd{M-x} or for binding a key to with @code{keymap-global-set}
 (@pxref{Keymaps}).  If you specify a name that has a prior definition
 other than a keyboard macro, an error message is shown and nothing is
 changed.
@@ -453,14 +480,14 @@ M-x insert-kbd-macro @key{RET} @var{macroname} @key{RET}
 
 @noindent
 This inserts some Lisp code that, when executed later, will define the
-same macro with the same definition it has now.  (You need not
+same macro with the same definition it has now.  (You don't need to
 understand Lisp code to do this, because @code{insert-kbd-macro} writes
 the Lisp code for you.)  Then save the file.  You can load the file
 later with @code{load-file} (@pxref{Lisp Libraries}).  If the file you
 save in is your init file @file{~/.emacs} (@pxref{Init File}) then the
 macro will be defined each time you run Emacs.
 
-  If you give @code{insert-kbd-macro} a numeric argument, it makes
+  If you give @code{insert-kbd-macro} a prefix argument, it makes
 additional Lisp code to record the keys (if any) that you have bound
 to @var{macroname}, so that the macro will be reassigned the same keys
 when you load the file.

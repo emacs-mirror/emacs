@@ -1,6 +1,6 @@
 ;;; autorevert.el --- revert buffers when files on disk change  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1999, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: convenience
@@ -36,7 +36,7 @@
 ;; buffer contains no unsaved changes.
 ;;
 ;; Auto-Revert Mode can be activated for individual buffers.  Global
-;; Auto-Revert Mode applies to all file buffers. (If the user option
+;; Auto-Revert Mode applies to all file buffers.  (If the user option
 ;; `global-auto-revert-non-file-buffers' is non-nil, it also applies
 ;; to some non-file buffers.  This option is disabled by default.)
 ;;
@@ -72,7 +72,7 @@
 ;; at the end of the buffer in that window, even if the window is not
 ;; selected.  This way, you can use Auto-Revert Mode to `tail' a file.
 ;; Just put point at the end of the buffer and it will stay there.
-;; These rules apply to file buffers. For non-file buffers, the
+;; These rules apply to file buffers.  For non-file buffers, the
 ;; behavior may be mode dependent.
 ;;
 ;; While you can use Auto-Revert Mode to tail a file, this package
@@ -107,7 +107,7 @@
 
 ;; Dependencies:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'timer)
 (require 'filenotify)
 
@@ -126,8 +126,6 @@ Global Auto-Revert Mode does so in all buffers."
 
 ;; Variables:
 
-;;; What's this?: ;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
-;;; What's this?: ;;;###autoload
 (defvar auto-revert-mode nil
   "Non-nil when Auto-Revert Mode is active.
 Never set this variable directly, use the command `auto-revert-mode' instead.")
@@ -229,10 +227,10 @@ modes, etc., of files.  You may still sometimes want to revert
 them manually.
 
 Use this option with care since it could lead to excessive auto-reverts.
-For more information, see Info node `(emacs)Autorevert'."
+For more information, see Info node `(emacs)Auto Revert'."
   :group 'auto-revert
   :type 'boolean
-  :link '(info-link "(emacs)Autorevert"))
+  :link '(info-link "(emacs)Auto Revert"))
 
 (defcustom global-auto-revert-ignore-modes ()
   "List of major modes Global Auto-Revert Mode should not check."
@@ -244,6 +242,8 @@ For more information, see Info node `(emacs)Autorevert'."
   :tag "Load Hook"
   :group 'auto-revert
   :type 'hook)
+(make-obsolete-variable 'auto-revert-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom auto-revert-check-vc-info nil
   "If non-nil Auto-Revert Mode reliably updates version control info.
@@ -268,7 +268,10 @@ buffers.  CPU usage depends on the version control system."
 
 (defvar-local global-auto-revert-ignore-buffer nil
   "When non-nil, Global Auto-Revert Mode will not revert this buffer.
-This variable becomes buffer local when set in any fashion.")
+This variable can also be a predicate function, in which case
+it'll be called with one parameter (the buffer in question), and
+it should return non-nil to make Global Auto-Revert Mode not
+revert this buffer.")
 
 (defcustom auto-revert-remote-files nil
   "If non-nil remote files are also reverted."
@@ -302,6 +305,27 @@ You should set this variable through Custom."
   :type 'regexp
   :version "24.4")
 
+(defcustom auto-revert-avoid-polling nil
+  "Non-nil to avoid polling files when notification is available.
+
+Set this variable to a non-nil value to save power by avoiding
+polling when possible.  Files on file-systems that do not support
+change notifications must match `auto-revert-notify-exclude-dir-regexp'
+for Auto-Revert to work properly in this case.  This typically
+includes files on network file systems on Unix-like machines,
+when those files are modified from another computer.
+
+When nil, buffers in Auto-Revert Mode will always be polled for
+changes to their files on disk every `auto-revert-interval'
+seconds, in addition to using notification for those files."
+  :group 'auto-revert
+  :type 'boolean
+  :set (lambda (variable value)
+         (set-default variable value)
+	 (when (fboundp 'auto-revert-set-timer)
+           (auto-revert-set-timer)))
+  :version "27.1")
+
 ;; Internal variables:
 
 (defvar auto-revert-buffer-list ()
@@ -313,6 +337,9 @@ buffers to this list.
 The timer function `auto-revert-buffers' is responsible for purging
 the list of old buffers.")
 
+(defvar-local auto-revert--global-mode nil
+  "Non-nil if buffer is handled by Global Auto-Revert mode.")
+
 (defvar auto-revert-remaining-buffers ()
   "Buffers not checked when user input stopped execution.")
 
@@ -321,17 +348,18 @@ the list of old buffers.")
 
 (defun auto-revert-find-file-function ()
   (setq-local auto-revert-tail-pos
-              (nth 7 (file-attributes buffer-file-name))))
+              (file-attribute-size (file-attributes buffer-file-name))))
 
 (add-hook 'find-file-hook
 	  #'auto-revert-find-file-function)
+(add-hook 'after-set-visited-file-name-hook
+          #'auto-revert-set-visited-file-name)
 
-(defvar auto-revert-notify-watch-descriptor-hash-list
-  (make-hash-table :test 'equal)
-  "A hash table collecting all file watch descriptors.
-Hash key is a watch descriptor, hash value is a list of buffers
-which are related to files being watched and carrying the same
-default directory.")
+(defvar auto-revert--buffer-by-watch-descriptor nil
+  "An association list mapping notification descriptors to buffers.
+The buffer uses that descriptor for auto-revert notifications.
+The key is equal to `auto-revert-notify-watch-descriptor' in each
+buffer.")
 
 (defvar-local auto-revert-notify-watch-descriptor nil
   "The file watch descriptor active for the current buffer.")
@@ -341,19 +369,20 @@ default directory.")
   "Non-nil when file has been modified on the file system.
 This has been reported by a file notification event.")
 
+(defvar auto-revert-debug nil
+  "Use for debug messages.")
+
 ;; Functions:
 
-(defun auto-revert-remove-current-buffer ()
-  "Remove dead buffer from `auto-revert-buffer-list'."
+(defun auto-revert-remove-current-buffer (&optional buffer)
+  "Remove BUFFER from `auto-revert-buffer-list'.
+BUFFER defaults to `current-buffer'."
   (setq auto-revert-buffer-list
-        (delq (current-buffer) auto-revert-buffer-list)))
+        (delq (or buffer (current-buffer)) auto-revert-buffer-list)))
 
 ;;;###autoload
 (define-minor-mode auto-revert-mode
   "Toggle reverting buffer when the file changes (Auto-Revert Mode).
-With a prefix argument ARG, enable Auto-Revert Mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Auto-Revert Mode is a minor mode that affects only the current
 buffer.  When enabled, it reverts the buffer when the file on
@@ -361,6 +390,10 @@ disk changes.
 
 When a buffer is reverted, a message is generated.  This can be
 suppressed by setting `auto-revert-verbose' to nil.
+
+Reverting can sometimes fail to preserve all the markers in the buffer.
+To avoid that, set `revert-buffer-insert-file-contents-function' to
+the slower function `revert-buffer-insert-file-contents-delicately'.
 
 Use `global-auto-revert-mode' to automatically revert all buffers.
 Use `auto-revert-tail-mode' if you know that the file will only grow
@@ -373,7 +406,7 @@ without being changed in the part that is already in the buffer."
          'kill-buffer-hook
          #'auto-revert-remove-current-buffer
          nil t))
-    (when auto-revert-use-notify (auto-revert-notify-rm-watch))
+    (when auto-revert-notify-watch-descriptor (auto-revert-notify-rm-watch))
     (auto-revert-remove-current-buffer))
   (auto-revert-set-timer)
   (when auto-revert-mode
@@ -393,9 +426,6 @@ This function is designed to be added to hooks, for example:
 ;;;###autoload
 (define-minor-mode auto-revert-tail-mode
   "Toggle reverting tail of buffer when the file grows.
-With a prefix argument ARG, enable Auto-Revert Tail Mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 When Auto-Revert Tail Mode is enabled, the tail of the file is
 constantly followed, as with the shell command `tail -f'.  This
@@ -440,7 +470,8 @@ Perform a full revert? ")
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
 	  (setq-local auto-revert-tail-pos
-                      (nth 7 (file-attributes buffer-file-name))))
+                      (file-attribute-size
+                       (file-attributes buffer-file-name))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode
 	  (let ((auto-revert-tail-mode t))
@@ -460,9 +491,6 @@ This function is designed to be added to hooks, for example:
 ;;;###autoload
 (define-minor-mode global-auto-revert-mode
   "Toggle Global Auto-Revert Mode.
-With a prefix argument ARG, enable Global Auto-Revert Mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 Global Auto-Revert Mode is a global minor mode that reverts any
 buffer associated with a file when the file changes on disk.  Use
@@ -472,7 +500,7 @@ If `global-auto-revert-non-file-buffers' is non-nil, this mode
 may also revert some non-file buffers, as described in the
 documentation of that variable.  It ignores buffers with modes
 matching `global-auto-revert-ignore-modes', and buffers with a
-non-nil vale of `global-auto-revert-ignore-buffer'.
+non-nil value of `global-auto-revert-ignore-buffer'.
 
 When a buffer is reverted, a message is generated.  This can be
 suppressed by setting `auto-revert-verbose' to nil.
@@ -483,179 +511,261 @@ specifies in the mode line."
   :global t :group 'auto-revert :lighter global-auto-revert-mode-text
   (auto-revert-set-timer)
   (if global-auto-revert-mode
-      (auto-revert-buffers)
+      ;; Turn global-auto-revert-mode ON.
+      (progn
+        (dolist (buf (buffer-list))
+          (with-current-buffer buf
+            (auto-revert--global-add-current-buffer)))
+        ;; Make sure future buffers are added as well.
+        (add-hook 'find-file-hook #'auto-revert--global-adopt-current-buffer)
+        ;; To track non-file buffers, we need to listen in to buffer
+        ;; creation in general.  Listening to major-mode changes is
+        ;; suitable, since we then know whether it's a mode that is tracked.
+        (add-hook 'after-change-major-mode-hook
+                  #'auto-revert--global-possibly-adopt-current-buffer)
+        (auto-revert-buffers))
+    ;; Turn global-auto-revert-mode OFF.
+    (remove-hook 'after-change-major-mode-hook
+                 #'auto-revert--global-possibly-adopt-current-buffer)
+    (remove-hook 'find-file-hook #'auto-revert--global-adopt-current-buffer)
     (dolist (buf (buffer-list))
       (with-current-buffer buf
-	(when auto-revert-use-notify
-	  (auto-revert-notify-rm-watch))))))
+        (when auto-revert--global-mode
+          (setq auto-revert--global-mode nil)
+          (when (and auto-revert-notify-watch-descriptor
+                     (not (or auto-revert-mode auto-revert-tail-mode)))
+	    (auto-revert-notify-rm-watch)))))))
+
+(defun auto-revert--global-add-current-buffer ()
+  "Set current buffer to be tracked by Global Auto-Revert if appropriate."
+  (when (and (not auto-revert--global-mode)
+             (or buffer-file-name
+                 (and global-auto-revert-non-file-buffers
+                      (not (string-prefix-p " " (buffer-name)))
+                      ;; Any non-file buffer must have a custom
+                      ;; `buffer-stale-function' to be tracked, since
+                      ;; we wouldn't know when to revert it otherwise.
+                      (not (eq buffer-stale-function
+                               #'buffer-stale--default-function))))
+             (not (memq major-mode global-auto-revert-ignore-modes))
+             (or (null global-auto-revert-ignore-buffer)
+                 (if (functionp global-auto-revert-ignore-buffer)
+                     (not (funcall global-auto-revert-ignore-buffer
+                                   (current-buffer)))
+                   nil)))
+    (setq auto-revert--global-mode t)))
+
+(defun auto-revert--global-possibly-adopt-current-buffer ()
+  "Consider tracking current buffer in a running Global Auto-Revert mode.
+This tracks buffers if `global-auto-revert-non-file-buffers' is non-nil."
+  (when global-auto-revert-non-file-buffers
+    (auto-revert--global-adopt-current-buffer)))
+
+(defun auto-revert--global-adopt-current-buffer ()
+  "Consider tracking current buffer in a running Global Auto-Revert mode."
+  (auto-revert--global-add-current-buffer)
+  (auto-revert-set-timer))
+
+(defun auto-revert-set-visited-file-name ()
+  "Update Auto-Revert management of the current buffer.
+Called after `set-visited-file-name'."
+  (when auto-revert-notify-watch-descriptor
+    ;; Remove any existing notifier so that we don't track the wrong
+    ;; file in case the file name was changed.
+    (auto-revert-notify-rm-watch))
+    (cond (global-auto-revert-mode
+           (auto-revert--global-adopt-current-buffer))
+          ((or auto-revert-mode auto-revert-tail-mode)
+           (auto-revert-set-timer))))
+
+(defun auto-revert--polled-buffers ()
+  "List of buffers that need to be polled."
+  (cond (global-auto-revert-mode
+         (mapcan (lambda (buffer)
+                   (and (not (and auto-revert-avoid-polling
+                                  (buffer-local-value
+                                   'auto-revert-notify-watch-descriptor
+                                   buffer)))
+                        (or (buffer-local-value
+                             'auto-revert--global-mode buffer)
+                            (buffer-local-value 'auto-revert-mode buffer)
+                            (buffer-local-value 'auto-revert-tail-mode buffer))
+                        (list buffer)))
+                 (buffer-list)))
+        (auto-revert-avoid-polling
+         (mapcan (lambda (buffer)
+                   (and (not (buffer-local-value
+                              'auto-revert-notify-watch-descriptor buffer))
+                        (list buffer)))
+                 auto-revert-buffer-list))
+        (t auto-revert-buffer-list)))
+
+;; Same as above in a boolean context, but cheaper.
+(defun auto-revert--need-polling-p ()
+  "Whether periodic polling is required."
+  (cond (global-auto-revert-mode
+         (or (not auto-revert-avoid-polling)
+             (cl-some
+              (lambda (buffer)
+                (and (not (buffer-local-value
+                           'auto-revert-notify-watch-descriptor buffer))
+                     (or (buffer-local-value 'auto-revert--global-mode buffer)
+                         (buffer-local-value 'auto-revert-mode buffer)
+                         (buffer-local-value 'auto-revert-tail-mode buffer))))
+              (buffer-list))))
+        (auto-revert-avoid-polling
+         (not (cl-every
+               (lambda (buffer)
+                 (buffer-local-value
+                  'auto-revert-notify-watch-descriptor buffer))
+               auto-revert-buffer-list)))
+        (t auto-revert-buffer-list)))
 
 (defun auto-revert-set-timer ()
   "Restart or cancel the timer used by Auto-Revert Mode.
 If such a timer is active, cancel it.  Start a new timer if
 Global Auto-Revert Mode is active or if Auto-Revert Mode is active
 in some buffer.  Restarting the timer ensures that Auto-Revert Mode
-will use an up-to-date value of `auto-revert-interval'"
+will use an up-to-date value of `auto-revert-interval'."
   (interactive)
   (if (timerp auto-revert-timer)
       (cancel-timer auto-revert-timer))
   (setq auto-revert-timer
-	(if (or global-auto-revert-mode auto-revert-buffer-list)
-	    (run-with-timer auto-revert-interval
-			    auto-revert-interval
-			    'auto-revert-buffers))))
+	(and (auto-revert--need-polling-p)
+	     (run-with-timer auto-revert-interval
+			     auto-revert-interval
+			     'auto-revert-buffers))))
 
 (defun auto-revert-notify-rm-watch ()
   "Disable file notification for current buffer's associated file."
-  (when auto-revert-notify-watch-descriptor
-    (maphash
-     (lambda (key value)
-       (when (equal key auto-revert-notify-watch-descriptor)
-	 (setq value (delete (current-buffer) value))
-	 (if value
-	     (puthash key value auto-revert-notify-watch-descriptor-hash-list)
-	   (remhash key auto-revert-notify-watch-descriptor-hash-list)
-	   (ignore-errors
-	     (file-notify-rm-watch auto-revert-notify-watch-descriptor)))))
-     auto-revert-notify-watch-descriptor-hash-list)
-    (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch))
+  (when-let ((desc auto-revert-notify-watch-descriptor))
+    (setq auto-revert--buffer-by-watch-descriptor
+          (assoc-delete-all desc auto-revert--buffer-by-watch-descriptor))
+    (ignore-errors
+      (file-notify-rm-watch desc))
+    (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch t))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
 (defun auto-revert-notify-add-watch ()
   "Enable file notification for current buffer's associated file."
-  ;; We can assume that `buffer-file-name' and
-  ;; `auto-revert-use-notify' are non-nil.
-  (if (or (string-match auto-revert-notify-exclude-dir-regexp
-			(expand-file-name default-directory))
-	  (file-symlink-p (or buffer-file-name default-directory)))
-
-      ;; Fallback to file checks.
-      (setq-local auto-revert-use-notify nil)
-
-    (when (not auto-revert-notify-watch-descriptor)
+  ;; We can assume that `auto-revert-notify-watch-descriptor' is nil.
+  (unless (or auto-revert-notify-watch-descriptor
+              (string-match auto-revert-notify-exclude-dir-regexp
+			    (expand-file-name default-directory))
+	      (file-symlink-p (or buffer-file-name default-directory)))
+    (let ((file (if buffer-file-name
+		    (expand-file-name buffer-file-name default-directory)
+	          (expand-file-name default-directory))))
       (setq auto-revert-notify-watch-descriptor
 	    (ignore-errors
-	      (if buffer-file-name
-		  (file-notify-add-watch
-		   (expand-file-name buffer-file-name default-directory)
-		   '(change attribute-change)
-		   'auto-revert-notify-handler)
-		(file-notify-add-watch
-		 (expand-file-name default-directory)
-		 '(change)
-		 'auto-revert-notify-handler))))
-      (if auto-revert-notify-watch-descriptor
-	  (progn
-	    (puthash
-	     auto-revert-notify-watch-descriptor
-	     (cons (current-buffer)
-		   (gethash auto-revert-notify-watch-descriptor
-			    auto-revert-notify-watch-descriptor-hash-list))
-	     auto-revert-notify-watch-descriptor-hash-list)
-	    (add-hook 'kill-buffer-hook
-		      #'auto-revert-notify-rm-watch nil t))
-	;; Fallback to file checks.
-	(setq-local auto-revert-use-notify nil)))))
+	      (file-notify-add-watch
+	       file
+               (if buffer-file-name '(change attribute-change) '(change))
+               'auto-revert-notify-handler))))
+      (when auto-revert-notify-watch-descriptor
+        (setq auto-revert-notify-modified-p t
+              auto-revert--buffer-by-watch-descriptor
+              (cons (cons auto-revert-notify-watch-descriptor (current-buffer))
+                    auto-revert--buffer-by-watch-descriptor))
+        (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very
 ;; often, we want to skip some revert operations so that we don't spend all our
 ;; time reverting the buffer.
 ;;
-;; We do this by reverting immediately in response to the first in a flurry of
-;; notifications. We suppress subsequent notifications until the next time
-;; `auto-revert-buffers' is called (this happens on a timer with a period set by
-;; `auto-revert-interval').
-(defvar auto-revert-buffers-counter 1
-  "Incremented each time `auto-revert-buffers' is called")
-(defvar-local auto-revert-buffers-counter-lockedout 0
-  "Buffer-local value to indicate whether we should immediately
-update the buffer on a notification event or not. If
+;; We do this by reverting immediately in response to the first in a
+;; flurry of notifications. Any notifications during the following
+;; `auto-revert--lockout-interval' seconds are noted but not acted upon
+;; until the end of that interval.
 
-  (= auto-revert-buffers-counter-lockedout
-     auto-revert-buffers-counter)
+(defconst auto-revert--lockout-interval 2.5
+  "Duration, in seconds, of the Auto-Revert Mode notification lockout.
+This is the quiescence after each notification of a file being
+changed during which no automatic reverting takes place, to
+prevent many updates in rapid succession from overwhelming the
+system.")
 
-then the updates are locked out, and we wait until the next call
-of `auto-revert-buffers' to revert the buffer. If no lockout is
-present, then we revert immediately and set the lockout, so that
-no more reverts are possible until the next call of
-`auto-revert-buffers'")
+(defvar-local auto-revert--lockout-timer nil
+  "Timer awaiting the end of the notification lockout interval, or nil.")
 
 (defun auto-revert-notify-handler (event)
   "Handle an EVENT returned from file notification."
-  (with-demoted-errors
+  (with-demoted-errors "Error while auto-reverting: %S"
     (let* ((descriptor (car event))
 	   (action (nth 1 event))
 	   (file (nth 2 event))
 	   (file1 (nth 3 event)) ;; Target of `renamed'.
-	   (buffers (gethash descriptor
-			     auto-revert-notify-watch-descriptor-hash-list)))
+	   (buffer (alist-get descriptor auto-revert--buffer-by-watch-descriptor
+                              nil nil #'equal)))
       ;; Check, that event is meant for us.
       (cl-assert descriptor)
       ;; Since we watch a directory, a file name must be returned.
       (cl-assert (stringp file))
       (when (eq action 'renamed) (cl-assert (stringp file1)))
+      (when auto-revert-debug
+        (message "auto-revert-notify-handler %S" event))
 
-      (if (eq action 'stopped)
-          ;; File notification has stopped.  Continue with polling.
-          (cl-dolist (buffer
-                      (if global-auto-revert-mode
-                          (buffer-list) auto-revert-buffer-list))
-            (with-current-buffer buffer
-              (when (and (equal descriptor auto-revert-notify-watch-descriptor)
-                         (or
-                          ;; A buffer associated with a file.
-                          (and (stringp buffer-file-name)
-                               (string-equal
-                                (file-name-nondirectory file)
-                                (file-name-nondirectory buffer-file-name)))
-                          ;; A buffer w/o a file, like dired.
-                          (null buffer-file-name)))
-                (auto-revert-notify-rm-watch)
-                (setq-local auto-revert-use-notify nil))))
-
-        ;; Loop over all buffers, in order to find the intended one.
-        (cl-dolist (buffer buffers)
-          (when (buffer-live-p buffer)
+      (when (buffer-live-p buffer)
+        (if (eq action 'stopped)
+            ;; File notification has stopped.  Continue with polling.
             (with-current-buffer buffer
               (when (or
                      ;; A buffer associated with a file.
                      (and (stringp buffer-file-name)
-                          (or
-                           (and (memq
-                                 action '(attribute-changed changed created))
-                                (string-equal
-                                 (file-name-nondirectory file)
-                                 (file-name-nondirectory buffer-file-name)))
-                           (and (eq action 'renamed)
-                                (string-equal
-                                 (file-name-nondirectory file1)
-                                 (file-name-nondirectory buffer-file-name)))))
+                          (string-equal
+                           (file-name-nondirectory file)
+                           (file-name-nondirectory buffer-file-name)))
                      ;; A buffer w/o a file, like dired.
-                     (and (null buffer-file-name)
-                          (memq action '(created renamed deleted))))
-                ;; Mark buffer modified.
-                (setq auto-revert-notify-modified-p t)
+                     (null buffer-file-name))
+                (auto-revert-notify-rm-watch)
+                ;; Restart the timer if it wasn't running.
+                (unless auto-revert-timer
+                  (auto-revert-set-timer))))
 
-                ;; Revert the buffer now if we're not locked out.
-                (when (/= auto-revert-buffers-counter-lockedout
-                          auto-revert-buffers-counter)
-                  (auto-revert-handler)
-                  (setq auto-revert-buffers-counter-lockedout
-                        auto-revert-buffers-counter))
+          (with-current-buffer buffer
+            (when (or
+                   ;; A buffer associated with a file.
+                   (and (stringp buffer-file-name)
+                        (or
+                         (and (memq
+                               action '(attribute-changed changed created))
+                              (string-equal
+                               (file-name-nondirectory file)
+                               (file-name-nondirectory buffer-file-name)))
+                         (and (eq action 'renamed)
+                              (string-equal
+                               (file-name-nondirectory file1)
+                               (file-name-nondirectory buffer-file-name)))))
+                   ;; A buffer w/o a file, like dired.
+                   (and (null buffer-file-name)
+                        (memq action '(created renamed deleted))))
+              ;; Mark buffer modified.
+              (setq auto-revert-notify-modified-p t)
 
-                ;; No need to check other buffers.
-                (cl-return)))))))))
+              ;; Revert the buffer now if we're not locked out.
+              (unless auto-revert--lockout-timer
+                (auto-revert-handler)
+                (setq auto-revert--lockout-timer
+                      (run-with-timer
+                       auto-revert--lockout-interval nil
+                       #'auto-revert--end-lockout buffer))))))))))
+
+(defun auto-revert--end-lockout (buffer)
+  "End the lockout period after a notification.
+If the buffer needs to be reverted, do it now."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (setq auto-revert--lockout-timer nil)
+      (when auto-revert-notify-modified-p
+        (auto-revert-handler)))))
 
 (defun auto-revert-active-p ()
-  "Check if auto-revert is active (in current buffer or globally)."
+  "Check if auto-revert is active in current buffer."
   (or auto-revert-mode
       auto-revert-tail-mode
-      (and
-       global-auto-revert-mode
-       (not global-auto-revert-ignore-buffer)
-       (not (memq major-mode
-		  global-auto-revert-ignore-modes)))))
+      auto-revert--global-mode))
 
 (defun auto-revert-handler ()
   "Revert current buffer, if appropriate.
@@ -669,14 +779,14 @@ This is an internal function used by Auto-Revert Mode."
           (if buffer-file-name
               (and (or auto-revert-remote-files
                        (not (file-remote-p buffer-file-name)))
-                   (or (not auto-revert-use-notify)
+                   (or (not auto-revert-notify-watch-descriptor)
                        auto-revert-notify-modified-p)
                    (if auto-revert-tail-mode
                        (and (file-readable-p buffer-file-name)
                             (/= auto-revert-tail-pos
                                 (setq size
-                                      (nth 7 (file-attributes
-                                              buffer-file-name)))))
+                                      (file-attribute-size
+                                       (file-attributes buffer-file-name)))))
                      (funcall (or buffer-stale-function
                                   #'buffer-stale--default-function)
                               t)))
@@ -690,7 +800,7 @@ This is an internal function used by Auto-Revert Mode."
     (when revert
       (when (and auto-revert-verbose
                  (not (eq revert 'fast)))
-        (message "Reverting buffer `%s'." (buffer-name)))
+        (message "Reverting buffer `%s'" (buffer-name)))
       ;; If point (or a window point) is at the end of the buffer, we
       ;; want to keep it at the end after reverting.  This allows one
       ;; to tail a file.
@@ -719,7 +829,8 @@ This is an internal function used by Auto-Revert Mode."
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
     (when (or revert auto-revert-check-vc-info)
-      (vc-refresh-state))))
+      (let ((revert-buffer-in-progress-p t))
+        (vc-refresh-state)))))
 
 (defun auto-revert-tail-handler (size)
   (let ((modified (buffer-modified-p))
@@ -742,6 +853,62 @@ This is an internal function used by Auto-Revert Mode."
       (setq auto-revert-tail-pos size)
       (restore-buffer-modified-p modified)))
   (set-visited-file-modtime))
+
+(defun auto-revert--buffer-candidates ()
+  "Return a prioritized list of buffers to maybe auto-revert.
+The differences between this return value and the reference
+variable `auto-revert-buffer-list' include: 1) this has more
+entries when in `global-auto-revert-mode'; 2) this prioritizes
+buffers not reverted last time due to user interruption."
+  (let ((bufs (delq nil
+                    ;; Buffers with remote contents shall be reverted only
+                    ;; if the connection is established already.
+                    (mapcar
+                     (lambda (buf)
+                       (and (buffer-live-p buf)
+                            (with-current-buffer buf
+                              (and
+                               (or (not (file-remote-p default-directory))
+                                   (file-remote-p default-directory nil t))
+                               buf))))
+                     (auto-revert--polled-buffers))))
+        remaining new)
+    ;; Partition `bufs' into two halves depending on whether or not
+    ;; the buffers are in `auto-revert-remaining-buffers'.  The two
+    ;; halves are then re-joined with the "remaining" buffers at the
+    ;; head of the list.
+    (dolist (buf auto-revert-remaining-buffers)
+      (when (memq buf bufs)
+        (push buf remaining)))
+    (dolist (buf bufs)
+      (unless (memq buf remaining)
+        (push buf new)))
+    (nreverse (nconc new remaining))))
+
+(defun auto-revert-buffer (buf)
+  "Revert a single buffer BUF.
+
+This is performed as specified by Auto-Revert and Global
+Auto-Revert Modes."
+  (if (not (buffer-live-p buf))
+      (auto-revert-remove-current-buffer buf)
+    (with-current-buffer buf
+      ;; Test if someone has turned off Auto-Revert Mode
+      ;; in a non-standard way, for example by changing
+      ;; major mode.
+      (when (and (not auto-revert-mode)
+                 (not auto-revert-tail-mode))
+        (auto-revert-remove-current-buffer))
+      (when (auto-revert-active-p)
+        ;; Enable file notification.
+        ;; Don't bother creating a notifier for non-file buffers
+        ;; unless it explicitly indicates that this works.
+        (when (and auto-revert-use-notify
+                   (not auto-revert-notify-watch-descriptor)
+                   (or buffer-file-name
+                       buffer-auto-revert-by-notification))
+          (auto-revert-notify-add-watch))
+        (auto-revert-handler)))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
@@ -766,58 +933,19 @@ are checked first the next time this function is called.
 This function is also responsible for removing buffers no longer in
 Auto-Revert Mode from `auto-revert-buffer-list', and for canceling
 the timer when no buffers need to be checked."
-
-  (setq auto-revert-buffers-counter
-        (1+ auto-revert-buffers-counter))
-
   (save-match-data
-    (let ((bufs (if global-auto-revert-mode
-		    (buffer-list)
-		  auto-revert-buffer-list))
-	  remaining new)
-      ;; Partition `bufs' into two halves depending on whether or not
-      ;; the buffers are in `auto-revert-remaining-buffers'.  The two
-      ;; halves are then re-joined with the "remaining" buffers at the
-      ;; head of the list.
-      (dolist (buf auto-revert-remaining-buffers)
-	(if (memq buf bufs)
-	    (push buf remaining)))
-      (dolist (buf bufs)
-	(if (not (memq buf remaining))
-	    (push buf new)))
-      (setq bufs (nreverse (nconc new remaining)))
+    (let ((bufs (auto-revert--buffer-candidates)))
       (while (and bufs
 		  (not (and auto-revert-stop-on-user-input
 			    (input-pending-p))))
-	(let ((buf (car bufs)))
-          (with-current-buffer buf
-            (if (buffer-live-p buf)
-                (progn
-                  ;; Test if someone has turned off Auto-Revert Mode
-                  ;; in a non-standard way, for example by changing
-                  ;; major mode.
-                  (if (and (not auto-revert-mode)
-                           (not auto-revert-tail-mode)
-                           (memq buf auto-revert-buffer-list))
-                      (auto-revert-remove-current-buffer))
-                  (when (auto-revert-active-p)
-                    ;; Enable file notification.
-                    (when (and auto-revert-use-notify
-                               (not auto-revert-notify-watch-descriptor))
-                      (auto-revert-notify-add-watch))
-                    (auto-revert-handler)))
-              ;; Remove dead buffer from `auto-revert-buffer-list'.
-              (auto-revert-remove-current-buffer))))
-	(setq bufs (cdr bufs)))
+        (auto-revert-buffer (pop bufs)))
       (setq auto-revert-remaining-buffers bufs)
       ;; Check if we should cancel the timer.
-      (when (and (not global-auto-revert-mode)
-		 (null auto-revert-buffer-list))
-	(cancel-timer auto-revert-timer)
+      (unless (auto-revert--need-polling-p)
+        (when (timerp auto-revert-timer)
+          (cancel-timer auto-revert-timer))
 	(setq auto-revert-timer nil)))))
 
-
-;; The end:
 (provide 'autorevert)
 
 (run-hooks 'auto-revert-load-hook)

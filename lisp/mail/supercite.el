@@ -1,6 +1,6 @@
-;;; supercite.el --- minor mode for citing mail and news replies
+;;; supercite.el --- minor mode for citing mail and news replies  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2022 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -21,11 +21,6 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-
-;; LCD Archive Entry
-;; supercite|Barry A. Warsaw|supercite-help@python.org
-;; |Mail and news reply citation package
-;; |1993/09/22 18:58:46|3.1|
 
 ;;; Commentary:
 
@@ -146,8 +141,8 @@ a variable whose value is a citation frame."
   :type '(repeat (list symbol (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-cite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-uncite-frame-alist '()
   "Alist for frame selection during unciting.
@@ -155,8 +150,8 @@ See the variable `sc-cite-frame-alist' for details."
   :type '(repeat (list symbol (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-uncite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-recite-frame-alist '()
   "Alist for frame selection during reciting.
@@ -164,8 +159,8 @@ See the variable `sc-cite-frame-alist' for details."
   :type '(repeat (list symbol (repeat (cons regexp
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-recite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-default-cite-frame
   '(;; initialize fill state and temporary variables when entering
@@ -211,8 +206,8 @@ See the variable `sc-cite-frame-alist' for details."
     (end                        (sc-fill-if-different "")))
   "Default REGI frame for citing a region."
   :type '(repeat (repeat sexp))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-default-cite-frame 'risky-local-variable t)
 
 (defcustom sc-default-uncite-frame
   '(;; do nothing on a blank line
@@ -221,8 +216,8 @@ See the variable `sc-cite-frame-alist' for details."
     ((sc-cite-regexp) (sc-uncite-line)))
   "Default REGI frame for unciting a region."
   :type '(repeat (repeat sexp))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-default-uncite-frame 'risky-local-variable t)
 
 (defcustom sc-default-recite-frame
   '(;; initialize fill state when entering frame
@@ -237,8 +232,8 @@ See the variable `sc-cite-frame-alist' for details."
     (end              (sc-fill-if-different "")))
   "Default REGI frame for reciting a region."
   :type '(repeat (repeat sexp))
+  :risky t
   :group 'supercite-frames)
-(put 'sc-default-recite-frame 'risky-local-variable t)
 
 (defcustom sc-cite-region-limit t
   "This variable controls automatic citation of yanked text.
@@ -315,7 +310,7 @@ during the initial citing via `sc-cite-original'."
   :group 'supercite-hooks)
 
 (defcustom sc-mail-warn-if-non-rfc822-p t
-  "Warn if mail headers don't conform to RFC822."
+  "Warn if mail headers don't conform to RFC 822 (or later)."
   :type 'boolean
   :group 'supercite-attr)
 (defcustom sc-mumble ""
@@ -428,8 +423,8 @@ to be consulted during attribution selection."
 		       (repeat (cons regexp
 				     (choice (sexp :tag "List to eval")
 					     string)))))
+  :risky t
   :group 'supercite-attr)
-(put 'sc-attrib-selection-list 'risky-local-variable t)
 
 (defcustom sc-attribs-preselect-hook nil
   "Hook to run before selecting an attribution."
@@ -483,8 +478,8 @@ The variable `sc-preferred-header-style' controls which function in
 this list is chosen for automatic reference header insertions.
 Electric reference mode will cycle through this list of functions."
   :type '(repeat sexp)
+  :risky t
   :group 'supercite)
-(put 'sc-rewrite-header-list 'risky-local-variable t)
 
 (defcustom sc-titlecue-regexp "\\s +-+\\s +"
   "Regular expression describing the separator between names and titles.
@@ -509,9 +504,9 @@ string."
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user configuration variables
 
-(defvar sc-mail-info nil
+(defvar-local sc-mail-info nil
   "Alist of mail header information gleaned from reply buffer.")
-(defvar sc-attributions nil
+(defvar-local sc-attributions nil
   "Alist of attributions for use when citing.")
 
 (defvar sc-tmp-nested-regexp nil
@@ -521,82 +516,71 @@ string."
 (defvar sc-tmp-dumb-regexp nil
   "Temp regexp describing non-nested citation cited with a nesting citer.")
 
-(make-variable-buffer-local 'sc-mail-info)
-(make-variable-buffer-local 'sc-attributions)
-
 
 ;; ======================================================================
 ;; supercite keymaps
 
-(defvar sc-T-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'sc-S-preferred-attribution-list)
-    (define-key map "b" 'sc-T-mail-nuke-blank-lines)
-    (define-key map "c" 'sc-T-confirm-always)
-    (define-key map "d" 'sc-T-downcase)
-    (define-key map "e" 'sc-T-electric-references)
-    (define-key map "f" 'sc-T-auto-fill-region)
-    (define-key map "h" 'sc-T-describe)
-    (define-key map "l" 'sc-S-cite-region-limit)
-    (define-key map "n" 'sc-S-mail-nuke-mail-headers)
-    (define-key map "N" 'sc-S-mail-header-nuke-list)
-    (define-key map "o" 'sc-T-electric-circular)
-    (define-key map "p" 'sc-S-preferred-header-style)
-    (define-key map "s" 'sc-T-nested-citation)
-    (define-key map "u" 'sc-T-use-only-preferences)
-    (define-key map "w" 'sc-T-fixup-whitespace)
-    (define-key map "?" 'sc-T-describe)
-    map)
-  "Keymap for sub-keymap of setting and toggling functions.")
+(defvar-keymap sc-T-keymap
+  :doc "Keymap for sub-keymap of setting and toggling functions."
+  "a" #'sc-S-preferred-attribution-list
+  "b" #'sc-T-mail-nuke-blank-lines
+  "c" #'sc-T-confirm-always
+  "d" #'sc-T-downcase
+  "e" #'sc-T-electric-references
+  "f" #'sc-T-auto-fill-region
+  "h" #'sc-T-describe
+  "l" #'sc-S-cite-region-limit
+  "n" #'sc-S-mail-nuke-mail-headers
+  "N" #'sc-S-mail-header-nuke-list
+  "o" #'sc-T-electric-circular
+  "p" #'sc-S-preferred-header-style
+  "s" #'sc-T-nested-citation
+  "u" #'sc-T-use-only-preferences
+  "w" #'sc-T-fixup-whitespace
+  "?" #'sc-T-describe)
 
-(defvar sc-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "c"    'sc-cite-region)
-    (define-key map "f"    'sc-mail-field-query)
-    (define-key map "g"    'sc-mail-process-headers)
-    (define-key map "h"    'sc-describe)
-    (define-key map "i"    'sc-insert-citation)
-    (define-key map "o"    'sc-open-line)
-    (define-key map "r"    'sc-recite-region)
-    (define-key map "\C-p" 'sc-raw-mode-toggle)
-    (define-key map "u"    'sc-uncite-region)
-    (define-key map "w"    'sc-insert-reference)
-    (define-key map "\C-t"  sc-T-keymap)
-    (define-key map "?"    'sc-describe)
-    map)
-  "Keymap for Supercite quasi-mode.")
+(defvar-keymap sc-mode-map
+  :doc "Keymap for Supercite quasi-mode."
+  "c"   #'sc-cite-region
+  "f"   #'sc-mail-field-query
+  "g"   #'sc-mail-process-headers
+  "h"   #'sc-describe
+  "i"   #'sc-insert-citation
+  "o"   #'sc-open-line
+  "r"   #'sc-recite-region
+  "C-p" #'sc-raw-mode-toggle
+  "u"   #'sc-uncite-region
+  "w"   #'sc-insert-reference
+  "C-t" sc-T-keymap
+  "?"   #'sc-describe)
 
-(defvar sc-electric-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "p"    'sc-eref-prev)
-    (define-key map "n"    'sc-eref-next)
-    (define-key map "s"    'sc-eref-setn)
-    (define-key map "j"    'sc-eref-jump)
-    (define-key map "x"    'sc-eref-abort)
-    (define-key map "q"    'sc-eref-abort)
-    (define-key map "\r"   'sc-eref-exit)
-    (define-key map "\n"   'sc-eref-exit)
-    (define-key map "g"    'sc-eref-goto)
-    (define-key map "?"    'describe-mode)
-    (define-key map "\C-h" 'describe-mode)
-    (define-key map [f1]   'describe-mode)
-    (define-key map [help] 'describe-mode)
-    map)
-  "Keymap for `sc-electric-mode' electric references mode.")
+(defvar-keymap sc-electric-mode-map
+  :doc "Keymap for `sc-electric-mode' electric references mode."
+  "p"      #'sc-eref-prev
+  "n"      #'sc-eref-next
+  "s"      #'sc-eref-setn
+  "j"      #'sc-eref-jump
+  "x"      #'sc-eref-abort
+  "q"      #'sc-eref-abort
+  "RET"    #'sc-eref-exit
+  "C-j"    #'sc-eref-exit
+  "g"      #'sc-eref-goto
+  "?"      #'describe-mode
+  "C-h"    #'describe-mode
+  "<f1>"   #'describe-mode
+  "<help>" #'describe-mode)
 
 
-(defvar sc-minibuffer-local-completion-map
-  (let ((map (copy-keymap minibuffer-local-completion-map)))
-    (define-key map "\C-t" 'sc-toggle-fn)
-    (define-key map " "    'self-insert-command)
-    map)
-  "Keymap for minibuffer confirmation of attribution strings.")
+(defvar-keymap sc-minibuffer-local-completion-map
+  :doc "Keymap for minibuffer confirmation of attribution strings."
+  :parent minibuffer-local-completion-map
+  "C-t" #'sc-toggle-fn
+  "SPC" #'self-insert-command)
 
-(defvar sc-minibuffer-local-map
-  (let ((map (copy-keymap minibuffer-local-map)))
-    (define-key map "\C-t" 'sc-toggle-fn)
-    map)
-  "Keymap for minibuffer confirmation of attribution strings.")
+(defvar-keymap sc-minibuffer-local-map
+  :doc "Keymap for minibuffer confirmation of attribution strings."
+  :parent minibuffer-local-map
+  "C-t" #'sc-toggle-fn)
 
 
 ;; ======================================================================
@@ -618,10 +602,7 @@ the list should be unique."
 		   (lambda (elt) (char-to-string (cdr elt))) alist "/")
 		  ") "))
 	 (p prompt)
-	 (event
-	  (if (fboundp 'allocate-event)
-	      (allocate-event)
-	    nil)))
+         event)
     (while (stringp p)
       (if (let ((cursor-in-echo-area t)
 		(inhibit-quit t))
@@ -630,16 +611,9 @@ the list should be unique."
 	    (prog1 quit-flag (setq quit-flag nil)))
 	  (progn
 	    (message "%s%s" p (single-key-description event))
-	    (if (fboundp 'deallocate-event)
-		(deallocate-event event))
 	    (setq quit-flag nil)
 	    (signal 'quit '())))
-      (let ((char
-	     (if (featurep 'xemacs)
-		 (let* ((key (and (key-press-event-p event) (event-key event)))
-			(char (and key (event-to-character event))))
-		   char)
-	       event))
+      (let ((char event)
 	    elt)
 	(if char (setq char (downcase char)))
 	(cond
@@ -651,14 +625,10 @@ the list should be unique."
 	  nil)
 	 (t
 	  (message "%s%s" p (single-key-description event))
-	  (if (featurep 'xemacs)
-	      (ding nil 'y-or-n-p)
-	    (ding))
+	  (ding)
 	  (discard-input)
 	  (if (eq p prompt)
 	      (setq p (concat "Try again.  " prompt)))))))
-    (if (fboundp 'deallocate-event)
-	(deallocate-event event))
     p))
 
 (defun sc-scan-info-alist (alist)
@@ -709,11 +679,15 @@ the list should be unique."
   "Regi frame for glomming mail header information.")
 (put 'sc-mail-glom-frame 'risky-local-variable t)
 
-(defvar curline)			; dynamic bondage
+;; This variable is bound dynamically before calling the forms in the
+;; `sc-mail-glom-frame' variable, and is part of the advertised
+;; interface.
+(with-suppressed-warnings ((lexical curline))
+  (defvar curline))
 
 ;; regi functions
 
-;; https://lists.gnu.org/archive/html/emacs-devel/2009-02/msg00691.html
+;; https://lists.gnu.org/r/emacs-devel/2009-02/msg00691.html
 ;; When rmail replies to a message with full headers visible, the "From "
 ;; line can be included.
 (defun sc-mail-check-from ()
@@ -745,10 +719,10 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
   nil)
 
 (defun sc-mail-error-in-mail-field ()
-  "Issue warning that mail headers don't conform to RFC 822."
+  "Issue warning that mail headers don't conform to email RFCs."
   (let* ((len (min (length curline) 10))
 	 (ellipsis (if (< len (length curline)) "..." ""))
-	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822. skipping..."))
+	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822 (or later). skipping..."))
     (message msg (substring curline 0 len) ellipsis))
   (beep)
   (sit-for 2)
@@ -1031,17 +1005,16 @@ supplied, is used instead of the line point is on in the current buffer."
        (setq position (1+ position))
        (let ((keep-p t))
 	 (mapc
-	  (function
-	   (lambda (filter)
-	     (let ((regexp (car filter))
-		   (pos (cdr filter)))
-	       (if (and (string-match regexp name)
-			(or (and (numberp pos)
-				 (= pos position))
-			    (and (eq pos 'last)
-				 (= position (1- elements)))
-			    (eq pos 'any)))
-		   (setq keep-p nil)))))
+          (lambda (filter)
+            (let ((regexp (car filter))
+                  (pos (cdr filter)))
+              (if (and (string-match regexp name)
+                       (or (and (numberp pos)
+                                (= pos position))
+                           (and (eq pos 'last)
+                                (= position (1- elements)))
+                           (eq pos 'any)))
+                  (setq keep-p nil))))
 	  sc-name-filter-alist)
 	 (if keep-p
 	     (setq keepers (cons position keepers)))))
@@ -1123,6 +1096,8 @@ Only used during confirmation."
   (setq sc-attrib-or-cite (not sc-attrib-or-cite))
   (throw 'sc-reconfirm t))
 
+(defvar completer-disable) ;; From some `completer.el' package.
+
 (defun sc-select-attribution ()
   "Select an attribution from `sc-attributions'.
 
@@ -1140,6 +1115,8 @@ selection but before querying is performed.  During
 auto-selected citation string and the variable `attribution' is bound
 to the auto-selected attribution string."
   (run-hooks 'sc-attribs-preselect-hook)
+  (with-suppressed-warnings ((lexical citation attribution))
+    (defvar citation) (defvar attribution))
   (let ((query-p sc-confirm-always-p)
 	attribution citation
 	(attriblist sc-preferred-attribution-list))
@@ -1164,7 +1141,7 @@ to the auto-selected attribution string."
 	      (setq attribution attrib
 		    attriblist nil))
 	     ((listp attrib)
-	      (setq attribution (eval attrib))
+	      (setq attribution (eval attrib t))
               (if (stringp attribution)
                   (setq attriblist nil)
                 (setq attribution nil
@@ -1309,12 +1286,12 @@ use it instead of `sc-citation-root-regexp'."
 (defvar sc-fill-begin 1
   "Buffer position to begin filling.")
 (defvar sc-fill-line-prefix ""
-  "Fill prefix of previous line")
+  "Fill prefix of previous line.")
 
 ;; filling
 (defun sc-fill-if-different (&optional prefix)
   "Fill the region bounded by `sc-fill-begin' and point.
-Only fill if optional PREFIX is different than `sc-fill-line-prefix'.
+Only fill if optional PREFIX is different from `sc-fill-line-prefix'.
 If `sc-auto-fill-region-p' is nil, do not fill region.  If PREFIX is
 not supplied, initialize fill variables.  This is useful for a regi
 `begin' frame-entry."
@@ -1464,7 +1441,7 @@ First runs `sc-pre-recite-hook'."
 ;; building headers
 
 (defun sc-hdr (prefix field &optional sep return-nil-p)
-  "Returns a concatenation of PREFIX and FIELD.
+  "Return a concatenation of PREFIX and FIELD.
 If FIELD is not a string or is the empty string, the empty string will
 be returned.  Optional third argument SEP is concatenated on the end if
 it is a string.  Returns empty string, unless optional RETURN-NIL-P is
@@ -1592,7 +1569,7 @@ Treats these fields in a similar manner to `sc-header-on-said'."
   "Current electric reference style.")
 
 (defun sc-valid-index-p (index)
-  "Returns INDEX if it is a valid index into `sc-rewrite-header-list'.
+  "Return INDEX if it is a valid index into `sc-rewrite-header-list'.
 Otherwise returns nil."
     ;; a number, and greater than or equal to zero
     ;; less than or equal to the last index
@@ -1607,7 +1584,7 @@ error occurs."
   (let ((ref (nth sc-eref-style sc-rewrite-header-list)))
     (condition-case err
 	(progn
-	  (eval ref)
+	  (eval ref t)
 	  (let ((lines (count-lines (point-min) (point-max))))
 	    (or nomsg (message "Ref header %d [%d line%s]: %s"
 			       sc-eref-style lines
@@ -1756,7 +1733,7 @@ entered, regardless of the value of `sc-electric-references-p'.  See
 
 (defun sc-raw-mode-toggle ()
   "Toggle, in one fell swoop, two important SC variables:
-`sc-fixup-whitespace-p' and `sc-auto-fill-region-p'"
+`sc-fixup-whitespace-p' and `sc-auto-fill-region-p'."
   (interactive)
   (setq sc-fixup-whitespace-p (not sc-fixup-whitespace-p)
 	sc-auto-fill-region-p (not sc-auto-fill-region-p))
@@ -1777,12 +1754,11 @@ is determined non-interactively.  The value is queried for in the
 minibuffer exactly the same way that `set-variable' does it.
 
 You can see the current value of the variable when the minibuffer is
-querying you by typing `C-h'.  Note that the format is changed
+querying you by typing \\`C-h'.  Note that the format is changed
 slightly from that used by `set-variable' -- the current value is
 printed just after the variable's name instead of at the bottom of the
 help window."
-  (let* ((minibuffer-help-form '(funcall myhelp))
-	 (myhelp
+  (let* ((myhelp
 	  (lambda ()
 	    (with-output-to-temp-buffer "*Help*"
 	      (prin1 var)
@@ -1798,7 +1774,8 @@ help window."
 				1))
 	      (with-current-buffer standard-output
 		(help-mode))
-	      nil))))
+	      nil)))
+	 (minibuffer-help-form `(funcall #',myhelp)))
     (set var (eval-minibuffer (format "Set %s to value: " var)))))
 
 (defmacro sc-toggle-symbol (rootname)
@@ -1887,8 +1864,7 @@ and `sc-post-hook' is run after the guts of this function."
   ;; grab point and mark since the region is probably not active when
   ;; this function gets automatically called. we want point to be a
   ;; mark so any deleting before point works properly
-  (let* ((zmacs-regions nil)		; for XEemacs
-	 (mark-active t)		; for Emacs
+  (let* ((mark-active t)
 	 (point (point-marker))
 	 (mark  (copy-marker (mark-marker))))
 

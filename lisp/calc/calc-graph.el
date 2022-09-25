@@ -1,6 +1,6 @@
-;;; calc-graph.el --- graph output functions for Calc
+;;; calc-graph.el --- graph output functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -64,6 +64,9 @@
 (defvar calc-graph-no-auto-view nil)
 (defvar calc-graph-no-wait nil)
 (defvar calc-gnuplot-trail-mark)
+
+(defsubst calc-graph-w32-p ()
+  (eq system-type 'windows-nt))
 
 (defun calc-graph-fast (many)
   (interactive "P")
@@ -213,7 +216,7 @@
      (or (and (Math-num-integerp pstyle) (math-trunc pstyle))
          (if (eq (car-safe (calc-var-value (nth 2 ydata))) 'vec)
              0 -1))
-     (math-contains-sdev-p (eval (nth 2 ydata))))))
+     (math-contains-sdev-p (eval (nth 2 ydata) t)))))
 
 (defun calc-graph-lookup (thing)
   (if (and (eq (car-safe thing) 'var)
@@ -310,13 +313,13 @@
 (defvar calc-graph-blank)
 (defvar calc-graph-non-blank)
 (defvar calc-graph-curve-num)
+(defvar math-arglist)
 
 (defun calc-graph-plot (flag &optional printing)
   (interactive "P")
   (calc-slow-wrapper
    (let ((calcbuf (current-buffer))
 	 (tempbuf (get-buffer-create "*Gnuplot Temp-2*"))
-	 (tempbuftop 1)
 	 (tempoutfile nil)
 	 (calc-graph-curve-num 0)
 	 (calc-graph-refine (and flag (> (prefix-numeric-value flag) 0)))
@@ -348,7 +351,7 @@
 	 (if (>= ver 3)
 	     (insert "set surface\nset nocontour\n"
 		     "set " (if calc-graph-is-splot "" "no") "parametric\n"
-		     "set notime\nset border\nset ztics\nset zeroaxis\n"
+		     "set notimestamp\nset border\nset ztics\nset zeroaxis\n"
 		     "set view 60,30,1,1\nset offsets 0,0,0,0\n"))
 	 (setq samples-pos (point))
 	 (insert "\n\n" str))
@@ -376,13 +379,25 @@
 		    ;; Check MS-Windows before X, in case they have
 		    ;; $DISPLAY set for some reason (e.g., Cygwin or
 		    ;; whatever)
-		    ((string= calc-gnuplot-name "pgnuplot")
-		     "windows")
+                    ((string= calc-gnuplot-name "pgnuplot")
+                     "windows")
+                    ;; Versions of gnuplot that come without pgnuplot
+                    ;; only work on MS-Windows with "qt" as the
+                    ;; terminal, for some reason.
+		    ((calc-graph-w32-p)
+		     "qt")
 		    ((or (eq window-system 'x) (getenv "DISPLAY"))
 		     "x11")
 		    ((>= calc-gnuplot-version 3)
 		     "dumb")
 		    (t "postscript"))))
+	 (unless (equal device calc-graph-last-device)
+	   (setq calc-graph-last-device device)
+	   (unless (calc-gnuplot-command "set terminal" device)
+             ;; If gnuplot doesn't support the terminal, then set it
+             ;; to "dumb".
+             (calc-gnuplot-command "set terminal dumb")
+             (setq device "dumb")))
 	 (if (equal device "dumb")
 	     (setq device (format "dumb %d %d"
 				  (1- (frame-width)) (1- (frame-height)))))
@@ -395,11 +410,7 @@
 		     (and (equal output "tty") (setq tty-output t)))
 		 (setq tempoutfile (calc-temp-file-name -1)
 		       output tempoutfile))
-	   (setq output (eval output)))
-	 (or (equal device calc-graph-last-device)
-	     (progn
-	       (setq calc-graph-last-device device)
-	       (calc-gnuplot-command "set terminal" device)))
+	   (setq output (eval output t)))
 	 (or (equal output calc-graph-last-output)
 	     (progn
 	       (setq calc-graph-last-output output)
@@ -472,9 +483,11 @@
 		   (calc-graph-xp calc-graph-xvalue)
 		   (calc-graph-yp calc-graph-yvalue)
 		   (calc-graph-zp nil)
-		   (calc-graph-xlow nil) (calc-graph-xhigh nil) (y3low nil) (y3high nil)
+		   (calc-graph-xlow nil) (calc-graph-xhigh nil)
+		   ;; (y3low nil) (y3high nil)
 		   calc-graph-xvec calc-graph-xval calc-graph-xstep var-DUMMY
-		   y3val calc-graph-y3step var-DUMMY2 (calc-graph-zval nil)
+		   ;; y3val
+		   calc-graph-y3step var-DUMMY2 (calc-graph-zval nil)
 		   calc-graph-yvec calc-graph-yval calc-graph-ycache calc-graph-ycacheptr calc-graph-yvector
 		   calc-graph-numsteps calc-graph-numsteps3
 		   (calc-graph-keep-file (and (not calc-graph-is-splot) (file-exists-p filename)))
@@ -554,7 +567,7 @@
 				    calc-gnuplot-print-output)))
 		 (if (symbolp command)
 		     (funcall command output)
-		   (eval command))))))))))
+		   (eval command t))))))))))
 
 (defun calc-graph-compute-2d ()
   (if (setq calc-graph-yvec (eq (car-safe calc-graph-yvalue) 'vec))
@@ -897,16 +910,15 @@
   (while calc-graph-file-cache
     (and (car calc-graph-file-cache)
 	 (file-exists-p (car (car calc-graph-file-cache)))
-	 (condition-case err
-	     (delete-file (car (car calc-graph-file-cache)))
-	   (error nil)))
+	 (ignore-errors
+	   (delete-file (car (car calc-graph-file-cache)))))
     (setq calc-graph-file-cache (cdr calc-graph-file-cache))))
 
 (defun calc-graph-kill-hook ()
   (calc-graph-delete-temps))
 
 (defun calc-graph-show-tty (output)
-  "Default calc-gnuplot-plot-command for \"tty\" output mode.
+  "Default `calc-gnuplot-plot-command' for \"tty\" output mode.
 This is useful for tek40xx and other graphics-terminal types."
   (call-process shell-file-name nil calc-gnuplot-buffer nil
                 shell-command-switch
@@ -915,7 +927,7 @@ This is useful for tek40xx and other graphics-terminal types."
 (defvar calc-dumb-map nil
   "The keymap for the \"dumb\" terminal plot.")
 
-(defun calc-graph-show-dumb (&optional output)
+(defun calc-graph-show-dumb (&optional _output)
   "Default calc-gnuplot-plot-command for Pinard's \"dumb\" terminal type.
 This \"dumb\" driver will be present in Gnuplot 3.0."
   (interactive)
@@ -957,7 +969,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (define-key calc-dumb-map "\C-c\C-c" 'exit-recursive-edit)))
     (use-local-map calc-dumb-map)
     (setq truncate-lines t)
-    (message "Type `q' or `C-c C-c' to return to Calc")
+    (message (substitute-command-keys
+              "Type \\`q' or \\`C-c C-c' to return to Calc"))
     (recursive-edit)
     (bury-buffer "*Gnuplot Trail*")))
 
@@ -1016,7 +1029,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	 (calc-pop-stack 1))))
   (if (string-match "\\[.+\\]" range)
       (setq range (substring range 1 -1)))
-  (if (and (not (string-match ":" range))
+  (if (and (not (string-search ":" range))
 	   (or (string-match "," range)
 	       (string-match " " range)))
       (aset range (match-beginning 0) ?\:))
@@ -1108,14 +1121,14 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
         (delete-region start end)
       (goto-char start)
       (setq errform
-            (condition-case nil
-                (math-contains-sdev-p
-                 (eval (intern
-                        (concat "var-"
-                                (save-excursion
-                                  (re-search-backward ":\\(.*\\)\\}")
-                                  (match-string 1))))))
-              (error nil)))
+            (ignore-errors
+              (math-contains-sdev-p
+               (symbol-value
+                (intern
+                 (concat "var-"
+                         (save-excursion
+			   (re-search-backward ":\\(.*\\)}")
+                           (match-string 1))))))))
       (if yerr
           (insert " with yerrorbars")
         (insert " with "
@@ -1127,11 +1140,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
                       (if penbl "linespoints" "lines")
                     (if penbl "points" "dots"))))
         (if (and pstyle (> pstyle 0))
-            (insert " "
+            (insert " ls "
                     (if (and lstyle (> lstyle 0)) (int-to-string lstyle) "1")
-                    " " (int-to-string pstyle))
+                    " ps " (int-to-string pstyle))
           (if (and lstyle (> lstyle 0))
-              (insert " " (int-to-string lstyle)))))))
+              (insert " ls " (int-to-string lstyle)))))))
   (calc-graph-view-commands))
 
 (defun calc-graph-zero-x (flag)
@@ -1157,7 +1170,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (or (calc-graph-find-plot nil nil)
 	(error "No data points have been set!"))
     (let ((base (point))
-	  start
+	  ;; start
           end)
       (re-search-forward "[,\n]\\|[ \t]+with")
       (setq end (match-beginning 0))
@@ -1178,7 +1191,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	 (or (looking-at "{")
 	     (error "Can't hide this curve (wrong format)"))
 	 (forward-char 1)
-	 (if (looking-at "*")
+	 (if (looking-at "\\*")
 	     (if (or (null flag) (<= (prefix-numeric-value flag) 0))
 		 (delete-char 1))
 	   (if (or (null flag) (> (prefix-numeric-value flag) 0))
@@ -1321,14 +1334,13 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
    (calc-graph-init)
    (calc-graph-view-trail)
    (calc-gnuplot-command cmd)
-   (or (string= calc-gnuplot-name "pgnuplot")
+   (or (calc-graph-w32-p)
        (progn
 	 (accept-process-output)
 	 (calc-graph-view-trail)))))
 
 (defun calc-graph-kill (&optional no-view)
   (interactive)
-  (calc-graph-delete-temps)
   (if (calc-gnuplot-alive)
       (calc-wrapper
        (or no-view (calc-graph-view-trail))
@@ -1337,7 +1349,8 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
        (sit-for 1)
        (if (process-status calc-gnuplot-process)
 	   (delete-process calc-gnuplot-process))
-       (setq calc-gnuplot-process nil))))
+       (setq calc-gnuplot-process nil)))
+  (calc-graph-delete-temps))
 
 (defun calc-graph-quit ()
   (interactive)
@@ -1391,20 +1404,20 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
     (or calc-graph-no-auto-view (sit-for 0))))
 
 (defun calc-gnuplot-check-for-errors ()
-  (if (save-excursion
-	(prog2
-	 (progn
-	   (set-buffer calc-gnuplot-buffer)
-	   (goto-char calc-gnuplot-last-error-pos))
-	 (re-search-forward "^[ \t]+\\^$" nil t)
-	 (goto-char (point-max))
-	 (setq calc-gnuplot-last-error-pos (point-max))))
+  (if (with-current-buffer calc-gnuplot-buffer
+	(goto-char calc-gnuplot-last-error-pos)
+        (prog1
+	    (re-search-forward "^[ \t]+\\^$" nil t)
+	  (goto-char (point-max))
+	  (setq calc-gnuplot-last-error-pos (point-max))))
       (calc-graph-view-trail)))
 
 (defun calc-gnuplot-command (&rest args)
+  "Send ARGS to Gnuplot.
+Returns nil if Gnuplot signalled an error."
   (calc-graph-init)
   (let ((cmd (concat (mapconcat 'identity args " ") "\n")))
-    (or (string= calc-gnuplot-name "pgnuplot")
+    (or (calc-graph-w32-p)
 	(accept-process-output))
     (with-current-buffer calc-gnuplot-buffer
       (calc-gnuplot-check-for-errors)
@@ -1416,12 +1429,14 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
       (process-send-string calc-gnuplot-process cmd)
       (if (get-buffer-window calc-gnuplot-buffer)
 	  (calc-graph-view-trail))
-      (or (string= calc-gnuplot-name "pgnuplot")
+      (or (calc-graph-w32-p)
 	  (accept-process-output (and (not calc-graph-no-wait)
 				      calc-gnuplot-process)))
-      (calc-gnuplot-check-for-errors)
-      (if (get-buffer-window calc-gnuplot-buffer)
-	  (calc-graph-view-trail)))))
+      (prog1
+          ;; Return nil if we got an error.
+          (not (calc-gnuplot-check-for-errors))
+        (if (get-buffer-window calc-gnuplot-buffer)
+	    (calc-graph-view-trail))))))
 
 (defun calc-graph-init-buffers ()
   (or (and calc-gnuplot-buffer
@@ -1445,23 +1460,24 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (setq origin (point)))
 	(setq calc-graph-last-device nil)
 	(setq calc-graph-last-output nil)
-	(if (string= calc-gnuplot-name "pgnuplot")
-	    (let ((version-str (shell-command-to-string "pgnuplot -V")))
+	(if (calc-graph-w32-p)
+	    (let ((version-str
+                   (shell-command-to-string (concat calc-gnuplot-name " -V"))))
 	      (if (string-match "gnuplot \\([0-9]+\\)\\." version-str)
 		  (setq calc-gnuplot-version (string-to-number
 					      (substring version-str
 							 (match-beginning 1)
 							 (match-end 1))))
 		(setq calc-gnuplot-version 1))))
-	(condition-case err
+	(condition-case nil
 	    (let ((args (append (and calc-gnuplot-display
 				     (not (equal calc-gnuplot-display
 						 (getenv "DISPLAY")))
-				     (not (string= calc-gnuplot-name "pgnuplot"))
+                                     (not (calc-graph-w32-p))
 				     (list "-display"
 					   calc-gnuplot-display))
 				(and calc-gnuplot-geometry
-				     (not (string= calc-gnuplot-name "pgnuplot"))
+				     (not (calc-graph-w32-p))
 				     (list "-geometry"
 					   calc-gnuplot-geometry)))))
 	      (setq calc-gnuplot-process
@@ -1475,7 +1491,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	   (error "Sorry, can't find \"%s\" on your system"
 		  calc-gnuplot-name)))
 	(with-current-buffer calc-gnuplot-buffer
-	  (while (and (not (string= calc-gnuplot-name "pgnuplot"))
+	  (while (and (not (calc-graph-w32-p))
 		      (not (save-excursion
 			     (goto-char origin)
 			     (search-forward "gnuplot> " nil t)))
@@ -1483,7 +1499,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	    (accept-process-output calc-gnuplot-process))
 	  (or (memq (process-status calc-gnuplot-process) '(run stop))
 	      (error "Unable to start GNUPLOT process"))
-	  (if (not (string= calc-gnuplot-name "pgnuplot"))
+	  (if (not (calc-graph-w32-p))
 	      (if (save-excursion
 		    (goto-char origin)
 		    (re-search-forward

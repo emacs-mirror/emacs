@@ -1,6 +1,6 @@
-;;; cc-fonts.el --- font lock support for CC Mode
+;;; cc-fonts.el --- font lock support for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -76,9 +76,6 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 (cc-require 'cc-engine)
-(cc-require-when-compile 'cc-awk) ; Change from cc-require, 2003/6/18 to
-;; prevent cc-awk being loaded when it's not needed.  There is now a (require
-;; 'cc-awk) in (defun awk-mode ..).
 
 ;; Avoid repeated loading through the eval-after-load directive in
 ;; cc-mode.el.
@@ -95,10 +92,14 @@
 ;; during compilation.
 (cc-bytecomp-defvar c-preprocessor-face-name)
 (cc-bytecomp-defvar c-reference-face-name)
+(cc-bytecomp-defvar c-block-comment-flag)
 (cc-bytecomp-defun c-fontify-recorded-types-and-refs)
 (cc-bytecomp-defun c-font-lock-declarators)
 (cc-bytecomp-defun c-font-lock-objc-method)
 (cc-bytecomp-defun c-font-lock-invalid-string)
+(cc-bytecomp-defun c-font-lock-fontify-region)
+
+(cc-bytecomp-defvar font-lock-reference-face) ; For Emacs 29
 
 
 ;; Note that font-lock in XEmacs doesn't expand face names as
@@ -113,8 +114,10 @@
 	 ;; In Emacs font-lock-builtin-face has traditionally been
 	 ;; used for preprocessor directives.
 	 'font-lock-builtin-face)
-	(t
-	 'font-lock-reference-face)))
+	((and (c-face-name-p 'font-lock-reference-face)
+	      (eq font-lock-reference-face 'font-lock-reference-face))
+	 'font-lock-reference-face)
+	(t 'font-lock-constant-face)))
 
 (cc-bytecomp-defvar font-lock-constant-face)
 
@@ -164,9 +167,8 @@
 
 (defconst c-doc-markup-face-name
   (if (c-face-name-p 'font-lock-doc-markup-face)
-	 ;; If it happens to occur in the future.  (Well, the more
-	 ;; pragmatic reason is to get unique faces for the test
-	 ;; suite.)
+	 ;; Exists in Emacs 28+.  (For other emacsen, the pragmatic
+	 ;; reason is to get unique faces for the test suite.)
 	 'font-lock-doc-markup-face
     c-label-face-name))
 
@@ -220,6 +222,7 @@
     ;; incorrectly.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (fboundp 'font-lock-set-face)
 	;; Note: This function has no docstring in XEmacs so it might be
 	;; considered internal.
@@ -230,6 +233,7 @@
     ;; This is the inverse of `c-put-font-lock-face'.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (fboundp 'font-lock-remove-face)
 	`(font-lock-remove-face ,from ,to)
       `(remove-text-properties ,from ,to '(face nil))))
@@ -240,11 +244,13 @@
     ;; region should include them.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (featurep 'xemacs)
 	`(c-put-font-lock-face (1+ ,from) (1- ,to) 'font-lock-string-face)
       `(c-put-font-lock-face ,from ,to 'font-lock-string-face)))
 
   (defmacro c-fontify-types-and-refs (varlist &rest body)
+    (declare (indent 1) (debug let*))
     ;; Like `let', but additionally activates `c-record-type-identifiers'
     ;; and `c-record-ref-identifiers', and fontifies the recorded ranges
     ;; accordingly on exit.
@@ -255,7 +261,6 @@
 	   ,@varlist)
        (prog1 (progn ,@body)
 	 (c-fontify-recorded-types-and-refs))))
-  (put 'c-fontify-types-and-refs 'lisp-indent-function 1)
 
   (defun c-skip-comments-and-strings (limit)
     ;; If the point is within a region fontified as a comment or
@@ -283,6 +288,7 @@
     (byte-compile
      `(lambda (limit)
 	(let (res)
+	  (c-skip-comments-and-strings limit)
 	  (while (and (setq res (re-search-forward ,regexp limit t))
 		      (progn
 			(goto-char (match-beginning 0))
@@ -292,44 +298,51 @@
 			      nil)))))
 	  res))))
 
-  (defun c-make-font-lock-search-form (regexp highlights)
+  (defun c-make-font-lock-search-form (regexp highlights &optional check-point)
     ;; Return a lisp form which will fontify every occurrence of REGEXP
     ;; (a regular expression, NOT a function) between POINT and `limit'
     ;; with HIGHLIGHTS, a list of highlighters as specified on page
-    ;; "Search-based Fontification" in the elisp manual.
-    `(while (re-search-forward ,regexp limit t)
-       (unless (progn
-		 (goto-char (match-beginning 0))
-		 (c-skip-comments-and-strings limit))
-	 (goto-char (match-end 0))
-	 ,@(mapcar
-	    (lambda (highlight)
-	      (if (integerp (car highlight))
-		  ;; e.g. highlight is (1 font-lock-type-face t)
-		  (progn
-		    (unless (eq (nth 2 highlight) t)
-		      (error
-		       "The override flag must currently be t in %s"
-		       highlight))
-		    (when (nth 3 highlight)
-		      (error
-		       "The laxmatch flag may currently not be set in %s"
-		       highlight))
-		    `(save-match-data
-		       (c-put-font-lock-face
-			(match-beginning ,(car highlight))
-			(match-end ,(car highlight))
-			,(elt highlight 1))))
-		;; highlight is an "ANCHORED HIGHLIGHTER" of the form
-		;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
-		(when (nth 3 highlight)
-		  (error "Match highlights currently not supported in %s"
+    ;; "Search-based Fontification" in the elisp manual.  If CHECK-POINT
+    ;; is non-nil, we will check (< (point) limit) in the main loop.
+    `(progn
+       (c-skip-comments-and-strings limit)
+       (while
+	   ,(if check-point
+		`(and (< (point) limit)
+		      (re-search-forward ,regexp limit t))
+	      `(re-search-forward ,regexp limit t))
+	 (unless (progn
+		   (goto-char (match-beginning 0))
+		   (c-skip-comments-and-strings limit))
+	   (goto-char (match-end 0))
+	   ,@(mapcar
+	      (lambda (highlight)
+		(if (integerp (car highlight))
+		    ;; e.g. highlight is (1 font-lock-type-face t)
+		    (progn
+		      (unless (eq (nth 2 highlight) t)
+			(error
+			 "The override flag must currently be t in %s"
 			 highlight))
-		`(progn
-		   ,(nth 1 highlight)
-		   (save-match-data ,(car highlight))
-		   ,(nth 2 highlight))))
-	    highlights))))
+		      (when (nth 3 highlight)
+			(error
+			 "The laxmatch flag may currently not be set in %s"
+			 highlight))
+		      `(save-match-data
+			 (c-put-font-lock-face
+			  (match-beginning ,(car highlight))
+			  (match-end ,(car highlight))
+			  ,(elt highlight 1))))
+		  ;; highlight is an "ANCHORED HIGHLIGHTER" of the form
+		  ;; (ANCHORED-MATCHER PRE-FORM POST-FORM SUBEXP-HIGHLIGHTERS...)
+		  (when (nth 3 highlight)
+		    (error "Match highlights currently not supported in %s"
+			   highlight))
+		  `(progn
+		     ,(nth 1 highlight)
+		     (save-match-data ,(car highlight))
+		     ,(nth 2 highlight))))
+	      highlights)))))
 
   (defun c-make-font-lock-search-function (regexp &rest highlights)
     ;; This function makes a byte compiled function that works much like
@@ -409,6 +422,8 @@
     ;; lambda more easily.
     (byte-compile
      `(lambda (limit)
+	(let ((lit-start (c-literal-start)))
+	  (when lit-start (goto-char lit-start)))
 	(let ( ;; The font-lock package in Emacs is known to clobber
 	      ;; `parse-sexp-lookup-properties' (when it exists).
 	      (parse-sexp-lookup-properties
@@ -476,18 +491,10 @@
 			,(c-make-font-lock-search-form
 			  regexp highlights)))))
 	     state-stanzas)
-	  ,(c-make-font-lock-search-form (car normal) (cdr normal))
-	  nil))))
-
-;  (eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
-;    '(progn
-  (def-edebug-spec c-fontify-types-and-refs let*)
-  (def-edebug-spec c-make-syntactic-matcher t)
-  ;; If there are literal quoted or backquoted highlight specs in
-  ;; the call to `c-make-font-lock-search-function' then let's
-  ;; instrument the forms in them.
-  (def-edebug-spec c-make-font-lock-search-function
-    (form &rest &or ("quote" (&rest form)) ("`" (&rest form)) form)));))
+	  ;; In the next form, check that point hasn't been moved beyond
+	  ;; `limit' in any of the above stanzas.
+	  ,(c-make-font-lock-search-form (car normal) (cdr normal) t)
+	  nil)))))
 
 (defun c-fontify-recorded-types-and-refs ()
   ;; Convert the ranges recorded on `c-record-type-identifiers' and
@@ -522,7 +529,12 @@ stuff.  Used on level 1 and higher."
 		 (sws-depth (c-lang-const c-syntactic-ws-depth))
 		 (nsws-depth (c-lang-const c-nonempty-syntactic-ws-depth)))
 
-	    `(;; The stuff after #error and #warning is a message, so
+	    `(;; Fontify "invalid" comment delimiters
+	      ,@(when (and (c-lang-const c-block-comment-starter)
+			   (c-lang-const c-line-comment-starter))
+		  `(c-maybe-font-lock-wrong-style-comments))
+
+	      ;; The stuff after #error and #warning is a message, so
 	      ;; fontify it as a string.
 	      ,@(when (c-lang-const c-cpp-message-directives)
 		  (let* ((re (c-make-keywords-re 'appendable ; nil
@@ -549,8 +561,10 @@ stuff.  Used on level 1 and higher."
 				 (c-lang-const c-opt-cpp-prefix)
 				 re
 				 (c-lang-const c-syntactic-ws)
-				 "\\(<[^>\n\r]*>?\\)")
-			 `(,(+ ncle-depth re-depth sws-depth 1)
+				 "\\(<\\([^>\n\r]*\\)>?\\)")
+			 `(,(+ ncle-depth re-depth sws-depth
+			       (if (featurep 'xemacs) 2 1)
+			       )
 			   font-lock-string-face t)
 			 `((let ((beg (match-beginning
 				       ,(+ ncle-depth re-depth sws-depth 1)))
@@ -662,7 +676,7 @@ stuff.  Used on level 1 and higher."
 
       ,@(when (c-major-mode-is 'pike-mode)
 	  ;; Recognize hashbangs in Pike.
-	  `((eval . (list "\\`#![^\n\r]*"
+	  '((eval . (list "\\`#![^\n\r]*"
 			  0 c-preprocessor-face-name))))
 
       ;; Make hard spaces visible through an inverted `font-lock-warning-face'.
@@ -674,33 +688,6 @@ stuff.  Used on level 1 and higher."
 					  'c-nonbreakable-space-face))
 		   ''c-nonbreakable-space-face)))
       ))
-
-(defun c-font-lock-invalid-string ()
-  ;; Assuming the point is after the opening character of a string,
-  ;; fontify that char with `font-lock-warning-face' if the string
-  ;; decidedly isn't terminated properly.
-  ;;
-  ;; This function does hidden buffer changes.
-  (let ((start (1- (point))))
-    (save-excursion
-      (and (eq (elt (parse-partial-sexp start (c-point 'eol)) 8) start)
-	   (if (if (eval-when-compile (integerp ?c))
-		   ;; Emacs
-		   (integerp c-multiline-string-start-char)
-		 ;; XEmacs
-		 (characterp c-multiline-string-start-char))
-	       ;; There's no multiline string start char before the
-	       ;; string, so newlines aren't allowed.
-	       (not (eq (char-before start) c-multiline-string-start-char))
-	     ;; Multiline strings are allowed anywhere if
-	     ;; c-multiline-string-start-char is t.
-	     (not c-multiline-string-start-char))
-	   (if c-string-escaped-newlines
-	       ;; There's no \ before the newline.
-	       (not (eq (char-before (point)) ?\\))
-	     ;; Escaped newlines aren't supported.
-	     t)
-	   (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
 (defun c-font-lock-invalid-single-quotes (limit)
   ;; This function will be called from font-lock for a region bounded by POINT
@@ -732,6 +719,59 @@ stuff.  Used on level 1 and higher."
       (parse-partial-sexp end limit nil nil state 'syntax-table)))
     nil)
 
+(defun c-maybe-font-lock-wrong-style-comments (limit)
+  ;; This function will be called from font-lock-for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  ;;
+  ;; This function fontifies "invalid" comment delimiters with
+  ;; `font-lock-warning-face'.  A delimiter is "invalid" when
+  ;; `c-mark-wrong-style-of-comment' is non-nil, and the delimiter style is
+  ;; not the default specified by `c-block-comment-flag'.
+  (when c-mark-wrong-style-of-comment
+    (let* ((lit (c-semi-pp-to-literal (point)))
+	   (s (car lit))		; parse-partial-sexp state.
+	   )
+      ;; First, deal with and move out of any literal we start in.
+      (cond
+       ((null (cadr lit)))		; Not in a literal
+       ((eq (cadr lit) 'string)
+	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table)))
+       ((and (not c-block-comment-flag) ; In an "invalid" block comment
+	     (eq (cadr lit) 'c))
+	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))
+	;; Font lock the block comment ender with warning face.
+	(when (not (nth 4 s))
+	  (c-put-font-lock-face (- (point) (length c-block-comment-ender))
+				(point) font-lock-warning-face)))
+       (t ; In a line comment, or a "valid" block comment
+	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))))
+
+      (while (< (point) limit)
+	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))
+	(cond
+	 ((or (nth 3 s)			; In a string
+	      (and (nth 4 s)		; In a comment
+		   (eq (nth 7 s)	; Comment style
+		       (if c-block-comment-flag
+			   nil		; Block comment
+			 1))))	; Line comment
+	    ;; Move over a "valid" literal.
+	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table)))
+	 ((nth 4 s)			; In an invalid comment
+	 ;; Fontify the invalid comment opener.
+	  (c-put-font-lock-face (nth 8 s) (point) font-lock-warning-face)
+	  ;; Move to end of comment or LIMIT.
+	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))
+	  ;; Fontify an invalid block comment ender, if that's what we have.
+	  (when (and (not c-block-comment-flag)
+		     (not (nth 4 s)))	; We're outside the comment
+	    (c-put-font-lock-face (- (point) (length c-block-comment-ender))
+				  (point) font-lock-warning-face)))))))
+  nil)
+
 (c-lang-defconst c-basic-matchers-before
   "Font lock matchers for basic keywords, labels, references and various
 other easily recognizable things that should be fontified before generic
@@ -742,23 +782,19 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; `c-recognize-<>-arglists' is set.
 
   t `(;; Put a warning face on the opener of unclosed strings that
-      ;; can't span lines.  Later font
+      ;; can't span lines and on the "terminating" newlines.  Later font
       ;; lock packages have a `font-lock-syntactic-face-function' for
       ;; this, but it doesn't give the control we want since any
       ;; fontification done inside the function will be
       ;; unconditionally overridden.
-      ,(c-make-font-lock-search-function
-	;; Match a char before the string starter to make
-	;; `c-skip-comments-and-strings' work correctly.
-	(concat ".\\(" c-string-limit-regexp "\\)")
-	'((c-font-lock-invalid-string)))
+      ("\\s|" 0 font-lock-warning-face t nil)
 
       ;; Invalid single quotes.
       c-font-lock-invalid-single-quotes
 
-      ;; Fontify C++ raw strings.
-      ,@(when (c-major-mode-is 'c++-mode)
-	  '(c-font-lock-raw-strings))
+      ;; Fontify multiline strings.
+      ,@(when (c-lang-const c-ml-string-opener-re)
+	  '(c-font-lock-ml-strings))
 
       ;; Fontify keyword constants.
       ,@(when (c-lang-const c-constant-kwds)
@@ -847,6 +883,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 						  c-reference-face-name))
 			(goto-char (match-end 1))))))))))
 
+      ;; Module declarations (e.g. in C++20).
+      ,@(when (c-major-mode-is 'c++-mode)
+	  '(c-font-lock-c++-modules))
+
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
 	  `(;; Fontify class names in the beginning of message expressions.
@@ -894,55 +934,51 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; This function does hidden buffer changes.
 
   ;;(message "c-font-lock-complex-decl-prepare %s %s" (point) limit)
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
 
-  ;; Clear the list of found types if we start from the start of the
-  ;; buffer, to make it easier to get rid of misspelled types and
-  ;; variables that have gotten recognized as types in malformed code.
-  (when (bobp)
-    (c-clear-found-types))
+    ;; Clear the c-type char properties which mark the region, to recalculate
+    ;; them properly.  The most interesting properties are those put on the
+    ;; closest token before the region.
+    (save-excursion
+      (let ((pos (point)))
+	(c-backward-syntactic-ws (max (- (point) 500) (point-min)))
+	(when (and (not (bobp))
+		   (memq (c-get-char-property (1- (point)) 'c-type)
+			 '(c-decl-arg-start
+			   c-decl-end
+			   c-decl-id-start
+			   c-decl-type-start
+			   c-not-decl)))
+	  (setq pos (1- (point))))
+	(c-clear-char-properties pos limit 'c-type)
+	(c-clear-char-properties pos limit 'c-<>-c-types-set)))
 
-  ;; Clear the c-type char properties which mark the region, to recalculate
-  ;; them properly.  The most interesting properties are those put on the
-  ;; closest token before the region.
-  (save-excursion
-    (let ((pos (point)))
-      (c-backward-syntactic-ws)
-      (c-clear-char-properties
-       (if (and (not (bobp))
-		(memq (c-get-char-property (1- (point)) 'c-type)
-		      '(c-decl-arg-start
-			c-decl-end
-			c-decl-id-start
-			c-decl-type-start)))
-	   (1- (point))
-	 pos)
-       limit 'c-type)))
+    ;; Update `c-state-cache' to the beginning of the region.  This will
+    ;; make `c-beginning-of-syntax' go faster when it's used later on,
+    ;; and it's near the point most of the time.
+    (c-parse-state)
 
-  ;; Update `c-state-cache' to the beginning of the region.  This will
-  ;; make `c-beginning-of-syntax' go faster when it's used later on,
-  ;; and it's near the point most of the time.
-  (c-parse-state)
+    ;; Check if the fontified region starts inside a declarator list so
+    ;; that `c-font-lock-declarators' should be called at the start.
+    ;; The declared identifiers are font-locked correctly as types, if
+    ;; that is what they are.
+    (let ((prop (save-excursion
+		  (c-backward-syntactic-ws (max (- (point) 500) (point-min)))
+		  (unless (bobp)
+		    (c-get-char-property (1- (point)) 'c-type)))))
+      (when (memq prop '(c-decl-id-start c-decl-type-start))
+	(c-forward-syntactic-ws limit)
+	(c-font-lock-declarators limit t (eq prop 'c-decl-type-start)
+				 (not (c-bs-at-toplevel-p (point))))))
 
-  ;; Check if the fontified region starts inside a declarator list so
-  ;; that `c-font-lock-declarators' should be called at the start.
-  ;; The declared identifiers are font-locked correctly as types, if
-  ;; that is what they are.
-  (let ((prop (save-excursion
-		(c-backward-syntactic-ws)
-		(unless (bobp)
-		  (c-get-char-property (1- (point)) 'c-type)))))
-    (when (memq prop '(c-decl-id-start c-decl-type-start))
-      (c-forward-syntactic-ws limit)
-      (c-font-lock-declarators limit t (eq prop 'c-decl-type-start)
-			       (not (c-bs-at-toplevel-p (point))))))
-
-  (setq c-font-lock-context ;; (c-guess-font-lock-context)
-	(save-excursion
-	  (if (and c-cpp-expr-intro-re
-		   (c-beginning-of-macro)
-		   (looking-at c-cpp-expr-intro-re))
-	      'in-cpp-expr)))
-  nil)
+    (setq c-font-lock-context ;; (c-guess-font-lock-context)
+	  (save-excursion
+	    (if (and c-cpp-expr-intro-re
+		     (c-beginning-of-macro)
+		     (looking-at c-cpp-expr-intro-re))
+		'in-cpp-expr)))
+    nil))
 
 (defun c-font-lock-<>-arglists (limit)
   ;; This function will be called from font-lock for a region bounded by POINT
@@ -957,89 +993,102 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;;
   ;; This function might do hidden buffer changes.
 
-  (let (;; The font-lock package in Emacs is known to clobber
-	;; `parse-sexp-lookup-properties' (when it exists).
-	(parse-sexp-lookup-properties
-	 (cc-eval-when-compile
-	   (boundp 'parse-sexp-lookup-properties)))
-	(c-parse-and-markup-<>-arglists t)
-	c-restricted-<>-arglists
-	id-start id-end id-face pos kwd-sym)
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
 
-    (while (and (< (point) limit)
-		(re-search-forward c-opt-<>-arglist-start limit t))
+    (let (;; The font-lock package in Emacs is known to clobber
+	  ;; `parse-sexp-lookup-properties' (when it exists).
+	  (parse-sexp-lookup-properties
+	   (cc-eval-when-compile
+	     (boundp 'parse-sexp-lookup-properties)))
+	  (c-parse-and-markup-<>-arglists t)
+	  c-restricted-<>-arglists
+	  id-start id-end id-face pos kwd-sym
+	  old-pos)
 
-      (setq id-start (match-beginning 1)
-	    id-end (match-end 1)
-	    pos (point))
+      (while (and (< (point) limit)
+		  (setq old-pos (point))
+		  (c-syntactic-re-search-forward "<" limit t nil t))
+	(setq pos (point))
+	(save-excursion
+	  (backward-char)
+	  (c-backward-syntactic-ws old-pos)
+	  (if (re-search-backward
+	       (concat "\\(\\`\\|" c-nonsymbol-key "\\)\\(" c-symbol-key"\\)\\=")
+	       old-pos t)
+	      (setq id-start (match-beginning 2)
+		    id-end (match-end 2))
+	    (setq id-start nil id-end nil)))
 
-      (goto-char id-start)
-      (unless (c-skip-comments-and-strings limit)
-	(setq kwd-sym nil
-	      c-restricted-<>-arglists nil
-	      id-face (get-text-property id-start 'face))
+	(when id-start
+	  (goto-char id-start)
+	  (unless (c-skip-comments-and-strings limit)
+	    (setq kwd-sym nil
+		  c-restricted-<>-arglists nil
+		  id-face (get-text-property id-start 'face))
 
-	(if (cond
-	     ((eq id-face 'font-lock-type-face)
-	      ;; The identifier got the type face so it has already been
-	      ;; handled in `c-font-lock-declarations'.
-	      nil)
+	    (if (cond
+		 ((eq id-face 'font-lock-type-face)
+		  ;; The identifier got the type face so it has already been
+		  ;; handled in `c-font-lock-declarations'.
+		  nil)
 
-	     ((eq id-face 'font-lock-keyword-face)
-	      (when (looking-at c-opt-<>-sexp-key)
-		;; There's a special keyword before the "<" that tells
-		;; that it's an angle bracket arglist.
-		(setq kwd-sym (c-keyword-sym (match-string 1)))))
+		 ((eq id-face 'font-lock-keyword-face)
+		  (when (looking-at c-opt-<>-sexp-key)
+		    ;; There's a special keyword before the "<" that tells
+		    ;; that it's an angle bracket arglist.
+		    (setq kwd-sym (c-keyword-sym (match-string 2)))))
 
-	     (t
-	      ;; There's a normal identifier before the "<".  If we're not in
-	      ;; a declaration context then we set `c-restricted-<>-arglists'
-	      ;; to avoid recognizing templates in function calls like "foo (a
-	      ;; < b, c > d)".
-	      (c-backward-syntactic-ws)
-	      (when (and (memq (char-before) '(?\( ?,))
-			 (not (eq (get-text-property (1- (point)) 'c-type)
-				  'c-decl-arg-start)))
-		(setq c-restricted-<>-arglists t))
-	      t))
+		 (t
+		  ;; There's a normal identifier before the "<".  If we're not in
+		  ;; a declaration context then we set `c-restricted-<>-arglists'
+		  ;; to avoid recognizing templates in function calls like "foo (a
+		  ;; < b, c > d)".
+		  (c-backward-syntactic-ws)
+		  (when (and (memq (char-before) '(?\( ?,))
+			     (not (eq (get-text-property (1- (point)) 'c-type)
+				      'c-decl-arg-start)))
+		    (setq c-restricted-<>-arglists t))
+		  t))
 
-	    (progn
-	      (goto-char (1- pos))
-	      ;; Check for comment/string both at the identifier and
-	      ;; at the "<".
-	      (unless (c-skip-comments-and-strings limit)
+		(progn
+		  (goto-char (1- pos))
+		  ;; Check for comment/string both at the identifier and
+		  ;; at the "<".
+		  (unless (c-skip-comments-and-strings limit)
 
-		(c-fontify-types-and-refs ()
-		  (when (c-forward-<>-arglist (c-keyword-member
-					       kwd-sym 'c-<>-type-kwds))
-		    (when (and c-opt-identifier-concat-key
-			       (not (get-text-property id-start 'face)))
-		      (c-forward-syntactic-ws)
-		      (cond ((looking-at c-opt-identifier-concat-key)
-			     (c-put-font-lock-face id-start id-end
-						c-reference-face-name))
-			    ((eq (char-after) ?\())
-			    (t (c-put-font-lock-face id-start id-end
-					      'font-lock-type-face))))))
+		    (c-fontify-types-and-refs ()
+		      (when (c-forward-<>-arglist (c-keyword-member
+						   kwd-sym 'c-<>-type-kwds))
+			(when (and c-opt-identifier-concat-key
+				   (not (get-text-property id-start 'face)))
+			  (c-forward-syntactic-ws)
+			  (cond ((looking-at c-opt-identifier-concat-key)
+				 (c-put-font-lock-face id-start id-end
+						       c-reference-face-name))
+				((eq (char-after) ?\())
+				(t (c-put-font-lock-face id-start id-end
+							 'font-lock-type-face))))))
 
-		(goto-char pos)))
-	  (goto-char pos)))))
+		    (goto-char pos)))
+	      (goto-char pos)))))))
   nil)
 
 (defun c-font-lock-declarators (limit list types not-top
 				      &optional template-class)
   ;; Assuming the point is at the start of a declarator in a declaration,
-  ;; fontify the identifier it declares.  (If TYPES is set, it does this via
-  ;; the macro `c-fontify-types-and-refs'.)
+  ;; fontify the identifier it declares.  (If TYPES is t, it does this via the
+  ;; macro `c-fontify-types-and-refs'.)
   ;;
   ;; If LIST is non-nil, also fontify the ids in any following declarators in
   ;; a comma separated list (e.g.  "foo" and "*bar" in "int foo = 17, *bar;");
   ;; additionally, mark the commas with c-type property 'c-decl-id-start or
   ;; 'c-decl-type-start (according to TYPES).  Stop at LIMIT.
   ;;
-  ;; If TYPES is non-nil, fontify all identifiers as types.  If NOT-TOP is
-  ;; non-nil, we are not at the top-level ("top-level" includes being directly
-  ;; inside a class or namespace, etc.).
+  ;; If TYPES is t, fontify all identifiers as types, if it is nil fontify as
+  ;; either variables or functions, otherwise TYPES is a face to use.  If
+  ;; NOT-TOP is non-nil, we are not at the top-level ("top-level" includes
+  ;; being directly inside a class or namespace, etc.).
   ;;
   ;; TEMPLATE-CLASS is non-nil when the declaration is in template delimiters
   ;; and was introduced by, e.g. "typename" or "class", such that if there is
@@ -1053,114 +1102,43 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
   ;;(message "c-font-lock-declarators from %s to %s" (point) limit)
   (c-fontify-types-and-refs
-      ((pos (point)) next-pos id-start
-       decl-res
-       id-face got-type got-init
-       c-last-identifier-range
-       (separator-prop (if types 'c-decl-type-start 'c-decl-id-start)))
-
-    ;; The following `while' fontifies a single declarator id each time round.
-    ;; It loops only when LIST is non-nil.
-    (while
-	(and pos (setq decl-res (c-forward-declarator limit)))
-      (setq next-pos (point)
-	    id-start (car decl-res)
-	    id-face (if (and (eq (char-after) ?\()
-			     (or (not (c-major-mode-is 'c++-mode))
-				 (not not-top)
-				 (car (cddr (cddr decl-res))) ; Id is in
-							      ; parens, etc.
-				 (save-excursion
-				   (forward-char)
-				   (c-forward-syntactic-ws)
-				   (looking-at "[*&]")))
-			     (not (car (cddr decl-res)))
-			     (or (not (c-major-mode-is 'c++-mode))
-				 (save-excursion
-				   (let (c-last-identifier-range)
-				     (forward-char)
-				     (c-forward-syntactic-ws)
-				     (catch 'is-function
-				       (while
-					   (progn
-					     (if (eq (char-after) ?\))
-						 (throw 'is-function t))
-					     (setq got-type (c-forward-type))
-					     (cond
-					      ((null got-type)
-					       (throw 'is-function nil))
-					      ((not (eq got-type 'maybe))
-					       (throw 'is-function t)))
-					     (c-forward-declarator limit t)
-					     (eq (char-after) ?,))
-					 (forward-char)
-					 (c-forward-syntactic-ws))
-				       t)))))
-			'font-lock-function-name-face
-		      'font-lock-variable-name-face)
-	    got-init (and (cadr (cddr decl-res)) ; got-init
-			  (char-after)))
-
-      (if types
-	  ;; Register and fontify the identifier as a type.
-	  (let ((c-promote-possible-types t))
-	    (goto-char id-start)
-	    (c-forward-type))
-	;; Fontify the last symbol in the identifier if it isn't fontified
-	;; already.  The check is necessary only in certain cases where this
-	;; function is used "sloppily", e.g. in `c-simple-decl-matchers'.
-	(when (and c-last-identifier-range
-		   (not (get-text-property (car c-last-identifier-range)
-					   'face)))
-	  (c-put-font-lock-face (car c-last-identifier-range)
-				(cdr c-last-identifier-range)
-				id-face)))
-
-      (goto-char next-pos)
-      (setq pos nil)	      ; So as to terminate the enclosing `while' form.
-      (if (and template-class
-	       (eq got-init ?=) ; C++ "<class X = Y>"?
-	       (c-forward-token-2 1 nil limit) ; Over "="
-	       (let ((c-promote-possible-types t))
-		 (c-forward-type t)))	       ; Over "Y"
-	  (setq list nil)) ; Shouldn't be needed.  We can't have a list, here.
-
-      (when list
-	;; Jump past any initializer or function prototype to see if
-	;; there's a ',' to continue at.
-	(cond ((eq id-face 'font-lock-function-name-face)
-	       ;; Skip a parenthesized initializer (C++) or a function
-	       ;; prototype.
-	       (if (c-safe (c-forward-sexp 1) t) ; over the parameter list.
-		   (c-forward-syntactic-ws limit)
-		 (goto-char limit)))	; unbalanced parens
-
-	      (got-init	; "=" sign OR opening "(", "[", or "{"
-	       ;; Skip an initializer expression.  If we're at a '='
-	       ;; then accept a brace list directly after it to cope
-	       ;; with array initializers.  Otherwise stop at braces
-	       ;; to avoid going past full function and class blocks.
-	       (and (if (and (eq got-init ?=)
-			     (= (c-forward-token-2 1 nil limit) 0)
-			     (looking-at "{"))
-			(c-safe (c-forward-sexp) t) ; over { .... }
-		      t)
-		    (< (point) limit)
-		    ;; FIXME: Should look for c-decl-end markers here;
-		    ;; we might go far into the following declarations
-		    ;; in e.g. ObjC mode (see e.g. methods-4.m).
-		    (c-syntactic-re-search-forward "[;,{]" limit 'move t)
-		    (backward-char)))
-
-	      (t (c-forward-syntactic-ws limit)))
-
-	;; If a ',' is found we set pos to the next declarator and iterate.
-	(when (and (< (point) limit) (looking-at ","))
-	  (c-put-char-property (point) 'c-type separator-prop)
-	  (forward-char)
-	  (c-forward-syntactic-ws limit)
-	  (setq pos (point))))))     ; acts to make the `while' form continue.
-  nil)
+      ()
+    (c-do-declarators
+     limit list not-top
+     (cond ((eq types t) 'c-decl-type-start)
+	   ((null types) 'c-decl-id-start))
+     (lambda (id-start _id-end end-pos _not-top is-function init-char)
+       (if (eq types t)
+	   ;; Register and fontify the identifier as a type.
+	   (let ((c-promote-possible-types t))
+	     (goto-char id-start)
+	     (c-forward-type))
+	 ;; The following doesn't work properly (yet, 2018-09-22).
+	 ;; (c-put-font-lock-face id-start id-end
+	 ;; 		       (if is-function
+	 ;; 			   'font-lock-function-name-face
+	 ;; 			 'font-lock-variable-name-face))
+	 (when (and c-last-identifier-range
+	 	    (not (get-text-property (car c-last-identifier-range)
+	 				    'face)))
+	   ;; We use `c-last-identifier-range' rather than `id-start' and
+	   ;; `id-end', since the latter two can be erroneous.  E.g. in
+	   ;; "~Foo", `id-start' is at the tilde.  This is a bug in
+	   ;; `c-forward-declarator'.
+	   (c-put-font-lock-face (car c-last-identifier-range)
+	 			 (cdr c-last-identifier-range)
+				 (cond
+				  ((not (memq types '(nil t))) types)
+				  (is-function 'font-lock-function-name-face)
+				  (t 'font-lock-variable-name-face)))))
+       (and template-class
+	    (eq init-char ?=)		; C++ "<class X = Y>"?
+	    (progn
+	      (goto-char end-pos)
+	      (c-forward-token-2 1 nil limit) ; Over "="
+	      (let ((c-promote-possible-types t))
+		(c-forward-type t))))))
+    nil))
 
 (defun c-get-fontification-context (match-pos not-front-decl &optional toplev)
   ;; Return a cons (CONTEXT . RESTRICTED-<>-ARGLISTS) for MATCH-POS.
@@ -1227,10 +1205,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	   (cons 'decl nil))
 	  ;; We're inside a brace list.
 	  ((and (eq (char-before match-pos) ?{)
-		(save-excursion
-		  (goto-char (1- match-pos))
-		  (consp
-		   (c-looking-at-or-maybe-in-bracelist))))
+		(c-inside-bracelist-p (1- match-pos)
+				      (cdr (c-parse-state))
+				      nil))
 	   (c-put-char-property (1- match-pos) 'c-type
 				'c-not-decl)
 	   (cons 'not-decl nil))
@@ -1244,6 +1221,17 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; Got a cached hit in some other type of arglist.
 	  (type
 	   (cons 'arglist t))
+	  ;; We're at a C++ uniform initialization.
+	  ((and (c-major-mode-is 'c++-mode)
+		(eq (char-before match-pos) ?\()
+		(save-excursion
+		  (goto-char match-pos)
+		  (and
+		   (zerop (c-backward-token-2 2))
+		   (looking-at c-identifier-start)
+		   (c-got-face-at (point)
+				  '(font-lock-variable-name-face)))))
+	   (cons 'not-decl nil))
 	  ((and not-front-decl
 	   ;; The point is within the range of a previously
 	   ;; encountered type decl expression, so the arglist
@@ -1261,12 +1249,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	   (c-put-char-property (1- match-pos)
 				'c-type 'c-decl-arg-start)
 	   (cons 'decl nil))
-	  ;; Got an open paren preceded by an arith operator.
+	  ;; Got (an) open paren(s) preceded by an arith operator.
 	  ((and (eq (char-before match-pos) ?\()
 		(save-excursion
 		  (goto-char match-pos)
-		  (and (zerop (c-backward-token-2 2))
-		       (looking-at c-arithmetic-op-regexp))))
+		  (while
+		      (and (zerop (c-backward-token-2))
+			   (eq (char-after) ?\()))
+		  (looking-at c-arithmetic-op-regexp)))
 	   (cons nil nil))
 	  ;; In a C++ member initialization list.
 	  ((and (eq (char-before match-pos) ?,)
@@ -1280,7 +1270,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ((save-excursion
 	     (goto-char match-pos)
 	     (and (memq (char-before match-pos) '(?\( ?\,))
-		  (c-go-up-list-backward match-pos)
+		  (c-go-up-list-backward match-pos
+					  ; c-determine-limit is too slow, here.
+					 (max (- (point) 2000) (point-min)))
 		  (eq (char-after) ?\()
 		  (let ((type (c-get-char-property (point) 'c-type)))
 		    (or (memq type '(c-decl-arg-start c-decl-type-start))
@@ -1318,7 +1310,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   (if (save-excursion
 	(and
 	 (car (cddr decl-or-cast))	; maybe-expression flag.
-	 (c-go-up-list-backward)
+	 (c-go-up-list-backward nil (c-determine-limit 500))
 	 (eq (char-after) ?\()
 	 (progn (c-backward-syntactic-ws)
 		(c-simple-skip-symbol-backward))
@@ -1372,7 +1364,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				   'c-decl-id-start)))))
       (c-font-lock-declarators
        (min limit (point-max)) decl-list
-       (cadr decl-or-cast) (not toplev) template-class))
+       (not (null (cadr decl-or-cast)))
+       (not toplev) template-class))
 
     ;; A declaration has been successfully identified, so do all the
     ;; fontification of types and refs that've been recorded.
@@ -1393,226 +1386,232 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; This function might do hidden buffer changes.
 
   ;;(message "c-font-lock-declarations search from %s to %s" (point) limit)
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
 
-  (save-restriction
-    (let (;; The position where `c-find-decl-spots' last stopped.
-	  start-pos
-	  ;; o - 'decl if we're in an arglist containing declarations
-	  ;;   (but if `c-recognize-paren-inits' is set it might also be
-	  ;;   an initializer arglist);
-	  ;; o - '<> if the arglist is of angle bracket type;
-	  ;; o - 'arglist if it's some other arglist;
-	  ;; o - nil, if not in an arglist at all.  This includes the
-	  ;;   parenthesized condition which follows "if", "while", etc.
-	  context
-	  ;; A list of starting positions of possible type declarations, or of
-	  ;; the typedef preceding one, if any.
-	  last-cast-end
-	  ;; The result from `c-forward-decl-or-cast-1'.
-	  decl-or-cast
-	  ;; The maximum of the end positions of all the checked type
-	  ;; decl expressions in the successfully identified
-	  ;; declarations.  The position might be either before or
-	  ;; after the syntactic whitespace following the last token
-	  ;; in the type decl expression.
-	  (max-type-decl-end 0)
-	  ;; Same as `max-type-decl-*', but used when we're before
-	  ;; `token-pos'.
-	  (max-type-decl-end-before-token 0)
-	  ;; End of <..> construct which has had c-<>-arg-sep c-type
-	  ;; properties set within it.
-	  (max-<>-end 0)
-	  ;; Set according to the context to direct the heuristics for
-	  ;; recognizing C++ templates.
-	  c-restricted-<>-arglists
-	  ;; Turn on recording of identifier ranges in
-	  ;; `c-forward-decl-or-cast-1' and `c-forward-label' for
-	  ;; later fontification.
-	  (c-record-type-identifiers t)
-	  label-type
-	  c-record-ref-identifiers
-	  ;; Make `c-forward-type' calls mark up template arglists if
-	  ;; it finds any.  That's necessary so that we later will
-	  ;; stop inside them to fontify types there.
-	  (c-parse-and-markup-<>-arglists t)
-	  ;; The font-lock package in Emacs is known to clobber
-	  ;; `parse-sexp-lookup-properties' (when it exists).
-	  (parse-sexp-lookup-properties
-	   (cc-eval-when-compile
-	     (boundp 'parse-sexp-lookup-properties))
-	   ))
+    (save-restriction
+      (let (;; The position where `c-find-decl-spots' last stopped.
+	    start-pos
+	    ;; o - 'decl if we're in an arglist containing declarations
+	    ;;   (but if `c-recognize-paren-inits' is set it might also be
+	    ;;   an initializer arglist);
+	    ;; o - '<> if the arglist is of angle bracket type;
+	    ;; o - 'arglist if it's some other arglist;
+	    ;; o - nil, if not in an arglist at all.  This includes the
+	    ;;   parenthesized condition which follows "if", "while", etc.
+	    context
+	    ;; A list of starting positions of possible type declarations, or of
+	    ;; the typedef preceding one, if any.
+	    last-cast-end
+	    ;; The result from `c-forward-decl-or-cast-1'.
+	    decl-or-cast
+	    ;; The maximum of the end positions of all the checked type
+	    ;; decl expressions in the successfully identified
+	    ;; declarations.  The position might be either before or
+	    ;; after the syntactic whitespace following the last token
+	    ;; in the type decl expression.
+	    (max-type-decl-end 0)
+	    ;; Same as `max-type-decl-*', but used when we're before
+	    ;; `token-pos'.
+	    (max-type-decl-end-before-token 0)
+	    ;; End of <..> construct which has had c-<>-arg-sep c-type
+	    ;; properties set within it.
+	    (max-<>-end 0)
+	    ;; Set according to the context to direct the heuristics for
+	    ;; recognizing C++ templates.
+	    c-restricted-<>-arglists
+	    ;; Turn on recording of identifier ranges in
+	    ;; `c-forward-decl-or-cast-1' and `c-forward-label' for
+	    ;; later fontification.
+	    (c-record-type-identifiers t)
+	    label-type
+	    c-record-ref-identifiers
+	    ;; Make `c-forward-type' calls mark up template arglists if
+	    ;; it finds any.  That's necessary so that we later will
+	    ;; stop inside them to fontify types there.
+	    (c-parse-and-markup-<>-arglists t)
+	    ;; The font-lock package in Emacs is known to clobber
+	    ;; `parse-sexp-lookup-properties' (when it exists).
+	    (parse-sexp-lookup-properties
+	     (cc-eval-when-compile
+	       (boundp 'parse-sexp-lookup-properties))
+	     ))
 
-      ;; Below we fontify a whole declaration even when it crosses the limit,
-      ;; to avoid gaps when jit/lazy-lock fontifies the file a block at a
-      ;; time.  That is however annoying during editing, e.g. the following is
-      ;; a common situation while the first line is being written:
-      ;;
-      ;;     my_variable
-      ;;     some_other_variable = 0;
-      ;;
-      ;; font-lock will put the limit at the beginning of the second line
-      ;; here, and if we go past it we'll fontify "my_variable" as a type and
-      ;; "some_other_variable" as an identifier, and the latter will not
-      ;; correct itself until the second line is changed.  To avoid that we
-      ;; narrow to the limit if the region to fontify is a single line.
-      (if (<= limit (c-point 'bonl))
-	  (narrow-to-region
-	   (point-min)
-	   (save-excursion
-	     ;; Narrow after any operator chars following the limit though,
-	     ;; since those characters can be useful in recognizing a
-	     ;; declaration (in particular the '{' that opens a function body
-	     ;; after the header).
-	     (goto-char limit)
-	     (skip-chars-forward c-nonsymbol-chars)
-	     (point))))
+	;; Below we fontify a whole declaration even when it crosses the limit,
+	;; to avoid gaps when jit/lazy-lock fontifies the file a block at a
+	;; time.  That is however annoying during editing, e.g. the following is
+	;; a common situation while the first line is being written:
+	;;
+	;;     my_variable
+	;;     some_other_variable = 0;
+	;;
+	;; font-lock will put the limit at the beginning of the second line
+	;; here, and if we go past it we'll fontify "my_variable" as a type and
+	;; "some_other_variable" as an identifier, and the latter will not
+	;; correct itself until the second line is changed.  To avoid that we
+	;; narrow to the limit if the region to fontify is a single line.
+	(if (<= limit (c-point 'bonl))
+	    (narrow-to-region
+	     (point-min)
+	     (save-excursion
+	       ;; Narrow after any operator chars following the limit though,
+	       ;; since those characters can be useful in recognizing a
+	       ;; declaration (in particular the '{' that opens a function body
+	       ;; after the header).
+	       (goto-char limit)
+	       (skip-chars-forward c-nonsymbol-chars)
+	       (point))))
 
-      (c-find-decl-spots
-       limit
-       c-decl-start-re
-       (eval c-maybe-decl-faces)
+	(c-find-decl-spots
+	 limit
+	 c-decl-start-re
+	 (eval c-maybe-decl-faces)
 
-       (lambda (match-pos inside-macro &optional toplev)
-	 ;; Note to maintainers: don't use `limit' inside this lambda form;
-	 ;; c-find-decl-spots sometimes narrows to less than `limit'.
-	 (setq start-pos (point))
-	 (when
-	  ;; The result of the form below is true when we don't recognize a
-	  ;; declaration or cast, and we don't recognize a "non-decl",
-	  ;; typically a brace list.
-	  (if (or (and (eq (get-text-property (point) 'face)
-			   'font-lock-keyword-face)
-		       (looking-at c-not-decl-init-keywords))
-		  (and c-macro-with-semi-re
-		       (looking-at c-macro-with-semi-re))) ; 2008-11-04
-	      ;; Don't do anything more if we're looking at a keyword that
-	      ;; can't start a declaration.
-	      t
+	 (lambda (match-pos inside-macro &optional toplev)
+	   ;; Note to maintainers: don't use `limit' inside this lambda form;
+	   ;; c-find-decl-spots sometimes narrows to less than `limit'.
+	   (setq start-pos (point))
+	   (when
+	       ;; The result of the form below is true when we don't recognize a
+	       ;; declaration or cast, and we don't recognize a "non-decl",
+	       ;; typically a brace list.
+	       (if (or (and (eq (get-text-property (point) 'face)
+				'font-lock-keyword-face)
+			    (looking-at c-not-decl-init-keywords))
+		       (and c-macro-with-semi-re
+			    (looking-at c-macro-with-semi-re))) ; 2008-11-04
+		   ;; Don't do anything more if we're looking at a keyword that
+		   ;; can't start a declaration.
+		   t
 
-	    ;; Set `context' and `c-restricted-<>-arglists'.  Look for
-	    ;; "<" for the sake of C++-style template arglists.
-	    ;; Ignore "(" when it's part of a control flow construct
-	    ;; (e.g. "for (").
-	    (let ((got-context
-		   (c-get-fontification-context
-		    match-pos
-		    (< match-pos (if inside-macro
-				     max-type-decl-end-before-token
-				   max-type-decl-end))
-		    toplev)))
-	      (setq context (car got-context)
-		    c-restricted-<>-arglists (cdr got-context)))
+		 ;; Set `context' and `c-restricted-<>-arglists'.  Look for
+		 ;; "<" for the sake of C++-style template arglists.
+		 ;; Ignore "(" when it's part of a control flow construct
+		 ;; (e.g. "for (").
+		 (let ((got-context
+			(c-get-fontification-context
+			 match-pos
+			 (< match-pos (if inside-macro
+					  max-type-decl-end-before-token
+					max-type-decl-end))
+			 toplev)))
+		   (setq context (car got-context)
+			 c-restricted-<>-arglists (cdr got-context)))
 
-	    ;; Check we haven't missed a preceding "typedef".
-	    (when (not (looking-at c-typedef-key))
-	      (c-backward-syntactic-ws)
-	      (c-backward-token-2)
-	      (or (looking-at c-typedef-key)
-		  (goto-char start-pos)))
+		 ;; Check we haven't missed a preceding "typedef".
+		 (when (not (looking-at c-typedef-key))
+		   (c-backward-syntactic-ws
+		    (max (- (point) 1000) (point-min)))
+		   (c-backward-token-2)
+		   (or (looking-at c-typedef-key)
+		       (goto-char start-pos)))
 
-	    ;; In QT, "more" is an irritating keyword that expands to nothing.
-	    ;; We skip over it to prevent recognition of "more slots: <symbol>"
-	    ;; as a bitfield declaration.
-	    (when (and (c-major-mode-is 'c++-mode)
-		       (looking-at
-			(concat "\\(more\\)\\([^" c-symbol-chars "]\\|$\\)")))
-	      (goto-char (match-end 1))
-	      (c-forward-syntactic-ws))
+		 ;; In QT, "more" is an irritating keyword that expands to nothing.
+		 ;; We skip over it to prevent recognition of "more slots: <symbol>"
+		 ;; as a bitfield declaration.
+		 (when (and (c-major-mode-is 'c++-mode)
+			    (looking-at
+			     (concat "\\(more\\)\\([^" c-symbol-chars "]\\|$\\)")))
+		   (goto-char (match-end 1))
+		   (c-forward-syntactic-ws))
 
-	    ;; Now analyze the construct.
-	    (if (eq context 'not-decl)
-		(progn
-		  (setq decl-or-cast nil)
-		  (if (c-syntactic-re-search-forward
-		       "," (min limit (point-max)) 'at-limit t)
-		      (c-put-char-property (1- (point)) 'c-type 'c-not-decl))
-		  nil)
-	      (setq decl-or-cast
-		    (c-forward-decl-or-cast-1
-		     match-pos context last-cast-end))
+		 ;; Now analyze the construct.
+		 (if (eq context 'not-decl)
+		     (progn
+		       (setq decl-or-cast nil)
+		       (if (c-syntactic-re-search-forward
+			    "," (min limit (point-max)) 'at-limit t)
+			   (c-put-char-property (1- (point)) 'c-type 'c-not-decl))
+		       nil)
+		   (setq decl-or-cast
+			 (c-forward-decl-or-cast-1
+			  match-pos context last-cast-end))
 
-	      ;; Ensure that c-<>-arg-sep c-type properties are in place on the
-	      ;; commas separating the arguments inside template/generic <..>s.
-	      (when (and (eq (char-before match-pos) ?<)
-			 (> match-pos max-<>-end))
-		(save-excursion
-		  (goto-char match-pos)
-		  (c-backward-token-2)
-		  (if (and
-		       (eq (char-after) ?<)
-		       (let ((c-restricted-<>-arglists
-			      (save-excursion
-				(c-backward-token-2)
-				(and
-				 (not (looking-at c-opt-<>-sexp-key))
-				 (progn (c-backward-syntactic-ws)
+		   ;; Ensure that c-<>-arg-sep c-type properties are in place on the
+		   ;; commas separating the arguments inside template/generic <..>s.
+		   (when (and (eq (char-before match-pos) ?<)
+			      (> match-pos max-<>-end))
+		     (save-excursion
+		       (goto-char match-pos)
+		       (c-backward-token-2)
+		       (if (and
+			    (eq (char-after) ?<)
+			    (let ((c-restricted-<>-arglists
+				   (save-excursion
+				     (c-backward-token-2)
+				     (and
+				      (not (looking-at c-opt-<>-sexp-key))
+				      (progn
+					(c-backward-syntactic-ws
+					 (max (- (point) 1000) (point-min)))
 					(memq (char-before) '(?\( ?,)))
-				 (not (eq (c-get-char-property (1- (point))
-							       'c-type)
-					  'c-decl-arg-start))))))
-			 (c-forward-<>-arglist nil)))
-		      (setq max-<>-end (point)))))
+				      (not (eq (c-get-char-property (1- (point))
+								    'c-type)
+					       'c-decl-arg-start))))))
+			      (c-forward-<>-arglist nil)))
+			   (setq max-<>-end (point)))))
 
-	      (cond
-	       ((eq decl-or-cast 'cast)
-		;; Save the position after the previous cast so we can feed
-		;; it to `c-forward-decl-or-cast-1' in the next round.  That
-		;; helps it discover cast chains like "(a) (b) c".
-		(setq last-cast-end (point))
-		(c-fontify-recorded-types-and-refs)
-		nil)
+		   (cond
+		    ((eq decl-or-cast 'cast)
+		     ;; Save the position after the previous cast so we can feed
+		     ;; it to `c-forward-decl-or-cast-1' in the next round.  That
+		     ;; helps it discover cast chains like "(a) (b) c".
+		     (setq last-cast-end (point))
+		     (c-fontify-recorded-types-and-refs)
+		     nil)
 
-	       (decl-or-cast
-		;; We've found a declaration.
+		    (decl-or-cast
+		     ;; We've found a declaration.
 
-		;; Set `max-type-decl-end' or `max-type-decl-end-before-token'
-		;; under the assumption that we're after the first type decl
-		;; expression in the declaration now.  That's not really true;
-		;; we could also be after a parenthesized initializer
-		;; expression in C++, but this is only used as a last resort
-		;; to slant ambiguous expression/declarations, and overall
-		;; it's worth the risk to occasionally fontify an expression
-		;; as a declaration in an initializer expression compared to
-		;; getting ambiguous things in normal function prototypes
-		;; fontified as expressions.
-		(if inside-macro
-		    (when (> (point) max-type-decl-end-before-token)
-		      (setq max-type-decl-end-before-token (point)))
-		  (when (> (point) max-type-decl-end)
-		    (setq max-type-decl-end (point))))
-		(goto-char start-pos)
-		(c-font-lock-single-decl limit decl-or-cast match-pos
-					 context toplev))
+		     ;; Set `max-type-decl-end' or `max-type-decl-end-before-token'
+		     ;; under the assumption that we're after the first type decl
+		     ;; expression in the declaration now.  That's not really true;
+		     ;; we could also be after a parenthesized initializer
+		     ;; expression in C++, but this is only used as a last resort
+		     ;; to slant ambiguous expression/declarations, and overall
+		     ;; it's worth the risk to occasionally fontify an expression
+		     ;; as a declaration in an initializer expression compared to
+		     ;; getting ambiguous things in normal function prototypes
+		     ;; fontified as expressions.
+		     (if inside-macro
+			 (when (> (point) max-type-decl-end-before-token)
+			   (setq max-type-decl-end-before-token (point)))
+		       (when (> (point) max-type-decl-end)
+			 (setq max-type-decl-end (point))))
+		     (goto-char start-pos)
+		     (c-font-lock-single-decl limit decl-or-cast match-pos
+					      context
+					      (or toplev (nth 4 decl-or-cast))))
 
-	       (t t))))
+		    (t t))))
 
-	  ;; It was a false alarm.  Check if we're in a label (or other
-	  ;; construct with `:' except bitfield) instead.
-	  (goto-char start-pos)
-	  (when (setq label-type (c-forward-label t match-pos nil))
-	    ;; Can't use `c-fontify-types-and-refs' here since we
-	    ;; use the label face at times.
-	    (cond ((eq label-type 'goto-target)
-		   (c-put-font-lock-face (caar c-record-ref-identifiers)
-					 (cdar c-record-ref-identifiers)
-					 c-label-face-name))
-		  ((eq label-type 'qt-1kwd-colon)
-		   (c-put-font-lock-face (caar c-record-ref-identifiers)
-					 (cdar c-record-ref-identifiers)
-					 'font-lock-keyword-face))
-		  ((eq label-type 'qt-2kwds-colon)
-		   (mapc
-		    (lambda (kwd)
-		      (c-put-font-lock-face (car kwd) (cdr kwd)
+	     ;; It was a false alarm.  Check if we're in a label (or other
+	     ;; construct with `:' except bitfield) instead.
+	     (goto-char start-pos)
+	     (when (setq label-type (c-forward-label t match-pos nil))
+	       ;; Can't use `c-fontify-types-and-refs' here since we
+	       ;; use the label face at times.
+	       (cond ((eq label-type 'goto-target)
+		      (c-put-font-lock-face (caar c-record-ref-identifiers)
+					    (cdar c-record-ref-identifiers)
+					    c-label-face-name))
+		     ((eq label-type 'qt-1kwd-colon)
+		      (c-put-font-lock-face (caar c-record-ref-identifiers)
+					    (cdar c-record-ref-identifiers)
 					    'font-lock-keyword-face))
-		    c-record-ref-identifiers)))
-	    (setq c-record-ref-identifiers nil)
-	    ;; `c-forward-label' has probably added a `c-decl-end'
-	    ;; marker, so return t to `c-find-decl-spots' to signal
-	    ;; that.
-	    t))))
+		     ((eq label-type 'qt-2kwds-colon)
+		      (mapc
+		       (lambda (kwd)
+			 (c-put-font-lock-face (car kwd) (cdr kwd)
+					       'font-lock-keyword-face))
+		       c-record-ref-identifiers)))
+	       (setq c-record-ref-identifiers nil)
+	       ;; `c-forward-label' has probably added a `c-decl-end'
+	       ;; marker, so return t to `c-find-decl-spots' to signal
+	       ;; that.
+	       t))))
 
-      nil)))
+	nil))))
 
 (defun c-font-lock-enum-body (limit)
   ;; Fontify the identifiers of each enum we find by searching forward.
@@ -1622,7 +1621,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (while (search-forward-regexp c-enum-clause-introduction-re limit t)
+  (while (and (< (point) limit)
+	      (search-forward-regexp c-enum-clause-introduction-re limit t))
     (when (save-excursion
 	    (backward-char)
 	    (c-backward-over-enum-header))
@@ -1642,19 +1642,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;;
   ;; Note that this function won't attempt to fontify beyond the end of the
   ;; current enum block, if any.
-  (let* ((paren-state (c-parse-state))
-	 (encl-pos (c-most-enclosing-brace paren-state)))
-    (when (and
-	   encl-pos
-	   (eq (char-after encl-pos) ?\{)
-	   (save-excursion
-	     (goto-char encl-pos)
-	     (c-backward-over-enum-header)))
-      (c-syntactic-skip-backward "^{," nil t)
-      (c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
+    (let* ((paren-state (c-parse-state))
+	   (encl-pos (c-most-enclosing-brace paren-state)))
+      (when (and
+	     encl-pos
+	     (eq (char-after encl-pos) ?\{)
+	     (save-excursion
+	       (goto-char encl-pos)
+	       (c-backward-over-enum-header)))
+	(c-syntactic-skip-backward "^{," nil t)
+	(c-put-char-property (1- (point)) 'c-type 'c-decl-id-start)
 
-      (c-forward-syntactic-ws)
-      (c-font-lock-declarators limit t nil t)))
+	(c-forward-syntactic-ws)
+	(c-font-lock-declarators limit t nil t))))
   nil)
 
 (defun c-font-lock-cut-off-declarators (limit)
@@ -1666,46 +1668,48 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; fontification".
-  (let ((here (point))
-	(decl-search-lim (c-determine-limit 1000))
-	paren-state encl-pos token-end context decl-or-cast
-	start-pos top-level c-restricted-<>-arglists
-	c-recognize-knr-p)		; Strictly speaking, bogus, but it
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
+    (let ((here (point))
+	  (decl-search-lim (c-determine-limit 1000))
+	  paren-state encl-pos token-end context decl-or-cast
+	  start-pos top-level c-restricted-<>-arglists
+	  c-recognize-knr-p)		; Strictly speaking, bogus, but it
 					; speeds up lisp.h tremendously.
-    (save-excursion
-      (when (not (c-back-over-member-initializers))
-	(unless (or (eobp)
-		    (looking-at "\\s(\\|\\s)"))
-	  (forward-char))
-	(c-syntactic-skip-backward "^;{}" decl-search-lim t)
-	(when (eq (char-before) ?})
-	  (c-go-list-backward)	; brace block of struct, etc.?
-	  (c-syntactic-skip-backward "^;{}" decl-search-lim t))
-	(when (or (bobp)
-		  (memq (char-before) '(?\; ?{ ?})))
-	  (setq token-end (point))
-	  (c-forward-syntactic-ws here)
-	  (when (< (point) here)
-	    ;; We're now putatively at the declaration.
-	    (setq start-pos (point))
-	    (setq paren-state (c-parse-state))
-	    ;; At top level or inside a "{"?
-	    (if (or (not (setq encl-pos
-			       (c-most-enclosing-brace paren-state)))
-		    (eq (char-after encl-pos) ?\{))
-		(progn
-		  (setq top-level (c-at-toplevel-p))
-		  (let ((got-context (c-get-fontification-context
-				      token-end nil top-level)))
-		    (setq context (car got-context)
-			  c-restricted-<>-arglists (cdr got-context)))
-		  (setq decl-or-cast
-			(c-forward-decl-or-cast-1 token-end context nil))
-		  (when (consp decl-or-cast)
-		    (goto-char start-pos)
-		    (c-font-lock-single-decl limit decl-or-cast token-end
-					     context top-level))))))))
-    nil))
+      (save-excursion
+	(when (not (c-back-over-member-initializers decl-search-lim))
+	  (unless (or (eobp)
+		      (looking-at "\\s(\\|\\s)"))
+	    (forward-char))
+	  (c-syntactic-skip-backward "^;{}" decl-search-lim t)
+	  (when (eq (char-before) ?})
+	    (c-go-list-backward)	; brace block of struct, etc.?
+	    (c-syntactic-skip-backward "^;{}" decl-search-lim t))
+	  (when (or (bobp)
+		    (memq (char-before) '(?\; ?{ ?})))
+	    (setq token-end (point))
+	    (c-forward-syntactic-ws here)
+	    (when (< (point) here)
+	      ;; We're now putatively at the declaration.
+	      (setq start-pos (point))
+	      (setq paren-state (c-parse-state))
+	      ;; At top level or inside a "{"?
+	      (if (or (not (setq encl-pos
+				 (c-most-enclosing-brace paren-state)))
+		      (eq (char-after encl-pos) ?\{))
+		  (progn
+		    (setq top-level (c-at-toplevel-p))
+		    (let ((got-context (c-get-fontification-context
+					token-end nil top-level)))
+		      (setq context (car got-context)
+			    c-restricted-<>-arglists (cdr got-context)))
+		    (setq decl-or-cast
+			  (c-forward-decl-or-cast-1 token-end context nil))
+		    (when (consp decl-or-cast)
+		      (goto-char start-pos)
+		      (c-font-lock-single-decl limit decl-or-cast token-end
+					       context top-level))))))))
+      nil)))
 
 (defun c-font-lock-enclosing-decls (limit)
   ;; Fontify the declarators of (nested) declarations we're in the middle of.
@@ -1717,76 +1721,110 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (let* ((paren-state (c-parse-state))
-	 (decl-search-lim (c-determine-limit 1000))
-	 in-typedef ps-elt)
-    ;; Are we in any nested struct/union/class/etc. braces?
-    (while paren-state
-      (setq ps-elt (car paren-state)
-	    paren-state (cdr paren-state))
-      (when (and (atom ps-elt)
-		 (eq (char-after ps-elt) ?\{))
-	(goto-char ps-elt)
-	(c-syntactic-skip-backward "^;{}" decl-search-lim)
-	(c-forward-syntactic-ws)
-	(setq in-typedef (looking-at c-typedef-key))
-	(if in-typedef (c-forward-token-2))
-	(when (and c-opt-block-decls-with-vars-key
-		   (looking-at c-opt-block-decls-with-vars-key))
+  (c-skip-comments-and-strings limit)
+  (when (< (point) limit)
+    (let* ((paren-state (c-parse-state))
+	   (decl-search-lim (c-determine-limit 1000))
+	   in-typedef ps-elt)
+      ;; Are we in any nested struct/union/class/etc. braces?
+      (while paren-state
+	(setq ps-elt (car paren-state)
+	      paren-state (cdr paren-state))
+	(when (and (atom ps-elt)
+		   (eq (char-after ps-elt) ?\{))
 	  (goto-char ps-elt)
-	  (when (c-safe (c-forward-sexp))
-	    (c-forward-syntactic-ws)
-	    (c-font-lock-declarators limit t in-typedef
-				     (not (c-bs-at-toplevel-p (point))))))))))
+	  (c-syntactic-skip-backward "^;{}" decl-search-lim)
+	  (c-forward-syntactic-ws)
+	  (setq in-typedef (looking-at c-typedef-key))
+	  (if in-typedef (c-forward-over-token-and-ws))
+	  (when (and c-opt-block-decls-with-vars-key
+		     (looking-at c-opt-block-decls-with-vars-key))
+	    (goto-char ps-elt)
+	    (when (c-safe (c-forward-sexp))
+	      (c-forward-syntactic-ws)
+	      (c-font-lock-declarators limit t in-typedef
+				       (not (c-bs-at-toplevel-p (point)))))))))))
 
-(defun c-font-lock-raw-strings (limit)
-  ;; Fontify C++ raw strings.
+(defun c-font-lock-ml-strings (limit)
+  ;; Fontify multi-line strings.
   ;;
   ;; This function will be called from font-lock for a region bounded by POINT
   ;; and LIMIT, as though it were to identify a keyword for
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (let* ((state (c-state-semi-pp-to-literal (point)))
+  (let* ((state (c-semi-pp-to-literal (point)))
 	 (string-start (and (eq (cadr state) 'string)
 			    (car (cddr state))))
-	 (raw-id (and string-start
-		      (save-excursion
-			(goto-char string-start)
-			(and (eq (char-before) ?R)
-			     (looking-at "\"\\([^ ()\\\n\r\t]\\{0,16\\}\\)(")
-			     (match-string-no-properties 1))))))
+	 (open-delim (and string-start
+			  (save-excursion
+			    (goto-char (1+ string-start))
+			    (c-ml-string-opener-around-point))))
+	 (string-delims (and open-delim
+			     (cons open-delim (c-get-ml-closer open-delim))))
+	 found)
+    ;; We go round the next loop twice per raw string, once for each "end".
     (while (< (point) limit)
-      (if raw-id
-	  (progn
-	    (if (search-forward-regexp (concat ")\\(" (regexp-quote raw-id) "\\)\"")
-				       limit 'limit)
-		(c-put-font-lock-face (match-beginning 1) (point) 'default))
-	    (setq raw-id nil))
+      (cond
+       ;; Point is not in an ml string
+       ((not string-delims)
+	(while (and (setq found (re-search-forward c-ml-string-opener-re
+						   limit 'limit))
+		    (> (match-beginning 0) (point-min))
+		    (memq (c-get-char-property (1- (match-beginning 0)) 'face)
+			  '(font-lock-comment-face font-lock-string-face
+			    font-lock-comment-delimiter-face))))
+	(when found
+	  (setq open-delim (cons (match-beginning 1)
+				 (cons (match-end 1) (match-beginning 2)))
+		string-delims (cons open-delim (c-get-ml-closer open-delim)))
+	  (goto-char (caar string-delims))))
+	
+       ;; Point is in the body of an ml string.
+       ((and string-delims
+	     (>= (point) (cadar string-delims))
+	     (or (not (cdr string-delims))
+		 (< (point) (cadr string-delims))))
+	(if (cdr string-delims)
+	    (goto-char (cadr string-delims))
+	  (if (equal (c-get-char-property (1- (cadar string-delims))
+					  'syntax-table)
+		     '(15))		; "Always" the case.
+	      ;; The next search should be successful for an unterminated ml
+	      ;; string inside a macro, but not for any other unterminated
+	      ;; string.
+	      (progn
+		(or (c-search-forward-char-property 'syntax-table '(15) limit)
+		    (goto-char limit))
+		(setq string-delims nil))
+	    (c-benign-error "Missing '(15) syntax-table property at %d"
+			    (1- (cadar string-delims)))
+	    (setq string-delims nil))))
 
-	(when (search-forward-regexp
-	       "R\\(\"\\)\\([^ ()\\\n\r\t]\\{0,16\\}\\)(" limit 'limit)
-	  (when
-	      (or (and (eobp)
-		       (eq (c-get-char-property (1- (point)) 'face)
-			   'font-lock-warning-face))
-		  (eq (c-get-char-property (point) 'face) 'font-lock-string-face)
-		  (and (equal (c-get-char-property (match-end 2) 'syntax-table) '(1))
-		       (equal (c-get-char-property (match-beginning 1) 'syntax-table)
-			      '(1))))
-	    (let ((paren-prop (c-get-char-property (1- (point)) 'syntax-table)))
-	      (if paren-prop
-		  (progn
-		    (c-put-font-lock-face (match-beginning 0) (match-end 0)
-					  'font-lock-warning-face)
-		    (when
-			(and
-			 (equal paren-prop '(15))
-			 (not (c-search-forward-char-property 'syntax-table '(15) limit)))
-		      (goto-char limit)))
-		(c-put-font-lock-face (match-beginning 1) (match-end 2) 'default)
-		(setq raw-id (match-string-no-properties 2)))))))))
-  nil)
+       ;; Point is at or in a closing delimiter
+       ((and string-delims
+	     (cdr string-delims)
+	     (>= (point) (cadr string-delims)))
+	(c-put-font-lock-face (cadr string-delims) (1+ (cadr string-delims))
+			      'font-lock-string-face)
+	(c-remove-font-lock-face (1+ (cadr string-delims))
+				 (caddr string-delims))
+	(goto-char (caddr string-delims))
+	(setq string-delims nil))
+
+       ;; point is at or in an opening delimiter.
+       (t
+	(if (cdr string-delims)
+	    (progn
+	      (c-remove-font-lock-face (caar string-delims)
+				       (1- (cadar string-delims)))
+	      (c-put-font-lock-face (1- (cadar string-delims))
+				    (cadar string-delims)
+				    'font-lock-string-face))
+	  (c-put-font-lock-face (caar string-delims) (cadar string-delims)
+				'font-lock-warning-face))
+	(goto-char (cadar string-delims)))))
+    nil))
 
 (defun c-font-lock-c++-lambda-captures (limit)
   ;; Fontify the lambda capture component of C++ lambda declarations.
@@ -1796,7 +1834,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; Fontification".
-  (let (mode capture-default id-start id-end declaration sub-begin sub-end)
+  (let (mode capture-default id-start id-end declaration sub-begin sub-end tem)
     (while (and (< (point) limit)
 		(search-forward "[" limit t))
       (when (progn (backward-char)
@@ -1808,15 +1846,18 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			(char-after)))
 	;; Is the first element of the list a bare "=" or "&"?
 	(when mode
-	  (forward-char)
-	  (c-forward-syntactic-ws)
-	  (if (memq (char-after) '(?, ?\]))
-	      (progn
-		(setq capture-default mode)
-		(when (eq (char-after) ?,)
-		  (forward-char)
-		  (c-forward-syntactic-ws)))
-	    (c-backward-token-2)))
+	  (setq tem nil)
+	  (save-excursion
+	    (forward-char)
+	    (c-forward-syntactic-ws)
+	    (if (memq (char-after) '(?, ?\]))
+		(progn
+		  (setq capture-default mode)
+		  (when (eq (char-after) ?,)
+		    (forward-char)
+		    (c-forward-syntactic-ws))
+		  (setq tem (point)))))
+	  (if tem (goto-char tem)))
 
 	;; Go round the following loop once per captured item.  We use "\\s)"
 	;; rather than "\\]" here to avoid infinite looping in this situation:
@@ -1877,6 +1918,163 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (forward-char))))) ; over the terminating "]" or other close paren.
   nil)
 
+(defun c-forward-c++-module-name (limit)
+  ;; Is there a C++20 module name at point?  If so, return a cons of the start
+  ;; and end of that name, in which case point will be moved over the name and
+  ;; following whitespace.  Otherwise nil will be returned and point will be
+  ;; unmoved.  This function doesn't regard a partition as part of the name.
+  ;; The entire construct must end not after LIMIT.
+  (when (and
+	 (looking-at c-module-name-re)
+	 (<= (match-end 0) limit)
+	 (not (looking-at c-keywords-regexp)))
+    (goto-char (match-end 0))
+    (prog1 (cons (match-beginning 0) (match-end 0))
+      (c-forward-syntactic-ws limit))))
+
+(defun c-forward-c++-module-partition-name (limit)
+  ;; Is there a C++20 module partition name (starting with its colon) at
+  ;; point?  If so return a cons of the start and end of the name, not
+  ;; including the colon, in which case point will be move to after the name
+  ;; and following whitespace.  Otherwise nil will be returned and point not
+  ;; moved.  The entire construct must end not after LIMIT.
+  (when (and
+	 (eq (char-after) ?:)
+	 (progn
+	   (forward-char)
+	   (c-forward-syntactic-ws limit)
+	   (looking-at c-module-name-re))
+	 (<= (match-end 0) limit)
+	 (not (looking-at c-keywords-regexp)))
+    (goto-char (match-end 0))
+    (prog1 (cons (match-beginning 0) (match-end 0))
+      (c-forward-syntactic-ws limit))))
+
+(defun c-font-lock-c++-modules (limit)
+  ;; Fontify the C++20 module stanzas, characterised by the keywords `module',
+  ;; `export' and `import'.  Note that this has to be done by a function (as
+  ;; opposed to regexps) due to the presence of optional C++ attributes.
+  ;;
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  (while (and (< (point) limit)
+	      (re-search-forward 
+	       "\\<\\(module\\|export\\|import\\)\\>\\(?:[^_$]\\|$\\)"
+	       limit t))
+    (goto-char (match-end 1))
+    (let (name-bounds pos beg end
+		      module-names)	; A list of conses of start and end
+					; of pertinent module names
+      (unless (c-skip-comments-and-strings limit)
+	(when
+	    (cond
+	     ;; module foo...; Note we don't handle module; or module
+	     ;; :private; here, since they don't really need handling.
+	     ((save-excursion
+		(when (equal (match-string-no-properties 1) "export")
+		  (c-forward-syntactic-ws limit)
+		  (re-search-forward "\\=\\(module\\)\\>\\(?:[^_$]\\|$\\)"
+				     limit t))
+		(and (equal (match-string-no-properties 1) "module")
+		     (< (point) limit)
+		     (progn (c-forward-syntactic-ws limit)
+			    (setq name-bounds (c-forward-c++-module-name
+					       limit)))
+		     (setq pos (point))))
+	      (push name-bounds module-names)
+	      (goto-char pos)
+	      ;; Is there a partition name?
+	      (when (setq name-bounds (c-forward-c++-module-partition-name
+				       limit))
+		(push name-bounds module-names))
+	      t)
+
+	     ;; import
+	     ((save-excursion
+		(when (equal (match-string-no-properties 1) "export")
+		  (c-forward-syntactic-ws limit)
+		  (re-search-forward "\\=\\(import\\)\\>\\(?:[^_$]\\|$\\)"
+				     limit t))
+		(and (equal (match-string-no-properties 1) "import")
+		     (< (point) limit)
+		     (progn (c-forward-syntactic-ws limit)
+			    (setq pos (point)))))
+	      (goto-char pos)
+	      (cond
+	       ;; import foo;
+	       ((setq name-bounds (c-forward-c++-module-name limit))
+		(push name-bounds module-names)
+		t)
+	       ;; import :foo;
+	       ((setq name-bounds (c-forward-c++-module-partition-name limit))
+		(push name-bounds module-names)
+		t)
+	       ;; import "foo";
+	       ((and (eq (char-after) ?\")
+		     (setq pos (point))
+		     (c-safe (c-forward-sexp) t)) ; Should already have string face.
+		(when (eq (char-before) ?\")
+		  (setq beg pos
+			end (point)))
+		(c-forward-syntactic-ws limit)
+		t)
+	       ;; import <foo>;
+	       ((and (looking-at "<\\(?:\\\\.\\|[^\\\n\r\t>]\\)*\\(>\\)?")
+		     (< (match-end 0) limit))
+		(setq beg (point))
+		(goto-char (match-end 0))
+		(when (match-end 1)
+		  (setq end (point)))
+		(if (featurep 'xemacs)
+		    (c-put-font-lock-face
+		     (1+ beg) (if end (1- end) (point)) font-lock-string-face)
+		  (c-put-font-lock-face
+		   beg (or end (point)) font-lock-string-face))
+		(c-forward-syntactic-ws limit)
+		t)
+	       (t nil)))
+
+	     ;; export
+	     ;; There is no fontification to be done here, but we need to
+	     ;; skip over the declaration or declaration sequence.
+	     ((save-excursion
+		(when (equal (match-string-no-properties 0) "export")
+		  (c-forward-syntactic-ws limit)
+		  (setq pos (point))))
+	      (goto-char (point))
+	      (if (eq (char-after) ?{)
+		  ;; Declaration sequence.
+		  (unless (and (c-go-list-forward nil limit)
+			       (eq (char-before) ?}))
+		    (goto-char limit)
+		    nil)
+		;; Single declaration
+		(unless (c-end-of-decl-1)
+		  (goto-char limit)
+		  nil))))		; Nothing more to do, here.
+
+	  ;; Optional attributes?
+	  (while (and (c-looking-at-c++-attribute)
+		      (< (match-end 0) limit))
+	    (goto-char (match-end 0))
+	    (c-forward-syntactic-ws limit))
+	  ;; Finally, there must be a semicolon.
+	  (if (and (< (point) limit)
+		   (eq (char-after) ?\;))
+	      (progn
+		(forward-char)
+		;; Fontify any module names we've encountered.
+		(dolist (name module-names)
+		  (c-put-font-lock-face (car name) (cdr name)
+					c-reference-face-name)))
+	    ;; No semicolon, so put warning faces on any delimiters.
+	    (when beg
+	      (c-put-font-lock-face beg (1+ beg) font-lock-warning-face))
+	    (when end
+	      (c-put-font-lock-face (1- end) end font-lock-warning-face))))))))
 
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used
@@ -1947,7 +2145,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify generic colon labels in languages that support them.
       ,@(when (c-lang-const c-recognize-colon-labels)
-	  `(c-font-lock-labels))))
+	  '(c-font-lock-labels))))
 
 (c-lang-defconst c-complex-decl-matchers
   "Complex font lock matchers for types and declarations.  Used on level
@@ -1993,10 +2191,13 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify angle bracket arglists like templates in C++.
       ,@(when (c-lang-const c-recognize-<>-arglists)
-	  `(c-font-lock-<>-arglists))
+	  '(c-font-lock-<>-arglists))
 
       ,@(when (c-major-mode-is 'c++-mode)
-	  `(c-font-lock-c++-lambda-captures))
+	  '(c-font-lock-c++-lambda-captures))
+
+      ,@(when (c-lang-const c-using-key)
+	  `(c-font-lock-c++-using))
 
       ;; The first two rules here mostly find occurrences that
       ;; `c-font-lock-declarations' has found already, but not
@@ -2018,7 +2219,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
       ,@(when (c-major-mode-is 'c++-mode)
 	  ;; This pattern is a probably a "(MATCHER . ANCHORED-HIGHLIGHTER)"
 	  ;; (see Elisp page "Search-based Fontification").
-	  `(("\\<new\\>"
+	  '(("\\<new\\>"
 	     (c-font-lock-c++-new))))
       ))
 
@@ -2086,10 +2287,10 @@ higher."
   t `(,@(when (c-lang-const c-brace-list-decl-kwds)
       ;; Fontify the remaining identifiers inside an enum list when we start
       ;; inside it.
-	  `(c-font-lock-enum-tail
-      ;; Fontify the identifiers inside enum lists.  (The enum type
-      ;; name is handled by `c-simple-decl-matchers' or
-      ;; `c-complex-decl-matchers' below.
+	  '(c-font-lock-enum-tail
+	    ;; Fontify the identifiers inside enum lists.  (The enum type
+	    ;; name is handled by `c-simple-decl-matchers' or
+	    ;; `c-complex-decl-matchers' below.
 	    c-font-lock-enum-body))
 
 	;; Fontify labels after goto etc.
@@ -2140,7 +2341,7 @@ higher."
 		     (if (> (point) limit) (goto-char limit))))))))
 
 	,@(when (c-major-mode-is 'java-mode)
-	    `((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
+	    '((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
       ))
 
 (c-lang-defconst c-matchers-1
@@ -2158,6 +2359,14 @@ higher."
 	    (c-lang-const c-complex-decl-matchers)
 	    (c-lang-const c-basic-matchers-after)))
 
+(defun c-get-doc-comment-style ()
+  ;; Get the symbol (or list of symbols) constituting the document style.
+  ;; Return nil if there is no such, otherwise something like `autodoc'.
+  (if (consp (car-safe c-doc-comment-style))
+      (cdr-safe (or (assq c-buffer-is-cc-mode c-doc-comment-style)
+		    (assq 'other c-doc-comment-style)))
+    c-doc-comment-style))
+
 (defun c-compose-keywords-list (base-list)
   ;; Incorporate the font lock keyword lists according to
   ;; `c-doc-comment-style' on the given keyword list and return it.
@@ -2168,11 +2377,7 @@ higher."
   (unless (memq c-doc-face-name c-literal-faces)
     (setq c-literal-faces (cons c-doc-face-name c-literal-faces)))
 
-  (let* ((doc-keywords
-	  (if (consp (car-safe c-doc-comment-style))
-	      (cdr-safe (or (assq c-buffer-is-cc-mode c-doc-comment-style)
-			    (assq 'other c-doc-comment-style)))
-	    c-doc-comment-style))
+  (let* ((doc-keywords (c-get-doc-comment-style))
 	 (list (nconc (c--mapcan
 		       (lambda (doc-style)
 			 (let ((sym (intern
@@ -2218,6 +2423,49 @@ higher."
     ;; defvar will install its default value later on.
     (makunbound def-var)))
 
+;; `c-re-redisplay-timer' is a timer which, when triggered, causes a
+;; redisplay.
+(defvar c-re-redisplay-timer nil)
+
+(defun c-force-redisplay (buffer start end)
+  ;; Force redisplay immediately.  This assumes `font-lock-support-mode' is
+  ;; 'jit-lock-mode.  Set the variable `c-re-redisplay-timer' to nil.
+  (with-current-buffer buffer
+    (save-excursion (c-font-lock-fontify-region start end))
+    (jit-lock-force-redisplay (copy-marker start) (copy-marker end))
+    (setq c-re-redisplay-timer nil)))
+
+(defun c-fontify-new-found-type (type)
+  ;; Cause the fontification of TYPE, a string, wherever it occurs in the
+  ;; buffer.  If TYPE is currently displayed in a window, cause redisplay to
+  ;; happen "instantaneously".  These actions are done only when jit-lock-mode
+  ;; is active.
+  (when (and font-lock-mode
+	     (boundp 'font-lock-support-mode)
+	     (eq font-lock-support-mode 'jit-lock-mode))
+    (c-save-buffer-state
+	((window-boundaries
+	  (mapcar (lambda (win)
+		    (cons (window-start win)
+			  (window-end win)))
+		  (get-buffer-window-list (current-buffer) 'no-mini t)))
+	 (target-re (concat "\\_<" type "\\_>")))
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (while (re-search-forward target-re nil t)
+	    (put-text-property (match-beginning 0) (match-end 0)
+			       'fontified nil)
+	    (dolist (win-boundary window-boundaries)
+	      (when (and (< (match-beginning 0) (cdr win-boundary))
+			 (> (match-end 0) (car win-boundary))
+			 (not c-re-redisplay-timer))
+		(setq c-re-redisplay-timer
+		      (run-with-timer 0 nil #'c-force-redisplay
+				      (current-buffer)
+				      (match-beginning 0) (match-end 0)))))))))))
+
 
 ;;; C.
 
@@ -2253,6 +2501,41 @@ need for `c-font-lock-extra-types'.")
 
 
 ;;; C++.
+(defun c-font-lock-c++-using (limit)
+  ;; Fontify any clauses starting with the keyword `using'.
+  ;;
+  ;; This function will be called from font-lock- for a region bounded by
+  ;; POINT and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; fontification".
+  (let (pos)
+    (while (c-syntactic-re-search-forward c-using-key limit 'end)
+      (while  ; Do one declarator of a comma separated list, each time around.
+	  (progn
+	    (c-forward-syntactic-ws)
+	    (setq pos (point))		; token after "using".
+	    (when (and (c-on-identifier)
+		       (c-forward-name))
+	      (cond
+	       ((eq (char-after) ?=)		; using foo = <type-id>;
+		(goto-char pos)
+		(c-font-lock-declarators limit nil t nil))
+	       ((save-excursion
+		  (and c-colon-type-list-re
+		       (c-go-up-list-backward)
+		       (eq (char-after) ?{)
+		       (eq (car (c-beginning-of-decl-1
+				 (c-determine-limit 1000)))
+			   'same)
+		       (looking-at c-colon-type-list-re)))
+		;; Inherited protected member: leave unfontified
+		)
+	       (t (goto-char pos)
+		  (c-font-lock-declarators limit nil c-label-face-name nil)))
+	      (eq (char-after) ?,)))
+	(forward-char)))		; over the comma.
+    nil))
 
 (defun c-font-lock-c++-new (limit)
   ;; FIXME!!!  Put in a comment about the context of this function's
@@ -2621,14 +2904,89 @@ need for `pike-font-lock-extra-types'.")
   "Default expressions to highlight in Pike mode.")
 
 (defun pike-font-lock-keywords-2 ()
+  (c-set-doc-comment-res)
   (c-compose-keywords-list pike-font-lock-keywords-2))
 (defun pike-font-lock-keywords-3 ()
+  (c-set-doc-comment-res)
   (c-compose-keywords-list pike-font-lock-keywords-3))
 (defun pike-font-lock-keywords ()
+  (c-set-doc-comment-res)
   (c-compose-keywords-list pike-font-lock-keywords))
 
 
 ;;; Doc comments.
+
+(cc-bytecomp-defvar c-doc-line-join-re)
+;; matches a join of two lines in a doc comment.
+;; This should not be changed directly, but instead set by
+;; `c-setup-doc-comment-style'.  This variable is used in `c-find-decl-spots'
+;; in (e.g.) autodoc style comments to bridge the gap between a "@\n" at an
+;; EOL and the token following "//!" on the next line.
+
+(cc-bytecomp-defvar c-doc-bright-comment-start-re)
+;; Matches the start of a "bright" comment, one whose contents may be
+;; fontified by, e.g., `c-font-lock-declarations'.
+
+(cc-bytecomp-defvar c-doc-line-join-end-ch)
+;; A list of characters, each being a last character of a doc comment marker,
+;; e.g. the ! from pike autodoc's "//!".
+
+(defmacro c-set-doc-comment-re-element (suffix)
+  ;; Set the variable `c-doc-line-join-re' to a buffer local value suitable
+  ;; for the current doc comment style, or kill the local value.
+  (declare (debug t))
+  (let ((var (intern (concat "c-doc" suffix))))
+    `(let* ((styles (c-get-doc-comment-style))
+	    elts)
+       (when (atom styles)
+	 (setq styles (list styles)))
+       (setq elts
+	     (mapcar (lambda (style)
+		       (let ((sym
+			      (intern-soft
+			       (concat (symbol-name style) ,suffix))))
+			 (and sym
+			      (boundp sym)
+			      (symbol-value sym))))
+		     styles))
+       (setq elts (delq nil elts))
+       (setq elts (and elts
+		       (concat "\\("
+			       (mapconcat #'identity elts "\\|")
+			       "\\)")))
+       (if elts
+	   (set (make-local-variable ',var) elts)
+	 (kill-local-variable ',var)))))
+
+(defmacro c-set-doc-comment-char-list (suffix)
+  ;; Set the variable 'c-doc-<suffix>' to the list of *-<suffix>, which must
+  ;; be characters, and * represents the doc comment style.
+  (declare (debug t))
+  (let ((var (intern (concat "c-doc" suffix))))
+    `(let* ((styles (c-get-doc-comment-style))
+	    elts)
+       (when (atom styles)
+	 (setq styles (list styles)))
+       (setq elts
+	     (mapcar (lambda (style)
+		       (let ((sym
+			      (intern-soft
+			       (concat (symbol-name style) ,suffix))))
+			 (and sym
+			      (boundp sym)
+			      (symbol-value sym))))
+		     styles))
+       (setq elts (delq nil elts))
+       (if elts
+	   (set (make-local-variable ',var) elts)
+	 (kill-local-variable ',var)))))
+
+(defun c-set-doc-comment-res ()
+  ;; Set the variables `c-doc-line-join-re' and
+  ;; `c-doc-bright-comment-start-re' from the current doc comment style(s).
+  (c-set-doc-comment-re-element "-line-join-re")
+  (c-set-doc-comment-re-element "-bright-comment-start-re")
+  (c-set-doc-comment-char-list "-line-join-end-ch"))
 
 (defun c-font-lock-doc-comments (prefix limit keywords)
   ;; Fontify the comments between the point and LIMIT whose start
@@ -2649,14 +3007,15 @@ need for `pike-font-lock-extra-types'.")
   ;; is used as a flag in other code to skip comments.
   ;;
   ;; This function might do hidden buffer changes.
-
-  (let (comment-beg region-beg)
-    (if (eq (get-text-property (point) 'face)
-	    'font-lock-comment-face)
+  (declare (indent 2))
+  (let (comment-beg region-beg comment-mid)
+    (if (memq (get-text-property (point) 'face)
+	      '(font-lock-comment-face font-lock-comment-delimiter-face))
 	;; Handle the case when the fontified region starts inside a
 	;; comment.
 	(let ((start (c-literal-start)))
-	  (setq region-beg (point))
+	  (setq region-beg (point)
+		comment-mid (point))
 	  (when start
 	    (goto-char start))
 	  (when (looking-at prefix)
@@ -2672,10 +3031,18 @@ need for `pike-font-lock-extra-types'.")
 		     (or (not (c-got-face-at comment-beg
 					     c-literal-faces))
 			 (and (/= comment-beg (point-min))
+			      ;; Cheap check which is unreliable (the previous
+			      ;; character could be the end of a previous
+			      ;; comment).
 			      (c-got-face-at (1- comment-beg)
-					     c-literal-faces))))
+					     c-literal-faces)
+			      ;; Expensive reliable check.
+			      (save-excursion
+				(goto-char comment-beg)
+				(c-in-literal)))))
 	      (setq comment-beg nil))
-	    (setq region-beg comment-beg))
+	    (setq region-beg comment-beg
+		  comment-mid comment-beg))
 
       (if (elt (parse-partial-sexp comment-beg (+ comment-beg 2)) 7)
 	  ;; Collect a sequence of doc style line comments.
@@ -2683,17 +3050,21 @@ need for `pike-font-lock-extra-types'.")
 	    (goto-char comment-beg)
 	    (while (and (progn
 			  (c-forward-single-comment)
+			  (c-put-font-lock-face comment-mid (point)
+						c-doc-face-name)
 			  (skip-syntax-forward " ")
+			  (setq comment-beg (point)
+				comment-mid (point))
 			  (< (point) limit))
 			(looking-at prefix))))
 	(goto-char comment-beg)
-	(c-forward-single-comment))
+	(c-forward-single-comment)
+	(c-put-font-lock-face region-beg (point) c-doc-face-name))
       (if (> (point) limit) (goto-char limit))
       (setq comment-beg nil)
 
       (let ((region-end (point))
 	    (keylist keywords) keyword matcher highlights)
-	(c-put-font-lock-face region-beg region-end c-doc-face-name)
 	(save-restriction
 	  ;; Narrow to the doc comment.  Among other things, this
 	  ;; helps by making "^" match at the start of the comment.
@@ -2722,7 +3093,6 @@ need for `pike-font-lock-extra-types'.")
 
 	  (goto-char region-end)))))
   nil)
-(put 'c-font-lock-doc-comments 'lisp-indent-function 2)
 
 (defun c-find-invalid-doc-markup (regexp limit)
   ;; Used to fontify invalid markup in doc comments after the correct
@@ -2743,7 +3113,7 @@ need for `pike-font-lock-extra-types'.")
 			      (copy-marker (1+ start))))
       t)))
 
-;; GtkDoc patterns contributed by Masatake YAMATO <jet@gyve.org>.
+;; GtkDoc patterns contributed by Masatake YAMATO <yamato@redhat.com>.
 
 (defconst gtkdoc-font-lock-doc-comments
   (let ((symbol "[a-zA-Z0-9_]+")
@@ -2764,7 +3134,7 @@ need for `pike-font-lock-extra-types'.")
 
 (defconst gtkdoc-font-lock-keywords
   `((,(lambda (limit)
-	(c-font-lock-doc-comments "/\\*\\*$" limit
+	(c-font-lock-doc-comments "/\\*\\*\\([^*/\n\r].*\\)?$" limit
 	  gtkdoc-font-lock-doc-comments)
 	(c-font-lock-doc-comments "/\\*< " limit
 	  gtkdoc-font-lock-doc-protection)
@@ -2821,7 +3191,8 @@ need for `pike-font-lock-extra-types'.")
 			 "\\)\\)\\s *\\)@[A-Za-z_-]+\\(\\s \\|$\\)"))
 	(markup-faces (list c-doc-markup-face-name c-doc-face-name)))
 
-    (while (re-search-forward line-re limit t)
+    (while (and (< (point) limit)
+		(re-search-forward line-re limit t))
       (goto-char (match-end 1))
 
       (if (looking-at autodoc-decl-keywords)
@@ -2900,6 +3271,13 @@ need for `pike-font-lock-extra-types'.")
      0 'font-lock-warning-face prepend nil)
     ))
 
+(defconst autodoc-line-join-re "@[\n\r][ \t]*/[/*]!")
+;; Matches a line continuation in autodoc comment style.
+(defconst autodoc-bright-comment-start-re "/[/*]!")
+;; Matches an autodoc comment opener.
+(defconst autodoc-line-join-end-ch ?!)
+;; The final character of `autodoc-line-join-re'.
+
 (defun autodoc-font-lock-keywords ()
   ;; Note that we depend on that `c-current-comment-prefix' has got
   ;; its proper value here.
@@ -2914,6 +3292,84 @@ need for `pike-font-lock-extra-types'.")
   `((,(lambda (limit)
 	(c-font-lock-doc-comments "/[*/]!" limit
 	  autodoc-font-lock-doc-comments)))))
+
+;; Doxygen
+
+(defconst doxygen-font-lock-doc-comments
+  ;; TODO: Handle @code, @verbatim, @dot, @f etc. better by not highlighting
+  ;; text inside of those commands.  Something smarter than just regexes may be
+  ;; needed to do that efficiently.
+  `((,(concat
+       ;; Make sure that the special character has not been escaped.  E.g. in
+       ;; `\@foo' only `\@' is a command (similarly for other characters like
+       ;; `\\foo', `\<foo' and `\&foo').  The downside now is that we don't
+       ;; match command started just after an escaped character, e.g. in
+       ;; `\@\foo' we should match `\@' as well as `\foo' but only the former
+       ;; is matched.
+       "\\(?:^\\|[^\\@]\\)\\("
+         ;; Doxygen commands start with backslash or an at sign.  Note that for
+         ;; brevity in the comments only `\' will be mentioned.
+         "[\\@]\\(?:"
+           ;; Doxygen commands except those starting with `f'
+           "[a-eg-z][a-z]*"
+           ;; Doxygen command starting with `f':
+           "\\|f\\(?:"
+             "[][$}]"                         ; \f$ \f} \f[ \f]
+             "\\|{\\(?:[a-zA-Z]+\\*?}{?\\)?"  ; \f{ \f{env} \f{env}{
+             "\\|[a-z]+"                      ; \foo
+           "\\)"
+           "\\|~[a-zA-Z]*"             ; \~  \~language
+           "\\|[$@&~<=>#%\".|\\\\]"    ; single-character escapes
+           "\\|::\\|---?"              ; \:: \-- \---
+         "\\)"
+         ;; HTML tags and entities:
+         "\\|</?\\sw\\(?:\\sw\\|\\s \\|[=\n\r*.:]\\|\"[^\"]*\"\\|'[^']*'\\)*>"
+         "\\|&\\(?:\\sw+\\|#[0-9]+\\|#x[0-9a-fA-F]+\\);"
+       "\\)")
+     1 ,c-doc-markup-face-name prepend nil)
+    ;; Commands inside of strings are not commands so override highlighting with
+    ;; string face.  This also affects HTML attribute values if they are
+    ;; surrounded with double quotes which may or may not be considered a good
+    ;; thing.
+    ("\\(?:^\\|[^\\@]\\)\\(\"[^\"[:cntrl:]]+\"\\)"
+     1 font-lock-string-face prepend nil)
+    ;; HTML comments inside of the Doxygen comments.
+    ("\\(?:^\\|[^\\@]\\)\\(<!--.*?-->\\)"
+     1 font-lock-comment-face prepend nil)
+    ;; Autolinking. Doxygen auto-links anything that is a class name but we have
+    ;; no hope of matching those.  We are, however, able to match functions and
+    ;; members using explicit scoped syntax.  For functions, we can also find
+    ;; them by noticing argument-list.  Note that Doxygen accepts `::' as well
+    ;; as `#' as scope operators.
+    (,(let* ((ref "[\\@]ref\\s-+")
+             (ref-opt (concat "\\(?:" ref "\\)?"))
+             (id "[a-zA-Z_][a-zA-Z_0-9]*")
+             (args "\\(?:()\\|([^()]*)\\)")
+             (scope "\\(?:#\\|::\\)"))
+        (concat
+         "\\(?:^\\|[^\\@/%:]\\)\\(?:"
+                 ref-opt "\\(?1:" scope "?" "\\(?:" id scope "\\)+" "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:" scope     "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:" scope "?" "~?" id "\\)" args
+           "\\|" ref     "\\(?1:" "~?" id "\\)"
+           "\\|" ref-opt "\\(?1:~[A-Z][a-zA-Z0-9_]+\\)"
+         "\\)"))
+     1 font-lock-function-name-face prepend nil)
+    ;; Match URLs and emails.  This has two purposes.  First of all, Doxygen
+    ;; autolinks URLs.  Second of all, `@bar' in `foo@bar.baz' has been matched
+    ;; above as a command; try and overwrite it.
+    (,(let* ((host "[A-Za-z0-9]\\(?:[A-Za-z0-9-]\\{0,61\\}[A-Za-z0-9]\\)")
+             (fqdn (concat "\\(?:" host "\\.\\)+" host))
+             (comp "[!-(*--/-=?-~]+")
+             (path (concat "/\\(?:" comp "[.]+" "\\)*" comp)))
+        (concat "\\(?:mailto:\\)?[a-zA-0_.]+@" fqdn
+                "\\|https?://" fqdn "\\(?:" path "\\)?"))
+     0 font-lock-keyword-face prepend nil)))
+
+(defconst doxygen-font-lock-keywords
+  `((,(lambda (limit)
+        (c-font-lock-doc-comments "/\\(?:/[/!]\\|\\*[\\*!]\\)"
+            limit doxygen-font-lock-doc-comments)))))
 
 
 ;; 2006-07-10:  awk-font-lock-keywords has been moved back to cc-awk.el.

@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -27,15 +27,19 @@
 
 (defgroup image ()
   "Image support."
+  :prefix "image-"
+  :link '(info-link "(emacs) Image Mode")
   :group 'multimedia)
 
-(defalias 'image-refresh 'image-flush)
+(declare-function image-flush "image.c" (spec &optional frame))
+(declare-function clear-image-cache "image.c"
+                  (&optional filter animation-cache))
 
 (defconst image-type-header-regexps
   `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]\\(?:\
-\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[[:space:]]\\)+\
-\\(?:\\(?:#[^\r\n]*[\r\n]\\)?[0-9]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[[:space:]]\\)+\
+\\(?:\\(?:#[^\r\n]*[\r\n]\\)*[0-9]\\)+\
 \\)\\{2\\}" . pbm)
     ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
@@ -47,6 +51,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . jpeg)    ; used to be (image-jpeg-p . jpeg)
+    ("\\`RIFF....WEBPVP8" . webp)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
 	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
@@ -54,7 +59,7 @@ static \\(unsigned \\)?char \\1_bits" . xbm)
 		"\\(?:!DOCTYPE[ \t\r\n]+[^>]*>[ \t\r\n]*<[ \t\r\n]*" comment-re "*\\)?"
 		"[Ss][Vv][Gg]"))
      . svg)
-    )
+    ("\\`....ftyp\\(heic\\|heix\\|hevc\\|heim\\|heis\\|hevm\\|hevs\\|mif1\\|msf1\\)" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
@@ -66,6 +71,7 @@ a non-nil value, TYPE is the image's type.")
   '(("\\.png\\'" . png)
     ("\\.gif\\'" . gif)
     ("\\.jpe?g\\'" . jpeg)
+    ("\\.webp\\'" . webp)
     ("\\.bmp\\'" . bmp)
     ("\\.xpm\\'" . xpm)
     ("\\.pbm\\'" . pbm)
@@ -73,7 +79,7 @@ a non-nil value, TYPE is the image's type.")
     ("\\.ps\\'" . postscript)
     ("\\.tiff?\\'" . tiff)
     ("\\.svgz?\\'" . svg)
-    )
+    ("\\.hei[cf]s?\\'" . heic))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to identify image files.
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
@@ -91,7 +97,9 @@ be of image type IMAGE-TYPE.")
     (jpeg . maybe)
     (tiff . maybe)
     (svg . maybe)
-    (postscript . nil))
+    (webp . maybe)
+    (postscript . nil)
+    (heic . maybe))
   "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
 \(See `image-type-auto-detected-p').
 
@@ -115,6 +123,9 @@ told that the data would have the associated suffix if saved to a file.")
   (list (file-name-as-directory (expand-file-name "images" data-directory))
         'data-directory 'load-path)
   "List of locations in which to search for image files.
+The images for icons shown in the tool bar are also looked up
+in these locations.
+
 If an element is a string, it defines a directory to search.
 If an element is a variable symbol whose value is a string, that
 value defines a directory to search.
@@ -137,14 +148,44 @@ based on the font pixel size."
                  (const :tag "Automatically compute" auto))
   :version "26.1")
 
-;; Map put into text properties on images.
-(defvar image-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "-" 'image-decrease-size)
-    (define-key map "+" 'image-increase-size)
-    (define-key map "r" 'image-rotate)
-    (define-key map "o" 'image-save)
-    map))
+(defcustom image-transform-smoothing #'image--default-smoothing
+  "Whether to do smoothing when applying transforms to images.
+Common transforms are rescaling and rotation.
+
+Valid values are nil (no smoothing), t (smoothing) or a predicate
+function that is called with the image specification and should return
+either nil or non-nil."
+  :type '(choice (const :tag "Do smoothing" t)
+                 (const :tag "No smoothing" nil)
+                 function)
+  :version "28.1")
+
+(defcustom image-use-external-converter nil
+  "If non-nil, `create-image' will use external converters for exotic formats.
+Emacs handles most of the common image formats (SVG, JPEG, PNG, GIF
+and some others) internally, but images that don't have native
+support in Emacs can still be displayed if an external conversion
+program (like ImageMagick \"convert\", GraphicsMagick \"gm\"
+or \"ffmpeg\") is installed."
+  :type 'boolean
+  :version "27.1")
+
+(define-error 'unknown-image-type "Unknown image type")
+
+(defvar-keymap image-map
+  :doc "Map put into text properties on images."
+  "-" #'image-decrease-size
+  "+" #'image-increase-size
+  "r" #'image-rotate
+  "o" #'image-save
+  "c" #'image-crop
+  "x" #'image-cut
+  "h" #'image-flip-horizontally
+  "v" #'image-flip-vertically
+  "C-<wheel-down>" #'image-mouse-decrease-size
+  "C-<mouse-5>"    #'image-mouse-decrease-size
+  "C-<wheel-up>"   #'image-mouse-increase-size
+  "C-<mouse-4>"    #'image-mouse-increase-size)
 
 (defun image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -246,6 +287,7 @@ compatibility with versions of Emacs that lack the variable
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
+  (declare (obsolete "It is unused inside Emacs and will be removed." "27.1"))
   (setq data (ignore-errors (string-to-unibyte data)))
   (when (and data (string-match-p "\\`\xff\xd8" data))
     (catch 'jfif
@@ -256,7 +298,7 @@ We accept the tag Exif because that is the same format."
 	  (setq i (1+ i))
 	  (when (>= (+ i 2) len)
 	    (throw 'jfif nil))
-	  (let ((nbytes (+ (lsh (aref data (+ i 1)) 8)
+	  (let ((nbytes (+ (ash (aref data (+ i 1)) 8)
 			   (aref data (+ i 2))))
 		(code (aref data i)))
 	    (when (and (>= code #xe0) (<= code #xef))
@@ -310,7 +352,7 @@ be determined."
 					(buffer-substring
 					 (point-min)
 					 (min (point-max)
-					      (+ (point-min) 256))))))
+					      (+ (point-min) 8192))))))
 		     (setq image-type (cdr image-type))))
 	    (setq type image-type
 		  types nil)
@@ -334,7 +376,7 @@ be determined."
        (file-readable-p file)
        (with-temp-buffer
 	 (set-buffer-multibyte nil)
-	 (insert-file-contents-literally file nil 0 256)
+	 (insert-file-contents-literally file nil 0 8192)
 	 (image-type-from-buffer))))
 
 
@@ -343,6 +385,7 @@ be determined."
   "Determine the type of image file FILE from its name.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
+  (declare (obsolete image-supported-file-p "29.1"))
   (let (type first (case-fold-search t))
     (catch 'found
       (dolist (elem image-type-file-name-regexps first)
@@ -352,6 +395,25 @@ be determined."
 	    ;; If nothing seems to be supported, return first type that matched.
 	    (or first (setq first type))))))))
 
+ ;;;###autoload
+(defun image-supported-file-p (file)
+  "Say whether Emacs has native support for displaying TYPE.
+The value is a symbol specifying the image type, or nil if type
+cannot be determined (or if Emacs doesn't have built-in support
+for the image type)."
+  (let ((case-fold-search t)
+        type)
+    (catch 'found
+      (dolist (elem image-type-file-name-regexps)
+	(when (and (string-match-p (car elem) file)
+                   (image-type-available-p (setq type (cdr elem))))
+	  (throw 'found type))))))
+
+(declare-function image-convert-p "image-converter.el"
+                  (source &optional image-format))
+(declare-function image-convert "image-converter.el"
+                  (image &optional image-format))
+
 ;;;###autoload
 (defun image-type (source &optional type data-p)
   "Determine and return image type.
@@ -360,31 +422,36 @@ Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
 of image data.  If that doesn't work, and SOURCE is a file name,
 use its file extension as image type.
-Optional DATA-P non-nil means SOURCE is a string containing image data."
+
+Optional DATA-P non-nil means SOURCE is a string containing image
+data.  If DATA-P is a symbol with a name on the format
+`image/jpeg', that may be used as a hint to determine the image
+type if we can't otherwise guess it."
   (when (and (not data-p) (not (stringp source)))
     (error "Invalid image file name `%s'" source))
   (unless type
     (setq type (if data-p
-		   (image-type-from-data source)
+		   (or (image-type-from-data source)
+                       (and image-use-external-converter
+                            (progn
+                              (require 'image-converter)
+                              (image-convert-p source data-p))))
 		 (or (image-type-from-file-header source)
-		     (image-type-from-file-name source))))
-    (or type (error "Cannot determine image type")))
-  (or (memq type (and (boundp 'image-types) image-types))
-      (error "Invalid image type `%s'" type))
+		     (image-supported-file-p source)
+                     (and image-use-external-converter
+                          (progn
+                            (require 'image-converter)
+                            (image-convert-p source))))))
+    (unless type
+      (signal 'unknown-image-type "Cannot determine image type")))
+  (when (and (not (eq type 'image-convert))
+             (not (memq type (and (boundp 'image-types) image-types))))
+    (error "Invalid image type `%s'" type))
   type)
-
-
-(if (fboundp 'image-metadata)           ; eg not --without-x
-    (define-obsolete-function-alias 'image-extension-data
-      'image-metadata "24.1"))
-
-(define-obsolete-variable-alias
-    'image-library-alist
-    'dynamic-library-alist "24.1")
 
 ;;;###autoload
 (defun image-type-available-p (type)
-  "Return non-nil if image type TYPE is available.
+  "Return t if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
        (init-image-library type)))
@@ -405,18 +472,26 @@ must be available."
     (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
+(defvar image-convert-to-format)
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
   "Create an image.
 FILE-OR-DATA is an image file name or image data.
+
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
 of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
 use its file extension as image type.
+
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
+
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.
+like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
+display has a high resolution (more exactly, when the average width of a
+character in the default font is more than 10 pixels), the image is
+automatically scaled up in proportion to the default font.
+
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'.
@@ -424,14 +499,54 @@ Images should not be larger than specified by `max-image-size'.
 Image file names that are not absolute are searched for in the
 \"images\" sub-directory of `data-directory' and
 `x-bitmap-file-path' (in that order)."
-  ;; It is x_find_image_file in image.c that sets the search path.
-  (setq type (image-type file-or-data type data-p))
+  (let ((data-format
+         ;; Pass the image format, if any, if this is data.
+         (and data-p (or (plist-get props :format) t))))
+    ;; It is x_find_image_file in image.c that sets the search path.
+    (setq type (ignore-error unknown-image-type
+                 (image-type file-or-data type data-format)))
+    ;; If we have external image conversion switched on (for exotic,
+    ;; non-native image formats), then we convert the file.
+    (when (eq type 'image-convert)
+      (require 'image-converter)
+      (setq file-or-data (image-convert file-or-data data-format)
+            type (intern image-convert-to-format)
+            data-p t)))
   (when (image-type-available-p type)
-    (append (list 'image :type type (if data-p :data :file) file-or-data)
-            (and (not (plist-get props :scale))
-                 (list :scale
-                       (image-compute-scaling-factor image-scaling-factor)))
-	    props)))
+    (let ((image
+           (append (list 'image :type type (if data-p :data :file)
+                         file-or-data)
+                   (and (not (plist-get props :scale))
+                        ;; Add default scaling.
+                        (list :scale
+                              (image-compute-scaling-factor
+                               image-scaling-factor)))
+	           props)))
+      ;; Add default smoothing.
+      (unless (plist-member props :transform-smoothing)
+        (setq image (nconc image
+                           (list :transform-smoothing
+                                 (pcase image-transform-smoothing
+                                   ('t t)
+                                   ('nil nil)
+                                   (func (funcall func image)))))))
+      image)))
+
+(defun image--default-smoothing (image)
+  "Say whether IMAGE should be smoothed when transformed."
+  (let* ((props (nthcdr 5 image))
+         (scaling (plist-get props :scale))
+         (rotation (plist-get props :rotation)))
+    (cond
+     ;; We always smooth when scaling down and small upwards scaling.
+     ((and scaling (< scaling 2))
+      t)
+     ;; Smooth when doing non-90-degree rotation
+     ((and rotation
+           (or (not (zerop (mod rotation 1)))
+               (not (zerop (% (truncate rotation) 90)))))
+      t)
+     (t nil))))
 
 (defun image--set-property (image property value)
   "Set PROPERTY in IMAGE to VALUE.
@@ -442,10 +557,10 @@ Internal use only."
         ;; plist.  Decouple plist entries where the key matches
         ;; the property.
         (if (eq (cadr image) property)
-            (setcdr image (cddr image))
+            (setcdr image (cdddr image))
           (setq image (cddr image))))
     ;; Just enter the new value.
-    (plist-put (cdr image) property value))
+    (setcdr image (plist-put (cdr image) property value)))
   value)
 
 (defun image-property (image property)
@@ -457,7 +572,12 @@ If VALUE is nil, PROPERTY is removed from IMAGE."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
-(defun image-compute-scaling-factor (scaling)
+(defun image-compute-scaling-factor (&optional scaling)
+  "Compute the scaling factor based on SCALING.
+If a number, use that.  If it's `auto', compute the factor.
+If nil, use the `image-scaling-factor' variable."
+  (unless scaling
+    (setq scaling image-scaling-factor))
   (cond
    ((numberp scaling) scaling)
    ((eq scaling 'auto)
@@ -496,25 +616,33 @@ means display it in the right marginal area."
       (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-image t)
       (overlay-put overlay 'before-string string)
-      (overlay-put overlay 'map image-map)
+      (overlay-put overlay 'keymap image-map)
       overlay)))
 
 
 ;;;###autoload
-(defun insert-image (image &optional string area slice)
+(defun insert-image (image &optional string area slice inhibit-isearch)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING
-defaults to a single space if you omit it.
+with a `display' property whose value is the image.
+
+STRING defaults to a single space if you omit it, which means
+that the inserted image will behave as whitespace syntactically.
+
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area.
+
 SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
 means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
 specifying the X and Y positions and WIDTH and HEIGHT of image area
 to insert.  A float value 0.0 - 1.0 means relative to the width or
-height of the image; integer values are taken as pixel values."
+height of the image; integer values are taken as pixel values.
+
+Normally `isearch' is able to search for STRING in the buffer
+even if it's hidden behind a displayed image.  If INHIBIT-ISEARCH
+is non-nil, this is inhibited."
   ;; Use a space as least likely to cause trouble when it's a hidden
   ;; character in the buffer.
   (unless string (setq string " "))
@@ -537,7 +665,8 @@ height of the image; integer values are taken as pixel values."
 			 `(display ,(if slice
 					(list (cons 'slice slice) image)
 				      image)
-                                   rear-nonsticky (display)
+                                   rear-nonsticky t
+				   inhibit-isearch ,inhibit-isearch
                                    keymap ,image-map))))
 
 
@@ -621,43 +750,76 @@ BUFFER nil or omitted means use the current buffer."
       (setq path (cdr path)))
     (if found filename)))
 
+(defvar find-image--cache (make-hash-table :test #'equal))
+
 ;;;###autoload
-(defun find-image (specs)
+(defun find-image (specs &optional cache)
   "Find an image, choosing one of a list of image specifications.
 
 SPECS is a list of image specifications.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the properties `:type TYPE' and either `:file FILE' or
-`:data DATA', where TYPE is a symbol specifying the image type,
-e.g. `xbm', FILE is the file to load the image from, and DATA is a
-string containing the actual image data.  The specification whose TYPE
-is supported, and FILE exists, is used to construct the image
-specification to be returned.  Return nil if no specification is
-satisfied.
+least contain either the property `:file FILE' or `:data DATA',
+where FILE is the file to load the image from, and DATA is a string
+containing the actual image data.  If the property `:type TYPE' is
+omitted or nil, try to determine the image type from its first few
+bytes of image data.  If that doesn't work, and the property `:file
+FILE' provide a file name, use its file extension as image type.
+If `:type TYPE' is provided, it must match the actual type
+determined for FILE or DATA by `create-image'.  Return nil if no
+specification is satisfied.
+
+If CACHE is non-nil, results are cached and returned on subsequent calls.
 
 The image is looked for in `image-load-path'.
 
 Image files should not be larger than specified by `max-image-size'."
-  (let (image)
-    (while (and specs (null image))
-      (let* ((spec (car specs))
-	     (type (plist-get spec :type))
-	     (data (plist-get spec :data))
-	     (file (plist-get spec :file))
-	     found)
-	(when (image-type-available-p type)
-	  (cond ((stringp file)
-		 (if (setq found (image-search-load-path file))
-		     (setq image
-			   (cons 'image (plist-put (copy-sequence spec)
-						   :file found)))))
-		((not (null data))
-		 (setq image (cons 'image spec)))))
-	(setq specs (cdr specs))))
-    image))
-
+  (or (and cache
+           (gethash specs find-image--cache))
+      (let ((orig-specs specs)
+            image)
+        (while (and specs (null image))
+          (let* ((spec (car specs))
+	         (type (plist-get spec :type))
+	         (data (plist-get spec :data))
+	         (file (plist-get spec :file)))
+	    (cond
+             ((stringp file)
+	      (when (setq file (image-search-load-path file))
+                ;; At this point, remove the :type and :file properties.
+                ;; `create-image' will set them depending on image file.
+                (setq image (cons 'image (copy-sequence spec)))
+                (setf (image-property image :type) nil)
+                (setf (image-property image :file) nil)
+                (and (setq image (ignore-errors
+                                   (apply #'create-image file nil nil
+                                          (cdr image))))
+                     ;; Ensure, if a type has been provided, it is
+                     ;; consistent with the type returned by
+                     ;; `create-image'. If not, return nil.
+                     (not (null type))
+                     (not (eq type (image-property image :type)))
+                     (setq image nil))))
+	     ((not (null data))
+              ;; At this point, remove the :type and :data properties.
+              ;; `create-image' will set them depending on image data.
+              (setq image (cons 'image (copy-sequence spec)))
+              (setf (image-property image :type) nil)
+              (setf (image-property image :data) nil)
+	      (and (setq image (ignore-errors
+                                 (apply #'create-image data nil t
+                                        (cdr image))))
+                   ;; Ensure, if a type has been provided, it is
+                   ;; consistent with the type returned by
+                   ;; `create-image'. If not, return nil.
+                   (not (null type))
+                   (not (eq type (image-property image :type)))
+                   (setq image nil))))
+	    (setq specs (cdr specs))))
+        (when cache
+          (setf (gethash orig-specs find-image--cache) image))
+        image)))
 
 ;;;###autoload
 (defmacro defimage (symbol specs &optional doc)
@@ -679,7 +841,7 @@ Example:
 
    (defimage test-image ((:type xpm :file \"~/test1.xpm\")
                          (:type xbm :file \"~/test1.xbm\")))"
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defvar ,symbol (find-image ',specs) ,doc))
 
 
@@ -705,27 +867,37 @@ in which case you might want to use `image-default-frame-delay'."
 	(cons images delay)))))
 
 (defun image-animated-p (image)
-  "Like `image-multi-frame-p', but returns nil if no delay is specified."
+  "Like `image-multi-frame-p', but return nil if no delay is specified."
   (let ((multi (image-multi-frame-p image)))
     (and (cdr multi) multi)))
 
 (make-obsolete 'image-animated-p 'image-multi-frame-p "24.4")
 
-;; "Destructively"?
-(defun image-animate (image &optional index limit)
+(defun image-animate (image &optional index limit position)
   "Start animating IMAGE.
 Animation occurs by destructively altering the IMAGE spec list.
 
 With optional INDEX, begin animating from that animation frame.
 LIMIT specifies how long to animate the image.  If omitted or
 nil, play the animation until the end.  If t, loop forever.  If a
-number, play until that number of seconds has elapsed."
+number, play until that number of seconds has elapsed.
+
+If POSITION (which should be buffer position where the image is
+displayed), stop the animation if the image is no longer
+displayed."
   (let ((animation (image-multi-frame-p image))
 	timer)
     (when animation
       (if (setq timer (image-animate-timer image))
 	  (cancel-timer timer))
       (plist-put (cdr image) :animate-buffer (current-buffer))
+      (plist-put (cdr image) :animate-tardiness 0)
+      (when position
+        (plist-put (cdr image) :animate-position
+                   (set-marker (make-marker) position (current-buffer))))
+      ;; Stash the data about the animation here so that we don't
+      ;; trigger image recomputation unnecessarily later.
+      (plist-put (cdr image) :animate-multi-frame-data animation)
       (run-with-timer 0.2 nil #'image-animate-timeout
 		      image (or index 0) (car animation)
 		      0 limit (+ (float-time) 0.2)))))
@@ -756,9 +928,11 @@ Frames are indexed from 0.  Optional argument NOCHECK non-nil means
 do not check N is within the range of frames present in the image."
   (unless nocheck
     (if (< n 0) (setq n 0)
-      (setq n (min n (1- (car (image-multi-frame-p image)))))))
+      (setq n (min n (1- (car (or (plist-get (cdr image)
+                                             :animate-multi-frame-data)
+                                  (image-multi-frame-p image))))))))
   (plist-put (cdr image) :index n)
-  (force-window-update))
+  (force-window-update (plist-get (cdr image) :animate-buffer)))
 
 (defun image-animate-get-speed (image)
   "Return the speed factor for animating IMAGE."
@@ -782,7 +956,7 @@ multiplication factor for the current value."
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
 TIME-ELAPSED is the total time that has elapsed since
-`image-animate-start' was called.
+`image-animate' was called.
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed.
@@ -790,37 +964,66 @@ The minimum delay between successive frames is `image-minimum-frame-delay'.
 
 If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
-  (when (and (buffer-live-p (plist-get (cdr image) :animate-buffer))
-             ;; Delayed more than two seconds more than expected.
-	     (or (<= (- (float-time) target-time) 2)
-		 (progn
-		   (message "Stopping animation; animation possibly too big")
-		   nil)))
-    (image-show-frame image n t)
-    (let* ((speed (image-animate-get-speed image))
-	   (time (float-time))
-	   (animation (image-multi-frame-p image))
-	   ;; Subtract off the time we took to load the image from the
-	   ;; stated delay time.
-	   (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
-			     (/ 1.0 (abs speed)))
-			  time (- (float-time)))
-		       image-minimum-frame-delay))
-	   done)
-      (setq n (if (< speed 0)
-		  (1- n)
-		(1+ n)))
-      (if limit
-	  (cond ((>= n count) (setq n 0))
-		((< n 0) (setq n (1- count))))
-	(and (or (>= n count) (< n 0)) (setq done t)))
-      (setq time-elapsed (+ delay time-elapsed))
-      (if (numberp limit)
-	  (setq done (>= time-elapsed limit)))
-      (unless done
-	(run-with-timer delay nil #'image-animate-timeout
-			image n count time-elapsed limit
-                        (+ (float-time) delay))))))
+  ;; We keep track of "how late" image frames arrive.  We decay the
+  ;; previous cumulative value by 10% and then add the current delay.
+  (plist-put (cdr image) :animate-tardiness
+             (+ (* (plist-get (cdr image) :animate-tardiness) 0.9)
+                (float-time (time-since target-time))))
+  (let* ((buffer (plist-get (cdr image) :animate-buffer))
+         (position (plist-get (cdr image) :animate-position))
+         (continue-animation
+          (and (buffer-live-p buffer)
+               ;; If we have a :animate-position setting, the caller
+               ;; has requested that the animation be stopped if the
+               ;; image is no longer displayed in the buffer.
+               (or (null position)
+                   (with-current-buffer buffer
+                     (let ((disp (get-text-property position 'display)))
+                       (and (consp disp)
+                            (eq (car disp) 'image)
+                            ;; We can't check `eq'-ness of the image
+                            ;; itself, since that may change.
+                            (eq position
+                                (plist-get (cdr disp) :animate-position))))))
+               ;; Cumulatively delayed two seconds more than expected.
+               (or (< (plist-get (cdr image) :animate-tardiness) 2)
+		   (progn
+		     (message "Stopping animation; animation possibly too big")
+		     nil)))))
+    (if (not continue-animation)
+        ;; Eject from the animation cache since we've decided not to
+        ;; keep updating it.  This helps stop unbounded RAM usage when
+        ;; doing, for instance, `g' in an eww buffer with animated
+        ;; images.
+        (clear-image-cache nil image)
+      (let* ((time (prog1 (current-time)
+		     (image-show-frame image n t)))
+	     (speed (image-animate-get-speed image))
+	     (time-to-load-image (time-since time))
+	     (stated-delay-time
+              (/ (or (cdr (plist-get (cdr image) :animate-multi-frame-data))
+		     image-default-frame-delay)
+	         (float (abs speed))))
+	     ;; Subtract off the time we took to load the image from the
+	     ;; stated delay time.
+	     (delay (max (float-time (time-subtract stated-delay-time
+						    time-to-load-image))
+		         image-minimum-frame-delay))
+	     done)
+        (setq n (if (< speed 0)
+		    (1- n)
+		  (1+ n)))
+        (if limit
+	    (cond ((>= n count) (setq n 0))
+		  ((< n 0) (setq n (1- count))))
+	  (and (or (>= n count) (< n 0)) (setq done t)))
+        (setq time-elapsed (+ delay time-elapsed))
+        (if (numberp limit)
+	    (setq done (>= time-elapsed limit)))
+        (unless done
+	  (run-with-timer delay nil #'image-animate-timeout
+			  image n count time-elapsed limit
+                          (+ (float-time) delay)))))))
 
 
 (defvar imagemagick-types-inhibit)
@@ -913,7 +1116,7 @@ has no effect."
   :version "24.3")
 
 (defcustom imagemagick-enabled-types
-  '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
+  '(3FR ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
     CUR CUT DCM DCR DCX DDS DJVU DNG DPX EXR FAX FITS GBR GIF
     GIF87 GRB HRZ ICB ICO ICON J2C JNG JP2 JPC JPEG JPG JPX K25
     KDC MIFF MNG MRW MSL MSVG MTV NEF ORF OTB PBM PCD PCDS PCL
@@ -947,44 +1150,91 @@ has no effect."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.3")
+  :version "26.2")                      ; remove ART (bug#22289)
 
 (imagemagick-register-types)
 
-(defun image-increase-size (n)
+(defun image-increase-size (&optional n position)
   "Increase the image size by a factor of N.
 If N is 3, then the image size will be increased by 30%.  The
 default is 20%."
   (interactive "P")
-  (image--change-size (if n
-                          (1+ (/ n 10.0))
-                        1.2)))
+  ;; Wait for a bit of idle-time before actually performing the change,
+  ;; so as to batch together sequences of closely consecutive size changes.
+  ;; `image--change-size' just changes one value in a plist.  The actual
+  ;; image resizing happens later during redisplay.  So if those
+  ;; consecutive calls happen without any redisplay between them,
+  ;; the costly operation of image resizing should happen only once.
+  (run-with-idle-timer 0.3 nil
+                       #'image--change-size
+                       (if n
+                           (1+ (/ (prefix-numeric-value n) 10.0))
+                         1.2)
+                       position))
 
-(defun image-decrease-size (n)
+(defun image-decrease-size (&optional n position)
   "Decrease the image size by a factor of N.
 If N is 3, then the image size will be decreased by 30%.  The
 default is 20%."
   (interactive "P")
-  (image--change-size (if n
-                          (- 1 (/ n 10.0))
-                        0.8)))
+  ;; Wait for a bit of idle-time before actually performing the change,
+  ;; so as to batch together sequences of closely consecutive size changes.
+  ;; `image--change-size' just changes one value in a plist.  The actual
+  ;; image resizing happens later during redisplay.  So if those
+  ;; consecutive calls happen without any redisplay between them,
+  ;; the costly operation of image resizing should happen only once.
+  (run-with-idle-timer 0.3 nil
+                       #'image--change-size
+                       (if n
+                           (- 1 (/ (prefix-numeric-value n) 10.0))
+                         0.8)
+                       position))
 
-(defun image--get-image ()
-  (let ((image (get-text-property (point) 'display)))
+(defun image-mouse-increase-size (&optional event)
+  "Increase the image size using the mouse."
+  (interactive "e")
+  (when (listp event)
+    (save-window-excursion
+      (posn-set-point (event-start event))
+      (image-increase-size nil (point-marker)))))
+
+(defun image-mouse-decrease-size (&optional event)
+  "Decrease the image size using the mouse."
+  (interactive "e")
+  (when (listp event)
+    (save-window-excursion
+      (posn-set-point (event-start event))
+      (image-decrease-size nil (point-marker)))))
+
+(defun image--get-image (&optional position)
+  "Return the image at point."
+  (let ((image (get-char-property (or position (point)) 'display
+                                  (when (markerp position)
+                                    (marker-buffer position)))))
     (unless (eq (car-safe image) 'image)
       (error "No image under point"))
     image))
 
-(defun image--get-imagemagick-and-warn ()
-  (unless (fboundp 'imagemagick-types)
-    (error "Can't rescale images without ImageMagick support"))
-  (let ((image (image--get-image)))
+;;;###autoload
+(defun image-at-point-p ()
+  "Return non-nil if there is an image at point."
+  (condition-case nil
+      (prog1 t (image--get-image))
+    (error nil)))
+
+(defun image--get-imagemagick-and-warn (&optional position)
+  (declare-function image-transforms-p "image.c" (&optional frame))
+  (unless (or (fboundp 'imagemagick-types) (image-transforms-p))
+    (error "Cannot rescale images on this terminal"))
+  (let ((image (image--get-image position)))
     (image-flush image)
-    (plist-put (cdr image) :type 'imagemagick)
+    (when (and (fboundp 'imagemagick-types)
+               (not (image-transforms-p)))
+      (plist-put (cdr image) :type 'imagemagick))
     image))
 
-(defun image--change-size (factor)
-  (let* ((image (image--get-imagemagick-and-warn))
+(defun image--change-size (factor &optional position)
+  (let* ((image (image--get-imagemagick-and-warn position))
          (new-image (image--image-without-parameters image))
          (scale (image--current-scaling image new-image)))
     (setcdr image (cdr new-image))
@@ -1000,6 +1250,8 @@ default is 20%."
               (setq new (nconc new (list key val))))))
           new)))
 
+(declare-function image-size "image.c" (spec &optional pixels frame))
+
 (defun image--current-scaling (image new-image)
   ;; The image may be scaled due to many reasons (:scale, :max-width,
   ;; etc), so find out what the current scaling is based on the
@@ -1008,24 +1260,27 @@ default is 20%."
         (display-width (car (image-size image t))))
     (/ (float display-width) image-width)))
 
-(defun image-rotate ()
-  "Rotate the image under point by 90 degrees clockwise."
-  (interactive)
+(defun image-rotate (&optional angle)
+  "Rotate the image under point by ANGLE degrees clockwise.
+If nil, ANGLE defaults to 90.  Interactively, rotate the image 90
+degrees clockwise with no prefix argument, and counter-clockwise
+with a prefix argument.  Note that most image types support
+rotations by only multiples of 90 degrees."
+  (interactive (and current-prefix-arg '(-90)))
   (let ((image (image--get-imagemagick-and-warn)))
-    (plist-put (cdr image) :rotation
-               (float (mod (+ (or (plist-get (cdr image) :rotation) 0) 90)
-                           ;; We don't want to exceed 360 degrees
-                           ;; rotation, because it's not seen as valid
-                           ;; in exif data.
-                           360)))))
+    (setf (image-property image :rotation)
+          (float (mod (+ (or (image-property image :rotation) 0)
+                         (or angle 90))
+                      ;; We don't want to exceed 360 degrees rotation,
+                      ;; because it's not seen as valid in Exif data.
+                      360)))))
 
 (defun image-save ()
-  "Save the image under point."
+  "Save the image under point.
+This writes the original image data to a file.  Rotating or
+changing the displayed image size does not affect the saved image."
   (interactive)
-  (let ((image (get-text-property (point) 'display)))
-    (when (or (not (consp image))
-              (not (eq (car image) 'image)))
-      (error "No image under point"))
+  (let ((image (image--get-image)))
     (with-temp-buffer
       (let ((file (plist-get (cdr image) :file)))
         (if file
@@ -1035,6 +1290,24 @@ default is 20%."
           (insert (plist-get (cdr image) :data))))
       (write-region (point-min) (point-max)
                     (read-file-name "Write image to file: ")))))
+
+(defun image-flip-horizontally ()
+  "Horizontally flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-flush image)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(defun image-flip-vertically ()
+  "Vertically flip the image under point."
+  (interactive)
+  (let ((image (image--get-image)))
+    (image-rotate 180)
+    (setf (image-property image :flip)
+          (not (image-property image :flip)))))
+
+(define-obsolete-function-alias 'image-refresh #'image-flush "29.1")
 
 (provide 'image)
 

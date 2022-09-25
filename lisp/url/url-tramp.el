@@ -1,6 +1,6 @@
-;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols
+;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, data, processes, hypermedia
@@ -37,30 +37,44 @@ They must also be covered by `url-handler-regexp'."
   :type '(repeat string))
 
 (defun url-tramp-convert-url-to-tramp (url)
-  "Convert URL to a Tramp file name."
-  (let ((obj (url-generic-parse-url (and (stringp url) url))))
-    (if (member (url-type obj) url-tramp-protocols)
-	(progn
-	  (if (url-password obj)
-	      (password-cache-add
-	       (tramp-make-tramp-file-name
-		(url-type obj) (url-user obj) (url-host obj) "")
-	       (url-password obj))
-	    (tramp-make-tramp-file-name
-	     (url-type obj) (url-user obj) (url-host obj) (url-filename obj))))
+  "Convert URL to a Tramp file name.
+If URL contains a password, it will be added to the `password-data' cache.
+In case URL is not convertible, nil is returned."
+  (let* ((obj (url-generic-parse-url (and (stringp url) url)))
+         (port
+          (and obj (natnump (url-portspec obj))
+               (number-to-string (url-portspec obj)))))
+    (if (and obj (member (url-type obj) url-tramp-protocols))
+        (progn
+          (when (url-password obj)
+	    (password-cache-add
+	     (tramp-make-tramp-file-name
+              (make-tramp-file-name
+	       :method (url-type obj) :user (url-user obj)
+               :host (url-host obj)))
+	     (url-password obj)))
+          (tramp-make-tramp-file-name
+           (make-tramp-file-name
+            :method (url-type obj) :user (url-user obj)
+            :host (url-host obj) :port port :localname (url-filename obj))))
       url)))
 
 (defun url-tramp-convert-tramp-to-url (file)
-  "Convert FILE, a Tramp file name, to a URL."
-  (let ((obj (ignore-errors (tramp-dissect-file-name file))))
-    (if (member (tramp-file-name-method obj) url-tramp-protocols)
-	(url-recreate-url
-	 (url-parse-make-urlobj
+  "Convert FILE, a Tramp file name, to a URL.
+In case FILE is not convertible, nil is returned."
+  (let* ((obj (and (tramp-tramp-file-p file)
+                   (ignore-errors (tramp-dissect-file-name file))))
+         (port
+          (and obj (stringp (tramp-file-name-port obj))
+               (string-to-number (tramp-file-name-port obj)))))
+    (if (and obj (member (tramp-file-name-method obj) url-tramp-protocols))
+        (url-recreate-url
+         (url-parse-make-urlobj
 	  (tramp-file-name-method obj)
 	  (tramp-file-name-user obj)
 	  nil ; password.
 	  (tramp-file-name-host obj)
-	  nil ; port.
+	  port
 	  (tramp-file-name-localname obj)
 	  nil nil t)) ; target attributes fullness.
       file)))

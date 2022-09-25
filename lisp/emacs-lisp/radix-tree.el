@@ -1,6 +1,6 @@
 ;;; radix-tree.el --- A simple library of radix trees  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -74,7 +74,7 @@
             (cmp (compare-strings prefix nil nil key i ni)))
        (if (eq t cmp)
            (pcase (radix-tree--remove ptree key ni)
-             (`nil rtree)
+             ('nil rtree)
              (`((,pprefix . ,pptree))
               `((,(concat prefix pprefix) . ,pptree) . ,rtree))
              (nptree `((,prefix . ,nptree) . ,rtree)))
@@ -194,11 +194,13 @@ If not found, return nil."
   "Return an alist of all bindings in TREE for prefixes of STRING."
   (radix-tree--prefixes tree string 0 nil))
 
-(eval-and-compile
-  (pcase-defmacro radix-tree-leaf (vpat)
-    ;; FIXME: We'd like to use a negative pattern (not consp), but pcase
-    ;; doesn't support it.  Using `atom' works but generates sub-optimal code.
-    `(or `(t . ,,vpat) (and (pred atom) ,vpat))))
+(pcase-defmacro radix-tree-leaf (vpat)
+  "Pattern which matches a radix-tree leaf.
+The pattern VPAT is matched against the leaf's carried value."
+  ;; We used to use `(pred atom)', but `pcase' doesn't understand that
+  ;; `atom' is equivalent to the negation of `consp' and hence generates
+  ;; suboptimal code.
+  `(or `(t . ,,vpat) (and (pred (not consp)) ,vpat)))
 
 (defun radix-tree-iter-subtrees (tree fun)
   "Apply FUN to every immediate subtree of radix TREE.
@@ -235,8 +237,10 @@ PREFIX is only used internally."
     (radix-tree-iter-mappings tree (lambda (_k _v) (setq i (1+ i))))
     i))
 
+(declare-function map-apply "map" (function map))
+
 (defun radix-tree-from-map (map)
-  ;; Aka (cl-defmethod map-into (map (type (eql radix-tree)))) ...)
+  ;; Aka (cl-defmethod map-into (map (type (eql 'radix-tree)))) ...)
   (require 'map)
   (let ((rt nil))
     (map-apply (lambda (k v) (setq rt (radix-tree-insert rt k v))) map)

@@ -1,6 +1,6 @@
-;;; cpp.el --- highlight or hide text according to cpp conditionals
+;;; cpp.el --- highlight or hide text according to cpp conditionals -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
@@ -53,8 +53,7 @@
 
 (defcustom cpp-config-file (convert-standard-filename ".cpp.el")
   "File name to save cpp configuration."
-  :type 'file
-  :group 'cpp)
+  :type 'file)
 
 (define-widget 'cpp-face 'lazy
   "Either a face or the special symbol `invisible'."
@@ -62,13 +61,11 @@
 
 (defcustom cpp-known-face 'invisible
   "Face used for known cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-unknown-face 'highlight
   "Face used for unknown cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-face-type 'light
   "Indicate what background face type you prefer.
@@ -76,18 +73,15 @@ Can be either light or dark for color screens, mono for monochrome
 screens, and none if you don't use a window system and don't have
 a color-capable display."
   :options '(light dark mono nil)
-  :type 'symbol
-  :group 'cpp)
+  :type 'symbol)
 
 (defcustom cpp-known-writable t
   "Non-nil means you are allowed to modify the known conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-unknown-writable t
   "Non-nil means you are allowed to modify the unknown conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-edit-list nil
   "Alist of cpp macros and information about how they should be displayed.
@@ -101,20 +95,17 @@ Each entry is a list with the following elements:
 		       (cpp-face :tag "False")
 		       (choice (const :tag "True branch writable" t)
 			       (const :tag "False branch writable" nil)
-			       (const :tag "Both branches writable" both))))
-  :group 'cpp)
+                               (const :tag "Both branches writable" both)))))
 
 (defcustom cpp-message-min-time-interval 1.0
   "Minimum time interval in seconds for `cpp-progress-message' messages.
 If nil, `cpp-progress-message' prints no progress messages."
   :type '(choice (const :tag "Disable progress messages" nil)
                  float)
-  :group 'cpp
   :version "26.1")
 
-(defvar cpp-overlay-list nil)
-;; List of cpp overlays active in the current buffer.
-(make-variable-buffer-local 'cpp-overlay-list)
+(defvar-local cpp-overlay-list nil
+  "List of cpp overlays active in the current buffer.")
 
 (defvar cpp-callback-data)
 (defvar cpp-state-stack)
@@ -134,9 +125,8 @@ If nil, `cpp-progress-message' prints no progress messages."
 (defvar cpp-button-event nil)
 ;; This will be t in the callback for `cpp-make-button'.
 
-(defvar cpp-edit-buffer nil)
-;; Real buffer whose cpp display information we are editing.
-(make-variable-buffer-local 'cpp-edit-buffer)
+(defvar-local cpp-edit-buffer nil
+  "Real buffer whose cpp display information we are editing.")
 
 (defconst cpp-branch-list
   ;; Alist of branches.
@@ -155,36 +145,31 @@ or a cons cell (background-color . COLOR)."
 		:value-type (choice face
 				    (const invisible)
 				    (cons (const background-color)
-					  (string :tag "Color"))))
-  :group 'cpp)
+                                          (string :tag "Color")))))
 
 (defcustom cpp-face-light-name-list
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
   "Background colors useful with dark foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-dark-name-list
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
   "Background colors useful with light foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-light-list nil
   "Alist of names and faces to be used for light backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-dark-list nil
   "Alist of names and faces to be used for dark backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-mono-list
   '(("bold" . bold)
@@ -192,15 +177,13 @@ or a cons cell (background-color . COLOR)."
     ("italic" . italic)
     ("underline" . underline))
   "Alist of names and faces to be used for monochrome screens."
-  :type '(repeat (cons string face))
-  :group 'cpp)
+  :type '(repeat (cons string face)))
 
 (defcustom cpp-face-none-list
    '(("default" . default)
      ("invisible" . invisible))
    "Alist of names and faces available even if you don't use a window system."
-  :type '(repeat (cons string cpp-face))
-  :group 'cpp)
+  :type '(repeat (cons string cpp-face)))
 
 (defvar cpp-face-all-list
   (append cpp-face-light-list
@@ -211,9 +194,8 @@ or a cons cell (background-color . COLOR)."
 
 ;;; Parse Buffer:
 
-(defvar cpp-parse-symbols nil
+(defvar-local cpp-parse-symbols nil
   "List of cpp macros used in the local buffer.")
-(make-variable-buffer-local 'cpp-parse-symbols)
 
 (defconst cpp-parse-regexp
   ;; Regexp matching all tokens needed to find conditionals.
@@ -471,9 +453,8 @@ A prefix arg suppresses display of that buffer."
 
 
 
-(defvar cpp-edit-symbols nil)
-;; Symbols defined in the edit buffer.
-(make-variable-buffer-local 'cpp-edit-symbols)
+(defvar-local cpp-edit-symbols nil
+  "Symbols defined in the edit buffer.")
 
 (define-derived-mode cpp-edit-mode fundamental-mode "CPP Edit"
   "Major mode for editing the criteria for highlighting cpp conditionals.
@@ -568,6 +549,14 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
     (set-window-start nil start)
     (goto-char pos)))
 
+(defun cpp-locate-user-emacs-file (file)
+  (locate-user-emacs-file
+   ;; Remove initial '.' from file.
+   (if (eq (aref file 0) ?.)
+       (substring file 1)
+     file)
+   file))
+
 (defun cpp-edit-load ()
   "Load cpp configuration."
   (interactive)
@@ -576,8 +565,8 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 	 nil)
 	((file-readable-p cpp-config-file)
 	 (load-file cpp-config-file))
-	((file-readable-p (concat "~/" cpp-config-file))
-	 (load-file cpp-config-file)))
+	((file-readable-p (cpp-locate-user-emacs-file cpp-config-file))
+	 (load-file (cpp-locate-user-emacs-file cpp-config-file))))
   (if (derived-mode-p 'cpp-edit-mode)
       (cpp-edit-reset)))
 
@@ -586,7 +575,10 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   (interactive)
   (require 'pp)
   (with-current-buffer cpp-edit-buffer
-    (let ((buffer (find-file-noselect cpp-config-file)))
+    (let* ((config-file (if (file-writable-p cpp-config-file)
+                            cpp-config-file
+                          (cpp-locate-user-emacs-file cpp-config-file)))
+           (buffer (find-file-noselect config-file)))
       (set-buffer buffer)
       (erase-buffer)
       (pp (list 'setq 'cpp-known-face
@@ -601,7 +593,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 		(list 'quote cpp-unknown-writable)) buffer)
       (pp (list 'setq 'cpp-edit-list
 		(list 'quote cpp-edit-list)) buffer)
-      (write-file cpp-config-file))))
+      (write-file config-file))))
 
 (defun cpp-edit-home ()
   "Switch back to original buffer."
@@ -710,17 +702,14 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 	  (x-popup-menu cpp-button-event
 			(list prompt (cons prompt cpp-face-default-list)))
 	(let ((name (car (rassq default cpp-face-default-list))))
-	  (cdr (assoc (completing-read (if name
-					   (concat prompt
-						   " (default " name "): ")
-					 (concat prompt ": "))
-				       cpp-face-default-list nil t)
+          (cdr (assoc (completing-read (format-prompt "%s" name prompt)
+                                       cpp-face-default-list nil t)
 		      cpp-face-all-list))))
       default))
 
 (defun cpp-choose-default-face (type)
-  ;; Choose default face list for screen of TYPE.
-  ;; Type must be one of the types defined in `cpp-face-type-list'.
+  "Choose default face list for screen of TYPE.
+Type must be one of the types defined in `cpp-face-type-list'."
   (interactive (list (if cpp-button-event
 			 (x-popup-menu cpp-button-event
 				       (list "Screen type"
@@ -797,7 +786,7 @@ BRANCH should be either nil (false branch), t (true branch) or `both'."
 				 (if data (list 'cpp-data data))))))
 
 (defun cpp-push-button (event)
-  ;; Pushed a CPP button.
+  "Pushed a CPP button."
   (interactive "@e")
   (set-buffer (window-buffer (posn-window (event-start event))))
   (let ((pos (posn-point (event-start event))))
@@ -838,8 +827,8 @@ If that option is nil, don't prints messages.
 ARGS are the same as for `message'."
   (when cpp-message-min-time-interval
     (let ((time (current-time)))
-      (when (>= (float-time (time-subtract time cpp-progress-time))
-                cpp-message-min-time-interval)
+      (unless (time-less-p cpp-message-min-time-interval
+			   (time-subtract time cpp-progress-time))
         (setq cpp-progress-time time)
         (apply 'message args)))))
 

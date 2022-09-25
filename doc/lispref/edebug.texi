@@ -1,6 +1,6 @@
 @comment -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1992-1994, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1992--1994, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 
@@ -158,7 +158,7 @@ display a list of all Edebug commands.
 into it, to invoke Edebug at the proper places.
 
 @kindex C-M-x
-@findex eval-defun (Edebug)
+@findex eval-defun @r{(Edebug)}
   When you invoke command @kbd{C-M-x} (@code{eval-defun}) with a
 prefix argument on a function definition, it instruments the
 definition before evaluating it.  (This does not modify the source
@@ -209,6 +209,20 @@ session, it runs the hook @code{edebug-setup-hook}, then sets it to
 @code{nil}.  You can use this to load Edebug specifications
 associated with a package you are using, but only when you use Edebug.
 
+@cindex edebug, failure to instrument
+  If Edebug detects a syntax error while instrumenting, it leaves point
+at the erroneous code and signals an @code{invalid-read-syntax} error.
+@c FIXME?  I can't see that it "leaves point at the erroneous code".
+Example:
+
+@example
+@error{} Invalid read syntax: "Expected lambda expression"
+@end example
+
+  One potential reason for such a failure to instrument is that some
+macro definitions are not yet known to Emacs.  To work around this,
+load the file which defines the function you are about to instrument.
+
 @findex eval-expression @r{(Edebug)}
   To remove instrumentation from a definition, simply re-evaluate its
 definition in a way that does not instrument.  There are two ways of
@@ -216,9 +230,11 @@ evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
 (@kbd{M-:}).
 
-  If Edebug detects a syntax error while instrumenting, it leaves point
-at the erroneous code and signals an @code{invalid-read-syntax} error.
-@c FIXME?  I can't see that it "leaves point at the erroneous code".
+@findex edebug-remove-instrumentation
+  A different way to remove the instrumentation from a definition is
+to use the @code{edebug-remove-instrumentation} command.  It also
+allows removing the instrumentation from everything that has been
+instrumented.
 
   @xref{Edebug Eval}, for other evaluation functions available
 inside of Edebug.
@@ -409,7 +425,8 @@ arrange to deinstrument it.
 @item ?
 Display the help message for Edebug (@code{edebug-help}).
 
-@item C-]
+@item a
+@itemx C-]
 Abort one level back to the previous command level
 (@code{abort-recursive-edit}).
 
@@ -430,10 +447,20 @@ Redisplay the most recently known expression result in the echo area
 
 @item d
 Display a backtrace, excluding Edebug's own functions for clarity
-(@code{edebug-backtrace}).
+(@code{edebug-pop-to-backtrace}).
 
-You cannot use debugger commands in the backtrace buffer in Edebug as
-you would in the standard debugger.
+@xref{Backtraces}, for a description of backtraces
+and the commands which work on them.
+
+@findex edebug-backtrace-show-instrumentation
+@findex edebug-backtrace-hide-instrumentation
+If you would like to see Edebug's functions in the backtrace,
+use @kbd{M-x edebug-backtrace-show-instrumentation}.  To hide them
+again use @kbd{M-x edebug-backtrace-hide-instrumentation}.
+
+If a backtrace frame starts with @samp{>} that means that Edebug knows
+where the source code for the frame is located.  Use @kbd{s} to jump
+to the source code for the current frame.
 
 The backtrace buffer is killed automatically when you continue
 execution.
@@ -473,11 +500,22 @@ Edebug commands for breakpoints:
 Set a breakpoint at the stop point at or after point
 (@code{edebug-set-breakpoint}).  If you use a prefix argument, the
 breakpoint is temporary---it turns off the first time it stops the
-program.
+program.  An overlay with the @code{edebug-enabled-breakpoint} or
+@code{edebug-disabled-breakpoint} faces is put at the breakpoint.
 
 @item u
 Unset the breakpoint (if any) at the stop point at or after
 point (@code{edebug-unset-breakpoint}).
+
+@item U
+Unset any breakpoints in the current form
+(@code{edebug-unset-breakpoints}).
+
+@item D
+Toggle whether to disable the breakpoint near point
+(@code{edebug-toggle-disable-breakpoint}).  This command is mostly
+useful if the breakpoint is conditional and it would take some work to
+recreate the condition.
 
 @item x @var{condition} @key{RET}
 Set a conditional breakpoint which stops the program only if
@@ -603,7 +641,8 @@ configuration is the collection of windows and contents that were in
 effect outside of Edebug.
 
 @table @kbd
-@item v
+@item P
+@itemx v
 Switch to viewing the outside window configuration
 (@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
@@ -626,7 +665,7 @@ definition in the future.
 Toggle whether Edebug saves and restores the outside window
 configuration (@code{edebug-toggle-save-windows}).
 
-With a prefix argument, @code{W} only toggles saving and restoring of
+With a prefix argument, @kbd{W} only toggles saving and restoring of
 the selected window.  To specify a window that is not displaying the
 source code buffer, you must use @kbd{C-x X W} from the global keymap.
 @end table
@@ -661,8 +700,16 @@ on this process.
 @table @kbd
 @item e @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context outside of Edebug
-(@code{edebug-eval-expression}).  That is, Edebug tries to minimize its
-interference with the evaluation.
+(@code{edebug-eval-expression}).  That is, Edebug tries to minimize
+its interference with the evaluation.  The result is shown in the echo
+area, or, if this command is given a prefix, pop up a new buffer and
+pretty-print the result there.
+
+By default, this command
+suppresses the debugger during evaluation, so that an error in the
+evaluated expression won't add a new error on top of the existing one.
+Set the @code{debug-allow-recursive-debug} user option to a
+non-@code{nil} value to override this.
 
 @item M-: @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context of Edebug itself
@@ -670,7 +717,10 @@ Evaluate expression @var{exp} in the context of Edebug itself
 
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
-(@code{edebug-eval-last-sexp}).
+(@code{edebug-eval-last-sexp}).  With the prefix argument of zero
+(@kbd{C-u 0 C-x C-e}), don't shorten long items (like strings and
+lists).  Any other prefix will result in the value being
+pretty-printed in a separate buffer.
 @end table
 
 @cindex lexical binding (Edebug)
@@ -700,8 +750,10 @@ Manual}) as well as these special commands:
 
 @table @kbd
 @item C-j
-Evaluate the expression before point, in the outside context, and insert
-the value in the buffer (@code{edebug-eval-print-last-sexp}).
+Evaluate the expression before point, in the outside context, and
+insert the value in the buffer (@code{edebug-eval-print-last-sexp}).
+With prefix argument of zero (@kbd{C-u 0 C-j}), don't shorten long
+items (like strings and lists).
 
 @item C-x C-e
 Evaluate the expression before point, in the context outside of Edebug
@@ -789,7 +841,6 @@ you continue execution, and recreated next time it is needed.
 
 @cindex printing (Edebug)
 @cindex printing circular structures
-@pindex cust-print
   If an expression in your program produces a value containing circular
 list structure, you may get an error when Edebug attempts to print it.
 
@@ -817,24 +868,25 @@ to a non-@code{nil} value.
   Here is an example of code that creates a circular structure:
 
 @example
-(setq a '(x y))
+(setq a (list 'x 'y))
 (setcar a a)
 @end example
 
 @noindent
-Custom printing prints this as @samp{Result: #1=(#1# y)}.  The
-@samp{#1=} notation labels the structure that follows it with the label
-@samp{1}, and the @samp{#1#} notation references the previously labeled
-structure.  This notation is used for any shared elements of lists or
-vectors.
+If @code{print-circle} is non-@code{nil}, printing functions (e.g.,
+@code{prin1}) will print @code{a} as @samp{#1=(#1# y)}.  The
+@samp{#1=} notation labels the structure that follows it with the
+label @samp{1}, and the @samp{#1#} notation references the previously
+labeled structure.  This notation is used for any shared elements of
+lists or vectors.
 
 @defopt edebug-print-circle
 If non-@code{nil}, Edebug binds @code{print-circle} to this value while
 printing results.  The default value is @code{t}.
 @end defopt
 
-  Other programs can also use custom printing; see @file{cust-print.el}
-for details.
+  For further details about how printing can be customized, see
+@pxref{Output Functions}.
 
 @node Trace Buffer
 @subsection Trace Buffer
@@ -888,7 +940,7 @@ lines inserted.
 
 @cindex coverage testing (Edebug)
 @cindex frequency counts
-@cindex performance analysis
+@cindex performance analysis (Edebug)
   Edebug provides rudimentary coverage testing and display of execution
 frequency.
 
@@ -980,9 +1032,8 @@ program.
 @itemize @bullet
 @item
 @vindex edebug-max-depth
-@code{max-lisp-eval-depth} (@pxref{Eval}) and @code{max-specpdl-size}
-(@pxref{Local Variables}) are both increased to reduce Edebug's impact
-on the stack.  You could, however, still run out of stack space when
+@code{max-lisp-eval-depth} (@pxref{Eval}) is increased to reduce Edebug's
+impact on the stack.  You could, however, still run out of stack space when
 using Edebug.  You can also enlarge the value of
 @code{edebug-max-depth} if Edebug reaches the limit of recursion depth
 instrumenting code that contains very large quoted lists.
@@ -1144,9 +1195,12 @@ the @code{declare} form.
 @c automatically load the entire source file containing the function
 @c being instrumented.  That would avoid this.
   Take care to ensure that the specifications are known to Edebug when
-you instrument code.  If you are instrumenting a function from a file
-that uses @code{eval-when-compile} to require another file containing
-macro definitions, you may need to explicitly load that file.
+you instrument code.  If you are instrumenting a function which uses a
+macro defined in another file, you may first need to either evaluate
+the @code{require} forms in the file containing your function, or
+explicitly load the file containing the macro.  If the definition of a
+macro is wrapped by @code{eval-when-compile}, you may need to evaluate
+it.
 
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
@@ -1156,7 +1210,7 @@ define Edebug specifications for special forms implemented in C.
 
 @defmac def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
-evaluated.  @var{specification} should be the edebug specification.
+evaluated.  @var{specification} should be the Edebug specification.
 Neither argument is evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
@@ -1169,9 +1223,7 @@ directs processing of arguments.
 @table @asis
 @item @code{t}
 All arguments are instrumented for evaluation.
-
-@item @code{0}
-None of the arguments is instrumented.
+This is short for @code{(body)}.
 
 @item a symbol
 The symbol must have an Edebug specification, which is used instead.
@@ -1222,7 +1274,7 @@ balanced parentheses, recursive processing of forms, and recursion via
 indirect specifications.
 
 Here's a table of the possible elements of a specification list, with
-their meanings (see @ref{Specification Examples}, for the referenced
+their meanings (@pxref{Specification Examples}, for the referenced
 examples):
 
 @table @code
@@ -1231,21 +1283,17 @@ A single unevaluated Lisp object, which is not instrumented.
 @c an "expression" is not necessarily intended for evaluation.
 
 @item form
-A single evaluated expression, which is instrumented.
+A single evaluated expression, which is instrumented.  If your macro
+wraps the expression with @code{lambda} before it is evaluated, use
+@code{def-form} instead.  See @code{def-form} below.
 
 @item place
 A generalized variable.  @xref{Generalized Variables}.
 
 @item body
-Short for @code{&rest form}.  See @code{&rest} below.
-
-@item function-form
-A function form: either a quoted function symbol, a quoted lambda
-expression, or a form (that should evaluate to a function symbol or
-lambda expression).  This is useful when an argument that's a lambda
-expression might be quoted with @code{quote} rather than
-@code{function}, since it instruments the body of the lambda expression
-either way.
+Short for @code{&rest form}.  See @code{&rest} below.  If your macro
+wraps its body of code with @code{lambda} before it is evaluated, use
+@code{def-body} instead.  See @code{def-body} below.
 
 @item lambda-expr
 A lambda expression with no quoting.
@@ -1292,11 +1340,15 @@ succeeds.
 
 @item &define
 @c @kindex &define @r{(Edebug)}
-Indicates that the specification is for a defining form.  The defining
-form itself is not instrumented (that is, Edebug does not stop before and
-after the defining form), but forms inside it typically will be
-instrumented.  The @code{&define} keyword should be the first element in
-a list specification.
+Indicates that the specification is for a defining form.  Edebug's
+definition of a defining form is a form containing one or more code
+forms which are saved and executed later, after the execution of the
+defining form.
+
+The defining form itself is not instrumented (that is, Edebug does not
+stop before and after the defining form), but forms inside it
+typically will be instrumented.  The @code{&define} keyword should be
+the first element in a list specification.
 
 @item nil
 This is successful when there are no more arguments to match at the
@@ -1310,6 +1362,26 @@ while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.  See
 @ref{Backtracking}, for more details.  Also see the @code{let} example.
 
+@item &error
+@code{&error} should be followed by a string, an error message, in the
+edebug-spec; it aborts the instrumentation, displaying the message in
+the minibuffer.
+
+@item &interpose
+Lets a function control the parsing of the remaining code.
+It takes the form @code{&interpose @var{spec} @var{fun} @var{args...}}
+and means that Edebug will first match @var{spec} against the code and
+then call @var{fun} with the code that matched @code{spec}, a parsing
+function @var{pf}, and finally @var{args...}.  The parsing
+function expects a single argument indicating the specification list
+to use to parse the remaining code.  It should be called exactly once
+and returns the instrumented code that @var{fun} is expected to return.
+For example @code{(&interpose symbolp pcase--match-pat-args)} matches
+sexps whose first element is a symbol and then lets
+@code{pcase--match-pat-args} lookup the specs associated
+with that head symbol according to @code{pcase--match-pat-args} and
+pass them to the @var{pf} it received as argument.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an
@@ -1318,8 +1390,13 @@ indirect specification.
 If the symbol has an Edebug specification, this @dfn{indirect
 specification} should be either a list specification that is used in
 place of the symbol, or a function that is called to process the
-arguments.  The specification may be defined with @code{def-edebug-spec}
-just as for macros.  See the @code{defun} example.
+arguments.  The specification may be defined with
+@code{def-edebug-elem-spec}:
+
+@defun def-edebug-elem-spec element specification
+Define the @var{specification} to use in place of the symbol @var{element}.
+@var{specification} has to be a list.
+@end defun
 
 Otherwise, the symbol should be a predicate.  The predicate is called
 with the argument, and if the predicate returns @code{nil}, the
@@ -1368,18 +1445,22 @@ Here is a list of additional specifications that may appear only after
 @code{&define}.  See the @code{defun} example.
 
 @table @code
+@item &name
+Extracts the name of the current defining form from the code.
+It takes the form @code{&name [@var{prestring}] @var{spec}
+[@var{poststring}] @var{fun} @var{args...}} and means that Edebug will
+match @var{spec} against the code and then call @var{fun} with the
+concatenation of the current name, @var{args...}, @var{prestring},
+the code that matched @code{spec}, and @var{poststring}.  If @var{fun}
+is absent, it defaults to a function that concatenates the arguments
+(with an @code{@@} between the previous name and the new).
+
 @item name
 The argument, a symbol, is the name of the defining form.
+Shorthand for @code{[&name symbolp]}.
 
 A defining form is not required to have a name field; and it may have
 multiple name fields.
-
-@item :name
-This construct does not actually match an argument.  The element
-following @code{:name} should be a symbol; it is used as an additional
-name component for the definition.  You can use this to add a unique,
-static component to the name of the definition.  It may be used more
-than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.
@@ -1434,11 +1515,11 @@ form specifications (that is, @code{form}, @code{body}, @code{def-form}, and
 must be in the form itself rather than at a higher level.
 
 Backtracking is also disabled after successfully matching a quoted
-symbol or string specification, since this usually indicates a
-recognized construct.  But if you have a set of alternative constructs that
-all begin with the same symbol, you can usually work around this
-constraint by factoring the symbol out of the alternatives, e.g.,
-@code{["foo" &or [first case] [second case] ...]}.
+symbol, string specification, or @code{&define} keyword, since this
+usually indicates a recognized construct.  But if you have a set of
+alternative constructs that all begin with the same symbol, you can
+usually work around this constraint by factoring the symbol out of the
+alternatives, e.g., @code{["foo" &or [first case] [second case] ...]}.
 
 Most needs are satisfied by these two ways that backtracking is
 automatically disabled, but occasionally it is useful to explicitly
@@ -1451,6 +1532,16 @@ example of the @code{let} specification.
 
 It may be easier to understand Edebug specifications by studying
 the examples provided here.
+
+Consider a hypothetical macro @code{my-test-generator} that runs
+tests on supplied lists of data.  Although it is Edebug's default
+behavior to not instrument arguments as code, as controlled by
+@code{edebug-eval-macro-args} (@pxref{Instrumenting Macro Calls}),
+it can be useful to explicitly document that the arguments are data:
+
+@example
+(def-edebug-spec my-test-generator (&rest sexp))
+@end example
 
 A @code{let} special form has a sequence of bindings and a body.  Each
 of the bindings is either a symbol or a sublist with a symbol and
@@ -1487,14 +1578,14 @@ specification for @code{defmacro} is very similar to that for
            [&optional ("interactive" interactive)]
            def-body))
 
-(def-edebug-spec lambda-list
-  (([&rest arg]
-    [&optional ["&optional" arg &rest arg]]
-    &optional ["&rest" arg]
-    )))
+(def-edebug-elem-spec 'lambda-list
+  '(([&rest arg]
+     [&optional ["&optional" arg &rest arg]]
+     &optional ["&rest" arg]
+     )))
 
-(def-edebug-spec interactive
-  (&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
+(def-edebug-elem-spec 'interactive
+  '(&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
 @end smallexample
 
 The specification for backquote below illustrates how to match
@@ -1507,11 +1598,11 @@ could fail.)
 @smallexample
 (def-edebug-spec \` (backquote-form))   ; @r{Alias just for clarity.}
 
-(def-edebug-spec backquote-form
-  (&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
-       (backquote-form . [&or nil backquote-form])
-       (vector &rest backquote-form)
-       sexp))
+(def-edebug-elem-spec 'backquote-form
+  '(&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
+        (backquote-form . [&or nil backquote-form])
+        (vector &rest backquote-form)
+        sexp))
 @end smallexample
 
 
@@ -1554,10 +1645,10 @@ option.  @xref{Instrumenting}.
 
 @defopt edebug-eval-macro-args
 When this is non-@code{nil}, all macro arguments will be instrumented
-in the generated code.  For any macro, an @code{edebug-form-spec}
+in the generated code.  For any macro, the @code{debug} declaration
 overrides this option.  So to specify exceptions for macros that have
-some arguments evaluated and some not, use @code{def-edebug-spec} to
-specify an @code{edebug-form-spec}.
+some arguments evaluated and some not, use the @code{debug} declaration
+specify an Edebug form specification.
 @end defopt
 
 @defopt edebug-save-windows
@@ -1689,4 +1780,34 @@ mode is trace or continue.  @xref{Edebug Execution Modes}.
 Whether or not to pause for @code{edebug-sit-for-seconds} on reaching
 a breakpoint.  Set to @code{nil} to prevent the pause, non-@code{nil}
 to allow it.
+@end defopt
+
+@defopt edebug-behavior-alist
+By default, this alist contains one entry with the key @code{edebug}
+and a list of three functions, which are the default implementations
+of the functions inserted in instrumented code: @code{edebug-enter},
+@code{edebug-before} and @code{edebug-after}.  To change Edebug's
+behavior globally, modify the default entry.
+
+Edebug's behavior may also be changed on a per-definition basis by
+adding an entry to this alist, with a key of your choice and three
+functions.  Then set the @code{edebug-behavior} symbol property of an
+instrumented definition to the key of the new entry, and Edebug will
+call the new functions in place of its own for that definition.
+@end defopt
+
+@defopt edebug-new-definition-function
+A function run by Edebug after it wraps the body of a definition
+or closure.  After Edebug has initialized its own data, this function
+is called with one argument, the symbol associated with the
+definition, which may be the actual symbol defined or one generated by
+Edebug.  This function may be used to set the @code{edebug-behavior}
+symbol property of each definition instrumented by Edebug.
+@end defopt
+
+@defopt edebug-after-instrumentation-function
+To inspect or modify Edebug's instrumentation before it is used, set
+this variable to a function which takes one argument, an instrumented
+top-level form, and returns either the same or a replacement form,
+which Edebug will then use as the final result of instrumentation.
 @end defopt

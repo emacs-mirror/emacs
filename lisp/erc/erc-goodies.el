@@ -1,9 +1,9 @@
-;; erc-goodies.el --- Collection of ERC modules
+;;; erc-goodies.el --- Collection of ERC modules  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 
 ;; Most code is taken verbatim from erc.el, see there for the original
 ;; authors.
@@ -35,10 +35,9 @@
 
 (defun erc-imenu-setup ()
   "Setup Imenu support in an ERC buffer."
-  (set (make-local-variable 'imenu-create-index-function)
-       'erc-create-imenu-index))
+  (setq-local imenu-create-index-function #'erc-create-imenu-index))
 
-(add-hook 'erc-mode-hook 'erc-imenu-setup)
+(add-hook 'erc-mode-hook #'erc-imenu-setup)
 (autoload 'erc-create-imenu-index "erc-imenu" "Imenu index creation function")
 
 ;;; Automatically scroll to bottom
@@ -54,14 +53,21 @@ argument to `recenter'."
 
 (define-erc-module scrolltobottom nil
   "This mode causes the prompt to stay at the end of the window."
-  ((add-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+  ((add-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
+   (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
        (erc-add-scroll-to-bottom))))
-  ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+  ((remove-hook 'erc-mode-hook #'erc-add-scroll-to-bottom)
+   (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
-       (remove-hook 'post-command-hook 'erc-scroll-to-bottom t)))))
+       (remove-hook 'post-command-hook #'erc-scroll-to-bottom t)))))
+
+(defun erc-possibly-scroll-to-bottom ()
+  "Like `erc-add-scroll-to-bottom', but only if window is selected."
+  (when (eq (selected-window) (get-buffer-window))
+    (erc-scroll-to-bottom)))
 
 (defun erc-add-scroll-to-bottom ()
   "A hook function for `erc-mode-hook' to recenter output at bottom of window.
@@ -71,7 +77,7 @@ the value of `erc-input-line-position'.
 
 This works whenever scrolling happens, so it's added to
 `window-scroll-functions' rather than `erc-insert-post-hook'."
-  (add-hook 'post-command-hook 'erc-scroll-to-bottom nil t))
+  (add-hook 'post-command-hook #'erc-scroll-to-bottom nil t))
 
 (defun erc-scroll-to-bottom ()
   "Recenter WINDOW so that `point' is on the last line.
@@ -98,10 +104,10 @@ variable `erc-input-line-position'."
 ;;; Make read only
 (define-erc-module readonly nil
   "This mode causes all inserted text to be read-only."
-  ((add-hook 'erc-insert-post-hook 'erc-make-read-only)
-   (add-hook 'erc-send-post-hook 'erc-make-read-only))
-  ((remove-hook 'erc-insert-post-hook 'erc-make-read-only)
-   (remove-hook 'erc-send-post-hook 'erc-make-read-only)))
+  ((add-hook 'erc-insert-post-hook #'erc-make-read-only)
+   (add-hook 'erc-send-post-hook #'erc-make-read-only))
+  ((remove-hook 'erc-insert-post-hook #'erc-make-read-only)
+   (remove-hook 'erc-send-post-hook #'erc-make-read-only)))
 
 (defun erc-make-read-only ()
   "Make all the text in the current buffer read-only.
@@ -113,14 +119,14 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
 ;;; Move to prompt when typing text
 (define-erc-module move-to-prompt nil
   "This mode causes the point to be moved to the prompt when typing text."
-  ((add-hook 'erc-mode-hook 'erc-move-to-prompt-setup)
+  ((add-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
        (erc-move-to-prompt-setup))))
-  ((remove-hook 'erc-mode-hook 'erc-move-to-prompt-setup)
+  ((remove-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
-       (remove-hook 'pre-command-hook 'erc-move-to-prompt t)))))
+       (remove-hook 'pre-command-hook #'erc-move-to-prompt t)))))
 
 (defun erc-move-to-prompt ()
   "Move the point to the ERC prompt if this is a self-inserting command."
@@ -131,23 +137,35 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
     (goto-char (point-max))))
 
 (defun erc-move-to-prompt-setup ()
-  "Initialize the move-to-prompt module for XEmacs."
-  (add-hook 'pre-command-hook 'erc-move-to-prompt nil t))
+  "Initialize the move-to-prompt module."
+  (add-hook 'pre-command-hook #'erc-move-to-prompt nil t))
 
 ;;; Keep place in unvisited channels
 (define-erc-module keep-place nil
   "Leave point above un-viewed text in other channels."
-  ((add-hook 'erc-insert-pre-hook  'erc-keep-place))
-  ((remove-hook 'erc-insert-pre-hook  'erc-keep-place)))
+  ((add-hook 'erc-insert-pre-hook  #'erc-keep-place))
+  ((remove-hook 'erc-insert-pre-hook  #'erc-keep-place)))
 
-(defun erc-keep-place (ignored)
+(defun erc-keep-place (_ignored)
   "Move point away from the last line in a non-selected ERC buffer."
   (when (and (not (eq (window-buffer (selected-window))
                       (current-buffer)))
              (>= (point) erc-insert-marker))
     (deactivate-mark)
     (goto-char (erc-beg-of-input-line))
-    (forward-line -1)))
+    (forward-line -1)
+    ;; if `switch-to-buffer-preserve-window-point' is set,
+    ;; we cannot rely on point being saved, and must commit
+    ;; it to window-prev-buffers.
+    (when switch-to-buffer-preserve-window-point
+      (dolist (frame (frame-list))
+        (walk-window-tree
+         (lambda (window)
+           (let ((prev (assq (current-buffer)
+                             (window-prev-buffers window))))
+             (when prev
+	       (setf (nth 2 prev) (point-marker)))))
+         frame nil 'nominibuf)))))
 
 ;;; Distinguish non-commands
 (defvar erc-noncommands-list '(erc-cmd-ME
@@ -165,18 +183,20 @@ does not appear in the ERC buffer after the user presses ENTER.")
   "This mode distinguishes non-commands.
 Commands listed in `erc-insert-this' know how to display
 themselves."
-  ((add-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands))
-  ((remove-hook 'erc-send-pre-hook 'erc-send-distinguish-noncommands)))
+  ((add-hook 'erc-pre-send-functions #'erc-send-distinguish-noncommands))
+  ((remove-hook 'erc-pre-send-functions #'erc-send-distinguish-noncommands)))
 
-(defun erc-send-distinguish-noncommands (str)
-  "If STR is an ERC non-command, set `erc-insert-this' to nil."
-  (let* ((command (erc-extract-command-from-line str))
+(defun erc-send-distinguish-noncommands (state)
+  "If STR is an ERC non-command, set `insertp' in STATE to nil."
+  (let* ((string (erc-input-string state))
+         (command (erc-extract-command-from-line string))
          (cmd-fun (and command
                        (car command))))
     (when (and cmd-fun
-               (not (string-match "\n.+$" str))
+               (not (string-match "\n.+$" string))
                (memq cmd-fun erc-noncommands-list))
-      (setq erc-insert-this nil))))
+      ;; Inhibit sending this string.
+      (setf (erc-input-insertp state) nil))))
 
 ;;; IRC control character processing.
 (defgroup erc-control-characters nil
@@ -191,24 +211,25 @@ highlighting effects.  When this variable is non-nil, it can cause Emacs to run
 slowly on systems lacking sufficient CPU speed.  In chatty channels, or in an
 emergency (message flood) it can be turned off to save processing time.  See
 `erc-toggle-interpret-controls'."
-  :group 'erc-control-characters
   :type '(choice (const :tag "Highlight control characters" t)
                  (const :tag "Remove control characters" remove)
                  (const :tag "Display raw control characters" nil)))
 
 (defcustom erc-interpret-mirc-color nil
   "If non-nil, ERC will interpret mIRC color codes."
-  :group 'erc-control-characters
   :type 'boolean)
 
 (defcustom erc-beep-p nil
   "Beep if C-g is in the server message.
 The value `erc-interpret-controls-p' must also be t for this to work."
-  :group 'erc-control-characters
   :type 'boolean)
 
 (defface erc-bold-face '((t :weight bold))
   "ERC bold face."
+  :group 'erc-faces)
+
+(defface erc-italic-face '((t :slant italic))
+  "ERC italic face."
   :group 'erc-faces)
 
 (defface erc-inverse-face
@@ -348,10 +369,10 @@ The value `erc-interpret-controls-p' must also be t for this to work."
 
 (define-erc-module irccontrols nil
   "This mode enables the interpretation of IRC control chars."
-  ((add-hook 'erc-insert-modify-hook 'erc-controls-highlight)
-   (add-hook 'erc-send-modify-hook 'erc-controls-highlight))
-  ((remove-hook 'erc-insert-modify-hook 'erc-controls-highlight)
-   (remove-hook 'erc-send-modify-hook 'erc-controls-highlight)))
+  ((add-hook 'erc-insert-modify-hook #'erc-controls-highlight)
+   (add-hook 'erc-send-modify-hook #'erc-controls-highlight))
+  ((remove-hook 'erc-insert-modify-hook #'erc-controls-highlight)
+   (remove-hook 'erc-send-modify-hook #'erc-controls-highlight)))
 
 (defun erc-controls-interpret (str)
    "Return a copy of STR after dealing with IRC control characters.
@@ -362,6 +383,7 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
               (erc-controls-strip s))
              (erc-interpret-controls-p
               (let ((boldp nil)
+                    (italicp nil)
                     (inversep nil)
                     (underlinep nil)
                     (fg nil)
@@ -373,13 +395,14 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                         (start (match-beginning 0))
                         (end (+ (match-beginning 0)
                                 (length (match-string 5 s)))))
-                    (setq s (erc-replace-match-subexpression-in-string
-                             "" s control 1 start))
+                    (setq s (replace-match "" nil nil s 1))
                     (cond ((and erc-interpret-mirc-color (or fg-color bg-color))
                            (setq fg fg-color)
                            (setq bg bg-color))
                           ((string= control "\C-b")
                            (setq boldp (not boldp)))
+                          ((string= control "\C-]")
+                           (setq italicp (not italicp)))
                           ((string= control "\C-v")
                            (setq inversep (not inversep)))
                           ((string= control "\C-_")
@@ -392,13 +415,14 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
                              (ding)))
                           ((string= control "\C-o")
                            (setq boldp nil
+                                 italicp nil
                                  inversep nil
                                  underlinep nil
                                  fg nil
                                  bg nil))
                           (t nil))
                     (erc-controls-propertize
-                     start end boldp inversep underlinep fg bg s)))
+                     start end boldp italicp inversep underlinep fg bg s)))
                 s))
              (t s)))))
 
@@ -411,13 +435,13 @@ See `erc-interpret-controls-p' and `erc-interpret-mirc-color' for options."
       s)))
 
 (defvar erc-controls-remove-regexp
-  "\C-b\\|\C-_\\|\C-v\\|\C-g\\|\C-o\\|\C-c[0-9]?[0-9]?\\(,[0-9][0-9]?\\)?"
+  "\C-b\\|\C-]\\|\C-_\\|\C-v\\|\C-g\\|\C-o\\|\C-c[0-9]?[0-9]?\\(,[0-9][0-9]?\\)?"
   "Regular expression which matches control characters to remove.")
 
 (defvar erc-controls-highlight-regexp
-  (concat "\\(\C-b\\|\C-v\\|\C-_\\|\C-g\\|\C-o\\|"
+  (concat "\\(\C-b\\|\C-]\\|\C-v\\|\C-_\\|\C-g\\|\C-o\\|"
           "\C-c\\([0-9][0-9]?\\)?\\(,\\([0-9][0-9]?\\)\\)?\\)"
-          "\\([^\C-b\C-v\C-_\C-c\C-g\C-o\n]*\\)")
+          "\\([^\C-b\C-]\C-v\C-_\C-c\C-g\C-o\n]*\\)")
   "Regular expression which matches control chars and the text to highlight.")
 
 (defun erc-controls-highlight ()
@@ -430,6 +454,7 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
            (replace-match "")))
         (erc-interpret-controls-p
          (let ((boldp nil)
+               (italicp nil)
                (inversep nil)
                (underlinep nil)
                (fg nil)
@@ -446,6 +471,8 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                       (setq bg bg-color))
                      ((string= control "\C-b")
                       (setq boldp (not boldp)))
+                     ((string= control "\C-]")
+                      (setq italicp (not italicp)))
                      ((string= control "\C-v")
                       (setq inversep (not inversep)))
                      ((string= control "\C-_")
@@ -458,16 +485,17 @@ Also see `erc-interpret-controls-p' and `erc-interpret-mirc-color'."
                         (ding)))
                      ((string= control "\C-o")
                       (setq boldp nil
+                            italicp nil
                             inversep nil
                             underlinep nil
                             fg nil
                             bg nil))
                      (t nil))
                (erc-controls-propertize start end
-                                        boldp inversep underlinep fg bg)))))
+                                        boldp italicp inversep underlinep fg bg)))))
         (t nil)))
 
-(defun erc-controls-propertize (from to boldp inversep underlinep fg bg
+(defun erc-controls-propertize (from to boldp italicp inversep underlinep fg bg
                                      &optional str)
   "Prepend properties from IRC control characters between FROM and TO.
 If optional argument STR is provided, apply to STR, otherwise prepend properties
@@ -478,6 +506,9 @@ to a region in the current buffer."
    'font-lock-face
    (append (if boldp
                '(erc-bold-face)
+             nil)
+           (if italicp
+               '(erc-italic-face)
              nil)
            (if inversep
                '(erc-inverse-face)
@@ -512,10 +543,10 @@ Else interpretation is turned off."
   "This mode translates text-smileys such as :-) into pictures.
 This requires the function `smiley-region', which is defined in
 smiley.el, which is part of Gnus."
-  ((add-hook 'erc-insert-modify-hook 'erc-smiley)
-   (add-hook 'erc-send-modify-hook 'erc-smiley))
-  ((remove-hook 'erc-insert-modify-hook 'erc-smiley)
-   (remove-hook 'erc-send-modify-hook 'erc-smiley)))
+  ((add-hook 'erc-insert-modify-hook #'erc-smiley)
+   (add-hook 'erc-send-modify-hook #'erc-smiley))
+  ((remove-hook 'erc-insert-modify-hook #'erc-smiley)
+   (remove-hook 'erc-send-modify-hook #'erc-smiley)))
 
 (defun erc-smiley ()
   "Smilify a region.
@@ -526,8 +557,8 @@ This function should be used with `erc-insert-modify-hook'."
 ;; Unmorse
 (define-erc-module unmorse nil
   "This mode causes morse code in the current channel to be unmorsed."
-  ((add-hook 'erc-insert-modify-hook 'erc-unmorse))
-  ((remove-hook 'erc-insert-modify-hook 'erc-unmorse)))
+  ((add-hook 'erc-insert-modify-hook #'erc-unmorse))
+  ((remove-hook 'erc-insert-modify-hook #'erc-unmorse)))
 
 (defun erc-unmorse ()
   "Unmorse some text.
@@ -536,7 +567,7 @@ channel that has weird people talking in morse to each other.
 
 See also `unmorse-region'."
   (goto-char (point-min))
-  (when (re-search-forward "[.-]+\\([.-]*/? *\\)+[.-]+/?" nil t)
+  (when (re-search-forward "[.-]+[./ -]*[.-]/?" nil t)
     (save-restriction
       (narrow-to-region (match-beginning 0) (match-end 0))
       ;; Turn " / " into "  "

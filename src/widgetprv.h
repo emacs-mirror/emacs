@@ -1,5 +1,5 @@
 /* The emacs frame widget private header file.
-   Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,6 +49,8 @@ typedef struct {
 
   Boolean	visual_bell;		/* flash instead of beep */
   int		bell_volume;		/* how loud is beep */
+  int		size_switch;		/* hack to make setting size
+					   hints work correctly */
 
   /* private state */
 

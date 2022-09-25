@@ -1,0 +1,102 @@
+\input texinfo  @c -*-texinfo-*-
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2022 Free Software
+@c Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@c
+@c %**start of header
+@setfilename back-cover
+@settitle GNU Emacs Manual
+@include docstyle.texi
+@c %**end of header
+.
+@sp 7
+@center @titlefont {GNU Emacs Manual}
+@sp 1
+
+@quotation
+GNU Emacs is much @strong{more than a text editor;} over the years, it
+has expanded to become @strong{an entire workflow environment,}
+impressing programmers with its integrated debugging and
+project-management features.  It is also a multi-lingual word
+processor, can handle all your email and Usenet news needs, display
+web pages, and even has a diary and a calendar for your appointments!
+
+Features include:
+
+@itemize @bullet
+@item
+Special editing modes for @strong{27 programming languages,} including C,
+C@t{++}, Fortran, Java, JavaScript, Lisp, Objective C, Pascal, Perl,
+and Scheme.
+
+@item
+Special @strong{scripting language modes} for Bash, other common shells,
+and creating Makefiles for GNU/Linux, UNIX, Windows/DOS, and VMS
+systems.
+
+@item
+Support for typing and displaying in @strong{60 non-English languages,}
+including Arabic, Chinese, Czech, Hebrew, Hindi, Japanese, Korean,
+Russian, Vietnamese, and all Western European languages.
+
+@item
+The ability to:
+
+@itemize @minus
+@item
+Create @strong{PostScript output} from plain-text files (special
+editing modes for @LaTeX{} and @TeX{} are included).
+
+
+@item
+@strong{Compile} and @strong{debug} from inside Emacs.
+
+@item
+Maintain program @strong{ChangeLogs.}
+
+@item
+Flag, move, and delete files and sub-directories recursively
+@strong{(directory navigation).}
+
+@item
+Run @strong{shell commands} from inside Emacs, or even use Emacs itself
+as a shell (Eshell).
+
+@item
+Enjoy the use of extensive @strong{merge} and @strong{diff} functions.
+
+@item
+Take advantage of built-in support for many @strong{version control
+systems,} including Git, Mercurial, Bazaar, Subversion, and CVS.
+
+@item
+And much more!
+@end itemize
+@end itemize
+
+Emacs comes with an introductory online tutorial available in many
+languages, and this nineteenth edition of the manual picks up where
+that tutorial ends.  It explains the full range of the power of Emacs,
+now up to @strong[version 27.2,} and contains reference material
+useful to expert users.  It also includes appendices with specific
+material about X and GTK resources, and with details for users of
+macOS and Microsoft Windows.
+
+And when you tire of all the work you can accomplish with Emacs, enjoy
+the games that come with it.
+
+@strong{About the original and principal author:}
+
+Richard M.@: Stallman developed the first Emacs in 1976 and wrote GNU
+Emacs in 1984/85.  He has received the ACM Grace Hopper Award, a
+MacArthur Foundation fellowship, the Electronic Frontier Foundation's
+Pioneer award, the Takeda Award for Social/Economic Betterment, and
+the ACM Software and System Award, as well as several doctorates
+@emph{honoris causa.}
+@end quotation
+
+@hfil
+@bye
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++

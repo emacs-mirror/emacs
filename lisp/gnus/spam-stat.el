@@ -1,10 +1,10 @@
-;;; spam-stat.el --- detecting spam based on statistics
+;;; spam-stat.el --- detecting spam based on statistics  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
+;; URL: https://www.emacswiki.org/cgi-bin/wiki.pl?SpamStat
 
 ;; This file is part of GNU Emacs.
 
@@ -77,13 +77,13 @@
 ;; Learn spam: (spam-stat-process-spam-directory "~/Mail/mail/spam")
 ;; Learn non-spam: (spam-stat-process-non-spam-directory "~/Mail/mail/misc")
 ;; Save table: (spam-stat-save)
-;; File size: (nth 7 (file-attributes spam-stat-file))
+;; File size: (file-attribute-size (file-attributes spam-stat-file))
 ;; Number of words: (hash-table-count spam-stat)
 ;; Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 ;; Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
 ;; Reduce table size: (spam-stat-reduce-size)
 ;; Save table: (spam-stat-save)
-;; File size: (nth 7 (file-attributes spam-stat-file))
+;; File size: (file-attribute-size (file-attributes spam-stat-file))
 ;; Number of words: (hash-table-count spam-stat)
 ;; Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 ;; Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
@@ -135,46 +135,39 @@ whether a buffer contains spam or not."
 (defcustom spam-stat-file "~/.spam-stat.el"
   "File used to save and load the dictionary.
 See `spam-stat-to-hash-table' for the format of the file."
-  :type 'file
-  :group 'spam-stat)
+  :type 'file)
 
 (defcustom spam-stat-unknown-word-score 0.2
   "The score to use for unknown words.
 Also used for words that don't appear often enough."
-  :type 'number
-  :group 'spam-stat)
+  :type 'number)
 
 (defcustom spam-stat-max-word-length 15
   "Only words shorter than this will be considered."
-  :type 'integer
-  :group 'spam-stat)
+  :type 'integer)
 
 (defcustom spam-stat-max-buffer-length 10240
   "Only the beginning of buffers will be analyzed.
 This variable says how many characters this will be."
-  :type 'integer
-  :group 'spam-stat)
+  :type 'integer)
 
 (defcustom spam-stat-split-fancy-spam-group "mail.spam"
   "Name of the group where spam should be stored.
 If `spam-stat-split-fancy' is used in fancy splitting rules.  Has
 no effect when spam-stat is invoked through spam.el."
-  :type 'string
-  :group 'spam-stat)
+  :type 'string)
 
 (defcustom spam-stat-split-fancy-spam-threshold 0.9
   "Spam score threshold in spam-stat-split-fancy."
-  :type 'number
-  :group 'spam-stat)
+  :type 'number)
 
 (defcustom spam-stat-washing-hook nil
   "Hook applied to each message before analysis."
-  :type 'hook
-  :group 'spam-stat)
+  :type 'hook)
 
 (defcustom spam-stat-score-buffer-user-functions nil
   "List of additional scoring functions.
-Called  one by one on the buffer.
+Called one by one on the buffer.
 
 If all of these functions return non-nil answers, these numerical
 answers are added to the computed spam stat score on the buffer.  If
@@ -187,8 +180,7 @@ Also be careful when defining such functions.  If they take a long
 time, they will slow down your mail splitting.  Thus, if the buffer is
 large, don't forget to use smaller regions, by wrapping your work in,
 say, `with-spam-stat-max-buffer-size'."
-  :type '(repeat sexp)
-  :group 'spam-stat)
+  :type '(repeat sexp))
 
 (defcustom spam-stat-process-directory-age 90
   "Max. age of files to be processed in directory, in days.
@@ -197,8 +189,7 @@ When using `spam-stat-process-spam-directory' or
 been touched in this many days will be considered.  Without
 this filter, re-training spam-stat with several thousand messages
 will start to take a very long time."
-  :type 'number
-  :group 'spam-stat)
+  :type 'integer)
 
 (defvar spam-stat-last-saved-at nil
   "Time stamp of last change of spam-stat-file on this run")
@@ -259,9 +250,6 @@ Use `spam-stat-ngood', `spam-stat-nbad', `spam-stat-good',
 
 (defvar spam-stat-nbad 0
   "The number of bad mails in the dictionary.")
-
-(defvar spam-stat-error-holder nil
-  "A holder for condition-case errors while scoring buffers.")
 
 (defsubst spam-stat-good (entry)
   "Return the number of times this word belongs to good mails."
@@ -424,7 +412,8 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
 	  (insert ")))"))))
     (message "Saved %s."  spam-stat-file)
     (setq spam-stat-dirty nil
-          spam-stat-last-saved-at (nth 5 (file-attributes spam-stat-file)))))
+          spam-stat-last-saved-at (file-attribute-modification-time
+				   (file-attributes spam-stat-file)))))
 
 (defun spam-stat-load ()
   "Read the `spam-stat' hash table from disk."
@@ -433,13 +422,16 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
     (cond (spam-stat-dirty (message "Spam stat not loaded: spam-stat-dirty t"))
           ((or (not (boundp 'spam-stat-last-saved-at))
                (null spam-stat-last-saved-at)
-               (not (equal spam-stat-last-saved-at
-                           (nth 5 (file-attributes spam-stat-file)))))
+	       (not (time-equal-p
+			   spam-stat-last-saved-at
+                           (file-attribute-modification-time
+			    (file-attributes spam-stat-file)))))
            (progn
              (load-file spam-stat-file)
              (setq spam-stat-dirty nil
                    spam-stat-last-saved-at
-                   (nth 5 (file-attributes spam-stat-file)))))
+                   (file-attribute-modification-time
+		    (file-attributes spam-stat-file)))))
           (t (message "Spam stat file not loaded: no change in disk.")))))
 
 (defun spam-stat-to-hash-table (entries)
@@ -483,8 +475,8 @@ The default score for unknown words is stored in
 These are the words whose spam-stat differs the most from 0.5.
 The list returned contains elements of the form \(WORD SCORE DIFF),
 where DIFF is the difference between SCORE and 0.5."
-  (let (result word score)
-    (maphash (lambda (word ignore)
+  (let (result score) ;; word
+    (maphash (lambda (word _ignore)
 	       (setq score (spam-stat-score-word word)
 		     result (cons (list word score (abs (- score 0.5)))
 				  result)))
@@ -498,14 +490,13 @@ where DIFF is the difference between SCORE and 0.5."
 Add user supplied modifications if supplied."
   (interactive) ; helps in debugging.
   (setq spam-stat-score-data (spam-stat-buffer-words-with-scores))
-  (let* ((probs (mapcar 'cadr spam-stat-score-data))
+  (let* ((probs (mapcar #'cadr spam-stat-score-data))
 	 (prod (apply #'* probs))
 	 (score0
-	  (/ prod (+ prod (apply #'* (mapcar #'(lambda (x) (- 1 x))
+          (/ prod (+ prod (apply #'* (mapcar (lambda (x) (- 1 x))
 					     probs)))))
 	 (score1s
-	  (condition-case
-	      spam-stat-error-holder
+	  (condition-case nil
 	      (spam-stat-score-buffer-user score0)
 	    (error nil)))
 	 (ans
@@ -528,7 +519,7 @@ Add user supplied modifications if supplied."
 Use this function on `nnmail-split-fancy'.  If you are interested in
 the raw data used for the last run of `spam-stat-score-buffer',
 check the variable `spam-stat-score-data'."
-  (condition-case spam-stat-error-holder
+  (condition-case err
       (progn
 	(set-buffer spam-stat-buffer)
 	(goto-char (point-min))
@@ -538,7 +529,7 @@ check the variable `spam-stat-score-data'."
 		    (push entry nnmail-split-trace))
 		  spam-stat-score-data))
 	  spam-stat-split-fancy-spam-group))
-    (error (message "Error in spam-stat-split-fancy: %S" spam-stat-error-holder)
+    (error (message "Error in spam-stat-split-fancy: %S" err)
 	   nil)))
 
 ;; Testing
@@ -554,15 +545,17 @@ check the variable `spam-stat-score-data'."
 
 (defun spam-stat-process-directory (dir func)
   "Process all the regular files in directory DIR using function FUNC."
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 (max (/ (length files) 100.0))
 	 (count 0))
     (with-temp-buffer
       (dolist (f files)
 	(when (and (file-readable-p f)
 		   (file-regular-p f)
-                   (> (nth 7 (file-attributes f)) 0)
-		   (< (time-to-number-of-days (time-since (nth 5 (file-attributes f))))
+                   (> (file-attribute-size (file-attributes f)) 0)
+		   (< (time-to-number-of-days
+		       (time-since (file-attribute-modification-time
+				    (file-attributes f))))
 		      spam-stat-process-directory-age))
 	  (setq count (1+ count))
 	  (message "Reading %s: %.2f%%" dir (/ count max))
@@ -583,7 +576,6 @@ check the variable `spam-stat-score-data'."
 
 (defun spam-stat-count ()
   "Return size of `spam-stat'."
-  (interactive)
   (hash-table-count spam-stat))
 
 (defun spam-stat-test-directory (dir &optional verbose)
@@ -596,7 +588,7 @@ If VERBOSE is non-nil display names of files detected as spam or
 non-spam in a temporary buffer.  If it is the symbol `ham',
 display non-spam files; otherwise display spam files."
   (interactive "DDirectory: ")
-  (let* ((files (directory-files dir t "^[^.]"))
+  (let* ((files (directory-files dir t "\\`[^.]"))
 	 display-files
 	 buffer-score
 	 (total (length files))
@@ -607,7 +599,7 @@ display non-spam files; otherwise display spam files."
       (dolist (f files)
 	(when (and (file-readable-p f)
 		   (file-regular-p f)
-                   (> (nth 7 (file-attributes f)) 0))
+                   (> (file-attribute-size (file-attributes f)) 0))
 	  (setq count (1+ count))
 	  (message "Reading %.2f%%, score %.2f"
 	  	   (/ count max) (/ score count))
@@ -647,19 +639,19 @@ COUNT defaults to 5"
   "Install the spam-stat function hooks."
   (interactive)
   (add-hook 'nnmail-prepare-incoming-message-hook
-	    'spam-stat-store-current-buffer)
+	    #'spam-stat-store-current-buffer)
   (add-hook 'gnus-select-article-hook
-	    'spam-stat-store-gnus-article-buffer))
+	    #'spam-stat-store-gnus-article-buffer))
 
 (defun spam-stat-unload-hook ()
   "Uninstall the spam-stat function hooks."
   (interactive)
   (remove-hook 'nnmail-prepare-incoming-message-hook
-	       'spam-stat-store-current-buffer)
+	       #'spam-stat-store-current-buffer)
   (remove-hook 'gnus-select-article-hook
-	       'spam-stat-store-gnus-article-buffer))
+	       #'spam-stat-store-gnus-article-buffer))
 
-(add-hook 'spam-stat-unload-hook 'spam-stat-unload-hook)
+(add-hook 'spam-stat-unload-hook #'spam-stat-unload-hook)
 
 (provide 'spam-stat)
 

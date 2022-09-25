@@ -14,6 +14,10 @@ function res = tcomp (fn)
   until x = ...
         y
 
+  spmd                          #bug#36703
+    something
+  end
+
   %% res = tcomp (fn)
   %%     imports components and rearranges them.
 

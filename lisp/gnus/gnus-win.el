@@ -1,6 +1,6 @@
-;;; gnus-win.el --- window configuration functions for Gnus
+;;; gnus-win.el --- window configuration functions for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,10 +24,11 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-util)
+(require 'seq)
 
 (defgroup gnus-windows nil
   "Window configuration."
@@ -35,22 +36,23 @@
 
 (defcustom gnus-use-full-window t
   "If non-nil, use the entire Emacs screen."
-  :group 'gnus-windows
   :type 'boolean)
+
+(defcustom gnus-use-atomic-windows nil
+  "If non-nil, Gnus' window compositions will be atomic."
+  :type 'boolean
+  :version "27.1")
 
 (defcustom gnus-window-min-width 2
   "Minimum width of Gnus buffers."
-  :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-window-min-height 1
   "Minimum height of Gnus buffers."
-  :group 'gnus-windows
   :type 'integer)
 
 (defcustom gnus-always-force-window-configuration nil
   "If non-nil, always force the Gnus window configurations."
-  :group 'gnus-windows
   :type 'boolean)
 
 (defcustom gnus-use-frames-on-any-display nil
@@ -58,11 +60,10 @@
 When nil, only frames on the same display as the selected frame will be
 used to display Gnus windows."
   :version "22.1"
-  :group 'gnus-windows
   :type 'boolean)
 
 (defvar gnus-buffer-configuration
-  '((group
+  `((group
      (vertical 1.0
 	       (group 1.0 point)))
     (summary
@@ -136,10 +137,9 @@ used to display Gnus windows."
     (pipe
      (vertical 1.0
 	       (summary 0.25 point)
-	       ("*Shell Command Output*" 1.0)))
+               (,shell-command-buffer-name 1.0)))
     (bug
      (vertical 1.0
-	       (if gnus-bug-create-help-buffer '("*Gnus Help Bug*" 0.5))
 	       ("*Gnus Bug*" 1.0 point)))
     (score-trace
      (vertical 1.0
@@ -197,7 +197,6 @@ See the Gnus manual for an explanation of the syntax used.")
 (defcustom gnus-configure-windows-hook nil
   "A hook called when configuring windows."
   :version "22.1"
-  :group 'gnus-windows
   :type 'hook)
 
 ;;; Internal variables.
@@ -247,7 +246,7 @@ See the Gnus manual for an explanation of the syntax used.")
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
 		(symbolp (car split)) (fboundp (car split)))
-      (setq split (eval split)))
+      (setq split (eval split t)))
     (let* ((type (car split))
 	   (subs (cddr split))
 	   (len (if (eq type 'horizontal) (window-width) (window-height)))
@@ -269,7 +268,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    (error "Invalid buffer type: %s" type))
 	  (let ((buf (gnus-get-buffer-create
 		      (gnus-window-to-buffer-helper buffer))))
-	    (when (buffer-name buf)
+            (when (buffer-live-p buf)
 	      (cond
                ((eq buf (window-buffer (selected-window)))
                 (set-buffer buf))
@@ -284,7 +283,7 @@ See the Gnus manual for an explanation of the syntax used.")
                 ;; from a hard-dedicated frame, it creates (and
                 ;; configures) a new frame, leaving the dedicated frame alone.
                 (pop-to-buffer buf))
-               (t (switch-to-buffer buf)))))
+               (t (pop-to-buffer-same-window buf)))))
 	  (when (memq 'frame-focus split)
 	    (setq gnus-window-frame-focus window))
 	  ;; We return the window if it has the `point' spec.
@@ -312,7 +311,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    ;; Select the frame in question and do more splits there.
 	    (select-frame frame)
 	    (setq fresult (or (gnus-configure-frame (elt subs i)) fresult))
-	    (incf i))
+	    (cl-incf i))
 	  ;; Select the frame that has the selected buffer.
 	  (when fresult
 	    (select-frame (window-frame fresult)))))
@@ -324,7 +323,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    (setq sub (append (pop subs) nil))
 	    (while (and (not (assq (car sub) gnus-window-to-buffer))
 			(symbolp (car sub)) (fboundp (car sub)))
-	      (setq sub (eval sub)))
+	      (setq sub (eval sub t)))
 	    (when sub
 	      (push sub comp-subs)
 	      (setq size (cadar comp-subs))
@@ -344,7 +343,7 @@ See the Gnus manual for an explanation of the syntax used.")
 		    ((eq type 'vertical)
 		     (setq s (max s window-min-height))))
 	      (setcar (cdar comp-subs) s)
-	      (incf total s)))
+	      (cl-incf total s)))
 	  ;; Take care of the "1.0" spec.
 	  (if rest
 	      (setcar (cdr rest) (- len total))
@@ -361,11 +360,14 @@ See the Gnus manual for an explanation of the syntax used.")
 	    (setq result (or (gnus-configure-frame
 			      (car comp-subs) window)
 			     result))
-	    (select-window new-win)
-	    (setq window new-win)
+            (if (not (window-live-p new-win))
+                ;; pop-to-buffer might have deleted the original window
+                (setq window (selected-window))
+              (select-window new-win)
+	      (setq window new-win))
 	    (setq comp-subs (cdr comp-subs))))
 	;; Return the proper window, if any.
-	(when result
+	(when (window-live-p result)
 	  (select-window result)))))))
 
 (defvar gnus-frame-split-p nil)
@@ -401,6 +403,15 @@ See the Gnus manual for an explanation of the syntax used.")
         (unless (gnus-buffer-live-p nntp-server-buffer)
           (nnheader-init-server-buffer))
 
+	;; Remove all 'window-atom parameters, as we're going to blast
+	;; and recreate the window layout.
+	(when (window-parameter nil 'window-atom)
+	  (let ((root (window-atom-root)))
+	    (walk-window-subtree
+	     (lambda (win)
+	       (set-window-parameter win 'window-atom nil))
+	     root t)))
+
         ;; Either remove all windows or just remove all Gnus windows.
         (let ((frame (selected-frame)))
           (unwind-protect
@@ -422,6 +433,13 @@ See the Gnus manual for an explanation of the syntax used.")
           (set-buffer nntp-server-buffer)
           (gnus-configure-frame split)
           (run-hooks 'gnus-configure-windows-hook)
+
+	  ;; If we're using atomic windows, and the current frame has
+	  ;; multiple windows, make them atomic.
+	  (when (and gnus-use-atomic-windows
+		     (window-parent (selected-window)))
+	    (window-make-atom (window-parent (selected-window))))
+
           (when gnus-window-frame-focus
             (select-frame-set-input-focus
              (window-frame gnus-window-frame-focus)))))))))
@@ -429,20 +447,13 @@ See the Gnus manual for an explanation of the syntax used.")
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."
   (let ((buffers (gnus-buffers)))
-    (mapcar
-     (lambda (frame)
-       (unless (eq (cdr (assq 'minibuffer
-			      (frame-parameters frame)))
-		   'only)
-	 (select-frame frame)
-	 (let (do-delete)
-	   (walk-windows
-	    (lambda (window)
-	      (when (memq (window-buffer window) buffers)
-		(setq do-delete t))))
-	   (when do-delete
-	     (delete-other-windows)))))
-     (frame-list))))
+    (dolist (frame (frame-list))
+      (unless (eq (frame-parameter frame 'minibuffer) 'only)
+        (select-frame frame)
+        (when (get-window-with-predicate
+               (lambda (window)
+                 (memq (window-buffer window) buffers)))
+          (delete-other-windows))))))
 
 (defun gnus-all-windows-visible-p (split)
   "Say whether all buffers in SPLIT are currently visible.
@@ -460,7 +471,7 @@ should have point."
       ;; return a new SPLIT.
       (while (and (not (assq (car split) gnus-window-to-buffer))
 		  (symbolp (car split)) (fboundp (car split)))
-	(setq split (eval split)))
+	(setq split (eval split t)))
 
       (setq type (elt split 0))
       (cond
@@ -490,11 +501,10 @@ should have point."
   (nth 1 (window-edges window)))
 
 (defun gnus-remove-some-windows ()
-  (let ((buffers (gnus-buffers))
-	buf bufs lowest-buf lowest)
+  (let (bufs lowest-buf lowest)
     (save-excursion
       ;; Remove windows on all known Gnus buffers.
-      (while (setq buf (pop buffers))
+      (dolist (buf (gnus-buffers))
 	(when (get-buffer-window buf)
 	  (push buf bufs)
 	  (pop-to-buffer buf)
@@ -505,19 +515,19 @@ should have point."
       (when lowest-buf
 	(pop-to-buffer lowest-buf)
 	(set-buffer nntp-server-buffer))
-      (mapcar (lambda (b) (delete-windows-on b t))
-	      (delq lowest-buf bufs)))))
+      (dolist (b (delq lowest-buf bufs))
+        (delete-windows-on b t)))))
 
 (defun gnus-get-buffer-window (buffer &optional frame)
-  (cond ((and (null gnus-use-frames-on-any-display)
-	      (memq frame '(t 0 visible)))
-	 (car
-	  (let ((frames (frames-on-display-list)))
-	    (gnus-remove-if (lambda (win) (not (memq (window-frame win)
-						     frames)))
-			    (get-buffer-window-list buffer nil frame)))))
-	(t
-	 (get-buffer-window buffer frame))))
+  "Return a window currently displaying BUFFER, or nil if none.
+Like `get-buffer-window', but respecting
+`gnus-use-frames-on-any-display'."
+  (if (and (not gnus-use-frames-on-any-display)
+           (memq frame '(t 0 visible)))
+      (let ((frames (frames-on-display-list)))
+        (seq-find (lambda (win) (memq (window-frame win) frames))
+                  (get-buffer-window-list buffer nil frame)))
+    (get-buffer-window buffer frame)))
 
 (provide 'gnus-win)
 

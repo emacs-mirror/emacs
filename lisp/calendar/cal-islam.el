@@ -1,9 +1,9 @@
-;;; cal-islam.el --- calendar functions for the Islamic calendar
+;;; cal-islam.el --- calendar functions for the Islamic calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <rgm@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
 ;; Human-Keywords: Islamic calendar, calendar, diary
 ;; Package: calendar
@@ -45,8 +45,9 @@
 
 (defun calendar-islamic-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
-  (memq (% year 30)
-        (list 2 5 7 10 13 16 18 21 24 26 29)))
+  (and (memq (% year 30)
+             (list 2 5 7 10 13 16 18 21 24 26 29))
+       t))
 
 (defun calendar-islamic-last-day-of-month (month year)
   "The last day in MONTH during YEAR on the Islamic calendar."
@@ -66,8 +67,8 @@
   "Absolute date of Islamic DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (calendar-extract-month date))
-         (day (calendar-extract-day date))
+  (let* (;;(month (calendar-extract-month date))
+         ;;(day (calendar-extract-day date))
          (year (calendar-extract-year date))
          (y (% year 30))
          (leap-years-in-cycle (cond ((< y 3) 0)
@@ -142,13 +143,12 @@ Driven by the variable `calendar-date-display-form'."
   "Interactively read the arguments for an Islamic date command.
 Reads a year, month, and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                "Islamic calendar year (>0): "
+         (year (calendar-read-sexp
+                "Islamic calendar year (>0)"
                 (lambda (x) (> x 0))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-islamic-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-islamic-from-absolute
+                  (calendar-absolute-from-gregorian today)))))
          (month-array calendar-islamic-month-name-array)
          (completion-ignore-case t)
          (month (cdr (assoc-string
@@ -158,9 +158,11 @@ Reads a year, month, and day."
                        nil t)
                       (calendar-make-alist month-array 1) t)))
          (last (calendar-islamic-last-day-of-month month year))
-         (day (calendar-read
-               (format "Islamic calendar day (1-%d): " last)
-               (lambda (x) (and (< 0 x) (<= x last))))))
+         (day (calendar-read-sexp
+               "Islamic calendar day (1-%d)"
+               (lambda (x) (and (< 0 x) (<= x last)))
+               nil
+               last)))
     (list (list month day year))))
 
 ;;;###cal-autoload
@@ -305,9 +307,13 @@ Prefix argument ARG makes the entry nonmarking."
                         diary-islamic-entry-symbol
                         'calendar-islamic-from-absolute))
 
-(defvar date)
+;; The function below is designed to be used in sexp diary entries,
+;; and may be present in users' diary files, so suppress the warning
+;; about this prefix-less dynamic variable.  It's called from
+;; `diary-list-sexp-entries', which binds the variable.
+(with-suppressed-warnings ((lexical date))
+  (defvar date))
 
-;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 ;;;###diary-autoload
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."

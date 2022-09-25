@@ -1,0 +1,15 @@
+This is a test of `faceup', a regression test system for font-lock
+keywords. It should use major mode `faceup-test-mode'.
+
+WARNING: The first word on this line should use
+`font-lock-warning-face', and a tooltip should be displayed if the
+mouse pointer is moved over it.
+
+In this mode "<" and ">" are parentheses, but only when on the same
+line without any other "<" and ">" characters between them.
+<OK> <NOT <OK> >
+<
+NOT OK
+>
+
+test1.txt ends here.

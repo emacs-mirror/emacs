@@ -1,10 +1,9 @@
-;;; mh-buffers.el --- MH-E buffer constants and utilities
+;;; mh-buffers.el --- MH-E buffer constants and utilities  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -24,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;;; Change Log:
 
 ;;; Code:
 
@@ -78,7 +75,6 @@ The function returns the size of the final size of the log buffer."
 (provide 'mh-buffers)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

@@ -1,6 +1,6 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -44,19 +44,38 @@
 	(setq i (1+ i)))))
   string)
 
-(defvar truncate-string-ellipsis "..."  ;"…"
+(defvar truncate-string-ellipsis nil
   "String to use to indicate truncation.
-Serves as default value of ELLIPSIS argument to `truncate-string-to-width'.")
+Serves as default value of ELLIPSIS argument to `truncate-string-to-width'
+returned by the function `truncate-string-ellipsis'.")
+
+(defun truncate-string-ellipsis ()
+  "Return the string used to indicate truncation.
+Use the value of the variable `truncate-string-ellipsis' when it's non-nil.
+Otherwise, return the Unicode character U+2026 \"HORIZONTAL ELLIPSIS\"
+when it's displayable on the selected frame, or `...'.  This function
+needs to be called on every use of `truncate-string-to-width' to
+decide whether the selected frame can display that Unicode character."
+  (cond
+   (truncate-string-ellipsis)
+   ((char-displayable-p ?…) "…")
+   ("...")))
 
 ;;;###autoload
 (defun truncate-string-to-width (str end-column
-				     &optional start-column padding ellipsis)
+				     &optional start-column padding ellipsis
+                                     ellipsis-text-property)
   "Truncate string STR to end at column END-COLUMN.
 The optional 3rd arg START-COLUMN, if non-nil, specifies the starting
-column; that means to return the characters occupying columns
-START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and START-COLUMN
-are specified in terms of character display width in the current
-buffer; see also `char-width'.
+column (default: zero); that means to return the characters occupying
+columns START-COLUMN ... END-COLUMN of STR.  Both END-COLUMN and
+START-COLUMN are specified in terms of character display width in the
+current buffer; see `char-width'.
+
+Since character composition on display can produce glyphs whose
+width is smaller than the sum of `char-width' values of the
+composed characters, this function can produce inaccurate results
+when used in such cases.
 
 The optional 4th arg PADDING, if non-nil, specifies a padding
 character (which should have a display width of 1) to add at the end
@@ -72,11 +91,15 @@ If ELLIPSIS is non-nil, it should be a string which will replace the
 end of STR (including any padding) if it extends beyond END-COLUMN,
 unless the display width of STR is equal to or less than the display
 width of ELLIPSIS.  If it is non-nil and not a string, then ELLIPSIS
-defaults to `truncate-string-ellipsis'."
+defaults to `truncate-string-ellipsis', or to three dots when it's nil.
+
+If ELLIPSIS-TEXT-PROPERTY is non-nil, a too-long string will not
+be truncated, but instead the elided parts will be covered by a
+`display' text property showing the ellipsis."
   (or start-column
       (setq start-column 0))
   (when (and ellipsis (not (stringp ellipsis)))
-    (setq ellipsis truncate-string-ellipsis))
+    (setq ellipsis (truncate-string-ellipsis)))
   (let ((str-len (length str))
 	(str-width (string-width str))
 	(ellipsis-width (if ellipsis (string-width ellipsis) 0))
@@ -113,8 +136,16 @@ defaults to `truncate-string-ellipsis'."
 		idx last-idx))
 	(when (and padding (< column end-column))
 	  (setq tail-padding (make-string (- end-column column) padding))))
-      (concat head-padding (substring str from-idx idx)
-	      tail-padding ellipsis))))
+      (if (and ellipsis-text-property
+               (not (equal ellipsis ""))
+               idx)
+          ;; Use text properties for the ellipsis.
+          (concat head-padding
+                  (substring str from-idx idx)
+	          (propertize (substring str idx) 'display (or ellipsis "")))
+        ;; (Possibly) chop off bits of the string.
+        (concat head-padding (substring str from-idx idx)
+	        tail-padding ellipsis)))))
 
 
 ;;; Nested alist handler.
@@ -252,23 +283,13 @@ Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
 CODING-SYSTEMS is a list of coding systems.  See `set-coding-system-priority'.
 This affects the implicit sorting of lists of coding systems returned by
 operations such as `find-coding-systems-region'."
+  (declare (indent 1) (debug t))
   (let ((current (make-symbol "current")))
   `(let ((,current (coding-system-priority-list)))
      (apply #'set-coding-system-priority ,coding-systems)
      (unwind-protect
 	 (progn ,@body)
        (apply #'set-coding-system-priority ,current)))))
-;;;###autoload(put 'with-coding-priority 'lisp-indent-function 1)
-(put 'with-coding-priority 'edebug-form-spec t)
-
-;;;###autoload
-(defmacro detect-coding-with-priority (from to priority-list)
-  "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
-PRIORITY-LIST is an alist of coding categories vs the corresponding
-coding systems ordered by priority."
-  (declare (obsolete with-coding-priority "23.1"))
-  `(with-coding-priority (mapcar #'cdr ,priority-list)
-     (detect-coding-region ,from ,to)))
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
@@ -282,67 +303,11 @@ language environment LANG-ENV."
 
 (declare-function internal-char-font "font.c" (position &optional ch))
 
-;;;###autoload
-(defun char-displayable-p (char)
-  "Return non-nil if we should be able to display CHAR.
-On a multi-font display, the test is only whether there is an
-appropriate font from the selected frame's fontset to display
-CHAR's charset in general.  Since fonts may be specified on a
-per-character basis, this may not be accurate."
-  (cond ((< char 128)
-	 ;; ASCII characters are always displayable.
-	 t)
-	((not enable-multibyte-characters)
-	 ;; Maybe there's a font for it, but we can't put it in the buffer.
-	 nil)
-	(t
-	 (let ((font-glyph (internal-char-font nil char)))
-	   (if font-glyph
-	       (if (consp font-glyph)
-		   ;; On a window system, a character is displayable
-		   ;; if a font for that character is in the default
-		   ;; face of the currently selected frame.
-		   (car font-glyph)
-		 ;; On a text terminal supporting glyph codes, CHAR is
-		 ;; displayable if its glyph code is nonnegative.
-		 (<= 0 font-glyph))
-	     ;; On a text terminal without glyph codes, CHAR is displayable
-	     ;; if the coding system for the terminal can encode it.
-	     (let ((coding (terminal-coding-system)))
-	       (when coding
-		 (let ((cs-list (coding-system-get coding :charset-list)))
-		   (cond
-		    ((listp cs-list)
-		     (catch 'tag
-		       (mapc #'(lambda (charset)
-				 (if (encode-char char charset)
-				     (throw 'tag charset)))
-			     cs-list)
-		       nil))
-		    ((eq cs-list 'iso-2022)
-		     (catch 'tag2
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :iso-final-char)
-					  (encode-char char charset))
-				     (throw 'tag2 charset)))
-			     charset-list)
-		       nil))
-		    ((eq cs-list 'emacs-mule)
-		     (catch 'tag3
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :emacs-mule-id)
-					  (encode-char char charset))
-				     (throw 'tag3 charset)))
-			     charset-list)
-		       nil)))))))))))
-
 (defun filepos-to-bufferpos--dos (byte f)
   (let ((eol-offset 0)
         ;; Make sure we terminate, even if BYTE falls right in the middle
         ;; of a CRLF or some other weird corner case.
-        (omin 0) (omax most-positive-fixnum)
+        (omin 0) omax
         pos lines)
     (while
         (progn
@@ -355,9 +320,9 @@ per-character basis, this may not be accurate."
               (setq pos (point-max))))
           ;; Adjust POS for DOS EOL format.
           (setq lines (1- (line-number-at-pos pos)))
-          (and (not (= lines eol-offset)) (> omax omin)))
+          (and (not (= lines eol-offset)) (or (not omax) (> omax omin))))
       (if (> lines eol-offset)
-          (setq omax (min (1- omax) lines)
+          (setq omax (if omax (min (1- omax) lines) lines)
                 eol-offset omax)
         (setq omin (max (1+ omin) lines)
               eol-offset omin)))
@@ -373,13 +338,20 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let ((eol (coding-system-eol-type coding-system))
         (type (coding-system-type coding-system))
         (base (coding-system-base coding-system))
         (pm (save-restriction (widen) (point-min))))
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))
@@ -393,17 +365,17 @@ QUALITY can be:
                                        japanese-cp932 korean-cp949)))
          (setq type 'single-byte))
     (pcase type
-      (`utf-8
+      ('utf-8
        (when (coding-system-get coding-system :bom)
          (setq byte (max 0 (- byte 3))))
        (if (= eol 1)
            (filepos-to-bufferpos--dos (+ pm byte) #'byte-to-position)
          (byte-to-position (+ pm byte))))
-      (`single-byte
+      ('single-byte
        (if (= eol 1)
            (filepos-to-bufferpos--dos (+ pm byte) #'identity)
          (+ pm byte)))
-      ((and `utf-16
+      ((and 'utf-16
             ;; FIXME: For utf-16, we could use the same approach as used for
             ;; dos EOLs (counting the number of non-BMP chars instead of the
             ;; number of lines).
@@ -419,8 +391,8 @@ QUALITY can be:
          (+ pm byte)))
       (_
        (pcase quality
-         (`approximate (byte-to-position (+ pm byte)))
-         (`exact
+         ('approximate (byte-to-position (+ pm byte)))
+         ('exact
           ;; Rather than assume that the file exists and still holds the right
           ;; data, we reconstruct it based on the buffer's content.
           (let ((buf (current-buffer)))
@@ -449,14 +421,24 @@ QUALITY can be:
   `approximate', in which case we may cut some corners to avoid
     excessive work.
   `exact', in which case we may end up re-(en/de)coding a large
-    part of the file/buffer, this can be expensive and slow.
+    part of the file/buffer, this can be expensive and slow.  (It
+    is an error to request the `exact' method when the buffer's
+    EOL format is not yet decided.)
   nil, in which case we may return nil rather than an approximation."
   (unless coding-system (setq coding-system buffer-file-coding-system))
   (let* ((eol (coding-system-eol-type coding-system))
-         (lineno (if (= eol 1) (1- (line-number-at-pos position)) 0))
          (type (coding-system-type coding-system))
          (base (coding-system-base coding-system))
-         byte)
+         (point-min 1)                  ;Clarify what the `1' means.
+         lineno)
+    ;; Handle EOL edge cases.
+    (unless (numberp eol)
+      (if (eq quality 'exact)
+          (error "Unknown EOL format in coding system: %s" coding-system)
+        (setq eol 0)))
+    (setq lineno (if (= eol 1)
+                     (1- (line-number-at-pos position))
+                   0))
     (and (eq type 'utf-8)
          ;; Any post-read/pre-write conversions mean it's not really UTF-8.
          (not (null (coding-system-get coding-system :post-read-conversion)))
@@ -470,36 +452,34 @@ QUALITY can be:
                                        japanese-cp932 korean-cp949)))
          (setq type 'single-byte))
     (pcase type
-      (`utf-8
-       (setq byte (position-bytes position))
-       (when (null byte)
-         (if (<= position 0)
-             (setq byte 1)
-           (setq byte (position-bytes (point-max)))))
-       (setq byte (1- byte))
-       (+ byte
+      ('utf-8
+       (+ (or (position-bytes position)
+              (if (<= position 0)
+                  point-min
+                (position-bytes (point-max))))
           ;; Account for BOM, if any.
           (if (coding-system-get coding-system :bom) 3 0)
           ;; Account for CR in CRLF pairs.
-          lineno))
-      (`single-byte
-       (+ position -1 lineno))
-      ((and `utf-16
+          lineno
+          (- point-min)))
+      ('single-byte
+       (+ position (- point-min) lineno))
+      ((and 'utf-16
             ;; FIXME: For utf-16, we could use the same approach as used for
             ;; dos EOLs (counting the number of non-BMP chars instead of the
             ;; number of lines).
             (guard (not (eq quality 'exact))))
        ;; In approximate mode, assume all characters are within the
        ;; BMP, i.e. each one takes up 2 bytes.
-       (+ (* (1- position) 2)
+       (+ (* (- position point-min) 2)
           ;; Account for BOM, if any.
           (if (coding-system-get coding-system :bom) 2 0)
           ;; Account for CR in CRLF pairs.
           lineno))
       (_
        (pcase quality
-         (`approximate (+ (position-bytes position) -1 lineno))
-         (`exact
+         ('approximate (+ (position-bytes position) (- point-min) lineno))
+         ('exact
           ;; Rather than assume that the file exists and still holds the right
           ;; data, we reconstruct its relevant portion.
           (let ((buf (current-buffer)))
@@ -511,7 +491,7 @@ QUALITY can be:
                     (widen)
                     (encode-coding-region (point-min) (min (point-max) position)
                                           coding-system tmp-buf)))
-                (1- (point-max)))))))))))
+                (buffer-size))))))))))
 
 (provide 'mule-util)
 

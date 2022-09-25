@@ -1,8 +1,8 @@
-;;; vc-hooks.el --- resident support for version-control
+;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
 
-;; Author:     FSF (see vc.el for full credits)
+;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: vc
 
@@ -34,9 +34,9 @@
 
 ;; Faces
 
-(defgroup vc-state-faces nil
+(defgroup vc-faces nil
   "Faces used in the mode line by the VC state indicator."
-  :group 'vc-faces
+  :group 'vc
   :group 'mode-line
   :version "25.1")
 
@@ -50,50 +50,42 @@
 (defface vc-up-to-date-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is up to date."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-needs-update-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file needs update."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-locked-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file locked."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-locally-added-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is locally added."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-conflict-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file contains merge conflicts."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-removed-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file was removed from the VC system."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-missing-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is missing from the file system."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 (defface vc-edited-state
   '((default :inherit vc-state-base))
   "Face for VC modeline state when the file is edited."
-  :version "25.1"
-  :group 'vc-faces)
+  :version "25.1")
 
 ;; Customization Variables (the rest is in vc.el)
 
@@ -107,7 +99,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg Mtn)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS SRC Bzr Git Hg)
   ;; RCS, CVS, SVN, SCCS, and SRC come first because they are per-dir
   ;; rather than per-tree.  RCS comes first because of the multibackend
   ;; support intended to use RCS for local commits (with a remote CVS server).
@@ -149,7 +141,8 @@ confirmation whether it should follow the link.  If nil, the link is
 visited and a warning displayed."
   :type '(choice (const :tag "Ask for confirmation" ask)
 		 (const :tag "Visit link and warn" nil)
-		 (const :tag "Follow link" t))
+                 (const :tag "Follow link" t))
+  :safe #'null
   :group 'vc)
 
 (defcustom vc-display-status t
@@ -173,9 +166,9 @@ Otherwise, not displayed."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
-;;; We signal this error when we try to do something a VC backend
-;;; doesn't support.  Two arguments: the method that's not supported
-;;; and the backend
+;; We signal this error when we try to do something a VC backend
+;; doesn't support.  Two arguments: the method that's not supported
+;; and the backend
 (define-error 'vc-not-supported "VC method not implemented for backend")
 
 (defun vc-mode (&optional _arg)
@@ -243,12 +236,12 @@ if that doesn't exist either, return nil."
   "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
 Calls
 
-    (apply \\='vc-BACKEND-FUN ARGS)
+    (apply #\\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
 and else calls
 
-    (apply \\='vc-default-FUN BACKEND ARGS)
+    (apply #\\='vc-default-FUN BACKEND ARGS)
 
 It is usually called via the `vc-call' macro."
   (let ((f (assoc function-name (get backend 'vc-functions))))
@@ -264,9 +257,9 @@ It is usually called via the `vc-call' macro."
 (defmacro vc-call (fun file &rest args)
   "A convenience macro for calling VC backend functions.
 Functions called by this macro must accept FILE as the first argument.
-ARGS specifies any additional arguments.  FUN should be unquoted.
-BEWARE!! FILE is evaluated twice!!"
-  `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
+ARGS specifies any additional arguments.  FUN should be unquoted."
+  (macroexp-let2 nil file file
+    `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args)))
 
 (defsubst vc-parse-buffer (pattern i)
   "Find PATTERN in the current buffer and return its Ith submatch."
@@ -491,27 +484,19 @@ status of this file.  Otherwise, the value returned is one of:
    (vc-call-backend backend 'state file)))
 
 (defsubst vc-up-to-date-p (file)
-  "Convenience function that checks whether `vc-state' of FILE is `up-to-date'."
+  "Convenience function to check whether `vc-state' of FILE is `up-to-date'."
   (eq (vc-state file) 'up-to-date))
 
 (defun vc-working-revision (file &optional backend)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-working-revision)
-      (progn
+      (let ((default-directory (file-name-directory file)))
         (setq backend (or backend (vc-backend file)))
         (when backend
           (vc-file-setprop file 'vc-working-revision
                            (vc-call-backend
                             backend 'working-revision file))))))
-
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'vc-workfile-version 'vc-working-revision "23.1")
-(defun vc-default-working-revision (backend file)
-  (message
-   "`working-revision' not found: using the old `workfile-version' instead")
-  (vc-call-backend backend 'workfile-version file))
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
@@ -571,15 +556,6 @@ this function."
        templates))))
 
 
-;; toggle-read-only is obsolete since 24.3, but since vc-t-r-o was made
-;; obsolete earlier, it is ok for the latter to be an alias to the former,
-;; since the latter will be removed first.  We can't just make it
-;; an alias for read-only-mode, since that is not 100% the same.
-(defalias 'vc-toggle-read-only 'toggle-read-only)
-(make-obsolete 'vc-toggle-read-only
-               "use `read-only-mode' instead (or `toggle-read-only' in older versions of Emacs)."
-               "24.1")
-
 (defun vc-default-make-version-backups-p (_backend _file)
   "Return non-nil if unmodified versions should be backed up locally.
 The default is to switch off this feature."
@@ -603,7 +579,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Delete all existing automatic version backups for FILE."
   (condition-case nil
       (mapc
-       'delete-file
+       #'delete-file
        (directory-files (or (file-name-directory file) default-directory) t
 			(vc-version-backup-file-name file nil nil t)))
     ;; Don't fail when the directory doesn't exist.
@@ -643,7 +619,7 @@ Before doing that, check if there are any old backups and get rid of them."
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 
-(defvar vc-dir-buffers nil "List of vc-dir buffers.")
+(defvar vc-dir-buffers nil "List of `vc-dir' buffers.")
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
@@ -655,10 +631,11 @@ Before doing that, check if there are any old backups and get rid of them."
     (cond
      ((null backend))
      ((eq (vc-checkout-model backend (list file)) 'implicit)
-      ;; If the file was saved in the same second in which it was
+      ;; If the file was saved at the same time that it was
       ;; checked out, clear the checkout-time to avoid confusion.
-      (if (equal (vc-file-getprop file 'vc-checkout-time)
-		 (nth 5 (file-attributes file)))
+      (if (time-equal-p
+		 (vc-file-getprop file 'vc-checkout-time)
+		 (file-attribute-modification-time (file-attributes file)))
 	  (vc-file-setprop file 'vc-checkout-time nil))
       (if (vc-state-refresh file backend)
 	  (vc-mode-line file backend)))
@@ -692,24 +669,26 @@ visiting FILE.
 If BACKEND is passed use it as the VC backend when computing the result."
   (interactive (list buffer-file-name))
   (setq backend (or backend (vc-backend file)))
-  (if (not backend)
-      (setq vc-mode nil)
+  (cond
+   ((not backend)
+    (setq vc-mode nil))
+   ((null vc-display-status)
+    (setq vc-mode (concat " " (symbol-name backend))))
+   (t
     (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
 	   (ml-echo (get-text-property 0 'help-echo ml-string)))
       (setq vc-mode
 	    (concat
 	     " "
-	     (if (null vc-display-status)
-		 (symbol-name backend)
-	       (propertize
-		ml-string
-		'mouse-face 'mode-line-highlight
-		'help-echo
-		(concat (or ml-echo
-			    (format "File under the %s version control system"
-				    backend))
-			"\nmouse-1: Version Control menu")
-		'local-map vc-mode-line-map)))))
+	     (propertize
+	      ml-string
+	      'mouse-face 'mode-line-highlight
+	      'help-echo
+	      (concat (or ml-echo
+			  (format "File under the %s version control system"
+				  backend))
+		      "\nmouse-1: Version Control menu")
+	      'local-map vc-mode-line-map))))
     ;; If the user is root, and the file is not owner-writable,
     ;; then pretend that we can't write it
     ;; even though we can (because root can write anything).
@@ -718,7 +697,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
 	 (not buffer-read-only)
 	 (zerop (user-real-uid))
 	 (zerop (logand (file-modes buffer-file-name) 128))
-	 (setq buffer-read-only t)))
+	 (setq buffer-read-only t))))
   (force-mode-line-update)
   backend)
 
@@ -809,18 +788,19 @@ In the latter case, VC mode is deactivated for this buffer."
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
-    (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
+    (add-hook 'vc-mode-line-hook #'vc-mode-line nil t)
     (let (backend)
       (cond
-        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-         ;; Let the backend setup any buffer-local things he needs.
-         (vc-call-backend backend 'find-file-hook)
+       ((setq backend (with-demoted-errors "VC refresh error: %S"
+                        (vc-backend buffer-file-name)))
+        ;; Let the backend setup any buffer-local things he needs.
+        (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
 	(vc-mode-line buffer-file-name backend)
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
 	  ;; because this is for things that depend on the file name.
-          (set (make-local-variable 'backup-inhibited) t)))
+          (setq-local backup-inhibited t)))
        ((let* ((truename (and buffer-file-truename
 			      (expand-file-name buffer-file-truename)))
 	       (link-type (and truename
@@ -860,13 +840,13 @@ In the latter case, VC mode is deactivated for this buffer."
 		   )))))))))
 
 (add-hook 'find-file-hook #'vc-refresh-state)
-(define-obsolete-function-alias 'vc-find-file-hook 'vc-refresh-state "25.1")
+(define-obsolete-function-alias 'vc-find-file-hook #'vc-refresh-state "25.1")
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
   (when buffer-file-name (vc-file-clearprops buffer-file-name)))
 
-(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
+(add-hook 'kill-buffer-hook #'vc-kill-buffer-hook)
 
 ;; Now arrange for (autoloaded) bindings of the main package.
 ;; Bindings for this have to go in the global map, as we'll often
@@ -875,32 +855,34 @@ In the latter case, VC mode is deactivated for this buffer."
 ;; Autoloading works fine, but it prevents shortcuts from appearing
 ;; in the menu because they don't exist yet when the menu is built.
 ;; (autoload 'vc-prefix-map "vc" nil nil 'keymap)
-(defvar vc-prefix-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'vc-update-change-log)
-    (define-key map "b" 'vc-switch-backend)
-    (define-key map "d" 'vc-dir)
-    (define-key map "g" 'vc-annotate)
-    (define-key map "G" 'vc-ignore)
-    (define-key map "h" 'vc-region-history)
-    (define-key map "i" 'vc-register)
-    (define-key map "l" 'vc-print-log)
-    (define-key map "L" 'vc-print-root-log)
-    (define-key map "I" 'vc-log-incoming)
-    (define-key map "O" 'vc-log-outgoing)
-    (define-key map "m" 'vc-merge)
-    (define-key map "r" 'vc-retrieve-tag)
-    (define-key map "s" 'vc-create-tag)
-    (define-key map "u" 'vc-revert)
-    (define-key map "v" 'vc-next-action)
-    (define-key map "+" 'vc-update)
-    ;; I'd prefer some kind of symmetry with vc-update:
-    (define-key map "P" 'vc-push)
-    (define-key map "=" 'vc-diff)
-    (define-key map "D" 'vc-root-diff)
-    (define-key map "~" 'vc-revision-other-window)
-    (define-key map "x" 'vc-delete-file)
-    map))
+(defvar-keymap vc-prefix-map
+  "a"   #'vc-update-change-log
+  "b c" #'vc-create-branch
+  "b l" #'vc-print-branch-log
+  "b s" #'vc-switch-branch
+  "d"   #'vc-dir
+  "g"   #'vc-annotate
+  "G"   #'vc-ignore
+  "h"   #'vc-region-history
+  "i"   #'vc-register
+  "l"   #'vc-print-log
+  "L"   #'vc-print-root-log
+  "I"   #'vc-log-incoming
+  "O"   #'vc-log-outgoing
+  "M L" #'vc-log-mergebase
+  "M D" #'vc-diff-mergebase
+  "m"   #'vc-merge
+  "r"   #'vc-retrieve-tag
+  "s"   #'vc-create-tag
+  "u"   #'vc-revert
+  "v"   #'vc-next-action
+  "+"   #'vc-update
+  ;; I'd prefer some kind of symmetry with vc-update:
+  "P"   #'vc-push
+  "="   #'vc-diff
+  "D"   #'vc-root-diff
+  "~"   #'vc-revision-other-window
+  "x"   #'vc-delete-file)
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key ctl-x-map "v" 'vc-prefix-map)
 
@@ -948,8 +930,7 @@ In the latter case, VC mode is deactivated for this buffer."
     (bindings--define-key map [separator2] menu-bar-separator)
     (bindings--define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
-		  :help "Insert headers into a file for use with a version control system.
-"))
+		  :help "Insert headers into a file for use with a version control system."))
     (bindings--define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected file set to their repository contents"))
@@ -969,14 +950,14 @@ In the latter case, VC mode is deactivated for this buffer."
     (bindings--define-key map [vc-ignore]
       '(menu-item "Ignore File..." vc-ignore
 		  :help "Ignore a file under current version control system"))
-    (bindings--define-key map [vc-dir]
-      '(menu-item "VC Dir"  vc-dir
-		  :help "Show the VC status of files in a directory"))
+    (bindings--define-key map [vc-dir-root]
+      '(menu-item "VC Dir"  vc-dir-root
+                  :help "Show the VC status of the repository"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)
 
-(declare-function vc-responsible-backend "vc" (file))
+(declare-function vc-responsible-backend "vc" (file &optional no-error))
 
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))

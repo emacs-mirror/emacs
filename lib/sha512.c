@@ -1,19 +1,19 @@
 /* sha512.c - Functions to compute SHA512 and SHA384 message digest of files or
    memory blocks according to the NIST specification FIPS-180-2.
 
-   Copyright (C) 2005-2006, 2008-2017 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by David Madore, considerably copypasting from
@@ -22,6 +22,7 @@
 
 #include <config.h>
 
+/* Specification.  */
 #if HAVE_OPENSSL_SHA512
 # define GL_OPENSSL_INLINE _GL_EXTERN_INLINE
 #endif
@@ -29,33 +30,17 @@
 
 #include <stdalign.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
-#if USE_UNLOCKED_IO
-# include "unlocked-io.h"
-#endif
-
+#include <byteswap.h>
 #ifdef WORDS_BIGENDIAN
 # define SWAP(n) (n)
 #else
-# define SWAP(n) \
-    u64or (u64or (u64or (u64shl (n, 56),                                \
-                         u64shl (u64and (n, u64lo (0x0000ff00)), 40)),  \
-                  u64or (u64shl (u64and (n, u64lo (0x00ff0000)), 24),   \
-                         u64shl (u64and (n, u64lo (0xff000000)),  8))), \
-           u64or (u64or (u64and (u64shr (n,  8), u64lo (0xff000000)),   \
-                         u64and (u64shr (n, 24), u64lo (0x00ff0000))),  \
-                  u64or (u64and (u64shr (n, 40), u64lo (0x0000ff00)),   \
-                         u64shr (n, 56))))
-#endif
-
-#define BLOCKSIZE 32768
-#if BLOCKSIZE % 128 != 0
-# error "invalid BLOCKSIZE"
+# define SWAP(n) bswap_64 (n)
 #endif
 
 #if ! HAVE_OPENSSL_SHA512
+
 /* This array contains the bytes used to pad the buffer to the next
    128-byte boundary.  */
 static const unsigned char fillbuf[128] = { 0x80, 0 /* , 0, 0, ...  */ };
@@ -175,153 +160,7 @@ sha384_finish_ctx (struct sha512_ctx *ctx, void *resbuf)
   sha512_conclude_ctx (ctx);
   return sha384_read_ctx (ctx, resbuf);
 }
-#endif
 
-/* Compute SHA512 message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 64 bytes
-   beginning at RESBLOCK.  */
-int
-sha512_stream (FILE *stream, void *resblock)
-{
-  struct sha512_ctx ctx;
-  size_t sum;
-
-  char *buffer = malloc (BLOCKSIZE + 72);
-  if (!buffer)
-    return 1;
-
-  /* Initialize the computation context.  */
-  sha512_init_ctx (&ctx);
-
-  /* Iterate over full file contents.  */
-  while (1)
-    {
-      /* We read the file in blocks of BLOCKSIZE bytes.  One call of the
-         computation function processes the whole buffer so that with the
-         next round of the loop another block can be read.  */
-      size_t n;
-      sum = 0;
-
-      /* Read block.  Take care for partial reads.  */
-      while (1)
-        {
-          n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
-
-          sum += n;
-
-          if (sum == BLOCKSIZE)
-            break;
-
-          if (n == 0)
-            {
-              /* Check for the error flag IFF N == 0, so that we don't
-                 exit the loop after a partial read due to e.g., EAGAIN
-                 or EWOULDBLOCK.  */
-              if (ferror (stream))
-                {
-                  free (buffer);
-                  return 1;
-                }
-              goto process_partial_block;
-            }
-
-          /* We've read at least one byte, so ignore errors.  But always
-             check for EOF, since feof may be true even though N > 0.
-             Otherwise, we could end up calling fread after EOF.  */
-          if (feof (stream))
-            goto process_partial_block;
-        }
-
-      /* Process buffer with BLOCKSIZE bytes.  Note that
-                        BLOCKSIZE % 128 == 0
-       */
-      sha512_process_block (buffer, BLOCKSIZE, &ctx);
-    }
-
- process_partial_block:;
-
-  /* Process any remaining bytes.  */
-  if (sum > 0)
-    sha512_process_bytes (buffer, sum, &ctx);
-
-  /* Construct result in desired memory.  */
-  sha512_finish_ctx (&ctx, resblock);
-  free (buffer);
-  return 0;
-}
-
-/* FIXME: Avoid code duplication */
-int
-sha384_stream (FILE *stream, void *resblock)
-{
-  struct sha512_ctx ctx;
-  size_t sum;
-
-  char *buffer = malloc (BLOCKSIZE + 72);
-  if (!buffer)
-    return 1;
-
-  /* Initialize the computation context.  */
-  sha384_init_ctx (&ctx);
-
-  /* Iterate over full file contents.  */
-  while (1)
-    {
-      /* We read the file in blocks of BLOCKSIZE bytes.  One call of the
-         computation function processes the whole buffer so that with the
-         next round of the loop another block can be read.  */
-      size_t n;
-      sum = 0;
-
-      /* Read block.  Take care for partial reads.  */
-      while (1)
-        {
-          n = fread (buffer + sum, 1, BLOCKSIZE - sum, stream);
-
-          sum += n;
-
-          if (sum == BLOCKSIZE)
-            break;
-
-          if (n == 0)
-            {
-              /* Check for the error flag IFF N == 0, so that we don't
-                 exit the loop after a partial read due to e.g., EAGAIN
-                 or EWOULDBLOCK.  */
-              if (ferror (stream))
-                {
-                  free (buffer);
-                  return 1;
-                }
-              goto process_partial_block;
-            }
-
-          /* We've read at least one byte, so ignore errors.  But always
-             check for EOF, since feof may be true even though N > 0.
-             Otherwise, we could end up calling fread after EOF.  */
-          if (feof (stream))
-            goto process_partial_block;
-        }
-
-      /* Process buffer with BLOCKSIZE bytes.  Note that
-                        BLOCKSIZE % 128 == 0
-       */
-      sha512_process_block (buffer, BLOCKSIZE, &ctx);
-    }
-
- process_partial_block:;
-
-  /* Process any remaining bytes.  */
-  if (sum > 0)
-    sha512_process_bytes (buffer, sum, &ctx);
-
-  /* Construct result in desired memory.  */
-  sha384_finish_ctx (&ctx, resblock);
-  free (buffer);
-  return 0;
-}
-
-#if ! HAVE_OPENSSL_SHA512
 /* Compute SHA512 message digest for LEN bytes beginning at BUFFER.  The
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
@@ -628,4 +467,12 @@ sha512_process_block (const void *buffer, size_t len, struct sha512_ctx *ctx)
       h = ctx->state[7] = u64plus (ctx->state[7], h);
     }
 }
+
 #endif
+
+/*
+ * Hey Emacs!
+ * Local Variables:
+ * coding: utf-8
+ * End:
+ */

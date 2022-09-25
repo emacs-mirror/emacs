@@ -1,8 +1,8 @@
-;;; gnus-ml.el --- Mailing list minor mode for Gnus
+;;; gnus-ml.el --- Mailing list minor mode for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
-;; Author: Julien Gilles  <jgilles@free.fr>
+;; Author: Julien Gilles <jgilles@free.fr>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -28,20 +28,16 @@
 
 (require 'gnus)
 (require 'gnus-msg)
-(eval-when-compile (require 'cl))
 
 ;;; Mailing list minor mode
 
-(defvar gnus-mailing-list-mode-map
-  (let ((map (make-sparse-keymap)))
-    (gnus-define-keys map
-      "\C-c\C-nh" gnus-mailing-list-help
-      "\C-c\C-ns" gnus-mailing-list-subscribe
-      "\C-c\C-nu" gnus-mailing-list-unsubscribe
-      "\C-c\C-np" gnus-mailing-list-post
-      "\C-c\C-no" gnus-mailing-list-owner
-      "\C-c\C-na" gnus-mailing-list-archive)
-    map))
+(defvar-keymap gnus-mailing-list-mode-map
+  "C-c C-n h" #'gnus-mailing-list-help
+  "C-c C-n s" #'gnus-mailing-list-subscribe
+  "C-c C-n u" #'gnus-mailing-list-unsubscribe
+  "C-c C-n p" #'gnus-mailing-list-post
+  "C-c C-n o" #'gnus-mailing-list-owner
+  "C-c C-n a" #'gnus-mailing-list-archive)
 
 (defvar gnus-mailing-list-menu)
 
@@ -59,7 +55,9 @@
 
 ;;;###autoload
 (defun turn-on-gnus-mailing-list-mode ()
-  (when (gnus-group-find-parameter gnus-newsgroup-name 'to-list)
+  (when (or (gnus-group-find-parameter gnus-newsgroup-name 'to-list)
+            (and gnus-mailing-list-groups
+                 (string-match gnus-mailing-list-groups gnus-newsgroup-name)))
     (gnus-mailing-list-mode 1)))
 
 ;;;###autoload
@@ -126,7 +124,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-unsubscribe in this group")))))
 
 (defun gnus-mailing-list-post ()
-  "Post message (really useful ?)"
+  "Post message (really useful ?)."
   (interactive)
   (let ((list-post
 	 (with-current-buffer gnus-original-article-buffer
@@ -151,7 +149,7 @@ If FORCE is non-nil, replace the old ones."
 	 (with-current-buffer gnus-original-article-buffer
 	   (gnus-fetch-field "list-archive"))))
     (cond (list-archive
-	   (if (string-match "<\\(http:[^>]*\\)>" list-archive)
+	   (if (string-match "<\\(https?:[^>]*\\)>" list-archive)
 	       (browse-url (match-string 1 list-archive))
 	     (browse-url list-archive)))
 	  (t (gnus-message 1 "no list-archive in this group")))))

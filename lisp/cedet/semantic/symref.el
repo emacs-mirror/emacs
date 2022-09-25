@@ -1,8 +1,8 @@
-;;; semantic/symref.el --- Symbol Reference API
+;;; semantic/symref.el --- Symbol Reference API  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -78,7 +78,7 @@
 ;;; Code:
 (defcustom semantic-symref-tool 'detect
   "The active symbol reference tool name.
-The tool symbol can be 'detect, or a symbol that is the name of
+The tool symbol can be `detect', or a symbol that is the name of
 a tool that can be used for symbol referencing."
   :type 'symbol
   :group 'semantic)
@@ -101,7 +101,7 @@ Where PREDICATE is a function that takes a directory name for the
 root of a project, and returns non-nil if the tool represented by KEY
 is supported.
 
-If no tools are supported, then 'grep is assumed.")
+If no tools are supported, then `grep' is assumed.")
 
 (defun semantic-symref-calculate-rootdir ()
   "Calculate the root directory for a symref search.
@@ -144,7 +144,7 @@ ARGS are the initialization arguments to pass to the created class."
 	 )
     (when (not (class-p class))
       (error "Unknown symref tool %s" semantic-symref-tool))
-    (setq inst (apply 'make-instance class args))
+    (setq inst (apply #'make-instance class args))
     inst))
 
 (defvar semantic-symref-last-result nil
@@ -309,9 +309,9 @@ Can be 'project, 'target, or 'file.")
 	       :type symbol
 	       :documentation
 	       "The kind of search results desired.
-Can be 'line, 'file, or 'tag.
-The type of result can be converted from 'line to 'file, or 'line to 'tag,
-but not from 'file to 'line or 'tag.")
+Can be `line', `file', or `tag'.
+The type of result can be converted from `line' to `file', or `line' to `tag',
+but not from `file' to `line' or `tag'.")
    )
   "Baseclass for all symbol references tools.
 A symbol reference tool supplies functionality to identify the locations of
@@ -319,7 +319,7 @@ where different symbols are used.
 
 Subclasses should be named `semantic-symref-tool-NAME', where
 NAME is the name of the tool used in the configuration variable
-`semantic-symref-tool'"
+`semantic-symref-tool'."
   :abstract t)
 
 (cl-defmethod semantic-symref-get-result ((tool semantic-symref-tool-baseclass))
@@ -388,7 +388,7 @@ Each element is a cons cell of the form (LINE . FILENAME).")
 	     :type list
 	     :documentation
 	     "The list of tags with hits in them.
-Use the  `semantic-symref-hit-tags' method to get this list.")
+Use the `semantic-symref-hit-tags' method to get this list.")
    )
   "The results from a symbol reference search.")
 
@@ -427,7 +427,7 @@ until the next command is executed."
 	    (kill-buffer buff)))
 	semantic-symref-recently-opened-buffers)
   (setq semantic-symref-recently-opened-buffers nil)
-  (remove-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
+  (remove-hook 'post-command-hook #'semantic-symref-cleanup-recent-buffers-fcn)
   )
 
 (cl-defmethod semantic-symref-result-get-tags ((result semantic-symref-result)
@@ -453,7 +453,7 @@ already."
 		   lines)))
       ;; Kill off dead buffers, unless we were requested to leave them open.
       (if (not open-buffers)
-	  (add-hook 'post-command-hook 'semantic-symref-cleanup-recent-buffers-fcn)
+	  (add-hook 'post-command-hook #'semantic-symref-cleanup-recent-buffers-fcn)
 	;; Else, just clear the saved buffers so they aren't deleted later.
 	(setq semantic-symref-recently-opened-buffers nil)
 	)
@@ -475,8 +475,8 @@ already."
 Return the Semantic tag associated with HIT.
 SEARCHTXT is the text that is being searched for.
 Used to narrow the in-buffer search.
-SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
-If there is no database, of if the searchtype is wrong, return nil."
+SEARCHTYPE is the type of search (such as `symbol' or `tagname').
+If there is no database, or if the searchtype is wrong, return nil."
   ;; Allowed search types for this mechanism:
   ;; tagname, tagregexp, tagcompletions
   (if (not (memq searchtype '(tagname tagregexp tagcompletions)))
@@ -506,14 +506,15 @@ If there is no database, of if the searchtype is wrong, return nil."
 Return the Semantic tag associated with HIT.
 SEARCHTXT is the text that is being searched for.
 Used to narrow the in-buffer search.
-SEARCHTYPE is the type of search (such as 'symbol or 'tagname).
+SEARCHTYPE is the type of search (such as `symbol' or `tagname').
 Optional OPEN-BUFFERS, when nil will use a faster version of
 `find-file' when a file needs to be opened.  If non-nil, then
 normal buffer initialization will be used.
 This function will leave buffers loaded from a file open, but
-will add buffers that must be opened to `semantic-symref-recently-opened-buffers'.
-Any caller MUST deal with that variable, either clearing it, or deleting the
-buffers that were opened."
+will add buffers that must be opened to
+`semantic-symref-recently-opened-buffers'.
+Any caller MUST deal with that variable, either clearing it, or
+deleting the buffers that were opened."
   (let* ((line (car hit))
 	 (file (cdr hit))
 	 (buff (find-buffer-visiting file))
@@ -554,7 +555,7 @@ buffers that were opened."
     (when (re-search-forward (if (memq searchtype '(regexp tagregexp))
                                  searchtxt
                                (regexp-quote searchtxt))
-			     (point-at-eol)
+                             (line-end-position)
 			     t)
       (goto-char (match-beginning 0))
       )

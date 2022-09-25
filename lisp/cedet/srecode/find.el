@@ -1,8 +1,8 @@
-;;;; srecode/find.el --- Tools for finding templates in the database.
+;;;; srecode/find.el --- Tools for finding templates in the database.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,8 +27,7 @@
 (require 'srecode/ctxt)
 (require 'srecode/table)
 (require 'srecode/map)
-
-(declare-function srecode-compile-file "srecode/compile")
+(require 'srecode/compile)
 
 ;;; Code:
 
@@ -58,19 +57,15 @@ Templates are found in the SRecode Template Map.
 See `srecode-get-maps' for more.
 APPNAME is the name of an application.  In this case,
 all template files for that application will be loaded."
-  (require 'srecode/compile)
   (let ((files
-	 (if appname
-	     (apply 'append
-		    (mapcar
+	 (apply #'append
+		(mapcar
+		 (if appname
 		     (lambda (map)
 		       (srecode-map-entries-for-app-and-mode map appname mmode))
-		     (srecode-get-maps)))
-	   (apply 'append
-		  (mapcar
 		   (lambda (map)
-		     (srecode-map-entries-for-mode map mmode))
-		   (srecode-get-maps)))))
+		     (srecode-map-entries-for-mode map mmode)))
+		 (srecode-get-maps))))
 	)
     ;; Don't recurse if we are already the 'default state.
     (when (not (eq mmode 'default))
@@ -100,7 +95,7 @@ all template files for that application will be loaded."
   "Return non-nil if the table TAB can be used in the current project.
 If TAB has a :project set, check that the directories match.
 If TAB is nil, then always return t."
-  (let ((proj (oref tab :project)))
+  (let ((proj (oref tab project)))
     ;; Return t if the project wasn't set.
     (if (not proj) t
       ;; If the project directory was set, let's check it.
@@ -114,8 +109,8 @@ If TAB is nil, then always return t."
 ;; Find a given template based on name, and features of the current
 ;; buffer.
 (cl-defmethod srecode-template-get-table ((tab srecode-template-table)
-				       template-name &optional
-				       context application)
+				          template-name &optional
+				          context _application)
   "Find in the template in table TAB, the template with TEMPLATE-NAME.
 Optional argument CONTEXT specifies that the template should part
 of a particular context.
@@ -139,10 +134,10 @@ Optional argument APPLICATION restricts searches to only template tables
 belonging to a specific application.  If APPLICATION is nil, then only
 tables that do not belong to an application will be searched."
   (let* ((mt tab)
-	 (tabs (oref mt :tables))
+	 (tabs (oref mt tables))
 	 (ans nil))
     (while (and (not ans) tabs)
-      (let ((app (oref (car tabs) :application)))
+      (let ((app (oref (car tabs) application)))
 	(when (or (and (not application) (null app))
 		  (and application (eq app application)))
 	  (setq ans (srecode-template-get-table (car tabs) template-name
@@ -150,7 +145,7 @@ tables that do not belong to an application will be searched."
 	(setq tabs (cdr tabs))))
     (or ans
 	;; Recurse to the default.
-	(when (not (equal (oref tab :major-mode) 'default))
+	(when (not (equal (oref tab major-mode) 'default))
 	  (srecode-template-get-table (srecode-get-mode-table 'default)
 				      template-name context application)))))
 
@@ -199,10 +194,10 @@ Optional argument APPLICATION restricts searches to only template tables
 belonging to a specific application.  If APPLICATION is nil, then only
 tables that do not belong to an application will be searched."
   (let* ((mt tab)
-	 (tabs (oref mt :tables))
+	 (tabs (oref mt tables))
 	 (ans nil))
     (while (and (not ans) tabs)
-      (let ((app (oref (car tabs) :application)))
+      (let ((app (oref (car tabs) application)))
 	(when (or (and (not application) (null app))
 		  (and application (eq app application)))
 	  (setq ans (srecode-template-get-table-for-binding
@@ -210,7 +205,7 @@ tables that do not belong to an application will be searched."
 	(setq tabs (cdr tabs))))
     (or ans
 	;; Recurse to the default.
-	(when (not (equal (oref tab :major-mode) 'default))
+	(when (not (equal (oref tab major-mode) 'default))
 	  (srecode-template-get-table-for-binding
 	   (srecode-get-mode-table 'default) binding context)))))
 ;;; Interactive
@@ -220,7 +215,7 @@ tables that do not belong to an application will be searched."
 (defvar srecode-read-template-name-history nil
   "History for completing reads for template names.")
 
-(defun srecode-user-template-p (template)
+(defun srecode-user-template-p (_template)
   "Non-nil if TEMPLATE is intended for user insertion.
 Templates not matching this predicate are used for code
 generation or other internal purposes."
@@ -241,10 +236,10 @@ templates."
 
     ;; Load up the hash table for our current mode.
     (let* ((mt   (srecode-get-mode-table mmode))
-	   (tabs (when mt (oref mt :tables))))
+	   (tabs (when mt (oref mt tables))))
       (dolist (tab tabs)
 	;; Exclude templates for a particular application.
-	(when (and (not (oref tab :application))
+	(when (and (not (oref tab application))
 		   (srecode-template-table-in-project-p tab))
 	  (maphash (lambda (key temp)
 		     (when (or (not predicate)
@@ -266,7 +261,7 @@ with `srecode-calculate-context'."
       ;; the prefix for the completing read
       (concat (nth 0 ctxt) ":"))))
 
-(defun srecode-read-template-name (prompt &optional initial hist default)
+(defun srecode-read-template-name (prompt &optional initial hist _default)
   "Completing read for Semantic Recoder template names.
 PROMPT is used to query for the name of the template desired.
 INITIAL is the initial string to use.

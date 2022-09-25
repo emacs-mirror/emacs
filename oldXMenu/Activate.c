@@ -1,9 +1,27 @@
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
-#include "copyright.h"
+/*
+
+Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
+
+Permission to use, copy, modify, and distribute this
+software and its documentation for any purpose and without
+fee is hereby granted, provided that the above copyright
+notice appear in all copies and that both that copyright
+notice and this permission notice appear in supporting
+documentation, and that the name of M.I.T. not be used in
+advertising or publicity pertaining to distribution of the
+software without specific, written prior permission.
+M.I.T. makes no representations about the suitability of
+this software for any purpose.  It is provided "as is"
+without express or implied warranty.
+
+*/
+
+
 
 /*
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -103,12 +121,26 @@ int x_menu_grab_keyboard = 1;
 
 static Wait_func wait_func;
 static void* wait_data;
+static Translate_func translate_func = NULL;
+static Expose_func expose_func = NULL;
 
 void
 XMenuActivateSetWaitFunction (Wait_func func, void *data)
 {
   wait_func = func;
   wait_data = data;
+}
+
+void
+XMenuActivateSetTranslateFunction (Translate_func func)
+{
+  translate_func = func;
+}
+
+void
+XMenuActivateSetExposeFunction (Expose_func func)
+{
+  expose_func = func;
 }
 
 int
@@ -314,6 +346,9 @@ XMenuActivate(
 		    feq = feq_tmp;
 		}
 		else if (_XMEventHandler) (*_XMEventHandler)(&event);
+
+		if (expose_func)
+		  expose_func (&event);
 		break;
 	    }
 	    if (event_xmp->activated) {
@@ -431,6 +466,9 @@ XMenuActivate(
 	     * If the current selection was activated then
 	     * deactivate it.
 	     */
+	    /* Emacs specific, HELP_STRING cannot be validly NULL
+	     * in the real XMenu library.  */
+	    help_callback (NULL, cur_p->serial, cur_s->serial);
 	    if (cur_s->activated) {
 		cur_s->activated = False;
 		_XMRefreshSelection(display, menu, cur_s);
@@ -497,6 +535,12 @@ XMenuActivate(
 		    feq = feq_tmp;
 		}
 		else if (_XMEventHandler) (*_XMEventHandler)(&event);
+		break;
+#ifdef HAVE_XINPUT2
+        case GenericEvent:
+	    if (translate_func)
+	      translate_func (&event);
+#endif
 	}
 	/*
 	 * If a selection has been made, break out of the event loop.
@@ -571,6 +615,7 @@ XMenuActivate(
 						   event.xbutton.window
 						   );
 		if (event_xmp != NULL) continue;
+		FALLTHROUGH;
 	    default:
 		/*
 		 * This is a foreign event.

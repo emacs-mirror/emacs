@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2017 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2022 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -252,14 +252,15 @@ comment and a newline or formfeed ends one.
 
 @item Inherit standard syntax: @samp{@@}
 This syntax class does not specify a particular syntax.  It says to
-look in the standard syntax table to find the syntax of this
+look in the parent syntax table to find the syntax of this
 character.
 
 @item Generic comment delimiters: @samp{!}
-Characters that start or end a special kind of comment.  @emph{Any}
-generic comment delimiter matches @emph{any} generic comment
-delimiter, but they cannot match a comment starter or comment ender;
-generic comment delimiters can only match each other.
+(This syntax class is also known as ``comment-fence''.)  Characters
+that start or end a special kind of comment.  @emph{Any} generic
+comment delimiter matches @emph{any} generic comment delimiter, but
+they cannot match a comment starter or comment ender; generic comment
+delimiters can only match each other.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
@@ -268,10 +269,11 @@ first and last characters of the range @code{syntax-table} properties
 identifying them as generic comment delimiters.
 
 @item Generic string delimiters: @samp{|}
-Characters that start or end a string.  This class differs from the
-string quote class in that @emph{any} generic string delimiter can
-match any other generic string delimiter; but they do not match
-ordinary string quote characters.
+(This syntax class is also known as ``string-fence''.)  Characters
+that start or end a string.  This class differs from the string quote
+class in that @emph{any} generic string delimiter can match any other
+generic string delimiter; but they do not match ordinary string quote
+characters.
 
 This syntax class is primarily meant for use with the
 @code{syntax-table} text property (@pxref{Syntax Properties}).  You
@@ -339,11 +341,13 @@ same style will be recognized.  For a two-character comment delimiter,
 @cindex comment style
 Emacs supports several comment styles simultaneously in any one syntax
 table.  A comment style is a set of flags @samp{b}, @samp{c}, and
-@samp{n}, so there can be up to 8 different comment styles.
-Each comment delimiter has a style and only matches comment delimiters
-of the same style.  Thus if a comment starts with the comment-start
-sequence of style ``bn'', it will extend until the next matching
-comment-end sequence of style ``bn''.
+@samp{n}, so there can be up to 8 different comment styles, each one
+named by the set of its flags.  Each comment delimiter has a style and
+only matches comment delimiters of the same style.  Thus if a comment
+starts with the comment-start sequence of style ``bn'', it will extend
+until the next matching comment-end sequence of style ``bn''.  When
+the set of flags has neither flag @samp{b} nor flag @samp{c} set, the
+resulting style is called the ``a'' style.
 
 The appropriate comment syntax settings for C++ can be as follows:
 
@@ -554,8 +558,8 @@ the current syntax table in the usual way.
 
 @defvar parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions, like
-@code{forward-sexp}, pay attention to syntax text properties.
-Otherwise they use only the current syntax table.
+@code{forward-sexp}, pay attention to @code{syntax-table} text
+properties.  Otherwise they use only the current syntax table.
 @end defvar
 
 @defvar syntax-propertize-function
@@ -568,11 +572,23 @@ The function is called by @code{syntax-ppss} (@pxref{Position Parse}),
 and by Font Lock mode during syntactic fontification (@pxref{Syntactic
 Font Lock}).  It is called with two arguments, @var{start} and
 @var{end}, which are the starting and ending positions of the text on
-which it should act.  It is allowed to call @code{syntax-ppss} on any
-position before @var{end}.  However, it should not call
-@code{syntax-ppss-flush-cache}; so, it is not allowed to call
-@code{syntax-ppss} on some position and later modify the buffer at an
-earlier position.
+which it should act.  It is allowed to arbitrarily move point within
+the region delimited by @var{start} and @var{end}; such motions don't
+need to use @code{save-excursion} (@pxref{Excursions}).  It is also
+allowed to call @code{syntax-ppss} on any position before @var{end},
+but if a Lisp program calls @code{syntax-ppss} on some position and
+later modifies the buffer at some earlier position, then it is that
+program's responsibility to call @code{syntax-ppss-flush-cache} to
+flush the now obsolete info from the cache.
+
+@strong{Caution:} When this variable is non-@code{nil}, Emacs removes
+@code{syntax-table} text properties arbitrarily and relies on
+@code{syntax-propertize-function} to reapply them.  Thus if this
+facility is used at all, the function must apply @strong{all}
+@code{syntax-table} text properties used by the major mode.  In
+particular, Modes derived from a CC Mode mode must not use this
+variable, since CC Mode uses other means to apply and remove these
+text properties.
 @end defvar
 
 @defvar syntax-propertize-extend-region-functions
@@ -754,7 +770,7 @@ This function returns the parser state that the parser would reach at
 position @var{pos} starting from the beginning of the visible portion
 of the buffer.
 @iftex
-See the next section for
+See the next section
 @end iftex
 @ifnottex
 @xref{Parser State},
@@ -795,12 +811,13 @@ Hooks}).
   A @dfn{parser state} is a list of (currently) eleven elements
 describing the state of the syntactic parser, after it parses the text
 between a specified starting point and a specified end point in the
-buffer.  Parsing functions such as @code{syntax-ppss}
+buffer using @code{parse-partial-sexp} (@pxref{Low-Level Parsing}).
+Parsing functions such as @code{syntax-ppss}
 @ifnottex
 (@pxref{Position Parse})
 @end ifnottex
-return a parser state as the value.  Some parsing functions accept a
-parser state as an argument, for resuming parsing.
+also return a parser state as the value.  @code{parse-partial-sexp}
+can accept a parser state as an argument, for resuming parsing.
 
   Here are the meanings of the elements of the parser state:
 
@@ -864,11 +881,11 @@ escaped/char-quoted character pair), the @var{syntax-code}
 @end enumerate
 
   Elements 1, 2, and 6 are ignored in a state which you pass as an
-argument to continue parsing.  Elements 9 and 10 are mainly used
-internally by the parser code.
+argument to @code{parse-partial-sexp} to continue parsing.  Elements 9
+and 10 are mainly used internally by the parser code.
 
-  One additional piece of useful information is available from a
-parser state using this function:
+  Some additional useful information is available from a parser state
+using these functions:
 
 @defun syntax-ppss-toplevel-pos state
 This function extracts, from parser state @var{state}, the last
@@ -878,6 +895,12 @@ comments, or strings.
 
 The value is @code{nil} if @var{state} represents a parse which has
 arrived at a top level position.
+@end defun
+
+@defun syntax-ppss-context state
+Return @code{string} if the end position of the scan returning
+@var{state} is in a string, and @code{comment} if it's in a comment.
+Otherwise return @code{nil}.
 @end defun
 
 @node Low-Level Parsing
@@ -925,9 +948,9 @@ nicely.
 
 @defvar multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@acronym{ASCII} characters as symbol constituents regardless
-of what the syntax table says about them.  (However, text properties
-can still override the syntax.)
+non-@acronym{ASCII} characters as symbol constituents regardless of
+what the syntax table says about them.  (However, @code{syntax-table
+}text properties can still override the syntax.)
 @end defvar
 
 @defopt parse-sexp-ignore-comments
@@ -937,7 +960,6 @@ whitespace by the functions in this section and by @code{forward-sexp},
 @code{scan-lists} and @code{scan-sexps}.
 @end defopt
 
-@vindex parse-sexp-lookup-properties
 The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
@@ -971,6 +993,10 @@ cons cell of the form @code{(@var{syntax-code}
 encodes the syntax class and syntax flags, according to the table
 below.  @var{matching-char}, if non-@code{nil}, specifies a matching
 character (similar to the second character in a syntax descriptor).
+
+@cindex syntax tables (accessing elements of)
+Use @code{aref} (@pxref{Array Functions}) to get the raw syntax
+descriptor of a character, e.g. @w{@code{(aref (syntax-table) ch)}}.
 
   Here are the syntax codes corresponding to the various syntax
 classes:
@@ -1008,18 +1034,23 @@ corresponds to each syntax flag.
 @item
 @i{Prefix} @tab @i{Flag} @tab @i{Prefix} @tab @i{Flag}
 @item
-@samp{1} @tab @code{(lsh 1 16)} @tab @samp{p} @tab @code{(lsh 1 20)}
+@samp{1} @tab @code{(ash 1 16)} @tab @samp{p} @tab @code{(ash 1 20)}
 @item
-@samp{2} @tab @code{(lsh 1 17)} @tab @samp{b} @tab @code{(lsh 1 21)}
+@samp{2} @tab @code{(ash 1 17)} @tab @samp{b} @tab @code{(ash 1 21)}
 @item
-@samp{3} @tab @code{(lsh 1 18)} @tab @samp{n} @tab @code{(lsh 1 22)}
+@samp{3} @tab @code{(ash 1 18)} @tab @samp{n} @tab @code{(ash 1 22)}
 @item
-@samp{4} @tab @code{(lsh 1 19)}
+@samp{4} @tab @code{(ash 1 19)} @tab @samp{c} @tab @code{(ash 1 23)}
 @end multitable
 
 @defun string-to-syntax desc
 Given a syntax descriptor @var{desc} (a string), this function returns
 the corresponding raw syntax descriptor.
+@end defun
+
+@defun syntax-class-to-char syntax
+Given a raw syntax descriptor @var{syntax} (an integer), this function
+returns the corresponding syntax descriptor (a character).
 @end defun
 
 @defun syntax-after pos
@@ -1036,8 +1067,8 @@ This function returns the syntax code for the raw syntax descriptor
 @var{syntax-code} component, masks off the high 16 bits which record
 the syntax flags, and returns the resulting integer.
 
-If @var{syntax} is @code{nil}, the return value is returns @code{nil}.
-This is so that the expression
+If @var{syntax} is @code{nil}, the return value is @code{nil}.  This
+is so that the expression
 
 @example
 (syntax-class (syntax-after pos))
@@ -1099,16 +1130,17 @@ bidi-class}).
   (let ((category-table (make-category-table))
         ;; Create a char-table which gives the 'bidi-class' Unicode
         ;; property for each character.
-        (uniprop-table (unicode-property-table-internal 'bidi-class)))
+        (uniprop-table
+         (unicode-property-table-internal 'bidi-class)))
     (define-category ?R "Characters of bidi-class R, AL, or RLO"
                      category-table)
-    ;; Modify the category entry of each character whose 'bidi-class'
-    ;; Unicode property is R, AL, or RLO -- these have a
-    ;; right-to-left directionality.
+    ;; Modify the category entry of each character whose
+    ;; 'bidi-class' Unicode property is R, AL, or RLO --
+    ;; these have a right-to-left directionality.
     (map-char-table
-     #'(lambda (key val)
-         (if (memq val '(R AL RLO))
-             (modify-category-entry key ?R category-table)))
+     (lambda (key val)
+       (if (memq val '(R AL RLO))
+           (modify-category-entry key ?R category-table)))
      uniprop-table)
     category-table))
 @end example

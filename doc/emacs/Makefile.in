@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2017 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -27,6 +27,8 @@ SHELL = @SHELL@
 srcdir=@srcdir@
 
 top_srcdir = @top_srcdir@
+
+top_builddir = @top_builddir@
 
 version = @version@
 
@@ -58,7 +60,7 @@ HTML_OPTS = --no-split --html
 # Options used only when making info output.
 # --no-split is only needed because of MS-DOS.
 # For a possible alternative, see
-# https://lists.gnu.org/archive/html/emacs-devel/2011-01/msg01182.html
+# https://lists.gnu.org/r/emacs-devel/2011-01/msg01182.html
 INFO_OPTS= --no-split
 
 INSTALL = @INSTALL@
@@ -73,13 +75,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
 ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
@@ -144,6 +140,7 @@ EMACSSOURCES= \
 	${srcdir}/xresources.texi \
 	${srcdir}/anti.texi \
 	${srcdir}/macos.texi \
+	$(srcdir)/haiku.texi \
 	${srcdir}/msdos.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
@@ -206,8 +203,8 @@ doc-emacsver:
 
 ## Temp files.
 mostlyclean:
-	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
-	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
+	rm -f ./*.aux ./*.log ./*.toc ./*.cp ./*.cps ./*.fn ./*.fns ./*.ky ./*.kys \
+	  ./*.op ./*.ops ./*.pg ./*.pgs ./*.tp ./*.tps ./*.vr ./*.vrs
 
 ## Products not in the release tarfiles.
 clean: mostlyclean
@@ -224,7 +221,7 @@ infoclean:
 	  $(buildinfodir)/emacs.info-[1-9][0-9]
 
 bootstrap-clean maintainer-clean: distclean infoclean
-	rm -f ${srcdir}/emacsver.texi
+	rm -f ${srcdir}/emacsver.texi TAGS
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
@@ -246,7 +243,7 @@ install-ps: ps
 	  ${GZIP_PROG} -9n "$(DESTDIR)$(psdir)/$${file}"; \
 	done
 
-## Top-level Makefile installs the info pages.
+## Top-level Makefile installs the Info manuals.
 install-doc: install-dvi install-html install-pdf install-ps
 
 
@@ -272,5 +269,21 @@ uninstall-pdf:
 
 uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
 
+
+ETAGS = ../../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+texifiles = $(wildcard ${srcdir}/*.texi)
+
+TAGS: ${ETAGS} $(texifiles)
+	$(AM_V_GEN)${ETAGS} --include=../lispref/TAGS --include=../misc/TAGS $(texifiles)
+
+tags: TAGS
+.PHONY: tags
+
+FORCE:
+.PHONY: FORCE
 
 ### Makefile ends here

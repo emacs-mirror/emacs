@@ -1,6 +1,6 @@
-;;; semantic/analyze/refs.el --- Analysis of the references between tags.
+;;; semantic/analyze/refs.el --- Analysis of the references between tags.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -102,9 +102,10 @@ Use `semantic-analyze-current-tag' to debug this fcn."
 ;; into the context.
 (cl-defmethod semantic-analyze-refs-impl ((refs semantic-analyze-references) &optional in-buffer)
   "Return the implementations derived in the reference analyzer REFS.
-Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
+Optional argument IN-BUFFER indicates that the returned tag
+should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
-	(tag (oref refs :tag))
+	(tag (oref refs tag))
 	(impl nil)
 	)
     (semanticdb-find-result-mapc
@@ -127,9 +128,10 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 
 (cl-defmethod semantic-analyze-refs-proto ((refs semantic-analyze-references) &optional in-buffer)
   "Return the prototypes derived in the reference analyzer REFS.
-Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
+Optional argument IN-BUFFER indicates that the returned tag
+should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
-	(tag (oref refs :tag))
+	(tag (oref refs tag))
 	(proto nil))
     (semanticdb-find-result-mapc
      (lambda (T DB)
@@ -294,7 +296,7 @@ Only works for tags in the global namespace."
 	(let* ((classmatch (semantic-tag-class tag))
 	       (RES
 		(semanticdb-find-tags-collector
-		 (lambda (table tags)
+		 (lambda (_table tags)
 		   (semantic-find-tags-by-class classmatch tags)
 		   ;; @todo - Add parent check also.
 		   )
@@ -317,9 +319,8 @@ Only works for tags in the global namespace."
   (let* ((tag (semantic-current-tag))
 	 (start (current-time))
 	 (sac (semantic-analyze-tag-references tag))
-	 (end (current-time))
 	 )
-    (message "Analysis took %.2f seconds." (semantic-elapsed-time start end))
+    (message "Analysis took %.2f seconds." (semantic-elapsed-time start nil))
     (if sac
 	(progn
 	  (require 'eieio-datadebug)
@@ -347,8 +348,10 @@ Only works for tags in the global namespace."
 	     (if (semantic-tag-prototype-p tag) "implementation" "prototype")))
 
     (push-mark)
+    (when (fboundp 'xref-push-marker-stack)
+      (xref-push-marker-stack))
     (semantic-go-to-tag target)
-    (switch-to-buffer (current-buffer))
+    (pop-to-buffer-same-window (current-buffer))
     (semantic-momentary-highlight-tag target))
   )
 

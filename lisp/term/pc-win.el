@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2017 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -38,7 +38,7 @@
 
 (if (not (fboundp 'msdos-remember-default-colors))
     (error "%s: Loading pc-win.el but not compiled for MS-DOS"
-	   (invocation-name)))
+	   invocation-name))
 
 (declare-function msdos-remember-default-colors "msdos.c")
 (declare-function w16-set-clipboard-data "w16select.c")
@@ -158,62 +158,59 @@ created."
 ;; a useful function for returning 'nil regardless of argument.
 
 ;; Note: Any re-definition in this file of a function that is defined
-;; in C on other platforms, should either have no doc-string, or one
-;; that is identical to the C version, but with the arglist signature
-;; at the end.  Otherwise help-split-fundoc gets confused on other
-;; platforms.  (Bug#10783)
+;; in C on other platforms, should either have a doc-string that
+;; starts with "SKIP", or one that is identical to the C version,
+;; but with the arglist signature at the end.  Otherwise
+;; help-split-fundoc gets confused on other platforms.  (Bug#10783)
 
-;; From src/xfns.c
 (defun x-list-fonts (_pattern &optional _face _frame _maximum width)
-  "Return a list of the names of available fonts matching PATTERN.
-If optional arguments FACE and FRAME are specified, return only fonts
-the same size as FACE on FRAME.
-
-PATTERN should be a string containing a font name in the XLFD,
-Fontconfig, or GTK format.  A font name given in the XLFD format may
-contain wildcard characters:
-  the * character matches any substring, and
-  the ? character matches any single character.
-  PATTERN is case-insensitive.
-
-The return value is a list of strings, suitable as arguments to
-`set-face-font'.
-
-Fonts Emacs can't use may or may not be excluded
-even if they match PATTERN and FACE.
-The optional fourth argument MAXIMUM sets a limit on how many
-fonts to match.  The first MAXIMUM fonts are reported.
-The optional fifth argument WIDTH, if specified, is a number of columns
-occupied by a character of a font.  In that case, return only fonts
-the WIDTH times as wide as FACE on FRAME."
+  "SKIP: real doc in xfaces.c."
   (if (or (null width) (and (numberp width) (= width 1)))
       (list "ms-dos")
     (list "no-such-font")))
-(defun x-display-pixel-width (&optional frame) (frame-width frame))
-(defun x-display-pixel-height (&optional frame) (frame-height frame))
-(defun x-display-planes (&optional _frame) 4) ;bg switched to 16 colors as well
-(defun x-display-color-cells (&optional _frame) 16)
-(defun x-server-max-request-size (&optional _frame) 1000000) ; ???
-(defun x-server-vendor (&optional _frame) t "GNU")
-(defun x-server-version (&optional _frame) '(1 0 0))
-(defun x-display-screens (&optional _frame) 1)
-(defun x-display-mm-height (&optional _frame) 245) ; Guess the size of my
-(defun x-display-mm-width (&optional _frame) 322)  ; monitor, EZ...
-(defun x-display-backing-store (&optional _frame) 'not-useful)
-(defun x-display-visual-class (&optional _frame) 'static-color)
+(defun x-display-pixel-width (&optional frame)
+  "SKIP: real doc in xfns.c."
+  (frame-width frame))
+(defun x-display-pixel-height (&optional frame)
+  "SKIP: real doc in xfns.c."
+  (frame-height frame))
+(defun x-display-planes (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  4) ;bg switched to 16 colors as well
+(defun x-display-color-cells (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  16)
+(defun x-server-max-request-size (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  1000000) ; ???
+(defun x-server-vendor (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  "GNU")
+(defun x-server-version (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  '(1 0 0))
+(defun x-display-screens (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  1)
+(defun x-display-mm-height (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  245) ; Guess the size of my...
+(defun x-display-mm-width (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  322)  ; ...monitor, EZ...
+(defun x-display-backing-store (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  'not-useful)
+(defun x-display-visual-class (&optional _frame)
+  "SKIP: real doc in xfns.c."
+  'static-color)
 (fset 'x-display-save-under 'ignore)
 (fset 'x-get-resource 'ignore)
 
-;; From lisp/term/x-win.el
 (defvar x-display-name "pc"
-  "The name of the window display on which Emacs was started.
-On X, the display name of individual X frames is recorded in the
-`display' frame parameter.")
+  "SKIP: real doc in common-win.el.")
 (defvar x-colors (mapcar 'car msdos-color-values)
-  "List of basic colors available on color displays.
-For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
-For Nextstep, this is a list of non-PANTONE colors returned by
-the operating system.")
+  "SKIP: real doc in common-win.el.")
 
 ;; From lisp/term/w32-win.el
 ;
@@ -249,6 +246,14 @@ Consult the selection.  Treat empty strings as if they were unset."
         ;; if it does not exist, or exists and compares
         ;; equal with the last text we've put into the
         ;; Windows clipboard.
+        ;; NOTE: that variable is actually the last text any program
+        ;; (not just Emacs) has put into the windows clipboard (up
+        ;; until the last time Emacs read or set the clipboard), so
+        ;; it's not suitable for checking actual selection
+        ;; ownership. This should not result in a bug for the current
+        ;; uses of gui-backend-selection-owner however, since they
+        ;; don't actually care about selection ownership, but about
+        ;; the selected text having changed.
         (cond
          ((not text) t)
          ((equal text gui--last-selected-text-clipboard) text)
@@ -275,7 +280,7 @@ Consult the selection.  Treat empty strings as if they were unset."
 (fset 'iconify-or-deiconify-frame 'ignore)
 
 ;; From lisp/frame.el
-(fset 'set-default-font 'ignore)
+(fset 'set-frame-font 'ignore)
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.
@@ -293,7 +298,7 @@ This is used by `msdos-show-help'.")
              (not cursor-in-echo-area)) ;Don't overwrite a prompt.
     (cond
      ((stringp help)
-      (setq help (replace-regexp-in-string "\n" ", " help))
+      (setq help (string-replace "\n" ", " help))
       (unless (or msdos-previous-message
 		  (string-equal help (current-message))
 		  (and (stringp msdos-last-help-message)

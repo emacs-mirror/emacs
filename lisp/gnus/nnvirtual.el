@@ -1,6 +1,6 @@
-;;; nnvirtual.el --- virtual newsgroups access for Gnus
+;;; nnvirtual.el --- virtual newsgroups access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -38,7 +38,7 @@
 (require 'gnus-start)
 (require 'gnus-sum)
 (require 'gnus-msg)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nnvirtual)
 
@@ -57,26 +57,32 @@ component group will show up when you enter the virtual group.")
 
 
 (defconst nnvirtual-version "nnvirtual 1.1")
+(make-obsolete-variable 'nnvirtual-version 'emacs-version "29.1")
 
 (defvoo nnvirtual-current-group nil)
 
 (defvoo nnvirtual-mapping-table nil
-  "Table of rules on how to map between component group and article number to virtual article number.")
+  "Table of rules for mapping groups and articles to virtual article numbers.
+These rules determine how to map between component group and article number
+on the one hand, and virtual article number on the other hand.")
 
 (defvoo nnvirtual-mapping-offsets nil
-  "Table indexed by component group to an offset to be applied to article numbers in that group.")
+  "Table of mapping offsets to be applied to article numbers in a group.
+The table is indexed by component group number of the group.")
 
 (defvoo nnvirtual-mapping-len 0
   "Number of articles in this virtual group.")
 
 (defvoo nnvirtual-mapping-reads nil
-  "Compressed sequence of read articles on the virtual group as computed from the unread status of individual component groups.")
+  "Compressed sequence of read articles on the virtual group.
+It is computed from the unread status of individual component groups.")
 
 (defvoo nnvirtual-mapping-marks nil
-  "Compressed marks alist for the virtual group as computed from the marks of individual component groups.")
+  "Compressed marks alist for the virtual group.
+It is computed from the marks of individual component groups.")
 
 (defvoo nnvirtual-info-installed nil
-  "T if we have already installed the group info for this group, and shouldn't blast over it again.")
+  "t if the group info for this group is already installed.")
 
 (defvoo nnvirtual-status-string "")
 
@@ -89,15 +95,15 @@ component group will show up when you enter the virtual group.")
 (nnoo-define-basics nnvirtual)
 
 
-(deffoo nnvirtual-retrieve-headers (articles &optional newsgroup
-					     server fetch-old)
+(deffoo nnvirtual-retrieve-headers (articles &optional _newsgroup
+					     server _fetch-old)
   (when (nnvirtual-possibly-change-server server)
     (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (if (stringp (car articles))
 	  'headers
 	(let ((vbuf (nnheader-set-temp-buffer
-		     (get-buffer-create " *virtual headers*")))
+		     (gnus-get-buffer-create " *virtual headers*")))
 	      (carticles (nnvirtual-partition-sequence articles))
 	      (sysname (system-name))
 	      cgroup carticle article result prefix)
@@ -109,14 +115,9 @@ component group will show up when you enter the virtual group.")
 		       (gnus-check-server
 			(gnus-find-method-for-group cgroup) t)
 		       (gnus-request-group cgroup t)
-		       (setq prefix (gnus-group-real-prefix cgroup))
-		       ;; FIX FIX FIX we want to check the cache!
-		       ;; This is probably evil if people have set
-		       ;; gnus-use-cache to nil themselves, but I
-		       ;; have no way of finding the true value of it.
-		       (let ((gnus-use-cache t))
-			 (setq result (gnus-retrieve-headers
-				       articles cgroup nil))))
+		       (setq prefix (gnus-group-real-prefix cgroup)
+                             result (gnus-retrieve-headers
+				     articles cgroup nil)))
 	      (set-buffer nntp-server-buffer)
 	      ;; If we got HEAD headers, we convert them into NOV
 	      ;; headers.  This is slow, inefficient and, come to think
@@ -181,7 +182,7 @@ component group will show up when you enter the virtual group.")
 
 (defvoo nnvirtual-last-accessed-component-group nil)
 
-(deffoo nnvirtual-request-article (article &optional group server buffer)
+(deffoo nnvirtual-request-article (article &optional _group server buffer)
   (when (nnvirtual-possibly-change-server server)
     (if (stringp article)
 	;; This is a fetch by Message-ID.
@@ -234,20 +235,18 @@ component group will show up when you enter the virtual group.")
 	  nnvirtual-mapping-marks nil
 	  nnvirtual-info-installed nil)
     (when nnvirtual-component-regexp
-      ;; Go through the newsrc alist and find all component groups.
-      (let ((newsrc (cdr gnus-newsrc-alist))
-	    group)
-	(while (setq group (car (pop newsrc)))
-	  (when (string-match nnvirtual-component-regexp group) ; Match
-	    ;; Add this group to the list of component groups.
-	    (setq nnvirtual-component-groups
-		  (cons group (delete group nnvirtual-component-groups)))))))
+      ;; Go through the list of groups and find all component groups.
+      (dolist (group (cdr gnus-group-list))
+	(when (string-match nnvirtual-component-regexp group) ; Match
+	  ;; Add this group to the list of component groups.
+	  (setq nnvirtual-component-groups
+		(cons group (delete group nnvirtual-component-groups))))))
     (if (not nnvirtual-component-groups)
 	(nnheader-report 'nnvirtual "No component groups: %s" server)
       t)))
 
 
-(deffoo nnvirtual-request-group (group &optional server dont-check info)
+(deffoo nnvirtual-request-group (group &optional server dont-check _info)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))
@@ -266,7 +265,7 @@ component group will show up when you enter the virtual group.")
 		     nnvirtual-mapping-len nnvirtual-mapping-len group))))
 
 
-(deffoo nnvirtual-request-type (group &optional article)
+(deffoo nnvirtual-request-type (_group &optional article)
   (if (not article)
       'unknown
     (if (numberp article)
@@ -276,7 +275,7 @@ component group will show up when you enter the virtual group.")
       (gnus-request-type
        nnvirtual-last-accessed-component-group nil))))
 
-(deffoo nnvirtual-request-update-mark (group article mark)
+(deffoo nnvirtual-request-update-mark (_group article mark)
   (let* ((nart (nnvirtual-map-article article))
 	 (cgroup (car nart)))
     (when (and nart
@@ -288,22 +287,22 @@ component group will show up when you enter the virtual group.")
   mark)
 
 
-(deffoo nnvirtual-close-group (group &optional server)
+(deffoo nnvirtual-close-group (_group &optional server)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not (gnus-ephemeral-group-p (nnvirtual-current-group))))
     (nnvirtual-update-read-and-marked t t))
   t)
 
 
-(deffoo nnvirtual-request-newgroups (date &optional server)
+(deffoo nnvirtual-request-newgroups (_date &optional _server)
   (nnheader-report 'nnvirtual "NEWGROUPS is not supported."))
 
 
-(deffoo nnvirtual-request-list-newsgroups (&optional server)
+(deffoo nnvirtual-request-list-newsgroups (&optional _server)
   (nnheader-report 'nnvirtual "LIST NEWSGROUPS is not implemented."))
 
 
-(deffoo nnvirtual-request-update-info (group info &optional server)
+(deffoo nnvirtual-request-update-info (_group info &optional server)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not nnvirtual-info-installed))
     ;; Install the precomputed lists atomically, so the virtual group
@@ -318,7 +317,7 @@ component group will show up when you enter the virtual group.")
     t))
 
 
-(deffoo nnvirtual-catchup-group (group &optional server all)
+(deffoo nnvirtual-catchup-group (_group &optional server all)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not (gnus-ephemeral-group-p (nnvirtual-current-group))))
     ;; copy over existing marks first, in case they set anything
@@ -336,12 +335,12 @@ component group will show up when you enter the virtual group.")
 	(gnus-group-catchup-current nil all)))))
 
 
-(deffoo nnvirtual-find-group-art (group article)
+(deffoo nnvirtual-find-group-art (_group article)
   "Return the real group and article for virtual GROUP and ARTICLE."
   (nnvirtual-map-article article))
 
 
-(deffoo nnvirtual-request-post (&optional server)
+(deffoo nnvirtual-request-post (&optional _server)
   (if (not gnus-message-group-art)
       (nnheader-report 'nnvirtual "Can't post to an nnvirtual group")
     (let ((group (car (nnvirtual-find-group-art
@@ -350,8 +349,8 @@ component group will show up when you enter the virtual group.")
       (gnus-request-post (gnus-find-method-for-group group)))))
 
 
-(deffoo nnvirtual-request-expire-articles (articles group
-						    &optional server force)
+(deffoo nnvirtual-request-expire-articles ( _articles _group
+					    &optional server _force)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))
@@ -359,12 +358,12 @@ component group will show up when you enter the virtual group.")
     (dolist (group nnvirtual-component-groups)
       (setq unexpired (nconc unexpired
 			     (mapcar
-			      #'(lambda (article)
-				  (nnvirtual-reverse-map-article
-				   group article))
-			      (gnus-uncompress-range
+                              (lambda (article)
+                                (nnvirtual-reverse-map-article
+                                 group article))
+			      (range-uncompress
 			       (gnus-group-expire-articles-1 group))))))
-    (sort (delq nil unexpired) '<)))
+    (sort (delq nil unexpired) #'<)))
 
 
 ;;; Internal functions.
@@ -372,20 +371,23 @@ component group will show up when you enter the virtual group.")
 (defun nnvirtual-convert-headers ()
   "Convert HEAD headers into NOV headers."
   (with-current-buffer nntp-server-buffer
-    (let* ((dependencies (make-vector 100 0))
+    (let* ((dependencies (make-hash-table :test #'equal))
 	   (headers (gnus-get-newsgroup-headers dependencies)))
       (erase-buffer)
-      (mapc 'nnheader-insert-nov headers))))
+      (mapc #'nnheader-insert-nov headers))))
 
 
 (defun nnvirtual-update-xref-header (group article prefix sysname)
-  "Edit current NOV header in current buffer to have an xref to the component group, and also server prefix any existing xref lines."
+  "Edit current NOV header to have xref to component group and correct prefix.
+This function edits the current NOV header in current buffer so that it
+has an xref to the component group, and also ensures any existing xref
+lines have the correct component server prefix."
   ;; Move to beginning of Xref field, creating a slot if needed.
   (beginning-of-line)
   (looking-at
    "[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t")
   (goto-char (match-end 0))
-  (unless (search-forward "\t" (point-at-eol) 'move)
+  (unless (search-forward "\t" (line-end-position) 'move)
     (insert "\t"))
 
   ;; Remove any spaces at the beginning of the Xref field.
@@ -401,8 +403,8 @@ component group will show up when you enter the virtual group.")
   ;; component server prefix.
   (save-restriction
     (narrow-to-region (point)
-		      (or (search-forward "\t" (point-at-eol) t)
-			  (point-at-eol)))
+                      (or (search-forward "\t" (line-end-position) t)
+                          (line-end-position)))
     (goto-char (point-min))
     (when (re-search-forward "Xref: *[^\n:0-9 ]+ *" nil t)
       (replace-match "" t t))
@@ -465,11 +467,10 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 	(dolist (group nnvirtual-component-groups)
 	  (when (and (setq info (gnus-get-info group))
 		     (gnus-info-marks info))
-	    (gnus-info-set-marks
-	     info
-	     (if (assq 'score (gnus-info-marks info))
-		 (list (assq 'score (gnus-info-marks info)))
-	       nil))))
+	    (setf (gnus-info-marks info)
+		  (if (assq 'score (gnus-info-marks info))
+		      (list (assq 'score (gnus-info-marks info)))
+		    nil))))
 
 	;; Ok, currently type-marks is an assq list with keys of a mark type,
 	;; with data of an assq list with keys of component group names
@@ -493,81 +494,83 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 
 
 
-;;; This is currently O(kn^2) to merge n lists of length k.
-;;; You could do it in O(knlogn), but we have a small n, and the
-;;; overhead of the other approach is probably greater.
+;; This is currently O(kn^2) to merge n lists of length k.
+;; You could do it in O(knlogn), but we have a small n, and the
+;; overhead of the other approach is probably greater.
 (defun nnvirtual-merge-sorted-lists (&rest lists)
   "Merge many sorted lists of numbers."
   (if (null (cdr lists))
       (car lists)
-    (sort (apply 'nconc lists) '<)))
+    (sort (apply #'nconc lists) #'<)))
 
 
-;;; We map between virtual articles and real articles in a manner
-;;; which keeps the size of the virtual active list the same as the
-;;; sum of the component active lists.
+;; We map between virtual articles and real articles in a manner
+;; which keeps the size of the virtual active list the same as the
+;; sum of the component active lists.
 
-;;; To achieve fair mixing of the groups, the last article in each of
-;;; N component groups will be in the last N articles in the virtual
-;;; group.
+;; To achieve fair mixing of the groups, the last article in each of
+;; N component groups will be in the last N articles in the virtual
+;; group.
 
-;;; If you have 3 components A, B and C, with articles 1-8, 1-5, and
-;;; 6-7 respectively, then the virtual article numbers look like:
-;;;
-;;;  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
-;;;  A1 A2 A3 A4 B1 A5 B2 A6 B3 A7 B4 C6 A8 B5 C7
+;; If you have 3 components A, B and C, with articles 1-8, 1-5, and
+;; 6-7 respectively, then the virtual article numbers look like:
+;;
+;;  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+;;  A1 A2 A3 A4 B1 A5 B2 A6 B3 A7 B4 C6 A8 B5 C7
 
-;;; To compute these mappings we generate a couple tables and then
-;;; do some fast operations on them.  Tables for the example above:
-;;;
-;;; Offsets - [(A 0) (B -3) (C -1)]
-;;;
-;;;               a  b  c  d  e
-;;; Mapping - ([  3  0  1  3  0 ]
-;;;            [  6  3  2  9  3 ]
-;;;            [  8  6  3 15  9 ])
-;;;
-;;; (note column 'e' is different in real algorithm, which is slightly
-;;;  different than described here, but this gives you the methodology.)
-;;;
-;;; The basic idea is this, when going from component->virtual, apply
-;;; the appropriate offset to the article number.  Then search the first
-;;; column of the table for a row where 'a' is less than or equal to the
-;;; modified number.  You can see that only group A can therefore go to
-;;; the first row, groups A and B to the second, and all to the last.
-;;; The third column of the table is telling us the number of groups
-;;; which might be able to reach that row (it might increase by more than
-;;; 1 if several groups have the same size).
-;;; Then column 'b' provides an additional offset you apply when you have
-;;; found the correct row.  You then multiply by 'c' and add on the groups
-;;; _position_ in the offset table.  The basic idea here is that on
-;;; any given row we are going to map back and forth using X'=X*c+Y and
-;;; X=(X'/c), Y=(X' mod c).  Then once you've done this transformation,
-;;; you apply a final offset from column 'e' to give the virtual article.
-;;;
-;;; Going the other direction, you instead search on column 'd' instead
-;;; of 'a', and apply everything in reverse order.
+;; To compute these mappings we generate a couple tables and then
+;; do some fast operations on them.  Tables for the example above:
+;;
+;; Offsets - [(A 0) (B -3) (C -1)]
+;;
+;;               a  b  c  d  e
+;; Mapping - ([  3  0  1  3  0 ]
+;;            [  6  3  2  9  3 ]
+;;            [  8  6  3 15  9 ])
+;;
+;; (note column 'e' is different in real algorithm, which is slightly
+;;  different than described here, but this gives you the methodology.)
+;;
+;; The basic idea is this, when going from component->virtual, apply
+;; the appropriate offset to the article number.  Then search the first
+;; column of the table for a row where 'a' is less than or equal to the
+;; modified number.  You can see that only group A can therefore go to
+;; the first row, groups A and B to the second, and all to the last.
+;; The third column of the table is telling us the number of groups
+;; which might be able to reach that row (it might increase by more than
+;; 1 if several groups have the same size).
+;; Then column 'b' provides an additional offset you apply when you have
+;; found the correct row.  You then multiply by 'c' and add on the groups
+;; _position_ in the offset table.  The basic idea here is that on
+;; any given row we are going to map back and forth using X'=X*c+Y and
+;; X=(X'/c), Y=(X' mod c).  Then once you've done this transformation,
+;; you apply a final offset from column 'e' to give the virtual article.
+;;
+;; Going the other direction, you instead search on column 'd' instead
+;; of 'a', and apply everything in reverse order.
 
-;;; Convert component -> virtual:
-;;; set num = num - Offset(group)
-;;; find first row in Mapping where num <= 'a'
-;;; num = (num-'b')*c + Position(group) + 'e'
+;; Convert component -> virtual:
+;; set num = num - Offset(group)
+;; find first row in Mapping where num <= 'a'
+;; num = (num-'b')*c + Position(group) + 'e'
 
-;;; Convert virtual -> component:
-;;; find first row in Mapping where num <= 'd'
-;;; num = num - 'e'
-;;; group_pos = num mod 'c'
-;;; num = (num / 'c') + 'b' + Offset(group_pos)
+;; Convert virtual -> component:
+;; find first row in Mapping where num <= 'd'
+;; num = num - 'e'
+;; group_pos = num mod 'c'
+;; num = (num / 'c') + 'b' + Offset(group_pos)
 
-;;; Easy no? :)
-;;;
-;;; Well actually, you need to keep column e offset smaller by the 'c'
-;;; column for that line, and always add 1 more when going from
-;;; component -> virtual.  Otherwise you run into a problem with
-;;; unique reverse mapping.
+;; Easy no? :)
+;;
+;; Well actually, you need to keep column e offset smaller by the 'c'
+;; column for that line, and always add 1 more when going from
+;; component -> virtual.  Otherwise you run into a problem with
+;; unique reverse mapping.
 
 (defun nnvirtual-map-article (article)
-  "Return a cons of the component group and article corresponding to the given virtual ARTICLE."
+  "Return the component group and article corresponding to virtual ARTICLE.
+Value is a cons of the component group and article corresponding to the given
+virtual ARTICLE."
   (let ((table nnvirtual-mapping-table)
 	entry group-pos)
     (while (and table
@@ -588,7 +591,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 
 
 (defun nnvirtual-reverse-map-article (group article)
-  "Return the virtual article number corresponding to the given component GROUP and ARTICLE."
+  "Return virtual article number corresponding to component GROUP and ARTICLE."
   (when (numberp article)
     (let ((table nnvirtual-mapping-table)
 	  (group-pos 0)
@@ -646,7 +649,7 @@ numbers has no corresponding component article, then it is left out of
 the result."
   (when (numberp (cdr-safe articles))
     (setq articles (list articles)))
-  (let ((carticles (mapcar 'list nnvirtual-component-groups))
+  (let ((carticles (mapcar #'list nnvirtual-component-groups))
 	a i j article entry)
     (while (setq a (pop articles))
       (if (atom a)
@@ -665,7 +668,7 @@ the result."
 
 
 (defun nnvirtual-create-mapping (dont-check)
-  "Build the tables necessary to map between component (group, article) to virtual article.
+  "Build tables to map between component (group, article) to virtual article.
 Generate the set of read messages and marks for the virtual group
 based on the marks on the component groups."
   (let ((cnt 0)
@@ -748,7 +751,7 @@ based on the marks on the component groups."
     ;; Now that the mapping tables are generated, we can convert
     ;; and combine the separate component unreads and marks lists
     ;; into single lists of virtual article numbers.
-    (setq unreads (apply 'nnvirtual-merge-sorted-lists
+    (setq unreads (apply #'nnvirtual-merge-sorted-lists
 			 (mapcar (lambda (x)
 				   (nnvirtual-reverse-map-sequence
 				    (car x) (cdr x)))
@@ -758,7 +761,7 @@ based on the marks on the component groups."
 		   (cons (cdr type)
 			 (gnus-compress-sequence
 			  (apply
-			   'nnvirtual-merge-sorted-lists
+			   #'nnvirtual-merge-sorted-lists
 			   (mapcar (lambda (x)
 				     (nnvirtual-reverse-map-sequence
 				      (car x)
@@ -774,13 +777,13 @@ based on the marks on the component groups."
 
     ;; We need to convert the unreads to reads.  We compress the
     ;; sequence as we go, otherwise it could be huge.
-    (while (and (<= (incf i) nnvirtual-mapping-len)
+    (while (and (<= (cl-incf i) nnvirtual-mapping-len)
 		unreads)
       (if (= i (car unreads))
 	  (setq unreads (cdr unreads))
 	;; try to get a range.
 	(setq beg i)
-	(while (and (<= (incf i) nnvirtual-mapping-len)
+	(while (and (<= (cl-incf i) nnvirtual-mapping-len)
 		    (not (= i (car unreads)))))
 	(setq i (- i 1))
 	(if (= i beg)

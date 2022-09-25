@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -26,12 +26,6 @@
 
 ;; This is a mercurial version control backend
 
-;;; Thanks:
-
-;;; Bugs:
-
-;;; Installation:
-
 ;;; Todo:
 
 ;; 1) Implement the rest of the vc interface. See the comment at the
@@ -40,6 +34,7 @@
 ;; FUNCTION NAME                               STATUS
 ;; BACKEND PROPERTIES
 ;; * revision-granularity                      OK
+;; - update-on-retrieve-tag                    OK
 ;; STATE-QUERYING FUNCTIONS
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
@@ -96,18 +91,17 @@
 ;; without even using `hg' (this way even if you don't have `hg' installed,
 ;; Emacs is able to tell you this file is under mercurial's control).
 
-;;; History:
-;;
-
 ;;; Code:
+
+(require 'cl-lib)
 
 (eval-when-compile
   (require 'vc)
   (require 'vc-dir))
 
-(require 'cl-lib)
-
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
+(declare-function vc-read-revision "vc"
+                  (prompt &optional files backend default initial-input))
 
 ;;; Customization options
 
@@ -121,8 +115,7 @@
   :type '(choice (const :tag "None" nil)
          (string :tag "Argument String")
          (repeat :tag "Argument List" :value ("") string))
-  :version "22.2"
-  :group 'vc-hg)
+  :version "22.2")
 
 (defcustom vc-hg-diff-switches t ; Hg doesn't support common args like -u
   "String or list of strings specifying switches for Hg diff under VC.
@@ -131,8 +124,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (const :tag "None" t)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
-  :version "23.1"
-  :group 'vc-hg)
+  :version "23.1")
 
 (defcustom vc-hg-annotate-switches '("-u" "--follow")
   "String or list of strings specifying switches for hg annotate under VC.
@@ -142,13 +134,18 @@ switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "25.1"
-  :group 'vc-hg)
+  :version "25.1")
+
+(defcustom vc-hg-revert-switches nil
+  "String or list of strings specifying switches for hg revert under VC."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "27.1")
 
 (defcustom vc-hg-program "hg"
   "Name of the Mercurial executable (excluding any arguments)."
-  :type 'string
-  :group 'vc-hg)
+  :type 'string)
 
 (defcustom vc-hg-root-log-format
   `(,(concat "{rev}:{ifeq(branch, 'default','', '{branch}')}"
@@ -170,17 +167,31 @@ is the \"--template\" argument string to pass to Mercurial,
 REGEXP is a regular expression matching the resulting Mercurial
 output, and KEYWORDS is a list of `font-lock-keywords' for
 highlighting the Log View buffer."
-  :type '(list string string (repeat sexp))
-  :group 'vc-hg
+  :type '(list string regexp (repeat sexp))
   :version "24.5")
 
+(defcustom vc-hg-create-bookmark t
+  "This controls whether `vc-create-tag' will create a bookmark or branch.
+If nil, named branch will be created.
+If t, bookmark will be created.
+If `ask', you will be prompted for a branch type."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t)
+                 (const :tag "Ask" ask))
+  :version "28.1")
+
 
+;; Clear up the cache to force vc-call to check again and discover
+;; new functions when we reload this file.
+(put 'Hg 'vc-functions nil)
+
 ;;; Properties of the backend
 
 (defvar vc-hg-history nil)
 
 (defun vc-hg-revision-granularity () 'repository)
 (defun vc-hg-checkout-model (_files) 'implicit)
+(defun vc-hg-update-on-retrieve-tag () nil)
 
 ;;; State querying functions
 
@@ -195,8 +206,11 @@ highlighting the Log View buffer."
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (let ((state (vc-hg-state file)))  ; expensive
-      (and state (not (memq state '(ignored unregistered)))))))
+    (let ((state (vc-state file 'Hg)))  ; expensive
+      (if (memq state '(ignored unregistered nil))
+          ;; Clear the cache for proper fallback to another backend.
+          (ignore (vc-file-setprop file 'vc-state nil))
+        t))))
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -224,6 +238,7 @@ highlighting the Log View buffer."
 			      process-environment)))
 			(process-file
 			 vc-hg-program nil t nil
+                         "--config" "ui.report_untrusted=0"
 			 "--config" "alias.status=status"
 			 "--config" "defaults.status="
 			 "status" "-A" (file-relative-name file)))
@@ -245,20 +260,19 @@ highlighting the Log View buffer."
 	 ((eq state ?C) 'up-to-date) ;; Older mercurial versions use this.
 	 (t 'up-to-date))))))
 
-(defun vc-hg-working-revision (file)
+(defun vc-hg-working-revision (_file)
   "Hg-specific version of `vc-working-revision'."
-  (or (ignore-errors
-        (with-output-to-string
-          (vc-hg-command standard-output 0 file
-                         "parent" "--template" "{rev}")))
-      "0"))
+  (ignore-errors
+    (with-output-to-string
+      (vc-hg-command standard-output 0 nil
+                     "log" "-r" "." "--template" "{rev}"))))
 
 (defcustom vc-hg-symbolic-revision-styles
   '(builtin-active-bookmark
     "{if(bookmarks,sub(' ',',',bookmarks),if(phabdiff,phabdiff,shortest(node,6)))}")
-  "List of ways to present versions symbolically.  The version
-that we use is the first one that successfully produces a
-non-empty string.
+  "List of ways to present versions symbolically.
+The version that we use is the first one that successfully
+produces a non-empty string.
 
 Each entry in the list can be either:
 
@@ -276,22 +290,20 @@ and an optional path to which to limit history) and produce a
 string.  The function is called with `default-directory' set to
 within the repository.
 
-If no list entry produces a useful revision, return `nil'."
+If no list entry produces a useful revision, return nil."
   :type '(repeat (choice
-                  (const :tag "Active bookmark" 'bookmark)
+                  (const :tag "Active bookmark" builtin-active-bookmark)
                   (string :tag "Hg template")
                   (function :tag "Custom")))
-  :version "26.1"
-  :group 'vc-hg)
+  :version "26.1")
 
 (defcustom vc-hg-use-file-version-for-mode-line-version nil
   "When enabled, the modeline contains revision information for the visited file.
 When not, the revision in the modeline is for the repository
-working copy.  `nil' is the much faster setting for
+working copy.  nil is the much faster setting for
 large repositories."
   :type 'boolean
-  :version "26.1"
-  :group 'vc-hg)
+  :version "26.1")
 
 (defun vc-hg--active-bookmark-internal (rev)
   (when (equal rev ".")
@@ -383,8 +395,7 @@ specific file to query."
   "String or list of strings specifying switches for hg log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
-                 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-hg)
+                 (repeat :tag "Argument List" :value ("") string)))
 
 (autoload 'vc-setup-buffer "vc-dispatcher")
 
@@ -412,10 +423,12 @@ If LIMIT is non-nil, show no more than this many entries."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (apply 'vc-hg-command buffer 'async files "log"
+      (apply #'vc-hg-command buffer 'async files "log"
 	     (nconc
 	      (when start-revision (list (format "-r%s:0" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))
+              (when (eq vc-log-view-type 'with-diff)
+                (list "-p"))
 	      (if shortlog
                   `(,@(if vc-hg-log-graph '("--graph"))
                     "--template"
@@ -431,19 +444,19 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (set (make-local-variable 'log-view-file-re) "\\`a\\`")
-  (set (make-local-variable 'log-view-per-file-logs) nil)
-  (set (make-local-variable 'log-view-message-re)
-       (if (eq vc-log-view-type 'short)
-	   (cadr vc-hg-root-log-format)
-         "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
-  (set (make-local-variable 'tab-width) 2)
+  (setq-local log-view-file-re regexp-unmatchable)
+  (setq-local log-view-per-file-logs nil)
+  (setq-local log-view-message-re
+              (if (eq vc-log-view-type 'short)
+                  (cadr vc-hg-root-log-format)
+                "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)"))
+  (setq-local tab-width 2)
   ;; Allow expanding short log entries
   (when (eq vc-log-view-type 'short)
     (setq truncate-lines t)
-    (set (make-local-variable 'log-view-expanded-log-entry-function)
-	 'vc-hg-expanded-log-entry))
-  (set (make-local-variable 'log-view-font-lock-keywords)
+    (setq-local log-view-expanded-log-entry-function
+                'vc-hg-expanded-log-entry))
+  (setq-local log-view-font-lock-keywords
        (if (eq vc-log-view-type 'short)
 	   (list (cons (nth 1 vc-hg-root-log-format)
 		       (nth 2 vc-hg-root-log-format)))
@@ -466,6 +479,55 @@ If LIMIT is non-nil, show no more than this many entries."
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 (autoload 'vc-switches "vc")
+
+(defun vc-hg-region-history (file buffer lfrom lto)
+  "Insert into BUFFER the history of FILE for lines LFROM to LTO.
+This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
+  (vc-hg-command buffer 'async nil "log" "-f" "-p" "-L"
+                  (format "%s,%d:%d" (file-relative-name file) lfrom lto)))
+
+(require 'diff-mode)
+
+(defvar vc-hg-region-history-mode-map
+  (let ((map (make-composed-keymap
+              nil (make-composed-keymap
+                   (list diff-mode-map vc-hg-log-view-mode-map)))))
+    map))
+
+(defvar vc-hg--log-view-long-font-lock-keywords nil)
+(defvar font-lock-keywords)
+(defvar vc-hg-region-history-font-lock-keywords
+  '((vc-hg-region-history-font-lock)))
+
+(defun vc-hg-region-history-font-lock (limit)
+  (let ((in-diff (save-excursion
+                   (beginning-of-line)
+                   (or (looking-at "^\\(?:diff\\|changeset\\)\\>")
+                       (re-search-backward "^\\(?:diff\\|changeset\\)\\>"
+                                           nil t))
+                   (eq ?d (char-after (match-beginning 0))))))
+    (while
+        (let ((end (save-excursion
+                     (if (re-search-forward "\n\\(diff\\|changeset\\)\\>"
+                                            limit t)
+                         (match-beginning 1)
+                       limit))))
+          (let ((font-lock-keywords (if in-diff diff-font-lock-keywords
+                                      vc-hg--log-view-long-font-lock-keywords)))
+            (font-lock-fontify-keywords-region (point) end))
+          (goto-char end)
+          (prog1 (< (point) limit)
+            (setq in-diff (eq ?d (char-after))))))
+    nil))
+
+(define-derived-mode vc-hg-region-history-mode
+    vc-hg-log-view-mode "Hg-Region-History"
+  "Major mode to browse Hg's \"log -p\" output."
+  (setq-local vc-hg--log-view-long-font-lock-keywords
+              log-view-font-lock-keywords)
+  (setq-local font-lock-defaults
+              (cons 'vc-hg-region-history-font-lock-keywords
+                    (cdr font-lock-defaults))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer _async)
   "Get a difference report using hg between two revisions of FILES."
@@ -499,7 +561,9 @@ If LIMIT is non-nil, show no more than this many entries."
 (defun vc-hg-revision-table (files)
   (let ((default-directory (file-name-directory (car files))))
     (with-temp-buffer
-      (vc-hg-command t nil files "log" "--template" "{rev} ")
+      (vc-hg-command t nil nil "branches" "-q")
+      (vc-hg-command t nil nil "bookmarks" "-q")
+      (vc-hg-command t nil nil "tags" "-q")
       (split-string
        (buffer-substring-no-properties (point-min) (point-max))))))
 
@@ -554,40 +618,47 @@ Optional arg REVISION is a revision to annotate from."
 ;;; Tag system
 
 (defun vc-hg-create-tag (dir name branchp)
-  "Attach the tag NAME to the state of the working copy."
+  "Create tag NAME in repo in DIR.  Create branch if BRANCHP.
+Variable `vc-hg-create-bookmark' controls what kind of branch will be created."
   (let ((default-directory dir))
-    (and (vc-hg-command nil 0 nil "status")
-         (vc-hg-command nil 0 nil (if branchp "bookmark" "tag") name))))
+    (vc-hg-command nil 0 nil
+                   (if branchp
+                       (if (if (eq vc-hg-create-bookmark 'ask)
+                               (yes-or-no-p "Create bookmark instead of branch? ")
+                             vc-hg-create-bookmark)
+                           "bookmark"
+                         "branch")
+                     "tag")
+                   name)))
 
 (defun vc-hg-retrieve-tag (dir name _update)
   "Retrieve the version tagged by NAME of all registered files at or below DIR."
   (let ((default-directory dir))
-    (vc-hg-command nil 0 nil "update" name)
+    (vc-hg-command nil 0 nil "update" (and (not (equal name ""))
+                                           name))
     ;; TODO: update *vc-change-log* buffer so can see @ if --graph
     ))
 
 ;;; Native data structure reading
 
 (defcustom vc-hg-parse-hg-data-structures t
-  "If true, try directly parsing Mercurial data structures
-directly instead of always running Mercurial.  We try to be safe
+  "If true, try parsing Mercurial data structures directly.
+This is done instead of always running Mercurial.  We try to be safe
 against Mercurial data structure format changes and always fall
 back to running Mercurial directly."
   :type 'boolean
-  :version "26.1"
-  :group 'vc-hg)
+  :version "26.1")
 
 (defsubst vc-hg--read-u8 ()
   "Read and advance over an unsigned byte.
-Return a fixnum."
+Return the byte's value as an integer."
   (prog1 (char-after)
     (forward-char)))
 
 (defsubst vc-hg--read-u32-be ()
-  "Read and advance over a big-endian unsigned 32-bit integer.
-Return a fixnum; on overflow, result is undefined."
+  "Read and advance over a big-endian unsigned 32-bit integer."
   ;; Because elisp bytecode has an instruction for multiply and
-  ;; doesn't have one for lsh, it's somewhat counter-intuitively
+  ;; doesn't have one for shift, it's somewhat counter-intuitively
   ;; faster to multiply than to shift.
   (+ (* (vc-hg--read-u8) (* 256 256 256))
      (* (vc-hg--read-u8) (* 256 256))
@@ -601,7 +672,6 @@ Return a fixnum; on overflow, result is undefined."
     (let* ((result nil)
            (flen (length fname))
            (case-fold-search nil)
-           (inhibit-changing-match-data t)
            ;; Find a conservative bound for the loop below by using
            ;; Boyer-Moore on the raw dirstate without parsing it; we
            ;; know we can't possibly find fname _after_ the last place
@@ -623,9 +693,7 @@ Return a fixnum; on overflow, result is undefined."
       ;; hundreds of thousands of times, so performance is important
       ;; here
       (while (< (point) search-limit)
-        ;; 1+4*4 is the length of the dirstate item header, which we
-        ;; spell as a literal for performance, since the elisp
-        ;; compiler lacks constant propagation
+        ;; 1+4*4 is the length of the dirstate item header.
         (forward-char (1+ (* 3 4)))
         (let ((this-flen (vc-hg--read-u32-be)))
           (if (and (or (eq this-flen flen)
@@ -741,7 +809,7 @@ if we don't understand a construct, we signal
                (push c parts)
                (cond ((eq c ?\\) (setf state 'charclass-backslash))
                      ((eq c ?\]) (setf state 'normal))))
-              (t (error "invalid state")))
+              (t (error "Invalid state")))
         (setf i (1+ i))))
     (unless (eq state 'normal)
       (signal 'vc-hg-unsupported-syntax (list pcre)))
@@ -781,8 +849,8 @@ if we don't understand a construct, we signal
                         (push "\\[" parts))
                        (t
                         (let ((x (substring glob i j)))
-                          (setf x (replace-regexp-in-string
-                                   "\\\\" "\\\\" x t t))
+                          (setf x (string-replace
+                                   "\\" "\\\\" x))
                           (setf i (1+ j))
                           (cond ((eq (aref x 0) ?!)
                                  (setf (aref x 0) ?^))
@@ -832,14 +900,14 @@ if we don't understand a construct, we signal
     (with-temp-buffer
       (let ((attr (file-attributes hgignore)))
         (when attr (insert-file-contents hgignore))
-        (push (list hgignore (nth 5 attr) (nth 7 attr))
+        (push (list hgignore (file-attribute-modification-time attr) (file-attribute-size attr))
               vc-hg--hgignore-filenames))
       (while (not (eobp))
         ;; This list of pattern-file commands isn't complete, but it
         ;; should cover the common cases.  Remember that we fall back
         ;; to regular hg commands if we see something we don't like.
         (save-restriction
-          (narrow-to-region (point) (point-at-eol))
+          (narrow-to-region (point) (line-end-position))
           (cond ((looking-at "[ \t]*\\(?:#.*\\)?$"))
                 ((looking-at "syntax:[ \t]*re[ \t]*$")
                  (setf default-syntax 'vc-hg--hgignore-add-pcre))
@@ -888,7 +956,7 @@ REPO must be the directory name of an hg repository."
      :file-sources (nreverse vc-hg--hgignore-filenames))))
 
 (defun vc-hg--ignore-patterns-valid-p (hgip)
-  "Return whether the cached ignore patterns in HGIP are still valid"
+  "Return whether the cached ignore patterns in HGIP are still valid."
   (let ((valid t)
         (file-sources (vc-hg--ignore-patterns-file-sources hgip)))
     (while (and file-sources valid)
@@ -896,9 +964,9 @@ REPO must be the directory name of an hg repository."
              (saved-mtime (nth 1 fs))
              (saved-size (nth 2 fs))
              (attr (file-attributes (nth 0 fs)))
-             (current-mtime (nth 5 attr))
-             (current-size (nth 7 attr)))
-        (unless (and (equal saved-mtime current-mtime)
+             (current-mtime (file-attribute-modification-time attr))
+             (current-size (file-attribute-size attr)))
+	(unless (and (time-equal-p saved-mtime current-mtime)
                      (equal saved-size current-size))
           (setf valid nil))))
     valid))
@@ -907,14 +975,10 @@ REPO must be the directory name of an hg repository."
   "Test whether the ignore pattern set HGIP says to ignore FILENAME.
 FILENAME must be the file's true absolute name."
   (let ((patterns (vc-hg--ignore-patterns-ignore-patterns hgip))
-        (inhibit-changing-match-data t)
         (ignored nil))
     (while (and patterns (not ignored))
-      (setf ignored (string-match (pop patterns) filename)))
+      (setf ignored (string-match-p (pop patterns) filename)))
     ignored))
-
-(defun vc-hg--time-to-fixnum (ts)
-  (+ (* 65536 (car ts)) (cadr ts)))
 
 (defvar vc-hg--cached-ignore-patterns nil
   "Cached pre-parsed hg ignore patterns.")
@@ -950,9 +1014,9 @@ FILENAME must be the file's true absolute name."
     "remotefilelog"
     "revlogv1"
     "store")
-  "List of Mercurial repository requirements we understand; if a
-repository requires features not present in this list, we avoid
-attempting to parse Mercurial data structures.")
+  "List of Mercurial repository requirements we understand.
+If a repository requires features not present in this list, we
+avoid attempting to parse Mercurial data structures.")
 
 (defun vc-hg--requirements-understood-p (repo)
   "Check that we understand the format of the given repository.
@@ -967,17 +1031,18 @@ Avoids the need to repeatedly scan dirstate on repeated calls to
 `vc-hg-state', as we see during registration queries.")
 
 (defun vc-hg--cached-dirstate-search (dirstate dirstate-attr ascii-fname)
-  (let* ((mtime (nth 5 dirstate-attr))
-         (size (nth 7 dirstate-attr))
+  (let* ((mtime (file-attribute-modification-time dirstate-attr))
+         (size (file-attribute-size dirstate-attr))
          (cache vc-hg--dirstate-scan-cache)
          )
     (if (and cache
              (equal dirstate (pop cache))
-             (equal mtime (pop cache))
+	     (time-equal-p mtime (pop cache))
              (equal size (pop cache))
              (equal ascii-fname (pop cache)))
         (pop cache)
-      (let ((result (vc-hg--raw-dirstate-search dirstate ascii-fname)))
+      (let ((result (save-match-data
+                      (vc-hg--raw-dirstate-search dirstate ascii-fname))))
         (setf vc-hg--dirstate-scan-cache
               (list dirstate mtime size ascii-fname result))
         result))))
@@ -1011,9 +1076,7 @@ hg binary."
          ;; Repository must be in an understood format
          (not (vc-hg--requirements-understood-p repo))
          ;; Dirstate too small to be valid
-         (< (nth 7 dirstate-attr) 40)
-         ;; We want to store 32-bit unsigned values in fixnums
-         (< most-positive-fixnum 4294967295)
+         (< (file-attribute-size dirstate-attr) 40)
          (progn
            (setf repo-relative-filename
                  (file-relative-name truename repo))
@@ -1037,8 +1100,10 @@ hg binary."
               ((eq state ?n)
                (let ((vc-hg-size (nth 2 dirstate-entry))
                      (vc-hg-mtime (nth 3 dirstate-entry))
-                     (fs-size (nth 7 stat))
-                     (fs-mtime (vc-hg--time-to-fixnum (nth 5 stat))))
+                     (fs-size (file-attribute-size stat))
+		     (fs-mtime (time-convert
+				(file-attribute-modification-time stat)
+				'integer)))
                  (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
                      'up-to-date
                    'edited)))
@@ -1080,32 +1145,59 @@ hg binary."
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 new "mv" old))
+  (vc-hg-command nil 0 (expand-file-name new) "mv"
+                 (expand-file-name old)))
 
 (defun vc-hg-register (files &optional _comment)
-  "Register FILES under hg. COMMENT is ignored."
+  "Register FILES under hg.  COMMENT is ignored."
   (vc-hg-command nil 0 files "add"))
 
 (defun vc-hg-create-repo ()
   "Create a new Mercurial repository."
   (vc-hg-command nil 0 nil "init"))
 
-(defalias 'vc-hg-responsible-p 'vc-hg-root)
+(defalias 'vc-hg-responsible-p #'vc-hg-root)
 
 (defun vc-hg-unregister (file)
   "Unregister FILE from hg."
   (vc-hg-command nil 0 file "forget"))
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
+(declare-function log-edit-mode "log-edit" ())
+(declare-function log-edit--toggle-amend "log-edit" (last-msg-fn))
+
+(defun vc-hg-log-edit-toggle-amend ()
+  "Toggle whether this will amend the previous commit.
+If toggling on, also insert its message into the buffer."
+  (interactive)
+  (log-edit--toggle-amend
+   (lambda ()
+     (with-output-to-string
+       (vc-hg-command
+        standard-output 1 nil
+        "log" "--limit=1" "--template" "{desc}")))))
+
+(defvar-keymap vc-hg-log-edit-mode-map
+  :name "Hg-Log-Edit"
+  "C-c C-e" #'vc-hg-log-edit-toggle-amend)
+
+(define-derived-mode vc-hg-log-edit-mode log-edit-mode "Log-Edit/hg"
+  "Major mode for editing Hg log messages.
+It is based on `log-edit-mode', and has Hg-specific extensions.")
 
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (apply 'vc-hg-command nil 0 files
-         (nconc (list "commit" "-m")
-                (log-edit-extract-headers '(("Author" . "--user")
-					    ("Date" . "--date"))
-                                          comment))))
+  (let ((amend-extract-fn
+         (lambda (value)
+           (when (equal value "yes")
+             (list "--amend")))))
+    (apply #'vc-hg-command nil 0 files
+           (nconc (list "commit" "-m")
+                  (log-edit-extract-headers `(("Author" . "--user")
+                                              ("Date" . "--date")
+                                              ("Amend" . ,amend-extract-fn))
+                                            comment)))))
 
 (defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
@@ -1138,15 +1230,13 @@ REV is the revision to check out into WORKFILE."
     (unless (re-search-forward "^<<<<<<< " nil t)
       (vc-hg-command nil 0 buffer-file-name "resolve" "-m")
       ;; Remove the hook so that it is not called multiple times.
-      (remove-hook 'after-save-hook 'vc-hg-resolve-when-done t))))
+      (remove-hook 'after-save-hook #'vc-hg-resolve-when-done t))))
 
 (defun vc-hg-find-file-hook ()
   (when (and buffer-file-name
-             (file-exists-p (concat buffer-file-name ".orig"))
              ;; Hg does not seem to have a "conflict" status, eg
              ;; hg http://bz.selenic.com/show_bug.cgi?id=2724
-             (memq (vc-file-getprop buffer-file-name 'vc-state)
-                   '(edited conflict))
+             (memq (vc-state buffer-file-name) '(edited conflict))
              ;; Maybe go on to check that "hg resolve -l" says "U"?
              ;; If "hg resolve -l" says there's a conflict but there are no
              ;; conflict markers, it's not clear what we should do.
@@ -1156,20 +1246,22 @@ REV is the revision to check out into WORKFILE."
     ;; Hg may not recognize "conflict" as a state, but we can do better.
     (vc-file-setprop buffer-file-name 'vc-state 'conflict)
     (smerge-start-session)
-    (add-hook 'after-save-hook 'vc-hg-resolve-when-done nil t)
+    (add-hook 'after-save-hook #'vc-hg-resolve-when-done nil t)
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
-    (with-temp-buffer (vc-hg-command t 0 file "revert"))))
+    (with-temp-buffer
+      (apply #'vc-hg-command
+             t 0 file
+             "revert"
+             (append (vc-switches 'hg 'revert))))))
 
 ;;; Hg specific functionality.
 
-(defvar vc-hg-extra-menu-map
-  (let ((map (make-sparse-keymap)))
-    map))
+(defvar-keymap vc-hg-extra-menu-map)
 
 (defun vc-hg-extra-menu () vc-hg-extra-menu-map)
 
@@ -1194,9 +1286,9 @@ REV is the revision to check out into WORKFILE."
       (insert (propertize
                (format "   (%s %s)"
                        (pcase (vc-hg-extra-fileinfo->rename-state extra)
-                         (`copied "copied from")
-                         (`renamed-from "renamed from")
-                         (`renamed-to "renamed to"))
+                         ('copied "copied from")
+                         ('renamed-from "renamed from")
+                         ('renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 
@@ -1253,55 +1345,59 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
-(defun vc-hg-dir-status-files (_dir files update-function)
+(defun vc-hg-dir-status-files (dir files update-function)
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
-  ;; If honoring DIR ever becomes important, try using '-I DIR/'.
-  (vc-hg-command (current-buffer) 'async files
-                 "status"
-                 (concat "-mardu" (if files "i"))
-                 "-C")
+  (let ((default-directory dir))
+    ;; TODO: Use "--config 'status.relative=1'" instead of "re:"
+    ;; when we're allowed to depend on Mercurial 4.2+
+    ;; (it's a bit faster).
+    (vc-hg-command (current-buffer) 'async files
+                   "status" "re:" "-I" "."
+                   (concat "-mardu" (if files "i"))
+                   "-C"))
   (vc-run-delayed
     (vc-hg-after-dir-status update-function)))
 
-(defun vc-hg-dir-extra-header (name &rest commands)
-  (concat (propertize name 'face 'font-lock-type-face)
-          (propertize
-           (with-temp-buffer
-             (apply 'vc-hg-command (current-buffer) 0 nil commands)
-             (buffer-substring-no-properties (point-min) (1- (point-max))))
-           'face 'font-lock-variable-name-face)))
-
 (defun vc-hg-dir-extra-headers (dir)
-  "Generate extra status headers for a Mercurial tree."
+  "Generate extra status headers for a repository in DIR.
+This runs the command \"hg summary\"."
   (let ((default-directory dir))
-    (concat
-     (vc-hg-dir-extra-header "Root       : " "root") "\n"
-     (vc-hg-dir-extra-header "Branch     : " "id" "-b") "\n"
-     (vc-hg-dir-extra-header "Tags       : " "id" "-t") ; "\n"
-     ;; these change after each commit
-     ;; (vc-hg-dir-extra-header "Local num  : " "id" "-n") "\n"
-     ;; (vc-hg-dir-extra-header "Global id  : " "id" "-i")
-     )))
+    (with-temp-buffer
+      (vc-hg-command t 0 nil "summary")
+      (goto-char (point-min))
+      (mapconcat
+       #'identity
+       (let (result)
+         (while (not (eobp))
+           (push
+            (let ((entry (if (looking-at "\\([^ ].*\\): \\(.*\\)")
+                             (cons (capitalize (match-string 1)) (match-string 2))
+                           (cons "" (buffer-substring (point) (line-end-position))))))
+              (concat
+               (propertize (format "%-11s: " (car entry)) 'face 'vc-dir-header)
+               (propertize (cdr entry) 'face 'vc-dir-header-value)))
+            result)
+           (forward-line))
+         (nreverse result))
+       "\n"))))
 
 (defun vc-hg-log-incoming (buffer remote-location)
+  (vc-setup-buffer buffer)
   (vc-hg-command buffer 1 nil "incoming" "-n" (unless (string= remote-location "")
 						remote-location)))
 
 (defun vc-hg-log-outgoing (buffer remote-location)
+  (vc-setup-buffer buffer)
   (vc-hg-command buffer 1 nil "outgoing" "-n" (unless (string= remote-location "")
 						remote-location)))
 
-(defvar vc-hg-error-regexp-alist nil
-  ;; 'hg pull' does not list modified files, so, for now, the only
-  ;; benefit of `vc-compilation-mode' is that one can get rid of
-  ;; *vc-hg* buffer with 'q' or 'z'.
-  ;; TODO: call 'hg incoming' before pull/merge to get the list of
-  ;;       modified files
+(defvar vc-hg-error-regexp-alist
+  '(("^M \\(.+\\)" 1 nil nil 0))
   "Value of `compilation-error-regexp-alist' in *vc-hg* buffers.")
 
 (autoload 'vc-do-async-command "vc-dispatcher")
@@ -1309,9 +1405,10 @@ REV is the revision to check out into WORKFILE."
 (defvar compilation-directory)
 (defvar compilation-arguments)  ; defined in compile.el
 
-(defun vc-hg--pushpull (command prompt &optional obsolete)
+(defun vc-hg--pushpull (command prompt post-processing &optional obsolete)
   "Run COMMAND (a string; either push or pull) on the current Hg branch.
 If PROMPT is non-nil, prompt for the Hg command to run.
+POST-PROCESSING is a list of commands to execute after the command.
 If OBSOLETE is non-nil, behave like the old versions of the Hg push/pull
 commands, which only operated on marked files."
   (let (marked-list)
@@ -1322,35 +1419,40 @@ commands, which only operated on marked files."
 	(apply #'vc-hg-command
 	       nil 0 nil
 	       command
-	       (apply 'nconc
+	       (apply #'nconc
 		      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (let* ((root (vc-hg-root default-directory))
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
+	      ;; Disable pager.
+             (process-environment (cons "HGPLAIN=1" process-environment))
 	     (hg-program vc-hg-program)
-	     ;; Fixme: before updating the working copy to the latest
-	     ;; state, should check if it's visiting an old revision.
-	     (args (if (equal command "pull") '("-u"))))
+	     args)
 	;; If necessary, prompt for the exact command.
         ;; TODO if pushing, prompt if no default push location - cf bzr.
 	(when prompt
 	  (setq args (split-string
 		      (read-shell-command
                        (format "Hg %s command: " command)
-                       (format "%s %s%s" hg-program command
-                               (if (not args) ""
-                                 (concat " " (mapconcat 'identity args " "))))
+                       (format "%s %s" hg-program command)
                        'vc-hg-history)
 		      " " t))
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(apply 'vc-do-async-command buffer root hg-program command args)
+	(apply #'vc-do-async-command buffer root hg-program command args)
         (with-current-buffer buffer
           (vc-run-delayed
+            (dolist (cmd post-processing)
+              (apply #'vc-do-command buffer nil hg-program nil cmd))
             (vc-compilation-mode 'hg)
             (setq-local compile-command
                         (concat hg-program " " command " "
-                                (if args (mapconcat 'identity args " ") "")))
+                                (mapconcat #'identity args " ")
+                                (mapconcat (lambda (args)
+                                             (concat " && " hg-program " "
+                                                     (mapconcat #'identity
+                                                                args " ")))
+                                           post-processing "")))
             (setq-local compilation-directory root)
             ;; Either set `compilation-buffer-name-function' locally to nil
             ;; or use `compilation-arguments' to set `name-function'.
@@ -1371,7 +1473,15 @@ specific Mercurial pull command.  The default is \"hg pull -u\",
 which fetches changesets from the default remote repository and
 then attempts to update the working directory."
   (interactive "P")
-  (vc-hg--pushpull "pull" prompt (called-interactively-p 'interactive)))
+  (vc-hg--pushpull "pull" prompt
+                   ;; Fixme: before updating the working copy to the latest
+                   ;; state, should check if it's visiting an old revision.
+                   ;; post-processing: list modified files and update
+                   ;; NB: this will not work with "pull = --rebase"
+                   ;;     or "pull = --update" in hgrc.
+                   '(("--pager" "no" "status" "--rev" "." "--rev" "tip")
+                     ("update"))
+                   (called-interactively-p 'interactive)))
 
 (defun vc-hg-push (prompt)
   "Push changes from the current Mercurial branch.
@@ -1381,14 +1491,19 @@ for the Hg command to run.
 If called interactively with a set of marked Log View buffers,
 call \"hg push -r REVS\" to push the specified revisions REVS."
   (interactive "P")
-  (vc-hg--pushpull "push" prompt (called-interactively-p 'interactive)))
+  (vc-hg--pushpull "push" prompt nil (called-interactively-p 'interactive)))
 
 (defun vc-hg-merge-branch ()
-  "Merge incoming changes into the current working directory.
+  "Prompt for revision and merge it into working directory.
 This runs the command \"hg merge\"."
   (let* ((root (vc-hg-root default-directory))
-	 (buffer (format "*vc-hg : %s*" (expand-file-name root))))
-    (apply 'vc-do-async-command buffer root vc-hg-program '("merge"))
+	 (buffer (format "*vc-hg : %s*" (expand-file-name root)))
+         ;; Disable pager.
+         (process-environment (cons "HGPLAIN=1" process-environment))
+         (branch (vc-read-revision "Revision to merge: ")))
+    (apply #'vc-do-async-command buffer root vc-hg-program
+           (append '("--config" "ui.report_untrusted=0" "merge")
+                   (unless (string= branch "") (list branch))))
     (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
 
@@ -1398,14 +1513,26 @@ This runs the command \"hg merge\"."
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 This function differs from vc-do-command in that it invokes
 `vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-hg-program file-or-list
-         (if (stringp vc-hg-global-switches)
-             (cons vc-hg-global-switches flags)
-           (append vc-hg-global-switches
-                   flags))))
+  ;; Disable pager.
+  (let ((process-environment (cons "HGPLAIN=1" process-environment))
+        (flags (append '("--config" "ui.report_untrusted=0") flags)))
+    (apply #'vc-do-command (or buffer "*vc*")
+           okstatus vc-hg-program file-or-list
+           (if (stringp vc-hg-global-switches)
+               (cons vc-hg-global-switches flags)
+             (append vc-hg-global-switches
+                     flags)))))
 
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))
+
+(defun vc-hg-repository-url (file-or-dir &optional remote-name)
+  (let ((default-directory (vc-hg-root file-or-dir)))
+    (with-temp-buffer
+      (vc-hg-command (current-buffer) 0 nil
+                     "config"
+                     (concat "paths." (or remote-name "default")))
+      (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 (provide 'vc-hg)
 

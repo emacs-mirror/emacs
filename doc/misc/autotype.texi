@@ -11,8 +11,8 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2017
-Free Software Foundation, Inc.
+Copyright @copyright{} 1994--1995, 1999, 2001--2022 Free Software
+Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -86,16 +86,15 @@ completions and expansions of text at point.
 * Using Skeletons::        How to insert a skeleton into your text.
 * Wrapping Skeletons::     Putting existing text within a skeleton.
 * Skeletons as Abbrevs::   An alternative for issuing skeleton commands.
-* Skeleton Language::      Making skeleton commands insert what you want.
 * Inserting Pairs::        Typing one character and getting another
                              after point.
 * Autoinserting::          Filling up empty files as soon as you visit them.
 * Copyrights::             Inserting and updating copyrights.
 * Executables::            Turning interpreter scripts into executables.
 * Timestamps::             Updating dates and times in modified files.
-* QuickURL::               Inserting URLs based on text at point.
 * Tempo::                  Flexible template insertion.
 * Hippie Expand::          Expansion of text trying various methods.
+* Skeleton Language::      Making skeleton commands insert what you want.
 
 * GNU Free Documentation License:: The license for this documentation.
 * Concept Index::
@@ -209,95 +208,6 @@ have been omitted.)
 
 
 
-@node Skeleton Language
-@chapter Skeleton Language
-@cindex skeleton language
-
-@findex skeleton-insert
-  Skeletons are an shorthand extension to the Lisp language, where various
-atoms directly perform either actions on the current buffer or rudimentary
-flow control mechanisms.  Skeletons are interpreted by the function
-@code{skeleton-insert}.
-
-  A skeleton is a list starting with an interactor, which is usually a
-prompt-string, or @code{nil} when not needed, but can also be a Lisp
-expression for complex read functions or for returning some calculated value.
-The rest of the list are any number of elements as described in the following
-table:
-
-@table @asis
-@item @code{"@var{string}"}, @code{?@var{c}}, @code{?\@var{c}}
-@vindex skeleton-transformation
-Insert string or character.  Literal strings and characters are passed through
-@code{skeleton-transformation} when that is non-@code{nil}.
-@item @code{?\n}
-@c ??? something seems very wrong here.
-Insert a newline and align under current line, but not if this is the
-last element of a skeleton and the newline would be inserted at end of
-line, or this is the first element and the newline would be inserted
-at beginning of line.  Use newline character @code{?\n} to prevent
-alignment.  Use @code{"\n"} as the first or last string element of a
-skeleton to insert a newline unconditionally.
-@item @code{_}
-Interesting point.  When wrapping skeletons around successive regions, they are
-put at these places.  Point is left at first @code{_} where nothing is wrapped.
-@item @code{>}
-Indent line according to major mode.  When following element is @code{_}, and
-there is a interregion that will be wrapped here, indent that interregion.
-@item @code{&}
-Logical and.  If preceding element moved point, i.e., usually inserted
-something, do following element.
-@item @code{|}
-Logical xor.  If preceding element didn't move point, i.e., usually inserted
-nothing, do following element.
-@item @code{-@var{number}}
-Delete preceding number characters.  Depends on value of
-@code{skeleton-untabify}.
-@item @code{()} or @code{nil}
-Ignored.
-@item @var{lisp-expression}
-Evaluated, and the return value is again interpreted as a skeleton element.
-@item @code{str}
-A special variable that, when evaluated the first time, usually prompts
-for input according to the skeleton's interactor.  It is then set to the
-return value resulting from the interactor.  Each subskeleton has its local
-copy of this variable.
-@item @code{v1}, @code{v2}
-Skeleton-local user variables.
-@item @code{'@var{expression}}
-Evaluate following Lisp expression for its side-effect, but prevent it from
-being interpreted as a skeleton element.
-@item @var{skeleton}
-Subskeletons are inserted recursively, not once, but as often as the user
-enters something at the subskeletons interactor.  Thus there must be a
-@code{str} in the subskeleton.  They can also be used non-interactively, when
-prompt is a lisp-expression that returns successive list-elements.
-@item @code{resume:}
-Ignored.  Execution resumes here if the user quits during skeleton
-interpretation.
-@item @code{quit}
-A constant which is non-@code{nil} when the @code{resume:} section was entered
-because the user quit.
-@end table
-
-@findex skeleton-further-elements
-  Some modes also use other skeleton elements they themselves defined.  For
-example in shell script mode's skeletons you will find @code{<} which does a
-rigid indentation backwards, or in CC mode's skeletons you find the
-self-inserting elements @code{@{} and @code{@}}.  These are defined by the
-buffer-local variable @code{skeleton-further-elements} which is a list of
-variables bound while interpreting a skeleton.
-
-@findex define-skeleton
-  The macro @code{define-skeleton} defines a command for interpreting a
-skeleton.  The first argument is the command name, the second is a
-documentation string, and the rest is an interactor and any number of skeleton
-elements together forming a skeleton.  This skeleton is assigned to a variable
-of the same name as the command and can thus be overridden from your
-@file{~/.emacs} file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
-
-
-
 @node Inserting Pairs
 @chapter Inserting Matching Pairs of Characters
 @cindex inserting pairs
@@ -357,19 +267,19 @@ certain contexts.  For example an escaped character stands for itself.
   @kbd{M-x auto-insert} will put some predefined text at the beginning of
 the buffer.  The main application for this function, as its name suggests,
 is to have it be called automatically every time an empty, and only an
-empty file is visited.  This is accomplished by putting @code{(add-hook
-'find-file-hook 'auto-insert)} into your @file{~/.emacs} file
+empty file is visited.  This is accomplished by putting
+@code{(auto-insert-mode t)} into your init file
 (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 
 @vindex auto-insert-alist
   What gets inserted, if anything, is determined by the variable
-@code{auto-insert-alist}.  The @sc{car}s of this list are each either
-a mode name, making an element applicable when a buffer is in that
-mode.  Or they can be a string, which is a regexp matched against the
-buffer's file name.  In that way different kinds of files that have
-the same mode in Emacs can be distinguished.  The @sc{car}s may also
-be cons cells consisting of mode name or regexp as above and an
-additional descriptive string.
+@code{auto-insert-alist}.  The @sc{car} of each element of this list
+is either a mode name, making the element applicable when a buffer is
+in that mode, or a string, which is a regexp matched against a
+buffer's file name (the latter allows to distinguish between different
+kinds of files that have the same mode in Emacs).  The @sc{car} of an
+element may also be a cons cell, consisting of mode name or regexp, as
+above, and an additional descriptive string.
 
   When a matching element is found, the @sc{cdr} says what to do.  It may
 be a string, which is a file name, whose contents are to be inserted, if
@@ -389,15 +299,16 @@ the filename to prevent multiple inclusions.  C and C++ sources insert an
 include of the header.  Makefiles insert the file makefile.inc if it exists.
 
   TeX and bibTeX mode files insert the file tex-insert.tex if it exists, while
-LaTeX mode files insert a typical @code{\documentclass} frame.  Html
+LaTeX mode files insert a typical @code{\documentclass} frame.  HTML
 files insert a skeleton with the usual frame.
 
-  Ada mode files call the Ada header skeleton command.  Emacs lisp
+  Ada mode files call the Ada header skeleton command.  Emacs Lisp
 source files insert the usual header, with a copyright of your
-environment variable @env{$ORGANIZATION} or else the FSF, and prompt
-for valid keywords describing the contents.  Files in a @file{bin}
-directory for which Emacs could determine no specialized mode
-(@pxref{Choosing Modes,,, emacs, The GNU Emacs Manual}) are set to Shell script mode.
+environment variable @env{$ORGANIZATION} or else the name of the
+current user, and prompt for valid keywords describing the contents.
+Files in a @file{bin} directory for which Emacs could determine no
+specialized mode (@pxref{Choosing Modes,,, emacs, The GNU Emacs
+Manual}) are set to Shell script mode.
 
 @findex define-auto-insert
   In Lisp (@pxref{Init File,,, emacs, The GNU Emacs Manual}) you can use the function
@@ -566,32 +477,6 @@ The time stamp is written between the brackets or quotes:
 Time-stamp: <1998-02-18 10:20:51 gildea>
 @end example
 
-@node QuickURL
-@chapter QuickURL: Inserting URLs Based on Text at Point
-
-@vindex quickurl-url-file
-@findex quickurl
-@cindex URLs
-@kbd{M-x quickurl} can be used to insert a URL into a buffer based on
-the text at point.  The URLs are stored in an external file defined by
-the variable @code{quickurl-url-file} as a list of either cons cells of
-the form @code{(@var{key} . @var{URL})} or
-lists of the form @code{(@var{key} @var{URL} @var{comment})}.  These
-specify that @kbd{M-x quickurl} should insert @var{URL} if the word
-@var{key} is at point, for example:
-
-@example
-(("FSF"      "https://www.fsf.org/" "The Free Software Foundation")
- ("emacs"  . "http://www.emacs.org/")
- ("hagbard"  "http://www.hagbard.demon.co.uk" "Hagbard's World"))
-@end example
-
-@findex quickurl-add-url
-@findex quickurl-list
-@kbd{M-x quickurl-add-url} can be used to add a new @var{key}/@var{URL}
-pair.  @kbd{M-x quickurl-list} provides interactive editing of the URL
-list.
-
 @node Tempo
 @chapter Tempo: Flexible Template Insertion
 
@@ -646,6 +531,104 @@ possibilities.
 Typically you would bind @code{hippie-expand} to @kbd{M-/} with
 @code{dabbrev-expand}, the standard binding of @kbd{M-/}, providing one
 of the expansion possibilities.
+
+@node Skeleton Language
+@chapter Skeleton Language
+@cindex skeleton language
+
+@findex skeleton-insert
+  Skeletons are a shorthand extension to the Lisp language, where various
+atoms directly perform either actions on the current buffer or rudimentary
+flow control mechanisms.  Skeletons are interpreted by the function
+@code{skeleton-insert}.
+
+  A skeleton is a list starting with an interactor, which is usually a
+prompt-string, or @code{nil} when not needed, but can also be a Lisp
+expression for complex read functions or for returning some calculated value.
+The rest of the list are any number of elements as described in the following
+table:
+
+@table @asis
+@item @code{"@var{string}"}, @code{?@var{c}}, @code{?\@var{c}}
+@vindex skeleton-transformation
+Insert string or character.  Literal strings and characters are passed through
+@code{skeleton-transformation} when that is non-@code{nil}.
+@item @code{\n}
+@c ??? something seems very wrong here.
+Insert a newline and align under current line, but not if this is the
+last element of a skeleton and the newline would be inserted at end of
+line, or this is the first element and the newline would be inserted
+at beginning of line.  Use newline character @code{?\n} to prevent
+alignment.  Use @code{"\n"} as the first or last string element of a
+skeleton to insert a newline unconditionally.
+@item @code{_}
+Interesting point.  When wrapping skeletons around successive regions, they are
+put at these places.  Point is left at first @code{_} where nothing is
+wrapped.
+@item @code{-}
+Interesting point with no inter-region interaction; overrides
+interesting point set by @code{_}.
+@item @code{>}
+Indent line according to major mode.  When following element is @code{_}, and
+there is an interregion that will be wrapped here, indent that interregion.
+@item @code{&}
+Logical and.  If preceding element moved point, i.e., usually inserted
+something, do following element.
+@item @code{|}
+Logical xor.  If preceding element didn't move point, i.e., usually inserted
+nothing, do following element.
+@item @code{@@}
+Add position to @code{skeleton-positions}.
+@item @code{-@var{number}}
+Delete preceding number characters.  Depends on value of
+@code{skeleton-untabify}.
+@item @code{()} or @code{nil}
+Ignored.
+@item @var{lisp-expression}
+Evaluated, and the return value is again interpreted as a skeleton element.
+@item @code{str}
+A special variable that, when evaluated the first time, usually prompts
+for input according to the skeleton's interactor.  It is then set to the
+return value resulting from the interactor.  Each subskeleton has its local
+copy of this variable.
+@item @code{v1}, @code{v2}
+Skeleton-local user variables.
+@item @code{'@var{expression}}
+Evaluate following Lisp expression for its side-effect, but prevent it from
+being interpreted as a skeleton element.
+@item @var{skeleton}
+Subskeletons are inserted recursively, not once, but as often as the user
+enters something at the subskeletons interactor.  Thus there must be a
+@code{str} in the subskeleton.  They can also be used non-interactively, when
+prompt is a lisp-expression that returns successive list-elements.
+@item @code{resume:}
+Ignored.  Execution resumes here if the user quits during skeleton
+interpretation.
+@item @code{help}
+Help form during interaction with the user or @code{nil}.
+@item @code{input}
+Initial input (a string or a cons with index) while reading the input.
+@item @code{quit}
+A constant which is non-@code{nil} when the @code{resume:} section was entered
+because the user quit.
+@end table
+
+@findex skeleton-further-elements
+  Some modes also use other skeleton elements they themselves defined.  For
+example in shell script mode's skeletons you will find @code{<} which does a
+rigid indentation backwards, or in CC mode's skeletons you find the
+self-inserting elements @code{@{} and @code{@}}.  These are defined by the
+buffer-local variable @code{skeleton-further-elements} which is a list of
+variables bound while interpreting a skeleton.
+
+@findex define-skeleton
+  The macro @code{define-skeleton} defines a command for interpreting a
+skeleton.  The first argument is the command name, the second is a
+documentation string, and the rest is an interactor and any number of skeleton
+elements together forming a skeleton.  This skeleton is assigned to a variable
+of the same name as the command and can thus be overridden from your
+@file{~/.emacs} file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
+
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

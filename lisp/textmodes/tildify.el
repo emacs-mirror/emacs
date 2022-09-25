@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>
@@ -66,9 +66,8 @@ non-capturing groups can be used for grouping prior to the part of the regexp
 matching the white space).  The pattern is matched case-sensitive regardless of
 the value of `case-fold-search' setting."
   :version "25.1"
-  :group 'tildify
-  :type 'string
-  :safe t)
+  :type 'regexp
+  :safe #'stringp)
 
 (defcustom tildify-pattern-alist ()
   "Alist specifying where to insert hard spaces.
@@ -90,7 +89,6 @@ by the hard space character.
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
-  :group 'tildify
   :type '(repeat (cons :tag "Entry for major mode"
                        (choice (const  :tag "Default" t)
                                (symbol :tag "Major mode"))
@@ -110,12 +108,11 @@ might be used for other modes if compatible encoding is used.
 
 If nil, current major mode has no way to represent a hard space."
   :version "25.1"
-  :group 'tildify
   :type '(choice (const :tag "Space character (no hard-space representation)"
                         " ")
                  (const :tag "No-break space (U+00A0)" "\u00A0")
                  (string :tag "Custom string"))
-  :safe t)
+  :safe #'string-or-null-p)
 
 (defcustom tildify-string-alist ()
   "Alist specifying what is a hard space in the current major mode.
@@ -133,7 +130,6 @@ STRING defines the hard space, which is inserted at places defined by
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
-  :group 'tildify
   :type '(repeat (cons :tag "Entry for major mode"
                        (choice (const  :tag "Default" t)
                                (symbol :tag "Major mode"))
@@ -164,7 +160,6 @@ or better still:
 See `tildify-foreach-ignore-environments' function for other ways to use the
 variable."
   :version "25.1"
-  :group 'tildify
   :type 'function)
 
 (defcustom tildify-ignored-environments-alist ()
@@ -183,7 +178,6 @@ MAJOR-MODE defines major mode, for which the item applies.  It can be either:
 
 See `tildify-foreach-ignore-environments' function for description of BEG-REGEX
 and END-REGEX."
-  :group 'tildify
   :type '(repeat
           (cons :tag "Entry for major mode"
                 (choice (const  :tag "Default" t)
@@ -261,7 +255,9 @@ Call CALLBACK on each region outside of environment to ignore.  Stop scanning
 the region as soon as CALLBACK returns nil.  Environments to ignore are
 defined by deprecated `tildify-ignored-environments-alist'.   CALLBACK may be
 called on portions of the buffer outside of [BEG END)."
-  (let ((pairs (tildify--pick-alist-entry tildify-ignored-environments-alist)))
+  (let ((pairs (with-suppressed-warnings ((obsolete tildify--pick-alist-entry))
+                 (tildify--pick-alist-entry
+                  tildify-ignored-environments-alist))))
     (if pairs
         (tildify-foreach-ignore-environments pairs callback beg end)
       (funcall callback beg end))))
@@ -293,7 +289,7 @@ variable.  For example, for an XML file one might use:
   (setq-local tildify-foreach-region-function
     (apply-partially \\='tildify-foreach-ignore-environments
                      \\='((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
-  (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
+  (let ((beg-re (concat "\\(?:" (mapconcat #'car pairs "\\)\\|\\(?:") "\\)"))
         p end-re)
     (save-excursion
       (save-restriction
@@ -350,12 +346,14 @@ If ASK is nil, perform replace without asking user for confirmation.
 
 Returns (count . response) cons where count is number of string
 replacements done and response is one of symbols: t (all right), nil
-(quit), force (replace without further questions)."
+\(quit), force (replace without further questions)."
   (save-excursion
     (goto-char beg)
     (let ((regexp tildify-pattern)
           (match-number 1)
-          (tilde (or (tildify--pick-alist-entry tildify-string-alist)
+          (tilde (or (with-suppressed-warnings ((obsolete
+                                                 tildify--pick-alist-entry))
+                       (tildify--pick-alist-entry tildify-string-alist))
                      tildify-space-string))
           (end-marker (copy-marker end))
           answer
@@ -365,7 +363,9 @@ replacements done and response is one of symbols: t (all right), nil
           (message-log-max nil)
           (count 0))
       ;; For the time being, tildify-pattern-alist overwrites tildify-pattern
-      (let ((alist (tildify--pick-alist-entry tildify-pattern-alist)))
+      (let ((alist (with-suppressed-warnings ((obsolete
+                                               tildify--pick-alist-entry))
+                     (tildify--pick-alist-entry tildify-pattern-alist))))
         (when alist
           (setq regexp (car alist) match-number (cadr alist))))
       (while (and (not quit)
@@ -410,19 +410,16 @@ If the pattern matches `looking-back', a hard space needs to be inserted instead
 of a space at point.  The regexp is always case sensitive, regardless of the
 current `case-fold-search' setting."
   :version "25.1"
-  :group 'tildify
-  :type 'string)
+  :type 'regexp)
 
 (defcustom tildify-space-predicates '(tildify-space-region-predicate)
   "A list of predicate functions for `tildify-space' function."
   :version "25.1"
-  :group 'tildify
   :type '(repeat function))
 
 (defcustom tildify-double-space-undos t
   "Weather `tildify-space' should undo hard space when space is typed again."
   :version "25.1"
-  :group 'tildify
   :type 'boolean)
 
 ;;;###autoload
@@ -489,22 +486,21 @@ that space character is replaced by a hard space specified by
 When `tildify-mode' is enabled, if `tildify-string-alist' specifies a hard space
 representation for current major mode, the `tildify-space-string' buffer-local
 variable will be set to the representation."
-  nil " ~" nil
+  :lighter " ~"
   (when tildify-mode
-    (let ((space (tildify--pick-alist-entry tildify-string-alist)))
+    (let ((space (with-suppressed-warnings ((obsolete
+                                             tildify--pick-alist-entry))
+                   (tildify--pick-alist-entry tildify-string-alist))))
       (if (not (string-equal " " (or space tildify-space-string)))
           (when space
             (setq tildify-space-string space))
-        (message (eval-when-compile
-                   (concat "Hard space is a single space character, tildify-"
-                           "mode won't have any effect, disabling.")))
+        (message (concat "Hard space is a single space character, tildify-"
+                         "mode won't have any effect, disabling."))
         (setq tildify-mode nil))))
   (if tildify-mode
-      (add-hook 'post-self-insert-hook 'tildify-space nil t)
-    (remove-hook 'post-self-insert-hook 'tildify-space t)))
+      (add-hook 'post-self-insert-hook #'tildify-space nil t)
+    (remove-hook 'post-self-insert-hook #'tildify-space t)))
 
-
-;;; *** Announce ***
 
 (provide 'tildify)
 

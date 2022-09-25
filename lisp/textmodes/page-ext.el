@@ -1,7 +1,6 @@
 ;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1991, 1993-1994, 2001-2017 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1990-2022 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
 ;; (according to ack.texi)
@@ -25,20 +24,20 @@
 ;;; Commentary:
 
 ;; You may use these commands to handle an address list or other
-;; small data base.
+;; small database.
 
 
 ;;; Summary
 
 ;; The current page commands are:
 
-;;     forward-page         C-x ]
-;;     backward-page        C-x [
-;;     narrow-to-page       C-x p
-;;     count-lines-page     C-x l
-;;     mark-page            C-x C-p  (change this to C-x C-p C-m)
-;;     sort-pages           not bound
-;;     what-page            not bound
+;;     `forward-page'         C-x ]
+;;     `backward-page'        C-x [
+;;     `narrow-to-page'       C-x p
+;;     `count-lines-page'     C-x l
+;;     `mark-page'            C-x C-p  (change this to C-x C-p C-m)
+;;     `sort-pages'           not bound
+;;     `what-page'            not bound
 
 ;; The new page handling commands all use `C-x C-p' as a prefix.  This
 ;; means that the key binding for `mark-page' must be changed.
@@ -47,15 +46,15 @@
 
 ;; New page handling commands:
 
-;;     next-page                        C-x C-p C-n
-;;     previous-page                    C-x C-p C-p
-;;     search-pages                     C-x C-p C-s
-;;     add-new-page                     C-x C-p C-a
-;;     sort-pages-buffer                C-x C-p s
-;;     set-page-delimiter               C-x C-p C-l
-;;     pages-directory                  C-x C-p C-d
-;;     pages-directory-for-addresses    C-x C-p d
-;;        pages-directory-goto          C-c C-c
+;;     `pages-next-page'                  C-x C-p C-n
+;;     `pages-previous-page'              C-x C-p C-p
+;;     `pages-search'                     C-x C-p C-s
+;;     `pages-add-new-page'               C-x C-p C-a
+;;     `pages-sort-buffer'                C-x C-p s
+;;     `pages-set-delimiter'              C-x C-p C-l
+;;     `pages-directory'                  C-x C-p C-d
+;;     `pages-directory-for-addresses'    C-x C-p d
+;;        `pages-directory-goto'          C-c C-c
 
 
 ;;; Using the page commands
@@ -103,8 +102,8 @@
 ;;
 ;;   2. The first line of text in each entry is the `heading line'; it
 ;;      will appear in the pages-directory-buffer which is constructed
-;;      using the `C-x C-p C-d' (pages-directory) command or the `C-x
-;;      C-p d' (pages-directory-for-addresses) command.
+;;      using the `C-x C-p C-d' (`pages-directory') command or the
+;;      `C-x C-p d' (`pages-directory-for-addresses') command.
 ;;
 ;;      The heading line may be on the same line as the page-delimiter
 ;;      or it may follow after.  It is the first non-blank line on the
@@ -156,24 +155,25 @@
 ;;     George Lakoff
 ;;     OBI (On line text collection.)
 
-;; The `C-x C-p s' (sort-pages-buffer) command sorts the entries in the
+;; The `C-x C-p s' (pages-sort-buffer) command sorts the entries in the
 ;; buffer alphabetically.
 
-;; You may use any of the page commands, including the `next-page',
-;; `previous-page', `add-new-page', `mark-page', and `search-pages'
+;; You may use any of the page commands, including the `pages-next-page',
+;; `pages-previous-page', `pages-add-new-page', `mark-page', and `pages-search'
 ;; commands.
 
-;; You may use either the `C-x C-p d' (pages-directory-for-addresses)
-;; or the `C-x C-p C-d' (pages-directory) command to construct and
+;; You may use either the `C-x C-p d' (`pages-directory-for-addresses')
+;; or the `C-x C-p C-d' (`pages-directory') command to construct and
 ;; display a directory of all the heading lines.
 
 ;; In the directory, you may position the cursor over a heading line
-;; and type `C-c C-c' (pages-directory-goto) to go to the entry to
+;; and type `C-c C-c' (`pages-directory-goto') to go to the entry to
 ;; which it refers in the pages buffer.
 
-;; You can type `C-c C-p C-a' (add-new-page) to add a new entry in the
-;; pages buffer or address file.  This is the same command you use to
-;; add a new entry when you are in the pages buffer or address file.
+;; You can type `C-c C-p C-a' (`pages-add-new-page') to add a new
+;; entry in the pages buffer or address file.  This is the same
+;; command you use to add a new entry when you are in the pages buffer
+;; or address file.
 
 ;; If you wish, you may create several different directories,
 ;; one for each different buffer.
@@ -257,7 +257,7 @@
 ;;; Addresses related variables
 
 (defcustom pages-addresses-file-name "~/addresses"
-  "Standard name for file of addresses. Entries separated by page-delimiter.
+  "Standard name for file of addresses.  Entries separated by `page-delimiter'.
 Used by `pages-directory-for-addresses' function."
   :type 'file)
 
@@ -276,62 +276,69 @@ Used by `pages-directory-for-addresses' function."
 
 ;;; Key bindings for page handling functions
 
-(global-unset-key "\C-x\C-p")
-
-(defvar ctl-x-ctl-p-map (make-sparse-keymap)
+(defvar pages--ctl-x-ctl-p-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-n" #'pages-next-page)
+    (define-key map "\C-p" #'pages-previous-page)
+    (define-key map "\C-a" #'pages-add-new-page)
+    (define-key map "\C-m" #'mark-page)
+    (define-key map "\C-s" #'pages-search)
+    (define-key map "s"    #'pages-sort-buffer)
+    (define-key map "\C-l" #'pages-set-delimiter)
+    (define-key map "\C-d" #'pages-directory)
+    (define-key map "d"    #'pages-directory-for-addresses)
+    map)
   "Keymap for subcommands of C-x C-p, which are for page handling.")
 
-(define-key ctl-x-map "\C-p" 'ctl-x-ctl-p-prefix)
-(fset 'ctl-x-ctl-p-prefix ctl-x-ctl-p-map)
-
-(define-key ctl-x-ctl-p-map "\C-n" 'next-page)
-(define-key ctl-x-ctl-p-map "\C-p" 'previous-page)
-(define-key ctl-x-ctl-p-map "\C-a" 'add-new-page)
-(define-key ctl-x-ctl-p-map "\C-m" 'mark-page)
-(define-key ctl-x-ctl-p-map "\C-s" 'search-pages)
-(define-key ctl-x-ctl-p-map "s"    'sort-pages-buffer)
-(define-key ctl-x-ctl-p-map "\C-l" 'set-page-delimiter)
-(define-key ctl-x-ctl-p-map "\C-d" 'pages-directory)
-(define-key ctl-x-ctl-p-map "d"    'pages-directory-for-addresses)
+;; FIXME: Merely loading a package shouldn't have this kind of side-effects!
+(global-unset-key "\C-x\C-p")
+(define-key ctl-x-map "\C-p" #'pages-ctl-x-ctl-p-prefix)
+(define-obsolete-function-alias 'ctl-x-ctl-p-prefix #'pages-ctl-x-ctl-p-prefix "27.1")
+(defalias 'pages-ctl-x-ctl-p-prefix pages--ctl-x-ctl-p-map)
 
 
 ;;; Page movement function definitions
 
-(defun next-page (&optional count)
+(define-obsolete-function-alias 'next-page #'pages-next-page "27.1")
+(defun pages-next-page (&optional count)
   "Move to the next page bounded by the `page-delimiter' variable.
 With arg (prefix if interactive), move that many pages."
   (interactive "p")
   (or count (setq count 1))
   (widen)
   ;; Cannot use forward-page because of problems at page boundaries.
-  (while (and (> count 0) (not (eobp)))
-    (if (re-search-forward page-delimiter nil t)
-        nil
-      (goto-char (point-max)))
-    (setq count (1- count)))
-  ;; If COUNT is negative, we want to go back -COUNT + 1 page boundaries.
-  ;; The first page boundary we reach is the top of the current page,
-  ;; which doesn't count.
-  (while (and (< count 1) (not (bobp)))
-    (if (re-search-backward page-delimiter nil t)
-	(goto-char (match-beginning 0))
-      (goto-char (point-min)))
-    (setq count (1+ count)))
+  (if (>= count 0)
+      (while (and (> count 0) (not (eobp)))
+        (if (re-search-forward page-delimiter nil t)
+            nil
+          (goto-char (point-max)))
+        (setq count (1- count)))
+    ;; If COUNT is negative, we want to go back -COUNT + 1 page boundaries.
+    ;; The first page boundary we reach is the top of the current page,
+    ;; which doesn't count.
+    (while (and (< count 1) (not (bobp)))
+      (if (re-search-backward page-delimiter nil t)
+          (when (= count 0)
+            (goto-char (match-end 0)))
+        (goto-char (point-min)))
+      (setq count (1+ count))))
   (narrow-to-page)
   (goto-char (point-min))
   (recenter 0))
 
-(defun previous-page (&optional count)
+(define-obsolete-function-alias 'previous-page #'pages-previous-page "27.1")
+(defun pages-previous-page (&optional count)
   "Move to the previous page bounded by the `page-delimiter' variable.
 With arg (prefix if interactive), move that many pages."
   (interactive "p")
   (or count (setq count 1))
-  (next-page (- count)))
+  (pages-next-page (- count)))
 
 
 ;;; Adding and searching pages
 
-(defun add-new-page (header-line)
+(define-obsolete-function-alias 'add-new-page #'pages-add-new-page "27.1")
+(defun pages-add-new-page (header-line)
   "Insert new page.  Prompt for header line.
 
 If point is in the pages directory buffer, insert the new page in the
@@ -384,7 +391,8 @@ Point is left in the body of page."
 (defvar pages-last-search nil
   "Value of last regexp searched for.  Initially, nil.")
 
-(defun search-pages (regexp)
+(define-obsolete-function-alias 'search-pages #'pages-search "27.1")
+(defun pages-search (regexp)
   "Search for REGEXP, starting from point, and narrow to page it is in."
   (interactive (list
                 (read-string
@@ -400,9 +408,8 @@ Point is left in the body of page."
 
 ;;; Sorting pages
 
-(autoload 'sort-subr "sort" "Primary function for sorting." t nil)
-
-(defun sort-pages-in-region (reverse beg end)
+(define-obsolete-function-alias 'sort-pages-in-region #'pages-sort-region "27.1")
+(defun pages-sort-region (reverse beg end)
   "Sort pages in region alphabetically.  Prefix arg means reverse order.
 
 Called from a program, there are three arguments:
@@ -422,22 +429,22 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
                ;; NEXTRECFUN is called with point at the end of the
                ;; previous record. It moves point to the start of the
                ;; next record.
-	       (function (lambda ()
-                           (re-search-forward page-delimiter nil t)
-                           (skip-chars-forward " \t\n")
-                           ))
+               (lambda ()
+                 (re-search-forward page-delimiter nil t)
+                 (skip-chars-forward " \t\n"))
 
                ;; ENDRECFUN is called with point within the record.
                ;; It should move point to the end of the record.
-	       (function (lambda ()
-                           (if (re-search-forward
-                                page-delimiter
-                                nil
-                                t)
-                               (goto-char (match-beginning 0))
-                             (goto-char (point-max))))))))
+               (lambda ()
+                 (if (re-search-forward
+                      page-delimiter
+                      nil
+                      t)
+                     (goto-char (match-beginning 0))
+                   (goto-char (point-max)))))))
 
-(defun sort-pages-buffer (&optional reverse)
+(define-obsolete-function-alias 'sort-pages-buffer #'pages-sort-buffer "27.1")
+(defun pages-sort-buffer (&optional reverse)
   "Sort pages alphabetically in buffer.  Prefix arg means reverse order.
 \(Non-nil arg if not interactive.)"
 
@@ -446,7 +453,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
   (widen)
   (let ((beginning (point-min))
         (end (point-max)))
-    (sort-pages-in-region reverse beginning end)))
+    (pages-sort-region reverse beginning end)))
 
 
 ;;; Pages directory ancillary definitions
@@ -471,17 +478,18 @@ contain matches to the regexp.)")
   'pages-directory-mode-map "26.1")
 (defvar pages-directory-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'pages-directory-goto)
-    (define-key map "\C-m" 'pages-directory-goto)
-    (define-key map "\C-c\C-p\C-a" 'add-new-page)
-    (define-key map [mouse-2] 'pages-directory-goto)
+    (define-key map "\C-c\C-c"     #'pages-directory-goto)
+    (define-key map "\C-m"         #'pages-directory-goto)
+    (define-key map "\C-c\C-p\C-a" #'pages-add-new-page)
+    (define-key map [mouse-2]      #'pages-directory-goto)
     map)
   "Keymap for the pages-directory-buffer.")
 
-(defvar original-page-delimiter "^\f"
+(defvar pages-original-delimiter "^\f"
   "Default page delimiter.")
 
-(defun set-page-delimiter (regexp reset-p)
+(define-obsolete-function-alias 'set-page-delimiter #'pages-set-delimiter "27.1")
+(defun pages-set-delimiter (regexp reset-p &optional interactively)
   "Set buffer local value of page-delimiter to REGEXP.
 Called interactively with a prefix argument, reset `page-delimiter' to
 its original value.
@@ -491,17 +499,14 @@ resets the page-delimiter to the original value."
 
   (interactive
    (if current-prefix-arg
-       (list original-page-delimiter "^\f")
-     (list (read-string "Set page-delimiter to regexp: " page-delimiter)
-           nil)))
-  (make-local-variable 'original-page-delimiter)
-  (make-local-variable 'page-delimiter)
-  (setq original-page-delimiter
-        (or original-page-delimiter page-delimiter))
-  (if (not reset-p)
-      (setq page-delimiter regexp)
-    (setq page-delimiter original-page-delimiter))
-  (if (called-interactively-p 'interactive)
+       (list pages-original-delimiter t t)
+     (list (read-regexp "Set page-delimiter to regexp: " page-delimiter)
+           nil t)))
+  (setq-local pages-original-delimiter
+              (or pages-original-delimiter page-delimiter))
+  (setq-local page-delimiter
+              (if (not reset-p) regexp pages-original-delimiter))
+  (if interactively
       (message "The value of `page-delimiter' is now: %s" page-delimiter)))
 
 
@@ -510,13 +515,12 @@ resets the page-delimiter to the original value."
 (defvar pages-buffer-original-position)
 (defvar pages-buffer-original-page)
 
-(defun pages-directory
-  (pages-list-all-headers-p count-lines-p &optional regexp)
+(defun pages-directory (pages-list-all-headers-p count-lines-p &optional regexp)
   "Display a directory of the page headers in a temporary buffer.
 A header is the first non-blank line after the `page-delimiter'.
-\\[pages-directory-mode]
+\\<pages-directory-mode-map>
 You may move point to one of the lines in the temporary buffer,
-then use \\<pages-directory-goto> to go to the same line in the pages buffer.
+then use \\[pages-directory-goto] to go to the same line in the pages buffer.
 
 In interactive use:
 
@@ -582,7 +586,9 @@ directory for only the accessible portion of the buffer."
         (pages-directory-mode)
         (setq buffer-read-only nil)
         (insert
-         "==== Pages Directory: use `C-c C-c' to go to page under cursor. ====" ?\n)
+         (substitute-command-keys
+          "==== Pages Directory: use \\<pages-directory-mode-map>\
+\\[pages-directory-goto] to go to page under cursor. ====") "\n")
         (setq pages-buffer pages-target-buffer)
         (setq pages-pos-list nil))
 
@@ -694,12 +700,12 @@ Used by `pages-directory' function."
 
 Move point to one of the lines in this buffer, then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
-  (make-local-variable 'pages-directory-buffer-narrowing-p))
+  )
 
 (defun pages-directory-goto (&optional event)
   "Go to the corresponding line in the pages buffer."
   ;; This function is mostly a copy of `occur-mode-goto-occurrence'
-  (interactive "@e")
+  (interactive (list last-nonmenu-event))
   (if event (mouse-set-point event))
   (if (or (not pages-buffer)
 	  (not (buffer-name pages-buffer)))
@@ -759,15 +765,17 @@ directory."
         ;; by RJC, 2006 Jun 11: including this causes failure; it results in
         ;;  the message "Buffer in which pages were found is deleted"
         ;;        (pages-directory-address-mode)
-        (setq pages-directory-buffer-narrowing-p
-              pages-directory-for-addresses-goto-narrowing-p)
+        (setq-local pages-directory-buffer-narrowing-p
+                    pages-directory-for-addresses-goto-narrowing-p)
         (or pages-directory-for-addresses-buffer-keep-windows-p
             (delete-other-windows))
         (save-excursion
           (goto-char (point-min))
           (delete-region (point) (line-end-position))
           (insert
-           "=== Address List Directory: use `C-c C-c' to go to page under cursor. ===")
+           (substitute-command-keys
+            "=== Address List Directory: use \\<pages-directory-mode-map>\
+\\[pages-directory-goto] to go to page under cursor. ==="))
           (set-buffer-modified-p nil)
           ))
     (error "No addresses file found!")))

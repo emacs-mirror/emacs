@@ -1,5 +1,5 @@
 /* Interface to Little CMS
-   Copyright (C) 2017 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,6 +34,7 @@ typedef struct
 
 #ifdef WINDOWSNT
 # include <windows.h>
+# include "w32common.h"
 # include "w32.h"
 
 DEF_DLL_FN (cmsFloat64Number, cmsCIE2000DeltaE,
@@ -107,7 +108,7 @@ parse_lab_list (Lisp_Object lab_list, cmsCIELab *color)
   return true;
 }
 
-/* http://www.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf> */
+/* http://www.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf */
 
 DEFUN ("lcms-cie-de2000", Flcms_cie_de2000, Slcms_cie_de2000, 2, 5, 0,
        doc: /* Compute CIEDE2000 metric distance between COLOR1 and COLOR2.
@@ -251,10 +252,9 @@ parse_viewing_conditions (Lisp_Object view, const cmsCIEXYZ *wp,
   else									\
     return false;
 #define PARSE_VIEW_CONDITION_INT(field)					\
-  if (CONSP (view) && NATNUMP (XCAR (view)))				\
+  if (CONSP (view) && FIXNATP (XCAR (view)))				\
     {									\
-      CHECK_RANGED_INTEGER (XCAR (view), 1, 4);				\
-      vc->field = XINT (XCAR (view));					\
+      vc->field = check_integer_range (XCAR (view), 1, 4);		\
       view = XCDR (view);						\
     }									\
   else									\
@@ -316,7 +316,7 @@ jab_to_jch (const lcmsJab_t *jab, cmsJCh *jch, double FL, double c1, double c2)
 }
 
 DEFUN ("lcms-xyz->jch", Flcms_xyz_to_jch, Slcms_xyz_to_jch, 1, 3, 0,
-       doc: /* Convert CIE CAM02 JCh to CIE XYZ.
+       doc: /* Convert CIE XYZ to CIE CAM02 JCh.
 COLOR is a list (X Y Z), with Y scaled about unity.
 Optional arguments WHITEPOINT and VIEW are the same as in `lcms-cam02-ucs',
 which see.  */)
@@ -352,7 +352,7 @@ which see.  */)
 }
 
 DEFUN ("lcms-jch->xyz", Flcms_jch_to_xyz, Slcms_jch_to_xyz, 1, 3, 0,
-       doc: /* Convert CIE XYZ to CIE CAM02 JCh.
+       doc: /* Convert CIE CAM02 JCh to CIE XYZ.
 COLOR is a list (J C h), where lightness of white is equal to 100, and hue
 is given in degrees.
 Optional arguments WHITEPOINT and VIEW are the same as in `lcms-cam02-ucs',
@@ -554,7 +554,7 @@ Valid range of TEMPERATURE is from 4000K to 25000K.  */)
     }
 #endif
 
-  CHECK_NUMBER_OR_FLOAT (temperature);
+  CHECK_NUMBER (temperature);
 
   tempK = XFLOATINT (temperature);
   if (!(cmsWhitePointFromTemp (&whitepoint, tempK)))

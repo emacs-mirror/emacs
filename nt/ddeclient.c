@@ -1,5 +1,5 @@
 /* Simple client interface to DDE servers.
-   Copyright (C) 1998, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -16,18 +16,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <windows.h>
 #include <ddeml.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-HDDEDATA CALLBACK DdeCallback (UINT, UINT, HCONV, HSZ, HSZ, HDDEDATA, DWORD,
-			       DWORD);
+HDDEDATA CALLBACK DdeCallback (UINT, UINT, HCONV, HSZ, HSZ, HDDEDATA, DWORD_PTR,
+			       DWORD_PTR);
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
-	     DWORD dwData1, DWORD dwData2)
+	     DWORD_PTR dwData1, DWORD_PTR dwData2)
 {
   return ((HDDEDATA) NULL);
 }

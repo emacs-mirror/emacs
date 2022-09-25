@@ -1,8 +1,8 @@
-;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
+;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         Jan Moringen <scymtym@users.sourceforge.net>
 
 ;; This file is part of GNU Emacs.
@@ -43,8 +43,7 @@
   "List expansion candidates for the :using-namespaces argument.
 A dictionary entry of the named PREFIX_NAMESPACE with the value
 NAMESPACE:: is created for each namespace unless the current
-buffer contains a using NAMESPACE; statement "
-  :group 'srecode-cpp
+buffer contains a using NAMESPACE; statement."
   :type  '(repeat string))
 
 ;;; :c ARGUMENT HANDLING
@@ -56,7 +55,7 @@ buffer contains a using NAMESPACE; statement "
 
 ;;;###autoload
 (defun srecode-semantic-handle-:c (dict)
-  "Add macros into the dictionary DICT based on the current c file.
+  "Add macros into the dictionary DICT based on the current C file.
 Adds the following:
 FILENAME_SYMBOL - filename converted into a C compat symbol.
 HEADER - Shown section if in a header file."
@@ -110,7 +109,7 @@ PREFIX_NAMESPACE - for each NAMESPACE in `srecode-cpp-namespaces'."
 (define-mode-local-override srecode-semantic-apply-tag-to-dict
   c-mode (tag-wrapper dict)
   "Apply C and C++ specific features from TAG-WRAPPER into DICT.
-Calls `srecode-semantic-apply-tag-to-dict-default' first. Adds
+Calls `srecode-semantic-apply-tag-to-dict-default' first.  Adds
 special behavior for tag of classes include, using and function.
 
 This function cannot be split into C and C++ specific variants, as
@@ -122,7 +121,7 @@ specified in a C file."
   (srecode-semantic-apply-tag-to-dict-default tag-wrapper dict)
 
   ;; Pull out the tag for the individual pieces.
-  (let* ((tag   (oref tag-wrapper :prime))
+  (let* ((tag   (oref tag-wrapper prime))
 	 (class (semantic-tag-class tag)))
 
     ;; Add additional information based on the class of the tag.
@@ -165,7 +164,7 @@ specified in a C file."
       ;; when they make sense. My best bet would be
       ;; (semantic-tag-function-parent tag), but it is not there, when
       ;; the function is defined in the scope of a class.
-      (let ((member t)
+      (let (;; (member t)
 	    (templates (semantic-tag-get-attribute tag :template))
 	    (modifiers (semantic-tag-modifiers tag)))
 
@@ -186,7 +185,7 @@ specified in a C file."
 
 	;; When the function is a member function, it can have
 	;; additional modifiers.
-	(when member
+	(when t ;; member
 
 	  ;; For member functions, constness is called
 	  ;; 'methodconst-flag'.

@@ -1,6 +1,6 @@
-;;; common-win.el --- common part of handling window systems
+;;; common-win.el --- common part of handling window systems  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals
@@ -59,21 +59,19 @@
 	(setq system-key-alist
 	      (list
 	       ;; These are special "keys" used to pass events from C to lisp.
-	       (cons (logior (lsh 0 16)   1) 'ns-power-off)
-	       (cons (logior (lsh 0 16)   2) 'ns-open-file)
-	       (cons (logior (lsh 0 16)   3) 'ns-open-temp-file)
-	       (cons (logior (lsh 0 16)   4) 'ns-drag-file)
-	       (cons (logior (lsh 0 16)   5) 'ns-drag-color)
-	       (cons (logior (lsh 0 16)   6) 'ns-drag-text)
-	       (cons (logior (lsh 0 16)   7) 'ns-change-font)
-	       (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
-;;;	       (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
-;;;	       (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
-	       (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-	       (cons (logior (lsh 0 16)  12) 'ns-new-frame)
-	       (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-	       (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
-	       ))))
+	       (cons  1 (make-non-key-event 'ns-power-off))
+	       (cons  2 (make-non-key-event 'ns-open-file))
+	       (cons  3 (make-non-key-event 'ns-open-temp-file))
+	       (cons  4 (make-non-key-event 'ns-drag-file))
+	       (cons  5 (make-non-key-event 'ns-drag-color))
+	       (cons  6 (make-non-key-event 'ns-drag-text))
+	       (cons  8 (make-non-key-event 'ns-open-file-line))
+;;;	       (cons  9 (make-non-key-event 'ns-insert-working-text))
+;;;	       (cons 10 (make-non-key-event 'ns-delete-working-text))
+	       (cons 11 (make-non-key-event 'ns-spi-service-call))
+	       (cons 12 (make-non-key-event 'ns-new-frame))
+	       (cons 13 (make-non-key-event 'ns-toggle-toolbar))
+	       (cons 14 (make-non-key-event 'ns-show-prefs))))))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 (defvar x-invocation-args)
@@ -112,7 +110,7 @@
 ;; Handle the -xrm option.
 (defun x-handle-xrm-switch (switch)
   (unless (consp x-invocation-args)
-    (error "%s: missing argument to `%s' option" (invocation-name) switch))
+    (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-command-line-resources
 	(if (null x-command-line-resources)
 	    (pop x-invocation-args)
@@ -152,7 +150,7 @@
 ;; the initial frame, too.
 (defun x-handle-name-switch (switch)
   (or (consp x-invocation-args)
-      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+      (error "%s: missing argument to `%s' option" invocation-name switch))
   (setq x-resource-name (pop x-invocation-args)
 	initial-frame-alist (cons (cons 'name x-resource-name)
 				  initial-frame-alist)))
@@ -418,6 +416,16 @@ the operating system.")
 	(and (color-supported-p this-color frame t)
 	     (setq defined-colors (cons this-color defined-colors))))
       defined-colors)))
+
+;;;; Session management.
+
+(defvar emacs-save-session-functions nil
+  "Special hook run when a save-session event occurs.
+The functions do not get any argument.
+Functions can return non-nil to inform the session manager that the
+window system shutdown should be aborted.
+
+See also `emacs-session-save'.")
 
 (provide 'term/common-win)
 

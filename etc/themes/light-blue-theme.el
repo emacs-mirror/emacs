@@ -1,8 +1,9 @@
-;;; light-blue-theme.el --- Custom theme for faces
+;;; light-blue-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Drew Adams <drew.adams@oracle.com>
+;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,6 +28,8 @@
 
 (deftheme light-blue
   "Face colors utilizing a light blue background.")
+
+(make-obsolete 'light-blue nil "29.1")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces
@@ -60,9 +63,5 @@
    `(next-error ((,class (:inherit region :background "SkyBlue"))))))
 
 (provide-theme 'light-blue)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; light-blue-theme.el ends here

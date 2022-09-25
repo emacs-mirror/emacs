@@ -1,6 +1,9 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
+
+Author: Kevin Gallo
+	Benjamin Riefenstahl
 
 This file is part of GNU Emacs.
 
@@ -16,9 +19,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
-
-/* Written by Kevin Gallo, Benjamin Riefenstahl */
-
 
 /*
  * Notes on usage of selection-coding-system and
@@ -241,7 +241,7 @@ static Lisp_Object
 render (Lisp_Object oformat)
 {
   HGLOBAL htext = NULL;
-  UINT format = XFASTINT (oformat);
+  UINT format = XFIXNAT (oformat);
 
   ONTRACE (fprintf (stderr, "render\n"));
 
@@ -371,8 +371,8 @@ render_all (Lisp_Object ignore)
   render_locale ();
 
   if (current_clipboard_type == CF_UNICODETEXT)
-    render (make_number (CF_TEXT));
-  render (make_number (current_clipboard_type));
+    render (make_fixnum (CF_TEXT));
+  render (make_fixnum (current_clipboard_type));
 
   CloseClipboard ();
 
@@ -419,7 +419,7 @@ owner_callback (HWND win, UINT msg, WPARAM wp, LPARAM lp)
     {
     case WM_RENDERFORMAT:
       ONTRACE (fprintf (stderr, "WM_RENDERFORMAT\n"));
-      run_protected (render, make_number (wp));
+      run_protected (render, make_fixnum (wp));
       return 0;
 
     case WM_RENDERALLFORMATS:
@@ -631,7 +631,7 @@ validate_coding_system (Lisp_Object coding_system)
   eol_type = Fcoding_system_eol_type (coding_system);
 
   /* Already a DOS coding system? */
-  if (EQ (eol_type, make_number (1)))
+  if (BASE_EQ (eol_type, make_fixnum (1)))
     return coding_system;
 
   /* Get EOL_TYPE vector of the base of CODING_SYSTEM.  */
@@ -742,7 +742,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  /* If for some reason we don't have a clipboard_owner, we
 	     just set the text format as chosen by the configuration
 	     and than forget about the whole thing.  */
-	  ok = !NILP (render (make_number (current_clipboard_type)));
+	  ok = !NILP (render (make_fixnum (current_clipboard_type)));
 	  current_text = Qnil;
 	  current_coding_system = Qnil;
 	}
@@ -956,7 +956,7 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 
 	truelen = nbytes;
 	dst = src;
-	/* avoid using strchr because it recomputes the length everytime */
+	/* avoid using strchr because it recomputes the length every time */
 	while ((dst = memchr (dst, '\r', nbytes - (dst - src))) != NULL)
 	  {
 	    if (dst[1] == '\n')	/* safe because of trailing '\0' */
@@ -1123,7 +1123,7 @@ representing a data format that is currently available in the clipboard.  */)
 
 	      /* We generate a vector because that's what xselect.c
 		 does in this case.  */
-	      val = Fmake_vector (make_number (fmtcount), Qnil);
+	      val = Fmake_vector (make_fixnum (fmtcount), Qnil);
 	      /* Note: when stepping with GDB through this code, the
 		 loop below terminates immediately because
 		 EnumClipboardFormats for some reason returns with
@@ -1170,45 +1170,13 @@ syms_of_w32select (void)
   defsubr (&Sw32_selection_targets);
 
   DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
-	       doc: /* Coding system for communicating with other programs.
-
-For MS-Windows and MS-DOS:
-When sending or receiving text via selection and clipboard, the text
-is encoded or decoded by this coding system.  The default value is
-the current system default encoding on 9x/Me, `utf-16le-dos'
-\(Unicode) on NT/W2K/XP, and `iso-latin-1-dos' on MS-DOS.
-
-For X Windows:
-When sending text via selection and clipboard, if the target
-data-type matches with the type of this coding system, it is used
-for encoding the text.  Otherwise (including the case that this
-variable is nil), a proper coding system is used as below:
-
-data-type	coding system
----------	-------------
-UTF8_STRING	utf-8
-COMPOUND_TEXT	compound-text-with-extensions
-STRING		iso-latin-1
-C_STRING	no-conversion
-
-When receiving text, if this coding system is non-nil, it is used
-for decoding regardless of the data-type.  If this is nil, a
-proper coding system is used according to the data-type as above.
-
-See also the documentation of the variable `x-select-request-type' how
-to control which data-type to request for receiving text.
-
-The default value is nil.  */);
+	       doc: /* SKIP: real doc in select.el.  */);
   /* The actual value is set dynamically in the dumped Emacs, see
      below. */
   Vselection_coding_system = Qnil;
 
   DEFVAR_LISP ("next-selection-coding-system", Vnext_selection_coding_system,
-	       doc: /* Coding system for the next communication with other programs.
-Usually, `selection-coding-system' is used for communicating with
-other programs (X Windows clients or MS Windows programs).  But, if this
-variable is set, it is used for the next communication only.
-After the communication, this variable is set to nil.  */);
+	       doc: /* SKIP: real doc in select.el.  */);
   Vnext_selection_coding_system = Qnil;
 
   DEFSYM (QCLIPBOARD, "CLIPBOARD");
@@ -1239,7 +1207,7 @@ globals_of_w32select (void)
   QANSICP = coding_from_cp (ANSICP);
   QOEMCP = coding_from_cp (OEMCP);
 
-  if (os_subtype == OS_NT)
+  if (os_subtype == OS_SUBTYPE_NT)
     Vselection_coding_system = Qutf_16le_dos;
   else if (inhibit_window_system)
     Vselection_coding_system = QOEMCP;

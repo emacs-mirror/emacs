@@ -10,8 +10,7 @@
 This manual documents Htmlfontify, a source code -> crosslinked +
 formatted + syntax colorized html transformer.
 
-Copyright @copyright{} 2002-2003, 2013-2017 Free Software Foundation,
-Inc.
+Copyright @copyright{} 2002--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -34,7 +33,7 @@ modify this GNU manual.''
 @titlepage
 @title Htmlfontify User Manual
 @sp 4
-@subtitle Htmlfontify version 0.20
+@subtitle Htmlfontify version 0.21
 @sp 1
 @subtitle Jun 2002
 @sp 5
@@ -633,7 +632,7 @@ Convert an Emacs :foreground property to a CSS color property.
 (hfy-flatten-style @var{style})
 @end lisp
 
-Take @var{style} (see @ref{hfy-face-to-style-i}, @ref{hfy-face-to-style})
+Take @var{style} (@pxref{hfy-face-to-style-i}, @pxref{hfy-face-to-style})
 and merge any multiple attributes appropriately.  Currently only font-size is
 merged down to a single occurrence---others may need special handling, but I
 haven't encountered them yet.  Returns a @ref{hfy-style-assoc}.
@@ -825,7 +824,7 @@ with a class of @code{t} is considered to match any class you specify.
 This matches Emacs's behavior when deciding on which face attributes to
 use, to the best of my understanding ).
 
-If @var{class} is @code{nil}, then you just get get whatever
+If @var{class} is @code{nil}, then you just get whatever
 @code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
@@ -841,7 +840,7 @@ See @ref{hfy-display-class} for details of valid values for @var{class}.
 @end lisp
 
 Find face in effect at point P@.  If overlays are to be considered
-(see @ref{hfy-optimizations}) then this may return a @code{defface} style
+(@pxref{hfy-optimizations}) then this may return a @code{defface} style
 list of face properties instead of a face symbol.
 
 @item hfy-bgcol
@@ -1116,7 +1115,7 @@ Some of the (informal) data structures used in Htmlfontify are detailed here:
 @table @code
 
 @item hfy-style-assoc
-@cindex hfy-style-assoc
+@cindex @code{hfy-style-assoc}
 @anchor{hfy-style-assoc}
 
 An assoc representing/describing an Emacs face.  Properties may be repeated,
@@ -1148,7 +1147,7 @@ Some examples:
 @end lisp
 
 @item hfy-sheet-assoc
-@cindex hfy-sheet-assoc
+@cindex @code{hfy-sheet-assoc}
 @anchor{hfy-sheet-assoc}
 
 An assoc with elements of the form @samp{(face-name style-name . style-string)}.
@@ -1160,7 +1159,7 @@ The actual stylesheet for each page is derived from one of these.
 @end lisp
 
 @item hfy-facemap-assoc
-@cindex hfy-facemap-assoc
+@cindex @code{hfy-facemap-assoc}
 @anchor{hfy-facemap-assoc}
 
 An assoc of @code{(point . @var{face-symbol})} or
@@ -1379,9 +1378,9 @@ For example, I customize this to:
 ((t :background "black" :foreground "white" :family "misc-fixed"))
 @end lisp
 
-@item hfy-init-kludge-hooks
-@vindex hfy-init-kludge-hooks
-@anchor{hfy-init-kludge-hooks}
+@item hfy-init-kludge-hook
+@vindex hfy-init-kludge-hook
+@anchor{hfy-init-kludge-hook}
 
 List of functions to call when starting htmlfontify-buffer to do any
 kludging necessary to get highlighting modes to behave as you want, even
@@ -1538,15 +1537,6 @@ An alist of character -> entity mappings used to make the text html-safe.
 Htmlfontify has a couple of external requirements:
 
 @itemize @bullet
-
-@item
-GNU Emacs 20.7+ or 21.1+
-
-Other versions may work---these have been used successfully by the
-author.  If you intend to use Htmlfontify in batch mode, 21.1+ is
-pretty much required.  The author does not know if XEmacs, NTemacs,
-or J.Random Emacs will run Htmlfontify, but reports/patches/bags of
-money are always welcome.
 
 @item
 A copy of etags (exuberant-ctags or GNU etags).  Htmlfontify attempts

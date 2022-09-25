@@ -1,8 +1,8 @@
-;;; ede/files.el --- Associate projects with files and directories.
+;;; ede/files.el --- Associate projects with files and directories.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 ;;
 ;; Basic Model:
 ;;
-;; A directory belongs to a project if a ede-project-autoload structure
+;; A directory belongs to a project if an ede-project-autoload structure
 ;; matches your directory.
 ;;
 ;; A toplevel project is one where there is no active project above
@@ -33,6 +33,7 @@
 ;; till no ede-project-autoload structure matches.
 ;;
 
+(require 'eieio)
 (require 'ede)
 
 (declare-function ede-locate-file-in-hash "ede/locate")
@@ -75,13 +76,13 @@ Allows for one-project-object-for-a-tree type systems."
   (oref this rootproject))
 
 (cl-defmethod ede-project-root-directory ((this ede-project-placeholder)
-				       &optional file)
+				          &optional _file)
   "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems.
 Optional FILE is the file to test.  It is ignored in preference
 of the anchor file for the project."
-  (let ((root (or (ede-project-root this) this)))
-    (file-name-directory (expand-file-name (oref this file)))))
+  ;; (let ((root (or (ede-project-root this) this)))
+  (file-name-directory (expand-file-name (oref this file)))) ;; )
 
 
 ;; Why INODEs?
@@ -96,15 +97,12 @@ of the anchor file for the project."
 
 (defun ede--put-inode-dir-hash (dir inode)
   "Add to the EDE project hash DIR associated with INODE."
-  (when (fboundp 'puthash)
-    (puthash dir inode ede-inode-directory-hash)
-    inode))
+  (puthash dir inode ede-inode-directory-hash)
+  inode)
 
 (defun ede--get-inode-dir-hash (dir)
   "Get the EDE project hash DIR associated with INODE."
-  (when (fboundp 'gethash)
-    (gethash dir ede-inode-directory-hash)
-    ))
+  (gethash dir ede-inode-directory-hash))
 
 (defun ede--inode-for-dir (dir)
   "Return the inode for the directory DIR."
@@ -113,14 +111,14 @@ of the anchor file for the project."
 	(if ede--disable-inode
 	    (ede--put-inode-dir-hash dir 0)
 	  (let ((fattr (file-attributes dir)))
-	    (ede--put-inode-dir-hash dir (nth 10 fattr))
+	    (ede--put-inode-dir-hash dir (file-attribute-inode-number fattr))
 	    )))))
 
 (cl-defmethod ede--project-inode ((proj ede-project-placeholder))
   "Get the inode of the directory project PROJ is in."
   (if (slot-boundp proj 'dirinode)
       (oref proj dirinode)
-    (oset proj dirinode (ede--inode-for-dir (oref proj :directory)))))
+    (oset proj dirinode (ede--inode-for-dir (oref proj directory)))))
 
 (defun ede--inode-get-toplevel-open-project (inode)
   "Return an already open toplevel project that is managing INODE.
@@ -144,7 +142,7 @@ Does not check subprojects."
 
 (defun ede-directory-get-open-project (dir &optional rootreturn)
   "Return an already open project that is managing DIR.
-Optional ROOTRETURN specifies a symbol to set to the root project.
+Optional ROOTRETURN specifies a `gv-ref' to set to the root project.
 If DIR is the root project, then it is the same."
   (let* ((inode (ede--inode-for-dir dir))
 	 (ft (file-name-as-directory (expand-file-name dir)))
@@ -156,10 +154,12 @@ If DIR is the root project, then it is the same."
     ;; Default answer is this project
     (setq ans proj)
     ;; Save.
-    (when rootreturn (set rootreturn proj))
+    (when rootreturn (if (symbolp rootreturn) (set rootreturn proj)
+                       (setf (gv-deref rootreturn) proj)))
     ;; Find subprojects.
     (when (and proj (if ede--disable-inode
-			(not (string= ft (expand-file-name (oref proj :directory))))
+			(not (string= ft (expand-file-name
+                                          (oref proj directory))))
 		      (not (equal inode (ede--project-inode proj)))))
       (setq ans (ede-find-subproject-for-directory proj ft)))
     ans))
@@ -175,8 +175,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	(shortans nil))
     (while (and all (not ans))
       ;; Do the check.
-      (let ((pd (expand-file-name (oref (car all) :directory)))
-	    )
+      (let ((pd (expand-file-name (oref (car all) directory))))
 	(cond
 	 ;; Exact text match.
 	 ((string= pd ft)
@@ -187,7 +186,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (oref shortans :directory))
+	    (when (< (length (oref shortans directory))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )
@@ -208,7 +207,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	      (setq shortans (car all))
 	    ;; We already have a short answer, so see if pd (the match we found)
 	    ;; is longer.  If it is longer, then it is more precise.
-	    (when (< (length (expand-file-name (oref shortans :directory)))
+	    (when (< (length (expand-file-name (oref shortans directory)))
 		     (length pd))
 	      (setq shortans (car all))))
 	  )))
@@ -228,7 +227,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 	 proj
 	 (lambda (SP)
 	   (when (not ans)
-	     (if (string= fulldir (file-truename (oref SP :directory)))
+	     (if (string= fulldir (file-truename (oref SP directory)))
 		 (setq ans SP)
 	       (ede-find-subproject-for-directory SP dir)))))
 	ans)
@@ -258,7 +257,7 @@ If optional EXACT is non-nil, only return exact matches for DIR."
 (defun ede-flush-directory-hash ()
   "Flush the project directory hash.
 Do this only when developing new projects that are incorrectly putting
-'nomatch tokens into the hash."
+`nomatch' tokens into the hash."
   (interactive)
   (setq ede-project-directory-hash (make-hash-table :test 'equal))
   ;; Also slush the current project's locator hash.
@@ -272,28 +271,24 @@ Do this only when developing new projects that are incorrectly putting
 Do this whenever a new project is created, as opposed to loaded."
   ;; TODO - Use maphash, and delete by regexp, not by dir searching!
   (setq dir (expand-file-name dir))
-  (when (fboundp 'remhash)
-    (remhash (file-name-as-directory dir) ede-project-directory-hash)
-    ;; Look for all subdirs of D, and remove them.
-    (let ((match (concat "^" (regexp-quote dir))))
-      (maphash (lambda (K O)
-		 (when (string-match match K)
-		   (remhash K ede-project-directory-hash)))
-	       ede-project-directory-hash))
-    ))
+  (remhash (file-name-as-directory dir) ede-project-directory-hash)
+  ;; Look for all subdirs of D, and remove them.
+  (let ((match (concat "^" (regexp-quote dir))))
+    (maphash (lambda (K _O)
+               (when (string-match match K)
+                 (remhash K ede-project-directory-hash)))
+             ede-project-directory-hash)))
 
 (defun ede--directory-project-from-hash (dir)
   "If there is an already loaded project for DIR, return it from the hash."
-  (when (fboundp 'gethash)
-    (setq dir (expand-file-name dir))
-    (gethash dir ede-project-directory-hash nil)))
+  (setq dir (expand-file-name dir))
+  (gethash dir ede-project-directory-hash nil))
 
 (defun ede--directory-project-add-description-to-hash (dir desc)
   "Add to the EDE project hash DIR associated with DESC."
-  (when (fboundp 'puthash)
-    (setq dir (expand-file-name dir))
-    (puthash dir desc ede-project-directory-hash)
-    desc))
+  (setq dir (expand-file-name dir))
+  (puthash dir desc ede-project-directory-hash)
+  desc)
 
 ;;; DIRECTORY-PROJECT-P, -CONS
 ;;
@@ -345,7 +340,7 @@ Optional FORCE means to ignore the hash of known directories."
 ;;
 ;; These utilities will identify the "toplevel" of a project.
 ;;
-;; NOTE: These two -toplevel- functions return a directory even though
+;; NOTE: This -toplevel- function returns a directory even though
 ;;       the function name implies a project.
 
 (defun ede-toplevel-project (dir)
@@ -358,19 +353,17 @@ If DIR is not part of a project, return nil."
      ((and (string= dir default-directory)
 	   ede-object-root-project)
       ;; Try the local buffer cache first.
-      (oref ede-object-root-project :directory))
+      (oref ede-object-root-project directory))
 
      ;; See if there is an existing project in DIR.
      ((setq ans (ede-directory-get-toplevel-open-project dir))
-      (oref ans :directory))
+      (oref ans directory))
 
      ;; Detect using our file system detector.
      ((setq ans (ede-detect-directory-for-project dir))
       (car ans))
 
      (t nil))))
-
-(defalias 'ede-toplevel-project-or-nil 'ede-toplevel-project)
 
 ;;; DIRECTORY CONVERSION STUFF
 ;;
@@ -425,7 +418,7 @@ FILENAME should be just a filename which occurs in a directory controlled
 by this project.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist.
-If FORCE equals 'newfile, then the cache is ignored and a new file in THIS
+If FORCE equals `newfile', then the cache is ignored and a new file in THIS
 is returned."
   (require 'ede/locate)
   (let* ((loc (ede-get-locator-object this))
@@ -476,15 +469,15 @@ is returned."
 
     ans))
 
-(cl-defmethod ede-expand-filename-impl ((this ede-project) filename &optional force)
+(cl-defmethod ede-expand-filename-impl ((this ede-project) filename &optional _force)
   "Return a fully qualified file name based on project THIS.
 FILENAME should be just a filename which occurs in a directory controlled
 by this project.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist."
   (let ((loc (ede-get-locator-object this))
-	(path (ede-project-root-directory this))
-	(proj (oref this subproj))
+	;; (path (ede-project-root-directory this))
+	;; (proj (oref this subproj))
 	(found nil))
     ;; find it Locally.
     (setq found (or (ede-expand-filename-local this filename)
@@ -540,6 +533,7 @@ Argument DIR is the directory to trim upwards."
 	nil
       fnd)))
 
+(define-obsolete-function-alias 'ede-toplevel-project-or-nil #'ede-toplevel-project "29.1")
 
 (provide 'ede/files)
 

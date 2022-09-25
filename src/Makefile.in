@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2017 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2022 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -29,10 +29,12 @@ SHELL = @SHELL@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
 CC = @CC@
+CXX = @CXX@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
@@ -54,9 +56,9 @@ lwlibdir = ../lwlib
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
 
-bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
-## ns-app if HAVE_NS, else empty.
+## ns-app if NS self contained app, else empty.
 OTHER_FILES = @OTHER_FILES@
 
 ## Flags to pass for profiling builds
@@ -104,7 +106,7 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## If available, the names of the paxctl and setfattr programs.
+## If needed, the names of the paxctl and setfattr programs.
 ## On grsecurity/PaX systems, unexec will fail due to a gap between
 ## the bss section and the heap.  Older versions need paxctl to work
 ## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
@@ -123,16 +125,19 @@ LIB_MATH=@LIB_MATH@
 ## -lpthread, or empty.
 LIB_PTHREAD=@LIB_PTHREAD@
 
-LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
+LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@ @WEBP_LIBS@
 
 XCB_LIBS=@XCB_LIBS@
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=-lX11 $(XCB_LIBS) $(XFT_LIBS)
+XRENDER_LIBS=@XRENDER_LIBS@
+LIBX_EXTRA=-lX11 $(XCB_LIBS) $(XFT_LIBS) $(XRENDER_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
 FREETYPE_CFLAGS = @FREETYPE_CFLAGS@
 FREETYPE_LIBS = @FREETYPE_LIBS@
+HARFBUZZ_CFLAGS = @HARFBUZZ_CFLAGS@
+HARFBUZZ_LIBS = @HARFBUZZ_LIBS@
 LIBOTF_CFLAGS = @LIBOTF_CFLAGS@
 LIBOTF_LIBS = @LIBOTF_LIBS@
 M17N_FLT_CFLAGS = @M17N_FLT_CFLAGS@
@@ -141,7 +146,7 @@ M17N_FLT_LIBS = @M17N_FLT_LIBS@
 LIB_ACL=@LIB_ACL@
 LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
 LIB_EACCESS=@LIB_EACCESS@
-LIB_FDATASYNC=@LIB_FDATASYNC@
+LIB_NANOSLEEP=@LIB_NANOSLEEP@
 LIB_TIMER_TIME=@LIB_TIMER_TIME@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
@@ -170,7 +175,7 @@ NOTIFY_LIBS = @NOTIFY_LIBS@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
 LIBS_TERMCAP=@LIBS_TERMCAP@
-## terminfo.o if TERMINFO, else tparam.o.
+## terminfo.o if TERMINFO, else (on MS-DOS only: termcap.o +) tparam.o.
 TERMCAP_OBJ=@TERMCAP_OBJ@
 
 LIBXMU=@LIBXMU@
@@ -220,6 +225,8 @@ CFLAGS_SOUND= @CFLAGS_SOUND@
 RSVG_LIBS= @RSVG_LIBS@
 RSVG_CFLAGS= @RSVG_CFLAGS@
 
+WEBP_CFLAGS= @WEBP_CFLAGS@
+
 WEBKIT_LIBS= @WEBKIT_LIBS@
 WEBKIT_CFLAGS= @WEBKIT_CFLAGS@
 
@@ -232,15 +239,18 @@ IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 LIBXML2_LIBS = @LIBXML2_LIBS@
 LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
+SQLITE3_LIBS = @SQLITE3_LIBS@
+
 GETADDRINFO_A_LIBS = @GETADDRINFO_A_LIBS@
 
-LIBLCMS2 = @LIBLCMS2@
+LCMS2_LIBS = @LCMS2_LIBS@
+LCMS2_CFLAGS = @LCMS2_CFLAGS@
 
 LIBZ = @LIBZ@
 
 ## system-specific libs for dynamic modules, else empty
 LIBMODULES = @LIBMODULES@
-## dynlib.o emacs-module.o if modules enabled, else empty
+## emacs-module.o if modules enabled, else empty
 MODULES_OBJ = @MODULES_OBJ@
 
 XRANDR_LIBS = @XRANDR_LIBS@
@@ -252,8 +262,20 @@ XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
 XFIXES_LIBS = @XFIXES_LIBS@
 XFIXES_CFLAGS = @XFIXES_CFLAGS@
 
+XINPUT_LIBS = @XINPUT_LIBS@
+XINPUT_CFLAGS = @XINPUT_CFLAGS@
+
+XSYNC_LIBS = @XSYNC_LIBS@
+XSYNC_CFLAGS = @XSYNC_CFLAGS@
+
 XDBE_LIBS = @XDBE_LIBS@
 XDBE_CFLAGS = @XDBE_CFLAGS@
+
+XCOMPOSITE_LIBS = @XCOMPOSITE_LIBS@
+XCOMPOSITE_CFLAGS = @XCOMPOSITE_CFLAGS@
+
+XSHAPE_LIBS = @XSHAPE_LIBS@
+XSHAPE_CFLAGS = @XSHAPE_CFLAGS@
 
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
@@ -277,12 +299,16 @@ NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Used only for GNUstep.
 GNU_OBJC_CFLAGS=$(patsubst -specs=%-hardened-cc1,,@GNU_OBJC_CFLAGS@)
 ## w32fns.o w32menu.c w32reg.o fringe.o fontset.o w32font.o w32term.o
-## w32xfns.o w32select.o image.o w32uniscribe.o if HAVE_W32, else
-## empty.
+## w32xfns.o w32select.o image.o w32uniscribe.o w32cygwinx.o if HAVE_W32,
+## w32cygwinx.o if CYGWIN but not HAVE_W32, else empty.
 W32_OBJ=@W32_OBJ@
 ## -lkernel32 -luser32 -lusp10 -lgdi32 -lole32 -lcomdlg32 -lcomctl32
-## --lwinspool if HAVE_W32, else empty.
+## -lwinspool if HAVE_W32,
+## -lkernel32 if CYGWIN but not HAVE_W32, else empty.
 W32_LIBS=@W32_LIBS@
+
+PGTK_OBJ=@PGTK_OBJ@
+PGTK_LIBS=@PGTK_LIBS@
 
 ## emacs.res if HAVE_W32
 EMACSRES = @EMACSRES@
@@ -293,10 +319,11 @@ EMACSRES = @EMACSRES@
 W32_RES_LINK=@W32_RES_LINK@
 
 ## Empty if !HAVE_X_WINDOWS
-## xfont.o ftfont.o xftfont.o ftxfont.o if HAVE_XFT
-## xfont.o ftfont.o ftxfont.o if HAVE_FREETYPE
-## ftfont.o ftcrfont.o if USE_CAIRO
+## xfont.o ftfont.o xftfont.o if HAVE_XFT
+## xfont.o ftfont.o if HAVE_FREETYPE
+## xfont.o ftfont.o ftcrfont.o if USE_CAIRO
 ## else xfont.o
+## if HAVE_HARFBUZZ, hbfont.o is added regardless of the rest
 FONT_OBJ=@FONT_OBJ@
 
 ## Empty for MinGW, cm.o for the rest.
@@ -312,9 +339,21 @@ LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
 LIBSYSTEMD_LIBS = @LIBSYSTEMD_LIBS@
 LIBSYSTEMD_CFLAGS = @LIBSYSTEMD_CFLAGS@
 
+JSON_LIBS = @JSON_LIBS@
+JSON_CFLAGS = @JSON_CFLAGS@
+JSON_OBJ = @JSON_OBJ@
+
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
+
+LIBGMP = @LIBGMP@
+
+LIBGCCJIT_LIBS = @LIBGCCJIT_LIBS@
+LIBGCCJIT_CFLAGS = @LIBGCCJIT_CFLAGS@
+
+## dynlib.o if necessary, else empty
+DYNLIB_OBJ = @DYNLIB_OBJ@
 
 RUN_TEMACS = ./temacs
 
@@ -323,33 +362,37 @@ BUILD_DETAILS = @BUILD_DETAILS@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
-CANNOT_DUMP=@CANNOT_DUMP@
+HAIKU_OBJ = @HAIKU_OBJ@
+HAIKU_CXX_OBJ = @HAIKU_CXX_OBJ@
+HAIKU_LIBS = @HAIKU_LIBS@
+HAIKU_CFLAGS = @HAIKU_CFLAGS@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+DUMPING=@DUMPING@
+CHECK_STRUCTS = @CHECK_STRUCTS@
+HAVE_PDUMPER = @HAVE_PDUMPER@
 
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
+HAVE_BE_APP = @HAVE_BE_APP@
 
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
+## ARM Macs require that all code have a valid signature.  Since pdump
+## invalidates the signature, we must re-sign to fix it.
+DO_CODESIGN=$(patsubst aarch64-apple-darwin%,yes,@configuration@)
 
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
+ifeq ($(DUMPING),pdumper)
+bootstrap_pdmp := bootstrap-emacs.pdmp # Keep in sync with loadup.el
+pdmp := emacs.pdmp
+else
+bootstrap_pdmp :=
+pdmp :=
+endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
-NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
+NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd -Wnested-externs
+# Ditto, but for C++.
+NON_CXX_CFLAGS = -Wmissing-prototypes -Wnested-externs -Wold-style-definition \
+  -Wstrict-prototypes -Wno-override-init
 
 # -Demacs makes some files produce the correct version for use in Emacs.
 # MYCPPFLAGS is for by-hand Emacs-specific overrides, e.g.,
@@ -358,48 +401,54 @@ EMACS_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
   -I$(lib) -I$(top_srcdir)/lib \
   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
-  $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
+  $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(LIBGCCJIT_CFLAGS) $(DBUS_CFLAGS) \
   $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) $(XDBE_CFLAGS) \
-  $(WEBKIT_CFLAGS) \
+  $(XINPUT_CFLAGS) $(WEBP_CFLAGS) $(WEBKIT_CFLAGS) $(LCMS2_CFLAGS) \
   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
-  $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
-  $(LIBSYSTEMD_CFLAGS) \
+  $(HARFBUZZ_CFLAGS) $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
+  $(LIBSYSTEMD_CFLAGS) $(JSON_CFLAGS) $(XSYNC_CFLAGS) \
   $(LIBGNUTLS_CFLAGS) $(NOTIFY_CFLAGS) $(CAIRO_CFLAGS) \
-  $(WERROR_CFLAGS)
+  $(WERROR_CFLAGS) $(HAIKU_CFLAGS) $(XCOMPOSITE_CFLAGS) $(XSHAPE_CFLAGS)
 ALL_CFLAGS = $(EMACS_CFLAGS) $(WARN_CFLAGS) $(CFLAGS)
 ALL_OBJC_CFLAGS = $(EMACS_CFLAGS) \
   $(filter-out $(NON_OBJC_CFLAGS),$(WARN_CFLAGS)) $(CFLAGS) \
   $(GNU_OBJC_CFLAGS)
+ALL_CXX_CFLAGS = $(EMACS_CFLAGS) \
+  $(filter-out $(NON_CXX_CFLAGS),$(WARN_CFLAGS)) $(CXXFLAGS)
 
-.SUFFIXES: .m
+.SUFFIXES: .m .cc
 .c.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $(PROFILING_CFLAGS) $<
 .m.o:
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_OBJC_CFLAGS) $(PROFILING_CFLAGS) $<
+.cc.o:
+	$(AM_V_CXX)$(CXX) -c $(CPPFLAGS) $(ALL_CXX_CFLAGS) $(PROFILING_CFLAGS) $<
 
 ## lastfile must follow all files whose initialized data areas should
 ## be dumped as pure by dump-emacs.
-base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
-	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o \
-	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
-	emacs.o keyboard.o macros.o keymap.o sysdep.o \
-	buffer.o filelock.o insdel.o marker.o \
-	minibuf.o fileio.o dired.o \
-	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
-	alloc.o data.o doc.o editfns.o callint.o \
-	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
-	syntax.o $(UNEXEC_OBJ) bytecode.o \
-	process.o gnutls.o callproc.o \
-	region-cache.o sound.o atimer.o \
+base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
+	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o       \
+	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ)    \
+	emacs.o keyboard.o macros.o keymap.o sysdep.o 			       \
+	bignum.o buffer.o filelock.o insdel.o marker.o 			       \
+	minibuf.o fileio.o dired.o 					       \
+	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o   \
+	alloc.o pdumper.o data.o doc.o editfns.o callint.o 		       \
+	eval.o floatfns.o fns.o sort.o font.o print.o lread.o $(MODULES_OBJ)   \
+	syntax.o $(UNEXEC_OBJ) bytecode.o comp.o $(DYNLIB_OBJ) 		       \
+	process.o gnutls.o callproc.o 					       \
+	region-cache.o sound.o timefns.o atimer.o 			       \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
-	$(XWIDGETS_OBJ) \
-	profiler.o decompress.o \
-	thread.o systhread.o \
-	itree.o \
-	$(if $(HYBRID_MALLOC),sheap.o) \
-	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
-	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)
-obj = $(base_obj) $(NS_OBJC_OBJ)
+	$(XWIDGETS_OBJ) 						       \
+	profiler.o decompress.o 					       \
+	thread.o systhread.o sqlite.o 					       \
+	itree.o 							       \
+	$(if $(HYBRID_MALLOC),sheap.o) 					       \
+	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
+	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) 	       \
+	$(HAIKU_OBJ) $(PGTK_OBJ)
+doc_obj = $(base_obj) $(NS_OBJC_OBJ)
+obj = $(doc_obj) $(HAIKU_CXX_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
@@ -409,10 +458,12 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o cygw32.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o macfont.o \
-  w32.o w32console.o w32fns.o w32heap.o w32inevt.o w32notify.o \
+  nsxwidget.o \
+  w32.o w32console.o w32cygwinx.o w32fns.o w32heap.o w32inevt.o w32notify.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
-  w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
-  xsettings.o xgselect.o termcap.o
+  w16select.o widget.o xfont.o ftfont.o xftfont.o gtkutil.o \
+  xsettings.o xgselect.o termcap.o hbfont.o \
+  haikuterm.o haikufns.o haikumenu.o haikufont.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -437,6 +488,27 @@ otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
 FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
+# Must be first, before dep inclusion!
+ifneq ($(HAVE_BE_APP),yes)
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
+else
+all: Emacs Emacs.pdmp $(OTHER_FILES)
+endif
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
+all: ../native-lisp
+endif
+.PHONY: all
+
+dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h $(srcdir)/itree.h \
+	$(srcdir)/intervals.h $(srcdir)/charset.h $(srcdir)/bignum.h
+ifeq ($(CHECK_STRUCTS),true)
+pdumper.o: dmpstruct.h
+endif
+dmpstruct.h: $(srcdir)/dmpstruct.awk
+dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
+	$(AM_V_GEN)POSIXLY_CORRECT=1 awk -f $(srcdir)/dmpstruct.awk \
+		$(dmpstruct_headers) > $@
+
 AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
@@ -446,9 +518,6 @@ else
   DEPFLAGS =
   include $(srcdir)/deps.mk
 endif
-
-all: emacs$(EXEEXT) $(OTHER_FILES)
-.PHONY: all
 
 ## This is the list of all Lisp files that might be loaded into the
 ## dumped Emacs.  Some of them are not loaded on all platforms, but
@@ -467,11 +536,11 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 ## but the second one seems like it could be more future-proof.
 shortlisp =
 lisp.mk: $(lispsource)/loadup.el
-	@rm -f $@
 	${AM_V_GEN}( printf 'shortlisp = \\\n'; \
 	sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | \
 	  sed -e 's/$$/.elc \\/' -e 's/\.el\.elc/.el/'; \
-	echo "" ) > $@
+	echo "" ) > $@.tmp
+	$(AM_V_at)mv -f $@.tmp $@
 
 -include lisp.mk
 shortlisp_filter = leim/leim-list.el site-load.elc site-init.elc
@@ -480,28 +549,31 @@ shortlisp := $(filter-out ${shortlisp_filter},${shortlisp})
 ## the critical path (relevant in parallel compilations).
 ## We don't really need to sort, but may as well use it to remove duplicates.
 shortlisp := loaddefs.el loadup.el $(sort ${shortlisp})
+export LISP_PRELOADED = ${shortlisp}
 lisp = $(addprefix ${lispsource}/,${shortlisp})
 
 ## Construct full set of libraries to be linked.
-LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
+LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(PGTK_LIBS) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
-   $(WEBKIT_LIBS) \
-   $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_NANOSLEEP) $(WEBKIT_LIBS) \
+   $(LIB_EACCESS) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
-   $(XDBE_LIBS) \
+   $(XDBE_LIBS) $(XSYNC_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
-   $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
-   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LIBLCMS2) \
-   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS)
+   $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(HARFBUZZ_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
+   $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
+   $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
+   $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT_LIBS) $(XINPUT_LIBS) $(HAIKU_LIBS) \
+   $(SQLITE3_LIBS) $(XCOMPOSITE_LIBS) $(XSHAPE_LIBS)
 
-## FORCE it so that admin/unidata can decide whether these files
-## are up-to-date.  Although since charprop depends on bootstrap-emacs,
-## and emacs (which recreates bootstrap-emacs) depends on charprop,
-## in practice this rule was always run anyway.
-$(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
-  bootstrap-emacs$(EXEEXT) FORCE
+## FORCE it so that admin/unidata can decide whether this file is
+## up-to-date.  Although since charprop depends on bootstrap-emacs,
+## and emacs depends on charprop, in practice this rule was always run
+## anyway.
+$(lispsource)/international/charprop.el: \
+  FORCE | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 
 ## We require charprop.el to exist before ucs-normalize.el is
@@ -516,13 +588,19 @@ ${lispintdir}/cp51932.el ${lispintdir}/eucjp-ms.el: FORCE
 
 charsets = ${top_srcdir}/admin/charsets/charsets.stamp
 ${charsets}: FORCE
-	${MAKE} -C ../admin/charsets all
+	$(MAKE) -C ../admin/charsets all
 
 charscript = ${lispintdir}/charscript.el
 ${charscript}: FORCE
 	$(MAKE) -C ../admin/unidata $(notdir $@)
 
-${lispintdir}/characters.elc: ${charscript:.el=.elc}
+emoji-zwj = ${lispintdir}/emoji-zwj.el
+${emoji-zwj}: FORCE
+	$(MAKE) -C ../admin/unidata $(notdir $@)
+
+${lispintdir}/characters.elc: ${charscript:.el=.elc} ${emoji-zwj:.el=.elc}
+
+SYSTEM_TYPE = @SYSTEM_TYPE@
 
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
@@ -532,37 +610,53 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
-ifeq ($(CANNOT_DUMP),yes)
-	ln -f temacs$(EXEEXT) $@
-else
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+ifeq ($(SYSTEM_TYPE),cygwin)
+	find ${top_builddir} -name '*.eln' | rebase -v -O -T -
+endif
+ifeq ($(DUMPING),unexec)
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
   ifneq ($(PAXCTL_dumped),)
-	$(PAXCTL_dumped) $@
+	      $(PAXCTL_dumped) emacs$(EXEEXT)
   endif
-	ln -f $@ bootstrap-emacs$(EXEEXT)
+	cp -f $@ bootstrap-emacs$(EXEEXT)
+else
+	rm -f $@ && cp -f temacs$(EXEEXT) $@
 endif
 
-## We run make-docfile twice because the command line may get too long
-## on some systems.  Unfortunately, no-one has any idea
-## exactly how long the maximum safe command line length is on all the
-## various systems that Emacs supports.
-##
+## On Haiku, also produce a binary named Emacs with the appropriate
+## icon set.
+
+ifeq ($(HAVE_BE_APP),yes)
+Emacs: emacs$(EXEEXT) $(libsrc)/be-resources
+	$(AM_V_GEN) cp -f emacs$(EXEEXT) $@
+	$(AM_V_at) $(libsrc)/be-resources \
+	  $(etc)/images/icons/hicolor/32x32/apps/emacs.png $@
+Emacs.pdmp: $(pdmp)
+	$(AM_V_GEN) cp -f $(pdmp) $@
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(pdmp): emacs$(EXEEXT) $(lispsource)/loaddefs.el $(lispsource)/loaddefs.elc
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
+	cp -f $@ $(bootstrap_pdmp)
+endif
+
 ## $(SOME_MACHINE_OBJECTS) comes before $(obj) because some files may
 ## or may not be included in $(obj), but they are always included in
 ## $(SOME_MACHINE_OBJECTS).  Since a file is processed when it is mentioned
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
 ##
-$(etc)/DOC: lisp.mk $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(doc_obj)
 	$(AM_V_GEN)$(MKDIR_P) $(etc)
-	-$(AM_V_at)rm -f $(etc)/DOC
+	$(AM_V_at)rm -f $(etc)/DOC
 	$(AM_V_at)$(libsrc)/make-docfile -d $(srcdir) \
-	  $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(AM_V_at)$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) \
-	  $(shortlisp)
+	  $(SOME_MACHINE_OBJECTS) $(doc_obj) > $(etc)/DOC
 
-$(libsrc)/make-docfile$(EXEEXT): $(lib)/libgnu.a
-	$(MAKE) -C $(libsrc) make-docfile$(EXEEXT)
+$(libsrc)/make-docfile$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT): \
+  $(lib)/libgnu.a
+	$(MAKE) -C $(dir $@) $(notdir $@)
 
 buildobj.h: Makefile
 	$(AM_V_GEN)for i in $(ALLOBJS); do \
@@ -573,13 +667,8 @@ buildobj.h: Makefile
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
-AM_V_GLOBALS = $(am__v_GLOBALS_@AM_V@)
-am__v_GLOBALS_ = $(am__v_GLOBALS_@AM_DEFAULT_V@)
-am__v_GLOBALS_0 = @echo "  GEN     " globals.h;
-am__v_GLOBALS_1 =
-
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
-	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > globals.tmp
+	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(doc_obj) > globals.tmp
 	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change globals.tmp globals.h
 	$(AM_V_at)echo timestamp > $@
 
@@ -590,18 +679,38 @@ $(ALLOBJS): globals.h
 LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
 
 $(LIBEGNU_ARCHIVE): $(config_h)
-	$(MAKE) -C $(lib) all
+	$(MAKE) -C $(dir $@) all
+
+ifeq ($(HAVE_PDUMPER),yes)
+MAKE_PDUMPER_FINGERPRINT = $(libsrc)/make-fingerprint$(EXEEXT)
+else
+MAKE_PDUMPER_FINGERPRINT =
+endif
 
 ## We have to create $(etc) here because init_cmdargs tests its
 ## existence when setting Vinstallation_directory (FIXME?).
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
-temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
-	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
-	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(EMACSRES) \
+  $(charsets) $(charscript) ${emoji-zwj} $(MAKE_PDUMPER_FINGERPRINT)
+ifeq ($(HAVE_BE_APP),yes)
+	$(AM_V_CXXLD)$(CXX) -o $@.tmp \
+	  $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES) -lstdc++
+else
+	$(AM_V_CCLD)$(CC) -o $@.tmp \
+	  $(ALL_CFLAGS) $(CXXFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+endif
+ifeq ($(HAVE_PDUMPER),yes)
+	$(AM_V_at)$(MAKE_PDUMPER_FINGERPRINT) $@.tmp
+ifeq ($(DO_CODESIGN),yes)
+	codesign -s - -f $@.tmp
+endif
+endif
+	$(AM_V_at)mv $@.tmp $@
 	$(MKDIR_P) $(etc)
-ifneq ($(CANNOT_DUMP),yes)
+ifeq ($(DUMPING),unexec)
   ifneq ($(PAXCTL_notdumped),)
 	$(PAXCTL_notdumped) $@
   endif
@@ -610,15 +719,15 @@ endif
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them.
 $(lwlibdir)/liblw.a: $(config_h) globals.h lisp.h FORCE
-	$(MAKE) -C $(lwlibdir) liblw.a
+	$(MAKE) -C $(dir $@) $(notdir $@)
 $(oldXMenudir)/libXMenu11.a: FORCE
-	$(MAKE) -C $(oldXMenudir) libXMenu11.a
+	$(MAKE) -C $(dir $@) $(notdir $@)
 FORCE:
 .PHONY: FORCE
 
 .PRECIOUS: ../config.status Makefile
 ../config.status: $(top_srcdir)/configure.ac $(top_srcdir)/m4/*.m4
-	$(MAKE) -C .. $(notdir $@)
+	$(MAKE) -C $(dir $@) $(notdir $@)
 Makefile: ../config.status $(srcdir)/Makefile.in
 	$(MAKE) -C .. src/$@
 
@@ -628,21 +737,27 @@ emacs.res: FORCE
 	$(MAKE) -C ../nt ../src/emacs.res
 
 .PHONY: ns-app
-ns-app: emacs$(EXEEXT)
+ns-app: emacs$(EXEEXT) $(pdmp)
 	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
-.PHONY: versionclean extraclean
+.PHONY: versionclean
 
 mostlyclean:
-	rm -f temacs$(EXEEXT) core *.core \#* *.o
+	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
+	rm -f dmpstruct.h
+	rm -f emacs.pdmp
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
+	rm -f bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+	rm -f emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
-	rm -f *.res *.tmp
-clean: mostlyclean
-	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
+	rm -f ./*.res ./*.tmp
+versionclean:
+	rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) emacs-*.*.*[0-9].pdmp
+	rm -f ../etc/DOC*
+clean: mostlyclean versionclean
+	rm -f $(DEPDIR)/*
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
@@ -656,48 +771,46 @@ bootstrap-clean: clean
 	fi
 
 distclean: bootstrap-clean
-	rm -f Makefile lisp.mk
+	rm -f Makefile lisp.mk verbose.mk
 	rm -fr $(DEPDIR)
 
 maintainer-clean: distclean
 	rm -f TAGS
-versionclean:
-	-rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) ../etc/DOC*
-extraclean: distclean
-	-rm -f *~ \#*
-
 
 ETAGS = ../lib-src/etags${EXEEXT}
 
 ${ETAGS}: FORCE
-	${MAKE} -C ../lib-src $(notdir $@)
+	$(MAKE) -C $(dir $@) $(notdir $@)
 
-ctagsfiles1 = $(wildcard ${srcdir}/*.[hc])
+# Remove macuvs.h since it'd cause `src/emacs`
+# to be built before we can get TAGS.
+ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h, $(wildcard ${srcdir}/*.[hc]))
 ctagsfiles2 = $(wildcard ${srcdir}/*.m)
+ctagsfiles3 = $(wildcard ${srcdir}/*.cc)
 
-## FIXME? In out-of-tree builds, should TAGS be generated in srcdir?
+## In out-of-tree builds, TAGS are generated in the build dir, like
+## other non-bootstrap build products (see Bug#31744).
 
-## This does not need to depend on ../lisp and ../lwlib TAGS files,
+## This does not need to depend on ../lisp, ../lwlib and ../lib TAGS files,
 ## because etags "--include" only includes a pointer to the file,
 ## rather than the file contents.
 TAGS: ${ETAGS} $(ctagsfiles1) $(ctagsfiles2)
-	${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+	$(AM_V_GEN)${ETAGS} --include=../lisp/TAGS --include=$(lwlibdir)/TAGS \
+	  --include=$(lib)/TAGS \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
 	  $(ctagsfiles1) \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/\1/' \
 	  --regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+"[^"]+",[ 	]\([A-Za-z0-9_]+\)/\1/' \
-	  $(ctagsfiles2)
+	  $(ctagsfiles2) \
+	  $(ctagsfiles3)
 
-## Arrange to make tags tables for ../lisp and ../lwlib,
+## Arrange to make tags tables for ../lisp, ../lwlib and ../lib,
 ## which the above TAGS file for the C files includes by reference.
-../lisp/TAGS: FORCE
-	$(MAKE) -C ../lisp TAGS ETAGS="$(ETAGS)"
+../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS: FORCE
+	$(MAKE) -C $(dir $@) $(notdir $@) ETAGS="$(ETAGS)"
 
-$(lwlibdir)/TAGS: FORCE
-	$(MAKE) -C $(lwlibdir) TAGS ETAGS="$(ETAGS)"
-
-tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
+tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS $(lib)/TAGS
 .PHONY: tags
 
 
@@ -721,29 +834,91 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## but now that we require GNU make, we can simply specify
 ## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
 
-%.elc: %.el | bootstrap-emacs$(EXEEXT)
-	@$(MAKE) -C ../lisp EMACS="$(bootstrap_exe)" THEFILE=$< $<c
+%.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="$(bootstrap_exe)"\
+		THEFILE=$< $<c
 
-## VCSWITNESS points to the file that holds info about the current checkout.
-## We use it as a heuristic to decide when to rebuild loaddefs.el.
-## If empty it is ignored; the parent makefile can set it to some other value.
-VCSWITNESS =
+ifeq ($(HAVE_NATIVE_COMP):$(NATIVE_DISABLED),yes:)
+## The following rules are used only when building a source tarball
+## for the first time, when the native-lisp/ directory doesn't yet
+## exist and needs to be created and populated with the preloaded
+## *.eln files.
 
-$(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
+## List of *.eln files we need to produce in addition to the preloaded
+## ones in $(lisp).
+elnlisp := \
+	emacs-lisp/byte-opt.eln \
+	emacs-lisp/bytecomp.eln \
+	emacs-lisp/cconv.eln \
+	international/charscript.eln \
+	emacs-lisp/comp.eln \
+	emacs-lisp/comp-cstr.eln \
+	international/emoji-zwj.eln
+elnlisp := $(addprefix ${lispsource}/,${elnlisp}) $(lisp:.elc=.eln)
+
+%.eln: %.el | emacs$(EXEEXT) $(pdmp)
+	@$(MAKE) $(AM_V_NO_PD) -C ../lisp EMACS="../src/emacs$(EXEEXT)"\
+		THEFILE=$< $<n
+
+## FIXME: this is fragile!  We lie to Make about the files produced by
+## this rule, and we rely on the absence of the native-lisp directory
+## to trigger it.  This means that if anything goes wrong during
+## native compilation, the only way to trigger it again is to remove
+## the directory and re-native-compile everything.  The main
+## underlying problem is that the name of the subdirectory of
+## native-lisp where the *.eln files will be produced, and the exact
+## names of those *.eln files, cannot be known in advance; we must ask
+## Emacs to produce them.
+../native-lisp: | $(pdmp)
+	@if test ! -d $@; then \
+	  mkdir $@ && $(MAKE) $(AM_V_NO_PD) $(elnlisp); \
+	  if test $(SYSTEM_TYPE) = cygwin; then \
+	    find $@ -name '*.eln' | rebase -v -O -T -; \
+	  fi; \
+	  LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR) \
+	  && cp -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT) \
+	  && cp -f $(pdmp) $(bootstrap_pdmp); \
+	fi
+endif
+
+$(lispsource)/loaddefs.el: | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
+
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-ifeq ($(CANNOT_DUMP),yes)
-	ln -f temacs$(EXEEXT) $@
-else
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+ifeq ($(DUMPING),unexec)
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) emacs$(EXEEXT)
   endif
-	mv -f emacs$(EXEEXT) $@
-endif
+	mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+else
+	@: In the pdumper case, make compile-first after the dump
+	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
+ifeq ($(DO_CODESIGN),yes)
+	codesign -s - -f bootstrap-emacs$(EXEEXT)
+endif
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
+	rm -f $@
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
+	@: Compile some files earlier to speed up further compilation.
+	@: First, byte compile these files, ....
+	ANCIENT=yes $(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+	@: .... then use their .elcs in native compiling these and other files.
+	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+endif
+
+### Flymake support (for C only)
+check-syntax:
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) ${CHK_SOURCES} || true
+.PHONY: check-syntax

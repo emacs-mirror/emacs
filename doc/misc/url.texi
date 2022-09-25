@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2017 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2022 Free Software
 Foundation, Inc.
 
 @quotation
@@ -90,7 +90,7 @@ can be accessed (usually over a network) in a specific way.
 
 @example
 ftp://ftp.is.co.za/rfc/rfc1808.txt
-http://www.ietf.org/rfc/rfc2396.txt
+https://www.ietf.org/rfc/rfc2396.txt
 ldap://[2001:db8::7]/c=GB?objectClass?one
 mailto:John.Doe@@example.com
 news:comp.infosystems.www.servers.unix
@@ -221,6 +221,7 @@ URI's @var{port} slot is @code{nil}.
 @section URI Encoding
 
 @cindex percent encoding
+@findex url-generic-parse-url
   The @code{url-generic-parse-url} parser does not obey RFC 3986 in
 one respect: it allows non-@acronym{ASCII} characters in URI strings.
 
@@ -233,6 +234,7 @@ then percent encoded to @samp{%D3%A7}.  (Certain ``reserved''
 @acronym{ASCII} characters must also be percent encoded when they
 appear in URI components.)
 
+@findex url-encode-url
   The function @code{url-encode-url} can be used to convert a URI
 string containing arbitrary characters to one that is properly
 percent-encoded in accordance with RFC 3986.
@@ -244,6 +246,8 @@ e.g., converting the scheme component to lowercase if it was
 previously uppercase.
 @end defun
 
+@findex url-hexify-string
+@findex url-unhex-string
   To convert between a string containing arbitrary characters and a
 percent-encoded all-@acronym{ASCII} string, use the functions
 @code{url-hexify-string} and @code{url-unhex-string}:
@@ -263,8 +267,8 @@ The allowed characters are specified by @var{allowed-chars}.  If this
 argument is @code{nil}, the allowed characters are those specified as
 @dfn{unreserved characters} by RFC 3986 (see the variable
 @code{url-unreserved-chars}).  Otherwise, @var{allowed-chars} should
-be a vector whose @var{n}-th element is non-@code{nil} if character
-@var{n} is allowed.
+be either a list of allowed chars, or a vector whose Nth element is
+non-nil if character N is allowed.
 @end defun
 
 @defun url-unhex-string string &optional allow-newlines
@@ -376,7 +380,7 @@ for specific schemes.
 * info::                        Emacs "Info" pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
-* rlogin/telnet/tn3270::        Remote host connectivity.
+* telnet/tn3270::               Remote host connectivity.
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
 * nfs::                         Networked File System.
@@ -401,7 +405,7 @@ gateway method to be used.  @xref{Gateways in general}.
 @defopt url-honor-refresh-requests
 If this option is non-@code{nil} (the default), the @code{url} library
 honors the HTTP @samp{Refresh} header, which is used by servers to
-direct clients to reload documents from the same URL or a or different
+direct clients to reload documents from the same URL or a different
 one.  If the value is @code{nil}, the @samp{Refresh} header is
 ignored; any other value means to ask the user on each request.
 @end defopt
@@ -440,8 +444,7 @@ Specifies whether confirmation is required to accept cookies.
 
 @defopt url-cookie-multiple-line
 Specifies whether to put all cookies for the server on one line in the
-HTTP request to satisfy broken servers like
-@url{http://www.hotmail.com}.
+HTTP request to satisfy broken servers.
 @end defopt
 
 @defopt url-cookie-trusted-urls
@@ -571,13 +574,6 @@ if it has the file suffix @file{.z}, @file{.gz}, @file{.Z},
 hard-coded, and cannot be altered by customizing
 @code{jka-compr-compression-info-list}.)
 
-@defopt url-directory-index-file
-This option specifies the filename to look for when a @code{file} or
-@code{ftp} URL specifies a directory.  The default is
-@file{index.html}.  If this file exists and is readable, it is viewed.
-Otherwise, Emacs visits the directory using Dired.
-@end defopt
-
 @node info
 @section info
 @cindex Info
@@ -679,9 +675,8 @@ environment variable @samp{NNTPSERVER}, or @samp{news} if that
 environment variable is unset.
 @end defopt
 
-@node rlogin/telnet/tn3270
-@section rlogin, telnet and tn3270
-@cindex rlogin
+@node telnet/tn3270
+@section telnet and tn3270
 @cindex telnet
 @cindex tn3270
 @cindex terminal emulation
@@ -698,10 +693,10 @@ telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 but the @var{password} component is ignored.  By default, the
 @code{telnet} scheme is handled via Tramp (@pxref{Tramp}).
 
-To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
-@code{telnet} or @code{tn3270} (the program names and arguments are
-hardcoded) session is run in a @code{terminal-emulator} buffer.
-Well-known ports are used if the URL does not specify a port.
+To handle telnet and tn3270 URLs, a @code{telnet} or @code{tn3270}
+(the program names and arguments are hardcoded) session is run in a
+@code{terminal-emulator} buffer.  Well-known ports are used if the URL
+does not specify a port.
 
 @node irc
 @section irc
@@ -712,7 +707,7 @@ Well-known ports are used if the URL does not specify a port.
 @cindex rcirc
 
   The @code{irc} scheme is defined in the Internet Draft at
-@url{http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
+@url{https://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt} (which
 was never approved as an RFC).  Such URLs have the form
 
 @example
@@ -954,7 +949,6 @@ containing the data cached for that URL.
 @node Proxies
 @section Proxies and Gatewaying
 
-@c fixme: check/document url-ns stuff
 @cindex proxy servers
 @cindex proxies
 @cindex environment variables
@@ -1044,12 +1038,6 @@ a list of symbols.  Possible values are:
 Use this method if you must first telnet and log into a gateway host,
 and then run telnet from that host to connect to outside machines.
 
-@item rlogin
-@cindex @command{rlogin}
-This method is identical to @code{telnet}, but uses @command{rlogin}
-to log into the remote machine without having to send the username and
-password over the wire every time.
-
 @item socks
 @cindex @sc{socks}
 Use if the firewall has a @sc{socks} gateway running on it.  The
@@ -1087,19 +1075,6 @@ The username to log in with.
 @end defopt
 @defopt url-gateway-telnet-password
 The password to send when logging in.
-@end defopt
-@defopt url-gateway-prompt-pattern
-This is a regular expression that matches the shell prompt.
-@end defopt
-
-@defopt url-gateway-rlogin-host
-Host to @samp{rlogin} to before telnetting out.
-@end defopt
-@defopt url-gateway-rlogin-parameters
-Parameters to pass to @samp{rsh}.
-@end defopt
-@defopt url-gateway-rlogin-user-name
-User name to use when logging in to the gateway.
 @end defopt
 @defopt url-gateway-prompt-pattern
 This is a regular expression that matches the shell prompt.
@@ -1185,7 +1160,7 @@ opened by the URL library.
 @c machines off the local network.  This is characterized by being able
 @c to reach someplace with a raw ip number, but not its hostname
 @c (@url{http://129.79.254.191/} works, but
-@c @url{http://www.cs.indiana.edu/} doesn't).  This used to happen on
+@c @url{https://www.cs.indiana.edu/} doesn't).  This used to happen on
 @c SunOS4 and Ultrix, but is now probably now rare.  If Emacs can't be
 @c rebuilt linked against the resolver library, it can use the external
 @c @command{nslookup} program instead.
@@ -1263,18 +1238,6 @@ You can use this function to do completion of URLs from the history.
 @node Customization
 @chapter Customization
 
-@cindex environment variables
-  The following environment variables affect the @code{url} library's
-operation at startup.
-
-@table @code
-@item TMPDIR
-@vindex TMPDIR
-@vindex url-temporary-directory
-If this is defined, @var{url-temporary-directory} is initialized from
-it.
-@end table
-
   The following user options affect the general operation of
 @code{url} library.
 
@@ -1286,7 +1249,8 @@ files, etc.
 
 The default value specifies a subdirectory named @file{url/} in the
 standard Emacs user data directory specified by the variable
-@code{user-emacs-directory} (normally @file{~/.emacs.d}).  However,
+@code{user-emacs-directory} (normally @file{~/.config/emacs}
+or @file{~/.emacs.d}).  However,
 the old default was @file{~/.url}, and this directory is used instead
 if it exists.
 @end defopt
@@ -1303,6 +1267,20 @@ It may also be a list of the types of messages to be logged.
 @end defopt
 @defopt url-privacy-level
 @end defopt
+@defopt url-lastloc-privacy-level
+Provided @code{lastloc} is not prohibited by @code{url-privacy-level},
+this determines who we send our last location to.  @code{none} means
+we include our last location in every outgoing request.
+@code{domain-match} means we send it only if the domain of our last
+location matches the domain of the URI we are requesting.
+@code{host-match} means we only send our last location back to the
+same host.  The default is @code{domain-match}.
+
+Using @code{domain-match} for this option requires emacs to make one
+or more DNS requests each time a new host is contacted, to determine
+the domain of the host.  Results of these lookups are cached, so
+repeated visits do not require repeated domain lookups.
+@end defopt
 @defopt url-uncompressor-alist
 @end defopt
 @defopt url-passwd-entry-func
@@ -1312,8 +1290,6 @@ It may also be a list of the types of messages to be logged.
 @defopt url-bad-port-list
 @end defopt
 @defopt url-max-password-attempts
-@end defopt
-@defopt url-temporary-directory
 @end defopt
 @defopt url-show-status
 @end defopt
@@ -1331,8 +1307,6 @@ from the local machine.  The supported methods are:
 @table @code
 @item telnet
 Run telnet in a subprocess to connect;
-@item rlogin
-Rlogin to another machine to connect;
 @item socks
 Connect through a socks server;
 @item ssl
@@ -1347,7 +1321,7 @@ The User Agent string used for sending @acronym{HTTP}/@acronym{HTTPS}
 requests.  The value should be @code{nil}, which means that no
 @samp{User-Agent} header is generated, @code{default}, which means
 that a string is generated based on the setting of
-@code{url-privacy-leve}, a string or a function of no arguments that
+@code{url-privacy-level}, a string or a function of no arguments that
 returns a string.
 
 The default is @code{default}, which means that the

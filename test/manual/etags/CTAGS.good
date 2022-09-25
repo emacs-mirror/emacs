@@ -759,6 +759,7 @@ Install_Abort_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Abort_Handle
 Install_Error_Handler/p	ada-src/2ataspri.adb	/^   procedure Install_Error_Handler (Handler : Syst/
 Install_Error_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Error_Handler (Handler : Syst/
 Invoking gzip	tex-src/gzip.texi	/^@node Invoking gzip, Advanced usage, Sample, Top$/
+IpAddrKind	rs-src/test.rs	3
 IsControlChar	pas-src/common.pas	/^function IsControlChar; (*($/
 IsControlCharName	pas-src/common.pas	/^function IsControlCharName($/
 Is_Set/f	ada-src/2ataspri.adb	/^   function  Is_Set (Cell : in TAS_Cell) return Bo/
@@ -984,6 +985,7 @@ MoveLayerBottom	lua-src/allegro.lua	/^function MoveLayerBottom ()$/
 MoveLayerTop	lua-src/allegro.lua	/^function MoveLayerTop ()$/
 Mtest.go	go-src/test.go	1
 Mtest.go	go-src/test.go	/^func main() {$/
+Mtest.rs	rs-src/test.rs	/^fn main() {$/
 Mtest1.go	go-src/test1.go	1
 Mtest1.go	go-src/test1.go	/^func main() {$/
 Mx.cc	cp-src/x.cc	/^main(int argc, char *argv[])$/
@@ -1153,7 +1155,6 @@ Python_help	c-src/etags.c	660
 Python_suffixes	c-src/etags.c	658
 QUIT	c-src/emacs/src/lisp.h	3101
 QUITP	c-src/emacs/src/lisp.h	3112
-Qpre_abbrev_expand_hook	c-src/abbrev.c	83
 RANGED_INTEGERP	c-src/emacs/src/lisp.h	/^RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intma/
 RCSid	objc-src/PackInsp.m	30
 READABLE_EVENTS_DO_TIMERS_NOW	c-src/emacs/src/keyboard.c	346
@@ -1498,7 +1499,6 @@ Vglobal_abbrev_table	c-src/abbrev.c	48
 Vlast_abbrev	c-src/abbrev.c	70
 Vlast_abbrev_text	c-src/abbrev.c	75
 Vlispy_mouse_stem	c-src/emacs/src/keyboard.c	5172
-Vpre_abbrev_expand_hook	c-src/abbrev.c	83
 WAIT_READING_MAX	c-src/emacs/src/lisp.h	4281
 WAIT_READING_MAX	c-src/emacs/src/lisp.h	4283
 WARNINGS	make-src/Makefile	/^WARNINGS=-pedantic -Wall -Wpointer-arith -Winline /
@@ -1732,7 +1732,6 @@ Z	c-src/h.h	100
 \1	c-src/abbrev.c	/^  DEFVAR_PER_BUFFER ("local-abbrev-table", &curren/
 \1	c-src/abbrev.c	/^  DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed/
 \1	c-src/abbrev.c	/^  DEFVAR_BOOL ("abbrev-all-caps", &abbrev_all_caps/
-\1	c-src/abbrev.c	/^  DEFVAR_LISP ("pre-abbrev-expand-hook", &Vpre_abb/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("internal--top-level-message", Vint/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("last-command-event", last_command_/
 \1	c-src/emacs/src/keyboard.c	/^  DEFVAR_LISP ("last-nonmenu-event", last_nonmenu_/
@@ -1835,7 +1834,7 @@ Z	c-src/h.h	100
 \Ealphaenumerate	tex-src/texinfo.tex	/^\\def\\Ealphaenumerate{\\Eenumerate}$/
 \Ecapsenumerate	tex-src/texinfo.tex	/^\\def\\Ecapsenumerate{\\Eenumerate}$/
 \Ecartouche	tex-src/texinfo.tex	/^\\def\\Ecartouche{%$/
-\Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Neccessary kludge.$/
+\Edescription	tex-src/texinfo.tex	/^\\def\\Edescription{\\Etable}% Necessary kludge.$/
 \Edisplay	tex-src/texinfo.tex	/^\\def\\Edisplay{\\endgroup\\afterenvbreak}%$/
 \Eexample	tex-src/texinfo.tex	/^\\def\\Eexample{\\Elisp}$/
 \Eflushleft	tex-src/texinfo.tex	/^\\def\\Eflushleft{\\endgroup\\afterenvbreak}%$/
@@ -2462,8 +2461,47 @@ abs/f	ada-src/etags-test-for.ada	/^   function "abs"   (Right : Complex) return 
 absolute_dirname	c-src/etags.c	/^absolute_dirname (char *file, char *dir)$/
 absolute_filename	c-src/etags.c	/^absolute_filename (char *file, char *dir)$/
 abt	cp-src/c.C	55
+acc_pred_info	merc-src/accumulator.m	/^:- pred acc_pred_info(list(mer_type)::in, list(pro/
+acc_proc_info	merc-src/accumulator.m	/^:- pred acc_proc_info(list(prog_var)::in, prog_var/
+acc_unification	merc-src/accumulator.m	/^:- pred acc_unification(pair(prog_var)::in, hlds_g/
+acc_var_subst_init	merc-src/accumulator.m	/^:- pred acc_var_subst_init(list(prog_var)::in,$/
 accent_key_syms	c-src/emacs/src/keyboard.c	4625
 access_keymap_keyremap	c-src/emacs/src/keyboard.c	/^access_keymap_keyremap (Lisp_Object map, Lisp_Obje/
+accu_assoc	merc-src/accumulator.m	/^:- pred accu_assoc(module_info::in, vartypes::in, /
+accu_assoc	merc-src/accumulator.m	/^:- type accu_assoc$/
+accu_base	merc-src/accumulator.m	/^:- type accu_base$/
+accu_before	merc-src/accumulator.m	/^:- pred accu_before(module_info::in, vartypes::in,/
+accu_case	merc-src/accumulator.m	/^:- type accu_case$/
+accu_construct	merc-src/accumulator.m	/^:- pred accu_construct(module_info::in, vartypes::/
+accu_construct_assoc	merc-src/accumulator.m	/^:- pred accu_construct_assoc(module_info::in, vart/
+accu_create_goal	merc-src/accumulator.m	/^:- pred accu_create_goal(accu_goal_id::in, list(pr/
+accu_divide_base_case	merc-src/accumulator.m	/^:- pred accu_divide_base_case(module_info::in, var/
+accu_goal_id	merc-src/accumulator.m	/^:- type accu_goal_id$/
+accu_goal_list	merc-src/accumulator.m	/^:- func accu_goal_list(list(accu_goal_id), accu_go/
+accu_goal_store	merc-src/accumulator.m	/^:- type accu_goal_store == goal_store(accu_goal_id/
+accu_has_heuristic	merc-src/accumulator.m	/^:- pred accu_has_heuristic(module_name::in, string/
+accu_heuristic	merc-src/accumulator.m	/^:- pred accu_heuristic(module_name::in, string::in/
+accu_is_associative	merc-src/accumulator.m	/^:- pred accu_is_associative(module_info::in, pred_/
+accu_is_update	merc-src/accumulator.m	/^:- pred accu_is_update(module_info::in, pred_id::i/
+accu_process_assoc_set	merc-src/accumulator.m	/^:- pred accu_process_assoc_set(module_info::in, ac/
+accu_process_update_set	merc-src/accumulator.m	/^:- pred accu_process_update_set(module_info::in, a/
+accu_related	merc-src/accumulator.m	/^:- pred accu_related(module_info::in, vartypes::in/
+accu_rename	merc-src/accumulator.m	/^:- func accu_rename(list(accu_goal_id), accu_subst/
+accu_sets	merc-src/accumulator.m	/^:- type accu_sets$/
+accu_sets_init	merc-src/accumulator.m	/^:- pred accu_sets_init(accu_sets::out) is det.$/
+accu_stage1	merc-src/accumulator.m	/^:- pred accu_stage1(module_info::in, vartypes::in,/
+accu_stage1_2	merc-src/accumulator.m	/^:- pred accu_stage1_2(module_info::in, vartypes::i/
+accu_stage2	merc-src/accumulator.m	/^:- pred accu_stage2(module_info::in, proc_info::in/
+accu_stage3	merc-src/accumulator.m	/^:- pred accu_stage3(accu_goal_id::in, list(prog_va/
+accu_standardize	merc-src/accumulator.m	/^:- pred accu_standardize(hlds_goal::in, hlds_goal:/
+accu_store	merc-src/accumulator.m	/^:- pred accu_store(accu_case::in, hlds_goal::in,$/
+accu_subst	merc-src/accumulator.m	/^:- type accu_subst == map(prog_var, prog_var).$/
+accu_substs	merc-src/accumulator.m	/^:- type accu_substs$/
+accu_substs_init	merc-src/accumulator.m	/^:- pred accu_substs_init(list(prog_var)::in, prog_/
+accu_top_level	merc-src/accumulator.m	/^:- pred accu_top_level(top_level::in, hlds_goal::i/
+accu_transform_proc	merc-src/accumulator.m	/^:- pred accu_transform_proc(pred_proc_id::in, pred/
+accu_update	merc-src/accumulator.m	/^:- pred accu_update(module_info::in, vartypes::in,/
+accu_warning	merc-src/accumulator.m	/^:- type accu_warning$/
 act	prol-src/natded.prolog	/^act(OutForm,OutSyn,Ws):-$/
 action	prol-src/natded.prolog	/^action(KeyVals):-$/
 active_maps	c-src/emacs/src/keyboard.c	/^active_maps (Lisp_Object first_event)$/
@@ -2535,6 +2573,8 @@ assemby-code-word	forth-src/test-forth.fth	/^code assemby-code-word ( dunno what
 assert	c-src/etags.c	135
 assert	c-src/etags.c	/^# define assert(x) ((void) 0)$/
 assign_neighbor	cp-src/clheir.hpp	/^    void assign_neighbor(int direction, location */
+assoc_list	merc-src/accumulator.m	/^:- import_module assoc_list.$/
+associativity_assertion	merc-src/accumulator.m	/^:- pred associativity_assertion(module_info::in, l/
 at_end	c-src/etags.c	249
 at_filename	c-src/etags.c	247
 at_language	c-src/etags.c	245
@@ -2568,6 +2608,8 @@ bas_syn	prol-src/natded.prolog	/^bas_syn(n(_)).$/
 base	c-src/emacs/src/lisp.h	2188
 base	cp-src/c.C	/^double base (void) const { return rng_base;  }$/
 base	cp-src/Range.h	/^  double base (void) const { return rng_base;  }$/
+base_case_ids	merc-src/accumulator.m	/^:- func base_case_ids(accu_goal_store) = list(accu/
+base_case_ids_set	merc-src/accumulator.m	/^:- func base_case_ids_set(accu_goal_store) = set(a/
 baz=	ruby-src/test1.ru	/^                :baz,$/
 bb	c.c	275
 bbb	c.c	251
@@ -2605,6 +2647,7 @@ bodyindent	tex-src/texinfo.tex	/^\\exdentamount=\\defbodyindent$/
 bodyindent	tex-src/texinfo.tex	/^\\advance\\leftskip by \\defbodyindent \\advance \\righ/
 bodyindent	tex-src/texinfo.tex	/^\\exdentamount=\\defbodyindent$/
 bool	c.c	222
+bool	merc-src/accumulator.m	/^:- import_module bool.$/
 bool_header_size	c-src/emacs/src/lisp.h	1472
 bool_vector_bitref	c-src/emacs/src/lisp.h	/^bool_vector_bitref (Lisp_Object a, EMACS_INT i)$/
 bool_vector_bytes	c-src/emacs/src/lisp.h	/^bool_vector_bytes (EMACS_INT size)$/
@@ -2646,6 +2689,7 @@ c_ext	c-src/etags.c	2271
 caccacacca	c.c	/^caccacacca (a,b,c,d,e,f,g)$/
 cacheLRUEntry_s	c.c	172
 cacheLRUEntry_t	c.c	177
+calculate_goal_info	merc-src/accumulator.m	/^:- pred calculate_goal_info(hlds_goal_expr::in, hl/
 calloc	c-src/emacs/src/gmalloc.c	66
 calloc	c-src/emacs/src/gmalloc.c	70
 calloc	c-src/emacs/src/gmalloc.c	/^calloc (size_t nmemb, size_t size)$/
@@ -2666,6 +2710,8 @@ cgrep	html-src/software.html	/^cgrep$/
 chain	c-src/emacs/src/lisp.h	1162
 chain	c-src/emacs/src/lisp.h	2206
 chain	c-src/emacs/src/lisp.h	2396
+chain_subst	merc-src/accumulator.m	/^:- func chain_subst(accu_subst, accu_subst) = accu/
+chain_subst_2	merc-src/accumulator.m	/^:- pred chain_subst_2(list(A)::in, map(A, B)::in, /
 char_bits	c-src/emacs/src/lisp.h	2443
 char_table_specials	c-src/emacs/src/lisp.h	1692
 charpos	c-src/emacs/src/lisp.h	2011
@@ -2708,6 +2754,7 @@ command_loop_1	c-src/emacs/src/keyboard.c	/^command_loop_1 (void)$/
 command_loop_2	c-src/emacs/src/keyboard.c	/^command_loop_2 (Lisp_Object ignore)$/
 command_loop_level	c-src/emacs/src/keyboard.c	195
 comment	php-src/lce_functions.php	/^      function comment($line, $class)$/
+commutativity_assertion	merc-src/accumulator.m	/^:- pred commutativity_assertion(module_info::in,li/
 compile_empty	prol-src/natded.prolog	/^compile_empty:-$/
 compile_lex	prol-src/natded.prolog	/^compile_lex(File):-$/
 complete	prol-src/natded.prolog	/^complete(Cat):-$/
@@ -2741,6 +2788,13 @@ create-bar	forth-src/test-forth.fth	/^: create-bar foo ;$/
 createPOEntries	php-src/lce_functions.php	/^      function createPOEntries()$/
 createWidgets	pyt-src/server.py	/^    def createWidgets(self, host):$/
 createWidgets	pyt-src/server.py	/^    def createWidgets(self):$/
+create_acc_call	merc-src/accumulator.m	/^:- func create_acc_call(hlds_goal::in(goal_plain_c/
+create_acc_goal	merc-src/accumulator.m	/^:- pred create_acc_goal(hlds_goal::in, accu_substs/
+create_new_base_goals	merc-src/accumulator.m	/^:- func create_new_base_goals(set(accu_goal_id), a/
+create_new_orig_recursive_goals	merc-src/accumulator.m	/^:- func create_new_orig_recursive_goals(set(accu_g/
+create_new_recursive_goals	merc-src/accumulator.m	/^:- func create_new_recursive_goals(set(accu_goal_i/
+create_new_var	merc-src/accumulator.m	/^:- pred create_new_var(prog_var::in, string::in, p/
+create_orig_goal	merc-src/accumulator.m	/^:- pred create_orig_goal(hlds_goal::in, accu_subst/
 cscInitTime	cp-src/c.C	7
 cscSegmentationTime	cp-src/c.C	8
 cstack	c-src/etags.c	2523
@@ -3048,6 +3102,7 @@ foperator	c-src/etags.c	2411
 force_auto_save_soon	c-src/emacs/src/keyboard.c	/^force_auto_save_soon (void)$/
 force_explicit_name	c-src/etags.c	265
 force_quit_count	c-src/emacs/src/keyboard.c	10387
+foreign_export	merc-src/accumulator.m	/^:- pragma foreign_export("C", unravel_univ(in, out/
 formatSize	objc-src/PackInsp.m	/^-(const char *)formatSize:(const char *)size inBuf/
 found	c-src/emacs/src/lisp.h	2344
 fracas	html-src/software.html	/^Fracas$/
@@ -3105,6 +3160,8 @@ gcpro	c-src/emacs/src/lisp.h	3042
 gcpro	c-src/emacs/src/lisp.h	3132
 gen_help_event	c-src/emacs/src/keyboard.c	/^gen_help_event (Lisp_Object help, Lisp_Object fram/
 genalgorithm	html-src/algrthms.html	/^Generating the Data<\/font><\/i><\/b>$/
+generate_warning	merc-src/accumulator.m	/^:- pred generate_warning(module_info::in, prog_var/
+generate_warnings	merc-src/accumulator.m	/^:- pred generate_warnings(module_info::in, prog_va/
 generic_object	cp-src/clheir.cpp	/^generic_object::generic_object(void)$/
 generic_object	cp-src/clheir.hpp	13
 getArchs	objc-src/PackInsp.m	/^-(void)getArchs$/
@@ -3173,6 +3230,7 @@ help_char_p	c-src/emacs/src/keyboard.c	/^help_char_p (Lisp_Object c)$/
 help_form_saved_window_configs	c-src/emacs/src/keyboard.c	2156
 helpwin	pyt-src/server.py	/^def helpwin(helpdict):$/
 hide_cursor	cp-src/screen.cpp	/^void hide_cursor(void)$/
+hlds	merc-src/accumulator.m	/^:- import_module hlds.$/
 htmltreelist	prol-src/natded.prolog	/^htmltreelist([]).$/
 hybrid_aligned_alloc	c-src/emacs/src/gmalloc.c	/^hybrid_aligned_alloc (size_t alignment, size_t siz/
 hybrid_calloc	c-src/emacs/src/gmalloc.c	/^hybrid_calloc (size_t nmemb, size_t size)$/
@@ -3192,12 +3250,16 @@ ialpage	tex-src/texinfo.tex	/^  \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\
 ialpage	tex-src/texinfo.tex	/^  \\availdimen@=\\pageheight \\advance\\availdimen@ by/
 ialpage	tex-src/texinfo.tex	/^     \\dimen@=\\pageheight \\advance\\dimen@ by-\\ht\\pa/
 ialpage=	tex-src/texinfo.tex	/^  \\output={\\global\\setbox\\partialpage=$/
+identify_goal_type	merc-src/accumulator.m	/^:- pred identify_goal_type(pred_id::in, proc_id::i/
+identify_out_and_out_prime	merc-src/accumulator.m	/^:- pred identify_out_and_out_prime(module_info::in/
+identify_recursive_calls	merc-src/accumulator.m	/^:- pred identify_recursive_calls(pred_id::in, proc/
 idx	c-src/emacs/src/lisp.h	3150
 ignore_case	c-src/etags.c	266
 ignore_mouse_drag_p	c-src/emacs/src/keyboard.c	1256
 ill=\relax	tex-src/texinfo.tex	/^\\let\\refill=\\relax$/
 immediate_quit	c-src/emacs/src/keyboard.c	174
 impatto	html-src/softwarelibero.html	/^Impatto pratico del software libero$/
+implementation	merc-src/accumulator.m	/^:- implementation.$/
 in_word_set	c-src/etags.c	/^in_word_set (register const char *str, register un/
 inattribute	c-src/etags.c	2400
 inc	cp-src/Range.h	/^  double inc (void) const { return rng_inc;   }$/
@@ -3221,6 +3283,7 @@ inita	c.c	/^static void inita () {}$/
 initb	c.c	/^static void initb () {}$/
 initial_kboard	c-src/emacs/src/keyboard.c	84
 initialize-new-tags-table	el-src/emacs/lisp/progmodes/etags.el	/^(defun initialize-new-tags-table ()$/
+initialize_goal_store	merc-src/accumulator.m	/^:- func initialize_goal_store(list(hlds_goal), ins/
 initialize_random_junk	y-src/cccp.y	/^initialize_random_junk ()$/
 input-pending-p	c-src/emacs/src/keyboard.c	/^DEFUN ("input-pending-p", Finput_pending_p, Sinput/
 input_available_clear_time	c-src/emacs/src/keyboard.c	324
@@ -3236,6 +3299,7 @@ instance_method_exclamation!	ruby-src/test.rb	/^        def instance_method_excl
 instance_method_question?	ruby-src/test.rb	/^        def instance_method_question?$/
 instr	y-src/parse.y	81
 instruct	c-src/etags.c	2527
+int	merc-src/accumulator.m	/^:- import_module int.$/
 intNumber	go-src/test1.go	13
 integer	c-src/emacs/src/lisp.h	2127
 integer	y-src/cccp.y	112
@@ -3244,6 +3308,7 @@ integertonmstr	pas-src/common.pas	/^function integertonmstr; (* (TheInteger : in
 intensity1	f-src/entry.for	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange_suffix	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
 intensity1	f-src/entry.strange	/^     & intensity1(efv,fv,svin,svquad,sfpv,maxp,val/
+interface	merc-src/accumulator.m	/^:- interface.$/
 interface_locate	c-src/c.c	/^interface_locate(void)$/
 intern	c-src/emacs/src/lisp.h	/^intern (const char *str)$/
 intern_c_string	c-src/emacs/src/lisp.h	/^intern_c_string (const char *str)$/
@@ -3258,6 +3323,7 @@ intoken	c-src/etags.c	/^#define	intoken(c)	(_itk[CHAR (c)]) \/* c can be in/
 intspec	c-src/emacs/src/lisp.h	1688
 intvar	c-src/emacs/src/lisp.h	2277
 invalidate_nodes	c-src/etags.c	/^invalidate_nodes (fdesc *badfdp, node **npp)$/
+io	merc-src/accumulator.m	/^:- import_module io.$/
 ipc3dCSC19	cp-src/c.C	6
 ipc3dChannelType	cp-src/c.C	1
 ipc3dIslandHierarchy	cp-src/c.C	1
@@ -3267,6 +3333,7 @@ irregular_location	cp-src/clheir.hpp	/^    irregular_location(double xi, double 
 isComment	php-src/lce_functions.php	/^      function isComment($class)$/
 isHoliday	cp-src/functions.cpp	/^bool isHoliday ( Date d ){$/
 isLeap	cp-src/functions.cpp	/^bool isLeap ( int year ){$/
+is_associative_construction	merc-src/accumulator.m	/^:- pred is_associative_construction(module_info::i/
 is_curly_brace_form	c-src/h.h	54
 is_explicit	c-src/h.h	49
 is_func	c-src/etags.c	221
@@ -3275,6 +3342,7 @@ is_idchar	y-src/cccp.y	948
 is_idstart	y-src/cccp.y	950
 is_muldiv_operation	cp-src/c.C	/^is_muldiv_operation(pc)$/
 is_ordset	prol-src/ordsets.prolog	/^is_ordset(X) :- var(X), !, fail.$/
+is_recursive_case	merc-src/accumulator.m	/^:- pred is_recursive_case(list(hlds_goal)::in, pre/
 iso_lispy_function_keys	c-src/emacs/src/keyboard.c	5151
 isoperator	prol-src/natded.prolog	/^isoperator(Char):-$/
 isoptab	prol-src/natded.prolog	/^isoptab('%').$/
@@ -3371,6 +3439,7 @@ letter:	tex-src/texinfo.tex	/^\\xdef\\thischapter{Appendix \\appendixletter: \\n
 level	c-src/emacs/src/lisp.h	3153
 lex	prol-src/natded.prolog	/^lex(W,SynOut,Sem):-$/
 lexptr	y-src/cccp.y	332
+libs	merc-src/accumulator.m	/^:- import_module libs.$/
 licenze	html-src/softwarelibero.html	/^Licenze d'uso di un programma$/
 limit	cp-src/Range.h	/^  double limit (void) const { return rng_limit; }$/
 line	c-src/etags.c	2493
@@ -3428,6 +3497,7 @@ lispy_modifier_list	c-src/emacs/src/keyboard.c	/^lispy_modifier_list (int modifi
 lispy_multimedia_keys	c-src/emacs/src/keyboard.c	4962
 lispy_wheel_names	c-src/emacs/src/keyboard.c	5174
 list	c-src/emacs/src/gmalloc.c	186
+list	merc-src/accumulator.m	/^:- import_module list.$/
 list-tags	el-src/emacs/lisp/progmodes/etags.el	/^(defun list-tags (file &optional _next-match)$/
 list-tags-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar list-tags-function nil$/
 list2i	c-src/emacs/src/lisp.h	/^list2i (EMACS_INT x, EMACS_INT y)$/
@@ -3444,6 +3514,7 @@ local_if_set	c-src/emacs/src/lisp.h	2338
 location	cp-src/clheir.hpp	33
 location	cp-src/clheir.hpp	/^    location() { }$/
 lookup	y-src/cccp.y	/^lookup (name, len, hash)$/
+lookup_call	merc-src/accumulator.m	/^:- pred lookup_call(accu_goal_store::in, accu_goal/
 lowcase	c-src/etags.c	/^#define lowcase(c)	tolower (CHAR (c))$/
 lucid_event_type_list_p	c-src/emacs/src/keyboard.c	/^lucid_event_type_list_p (Lisp_Object object)$/
 mabort	c-src/emacs/src/gmalloc.c	/^mabort (enum mcheck_status status)$/
@@ -3489,6 +3560,7 @@ mallochook	c-src/emacs/src/gmalloc.c	/^mallochook (size_t size)$/
 man manpage	make-src/Makefile	/^man manpage: etags.1.man$/
 mao	c-src/h.h	101
 map	c-src/emacs/src/keyboard.c	8748
+map	merc-src/accumulator.m	/^:- import_module map.$/
 map_word	prol-src/natded.prolog	/^map_word([[_]|Ws],Exp):-$/
 mapping	html-src/algrthms.html	/^Mapping the Channel Symbols$/
 mapsyn	prol-src/natded.prolog	/^mapsyn(A\/B,AM\/BM):-$/
@@ -3502,15 +3574,18 @@ max_args	c-src/emacs/src/lisp.h	1686
 max_num_directions	cp-src/clheir.hpp	31
 max_num_generic_objects	cp-src/clheir.cpp	9
 maxargs	c-src/emacs/src/lisp.h	2831
+maybe	merc-src/accumulator.m	/^:- import_module maybe.$/
 maybe_gc	c-src/emacs/src/lisp.h	/^maybe_gc (void)$/
 mcCSC	cp-src/c.C	6
 mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
 mcheck_used	c-src/emacs/src/gmalloc.c	2012
+mdbcomp	merc-src/accumulator.m	/^:- import_module mdbcomp.$/
 me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
 memalign	c-src/emacs/src/gmalloc.c	/^memalign (size_t alignment, size_t size)$/
 member	prol-src/natded.prolog	/^member(X,[X|_]).$/
+member_lessthan_goalid	merc-src/accumulator.m	/^:- pred member_lessthan_goalid(accu_goal_store::in/
 memclear	c-src/emacs/src/lisp.h	/^memclear (void *p, ptrdiff_t nbytes)$/
 menu_bar_item	c-src/emacs/src/keyboard.c	/^menu_bar_item (Lisp_Object key, Lisp_Object item, /
 menu_bar_items	c-src/emacs/src/keyboard.c	/^menu_bar_items (Lisp_Object old)$/
@@ -3781,6 +3856,7 @@ pMu	c-src/emacs/src/lisp.h	151
 pMu	c-src/emacs/src/lisp.h	156
 p_next	c-src/etags.c	258
 pagesize	c-src/emacs/src/gmalloc.c	1703
+pair	merc-src/accumulator.m	/^:- import_module pair.$/
 parent	c-src/emacs/src/keyboard.c	8745
 parent	c-src/emacs/src/lisp.h	1590
 parse	prol-src/natded.prolog	/^parse(Ws,Cat):-$/
@@ -3798,6 +3874,7 @@ parse_return	y-src/parse.y	74
 parse_return_error	y-src/cccp.y	70
 parse_solitary_modifier	c-src/emacs/src/keyboard.c	/^parse_solitary_modifier (Lisp_Object symbol)$/
 parse_tool_bar_item	c-src/emacs/src/keyboard.c	/^parse_tool_bar_item (Lisp_Object key, Lisp_Object /
+parse_tree	merc-src/accumulator.m	/^:- import_module parse_tree.$/
 pat	c-src/etags.c	262
 pattern	c-src/etags.c	260
 pdlcount	c-src/emacs/src/lisp.h	3046
@@ -3990,6 +4067,7 @@ removeexp	prol-src/natded.prolog	/^removeexp(E,E,'NIL'):-!.$/
 reorder_modifiers	c-src/emacs/src/keyboard.c	/^reorder_modifiers (Lisp_Object symbol)$/
 request	c.c	/^request request (a, b)$/
 requeued_events_pending_p	c-src/emacs/src/keyboard.c	/^requeued_events_pending_p (void)$/
+require	merc-src/accumulator.m	/^:- import_module require.$/
 required_argument	c-src/getopt.h	90
 reset-this-command-lengths	c-src/emacs/src/keyboard.c	/^DEFUN ("reset-this-command-lengths", Freset_this_c/
 restore_getcjmp	c-src/emacs/src/keyboard.c	/^restore_getcjmp (sys_jmp_buf temp)$/
@@ -4062,6 +4140,7 @@ separator_names	c-src/emacs/src/keyboard.c	7372
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 serializeToVars	php-src/lce_functions.php	/^      function serializeToVars($prefix)$/
 set	cp-src/conway.hpp	/^    void set(void) { alive = 1; }$/
+set	merc-src/accumulator.m	/^:- import_module set.$/
 set-input-interrupt-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-interrupt-mode", Fset_input_inte/
 set-input-meta-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-meta-mode", Fset_input_meta_mode/
 set-input-mode	c-src/emacs/src/keyboard.c	/^DEFUN ("set-input-mode", Fset_input_mode, Sset_inp/
@@ -4089,11 +4168,14 @@ set_sub_char_table_contents	c-src/emacs/src/lisp.h	/^set_sub_char_table_contents
 set_symbol_function	c-src/emacs/src/lisp.h	/^set_symbol_function (Lisp_Object sym, Lisp_Object /
 set_symbol_next	c-src/emacs/src/lisp.h	/^set_symbol_next (Lisp_Object sym, struct Lisp_Symb/
 set_symbol_plist	c-src/emacs/src/lisp.h	/^set_symbol_plist (Lisp_Object sym, Lisp_Object pli/
+set_upto	merc-src/accumulator.m	/^:- func set_upto(accu_case, int) = set(accu_goal_i/
 set_waiting_for_input	c-src/emacs/src/keyboard.c	/^set_waiting_for_input (struct timespec *time_to_cl/
 setref	tex-src/texinfo.tex	/^\\expandafter\\expandafter\\expandafter\\appendixsetre/
 setup	cp-src/c.C	5
 shift	cp-src/functions.cpp	/^void Date::shift ( void ){\/\/Shift this date to pre/
 shouldLoad	objc-src/PackInsp.m	/^-(BOOL)shouldLoad$/
+should_attempt_accu_transform	merc-src/accumulator.m	/^:- pred should_attempt_accu_transform(module_info:/
+should_attempt_accu_transform_2	merc-src/accumulator.m	/^:- pred should_attempt_accu_transform_2(module_inf/
 should_see_this_array_type	cp-src/c.C	156
 should_see_this_function_pointer	cp-src/c.C	153
 should_see_this_one_enclosed_in_extern_C	cp-src/c.C	149
@@ -4123,6 +4205,7 @@ skip_non_spaces	c-src/etags.c	/^skip_non_spaces (char *cp)$/
 skip_spaces	c-src/etags.c	/^skip_spaces (char *cp)$/
 snarf-tag-function	el-src/emacs/lisp/progmodes/etags.el	/^(defvar snarf-tag-function nil$/
 snone	c-src/etags.c	2443
+solutions	merc-src/accumulator.m	/^:- import_module solutions.$/
 some_mouse_moved	c-src/emacs/src/keyboard.c	/^some_mouse_moved (void)$/
 space	tex-src/texinfo.tex	/^    {#2\\labelspace #1}\\dotfill\\doshortpageno{#3}}%/
 space	tex-src/texinfo.tex	/^  \\dosubsubsecentry{#2.#3.#4.#5\\labelspace#1}{#6}}/
@@ -4172,10 +4255,13 @@ step	cp-src/conway.hpp	/^    void step(void) { alive = next_alive; }$/
 step	cp-src/clheir.hpp	/^    virtual void step(void) { }$/
 step_everybody	cp-src/clheir.cpp	/^void step_everybody(void)$/
 stop_polling	c-src/emacs/src/keyboard.c	/^stop_polling (void)$/
+store_info	merc-src/accumulator.m	/^:- type store_info$/
 store_user_signal_events	c-src/emacs/src/keyboard.c	/^store_user_signal_events (void)$/
+stored_goal_plain_call	merc-src/accumulator.m	/^:- inst stored_goal_plain_call for goal_store.stor/
 str	go-src/test1.go	9
 strcaseeq	c-src/etags.c	/^#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=/
 streq	c-src/etags.c	/^#define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL/
+string	merc-src/accumulator.m	/^:- import_module string.$/
 string_intervals	c-src/emacs/src/lisp.h	/^string_intervals (Lisp_Object s)$/
 stripLine	php-src/lce_functions.php	/^      function stripLine($line, $class)$/
 stripname	pas-src/common.pas	/^function stripname; (* ($/
@@ -4315,6 +4401,7 @@ tee	ruby-src/test1.ru	/^    attr_accessor :tee$/
 tee=	ruby-src/test1.ru	/^    attr_accessor :tee$/
 temporarily_switch_to_single_kboard	c-src/emacs/src/keyboard.c	/^temporarily_switch_to_single_kboard (struct frame /
 tend	c-src/etags.c	2432
+term	merc-src/accumulator.m	/^:- import_module term.$/
 terminate	objc-src/Subprocess.m	/^- terminate:sender$/
 terminateInput	objc-src/Subprocess.m	/^- terminateInput$/
 test	c-src/emacs/src/lisp.h	1871
@@ -4326,6 +4413,7 @@ test	php-src/ptest.php	/^test $/
 test-begin	scm-src/test.scm	/^(define-syntax test-begin$/
 test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
+test1	rs-src/test.rs	/^fn test1() {$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
 there-is-a-=-in-the-middle!	scm-src/test.scm	/^(define (there-is-a-=-in-the-middle!) #t)$/
@@ -4365,6 +4453,7 @@ tool_bar_items	c-src/emacs/src/keyboard.c	/^tool_bar_items (Lisp_Object reuse, i
 tool_bar_items_vector	c-src/emacs/src/keyboard.c	7965
 toolkit_menubar_in_use	c-src/emacs/src/keyboard.c	/^toolkit_menubar_in_use (struct frame *f)$/
 top-level	c-src/emacs/src/keyboard.c	/^DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, /
+top_level	merc-src/accumulator.m	/^:- type top_level$/
 top_level_1	c-src/emacs/src/keyboard.c	/^top_level_1 (Lisp_Object ignore)$/
 top_level_2	c-src/emacs/src/keyboard.c	/^top_level_2 (void)$/
 total_keys	c-src/emacs/src/keyboard.c	97
@@ -4421,12 +4510,15 @@ unblock_input	c-src/emacs/src/keyboard.c	/^unblock_input (void)$/
 unblock_input_to	c-src/emacs/src/keyboard.c	/^unblock_input_to (int level)$/
 unchar	c-src/h.h	99
 unexpand-abbrev	c-src/abbrev.c	/^DEFUN ("unexpand-abbrev", Funexpand_abbrev, Sunexp/
+univ	merc-src/accumulator.m	/^:- import_module univ.$/
+unravel_univ	merc-src/accumulator.m	/^:- some [T] pred unravel_univ(univ::in, T::out) is/
 unread_switch_frame	c-src/emacs/src/keyboard.c	204
 unsignedp	y-src/cccp.y	112
 unwind	c-src/emacs/src/lisp.h	2962
 unwind_int	c-src/emacs/src/lisp.h	2972
 unwind_ptr	c-src/emacs/src/lisp.h	2967
 unwind_void	c-src/emacs/src/lisp.h	2976
+update_accumulator_pred	merc-src/accumulator.m	/^:- pred update_accumulator_pred(pred_id::in, proc_/
 uprintmax_t	c-src/emacs/src/lisp.h	149
 uprintmax_t	c-src/emacs/src/lisp.h	154
 usage	perl-src/yagrip.pl	/^sub usage {$/
@@ -4458,6 +4550,7 @@ varargs	tex-src/texinfo.tex	/^\\defvarargs {#3}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#3}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
 varargs	tex-src/texinfo.tex	/^\\defvarargs {#2}\\endgroup %$/
+varset	merc-src/accumulator.m	/^:- import_module varset.$/
 vcopy	c-src/emacs/src/lisp.h	/^vcopy (Lisp_Object v, ptrdiff_t offset, Lisp_Objec/
 vectorlike_header	c-src/emacs/src/lisp.h	1343
 verde	cp-src/c.C	40

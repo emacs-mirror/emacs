@@ -1,5 +1,8 @@
 /* Filesystem notifications support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 2012-2017 Free Software Foundation, Inc.
+
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
+
+Author: Eli Zaretskii <eliz@gnu.org>
 
 This file is part of GNU Emacs.
 
@@ -16,9 +19,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Eli Zaretskii <eliz@gnu.org>.
-
-   Design overview:
+/* Design overview:
 
    For each watch request, we launch a separate worker thread.  The
    worker thread runs the watch_worker function, which issues an
@@ -39,8 +40,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    and returns.  That causes the WaitForSingleObjectEx function call
    inside watch_worker to return, but the thread won't terminate until
    the event telling to do so will be signaled.  The completion
-   routine issued another call to ReadDirectoryChangesW as quickly as
-   possible.  (Except when it does not, see below.)
+   routine then issues another call to ReadDirectoryChangesW as quickly
+   as possible.  (Except when it does not, see below.)
 
    In a GUI session, the WM_EMACS_FILENOTIFY message posted to the
    message queue gets dispatched to the main Emacs window procedure,
@@ -366,6 +367,12 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
   if (!file)
     return NULL;
 
+  /* Do not follow symlinks, so that the caller could watch symlink
+     files.  */
+  DWORD crflags = FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED;
+  if (symlinks_supported (parent_dir))
+    crflags |= FILE_FLAG_OPEN_REPARSE_POINT;
+
   if (w32_unicode_filenames)
     {
       wchar_t dir_w[MAX_PATH], file_w[MAX_PATH];
@@ -382,8 +389,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
 			     processes from deleting files inside
 			     parent_dir.  */
 			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-			  NULL, OPEN_EXISTING,
-			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL, OPEN_EXISTING, crflags,
 			  NULL);
     }
   else
@@ -399,8 +405,7 @@ add_watch (const char *parent_dir, const char *file, BOOL subdirs, DWORD flags)
       hdir = CreateFileA (dir_a,
 			  FILE_LIST_DIRECTORY,
 			  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
-			  NULL, OPEN_EXISTING,
-			  FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+			  NULL, OPEN_EXISTING, crflags,
 			  NULL);
     }
   if (hdir == INVALID_HANDLE_VALUE)
@@ -518,16 +523,16 @@ watched for some reason, this function signals a `file-error' error.
 FILTER is a list of conditions for reporting an event.  It can include
 the following symbols:
 
-  'file-name'          -- report file creation, deletion, or renaming
-  'directory-name'     -- report directory creation, deletion, or renaming
-  'attributes'         -- report changes in attributes
-  'size'               -- report changes in file-size
-  'last-write-time'    -- report changes in last-write time
-  'last-access-time'   -- report changes in last-access time
-  'creation-time'      -- report changes in creation time
-  'security-desc'      -- report changes in security descriptor
+  `file-name'          -- report file creation, deletion, or renaming
+  `directory-name'     -- report directory creation, deletion, or renaming
+  `attributes'         -- report changes in attributes
+  `size'               -- report changes in file-size
+  `last-write-time'    -- report changes in last-write time
+  `last-access-time'   -- report changes in last-access time
+  `creation-time'      -- report changes in creation time
+  `security-desc'      -- report changes in security descriptor
 
-If FILE is a directory, and FILTER includes 'subtree', then all the
+If FILE is a directory, and FILTER includes `subtree', then all the
 subdirectories will also be watched and changes in them reported.
 
 When any event happens that satisfies the conditions specified by
@@ -540,11 +545,11 @@ DESCRIPTOR is the same object as the one returned by this function.
 ACTION is the description of the event.  It could be any one of the
 following:
 
-  'added'        -- FILE was added
-  'removed'      -- FILE was deleted
-  'modified'     -- FILE's contents or its attributes were modified
-  'renamed-from' -- a file was renamed whose old name was FILE
-  'renamed-to'   -- a file was renamed and its new name is FILE
+  `added'        -- FILE was added
+  `removed'      -- FILE was deleted
+  `modified'     -- FILE's contents or its attributes were modified
+  `renamed-from' -- a file was renamed whose old name was FILE
+  `renamed-to'   -- a file was renamed and its new name is FILE
 
 FILE is the name of the file whose event is being reported.
 
@@ -565,7 +570,7 @@ generate notifications correctly, though.  */)
   CHECK_LIST (filter);
 
   /* The underlying features are available only since XP.  */
-  if (os_subtype == OS_9X
+  if (os_subtype == OS_SUBTYPE_9X
       || (w32_major_version == 5 && w32_minor_version < 1))
     {
       errno = ENOSYS;
@@ -621,7 +626,7 @@ generate notifications correctly, though.  */)
 	report_file_notify_error ("Cannot watch file", Fcons (file, Qnil));
     }
   /* Store watch object in watch list. */
-  watch_descriptor = make_pointer_integer (dirwatch);
+  watch_descriptor = make_mint_ptr (dirwatch);
   watch_object = Fcons (watch_descriptor, callback);
   watch_list = Fcons (watch_object, watch_list);
 
@@ -646,7 +651,7 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
   if (!NILP (watch_object))
     {
       watch_list = Fdelete (watch_object, watch_list);
-      dirwatch = (struct notification *)XINTPTR (watch_descriptor);
+      dirwatch = (struct notification *)xmint_pointer (watch_descriptor);
       if (w32_valid_pointer_p (dirwatch, sizeof(struct notification)))
 	status = remove_watch (dirwatch);
     }
@@ -661,7 +666,7 @@ WATCH-DESCRIPTOR should be an object returned by `w32notify-add-watch'.  */)
 Lisp_Object
 w32_get_watch_object (void *desc)
 {
-  Lisp_Object descriptor = make_pointer_integer (desc);
+  Lisp_Object descriptor = make_mint_ptr (desc);
 
   /* This is called from the input queue handling code, inside a
      critical section, so we cannot possibly quit if watch_list is not
@@ -684,7 +689,7 @@ watch by calling `w32notify-rm-watch' also makes it invalid.  */)
   if (!NILP (watch_object))
     {
       struct notification *dirwatch =
-	(struct notification *)XINTPTR (watch_descriptor);
+	(struct notification *)xmint_pointer (watch_descriptor);
       if (w32_valid_pointer_p (dirwatch, sizeof(struct notification))
 	  && dirwatch->dir != NULL)
 	return Qt;

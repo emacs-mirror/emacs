@@ -1,9 +1,8 @@
-;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
+;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
-;; Author:        Didier Verna <didier@xemacs.org>
-;; Maintainer:    Didier Verna <didier@xemacs.org>
+;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Tue Jul 20 10:42:55 1999
 ;; Keywords:      calendar mail news
 
@@ -22,21 +21,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-
 ;;; Commentary:
 
 ;; Contents management by FCM version 0.1.
 
-;; Description:
-;; ===========
-
-;; gnus-diary is a utility toolkit used on top of the nndiary back end. It is
+;; gnus-diary is a utility toolkit used on top of the nndiary back end.  It is
 ;; now fully documented in the Gnus manual.
-
-
-;; Bugs / Todo:
-;; ===========
-
 
 ;;; Code:
 
@@ -58,14 +48,13 @@
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
   "Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
-  :type 'string
-  :group 'gnus-diary)
+  :type 'string)
 
 (defcustom gnus-diary-delay-format-function 'gnus-diary-delay-format-english
   "Function called to format a diary delay string.
 It is passed two arguments.  The first one is non-nil if the delay is in
 the past.  The second one is of the form ((NUM . UNIT) ...) where NUM is
-an integer and UNIT is one of 'year 'month 'week 'day 'hour or 'minute.
+an integer and UNIT is one of `year' `month' `week' `day' `hour' or `minute'.
 It should return strings like \"In 2 months, 3 weeks\", \"3 hours,
 1 minute ago\" and so on.
 
@@ -74,11 +63,11 @@ There are currently two built-in format functions:
 `gnus-diary-delay-format-french'"
   :type '(choice (const  :tag "english" gnus-diary-delay-format-english)
 		 (const  :tag "french"  gnus-diary-delay-format-french)
-		 (symbol :tag "other"))
-  :group 'gnus-diary)
+		 (symbol :tag "other")))
 
-(defconst gnus-diary-version nndiary-version
+(defconst gnus-diary-version "0.2-b14"
   "Current Diary back end version.")
+(make-obsolete-variable 'gnus-diary-version 'emacs-version "29.1")
 
 
 ;; Compatibility functions ==================================================
@@ -159,32 +148,29 @@ There are currently two built-in format functions:
   ;; Code partly stolen from article-make-date-line
   (let* ((extras (mail-header-extra header))
 	 (sched (gnus-diary-header-schedule extras))
-	 (occur (nndiary-next-occurrence sched (current-time)))
 	 (now (current-time))
+	 (occur (nndiary-next-occurrence sched now))
 	 (real-time (time-subtract occur now)))
-    (if (null real-time)
-	"?????"
-      (let* ((sec (+ (* (float (car real-time)) 65536) (cadr real-time)))
-	     (past (< sec 0))
-	     delay)
-	(and past (setq sec (- sec)))
-	(unless (zerop sec)
-	  ;; This is a bit convoluted, but basically we go through the time
-	  ;; units for years, weeks, etc, and divide things to see whether
-	  ;; that results in positive answers.
-	  (let ((units `((year . ,(* 365.25 24 3600))
-			 (month . ,(* 31 24 3600))
-			 (week . ,(* 7 24 3600))
-			 (day . ,(* 24 3600))
-			 (hour . 3600)
-			 (minute . 60)))
-		unit num)
-	    (while (setq unit (pop units))
-	      (unless (zerop (setq num (ffloor (/ sec (cdr unit)))))
-		(setq delay (append delay `((,(floor num) . ,(car unit))))))
-	      (setq sec (- sec (* num (cdr unit)))))))
-	(funcall gnus-diary-delay-format-function past delay)))
-    ))
+    (let* ((sec (time-convert real-time 'integer))
+	   (past (< sec 0))
+	   delay)
+      (and past (setq sec (- sec)))
+      (unless (zerop sec)
+	;; This is a bit convoluted, but basically we go through the time
+	;; units for years, weeks, etc, and divide things to see whether
+	;; that results in positive answers.
+	(let ((units `((year . ,(round (* 365.25 24 3600)))
+		       (month . ,(* 31 24 3600))
+		       (week . ,(* 7 24 3600))
+		       (day . ,(* 24 3600))
+		       (hour . 3600)
+		       (minute . 60)))
+	      unit num)
+	  (while (setq unit (pop units))
+	    (unless (zerop (setq num (floor sec (cdr unit))))
+	      (setq delay (append delay `((,num . ,(car unit))))))
+	    (setq sec (mod sec (cdr unit))))))
+      (funcall gnus-diary-delay-format-function past delay))))
 
 ;; #### NOTE: Gnus sometimes gives me a HEADER not corresponding to any
 ;; message, with all fields set to nil here. I don't know what it is for, and
@@ -220,7 +206,7 @@ There are currently two built-in format functions:
 (defun gnus-summary-sort-by-schedule (&optional reverse)
   "Sort nndiary summary buffers by schedule of appointments.
 Optional prefix (or REVERSE argument) means sort in reverse order."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (gnus-summary-sort 'schedule reverse))
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
@@ -280,13 +266,13 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
     (gnus-diary-update-group-parameters group)))
 
 (add-hook 'nndiary-request-create-group-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 ;; Now that we have `gnus-subscribe-newsgroup-functions', this is not needed
 ;; anymore. Maybe I should remove this completely.
 (add-hook 'nndiary-request-update-info-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 (add-hook 'gnus-subscribe-newsgroup-functions
-	  'gnus-diary-maybe-update-group-parameters)
+	  #'gnus-diary-maybe-update-group-parameters)
 
 
 ;; Diary Message Checking ===================================================
@@ -328,7 +314,7 @@ This function checks that all NNDiary required headers are present and
 valid, and prompts for values / correction otherwise.
 
 If ARG (or prefix) is non-nil, force prompting for all fields."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-excursion
     (mapcar
      (lambda (head)
@@ -341,7 +327,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 	   (when (re-search-forward (concat "^" header ":") nil t)
 	     (unless (eq (char-after) ? )
 	       (insert " "))
-	     (setq value (buffer-substring (point) (point-at-eol)))
+             (setq value (buffer-substring (point) (line-end-position)))
 	     (and (string-match "[ \t]*\\([^ \t]+\\)[ \t]*" value)
 		  (setq value (match-string 1 value)))
 	     (condition-case ()
@@ -364,7 +350,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
+		       (gnus-completing-read prompt (cons "*" (mapcar #'car (nth 1 head)))
                                              t value
                                              'gnus-diary-header-value-history)
 		     (read-string prompt value
@@ -392,8 +378,9 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (defun gnus-diary-version ()
   "Current Diary back end version."
+  (declare (obsolete emacs-version "29.1"))
   (interactive)
-  (message "NNDiary version %s" nndiary-version))
+  (message "NNDiary version %s" gnus-diary-version))
 
 (provide 'gnus-diary)
 

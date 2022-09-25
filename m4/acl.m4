@@ -1,7 +1,7 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 22
+# serial 24
 
-# Copyright (C) 2002, 2004-2017 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2004-2022 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -30,7 +30,8 @@ AC_DEFUN([gl_FUNC_ACL],
       ac_save_LIBS=$LIBS
 
       dnl Test for POSIX-draft-like API (GNU/Linux, FreeBSD, Mac OS X,
-      dnl IRIX, Tru64).  -lacl is needed on GNU/Linux, -lpacl on OSF/1.
+      dnl IRIX, Tru64, Cygwin >= 2.5).
+      dnl -lacl is needed on GNU/Linux, -lpacl on OSF/1.
       if test $use_acl = 0; then
         AC_SEARCH_LIBS([acl_get_file], [acl pacl],
           [if test "$ac_cv_search_acl_get_file" != "none required"; then
@@ -138,7 +139,7 @@ int type = ACL_TYPE_EXTENDED;]])],
       AC_MSG_WARN([AC_PACKAGE_NAME will be built without ACL support.])
     fi
   fi
-  test $gl_need_lib_has_acl && LIB_HAS_ACL=$LIB_ACL
+  test -n "$gl_need_lib_has_acl" && LIB_HAS_ACL=$LIB_ACL
   AC_SUBST([LIB_ACL])
   AC_DEFINE_UNQUOTED([USE_ACL], [$use_acl],
     [Define to nonzero if you want access control list support.])

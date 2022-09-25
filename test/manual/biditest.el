@@ -1,17 +1,19 @@
-;;; biditest.el --- test bidi reordering in GNU Emacs display engine.
+;;; biditest.el --- test bidi reordering in GNU Emacs display engine.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
 
-;; This program is free software: you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -34,7 +36,7 @@
 
 INPUT-FILE should be in the format of the BidiCharacterTest.txt file
 available from the Unicode site, as part of the UCD database, see
-http://www.unicode.org/Public/UCD/latest/ucd/BidiCharacterTest.txt.
+https://www.unicode.org/Public/UCD/latest/ucd/BidiCharacterTest.txt.
 
 The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
   (let ((output-buf (get-buffer-create "*biditest-output*"))
@@ -52,7 +54,7 @@ The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
 		(resolved-paragraph (match-string 3))
 		;; FIXME: Should compare LEVELS with what the display
 		;; engine actually produced.
-		(levels (match-string 4))
+		;;(levels (match-string 4))
 		(indices (match-string 5)))
 	    (setq codes (split-string codes " ")
 		  indices (split-string indices " "))
@@ -118,4 +120,6 @@ BidiCharacterTest.txt file."
   (interactive)
   (message "%s" (bidi-resolved-levels)))
 
-(define-key global-map [f8] 'bidi-levels)
+(define-key global-map [f8] #'bidi-levels)
+
+;;; biditest.el ends here

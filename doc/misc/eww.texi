@@ -8,7 +8,7 @@
 @copying
 This file documents the GNU Emacs Web Wowser (EWW) package.
 
-Copyright @copyright{} 2014--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2014--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -52,6 +52,7 @@ modify this GNU manual.''
 * Overview::
 * Basics::
 * Advanced::
+* Command Line::
 
 Appendices
 * History and Acknowledgments::
@@ -68,7 +69,7 @@ Indices
 @chapter Overview
 @dfn{EWW}, the Emacs Web Wowser, is a web browser for GNU Emacs.  It
 can load, parse, and display various web pages using @dfn{shr.el}.
-However a GNU Emacs with @code{libxml2} support is required.
+However, a GNU Emacs with @code{libxml2} support is required.
 
 @node Basics
 @chapter Basic Usage
@@ -85,23 +86,36 @@ searched via @code{eww-search-prefix}.  The default search engine is
 either prefix the file name with @code{file://} or use the command
 @kbd{M-x eww-open-file}.
 
+  If you invoke @code{eww} with a prefix argument, as in @w{@kbd{C-u
+M-x eww}}, it will create a new EWW buffer instead of reusing the
+default one, which is normally called @file{*eww*}.
+
 @findex eww-quit
 @findex eww-reload
 @findex eww-copy-page-url
+@findex shr-maybe-probe-and-copy-url
 @kindex q
 @kindex w
 @kindex g
   If loading the URL was successful the buffer @file{*eww*} is opened
 and the web page is rendered in it.  You can leave EWW by pressing
 @kbd{q} or exit the browser by calling @kbd{eww-quit}.  To reload the
-web page hit @kbd{g} (@code{eww-reload}).  Pressing @kbd{w}
-(@code{eww-copy-page-url}) will copy the current URL to the kill ring.
+web page hit @kbd{g} (@code{eww-reload}).
+
+  Pressing @kbd{w} when point is on a link will call
+@code{shr-maybe-probe-and-copy-url}, which copies this link's
+@acronym{URL} to the kill ring.  If point is not on a link, pressing
+@kbd{w} calls @code{eww-copy-page-url}, which will copy the current
+page's URL to the kill ring instead.
 
 @findex eww-open-in-new-buffer
 @kindex M-RET
-  The @kbd{M-RET} command (@code{eww-open-in-new-buffer}) opens the
+  The @kbd{M-@key{RET}} command (@code{eww-open-in-new-buffer}) opens the
 URL at point in a new EWW buffer, akin to opening a link in a new
-``tab'' in other browsers.
+``tab'' in other browsers.  When @code{global-tab-line-mode} is
+enabled, this buffer is displayed in the tab on the window tab line.
+When @code{tab-bar-mode} is enabled, a new tab is created on the frame
+tab bar.
 
 @findex eww-readable
 @kindex R
@@ -110,24 +124,35 @@ which part of the document contains the ``readable'' text, and will
 only display this part.  This usually gets rid of menus and the like.
 
 @findex eww-toggle-fonts
-@findex shr-use-fonts
+@vindex shr-use-fonts
 @kindex F
   The @kbd{F} command (@code{eww-toggle-fonts}) toggles whether to use
 variable-pitch fonts or not.  This sets the @code{shr-use-fonts} variable.
 
 @findex eww-toggle-colors
-@findex shr-use-colors
-@kindex F
-  The @kbd{C} command (@code{eww-toggle-colors}) toggles whether to use
+@vindex shr-use-colors
+@kindex M-C
+  The @kbd{M-C} command (@code{eww-toggle-colors}) toggles whether to use
 HTML-specified colors or not.  This sets the @code{shr-use-colors} variable.
+
+@findex eww-toggle-images
+@vindex shr-inhibit-images
+@kindex M-I
+@cindex Image Display
+  The @kbd{M-I} command (@code{eww-toggle-images}, capital letter i)
+toggles whether to display images or not.  This also sets the
+@code{shr-inhibit-images} variable.
 
 @findex eww-download
 @vindex eww-download-directory
 @kindex d
 @cindex Download
-  A URL under the point can be downloaded with @kbd{d}
-(@code{eww-download}).  The file will be written to the directory
-specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
+  A URL can be downloaded with @kbd{d} (@code{eww-download}).  This
+will download the link under point if there is one, or else the URL of
+the current page.  The file will be written to the directory specified
+by @code{eww-download-directory} (default: @file{~/Downloads/}, if it
+exists; otherwise as specified by the @samp{DOWNLOAD} @acronym{XDG}
+directory)).
 
 @findex eww-back-url
 @findex eww-forward-url
@@ -182,24 +207,41 @@ switch EWW buffers through a minibuffer prompt, press @kbd{s}
 (@code{eww-switch-to-buffer}).
 
 @findex eww-browse-with-external-browser
-@vindex shr-external-browser
+@vindex browse-url-secondary-browser-function
 @vindex eww-use-external-browser-for-content-type
 @kindex &
 @cindex External Browser
   Although EWW and shr.el do their best to render webpages in GNU
 Emacs some websites use features which can not be properly represented
-or are not implemented (E.g., JavaScript).  If you have trouble
+or are not implemented (e.g., JavaScript).  If you have trouble
 viewing a website with EWW then hit @kbd{&}
 (@code{eww-browse-with-external-browser}) inside the EWW buffer to
 open the website in the external browser specified by
-@code{shr-external-browser}.  Some content types, such as video or
-audio content, do not make sense to display in GNU Emacs at all.  You
-can tell EWW to open specific content automatically in an external
-browser by customizing
+@code{browse-url-secondary-browser-function}.  Some content types,
+such as video or audio content, do not make sense to display in GNU
+Emacs at all.  You can tell EWW to open specific content automatically
+in an external browser by customizing
 @code{eww-use-external-browser-for-content-type}.
 
 @node Advanced
 @chapter Advanced
+
+@findex eww-retrieve-command
+  EWW normally uses @code{url-retrieve} to fetch the @acronym{HTML}
+before rendering it, and @code{url-retrieve-synchronously} when
+the value of @code{eww-retrieve-command} is @code{sync}.  It can
+sometimes be convenient to use an external program to do this, and
+@code{eww-retrieve-command} should then be a list that specifies
+a command and the parameters.  For instance, to use the Chromium
+browser, you could say something like this:
+
+@lisp
+(setq eww-retrieve-command
+      '("chromium" "--headless" "--dump-dom"))
+@end lisp
+
+The command should return the @acronym{HTML} on standard output, and
+the data should use @acronym{UTF-8} as the charset.
 
 @findex eww-view-source
 @kindex v
@@ -212,9 +254,28 @@ browser by customizing
 @findex url-cookie-list
 @kindex C
 @cindex Cookies
-  EWW handles cookies through the @ref{Top, url package, ,url}.
-You can list existing cookies with @kbd{C} (@code{url-cookie-list}).
-For details about the Cookie handling @xref{Cookies,,,url}.
+  EWW handles cookies through the @ref{Top, url package, ,url}
+package.  You can list existing cookies with @kbd{C}
+(@code{url-cookie-list}).  For details about the Cookie handling
+@xref{Cookies,,,url}.
+
+@vindex shr-cookie-policy
+  Many @acronym{HTML} pages have images embedded in them, and EWW will
+download most of these by default.  When fetching images, cookies can
+be sent and received, and these can be used to track users.  To
+control when to send cookies when retrieving these images, the
+@code{shr-cookie-policy} variable can be used.  The default value,
+@code{same-origin}, means that EWW will only send cookies when
+fetching images that originate from the same source as the
+@acronym{HTML} page.  @code{nil} means ``never send cookies when
+retrieving these images'' and @code{t} means ``always send cookies
+when retrieving these images''.
+
+@vindex eww-use-browse-url
+  When following links in EWW, @acronym{URL}s that match the
+@code{eww-use-browse-url} regexp will be passed to @code{browse-url}
+instead of EWW handling them itself.  The action can be further
+customized by altering @code{browse-url-handlers}.
 
 @vindex eww-header-line-format
 @cindex Header
@@ -244,14 +305,20 @@ state the directionality.
 
 @vindex shr-max-image-proportion
 @vindex shr-blocked-images
+@vindex shr-allowed-images
 @cindex Image Display
   Loading random images from the web can be problematic due to their
 size or content.  By customizing @code{shr-max-image-proportion} you
 can set the maximal image proportion in relation to the window they
 are displayed in.  E.g., 0.7 means an image is allowed to take up 70%
-of the width and height.  If Emacs supports image scaling (ImageMagick
-support required) then larger images are scaled down.  You can block
-specific images completely by customizing @code{shr-blocked-images}.
+of the width and height.  If Emacs supports image scaling, then larger
+images are scaled down.  You can block specific images completely by
+customizing @code{shr-blocked-images}.
+
+@vindex shr-inhibit-images
+  You can control image display by customizing
+@code{shr-inhibit-images}.  If this variable is @code{nil}, display
+the ``ALT'' text of images instead.
 
 @vindex shr-color-visible-distance-min
 @vindex shr-color-visible-luminance-min
@@ -261,6 +328,24 @@ in the HTML page, but adjusts them if needed to keep a certain minimum
 contrast.  If that is still too low for you, you can customize the
 variables @code{shr-color-visible-distance-min} and
 @code{shr-color-visible-luminance-min} to get a better contrast.
+
+@vindex shr-max-width
+@vindex shr-width
+  By default, the max width used when rendering is 120 characters, but
+this can be adjusted by changing the @code{shr-max-width} variable.
+If a specified width is preferred no matter what the width of the
+window is, @code{shr-width} can be set.  If both variables are
+@code{nil}, the window width will always be used.
+
+@vindex shr-discard-aria-hidden
+@cindex @code{aria-hidden}, HTML attribute
+  The HTML attribute @code{aria-hidden} is meant to tell screen
+readers to ignore a tag's contents.  You can customize the variable
+@code{shr-discard-aria-hidden} to tell @code{shr} to ignore such tags.
+This can be useful when using a screen reader on the output of
+@code{shr} (e.g., on EWW buffer text).  It can be useful even when not
+using a screen reader, since web authors often put this attribute on
+non-essential decorative elements.
 
 @cindex Desktop Support
 @cindex Saving Sessions
@@ -296,6 +381,47 @@ thus allowing for the use of the usual substitutions, such as
 @code{\[eww-reload]} for the current key binding of the
 @code{eww-reload} command.
 
+@vindex eww-auto-rename-buffer
+  If the @code{eww-auto-rename-buffer} user option is non-@code{nil},
+EWW buffers will be renamed after rendering a document.  If this is
+@code{title}, rename based on the title of the document.  If this is
+@code{url}, rename based on the @acronym{URL} of the document.  This
+can also be a user-defined function, which is called with no
+parameters in the EWW buffer, and should return a string.
+
+@cindex utm
+@vindex eww-url-transformers
+  EWW runs the URLs through @code{eww-url-transformers} before using
+them.  This user option is a list of functions, where each function is
+called with the URL as the parameter, and should return the (possibly)
+transformed URL.  By default, this variable contains
+@code{eww-remove-tracking}, which removes the common @samp{utm_}
+trackers from links.
+
+@cindex video
+@vindex shr-use-xwidgets-for-media
+  If Emacs has been built with xwidget support, EWW can use that to
+display @samp{<video>} elements.  However, this support is still
+experimental, and on some systems doesn't work (and even worse) may
+crash your Emacs, so this feature is off by default.  If you wish to
+switch it on, set @code{shr-use-xwidgets-for-media} to a
+non-@code{nil} value.
+
+@node Command Line
+@chapter Command Line Usage
+
+It can be convenient to start eww directly from the command line.  The
+@code{eww-browse} function can be used for that:
+
+@example
+emacs -f eww-browse https://gnu.org
+@end example
+
+This also allows registering Emacs as a @acronym{MIME} handler for the
+@samp{"text/x-uri"} media type.  How to do that varies between
+systems, but typically you'd register the handler to call @samp{"emacs
+-f eww-browse %u"}.
+
 @node History and Acknowledgments
 @appendix History and Acknowledgments
 
@@ -304,7 +430,7 @@ Gnus.  He started writing an Emacs HTML rendering library,
 @code{shr.el}, to read blogs in Gnus.  He eventually added a web
 browser front end and HTML form support.  Which resulted in EWW, the
 Emacs Web Wowser.  EWW was announced on 16 June 2013:
-@url{http://lars.ingebrigtsen.no/2013/06/16/eww/}.
+@url{https://lars.ingebrigtsen.no/2013/06/16/eww/}.
 
 EWW was then moved from the Gnus repository to GNU Emacs and several
 developers started contributing to it as well.

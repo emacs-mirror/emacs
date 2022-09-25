@@ -1,6 +1,6 @@
-;;; mm-util.el --- Utility functions for Mule and low level things
+;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'mail-prsvr)
 (require 'timer)
 
@@ -31,7 +31,7 @@
 
 (defun mm-ucs-to-char (codepoint)
   "Convert Unicode codepoint to character."
-  (or (decode-char 'ucs codepoint) ?#))
+  (or codepoint ?#))
 
 (defvar mm-coding-system-list nil)
 (defun mm-get-coding-system-list ()
@@ -53,7 +53,7 @@
     ;; positions!
     ,@(unless (mm-coding-system-p 'iso-8859-15)
 	'((iso-8859-15 . iso-8859-1)))
-    ;; BIG-5HKSCS is similar to, but different than, BIG-5.
+    ;; BIG-5HKSCS is similar to, but different from, BIG-5.
     ,@(unless (mm-coding-system-p 'big5-hkscs)
 	'((big5-hkscs . big5)))
     ;; A Microsoft misunderstanding.
@@ -70,7 +70,7 @@
 		 (mm-coding-system-p 'cp932))
 	'((windows-31j . cp932)))
     ;; Charset name: GBK, Charset aliases: CP936, MS936, windows-936
-    ;; http://www.iana.org/assignments/charset-reg/GBK
+    ;; https://www.iana.org/assignments/charset-reg/GBK
     ;; Emacs 22.1 has cp936, but not gbk, so we alias it:
     ,@(when (and (not (mm-coding-system-p 'gbk))
 		 (mm-coding-system-p 'cp936))
@@ -101,9 +101,9 @@ version, you could use `autoload-coding-system' here."
   :type '(list (repeat :inline t
 		       :tag "Other options"
 		       (cons (symbol :tag "charset")
-			     (symbol :tag "form"))))
+                             (symbol :tag "form"))))
+  :risky t
   :group 'mime)
-(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-charset-override-alist)
 
@@ -131,10 +131,6 @@ is not available."
   (cond
    ((null charset)
     charset)
-   ;; Running in a non-MULE environment.
-   ((or (null (mm-get-coding-system-list))
-	(not (fboundp 'coding-system-get)))
-    charset)
    ;; Check override list quite early.  Should only used for decoding, not for
    ;; encoding!
    ((and allow-override
@@ -148,9 +144,9 @@ is not available."
    ;; on there being some coding system matching each `mime-charset'
    ;; property defined, as there should be.)
    ((and (mm-coding-system-p charset)
-;;; Doing this would potentially weed out incorrect charsets.
-;;; 	 charset
-;;; 	 (eq charset (coding-system-get charset 'mime-charset))
+	 ;; Doing this would potentially weed out incorrect charsets.
+	 ;; 	 charset
+	 ;; 	 (eq charset (coding-system-get charset 'mime-charset))
 	 )
     charset)
    ;; Use coding system Emacs knows.
@@ -164,7 +160,7 @@ is not available."
 	   form
 	   (prog2
 	       ;; Avoid errors...
-	       (condition-case nil (eval form) (error nil))
+	       (condition-case nil (eval form t) (error nil))
 	       ;; (message "Failed to eval `%s'" form))
 	       (mm-coding-system-p cs)
 	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))
@@ -241,7 +237,7 @@ superset of iso-8859-1."
 	(widget-convert
 	 'list
 	 `(set :inline t :format "%v" ,@(nreverse rest))
-	 `(repeat :inline t :tag "Other options"
+	 '(repeat :inline t :tag "Other options"
 		  (cons :format "%v"
 			(symbol :size 3 :format "(%v")
 			(symbol :size 3 :format " . %v)\n")))))))
@@ -295,77 +291,16 @@ superset of iso-8859-1."
 (defvar mm-universal-coding-system mm-auto-save-coding-system
   "The universal coding system.")
 
-;; Fixme: some of the cars here aren't valid MIME charsets.  That
-;; should only matter with XEmacs, though.
 (defvar mm-mime-mule-charset-alist
-  '((us-ascii ascii)
-    (iso-8859-1 latin-iso8859-1)
-    (iso-8859-2 latin-iso8859-2)
-    (iso-8859-3 latin-iso8859-3)
-    (iso-8859-4 latin-iso8859-4)
-    (iso-8859-5 cyrillic-iso8859-5)
-    ;; Non-mule (X)Emacs uses the last mule-charset for 8bit characters.
-    ;; The fake mule-charset, gnus-koi8-r, tells Gnus that the default
-    ;; charset is koi8-r, not iso-8859-5.
-    (koi8-r cyrillic-iso8859-5 gnus-koi8-r)
-    (iso-8859-6 arabic-iso8859-6)
-    (iso-8859-7 greek-iso8859-7)
-    (iso-8859-8 hebrew-iso8859-8)
-    (iso-8859-9 latin-iso8859-9)
-    (iso-8859-14 latin-iso8859-14)
-    (iso-8859-15 latin-iso8859-15)
-    (viscii vietnamese-viscii-lower)
-    (iso-2022-jp latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978)
-    (euc-kr korean-ksc5601)
-    (gb2312 chinese-gb2312)
-    (gbk chinese-gbk)
-    (gb18030 gb18030-2-byte
-	     gb18030-4-byte-bmp gb18030-4-byte-smp
-	     gb18030-4-byte-ext-1 gb18030-4-byte-ext-2)
-    (big5 chinese-big5-1 chinese-big5-2)
-    (tibetan tibetan)
-    (thai-tis620 thai-tis620)
-    (windows-1251 cyrillic-iso8859-5)
-    (iso-2022-7bit ethiopic arabic-1-column arabic-2-column)
-    (iso-2022-jp-2 latin-iso8859-1 greek-iso8859-7
-		   latin-jisx0201 japanese-jisx0208-1978
-		   chinese-gb2312 japanese-jisx0208
-		   korean-ksc5601 japanese-jisx0212)
-    (iso-2022-int-1 latin-iso8859-1 greek-iso8859-7
-		    latin-jisx0201 japanese-jisx0208-1978
-		    chinese-gb2312 japanese-jisx0208
-		    korean-ksc5601 japanese-jisx0212
-		    chinese-cns11643-1 chinese-cns11643-2)
-    (iso-2022-int-1 latin-iso8859-1 latin-iso8859-2
-		    cyrillic-iso8859-5 greek-iso8859-7
-		    latin-jisx0201 japanese-jisx0208-1978
-		    chinese-gb2312 japanese-jisx0208
-		    korean-ksc5601 japanese-jisx0212
-		    chinese-cns11643-1 chinese-cns11643-2
-		    chinese-cns11643-3 chinese-cns11643-4
-		    chinese-cns11643-5 chinese-cns11643-6
-		    chinese-cns11643-7)
-    (iso-2022-jp-3 latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
-		   japanese-jisx0213-1 japanese-jisx0213-2)
-    (shift_jis latin-jisx0201 katakana-jisx0201 japanese-jisx0208)
-    (utf-8))
-  "Alist of MIME-charset/MULE-charsets.")
-
-;; Correct by construction, but should be unnecessary for Emacs:
-(when (and (fboundp 'coding-system-list)
-	   (fboundp 'sort-coding-systems))
-  (let ((css (sort-coding-systems (coding-system-list 'base-only)))
-	cs mime mule alist)
-    (while css
-      (setq cs (pop css)
-	    mime (or (coding-system-get cs :mime-charset) ; Emacs 23 (unicode)
-		     (coding-system-get cs 'mime-charset)))
+  (let (mime mule alist)
+    (dolist (cs (sort-coding-systems (coding-system-list 'base-only)))
+      (setq mime (coding-system-get cs 'mime-charset))
       (when (and mime
-		 (not (eq t (setq mule
-				  (coding-system-get cs 'safe-charsets))))
+		 (not (eq t (setq mule (coding-system-get cs 'safe-charsets))))
 		 (not (assq mime alist)))
 	(push (cons mime (delq 'ascii mule)) alist)))
-    (setq mm-mime-mule-charset-alist (nreverse alist))))
+    (nreverse alist))
+  "Alist of MIME-charset/MULE-charsets.")
 
 (defvar mm-hack-charsets '(iso-8859-15 iso-2022-jp-2)
   "A list of special charsets.
@@ -380,8 +315,7 @@ Valid elements include:
   "ISO-8859-15 exchangeable coding systems and inconvertible characters.")
 
 (defvar mm-iso-8859-x-to-15-table
-  (and (fboundp 'coding-system-p)
-       (mm-coding-system-p 'iso-8859-15)
+  (and (mm-coding-system-p 'iso-8859-15)
        (mapcar
 	(lambda (cs)
 	  (if (mm-coding-system-p (car cs))
@@ -431,7 +365,7 @@ mail with multiple parts is preferred to sending a Unicode one.")
      (#x94 . #x201D) (#x95 . #x2022) (#x96 . #x2013) (#x97 . #x2014)
      (#x98 . #x02DC) (#x99 . #x2122) (#x9A . #x0161) (#x9B . #x203A)
      (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
-  "*Alist of extra numeric entities and characters other than ISO 10646.
+  "Alist of extra numeric entities and characters other than ISO 10646.
 This table is used for decoding extra numeric entities to characters,
 like \"&#128;\" to the euro sign, mainly in html messages."
   :type '(alist :key-type character :value-type character)
@@ -445,7 +379,7 @@ like \"&#128;\" to the euro sign, mainly in html messages."
   "Return the MIME charset corresponding to the given Mule CHARSET."
   (let ((css (sort (sort-coding-systems
 		    (find-coding-systems-for-charsets (list charset)))
-		   'mm-sort-coding-systems-predicate))
+		   #'mm-sort-coding-systems-predicate))
 	cs mime)
     (while (and (not mime)
 		css)
@@ -521,7 +455,7 @@ If POS is out of range, the value is nil."
   enable-multibyte-characters)
 
 (defun mm-iso-8859-x-to-15-region (&optional b e)
-  (let (charset item c inconvertible)
+  (let (item c inconvertible)
     (save-restriction
       (if e (narrow-to-region b e))
       (goto-char (point-min))
@@ -559,14 +493,14 @@ nil means ASCII, a single-element list represents an appropriate MIME
 charset, and a longer list means no appropriate charset."
   (let (charsets)
     ;; The return possibilities of this function are a mess...
-    (or (and (mm-multibyte-p)
+    (or (and enable-multibyte-characters
 	     mm-use-find-coding-systems-region
 	     ;; Find the mime-charset of the most preferred coding
 	     ;; system that has one.
 	     (let ((systems (find-coding-systems-region b e)))
 	       (when mm-coding-system-priorities
 		 (setq systems
-		       (sort systems 'mm-sort-coding-systems-predicate)))
+		       (sort systems #'mm-sort-coding-systems-predicate)))
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
@@ -597,7 +531,7 @@ charset, and a longer list means no appropriate charset."
 	;; We're not multibyte, or a single coding system won't cover it.
 	(setq charsets
 	      (delete-dups
-	       (mapcar 'mm-mime-charset
+	       (mapcar #'mm-mime-charset
 		       (delq 'ascii
 			     (mm-find-charset-region b e))))))
     (if (and (> (length charsets) 1)
@@ -612,45 +546,23 @@ charset, and a longer list means no appropriate charset."
     charsets))
 
 (defmacro mm-with-unibyte-buffer (&rest forms)
-  "Create a temporary buffer, and evaluate FORMS there like `progn'.
-Use unibyte mode for this."
+  "Create a temporary unibyte buffer, and evaluate FORMS there like `progn'."
+  (declare (indent 0) (debug t))
   `(with-temp-buffer
      (mm-disable-multibyte)
      ,@forms))
-(put 'mm-with-unibyte-buffer 'lisp-indent-function 0)
-(put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-multibyte-buffer (&rest forms)
-  "Create a temporary buffer, and evaluate FORMS there like `progn'.
-Use multibyte mode for this."
+  "Create a temporary multibyte buffer, and evaluate FORMS there like `progn'."
+  (declare (indent 0) (debug t))
   `(with-temp-buffer
      (mm-enable-multibyte)
      ,@forms))
-(put 'mm-with-multibyte-buffer 'lisp-indent-function 0)
-(put 'mm-with-multibyte-buffer 'edebug-form-spec '(body))
-
-(defmacro mm-with-unibyte-current-buffer (&rest forms)
-  "Evaluate FORMS with current buffer temporarily made unibyte.
-
-Note: We recommend not using this macro any more; there should be
-better ways to do a similar thing.  The previous version of this macro
-bound the default value of `enable-multibyte-characters' to nil while
-evaluating FORMS but it is no longer done.  So, some programs assuming
-it if any may malfunction."
-  (declare (obsolete nil "25.1") (indent 0) (debug t))
-  (let ((multibyte (make-symbol "multibyte")))
-    `(let ((,multibyte enable-multibyte-characters))
-       (when ,multibyte
-	 (set-buffer-multibyte nil))
-       (prog1
-	   (progn ,@forms)
-	 (when ,multibyte
-	   (set-buffer-multibyte t))))))
 
 (defun mm-find-charset-region (b e)
   "Return a list of Emacs charsets in the region B to E."
   (cond
-   ((mm-multibyte-p)
+   (enable-multibyte-characters
     ;; Remove composition since the base charsets have been included.
     ;; Remove eight-bit-*, treat them as ascii.
     (let ((css (find-charset-region b e)))
@@ -699,21 +611,26 @@ to advanced Emacs features, such as file-name-handlers, format decoding,
 `find-file-hook', etc.
 If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
 This function ensures that none of these modifications will take place."
-  (letf* ((format-alist nil)
-          (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
-          ((default-value 'major-mode) 'fundamental-mode)
-          (enable-local-variables nil)
-          (after-insert-file-functions nil)
-          (enable-local-eval nil)
-          (inhibit-file-name-operation (if inhibit
-                                           'insert-file-contents
-                                         inhibit-file-name-operation))
-          (inhibit-file-name-handlers
-           (if inhibit
-               (append mm-inhibit-file-name-handlers
-                       inhibit-file-name-handlers)
-             inhibit-file-name-handlers))
-	  (find-file-hook nil))
+  (cl-letf* ((format-alist nil)
+             ;; FIXME: insert-file-contents doesn't look at auto-mode-alist,
+             ;; nor at (default-value 'major-mode)!
+             (auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
+             ((default-value 'major-mode) 'fundamental-mode)
+             ;; FIXME: neither enable-local-variables nor enable-local-eval are
+             ;; run by insert-file-contents, AFAICT?!
+             (enable-local-variables nil)
+             (after-insert-file-functions nil)
+             (enable-local-eval nil)
+             (inhibit-file-name-operation (if inhibit
+                                              'insert-file-contents
+                                            inhibit-file-name-operation))
+             (inhibit-file-name-handlers
+              (if inhibit
+                  (append mm-inhibit-file-name-handlers
+                          inhibit-file-name-handlers)
+                inhibit-file-name-handlers))
+             ;; FIXME: insert-file-contents doesn't run find-file-hook anyway!
+	     (find-file-hook nil))
     (insert-file-contents filename visit beg end replace)))
 
 (defun mm-append-to-file (start end filename &optional codesys inhibit)
@@ -756,7 +673,6 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 	   inhibit-file-name-handlers)))
     (write-region start end filename append visit lockname)))
 
-(defalias 'mm-make-temp-file 'make-temp-file)
 (define-obsolete-function-alias 'mm-make-temp-file 'make-temp-file "26.1")
 
 (defvar mm-image-load-path-cache nil)
@@ -833,22 +749,23 @@ decompressed data.  The buffer's multibyteness must be turned off."
 	    (insert-buffer-substring cur)
 	    (condition-case err
 		(progn
-		  (unless (memq (apply 'call-process-region
+		  (unless (memq (apply #'call-process-region
 				       (point-min) (point-max)
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)
 		    (erase-buffer)
-		    (insert (mapconcat 'identity
+		    (insert (mapconcat #'identity
 				       (split-string
 					(prog2
 					    (insert-file-contents err-file)
 					    (buffer-string)
-					  (erase-buffer)) t)
+					  (erase-buffer))
+					nil t)
 				       " ")
 			    "\n")
 		    (setq err-msg
 			  (format "Error while executing \"%s %s < %s\""
-				  prog (mapconcat 'identity args " ")
+				  prog (mapconcat #'identity args " ")
 				  filename)))
 		  (setq retval (buffer-string)))
 	      (error
@@ -897,6 +814,19 @@ gzip, bzip2, etc. are allowed."
 		(error nil))))
 	(when decomp
 	  (kill-buffer (current-buffer)))))))
+
+(defun mm-images-in-region-p (start end)
+  (let ((found nil))
+    (save-excursion
+      (goto-char start)
+      (while (and (not found)
+		  (< (point) end))
+	(let ((display (get-text-property (point) 'display)))
+	  (when (and (consp display)
+		     (eq (car display) 'image))
+	    (setq found t)))
+	(forward-char 1)))
+    found))
 
 (provide 'mm-util)
 

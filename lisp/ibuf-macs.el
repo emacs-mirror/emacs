@@ -1,6 +1,6 @@
 ;;; ibuf-macs.el --- macros for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -35,7 +35,7 @@
 If TEST returns non-nil, bind `it' to the value, and evaluate
 TRUE-BODY.  Otherwise, evaluate forms in FALSE-BODY as if in `progn'.
 Compare with `if'."
-  (declare (indent 2))
+  (declare (obsolete if-let "29.1") (indent 2))
   (let ((sym (make-symbol "ibuffer-aif-sym")))
     `(let ((,sym ,test))
        (if ,sym
@@ -47,10 +47,9 @@ Compare with `if'."
 (defmacro ibuffer-awhen (test &rest body)
   "Evaluate BODY if TEST returns non-nil.
 During evaluation of body, bind `it' to the value returned by TEST."
-  (declare (indent 1))
-  `(ibuffer-aif ,test
-       (progn ,@body)
-     nil))
+  (declare (indent 1) (obsolete when-let "29.1"))
+  `(when-let ((it ,test))
+     ,@body))
 
 (defmacro ibuffer-save-marks (&rest body)
   "Save the marked status of the buffers and execute BODY; restore marks."
@@ -66,8 +65,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
 	   (ibuffer-redisplay-engine
 	    ;; Get rid of dead buffers
 	    (delq nil
-		  (mapcar #'(lambda (e) (when (buffer-live-p (car e))
-					  e))
+                  (mapcar (lambda (e) (when (buffer-live-p (car e))
+                                        e))
 			  ibuffer-save-marks-tmp-mark-list)))
 	   (ibuffer-redisplay t))))))
 
@@ -154,8 +153,8 @@ value if and only if `a' is \"less than\" `b'.
        (ibuffer-redisplay t)
        (setq ibuffer-last-sorting-mode ',name))
      (push (list ',name ,description
-		 #'(lambda (a b)
-		     ,@body))
+                 (lambda (a b)
+                   ,@body))
 	   ibuffer-sorting-functions-alist)
      :autoload-end))
 
@@ -259,18 +258,18 @@ buffer object.
 				    'ibuffer-map-deletion-lines)
 				   (_
 				    'ibuffer-map-marked-lines))
-				#'(lambda (buf mark)
-                                    ;; Silence warning for code that doesn't
-                                    ;; use `mark'.
-                                    (ignore mark)
-				    ,(if (eq modifier-p :maybe)
-					 `(let ((ibuffer-tmp-previous-buffer-modification
-						 (buffer-modified-p buf)))
-					    (prog1 ,inner-body
-					      (when (not (eq ibuffer-tmp-previous-buffer-modification
-							     (buffer-modified-p buf)))
-						(setq ibuffer-did-modification t))))
-				       inner-body)))))
+                                (lambda (buf mark)
+                                  ;; Silence warning for code that doesn't
+                                  ;; use `mark'.
+                                  (ignore mark)
+                                  ,(if (eq modifier-p :maybe)
+                                       `(let ((ibuffer-tmp-previous-buffer-modification
+                                               (buffer-modified-p buf)))
+                                          (prog1 ,inner-body
+                                            (when (not (eq ibuffer-tmp-previous-buffer-modification
+                                                           (buffer-modified-p buf)))
+                                              (setq ibuffer-did-modification t))))
+                                     inner-body)))))
 			  ,finish)))
 	    (if dangerous
 		`(when (ibuffer-confirm-operation-on ,active-opstring marked-names)
@@ -280,14 +279,18 @@ buffer object.
 
 ;;;###autoload
 (cl-defmacro define-ibuffer-filter (name documentation
-				       (&key
-					reader
-					description)
-				       &rest body)
+                                         (&key
+                                          reader
+                                          description
+                                          accept-list)
+                                         &rest body)
   "Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
 READER is a form which should read a qualifier from the user.
 DESCRIPTION is a short string describing the filter.
+ACCEPT-LIST is a boolean; if non-nil, the filter accepts either
+a single condition or a list of them; in the latter
+case the filter is the `or' composition of the conditions.
 
 BODY should contain forms which will be evaluated to test whether or
 not a particular buffer should be displayed or not.  The forms in BODY
@@ -296,26 +299,46 @@ bound to the current value of the filter.
 
 \(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)"
   (declare (indent 2) (doc-string 2))
-  (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
+  (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name))))
+        (filter (make-symbol "ibuffer-filter"))
+        (qualifier-str (make-symbol "ibuffer-qualifier-str")))
     `(progn
        (defun ,fn-name (qualifier)
-	 ,(or documentation "This filter is not documented.")
-	 (interactive (list ,reader))
-	 (ibuffer-push-filter (cons ',name qualifier))
-	 (message "%s"
-		  (format ,(concat (format "Filter by %s added: " description)
-				   " %s")
-			  qualifier))
-	 (ibuffer-update nil t))
+     ,(or documentation "This filter is not documented.")
+     (interactive (list ,reader))
+     (let ((,filter (cons ',name qualifier))
+           (,qualifier-str qualifier))
+       ,(when accept-list
+          `(progn
+         (unless (listp qualifier) (setq qualifier (list qualifier)))
+         ;; Reject equivalent filters: (or f1 f2) is same as (or f2 f1).
+         (setq qualifier (sort (delete-dups qualifier) #'string-lessp))
+         (setq ,filter (cons ',name (car qualifier)))
+         (setq ,qualifier-str
+               (mapconcat (lambda (m) (if (symbolp m) (symbol-name m) m))
+                  qualifier ","))
+         (when (cdr qualifier) ; Compose individual filters with `or'.
+           (setq ,filter `(or ,@(mapcar (lambda (m) (cons ',name m)) qualifier))))))
+       (if (null (ibuffer-push-filter ,filter))
+           (if ,qualifier-str
+               (message ,(format "Filter by %s already applied:  %%s"
+                                 description)
+                        ,qualifier-str)
+             (message ,(format "Filter by %s already applied" description)))
+         (if ,qualifier-str
+             (message ,(format "Filter by %s added:  %%s" description)
+                      ,qualifier-str)
+           (message ,(format "Filter by %s added" description)))
+         (ibuffer-update nil t))))
        (push (list ',name ,description
-		   (lambda (buf qualifier)
-                     (condition-case nil
-                         (progn ,@body)
-                       (error (ibuffer-pop-filter)
-                              (when (eq ',name 'predicate)
-                                (error "Wrong filter predicate: %S"
-                                       qualifier))))))
-	     ibuffer-filtering-alist)
+           (lambda (buf qualifier)
+                  (condition-case nil
+                      (progn ,@body)
+                    (error (ibuffer-pop-filter)
+                           (when (eq ',name 'predicate)
+                             (error "Wrong filter predicate: %S"
+                                    qualifier))))))
+         ibuffer-filtering-alist)
        :autoload-end)))
 
 (provide 'ibuf-macs)

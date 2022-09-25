@@ -1,6 +1,6 @@
-;;; admin.el --- utilities for Emacs administration
+;;; admin.el --- utilities for Emacs administration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -88,6 +88,9 @@ Optional argument DATE is the release date, default today."
     (kill-buffer)
     (message "No need to update `%s'" file)))
 
+(defvar admin-git-command (executable-find "git")
+  "The `git' program to use.")
+
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -96,6 +99,8 @@ Root must be the root of an Emacs source tree."
 		(read-string "Version number: " emacs-version)))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (unless admin-git-command
+    (user-error "Could not find git; please install git and move NEWS manually"))
   (message "Setting version numbers...")
   ;; There's also a "version 3" (standing for GPLv3) at the end of
   ;; `README', but since `set-version-in-file' only replaces the first
@@ -114,14 +119,11 @@ Root must be the root of an Emacs source tree."
   ;; configure.ac with sed, rather than duplicating the information.
   (set-version-in-file root "msdos/sed2v2.inp" version
 		       (rx (and bol "/^#undef " (1+ not-newline)
-				"define VERSION" (1+ space) "\""
+				"define PACKAGE_VERSION" (1+ space) "\""
 				(submatch (1+ (in "0-9."))))))
   ;; Major version only.
   (when (string-match "\\([0-9]\\{2,\\}\\)" version)
     (let ((newmajor (match-string 1 version)))
-      (set-version-in-file root "src/msdos.c" newmajor
-                           (rx (and "Vwindow_system_version" (1+ not-newline)
-                                    ?\( (submatch (1+ (in "0-9"))) ?\))))
       (set-version-in-file root "etc/refcards/ru-refcard.tex" newmajor
                            "\\\\newcommand{\\\\versionemacs}\\[0\\]\
 {\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
@@ -138,19 +140,32 @@ Root must be the root of an Emacs source tree."
                               (if (eq 2 (length newversion)) 0 1))))
          (majorbump (and oldversion (not (equal oldmajor newmajor))))
          (minorbump (and oldversion (not majorbump)
-                         (not (equal (cadr oldversion) (cadr newversion)))))
+                         (or (not (equal (cadr oldversion) (cadr newversion)))
+                             ;; Eg 26.2 -> 26.2.50.
+                             (and (> (length newversion)
+                                     (length oldversion))))))
          (newsfile (expand-file-name "etc/NEWS" root))
          (oldnewsfile (expand-file-name (format "etc/NEWS.%s" oldmajor) root)))
     (unless (> (length newversion) 2)   ; pretest or release candidate?
       (with-temp-buffer
         (insert-file-contents newsfile)
-        (if (re-search-forward "^\\(+++ *\\|--- *\\)$" nil t)
+        (when (re-search-forward "^\\* [^\n]*\n+" nil t)
+          (display-warning 'admin
+                           "NEWS file contains empty sections - remove them?"))
+        (goto-char (point-min))
+        (if (re-search-forward "^\\(\\+\\+\\+? *$\\|---? *$\\|Temporary note:\\)" nil t)
             (display-warning 'admin
                              "NEWS file still contains temporary markup.
 Documentation changes might not have been completed!"))))
     (when (and majorbump
                (not (file-exists-p oldnewsfile)))
-      (rename-file newsfile oldnewsfile)
+      (call-process admin-git-command nil nil nil
+                    "mv" newsfile oldnewsfile)
+      (when (y-or-n-p "Commit move of NEWS file?")
+        (call-process admin-git-command nil nil nil
+                      "commit" "-m" (format "; Move etc/%s to etc/%s"
+                                            (file-name-nondirectory newsfile)
+                                            (file-name-nondirectory oldnewsfile))))
       (find-file oldnewsfile)           ; to prompt you to commit it
       (copy-file oldnewsfile newsfile)
       (with-temp-buffer
@@ -158,11 +173,17 @@ Documentation changes might not have been completed!"))))
         (re-search-forward "is about changes in Emacs version \\([0-9]+\\)")
         (replace-match (number-to-string newmajor) nil nil nil 1)
         (re-search-forward "^See files \\(NEWS\\)")
-        (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
-        (let ((start (line-beginning-position)))
-          (search-forward "in older Emacs versions")
-          (or (equal start (line-beginning-position))
-              (fill-region start (line-beginning-position 2))))
+        (unless (save-match-data
+                  (when (looking-at "\\(\\..*\\), \\(\\.\\.\\.\\|…\\)")
+                    (replace-match
+                     (format ".%s, NEWS.%s" oldmajor (1- oldmajor))
+                     nil nil nil 1)
+                    t))
+          (replace-match (format "NEWS.%s, NEWS" oldmajor) nil nil nil 1)
+          (let ((start (line-beginning-position)))
+            (search-forward "in older Emacs versions")
+            (or (equal start (line-beginning-position))
+                (fill-region start (line-beginning-position 2)))))
         (re-search-forward "^$")
         (forward-line -1)
         (let ((start (point)))
@@ -241,7 +262,7 @@ ROOT should be the root of an Emacs source tree."
     (search-forward "INFO_COMMON = ")
     (let ((start (point)))
       (end-of-line)
-      (while (and (looking-back "\\\\")
+      (while (and (looking-back "\\\\" (- (point) 2))
 		  (zerop (forward-line 1)))
 	(end-of-line))
       (append (split-string (replace-regexp-in-string
@@ -255,8 +276,12 @@ ROOT should be the root of an Emacs source tree."
 ROOT should be the root of an Emacs source tree.
 Interactively with a prefix argument, prompt for TYPE.
 Optional argument TYPE is type of output (nil means all)."
-  (interactive (let ((root (read-directory-name "Emacs root directory: "
-						source-directory nil t)))
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read
@@ -320,14 +345,16 @@ Optional argument TYPE is type of output (nil means all)."
 
 (defconst manual-doctype-string
   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"
-\"http://www.w3.org/TR/html4/loose.dtd\">\n\n")
+\"https://www.w3.org/TR/html4/loose.dtd\">\n\n")
 
 (defconst manual-meta-string
-  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">
-<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
+  "<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n")
+
+(defconst manual-links-string
+  "<link rev=\"made\" href=\"mailto:bug-gnu-emacs@gnu.org\">
 <link rel=\"icon\" type=\"image/png\" href=\"/graphics/gnu-head-mini.png\">
 <meta name=\"ICBM\" content=\"42.256233,-71.006581\">
-<meta name=\"DC.title\" content=\"gnu.org\">\n\n")
+<meta name=\"DC.title\" content=\"gnu.org\">\n")
 
 (defconst manual-style-string "<style type=\"text/css\">
 @import url('/software/emacs/manual.css');\n</style>\n")
@@ -342,13 +369,22 @@ Optional argument TYPE is type of output (nil means all)."
     (manual-html-mono texi (expand-file-name (concat name ".html")
 					     html-mono-dir))))
 
+(defvar manual-makeinfo (or (getenv "MAKEINFO") "makeinfo")
+  "The `makeinfo' program to use.")
+
+(defvar manual-texi2pdf (or (getenv "TEXI2PDF") "texi2pdf")
+  "The `texi2pdf' program to use.")
+
+(defvar manual-texi2dvi (or (getenv "TEXI2DVI") "texi2dvi")
+  "The `texi2dvi' program to use.")
+
 (defun manual-html-mono (texi-file dest)
   "Run Makeinfo on TEXI-FILE, emitting mono HTML output to DEST.
 This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (make-directory (or (file-name-directory dest) ".") t)
-  (call-process "makeinfo" nil nil nil
+  (call-process manual-makeinfo nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
@@ -376,7 +412,7 @@ the @import directive."
   (unless (file-exists-p texi-file)
     (user-error "Manual file %s not found" texi-file))
   (make-directory dir t)
-  (call-process "makeinfo" nil nil nil
+  (call-process manual-makeinfo nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
@@ -415,7 +451,7 @@ the @import directive."
   "Run texi2pdf on TEXI-FILE, emitting PDF output to DEST."
   (make-directory (or (file-name-directory dest) ".") t)
   (let ((default-directory (file-name-directory texi-file)))
-    (call-process "texi2pdf" nil nil nil
+    (call-process manual-texi2pdf nil nil nil
 		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dest)))
 
@@ -425,7 +461,7 @@ the @import directive."
   (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
 	(default-directory (file-name-directory texi-file)))
     ;; FIXME: Use `texi2dvi --ps'?  --xfq
-    (call-process "texi2dvi" nil nil nil
+    (call-process manual-texi2dvi nil nil nil
 		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dvi-dest)
     (call-process "dvips" nil nil nil dvi-dest "-o" dest)
@@ -449,6 +485,13 @@ the @import directive."
       (delete-region opoint (point))
       (search-forward "<meta http-equiv=\"Content-Style")
       (setq opoint (match-beginning 0)))
+    (search-forward "<title>")
+    (delete-region opoint (match-beginning 0))
+    (search-forward "</title>\n")
+    (when (search-forward "<link href=" nil t)
+      (goto-char (match-beginning 0)))
+    (insert manual-links-string)
+    (setq opoint (point))
     (search-forward "</head>")
     (goto-char (match-beginning 0))
     (delete-region opoint (point))
@@ -519,7 +562,7 @@ Leave point after the table."
 	(forward-line 1)
 	(while (not done)
 	  (cond ((re-search-forward "<tr><td.*&bull; \\(<a.*</a>\\)\
-:</td><td>&nbsp;&nbsp;</td><td[^>]*>\\(.*\\)" (line-end-position) t)
+:?</td><td>&nbsp;&nbsp;</td><td[^>]*>\\(.*\\)" (line-end-position) t)
 		 (replace-match (format "<tr><td%s>\\1</td>\n<td>\\2"
 					(if table-workaround
 					    " bgcolor=\"white\"" "")))
@@ -565,80 +608,87 @@ style=\"text-align:left\">")
 		 (forward-line 1)
 		 (setq done t)))))
     (let (done open-td tag desc)
-      ;; Convert the list that Makeinfo made into a table.
-      (or (search-forward "<ul class=\"menu\">" nil t)
-	  ;; FIXME?  The following search seems dangerously lax.
-	  (search-forward "<ul>"))
-      (replace-match "<table style=\"float:left\" width=\"100%\">")
-      (forward-line 1)
-      (while (not done)
-	(cond
-	 ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
-	      (looking-at "<li>\\(<a.+</a>\\)$"))
-	  (setq tag (match-string 1))
-	  (setq desc (match-string 2))
-	  (replace-match "" t t)
-	  (when open-td
-	    (save-excursion
-	      (forward-char -1)
-	      (skip-chars-backward " ")
-	      (delete-region (point) (line-end-position))
-	      (insert "</td>\n  </tr>")))
-	  (insert "  <tr>\n    ")
-	  (if table-workaround
-	      ;; This works around a Firefox bug in the mono file.
-	      (insert "<td bgcolor=\"white\">")
-	    (insert "<td>"))
-	  (insert tag "</td>\n    <td>" (or desc ""))
-	  (setq open-td t))
-	 ((eq (char-after) ?\n)
-	  (delete-char 1)
-	  ;; Negate the following `forward-line'.
-	  (forward-line -1))
-	 ((looking-at "<!-- ")
-	  (search-forward "-->"))
-	 ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
-	  (replace-match "  </td></tr></table>\n
+      ;; Texinfo 6.8 and later doesn't produce <ul class="menu"> lists
+      ;; for the TOC menu, and the "description" part of each menu
+      ;; item is not there anymore.  So for HTML manuals produced by
+      ;; those newer versions of Texinfo we punt and leave the menu in
+      ;; its original form.
+      (when (or (search-forward "<ul class=\"menu\">" nil t)
+	        ;; FIXME?  The following search seems dangerously lax.
+	        (search-forward "<ul>" nil t))
+        ;; Convert the list that Makeinfo made into a table.
+        (replace-match "<table style=\"float:left\" width=\"100%\">")
+        (forward-line 1)
+        (while (not done)
+	  (cond
+	   ((or (looking-at "<li>\\(<a.+</a>\\):[ \t]+\\(.*\\)$")
+	        (looking-at "<li>\\(<a.+</a>\\)$"))
+	    (setq tag (match-string 1))
+	    (setq desc (match-string 2))
+	    (replace-match "" t t)
+	    (when open-td
+	      (save-excursion
+	        (forward-char -1)
+	        (skip-chars-backward " ")
+	        (delete-region (point) (line-end-position))
+	        (insert "</td>\n  </tr>")))
+	    (insert "  <tr>\n    ")
+	    (if table-workaround
+	        ;; This works around a Firefox bug in the mono file.
+	        (insert "<td bgcolor=\"white\">")
+	      (insert "<td>"))
+	    (insert tag "</td>\n    <td>" (or desc ""))
+	    (setq open-td t))
+	   ((eq (char-after) ?\n)
+	    (delete-char 1)
+	    ;; Negate the following `forward-line'.
+	    (forward-line -1))
+	   ((looking-at "<!-- ")
+	    (search-forward "-->"))
+	   ((looking-at "<p>[- ]*The Detailed Node Listing[- \n]*")
+	    (replace-match "  </td></tr></table>\n
 <h3>Detailed Node Listing</h3>\n\n" t t)
-	  (search-forward "<p>")
-	  ;; FIXME Fragile!
-	  ;; The Emacs and Elisp manual have some text at the
-	  ;; start of the detailed menu that is not part of the menu.
-	  ;; Other manuals do not.
-	  (if (looking-at "Here are some other nodes")
-	      (search-forward "<p>"))
-	  (goto-char (match-beginning 0))
-	  (skip-chars-backward "\n ")
-	  (setq open-td nil)
-	  (insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
-	 ((looking-at "</li></ul>")
-	  (replace-match "" t t))
-	 ((looking-at "<p>")
-	  (replace-match "" t t)
-	  (when open-td
-	    (insert "  </td></tr>")
-	    (setq open-td nil))
-	  (insert "  <tr>
+	    (search-forward "<p>")
+	    ;; FIXME Fragile!
+	    ;; The Emacs and Elisp manual have some text at the
+	    ;; start of the detailed menu that is not part of the menu.
+	    ;; Other manuals do not.
+	    (if (looking-at "Here are some other nodes")
+	        (search-forward "<p>"))
+	    (goto-char (match-beginning 0))
+	    (skip-chars-backward "\n ")
+	    (setq open-td nil)
+	    (insert "</p>\n\n<table  style=\"float:left\" width=\"100%\">"))
+	   ((looking-at "</li></ul>")
+	    (replace-match "" t t))
+	   ((looking-at "<p>")
+	    (replace-match "" t t)
+	    (when open-td
+	      (insert "  </td></tr>")
+	      (setq open-td nil))
+	    (insert "  <tr>
     <th colspan=\"2\" align=\"left\" style=\"text-align:left\">")
-	  (if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
-	      (replace-match "  </th></tr>")))
-	 ((looking-at "[ \t]*</ul>[ \t]*$")
-	  (replace-match
-	   (if open-td
-	       "  </td></tr>\n</table>"
-	     "</table>") t t)
-	  (setq done t))
-	 (t
-	  (if (eobp)
-	      (error "Parse error in %s"
-		     (file-name-nondirectory buffer-file-name)))
-	  (unless open-td
-	    (setq done t))))
-	(forward-line 1)))))
+	    (if (re-search-forward "</p>[ \t\n]*<ul class=\"menu\">" nil t)
+	        (replace-match "  </th></tr>")))
+	   ((looking-at "[ \t]*</ul>[ \t]*$")
+	    (replace-match
+	     (if open-td
+	         "  </td></tr>\n</table>"
+	       "</table>") t t)
+	    (setq done t))
+	   (t
+	    (if (eobp)
+	        (error "Parse error in %s"
+		       (file-name-nondirectory buffer-file-name)))
+	    (unless open-td
+	      (setq done t))))
+	  (forward-line 1))))))
 
 
 (defconst make-manuals-dist-output-variables
-  `(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+  '(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+    ("@\\(abs_\\)?top_builddir@" . ".") ; wrong but unused
+    ("^\\(EMACS *=\\).*" . "\\1 emacs")
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -656,9 +706,7 @@ style=\"text-align:left\">")
     ("@INSTALL@" . "install -c")
     ("@INSTALL_DATA@" . "${INSTALL} -m 644")
     ("@configure_input@" . "")
-    ("@AM_DEFAULT_VERBOSITY@" . "0")
-    ("@AM_V@" . "${V}")
-    ("@AM_DEFAULT_V@" . "${AM_DEFAULT_VERBOSITY}"))
+    ("@AM_DEFAULT_VERBOSITY@" . "0"))
   "Alist of (REGEXP . REPLACEMENT) pairs for `make-manuals-dist'.")
 
 (defun make-manuals-dist--1 (root type)
@@ -677,6 +725,7 @@ style=\"text-align:left\">")
     (if (file-directory-p stem)
 	(delete-directory stem t))
     (make-directory stem)
+    (setq stem (file-name-as-directory stem))
     (copy-file "../doc/misc/texinfo.tex" stem)
     (unless (equal type "emacs")
       (copy-file "../doc/emacs/emacsver.texi" stem)
@@ -687,7 +736,8 @@ style=\"text-align:left\">")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
     (with-temp-buffer
-      (let ((outvars make-manuals-dist-output-variables))
+      (let ((outvars make-manuals-dist-output-variables)
+            (case-fold-search nil))
 	(push `("@version@" . ,version) outvars)
 	(insert-file-contents (format "../doc/%s/Makefile.in" type))
 	(dolist (cons outvars)
@@ -699,7 +749,7 @@ style=\"text-align:left\">")
 	  (setq ats t)
 	  (message "Unexpanded: %s" (match-string 0)))
 	(if ats (error "Unexpanded configure variables in Makefile?")))
-      (write-region nil nil (expand-file-name (format "%s/Makefile" stem))
+      (write-region nil nil (expand-file-name (format "%sMakefile" stem))
 		    nil 'silent))
     (call-process "tar" nil nil nil "-cf" tarfile stem)
     (delete-directory stem t)
@@ -711,8 +761,12 @@ style=\"text-align:left\">")
 ROOT should be the root of an Emacs source tree.
 Interactively with a prefix argument, prompt for TYPE.
 Optional argument TYPE is type of output (nil means all)."
-  (interactive (let ((root (read-directory-name "Emacs root directory: "
-						source-directory nil t)))
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read
@@ -723,6 +777,204 @@ Optional argument TYPE is type of output (nil means all)."
   (dolist (m '("emacs" "lispref" "lispintro" "misc"))
     (if (member type (list nil m))
 	(make-manuals-dist--1 root m))))
+
+(defvar admin--org-export-headers-format "\
+#+title: GNU Emacs %s NEWS -- history of user-visible changes
+#+author:
+#+options: author:nil creator:nil toc:2 num:3 *:nil \\n:t ^:nil tex:nil
+#+language: en
+#+HTML_LINK_HOME: /software/emacs
+#+HTML_LINK_UP: /software/emacs
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/mini.css\" media=\"handheld\" />
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/layout.min.css\" media=\"screen\" />
+#+html_head_extra: <link rel=\"stylesheet\" type=\"text/css\" href=\"/print.min.css\" media=\"print\" />
+
+#+BEGIN_EXPORT html
+<div style=\"float:right;margin-left:1em;padding:3px;border:0px solid;text-align:center\">
+<a href=\"/graphics/gnu-head.jpg\">
+<img src=\"/graphics/gnu-head-sm.jpg\" alt=\" [image of the head
+of a GNU] \" width=\"129\" height=\"122\"/>
+</a>
+</div>
+#+END_EXPORT\n\n")
+
+(defvar admin--org-html-postamble "
+<p>
+Return to the <a href=\"/software/emacs/emacs.html\">GNU Emacs home page</a>.
+</p>
+
+<div id=\"footer\">
+<div class=\"unprintable\">
+
+<p>
+Please send FSF &amp; GNU inquiries to
+<a href=\"mailto:gnu@gnu.org\">&lt;gnu@gnu.org&gt;</a>.
+There are also <a href=\"/contact/\">other ways to contact</a>
+the FSF.
+Broken links and other corrections or suggestions can be sent to
+<a href=\"mailto:bug-gnu-emacs@gnu.org\">&lt;bug-gnu-emacs@gnu.org&gt;</a>.
+</p>
+</div>
+
+<p>
+    Copyright &copy; %s Free Software Foundation, Inc.
+</p>
+
+<p>This page is licensed under
+a <a href=\"https://creativecommons.org/licenses/by-sa/4.0\">CC-BY-SA</a>
+license.</p>
+
+<!--#include virtual=\"/server/bottom-notes.html\" -->
+
+<p class=\"unprintable\">
+Updated:
+<!-- timestamp start -->
+$Date: %s $
+<!-- timestamp end -->
+</p>
+</div>
+</div>")
+
+(defun admin--require-external-package (pkg)
+  (package-initialize)
+  (require pkg nil t)
+  (unless (featurep pkg)
+    (when (yes-or-no-p (format "Package \"%s\" is missing.  Install now?" pkg))
+      (package-install pkg)
+      (require pkg nil t))))
+
+(defvar org-html-postamble)
+(defvar org-html-mathjax-template)
+(defun make-news-html-file (root version)
+  "Convert the NEWS file into an HTML file."
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
+                 (list root
+                       (read-string "Major version number: "
+                                    (number-to-string emacs-major-version)))))
+  (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+    (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (admin--require-external-package 'htmlize)
+  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+         (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
+         (html (format "%s.html" (file-name-base orgfile)))
+         (copyright-years (format-time-string "%Y")))
+    (delete-file orgfile)
+    (copy-file newsfile orgfile t)
+    (find-file orgfile)
+
+    ;; Find the copyright range.
+    (goto-char (point-min))
+    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (setq copyright-years (match-string 1))
+
+    ;; Delete some unnecessary stuff.
+    (replace-regexp-in-region "^---$" "" (point-min) (point-max))
+    (replace-regexp-in-region "^\\+\\+\\+$" "" (point-min) (point-max))
+    (dolist (str '("\n"
+                   "GNU Emacs NEWS -- history of user-visible changes."
+                   "Temporary note:"
+                   "+++ indicates that all relevant manuals in doc/ have been updated."
+                   "--- means no change in the manuals is needed."
+                   "When you add a new item, use the appropriate mark if you are sure it"
+                   "applies, and please also update docstrings as needed."
+                   "You can narrow news to a specific version by calling 'view-emacs-news'"
+                   "with a prefix argument or by typing 'C-u C-h C-n'."))
+      (replace-string-in-region str "" (point-min) (point-max)))
+
+    ;; Escape some characters.
+    (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+
+    ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
+    (replace-regexp-in-region
+     (rx (or (: (group (in " \t\n("))
+                "'"
+                (group (+ (or (not (in "'\n"))
+                              (: "'" (not (in " .,\t\n)"))))))
+                "'"
+                (group (in ",.;:!? \t\n)")))
+             ;; Buffer names, e.g. "*scratch*".
+             (: "\""
+                (group-n 2 "*" (+ (not (in "*\""))) "*")
+                "\"")))
+     "\\1~\\2~\\3" (point-min) (point-max))
+
+    ;; Format code blocks.
+    (while (re-search-forward "^    " nil t)
+      (let ((elisp-block (looking-at "(")))
+        (backward-paragraph)
+        (insert (if elisp-block
+                    "\n#+BEGIN_SRC emacs-lisp"
+                  "\n#+BEGIN_EXAMPLE"))
+        (forward-paragraph)
+        (insert (if elisp-block
+                    "#+END_SRC\n"
+                  "#+END_EXAMPLE\n"))))
+
+    ;; Delete buffer local variables.
+    (goto-char (point-max))
+    (when (re-search-backward "Local variables:")
+      (forward-line -1)
+      (delete-region (point) (point-max)))
+
+    ;; Insert Org-mode export headers.
+    (goto-char (point-min))
+    (insert (format admin--org-export-headers-format version))
+    (org-mode)
+    (save-buffer)
+
+    ;; Make everything one level lower.
+    (goto-char (point-min))
+    (while (re-search-forward (rx bol (group (+ "*")) " ") nil t)
+      (replace-match "*\\1" nil nil nil 1))
+
+    ;; Insert anchors for different versions.
+    (goto-char (point-min))
+    (let (last-major last-minor)
+      (while (re-search-forward (rx bol "** " (+ (not "\n")) "in Emacs "
+                                    (group digit digit) "." (group digit)
+                                    eol)
+                                nil t)
+        (unless (and (equal (match-string 1) last-major)
+                     (equal (match-string 2) last-minor))
+          (setq last-major (match-string 1))
+          (setq last-minor (match-string 2))
+          (forward-line -1)
+          (insert (format
+                   (concat
+                    "#+HTML: <p>&nbsp;</p>\n"
+                    "* Changes in Emacs %s.%s\n"
+                    ;; Add anchor to allow linking to
+                    ;; e.g. "NEWS.28.html#28.1".
+                    ":PROPERTIES:\n"
+                    ":CUSTOM_ID: %s.%s\n"
+                    ":END:\n")
+                   last-major last-minor
+                   last-major last-minor)))))
+
+    (save-buffer)
+
+    ;; Make the HTML export.
+    (let* ((org-html-postamble
+            (format admin--org-html-postamble
+                    copyright-years
+                    ;; e.g. "2022/09/13 09:13:13"
+                    (format-time-string "%Y/%m/%d %H:%m:%S")))
+           (org-html-mathjax-template "")
+           (htmlize-output-type 'css))
+      (org-html-export-as-html))
+
+    ;; Write HTML to file.
+    (let ((html (expand-file-name html (expand-file-name "etc" root))))
+      (write-file html)
+      (unless noninteractive
+        (find-file html)
+        (html-mode))
+      (message "Successfully exported HTML to %s" html))))
 
 
 ;; Stuff to check new `defcustom's got :version tags.
@@ -890,6 +1142,64 @@ changes (in a non-trivial way).  This function does not check for that."
 			      'help-echo "Mouse-2: visit this definition"
 			      :type 'cusver-xref)))))))
 
+
+;; Reminder message for open release-blocking bugs.  This requires the
+;; GNU ELPA package `debbugs'.
+
+(defun reminder-for-release-blocking-bugs (version)
+  "Submit a reminder message for release-blocking bugs of Emacs VERSION."
+  (interactive
+   (list (progn
+           (require 'debbugs-gnu)
+           (defvar debbugs-gnu-emacs-blocking-reports)
+           (defvar debbugs-gnu-emacs-current-release)
+           (completing-read
+	    "Emacs release: "
+	    (mapcar #'identity debbugs-gnu-emacs-blocking-reports)
+	    nil t debbugs-gnu-emacs-current-release))))
+
+  (require 'debbugs-gnu)
+  (declare-function debbugs-get-status "debbugs" (&rest bug-numbers))
+  (declare-function debbugs-get-attribute "debbugs" (bug-or-message attribute))
+  (require 'reporter)
+  (declare-function mail-position-on-field "sendmail" (field &optional soft))
+  (declare-function mail-text "sendmail" ())
+
+  (when-let ((id (alist-get version debbugs-gnu-emacs-blocking-reports
+                            nil nil #'string-equal))
+             (status-id (debbugs-get-status id))
+             (blockedby-ids (debbugs-get-attribute (car status-id) 'blockedby))
+             (blockedby-status
+              (apply #'debbugs-get-status (sort blockedby-ids #'<))))
+
+    (reporter-submit-bug-report
+     "<emacs-devel@gnu.org>" ; to-address
+     nil nil nil
+     (lambda () ; posthook
+       (goto-char (point-min))
+       (mail-position-on-field "subject")
+       (insert (format "Reminder: release-blocking bugs for Emacs %s (%s)"
+                       version (format-time-string "%F" nil "UTC0")))
+       (mail-text)
+       (delete-region (point) (point-max))
+       (insert "
+The following bugs are regarded as release-blocking for Emacs " version ".
+People are encouraged to work on them with priority.\n\n")
+       (dolist (i blockedby-status)
+         (unless (equal (debbugs-get-attribute i 'pending) "done")
+           (insert (format "bug#%d %s\n"
+                           (debbugs-get-attribute i 'id)
+                           (debbugs-get-attribute i 'subject)))))
+       (insert "
+If you use the debbugs package from GNU ELPA, you can apply the
+following form to see all bugs which block a given release:
+
+  (debbugs-gnu-emacs-release-blocking-reports \"" version "\")\n")))))
+
 (provide 'admin)
 
 ;;; admin.el ends here
+
+;; Local Variables:
+;; coding: utf-8
+;; End:

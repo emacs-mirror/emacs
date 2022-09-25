@@ -1,5 +1,6 @@
+/* -*- objc -*- */
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2017 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2022 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -23,19 +24,29 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "character.h"
 #include "font.h"
 #include "sysselect.h"
+#include "sysstdio.h"
 
 #ifdef HAVE_NS
 #ifdef __OBJC__
 
 /* CGFloat on GNUstep may be 4 or 8 byte, but functions expect float* for some
    versions.
-   On Cocoa >= 10.5, functions expect CGFloat *. Make compatible type.  */
+   On Cocoa >= 10.5, functions expect CGFloat *.  Make compatible type.  */
 #ifdef NS_IMPL_COCOA
 typedef CGFloat EmacsCGFloat;
 #elif GNUSTEP_GUI_MAJOR_VERSION > 0 || GNUSTEP_GUI_MINOR_VERSION >= 22
 typedef CGFloat EmacsCGFloat;
 #else
 typedef float EmacsCGFloat;
+#endif
+
+/* NSFilenamesPboardType is deprecated in macOS 10.14, but
+   NSPasteboardTypeFileURL is only available in 10.13 (and GNUstep
+   probably lacks it too). */
+#if defined NS_IMPL_COCOA && MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#define NS_USE_NSPasteboardTypeFileURL 1
+#else
+#define NS_USE_NSPasteboardTypeFileURL 0
 #endif
 
 /* ==========================================================================
@@ -85,7 +96,7 @@ typedef float EmacsCGFloat;
    can become misaligned, as all threads (currently) share one state.
    This is post prominent when the EVENTS part is enabled.
 
-   Note that the trace system, when enabled, use the GCC/Clang
+   Note that the trace system, when enabled, uses the GCC/Clang
    "cleanup" extension. */
 
 /*   For example, the following is the output of `M-x
@@ -170,7 +181,7 @@ void nstrace_leave(int *);
 void nstrace_restore_global_trace_state(int *);
 char const * nstrace_fullscreen_type_name (int);
 
-/* printf-style trace output.  Output is aligned with contained heading. */
+/* printf-style trace output.  Output is aligned with contained heading.  */
 #define NSTRACE_MSG_NO_DASHES(...)                                          \
   do                                                                        \
     {                                                                       \
@@ -180,7 +191,7 @@ char const * nstrace_fullscreen_type_name (int);
                    __FILE__, __LINE__, nstrace_num++,                       \
                    2*nstrace_depth, "  | | | | | | | | | | | | | | | ..");  \
           fprintf (stderr, __VA_ARGS__);                                    \
-          fprintf (stderr, "\n");                                           \
+	  putc ('\n', stderr);						    \
         }                                                                   \
     }                                                                       \
   while(0)
@@ -192,7 +203,7 @@ char const * nstrace_fullscreen_type_name (int);
 /* Macros for printing complex types.
 
    NSTRACE_FMT_what     -- Printf format string for "what".
-   NSTRACE_ARG_what(x)  -- Printf argument for "what". */
+   NSTRACE_ARG_what(x)  -- Printf argument for "what".  */
 
 #define NSTRACE_FMT_SIZE        "(W:%.0f H:%.0f)"
 #define NSTRACE_ARG_SIZE(elt)   (elt).width, (elt).height
@@ -208,7 +219,7 @@ char const * nstrace_fullscreen_type_name (int);
 #define NSTRACE_ARG_FSTYPE(elt) nstrace_fullscreen_type_name(elt)
 
 
-/* Macros for printing complex types as extra information. */
+/* Macros for printing complex types as extra information.  */
 
 #define NSTRACE_SIZE(str,size)                                          \
   NSTRACE_MSG (str ": " NSTRACE_FMT_SIZE,                               \
@@ -236,7 +247,7 @@ char const * nstrace_fullscreen_type_name (int);
 
    NSTRACE_FMT_RETURN - A string literal representing a returned
                         value.  Useful when creating a format string
-                        to printf-like constructs like NSTRACE(). */
+                        to printf-like constructs like NSTRACE().  */
 
 #define NSTRACE_FMT_RETURN "->>"
 
@@ -262,7 +273,7 @@ char const * nstrace_fullscreen_type_name (int);
    NSTRACE_WHEN (cond, fmt, ...) -- Enable trace output when COND is true.
 
    NSTRACE_UNLESS (cond, fmt, ...) -- Enable trace output unless COND is
-                                      true. */
+                                      true.  */
 
 
 
@@ -278,7 +289,7 @@ char const * nstrace_fullscreen_type_name (int);
 /* Unsilence called functions.
 
    Concretely, this us used to allow "event" functions to be silenced
-   while trace output can be printed for functions they call. */
+   while trace output can be printed for functions they call.  */
 #define NSTRACE_UNSILENCE() do { nstrace_enabled_global = 1; } while(0)
 
 #endif /* NSTRACE_ENABLED */
@@ -286,7 +297,7 @@ char const * nstrace_fullscreen_type_name (int);
 #define NSTRACE(...)              NSTRACE_WHEN(1, __VA_ARGS__)
 #define NSTRACE_UNLESS(cond, ...) NSTRACE_WHEN(!(cond), __VA_ARGS__)
 
-/* Non-trace replacement versions. */
+/* Non-trace replacement versions.  */
 #ifndef NSTRACE_WHEN
 #define NSTRACE_WHEN(...)
 #endif
@@ -332,7 +343,7 @@ char const * nstrace_fullscreen_type_name (int);
 #endif
 
 
-/* If the compiler doesn't support instancetype, map it to id. */
+/* If the compiler doesn't support instancetype, map it to id.  */
 #ifndef NATIVE_OBJC_INSTANCETYPE
 typedef id instancetype;
 #endif
@@ -346,8 +357,15 @@ typedef id instancetype;
 @interface NSColor (EmacsColor)
 + (NSColor *)colorForEmacsRed:(CGFloat)red green:(CGFloat)green
                          blue:(CGFloat)blue alpha:(CGFloat)alpha;
++ (NSColor *)colorWithUnsignedLong:(unsigned long)c;
 - (NSColor *)colorUsingDefaultColorSpace;
+- (unsigned long)unsignedLong;
+@end
 
+
+@interface NSString (EmacsString)
++ (NSString *)stringWithLispString:(Lisp_Object)string;
+- (Lisp_Object)lispString;
 @end
 
 /* ==========================================================================
@@ -356,7 +374,7 @@ typedef id instancetype;
 
    ========================================================================== */
 
-/* We override sendEvent: as a means to stop/start the event loop */
+/* We override sendEvent: as a means to stop/start the event loop.  */
 @interface EmacsApp : NSApplication
 {
 #ifdef NS_IMPL_COCOA
@@ -390,6 +408,51 @@ typedef id instancetype;
 @end
 #endif
 
+enum ns_return_frame_mode
+  {
+    RETURN_FRAME_NEVER,
+    RETURN_FRAME_EVENTUALLY,
+    RETURN_FRAME_NOW,
+  };
+
+/* EmacsWindow  */
+@interface EmacsWindow : NSWindow
+{
+  NSPoint grabOffset;
+  NSEvent *last_drag_event;
+  NSDragOperation drag_op;
+  NSDragOperation selected_op;
+
+  struct frame *dnd_return_frame;
+  enum ns_return_frame_mode dnd_mode;
+  BOOL dnd_allow_same_frame;
+  BOOL dnd_move_tooltip_with_frame;
+}
+
+#ifdef NS_IMPL_GNUSTEP
+- (NSInteger) orderedIndex;
+#endif
+
+- (instancetype) initWithEmacsFrame: (struct frame *) f;
+- (instancetype) initWithEmacsFrame: (struct frame *) f
+			 fullscreen: (BOOL) fullscreen
+			     screen: (NSScreen *) screen;
+- (void) createToolbar: (struct frame *) f;
+- (void) setParentChildRelationships;
+- (NSInteger) borderWidth;
+- (BOOL) restackWindow: (NSWindow *) win above: (BOOL) above;
+- (void) setAppearance;
+- (void) setLastDragEvent: (NSEvent *) event;
+- (NSDragOperation) beginDrag: (NSDragOperation) op
+		forPasteboard: (NSPasteboard *) pasteboard
+		     withMode: (enum ns_return_frame_mode) mode
+		returnFrameTo: (struct frame **) frame_return
+		 prohibitSame: (BOOL) prohibit_same_frame
+		followTooltip: (BOOL) follow_tooltip;
+- (BOOL) mustNotDropOn: (NSView *) receiver;
+@end
+
+
 /* ==========================================================================
 
    The main Emacs view
@@ -397,33 +460,32 @@ typedef id instancetype;
    ========================================================================== */
 
 @class EmacsToolbar;
+@class EmacsLayer;
 
 #ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
 #else
 @interface EmacsView : NSView <NSTextInput>
 #endif
-   {
+{
 #ifdef NS_IMPL_COCOA
-   char *old_title;
-   BOOL maximizing_resize;
+  char *old_title;
+  BOOL maximizing_resize;
 #endif
-   BOOL windowClosing;
-   NSString *workingText;
-   BOOL processingCompose;
-   int fs_state, fs_before_fs, next_maximized;
-   int bwidth;
-   int maximized_width, maximized_height;
-   NSWindow *nonfs_window;
-   BOOL fs_is_native;
+  BOOL font_panel_active;
+  NSFont *font_panel_result;
+  BOOL windowClosing;
+  NSString *workingText;
+  BOOL processingCompose;
+  int fs_state, fs_before_fs, next_maximized;
+  int maximized_width, maximized_height;
+  EmacsWindow *nonfs_window;
+  BOOL fs_is_native;
 @public
-   struct frame *emacsframe;
-   int rows, cols;
-   int scrollbarsNeedingUpdate;
-   EmacsToolbar *toolbar;
-   NSRect ns_userRect;
-   BOOL wait_for_tool_bar;
-   }
+  struct frame *emacsframe;
+  int scrollbarsNeedingUpdate;
+  NSRect ns_userRect;
+}
 
 /* AppKit-side interface */
 - (instancetype)menuDown: (id)sender;
@@ -436,12 +498,8 @@ typedef id instancetype;
 
 /* Emacs-side interface */
 - (instancetype) initFrameFromEmacs: (struct frame *) f;
-- (void) createToolbar: (struct frame *)f;
-- (void) setRows: (int) r andColumns: (int) c;
 - (void) setWindowClosing: (BOOL)closing;
-- (EmacsToolbar *) toolbar;
 - (void) deleteWorkingText;
-- (void) updateFrameSize: (BOOL) delay;
 - (void) handleFS;
 - (void) setFSValue: (int)value;
 - (void) toggleFullScreen: (id) sender;
@@ -454,9 +512,16 @@ typedef id instancetype;
 #ifdef NS_IMPL_GNUSTEP
 - (void)windowDidMove: (id)sender;
 #endif
+- (Lisp_Object) showFontPanel;
 - (int)fullscreenState;
 
-/* Non-notification versions of NSView methods. Used for direct calls. */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+- (void)lockFocus;
+- (void)unlockFocus;
+#endif
+- (void)copyRect:(NSRect)srcRect to:(NSPoint)dest;
+
+/* Non-notification versions of NSView methods. Used for direct calls.  */
 - (void)windowWillEnterFullScreen;
 - (void)windowDidEnterFullScreen;
 - (void)windowWillExitFullScreen;
@@ -465,45 +530,23 @@ typedef id instancetype;
 @end
 
 
-/* Small utility used for processing resize events under Cocoa. */
-@interface EmacsWindow : NSWindow
-{
-  NSPoint grabOffset;
-}
-@end
-
-
-/* Fullscreen version of the above.  */
-@interface EmacsFSWindow : EmacsWindow
-{
-}
-@end
-
 /* ==========================================================================
 
    The main menu implementation
 
    ========================================================================== */
 
-#ifdef NS_IMPL_COCOA
 @interface EmacsMenu : NSMenu  <NSMenuDelegate>
-#else
-@interface EmacsMenu : NSMenu
-#endif
 {
-  struct frame *frame;
-  unsigned long keyEquivModMask;
+  BOOL needsUpdate;
 }
 
-- (instancetype)initWithTitle: (NSString *)title frame: (struct frame *)f;
-- (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
-- (NSString *)parseKeyEquiv: (const char *)key;
-- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
+                            attributes: (NSDictionary *)attributes;
 - (void)fillWithWidgetValue: (void *)wvptr;
-- (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f;
-- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
-- (void) clear;
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title;
+- (void) removeAllItems;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
                  keymaps: (bool)keymaps;
 @end
@@ -536,7 +579,8 @@ typedef id instancetype;
 - (void) addDisplayItemWithImage: (EmacsImage *)img
                              idx: (int)idx
                              tag: (int)tag
-                        helpText: (const char *)help
+                       labelText: (NSString *)label
+                        helpText: (NSString *)help
                          enabled: (BOOL)enabled;
 
 /* delegate methods */
@@ -555,22 +599,32 @@ typedef id instancetype;
    ========================================================================== */
 
 @interface EmacsDialogPanel : NSPanel
-   {
-   NSTextField *command;
-   NSTextField *title;
-   NSMatrix *matrix;
-   int rows, cols;
-   BOOL timer_fired, window_closed;
-   Lisp_Object dialog_return;
-   Lisp_Object *button_values;
-   }
-- (instancetype)initFromContents: (Lisp_Object)menu isQuestion: (BOOL)isQ;
-- (void)process_dialog: (Lisp_Object)list;
-- (void)addButton: (char *)str value: (int)tag row: (int)row;
-- (void)addString: (char *)str row: (int)row;
-- (void)addSplit;
-- (Lisp_Object)runDialogAt: (NSPoint)p;
-- (void)timeout_handler: (NSTimer *)timedEntry;
+{
+  NSTextField *command;
+  NSTextField *title;
+  NSMatrix *matrix;
+  int rows, cols;
+  BOOL timer_fired, window_closed;
+  Lisp_Object dialog_return;
+}
+
+- (instancetype) initWithTitle: (char *) title_str
+		    isQuestion: (BOOL) is_question;
+- (void) processMenuItems: (Lisp_Object) menu_items
+		     used: (ptrdiff_t) menu_items_used
+	  withErrorOutput: (const char **) error_name;
+
+- (void) addButton: (char *) str
+	     value: (NSInteger) tag
+	       row: (int) row
+	    enable: (BOOL) enable;
+- (void) addString: (char *) str
+	       row: (int) row;
+- (void) addSplit;
+- (void) resizeBoundsPriorToDisplay;
+
+- (Lisp_Object) runDialogAt: (NSPoint) p;
+- (void) timeout_handler: (NSTimer *) timedEntry;
 @end
 
 #ifdef NS_IMPL_COCOA
@@ -578,35 +632,23 @@ typedef id instancetype;
 #else
 @interface EmacsTooltip : NSObject
 #endif
-  {
-    NSWindow *win;
-    NSTextField *textField;
-    NSTimer *timer;
-  }
+{
+  NSWindow *win;
+  NSTextField *textField;
+  NSTimer *timer;
+}
+
 - (instancetype) init;
-- (void) setText: (char *)text;
-- (void) showAtX: (int)x Y: (int)y for: (int)seconds;
+- (void) setText: (char *) text;
+- (void) setBackgroundColor: (NSColor *) col;
+- (void) setForegroundColor: (NSColor *) col;
+- (void) showAtX: (int) x Y: (int) y for: (int) seconds;
 - (void) hide;
 - (BOOL) isActive;
 - (NSRect) frame;
+- (void) moveTo: (NSPoint) screen_point;
 @end
 
-
-/* ==========================================================================
-
-   File open/save panels
-   This and next override methods to handle keyboard input in panels.
-
-   ========================================================================== */
-
-@interface EmacsSavePanel : NSSavePanel
-{
-}
-@end
-@interface EmacsOpenPanel : NSOpenPanel
-{
-}
-@end
 
 @interface EmacsFileDelegate : NSObject
 {
@@ -629,13 +671,15 @@ typedef id instancetype;
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
   NSColor *stippleMask;
-  unsigned long xbm_fg;
+@public
+  NSAffineTransform *transform;
+  BOOL smoothing;
 }
 + (instancetype)allocInitFromFile: (Lisp_Object)file;
 - (void)dealloc;
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
-                  fg: (unsigned long)fg bg: (unsigned long)bg;
-- (instancetype)setXBMColor: (NSColor *)color;
+                         fg: (unsigned long)fg bg: (unsigned long)bg
+               reverseBytes: (BOOL)reverse;
 - (instancetype)initForXPMWithDepth: (int)depth width: (int)width height: (int)height;
 - (void)setPixmapData;
 - (unsigned long)getPixelAtX: (int)x Y: (int)y;
@@ -646,6 +690,9 @@ typedef id instancetype;
 - (NSColor *)stippleMask;
 - (Lisp_Object)getMetadata;
 - (BOOL)setFrame: (unsigned int) index;
+- (void)setTransform: (double[3][3]) m;
+- (void)setSmoothing: (BOOL)s;
+- (size_t)sizeInBytes;
 @end
 
 
@@ -677,6 +724,7 @@ typedef id instancetype;
    int em_whole;
    }
 
+- (void) mark;
 - (instancetype) initFrame: (NSRect )r window: (Lisp_Object)win;
 - (void)setFrame: (NSRect)r;
 
@@ -691,6 +739,20 @@ typedef id instancetype;
 + (CGFloat)scrollerWidth;
 @end
 
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+@interface EmacsLayer : CALayer
+{
+  NSMutableArray *cache;
+  CGColorSpaceRef colorSpace;
+  IOSurfaceRef currentSurface;
+  CGContextRef context;
+}
+- (id) initWithColorSpace: (CGColorSpaceRef)cs;
+- (void) setColorSpace: (CGColorSpaceRef)cs;
+- (CGContextRef) getContext;
+@end
+#endif
+
 
 /* ==========================================================================
 
@@ -698,27 +760,11 @@ typedef id instancetype;
 
    ========================================================================== */
 
-#ifdef NS_IMPL_COCOA
-/* rendering util */
-@interface EmacsGlyphStorage : NSObject <NSGlyphStorage>
-{
-@public
-  NSAttributedString *attrStr;
-  NSMutableDictionary *dict;
-  CGGlyph *cglyphs;
-  unsigned long maxChar, maxGlyph;
-  long i, len;
-}
-- (instancetype)initWithCapacity: (unsigned long) c;
-- (void) setString: (NSString *)str font: (NSFont *)font;
-@end
-#endif	/* NS_IMPL_COCOA */
-
 extern NSArray *ns_send_types, *ns_return_types;
 extern NSString *ns_app_name;
 extern EmacsMenu *svcsMenu;
 
-/* Apple removed the declaration, but kept the implementation */
+/* Apple removed the declaration, but kept the implementation.  */
 #if defined (NS_IMPL_COCOA)
 @interface NSApplication (EmacsApp)
 - (void)setAppleMenu: (NSMenu *)menu;
@@ -748,8 +794,8 @@ extern EmacsMenu *svcsMenu;
 #define KEY_NS_TOGGLE_TOOLBAR          ((1<<28)|(0<<16)|13)
 #define KEY_NS_SHOW_PREFS              ((1<<28)|(0<<16)|14)
 
-/* could use list to store these, but rest of emacs has a big infrastructure
-   for managing a table of bitmap "records" */
+/* Could use list to store these, but rest of emacs has a big infrastructure
+   for managing a table of bitmap "records".  */
 struct ns_bitmap_record
 {
 #ifdef __OBJC__
@@ -762,35 +808,7 @@ struct ns_bitmap_record
   int height, width, depth;
 };
 
-/* this to map between emacs color indices and NSColor objects */
-struct ns_color_table
-{
-  ptrdiff_t size;
-  ptrdiff_t avail;
-#ifdef __OBJC__
-  NSColor **colors;
-  NSMutableSet *empty_indices;
-#else
-  void **items;
-  void *availIndices;
-#endif
-};
-#define NS_COLOR_CAPACITY 256
-
-#define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
-#define ARGB_TO_ULONG(a, r, g, b) (((a) << 24) | ((r) << 16) | ((g) << 8) | (b))
-
-#define ALPHA_FROM_ULONG(color) ((color) >> 24)
-#define RED_FROM_ULONG(color) (((color) >> 16) & 0xff)
-#define GREEN_FROM_ULONG(color) (((color) >> 8) & 0xff)
-#define BLUE_FROM_ULONG(color) ((color) & 0xff)
-
-/* Do not change `* 0x101' in the following lines to `<< 8'.  If
-   changed, image masks in 1-bit depth will not work. */
-#define RED16_FROM_ULONG(color) (RED_FROM_ULONG(color) * 0x101)
-#define GREEN16_FROM_ULONG(color) (GREEN_FROM_ULONG(color) * 0x101)
-#define BLUE16_FROM_ULONG(color) (BLUE_FROM_ULONG(color) * 0x101)
-
+#ifdef NS_IMPL_GNUSTEP
 /* this extends font backend font */
 struct nsfont_info
 {
@@ -798,7 +816,7 @@ struct nsfont_info
 
   char *name;  /* PostScript name, uniquely identifies on NS systems */
 
-  /* The following metrics are stored as float rather than int. */
+  /* The following metrics are stored as float rather than int.  */
 
   float width;  /* Maximum advance for the font.  */
   float height;
@@ -807,38 +825,32 @@ struct nsfont_info
   float size;
 #ifdef __OBJC__
   NSFont *nsfont;
-#if defined (NS_IMPL_COCOA)
-  CGFontRef cgfont;
-#else /* GNUstep */
-  void *cgfont;
-#endif
 #else /* ! OBJC */
   void *nsfont;
-  void *cgfont;
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
   XCharStruct max_bounds;
-  /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
-     by hibyte, lobyte */
-  unsigned short **glyphs; /* map Unicode index to glyph */
+  /* We compute glyph codes and metrics on-demand in blocks of 256 indexed
+     by hibyte, lobyte.  */
+  unsigned int **glyphs; /* map Unicode index to glyph */
   struct font_metrics **metrics;
 };
+#endif
 
-
-/* init'd in ns_initialize_display_info () */
+/* Initialized in ns_initialize_display_info ().  */
 struct ns_display_info
 {
   /* Chain of all ns_display_info structures.  */
   struct ns_display_info *next;
 
-  /* The generic display parameters corresponding to this NS display. */
+  /* The generic display parameters corresponding to this NS display.  */
   struct terminal *terminal;
 
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).  */
   Lisp_Object name_list_element;
 
-  /* The number of fonts loaded. */
+  /* The number of fonts loaded.  */
   int n_fonts;
 
   /* Minimum width over all characters in all fonts in font_table.  */
@@ -850,8 +862,6 @@ struct ns_display_info
   struct ns_bitmap_record *bitmaps;
   ptrdiff_t bitmaps_size;
   ptrdiff_t bitmaps_last;
-
-  struct ns_color_table *color_table;
 
   /* DPI resolution of this screen */
   double resx, resy;
@@ -866,20 +876,20 @@ struct ns_display_info
   Window root_window;
 
   /* Xism */
-  XrmDatabase xrdb;
+  Lisp_Object rdb;
 
-  /* The cursor to use for vertical scroll bars. */
-  Cursor vertical_scroll_bar_cursor;
+  /* The cursor to use for vertical scroll bars.  */
+  Emacs_Cursor vertical_scroll_bar_cursor;
 
-  /* The cursor to use for horizontal scroll bars. */
-  Cursor horizontal_scroll_bar_cursor;
+  /* The cursor to use for horizontal scroll bars.  */
+  Emacs_Cursor horizontal_scroll_bar_cursor;
 
   /* Information about the range of text currently shown in
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
-  struct frame *x_highlight_frame;
-  struct frame *x_focus_frame;
+  struct frame *highlight_frame;
+  struct frame *ns_focus_frame;
 
   /* The frame where the mouse was last time we reported a mouse event.  */
   struct frame *last_mouse_frame;
@@ -917,6 +927,9 @@ struct ns_output
   NSColor *cursor_color;
   NSColor *foreground_color;
   NSColor *background_color;
+  NSColor *relief_background_color;
+  NSColor *light_relief_color;
+  NSColor *dark_relief_color;
   EmacsToolbar *toolbar;
 #else
   void *view;
@@ -924,28 +937,31 @@ struct ns_output
   void *cursor_color;
   void *foreground_color;
   void *background_color;
+  void *relief_background_color;
+  void *light_relief_color;
+  void *dark_relief_color;
   void *toolbar;
 #endif
 
-  /* NSCursors init'ed in initFrameFromEmacs */
-  Cursor text_cursor;
-  Cursor nontext_cursor;
-  Cursor modeline_cursor;
-  Cursor hand_cursor;
-  Cursor hourglass_cursor;
-  Cursor horizontal_drag_cursor;
-  Cursor vertical_drag_cursor;
-  Cursor left_edge_cursor;
-  Cursor top_left_corner_cursor;
-  Cursor top_edge_cursor;
-  Cursor top_right_corner_cursor;
-  Cursor right_edge_cursor;
-  Cursor bottom_right_corner_cursor;
-  Cursor bottom_edge_cursor;
-  Cursor bottom_left_corner_cursor;
+  /* NSCursors are initialized in initFrameFromEmacs.  */
+  Emacs_Cursor text_cursor;
+  Emacs_Cursor nontext_cursor;
+  Emacs_Cursor modeline_cursor;
+  Emacs_Cursor hand_cursor;
+  Emacs_Cursor hourglass_cursor;
+  Emacs_Cursor horizontal_drag_cursor;
+  Emacs_Cursor vertical_drag_cursor;
+  Emacs_Cursor left_edge_cursor;
+  Emacs_Cursor top_left_corner_cursor;
+  Emacs_Cursor top_edge_cursor;
+  Emacs_Cursor top_right_corner_cursor;
+  Emacs_Cursor right_edge_cursor;
+  Emacs_Cursor bottom_right_corner_cursor;
+  Emacs_Cursor bottom_edge_cursor;
+  Emacs_Cursor bottom_left_corner_cursor;
 
   /* NS-specific */
-  Cursor current_pointer;
+  Emacs_Cursor current_pointer;
 
   /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
@@ -965,10 +981,10 @@ struct ns_output
      scroll bars, in pixels.  */
   int vertical_scroll_bar_extra;
 
-  /* The height of the titlebar decoration (included in NSWindow's frame). */
+  /* The height of the titlebar decoration (included in NSWindow's frame).  */
   int titlebar_height;
 
-  /* The height of the toolbar if displayed, else 0. */
+  /* The height of the toolbar if displayed, else 0.  */
   int toolbar_height;
 
   /* This is the Emacs structure for the NS display this frame is on.  */
@@ -977,11 +993,17 @@ struct ns_output
   /* Non-zero if we are zooming (maximizing) the frame.  */
   int zooming;
 
-  /* Non-zero if we are doing an animation, e.g. toggling the tool bar. */
+  /* Non-zero if we are doing an animation, e.g. toggling the tool bar.  */
   int in_animation;
+
+#ifdef NS_IMPL_GNUSTEP
+  /* Zero if this is the first time a toolbar has been updated on this
+     frame. */
+  int tool_bar_adjusted;
+#endif
 };
 
-/* this dummy decl needed to support TTYs */
+/* This dummy declaration needed to support TTYs.  */
 struct x_output
 {
   int unused;
@@ -990,15 +1012,9 @@ struct x_output
 
 /* This gives the ns_display_info structure for the display F is on.  */
 #define FRAME_DISPLAY_INFO(f) ((f)->output_data.ns->display_info)
-#define FRAME_X_OUTPUT(f) ((f)->output_data.ns)
+#define FRAME_OUTPUT_DATA(f) ((f)->output_data.ns)
 #define FRAME_NS_WINDOW(f) ((f)->output_data.ns->window_desc)
-#define FRAME_X_WINDOW(f) ((f)->output_data.ns->window_desc)
-
-/* This is the `Display *' which frame F is on.  */
-#define FRAME_NS_DISPLAY(f) (0)
-#define FRAME_X_DISPLAY(f) (0)
-#define FRAME_X_SCREEN(f) (0)
-#define FRAME_X_VISUAL(f) FRAME_DISPLAY_INFO(f)->visual
+#define FRAME_NATIVE_WINDOW(f) FRAME_NS_WINDOW (f)
 
 #define FRAME_FOREGROUND_COLOR(f) ((f)->output_data.ns->foreground_color)
 #define FRAME_BACKGROUND_COLOR(f) ((f)->output_data.ns->background_color)
@@ -1015,12 +1031,12 @@ struct x_output
 #define FRAME_FONT(f) ((f)->output_data.ns->font)
 
 #ifdef __OBJC__
-#define XNS_SCROLL_BAR(vec) ((id) XSAVE_POINTER (vec, 0))
+#define XNS_SCROLL_BAR(vec) ((id) xmint_pointer (vec))
 #else
-#define XNS_SCROLL_BAR(vec) XSAVE_POINTER (vec, 0)
+#define XNS_SCROLL_BAR(vec) xmint_pointer (vec)
 #endif
 
-/* Compute pixel height of the frame's titlebar. */
+/* Compute pixel height of the frame's titlebar.  */
 #define FRAME_NS_TITLEBAR_HEIGHT(f)                                     \
   (NSHeight([FRAME_NS_VIEW (f) frame]) == 0 ?                           \
    0                                                                    \
@@ -1029,7 +1045,7 @@ struct x_output
                        [[FRAME_NS_VIEW (f) window] frame]               \
                        styleMask:[[FRAME_NS_VIEW (f) window] styleMask]])))
 
-/* Compute pixel height of the toolbar. */
+/* Compute pixel height of the toolbar.  */
 #define FRAME_TOOLBAR_HEIGHT(f)                                         \
   (([[FRAME_NS_VIEW (f) window] toolbar] == nil                         \
     || ! [[FRAME_NS_VIEW (f) window] toolbar].isVisible) ?		\
@@ -1039,7 +1055,7 @@ struct x_output
                      styleMask:[[FRAME_NS_VIEW (f) window] styleMask]]) \
            - NSHeight([[[FRAME_NS_VIEW (f) window] contentView] frame])))
 
-/* Compute pixel size for vertical scroll bars */
+/* Compute pixel size for vertical scroll bars.  */
 #define NS_SCROLL_BAR_WIDTH(f)						\
   (FRAME_HAS_VERTICAL_SCROLL_BARS (f)					\
    ? rint (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0			\
@@ -1047,7 +1063,7 @@ struct x_output
 	   : (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)))	\
    : 0)
 
-/* Compute pixel size for horizontal scroll bars */
+/* Compute pixel size for horizontal scroll bars.  */
 #define NS_SCROLL_BAR_HEIGHT(f)						\
   (FRAME_HAS_HORIZONTAL_SCROLL_BARS (f)					\
    ? rint (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0			\
@@ -1055,31 +1071,19 @@ struct x_output
 	   : (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)))	\
    : 0)
 
-/* Difference btwn char-column-calculated and actual SB widths.
-   This is only a concern for rendering when SB on left. */
+/* Difference between char-column-calculated and actual SB widths.
+   This is only a concern for rendering when SB on left.  */
 #define NS_SCROLL_BAR_ADJUST(w, f)				\
   (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w) ?			\
    (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)		\
     - NS_SCROLL_BAR_WIDTH (f)) : 0)
 
-/* Difference btwn char-line-calculated and actual SB heights.
-   This is only a concern for rendering when SB on top. */
+/* Difference between char-line-calculated and actual SB heights.
+   This is only a concern for rendering when SB on top.  */
 #define NS_SCROLL_BAR_ADJUST_HORIZONTALLY(w, f)		\
   (WINDOW_HAS_HORIZONTAL_SCROLL_BARS (w) ?		\
    (FRAME_SCROLL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)	\
     - NS_SCROLL_BAR_HEIGHT (f)) : 0)
-
-/* Calculate system coordinates of the left and top of the parent
-   window or, if there is no parent window, the screen. */
-#define NS_PARENT_WINDOW_LEFT_POS(f)                                    \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? [[FRAME_NS_VIEW (f) window] parentWindow].frame.origin.x : 0)
-#define NS_PARENT_WINDOW_TOP_POS(f)                                     \
-  (FRAME_PARENT_FRAME (f) != NULL                                       \
-   ? ([[FRAME_NS_VIEW (f) window] parentWindow].frame.origin.y          \
-      + [[FRAME_NS_VIEW (f) window] parentWindow].frame.size.height     \
-      - FRAME_NS_TITLEBAR_HEIGHT (FRAME_PARENT_FRAME (f)))              \
-   : [[[NSScreen screens] objectAtIndex: 0] frame].size.height)
 
 #define FRAME_NS_FONT_TABLE(f) (FRAME_DISPLAY_INFO (f)->font_table)
 
@@ -1090,7 +1094,7 @@ struct x_output
 #define WHITE_PIX_DEFAULT(f) 0xFFFFFF
 
 /* First position where characters can be shown (instead of scrollbar, if
-   it is on left. */
+   it is on left.  */
 #define FIRST_CHAR_POSITION(f)				\
   (! (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)) ? 0	\
    : FRAME_SCROLL_BAR_COLS (f))
@@ -1105,7 +1109,7 @@ extern void ns_term_shutdown (int sig);
 #define NS_DUMPGLYPH_MOUSEFACE          3
 
 
-
+#ifdef NS_IMPL_GNUSTEP
 /* In nsfont, called from fontset.c */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,
                                          Lisp_Object font_object);
@@ -1113,11 +1117,15 @@ extern void nsfont_make_fontset_for_font (Lisp_Object name,
 /* In nsfont, for debugging */
 struct glyph_string;
 void ns_dump_glyphstring (struct glyph_string *s) EXTERNALLY_VISIBLE;
+#endif
 
-/* Implemented in nsterm, published in or needed from nsfns. */
+/* Implemented in nsterm, published in or needed from nsfns.  */
 extern Lisp_Object ns_list_fonts (struct frame *f, Lisp_Object pattern,
                                   int size, int maxnames);
 extern void ns_clear_frame (struct frame *f);
+
+extern void ns_set_offset (struct frame *f, int xoff, int yoff,
+                           int change_grav);
 
 extern const char *ns_xlfd_to_fontname (const char *xlfd);
 
@@ -1134,19 +1142,26 @@ extern void ns_set_doc_edited (void);
 extern bool
 ns_defined_color (struct frame *f,
                   const char *name,
-                  XColor *color_def, bool alloc,
+                  Emacs_Color *color_def, bool alloc,
                   bool makeIndex);
-extern void
-ns_query_color (void *col, XColor *color_def, int setPixel);
 
 #ifdef __OBJC__
 extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
-extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
-extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern const char *ns_get_pending_menu_title (void);
-extern void ns_check_menu_open (NSMenu *menu);
-extern void ns_check_pending_open_menu (void);
 #endif
+
+/* Implemented in nsfns, published in nsterm.  */
+#ifdef __OBJC__
+extern void ns_move_tooltip_to_mouse_location (NSPoint);
+#endif
+extern void ns_implicitly_set_name (struct frame *f, Lisp_Object arg,
+                                    Lisp_Object oldval);
+extern void ns_set_scroll_bar_default_width (struct frame *f);
+extern void ns_set_scroll_bar_default_height (struct frame *f);
+extern void ns_change_tab_bar_height (struct frame *f, int height);
+extern const char *ns_get_string_resource (void *_rdb,
+                                           const char *name,
+                                           const char *class);
 
 /* C access to ObjC functionality */
 extern void  ns_release_object (void *obj);
@@ -1156,9 +1171,12 @@ extern void ns_release_autorelease_pool (void *);
 extern const char *ns_get_defaults_value (const char *key);
 extern void ns_init_locale (void);
 
-
 /* in nsmenu */
 extern void update_frame_tool_bar (struct frame *f);
+#ifdef __OBJC__
+extern void update_frame_tool_bar_1 (struct frame *f, EmacsToolbar *toolbar);
+#endif
+
 extern void free_frame_tool_bar (struct frame *f);
 extern Lisp_Object find_and_return_menu_selection (struct frame *f,
                                                    bool keymaps,
@@ -1166,15 +1184,15 @@ extern Lisp_Object find_and_return_menu_selection (struct frame *f,
 extern Lisp_Object ns_popup_dialog (struct frame *, Lisp_Object header,
                                     Lisp_Object contents);
 
+extern void ns_free_frame_resources (struct frame *);
+
 #define NSAPP_DATA2_RUNASSCRIPT 10
 extern void ns_run_ascript (void);
 
 #define NSAPP_DATA2_RUNFILEDIALOG 11
 extern void ns_run_file_dialog (void);
 
-extern const char *ns_etc_directory (void);
-extern const char *ns_exec_path (void);
-extern const char *ns_load_path (void);
+extern const char *ns_relocate (const char *epath);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
 extern void syms_of_nsmenu (void);
@@ -1182,6 +1200,7 @@ extern void syms_of_nsselect (void);
 
 /* From nsimage.m, needed in image.c */
 struct image;
+extern bool ns_can_use_native_image_api (Lisp_Object type);
 extern void *ns_image_from_XBM (char *bits, int width, int height,
                                 unsigned long fg, unsigned long bg);
 extern void *ns_image_for_XPM (int width, int height, int depth);
@@ -1190,26 +1209,32 @@ extern bool ns_load_image (struct frame *f, struct image *img,
 			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
+extern void ns_image_set_size (void *img, int width, int height);
+extern void ns_image_set_transform (void *img, double m[3][3]);
+extern void ns_image_set_smoothing (void *img, bool smooth);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
 extern void ns_put_pixel (void *img, int x, int y, unsigned long argb);
 extern void ns_set_alpha (void *img, int x, int y, unsigned char a);
 
-extern int x_display_pixel_height (struct ns_display_info *);
-extern int x_display_pixel_width (struct ns_display_info *);
+extern int ns_display_pixel_height (struct ns_display_info *);
+extern int ns_display_pixel_width (struct ns_display_info *);
+extern size_t ns_image_size_in_bytes (void *img);
 
 /* This in nsterm.m */
 extern float ns_antialias_threshold;
-extern void x_destroy_window (struct frame *f);
-extern void x_set_undecorated (struct frame *f, Lisp_Object new_value,
-                               Lisp_Object old_value);
-extern void x_set_parent_frame (struct frame *f, Lisp_Object new_value,
+extern void ns_make_frame_visible (struct frame *f);
+extern void ns_make_frame_invisible (struct frame *f);
+extern void ns_iconify_frame (struct frame *f);
+extern void ns_set_undecorated (struct frame *f, Lisp_Object new_value,
                                 Lisp_Object old_value);
-extern void x_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
-                                   Lisp_Object old_value);
-extern void x_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
-                                   Lisp_Object old_value);
-extern void x_set_z_group (struct frame *f, Lisp_Object new_value,
-                           Lisp_Object old_value);
+extern void ns_set_parent_frame (struct frame *f, Lisp_Object new_value,
+                                 Lisp_Object old_value);
+extern void ns_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
+                                    Lisp_Object old_value);
+extern void ns_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
+                                    Lisp_Object old_value);
+extern void ns_set_z_group (struct frame *f, Lisp_Object new_value,
+                            Lisp_Object old_value);
 #ifdef NS_IMPL_COCOA
 extern void ns_set_appearance (struct frame *f, Lisp_Object new_value,
                                Lisp_Object old_value);
@@ -1230,12 +1255,7 @@ struct input_event;
 extern void ns_init_events (struct input_event *);
 extern void ns_finish_events (void);
 
-#ifdef __OBJC__
-/* Needed in nsfns.m.  */
-extern void
-ns_set_represented_filename (NSString *fstr, struct frame *f);
-
-#endif
+extern double ns_frame_scale_factor (struct frame *);
 
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */
@@ -1244,13 +1264,13 @@ extern char gnustep_base_version[];  /* version tracking */
 #define MINWIDTH 10
 #define MINHEIGHT 10
 
-/* Screen max coordinate
- Using larger coordinates causes movewindow/placewindow to abort */
+/* Screen max coordinate -- using larger coordinates causes
+   movewindow/placewindow to abort.  */
 #define SCREENMAX 16000
 
 #define NS_SCROLL_BAR_WIDTH_DEFAULT     [EmacsScroller scrollerWidth]
 #define NS_SCROLL_BAR_HEIGHT_DEFAULT    [EmacsScroller scrollerHeight]
-/* This is to match emacs on other platforms, ugly though it is. */
+/* This is to match emacs on other platforms, ugly though it is.  */
 #define NS_SELECTION_BG_COLOR_DEFAULT	@"LightGoldenrod2";
 #define NS_SELECTION_FG_COLOR_DEFAULT	@"Black";
 #define RESIZE_HANDLE_SIZE 12
@@ -1260,16 +1280,30 @@ extern char gnustep_base_version[];  /* version tracking */
                                 ? (min) : (((x)>(max)) ? (max) : (x)))
 #define SCREENMAXBOUND(x) (IN_BOUND (-SCREENMAX, x, SCREENMAX))
 
-/* macOS 10.7 introduces some new constants. */
+
+#ifdef NS_IMPL_COCOA
+/* Add some required AppKit version numbers if they're not defined.  */
+#ifndef NSAppKitVersionNumber10_7
+#define NSAppKitVersionNumber10_7 1138
+#endif
+
+#ifndef NSAppKitVersionNumber10_10
+#define NSAppKitVersionNumber10_10 1343
+#endif
+#endif /* NS_IMPL_COCOA */
+
+
+/* macOS 10.7 introduces some new constants.  */
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_7)
 #define NSFullScreenWindowMask                      (1 << 14)
 #define NSWindowCollectionBehaviorFullScreenPrimary (1 << 7)
+#define NSWindowCollectionBehaviorFullScreenAuxiliary (1 << 8)
 #define NSApplicationPresentationFullScreen         (1 << 10)
 #define NSApplicationPresentationAutoHideToolbar    (1 << 11)
 #define NSAppKitVersionNumber10_7                   1138
 #endif /* !defined (MAC_OS_X_VERSION_10_7) */
 
-/* macOS 10.12 deprecates a bunch of constants. */
+/* macOS 10.12 deprecates a bunch of constants.  */
 #if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_12)
 #define NSEventModifierFlagCommand         NSCommandKeyMask
 #define NSEventModifierFlagControl         NSControlKeyMask
@@ -1306,18 +1340,47 @@ extern char gnustep_base_version[];  /* version tracking */
 #define NSWindowStyleMaskUtilityWindow     NSUtilityWindowMask
 #define NSAlertStyleCritical               NSCriticalAlertStyle
 #define NSControlSizeRegular               NSRegularControlSize
+#define NSCompositingOperationCopy         NSCompositeCopy
+#define NSTextAlignmentRight               NSRightTextAlignment
 
-/* And adds NSWindowStyleMask. */
+/* And adds NSWindowStyleMask.  */
 #ifdef __OBJC__
 typedef NSUInteger NSWindowStyleMask;
 #endif
 
-/* Window tabbing mode enums are new too. */
+/* Window tabbing mode enums are new too.  */
 enum NSWindowTabbingMode
   {
     NSWindowTabbingModeAutomatic,
     NSWindowTabbingModePreferred,
     NSWindowTabbingModeDisallowed
   };
+#endif /* !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_12)  */
+
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_13)
+/* Deprecated in macOS 10.13.  */
+#define NSPasteboardNameGeneral NSGeneralPboard
+#define NSPasteboardNameDrag NSDragPboard
 #endif
+
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_14)
+/* Deprecated in macOS 10.14.  */
+/* FIXME: Some of these new names, if not all, are actually available
+   in some recent version of GNUstep.  */
+#define NSPasteboardTypeString NSStringPboardType
+#define NSPasteboardTypeTabularText NSTabularTextPboardType
+#define NSPasteboardTypeURL NSURLPboardType
+#define NSPasteboardTypeHTML NSHTMLPboardType
+#define NSPasteboardTypePDF NSPDFPboardType
+#define NSPasteboardTypeRTF NSRTFPboardType
+#define NSPasteboardTypeRTFD NSRTFDPboardType
+#define NSPasteboardTypeTIFF NSTIFFPboardType
+#define NSControlStateValueOn NSOnState
+#define NSControlStateValueOff NSOffState
+#define NSBezelStyleRounded NSRoundedBezelStyle
+#define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
+#endif
+
+extern void mark_nsterm (void);
+
 #endif	/* HAVE_NS */

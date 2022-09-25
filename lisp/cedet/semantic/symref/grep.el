@@ -1,8 +1,8 @@
-;;; semantic/symref/grep.el --- Symref implementation using find/grep
+;;; semantic/symref/grep.el --- Symref implementation using find/grep  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -38,16 +38,22 @@
   (
    )
   "A symref tool implementation using grep.
-This tool uses EDE to find he root of the project, then executes
-find-grep in the project.  The output is parsed for hits
-and those hits returned.")
+This tool uses EDE to find the root of the project, then executes
+`find-grep' in the project.  The output is parsed for hits and
+those hits returned.")
 
 (defvar semantic-symref-filepattern-alist
   '((c-mode "*.[ch]")
     (c++-mode "*.[chCH]" "*.[ch]pp" "*.cc" "*.hh")
-    (html-mode "*.s?html" "*.php")
+    (html-mode "*.html" "*.shtml" "*.php")
+    (mhtml-mode "*.html" "*.shtml" "*.php") ; FIXME: remove
+                                            ; duplication of
+                                            ; HTML-related patterns.
+                                            ; Maybe they belong in the
+                                            ; major mode definition?
     (ruby-mode "*.r[bu]" "*.rake" "*.gemspec" "*.erb" "*.haml"
                "Rakefile" "Thorfile" "Capfile" "Guardfile" "Vagrantfile")
+    (python-mode "*.py" "*.pyi" "*.pyw")
     (perl-mode "*.pl" "*.PL")
     (cperl-mode "*.pl" "*.PL")
     (lisp-interaction-mode "*.el" "*.ede" ".emacs" "_emacs")
@@ -58,7 +64,7 @@ See find -name man page for format.")
 (defun semantic-symref-derive-find-filepatterns (&optional mode)
   ;; FIXME: This should be moved to grep.el, where it could be used
   ;; for "C-u M-x grep" as well.
-  "Derive a list of file patterns for the current buffer.
+  "Derive a list of file (glob) patterns for the current buffer.
 Looks first in `semantic-symref-filepattern-alist'.  If it is not
 there, it then looks in `auto-mode-alist', and attempts to derive something
 from that.
@@ -78,10 +84,10 @@ Optional argument MODE specifies the `major-mode' to test."
         (error "Customize `semantic-symref-filepattern-alist' for %S"
                major-mode)
       (let ((args `("-name" ,(car pat))))
-        (if (null (cdr args))
+        (if (null (cdr pat))
             args
           `("(" ,@args
-            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) pat)
+            ,@(mapcan (lambda (s) `("-o" "-name" ,s)) (cdr pat))
             ")"))))))
 
 (defvar semantic-symref-grep-flags)
@@ -127,6 +133,12 @@ This shell should support pipe redirect syntax."
   :group 'semantic
   :type 'string)
 
+(defun semantic-symref-grep--quote-grep (string)
+  "Quote STRING as a grep-syntax regexp."
+  (replace-regexp-in-string (rx (in ".^$*[\\"))
+                            (lambda (s) (concat "\\" s))
+                            string nil t))
+
 (cl-defmethod semantic-symref-perform-search ((tool semantic-symref-tool-grep))
   "Perform a search with Grep."
   ;; Grep doesn't support some types of searches.
@@ -144,15 +156,11 @@ This shell should support pipe redirect syntax."
                            "-l ")
                           ((eq (oref tool searchtype) 'regexp)
                            "-nE ")
-                          (t "-n ")))
-         (greppat (cond ((eq (oref tool searchtype) 'regexp)
-                         (oref tool searchfor))
-                        (t
-                         ;; Can't use the word boundaries: Grep
-                         ;; doesn't always agrees with the language
-                         ;; syntax on those.
-                         (format "\\(^\\|\\W\\)%s\\(\\W\\|$\\)"
-                                 (oref tool searchfor)))))
+                          (t "-nw ")))
+         (searchfor (oref tool searchfor))
+         (greppat (if (eq (oref tool searchtype) 'regexp)
+                      searchfor
+                    (semantic-symref-grep--quote-grep searchfor)))
 	 ;; Misc
 	 (b (get-buffer-create "*Semantic SymRef*"))
 	 (ans nil)
@@ -161,22 +169,11 @@ This shell should support pipe redirect syntax."
     (with-current-buffer b
       (erase-buffer)
       (setq default-directory rootdir)
-
-      (if (not (fboundp 'grep-compute-defaults))
-
-	  ;; find . -type f -print0 | xargs -0 -e grep -nH -e
-	  ;; Note : I removed -e as it is not posix, nor necessary it seems.
-
-	  (let ((cmd (concat "find " default-directory " -type f " filepattern " -print0 "
-			     "| xargs -0 grep -H " grepflags "-e " greppat)))
-	    ;;(message "Old command: %s" cmd)
-	    (call-process semantic-symref-grep-shell nil b nil
-                          shell-command-switch cmd)
-	    )
-	(let ((cmd (semantic-symref-grep-use-template rootdir filepattern grepflags greppat)))
-	  (call-process semantic-symref-grep-shell nil b nil
-                        shell-command-switch cmd))
-	))
+      (let ((cmd (semantic-symref-grep-use-template
+                  (directory-file-name (file-local-name rootdir))
+                  filepattern grepflags greppat)))
+        (process-file semantic-symref-grep-shell nil b nil
+                      shell-command-switch cmd)))
     (setq ans (semantic-symref-parse-tool-output tool b))
     ;; Return the answer
     ans))

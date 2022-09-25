@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2017 Free Software Foundation,
+;; Copyright (C) 1989, 1994, 1998, 2001-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
@@ -58,53 +58,53 @@
                  (const 16)
                  (const 32)
                  (const 64))
-  :group 'hexl
   :version "24.3")
 
 (defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
 `hexl-program' will always be concatenated with `hexl-options'
 and \"-de\" when dehexlifying a buffer."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-iso ""
   "If your Emacs can handle ISO characters, this should be set to
 \"-iso\" otherwise it should be \"\"."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-options (format "-hex %s" hexl-iso)
   "Space separated options to `hexl-program' that suit your needs.
 Quoting cannot be used, so the arguments cannot themselves contain spaces.
 If you wish to set the `-group-by-X-bits' options, set `hexl-bits' instead,
 as that will override any bit grouping options set here."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-follow-ascii t
   "If non-nil then highlight the ASCII character corresponding to point."
   :type 'boolean
-  :group 'hexl
   :version "20.3")
 
 (defcustom hexl-mode-hook '(hexl-follow-line hexl-activate-ruler)
   "Normal hook run when entering Hexl mode."
   :type 'hook
-  :options '(hexl-follow-line hexl-activate-ruler eldoc-mode)
-  :group 'hexl)
+  :options '(hexl-follow-line hexl-activate-ruler eldoc-mode))
 
 (defface hexl-address-region
   '((t (:inherit header-line)))
-  "Face used in address area of Hexl mode buffer."
-  :group 'hexl)
+  "Face used in address area of Hexl mode buffer.")
 
 (defface hexl-ascii-region
-  '((t (:inherit header-line)))
-  "Face used in ASCII area of Hexl mode buffer."
-  :group 'hexl)
+  ;; Copied from 'header-line'.  We used to inherit from it, but that
+  ;; looks awful when the headerline is given a variable-pitch font or
+  ;; (even worse) a 3D look.
+  '((((class color grayscale) (background light))
+     :background "grey90" :foreground "grey20"
+     :box nil)
+    (((class color grayscale) (background dark))
+     :background "grey20" :foreground "grey90"
+     :box nil))
+  "Face used in ASCII area of Hexl mode buffer.")
 
-(defvar hexl-max-address 0
+(defvar-local hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
 (defvar hexl-mode-map
@@ -209,18 +209,20 @@ as that will override any bit grouping options set here."
 (defvar hl-line-face)
 
 ;; Variables where the original values are stored to.
-(defvar hexl-mode--old-var-vals ())
-(make-variable-buffer-local 'hexl-mode--old-var-vals)
+(defvar-local hexl-mode--old-var-vals ())
 
-(defvar hexl-ascii-overlay nil
+(defvar-local hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
-(make-variable-buffer-local 'hexl-ascii-overlay)
 
 (defvar hexl-font-lock-keywords
-  '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
-     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
+  '(("^\\([0-9a-f]+:\\)\\( \\).\\{39\\}\\(  \\)\\(.+$\\)"
+     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"v
      (1 'hexl-address-region t t)
-     (2 'hexl-ascii-region t t)))
+     ;; If `hexl-address-region' is using a variable-pitch font, the
+     ;; rest of the line isn't naturally aligned, so align them by hand.
+     (2 '(face nil display (space :align-to 10)))
+     (3 '(face nil display (space :align-to 51)))
+     (4 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
 (defun hexl-rulerize (string bits)
@@ -251,24 +253,6 @@ as that will override any bit grouping options set here."
 (defun hexl-line-displen ()
   "The length of a hexl display line (varies with `hexl-bits')."
   (+ 60 (/ 128 (or hexl-bits 16))))
-
-(defun hexl-mode--minor-mode-p (var)
-  (memq var '(ruler-mode hl-line-mode)))
-
-(defun hexl-mode--setq-local (var val)
-  ;; `var' can be either a symbol or a pair, in which case the `car'
-  ;; is the getter function and the `cdr' is the corresponding setter.
-  (unless (or (member var hexl-mode--old-var-vals)
-              (assoc var hexl-mode--old-var-vals))
-    (push (if (or (consp var) (boundp var))
-              (cons var
-                    (if (consp var) (funcall (car var)) (symbol-value var)))
-            var)
-          hexl-mode--old-var-vals))
-  (cond
-   ((consp var) (funcall (cdr var) val))
-   ((hexl-mode--minor-mode-p var) (funcall var (if val 1 -1)))
-   (t (set (make-local-variable var) val))))
 
 ;;;###autoload
 (defun hexl-mode (&optional arg)
@@ -319,22 +303,30 @@ also supported.
 
 There are several ways to change text in hexl mode:
 
-ASCII characters (character between space (0x20) and tilde (0x7E)) are
-bound to self-insert so you can simply type the character and it will
-insert itself (actually overstrike) into the buffer.
+Self-inserting characters are bound to `hexl-self-insert' so you
+can simply type the character and it will insert itself (actually
+overstrike) into the buffer.  However, inserting non-ASCII characters
+requires caution: the buffer's coding-system should correspond to
+the encoding on disk, and multibyte characters should be inserted
+with cursor on the first byte of a multibyte sequence whose length
+is identical to the length of the multibyte sequence to be inserted,
+otherwise this could produce invalid multibyte sequences.  Non-ASCII
+characters in ISO-2022 encodings should preferably inserted byte by
+byte, to avoid problems caused by the designation sequences before
+the actual characters.
 
 \\[hexl-quoted-insert] followed by another keystroke allows you to insert the key even if
 it isn't bound to self-insert.  An octal number can be supplied in place
 of another key to insert the octal number's ASCII representation.
 
-\\[hexl-insert-hex-char] will insert a given hexadecimal value (if it is between 0 and 0xFF)
-into the buffer at the current point.
+\\[hexl-insert-hex-char] will insert a given hexadecimal value
+into the buffer at the current address.
 
-\\[hexl-insert-octal-char] will insert a given octal value (if it is between 0 and 0377)
-into the buffer at the current point.
+\\[hexl-insert-octal-char] will insert a given octal value
+into the buffer at the current address.
 
-\\[hexl-insert-decimal-char] will insert a given decimal value (if it is between 0 and 255)
-into the buffer at the current point.
+\\[hexl-insert-decimal-char] will insert a given decimal value
+into the buffer at the current address..
 
 \\[hexl-mode-exit] will exit `hexl-mode'.
 
@@ -348,60 +340,49 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
   (unless (eq major-mode 'hexl-mode)
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
-	  (original-point (- (point) (point-min))))
-      (and (eobp) (not (bobp))
-	   (setq original-point (1- original-point)))
+          (point-offset (bufferpos-to-filepos (point) 'exact)))
       ;; If `hexl-mode' is invoked with an argument the buffer is assumed to
       ;; be in hexl format.
       (when (memq arg '(1 nil))
-	;; If the buffer's EOL type is -dos, we need to account for
-	;; extra CR characters added when hexlify-buffer writes the
-	;; buffer to a file.
-        ;; FIXME: This doesn't take into account multibyte coding systems.
-	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
-          (setq original-point (+ (count-lines (point-min) (point))
-				  original-point))
-	  (or (bolp) (setq original-point (1- original-point))))
         (hexlify-buffer)
         (restore-buffer-modified-p modified))
-      (set (make-local-variable 'hexl-max-address)
-           (+ (* (/ (1- (buffer-size)) (hexl-line-displen)) 16) 15))
+      (setq hexl-max-address
+            (+ (* (/ (1- (buffer-size)) (hexl-line-displen)) 16) 15))
       (condition-case nil
-	  (hexl-goto-address original-point)
+	  (hexl-goto-address point-offset)
 	(error nil)))
 
-    ;; We do not turn off the old major mode; instead we just
-    ;; override most of it.  That way, we can restore it perfectly.
+    (let ((max-address hexl-max-address))
+      (major-mode-suspend)
+      (setq hexl-max-address max-address))
 
-    (hexl-mode--setq-local '(current-local-map . use-local-map) hexl-mode-map)
+    (use-local-map hexl-mode-map)
 
-    (hexl-mode--setq-local 'mode-name "Hexl")
-    (hexl-mode--setq-local 'isearch-search-fun-function
-                           'hexl-isearch-search-function)
-    (hexl-mode--setq-local 'major-mode 'hexl-mode)
+    (setq-local mode-name "Hexl")
+    (setq-local isearch-search-fun-function #'hexl-isearch-search-function)
+    (setq-local major-mode 'hexl-mode)
 
-    (hexl-mode--setq-local '(syntax-table . set-syntax-table)
-                           (standard-syntax-table))
+    ;; (set-syntax-table (standard-syntax-table))
 
-    (add-hook 'write-contents-functions 'hexl-save-buffer nil t)
+    (add-hook 'write-contents-functions #'hexl-save-buffer nil t)
 
-    (hexl-mode--setq-local 'require-final-newline nil)
+    (setq-local require-final-newline nil)
 
 
-    (hexl-mode--setq-local 'font-lock-defaults '(hexl-font-lock-keywords t))
+    (setq-local font-lock-defaults '(hexl-font-lock-keywords t))
+    (setq-local font-lock-extra-managed-props '(display))
 
-    (hexl-mode--setq-local 'revert-buffer-function
-                           #'hexl-revert-buffer-function)
-    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
+    (setq-local revert-buffer-function #'hexl-revert-buffer-function)
+    (add-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'hexl-print-current-point-info)
+    (add-hook 'eldoc-documentation-functions
+              #'hexl-print-current-point-info nil t)
     (eldoc-add-command-completions "hexl-")
     (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
 
-    (if hexl-follow-ascii (hexl-follow-ascii 1)))
+    (if hexl-follow-ascii (hexl-follow-ascii-mode 1)))
   (run-mode-hooks 'hexl-mode-hook))
 
 
@@ -457,7 +438,8 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 (defun hexl-find-file (filename)
   "Edit file FILENAME as a binary file in hex dump format.
 Switch to a buffer visiting file FILENAME, creating one if none exists,
-and edit the file in `hexl-mode'."
+and edit the file in `hexl-mode'.  The buffer's coding-system will be
+no-conversion, unlike if you visit it normally and then invoke `hexl-mode'."
   (interactive
    (list
     (let ((completion-ignored-extensions nil))
@@ -469,6 +451,7 @@ and edit the file in `hexl-mode'."
       (hexl-mode)))
 
 (defun hexl-revert-buffer-function (_ignore-auto _noconfirm)
+  ;; FIXME: We don't obey revert-buffer-preserve-modes!
   (let ((coding-system-for-read 'no-conversion)
 	revert-buffer-function)
     ;; Call the original `revert-buffer' without code conversion; also
@@ -481,7 +464,9 @@ and edit the file in `hexl-mode'."
     ;; already hexl-mode.
     ;; 2. reset change-major-mode-hook in case that `hexl-mode'
     ;; previously added hexl-maybe-dehexlify-buffer to it.
-    (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+    (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
+    (remove-hook 'eldoc-documentation-functions
+                 #'hexl-print-current-point-info t)
     (setq major-mode 'fundamental-mode)
     (hexl-mode)))
 
@@ -492,39 +477,14 @@ With arg, don't unhexlify buffer."
   (if (or (eq arg 1) (not arg))
       (let ((modified (buffer-modified-p))
 	    (inhibit-read-only t)
-	    (original-point (1+ (hexl-current-address))))
+            (point-offset (hexl-current-address)))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
+	(remove-hook 'write-contents-functions #'hexl-save-buffer t)
 	(restore-buffer-modified-p modified)
-	(goto-char original-point)
-	;; Maybe adjust point for the removed CR characters.
-	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
-	  (setq original-point (- original-point
-				  (count-lines (point-min) (point))))
-	  (or (bobp) (setq original-point (1+ original-point))))
-	(goto-char original-point)))
+	(goto-char (filepos-to-bufferpos point-offset 'exact))))
 
-  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
-  (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
-  (setq hexl-ascii-overlay nil)
-
-  (let ((mms ()))
-    (dolist (varval hexl-mode--old-var-vals)
-      (let* ((bound (consp varval))
-             (var (if bound (car varval) varval))
-             (val (cdr-safe varval)))
-        (cond
-         ((consp var) (funcall (cdr var) val))
-         ((hexl-mode--minor-mode-p var) (push (cons var val) mms))
-         (bound (set (make-local-variable var) val))
-         (t (kill-local-variable var)))))
-    (kill-local-variable 'hexl-mode--old-var-vals)
-    ;; Enable/disable minor modes.  Do it after having reset the other vars,
-    ;; since some of them may affect the minor modes.
-    (dolist (mm mms)
-      (funcall (car mm) (if (cdr mm) 1 -1))))
-
-  (force-mode-line-update))
+  (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
+  (major-mode-restore))
 
 (defun hexl-maybe-dehexlify-buffer ()
   "Convert a hexl format buffer to binary.
@@ -532,11 +492,11 @@ Ask the user for confirmation."
   (if (y-or-n-p "Convert contents back to binary format? ")
       (let ((modified (buffer-modified-p))
 	    (inhibit-read-only t)
-	    (original-point (1+ (hexl-current-address))))
+            (point-offset (hexl-current-address)))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
+	(remove-hook 'write-contents-functions #'hexl-save-buffer t)
 	(restore-buffer-modified-p modified)
-	(goto-char original-point))))
+	(goto-char (filepos-to-bufferpos point-offset 'exact)))))
 
 (defun hexl-current-address (&optional validate)
   "Return current hexl-address."
@@ -559,7 +519,7 @@ Ask the user for confirmation."
       (message "Current address is %d/0x%08x" hexl-address hexl-address))
     hexl-address))
 
-(defun hexl-print-current-point-info ()
+(defun hexl-print-current-point-info (&rest _ignored)
   "Return current hexl-address in string.
 This function is intended to be used as eldoc callback."
   (let ((addr (hexl-current-address)))
@@ -579,7 +539,7 @@ This function is intended to be used as eldoc callback."
        (+ N (/ N (/ hexl-bits 4))) )) ) ; char offset into hexl display line
 
 (defun hexl-goto-address (address)
-  "Go to hexl-mode (decimal) address ADDRESS.
+  "Go to `hexl-mode' (decimal) address ADDRESS.
 Signal error if ADDRESS is out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
@@ -727,7 +687,7 @@ If there is no byte at the target address move to the last byte in that line."
 
 (defun hexl-beginning-of-buffer (arg)
   "Move to the beginning of the hexl buffer.
-Leaves `hexl-mark' at previous position.
+Leaves mark at previous position.
 With prefix arg N, puts point N bytes of the way from the true beginning."
   (interactive "p")
   (push-mark)
@@ -747,16 +707,16 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 (defun hexl-end-of-line ()
   "Goto end of line in Hexl mode."
   (interactive)
-  (hexl-goto-address (let ((address (logior (hexl-current-address) 15)))
-		       (if (> address hexl-max-address)
-			   (setq address hexl-max-address))
-		       address)))
+  (hexl-goto-address (min hexl-max-address (logior (hexl-current-address) 15))))
 
 (defun hexl-scroll-down (arg)
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
   (interactive "P")
   (setq arg (if (null arg)
-                (1- (window-height))
+                (- (window-height)
+                   1
+                   (if ruler-mode 1 0)
+                   next-screen-context-lines)
               (prefix-numeric-value arg)))
   (hexl-scroll-up (- arg)))
 
@@ -765,7 +725,10 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 If there's no byte at the target address, move to the first or last line."
   (interactive "P")
   (setq arg (if (null arg)
-                (1- (window-height))
+                (- (window-height)
+                   1
+                   (if ruler-mode 1 0)
+                   next-screen-context-lines)
               (prefix-numeric-value arg)))
   (let* ((movement (* arg 16))
 	 (address (hexl-current-address))
@@ -795,7 +758,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 1KB boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 1023))))
+   (min hexl-max-address (logior (hexl-current-address) 1023))))
 
 (defun hexl-beginning-of-512b-page ()
   "Go to beginning of 512 byte boundary."
@@ -806,7 +769,7 @@ If there's no byte at the target address, move to the first or last line."
   "Go to end of 512 byte boundary."
   (interactive)
   (hexl-goto-address
-   (max hexl-max-address (logior (hexl-current-address) 511))))
+   (min hexl-max-address (logior (hexl-current-address) 511))))
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
@@ -890,7 +853,7 @@ This discards the buffer's undo information."
 	(error "Invalid hex digit `%c'" ch)))))
 
 (defun hexl-oct-char-to-integer (character)
-  "Take a char and return its value as if it was a octal digit."
+  "Take a char and return its value as if it was an octal digit."
   (if (and (>= character ?0) (<= character ?7))
       (- character ?0)
     (error "Invalid octal digit `%c'" character)))
@@ -909,31 +872,45 @@ This discards the buffer's undo information."
   "Insert a possibly multibyte character CH NUM times.
 
 Non-ASCII characters are first encoded with `buffer-file-coding-system',
-and their encoded form is inserted byte by byte."
+and their encoded form is inserted byte by byte.  Note that if the
+hexl buffer was produced by `hexl-find-file', its coding-system
+is no-conversion.
+
+Inserting non-ASCII characters requires caution: the buffer's
+coding-system should correspond to the encoding on disk, and
+multibyte characters should be inserted with cursor on the first
+byte of a multibyte sequence whose length is identical to the
+length of the multibyte sequence to be inserted, otherwise this
+could produce invalid multibyte sequences.  Non-ASCII characters
+in ISO-2022 encodings should preferably inserted byte by byte, to
+avoid problems caused by the designation sequences before the
+actual characters."
   (let ((charset (char-charset ch))
 	(coding (if (or (null buffer-file-coding-system)
 			;; coding-system-type equals t means undecided.
 			(eq (coding-system-type buffer-file-coding-system) t))
 		    (default-value 'buffer-file-coding-system)
 		  buffer-file-coding-system)))
-    (cond ((and (> ch 0) (< ch 256))
+    (cond ((and (>= ch 0) (< ch 256)
+                (coding-system-get coding :ascii-compatible-p))
 	   (hexl-insert-char ch num))
 	  ((eq charset 'unknown)
 	   (error
 	    "0x%x -- invalid character code; use \\[hexl-insert-hex-string]"
 	    ch))
 	  (t
-	   (let ((encoded (encode-coding-char ch coding))
-		 (internal (string-as-unibyte (char-to-string ch)))
-		 internal-hex)
-	     ;; If encode-coding-char returns nil, it means our character
-	     ;; cannot be safely encoded with buffer-file-coding-system.
-	     ;; In that case, we offer to insert the internal representation
-	     ;; of that character, byte by byte.
-	     (when (null encoded)
-	       (setq internal-hex
-		     (mapconcat (function (lambda (c) (format "%x" c)))
-				internal " "))
+           (let ((encoded (encode-coding-char ch coding))
+	         (internal (char-to-string ch))
+	         internal-hex)
+             ;; If encode-coding-char returns nil, it means our character
+             ;; cannot be safely encoded with buffer-file-coding-system.
+             ;; In that case, we offer to insert the internal representation
+             ;; of that character, byte by byte.
+             (when (null encoded)
+	       (setq internal (encode-coding-string internal 'utf-8-emacs)
+	             internal-hex
+                     (mapconcat (lambda (c) (format "%x" c))
+			        internal " "))
 	       (if (yes-or-no-p
 		    (format-message
 		     "Insert char 0x%x's internal representation \"%s\"? "
@@ -945,7 +922,7 @@ and their encoded form is inserted byte by byte."
 		  (substitute-command-keys "try \\[hexl-insert-hex-string]"))))
 	     (while (> num 0)
 	       (mapc
-		(function (lambda (c) (hexl-insert-char c 1))) encoded)
+                (lambda (c) (hexl-insert-char c 1)) encoded)
 	       (setq num (1- num))))))))
 
 (defun hexl-self-insert-command (arg)
@@ -953,7 +930,19 @@ and their encoded form is inserted byte by byte."
 Interactively, with a numeric argument, insert this character that many times.
 
 Non-ASCII characters are first encoded with `buffer-file-coding-system',
-and their encoded form is inserted byte by byte."
+and their encoded form is inserted byte by byte.  Note that if the
+hexl buffer was produced by `hexl-find-file', its coding-system
+is no-conversion.
+
+Inserting non-ASCII characters requires caution: the buffer's
+coding-system should correspond to the encoding on disk, and
+multibyte characters should be inserted with cursor on the first
+byte of a multibyte sequence whose length is identical to the
+length of the multibyte sequence to be inserted, otherwise this
+could produce invalid multibyte sequences.  Non-ASCII characters
+in ISO-2022 encodings should preferably inserted byte by byte, to
+avoid problems caused by the designation sequences before the
+actual characters."
   (interactive "p")
   (hexl-insert-multibyte-char last-command-event arg))
 
@@ -980,7 +969,7 @@ CH must be a unibyte character whose value is between 0 and 255."
 	(goto-char ascii-position)
 	(delete-char 1)
 	(insert (hexl-printable-character ch))
-	(or (eq address hexl-max-address)
+	(or (= address hexl-max-address)
 	    (setq address (1+ address)))
 	(hexl-goto-address address)
 	(if at-ascii-position
@@ -993,7 +982,21 @@ CH must be a unibyte character whose value is between 0 and 255."
 ;; hex conversion
 
 (defun hexl-insert-hex-char (arg)
-  "Insert a character given by its hexadecimal code ARG times at point."
+  "Insert a character given by its hexadecimal code ARG times at point.
+
+Values above 0xFF are treated as multibyte characters, and first encoded
+using `buffer-file-coding-system'.  Note that if the hexl buffer was
+produced by `hexl-find-file', its coding-system is no-conversion.
+
+Inserting non-ASCII characters requires caution: the buffer's
+coding-system should correspond to the encoding on disk, and
+multibyte characters should be inserted with cursor on the first
+byte of a multibyte sequence whose length is identical to the
+length of the multibyte sequence to be inserted, otherwise this
+could produce invalid multibyte sequences.  Non-ASCII characters
+in ISO-2022 encodings should preferably inserted byte by byte, to
+avoid problems caused by the designation sequences before the
+actual characters."
   (interactive "p")
   (let ((num (hexl-hex-string-to-integer (read-string "Hex number: "))))
     (if (< num 0)
@@ -1026,7 +1029,21 @@ Embedded whitespace, dashes, and periods in the string are ignored."
       (setq arg (- arg 1)))))
 
 (defun hexl-insert-decimal-char (arg)
-  "Insert a character given by its decimal code ARG times at point."
+  "Insert a character given by its decimal code ARG times at point.
+
+Values above 256 are treated as multibyte characters, and first encoded
+using `buffer-file-coding-system'.  Note that if the hexl buffer was
+produced by `hexl-find-file', its coding-system is no-conversion.
+
+Inserting non-ASCII characters requires caution: the buffer's
+coding-system should correspond to the encoding on disk, and
+multibyte characters should be inserted with cursor on the first
+byte of a multibyte sequence whose length is identical to the
+length of the multibyte sequence to be inserted, otherwise this
+could produce invalid multibyte sequences.  Non-ASCII characters
+in ISO-2022 encodings should preferably inserted byte by byte, to
+avoid problems caused by the designation sequences before the
+actual characters."
   (interactive "p")
   (let ((num (string-to-number (read-string "Decimal Number: "))))
     (if (< num 0)
@@ -1034,55 +1051,70 @@ Embedded whitespace, dashes, and periods in the string are ignored."
       (hexl-insert-multibyte-char num arg))))
 
 (defun hexl-insert-octal-char (arg)
-  "Insert a character given by its octal code ARG times at point."
+  "Insert a character given by its octal code ARG times at point.
+
+Values above \377 are treated as multibyte characters, and first encoded
+using `buffer-file-coding-system'.  Note that if the hexl buffer was
+produced by `hexl-find-file', its coding-system is no-conversion.
+
+Inserting non-ASCII characters requires caution: the buffer's
+coding-system should correspond to the encoding on disk, and
+multibyte characters should be inserted with cursor on the first
+byte of a multibyte sequence whose length is identical to the
+length of the multibyte sequence to be inserted, otherwise this
+could produce invalid multibyte sequences.  Non-ASCII characters
+in ISO-2022 encodings should preferably inserted byte by byte, to
+avoid problems caused by the designation sequences before the
+actual characters."
   (interactive "p")
   (let ((num (hexl-octal-string-to-integer (read-string "Octal Number: "))))
     (if (< num 0)
 	(error "Decimal number out of range")
       (hexl-insert-multibyte-char num arg))))
 
-(defun hexl-follow-ascii (&optional arg)
-  "Toggle following ASCII in Hexl buffers.
-With prefix ARG, turn on following if and only if ARG is positive.
+(define-minor-mode hexl-follow-ascii-mode
+  "Minor mode to follow ASCII in current Hexl buffer.
+
 When following is enabled, the ASCII character corresponding to the
 element under the point is highlighted.
-Customize the variable `hexl-follow-ascii' to disable this feature."
-  (interactive "P")
+The default activation is controlled by `hexl-follow-ascii'."
+  :global nil
+  (if hexl-follow-ascii-mode
+      ;; turn it on
+      (progn
+        (unless hexl-ascii-overlay
+	  (setq hexl-ascii-overlay (make-overlay (point) (point)))
+	  (overlay-put hexl-ascii-overlay 'face 'highlight))
+        (add-hook 'post-command-hook #'hexl-follow-ascii-find nil t))
+      ;; turn it off
+      (when hexl-ascii-overlay
+        (delete-overlay hexl-ascii-overlay)
+        (setq hexl-ascii-overlay nil))
+      (remove-hook 'post-command-hook #'hexl-follow-ascii-find t)))
+
+(define-minor-mode hexl-follow-ascii
+  "Toggle following ASCII in Hexl buffers.
+Like `hexl-follow-ascii-mode' but remembers the choice globally."
+  :global t
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 	       (not hexl-ascii-overlay))))
-
-    (if on-p
-      ;; turn it on
-      (if (not hexl-ascii-overlay)
-	  (progn
-	    (setq hexl-ascii-overlay (make-overlay 1 1)
-		  hexl-follow-ascii t)
-	    (overlay-put hexl-ascii-overlay 'face 'highlight)
-	    (add-hook 'post-command-hook 'hexl-follow-ascii-find nil t)))
-      ;; turn it off
-      (if hexl-ascii-overlay
-	  (progn
-	    (delete-overlay hexl-ascii-overlay)
-	    (setq hexl-ascii-overlay nil
-		  hexl-follow-ascii nil)
-	    (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
-	    )))))
+    (hexl-follow-ascii-mode (if on-p 1 -1))
+    ;; Remember this choice globally for later use.
+    (setq hexl-follow-ascii hexl-follow-ascii-mode)))
 
 (defun hexl-activate-ruler ()
   "Activate `ruler-mode'."
   (require 'ruler-mode)
-  (hexl-mode--setq-local 'ruler-mode-ruler-function
-                         #'hexl-mode-ruler)
-  (hexl-mode--setq-local 'ruler-mode t))
+  (setq-local ruler-mode-ruler-function #'hexl-mode-ruler)
+  (ruler-mode 1))
 
 (defun hexl-follow-line ()
   "Activate `hl-line-mode'."
   (require 'hl-line)
-  (hexl-mode--setq-local 'hl-line-range-function
-                         #'hexl-highlight-line-range)
-  (hexl-mode--setq-local 'hl-line-face 'highlight)
-  (hexl-mode--setq-local 'hl-line-mode t))
+  (setq-local hl-line-range-function #'hexl-highlight-line-range)
+  (setq-local hl-line-face 'highlight)  ;FIXME: Why?
+  (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()
   "Return the range of address region for the point.
@@ -1104,8 +1136,15 @@ This function is assumed to be used as callback function for `hl-line-mode'."
   "Return a string ruler for Hexl mode."
   (let* ((highlight (mod (hexl-current-address) 16))
 	 (s (cdr (assq hexl-bits hexl-rulers)))
-	 (pos 0))
+	 (pos 0)
+         (lnum-width
+          (if display-line-numbers
+              (round (line-number-display-width 'columns))
+            0)))
     (set-text-properties 0 (length s) nil s)
+    (when (> lnum-width 0)
+      (setq s (concat (make-string lnum-width ?  ) s))
+      (setq pos (+ pos lnum-width)))
     ;; Turn spaces in the header into stretch specs so they work
     ;; regardless of the header-line face.
     (while (string-match "[ \t]+" s pos)
@@ -1116,17 +1155,18 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 			 s))
     ;; Highlight the current column.
     (let ( (offset (+ (* 2 highlight) (/ (* 8 highlight) hexl-bits))) )
+      (if (> lnum-width 0) (setq offset (+ offset lnum-width)))
       (put-text-property (+ 11 offset) (+ 13 offset) 'face 'highlight s))
     ;; Highlight the current ascii column
-    (put-text-property (+ (hexl-ascii-start-column) highlight 1)
-                       (+ (hexl-ascii-start-column) highlight 2)
+    (put-text-property (+ (hexl-ascii-start-column) lnum-width highlight 1)
+                       (+ (hexl-ascii-start-column) lnum-width highlight 2)
                        'face 'highlight s)
     s))
 
 ;; startup stuff.
 
-(easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
-  `("Hexl"
+(easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu."
+  '("Hexl"
     :help "Hexl-specific Features"
 
     ["Backward short" hexl-backward-short

@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -36,7 +36,7 @@
 (defun minibuffer-prompt-properties--setter (symbol value)
   (set-default symbol value)
   (if (memq 'cursor-intangible value)
-      (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode)
+      (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
     ;; Removing it is a bit trickier since it could have been added by someone
     ;; else as well, so let's just not bother.
     ))
@@ -73,9 +73,11 @@
        '(choice
          (const :tag "Frame default" t)
          (const :tag "Filled box" box)
+         (cons :tag "Box with specified size"
+               (const box) integer)
          (const :tag "Hollow cursor" hollow)
          (const :tag "Vertical bar" bar)
-         (cons  :tag "Vertical bar with specified width"
+         (cons  :tag "Vertical bar with specified height"
                 (const bar) integer)
          (const :tag "Horizontal bar" hbar)
          (cons  :tag "Horizontal bar with specified width"
@@ -98,6 +100,11 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (word-wrap display boolean)
+             (word-wrap-by-category
+              display boolean "28.1"
+              :set (lambda (symbol value)
+                     (set-default symbol value)
+                     (when value (require 'kinsoku))))
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines fringe boolean)
 	     (indicate-buffer-boundaries
@@ -164,6 +171,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	       (const :tag "Right to Left" right-to-left)
 	       (const :tag "Dynamic, according to paragraph text" nil))
 	      "24.1")
+             (delete-auto-save-files auto-save boolean)
+             (kill-buffer-delete-auto-save-files auto-save boolean "28.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -242,7 +251,6 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; emacs.c
 	     (report-emacs-bug-address emacsbug string)
 	     ;; eval.c
-	     (max-specpdl-size limits integer)
 	     (max-lisp-eval-depth limits integer)
 	     (max-mini-window-height limits
 				     (choice (const :tag "quarter screen" nil)
@@ -277,9 +285,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		     ((eq system-type 'darwin)
 		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
 			  ;; See bug#7135.
-			  (let ((tmp (ignore-errors
-				       (shell-command-to-string
-					"getconf DARWIN_USER_TEMP_DIR"))))
+			  (let* (file-name-handler-alist
+                                 (default-directory "/")
+				 (tmp (ignore-errors
+				        (shell-command-to-string
+					 "getconf DARWIN_USER_TEMP_DIR"))))
 			    (and (stringp tmp)
 				 (setq tmp (replace-regexp-in-string
 					    "\n\\'" "" tmp))
@@ -294,10 +304,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
+	     (use-short-answers menu boolean "28.1")
 	     (focus-follows-mouse
               frames (choice
-                      (const :tag "Off (nil)" :value nil)
-                      (const :tag "On (t)" :value t)
+                      (const :tag "Off" :value nil)
+                      (const :tag "On" :value t)
                       (const :tag "Auto-raise" :value auto-raise)) "26.1")
 	     ;; fontset.c
 	     ;; FIXME nil is the initial value, fontset.el setqs it.
@@ -313,10 +324,19 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (other :tag "hidden by keypress" 1))
 			      "22.1")
 	     (make-pointer-invisible mouse boolean "23.2")
-	     (menu-bar-mode frames boolean nil
+             (resize-mini-frames
+              frames (choice
+                      (const :tag "Never" nil)
+                      (const :tag "Fit mini frame to buffer" t)
+                      (function :tag "User-defined function"))
+               "27.2")
+             (menu-bar-mode frames boolean nil
 			    ;; FIXME?
                             ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
+	     (tab-bar-mode tab-bar boolean nil
+                           ;; :initialize custom-initialize-default
+			   :set custom-set-minor-mode)
 	     (tool-bar-mode (frames mouse) boolean nil
                             ;; :initialize custom-initialize-default
 			    :set custom-set-minor-mode)
@@ -326,7 +346,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "Never" nil)
 					    (const :tag "Always" t)
 					    (repeat (symbol :tag "Parameter")))
-					   "25.1")
+					   "27.1")
 	     (iconify-child-frame frames
 				  (choice
 				   (const :tag "Do nothing" nil)
@@ -335,6 +355,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                    (const :tag "Iconify" t))
 				  "26.1")
 	     (tooltip-reuse-hidden-frame tooltip boolean "26.1")
+             (use-system-tooltips tooltip boolean "29.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -344,10 +365,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; keyboard.c
 	     (meta-prefix-char keyboard character)
 	     (auto-save-interval auto-save integer)
+             (auto-save-no-message auto-save boolean "27.1")
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)
-	     (polling-period keyboard integer)
+	     (polling-period keyboard float)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
 	     (double-click-fuzz mouse integer "22.1")
@@ -364,7 +386,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                                      (const :tag "When sent SIGUSR1" sigusr1)
                                      (const :tag "When sent SIGUSR2" sigusr2))
                              "24.1")
-
+             (translate-upper-case-key-bindings keyboard boolean "29.1")
              ;; This is not good news because it will use the wrong
              ;; version-specific directories when you upgrade.  We need
              ;; customization of the front of the list, maintaining the
@@ -375,7 +397,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(const :tag " current dir" nil)
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
+             (record-all-keys keyboard boolean)
 	     ;; minibuf.c
+	     (minibuffer-follows-selected-frame
+              minibuffer (choice (const :tag "Always" t)
+                                 (const :tag "When used" hybrid)
+                                 (const :tag "Never" nil))
+              "28.1")
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t) integer)
@@ -406,6 +434,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      "21.1"
               :set minibuffer-prompt-properties--setter)
 	     (minibuffer-auto-raise minibuffer boolean)
+	     (read-minibuffer-restore-windows minibuffer boolean "28.1")
 	     ;; options property set at end
 	     (read-buffer-function minibuffer
 				   (choice (const nil)
@@ -415,10 +444,21 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; nsterm.m
 	     (ns-control-modifier
 	      ns
-	      (choice (const :tag "No modifier" nil)
+	      (choice (const :tag "No modifier" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "23.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "23.1")
 	     (ns-right-control-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as control)" none)
@@ -426,27 +466,71 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     left)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "24.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "24.1")
 	     (ns-command-modifier
 	      ns
-	      (choice (const :tag "No modifier" nil)
+	      (choice (const :tag "No modifier (work as layout switch)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "23.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "23.1")
 	     (ns-right-command-modifier
 	      ns
-	      (choice (const :tag "No modifier (work as command)" none)
+	      (choice (const :tag "No modifier (work as layout switch)" none)
 		      (const :tag "Use the value of ns-command-modifier"
 			     left)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "24.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "24.1")
 	     (ns-alternate-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as alternate/option)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "23.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "23.1")
 	     (ns-right-alternate-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as alternate/option)" none)
@@ -454,21 +538,45 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     left)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "23.3")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "23.3")
 	     (ns-function-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as function)" none)
 		      (const control) (const meta)
 		      (const alt) (const hyper)
-		      (const super)) "23.1")
+		      (const super)
+                      (plist :key-type (choice (const :ordinary)
+                                               (const :function)
+                                               (const :mouse))
+                             :value-type (choice (const control)
+                                                 (const meta)
+                                                 (const alt)
+                                                 (const hyper)
+                                                 (const super)
+                                                 (const :tag "No modifier"
+                                                        none))))
+              "23.1")
 	     (ns-antialias-text ns boolean "23.1")
 	     (ns-auto-hide-menu-bar ns boolean "24.1")
              (ns-confirm-quit ns boolean "25.1")
 	     (ns-use-native-fullscreen ns boolean "24.4")
              (ns-use-fullscreen-animation ns boolean "25.1")
              (ns-use-srgb-colorspace ns boolean "24.4")
+             (ns-scroll-event-delta-factor ns float "29.1")
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
+             (process-error-pause-time processes-basics integer "29.1")
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
@@ -483,8 +591,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
                (const :tag "Silent" ignore)
                function))
 	     ;; undo.c
-	     (undo-limit undo integer)
-	     (undo-strong-limit undo integer)
+	     (undo-limit undo integer "27.1")
+	     (undo-strong-limit undo integer "27.1")
 	     (undo-outer-limit undo
 			       (choice integer
 				       (const :tag "No limit"
@@ -495,33 +603,35 @@ the undo info for the current command never gets discarded.
 This should only be chosen under exceptional circumstances,
 since it could result in memory overflow and make Emacs crash."
 					      nil))
-			       "22.1")
+			       "27.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (next-screen-context-lines windows integer)
  	     (scroll-preserve-screen-position
  	      windows (choice
- 		       (const :tag "Off (nil)" :value nil)
- 		       (const :tag "Full screen (t)" :value t)
- 		       (other :tag "Always" 1)) "22.1")
+                       (const :tag "Off" :value nil)
+                       (const :tag "Full screen" :value t)
+                       (other :tag "Always" 1))
+              "22.1")
 	     (recenter-redisplay
 	      windows (choice
-		       (const :tag "Never (nil)" :value nil)
+		       (const :tag "Never" :value nil)
 		       (const :tag "Only on ttys" :value tty)
-		       (other :tag "Always" t)) "23.1")
+		       (other :tag "Always" t))
+              "23.1")
 	     (window-combination-resize windows boolean "24.1")
 	     (window-combination-limit
 	      windows (choice
-		       (const :tag "Never (nil)" :value nil)
-		       (const :tag "If requested via buffer display alist (window-size)"
+		       (const :tag "Never" :value nil)
+		       (const :tag "If requested via buffer display alist"
                               :value window-size)
-		       (const :tag "With Temp Buffer Resize mode (temp-buffer-resize)"
+		       (const :tag "With Temp Buffer Resize mode"
 			      :value temp-buffer-resize)
-		       (const :tag "For temporary buffers (temp-buffer)"
+		       (const :tag "For temporary buffers"
 			      :value temp-buffer)
-		       (const :tag "For buffer display (display-buffer)"
+		       (const :tag "For buffer display"
 			      :value display-buffer)
-		       (other :tag "Always (t)" :value t))
+		       (other :tag "Always" :value t))
 	      "26.1")
 	     (fast-but-imprecise-scrolling scrolling boolean "25.1")
 	     (window-resize-pixelwise windows boolean "24.4")
@@ -529,19 +639,32 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; The whitespace group is for whitespace.el.
 	     (show-trailing-whitespace editing-basics boolean nil
 				       :safe booleanp)
+             (mode-line-compact
+              mode-line
+              (choice (const :tag "Never" :value nil)
+                      (const :tag "Only if wider than window" :value long)
+                      (const :tag "Always" :value t))
+              "28.1")
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
              (maximum-scroll-margin windows float "26.1")
 	     (hscroll-margin windows integer "22.1")
-	     (hscroll-step windows number "22.1")
+	     (hscroll-step windows
+                           (choice (const :tag "Center horizontally" nil)
+                                   number) "22.1")
 	     (truncate-partial-width-windows
 	      display
 	      (choice (integer :tag "Truncate if narrower than")
 		      (const :tag "Respect `truncate-lines'" nil)
 		      (other :tag "Truncate if not full-width" t))
 	      "23.1")
-	     (make-cursor-line-fully-visible windows boolean)
+	     (make-cursor-line-fully-visible
+              windows
+              (choice
+               (const :tag "Make cursor always fully visible" t)
+               (const :tag "Allow cursor to be partially-visible" nil)
+               (function :tag "User-defined function")))
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
@@ -559,7 +682,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (underline-minimum-offset display integer "23.1")
              (mouse-autoselect-window
 	      display (choice
-		       (const :tag "Off (nil)" :value nil)
+		       (const :tag "Off" :value nil)
 		       (const :tag "Immediate" :value t)
 		       (number :tag "Delay by secs" :value 0.5)) "22.1")
              (tool-bar-style
@@ -571,6 +694,16 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Text-image-horiz" :value text-image-horiz)
 		      (const :tag "System default" :value nil)) "24.1")
              (tool-bar-max-label-size frames integer "24.1")
+             (tab-bar-position
+              tab-bar (choice
+                       (const :tag "Tab bar above tool bar" nil)
+                       (const :tag "Tab bar below tool bar" t))
+              "27.1"
+              :set (lambda (sym val)
+                     (set-default sym val)
+                     ;; Redraw the bars:
+                     (tab-bar-mode -1)
+                     (tab-bar-mode 1)))
 	     (auto-hscroll-mode scrolling
                                 (choice
                                  (const :tag "Don't scroll automatically"
@@ -594,45 +727,97 @@ since it could result in memory overflow and make Emacs crash."
 	     (hourglass-delay cursor number)
 	     (resize-mini-windows
 	      windows (choice
-		       (const :tag "Off (nil)" :value nil)
-		       (const :tag "Fit (t)" :value t)
+		       (const :tag "Off" :value nil)
+		       (const :tag "Fit" :value t)
 		       (const :tag "Grow only" :value grow-only))
 	      "25.1")
 	     (display-raw-bytes-as-hex display boolean "26.1")
-             (display-line-numbers display-line-numbers
-                                   (choice
-                                    (const :tag "Off (nil)" :value nil)
-                                    (const :tag "Absolute line numbers"
-                                           :value t)
-                                    (const :tag "Relative line numbers"
-                                           :value relative)
-                                    (const :tag "Visually relative line numbers"
-                                           :value visual))
-                                   "26.1")
-             (display-line-numbers-width display-line-numbers
-                                 (choice
-                                  (const :tag "Dynamically computed"
-                                         :value nil)
-                                  (integer :menu-tag "Fixed number of columns"
-                                           :value 2
-                                           :format "%v"))
-                                 "26.1")
-             (display-line-numbers-current-absolute display-line-numbers
-                                 (choice
-                                  (const :tag "Display actual number of current line"
-                                         :value t)
-                                  (const :tag "Display zero as number of current line"
-                                         :value nil))
-                                 "26.1")
-             (display-line-numbers-widen display-line-numbers
-                                 (choice
-                                  (const :tag "Disregard narrowing when calculating line numbers"
-                                         :value t)
-                                  (const :tag "Count lines from beginning of narrowed region"
-                                         :value nil))
-                                 "26.1")
+             (display-line-numbers
+              display-line-numbers
+              (choice
+               (const :tag "Off" :value nil)
+               (const :tag "Absolute line numbers"
+                      :value t)
+               (const :tag "Relative line numbers"
+                      :value relative)
+               (const :tag "Visually relative line numbers"
+                      :value visual))
+              "26.1")
+             (display-line-numbers-width
+              display-line-numbers
+              (choice
+               (const :tag "Dynamically computed"
+                      :value nil)
+               (integer :menu-tag "Fixed number of columns"
+                        :value 2
+                        :format "%v"))
+              "26.1")
+             (display-line-numbers-current-absolute
+              display-line-numbers
+              (choice
+               (const :tag "Display actual number of current line"
+                      :value t)
+               (const :tag "Display zero as number of current line"
+                      :value nil))
+              "26.1")
+             (display-line-numbers-widen
+              display-line-numbers
+              (choice
+               (const :tag "Disregard narrowing when calculating line numbers"
+                      :value t)
+               (const :tag "Count lines from beginning of narrowed region"
+                      :value nil))
+              "26.1")
+             (display-line-numbers-major-tick
+              display-line-numbers
+              (choice
+               (const :tag "No line" 0)
+               (integer :tag "Multiples of"
+                        :value 10))
+              "27.1")
+             (display-line-numbers-minor-tick
+              display-line-numbers
+              (choice
+               (const :tag "No line" 0)
+               (integer :tag "Multiples of"
+                        :value 5))
+              "27.1")
+
+             (display-fill-column-indicator
+              display-fill-column-indicator
+              boolean
+              "27.1"
+              :safe booleanp)
+             (display-fill-column-indicator-column
+              display-fill-column-indicator
+              (choice
+               (const :tag "Use fill-column variable"
+                      :value t)
+               (const :tag "Fixed column number"
+                      :value 70
+                      :format "%v")
+               integer)
+              "27.1"
+              :safe (lambda (value) (or (booleanp value) (integerp value))))
+             (display-fill-column-indicator-character
+              display-fill-column-indicator
+              (choice
+               (character :tag "Use U+2502 to indicate fill column"
+                      :value ?│)
+               (character :tag "Use | to indicate fill column"
+                      :value ?|)
+               (const :tag "If possible, use U+2502 to indicate fill column, otherwise use |"
+                      :value nil)
+               character)
+              "27.1"
+              :safe (lambda (value) (or (characterp value) (null value))))
+             (composition-break-at-point display boolean "29.1")
 	     ;; xfaces.c
-	     (scalable-fonts-allowed display boolean "22.1")
+	     (scalable-fonts-allowed
+              display (choice (const :tag "Don't allow scalable fonts" nil)
+                              (const :tag "Allow any scalable font" t)
+                              (repeat regexp))
+              "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
@@ -645,10 +830,21 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")
 	     (scroll-bar-adjust-thumb-portion windows boolean "24.4")
+             (x-scroll-event-delta-factor mouse float "29.1")
+             (x-gtk-use-native-input keyboard boolean "29.1")
+             (x-dnd-disable-motif-drag dnd boolean "29.1")
+             (x-auto-preserve-selections x
+                                         (choice (const :tag "Always preserve selections" t)
+                                                 (repeat symbol))
+                                         "29.1")
 	     ;; xselect.c
 	     (x-select-enable-clipboard-manager killing boolean "24.1")
 	     ;; xsettings.c
-	     (font-use-system-font font-selection boolean "23.2")))
+	     (font-use-system-font font-selection boolean "23.2")
+             ;; haikuterm.c
+             (haiku-debug-on-fatal-error debug boolean "29.1")
+             ;; haikufns.c
+             (haiku-use-system-tooltips tooltip boolean "29.1")))
     (setq ;; If we did not specify any standard value expression above,
 	  ;; use the current value as the standard value.
 	  standard (if (setq prop (memq :standard rest))
@@ -665,16 +861,32 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'windows-nt))
 		      ((string-match "\\`ns-" (symbol-name symbol))
 		       (featurep 'ns))
+                      ((string-match "\\`haiku-" (symbol-name symbol))
+                       (featurep 'haiku))
+                      ((eq symbol 'process-error-pause-time)
+                       (not (eq system-type 'ms-dos)))
+                      ((eq symbol 'x-gtk-use-native-input)
+                       (and (featurep 'x)
+                            (featurep 'gtk)))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "clipboard-manager" (symbol-name symbol))
 		       (boundp 'x-select-enable-clipboard-manager))
+                      ((or (equal "scroll-bar-adjust-thumb-portion"
+			          (symbol-name symbol))
+                           (equal "x-scroll-event-delta-factor"
+                                  (symbol-name symbol))
+                           (equal "x-dnd-disable-motif-drag"
+                                  (symbol-name symbol))
+                           (equal "x-auto-preserve-selections"
+                                  (symbol-name symbol)))
+		       (featurep 'x))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
-		       (fboundp 'define-fringe-bitmap))
+		       (boundp 'fringe-bitmaps))
 		      ((string-match "\\`imagemagick" (symbol-name symbol))
 		       (fboundp 'imagemagick-types))
 		      ((equal "font-use-system-font" (symbol-name symbol))
@@ -683,13 +895,12 @@ since it could result in memory overflow and make Emacs crash."
 		      ;; the condition for loadup.el to preload tool-bar.el.
 		      ((string-match "tool-bar-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((string-match "tab-bar-" (symbol-name symbol))
+		       (fboundp 'x-create-frame))
 		      ((equal "vertical-centering-font-regexp"
 			      (symbol-name symbol))
 		       ;; Any function from fontset.c will do.
 		       (fboundp 'new-fontset))
-		      ((equal "scroll-bar-adjust-thumb-portion"
-			      (symbol-name symbol))
-		       (featurep 'x))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
@@ -705,17 +916,21 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'risky-local-variable (cadr prop)))
       (if (setq prop (memq :set rest))
 	  (put symbol 'custom-set (cadr prop)))
-      ;; Note this is the _only_ initialize property we handle.
-      (if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
-          ;; These vars are defined early and should hence be initialized
-          ;; early, even if this file happens to be loaded late.  so add them
-          ;; to the end of custom-delayed-init-variables.  Otherwise,
-          ;; auto-save-file-name-transforms will appear in M-x customize-rogue.
-	  (add-to-list 'custom-delayed-init-variables symbol 'append))
+      ;; This is used by describe-variable.
+      (if version (put symbol 'custom-version version))
+      ;; Don't re-add to custom-delayed-init-variables post-startup.
+      (unless after-init-time
+	;; Note this is the _only_ initialize property we handle.
+	(if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
+	    ;; These vars are defined early and should hence be initialized
+	    ;; early, even if this file happens to be loaded late.  so add them
+	    ;; to the end of custom-delayed-init-variables.  Otherwise,
+	    ;; auto-save-file-name-transforms will appear in customize-rogue.
+	    (add-to-list 'custom-delayed-init-variables symbol 'append)))
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.
-      (unless purify-flag
+      (unless dump-mode
 	;; Add it to the right group(s).
 	(if (listp group)
 	    (dolist (g group)
@@ -723,7 +938,6 @@ since it could result in memory overflow and make Emacs crash."
 	  (custom-add-to-group group symbol 'custom-variable))
 	;; Set the type.
 	(put symbol 'custom-type type)
-	(if version (put symbol 'custom-version version))
 	(while rest
 	  (setq prop (car rest)
 		propval (cadr rest)
@@ -738,7 +952,7 @@ since it could result in memory overflow and make Emacs crash."
 ;; Record cus-start as loaded if we have set up all the info that we can.
 ;; Don't record it as loaded if we have only set up the standard values
 ;; and safe/risky properties.
-(unless purify-flag
+(unless dump-mode
   (provide 'cus-start))
 
 ;;; cus-start.el ends here

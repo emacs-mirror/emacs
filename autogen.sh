@@ -1,7 +1,7 @@
 #!/bin/sh
 ### autogen.sh - tool to help build Emacs from a repository checkout
 
-## Copyright (C) 2011-2017 Free Software Foundation, Inc.
+## Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 ## Maintainer: emacs-devel@gnu.org
@@ -35,7 +35,7 @@
 progs="autoconf"
 
 ## Minimum versions we need:
-autoconf_min=`sed -n 's/^ *AC_PREREQ(\([0-9\.]*\)).*/\1/p' configure.ac`
+autoconf_min=`sed -n 's/^ *AC_PREREQ(\[\([0-9\.]*\)]).*/\1/p' configure.ac`
 
 
 ## $1 = program, eg "autoconf".
@@ -82,7 +82,16 @@ check_version ()
         printf '%s' "(using $uprog0=$uprog) "
     fi
 
-    command -v $uprog > /dev/null || return 1
+    ## /bin/sh should always define the "command" builtin, but
+    ## sometimes it does not on hydra.nixos.org.
+    ## /bin/sh = "BusyBox v1.27.2", "built-in shell (ash)".
+    ## It seems to be an optional compile-time feature in that shell:
+    ## see ASH_CMDCMD in <https://git.busybox.net/busybox/tree/shell/ash.c>.
+    if command -v command > /dev/null 2>&1; then
+        command -v $uprog > /dev/null || return 1
+    else
+        $uprog --version > /dev/null 2>&1 || return 1
+    fi
     have_version=`get_version $uprog` || return 4
 
     have_maj=`major_version $have_version`
@@ -307,8 +316,16 @@ git_config transfer.fsckObjects true
 
 # Configure 'git diff' hunk header format.
 
+# This xfuncname is based on Git's built-in 'cpp' pattern.
+# The first line rejects jump targets and access declarations.
+# The second line matches top-level functions and methods.
+# The third line matches preprocessor and DEFUN macros.
+git_config diff.cpp.xfuncname \
+'!^[ \t]*[A-Za-z_][A-Za-z_0-9]*:[[:space:]]*($|/[/*])
+^((::[[:space:]]*)?[A-Za-z_][A-Za-z_0-9]*[[:space:]]*\(.*)$
+^((#define[[:space:]]|DEFUN).*)$'
 git_config diff.elisp.xfuncname \
-	   '^\(def[^[:space:]]+[[:space:]]+([^()[:space:]]+)'
+           '^\([^[:space:]]*def[^[:space:]]+[[:space:]]+([^()[:space:]]+)'
 git_config 'diff.m4.xfuncname' '^((m4_)?define|A._DEFUN(_ONCE)?)\([^),]*'
 git_config 'diff.make.xfuncname' \
 	   '^([$.[:alnum:]_].*:|[[:alnum:]_]+[[:space:]]*([*:+]?[:?]?|!?)=|define .*)'
@@ -323,7 +340,7 @@ git_config diff.texinfo.xfuncname \
 tailored_hooks=
 sample_hooks=
 
-for hook in commit-msg pre-commit; do
+for hook in commit-msg pre-commit prepare-commit-msg; do
     cmp -- build-aux/git-hooks/$hook "$hooks/$hook" >/dev/null 2>&1 ||
 	tailored_hooks="$tailored_hooks $hook"
 done

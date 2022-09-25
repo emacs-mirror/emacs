@@ -1,6 +1,6 @@
-;;; nndir.el --- single directory newsgroup access for Gnus
+;;; nndir.el --- single directory newsgroup access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -28,7 +28,6 @@
 (require 'nnmh)
 (require 'nnml)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
 
 (nnoo-declare nndir
   nnml nnmh)
@@ -38,7 +37,7 @@
   nnml-current-directory nnmh-current-directory)
 
 (defvoo nndir-nov-is-evil nil
-  "*Non-nil means that nndir will never retrieve NOV headers."
+  "Non-nil means that nndir will never retrieve NOV headers."
   nnml-nov-is-evil)
 
 
@@ -49,6 +48,7 @@
 
 (defvoo nndir-status-string "" nil nnmh-status-string)
 (defconst nndir-version "nndir 1.0")
+(make-obsolete-variable 'nndir-version 'emacs-version "29.1")
 
 
 

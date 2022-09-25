@@ -1,0 +1,19 @@
+&23/11/2004 14:00-14:30 Jjjjj & Wwwww
+ Status: TENTATIVE
+ Class: PRIVATE
+&23/11/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
+ Status: TENTATIVE
+ Class: PRIVATE
+&23/11/2004 11:00-12:00 Hhhhhhhh
+ Status: TENTATIVE
+ Class: PRIVATE
+&%%(and (diary-cyclic 14 12 11 2004)) 14:00-18:30 MMM Aaaaaaaaa
+ Status: TENTATIVE
+ Class: PRIVATE
+&%%(and (diary-block 19 11 2004 19 11 2004)) Rrrr/Cccccc ii Aaaaaaaa
+ Desc: Vvvvv Rrrr aaa Cccccc
+ Status: TENTATIVE
+ Class: PRIVATE
+&%%(and (diary-cyclic 7 1 11 2004)) Wwww aa hhhh
+ Status: TENTATIVE
+ Class: PRIVATE

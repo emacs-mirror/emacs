@@ -905,6 +905,15 @@ Dired 能够在一个缓冲区里列出一个目录下的所有文件（可以�
 
 Emacs 使用手册里还有许许多多的精彩功能等着你来了解。
 
+* 安装包裹（INSTALLING PACKAGES）
+---------------------------
+
+Emacs 社区著作了许多持有扩展性的包裹（packages），其中包括对各种语言的
+支持、色彩鲜艳的主题、用于集成外部程序的包裹，等等。
+
+使用 M-x list-packages 便可浏览存在的包裹。这个命令显示的界面中可以安
+装和卸载包裹，以及查看包裹的简介。Emacs 使用手册中有对包裹管理更详细的
+介绍。
 
 * 总结（CONCLUSION）
 --------------------
@@ -997,7 +1006,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.
@@ -1026,7 +1035,7 @@ using, writing, and sharing free software!
 
 本篇指南是 GNU Emacs 的一部分，并允许在下列条件的约束下发行其拷贝：
 
-   Copyright (C) 1985, 1996, 1998, 2001-2017 Free Software Foundation,
+   Copyright (C) 1985, 1996, 1998, 2001-2022 Free Software Foundation,
    Inc.
 
    本文件为 GNU Emacs 的一部分。

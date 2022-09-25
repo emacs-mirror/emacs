@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2017 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -97,9 +97,9 @@ macro before appending to it.  */)
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object c;
-	  c = Faref (KVAR (current_kboard, Vlast_kbd_macro), make_number (i));
-	  if (cvt && NATNUMP (c) && (XFASTINT (c) & 0x80))
-	    XSETFASTINT (c, CHAR_META | (XFASTINT (c) & ~0x80));
+	  c = Faref (KVAR (current_kboard, Vlast_kbd_macro), make_fixnum (i));
+	  if (cvt && FIXNATP (c) && (XFIXNAT (c) & 0x80))
+	    XSETFASTINT (c, CHAR_META | (XFIXNAT (c) & ~0x80));
 	  current_kboard->kbd_macro_buffer[i] = c;
 	}
 
@@ -110,7 +110,7 @@ macro before appending to it.  */)
 	 for consistency of behavior.  */
       if (NILP (no_exec))
 	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
-			    make_number (1), Qnil);
+			    make_fixnum (1), Qnil);
 
       message1 ("Appending to kbd macro...");
     }
@@ -154,7 +154,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (NILP (repeat))
     XSETFASTINT (repeat, 1);
   else
-    CHECK_NUMBER (repeat);
+    CHECK_FIXNUM (repeat);
 
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
     {
@@ -162,11 +162,11 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
       message1 ("Keyboard macro defined");
     }
 
-  if (XFASTINT (repeat) == 0)
+  if (XFIXNAT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
-  else if (XINT (repeat) > 1)
+  else if (XFIXNUM (repeat) > 1)
     {
-      XSETINT (repeat, XINT (repeat) - 1);
+      XSETINT (repeat, XFIXNUM (repeat) - 1);
       Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			  repeat, loopfunc);
     }
@@ -267,24 +267,33 @@ pop_kbd_macro (Lisp_Object info)
   Lisp_Object tem;
   Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
-  executing_kbd_macro_index = XINT (XCAR (tem));
+  integer_to_intmax (XCAR (tem), &executing_kbd_macro_index);
   Vreal_this_command = XCDR (tem);
   run_hook (Qkbd_macro_termination_hook);
 }
 
 DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 3, 0,
-       doc: /* Execute MACRO as string of editor command characters.
-MACRO can also be a vector of keyboard events.  If MACRO is a symbol,
-its function definition is used.
+       doc: /* Execute MACRO as a sequence of events.
+If MACRO is a string or vector, then the events in it are executed
+exactly as if they had been input by the user.
+
+If MACRO is a symbol, its function definition is used.  If that is
+another symbol, this process repeats.  Eventually the result should be
+a string or vector.  If the result is not a symbol, string, or vector,
+an error is signaled.
+
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
 Optional third arg LOOPFUNC may be a function that is called prior to
-each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
+each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.
+
+The buffer shown in the currently selected window will be made the current
+buffer before the macro is executed.  */)
   (Lisp_Object macro, Lisp_Object count, Lisp_Object loopfunc)
 {
   Lisp_Object final;
   Lisp_Object tem;
-  ptrdiff_t pdlcount = SPECPDL_INDEX ();
+  specpdl_ref pdlcount = SPECPDL_INDEX ();
   EMACS_INT repeat = 1;
   EMACS_INT success_count = 0;
 
@@ -293,7 +302,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (!NILP (count))
     {
       count = Fprefix_numeric_value (count);
-      repeat = XINT (count);
+      repeat = XFIXNUM (count);
     }
 
   final = indirect_function (macro);
@@ -301,7 +310,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
     error ("Keyboard macros must be strings or vectors");
 
   tem = Fcons (Vexecuting_kbd_macro,
-	       Fcons (make_number (executing_kbd_macro_index),
+	       Fcons (make_int (executing_kbd_macro_index),
 		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
@@ -321,7 +330,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 	    break;
 	}
 
-      command_loop_1 ();
+      command_loop_2 (list1 (Qminibuffer_quit));
 
       executing_kbd_macro_iterations = ++success_count;
 

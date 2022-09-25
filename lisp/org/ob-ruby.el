@@ -1,10 +1,10 @@
 ;;; ob-ruby.el --- Babel Functions for Ruby          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -27,19 +27,20 @@
 
 ;;; Requirements:
 
-;; - ruby and irb executables :: http://www.ruby-lang.org/
+;; - ruby and irb executables :: https://www.ruby-lang.org/
 ;;
 ;; - ruby-mode :: Can be installed through ELPA, or from
-;;   http://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
+;;   https://github.com/eschulte/rinari/raw/master/util/ruby-mode.el
 ;;
 ;; - inf-ruby mode :: Can be installed through ELPA, or from
-;;   http://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
+;;   https://github.com/eschulte/rinari/raw/master/util/inf-ruby.el
 
 ;;; Code:
 (require 'ob)
+(require 'org-macs)
 
-(declare-function org-trim "org" (s &optional keep-lead))
-(declare-function run-ruby "ext:inf-ruby" (&optional command name))
+(declare-function run-ruby-or-pop-to-buffer "ext:inf-ruby" (command &optional name buffer))
+(declare-function inf-ruby-buffer "ext:inf-ruby" ())
 (declare-function xmp "ext:rcodetools" (&optional option))
 
 (defvar inf-ruby-default-implementation)
@@ -51,7 +52,8 @@
 (defvar org-babel-default-header-args:ruby '())
 
 (defvar org-babel-ruby-command "ruby"
-  "Name of command to use for executing ruby code.")
+  "Name of command to use for executing ruby code.
+It's possible to override it by using a header argument `:ruby'")
 
 (defcustom org-babel-ruby-hline-to "nil"
   "Replace hlines in incoming tables with this when translating to ruby."
@@ -71,9 +73,12 @@
   "Execute a block of Ruby code with Babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((session (org-babel-ruby-initiate-session
-		   (cdr (assq :session params))))
+		   (cdr (assq :session params)) params))
          (result-params (cdr (assq :result-params params)))
          (result-type (cdr (assq :result-type params)))
+	 (org-babel-ruby-command
+	  (or (cdr (assq :ruby params))
+	      org-babel-ruby-command))
          (full-body (org-babel-expand-body:generic
 		     body params (org-babel-variable-assignments:ruby params)))
          (result (if (member "xmp" result-params)
@@ -103,7 +108,8 @@ This function is called by `org-babel-execute-src-block'."
       (mapc (lambda (var)
               (insert var) (comint-send-input nil t)
               (org-babel-comint-wait-for-output session)
-              (sit-for .1) (goto-char (point-max))) var-lines))
+              (sit-for .1) (goto-char (point-max)))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:ruby (session body params)
@@ -147,17 +153,24 @@ Emacs-lisp table, otherwise return the results as a string."
                 res)
       res)))
 
-(defun org-babel-ruby-initiate-session (&optional session _params)
+(defun org-babel-ruby-initiate-session (&optional session params)
   "Initiate a ruby session.
 If there is not a current inferior-process-buffer in SESSION
 then create one.  Return the initialized session."
   (unless (string= session "none")
     (require 'inf-ruby)
-    (let* ((cmd (cdr (assoc inf-ruby-default-implementation
-			    inf-ruby-implementations)))
+    (let* ((command (cdr (or (assq :ruby params)
+			     (assoc inf-ruby-default-implementation
+				    inf-ruby-implementations))))
 	   (buffer (get-buffer (format "*%s*" session)))
 	   (session-buffer (or buffer (save-window-excursion
-					(run-ruby cmd session)
+					(run-ruby-or-pop-to-buffer
+					 (if (functionp command)
+					     (funcall command)
+					   command)
+					 (or session "ruby")
+					 (unless session
+					   (inf-ruby-buffer)))
 					(current-buffer)))))
       (if (org-babel-comint-buffer-livep session-buffer)
 	  (progn (sit-for .25) session-buffer)
@@ -215,7 +228,7 @@ return the value of the last statement in BODY, as elisp."
        (let ((eoe-string (format "puts \"%s\"" org-babel-ruby-eoe-indicator)))
 	 ;; Force the session to be ready before the actual session
 	 ;; code is run.  There is some problem in comint that will
-	 ;; sometimes show the prompt after the the input has already
+	 ;; sometimes show the prompt after the input has already
 	 ;; been inserted and that throws off the extraction of the
 	 ;; result for Babel.
 	 (org-babel-comint-with-output
@@ -262,7 +275,5 @@ return the value of the last statement in BODY, as elisp."
 	 (org-babel-eval-read-file tmp-file))))))
 
 (provide 'ob-ruby)
-
-
 
 ;;; ob-ruby.el ends here

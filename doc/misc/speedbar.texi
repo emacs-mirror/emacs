@@ -5,7 +5,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -49,7 +49,7 @@ packages, and web browsers.
 Speedbar displays a narrow frame in which a tree view is shown.  This
 tree view defaults to containing a list of files and directories.  Files
 can be ``expanded'' to list tags inside. Directories can be expanded to
-list the files within itself.  Each file or tag can be jumped to
+list the files within them.  Each file or tag can be jumped to
 immediately.
 
 Speedbar expands upon ``explorer'' windows by maintaining context with the
@@ -87,7 +87,7 @@ on.  @xref{Basic Navigation}.
 @chapter Introduction
 @cindex introduction
 
-To start using speedbar use the command @kbd{M-x speedbar RET} or
+To start using speedbar use the command @kbd{M-x speedbar @key{RET}} or
 select it from the @samp{Options->Show/Hide} sub-menu.  This command
 will open a new frame to summarize the local files.  On X Window
 systems or on MS-Windows, speedbar's frame is twenty characters wide,
@@ -188,7 +188,7 @@ these are available, some additional common bindings are available.
 
 @cindex common keys
 @table @kbd
-@item RET
+@item @key{RET}
 @itemx e
 Edit/Open the current group or tag.  This behavior is dependent on the
 mode.  In general, files or buffers are opened in the attached frame,
@@ -695,18 +695,11 @@ file being edited.
 Face used when the mouse passes over a button.
 @end table
 
-You can also customize speedbar's initial frame parameters.  How this is
-accomplished is dependent on your platform being Emacs or XEmacs.
-
-@cindex @code{speedbar-frame-parameters}, Emacs
-In Emacs, change the alist @code{speedbar-frame-parameters}.  This
-variable is used to set up initial details.  Height is also
-automatically added when speedbar is created, though you can override
-it.
-
-@cindex @code{speedbar-frame-plist}, XEmacs
-In XEmacs, change the plist @code{speedbar-frame-plist}.  This is the
-XEmacs way of doing the same thing.
+@cindex @code{speedbar-frame-parameters}
+You can also customize speedbar's initial frame parameters by changing
+the alist @code{speedbar-frame-parameters}.  This variable is used to
+set up initial details.  Height is also automatically added when
+speedbar is created, though you can override it.
 
 @node Tag Hierarchy Methods
 @section Tag Hierarchy Methods
@@ -835,9 +828,6 @@ Hooks run when speedbar visits a file in the selected frame.
 @cindex @code{speedbar-visiting-tag-hook}
 @item speedbar-visiting-tag-hook
 Hooks run when speedbar visits a tag in the selected frame.
-@cindex @code{speedbar-load-hook}
-@item speedbar-load-hook
-Hooks run when speedbar is loaded.
 @cindex @code{speedbar-reconfigure-keymaps-hook}
 @item speedbar-reconfigure-keymaps-hook
 Hooks run when the keymaps are regenerated.  Keymaps are reconfigured
@@ -906,7 +896,7 @@ augmented with speedbar.
 
 @enumerate
 @item
-Create the keymap variable @code{@var{name}-speedbar-key-map}.
+Create the keymap variable @code{@var{name}-speedbar-mode-map}.
 
 @item
 Create a function, named whatever you like, which assigns values into your
@@ -914,18 +904,17 @@ keymap.  Use this command to create the keymap before assigning
 bindings:
 
 @smallexample
-    (setq @var{name}-speedbar-key-map (speedbar-make-specialized-keymap))
+    (setq @var{name}-speedbar-mode-map (speedbar-make-specialized-keymap))
 @end smallexample
 
 This function creates a special keymap for use in speedbar.
 
 @item
-Call your install function, or assign it to a hook like this:
+Call your install function, like this:
 
 @smallexample
-(if (featurep 'speedbar)
-    (@var{name}-install-speedbar-variables)
-  (add-hook 'speedbar-load-hook '@var{name}-install-speedbar-variables))
+(with-eval-after-load 'speedbar
+  (@var{name}-install-speedbar-variables))
 @end smallexample
 
 @item
@@ -979,8 +968,8 @@ With a numeric argument (@kbd{C-u}), flush cached data before expanding.
 Contract the item under the cursor.
 @end table
 
-@cindex @code{speedbar-line-path}
-These function require that function @code{speedbar-line-path} be
+@cindex @code{speedbar-line-directory}
+These functions require that the function @code{speedbar-line-directory} be
 correctly overloaded to work.
 
 Next, register your extension like this;
@@ -988,7 +977,7 @@ Next, register your extension like this;
 @example
   (speedbar-add-expansion-list '("MyExtension"
                                  MyExtension-speedbar-menu-items
-                                 MyExtension-speedbar-key-map
+                                 MyExtension-speedbar-mode-map
                                  MyExtension-speedbar-buttons))
 @end example
 
@@ -1013,14 +1002,14 @@ like this:
 (speedbar-add-mode-functions-list
  '("MYEXTENSION"
    (speedbar-item-info . MyExtension-speedbar-item-info)
-   (speedbar-line-path . MyExtension-speedbar-line-path)))
+   (speedbar-line-directory . MyExtension-speedbar-line-directory)))
 @end example
 
 The first element in the list is the name of you extension.  The second
 is an alist of functions to overload.  The function to overload is
 first, followed by what you want called instead.
 
-For @code{speedbar-line-path} your function should take an optional DEPTH
+For @code{speedbar-line-directory} your function should take an optional DEPTH
 parameter.  This is the starting depth for heavily indented lines.  If
 it is not provided, you can derive it like this:
 
@@ -1229,4 +1218,3 @@ Two good values are @code{nil} and @code{statictag}.
 
 @bye
 @c  LocalWords:  speedbar's xref slowbar kbd subsubsection
-@c  LocalWords:  keybindings

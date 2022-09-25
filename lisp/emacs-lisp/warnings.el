@@ -1,6 +1,6 @@
-;;; warnings.el --- log and display warnings
+;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -26,6 +26,8 @@
 ;; and `display-warning'.
 
 ;;; Code:
+
+(require 'icons)
 
 (defgroup warnings nil
   "Log and display warnings."
@@ -67,29 +69,30 @@ Level :debug is ignored by default (see `warning-minimum-level').")
 Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
+(make-obsolete-variable 'warning-level-aliases 'warning-levels "28.1")
 
+(define-obsolete-variable-alias 'display-warning-minimum-level
+  'warning-minimum-level "28.1")
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
 the warning is logged in the warnings buffer, but the buffer
 is not immediately displayed.  See also `warning-minimum-log-level'."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 
+(define-obsolete-variable-alias 'log-warning-minimum-level
+  'warning-minimum-log-level "28.1")
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
 the warning is completely ignored.
 Value must be lower or equal than `warning-minimum-level',
 because warnings not logged aren't displayed either."
-  :group 'warnings
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
 (defcustom warning-suppress-log-types nil
   "List of warning types that should not be logged.
@@ -100,7 +103,6 @@ Thus, (foo bar) as an element matches (foo bar)
 or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 
@@ -115,7 +117,6 @@ or (foo bar ANYTHING...) as TYPE.
 If TYPE is a symbol FOO, that is equivalent to the list (FOO),
 so only the element (FOO) will match it.
 See also `warning-suppress-log-types'."
-  :group 'warnings
   :type '(repeat (repeat symbol))
   :version "22.1")
 
@@ -152,6 +153,11 @@ also call that function before the next warning.")
 ;;;###autoload
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
+
+;; I don't see why it can't just use the buffer-local fill-column,
+;; but at least this is better than hard-coding 78.
+(defvar warning-fill-column 78
+  "Value to use for `fill-column' when filling warnings.")
 
 ;; The autoload cookie is so that programs can bind this variable
 ;; safely, testing the existing value, before they call one of the
@@ -197,6 +203,29 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; we return t.
     some-match))
 
+(define-icon warnings-suppress button
+  '((emoji "⛔")
+    (symbol " ■ ")
+    (text " stop "))
+  "Suppress warnings."
+  :version "29.1"
+  :help-echo "Click to suppress this warning type")
+
+(defun warnings-suppress (type)
+  (pcase (car
+          (read-multiple-choice
+           (format "Suppress `%s' warnings? " type)
+           `((?y ,(format "yes, ignore `%s' warnings completely" type))
+             (?n "no, just disable showing them")
+             (?q "quit and do nothing"))))
+    (?y
+     (customize-save-variable 'warning-suppress-log-types
+                              (cons (list type) warning-suppress-log-types)))
+    (?n
+     (customize-save-variable 'warning-suppress-types
+                              (cons (list type) warning-suppress-types)))
+    (_ (message "Exiting"))))
+
 ;;;###autoload
 (defun display-warning (type message &optional level buffer-name)
   "Display a warning message, MESSAGE.
@@ -222,8 +251,14 @@ has to create the buffer, it disables undo in the buffer.
 
 See the `warnings' custom group for user customization features.
 
-See also `warning-series', `warning-prefix-function' and
-`warning-fill-prefix' for additional programming features."
+See also `warning-series', `warning-prefix-function',
+`warning-fill-prefix', and `warning-fill-column' for additional
+programming features.
+
+This will also display buttons allowing the user to permanently
+disable automatic display of the warning or disable the warning
+entirely by setting `warning-suppress-types' or
+`warning-suppress-log-types' on their behalf."
   (if (not (or after-init-time noninteractive (daemonp)))
       ;; Ensure warnings that happen early in the startup sequence
       ;; are visible when startup completes (bug#20792).
@@ -232,8 +267,10 @@ See also `warning-series', `warning-prefix-function' and
       (setq level :warning))
     (unless buffer-name
       (setq buffer-name "*Warnings*"))
-    (if (assq level warning-level-aliases)
-	(setq level (cdr (assq level warning-level-aliases))))
+    (with-suppressed-warnings ((obsolete warning-level-aliases))
+      (when-let ((new (cdr (assq level warning-level-aliases))))
+        (warn "Warning level `%s' is obsolete; use `%s' instead" level new)
+        (setq level new)))
     (or (< (warning-numeric-level level)
 	   (warning-numeric-level warning-minimum-log-level))
 	(warning-suppress-p type warning-suppress-log-types)
@@ -241,11 +278,15 @@ See also `warning-series', `warning-prefix-function' and
 	       (old (get-buffer buffer-name))
 	       (buffer (or old (get-buffer-create buffer-name)))
 	       (level-info (assq level warning-levels))
+               ;; `newline' may be unbound during bootstrap.
+               (newline (if (fboundp 'newline) #'newline
+                          (lambda () (insert "\n"))))
 	       start end)
 	  (with-current-buffer buffer
 	    ;; If we created the buffer, disable undo.
 	    (unless old
-	      (special-mode)
+	      (when (fboundp 'special-mode) ; Undefined during bootstrap.
+                (special-mode))
 	      (setq buffer-read-only t)
 	      (setq buffer-undo-list t))
 	    (goto-char (point-max))
@@ -256,18 +297,26 @@ See also `warning-series', `warning-prefix-function' and
 			(funcall warning-series)))))
 	    (let ((inhibit-read-only t))
 	      (unless (bolp)
-		(newline))
+		(funcall newline))
 	      (setq start (point))
+              ;; Don't output the button when doing batch compilation
+              ;; and similar.
+              (unless (or noninteractive (eq type 'bytecomp))
+                (insert (buttonize (icon-string 'warnings-suppress)
+                                   #'warnings-suppress type)
+                        " "))
 	      (if warning-prefix-function
 		  (setq level-info (funcall warning-prefix-function
 					    level level-info)))
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
-	      (newline)
-	      (when (and warning-fill-prefix (not (string-match "\n" message)))
+              (funcall newline)
+	      (when (and warning-fill-prefix
+                         (not (string-search "\n" message))
+                         (not noninteractive))
 		(let ((fill-prefix warning-fill-prefix)
-		      (fill-column 78))
+		      (fill-column warning-fill-column))
 		  (fill-region start (point))))
 	      (setq end (point)))
 	    (when (and (markerp warning-series)
@@ -310,7 +359,7 @@ See also `warning-series', `warning-prefix-function' and
 			 (set-window-start window warning-series))
 		       (sit-for 0)))))))))
 
-;; Use \\<special-mode-map> so that help-enable-auto-load can do its thing.
+;; Use \\<special-mode-map> so that help-enable-autoload can do its thing.
 ;; Any keymap that is defined will do.
 ;;;###autoload
 (defun lwarn (type level message &rest args)

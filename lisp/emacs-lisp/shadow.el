@@ -1,6 +1,6 @@
-;;; shadow.el --- locate Emacs Lisp file shadowings
+;;; shadow.el --- locate Emacs Lisp file shadowings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp
@@ -31,13 +31,13 @@
 ;; a file with the same name in a later load-path directory.  When
 ;; this is unintentional, it may result in problems that could have
 ;; been easily avoided.  This occurs often (to me) when installing a
-;; new version of emacs and something in the site-lisp directory
-;; has been updated and added to the emacs distribution.  The old
-;; version, now outdated, shadows the new one. This is obviously
+;; new version of Emacs and something in the site-lisp directory
+;; has been updated and added to the Emacs distribution.  The old
+;; version, now outdated, shadows the new one.  This is obviously
 ;; undesirable.
 ;;
 ;; The `list-load-path-shadows' function was run when you installed
-;; this version of emacs. To run it by hand in emacs:
+;; this version of Emacs.  To run it by hand in emacs:
 ;;
 ;;     M-x list-load-path-shadows
 ;;
@@ -55,14 +55,10 @@
   :prefix "load-path-shadows-"
   :group 'lisp)
 
-(define-obsolete-variable-alias 'shadows-compare-text-p
-  'load-path-shadows-compare-text "23.3")
-
 (defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
-  :type 'boolean
-  :group 'lisp-shadow)
+  :type 'boolean)
 
 (defun load-path-shadows-find (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
@@ -78,10 +74,10 @@ See the documentation for `list-load-path-shadows' for further information."
 	shadows				; List of shadowings, to be returned.
 	files				; File names ever seen, with dirs.
 	dir				; The dir being currently scanned.
+        dir-case-insensitive            ; `file-name-case-insensitive-p' of dir.
 	curr-files			; This dir's Emacs Lisp files.
 	orig-dir			; Where the file was first seen.
-	files-seen-this-dir		; Files seen so far in this dir.
-	file)				; The current file.
+	files-seen-this-dir)		; Files seen so far in this dir.
     (dolist (pp (or path load-path))
       (setq dir (directory-file-name (file-truename (or pp "."))))
       (if (member dir true-names)
@@ -98,16 +94,20 @@ See the documentation for `list-load-path-shadows' for further information."
 	(setq true-names (append true-names (list dir)))
 	(setq dir (directory-file-name (or pp ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
-			     (directory-files dir nil ".\\.elc?\\(\\.gz\\)?$" t)))
+			     (directory-files dir nil
+                                              "\\.elc?\\(?:\\.gz\\)?\\'" t)))
 	(and curr-files
 	     (not noninteractive)
 	     (message "Checking %d files in %s..." (length curr-files) dir))
 
 	(setq files-seen-this-dir nil)
+        ;; We assume that case sensitivity of a directory applies to
+        ;; its files.
+        (setq dir-case-insensitive (file-name-case-insensitive-p dir))
 
 	(dolist (file curr-files)
 
-	  (if (string-match "\\.gz$" file)
+	  (if (string-match "\\.gz\\'" file)
 	      (setq file (substring file 0 -3)))
 	  (setq file (substring
 		      file 0 (if (string= (substring file -1) "c") -4 -3)))
@@ -115,18 +115,24 @@ See the documentation for `list-load-path-shadows' for further information."
 	  ;; FILE now contains the current file name, with no suffix.
 	  (unless (or (member file files-seen-this-dir)
 		      ;; Ignore these files.
-		      (member file (list "subdirs" "leim-list"
-					 (file-name-sans-extension
-					  dir-locals-file))))
+		      (member file
+                              (list "subdirs" "leim-list"
+				    (file-name-sans-extension dir-locals-file)
+                                    (concat
+				     (file-name-sans-extension dir-locals-file)
+                                     "-2"))))
 	    ;; File has not been seen yet in this directory.
 	    ;; This test prevents us declaring that XXX.el shadows
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.
 	    (setq files-seen-this-dir (cons file files-seen-this-dir))
 
-	    (if (setq orig-dir (assoc file files))
+            (if (setq orig-dir
+                      (assoc file files
+                             (and dir-case-insensitive
+                                  #'string-equal-ignore-case)))
 		;; This file was seen before, we have a shadowing.
 		;; Report it unless the files are identical.
-		(let ((base1 (concat (cdr orig-dir) "/" file))
+                (let ((base1 (concat (cdr orig-dir) "/" (car orig-dir)))
 		      (base2 (concat dir "/" file)))
 		  (if (not (and load-path-shadows-compare-text
 				(load-path-shadows-same-file-or-nonexistent
@@ -138,12 +144,9 @@ See the documentation for `list-load-path-shadows' for further information."
 			    (append shadows (list base1 base2)))))
 
 	      ;; Not seen before, add it to the list of seen files.
-	      (setq files (cons (cons file dir) files)))))))
+	      (push (cons file dir) files))))))
     ;; Return the list of shadowings.
     shadows))
-
-(define-obsolete-function-alias 'find-emacs-lisp-shadows
-  'load-path-shadows-find "23.3")
 
 ;; Return true if neither file exists, or if both exist and have identical
 ;; contents.
@@ -155,8 +158,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	     (or (equal (file-truename f1) (file-truename f2))
 		 ;; As a quick test, avoiding spawning a process, compare file
 		 ;; sizes.
-		 (and (= (nth 7 (file-attributes f1))
-			 (nth 7 (file-attributes f2)))
+		 (and (= (file-attribute-size (file-attributes f1))
+			 (file-attribute-size (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 (defvar load-path-shadows-font-lock-keywords
@@ -171,15 +174,13 @@ See the documentation for `list-load-path-shadows' for further information."
      . (1 font-lock-warning-face)))
   "Keywords to highlight in `load-path-shadows-mode'.")
 
-(define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
-  "Major mode for load-path shadows buffer."
-  (set (make-local-variable 'font-lock-defaults)
-       '((load-path-shadows-font-lock-keywords)))
-  (setq buffer-undo-list t
-	buffer-read-only t))
+(define-derived-mode load-path-shadows-mode special-mode "LP-Shadows"
+  "Major mode for `load-path' shadows buffer."
+  (setq-local font-lock-defaults
+              '((load-path-shadows-font-lock-keywords)))
+  (setq buffer-undo-list t))
 
 ;; TODO use text-properties instead, a la dired.
-(require 'button)
 (define-button-type 'load-path-shadows-find-file
   'follow-link t
 ;;  'face 'default

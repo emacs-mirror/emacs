@@ -1,10 +1,10 @@
 ;;; ob-css.el --- Babel Functions for CSS            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +42,5 @@ CSS does not support sessions."
   (error "CSS sessions are nonsensical"))
 
 (provide 'ob-css)
-
-
 
 ;;; ob-css.el ends here

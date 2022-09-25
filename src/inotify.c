@@ -1,6 +1,6 @@
 /* Inotify support for Emacs
 
-Copyright (C) 2012-2017 Free Software Foundation, Inc.
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,8 +18,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-
-#ifdef HAVE_INOTIFY
 
 #include "lisp.h"
 #include "coding.h"
@@ -176,25 +174,24 @@ inotifyevent_to_event (Lisp_Object watch, struct inotify_event const *ev)
 {
   Lisp_Object name;
   uint32_t mask;
-  CONS_TO_INTEGER (Fnth (make_number (3), watch), uint32_t, mask);
+  CONS_TO_INTEGER (Fnth (make_fixnum (3), watch), uint32_t, mask);
 
   if (! (mask & ev->mask))
     return Qnil;
 
   if (ev->len > 0)
     {
-      size_t const len = strlen (ev->name);
-      name = make_unibyte_string (ev->name, min (len, ev->len));
+      name = make_unibyte_string (ev->name, strnlen (ev->name, ev->len));
       name = DECODE_FILE (name);
     }
   else
     name = XCAR (XCDR (watch));
 
-  return list2 (list4 (Fcons (INTEGER_TO_CONS (ev->wd), XCAR (watch)),
+  return list2 (list4 (Fcons (INT_TO_INTEGER (ev->wd), XCAR (watch)),
                        mask_to_aspects (ev->mask),
                        name,
-		       INTEGER_TO_CONS (ev->cookie)),
-		Fnth (make_number (2), watch));
+		       INT_TO_INTEGER (ev->cookie)),
+		Fnth (make_fixnum (2), watch));
 }
 
 /* Add a new watch to watch-descriptor WD watching FILENAME and using
@@ -204,10 +201,10 @@ static Lisp_Object
 add_watch (int wd, Lisp_Object filename,
 	   uint32_t imask, Lisp_Object callback)
 {
-  Lisp_Object descriptor = INTEGER_TO_CONS (wd);
+  Lisp_Object descriptor = INT_TO_INTEGER (wd);
   Lisp_Object tail = assoc_no_quit (descriptor, watch_list);
   Lisp_Object watch, watch_id;
-  Lisp_Object mask = INTEGER_TO_CONS (imask);
+  Lisp_Object mask = INT_TO_INTEGER (imask);
 
   EMACS_INT id = 0;
   if (NILP (tail))
@@ -220,7 +217,7 @@ add_watch (int wd, Lisp_Object filename,
       /* Assign a watch ID that is not already in use, by looking
 	 for a gap in the existing sorted list.  */
       for (; ! NILP (XCDR (tail)); tail = XCDR (tail), id++)
-	if (!EQ (XCAR (XCAR (XCDR (tail))), make_number (id)))
+	if (!BASE_EQ (XCAR (XCAR (XCDR (tail))), make_fixnum (id)))
 	  break;
       if (MOST_POSITIVE_FIXNUM < id)
 	emacs_abort ();
@@ -229,7 +226,7 @@ add_watch (int wd, Lisp_Object filename,
   /* Insert the newly-assigned ID into the previously-discovered gap,
      which is possibly at the end of the list.  Inserting it there
      keeps the list sorted.  */
-  watch_id = make_number (id);
+  watch_id = make_fixnum (id);
   watch = list4 (watch_id, filename, callback, mask);
   XSETCDR (tail, Fcons (watch, XCDR (tail)));
 
@@ -332,7 +329,7 @@ inotify_callback (int fd, void *_)
   for (ssize_t i = 0; i < n; )
     {
       struct inotify_event *ev = (struct inotify_event *) &buffer[i];
-      Lisp_Object descriptor = INTEGER_TO_CONS (ev->wd);
+      Lisp_Object descriptor = INT_TO_INTEGER (ev->wd);
       Lisp_Object prevtail = find_descriptor (descriptor);
 
       if (! NILP (prevtail))
@@ -446,12 +443,12 @@ static bool
 valid_watch_descriptor (Lisp_Object wd)
 {
   return (CONSP (wd)
-	  && (RANGED_INTEGERP (0, XCAR (wd), INT_MAX)
+	  && (RANGED_FIXNUMP (0, XCAR (wd), INT_MAX)
 	      || (CONSP (XCAR (wd))
-		  && RANGED_INTEGERP ((MOST_POSITIVE_FIXNUM >> 16) + 1,
+		  && RANGED_FIXNUMP ((MOST_POSITIVE_FIXNUM >> 16) + 1,
 				      XCAR (XCAR (wd)), INT_MAX >> 16)
-		  && RANGED_INTEGERP (0, XCDR (XCAR (wd)), (1 << 16) - 1)))
-	  && NATNUMP (XCDR (wd)));
+		  && RANGED_FIXNUMP (0, XCDR (XCAR (wd)), (1 << 16) - 1)))
+	  && FIXNATP (XCDR (wd)));
 }
 
 DEFUN ("inotify-rm-watch", Finotify_rm_watch, Sinotify_rm_watch, 1, 1, 0,
@@ -503,7 +500,7 @@ DEFUN ("inotify-watch-list", Finotify_watch_list, Sinotify_watch_list, 0, 0, 0,
 }
 
 DEFUN ("inotify-allocated-p", Finotify_allocated_p, Sinotify_allocated_p, 0, 0, 0,
-       doc: /* Return non-nil, if a inotify instance is allocated.  */)
+       doc: /* Return non-nil, if an inotify instance is allocated.  */)
 {
   return inotifyfd < 0 ? Qnil : Qt;
 }
@@ -533,7 +530,10 @@ syms_of_inotify (void)
   DEFSYM (Qdont_follow, "dont-follow");	/* IN_DONT_FOLLOW */
   DEFSYM (Qonlydir, "onlydir");		/* IN_ONLYDIR */
 
+#if 0
+  /* Defined in coding.c, which uses it on all platforms.  */
   DEFSYM (Qignored, "ignored");		/* IN_IGNORED */
+#endif
   DEFSYM (Qisdir, "isdir");		/* IN_ISDIR */
   DEFSYM (Qq_overflow, "q-overflow");	/* IN_Q_OVERFLOW */
   DEFSYM (Qunmount, "unmount");		/* IN_UNMOUNT */
@@ -550,5 +550,3 @@ syms_of_inotify (void)
 
   Fprovide (intern_c_string ("inotify"), Qnil);
 }
-
-#endif /* HAVE_INOTIFY */

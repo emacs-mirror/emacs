@@ -1,6 +1,6 @@
-;;; kermit.el --- additions to shell mode for use with kermit
+;;; kermit.el --- additions to shell mode for use with kermit -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Maintainer: emacs-devel@gnu.org
@@ -29,7 +29,7 @@
 ;; is that I can log onto machines with primitive operating systems (VMS and
 ;; ATT system V :-), and still have the features of shell-mode available for
 ;; command history, etc.  It's also handy to be able to run a file transfer in
-;; an emacs window.  The transfer is in the "background", but you can also
+;; an Emacs window.  The transfer is in the "background", but you can also
 ;; monitor or stop it easily.
 
 ;; The ^\ key is bound to a function for sending escape sequences to kermit,
@@ -77,7 +77,13 @@
 
 (require 'shell)
 
-(defvar kermit-esc-char "\C-\\" "*Kermit's escape char.")
+(defgroup kermit nil
+  "Kermit support."
+  :group 'comm)
+
+(defcustom kermit-esc-char "\C-\\"
+  "Kermit's escape char."
+  :type 'string)
 
 (defun kermit-esc ()
   "For sending escape sequences to a kermit running in shell mode."

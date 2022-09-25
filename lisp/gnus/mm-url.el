@@ -1,6 +1,6 @@
-;;; mm-url.el --- a wrapper of url functions/commands for Gnus
+;;; mm-url.el --- a wrapper of url functions/commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -28,27 +28,21 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'mm-util)
 (require 'gnus)
 
 (defvar url-current-object)
-(defvar url-package-name)
-(defvar url-package-version)
 
 (defgroup mm-url nil
   "A wrapper of url package and external url command for Gnus."
   :group 'gnus)
 
-(defcustom mm-url-use-external (not
-				(condition-case nil
-				    (require 'url)
-				  (error nil)))
+(defcustom mm-url-use-external nil
   "If non-nil, use external grab program `mm-url-program'."
   :version "22.1"
-  :type 'boolean
-  :group 'mm-url)
+  :type 'boolean)
 
 (defvar mm-url-predefined-programs
   '((wget "wget" "--user-agent=mm-url" "-q" "-O" "-")
@@ -71,14 +65,12 @@ Likely values are `wget', `w3m', `lynx' and `curl'."
 	  (symbol :tag "w3m" w3m)
 	  (symbol :tag "lynx" lynx)
 	  (symbol :tag "curl" curl)
-	  (string :tag "other"))
-  :group 'mm-url)
+	  (string :tag "other")))
 
 (defcustom mm-url-arguments nil
   "The arguments for `mm-url-program'."
   :version "22.1"
-  :type '(repeat string)
-  :group 'mm-url)
+  :type '(repeat string))
 
 
 ;;; Internal variables
@@ -302,7 +294,7 @@ If `mm-url-use-external' is non-nil, use `mm-url-program'."
 		args (append (cdr item) (list url))))
       (setq program mm-url-program
 	    args (append mm-url-arguments (list url))))
-    (unless (eq 0 (apply 'call-process program nil t nil args))
+    (unless (eq 0 (apply #'call-process program nil t nil args))
       (error "Couldn't fetch %s" url))))
 
 (defvar mm-url-timeout 30
@@ -318,7 +310,7 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 	(done nil)
 	(first t)
 	result)
-    (while (and (not (zerop (decf times)))
+    (while (and (not (zerop (cl-decf times)))
 		(not done))
       (with-timeout (mm-url-timeout)
 	(unless first

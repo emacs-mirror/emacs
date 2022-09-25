@@ -1,5 +1,5 @@
 /* Functions to manipulate menus.
-   Copyright (C) 2008-2017 Free Software Foundation, Inc.
+   Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,13 +30,12 @@ enum {
 };
 
 extern void init_menu_items (void);
-extern void finish_menu_items (void) ATTRIBUTE_CONST;
+extern void finish_menu_items (void);
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
 extern bool parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void list_of_panes (Lisp_Object);
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
-  || defined (HAVE_NS)
+#ifdef HAVE_EXT_MENU_BAR
 extern void free_menubar_widget_value_tree (widget_value *);
 extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (struct frame *, int,
@@ -48,16 +47,26 @@ extern widget_value *digest_single_submenu (int, int, bool);
 #if defined (HAVE_X_WINDOWS) || defined (MSDOS)
 extern Lisp_Object x_menu_show (struct frame *, int, int, int,
 				Lisp_Object, const char **);
+extern void x_activate_menubar (struct frame *);
 #endif
 #ifdef HAVE_NTGUI
 extern Lisp_Object w32_menu_show (struct frame *, int, int, int,
 				  Lisp_Object, const char **);
+extern void w32_activate_menubar (struct frame *);
 #endif
 #ifdef HAVE_NS
 extern Lisp_Object ns_menu_show (struct frame *, int, int, int,
 				 Lisp_Object, const char **);
+extern void ns_activate_menubar (struct frame *);
 #endif
+#ifdef HAVE_PGTK
+extern Lisp_Object pgtk_menu_show (struct frame *, int, int, int,
+				 Lisp_Object, const char **);
+extern void pgtk_activate_menubar (struct frame *);
+#endif
+
 extern Lisp_Object tty_menu_show (struct frame *, int, int, int,
 				  Lisp_Object, const char **);
 extern ptrdiff_t menu_item_width (const unsigned char *);
+extern Lisp_Object x_popup_menu_1 (Lisp_Object position, Lisp_Object menu);
 #endif /* MENU_H */

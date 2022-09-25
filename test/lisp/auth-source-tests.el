@@ -1,6 +1,6 @@
 ;;; auth-source-tests.el --- Tests for auth-source.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -27,11 +27,10 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
 (require 'auth-source)
-
-(defvar secrets-enabled t
-  "Enable the secrets backend to test its features.")
+(require 'secrets)
 
 (defun auth-source-ensure-ignored-backend (source)
     (auth-source-validate-backend source '((:source . "")
@@ -210,6 +209,25 @@
                     ("login" . "user1")
                     ("machine" . "mymachine1"))))))
 
+(ert-deftest auth-source-test-netrc-parse-one ()
+  (should (equal (auth-source--test-netrc-parse-one--all
+                  "machine host1\n# comment\n")
+                 '("machine" "host1")))
+  (should (equal (auth-source--test-netrc-parse-one--all
+                  "machine host1\n  \n  \nmachine host2\n")
+                 '("machine" "host1" "machine" "host2"))))
+
+(defun auth-source--test-netrc-parse-one--all (text)
+  "Parse TEXT with `auth-source-netrc-parse-one' until end,return list."
+  (with-temp-buffer
+    (insert text)
+    (goto-char (point-min))
+    (let ((one (auth-source-netrc-parse-one)) all)
+      (while one
+        (push one all)
+        (setq one (auth-source-netrc-parse-one)))
+      (nreverse all))))
+
 (ert-deftest auth-source-test-format-prompt ()
   (should (equal (auth-source-format-prompt "test %u %h %p" '((?u "user") (?h "host")))
                  "test user host %p")))
@@ -230,7 +248,7 @@
     (should-not (auth-source-remembered-p '(:host t)))))
 
 (ert-deftest auth-source-test-searches ()
-  "Test auth-source searches with various parameters"
+  "Test auth-source searches with various parameters."
   :tags '(auth-source auth-source/netrc)
   (let* ((entries '("machine a1 port a2 user a3 password a4"
                     "machine b1 port b2 user b3 password b4"
@@ -260,34 +278,161 @@
                    "((:host \"a1\" :port \"a2\" :user \"a3\" :secret \"a4\") (:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\") (:host \"c1\" :port \"c2\" :user \"c3\" :secret \"c4\"))"
                    :host t :max 4)
                   ("host b1, default max is 1"
-                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
                    :host "b1")
                   ("host b1, port b2, user b3, default max is 1"
-                  "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
+                   "((:host \"b1\" :port \"b2\" :user \"b3\" :secret \"b4\"))"
                    :host "b1" :port "b2" :user "b3")
-                  ))
+                  )))
+    (ert-with-temp-file netrc-file
+      :text (mapconcat 'identity entries "\n")
+      (let ((auth-sources (list netrc-file))
+            (auth-source-do-cache nil)
+            found found-as-string)
 
-         (netrc-file (make-temp-file "auth-source-test" nil nil
-                                     (mapconcat 'identity entries "\n")))
-         (auth-sources (list netrc-file))
-         (auth-source-do-cache nil)
-         found found-as-string)
+        (dolist (test tests)
+          (cl-destructuring-bind (testname needed &rest parameters) test
+            (setq found (apply #'auth-source-search parameters))
+            (when (listp found)
+              (dolist (f found)
+                (setf f (plist-put f :secret (auth-info-password f)))))
 
-    (dolist (test tests)
-      (cl-destructuring-bind (testname needed &rest parameters) test
-        (setq found (apply #'auth-source-search parameters))
-        (when (listp found)
-          (dolist (f found)
-            (setf f (plist-put f :secret
-	                       (let ((secret (plist-get f :secret)))
-		                 (if (functionp secret)
-		                     (funcall secret)
-		                   secret))))))
+            (setq found-as-string (format "%s: %S" testname found))
+            ;; (message "With parameters %S found: [%s] needed: [%s]"
+            ;;          parameters found-as-string needed)
+            (should (equal found-as-string (concat testname ": " needed)))))))))
 
-        (setq found-as-string (format "%s: %S" testname found))
-        ;; (message "With parameters %S found: [%s] needed: [%s]" parameters found-as-string needed)
-        (should (equal found-as-string (concat testname ": " needed)))))
-    (delete-file netrc-file)))
+(ert-deftest auth-source-test-secrets-create-secret ()
+  (skip-unless secrets-enabled)
+  ;; The "session" collection is temporary for the lifetime of the
+  ;; Emacs process.  Therefore, we don't care to delete it.
+  (let ((auth-sources '((:source (:secrets "session"))))
+        (auth-source-save-behavior t)
+        host auth-info auth-passwd)
+    (dolist (passwd '("foo" "" nil))
+      (unwind-protect
+          ;; Redefine `read-*' in order to avoid interactive input.
+          (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                    ((symbol-function 'read-string)
+                     (lambda (_prompt &optional _initial _history default
+                                      _inherit-input-method)
+                       default)))
+            (setq host
+                  (md5 (concat (prin1-to-string process-environment) passwd))
+                  auth-info
+                  (car (auth-source-search
+                        :max 1 :host host :require '(:user :secret) :create t))
+	          auth-passwd (auth-info-password auth-info))
+            (should (string-equal (plist-get auth-info :user) (user-login-name)))
+            (should (string-equal (plist-get auth-info :host) host))
+            (should (equal auth-passwd passwd))
+            (when (functionp (plist-get auth-info :save-function))
+              (funcall (plist-get auth-info :save-function)))
+
+            ;; Check, that the item has been created indeed.
+            (auth-source-forget+ :host t)
+            (setq auth-info (car (auth-source-search :host host))
+	          auth-passwd (auth-info-password auth-info))
+            (if (zerop (length passwd))
+                (progn
+                  (should-not (plist-get auth-info :user))
+                  (should-not (plist-get auth-info :host))
+                  (should-not auth-passwd))
+              (should
+               (string-equal (plist-get auth-info :user) (user-login-name)))
+              (should (string-equal (plist-get auth-info :host) host))
+              (should (string-equal auth-passwd passwd)))))
+
+      ;; Cleanup.
+      ;; Should use `auth-source-delete' when implemented for :secrets backend.
+      (secrets-delete-item
+       "session"
+       (format "%s@%s" (plist-get auth-info :user) (plist-get auth-info :host))))))
+
+(ert-deftest auth-source-test-netrc-create-secret ()
+  (ert-with-temp-file netrc-file
+    :suffix "auth-source-test"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-save-behavior t)
+           host auth-info auth-passwd)
+      (dolist (passwd '("foo" "" nil))
+        ;; Redefine `read-*' in order to avoid interactive input.
+        (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
+                  ((symbol-function 'read-string)
+                   (lambda (_prompt &optional _initial _history default
+                               _inherit-input-method)
+                     default)))
+          (setq host
+                (md5 (concat (prin1-to-string process-environment) passwd))
+                auth-info
+                (car (auth-source-search
+                      :max 1 :host host :require '(:user :secret) :create t))
+                auth-passwd (auth-info-password auth-info))
+          (should (string-equal (plist-get auth-info :user) (user-login-name)))
+          (should (string-equal (plist-get auth-info :host) host))
+          (should (equal auth-passwd passwd))
+          (when (functionp (plist-get auth-info :save-function))
+            (funcall (plist-get auth-info :save-function)))
+
+          ;; Check, that the item has been created indeed.
+          (auth-source-forget+ :host t)
+          (setq auth-source-netrc-cache nil)
+          (setq auth-info (car (auth-source-search :host host))
+                auth-passwd (auth-info-password auth-info))
+          (with-temp-buffer
+            (insert-file-contents netrc-file)
+            (if (zerop (length passwd))
+                (progn
+                  (should-not (plist-get auth-info :user))
+                  (should-not (plist-get auth-info :host))
+                  (should-not auth-passwd)
+                  (should-not (search-forward host nil 'noerror)))
+              (should
+               (string-equal (plist-get auth-info :user) (user-login-name)))
+              (should (string-equal (plist-get auth-info :host) host))
+              (should (string-equal auth-passwd passwd))
+              (should (search-forward host nil 'noerror)))))))))
+
+(ert-deftest auth-source-delete ()
+  (ert-with-temp-file netrc-file
+    :suffix "auth-source-test" :text "\
+machine a1 port a2 user a3 password a4
+machine b1 port b2 user b3 password b4
+machine c1 port c2 user c3 password c4\n"
+    (let* ((auth-sources (list netrc-file))
+           (auth-source-do-cache nil)
+           (expected '((:host "a1" :port "a2" :user "a3" :secret "a4")))
+           (parameters '(:max 1 :host t))
+           (found (apply #'auth-source-delete parameters)))
+      (dolist (f found)
+        (setf f (plist-put f :secret (auth-info-password f))))
+      ;; Note: The netrc backend doesn't delete anything, so
+      ;; this is actually the same as `auth-source-search'.
+      (should (equal found expected)))))
+
+(ert-deftest test-netrc-credentials ()
+  (let ((data (auth-source-netrc-parse-all (ert-resource-file "authinfo"))))
+    (should data)
+    (let ((imap (seq-find (lambda (elem)
+                            (equal (cdr (assoc "machine" elem))
+                                   "imap.example.org"))
+                          data)))
+      (should (equal (cdr (assoc "login" imap)) "jrh@example.org"))
+      (should (equal (cdr (assoc "password" imap)) "*foobar*")))
+    (let ((imap (seq-find (lambda (elem)
+                            (equal (cdr (assoc "machine" elem))
+                                   "ftp.example.org"))
+                          data)))
+      (should (equal (cdr (assoc "login" imap)) "jrh"))
+      (should (equal (cdr (assoc "password" imap)) "*baz*")))))
+
+(ert-deftest test-netrc-credentials-2 ()
+  (let ((data (auth-source-netrc-parse-all
+               (ert-resource-file "netrc-folding"))))
+    (should
+     (equal data
+            '((("machine" . "XM") ("login" . "XL") ("password" . "XP"))
+              (("machine" . "YM") ("login" . "YL") ("password" . "YP")))))))
 
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

@@ -1,6 +1,6 @@
-;;; cc-vars.el --- user customization variables for CC Mode
+;;; cc-vars.el --- user customization variables for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -41,6 +41,9 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
+
+(defvar c-syntactic-context)
+(defvar c-syntactic-element)
 
 (cc-eval-when-compile
   (require 'custom)
@@ -167,7 +170,7 @@ use c-constant-symbol instead."
 (defmacro defcustom-c-stylevar (name val doc &rest args)
   "Define a style variable NAME with VAL and DOC.
 More precisely, convert the given `:type FOO', mined out of ARGS,
-to an aggregate `:type (radio STYLE (PREAMBLE FOO))', append some
+to an aggregate `:type (radio STYLE (PREAMBLE FOO))', append
 some boilerplate documentation to DOC, arrange for the fallback
 value of NAME to be VAL, and call `custom-declare-variable' to
 do the rest of the work.
@@ -176,7 +179,7 @@ STYLE stands for the choice where the value is taken from some
 style setting.  PREAMBLE is optionally prepended to FOO; that is,
 if FOO contains :tag or :value, the respective two-element list
 component is ignored."
-  (declare (debug (symbolp form stringp &rest)))
+  (declare (debug (symbolp form stringp &rest)) (indent defun))
   (let* ((expanded-doc (concat doc "
 
 This is a style variable.  Apart from the valid values described
@@ -289,9 +292,9 @@ nil."
   "Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.  If nil, hitting
 TAB indents the current line if point is at the left margin or in the
-line's indentation, otherwise it inserts a `real' tab character \(see
-note).  If some other value \(not nil or t), then tab is inserted only
-within literals \(comments and strings), but the line is always
+line's indentation, otherwise it inserts a `real' tab character (see
+note).  If some other value (not nil or t), then tab is inserted only
+within literals (comments and strings), but the line is always
 reindented.
 
 Note: The value of `indent-tabs-mode' will determine whether a real
@@ -345,10 +348,11 @@ of the macro content.  The default context inside the macro is the
 same as the top level, so if it contains \"bare\" statements they
 might be indented wrongly, although there are special cases that
 handle this in most cases.  If this problem occurs, it's usually
-countered easily by surrounding the statements by a block \(or even
-better with the \"do { ... } while \(0)\" trick)."
+countered easily by surrounding the statements by a block (or even
+better with the \"do { ... } while (0)\" trick)."
   :type 'boolean
   :group 'c)
+
 (put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
 (defcustom c-defun-tactic 'go-outward
@@ -563,7 +567,8 @@ variable in a mode hook."
 (defcustom-c-stylevar c-doc-comment-style
   '((java-mode . javadoc)
     (pike-mode . autodoc)
-    (c-mode    . gtkdoc))
+    (c-mode    . gtkdoc)
+    (c++-mode  . gtkdoc))
   "Specifies documentation comment style(s) to recognize.
 This is primarily used to fontify doc comments and the markup within
 them, e.g. Javadoc comments.
@@ -573,7 +578,9 @@ comment styles:
 
  javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
  autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
- gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C mode).
+ gtkdoc  -- GtkDoc style for \"/** ... **/\" comments
+						   (default in C and C++ modes).
+ doxygen -- Doxygen style.
 
 The value may also be a list of doc comment styles, in which case all
 of them are recognized simultaneously (presumably with markup cues
@@ -1115,7 +1122,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: At the brace list decl start(*).
        (brace-list-intro      . +)
        ;; Anchor pos: At the brace list decl start(*).
-       (brace-list-entry      . c-lineup-under-anchor)
+       (brace-list-entry      . 0)
        ;; Anchor pos: At the first non-ws char after the open paren if
        ;; the first token is on the same line, otherwise boi at that
        ;; token.
@@ -1210,7 +1217,7 @@ can always override the use of `c-default-style' by making calls to
        (template-args-cont    . (c-lineup-template-args +))
        ;; Anchor pos: Boi at the decl start.  This might be changed;
        ;; the logical position is clearly the opening '<'.
-       (inlambda              . c-lineup-inexpr-block)
+       (inlambda              . 0)
        ;; Anchor pos: None.
        (lambda-intro-cont     . +)
        ;; Anchor pos: Boi at the lambda start.
@@ -1220,15 +1227,15 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: None.
        ))
 (defcustom c-offsets-alist nil
-  "Association list of syntactic element symbols and indentation offsets.
+  "Alist of syntactic element symbols and indentation offsets.
 As described below, each cons cell in this list has the form:
 
     (SYNTACTIC-SYMBOL . OFFSET)
 
 When a line is indented, CC Mode first determines the syntactic
 context of it by generating a list of symbols called syntactic
-elements.  The global variable `c-syntactic-context' is bound to the
-that list.  Each element in the list is in turn a list where the first
+elements.  The global variable `c-syntactic-context' is bound to that
+list.  Each element in the list is in turn a list where the first
 element is a syntactic symbol which tells what kind of construct the
 indentation point is located within.  More elements in the syntactic
 element lists are optional.  If there is one more and it isn't nil,
@@ -1292,7 +1299,7 @@ OFFSET can specify an offset in several different ways:
 this variable are normally taken from the style system in CC Mode
 \(see `c-default-style' and `c-style-alist').  However, any offsets
 put explicitly on this list will override the style system when a CC
-Mode buffer is initialized \(there is a variable
+Mode buffer is initialized (there is a variable
 `c-old-style-variable-behavior' that changes this, though).
 
 Here is the current list of valid syntactic element symbols:
@@ -1420,23 +1427,23 @@ localized, they cannot be made global again.
 This variable must be set appropriately before CC Mode is loaded.
 
 The list of variables to buffer localize are:
-    c-basic-offset
-    c-comment-only-line-offset
-    c-indent-comment-alist
-    c-indent-comments-syntactically-p
-    c-block-comment-prefix
-    c-comment-prefix-regexp
-    c-doc-comment-style
-    c-cleanup-list
-    c-hanging-braces-alist
-    c-hanging-colons-alist
-    c-hanging-semi&comma-criteria
-    c-backslash-column
-    c-backslash-max-column
-    c-label-minimum-indentation
-    c-offsets-alist
-    c-special-indent-hook
-    c-indentation-style"
+    `c-basic-offset'
+    `c-comment-only-line-offset'
+    `c-indent-comment-alist'
+    `c-indent-comments-syntactically-p'
+    `c-block-comment-prefix'
+    `c-comment-prefix-regexp'
+    `c-doc-comment-style'
+    `c-cleanup-list'
+    `c-hanging-braces-alist'
+    `c-hanging-colons-alist'
+    `c-hanging-semi&comma-criteria'
+    `c-backslash-column'
+    `c-backslash-max-column'
+    `c-label-minimum-indentation'
+    `c-offsets-alist'
+    `c-special-indent-hook'
+    `c-indentation-style'"
   :type 'boolean
   :safe 'booleanp
   :group 'c)
@@ -1641,40 +1648,66 @@ In the fontification engine, it is sometimes impossible to determine
 whether a construct is a declaration or an expression.  This happens
 particularly in C++, due to ambiguities in the language.  When such a
 construct is like \"foo * bar\" or \"foo &bar\", and this variable is non-nil
-(the default), the construct will be fontified as a declaration if there is
+\(the default), the construct will be fontified as a declaration if there is
 white space either before or after the operator, but not both."
+  :version "26.1"
   :type 'boolean
   :group 'c)
 
-(defvar c-noise-macro-with-parens-name-re "\\<\\>")
-(defvar c-noise-macro-name-re "\\<\\>")
+(defcustom c-cpp-indent-to-body-directives '("pragma")
+  "Preprocessor directives which will be indented as statements.
+
+A list of Preprocessor directives which when reindented, or newly
+typed in, will cause the \"#\" introducing the directive to be
+indented as a statement."
+  :type '(repeat string)
+  :group 'c)
+
+;; Initialize the next two to a regexp which never matches.
+(defvar c-noise-macro-with-parens-name-re regexp-unmatchable)
+(make-variable-buffer-local 'c-noise-macro-with-parens-name-re)
+(defvar c-noise-macro-name-re regexp-unmatchable)
+(make-variable-buffer-local 'c-noise-macro-name-re)
 
 (defcustom c-noise-macro-names nil
   "A list of names of macros which expand to nothing, or compiler extensions
-like \"????\" which are syntactic noise.  Such a macro/extension is complete in
-itself, never having parentheses.  All these names must be syntactically valid
-identifiers.
+like \"INLINE\" which are syntactic noise.  Such a macro/extension is complete
+in itself, never having parentheses.  All these names must be syntactically
+valid identifiers.  Alternatively, this variable may be a regular expression
+which matches the names of such macros, in which case it must have a submatch
+1 which matches the actual noise macro name.
 
 If you change this variable's value, call the function
 `c-make-noise-macro-regexps' to set the necessary internal variables (or do
 this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
+  :version "26.1"
   :type '(repeat :tag "List of names" string)
   :group 'c)
 (put 'c-noise-macro-names 'safe-local-variable #'c-string-list-p)
+(make-variable-buffer-local 'c-noise-macro-names)
 
 (defcustom c-noise-macro-with-parens-names nil
-  "A list of names of macros \(or compiler extensions like \"__attribute__\")
+  "A list of names of macros (or compiler extensions like \"__attribute__\")
 which optionally have arguments in parentheses, and which expand to nothing.
-These are recognized by CC Mode only in declarations."
-  :type '(regexp :tag "List of names (possibly empty)" string)
+All these names must be syntactically valid identifiers.  These are recognized
+by CC Mode only in declarations.  Alternatively, this variable may be a
+regular expression which matches the names of such macros, in which case it
+must have a submatch 1 which matches the actual noise macro name.
+
+If you change this variable's value, call the function
+`c-make-noise-macro-regexps' to set the necessary internal variables (or do
+this implicitly by reinitializing C/C++/Objc Mode on any buffer)."
+  :version "26.1"
+  :type '(repeat :tag "List of names (possibly empty)" string)
   :group 'c)
 (put 'c-noise-macro-with-parens-names 'safe-local-variable #'c-string-list-p)
+(make-variable-buffer-local 'c-noise-macro-with-parens-names)
 
 (defun c-make-noise-macro-regexps ()
   ;; Convert `c-noise-macro-names' and `c-noise-macro-with-parens-names' into
   ;; `c-noise-macro-name-re' and `c-noise-macro-with-parens-name-re'.
   (setq c-noise-macro-with-parens-name-re
-	(cond ((null c-noise-macro-with-parens-names) "\\<\\>")
+	(cond ((null c-noise-macro-with-parens-names) regexp-unmatchable)
 	      ((consp c-noise-macro-with-parens-names)
 	       (concat (regexp-opt c-noise-macro-with-parens-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))
@@ -1683,7 +1716,7 @@ These are recognized by CC Mode only in declarations."
 	      (t (error "c-make-noise-macro-regexps: \
 c-noise-macro-with-parens-names is invalid: %s" c-noise-macro-with-parens-names))))
   (setq c-noise-macro-name-re
-	(cond ((null c-noise-macro-names) "\\<\\>")
+	(cond ((null c-noise-macro-names) regexp-unmatchable)
 	      ((consp c-noise-macro-names)
 	       (concat (regexp-opt c-noise-macro-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))
@@ -1709,7 +1742,7 @@ Alternatively it can be a string, a regular expression which
 matches all such symbols.
 
 The \"symbols\" must be syntactically valid identifiers in the
-target language \(C, C++, Objective C), or \(as the case may be)
+target language (C, C++, Objective C), or (as the case may be)
 the regular expression must match only valid identifiers.
 
 If you change this variable's value, call the function
@@ -1737,9 +1770,17 @@ variables.")
 		      ; all XEmacsen.
 	  ((null c-macro-names-with-semicolon)
 	   nil)
-	  (t (error "c-make-macro-with-semi-re: invalid \
+	  (t (error "c-make-macro-with-semi-re: Invalid \
 c-macro-names-with-semicolon: %s"
 		    c-macro-names-with-semicolon))))))
+
+(defcustom c-mark-wrong-style-of-comment nil
+  "Fontify \"invalid\" comment delims with `font-lock-warning-face' if non-nil.
+\"Invalid\" means a line comment when the default comment style (set by
+`c-toggle-comment-style') is block, or a block comment otherwise."
+  :type 'boolean
+  :group 'c
+  :version "27.1")
 
 (defvar c-file-style nil
   "Variable interface for setting style via File Local Variables.
@@ -1779,9 +1820,9 @@ as designated in the variable `c-file-style'.")
 It is a list with one element for each syntactic symbol pertinent to the
 line, for example \"((defun-block-intro 1) (comment-intro))\".
 
-It is dynamically bound when calling \(i) a brace hanging \"action
-function\"; \(ii) a semicolon/comma hanging \"criteria function\"; \(iii) a
-\"line-up function\"; \(iv) a c-special-indent-hook function.  It is also
+It is dynamically bound when calling (i) a brace hanging \"action
+function\"; (ii) a semicolon/comma hanging \"criteria function\"; (iii) a
+\"line-up function\"; (iv) a c-special-indent-hook function.  It is also
 used internally by CC Mode.
 
 c-syntactic-context is always bound dynamically.  It must NEVER be set
@@ -1823,13 +1864,13 @@ Set from `c-comment-prefix-regexp' at mode initialization.")
 (defvar c-string-par-start
 ;;   (concat "\\(" (default-value 'paragraph-start) "\\)\\|[ \t]*\\\\$")
   "\f\\|[ \t]*\\\\?$"
-  "Value of paragraph-start used when scanning strings.
+  "Value of `paragraph-start' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 (defvar c-string-par-separate
   ;; (concat "\\(" (default-value 'paragraph-separate) "\\)\\|[ \t]*\\\\$")
   "[ \t\f]*\\\\?$"
-  "Value of paragraph-separate used when scanning strings.
+  "Value of `paragraph-separate' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 (defvar c-sentence-end-with-esc-eol
@@ -1837,7 +1878,7 @@ It treats escaped EOLs as whitespace.")
 		;; N.B.:  "$" would be illegal when not enclosed like "\\($\\)".
 		"\\|" "[.?!][]\"')}]* ?\\\\\\($\\)[ \t\n]*"
 		"\\)")
-  "Value used like sentence-end used when scanning strings.
+  "Value used like `sentence-end' used when scanning strings.
 It treats escaped EOLs as whitespace.")
 
 

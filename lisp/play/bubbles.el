@@ -1,6 +1,6 @@
-;;; bubbles.el --- Puzzle game for Emacs
+;;; bubbles.el --- Puzzle game for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -28,14 +28,9 @@
 ;; possible in as few moves as possible.
 
 ;; Bubbles is an implementation of the "Same Game", similar to "Same
-;; GNOME" and many others, see <http://en.wikipedia.org/wiki/SameGame>.
+;; GNOME" and many others, see <https://en.wikipedia.org/wiki/SameGame>.
 
-;; Installation
-;; ------------
-
-;; Add the following lines to your init file:
-;; (add-to-list 'load-path "/path/to/bubbles/")
-;; (autoload 'bubbles "bubbles" "Play Bubbles" t)
+;;; Code:
 
 ;; ======================================================================
 
@@ -77,16 +72,16 @@
 
 ;; ======================================================================
 
-;;; Code:
-
-(defconst bubbles-version "0.5" "Version number of bubbles.el.")
-
 (require 'gamegrid)
 
 ;; User options
 
 ;; Careful with that axe, Eugene! Order does matter in the custom
 ;; section below.
+
+(defgroup bubbles nil
+  "Bubbles, a puzzle game."
+  :group 'games)
 
 (defcustom bubbles-game-theme
   'easy
@@ -97,8 +92,7 @@ and a shift mode."
                 (const :tag "Medium" medium)
                 (const :tag "Difficult" difficult)
                 (const :tag "Hard" hard)
-                (const :tag "User defined" user-defined))
-  :group 'bubbles)
+                (const :tag "User defined" user-defined)))
 
 (defun bubbles-set-game-easy ()
   "Set game theme to `easy'."
@@ -130,10 +124,6 @@ and a shift mode."
   (setq bubbles-game-theme 'user-defined)
   (bubbles))
 
-(defgroup bubbles nil
-  "Bubbles, a puzzle game."
-  :group 'games)
-
 (defcustom bubbles-graphics-theme
   'circles
   "Graphics theme.
@@ -144,8 +134,7 @@ images the `ascii' theme will be used."
                 (const :tag "Diamonds" diamonds)
                 (const :tag "Balls" balls)
                 (const :tag "Emacs" emacs)
-                (const :tag "ASCII (no images)" ascii))
-  :group 'bubbles)
+                (const :tag "ASCII (no images)" ascii)))
 
 (defconst bubbles--grid-small '(10 . 10)
   "Predefined small bubbles grid.")
@@ -168,8 +157,7 @@ images the `ascii' theme will be used."
                 (const :tag "Huge" ,bubbles--grid-huge)
                 (cons :tag "User defined"
                       (integer :tag "Width")
-                      (integer :tag "Height")))
-  :group 'bubbles)
+                      (integer :tag "Height"))))
 
 (defconst bubbles--colors-2 '("orange" "violet")
   "Predefined bubbles color list with two colors.")
@@ -194,16 +182,14 @@ types are present."
                 (const :tag "Red, darkgreen, blue, orange" ,bubbles--colors-4)
                 (const :tag "Red, darkgreen, blue, orange, violet"
                        ,bubbles--colors-5)
-                (repeat :tag "User defined" color))
-  :group 'bubbles)
+                (repeat :tag "User defined" color)))
 
 (defcustom bubbles-chars
   '(?+ ?O ?# ?X ?. ?* ?& ?§)
   "Characters used for bubbles.
 Note that the actual number of different bubbles is determined by
 the number of colors, see `bubbles-colors'."
-  :type '(repeat character)
-  :group 'bubbles)
+  :type '(repeat character))
 
 (defcustom bubbles-shift-mode
   'default
@@ -212,12 +198,10 @@ Available modes are `shift-default' and `shift-always'."
   :type '(radio (const :tag "Default" default)
                 (const :tag "Shifter" always)
                 ;;(const :tag "Mega Shifter" mega)
-                )
-  :group 'bubbles)
+                ))
 
 (defcustom bubbles-mode-hook nil
   "Hook run by Bubbles mode."
-  :group 'bubbles
   :type 'hook)
 
 (defun bubbles-customize ()
@@ -250,10 +234,10 @@ Available modes are `shift-default' and `shift-always'."
   "Indicate whether images have been created successfully.")
 
 (defvar bubbles--col-offset 0
-  "Horizontal offset for centering the bubbles grid.")
+  "Horizontal offset for centering the bubbles grid, in pixels.")
 
 (defvar bubbles--row-offset 0
-  "Vertical offset for centering the bubbles grid.")
+  "Vertical offset for centering the bubbles grid, in pixels.")
 
 (defvar bubbles--save-data nil
   "List containing bubbles save data (SCORE BUFFERCONTENTS).")
@@ -718,57 +702,57 @@ static char * dot3d_xpm[] = {
 (defsubst bubbles--grid-width ()
   "Return the grid width for the current game theme."
   (car (pcase bubbles-game-theme
-         (`easy
+         ('easy
           bubbles--grid-small)
-         (`medium
+         ('medium
           bubbles--grid-medium)
-         (`difficult
+         ('difficult
           bubbles--grid-large)
-         (`hard
+         ('hard
           bubbles--grid-huge)
-         (`user-defined
+         ('user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--grid-height ()
   "Return the grid height for the current game theme."
   (cdr (pcase bubbles-game-theme
-         (`easy
+         ('easy
           bubbles--grid-small)
-         (`medium
+         ('medium
           bubbles--grid-medium)
-         (`difficult
+         ('difficult
           bubbles--grid-large)
-         (`hard
+         ('hard
           bubbles--grid-huge)
-         (`user-defined
+         ('user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--colors ()
   "Return the color list for the current game theme."
   (pcase bubbles-game-theme
-    (`easy
+    ('easy
      bubbles--colors-2)
-    (`medium
+    ('medium
      bubbles--colors-3)
-    (`difficult
+    ('difficult
      bubbles--colors-4)
-    (`hard
+    ('hard
      bubbles--colors-5)
-    (`user-defined
+    ('user-defined
      bubbles-colors)))
 
 (defsubst bubbles--shift-mode ()
   "Return the shift mode for the current game theme."
   (pcase bubbles-game-theme
-    (`easy
+    ('easy
      'default)
-    (`medium
+    ('medium
      'default)
-    (`difficult
+    ('difficult
      'always)
-    (`hard
+    ('hard
      'always)
-    (`user-defined
+    ('user-defined
      bubbles-shift-mode)))
 
 (defun bubbles-save-settings ()
@@ -785,137 +769,112 @@ static char * dot3d_xpm[] = {
 
 (defun bubbles-set-graphics-theme-ascii ()
   "Set graphics theme to `ascii'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'ascii)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-circles ()
   "Set graphics theme to `circles'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'circles)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-squares ()
   "Set graphics theme to `squares'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'squares)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-diamonds ()
   "Set graphics theme to `diamonds'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'diamonds)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-balls ()
   "Set graphics theme to `balls'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'balls)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-emacs ()
   "Set graphics theme to `emacs'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'emacs)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
-;; game theme menu
-(defvar bubbles-game-theme-menu
-  (let ((menu (make-sparse-keymap "Game Theme")))
-    (define-key menu [bubbles-set-game-userdefined]
-      (list 'menu-item "User defined" 'bubbles-set-game-userdefined
-            :button '(:radio . (eq bubbles-game-theme 'user-defined))))
-    (define-key menu [bubbles-set-game-hard]
-      (list 'menu-item "Hard" 'bubbles-set-game-hard
-            :button '(:radio . (eq bubbles-game-theme 'hard))))
-    (define-key menu [bubbles-set-game-difficult]
-      (list 'menu-item "Difficult" 'bubbles-set-game-difficult
-            :button '(:radio . (eq bubbles-game-theme 'difficult))))
-    (define-key menu [bubbles-set-game-medium]
-      (list 'menu-item "Medium" 'bubbles-set-game-medium
-            :button '(:radio . (eq bubbles-game-theme 'medium))))
-    (define-key menu [bubbles-set-game-easy]
-      (list 'menu-item "Easy" 'bubbles-set-game-easy
-            :button '(:radio . (eq bubbles-game-theme 'easy))))
-    menu)
-  "Map for bubbles game theme menu.")
 
-;; graphics theme menu
-(defvar bubbles-graphics-theme-menu
-  (let ((menu (make-sparse-keymap "Graphics Theme")))
-    (define-key menu [bubbles-set-graphics-theme-ascii]
-      (list 'menu-item "ASCII" 'bubbles-set-graphics-theme-ascii
-            :button '(:radio . (eq bubbles-graphics-theme 'ascii))))
-    (define-key menu [bubbles-set-graphics-theme-emacs]
-      (list 'menu-item "Emacs" 'bubbles-set-graphics-theme-emacs
-            :button '(:radio . (eq bubbles-graphics-theme 'emacs))))
-    (define-key menu [bubbles-set-graphics-theme-balls]
-      (list 'menu-item "Balls" 'bubbles-set-graphics-theme-balls
-            :button '(:radio . (eq bubbles-graphics-theme 'balls))))
-    (define-key menu [bubbles-set-graphics-theme-diamonds]
-      (list 'menu-item "Diamonds" 'bubbles-set-graphics-theme-diamonds
-            :button '(:radio . (eq bubbles-graphics-theme 'diamonds))))
-    (define-key menu [bubbles-set-graphics-theme-squares]
-      (list 'menu-item "Squares" 'bubbles-set-graphics-theme-squares
-            :button '(:radio . (eq bubbles-graphics-theme 'squares))))
-    (define-key menu [bubbles-set-graphics-theme-circles]
-      (list 'menu-item "Circles" 'bubbles-set-graphics-theme-circles
-            :button '(:radio . (eq bubbles-graphics-theme 'circles))))
-    menu)
-    "Map for bubbles graphics theme menu.")
+(defvar-keymap bubbles-mode-map
+  :doc "Mode map for `bubbles'."
+  :name 'bubbles-mode-map
+  "q"   #'quit-window
+  "C-j" #'bubbles-plop
+  "SPC" #'bubbles-plop
+  "C-m" #'bubbles-plop
+  "u"   #'bubbles-undo
+  "p"   #'previous-line
+  "n"   #'next-line
+  "f"   #'forward-char
+  "b"   #'backward-char
 
-;; menu
-(defvar bubbles-menu
-  (let ((menu (make-sparse-keymap "Bubbles")))
-    (define-key menu [bubbles-quit]
-      (list 'menu-item "Quit" 'bubbles-quit))
-    (define-key menu [bubbles]
-      (list 'menu-item "New game" 'bubbles))
-    (define-key menu [bubbles-separator-1]
-      '("--"))
-    (define-key menu [bubbles-save-settings]
-      (list 'menu-item "Save all settings" 'bubbles-save-settings))
-    (define-key menu [bubbles-customize]
-      (list 'menu-item "Edit all settings" 'bubbles-customize))
-    (define-key menu [bubbles-game-theme-menu]
-      (list 'menu-item "Game Theme" bubbles-game-theme-menu))
-    (define-key menu [bubbles-graphics-theme-menu]
-      (list 'menu-item "Graphics Theme" bubbles-graphics-theme-menu
-            :enable 'bubbles--playing))
-    (define-key menu [bubbles-separator-2]
-      '("--"))
-    (define-key menu [bubbles-undo]
-      (list 'menu-item "Undo last move" 'bubbles-undo
-            :enable '(and bubbles--playing (listp buffer-undo-list))))
-    menu)
-  "Map for bubbles menu.")
+  "<double-down-mouse-1>" #'bubbles-plop
+  "<mouse-2>"             #'bubbles-plop)
 
-;; bubbles mode map
-(defvar bubbles-mode-map
-  (let ((map (make-sparse-keymap 'bubbles-mode-map)))
-;;    (suppress-keymap map t)
-    (define-key map "q" 'bubbles-quit)
-    (define-key map "\n" 'bubbles-plop)
-    (define-key map " " 'bubbles-plop)
-    (define-key map [double-down-mouse-1] 'bubbles-plop)
-    (define-key map [mouse-2] 'bubbles-plop)
-    (define-key map "\C-m" 'bubbles-plop)
-    (define-key map "u" 'bubbles-undo)
-    (define-key map "p" 'previous-line)
-    (define-key map "n" 'next-line)
-    (define-key map "f" 'forward-char)
-    (define-key map "b" 'backward-char)
-    ;; bind menu to mouse
-    (define-key map [down-mouse-3] bubbles-menu)
-    ;; Put menu in menu-bar
-    (define-key map [menu-bar Bubbles] (cons "Bubbles" bubbles-menu))
-    map)
-  "Mode map for bubbles.")
+(easy-menu-define bubbles-menu bubbles-mode-map
+  "Menu for `bubbles'."
+  '("Bubbles"
+    ["Undo last move" bubbles-undo
+     :enable '(and bubbles--playing (listp buffer-undo-list))]
+    "---"
+    ("Graphics Theme"
+     :enable bubbles--playing
+     ["Circles" bubbles-set-graphics-theme-circles
+      :style radio
+      :selected (eq bubbles-graphics-theme 'circles)]
+     ["Squares" bubbles-set-graphics-theme-squares
+      :style radio
+      :selected (eq bubbles-graphics-theme 'squares)]
+     ["Diamonds" bubbles-set-graphics-theme-diamonds
+      :style radio
+      :selected (eq bubbles-graphics-theme 'diamonds)]
+     ["Balls" bubbles-set-graphics-theme-balls
+      :style radio
+      :selected (eq bubbles-graphics-theme 'balls)]
+     ["Emacs" bubbles-set-graphics-theme-emacs
+      :style radio
+      :selected (eq bubbles-graphics-theme 'emacs)]
+     ["ASCII" bubbles-set-graphics-theme-ascii
+      :style radio
+      :selected (eq bubbles-graphics-theme 'ascii)])
+    ("Game Theme"
+     ["Easy" bubbles-set-game-easy
+      :style radio
+      :selected (eq bubbles-game-theme 'easy)]
+     ["Medium" bubbles-set-game-medium
+      :style radio
+      :selected (eq bubbles-game-theme 'medium)]
+     ["Difficult" bubbles-set-game-difficult
+      :style radio
+      :selected (eq bubbles-game-theme 'difficult)]
+     ["Hard" bubbles-set-game-hard
+      :style radio
+      :selected (eq bubbles-game-theme 'hard)]
+     ["User defined" bubbles-set-game-userdefined
+      :style radio
+      :selected (eq bubbles-game-theme 'user-defined)])
+    ["Edit all settings" bubbles-customize]
+    ["Save all settings" bubbles-save-settings]
+    "---"
+    ["New game" bubbles]
+    ["Quit" quit-window]))
+
+;; bind menu to mouse
+(define-key bubbles-mode-map [down-mouse-3] bubbles-menu)
 
 (define-derived-mode bubbles-mode nil "Bubbles"
   "Major mode for playing bubbles.
@@ -925,7 +884,7 @@ static char * dot3d_xpm[] = {
   (buffer-disable-undo)
   (force-mode-line-update)
   (redisplay)
-  (add-hook 'post-command-hook 'bubbles--mark-neighborhood t t))
+  (add-hook 'post-command-hook #'bubbles--mark-neighborhood t t))
 
 ;;;###autoload
 (defun bubbles ()
@@ -951,7 +910,8 @@ columns on its right towards the left.
 
 (defun bubbles-quit ()
   "Quit Bubbles."
-  (interactive)
+  (declare (obsolete quit-window "29.1"))
+  (interactive nil bubbles-mode)
   (message "bubbles-quit")
   (bury-buffer))
 
@@ -960,44 +920,35 @@ columns on its right towards the left.
 (defun bubbles--compute-offsets ()
   "Update horizontal and vertical offsets for centering the bubbles grid.
 Set `bubbles--col-offset' and `bubbles--row-offset'."
-  (cond ((and (display-images-p)
-              bubbles--images-ok
-              (not (eq bubbles-graphics-theme 'ascii))
-              (fboundp 'window-inside-pixel-edges))
-         ;; compute offset in units of pixels
-         (let ((bubbles--image-size
-                (car (image-size (car bubbles--images) t))))
-           (setq bubbles--col-offset
-                 (list
-                  (max 0 (/ (- (nth 2 (window-inside-pixel-edges))
-                               (nth 0 (window-inside-pixel-edges))
-                               (* ( + bubbles--image-size 2) ;; margin
-                                  (bubbles--grid-width))) 2))))
-           (setq bubbles--row-offset
-                 (list
-                  (max 0 (/ (- (nth 3 (window-inside-pixel-edges))
-                               (nth 1 (window-inside-pixel-edges))
-                               (* (+ bubbles--image-size 1) ;; margin
-                                  (bubbles--grid-height))) 2))))))
-        (t
-         ;; compute offset in units of chars
-         (setq bubbles--col-offset
-               (max 0 (/ (- (window-width)
-                            (bubbles--grid-width)) 2)))
-         (setq bubbles--row-offset
-               (max 0 (/ (- (window-height)
-                            (bubbles--grid-height) 2) 2))))))
+  (let* ((use-images-p (and (display-images-p)
+                            bubbles--images-ok
+                            (not (eq bubbles-graphics-theme 'ascii))))
+         (bubbles--image-size
+          (if use-images-p (car (image-size (car bubbles--images) t)) 1))
+         ;; In GUI mode, leave thin margins around the images.
+         (image-hor-size
+          (if use-images-p (+ bubbles--image-size 2) bubbles--image-size))
+         (image-vert-size
+          (if use-images-p (1+ bubbles--image-size) bubbles--image-size)))
+    (setq bubbles--col-offset
+          (max 0 (/ (- (nth 2 (window-body-pixel-edges))
+                       (nth 0 (window-body-pixel-edges))
+                       (* image-hor-size (bubbles--grid-width)))
+                    2)))
+    (setq bubbles--row-offset
+          (max 0 (/ (- (nth 3 (window-body-pixel-edges))
+                       (nth 1 (window-body-pixel-edges))
+                       (* image-vert-size (bubbles--grid-height)))
+                    2)))))
 
-(defun bubbles--remove-overlays ()
-  "Remove all overlays."
-  (if (fboundp 'remove-overlays)
-      (remove-overlays)))
+(define-obsolete-function-alias 'bubbles--remove-overlays
+  'remove-overlays "28.1")
 
 (defun bubbles--initialize ()
   "Initialize Bubbles game."
   (bubbles--initialize-faces)
   (bubbles--initialize-images)
-  (bubbles--remove-overlays)
+  (remove-overlays)
 
   (switch-to-buffer (get-buffer-create "*bubbles*"))
   (bubbles--compute-offsets)
@@ -1007,16 +958,18 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
     (insert " ")
     (put-text-property (point-min) (point)
                        'display
-                       (cons 'space (list :height bubbles--row-offset)))
+                       (cons 'space (list :height
+                                          (list bubbles--row-offset))))
     (insert "\n")
     (let ((max-char (length (bubbles--colors))))
-      (dotimes (i (bubbles--grid-height))
+      (dotimes (_ (bubbles--grid-height))
         (let ((p (point)))
           (insert " ")
           (put-text-property p (point)
                              'display
-                             (cons 'space (list :width bubbles--col-offset))))
-        (dotimes (j (bubbles--grid-width))
+                             (cons 'space (list :width
+                                                (list bubbles--col-offset)))))
+        (dotimes (_ (bubbles--grid-width))
           (let* ((index (random max-char))
                  (char (nth index bubbles-chars)))
             (insert char)
@@ -1025,7 +978,8 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
       (insert "\n ")
       (put-text-property (1- (point)) (point)
                          'display
-                         (cons 'space (list :width bubbles--col-offset))))
+                         (cons 'space (list :width
+                                            (list bubbles--col-offset)))))
     (put-text-property (point-min) (point-max) 'pointer 'arrow))
   (bubbles-mode)
   (bubbles--reset-score)
@@ -1177,7 +1131,7 @@ Use optional parameter POS instead of point if given."
       (insert " ")
       (put-text-property (1- (point)) (point)
                          'display
-                         (cons 'space (list :width bubbles--col-offset)))
+                         (cons 'space (list :width (list bubbles--col-offset))))
       (insert (format "Score:    %4d" bubbles--score))
       (put-text-property pos (point) 'status t))))
 
@@ -1197,7 +1151,7 @@ Use optional parameter POS instead of point if given."
     (insert "\n ")
     (put-text-property (1- (point)) (point)
                        'display
-                       (cons 'space (list :width bubbles--col-offset)))
+                       (cons 'space (list :width (list bubbles--col-offset))))
     (insert "Game Over!"))
   ;; save score
   (gamegrid-add-score (format "bubbles-%s-%d-%d-%d-scores"
@@ -1208,7 +1162,7 @@ Use optional parameter POS instead of point if given."
 
 (defun bubbles-plop ()
   "Remove active bubbles region."
-  (interactive)
+  (interactive nil bubbles-mode)
   (when (and bubbles--playing
              (> bubbles--neighborhood-score 0))
     (setq bubbles--save-data (list bubbles--score (buffer-string)))
@@ -1272,7 +1226,7 @@ Use optional parameter POS instead of point if given."
                      (while (get-text-property (point) 'removed)
                        (setq shifted-cols (1+ shifted-cols))
                        (bubbles--shift 'right (1- (bubbles--grid-height)) j))
-                     (dotimes (k shifted-cols)
+                     (dotimes (_ shifted-cols)
                        (let ((i (- (bubbles--grid-height) 2)))
                          (while (>= i 0)
                            (setq shifted (or (bubbles--shift 'right i j)
@@ -1292,7 +1246,7 @@ Use optional parameter POS instead of point if given."
 
 (defun bubbles-undo ()
   "Undo last move."
-  (interactive)
+  (interactive nil bubbles-mode)
   (when bubbles--save-data
     (let ((inhibit-read-only t)
           (pos (point)))
@@ -1338,11 +1292,11 @@ Return t if new char is non-empty."
   (when (and (display-images-p)
              (not (eq bubbles-graphics-theme 'ascii)))
     (let ((template (pcase bubbles-graphics-theme
-                      (`circles bubbles--image-template-circle)
-                      (`balls bubbles--image-template-ball)
-                      (`squares bubbles--image-template-square)
-                      (`diamonds bubbles--image-template-diamond)
-                      (`emacs bubbles--image-template-emacs))))
+                      ('circles bubbles--image-template-circle)
+                      ('balls bubbles--image-template-ball)
+                      ('squares bubbles--image-template-square)
+                      ('diamonds bubbles--image-template-diamond)
+                      ('emacs bubbles--image-template-emacs))))
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"
@@ -1418,7 +1372,7 @@ Return t if new char is non-empty."
 
 (defun bubbles--show-images ()
   "Update images in the bubbles buffer."
-  (bubbles--remove-overlays)
+  (remove-overlays)
   (if (and (display-images-p)
            bubbles--images-ok
            (not (eq bubbles-graphics-theme 'ascii)))
@@ -1426,8 +1380,8 @@ Return t if new char is non-empty."
         (goto-char (point-min))
         (forward-line 1)
         (let ((inhibit-read-only t))
-          (dotimes (i (bubbles--grid-height))
-            (dotimes (j (bubbles--grid-width))
+          (dotimes (_ (bubbles--grid-height))
+            (dotimes (_ (bubbles--grid-width))
               (forward-char 1)
               (let ((index (or (get-text-property (point) 'index) -1)))
                 (let ((img bubbles--empty-image))
@@ -1447,6 +1401,11 @@ Return t if new char is non-empty."
                 (put-text-property (point) (1+ (point)) 'display nil))
             (forward-char 1)))
         (put-text-property (point-min) (point-max) 'pointer 'arrow)))))
+
+;; Obsolete.
+
+(defconst bubbles-version "0.5" "Version number of bubbles.el.")
+(make-obsolete-variable 'bubbles-version 'emacs-version "28.1")
 
 (provide 'bubbles)
 

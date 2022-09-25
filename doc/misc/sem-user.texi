@@ -1,5 +1,5 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999-2005, 2007, 2009-2017 Free Software Foundation,
+@c Copyright (C) 1999--2005, 2007, 2009--2022 Free Software Foundation,
 @c Inc.
 @c See file semantic.texi for copying conditions.
 
@@ -142,10 +142,10 @@ Move point ``up'' one reference (@code{senator-go-to-up-reference}).
 The meaning of ``up'' is language-dependent; in C++, for instance,
 this means moving to the parent of the current tag.
 
-@item C-c, @key{SPC}
+@item C-c , @key{SPC}
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a
-special set of keybindings for choosing a completion: @key{RET}
+special set of key bindings for choosing a completion: @key{RET}
 accepts the current completion, @kbd{M-n} and @kbd{M-p} cycle through
 possible completions, @key{TAB} completes as far as possible and then
 cycles, and @kbd{C-g} or any other key aborts the completion.
@@ -655,7 +655,7 @@ usual summary if the text at point has one of these faces.
 
 Semantic Idle Completions mode is a minor mode for performing
 @dfn{code completions} during idle time.  The completions are
-displayed inline, with keybindings that allow you to cycle through
+displayed inline, with key bindings that allow you to cycle through
 different alternatives.
 
 Semantic Idle Completions mode performs completion based on the
@@ -670,7 +670,7 @@ Tag Completions} menu item in the @samp{Development} menu.
 If the tag at point has at least one completion, Semantic Idle
 Completions mode displays that completion inline---i.e., as part of
 the buffer text (you can change the display method by customizing
-@code{semantic-complete-inline-analyzer-idle-displayor-class}, as
+@code{semantic-complete-inline-analyzer-idle-displayer-class}, as
 described below).  The completed part is highlighted, to indicate that
 it is not yet properly inserted into the buffer.  The echo area shows
 the completion, and whether there are other possible completions, like
@@ -681,7 +681,7 @@ besselj [1 of 6 matches]
 @end example
 
 @noindent
-While the completion is being displayed, the following keybindings
+While the completion is being displayed, the following key bindings
 take effect:
 
 @table @kbd
@@ -717,20 +717,20 @@ also call it yourself.  It returns immediately, leaving the buffer in
 a state for inline completion.
 @end deffn
 
-@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+@deffn Option semantic-complete-inline-analyzer-idle-displayer-class
 The value of this variable determines how
 @code{semantic-complete-analyze-inline-idle} shows its completions.
 Possible values include:
 
 @table @code
-@item semantic-displayor-ghost
+@item semantic-displayer-ghost
 Display completions ``inline'' with the buffer text, as described
 above.  This is the default value.
 
-@item semantic-displayor-tooltip
+@item semantic-displayer-tooltip
 Display completions in a tooltip.
 
-@item semantic-displayor-traditional
+@item semantic-displayer-traditional
 Display completions in a separate window.
 @end table
 @end deffn
@@ -785,7 +785,7 @@ Most of the other commands documented in this section call
 This command is bound to @kbd{C-c , @key{SPC}} when Semantic mode is
 enabled (@pxref{Semantic mode user commands}).  It displays a list of
 possible completions for the symbol at point, and activates a special
-set of keybindings for choosing a completion.
+set of key bindings for choosing a completion.
 
 You can type @key{RET} to accept the current completion, @kbd{M-n} and
 @kbd{M-p} to cycle through the possible completions, @key{TAB} to
@@ -798,21 +798,21 @@ explicitly, whereas Semantic Idle Completions mode completes during
 idle time (@pxref{Idle Completions Mode}).
 @end deffn
 
-@deffn Option semantic-complete-inline-analyzer-idle-displayor-class
+@deffn Option semantic-complete-inline-analyzer-idle-displayer-class
 The value of this variable determines how
 @code{semantic-complete-analyze-inline} shows its completions.
 Possible values include:
 
 @table @code
-@item semantic-displayor-traditional
+@item semantic-displayer-traditional
 Display completions in a separate window.  This is the default value.
 
-@item semantic-displayor-ghost
+@item semantic-displayer-ghost
 Display completions ``inline'' with the buffer text, similar to the
 default behavior of Semantic Idle Completions mode (@pxref{Idle
 Completions Mode}).
 
-@item semantic-displayor-tooltip
+@item semantic-displayer-tooltip
 Display completions in a tooltip.
 @end table
 @end deffn
@@ -953,7 +953,7 @@ list, you can use @kbd{M-x semanticdb-find-test-translate-path}.
 @xref{Semanticdb search debugging commands}.
 
 If items should be loaded but aren't, or if you see some tables that
-have no tags in them, then you you may have an incorrectly-set search
+have no tags in them, then you may have an incorrectly-set search
 throttle (@pxref{Search Throttle}).  For example,
 
 @example
@@ -1068,7 +1068,7 @@ You can integrate @semantic{} with the Speedbar.
 line to your init file:
 
 @example
-(add-hook 'speedbar-load-hook (lambda () (require 'semantic/sb)))
+(with-eval-after-load 'speedbar (require 'semantic/sb))
 @end example
 
 @noindent
@@ -1122,7 +1122,7 @@ that @code{grep} is much slower than the others.
 
 The commands to display symbol references are @kbd{C-c , g}
 (@code{semantic-symref-symbol} and @kbd{C-c , G}
-(@code{semantic-symref}).  These keybindings are available whenever
+(@code{semantic-symref}).  These key bindings are available whenever
 Semantic mode is enabled (@pxref{Semantic mode user commands}).
 
 @deffn Command semantic-symref-symbol sym
@@ -1145,7 +1145,7 @@ Typing @kbd{RET} on a reference line jumps to that reference.
 
 @node MRU Bookmarks
 @section MRU Bookmarks mode
-@cindex semantic-mru-bookmark-mode
+@cindex @code{semantic-mru-bookmark-mode}
 
 Semantic MRU Bookmarks mode is a minor mode that keeps track of the
 tags you have edited, allowing you to quickly return to them later
@@ -1193,7 +1193,7 @@ declarations.  Other possible tag classes are @code{variable},
 
 @node Highlight Func Mode
 @section Highlight Func Mode
-@cindex semantic-highlight-func-mode
+@cindex @code{semantic-highlight-func-mode}
 
 Semantic Highlight Function minor mode highlights the declaration line
 of the current function or tag (that is to say, the first line that
@@ -1220,7 +1220,7 @@ Func mode.
 
 @node Tag Decoration Mode
 @section Tag Decoration Mode
-@cindex semantic-decoration-mode
+@cindex @code{semantic-decoration-mode}
 
 Semantic Tag Decoration mode ``decorates'' each tag based on certain
 arbitrary features of that tag.  Decorations are specified using the

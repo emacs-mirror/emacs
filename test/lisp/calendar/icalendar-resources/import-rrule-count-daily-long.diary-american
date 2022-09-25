@@ -1,0 +1,1 @@
+&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 10 2 2003)) 09:00-11:30 rrule count daily long

@@ -1,6 +1,6 @@
-;;; tibetan.el --- support for Tibetan language -*- coding: utf-8-emacs; -*-
+;;; tibetan.el --- support for Tibetan language -*- coding: utf-8-emacs; lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -326,7 +326,9 @@
 
 
 (defconst tibetan-subjoined-transcription-alist
-  (sort '(("+k"  . "à¾")
+  (sort
+   (copy-sequence
+	'(("+k"  . "à¾")
 	  ("+kh" . "à¾‘")
 	  ("+g"  . "à¾’")
 	  ("+gh" . "à¾“")
@@ -371,8 +373,8 @@
 	  ("+W" . "à¾º") ;; fixed form subscribed WA
 	  ("+Y" . "à¾»") ;; fixed form subscribed YA
 	  ("+R" . "à¾¼") ;; fixed form subscribed RA
-	  )
-	(lambda (x y) (> (length (car x)) (length (car y))))))
+	  ))
+   (lambda (x y) (> (length (car x)) (length (car y))))))
 
 ;;;
 ;;; alist for Tibetan base consonant <-> subjoined consonant conversion.
@@ -451,7 +453,7 @@
 ;;; (includes some punctuation conversion rules)
 ;;;
 (defconst tibetan-precomposition-rule-alist
-  `(("à½•à¾±à¾­" . "ö…€")
+  '(("à½•à¾±à¾­" . "ö…€")
     ("à½‚à¾²à¾­" . "ö…˜")
     ("à½šà¾­" . "ö„¢")
     ("à½¢à¾©à¾­" . "ö†…")
@@ -549,19 +551,16 @@
     ("à½¦à¾¨" . "ö†°")))
 
 (defconst tibetan-regexp
-  (let ((l (list tibetan-precomposed-transcription-alist
-		 tibetan-consonant-transcription-alist
-		 tibetan-vowel-transcription-alist
-		 tibetan-modifier-transcription-alist
-		 tibetan-subjoined-transcription-alist))
-	(separator "\\|")
-	tail pattern)
-    (while l
-      (setq tail (car l) l (cdr l))
-      (while tail
-	(setq pattern (cons separator (cons (car (car tail)) pattern))
-	      tail (cdr tail))))
-    (apply 'concat (nreverse (cdr pattern))))
+  (let (pattern)
+    (dolist (alist (list tibetan-precomposed-transcription-alist
+			 tibetan-consonant-transcription-alist
+			 tibetan-vowel-transcription-alist
+			 tibetan-modifier-transcription-alist
+			 tibetan-subjoined-transcription-alist)
+		   (apply #'concat (nreverse (cdr pattern))))
+      (dolist (key-val alist)
+	(setq pattern (cons "\\|" (cons (regexp-quote (car key-val))
+					pattern))))))
   "Regexp matching a Tibetan transcription of a composable Tibetan sequence.
 The result of matching is to be used for indexing alists at conversion
 from a roman transcription to the corresponding Tibetan character.")
@@ -594,8 +593,8 @@ from an input method is converted to the corresponding precomposed glyph.")
       (setq temp (concat temp "\\|" (car (car l))))
       (setq l (cdr l)))
     (concat temp "\\)")))
-  "Regexp string to match a sequence of Tibetan consonantic components, i.e.,
-one base consonant and one or more subjoined consonants.
+  "Regexp string to match a sequence of Tibetan consonantic components.
+That is, one base consonant and one or more subjoined consonants.
 The result of matching is to be used for indexing alist when the component
 sequence is converted to the corresponding precomposed glyph.
 This also matches some punctuation characters which need conversion.")
@@ -606,7 +605,7 @@ This also matches some punctuation characters which need conversion.")
 ;; For automatic composition.
 (set-char-table-range
  composition-function-table '(#xF00 . #xFD1)
- (list (vector tibetan-composable-pattern 0 'font-shape-gstring)))
+ (list (vector tibetan-composable-pattern 0 #'font-shape-gstring)))
 
 (provide 'tibetan)
 

@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2017 Free Software Foundation, Inc.
+Copyright 2015-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -104,6 +104,12 @@ dynlib_open (const char *dll_fname)
   return (dynlib_handle_ptr) hdll;
 }
 
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *dll_fname)
+{
+  return dynlib_open (dll_fname);
+}
+
 void *
 dynlib_sym (dynlib_handle_ptr h, const char *sym)
 {
@@ -123,7 +129,7 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
 }
 
 void
-dynlib_addr (void *addr, const char **fname, const char **symname)
+dynlib_addr (void (*funcptr) (void), const char **fname, const char **symname)
 {
   static char dll_filename[MAX_UTF8_PATH];
   static GetModuleHandleExA_Proc s_pfn_Get_Module_HandleExA = NULL;
@@ -132,9 +138,10 @@ dynlib_addr (void *addr, const char **fname, const char **symname)
   HMODULE hm_dll = NULL;
   wchar_t mfn_w[MAX_PATH];
   char mfn_a[MAX_PATH];
+  void *addr = (void *) funcptr;
 
   /* Step 1: Find the handle of the module where ADDR lives.  */
-  if (os_subtype == OS_9X
+  if (os_subtype == OS_SUBTYPE_9X
       /* Windows NT family version before XP (v5.1).  */
       || ((w32_major_version + (w32_minor_version > 0)) < 6))
     {
@@ -156,9 +163,8 @@ dynlib_addr (void *addr, const char **fname, const char **symname)
 	     address we pass to it is not an address of a string, but
 	     an address of a function.  So we don't care about the
 	     Unicode version.  */
-	  s_pfn_Get_Module_HandleExA =
-	    (GetModuleHandleExA_Proc) GetProcAddress (hm_kernel32,
-						      "GetModuleHandleExA");
+	  s_pfn_Get_Module_HandleExA = (GetModuleHandleExA_Proc)
+            get_proc_addr (hm_kernel32, "GetModuleHandleExA");
 	}
       if (s_pfn_Get_Module_HandleExA)
 	{
@@ -270,8 +276,16 @@ dynlib_close (dynlib_handle_ptr h)
 dynlib_handle_ptr
 dynlib_open (const char *path)
 {
+  return dlopen (path, RTLD_LAZY | RTLD_GLOBAL);
+}
+
+# ifdef HAVE_NATIVE_COMP
+dynlib_handle_ptr
+dynlib_open_for_eln (const char *path)
+{
   return dlopen (path, RTLD_LAZY);
 }
+# endif
 
 void *
 dynlib_sym (dynlib_handle_ptr h, const char *sym)
@@ -280,11 +294,12 @@ dynlib_sym (dynlib_handle_ptr h, const char *sym)
 }
 
 void
-dynlib_addr (void *ptr, const char **path, const char **sym)
+dynlib_addr (void (*funcptr) (void), const char **path, const char **sym)
 {
   *path = NULL;
   *sym = NULL;
 #ifdef HAVE_DLADDR
+  void *ptr = (void *) funcptr;
   Dl_info info;
   if (dladdr (ptr, &info) && info.dli_fname && info.dli_sname)
     {
@@ -300,15 +315,13 @@ dynlib_error (void)
   return dlerror ();
 }
 
-/* FIXME: Currently there is no way to unload a module, so this
-   function is never used.  */
-#if false
+# ifdef HAVE_NATIVE_COMP
 int
 dynlib_close (dynlib_handle_ptr h)
 {
   return dlclose (h) == 0;
 }
-#endif
+# endif
 
 #else
 

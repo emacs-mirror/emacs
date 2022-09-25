@@ -1,6 +1,6 @@
-;;; semantic/tag.el --- tag creation and access
+;;; semantic/tag.el --- Tag creation and access  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -52,6 +52,11 @@
 (declare-function semantic-fetch-tags "semantic")
 (declare-function semantic-clear-toplevel-cache "semantic")
 (declare-function semantic-tag-similar-p "semantic/tag-ls")
+
+(define-obsolete-variable-alias 'semantic-token-version
+  'semantic-tag-version "28.1")
+(define-obsolete-variable-alias 'semantic-token-incompatible-version
+  'semantic-tag-incompatible-version "28.1")
 
 (defconst semantic-tag-version "2.0"
   "Version string of semantic tags made with this code.")
@@ -114,8 +119,7 @@ Statement that represents a file from which more tags can be found.
 Statement that declares this file's package name.
 @item code
 Code that has not name or binding to any other symbol, such as in a script.
-@end table
-"
+@end table"
   (nth 1 tag))
 
 (defsubst semantic-tag-attributes (tag)
@@ -148,15 +152,15 @@ That function is for internal use only."
 (defsubst semantic-tag-start (tag)
   "Return the start location of TAG."
   (let ((o (semantic-tag-overlay tag)))
-    (if (semantic-overlay-p o)
-        (semantic-overlay-start o)
+    (if (overlayp o)
+        (overlay-start o)
       (aref o 0))))
 
 (defsubst semantic-tag-end (tag)
   "Return the end location of TAG."
   (let ((o (semantic-tag-overlay tag)))
-    (if (semantic-overlay-p o)
-        (semantic-overlay-end o)
+    (if (overlayp o)
+        (overlay-end o)
       (aref o 1))))
 
 (defsubst semantic-tag-bounds (tag)
@@ -167,8 +171,8 @@ That function is for internal use only."
 (defun semantic-tag-set-bounds (tag start end)
   "In TAG, set the START and END location of data it describes."
   (let ((o (semantic-tag-overlay tag)))
-    (if (semantic-overlay-p o)
-        (semantic-overlay-move o start end)
+    (if (overlayp o)
+        (move-overlay o start end)
       (semantic--tag-set-overlay tag (vector start end)))))
 
 (defun semantic-tag-in-buffer-p (tag)
@@ -176,9 +180,9 @@ That function is for internal use only."
 If a tag is not in a buffer, return nil."
   (let ((o (semantic-tag-overlay tag)))
      ;; TAG is currently linked to a buffer, return it.
-    (when (and (semantic-overlay-p o)
-	       (semantic-overlay-live-p o))
-      (semantic-overlay-buffer o))))
+    (when (and (overlayp o)
+	       (overlay-buffer o))
+      (overlay-buffer o))))
 
 (defsubst semantic--tag-get-property (tag property)
   "From TAG, extract the value of PROPERTY.
@@ -223,6 +227,28 @@ See also the function `semantic-ctxt-current-mode'."
               (goto-char start))
           (require 'semantic/ctxt)
           (semantic-ctxt-current-mode)))))
+
+;; Is this function still necessary?
+(defun semantic-tag-make-plist (args)
+  "Create a property list with ARGS.
+Args is a property list of the form (KEY1 VALUE1 ... KEYN VALUEN).
+Where KEY is a symbol, and VALUE is the value for that symbol.
+The return value will be a new property list, with these KEY/VALUE
+pairs eliminated:
+
+  - KEY associated to nil VALUE.
+  - KEY associated to an empty string VALUE.
+  - KEY associated to a zero VALUE."
+  (let (plist key val)
+    (while args
+      (setq key  (car args)
+            val  (nth 1 args)
+            args (nthcdr 2 args))
+      (or (member val '("" nil))
+          (and (numberp val) (zerop val))
+          (setq plist (cons key (cons val plist)))))
+    ;; It is not useful to reverse the new plist.
+    plist))
 
 (defsubst semantic--tag-attributes-cdr (tag)
   "Return the cons cell whose car is the ATTRIBUTES part of TAG.
@@ -344,8 +370,8 @@ struct or union."
   "Return non-nil if TAG has positional information."
   (and (semantic-tag-p tag)
        (let ((o (semantic-tag-overlay tag)))
-	 (or (and (semantic-overlay-p o)
-		  (semantic-overlay-live-p o))
+	 (or (and (overlayp o)
+		  (overlay-buffer o))
              (arrayp o)))))
 
 (defun semantic-equivalent-tag-p (tag1 tag2)
@@ -436,28 +462,6 @@ class to store those methods."
 ;;; Tag creation
 ;;
 
-;; Is this function still necessary?
-(defun semantic-tag-make-plist (args)
-  "Create a property list with ARGS.
-Args is a property list of the form (KEY1 VALUE1 ... KEYN VALUEN).
-Where KEY is a symbol, and VALUE is the value for that symbol.
-The return value will be a new property list, with these KEY/VALUE
-pairs eliminated:
-
-  - KEY associated to nil VALUE.
-  - KEY associated to an empty string VALUE.
-  - KEY associated to a zero VALUE."
-  (let (plist key val)
-    (while args
-      (setq key  (car args)
-            val  (nth 1 args)
-            args (nthcdr 2 args))
-      (or (member val '("" nil))
-          (and (numberp val) (zerop val))
-          (setq plist (cons key (cons val plist)))))
-    ;; It is not useful to reverse the new plist.
-    plist))
-
 (defsubst semantic-tag (name class &rest attributes)
   "Create a generic semantic tag.
 NAME is a string representing the name of this tag.
@@ -471,9 +475,9 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
 NAME is the name of this variable.
 TYPE is a string or semantic tag representing the type of this variable.
 Optional DEFAULT-VALUE is a string representing the default value of this
-variable.  ATTRIBUTES is a list of additional attributes belonging to this
-tag."
-  (apply 'semantic-tag name 'variable
+variable.
+ATTRIBUTES is a list of additional attributes belonging to this tag."
+  (apply #'semantic-tag name 'variable
          :type type
          :default-value default-value
          attributes))
@@ -485,7 +489,7 @@ TYPE is a string or semantic tag representing the type of this function.
 ARG-LIST is a list of strings or semantic tags representing the
 arguments of this function.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'function
+  (apply #'semantic-tag name 'function
          :type type
          :arguments arg-list
          attributes))
@@ -508,7 +512,7 @@ This slot can be interesting because the form:
 is a valid parent where there is no explicit parent, and only an
 interface.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'type
+  (apply #'semantic-tag name 'type
          :type type
          :members members
          :superclasses (car parents)
@@ -518,20 +522,20 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
 (defsubst semantic-tag-new-include (name system-flag &rest attributes)
   "Create a semantic tag of class `include'.
 NAME is the name of this include.
-SYSTEM-FLAG represents that we were able to identify this include as belonging
-to the system, as opposed to belonging to the local project.
+SYSTEM-FLAG represents that we were able to identify this include as
+belonging to the system, as opposed to belonging to the local project.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'include
+  (apply #'semantic-tag name 'include
          :system-flag system-flag
          attributes))
 
 (defsubst semantic-tag-new-package (name detail &rest attributes)
   "Create a semantic tag of class `package'.
 NAME is the name of this package.
-DETAIL is extra information about this package, such as a location where
-it can be found.
+DETAIL is extra information about this package, such as a location
+where it can be found.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'package
+  (apply #'semantic-tag name 'package
          :detail detail
          attributes))
 
@@ -540,14 +544,14 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
 NAME is a name for this code.
 DETAIL is extra information about the code.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'code
+  (apply #'semantic-tag name 'code
          :detail detail
          attributes))
 
 (defsubst semantic-tag-set-faux (tag)
   "Set TAG to be a new FAUX tag.
 FAUX tags represent constructs not found in the source code.
-You can identify a faux tag with `semantic-tag-faux-p'"
+You can identify a faux tag with `semantic-tag-faux-p'."
   (semantic--tag-put-property tag :faux-flag t))
 
 (defsubst semantic-tag-set-name (tag name)
@@ -565,9 +569,9 @@ You can identify a faux tag with `semantic-tag-faux-p'"
 ;; it.  This prevents saving of massive amounts of proxy data.
 (defun semantic-create-tag-proxy (function data)
   "Create a tag proxy symbol.
-FUNCTION will be used to resolve the proxy.  It should take 3
+FUNCTION will be used to resolve the proxy.  It should take
 two arguments, DATA and TAG.  TAG is a proxy tag that needs
-to be resolved, and DATA is the DATA passed into this function.
+to be resolved, and DATA is the data passed into this function.
 DATA is data to help resolve the proxy.  DATA can be an EIEIO object,
 such that FUNCTION is a method.
 FUNCTION should return a list of tags, preferably one tag."
@@ -647,7 +651,7 @@ This runs the tag hook `unlink-copy-hook'."
 
       ;; Call the unlink-copy hook.  This should tell tools that
       ;; this tag is not part of any buffer.
-      (when (semantic-overlay-p (semantic-tag-overlay tag))
+      (when (overlayp (semantic-tag-overlay tag))
 	(semantic--tag-run-hooks copy 'unlink-copy-hook))
       )
     copy))
@@ -680,7 +684,7 @@ FILTER takes TAG as an argument, and should return a `semantic-tag'.
 It is safe for FILTER to modify the input tag and return it."
   (when (not filter) (setq filter 'identity))
   (when (not (semantic-tag-p tag))
-    (signal 'wrong-type-argument (list tag 'semantic-tag-p)))
+    (signal 'wrong-type-argument (list tag #'semantic-tag-p)))
   (let ((ol (semantic-tag-overlay tag))
 	(fn (semantic-tag-file-name tag)))
     (funcall filter (list (semantic-tag-name tag)
@@ -698,7 +702,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify ATTR, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (when (car attrs)
     (when (not (symbolp (car attrs))) (error "Bad Attribute List in tag"))
@@ -711,7 +715,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify VALUE, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (cond
    ;; Another tag.
@@ -730,7 +734,7 @@ It is safe for FILTER to modify the input tag and return it."
 
 It is safe to modify the TAGS list, and return a permutation of that list.
 
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+FILTER takes TAG as an argument, and should return a semantic-tag.
 It is safe for FILTER to modify the input tag and return it."
   (when (car tags)
     (if (semantic-tag-p (car tags))
@@ -870,7 +874,7 @@ That is the value of the `:throws' attribute."
   "Return the parent of the function that TAG describes.
 That is the value of the `:parent' attribute.
 A function has a parent if it is a method of a class, and if the
-function does not appear in body of its parent class."
+function does not appear in the body of its parent class."
   (semantic-tag-named-parent tag))
 
 (defsubst semantic-tag-function-destructor-p (tag)
@@ -932,7 +936,7 @@ NAME is a name for this alias.
 META-TAG-CLASS is the class of the tag this tag is an alias.
 VALUE is the aliased definition.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'alias
+  (apply #'semantic-tag name 'alias
          :aliasclass meta-tag-class
          :definition value
          attributes))
@@ -976,7 +980,7 @@ Perform the described task in `semantic-tag-components'."
 Children are any sub-tags which contain overlays.
 
 Default behavior is to get `semantic-tag-components' in addition
-to the components of an anonymous types (if applicable.)
+to the components of an anonymous type (if applicable.)
 
 Note for language authors:
   If a mode defines a language tag that has tags in it with overlays
@@ -1033,25 +1037,17 @@ See `semantic-tag-bounds'."
 
 (defmacro semantic-with-buffer-narrowed-to-current-tag (&rest body)
   "Execute BODY with the buffer narrowed to the current tag."
+  (declare (indent 0) (debug t))
   `(save-restriction
      (semantic-narrow-to-tag (semantic-current-tag))
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-current-tag 'lisp-indent-function 0)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-current-tag
-	      (def-body))))
 
 (defmacro semantic-with-buffer-narrowed-to-tag (tag &rest body)
   "Narrow to TAG, and execute BODY."
+  (declare (indent 1) (debug t))
   `(save-restriction
      (semantic-narrow-to-tag ,tag)
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-tag 'lisp-indent-function 1)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-tag
-	      (def-body))))
 
 ;;; Tag Hooks
 ;;
@@ -1096,7 +1092,7 @@ For any given situation, additional ARGS may be passed."
     (condition-case err
 	;; If a hook bombs, ignore it!  Usually this is tied into
 	;; some sort of critical system.
-	(apply 'run-hook-with-args 'semantic--tag-hook-value arglist)
+	(apply #'run-hook-with-args 'semantic--tag-hook-value arglist)
       (error (message "Error: %S" err)))))
 
 ;;; Tags and Overlays
@@ -1107,18 +1103,18 @@ For any given situation, additional ARGS may be passed."
 (defsubst semantic--tag-unlink-list-from-buffer (tags)
   "Convert TAGS from using an overlay to using an overlay proxy.
 This function is for internal use only."
-  (mapcar 'semantic--tag-unlink-from-buffer tags))
+  (mapcar #'semantic--tag-unlink-from-buffer tags))
 
 (defun semantic--tag-unlink-from-buffer (tag)
   "Convert TAG from using an overlay to using an overlay proxy.
 This function is for internal use only."
   (when (semantic-tag-p tag)
     (let ((o (semantic-tag-overlay tag)))
-      (when (semantic-overlay-p o)
+      (when (overlayp o)
         (semantic--tag-set-overlay
-         tag (vector (semantic-overlay-start o)
-                     (semantic-overlay-end o)))
-        (semantic-overlay-delete o))
+         tag (vector (overlay-start o)
+                     (overlay-end o)))
+        (delete-overlay o))
       ;; Look for a link hook on TAG.
       (semantic--tag-run-hooks tag 'unlink-hook)
       ;; Fix the sub-tags which contain overlays.
@@ -1128,7 +1124,7 @@ This function is for internal use only."
 (defsubst semantic--tag-link-list-to-buffer (tags)
   "Convert TAGS from using an overlay proxy to using an overlay.
 This function is for internal use only."
-  (mapc 'semantic--tag-link-to-buffer tags))
+  (mapc #'semantic--tag-link-to-buffer tags))
 
 (defun semantic--tag-link-to-buffer (tag)
   "Convert TAG from using an overlay proxy to using an overlay.
@@ -1136,10 +1132,9 @@ This function is for internal use only."
   (when (semantic-tag-p tag)
     (let ((o (semantic-tag-overlay tag)))
       (when (and (vectorp o) (= (length o) 2))
-        (setq o (semantic-make-overlay (aref o 0) (aref o 1)
-                                       (current-buffer)))
+        (setq o (make-overlay (aref o 0) (aref o 1) (current-buffer)))
         (semantic--tag-set-overlay tag o)
-        (semantic-overlay-put o 'semantic tag)
+        (overlay-put o 'semantic tag)
         ;; Clear the :filename property
         (semantic--tag-put-property tag :filename nil))
       ;; Look for a link hook on TAG.
@@ -1190,7 +1185,7 @@ See also the function `semantic--expand-tag'."
       (setq tag (cdr tag)))
     (null tag)))
 
-(defvar semantic-tag-expand-function nil
+(defvar-local semantic-tag-expand-function nil
   "Function used to expand a tag.
 It is passed each tag production, and must return a list of tags
 derived from it, or nil if it does not need to be expanded.
@@ -1203,7 +1198,6 @@ following definition is easily parsed into one tag:
 
 This function should take this compound tag and turn it into two tags,
 one for A, and the other for B.")
-(make-variable-buffer-local 'semantic-tag-expand-function)
 
 (defun semantic--tag-expand (tag)
   "Convert TAG from a raw state to a cooked state, and expand it.
@@ -1314,40 +1308,14 @@ This function is overridable with the symbol `insert-foreign-tag'."
 ;;; Support log modes here
 (define-mode-local-override semantic-insert-foreign-tag
   log-edit-mode (foreign-tag)
-  "Insert foreign tags into log-edit mode."
+  "Insert foreign tags into `log-edit' mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
 (define-mode-local-override semantic-insert-foreign-tag
   change-log-mode (foreign-tag)
-  "Insert foreign tags into log-edit mode."
+  "Insert foreign tags into `log-edit' mode."
   (insert (concat "(" (semantic-format-tag-name foreign-tag) "): ")))
 
-;;; Compatibility
-;;
-(defconst semantic-token-version
-  semantic-tag-version)
-(defconst semantic-token-incompatible-version
-  semantic-tag-incompatible-version)
-
-(defsubst semantic-token-type-parent (tag)
-  "Return the parent of the type that TAG describes.
-The return value is a list.  A value of nil means no parents.
-The `car' of the list is either the parent class, or a list
-of parent classes.  The `cdr' of the list is the list of
-interfaces, or abstract classes which are parents of TAG."
-  (cons (semantic-tag-get-attribute tag :superclasses)
-        (semantic-tag-type-interfaces tag)))
-
-(make-obsolete 'semantic-token-type-parent
-	       "\
-use `semantic-tag-type-superclass' \
-and `semantic-tag-type-interfaces' instead" "23.2")
-
-(semantic-alias-obsolete 'semantic-tag-make-assoc-list
-                         'semantic-tag-make-plist "23.2")
-
-(semantic-varalias-obsolete 'semantic-expand-nonterminal
-                            'semantic-tag-expand-function "23.2")
 
 (provide 'semantic/tag)
 

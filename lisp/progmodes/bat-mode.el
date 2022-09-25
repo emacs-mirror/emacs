@@ -1,6 +1,6 @@
-;;; bat-mode.el --- Major mode for editing DOS/Windows scripts
+;;; bat-mode.el --- Major mode for editing DOS/Windows scripts  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003, 2008-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2008-2022 Free Software Foundation, Inc.
 
 ;; Author: Arni Magnusson <arnima@hafro.is>
 ;; Keywords: languages
@@ -42,7 +42,7 @@
 ;; See documentation of function `bat-mode'.
 ;;
 ;; Separate package `dos-indent' (Matthew Fidler) provides rudimentary
-;; indentation, see http://www.emacswiki.org/emacs/dos-indent.el.
+;; indentation, see https://www.emacswiki.org/emacs/dos-indent.el.
 ;;
 ;; Acknowledgements:
 ;;
@@ -71,19 +71,21 @@
              "doskey" "echo" "endlocal" "erase" "fc" "find" "findstr" "format"
              "ftype" "label" "md" "mkdir" "more" "move" "net" "path" "pause"
              "popd" "prompt" "pushd" "rd" "ren" "rename" "replace" "rmdir" "set"
-             "setlocal" "shift" "sort" "subst" "time" "title" "tree" "type"
-             "ver" "vol" "xcopy"))
+             "setlocal" "setx" "shift" "sort" "subst" "time" "title" "tree"
+             "type" "ver" "vol" "xcopy"))
           (CONTROLFLOW
            '("call" "cmd" "defined" "do" "else" "equ" "exist" "exit" "for" "geq"
              "goto" "gtr" "if" "in" "leq" "lss" "neq" "not" "start"))
           (UNIX
            '("bash" "cat" "cp" "fgrep" "grep" "ls" "sed" "sh" "mv" "rm")))
-      `(("\\_<\\(call\\|goto\\)\\_>[ \t]+%?\\([A-Za-z0-9-_\\:.]+\\)%?"
+      `(("\\_<\\(call\\|goto\\)\\_>[ \t]+%?\\([A-Za-z0-9_\\:.-]+\\)%?"
          (2 font-lock-constant-face t))
         ("^:[^:].*"
          . 'bat-label-face)
-        ("\\_<\\(defined\\|set\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
+        ("\\_<\\(defined\\|set\\|setx\\)\\_>[ \t]*\\(\\(\\sw\\|\\s_\\)+\\)"
          (2 font-lock-variable-name-face))
+        ("%~\\([0-9]\\)"
+         (1 font-lock-variable-name-face))
         ("%\\([^%~ \n]+\\)%?"
          (1 font-lock-variable-name-face))
         ("!\\([^!%~ \n]+\\)!?"  ; delayed-expansion !variable!
@@ -173,7 +175,7 @@
 
 ;;;###autoload
 (define-derived-mode bat-mode prog-mode "Bat"
-  "Major mode for editing DOS/Windows batch files.\n
+  "Major mode for editing DOS/Windows batch files.
 Start a new script from `bat-template'.  Read help pages for DOS commands
 with `bat-cmd-help'.  Navigate between sections using `imenu'.
 Run script using `bat-run' and `bat-run-args'.\n

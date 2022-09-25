@@ -1,6 +1,6 @@
-;;; help-fns.el --- tests for help-fns.el
+;;; help-fns-tests.el --- tests for help-fns.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -24,8 +24,10 @@
 ;;; Code:
 
 (require 'ert)
+(require 'help-fns)
+(require 'subr-x)
 
-(autoload 'help-fns-test--macro "help-fns" nil nil t)
+(autoload 'help-fns-test--macro "foo" nil nil t)
 
 
 ;;; Several tests for describe-function
@@ -56,31 +58,38 @@ Return first line of the output of (describe-function-1 FUNC)."
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-macro ()
-  (let ((regexp "a Lisp macro in .subr\.el")
+  (let ((regexp "a Lisp macro in .+subr\\.el")
         (result (help-fns-tests--describe-function 'when)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defun ()
-  (let ((regexp "a compiled Lisp function in .subr\.el")
+  (let ((regexp (if (featurep 'native-compile)
+                    "a native-compiled Lisp function in .+subr\\.el"
+                  "a byte-compiled Lisp function in .+subr\\.el"))
         (result (help-fns-tests--describe-function 'last)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-lisp-defsubst ()
-  (let ((regexp "a compiled Lisp function in .subr\.el")
+  (let ((regexp "a byte-compiled Lisp function in .+subr\\.el")
         (result (help-fns-tests--describe-function 'posn-window)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-alias-to-defun ()
-  (let ((regexp "an alias for .set-file-modes. in .subr\.el")
+  (let ((regexp "an alias for .set-file-modes. in .+subr\\.el")
         (result (help-fns-tests--describe-function 'chmod)))
     (should (string-match regexp result))))
 
 (ert-deftest help-fns-test-bug23887 ()
   "Test for https://debbugs.gnu.org/23887 ."
-  (let ((regexp "an alias for .re-search-forward. in .subr\.el")
+  (let ((regexp "an alias for .re-search-forward. in .+subr\\.el")
         (result (help-fns-tests--describe-function 'search-forward-regexp)))
     (should (string-match regexp result))))
 
+(ert-deftest help-fns-test-dangling-alias ()
+  "Make sure we don't burp on bogus aliases."
+  (let ((f (make-symbol "bogus-alias")))
+    (define-obsolete-function-alias f 'help-fns-test--undefined-function "past")
+    (describe-symbol f)))
 
 ;;; Test describe-function over functions with funny names
 (defun abc\\\[universal-argument\]b\`c\'d\\e\"f (x)
@@ -118,4 +127,64 @@ Return first line of the output of (describe-function-1 FUNC)."
     (goto-char (point-min))
     (should (looking-at "^font-lock-comment-face is "))))
 
-;;; help-fns.el ends here
+(defvar foo-test-map)
+(defvar help-fns-test--describe-keymap-foo)
+
+
+;;; Tests for describe-keymap
+(ert-deftest help-fns-test-find-keymap-name ()
+  (should (equal (help-fns-find-keymap-name lisp-mode-map) 'lisp-mode-map))
+  ;; Follow aliasing.
+  (unwind-protect
+      (progn
+        (defvaralias 'foo-test-map 'lisp-mode-map)
+        (should (equal (help-fns-find-keymap-name foo-test-map) 'lisp-mode-map)))
+    (makunbound 'foo-test-map)))
+
+(ert-deftest help-fns-test-describe-keymap/symbol ()
+  (describe-keymap 'minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^minibuffer-local-must-match-map is"))))
+
+(ert-deftest help-fns-test-describe-keymap/value ()
+  (describe-keymap minibuffer-local-must-match-map)
+  (with-current-buffer "*Help*"
+    (should (looking-at "\nKey"))))
+
+(ert-deftest help-fns-test-describe-keymap/not-keymap ()
+  (should-error (describe-keymap nil))
+  (should-error (describe-keymap emacs-version)))
+
+(ert-deftest help-fns-test-describe-keymap/let-bound ()
+  (let ((foobar minibuffer-local-must-match-map))
+    (describe-keymap foobar)
+    (with-current-buffer "*Help*"
+      (should (looking-at "\nKey")))))
+
+(ert-deftest help-fns-test-describe-keymap/dynamically-bound-no-file ()
+  (setq help-fns-test--describe-keymap-foo minibuffer-local-must-match-map)
+  (describe-keymap 'help-fns-test--describe-keymap-foo)
+  (with-current-buffer "*Help*"
+    (should (looking-at "^help-fns-test--describe-keymap-foo is"))))
+
+;;; Tests for find-lisp-object-file-name
+(ert-deftest help-fns-test-bug24697-function-search ()
+  (should-not (find-lisp-object-file-name 'tab-width 1)))
+
+(ert-deftest help-fns-test-bug24697-non-internal-variable ()
+  (let ((help-fns--test-var (make-symbol "help-fns--test-var")))
+    ;; simulate an internal variable
+    (put help-fns--test-var 'variable-documentation 1)
+    (should-not (find-lisp-object-file-name help-fns--test-var 'defface))
+    (should-not (find-lisp-object-file-name help-fns--test-var 1))))
+
+(ert-deftest help-fns--analyze-function-recursive ()
+  (defalias 'help-fns--a 'help-fns--b)
+  (should (equal (help-fns--analyze-function 'help-fns--a)
+                 '(help-fns--a help-fns--b t help-fns--b)))
+  ;; Make a loop and see that it doesn't infloop.
+  (defalias 'help-fns--b 'help-fns--a)
+  (should (equal (help-fns--analyze-function 'help-fns--a)
+                 '(help-fns--a help-fns--b t help-fns--b))))
+
+;;; help-fns-tests.el ends here

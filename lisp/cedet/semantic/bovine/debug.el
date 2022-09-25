@@ -1,6 +1,6 @@
-;;; semantic/bovine/debug.el --- Debugger support for bovinator
+;;; semantic/bovine/debug.el --- Debugger support for bovinator  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -73,8 +73,7 @@ The RULE is for \"thing\" is 1.
 The MATCH for \"thing\" is 1.
 COLLECTION is a list of `things' that have been matched so far.
 LEXTOKEN, is a token returned by the lexer which is being matched."
-  (let ((frame (semantic-bovine-debug-frame "frame"
-					    :nonterm nonterm
+  (let ((frame (semantic-bovine-debug-frame :nonterm nonterm
 					    :rule rule
 					    :match match
 					    :collection collection
@@ -114,18 +113,17 @@ LEXTOKEN, is a token returned by the lexer which is being matched."
 	      :documentation
 	      "An error condition caught in an action.")
    )
-  "Debugger frame representation of a lisp error thrown during parsing.")
+  "Debugger frame representation of a Lisp error thrown during parsing.")
 
 (defun semantic-create-bovine-debug-error-frame (condition)
   "Create an error frame for bovine debugger.
 Argument CONDITION is the thrown error condition."
-  (let ((frame (semantic-bovine-debug-error-frame "frame"
-						  :condition condition)))
+  (let ((frame (semantic-bovine-debug-error-frame :condition condition)))
     (semantic-debug-set-frame semantic-debug-current-interface
 			      frame)
     frame))
 
-(cl-defmethod semantic-debug-frame-highlight ((frame semantic-bovine-debug-error-frame))
+(cl-defmethod semantic-debug-frame-highlight ((_frame semantic-bovine-debug-error-frame))
   "Highlight a frame from an action."
   ;; How do I get the location of the action in the source buffer?
   )

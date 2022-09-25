@@ -1,5 +1,5 @@
 /* Threading code.
-Copyright (C) 2012-2017 Free Software Foundation, Inc.
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,23 +25,55 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "coding.h"
 #include "syssignal.h"
+#include "pdumper.h"
+#include "keyboard.h"
 
-static struct thread_state main_thread;
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 
-struct thread_state *current_thread = &main_thread;
+#if defined HAVE_GLIB && ! defined (HAVE_NS)
+#include <xgselect.h>
+#else
+#define release_select_lock() do { } while (0)
+#endif
 
-static struct thread_state *all_threads = &main_thread;
+union aligned_thread_state
+{
+  struct thread_state s;
+  GCALIGNED_UNION_MEMBER
+};
+verify (GCALIGNED (union aligned_thread_state));
+
+static union aligned_thread_state main_thread
+  = {{
+      .header.size = PVECHEADERSIZE (PVEC_THREAD,
+				     PSEUDOVECSIZE (struct thread_state,
+						    event_object),
+				     VECSIZE (struct thread_state)),
+      .m_last_thing_searched = LISPSYM_INITIALLY (Qnil),
+      .m_saved_last_thing_searched = LISPSYM_INITIALLY (Qnil),
+      .name = LISPSYM_INITIALLY (Qnil),
+      .function = LISPSYM_INITIALLY (Qnil),
+      .result = LISPSYM_INITIALLY (Qnil),
+      .error_symbol = LISPSYM_INITIALLY (Qnil),
+      .error_data = LISPSYM_INITIALLY (Qnil),
+      .event_object = LISPSYM_INITIALLY (Qnil),
+    }};
+
+struct thread_state *current_thread = &main_thread.s;
+
+static struct thread_state *all_threads = &main_thread.s;
 
 static sys_mutex_t global_lock;
 
-extern int poll_suppress_count;
 extern volatile int interrupt_input_blocked;
 
 
 
 /* m_specpdl is set when the thread is created and cleared when the
    thread dies.  */
-#define thread_alive_p(STATE) ((STATE)->m_specpdl != NULL)
+#define thread_live_p(STATE) ((STATE)->m_specpdl != NULL)
 
 
 
@@ -50,6 +82,22 @@ release_global_lock (void)
 {
   sys_mutex_unlock (&global_lock);
 }
+
+static void
+rebind_for_thread_switch (void)
+{
+  ptrdiff_t distance
+    = current_thread->m_specpdl_ptr - current_thread->m_specpdl;
+  specpdl_unrewind (specpdl_ptr, -distance, true);
+}
+
+static void
+unbind_for_thread_switch (struct thread_state *thr)
+{
+  ptrdiff_t distance = thr->m_specpdl_ptr - thr->m_specpdl;
+  specpdl_unrewind (thr->m_specpdl_ptr, distance, true);
+}
+
 
 /* You must call this after acquiring the global lock.
    acquire_global_lock does it for you.  */
@@ -101,14 +149,20 @@ acquire_global_lock (struct thread_state *self)
   post_acquire_global_lock (self);
 }
 
-/* This is called from keyboard.c when it detects that SIGINT
-   interrupted thread_select before the current thread could acquire
-   the lock.  We must acquire the lock to prevent a thread from
-   running without holding the global lock, and to avoid repeated
-   calls to sys_mutex_unlock, which invokes undefined behavior.  */
+/* This is called from keyboard.c when it detects that SIGINT was
+   delivered to the main thread and interrupted thread_select before
+   the main thread could acquire the lock.  We must acquire the lock
+   to prevent a thread from running without holding the global lock,
+   and to avoid repeated calls to sys_mutex_unlock, which invokes
+   undefined behavior.  */
 void
 maybe_reacquire_global_lock (void)
 {
+  /* SIGINT handler is always run on the main thread, see
+     deliver_process_signal, so reflect that in our thread-tracking
+     variables.  */
+  current_thread = &main_thread.s;
+
   if (current_thread->not_holding_lock)
     {
       struct thread_state *self = current_thread;
@@ -247,19 +301,15 @@ NAME, if given, is used as the name of the mutex.  The name is
 informational only.  */)
   (Lisp_Object name)
 {
-  struct Lisp_Mutex *mutex;
-  Lisp_Object result;
-
   if (!NILP (name))
     CHECK_STRING (name);
 
-  mutex = ALLOCATE_PSEUDOVECTOR (struct Lisp_Mutex, mutex, PVEC_MUTEX);
-  memset ((char *) mutex + offsetof (struct Lisp_Mutex, mutex),
-	  0, sizeof (struct Lisp_Mutex) - offsetof (struct Lisp_Mutex,
-						    mutex));
+  struct Lisp_Mutex *mutex
+    = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Mutex, name, PVEC_MUTEX);
   mutex->name = name;
   lisp_mutex_init (&mutex->mutex);
 
+  Lisp_Object result;
   XSETMUTEX (result, mutex);
   return result;
 }
@@ -295,7 +345,7 @@ Note that calls to `mutex-lock' and `mutex-unlock' must be paired.  */)
   (Lisp_Object mutex)
 {
   struct Lisp_Mutex *lmutex;
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
   CHECK_MUTEX (mutex);
   lmutex = XMUTEX (mutex);
@@ -365,21 +415,17 @@ NAME, if given, is the name of this condition variable.  The name is
 informational only.  */)
   (Lisp_Object mutex, Lisp_Object name)
 {
-  struct Lisp_CondVar *condvar;
-  Lisp_Object result;
-
   CHECK_MUTEX (mutex);
   if (!NILP (name))
     CHECK_STRING (name);
 
-  condvar = ALLOCATE_PSEUDOVECTOR (struct Lisp_CondVar, cond, PVEC_CONDVAR);
-  memset ((char *) condvar + offsetof (struct Lisp_CondVar, cond),
-	  0, sizeof (struct Lisp_CondVar) - offsetof (struct Lisp_CondVar,
-						      cond));
+  struct Lisp_CondVar *condvar
+    = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_CondVar, name, PVEC_CONDVAR);
   condvar->mutex = mutex;
   condvar->name = name;
   sys_cond_init (&condvar->cond);
 
+  Lisp_Object result;
   XSETCONDVAR (result, condvar);
   return result;
 }
@@ -566,9 +612,18 @@ really_call_select (void *arg)
   sa->result = (sa->func) (sa->max_fds, sa->rfds, sa->wfds, sa->efds,
 			   sa->timeout, sa->sigmask);
 
+  release_select_lock ();
+
   block_interrupt_signal (&oldset);
-  acquire_global_lock (self);
-  self->not_holding_lock = 0;
+  /* If we were interrupted by C-g while inside sa->func above, the
+     signal handler could have called maybe_reacquire_global_lock, in
+     which case we are already holding the lock and shouldn't try
+     taking it again, or else we will hang forever.  */
+  if (self->not_holding_lock)
+    {
+      acquire_global_lock (self);
+      self->not_holding_lock = 0;
+    }
   restore_signal_mask (&oldset);
 }
 
@@ -596,11 +651,11 @@ static void
 mark_one_thread (struct thread_state *thread)
 {
   /* Get the stack top now, in case mark_specpdl changes it.  */
-  void *stack_top = thread->stack_top;
+  void const *stack_top = thread->stack_top;
 
   mark_specpdl (thread->m_specpdl, thread->m_specpdl_ptr);
 
-  mark_stack (thread->m_stack_bottom, stack_top);
+  mark_c_stack (thread->m_stack_bottom, stack_top);
 
   for (struct handler *handler = thread->m_handlerlist;
        handler; handler = handler->next)
@@ -616,10 +671,10 @@ mark_one_thread (struct thread_state *thread)
       mark_object (tem);
     }
 
-  mark_object (thread->m_last_thing_searched);
+  mark_bytecode (&thread->bc);
 
-  if (!NILP (thread->m_saved_last_thing_searched))
-    mark_object (thread->m_saved_last_thing_searched);
+  /* No need to mark Lisp_Object members like m_last_thing_searched,
+     as mark_threads_callback does that by calling mark_object.  */
 }
 
 static void
@@ -641,6 +696,12 @@ void
 mark_threads (void)
 {
   flush_stack_call_func (mark_threads_callback, NULL);
+}
+
+void
+unmark_main_thread (void)
+{
+  main_thread.s.header.size &= ~ARRAY_MARK_FLAG;
 }
 
 
@@ -666,9 +727,9 @@ DEFUN ("thread-yield", Fthread_yield, Sthread_yield, 0, 0, 0,
 static Lisp_Object
 invoke_thread_function (void)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
+  specpdl_ref count = SPECPDL_INDEX ();
 
-  Ffuncall (1, &current_thread->function);
+  current_thread->result = Ffuncall (1, &current_thread->function);
   return unbind_to (count, Qnil);
 }
 
@@ -686,13 +747,30 @@ run_thread (void *state)
 {
   /* Make sure stack_top and m_stack_bottom are properly aligned as GC
      expects.  */
-  max_align_t stack_pos;
+  union
+  {
+    Lisp_Object o;
+    void *p;
+    char c;
+  } stack_pos;
 
   struct thread_state *self = state;
   struct thread_state **iter;
 
-  self->m_stack_bottom = self->stack_top = (char *) &stack_pos;
+#ifdef HAVE_NS
+  /* Allocate an autorelease pool in case this thread calls any
+     Objective C code.
+
+     FIXME: In long running threads we may want to drain the pool
+     regularly instead of just at the end.  */
+  void *pool = ns_alloc_autorelease_pool ();
+#endif
+
+  self->m_stack_bottom = self->stack_top = &stack_pos.c;
   self->thread_id = sys_thread_self ();
+
+  if (self->thread_name)
+    sys_thread_set_name (self->thread_name);
 
   acquire_global_lock (self);
 
@@ -714,7 +792,7 @@ run_thread (void *state)
   xfree (self->m_specpdl - 1);
   self->m_specpdl = NULL;
   self->m_specpdl_ptr = NULL;
-  self->m_specpdl_size = 0;
+  self->m_specpdl_end = NULL;
 
   {
     struct handler *c, *c_next;
@@ -725,8 +803,14 @@ run_thread (void *state)
       }
   }
 
+  xfree (self->thread_name);
+
   current_thread = NULL;
   sys_cond_broadcast (&self->thread_condvar);
+
+#ifdef HAVE_NS
+  ns_release_autorelease_pool (pool);
+#endif
 
   /* Unlink this thread from the list of all threads.  Note that we
      have to do this very late, after broadcasting our death.
@@ -741,10 +825,23 @@ run_thread (void *state)
   return NULL;
 }
 
+static void
+free_search_regs (struct re_registers *regs)
+{
+  if (regs->num_regs != 0)
+    {
+      xfree (regs->start);
+      xfree (regs->end);
+    }
+}
+
 void
 finalize_one_thread (struct thread_state *state)
 {
+  free_search_regs (&state->m_search_regs);
+  free_search_regs (&state->m_saved_search_regs);
   sys_cond_destroy (&state->thread_condvar);
+  free_bc_thread (&state->bc);
 }
 
 DEFUN ("make-thread", Fmake_thread, Smake_thread, 1, 2, 0,
@@ -753,12 +850,6 @@ When the function exits, the thread dies.
 If NAME is given, it must be a string; it names the new thread.  */)
   (Lisp_Object function, Lisp_Object name)
 {
-  sys_thread_t thr;
-  struct thread_state *new_thread;
-  Lisp_Object result;
-  const char *c_name = NULL;
-  size_t offset = offsetof (struct thread_state, m_stack_bottom);
-
   /* Can't start a thread in temacs.  */
   if (!initialized)
     emacs_abort ();
@@ -766,26 +857,21 @@ If NAME is given, it must be a string; it names the new thread.  */)
   if (!NILP (name))
     CHECK_STRING (name);
 
-  new_thread = ALLOCATE_PSEUDOVECTOR (struct thread_state, m_stack_bottom,
-				      PVEC_THREAD);
-  memset ((char *) new_thread + offset, 0,
-	  sizeof (struct thread_state) - offset);
-
+  struct thread_state *new_thread
+    = ALLOCATE_ZEROED_PSEUDOVECTOR (struct thread_state, event_object,
+				    PVEC_THREAD);
   new_thread->function = function;
   new_thread->name = name;
-  new_thread->m_last_thing_searched = Qnil; /* copy from parent? */
-  new_thread->m_saved_last_thing_searched = Qnil;
+  /* Perhaps copy m_last_thing_searched from parent?  */
   new_thread->m_current_buffer = current_thread->m_current_buffer;
-  new_thread->error_symbol = Qnil;
-  new_thread->error_data = Qnil;
-  new_thread->event_object = Qnil;
 
-  new_thread->m_specpdl_size = 50;
-  new_thread->m_specpdl = xmalloc ((1 + new_thread->m_specpdl_size)
-				   * sizeof (union specbinding));
-  /* Skip the dummy entry.  */
-  ++new_thread->m_specpdl;
+  ptrdiff_t size = 50;
+  union specbinding *pdlvec = xmalloc ((1 + size) * sizeof (union specbinding));
+  new_thread->m_specpdl = pdlvec + 1;  /* Skip the dummy entry.  */
+  new_thread->m_specpdl_end = new_thread->m_specpdl + size;
   new_thread->m_specpdl_ptr = new_thread->m_specpdl;
+
+  init_bc_thread (&new_thread->bc);
 
   sys_cond_init (&new_thread->thread_condvar);
 
@@ -793,17 +879,25 @@ If NAME is given, it must be a string; it names the new thread.  */)
   new_thread->next_thread = all_threads;
   all_threads = new_thread;
 
-  if (!NILP (name))
-    c_name = SSDATA (ENCODE_UTF_8 (name));
-
-  if (! sys_thread_create (&thr, c_name, run_thread, new_thread))
+  char const *c_name = !NILP (name) ? SSDATA (ENCODE_SYSTEM (name)) : NULL;
+  if (c_name)
+    new_thread->thread_name = xstrdup (c_name);
+  else
+    new_thread->thread_name = NULL;
+  sys_thread_t thr;
+  if (! sys_thread_create (&thr, run_thread, new_thread))
     {
       /* Restore the previous situation.  */
       all_threads = all_threads->next_thread;
+#ifdef THREADS_ENABLED
       error ("Could not start a new thread");
+#else
+      error ("Concurrency is not supported in this configuration");
+#endif
     }
 
   /* FIXME: race here where new thread might not be filled in?  */
+  Lisp_Object result;
   XSETTHREAD (result, new_thread);
   return result;
 }
@@ -845,7 +939,8 @@ DEFUN ("thread-signal", Fthread_signal, Sthread_signal, 3, 3, 0,
 This acts like `signal', but arranges for the signal to be raised
 in THREAD.  If THREAD is the current thread, acts just like `signal'.
 This will interrupt a blocked call to `mutex-lock', `condition-wait',
-or `thread-join' in the target thread.  */)
+or `thread-join' in the target thread.
+If THREAD is the main thread, just the error message is shown.  */)
   (Lisp_Object thread, Lisp_Object error_symbol, Lisp_Object data)
 {
   struct thread_state *tstate;
@@ -856,18 +951,36 @@ or `thread-join' in the target thread.  */)
   if (tstate == current_thread)
     Fsignal (error_symbol, data);
 
-  /* What to do if thread is already signaled?  */
-  /* What if error_symbol is Qnil?  */
-  tstate->error_symbol = error_symbol;
-  tstate->error_data = data;
+#ifdef THREADS_ENABLED
+  if (main_thread_p (tstate))
+    {
+      /* Construct an event.  */
+      struct input_event event;
+      EVENT_INIT (event);
+      event.kind = THREAD_EVENT;
+      event.frame_or_window = Qnil;
+      event.arg = list3 (Fcurrent_thread (), error_symbol, data);
 
-  if (tstate->wait_condvar)
-    flush_stack_call_func (thread_signal_callback, tstate);
+      /* Store it into the input event queue.  */
+      kbd_buffer_store_event (&event);
+    }
+
+  else
+#endif
+    {
+      /* What to do if thread is already signaled?  */
+      /* What if error_symbol is Qnil?  */
+      tstate->error_symbol = error_symbol;
+      tstate->error_data = data;
+
+      if (tstate->wait_condvar)
+	flush_stack_call_func (thread_signal_callback, tstate);
+    }
 
   return Qnil;
 }
 
-DEFUN ("thread-alive-p", Fthread_alive_p, Sthread_alive_p, 1, 1, 0,
+DEFUN ("thread-live-p", Fthread_live_p, Sthread_live_p, 1, 1, 0,
        doc: /* Return t if THREAD is alive, or nil if it has exited.  */)
   (Lisp_Object thread)
 {
@@ -876,7 +989,7 @@ DEFUN ("thread-alive-p", Fthread_alive_p, Sthread_alive_p, 1, 1, 0,
   CHECK_THREAD (thread);
   tstate = XTHREAD (thread);
 
-  return thread_alive_p (tstate) ? Qt : Qnil;
+  return thread_live_p (tstate) ? Qt : Qnil;
 }
 
 DEFUN ("thread--blocker", Fthread_blocker, Sthread_blocker, 1, 1, 0,
@@ -906,7 +1019,7 @@ thread_join_callback (void *arg)
   XSETTHREAD (thread, tstate);
   self->event_object = thread;
   self->wait_condvar = &tstate->thread_condvar;
-  while (thread_alive_p (tstate) && NILP (self->error_symbol))
+  while (thread_live_p (tstate) && NILP (self->error_symbol))
     sys_cond_wait (self->wait_condvar, &global_lock);
 
   self->wait_condvar = NULL;
@@ -916,12 +1029,13 @@ thread_join_callback (void *arg)
 
 DEFUN ("thread-join", Fthread_join, Sthread_join, 1, 1, 0,
        doc: /* Wait for THREAD to exit.
-This blocks the current thread until THREAD exits or until
-the current thread is signaled.
-It is an error for a thread to try to join itself.  */)
+This blocks the current thread until THREAD exits or until the current
+thread is signaled.  It returns the result of the THREAD function.  It
+is an error for a thread to try to join itself.  */)
   (Lisp_Object thread)
 {
   struct thread_state *tstate;
+  Lisp_Object error_symbol, error_data;
 
   CHECK_THREAD (thread);
   tstate = XTHREAD (thread);
@@ -929,10 +1043,16 @@ It is an error for a thread to try to join itself.  */)
   if (tstate == current_thread)
     error ("Cannot join current thread");
 
-  if (thread_alive_p (tstate))
+  error_symbol = tstate->error_symbol;
+  error_data = tstate->error_data;
+
+  if (thread_live_p (tstate))
     flush_stack_call_func (thread_join_callback, tstate);
 
-  return Qnil;
+  if (!NILP (error_symbol))
+    Fsignal (error_symbol, error_data);
+
+  return tstate->result;
 }
 
 DEFUN ("all-threads", Fall_threads, Sall_threads, 0, 0, 0,
@@ -944,7 +1064,7 @@ DEFUN ("all-threads", Fall_threads, Sall_threads, 0, 0, 0,
 
   for (iter = all_threads; iter; iter = iter->next_thread)
     {
-      if (thread_alive_p (iter))
+      if (thread_live_p (iter))
 	{
 	  Lisp_Object thread;
 
@@ -956,11 +1076,17 @@ DEFUN ("all-threads", Fall_threads, Sall_threads, 0, 0, 0,
   return result;
 }
 
-DEFUN ("thread-last-error", Fthread_last_error, Sthread_last_error, 0, 0, 0,
-       doc: /* Return the last error form recorded by a dying thread.  */)
-  (void)
+DEFUN ("thread-last-error", Fthread_last_error, Sthread_last_error, 0, 1, 0,
+       doc: /* Return the last error form recorded by a dying thread.
+If CLEANUP is non-nil, remove this error form from history.  */)
+     (Lisp_Object cleanup)
 {
-  return last_thread_error;
+  Lisp_Object result = last_thread_error;
+
+  if (!NILP (cleanup))
+    last_thread_error = Qnil;
+
+  return result;
 }
 
 
@@ -984,42 +1110,29 @@ thread_check_current_buffer (struct buffer *buffer)
 
 
 
-static void
-init_main_thread (void)
+bool
+main_thread_p (const void *ptr)
 {
-  main_thread.header.size
-    = PSEUDOVECSIZE (struct thread_state, m_stack_bottom);
-  XSETPVECTYPE (&main_thread, PVEC_THREAD);
-  main_thread.m_last_thing_searched = Qnil;
-  main_thread.m_saved_last_thing_searched = Qnil;
-  main_thread.name = Qnil;
-  main_thread.function = Qnil;
-  main_thread.error_symbol = Qnil;
-  main_thread.error_data = Qnil;
-  main_thread.event_object = Qnil;
+  return ptr == &main_thread.s;
 }
 
 bool
-main_thread_p (void *ptr)
+in_current_thread (void)
 {
-  return ptr == &main_thread;
-}
-
-void
-init_threads_once (void)
-{
-  init_main_thread ();
+  if (current_thread == NULL)
+    return false;
+  return sys_thread_equal (sys_thread_self (), current_thread->thread_id);
 }
 
 void
 init_threads (void)
 {
-  init_main_thread ();
-  sys_cond_init (&main_thread.thread_condvar);
+  sys_cond_init (&main_thread.s.thread_condvar);
   sys_mutex_init (&global_lock);
   sys_mutex_lock (&global_lock);
-  current_thread = &main_thread;
-  main_thread.thread_id = sys_thread_self ();
+  current_thread = &main_thread.s;
+  main_thread.s.thread_id = sys_thread_self ();
+  init_bc_thread (&main_thread.s.bc);
 }
 
 void
@@ -1034,7 +1147,7 @@ syms_of_threads (void)
       defsubr (&Scurrent_thread);
       defsubr (&Sthread_name);
       defsubr (&Sthread_signal);
-      defsubr (&Sthread_alive_p);
+      defsubr (&Sthread_live_p);
       defsubr (&Sthread_join);
       defsubr (&Sthread_blocker);
       defsubr (&Sall_threads);
@@ -1051,9 +1164,19 @@ syms_of_threads (void)
 
       staticpro (&last_thread_error);
       last_thread_error = Qnil;
+
+      Fprovide (intern_c_string ("threads"), Qnil);
     }
 
   DEFSYM (Qthreadp, "threadp");
   DEFSYM (Qmutexp, "mutexp");
   DEFSYM (Qcondition_variable_p, "condition-variable-p");
+
+  DEFVAR_LISP ("main-thread", Vmain_thread,
+    doc: /* The main thread of Emacs.  */);
+#ifdef THREADS_ENABLED
+  XSETTHREAD (Vmain_thread, &main_thread.s);
+#else
+  Vmain_thread = Qnil;
+#endif
 }

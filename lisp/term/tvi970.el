@@ -1,6 +1,6 @@
-;;; tvi970.el --- terminal support for the Televideo 970
+;;; tvi970.el --- terminal support for the Televideo 970  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>
 ;; Keywords: terminals
@@ -36,7 +36,7 @@
                ;; ("\eOR"	[kp-f3])
                ;; ("\eOS"	[kp-f4])
 
-               ;; These might bre set by terminfo.
+               ;; These might be set by terminfo.
                ("\e[H"	[home])
                ("\e[Z"	[backtab])
                ("\e[i"	[print])
@@ -45,13 +45,13 @@
                ("\e[M"	[deleteline])
                ("\e[U"	[next]) ;; actually the `page' key
 
-               ;; These won't be set up by either
+               ;; These won't be set up by either.
                ("\eOm"	[kp-subtract])
                ("\eOl"	[kp-separator])
                ("\eOn"	[kp-decimal])
                ("\eOM"	[kp-enter])
 
-               ;; These won't be set up by either either
+               ;; These won't be set up by either.
                ("\e[K"	[key_eol])	;; Not an X keysym
                ("\e[J"	[key_eos])	;; Not an X keysym
                ("\e[2J"	[key_clear])	;; Not an X keysym
@@ -101,9 +101,6 @@
 ;; Should keypad numbers send ordinary digits or distinct escape sequences?
 (define-minor-mode tvi970-set-keypad-mode
   "Toggle alternate keypad mode on TVI 970 keypad.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 In alternate keypad mode, the keys send distinct escape
 sequences, meaning that they can have their own bindings,

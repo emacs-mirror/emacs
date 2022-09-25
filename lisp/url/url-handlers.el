@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -23,16 +23,17 @@
 
 ;;; Code:
 
-;; (require 'url)
 (require 'url-parse)
-;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
-;; (require 'mailcap)
+(eval-when-compile (require 'subr-x))
 ;; The following are autoloaded instead of `require'd to avoid eagerly
 ;; loading all of URL when turning on url-handler-mode in the .emacs.
-(autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
-(autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
-(autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
+(autoload 'url-expand-file-name "url-expand"
+  "Convert URL to a fully specified URL, and canonicalize it.")
+(autoload 'mm-dissect-buffer "mm-decode"
+  "Dissect the current buffer and return a list of MIME handles.")
+(autoload 'url-scheme-get-property "url-methods"
+  "Get PROPERTY of a URL SCHEME.")
 
 ;; Always used after mm-dissect-buffer and defined in the same file.
 (declare-function mm-save-part-to-file "mm-decode" (handle file))
@@ -41,6 +42,9 @@
 (declare-function mm-decode-string "mm-bodies" (string charset))
 ;; mm-decode loads mail-parse.
 (declare-function mail-content-type-get "mail-parse" (ct attribute))
+;; mm-decode loads mm-bodies, which loads mm-util.
+(declare-function mm-charset-to-coding-system "mm-util"
+                  (charset &optional lbt allow-override silent))
 
 ;; Implementation status
 ;; ---------------------
@@ -98,10 +102,16 @@
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
-  "Toggle using `url' library for URL filenames (URL Handler mode).
-With a prefix argument ARG, enable URL Handler mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  ;; Can't use "\\[find-file]" below as it produces "[open]":
+  "Handle URLs as if they were file names throughout Emacs.
+After switching on this minor mode, Emacs file primitives handle
+URLs.  For instance:
+
+  (file-exists-p \"https://www.gnu.org/\")
+  => t
+
+and `C-x C-f https://www.gnu.org/ RET' will give you the HTML at
+that URL in a buffer."
   :global t :group 'url
   ;; Remove old entry, if any.
   (setq file-name-handler-alist
@@ -111,15 +121,16 @@ the mode if ARG is omitted or nil."
       (push (cons url-handler-regexp 'url-file-handler)
 	    file-name-handler-alist)))
 
-(defcustom url-handler-regexp "\\`\\(https?\\|ftp\\|file\\|nfs\\|ssh\\|scp\\|rsync\\|telnet\\)://"
+(defcustom url-handler-regexp
+  "\\`\\(?:https?\\|ftp\\|file\\|nfs\\|ssh\\|scp\\|rsync\\|telnet\\)://"
   "Regular expression for URLs handled by `url-handler-mode'.
 When URL Handler mode is enabled, this regular expression is
 added to `file-name-handler-alist'.
 
 Some valid URL protocols just do not make sense to visit
-interactively \(about, data, info, irc, mailto, etc.).  This
+interactively (about, data, info, irc, mailto, etc.).  This
 regular expression avoids conflicts with local files that look
-like URLs \(Gnus is particularly bad at this)."
+like URLs (Gnus is particularly bad at this)."
   :group 'url
   :type 'regexp
   :version "25.1"
@@ -143,8 +154,8 @@ like URLs \(Gnus is particularly bad at this)."
 ;;;###autoload
 (defun url-file-handler (operation &rest args)
   "Function called from the `file-name-handler-alist' routines.
-OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
-the arguments that would have been passed to OPERATION."
+OPERATION is what needs to be done (`file-exists-p', etc.).
+ARGS are the arguments that would have been passed to OPERATION."
   ;; Avoid recursive load.
   (if (and load-in-progress url-file-handler-load-in-progress)
       (url-run-real-handler operation args)
@@ -152,47 +163,46 @@ the arguments that would have been passed to OPERATION."
       ;; Check, whether there are arguments we want pass to Tramp.
       (if (catch :do
             (dolist (url (cons default-directory args))
-              (and (member
-                    (url-type (url-generic-parse-url (and (stringp url) url)))
-                    url-tramp-protocols)
+              (and (stringp url)
+                   (member (url-type (url-generic-parse-url url))
+                           url-tramp-protocols)
                    (throw :do t))))
-          (apply 'url-tramp-file-handler operation args)
+          (apply #'url-tramp-file-handler operation args)
         ;; Otherwise, let's do the job.
         (let ((fn (get operation 'url-file-handlers))
-              (val nil)
-              (hooked nil))
-          (if (and (not fn) (intern-soft (format "url-%s" operation))
+              val)
+          (if (and (not fn)
                    (fboundp (intern-soft (format "url-%s" operation))))
               (error "Missing URL handler mapping for %s" operation))
-          (if fn
-              (setq hooked t
-                    val (save-match-data (apply fn args)))
-            (setq hooked nil
-                  val (url-run-real-handler operation args)))
-          (url-debug 'handlers "%s %S%S => %S" (if hooked "Hooked" "Real")
+          (setq val (if fn (save-match-data (apply fn args))
+                      (url-run-real-handler operation args)))
+          (url-debug 'handlers "%s %S%S => %S" (if fn "Hooked" "Real")
                      operation args val)
           val)))))
 
-(defun url-file-handler-identity (&rest args)
-  ;; Identity function
-  (car args))
+(defun url-file-handler-identity (arg &rest _ignored)
+  ;; Identity function.
+  arg)
 
-;; These are operations that we can fully support
-(put 'file-readable-p 'url-file-handlers 'url-file-exists-p)
-(put 'substitute-in-file-name 'url-file-handlers 'url-file-handler-identity)
-(put 'file-name-absolute-p 'url-file-handlers (lambda (&rest ignored) t))
-(put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
-(put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
-(put 'unhandled-file-name-directory 'url-file-handlers 'url-handler-unhandled-file-name-directory)
-(put 'file-remote-p 'url-file-handlers 'url-handler-file-remote-p)
-;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
+;; These are operations that we can fully support.
+(put 'file-readable-p 'url-file-handlers #'url-file-exists-p)
+(put 'substitute-in-file-name 'url-file-handlers #'url-file-handler-identity)
+(put 'file-name-absolute-p 'url-file-handlers (lambda (&rest _ignored) t))
+(put 'expand-file-name 'url-file-handlers #'url-handler-expand-file-name)
+(put 'directory-file-name 'url-file-handlers #'url-handler-directory-file-name)
+(put 'file-name-directory 'url-file-handlers #'url-handler-file-name-directory)
+(put 'unhandled-file-name-directory 'url-file-handlers
+     #'url-handler-unhandled-file-name-directory)
+(put 'file-remote-p 'url-file-handlers #'url-handler-file-remote-p)
+;; (put 'file-name-as-directory 'url-file-handlers
+;;      #'url-handler-file-name-as-directory)
 
 ;; These are operations that we do not support yet (DAV!!!)
-(put 'file-writable-p 'url-file-handlers 'ignore)
-(put 'file-symlink-p 'url-file-handlers 'ignore)
+(put 'file-writable-p 'url-file-handlers #'ignore)
+(put 'file-symlink-p 'url-file-handlers #'ignore)
 ;; Just like for ange-ftp: let's not waste time trying to look for RCS/foo,v
 ;; files and such since we can't do anything clever with them anyway.
-(put 'vc-registered 'url-file-handlers 'ignore)
+(put 'vc-registered 'url-file-handlers #'ignore)
 
 (defun url-handler-expand-file-name (file &optional base)
   ;; When we see "/foo/bar" in a file whose working dir is "http://bla/bla",
@@ -213,7 +223,7 @@ the arguments that would have been passed to OPERATION."
 ;; reversible:  (f-n-a-d (d-f-n (f-n-a-d X))) == (f-n-a-d X)
 (defun url-handler-directory-file-name (dir)
   ;; When there's more than a single /, just don't touch the slashes at all.
-  (if (string-match "//\\'" dir) dir
+  (if (string-suffix-p "//" dir) dir
     (url-run-real-handler 'directory-file-name (list dir))))
 
 (defun url-handler-unhandled-file-name-directory (filename)
@@ -227,6 +237,14 @@ the arguments that would have been passed to OPERATION."
       ;; All other URLs are not expected to be directly accessible from
       ;; a local process.
       nil)))
+
+(defun url-handler-file-name-directory (dir)
+  (let ((url (url-generic-parse-url dir)))
+    ;; Do not attempt to handle `file' URLs which are local.
+    (if (and (not (equal (url-type url) "file"))
+	     (string-empty-p (url-filename url)))
+	(url-handler-file-name-directory (concat dir "/"))
+      (url-run-real-handler 'file-name-directory (list dir)))))
 
 (defun url-handler-file-remote-p (filename &optional identification _connected)
   (let ((url (url-generic-parse-url filename)))
@@ -247,52 +265,51 @@ the arguments that would have been passed to OPERATION."
       ;; `url-handler-unhandled-file-name-directory'.
       nil)))
 
-;; The actual implementation
+;; The actual implementation.
 ;;;###autoload
-(defun url-copy-file (url newname &optional ok-if-already-exists
-			  _keep-time _preserve-uid-gid)
-  "Copy URL to NEWNAME.  Both args must be strings.
-Signals a `file-already-exists' error if file NEWNAME already exists,
-unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
-This is what happens in interactive use with M-x.
-Fourth arg KEEP-TIME non-nil means give the new file the same
-last-modified time as the old one.  (This works on only some systems.)
-Fifth arg PRESERVE-UID-GID is ignored.
-A prefix arg makes KEEP-TIME non-nil."
-  (if (and (file-exists-p newname)
-	   (not ok-if-already-exists))
-      (signal 'file-already-exists (list "File exists" newname)))
-  (let ((buffer (url-retrieve-synchronously url))
-	(handle nil))
-    (if (not buffer)
-        (signal 'file-missing (list "Opening URL" "No such file or directory"
-                                    url)))
-    (with-current-buffer buffer
-      (setq handle (mm-dissect-buffer t)))
+(defun url-copy-file (url newname &optional ok-if-already-exists &rest _ignored)
+  "Copy URL to NEWNAME.  Both arguments must be strings.
+Signal a `file-already-exists' error if file NEWNAME already
+exists, unless a third argument OK-IF-ALREADY-EXISTS is supplied
+and non-nil.  An integer as third argument means request
+confirmation if NEWNAME already exists."
+  (and (file-exists-p newname)
+       (or (not ok-if-already-exists)
+           (and (integerp ok-if-already-exists)
+                (not (yes-or-no-p
+                      (format "File %s already exists; copy to it anyway? "
+                              newname)))))
+       (signal 'file-already-exists (list "File already exists" newname)))
+  (let* ((buffer (or (url-retrieve-synchronously url)
+                     (signal 'file-missing
+                             (list "Opening URL"
+                                   "No such file or directory" url))))
+         (handle (with-current-buffer buffer
+                   (mm-dissect-buffer t))))
     (let ((mm-attachment-file-modes (default-file-modes)))
       (mm-save-part-to-file handle newname))
     (kill-buffer buffer)
     (mm-destroy-parts handle)))
-(put 'copy-file 'url-file-handlers 'url-copy-file)
+(put 'copy-file 'url-file-handlers #'url-copy-file)
 
 ;;;###autoload
-(defun url-file-local-copy (url &rest ignored)
+(defun url-file-local-copy (url &rest _ignored)
   "Copy URL into a temporary file on this machine.
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
   (let ((filename (make-temp-file "url")))
     (url-copy-file url filename 'ok-if-already-exists)
     filename))
-(put 'file-local-copy 'url-file-handlers 'url-file-local-copy)
+(put 'file-local-copy 'url-file-handlers #'url-file-local-copy)
 
 (defun url-insert (buffer &optional beg end)
   "Insert the body of a URL object.
 BUFFER should be a complete URL buffer as returned by `url-retrieve'.
-If the headers specify a coding-system, it is applied to the body before it is inserted.
+If the headers specify a coding-system (and current buffer is multibyte),
+it is applied to the body before it is inserted.
 Returns a list of the form (SIZE CHARSET), where SIZE is the size in bytes
-of the inserted text and CHARSET is the charset that was specified in the header,
-or nil if none was found.
+of the inserted text and CHARSET is the charset that was specified in the
+header, or nil if none was found.
 BEG and END can be used to only insert a subpart of the body.
 They count bytes from the beginning of the body."
   (let* ((handle (with-current-buffer buffer (mm-dissect-buffer t)))
@@ -301,12 +318,13 @@ They count bytes from the beginning of the body."
                      (buffer-substring (+ (point-min) beg)
                                        (if end (+ (point-min) end) (point-max)))
 		   (buffer-string))))
-         (charset (mail-content-type-get (mm-handle-type handle)
-                                          'charset)))
+         (charset (if enable-multibyte-characters
+                      (mail-content-type-get (mm-handle-type handle)
+                                             'charset))))
     (mm-destroy-parts handle)
-    (if charset
-        (insert (mm-decode-string data (mm-charset-to-coding-system charset)))
-      (insert data))
+    (insert (if charset
+                (mm-decode-string data (mm-charset-to-coding-system charset))
+              data))
     (list (length data) charset)))
 
 (defvar url-http-codes)
@@ -318,8 +336,8 @@ This is like `url-insert', but also decodes the current buffer as
 if it had been inserted from a file named URL."
   (if visit (setq buffer-file-name url))
   (save-excursion
-    (let* ((start (point))
-           (size-and-charset (url-insert buffer beg end)))
+    (let ((start (point))
+          (size-and-charset (url-insert buffer beg end)))
       (kill-buffer buffer)
       (when replace
         (delete-region (point-min) start)
@@ -330,42 +348,26 @@ if it had been inserted from a file named URL."
         (decode-coding-inserted-region (point-min) (point) url
                                        visit beg end replace))
       (let ((inserted (car size-and-charset)))
-        (when (fboundp 'after-insert-file-set-coding)
-          (let ((insval (after-insert-file-set-coding inserted visit)))
-            (if insval (setq inserted insval))))
-        (list url inserted)))))
+        (list url (or (after-insert-file-set-coding inserted visit)
+                      inserted))))))
 
 ;;;###autoload
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url)))
     (unless buffer (signal 'file-error (list url "No Data")))
-    (with-current-buffer buffer
+    (when (fboundp 'url-http--insert-file-helper)
       ;; XXX: This is HTTP/S specific and should be moved to url-http
-      ;; instead.  See https://debbugs.gnu.org/17549.
-      (when (bound-and-true-p url-http-response-status)
-        ;; Don't signal an error if VISIT is non-nil, because
-        ;; 'insert-file-contents' doesn't.  This is required to
-        ;; support, e.g., 'browse-url-emacs', which is a fancy way of
-        ;; visiting the HTML source of a URL: in that case, we want to
-        ;; display a file buffer even if the URL does not exist and
-        ;; 'url-retrieve-synchronously' returns 404 or whatever.
-        (unless (or visit
-                    (and (>= url-http-response-status 200)
-                         (< url-http-response-status 300)))
-          (let ((desc (nth 2 (assq url-http-response-status url-http-codes))))
-            (kill-buffer buffer)
-            ;; Signal file-error per https://debbugs.gnu.org/16733.
-            (signal 'file-error (list url desc))))))
+      ;; instead.  See bug#17549.
+      (url-http--insert-file-helper buffer url visit))
     (url-insert-buffer-contents buffer url visit beg end replace)))
-
-(put 'insert-file-contents 'url-file-handlers 'url-insert-file-contents)
+(put 'insert-file-contents 'url-file-handlers #'url-insert-file-contents)
 
 (defun url-file-name-completion (url _directory &optional _predicate)
   ;; Even if it's not implemented, it's not an error to ask for completion,
   ;; in case it's available (bug#14806).
   ;; (error "Unimplemented")
   url)
-(put 'file-name-completion 'url-file-handlers 'url-file-name-completion)
+(put 'file-name-completion 'url-file-handlers #'url-file-name-completion)
 
 (defun url-file-name-all-completions (_file _directory)
   ;; Even if it's not implemented, it's not an error to ask for completion,
@@ -373,7 +375,7 @@ if it had been inserted from a file named URL."
   ;; (error "Unimplemented")
   nil)
 (put 'file-name-all-completions
-     'url-file-handlers 'url-file-name-all-completions)
+     'url-file-handlers #'url-file-name-all-completions)
 
 ;; All other handlers map onto their respective backends.
 (defmacro url-handlers-create-wrapper (method args)
@@ -383,10 +385,10 @@ if it had been inserted from a file named URL."
                 (or (documentation method t) "No original documentation."))
        (setq url (url-generic-parse-url url))
        (when (url-type url)
-         (funcall (url-scheme-get-property (url-type url) (quote ,method))
-                  ,@(remove '&rest (remove '&optional args)))))
+         (funcall (url-scheme-get-property (url-type url) ',method)
+                  ,@(remq '&rest (remq '&optional args)))))
      (unless (get ',method 'url-file-handlers)
-       (put ',method 'url-file-handlers ',(intern (format "url-%s" method))))))
+       (put ',method 'url-file-handlers #',(intern (format "url-%s" method))))))
 
 (url-handlers-create-wrapper file-exists-p (url))
 (url-handlers-create-wrapper file-attributes (url &optional id-format))
@@ -394,15 +396,16 @@ if it had been inserted from a file named URL."
 (url-handlers-create-wrapper file-writable-p (url))
 (url-handlers-create-wrapper file-directory-p (url))
 (url-handlers-create-wrapper file-executable-p (url))
-(url-handlers-create-wrapper directory-files (url &optional full match nosort))
+(url-handlers-create-wrapper
+ directory-files (url &optional full match nosort count))
 (url-handlers-create-wrapper file-truename (url &optional counter prev-dirs))
 
-(add-hook 'find-file-hook 'url-handlers-set-buffer-mode)
+(add-hook 'find-file-hook #'url-handlers-set-buffer-mode)
 
 (defun url-handlers-set-buffer-mode ()
   "Set correct modes for the current buffer if visiting a remote file."
-  (and (stringp buffer-file-name)
-       (string-match url-handler-regexp buffer-file-name)
+  (and buffer-file-name
+       (string-match-p url-handler-regexp buffer-file-name)
        (auto-save-mode 0)))
 
 (provide 'url-handlers)

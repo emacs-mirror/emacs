@@ -1,6 +1,6 @@
-;;; ediff-diff.el --- diff-related utilities
+;;; ediff-diff.el --- diff-related utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -24,9 +24,6 @@
 
 ;;; Code:
 
-
-(provide 'ediff-diff)
-
 (require 'ediff-init)
 (require 'ediff-util)
 
@@ -37,13 +34,11 @@
 
 (defcustom ediff-diff-program "diff"
   "Program to use for generating the differential of the two files."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 (defcustom ediff-diff3-program "diff3"
   "Program to be used for three-way comparison.
 Must produce output compatible with Unix's diff3 program."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 
 ;; The following functions must precede all defcustom-defined variables.
@@ -60,21 +55,18 @@ will do.  However, some people set $prompt or other things
 incorrectly, which leads to undesirable output messages.  These may
 cause Ediff to fail.  In such a case, set `ediff-shell' to a shell that
 you are not using or, better, fix your shell's startup file."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-cmp-program "cmp"
   "Utility to use to determine if two files are identical.
 It must return code 0, if its arguments are identical files."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-cmp-options nil
   "Options to pass to `ediff-cmp-program'.
 If GNU diff is used as `ediff-cmp-program', then the most useful options
 are `-I REGEXP', to ignore changes whose lines match the REGEXP."
-  :type '(repeat string)
-  :group 'ediff-diff)
+  :type '(repeat string))
 
 (defun ediff-set-diff-options (symbol value)
   (set symbol value)
@@ -85,18 +77,20 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   "Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
 then a useful option is `-w', to ignore space.
-Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
+Options `-c', `-u', and `-i' are not allowed.  Case sensitivity can be
 toggled interactively using \\[ediff-toggle-ignore-case].
 
-Do not remove the default options. If you need to change this variable, add new
+Do not remove the default options.  If you need to change this variable, add new
 options after the default ones.
 
 This variable is not for customizing the look of the differences produced by
-the command \\[ediff-show-diff-output]. Use the variable
-`ediff-custom-diff-options' for that."
-  :set 'ediff-set-diff-options
-  :type 'string
-  :group 'ediff-diff)
+the command \\[ediff-show-diff-output].  Use the variable
+`ediff-custom-diff-options' for that.
+
+Setting this variable directly may not yield the expected
+results.  It should be set via the Customize interface instead."
+  :set #'ediff-set-diff-options
+  :type 'string)
 
 (ediff-defvar-local ediff-ignore-case nil
   "If t, skip over difference regions that differ only in letter case.
@@ -105,27 +99,23 @@ Use `setq-default' if setting it in .emacs")
 
 (defcustom ediff-ignore-case-option "-i"
   "Option that causes the diff program to ignore case of letters."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 (defcustom ediff-ignore-case-option3 ""
   "Option that causes the diff3 program to ignore case of letters.
 GNU diff3 doesn't have such an option."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
-;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff-options ediff-diff-options "")
+(ediff-defvar-local ediff-actual-diff-options ediff-diff-options
+  "The actual options used in comparison.")
 
 (defcustom ediff-custom-diff-program ediff-diff-program
   "Program to use for generating custom diff output for saving it in a file.
 This output is not used by Ediff internally."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 (defcustom ediff-custom-diff-options "-c"
   "Options to pass to `ediff-custom-diff-program'."
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
 ;;; Support for diff3
 
@@ -134,36 +124,34 @@ This output is not used by Ediff internally."
 (defcustom ediff-diff3-options ""
   "Options to pass to `ediff-diff3-program'."
   :set 'ediff-set-diff-options
-  :type 'string
-  :group 'ediff-diff)
+  :type 'string)
 
-;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options "")
+(ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options
+  "The actual options used in comparison.")
 
 (defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
   "Regexp that matches normal output lines from `ediff-diff3-program'.
 Lines that do not match are assumed to be error messages."
-  :type 'regexp
-  :group 'ediff-diff)
+  :type 'regexp)
 
-;; keeps the status of the current diff in 3-way jobs.
-;; the status can be =diff(A), =diff(B), or =diff(A+B)
-(ediff-defvar-local ediff-diff-status "" "")
+(ediff-defvar-local ediff-diff-status ""
+  "Keeps the status of the current diff in 3-way jobs.
+The status can be =diff(A), =diff(B), or =diff(A+B).")
 
 
 ;;; Fine differences
 
 (ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
   "If `on', Ediff auto-highlights fine diffs for the current diff region.
-If `off', auto-highlighting is not used. If `nix', no fine diffs are shown
+If `off', auto-highlighting is not used.  If `nix', no fine diffs are shown
 at all, unless the user force-refines the region by hitting `*'.
 
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-ignore-similar-regions nil
-  "If t, skip over difference regions that differ only in the white space and line breaks.
+  "If t, skip difference regions that differ only in white space and line breaks.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
@@ -194,12 +182,12 @@ Lines that do not match are assumed to be error messages.")
   "Pattern to match lines produced by diff that describe differences.")
 
 (ediff-defvar-local ediff-setup-diff-regions-function nil
-  "value is a function symbol depending on the kind of job is to be done.
-For 2-way jobs and for ediff-merge, it should be `ediff-setup-diff-regions'.
+  "Value is a function symbol depending on the kind of job is to be done.
+For 2-way jobs and for `ediff-merge', it should be `ediff-setup-diff-regions'.
 For jobs requiring diff3, it should be `ediff-setup-diff-regions3'.
 
 The function should take three mandatory arguments, file-A, file-B, and
-file-C. It may ignore file C for diff2 jobs. It should also take
+file-C.  It may ignore file C for diff2 jobs.  It should also take
 one optional arguments, diff-number to refine.")
 
 
@@ -245,10 +233,7 @@ one optional arguments, diff-number to refine.")
 	   (sit-for 2)
 	   ;; 1 is an error exit code
 	   1)
-	  (t (message "Computing differences between %s and %s ..."
-		      (file-name-nondirectory file1)
-		      (file-name-nondirectory file2))
-	     ;; this erases the diff buffer automatically
+	  (t ;; this erases the diff buffer automatically
 	     (ediff-exec-process ediff-diff-program
 				 diff-buffer
 				 'synchronize
@@ -339,6 +324,10 @@ one optional arguments, diff-number to refine.")
 	    (error-buf ediff-error-buffer))
 	(ediff-skip-unsuitable-frames)
 	(switch-to-buffer error-buf)
+        ;; We output data from the diff command using `raw-text' as
+        ;; the coding system, so decode before displaying.
+        (when (eq ediff-coding-system-for-read 'raw-text)
+          (decode-coding-region (point-min) (point-max) 'undecided))
 	(ediff-kill-buffer-carefully ctl-buf)
 	(user-error "Errors in diff output.  Diff output is in %S" diff-buff))))
 
@@ -837,13 +826,10 @@ one optional arguments, diff-number to refine.")
       (setq overlay-list (cons overlay overlay-list))
       (if (> (length diff-list) 1)
 	  (setq diff-list (cdr (cdr diff-list)))
-	(error "ediff-set-fine-overlays-for-combined-merge: corrupt list of
-delimiter regions"))
-      )
+        (error "Corrupt list of delimiter regions")))
     (setq overlay-list (reverse overlay-list))
     (ediff-set-fine-diff-vector
-     reg-num 'C (apply 'vector overlay-list))
-    ))
+     reg-num 'C (apply #'vector overlay-list))))
 
 
 ;; Convert diff list to overlays for a given DIFF-REGION
@@ -909,7 +895,7 @@ delimiter regions"))
 (defun ediff-get-diff3-group (file)
   ;; This save-excursion allows ediff-get-diff3-group to be called for the
   ;; various groups of lines (1, 2, 3) in any order, and for the lines to
-  ;; appear in any order.  The reason this is necessary is that Gnu diff3
+  ;; appear in any order.  The reason this is necessary is that GNU diff3
   ;; can produce the groups in the order 1, 2, 3 or 1, 3, 2.
   (save-excursion
     (re-search-forward
@@ -1156,7 +1142,10 @@ are ignored."
 	 (if (string-match "buffer" (symbol-name ediff-job-name))
 	     ediff-coding-system-for-write
 	   ediff-coding-system-for-read))
-	args)
+        (process-environment
+         ;; Avoid localization of messages so we can parse the output.
+         (cons "LC_MESSAGES=C" process-environment))
+        args)
     (setq args (append (split-string options)
                        (mapcar (lambda (file)
                                  (when (stringp file)
@@ -1170,30 +1159,30 @@ are ignored."
 	(eq buffer ediff-fine-diff-buffer)
 	(setq args (delete "--binary" args)))
     (unwind-protect
-	(let ((directory default-directory)
-	      proc)
-	  (with-current-buffer buffer
-	    (erase-buffer)
-	    (setq default-directory directory)
-	    (if (or (memq system-type '(ms-dos windows-nt))
-		    synch)
-		;; In Windows do it synchronously, since Windows doesn't let us
-		;; delete files used by other processes. Thus, in ediff-buffers
-		;; and similar functions, we can't delete temp files because
-		;; they might be used by the asynch process that computes
-		;; custom diffs. So, we have to wait till custom diff
-		;; subprocess is done.
-		;; In DOS, must synchronize because DOS doesn't have
-		;; asynchronous processes.
-		(apply 'call-process program nil buffer nil args)
-	      ;; On other systems, do it asynchronously.
-	      (setq proc (get-buffer-process buffer))
-	      (if proc (kill-process proc))
-	      (setq proc
-		    (apply 'start-process "Custom Diff" buffer program args))
+        (with-current-buffer buffer
+          (erase-buffer)
+          ;; default-directory may be on some remote machine
+          ;; (e.g. accessed via Tramp or url-handler) or a non-existing dir.
+          (setq default-directory "/")
+          (if (or (memq system-type '(ms-dos windows-nt))
+                  synch)
+              ;; In Windows do it synchronously, since Windows doesn't let us
+              ;; delete files used by other processes. Thus, in ediff-buffers
+              ;; and similar functions, we can't delete temp files because
+              ;; they might be used by the asynch process that computes
+              ;; custom diffs. So, we have to wait till custom diff
+              ;; subprocess is done.
+              ;; In DOS, must synchronize because DOS doesn't have
+              ;; asynchronous processes.
+              (apply #'call-process program nil buffer nil args)
+            ;; On other systems, do it asynchronously.
+            (let ((proc (get-buffer-process buffer)))
+	      (if proc (kill-process proc)))
+	    (let ((proc
+		   (apply #'start-process "Custom Diff" buffer program args)))
 	      (setq mode-line-process '(":%s"))
-	      (set-process-sentinel proc 'ediff-process-sentinel)
-	      (set-process-filter proc 'ediff-process-filter)
+	      (set-process-sentinel proc #'ediff-process-sentinel)
+	      (set-process-filter proc #'ediff-process-filter)
 	      )))
       (store-match-data data))))
 
@@ -1235,42 +1224,35 @@ are ignored."
 
 ;;; Word functions used to refine the current diff
 
-(defvar ediff-forward-word-function 'ediff-forward-word
+(defvar-local ediff-forward-word-function #'ediff-forward-word
   "Function to call to move to the next word.
 Used for splitting difference regions into individual words.")
-(make-variable-buffer-local 'ediff-forward-word-function)
 
 ;; \240 is Unicode symbol for nonbreakable whitespace
-(defvar ediff-whitespace " \n\t\f\r\240"
+(defvar-local ediff-whitespace " \n\t\f\r\240"
   "Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
-(make-variable-buffer-local 'ediff-whitespace)
 
-(defvar ediff-word-1
-  (if (featurep 'xemacs) "a-zA-Z---_" "-[:word:]_")
+(defvar-local ediff-word-1 "-[:word:]_"
   "Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-1)
 
-(defvar ediff-word-2 "0-9.,"
+(defvar-local ediff-word-2 "0-9.,"
   "Characters that constitute words of type 2.
 More precisely, [ediff-word-2] is a regexp that matches type 2 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-2)
 
-(defvar ediff-word-3 "`'?!:;\"{}[]()"
+(defvar-local ediff-word-3 "`'?!:;\"{}[]()"
   "Characters that constitute words of type 3.
 More precisely, [ediff-word-3] is a regexp that matches type 3 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-3)
 
-(defvar ediff-word-4
+(defvar-local ediff-word-4
   (concat "^" ediff-word-1 ediff-word-2 ediff-word-3 ediff-whitespace)
   "Characters that constitute words of type 4.
 More precisely, [ediff-word-4] is a regexp that matches type 4 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-4)
 
 ;; Split region along word boundaries. Each word will be on its own line.
 ;; Output to buffer out-buffer.
@@ -1341,7 +1323,7 @@ arguments to `skip-chars-forward'."
 	(syntax-tbl ediff-syntax-table))
     (ediff-with-current-buffer buf
       (skip-chars-forward ediff-whitespace)
-      (ediff-with-syntax-table syntax-tbl
+      (with-syntax-table syntax-tbl
 	(while (> n 1)
 	  (funcall fwd-word-fun)
 	  (skip-chars-forward ediff-whitespace)
@@ -1358,7 +1340,7 @@ arguments to `skip-chars-forward'."
 	  (let ((res
 		 ;; In the remote case, this works only if F1 and F2 are
 		 ;; located on the same remote host.
-		 (apply 'process-file ediff-cmp-program nil nil nil
+		 (apply #'process-file ediff-cmp-program nil nil nil
 			(append ediff-cmp-options
 				(list (expand-file-name (file-local-name f1))
 				      (expand-file-name (file-local-name f2)))))
@@ -1418,8 +1400,8 @@ affects only files whose names match the expression."
   ;; First, check only the names (works quickly and ensures a
   ;; precondition for subsequent code)
   (if (and (= (length entries-1) (length entries-2))
-	   (equal (mapcar 'file-name-nondirectory entries-1)
-		  (mapcar 'file-name-nondirectory entries-2)))
+	   (equal (mapcar #'file-name-nondirectory entries-1)
+		  (mapcar #'file-name-nondirectory entries-2)))
       ;; With name equality established, compare the entries
       ;; through recursion.
       (let ((continue t))
@@ -1479,15 +1461,7 @@ affects only files whose names match the expression."
 	 (message "Ignoring letter case is not supported by this diff program"))
 	(t
 	 (sit-for 1)
-	 (ediff-update-diffs)))
-  )
+         (ediff-update-diffs))))
 
-
-
-;; Local Variables:
-;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;; End:
-
+(provide 'ediff-diff)
 ;;; ediff-diff.el ends here

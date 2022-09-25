@@ -148,7 +148,7 @@ input and writes the uncompressed data on standard output.  @code{zcat}
 will uncompress files that have the correct magic number whether they
 have a @samp{.gz} suffix or not.
 
-@code{gzip} uses the Lempel-Ziv algorithm used in @code{zip} and PKZIP.
+@code{gzip} uses the Lempel-Ziv algorithm used in @code{zip} and PKZIP@.
 The amount of compression obtained depends on the size of the input and
 the distribution of common substrings.  Typically, text such as source
 code or English is reduced by 60-70%.  Compression is generally much

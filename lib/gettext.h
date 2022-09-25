@@ -1,19 +1,19 @@
 /* Convenience header for conditional use of GNU <libintl.h>.
-   Copyright (C) 1995-1998, 2000-2002, 2004-2006, 2009-2017 Free Software
+   Copyright (C) 1995-1998, 2000-2002, 2004-2006, 2009-2022 Free Software
    Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LIBGETTEXT_H
 #define _LIBGETTEXT_H 1
@@ -138,7 +138,7 @@
 #define dcnpgettext(Domainname, Msgctxt, Msgid, MsgidPlural, N, Category) \
   npgettext_aux (Domainname, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, MsgidPlural, N, Category)
 
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __clang__
 __inline
 #else
 #ifdef __cplusplus
@@ -157,7 +157,7 @@ pgettext_aux (const char *domain,
     return translation;
 }
 
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __clang__
 __inline
 #else
 #ifdef __cplusplus
@@ -184,9 +184,15 @@ npgettext_aux (const char *domain,
 
 #include <string.h>
 
-#if (((__GNUC__ >= 3 || __GNUG__ >= 2) && !defined __STRICT_ANSI__) \
-     /* || __STDC_VERSION__ == 199901L
-        || (__STDC_VERSION__ >= 201112L && !defined __STDC_NO_VLA__) */ )
+/* GNULIB_NO_VLA can be defined to disable use of VLAs even if supported.
+   This relates to the -Wvla and -Wvla-larger-than warnings, enabled in
+   the default GCC many warnings set.  This allows programs to disable use
+   of VLAs, which may be unintended, or may be awkward to support portably,
+   or may have security implications due to non-deterministic stack usage.  */
+
+#if (!defined GNULIB_NO_VLA \
+     && defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__ \
+     && !defined __STDC_NO_VLA__)
 # define _LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS 1
 #else
 # define _LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS 0
@@ -201,7 +207,7 @@ npgettext_aux (const char *domain,
 #define dpgettext_expr(Domainname, Msgctxt, Msgid) \
   dcpgettext_expr (Domainname, Msgctxt, Msgid, LC_MESSAGES)
 
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __clang__
 __inline
 #else
 #ifdef __cplusplus
@@ -248,7 +254,7 @@ dcpgettext_expr (const char *domain,
 #define dnpgettext_expr(Domainname, Msgctxt, Msgid, MsgidPlural, N) \
   dcnpgettext_expr (Domainname, Msgctxt, Msgid, MsgidPlural, N, LC_MESSAGES)
 
-#ifdef __GNUC__
+#if defined __GNUC__ || defined __clang__
 __inline
 #else
 #ifdef __cplusplus

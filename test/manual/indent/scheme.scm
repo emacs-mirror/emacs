@@ -1,9 +1,23 @@
-#!/usr/bin/scheme is this a comment?
+;; Testing sexp-comments
 
-;; This one is a comment
-(a)
-#| and this one as #|well|# as this! |#
-(b)
-(cons #;(this is a
-         comment)
- head tail)
+(define a #;(hello) there)
+
+(define a #;1 there)
+
+(define a #;"asdf" there)
+
+(define a ;; #;(hello
+  there)
+
+(define a #;(hello
+  there) 2)
+
+(define a #;(hello
+     #;(world))
+        and)
+  there) 2)
+
+(define a #;(hello
+     #;"asdf" (world
+        and)
+  there) 2)

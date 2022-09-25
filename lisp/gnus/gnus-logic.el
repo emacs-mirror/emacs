@@ -1,6 +1,6 @@
-;;; gnus-logic.el --- advanced scoring code for Gnus
+;;; gnus-logic.el --- advanced scoring code for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-score)
@@ -162,9 +162,9 @@
     (funcall type (or (aref gnus-advanced-headers index) 0) match)))
 
 (defun gnus-advanced-date (index match type)
-  (let ((date (apply 'encode-time (parse-time-string
-				   (aref gnus-advanced-headers index))))
-	(match (apply 'encode-time (parse-time-string match))))
+  (let ((date (encode-time (parse-time-string
+			    (aref gnus-advanced-headers index))))
+	(match (encode-time (parse-time-string match))))
     (cond
      ((eq type 'at)
       (equal date match))
@@ -224,8 +224,8 @@
           (goto-char (point-min))
           (prog1
               (funcall search-func match nil t)
-            (widen)))
-        (when handles (mm-destroy-parts handles))))))
+            (widen)
+            (when handles (mm-destroy-parts handles))))))))
 
 (provide 'gnus-logic)
 

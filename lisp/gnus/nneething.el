@@ -1,6 +1,6 @@
-;;; nneething.el --- arbitrary file access for Gnus
+;;; nneething.el --- arbitrary file access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'mailcap)
 (require 'nnheader)
@@ -57,6 +57,7 @@ included.")
 
 (defconst nneething-version "nneething 1.0"
   "nneething version.")
+(make-obsolete-variable 'nneething-version 'emacs-version "29.1")
 
 (defvoo nneething-current-directory nil
   "Current news group directory.")
@@ -77,7 +78,7 @@ included.")
 
 (nnoo-define-basics nneething)
 
-(deffoo nneething-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nneething-retrieve-headers (articles &optional group _server _fetch-old)
   (nneething-possibly-change-directory group)
 
   (with-current-buffer nntp-server-buffer
@@ -101,7 +102,7 @@ included.")
 	    (nneething-insert-head file)
 	    (insert ".\n"))
 
-	  (incf count)
+	  (cl-incf count)
 
 	  (and large
 	       (zerop (% count 20))
@@ -114,7 +115,7 @@ included.")
 	(nnheader-fold-continuation-lines)
 	'headers))))
 
-(deffoo nneething-request-article (id &optional group server buffer)
+(deffoo nneething-request-article (id &optional group _server buffer)
   (nneething-possibly-change-directory group)
   (let ((file (unless (stringp id)
 		(nneething-file-name id)))
@@ -123,7 +124,7 @@ included.")
 	 (file-exists-p file)		; The file exists.
 	 (not (file-directory-p file))	; It's not a dir.
 	 (save-excursion
-	   (let ((nnmail-file-coding-system 'binary))
+	   (let ((nnmail-file-coding-system 'raw-text))
 	     (nnmail-find-file file))	; Insert the file in the nntp buf.
 	   (unless (nnheader-article-p)	; Either it's a real article...
 	     (let ((type
@@ -143,7 +144,7 @@ included.")
 	     (insert "\n"))
 	   t))))
 
-(deffoo nneething-request-group (group &optional server dont-check info)
+(deffoo nneething-request-group (group &optional server dont-check _info)
   (nneething-possibly-change-directory group server)
   (unless dont-check
     (nneething-create-mapping)
@@ -156,16 +157,16 @@ included.")
        group)))
   t)
 
-(deffoo nneething-request-list (&optional server dir)
+(deffoo nneething-request-list (&optional _server _dir)
   (nnheader-report 'nneething "LIST is not implemented."))
 
-(deffoo nneething-request-newgroups (date &optional server)
+(deffoo nneething-request-newgroups (_date &optional _server)
   (nnheader-report 'nneething "NEWSGROUPS is not implemented."))
 
-(deffoo nneething-request-type (group &optional article)
+(deffoo nneething-request-type (_group &optional _article)
   'unknown)
 
-(deffoo nneething-close-group (group &optional server)
+(deffoo nneething-close-group (_group &optional _server)
   (setq nneething-current-directory nil)
   t)
 
@@ -215,8 +216,9 @@ included.")
 	(setq nneething-map
 	      (mapcar (lambda (n)
 			(list (cdr n) (car n)
-			      (nth 5 (file-attributes
-				      (nneething-file-name (car n))))))
+			      (file-attribute-modification-time
+			       (file-attributes
+				(nneething-file-name (car n))))))
 		      nneething-map)))
       ;; Remove files matching the exclusion regexp.
       (when nneething-exclude-files
@@ -244,7 +246,8 @@ included.")
 	(while map
 	  (if (and (member (cadr (car map)) files)
 		  ;; We also remove files that have changed mod times.
-		   (equal (nth 5 (file-attributes
+		   (time-equal-p
+			  (file-attribute-modification-time (file-attributes
 				  (nneething-file-name (cadr (car map)))))
 			  (cadr (cdar map))))
 	      (progn
@@ -262,7 +265,7 @@ included.")
 	  (setq touched t)
 	  (setcdr nneething-active (1+ (cdr nneething-active)))
 	  (push (list (cdr nneething-active) (car files)
-		      (nth 5 (file-attributes
+		      (file-attribute-modification-time (file-attributes
 			      (nneething-file-name (car files)))))
 		nneething-map))
 	(setq files (cdr files)))
@@ -296,7 +299,7 @@ included.")
 (defun nneething-decode-file-name (file &optional coding-system)
   "Decode the name of the FILE is encoded in CODING-SYSTEM."
   (let ((pos 0) buf)
-    (while (string-match "%\\([0-9a-fA-F][0-9a-fA-F]\\)" file pos)
+    (while (string-match "%\\([[:xdigit:]][[:xdigit:]]\\)" file pos)
       (setq buf (cons (string (string-to-number (match-string 1 file) 16))
 		      (cons (substring file pos (match-beginning 0)) buf))
 	    pos (match-end 0)))
@@ -318,15 +321,17 @@ included.")
      "Subject: " (file-name-nondirectory file) (or extra-msg "") "\n"
      "Message-ID: <nneething-" (nneething-encode-file-name file)
      "@" (system-name) ">\n"
-     (if (equal '(0 0) (nth 5 atts)) ""
-       (concat "Date: " (current-time-string (nth 5 atts)) "\n"))
+     (if (time-equal-p 0 (file-attribute-modification-time atts)) ""
+       (concat "Date: "
+	       (current-time-string (file-attribute-modification-time atts))
+	       "\n"))
      (or (when buffer
 	   (with-current-buffer buffer
 	     (when (re-search-forward "<[a-zA-Z0-9_]@[-a-zA-Z0-9_]>" 1000 t)
 	       (concat "From: " (match-string 0) "\n"))))
-	 (nneething-from-line (nth 2 atts) file))
-     (if (> (string-to-number (int-to-string (nth 7 atts))) 0)
-	 (concat "Chars: " (int-to-string (nth 7 atts)) "\n")
+	 (nneething-from-line (file-attribute-user-id atts) file))
+     (if (> (file-attribute-size atts) 0)
+	 (concat "Chars: " (int-to-string (file-attribute-size atts)) "\n")
        "")
      (if buffer
 	 (with-current-buffer buffer
@@ -378,7 +383,7 @@ included.")
 
 (defun nneething-get-head (file)
   "Either find the head in FILE or make a head for FILE."
-  (with-current-buffer (get-buffer-create nneething-work-buffer)
+  (with-current-buffer (gnus-get-buffer-create nneething-work-buffer)
     (setq case-fold-search nil)
     (buffer-disable-undo)
     (erase-buffer)

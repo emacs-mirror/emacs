@@ -68,22 +68,22 @@ enum interval_tree_order {
   ITREE_PRE_ORDER,
 };
 
-void interval_node_init(struct interval_node *, ptrdiff_t, ptrdiff_t, bool, bool, Lisp_Object);
-ptrdiff_t interval_node_begin(struct interval_tree *, struct interval_node *);
-ptrdiff_t interval_node_end(struct interval_tree *, struct interval_node *);
-void interval_node_set_region(struct interval_tree *, struct interval_node *, ptrdiff_t, ptrdiff_t);
-struct interval_tree *interval_tree_create(void);
-void interval_tree_destroy(struct interval_tree *);
-intmax_t interval_tree_size(struct interval_tree *);
-void interval_tree_clear(struct interval_tree *);
-void interval_tree_insert(struct interval_tree *, struct interval_node *);
-bool interval_tree_contains(struct interval_tree *, struct interval_node *);
-struct interval_node *interval_tree_remove(struct interval_tree *, struct interval_node *);
-void interval_tree_iter_start(struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order);
-void interval_tree_iter_narrow(struct interval_tree *, ptrdiff_t, ptrdiff_t);
-void interval_tree_iter_finish(struct interval_tree *);
-struct interval_node *interval_tree_iter_next(struct interval_tree *);
-void interval_tree_insert_gap(struct interval_tree *, ptrdiff_t, ptrdiff_t);
-void interval_tree_delete_gap(struct interval_tree *, ptrdiff_t, ptrdiff_t);
+void interval_node_init (struct interval_node *, ptrdiff_t, ptrdiff_t, bool, bool, Lisp_Object);
+ptrdiff_t interval_node_begin (struct interval_tree *, struct interval_node *);
+ptrdiff_t interval_node_end (struct interval_tree *, struct interval_node *);
+void interval_node_set_region (struct interval_tree *, struct interval_node *, ptrdiff_t, ptrdiff_t);
+struct interval_tree *interval_tree_create (void);
+void interval_tree_destroy (struct interval_tree *);
+intmax_t interval_tree_size (struct interval_tree *);
+void interval_tree_clear (struct interval_tree *);
+void interval_tree_insert (struct interval_tree *, struct interval_node *);
+bool interval_tree_contains (struct interval_tree *, struct interval_node *);
+struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
+void interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order);
+void interval_tree_iter_narrow (struct interval_tree *, ptrdiff_t, ptrdiff_t);
+void interval_tree_iter_finish (struct interval_tree *);
+struct interval_node *interval_tree_iter_next (struct interval_tree *);
+void interval_tree_insert_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
+void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
 void interval_tree_nodes (struct interval_tree *tree, struct interval_node **nodes, enum interval_tree_order order);
 #endif

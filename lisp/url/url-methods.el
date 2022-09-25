@@ -1,6 +1,6 @@
-;;; url-methods.el --- Load URL schemes as needed
+;;; url-methods.el --- Load URL schemes as needed  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -57,7 +57,7 @@
 	'file-exists-p 'ignore
 	'file-attributes 'ignore))
 
-(defun url-scheme-default-loader (url &optional callback cbargs)
+(defun url-scheme-default-loader (url &optional _callback _cbargs)
   "Signal an error for an unknown URL scheme."
   (error "Unknown URL scheme: %s" (url-type url)))
 
@@ -134,11 +134,11 @@ it has not already been loaded."
 			(type (cdr cell)))
 		    (if symbol
 			(pcase type
-			  (`function
+			  ('function
 			   ;; Store the symbol name of a function
 			   (if (fboundp symbol)
 			       (setq desc (plist-put desc (car cell) symbol))))
-			  (`variable
+			  ('variable
 			   ;; Store the VALUE of a variable
 			   (if (boundp symbol)
 			       (setq desc (plist-put desc (car cell)

@@ -1,11 +1,11 @@
-;; erc-replace.el -- wash and massage messages inserted into the buffer
+;;; erc-replace.el --- wash and massage messages inserted into the buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2002, 2004, 2006-2017 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
-;; Maintainer: emacs-devel@gnu.org
-;; Keywords: IRC, client, Internet
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; URL: https://www.emacswiki.org/emacs/ErcReplace
+;; Keywords: comm, IRC, client, Internet
 
 ;; This file is part of GNU Emacs.
 
@@ -36,7 +36,7 @@
 (require 'erc)
 
 (defgroup erc-replace nil
-  "Replace text from incoming messages"
+  "Replace text from incoming messages."
   :group 'erc)
 
 (defcustom erc-replace-alist nil
@@ -48,7 +48,6 @@ expression or a variable, or any sexp, TO can be a string or a
 function to call, or any sexp.  If a function, it will be called with
 one argument, the string to be replaced, and it should return a
 replacement string."
-  :group 'erc-replace
   :type '(repeat (cons :tag "Search & Replace"
 		       (choice :tag "From"
 			       regexp
@@ -67,29 +66,28 @@ It replaces text according to `erc-replace-alist'."
 	    (let ((from (car elt))
 		  (to (cdr elt)))
 	      (unless (stringp from)
-		(setq from (eval from)))
+		(setq from (eval from t)))
 	      (while (re-search-forward from nil t)
 		(cond ((stringp to)
 		       (replace-match to))
-		      ((and (symbolp to) (fboundp to))
+		      ((functionp to)
 		       (replace-match (funcall to (match-string 0))))
 		      (t
-		       (eval to))))))
+		       (eval to t))))))
 	  erc-replace-alist))
 
-;;;###autoload (autoload 'erc-replace-mode "erc-replace")
+;;;###autoload(autoload 'erc-replace-mode "erc-replace")
 (define-erc-module replace nil
   "This mode replaces incoming text according to `erc-replace-alist'."
   ((add-hook 'erc-insert-modify-hook
-	     'erc-replace-insert))
+	     #'erc-replace-insert))
   ((remove-hook 'erc-insert-modify-hook
-		'erc-replace-insert)))
+		#'erc-replace-insert)))
 
 (provide 'erc-replace)
 
 ;;; erc-replace.el ends here
 ;;
 ;; Local Variables:
-;; indent-tabs-mode: t
-;; tab-width: 8
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; End:

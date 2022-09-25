@@ -1,6 +1,6 @@
-;;; deeper-blue-theme.el --- Custom theme for faces
+;;; deeper-blue-theme.el --- Custom theme for faces  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 ;; Author: Scott Frazer <frazer.scott@gmail.com>
 
@@ -68,7 +68,6 @@
    `(font-lock-comment-face ((,class (:foreground "gray50"))))
    `(font-lock-constant-face ((,class (:foreground "DarkOliveGreen3"))))
    `(font-lock-doc-face ((,class (:foreground "moccasin"))))
-   `(font-lock-doc-string-face ((,class (:foreground "moccasin"))))
    `(font-lock-function-name-face ((,class (:foreground "goldenrod"))))
    `(font-lock-keyword-face ((,class (:foreground "DeepSkyBlue1"))))
    `(font-lock-preprocessor-face ((,class (:foreground "gold"))))
@@ -83,6 +82,8 @@
    `(ido-first-match ((,class (:weight normal :foreground "orange"))))
    `(ido-only-match ((,class (:foreground "green"))))
    `(ido-subdir ((,class (:foreground nil :inherit font-lock-keyword-face))))
+   `(image-dired-thumb-flagged ((,class (:background "Red1"))))
+   `(image-dired-thumb-mark ((,class (:background "dodgerblue3"))))
    `(info-header-node ((,class (:foreground "DeepSkyBlue1"))))
    `(info-header-xref ((,class (:foreground "SeaGreen2"))))
    `(info-menu-header ((,class (:family "helv" :weight bold))))
@@ -109,9 +110,5 @@
    `(warning ((,class (:foreground "Yellow"))))))
 
 (provide-theme 'deeper-blue)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; deeper-blue-theme.el ends here

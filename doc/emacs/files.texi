@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2017 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -25,9 +25,7 @@ on file directories.
 * Visiting::            Visiting a file prepares Emacs to edit the file.
 * Saving::              Saving makes your changes permanent.
 * Reverting::           Reverting cancels all the changes not saved.
-@ifnottex
-* Autorevert::          Auto Reverting non-file buffers.
-@end ifnottex
+* Auto Revert::         Keeping buffers automatically up-to-date.
 * Auto Save::           Auto Save periodically protects against loss of data.
 * File Aliases::        Handling multiple names for one file.
 * Directories::         Creating, deleting, and listing file directories.
@@ -40,7 +38,8 @@ on file directories.
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
-* File Conveniences::   Convenience Features for Finding Files.
+* File Conveniences::   Convenience features for finding files.
+* Image Mode::          Viewing image files.
 * Filesets::            Handling sets of files.
 @end menu
 
@@ -63,9 +62,11 @@ completing up to a nonexistent file name, Emacs prints
 @samp{[Confirm]} and you must type a second @key{RET} to confirm.
 @xref{Completion Exit}, for details.
 
-@cindex default directory
+Minibuffer history commands offer some special features for reading
+file names, see @ref{Minibuffer History}.
+
+@cindex default directory, of a buffer
 @vindex default-directory
-@vindex insert-default-directory
   Each buffer has a @dfn{default directory}, stored in the
 buffer-local variable @code{default-directory}.  Whenever Emacs reads
 a file name using the minibuffer, it usually inserts the default
@@ -114,8 +115,8 @@ the @samp{$}; alternatively, it can be enclosed in braces after the
 @file{/u/$@{FOO@}/test.c} are abbreviations for
 @file{/u/rms/hacks/test.c}.  If the environment variable is not
 defined, no substitution occurs, so that the character @samp{$} stands
-for itself.  Note that environment variables affect Emacs only if they
-are applied before Emacs is started.
+for itself.  Note that environment variables set outside Emacs affect
+Emacs only if they are applied before Emacs is started.
 
   To access a file with @samp{$} in its name, if the @samp{$} causes
 expansion, type @samp{$$}.  This pair is converted to a single
@@ -165,7 +166,9 @@ minibuffer, you can abort the command by typing @kbd{C-g}.  @xref{File
 Names}, for details about entering file names into minibuffers.
 
   If the specified file exists but the system does not allow you to
-read it, an error message is displayed in the echo area.  Otherwise,
+read it, an error message is displayed in the echo area (on GNU and
+Unix systems you might be able to visit such a file using the
+@samp{su} or @samp{sudo} methods; @pxref{Remote Files}).  Otherwise,
 you can tell that @kbd{C-x C-f} has completed successfully by the
 appearance of new text on the screen, and by the buffer name shown in
 the mode line (@pxref{Mode Line}).  Emacs normally constructs the
@@ -202,7 +205,10 @@ saved it.  If the file has changed, Emacs offers to reread it.
   If you try to visit a file larger than
 @code{large-file-warning-threshold} (the default is 10000000, which is
 about 10 megabytes), Emacs asks you for confirmation first.  You can
-answer @kbd{y} to proceed with visiting the file.  Note, however, that
+answer @kbd{y} to proceed with visiting the file or @kbd{l} to visit
+the file literally (see below).  Visiting large files literally speeds
+up navigation and editing of such files, because various
+potentially-expensive features are turned off.  Note, however, that
 Emacs cannot visit files that are larger than the maximum Emacs buffer
 size, which is limited by the amount of memory Emacs can allocate and
 by the integers that Emacs can represent (@pxref{Buffers}).  If you
@@ -220,6 +226,15 @@ name in the minibuffer, you need to type @kbd{C-q ?}.  @xref{Quoted
 File Names}, for information on how to visit a file whose name
 actually contains wildcard characters.  You can disable the wildcard
 feature by customizing @code{find-file-wildcards}.
+
+@vindex query-about-changed-file
+  If you're asking to visit a file that's already visited in a buffer,
+but the file has changed externally, Emacs normally asks you whether
+you want to re-read the file from disk.  But if you set
+@code{query-about-changed-file} to @code{nil}, Emacs won't query you,
+but will instead just display the buffer's contents before the
+changes, and show an echo-area message telling you how to revert the
+buffer from the file.
 
 @kindex C-x C-v
 @findex find-alternate-file
@@ -277,7 +292,7 @@ files.  Firstly, when Emacs is built with a suitable GUI toolkit,
 commands invoked with the mouse (by clicking on the menu bar or tool
 bar) use the toolkit's standard file selection dialog instead of
 prompting for the file name in the minibuffer.  On GNU/Linux and Unix
-platforms, Emacs does this when built with GTK, LessTif, and Motif
+platforms, Emacs does this when built with GTK+, LessTif, and Motif
 toolkits; on MS-Windows and Mac, the GUI version does that by default.
 For information on how to customize this, see @ref{Dialog Boxes}.
 
@@ -289,7 +304,8 @@ see @ref{Drag and Drop}, and @ref{Misc Dired Features}.
 
   On text-mode terminals and on graphical displays when Emacs was
 built without a GUI toolkit, you can visit files via the menu-bar
-@samp{File} menu, which has a @samp{Visit New File} item.
+@samp{File} menu, which has the @samp{Visit New File} and the
+@samp{Open File} items.
 
   Each time you visit a file, Emacs automatically scans its contents
 to detect what character encoding and end-of-line convention it uses,
@@ -309,6 +325,48 @@ conversion (@pxref{Coding Systems}), or automatic uncompression
 of @code{require-final-newline} (@pxref{Customize Save}).  If you have
 already visited the same file in the usual (non-literal) manner, this
 command asks you whether to visit it literally instead.
+
+@findex find-sibling-file
+@vindex find-sibling-rules
+Files are sometimes (loosely) tied to other files, and you could call
+these files @dfn{sibling files}.  For instance, when editing C files,
+if you have a file called @samp{"foo.c"}, you often also have a file
+called @samp{"foo.h"}, and that could be its sibling file.  Or you may
+have different versions of a file, for instance
+@samp{"src/emacs/emacs-27/lisp/allout.el"} and
+@samp{"src/emacs/emacs-28/lisp/allout.el"} might be considered
+siblings.  Emacs provides the @code{find-sibling-file} command to jump
+between sibling files, but it's impossible to guess at which files a
+user might want to be considered siblings, so Emacs lets you configure
+this freely by altering the @code{find-sibling-rules} user option.
+This is a list of match/expansion elements.
+
+For instance, to do the @samp{".c"} to @samp{".h"} mapping, you could
+say:
+
+@lisp
+(setq find-sibling-rules
+      '(("\\([^/]+\\)\\.c\\'" "\\1.h")))
+@end lisp
+
+(@code{ff-find-related-file} offers similar functionality especially
+geared towards C files, @pxref{Other C Commands}.)
+
+Or, if you want to consider all files under
+@samp{"src/emacs/DIR/file-name"} to be siblings of other @var{dir}s,
+you could say:
+
+@lisp
+(setq find-sibling-rules
+      '(("src/emacs/[^/]+/\\(.*\\)\\'" "src/emacs/.*/\\1")))
+@end lisp
+
+As you can see, this is a list of @var{(MATCH EXPANSION...)} elements.
+The @var{match} is a regular expression that matches the visited file
+name, and each @var{expansion} may refer to match groups by using
+@samp{\\1} and so on.  The resulting expansion string is then applied
+to the file system to see if any files match this expansion
+(interpreted as a regexp).
 
 @vindex find-file-hook
 @vindex find-file-not-found-functions
@@ -362,6 +420,9 @@ With prefix argument (@kbd{C-u}), mark the current buffer as changed.
 Save the current buffer with a specified file name (@code{write-file}).
 @item M-x set-visited-file-name
 Change the file name under which the current buffer will be saved.
+@item M-x rename-visited-file
+The same as @kbd{M-x set-visited-file-name}, but also rename the file
+the buffer is visiting (if any).
 @end table
 
 @kindex C-x C-s
@@ -395,11 +456,14 @@ possible responses are analogous to those of @code{query-replace}:
 
 @table @kbd
 @item y
+@item @key{SPC}
 Save this buffer and ask about the rest of the buffers.
 @item n
+@item @key{DEL}
 Don't save this buffer, but ask about the rest of the buffers.
 @item !
 Save this buffer and all the rest with no more questions.
+@item q
 @c following generates acceptable underfull hbox
 @item @key{RET}
 Terminate @code{save-some-buffers} without any more saving.
@@ -410,6 +474,9 @@ about other buffers.
 View the buffer that you are currently being asked about.  When you exit
 View mode, you get back to @code{save-some-buffers}, which asks the
 question again.
+@item C-f
+Exit @code{save-some-buffers} and visit the buffer that you are
+currently being asked about.
 @item d
 Diff the buffer against its corresponding file, so you can see what
 changes you would be saving.  This calls the command
@@ -479,7 +546,6 @@ by simultaneous editing and requires your immediate attention.
 @subsection Backup Files
 @cindex backup file
 @vindex make-backup-files
-@vindex vc-make-backup-files
 
   On most operating systems, rewriting a file automatically destroys all
 record of what the file used to contain.  Thus, saving a file from Emacs
@@ -589,10 +655,10 @@ Never make numbered backups; always make single backups.
 The usual way to set this variable is globally, through your init file
 or the customization buffer.  However, you can set
 @code{version-control} locally in an individual buffer to control the
-making of backups for that buffer's file (@pxref{Locals}).  You can
-have Emacs set @code{version-control} locally whenever you visit a
-given file (@pxref{File Variables}).  Some modes, such as Rmail mode,
-set this variable.
+making of backups for that buffer's file (@pxref{Locals}).  Some
+modes, such as Rmail mode, set this variable.  You can also have Emacs
+set @code{version-control} locally whenever you visit a given file
+(@pxref{File Variables}).
 
 @cindex @env{VERSION_CONTROL} environment variable
   If you set the environment variable @env{VERSION_CONTROL}, to tell
@@ -637,7 +703,7 @@ you whether it should delete the excess backup versions.  If it has
 any other value, then Emacs never automatically deletes backups.
 
   Dired's @kbd{.} (Period) command can also be used to delete old versions.
-@xref{Dired Deletion}.
+@xref{Flagging Many Files}.
 
 @node Backup Copying
 @subsubsection Copying vs.@: Renaming
@@ -679,8 +745,9 @@ non-@code{nil} (the default is @code{t}), and renaming would change
 the file's owner or group, use copying.
 
 If you change @code{backup-by-copying-when-mismatch} to @code{nil},
-Emacs checks the numeric user-id of the file's owner.  If this is
-higher than @code{backup-by-copying-when-privileged-mismatch}, then it
+Emacs checks the numeric user-id of the file's owner and the numeric
+group-id of the file's group.  If either is
+no greater than @code{backup-by-copying-when-privileged-mismatch}, then it
 behaves as though @code{backup-by-copying-when-mismatch} is
 non-@code{nil} anyway.
 
@@ -690,11 +757,12 @@ Otherwise, renaming is the default choice.
 
   When a file is managed with a version control system (@pxref{Version
 Control}), Emacs does not normally make backups in the usual way for
-that file.  But check-in and check-out are similar in some ways to
-making backups.  One unfortunate similarity is that these operations
-typically break hard links, disconnecting the file name you visited from
-any alternate names for the same file.  This has nothing to do with
-Emacs---the version control system does it.
+that file.  But @dfn{committing} (a.k.a.@: @dfn{checking in},
+@pxref{VCS Concepts}) new versions of files is similar in some ways
+to making backups.  One unfortunate similarity is that these
+operations typically break hard links, disconnecting the file name you
+visited from any alternate names for the same file.  This has nothing
+to do with Emacs---the version control system does it.
 
 @node Customize Save
 @subsection Customizing Saving of Files
@@ -719,6 +787,17 @@ always supposed to end in newlines.  Such major modes set the variable
 setting the latter variable, you can control how these modes handle
 final newlines.
 
+@vindex file-preserve-symlinks-on-save
+If this option is non-@code{nil} and you're visiting a file via a
+symbolic link, Emacs will break the symbolic link upon saving the
+buffer, and will write the buffer to a file with the same name as the
+symbolic link, if the value of @code{file-precious-flag} is
+non-@code{nil} (@pxref{Saving Buffers, file-precious-flag,, elisp, The
+Emacs Lisp Reference Manual}).  If you want Emacs to save the buffer
+to the file the symbolic link points to (thereby preserving the link)
+in these cases, customize the variable
+@code{file-preserve-symlinks-on-save} to @code{t}.
+
 @vindex write-region-inhibit-fsync
   Normally, when a program writes a file, the operating system briefly
 caches the file's data in main memory before committing the data to
@@ -737,7 +816,7 @@ survive a crash even if @code{fsync} works properly.
   The @code{write-region-inhibit-fsync} variable controls whether
 Emacs invokes @code{fsync} after saving a file.  The variable's
 default value is @code{nil} when Emacs is interactive, and @code{t}
-when Emacs runs in batch mode.
+when Emacs runs in batch mode (@pxref{Initial Options, Batch Mode}).
 
   Emacs never uses @code{fsync} when writing auto-save files, as these
 files might lose data anyway.
@@ -750,7 +829,7 @@ files might lose data anyway.
   Simultaneous editing occurs when two users visit the same file, both
 make changes, and then both save them.  If nobody is informed that
 this is happening, whichever user saves first would later find that
-his changes were lost.
+their changes were lost.
 
   On some systems, Emacs notices immediately when the second user starts
 to change the file, and issues an immediate warning.  On all systems,
@@ -761,18 +840,23 @@ file.
 
 @findex ask-user-about-lock
 @cindex locking files
+@cindex .#, lock file names
+@cindex file locking
   When you make the first modification in an Emacs buffer that is
 visiting a file, Emacs records that the file is @dfn{locked} by you.
 (It does this by creating a specially-named symbolic link@footnote{If
 your file system does not support symbolic links, a regular file is
-used.} with special contents in the same directory.)  Emacs removes the lock
-when you save the changes.  The idea is that the file is locked
-whenever an Emacs buffer visiting it has unsaved changes.
+used.} with special contents in the same directory.  @xref{File
+Locks,,, elisp}, for more details.)  Emacs removes the lock when you
+save the changes.  The idea is that the file is locked whenever an
+Emacs buffer visiting it has unsaved changes.
 
 @vindex create-lockfiles
   You can prevent the creation of lock files by setting the variable
 @code{create-lockfiles} to @code{nil}.  @strong{Caution:} by
-doing so you will lose the benefits that this feature provides.
+doing so you will lose the benefits that this feature provides.  You
+can also control where lock files are written by using the
+@code{lock-file-name-transforms} variable.
 
 @cindex collision
   If you begin to modify the buffer while the visited file is locked by
@@ -817,11 +901,38 @@ warning message and asks for confirmation before saving; answer
 place, one way to compare the buffer to its file is the @kbd{M-x
 diff-buffer-with-file} command.  @xref{Comparing Files}.
 
+@vindex remote-file-name-inhibit-locks
+  You can prevent the creation of remote lock files by setting the
+variable @code{remote-file-name-inhibit-locks} to @code{t}.
+
+@cindex lock-file-mode
+  The minor mode @code{lock-file-mode}, called interactively, toggles
+the local value of @code{create-lockfiles} in the current buffer.
+
 @node File Shadowing
 @subsection Shadowing Files
 @cindex shadow files
 @cindex file shadows
 @findex shadow-initialize
+
+  You can arrange to keep identical @dfn{shadow} copies of certain
+files in more than one place---possibly on different machines.  To do
+this, first you must set up a @dfn{shadow file group}, which is a set
+of identically-named files shared between a list of sites.  The file
+group is permanent and applies to further Emacs sessions as well as
+the current one.  Once the group is set up, every time you exit Emacs,
+it will copy the file you edited to the other files in its group.  You
+can also do the copying without exiting Emacs, by typing @w{@kbd{M-x
+shadow-copy-files}}.
+
+@cindex shadow cluster
+A @dfn{shadow cluster} is a group of hosts that share directories, so
+that copying to or from one of them is sufficient to update the file
+on all of them.  Each shadow cluster has a name, and specifies the
+network address of a primary host (the one we copy files to), and a
+regular expression that matches the host names of all the other hosts
+in the cluster.  You can define a shadow cluster with @w{@kbd{M-x
+shadow-define-cluster}}.
 
 @table @kbd
 @item M-x shadow-initialize
@@ -838,32 +949,17 @@ Copy all pending shadow files.
 Cancel the instruction to shadow some files.
 @end table
 
-You can arrange to keep identical @dfn{shadow} copies of certain files
-in more than one place---possibly on different machines.  To do this,
-first you must set up a @dfn{shadow file group}, which is a set of
-identically-named files shared between a list of sites.  The file
-group is permanent and applies to further Emacs sessions as well as
-the current one.  Once the group is set up, every time you exit Emacs,
-it will copy the file you edited to the other files in its group.  You
-can also do the copying without exiting Emacs, by typing @kbd{M-x
-shadow-copy-files}.
-
-To set up a shadow file group, use @kbd{M-x
-shadow-define-literal-group} or @kbd{M-x shadow-define-regexp-group}.
-See their documentation strings for further information.
+To set up a shadow file group, use @w{@kbd{M-x
+shadow-define-literal-group}} or @w{@kbd{M-x
+shadow-define-regexp-group}}.  See their documentation strings for
+further information.
 
 Before copying a file to its shadows, Emacs asks for confirmation.
 You can answer ``no'' to bypass copying of this file, this time.  If
 you want to cancel the shadowing permanently for a certain file, use
-@kbd{M-x shadow-cancel} to eliminate or change the shadow file group.
+@w{@kbd{M-x shadow-cancel}} to eliminate or change the shadow file group.
 
-A @dfn{shadow cluster} is a group of hosts that share directories, so
-that copying to or from one of them is sufficient to update the file
-on all of them.  Each shadow cluster has a name, and specifies the
-network address of a primary host (the one we copy files to), and a
-regular expression that matches the host names of all the other hosts
-in the cluster.  You can define a shadow cluster with @kbd{M-x
-shadow-define-cluster}.
+File Shadowing is not available on MS Windows.
 
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
@@ -900,24 +996,39 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 @node Reverting
 @section Reverting a Buffer
 @findex revert-buffer
+@findex revert-buffer-with-fine-grain
 @cindex drastic changes
 @cindex reread a file
 
   If you have made extensive changes to a file-visiting buffer and
 then change your mind, you can @dfn{revert} the changes and go back to
-the saved version of the file.  To do this, type @kbd{M-x
-revert-buffer}.  Since reverting unintentionally could lose a lot of
-work, Emacs asks for confirmation first.
+the saved version of the file.  To do this, type @kbd{C-x x g}.  Since
+reverting unintentionally could lose a lot of work, Emacs asks for
+confirmation first if the buffer is modified.
 
   The @code{revert-buffer} command tries to position point in such a
 way that, if the file was edited only slightly, you will be at
 approximately the same part of the text as before.  But if you have
 made major changes, point may end up in a totally different location.
 
-  Reverting marks the buffer as not modified.  It also clears the
-buffer's undo history (@pxref{Undo}).  Thus, the reversion cannot be
-undone---if you change your mind yet again, you can't use the undo
-commands to bring the reverted changes back.
+  Reverting marks the buffer as not modified.  However, it adds the
+reverted changes as a single modification to the buffer's undo history
+(@pxref{Undo}).  Thus, after reverting, you can type @kbd{C-/} or its
+aliases to bring the reverted changes back, if you happen to change
+your mind.
+
+@vindex revert-buffer-with-fine-grain-max-seconds
+  To revert a buffer more conservatively, you can use the command
+@code{revert-buffer-with-fine-grain}.  This command acts like
+@code{revert-buffer}, but it tries to be as non-destructive as
+possible, making an effort to preserve all markers, properties and
+overlays in the buffer.  Since reverting this way can be very slow
+when you have made a large number of changes, you can modify the
+variable @code{revert-buffer-with-fine-grain-max-seconds} to
+specify a maximum amount of seconds that replacing the buffer
+contents this way should take.  Note that it is not ensured that the
+whole execution of @code{revert-buffer-with-fine-grain} won't take
+longer than this.
 
   Some kinds of buffers that are not associated with files, such as
 Dired buffers, can also be reverted.  For them, reverting means
@@ -936,43 +1047,98 @@ revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
 
-@cindex Global Auto-Revert mode
-@cindex mode, Global Auto-Revert
-@cindex Auto-Revert mode
-@cindex mode, Auto-Revert
+@vindex revert-buffer-quick-short-answers
+@findex revert-buffer-quick
+  The @kbd{C-x x g} keystroke is bound to the
+@code{revert-buffer-quick} command.  This is like the
+@code{revert-buffer} command, but prompts less.  Unlike
+@code{revert-buffer}, it will not prompt if the current buffer visits
+a file, and the buffer is not modified.  It also respects the
+@code{revert-buffer-quick-short-answers} user option.  If this option
+is non-@code{nil}, use a shorter @kbd{y/n} query instead of a longer
+@kbd{yes/no} query.
+
+  You can also tell Emacs to revert buffers automatically when their
+visited files change on disk; @pxref{Auto Revert}.
+
+@node Auto Revert
+@section Auto Revert: Keeping buffers automatically up-to-date
+@cindex Global Auto Revert mode
+@cindex mode, Global Auto Revert
+@cindex Auto Revert mode
+@cindex mode, Auto Revert
 @findex global-auto-revert-mode
 @findex auto-revert-mode
 @findex auto-revert-tail-mode
-@vindex auto-revert-interval
-@vindex auto-revert-remote-files
-@vindex auto-revert-verbose
-  You can also tell Emacs to revert buffers periodically.  To do this
-for a specific buffer, enable the minor mode Auto-Revert mode by
-typing @kbd{M-x auto-revert-mode}.  This automatically reverts the
-current buffer every five seconds; you can change the interval through
-the variable @code{auto-revert-interval}.  To do the same for all file
-buffers, type @kbd{M-x global-auto-revert-mode} to enable Global
-Auto-Revert mode.  These minor modes do not check or revert remote
-files, because that is usually too slow.  This behavior can be changed
-by setting the variable @code{auto-revert-remote-files} to non-@code{nil}.
 
-  One use of Auto-Revert mode is to ``tail'' a file such as a system
+  A buffer can get out of sync with respect to its visited file on
+disk if that file is changed by another program.  To keep it up to
+date, you can enable Auto Revert mode by typing @kbd{M-x auto-revert-mode}.
+This automatically reverts the buffer when its visited file changes on
+disk.  To do the same for all file buffers, type
+@kbd{M-x global-auto-revert-mode} to enable Global Auto Revert mode.
+
+  Auto Revert will not revert a buffer if it has unsaved changes, or if
+its file on disk is deleted or renamed.
+
+  One use of Auto Revert mode is to ``tail'' a file such as a system
 log, so that changes made to that file by other programs are
 continuously displayed.  To do this, just move the point to the end of
 the buffer, and it will stay there as the file contents change.
 However, if you are sure that the file will only change by growing at
-the end, use Auto-Revert Tail mode instead
+the end, use Auto Revert Tail mode instead
 (@code{auto-revert-tail-mode}).  It is more efficient for this.
-Auto-Revert Tail mode works also for remote files.
+Auto Revert Tail mode also works for remote files.
 
+@vindex auto-revert-verbose
   When a buffer is auto-reverted, a message is generated.  This can be
 suppressed by setting @code{auto-revert-verbose} to @code{nil}.
+
+@vindex auto-revert-remote-files
+  The Auto Revert modes do not check or revert remote files, because
+that is usually too slow.  This behavior can be changed by setting the
+variable @code{auto-revert-remote-files} to non-@code{nil}.
+
+@cindex file notifications
+@vindex auto-revert-use-notify
+@vindex auto-revert-interval
+  By default, Auto Revert mode works using @dfn{file notifications},
+whereby changes in the filesystem are reported to Emacs by the OS@.
+You can disable use of file notifications by customizing the variable
+@code{auto-revert-use-notify} to a @code{nil} value, then Emacs will
+check for file changes by polling every five seconds.  You can change
+the polling interval through the variable @code{auto-revert-interval}.
+
+  Not all systems support file notifications; where they are not
+supported, @code{auto-revert-use-notify} will be @code{nil} by
+default.
+
+@vindex auto-revert-avoid-polling
+@vindex auto-revert-notify-exclude-dir-regexp
+  By default, Auto Revert mode will poll files for changes
+periodically even when file notifications are used.  Polling is
+unnecessary in many cases, and turning it off may save power by
+relying on notifications only.  To do so, set the variable
+@code{auto-revert-avoid-polling} to non-@code{nil}.  However,
+notification is ineffective on certain file systems; mainly network
+file system on Unix-like machines, where files can be altered from
+other machines.  For such file systems, polling may be necessary.
+To force polling when
+@code{auto-revert-avoid-polling} is non-@code{nil}, set
+@code{auto-revert-notify-exclude-dir-regexp} to match files that
+should be excluded from using notification.
+
+  In Dired buffers (@pxref{Dired}), Auto Revert mode refreshes the
+buffer when a file is created or deleted in the buffer's directory.
 
   @xref{VC Undo}, for commands to revert to earlier versions of files
 under version control.  @xref{VC Mode Line}, for Auto Revert
 peculiarities when visiting files under version control.
 
 @ifnottex
+@menu
+* Non-File Buffers::    Auto Reverting Non-File Buffers.
+@end menu
 @include arevert-xtra.texi
 @end ifnottex
 
@@ -987,13 +1153,16 @@ separate file, without altering the file you actually use.  This is
 called @dfn{auto-saving}.  It prevents you from losing more than a
 limited amount of work if the system crashes.
 
+@vindex auto-save-no-message
   When Emacs determines that it is time for auto-saving, it considers
 each buffer, and each is auto-saved if auto-saving is enabled for it
-and it has been changed since the last time it was auto-saved.  The
-message @samp{Auto-saving...} is displayed in the echo area during
-auto-saving, if any files are actually auto-saved.  Errors occurring
-during auto-saving are caught so that they do not interfere with the
-execution of commands you have been typing.
+and it has been changed since the last time it was auto-saved.  When
+the @code{auto-save-no-message} variable is set to @code{nil} (the
+default), the message @samp{Auto-saving...} is displayed in the echo
+area during auto-saving, if any files are actually auto-saved; to
+disable these messages, customize the variable to a non-@code{nil}
+value.  Errors occurring during auto-saving are caught so that they do
+not interfere with the execution of commands you have been typing.
 
 @menu
 * Files: Auto Save Files.       The file where auto-saved changes are
@@ -1011,6 +1180,7 @@ want to make permanent.  Instead, auto-saving is done in a different
 file called the @dfn{auto-save file}, and the visited file is changed
 only when you request saving explicitly (such as with @kbd{C-x C-s}).
 
+@cindex @file{#}, in auto-save file names
   Normally, the auto-save file name is made by appending @samp{#} to the
 front and rear of the visited file name.  Thus, a buffer visiting file
 @file{foo.c} is auto-saved in a file @file{#foo.c#}.  Most buffers that
@@ -1065,6 +1235,13 @@ visited file.  (You can inhibit this by setting the variable
 @code{delete-auto-save-files} to @code{nil}.)  Changing the visited
 file name with @kbd{C-x C-w} or @code{set-visited-file-name} renames
 any auto-save file to go with the new visited name.
+
+@vindex kill-buffer-delete-auto-save-files
+  Killing a buffer, by default, doesn't remove the buffer's auto-save
+file.  If @code{kill-buffer-delete-auto-save-files} is non-@code{nil},
+killing a buffer that has an auto-save file will make Emacs prompt the
+user for whether the auto-save file should be deleted.  (This is
+inhibited if @code{delete-auto-save-files} is @code{nil}.)
 
 @node Auto Save Control
 @subsection Controlling Auto-Saving
@@ -1156,7 +1333,7 @@ this---saving them---updates the files themselves.
 
 @vindex auto-save-list-file-prefix
   Emacs records information about interrupted sessions in files named
-@file{.saves-@var{pid}-@var{hostname}} in the directory
+@file{.saves-@var{pid}-@var{hostname}~} in the directory
 @file{~/.emacs.d/auto-save-list/}.  This directory is determined by
 the variable @code{auto-save-list-file-prefix}.  If you set
 @code{auto-save-list-file-prefix} to @code{nil}, sessions are not
@@ -1230,8 +1407,9 @@ named @file{/fsf}:
 listing} is a list of all the files in a directory.  Emacs provides
 commands to create and delete directories, and to make directory
 listings in brief format (file names only) and verbose format (sizes,
-dates, and authors included).  Emacs also includes a directory browser
-feature called Dired; see @ref{Dired}.
+dates, and other attributes included).  Emacs also includes a
+directory browser feature called Dired, which you can invoke with
+@kbd{C-x d}; see @ref{Dired}.
 
 @table @kbd
 @item C-x C-d @var{dir-or-pattern} @key{RET}
@@ -1312,6 +1490,9 @@ information about the @command{diff} program.
   The output of the @code{diff} command is shown using a major mode
 called Diff mode.  @xref{Diff Mode}.
 
+  A (much more sophisticated) alternative is @kbd{M-x ediff}
+(@pxref{Top, Ediff, Ediff, ediff, The Ediff Manual}).
+
 @findex diff-backup
   The command @kbd{M-x diff-backup} compares a specified file with its
 most recent backup.  If you specify the name of a backup file,
@@ -1323,21 +1504,25 @@ backup of.  In all other respects, this behaves like @kbd{M-x diff}.
 buffer with its corresponding file.  This shows you what changes you
 would make to the file if you save the buffer.
 
+@findex diff-buffers
+  The command @kbd{M-x diff-buffers} compares the contents of two
+specified buffers.
+
 @findex compare-windows
   The command @kbd{M-x compare-windows} compares the text in the
 current window with that in the window that was the selected window
 before you selected the current one.  (For more information about
-windows in Emacs, @ref{Windows}.)  Comparison starts at point in each
-window, after pushing each initial point value on the mark ring in its
-respective buffer.  Then it moves point forward in each window, one
-character at a time, until it reaches characters that don't match.
-Then the command exits.
+windows in Emacs, @pxref{Windows}.)  Comparison starts at point in
+each window, after pushing each initial point value on the mark ring
+(@pxref{Mark Ring}) in its respective buffer.  Then it moves point
+forward in each window, one character at a time, until it reaches
+characters that don't match.  Then the command exits.
 
   If point in the two windows is followed by non-matching text when
 the command starts, @kbd{M-x compare-windows} tries heuristically to
 advance up to matching text in the two windows, and then exits.  So if
-you use @kbd{M-x compare-windows} repeatedly, each time it either
-skips one matching range or finds the start of another.
+you use @kbd{M-x compare-windows} repeatedly (@pxref{Repeating}), each
+time it either skips one matching range or finds the start of another.
 
 @vindex compare-ignore-case
 @vindex compare-ignore-whitespace
@@ -1345,8 +1530,9 @@ skips one matching range or finds the start of another.
 whitespace.  If the variable @code{compare-ignore-case} is
 non-@code{nil}, the comparison ignores differences in case as well.
 If the variable @code{compare-ignore-whitespace} is non-@code{nil},
-@code{compare-windows} normally ignores changes in whitespace, and a
-prefix argument turns that off.
+@code{compare-windows} by default ignores changes in whitespace, but a
+prefix argument turns that off for that single invocation of the
+command.
 
 @cindex Smerge mode
 @findex smerge-mode
@@ -1384,23 +1570,30 @@ manually, type @kbd{M-x diff-mode}.
 @cindex hunk, diff
   The changes specified in a patch are grouped into @dfn{hunks}, which
 are contiguous chunks of text that contain one or more changed lines.
-Hunks can also include unchanged lines to provide context for the
+Hunks usually also include unchanged lines to provide context for the
 changes.  Each hunk is preceded by a @dfn{hunk header}, which
-specifies the old and new line numbers at which the hunk occurs.  Diff
-mode highlights each hunk header, to distinguish it from the actual
-contents of the hunk.
+specifies the old and new line numbers where the hunk's changes occur.
+Diff mode highlights each hunk header, to distinguish it from the
+actual contents of the hunk.
+
+  The first hunk in a patch is preceded by a file header, which shows
+the names of the new and the old versions of the file, and their time
+stamps.  If a patch shows changes for more than one file, each file
+has such a header before the first hunk of that file's changes.
 
 @vindex diff-update-on-the-fly
   You can edit a Diff mode buffer like any other buffer.  (If it is
-read-only, you need to make it writable first.  @xref{Misc Buffer}.)
-Whenever you change a hunk, Diff mode attempts to automatically
-correct the line numbers in the hunk headers, to ensure that the patch
-remains correct.  To disable automatic line number correction,
-change the variable @code{diff-update-on-the-fly} to @code{nil}.
+read-only, you need to make it writable first; see @ref{Misc Buffer}.)
+Whenever you edit a hunk, Diff mode attempts to automatically correct
+the line numbers in the hunk headers, to ensure that the patch remains
+correct, and could still be applied by @command{patch}.  To disable
+automatic line number correction, change the variable
+@code{diff-update-on-the-fly} to @code{nil}.
 
-  Diff mode treats each hunk as an error message, similar to
-Compilation mode.  Thus, you can use commands such as @kbd{C-x `} to
-visit the corresponding source locations.  @xref{Compilation Mode}.
+  Diff mode arranges for hunks to be treated as compiler error
+messages by @kbd{M-g M-n} and other commands that handle error messages
+(@pxref{Compilation Mode}).  Thus, you can use the compilation-mode
+commands to visit the corresponding source locations.
 
   In addition, Diff mode provides the following commands to navigate,
 manipulate and apply parts of patches:
@@ -1408,37 +1601,34 @@ manipulate and apply parts of patches:
 @table @kbd
 @item M-n
 @findex diff-hunk-next
-Move to the next hunk-start (@code{diff-hunk-next}).
+Move to the next hunk-start (@code{diff-hunk-next}).  With prefix
+argument @var{n}, move forward to the @var{n}th next hunk.
 
-@findex diff-auto-refine-mode
-@cindex mode, Diff Auto-Refine
-@cindex Diff Auto-Refine mode
-This command has a side effect: it @dfn{refines} the hunk you move to,
-highlighting its changes with better granularity.  To disable this
-feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
-mode Diff Auto-Refine mode.  To disable Diff Auto Refine mode by
-default, add this to your init file (@pxref{Hooks}):
-
-@example
-(add-hook 'diff-mode-hook
-          (lambda () (diff-auto-refine-mode -1)))
-@end example
+@vindex diff-refine
+By default, Diff mode @dfn{refines} hunks as Emacs displays them,
+highlighting their changes with better granularity.  Alternatively, if
+you set @code{diff-refine} to the symbol @code{navigation}, Diff mode
+only refines the hunk you move to with this command or with
+@code{diff-hunk-prev}.
 
 @item M-p
 @findex diff-hunk-prev
-Move to the previous hunk-start (@code{diff-hunk-prev}).  Like
-@kbd{M-n}, this has the side-effect of refining the hunk you move to,
-unless you disable Diff Auto-Refine mode.
+Move to the previous hunk-start (@code{diff-hunk-prev}).  With prefix
+argument @var{n}, move back to the @var{n}th previous hunk.  Like
+@kbd{M-n}, this command refines the hunk you move to if you set
+@code{diff-refine} to the symbol @code{navigation}.
 
 @item M-@}
 @findex diff-file-next
 Move to the next file-start, in a multi-file patch
-(@code{diff-file-next}).
+(@code{diff-file-next}).  With prefix argument @var{n}, move forward
+to the start of the @var{n}th next file.
 
 @item M-@{
 @findex diff-file-prev
 Move to the previous file-start, in a multi-file patch
-(@code{diff-file-prev}).
+(@code{diff-file-prev}).  With prefix argument @var{n}, move back to
+the start of the @var{n}th previous file.
 
 @item M-k
 @findex diff-hunk-kill
@@ -1453,7 +1643,10 @@ In a multi-file patch, kill the current file part.
 @findex diff-apply-hunk
 @cindex patches, applying
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
-prefix argument of @kbd{C-u}, revert this hunk.
+prefix argument of @kbd{C-u}, revert this hunk, i.e.@: apply the
+reverse of the hunk, which changes the ``new'' version into the ``old''
+version.  If @code{diff-jump-to-old-file} is non-@code{nil}, apply the
+hunk to the ``old'' version of the file instead.
 
 @item C-c C-b
 @findex diff-refine-hunk
@@ -1461,10 +1654,27 @@ Highlight the changes of the hunk at point with a finer granularity
 (@code{diff-refine-hunk}).  This allows you to see exactly which parts
 of each changed line were actually changed.
 
+@vindex diff-refine
+By default, Diff mode refines hunks as Emacs displays them, so you may
+find this command useful if you customize @code{diff-refine} to a
+non-default value.
+
 @item C-c C-c
 @findex diff-goto-source
+@vindex diff-jump-to-old-file
 Go to the source file and line corresponding to this hunk
-(@code{diff-goto-source}).
+(@code{diff-goto-source}).  By default, this jumps to the ``new''
+version of the file, the one shown first on the file header.
+With a prefix argument, jump to the ``old'' version instead.  If
+@code{diff-jump-to-old-file} is non-@code{nil}, this command by
+default jumps to the ``old'' file, and the meaning of the prefix
+argument is reversed.  If the prefix argument is a number greater than
+8 (e.g., if you type @kbd{C-u C-u C-c C-c}), then this command also
+sets @code{diff-jump-to-old-file} for the next invocation.
+If the source file is under version control (@pxref{Version Control}),
+this jumps to the work file by default.  With a prefix argument, jump
+to the ``old'' revision of the file (@pxref{Old Revisions}), when
+point is on the old line, or otherwise jump to the ``new'' revision.
 
 @item C-c C-e
 @findex diff-ediff-patch
@@ -1474,41 +1684,51 @@ Start an Ediff session with the patch (@code{diff-ediff-patch}).
 @item C-c C-n
 @findex diff-restrict-view
 Restrict the view to the current hunk (@code{diff-restrict-view}).
-@xref{Narrowing}.  With a prefix argument of @kbd{C-u}, restrict the
+@xref{Narrowing}.  With a prefix argument, restrict the
 view to the current file of a multiple-file patch.  To widen again,
 use @kbd{C-x n w} (@code{widen}).
 
 @item C-c C-r
 @findex diff-reverse-direction
 Reverse the direction of comparison for the entire buffer
-(@code{diff-reverse-direction}).
+(@code{diff-reverse-direction}).  With a prefix argument, reverse the
+direction only inside the current region (@pxref{Mark}).  Reversing
+the direction means changing the hunks and the file-start headers to
+produce a patch that would change the ``new'' version into the ``old''
+one.
 
 @item C-c C-s
 @findex diff-split-hunk
-Split the hunk at point (@code{diff-split-hunk}).  This is for
-manually editing patches, and only works with the @dfn{unified diff
-format} produced by the @option{-u} or @option{--unified} options to
-the @command{diff} program.  If you need to split a hunk in the
-@dfn{context diff format} produced by the @option{-c} or
-@option{--context} options to @command{diff}, first convert the buffer
-to the unified diff format with @kbd{C-c C-u}.
+Split the hunk at point (@code{diff-split-hunk}) into two separate
+hunks.  This inserts a hunk header and modifies the header of the
+current hunk.  This command is useful for manually editing patches,
+and only works with the @dfn{unified diff format} produced by the
+@option{-u} or @option{--unified} options to the @command{diff}
+program.  If you need to split a hunk in the @dfn{context diff format}
+produced by the @option{-c} or @option{--context} options to
+@command{diff}, first convert the buffer to the unified diff format
+with @kbd{C-c C-u}.
 
 @item C-c C-d
 @findex diff-unified->context
 Convert the entire buffer to the @dfn{context diff format}
 (@code{diff-unified->context}).  With a prefix argument, convert only
-the text within the region.
+the hunks within the region.
 
 @item C-c C-u
 @findex diff-context->unified
 Convert the entire buffer to unified diff format
 (@code{diff-context->unified}).  With a prefix argument, convert
 unified format to context format.  When the mark is active, convert
-only the text within the region.
+only the hunks within the region.
+
+@item C-c C-l
+@findex diff-refresh-hunk
+Re-generate the current hunk (@code{diff-refresh-hunk}).
 
 @item C-c C-w
 @findex diff-ignore-whitespace-hunk
-Re-diff the current hunk, disregarding changes in whitespace
+Re-generate the current hunk, disregarding changes in whitespace
 (@code{diff-ignore-whitespace-hunk}).
 
 @item C-x 4 A
@@ -1539,23 +1759,29 @@ that whitespace in both the patch and the patched source file(s).
 This command does not save the modifications that it makes, so you can
 decide whether to save the changes (the list of modified files is
 displayed in the echo area).  With a prefix argument, it tries to
-modify the original source files rather than the patched source files.
+modify the original (``old'') source files rather than the patched
+(``new'') source files.
+
+@vindex diff-font-lock-syntax
+  If @code{diff-font-lock-syntax} is non-@code{nil}, fragments of
+source in hunks are highlighted according to the appropriate major
+mode.
 
 @node Copying and Naming
 @section Copying, Naming and Renaming Files
 
   Emacs has several commands for copying, naming, and renaming files.
-All of them read two file names @var{old} and @var{new} using the
-minibuffer, and then copy or adjust a file's name accordingly; they do
-not accept wildcard file names.
+All of them read two file names, @var{old} (or @var{target}) and
+@var{new}, using the minibuffer, and then copy or adjust a file's name
+accordingly; they do not accept wildcard file names.
 
 In all these commands, if the argument @var{new} is just a directory
-name, the real new name is in that directory, with the same
+name (@pxref{Directory Names,,, elisp, the Emacs Lisp Reference
+Manual}), the real new name is in that directory, with the same
 non-directory component as @var{old}.  For example, the command
 @w{@kbd{M-x rename-file @key{RET} ~/foo @key{RET} /tmp/ @key{RET}}}
 renames @file{~/foo} to @file{/tmp/foo}.  On GNU and other POSIX-like
-systems, directory names end in @samp{/}.  @xref{Directory Names,,,
-elisp, the Emacs Lisp Reference Manual}.
+systems, directory names end in @samp{/}.
 
 All these commands ask for confirmation when the new file name already
 exists.
@@ -1565,12 +1791,16 @@ exists.
   @kbd{M-x copy-file} copies the contents of the file @var{old} to the
 file @var{new}.
 
+@vindex copy-directory-create-symlink
 @findex copy-directory
   @kbd{M-x copy-directory} copies directories, similar to the
 @command{cp -r} shell command.  If @var{new} is a directory name, it
 creates a copy of the @var{old} directory and puts it in @var{new}.
 Otherwise it copies all the contents of @var{old} into a new directory
-named @var{new}.
+named @var{new}.  If @code{copy-directory-create-symlink} is
+non-@code{nil} and @var{old} is a symbolic link, this command will
+copy the symbolic link.  If @code{nil}, this command will follow the
+link and copy the contents instead.  (This is the default.)
 
 @cindex renaming files
 @findex rename-file
@@ -1625,10 +1855,12 @@ Dired rather than @code{delete-file}.  @xref{Dired Deletion}.
 
 @cindex trash
 @cindex recycle bin
+@findex move-file-to-trash
   @kbd{M-x move-file-to-trash} moves a file into the system
 @dfn{Trash} (or @dfn{Recycle Bin}).  This is a facility available on
 most operating systems; files that are moved into the Trash can be
-brought back later if you change your mind.
+brought back later if you change your mind.  (The way to restore
+trashed files is system-dependent.)
 
 @vindex delete-by-moving-to-trash
   By default, Emacs deletion commands do @emph{not} use the Trash.  To
@@ -1640,6 +1872,22 @@ commands in Dired (@pxref{Dired Deletion}).  Supplying a prefix
 argument to @kbd{M-x delete-file} or @kbd{M-x delete-directory} makes
 them delete outright, instead of using the Trash, regardless of
 @code{delete-by-moving-to-trash}.
+
+  If you have @code{delete-by-moving-to-trash} set, and you want to
+delete files manually in Emacs from the Trash directory, using
+commands like @kbd{D} (@code{dired-do-delete}) doesn't work well in
+the Trash directory (it'll just give the file a new name, but won't
+delete anything).  If you want to be able to do this, you should
+create a @code{.dir-locals.el} file containing something like the
+following in the Trash directory:
+
+@example
+((dired-mode . ((delete-by-moving-to-trash . nil))))
+@end example
+
+  Note, however, if you use the system ``empty trash'' command, it's
+liable to also delete this @code{.dir-locals.el} file, so this should
+only be done if you delete files from the Trash directory manually.
 
 @ifnottex
   If a file is under version control (@pxref{Version Control}), you
@@ -1757,13 +2005,6 @@ requires the appropriate uncompression program.
 
 @cindex Archive mode
 @cindex mode, archive
-@cindex @code{arc}
-@cindex @code{jar}
-@cindex @code{rar}
-@cindex @code{zip}
-@cindex @code{lzh}
-@cindex @code{zoo}
-@cindex @code{7z}
 @pindex arc
 @pindex jar
 @pindex zip
@@ -1815,8 +2056,8 @@ To carry out this request, Emacs uses a remote-login program such as
 @command{ssh}.
 You must always specify in the file name which method to use---for
 example, @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses
-@command{ssh}.  When you specify the pseudo method @var{-} in the file
-name, Emacs chooses the method as follows:
+@command{ssh}.  When you specify the pseudo method @samp{-} in the
+file name, Emacs chooses the method as follows:
 
 @enumerate
 @item
@@ -1839,7 +2080,7 @@ variable @code{tramp-mode} to @code{nil}.  You can turn off the
 feature in individual cases by quoting the file name with @samp{/:}
 (@pxref{Quoted File Names}).
 
-@cindex ange-ftp
+@cindex @code{ange-ftp}
   Remote file access through FTP is handled by the Ange-FTP package, which
 is documented in the following.  Remote file access through the other
 methods is handled by the Tramp package, which has its own manual.
@@ -1980,17 +2221,19 @@ of the cache with the @code{file-cache-display} command.
 @section Convenience Features for Finding Files
 
   In this section, we introduce some convenient facilities for finding
-recently-opened files, reading file names from a buffer, and viewing
-image files.
+recently-opened files, reading file names from a buffer.
 
 @findex recentf-mode
 @vindex recentf-mode
+@findex recentf-open
 @findex recentf-save-list
 @findex recentf-edit-list
-  If you enable Recentf mode, with @kbd{M-x recentf-mode}, the
-@samp{File} menu includes a submenu containing a list of recently
-opened files.  @kbd{M-x recentf-save-list} saves the current
-@code{recent-file-list} to a file, and @kbd{M-x recentf-edit-list}
+  If you enable Recentf mode, with @kbd{M-x recentf-mode}, Emacs
+maintains a list of recently opened files.  To open a file from this
+list, use the @kbd{M-x recentf-open} command.  When this mode is
+enabled, the @samp{File} menu will include a submenu that you can use
+to visit one of these files.  @kbd{M-x recentf-save-list} saves the
+current @code{recentf-list} to a file, and @kbd{M-x recentf-edit-list}
 edits it.
 
 @c FIXME partial-completion-mode (complete.el) is obsolete.
@@ -2000,10 +2243,11 @@ point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
 
+@node Image Mode
+@section Viewing Image Files
+
 @findex image-mode
 @findex image-toggle-display
-@findex image-next-file
-@findex image-previous-file
 @cindex images, viewing
   Visiting image files automatically selects Image mode.  In this
 major mode, you can type @kbd{C-c C-c} (@code{image-toggle-display})
@@ -2011,14 +2255,60 @@ to toggle between displaying the file as an image in the Emacs buffer,
 and displaying its underlying text (or raw byte) representation.
 Additionally you can type @kbd{C-c C-x} (@code{image-toggle-hex-display})
 to toggle between displaying the file as an image in the Emacs buffer,
-and displaying it in hex representation.
-Displaying the file as an image works only if Emacs is compiled with
-support for displaying such images.  If the displayed image is wider
-or taller than the frame, the usual point motion keys (@kbd{C-f},
-@kbd{C-p}, and so forth) cause different parts of the image to be
-displayed.  You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
+and displaying it in hex representation.  Displaying the file as an
+image works only if Emacs is compiled with support for displaying
+such images.
+
+@vindex image-auto-resize
+@vindex image-auto-resize-on-window-resize
+If the displayed image is wider or taller than the window in which it
+is displayed, the usual point motion keys (@kbd{C-f}, @kbd{C-p}, and
+so forth) cause different parts of the image to be displayed.
+However, by default images are resized automatically to fit the
+window, so this is only necessary if you customize the default
+behavior by using the options @code{image-auto-resize} and
+@code{image-auto-resize-on-window-resize}.
+
+@findex image-transform-fit-to-window
+@findex image-transform-set-percent
+@findex image-transform-set-scale
+@findex image-transform-reset-to-initial
+@findex image-transform-reset-to-original
+To resize the image manually you can use the command
+@code{image-transform-fit-to-window} bound to @kbd{s w} that fits the
+image to both the window height and width.  To scale the image to a
+percentage of its original size, use the command
+@code{image-transform-set-percent} bound to @kbd{s p}.  To scale the
+image specifying a scale factor, use the command
+@code{image-transform-set-scale} bound to @kbd{s s}.  To reset all
+transformations to the initial state, use
+@code{image-transform-reset-to-initial} bound to @kbd{s 0}, or
+@code{image-transform-reset-to-original} bound to @kbd{s o}.
+
+@findex image-next-file
+@findex image-previous-file
+You can press @kbd{n} (@code{image-next-file}) and @kbd{p}
 (@code{image-previous-file}) to visit the next image file and the
-previous image file in the same directory, respectively.
+previous image file in the same directory, respectively.  These
+commands will consult the ``parent'' dired buffer to determine what
+the next/previous image file is.  These commands also work when
+opening a file from archive files (like zip or tar files), and will
+then instead consult the archive mode buffer.  If neither an archive
+nor a dired ``parent'' buffer can be found, a dired buffer is opened.
+
+@findex image-mode-mark-file
+@findex image-mode-unmark-file
+@findex image-mode-copy-file-name-as-kill
+  When looking through images, it's sometimes convenient to be able to
+mark the files for later processing (for instance, if you want to
+select a group of images to copy somewhere else).  The @kbd{m}
+(@code{image-mode-mark-file}) command will mark the current file in
+any Dired buffer(s) that display the current file's directory.  If no
+such buffer is open, the directory is opened in a new buffer.  To
+unmark files, use the @kbd{u} (@code{image-mode-mark-file}) command.
+Finally, if you just want to copy the current buffers file name to the
+kill ring, you can use the @kbd{w}
+(@code{image-mode-copy-file-name-as-kill}) command.
 
 @findex image-toggle-animation
 @findex image-next-frame
@@ -2062,8 +2352,39 @@ never be rendered using ImageMagick, regardless of the value of
 but Emacs should not).  To disable ImageMagick entirely, change
 @code{imagemagick-types-inhibit} to @code{t}.
 
+@vindex image-use-external-converter
+  If Emacs doesn't have native support for the image format in
+question, and @code{image-use-external-converter} is non-@code{nil},
+Emacs will try to determine whether there are external utilities that
+can be used to transform the image in question to @acronym{PNG} before
+displaying.  GraphicsMagick, ImageMagick and @command{ffmpeg} are
+currently supported for image conversions.
+
+@findex image-converter-add-handler
+  In addition, you may wish to add special handlers for certain image
+formats.  These can be added with the
+@code{image-converter-add-handler} function.  For instance, to allow
+viewing Krita files as simple images, you could say something like:
+
+@lisp
+(image-converter-add-handler
+ "kra"
+ (lambda (file data-p)
+   (if data-p
+       (error "Can't decode non-files")
+     (call-process "unzip" nil t nil
+                   "-qq" "-c" "-x" file "mergedimage.png"))))
+@end lisp
+
+The function takes two parameters, where the first is a file name
+suffix, and the second is a function to do the ``conversion''.  This
+function takes two parameters, where the first is the file name or a
+string with the data, and the second says whether the first parameter
+is data or not, and should output an image in
+@code{image-convert-to-format} format in the current buffer.
+
 @findex thumbs-mode
-@findex mode, thumbs
+@cindex mode, Thumbs
   The Image-Dired package can also be used to view images as
 thumbnails.  @xref{Image-Dired}.
 

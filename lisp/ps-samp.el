@@ -1,15 +1,14 @@
-;;; ps-samp.el --- ps-print sample setup code
+;;; ps-samp.el --- ps-print sample setup code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
-;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;;	Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
+;;	Kenichi Handa <handa@gnu.org> (multi-byte characters)
+;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, print, PostScript
-;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
+;; URL: https://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 ;; Package: ps-print
 
 ;; This file is part of GNU Emacs.
@@ -58,7 +57,7 @@
   (interactive)
   (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
 
-;; Used in `ps-rmail-print-article-from-summary',
+;; Used in `ps-rmail-print-message-from-summary',
 ;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
 (defun ps-print-message-from-summary (summary-buffer summary-default)
   (let ((ps-buf (or (and (boundp summary-buffer)
@@ -76,8 +75,8 @@
       (concat "Subject: " (or (mail-fetch-field "Subject") "???")))))
 
 ;; Look in an article or mail message for the From: line.  Sorta-kinda
-;; understands RFC-822 addresses and can pull the real name out where
-;; it's provided.
+;; understands RFC 822 (or later) addresses and can pull the real name
+;; out where it's provided.
 (defun ps-article-author ()
   (save-excursion
     (save-restriction

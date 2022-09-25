@@ -1,11 +1,11 @@
-;;; erc-pcomplete.el --- Provides programmable completion for ERC
+;;; erc-pcomplete.el --- Provides programmable completion for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
-;; Maintainer: emacs-devel@gnu.org
-;; Keywords: comm, convenience
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcCompletion
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; Keywords: comm
+;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 
 ;; This file is part of GNU Emacs.
 
@@ -41,33 +41,29 @@
 
 (require 'pcomplete)
 (require 'erc)
-(require 'erc-compat)
 (require 'time-date)
 
 (defgroup erc-pcomplete nil
-  "Programmable completion for ERC"
+  "Programmable completion for ERC."
   :group 'erc)
 
 (defcustom erc-pcomplete-nick-postfix ":"
   "When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
-  :group 'erc-pcomplete
   :type 'string)
 
 (defcustom erc-pcomplete-order-nickname-completions t
-  "If t, channel nickname completions will be ordered such that
-the most recent speakers are listed first."
-  :group 'erc-pcomplete
+  "If t, order nickname completions with the most recent speakers first."
   :type 'boolean)
 
-;;;###autoload (autoload 'erc-completion-mode "erc-pcomplete" nil t)
+;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
-  ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (add-hook 'erc-complete-functions 'erc-pcompletions-at-point)
+  ((add-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (add-hook 'erc-complete-functions #'erc-pcompletions-at-point)
    (erc-buffer-list #'pcomplete-erc-setup))
-  ((remove-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (remove-hook 'erc-complete-functions 'erc-pcompletions-at-point)))
+  ((remove-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (remove-hook 'erc-complete-functions #'erc-pcompletions-at-point)))
 
 (defun erc-pcompletions-at-point ()
   "ERC completion data from pcomplete.
@@ -90,18 +86,16 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete-erc-setup ()
   "Setup `erc-mode' to use pcomplete."
-  (set (make-local-variable 'pcomplete-ignore-case)
-       t)
-  (set (make-local-variable 'pcomplete-use-paring)
-       nil)
-  (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'pcomplete-erc-parse-arguments)
-  (set (make-local-variable 'pcomplete-command-completion-function)
-       'pcomplete/erc-mode/complete-command)
-  (set (make-local-variable 'pcomplete-command-name-function)
-       'pcomplete-erc-command-name)
-  (set (make-local-variable 'pcomplete-default-completion-function)
-       (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
+  (setq-local completion-ignore-case t)
+  (setq-local pcomplete-use-paring nil)
+  (setq-local pcomplete-parse-arguments-function
+              #'pcomplete-erc-parse-arguments)
+  (setq-local pcomplete-command-completion-function
+              #'pcomplete/erc-mode/complete-command)
+  (setq-local pcomplete-command-name-function
+              #'pcomplete-erc-command-name)
+  (setq-local pcomplete-default-completion-function
+              (lambda () (pcomplete-here (pcomplete-erc-nicks)))))
 
 ;;; Programmable completion logic
 
@@ -157,7 +151,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/NAMES ()
   (while (pcomplete-here (pcomplete-erc-channels))))
 
-(defalias 'pcomplete/erc-mode/NOTICE 'pcomplete/erc-mode/MSG)
+(defalias 'pcomplete/erc-mode/NOTICE #'pcomplete/erc-mode/MSG)
 
 (defun pcomplete/erc-mode/OP ()
   (while (pcomplete-here (pcomplete-erc-not-ops))))
@@ -165,7 +159,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/PART ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defalias 'pcomplete/erc-mode/LEAVE 'pcomplete/erc-mode/PART)
+(defalias 'pcomplete/erc-mode/LEAVE #'pcomplete/erc-mode/PART)
 
 (defun pcomplete/erc-mode/QUERY ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)
@@ -188,14 +182,14 @@ for use on `completion-at-point-function'."
 ;;; Functions that provide possible completions.
 
 (defun pcomplete-erc-commands ()
-  "Returns a list of strings of the defined user commands."
+  "Return a list of strings of the defined user commands."
   (let ((case-fold-search nil))
     (mapcar (lambda (x)
               (concat "/" (downcase (substring (symbol-name x) 8))))
             (apropos-internal "erc-cmd-[A-Z]+"))))
 
 (defun pcomplete-erc-ops ()
-  "Returns a list of nicks with ops."
+  "Return a list of nicks with ops."
   (let (ops)
     (maphash (lambda (nick cdata)
                (if (and (cdr cdata)
@@ -205,7 +199,7 @@ for use on `completion-at-point-function'."
     ops))
 
 (defun pcomplete-erc-not-ops ()
-  "Returns a list of nicks without ops."
+  "Return a list of nicks without ops."
   (let (not-ops)
     (maphash (lambda (nick cdata)
                (if (and (cdr cdata)
@@ -216,7 +210,7 @@ for use on `completion-at-point-function'."
 
 
 (defun pcomplete-erc-nicks (&optional postfix ignore-self)
-  "Returns a list of nicks in the current channel.
+  "Return a list of nicks in the current channel.
 Optional argument POSTFIX is something to append to the nickname.
 If optional argument IGNORE-SELF is non-nil, don't return the current nick."
   (let ((users (if erc-pcomplete-order-nickname-completions
@@ -235,7 +229,7 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
     (nreverse nicks)))
 
 (defun pcomplete-erc-all-nicks (&optional postfix)
-  "Returns a list of all nicks on the current server."
+  "Return a list of all nicks on the current server."
   (let (nicks)
     (erc-with-server-buffer
       (maphash (lambda (_nick user)
@@ -246,20 +240,20 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
     nicks))
 
 (defun pcomplete-erc-channels ()
-  "Returns a list of channels associated with the current server."
+  "Return a list of channels associated with the current server."
   (mapcar (lambda (buf) (with-current-buffer buf (erc-default-target)))
           (erc-channel-list erc-server-process)))
 
 ;;; Functions for parsing
 
 (defun pcomplete-erc-command-name ()
-  "Returns the command name of the first argument."
+  "Return the command name of the first argument."
   (if (eq (elt (pcomplete-arg 'first) 0) ?/)
       (upcase (substring (pcomplete-arg 'first) 1))
     "SAY"))
 
 (defun pcomplete-erc-parse-arguments ()
-  "Returns a list of parsed whitespace-separated arguments.
+  "Return a list of parsed whitespace-separated arguments.
 These are the words from the beginning of the line after the prompt
 up to where point is right now."
   (let* ((start erc-input-marker)
@@ -284,5 +278,5 @@ up to where point is right now."
 ;;; erc-pcomplete.el ends here
 ;;
 ;; Local Variables:
-;; indent-tabs-mode: nil
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; End:

@@ -1,8 +1,8 @@
-;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
+;;; semantic/mru-bookmark.el --- Automatic bookmark tracking  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -45,7 +45,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-base)
 (require 'ring)
@@ -78,7 +77,7 @@ Set this when the tag gets unlinked from the buffer it belongs to.")
 	   :initform t
 	   :documentation
 	   "The reason this tag is interesting.
-Nice values are 'edit, 'read, 'jump, and 'mark.
+Nice values include the following:
  edit - created because the tag text was edited.
  read - created because point lingered in tag text.
  jump - jumped to another tag from this tag.
@@ -86,7 +85,7 @@ Nice values are 'edit, 'read, 'jump, and 'mark.
    )
   "A single bookmark.")
 
-(cl-defmethod initialize-instance :after ((sbm semantic-bookmark) &rest fields)
+(cl-defmethod initialize-instance :after ((sbm semantic-bookmark) &rest _fields)
   "Initialize the bookmark SBM with details about :tag."
   (condition-case nil
       (save-excursion
@@ -113,7 +112,7 @@ Uses `semantic-go-to-tag' and highlighting."
 	  (forward-char o))
       (error nil))
     ;; make it visible
-    (switch-to-buffer (current-buffer))
+    (pop-to-buffer-same-window (current-buffer))
     (semantic-momentary-highlight-tag tag)
     ))
 
@@ -166,7 +165,6 @@ We can't use the built-in ring data structure because we need
 to delete some items from the ring when we don't have the data.")
 
 (defvar semantic-mru-bookmark-ring (semantic-bookmark-ring
-				    "Ring"
 				    :ring (make-ring 20))
   "The MRU bookmark ring.
 This ring tracks the most recent active tags of interest.")
@@ -218,7 +216,7 @@ Cause tags in the ring to become unlinked."
       (setq idx (1+ idx)))))
 
 (add-hook 'semantic-before-toplevel-cache-flush-hook
-	  'semantic-mrub-cache-flush-fcn)
+	  #'semantic-mrub-cache-flush-fcn)
 
 ;;; EDIT tracker
 ;;
@@ -248,14 +246,13 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
   :group 'semantic-modes
   :type 'boolean
   :require 'semantic/util-modes
-  :initialize 'custom-initialize-default
-  :set (lambda (sym val)
+  :initialize #'custom-initialize-default
+  :set (lambda (_sym val)
          (global-semantic-mru-bookmark-mode (if val 1 -1))))
 
 ;;;###autoload
 (define-minor-mode global-semantic-mru-bookmark-mode
-  "Toggle global use of option `semantic-mru-bookmark-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-mru-bookmark-mode'."
   :global t :group 'semantic :group 'semantic-modes
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic-util-modes
@@ -267,11 +264,9 @@ If ARG is positive or nil, enable, if it is negative, disable."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-mru-bookmark-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-xB" 'semantic-mrub-switch-tags)
-    km)
-  "Keymap for mru-bookmark minor mode.")
+(defvar-keymap semantic-mru-bookmark-mode-map
+  :doc "Keymap for mru-bookmark minor mode."
+  "C-x B" #'semantic-mrub-switch-tags)
 
 (define-minor-mode semantic-mru-bookmark-mode
   "Minor mode for tracking tag-based bookmarks automatically.
@@ -280,10 +275,9 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags].
 
 \\{semantic-mru-bookmark-mode-map}
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   :keymap semantic-mru-bookmark-mode-map
   (if semantic-mru-bookmark-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
@@ -292,16 +286,15 @@ minor mode is enabled."
             (setq semantic-mru-bookmark-mode nil)
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
-        (semantic-make-local-hook 'semantic-edits-new-change-functions)
         (add-hook 'semantic-edits-new-change-functions
-                  'semantic-mru-bookmark-change-hook-fcn nil t)
+                  #'semantic-mru-bookmark-change-hook-fcn nil t)
         (add-hook 'semantic-edits-move-change-hooks
-                  'semantic-mru-bookmark-change-hook-fcn nil t))
+                  #'semantic-mru-bookmark-change-hook-fcn nil t))
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-functions
-		 'semantic-mru-bookmark-change-hook-fcn t)
+		 #'semantic-mru-bookmark-change-hook-fcn t)
     (remove-hook 'semantic-edits-move-change-hooks
-		 'semantic-mru-bookmark-change-hook-fcn t)))
+		 #'semantic-mru-bookmark-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-mru-bookmark-mode
                          "k")
@@ -319,7 +312,7 @@ minor mode is enabled."
 	(al nil))
     (while (< idx len)
       (let ((r (ring-ref ring idx)))
-	(setq al (cons (cons (oref r :object-name) r)
+	(setq al (cons (cons (oref r object-name) r)
 		       al)))
       (setq idx (1+ idx)))
     (nreverse al)))

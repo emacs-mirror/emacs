@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Auxiliary script for MSDOS, run by ../config.bat
-rem   Copyright (C) 2011-2017 Free Software Foundation, Inc.
+rem   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -20,6 +20,6 @@ rem   along with GNU Emacs.  If not, see https://www.gnu.org/licenses/.
 
 rem   ----------------------------------------------------------------------
 
-echo %1 | sed -e "s,\(.*\)\.c,@if not exist deps\\\1.Po echo # dummy > deps\\\1.Po," > tdepfile.bat
+echo %1 | sed -e "s,\(.*\)\.c,@if not exist deps\\\1.d echo # dummy > deps\\\1.d," > tdepfile.bat
 call tdepfile
 del tdepfile.bat

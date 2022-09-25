@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -25,6 +25,11 @@
 ;; Reveal mode is a minor mode that makes sure that text around point
 ;; is always visible.  When point enters a region of hidden text,
 ;; `reveal-mode' temporarily makes it visible.
+;;
+;; Overlays can also use the `display' property.  For them to be
+;; revealed, the `reveal-toggle-invisible' property also has to be
+;; present, and should be a function to toggle between having a
+;; display property and not.
 ;;
 ;; This is normally used in conjunction with `outline-minor-mode',
 ;; `hs-minor-mode', `hide-ifdef-mode', ...
@@ -55,13 +60,18 @@
   :type 'boolean
   :group 'reveal)
 
-(defvar reveal-open-spots nil
+(defcustom reveal-auto-hide t
+  "Automatically hide revealed text when leaving it.
+If nil, the `reveal-hide-revealed' command can be useful to hide
+revealed text manually."
+  :type 'boolean
+  :version "28.1")
+
+(defvar-local reveal-open-spots nil
   "List of spots in the buffer which are open.
 Each element has the form (WINDOW . OVERLAY).")
-(make-variable-buffer-local 'reveal-open-spots)
 
-(defvar reveal-last-tick nil)
-(make-variable-buffer-local 'reveal-last-tick)
+(defvar-local reveal-last-tick nil)
 
 ;; Actual code
 
@@ -92,7 +102,8 @@ Each element has the form (WINDOW . OVERLAY).")
                         (cdr x))))
                     reveal-open-spots))))
         (setq old-ols (reveal-open-new-overlays old-ols))
-        (reveal-close-old-overlays old-ols)))))
+        (when reveal-auto-hide
+          (reveal-close-old-overlays old-ols))))))
 
 (defun reveal-open-new-overlays (old-ols)
   (let ((repeat t))
@@ -103,21 +114,32 @@ Each element has the form (WINDOW . OVERLAY).")
                          (overlays-at (point))))
         (setq old-ols (delq ol old-ols))
         (when (overlay-start ol)        ;Check it's still live.
-          (let ((inv (overlay-get ol 'invisible)) open)
-            (when (and inv
-                       ;; There's an `invisible' property.  Make sure it's
-                       ;; actually invisible, and ellipsized.
-                       (and (consp buffer-invisibility-spec)
-                            (cdr (assq inv buffer-invisibility-spec)))
+          ;; We either have an invisible overlay, or a display
+          ;; overlay.  Always reveal invisible text, but only reveal
+          ;; display properties if `reveal-toggle-invisible' is
+          ;; present.
+          (let ((inv (overlay-get ol 'invisible))
+                (disp (and (overlay-get ol 'display)
+                           (overlay-get ol 'reveal-toggle-invisible)))
+                open)
+            (when (and (or (and inv
+                                ;; There's an `invisible' property.
+                                ;; Make sure it's actually invisible,
+                                ;; and ellipsized.
+                                (and (consp buffer-invisibility-spec)
+                                     (cdr (assq inv buffer-invisibility-spec))))
+                           disp)
                        (or (setq open
                                  (or (overlay-get ol 'reveal-toggle-invisible)
                                      (and (symbolp inv)
                                           (get inv 'reveal-toggle-invisible))
-                                     (overlay-get ol 'isearch-open-invisible-temporary)))
+                                     (overlay-get
+                                      ol 'isearch-open-invisible-temporary)))
                            (overlay-get ol 'isearch-open-invisible)
                            (and (consp buffer-invisibility-spec)
-                                (cdr (assq inv buffer-invisibility-spec))))
-                       (overlay-put ol 'reveal-invisible inv))
+                                (cdr (assq inv buffer-invisibility-spec)))))
+              (when inv
+                (overlay-put ol 'reveal-invisible inv))
               (push (cons (selected-window) ol) reveal-open-spots)
               (if (null open)
                   (overlay-put ol 'invisible nil)
@@ -180,29 +202,34 @@ Each element has the form (WINDOW . OVERLAY).")
                 (delq (rassoc ol reveal-open-spots)
                       reveal-open-spots)))))))
 
-(defvar reveal-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Override the default move-beginning-of-line and move-end-of-line
-    ;; which skips valuable invisible text.
-    (define-key map [remap move-beginning-of-line] 'beginning-of-line)
-    (define-key map [remap move-end-of-line] 'end-of-line)
-    map))
+(defun reveal-hide-revealed ()
+  "Hide all revealed text.
+If there is revealed text under point, this command does not hide
+that text."
+  (interactive)
+  (let ((reveal-auto-hide t))
+    (reveal-post-command)))
+
+(defvar-keymap reveal-mode-map
+  ;; Override the default move-beginning-of-line and move-end-of-line
+  ;; which skips valuable invisible text.
+  "<remap> <move-beginning-of-line>" #'beginning-of-line
+  "<remap> <move-end-of-line>"       #'end-of-line)
 
 ;;;###autoload
 (define-minor-mode reveal-mode
   "Toggle uncloaking of invisible text near point (Reveal mode).
-With a prefix argument ARG, enable Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Reveal mode if ARG is omitted or nil.
 
 Reveal mode is a buffer-local minor mode.  When enabled, it
-reveals invisible text around point."
+reveals invisible text around point.
+
+Also see the `reveal-auto-hide' variable."
   :group 'reveal
   :lighter (global-reveal-mode nil " Reveal")
   :keymap reveal-mode-map
   (if reveal-mode
       (progn
-	(set (make-local-variable 'search-invisible) t)
+        (setq-local search-invisible t)
 	(add-hook 'post-command-hook 'reveal-post-command nil t))
     (kill-local-variable 'search-invisible)
     (remove-hook 'post-command-hook 'reveal-post-command t)))
@@ -210,11 +237,7 @@ reveals invisible text around point."
 ;;;###autoload
 (define-minor-mode global-reveal-mode
   "Toggle Reveal mode in all buffers (Global Reveal mode).
-Reveal mode renders invisible text around point visible again.
-
-With a prefix argument ARG, enable Global Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+Reveal mode renders invisible text around point visible again."
   :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode

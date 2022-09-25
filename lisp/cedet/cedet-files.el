@@ -1,8 +1,8 @@
-;;; cedet-files.el --- Common routines dealing with file names.
+;;; cedet-files.el --- Common routines dealing with file names.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
 
 ;; This file is part of GNU Emacs.
@@ -59,7 +59,7 @@ to the file's truename, and dodging platform tricks."
     ;; doubling `!'s in the original name...
     (setq file (subst-char-in-string
 		?/ ?!
-		(replace-regexp-in-string "!" "!!" file)))
+		(string-replace "!" "!!" file)))
     file))
 
 (defun cedet-file-name-to-directory-name (referencefile &optional testmode)
@@ -71,7 +71,7 @@ specific conversions during tests."
     ;; Replace the ! with /
     (setq file (subst-char-in-string ?! ?/ file))
     ;; Occurrences of // meant there was once a single !.
-    (setq file (replace-regexp-in-string "//" "!" file))
+    (setq file (string-replace "//" "!" file))
 
     ;; Handle Windows special cases
     (when (or (memq system-type '(windows-nt ms-dos)) testmode)
@@ -89,7 +89,7 @@ specific conversions during tests."
     file))
 
 (defun cedet-files-list-recursively (dir re)
-  "Returns list of files in directory matching to given regex"
+  "Return list of files in directory matching to given regex."
   (when (file-accessible-directory-p dir)
     (let ((files (directory-files dir t))
           matched)

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2001-2017 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2001--2022 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Hash Tables
 @chapter Hash Tables
@@ -150,17 +150,22 @@ multiplied by an approximation to this value.  The default for
 @end table
 @end defun
 
-You can also create a new hash table using the printed representation
+You can also create a hash table using the printed representation
 for hash tables.  The Lisp reader can read this printed
 representation, provided each element in the specified hash table has
 a valid read syntax (@pxref{Printed Representation}).  For instance,
-the following specifies a new hash table containing the keys
+the following specifies a hash table containing the keys
 @code{key1} and @code{key2} (both symbols) associated with @code{val1}
 (a symbol) and @code{300} (a number) respectively.
 
 @example
 #s(hash-table size 30 data (key1 val1 key2 300))
 @end example
+
+Note, however, that when using this in Emacs Lisp code, it's
+undefined whether this creates a new hash table or not.  If you want
+to create a new hash table, you should always use
+@code{make-hash-table} (@pxref{Self-Evaluating Forms}).
 
 @noindent
 The printed representation for a hash table consists of @samp{#s}
@@ -198,7 +203,8 @@ association in @var{table}.
 @defun puthash key value table
 This function enters an association for @var{key} in @var{table}, with
 value @var{value}.  If @var{key} already has an association in
-@var{table}, @var{value} replaces the old associated value.
+@var{table}, @var{value} replaces the old associated value.  This
+function always returns @var{value}.
 @end defun
 
 @defun remhash key table
@@ -214,10 +220,7 @@ otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @defun clrhash table
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
-table.
-
-@b{Common Lisp note:} In Common Lisp, @code{clrhash} returns the empty
-@var{table}.  In Emacs Lisp, it returns @code{nil}.
+table.  @code{clrhash} returns the empty @var{table}.
 @end defun
 
 @defun maphash function table
@@ -240,13 +243,18 @@ to understand how hash tables work, and what a @dfn{hash code} means.
   You can think of a hash table conceptually as a large array of many
 slots, each capable of holding one association.  To look up a key,
 @code{gethash} first computes an integer, the hash code, from the key.
-It reduces this integer modulo the length of the array, to produce an
+It can reduce this integer modulo the length of the array, to produce an
 index in the array.  Then it looks in that slot, and if necessary in
 other nearby slots, to see if it has found the key being sought.
 
   Thus, to define a new method of key lookup, you need to specify both a
 function to compute the hash code from a key, and a function to compare
-two keys directly.
+two keys directly.  The two functions should be consistent with each
+other: that is, two keys' hash codes should be the same if the keys
+compare as equal.  Also, since the two functions can be called at any
+time (such as by the garbage collector), the functions should be free
+of side effects and should return quickly, and their behavior should
+depend on only on properties of the keys that do not change.
 
 @defun define-hash-table-test name test-fn hash-fn
 This function defines a new hash table test, named @var{name}.
@@ -261,8 +269,8 @@ return non-@code{nil} if they are considered the same.
 
 The function @var{hash-fn} should accept one argument, a key, and return
 an integer that is the hash code of that key.  For good results, the
-function should use the whole range of integers for hash codes,
-including negative integers.
+function should use the whole range of fixnums for hash codes,
+including negative fixnums.
 
 The specified functions are stored in the property list of @var{name}
 under the property @code{hash-table-test}; the property value's form is
@@ -271,7 +279,7 @@ under the property @code{hash-table-test}; the property value's form is
 
 @defun sxhash-equal obj
 This function returns a hash code for Lisp object @var{obj}.
-This is an integer which reflects the contents of @var{obj}
+This is an integer that reflects the contents of @var{obj}
 and the other Lisp objects it points to.
 
 If two objects @var{obj1} and @var{obj2} are @code{equal}, then
@@ -279,9 +287,13 @@ If two objects @var{obj1} and @var{obj2} are @code{equal}, then
 are the same integer.
 
 If the two objects are not @code{equal}, the values returned by
-@code{sxhash-equal} are usually different, but not always; once in a
-rare while, by luck, you will encounter two distinct-looking objects
-that give the same result from @code{sxhash-equal}.
+@code{sxhash-equal} are usually different, but not always.
+@code{sxhash-equal} is designed to be reasonably fast (since it's used
+for indexing hash tables) so it won't recurse deeply into nested
+structures.  In addition; once in a rare while, by luck, you will
+encounter two distinct-looking simple objects that give the same
+result from @code{sxhash-equal}.  So you can't, in general, use
+@code{sxhash-equal} to check whether an object has changed.
 
 @b{Common Lisp note:} In Common Lisp a similar function is called
 @code{sxhash}.  Emacs provides this name as a compatibility alias for
@@ -293,34 +305,32 @@ This function returns a hash code for Lisp object @var{obj}.  Its
 result reflects identity of @var{obj}, but not its contents.
 
 If two objects @var{obj1} and @var{obj2} are @code{eq}, then
-@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
-integer.
+@code{(sxhash-eq @var{obj1})} and @code{(sxhash-eq @var{obj2})} are
+the same integer.
 @end defun
 
 @defun sxhash-eql obj
 This function returns a hash code for Lisp object @var{obj} suitable
 for @code{eql} comparison.  I.e. it reflects identity of @var{obj}
-except for the case where the object is a float number, in which case
-hash code is generated for the value.
+except for the case where the object is a bignum or a float number,
+in which case a hash code is generated for the value.
 
 If two objects @var{obj1} and @var{obj2} are @code{eql}, then
-@code{(xhash @var{obj1})} and @code{(xhash @var{obj2})} are the same
-integer.
+@code{(sxhash-eql @var{obj1})} and @code{(sxhash-eql @var{obj2})} are
+the same integer.
 @end defun
 
   This example creates a hash table whose keys are strings that are
 compared case-insensitively.
 
 @example
-(defun case-fold-string= (a b)
-  (eq t (compare-strings a nil nil b nil nil t)))
-(defun case-fold-string-hash (a)
+(defun string-hash-ignore-case (a)
   (sxhash-equal (upcase a)))
 
-(define-hash-table-test 'case-fold
-  'case-fold-string= 'case-fold-string-hash)
+(define-hash-table-test 'ignore-case
+  'string-equal-ignore-case 'string-hash-ignore-case)
 
-(make-hash-table :test 'case-fold)
+(make-hash-table :test 'ignore-case)
 @end example
 
   Here is how you could define a hash table test equivalent to the
@@ -332,6 +342,11 @@ and equal-looking objects are considered the same key.
 
 (make-hash-table :test 'contents-hash)
 @end example
+
+Lisp programs should @emph{not} rely on hash codes being preserved
+between Emacs sessions, as the implementation of the hash functions
+uses some details of the object storage that can change between
+sessions and between different architectures.
 
 @node Other Hash
 @section Other Hash Table Functions

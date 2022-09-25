@@ -1,6 +1,6 @@
-;;; semantic/doc.el --- Routines for documentation strings
+;;; semantic/doc.el --- Routines for documentation strings  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2003, 2005, 2008-2017 Free Software Foundation,
+;; Copyright (C) 1999-2003, 2005, 2008-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -40,7 +40,7 @@ TAG might have DOCUMENTATION set in it already.  If not, there may be
 some documentation in a comment preceding TAG's definition which we
 can look for.  When appropriate, this can be overridden by a language specific
 enhancement.
-Optional argument NOSNARF means to only return the lexical analyzer token for it.
+Optional argument NOSNARF means return only the lexical analyzer token for it.
 If NOSNARF is `lex', then only return the lex token."
   (if (not tag) (setq tag (semantic-current-tag)))
   (save-excursion
@@ -85,7 +85,7 @@ just the lexical token and not the string."
     ))
 (define-obsolete-function-alias
   'semantic-documentation-comment-preceeding-tag
-  'semantic-documentation-comment-preceding-tag
+  #'semantic-documentation-comment-preceding-tag
   "25.1")
 
 (defun semantic-doc-snarf-comment-for-tag (nosnarf)
@@ -93,8 +93,7 @@ just the lexical token and not the string."
 Attempt to strip out comment syntactic sugar.
 Argument NOSNARF means don't modify the found text.
 If NOSNARF is `lex', then return the lex token."
-  (let* ((semantic-ignore-comments nil)
-	 (semantic-lex-analyzer #'semantic-comment-lexer))
+  (let* ((semantic-lex-analyzer #'semantic-comment-lexer))
     (if (memq nosnarf '(lex flex)) ;; keep `flex' for compatibility
 	(car (semantic-lex (point) (1+ (point))))
       (let ((ct (semantic-lex-token-text
@@ -103,7 +102,8 @@ If NOSNARF is `lex', then return the lex token."
 	    nil
 	  ;; ok, try to clean the text up.
 	  ;; Comment start thingy
-	  (while (string-match (concat "^\\s-*" comment-start-skip) ct)
+	  (while (string-match (concat "^\\s-*\\(?:" comment-start-skip "\\)")
+                               ct)
 	    (setq ct (concat (substring ct 0 (match-beginning 0))
 			     (substring ct (match-end 0)))))
 	  ;; Arbitrary punctuation at the beginning of each line.

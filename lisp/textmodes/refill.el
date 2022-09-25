@@ -1,6 +1,6 @@
-;;; refill.el --- `auto-fill' by refilling paragraphs on changes
+;;; refill.el --- `auto-fill' by refilling paragraphs on changes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
@@ -83,17 +83,11 @@
 
 ;;; Code:
 
-;; Unused.
-;;; (defgroup refill nil
-;;;   "Refilling paragraphs on changes."
-;;;   :group 'fill)
-
-(defvar refill-ignorable-overlay nil
+(defvar-local refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
 This is used to optimize refilling.")
-(make-variable-buffer-local 'refill-ignorable-overlay)
 
-(defun refill-adjust-ignorable-overlay (overlay afterp beg end &optional len)
+(defun refill-adjust-ignorable-overlay (overlay afterp beg _end &optional _len)
   "Adjust OVERLAY to not include the about-to-be-modified region."
   (when (not afterp)
     (save-excursion
@@ -149,7 +143,7 @@ This is used to optimize refilling.")
   "Like `fill-paragraph' but don't delete whitespace at paragraph end."
   (refill-fill-paragraph-at (point) arg))
 
-(defvar refill-doit nil
+(defvar-local refill-doit nil
   "Non-nil tells `refill-post-command-function' to do its processing.
 Set by `refill-after-change-function' in `after-change-functions' and
 unset by `refill-post-command-function' in `post-command-hook', and
@@ -157,10 +151,9 @@ sometimes `refill-pre-command-function' in `pre-command-hook'.  This
 ensures refilling is only done once per command that causes a change,
 regardless of the number of after-change calls from commands doing
 complex processing.")
-(make-variable-buffer-local 'refill-doit)
 
-(defun refill-after-change-function (beg end len)
-  "Function for `after-change-functions' which just sets `refill-doit'."
+(defun refill-after-change-function (_beg end _len)
+  "Set `refill-doit'.  Used by `after-change-functions'."
   (unless undo-in-progress
     (setq refill-doit end)))
 
@@ -169,7 +162,7 @@ complex processing.")
   (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
     (pcase this-command
-      (`self-insert-command
+      ('self-insert-command
        ;; Treat self-insertion commands specially, since they don't
        ;; always reset `refill-doit' -- for self-insertion commands that
        ;; *don't* cause a refill, we want to leave it turned on so that
@@ -179,9 +172,9 @@ complex processing.")
 	 ;; newline, covered below).
 	 (refill-fill-paragraph-at refill-doit)
 	 (setq refill-doit nil)))
-      ((or `quoted-insert `fill-paragraph `fill-region) nil)
-      ((or `newline `newline-and-indent `open-line `indent-new-comment-line
-           `reindent-then-newline-and-indent)
+      ((or 'quoted-insert 'fill-paragraph 'fill-region) nil)
+      ((or 'newline 'newline-and-indent 'open-line 'indent-new-comment-line
+           'default-indent-new-line 'reindent-then-newline-and-indent)
        ;; Don't zap what was just inserted.
        (save-excursion
 	 (beginning-of-line)		; for newline-and-indent
@@ -213,9 +206,6 @@ complex processing.")
 ;;;###autoload
 (define-minor-mode refill-mode
   "Toggle automatic refilling (Refill mode).
-With a prefix argument ARG, enable Refill mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Refill mode is a buffer-local minor mode.  When enabled, the
 current paragraph is refilled as you edit.  Self-inserting
@@ -237,27 +227,25 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead."
     (kill-local-variable 'refill-saved-state))
   (if refill-mode
       (progn
-	(add-hook 'after-change-functions 'refill-after-change-function nil t)
-	(add-hook 'post-command-hook 'refill-post-command-function nil t)
-	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
-	(set (make-local-variable 'refill-saved-state)
-	     (mapcar (lambda (s) (cons s (symbol-value s)))
-		     '(fill-paragraph-function auto-fill-function)))
+	(add-hook 'after-change-functions #'refill-after-change-function nil t)
+	(add-hook 'post-command-hook #'refill-post-command-function nil t)
+	(add-hook 'pre-command-hook #'refill-pre-command-function nil t)
+        (setq-local refill-saved-state
+                    (mapcar (lambda (s) (cons s (symbol-value s)))
+                            '(fill-paragraph-function auto-fill-function)))
 	;; This provides the test for recursive paragraph filling.
-	(set (make-local-variable 'fill-paragraph-function)
-	     'refill-fill-paragraph)
+        (setq-local fill-paragraph-function #'refill-fill-paragraph)
 	;; When using justification, doing DEL on 2 spaces should remove
 	;; both, otherwise, the subsequent refill will undo the DEL.
-	(set (make-local-variable 'backward-delete-char-untabify-method)
-	     'hungry)
+        (setq-local backward-delete-char-untabify-method 'hungry)
 	(setq refill-ignorable-overlay (make-overlay 1 1 nil nil t))
 	(overlay-put refill-ignorable-overlay 'modification-hooks
 		     '(refill-adjust-ignorable-overlay))
 	(overlay-put refill-ignorable-overlay 'insert-behind-hooks
 		     '(refill-adjust-ignorable-overlay))
 	(auto-fill-mode 0))
-    (remove-hook 'after-change-functions 'refill-after-change-function t)
-    (remove-hook 'post-command-hook 'refill-post-command-function t)
+    (remove-hook 'after-change-functions #'refill-after-change-function t)
+    (remove-hook 'post-command-hook #'refill-post-command-function t)
     (kill-local-variable 'backward-delete-char-untabify-method)))
 
 (provide 'refill)

@@ -1,6 +1,6 @@
-;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
+;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;	       1994-1999 Barry A. Warsaw
@@ -59,28 +59,28 @@
 
 ;; In case c-mode.el isn't loaded
 (defvar c-indent-level 2
-  "*Indentation of C statements with respect to containing block.")
+  "Indentation of C statements with respect to containing block.")
 ;;;###autoload(put 'c-indent-level 'safe-local-variable 'integerp)
 
 (defvar c-brace-imaginary-offset 0
-  "*Imagined indentation of a C open brace that actually follows a statement.")
+  "Imagined indentation of a C open brace that actually follows a statement.")
 (defvar c-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context.")
+  "Extra indentation for braces, compared with other text in same context.")
 (defvar c-argdecl-indent 5
-  "*Indentation level of declarations of C function arguments.")
+  "Indentation level of declarations of C function arguments.")
 (defvar c-label-offset -2
-  "*Offset of C label lines and case statements relative to usual indentation.")
+  "Offset of C label lines and case statements relative to usual indentation.")
 (defvar c-continued-statement-offset 2
-  "*Extra indent for lines not starting new statements.")
+  "Extra indent for lines not starting new statements.")
 (defvar c-continued-brace-offset 0
-  "*Extra indent for substatements that start with open-braces.
+  "Extra indent for substatements that start with open-braces.
 This is in addition to c-continued-statement-offset.")
 
 
 
 ;; these offsets are taken by brute force testing c-mode.el, since
 ;; there's no logic to what it does.
-(let* ((offsets	'(c-offsets-alist .
+(let* ((offsets	'((c-offsets-alist .
 		    ((defun-block-intro     . cc-block-intro-offset)
 		     (statement-block-intro . cc-block-intro-offset)
 		     (defun-open            . 0)
@@ -95,7 +95,7 @@ This is in addition to c-continued-statement-offset.")
 		     (case-label            . c-label-offset)
 		     (access-label          . c-label-offset)
 		     (label                 . c-label-offset)
-		     ))))
+		     )))))
   (c-add-style "BOCM" offsets))
 
 
@@ -156,7 +156,7 @@ This is in addition to c-continued-statement-offset.")
 	 (if bracep 0 c-indent-level)))))
 
 
-(defun cc-substatement-open-offset (langelem)
+(defun cc-substatement-open-offset (_langelem)
   (+ c-continued-statement-offset c-continued-brace-offset))
 
 

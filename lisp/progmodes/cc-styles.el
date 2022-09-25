@@ -1,6 +1,6 @@
-;;; cc-styles.el --- support for styles in CC Mode
+;;; cc-styles.el --- support for styles in CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -68,7 +68,9 @@
 			 (arglist-close . c-lineup-arglist)
 			 (inline-open . 0)
 			 (brace-list-open . +)
-			 (brace-list-intro . c-lineup-arglist-intro-after-paren)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (topmost-intro-cont
 			  . (first c-lineup-topmost-intro-cont
 				   c-lineup-gnu-DEFUN-intro-cont))))
@@ -95,6 +97,9 @@
 			 (label . 0)
 			 (statement-cont . +)
 			 (inline-open . 0)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (inexpr-class . 0))))
 
     ("stroustrup"
@@ -104,6 +109,9 @@
 			 (substatement-open . 0)
 			 (substatement-label . 0)
 			 (label . 0)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (statement-cont . +))))
 
     ("whitesmith"
@@ -172,6 +180,7 @@
 			 (inclass              . +)
 			 (inline-open          . 0))))
     ("linux"
+     (indent-tabs-mode . t)
      (c-basic-offset  . 8)
      (c-comment-only-line-offset . 0)
      (c-hanging-braces-alist . ((brace-list-open)
@@ -194,6 +203,9 @@
      (c-offsets-alist  . ((substatement-open . 0)
 			  (inextern-lang . 0)
 			  (arglist-intro . +)
+			  (brace-list-intro . (first
+					       c-lineup-2nd-brace-entry-in-arglist
+					       c-lineup-class-decl-init-+ +))
 			  (knr-argdecl-intro . +)))
      (c-hanging-braces-alist . ((brace-list-open)
 				(brace-list-intro)
@@ -219,6 +231,9 @@
 			 (statement-cont        . +)
 			 (arglist-intro  . c-lineup-arglist-intro-after-paren)
 			 (arglist-close  . c-lineup-arglist)
+			 (brace-list-intro . (first
+					      c-lineup-2nd-brace-entry-in-arglist
+					      c-lineup-class-decl-init-+ +))
 			 (access-label   . 0)
 			 (inher-cont     . c-lineup-java-inher)
 			 (func-decl-cont . c-lineup-java-throws))))
@@ -360,7 +375,7 @@ in this way.
 If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
 values are not the symbol `set-from-style') will not be overridden.  CC Mode
 calls c-set-style internally in this way whilst initializing a buffer; if
-cc-set-style is called like this from anywhere else, it will usually behave as
+c-set-style is called like this from anywhere else, it will usually behave as
 a null operation."
   (interactive
    (list (let ((completion-ignore-case t)
@@ -381,8 +396,7 @@ a null operation."
       ;; remain.  This is not necessary for c-offsets-alist, since
       ;; c-get-style-variables contains every valid offset type in the
       ;; fallback entry.
-      (setq c-special-indent-hook
-	    (default-value 'c-special-indent-hook)))
+      (kill-local-variable 'c-special-indent-hook))
     (mapc (lambda (elem)
 	    (c-set-style-1 elem dont-override))
 	  ;; Need to go through the variables backwards when we
@@ -393,7 +407,7 @@ a null operation."
 
 ;;;###autoload
 (defun c-add-style (style description &optional set-p)
-  "Adds a style to `c-style-alist', or updates an existing one.
+  "Add a style to `c-style-alist', or update an existing one.
 STYLE is a string identifying the style to add or update.  DESCRIPTION
 is an association list describing the style and must be of the form:
 
@@ -431,17 +445,19 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 			  defstr))
 	 (prompt (concat symname " offset " defstr))
 	 (keymap (make-sparse-keymap))
-	 (minibuffer-completion-table obarray)
-	 (minibuffer-completion-predicate 'fboundp)
 	 offset input)
     ;; In principle completing-read is used here, but SPC is unbound
     ;; to make it less annoying to enter lists.
     (set-keymap-parent keymap minibuffer-local-completion-map)
     (define-key keymap " " 'self-insert-command)
     (while (not offset)
-      (setq input (read-from-minibuffer prompt nil keymap t
-					'c-read-offset-history
-					(format "%s" oldoff)))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (setq-local minibuffer-completion-table obarray)
+            (setq-local minibuffer-completion-predicate 'fboundp))
+        (setq input (read-from-minibuffer prompt nil keymap t
+                                          'c-read-offset-history
+                                          (format "%s" oldoff))))
       (if (c-valid-offset input)
 	  (setq offset input)
 	;; error, but don't signal one, keep trying
@@ -451,7 +467,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     offset))
 
 ;;;###autoload
-(defun c-set-offset (symbol offset &optional ignored)
+(defun c-set-offset (symbol offset &optional _ignored)
   "Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
 offset for that syntactic element.  The optional argument is not used
@@ -463,8 +479,8 @@ and exists only for compatibility reasons."
 			    (if current-prefix-arg " or add" "")
 			    ": ")
 		    (mapcar
-		     #'(lambda (langelem)
-			 (cons (format "%s" (car langelem)) nil))
+		     (lambda (langelem)
+		       (cons (format "%s" (car langelem)) nil))
 		     (get 'c-offsets-alist 'c-stylevar-fallback))
 		    nil (not current-prefix-arg)
 		    ;; initial contents tries to be the last element
@@ -630,7 +646,7 @@ CC Mode by making sure the proper entries are present on
 
 (defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.
-If `this-buf-only-p' is non-nil, the style variables will be made
+If THIS-BUF-ONLY-P is non-nil, the style variables will be made
 buffer local only in the current buffer.  Otherwise they'll be made
 permanently buffer local in any buffer that changes their values.
 
@@ -648,7 +664,6 @@ any reason to call this function directly."
     ;; Hooks must be handled specially
     (if this-buf-only-p
 	(if (featurep 'xemacs) (make-local-hook 'c-special-indent-hook))
-      (with-no-warnings (make-variable-buffer-local 'c-special-indent-hook))
       (setq c-style-variables-are-local-p t))
     ))
 

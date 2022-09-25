@@ -1,6 +1,6 @@
-;;; semantic/util.el --- Utilities for use with semantic tag tables
+;;; semantic/util.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -39,20 +39,20 @@
 
 ;;; Code:
 
-(defvar semantic-type-relation-separator-character '(".")
+(defvar-local semantic-type-relation-separator-character '(".")
   "Character strings used to separate a parent/child relationship.
 This list of strings are used for displaying or finding separators
 in variable field dereferencing.  The first character will be used for
 display.  In C, a type field is separated like this: \"type.field\"
 thus, the character is a \".\".  In C, and additional value of \"->\"
 would be in the list, so that \"type->field\" could be found.")
-(make-variable-buffer-local 'semantic-type-relation-separator-character)
 
-(defvar semantic-equivalent-major-modes nil
+(defvar-local semantic-equivalent-major-modes nil
   "List of major modes which are considered equivalent.
 Equivalent modes share a parser, and a set of override methods.
 A value of nil means that the current major mode is the only one.")
-(make-variable-buffer-local 'semantic-equivalent-major-modes)
+
+(declare-function semanticdb-file-stream "semantic/db" (file))
 
 ;; These semanticdb calls will throw warnings in the byte compiler.
 ;; Doing the right thing to make them available at compile time
@@ -77,8 +77,9 @@ If FILE is not loaded, and semanticdb is not available, find the file
 	(with-current-buffer (find-file-noselect file)
 	  (semantic-fetch-tags))))))
 
-(semantic-alias-obsolete 'semantic-file-token-stream
-			 'semantic-file-tag-table "23.2")
+(declare-function semanticdb-refresh-table "semantic/db")
+(declare-function semanticdb-get-tags "semantic/db" (arg &rest args) t)
+(declare-function semanticdb-find-results-p "semantic/db-find" (resultp))
 
 (defun semantic-something-to-tag-table (something)
   "Convert SOMETHING into a semantic tag table.
@@ -112,7 +113,8 @@ buffer, or a filename.  If SOMETHING is nil return nil."
    ((and (featurep 'semantic/db)
 	 (require 'semantic/db-mode)
 	 (semanticdb-minor-mode-p)
-	 (semanticdb-abstract-table-child-p something))
+	 (progn
+	   (cl-typep something 'semanticdb-abstract-table)))
     (semanticdb-refresh-table something)
     (semanticdb-get-tags something))
    ;; Semanticdb find-results
@@ -130,15 +132,17 @@ buffer, or a filename.  If SOMETHING is nil return nil."
    ;; don't know what it is
    (t nil)))
 
-(semantic-alias-obsolete 'semantic-something-to-stream
-			 'semantic-something-to-tag-table "23.2")
-
 ;;; Completion APIs
 ;;
 ;; These functions provide minibuffer reading/completion for lists of
 ;; nonterminals.
 (defvar semantic-read-symbol-history nil
   "History for a symbol read.")
+
+(declare-function semantic-brute-find-tag-by-function
+		  "semantic/find"
+		  (function streamorbuffer
+			    &optional search-parts search-includes))
 
 (defun semantic-read-symbol (prompt &optional default stream filter)
   "Read a symbol name from the user for the current buffer.
@@ -154,6 +158,7 @@ FILTER must be a function to call on each element."
   (setq stream
 	(if filter
 	    (semantic--find-tags-by-function filter stream)
+	  (require 'semantic/find)
 	  (semantic-brute-find-tag-standard stream)))
   (if (and default (string-match ":" prompt))
       (setq prompt
@@ -294,7 +299,6 @@ If TAG is not specified, use the tag at point."
 		      semantic-init-db-hook
 		      semantic-unmatched-syntax-hook
 		      semantic--before-fetch-tags-hook
-		      semantic-after-toplevel-bovinate-hook
 		      semantic-after-toplevel-cache-change-hook
 		      semantic-before-toplevel-cache-flush-hook
 		      semantic-dump-parse
@@ -315,8 +319,8 @@ If TAG is not specified, use the tag at point."
   (if (semantic-tag-p tok)
       (if (semantic-tag-with-position-p tok)
 	  (let ((o  (semantic-tag-overlay tok)))
-	    (if (and (semantic-overlay-p o)
-		     (not (semantic-overlay-live-p o)))
+	    (if (and (overlayp o)
+		     (not (overlay-buffer o)))
 		(let ((debug-on-error t))
 		  (error "Tag %s is invalid!" (semantic-tag-name tok)))
 	      ;; else, tag is OK.
@@ -335,7 +339,7 @@ NOTFIRST indicates that this was not the first call in the recursive use."
   (interactive)
   (if (and (not cache) (not over) (not notfirst))
       (setq cache semantic--buffer-cache
-	    over (semantic-overlays-in (point-min) (point-max))))
+	    over (overlays-in (point-min) (point-max))))
   (while cache
     (let ((chil (semantic-tag-components-with-overlays (car cache))))
       (if (not (memq (semantic-tag-overlay (car cache)) over))
@@ -348,8 +352,8 @@ NOTFIRST indicates that this was not the first call in the recursive use."
       ;; Strip out all overlays which aren't semantic overlays
       (let ((o nil))
 	(while over
-	  (when (and (semantic-overlay-get (car over) 'semantic)
-		     (not (eq (semantic-overlay-get (car over) 'semantic)
+	  (when (and (overlay-get (car over) 'semantic)
+		     (not (eq (overlay-get (car over) 'semantic)
 			      'unmatched)))
 	    (setq o (cons (car over) o)))
 	  (setq over (cdr over)))
@@ -366,6 +370,11 @@ NOTFIRST indicates that this was not the first call in the recursive use."
 ;; Senator.
 
 ;; Symbol completion
+
+(declare-function semanticdb-fast-strip-find-results
+		  "semantic/db-find" (results))
+(declare-function semanticdb-deep-find-tags-for-completion
+		  "semantic/db-find" (prefix &optional path find-file-match))
 
 (defun semantic-find-tag-for-completion (prefix)
   "Find all tags with name starting with PREFIX.
@@ -418,7 +427,7 @@ determining which symbols are considered."
       (setq completion (try-completion pattern collection predicate))
       (if (string= pattern completion)
 	  (let ((list (all-completions pattern collection predicate)))
-	    (setq list (sort list 'string<))
+	    (setq list (sort list #'string<))
 	    (if (> (length list) 1)
 		(with-output-to-temp-buffer "*Completions*"
 		  (display-completion-list

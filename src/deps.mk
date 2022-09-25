@@ -1,6 +1,6 @@
 ### deps.mk --- src/Makefile fragment for GNU Emacs
 
-## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2017 Free Software
+## Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2022 Free Software
 ## Foundation, Inc.
 
 ## This file is part of GNU Emacs.
@@ -71,7 +71,7 @@ cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h lisp.h \
 pre-crt0.o: pre-crt0.c
 dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h lisp.h $(config_h)
 dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
-   coding.h regex.h systime.h blockinput.h atimer.h composite.h \
+   coding.h regex-emacs.h systime.h blockinput.h atimer.h composite.h \
    ../lib/filemode.h ../lib/unistd.h globals.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
@@ -169,20 +169,21 @@ process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    blockinput.h atimer.h coding.h msdos.h nsterm.h composite.h \
    keyboard.h lisp.h globals.h $(config_h) character.h xgselect.h sysselect.h \
    ../lib/unistd.h gnutls.h
-regex.o: regex.c syntax.h buffer.h lisp.h globals.h $(config_h) regex.h \
+regex-emacs.o: regex-emacs.c syntax.h buffer.h lisp.h globals.h \
+   $(config_h) regex-emacs.h \
    category.h character.h
 region-cache.o: region-cache.c buffer.h region-cache.h \
    lisp.h globals.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    termhooks.h lisp.h globals.h $(config_h) systime.h coding.h composite.h \
    window.h
-search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
+search.o: search.c regex-emacs.h commands.h buffer.h region-cache.h syntax.h \
    blockinput.h atimer.h systime.h category.h character.h charset.h \
    $(INTERVALS_H) lisp.h globals.h $(config_h)
 sound.o: sound.c dispextern.h syssignal.h lisp.h globals.h $(config_h) \
    atimer.h systime.h ../lib/unistd.h msdos.h
 syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
-   keymap.h regex.h $(INTERVALS_H) lisp.h globals.h $(config_h)
+   keymap.h regex-emacs.h $(INTERVALS_H) lisp.h globals.h $(config_h)
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h coding.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h lisp.h \
@@ -238,9 +239,6 @@ xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
 xftfont.o: xftfont.c dispextern.h xterm.h frame.h blockinput.h character.h \
    charset.h font.h lisp.h globals.h $(config_h) atimer.h systime.h \
    fontset.h ccl.h ftfont.h composite.h
-ftxfont.o: ftxfont.c dispextern.h xterm.h frame.h blockinput.h character.h \
-   charset.h font.h lisp.h globals.h $(config_h) atimer.h systime.h \
-   fontset.h ccl.h
 menu.o: menu.c lisp.h keyboard.h keymap.h frame.h termhooks.h blockinput.h \
    dispextern.h $(srcdir)/../lwlib/lwlib.h xterm.h gtkutil.h menu.h \
    lisp.h globals.h $(config_h) systime.h coding.h composite.h window.h \
@@ -281,7 +279,7 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
    dispextern.h lisp.h globals.h $(config_h) coding.h composite.h xterm.h \
    msdos.h
 floatfns.o: floatfns.c syssignal.h lisp.h globals.h $(config_h)
-fns.o: fns.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
+fns.o: fns.c sort.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
    keyboard.h keymap.h window.h $(INTERVALS_H) coding.h ../lib/md5.h \
    ../lib/sha1.h ../lib/sha256.h ../lib/sha512.h blockinput.h atimer.h \
    systime.h xterm.h ../lib/unistd.h globals.h

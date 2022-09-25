@@ -1,6 +1,6 @@
-;;; snake.el --- implementation of Snake for Emacs
+;;; snake.el --- implementation of Snake for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10
@@ -140,14 +140,14 @@
 
 ;; ;;;;;;;;;;;;; variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar snake-length 0)
-(defvar snake-velocity-x 1)
-(defvar snake-velocity-y 0)
-(defvar snake-positions nil)
-(defvar snake-score 0)
-(defvar snake-paused nil)
-(defvar snake-moved-p nil)
-(defvar snake-velocity-queue nil
+(defvar-local snake-length 0)
+(defvar-local snake-velocity-x 1)
+(defvar-local snake-velocity-y 0)
+(defvar-local snake-positions nil)
+(defvar-local snake-score 0)
+(defvar-local snake-paused nil)
+(defvar-local snake-moved-p nil)
+(defvar-local snake-velocity-queue nil
   "This queue stores the velocities requested too quickly by user.
 They will take effect one at a time at each clock-interval.
 This is necessary for proper behavior.
@@ -158,35 +158,60 @@ we implemented all your keystrokes immediately, the snake would
 effectively never move up.  Thus, we need to move it up for one turn
 and then start moving it leftwards.")
 
-
-(make-variable-buffer-local 'snake-length)
-(make-variable-buffer-local 'snake-velocity-x)
-(make-variable-buffer-local 'snake-velocity-y)
-(make-variable-buffer-local 'snake-positions)
-(make-variable-buffer-local 'snake-score)
-(make-variable-buffer-local 'snake-paused)
-(make-variable-buffer-local 'snake-moved-p)
-(make-variable-buffer-local 'snake-velocity-queue)
-
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar snake-mode-map
-  (let ((map (make-sparse-keymap 'snake-mode-map)))
+(defvar-keymap snake-mode-map
+  :doc "Keymap for Snake games."
+  :name 'snake-mode-map
+  "n"       #'snake-start-game
+  "q"       #'snake-end-game
+  "p"       #'snake-pause-game
 
-    (define-key map "n"		'snake-start-game)
-    (define-key map "q"		'snake-end-game)
-    (define-key map "p"		'snake-pause-game)
+  "<left>"  #'snake-move-left
+  "<right>" #'snake-move-right
+  "<up>"    #'snake-move-up
+  "<down>"  #'snake-move-down
 
-    (define-key map [left]	'snake-move-left)
-    (define-key map [right]	'snake-move-right)
-    (define-key map [up]		'snake-move-up)
-    (define-key map [down]	'snake-move-down)
-    map))
+  "C-b"     #'snake-move-left
+  "C-f"     #'snake-move-right
+  "C-p"     #'snake-move-up
+  "C-n"     #'snake-move-down)
 
-(defvar snake-null-map
-  (let ((map (make-sparse-keymap 'snake-null-map)))
-    (define-key map "n"		'snake-start-game)
-    map))
+(defvar-keymap snake-null-map
+  :doc "Keymap for finished Snake games."
+  :name 'snake-null-map
+  "n"       #'snake-start-game
+  "q"       #'quit-window)
+
+(defconst snake--menu-def
+  '("Snake"
+    ["Start new game" snake-start-game
+     :help "Start a new Snake game"]
+    ["End game"       snake-end-game
+     :active (snake-active-p)
+     :help "End the current Snake game"]
+    ;; FIXME: Pause and resume from the menu currently doesn't work
+    ;;        very well and is therefore disabled.  The game continues
+    ;;        running while navigating the menu.  See also
+    ;;        `tetris--menu-def' which has the same problem.
+    ;; ["Pause"          snake-pause-game
+    ;;  :active (and (snake-active-p) (not snake-paused))
+    ;;  :help "Pause running Snake game"]
+    ;; ["Resume"         snake-pause-game
+    ;;  :active (and (snake-active-p) snake-paused)
+    ;;  :help "Resume paused Snake game"]
+    )
+  "Menu for `snake'.  Used to initialize menus.")
+
+(easy-menu-define
+  snake-mode-menu snake-mode-map
+  "Menu for running Snake games."
+  snake--menu-def)
+
+(easy-menu-define
+  snake-null-menu snake-null-map
+  "Menu for finished Snake games."
+  snake--menu-def)
 
 ;; ;;;;;;;;;;;;;;;; game functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -241,7 +266,7 @@ and then start moving it leftwards.")
 	snake-velocity-queue    nil)
   (let ((x snake-initial-x)
 	(y snake-initial-y))
-    (dotimes (i snake-length)
+    (dotimes (_ snake-length)
       (gamegrid-set-cell x y snake-snake)
       (setq snake-positions (cons (vector x y) snake-positions))
       (cl-incf x snake-velocity-x)
@@ -308,38 +333,38 @@ Argument SNAKE-BUFFER is the name of the buffer."
 
 (defun snake-move-left ()
   "Make the snake move left."
-  (interactive)
+  (interactive nil snake-mode)
   (when (zerop (snake-final-x-velocity))
     (push '(-1 0) snake-velocity-queue)))
 
 (defun snake-move-right ()
   "Make the snake move right."
-  (interactive)
+  (interactive nil snake-mode)
   (when (zerop (snake-final-x-velocity))
     (push '(1 0) snake-velocity-queue)))
 
 (defun snake-move-up ()
   "Make the snake move up."
-  (interactive)
+  (interactive nil snake-mode)
   (when (zerop (snake-final-y-velocity))
     (push '(0 -1) snake-velocity-queue)))
 
 (defun snake-move-down ()
   "Make the snake move down."
-  (interactive)
+  (interactive nil snake-mode)
   (when (zerop (snake-final-y-velocity))
     (push '(0 1) snake-velocity-queue)))
 
 (defun snake-end-game ()
   "Terminate the current game."
-  (interactive)
+  (interactive nil snake-mode)
   (gamegrid-kill-timer)
   (use-local-map snake-null-map)
   (gamegrid-add-score snake-score-file snake-score))
 
 (defun snake-start-game ()
   "Start a new game of Snake."
-  (interactive)
+  (interactive nil snake-mode)
   (snake-reset-game)
   (snake-set-dot)
   (use-local-map snake-mode-map)
@@ -347,7 +372,7 @@ Argument SNAKE-BUFFER is the name of the buffer."
 
 (defun snake-pause-game ()
   "Pause (or resume) the current game."
-  (interactive)
+  (interactive nil snake-mode)
   (setq snake-paused (not snake-paused))
   (message (and snake-paused "Game paused (press p to resume)")))
 
@@ -358,21 +383,11 @@ Argument SNAKE-BUFFER is the name of the buffer."
 
 (define-derived-mode snake-mode special-mode "Snake"
   "A mode for playing Snake."
+  :interactive nil
 
   (add-hook 'kill-buffer-hook 'gamegrid-kill-timer nil t)
 
   (use-local-map snake-null-map)
-
-  (unless (featurep 'emacs)
-    (setq mode-popup-menu
-	  '("Snake Commands"
-	    ["Start new game"	snake-start-game]
-	    ["End game"		snake-end-game
-	     (snake-active-p)]
-	    ["Pause"		snake-pause-game
-	     (and (snake-active-p) (not snake-paused))]
-	    ["Resume"		snake-pause-game
-	     (and (snake-active-p) snake-paused)])))
 
   (setq gamegrid-use-glyphs snake-use-glyphs-flag)
   (setq gamegrid-use-color snake-use-color-flag)

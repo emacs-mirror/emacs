@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH etags 1 "23nov2001" "GNU Tools" "GNU Tools"
+.TH ETAGS 1 "2022-06-10" "GNU Tools" "GNU"
 .de BP
 .sp
 .ti -.2i
@@ -50,9 +50,9 @@ format understood by
 .BR vi ( 1 )\c
 \&.  Both forms of the program understand
 the syntax of C, Objective C, C++, Java, Fortran, Ada, Cobol, Erlang,
-Forth, Go, HTML, LaTeX, Emacs Lisp/Common Lisp, Lua, Makefile, Pascal, Perl,
-Ruby, PHP, PostScript, Python, Prolog, Scheme and
-most assembler\-like syntaxes.
+Forth, Go, HTML, LaTeX, Emacs Lisp/Common Lisp, Lua, Makefile, Mercury, Pascal,
+Perl, Ruby, Rust, PHP, PostScript, Python, Prolog, Scheme and most
+assembler\-like syntaxes.
 Both forms read the files specified on the command line, and write a tag
 table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
@@ -64,7 +64,7 @@ Files specified with absolute file names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
-Compressed files are supported using gzip, bzip2, and xz.
+Compressed files are supported using gzip, bzip2, xz, and zstd.
 The programs recognize the language used in an input file based on its
 file name and contents.  The \fB\-\-language\fP switch can be used to force
 parsing of the file names following the switch according to the given
@@ -91,6 +91,9 @@ Only \fBctags\fP accepts this option.
 In C and derived languages, create tags for function declarations,
 and create tags for extern variables unless \-\-no\-globals is used.
 In Lisp, create tags for (defvar foo) declarations.
+In Mercury, declarations start a line with "\|\fB:-\fP\|" and are always
+tagged.  In addition, this option tags predicates or functions in first
+rules of clauses, as in Prolog.
 .TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
@@ -119,16 +122,22 @@ current file.  Only \fBetags\fP accepts this option.
 .B \-I, \-\-ignore\-indentation
 Don't rely on indentation as much as we normally do.  Currently, this
 means not to assume that a closing brace in the first column is the
-final brace of a function or structure definition in C and C++.
+final brace of a function or structure definition in C and C++.  This
+is important for code that doesn't observe the GNU Coding conventions
+of placing only top-level braces in column zero.
 .TP
 \fB\-l\fP \fIlanguage\fP, \fB\-\-language=\fIlanguage\fP
 Parse the following files according to the given language.  More than
 one such options may be intermixed with filenames.  Use \fB\-\-help\fP
 to get a list of the available languages and their default filename
-extensions.  The "auto" language can be used to restore automatic
-detection of language based on the file name.  The "none"
-language may be used to disable language parsing altogether; only
-regexp matching is done in this case (see the \fB\-\-regex\fP option).
+extensions.  For example, as Mercury and Objective-C have same
+filename extension \fI.m\fP, a test based on contents tries to detect
+the language.  If this test fails, \fB\-\-language=\fP\fImercury\fP or
+\fB\-\-language=\fP\fIobjc\fP should be used.
+The "auto" language can be used to restore automatic detection of language
+based on the file name.  The "none" language may be used to disable language
+parsing altogether; only regexp matching is done in this case (see the
+\fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like
@@ -145,7 +154,7 @@ May be used (only once) in place of a file name on the command line.
 \fBetags\fP will read from standard input and mark the produced tags
 as belonging to the file \fBFILE\fP.
 .TP
-\fB \-Q, \-\-class\-qualify\fP
+\fB\-Q, \-\-class\-qualify\fP
 Qualify tag names with their class name in C++, ObjC, Java, and Perl.
 This produces tag names of the form \fIclass\fP\fB::\fP\fImember\fP
 for C++ and Perl,
@@ -281,10 +290,7 @@ Stallman.
 .BR vi ( 1 ).
 
 .SH COPYING
-Copyright
-.if t \(co
-.if n (C)
-1992, 1999, 2001-2017 Free Software Foundation, Inc.
+Copyright 1992, 1999, 2001-2022 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
@@ -299,3 +305,7 @@ Permission is granted to copy and distribute translations of this
 document into another language, under the above conditions for
 modified versions, except that this permission notice may be stated
 in a translation approved by the Free Software Foundation.
+
+.\" Local Variables:
+.\" time-stamp-pattern: "3/.TH ETAGS 1 \"%Y-%02m-%02d\" \"GNU Tools\" \"GNU\"$"
+.\" End:

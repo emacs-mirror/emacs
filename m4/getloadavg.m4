@@ -1,13 +1,13 @@
 # Check for getloadavg.
 
-# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2017 Free Software
+# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2022 Free Software
 # Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 6
+#serial 10
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -22,7 +22,7 @@ AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
 gl_save_LIBS=$LIBS
 
-# getloadvg is present in libc on glibc >= 2.2, Mac OS X, FreeBSD >= 2.0,
+# getloadavg is present in libc on glibc >= 2.2, Mac OS X, FreeBSD >= 2.0,
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
 HAVE_GETLOADAVG=1
 AC_CHECK_FUNC([getloadavg], [],
@@ -45,7 +45,9 @@ AC_CHECK_FUNC([getloadavg], [],
      # There is a commonly available library for RS/6000 AIX.
      # Since it is not a standard part of AIX, it might be installed locally.
      gl_getloadavg_LIBS=$LIBS
-     LIBS="-L/usr/local/lib $LIBS"
+     if test $cross_compiling != yes; then
+       LIBS="-L/usr/local/lib $LIBS"
+     fi
      AC_CHECK_LIB([getloadavg], [getloadavg],
                   [LIBS="-lgetloadavg $LIBS" gl_func_getloadavg_done=yes],
                   [LIBS=$gl_getloadavg_LIBS])
@@ -92,6 +94,9 @@ else
 fi
 AC_CHECK_DECL([getloadavg], [], [HAVE_DECL_GETLOADAVG=0],
   [[#if HAVE_SYS_LOADAVG_H
+    /* OpenIndiana has a bug: <sys/time.h> must be included before
+       <sys/loadavg.h>.  */
+    # include <sys/time.h>
     # include <sys/loadavg.h>
     #endif
     #include <stdlib.h>]])
@@ -105,7 +110,7 @@ AC_DEFUN([gl_PREREQ_GETLOADAVG],
 [
 # Figure out what our getloadavg.c needs.
 
-AC_CHECK_HEADERS_ONCE([sys/param.h])
+AC_CHECK_HEADERS_ONCE([sys/param.h unistd.h])
 
 # On HPUX9, an unprivileged user can get load averages this way.
 if test $gl_func_getloadavg_done = no; then
@@ -142,7 +147,7 @@ fi
 AC_CHECK_HEADERS([nlist.h],
 [AC_CHECK_MEMBERS([struct nlist.n_un.n_name],
                   [], [],
-                  [@%:@include <nlist.h>])
+                  [#include <nlist.h>])
  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <nlist.h>]],
                    [[struct nlist x;
                     #ifdef HAVE_STRUCT_NLIST_N_UN_N_NAME

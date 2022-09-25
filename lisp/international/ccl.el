@@ -1,6 +1,6 @@
 ;;; ccl.el --- CCL (Code Conversion Language) compiler  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -42,12 +42,6 @@
 ;; documentation of `define-ccl-program'.
 
 ;;; Code:
-
-;; Unused.
-;;; (defgroup ccl nil
-;;;   "CCL (Code Conversion Language) compiler."
-;;;   :prefix "ccl-"
-;;;   :group 'i18n)
 
 (defconst ccl-command-table
   [if branch loop break repeat write-repeat write-read-repeat
@@ -184,11 +178,21 @@
 (defvar ccl-current-ic 0
   "The current index for `ccl-program-vector'.")
 
+;; The CCL compiled codewords are 28bits, but the CCL implementation
+;; assumes that the codewords are sign-extended, so that data constants in
+;; the upper part of the codeword are signed. This function truncates a
+;; codeword to 28bits, and then sign extends the result to a fixnum.
+(defun ccl-fixnum (code)
+  "Convert a CCL code word to a fixnum value."
+  (- (logxor (logand code #x0fffffff) #x08000000) #x08000000))
+
 (defun ccl-embed-data (data &optional ic)
   "Embed integer DATA in `ccl-program-vector' at `ccl-current-ic' and
 increment it.  If IC is specified, embed DATA at IC."
   (if ic
-      (aset ccl-program-vector ic data)
+      (aset ccl-program-vector ic (if (numberp data)
+                                      (ccl-fixnum data)
+                                    data))
     (let ((len (length ccl-program-vector)))
       (if (>= ccl-current-ic len)
 	  (let ((new (make-vector (* len 2) nil)))
@@ -196,7 +200,9 @@ increment it.  If IC is specified, embed DATA at IC."
 	      (setq len (1- len))
 	      (aset new len (aref ccl-program-vector len)))
 	    (setq ccl-program-vector new))))
-    (aset ccl-program-vector ccl-current-ic data)
+    (aset ccl-program-vector ccl-current-ic (if (numberp data)
+                                                (ccl-fixnum data)
+                                              data))
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
 (defun ccl-embed-symbol (symbol prop)
@@ -207,8 +213,7 @@ proper index number for SYMBOL.  PROP should be
   (ccl-embed-data (cons symbol prop)))
 
 (defun ccl-embed-string (len str)
-  "Embed string STR of length LEN in `ccl-program-vector' at
-`ccl-current-ic'."
+  "Embed string STR of length LEN in `ccl-program-vector' at `ccl-current-ic'."
   (if (> len #xFFFFF)
       (error "CCL: String too long: %d" len))
   (if (> (string-bytes str) len)
@@ -230,7 +235,8 @@ proper index number for SYMBOL.  PROP should be
 `ccl-program-vector' at IC without altering the other bit field."
   (let ((relative (- ccl-current-ic (1+ ic))))
     (aset ccl-program-vector ic
-	  (logior (aref ccl-program-vector ic) (ash relative 8)))))
+	  (logior (aref ccl-program-vector ic)
+                  (ccl-fixnum (ash relative 8))))))
 
 (defun ccl-embed-code (op reg data &optional reg2)
   "Embed CCL code for the operation OP and arguments REG and DATA in
@@ -275,8 +281,7 @@ changed to a relative jump address."
 (defvar ccl-loop-head nil
   "If non-nil, index of the start of the current loop.")
 (defvar ccl-breaks nil
-  "If non-nil, list of absolute addresses of the breaking points of
-the current loop.")
+  "If non-nil, list of absolute addresses of breaking points of the current loop.")
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
@@ -505,7 +510,7 @@ If READ-FLAG is non-nil, this statement has the form
 	    (arg (nth 2 condition)))
 	(ccl-check-register rrr cmd)
 	(or (integerp op)
-	    (error "CCL: invalid operator: %s" (nth 1 condition)))
+            (error "CCL: Invalid operator: %s" (nth 1 condition)))
 	(if (integerp arg)
 	    (progn
 	      (ccl-embed-code (if read-flag 'read-jump-cond-expr-const
@@ -561,8 +566,8 @@ If READ-FLAG is non-nil, this statement has the form
 			     (cdr (cdr cmd))))
 
 (defun ccl-compile-branch-expression (expr cmd)
-  "Compile EXPRESSION part of BRANCH statement and return register
-which holds a value of the expression."
+  "Compile EXPRESSION part of BRANCH statement.
+Return register which holds a value of the expression."
   (if (listp expr)
       ;; EXPR has the form `(EXPR2 OP ARG)'.  Compile it as SET
       ;; statement of the form `(r7 = (EXPR2 OP ARG))'.
@@ -572,7 +577,7 @@ which holds a value of the expression."
     (ccl-check-register expr cmd)))
 
 (defun ccl-compile-branch-blocks (code rrr blocks)
-  "Compile BLOCKs of BRANCH statement.  CODE is 'branch or 'read-branch.
+  "Compile BLOCKs of BRANCH statement.  CODE is `branch' or `read-branch'.
 REG is a register which holds a value of EXPRESSION part.  BLOCKs
 is a list of CCL-BLOCKs."
   (let ((branches (length blocks))
@@ -804,7 +809,7 @@ is a list of CCL-BLOCKs."
   t)
 
 (defun ccl-compile-read-multibyte-character (cmd)
-  "Compile read-multibyte-character"
+  "Compile read-multibyte-character."
   (if (/= (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((RRR (nth 1 cmd))
@@ -815,7 +820,7 @@ is a list of CCL-BLOCKs."
   nil)
 
 (defun ccl-compile-write-multibyte-character (cmd)
-  "Compile write-multibyte-character"
+  "Compile write-multibyte-character."
   (if (/= (length cmd) 3)
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((RRR (nth 1 cmd))
@@ -857,7 +862,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-int rrr RRR 0))))
@@ -877,7 +882,7 @@ is a list of CCL-BLOCKs."
 				       rrr RRR 0)
 	   (ccl-embed-symbol Rrr 'translation-hash-table-id))
 	  (t
-	   (error "CCL: non-constant table: %s" cmd)
+           (error "CCL: Non-constant table: %s" cmd)
 	   ;; not implemented:
 	   (ccl-check-register Rrr cmd)
 	   (ccl-embed-extended-command 'lookup-char rrr RRR 0))))
@@ -986,7 +991,8 @@ is a list of CCL-BLOCKs."
 (defun ccl-get-next-code ()
   "Return a CCL code in `ccl-code' at `ccl-current-ic'."
   (prog1
-      (aref ccl-code ccl-current-ic)
+      (let ((code (aref ccl-code ccl-current-ic)))
+        (if (numberp code) (ccl-fixnum code) code))
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
 (defun ccl-dump-1 ()
@@ -1142,9 +1148,9 @@ is a list of CCL-BLOCKs."
 	      (progn
 		(insert (logand code #xFFFFFF))
 		(setq i (1+ i)))
-	    (insert (format "%c" (lsh code -16)))
+	    (insert (format "%c" (ash code -16)))
 	    (if (< (1+ i) len)
-		(insert (format "%c" (logand (lsh code -8) 255))))
+		(insert (format "%c" (logand (ash code -8) 255))))
 	    (if (< (+ i 2) len)
 		(insert (format "%c" (logand code 255))))
 	    (setq i (+ i 3)))))
@@ -1546,9 +1552,8 @@ MAP :=
 
 MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
-MAP-ID := integer
-"
-  (declare (doc-string 3))
+MAP-ID := integer"
+  (declare (doc-string 3) (indent defun))
   `(let ((prog ,(unwind-protect
 		    (progn
 		      ;; To make ,(charset-id CHARSET) works well.

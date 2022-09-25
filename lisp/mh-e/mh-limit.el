@@ -1,9 +1,8 @@
-;;; mh-limit.el --- MH-E display limits
+;;; mh-limit.el --- MH-E display limits  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2003, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
-;; Maintainer: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
 ;; See: mh-e.el
 
@@ -26,12 +25,9 @@
 
 ;; "Poor man's threading" by psg.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
 (require 'mh-scan)
 
 (autoload 'message-fetch-field "message")
@@ -127,8 +123,8 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
           (mh-quote-pick-expr (mh-current-message-header-field 'subject)))))
   (setq pick-expr
         (let ((case-fold-search t))
-          (loop for s in pick-expr
-                collect (mh-replace-regexp-in-string "re: *" "" s))))
+          (cl-loop for s in pick-expr
+                   collect (replace-regexp-in-string "re: *" "" s))))
   (mh-narrow-to-header-field 'subject pick-expr))
 
 ;;;###mh-autoload
@@ -147,10 +143,10 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 ;;; Support Routines
 
 (defun mh-subject-to-sequence (all)
-  "Put all following messages with same subject in sequence 'subject.
+  "Put all following messages with same subject in sequence `subject'.
 If arg ALL is t, move to beginning of folder buffer to collect all
 messages.
-If arg ALL is nil, collect only messages fron current one on forward.
+If arg ALL is nil, collect only messages from current one on forward.
 
 Return number of messages put in the sequence:
 
@@ -165,7 +161,7 @@ Return number of messages put in the sequence:
     (mh-subject-to-sequence-unthreaded all)))
 
 (defun mh-subject-to-sequence-threaded (all)
-  "Put all messages with the same subject in the 'subject sequence.
+  "Put all messages with the same subject in the `subject' sequence.
 
 This function works when the folder is threaded. In this
 situation the subject could get truncated and so the normal
@@ -196,11 +192,11 @@ are taken into account."
 It would be desirable to avoid hard-coding this.")
 
 (defun mh-subject-to-sequence-unthreaded (all)
-  "Put all following messages with same subject in sequence 'subject.
+  "Put all following messages with same subject in sequence `subject'.
 
 This function only works with an unthreaded folder. If arg ALL is
 t, move to beginning of folder buffer to collect all messages. If
-arg ALL is nil, collect only messages fron current one on
+arg ALL is nil, collect only messages from current one on
 forward.
 
 Return number of messages put in the sequence:
@@ -218,7 +214,7 @@ Return number of messages put in the sequence:
             (string-equal "" (match-string 3)))
         (progn (message "No subject line")
                nil)
-      (let ((subject (mh-match-string-no-properties 3))
+      (let ((subject (match-string-no-properties 3))
             (list))
         (if (> (length subject) mh-limit-max-subject-size)
             (setq subject (substring subject 0 mh-limit-max-subject-size)))
@@ -226,7 +222,7 @@ Return number of messages put in the sequence:
           (if all
               (goto-char (point-min)))
           (while (re-search-forward mh-scan-subject-regexp nil t)
-            (let ((this-subject (mh-match-string-no-properties 3)))
+            (let ((this-subject (match-string-no-properties 3)))
               (if (> (length this-subject) mh-limit-max-subject-size)
                   (setq this-subject (substring this-subject
                                                 0 mh-limit-max-subject-size)))
@@ -239,7 +235,7 @@ Return number of messages put in the sequence:
               (setq list (cons (mh-get-msg-num t) list)))
           (if (assoc 'subject mh-seq-list) (mh-delete-seq 'subject))
           ;; sort the result into a sequence
-          (let ((sorted-list (sort (copy-sequence list) 'mh-lessp)))
+          (let ((sorted-list (sort (copy-sequence list) #'mh-lessp)))
             (while sorted-list
               (mh-add-msgs-to-seq (car sorted-list) 'subject nil)
               (setq sorted-list (cdr sorted-list)))
@@ -250,7 +246,7 @@ Return number of messages put in the sequence:
 (defun mh-edit-pick-expr (default)
   "With prefix arg edit a pick expression.
 If no prefix arg is given, then return DEFAULT."
-  (let ((default-string (loop for x in default concat (format " %s" x))))
+  (let ((default-string (cl-loop for x in default concat (format " %s" x))))
     (if (or current-prefix-arg (equal default-string ""))
         (mh-pick-args-list (read-string "Pick expression: "
                                         default-string))
@@ -292,18 +288,18 @@ For example, the string \"-subject a b c -from Joe User
           (let* ((field (or (message-fetch-field (format "%s" header-field))
                             ""))
                  (field-option (format "-%s" header-field))
-                 (patterns (loop for x in (split-string  field "[ ]*,[ ]*")
-                                 unless (equal x "")
-                                 collect (if (string-match "<\\(.*@.*\\)>" x)
-                                             (match-string 1 x)
-                                           x))))
+                 (patterns (cl-loop for x in (split-string  field "[ ]*,[ ]*")
+                                    unless (equal x "")
+                                    collect (if (string-match "<\\(.*@.*\\)>" x)
+                                                (match-string 1 x)
+                                              x))))
             (when patterns
-              (loop with accum = `(,field-option ,(car patterns))
-                    for e in (cdr patterns)
-                    do (setq accum `(,field-option ,e "-or" ,@accum))
-                    finally return accum))))))))
+              (cl-loop with accum = `(,field-option ,(car patterns))
+                       for e in (cdr patterns)
+                       do (setq accum `(,field-option ,e "-or" ,@accum))
+                       finally return accum))))))))
 
-(defun mh-narrow-to-header-field (header-field pick-expr)
+(defun mh-narrow-to-header-field (_header-field pick-expr)
   "Limit to messages whose HEADER-FIELD match PICK-EXPR.
 The MH command pick is used to do the match."
   (let ((folder mh-current-folder)
@@ -317,7 +313,7 @@ The MH command pick is used to do the match."
       (while (not (eobp))
         (let ((num (ignore-errors
                      (string-to-number
-                      (buffer-substring (point) (mh-line-end-position))))))
+                      (buffer-substring (point) (line-end-position))))))
           (when num (push num msg-list))
           (forward-line))))
     (if (null msg-list)
@@ -329,7 +325,6 @@ The MH command pick is used to do the match."
 (provide 'mh-limit)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 

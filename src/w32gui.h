@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,43 +27,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define local_alloc(n) (HeapAlloc (local_heap, HEAP_ZERO_MEMORY, (n)))
 #define local_free(p) (HeapFree (local_heap, 0, ((LPVOID) (p))))
 
-/* Emulate X GC's by keeping color and font info in a structure.  */
-typedef struct _XGCValues
-{
-  COLORREF foreground;
-  COLORREF background;
-  struct font *font;
-} XGCValues;
+typedef HBITMAP Emacs_Pixmap;
 
-#define GCForeground 0x01
-#define GCBackground 0x02
-#define GCFont 0x03
-
-typedef HBITMAP Pixmap;
-typedef HBITMAP Bitmap;
-
-typedef char * XrmDatabase;
-
-typedef XGCValues * GC;
-typedef COLORREF Color;
 typedef HWND Window;
 typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
-typedef HCURSOR Cursor;
-
-#define No_Cursor (0)
-
-#define XChar2b wchar_t
-
-/* Dealing with bits of wchar_t as if they were an XChar2b.  */
-#define STORE_XCHAR2B(chp, byte1, byte2) \
-  ((*(chp)) = ((XChar2b)((((byte1) & 0x00ff) << 8) | ((byte2) & 0x00ff))))
-
-#define XCHAR2B_BYTE1(chp) \
-  (((*(chp)) & 0xff00) >> 8)
-
-#define XCHAR2B_BYTE2(chp) \
-  ((*(chp)) & 0x00ff)
-
+typedef HCURSOR Emacs_Cursor;
 
 /* Windows equivalent of XImage.  */
 typedef struct _XImage
@@ -72,6 +40,13 @@ typedef struct _XImage
   BITMAPINFO info;
   /* Optional RGBQUAD array for palette follows (see BITMAPINFO docs).  */
 } XImage;
+
+struct image;
+extern int w32_load_image (struct frame *f, struct image *img,
+                           Lisp_Object spec_file, Lisp_Object spec_data);
+extern bool w32_can_use_native_image_api (Lisp_Object);
+extern void w32_gdiplus_shutdown (void);
+extern size_t w32_image_size (Emacs_Pixmap);
 
 #define FACE_DEFAULT (~0)
 
@@ -112,20 +87,15 @@ extern HINSTANCE hinst;
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
 
-typedef struct {
-    int x, y;
-    unsigned width, height;
-} XRectangle;
-
 #define NativeRectangle RECT
 
-#define CONVERT_TO_XRECT(xr,nr)			\
+#define CONVERT_TO_EMACS_RECT(xr,nr)            \
   ((xr).x = (nr).left,				\
    (xr).y = (nr).top,				\
    (xr).width = ((nr).right - (nr).left),	\
    (xr).height = ((nr).bottom - (nr).top))
 
-#define CONVERT_FROM_XRECT(xr,nr)		\
+#define CONVERT_FROM_EMACS_RECT(xr,nr)		\
   ((nr).left = (xr).x,				\
    (nr).top = (xr).y,				\
    (nr).right = ((xr).x + (xr).width),		\

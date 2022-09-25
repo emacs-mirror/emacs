@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/macOS window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2022 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -42,12 +42,11 @@
 (eval-when-compile (require 'cl-lib))
 (or (featurep 'ns)
     (error "%s: Loading ns-win.el but not compiled for GNUstep/macOS"
-           (invocation-name)))
+           invocation-name))
 
 ;; Documentation-purposes only: actually loaded in loadup.el.
 (require 'frame)
 (require 'mouse)
-(require 'faces)
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
@@ -98,11 +97,9 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
-(define-obsolete-variable-alias 'ns-alternatives-map 'x-alternatives-map "24.1")
-
 ;; Here are some Nextstep-like bindings for command key sequences.
 (define-key global-map [?\s-,] 'customize)
-(define-key global-map [?\s-'] 'next-multiframe-window)
+(define-key global-map [?\s-'] 'next-window-any-frame)
 (define-key global-map [?\s-`] 'other-frame)
 (define-key global-map [?\s-~] 'ns-prev-frame)
 (define-key global-map [?\s--] 'center-line)
@@ -121,11 +118,19 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-d] 'isearch-repeat-backward)
 (define-key global-map [?\s-e] 'isearch-yank-kill)
 (define-key global-map [?\s-f] 'isearch-forward)
+(define-key esc-map [?\s-f] 'isearch-forward-regexp)
+(define-key minibuffer-local-isearch-map [?\s-f]
+  'isearch-forward-exit-minibuffer)
+(define-key isearch-mode-map [?\s-f] 'isearch-repeat-forward)
+(define-key global-map [?\s-F] 'isearch-backward)
+(define-key esc-map [?\s-F] 'isearch-backward-regexp)
+(define-key minibuffer-local-isearch-map [?\s-F]
+  'isearch-reverse-exit-minibuffer)
+(define-key isearch-mode-map [?\s-F] 'isearch-repeat-backward)
 (define-key global-map [?\s-g] 'isearch-repeat-forward)
 (define-key global-map [?\s-h] 'ns-do-hide-emacs)
 (define-key global-map [?\s-H] 'ns-do-hide-others)
 (define-key global-map [?\M-\s-h] 'ns-do-hide-others)
-(define-key key-translation-map [?\M-\s-\u02D9] [?\M-\s-h])
 (define-key global-map [?\s-j] 'exchange-point-and-mark)
 (define-key global-map [?\s-k] 'kill-current-buffer)
 (define-key global-map [?\s-l] 'goto-line)
@@ -135,18 +140,22 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-p] 'ns-print-buffer)
 (define-key global-map [?\s-q] 'save-buffers-kill-emacs)
 (define-key global-map [?\s-s] 'save-buffer)
-(define-key global-map [?\s-t] 'ns-popup-font-panel)
+(define-key global-map [?\s-t] 'menu-set-font)
 (define-key global-map [?\s-u] 'revert-buffer)
 (define-key global-map [?\s-v] 'yank)
 (define-key global-map [?\s-w] 'delete-frame)
 (define-key global-map [?\s-x] 'kill-region)
 (define-key global-map [?\s-y] 'ns-paste-secondary)
 (define-key global-map [?\s-z] 'undo)
+(define-key global-map [?\s-+] 'text-scale-adjust)
+(define-key global-map [?\s-=] 'text-scale-adjust)
+(define-key global-map [?\s--] 'text-scale-adjust)
+(define-key global-map [?\s-0] 'text-scale-adjust)
 (define-key global-map [?\s-|] 'shell-command-on-region)
 (define-key global-map [s-kp-bar] 'shell-command-on-region)
-;; (as in Terminal.app)
-(define-key global-map [s-right] 'ns-next-frame)
-(define-key global-map [s-left] 'ns-prev-frame)
+(define-key global-map [?\C-\s- ] 'ns-do-show-character-palette)
+(define-key global-map [s-right] 'move-end-of-line)
+(define-key global-map [s-left] 'move-beginning-of-line)
 
 (define-key global-map [home] 'beginning-of-buffer)
 (define-key global-map [end] 'end-of-buffer)
@@ -165,7 +174,6 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-power-off] 'save-buffers-kill-emacs)
 (define-key global-map [ns-open-file] 'ns-find-file)
 (define-key global-map [ns-open-temp-file] [ns-open-file])
-(define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
 (define-key global-map [ns-new-frame] 'make-frame)
@@ -307,15 +315,12 @@ is currently being used."
   "Insert contents of `ns-working-text' as UTF-8 string and mark with
 `ns-working-overlay'.  Any previously existing working text is cleared first.
 The overlay is assigned the face `ns-working-text-face'."
-  ;; FIXME: if buffer is read-only, don't try to insert anything
-  ;;  and if text is bound to a command, execute that instead (Bug#1453)
   (interactive)
   (ns-delete-working-text)
   (let ((start (point)))
-    (insert ns-working-text)
-    (overlay-put (setq ns-working-overlay (make-overlay start (point)
-							(current-buffer) nil t))
-		 'face 'ns-working-text-face)))
+    (overlay-put (setq ns-working-overlay (make-overlay start (point)))
+                 'after-string
+                 (propertize ns-working-text 'face 'ns-working-text-face))))
 
 (defun ns-echo-working-text ()
   "Echo contents of `ns-working-text' in message display area.
@@ -338,8 +343,7 @@ See `ns-insert-working-text'."
          ;; Still alive?
          (overlay-buffer ns-working-overlay))
     (with-current-buffer (overlay-buffer ns-working-overlay)
-      (delete-region (overlay-start ns-working-overlay)
-                     (overlay-end ns-working-overlay))
+      (overlay-put ns-working-overlay 'after-string nil)
       (delete-overlay ns-working-overlay)))
    ((integerp ns-working-overlay)
     (let ((msg (current-message))
@@ -354,7 +358,7 @@ See `ns-insert-working-text'."
   ;; Used prior to Emacs 25.
   (define-coding-system-alias 'utf-8-nfd 'utf-8-hfs)
 
-  (set-file-name-coding-system 'utf-8-hfs))
+  (set-file-name-coding-system 'utf-8-hfs-unix))
 
 ;;;; Inter-app communications support.
 
@@ -367,9 +371,8 @@ prompting.  If file is a directory perform a `find-file' on it."
         (find-file f)
       (push-mark (+ (point) (cadr (insert-file-contents f)))))))
 
-(defvar ns-select-overlay nil
+(defvar-local ns-select-overlay nil
   "Overlay used to highlight areas in files requested by Nextstep apps.")
-(make-variable-buffer-local 'ns-select-overlay)
 
 (defvar ns-input-line) 			; nsterm.m
 
@@ -432,20 +435,14 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir mustmatch init dir_only_p))
+		  (prompt &optional dir mustmatch init dir-only-p))
 
 ;;;; File handling.
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
-"Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
-selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.
-
-This function is only defined on NS, MS Windows, and X Windows with the
-Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
-  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
+(defun x-file-dialog (prompt dir &optional default-filename
+                             mustmatch only-dir-p)
+  "SKIP: real doc in xfns.c."
+  (ns-read-file-name prompt dir mustmatch default-filename only-dir-p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."
@@ -504,48 +501,35 @@ unless the current buffer is a scratch buffer."
       (find-file f)))))
 
 
-(defun ns-drag-n-drop (event &optional new-frame force-text)
+(defun ns-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
+Switch to a buffer editing the last file dropped, or insert the
+string dropped into the current buffer."
   (interactive "e")
-  (let* ((window (posn-window (event-start event)))
-         (arg (car (cdr (cdr event))))
-         (type (car arg))
-         (data (car (cdr arg)))
-         (url-or-string (cond ((eq type 'file)
-                               (concat "file:" data))
-                              (t data))))
-    (set-frame-selected-window nil window)
-    (when new-frame
-      (select-frame (make-frame)))
-    (raise-frame)
-    (setq window (selected-window))
-    (if force-text
-        (dnd-insert-text window 'private data)
-      (dnd-handle-one-url window 'private url-or-string))))
-
-
-(defun ns-drag-n-drop-other-frame (event)
-  "Edit the files listed in the drag-n-drop EVENT, in other frames.
-May create new frames, or reuse existing ones.  The frame editing
-the last file dropped is selected."
-  (interactive "e")
-  (ns-drag-n-drop event t))
-
-(defun ns-drag-n-drop-as-text (event)
-  "Drop the data in EVENT as text."
-  (interactive "e")
-  (ns-drag-n-drop event nil t))
-
-(defun ns-drag-n-drop-as-text-other-frame (event)
-  "Drop the data in EVENT as text in a new frame."
-  (interactive "e")
-  (ns-drag-n-drop event t t))
+  (if (eq (car-safe (cdr-safe (cdr-safe event))) 'lambda)
+      (dnd-handle-movement (event-start event))
+    (let* ((window (posn-window (event-start event)))
+           (arg (car (cdr (cdr event))))
+           (type (car arg))
+           (operations (car (cdr arg)))
+           (objects (cdr (cdr arg)))
+           (string (mapconcat 'identity objects "\n")))
+      (set-frame-selected-window nil window)
+      (raise-frame)
+      (setq window (selected-window))
+      (goto-char (posn-point (event-start event)))
+      (cond ((or (memq 'ns-drag-operation-generic operations)
+                 (memq 'ns-drag-operation-copy operations))
+             ;; Perform the default/copy action.
+             (dolist (data objects)
+               (dnd-handle-one-url window 'private (if (eq type 'file)
+                                                       (concat "file:" data)
+                                                     data))))
+            (t
+             ;; Insert the text as is.
+             (dnd-insert-text window 'private string))))))
 
 (global-set-key [drag-n-drop] 'ns-drag-n-drop)
-(global-set-key [C-drag-n-drop] 'ns-drag-n-drop-other-frame)
-(global-set-key [M-drag-n-drop] 'ns-drag-n-drop-as-text)
-(global-set-key [C-M-drag-n-drop] 'ns-drag-n-drop-as-text-other-frame)
 
 ;;;; Frame-related functions.
 
@@ -556,8 +540,9 @@ the last file dropped is selected."
 (defvar ns-right-control-modifier)
 
 ;; You say tomAYto, I say tomAHto..
-(defvaralias 'ns-option-modifier 'ns-alternate-modifier)
-(defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier)
+(with-no-warnings
+  (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
+  (defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier))
 
 (defun ns-do-hide-emacs ()
   (interactive)
@@ -574,6 +559,12 @@ the last file dropped is selected."
 (defun ns-do-emacs-info-panel ()
   (interactive)
   (ns-emacs-info-panel))
+
+(declare-function ns-show-character-palette "nsfns.m" ())
+
+(defun ns-do-show-character-palette ()
+  (interactive)
+  (ns-show-character-palette))
 
 (defun ns-next-frame ()
   "Switch to next visible frame."
@@ -594,10 +585,10 @@ the last file dropped is selected."
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
 
 ;; Based on a function by David Reitter <dreitter@inf.ed.ac.uk> ;
-;; see https://lists.gnu.org/archive/html/emacs-devel/2005-09/msg00681.html .
+;; see https://lists.gnu.org/r/emacs-devel/2005-09/msg00681.html .
 (defun ns-toggle-toolbar (&optional frame)
-  "Switches the tool bar on and off in frame FRAME.
- If FRAME is nil, the change applies to the selected frame."
+  "Switch the tool bar on and off in frame FRAME.
+If FRAME is nil, the change applies to the selected frame."
   (interactive)
   (modify-frame-parameters
    frame (list (cons 'tool-bar-lines
@@ -619,7 +610,7 @@ the last file dropped is selected."
       (let ((last-nonmenu-event (if (listp last-nonmenu-event)
                                     last-nonmenu-event
                                   ;; Fake it:
-                                  `(mouse-1 POSITION 1))))
+                                  '(mouse-1 POSITION 1))))
         (if (y-or-n-p (format "Print buffer %s? " (buffer-name)))
             (print-buffer)
 	  (error "Canceled")))
@@ -629,28 +620,6 @@ the last file dropped is selected."
 
 ;; Needed for font listing functions under both backend and normal
 (setq scalable-fonts-allowed t)
-
-;; Set to use font panel instead
-(declare-function ns-popup-font-panel "nsfns.m" (&optional frame))
-(defalias 'x-select-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-(defalias 'mouse-set-font 'ns-popup-font-panel "Pop up the font panel.
-This function has been overloaded in Nextstep.")
-
-;; nsterm.m
-(defvar ns-input-font)
-(defvar ns-input-fontsize)
-
-(defun ns-respond-to-change-font ()
-  "Respond to changeFont: event, expecting `ns-input-font' and\n\
-`ns-input-fontsize' of new font."
-  (interactive)
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'fontsize ns-input-fontsize)))
-  (modify-frame-parameters (selected-frame)
-                           (list (cons 'font ns-input-font)))
-  (set-frame-font ns-input-font))
-
 
 ;; Default fontset for macOS.  This is mainly here to show how a fontset
 ;; can be set up manually.  Ordinarily, fontsets are auto-created whenever
@@ -712,10 +681,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;;;; Pasteboard support.
 
-(define-obsolete-function-alias 'ns-store-cut-buffer-internal
-  'gui-set-selection "24.1")
-
-
 (defun ns-copy-including-secondary ()
   (interactive)
   (call-interactively 'kill-ring-save)
@@ -739,6 +704,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;;; macOS-like defaults for trackpad and mouse wheel scrolling on
 ;;;; macOS 10.7+.
 
+(defvar ns-version-string)
+(defvar mouse-wheel-scroll-amount)
+(defvar mouse-wheel-progressive-speed)
+
 ;; FIXME: This doesn't look right.  Is there a better way to do this
 ;; that keeps customize happy?
 (when (featurep 'cocoa)
@@ -747,10 +716,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                 (string-to-number (match-string 1 ns-version-string)))))
     ;; Appkit 1138 ~= macOS 10.7.
     (when (>= appkit-version 1138)
-      (setq mouse-wheel-scroll-amount '(1 ((shift) . 5) ((control))))
-      (put 'mouse-wheel-scroll-amount 'customized-value
-           (list (custom-quote (symbol-value 'mouse-wheel-scroll-amount))))
-
       (setq mouse-wheel-progressive-speed nil)
       (put 'mouse-wheel-progressive-speed 'customized-value
            (list (custom-quote
@@ -801,8 +766,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 
 ;; Set some options to be as Nextstep-like as possible.
-(setq frame-title-format t
-      icon-title-format t)
+(setq frame-title-format "%b"
+      icon-title-format "%b")
 
 
 (defvar ns-initialized nil
@@ -834,7 +799,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
             (format "Creation of the standard fontset failed: %s" err)
             :error)))
 
-  (x-open-connection (system-name) x-command-line-resources t)
+  (x-open-connection (or (system-name) "") x-command-line-resources t)
 
   ;; Add GNUstep menu items Services, Hide and Quit.  Rename Help to Info
   ;; and put it first (i.e. omit from menu-bar-final-items.
@@ -871,14 +836,14 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   ;; For Darwin nothing except UTF-8 makes sense.
   (when (eq system-type 'darwin)
       (add-hook 'before-init-hook
-                #'(lambda ()
-                    (setq locale-coding-system 'utf-8-unix)
-                    (setq default-process-coding-system
-                          '(utf-8-unix . utf-8-unix)))))
+                (lambda ()
+                  (setq locale-coding-system 'utf-8-unix)
+                  (setq default-process-coding-system
+                        '(utf-8-unix . utf-8-unix)))))
 
   ;; Mac OS X Lion introduces PressAndHold, which is unsupported by this port.
   ;; See this thread for more details:
-  ;; https://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
+  ;; https://lists.gnu.org/r/emacs-devel/2011-06/msg00505.html
   (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
   (x-apply-session-resources)
@@ -900,12 +865,18 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function ns-disown-selection-internal "nsselect.m" (selection))
 (declare-function ns-selection-owner-p "nsselect.m" (&optional selection))
 (declare-function ns-selection-exists-p "nsselect.m" (&optional selection))
+(declare-function ns-begin-drag "nsselect.m")
+
+(defvar ns-dnd-selection-value nil
+  "The value of the special `XdndSelection' selection on NS.")
+
 (declare-function ns-get-selection "nsselect.m" (selection-symbol target-type))
 
-(cl-defmethod gui-backend-set-selection (selection value
-                                         &context (window-system ns))
-  (if value (ns-own-selection-internal selection value)
-    (ns-disown-selection-internal selection)))
+(cl-defmethod gui-backend-set-selection (selection value &context (window-system ns))
+  (if (eq selection 'XdndSelection)
+      (setq ns-dnd-selection-value value)
+    (if value (ns-own-selection-internal selection value)
+      (ns-disown-selection-internal selection))))
 
 (cl-defmethod gui-backend-selection-owner-p (selection
                                              &context (window-system ns))
@@ -918,6 +889,41 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (cl-defmethod gui-backend-get-selection (selection-symbol target-type
                                          &context (window-system ns))
   (ns-get-selection selection-symbol target-type))
+
+(defun x-begin-drag (targets &optional action frame return-frame
+                             allow-current-frame follow-tooltip)
+  "SKIP: real doc in xfns.c."
+  (unless ns-dnd-selection-value
+    (error "No local value for XdndSelection"))
+  (let ((pasteboard nil))
+    (when (and (member "STRING" targets)
+               (stringp ns-dnd-selection-value))
+      (push (cons 'string ns-dnd-selection-value) pasteboard))
+    (when (and (member "FILE_NAME" targets)
+               (file-exists-p ns-dnd-selection-value))
+      (let ((value (if (stringp ns-dnd-selection-value)
+                       (or (get-text-property 0 'FILE_NAME
+                                              ns-dnd-selection-value)
+                           ns-dnd-selection-value)
+                     ns-dnd-selection-value)))
+        (if (vectorp value)
+            (push (cons 'file
+                        (cl-loop for file across value
+                                 collect (expand-file-name file)))
+                  pasteboard)
+          (push (cons 'file
+                      (url-encode-url (concat "file://"
+                                              (expand-file-name
+                                               ns-dnd-selection-value))))
+                pasteboard))))
+    (ns-begin-drag frame pasteboard action return-frame
+                   allow-current-frame follow-tooltip)))
+
+(defun ns-handle-drag-motion (frame x y)
+  "Handle mouse movement on FRAME at X and Y during drag-and-drop.
+This moves point to the current mouse position if
+ `dnd-indicate-insertion-point' is enabled."
+  (dnd-handle-movement (posn-at-x-y x y frame)))
 
 (provide 'ns-win)
 (provide 'term/ns-win)

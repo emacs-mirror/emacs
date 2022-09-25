@@ -1,9 +1,12 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
+;; Old-Version: 1.17
+;; URL: http://www.geekware.de/software/emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -22,9 +25,6 @@
 
 ;;; Commentary:
 
-;; Version: 1.17
-;; X-URL: http://www.geekware.de/software/emacs
-;;
 ;; The bs-package contains a main function bs-show for popping up a
 ;; buffer in a way similar to `list-buffers' and `electric-buffer-list':
 ;; The new buffer offers a Buffer Selection Menu for manipulating
@@ -120,8 +120,6 @@
 ;; can cycle through all file buffers and *scratch* although your current
 ;; configuration perhaps is "files" which ignores buffer *scratch*.
 
-;;; History:
-
 ;;; Code:
 
 ;; ----------------------------------------------------------------------
@@ -173,7 +171,12 @@ return a string representing the column's value."
 
 (defun bs--make-header-match-string ()
   "Return a regexp matching the first line of a Buffer Selection Menu buffer."
-  (concat "^\\(" (mapconcat #'car bs-attributes-list " *") " *$\\)"))
+  (concat "^\\("
+          (apply #'concat (mapcan (lambda (e)
+                                    (and (not (equal (car e) ""))
+                                         (list " *" (car e))))
+                                  bs-attributes-list))
+          " *$\\)"))
 
 ;; Font-Lock-Settings
 (defvar bs-mode-font-lock-keywords
@@ -181,12 +184,7 @@ return a string representing the column's value."
    (list (bs--make-header-match-string)
 	 '(1 font-lock-type-face append) '(1 'bold append))
    ;; Buffername embedded by *
-   (list "^\\(.*\\*.*\\*.*\\)$"
-	 1
-	 ;; problem in XEmacs with font-lock-constant-face
-	 (if (facep 'font-lock-constant-face)
-	     'font-lock-constant-face
-	   'font-lock-comment-face))
+   (list "^\\(.*\\*.*\\*.*\\)$" 1 'font-lock-constant-face)
    ;; Dired-Buffers
    '("^..\\(.*Dired .*\\)$" 1 font-lock-function-name-face)
    ;; the star for modified buffers
@@ -343,11 +341,6 @@ configuration.
 A value of `never' means to never show the buffer.
 A value of `always' means to show buffer regardless of the configuration.")
 
-;; Make face named region (for XEmacs)
-(unless (facep 'region)
-  (make-face 'region)
-  (set-face-background 'region "gray75"))
-
 (defun bs--sort-by-name (b1 b2)
   "Compare buffers B1 and B2 by buffer name."
   (string< (buffer-name b1)
@@ -442,62 +435,61 @@ Used internally, only.")
 (defvar bs--marked-buffers nil
   "Currently marked buffers in Buffer Selection Menu.")
 
-(defvar bs-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map " "       'bs-select)
-    (define-key map "f"       'bs-select)
-    (define-key map "v"       'bs-view)
-    (define-key map "!"       'bs-select-in-one-window)
-    (define-key map [mouse-2] 'bs-mouse-select)	;; for GNU EMACS
-    (define-key map [button2] 'bs-mouse-select) ;; for XEmacs
-    (define-key map "F"       'bs-select-other-frame)
-    (let ((key ?1))
-      (while (<= key ?9)
-	(define-key map (char-to-string key) 'digit-argument)
-	(setq key (1+ key))))
-    (define-key map "-"       'negative-argument)
-    (define-key map "\e-"     'negative-argument)
-    (define-key map "o"       'bs-select-other-window)
-    (define-key map "\C-o"    'bs-tmp-select-other-window)
-    ;; for GNU EMACS
-    (define-key map [mouse-3] 'bs-mouse-select-other-frame)
-    ;; for XEmacs
-    (define-key map [button3] 'bs-mouse-select-other-frame)
-    (define-key map [up]      'bs-up)
-    (define-key map "n"       'bs-down)
-    (define-key map "p"       'bs-up)
-    (define-key map [down]    'bs-down)
-    (define-key map "\C-m"    'bs-select)
-    (define-key map "b"       'bs-bury-buffer)
-    (define-key map "s"       'bs-save)
-    (define-key map "S"       'bs-show-sorted)
-    (define-key map "a"       'bs-toggle-show-all)
-    (define-key map "d"       'bs-delete)
-    (define-key map "\C-d"    'bs-delete-backward)
-    (define-key map "k"       'bs-delete)
-    (define-key map "g"       'bs-refresh)
-    (define-key map "C"       'bs-set-configuration-and-refresh)
-    (define-key map "c"       'bs-select-next-configuration)
-    (define-key map "q"       'bs-kill)
-    ;; (define-key map "z"       'bs-kill)
-    (define-key map "\C-c\C-c" 'bs-kill)
-    (define-key map "\C-g"    'bs-abort)
-    (define-key map "\C-]"    'bs-abort)
-    (define-key map "%"       'bs-toggle-readonly)
-    (define-key map "~"       'bs-clear-modified)
-    (define-key map "M"       'bs-toggle-current-to-show)
-    (define-key map "+"       'bs-set-current-buffer-to-show-always)
-    ;;(define-key map "-"       'bs-set-current-buffer-to-show-never)
-    (define-key map "t"       'bs-visit-tags-table)
-    (define-key map "m"       'bs-mark-current)
-    (define-key map "u"       'bs-unmark-current)
-    (define-key map "U"       'bs-unmark-all)
-    (define-key map "\177"    'bs-unmark-previous)
-    (define-key map ">"       'scroll-right)
-    (define-key map "<"       'scroll-left)
-    (define-key map "?"       'bs-help)
-    map)
-  "Keymap of `bs-mode'.")
+(defvar-keymap bs-mode-map
+  :doc "Keymap of `bs-mode'."
+  "SPC"     #'bs-select
+  "f"       #'bs-select
+  "v"       #'bs-view
+  "!"       #'bs-select-in-one-window
+  "F"       #'bs-select-other-frame
+  "1"       #'digit-argument
+  "2"       #'digit-argument
+  "3"       #'digit-argument
+  "4"       #'digit-argument
+  "5"       #'digit-argument
+  "6"       #'digit-argument
+  "7"       #'digit-argument
+  "8"       #'digit-argument
+  "9"       #'digit-argument
+  "-"       #'negative-argument
+  "ESC -"   #'negative-argument
+  "o"       #'bs-select-other-window
+  "C-o"     #'bs-tmp-select-other-window
+  "<up>"    #'bs-up
+  "n"       #'bs-down
+  "p"       #'bs-up
+  "<down>"  #'bs-down
+  "C-m"     #'bs-select
+  "b"       #'bs-bury-buffer
+  "s"       #'bs-save
+  "S"       #'bs-show-sorted
+  "a"       #'bs-toggle-show-all
+  "d"       #'bs-delete
+  "C-d"     #'bs-delete-backward
+  "k"       #'bs-delete
+  "g"       #'bs-refresh
+  "C"       #'bs-set-configuration-and-refresh
+  "c"       #'bs-select-next-configuration
+  "q"       #'bs-kill
+  ;; "z"       #'bs-kill
+  "C-c C-c" #'bs-kill
+  "C-g"     #'bs-abort
+  "C-]"     #'bs-abort
+  "%"       #'bs-toggle-readonly
+  "~"       #'bs-clear-modified
+  "M"       #'bs-toggle-current-to-show
+  "+"       #'bs-set-current-buffer-to-show-always
+  ;; "-"       #'bs-set-current-buffer-to-show-never
+  "t"       #'bs-visit-tags-table
+  "m"       #'bs-mark-current
+  "u"       #'bs-unmark-current
+  "U"       #'bs-unmark-all
+  "DEL"     #'bs-unmark-previous
+  ">"       #'scroll-right
+  "<"       #'scroll-left
+  "?"       #'describe-mode
+  "<mouse-2>" #'bs-mouse-select
+  "<mouse-3>" #'bs-mouse-select-other-frame)
 
 ;; ----------------------------------------------------------------------
 ;; Functions
@@ -620,36 +612,50 @@ Used from `window-size-change-functions'."
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
 Move to a line representing the buffer you want to edit and select
-buffer by \\[bs-select] or SPC.  Abort buffer list with \\[bs-kill].
+buffer by \\[bs-select] or \\`SPC'.  Abort buffer list with \\[bs-kill].
 There are many key commands similar to `Buffer-menu-mode' for
 manipulating the buffer list and buffers.
 For faster navigation each digit key is a digit argument.
 
-\\[bs-select] or SPACE -- select current line's buffer and other marked buffers.
-\\[bs-toggle-show-all]  -- toggle between all buffers and a special subset.
+\\[bs-select] or \\`SPC' -- select current line's buffer and other marked buffers.
+\\[bs-select-in-one-window] -- select current's line buffer in one \
+window, and delete other
+     windows in the same frame.
 \\[bs-select-other-window] -- select current line's buffer in other window.
-\\[bs-tmp-select-other-window] -- make another window display that buffer and
-    remain in Buffer Selection Menu.
+\\[bs-tmp-select-other-window] -- display current line's buffer in \
+other window, and remain in
+     Buffer Selection Menu.
+\\[bs-select-other-frame] -- select current's line buffer in a new frame.
+\\[bs-view] -- view current's line buffer in View mode.
+\\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
 \\[bs-mouse-select] -- select current line's buffer and other marked buffers.
-\\[bs-save] -- save current line's buffer immediately.
-\\[bs-delete] -- kill current line's buffer immediately.
-\\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
-\\[bs-clear-modified] -- clear modified-flag on that buffer.
+\\[bs-mouse-select-other-frame] -- select current's line buffer in a new frame.
+
 \\[bs-mark-current] -- mark current line's buffer to be displayed.
 \\[bs-unmark-current] -- unmark current line's buffer to be displayed.
-\\[bs-unmark-all] -- unmark all buffer lines.
 \\[bs-unmark-previous] -- unmark previous line's buffer to be displayed.
-\\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
-\\[bs-set-configuration-and-refresh] -- ask user for a configuration and \
-apply selected configuration.
-\\[bs-select-next-configuration] -- select and apply next \
-available Buffer Selection Menu configuration.
-\\[bs-kill] -- leave Buffer Selection Menu without a selection.
-\\[bs-toggle-current-to-show] -- toggle status of appearance.
+\\[bs-unmark-all] -- unmark all buffer lines.
+
+\\[bs-bury-buffer] -- bury current's line buffer.
+\\[bs-save] -- save current line's buffer immediately.
+\\[bs-delete] -- kill current line's buffer immediately.
+\\[bs-delete-backward] -- like \\[bs-delete], but then move to previous line.
+\\[bs-clear-modified] -- clear modified-flag on that buffer.
+\\[bs-toggle-readonly] -- toggle read-only status of current line's buffer.
 \\[bs-set-current-buffer-to-show-always] -- mark current line's buffer \
 to show always.
-\\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
-\\[bs-help] -- display this help text."
+\\[bs-toggle-current-to-show] -- toggle status of appearance.
+
+\\[bs-toggle-show-all] -- toggle between all buffers and a special subset.
+\\[bs-select-next-configuration] -- select and apply next available \
+configuration.
+\\[bs-set-configuration-and-refresh] -- ask user for a configuration and \
+apply it.
+\\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
+
+\\[bs-kill] -- leave Buffer Selection Menu without a selection.
+\\[bs-refresh] -- refresh Buffer Selection Menu.
+\\[describe-mode] -- display this help text."
   (buffer-disable-undo)
   (setq buffer-read-only t
 	truncate-lines t
@@ -828,8 +834,8 @@ See `visit-tags-table'."
   (let ((res
          (with-current-buffer (bs--current-buffer)
            (setq bs-buffer-show-mark (pcase bs-buffer-show-mark
-                                       (`nil   'never)
-                                       (`never 'always)
+                                       ('nil   'never)
+                                       ('never 'always)
                                        (_       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)
@@ -1115,7 +1121,8 @@ configuration."
 
 (defun bs-help ()
   "Help for `bs-show'."
-  (interactive)
+  (declare (obsolete describe-mode "29.1"))
+  (interactive nil bs-mode)
   (describe-function 'bs-mode))
 
 (defun bs-next-config-aux (start-name list)
@@ -1159,7 +1166,7 @@ and move point to current buffer."
   (bs-mode)
   (let* ((inhibit-read-only t)
 	 (map-fun (lambda (entry)
-		    (length (buffer-name entry))))
+		    (string-width (buffer-name entry))))
 	 (max-length-of-names (apply 'max
 				     (cons 0 (mapcar map-fun list))))
 	 (name-entry-length (min bs-maximal-buffer-name-column
@@ -1371,7 +1378,7 @@ normally *buffer-selection*."
 							  apply-args)
 					   (nth 3 column)                ; align
 					   (- min to-much)))
-	       (len (length new-string)))
+	       (len (string-width new-string)))
 	  (setq string (concat string new-string))
 	  (when (> len min)
 	    (setq to-much (- len min))))))
@@ -1478,7 +1485,7 @@ manipulating the buffer list and the buffers themselves.
 User can move with [up] or [down], select a buffer
 by \\[bs-select] or [SPC]\n
 Type \\[bs-kill] to leave Buffer Selection Menu without a selection.
-Type \\[bs-help] after invocation to get help on commands available.
+Type \\[describe-mode] after invocation to get help on commands available.
 With prefix argument ARG show a different buffer list.  Function
 `bs--configuration-name-for-prefix-arg' determine accordingly
 name of buffer configuration."
@@ -1501,7 +1508,6 @@ name of buffer configuration."
   ;; continue standard unloading
   nil)
 
-;; Now provide feature bs
 (provide 'bs)
 
 ;;; bs.el ends here

@@ -1,6 +1,6 @@
-;;; zone.el --- idle display hacks
+;;; zone.el --- idle display hacks  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -99,7 +99,7 @@ If the element is a function or a list of a function and a number,
                                (functionp (car elem))
                                (numberp (cadr elem)))
                           (apply 'zone-call elem))
-                         (t (error "bad `zone-call' elem: %S" elem))))
+                         (t (error "Bad `zone-call' elem: %S" elem))))
                  program))))
 
 ;;;###autoload
@@ -109,7 +109,7 @@ If the element is a function or a list of a function and a number,
   (save-window-excursion
     (let ((f (selected-frame))
           (outbuf (get-buffer-create "*zone*"))
-          (text (buffer-substring (window-start) (window-end)))
+          (text (buffer-substring (window-start) (window-end nil t)))
           (wp (1+ (- (window-point)
                      (window-start)))))
       (put 'zone 'orig-buffer (current-buffer))
@@ -128,14 +128,17 @@ If the element is a function or a list of a function and a number,
       (let ((pgm (elt zone-programs (random (length zone-programs))))
             (ct (and f (frame-parameter f 'cursor-type)))
             (show-trailing-whitespace nil)
-            (restore (list '(kill-buffer outbuf))))
+            restore)
         (when ct
-          (modify-frame-parameters f '((cursor-type . (bar . 0))))
-          (setq restore (cons '(modify-frame-parameters
-                                f (list (cons 'cursor-type ct)))
-                              restore)))
+          (modify-frame-parameters f '((cursor-type . (bar . 0)))))
         ;; Make `restore' a self-disabling one-shot thunk.
-        (setq restore `(lambda () ,@restore (setq restore nil)))
+        (setq restore
+              (lambda ()
+                (when ct
+                  (modify-frame-parameters
+                   f (list (cons 'cursor-type ct))))
+                (kill-buffer outbuf)
+                (setq restore nil)))
         (condition-case nil
             (progn
               (message "Zoning... (%s)" pgm)
@@ -419,7 +422,7 @@ If the element is a function or a list of a function and a number,
 (defsubst zone-replace-char (count del-count char-as-string new-value)
   (delete-char (or del-count (- count)))
   (aset char-as-string 0 new-value)
-  (dotimes (i count) (insert char-as-string)))
+  (dotimes (_ count) (insert char-as-string)))
 
 (defsubst zone-park/sit-for (pos seconds)
   (let ((p (point)))
@@ -460,7 +463,7 @@ If the element is a function or a list of a function and a number,
     (let ((nl (- height (count-lines (point-min) (point)))))
       (when (> nl 0)
 	(setq line (concat line "\n"))
-        (dotimes (i nl)
+        (dotimes (_ nl)
 	  (insert line))))
     (goto-char start)
     (recenter 0)
@@ -593,7 +596,7 @@ If the element is a function or a list of a function and a number,
          (forward-line -1)
          (delete-region (point) (line-beginning-position 2))
          (goto-char (point-min))
-         (insert (nth (random (length lines)) lines)))
+         (insert (seq-random-elt lines)))
        (message (concat (make-string (random (- (frame-width) 5)) ? ) "grrr"))
        (sit-for 0.1)))))
 

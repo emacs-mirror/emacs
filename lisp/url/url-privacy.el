@@ -1,6 +1,6 @@
-;;; url-privacy.el --- Global history tracking for URL package
+;;; url-privacy.el --- Global history tracking for URL package  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -19,14 +19,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
 (require 'url-vars)
 
-(defun url-device-type (&optional device)
-  (if (fboundp 'device-type)
-      (device-type device)              ; XEmacs
-    (or window-system 'tty)))
+(defun url-device-type (&optional _device)
+  (declare (obsolete nil "27.1"))
+  (or window-system 'tty))
 
 ;;;###autoload
 (defun url-setup-privacy-info ()
@@ -40,14 +41,22 @@
 	  nil)
 	 ;; First, we handle the inseparable OS/Windowing system
 	 ;; combinations
-	 ((eq system-type 'windows-nt) "Windows-NT; 32bit")
+	 ((memq system-type '(windows-nt cygwin))
+          (concat "MS-Windows; "
+                  (if (string-match-p "\\`x86_64" system-configuration)
+                      "64bit"
+                    "32bit")
+                  "; "
+                  (cond ((eq window-system 'w32) "w32")
+                        ((eq window-system 'x) "X11")
+                        (t "TTY"))))
 	 ((eq system-type 'ms-dos) "MS-DOS; 32bit")
-	 ((memq (url-device-type) '(win32 w32)) "Windows; 32bit")
 	 (t
-	  (pcase (url-device-type)
-	    (`x "X11")
-	    (`ns "OpenStep")
-	    (`tty "TTY")
+	  (pcase (or window-system 'tty)
+	    ('x "X11")
+	    ('ns "OpenStep")
+            ('pgtk "PureGTK")
+	    ('tty "TTY")
 	    (_ nil)))))
 
   (setq url-personal-mail-address (or url-personal-mail-address

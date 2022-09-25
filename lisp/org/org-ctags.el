@@ -1,12 +1,10 @@
-;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
-;;
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;;; org-ctags.el --- Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-
-
 ;; Keywords: org, wp
-;;
+
 ;; This file is part of GNU Emacs.
 ;;
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -21,6 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;;
 ;; Synopsis
@@ -137,6 +137,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'org)
 
 (defgroup org-ctags nil
@@ -164,7 +165,7 @@ See the ctags documentation for more information.")
   '(org-ctags-find-tag
     org-ctags-ask-rebuild-tags-file-then-find-tag
     org-ctags-ask-append-topic)
-  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS when ORG-CTAGS is active."
+  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS by ORG-CTAGS."
   :group 'org-ctags
   :version "24.1"
   :type 'hook
@@ -235,7 +236,7 @@ buffer position where the tag is found."
       (with-current-buffer (get-file-buffer tags-file-name)
         (goto-char (point-min))
         (cond
-         ((re-search-forward (format "^.*%s\\([0-9]+\\),\\([0-9]+\\)$"
+         ((re-search-forward (format "^.*\^?%s\^A\\([0-9]+\\),\\([0-9]+\\)$"
                                      (regexp-quote tag)) nil t)
           (let ((line (string-to-number (match-string 1)))
                 (pos (string-to-number (match-string 2))))
@@ -260,7 +261,7 @@ Return the list."
       (visit-tags-table-buffer 'same)
       (with-current-buffer (get-file-buffer tags-file-name)
         (goto-char (point-min))
-        (while (re-search-forward "^.*\\(.*\\)\\([0-9]+\\),\\([0-9]+\\)$"
+        (while (re-search-forward "^.*\^?\\(.*\\)\^A\\([0-9]+\\),\\([0-9]+\\)$"
                                   nil t)
           (push (substring-no-properties (match-string 1)) taglist)))
       taglist)))

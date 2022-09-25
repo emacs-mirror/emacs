@@ -1,8 +1,8 @@
-Copyright (C) 2001-2017 Free Software Foundation, Inc.
+Copyright (C) 2001-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory tree holds version 27.0.50 of GNU Emacs, the extensible,
+This directory tree holds version 29.0.50 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
 The file INSTALL in this directory says how to build and install GNU
@@ -72,6 +72,8 @@ There are several subdirectories:
 'lib'       holds source code for libraries used by Emacs and its utilities
 'lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.
+'lwlib'     holds the sources of the Lucid Widget Library used on X.
+'oldXMenu'  source files from X11R2 XMenu library, used in non-toolkit builds.
 'etc'       holds miscellaneous architecture-independent data files Emacs
             uses, like the tutorial text and tool bar images.
             The contents of the 'lisp', 'leim', 'info', and 'doc'
@@ -89,6 +91,10 @@ There are several subdirectories:
             Nextstep port of Emacs, for GNUstep and macOS Cocoa.
 'nt'        holds code and documentation for building Emacs on MS-Windows.
 'test'      holds tests for various aspects of Emacs's functionality.
+'modules'   holds the modhelp.py helper script.
+'admin'     holds files used by Emacs developers, and Unicode data files.
+'build-aux' holds auxiliary files used during the build.
+'m4'        holds Autoconf macros used for generating the configure script.
 
    Building Emacs on non-Posix platforms requires tools that aren't part
 of the standard distribution of the OS.  The platform-specific README

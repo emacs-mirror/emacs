@@ -1,5 +1,5 @@
 /* System thread definitions
-Copyright (C) 2012-2017 Free Software Foundation, Inc.
+Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,10 +18,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+#include <stdio.h>
+#include <string.h>
 #include "lisp.h"
 
 #ifdef HAVE_NS
 #include "nsterm.h"
+#endif
+
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+#include <pthread_np.h>
 #endif
 
 #ifndef THREADS_ENABLED
@@ -74,11 +80,20 @@ sys_thread_self (void)
   return 0;
 }
 
-int
-sys_thread_create (sys_thread_t *t, const char *name,
-		   thread_creation_function *func, void *datum)
+bool
+sys_thread_equal (sys_thread_t t, sys_thread_t u)
 {
-  return 0;
+  return t == u;
+}
+void
+sys_thread_set_name (const char *name)
+{
+}
+
+bool
+sys_thread_create (sys_thread_t *t, thread_creation_function *func, void *datum)
+{
+  return false;
 }
 
 void
@@ -90,50 +105,80 @@ sys_thread_yield (void)
 
 #include <sched.h>
 
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>
-#endif
-
 void
 sys_mutex_init (sys_mutex_t *mutex)
 {
-  pthread_mutex_init (mutex, NULL);
+  pthread_mutexattr_t *attr_ptr;
+#ifdef ENABLE_CHECKING
+  pthread_mutexattr_t attr;
+  {
+    int error = pthread_mutexattr_init (&attr);
+    eassert (error == 0);
+    error = pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_ERRORCHECK);
+    eassert (error == 0);
+  }
+  attr_ptr = &attr;
+#else
+  attr_ptr = NULL;
+#endif
+  int error = pthread_mutex_init (mutex, attr_ptr);
+  /* We could get ENOMEM.  Can't do anything except aborting.  */
+  if (error != 0)
+    {
+      fprintf (stderr, "\npthread_mutex_init failed: %s\n", strerror (error));
+      emacs_abort ();
+    }
+#ifdef ENABLE_CHECKING
+  error = pthread_mutexattr_destroy (&attr);
+  eassert (error == 0);
+#endif
 }
 
 void
 sys_mutex_lock (sys_mutex_t *mutex)
 {
-  pthread_mutex_lock (mutex);
+  int error = pthread_mutex_lock (mutex);
+  eassert (error == 0);
 }
 
 void
 sys_mutex_unlock (sys_mutex_t *mutex)
 {
-  pthread_mutex_unlock (mutex);
+  int error = pthread_mutex_unlock (mutex);
+  eassert (error == 0);
 }
 
 void
 sys_cond_init (sys_cond_t *cond)
 {
-  pthread_cond_init (cond, NULL);
+  int error = pthread_cond_init (cond, NULL);
+  /* We could get ENOMEM.  Can't do anything except aborting.  */
+  if (error != 0)
+    {
+      fprintf (stderr, "\npthread_cond_init failed: %s\n", strerror (error));
+      emacs_abort ();
+    }
 }
 
 void
 sys_cond_wait (sys_cond_t *cond, sys_mutex_t *mutex)
 {
-  pthread_cond_wait (cond, mutex);
+  int error = pthread_cond_wait (cond, mutex);
+  eassert (error == 0);
 }
 
 void
 sys_cond_signal (sys_cond_t *cond)
 {
-  pthread_cond_signal (cond);
+  int error = pthread_cond_signal (cond);
+  eassert (error == 0);
 }
 
 void
 sys_cond_broadcast (sys_cond_t *cond)
 {
-  pthread_cond_broadcast (cond);
+  int error = pthread_cond_broadcast (cond);
+  eassert (error == 0);
 #ifdef HAVE_NS
   /* Send an app defined event to break out of the NS run loop.
      It seems that if ns_select is running the NS run loop, this
@@ -146,7 +191,8 @@ sys_cond_broadcast (sys_cond_t *cond)
 void
 sys_cond_destroy (sys_cond_t *cond)
 {
-  pthread_cond_destroy (cond);
+  int error = pthread_cond_destroy (cond);
+  eassert (error == 0);
 }
 
 sys_thread_t
@@ -155,26 +201,63 @@ sys_thread_self (void)
   return pthread_self ();
 }
 
-int
-sys_thread_create (sys_thread_t *thread_ptr, const char *name,
-		   thread_creation_function *func, void *arg)
+bool
+sys_thread_equal (sys_thread_t t, sys_thread_t u)
+{
+  return pthread_equal (t, u);
+}
+
+void
+sys_thread_set_name (const char *name)
+{
+#ifdef HAVE_PTHREAD_SETNAME_NP
+  /* We need to truncate here otherwise pthread_setname_np
+     fails to set the name.  TASK_COMM_LEN is what the length
+     is called in the Linux kernel headers (Bug#38632).  */
+#define TASK_COMM_LEN 16
+  char p_name[TASK_COMM_LEN];
+  strncpy (p_name, name, TASK_COMM_LEN - 1);
+  p_name[TASK_COMM_LEN - 1] = '\0';
+# ifdef HAVE_PTHREAD_SETNAME_NP_1ARG
+  pthread_setname_np (p_name);
+# elif defined HAVE_PTHREAD_SETNAME_NP_3ARG
+  pthread_setname_np (pthread_self (), "%s", p_name);
+# else
+  pthread_setname_np (pthread_self (), p_name);
+# endif
+#elif HAVE_PTHREAD_SET_NAME_NP
+  /* The name will automatically be truncated if it exceeds a
+     system-specific length.  */
+  pthread_set_name_np (pthread_self (), name);
+#endif
+}
+
+bool
+sys_thread_create (sys_thread_t *thread_ptr, thread_creation_function *func,
+                   void *arg)
 {
   pthread_attr_t attr;
-  int result = 0;
+  bool result = false;
 
   if (pthread_attr_init (&attr))
-    return 0;
+    return false;
 
-  if (!pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED))
+  /* Avoid crash on macOS with deeply nested GC (Bug#30364).  */
+  size_t stack_size;
+  size_t required_stack_size = sizeof (void *) * 1024 * 1024;
+  if (pthread_attr_getstacksize (&attr, &stack_size) == 0
+      && stack_size < required_stack_size)
     {
-      result = pthread_create (thread_ptr, &attr, func, arg) == 0;
-#if defined (HAVE_SYS_PRCTL_H) && defined (HAVE_PRCTL) && defined (PR_SET_NAME)
-      if (result && name != NULL)
-	prctl (PR_SET_NAME, name);
-#endif
+      if (pthread_attr_setstacksize (&attr, required_stack_size) != 0)
+        goto out;
     }
 
-  pthread_attr_destroy (&attr);
+  if (!pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED))
+    result = pthread_create (thread_ptr, &attr, func, arg) == 0;
+
+ out: ;
+  int error = pthread_attr_destroy (&attr);
+  eassert (error == 0);
 
   return result;
 }
@@ -187,7 +270,8 @@ sys_thread_yield (void)
 
 #elif defined (WINDOWSNT)
 
-#include <windows.h>
+#include <mbctype.h>
+#include "w32term.h"
 
 /* Cannot include <process.h> because of the local header by the same
    name, sigh.  */
@@ -323,19 +407,91 @@ sys_thread_self (void)
   return (sys_thread_t) GetCurrentThreadId ();
 }
 
+bool
+sys_thread_equal (sys_thread_t t, sys_thread_t u)
+{
+  return t == u;
+}
+
+/* Special exception used to communicate with a debugger.  The name is
+   taken from example code shown on MSDN.  */
+#define MS_VC_EXCEPTION 0x406d1388UL
+
+/* Structure used to communicate thread name to a debugger.  */
+typedef struct _THREADNAME_INFO
+{
+  DWORD_PTR  type;
+  LPCSTR name;
+  DWORD_PTR  thread_id;
+  DWORD_PTR  reserved;
+} THREADNAME_INFO;
+
+typedef BOOL (WINAPI *IsDebuggerPresent_Proc) (void);
+extern IsDebuggerPresent_Proc is_debugger_present;
+extern int (WINAPI *pMultiByteToWideChar)(UINT,DWORD,LPCSTR,int,LPWSTR,int);
+typedef HRESULT (WINAPI *SetThreadDescription_Proc)
+  (HANDLE hThread, PCWSTR lpThreadDescription);
+extern SetThreadDescription_Proc set_thread_description;
+
+/* Set the name of the thread identified by its thread ID.  */
+static void
+w32_set_thread_name (DWORD thread_id, const char *name)
+{
+  if (!name || !*name)
+    return;
+
+  /* Use the new API provided since Windows 10, if available.  */
+  if (set_thread_description)
+    {
+      /* GDB pulls only the first 1024 characters of thread's name.  */
+      wchar_t name_w[1025];
+      /* The thread name is encoded in locale's encoding, but
+	 SetThreadDescription wants a wchar_t string.  */
+      int codepage = _getmbcp ();
+      if (!codepage)
+	codepage = GetACP ();
+      int cnv_result = pMultiByteToWideChar (codepage, MB_ERR_INVALID_CHARS,
+					     name, -1,
+					     name_w, 1025);
+      if (cnv_result
+	  && set_thread_description (GetCurrentThread (), name_w) == S_OK)
+	return;
+    }
+  /* We can only support this fallback method when Emacs is being
+     debugged.  */
+  if (!(is_debugger_present && is_debugger_present ()))
+    return;
+
+  THREADNAME_INFO tninfo;
+
+  tninfo.type = 0x1000;	/* magic constant */
+  tninfo.name = name;
+  tninfo.thread_id = thread_id;
+  tninfo.reserved = 0;
+  RaiseException (MS_VC_EXCEPTION, 0, sizeof (tninfo) / sizeof (ULONG_PTR),
+		  (ULONG_PTR *) &tninfo);
+}
+
 static thread_creation_function *thread_start_address;
 
+void
+sys_thread_set_name (const char *name)
+{
+  w32_set_thread_name (GetCurrentThreadId (), name);
+}
+
 /* _beginthread wants a void function, while we are passed a function
-   that returns a pointer.  So we use a wrapper.  */
-static void
+   that returns a pointer.  So we use a wrapper.  See the command in
+   w32term.h about the need for ALIGN_STACK attribute.  */
+static void ALIGN_STACK
 w32_beginthread_wrapper (void *arg)
 {
   (void)thread_start_address (arg);
 }
 
-int
-sys_thread_create (sys_thread_t *thread_ptr, const char *name,
-		   thread_creation_function *func, void *arg)
+bool
+sys_thread_create (sys_thread_t *thread_ptr, thread_creation_function *func,
+                   void *arg)
 {
   /* FIXME: Do threads that run Lisp require some minimum amount of
      stack?  Zero here means each thread will get the same amount as
@@ -357,7 +513,7 @@ sys_thread_create (sys_thread_t *thread_ptr, const char *name,
      rule in many places...  */
   thandle = _beginthread (w32_beginthread_wrapper, stack_size, arg);
   if (thandle == (uintptr_t)-1L)
-    return 0;
+    return false;
 
   /* Kludge alert!  We use the Windows thread ID, an unsigned 32-bit
      number, as the sys_thread_t type, because that ID is the only
@@ -372,7 +528,7 @@ sys_thread_create (sys_thread_t *thread_ptr, const char *name,
      Therefore, we return some more or less arbitrary value of the
      thread ID from this function. */
   *thread_ptr = thandle & 0xFFFFFFFF;
-  return 1;
+  return true;
 }
 
 void

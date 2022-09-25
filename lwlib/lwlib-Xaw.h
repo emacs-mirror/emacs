@@ -15,15 +15,13 @@ void
 xaw_update_one_widget (widget_instance *, Widget, widget_value *, Boolean);
 
 void
-xaw_update_one_value (widget_instance *, Widget, widget_value *)
-  ATTRIBUTE_CONST;
+xaw_update_one_value (widget_instance *, Widget, widget_value *);
 
 void
 xaw_destroy_instance (widget_instance *);
 
 void
-xaw_popup_menu (Widget, XEvent *)
-  ATTRIBUTE_CONST;
+xaw_popup_menu (Widget, XEvent *);
 
 void
 xaw_pop_instance (widget_instance *, Boolean);

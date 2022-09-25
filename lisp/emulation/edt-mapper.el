@@ -1,9 +1,8 @@
-;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
+;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevin.gal@verizon.net>
-;; Maintainer: Kevin Gallagher <kevin.gal@verizon.net>
 ;; Keywords: emulations
 ;; Package: edt
 
@@ -27,7 +26,7 @@
 
 ;;  [Part of the GNU Emacs EDT Emulation.]
 
-;;  This emacs lisp program can be used to create an emacs lisp file
+;;  This Emacs Lisp program can be used to create an Emacs Lisp file
 ;;  that defines the mapping of the user's keyboard to the LK-201
 ;;  keyboard function keys and keypad keys (around which EDT has been
 ;;  designed).  Please read the "Usage" AND "Known Problems" sections
@@ -56,8 +55,8 @@
 
 ;;  Usage:
 
-;;  Simply load this file into emacs (version 19 or higher)
-;;  and run the function edt-mapper, using the following command.
+;;  Simply load this file into Emacs and run the function edt-mapper,
+;;  using the following command.
 
 ;;    emacs -q -l edt-mapper -f edt-mapper
 
@@ -83,8 +82,8 @@
 
 ;;  Sometimes, edt-mapper will ignore a key you press, and just
 ;;  continue to prompt for the same key.  This can happen when your
-;;  window manager sucks up the key and doesn't pass it on to emacs,
-;;  or it could be an emacs bug.  Either way, there's nothing that
+;;  window manager sucks up the key and doesn't pass it on to Emacs,
+;;  or it could be an Emacs bug.  Either way, there's nothing that
 ;;  edt-mapper can do about it.  You must press RETURN, to skip the
 ;;  current key and continue.  Later, you and/or your local Emacs guru
 ;;  can try to figure out why the key is being ignored.
@@ -97,23 +96,19 @@
 ;;; Code:
 
 ;;;
-;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
-(defconst edt-window-system (if (featurep 'xemacs) (console-type) window-system)
-  "Indicates window system (in GNU Emacs) or console type (in XEmacs).")
+(define-obsolete-variable-alias 'edt-window-system 'window-system "27.1")
 
-(declare-function x-server-vendor "xfns.c" (&optional terminal))
-
-(defconst edt-xserver (when (eq edt-window-system 'x)
+(defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a
 			;; `-' to work around that.
-			(if (featurep 'xemacs)
-			    (replace-in-string (x-server-vendor) "[ /]" "-")
-			  (replace-regexp-in-string "[ /]" "-"
-						    (x-server-vendor))))
+			(replace-regexp-in-string "[ /]" "-"
+                                                  (x-server-vendor)))
   "Indicates X server vendor name, if applicable.")
 
 
@@ -139,40 +134,26 @@
 ;;;
 (defun edt-map-key (ident descrip)
   (interactive)
-  (if (featurep 'xemacs)
-      (progn
-	(setq edt-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
-	(setq edt-key (concat "[" (format "%s" (event-key (aref edt-key-seq 0))) "]"))
-	(cond ((not (equal edt-key edt-return))
-	       (set-buffer "Keys")
-	       (insert (format "    (\"%s\" . %s)\n" ident edt-key))
-	       (set-buffer "Directions"))
-	      ;; bogosity to get next prompt to come up, if the user hits <CR>!
-	      ;; check periodically to see if this is still needed...
-	      (t
-	       (set-buffer "Keys")
-	       (insert (format "    (\"%s\" . \"\" )\n" ident))
-	       (set-buffer "Directions"))))
-    (setq edt-key (read-key-sequence (format "Press %s%s: " ident descrip)))
-    (cond ((not (equal edt-key edt-return))
-	   (set-buffer "Keys")
-	   (insert (if (vectorp edt-key)
-		       (format "    (\"%s\" . %s)\n" ident edt-key)
-		     (format "    (\"%s\" . \"%s\")\n" ident edt-key)))
-	   (set-buffer "Directions"))
-	  ;; bogosity to get next prompt to come up, if the user hits <CR>!
-	  ;; check periodically to see if this is still needed...
-	  (t
-	   (set-buffer "Keys")
-	   (insert (format "    (\"%s\" . \"\" )\n" ident))
-	   (set-buffer "Directions"))))
+  (setq edt-key (read-key-sequence (format "Press %s%s: " ident descrip)))
+  (cond ((not (equal edt-key edt-return))
+         (set-buffer "Keys")
+         (insert (if (vectorp edt-key)
+                     (format "    (\"%s\" . %s)\n" ident edt-key)
+                   (format "    (\"%s\" . \"%s\")\n" ident edt-key)))
+         (set-buffer "Directions"))
+        ;; bogosity to get next prompt to come up, if the user hits <CR>!
+        ;; check periodically to see if this is still needed...
+        (t
+         (set-buffer "Keys")
+         (insert (format "    (\"%s\" . \"\" )\n" ident))
+         (set-buffer "Directions")))
   edt-key)
 
 (defun edt-mapper ()
   (if noninteractive
     (user-error "edt-mapper cannot be loaded in batch mode"))
   ;;  Determine Terminal Type (if appropriate).
-  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+  (if (and window-system (not (eq window-system 'tty)))
       (setq edt-term nil)
     (setq edt-term (getenv "TERM")))
   ;;
@@ -197,7 +178,7 @@
   (mapc
    (lambda (function-key)
      (if (not (lookup-key (current-global-map) function-key))
-	 (define-key (current-global-map) function-key 'forward-char)))
+	 (define-key (current-global-map) function-key #'forward-char)))
    '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
      [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
      [kp-space]
@@ -219,7 +200,7 @@
   ;;  Make sure the window is big enough to display the instructions,
   ;;  except where window cannot be re-sized.
   ;;
-  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+  (if (and window-system (not (eq window-system 'tty)))
       (set-frame-size (selected-frame) 80 36))
   ;;
   ;;  Create buffers - Directions and Keys
@@ -243,7 +224,7 @@
   ;;   Display directions
   ;;
   (switch-to-buffer "Directions")
-  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+  (if (and window-system (not (eq window-system 'tty)))
       (insert "
                                   EDT MAPPER
 
@@ -290,19 +271,14 @@
   ;;
   ;;  Save <CR> for future reference.
   ;;
-  ;;  For GNU Emacs, running in a Window System, first hide bindings in
+  ;;  For Emacs running in a Window System, first hide bindings in
   ;;  function-key-map.
   ;;
-  (cond
-   ((featurep 'xemacs)
-    (setq edt-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
-    (setq edt-return (concat "[" (format "%s" (event-key (aref edt-return-seq 0))) "]")))
-   (t
-    (if edt-window-system
-	(progn
-	  (setq edt-save-function-key-map function-key-map)
-	  (setq function-key-map (make-sparse-keymap))))
-    (setq edt-return (read-key-sequence "Hit carriage-return <CR> to continue "))))
+  (if window-system
+      (progn
+        (setq edt-save-function-key-map function-key-map)
+        (setq function-key-map (make-sparse-keymap))))
+  (setq edt-return (read-key-sequence "Hit carriage-return <CR> to continue "))
 
   ;;
   ;;  Remove prefix-key bindings to F1 and F2 in global-map so they can be
@@ -316,7 +292,7 @@
   ;;
   (set-buffer "Directions")
   (delete-region (point-min) (point-max))
-  (if (and edt-window-system (not (eq edt-window-system 'tty)))
+  (if (and window-system (not (eq window-system 'tty)))
       (insert "
 
           PRESS THE KEY SPECIFIED IN THE MINIBUFFER BELOW.
@@ -507,7 +483,7 @@
   ;;
   ;;  Restore function-key-map.
   ;;
-  (if (and edt-window-system (not (featurep 'xemacs)))
+  (if window-system
       (setq function-key-map edt-save-function-key-map))
   (setq EDT-key-name "")
   (while (not
@@ -530,13 +506,14 @@
   ;;  Save the key mapping file
   ;;
   (let ((file (concat
-	       "~/.edt-" (if (featurep 'xemacs) "xemacs" "gnu")
+	       "~/.edt-gnu"
 	       (if edt-term (concat "-" edt-term))
 	       (if edt-xserver (concat "-" edt-xserver))
-	       (if edt-window-system (concat "-" (upcase (symbol-name edt-window-system))))
+	       (if window-system (concat "-" (upcase (symbol-name window-system))))
 	       "-keys")))
     (set-visited-file-name
-     (read-file-name (format "Save key mapping to file (default %s): " file) nil file)))
+     (read-file-name (format-prompt "Save key mapping to file" file)
+                     nil file)))
   (save-buffer)
 
   (message "That's it!  Press any key to exit")

@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2014-2017 Free Software Foundation, Inc.
+Copyright (C) 2014-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -284,6 +284,8 @@ affected by the command.
 
 ** New command 'comment-line' bound to 'C-x C-;'.
 
+** New commands 'upcase-dwim' and 'downcase-dwim'.
+
 ** New and improved facilities for inserting Unicode characters
 
 *** Unicode names entered via 'C-x 8 RET' now use substring completion
@@ -452,6 +454,11 @@ specified message types for the respective specified targets.
 *** Nick completion is now case-insensitive again after inadvertently
 being made case-sensitive in Emacs 24.2.
 
+** Rcirc
+
+*** Rcirc now supports automatic reconnection.
+Set new user option 'rcirc-reconnect-delay' to non-zero to enable it.
+
 ** MPC
 
 *** New commands, key binds, and menu items.
@@ -543,8 +550,8 @@ When you invoke 'shell' interactively, the '*shell*' buffer will now
 display in a new window.  However, you can customize this behavior via
 the 'display-buffer-alist' variable.  For example, to get
 the old behavior -- '*shell*' buffer displays in current window -- use
-(add-to-list 'display-buffer-alist
-     '("^\\*shell\\*$" . (display-buffer-same-window))).
+    (add-to-list 'display-buffer-alist
+         '("\\`\\*shell\\*\\'" . (display-buffer-same-window))).
 
 ** EIEIO
 *** The ':protection' slot option is not obeyed any more.
@@ -712,7 +719,9 @@ CLOS class and slot documentation.
 *** Rectangle Mark mode can have corners past EOL or in the middle of a TAB.
 
 *** 'C-x C-x' in 'rectangle-mark-mode' now cycles through the four corners.
+
 *** 'string-rectangle' provides on-the-fly preview of the result.
+Customize 'rectangle-preview' to nil for the old behavior.
 
 ** New font-lock functions 'font-lock-ensure' and 'font-lock-flush'.
 These should be used in preference to 'font-lock-fontify-buffer' when
@@ -1255,7 +1264,7 @@ SWITCH-BUFFER to 'completion-table-dynamic'.
 
 ** window-configurations no longer record the buffers' marks.
 
-** 'inhibit-modification-hooks' now also inhibits lock-file checks, as
+** 'inhibit-modification-hooks' now also inhibits 'lock-file' checks, as
 well as active region handling.
 
 ** 'deactivate-mark' is now buffer-local.

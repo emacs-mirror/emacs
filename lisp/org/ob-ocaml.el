@@ -1,10 +1,10 @@
 ;;; ob-ocaml.el --- Babel Functions for Ocaml        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -32,16 +32,16 @@
 
 ;;; Requirements:
 
-;; - tuareg-mode :: http://www-rocq.inria.fr/~acohen/tuareg/
+;; - tuareg-mode :: https://elpa.nongnu.org/nongnu/tuareg.html
 
 ;;; Code:
 (require 'ob)
 (require 'comint)
+(require 'org-macs)
 
 (declare-function tuareg-run-caml "ext:tuareg" ())
 (declare-function tuareg-run-ocaml "ext:tuareg" ())
 (declare-function tuareg-interactive-send-input "ext:tuareg" ())
-(declare-function org-trim "org" (s &optional keep-lead))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("ocaml" . "ml"))
@@ -83,11 +83,11 @@
 	 (raw (org-trim clean))
 	 (result-params (cdr (assq :result-params params))))
     (string-match
-     "\\(\\(.*\n\\)*\\)[^:\n]+ : \\([^=\n]+\\) =\\(\n\\| \\)\\(.+\\)$"
+     "\\(\\(.*\n\\)*\\)[^:\n]+ : \\([^=\n]+\\) =[[:space:]]+\\(\\(.\\|\n\\)+\\)$"
      raw)
     (let ((output (match-string 1 raw))
 	  (type (match-string 3 raw))
-	  (value (match-string 5 raw)))
+	  (value (match-string 4 raw)))
       (org-babel-reassemble-table
        (org-babel-result-cond result-params
 	 (cond
@@ -112,8 +112,8 @@
                                             session
                                           tuareg-interactive-buffer-name)))
     (save-window-excursion (if (fboundp 'tuareg-run-process-if-needed)
-	 (tuareg-run-process-if-needed org-babel-ocaml-command)
-       (tuareg-run-caml)))
+	                       (tuareg-run-process-if-needed org-babel-ocaml-command)
+                             (tuareg-run-caml)))
     (get-buffer tuareg-interactive-buffer-name)))
 
 (defun org-babel-variable-assignments:ocaml (params)
@@ -165,7 +165,5 @@ Emacs-lisp table, otherwise return the results as a string."
 			    "; " "," results)))))
 
 (provide 'ob-ocaml)
-
-
 
 ;;; ob-ocaml.el ends here

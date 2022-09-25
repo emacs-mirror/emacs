@@ -1,5 +1,5 @@
 /* sysselect.h - System-dependent definitions for the select function.
-   Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -50,6 +50,11 @@ typedef int fd_set;
 #endif
 
 #ifdef MSDOS
+/* The above #define for 'select' gets in the way because sysselect.h
+   is included in thread.h, which is included everywhere, and 'select'
+   declared in DJGPP system headers has a signature incompatible with
+   'pselect', which we emulate in msdos.c.  */
+#undef select
 #define pselect sys_select
 #endif
 

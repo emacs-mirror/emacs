@@ -1,6 +1,6 @@
-;;; pcmpl-cvs.el --- functions for dealing with cvs completions
+;;; pcmpl-cvs.el --- functions for dealing with cvs completions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Package: pcomplete
@@ -29,7 +29,6 @@
 (provide 'pcmpl-cvs)
 
 (require 'pcomplete)
-(require 'executable)
 
 (defgroup pcmpl-cvs nil
   "Functions for dealing with CVS completions."
@@ -39,8 +38,7 @@
 
 (defcustom pcmpl-cvs-binary (or (executable-find "cvs") "cvs")
   "The full path of the `cvs' binary."
-  :type 'file
-  :group 'pcmpl-cvs)
+  :type 'file)
 
 ;; Functions:
 
@@ -122,7 +120,7 @@
     (let (cmds)
       (while (re-search-forward "^\\s-+\\([a-z]+\\)" nil t)
 	(setq cmds (cons (match-string 1) cmds)))
-      (pcomplete-uniqify-list cmds))))
+      (pcomplete-uniquify-list cmds))))
 
 (defun pcmpl-cvs-modules ()
   "Return a list of available modules under CVS."
@@ -132,14 +130,14 @@
     (let (entries)
       (while (re-search-forward "\\(\\S-+\\)$" nil t)
 	(setq entries (cons (match-string 1) entries)))
-      (pcomplete-uniqify-list entries))))
+      (pcomplete-uniquify-list entries))))
 
 (defun pcmpl-cvs-tags (&optional opers)
   "Return all the tags which could apply to the files related to OPERS."
   (let ((entries (pcmpl-cvs-entries opers))
 	tags)
     (with-temp-buffer
-      (apply 'call-process pcmpl-cvs-binary nil t nil
+      (apply #'call-process pcmpl-cvs-binary nil t nil
 	     "status" "-v" entries)
       (goto-char (point-min))
       (while (re-search-forward "Existing Tags:" nil t)
@@ -149,7 +147,7 @@
 	    (error "Error in output from `cvs status -v'"))
 	  (setq tags (cons (match-string 1) tags))
 	  (forward-line))))
-    (pcomplete-uniqify-list tags)))
+    (pcomplete-uniquify-list tags)))
 
 (defun pcmpl-cvs-entries (&optional opers)
   "Return the Entries for the current directory.
@@ -187,6 +185,6 @@ operation character applies, as displayed by `cvs -n update'."
                 (setq entries (cons text entries))))
             (forward-line)))))
     (setq pcomplete-stub nondir)
-    (pcomplete-uniqify-list entries)))
+    (pcomplete-uniquify-list entries)))
 
 ;;; pcmpl-cvs.el ends here

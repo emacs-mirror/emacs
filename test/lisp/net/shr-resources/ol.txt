@@ -1,0 +1,19 @@
+1 one
+2 two
+3 three
+
+10 ten
+11 eleven
+12 twelve
+
+0 zero
+1 one
+2 two
+
+-5 minus five
+-4 minus four
+-3 minus three
+
+1 one
+2 two
+3 three

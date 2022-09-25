@@ -1,6 +1,6 @@
-;;; calc-help.el --- help display functions for Calc,
+;;; calc-help.el --- help display functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -33,8 +33,8 @@
 (declare-function Info-last "info" ())
 
 
-(defun calc-help-prefix (arg)
-  "This key is the prefix for Calc help functions.  See calc-help-for-help."
+(defun calc-help-prefix (&optional _arg)
+  "This key is the prefix for Calc help functions.  See `calc-help-for-help'."
   (interactive "P")
   (or calc-dispatch-help (sit-for echo-keystrokes))
   (let ((key (calc-read-key-sequence
@@ -50,25 +50,25 @@
       (beep))))
 
 (defun calc-help-for-help (arg)
-  "You have typed `h', the Calc help character.  Type a Help option:
+  "You have typed \\`h', the Calc help character.  Type a Help option:
 
-B  calc-describe-bindings.  Display a table of all key bindings.
-H  calc-full-help.  Display all `?' key messages at once.
+\\`B'  calc-describe-bindings.  Display a table of all key bindings.
+\\`H'  calc-full-help.  Display all \\`?' key messages at once.
 
-I  calc-info.  Read the Calc manual using the Info system.
-T  calc-tutorial.  Read the Calc tutorial using the Info system.
-S  calc-info-summary.  Read the Calc summary using the Info system.
+\\`I'  calc-info.  Read the Calc manual using the Info system.
+\\`T'  calc-tutorial.  Read the Calc tutorial using the Info system.
+\\`S'  calc-info-summary.  Read the Calc summary using the Info system.
 
-C  calc-describe-key-briefly.  Look up the command name for a given key.
-K  calc-describe-key.  Look up a key's documentation in the manual.
-F  calc-describe-function.  Look up a function's documentation in the manual.
-V  calc-describe-variable.  Look up a variable's documentation in the manual.
+\\`C'  calc-describe-key-briefly.  Look up the command name for a given key.
+\\`K'  calc-describe-key.  Look up a key's documentation in the manual.
+\\`F'  calc-describe-function.  Look up a function's documentation in the manual.
+\\`V'  calc-describe-variable.  Look up a variable's documentation in the manual.
 
-N  calc-view-news.  Display Calc history of changes.
+\\`N'  calc-view-news.  Display Calc history of changes.
 
-C-c  Describe conditions for copying Calc.
-C-d  Describe how you can get a new copy of Calc or report a bug.
-C-w  Describe how there is no warranty for Calc."
+\\`C-c'  Describe conditions for copying Calc.
+\\`C-d'  Describe how you can get a new copy of Calc or report a bug.
+\\`C-w'  Describe how there is no warranty for Calc."
   (interactive "P")
   (if calc-dispatch-help
       (let (key)
@@ -77,14 +77,14 @@ C-w  Describe how there is no warranty for Calc."
 	  (select-window (get-buffer-window "*Help*"))
 	  (while (progn
 		   (message "Calc Help options: Help, Info, ...  press SPC, DEL to scroll, C-g to cancel")
-		   (memq (car (setq key (calc-read-key t)))
+		   (memq (setq key (read-event))
 			 '(?  ?\C-h ?\C-? ?\C-v ?\M-v)))
-	    (condition-case err
-		(if (memq (car key) '(?  ?\C-v))
+	    (condition-case nil
+		(if (memq key '(? ?\C-v))
 		    (scroll-up)
 		  (scroll-down))
 	      (error (beep)))))
-	(calc-unread-command (cdr key))
+	(calc-unread-command key)
 	(calc-help-prefix nil))
     (let ((calc-dispatch-help t))
       (calc-help-prefix arg))))
@@ -111,9 +111,6 @@ C-w  Describe how there is no warranty for Calc."
   (with-current-buffer "*Help*"
     (let ((inhibit-read-only t))
       (goto-char (point-min))
-      (when (search-forward "Major Mode Bindings:" nil t)
-        (delete-region (point-min) (point))
-        (insert "Calc Mode Bindings:"))
       (when (search-forward "Global bindings:" nil t)
         (forward-line -1)
         (delete-region (point) (point-max)))
@@ -172,7 +169,7 @@ C-w  Describe how there is no warranty for Calc."
 	  (setq desc (concat "M-" (substring desc 4))))
       (while (string-match "^M-# \\(ESC \\|C-\\)" desc)
 	(setq desc (concat "M-# " (substring desc (match-end 0)))))
-      (if (string-match "\\(DEL\\|\\LFD\\|RET\\|SPC\\|TAB\\)" desc)
+      (if (string-match "\\(DEL\\|LFD\\|RET\\|SPC\\|TAB\\)" desc)
           (setq desc (replace-match "<\\&>" nil nil desc)))
       (if briefly
 	  (let ((msg (with-current-buffer (get-buffer-create "*Calc Summary*")
@@ -255,8 +252,8 @@ C-w  Describe how there is no warranty for Calc."
 			   msg
 			   (if (equal notes "") ""
 			     (format "  (?=notes %s)" notes)))
-		  (let ((key (calc-read-key t)))
-		    (if (eq (car key) ??)
+		  (let ((key (read-event)))
+		    (if (eq key ??)
 			(if (equal notes "")
 			    (message "No notes for this command")
 			  (while (string-match "," notes)
@@ -280,7 +277,7 @@ C-w  Describe how there is no warranty for Calc."
 				(princ (buffer-substring pt (point))))
 			      (setq notes (cdr notes)))
 			    (help-print-return-message)))
-		      (calc-unread-command (cdr key)))))
+		      (calc-unread-command key))))
 	      (if (or (null defn) (integerp defn))
 		  (message "%s is undefined" desc)
 		(message "%s runs the command %s"
@@ -302,21 +299,19 @@ C-w  Describe how there is no warranty for Calc."
   (let ((entrylist '())
         entry)
     (require 'info nil t)
-    (while indices
-      (condition-case nil
-          (with-temp-buffer
-            (Info-mode)
-            (Info-goto-node (concat "(Calc)" (car indices) " Index"))
-            (goto-char (point-min))
-            (while (re-search-forward "\n\\* \\(.*\\): " nil t)
-              (setq entry (match-string 1))
-              (if (and (not (string-match "<[1-9]+>" entry))
-                       (not (string-match "(.*)" entry))
-                       (not (string= entry "Menu")))
-                  (unless (assoc entry entrylist)
-                    (setq entrylist (cons entry entrylist))))))
-        (error nil))
-      (setq indices (cdr indices)))
+    (dolist (indice indices)
+      (ignore-errors
+        (with-temp-buffer
+          (Info-mode)
+          (Info-goto-node (concat "(Calc)" indice " Index"))
+          (goto-char (point-min))
+          (while (re-search-forward "\n\\* \\(.*\\): " nil t)
+            (setq entry (match-string 1))
+            (if (and (not (string-match "<[1-9]+>" entry))
+                     (not (string-match "(.*)" entry))
+                     (not (string= entry "Menu")))
+                (unless (assoc entry entrylist)
+                  (setq entrylist (cons entry entrylist))))))))
     entrylist))
 
 (defun calc-describe-function (&optional func)
@@ -404,34 +399,32 @@ C-w  Describe how there is no warranty for Calc."
             "Or type `h i' to read the full Calc manual on-line.\n\n"))
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
-      (mapc (function (lambda (x) (princ (format
-                                          "  %s\n"
-                                          (substitute-command-keys x)))))
+      (mapc (lambda (x)
+              (princ (format
+                      "  %s\n"
+                      (substitute-command-keys x))))
 	    (nreverse (cdr (reverse (cdr (calc-help))))))
-      (mapc (function (lambda (prefix)
-			(let ((msgs (condition-case err
-					(funcall prefix)
-				      (error nil))))
-			  (if (car msgs)
-			      (princ
-			       (if (eq (nth 2 msgs) ?v)
-                                   (format-message
-                                    "\n`v' or `V' prefix (vector/matrix) keys: \n")
-				 (if (nth 2 msgs)
-				     (format-message
-				      "\n`%c' prefix (%s) keys:\n"
-				      (nth 2 msgs)
-				      (or (cdr (assq (nth 2 msgs)
-						     calc-help-long-names))
-					  (nth 1 msgs)))
-				   (format "\n%s-modified keys:\n"
-					   (capitalize (nth 1 msgs)))))))
-			  (mapcar (function
-                                   (lambda (x)
-                                     (princ (format
-                                             "  %s\n"
-                                             (substitute-command-keys x)))))
-				  (car msgs)))))
+      (mapc (lambda (prefix)
+              (let ((msgs (ignore-errors (funcall prefix))))
+                (if (car msgs)
+                    (princ
+                     (if (eq (nth 2 msgs) ?v)
+                         (format-message
+                          "\n`v' or `V' prefix (vector/matrix) keys: \n")
+                       (if (nth 2 msgs)
+                           (format-message
+                            "\n`%c' prefix (%s) keys:\n"
+                            (nth 2 msgs)
+                            (or (cdr (assq (nth 2 msgs)
+                                           calc-help-long-names))
+                                (nth 1 msgs)))
+                         (format "\n%s-modified keys:\n"
+                                 (capitalize (nth 1 msgs)))))))
+                (mapcar (lambda (x)
+                          (princ (format
+                                  "  %s\n"
+                                  (substitute-command-keys x))))
+                        (car msgs))))
 	    '(calc-inverse-prefix-help
 	      calc-hyperbolic-prefix-help
 	      calc-inv-hyp-prefix-help

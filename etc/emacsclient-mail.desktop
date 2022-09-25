@@ -1,0 +1,20 @@
+[Desktop Entry]
+Categories=Network;Email;
+Comment=GNU Emacs is an extensible, customizable text editor - and more
+Exec=sh -c "exec emacsclient --alternate-editor= --display=\\"\\$DISPLAY\\" --eval \\\\(message-mailto\\\\ \\\\\\"%u\\\\\\"\\\\)"
+Icon=emacs
+Name=Emacs (Mail, Client)
+MimeType=x-scheme-handler/mailto;
+NoDisplay=true
+Terminal=false
+Type=Application
+Keywords=emacsclient;
+Actions=new-window;new-instance;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=emacsclient --alternate-editor= --create-frame --eval "(message-mailto \\"%u\\")"
+
+[Desktop Action new-instance]
+Name=New Instance
+Exec=emacs -f message-mailto %u

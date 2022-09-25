@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,13 +22,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "atimer.h"
 
-/* Stack alignment stuff.  Every CALLBACK function should have the
-   ALIGN_STACK attribute if it manipulates Lisp objects, because
-   Windows x86 32-bit ABI only guarantees 4-byte stack alignment, and
-   that is what we will get when a Windows function calls us.  The
-   ALIGN_STACK attribute forces GCC to emit a preamble code to
-   re-align the stack at function entry.  Further details about this
-   can be found in http://www.peterstock.co.uk/games/mingw_sse/.  */
+/* Stack alignment stuff.  Every CALLBACK and thread function should
+   have the ALIGN_STACK attribute if it manipulates Lisp objects,
+   because Windows x86 32-bit ABI only guarantees 4-byte stack
+   alignment, and that is what we will get when a Windows function
+   calls us.  The ALIGN_STACK attribute forces GCC to emit a preamble
+   code to re-align the stack at function entry.  Further details
+   about this can be found in
+   http://www.peterstock.co.uk/games/mingw_sse/.  */
 #ifdef __GNUC__
 # if USE_STACK_LISP_OBJECTS && !defined _WIN64 && !defined __x86_64__	\
   && __GNUC__ + (__GNUC_MINOR__ > 1) >= 5
@@ -55,7 +56,7 @@ extern BOOL bUseDflt;
 
 struct w32_bitmap_record
 {
-  Pixmap pixmap;
+  Emacs_Pixmap pixmap;
   char *file;
   HINSTANCE hinst; /* Used to load the file */
   int refcount;
@@ -74,7 +75,6 @@ struct w32_palette_entry {
 extern void w32_regenerate_palette (struct frame *f);
 extern void w32_fullscreen_rect (HWND hwnd, int fsmode, RECT normal,
                                  RECT *rect);
-
 
 /* For each display (currently only one on w32), we have a structure that
    records information about it.  */
@@ -113,13 +113,13 @@ struct w32_display_info
   Window root_window;
 
   /* The cursor to use for vertical scroll bars.  */
-  Cursor vertical_scroll_bar_cursor;
+  HCURSOR vertical_scroll_bar_cursor;
 
   /* The cursor to use for horizontal scroll bars.  */
-  Cursor horizontal_scroll_bar_cursor;
+  HCURSOR horizontal_scroll_bar_cursor;
 
   /* Resource data base */
-  XrmDatabase xrdb;
+  const char *rdb;
 
   /* color palette information.  */
   int has_palette;
@@ -141,7 +141,7 @@ struct w32_display_info
   int smallest_font_height;
 
   /* Reusable Graphics Context for drawing a cursor in a non-default face. */
-  XGCValues *scratch_cursor_gc;
+  Emacs_GC *scratch_cursor_gc;
 
   /* Information about the range of text currently shown in
      mouse-face.  */
@@ -181,7 +181,7 @@ struct w32_display_info
      event).  It points to the focus frame's selected window's
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
-  struct frame *x_highlight_frame;
+  struct frame *highlight_frame;
 
   /* The frame waiting to be auto-raised in w32_read_socket.  */
   struct frame *w32_pending_autoraise_frame;
@@ -226,27 +226,35 @@ extern struct w32_display_info one_w32_display_info;
 extern HMENU current_popup_menu;
 extern int menubar_in_use;
 
-extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
+extern struct frame *w32_window_to_frame (struct w32_display_info *, HWND);
 
-struct w32_display_info *x_display_info_for_name (Lisp_Object);
+extern void w32_real_positions (struct frame *f, int *xptr, int *yptr);
 
-/* also defined in xterm.h XXX: factor out to common header */
+extern void w32_clear_under_internal_border (struct frame *);
+
+extern void w32_change_tab_bar_height (struct frame *, int);
+extern void w32_change_tool_bar_height (struct frame *, int);
+extern void w32_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+extern void w32_set_scroll_bar_default_width (struct frame *);
+extern void w32_set_scroll_bar_default_height (struct frame *);
+
 
 extern struct w32_display_info *w32_term_init (Lisp_Object,
 					       char *, char *);
-extern int w32_defined_color (struct frame *f, const char *color,
-                              XColor *color_def, bool alloc_p);
-extern int x_display_pixel_height (struct w32_display_info *);
-extern int x_display_pixel_width (struct w32_display_info *);
-extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-extern void x_set_tool_bar_lines (struct frame *f,
-                                  Lisp_Object value,
-                                  Lisp_Object oldval);
-extern void x_set_internal_border_width (struct frame *f,
-					 Lisp_Object value,
-					 Lisp_Object oldval);
+extern bool w32_defined_color (struct frame *, const char *, Emacs_Color *,
+                               bool, bool);
+extern int w32_display_pixel_height (struct w32_display_info *);
+extern int w32_display_pixel_width (struct w32_display_info *);
 extern void initialize_frame_menubar (struct frame *);
 extern void w32_dialog_in_progress (Lisp_Object in_progress);
+extern void w32_query_frame_background_color (struct frame *f,
+                                              Emacs_Color *bgcolor);
+
+extern void w32_make_frame_visible (struct frame *f);
+extern void w32_make_frame_invisible (struct frame *f);
+extern void w32_iconify_frame (struct frame *f);
+extern void w32_free_frame_resources (struct frame *);
+extern void w32_wm_set_size_hint (struct frame *, long, bool);
 
 /* w32inevt.c */
 extern int w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId);
@@ -255,6 +263,14 @@ extern int w32_kbd_mods_to_emacs (DWORD mods, WORD key);
 /* w32console.c */
 extern void w32con_hide_cursor (void);
 extern void w32con_show_cursor (void);
+
+/* w32reg.c */
+extern const char *w32_get_string_resource (void *v_rdb,
+                                            const char *name,
+                                            const char *class);
+
+/* w32fns.c */
+extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
 
 
 #define PIX_TYPE COLORREF
@@ -298,7 +314,7 @@ struct w32_output
   HPALETTE old_palette;
 
   /* Here are the Graphics Contexts for the default font.  */
-  XGCValues *cursor_gc;				/* cursor drawing */
+  Emacs_GC *cursor_gc;			/* cursor drawing */
 
   /* The window used for this frame.
      May be zero while the frame object is being created
@@ -338,28 +354,32 @@ struct w32_output
   COLORREF scroll_bar_background_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
-  Cursor text_cursor;
-  Cursor nontext_cursor;
-  Cursor modeline_cursor;
-  Cursor hand_cursor;
-  Cursor hourglass_cursor;
-  Cursor horizontal_drag_cursor;
-  Cursor vertical_drag_cursor;
-  Cursor left_edge_cursor;
-  Cursor top_left_corner_cursor;
-  Cursor top_edge_cursor;
-  Cursor top_right_corner_cursor;
-  Cursor right_edge_cursor;
-  Cursor bottom_right_corner_cursor;
-  Cursor bottom_edge_cursor;
-  Cursor bottom_left_corner_cursor;
+  HCURSOR text_cursor;
+  HCURSOR nontext_cursor;
+  HCURSOR modeline_cursor;
+  HCURSOR hand_cursor;
+  HCURSOR hourglass_cursor;
+  HCURSOR horizontal_drag_cursor;
+  HCURSOR vertical_drag_cursor;
+  HCURSOR left_edge_cursor;
+  HCURSOR top_left_corner_cursor;
+  HCURSOR top_edge_cursor;
+  HCURSOR top_right_corner_cursor;
+  HCURSOR right_edge_cursor;
+  HCURSOR bottom_right_corner_cursor;
+  HCURSOR bottom_edge_cursor;
+  HCURSOR bottom_left_corner_cursor;
 
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
   /* Non-hourglass cursor that is currently active.  */
-  Cursor current_cursor;
+  HCURSOR current_cursor;
 
+  /* The window style for this frame.  Set up when the frame is
+     created and updated when adding/removing decorations in
+     w32_set_undecorated.  Used by w32_set_window_size to adjust the
+     frame's window rectangle.  */
   DWORD dwStyle;
 
   /* This is the Emacs structure for the display this frame is on.  */
@@ -378,7 +398,7 @@ struct w32_output
   /* Relief GCs, colors etc.  */
   struct relief
   {
-    XGCValues *gc;
+    Emacs_GC *gc;
     unsigned long pixel;
   }
   black_relief, white_relief;
@@ -392,16 +412,37 @@ struct w32_output
      geometry when 'fullscreen' is reset to nil.  */
   WINDOWPLACEMENT normal_placement;
   int prev_fsmode;
+
+  /* The back buffer if there is an ongoing double-buffered drawing
+     operation.  */
+  HBITMAP paint_buffer;
+
+  /* The handle of the back buffer and a DC that ought to be released
+     alongside the back buffer.  */
+  HDC paint_dc, paint_buffer_handle;
+
+  /* The object previously selected into `paint_dc'.  */
+  HGDIOBJ paint_dc_object;
+
+  /* The width and height of `paint_buffer'.  */
+  int paint_buffer_width, paint_buffer_height;
+
+  /* Whether or not some painting was done to this window that has not
+     yet been drawn.  */
+  unsigned paint_buffer_dirty : 1;
+
+  /* Whether or not this frame should be double buffered.  */
+  unsigned want_paint_buffer : 1;
 };
 
 extern struct w32_output w32term_display;
 
-/* Return the X output data for frame F.  */
-#define FRAME_X_OUTPUT(f) ((f)->output_data.w32)
+/* Return the output data for frame F.  */
+#define FRAME_OUTPUT_DATA(f) ((f)->output_data.w32)
 
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
-#define FRAME_X_WINDOW(f) FRAME_W32_WINDOW (f)
+#define FRAME_NATIVE_WINDOW(f) FRAME_W32_WINDOW (f)
 
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
@@ -409,9 +450,6 @@ extern struct w32_output w32term_display;
 
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_DISPLAY_INFO(f) ((void) (f), (&one_w32_display_info))
-
-/* This is the `Display *' which frame F is on.  */
-#define FRAME_X_DISPLAY(f) (0)
 
 #define FRAME_NORMAL_PLACEMENT(F) ((F)->output_data.w32->normal_placement)
 #define FRAME_PREV_FSMODE(F)      ((F)->output_data.w32->prev_fsmode)
@@ -430,7 +468,7 @@ extern struct w32_output w32term_display;
 struct scroll_bar {
 
   /* This field is shared by all vectors.  */
-  struct vectorlike_header header;
+  union vectorlike_header header;
 
   /* The window we're a scroll bar for.  */
   Lisp_Object window;
@@ -459,7 +497,7 @@ struct scroll_bar {
      editing large files, we establish a minimum height by always
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
-     different co-ordinate system.  */
+     different coordinate system.  */
   int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
@@ -477,7 +515,7 @@ struct scroll_bar {
 
 #ifdef _WIN64
 /* Building a 64-bit C integer from two 32-bit lisp integers.  */
-#define SCROLL_BAR_PACK(low, high) (XINT (high) << 32 | XINT (low))
+#define SCROLL_BAR_PACK(low, high) (XFIXNUM (high) << 32 | XFIXNUM (low))
 
 /* Setting two lisp integers to the low and high words of a 64-bit C int.  */
 #define SCROLL_BAR_UNPACK(low, high, int64) \
@@ -485,7 +523,7 @@ struct scroll_bar {
    XSETINT ((high), ((DWORDLONG)(int64) >> 32) & 0xffffffff))
 #else  /* not _WIN64 */
 /* Building a 32-bit C unsigned integer from two 16-bit lisp integers.  */
-#define SCROLL_BAR_PACK(low, high) ((UINT_PTR)(XINT (high) << 16 | XINT (low)))
+#define SCROLL_BAR_PACK(low, high) ((UINT_PTR)(XFIXNUM (high) << 16 | XFIXNUM (low)))
 
 /* Setting two lisp integers to the low and high words of a 32-bit C int.  */
 #define SCROLL_BAR_UNPACK(low, high, int32) \
@@ -654,7 +692,8 @@ do { \
 #define WM_EMACS_BRINGTOTOP            (WM_EMACS_START + 23)
 #define WM_EMACS_INPUT_READY           (WM_EMACS_START + 24)
 #define WM_EMACS_FILENOTIFY            (WM_EMACS_START + 25)
-#define WM_EMACS_END                   (WM_EMACS_START + 26)
+#define WM_EMACS_IME_STATUS            (WM_EMACS_START + 26)
+#define WM_EMACS_END                   (WM_EMACS_START + 27)
 
 #define WND_FONTWIDTH_INDEX    (0)
 #define WND_LINEHEIGHT_INDEX   (4)
@@ -714,9 +753,8 @@ extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
 extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
-extern void x_delete_display (struct w32_display_info *dpyinfo);
-extern void x_clear_under_internal_border (struct frame *f);
-extern void x_query_color (struct frame *, XColor *);
+extern void w32_query_color (struct frame *, Emacs_Color *);
+extern void w32_delete_display (struct w32_display_info *dpyinfo);
 
 #define FILE_NOTIFICATIONS_SIZE 16384
 /* Notifications come in sets.  We use a doubly linked list with a
@@ -731,18 +769,20 @@ struct notifications_set {
 };
 extern struct notifications_set *notifications_set_head;
 extern Lisp_Object w32_get_watch_object (void *);
-extern Lisp_Object lispy_file_action (DWORD);
+extern Lisp_Object w32_lispy_file_action (DWORD);
 extern int handle_file_notifications (struct input_event *);
 
 extern void w32_initialize_display_info (Lisp_Object);
 extern void initialize_w32_display (struct terminal *, int *, int *);
+
+extern bool w32_image_rotations_p (void);
 
 #ifdef WINDOWSNT
 /* Keyboard hooks.  */
 extern void setup_w32_kbdhook (void);
 extern void remove_w32_kbdhook (void);
 extern int check_w32_winkey_state (int);
-#define w32_kbdhook_active (os_subtype != OS_9X)
+#define w32_kbdhook_active (os_subtype != OS_SUBTYPE_9X)
 #else
 #define w32_kbdhook_active 0
 #endif
@@ -799,7 +839,7 @@ typedef struct tagTRACKMOUSEEVENT
 struct image;
 struct face;
 
-XGCValues *XCreateGC (void *, HWND, unsigned long, XGCValues *);
+Emacs_GC *XCreateGC (void *, HWND, unsigned long, Emacs_GC *);
 
 typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
@@ -815,6 +855,8 @@ extern int w32_system_caret_y;
 extern struct window *w32_system_caret_window;
 extern int w32_system_caret_hdr_height;
 extern int w32_system_caret_mode_height;
+
+extern Window tip_window;
 
 #ifdef _MSC_VER
 #ifndef EnumSystemLocales
@@ -855,6 +897,8 @@ typedef char guichar_t;
 
 extern Lisp_Object w32_popup_dialog (struct frame *, Lisp_Object, Lisp_Object);
 extern void w32_arrow_cursor (void);
+extern void w32_release_paint_buffer (struct frame *);
+extern void w32_flip_buffers_if_dirty (struct frame *);
 
 extern void syms_of_w32term (void);
 extern void syms_of_w32menu (void);

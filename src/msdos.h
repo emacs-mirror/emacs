@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +20,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMACS_MSDOS_H
 
 #include <dpmi.h>
+
+#include "termhooks.h"		/* struct terminal */
+struct terminal;
+
+extern unsigned int _dos_commit(int);
+#define tcdrain(f) _dos_commit(f)
 
 int dos_ttraw (struct tty_display_info *);
 int dos_ttcooked (void);
@@ -55,6 +61,11 @@ ssize_t readlinkat (int, const char *, char *, size_t);
 int fstatat (int, char const *, struct stat *, int);
 int unsetenv (const char *);
 int faccessat (int, const char *, int, int);
+int openat (int, const char *, int, int);
+int fchmodat (int, const char *, mode_t, int);
+int futimens (int, const struct timespec[2]);
+int utimensat (int, const char *, const struct timespec[2], int);
+
 void msdos_fatal_signal (int);
 void syms_of_msdos (void);
 int pthread_sigmask (int, const sigset_t *, sigset_t *);
@@ -67,6 +78,7 @@ void syms_of_win16select (void);
 
 /* Constants.  */
 #define EINPROGRESS 112
+#define ENOTSUP     ENOSYS
 /* Gnulib sets O_CLOEXEC to O_NOINHERIT, which gets in the way when we
    need to redirect standard handles for subprocesses using temporary
    files created by mkostemp, see callproc.c.  */
@@ -83,15 +95,16 @@ typedef int GC;
 typedef int Pixmap;
 typedef int Display;
 typedef int Window;
-typedef int XRectangle;
+
+#define FRAME_X_DISPLAY(ignored) NULL
 #define PIX_TYPE unsigned long
 #define XDISPLAY
 
 typedef struct tty_display_info Display_Info;
 
 extern struct tty_display_info the_only_display_info;
+extern struct tty_output the_only_tty_output;
 
-#define FRAME_X_DISPLAY(f) ((Display *) 0)
 #define FRAME_FONT(f) ((f)->output_data.tty->font)
 #define FRAME_DISPLAY_INFO(f) (&the_only_display_info)
 

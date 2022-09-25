@@ -1,8 +1,8 @@
-;;; cedet-idutils.el --- ID Utils support for CEDET.
+;;; cedet-idutils.el --- ID Utils support for CEDET.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 0.2
 ;; Keywords: OO, lisp
 ;; Package: cedet
@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
 (defvar cedet-idutils-min-version "4.0"
   "Minimum version of ID Utils required.")
 
@@ -49,15 +47,15 @@
   :type 'string
   :group 'cedet)
 
-(defun cedet-idutils-search (searchtext texttype type scope)
+(defun cedet-idutils-search (searchtext texttype type _scope)
   "Perform a search with ID Utils, return the created buffer.
 SEARCHTEXT is text to find.
-TEXTTYPE is the type of text, such as 'regexp, 'string, 'tagname,
-'tagregexp, or 'tagcompletions.
+TEXTTYPE is the type of text, such as `regexp', `string', `tagname',
+`tagregexp', or `tagcompletions'.
 TYPE is the type of search, meaning that SEARCHTEXT is compared to
 filename, tagname (tags table), references (uses of a tag) , or
 symbol (uses of something not in the tag table.)
-SCOPE is the scope of the search, such as 'project or 'subdirs.
+SCOPE is the scope of the search, such as `project' or `subdirs'.
 Note: Scope is not yet supported."
   (if (eq type 'file)
       ;; Calls for file stuff is very simple.
@@ -66,7 +64,7 @@ Note: Scope is not yet supported."
     (let* ((resultflg (if (eq texttype 'tagcompletions)
 			  (list "--key=token")
 			(list "--result=grep")))
-	   (scopeflgs nil) ; (cond ((eq scope 'project) "" ) ((eq scope 'target) "l")))
+	   ;; (scopeflgs (cond ((eq scope 'project) "" ) ((eq scope 'target) "l")))
 	   (stflag (cond ((or (eq texttype 'tagname)
 			      (eq texttype 'tagregexp))
 			  (list "-r" "-w"))
@@ -79,7 +77,7 @@ Note: Scope is not yet supported."
 			 ;; t means 'symbol
 			 (t (list "-l" "-w"))))
 	   )
-      (cedet-idutils-lid-call (append resultflg scopeflgs stflag
+      (cedet-idutils-lid-call (append resultflg nil stflag ;; scopeflgs
 				      (list searchtext))))))
 
 (defun cedet-idutils-fnid-call (flags)
@@ -91,21 +89,21 @@ Return the created buffer with program output."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-file-command
+    (apply #'call-process cedet-idutils-file-command
 	   nil b nil
 	   flags)
     b))
 
 (defun cedet-idutils-lid-call (flags)
   "Call ID Utils lid with the list of FLAGS.
-Return the created buffer with with program output."
+Return the created buffer with program output."
   (let ((b (get-buffer-create "*CEDET lid*"))
 	(cd default-directory)
 	)
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-token-command
+    (apply #'call-process cedet-idutils-token-command
 	   nil b nil
 	   flags)
     b))
@@ -119,7 +117,7 @@ Return the created buffer with program output."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-make-command
+    (apply #'call-process cedet-idutils-make-command
 	   nil b nil
 	   flags)
     b))
@@ -135,7 +133,7 @@ Return a filename relative to the default directory."
 	       (if (looking-at "[^ \n]*fnid: ")
 		   (error "ID Utils not available")
 		 (split-string (buffer-string) "\n" t)))))
-    (setq ans (mapcar 'expand-file-name ans))
+    (setq ans (mapcar #'expand-file-name ans))
     (when (called-interactively-p 'interactive)
       (if ans
 	  (if (= (length ans) 1)
@@ -167,7 +165,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-idutils-fnid-call (list "--version"))
 	     (error nil)))
@@ -182,7 +179,7 @@ return nil."
 	(if (re-search-forward "fnid - \\([0-9.]+\\)" nil t)
 	    (setq rev (match-string 1))
 	  (setq rev "0"))
-	(if (inversion-check-version rev nil cedet-idutils-min-version)
+        (if (version< rev cedet-idutils-min-version)
 	    (if noerror
 		nil
 	      (error "Version of ID Utils is %s.  Need at least %s"

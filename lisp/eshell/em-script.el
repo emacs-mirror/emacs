@@ -1,6 +1,6 @@
 ;;; em-script.el --- Eshell script files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,8 +23,7 @@
 
 ;;; Code:
 
-(require 'eshell)
-(require 'esh-opt)
+(require 'esh-mode)
 
 ;;;###autoload
 (progn
@@ -57,29 +56,29 @@ This includes when running `eshell-command'."
 
 ;;; Functions:
 
-(defun eshell-script-initialize ()
+(defun eshell-script-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the script parsing code."
-  (make-local-variable 'eshell-interpreter-alist)
-  (setq eshell-interpreter-alist
-	(cons (cons #'(lambda (file args)
-                        (string= (file-name-nondirectory file)
-                                 "eshell"))
-                    'eshell/source)
-	      eshell-interpreter-alist))
-  (make-local-variable 'eshell-complex-commands)
-  (setq eshell-complex-commands
+  (setq-local eshell-interpreter-alist
+              (cons (cons (lambda (file _args)
+                            (and (file-regular-p file)
+                                 (string= (file-name-nondirectory file)
+                                          "eshell")))
+                          'eshell/source)
+                    eshell-interpreter-alist))
+  (setq-local eshell-complex-commands
 	(append '("source" ".") eshell-complex-commands))
   ;; these two variables are changed through usage, but we don't want
   ;; to ruin it for other modules
   (let (eshell-inside-quote-regexp
 	eshell-outside-quote-regexp)
-    (and (not eshell-non-interactive-p)
+    (and (not (bound-and-true-p eshell-non-interactive-p))
 	 eshell-login-script
 	 (file-readable-p eshell-login-script)
 	 (eshell-do-eval
 	  (list 'eshell-commands
 		(catch 'eshell-replace-command
-		  (eshell-source-file eshell-login-script))) t))
+		  (eshell-source-file eshell-login-script)))
+          t))
     (and eshell-rc-script
 	 (file-readable-p eshell-rc-script)
 	 (eshell-do-eval
@@ -90,7 +89,6 @@ This includes when running `eshell-command'."
 (defun eshell-source-file (file &optional args subcommand-p)
   "Execute a series of Eshell commands in FILE, passing ARGS.
 Comments begin with `#'."
-  (interactive "f")
   (let ((orig (point))
 	(here (point-max))
 	(inhibit-point-motion-hooks t))
@@ -115,27 +113,13 @@ Comments begin with `#'."
 
 (defun eshell/source (&rest args)
   "Source a file in a subshell environment."
-  (eshell-eval-using-options
-   "source" args
-   '((?h "help" nil nil "show this usage screen")
-     :show-usage
-     :usage "FILE [ARGS]
-Invoke the Eshell commands in FILE in a subshell, binding ARGS to $1,
-$2, etc.")
-   (eshell-source-file (car args) (cdr args) t)))
+  (eshell-source-file (car args) (cdr args) t))
 
 (put 'eshell/source 'eshell-no-numeric-conversions t)
 
 (defun eshell/. (&rest args)
   "Source a file in the current environment."
-  (eshell-eval-using-options
-   "." args
-   '((?h "help" nil nil "show this usage screen")
-     :show-usage
-     :usage "FILE [ARGS]
-Invoke the Eshell commands in FILE within the current shell
-environment, binding ARGS to $1, $2, etc.")
-   (eshell-source-file (car args) (cdr args))))
+  (eshell-source-file (car args) (cdr args)))
 
 (put 'eshell/. 'eshell-no-numeric-conversions t)
 

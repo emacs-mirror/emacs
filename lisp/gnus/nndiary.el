@@ -1,9 +1,8 @@
-;;; nndiary.el --- A diary back end for Gnus
+;;; nndiary.el --- A diary back end for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
-;; Author:        Didier Verna <didier@xemacs.org>
-;; Maintainer:    Didier Verna <didier@xemacs.org>
+;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Fri Jul 16 18:55:42 1999
 ;; Keywords:      calendar mail news
 
@@ -83,7 +82,6 @@
 (require 'nnoo)
 (require 'nnheader)
 (require 'nnmail)
-(eval-when-compile (require 'cl))
 
 (require 'gnus-start)
 (require 'gnus-sum)
@@ -123,16 +121,16 @@ Diary articles will appear again, as if they'd been just received.
 
 Entries look like (3 . day) which means something like \"Please
 Hortense, would you be so kind as to remind me of my appointments 3 days
-before the date, thank you very much. Anda, hmmm... by the way, are you
+before the date, thank you very much.  Anda, hmmm... by the way, are you
 doing anything special tonight ?\".
 
-The units of measure are 'minute 'hour 'day 'week 'month and 'year (no,
-not 'century, sorry).
+The units of measure are `minute' `hour' `day' `week' `month' and `year' (no,
+not `century', sorry).
 
 NOTE: the units of measure actually express dates, not durations: if you
-use 'week, messages will pop up on Sundays at 00:00 (or Mondays if
+use `week', messages will pop up on Sundays at 00:00 (or Mondays if
 `nndiary-week-starts-on-monday' is non-nil) and *not* 7 days before the
-appointment, if you use 'month, messages will pop up on the first day of
+appointment, if you use `month', messages will pop up on the first day of
 each months, at 00:00 and so on.
 
 If you really want to specify a duration (like 24 hours exactly), you can
@@ -151,7 +149,6 @@ In order to make this clear, here are some examples:
 
 - (360 . minute): for an appointment at 18:30 and 15 seconds, this would
   pop up the appointment message at 12:30."
-  :group 'nndiary
   :type '(repeat (cons :format "%v\n"
 		       (integer :format "%v")
 		       (choice :format "%[%v(s)%] before...\n"
@@ -165,38 +162,27 @@ In order to make this clear, here are some examples:
 
 (defcustom nndiary-week-starts-on-monday nil
   "Whether a week starts on monday (otherwise, sunday)."
-  :type 'boolean
-  :group 'nndiary)
+  :type 'boolean)
 
 
-(define-obsolete-variable-alias 'nndiary-request-create-group-hooks
-  'nndiary-request-create-group-functions "24.3")
 (defcustom nndiary-request-create-group-functions nil
   "Hook run after `nndiary-request-create-group' is executed.
 The hook functions will be called with the full group name as argument."
-  :group 'nndiary
   :type 'hook)
 
-(define-obsolete-variable-alias 'nndiary-request-update-info-hooks
-  'nndiary-request-update-info-functions "24.3")
 (defcustom nndiary-request-update-info-functions nil
-  "Hook run after `nndiary-request-update-info-group' is executed.
+  "Hook run after `nndiary-request-update-info' is executed.
 The hook functions will be called with the full group name as argument."
-  :group 'nndiary
   :type 'hook)
 
-(define-obsolete-variable-alias 'nndiary-request-accept-article-hooks
-  'nndiary-request-accept-article-functions "24.3")
 (defcustom nndiary-request-accept-article-functions nil
   "Hook run before accepting an article.
 Executed near the beginning of `nndiary-request-accept-article'.
 The hook functions will be called with the article in the current buffer."
-  :group 'nndiary
   :type 'hook)
 
 (defcustom nndiary-check-directory-twice t
   "If t, check directories twice to avoid NFS failures."
-  :group 'nndiary
   :type 'boolean)
 
 
@@ -220,7 +206,7 @@ The hook functions will be called with the article in the current buffer."
 (defvoo nndiary-get-new-mail nil
   "Whether nndiary gets new mail and split it.
 Contrary to traditional mail back ends, this variable can be set to t
-even if your primary mail back end also retrieves mail. In such a case,
+even if your primary mail back end also retrieves mail.  In such a case,
 NDiary uses its own mail-sources and split-methods.")
 
 (defvoo nndiary-nov-is-evil nil
@@ -233,7 +219,7 @@ through all nnml directories and generate nov databases for them
 all.  This may very well take some time.")
 
 (defvoo nndiary-prepare-save-mail-hook nil
-  "*Hook run narrowed to an article before saving.")
+  "Hook run narrowed to an article before saving.")
 
 (defvoo nndiary-inhibit-expiry nil
   "If non-nil, inhibit expiry.")
@@ -242,9 +228,11 @@ all.  This may very well take some time.")
 
 (defconst nndiary-version "0.2-b14"
   "Current Diary back end version.")
+(make-obsolete-variable 'nndiary-version 'emacs-version "29.1")
 
 (defun nndiary-version ()
   "Current Diary back end version."
+  (declare (obsolete emacs-version "29.1"))
   (interactive)
   (message "NNDiary version %s" nndiary-version))
 
@@ -424,6 +412,11 @@ all.  This may very well take some time.")
 
 (deffoo nndiary-open-server (server &optional defs)
   (nnoo-change-server 'nndiary server defs)
+  (dolist (header nndiary-headers)
+    (setq header (intern (format "X-Diary-%s" (car header))))
+    ;; Required for building NOV databases and some other stuff.
+    (add-to-list 'gnus-extra-headers header)
+    (add-to-list 'nnmail-extra-headers header))
   (when (not (file-exists-p nndiary-directory))
     (ignore-errors (make-directory nndiary-directory t)))
   (cond
@@ -477,7 +470,7 @@ all.  This may very well take some time.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nndiary-request-group (group &optional server dont-check info)
+(deffoo nndiary-request-group (group &optional server dont-check _info)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nndiary-possibly-change-directory group server))
@@ -511,11 +504,11 @@ all.  This may very well take some time.")
     (nndiary-possibly-change-directory group server)
     (nnmail-get-new-mail 'nndiary 'nndiary-save-nov nndiary-directory group)))
 
-(deffoo nndiary-close-group (group &optional server)
+(deffoo nndiary-close-group (_group &optional _server)
   (setq nndiary-article-file-alist nil)
   t)
 
-(deffoo nndiary-request-create-group (group &optional server args)
+(deffoo nndiary-request-create-group (group &optional server _args)
   (nndiary-possibly-change-directory nil server)
   (nnmail-activate 'nndiary)
   (cond
@@ -534,8 +527,8 @@ all.  This may very well take some time.")
       (nndiary-possibly-change-directory group server)
       (let ((articles (nnheader-directory-articles nndiary-current-directory)))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))
       (nnmail-save-active nndiary-group-alist nndiary-active-file)
       (run-hook-with-args 'nndiary-request-create-group-functions
 			  (gnus-group-prefixed-name group
@@ -543,7 +536,7 @@ all.  This may very well take some time.")
       t))
    ))
 
-(deffoo nndiary-request-list (&optional server)
+(deffoo nndiary-request-list (&optional _server)
   (save-excursion
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
 	  (file-name-coding-system nnmail-pathname-coding-system))
@@ -551,10 +544,10 @@ all.  This may very well take some time.")
     (setq nndiary-group-alist (nnmail-get-active))
     t))
 
-(deffoo nndiary-request-newgroups (date &optional server)
+(deffoo nndiary-request-newgroups (_date &optional server)
   (nndiary-request-list server))
 
-(deffoo nndiary-request-list-newsgroups (&optional server)
+(deffoo nndiary-request-list-newsgroups (&optional _server)
   (save-excursion
     (nnmail-find-file nndiary-newsgroups-file)))
 
@@ -566,7 +559,7 @@ all.  This may very well take some time.")
     (nnmail-activate 'nndiary)
     ;; Articles not listed in active-articles are already gone,
     ;; so don't try to expire them.
-    (setq articles (gnus-intersection articles active-articles))
+    (setq articles (nreverse (seq-intersection articles active-articles #'eq)))
     (while articles
       (setq article (nndiary-article-to-file (setq number (pop articles))))
       (if (and (nndiary-deletable-article-p group number)
@@ -591,15 +584,15 @@ all.  This may very well take some time.")
     (let ((active (nth 1 (assoc group nndiary-group-alist))))
       (when active
 	(setcar active (or (and active-articles
-				(apply 'min active-articles))
+				(apply #'min active-articles))
 			   (1+ (cdr active)))))
       (nnmail-save-active nndiary-group-alist nndiary-active-file))
     (nndiary-save-nov)
     (nconc rest articles)))
 
 (deffoo nndiary-request-move-article
-    (article group server accept-form &optional last move-is-internal)
-  (let ((buf (get-buffer-create " *nndiary move*"))
+    (article group server accept-form &optional last _move-is-internal)
+  (let ((buf (gnus-get-buffer-create " *nndiary move*"))
 	result)
     (nndiary-possibly-change-directory group server)
     (nndiary-update-file-alist)
@@ -611,7 +604,7 @@ all.  This may very well take some time.")
 	   nndiary-article-file-alist)
        (with-current-buffer buf
 	 (insert-buffer-substring nntp-server-buffer)
-	 (setq result (eval accept-form))
+	 (setq result (eval accept-form t))
 	 (kill-buffer (current-buffer))
 	 result))
      (progn
@@ -774,7 +767,7 @@ all.  This may very well take some time.")
 
 ;;; Interface optional functions ============================================
 
-(deffoo nndiary-request-update-info (group info &optional server)
+(deffoo nndiary-request-update-info (group info &optional _server)
   (nndiary-possibly-change-directory group)
   (let ((timestamp (gnus-group-parameter-value (gnus-info-params info)
 					       'timestamp t)))
@@ -795,10 +788,10 @@ all.  This may very well take some time.")
 	  ;;(message "unread: %s" unread)
 	  (sit-for 1)
 	  (kill-buffer buf))
-	(setq unread (sort unread '<))
+	(setq unread (sort unread #'<))
 	(and unread
-	     (gnus-info-set-read info (gnus-update-read-articles
-				       (gnus-info-group info) unread t)))
+	     (setf (gnus-info-read info)
+		   (gnus-update-read-articles (gnus-info-group info) unread t)))
 	))
     (run-hook-with-args 'nndiary-request-update-info-functions
 			(gnus-info-group info))
@@ -833,7 +826,7 @@ all.  This may very well take some time.")
 
 ;; Find an article number in the current group given the Message-ID.
 (defun nndiary-find-group-number (id)
-  (with-current-buffer (get-buffer-create " *nndiary id*")
+  (with-current-buffer (gnus-get-buffer-create " *nndiary id*")
     (let ((alist nndiary-group-alist)
 	  number)
       ;; We want to look through all .overview files, but we want to
@@ -863,7 +856,7 @@ all.  This may very well take some time.")
 		  (search-forward id nil t)) ; We find the ID.
 	;; And the id is in the fourth field.
 	(if (not (and (search-backward "\t" nil t 4)
-		      (not (search-backward"\t" (point-at-bol) t))))
+                      (not (search-backward"\t" (line-beginning-position) t))))
 	    (forward-line 1)
 	  (beginning-of-line)
 	  (setq found t)
@@ -962,7 +955,7 @@ all.  This may very well take some time.")
 	(setq nndiary-article-file-alist
 	      (sort
 	       (nnheader-article-to-file-alist nndiary-current-directory)
-	       'car-less-than-car)))
+	       #'car-less-than-car)))
       (setq active
 	    (if nndiary-article-file-alist
 		(cons (caar nndiary-article-file-alist)
@@ -980,7 +973,7 @@ all.  This may very well take some time.")
   "Add a nov line for the GROUP base."
   (with-current-buffer (nndiary-open-nov group)
     (goto-char (point-max))
-    (mail-header-set-number headers article)
+    (setf (mail-header-number headers) article)
     (nnheader-insert-nov headers)))
 
 (defsubst nndiary-header-value ()
@@ -994,20 +987,20 @@ all.  This may very well take some time.")
 	(narrow-to-region
 	 (goto-char (point-min))
 	 (if (search-forward "\n\n" nil t) (1- (point)) (point-max))))
-      (let ((headers (nnheader-parse-naked-head)))
-	(mail-header-set-chars headers chars)
-	(mail-header-set-number headers number)
+      (let ((headers (nnheader-parse-head t)))
+	(setf (mail-header-chars  headers) chars)
+	(setf (mail-header-number headers) number)
 	headers))))
 
 (defun nndiary-open-nov (group)
   (or (cdr (assoc group nndiary-nov-buffer-alist))
-      (let ((buffer (get-buffer-create (format " *nndiary overview %s*"
-					       group))))
+      (let ((buffer (gnus-get-buffer-create
+                     (format " *nndiary overview %s*" group))))
 	(with-current-buffer buffer
-	  (set (make-local-variable 'nndiary-nov-buffer-file-name)
-	       (expand-file-name
-		nndiary-nov-file-name
-		(nnmail-group-pathname group nndiary-directory)))
+	  (setq-local nndiary-nov-buffer-file-name
+	              (expand-file-name
+		       nndiary-nov-file-name
+		       (nnmail-group-pathname group nndiary-directory)))
 	  (erase-buffer)
 	  (when (file-exists-p nndiary-nov-buffer-file-name)
 	    (nnheader-insert-file-contents nndiary-nov-buffer-file-name)))
@@ -1017,7 +1010,7 @@ all.  This may very well take some time.")
 (defun nndiary-save-nov ()
   (save-excursion
     (while nndiary-nov-buffer-alist
-      (when (buffer-name (cdar nndiary-nov-buffer-alist))
+      (when (buffer-live-p (cdar nndiary-nov-buffer-alist))
 	(set-buffer (cdar nndiary-nov-buffer-alist))
 	(when (buffer-modified-p)
 	  (nnmail-write-region 1 (point-max) nndiary-nov-buffer-file-name
@@ -1041,6 +1034,8 @@ all.  This may very well take some time.")
   ;; Save the active file.
   (nnmail-save-active nndiary-group-alist nndiary-active-file))
 
+(defvar nndiary-files) ; dynamically bound in nndiary-generate-nov-databases-1
+
 (defun nndiary-generate-nov-databases-1 (dir &optional seen no-active)
   "Regenerate the NOV database in DIR."
   (interactive "DRegenerate NOV in: ")
@@ -1057,7 +1052,7 @@ all.  This may very well take some time.")
 	  (nndiary-generate-nov-databases-1 dir seen))))
     ;; Do this directory.
     (let ((nndiary-files (sort (nnheader-article-to-file-alist dir)
-		       'car-less-than-car)))
+		       #'car-less-than-car)))
       (if (not nndiary-files)
 	  (let* ((group (nnheader-file-to-group
 			 (directory-file-name dir) nndiary-directory))
@@ -1070,7 +1065,6 @@ all.  This may very well take some time.")
 	(unless no-active
 	  (nnmail-save-active nndiary-group-alist nndiary-active-file))))))
 
-(defvar nndiary-files) ; dynamically bound in nndiary-generate-nov-databases-1
 (defun nndiary-generate-active-info (dir)
   ;; Update the active info for this group.
   (let* ((group (nnheader-file-to-group
@@ -1088,7 +1082,7 @@ all.  This may very well take some time.")
 (defun nndiary-generate-nov-file (dir files)
   (let* ((dir (file-name-as-directory dir))
 	 (nov (concat dir nndiary-nov-file-name))
-	 (nov-buffer (get-buffer-create " *nov*"))
+	 (nov-buffer (gnus-get-buffer-create " *nov*"))
 	 chars file headers)
     ;; Init the nov buffer.
     (with-current-buffer nov-buffer
@@ -1117,7 +1111,7 @@ all.  This may very well take some time.")
 	  (widen))
 	(setq files (cdr files)))
       (with-current-buffer nov-buffer
-	(nnmail-write-region 1 (point-max) nov nil 'nomesg)
+	(nnmail-write-region 1 (point-max) nov nil 'nomesg nil 'excl)
 	(kill-buffer (current-buffer))))))
 
 (defun nndiary-nov-delete-article (group article)
@@ -1247,7 +1241,7 @@ all.  This may very well take some time.")
 
 (defun nndiary-unflatten (spec)
   ;; opposite of flatten: build ranges if possible
-  (setq spec (sort spec '<))
+  (setq spec (sort spec #'<))
   (let (min max res)
     (while (setq min (pop spec))
       (setq max min)
@@ -1266,12 +1260,12 @@ all.  This may very well take some time.")
 	 (date-elts (decode-time date))
 	 ;; ### NOTE: out-of-range values are accepted by encode-time. This
 	 ;; makes our life easier.
-	 (monday (- (nth 3 date-elts)
+	 (monday (- (decoded-time-day date-elts)
 		    (if nndiary-week-starts-on-monday
-			(if (zerop (nth 6 date-elts))
+			(if (zerop (decoded-time-weekday date-elts))
 			    6
-			  (- (nth 6 date-elts) 1))
-		      (nth 6 date-elts))))
+			  (- (decoded-time-weekday date-elts) 1))
+		      (decoded-time-weekday date-elts))))
 	 reminder res)
     ;; remove the DOW and DST entries
     (setcdr (nthcdr 5 date-elts) (nthcdr 8 date-elts))
@@ -1279,30 +1273,30 @@ all.  This may very well take some time.")
       (push
        (cond ((eq (cdr reminder) 'minute)
 	      (time-subtract
-	       (apply 'encode-time 0 (nthcdr 1 date-elts))
-	       (seconds-to-time (* (car reminder) 60.0))))
+	       (apply #'encode-time 0 (nthcdr 1 date-elts))
+	       (* (car reminder) 60)))
 	     ((eq (cdr reminder) 'hour)
 	      (time-subtract
-	       (apply 'encode-time 0 0 (nthcdr 2 date-elts))
-	       (seconds-to-time (* (car reminder) 3600.0))))
+	       (apply #'encode-time 0 0 (nthcdr 2 date-elts))
+	       (* (car reminder) 3600)))
 	     ((eq (cdr reminder) 'day)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 (nthcdr 3 date-elts))
-	       (seconds-to-time (* (car reminder) 86400.0))))
+	       (apply #'encode-time 0 0 0 (nthcdr 3 date-elts))
+	       (* (car reminder) 86400)))
 	     ((eq (cdr reminder) 'week)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 monday (nthcdr 4 date-elts))
-	       (seconds-to-time (* (car reminder) 604800.0))))
+	       (apply #'encode-time 0 0 0 monday (nthcdr 4 date-elts))
+	       (* (car reminder) 604800)))
 	     ((eq (cdr reminder) 'month)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 1 (nthcdr 4 date-elts))
-	       (seconds-to-time (* (car reminder) 18748800.0))))
+	       (apply #'encode-time 0 0 0 1 (nthcdr 4 date-elts))
+	       (* (car reminder) 18748800)))
 	     ((eq (cdr reminder) 'year)
 	      (time-subtract
-	       (apply 'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
-	       (seconds-to-time (* (car reminder) 400861056.0)))))
+	       (apply #'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
+	       (* (car reminder) 400861056))))
        res))
-    (sort res 'time-less-p)))
+    (sort res #'time-less-p)))
 
 (defun nndiary-last-occurrence (sched)
   ;; Returns the last occurrence of schedule SCHED as an Emacs time struct, or
@@ -1310,7 +1304,7 @@ all.  This may very well take some time.")
   (let ((minute (nndiary-max (nth 0 sched)))
 	(hour (nndiary-max (nth 1 sched)))
 	(year (nndiary-max (nth 4 sched)))
-	(time-zone (or (and (nth 6 sched) (car (nth 6 sched)))
+	(time-zone (or (car (nth 6 sched))
 		       (current-time-zone))))
     (when year
       (or minute (setq minute 59))
@@ -1320,8 +1314,8 @@ all.  This may very well take some time.")
       ;; bored in finding a good algorithm for doing that ;-)
       ;; ### FIXME: remove identical entries.
       (let ((dom-list (nth 2 sched))
-	    (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) '>))
-	    (year-list (sort (nndiary-flatten (nth 4 sched) 1971) '>))
+	    (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) #'>))
+	    (year-list (sort (nndiary-flatten (nth 4 sched) 1971) #'>))
 	    (dow-list (nth 5 sched)))
 	;; Special case: an asterisk in one of the days specifications means
 	;; that only the other should be taken into account. If both are
@@ -1345,9 +1339,10 @@ all.  This may very well take some time.")
 		 ;; have to know which day is the 1st one for this month.
 		 ;; Maybe there's simpler, but decode-time(encode-time) will
 		 ;; give us the answer.
-		 (let ((first (nth 6 (decode-time
-				      (encode-time 0 0 0 1 month year
-						   time-zone))))
+		 (let ((first (decoded-time-weekday
+			       (decode-time
+				(encode-time 0 0 0 1 month year
+					     time-zone))))
 		       (max (cond ((= month 2)
 				   (if (date-leap-year-p year) 29 28))
 				  ((<= month 7)
@@ -1371,7 +1366,7 @@ all.  This may very well take some time.")
 		       (setq day (+ 7 day))))
 		   ;; Finally, if we have some days, they are valid
 		   (when days
-		     (sort days '>)
+		     (sort days #'>)
 		     (throw 'found
 			    (encode-time 0 minute hour
 					 (car days) month year time-zone)))
@@ -1392,21 +1387,21 @@ all.  This may very well take some time.")
   ;; If there's no next occurrence, returns the last one (if any) which is then
   ;; in the past.
   (let* ((today (decode-time now))
-	 (this-minute (nth 1 today))
-	 (this-hour (nth 2 today))
-	 (this-day (nth 3 today))
-	 (this-month (nth 4 today))
-	 (this-year (nth 5 today))
-	 (minute-list (sort (nndiary-flatten (nth 0 sched) 0 59) '<))
-	 (hour-list (sort (nndiary-flatten (nth 1 sched) 0 23) '<))
+	 (this-minute (decoded-time-minute today))
+	 (this-hour (decoded-time-hour today))
+	 (this-day (decoded-time-day today))
+	 (this-month (decoded-time-month today))
+	 (this-year (decoded-time-year today))
+	 (minute-list (sort (nndiary-flatten (nth 0 sched) 0 59) #'<))
+	 (hour-list (sort (nndiary-flatten (nth 1 sched) 0 23) #'<))
 	 (dom-list (nth 2 sched))
-	 (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) '<))
+	 (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) #'<))
 	 (years (if (nth 4 sched)
-		    (sort (nndiary-flatten (nth 4 sched) 1971) '<)
+		    (sort (nndiary-flatten (nth 4 sched) 1971) #'<)
 		  t))
 	 (dow-list (nth 5 sched))
 	 (year (1- this-year))
-	 (time-zone (or (and (nth 6 sched) (car (nth 6 sched)))
+	 (time-zone (or (car (nth 6 sched))
 			(current-time-zone))))
     ;; Special case: an asterisk in one of the days specifications means that
     ;; only the other should be taken into account. If both are unspecified,
@@ -1426,7 +1421,7 @@ all.  This may very well take some time.")
 	(pop years)))
     (if years
 	;; Because we might not be limited in years, we must guard against
-	;; infinite loops. Appart from cases like Feb 31, there are probably
+	;; infinite loops. Apart from cases like Feb 31, there are probably
 	;; other ones, (no monday XXX 2nd etc). I don't know any algorithm to
 	;; decide this, so I assume that if we reach 10 years later, the
 	;; schedule is undecidable.
@@ -1447,9 +1442,10 @@ all.  This may very well take some time.")
 		 ;; have to know which day is the 1st one for this month.
 		 ;; Maybe there's simpler, but decode-time(encode-time) will
 		 ;; give us the answer.
-		 (let ((first (nth 6 (decode-time
-				      (encode-time 0 0 0 1 month year
-						   time-zone))))
+		 (let ((first (decoded-time-weekday
+			       (decode-time
+				(encode-time 0 0 0 1 month year
+					     time-zone))))
 		       (max (cond ((= month 2)
 				   (if (date-leap-year-p year) 29 28))
 				  ((<= month 7)
@@ -1474,7 +1470,7 @@ all.  This may very well take some time.")
 		   ;; Aaaaaaall right. Now we have a valid list of DAYS for
 		   ;; this month and this year.
 		   (when days
-		     (setq days (sort days '<))
+		     (setq days (sort days #'<))
 		     ;; Remove past days for this year and this month.
 		     (and (= year this-year)
 			  (= month this-month)
@@ -1532,7 +1528,7 @@ all.  This may very well take some time.")
 	  ;; past. A permanent schedule never expires.
 	  (and sched
 	       (setq sched (nndiary-last-occurrence sched))
-	       (time-less-p sched (current-time))))
+	       (time-less-p sched nil)))
       ;; else
       (nnheader-report 'nndiary "Could not read file %s" file)
       nil)
@@ -1561,12 +1557,6 @@ all.  This may very well take some time.")
     nil))
 
 ;; The end... ===============================================================
-
-(dolist (header nndiary-headers)
-  (setq header (intern (format "X-Diary-%s" (car header))))
-  ;; Required for building NOV databases and some other stuff.
-  (add-to-list 'gnus-extra-headers header)
-  (add-to-list 'nnmail-extra-headers header))
 
 (unless (assoc "nndiary" gnus-valid-select-methods)
   (gnus-declare-backend "nndiary" 'post-mail 'respool 'address))

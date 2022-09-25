@@ -1,11 +1,11 @@
-;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
+;;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2004, 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2022 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
-;; Maintainer: emacs-devel@gnu.org
-;; Keywords: irc, button, url, regexp
-;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?ErcButton
+;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
+;; Keywords: comm, irc, button, url, regexp
+;; URL: https://www.emacswiki.org/emacs/ErcButton
 
 ;; This file is part of GNU Emacs.
 
@@ -24,17 +24,16 @@
 
 ;;; Commentary:
 
-;; Heavily borrowed from gnus-art.el. Thanks to the original authors.
+;; Heavily borrowed from gnus-art.el.  Thanks to the original authors.
 ;; This buttonizes nicks and other stuff to make it all clickable.
 ;; To enable, add to your init file:
 ;; (require 'erc-button)
 ;; (erc-button-mode 1)
 ;;
 ;; Todo:
-;; * Rewrite all this to do the same, but use button.el from GNU Emacs
-;; if it's available for xemacs too.  Why? button.el is much faster,
-;; and much more elegant, and solves the problem we get with large buffers
-;; and a large erc-button-marker-list.
+;; * Rewrite all this to do the same, but use button.el.  Why?
+;; button.el is much faster, and much more elegant, and solves the
+;; problem we get with large buffers and a large erc-button-marker-list.
 
 
 ;;; Code:
@@ -42,6 +41,7 @@
 (require 'erc)
 (require 'wid-edit)
 (require 'erc-fill)
+(require 'browse-url)
 
 ;;; Minor Mode
 
@@ -49,21 +49,17 @@
   "Define how text can be turned into clickable buttons."
   :group 'erc)
 
-;;;###autoload (autoload 'erc-button-mode "erc-button" nil t)
+;;;###autoload(autoload 'erc-button-mode "erc-button" nil t)
 (define-erc-module button nil
   "This mode buttonizes all messages according to `erc-button-alist'."
-  ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-send-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions 'erc-button-next-function)
-   (add-hook 'erc-mode-hook 'erc-button-setup))
-  ((remove-hook 'erc-insert-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-send-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions 'erc-button-next-function)
-   (remove-hook 'erc-mode-hook 'erc-button-setup)
-   (when (featurep 'xemacs)
-     (dolist (buffer (erc-buffer-list))
-       (with-current-buffer buffer
-         (kill-local-variable 'widget-button-face))))))
+  ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
+   (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
+   (add-hook 'erc-complete-functions #'erc-button-next-function)
+   (add-hook 'erc-mode-hook #'erc-button-setup))
+  ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
+   (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
+   (remove-hook 'erc-complete-functions #'erc-button-next-function)
+   (remove-hook 'erc-mode-hook #'erc-button-setup)))
 
 ;;; Variables
 
@@ -75,7 +71,7 @@
   "Face used for highlighting buttons in ERC buffers.
 
 A button is a piece of text that you can activate by pressing
-`RET' or `mouse-2' above it. See also `erc-button-keymap'."
+\\`RET' or `mouse-2' above it.  See also `erc-button-keymap'."
   :type 'face
   :group 'erc-faces)
 
@@ -92,13 +88,9 @@ above them."
   :type 'face
   :group 'erc-faces)
 
-(defcustom erc-button-url-regexp
-  (concat "\\(www\\.\\|\\(s?https?\\|"
-          "ftp\\|file\\|gopher\\|news\\|telnet\\|wais\\|mailto\\):\\)"
-          "\\(//[-a-zA-Z0-9_.]+:[0-9]*\\)?"
-          "[-a-zA-Z0-9_=!?#$@~`%&*+\\/:;.,()]+[-a-zA-Z0-9_=#$@~`%&*+\\/()]")
+(defcustom erc-button-url-regexp browse-url-button-regexp
   "Regular expression that matches URLs."
-  :group 'erc-button
+  :version "27.1"
   :type 'regexp)
 
 (defcustom erc-button-wrap-long-urls nil
@@ -107,24 +99,25 @@ above them."
 If this variable is a number, consider URLs longer than its value to
 be \"long\".  If t, URLs will be considered \"long\" if they are
 longer than `erc-fill-column'."
-  :group 'erc-button
   :type '(choice integer boolean))
 
 (defcustom erc-button-buttonize-nicks t
   "Flag indicating whether nicks should be buttonized or not."
-  :group 'erc-button
   :type 'boolean)
 
-(defcustom erc-button-rfc-url "http://www.faqs.org/rfcs/rfc%s.html"
-  "URL used to browse rfc references.
+(defcustom erc-button-rfc-url "https://tools.ietf.org/html/rfc%s"
+  "URL used to browse RFC references.
 %s is replaced by the number."
-  :group 'erc-button
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
-(defcustom erc-button-google-url "http://www.google.com/search?q=%s"
-  "URL used to browse Google search references.
+(define-obsolete-variable-alias 'erc-button-google-url
+  'erc-button-search-url "27.1")
+
+(defcustom erc-button-search-url "https://duckduckgo.com/?q=%s"
+  "URL used to search for a term.
 %s is replaced by the search string."
-  :group 'erc-button
+  :version "28.1"
   :type 'string)
 
 (defcustom erc-button-alist
@@ -132,12 +125,13 @@ longer than `erc-fill-column'."
   ;; a button, it makes no sense to optimize performance by
   ;; bytecompiling lambdas in this alist.  On the other hand, it makes
   ;; things hard to maintain.
-  '(('nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
-    (erc-button-url-regexp 0 t browse-url 0)
-    ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url 1)
+  '((nicknames 0 erc-button-buttonize-nicks erc-nick-popup 0)
+    (erc-button-url-regexp 0 t browse-url-button-open-url 0)
+    ("<URL: *\\([^<> ]+\\) *>" 0 t browse-url-button-open-url 1)
 ;;; ("(\\(\\([^~\n \t@][^\n \t@]*\\)@\\([a-zA-Z0-9.:-]+\\)\\)" 1 t finger 2 3)
     ;; emacs internal
-    ("[`]\\([a-zA-Z][-a-zA-Z_0-9]+\\)[']" 1 t erc-button-describe-symbol 1)
+    ("[`‘]\\([a-zA-Z][-a-zA-Z_0-9!*<=>+]+\\)['’]"
+     1 t erc-button-describe-symbol 1)
     ;; pseudo links
     ("\\bInfo:[\"]\\([^\"]+\\)[\"]" 0 t Info-goto-node 1)
     ("\\b\\(Ward\\|Wiki\\|WardsWiki\\|TheWiki\\):\\([A-Z][a-z]+\\([A-Z][a-z]+\\)+\\)"
@@ -148,7 +142,7 @@ longer than `erc-fill-column'."
     ("Lisp:\\([a-zA-Z.+-]+\\)" 0 t erc-browse-emacswiki-lisp 1)
     ("\\bGoogle:\\([^ \t\n\r\f]+\\)"
      0 t (lambda (keywords)
-           (browse-url (format erc-button-google-url keywords)))
+           (browse-url (format erc-button-search-url keywords)))
      1)
     ("\\brfc[#: ]?\\([0-9]+\\)"
      0 t (lambda (num)
@@ -164,15 +158,15 @@ REGEXP is the string matching text around the button or a symbol
   strings, or an alist with the strings in the car.  Note that
   entries in lists or alists are considered to be nicks or other
   complete words.  Therefore they are enclosed in \\< and \\>
-  while searching.  REGEXP can also be the quoted symbol
-  \\='nicknames, which matches the nickname of any user on the
+  while searching.  REGEXP can also be the symbol
+  `nicknames', which matches the nickname of any user on the
   current server.
 
 BUTTON is the number of the regexp grouping actually matching the
-  button,  This is ignored if REGEXP is \\='nicknames.
+  button.  This is ignored if REGEXP is `nicknames'.
 
-FORM is a lisp expression which must eval to true for the button to
-  be added,
+FORM is a Lisp expression which must eval to true for the button to
+  be added.
 
 CALLBACK is the function to call when the user push this button.
   CALLBACK can also be a symbol.  Its variable value will be used
@@ -180,18 +174,15 @@ CALLBACK is the function to call when the user push this button.
 
 PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
-  \\='nicknames, these are ignored, and CALLBACK will be called with
+  `nicknames', these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
-  :group 'erc-button
-  :version "24.1"                       ; remove finger (bug#4443)
+  :version "29.1"
   :type '(repeat
           (list :tag "Button"
                 (choice :tag "Matches"
                         regexp
                         (variable :tag "Variable containing regexp")
-                        ;; FIXME It really does mean 'nicknames
-                        ;; rather than just nicknames.
-                        (const :tag "Nicknames" 'nicknames))
+                        (const :tag "Nicknames" nicknames))
                 (integer :tag "Number of the regexp section that matches")
                 (choice :tag "When to buttonize"
                         (const :tag "Always" t)
@@ -201,24 +192,21 @@ PAR is a number of a regexp grouping whose text will be passed to
                         :inline t
                         (integer :tag "Regexp section number")))))
 
-(defcustom erc-emacswiki-url "http://www.emacswiki.org/cgi-bin/wiki.pl?"
-  "URL of the EmacsWiki Homepage."
-  :group 'erc-button
-  :type 'string)
+(defcustom erc-emacswiki-url "https://www.emacswiki.org/emacs/"
+  "URL of the EmacsWiki website."
+  :type 'string
+  :version "28.1")
 
-(defcustom erc-emacswiki-lisp-url "http://www.emacswiki.org/elisp/"
+(defcustom erc-emacswiki-lisp-url "https://www.emacswiki.org/elisp/"
   "URL of the EmacsWiki ELisp area."
-  :group 'erc-button
   :type 'string)
 
 (defvar erc-button-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'erc-button-press-button)
-    (if (featurep 'xemacs)
-        (define-key map (kbd "<button2>") 'erc-button-click-button)
-      (define-key map (kbd "<mouse-2>") 'erc-button-click-button))
-    (define-key map (kbd "TAB") 'erc-button-next)
-    (define-key map (kbd "<backtab>") 'erc-button-previous)
+    (define-key map (kbd "RET") #'erc-button-press-button)
+    (define-key map (kbd "<mouse-2>") #'erc-button-click-button)
+    (define-key map (kbd "TAB") #'erc-button-next)
+    (define-key map (kbd "<backtab>") #'erc-button-previous)
     (define-key map [follow-link] 'mouse-face)
     (set-keymap-parent map erc-mode-map)
     map)
@@ -226,14 +214,11 @@ PAR is a number of a regexp grouping whose text will be passed to
 
 (defvar erc-button-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( "w" table)
-    (modify-syntax-entry ?\) "w" table)
     (modify-syntax-entry ?\[ "w" table)
     (modify-syntax-entry ?\] "w" table)
     (modify-syntax-entry ?\{ "w" table)
     (modify-syntax-entry ?\} "w" table)
     (modify-syntax-entry ?` "w" table)
-    (modify-syntax-entry ?' "w" table)
     (modify-syntax-entry ?^ "w" table)
     (modify-syntax-entry ?- "w" table)
     (modify-syntax-entry ?_ "w" table)
@@ -250,12 +235,9 @@ global-level ERC button keys yet.")
 
 (defun erc-button-setup ()
   "Add ERC mode-level button movement keys.  This is only done once."
-  ;; Make XEmacs use `erc-button-face'.
-  (when (featurep 'xemacs)
-    (set (make-local-variable 'widget-button-face) nil))
   ;; Add keys.
   (unless erc-button-keys-added
-    (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)
+    (define-key erc-mode-map (kbd "<backtab>") #'erc-button-previous)
     (setq erc-button-keys-added t)))
 
 (defun erc-button-add-buttons ()
@@ -272,7 +254,9 @@ specified by `erc-button-alist'."
             regexp)
         (erc-button-remove-old-buttons)
         (dolist (entry alist)
-          (if (equal (car entry) (quote (quote nicknames)))
+          (if (or (eq (car entry) 'nicknames)
+                  ;; Old form retained for backward compatibility.
+                  (equal (car entry) (quote 'nicknames)))
               (erc-button-add-nickname-buttons entry)
             (progn
               (setq regexp (or (and (stringp (car entry)) (car entry))
@@ -298,7 +282,7 @@ specified by `erc-button-alist'."
         (fun (nth 3 entry))
         bounds word)
     (when (or (eq t form)
-              (eval form))
+              (eval form t))
       (goto-char (point-min))
       (while (erc-forward-word)
         (when (setq bounds (erc-bounds-of-word-at-point))
@@ -317,9 +301,9 @@ specified by `erc-button-alist'."
           (end (match-end (nth 1 entry)))
           (form (nth 2 entry))
           (fun (nth 3 entry))
-          (data (mapcar 'match-string (nthcdr 4 entry))))
+          (data (mapcar #'match-string-no-properties (nthcdr 4 entry))))
       (when (or (eq t form)
-                (eval form))
+                (eval form t))
         (erc-button-add-button start end fun nil data regexp)))))
 
 (defun erc-button-remove-old-buttons ()
@@ -370,18 +354,7 @@ REGEXP is the regular expression which matched for this button."
           (list 'erc-callback fun)
           (list 'keymap erc-button-keymap)
           (list 'rear-nonsticky t)
-          (and data (list 'erc-data data))))
-  (when (featurep 'xemacs)
-    (widget-convert-button 'link from to :action 'erc-button-press-button
-                           :suppress-face t
-                           ;; Make XEmacs use our faces.
-                           :button-face (if nick-p
-                                            erc-button-nickname-face
-                                          erc-button-face)
-                           ;; Make XEmacs behave with mouse-clicks, for
-                           ;; some reason, widget stuff overrides the
-                           ;; 'keymap text-property.
-                           :mouse-down-action 'erc-button-click-button)))
+          (and data (list 'erc-data data)))))
 
 (defun erc-button-add-face (from to face)
   "Add FACE to the region between FROM and TO."
@@ -416,12 +389,11 @@ REGEXP is the regular expression which matched for this button."
     (mouse-set-point event)
     (erc-button-press-button)))
 
-;; XEmacs calls this via widget-button-press with a bunch of arguments
-;; which we don't care about.
 (defun erc-button-press-button (&rest _ignore)
   "Check text at point for a callback function.
 If the text at point has a `erc-callback' property,
 call it with the value of the `erc-data' text property."
+  (declare (advertised-calling-convention () "28.1"))
   (interactive)
   (let* ((data (get-text-property (point) 'erc-data))
          (fun (get-text-property (point) 'erc-callback)))
@@ -474,7 +446,7 @@ For use on `completion-at-point-functions'."
       t)))
 
 (defun erc-browse-emacswiki (thing)
-  "Browse to thing in the emacs-wiki."
+  "Browse to THING in the emacs-wiki."
   (browse-url (concat erc-emacswiki-url thing)))
 
 (defun erc-browse-emacswiki-lisp (thing)
@@ -505,7 +477,6 @@ Examples:
    (format
     \"ldapsearch -x -P 2 -h db.debian.org -b dc=debian,dc=org ircnick=%s\"
     nick)))"
-  :group 'erc-button
   :type '(repeat (cons (string :tag "Op")
                        sexp)))
 
@@ -545,5 +516,5 @@ and `apropos' for other symbols."
 
 ;;; erc-button.el ends here
 ;; Local Variables:
-;; indent-tabs-mode: nil
+;; generated-autoload-file: "erc-loaddefs.el"
 ;; End:

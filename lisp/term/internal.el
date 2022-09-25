@@ -1,6 +1,6 @@
-;;; internal.el --- support for PC internal terminal
+;;; internal.el --- support for PC internal terminal  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1998-1999, 2001-2017 Free Software
+;; Copyright (C) 1993-1994, 1998-1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -400,9 +400,9 @@ If TABLE is nil or omitted, `standard-display-table' is used."
 ;; The following alist was compiled from:
 ;;
 ;; Ralf Brown's Interrupt List. file INTERRUP.F, D-2138, Table 01400
-;; http://www.ethnologue.com/country_index.asp (official languages)
-;; http://unicode.org/onlinedat/languages.html
-;; http://unicode.org/onlinedat/countries.html
+;; https://www.ethnologue.com/country_index.asp (official languages)
+;; https://unicode.org/onlinedat/languages.html
+;; https://unicode.org/onlinedat/countries.html
 ;;
 ;; Only the official languages listed for each country.
 ;;
@@ -595,8 +595,7 @@ list.  You can (and should) also run it if and when the value of
     (set-selection-coding-system coding-dos)
     (IT-setup-unicode-display coding-unix)
     (prefer-coding-system coding-dos)
-    (and (default-value 'enable-multibyte-characters)
-	 (setq unibyte-display-via-language-environment t))
+    (setq unibyte-display-via-language-environment t)
     ;; Some codepages have sporadic support for Latin-1, Greek, and
     ;; symbol glyphs, which don't belong to their native character
     ;; set.  It's a nuisance to have all those glyphs here, for all

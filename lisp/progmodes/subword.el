@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -79,12 +79,11 @@
   "\\(\\(\\W\\|[[:lower:][:digit:]]\\)\\([[:upper:]]+\\W*\\)\\|\\W\\w+\\)"
   "Regexp used by `subword-backward-internal'.")
 
-(defvar subword-mode-map
+(defvar-keymap subword-mode-map
   ;; We originally remapped motion keys here, but now use Emacs core
   ;; hooks.  Leave this keymap around so that user additions to it
   ;; keep working.
-  (make-sparse-keymap)
-  "Keymap used in `subword-mode' minor mode.")
+  :doc "Keymap used in `subword-mode' minor mode.")
 
 ;;;###autoload
 (define-obsolete-function-alias
@@ -93,9 +92,6 @@
 ;;;###autoload
 (define-minor-mode subword-mode
   "Toggle subword movement and editing (Subword mode).
-With a prefix argument ARG, enable Subword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Subword mode is a buffer-local minor mode.  Enabling it changes
 the definition of a word so that word-based commands stop inside
@@ -113,13 +109,13 @@ called a `subword'.  Here are some examples:
   NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
 
 This mode changes the definition of a word so that word commands
-treat nomenclature boundaries as word boundaries.
-
-\\{subword-mode-map}"
+treat nomenclature boundaries as word boundaries."
     :lighter " ,"
     (when subword-mode (superword-mode -1))
     (subword-setup-buffer))
 
+;; This is defined also in cc-cmds.el, but as obsolete since 24.3.
+;; Let's keep this until the other one can also be removed.
 (define-obsolete-function-alias 'c-subword-mode 'subword-mode "23.2")
 
 ;;;###autoload
@@ -149,8 +145,6 @@ Optional argument ARG is the same as for `forward-word'."
       (funcall subword-backward-function)))
    (t
     (point))))
-
-(put 'subword-forward 'CUA 'move)
 
 (defun subword-backward (&optional arg)
   "Do the same as `backward-word' but on subwords.
@@ -191,8 +185,6 @@ Optional argument ARG is the same as for `mark-word'."
 	    (subword-forward arg)
 	    (point))
 	  nil t))))
-
-(put 'subword-backward 'CUA 'move)
 
 (defun subword-kill (arg)
   "Do the same as `kill-word' but on subwords.
@@ -269,13 +261,10 @@ Optional argument ARG is the same as for `capitalize-word'."
 ;;;###autoload
 (define-minor-mode superword-mode
   "Toggle superword movement and editing (Superword mode).
-With a prefix argument ARG, enable Superword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
-the definition of words such that symbols characters are treated
-as parts of words: e.g., in `superword-mode',
+the definition of words such that characters which have symbol
+syntax are treated as parts of words: e.g., in `superword-mode',
 \"this_is_a_symbol\" counts as one word.
 
 \\{superword-mode-map}"
@@ -342,7 +331,7 @@ as parts of words: e.g., in `superword-mode',
 searching subwords in order to avoid unwanted reentrancy.")
 
 (defun subword-setup-buffer ()
-  (set (make-local-variable 'find-word-boundary-function-table)
+  (setq-local find-word-boundary-function-table
        (if (or subword-mode superword-mode)
            subword-find-word-boundary-function-table
          subword-empty-char-table)))

@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -27,7 +27,7 @@
 ;; This is actually useful when you are running X11 locally, but is
 ;; working on remote machine over a modem line or through a gateway.
 
-;; It works by translating xterm escape codes into generic emacs mouse
+;; It works by translating xterm escape codes into generic Emacs mouse
 ;; events so it should work with any package that uses the mouse.
 
 ;; You don't have to turn off xterm mode to use the normal xterm mouse
@@ -50,7 +50,7 @@
   "Read a click and release event from XTerm.
 Similar to `xterm-mouse-translate', but using the \"1006\"
 extension, which supports coordinates >= 231 (see
-http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
+https://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
   (xterm-mouse-translate-1 1006))
 
 (defun xterm-mouse-translate-1 (&optional extension)
@@ -76,7 +76,12 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
               ;; to guard against that.
               (copy-sequence event))
 	vec)
-       (is-move vec)
+       (is-move
+        (xterm-mouse--handle-mouse-movement)
+        (if track-mouse vec
+          ;; Mouse movement events are currently supposed to be
+          ;; suppressed.  Return no event.
+          []))
        (t
 	(let* ((down (terminal-parameter nil 'xterm-mouse-last-down))
 	       (down-data (nth 1 down))
@@ -102,7 +107,13 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 	      (if (null track-mouse)
 		  (vector drag)
 		(push drag unread-command-events)
+                (xterm-mouse--handle-mouse-movement)
 		(vector (list 'mouse-movement ev-data))))))))))))
+
+(defun xterm-mouse--handle-mouse-movement ()
+  "Handle mouse motion that was just generated for XTerm mouse."
+  (display--update-for-mouse-movement (terminal-parameter nil 'xterm-mouse-x)
+                                      (terminal-parameter nil 'xterm-mouse-y)))
 
 ;; These two variables have been converted to terminal parameters.
 ;;
@@ -123,20 +134,7 @@ http://invisible-island.net/xterm/ctlseqs/ctlseqs.html)."
 		      (terminal-parameter nil 'xterm-mouse-y))))
   pos)
 
-(defun xterm-mouse-truncate-wrap (f)
-  "Truncate with wrap-around."
-  (condition-case nil
-      ;; First try the built-in truncate, in case there's no overflow.
-      (truncate f)
-    ;; In case of overflow, do wraparound by hand.
-    (range-error
-     ;; In our case, we wrap around every 3 days or so, so if we assume
-     ;; a maximum of 65536 wraparounds, we're safe for a couple years.
-     ;; Using a power of 2 makes rounding errors less likely.
-     (let* ((maxwrap (* 65536 2048))
-            (dbig (truncate (/ f maxwrap)))
-            (fdiff (- f (* 1.0 maxwrap dbig))))
-       (+ (truncate fdiff) (* maxwrap dbig))))))
+(define-obsolete-function-alias 'xterm-mouse-truncate-wrap 'truncate "27.1")
 
 (defcustom xterm-mouse-utf-8 nil
   "Non-nil if UTF-8 coordinates should be used to read mouse coordinates.
@@ -250,25 +248,33 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 		      (xterm-mouse--read-event-sequence extension))
 		     (t
 		      (error "Unsupported XTerm mouse protocol")))))
-    (when click
+    (when (and click
+               ;; In very obscure circumstances, the click may become
+               ;; invalid (see bug#17378).
+               (>= (nth 1 click) 0))
       (let* ((type (nth 0 click))
              (x    (nth 1 click))
              (y    (nth 2 click))
              ;; Emulate timestamp information.  This is accurate enough
              ;; for default value of mouse-1-click-follows-link (450msec).
-             (timestamp (xterm-mouse-truncate-wrap
-                         (* 1000
-                            (- (float-time)
-                               (or xt-mouse-epoch
-                                   (setq xt-mouse-epoch (float-time)))))))
+	     (timestamp (if (not xt-mouse-epoch)
+			    (progn (setq xt-mouse-epoch (float-time)) 0)
+			  (car (time-convert (time-since xt-mouse-epoch)
+					     1000))))
              (w (window-at x y))
              (ltrb (window-edges w))
              (left (nth 0 ltrb))
              (top (nth 1 ltrb))
              (posn (if w
-                                (posn-at-x-y (- x left) (- y top) w t)
-                              (append (list nil 'menu-bar)
-                             (nthcdr 2 (posn-at-x-y x y)))))
+		       (posn-at-x-y (- x left) (- y top) w t)
+		     (append (list nil (if (and tab-bar-mode
+                                                (or (not menu-bar-mode)
+                                                    ;; The tab-bar is on the
+                                                    ;; second row below menu-bar
+                                                    (eq y 1)))
+                                           'tab-bar
+                                         'menu-bar))
+                             (nthcdr 2 (posn-at-x-y x y (selected-frame))))))
              (event (list type posn)))
         (setcar (nthcdr 3 posn) timestamp)
 
@@ -278,6 +284,8 @@ which is the \"1006\" extension implemented in Xterm >= 277."
                (last-name (symbol-name last-type))
                (last-time (nth 1 last-click))
                (click-count (nth 2 last-click))
+               (last-x (nth 3 last-click))
+               (last-y (nth 4 last-click))
                (this-time (float-time))
                (name (symbol-name type)))
           (cond
@@ -288,14 +296,20 @@ which is the \"1006\" extension implemented in Xterm >= 277."
                        (string-match "down-" last-name)
                        (equal name (replace-match "" t t last-name)))
               (xterm-mouse--set-click-count event click-count)))
-           ((not last-time) nil)
-           ((and (> double-click-time (* 1000 (- this-time last-time)))
+           ((and last-time
+                 double-click-time
+                 (or (eq double-click-time t)
+                     (> double-click-time (* 1000 (- this-time last-time))))
+                 (<= (abs (- x last-x))
+                     (/ double-click-fuzz 8))
+                 (<= (abs (- y last-y))
+                     (/ double-click-fuzz 8))
                  (equal last-name (replace-match "" t t name)))
             (setq click-count (1+ click-count))
             (xterm-mouse--set-click-count event click-count))
            (t (setq click-count 1)))
           (set-terminal-parameter nil 'xterm-mouse-last-click
-                                  (list type this-time click-count)))
+                                  (list type this-time click-count x y)))
 
         (set-terminal-parameter nil 'xterm-mouse-x x)
         (set-terminal-parameter nil 'xterm-mouse-y y)
@@ -304,9 +318,6 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
-With a prefix argument ARG, enable XTerm mouse mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
 This works in terminal emulators compatible with xterm.  It only
@@ -321,11 +332,13 @@ down the SHIFT key while pressing the mouse button."
   (if xterm-mouse-mode
       ;; Turn it on
       (progn
-	(setq mouse-position-function #'xterm-mouse-position-function)
+        (setq mouse-position-function #'xterm-mouse-position-function
+              tty-menu-calls-mouse-position-function t)
         (mapc #'turn-on-xterm-mouse-tracking-on-terminal (terminal-list)))
     ;; Turn it off
     (mapc #'turn-off-xterm-mouse-tracking-on-terminal (terminal-list))
-    (setq mouse-position-function nil)))
+    (setq mouse-position-function nil
+          tty-menu-calls-mouse-position-function nil)))
 
 (defun xterm-mouse-tracking-enable-sequence ()
   "Return a control sequence to enable XTerm mouse tracking.
@@ -339,8 +352,8 @@ modern xterms:
             position (<= 223), which can be reported in this
             basic mode.
 
-\"\\e[?1002h\" \"Mouse motion mode\": Enables reports for mouse
-            motion events during dragging operations.
+\"\\e[?1003h\" \"Mouse motion mode\": Enables reports for mouse
+            motion events.
 
 \"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an
             extension to the basic mouse mode, which uses UTF-8
@@ -360,23 +373,23 @@ given escape sequence takes precedence over the former."
   (apply #'concat (xterm-mouse--tracking-sequence ?h)))
 
 (defconst xterm-mouse-tracking-enable-sequence
-  "\e[?1000h\e[?1002h\e[?1005h\e[?1006h"
+  "\e[?1000h\e[?1003h\e[?1005h\e[?1006h"
   "Control sequence to enable xterm mouse tracking.
 Enables basic mouse tracking, mouse motion events and finally
-extended tracking on terminals that support it. The following
+extended tracking on terminals that support it.  The following
 escape sequences are understood by modern xterms:
 
 \"\\e[?1000h\" \"Basic mouse mode\": Enables reports for mouse
-            clicks. There is a limit to the maximum row/column
+            clicks.  There is a limit to the maximum row/column
             position (<= 223), which can be reported in this
             basic mode.
 
-\"\\e[?1002h\" \"Mouse motion mode\": Enables reports for mouse
-            motion events during dragging operations.
+\"\\e[?1003h\" \"Mouse motion mode\": Enables reports for mouse
+            motion events.
 
 \"\\e[?1005h\" \"UTF-8 coordinate extension\": Enables an extension
             to the basic mouse mode, which uses UTF-8
-            characters to overcome the 223 row/column limit. This
+            characters to overcome the 223 row/column limit.  This
             extension may conflict with non UTF-8 applications or
             non UTF-8 locales.
 
@@ -400,7 +413,7 @@ The control sequence resets the modes set by
   (apply #'concat (nreverse (xterm-mouse--tracking-sequence ?l))))
 
 (defconst xterm-mouse-tracking-disable-sequence
-  "\e[?1006l\e[?1005l\e[?1002l\e[?1000l"
+  "\e[?1006l\e[?1005l\e[?1003l\e[?1000l"
   "Reset the modes set by `xterm-mouse-tracking-enable-sequence'.")
 
 (make-obsolete-variable
@@ -414,7 +427,7 @@ SUFFIX is the last character of each escape sequence (?h to
 enable, ?l to disable)."
   (mapcar
    (lambda (code) (format "\e[?%d%c" code suffix))
-   `(1000 1002 ,@(when xterm-mouse-utf-8 '(1005)) 1006)))
+   `(1000 1003 ,@(when xterm-mouse-utf-8 '(1005)) 1006)))
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."

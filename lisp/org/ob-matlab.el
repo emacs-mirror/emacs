@@ -1,10 +1,10 @@
 ;;; ob-matlab.el --- Babel support for Matlab        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -41,7 +41,5 @@
 ;; see ob-octave for matlab implementation
 
 (provide 'ob-matlab)
-
-
 
 ;;; ob-matlab.el ends here

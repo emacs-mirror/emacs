@@ -1,6 +1,6 @@
-;;; score-mode.el --- mode for editing Gnus score files
+;;; score-mode.el --- mode for editing Gnus score files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'mm-util)			; for mm-universal-coding-system
 (require 'gnus-util)			; for gnus-pp, gnus-run-mode-hooks
 
@@ -46,13 +45,11 @@
 (defvar gnus-score-edit-exit-function nil
   "Function run on exit from the score buffer.")
 
-(defvar gnus-score-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map emacs-lisp-mode-map)
-    (define-key map "\C-c\C-c" 'gnus-score-edit-exit)
-    (define-key map "\C-c\C-d" 'gnus-score-edit-insert-date)
-    (define-key map "\C-c\C-p" 'gnus-score-pretty-print)
-    map))
+(defvar-keymap gnus-score-mode-map
+  :parent emacs-lisp-mode-map
+  "C-c C-c" #'gnus-score-edit-exit
+  "C-c C-d" #'gnus-score-edit-insert-date
+  "C-c C-p" #'gnus-score-pretty-print)
 
 (defvar score-mode-syntax-table
   (let ((table (copy-syntax-table lisp-mode-syntax-table)))
@@ -84,12 +81,12 @@ This mode is an extended emacs-lisp mode.
 
 (defun gnus-score-edit-insert-date ()
   "Insert date in numerical format."
-  (interactive)
-  (princ (time-to-days (current-time)) (current-buffer)))
+  (interactive nil gnus-score-mode)
+  (princ (time-to-days nil) (current-buffer)))
 
 (defun gnus-score-pretty-print ()
   "Format the current score file."
-  (interactive)
+  (interactive nil gnus-score-mode)
   (goto-char (point-min))
   (let ((form (read (current-buffer))))
     (erase-buffer)
@@ -99,7 +96,7 @@ This mode is an extended emacs-lisp mode.
 
 (defun gnus-score-edit-exit ()
   "Stop editing the score file."
-  (interactive)
+  (interactive nil gnus-score-mode)
   (unless (file-exists-p (file-name-directory (buffer-file-name)))
     (make-directory (file-name-directory (buffer-file-name)) t))
   (let ((coding-system-for-write score-mode-coding-system))

@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993-1994, 2000-2017 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2022 Free Software Foundation,
    Inc.
 
 Author: Joseph Arceneaux
@@ -60,12 +60,12 @@ x_get_customization_string (XrmDatabase db, const char *name,
 {
   char *full_name = alloca (strlen (name) + sizeof "customization" + 3);
   char *full_class = alloca (strlen (class) + sizeof "Customization" + 3);
-  char *result;
+  const char *result;
 
   sprintf (full_name,  "%s.%s", name,  "customization");
   sprintf (full_class, "%s.%s", class, "Customization");
 
-  result = x_get_string_resource (db, full_name, full_class);
+  result = x_get_string_resource (&db, full_name, full_class);
   return result ? xstrdup (result) : NULL;
 }
 
@@ -202,35 +202,6 @@ magic_db (const char *string, ptrdiff_t string_len, const char *class,
 }
 
 
-static char *
-gethomedir (void)
-{
-  struct passwd *pw;
-  char *ptr;
-  char *copy;
-
-  if ((ptr = getenv ("HOME")) == NULL)
-    {
-      if ((ptr = getenv ("LOGNAME")) != NULL
-	  || (ptr = getenv ("USER")) != NULL)
-	pw = getpwnam (ptr);
-      else
-	pw = getpwuid (getuid ());
-
-      if (pw)
-	ptr = pw->pw_dir;
-    }
-
-  if (ptr == NULL)
-    return xstrdup ("/");
-
-  ptrdiff_t len = strlen (ptr);
-  copy = xmalloc (len + 2);
-  strcpy (copy + len, "/");
-  return memcpy (copy, ptr, len);
-}
-
-
 /* Find the first element of SEARCH_PATH which exists and is readable,
    after expanding the %-escapes.  Return 0 if we didn't find any, and
    the path name of the one we found otherwise.  */
@@ -316,12 +287,11 @@ get_user_app (const char *class)
   if (! db)
     {
       /* Check in the home directory.  This is a bit of a hack; let's
-	 hope one's home directory doesn't contain any %-escapes.  */
-      char *home = gethomedir ();
-      db = search_magic_path (home, class, "%L/%N");
+	 hope one's home directory doesn't contain ':' or '%'.  */
+      char const *home = get_homedir ();
+      db = search_magic_path (home, class, "/%L/%N");
       if (! db)
-	db = search_magic_path (home, class, "%N");
-      xfree (home);
+	db = search_magic_path (home, class, "/%N");
     }
 
   return db;
@@ -345,10 +315,10 @@ get_user_db (Display *display)
     db = XrmGetStringDatabase (xdefs);
   else
     {
-      char *home = gethomedir ();
-      ptrdiff_t homelen = strlen (home);
-      char *filename = xrealloc (home, homelen + sizeof xdefaults);
-      strcpy (filename + homelen, xdefaults);
+      /* Use ~/.Xdefaults.  */
+      char const *home = get_homedir ();
+      char *filename = xmalloc (strlen (home) + 1 + sizeof xdefaults);
+      splice_dir_file (filename, home, xdefaults);
       db = XrmGetFileDatabase (filename);
       xfree (filename);
     }
@@ -375,13 +345,17 @@ get_environ_db (void)
 
   if (!p)
     {
-      char *home = gethomedir ();
-      ptrdiff_t homelen = strlen (home);
       Lisp_Object system_name = Fsystem_name ();
-      ptrdiff_t filenamesize = (homelen + sizeof xdefaults
-				+ SBYTES (system_name));
-      p = filename = xrealloc (home, filenamesize);
-      lispstpcpy (stpcpy (filename + homelen, xdefaults), system_name);
+      if (STRINGP (system_name))
+	{
+	  /* Use ~/.Xdefaults-HOSTNAME.  */
+	  char const *home = get_homedir ();
+	  p = filename = xmalloc (strlen (home) + 1 + sizeof xdefaults
+				  + 1 + SBYTES (system_name));
+	  char *e = splice_dir_file (p, home, xdefaults);
+	  *e++ = '-';
+	  lispstpcpy (e, system_name);
+	}
     }
 
   db = XrmGetFileDatabase (p);
@@ -409,14 +383,6 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
-#if defined USE_MOTIF || !defined HAVE_XFT || !defined USE_LUCID
-  const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
-#endif
-
-#ifdef USE_MOTIF
-  const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
-#endif
-
   x_rm_string = XrmStringToQuark (XrmStringType);
 #ifndef USE_X_TOOLKIT
   /* pmr@osf.org says this shouldn't be done if USE_X_TOOLKIT.
@@ -425,67 +391,29 @@ x_load_resources (Display *display, const char *xrm_string,
 #endif
   rdb = XrmGetStringDatabase ("");
 
-  /* Add some font defaults.  If the font `helv' doesn't exist, widgets
-     will use some other default font.  */
 #ifdef USE_MOTIF
-
-  sprintf (line, "%s.pane.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fontList: %s", myclass, helv);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menu*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*menubar*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*verticalScrollBar.troughColor: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*horizontalScrollBar.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*horizontalScrollBar.troughColor: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s.dialog*.background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.background: white", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*background: grey75", myclass);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.Text.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb.FilterText.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*ItemsList.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-  sprintf (line, "%s*fsb*DirList.fontList: %s", myclass, courier);
-  XrmPutLineResource (&rdb, line);
-
   /* Set double click time of list boxes in the file selection
      dialog from `double-click-time'.  */
-  if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
+  if (FIXNUMP (Vdouble_click_time) && XFIXNUM (Vdouble_click_time) > 0)
     {
       sprintf (line, "%s*fsb*DirList.doubleClickInterval: %"pI"d",
-	       myclass, XFASTINT (Vdouble_click_time));
+	       myclass, XFIXNAT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
       sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %"pI"d",
-	       myclass, XFASTINT (Vdouble_click_time));
+	       myclass, XFIXNAT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }
-
 #else /* not USE_MOTIF */
-
+  /* Add some font defaults.  If the font `helv' doesn't exist,
+     widgets will use some other default font.  */
   sprintf (line, "Emacs.dialog*.background: grey75");
   XrmPutLineResource (&rdb, line);
-#if !defined (HAVE_XFT) || !defined (USE_LUCID)
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
+#if !(defined USE_CAIRO || defined HAVE_XFT) || !defined (USE_LUCID)
+  sprintf (line, "Emacs.dialog*.font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
-  sprintf (line, "*XlwMenu*font: %s", helv);
+  sprintf (line, "*XlwMenu*font: %s",
+	   "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1");
   XrmPutLineResource (&rdb, line);
 #endif
   sprintf (line, "*XlwMenu*background: grey75");
@@ -494,7 +422,6 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*horizontalScrollBar.background: grey75");
   XrmPutLineResource (&rdb, line);
-
 #endif /* not USE_MOTIF */
 
   user_database = get_user_db (display);
@@ -559,11 +486,7 @@ x_get_resource (XrmDatabase rdb, const char *name, const char *class,
   if (XrmQGetResource (rdb, namelist, classlist, &type, &value) == True
       && (type == expected_type))
     {
-      if (type == x_rm_string)
-	ret_value->addr = (char *) value.addr;
-      else
-	memcpy (ret_value->addr, value.addr, ret_value->size);
-
+      *ret_value = value;
       return value.size;
     }
 
@@ -573,121 +496,18 @@ x_get_resource (XrmDatabase rdb, const char *name, const char *class,
 /* Retrieve the string resource specified by NAME with CLASS from
    database RDB. */
 
-char *
-x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
+const char *
+x_get_string_resource (void *v_rdb, const char *name, const char *class)
 {
+  XrmDatabase *rdb = v_rdb;
   XrmValue value;
 
   if (inhibit_x_resources)
     /* --quick was passed, so this is a no-op.  */
     return NULL;
 
-  if (x_get_resource (rdb, name, class, x_rm_string, &value))
-    return (char *) value.addr;
+  if (x_get_resource (*rdb, name, class, x_rm_string, &value))
+    return (const char *) value.addr;
 
-  return 0;
+  return NULL;
 }
-
-/* Stand-alone test facilities.  */
-
-#ifdef TESTRM
-
-typedef char **List;
-#define arg_listify(len, list) (list)
-#define car(list) (*(list))
-#define cdr(list) (list + 1)
-#define NIL(list) (! *(list))
-#define free_arglist(list)
-
-static List
-member (char *elt, List list)
-{
-  List p;
-
-  for (p = list; ! NIL (p); p = cdr (p))
-    if (! strcmp (elt, car (p)))
-      return p;
-
-  return p;
-}
-
-static void
-fatal (char *msg, char *prog)
-{
-  fprintf (stderr, msg, prog);
-  exit (1);
-}
-
-int
-main (int argc, char **argv)
-{
-  Display *display;
-  char *displayname, *resource_string, *class, *name;
-  XrmDatabase xdb;
-  List arg_list, lp;
-
-  arg_list = arg_listify (argc, argv);
-
-  lp = member ("-d", arg_list);
-  if (!NIL (lp))
-    displayname = car (cdr (lp));
-  else
-    displayname = "localhost:0.0";
-
-  lp = member ("-xrm", arg_list);
-  resource_string = NIL (lp) ? 0 : car (cdr (lp));
-
-  lp = member ("-c", arg_list);
-  if (! NIL (lp))
-    class = car (cdr (lp));
-  else
-    class = "Emacs";
-
-  lp = member ("-n", arg_list);
-  if (! NIL (lp))
-    name = car (cdr (lp));
-  else
-    name = "emacs";
-
-  free_arglist (arg_list);
-
-  if (!(display = XOpenDisplay (displayname)))
-    fatal ("Can't open display '%s'\n", XDisplayName (displayname));
-
-  xdb = x_load_resources (display, resource_string, name, class);
-
-  /* In a real program, you'd want to also do this: */
-  display->db = xdb;
-
-  while (true)
-    {
-      char query_name[90];
-      char query_class[90];
-
-      printf ("Name: ");
-      gets (query_name);
-
-      if (strlen (query_name))
-	{
-	  char *value;
-
-	  printf ("Class: ");
-	  gets (query_class);
-
-	  value = x_get_string_resource (xdb, query_name, query_class);
-
-	  if (value != NULL)
-	    printf ("\t%s(%s):  %s\n\n", query_name, query_class, value);
-	  else
-	    printf ("\tNo Value.\n\n");
-	}
-      else
-	break;
-    }
-  printf ("\tExit.\n\n");
-
-  XCloseDisplay (display);
-
-  return 0;
-}
-#endif /* TESTRM */

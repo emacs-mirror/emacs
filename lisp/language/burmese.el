@@ -1,4 +1,4 @@
-;;; burmese.el --- support for Burmese -*- coding: utf-8 -*-
+;;; burmese.el --- support for Burmese -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -23,9 +23,8 @@
 
 ;;; Commentary:
 
-;; Aung San Suu Kyi says to call her country "Burma".
 ;; The murderous generals say to call it "Myanmar".
-;; We will call it "Burma". -- rms, Chief GNUisance.
+;; We will call it "Burma".  -- rms, Chief GNUisance.
 
 ;;; Code:
 
@@ -39,11 +38,11 @@
 (defvar burmese-composable-pattern
   (let ((table
 	 '(("K" . "[\u1004\u105A]\u103A\u1039") ; KINZI sequence
-	   ("C" . "[\u1000-\u102A\u103F\u1041-\u1049\u104E\u105A-\u105D\u1061\u1065-\u1066\u106E\u1071\u1075\u1081\u108E\uAA60-\uAA6F\uAA71-\uAA76]") ; consonant and vowel letter
+	   ("C" . "[\u1000-\u102A\u103F\u1041-\u1049\u104E\u105A-\u105D\u1061\u1065\u1066\u106E\u1071\u1075\u1081\u108E\uAA60-\uAA6F\uAA71-\uAA76]") ; consonant and vowel letter
 	   ("V" . "\u1039")					   ; VIRAMA
 	   ("A" . "\u103A")					   ; ASAT
 	   ("S" . "[\u1000-\u1019\u101C\u101E\u1020\u1021\u105A]") ; subscript
-	   ("M" . "[\u103B-\u103E\105E-\1060]") ; medial
+	   ("M" . "[\u103B-\u103E\u105E-\u1060]") ; medial
 	   ("v" . "[\u102B-\u103A\u103C-\u103E\u1062-\u1064\u1067-\u106D\u1071-\u1074\u1082-\u108D\u108F\u109A\u109C\uAA70]"))) ; vowel sign, etc.
 	(regexp "\\(K\\)?C\\(VS\\)?\\(VS\\)?A?M*v*"))
     (let ((case-fold-search nil))
@@ -52,7 +51,9 @@
 					       regexp t t))))
     regexp))
 
-(let ((elt (list (vector burmese-composable-pattern 0 'font-shape-gstring)
-		 (vector "." 0 'font-shape-gstring))))
+(let ((elt (list (vector burmese-composable-pattern 0 #'font-shape-gstring)
+		 (vector "." 0 #'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1000 . #x107F) elt)
   (set-char-table-range composition-function-table '(#xAA60 . #xAA7B) elt))
+
+;;; burmese.el ends here

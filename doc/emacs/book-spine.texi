@@ -1,0 +1,20 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename book-spine
+@settitle book-spine
+@include docstyle.texi
+@c %**end of header
+
+@include emacsver.texi
+
+@c need dot in text so first space command works!
+.
+@sp 7
+
+@center @titlefont{GNU Emacs Manual}
+@sp 5
+@center @value{EDITION} edition, for Emacs version @value{EMACSVER}
+@sp 5
+
+@center by Richard M.@: Stallman et al.
+@bye

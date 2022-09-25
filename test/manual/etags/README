@@ -1,0 +1,60 @@
+This directory contains the test suite for the 'etags' and 'ctags'
+programs.
+
+The input files, which include source files in various languages
+supported by the programs, are in the *-src/ directories (e.g., c-src
+for C sources, ada-src for Ada, tex-src for TeX, etc.).
+
+The expected results are slightly different for each of the 7 commands
+(see below) run by the test suite, and are on files ETAGS.good_N
+(where N is between 1 and 6) and CTAGS.good.
+
+To run the tests, say
+
+   make check
+
+in this directory.  This should run the programs 7 times with various
+command line switches, and should not show any differences between the
+produced file ETAGS/CTAGS and the corresponding expected results.  Any
+diffs shown by the 'diff' utility should be examined for potential
+regressions in 'etags' or 'ctags'.
+
+In some cases, diffs should be expected.  These include:
+
+  . adding new input files in the *-src/ directories
+  . routine changes in the existing input files, such as the yearly
+    update of copyright years, spelling changes, etc.
+  . adding new features to etags.c
+
+When the diffs are expected, they should be examined to make sure
+there are no regressions.  To do so, compare the line numbers and byte
+offsets shown in the new ETAGS/CTAGS files against the up-to-date
+input files, and make sure the new values match, whereas the old one
+don't.  Also make sure there no new or missing entries in the
+ETAGS/CTAGS files as compared with the expected results.  (When new
+input files are added, there obviously will be new entries -- these
+should be compared to the input files to verify correctness.)
+
+Once the differences are deemed to be justified, i.e. you decide that
+the new ETAGS/CTAGS file should become the new expected result, you
+should copy the ETAGS/CTAGS files produced by the test run to the
+corresponding "good" files, one by one.  Like this:
+
+  $ make check
+  $ cp ETAGS ETAGS.good_1
+  $ make check
+  $ cp ETAGS ETAGS.good_2
+  $ make check
+  $ cp ETAGS ETAGS.good_3
+  ...
+  $ make check
+  $ cp ETAGS ETAGS.good_6
+  $ make check
+  $ cp CTAGS CTAGS.good
+
+This uses the fact that "make check" will stop after the first
+failure, i.e. after the first time 'diff' reports any diffs, and then
+the ETAGS/CTAGS file from the last invocation is available for
+becoming the new expected-result file.  Alternatively, you can see the
+name of the expected-result file which needs to be updated in the
+output of the 'diff' utility.

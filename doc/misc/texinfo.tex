@@ -1,14 +1,11 @@
 % texinfo.tex -- TeX macros to handle Texinfo files.
-% 
+%
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2017-09-16.10}
+\def\texinfoversion{2022-08-20.19}
 %
-% Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
-% 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
-% Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2022 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -36,7 +33,7 @@
 % The texinfo.tex in any given distribution could well be out
 % of date, so if that's what you're using, please check.
 %
-% Send bug reports to bug-texinfo@gnu.org.  Please include including a
+% Send bug reports to bug-texinfo@gnu.org.  Please include a
 % complete document in each bug report with which we can reproduce the
 % problem.  Patches are, of course, greatly appreciated.
 %
@@ -221,7 +218,7 @@
 % @errormsg{MSG}.  Do the index-like expansions on MSG, but if things
 % aren't perfect, it's not the end of the world, being an error message,
 % after all.
-% 
+%
 \def\errormsg{\begingroup \indexnofonts \doerrormsg}
 \def\doerrormsg#1{\errmessage{#1}}
 
@@ -244,17 +241,7 @@
 %
 \def\finalout{\overfullrule=0pt }
 
-% Do @cropmarks to get crop marks.
-%
-\newif\ifcropmarks
-\let\cropmarks = \cropmarkstrue
-%
-% Dimensions to add cropmarks at corners.
-% Added by P. A. MacKay, 12 Nov. 1986
-%
 \newdimen\outerhsize \newdimen\outervsize % set by the paper size routines
-\newdimen\cornerlong  \cornerlong=1pc
-\newdimen\cornerthick \cornerthick=.3pt
 \newdimen\topandbottommargin \topandbottommargin=.75in
 
 % Output a mark which sets \thischapter, \thissection and \thiscolor.
@@ -270,8 +257,8 @@
 
 % \domark is called twice inside \chapmacro, to add one
 % mark before the section break, and one after.
-%   In the second call \prevchapterdefs is the same as \lastchapterdefs,
-% and \prevsectiondefs is the same as \lastsectiondefs.
+%   In the second call \prevchapterdefs is the same as \currentchapterdefs,
+% and \prevsectiondefs is the same as \currentsectiondefs.
 %   Then if the page is not broken at the mark, some of the previous
 % section appears on the page, and we can get the name of this section
 % from \firstmark for @everyheadingmarks top.
@@ -279,11 +266,11 @@
 %
 % See page 260 of The TeXbook.
 \def\domark{%
-  \toks0=\expandafter{\lastchapterdefs}%
-  \toks2=\expandafter{\lastsectiondefs}%
+  \toks0=\expandafter{\currentchapterdefs}%
+  \toks2=\expandafter{\currentsectiondefs}%
   \toks4=\expandafter{\prevchapterdefs}%
   \toks6=\expandafter{\prevsectiondefs}%
-  \toks8=\expandafter{\lastcolordefs}%
+  \toks8=\expandafter{\currentcolordefs}%
   \mark{%
                    \the\toks0 \the\toks2  % 0: marks for @everyheadingmarks top
       \noexpand\or \the\toks4 \the\toks6  % 1: for @everyheadingmarks bottom
@@ -300,19 +287,19 @@
 % @setcolor (or @url, or @link, etc.) between @contents and the very
 % first @chapter.
 \def\gettopheadingmarks{%
-  \ifcase0\topmark\fi
+  \ifcase0\the\savedtopmark\fi
   \ifx\thischapter\empty \ifcase0\firstmark\fi \fi
 }
 \def\getbottomheadingmarks{\ifcase1\botmark\fi}
-\def\getcolormarks{\ifcase2\topmark\fi}
+\def\getcolormarks{\ifcase2\the\savedtopmark\fi}
 
 % Avoid "undefined control sequence" errors.
-\def\lastchapterdefs{}
-\def\lastsectiondefs{}
-\def\lastsection{}
+\def\currentchapterdefs{}
+\def\currentsectiondefs{}
+\def\currentsection{}
 \def\prevchapterdefs{}
 \def\prevsectiondefs{}
-\def\lastcolordefs{}
+\def\currentcolordefs{}
 
 % Margin to add to right of even pages, to left of odd pages.
 \newdimen\bindingoffset
@@ -322,51 +309,61 @@
 % Main output routine.
 %
 \chardef\PAGE = 255
-\output = {\onepageout{\pagecontents\PAGE}}
+\newtoks\defaultoutput
+\defaultoutput = {\savetopmark\onepageout{\pagecontents\PAGE}}
+\output=\expandafter{\the\defaultoutput}
 
 \newbox\headlinebox
 \newbox\footlinebox
 
+% When outputting the double column layout for indices, an output routine
+% is run several times, which hides the original value of \topmark.  This
+% can lead to a page heading being output and duplicating the chapter heading
+% of the index.  Hence, save the contents of \topmark at the beginning of
+% the output routine.  The saved contents are valid until we actually
+% \shipout a page.
+%
+% (We used to run a short output routine to actually set \topmark and
+% \firstmark to the right values, but if this was called with an empty page
+% containing whatsits for writing index entries, the whatsits would be thrown
+% away and the index auxiliary file would remain empty.)
+%
+\newtoks\savedtopmark
+\newif\iftopmarksaved
+\topmarksavedtrue
+\def\savetopmark{%
+  \iftopmarksaved\else
+    \global\savedtopmark=\expandafter{\topmark}%
+    \global\topmarksavedtrue
+  \fi
+}
+
 % \onepageout takes a vbox as an argument.
-% \shipout a vbox for a single page, adding an optional header, footer,
-% cropmarks, and footnote.  This also causes index entries for this page
-% to be written to the auxiliary files.
+% \shipout a vbox for a single page, adding an optional header, footer
+% and footnote.  This also causes index entries for this page to be written
+% to the auxiliary files.
 %
 \def\onepageout#1{%
-  \ifcropmarks \hoffset=0pt \else \hoffset=\normaloffset \fi
+  \hoffset=\normaloffset
   %
   \ifodd\pageno  \advance\hoffset by \bindingoffset
   \else \advance\hoffset by -\bindingoffset\fi
   %
-  % Common context changes for both heading and footing.
-  % Do this outside of the \shipout so @code etc. will be expanded in
-  % the headline as they should be, not taken literally (outputting ''code).
-  \def\commmonheadfootline{\let\hsize=\txipagewidth \texinfochars}
+  \checkchapterpage
   %
   % Retrieve the information for the headings from the marks in the page,
   % and call Plain TeX's \makeheadline and \makefootline, which use the
   % values in \headline and \footline.
   %
-  % This is used to check if we are on the first page of a chapter.
-  \ifcase1\topmark\fi
-  \let\prevchaptername\thischaptername
-  \ifcase0\firstmark\fi
-  \let\curchaptername\thischaptername
+  % Common context changes for both heading and footing.
+  % Do this outside of the \shipout so @code etc. will be expanded in
+  % the headline as they should be, not taken literally (outputting ''code).
+  \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}
   %
   \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
+  \global\setbox\headlinebox = \vbox{\commonheadfootline \makeheadline}%
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
-  %
-  \ifx\curchaptername\prevchaptername
-    \let\thischapterheading\thischapter
-  \else
-    % \thischapterheading is the same as \thischapter except it is blank
-    % for the first page of a chapter.  This is to prevent the chapter name 
-    % being shown twice.
-    \def\thischapterheading{}%
-  \fi
-  %
-  \global\setbox\headlinebox = \vbox{\commmonheadfootline \makeheadline}%
-  \global\setbox\footlinebox = \vbox{\commmonheadfootline \makefootline}%
+  \global\setbox\footlinebox = \vbox{\commonheadfootline \makefootline}%
   %
   {%
     % Set context for writing to auxiliary files like index files.
@@ -374,36 +371,11 @@
     % take effect in \write's, yet the group defined by the \vbox ends
     % before the \shipout runs.
     %
-    \indexdummies         % don't expand commands in the output.
-    \normalturnoffactive  % \ in index entries must not stay \, e.g., if
-               % the page break happens to be in the middle of an example.
-               % We don't want .vr (or whatever) entries like this:
-               % \entry{{\indexbackslash }acronym}{32}{\code {\acronym}}
-               % "\acronym" won't work when it's read back in;
-               % it needs to be
-               % {\code {{\backslashcurfont }acronym}
+    \atdummies         % don't expand commands in the output.
+    \turnoffactive
     \shipout\vbox{%
       % Do this early so pdf references go to the beginning of the page.
       \ifpdfmakepagedest \pdfdest name{\the\pageno} xyz\fi
-      %
-      \ifcropmarks \vbox to \outervsize\bgroup
-        \hsize = \outerhsize
-        \vskip-\topandbottommargin
-        \vtop to0pt{%
-          \line{\ewtop\hfil\ewtop}%
-          \nointerlineskip
-          \line{%
-            \vbox{\moveleft\cornerthick\nstop}%
-            \hfill
-            \vbox{\moveright\cornerthick\nstop}%
-          }%
-          \vss}%
-        \vskip\topandbottommargin
-        \line\bgroup
-          \hfil % center the page within the outer (page) hsize.
-          \ifodd\pageno\hskip\bindingoffset\fi
-          \vbox\bgroup
-      \fi
       %
       \unvbox\headlinebox
       \pagebody{#1}%
@@ -415,24 +387,9 @@
         \unvbox\footlinebox
       \fi
       %
-      \ifcropmarks
-          \egroup % end of \vbox\bgroup
-        \hfil\egroup % end of (centering) \line\bgroup
-        \vskip\topandbottommargin plus1fill minus1fill
-        \boxmaxdepth = \cornerthick
-        \vbox to0pt{\vss
-          \line{%
-            \vbox{\moveleft\cornerthick\nsbot}%
-            \hfill
-            \vbox{\moveright\cornerthick\nsbot}%
-          }%
-          \nointerlineskip
-          \line{\ewbot\hfil\ewbot}%
-        }%
-      \egroup % \vbox from first cropmarks clause
-      \fi
-    }% end of \shipout\vbox
-  }% end of group with \indexdummies
+    }%
+  }%
+  \global\topmarksavedfalse
   \advancepageno
   \ifnum\outputpenalty>-20000 \else\dosupereject\fi
 }
@@ -451,17 +408,22 @@
 \ifr@ggedbottom \kern-\dimen@ \vfil \fi}
 }
 
-% Here are the rules for the cropmarks.  Note that they are
-% offset so that the space between them is truly \outerhsize or \outervsize
-% (P. A. MacKay, 12 November, 1986)
-%
-\def\ewtop{\vrule height\cornerthick depth0pt width\cornerlong}
-\def\nstop{\vbox
-  {\hrule height\cornerthick depth\cornerlong width\cornerthick}}
-\def\ewbot{\vrule height0pt depth\cornerthick width\cornerlong}
-\def\nsbot{\vbox
-  {\hrule height\cornerlong depth\cornerthick width\cornerthick}}
-
+% Check if we are on the first page of a chapter.  Used for printing headings.
+\newif\ifchapterpage
+\def\checkchapterpage{%
+  % Get the chapter that was current at the end of the last page
+  \ifcase1\the\savedtopmark\fi
+  \let\prevchaptername\thischaptername
+  %
+  \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
+  \let\curchaptername\thischaptername
+  %
+  \ifx\curchaptername\prevchaptername
+    \chapterpagefalse
+  \else
+    \chapterpagetrue
+  \fi
+}
 
 % Argument parsing
 
@@ -487,11 +449,10 @@
   }%
 }
 
-% First remove any @comment, then any @c comment.  Also remove a @texinfoc
-% comment (see \scanmacro for details).  Pass the result on to \argcheckspaces.
+% First remove any @comment, then any @c comment.  Pass the result on to
+% \argcheckspaces.
 \def\argremovecomment#1\comment#2\ArgTerm{\argremovec #1\c\ArgTerm}
-\def\argremovec#1\c#2\ArgTerm{\argremovetexinfoc #1\texinfoc\ArgTerm}
-\def\argremovetexinfoc#1\texinfoc#2\ArgTerm{\argcheckspaces#1\^^M\ArgTerm}
+\def\argremovec#1\c#2\ArgTerm{\argcheckspaces#1\^^M\ArgTerm}
 
 % Each occurrence of `\^^M' or `<space>\^^M' is replaced by a single space.
 %
@@ -611,9 +572,8 @@
   \fi
 }
 
-% @end foo executes the definition of \Efoo.
-% But first, it executes a specialized version of \checkenv
-%
+
+% @end foo calls \checkenv and executes the definition of \Efoo.
 \parseargdef\end{%
   \if 1\csname iscond.#1\endcsname
   \else
@@ -765,32 +725,22 @@ where each line of input produces a line of output.}
   \dimen2 = \ht\strutbox
   \advance\dimen2 by \dp\strutbox
   \ifdim\dimen0 > \dimen2
+    % This is similar to the 'needspace' module in LaTeX.
+    % The first penalty allows a break if the end of the page is
+    % not too far away.  Following penalties and skips are discarded.
+    % Otherwise, require at least \dimen0 of vertical space.
     %
-    % Do a \strut just to make the height of this box be normal, so the
-    % normal leading is inserted relative to the preceding line.
-    % And a page break here is fine.
-    \vtop to #1\mil{\strut\vfil}%
-    %
-    % TeX does not even consider page breaks if a penalty added to the
-    % main vertical list is 10000 or more.  But in order to see if the
-    % empty box we just added fits on the page, we must make it consider
-    % page breaks.  On the other hand, we don't want to actually break the
-    % page after the empty box.  So we use a penalty of 9999.
-    %
-    % There is an extremely small chance that TeX will actually break the
-    % page at this \penalty, if there are no other feasible breakpoints in
-    % sight.  (If the user is using lots of big @group commands, which
-    % almost-but-not-quite fill up a page, TeX will have a hard time doing
-    % good page breaking, for example.)  However, I could not construct an
-    % example where a page broke at this \penalty; if it happens in a real
-    % document, then we can reconsider our strategy.
+    % (We used to use a \vtop to reserve space, but this had spacing issues
+    % when followed by a section heading, as it was not a "discardable item".
+    % This also has the benefit of providing glue before the page break if
+    % there isn't enough space.)
+    \vskip0pt plus \dimen0
+    \penalty-100
+    \vskip0pt plus -\dimen0
+    \vskip \dimen0
     \penalty9999
-    %
-    % Back up by the size of the box, whether we did a page break or not.
-    \kern -#1\mil
-    %
-    % Do not allow a page break right after this kern.
-    \nobreak
+    \vskip -\dimen0
+    \penalty0\relax % this hides the above glue from \safewhatsit and \dobreak
   \fi
 }
 
@@ -1042,6 +992,14 @@ where each line of input produces a line of output.}
   \global\everypar = {}%
 }
 
+% leave vertical mode without cancelling any first paragraph indent
+\gdef\imageindent{%
+  \toks0=\everypar
+  \everypar={}%
+  \ptexnoindent
+  \global\everypar=\toks0
+}
+
 
 % @refill is a no-op.
 \let\refill=\relax
@@ -1050,7 +1008,7 @@ where each line of input produces a line of output.}
 \let\setfilename=\comment
 
 % @bye.
-\outer\def\bye{\pagealignmacro\tracingstats=1\ptexend}
+\outer\def\bye{\chappager\pagelabels\tracingstats=1\ptexend}
 
 
 \message{pdf,}
@@ -1092,7 +1050,7 @@ where each line of input produces a line of output.}
             tex.sprint(
               string.format(string.char(0x5c) .. string.char(0x25) .. '03o' ..
                             string.char(0x5c) .. string.char(0x25) .. '03o',
-                            (c / 256), (c % 256)))
+                            math.floor(c / 256), math.floor(c % 256)))
           else
             c = c - 0x10000
             local c_hi = c / 1024 + 0xd800
@@ -1102,8 +1060,8 @@ where each line of input produces a line of output.}
                             string.char(0x5c) .. string.char(0x25) .. '03o' ..
                             string.char(0x5c) .. string.char(0x25) .. '03o' ..
                             string.char(0x5c) .. string.char(0x25) .. '03o',
-                            (c_hi / 256), (c_hi % 256),
-                            (c_lo / 256), (c_lo % 256)))
+                            math.floor(c_hi / 256), math.floor(c_hi % 256),
+                            math.floor(c_lo / 256), math.floor(c_lo % 256)))
           end
         end
       end
@@ -1116,15 +1074,19 @@ where each line of input produces a line of output.}
       function PDFescstr(str)
         for c in string.bytes(str) do
           if c <= 0x20 or c >= 0x80 or c == 0x28 or c == 0x29 or c == 0x5c then
-            tex.sprint(
+            tex.sprint(-2,
               string.format(string.char(0x5c) .. string.char(0x25) .. '03o',
                             c))
           else
-            tex.sprint(string.char(c))
+            tex.sprint(-2, string.char(c))
           end
         end
       end
     }
+    % The -2 in the arguments here gives all the input to TeX catcode 12
+    % (other) or 10 (space), preventing undefined control sequence errors. See
+    % https://lists.gnu.org/archive/html/bug-texinfo/2019-08/msg00031.html
+    %
   \endgroup
   \def\pdfescapestring#1{\directlua{PDFescstr('\luaescapestring{#1}')}}
   \ifnum\luatexversion>84
@@ -1163,11 +1125,60 @@ where each line of input produces a line of output.}
   \fi
 \fi
 
+\newif\ifpdforxetex
+\pdforxetexfalse
+\ifpdf
+  \pdforxetextrue
+\fi
+\ifx\XeTeXrevision\thisisundefined\else
+  \pdforxetextrue
+\fi
+
+
+% Output page labels information.
+% See PDF reference v.1.7 p.594, section 8.3.1.
+\ifpdf
+\def\pagelabels{%
+  \def\title{0 << /P (T-) /S /D >>}%
+  \edef\roman{\the\romancount << /S /r >>}%
+  \edef\arabic{\the\arabiccount << /S /D >>}%
+  %
+  % Page label ranges must be increasing.  Remove any duplicates.
+  % (There is a slight chance of this being wrong if e.g. there is
+  % a @contents but no @titlepage, etc.)
+  %
+  \ifnum\romancount=0 \def\roman{}\fi
+  \ifnum\arabiccount=0 \def\title{}%
+  \else
+    \ifnum\romancount=\arabiccount \def\roman{}\fi
+  \fi
+  %
+  \ifnum\romancount<\arabiccount
+    \pdfcatalog{/PageLabels << /Nums [\title \roman \arabic ] >> }\relax
+  \else
+    \pdfcatalog{/PageLabels << /Nums [\title \arabic \roman ] >> }\relax
+  \fi
+}
+\else
+  \let\pagelabels\relax
+\fi
+
+\newcount\pagecount \pagecount=0
+\newcount\romancount \romancount=0
+\newcount\arabiccount \arabiccount=0
+\ifpdf
+  \let\ptxadvancepageno\advancepageno
+  \def\advancepageno{%
+    \ptxadvancepageno\global\advance\pagecount by 1
+  }
+\fi
+
+
 % PDF uses PostScript string constants for the names of xref targets,
 % for display in the outlines, and in other places.  Thus, we have to
 % double any backslashes.  Otherwise, a name like "\node" will be
 % interpreted as a newline (\n), followed by o, d, e.  Not good.
-% 
+%
 % See http://www.ntg.nl/pipermail/ntg-pdftex/2004-July/000654.html and
 % related messages.  The final outcome is that it is up to the TeX user
 % to double the backslashes and otherwise make the string valid, so
@@ -1219,7 +1230,7 @@ output) for that.)}
   % Set color, and create a mark which defines \thiscolor accordingly,
   % so that \makeheadline knows which color to restore.
   \def\setcolor#1{%
-    \xdef\lastcolordefs{\gdef\noexpand\thiscolor{#1}}%
+    \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
     \domark
     \pdfsetcolor{#1}%
   }
@@ -1227,7 +1238,7 @@ output) for that.)}
   \def\maincolor{\rgbBlack}
   \pdfsetcolor{\maincolor}
   \edef\thiscolor{\maincolor}
-  \def\lastcolordefs{}
+  \def\currentcolordefs{}
   %
   \def\makefootline{%
     \baselineskip24pt
@@ -1453,7 +1464,13 @@ output) for that.)}
       % subentries, which we calculated on our first read of the .toc above.
       %
       % We use the node names as the destinations.
+      %
+      % Currently we prefix the section name with the section number
+      % for chapter and appendix headings only in order to avoid too much
+      % horizontal space being required in the PDF viewer.
       \def\numchapentry##1##2##3##4{%
+        \dopdfoutline{##2 ##1}{count-\expnumber{chap##2}}{##3}{##4}}%
+      \def\unnchapentry##1##2##3##4{%
         \dopdfoutline{##1}{count-\expnumber{chap##2}}{##3}{##4}}%
       \def\numsecentry##1##2##3##4{%
         \dopdfoutline{##1}{count-\expnumber{sec##2}}{##3}{##4}}%
@@ -1472,7 +1489,7 @@ output) for that.)}
       % their "best" equivalent, based on the @documentencoding.  Too
       % much work for too little return.  Just use the ASCII equivalents
       % we use for the index sort strings.
-      % 
+      %
       \indexnofonts
       \setupdatafile
       % We can have normal brace characters in the PDF outlines, unlike
@@ -1528,6 +1545,9 @@ output) for that.)}
       \startlink attr{/Border [0 0 0]}%
         user{/Subtype /Link /A << /S /URI /URI (#1) >>}%
     \endgroup}
+  % \pdfgettoks - Surround page numbers in #1 with @pdflink.  #1 may
+  % be a simple number, or a list of numbers in the case of an index
+  % entry.
   \def\pdfgettoks#1.{\setbox\boxA=\hbox{\toksA={#1.}\toksB={}\maketoks}}
   \def\addtokens#1#2{\edef\addtoks{\noexpand#1={\the#1#2}}\addtoks}
   \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
@@ -1602,7 +1622,7 @@ output) for that.)}
   % Set color, and create a mark which defines \thiscolor accordingly,
   % so that \makeheadline knows which color to restore.
   \def\setcolor#1{%
-    \xdef\lastcolordefs{\gdef\noexpand\thiscolor{#1}}%
+    \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
     \domark
     \pdfsetcolor{#1}%
   }
@@ -1610,7 +1630,7 @@ output) for that.)}
   \def\maincolor{\rgbBlack}
   \pdfsetcolor{\maincolor}
   \edef\thiscolor{\maincolor}
-  \def\lastcolordefs{}
+  \def\currentcolordefs{}
   %
   \def\makefootline{%
     \baselineskip24pt
@@ -1692,9 +1712,13 @@ output) for that.)}
       % Therefore, we read toc only once.
       %
       % We use node names as destinations.
+      %
+      % Currently we prefix the section name with the section number
+      % for chapter and appendix headings only in order to avoid too much
+      % horizontal space being required in the PDF viewer.
       \def\partentry##1##2##3##4{}% ignore parts in the outlines
       \def\numchapentry##1##2##3##4{%
-        \dopdfoutline{##1}{1}{##3}{##4}}%
+        \dopdfoutline{##2 ##1}{1}{##3}{##4}}%
       \def\numsecentry##1##2##3##4{%
         \dopdfoutline{##1}{2}{##3}{##4}}%
       \def\numsubsecentry##1##2##3##4{%
@@ -1706,7 +1730,8 @@ output) for that.)}
       \let\appsecentry\numsecentry%
       \let\appsubsecentry\numsubsecentry%
       \let\appsubsubsecentry\numsubsubsecentry%
-      \let\unnchapentry\numchapentry%
+      \def\unnchapentry##1##2##3##4{%
+        \dopdfoutline{##1}{1}{##3}{##4}}%
       \let\unnsecentry\numsecentry%
       \let\unnsubsecentry\numsubsecentry%
       \let\unnsubsubsecentry\numsubsubsecentry%
@@ -1835,19 +1860,23 @@ output) for that.)}
       \closein 1
     \endgroup
     %
-    \def\xetexpdfext{pdf}%
-    \ifx\xeteximgext\xetexpdfext
-      \XeTeXpdffile "#1".\xeteximgext ""
-    \else
-      \def\xetexpdfext{PDF}%
+    % Putting an \hbox around the image can prevent an over-long line
+    % after the image.
+    \hbox\bgroup
+      \def\xetexpdfext{pdf}%
       \ifx\xeteximgext\xetexpdfext
         \XeTeXpdffile "#1".\xeteximgext ""
       \else
-        \XeTeXpicfile "#1".\xeteximgext ""
+        \def\xetexpdfext{PDF}%
+        \ifx\xeteximgext\xetexpdfext
+          \XeTeXpdffile "#1".\xeteximgext ""
+        \else
+          \XeTeXpicfile "#1".\xeteximgext ""
+        \fi
       \fi
-    \fi
-    \ifdim \wd0 >0pt width \xeteximagewidth \fi
-    \ifdim \wd2 >0pt height \xeteximageheight \fi \relax
+      \ifdim \wd0 >0pt width \xeteximagewidth \fi
+      \ifdim \wd2 >0pt height \xeteximageheight \fi \relax
+    \egroup
   }
 \fi
 
@@ -2202,7 +2231,7 @@ end
 % A few fonts for @defun names and args.
 \setfont\defbf\bfshape{10}{\magstep1}{OT1}
 \setfont\deftt\ttshape{10}{\magstep1}{OT1TT}
-\setfont\defsl\slshape{10}{\magstep1}{OT1TT}
+\setfont\defsl\slshape{10}{\magstep1}{OT1}
 \setfont\defttsl\ttslshape{10}{\magstep1}{OT1TT}
 \def\df{\let\ttfont=\deftt \let\bffont = \defbf
 \let\ttslfont=\defttsl \let\slfont=\defsl \bf}
@@ -2234,6 +2263,20 @@ end
 \font\smalleri=cmmi8
 \font\smallersy=cmsy8
 \def\smallerecsize{0800}
+
+% Fonts for math mode superscripts (7pt).
+\def\sevennominalsize{7pt}
+\setfont\sevenrm\rmshape{7}{1000}{OT1}
+\setfont\seventt\ttshape{10}{700}{OT1TT}
+\setfont\sevenbf\bfshape{10}{700}{OT1}
+\setfont\sevenit\itshape{7}{1000}{OT1IT}
+\setfont\sevensl\slshape{10}{700}{OT1}
+\setfont\sevensf\sfshape{10}{700}{OT1}
+\setfont\sevensc\scshape{10}{700}{OT1}
+\setfont\seventtsl\ttslshape{10}{700}{OT1TT}
+\font\seveni=cmmi7
+\font\sevensy=cmsy7
+\def\sevenecsize{0700}
 
 % Fonts for title page (20.4pt):
 \def\titlenominalsize{20pt}
@@ -2336,7 +2379,7 @@ end
 % A few fonts for @defun names and args.
 \setfont\defbf\bfshape{10}{\magstephalf}{OT1}
 \setfont\deftt\ttshape{10}{\magstephalf}{OT1TT}
-\setfont\defsl\slshape{10}{\magstephalf}{OT1TT}
+\setfont\defsl\slshape{10}{\magstephalf}{OT1}
 \setfont\defttsl\ttslshape{10}{\magstephalf}{OT1TT}
 \def\df{\let\ttfont=\deftt \let\bffont = \defbf
 \let\slfont=\defsl \let\ttslfont=\defttsl \bf}
@@ -2368,6 +2411,20 @@ end
 \font\smalleri=cmmi8
 \font\smallersy=cmsy8
 \def\smallerecsize{0800}
+
+% Fonts for math mode superscripts (7pt).
+\def\sevennominalsize{7pt}
+\setfont\sevenrm\rmshape{7}{1000}{OT1}
+\setfont\seventt\ttshape{10}{700}{OT1TT}
+\setfont\sevenbf\bfshape{10}{700}{OT1}
+\setfont\sevenit\itshape{7}{1000}{OT1IT}
+\setfont\sevensl\slshape{10}{700}{OT1}
+\setfont\sevensf\sfshape{10}{700}{OT1}
+\setfont\sevensc\scshape{10}{700}{OT1}
+\setfont\seventtsl\ttslshape{10}{700}{OT1TT}
+\font\seveni=cmmi7
+\font\sevensy=cmsy7
+\def\sevenecsize{0700}
 
 % Fonts for title page (20.4pt):
 \def\titlenominalsize{20pt}
@@ -2503,13 +2560,20 @@ end
 
 
 % In order for the font changes to affect most math symbols and letters,
-% we have to define the \textfont of the standard families.  We don't
-% bother to reset \scriptfont and \scriptscriptfont; awaiting user need.
+% we have to define the \textfont of the standard families.
+% We don't bother to reset \scriptscriptfont; awaiting user need.
 %
 \def\resetmathfonts{%
   \textfont0=\rmfont \textfont1=\ifont \textfont2=\syfont
   \textfont\itfam=\itfont \textfont\slfam=\slfont \textfont\bffam=\bffont
   \textfont\ttfam=\ttfont \textfont\sffam=\sffont
+  %
+  % Fonts for superscript.  Note that the 7pt fonts are used regardless
+  % of the current font size.
+  \scriptfont0=\sevenrm \scriptfont1=\seveni \scriptfont2=\sevensy
+  \scriptfont\itfam=\sevenit \scriptfont\slfam=\sevensl
+  \scriptfont\bffam=\sevenbf \scriptfont\ttfam=\seventt
+  \scriptfont\sffam=\sevensf
 }
 
 %
@@ -2518,6 +2582,9 @@ end
 % of \STYLEfont, instead of just \STYLE.  We do this because \STYLE needs
 % to also set the current \fam for math mode.  Our \STYLE (e.g., \rm)
 % commands hardwire \STYLEfont to set the current font.
+%
+% The fonts used for \ifont are for "math italics"  (\itfont is for italics
+% in regular text).  \syfont is also used in math mode only.
 %
 % Each font-changing command also sets the names \lsize (one size lower)
 % and \lllsize (three sizes lower).  These relative commands are used
@@ -2607,8 +2674,6 @@ end
 \definetextfontsizexi
 
 
-\message{markup,}
-
 % Check if we are currently using a typewriter font.  Since all the
 % Computer Modern typewriter fonts have zero interword stretch (and
 % shrink), and it is reasonable to expect all typewriter fonts to have
@@ -2616,82 +2681,21 @@ end
 %
 \def\ifmonospace{\ifdim\fontdimen3\font=0pt }
 
-% Markup style infrastructure.  \defmarkupstylesetup\INITMACRO will
-% define and register \INITMACRO to be called on markup style changes.
-% \INITMACRO can check \currentmarkupstyle for the innermost
-% style and the set of \ifmarkupSTYLE switches for all styles
-% currently in effect.
-\newif\ifmarkupvar
-\newif\ifmarkupsamp
-\newif\ifmarkupkey
-%\newif\ifmarkupfile % @file == @samp.
-%\newif\ifmarkupoption % @option == @samp.
-\newif\ifmarkupcode
-\newif\ifmarkupkbd
-%\newif\ifmarkupenv % @env == @code.
-%\newif\ifmarkupcommand % @command == @code.
-\newif\ifmarkuptex % @tex (and part of @math, for now).
-\newif\ifmarkupexample
-\newif\ifmarkupverb
-\newif\ifmarkupverbatim
-
-\let\currentmarkupstyle\empty
-
-\def\setupmarkupstyle#1{%
-  \csname markup#1true\endcsname
-  \def\currentmarkupstyle{#1}%
-  \markupstylesetup
+% Check if internal flag is clear, i.e. has not been @set.
+\def\ifflagclear#1#2#3{%
+  \expandafter\ifx\csname SET#1\endcsname\relax
+  #2\else#3\fi
 }
 
-\let\markupstylesetup\empty
 
-\def\defmarkupstylesetup#1{%
-  \expandafter\def\expandafter\markupstylesetup
-    \expandafter{\markupstylesetup #1}%
-  \def#1%
-}
-
-% Markup style setup for left and right quotes.
-\defmarkupstylesetup\markupsetuplq{%
-  \expandafter\let\expandafter \temp
-    \csname markupsetuplq\currentmarkupstyle\endcsname
-  \ifx\temp\relax \markupsetuplqdefault \else \temp \fi
-}
-
-\defmarkupstylesetup\markupsetuprq{%
-  \expandafter\let\expandafter \temp
-    \csname markupsetuprq\currentmarkupstyle\endcsname
-  \ifx\temp\relax \markupsetuprqdefault \else \temp \fi
-}
 
 {
 \catcode`\'=\active
 \catcode`\`=\active
 
-\gdef\markupsetuplqdefault{\let`\lq}
-\gdef\markupsetuprqdefault{\let'\rq}
-
-\gdef\markupsetcodequoteleft{\let`\codequoteleft}
-\gdef\markupsetcodequoteright{\let'\codequoteright}
+\gdef\setcodequotes{\let`\codequoteleft \let'\codequoteright}
+\gdef\setregularquotes{\let`\lq \let'\rq}
 }
-
-\let\markupsetuplqcode \markupsetcodequoteleft
-\let\markupsetuprqcode \markupsetcodequoteright
-%
-\let\markupsetuplqexample \markupsetcodequoteleft
-\let\markupsetuprqexample \markupsetcodequoteright
-%
-\let\markupsetuplqkbd     \markupsetcodequoteleft
-\let\markupsetuprqkbd     \markupsetcodequoteright
-%
-\let\markupsetuplqsamp \markupsetcodequoteleft
-\let\markupsetuprqsamp \markupsetcodequoteright
-%
-\let\markupsetuplqverb \markupsetcodequoteleft
-\let\markupsetuprqverb \markupsetcodequoteright
-%
-\let\markupsetuplqverbatim \markupsetcodequoteleft
-\let\markupsetuprqverbatim \markupsetcodequoteright
 
 % Allow an option to not use regular directed right quote/apostrophe
 % (char 0x27), but instead the undirected quote from cmtt (char 0x0d).
@@ -2700,11 +2704,15 @@ end
 % lilypond developers report.  xpdf does work with the regular 0x27.
 %
 \def\codequoteright{%
-  \expandafter\ifx\csname SETtxicodequoteundirected\endcsname\relax
-    \expandafter\ifx\csname SETcodequoteundirected\endcsname\relax
-      '%
-    \else \char'15 \fi
-  \else \char'15 \fi
+  \ifmonospace
+    \ifflagclear{txicodequoteundirected}{%
+      \ifflagclear{codequoteundirected}{%
+        '%
+      }{\char'15 }%
+    }{\char'15 }%
+  \else
+    '%
+  \fi
 }
 %
 % and a similar option for the left quote char vs. a grave accent.
@@ -2712,17 +2720,21 @@ end
 % the code environments to do likewise.
 %
 \def\codequoteleft{%
-  \expandafter\ifx\csname SETtxicodequotebacktick\endcsname\relax
-    \expandafter\ifx\csname SETcodequotebacktick\endcsname\relax
-      % [Knuth] pp. 380,381,391
-      % \relax disables Spanish ligatures ?` and !` of \tt font.
-      \relax`%
-    \else \char'22 \fi
-  \else \char'22 \fi
+  \ifmonospace
+    \ifflagclear{txicodequotebacktick}{%
+      \ifflagclear{codequotebacktick}{%
+        % [Knuth] pp. 380,381,391
+        % \relax disables Spanish ligatures ?` and !` of \tt font.
+        \relax`%
+      }{\char'22 }%
+    }{\char'22 }%
+  \else
+    \relax`%
+  \fi
 }
 
 % Commands to set the quote options.
-% 
+%
 \parseargdef\codequoteundirected{%
   \def\temp{#1}%
   \ifx\temp\onword
@@ -2763,17 +2775,18 @@ end
 % If we are in a monospaced environment, however, 1) always use \ttsl,
 % and 2) do not add an italic correction.
 \def\dosmartslant#1#2{%
-  \ifusingtt 
+  \ifusingtt
     {{\ttsl #2}\let\next=\relax}%
-    {\def\next{{#1#2}\futurelet\next\smartitaliccorrection}}%
+    {\def\next{{#1#2}\smartitaliccorrection}}%
   \next
 }
 \def\smartslanted{\dosmartslant\sl}
 \def\smartitalic{\dosmartslant\it}
 
-% Output an italic correction unless \next (presumed to be the following
-% character) is such as not to need one.
-\def\smartitaliccorrection{%
+% Output an italic correction unless the following character is such as
+% not to need one.
+\def\smartitaliccorrection{\futurelet\next\smartitaliccorrectionx}
+\def\smartitaliccorrectionx{%
   \ifx\next,%
   \else\ifx\next-%
   \else\ifx\next.%
@@ -2784,18 +2797,18 @@ end
   \aftersmartic
 }
 
-% Unconditional use \ttsl, and no ic.  @var is set to this for defuns.
-\def\ttslanted#1{{\ttsl #1}}
+% @cite unconditionally uses \sl with \smartitaliccorrection.
+\def\cite#1{{\sl #1}\smartitaliccorrection}
 
-% @cite is like \smartslanted except unconditionally use \sl.  We never want
-% ttsl for book titles, do we?
-\def\cite#1{{\sl #1}\futurelet\next\smartitaliccorrection}
-
+% @var unconditionally uses \sl.  This gives consistency for
+% parameter names whether they are in @def, @table @code or a
+% regular paragraph.
+% The \null is to reset \spacefactor.
 \def\aftersmartic{}
 \def\var#1{%
   \let\saveaftersmartic = \aftersmartic
   \def\aftersmartic{\null\let\aftersmartic=\saveaftersmartic}%
-  \smartslanted{#1}%
+  {\sl #1}\smartitaliccorrection
 }
 
 \let\i=\smartitalic
@@ -2803,8 +2816,14 @@ end
 \let\dfn=\smartslanted
 \let\emph=\smartitalic
 
-% Explicit font changes: @r, @sc, undocumented @ii.
-\def\r#1{{\rm #1}}              % roman font
+% @r for roman font, used for code comment
+\def\r#1{{%
+  \usenormaldash % get --, --- ligatures even if in @code
+  \defcharsdefault  % in case on def line
+  \rm #1}}
+{\catcode`-=\active \gdef\usenormaldash{\let-\normaldash}}
+
+% @sc, undocumented @ii.
 \def\sc#1{{\smallcaps#1}}       % smallcaps font
 \def\ii#1{{\it #1}}             % italic font
 
@@ -2842,12 +2861,12 @@ end
 
 % @t, explicit typewriter.
 \def\t#1{%
-  {\tt \rawbackslash \plainfrenchspacing #1}%
+  {\tt \defcharsdefault \plainfrenchspacing #1}%
   \null
 }
 
 % @samp.
-\def\samp#1{{\setupmarkupstyle{samp}\lq\tclose{#1}\rq\null}}
+\def\samp#1{{\setcodequotes\lq\tclose{#1}\rq\null}}
 
 % @indicateurl is \samp, that is, with quotes.
 \let\indicateurl=\samp
@@ -2869,7 +2888,6 @@ end
     % Turn off hyphenation.
     \nohyphenation
     %
-    \rawbackslash
     \plainfrenchspacing
     #1%
   }%
@@ -2891,8 +2909,7 @@ end
   \global\let'=\rq \global\let`=\lq  % default definitions
   %
   \global\def\code{\begingroup
-    \setupmarkupstyle{code}%
-    % The following should really be moved into \setupmarkupstyle handlers.
+    \setcodequotes
     \catcode\dashChar=\active  \catcode\underChar=\active
     \ifallowcodebreaks
      \let-\codedash
@@ -2911,14 +2928,14 @@ end
   \gdef\codedash{\futurelet\next\codedashfinish}
   \gdef\codedashfinish{%
     \normaldash % always output the dash character itself.
-    % 
+    %
     % Now, output a discretionary to allow a line break, unless
     % (a) the next character is a -, or
     % (b) the preceding character is a -.
     % E.g., given --posix, we do not want to allow a break after either -.
     % Given --foo-bar, we do want to allow a break between the - and the b.
     \ifx\next\codedash \else
-      \ifx\codedashprev\codedash 
+      \ifx\codedashprev\codedash
       \else \discretionary{}{}{}\fi
     \fi
     % we need the space after the = for the case when \next itself is a
@@ -2980,10 +2997,18 @@ end
 % arg (if given), and not the url (which is then just the link target).
 \newif\ifurefurlonlylink
 
+% The default \pretolerance setting stops the penalty inserted in
+% \urefallowbreak being a discouragement to line breaking.  Set it to
+% a negative value for this paragraph only.  Hopefully this does not
+% conflict with redefinitions of \par done elsewhere.
+\def\nopretolerance{%
+\pretolerance=-1
+\def\par{\endgraf\pretolerance=100 \let\par\endgraf}%
+}
+
 % The main macro is \urefbreak, which allows breaking at expected
-% places within the url.  (There used to be another version, which
-% didn't support automatic breaking.)
-\def\urefbreak{\begingroup \urefcatcodes \dourefbreak}
+% places within the url.
+\def\urefbreak{\nopretolerance \begingroup \urefcatcodes \dourefbreak}
 \let\uref=\urefbreak
 %
 \def\dourefbreak#1{\urefbreakfinish #1,,,\finish}
@@ -3000,7 +3025,7 @@ end
         % For pdfTeX and LuaTeX
         \ifurefurlonlylink
           % PDF plus option to not display url, show just arg
-          \unhbox0             
+          \unhbox0
         \else
           % PDF, normally display both arg and url for consistency,
           % visibility, if the pdf is eventually used to print, etc.
@@ -3013,7 +3038,7 @@ end
           % For XeTeX
           \ifurefurlonlylink
             % PDF plus option to not display url, show just arg
-            \unhbox0             
+            \unhbox0
           \else
             % PDF, normally display both arg and url for consistency,
             % visibility, if the pdf is eventually used to print, etc.
@@ -3038,7 +3063,7 @@ end
   \urefcatcodes
   %
   \global\def\urefcode{\begingroup
-    \setupmarkupstyle{code}%
+    \setcodequotes
     \urefcatcodes
     \let&\urefcodeamp
     \let.\urefcodedot
@@ -3056,41 +3081,33 @@ end
   \global\def/{\normalslash}
 }
 
-% we put a little stretch before and after the breakable chars, to help
-% line breaking of long url's.  The unequal skips make look better in
-% cmtt at least, especially for dots.
-\def\urefprestretchamount{.13em}
-\def\urefpoststretchamount{.1em}
-\def\urefprestretch{\urefprebreak \hskip0pt plus\urefprestretchamount\relax}
-\def\urefpoststretch{\urefpostbreak \hskip0pt plus\urefprestretchamount\relax}
-%
-\def\urefcodeamp{\urefprestretch \&\urefpoststretch}
-\def\urefcodedot{\urefprestretch .\urefpoststretch}
-\def\urefcodehash{\urefprestretch \#\urefpoststretch}
-\def\urefcodequest{\urefprestretch ?\urefpoststretch}
+\def\urefcodeamp{\urefprebreak \&\urefpostbreak}
+\def\urefcodedot{\urefprebreak .\urefpostbreak}
+\def\urefcodehash{\urefprebreak \#\urefpostbreak}
+\def\urefcodequest{\urefprebreak ?\urefpostbreak}
 \def\urefcodeslash{\futurelet\next\urefcodeslashfinish}
 {
   \catcode`\/=\active
   \global\def\urefcodeslashfinish{%
-    \urefprestretch \slashChar
+    \urefprebreak \slashChar
     % Allow line break only after the final / in a sequence of
     % slashes, to avoid line break between the slashes in http://.
-    \ifx\next/\else \urefpoststretch \fi
+    \ifx\next/\else \urefpostbreak \fi
   }
 }
 
-% One more complication: by default we'll break after the special
-% characters, but some people like to break before the special chars, so
-% allow that.  Also allow no breaking at all, for manual control.
-% 
+% By default we'll break after the special characters, but some people like to
+% break before the special chars, so allow that.  Also allow no breaking at
+% all, for manual control.
+%
 \parseargdef\urefbreakstyle{%
   \def\txiarg{#1}%
   \ifx\txiarg\wordnone
     \def\urefprebreak{\nobreak}\def\urefpostbreak{\nobreak}
   \else\ifx\txiarg\wordbefore
-    \def\urefprebreak{\allowbreak}\def\urefpostbreak{\nobreak}
+    \def\urefprebreak{\urefallowbreak}\def\urefpostbreak{\nobreak}
   \else\ifx\txiarg\wordafter
-    \def\urefprebreak{\nobreak}\def\urefpostbreak{\allowbreak}
+    \def\urefprebreak{\nobreak}\def\urefpostbreak{\urefallowbreak}
   \else
     \errhelp = \EMsimple
     \errmessage{Unknown @urefbreakstyle setting `\txiarg'}%
@@ -3099,6 +3116,19 @@ end
 \def\wordafter{after}
 \def\wordbefore{before}
 \def\wordnone{none}
+
+% Allow a ragged right output to aid breaking long URL's.  There can
+% be a break at the \allowbreak with no extra glue (if the existing stretch in
+% the line is sufficient), a break at the \penalty with extra glue added
+% at the end of the line, or no break at all here.
+%   Changing the value of the penalty and/or the amount of stretch affects how
+% preferable one choice is over the other.
+\def\urefallowbreak{%
+  \penalty0\relax
+  \hskip 0pt plus 2 em\relax
+  \penalty1000\relax
+  \hskip 0pt plus -2 em\relax
+}
 
 \urefbreakstyle after
 
@@ -3110,7 +3140,7 @@ end
 % So now @email is just like @uref, unless we are pdf.
 %
 %\def\email#1{\angleleft{\tt #1}\angleright}
-\ifpdf
+\ifpdforxetex
   \def\email#1{\doemail#1,,\finish}
   \def\doemail#1,#2,#3\finish{\begingroup
     \unsepspaces
@@ -3120,18 +3150,7 @@ end
     \endlink
   \endgroup}
 \else
-  \ifx\XeTeXrevision\thisisundefined
-    \let\email=\uref
-  \else
-    \def\email#1{\doemail#1,,\finish}
-    \def\doemail#1,#2,#3\finish{\begingroup
-      \unsepspaces
-      \pdfurl{mailto:#1}%
-      \setbox0 = \hbox{\ignorespaces #2}%
-      \ifdim\wd0>0pt\unhbox0\else\code{#1}\fi
-      \endlink
-    \endgroup}
-  \fi
+  \let\email=\uref
 \fi
 
 % @kbdinputstyle -- arg is `distinct' (@kbd uses slanted tty font always),
@@ -3157,16 +3176,8 @@ end
 % Default is `distinct'.
 \kbdinputstyle distinct
 
-% @kbd is like @code, except that if the argument is just one @key command,
-% then @kbd has no effect.
-\def\kbd#1{{\def\look{#1}\expandafter\kbdsub\look??\par}}
-
-\def\xkey{\key}
-\def\kbdsub#1#2#3\par{%
-  \def\one{#1}\def\three{#3}\def\threex{??}%
-  \ifx\one\xkey\ifx\threex\three \key{#2}%
-  \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
-  \else{\tclose{\kbdfont\setupmarkupstyle{kbd}\look}}\fi
+\def\kbd#1{%
+  \tclose{\kbdfont\setcodequotes#1}%
 }
 
 % definition of @key that produces a lozenge.  Doesn't adjust to text size.
@@ -3179,14 +3190,9 @@ end
 %    \kern-0.4pt\hrule}%
 %  \kern-.06em\raise0.4pt\hbox{\angleright}}}}
 
-% definition of @key with no lozenge.  If the current font is already
-% monospace, don't change it; that way, we respect @kbdinputstyle.  But
-% if it isn't monospace, then use \tt.
+% definition of @key with no lozenge.
 %
-\def\key#1{{\setupmarkupstyle{key}%
-  \nohyphenation
-  \ifmonospace\else\tt\fi
-  #1}\null}
+\def\key#1{{\setregularquotes \nohyphenation \tt #1}\null}
 
 % @clicksequence{File @click{} Open ...}
 \def\clicksequence#1{\begingroup #1\endgroup}
@@ -3304,10 +3310,33 @@ end
 \def\sup{\ifmmode \expandafter\ptexsp \else \expandafter\finishsup\fi}
 \def\finishsup#1{$\ptexsp{\hbox{\switchtolllsize #1}}$}%
 
+% provide this command from LaTeX as it is very common
+\def\frac#1#2{{{#1}\over{#2}}}
+
+% @displaymath.
+% \globaldefs is needed to recognize the end lines in \tex and
+% \end tex.  Set \thisenv as @end displaymath is seen before @end tex.
+{\obeylines
+\globaldefs=1
+\envdef\displaymath{%
+\tex%
+\def\thisenv{\displaymath}%
+\begingroup\let\end\displaymathend%
+$$%
+}
+
+\def\displaymathend{$$\endgroup\end}%
+
+\def\Edisplaymath{%
+\def\thisenv{\tex}%
+\end tex
+}}
+
+
 % @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
 % Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
 % except specified as a normal braced arg, so no newlines to worry about.
-% 
+%
 \def\outfmtnametex{tex}
 %
 \long\def\inlinefmt#1{\doinlinefmt #1,\finish}
@@ -3315,7 +3344,7 @@ end
   \def\inlinefmtname{#1}%
   \ifx\inlinefmtname\outfmtnametex \ignorespaces #2\fi
 }
-% 
+%
 % @inlinefmtifelse{FMTNAME,THEN-TEXT,ELSE-TEXT} expands THEN-TEXT if
 % FMTNAME is tex, else ELSE-TEXT.
 \long\def\inlinefmtifelse#1{\doinlinefmtifelse #1,,,\finish}
@@ -3331,7 +3360,7 @@ end
 % *right* brace they would have to use a command anyway, so they may as
 % well use a command to get a left brace too.  We could re-use the
 % delimiter character idea from \verb, but it seems like overkill.
-% 
+%
 \long\def\inlineraw{\tex \doinlineraw}
 \long\def\doinlineraw#1{\doinlinerawtwo #1,\finish}
 \def\doinlinerawtwo#1,#2,\finish{%
@@ -3508,7 +3537,7 @@ end
 
 % @pounds{} is a sterling sign, which Knuth put in the CM italic font.
 %
-\def\pounds{{\it\$}}
+\def\pounds{\ifmonospace{\ecfont\char"BF}\else{\it\$}\fi}
 
 % @euro{} comes from a separate font, depending on the current style.
 % We use the free feym* fonts from the eurosym package by Henrik
@@ -3577,6 +3606,9 @@ end
 \def\quotedblbase{{\ecfont \char"12}}
 \def\quotesinglbase{{\ecfont \char"0D}}
 %
+\def\L{{\ecfont \char"8A}} % L with stroke
+\def\l{{\ecfont \char"AA}} % l with stroke
+%
 % This positioning is not perfect (see the ogonek LaTeX package), but
 % we have the precomposed glyphs for the most common cases.  We put the
 % tests to use those glyphs in the single \ogonek macro so we have fewer
@@ -3608,7 +3640,7 @@ end
 % for non-CM glyphs.  That is ec* for regular text and tc* for the text
 % companion symbols (LaTeX TS1 encoding).  Both are part of the ec
 % package and follow the same conventions.
-% 
+%
 \def\ecfont{\etcfont{e}}
 \def\tcfont{\etcfont{t}}
 %
@@ -3657,10 +3689,18 @@ end
 \fi
 
 % Quotes.
-\chardef\quotedblleft="5C
-\chardef\quotedblright=`\"
 \chardef\quoteleft=`\`
 \chardef\quoteright=`\'
+
+% only change font for tt for correct kerning and to avoid using
+% \ecfont unless necessary.
+\def\quotedblleft{%
+  \ifmonospace{\ecfont\char"10}\else{\char"5C}\fi
+}
+
+\def\quotedblright{%
+  \ifmonospace{\ecfont\char"11}\else{\char`\"}\fi
+}
 
 
 \message{page headings,}
@@ -3680,7 +3720,7 @@ end
               after the title page.}}%
 \def\setshortcontentsaftertitlepage{%
   \errmessage{@setshortcontentsaftertitlepage has been removed as a Texinfo
-              command; move your @shortcontents and @contents commands if you 
+              command; move your @shortcontents and @contents commands if you
               want the contents after the title page.}}%
 
 \parseargdef\shorttitlepage{%
@@ -3735,7 +3775,7 @@ end
 % don't worry much about spacing, ragged right.  This should be used
 % inside a \vbox, and fonts need to be set appropriately first. \par should
 % be specified before the end of the \vbox, since a vbox is a group.
-% 
+%
 \def\raggedtitlesettings{%
   \rm
   \hyphenpenalty=10000
@@ -3783,12 +3823,19 @@ end
 
 \newtoks\evenheadline    % headline on even pages
 \newtoks\oddheadline     % headline on odd pages
+\newtoks\evenchapheadline% headline on even pages with a new chapter
+\newtoks\oddchapheadline % headline on odd pages with a new chapter
 \newtoks\evenfootline    % footline on even pages
 \newtoks\oddfootline     % footline on odd pages
 
 % Now make \makeheadline and \makefootline in Plain TeX use those variables
-\headline={{\textfonts\rm \ifodd\pageno \the\oddheadline
-                            \else \the\evenheadline \fi}}
+\headline={{\textfonts\rm
+            \ifchapterpage
+              \ifodd\pageno\the\oddchapheadline\else\the\evenchapheadline\fi
+            \else
+              \ifodd\pageno\the\oddheadline\else\the\evenheadline\fi
+            \fi}}
+
 \footline={{\textfonts\rm \ifodd\pageno \the\oddfootline
                             \else \the\evenfootline \fi}\HEADINGShook}
 \let\HEADINGShook=\relax
@@ -3804,12 +3851,14 @@ end
 \def\evenheading{\parsearg\evenheadingxxx}
 \def\evenheadingxxx #1{\evenheadingyyy #1\|\|\|\|\finish}
 \def\evenheadingyyy #1\|#2\|#3\|#4\finish{%
-\global\evenheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}}
+  \global\evenheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}
+  \global\evenchapheadline=\evenheadline}
 
 \def\oddheading{\parsearg\oddheadingxxx}
 \def\oddheadingxxx #1{\oddheadingyyy #1\|\|\|\|\finish}
 \def\oddheadingyyy #1\|#2\|#3\|#4\finish{%
-\global\oddheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}}
+  \global\oddheadline={\rlap{\centerline{#2}}\line{#1\hfil#3}}%
+  \global\oddchapheadline=\oddheadline}
 
 \parseargdef\everyheading{\oddheadingxxx{#1}\evenheadingxxx{#1}}%
 
@@ -3876,37 +3925,34 @@ end
 \parseargdef\headings{\csname HEADINGS#1\endcsname}
 
 \def\headingsoff{% non-global headings elimination
-  \evenheadline={\hfil}\evenfootline={\hfil}%
-   \oddheadline={\hfil}\oddfootline={\hfil}%
+  \evenheadline={\hfil}\evenfootline={\hfil}\evenchapheadline={\hfil}%
+   \oddheadline={\hfil}\oddfootline={\hfil}\oddchapheadline={\hfil}%
 }
 
 \def\HEADINGSoff{{\globaldefs=1 \headingsoff}} % global setting
 \HEADINGSoff  % it's the default
 
 % When we turn headings on, set the page number to 1.
+\def\pageone{
+  \global\pageno=1
+  \global\arabiccount = \pagecount
+}
+
 % For double-sided printing, put current file name in lower left corner,
 % chapter name on inside top of right hand pages, document
 % title on inside top of left hand pages, and page numbers on outside top
 % edge of all pages.
 \def\HEADINGSdouble{%
-\global\pageno=1
-\global\evenfootline={\hfil}
-\global\oddfootline={\hfil}
-\global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
-\global\let\contentsalignmacro = \chapoddpage
+\pageone
+\HEADINGSdoublex
 }
 \let\contentsalignmacro = \chappager
 
 % For single-sided printing, chapter title goes across top left of page,
 % page number on top right.
 \def\HEADINGSsingle{%
-\global\pageno=1
-\global\evenfootline={\hfil}
-\global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapterheading\hfil\folio}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
-\global\let\contentsalignmacro = \chappager
+\pageone
+\HEADINGSsinglex
 }
 \def\HEADINGSon{\HEADINGSdouble}
 
@@ -3916,7 +3962,9 @@ end
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline={\line{\folio\hfil}}
+\global\oddchapheadline={\line{\hfil\folio}}
 \global\let\contentsalignmacro = \chapoddpage
 }
 
@@ -3924,8 +3972,22 @@ end
 \def\HEADINGSsinglex{%
 \global\evenfootline={\hfil}
 \global\oddfootline={\hfil}
-\global\evenheadline={\line{\thischapterheading\hfil\folio}}
-\global\oddheadline={\line{\thischapterheading\hfil\folio}}
+\global\evenheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline={\line{\hfil\folio}}
+\global\oddchapheadline={\line{\hfil\folio}}
+\global\let\contentsalignmacro = \chappager
+}
+
+% for @setchapternewpage off
+\def\HEADINGSsinglechapoff{%
+\pageone
+\global\evenfootline={\hfil}
+\global\oddfootline={\hfil}
+\global\evenheadline={\line{\thischapter\hfil\folio}}
+\global\oddheadline={\line{\thischapter\hfil\folio}}
+\global\evenchapheadline=\evenheadline
+\global\oddchapheadline=\oddheadline
 \global\let\contentsalignmacro = \chappager
 }
 
@@ -4234,82 +4296,8 @@ end
   \doitemize{#1.}\flushcr
 }
 
-% @alphaenumerate and @capsenumerate are abbreviations for giving an arg
-% to @enumerate.
-%
-\def\alphaenumerate{\enumerate{a}}
-\def\capsenumerate{\enumerate{A}}
-\def\Ealphaenumerate{\Eenumerate}
-\def\Ecapsenumerate{\Eenumerate}
-
 
 % @multitable macros
-% Amy Hendrickson, 8/18/94, 3/6/96
-%
-% @multitable ... @end multitable will make as many columns as desired.
-% Contents of each column will wrap at width given in preamble.  Width
-% can be specified either with sample text given in a template line,
-% or in percent of \hsize, the current width of text on page.
-
-% Table can continue over pages but will only break between lines.
-
-% To make preamble:
-%
-% Either define widths of columns in terms of percent of \hsize:
-%   @multitable @columnfractions .25 .3 .45
-%   @item ...
-%
-%   Numbers following @columnfractions are the percent of the total
-%   current hsize to be used for each column. You may use as many
-%   columns as desired.
-
-
-% Or use a template:
-%   @multitable {Column 1 template} {Column 2 template} {Column 3 template}
-%   @item ...
-%   using the widest term desired in each column.
-
-% Each new table line starts with @item, each subsequent new column
-% starts with @tab. Empty columns may be produced by supplying @tab's
-% with nothing between them for as many times as empty columns are needed,
-% ie, @tab@tab@tab will produce two empty columns.
-
-% @item, @tab do not need to be on their own lines, but it will not hurt
-% if they are.
-
-% Sample multitable:
-
-%   @multitable {Column 1 template} {Column 2 template} {Column 3 template}
-%   @item first col stuff @tab second col stuff @tab third col
-%   @item
-%   first col stuff
-%   @tab
-%   second col stuff
-%   @tab
-%   third col
-%   @item first col stuff @tab second col stuff
-%   @tab Many paragraphs of text may be used in any column.
-%
-%         They will wrap at the width determined by the template.
-%   @item@tab@tab This will be in third column.
-%   @end multitable
-
-% Default dimensions may be reset by user.
-% @multitableparskip is vertical space between paragraphs in table.
-% @multitableparindent is paragraph indent in table.
-% @multitablecolmargin is horizontal space to be left between columns.
-% @multitablelinespace is space to leave between table items, baseline
-%                                                            to baseline.
-%   0pt means it depends on current normal line spacing.
-%
-\newskip\multitableparskip
-\newskip\multitableparindent
-\newdimen\multitablecolspace
-\newskip\multitablelinespace
-\multitableparskip=0pt
-\multitableparindent=6pt
-\multitablecolspace=12pt
-\multitablelinespace=0pt
 
 % Macros used to set up halign preamble:
 %
@@ -4357,8 +4345,6 @@ end
   \go
 }
 
-% multitable-only commands.
-% 
 % @headitem starts a heading row, which we typeset in bold.  Assignments
 % have to be global since we are inside the implicit group of an
 % alignment entry.  \everycr below resets \everytab so we don't have to
@@ -4375,14 +4361,8 @@ end
 % default for tables with no headings.
 \let\headitemcrhook=\relax
 %
-% A \tab used to include \hskip1sp.  But then the space in a template
-% line is not enough.  That is bad.  So let's go back to just `&' until
-% we again encounter the problem the 1sp was intended to solve.
-%					--karl, nathan@acm.org, 20apr99.
 \def\tab{\checkenv\multitable &\the\everytab}%
 
-% @multitable ... @end multitable definitions:
-%
 \newtoks\everytab  % insert after every tab.
 %
 \envdef\multitable{%
@@ -4397,9 +4377,8 @@ end
   %
   \tolerance=9500
   \hbadness=9500
-  \setmultitablespacing
-  \parskip=\multitableparskip
-  \parindent=\multitableparindent
+  \parskip=0pt
+  \parindent=6pt
   \overfullrule=0pt
   \global\colcount=0
   %
@@ -4429,47 +4408,24 @@ end
   % continue for many paragraphs if desired.
   \halign\bgroup &%
     \global\advance\colcount by 1
-    \multistrut
+    \strut
     \vtop{%
-      % Use the current \colcount to find the correct column width:
+      \advance\hsize by -1\leftskip
+      % Find the correct column width
       \hsize=\expandafter\csname col\the\colcount\endcsname
       %
-      % In order to keep entries from bumping into each other
-      % we will add a \leftskip of \multitablecolspace to all columns after
-      % the first one.
-      %
-      % If a template has been used, we will add \multitablecolspace
-      % to the width of each template entry.
-      %
-      % If the user has set preamble in terms of percent of \hsize we will
-      % use that dimension as the width of the column, and the \leftskip
-      % will keep entries from bumping into each other.  Table will start at
-      % left margin and final column will justify at right margin.
-      %
-      % Make sure we don't inherit \rightskip from the outer environment.
-      \rightskip=0pt
+      \advance\rightskip by -1\rightskip % Zero leaving only any stretch
       \ifnum\colcount=1
-	% The first column will be indented with the surrounding text.
-	\advance\hsize by\leftskip
+        \advance\hsize by\leftskip % Add indent of surrounding text
       \else
-	\ifsetpercent \else
-	  % If user has not set preamble in terms of percent of \hsize
-	  % we will advance \hsize by \multitablecolspace.
-	  \advance\hsize by \multitablecolspace
-	\fi
-       % In either case we will make \leftskip=\multitablecolspace:
-      \leftskip=\multitablecolspace
+        % In order to keep entries from bumping into each other.
+        \leftskip=12pt
+        \ifsetpercent \else
+          % If a template has been used
+          \advance\hsize by \leftskip
+        \fi
       \fi
-      % Ignoring space at the beginning and end avoids an occasional spurious
-      % blank line, when TeX decides to break the line at the space before the
-      % box from the multistrut, so the strut ends up on a line by itself.
-      % For example:
-      % @multitable @columnfractions .11 .89
-      % @item @code{#}
-      % @tab Legal holiday which is valid in major parts of the whole country.
-      % Is automatically provided with highlighting sequences respectively
-      % marking characters.
-      \noindent\ignorespaces##\unskip\multistrut
+      \noindent\ignorespaces##\unskip\strut
     }\cr
 }
 \def\Emultitable{%
@@ -4478,35 +4434,10 @@ end
   \global\setpercentfalse
 }
 
-\def\setmultitablespacing{%
-  \def\multistrut{\strut}% just use the standard line spacing
-  %
-  % Compute \multitablelinespace (if not defined by user) for use in
-  % \multitableparskip calculation.  We used define \multistrut based on
-  % this, but (ironically) that caused the spacing to be off.
-  % See bug-texinfo report from Werner Lemberg, 31 Oct 2004 12:52:20 +0100.
-\ifdim\multitablelinespace=0pt
-\setbox0=\vbox{X}\global\multitablelinespace=\the\baselineskip
-\global\advance\multitablelinespace by-\ht0
-\fi
-% Test to see if parskip is larger than space between lines of
-% table. If not, do nothing.
-%        If so, set to same dimension as multitablelinespace.
-\ifdim\multitableparskip>\multitablelinespace
-\global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
-                                      % than skip between lines in the table.
-\fi%
-\ifdim\multitableparskip=0pt
-\global\multitableparskip=\multitablelinespace
-\global\advance\multitableparskip-7pt % to keep parskip somewhat smaller
-                                      % than skip between lines in the table.
-\fi}
-
 
 \message{conditionals,}
 
-% @iftex, @ifnotdocbook, @ifnothtml, @ifnotinfo, @ifnotplaintext,
+% @iftex, @ifnotdocbook, @ifnothtml, @ifnotinfo, @ifnotlatex, @ifnotplaintext,
 % @ifnotxml always succeed.  They currently do nothing; we don't
 % attempt to check whether the conditionals are properly nested.  But we
 % have to remember that they are conditionals, so that @end doesn't
@@ -4520,6 +4451,7 @@ end
 \makecond{ifnotdocbook}
 \makecond{ifnothtml}
 \makecond{ifnotinfo}
+\makecond{ifnotlatex}
 \makecond{ifnotplaintext}
 \makecond{ifnotxml}
 
@@ -4532,10 +4464,12 @@ end
 \def\ifdocbook{\doignore{ifdocbook}}
 \def\ifhtml{\doignore{ifhtml}}
 \def\ifinfo{\doignore{ifinfo}}
+\def\iflatex{\doignore{iflatex}}
 \def\ifnottex{\doignore{ifnottex}}
 \def\ifplaintext{\doignore{ifplaintext}}
 \def\ifxml{\doignore{ifxml}}
 \def\ignore{\doignore{ignore}}
+\def\latex{\doignore{latex}}
 \def\menu{\doignore{menu}}
 \def\xml{\doignore{xml}}
 
@@ -4665,19 +4599,6 @@ end
   }
 }
 
-% We have this subroutine so that we can handle at least some @value's
-% properly in indexes (we call \makevalueexpandable in \indexdummies).
-% The command has to be fully expandable (if the variable is set), since
-% the result winds up in the index file.  This means that if the
-% variable's value contains other Texinfo commands, it's almost certain
-% it will fail (although perhaps we could fix that with sufficient work
-% to do a one-level expansion on the result, instead of complete).
-% 
-% Unfortunately, this has the consequence that when _ is in the *value*
-% of an @set, it does not print properly in the roman fonts (get the cmr
-% dot accent at position 126 instead).  No fix comes to mind, and it's
-% been this way since 2003 or earlier, so just ignore it.
-% 
 \def\expandablevalue#1{%
   \expandafter\ifx\csname SET#1\endcsname\relax
     {[No value for ``#1'']}%
@@ -4690,13 +4611,13 @@ end
 % Like \expandablevalue, but completely expandable (the \message in the
 % definition above operates at the execution level of TeX).  Used when
 % writing to auxiliary files, due to the expansion that \write does.
-% If flag is undefined, pass through an unexpanded @value command: maybe it 
+% If flag is undefined, pass through an unexpanded @value command: maybe it
 % will be set by the time it is read back in.
 %
 % NB flag names containing - or _ may not work here.
 \def\dummyvalue#1{%
   \expandafter\ifx\csname SET#1\endcsname\relax
-    \noexpand\value{#1}%
+    \string\value{#1}%
   \else
     \csname SET#1\endcsname
   \fi
@@ -4706,7 +4627,7 @@ end
 % if possible, otherwise sort late.
 \def\indexnofontsvalue#1{%
   \expandafter\ifx\csname SET#1\endcsname\relax
-    ZZZZZZZ
+    ZZZZZZZ%
   \else
     \csname SET#1\endcsname
   \fi
@@ -4714,7 +4635,7 @@ end
 
 % @ifset VAR ... @end ifset reads the `...' iff VAR has been defined
 % with @set.
-% 
+%
 % To get the special treatment we need for `@end ifset,' we call
 % \makecond and then redefine.
 %
@@ -4747,7 +4668,7 @@ end
 % without the @) is in fact defined.  We can only feasibly check at the
 % TeX level, so something like `mathcode' is going to considered
 % defined even though it is not a Texinfo command.
-% 
+%
 \makecond{ifcommanddefined}
 \def\ifcommanddefined{\parsearg{\doifcmddefined{\let\next=\ifcmddefinedfail}}}
 %
@@ -4853,32 +4774,18 @@ end
 
 % like the previous two, but they put @code around the argument.
 \def\docodeindex#1{\edef\indexname{#1}\parsearg\docodeindexxxx}
-\def\docodeindexxxx #1{\doind{\indexname}{\code{#1}}}
+\def\docodeindexxxx #1{\docind{\indexname}{#1}}
 
-
-% Used when writing an index entry out to an index file to prevent
-% expansion of Texinfo commands that can appear in an index entry.
-%
-\def\indexdummies{%
-  \escapechar = `\\     % use backslash in output files.
-  \definedummyletter\@%
-  \definedummyletter\ %
-  %
-  % For texindex which always views { and } as separators.
-  \def\{{\lbracechar{}}%
-  \def\}{\rbracechar{}}%
-  %
-  % Do the redefinitions.
-  \definedummies
-}
 
-% Used for the aux and toc files, where @ is the escape character.
+% Used for the aux, toc and index files to prevent expansion of Texinfo
+% commands.
 %
 \def\atdummies{%
   \definedummyletter\@%
   \definedummyletter\ %
   \definedummyletter\{%
   \definedummyletter\}%
+  \definedummyletter\&%
   %
   % Do the redefinitions.
   \definedummies
@@ -4902,8 +4809,7 @@ end
 \def\definedummyletter#1{\def#1{\string#1}}%
 \let\definedummyaccent\definedummyletter
 
-% Called from \indexdummies and \atdummies, to effectively prevent
-% the expansion of commands.
+% Called from \atdummies to prevent the expansion of commands.
 %
 \def\definedummies{%
   %
@@ -4950,8 +4856,10 @@ end
   \definedummyword\TeX
   %
   % Assorted special characters.
+  \definedummyword\ampchar
   \definedummyword\atchar
   \definedummyword\arrow
+  \definedummyword\backslashchar
   \definedummyword\bullet
   \definedummyword\comma
   \definedummyword\copyright
@@ -4987,6 +4895,8 @@ end
   \definedummyword\sub
   \definedummyword\sup
   \definedummyword\textdegree
+  %
+  \definedummyword\subentry
   %
   % We want to disable all macros so that they are not expanded by \write.
   \macrolist
@@ -5068,11 +4978,10 @@ end
   \commondummyword\xref
 }
 
-% For testing: output @{ and @} in index sort strings as \{ and \}.
-\newif\ifusebracesinindexes
-
 \let\indexlbrace\relax
 \let\indexrbrace\relax
+\let\indexatchar\relax
+\let\indexbackslash\relax
 
 {\catcode`\@=0
 \catcode`\\=13
@@ -5084,32 +4993,29 @@ end
 \catcode`\-=13
 \catcode`\`=13
   \gdef\indexnonalnumdisappear{%
-    \expandafter\ifx\csname SETtxiindexlquoteignore\endcsname\relax\else
+    \ifflagclear{txiindexlquoteignore}{}{%
       % @set txiindexlquoteignore makes us ignore left quotes in the sort term.
       % (Introduced for FSFS 2nd ed.)
       \let`=\empty
-    \fi
+    }%
     %
-    \expandafter\ifx\csname SETtxiindexbackslashignore\endcsname\relax\else
+    \ifflagclear{txiindexbackslashignore}{}{%
       \backslashdisappear
-    \fi
-    %
-    \expandafter\ifx\csname SETtxiindexhyphenignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexhyphenignore}{}{%
       \def-{}%
-    \fi
-    \expandafter\ifx\csname SETtxiindexlessthanignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexlessthanignore}{}{%
       \def<{}%
-    \fi
-    \expandafter\ifx\csname SETtxiindexatsignignore\endcsname\relax\else
+    }%
+    \ifflagclear{txiindexatsignignore}{}{%
       \def\@{}%
-    \fi
+    }%
   }
 
   \gdef\indexnonalnumreappear{%
-    \useindexbackslash
     \let-\normaldash
     \let<\normalless
-    \def\@{@}%
   }
 }
 
@@ -5164,43 +5070,44 @@ end
   \def\ss{ss}%
   \def\th{th}%
   %
-  \def\LaTeX{LaTeX}%
-  \def\TeX{TeX}%
+  \let\do\indexnofontsdef
   %
-  % Assorted special characters.  \defglyph gives the control sequence a
-  % definition that removes the {} that follows its use.
-  \defglyph\atchar{@}%
-  \defglyph\arrow{->}%
-  \defglyph\bullet{bullet}%
-  \defglyph\comma{,}%
-  \defglyph\copyright{copyright}%
-  \defglyph\dots{...}%
-  \defglyph\enddots{...}%
-  \defglyph\equiv{==}%
-  \defglyph\error{error}%
-  \defglyph\euro{euro}%
-  \defglyph\expansion{==>}%
-  \defglyph\geq{>=}%
-  \defglyph\guillemetleft{<<}%
-  \defglyph\guillemetright{>>}%
-  \defglyph\guilsinglleft{<}%
-  \defglyph\guilsinglright{>}%
-  \defglyph\leq{<=}%
-  \defglyph\lbracechar{\{}%
-  \defglyph\minus{-}%
-  \defglyph\point{.}%
-  \defglyph\pounds{pounds}%
-  \defglyph\print{-|}%
-  \defglyph\quotedblbase{"}%
-  \defglyph\quotedblleft{"}%
-  \defglyph\quotedblright{"}%
-  \defglyph\quoteleft{`}%
-  \defglyph\quoteright{'}%
-  \defglyph\quotesinglbase{,}%
-  \defglyph\rbracechar{\}}%
-  \defglyph\registeredsymbol{R}%
-  \defglyph\result{=>}%
-  \defglyph\textdegree{o}%
+  \do\LaTeX{LaTeX}%
+  \do\TeX{TeX}%
+  %
+  % Assorted special characters.
+  \do\atchar{@}%
+  \do\arrow{->}%
+  \do\bullet{bullet}%
+  \do\comma{,}%
+  \do\copyright{copyright}%
+  \do\dots{...}%
+  \do\enddots{...}%
+  \do\equiv{==}%
+  \do\error{error}%
+  \do\euro{euro}%
+  \do\expansion{==>}%
+  \do\geq{>=}%
+  \do\guillemetleft{<<}%
+  \do\guillemetright{>>}%
+  \do\guilsinglleft{<}%
+  \do\guilsinglright{>}%
+  \do\leq{<=}%
+  \do\lbracechar{\{}%
+  \do\minus{-}%
+  \do\point{.}%
+  \do\pounds{pounds}%
+  \do\print{-|}%
+  \do\quotedblbase{"}%
+  \do\quotedblleft{"}%
+  \do\quotedblright{"}%
+  \do\quoteleft{`}%
+  \do\quoteright{'}%
+  \do\quotesinglbase{,}%
+  \do\rbracechar{\}}%
+  \do\registeredsymbol{R}%
+  \do\result{=>}%
+  \do\textdegree{o}%
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
   % Of course this is not nearly correct, but it is the best we can do for now.
@@ -5215,41 +5122,38 @@ end
   \macrolist
   \let\value\indexnofontsvalue
 }
-\def\defglyph#1#2{\def#1##1{#2}} % see above
 
-
+% Give the control sequence a definition that removes the {} that follows
+% its use, e.g. @AA{} -> AA
+\def\indexnofontsdef#1#2{\def#1##1{#2}}%
 
 
-\let\SETmarginindex=\relax % put index entries in margin (undocumented)?
 
-% Most index entries go through here, but \dosubind is the general case.
+
 % #1 is the index name, #2 is the entry text.
-\def\doind#1#2{\dosubind{#1}{#2}{}}
-
-% There is also \dosubind {index}{topic}{subtopic}
-% which makes an entry in a two-level index such as the operation index.
-% TODO: Two-level index?  Operation index?
-
-% Workhorse for all indexes.
-% #1 is name of index, #2 is stuff to put there, #3 is subentry --
-% empty if called from \doind, as we usually are (the main exception
-% is with most defuns, which call us directly).
-%
-\def\dosubind#1#2#3{%
+\def\doind#1#2{%
   \iflinks
   {%
-    \requireopenindexfile{#1}%
-    % Store the main index entry text (including the third arg).
-    \toks0 = {#2}%
-    % If third arg is present, precede it with a space.
-    \def\thirdarg{#3}%
-    \ifx\thirdarg\empty \else
-      \toks0 = \expandafter{\the\toks0 \space #3}%
-    \fi
     %
+    \requireopenindexfile{#1}%
     \edef\writeto{\csname#1indfile\endcsname}%
     %
-    \safewhatsit\dosubindwrite
+    \def\indextext{#2}%
+    \safewhatsit\doindwrite
+  }%
+  \fi
+}
+
+% Same as \doind, but for code indices
+\def\docind#1#2{%
+  \iflinks
+  {%
+    %
+    \requireopenindexfile{#1}%
+    \edef\writeto{\csname#1indfile\endcsname}%
+    %
+    \def\indextext{#2}%
+    \safewhatsit\docindwrite
   }%
   \fi
 }
@@ -5264,28 +5168,14 @@ end
   \ifx\suffix\indexisfl\def\suffix{f1}\fi
   % Open the file
   \immediate\openout\csname#1indfile\endcsname \jobname.\suffix
-  % Using \immediate above here prevents an object entering into the current 
+  % Using \immediate above here prevents an object entering into the current
   % box, which could confound checks such as those in \safewhatsit for
   % preceding skips.
   \typeout{Writing index file \jobname.\suffix}%
 \fi}
 \def\indexisfl{fl}
 
-% Output \ as {\indexbackslash}, because \ is an escape character in
-% the index files.
-\let\indexbackslash=\relax
-{\catcode`\@=0 \catcode`\\=\active
-  @gdef@useindexbackslash{@def\{{@indexbackslash}}}
-}
-
-% Definition for writing index entry text.
-\def\sortas#1{\ignorespaces}%
-
-% Definition for writing index entry sort key.  Should occur at the at
-% the beginning of the index entry, like
-%     @cindex @sortas{september} \september
-% The \ignorespaces takes care of following space, but there's no way
-% to remove space before it.
+% Definition for writing index entry sort key.
 {
 \catcode`\-=13
 \gdef\indexwritesortas{%
@@ -5296,51 +5186,156 @@ end
   \xdef\indexsortkey{#1}\endgroup}
 }
 
+\def\indexwriteseealso#1{
+  \gdef\pagenumbertext{\string\seealso{#1}}%
+}
+\def\indexwriteseeentry#1{
+  \gdef\pagenumbertext{\string\seeentry{#1}}%
+}
 
-% Write the entry in \toks0 to the index file.
+% The default definitions
+\def\sortas#1{}%
+\def\seealso#1{\i{\putwordSeeAlso}\ #1}% for sorted index file only
+\def\putwordSeeAlso{See also}
+\def\seeentry#1{\i{\putwordSee}\ #1}% for sorted index file only
+
+
+% Given index entry text like "aaa @subentry bbb @sortas{ZZZ}":
+%   * Set \bracedtext to "{aaa}{bbb}"
+%   * Set \fullindexsortkey to "aaa @subentry ZZZ"
+%   * If @seealso occurs, set \pagenumbertext
 %
-\def\dosubindwrite{%
-  % Put the index entry in the margin if desired.
-  \ifx\SETmarginindex\relax\else
-    \insert\margin{\hbox{\vrule height8pt depth3pt width0pt \the\toks0}}%
+\def\splitindexentry#1{%
+  \gdef\fullindexsortkey{}%
+  \xdef\bracedtext{}%
+  \def\sep{}%
+  \def\seealso##1{}%
+  \def\seeentry##1{}%
+  \expandafter\doindexsegment#1\subentry\finish\subentry
+}
+
+% append the results from the next segment
+\def\doindexsegment#1\subentry{%
+  \def\segment{#1}%
+  \ifx\segment\isfinish
+  \else
+    %
+    % Fully expand the segment, throwing away any @sortas directives, and
+    % trim spaces.
+    \edef\trimmed{\segment}%
+    \edef\trimmed{\expandafter\eatspaces\expandafter{\trimmed}}%
+    \ifincodeindex
+      \edef\trimmed{\noexpand\code{\trimmed}}%
+    \fi
+    %
+    \xdef\bracedtext{\bracedtext{\trimmed}}%
+    %
+    % Get the string to sort by.  Process the segment with all
+    % font commands turned off.
+    \bgroup
+      \let\sortas\indexwritesortas
+      \let\seealso\indexwriteseealso
+      \let\seeentry\indexwriteseeentry
+      \indexnofonts
+      % The braces around the commands are recognized by texindex.
+      \def\lbracechar{{\string\indexlbrace}}%
+      \def\rbracechar{{\string\indexrbrace}}%
+      \let\{=\lbracechar
+      \let\}=\rbracechar
+      \def\@{{\string\indexatchar}}%
+      \def\atchar##1{\@}%
+      \def\backslashchar{{\string\indexbackslash}}%
+      \uccode`\~=`\\ \uppercase{\let~\backslashchar}%
+      %
+      \let\indexsortkey\empty
+      \global\let\pagenumbertext\empty
+      % Execute the segment and throw away the typeset output.  This executes
+      % any @sortas or @seealso commands in this segment.
+      \setbox\dummybox = \hbox{\segment}%
+      \ifx\indexsortkey\empty{%
+        \indexnonalnumdisappear
+        \xdef\trimmed{\segment}%
+        \xdef\trimmed{\expandafter\eatspaces\expandafter{\trimmed}}%
+        \xdef\indexsortkey{\trimmed}%
+        \ifx\indexsortkey\empty\xdef\indexsortkey{ }\fi
+      }\fi
+      %
+      % Append to \fullindexsortkey.
+      \edef\tmp{\gdef\noexpand\fullindexsortkey{%
+                  \fullindexsortkey\sep\indexsortkey}}%
+      \tmp
+    \egroup
+    \def\sep{\subentry}%
+    %
+    \expandafter\doindexsegment
   \fi
+}
+\def\isfinish{\finish}%
+\newbox\dummybox % used above
+
+\let\subentry\relax
+
+% Use \ instead of @ in index files.  To support old texi2dvi and texindex.
+% This works without changing the escape character used in the toc or aux
+% files because the index entries are fully expanded here, and \string uses
+% the current value of \escapechar.
+\def\escapeisbackslash{\escapechar=`\\}
+
+% Use \ in index files by default.  texi2dvi didn't support @ as the escape
+% character (as it checked for "\entry" in the files, and not "@entry").  When
+% the new version of texi2dvi has had a chance to become more prevalent, then
+% the escape character can change back to @ again.  This should be an easy
+% change to make now because both @ and \ are only used as escape characters in
+% index files, never standing for themselves.
+%
+\set txiindexescapeisbackslash
+
+% Write the entry in \indextext to the index file.
+%
+
+\newif\ifincodeindex
+\def\doindwrite{\incodeindexfalse\doindwritex}
+\def\docindwrite{\incodeindextrue\doindwritex}
+
+\def\doindwritex{%
+  \maybemarginindex
   %
-  % Remember, we are within a group.
-  \indexdummies % Must do this here, since \bf, etc expand at this stage
-  \useindexbackslash % \indexbackslash isn't defined now so it will be output 
-                     % as is; and it will print as backslash.
-  % The braces around \indexbrace are recognized by texindex.
+  \atdummies
   %
-  % Get the string to sort by, by processing the index entry with all
-  % font commands turned off.
-  {\indexnofonts
-   \def\lbracechar{{\indexlbrace}}%
-   \def\rbracechar{{\indexrbrace}}%
-   \let\{=\lbracechar
-   \let\}=\rbracechar
-   \indexnonalnumdisappear
-   \xdef\indexsortkey{}%
-   \let\sortas=\indexwritesortas
-   \edef\temp{\the\toks0}%
-   \setbox\dummybox = \hbox{\temp}% Make sure to execute any \sortas
-   \ifx\indexsortkey\empty
-     \xdef\indexsortkey{\temp}%
-     \ifx\indexsortkey\empty\xdef\indexsortkey{ }\fi
-   \fi
-  }%
+  \ifflagclear{txiindexescapeisbackslash}{}{\escapeisbackslash}%
+  %
+  % For texindex which always views { and } as separators.
+  \def\{{\lbracechar{}}%
+  \def\}{\rbracechar{}}%
+  \uccode`\~=`\\ \uppercase{\def~{\backslashchar{}}}%
+  %
+  % Split the entry into primary entry and any subentries, and get the index
+  % sort key.
+  \splitindexentry\indextext
   %
   % Set up the complete index entry, with both the sort key and
   % the original text, including any font commands.  We write
   % three arguments to \entry to the .?? file (four in the
   % subentry case), texindex reduces to two when writing the .??s
   % sorted result.
+  %
   \edef\temp{%
     \write\writeto{%
-      \string\entry{\indexsortkey}{\noexpand\folio}{\the\toks0}}%
+      \string\entry{\fullindexsortkey}%
+        {\ifx\pagenumbertext\empty\noexpand\folio\else\pagenumbertext\fi}%
+        \bracedtext}%
   }%
   \temp
 }
-\newbox\dummybox % used above
+
+% Put the index entry in the margin if desired (undocumented).
+\def\maybemarginindex{%
+  \ifx\SETmarginindex\relax\else
+    \insert\margin{\hbox{\vrule height8pt depth3pt width0pt \relax\indextext}}%
+  \fi
+}
+\let\SETmarginindex=\relax
+
 
 % Take care of unwanted page breaks/skips around a whatsit:
 %
@@ -5428,9 +5423,14 @@ end
 %  \entry {topic}{pagelist}
 %     for a topic that is used without subtopics
 %  \primary {topic}
+%  \entry {topic}{}
 %     for the beginning of a topic that is used with subtopics
 %  \secondary {subtopic}{pagelist}
 %     for each subtopic.
+%  \secondary {subtopic}{}
+%     for a subtopic with sub-subtopics
+%  \tertiary {subtopic}{subsubtopic}{pagelist}
+%     for each sub-subtopic.
 
 % Define the user-accessible indexing commands
 % @findex, @vindex, @kindex, @cindex.
@@ -5441,11 +5441,6 @@ end
 \def\vindex {\vrindex}
 \def\tindex {\tpindex}
 \def\pindex {\pgindex}
-
-\def\cindexsub {\begingroup\obeylines\cindexsub}
-{\obeylines %
-\gdef\cindexsub "#1" #2^^M{\endgroup %
-\dosubind{cp}{#2}{#1}}}
 
 % Define the macros used in formatting output of the sorted index material.
 
@@ -5460,14 +5455,10 @@ end
   \plainfrenchspacing
   \everypar = {}% don't want the \kern\-parindent from indentation suppression.
   %
-  % See if the index file exists and is nonempty.
-  % Change catcode of @ here so that if the index file contains
-  % \initial {@}
-  % as its first line, TeX doesn't complain about mismatched braces
-  % (because it thinks @} is a control sequence).
-  \catcode`\@ = 12
   % See comment in \requireopenindexfile.
   \def\indexname{#1}\ifx\indexname\indexisfl\def\indexname{f1}\fi
+  %
+  % See if the index file exists and is nonempty.
   \openin 1 \jobname.\indexname s
   \ifeof 1
     % \enddoublecolumns gets confused if there is no text in the index,
@@ -5477,8 +5468,6 @@ end
     \putwordIndexNonexistent
     \typeout{No file \jobname.\indexname s.}%
   \else
-    \catcode`\\ = 0
-    %
     % If the index file exists but is empty, then \openin leaves \ifeof
     % false.  We have to make TeX try to read something from the file, so
     % it can discover if there is anything in it.
@@ -5486,47 +5475,55 @@ end
     \ifeof 1
       \putwordIndexIsEmpty
     \else
-      % Index files are almost Texinfo source, but we use \ as the escape
-      % character.  It would be better to use @, but that's too big a change
-      % to make right now.
-      \def\indexbackslash{\ttbackslash}%
-      \let\indexlbrace\{   % Likewise, set these sequences for braces
-      \let\indexrbrace\}   % used in the sort key.
-      \begindoublecolumns
-      \let\dotheinsertentrybox\dotheinsertentryboxwithpenalty
-      %
-      % Read input from the index file line by line.
-      \loopdo
-        \ifeof1 \else
-          \read 1 to \nextline
-        \fi
-        %
-        \indexinputprocessing
-        \thisline
-        %
-        \ifeof1\else
-        \let\thisline\nextline
-      \repeat
-      %%
-      \enddoublecolumns
+      \expandafter\printindexzz\thisline\relax\relax\finish%
     \fi
   \fi
   \closein 1
 \endgroup}
-\def\loopdo#1\repeat{\def\body{#1}\loopdoxxx}
-\def\loopdoxxx{\let\next=\relax\body\let\next=\loopdoxxx\fi\next}
 
-\def\indexinputprocessing{%
-  \ifeof1
-    \let\firsttoken\relax
-  \else
-    \edef\act{\gdef\noexpand\firsttoken{\getfirsttoken\nextline}}%
-    \act
-  \fi
+% If the index file starts with a backslash, forgo reading the index
+% file altogether.  If somebody upgrades texinfo.tex they may still have
+% old index files using \ as the escape character.  Reading this would
+% at best lead to typesetting garbage, at worst a TeX syntax error.
+\def\printindexzz#1#2\finish{%
+  \ifflagclear{txiindexescapeisbackslash}{%
+    \uccode`\~=`\\ \uppercase{\if\noexpand~}\noexpand#1
+      \ifflagclear{txiskipindexfileswithbackslash}{%
+\errmessage{%
+ERROR: A sorted index file in an obsolete format was skipped.
+To fix this problem, please upgrade your version of 'texi2dvi'
+or 'texi2pdf' to that at <https://ftp.gnu.org/gnu/texinfo>.
+If you are using an old version of 'texindex' (part of the Texinfo
+distribution), you may also need to upgrade to a newer version (at least 6.0).
+You may be able to typeset the index if you run
+'texindex \jobname.\indexname' yourself.
+You could also try setting the 'txiindexescapeisbackslash' flag by
+running a command like
+'texi2dvi -t "@set txiindexescapeisbackslash" \jobname.texi'.  If you do
+this, Texinfo will try to use index files in the old format.
+If you continue to have problems, deleting the index files and starting again
+might help (with 'rm \jobname.?? \jobname.??s')%
+}%
+      }{%
+        (Skipped sorted index file in obsolete format)
+      }%
+    \else
+      \begindoublecolumns
+      \input \jobname.\indexname s
+      \enddoublecolumns
+    \fi
+  }{%
+    \begindoublecolumns
+    \catcode`\\=0\relax
+    %
+    % Make @ an escape character to give macros a chance to work.  This
+    % should work because we (hopefully) don't otherwise use @ in index files.
+    %\catcode`\@=12\relax
+    \catcode`\@=0\relax
+    \input \jobname.\indexname s
+    \enddoublecolumns
+  }%
 }
-\def\getfirsttoken#1{\expandafter\getfirsttokenx#1\endfirsttoken}
-\long\def\getfirsttokenx#1#2\endfirsttoken{\noexpand#1}
-
 
 % These macros are used by the sorted index file itself.
 % Change them to control the appearance of the index.
@@ -5535,12 +5532,19 @@ end
 \catcode`\|=13 \catcode`\<=13 \catcode`\>=13 \catcode`\+=13 \catcode`\"=13
 \catcode`\$=3
 \gdef\initialglyphs{%
+  % special control sequences used in the index sort key
+  \let\indexlbrace\{%
+  \let\indexrbrace\}%
+  \let\indexatchar\@%
+  \def\indexbackslash{\math{\backslash}}%
+  %
   % Some changes for non-alphabetic characters.  Using the glyphs from the
   % math fonts looks more consistent than the typewriter font used elsewhere
   % for these characters.
-  \def\indexbackslash{\math{\backslash}}%
-  \let\\=\indexbackslash
+  \uccode`\~=`\\ \uppercase{\def~{\math{\backslash}}}
   %
+  % In case @\ is used for backslash
+  \uppercase{\let\\=~}
   % Can't get bold backslash so don't use bold forward slash
   \catcode`\/=13
   \def/{{\secrmnotbold \normalslash}}%
@@ -5570,7 +5574,7 @@ end
   % bottom of a column to reduce an increase in inter-line spacing.
   \nobreak
   \vskip 0pt plus 5\baselineskip
-  \penalty -300 
+  \penalty -300
   \vskip 0pt plus -5\baselineskip
   %
   % Typeset the initial.  Making this add up to a whole number of
@@ -5599,12 +5603,6 @@ end
 %
 \def\entry{%
   \begingroup
-    %
-    % For pdfTeX and XeTeX.
-    % The redefinition of \domark stops marks being added in \pdflink to 
-    % preserve coloured links across page boundaries.  Otherwise the marks
-    % would get in the way of \lastbox in \insertentrybox.
-    \let\domark\relax
     %
     % Start a new paragraph if necessary, so our assignments below can't
     % affect previous text.
@@ -5638,35 +5636,31 @@ end
 \gdef\finishentry#1{%
     \egroup % end box A
     \dimen@ = \wd\boxA % Length of text of entry
-    \global\setbox\boxA=\hbox\bgroup\unhbox\boxA
-    % #1 is the page number.
-    %
-    % Get the width of the page numbers, and only use
-    % leaders if they are present.
-    \global\setbox\boxB = \hbox{#1}%
-    \ifdim\wd\boxB = 0pt
-      \null\nobreak\hfill\ %
-    \else
+    \global\setbox\boxA=\hbox\bgroup
+      \unhbox\boxA
+      % #1 is the page number.
       %
-      \null\nobreak\indexdotfill % Have leaders before the page number.
-      %
-      \ifpdf
-        \pdfgettoks#1.%
-        \hskip\skip\thinshrinkable\the\toksA
+      % Get the width of the page numbers, and only use
+      % leaders if they are present.
+      \global\setbox\boxB = \hbox{#1}%
+      \ifdim\wd\boxB = 0pt
+        \null\nobreak\hfill\ %
       \else
-        \ifx\XeTeXrevision\thisisundefined
-          \hskip\skip\thinshrinkable #1%
-        \else
+        %
+        \null\nobreak\indexdotfill % Have leaders before the page number.
+        %
+        \ifpdforxetex
           \pdfgettoks#1.%
           \hskip\skip\thinshrinkable\the\toksA
+        \else
+          \hskip\skip\thinshrinkable #1%
         \fi
       \fi
-    \fi
     \egroup % end \boxA
     \ifdim\wd\boxB = 0pt
-      \global\setbox\entrybox=\vbox{\unhbox\boxA}%
-    \else
-    \global\setbox\entrybox=\vbox\bgroup
+      \noindent\unhbox\boxA\par
+      \nobreak
+    \else\bgroup
       % We want the text of the entries to be aligned to the left, and the
       % page numbers to be aligned to the right.
       %
@@ -5696,7 +5690,7 @@ end
       \advance\dimen@ii by 1\dimen@i
       \ifdim\wd\boxA > \dimen@ii % If the entry doesn't fit in one line
       \ifdim\dimen@ > 0.8\dimen@ii   % due to long index text
-        % Try to split the text roughly evenly.  \dimen@ will be the length of 
+        % Try to split the text roughly evenly.  \dimen@ will be the length of
         % the first line.
         \dimen@ = 0.7\dimen@
         \dimen@ii = \hsize
@@ -5732,54 +5726,10 @@ end
     \egroup % The \vbox
     \fi
   \endgroup
-  \dotheinsertentrybox
 }}
 
 \newskip\thinshrinkable
 \skip\thinshrinkable=.15em minus .15em
-
-\newbox\entrybox
-\def\insertentrybox{%
-  \ourunvbox\entrybox
-}
-
-% default definition
-\let\dotheinsertentrybox\insertentrybox
-
-% Use \lastbox to take apart vbox box by box, and add each sub-box
-% to the current vertical list.
-\def\ourunvbox#1{%
-\bgroup % for local binding of \delayedbox
-  % Remove the last box from box #1
-  \global\setbox#1=\vbox{%
-    \unvbox#1%
-    \unskip % remove any glue
-    \unpenalty
-    \global\setbox\interbox=\lastbox
-  }%
-  \setbox\delayedbox=\box\interbox
-  \ifdim\ht#1=0pt\else
-    \ourunvbox#1 % Repeat on what's left of the box
-    \nobreak
-  \fi
-  \box\delayedbox
-\egroup
-}
-\newbox\delayedbox
-\newbox\interbox
-
-% Used from \printindex.  \firsttoken should be the first token
-% after the \entry.  If it's not another \entry, we are at the last
-% line of a group of index entries, so insert a penalty to discourage
-% widowed index entries.
-\def\dotheinsertentryboxwithpenalty{%
-  \ifx\firsttoken\isentry
-  \else
-    \penalty 9000
-  \fi
-  \insertentrybox
-}
-\def\isentry{\entry}%
 
 % Like plain.tex's \dotfill, except uses up at least 1 em.
 % The filll stretch here overpowers both the fil and fill stretch to push
@@ -5790,24 +5740,15 @@ end
 
 \def\primary #1{\line{#1\hfil}}
 
-\newskip\secondaryindent \secondaryindent=0.5cm
-\def\secondary#1#2{{%
-  \parfillskip=0in
-  \parskip=0in
-  \hangindent=1in
-  \hangafter=1
-  \noindent\hskip\secondaryindent\hbox{#1}\indexdotfill
-  \ifpdf
-    \pdfgettoks#2.\ \the\toksA % The page number ends the paragraph.
-  \else
-    \ifx\XeTeXrevision\thisisundefined
-      #2
-    \else
-      \pdfgettoks#2.\ \the\toksA % The page number ends the paragraph.
-    \fi
-  \fi
-  \par
-}}
+\def\secondary{\indententry{0.5cm}}
+\def\tertiary{\indententry{1cm}}
+
+\def\indententry#1#2#3{%
+  \bgroup
+  \leftskip=#1
+  \entry{#2}{#3}%
+  \egroup
+}
 
 % Define two-column mode, which we use to typeset indexes.
 % Adapted from the TeXbook, page 416, which is to say,
@@ -5817,60 +5758,21 @@ end
 \newbox\partialpage
 \newdimen\doublecolumnhsize
 
-% Use inside an output routine to save \topmark and \firstmark
-\def\savemarks{%
-  \global\savedtopmark=\expandafter{\topmark }%
-  \global\savedfirstmark=\expandafter{\firstmark }%
-}
-\newtoks\savedtopmark
-\newtoks\savedfirstmark
-
-% Set \topmark and \firstmark for next time \output runs.
-% Can't be run from withinside \output (because any material
-% added while an output routine is active, including 
-% penalties, is saved for after it finishes).  The page so far
-% should be empty, otherwise what's on it will be thrown away.
-\def\restoremarks{%
-  \mark{\the\savedtopmark}%
-  \bgroup\output = {%
-    \setbox\dummybox=\box\PAGE
-  }abc\eject\egroup
-  % "abc" because output routine doesn't fire for a completely empty page.
-  \mark{\the\savedfirstmark}%
-}
-
 \def\begindoublecolumns{\begingroup % ended by \enddoublecolumns
   % If not much space left on page, start a new page.
   \ifdim\pagetotal>0.8\vsize\vfill\eject\fi
   %
   % Grab any single-column material above us.
   \output = {%
-    %
-    % Here is a possibility not foreseen in manmac: if we accumulate a
-    % whole lot of material, we might end up calling this \output
-    % routine twice in a row (see the doublecol-lose test, which is
-    % essentially a couple of indexes with @setchapternewpage off).  In
-    % that case we just ship out what is in \partialpage with the normal
-    % output routine.  Generally, \partialpage will be empty when this
-    % runs and this will be a no-op.  See the indexspread.tex test case.
-    \ifvoid\partialpage \else
-      \onepageout{\pagecontents\partialpage}%
-    \fi
+    \savetopmark
     %
     \global\setbox\partialpage = \vbox{%
       % Unvbox the main output page.
       \unvbox\PAGE
       \kern-\topskip \kern\baselineskip
     }%
-    \savemarks
   }%
   \eject % run that output routine to set \partialpage
-  \restoremarks
-  %
-  % We recover the two marks that the last output routine saved in order
-  % to propagate the information in marks added around a chapter heading,
-  % which could be otherwise be lost by the time the final page is output.
-  %
   %
   % Use the double-column output routine for subsequent pages.
   \output = {\doublecolumnout}%
@@ -5896,7 +5798,9 @@ end
     \divide\doublecolumnhsize by 2
   \hsize = \doublecolumnhsize
   %
-  % Double the \vsize as well.
+  % Get the available space for the double columns -- the normal
+  % (undoubled) page height minus any material left over from the
+  % previous page.
   \advance\vsize by -\ht\partialpage
   \vsize = 2\vsize
   %
@@ -5909,17 +5813,15 @@ end
 %
 \def\doublecolumnout{%
   %
+  \savetopmark
   \splittopskip=\topskip \splitmaxdepth=\maxdepth
-  % Get the available space for the double columns -- the normal
-  % (undoubled) page height minus any material left over from the
-  % previous page.
   \dimen@ = \vsize
   \divide\dimen@ by 2
   %
   % box0 will be the left-hand column, box2 the right.
   \setbox0=\vsplit\PAGE to\dimen@ \setbox2=\vsplit\PAGE to\dimen@
   \global\advance\vsize by 2\ht\partialpage
-  \onepageout\pagesofar
+  \onepageout\pagesofar % empty except for the first time we are called
   \unvbox\PAGE
   \penalty\outputpenalty
 }
@@ -5935,7 +5837,7 @@ end
 }
 
 
-% Finished with with double columns.
+% Finished with double columns.
 \def\enddoublecolumns{%
   % The following penalty ensures that the page builder is exercised
   % _before_ we change the output routine.  This is necessary in the
@@ -5967,41 +5869,48 @@ end
   %
   \output = {%
     % Split the last of the double-column material.
-    \savemarks
+    \savetopmark
     \balancecolumns
-    %
+  }%
+  \eject % call the \output just set
+  \ifdim\pagetotal=0pt
     % Having called \balancecolumns once, we do not
     % want to call it again.  Therefore, reset \output to its normal
     % definition right away.
-    \global\output = {\onepageout{\pagecontents\PAGE}}%
-  }%
-  \eject
-  \endgroup % started in \begindoublecolumns
-  \restoremarks
-  % Leave the double-column material on the current page, no automatic
-  % page break.
-  \box\balancedcolumns
-  %
-  % \pagegoal was set to the doubled \vsize above, since we restarted
-  % the current page.  We're now back to normal single-column
-  % typesetting, so reset \pagegoal to the normal \vsize.
-  \global\vsize = \txipageheight %
-  \pagegoal = \txipageheight %
+    \global\output=\expandafter{\the\defaultoutput}
+    %
+    \endgroup % started in \begindoublecolumns
+    % Leave the double-column material on the current page, no automatic
+    % page break.
+    \box\balancedcolumns
+    %
+    % \pagegoal was set to the doubled \vsize above, since we restarted
+    % the current page.  We're now back to normal single-column
+    % typesetting, so reset \pagegoal to the normal \vsize.
+    \global\vsize = \txipageheight %
+    \pagegoal = \txipageheight %
+  \else
+    % We had some left-over material.  This might happen when \doublecolumnout
+    % is called in \balancecolumns.  Try again.
+    \expandafter\enddoublecolumns
+  \fi
 }
 \newbox\balancedcolumns
 \setbox\balancedcolumns=\vbox{shouldnt see this}%
 %
-% Only called for the last of the double column material.  \doublecolumnout 
+% Only called for the last of the double column material.  \doublecolumnout
 % does the others.
 \def\balancecolumns{%
   \setbox0 = \vbox{\unvbox\PAGE}% like \box255 but more efficient, see p.120.
   \dimen@ = \ht0
-  \advance\dimen@ by \topskip
-  \advance\dimen@ by-\baselineskip
-  \ifdim\dimen@<5\baselineskip
+  \ifdim\dimen@<7\baselineskip
     % Don't split a short final column in two.
     \setbox2=\vbox{}%
+    \global\setbox\balancedcolumns=\vbox{\pagesofar}%
   \else
+    % double the leading vertical space
+    \advance\dimen@ by \topskip
+    \advance\dimen@ by-\baselineskip
     \divide\dimen@ by 2 % target to split to
     \dimen@ii = \dimen@
     \splittopskip = \topskip
@@ -6016,15 +5925,15 @@ end
       \repeat
     }%
     % Now the left column is in box 1, and the right column in box 3.
-    % Check whether the left column has come out higher than the page itself.  
+    %
+    % Check whether the left column has come out higher than the page itself.
     % (Note that we have doubled \vsize for the double columns, so
     % the actual height of the page is 0.5\vsize).
     \ifdim2\ht1>\vsize
-      % Just split the last of the double column material roughly in half.
-      \setbox2=\box0
-      \setbox0 = \vsplit2 to \dimen@ii
-      \setbox0=\vbox to \dimen@ii {\unvbox0\vfill}%
-      \setbox2=\vbox to \dimen@ii {\unvbox2\vfill}%
+      % It appears that we have been called upon to balance too much material.
+      % Output some of it with \doublecolumnout, leaving the rest on the page.
+      \setbox\PAGE=\box0
+      \doublecolumnout
     \else
       % Compare the heights of the two columns.
       \ifdim4\ht1>5\ht3
@@ -6037,10 +5946,10 @@ end
         \setbox2=\vbox to\ht1{\unvbox3\unskip}%
         \setbox0=\vbox to\ht1{\unvbox1\unskip}%
       \fi
+      \global\setbox\balancedcolumns=\vbox{\pagesofar}%
     \fi
   \fi
   %
-  \global\setbox\balancedcolumns=\vbox{\pagesofar}%
 }
 \catcode`\@ = \other
 
@@ -6049,7 +5958,7 @@ end
 % Chapters, sections, etc.
 
 % Let's start with @part.
-\outer\parseargdef\part{\partzzz{#1}}
+\parseargdef\part{\partzzz{#1}}
 \def\partzzz#1{%
   \chapoddpage
   \null
@@ -6136,11 +6045,9 @@ end
 
 % @raisesections: treat @section as chapter, @subsection as section, etc.
 \def\raisesections{\global\advance\secbase by -1}
-\let\up=\raisesections % original BFox name
 
 % @lowersections: treat @chapter as section, @section as subsection, etc.
 \def\lowersections{\global\advance\secbase by 1}
-\let\down=\lowersections % original BFox name
 
 % we only have subsub.
 \chardef\maxseclevel = 3
@@ -6316,7 +6223,7 @@ end
 \let\top\unnumbered
 
 % Sections.
-% 
+%
 \outer\parseargdef\numberedsec{\numhead1{#1}} % normally calls seczzz
 \def\seczzz#1{%
   \global\subsecno=0 \global\subsubsecno=0  \global\advance\secno by 1
@@ -6339,7 +6246,7 @@ end
 }
 
 % Subsections.
-% 
+%
 % normally calls numberedsubseczzz:
 \outer\parseargdef\numberedsubsec{\numhead2{#1}}
 \def\numberedsubseczzz#1{%
@@ -6364,7 +6271,7 @@ end
 }
 
 % Subsubsections.
-% 
+%
 % normally numberedsubsubseczzz:
 \outer\parseargdef\numberedsubsubsec{\numhead3{#1}}
 \def\numberedsubsubseczzz#1{%
@@ -6454,18 +6361,16 @@ end
 \def\CHAPPAGoff{%
 \global\let\contentsalignmacro = \chappager
 \global\let\pchapsepmacro=\chapbreak
-\global\let\pagealignmacro=\chappager}
+\global\def\HEADINGSon{\HEADINGSsinglechapoff}}
 
 \def\CHAPPAGon{%
 \global\let\contentsalignmacro = \chappager
 \global\let\pchapsepmacro=\chappager
-\global\let\pagealignmacro=\chappager
 \global\def\HEADINGSon{\HEADINGSsingle}}
 
 \def\CHAPPAGodd{%
 \global\let\contentsalignmacro = \chapoddpage
 \global\let\pchapsepmacro=\chapoddpage
-\global\let\pagealignmacro=\chapoddpage
 \global\def\HEADINGSon{\HEADINGSdouble}}
 
 \CHAPPAGon
@@ -6485,27 +6390,22 @@ end
   \expandafter\ifx\thisenv\titlepage\else
     \checkenv{}% chapters, etc., should not start inside an environment.
   \fi
-  % FIXME: \chapmacro is currently called from inside \titlepage when
-  % \setcontentsaftertitlepage to print the "Table of Contents" heading, but
-  % this should probably be done by \sectionheading with an option to print
-  % in chapter size.
-  %
   % Insert the first mark before the heading break (see notes for \domark).
-  \let\prevchapterdefs=\lastchapterdefs
-  \let\prevsectiondefs=\lastsectiondefs
-  \gdef\lastsectiondefs{\gdef\thissectionname{}\gdef\thissectionnum{}%
+  \let\prevchapterdefs=\currentchapterdefs
+  \let\prevsectiondefs=\currentsectiondefs
+  \gdef\currentsectiondefs{\gdef\thissectionname{}\gdef\thissectionnum{}%
                         \gdef\thissection{}}%
   %
   \def\temptype{#2}%
   \ifx\temptype\Ynothingkeyword
-    \gdef\lastchapterdefs{\gdef\thischaptername{#1}\gdef\thischapternum{}%
+    \gdef\currentchapterdefs{\gdef\thischaptername{#1}\gdef\thischapternum{}%
                           \gdef\thischapter{\thischaptername}}%
   \else\ifx\temptype\Yomitfromtockeyword
-    \gdef\lastchapterdefs{\gdef\thischaptername{#1}\gdef\thischapternum{}%
+    \gdef\currentchapterdefs{\gdef\thischaptername{#1}\gdef\thischapternum{}%
                           \gdef\thischapter{}}%
   \else\ifx\temptype\Yappendixkeyword
     \toks0={#1}%
-    \xdef\lastchapterdefs{%
+    \xdef\currentchapterdefs{%
       \gdef\noexpand\thischaptername{\the\toks0}%
       \gdef\noexpand\thischapternum{\appendixletter}%
       % \noexpand\putwordAppendix avoids expanding indigestible
@@ -6516,7 +6416,7 @@ end
     }%
   \else
     \toks0={#1}%
-    \xdef\lastchapterdefs{%
+    \xdef\currentchapterdefs{%
       \gdef\noexpand\thischaptername{\the\toks0}%
       \gdef\noexpand\thischapternum{\the\chapno}%
       % \noexpand\putwordChapter avoids expanding indigestible
@@ -6536,18 +6436,18 @@ end
   %
   % Now the second mark, after the heading break.  No break points
   % between here and the heading.
-  \let\prevchapterdefs=\lastchapterdefs
-  \let\prevsectiondefs=\lastsectiondefs
+  \let\prevchapterdefs=\currentchapterdefs
+  \let\prevsectiondefs=\currentsectiondefs
   \domark
   %
   {%
     \chapfonts \rm
     \let\footnote=\errfootnoteheading % give better error message
     %
-    % Have to define \lastsection before calling \donoderef, because the
+    % Have to define \currentsection before calling \donoderef, because the
     % xref code eventually uses it.  On the other hand, it has to be called
     % after \pchapsepmacro, or the headline will change too soon.
-    \gdef\lastsection{#1}%
+    \gdef\currentsection{#1}%
     %
     % Only insert the separating space if we have a chapter/appendix
     % number, and don't print the unnumbered ``number''.
@@ -6636,10 +6536,10 @@ end
     \csname #2fonts\endcsname \rm
     %
     % Insert first mark before the heading break (see notes for \domark).
-    \let\prevsectiondefs=\lastsectiondefs
+    \let\prevsectiondefs=\currentsectiondefs
     \ifx\temptype\Ynothingkeyword
       \ifx\sectionlevel\seckeyword
-        \gdef\lastsectiondefs{\gdef\thissectionname{#1}\gdef\thissectionnum{}%
+        \gdef\currentsectiondefs{\gdef\thissectionname{#1}\gdef\thissectionnum{}%
                               \gdef\thissection{\thissectionname}}%
       \fi
     \else\ifx\temptype\Yomitfromtockeyword
@@ -6647,7 +6547,7 @@ end
     \else\ifx\temptype\Yappendixkeyword
       \ifx\sectionlevel\seckeyword
         \toks0={#1}%
-        \xdef\lastsectiondefs{%
+        \xdef\currentsectiondefs{%
           \gdef\noexpand\thissectionname{\the\toks0}%
           \gdef\noexpand\thissectionnum{#4}%
           % \noexpand\putwordSection avoids expanding indigestible
@@ -6660,7 +6560,7 @@ end
     \else
       \ifx\sectionlevel\seckeyword
         \toks0={#1}%
-        \xdef\lastsectiondefs{%
+        \xdef\currentsectiondefs{%
           \gdef\noexpand\thissectionname{\the\toks0}%
           \gdef\noexpand\thissectionnum{#4}%
           % \noexpand\putwordSection avoids expanding indigestible
@@ -6686,28 +6586,28 @@ end
     %
     % Now the second mark, after the heading break.  No break points
     % between here and the heading.
-    \global\let\prevsectiondefs=\lastsectiondefs
+    \global\let\prevsectiondefs=\currentsectiondefs
     \domark
     %
     % Only insert the space after the number if we have a section number.
     \ifx\temptype\Ynothingkeyword
       \setbox0 = \hbox{}%
       \def\toctype{unn}%
-      \gdef\lastsection{#1}%
+      \gdef\currentsection{#1}%
     \else\ifx\temptype\Yomitfromtockeyword
       % for @headings -- no section number, don't include in toc,
-      % and don't redefine \lastsection.
+      % and don't redefine \currentsection.
       \setbox0 = \hbox{}%
       \def\toctype{omit}%
       \let\sectionlevel=\empty
     \else\ifx\temptype\Yappendixkeyword
       \setbox0 = \hbox{#4\enspace}%
       \def\toctype{app}%
-      \gdef\lastsection{#1}%
+      \gdef\currentsection{#1}%
     \else
       \setbox0 = \hbox{#4\enspace}%
       \def\toctype{num}%
-      \gdef\lastsection{#1}%
+      \gdef\currentsection{#1}%
     \fi\fi\fi
     %
     % Write the toc entry (before \donoderef).  See comments in \chapmacro.
@@ -6797,13 +6697,8 @@ end
   % 1 and 2 (the page numbers aren't printed), and so are the first
   % two pages of the document.  Thus, we'd have two destinations named
   % `1', and two named `2'.
-  \ifpdf
+  \ifpdforxetex
     \global\pdfmakepagedesttrue
-  \else
-    \ifx\XeTeXrevision\thisisundefined
-    \else
-      \global\pdfmakepagedesttrue
-    \fi
   \fi
 }
 
@@ -6840,9 +6735,7 @@ end
 %
 \def\startcontents#1{%
   % If @setchapternewpage on, and @headings double, the contents should
-  % start on an odd page, unlike chapters.  Thus, we maintain
-  % \contentsalignmacro in parallel with \pagealignmacro.
-  % From: Torbjorn Granlund <tege@matematik.su.se>
+  % start on an odd page, unlike chapters.
   \contentsalignmacro
   \immediate\closeout\tocfile
   %
@@ -6857,6 +6750,9 @@ end
     %
     % Roman numerals for page numbers.
     \ifnum \pageno>0 \global\pageno = \lastnegativepageno \fi
+    \def\thistitle{}% no title in double-sided headings
+    % Record where the Roman numerals started.
+    \ifnum\romancount=0 \global\romancount=\pagecount \fi
 }
 
 % redefined for the two-volume lispref.  We always output on
@@ -6879,8 +6775,7 @@ end
     \fi
     \closein 1
   \endgroup
-  \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
+  \contentsendroman
 }
 
 % And just the chapters.
@@ -6915,10 +6810,20 @@ end
     \vfill \eject
     \contentsalignmacro % in case @setchapternewpage odd is in effect
   \endgroup
-  \lastnegativepageno = \pageno
-  \global\pageno = \savepageno
+  \contentsendroman
 }
 \let\shortcontents = \summarycontents
+
+% Get ready to use Arabic numerals again
+\def\contentsendroman{%
+  \lastnegativepageno = \pageno
+  \global\pageno = \savepageno
+  %
+  % If \romancount > \arabiccount, the contents are at the end of the
+  % document.  Otherwise, advance where the Arabic numerals start for
+  % the page numbers.
+  \ifnum\romancount>\arabiccount\else\global\arabiccount=\pagecount\fi
+}
 
 % Typeset the label for a chapter or appendix for the short contents.
 % The arg is, e.g., `A' for an appendix, or `3' for a chapter.
@@ -7060,7 +6965,7 @@ end
 % But \@ or @@ will get a plain @ character.
 
 \envdef\tex{%
-  \setupmarkupstyle{tex}%
+  \setregularquotes
   \catcode `\\=0 \catcode `\{=1 \catcode `\}=2
   \catcode `\$=3 \catcode `\&=4 \catcode `\#=6
   \catcode `\^=7 \catcode `\_=8 \catcode `\~=\active \let~=\tie
@@ -7166,11 +7071,7 @@ end
 
 % @cartouche ... @end cartouche: draw rectangle w/rounded corners around
 % environment contents.
-\font\circle=lcircle10
-\newdimen\circthick
-\newdimen\cartouter\newdimen\cartinner
-\newskip\normbskip\newskip\normpskip\newskip\normlskip
-\circthick=\fontdimen8\circle
+
 %
 \def\ctl{{\circle\char'013\hskip -6pt}}% 6pt from pl file: 1/2charwidth
 \def\ctr{{\hskip 6pt\circle\char'010}}
@@ -7185,7 +7086,18 @@ end
 %
 \newskip\lskip\newskip\rskip
 
+% only require the font if @cartouche is actually used
+\def\cartouchefontdefs{%
+  \font\circle=lcircle10\relax
+  \circthick=\fontdimen8\circle
+}
+\newdimen\circthick
+\newdimen\cartouter\newdimen\cartinner
+\newskip\normbskip\newskip\normpskip\newskip\normlskip
+
+
 \envdef\cartouche{%
+  \cartouchefontdefs
   \ifhmode\par\fi  % can't be in the midst of a paragraph.
   \startsavinginserts
   \lskip=\leftskip \rskip=\rightskip
@@ -7279,7 +7191,7 @@ end
 % If you want all examples etc. small: @set dispenvsize small.
 % If you want even small examples the full size: @set dispenvsize nosmall.
 % This affects the following displayed environments:
-%    @example, @display, @format, @lisp
+%    @example, @display, @format, @lisp, @verbatim
 %
 \def\smallword{small}
 \def\nosmallword{nosmall}
@@ -7325,9 +7237,9 @@ end
 %
 \maketwodispenvdef{lisp}{example}{%
   \nonfillstart
-  \tt\setupmarkupstyle{example}%
+  \tt\setcodequotes
   \let\kbdfont = \kbdexamplefont % Allow @kbd to do something special.
-  \gobble % eat return
+  \parsearg\gobble
 }
 % @display/@smalldisplay: same as @lisp except keep current font.
 %
@@ -7364,31 +7276,11 @@ end
 
 
 % @raggedright does more-or-less normal line breaking but no right
-% justification.  From plain.tex.  Don't stretch around special
-% characters in urls in this environment, since the stretch at the right
-% should be enough.
+% justification.  From plain.tex.
 \envdef\raggedright{%
   \rightskip0pt plus2.4em \spaceskip.3333em \xspaceskip.5em\relax
-  \def\urefprestretchamount{0pt}%
-  \def\urefpoststretchamount{0pt}%
 }
 \let\Eraggedright\par
-
-\envdef\raggedleft{%
-  \parindent=0pt \leftskip0pt plus2em
-  \spaceskip.3333em \xspaceskip.5em \parfillskip=0pt
-  \hbadness=10000 % Last line will usually be underfull, so turn off
-                  % badness reporting.
-}
-\let\Eraggedleft\par
-
-\envdef\raggedcenter{%
-  \parindent=0pt \rightskip0pt plus1em \leftskip0pt plus1em
-  \spaceskip.3333em \xspaceskip.5em \parfillskip=0pt
-  \hbadness=10000 % Last line will usually be underfull, so turn off
-                  % badness reporting.
-}
-\let\Eraggedcenter\par
 
 
 % @quotation does normal linebreaking (hence we can't use \nonfillstart)
@@ -7429,7 +7321,7 @@ end
 
 % @indentedblock is like @quotation, but indents only on the left and
 % has no optional argument.
-% 
+%
 \makedispenvdef{indentedblock}{\indentedblockstart}
 %
 \def\indentedblockstart{%
@@ -7489,7 +7381,7 @@ end
 \def\setupverb{%
   \tt  % easiest (and conventionally used) font for verbatim
   \def\par{\leavevmode\endgraf}%
-  \setupmarkupstyle{verb}%
+  \setcodequotes
   \tabeightspaces
   % Respect line breaks,
   % print special symbols as themselves, and
@@ -7504,13 +7396,9 @@ end
 \newdimen\tabw \setbox0=\hbox{\tt\space} \tabw=8\wd0 % tab amount
 %
 % We typeset each line of the verbatim in an \hbox, so we can handle
-% tabs.  The \global is in case the verbatim line starts with an accent,
-% or some other command that starts with a begin-group.  Otherwise, the
-% entire \verbbox would disappear at the corresponding end-group, before
-% it is typeset.  Meanwhile, we can't have nested verbatim commands
-% (can we?), so the \global won't be overwriting itself.
+% tabs.
 \newbox\verbbox
-\def\starttabbox{\global\setbox\verbbox=\hbox\bgroup}
+\def\starttabbox{\setbox\verbbox=\hbox\bgroup}
 %
 \begingroup
   \catcode`\^^I=\active
@@ -7521,7 +7409,8 @@ end
       \divide\dimen\verbbox by\tabw
       \multiply\dimen\verbbox by\tabw % compute previous multiple of \tabw
       \advance\dimen\verbbox by\tabw  % advance to next multiple of \tabw
-      \wd\verbbox=\dimen\verbbox \box\verbbox \starttabbox
+      \wd\verbbox=\dimen\verbbox
+      \leavevmode\box\verbbox \starttabbox
     }%
   }
 \endgroup
@@ -7531,17 +7420,14 @@ end
   \let\nonarrowing = t%
   \nonfillstart
   \tt % easiest (and conventionally used) font for verbatim
-  % The \leavevmode here is for blank lines.  Otherwise, we would
-  % never \starttabox and the \egroup would end verbatim mode.
-  \def\par{\leavevmode\egroup\box\verbbox\endgraf}%
+  \def\par{\egroup\leavevmode\box\verbbox\endgraf\starttabbox}%
   \tabexpand
-  \setupmarkupstyle{verbatim}%
+  \setcodequotes
   % Respect line breaks,
   % print special symbols as themselves, and
   % make each space count.
   % Must do in this order:
   \obeylines \uncatcodespecials \sepspaces
-  \everypar{\starttabbox}%
 }
 
 % Do the @verb magic: verbatim text is quoted by unique
@@ -7576,13 +7462,16 @@ end
   % ignore everything up to the first ^^M, that's the newline at the end
   % of the @verbatim input line itself.  Otherwise we get an extra blank
   % line in the output.
-  \xdef\doverbatim#1^^M#2@end verbatim{#2\noexpand\end\gobble verbatim}%
+  \xdef\doverbatim#1^^M#2@end verbatim{%
+    \starttabbox#2\egroup\noexpand\end\gobble verbatim}%
   % We really want {...\end verbatim} in the body of the macro, but
   % without the active space; thus we have to use \xdef and \gobble.
+  % The \egroup ends the \verbbox started at the end of the last line in
+  % the block.
 \endgroup
 %
 \envdef\verbatim{%
-    \setupverbatim\doverbatim
+    \setnormaldispenv\setupverbatim\doverbatim
 }
 \let\Everbatim = \afterenvbreak
 
@@ -7595,9 +7484,12 @@ end
   {%
     \makevalueexpandable
     \setupverbatim
-    \indexnofonts       % Allow `@@' and other weird things in file names.
-    \wlog{texinfo.tex: doing @verbatiminclude of #1^^J}%
-    \input #1
+    {%
+      \indexnofonts       % Allow `@@' and other weird things in file names.
+      \wlog{texinfo.tex: doing @verbatiminclude of #1^^J}%
+      \edef\tmp{\noexpand\input #1 }
+      \expandafter
+    }\expandafter\starttabbox\tmp\egroup
     \afterenvbreak
   }%
 }
@@ -7612,9 +7504,11 @@ end
 % file; b) letting users define the frontmatter in as flexible order as
 % possible is desirable.
 %
-\def\copying{\checkenv{}\begingroup\scanargctxt\docopying}
-\def\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
-%
+\def\copying{\checkenv{}\begingroup\macrobodyctxt\docopying}
+{\catcode`\ =\other
+\gdef\docopying#1@end copying{\endgroup\def\copyingtext{#1}}
+}
+
 \def\insertcopying{%
   \begingroup
     \parindent = 0pt  % paragraph indentation looks wrong on title page
@@ -7679,6 +7573,7 @@ end
 %
 \def\printdefunline#1#2{%
   \begingroup
+    \plainfrenchspacing
     % call \deffnheader:
     #1#2 \endheader
     % common ending:
@@ -7695,21 +7590,15 @@ end
 
 \def\Edefun{\endgraf\medbreak}
 
-% \makedefun{deffn} creates \deffn, \deffnx and \Edeffn;
-% the only thing remaining is to define \deffnheader.
+% \makedefun{deffoo}{ (definition of \deffooheader) }
 %
+% Define \deffoo, \deffoox  \Edeffoo and \deffooheader.
 \def\makedefun#1{%
   \expandafter\let\csname E#1\endcsname = \Edefun
   \edef\temp{\noexpand\domakedefun
     \makecsname{#1}\makecsname{#1x}\makecsname{#1header}}%
   \temp
 }
-
-% \domakedefun \deffn \deffnx \deffnheader { (defn. of \deffnheader) }
-%
-% Define \deffn and \deffnx, without parameters.
-% \deffnheader has to be defined explicitly.
-%
 \def\domakedefun#1#2#3{%
   \envdef#1{%
     \startdefun
@@ -7726,7 +7615,7 @@ end
 % @deftypefnnewline on|off says whether the return type of typed functions
 % are printed on their own line.  This affects @deftypefn, @deftypefun,
 % @deftypeop, and @deftypemethod.
-% 
+%
 \parseargdef\deftypefnnewline{%
   \def\temp{#1}%
   \ifx\temp\onword
@@ -7745,57 +7634,48 @@ end
 % Untyped functions:
 
 % @deffn category name args
-\makedefun{deffn}{\deffngeneral{}}
+\makedefun{deffn}#1 #2 #3\endheader{%
+  \doind{fn}{\code{#2}}%
+  \defname{#1}{}{#2}\magicamp\defunargs{#3\unskip}%
+}
 
-% @deffn category class name args
-\makedefun{defop}#1 {\defopon{#1\ \putwordon}}
-
-% \defopon {category on}class name args
-\def\defopon#1#2 {\deffngeneral{\putwordon\ \code{#2}}{#1\ \code{#2}} }
-
-% \deffngeneral {subind}category name args
-%
-\def\deffngeneral#1#2 #3 #4\endheader{%
-  % Remember that \dosubind{fn}{foo}{} is equivalent to \doind{fn}{foo}.
-  \dosubind{fn}{\code{#3}}{#1}%
-  \defname{#2}{}{#3}\magicamp\defunargs{#4\unskip}%
+% @defop category class name args
+\makedefun{defop}#1 {\defopheaderx{#1\ \putwordon}}
+\def\defopheaderx#1#2 #3 #4\endheader{%
+  \doind{fn}{\code{#3}\space\putwordon\ \code{#2}}%
+  \defname{#1\ \code{#2}}{}{#3}\magicamp\defunargs{#4\unskip}%
 }
 
 % Typed functions:
 
 % @deftypefn category type name args
-\makedefun{deftypefn}{\deftypefngeneral{}}
+\makedefun{deftypefn}#1 #2 #3 #4\endheader{%
+  \doind{fn}{\code{#3}}%
+  \doingtypefntrue
+  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+}
 
 % @deftypeop category class type name args
-\makedefun{deftypeop}#1 {\deftypeopon{#1\ \putwordon}}
-
-% \deftypeopon {category on}class type name args
-\def\deftypeopon#1#2 {\deftypefngeneral{\putwordon\ \code{#2}}{#1\ \code{#2}} }
-
-% \deftypefngeneral {subind}category type name args
-%
-\def\deftypefngeneral#1#2 #3 #4 #5\endheader{%
-  \dosubind{fn}{\code{#4}}{#1}%
+\makedefun{deftypeop}#1 {\deftypeopheaderx{#1\ \putwordon}}
+\def\deftypeopheaderx#1#2 #3 #4 #5\endheader{%
+  \doind{fn}{\code{#4}\space\putwordon\ \code{#1\ \code{#2}}}%
   \doingtypefntrue
-  \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
+  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Typed variables:
 
 % @deftypevr category type var args
-\makedefun{deftypevr}{\deftypecvgeneral{}}
+\makedefun{deftypevr}#1 #2 #3 #4\endheader{%
+  \doind{vr}{\code{#3}}%
+  \defname{#1}{#2}{#3}\defunargs{#4\unskip}%
+}
 
 % @deftypecv category class type var args
-\makedefun{deftypecv}#1 {\deftypecvof{#1\ \putwordof}}
-
-% \deftypecvof {category of}class type var args
-\def\deftypecvof#1#2 {\deftypecvgeneral{\putwordof\ \code{#2}}{#1\ \code{#2}} }
-
-% \deftypecvgeneral {subind}category type var args
-%
-\def\deftypecvgeneral#1#2 #3 #4 #5\endheader{%
-  \dosubind{vr}{\code{#4}}{#1}%
-  \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
+\makedefun{deftypecv}#1 {\deftypecvheaderx{#1\ \putwordof}}
+\def\deftypecvheaderx#1#2 #3 #4 #5\endheader{%
+  \doind{vr}{\code{#4}\space\putwordof\ \code{#2}}%
+  \defname{#1\ \code{#2}}{#3}{#4}\defunargs{#5\unskip}%
 }
 
 % Untyped variables:
@@ -7804,10 +7684,8 @@ end
 \makedefun{defvr}#1 {\deftypevrheader{#1} {} }
 
 % @defcv category class var args
-\makedefun{defcv}#1 {\defcvof{#1\ \putwordof}}
-
-% \defcvof {category of}class var args
-\def\defcvof#1#2 {\deftypecvof{#1}#2 {} }
+\makedefun{defcv}#1 {\defcvheaderx{#1\ \putwordof}}
+\def\defcvheaderx#1#2 {\deftypecvheaderx{#1}#2 {} }
 
 % Types:
 
@@ -7825,10 +7703,10 @@ end
 \makedefun{defvar}{\defvrheader{\putwordDefvar} }
 \makedefun{defopt}{\defvrheader{\putwordDefopt} }
 \makedefun{deftypevar}{\deftypevrheader{\putwordDefvar} }
-\makedefun{defmethod}{\defopon\putwordMethodon}
-\makedefun{deftypemethod}{\deftypeopon\putwordMethodon}
-\makedefun{defivar}{\defcvof\putwordInstanceVariableof}
-\makedefun{deftypeivar}{\deftypecvof\putwordInstanceVariableof}
+\makedefun{defmethod}{\defopheaderx\putwordMethodon}
+\makedefun{deftypemethod}{\deftypeopheaderx\putwordMethodon}
+\makedefun{defivar}{\defcvheaderx\putwordInstanceVariableof}
+\makedefun{deftypeivar}{\deftypecvheaderx\putwordInstanceVariableof}
 
 % \defname, which formats the name of the @def (not the args).
 % #1 is the category, such as "Function".
@@ -7847,9 +7725,7 @@ end
   \rettypeownlinefalse
   \ifdoingtypefn  % doing a typed function specifically?
     % then check user option for putting return type on its own line:
-    \expandafter\ifx\csname SETtxideftypefnnl\endcsname\relax \else
-      \rettypeownlinetrue
-    \fi
+    \ifflagclear{txideftypefnnl}{}{\rettypeownlinetrue}%
   \fi
   %
   % How we'll format the category name.  Putting it in brackets helps
@@ -7907,37 +7783,25 @@ end
       \tclose{\temp}% typeset the return type
       \ifrettypeownline
         % put return type on its own line; prohibit line break following:
-        \hfil\vadjust{\nobreak}\break  
+        \hfil\vadjust{\nobreak}\break
       \else
         \space  % type on same line, so just followed by a space
       \fi
     \fi           % no return type
     #3% output function name
   }%
-  {\rm\enskip}% hskip 0.5 em of \rmfont
+  \ifflagclear{txidefnamenospace}{%
+    {\rm\enskip}% hskip 0.5 em of \rmfont
+  }{}%
   %
   \boldbrax
   % arguments will be output next, if any.
 }
 
-% Print arguments in slanted roman (not ttsl), inconsistently with using
-% tt for the name.  This is because literal text is sometimes needed in
-% the argument list (groff manual), and ttsl and tt are not very
-% distinguishable.  Prevent hyphenation at `-' chars.
-%
+% Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
-  % use sl by default (not ttsl),
-  % tt for the names.
-  \df \sl \hyphenchar\font=0
-  %
-  % On the other hand, if an argument has two dashes (for instance), we
-  % want a way to get ttsl.  We used to recommend @var for that, so
-  % leave the code in, but it's strange for @var to lead to typewriter.
-  % Nowadays we recommend @code, since the difference between a ttsl hyphen
-  % and a tt hyphen is pretty tiny.  @code also disables ?` !`.
-  \def\var##1{{\setupmarkupstyle{var}\ttslanted{##1}}}%
+  \df \ifdoingtypefn \tt \else \sl \fi
   #1%
-  \sl\hyphenchar\font=45
 }
 
 % We want ()&[] to print specially on the defun line.
@@ -7956,13 +7820,17 @@ end
 % so TeX would otherwise complain about undefined control sequence.
 {
   \activeparens
-  \global\let(=\lparen \global\let)=\rparen
-  \global\let[=\lbrack \global\let]=\rbrack
-  \global\let& = \&
+  \gdef\defcharsdefault{%
+    \let(=\lparen \let)=\rparen
+    \let[=\lbrack \let]=\rbrack
+    \let& = \&%
+  }
+  \globaldefs=1 \defcharsdefault
 
   \gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}
   \gdef\magicamp{\let&=\amprm}
 }
+\let\ampchar\&
 
 \newcount\parencount
 
@@ -8043,36 +7911,25 @@ end
   }
 \fi
 
-% alias because \c means cedilla in @tex or @math
-\let\texinfoc=\c
-
-\newcount\savedcatcodeone
-\newcount\savedcatcodetwo
+\let\E=\expandafter
 
 % Used at the time of macro expansion.
 % Argument is macro body with arguments substituted
 \def\scanmacro#1{%
   \newlinechar`\^^M
-  \def\xeatspaces{\eatspaces}%
-  %
-  % Temporarily undo catcode changes of \printindex.  Set catcode of @ to
-  % 0 so that @-commands in macro expansions aren't printed literally when 
-  % formatting an index file, where \ is used as the escape character.
-  \savedcatcodeone=\catcode`\@
-  \savedcatcodetwo=\catcode`\\
-  \catcode`\@=0
-  \catcode`\\=\active
+  % expand the expansion of \eatleadingcr twice to maybe remove a leading
+  % newline (and \else and \fi tokens), then call \eatspaces on the result.
+  \def\xeatspaces##1{%
+    \E\E\E\E\E\E\E\eatspaces\E\E\E\E\E\E\E{\eatleadingcr##1%
+  }}%
+  \def\xempty##1{}%
   %
   % Process the macro body under the current catcode regime.
-  \scantokens{#1@texinfoc}%
+  \scantokens{#1@comment}%
   %
-  \catcode`\@=\savedcatcodeone
-  \catcode`\\=\savedcatcodetwo
-  %
-  % The \texinfoc is to remove the \newlinechar added by \scantokens, and
-  % can be noticed by \parsearg.
-  %   We avoid surrounding the call to \scantokens with \bgroup and \egroup
-  % to allow macros to open or close groups themselves.
+  % The \comment is to remove the \newlinechar added by \scantokens, and
+  % can be noticed by \parsearg.  Note \c isn't used because this means cedilla
+  % in math mode.
 }
 
 % Used for copying and captions
@@ -8118,6 +7975,11 @@ end
 \unbrace{\gdef\trim@@@ #1 } #2@{#1}
 }
 
+{\catcode`\^^M=\other%
+\gdef\eatleadingcr#1{\if\noexpand#1\noexpand^^M\else\E#1\fi}}%
+% Warning: this won't work for a delimited argument
+% or for an empty argument
+
 % Trim a single trailing ^^M off a string.
 {\catcode`\^^M=\other \catcode`\Q=3%
 \gdef\eatcr #1{\eatcra #1Q^^MQ}%
@@ -8147,24 +8009,17 @@ end
   \catcode`\_=\other
   \catcode`\|=\other
   \catcode`\~=\other
+  \catcode`\@=\other
+  \catcode`\^^M=\other
+  \catcode`\\=\active
   \passthroughcharstrue
 }
 
-\def\scanargctxt{% used for copying and captions, not macros.
-  \scanctxt
-  \catcode`\@=\other
-  \catcode`\\=\other
-  \catcode`\^^M=\other
-}
-
-\def\macrobodyctxt{% used for @macro definitions
+\def\macrobodyctxt{% used for @macro definitions and @copying
   \scanctxt
   \catcode`\ =\other
-  \catcode`\@=\other
   \catcode`\{=\other
   \catcode`\}=\other
-  \catcode`\^^M=\other
-  \usembodybackslash
 }
 
 % Used when scanning braced macro arguments.  Note, however, that catcode
@@ -8173,8 +8028,6 @@ end
 \def\macroargctxt{%
   \scanctxt
   \catcode`\ =\active
-  \catcode`\^^M=\other
-  \catcode`\\=\active
 }
 
 \def\macrolineargctxt{% used for whole-line arguments without braces
@@ -8222,7 +8075,7 @@ end
      \global\expandafter\let\csname ismacro.\the\macname\endcsname=1%
      \addtomacrolist{\the\macname}%
   \fi
-  \begingroup \macrobodyctxt
+  \begingroup \macrobodyctxt \usembodybackslash
   \ifrecursive \expandafter\parsermacbody
   \else \expandafter\parsemacbody
   \fi}
@@ -8270,7 +8123,7 @@ end
 % list to some hook where the argument is to be expanded.  If there are
 % less than 10 arguments that hook is to be replaced by ##N where N
 % is the position in that list, that is to say the macro arguments are to be
-% defined `a la TeX in the macro body.  
+% defined `a la TeX in the macro body.
 %
 % That gets used by \mbodybackslash (above).
 %
@@ -8282,6 +8135,7 @@ end
   \let\hash\relax
   % \hash is redefined to `#' later to get it into definitions
   \let\xeatspaces\relax
+  \let\xempty\relax
   \parsemargdefxxx#1,;,%
   \ifnum\paramno<10\relax\else
     \paramno0\relax
@@ -8293,16 +8147,18 @@ end
   \else \let\next=\parsemargdefxxx
     \advance\paramno by 1
     \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
-        {\xeatspaces{\hash\the\paramno}}%
+        {\xeatspaces{\hash\the\paramno\noexpand\xempty{}}}%
     \edef\paramlist{\paramlist\hash\the\paramno,}%
   \fi\next}
+% the \xempty{} is to give \eatleadingcr an argument in the case of an
+% empty macro argument.
 
 % \parsemacbody, \parsermacbody
 %
 % Read recursive and nonrecursive macro bodies. (They're different since
 % rec and nonrec macros end differently.)
-% 
-% We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro 
+%
+% We are in \macrobodyctxt, and the \xdef causes backslashshes in the macro
 % body to be transformed.
 % Set \macrobody to the body of the macro, and call \defmacro.
 %
@@ -8336,7 +8192,7 @@ end
 % twice the \macarg.BLAH macros does not cost too much processing power.
 \def\parsemmanyargdef@@#1,{%
   \if#1;\let\next=\relax
-  \else 
+  \else
     \let\next=\parsemmanyargdef@@
     \edef\tempb{\eatspaces{#1}}%
     \expandafter\def\expandafter\tempa
@@ -8421,7 +8277,7 @@ end
 
 % Replace arguments by their values in the macro body, and place the result
 % in macro \@tempa.
-% 
+%
 \def\macvalstoargs@{%
   %  To do this we use the property that token registers that are \the'ed
   % within an \edef  expand only once. So we are going to place all argument
@@ -8445,9 +8301,9 @@ end
   \expandafter\def\expandafter\@tempa\expandafter{\@tempc}%
   }
 
-% Define the named-macro outside of this group and then close this group. 
-% 
-\def\macargexpandinbody@{% 
+% Define the named-macro outside of this group and then close this group.
+%
+\def\macargexpandinbody@{%
   \expandafter
   \endgroup
   \macargdeflist@
@@ -8485,7 +8341,7 @@ end
 }
 
 % Trailing missing arguments are set to empty.
-% 
+%
 \def\setemptyargvalues@{%
   \ifx\paramlist\nilm@
     \let\next\macargexpandinbody@
@@ -8562,7 +8418,7 @@ end
   \else % at most 9
     \ifnum\paramno<10\relax
       % @MACNAME sets the context for reading the macro argument
-      % @MACNAME@@ gets the argument, processes backslashes and appends a 
+      % @MACNAME@@ gets the argument, processes backslashes and appends a
       % comma.
       % @MACNAME@@@ removes braces surrounding the argument list.
       % @MACNAME@@@@ scans the macro body with arguments substituted.
@@ -8606,11 +8462,11 @@ end
 % Call #1 with a list of tokens #2, with any doubled backslashes in #2
 % compressed to one.
 %
-% This implementation works by expansion, and not execution (so we cannot use 
-% \def or similar).  This reduces the risk of this failing in contexts where 
-% complete expansion is done with no execution (for example, in writing out to 
+% This implementation works by expansion, and not execution (so we cannot use
+% \def or similar).  This reduces the risk of this failing in contexts where
+% complete expansion is done with no execution (for example, in writing out to
 % an auxiliary file for an index entry).
-% 
+%
 % State is kept in the input stream: the argument passed to
 % @look_ahead, @gobble_and_check_finish and @add_segment is
 %
@@ -8632,11 +8488,11 @@ end
 % #3 - NEXT_TOKEN
 % #4 used to look ahead
 %
-% If the next token is not a backslash, process the rest of the argument; 
+% If the next token is not a backslash, process the rest of the argument;
 % otherwise, remove the next token.
 @gdef@look_ahead#1!#2#3#4{%
   @ifx#4\%
-   @expandafter@gobble_and_check_finish 
+   @expandafter@gobble_and_check_finish
   @else
    @expandafter@add_segment
   @fi#1!{#2}#4#4%
@@ -8660,9 +8516,9 @@ end
 % #3 - NEXT_TOKEN
 % #4 is input stream until next backslash
 %
-% Input stream is either at the start of the argument, or just after a 
-% backslash sequence, either a lone backslash, or a doubled backslash.  
-% NEXT_TOKEN contains the first token in the input stream: if it is \finish, 
+% Input stream is either at the start of the argument, or just after a
+% backslash sequence, either a lone backslash, or a doubled backslash.
+% NEXT_TOKEN contains the first token in the input stream: if it is \finish,
 % finish; otherwise, append to ARG_RESULT the segment of the argument up until
 % the next backslash.  PENDING_BACKSLASH contains a backslash to represent
 % a backslash just before the start of the input stream that has not been
@@ -8674,13 +8530,13 @@ end
   % append the pending backslash to the result, followed by the next segment
   @expandafter@is_fi@look_ahead#1#2#4!{\}@fi
   % this @fi is discarded by @look_ahead.
-  % we can't get rid of it with \expandafter because we don't know how 
+  % we can't get rid of it with \expandafter because we don't know how
   % long #4 is.
 }
 
 % #1 - THE_MACRO
 % #2 - ARG_RESULT
-% #3 discards the res of the conditional in @add_segment, and @is_fi ends the 
+% #3 discards the res of the conditional in @add_segment, and @is_fi ends the
 % conditional.
 @gdef@call_the_macro#1#2!#3@fi{@is_fi #1{#2}}
 
@@ -8692,7 +8548,7 @@ end
 % for reading the argument (slightly different in the two cases).  Then,
 % to read the argument, in the whole-line case, it then calls the regular
 % \parsearg MAC; in the lbrace case, it calls \passargtomacro MAC.
-% 
+%
 \def\braceorline#1{\let\macnamexxx=#1\futurelet\nchar\braceorlinexxx}
 \def\braceorlinexxx{%
   \ifx\nchar\bgroup
@@ -8742,9 +8598,31 @@ end
 % also remove a trailing comma, in case of something like this:
 % @node Help-Cross,  ,  , Cross-refs
 \def\donode#1 ,#2\finishnodeparse{\dodonode #1,\finishnodeparse}
-\def\dodonode#1,#2\finishnodeparse{\gdef\lastnode{#1}}
+\def\dodonode#1,#2\finishnodeparse{\gdef\lastnode{#1}\omittopnode}
 
-\let\nwnode=\node
+% Used so that the @top node doesn't have to be wrapped in an @ifnottex
+% conditional.
+% \doignore goes to more effort to skip nested conditionals but we don't need
+% that here.
+\def\omittopnode{%
+   \ifx\lastnode\wordTop
+   \expandafter\ignorenode\fi
+}
+\def\wordTop{Top}
+
+% Until the next @node, @part or @bye command, divert output to a box that
+% is not output.
+\def\ignorenode{\setbox\dummybox\vbox\bgroup
+\def\part{\egroup\part}%
+\def\node{\egroup\node}%
+\ignorenodebye
+}
+
+{\let\bye\relax
+\gdef\ignorenodebye{\let\bye\ignorenodebyedef}
+\gdef\ignorenodebyedef{\egroup(`Top' node ignored)\bye}}
+% The redefinition of \bye here is because it is declared \outer
+
 \let\lastnode=\empty
 
 % Write a cross-reference definition for the current node.  #1 is the
@@ -8767,7 +8645,7 @@ end
 
 % \setref{NAME}{SNT} defines a cross-reference point NAME (a node or an
 % anchor), which consists of three parts:
-% 1) NAME-title - the current sectioning name taken from \lastsection,
+% 1) NAME-title - the current sectioning name taken from \currentsection,
 %                 or the anchor name.
 % 2) NAME-snt   - section number and type, passed as the SNT arg, or
 %                 empty for anchors.
@@ -8789,7 +8667,7 @@ end
 	\write\auxfile{@xrdef{#1-% #1 of \setref, expanded by the \edef
 	  ##1}{##2}}% these are parameters of \writexrdef
       }%
-      \toks0 = \expandafter{\lastsection}%
+      \toks0 = \expandafter{\currentsection}%
       \immediate \writexrdef{title}{\the\toks0 }%
       \immediate \writexrdef{snt}{\csname #2\endcsname}% \Ynumbered etc.
       \safewhatsit{\writexrdef{pg}{\folio}}% will be written later, at \shipout
@@ -8801,7 +8679,7 @@ end
 % automatically in xrefs, if the third arg is not explicitly specified.
 % This was provided as a "secret" @set xref-automatic-section-title
 % variable, now it's official.
-% 
+%
 \parseargdef\xrefautomaticsectiontitle{%
   \def\temp{#1}%
   \ifx\temp\onword
@@ -8817,7 +8695,7 @@ end
   \fi\fi
 }
 
-% 
+%
 % @xref, @pxref, and @ref generate cross-references.  For \xrefX, #1 is
 % the node name, #2 the name of the Info cross-reference, #3 the printed
 % node name, #4 the name of the Info file, #5 the name of the printed
@@ -8864,7 +8742,7 @@ end
       \else
         \ifhavexrefs
           % We (should) know the real title if we have the xref values.
-          \def\printedrefname{\refx{#1-title}{}}%
+          \def\printedrefname{\refx{#1-title}}%
         \else
           % Otherwise just copy the Info node name.
           \def\printedrefname{\ignorespaces #1}%
@@ -8958,7 +8836,7 @@ end
     % If the user specified the print name (third arg) to the ref,
     % print it instead of our usual "Figure 1.2".
     \ifdim\wd\printedrefnamebox = 0pt
-      \refx{#1-snt}{}%
+      \refx{#1-snt}%
     \else
       \printedrefname
     \fi
@@ -8970,77 +8848,73 @@ end
     \fi
   \else
     % node/anchor (non-float) references.
-    % 
+    %
     % If we use \unhbox to print the node names, TeX does not insert
     % empty discretionaries after hyphens, which means that it will not
     % find a line break at a hyphen in a node names.  Since some manuals
     % are best written with fairly long node names, containing hyphens,
     % this is a loss.  Therefore, we give the text of the node name
     % again, so it is as if TeX is seeing it for the first time.
-    % 
+    %
     \ifdim \wd\printedmanualbox > 0pt
       % Cross-manual reference with a printed manual name.
-      % 
+      %
       \crossmanualxref{\cite{\printedmanual\unskip}}%
     %
     \else\ifdim \wd\infofilenamebox > 0pt
       % Cross-manual reference with only an info filename (arg 4), no
       % printed manual name (arg 5).  This is essentially the same as
       % the case above; we output the filename, since we have nothing else.
-      % 
+      %
       \crossmanualxref{\code{\infofilename\unskip}}%
     %
     \else
       % Reference within this manual.
       %
-      % _ (for example) has to be the character _ for the purposes of the
-      % control sequence corresponding to the node, but it has to expand
-      % into the usual \leavevmode...\vrule stuff for purposes of
-      % printing. So we \turnoffactive for the \refx-snt, back on for the
-      % printing, back off for the \refx-pg.
-      {\turnoffactive
-       % Only output a following space if the -snt ref is nonempty; for
-       % @unnumbered and @anchor, it won't be.
-       \setbox2 = \hbox{\ignorespaces \refx{#1-snt}{}}%
-       \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
-      }%
+      % Only output a following space if the -snt ref is nonempty, as the ref
+      % will be empty for @unnumbered and @anchor.
+      \setbox2 = \hbox{\ignorespaces \refx{#1-snt}}%
+      \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
+      %
       % output the `[mynode]' via the macro below so it can be overridden.
       \xrefprintnodename\printedrefname
       %
-      % But we always want a comma and a space:
-      ,\space
-      %
-      % output the `page 3'.
-      \turnoffactive \putwordpage\tie\refx{#1-pg}{}%
-      % Add a , if xref followed by a space
-      \if\space\noexpand\tokenafterxref ,%
-      \else\ifx\	\tokenafterxref ,% @TAB
-      \else\ifx\*\tokenafterxref ,%   @*
-      \else\ifx\ \tokenafterxref ,%   @SPACE
-      \else\ifx\
-                \tokenafterxref ,%    @NL
-      \else\ifx\tie\tokenafterxref ,% @tie
-      \fi\fi\fi\fi\fi\fi
+      \ifflagclear{txiomitxrefpg}{%
+        % But we always want a comma and a space:
+        ,\space
+        %
+        % output the `page 3'.
+        \turnoffactive \putwordpage\tie\refx{#1-pg}%
+        % Add a , if xref followed by a space
+        \if\space\noexpand\tokenafterxref ,%
+        \else\ifx\	\tokenafterxref ,% @TAB
+        \else\ifx\*\tokenafterxref ,%   @*
+        \else\ifx\ \tokenafterxref ,%   @SPACE
+        \else\ifx\
+                  \tokenafterxref ,%    @NL
+        \else\ifx\tie\tokenafterxref ,% @tie
+        \fi\fi\fi\fi\fi\fi
+      }{}%
     \fi\fi
   \fi
   \endlink
 \endgroup}
 
 % Output a cross-manual xref to #1.  Used just above (twice).
-% 
+%
 % Only include the text "Section ``foo'' in" if the foo is neither
 % missing or Top.  Thus, @xref{,,,foo,The Foo Manual} outputs simply
 % "see The Foo Manual", the idea being to refer to the whole manual.
-% 
+%
 % But, this being TeX, we can't easily compare our node name against the
 % string "Top" while ignoring the possible spaces before and after in
 % the input.  By adding the arbitrary 7sp below, we make it much less
 % likely that a real node name would have the same width as "Top" (e.g.,
 % in a monospaced font).  Hopefully it will never happen in practice.
-% 
+%
 % For the same basic reason, we retypeset the "Top" at every
 % reference, since the current font is indeterminate.
-% 
+%
 \def\crossmanualxref#1{%
   \setbox\toprefbox = \hbox{Top\kern7sp}%
   \setbox2 = \hbox{\ignorespaces \printedrefname \unskip \kern7sp}%
@@ -9087,13 +8961,12 @@ end
   \fi\fi\fi
 }
 
-% \refx{NAME}{SUFFIX} - reference a cross-reference string named NAME.  SUFFIX 
-% is output afterwards if non-empty.
-\def\refx#1#2{%
+% \refx{NAME} - reference a cross-reference string named NAME.
+\def\refx#1{%
   \requireauxfile
   {%
     \indexnofonts
-    \otherbackslash
+    \turnoffactive
     \def\value##1{##1}%
     \expandafter\global\expandafter\let\expandafter\thisrefX
       \csname XR#1\endcsname
@@ -9116,12 +8989,11 @@ end
     % It's defined, so just use it.
     \thisrefX
   \fi
-  #2% Output the suffix in any case.
 }
 
-% This is the macro invoked by entries in the aux file.  Define a control 
-% sequence for a cross-reference target (we prepend XR to the control sequence 
-% name to avoid collisions).  The value is the page number.  If this is a float 
+% This is the macro invoked by entries in the aux file.  Define a control
+% sequence for a cross-reference target (we prepend XR to the control sequence
+% name to avoid collisions).  The value is the page number.  If this is a float
 % type, we have more work to do.
 %
 \def\xrdef#1#2{%
@@ -9137,10 +9009,10 @@ end
   \bgroup
     \expandafter\gdef\csname XR\safexrefname\endcsname{#2}%
   \egroup
-  % We put the \gdef inside a group to avoid the definitions building up on 
-  % TeX's save stack, which can cause it to run out of space for aux files with 
+  % We put the \gdef inside a group to avoid the definitions building up on
+  % TeX's save stack, which can cause it to run out of space for aux files with
   % thousands of lines.  \gdef doesn't use the save stack, but \csname does
-  % when it defines an unknown control sequence as \relax. 
+  % when it defines an unknown control sequence as \relax.
   %
   % Was that xref control sequence that we just defined for a float?
   \expandafter\iffloat\csname XR\safexrefname\endcsname
@@ -9219,19 +9091,6 @@ end
   \catcode`\^^]=\other
   \catcode`\^^^=\other
   \catcode`\^^_=\other
-  % It was suggested to set the catcode of ^ to 7, which would allow ^^e4 etc.
-  % in xref tags, i.e., node names.  But since ^^e4 notation isn't
-  % supported in the main text, it doesn't seem desirable.  Furthermore,
-  % that is not enough: for node names that actually contain a ^
-  % character, we would end up writing a line like this: 'xrdef {'hat
-  % b-title}{'hat b} and \xrdef does a \csname...\endcsname on the first
-  % argument, and \hat is not an expandable control sequence.  It could
-  % all be worked out, but why?  Either we support ^^ or we don't.
-  %
-  % The other change necessary for this was to define \auxhat:
-  % \def\auxhat{\def^{'hat }}% extra space so ok if followed by letter
-  % and then to call \auxhat in \setq.
-  %
   \catcode`\^=\other
   %
   % Special characters.  Should be turned off anyway, but...
@@ -9239,24 +9098,17 @@ end
   \catcode`\[=\other
   \catcode`\]=\other
   \catcode`\"=\other
-  \catcode`\_=\other
-  \catcode`\|=\other
-  \catcode`\<=\other
-  \catcode`\>=\other
+  \catcode`\_=\active
+  \catcode`\|=\active
+  \catcode`\<=\active
+  \catcode`\>=\active
   \catcode`\$=\other
   \catcode`\#=\other
   \catcode`\&=\other
   \catcode`\%=\other
   \catcode`+=\other % avoid \+ for paranoia even though we've turned it off
   %
-  % This is to support \ in node names and titles, since the \
-  % characters end up in a \csname.  It's easier than
-  % leaving it active and making its active definition an actual \
-  % character.  What I don't understand is why it works in the *value*
-  % of the xrdef.  Seems like it should be a catcode12 \, and that
-  % should not typeset properly.  But it works, so I'm moving on for
-  % now.  --karl, 15jan04.
-  \catcode`\\=\other
+  \catcode`\\=\active
   %
   % @ is our escape character in .aux files, and we need braces.
   \catcode`\{=1
@@ -9470,33 +9322,35 @@ end
 \def\imagexxx#1,#2,#3,#4,#5,#6\finish{\begingroup
   \catcode`\^^M = 5     % in case we're inside an example
   \normalturnoffactive  % allow _ et al. in names
-  \def\xprocessmacroarg{\eatspaces}% in case we are being used via a macro
-  % If the image is by itself, center it.
+  \makevalueexpandable
   \ifvmode
     \imagevmodetrue
   \else \ifx\centersub\centerV
     % for @center @image, we need a vbox so we can have our vertical space
     \imagevmodetrue
-    \vbox\bgroup % vbox has better behavior than vtop herev
+    \vbox\bgroup % vbox has better behavior than vtop here
   \fi\fi
   %
   \ifimagevmode
-    \nobreak\medskip
+    \medskip
     % Usually we'll have text after the image which will insert
     % \parskip glue, so insert it here too to equalize the space
     % above and below.
-    \nobreak\vskip\parskip
-    \nobreak
+    \vskip\parskip
+    %
+    % Place image in a \vtop for a top page margin that is (close to) correct,
+    % as \topskip glue is relative to the first baseline.
+    \vtop\bgroup\hrule height 0pt\vskip-\parskip
   \fi
   %
-  % Leave vertical mode so that indentation from an enclosing
+  % Enter horizontal mode so that indentation from an enclosing
   %  environment such as @quotation is respected.
   % However, if we're at the top level, we don't want the
   %  normal paragraph indentation.
   % On the other hand, if we are in the case of @center @image, we don't
   %  want to start a paragraph, which will create a hsize-width box and
   %  eradicate the centering.
-  \ifx\centersub\centerV\else \noindent \fi
+  \ifx\centersub\centerV \else \imageindent \fi
   %
   % Output the image.
   \ifpdf
@@ -9518,8 +9372,9 @@ end
   \fi
   %
   \ifimagevmode
+    \egroup
     \medskip  % space after a standalone image
-  \fi  
+  \fi
   \ifx\centersub\centerV \egroup \fi
 \endgroup}
 
@@ -9587,13 +9442,13 @@ end
       \global\advance\floatno by 1
       %
       {%
-        % This magic value for \lastsection is output by \setref as the
+        % This magic value for \currentsection is output by \setref as the
         % XREFLABEL-title value.  \xrefX uses it to distinguish float
         % labels (which have a completely different output format) from
         % node and anchor labels.  And \xrdef uses it to construct the
         % lists of floats.
         %
-        \edef\lastsection{\floatmagic=\safefloattype}%
+        \edef\currentsection{\floatmagic=\safefloattype}%
         \setref{\floatlabel}{Yfloat}%
       }%
     \fi
@@ -9687,7 +9542,7 @@ end
 %
 \def\caption{\docaption\thiscaption}
 \def\shortcaption{\docaption\thisshortcaption}
-\def\docaption{\checkenv\float \bgroup\scanargctxt\defcaption}
+\def\docaption{\checkenv\float \bgroup\scanctxt\defcaption}
 \def\defcaption#1#2{\egroup \def#1{#2}}
 
 % The parameter is the control sequence identifying the counter we are
@@ -9716,7 +9571,7 @@ end
 
 % #1 is the control sequence we are passed; we expand into a conditional
 % which is true if #1 represents a float ref.  That is, the magic
-% \lastsection value which we \setref above.
+% \currentsection value which we \setref above.
 %
 \def\iffloat#1{\expandafter\doiffloat#1==\finish}
 %
@@ -10350,7 +10205,7 @@ directory should work if nowhere else does.}
         \uppercase{.}
       \endgroup
     \else
-      \errhelp = \EMsimple	
+      \errhelp = \EMsimple
       \errmessage{Unicode character U+#1 not supported, sorry}%
     \fi
   \else
@@ -10383,7 +10238,7 @@ directory should work if nowhere else does.}
     \countUTFz = "#1\relax
     \begingroup
       \parseXMLCharref
-    
+
       % Give \u8:... its definition.  The sequence of seven \expandafter's
       % expands after the \gdef three times, e.g.
       %
@@ -10395,7 +10250,7 @@ directory should work if nowhere else does.}
       \expandafter\expandafter
       \expandafter\expandafter
       \expandafter\gdef       \UTFviiiTmp{#2}%
-      % 
+      %
       \expandafter\ifx\csname uni:#1\endcsname \relax \else
        \message{Internal error, already defined: #1}%
       \fi
@@ -10407,9 +10262,9 @@ directory should work if nowhere else does.}
   % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp
   % to the corresponding UTF-8 sequence.
   \gdef\parseXMLCharref{%
-    \ifnum\countUTFz < "A0\relax
+    \ifnum\countUTFz < "20\relax
       \errhelp = \EMsimple
-      \errmessage{Cannot define Unicode char value < 00A0}%
+      \errmessage{Cannot define Unicode char value < 0020}%
     \else\ifnum\countUTFz < "800\relax
       \parseUTFviiiA,%
       \parseUTFviiiB C\UTFviiiTwoOctetsName.,%
@@ -10434,7 +10289,7 @@ directory should work if nowhere else does.}
     \divide\countUTFz by 64
     \countUTFy = \countUTFz  % Save to be the future value of \countUTFz.
     \multiply\countUTFz by 64
-    
+
     % \countUTFz is now \countUTFx with the last 5 bits cleared.  Subtract
     % in order to get the last five bits.
     \advance\countUTFx by -\countUTFz
@@ -10469,7 +10324,7 @@ directory should work if nowhere else does.}
 % U+0080..U+00FF = https://en.wikipedia.org/wiki/Latin-1_Supplement_(Unicode_block)
 % U+0100..U+017F = https://en.wikipedia.org/wiki/Latin_Extended-A
 % U+0180..U+024F = https://en.wikipedia.org/wiki/Latin_Extended-B
-% 
+%
 % Many of our renditions are less than wonderful, and all the missing
 % characters are available somewhere.  Loading the necessary fonts
 % awaits user request.  We can't truly support Unicode without
@@ -10479,6 +10334,103 @@ directory should work if nowhere else does.}
 % least make most of the characters not bomb out.
 %
 \def\unicodechardefs{%
+  \DeclareUnicodeCharacter{0020}{ } % space
+  \DeclareUnicodeCharacter{0021}{\char"21 }% % space to terminate number
+  \DeclareUnicodeCharacter{0022}{\char"22 }%
+  \DeclareUnicodeCharacter{0023}{\char"23 }%
+  \DeclareUnicodeCharacter{0024}{\char"24 }%
+  \DeclareUnicodeCharacter{0025}{\char"25 }%
+  \DeclareUnicodeCharacter{0026}{\char"26 }%
+  \DeclareUnicodeCharacter{0027}{\char"27 }%
+  \DeclareUnicodeCharacter{0028}{\char"28 }%
+  \DeclareUnicodeCharacter{0029}{\char"29 }%
+  \DeclareUnicodeCharacter{002A}{\char"2A }%
+  \DeclareUnicodeCharacter{002B}{\char"2B }%
+  \DeclareUnicodeCharacter{002C}{\char"2C }%
+  \DeclareUnicodeCharacter{002D}{\char"2D }%
+  \DeclareUnicodeCharacter{002E}{\char"2E }%
+  \DeclareUnicodeCharacter{002F}{\char"2F }%
+  \DeclareUnicodeCharacter{0030}{0}%
+  \DeclareUnicodeCharacter{0031}{1}%
+  \DeclareUnicodeCharacter{0032}{2}%
+  \DeclareUnicodeCharacter{0033}{3}%
+  \DeclareUnicodeCharacter{0034}{4}%
+  \DeclareUnicodeCharacter{0035}{5}%
+  \DeclareUnicodeCharacter{0036}{6}%
+  \DeclareUnicodeCharacter{0037}{7}%
+  \DeclareUnicodeCharacter{0038}{8}%
+  \DeclareUnicodeCharacter{0039}{9}%
+  \DeclareUnicodeCharacter{003A}{\char"3A }%
+  \DeclareUnicodeCharacter{003B}{\char"3B }%
+  \DeclareUnicodeCharacter{003C}{\char"3C }%
+  \DeclareUnicodeCharacter{003D}{\char"3D }%
+  \DeclareUnicodeCharacter{003E}{\char"3E }%
+  \DeclareUnicodeCharacter{003F}{\char"3F }%
+  \DeclareUnicodeCharacter{0040}{\char"40 }%
+  \DeclareUnicodeCharacter{0041}{A}%
+  \DeclareUnicodeCharacter{0042}{B}%
+  \DeclareUnicodeCharacter{0043}{C}%
+  \DeclareUnicodeCharacter{0044}{D}%
+  \DeclareUnicodeCharacter{0045}{E}%
+  \DeclareUnicodeCharacter{0046}{F}%
+  \DeclareUnicodeCharacter{0047}{G}%
+  \DeclareUnicodeCharacter{0048}{H}%
+  \DeclareUnicodeCharacter{0049}{I}%
+  \DeclareUnicodeCharacter{004A}{J}%
+  \DeclareUnicodeCharacter{004B}{K}%
+  \DeclareUnicodeCharacter{004C}{L}%
+  \DeclareUnicodeCharacter{004D}{M}%
+  \DeclareUnicodeCharacter{004E}{N}%
+  \DeclareUnicodeCharacter{004F}{O}%
+  \DeclareUnicodeCharacter{0050}{P}%
+  \DeclareUnicodeCharacter{0051}{Q}%
+  \DeclareUnicodeCharacter{0052}{R}%
+  \DeclareUnicodeCharacter{0053}{S}%
+  \DeclareUnicodeCharacter{0054}{T}%
+  \DeclareUnicodeCharacter{0055}{U}%
+  \DeclareUnicodeCharacter{0056}{V}%
+  \DeclareUnicodeCharacter{0057}{W}%
+  \DeclareUnicodeCharacter{0058}{X}%
+  \DeclareUnicodeCharacter{0059}{Y}%
+  \DeclareUnicodeCharacter{005A}{Z}%
+  \DeclareUnicodeCharacter{005B}{\char"5B }%
+  \DeclareUnicodeCharacter{005C}{\char"5C }%
+  \DeclareUnicodeCharacter{005D}{\char"5D }%
+  \DeclareUnicodeCharacter{005E}{\char"5E }%
+  \DeclareUnicodeCharacter{005F}{\char"5F }%
+  \DeclareUnicodeCharacter{0060}{\char"60 }%
+  \DeclareUnicodeCharacter{0061}{a}%
+  \DeclareUnicodeCharacter{0062}{b}%
+  \DeclareUnicodeCharacter{0063}{c}%
+  \DeclareUnicodeCharacter{0064}{d}%
+  \DeclareUnicodeCharacter{0065}{e}%
+  \DeclareUnicodeCharacter{0066}{f}%
+  \DeclareUnicodeCharacter{0067}{g}%
+  \DeclareUnicodeCharacter{0068}{h}%
+  \DeclareUnicodeCharacter{0069}{i}%
+  \DeclareUnicodeCharacter{006A}{j}%
+  \DeclareUnicodeCharacter{006B}{k}%
+  \DeclareUnicodeCharacter{006C}{l}%
+  \DeclareUnicodeCharacter{006D}{m}%
+  \DeclareUnicodeCharacter{006E}{n}%
+  \DeclareUnicodeCharacter{006F}{o}%
+  \DeclareUnicodeCharacter{0070}{p}%
+  \DeclareUnicodeCharacter{0071}{q}%
+  \DeclareUnicodeCharacter{0072}{r}%
+  \DeclareUnicodeCharacter{0073}{s}%
+  \DeclareUnicodeCharacter{0074}{t}%
+  \DeclareUnicodeCharacter{0075}{u}%
+  \DeclareUnicodeCharacter{0076}{v}%
+  \DeclareUnicodeCharacter{0077}{w}%
+  \DeclareUnicodeCharacter{0078}{x}%
+  \DeclareUnicodeCharacter{0079}{y}%
+  \DeclareUnicodeCharacter{007A}{z}%
+  \DeclareUnicodeCharacter{007B}{\char"7B }%
+  \DeclareUnicodeCharacter{007C}{\char"7C }%
+  \DeclareUnicodeCharacter{007D}{\char"7D }%
+  \DeclareUnicodeCharacter{007E}{\char"7E }%
+  % \DeclareUnicodeCharacter{007F}{} % DEL
+  %
   \DeclareUnicodeCharacter{00A0}{\tie}%
   \DeclareUnicodeCharacter{00A1}{\exclamdown}%
   \DeclareUnicodeCharacter{00A2}{{\tcfont \char162}}% 0242=cent
@@ -10770,6 +10722,8 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{0233}{\=y}%
   \DeclareUnicodeCharacter{0237}{\dotless{j}}%
   %
+  \DeclareUnicodeCharacter{02BC}{'}%
+  %
   \DeclareUnicodeCharacter{02DB}{\ogonek{ }}%
   %
   % Greek letters upper case
@@ -10976,6 +10930,9 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{1EF8}{\~Y}%
   \DeclareUnicodeCharacter{1EF9}{\~y}%
   %
+  % Exotic spaces
+  \DeclareUnicodeCharacter{2007}{\hphantom{0}}%
+  %
   % Punctuation
   \DeclareUnicodeCharacter{2013}{--}%
   \DeclareUnicodeCharacter{2014}{---}%
@@ -11158,24 +11115,26 @@ directory should work if nowhere else does.}
 % provide a definition macro to replace/pass-through a Unicode character
 %
 \def\DeclareUnicodeCharacterNative#1#2{%
-  \catcode"#1=\active
-  \def\dodeclareunicodecharacternative##1##2##3{%
+  \ifnum"#1>"7F % only make non-ASCII chars active
+    \catcode"#1=\active
+    \def\dodeclareunicodecharacternative##1##2##3{%
+      \begingroup
+        \uccode`\~="##2\relax
+        \uppercase{\gdef~}{%
+          \ifpassthroughchars
+            ##1%
+          \else
+            ##3%
+          \fi
+        }
+      \endgroup
+    }
     \begingroup
-      \uccode`\~="##2\relax
-      \uppercase{\gdef~}{%
-        \ifpassthroughchars
-          ##1%
-        \else
-          ##3%
-        \fi
-      }
+      \uccode`\.="#1\relax
+      \uppercase{\def\UTFNativeTmp{.}}%
+      \expandafter\dodeclareunicodecharacternative\UTFNativeTmp{#1}{#2}%
     \endgroup
-  }
-  \begingroup
-    \uccode`\.="#1\relax
-    \uppercase{\def\UTFNativeTmp{.}}%
-    \expandafter\dodeclareunicodecharacternative\UTFNativeTmp{#1}{#2}%
-  \endgroup
+  \fi
 }
 
 % Native Unicode handling (XeTeX and LuaTeX) character replacing definition.
@@ -11204,20 +11163,13 @@ directory should work if nowhere else does.}
    \relax
 }
 
-% define all Unicode characters we know about, for the sake of @U.
+% Define all Unicode characters we know about.  This makes UTF-8 the default
+% input encoding and allows @U to work.
 \iftxinativeunicodecapable
   \nativeunicodechardefsatu
 \else
   \utfeightchardefs
 \fi
-
-
-% Make non-ASCII characters printable again for compatibility with
-% existing Texinfo documents that may use them, even without declaring a
-% document encoding.
-%
-\setnonasciicharscatcode \other
-
 
 \message{formatting,}
 
@@ -11328,23 +11280,6 @@ directory should work if nowhere else does.}
   \defbodyindent = .5cm
 }}
 
-% Use @smallerbook to reset parameters for 6x9 trim size.
-% (Just testing, parameters still in flux.)
-\def\smallerbook{{\globaldefs = 1
-  \parskip = 1.5pt plus 1pt
-  \textleading = 12pt
-  %
-  \internalpagesizes{7.4in}{4.8in}%
-                    {-.2in}{-.4in}%
-                    {0pt}{14pt}%
-                    {9in}{6in}%
-  %
-  \lispnarrowing = 0.25in
-  \tolerance = 700
-  \contentsrightmargin = 0pt
-  \defbodyindent = .4cm
-}}
-
 % Use @afourpaper to print on European A4 paper.
 \def\afourpaper{{\globaldefs = 1
   \parskip = 3pt plus 2pt minus 1pt
@@ -11378,7 +11313,7 @@ directory should work if nowhere else does.}
   \textleading = 12.5pt
   %
   \internalpagesizes{160mm}{120mm}%
-                    {\voffset}{\hoffset}%
+                    {\voffset}{-11.4mm}%
                     {\bindingoffset}{8pt}%
                     {210mm}{148mm}%
   %
@@ -11411,6 +11346,18 @@ directory should work if nowhere else does.}
   \globaldefs = 0
 }}
 
+\def\bsixpaper{{\globaldefs = 1
+  \afourpaper
+  \internalpagesizes{140mm}{100mm}%
+                    {-6.35mm}{-12.7mm}%
+                    {\bindingoffset}{14pt}%
+                    {176mm}{125mm}%
+  \let\SETdispenvsize=\smallword
+  \lispnarrowing = 0.2in
+  \globaldefs = 0
+}}
+
+
 % @pagesizes TEXTHEIGHT[,TEXTWIDTH]
 % Perhaps we should allow setting the margins, \topskip, \parskip,
 % and/or leading, also. Or perhaps we should compute them somehow.
@@ -11424,10 +11371,12 @@ directory should work if nowhere else does.}
   \setleading{\textleading}%
   %
   \dimen0 = #1\relax
-  \advance\dimen0 by \voffset
+  \advance\dimen0 by 2.5in % default 1in margin above heading line
+                           % and 1.5in to include heading, footing and
+                           % bottom margin
   %
   \dimen2 = \hsize
-  \advance\dimen2 by \normaloffset
+  \advance\dimen2 by 2in % default to 1 inch margin on each side
   %
   \internalpagesizes{#1}{\hsize}%
                     {\voffset}{\normaloffset}%
@@ -11446,6 +11395,7 @@ directory should work if nowhere else does.}
 \message{and turning on texinfo input format.}
 
 \def^^L{\par} % remove \outer, so ^L can appear in an @comment
+\catcode`\^^K = 10 % treat vertical tab as whitespace
 
 % DEL is a comment character, in case @c does not suffice.
 \catcode`\^^? = 14
@@ -11512,9 +11462,9 @@ directory should work if nowhere else does.}
 \def\texinfochars{%
   \let< = \activeless
   \let> = \activegtr
-  \let~ = \activetilde 
+  \let~ = \activetilde
   \let^ = \activehat
-  \markupsetuplqdefault \markupsetuprqdefault 
+  \setregularquotes
   \let\b = \strong
   \let\i = \smartitalic
   % in principle, all other definitions in \tex have to be undone too.
@@ -11532,11 +11482,9 @@ directory should work if nowhere else does.}
 % \backslashcurfont outputs one backslash character in current font,
 % as in \char`\\.
 \global\chardef\backslashcurfont=`\\
-\global\let\rawbackslashxx=\backslashcurfont  % let existing .??s files work
 
-% \realbackslash is an actual character `\' with catcode other, and
-% \doublebackslash is two of them (for the pdf outlines).
-{\catcode`\\=\other @gdef@realbackslash{\} @gdef@doublebackslash{\\}}
+% \realbackslash is an actual character `\' with catcode other.
+{\catcode`\\=\other @gdef@realbackslash{\}}
 
 % In Texinfo, backslash is an active character; it prints the backslash
 % in fixed width font.
@@ -11554,10 +11502,8 @@ directory should work if nowhere else does.}
 @def@ttbackslash{{@tt @ifmmode @mathchar29020 @else @backslashcurfont @fi}}
 @let@backslashchar = @ttbackslash % @backslashchar{} is for user documents.
 
-% \rawbackslash defines an active \ to do \backslashcurfont.
 % \otherbackslash defines an active \ to be a literal `\' character with
-% catcode other.  We switch back and forth between these.
-@gdef@rawbackslash{@let\=@backslashcurfont}
+% catcode other.
 @gdef@otherbackslash{@let\=@realbackslash}
 
 % Same as @turnoffactive except outputs \ as {\tt\char`\\} instead of
@@ -11577,8 +11523,7 @@ directory should work if nowhere else does.}
    @let|=@normalverticalbar
    @let~=@normaltilde
    @let\=@ttbackslash
-   @markupsetuplqdefault
-   @markupsetuprqdefault
+   @setregularquotes
    @unsepspaces
  }
 }
@@ -11629,7 +11574,7 @@ directory should work if nowhere else does.}
   @ifx\@eatinput @let\ = @ttbackslash @fi
   @catcode13=5 % regular end of line
   @enableemergencynewline
-  @let@c=@texinfoc
+  @let@c=@comment
   @let@parsearg@originalparsearg
   % Also turn back on active characters that might appear in the input
   % file name, in case not using a pre-dumped format.
@@ -11671,17 +11616,15 @@ directory should work if nowhere else does.}
 @c Do this last of all since we use ` in the previous @catcode assignments.
 @catcode`@'=@active
 @catcode`@`=@active
-@markupsetuplqdefault
-@markupsetuprqdefault
+@setregularquotes
 
 @c Local variables:
-@c eval: (add-hook 'write-file-hooks 'time-stamp)
+@c eval: (add-hook 'before-save-hook 'time-stamp nil t)
+@c time-stamp-pattern: "texinfoversion{%Y-%02m-%02d.%02H}"
 @c page-delimiter: "^\\\\message\\|emacs-page"
-@c time-stamp-start: "def\\\\texinfoversion{"
-@c time-stamp-format: "%:y-%02m-%02d.%02H"
-@c time-stamp-end: "}"
 @c End:
 
 @c vim:sw=2:
 
 @enablebackslashhack
+

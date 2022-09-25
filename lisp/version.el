@@ -1,6 +1,6 @@
-;;; version.el --- record version number of Emacs
+;;; version.el --- record version number of Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2017 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -29,14 +29,12 @@
 (defconst emacs-major-version
   (progn (string-match "^[0-9]+" emacs-version)
          (string-to-number (match-string 0 emacs-version)))
-  "Major version number of this version of Emacs.
-This variable first existed in version 19.23.")
+  "Major version number of this version of Emacs.")
 
 (defconst emacs-minor-version
   (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
          (string-to-number (match-string 1 emacs-version)))
-  "Minor version number of this version of Emacs.
-This variable first existed in version 19.23.")
+  "Minor version number of this version of Emacs.")
 
 (defconst emacs-build-system (system-name)
   "Name of the system on which Emacs was built, or nil if not available.")
@@ -55,9 +53,16 @@ developing Emacs.")
 (defvar ns-version-string)
 (defvar cairo-version-string)
 
+(declare-function haiku-get-version-string "haikufns.c")
+
 (defun emacs-version (&optional here)
-  "Return string describing the version of Emacs that is running.
-If optional argument HERE is non-nil, insert string at point.
+  "Display the version of Emacs that is running in this session.
+With a prefix argument, insert the Emacs version string at point
+instead of displaying it.
+If called from Lisp, by default return the version string; but
+if the optional argument HERE is non-nil, insert the string at
+point instead.
+
 Don't use this function in programs to choose actions according
 to the system configuration; look at `system-configuration' instead."
   (interactive "P")
@@ -73,6 +78,8 @@ to the system configuration; look at `system-configuration' instead."
 		       ((featurep 'x-toolkit) ", X toolkit")
 		       ((featurep 'ns)
 			(format ", NS %s" ns-version-string))
+                       ((featurep 'haiku)
+                        (format ", Haiku %s" (haiku-get-version-string)))
 		       (t ""))
 		 (if (featurep 'cairo)
 		     (format ", cairo version %s" cairo-version-string)
@@ -99,14 +106,14 @@ to the system configuration; look at `system-configuration' instead."
 ;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
+(define-obsolete-variable-alias 'emacs-bzr-version
+                                'emacs-repository-version "24.4")
+
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-repository-version nil
   "String giving the repository revision from which this Emacs was built.
 Value is nil if Emacs was not built from a repository checkout,
 or if we could not determine the revision.")
-
-(define-obsolete-variable-alias 'emacs-bzr-version
-                                'emacs-repository-version "24.4")
 
 (define-obsolete-function-alias 'emacs-bzr-get-version
                                 'emacs-repository-get-version "24.4")
@@ -120,10 +127,10 @@ or if we could not determine the revision.")
 	       (with-demoted-errors "Error running git rev-parse: %S"
 		 (call-process "git" nil '(t nil) nil "rev-parse" "HEAD")))
 	   (progn (goto-char (point-min))
-		  (looking-at "[0-9a-fA-F]\\{40\\}"))
+		  (looking-at "[[:xdigit:]]\\{40\\}"))
 	   (match-string 0)))))
 
-(defun emacs-repository-get-version (&optional dir external)
+(defun emacs-repository-get-version (&optional dir _external)
   "Try to return as a string the repository revision of the Emacs sources.
 The format of the returned string is dependent on the VCS in use.
 Value is nil if the sources do not seem to be under version
@@ -135,8 +142,32 @@ Optional argument DIR is a directory to use instead of `source-directory'.
 Optional argument EXTERNAL is ignored."
   (emacs-repository-version-git (or dir source-directory)))
 
-;; We put version info into the executable in the form that `ident' uses.
-(purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
-		  " $\n"))
+(defvar emacs-repository-branch nil
+  "String giving the repository branch from which this Emacs was built.
+Value is nil if Emacs was not built from a repository checkout,
+or if we could not determine the branch.")
+
+(defun emacs-repository-branch-git (dir)
+  "Ask git itself for the branch information for directory DIR."
+  (message "Waiting for git...")
+  (with-temp-buffer
+    (let ((default-directory (file-name-as-directory dir)))
+      (and (zerop
+	    (with-demoted-errors "Error running git rev-parse --abbrev-ref: %S"
+	      (call-process "git" nil '(t nil) nil
+                            "rev-parse" "--abbrev-ref" "HEAD")))
+           (goto-char (point-min))
+           (buffer-substring (point) (line-end-position))))))
+
+(defun emacs-repository-get-branch (&optional dir)
+  "Try to return as a string the repository branch of the Emacs sources.
+The format of the returned string is dependent on the VCS in use.
+Value is nil if the sources do not seem to be under version
+control, or if we could not determine the branch.  Note that
+this reports on the current state of the sources, which may not
+correspond to the running Emacs.
+
+Optional argument DIR is a directory to use instead of `source-directory'."
+  (emacs-repository-branch-git (or dir source-directory)))
 
 ;;; version.el ends here

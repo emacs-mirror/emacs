@@ -1,6 +1,6 @@
-;; gnus-notifications.el -- Send notification on new message in Gnus
+;;; gnus-notifications.el --- Send notification on new message in Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;; This implements notifications using `notifications-notify' on new
 ;; messages received.
-;; Use (add-hook 'gnus-after-getting-new-news-hook 'gnus-notifications)
+;; Use (add-hook 'gnus-after-getting-new-news-hook #'gnus-notifications)
 ;; to get notifications just after getting the new news.
 
 ;;; Code:
@@ -47,26 +47,22 @@
 
 (defcustom gnus-notifications-use-google-contacts t
   "Use Google Contacts to retrieve photo."
-  :type 'boolean
-  :group 'gnus-notifications)
+  :type 'boolean)
 
 (defcustom gnus-notifications-use-gravatar t
   "Use Gravatar to retrieve photo."
-  :type 'boolean
-  :group 'gnus-notifications)
+  :type 'boolean)
 
 (defcustom gnus-notifications-minimum-level 1
   "Minimum group level the message should have to be notified.
 Any message in a group that has a greater value than this will
 not get notifications."
-  :type 'integer
-  :group 'gnus-notifications)
+  :type 'integer)
 
 (defcustom gnus-notifications-timeout nil
   "Timeout used for notifications sent via `notifications-notify'."
   :type '(choice (const :tag "Server default" nil)
-                 (integer :tag "Milliseconds"))
-  :group 'gnus-notifications)
+                 (integer :tag "Milliseconds")))
 
 (defvar gnus-notifications-sent nil
   "Notifications already sent.")
@@ -154,7 +150,7 @@ This is typically a function to add in
   (dolist (entry gnus-newsrc-alist)
     (let ((group (car entry)))
       ;; Check that the group level is less than
-      ;; `gnus-notifications-minimum-level' and the the group has unread
+      ;; `gnus-notifications-minimum-level' and the group has unread
       ;; messages.
       (when (and (<= (gnus-group-level group) gnus-notifications-minimum-level)
                  (let ((unread (gnus-group-unread group)))

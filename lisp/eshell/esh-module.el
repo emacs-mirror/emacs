@@ -1,6 +1,6 @@
 ;;; esh-module.el --- Eshell modules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2000, 2002-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -20,11 +20,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
 ;;; Code:
 
-(provide 'esh-module)
-
-(require 'eshell)
 (require 'esh-util)
 
 (defgroup eshell-module nil
@@ -55,6 +54,7 @@ customizing the variable `eshell-modules-list'."
     eshell-basic
     eshell-cmpl
     eshell-dirs
+    eshell-extpipe
     eshell-glob
     eshell-hist
     eshell-ls
@@ -68,16 +68,15 @@ Changes will only take effect in future Eshell buffers."
   :type (append
 	 (list 'set ':tag "Supported modules")
 	 (mapcar
-	  (function
-	   (lambda (modname)
-	     (let ((modsym (intern modname)))
-	       (list 'const
-		     ':tag (format "%s -- %s" modname
-				   (get modsym 'custom-tag))
-		     ':link (caar (get modsym 'custom-links))
-		     ':doc (concat "\n" (get modsym 'group-documentation)
-				   "\n ")
-		     modsym))))
+          (lambda (modname)
+            (let ((modsym (intern modname)))
+              (list 'const
+                    ':tag (format "%s -- %s" modname
+                                  (get modsym 'custom-tag))
+                    ':link (caar (get modsym 'custom-links))
+                    ':doc (concat "\n" (get modsym 'group-documentation)
+                                  "\n ")
+                    modsym)))
 	  (sort (mapcar 'symbol-name
 			(eshell-subgroups 'eshell-module))
 		'string-lessp))
@@ -101,4 +100,5 @@ customization group.  Example: `eshell-cmpl' for that module."
 	  (unload-feature module)
 	  (message "Unloading %s...done" (symbol-name module))))))
 
+(provide 'esh-module)
 ;;; esh-module.el ends here

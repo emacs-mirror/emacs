@@ -83,9 +83,16 @@ ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail
 gl_cv_func_readlink_works=yes
+gl_cv_func_readlink_trailing_slash=yes
+gl_cv_func_readlink_truncate=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
+# Avoid compiling Gnulib's canonicalize-lgpl.c, which fails
+ac_cv_func_canonicalize_file_name=yes
+# Implemented in w32.c
+ac_cv_func_realpath=yes
+gl_cv_func_realpath_works=yes
 # Implemented in w32.c
 ac_cv_func_fcntl=yes
 gl_cv_func_fcntl_f_dupfd_cloexec=yes
@@ -98,6 +105,14 @@ ac_cv_func_lstat=yes
 gl_cv_func_lstat_dereferences_slashed_symlink=yes
 ac_cv_func_fstatat=yes
 gl_cv_func_fstatat_zero_flag=yes
+ac_cv_func_fchmodat=yes
+gl_cv_func_fchmodat_works="not-needed-so-yes"
+ac_cv_func_lchmod=yes
+ac_cv_func_futimens=not-needed
+gl_cv_func_futimens_works="not-needed-so-yes"
+ac_cv_func_utimensat=yes
+gl_cv_func_utimensat_works=yes
+ac_cv_func_explicit_bzero=yes
 # Aliased to _commit in ms-w32.h
 ac_cv_func_fsync=yes
 ac_cv_func_fdatasync=yes
@@ -107,8 +122,10 @@ ac_cv_func_pthread_sigmask=yes
 gl_threads_api=posix
 gl_cv_func_pthread_sigmask_return_works=yes
 gl_cv_func_pthread_sigmask_unblock_works="not relevant"
+gl_cv_func_pthread_sigmask_macro=no
 # Implemented in w32proc.c
 emacs_cv_langinfo_codeset=yes
+emacs_cv_langinfo__nl_paper_width=yes
 # Declared in ms-w32.h
 ac_cv_have_decl_alarm=yes
 # Avoid including the gnulib dup2 module
@@ -134,3 +151,22 @@ ac_cv_func_getrlimit=yes
 ac_cv_func_setrlimit=yes
 # GCC warnings that produce too much noise
 gl_cv_warn_c__Wredundant_decls=no
+# We don't want to compile lib/copy-file-range.c because it isn't used
+# on Windows, and because compiling it triggers a warning about a
+# missing prototype, since lib/unistd.h, where Gnulib has its
+# prototype, isn't built on Windows.
+gl_cv_func_copy_file_range=yes
+# We don't want to build Emacs so it depends on bcrypt.dll, since then
+# it will refuse to start on systems where that DLL is absent.
+gl_cv_lib_assume_bcrypt=no
+# Force 'ac_cv_func_strsignal' to no as mingw64 libgccjit exports this
+# symbol erroneously
+# <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=45303#83>.
+ac_cv_func_strsignal=no
+# Don't build the Gnulib free.c: it is not needed, since the w32
+# implementation of 'free' doesn't touch errno, and it emits a
+# compilation warning.
+gl_cv_func_free_preserves_errno=yes
+# Don't build the Gnulib nanosleep module: it requires W2K or later,
+# and MinGW does have nanosleep.
+gl_cv_func_nanosleep=yes

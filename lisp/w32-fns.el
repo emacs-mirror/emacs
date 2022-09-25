@@ -1,6 +1,6 @@
-;;; w32-fns.el --- Lisp routines for 32-bit Windows
+;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -31,13 +31,15 @@
 
 ;;;; Function keys
 
-(declare-function set-message-beep "w32fns.c" (sound))
 (declare-function w32-get-locale-info "w32proc.c" (lcid &optional longform))
 (declare-function w32-get-valid-locale-ids "w32proc.c" ())
 
-;; Map all versions of a filename (8.3, longname, mixed case) to the
-;; same buffer.
-(setq find-file-visit-truename t)
+(if (eq system-type 'windows-nt)
+    ;; Map all versions of a filename (8.3, longname, mixed case) to the
+    ;; same buffer.
+    (setq find-file-visit-truename t))
+
+;;;; Shells
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
@@ -53,7 +55,7 @@
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return non-nil if the interactive shell being used expects MS-DOS shell semantics."
+  "Return non-nil if current interactive shell expects MS-DOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
@@ -120,28 +122,24 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
+;;;; Coding-systems, locales, etc.
+
 ;; Override setting chosen at startup.
 (defun w32-set-default-process-coding-system ()
   ;; Most programs on Windows will accept Unix line endings on input
   ;; (and some programs ported from Unix require it) but most will
   ;; produce DOS line endings on output.
   (setq default-process-coding-system
-	(if (default-value 'enable-multibyte-characters)
-	    '(undecided-dos . undecided-unix)
-	  '(raw-text-dos . raw-text-unix)))
+	'(undecided-dos . undecided-unix))
   ;; Make cmdproxy default to using DOS line endings for input,
   ;; because some Windows programs (including command.com) require it.
   (add-to-list 'process-coding-system-alist
-	       `("[cC][mM][dD][pP][rR][oO][xX][yY]"
-		 . ,(if (default-value 'enable-multibyte-characters)
-			'(undecided-dos . undecided-dos)
-		      '(raw-text-dos . raw-text-dos))))
+	       '("[cC][mM][dD][pP][rR][oO][xX][yY]"
+		 . (undecided-dos . undecided-dos)))
   ;; plink needs DOS input when entering the password.
   (add-to-list 'process-coding-system-alist
-	       `("[pP][lL][iI][nN][kK]"
-		 . ,(if (default-value 'enable-multibyte-characters)
-			'(undecided-dos . undecided-dos)
-		      '(raw-text-dos . raw-text-dos)))))
+	       '("[pP][lL][iI][nN][kK]"
+		 . (undecided-dos . undecided-dos))))
 (define-obsolete-function-alias 'set-default-process-coding-system
   #'w32-set-default-process-coding-system "26.1")
 (add-hook 'before-init-hook #'w32-set-default-process-coding-system)
@@ -193,6 +191,100 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;	    (setq source-directory (file-name-as-directory
 ;;				     (expand-file-name ".." exec-directory)))))
 
+(defun w32-set-system-coding-system (coding-system)
+  "Set the coding system used by the Windows system to CODING-SYSTEM.
+This is used for things like passing font names with non-ASCII
+characters in them to the system.  For a list of possible values of
+CODING-SYSTEM, use \\[list-coding-systems].
+
+This function is provided for backward compatibility, since
+`w32-system-coding-system' is now an alias for `locale-coding-system'."
+  (interactive
+   (list (let ((default locale-coding-system))
+           (read-coding-system
+            (format-prompt "Coding system for system calls" default)
+            default))))
+  (check-coding-system coding-system)
+  (setq locale-coding-system coding-system))
+(define-obsolete-function-alias 'set-w32-system-coding-system
+  #'w32-set-system-coding-system "26.1")
+
+;; locale-coding-system was introduced to do the same thing as
+;; w32-system-coding-system. Use that instead.
+(defvaralias 'w32-system-coding-system 'locale-coding-system)
+
+;; Set to a system sound if you want a fancy bell.
+(if (fboundp 'set-message-beep)         ; w32fns.c
+    (set-message-beep nil))
+
+(defvar w32-charset-info-alist)         ; w32font.c
+
+(defun w32-add-charset-info (xlfd-charset windows-charset codepage)
+  "Function to add character sets to display with Windows fonts.
+Creates entries in `w32-charset-info-alist'.
+XLFD-CHARSET is a string which will appear in the XLFD font name to
+identify the character set.  WINDOWS-CHARSET is a symbol identifying
+the Windows character set this maps to.  For the list of possible
+values, see the documentation for `w32-charset-info-alist'.  CODEPAGE
+can be a numeric codepage that Windows uses to display the character
+set, t for Unicode output with no codepage translation or nil for 8
+bit output with no translation."
+  (add-to-list 'w32-charset-info-alist
+               (cons xlfd-charset (cons windows-charset codepage))))
+
+(when (boundp 'w32-charset-info-alist)
+  ;; The last charset we add becomes the "preferred" charset for the return
+  ;; value from x-select-font etc, so list the most important charsets last.
+  (w32-add-charset-info "iso8859-14" 'w32-charset-ansi  28604)
+  (w32-add-charset-info "iso8859-15" 'w32-charset-ansi  28605)
+  (w32-add-charset-info "iso8859-16" 'w32-charset-ansi  28606)
+  ;; The following two are included for pattern matching.
+  (w32-add-charset-info "jisx0201" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "jisx0208" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "jisx0212" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "ksc5601.1989" 'w32-charset-hangeul 949)
+  (w32-add-charset-info "ksx1001" 'w32-charset-hangeul 949)
+  (w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
+  (w32-add-charset-info "gb2312.1980" 'w32-charset-gb2312 936)
+  (w32-add-charset-info "gbk" 'w32-charset-gb2312 936)
+  (w32-add-charset-info "ms-symbol" 'w32-charset-symbol nil)
+  (w32-add-charset-info "ms-oem" 'w32-charset-oem 437)
+  (w32-add-charset-info "ms-oemlatin" 'w32-charset-oem 850)
+  (w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
+  (w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
+  (w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
+  (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
+  (w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
+  (w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
+  (w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)
+  (w32-add-charset-info "iso8859-9" 'w32-charset-turkish 1254)
+  (w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
+  (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
+  (w32-add-charset-info "microsoft-cp1251" 'w32-charset-russian 1251)
+  (w32-add-charset-info "windows-1251" 'w32-charset-russian 1251)
+  (w32-add-charset-info "tis620-2533" 'w32-charset-russian 28595)
+  (w32-add-charset-info "iso8859-11" 'w32-charset-thai 874)
+  (w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
+  (w32-add-charset-info "viscii" 'w32-charset-vietnamese 1258)
+  (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
+  (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)
+  (w32-add-charset-info "iso10646-1" 'w32-charset-default t)
+
+  ;;   ;; If Unicode Windows charset is not defined, use ansi fonts.
+  ;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+
+  ;; Preferred names
+  (w32-add-charset-info "big5-0" 'w32-charset-chinesebig5 950)
+  (w32-add-charset-info "gb2312.1980-0" 'w32-charset-gb2312 936)
+  (w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
+  (w32-add-charset-info "ksc5601.1987-0" 'w32-charset-hangeul 949)
+  (w32-add-charset-info "tis620-0" 'w32-charset-thai 874)
+  (w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252))
+
+;;;; Standard filenames
+
 (defun w32-convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for MS-Windows.
 This means to guarantee valid names and perhaps to canonicalize
@@ -218,108 +310,54 @@ names."
 	(setq start (match-end 0)))
       name)))
 
-(defun w32-set-system-coding-system (coding-system)
-  "Set the coding system used by the Windows system to CODING-SYSTEM.
-This is used for things like passing font names with non-ASCII
-characters in them to the system.  For a list of possible values of
-CODING-SYSTEM, use \\[list-coding-systems].
+;;;; System name and version for emacsbug.el
 
-This function is provided for backward compatibility, since
-`w32-system-coding-system' is now an alias for `locale-coding-system'."
-  (interactive
-   (list (let ((default locale-coding-system))
-           (read-coding-system
-            (format "Coding system for system calls (default %s): "
-                    default)
-            default))))
-  (check-coding-system coding-system)
-  (setq locale-coding-system coding-system))
-(define-obsolete-function-alias 'set-w32-system-coding-system
-  #'w32-set-system-coding-system "26.1")
+(declare-function w32-version "term/w32-win" ())
+(declare-function w32-read-registry "w32fns.c" (root key name))
 
-;; locale-coding-system was introduced to do the same thing as
-;; w32-system-coding-system. Use that instead.
-(defvaralias 'w32-system-coding-system 'locale-coding-system)
-
-;; Set to a system sound if you want a fancy bell.
-(set-message-beep nil)
-
-(defvar w32-charset-info-alist)         ; w32font.c
-
-(defun w32-add-charset-info (xlfd-charset windows-charset codepage)
-  "Function to add character sets to display with Windows fonts.
-Creates entries in `w32-charset-info-alist'.
-XLFD-CHARSET is a string which will appear in the XLFD font name to
-identify the character set.  WINDOWS-CHARSET is a symbol identifying
-the Windows character set this maps to.  For the list of possible
-values, see the documentation for `w32-charset-info-alist'.  CODEPAGE
-can be a numeric codepage that Windows uses to display the character
-set, t for Unicode output with no codepage translation or nil for 8
-bit output with no translation."
-  (add-to-list 'w32-charset-info-alist
-               (cons xlfd-charset (cons windows-charset codepage))))
-
-;; The last charset we add becomes the "preferred" charset for the return
-;; value from w32-select-font etc, so list the most important charsets last.
-(w32-add-charset-info "iso8859-14" 'w32-charset-ansi  28604)
-(w32-add-charset-info "iso8859-15" 'w32-charset-ansi  28605)
-;; The following two are included for pattern matching.
-(w32-add-charset-info "jisx0201" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "jisx0208" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "ksc5601.1989" 'w32-charset-hangeul 949)
-(w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
-(w32-add-charset-info "gb2312.1980" 'w32-charset-gb2312 936)
-(w32-add-charset-info "ms-symbol" 'w32-charset-symbol nil)
-(w32-add-charset-info "ms-oem" 'w32-charset-oem 437)
-(w32-add-charset-info "ms-oemlatin" 'w32-charset-oem 850)
-(w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
-(w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
-(w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
-(w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
-(w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
-(w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)
-(w32-add-charset-info "iso8859-9" 'w32-charset-turkish 1254)
-(w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
-(w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
-(w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
-(w32-add-charset-info "tis620-2533" 'w32-charset-thai 874)
-(w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
-(w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
-(w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)
-(w32-add-charset-info "iso10646-1" 'w32-charset-default t)
-
-;;   ;; If Unicode Windows charset is not defined, use ansi fonts.
-;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
-
-;; Preferred names
-(w32-add-charset-info "big5-0" 'w32-charset-chinesebig5 950)
-(w32-add-charset-info "gb2312.1980-0" 'w32-charset-gb2312 936)
-(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "ksc5601.1987-0" 'w32-charset-hangeul 949)
-(w32-add-charset-info "tis620-0" 'w32-charset-thai 874)
-(w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
+(defun w32--os-description ()
+  "Return a string describing the underlying OS and its version."
+  (let* ((w32ver (car (w32-version)))
+         (w9x-p (< w32ver 5))
+         (key (if w9x-p
+                  "SOFTWARE/Microsoft/Windows/CurrentVersion"
+                "SOFTWARE/Microsoft/Windows NT/CurrentVersion"))
+         (os-name (w32-read-registry 'HKLM key "ProductName"))
+         (os-version (if w9x-p
+                         (w32-read-registry 'HKLM key "VersionNumber")
+                       (let ((vmajor
+                              (w32-read-registry 'HKLM key
+                                                 "CurrentMajorVersionNumber"))
+                             (vminor
+                              (w32-read-registry 'HKLM key
+                                                 "CurrentMinorVersionNumber")))
+                         (if (and vmajor vmajor)
+                             (format "%d.%d" vmajor vminor)
+                           (w32-read-registry 'HKLM key "CurrentVersion")))))
+         (os-csd (w32-read-registry 'HKLM key "CSDVersion"))
+         (os-rel (or (w32-read-registry 'HKLM key "ReleaseID")
+                     (w32-read-registry 'HKLM key "CSDBuildNumber")
+                 "0"))  ; No Release ID before Windows Vista
+         (os-build (w32-read-registry 'HKLM key "CurrentBuildNumber"))
+         (os-rev (w32-read-registry 'HKLM key "UBR"))
+         (os-rev (if os-rev (format "%d" os-rev))))
+    (if w9x-p
+        (concat
+         (if (not (string-match "\\`Microsoft " os-name)) "Microsoft ")
+         os-name
+         " (v" os-version ")")
+      (concat
+       (if (not (string-match "\\`Microsoft " os-name)) "Microsoft ")
+       os-name      ; Windows 7 Enterprise
+       " "
+       os-csd       ; Service Pack 1
+       (if (and os-csd (> (length os-csd) 0)) " " "")
+       "(v"
+       os-version "." os-rel "." os-build (if os-rev (concat "." os-rev))
+       ")"))))
 
 
 ;;;; Support for build process
-
-;; From autoload.el
-(defvar autoload-make-program)
-(defvar generated-autoload-file)
-
-(defun w32-batch-update-autoloads ()
-  "Like `batch-update-autoloads', but takes the name of the autoloads file
-from the command line.
-
-This is required because some Windows build environments, such as MSYS,
-munge command-line arguments that include file names to a horrible mess
-that Emacs is unable to cope with."
-  (let ((generated-autoload-file
-	 (expand-file-name (pop command-line-args-left)))
-	;; I can only assume the same considerations may apply here...
-	(autoload-make-program (pop command-line-args-left)))
-    (batch-update-autoloads)))
 
 (defun w32-append-code-lines (orig extra)
   "Append non-empty non-comment lines in the file EXTRA to the file ORIG.
@@ -329,10 +367,10 @@ for any permissions.
 
 This is required because the Windows build environment is not required
 to include Sed, which is used by leim/Makefile.in to do the job."
-  (find-file orig)
-  (goto-char (point-max))
-  (insert-file-contents extra)
-  (delete-matching-lines "^$\\|^;")
-  (save-buffers-kill-emacs t))
+  (with-current-buffer (find-file-noselect orig)
+    (goto-char (point-max))
+    (insert-file-contents extra)
+    (delete-matching-lines "^$\\|^;")
+    (save-buffers-kill-emacs t)))
 
 ;;; w32-fns.el ends here

@@ -1,18 +1,18 @@
 /* Substitute for <sys/select.h>.
-   Copyright (C) 2007-2017 Free Software Foundation, Inc.
+   Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 # if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -21,7 +21,7 @@
 
 /* On OSF/1 and Solaris 2.6, <sys/types.h> and <sys/time.h>
    both include <sys/select.h>.
-   On Cygwin, <sys/time.h> includes <sys/select.h>.
+   On Cygwin and OpenBSD, <sys/time.h> includes <sys/select.h>.
    Simply delegate to the system's header in this case.  */
 #if (@HAVE_SYS_SELECT_H@                                                \
      && !defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TYPES_H             \
@@ -39,6 +39,7 @@
            || (!defined _GL_SYS_SELECT_H_REDIRECT_FROM_SYS_TIME_H       \
                && ((defined __osf__ && defined _SYS_TIME_H_             \
                     && defined _OSF_SOURCE)                             \
+                   || (defined __OpenBSD__ && defined _SYS_TIME_H_)     \
                    || (defined __sun && defined _SYS_TIME_H             \
                        && (! (defined _XOPEN_SOURCE                     \
                               || defined _POSIX_C_SOURCE)               \
@@ -103,9 +104,16 @@
 /* Get definition of 'sigset_t'.
    But avoid namespace pollution on glibc systems and "unknown type
    name" problems on Cygwin.
+   On OS/2 kLIBC, sigset_t is defined in <sys/select.h>, too. In addition,
+   if <sys/param.h> is included, <types.h> -> <sys/types.h> -> <sys/select.h>
+   are included. Then <signal.h> -> <pthread.h> are included by GNULIB. By the
+   way, <pthread.h> requires PAGE_SIZE defined in <sys/param.h>. However,
+   <sys/param.h> has not been processed, yet. As a result, 'PAGE_SIZE'
+   undeclared error occurs in <pthread.h>.
    Do this after the include_next (for the sake of OpenBSD 5.0) but before
    the split double-inclusion guard (for the sake of Solaris).  */
-#if !((defined __GLIBC__ || defined __CYGWIN__) && !defined __UCLIBC__)
+#if !((defined __GLIBC__ || defined __CYGWIN__ || defined __KLIBC__) \
+      && !defined __UCLIBC__)
 # include <signal.h>
 #endif
 
@@ -177,14 +185,14 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef close
 #   define close close_used_without_including_unistd_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (close,
                      "close() used without including <unistd.h>");
 #  endif
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef gethostname
 #   define gethostname gethostname_used_without_including_unistd_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (gethostname,
                      "gethostname() used without including <unistd.h>");
 #  endif
@@ -219,7 +227,7 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 #   define setsockopt          setsockopt_used_without_including_sys_socket_h
 #   undef shutdown
 #   define shutdown            shutdown_used_without_including_sys_socket_h
-#  else
+#  elif !defined __clang__
     _GL_WARN_ON_USE (socket,
                      "socket() used without including <sys/socket.h>");
     _GL_WARN_ON_USE (connect,
@@ -271,9 +279,13 @@ _GL_FUNCDECL_SYS (pselect, int,
                   (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
                    struct timespec const *restrict, const sigset_t *restrict));
 #  endif
-_GL_CXXALIAS_SYS (pselect, int,
-                  (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
-                   struct timespec const *restrict, const sigset_t *restrict));
+/* Need to cast, because on AIX 7, the second, third, fourth argument may be
+                        void *restrict,   void *restrict,   void *restrict.  */
+_GL_CXXALIAS_SYS_CAST (pselect, int,
+                       (int,
+                        fd_set *restrict, fd_set *restrict, fd_set *restrict,
+                        struct timespec const *restrict,
+                        const sigset_t *restrict));
 # endif
 _GL_CXXALIASWARN (pselect);
 #elif defined GNULIB_POSIXCHECK
@@ -295,11 +307,11 @@ _GL_FUNCDECL_RPL (select, int,
                    struct timeval *restrict));
 _GL_CXXALIAS_RPL (select, int,
                   (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
-                   struct timeval *restrict));
+                   timeval *restrict));
 # else
 _GL_CXXALIAS_SYS (select, int,
                   (int, fd_set *restrict, fd_set *restrict, fd_set *restrict,
-                   struct timeval *restrict));
+                   timeval *restrict));
 # endif
 _GL_CXXALIASWARN (select);
 #elif @HAVE_WINSOCK2_H@

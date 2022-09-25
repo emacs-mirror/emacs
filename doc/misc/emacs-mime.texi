@@ -1,7 +1,5 @@
 \input texinfo
 
-@include gnus-overrides.texi
-
 @setfilename ../../info/emacs-mime.info
 @settitle Emacs MIME Manual
 @include docstyle.texi
@@ -12,7 +10,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -179,18 +177,18 @@ Emacs source code.  This item works only in the groups matching
 @code{mm-uu-emacs-sources-regexp}.
 
 @item diff
-@vindex diff
+@findex diff
 @vindex mm-uu-diff-groups-regexp
 Patches.  This is intended for groups where diffs of committed files
 are automatically sent to.  It only works in groups matching
 @code{mm-uu-diff-groups-regexp}.
 
 @item verbatim-marks
-@cindex verbatim-marks
+@findex verbatim-marks
 Slrn-style verbatim marks.
 
 @item LaTeX
-@cindex LaTeX
+@findex LaTeX
 LaTeX documents.  It only works in groups matching
 @code{mm-uu-tex-groups-regexp}.
 
@@ -377,16 +375,13 @@ message as follows:
 
 @item mm-inline-large-images
 @vindex mm-inline-large-images
-When displaying inline images that are larger than the window, Emacs
-does not enable scrolling, which means that you cannot see the whole
-image. To prevent this, the library tries to determine the image size
-before displaying it inline, and if it doesn't fit the window, the
-library will display it externally (e.g., with @samp{ImageMagick} or
-@samp{xv}). Setting this variable to @code{t} disables this check and
-makes the library display all inline images as inline, regardless of
-their size. If you set this variable to @code{resize}, the image will
-be displayed resized to fit in the window, if Emacs has the ability to
-resize images.
+This variable is @code{resize} by default, which means that images
+that are bigger than the Emacs window are resized so that they fit.
+If you set this to @code{nil}, large images are not displayed in
+Emacs, but can instead be displayed externally (e.g., with
+@samp{ImageMagick} or @samp{xv}). Setting this variable to @code{t}
+disables this check and makes the library display all inline images as
+inline, regardless of their size.
 
 @item mm-inline-large-images-proportion
 @vindex mm-inline-images-max-proportion
@@ -404,13 +399,13 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
-This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{shr}, @code{gnus-w3m},
-@code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
-information about emacs-w3m}, @code{links}, @code{lynx},
-@code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
-external viewer.  You can also specify a function, which will be
-called with a @acronym{MIME} handle as the argument.
+This selects the function used to render @acronym{HTML}.  The
+predefined renderers are selected by the symbols @code{shr},
+@code{gnus-w3m}, @code{w3m}@footnote{See
+@uref{http://emacs-w3m.namazu.org/} for more information about
+emacs-w3m}, @code{links}, @code{lynx}, or @code{w3m-standalone}.  You
+can also specify a function, which will be called with a
+@acronym{MIME} handle as the argument.
 
 @item mm-html-inhibit-images
 @vindex mm-html-inhibit-images
@@ -459,7 +454,8 @@ setting this option to non-@code{nil}.  The default value is @code{t}.
 
 @item mm-external-terminal-program
 @vindex mm-external-terminal-program
-The program used to start an external terminal.
+This should be a list of strings; typically something like
+@samp{("xterm" "-e")} or @samp{("gnome-terminal" "--")}.
 
 @item mm-enable-external
 @vindex mm-enable-external
@@ -476,6 +472,13 @@ the case if you save it to disk and launch it in a different way
 (command line or double-clicking).  Anyhow, if you want to be sure not
 to launch any external programs, set this variable to @code{nil} or
 @code{ask}.
+
+@item mm-inline-font-lock
+@vindex mm-inline-font-lock
+If non-@code{nil}, inlined parts that support font locking (for
+instance, patches or code snippets) will be font-locked.  This may be
+overridden by callers that have their own ways of enabling/inhibiting
+font locking.
 
 @end table
 
@@ -691,24 +694,35 @@ Valid values are @samp{inline} and @samp{attachment}
 
 @item encoding
 Valid values are @samp{7bit}, @samp{8bit}, @samp{quoted-printable} and
-@samp{base64} (@code{Content-Transfer-Encoding}). @xref{Charset
-Translation}.
+@samp{base64}.  @xref{Charset
+Translation}.  This parameter says what
+@code{Content-Transfer-Encoding} to use when sending the part, and is
+normally computed automatically.
+
+@item data-encoding
+This parameter says what encoding has been used on the data, and the
+data will be decoded before use.  Valid values are
+@samp{quoted-printable} and @samp{base64}.  This is useful when you
+have a part with binary data (for instance an image) inserted directly
+into the Message buffer inside the @samp{"<#part>...<#/part>"} tags.
 
 @item description
 A description of the part (@code{Content-Description}).
 
 @item creation-date
-RFC822 date when the part was created (@code{Content-Disposition}).
+Date when the part was created (@code{Content-Disposition}).
+This uses the format of RFC 822 or its successors.
 
 @item modification-date
-RFC822 date when the part was modified (@code{Content-Disposition}).
+RFC 822 (or later) date when the part was modified
+(@code{Content-Disposition}).
 
 @item read-date
-RFC822 date when the part was read (@code{Content-Disposition}).
+RFC 822 (or later) date when the part was read (@code{Content-Disposition}).
 
 @item recipients
 Who to encrypt/sign the part to.  This field is used to override any
-auto-detection based on the To/CC headers.
+auto-detection based on the To/Cc headers.
 
 @item sender
 Identity used to sign the part.  This field is used to override the
@@ -754,7 +768,7 @@ be obtained.  Values include @samp{ftp}, @samp{anon-ftp}, @samp{tftp},
 @samp{localfile}, and @samp{mailserver}.  (@code{Content-Type}.)
 
 @item expiration
-The RFC822 date after which the file may no longer be fetched.
+RFC 822 (or later) date after which the file may no longer be fetched.
 (@code{Content-Type}.)
 
 @item size
@@ -920,7 +934,7 @@ Here's an example:
 @lisp
 (add-to-list 'gnus-newsgroup-variables 'mm-coding-system-priorities)
 (setq gnus-parameters
-      (nconc
+      (append
        ;; Some charsets are just examples!
        '(("^cn\\." ;; Chinese
           (mm-coding-system-priorities
@@ -999,8 +1013,7 @@ used, of course.
 Things are slightly more complicated when running Emacs with @sc{mule}
 support.  In this case, a list of the @sc{mule} charsets used in the
 part is obtained, and the @sc{mule} charsets are translated to
-@acronym{MIME} charsets by consulting the table provided by Emacs itself
-or the variable @code{mm-mime-mule-charset-alist} for XEmacs.
+@acronym{MIME} charsets by consulting the table provided by Emacs itself.
 If this results in a single @acronym{MIME} charset, this is used to encode
 the part.  But if the resulting list of @acronym{MIME} charsets contains more
 than one element, two things can happen: If it is possible to encode the
@@ -1093,7 +1106,7 @@ If non-@code{nil} a format=flowed article will be displayed flowed.
 @node Interface Functions
 @chapter Interface Functions
 @cindex interface functions
-@cindex mail-parse
+@cindex @code{mail-parse}
 
 The @code{mail-parse} library is an abstraction over the actual
 low-level libraries that are described in the next chapter.
@@ -1205,8 +1218,8 @@ plaintext name.
 
 @example
 (mail-header-parse-address
- "Hrvoje Niksic <hniksic@@srce.hr>")
-@result{} ("hniksic@@srce.hr" . "Hrvoje Niksic")
+ "Hrvoje Nikšić <hniksic@@srce.hr>")
+@result{} ("hniksic@@srce.hr" . "Hrvoje Nikšić")
 @end example
 
 @item mail-header-parse-addresses
@@ -1216,8 +1229,8 @@ the one described above.
 
 @example
 (mail-header-parse-addresses
- "Hrvoje Niksic <hniksic@@srce.hr>, Steinar Bang <sb@@metis.no>")
-@result{} (("hniksic@@srce.hr" . "Hrvoje Niksic")
+ "Hrvoje Nikšić <hniksic@@srce.hr>, Steinar Bang <sb@@metis.no>")
+@result{} (("hniksic@@srce.hr" . "Hrvoje Nikšić")
      ("sb@@metis.no" . "Steinar Bang"))
 @end example
 
@@ -1301,7 +1314,7 @@ on.  High-level functionality is dealt with in the first chapter
 @menu
 * rfc2045::      Encoding @code{Content-Type} headers.
 * rfc2231::      Parsing @code{Content-Type} headers.
-* ietf-drums::   Handling mail headers defined by RFC822bis.
+* ietf-drums::   Handling mail headers defined by RFC 2822.
 * rfc2047::      En/decoding encoded words in headers.
 * time-date::    Functions for parsing dates and manipulating time.
 * qp::           Quoted-Printable en/decoding.
@@ -1385,8 +1398,8 @@ Encode a parameter in headers likes @code{Content-Type} and
 @node ietf-drums
 @section ietf-drums
 
-@dfn{drums} is an IETF working group that is working on the replacement
-for RFC822.
+@dfn{drums} was an IETF working group that worked on Internet RFC 2822,
+the first successor to RFC 822 and a predecessor of the current email standard.
 
 The functions provided by this library include:
 
@@ -1524,45 +1537,51 @@ many mailers don't support it.  @xref{rfc2231}.
 @section time-date
 
 While not really a part of the @acronym{MIME} library, it is convenient to
-document this library here.  It deals with parsing @code{Date} headers
+document time conversion functions often used when parsing @code{Date} headers
 and manipulating time.  (Not by using tesseracts, though, I'm sorry to
 say.)
 
-These functions convert between five formats: A date string, an Emacs
-time structure, a decoded time list, a second number, and a day number.
+These functions convert between five formats: A date string, a Lisp
+timestamp, a decoded time list, a second number, and a day number.
 
 Here's a bunch of time/date/second/day examples:
 
 @example
 (parse-time-string "Sat Sep 12 12:21:54 1998 +0200")
-@result{} (54 21 12 12 9 1998 6 nil 7200)
+@result{} (54 21 12 12 9 1998 6 -1 7200)
 
-(date-to-time "Sat Sep 12 12:21:54 1998 +0200")
-@result{} (13818 19266)
+(time-convert
+  (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
+  'integer)
+@result{} 905595714
 
-(parse-iso8601-time-string "1998-09-12T12:21:54+0200")
-@result{} (13818 19266)
-
-(float-time '(13818 19266))
+(float-time '(905595714000000 . 1000000))
 @result{} 905595714.0
 
-(seconds-to-time 905595714.0)
-@result{} (13818 19266 0 0)
+(time-convert 905595714.0 1000000)
+@result{} (905595714000000 . 1000000)
 
-(time-to-days '(13818 19266))
+(time-to-days '(905595714000000 . 1000000))
 @result{} 729644
 
-(days-to-time 729644)
-@result{} (961933 512)
+(time-convert (days-to-time 729644) 'integer)
+@result{} 63041241600
 
-(time-since '(13818 19266))
-@result{} (6797 9607 984839 247000)
+(time-convert (time-since '(905595714000000 . 1000000))
+              1000000)
+@result{} (631963244775642171 . 1000000000)
 
-(time-less-p '(13818 19266) '(13818 19145))
+(time-less-p '(905595714000000 . 1000000)
+             '(905595593000000000 . 1000000000))
 @result{} nil
 
-(time-subtract '(13818 19266) '(13818 19145))
-@result{} (0 121)
+(time-equal-p '(905595593000000000 . 1000000000)
+              '(905595593000000    . 1000000   ))
+@result{} t
+
+(time-subtract '(905595714000000 . 1000000)
+               '(905595593000000000 . 1000000000))
+@result{} (121000000 . 1000000)
 
 (days-between "Sat Sep 12 12:21:54 1998 +0200"
               "Sat Sep 07 12:21:54 1998 +0200")
@@ -1571,13 +1590,13 @@ Here's a bunch of time/date/second/day examples:
 (date-leap-year-p 2000)
 @result{} t
 
-(time-to-day-in-year '(13818 19266))
+(time-to-day-in-year '(905595714000000 . 1000000))
 @result{} 255
 
 (time-to-number-of-days
  (time-since
   (date-to-time "Mon, 01 Jan 2001 02:22:26 GMT")))
-@result{} 4314.095589286675
+@result{} 6472.722661506652
 @end example
 
 And finally, we have @code{safe-date-to-time}, which does the same as
@@ -1588,26 +1607,28 @@ The five data representations used are the following:
 
 @table @var
 @item date
-An RFC822 (or similar) date string.  For instance: @code{"Sat Sep 12
+An RFC 822 (or similar) date string.  For instance: @code{"Sat Sep 12
 12:21:54 1998 +0200"}.
 
 @item time
-An internal Emacs time.  For instance: @code{(13818 26466 0 0)}.
+A Lisp timestamp.
+For instance: @code{(905595714000000 . 1000000)}.
 
 @item seconds
-A floating point representation of the internal Emacs time.  For
-instance: @code{905595714.0}.
+An integer or floating point count of seconds.  For instance:
+@code{905595714.0}, @code{905595714}.
 
 @item days
-An integer number representing the number of days since 00000101.  For
-instance: @code{729644}.
+An integer number representing the number of days since Sunday,
+December 31, 1 BC (Gregorian).  For instance: @code{729644}.
 
 @item decoded time
-A list of decoded time.  For instance: @code{(54 21 12 12 9 1998 6 t
+A list of decoded time.  For instance: @code{(54 21 12 12 9 1998 6 nil
 7200)}.
 @end table
 
-All the examples above represent the same moment.
+All the examples above represent the same moment, except that
+@var{days} represents the day containing the moment.
 
 These are the functions available:
 
@@ -1615,11 +1636,14 @@ These are the functions available:
 @item date-to-time
 Take a date and return a time.
 
-@item float-time
-Take a time and return seconds.  (This is a built-in function.)
+@item time-convert
+Take a time and return a timestamp in a specified form.
 
-@item seconds-to-time
-Take seconds and return a time.
+@item float-time
+Take a time and return seconds.
+
+@item encode-time
+Take a decoded time and return a timestamp.
 
 @item time-to-days
 Take a time and return days.
@@ -1640,6 +1664,10 @@ return a ``zero'' time.
 @item time-less-p
 Take two times and say whether the first time is less (i.e., earlier)
 than the second time.  (This is a built-in function.)
+
+@item time-equal-p
+Check whether two time values are equal.  The time values need not be
+in the same format.  (This is a built-in function.)
 
 @item time-since
 Take a time and return a time saying how long it was since that time.
@@ -1843,12 +1871,29 @@ A customizable list of viewers that take preference over
 Interface functions:
 
 @table @code
+@item mailcap-view-file
+@findex mailcap-view-file
+Prompt for a file name, and start a viewer applicable for the file
+type in question.
+
 @item mailcap-parse-mailcaps
 @findex mailcap-parse-mailcaps
+@vindex mailcap-prefer-mailcap-viewers
 Parse the @file{~/.mailcap} file.
 
 @item mailcap-mime-info
 Takes a @acronym{MIME} type as its argument and returns the matching viewer.
+
+The @code{mailcap-prefer-mailcap-viewers} variable controls which
+viewer is chosen.  The default non-@code{nil} value means that
+settings from @file{~/.mailcap} is preferred over system-wide or
+Emacs-provided viewer settings.
+
+If @code{nil}, Emacs-provided viewer settings have precedence.  Next,
+the most specific viewer has precedence over less specific settings,
+no matter if they're system-provided or private, so @samp{image/gif}
+in @file{/etc/mailcap} will ``win'' over an @samp{image/*} setting in
+@file{~/.mailcap}.
 
 @end table
 
@@ -1861,55 +1906,55 @@ Takes a @acronym{MIME} type as its argument and returns the matching viewer.
 The Emacs @acronym{MIME} library implements handling of various elements
 according to a (somewhat) large number of RFCs, drafts and standards
 documents.  This chapter lists the relevant ones.  They can all be
-fetched from @uref{http://quimby.gnus.org/notes/}.
+fetched from @uref{https://www.rfc-editor.org}.
 
 @table @dfn
-@item RFC822
-@itemx STD11
-Standard for the Format of ARPA Internet Text Messages.
+@item RFC 5322
+Internet Message Format
 
-@item RFC1036
-Standard for Interchange of USENET Messages
+@item RFC 5536
+Netnews Article Format
 
-@item RFC2045
+@item RFC 2045
 Format of Internet Message Bodies
 
-@item RFC2046
+@item RFC 2046
 Media Types
 
-@item RFC2047
+@item RFC 2047
 Message Header Extensions for Non-@acronym{ASCII} Text
 
-@item RFC2048
-Registration Procedures
+@item RFC 6838
+Media Type Specifications and Registration Procedures
 
-@item RFC2049
+@item RFC 4289
+Registration Procedures (obsoleting RFC 2048)
+
+@item RFC 2049
 Conformance Criteria and Examples
 
-@item RFC2231
+@item RFC 2231
 @acronym{MIME} Parameter Value and Encoded Word Extensions: Character Sets,
 Languages, and Continuations
 
-@item RFC1843
+@item RFC 1843
 HZ---A Data Format for Exchanging Files of Arbitrarily Mixed Chinese and
 @acronym{ASCII} characters
 
-@item draft-ietf-drums-msg-fmt-05.txt
-Draft for the successor of RFC822
-
-@item RFC2112
+@item RFC 2387
 The @acronym{MIME} Multipart/Related Content-type
 
-@item RFC1892
-The Multipart/Report Content Type for the Reporting of Mail System
+@item RFC 6522
+@itemx STD 73
+The Multipart/Report Media Type for the Reporting of Mail System
 Administrative Messages
 
-@item RFC2183
+@item RFC 2183
 Communicating Presentation Information in Internet Messages: The
 Content-Disposition Header Field
 
-@item RFC2646
-Documentation of the text/plain format parameter for flowed text.
+@item RFC 3676
+The Text/Plain Format and DelSp Parameters
 
 @end table
 

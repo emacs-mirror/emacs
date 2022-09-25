@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2022 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -8,13 +8,9 @@
 ;; Version: 0.21
 ;; Keywords: html, hypermedia, markup, etags
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
-;; Maintainer: Vivek Dasmohapatra <vivek@etla.org>
 ;; Created: 2002-01-05
 ;; Description: htmlize a buffer/source tree with optional hyperlinks
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
-;; Compatibility: Emacs23, Emacs22
-;; Incompatibility: Emacs19, Emacs20, Emacs21
-;; Last Updated: Thu 2009-11-19 01:31:21 +0000
 
 ;; This file is part of GNU Emacs.
 
@@ -81,42 +77,40 @@
 ;; Changes: moved to changelog (CHANGES) file.
 
 ;;; Code:
+
 (eval-when-compile (require 'cl-lib))
-(require 'faces)
-;;  (`facep' `face-attr-construct' `x-color-values' `color-values' `face-name')
-(require 'custom)
-;;  (`defgroup' `defcustom')
-(require 'font-lock)
-;;  (`font-lock-fontify-region')
 (require 'cus-edit)
 
-(require 'htmlfontify-loaddefs)
-
-(defconst htmlfontify-version 0.21)
-
 (defconst hfy-meta-tags
-  (format "<meta name=\"generator\" content=\"emacs %s; htmlfontify %0.2f\" />"
-          emacs-version htmlfontify-version)
+  (format "<meta name=\"generator\" content=\"emacs %s; htmlfontify\" />"
+          emacs-version)
   "The generator meta tag for this version of htmlfontify.")
 
 (defconst htmlfontify-manual "Htmlfontify Manual"
-  "Copy and convert buffers and files to HTML, adding hyperlinks between files
-\(driven by etags) if requested.
-\nInteractive functions:
+  "Copy and convert buffers and files to HTML.
+Add hyperlinks between files driven by etags) if requested.
+
+Interactive functions:
   `htmlfontify-buffer'
   `htmlfontify-run-etags'
   `htmlfontify-copy-and-link-dir'
   `htmlfontify-load-rgb-file'
-  `htmlfontify-unload-rgb-file'\n
-In order to:\n
+  `htmlfontify-unload-rgb-file'
+
+In order to:
+
 fontify a file you have open:           \\[htmlfontify-buffer]
 prepare the etags map for a directory:  \\[htmlfontify-run-etags]
-copy a directory, fontifying as you go: \\[htmlfontify-copy-and-link-dir]\n
+copy a directory, fontifying as you go: \\[htmlfontify-copy-and-link-dir]
+
 The following might be useful when running non-windowed or in batch mode:
-\(note that they shouldn't be necessary - we have a built in map)\n
+\(note that they shouldn't be necessary - we have a built in map)
+
 load an X11 style rgb.txt file:         \\[htmlfontify-load-rgb-file]
-unload the current rgb.txt file:        \\[htmlfontify-unload-rgb-file]\n
-And here's a programmatic example:\n
+unload the current rgb.txt file:        \\[htmlfontify-unload-rgb-file]
+
+And here's a programmatic example:
+
 \(defun rtfm-build-page-header (file style)
   (format \"#define  TEMPLATE red+black.html
 #define  DEBUG    1
@@ -137,8 +131,8 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
    \"s section[eg- emacs / p4-blame]:\\nD source-dir: \\nD output-dir: \")
   (require \\='htmlfontify)
   (hfy-load-tags-cache srcdir)
-  (let ((hfy-page-header  \\='rtfm-build-page-header)
-        (hfy-page-footer  \\='rtfm-build-page-footer)
+  (let ((hfy-page-header  #\\='rtfm-build-page-header)
+        (hfy-page-footer  #\\='rtfm-build-page-footer)
         (rtfm-section                     section)
         (hfy-index-file                   \"index\"))
     (htmlfontify-run-etags srcdir)
@@ -152,15 +146,15 @@ main-content <=MAIN_CONTENT;\\n\" rtfm-section file style rtfm-section file))
   :link '(info-link "(htmlfontify) Customization")
   :prefix "hfy-")
 
-(defcustom hfy-page-header 'hfy-default-header
+(defcustom hfy-page-header #'hfy-default-header
   "Function called to build the header of the HTML source.
 This is called with two arguments (the filename relative to the top
 level source directory being etag'd and fontified), and a string containing
 the <style>...</style> text to embed in the document.
 It should return a string that will be used as the header for the
-htmlfontified version of the source file.\n
+htmlfontified version of the source file.
+
 See also `hfy-page-footer'."
-  :group 'htmlfontify
   ;; FIXME: Why place such a :tag everywhere?  Isn't it imposing your
   ;; own Custom preference on your users?  --Stef
   :tag   "page-header"
@@ -171,66 +165,57 @@ See also `hfy-page-footer'."
 If non-nil, the index is split on the first letter of each tag.
 Useful when the index would otherwise be large and take
 a long time to render or be difficult to navigate."
-  :group 'htmlfontify
   :tag   "split-index"
   :type  '(boolean))
 
-(defcustom hfy-page-footer 'hfy-default-footer
+(defcustom hfy-page-footer #'hfy-default-footer
   "As `hfy-page-header', but generates the output footer.
 It takes only one argument, the filename."
-  :group 'htmlfontify
   :tag   "page-footer"
   :type  '(function))
 
 (defcustom hfy-extn ".html"
   "File extension used for output files."
-  :group 'htmlfontify
   :tag   "extension"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-style "text-decoration: underline;"
   "String to add to the `<style> a' variant of an htmlfontify CSS class."
-  :group 'htmlfontify
   :tag   "src-doc-link-style"
   :type  '(string))
 
 (defcustom hfy-src-doc-link-unstyle " text-decoration: none;"
   "Regex to remove from the `<style> a' variant of an htmlfontify CSS class."
-  :group 'htmlfontify
   :tag   "src-doc-link-unstyle"
-  :type  '(string))
+  :type  '(regexp))
 
 (defcustom hfy-link-extn nil
   "File extension used for href links.
 Useful where the htmlfontify output files are going to be processed
 again, with a resulting change in file extension.  If nil, then any
 code using this should fall back to `hfy-extn'."
-  :group 'htmlfontify
   :tag   "link-extension"
   :type  '(choice string (const nil)))
 
-(defcustom hfy-link-style-fun 'hfy-link-style-string
+(defcustom hfy-link-style-fun #'hfy-link-style-string
   "Function to customize the appearance of hyperlinks.
 Set this to a function, which will be called with one argument
 \(a \"{ foo: bar; ...}\" CSS style-string) - it should return a copy of
 its argument, altered so as to make any changes you want made for text which
 is a hyperlink, in addition to being in the class to which that style would
 normally be applied."
-  :group 'htmlfontify
   :tag   "link-style-function"
   :type  '(function))
 
 (defcustom hfy-index-file "hfy-index"
   "Name (sans extension) of the tag definition index file produced during
 fontification-and-hyperlinking."
-  :group 'htmlfontify
   :tag   "index-file"
   :type  '(string))
 
 (defcustom hfy-instance-file "hfy-instance"
   "Name (sans extension) of the tag usage index file produced during
 fontification-and-hyperlinking."
-  :group 'htmlfontify
   :tag   "instance-file"
   :type  '(string))
 
@@ -238,25 +223,12 @@ fontification-and-hyperlinking."
   "Regex to match (with a single back-reference per match) strings in HTML
 which should be quoted with `hfy-html-quote' (and `hfy-html-quote-map')
 to make them safe."
-  :group 'htmlfontify
   :tag   "html-quote-regex"
   :type  '(regexp))
 
-(define-obsolete-variable-alias 'hfy-init-kludge-hooks 'hfy-init-kludge-hook
-  "23.2")
-(defcustom hfy-init-kludge-hook '(hfy-kludge-cperl-mode)
-  "List of functions to call when starting `htmlfontify-buffer' to do any
-kludging necessary to get highlighting modes to behave as you want, even
-when not running under a window system."
-  :group 'htmlfontify
-  :tag   "init-kludge-hooks"
-  :type  '(hook))
-
-(define-obsolete-variable-alias 'hfy-post-html-hooks 'hfy-post-html-hook "24.3")
 (defcustom hfy-post-html-hook nil
   "List of functions to call after creating and filling the HTML buffer.
 These functions will be called with the HTML buffer as the current buffer."
-  :group   'htmlfontify
   :tag     "post-html-hooks"
   :options '(set-auto-mode)
   :type    '(hook))
@@ -265,10 +237,11 @@ These functions will be called with the HTML buffer as the current buffer."
   "Fallback `defface' specification for the face `default', used when
 `hfy-display-class' has been set (the normal htmlfontify way of extracting
 potentially non-current face information doesn't necessarily work for
-`default').\n
-Example: I customize this to:\n
+`default').
+
+Example: I customize this to:
+
 \((t :background \"black\" :foreground \"white\" :family \"misc-fixed\"))"
-  :group   'htmlfontify
   :tag     "default-face-definition"
   :type    '(alist))
 
@@ -277,12 +250,12 @@ Example: I customize this to:\n
                                   "\x01" "\\([0-9]+\\)"
                                   ","    "\\([0-9]+\\)$"
                                   "\\|"  ".*\x7f[0-9]+,[0-9]+$")
-  "Regex used to parse an etags entry: must have 3 subexps, corresponding,
-in order, to:\n
+  "Regex used to parse an etags entry.
+This must have 3 subexps, corresponding, in order, to:
+
    1 - The tag
    2 - The line
    3 - The char (point) at which the tag occurs."
-  :group 'htmlfontify
   :tag   "etag-regex"
   :type  '(regexp))
 
@@ -291,7 +264,6 @@ in order, to:\n
                                 ("&"  "&amp;" )
                                 (">"  "&gt;"  ))
   "Alist of char -> entity mappings used to make the text HTML-safe."
-  :group 'htmlfontify
   :tag   "html-quote-map"
   :type  '(alist :key-type (string)))
 (defconst hfy-e2x-etags-cmd "for src in `find . -type f`;
@@ -333,21 +305,19 @@ done;")
   hfy-etags-cmd-alist-default
   "Alist of possible shell commands that will generate etags output that
 `htmlfontify' can use.  `%s' will be replaced by `hfy-etags-bin'."
-  :group 'htmlfontify
   :tag   "etags-cmd-alist"
   :type  '(alist :key-type (string) :value-type (string)))
 
 (defcustom hfy-etags-bin "etags"
-  "Location of etags binary (we begin by assuming it's in your path).\n
+  "Location of etags binary (we begin by assuming it's in your path).
+
 Note that if etags is not in your path, you will need to alter the shell
 commands in `hfy-etags-cmd-alist'."
-  :group 'htmlfontify
   :tag   "etags-bin"
   :type  '(file))
 
 (defcustom hfy-shell-file-name "/bin/sh"
   "Shell (Bourne or compatible) to invoke for complex shell operations."
-  :group 'htmlfontify
   :tag   "shell-file-name"
   :type  '(file))
 
@@ -359,7 +329,6 @@ commands in `hfy-etags-cmd-alist'."
                                     point-entered
                                     point-left)
   "Properties to omit when copying a fontified buffer for HTML transformation."
-  :group 'htmlfontify
   :tag   "ignored-properties"
   :type '(repeat symbol))
 
@@ -370,8 +339,8 @@ commands in `hfy-etags-cmd-alist'."
         (when (eq (call-process hfy-etags-bin nil t nil "--version") 0)
           (goto-char (point-min))
           (cond
-           ((looking-at-p "exube") "exuberant ctags")
-           ((looking-at-p "GNU E") "emacs etags")))
+           ((search-forward "exube" nil t) "exuberant ctags")
+           ((search-forward "GNU E" nil t) "emacs etags")))
       ;; Return nil if the etags binary isn't executable (Bug#25468).
       (file-error nil))))
 
@@ -385,28 +354,27 @@ commands in `hfy-etags-cmd-alist'."
   (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist))
   "The etags equivalent command to run in a source directory to generate a tags
 file for the whole source tree from there on down.  The command should emit
-the etags output on stdout.\n
+the etags output on stdout.
+
 Two canned commands are provided - they drive Emacs's etags and
 exuberant-ctags' etags respectively."
-  :group 'htmlfontify
   :tag   "etags-command"
-  :type (let ((clist (list '(string))))
+  :type (let ((clist (list '(string) '(const :tag "None" nil))))
           (dolist (C hfy-etags-cmd-alist)
             (push (list 'const :tag (car C) (cdr C)) clist))
           (cons 'choice clist)))
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
-  "Command to run with the name of a file, to see whether it is a text file
-or not.  The command should emit a string containing the word `text' if
-the file is a text file, and a string not containing `text' otherwise."
-  :group 'htmlfontify
+  "Command to run with the name of a file, to see if it is a text file or not.
+The command should emit a string containing the word `text' if
+the file is a text file, and a string not containing `text'
+otherwise."
   :tag   "istext-command"
   :type  '(string))
 
 (defcustom hfy-find-cmd
   "find . -type f \\! -name \\*~ \\! -name \\*.flc \\! -path \\*/CVS/\\*"
   "Find command used to harvest a list of files to attempt to fontify."
-  :group 'htmlfontify
   :tag   "find-command"
   :type  '(string))
 
@@ -414,8 +382,10 @@ the file is a text file, and a string not containing `text' otherwise."
   "Display class to use to determine which display class to use when
 calculating a face's attributes.  This is useful when, for example, you
 are running Emacs on a tty or in batch mode, and want htmlfontify to have
-access to the face spec you would use if you were connected to an X display.\n
-Some valid class specification elements are:\n
+access to the face spec you would use if you were connected to an X display.
+
+Some valid class specification elements are:
+
   (class      color)
   (class      grayscale)
   (background dark)
@@ -425,17 +395,19 @@ Some valid class specification elements are:\n
   (type       motif)
   (type       lucid)
 Multiple values for a tag may be combined, to indicate that any one or more
-of these values in the specification key constitutes a match, eg:\n
-((class color grayscale) (type tty)) would match any of:\n
+of these values in the specification key constitutes a match, eg:
+
+\((class color grayscale) (type tty)) would match any of:
+
   ((class color))
   ((class grayscale))
   ((class color grayscale))
   ((class color foo))
   ((type  tty))
-  ((type  tty) (class color))\n
+  ((type  tty) (class color))
+
 and so on."
   :type    '(alist :key-type (symbol) :value-type (symbol))
-  :group   'htmlfontify
   :tag     "display-class"
   :options '((type       (choice (const :tag "X11"           x-toolkit)
                                  (const :tag "Terminal"      tty      )
@@ -448,8 +420,11 @@ and so on."
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))
 
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 (defcustom hfy-optimizations (list 'keep-overlays)
-  "Optimizations to turn on: So far, the following have been implemented:\n
+  "Optimizations to turn on.
+So far, the following have been implemented:
+
   merge-adjacent-tags: If two (or more) span tags are adjacent, identical and
                        separated by nothing more than whitespace, they will
                        be merged into one span.
@@ -459,16 +434,19 @@ and so on."
                        output.
   keep-overlays      : More of a bell (or possibly whistle) than an
                        optimization - If on, preserve overlay highlighting
-                       (cf ediff or goo-font-lock) as well as basic faces.\n
-  body-text-only     : Emit only body-text. In concrete terms,
-                       1. Suppress calls to `hfy-page-header'and
+                       (cf ediff or goo-font-lock) as well as basic faces.
+
+  body-text-only     : Emit only body-text.  In concrete terms,
+                       1. Suppress calls to `hfy-page-header' and
                           `hfy-page-footer'
                        2. Pretend that `div-wrapper' option above is
                           turned off
                        3. Don't enclose output in <pre> </pre> tags
-  And the following are planned but not yet available:\n
+  And the following are planned but not yet available:
+
   kill-context-leak  : Suppress hyperlinking between files highlighted by
-                       different modes.\n
+                       different modes.
+
 Note: like compiler optimizations, these optimize the _output_ of the code,
 not the processing of the source itself, and are therefore likely to slow
 htmlfontify down, at least a little.  Except for skip-refontification,
@@ -481,25 +459,31 @@ which can never slow you down, but may result in incomplete fontification."
                (const :tag "div-wrapper"          div-wrapper         )
                (const :tag "keep-overlays"        keep-overlays       )
                (const :tag "body-text-only"       body-text-only      ))
-  :group 'htmlfontify
   :tag   "optimizations")
-(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 
 (defvar hfy-tags-cache nil
-  "Alist of the form:\n
-\((\"/src/dir/0\" . tag-hash0) (\"/src/dir/1\" tag-hash1) ...)\n
-Each tag hash entry then contains entries of the form:\n
-\"tag_string\" => ((\"file/name.ext\" line char) ... )\n
-ie an alist mapping (relative) file paths to line and character offsets.\n
+  "Alist of the form:
+
+\((\"/src/dir/0\" . tag-hash0) (\"/src/dir/1\" tag-hash1) ...)
+
+Each tag hash entry then contains entries of the form:
+
+\"tag_string\" => ((\"file/name.ext\" line char) ... )
+
+ie an alist mapping (relative) file paths to line and character offsets.
+
 See also `hfy-load-tags-cache'.")
 
 (defvar hfy-tags-sortl nil
-  "Alist of the form ((\"/src/dir\" . (tag0 tag1 tag2)) ... )\n
-where the tags are stored in descending order of length.\n
+  "Alist of the form ((\"/src/dir\" . (tag0 tag1 tag2)) ... )
+
+where the tags are stored in descending order of length.
+
 See also `hfy-load-tags-cache'.")
 
 (defvar hfy-tags-rmap nil
-  "Alist of the form ((\"/src/dir\" . tag-rmap-hash))\n
+  "Alist of the form ((\"/src/dir\" . tag-rmap-hash))
+
 where tag-rmap-hash has entries of the form:
 \"tag_string\" => ( \"file/name.ext\" line char )
 Unlike `hfy-tags-cache' these are the locations of occurrences of
@@ -511,8 +495,10 @@ Properties may be repeated, in which case later properties should be
 treated as if they were inherited from a `parent' font.
 \(For some properties, only the first encountered value is of any importance,
 for others the values might be cumulative, and for others they might be
-cumulative in a complex way.)\n
-Some examples:\n
+cumulative in a complex way.)
+
+Some examples:
+
 \(hfy-face-to-style \\='default) =>
   ((\"background\"      . \"rgb(0, 0, 0)\")
    (\"color\"           . \"rgb(255, 255, 255)\")
@@ -521,27 +507,31 @@ Some examples:\n
    (\"font-stretch\"    . \"normal\")
    (\"font-family\"     . \"misc-fixed\")
    (\"font-size\"       . \"13pt\")
-   (\"text-decoration\" . \"none\"))\n
+   (\"text-decoration\" . \"none\"))
+
 \(hfy-face-to-style \\='Info-title-3-face) =>
   ((\"font-weight\"     . \"700\")
    (\"font-family\"     . \"helv\")
    (\"font-size\"       . \"120%\")
-   (\"text-decoration\" . \"none\"))\n")
+   (\"text-decoration\" . \"none\"))")
 
 (defvar hfy-sheet-assoc 'please-ignore-this-line
-  "An assoc with elements of the form (face-name style-name . style-string):\n
+  "An assoc with elements of the form (face-name style-name . style-string):
+
 \((default               \"default\" . \"{background: black; color: white}\")
  (font-lock-string-face \"string\"  . \"{color: rgb(64,224,208)}\"))" )
 
 (defvar hfy-facemap-assoc 'please-ignore-this-line
   "An assoc of (point . FACE-SYMBOL) or (point . DEFFACE-LIST)
 and (point . \\='end) elements, in descending order of point value
-\(ie from the file's end to its beginning).\n
+\(ie from the file's end to its beginning).
+
 The map is in reverse order because inserting a <style> tag (or any other
 string) at `point' invalidates the map for all entries with a greater value of
 point.  By traversing the map from greatest to least point, we still invalidate
 the map as we go, but only those points we have already dealt with (and
-therefore no longer care about) will be invalid at any time.\n
+therefore no longer care about) will be invalid at any time.
+
 \\='((64820 . end)
   (64744 . font-lock-comment-face)
   (64736 . end)
@@ -567,45 +557,33 @@ therefore no longer care about) will be invalid at any time.\n
 (defvar hfy-tmpfont-stack nil
   "An alist of derived fonts resulting from overlays.")
 
-(defconst hfy-hex-regex "[0-9A-Fa-f]")
-
 (defconst hfy-triplet-regex
-  (concat
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"))
+  (rx (group xdigit xdigit)
+      (group xdigit xdigit)
+      (group xdigit xdigit)))
 
-(defun hfy-interq (set-a set-b)
-  "Return the intersection (using `eq') of two lists SET-A and SET-B."
-  (let ((sa set-a) (interq nil) (elt nil))
-    (while sa
-      (setq elt (car sa)
-            sa  (cdr sa))
-      (if (memq elt set-b) (setq interq (cons elt interq))))
-    interq))
+(defun hfy-color-vals (color)
+  "Return a list of three (16 bit) rgb values for COLOR.
+COLOR is a color name or #XXXXXX style triplet.
 
-(defun hfy-colour-vals (colour)
-  "Where COLOUR is a color name or #XXXXXX style triplet, return a
-list of three (16 bit) rgb values for said color.\n
-If a window system is unavailable, calls `hfy-fallback-colour-values'."
-  (if (string-match hfy-triplet-regex colour)
+If a window system is unavailable, calls `hfy-fallback-color-values'."
+  (if (string-match hfy-triplet-regex color)
       (mapcar
-       (lambda (x) (* (string-to-number (match-string x colour) 16) 257))
+       (lambda (x) (* (string-to-number (match-string x color) 16) 257))
        '(1 2 3))
-    ;;(message ">> %s" colour)
+    ;;(message ">> %s" color)
     (if window-system
-        (if (fboundp 'color-values)
-            (color-values colour)
-          ;;(message "[%S]" window-system)
-          (x-color-values colour))
+        (color-values color)
       ;; blarg - tty colors are no good - go fetch some X colors:
-      (hfy-fallback-colour-values colour))))
+      (hfy-fallback-color-values color))))
+(define-obsolete-function-alias 'hfy-colour-vals #'hfy-color-vals "27.1")
 
 (defvar hfy-cperl-mode-kludged-p nil)
 
 (defun hfy-kludge-cperl-mode ()
   "CPerl mode does its damnedest not to do some of its fontification when not
 in a windowing system - try to trick it..."
+  (declare (obsolete nil "28.1"))
   (if (not hfy-cperl-mode-kludged-p)
       (progn (if (not window-system)
                  (let ((window-system 'htmlfontify))
@@ -628,6 +606,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
 \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
 <html xmlns=\"http://www.w3.org/1999/xhtml\">
   <head>
+    <meta charset=\"utf-8\"/>
     <title>%s</title>
 %s
     <script type=\"text/javascript\"><!--
@@ -650,7 +629,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
       var even = false;
 
       // if arguments are provided to specify the colors
-      // of the even & odd rows, then use the them;
+      // of the even & odd rows, then use them;
       // otherwise use the following defaults:
       var evenColor = arguments[1] ? arguments[1] : \"#fff\";
       var oddColor  = arguments[2] ? arguments[2] : \"#ddd\";
@@ -727,7 +706,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
 --> </script>
   </head>
   <body onload=\"stripe('index'); return true;\">\n"
-          (mapconcat 'hfy-html-quote (mapcar 'char-to-string file) "") style))
+          (mapconcat #'hfy-html-quote (mapcar #'char-to-string file) "") style))
 
 (defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.
@@ -738,7 +717,7 @@ FILE is the name of the file being rendered, in case it is needed."
   "Replace the end of a CSS style declaration STYLE-STRING with the contents
 of the variable `hfy-src-doc-link-style', removing text matching the regex
 `hfy-src-doc-link-unstyle' first, if necessary."
-  ;;(message "hfy-colour-vals");;DBUG
+  ;;(message "hfy-color-vals");;DBUG
   (if (string-match hfy-src-doc-link-unstyle style-string)
       (setq style-string (replace-match "" 'fixed-case 'literal style-string)))
   (if (and (not (string-match hfy-src-doc-link-style style-string))
@@ -751,37 +730,38 @@ of the variable `hfy-src-doc-link-style', removing text matching the regex
 
 ;; utility functions - cast emacs style specification values into their
 ;; css2 equivalents:
-(defun hfy-triplet (colour)
-  "Takes a COLOUR name (string) and return a CSS rgb(R, G, B) triplet string.
+(defun hfy-triplet (color)
+  "Takes a COLOR name (string) and return a CSS rgb(R, G, B) triplet string.
 Uses the definition of \"white\" to map the numbers to the 0-255 range, so
 if you've redefined white, (esp. if you've redefined it to have a triplet
 member lower than that of the color you are processing) strange things
 may happen."
-  ;;(message "hfy-colour-vals");;DBUG
+  ;;(message "hfy-color-vals");;DBUG
   ;; TODO?  Can we do somehow do better than this?
   (cond
-   ((equal colour "unspecified-fg") (setq colour "black"))
-   ((equal colour "unspecified-bg") (setq colour "white")))
-  (let ((white (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals "white")))
-        (rgb16 (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals  colour))))
+   ((equal color "unspecified-fg") (setq color "black"))
+   ((equal color "unspecified-bg") (setq color "white")))
+  (let ((white (mapcar (lambda (I) (float (1+ I))) (hfy-color-vals "white")))
+        (rgb16 (mapcar (lambda (I) (float (1+ I))) (hfy-color-vals  color))))
     (if rgb16
-        ;;(apply 'format "rgb(%d, %d, %d)"
+        ;;(apply #'format "rgb(%d, %d, %d)"
         ;; Use #rrggbb instead, it is smaller
-        (apply 'format "#%02x%02x%02x"
+        (apply #'format "#%02x%02x%02x"
                (mapcar (lambda (X)
                          (* (/ (nth X rgb16)
-                               (nth X white)) 255))
+                               (nth X white))
+                            255))
                        '(0 1 2))))))
 
 (defun hfy-family (family) (list (cons "font-family"  family)))
-(defun hfy-bgcol  (colour) (list (cons "background"   (hfy-triplet colour))))
-(defun hfy-colour (colour) (list (cons "color"        (hfy-triplet colour))))
+(defun hfy-bgcol  (color) (list (cons "background"   (hfy-triplet color))))
+(defun hfy-color (color) (list (cons "color"        (hfy-triplet color))))
+(define-obsolete-function-alias 'hfy-colour #'hfy-color "27.1")
 (defun hfy-width  (width)  (list (cons "font-stretch" (symbol-name  width))))
 
 (defcustom hfy-font-zoom 1.05
   "Font scaling from Emacs to HTML."
-  :type 'float
-  :group 'htmlfontify)
+  :type 'float)
 
 (defun hfy-size (height)
   "Derive a CSS font-size specifier from an Emacs font :height attribute HEIGHT.
@@ -825,17 +805,17 @@ regular specifiers."
       (let ((tag (car  spec))
             (val (cadr spec)))
         (cons (cl-case tag
-                (:color (cons "colour" val))
+                (:color (cons "color" val))
                 (:width (cons "width"  val))
                 (:style (cons "style"  val)))
               (hfy-box-to-border-assoc (cddr spec))))))
 
 (defun hfy-box-to-style (spec)
   (let* ((css (hfy-box-to-border-assoc  spec))
-         (col (cdr      (assoc "colour" css)))
+         (col (cdr      (assoc "color" css)))
          (s   (cdr      (assoc "style"  css))))
     (list
-     (if col (cons "border-color" (cdr (assoc "colour" css))))
+     (if col (cons "border-color" (cdr (assoc "color" css))))
      (cons "border-width" (format "%dpx" (or (cdr (assoc "width" css)) 1)))
      (cons "border-style" (cl-case s
                             (released-button "outset")
@@ -881,16 +861,20 @@ precedence."
   "Return the face attributes for FACE.
 If CLASS is set, it must be a `defface' alist key [see below],
 in which case the first face specification returned by `hfy-combined-face-spec'
-which *doesn't* clash with CLASS is returned.\n
+which *doesn't* clash with CLASS is returned.
+
 \(A specification with a class of t is considered to match any class you
 specify - this matches Emacs's behavior when deciding on which face attributes
-to use, to the best of my understanding).\n
+to use, to the best of my understanding).
+
 If CLASS is nil, then you just get whatever `face-attr-construct' returns,
-ie the current specification in effect for FACE.\n
+ie the current specification in effect for FACE.
+
 *NOTE*: This function forces any face that is not `default' and which has
 no :inherit property to inherit from `default' (this is because `default'
 is magical in that Emacs's fonts behave as if they inherit implicitly from
-`default', but no such behavior exists in HTML/CSS).\n
+`default', but no such behavior exists in HTML/CSS).
+
 See also `hfy-display-class' for details of valid values for CLASS."
   (let ((face-spec
          (if class
@@ -930,7 +914,9 @@ See also `hfy-display-class' for details of valid values for CLASS."
                        (setq score 0) (ignore "t match"))
                       ((not (cdr (assq key face-class))) ;Neither good nor bad.
                        nil (ignore "non match, non collision"))
-                      ((setq x (hfy-interq val (cdr (assq key face-class))))
+                      ((setq x (nreverse
+                                (seq-intersection val (cdr (assq key face-class))
+                                                  #'eq)))
                        (setq score (+ score (length x)))
                        (ignore "intersection"))
                       (t ;; nope.
@@ -977,12 +963,13 @@ See also `hfy-display-class' for details of valid values for CLASS."
 ;;    nil :overline nil :underline nil :slant normal :weight normal
 ;;    :height 98 :width normal :family "outline-courier new")
 (defun hfy-face-to-style-i (fn)
-  "The guts of `hfy-face-to-style': FN should be a `defface' font spec,
-as returned by `face-attr-construct' or `hfy-face-attr-for-class'.
-Note that this function does not get font-sizes right if they are based
-on inherited modifiers (via the :inherit) attribute, and any other
-modifiers that are cumulative if they appear multiple times need to be
-merged by the user - `hfy-flatten-style' should do this."
+  "The guts of `hfy-face-to-style'.
+FN should be a `defface' font spec, as returned by
+`face-attr-construct' or `hfy-face-attr-for-class'.  Note that
+this function does not get font-sizes right if they are based on
+inherited modifiers (via the :inherit) attribute, and any other
+modifiers that are cumulative if they appear multiple times need
+to be merged by the user - `hfy-flatten-style' should do this."
   ;;(message "hfy-face-to-style-i");;DBUG
 
   ;; fn's value could be something like
@@ -1014,7 +1001,7 @@ merged by the user - `hfy-flatten-style' should do this."
                        (:width          (hfy-width     val))
                        (:weight         (hfy-weight    val))
                        (:slant          (hfy-slant     val))
-                       (:foreground     (hfy-colour    val))
+                       (:foreground     (hfy-color     val))
                        (:background     (hfy-bgcol     val))
                        (:box            (hfy-box       val))
                        (:height         (hfy-size      val))
@@ -1026,52 +1013,53 @@ merged by the user - `hfy-flatten-style' should do this."
                        (:italic         (hfy-slant 'italic))))))
       (setq that (hfy-face-to-style-i next))
       ;;(lwarn t :warning "%S => %S" fn (nconc this that parent))
-      (nconc this parent that))) )
+      (append this parent that))) )
 
-(defun hfy-size-to-int (spec)
+(defun hfy--size-to-int (spec)
   "Convert SPEC, a CSS font-size specifier, to an Emacs :height attribute value.
 Used while merging multiple font-size attributes."
-  ;;(message "hfy-size-to-int");;DBUG
-  (list
-   (if (string-match "\\([0-9]+\\)\\(%\\|pt\\)" spec)
-       (cond ((string= "%"  (match-string 2 spec))
-              (/ (string-to-number (match-string 1 spec)) 100.0))
-             ((string= "pt" (match-string 2 spec))
-              (* (string-to-number (match-string 1 spec))    10)))
-     (string-to-number spec))) )
+  ;;(message "hfy--size-to-int");;DBUG
+  (if (string-match "\\([0-9]+\\)\\(%\\|pt\\)" spec)
+      (cond ((string= "%"  (match-string 2 spec))
+             (/ (string-to-number (match-string 1 spec)) 100.0))
+            ((string= "pt" (match-string 2 spec))
+             (* (string-to-number (match-string 1 spec))    10)))
+    (string-to-number spec)) )
 
 ;; size is different, in that in order to get it right at all,
 ;; we have to trawl the inheritance path, accumulating modifiers,
 ;; _until_ we get to an absolute (pt) specifier, then combine the lot
 (defun hfy-flatten-style (style)
-  "Take STYLE (see `hfy-face-to-style-i', `hfy-face-to-style') and merge
-any multiple attributes appropriately.  Currently only font-size is merged
-down to a single occurrence - others may need special handling, but I
-haven't encountered them yet.  Returns a `hfy-style-assoc'."
+  "Take STYLE and merge any multiple attributes appropriately.
+For the format of STYLE, see `hfy-face-to-style-i' and
+`hfy-face-to-style'.  Return a `hfy-style-assoc'.
+
+Currently only font-size is merged down to a single occurrence -
+others may need special handling, but I haven't encountered them
+yet."
   ;;(message "(hfy-flatten-style %S)" style) ;;DBUG
-  (let ((n        0)
-        (m (list 1))
+  (let ((m (list 1))
         (x      nil)
         (r      nil))
     (dolist (css style)
       (if (string= (car css) "font-size")
           (progn
-            (when (not x) (setq m (nconc m (hfy-size-to-int (cdr css)))))
+            (when (not x) (push (hfy--size-to-int (cdr css)) m))
             (when (string-match "pt" (cdr css)) (setq x t)))
-        (setq r (nconc r (list css)))))
+        (push css r)))
     ;;(message "r: %S" r)
-    (setq  n (apply '* m))
-    (nconc r (hfy-size (if x (round n) (* n 1.0)))) ))
+    (let ((n (apply #'* m)))
+      (nconc (nreverse r) (hfy-size (if x (round n) (float n)))))))
 
 (defun hfy-face-resolve-face (fn)
   "For FN return a face specification.
-FN may be either a face or a face specification. If the latter,
+FN may be either a face or a face specification.  If the latter,
 then the specification is returned unchanged."
   (cond
    ((facep fn)
     (hfy-face-attr-for-class fn hfy-display-class))
    ;; FIXME: is this necessary? Faces can be symbols, but
-   ;; not symbols refering to other symbols?
+   ;; not symbols referring to other symbols?
    ((and (symbolp fn)
          (facep (symbol-value fn)))
     (hfy-face-attr-for-class
@@ -1082,7 +1070,8 @@ then the specification is returned unchanged."
 (defun hfy-face-to-style (fn)
   "Take FN, a font or `defface' style font specification,
 \(as returned by `face-attr-construct' or `hfy-face-attr-for-class')
-and return a `hfy-style-assoc'.\n
+and return a `hfy-style-assoc'.
+
 See also `hfy-face-to-style-i', `hfy-flatten-style'."
   ;;(message "hfy-face-to-style");;DBUG
   (let* ((face-def (hfy-face-resolve-face fn))
@@ -1095,7 +1084,7 @@ See also `hfy-face-to-style-i', `hfy-flatten-style'."
                      ;; text-decoration is not inherited.
                      ;; but it's not wrong and if this ever changes it will
                      ;; be needed, so I think it's better to leave it in? -- v
-                     (nconc final-style '(("text-decoration" . "none"))))))
+                     (push '("text-decoration" . "none") final-style))))
     final-style))
 
 ;; strip redundant bits from a name. Technically, this could result in
@@ -1150,9 +1139,9 @@ See also `hfy-face-to-css'."
                    (push (car E) seen)
                    (format " %s: %s; " (car E) (cdr E)))))
            css-list)))
-    (cons (hfy-css-name fn) (format "{%s}" (apply 'concat css-text)))) )
+    (cons (hfy-css-name fn) (format "{%s}" (apply #'concat css-text)))) )
 
-(defvar hfy-face-to-css 'hfy-face-to-css-default
+(defvar hfy-face-to-css #'hfy-face-to-css-default
   "Handler for mapping faces  to styles.
 The signature of the handler is of the form \(lambda (FN) ...).
 FN is a font or `defface' specification (cf
@@ -1162,14 +1151,6 @@ the form (STYLE-NAME . STYLE-SPEC).
 The default handler is `hfy-face-to-css-default'.
 
 See also `hfy-face-to-style'.")
-
-(defalias 'hfy-prop-invisible-p
-  (if (fboundp 'invisible-p) #'invisible-p
-    (lambda (prop)
-      "Is text property PROP an active invisibility property?"
-      (or (and (eq buffer-invisibility-spec t) prop)
-          (or (memq prop buffer-invisibility-spec)
-              (assq prop buffer-invisibility-spec))))))
 
 (defun hfy-find-invisible-ranges ()
   "Return a list of (start-point . end-point) cons cells of invisible regions."
@@ -1260,8 +1241,8 @@ return a `defface' style list of face properties instead of a face symbol."
       (when face-name (setq base-face face-name))
       (dolist (P overlay-data)
         (let ((iprops (cadr (memq 'invisible P)))) ;FIXME: plist-get?
-          ;;(message "(hfy-prop-invisible-p %S)" iprops)
-          (when (and iprops (hfy-prop-invisible-p iprops))
+          ;;(message "(invisible-p %S)" iprops)
+          (when (and iprops (invisible-p iprops))
             (setq extra-props
                   (cons :invisible (cons t extra-props))) ))
         (let ((fprops (cadr (or (memq 'face P)
@@ -1293,7 +1274,7 @@ return a `defface' style list of face properties instead of a face symbol."
                             (setq fprops (cdr fprops)))
                         ;; ((prop val))
                         (setq p (caar fprops))
-                        (setq v (cl-cadar fprops))
+                        (setq v (cadar fprops))
                         (setq fprops (cdr fprops)))
                     (if (listp (cdr fprops))
                         (progn
@@ -1396,10 +1377,14 @@ variable `font-lock-mode' and variable `font-lock-fontified' for truth."
 (defun hfy-merge-adjacent-spans (face-map)
   "Where FACE-MAP is a `hfy-facemap-assoc' for the current buffer,
 this function merges adjacent style blocks which are of the same value
-and are separated by nothing more interesting than whitespace.\n
-  <span class=\"foo\">narf</span> <span class=\"foo\">brain</span>\n
-\(as interpreted from FACE-MAP) would become:\n
-  <span class=\"foo\">narf brain</span>\n
+and are separated by nothing more interesting than whitespace.
+
+  <span class=\"foo\">narf</span> <span class=\"foo\">brain</span>
+
+\(as interpreted from FACE-MAP) would become:
+
+  <span class=\"foo\">narf brain</span>
+
 Returns a modified copy of FACE-MAP."
   (let ((tmp-map face-map)
         (map-buf      nil)
@@ -1413,8 +1398,8 @@ Returns a modified copy of FACE-MAP."
     ;;(push (car  tmp-map) reduced-map)
     ;;(push (cadr tmp-map) reduced-map)
     (while tmp-map
-      (setq first-start (cl-cadddr tmp-map)
-            first-stop (cl-caddr tmp-map)
+      (setq first-start (cadddr tmp-map)
+            first-stop (caddr tmp-map)
             last-start  (cadr   tmp-map)
             last-stop   (car    tmp-map)
             map-buf      tmp-map
@@ -1427,8 +1412,8 @@ Returns a modified copy of FACE-MAP."
                     (not (re-search-forward "[^ \t\n\r]" (car last-start) t))))
         (setq map-buf     (cddr map-buf)
               span-start  first-start
-              first-start (cl-cadddr map-buf)
-              first-stop (cl-caddr map-buf)
+              first-start (cadddr map-buf)
+              first-stop (caddr map-buf)
               last-start  (cadr   map-buf)
               last-stop   (car    map-buf)))
       (push span-stop  reduced-map)
@@ -1507,8 +1492,8 @@ Uses `hfy-link-style-fun' to do this."
           "\n<style type=\"text/css\"><!-- \n"
           ;; Fix-me: Add handling of page breaks here + scan for ^L
           ;; where appropriate.
-          (format "body %s\n" (cddr (assq 'default css)))
-          (apply 'concat
+          (format "body, pre %s\n" (cddr (assq 'default css)))
+          (apply #'concat
                  (mapcar
                   (lambda (style)
                     (format
@@ -1522,7 +1507,8 @@ Uses `hfy-link-style-fun' to do this."
 ;; tag all the dangerous characters we want to escape
 ;; (ie any "<> chars we _didn't_ put there explicitly for css markup)
 (defun hfy-html-enkludge-buffer ()
-  "Mark dangerous [\"<>] characters with the `hfy-quoteme' property.\n
+  "Mark dangerous [\"<>] characters with the `hfy-quoteme' property.
+
 See also `hfy-html-dekludge-buffer'."
   ;;(message "hfy-html-enkludge-buffer");;DBUG
   (save-excursion
@@ -1543,7 +1529,8 @@ See also `hfy-html-dekludge-buffer'."
 ;; map of offsets, which would be tedious...
 (defun hfy-html-dekludge-buffer ()
   "Transform all dangerous characters marked with the `hfy-quoteme' property
-using `hfy-html-quote'.\n
+using `hfy-html-quote'.
+
 See also `hfy-html-enkludge-buffer'."
   ;;(message "hfy-html-dekludge-buffer");;DBUG
   (save-excursion
@@ -1588,12 +1575,12 @@ Do not record undo information during evaluation of BODY."
   (when show-trailing-whitespace
     (hfy-save-buffer-state nil
       (remove-text-properties (point-min) (point-max)
-                              '(hfy-show-trailing-whitespace)))))
+                              '(hfy-show-trailing-whitespace nil)))))
 
 (defun hfy-begin-span (style text-block text-id text-begins-block-p)
   "Default handler to begin a span of text.
-Insert \"<span class=\"STYLE\" ...>\". See
-`hfy-begin-span-handler' for more information."
+Insert \"<span class=\"STYLE\" ...>\".
+See `hfy-begin-span-handler' for more information."
   (when text-begins-block-p
     (insert
      (format "<span onclick=\"toggle_invis('%s');\">…</span>" text-block)))
@@ -1609,7 +1596,7 @@ Insert \"</span>\".  See `hfy-end-span-handler' for more
 information."
   (insert "</span>"))
 
-(defvar hfy-begin-span-handler 'hfy-begin-span
+(defvar hfy-begin-span-handler #'hfy-begin-span
   "Handler to begin a span of text.
 The signature of the handler is \(lambda (STYLE TEXT-BLOCK
 TEXT-ID TEXT-BEGINS-BLOCK-P) ...).  The handler must insert
@@ -1623,14 +1610,14 @@ invisible text.
 
 TEXT-BLOCK is a string that identifies a single chunk of visible
 or invisible text of which the current position is a part.  For
-visible portions, it's value is \"nil\". For invisible portions,
-it's value is computed as part of `hfy-invisible-name'.
+visible portions, its value is \"nil\".  For invisible portions,
+its value is computed as part of `hfy-invisible-name'.
 
 TEXT-ID marks a unique position within a block.  It is set to
 value of `point' at the current buffer position.
 
 TEXT-BEGINS-BLOCK-P is a boolean and is non-nil if the current
-span also begins a invisible portion of text.
+span also begins an invisible portion of text.
 
 An implementation can use TEXT-BLOCK, TEXT-ID,
 TEXT-BEGINS-BLOCK-P to implement fold/unfold-on-mouse-click like
@@ -1638,7 +1625,7 @@ behavior.
 
 The default handler is `hfy-begin-span'.")
 
-(defvar hfy-end-span-handler 'hfy-end-span
+(defvar hfy-end-span-handler #'hfy-end-span
   "Handler to end a span of text.
 The signature of the handler is \(lambda () ...).  The handler
 must insert appropriate tags to end a span of text.
@@ -1650,7 +1637,8 @@ The default handler is `hfy-end-span'.")
 SRCDIR, if set, is the directory being htmlfontified.
 FILE, if set, is the file name."
   (if srcdir (setq srcdir (directory-file-name srcdir)))
-  (let* ( (html-buffer        (hfy-buffer))
+  (let* ( (inhibit-read-only             t)
+          (html-buffer        (hfy-buffer))
           (css-sheet                   nil)
           (css-map                     nil)
           (invis-ranges                nil)
@@ -1675,7 +1663,8 @@ FILE, if set, is the file name."
     (copy-to-buffer html-buffer (point-min) (point-max))
     (set-buffer     html-buffer)
     ;; rip out props that could interfere with our htmlization of the buffer:
-    (remove-text-properties (point-min) (point-max) hfy-ignored-properties)
+    (remove-list-of-text-properties (point-min) (point-max)
+                                    hfy-ignored-properties)
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; at this point, html-buffer retains the fontification of the parent:
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1817,31 +1806,7 @@ fontified.  This is a simple convenience wrapper around
       (htmlfontify-buffer)
       (buffer-string))))
 
-(defun hfy-force-fontification ()
-  "Try to force font-locking even when it is optimized away."
-  (run-hooks 'hfy-init-kludge-hook)
-  (eval-and-compile (require 'font-lock))
-  (if (boundp 'font-lock-cache-position)
-      (or font-lock-cache-position
-          (setq font-lock-cache-position (make-marker))))
-  (cond
-   (noninteractive
-    (message "hfy batch mode (%s:%S)"
-             (or (buffer-file-name) (buffer-name)) major-mode)
-    (if (fboundp 'font-lock-ensure)
-        (font-lock-ensure)
-      (when font-lock-defaults
-        (font-lock-fontify-buffer))))
-   ((fboundp #'jit-lock-fontify-now)
-    (message "hfy jit-lock mode (%S %S)" window-system major-mode)
-    (jit-lock-fontify-now))
-   (t
-    (message "hfy interactive mode (%S %S)" window-system major-mode)
-    ;; If jit-lock is not in use, then the buffer is already fontified!
-    ;; (when (and font-lock-defaults
-    ;;            font-lock-mode)
-    ;;   (font-lock-fontify-region (point-min) (point-max) nil))
-    )))
+(define-obsolete-function-alias 'hfy-force-fontification #'font-lock-ensure "28.1")
 
 ;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)
@@ -1869,8 +1834,7 @@ hyperlinks as appropriate."
                  (setq file (match-string 1 file)))) )
 
   (if (not (hfy-opt 'skip-refontification))
-      (save-excursion ;; Keep region
-        (hfy-force-fontification)))
+      (font-lock-ensure))
   (if (called-interactively-p 'any) ;; display the buffer in interactive mode:
       (switch-to-buffer (hfy-fontify-buffer srcdir file))
     (hfy-fontify-buffer srcdir file)))
@@ -1898,14 +1862,14 @@ Hardly bombproof, but good enough in the context in which it is being used."
 
 ;; create a directory, cf mkdir -p
 (defun hfy-make-directory (dir)
-  "Approx. equivalent of mkdir -p DIR."
+  "Approximate equivalent of \"mkdir -p DIR\"."
   ;;(message "hfy-make-directory");;DBUG
   (if (file-exists-p dir)
       (if (file-directory-p dir) t)
     (make-directory dir t)))
 
 (defun hfy-text-p (srcdir file)
-  "Is SRCDIR/FILE text?  Uses `hfy-istext-command' to determine this."
+  "Is SRCDIR/FILE text?  Use `hfy-istext-command' to determine this."
   (let* ((cmd (format hfy-istext-command (expand-file-name file srcdir)))
          (rsp (shell-command-to-string    cmd)))
     (string-match "text" rsp)))
@@ -1917,9 +1881,7 @@ Hardly bombproof, but good enough in the context in which it is being used."
 adding an extension of `hfy-extn'.  Fontification is actually done by
 `htmlfontify-buffer'.  If the buffer is not fontified, just copy it."
   ;;(message "hfy-copy-and-fontify-file");;DBUG
-  (let (;;(fast-lock-minimum-size      hfy-fast-lock-save)
-        ;;(font-lock-support-mode         'fast-lock-mode)
-        ;;(window-system  (or window-system 'htmlfontify))
+  (let (;;(window-system  (or window-system 'htmlfontify))
         (target nil)
         (source nil)
         (html   nil))
@@ -1928,15 +1890,15 @@ adding an extension of `hfy-extn'.  Fontification is actually done by
       ;; FIXME: Shouldn't this use expand-file-name?  --Stef
       (setq target (concat dstdir "/" file))
       (hfy-make-directory (hfy-dirname target))
-      (if (not (hfy-opt 'skip-refontification)) (hfy-force-fontification))
+      (if (not (hfy-opt 'skip-refontification)) (font-lock-ensure))
       (if (or (hfy-fontified-p) (hfy-text-p srcdir file))
           (progn (setq html  (hfy-fontify-buffer srcdir file))
                  (set-buffer  html)
                  (write-file (concat target hfy-extn))
                  (kill-buffer html))
-        ;; #o0200 == 128, but emacs20 doesn't know that
-        (if (and (file-exists-p target) (not (file-writable-p target)))
-            (set-file-modes target (logior (file-modes target) 128)))
+	(let ((modes (file-modes target)))
+	  (if (and modes (not (file-writable-p target)))
+	      (set-file-modes target (logior modes #o0200))))
         (copy-file (buffer-file-name source) target 'overwrite))
       (kill-buffer source)) ))
 
@@ -1968,7 +1930,7 @@ property, with a value of \"tag.line-number\"."
             (lambda (TLIST)
               (if (string= file (car TLIST))
                   (let* ((line              (cadr TLIST) )
-                         (chr (cl-caddr TLIST))
+                         (chr (caddr TLIST))
                          (link (format "%s.%d" TAG line) ))
                     (put-text-property (+ 1 chr)
                                        (+ 2 chr)
@@ -1982,7 +1944,7 @@ tree depth, as determined from FILE (a filename).
 START is the offset at which to start looking for the / character in FILE."
   ;;(message "hfy-relstub");;DBUG
   (let ((c ""))
-    (while (setq start (string-match "/" file start))
+    (while (setq start (string-search "/" file start))
       (setq start (1+ start)) (setq c (concat c "../")))
     c))
 
@@ -1990,12 +1952,15 @@ START is the offset at which to start looking for the / character in FILE."
   "Return an href stub for a tag href in THIS-FILE.
 If DEF-FILES (list of files containing definitions for the tag in question)
 contains only one entry, the href should link straight to that file.
-Otherwise, the link should be to the index file.\n
+Otherwise, the link should be to the index file.
+
 We are not yet concerned with the file extensions/tag line number and so on at
-this point.\n
+this point.
+
 If `hfy-split-index' is set, and the href wil be to an index file rather than
 a source file, append a .X to `hfy-index-file', where X is the uppercased
-first character of TAG.\n
+first character of TAG.
+
 See also `hfy-relstub', `hfy-index-file'."
   ;;(message "hfy-href-stub");;DBUG
   ;; FIXME: Why not use something like
@@ -2007,8 +1972,10 @@ See also `hfy-relstub', `hfy-index-file'."
        (concat hfy-index-file "." (upcase (substring tag 0 1)))))) )
 
 (defun hfy-href (this-file def-files tag tag-map)
-  "Return a relative href to the tag in question, based on\n
-THIS-FILE `hfy-link-extn' `hfy-extn' DEF-FILES TAG and TAG-MAP\n
+  "Return a relative href to the tag in question, based on
+
+THIS-FILE `hfy-link-extn' `hfy-extn' DEF-FILES TAG and TAG-MAP
+
 THIS-FILE is the current source file
 DEF-FILES is a list of file containing possible link endpoints for TAG
 TAG is the tag in question
@@ -2029,8 +1996,10 @@ word characters on either side."
 ;; mark all tags for hyperlinking, except the tags at
 ;; their own points of definition, iyswim:
 (defun hfy-mark-tag-hrefs (srcdir file)
-  "Mark href start points with the `hfy-link' prop (value: href string).\n
-Mark href end points with the `hfy-endl' prop (value t).\n
+  "Mark href start points with the `hfy-link' prop (value: href string).
+
+Mark href end points with the `hfy-endl' prop (value t).
+
 Avoid overlapping links, and mark links in descending length of
 tag name in order to prevent subtags from usurping supertags,
 \(eg \"term\" for \"terminal\").
@@ -2187,9 +2156,11 @@ FILE is the specific file we are rendering."
   "Prepare a tags index buffer for SRCDIR.
 `hfy-tags-cache' must already have an entry for SRCDIR for this to work.
 `hfy-page-header', `hfy-page-footer', `hfy-link-extn' and `hfy-extn'
-all play a part here.\n
+all play a part here.
+
 If STUB is set, prepare an (appropriately named) index buffer
-specifically for entries beginning with STUB.\n
+specifically for entries beginning with STUB.
+
 If MAP is set, use that instead of `hfy-tags-cache'.
 FILENAME is the name of the file being indexed.
 DSTDIR is the output directory, where files will be written."
@@ -2265,7 +2236,8 @@ SRCDIR and DSTDIR are the source and output directories respectively."
 (defun hfy-prepare-tag-map (srcdir dstdir)
   "Prepare the counterpart(s) to the index buffer(s) - a list of buffers
 with the same structure, but listing (and linking to) instances of tags
-\(as opposed to their definitions).\n
+\(as opposed to their definitions).
+
 SRCDIR and DSTDIR are the source and output directories respectively.
 See also `hfy-prepare-index', `hfy-split-index'."
   (if (not hfy-split-index)
@@ -2323,10 +2295,6 @@ See also `hfy-load-tags-cache'."
   (interactive "D source directory: ")
   (hfy-load-tags-cache (directory-file-name srcdir)))
 
-;;(defun hfy-test-read-args (foo bar)
-;;  (interactive "D source directory: \nD target directory: ")
-;;  (message "foo: %S\nbar: %S" foo bar))
-
 (defun hfy-save-kill-buffers (buffer-list &optional dstdir)
   (dolist (B buffer-list)
     (set-buffer B)
@@ -2337,7 +2305,8 @@ See also `hfy-load-tags-cache'."
 ;;;###autoload
 (defun htmlfontify-copy-and-link-dir (srcdir dstdir &optional f-ext l-ext)
   "Trawl SRCDIR and write fontified-and-hyperlinked output in DSTDIR.
-F-EXT and L-EXT specify values for `hfy-extn' and `hfy-link-extn'.\n
+F-EXT and L-EXT specify values for `hfy-extn' and `hfy-link-extn'.
+
 You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (interactive "D source directory: \nD output directory: ")
   ;;(message "htmlfontify-copy-and-link-dir")
@@ -2377,20 +2346,15 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
 ;;   (and (string-match "-hook\\'" (symbol-name H))
 ;;        (boundp H)
 ;;        (symbol-value H)
-;;        (insert (format "\n '(%S %S)" H (symbol-value H)))
-;;        )
-;;   )
+;;        (insert (format "\n '(%S %S)" H (symbol-value H)))))
 
 ;; (defun hfy-save-hooks ()
 ;;   (let ((custom-file (hfy-initfile)))
 ;;     (custom-save-delete 'hfy-set-hooks)
 ;;     (let ((standard-output (current-buffer)))
 ;;       (princ "(hfy-set-hooks\n;;auto-generated, only one copy allowed\n")
-;;       (mapatoms 'hfy-pp-hook)
-;;       (insert "\n)")
-;;       )
-;;     )
-;;   )
+;;       (mapatoms #'hfy-pp-hook)
+;;       (insert "\n)"))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defalias 'hfy-init-progn 'progn)
@@ -2413,7 +2377,7 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
       ;; FIXME: This saving&restoring of global customization
       ;; variables can interfere with other customization settings for
       ;; those vars (in .emacs or in Customize).
-      (mapc 'hfy-save-initvar
+      (mapc #'hfy-save-initvar
             '(auto-mode-alist interpreter-mode-alist))
       (princ ")\n")
       (indent-region start-pos (point) nil))
@@ -2424,6 +2388,16 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (interactive)
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
+
+(defun hfy-interq (set-a set-b)
+  "Return the intersection (using `eq') of two lists SET-A and SET-B."
+  (declare (obsolete seq-intersection "28.1"))
+  (nreverse (seq-intersection set-a set-b #'eq)))
+
+(defconst htmlfontify-version 0.21)
+(make-obsolete-variable 'htmlfontify-version 'emacs-version "29.1")
+
+(define-obsolete-function-alias 'hfy-prop-invisible-p #'invisible-p "29.1")
 
 (provide 'htmlfontify)
 

@@ -1,4 +1,4 @@
-Copyright (C) 2009-2017 Free Software Foundation, Inc.
+Copyright (C) 2009-2022 Free Software Foundation, Inc.
 Copyright (C) 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -15,12 +15,12 @@ files based on freely available information.
 * CP932.TXT
 
 Available at:
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/MICSFT/WINDOWS/CP932.TXT>
 
 * PTCP154
 
 Available at:
-    <http://www.iana.org/assignments/charset-reg/PTCP154>
+    <https://www.iana.org/assignments/charset-reg/PTCP154>
 
 * Uni2JIS
 
@@ -42,16 +42,16 @@ Available at:
 * stdenc.txt and symbol.txt
 
 Available at:
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt>
-    <http://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/stdenc.txt>
+    <https://www.unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt>
 
 (2) Newly created files
 
 * CP720.map and CP858.map
 
 Created manually by looking at these pages:
-    <http://en.wikipedia.org/wiki/Code_page_720>.
-    <http://en.wikipedia.org/wiki/Code_page_859>.
+    <https://en.wikipedia.org/wiki/Code_page_720>.
+    <https://en.wikipedia.org/wiki/Code_page_859>.
 The text in that page is under the terms of the GNU Free Documentation
 License.
 
@@ -63,8 +63,8 @@ to "JIS X 0213:2004".
 
 * MULE-*.map
 
-Created by using ../mule-charsets.el in Emacs 22 as this:
-    % emacs-22 -batch -l ../mule-charsets.el
+Created by using ../mule-charsets.el in Emacs as this:
+    % emacs -batch -l ../mule-charsets.el
 
 
 This file is part of GNU Emacs.

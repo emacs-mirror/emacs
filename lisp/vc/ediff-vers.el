@@ -1,6 +1,6 @@
-;;; ediff-vers.el --- version control interface to Ediff
+;;; ediff-vers.el --- version control interface to Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -24,23 +24,9 @@
 
 ;;; Code:
 
-;; Compiler pacifier
-(defvar rcs-default-co-switches)
+(eval-when-compile (require 'ediff-init))
 
-(and noninteractive
-     (eval-when-compile
-       (condition-case nil
-	   ;; for compatibility with current stable version of xemacs
-	   (progn
-	     ;;(require 'pcvs nil 'noerror)
-	     ;;(require 'rcs nil 'noerror)
-	     (require 'pcvs)
-	     (require 'rcs))
-	 (error nil))
-       (require 'vc)
-       (require 'ediff-init)
-       ))
-;; end pacifier
+(defvar rcs-default-co-switches)
 
 (defcustom ediff-keep-tmp-versions nil
   "If t, do not delete temporary previous versions for the files on which
@@ -49,15 +35,10 @@ comparison or merge operations are being performed."
   :group 'ediff-vers
   )
 
-(defalias 'ediff-vc-revision-other-window
-      (if (fboundp 'vc-revision-other-window)
-	  'vc-revision-other-window
-	'vc-version-other-window))
-
-(defalias 'ediff-vc-working-revision
-  (if (fboundp 'vc-working-revision)
-      'vc-working-revision
-    'vc-workfile-version))
+(define-obsolete-function-alias 'ediff-vc-revision-other-window
+  #'vc-revision-other-window "28.1")
+(define-obsolete-function-alias 'ediff-vc-working-revision
+  #'vc-working-revision "28.1")
 
 ;; VC.el support
 
@@ -88,19 +69,18 @@ comparison or merge operations are being performed."
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
-	(ediff-vc-revision-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq rev1buf (current-buffer)
 	      file1 (buffer-file-name)))
       (save-excursion
 	(or (string= rev2 "") 		; use current buffer
-	    (ediff-vc-revision-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq rev2buf (current-buffer)
 	      file2 (buffer-file-name)))
-      (setq startup-hooks
-	    (cons `(lambda ()
-		     (ediff-delete-version-file ,file1)
-		     (or ,(string= rev2 "") (ediff-delete-version-file ,file2)))
-		  startup-hooks)))
+      (push (lambda ()
+	      (ediff-delete-version-file file1)
+	      (or (string= rev2 "") (ediff-delete-version-file file2)))
+	    startup-hooks))
     (ediff-buffers
      rev1buf rev2buf
      startup-hooks
@@ -108,8 +88,8 @@ comparison or merge operations are being performed."
 
 ;; RCS.el support
 (defun rcs-ediff-view-revision (&optional rev)
-;; View previous RCS revision of current file.
-;; With prefix argument, prompts for a revision name.
+  "View previous RCS revision of current file.
+With prefix argument, prompts for a revision name."
   (interactive (list (if current-prefix-arg
 			 (read-string "Revision: "))))
   (let* ((filename (buffer-file-name (current-buffer)))
@@ -124,7 +104,7 @@ comparison or merge operations are being performed."
       (let ((output-buffer (ediff-rcs-get-output-buffer filename buff)))
 	(delete-windows-on output-buffer)
 	(with-current-buffer output-buffer
-	  (apply 'call-process "co" nil t nil
+	  (apply #'call-process "co" nil t nil
 		 ;; -q: quiet (no diagnostics)
 		 (append switches rcs-default-co-switches
 			 (list "-q" filename)))))
@@ -166,29 +146,29 @@ comparison or merge operations are being performed."
   (let (buf1 buf2 ancestor-buf)
     (save-window-excursion
       (save-excursion
-	(ediff-vc-revision-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq buf1 (current-buffer)))
       (save-excursion
 	(or (string= rev2 "")
-	    (ediff-vc-revision-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq buf2 (current-buffer)))
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (ediff-vc-working-revision buffer-file-name)))
-	    (ediff-vc-revision-other-window ancestor-rev)
+		(setq ancestor-rev (vc-working-revision
+                                    buffer-file-name)))
+	    (vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
-      (setq startup-hooks
-	    (cons
-	     `(lambda ()
-		(ediff-delete-version-file ,(buffer-file-name buf1))
-		(or ,(string= rev2 "")
-		    (ediff-delete-version-file ,(buffer-file-name buf2)))
-		(or ,(string= ancestor-rev "")
-		    ,(not ancestor-rev)
-		    (ediff-delete-version-file ,(buffer-file-name ancestor-buf)))
-		)
-	     startup-hooks)))
+      (push (let ((f1 (buffer-file-name buf1))
+                  (f2 (unless (string= rev2 "") (buffer-file-name buf2)))
+                  (fa (unless (or (string= ancestor-rev "")
+		                  (not ancestor-rev))
+		        (buffer-file-name ancestor-buf))))
+              (lambda ()
+	        (ediff-delete-version-file f1)
+	        (if f2 (ediff-delete-version-file f2))
+	        (if fa (ediff-delete-version-file fa))))
+	    startup-hooks))
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
@@ -227,12 +207,4 @@ comparison or merge operations are being performed."
 
 
 (provide 'ediff-vers)
-
-
-;; Local Variables:
-;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
-;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
-;; End:
-
 ;;; ediff-vers.el ends here

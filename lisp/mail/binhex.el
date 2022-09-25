@@ -1,6 +1,6 @@
-;;; binhex.el --- decode BinHex-encoded text
+;;; binhex.el --- decode BinHex-encoded text  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: binhex news
@@ -23,19 +23,15 @@
 ;;; Commentary:
 
 ;; BinHex is a binary-to-text encoding scheme similar to uuencode.
+;; It was used on the classic Mac OS, last released in 2001.
+;;
 ;; The command `binhex-decode-region' decodes BinHex-encoded text, via
 ;; the external program "hexbin" if that is available, or an Emacs
 ;; Lisp implementation if not.
+;;
+;; See also: https://en.wikipedia.org/wiki/BinHex
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
-
-(eval-and-compile
-  (defalias 'binhex-char-int
-    (if (fboundp 'char-int)
-	'char-int
-      'identity)))
 
 (defgroup binhex nil
   "Decoding of BinHex (binary-to-hexadecimal) data."
@@ -46,19 +42,16 @@
   "Non-nil value should be a string that names a binhex decoder.
 The program should expect to read binhex data on its standard
 input and write the converted data to its standard output."
-  :type 'string
-  :group 'binhex)
+  :type 'string)
 
 (defcustom binhex-decoder-switches '("-d")
   "List of command line flags passed to the command `binhex-decoder-program'."
-  :group 'binhex
   :type '(repeat string))
 
 (defcustom binhex-use-external
   (executable-find binhex-decoder-program)
   "Use external binhex program."
   :version "22.1"
-  :group 'binhex
   :type 'boolean)
 
 (defconst binhex-alphabet-decoding-alist
@@ -85,21 +78,15 @@ input and write the converted data to its standard output."
   "^[^:]...............................................................$")
 (defconst binhex-end-line ":$")		; unused
 
-(defvar binhex-temporary-file-directory
-  (cond ((fboundp 'temp-directory) (temp-directory))
-	((boundp 'temporary-file-directory) temporary-file-directory)
-	("/tmp/")))
+(make-obsolete-variable 'binhex-temporary-file-directory
+                        'temporary-file-directory "28.1")
 
-(eval-and-compile
-  (defalias 'binhex-insert-char
-    (if (featurep 'xemacs)
-	'insert-char
-      (lambda (char &optional count ignored buffer)
-	"Insert COUNT copies of CHARACTER into BUFFER."
-	(if (or (null buffer) (eq buffer (current-buffer)))
-	    (insert-char char count)
-	  (with-current-buffer buffer
-	    (insert-char char count)))))))
+(defun binhex-insert-char (char &optional count _ignored buffer)
+  "Insert COUNT copies of CHARACTER into BUFFER."
+  (if (or (null buffer) (eq buffer (current-buffer)))
+      (insert-char char count)
+    (with-current-buffer buffer
+      (insert-char char count))))
 
 (defvar binhex-crc-table
   [0  4129  8258  12387  16516  20645  24774  28903
@@ -138,9 +125,9 @@ input and write the converted data to its standard output."
 (defun binhex-update-crc (crc char &optional count)
   (if (null count) (setq count 1))
   (while (> count 0)
-    (setq crc (logxor (logand (lsh crc 8) 65280)
+    (setq crc (logxor (logand (ash crc 8) 65280)
 		      (aref binhex-crc-table
-			    (logxor (logand (lsh crc -8) 255)
+			    (logxor (logand (ash crc -8) 255)
 				    char)))
 	  count (1- count)))
   crc)
@@ -158,14 +145,14 @@ input and write the converted data to its standard output."
 (defun binhex-string-big-endian (string)
   (let ((ret 0) (i 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ (lsh ret 8) (binhex-char-int (aref string i)))
+      (setq ret (+ (ash ret 8) (aref string i))
 	    i (1+ i)))
     ret))
 
 (defun binhex-string-little-endian (string)
   (let ((ret 0) (i 0) (shift 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ ret (lsh (binhex-char-int (aref string i)) shift))
+      (setq ret (+ ret (ash (aref string i) shift))
 	    i (1+ i)
 	    shift (+ shift 8)))
     ret))
@@ -175,11 +162,11 @@ input and write the converted data to its standard output."
     (let ((pos (point-min)) len)
       (vector
        (prog1
-	   (setq len (binhex-char-int (char-after pos)))
+           (setq len (char-after pos))
 	 (setq pos (1+ pos)))
        (buffer-substring pos (setq pos (+ pos len)))
        (prog1
-	   (setq len (binhex-char-int (char-after pos)))
+           (setq len (char-after pos))
 	 (setq pos (1+ pos)))
        (buffer-substring pos (setq pos (+ pos 4)))
        (buffer-substring pos (setq pos (+ pos 4)))
@@ -193,7 +180,7 @@ input and write the converted data to its standard output."
 (defvar binhex-last-char)
 (defvar binhex-repeat)
 
-(defun binhex-push-char (char &optional count ignored buffer)
+(defun binhex-push-char (char &optional ignored buffer)
   (cond
    (binhex-repeat
     (if (eq char 0)
@@ -226,8 +213,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	  (goto-char start)
 	  (when (re-search-forward binhex-begin-line end t)
             (setq work-buffer (generate-new-buffer " *binhex-work*"))
-	    (unless (featurep 'xemacs)
-	      (with-current-buffer work-buffer (set-buffer-multibyte nil)))
+	    (with-current-buffer work-buffer
+              (set-buffer-multibyte nil))
 	    (beginning-of-line)
 	    (setq bits 0 counter 0)
 	    (while tmp
@@ -241,13 +228,13 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 		      counter (1+ counter)
 		      inputpos (1+ inputpos))
 		(cond ((= counter 4)
-		       (binhex-push-char (lsh bits -16) 1 nil work-buffer)
-		       (binhex-push-char (logand (lsh bits -8) 255) 1 nil
+		       (binhex-push-char (ash bits -16) nil work-buffer)
+		       (binhex-push-char (logand (ash bits -8) 255) nil
 					 work-buffer)
-		       (binhex-push-char (logand bits 255) 1 nil
+		       (binhex-push-char (logand bits 255) nil
 					 work-buffer)
 		       (setq bits 0 counter 0))
-		      (t (setq bits (lsh bits 6)))))
+		      (t (setq bits (ash bits 6)))))
 	      (if (null file-name-length)
 		  (with-current-buffer work-buffer
 		    (setq file-name-length (char-after (point-min))
@@ -263,12 +250,12 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	      (setq tmp (and tmp (not (eq inputpos end)))))
 	    (cond
 	     ((= counter 3)
-	      (binhex-push-char (logand (lsh bits -16) 255) 1 nil
+	      (binhex-push-char (logand (ash bits -16) 255) nil
 				work-buffer)
-	      (binhex-push-char (logand (lsh bits -8) 255) 1 nil
+	      (binhex-push-char (logand (ash bits -8) 255) nil
 				work-buffer))
 	     ((= counter 2)
-	      (binhex-push-char (logand (lsh bits -10) 255) 1 nil
+	      (binhex-push-char (logand (ash bits -10) 255) nil
 				work-buffer))))
 	  (if header-only nil
 	    (binhex-verify-crc work-buffer
@@ -287,11 +274,12 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 (defun binhex-decode-region-external (start end)
   "Binhex decode region between START and END using external decoder."
   (interactive "r")
-  (let ((cbuf (current-buffer)) firstline work-buffer status
+  (let ((cbuf (current-buffer))
+	work-buffer ;; firstline
 	(file-name (expand-file-name
 		    (concat (binhex-decode-region-internal start end t)
 			    ".data")
-		    binhex-temporary-file-directory)))
+		    temporary-file-directory)))
     (save-excursion
       (goto-char start)
       (when (re-search-forward binhex-begin-line nil t)
@@ -301,9 +289,9 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 		(set-buffer (setq work-buffer
 				  (generate-new-buffer " *binhex-work*")))
 		(buffer-disable-undo work-buffer)
-		(insert-buffer-substring cbuf firstline end)
-		(cd binhex-temporary-file-directory)
-		(apply 'call-process-region
+		(insert-buffer-substring cbuf nil end) ;; firstline
+		(cd temporary-file-directory)
+		(apply #'call-process-region
 		       (point-min)
 		       (point-max)
 		       binhex-decoder-program
@@ -330,6 +318,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
   (if binhex-use-external
       (binhex-decode-region-external start end)
     (binhex-decode-region-internal start end)))
+
+(define-obsolete-function-alias 'binhex-char-int #'identity "28.1")
 
 (provide 'binhex)
 

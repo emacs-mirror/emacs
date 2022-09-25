@@ -1,5 +1,5 @@
 /* Add entries to the GNU Emacs Program Manager folder.
-   Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,13 +34,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    installed, then the DDE fallback for creating icons the Windows 3.1
    progman way will be used instead, but that is prone to lockups
    caused by other applications not servicing their message queues.  */
+
+#define DEFER_MS_W32_H
+#include <config.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <malloc.h>
 
-/* MinGW64 barfs if _WIN32_IE is defined to anything below 0x500.  */
+/* MinGW64 barfs if _WIN32_IE is defined to anything below 0x0500.  */
 #ifndef MINGW_W64
-#define _WIN32_IE 0x400
+# ifdef _WIN32_IE
+#  undef _WIN32_IE
+# endif
+#define _WIN32_IE 0x0400
 #endif
 /* Request C Object macros for COM interfaces.  */
 #define COBJMACROS 1
@@ -53,13 +60,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "../src/epaths.h"
 #endif
 
-HDDEDATA CALLBACK DdeCallback (UINT, UINT, HCONV, HSZ, HSZ, HDDEDATA, DWORD,
-			       DWORD);
+HDDEDATA CALLBACK DdeCallback (UINT, UINT, HCONV, HSZ, HSZ, HDDEDATA, DWORD_PTR,
+			       DWORD_PTR);
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
-	     DWORD dwData1, DWORD dwData2)
+	     DWORD_PTR dwData1, DWORD_PTR dwData2)
 {
   return ((HDDEDATA) NULL);
 }
@@ -216,8 +223,9 @@ main (int argc, char *argv[])
 	{
 	  int result;
 
-	  char msg[ MAX_PATH ];
-	  sprintf (msg, "Install Emacs at %s?\n", emacs_path);
+	  const char install_msg[] = "Install Emacs at %s?\n";
+	  char msg[ MAX_PATH + sizeof (install_msg) ];
+	  sprintf (msg, install_msg, emacs_path);
 	  result = MessageBox (NULL, msg, "Install Emacs",
 			       MB_OKCANCEL | MB_ICONQUESTION);
 	  if (result != IDOK)

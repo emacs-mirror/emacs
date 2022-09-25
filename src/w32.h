@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -135,6 +135,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_SOCKET             0x0200
 #define FILE_NDELAY             0x0400
 #define FILE_SERIAL             0x0800
+#define FILE_DONT_CLOSE         0x1000
 
 extern child_process * new_child (void);
 extern void delete_child (child_process *cp);
@@ -155,14 +156,15 @@ extern unsigned int w32_get_short_filename (const char *, char *, int);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out,
-				      int err, HANDLE handles[4]);
+				      int err, HANDLE handles[3]);
 
 /* Reset our standard handles to their original state.  */
 extern void reset_standard_handles (int in, int out,
-				    int err, HANDLE handles[4]);
+				    int err, HANDLE handles[3]);
 
-/* Return the string resource associated with KEY of type TYPE.  */
-extern LPBYTE w32_get_resource (const char * key, LPDWORD type);
+/* Query Windows Registry and return the resource associated
+   associated with KEY and NAME of type TYPE.  */
+extern LPBYTE w32_get_resource (const char * key, const char * name, LPDWORD type);
 
 extern void release_listen_threads (void);
 extern void init_ntproc (int);
@@ -185,21 +187,28 @@ extern MultiByteToWideChar_Proc pMultiByteToWideChar;
 extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 extern DWORD multiByteToWideCharFlags;
 
+extern char *w32_my_exename (void);
+extern const char *w32_relocate (const char *);
+extern char *realpath (const char *, char *);
+
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
 extern void syms_of_ntterm (void);
 extern void dostounix_filename (register char *);
 extern void unixtodos_filename (register char *);
+extern const char *map_w32_filename (const char *, const char **);
 extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern Lisp_Object w32_get_internal_run_time (void);
 extern void w32_init_file_name_codepage (void);
 extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);
 extern int  w32_accessible_directory_p (const char *, ptrdiff_t);
+extern void w32_init_current_directory (void);
 
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
@@ -210,12 +219,17 @@ extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int pipe2 (int *, int);
 extern void register_aux_fd (int);
 
-extern void set_process_dir (char *);
+extern void set_process_dir (const char *);
 extern int sys_spawnve (int, char *, char **, char **);
 extern void register_child (pid_t, int);
 
 extern void sys_sleep (int);
 extern int sys_link (const char *, const char *);
+extern int openat (int, const char *, int, int);
+extern int fchmodat (int, char const *, mode_t, int);
+extern int lchmod (char const *, mode_t);
+extern bool symlinks_supported (const char *);
+
 
 /* Return total and free memory info.  */
 extern int w32_memory_info (unsigned long long *, unsigned long long *,
@@ -224,8 +238,16 @@ extern int w32_memory_info (unsigned long long *, unsigned long long *,
 /* Compare 2 UTF-8 strings in locale-dependent fashion.  */
 extern int w32_compare_strings (const char *, const char *, char *, int);
 
+/* Return the number of processor execution units on this system.  */
+extern unsigned w32_get_nproc (void);
+
 /* Return a cryptographically secure seed for PRNG.  */
 extern int w32_init_random (void *, ptrdiff_t);
+
+extern Lisp_Object w32_read_registry (HKEY, Lisp_Object, Lisp_Object);
+
+/* Used instead of execvp to restart Emacs.  */
+extern int w32_reexec_emacs (char *, const char *);
 
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
@@ -238,18 +260,5 @@ extern ssize_t emacs_gnutls_pull (gnutls_transport_ptr_t p,
 extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
                                   const void* buf, size_t sz);
 #endif /* HAVE_GNUTLS */
-
-/* Definine a function that will be loaded from a DLL.  */
-#define DEF_DLL_FN(type, func, args) static type (FAR CDECL *fn_##func) args
-
-/* Load a function from the DLL.  */
-#define LOAD_DLL_FN(lib, func)						\
-  do									\
-    {									\
-      fn_##func = (void *) GetProcAddress (lib, #func);			\
-      if (!fn_##func)							\
-	return false;							\
-    }									\
-  while (false)
 
 #endif /* EMACS_W32_H */

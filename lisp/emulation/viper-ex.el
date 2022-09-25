@@ -1,6 +1,6 @@
-;;; viper-ex.el --- functions implementing the Ex commands for Viper
+;;; viper-ex.el --- functions implementing the Ex commands for Viper  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -24,10 +24,7 @@
 
 ;;; Code:
 
-(provide 'viper-ex)
-
 ;; Compiler pacifier
-(defvar read-file-name-map)
 (defvar viper-use-register)
 (defvar viper-s-string)
 (defvar viper-shift-width)
@@ -190,7 +187,7 @@
 
 ;; Executes the function associated with the command
 (defun ex-cmd-execute (cmd)
-  (eval (cadr cmd)))
+  (eval (cadr cmd) t))
 
 ;; If this is a one-letter magic command, splice in args.
 (defun ex-splice-args-in-1-letr-cmd (key list)
@@ -299,8 +296,7 @@
 	   "\\)")
 	  shell-file-name)))
   "Is the user using a unix-type shell under a non-OS?"
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 (defcustom ex-unix-type-shell-options
   (let ((case-fold-search t))
@@ -312,13 +308,11 @@
 	      )))
   "Options to pass to the Unix-style shell.
 Don't put `-c' here, as it is added automatically."
-  :type '(choice (const nil) string)
-  :group 'viper-ex)
+  :type '(choice (const nil) string))
 
 (defcustom ex-compile-command "make"
   "The command to run when the user types :make."
-  :type 'string
-  :group 'viper-ex)
+  :type 'string)
 
 (defcustom viper-glob-function
   (cond (ex-unix-type-shell 'viper-glob-unix-files)
@@ -331,8 +325,7 @@ The default tries to set this variable to work with Unix or MS Windows.
 However, if it doesn't work right for some types of Unix shells or some OS,
 the user should supply the appropriate function and set this variable to the
 corresponding function symbol."
-  :type 'symbol
-  :group 'viper-ex)
+  :type 'symbol)
 
 
 ;; Remembers the previous Ex tag.
@@ -363,13 +356,11 @@ corresponding function symbol."
   "If t, :n and :b cycles through files and buffers in other window.
 Then :N and :B cycles in the current window.  If nil, this behavior is
 reversed."
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 (defcustom ex-cycle-through-non-files nil
   "Cycle through *scratch* and other buffers that don't visit any file."
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 ;; Last shell command executed with :! command.
 (defvar viper-ex-last-shell-com nil)
@@ -427,18 +418,18 @@ reversed."
 	     (forward-char 1)
 	     (setq ex-token-type 'whole))
 	    ((= char ?+)
-	     (cond ((or (looking-at "+[-+]") (looking-at "+[\n|]"))
+	     (cond ((looking-at "\\+[-+\n|]")
 		    (forward-char 1)
 		    (insert "1")
 		    (backward-char 1)
 		  (setq ex-token-type 'plus))
-		   ((looking-at "+[0-9]")
+		   ((looking-at "\\+[0-9]")
 		    (forward-char 1)
 		    (setq ex-token-type 'plus))
 		   (t
 		    (error viper-BadAddress))))
 	    ((= char ?-)
-	     (cond ((or (looking-at "-[-+]") (looking-at "-[\n|]"))
+	     (cond ((looking-at "-[-+\n|]")
 		    (forward-char 1)
 		    (insert "1")
 		    (backward-char 1)
@@ -455,7 +446,7 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^/]*/")
 		 (re-search-forward "[^/]*\\(/\\|\n\\)")
-		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"
+		 (if (not (looking-back "[^\\]\\(\\\\\\\\\\)*\\\\/"
                                         (line-beginning-position 0)))
 		     (setq cont nil))))
 	     (backward-char 1)
@@ -469,7 +460,7 @@ reversed."
 	       (while (and (not (eolp)) cont)
 		 ;;(re-search-forward "[^\\?]*\\?")
 		 (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
-		 (if (not (looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"
+		 (if (not (looking-back "[^\\]\\(\\\\\\\\\\)*\\\\\\?"
                                         (line-beginning-position 0)))
 		     (setq cont nil))
 		 (backward-char 1)
@@ -548,9 +539,13 @@ reversed."
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
       (set-buffer viper-ex-work-buf)
       (goto-char (point-max)))
-    (cond ((looking-back quit-regex1) (exit-minibuffer))
-	  ((looking-back stay-regex)  (insert " "))
-	  ((looking-back quit-regex2) (exit-minibuffer))
+    (cond ((looking-back quit-regex1 (line-beginning-position))
+	   (exit-minibuffer))
+	  ;; Almost certainly point-min should be line-beginning-position,
+	  ;; but probably the two are identical anyway, and who really cares?
+	  ((looking-back stay-regex (point-min)) (insert " "))
+	  ((looking-back quit-regex2 (line-beginning-position))
+	   (exit-minibuffer))
 	  (t (insert " ")))))
 
 (declare-function viper-tmp-insert-at-eob "viper-cmd" (msg))
@@ -561,7 +556,7 @@ reversed."
   (let (save-pos dist compl-list string-to-complete completion-result)
 
     (save-excursion
-      (setq dist (skip-chars-backward "[a-zA-Z!=>&~]")
+      (setq dist (skip-chars-backward "a-zA-Z!=>&~")
 	    save-pos (point)))
 
     (if (or (= dist 0)
@@ -674,7 +669,7 @@ reversed."
       (viper-get-ex-token)
       (cond ((memq ex-token-type '(command end-mark))
 	     (if address (setq ex-addresses (cons address ex-addresses)))
-	     (viper-deactivate-mark)
+	     (deactivate-mark)
 	     (let ((cmd (ex-cmd-assoc ex-token ex-token-alist)))
 	       (if (null cmd)
 		   (error "`%s': %s" ex-token viper-BadExCommand))
@@ -740,7 +735,7 @@ reversed."
 	     (error
 	      "Global regexp must be inside matching non-alphanumeric chars"))
 	    ((= c ??) (error "`?' is not an allowed pattern delimiter here")))
-      (if (looking-at "[^\\\\\n]")
+      (if (looking-at "[^\\\n]")
 	  (progn
 	    (forward-char 1)
 	    (set-mark (point))
@@ -753,7 +748,7 @@ reversed."
 			(error "Missing closing delimiter for global regexp")
 		      (goto-char (point-max))))
 		(if (not (looking-back
-			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)
+			  (format "[^\\]\\(\\\\\\\\\\)*\\\\%c" c)
                           (line-beginning-position 0)))
 		    (setq cont nil)
 		  ;; we are at an escaped delimiter: unescape it and continue
@@ -877,8 +872,7 @@ reversed."
 	     (if (null ex-token)
 		 (exchange-point-and-mark)
 	       (goto-char
-		(viper-register-to-point
-		 (viper-int-to-char (1+ (- ex-token ?a))) 'enforce-buffer)))
+		(viper-register-to-point (1+ (- ex-token ?a)) 'enforce-buffer)))
 	     (setq address (point-marker)))))
     address))
 
@@ -1081,7 +1075,7 @@ reversed."
 (defun viper-handle-! ()
   (interactive)
   (if (and (string=
-	    (buffer-string) (viper-abbreviate-file-name default-directory))
+	    (buffer-string) (abbreviate-file-name default-directory))
 	   (member ex-token '("read" "write")))
       (erase-buffer))
   (insert "!"))
@@ -1098,17 +1092,14 @@ reversed."
 	  (copy-keymap minibuffer-local-completion-map))
 	 beg end cont val)
 
-    (viper-add-keymap ex-read-filename-map
-		    (if (featurep 'emacs)
-			minibuffer-local-completion-map
-		      read-file-name-map))
+    (viper-add-keymap ex-read-filename-map minibuffer-local-completion-map)
 
     (setq cont (setq viper-keep-reading-filename t))
     (while cont
       (setq viper-keep-reading-filename nil
 	    val (read-file-name (concat prompt str) nil default-directory))
       (setq val (expand-file-name val))
-      (if (and (string-match " " val)
+      (if (and (string-search " " val)
 	       (ex-cmd-accepts-multiple-files-p ex-token))
 	  (setq val (concat "\"" val "\"")))
       (setq str  (concat str (if (equal val "") "" " ")
@@ -1170,7 +1161,7 @@ reversed."
 	    (princ "\n=============\n")
 	    (princ "\nThe numbers can be given as counts to :next. ")
 	    (princ "\n\nPress any key to continue...\n\n"))
-	  (viper-read-event))))))
+	  (read-event))))))
 
 ;; Ex cd command.  Default directory of this buffer changes
 (defun ex-cd ()
@@ -1236,7 +1227,7 @@ reversed."
 		(read-string "[Hit return to confirm] ")
 	      (quit
 	       (save-excursion (kill-buffer " *delete text*"))
-	       (error "Viper bell")))
+	       (user-error viper-ViperBell)))
 	    (save-excursion (kill-buffer " *delete text*")))
 	(if ex-buffer
 	    (cond ((viper-valid-register ex-buffer '(Letter))
@@ -1259,7 +1250,7 @@ reversed."
   (if (not file)
       (viper-get-ex-file))
   (cond ((and (string= ex-file "") buffer-file-name)
-	 (setq ex-file  (viper-abbreviate-file-name (buffer-file-name))))
+	 (setq ex-file  (abbreviate-file-name (buffer-file-name))))
 	((string= ex-file "")
 	 (error viper-NoFileSpecified)))
 
@@ -1314,7 +1305,7 @@ reversed."
   (let ((nonstandard-filename-chars "[^-a-zA-Z0-9_./,~$\\]"))
     (cond ((file-exists-p filespec) (find-file filespec))
 	  ((string-match nonstandard-filename-chars  filespec)
-	   (mapcar 'find-file (funcall viper-glob-function filespec)))
+	   (mapcar #'find-file (funcall viper-glob-function filespec)))
 	  (t (find-file filespec)))
     ))
 
@@ -1476,7 +1467,7 @@ reversed."
           (error "`%s' requires a following letter" ex-token))))
     (save-excursion
       (goto-char (car ex-addresses))
-      (point-to-register (viper-int-to-char (1+ (- char ?a)))))))
+      (point-to-register (1+ (- char ?a))))))
 
 
 
@@ -1543,7 +1534,7 @@ reversed."
     (if (not (viper-buffer-live-p buf))
 	(error "Didn't find buffer %S or file %S"
 	       file-or-buffer-name
-	       (viper-abbreviate-file-name
+	       (abbreviate-file-name
 		(expand-file-name file-or-buffer-name))))
 
     (if (equal buf (current-buffer))
@@ -1556,9 +1547,9 @@ reversed."
     (if skip-rest
 	()
       ;; setup buffer
-      (if (setq wind (viper-get-visible-buffer-window buf))
+      (if (setq wind (get-buffer-window buf 'visible))
 	  ()
-	(setq wind (get-lru-window (if (featurep 'xemacs) nil 'visible)))
+	(setq wind (get-lru-window 'visible))
 	(set-window-buffer wind buf))
 
       (if (viper-window-display-p)
@@ -1639,7 +1630,7 @@ reversed."
 ;; this function fixes ex-history for some commands like ex-read, ex-edit
 (defun ex-fixup-history (&rest args)
   (setq viper-ex-history
-	(cons (mapconcat 'identity args " ") (cdr viper-ex-history))))
+	(cons (mapconcat #'identity args " ") (cdr viper-ex-history))))
 
 
 ;; Ex recover from emacs \#file\#
@@ -1672,8 +1663,8 @@ reversed."
 	(cursor-in-echo-area t)
 	str batch)
     (define-key
-      minibuffer-local-completion-map " " 'minibuffer-complete-and-exit)
-    (define-key minibuffer-local-completion-map "=" 'exit-minibuffer)
+      minibuffer-local-completion-map " " #'minibuffer-complete-and-exit)
+    (define-key minibuffer-local-completion-map "=" #'exit-minibuffer)
     (if (viper-set-unread-command-events
 	 (ex-get-inline-cmd-args "[ \t]*[a-zA-Z]*[ \t]*" nil "\C-m"))
 	(progn
@@ -1682,7 +1673,7 @@ reversed."
     (message ":set  <Variable> [= <Value>]")
     (or batch (sit-for 2))
 
-    (while (string-match "^[ \\t\\n]*$"
+    (while (string-match "^[ \t\n]*$"
 			 (setq str
 			       (completing-read ":set " ex-variable-alist)))
       (message ":set <Variable> [= <Value>]")
@@ -1806,7 +1797,7 @@ reversed."
 		      set-cmd var auto-cmd-label)))
 
     (if (and ask-if-save
-	     (y-or-n-p (format "Do you want to save this setting in %s "
+             (y-or-n-p (format "Do you want to save this setting in %s?"
 			       viper-custom-file-name)))
 	(progn
 	  (viper-save-string-in-file
@@ -1837,7 +1828,7 @@ reversed."
 		     (format "%S" val)
 		   val)))
     (if actual-lisp-cmd
-	(eval (car (read-from-string actual-lisp-cmd))))
+	(eval (car (read-from-string actual-lisp-cmd)) t))
     (if (string= var "fill-column")
 	(if (> val2 0)
 	    (auto-fill-mode 1)
@@ -1880,17 +1871,15 @@ reversed."
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
-	(info (if (featurep 'xemacs) "viper.info" "viper"))
+	(info "viper")
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *viper-info*"
-	     (princ (format "
+	     (princ "
 The Info file for Viper does not seem to be installed.
 
-This file is part of the standard distribution of %sEmacs.
-Please contact your system administrator. "
-			    (if (featurep 'xemacs) "X" "")
-			    ))))))
+This file is part of the standard distribution of Emacs.
+Please contact your system administrator. ")))))
 
 ;; Ex source command.
 ;; Loads the file specified as argument or viper-custom-file-name.
@@ -2012,8 +2001,10 @@ Please contact your system administrator. "
     (condition-case conds
 	(progn
 	  (if (string= tag "")
-	      (find-tag ex-tag t)
-	    (find-tag-other-window ex-tag))
+              ;; If we have an *xref* window, `next-error' will take
+              ;; us to the next definition.
+	      (next-error)
+	    (xref-find-definitions-other-window ex-tag))
 	  (viper-change-state-to-vi))
       (error
        (viper-change-state-to-vi)
@@ -2085,9 +2076,7 @@ Please contact your system administrator. "
 	      ;; create temp buffer for the region
 	      (setq temp-buf (get-buffer-create " *ex-write*"))
 	      (set-buffer temp-buf)
-	      (if (featurep 'xemacs)
-		  (set-visited-file-name ex-file)
-		(set-visited-file-name ex-file 'noquery))
+	      (set-visited-file-name ex-file 'noquery)
 	      (erase-buffer)
 	      (if (and file-exists ex-append)
 		  (insert-file-contents ex-file))
@@ -2126,7 +2115,7 @@ Please contact your system administrator. "
 
 (defun ex-write-info (exists file-name beg end)
   (message "`%s'%s %d lines, %d characters"
-	   (viper-abbreviate-file-name file-name)
+	   (abbreviate-file-name file-name)
 	   (if exists "" " [New file]")
 	   (count-lines beg (min (1+ end) (point-max)))
 	   (- end beg)))
@@ -2186,7 +2175,7 @@ Please contact your system administrator. "
 	(goto-char beg)))))
 
 (defun ex-compile ()
-  "Reads args from the command line, then runs make with the args.
+  "Read args from the command line, then run make with the args.
 If no args are given, then it runs the last compile command.
 Type `mak ' (including the space) to run make with no args."
   (let (args)
@@ -2222,9 +2211,9 @@ Type `mak ' (including the space) to run make with no args."
 	lines file info)
     (setq lines (count-lines (point-min) (viper-line-pos 'end))
 	  file (cond ((buffer-file-name)
-		      (concat (viper-abbreviate-file-name (buffer-file-name)) ":"))
+		      (concat (abbreviate-file-name (buffer-file-name)) ":"))
 		     ((buffer-file-name (buffer-base-buffer))
-		      (concat (viper-abbreviate-file-name (buffer-file-name (buffer-base-buffer))) " (indirect buffer):"))
+		      (concat (abbreviate-file-name (buffer-file-name (buffer-base-buffer))) " (indirect buffer):"))
 		     (t (concat (buffer-name) " [Not visiting any file]:")))
 	  info (format "line=%d/%d pos=%d/%d col=%d %s"
 		       (if (= pos1 pos2)
@@ -2241,7 +2230,7 @@ Type `mak ' (including the space) to run make with no args."
 	(with-output-to-temp-buffer " *viper-info*"
 	  (princ (concat "\n" file "\n\n\t" info "\n\n")))
 	(let ((inhibit-quit t))
-	  (viper-set-unread-command-events (viper-read-event)))
+	  (viper-set-unread-command-events (read-event)))
 	(kill-buffer " *viper-info*")))
     ))
 
@@ -2310,10 +2299,10 @@ Type `mak ' (including the space) to run make with no args."
 (defun ex-print-display-lines (lines)
   (cond
    ;; String doesn't contain a newline.
-   ((not (string-match "\n" lines))
+   ((not (string-search "\n" lines))
     (message "%s" lines))
    ;; String contains only one newline at the end.  Strip it off.
-   ((= (string-match "\n" lines) (1- (length lines)))
+   ((= (string-search "\n" lines) (1- (length lines)))
     (message "%s" (substring lines 0 -1)))
    ;; String spans more than one line.  Use a temporary buffer.
    (t
@@ -2321,4 +2310,5 @@ Type `mak ' (including the space) to run make with no args."
       (with-output-to-temp-buffer " *viper-info*"
 	(princ lines))))))
 
+(provide 'viper-ex)
 ;;; viper-ex.el ends here

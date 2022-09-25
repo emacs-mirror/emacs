@@ -1,0 +1,3 @@
+&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub
+ Class: PUBLIC
+ UID: 20041127T183329Z-18215-1001-4536-49109@andromeda

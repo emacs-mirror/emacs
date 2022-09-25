@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -59,7 +59,7 @@
 ;;         and then M-: (macroexpand-all '(my-test1 y)) RET)
 ;; There is still one downside shared with the defmacro and cl-defsubst
 ;; approach: when the function is inlined, the scoping rules (dynamic or
-;; lexical) will be inherited from the the call site.
+;; lexical) will be inherited from the call site.
 
 ;; Of course, since define-inline defines a compiler macro, you can also do
 ;; call-site optimizations, just like you can with `defmacro', but not with
@@ -71,7 +71,7 @@
 
 (defmacro inline-quote (_exp)
   "Similar to backquote, but quotes code and only accepts , and not ,@."
-  (declare (debug t))
+  (declare (debug (backquote-form)))
   (error "inline-quote can only be used within define-inline"))
 
 (defmacro inline-const-p (_exp)
@@ -90,10 +90,14 @@
   (error "inline-error can only be used within define-inline"))
 
 (defmacro inline--leteval (_var-exp &rest _body)
-  (declare (indent 1) (debug (sexp &rest body)))
+  (declare (indent 1) (debug (sexp body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 (defmacro inline--letlisteval (_list &rest _body)
-  (declare (indent 1) (debug (sexp &rest body)))
+  (declare (indent 1) (debug (sexp body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 
 (defmacro inline-letevals (vars &rest body)
@@ -106,7 +110,7 @@ of arguments, in which case each argument is evaluated and the resulting
 new list is re-bound to VAR.
 
 After VARS is handled, BODY is evaluated in the new environment."
-  (declare (indent 1) (debug (sexp &rest form)))
+  (declare (indent 1) (debug (sexp body)))
   (cond
    ((consp vars)
     `(inline--leteval ,(pop vars) (inline-letevals ,vars ,@body)))
@@ -124,6 +128,10 @@ After VARS is handled, BODY is evaluated in the new environment."
 
 ;;;###autoload
 (defmacro define-inline (name args &rest body)
+  "Define an inline function NAME with arguments ARGS and body in BODY.
+
+This is like `defmacro', but has several advantages.
+See Info node `(elisp)Defining Functions' for more details."
   ;; FIXME: How can this work with CL arglists?
   (declare (indent defun) (debug defun) (doc-string 3))
   (let ((doc (if (stringp (car-safe body)) (list (pop body))))
@@ -251,10 +259,10 @@ After VARS is handled, BODY is evaluated in the new environment."
   `(error ,@args))
 
 (defun inline--warning (&rest _args)
-  `(throw 'inline--just-use
+  '(throw 'inline--just-use
           ;; FIXME: This would inf-loop by calling us right back when
           ;; macroexpand-all recurses to expand inline--form.
-          ;; (macroexp--warn-and-return (format ,@args)
+          ;; (macroexp-warn-and-return (format ,@args)
           ;;                            inline--form)
           inline--form))
 

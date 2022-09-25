@@ -11,7 +11,7 @@ install it only on the emacs-24 branch, not on the master as well.
 Installing things manually into more than one branch makes merges more
 difficult.
 
-https://lists.gnu.org/archive/html/emacs-devel/2010-03/msg01124.html
+https://lists.gnu.org/r/emacs-devel/2010-03/msg01124.html
 
 The exception is, if you know that the change will be difficult to
 merge to the master (eg because the master code has changed a lot).
@@ -40,7 +40,7 @@ so interim merges are unnecessary.
 Or use shelves; or rebase; or do something else.  See the thread for
 yet another fun excursion into the exciting world of version control.
 
-https://lists.gnu.org/archive/html/emacs-devel/2010-04/msg00086.html
+https://lists.gnu.org/r/emacs-devel/2010-04/msg00086.html
 
 * Installing changes from gnulib
 

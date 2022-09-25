@@ -1,10 +1,9 @@
-;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
+;;; doc-view.el --- Document viewer for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
-;; Maintainer: Tassilo Horn <tsdh@gnu.org>
-;; Keywords: files, pdf, ps, dvi
+;; Keywords: files, pdf, ps, dvi, djvu, epub, cbz, fb2, xps, openxps
 
 ;; This file is part of GNU Emacs.
 
@@ -23,23 +22,28 @@
 
 ;;; Requirements:
 
-;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
-;; `dvipdf' (comes with Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive)
-;; and `pdftotext', which comes with xpdf (http://www.foolabs.com/xpdf/) or
-;; poppler (http://poppler.freedesktop.org/).
+;; Viewing PS/PDF/DVI files requires Ghostscript, `dvipdf' (comes with
+;; Ghostscript) or `dvipdfm' (comes with teTeX or TeXLive) and
+;; `pdftotext', which comes with xpdf (https://www.foolabs.com/xpdf/)
+;; or poppler (https://poppler.freedesktop.org/). EPUB, CBZ, FB2, XPS
+;; and OXPS documents require `mutool' which comes with mupdf
+;; (https://mupdf.com/index.html). Djvu documents require `ddjvu'
+;; (from DjVuLibre).  ODF files require `soffice' (from LibreOffice).
 
 ;;; Commentary:
 
-;; DocView is a document viewer for Emacs.  It converts PDF, PS and DVI files
-;; to a set of PNG files, one PNG for each page, and displays the PNG images
-;; inside an Emacs buffer.  This buffer uses `doc-view-mode' which provides
-;; convenient key bindings for browsing the document.
+;; DocView is a document viewer for Emacs.  It converts a number of
+;; document formats (including PDF, PS, DVI, Djvu, ODF, EPUB, CBZ,
+;; FB2, XPS and OXPS files) to a set of PNG (or TIFF for djvu) files,
+;; one image for each page, and displays the images inside an Emacs
+;; buffer.  This buffer uses `doc-view-mode' which provides convenient
+;; key bindings for browsing the document.
 ;;
 ;; To use it simply open a document file with
 ;;
 ;;     C-x C-f ~/path/to/document RET
 ;;
-;; and the document will be converted and displayed, if your emacs supports png
+;; and the document will be converted and displayed, if your Emacs supports PNG
 ;; images.  With `C-c C-c' you can toggle between the rendered images
 ;; representation and the source text representation of the document.
 ;;
@@ -50,7 +54,7 @@
 ;; `doc-view-clear-cache'.  To open the cache with dired, so that you can tidy
 ;; it out use `doc-view-dired-cache'.
 ;;
-;; When conversion in underway the first page will be displayed as soon as it
+;; When conversion is underway the first page will be displayed as soon as it
 ;; is available and the available pages are refreshed every
 ;; `doc-view-conversion-refresh-interval' seconds.  If that variable is nil the
 ;; pages won't be displayed before conversion of the document finished
@@ -60,16 +64,16 @@
 ;; will be remembered and applied to all pages of the current
 ;; document.  This enables you to cut away the margins of a document
 ;; to save some space.  To select a slice you can use
-;; `doc-view-set-slice' (bound to `s s') which will query you for the
+;; `doc-view-set-slice' (bound to `c s') which will query you for the
 ;; coordinates of the slice's top-left corner and its width and
 ;; height.  A much more convenient way to do the same is offered by
-;; the command `doc-view-set-slice-using-mouse' (bound to `s m').
+;; the command `doc-view-set-slice-using-mouse' (bound to `c m').
 ;; After invocation you only have to press mouse-1 at the top-left
 ;; corner and drag it to the bottom-right corner of the desired slice.
 ;; Even more accurate and convenient is to use
-;; `doc-view-set-slice-from-bounding-box' (bound to `s b') which uses
+;; `doc-view-set-slice-from-bounding-box' (bound to `c b') which uses
 ;; the BoundingBox information of the current page to set an optimal
-;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `s
+;; slice.  To reset the slice use `doc-view-reset-slice' (bound to `c
 ;; r').
 ;;
 ;; You can also search within the document.  The command `doc-view-search'
@@ -140,12 +144,16 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(require 'filenotify)
 (eval-when-compile (require 'subr-x))
 
 ;;;; Customization Options
 
 (defgroup doc-view nil
-  "In-buffer viewer for PDF, PostScript, DVI, and DJVU files."
+  "In-buffer document viewer.
+The viewer handles PDF, PostScript, DVI, DJVU, ODF, EPUB, CBZ,
+FB2, XPS and OXPS files, if the appropriate converter programs
+are available (see Info node `(emacs)Document View')."
   :link '(function-link doc-view)
   :version "22.2"
   :group 'applications
@@ -153,18 +161,40 @@
   :group 'multimedia
   :prefix "doc-view-")
 
-(defcustom doc-view-ghostscript-program "gs"
+(defcustom doc-view-ghostscript-program
+  (cond
+   ((memq system-type '(windows-nt ms-dos))
+    (cond
+     ;; Windows Ghostscript
+     ((executable-find "gswin64c") "gswin64c")
+     ((executable-find "gswin32c") "gswin32c")
+     ;; The GS wrapper coming with TeX Live
+     ((executable-find "rungs") "rungs")
+     ;; The MikTeX builtin GS Check if mgs is functional for external
+     ;; non-MikTeX apps.  Was available under:
+     ;; http://blog.miktex.org/post/2005/04/07/Starting-mgsexe-at-the-DOS-Prompt.aspx
+     ((and (executable-find "mgs")
+           (= 0 (shell-command "mgs -q -dNODISPLAY -c quit")))
+      "mgs")))
+   (t "gs"))
   "Program to convert PS and PDF files to PNG."
   :type 'file
-  :group 'doc-view)
+  :version "27.1")
 
 (defcustom doc-view-pdfdraw-program
   (cond
    ((executable-find "pdfdraw") "pdfdraw")
+   ((executable-find "mudraw") "mudraw")
+   ((executable-find "mutool") "mutool")
    (t "mudraw"))
   "Name of MuPDF's program to convert PDF files to PNG."
   :type 'file
   :version "24.4")
+
+(defcustom doc-view-pdftotext-program-args '("-raw")
+  "Parameters to give to the pdftotext command."
+  :version "27.1"
+  :type '(repeat string))
 
 (defcustom doc-view-pdf->png-converter-function
   (if (executable-find doc-view-pdfdraw-program)
@@ -179,20 +209,101 @@
           function)
   :version "24.4")
 
+(defcustom doc-view-mupdf-use-svg (image-type-available-p 'svg)
+  "Whether to use svg images for PDF files."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom doc-view-svg-background "white"
+  "Background color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
+
+(defcustom doc-view-svg-foreground "black"
+  "Foreground color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
+
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
     ;; sources.
-    "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
+    "-dNOPAUSE" "-dTextAlphaBits=4"
     "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET")
   "A list of options to give to ghostscript."
-  :type '(repeat string)
-  :group 'doc-view)
+  :type '(repeat string))
+
+(defcustom doc-view-ghostscript-device "png16m"
+  "Output device to give to ghostscript."
+  :type 'string
+  :version "27.1")
 
 (defcustom doc-view-resolution 100
   "Dots per inch resolution used to render the documents.
 Higher values result in larger images."
-  :type 'number
-  :group 'doc-view)
+  :type 'natnum)
+
+(defvar doc-view-doc-type nil
+  "The type of document in the current buffer.
+Can be `dvi', `pdf', `ps', `djvu', `odf', `epub', `cbz', `fb2',
+`xps' or `oxps'.")
+
+(defvar doc-view--epub-stylesheet-watcher nil
+  "File watcher for `doc-view-epub-user-stylesheet'.")
+
+(defun doc-view--epub-reconvert (&optional _event)
+  "Reconvert all epub buffers.
+
+EVENT is unused, but necessary to work with the filenotify API."
+  (dolist (x (buffer-list))
+    (with-current-buffer x
+      (when (eq doc-view-doc-type 'epub)
+        (doc-view-reconvert-doc)))))
+
+(defun doc-view-custom-set-epub-user-stylesheet (option-name new-value)
+  "Setter for `doc-view-epub-user-stylesheet'.
+
+Reconverts existing epub buffers when the file used as a user
+stylesheet is switched, or its contents modified."
+  (set-default option-name new-value)
+  (file-notify-rm-watch doc-view--epub-stylesheet-watcher)
+  (doc-view--epub-reconvert)
+  (setq doc-view--epub-stylesheet-watcher
+         (when new-value
+           (file-notify-add-watch new-value '(change) #'doc-view--epub-reconvert))))
+
+(defcustom doc-view-epub-user-stylesheet nil
+  "User stylesheet to use when converting EPUB documents to PDF."
+  :type '(choice (const nil)
+                 (file :must-match t))
+  :version "29.1"
+  :set #'doc-view-custom-set-epub-user-stylesheet)
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defun doc-view-custom-set-epub-font-size (option-name new-value)
+  (set-default option-name new-value)
+  (doc-view--epub-reconvert))
+
+;; FIXME: The doc-view-current-* definitions below are macros because they
+;; map to accessors which we want to use via `setf' as well!
+(defmacro doc-view-current-page (&optional win)
+  `(image-mode-window-get 'page ,win))
+(defmacro doc-view-current-info () '(image-mode-window-get 'info))
+(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
+(defmacro doc-view-current-image () '(image-mode-window-get 'image))
+(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
+
+(defvar-local doc-view--current-cache-dir nil
+  "Only used internally.")
+
+(defcustom doc-view-epub-font-size nil
+  "Font size in points for EPUB layout."
+  :type '(choice (const nil) integer)
+  :set #'doc-view-custom-set-epub-font-size
+  :version "29.1")
 
 (defcustom doc-view-scale-internally t
   "Whether we should try to rescale images ourselves.
@@ -205,10 +316,9 @@ scaling."
 (defcustom doc-view-image-width 850
   "Default image width.
 Has only an effect if `doc-view-scale-internally' is non-nil and support for
-scaling is compiled into emacs."
+scaling is compiled into Emacs."
   :version "24.1"
-  :type 'number
-  :group 'doc-view)
+  :type 'natnum)
 
 (defcustom doc-view-dvipdfm-program "dvipdfm"
   "Program to convert DVI files to PDF.
@@ -218,8 +328,7 @@ converted to PNG.
 
 If this and `doc-view-dvipdf-program' are set,
 `doc-view-dvipdf-program' will be preferred."
-  :type 'file
-  :group 'doc-view)
+  :type 'file)
 
 (defcustom doc-view-dvipdf-program "dvipdf"
   "Program to convert DVI files to PDF.
@@ -229,12 +338,9 @@ converted to PNG.
 
 If this and `doc-view-dvipdfm-program' are set,
 `doc-view-dvipdf-program' will be preferred."
-  :type 'file
-  :group 'doc-view)
+  :type 'file)
 
-(define-obsolete-variable-alias 'doc-view-unoconv-program
-                                'doc-view-odf->pdf-converter-program
-                                "24.4")
+(define-obsolete-variable-alias 'doc-view-unoconv-program 'doc-view-odf->pdf-converter-program "24.4")
 
 (defcustom doc-view-odf->pdf-converter-program
   (cond
@@ -245,8 +351,7 @@ If this and `doc-view-dvipdfm-program' are set,
 
 Needed for viewing OpenOffice.org (and MS Office) files."
   :version "24.4"
-  :type 'file
-  :group 'doc-view)
+  :type 'file)
 
 (defcustom doc-view-odf->pdf-converter-function
   (cond
@@ -267,22 +372,19 @@ Needed for viewing OpenOffice.org (and MS Office) files."
   "Program to convert PS files to PDF.
 
 PS files will be converted to PDF before searching is possible."
-  :type 'file
-  :group 'doc-view)
+  :type 'file)
 
 (defcustom doc-view-pdftotext-program "pdftotext"
   "Program to convert PDF files to plain text.
 
 Needed for searching."
-  :type 'file
-  :group 'doc-view)
+  :type 'file)
 
 (defcustom doc-view-cache-directory
   (expand-file-name (format "docview%d" (user-uid))
 		    temporary-file-directory)
   "The base directory, where the PNG images will be saved."
-  :type 'directory
-  :group 'doc-view)
+  :type 'directory)
 
 (defvar doc-view-conversion-buffer " *doc-view conversion output*"
   "The buffer where messages from the converter programs go to.")
@@ -293,8 +395,8 @@ After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type 'integer
-  :group 'doc-view)
+  :type '(choice natnum
+                 (const :value nil :tag "No refreshes")))
 
 (defcustom doc-view-continuous nil
   "In Continuous mode reaching the page edge advances to next/previous page.
@@ -302,7 +404,6 @@ When non-nil, scrolling a line upward at the bottom edge of the page
 moves to the next page, and scrolling a line downward at the top edge
 of the page moves to the previous page."
   :type 'boolean
-  :group 'doc-view
   :version "23.2")
 
 ;;;; Internal Variables
@@ -345,16 +446,10 @@ of the page moves to the previous page."
 (defvar-local doc-view--current-timer nil
   "Only used internally.")
 
-(defvar-local doc-view--current-cache-dir nil
-  "Only used internally.")
-
 (defvar-local doc-view--current-search-matches nil
   "Only used internally.")
 
 (defvar doc-view--pending-cache-flush nil
-  "Only used internally.")
-
-(defvar doc-view--previous-major-mode nil
   "Only used internally.")
 
 (defvar doc-view--buffer-file-name nil
@@ -364,10 +459,6 @@ The file name used for conversion.  Normally it's the same as
 files inside an archive it is a temporary copy of
 the (uncompressed, extracted) file residing in
 `doc-view-cache-directory'.")
-
-(defvar doc-view-doc-type nil
-  "The type of document in the current buffer.
-Can be `dvi', `pdf', or `ps'.")
 
 (defvar doc-view-single-page-converter-function nil
   "Function to call to convert a single page of the document to a bitmap file.
@@ -384,78 +475,88 @@ Typically \"page-%s.png\".")
 
 ;;;; DocView Keymaps
 
-(defvar doc-view-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map image-mode-map)
-    ;; Navigation in the document
-    (define-key map (kbd "n")         'doc-view-next-page)
-    (define-key map (kbd "p")         'doc-view-previous-page)
-    (define-key map (kbd "<next>")    'forward-page)
-    (define-key map (kbd "<prior>")   'backward-page)
-    (define-key map [remap forward-page]  'doc-view-next-page)
-    (define-key map [remap backward-page] 'doc-view-previous-page)
-    (define-key map (kbd "SPC")       'doc-view-scroll-up-or-next-page)
-    (define-key map (kbd "S-SPC")     'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "DEL")       'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "C-n")       'doc-view-next-line-or-next-page)
-    (define-key map (kbd "<down>")    'doc-view-next-line-or-next-page)
-    (define-key map (kbd "C-p")       'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "<up>")      'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "M-<")       'doc-view-first-page)
-    (define-key map (kbd "M->")       'doc-view-last-page)
-    (define-key map [remap goto-line] 'doc-view-goto-page)
-    (define-key map (kbd "RET")       'image-next-line)
-    ;; Zoom in/out.
-    (define-key map "+"               'doc-view-enlarge)
-    (define-key map "="               'doc-view-enlarge)
-    (define-key map "-"               'doc-view-shrink)
-    (define-key map "0"               'doc-view-scale-reset)
-    (define-key map [remap text-scale-adjust] 'doc-view-scale-adjust)
-    ;; Fit the image to the window
-    (define-key map "W"               'doc-view-fit-width-to-window)
-    (define-key map "H"               'doc-view-fit-height-to-window)
-    (define-key map "P"               'doc-view-fit-page-to-window)
-    ;; Killing the buffer (and the process)
-    (define-key map (kbd "K")         'doc-view-kill-proc)
-    ;; Slicing the image
-    (define-key map (kbd "s s")       'doc-view-set-slice)
-    (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
-    (define-key map (kbd "s b")       'doc-view-set-slice-from-bounding-box)
-    (define-key map (kbd "s r")       'doc-view-reset-slice)
-    ;; Searching
-    (define-key map (kbd "C-s")       'doc-view-search)
-    (define-key map (kbd "<find>")    'doc-view-search)
-    (define-key map (kbd "C-r")       'doc-view-search-backward)
-    ;; Show the tooltip
-    (define-key map (kbd "C-t")       'doc-view-show-tooltip)
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
-    ;; Open a new buffer with doc's text contents
-    (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    ;; Reconvert the current document.  Don't just use revert-buffer
-    ;; because that resets the scale factor, the page number, ...
-    (define-key map (kbd "g")         'doc-view-revert-buffer)
-    (define-key map (kbd "r")         'doc-view-revert-buffer)
-    map)
-  "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+(defvar-keymap doc-view-mode-map
+  :doc "Keymap used by `doc-view-mode' when displaying a doc as a set of images."
+  :parent image-mode-map
+  ;; Navigation in the document
+  "n"       #'doc-view-next-page
+  "p"       #'doc-view-previous-page
+  "<next>"  #'forward-page
+  "<prior>" #'backward-page
+  "<remap> <forward-page>"  #'doc-view-next-page
+  "<remap> <backward-page>" #'doc-view-previous-page
+  "SPC"     #'doc-view-scroll-up-or-next-page
+  "S-SPC"   #'doc-view-scroll-down-or-previous-page
+  "DEL"     #'doc-view-scroll-down-or-previous-page
+  "C-n"     #'doc-view-next-line-or-next-page
+  "<down>"  #'doc-view-next-line-or-next-page
+  "C-p"     #'doc-view-previous-line-or-previous-page
+  "<up>"    #'doc-view-previous-line-or-previous-page
+  "M-<"     #'doc-view-first-page
+  "M->"     #'doc-view-last-page
+  "<remap> <goto-line>" #'doc-view-goto-page
+  "RET"     #'image-next-line
+  ;; Zoom in/out.
+  "+"       #'doc-view-enlarge
+  "="       #'doc-view-enlarge
+  "-"       #'doc-view-shrink
+  "0"       #'doc-view-scale-reset
+  "<remap> <text-scale-adjust>" #'doc-view-scale-adjust
+  ;; Fit the image to the window
+  "W"       #'doc-view-fit-width-to-window
+  "H"       #'doc-view-fit-height-to-window
+  "P"       #'doc-view-fit-page-to-window
+  "F"       #'doc-view-fit-window-to-page ;F = frame
+  ;; Killing the buffer (and the process)
+  "k"       #'image-kill-buffer
+  "K"       #'doc-view-kill-proc
+  ;; Slicing the image
+  "c s"     #'doc-view-set-slice
+  "c m"     #'doc-view-set-slice-using-mouse
+  "c b"     #'doc-view-set-slice-from-bounding-box
+  "c r"     #'doc-view-reset-slice
+  ;; Centering the image
+  "c h"     #'doc-view-center-page-horizontally
+  "c v"     #'doc-view-center-page-vertically
+  ;; Searching
+  "C-s"     #'doc-view-search
+  "<find>"  #'doc-view-search
+  "C-r"     #'doc-view-search-backward
+  ;; Show the tooltip
+  "C-t"     #'doc-view-show-tooltip
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display
+  ;; Open a new buffer with doc's text contents
+  "C-c C-t" #'doc-view-open-text
+  "r"       #'revert-buffer)
 
-(defun doc-view-revert-buffer (&optional ignore-auto noconfirm)
-  "Like `revert-buffer', but preserves the buffer's current modes."
-  (interactive (list (not current-prefix-arg)))
+(define-obsolete-function-alias 'doc-view-revert-buffer #'revert-buffer "27.1")
+(defvar revert-buffer-preserve-modes)
+(defun doc-view--revert-buffer (orig-fun &rest args)
+  "Preserve the buffer's current mode and check PDF sanity."
   (if (< undo-outer-limit (* 2 (buffer-size)))
       ;; It's normal for this operation to result in a very large undo entry.
       (setq-local undo-outer-limit (* 2 (buffer-size))))
   (cl-labels ((revert ()
-                      (let (revert-buffer-function)
-                        (revert-buffer ignore-auto noconfirm 'preserve-modes))))
+                (let ((revert-buffer-preserve-modes t))
+                  (apply orig-fun args)
+                  ;; Update the cached version of the pdf file,
+                  ;; too.  This is the one that's used when
+                  ;; rendering (bug#26996).
+                  (unless (equal buffer-file-name
+                                 doc-view--buffer-file-name)
+                    ;; FIXME: Lars says he needed to recreate
+                    ;; the dir, we should figure out why.
+                    (doc-view-make-safe-dir doc-view-cache-directory)
+                    (write-region nil nil doc-view--buffer-file-name)))))
     (if (and (eq 'pdf doc-view-doc-type)
              (executable-find "pdfinfo"))
         ;; We don't want to revert if the PDF file is corrupted which
-        ;; might happen when it it currently recompiled from a tex
+        ;; might happen when it is currently recompiled from a tex
         ;; file.  (TODO: We'd like to have something like that also
         ;; for other types, at least PS, but I don't know a good way
         ;; to test if a PS file is complete.)
-        (if (= 0 (call-process (executable-find "pdfinfo") nil nil nil
+        (if (= 0 (call-process "pdfinfo" nil nil nil
                                doc-view--buffer-file-name))
             (revert)
           (when (called-interactively-p 'interactive)
@@ -466,41 +567,87 @@ Typically \"page-%s.png\".")
 (easy-menu-define doc-view-menu doc-view-mode-map
   "Menu for Doc View mode."
   '("DocView"
-    ["Toggle display"		doc-view-toggle-display]
-    ("Continuous"
-     ["Off"                     (setq doc-view-continuous nil)
-      :style radio :selected    (eq doc-view-continuous nil)]
-     ["On"		        (setq doc-view-continuous t)
-      :style radio :selected    (eq doc-view-continuous t)]
+    ["Next page"                doc-view-next-page
+     :help                      "Go to the next page"]
+    ["Previous page"            doc-view-previous-page
+     :help                      "Go to the previous page"]
+    ("Other Navigation"
+     ["Go to page..."           doc-view-goto-page
+      :help                     "Go to specific page"]
      "---"
-     ["Save as Default"
-      (customize-save-variable 'doc-view-continuous doc-view-continuous) t]
+     ["First page"              doc-view-first-page
+      :help                     "View the first page"]
+     ["Last page"               doc-view-last-page
+      :help                     "View the last page"]
+     "---"
+     ["Move forward"            doc-view-scroll-up-or-next-page
+      :help                     "Scroll page up or go to next page"]
+     ["Move backward"           doc-view-scroll-down-or-previous-page
+      :help                     "Scroll page down or go to previous page"])
+    ("Continuous Scrolling"
+     ["Off"                     (setq doc-view-continuous nil)
+      :style radio :selected    (eq doc-view-continuous nil)
+      :help                     "Scrolling stops at page beginning and end"]
+     ["On"		        (setq doc-view-continuous t)
+      :style radio :selected    (eq doc-view-continuous t)
+      :help                     "Scrolling continues to next or previous page"]
+     "---"
+     ["Save as Default"         (customize-save-variable 'doc-view-continuous doc-view-continuous)
+      :help                     "Save current continuous scrolling option as default"]
      )
     "---"
-    ["Set Slice"		doc-view-set-slice-using-mouse]
-    ["Set Slice (BoundingBox)"  doc-view-set-slice-from-bounding-box]
-    ["Set Slice (manual)"	doc-view-set-slice]
-    ["Reset Slice"		doc-view-reset-slice]
+    ("Toggle edit/display"
+     ["Edit document"           doc-view-toggle-display
+      :style radio :selected    (eq major-mode 'doc-view--text-view-mode)]
+     ["Display document"        (lambda ()) ; ignore but show no keybinding
+      :style radio :selected    (eq major-mode 'doc-view-mode)])
+    ("Adjust Display"
+     ["Fit to window"           doc-view-fit-page-to-window
+      :help                     "Fit the image to the window"]
+     ["Fit width"               doc-view-fit-width-to-window
+      :help                     "Fit the image width to the window width"]
+     ["Fit height"              doc-view-fit-height-to-window
+      :help                     "Fit the image height to the window height"]
+     "---"
+     ["Enlarge"                 doc-view-enlarge
+      :help                     "Enlarge the document"]
+     ["Shrink"                  doc-view-shrink
+      :help                     "Shrink the document"]
+     "---"
+     ["Set Slice"               doc-view-set-slice-using-mouse
+      :help                     "Set the slice of the images that should be displayed"]
+     ["Set Slice (BoundingBox)" doc-view-set-slice-from-bounding-box
+      :help                     "Set the slice from the document's BoundingBox information"]
+     ["Set Slice (manual)"	doc-view-set-slice
+      :help                     "Set the slice of the images that should be displayed"]
+     ["Reset Slice"		doc-view-reset-slice
+      :help                     "Reset the current slice"
+      :enabled                  (image-mode-window-get 'slice)])
     "---"
-    ["Search"			doc-view-search]
-    ["Search Backwards"         doc-view-search-backward]
+    ["New Search"               (doc-view-search t)
+     :help                      "Initiate a new search"]
+    ["Search Forward"           doc-view-search
+     :help                      "Jump to the next match or initiate a new search"]
+    ["Search Backward"          doc-view-search-backward
+     :help                      "Jump to the previous match or initiate a new search"]
     ))
 
-(defvar doc-view-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
-    map)
-  "Keymap used by `doc-minor-view-mode'.")
+(defvar-keymap doc-view-minor-mode-map
+  :doc "Keymap used by `doc-view-minor-mode'."
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display)
+
+(easy-menu-define doc-view-minor-mode-menu doc-view-minor-mode-map
+  "Menu for Doc View minor mode."
+  '("DocView (edit)"
+    ("Toggle edit/display"
+     ["Edit document"           (lambda ()) ; ignore but show no keybinding
+      :style radio :selected    (eq major-mode 'doc-view--text-view-mode)]
+     ["Display document"        doc-view-toggle-display
+      :style radio :selected    (eq major-mode 'doc-view-mode)])
+    ["Exit DocView Mode" doc-view-minor-mode]))
 
 ;;;; Navigation Commands
-
-(defmacro doc-view-current-page (&optional win)
-  `(image-mode-window-get 'page ,win))
-(defmacro doc-view-current-info () `(image-mode-window-get 'info))
-(defmacro doc-view-current-overlay () `(image-mode-window-get 'overlay))
-(defmacro doc-view-current-image () `(image-mode-window-get 'image))
-(defmacro doc-view-current-slice () `(image-mode-window-get 'slice))
 
 (defun doc-view-last-page-number ()
   (length doc-view--current-files))
@@ -523,17 +670,16 @@ Typically \"page-%s.png\".")
 	   (propertize
 	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
-	   (if doc-view--current-converter-processes
-	       " (still converting...)\n"
-	     "\n")
-	   ;; Display context infos if this page matches the last search
-	   (when (and doc-view--current-search-matches
-		      (assq page doc-view--current-search-matches))
-	     (concat (propertize "Search matches:\n" 'face 'bold)
+           (and doc-view--current-converter-processes
+                " (still converting...)")
+           ;; Display context infos if this page matches the last search
+           (when (and doc-view--current-search-matches
+                      (assq page doc-view--current-search-matches))
+             (concat "\n" (propertize "Search matches:" 'face 'bold)
 		     (let ((contexts ""))
 		       (dolist (m (cdr (assq page
 					     doc-view--current-search-matches)))
-			 (setq contexts (concat contexts "  - \"" m "\"\n")))
+			 (setq contexts (concat contexts "\n  - \"" m "\"")))
 		       contexts)))))
     ;; Update the buffer
     ;; We used to find the file name from doc-view--current-files but
@@ -590,7 +736,7 @@ Otherwise, goto next page only on typing SPC (ARG is nil)."
   (if (or doc-view-continuous (null arg))
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
-	(when (= (window-vscroll) (image-scroll-up arg))
+	(when (= (window-vscroll nil t) (image-scroll-up arg))
 	  (doc-view-next-page)
 	  (when (/= cur-page (doc-view-current-page))
 	    (image-bob)
@@ -607,7 +753,7 @@ Otherwise, goto previous page only on typing DEL (ARG is nil)."
   (if (or doc-view-continuous (null arg))
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
-	(when (= (window-vscroll) (image-scroll-down arg))
+	(when (= (window-vscroll nil t) (image-scroll-down arg))
 	  (doc-view-previous-page)
 	  (when (/= cur-page (doc-view-current-page))
 	    (image-eob)
@@ -623,7 +769,7 @@ at the bottom edge of the page moves to the next page."
   (if doc-view-continuous
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
-	(when (= (window-vscroll) (image-next-line arg))
+	(when (= (window-vscroll nil t) (image-next-line arg))
 	  (doc-view-next-page)
 	  (when (/= cur-page (doc-view-current-page))
 	    (image-bob)
@@ -639,7 +785,7 @@ at the top edge of the page moves to the previous page."
   (if doc-view-continuous
       (let ((hscroll (window-hscroll))
 	    (cur-page (doc-view-current-page)))
-	(when (= (window-vscroll) (image-previous-line arg))
+	(when (= (window-vscroll nil t) (image-previous-line arg))
 	  (doc-view-previous-page)
 	  (when (/= cur-page (doc-view-current-page))
 	    (image-eob)
@@ -654,7 +800,7 @@ at the top edge of the page moves to the previous page."
   (interactive)
   (while (consp doc-view--current-converter-processes)
     (ignore-errors ;; Some entries might not be processes, and maybe
-		   ;; some are dead already?
+                    ; some are dead already?
       (kill-process (pop doc-view--current-converter-processes))))
   (when doc-view--current-timer
     (cancel-timer doc-view--current-timer)
@@ -671,8 +817,6 @@ at the top edge of the page moves to the previous page."
       ;; time-window of loose permissions otherwise.
       (with-file-modes #o0700 (make-directory dir))
     (file-already-exists
-     (when (file-symlink-p dir)
-       (error "Danger: %s points to a symbolic link" dir))
      ;; In case it was created earlier with looser rights.
      ;; We could check the mode info returned by file-attributes, but it's
      ;; a pain to parse and it may not tell you what we want under
@@ -682,11 +826,11 @@ at the top edge of the page moves to the previous page."
      ;; sure we have write-access to the directory and that we own it, thus
      ;; closing a bunch of security holes.
      (condition-case error
-	 (set-file-modes dir #o0700)
+	 (set-file-modes dir #o0700 'nofollow)
        (file-error
 	(error
 	 (format "Unable to use temporary directory %s: %s"
-		 dir (mapconcat 'identity (cdr error) " "))))))))
+		 dir (mapconcat #'identity (cdr error) " "))))))))
 
 (defun doc-view--current-cache-dir ()
   "Return the directory where the png files of the current doc should be saved.
@@ -700,7 +844,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 	  (file-name-as-directory
 	   (expand-file-name
 	    (concat (thread-last
-                        (file-name-nondirectory doc-view--buffer-file-name)
+                      (file-name-nondirectory doc-view--buffer-file-name)
                       ;; bug#13679
                       (subst-char-in-string ?% ?_)
                       ;; arc-mode concatenates archive name and file name
@@ -717,11 +861,10 @@ It's a subdirectory of `doc-view-cache-directory'."
 ;;;###autoload
 (defun doc-view-mode-p (type)
   "Return non-nil if document type TYPE is available for `doc-view'.
-Document types are symbols like `dvi', `ps', `pdf', or `odf' (any
-OpenDocument format)."
+Document types are symbols like `dvi', `ps', `pdf', `epub',
+`cbz', `fb2', `xps', `oxps', or`odf' (any OpenDocument format)."
   (and (display-graphic-p)
-       (or (image-type-available-p 'imagemagick)
-	   (image-type-available-p 'png))
+       (image-type-available-p 'png)
        (cond
 	((eq type 'dvi)
 	 (and (doc-view-mode-p 'pdf)
@@ -730,15 +873,22 @@ OpenDocument format)."
 		  (and doc-view-dvipdfm-program
 		       (executable-find doc-view-dvipdfm-program)))))
 	((memq type '(postscript ps eps pdf))
-	 ;; FIXME: allow mupdf here
-	 (and doc-view-ghostscript-program
-	      (executable-find doc-view-ghostscript-program)))
+         (or (and doc-view-ghostscript-program
+	          (executable-find doc-view-ghostscript-program))
+             ;; for pdf also check for `doc-view-pdfdraw-program'
+             (when (eq type 'pdf)
+               (and doc-view-pdfdraw-program
+                    (executable-find doc-view-pdfdraw-program)))))
 	((eq type 'odf)
 	 (and doc-view-odf->pdf-converter-program
 	      (executable-find doc-view-odf->pdf-converter-program)
 	      (doc-view-mode-p 'pdf)))
 	((eq type 'djvu)
 	 (executable-find "ddjvu"))
+        ((memq type '(epub cbz fb2 xps oxps))
+         ;; first check if `doc-view-pdfdraw-program' is set to mutool
+         (and (string= doc-view-pdfdraw-program "mutool")
+              (executable-find "mutool")))
 	(t ;; unknown image type
 	 nil))))
 
@@ -749,10 +899,7 @@ OpenDocument format)."
 (defun doc-view-enlarge (factor)
   "Enlarge the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
-  (if (and doc-view-scale-internally
-           (eq (plist-get (cdr (doc-view-current-image)) :type)
-               'imagemagick))
-      ;; ImageMagick supports on-the-fly-rescaling.
+  (if doc-view-scale-internally
       (let ((new (ceiling (* factor doc-view-image-width))))
         (unless (equal new doc-view-image-width)
           (setq-local doc-view-image-width new)
@@ -765,16 +912,14 @@ OpenDocument format)."
         (doc-view-reconvert-doc)))))
 
 (defun doc-view-shrink (factor)
-  "Shrink the document."
+  "Shrink the document by FACTOR."
   (interactive (list doc-view-shrink-factor))
   (doc-view-enlarge (/ 1.0 factor)))
 
 (defun doc-view-scale-reset ()
   "Reset the document size/zoom level to the initial one."
   (interactive)
-  (if (and doc-view-scale-internally
-           (eq (plist-get (cdr (doc-view-current-image)) :type)
-               'imagemagick))
+  (if doc-view-scale-internally
       (progn
 	(kill-local-variable 'doc-view-image-width)
 	(doc-view-insert-image
@@ -788,7 +933,7 @@ OpenDocument format)."
 FACTOR defaults to `doc-view-shrink-factor'.
 
 The actual adjustment made depends on the final component of the
-key-binding used to invoke the command, with all modifiers removed:
+keybinding used to invoke the command, with all modifiers removed:
 
    +, =   Increase the image scale by FACTOR
    -      Decrease the image scale by FACTOR
@@ -875,6 +1020,74 @@ min {(window-width / image-width), (window-height / image-height)} times."
         (setf (doc-view-current-slice) new-slice)
         (doc-view-goto-page (doc-view-current-page))))))
 
+(defun doc-view-fit-window-to-page ()
+  "Resize selected window so it just fits the current page.
+Resize the containing frame if needed."
+  (interactive)
+  (let* ((slice (doc-view-current-slice))
+         (img-width  (if slice (nth 2 slice)
+                       (car (image-display-size
+                             (image-get-display-property) t))))
+         (img-height (if slice (nth 3 slice)
+                       (cdr (image-display-size
+                             (image-get-display-property) t))))
+         (win-width  (- (nth 2 (window-inside-pixel-edges))
+                        (nth 0 (window-inside-pixel-edges))))
+         (win-height (- (nth 3 (window-inside-pixel-edges))
+                        (nth 1 (window-inside-pixel-edges))))
+         (width-diff  (- img-width  win-width))
+         (height-diff (- img-height win-height))
+         (new-frame-params
+          ;; If we can't resize the window, try and resize the frame.
+          ;; We used to compare the `window-width/height` and the
+          ;; `frame-width/height` instead of catching the errors, but
+          ;; it's too fiddly (e.g. in the presence of the miniwindow,
+          ;; the height the frame should be equal to the height of the
+          ;; root window +1).
+          (append
+           (condition-case nil
+               (progn
+                 (enlarge-window (/ width-diff (frame-char-width)) 'horiz)
+                 nil)
+             (error
+              `((width  . (text-pixels
+                           . ,(+ (frame-text-width) width-diff))))))
+           (condition-case nil
+               (progn
+                 (enlarge-window (/ height-diff (frame-char-height)) nil)
+                 nil)
+             (error
+              `((height  . (text-pixels
+                            . ,(+ (frame-text-height) height-diff)))))))))
+    (when new-frame-params
+      (modify-frame-parameters (selected-frame) new-frame-params))))
+
+(defun doc-view-center-page-horizontally ()
+  "Center page horizontally when page is wider than window."
+  (interactive)
+  (let ((page-width (car (image-size (doc-view-current-image) 'pixel)))
+        (window-width (window-body-width nil 'pixel))
+        ;; How much do we scroll in order to center the page?
+        (pixel-hscroll 0)
+        ;; How many pixels are there in a column?
+        (col-in-pixel (/ (window-body-width nil 'pixel)
+                         (window-body-width nil))))
+    (when (> page-width window-width)
+      (setq pixel-hscroll (/ (- page-width window-width) 2))
+      (set-window-hscroll (selected-window)
+                          (/ pixel-hscroll col-in-pixel)))))
+
+(defun doc-view-center-page-vertically ()
+  "Center page vertically when page is wider than window."
+  (interactive)
+  (let ((page-height (cdr (image-size (doc-view-current-image) 'pixel)))
+        (window-height (window-body-height nil 'pixel))
+        ;; How much do we scroll in order to center the page?
+        (pixel-scroll 0))
+    (when (> page-height window-height)
+      (setq pixel-scroll (/ (- page-height window-height) 2))
+      (set-window-vscroll (selected-window) pixel-scroll 'pixel))))
+
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.
 Should be invoked when the cached images aren't up-to-date."
@@ -908,8 +1121,8 @@ Should be invoked when the cached images aren't up-to-date."
   ;; some file-name-handler-managed dir, for example).
   (let* ((default-directory (or (unhandled-file-name-directory
                                  default-directory)
-			      (expand-file-name "~/")))
-         (proc (apply 'start-process name doc-view-conversion-buffer
+			        (expand-file-name "~/")))
+         (proc (apply #'start-process name doc-view-conversion-buffer
                       program args)))
     (push proc doc-view--current-converter-processes)
     (setq mode-line-process (list (format ":%s" proc)))
@@ -930,16 +1143,31 @@ Should be invoked when the cached images aren't up-to-date."
 			    (list "-o" pdf dvi)
 			    callback)))
 
+(defun doc-view-pdf-password-protected-ghostscript-p (pdf)
+  "Return non-nil if a PDF file is password-protected.
+The test is performed using `doc-view-ghostscript-program'."
+  (with-temp-buffer
+    (apply #'call-process doc-view-ghostscript-program nil (current-buffer)
+           nil `(,@doc-view-ghostscript-options
+                 "-sNODISPLAY"
+                 ,pdf))
+    (goto-char (point-min))
+    (search-forward "This file requires a password for access." nil t)))
+
 (defun doc-view-pdf->png-converter-ghostscript (pdf png page callback)
-  (doc-view-start-process
-   "pdf/ps->png" doc-view-ghostscript-program
-   `(,@doc-view-ghostscript-options
-     ,(format "-r%d" (round doc-view-resolution))
-     ,@(if page `(,(format "-dFirstPage=%d" page)))
-     ,@(if page `(,(format "-dLastPage=%d" page)))
-     ,(concat "-sOutputFile=" png)
-     ,pdf)
-   callback))
+  (let ((pdf-passwd (if (doc-view-pdf-password-protected-ghostscript-p pdf)
+                        (read-passwd "Enter password for PDF file: "))))
+    (doc-view-start-process
+     "pdf/ps->png" doc-view-ghostscript-program
+     `(,@doc-view-ghostscript-options
+       ,(concat "-sDEVICE=" doc-view-ghostscript-device)
+       ,(format "-r%d" (round doc-view-resolution))
+       ,@(if page `(,(format "-dFirstPage=%d" page)))
+       ,@(if page `(,(format "-dLastPage=%d" page)))
+       ,@(if pdf-passwd `(,(format "-sPDFPassword=%s" pdf-passwd)))
+       ,(concat "-sOutputFile=" png)
+       ,pdf)
+     callback)))
 
 (defalias 'doc-view-ps->png-converter-ghostscript
   'doc-view-pdf->png-converter-ghostscript)
@@ -960,14 +1188,47 @@ If PAGE is nil, convert the whole document."
      ,tiff)
    callback))
 
+(defun doc-view-pdfdraw-program-subcommand ()
+  "Return the mutool subcommand replacing mudraw.
+Recent MuPDF distributions replaced `mudraw' with `mutool draw'."
+  (when (string-match "mutool[^/\\]*$" doc-view-pdfdraw-program)
+    '("draw")))
+
+(defun doc-view-pdf-password-protected-pdfdraw-p (pdf)
+  "Return non-nil if a PDF file is password-protected.
+The test is performed using `doc-view-pdfdraw-program'."
+  (with-temp-buffer
+    (apply #'call-process doc-view-pdfdraw-program nil (current-buffer) nil
+           `(,@(doc-view-pdfdraw-program-subcommand)
+             ,(concat "-o" null-device)
+             ;; In case PDF isn't password-protected, "draw" only one page.
+             ,pdf "1"))
+    (goto-char (point-min))
+    (search-forward "error: cannot authenticate password" nil t)))
+
 (defun doc-view-pdf->png-converter-mupdf (pdf png page callback)
-  (doc-view-start-process
-   "pdf->png" doc-view-pdfdraw-program
-   `(,(concat "-o" png)
-     ,(format "-r%d" (round doc-view-resolution))
-     ,pdf
-     ,@(if page `(,(format "%d" page))))
-   callback))
+  (let* ((pdf-passwd (if (doc-view-pdf-password-protected-pdfdraw-p pdf)
+                         (read-passwd "Enter password for PDF file: ")))
+         (options `(,(concat "-o" png)
+                    ,(format "-r%d" (round doc-view-resolution))
+                    ,@(if pdf-passwd `("-p" ,pdf-passwd)))))
+    (when (eq doc-view-doc-type 'epub)
+      (when doc-view-epub-font-size
+        (setq options (append options
+                              (list (format "-S%s" doc-view-epub-font-size)))))
+      (when doc-view-epub-user-stylesheet
+        (setq options
+              (append options
+                      (list (format "-U%s"
+                                    (expand-file-name
+                                     doc-view-epub-user-stylesheet)))))))
+    (doc-view-start-process
+     "pdf->png" doc-view-pdfdraw-program
+     `(,@(doc-view-pdfdraw-program-subcommand)
+       ,@options
+       ,pdf
+       ,@(if page `(,(format "%d" page))))
+     callback)))
 
 (defun doc-view-odf->pdf-converter-unoconv (odf callback)
   "Convert ODF to PDF asynchronously and call CALLBACK when finished.
@@ -1007,8 +1268,9 @@ is named like ODF with the extension turned to pdf."
   "Convert PDF-PS to PNG asynchronously."
   (funcall
    (pcase doc-view-doc-type
-     (`pdf doc-view-pdf->png-converter-function)
-     (`djvu #'doc-view-djvu->tiff-converter-ddjvu)
+     ((or 'pdf 'odf 'epub 'cbz 'fb2 'xps 'oxps)
+      doc-view-pdf->png-converter-function)
+     ('djvu #'doc-view-djvu->tiff-converter-ddjvu)
      (_ #'doc-view-ps->png-converter-ghostscript))
    pdf-ps png nil
    (let ((resolution doc-view-resolution))
@@ -1045,52 +1307,53 @@ Start by converting PAGES, and then the rest."
     (let ((rest (cdr pages)))
       (funcall doc-view-single-page-converter-function
 	       pdf (format png (car pages)) (car pages)
-       (lambda ()
-         (if rest
-             (doc-view-document->bitmap pdf png rest)
-           ;; Yippie, the important pages are done, update the display.
-           (clear-image-cache)
-           ;; For the windows that have a message (like "Welcome to
-           ;; DocView") display property, clearing the image cache is
-           ;; not sufficient.
-           (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
-             (with-selected-window win
-	       (when (stringp (overlay-get (doc-view-current-overlay) 'display))
-		 (doc-view-goto-page (doc-view-current-page)))))
-           ;; Convert the rest of the pages.
-           (doc-view-pdf/ps->png pdf png)))))))
+               (lambda ()
+                 (if rest
+                     (doc-view-document->bitmap pdf png rest)
+                   ;; Yippie, the important pages are done, update the display.
+                   (clear-image-cache)
+                   ;; For the windows that have a message (like "Welcome to
+                   ;; DocView") display property, clearing the image cache is
+                   ;; not sufficient.
+                   (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
+                     (with-selected-window win
+	               (when (stringp (overlay-get (doc-view-current-overlay) 'display))
+		         (doc-view-goto-page (doc-view-current-page)))))
+                   ;; Convert the rest of the pages.
+                   (doc-view-pdf/ps->png pdf png)))))))
 
 (defun doc-view-pdf->txt (pdf txt callback)
   "Convert PDF to TXT asynchronously and call CALLBACK when finished."
   (or (executable-find doc-view-pdftotext-program)
       (error "You need the `pdftotext' program to convert a PDF to text"))
   (doc-view-start-process "pdf->txt" doc-view-pdftotext-program
-                          (list "-raw" pdf txt)
+                          (append doc-view-pdftotext-program-args
+                                  (list pdf txt))
                           callback))
 
 (defun doc-view-current-cache-doc-pdf ()
   "Return the name of the doc.pdf in the current cache dir.
-  This file exists only if the current document isn't a PDF or PS file already."
+This file exists only if the current document isn't a PDF or PS file already."
   (expand-file-name "doc.pdf" (doc-view--current-cache-dir)))
 
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
   (make-directory (doc-view--current-cache-dir) t)
   (pcase doc-view-doc-type
-    (`pdf
+    ('pdf
      ;; Doc is a PDF, so convert it to TXT
      (doc-view-pdf->txt doc-view--buffer-file-name txt callback))
-    (`ps
+    ('ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
      (let ((pdf (doc-view-current-cache-doc-pdf)))
        (doc-view-ps->pdf doc-view--buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
-    (`dvi
+    ('dvi
      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
      ;; cache subdirectory.
      (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
-    (`odf
+    ('odf
      ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
      ;; already exists in its cache subdirectory.
      (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
@@ -1131,13 +1394,13 @@ Those files are saved in the directory given by the function
                    (doc-view--current-cache-dir))))
     (make-directory (doc-view--current-cache-dir) t)
     (pcase doc-view-doc-type
-      (`dvi
+      ('dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
        (let ((pdf (doc-view-current-cache-doc-pdf)))
          (doc-view-dvi->pdf doc-view--buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
-      (`odf
+      ('odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
        (let ((pdf (doc-view-current-cache-doc-pdf))
@@ -1150,11 +1413,13 @@ Those files are saved in the directory given by the function
 	 ;; file name.  It's named like the input file with the
 	 ;; extension replaced by pdf.
          (funcall doc-view-odf->pdf-converter-function doc-view--buffer-file-name
-                            (lambda ()
-			      ;; Rename to doc.pdf
-			      (rename-file opdf pdf)
-			      (doc-view-pdf/ps->png pdf png-file)))))
-      ((or `pdf `djvu)
+                  (lambda ()
+		    ;; Rename to doc.pdf
+		    (rename-file opdf pdf)
+		    (doc-view-pdf/ps->png pdf png-file)))))
+      ;; The doc-view-mode-p check ensures that epub, cbz, fb2 and
+      ;; (o)xps are handled with mutool
+      ((or 'pdf 'djvu 'epub 'cbz 'fb2 'xps 'oxps)
        (let ((pages (doc-view-active-pages)))
          ;; Convert doc to bitmap images starting with the active pages.
          (doc-view-document->bitmap doc-view--buffer-file-name png-file pages)))
@@ -1207,25 +1472,31 @@ dragging it to its bottom-right corner.  See also
 
 (defun doc-view-get-bounding-box ()
   "Get the BoundingBox information of the current page."
-  (let* ((page (doc-view-current-page))
-	 (doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
-		(if (file-exists-p cache-doc)
-		    cache-doc
-		  doc-view--buffer-file-name)))
-	 (o (shell-command-to-string
-	     (concat doc-view-ghostscript-program
-		     " -dSAFER -dBATCH -dNOPAUSE -q -sDEVICE=bbox "
-		     (format "-dFirstPage=%s -dLastPage=%s %s"
-			     page page doc)))))
-    (save-match-data
-      (when (string-match (concat "%%BoundingBox: "
-				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
-				  "\\([[:digit:]]+\\) \\([[:digit:]]+\\)") o)
-	(mapcar #'string-to-number
-		(list (match-string 1 o)
-		      (match-string 2 o)
-		      (match-string 3 o)
-		      (match-string 4 o)))))))
+  (let ((page (doc-view-current-page))
+	(doc (let ((cache-doc (doc-view-current-cache-doc-pdf)))
+	       (if (file-exists-p cache-doc)
+		   cache-doc
+		 doc-view--buffer-file-name))))
+    (with-temp-buffer
+      (when (eq 0 (ignore-errors
+		    (process-file doc-view-ghostscript-program nil t
+				  nil "-dSAFER" "-dBATCH" "-dNOPAUSE" "-q"
+				  "-sDEVICE=bbox"
+				  (format "-dFirstPage=%s" page)
+				  (format "-dLastPage=%s" page)
+				  doc)))
+	(goto-char (point-min))
+	(save-match-data
+	  (when (re-search-forward
+		 (concat "%%BoundingBox: "
+			 "\\([[:digit:]]+\\) \\([[:digit:]]+\\) "
+			 "\\([[:digit:]]+\\) \\([[:digit:]]+\\)")
+                 nil t)
+	    (mapcar #'string-to-number
+		    (list (match-string 1)
+			  (match-string 2)
+			  (match-string 3)
+			  (match-string 4)))))))))
 
 (defvar doc-view-paper-sizes
   '((a4 595 842)
@@ -1243,7 +1514,7 @@ dragging it to its bottom-right corner.  See also
 (defun doc-view-guess-paper-size (iw ih)
   "Guess the paper size according to the aspect ratio."
   (cl-labels ((div (x y)
-		   (round (/ (* 100.0 x) y))))
+		(round (/ (* 100.0 x) y))))
     (let ((ar (div iw ih))
 	  (al (mapcar (lambda (l)
 			(list (div (nth 1 l) (nth 2 l)) (car l)))
@@ -1302,12 +1573,16 @@ ARGS is a list of image descriptors."
     ;; Only insert the image if the buffer is visible.
     (when (window-live-p (overlay-get ol 'window))
       (let* ((image (if (and file (file-readable-p file))
-			(if (not (and doc-view-scale-internally
-				      (fboundp 'imagemagick-types)))
-			    (apply 'create-image file doc-view--image-type nil args)
+			(if (not doc-view-scale-internally)
+			    (apply #'create-image file doc-view--image-type nil args)
 			  (unless (member :width args)
 			    (setq args `(,@args :width ,doc-view-image-width)))
-			  (apply 'create-image file 'imagemagick nil args))))
+                          (unless (member :transform-smoothing args)
+                            (setq args `(,@args :transform-smoothing t)))
+                          (when (eq doc-view--image-type 'svg)
+                            (setq args `(,@args :background ,doc-view-svg-background
+                                               :foreground ,doc-view-svg-foreground)))
+			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))
 	     (displayed-img-width (if (and image slice)
@@ -1350,7 +1625,7 @@ ARGS is a list of image descriptors."
 		  (vscroll (image-mode-window-get 'vscroll win)))
 	      ;; Reset scroll settings, in case they were changed.
 	      (if hscroll (set-window-hscroll win hscroll))
-	      (if vscroll (set-window-vscroll win vscroll)))))))))
+	      (if vscroll (set-window-vscroll win vscroll t)))))))))
 
 (defun doc-view-sort (a b)
   "Return non-nil if A should be sorted before B.
@@ -1396,43 +1671,64 @@ have the page we want to view."
     (overlay-put (doc-view-current-overlay) 'display
                  (concat (propertize "Welcome to DocView!" 'face 'bold)
                          "\n"
-                         "
+                         (substitute-command-keys "
 If you see this buffer it means that the document you want to view is being
 converted to PNG and the conversion of the first page hasn't finished yet or
 `doc-view-conversion-refresh-interval' is set to nil.
 
 For now these keys are useful:
+\\<doc-view-mode-map>
+\\[quit-window] : Bury this buffer.  Conversion will go on in background.
+\\[image-kill-buffer] : Kill the conversion process and this buffer.
+\\[doc-view-kill-proc] : Kill the conversion process.\n")))))
 
-`q' : Bury this buffer.  Conversion will go on in background.
-`k' : Kill the conversion process and this buffer.
-`K' : Kill the conversion process.\n"))))
-
-(declare-function tooltip-show "tooltip" (text &optional use-echo-area))
+(declare-function tooltip-show "tooltip" (text &optional use-echo-area
+                                               text-face default-face))
 
 (defun doc-view-show-tooltip ()
   (interactive)
   (tooltip-show (doc-view-current-info)))
+
+;; We define an own major mode for DocView's text display so that we
+;; can easily distinguish when we want to toggle back because
+;; text-mode is a likely candidate for a default major-mode
+;; (bug#34451).
+(define-derived-mode doc-view--text-view-mode text-mode "DV/Text"
+  "View mode used in DocView's text buffers."
+  (view-mode))
 
 (defun doc-view-open-text ()
   "Display the current doc's contents as text."
   (interactive)
   (if doc-view--current-converter-processes
       (message "DocView: please wait till conversion finished.")
-    (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir))))
+    (let ((txt (expand-file-name "doc.txt" (doc-view--current-cache-dir)))
+          (page (doc-view-current-page)))
       (if (file-readable-p txt)
 	  (let ((inhibit-read-only t)
 		(buffer-undo-list t)
 		(dv-bfn doc-view--buffer-file-name))
 	    (erase-buffer)
+            ;; FIXME: Replacing the buffer's PDF content with its txt rendering
+            ;; is pretty risky.  We should probably use *another*
+            ;; buffer instead, so there's much less risk of
+            ;; overwriting the PDF file with some text rendering.
 	    (set-buffer-multibyte t)
 	    (insert-file-contents txt)
-	    (text-mode)
+	    (doc-view--text-view-mode)
 	    (setq-local doc-view--buffer-file-name dv-bfn)
 	    (set-buffer-modified-p nil)
 	    (doc-view-minor-mode)
+            (goto-char (point-min))
+            ;; Put point at the start of the page the user was
+            ;; reading.  Pages are separated by Control-L characters.
+            (re-search-forward page-delimiter nil t (1- page))
 	    (add-hook 'write-file-functions
 		      (lambda ()
-			(when (eq major-mode 'text-mode)
+                        ;; FIXME: If the user changes major mode and then
+                        ;; saves the buffer, the PDF file will be clobbered
+                        ;; with its txt rendering!
+			(when (eq major-mode 'doc-view--text-view-mode)
 			  (error "Cannot save text contents of document %s"
 				 buffer-file-name)))
 		      nil t))
@@ -1456,7 +1752,7 @@ For now these keys are useful:
     ;; normal mode.
     (doc-view-fallback-mode)
     (doc-view-minor-mode 1))
-   ((eq major-mode 'text-mode)
+   ((eq major-mode 'doc-view--text-view-mode)
     (let ((buffer-undo-list t))
       ;; We're currently viewing the document's text contents, so switch
       ;; back to .
@@ -1621,11 +1917,11 @@ If BACKWARD is non-nil, jump to the previous match."
 	 (substitute-command-keys
 	  (concat "Type \\[doc-view-toggle-display] to toggle between "
 		  "editing or viewing the document."))))
-    (message
-     "%s"
-     (concat "No PNG support is available, or some conversion utility for "
-	     (file-name-extension doc-view--buffer-file-name)
-	     " files is missing."))
+    (if (image-type-available-p 'png)
+        (message "Conversion utility \"%s\" not available for %s"
+                 doc-view-ghostscript-program
+	         (file-name-extension doc-view--buffer-file-name))
+      (message "PNG support not available; can't view document"))
     (if (and (executable-find doc-view-pdftotext-program)
 	     (y-or-n-p
 	      "Unable to render file.  View extracted text instead? "))
@@ -1648,11 +1944,6 @@ If BACKWARD is non-nil, jump to the previous match."
   (remove-overlays (point-min) (point-max) 'doc-view t)
   (if (consp image-mode-winprops-alist) (setq image-mode-winprops-alist nil)))
 
-(defun doc-view-intersection (l1 l2)
-  (let ((l ()))
-    (dolist (x l1) (if (memq x l2) (push x l)))
-    l))
-
 (defun doc-view-set-doc-type ()
   "Figure out the current document type (`doc-view-doc-type')."
   (let ((name-types
@@ -1664,6 +1955,8 @@ If BACKWARD is non-nil, jump to the previous match."
                    ("dvi" dvi)
                    ;; PDF
                    ("pdf" pdf) ("epdf" pdf)
+                   ;; EPUB
+                   ("epub" epub)
                    ;; PostScript
                    ("ps" ps) ("eps" ps)
                    ;; DjVu
@@ -1675,7 +1968,13 @@ If BACKWARD is non-nil, jump to the previous match."
                    ;; Microsoft Office formats (also handled by the odf
                    ;; conversion chain).
                    ("doc" odf) ("docx" odf) ("xls" odf) ("xlsx" odf)
-                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf))
+                   ("ppt" odf) ("pps" odf) ("pptx" odf) ("rtf" odf)
+                   ;; CBZ
+                   ("cbz" cbz)
+                   ;; FB2
+                   ("fb2" fb2)
+                   ;; (Open)XPS
+                   ("xps" xps) ("oxps" oxps))
 		 t))))
 	(content-types
 	 (save-excursion
@@ -1684,10 +1983,15 @@ If BACKWARD is non-nil, jump to the previous match."
 	    ((looking-at "%!") '(ps))
 	    ((looking-at "%PDF") '(pdf))
 	    ((looking-at "\367\002") '(dvi))
-	    ((looking-at "AT&TFORM") '(djvu))))))
+	    ((looking-at "AT&TFORM") '(djvu))
+            ;; The following pattern actually is for recognizing
+            ;; zip-archives, so that this same association is used for
+            ;; cbz files. This is fine, as cbz files should be handled
+            ;; like epub anyway.
+            ((looking-at "PK") '(epub odf))))))
     (setq-local
      doc-view-doc-type
-     (car (or (doc-view-intersection name-types content-types)
+     (car (or (nreverse (seq-intersection name-types content-types #'eq))
               (when (and name-types content-types)
                 (error "Conflicting types: name says %s but content says %s"
                        name-types content-types))
@@ -1695,11 +1999,15 @@ If BACKWARD is non-nil, jump to the previous match."
               (error "Cannot determine the document type"))))))
 
 (defun doc-view-set-up-single-converter ()
-  "Find the right single-page converter for the current document type"
+  "Find the right single-page converter for the current document type."
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
-                 (`djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
-                 (_     (list doc-view-pdf->png-converter-function  'png  "png")))))
+                 ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
+                 (_ (if (and (eq doc-view-pdf->png-converter-function
+                                 #'doc-view-pdf->png-converter-mupdf)
+                             doc-view-mupdf-use-svg)
+                        (list doc-view-pdf->png-converter-function 'svg "svg")
+                      (list doc-view-pdf->png-converter-function 'png "png"))))))
     (setq-local doc-view-single-page-converter-function conv-function)
     (setq-local doc-view--image-type type)
     (setq-local doc-view--image-file-pattern (concat "page-%s." extension))))
@@ -1728,7 +2036,7 @@ If BACKWARD is non-nil, jump to the previous match."
       ;; window-parameters in the window-state(s) and then restoring this
       ;; window-state should call us back (to interpret/use those parameters).
       (doc-view-goto-page page)
-      (when slice (apply 'doc-view-set-slice slice))
+      (when slice (apply #'doc-view-set-slice slice))
       (current-buffer))))
 
 (add-to-list 'desktop-buffer-mode-handlers
@@ -1752,12 +2060,7 @@ toggle between displaying the document or editing it as text.
       ;; returns nil for tar members.
       (doc-view-fallback-mode)
 
-    (let* ((prev-major-mode (if (derived-mode-p 'doc-view-mode)
-				doc-view--previous-major-mode
-			      (unless (eq major-mode 'fundamental-mode)
-				major-mode))))
-      (kill-all-local-variables)
-      (setq-local doc-view--previous-major-mode prev-major-mode))
+    (major-mode-suspend)
 
     (dolist (var doc-view-saved-settings)
       (set (make-local-variable (car var)) (cdr var)))
@@ -1769,49 +2072,55 @@ toggle between displaying the document or editing it as text.
     (unless (memq doc-view-doc-type '(ps))
       (setq-local require-final-newline nil))
 
+    ;; These modes will just display "1", so they're not very useful
+    ;; in this mode.
+    (setq-local global-linum-mode nil
+                display-line-numbers-mode nil)
+
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
     (setq-local doc-view--buffer-file-name
-                (cond
-                 (jka-compr-really-do-compress
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (file-name-nondirectory
-                    (file-name-sans-extension buffer-file-name))
-                   doc-view-cache-directory))
-                 ;; Is the file readable by local processes?
-                 ;; We used to use `file-remote-p' but it's unclear what it's
-                 ;; supposed to return nil for things like local files accessed
-                 ;; via `su' or via file://...
-                 ((let ((file-name-handler-alist nil))
-                    (not (and buffer-file-name
-                              (file-readable-p buffer-file-name))))
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (if buffer-file-name
-                       (file-name-nondirectory buffer-file-name)
-                     (buffer-name))
-                   doc-view-cache-directory))
-                 (t buffer-file-name)))
+		(convert-standard-filename
+                 (cond
+                  (jka-compr-really-do-compress
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (file-name-nondirectory
+                     (file-name-sans-extension buffer-file-name))
+                    doc-view-cache-directory))
+                  ;; Is the file readable by local processes?
+                  ;; We used to use `file-remote-p' but it's unclear what it's
+                  ;; supposed to return nil for things like local files accessed
+                  ;; via `su' or via file://...
+                  ((let ((file-name-handler-alist nil))
+                     (not (and buffer-file-name
+                               (file-readable-p buffer-file-name))))
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (if buffer-file-name
+			(file-name-nondirectory buffer-file-name)
+                      (buffer-name))
+                    doc-view-cache-directory))
+                  (t buffer-file-name))))
     (when (not (string= doc-view--buffer-file-name buffer-file-name))
       (write-region nil nil doc-view--buffer-file-name))
 
-    (setq-local revert-buffer-function #'doc-view-revert-buffer)
+    (add-function :around (local 'revert-buffer-function) #'doc-view--revert-buffer)
 
     (add-hook 'change-major-mode-hook
 	      (lambda ()
 		(doc-view-kill-proc)
 		(remove-overlays (point-min) (point-max) 'doc-view t))
 	      nil t)
-    (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
-    (add-hook 'kill-buffer-hook 'doc-view-kill-proc nil t)
-    (setq-local desktop-save-buffer 'doc-view-desktop-save-buffer)
+    (add-hook 'clone-indirect-buffer-hook #'doc-view-clone-buffer-hook nil t)
+    (add-hook 'kill-buffer-hook #'doc-view-kill-proc nil t)
+    (setq-local desktop-save-buffer #'doc-view-desktop-save-buffer)
 
     (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
     ;; Keep track of display info ([vh]scroll, page number, overlay,
     ;; ...)  for each window in which this document is shown.
     (add-hook 'image-mode-new-window-functions
-	      'doc-view-new-window-function nil t)
+	      #'doc-view-new-window-function nil t)
     (image-mode-setup-winprops)
 
     (setq-local mode-line-position
@@ -1827,7 +2136,7 @@ toggle between displaying the document or editing it as text.
                     #'doc-view-scroll-down-or-previous-page))
     (setq-local cursor-type nil)
     (use-local-map doc-view-mode-map)
-    (add-hook 'after-revert-hook 'doc-view-reconvert-doc nil t)
+    (add-hook 'after-revert-hook #'doc-view-reconvert-doc nil t)
     (setq-local bookmark-make-record-function
                 #'doc-view-bookmark-make-record)
     (setq mode-name "DocView"
@@ -1848,14 +2157,7 @@ toggle between displaying the document or editing it as text.
                           '(doc-view-resolution
                             image-mode-winprops-alist)))))
     (remove-overlays (point-min) (point-max) 'doc-view t)
-    (if doc-view--previous-major-mode
-        (funcall doc-view--previous-major-mode)
-      (let ((auto-mode-alist
-             (rassq-delete-all
-              'doc-view-mode-maybe
-              (rassq-delete-all 'doc-view-mode
-                                (copy-alist auto-mode-alist)))))
-        (normal-mode)))
+    (major-mode-restore '(doc-view-mode-maybe doc-view-mode))
     (when vars
       (setq-local doc-view-saved-settings vars))))
 
@@ -1874,13 +2176,9 @@ to the next best mode."
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
   "Toggle displaying buffer via Doc View (Doc View minor mode).
-With a prefix argument ARG, enable Doc View minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 See the command `doc-view-mode' for more information on this mode."
-  nil " DocView" doc-view-minor-mode-map
-  :group 'doc-view
+  :lighter " DocView"
   (when doc-view-minor-mode
     (add-hook 'change-major-mode-hook (lambda () (doc-view-minor-mode -1)) nil t)
     (message
@@ -1897,6 +2195,83 @@ See the command `doc-view-mode' for more information on this mode."
   "Open `dired' in `doc-view-cache-directory'."
   (interactive)
   (dired doc-view-cache-directory))
+
+;;;; Presentation mode
+
+(defvar-keymap doc-view-presentation-mode-map
+  "ESC"  #'doc-view-presentation-exit
+  "q"    #'doc-view-presentation-exit
+  ;; "C" #'doc-view-convert-all-pages
+  )
+
+(defvar-local doc-view-presentation--src-data nil)
+
+(defun doc-view-presentation-exit ()
+  "Leave Doc-View's presentation mode."
+  (interactive)
+  (doc-view-presentation-mode -1))
+
+(define-minor-mode doc-view-presentation-mode
+  "Minor mode used while in presentation mode."
+  :init-value nil :keymap doc-view-presentation-mode-map
+  (if doc-view-presentation-mode
+      (progn
+        (setq-local mode-line-format nil)
+        (doc-view-fit-page-to-window)
+        ;; (doc-view-convert-all-pages)
+        )
+    (kill-local-variable 'mode-line-format)
+    (let ((pn (doc-view-current-page))
+          (win (selected-window)))
+      (doc-view-presentation--propagate-pn doc-view-presentation--src-data pn)
+      (setq doc-view-presentation--src-data nil)
+      (with-selected-window win
+        (if (and (one-window-p) (window-dedicated-p))
+            (delete-frame))))))
+
+(defun doc-view-presentation--propagate-pn (src-data pn)
+  (when src-data
+    (let ((win (car src-data)))
+      (when (and (window-live-p win)
+                 (eq (current-buffer) (window-buffer win)))
+        (select-window win))
+      (when (eq (doc-view-current-page) (cdr src-data))
+        (doc-view-goto-page pn)))))
+
+(defun doc-view-presentation ()
+  "Put Doc-View in presentation mode."
+  (interactive)
+  (let* ((src-data (cons (selected-window) (doc-view-current-page)))
+         (mal (display-monitor-attributes-list))
+         (monitor-top 0)
+         (monitor-left 0)
+         (monitor-height (display-pixel-height))
+         (monitor-width (display-pixel-width)))
+    (dolist (attrs mal)
+      (when (memq (selected-frame) (alist-get 'frames attrs))
+        (let ((geom (alist-get 'geometry attrs)))
+          (when geom
+            (setq monitor-left (nth 0 geom))
+            (setq monitor-top (nth 1 geom))
+            (setq monitor-width (nth 2 geom))
+            (setq monitor-height (nth 3 geom))))))
+    (let ((frame (make-frame
+                  `((minibuffer . nil)
+                    (fullscreen . fullboth)
+                    (height . ,(ceiling monitor-height (frame-char-height)))
+                    ;; Don't use `ceiling' here since doc-view will center the
+                    ;; image instead.
+                    (width . ,(ceiling monitor-width (frame-char-width)))
+                    (name . "Doc-View-Presentation")
+                    (top . ,monitor-top) (left . ,monitor-left) (user-position . t)
+                    (vertical-scroll-bars . nil)
+                    (left-fringe . 0) (right-fringe . 0)
+                    (menu-bar-lines . 0)
+                    (tool-bar-lines . 0)))))
+      (select-window (frame-root-window frame))
+      (setq doc-view-presentation--src-data src-data)
+      (set-window-dedicated-p (selected-window) t)
+      (doc-view-presentation-mode 1))))
 
 
 ;;;; Bookmark integration
@@ -1928,6 +2303,14 @@ See the command `doc-view-mode' for more information on this mode."
 	      (doc-view-goto-page page))))
     (add-hook 'bookmark-after-jump-hook show-fn-sym)
     (bookmark-default-handler bmk)))
+
+(put 'doc-view-bookmark-jump 'bookmark-handler-type "DocView")
+
+;; Obsolete.
+
+(defun doc-view-intersection (l1 l2)
+  (declare (obsolete seq-intersection "28.1"))
+  (nreverse (seq-intersection l1 l2 #'eq)))
 
 (provide 'doc-view)
 

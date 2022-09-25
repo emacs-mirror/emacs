@@ -1,7 +1,7 @@
 		    Building and Installing Emacs on MS-Windows
                           using the MSYS and MinGW tools
 
-  Copyright (C) 2013-2017 Free Software Foundation, Inc.
+  Copyright (C) 2013-2022 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
@@ -52,7 +52,8 @@ build will run on Windows 9X and newer systems).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs'
+       ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs' \
+         CFLAGS='-O0 -g3'
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -461,7 +462,8 @@ build will run on Windows 9X and newer systems).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking='yes,glyphs'
+     ./configure --prefix=PREFIX --enable-checking='yes,glyphs' \
+       CFLAGS='-O0 -g3'
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration
@@ -486,6 +488,7 @@ build will run on Windows 9X and newer systems).
        Does Emacs use a gif library?                           yes
        Does Emacs use a png library?                           yes
        Does Emacs use -lrsvg-2?                                yes
+       Does Emacs use -lwebp?                                  yes
        Does Emacs use cairo?                                   no
        Does Emacs use -llcms2?                                 yes
        Does Emacs use imagemagick?                             no
@@ -500,11 +503,21 @@ build will run on Windows 9X and newer systems).
        Does Emacs use -lgnutls?                                yes
        Does Emacs use -lxml2?                                  yes
        Does Emacs use -lfreetype?                              no
+       Does Emacs use HarfBuzz?                                yes
        Does Emacs use -lm17n-flt?                              no
        Does Emacs use -lotf?                                   no
        Does Emacs use -lxft?                                   no
+       Does Emacs use -lsystemd?                               no
+       Does Emacs use -ljansson?                               yes
+       Does Emacs use the GMP library?                         yes
        Does Emacs directly use zlib?                           yes
+       Does Emacs have dynamic modules support?                yes
        Does Emacs use toolkit scroll bars?                     yes
+       Does Emacs support Xwidgets?                            no
+       Does Emacs have threading support in lisp?              yes
+       Does Emacs support the portable dumper?                 yes
+       Does Emacs support the legacy unexec dumping?           no
+       Which dumping strategy does Emacs use?                  pdumper
 
   You are almost there, hang on.
 
@@ -585,8 +598,8 @@ build will run on Windows 9X and newer systems).
 * Optional image library support
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
-  handle other image types: xpm, tiff, gif, png, jpeg and experimental
-  support for svg.
+  handle other image types: xpm, tiff, gif, png, jpeg, webp and
+  experimental support for svg.
 
   To build Emacs with support for them, the corresponding headers must
   be in the include path and libraries should be where the linker
@@ -724,6 +737,18 @@ build will run on Windows 9X and newer systems).
   without it by specifying the --without-rsvg switch to the configure
   script.
 
+  For WebP images you will need libwebp.  You can find it here:
+
+    http://sourceforge.net/projects/ezwinports/files/
+
+  Note: the MS-Windows binary distribution on the Google site:
+
+    https://developers.google.com/speed/webp/
+
+  was compiled by MSVC, and includes only static libraries, no DLLs.
+  So you cannot use that to build Emacs with WebP support on
+  MS-Windows, as that needs libwebp as a DLL.
+
   Binaries for the other image libraries can be found on the
   ezwinports site or at the GnuWin32 project (the latter are generally
   very old, so not recommended).  Note specifically that, due to some
@@ -805,6 +830,21 @@ build will run on Windows 9X and newer systems).
   management engine to Lisp programs using the lcms2 library.
   Prebuilt binaries of lcms2 DLL (for 32-bit builds of Emacs) are
   available from the ezwinports site and from the MSYS2 project.
+
+* Optional support for JSON
+
+  Emacs can provide built-in support for JSON parsing and
+  serialization using the libjansson library.  Prebuilt binaries of
+  the libjansson DLL (for 32-bit builds of Emacs) are available from
+  the ezwinports site and from the MSYS2 project.
+
+* Optional support for HarfBuzzz shaping library
+
+  Emacs supports display of complex scripts and Arabic shaping.  The
+  preferred library for that is HarfBuzz; prebuilt binaries are
+  available from the ezwinports site (for 32-bit builds of Emacs) and
+  from the MSYS2 project.  If HarfBuzz is not available, Emacs will
+  use the Uniscribe shaping engine that is part of MS-Windows.
 
 
 This file is part of GNU Emacs.

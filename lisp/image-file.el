@@ -1,6 +1,6 @@
-;;; image-file.el --- support for visiting image files
+;;; image-file.el --- support for visiting image files  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: multimedia
@@ -32,11 +32,12 @@
 ;;; Code:
 
 (require 'image)
+(require 'image-converter)
 
 
 ;;;###autoload
 (defcustom image-file-name-extensions
-  (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg"))
+  (purecopy '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm" "svg" "webp"))
   "A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
@@ -80,25 +81,29 @@ the variable is set using \\[customize]."
   (let ((exts-regexp
 	 (and image-file-name-extensions
 	      (concat "\\."
-		      (regexp-opt (nconc (mapcar #'upcase
-						 image-file-name-extensions)
-					 image-file-name-extensions)
-				  t)
+		      (regexp-opt
+                       (append (mapcar #'upcase image-file-name-extensions)
+			       image-file-name-extensions
+                               (mapcar #'upcase
+				       image-converter-file-name-extensions)
+                               image-converter-file-name-extensions)
+		       t)
 		      "\\'"))))
-    (if image-file-name-regexps
-	(mapconcat 'identity
-		   (if exts-regexp
-		       (cons exts-regexp image-file-name-regexps)
-		     image-file-name-regexps)
-		   "\\|")
-      exts-regexp)))
+    (mapconcat
+     #'identity
+     (delq nil
+           (nconc (list exts-regexp
+                        (car (rassq 'imagemagick image-type-file-name-regexps)))
+		  (ensure-list image-file-name-regexps)))
+     "\\|")))
 
 
 ;;;###autoload
 (defun insert-image-file (file &optional visit beg end replace)
   "Insert the image file FILE into the current buffer.
-Optional arguments VISIT, BEG, END, and REPLACE are interpreted as for
-the command `insert-file-contents'."
+Optional arguments VISIT, BEG, END, and REPLACE are interpreted
+as for the command `insert-file-contents'.  Return list of
+absolute file name and number of characters inserted."
   (let ((rval
 	 (image-file-call-underlying #'insert-file-contents-literally
 				     'insert-file-contents
@@ -109,11 +114,8 @@ the command `insert-file-contents'."
       (let* ((ibeg (point))
 	     (iend (+ (point) (cadr rval)))
 	     (visitingp (and visit (= ibeg (point-min)) (= iend (point-max))))
-	     (data
-	      (string-make-unibyte
-	       (buffer-substring-no-properties ibeg iend)))
-	     (image
-	      (create-image data nil t))
+             (image (create-image (encode-coding-region ibeg iend 'binary t)
+                                  nil t))
 	     (props
 	      `(display ,image
 			yank-handler
@@ -142,7 +144,9 @@ the command `insert-file-contents'."
   "Yank handler for inserting an image into a buffer."
   (let ((len (length string))
 	(image (get-text-property 0 'display string)))
-    (remove-text-properties 0 len yank-excluded-properties string)
+    (if (eq yank-excluded-properties t)
+        (set-text-properties 0 len () string)
+      (remove-list-of-text-properties 0 len yank-excluded-properties string))
     (if (consp image)
 	(add-text-properties 0
 			     (or (next-single-property-change 0 'image-counter string)
@@ -179,9 +183,6 @@ Optional argument ARGS are the arguments to call FUNCTION with."
 ;;;###autoload
 (define-minor-mode auto-image-file-mode
   "Toggle visiting of image files as images (Auto Image File mode).
-With a prefix argument ARG, enable Auto Image File mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 An image file is one whose name has an extension in
 `image-file-name-extensions', or matches a regexp in

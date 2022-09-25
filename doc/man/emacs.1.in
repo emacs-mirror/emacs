@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH EMACS 1 "2007 April 13" "GNU Emacs @version@"
+.TH EMACS 1 "2022-06-07" "GNU Emacs @version@" "GNU"
 .
 .
 .SH NAME
@@ -61,7 +61,7 @@ The following options are of general interest:
 Edit
 .IR file .
 .TP
-.BI \-\-file " file\fR,\fP " \-\-find-file " file\fR,\fP " \-\-visit " file"
+.BI \-\-file= "file\fR,\fP " \-\-find-file= "file\fR,\fP " \-\-visit= "file"
 The same as specifying
 .I file
 directly as an argument.
@@ -79,7 +79,7 @@ Go to the specified
 and
 .IR column .
 .TP
-.BI \-\-chdir " directory"
+.BI \-\-chdir= "directory"
 Change to
 .IR directory .
 .TP
@@ -112,24 +112,31 @@ Lisp debugger during the processing of the user init file
 .BR ~/.emacs .
 This is useful for debugging problems in the init file.
 .TP
-.BI \-u " user\fR,\fP " \-\-user " user"
+.BI \-u " user\fR,\fP " \-\-user= "user"
 Load
 .IR user 's
 init file.
 .TP
-.BI \-t " file\fR,\fP " \-\-terminal " file"
+.BI \-\-init\-directory= "directory"
+Start emacs with user-emacs-directory set to
+.IR directory .
+.TP
+.BI \-t " file\fR,\fP " \-\-terminal= "file"
 Use specified
 .I file
 as the terminal instead of using stdin/stdout.
 This must be the first argument specified in the command line.
 .TP
-.BI \-\-daemon "\fR[=\fPname\fR]"
+.BI \-\-daemon "\fR[=\fPname\fR], " \-\-bg\-daemon "\fR[=\fPname\fR]"
 Start Emacs as a daemon, enabling the Emacs server and disconnecting
 from the terminal.  You can then use the emacsclient (see
 .BR emacsclient (1))
 command to
 connect to the server (with optional
 .IR name ")."
+.TP
+.BI \-\-fg\-daemon "\fR[=\fPname\fR]"
+Like "\-\-bg\-daemon", but don't disconnect from the terminal.
 .TP
 .B \-\-version
 Display
@@ -144,15 +151,15 @@ The following options are Lisp-oriented
 (these options are processed in the order encountered):
 .RS
 .TP 8
-.BI \-f " function\fR,\fP " \-\-funcall " function"
+.BI \-f " function\fR,\fP " \-\-funcall= "function"
 Execute the lisp function
 .IR function .
 .TP
-.BI \-l " file\fR,\fP " \-\-load " file"
+.BI \-l " file\fR,\fP " \-\-load= "file"
 Load the lisp code in the file
 .IR file .
 .TP
-.BI \-\-eval " expr\fR,\fP " \-\-execute " expr"
+.BI \-\-eval= "expr\fR,\fP " \-\-execute= "expr"
 Evaluate the Lisp expression
 .IR expr .
 .RE
@@ -173,7 +180,7 @@ Run
 .I file
 as an Emacs Lisp script.
 .TP
-.BI \-\-insert " file"
+.BI \-\-insert= "file"
 Insert contents of
 .I file
 into the current buffer.
@@ -183,7 +190,7 @@ Exit
 .I Emacs
 while in batch mode.
 .TP
-.BI \-L " dir\fR,\fP " \-\-directory " dir"
+.BI \-L " dir\fR,\fP " \-\-directory= "dir"
 Add
 .I dir
 to the list of directories
@@ -194,7 +201,7 @@ searches for Lisp files.
 .\" START DELETING HERE IF YOU'RE NOT USING X
 .SS Using Emacs with X
 .I Emacs
-has been tailored to work well with the X window system.
+has been tailored to work well with the X Window System.
 If you run
 .I Emacs
 from under X windows, it will create its own X window to
@@ -206,13 +213,16 @@ process so that you can continue using your original window.
 can be started with the following X switches:
 .RS
 .TP 8
-.BI \-\-name " name"
+.BI \-\-name= "name"
 Specify the name which should be assigned to the initial
 .I Emacs
 window.
 This controls looking up X resources as well as the window title.
 .TP
-.BI \-T " name\fR,\fP " \-\-title " name"
+.BR \-\-no\-x\-resources
+Do not load X resources.
+.TP
+.BI \-T " name\fR,\fP " \-\-title= "name"
 Specify the title for the initial X window.
 .TP
 .BR \-r ", " \-rv ", " \-\-reverse\-video
@@ -220,7 +230,7 @@ Display the
 .I Emacs
 window in reverse video.
 .TP
-.BI \-fn " font\fR,\fP " \-\-font " font"
+.BI \-fn " font\fR,\fP " \-\-font= "font"
 Set the
 .I Emacs
 window's font to that specified by
@@ -247,7 +257,7 @@ for more information.
 When you specify a font, be sure to put a space between the
 switch and the font name.
 .TP
-.BI \-\-xrm " resources"
+.BI \-\-xrm= "resources"
 Set additional X resources.
 .TP
 .BI "\-\-color\fR,\fP \-\-color=" mode
@@ -256,33 +266,34 @@ Override color mode for character terminals;
 defaults to "auto", and can also be "never", "auto", "always",
 or a mode name like "ansi8".
 .TP
-.BI \-bw " pixels\fR,\fP " \-\-border\-width " pixels"
+.BI \-bw " pixels\fR,\fP " \-\-border\-width= "pixels"
 Set the
 .I Emacs
 window's border width to the number of pixels specified by
 .IR pixels .
 Defaults to one pixel on each side of the window.
 .TP
-.BI \-ib " pixels\fR,\fP " \-\-internal\-border " pixels"
+.BI \-ib " pixels\fR,\fP " \-\-internal\-border= "pixels"
 Set the window's internal border width to the number of pixels specified
 by
 .IR pixels .
 Defaults to one pixel of padding on each side of the window.
 .TP
-.BI \-g " geometry\fR,\fP " \-\-geometry " geometry"
+.BI \-g " geometry\fR,\fP " \-\-geometry= "geometry"
 Set the
 .I Emacs
 window's width, height, and position as specified.
 The geometry specification is in the standard X format; see
 .BR X (7)
 for more information.
-The width and height are specified in characters; the default is
-80 by 24.
+The width and height are specified in characters; the default for GUI
+frames is a width of 80 and a height between 35 and 40, depending on
+the OS and the window manager.
 See the Emacs manual, section "Options for Window Size and Position",
 for information on how window sizes interact
-with selecting or deselecting the tool bar and menu bar.
+with selecting or deselecting the tool bar, tab bar and menu bar.
 .TP
-.BI \-lsp " pixels\fR,\fP " \-\-line\-spacing " pixels"
+.BI \-lsp " pixels\fR,\fP " \-\-line\-spacing= "pixels"
 Additional space to put between lines.
 .TP
 .BR \-vb ", " \-\-vertical\-scroll\-bars
@@ -300,26 +311,26 @@ Make the first frame as wide as the screen.
 .BR \-mm ", " \-\-maximized
 Maximize the first frame, like "\-fw \-fh".
 .TP
-.BI \-fg " color\fR,\fP " \-\-foreground\-color " color"
+.BI \-fg " color\fR,\fP " \-\-foreground\-color= "color"
 On color displays, set the color of the text.
 
 Use the command
 .I M\-x list\-colors\-display
 for a list of valid color names.
 .TP
-.BI \-bg " color\fR,\fP " \-\-background\-color " color"
+.BI \-bg " color\fR,\fP " \-\-background\-color= "color"
 On color displays, set the color of the window's background.
 .TP
-.BI \-bd " color\fR,\fP " \-\-border\-color " color"
+.BI \-bd " color\fR,\fP " \-\-border\-color= "color"
 On color displays, set the color of the window's border.
 .TP
-.BI \-cr " color\fR,\fP " \-\-cursor\-color " color"
+.BI \-cr " color\fR,\fP " \-\-cursor\-color= "color"
 On color displays, set the color of the window's text cursor.
 .TP
-.BI \-ms " color\fR,\fP " \-\-mouse\-color " color"
+.BI \-ms " color\fR,\fP " \-\-mouse\-color= "color"
 On color displays, set the color of the window's mouse cursor.
 .TP
-.BI \-d " displayname\fR,\fP " \-\-display " displayname"
+.BI \-d " displayname\fR,\fP " \-\-display= "displayname"
 Create the
 .I Emacs
 window on the display specified by
@@ -337,7 +348,7 @@ in iconified state.
 .BR \-nbc ", " \-\-no\-blinking\-cursor
 Disable blinking cursor.
 .TP
-.BI \-\-parent-id " xid"
+.BI \-\-parent-id= "xid"
 Set parent window.
 .TP
 .BR \-nw ", " \-\-no\-window\-system
@@ -513,6 +524,9 @@ window.
 .BR toolBar " (class " ToolBar )
 Number of lines to reserve for the tool bar.
 .TP
+.BR tabBar " (class " TabBar )
+Number of lines to reserve for the tab bar.
+.TP
 .BR useXIM " (class " UseXIM )
 Turns off use of X input methods (XIM) if
 .I false
@@ -559,7 +573,7 @@ distribution.
 /usr/local/share/info \(em files for the Info documentation browser.
 The complete text of the Emacs reference manual is included in a
 convenient tree structured form.
-Also includes the Emacs Lisp Reference Manual, useful to anyone
+This includes the Emacs Lisp Reference Manual, useful to anyone
 wishing to write programs in the Emacs Lisp extension language,
 and the Introduction to Programming in Emacs Lisp.
 
@@ -650,10 +664,7 @@ For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .SH COPYING
-Copyright
-.if t \(co
-.if n (C)
-1995, 1999-2017 Free Software Foundation, Inc.
+Copyright 1995, 1999-2022 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
@@ -669,3 +680,7 @@ document into another language, under the above conditions for
 modified versions, except that this permission notice may be stated
 in a translation approved by the Free Software Foundation.
 .
+
+.\" Local Variables:
+.\" time-stamp-pattern: "3/.TH EMACS 1 \"%Y-%02m-%02d\" \"GNU Emacs @version@\" \"GNU\"$"
+.\" End:

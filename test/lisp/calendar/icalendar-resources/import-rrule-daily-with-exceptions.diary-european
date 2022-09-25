@@ -1,0 +1,1 @@
+&%%(and (not (diary-date 25 9 2003)) (not (diary-date 21 9 2003)) (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily with exceptions

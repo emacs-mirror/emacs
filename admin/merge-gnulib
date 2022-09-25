@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2017 Free Software Foundation, Inc.
+# Copyright 2012-2022 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -27,30 +27,36 @@ GNULIB_URL=git://git.savannah.gnu.org/gnulib.git
 
 GNULIB_MODULES='
   alloca-opt binary-io byteswap c-ctype c-strcase
-  careadlinkat close-stream
+  canonicalize-lgpl
+  careadlinkat close-stream copy-file-range
   count-leading-zeros count-one-bits count-trailing-zeros
-  crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
-  d-type diffseq dtoastr dtotimespec dup2
+  crypto/md5 crypto/md5-buffer
+  crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
+  d-type diffseq double-slash-root dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
-  fcntl fcntl-h fdatasync fdopendir
-  filemode filevercmp flexmember fstatat fsusage fsync
-  getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
-  ignore-value intprops largefile lstat
-  manywarnings memrchr minmax mkostemp mktime nstrftime
-  pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat
-  sig2str socklen stat-time std-gnu11 stdalign stddef stdio
-  stpcpy strtoimax symlink sys_stat sys_time
+  fchmodat fcntl fcntl-h fdopendir file-has-acl
+  filemode filename filevercmp flexmember fpieee
+  free-posix fstatat fsusage fsync futimens
+  getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
+  ieee754-h ignore-value intprops largefile libgmp lstat
+  manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime
+  nanosleep nproc nstrftime
+  pathmax pipe2 pselect pthread_sigmask
+  qcopy-acl readlink readlinkat regex
+  sig2str sigdescr_np socklen stat-time std-gnu11 stdalign stddef stdio
+  stpcpy strnlen strtoimax symlink sys_stat sys_time
   tempname time time_r time_rz timegm timer-time timespec-add timespec-sub
-  update-copyright unlocked-io utimens
+  update-copyright unlocked-io utimensat
   vla warnings
 '
 
 AVOIDED_MODULES='
-  close dup fchdir fstat
-  malloc-posix msvc-inval msvc-nothrow
-  openat-die opendir raise
+  btowc chmod close crypto/af_alg dup fchdir fstat langinfo lock
+  mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
+  openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg stdbool
   threadlib tzset unsetenv utime utime-h
+  wchar wcrtomb wctype-h
 '
 
 GNULIB_TOOL_FLAGS='
@@ -96,6 +102,12 @@ test -x "$gnulib_srcdir"/gnulib-tool || {
   exit 1
 }
 
+# gnulib-tool has problems with a bare checkout (Bug#32452#65).
+test -f configure || ./autogen.sh || exit
+
+# Old caches can confuse autoconf when some Gnulib-related changes take effect.
+rm -fr autom4te.cache || exit
+
 avoided_flags=
 for module in $AVOIDED_MODULES; do
   avoided_flags="$avoided_flags --avoid=$module"
@@ -103,7 +115,9 @@ done
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
 	$avoided_flags $GNULIB_MODULES &&
-rm -- "$src"lib/gl_openssl.h "$src"m4/fcntl-o.m4 \
+rm -- "$src"lib/gl_openssl.h \
+      "$src"lib/stdio-read.c "$src"lib/stdio-write.c \
+      "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \
       "$src"m4/gnulib-cache.m4 "$src"m4/gnulib-tool.m4 \
       "$src"m4/manywarnings-c++.m4 \
@@ -114,5 +128,8 @@ cp -- "$gnulib_srcdir"/build-aux/config.guess \
       "$gnulib_srcdir"/build-aux/install-sh \
       "$gnulib_srcdir"/build-aux/move-if-change \
    "$src"build-aux &&
+cp -- "$gnulib_srcdir"/lib/af_alg.h \
+      "$gnulib_srcdir"/lib/save-cwd.h \
+   "$src"lib &&
 { test -z "$src" || cd "$src"; } &&
 ./autogen.sh

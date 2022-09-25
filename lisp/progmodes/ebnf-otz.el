@@ -1,9 +1,8 @@
-;;; ebnf-otz.el --- syntactic chart OpTimiZer
+;;; ebnf-otz.el --- syntactic chart OpTimiZer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.0
 ;; Package: ebnf2ps

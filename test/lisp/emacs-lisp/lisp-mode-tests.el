@@ -1,6 +1,8 @@
 ;;; lisp-mode-tests.el --- Test Lisp editing commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2022 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,6 +22,10 @@
 (require 'ert)
 (require 'cl-lib)
 (require 'lisp-mode)
+(require 'faceup)
+
+
+;;; Indentation
 
 (defconst lisp-mode-tests--correctly-indented-sexp "\
 \(a
@@ -112,6 +118,57 @@ noindent\" 3
       ;; The final paren should not be indented, because the sexp
       ;; we're indenting ends on the previous line.
       (should (equal (buffer-string) original)))))
+
+(ert-deftest indent-sexp-go ()
+  "Make sure `indent-sexp' doesn't stop after #s."
+  ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31984.
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "#s(foo\nbar)\n")
+    (goto-char (point-min))
+    (indent-sexp)
+    (should (equal (buffer-string) "\
+#s(foo
+   bar)\n"))))
+
+(ert-deftest indent-sexp-cant-go ()
+  "`indent-sexp' shouldn't error before a sexp."
+  ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31984#32.
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(())")
+    (goto-char (1+ (point-min)))
+    ;; Paredit calls `indent-sexp' from this position.
+    (indent-sexp)
+    (should (equal (buffer-string) "(())"))))
+
+(ert-deftest indent-sexp-stop-before-eol-comment ()
+  "`indent-sexp' shouldn't look for more sexps after an eol comment."
+  ;; See https://debbugs.gnu.org/35286.
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((str "() ;;\n  x"))
+      (insert str)
+      (goto-char (point-min))
+      (indent-sexp)
+      ;; The "x" is in the next sexp, so it shouldn't get indented.
+      (should (equal (buffer-string) str)))))
+
+(ert-deftest indent-sexp-stop-before-eol-non-lisp ()
+  "`indent-sexp' shouldn't be too aggressive in non-Lisp modes."
+  ;; See https://debbugs.gnu.org/35286#13.
+  (with-temp-buffer
+    (prolog-mode)
+    (let ((str "\
+x(H) -->
+    {y(H)}.
+a(A) -->
+    b(A)."))
+      (insert str)
+      (search-backward "{")
+      (indent-sexp)
+      ;; There's no line-spanning sexp, so nothing should be indented.
+      (should (equal (buffer-string) str)))))
 
 (ert-deftest lisp-indent-region ()
   "Test basics of `lisp-indent-region'."
@@ -224,6 +281,79 @@ Expected initialization file: `%s'\"
       (comment-indent)
       (should (equal (buffer-string) correct)))))
 
+(ert-deftest lisp-indent-with-read-only-field ()
+  "Test indentation on line with read-only field (Bug#32014)."
+  (with-temp-buffer
+    (insert (propertize "prompt> " 'field 'output 'read-only t
+                        'rear-nonsticky t 'front-sticky '(read-only)))
+    (insert " foo")
+    (lisp-indent-line)
+    (should (equal (buffer-string) "prompt> foo"))))
+
+(ert-deftest lisp-indent-unfinished-string ()
+  "Don't infloop on unfinished string (Bug#37045)."
+  (with-temp-buffer
+    (insert "\"\n")
+    (lisp-indent-region (point-min) (point-max))))
+
+(ert-deftest lisp-indent-defun ()
+  (with-temp-buffer
+    (lisp-mode)
+    (let ((orig "(defun x ()
+  (print (quote ( thingy great
+		  stuff)))
+  (print (quote (thingy great
+			stuff))))"))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
+
+;;; Fontification
+
+(ert-deftest lisp-fontify-confusables ()
+  "Unescaped 'smart quotes' should be fontified in `font-lock-warning-face'."
+  (with-temp-buffer
+    (dolist (ch
+             '(#x2018 ;; LEFT SINGLE QUOTATION MARK
+               #x2019 ;; RIGHT SINGLE QUOTATION MARK
+               #x201B ;; SINGLE HIGH-REVERSED-9 QUOTATION MARK
+               #x201C ;; LEFT DOUBLE QUOTATION MARK
+               #x201D ;; RIGHT DOUBLE QUOTATION MARK
+               #x201F ;; DOUBLE HIGH-REVERSED-9 QUOTATION MARK
+               #x301E ;; DOUBLE PRIME QUOTATION MARK
+               #xFF02 ;; FULLWIDTH QUOTATION MARK
+               #xFF07 ;; FULLWIDTH APOSTROPHE
+               ))
+      (insert (format "«w:%c»foo \\%cfoo\n" ch ch)))
+    (let ((faceup (buffer-string)))
+      (faceup-clean-buffer)
+      (should (faceup-test-font-lock-buffer 'emacs-lisp-mode faceup)))))
+
+(ert-deftest test-lisp-current-defun-name ()
+  (require 'edebug)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(defun foo ()\n'bar)\n")
+    (goto-char 5)
+    (should (equal (lisp-current-defun-name) "foo")))
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(define-flabbergast-test zot ()\n'bar)\n")
+    (goto-char 5)
+    (should (equal (lisp-current-defun-name) "zot")))
+  ;; These tests should probably work after bug#49592 has been fixed.
+  ;; (with-temp-buffer
+  ;;   (emacs-lisp-mode)
+  ;;   (insert "(progn\n ;; comment\n ;; about that\n (define-key ...)\n )")
+  ;;   (goto-char 5)
+  ;;   (should (equal (lisp-current-defun-name) "progn")))
+  ;; (with-temp-buffer
+  ;;   (emacs-lisp-mode)
+  ;;   (insert "(defblarg \"a\" 'b)")
+  ;;   (goto-char 5)
+  ;;   (should (equal (lisp-current-defun-name) "defblarg")))
+  )
 
 (provide 'lisp-mode-tests)
 ;;; lisp-mode-tests.el ends here

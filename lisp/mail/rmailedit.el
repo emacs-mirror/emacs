@@ -1,6 +1,6 @@
-;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message
+;;; rmailedit.el --- "RMAIL edit mode"  Edit the current message  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1994, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail
@@ -34,13 +34,10 @@
   :group 'rmail-edit)
 
 
-(defvar rmail-edit-map
-  (let ((map (make-sparse-keymap)))
-    ;; Make a keymap that inherits text-mode-map.
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-c\C-c" 'rmail-cease-edit)
-    (define-key map "\C-c\C-]" 'rmail-abort-edit)
-    map))
+(defvar-keymap rmail-edit-map
+  :parent text-mode-map
+  "C-c C-c" #'rmail-cease-edit
+  "C-c C-]" #'rmail-abort-edit)
 
 (declare-function rmail-summary-disable "rmailsum" ())
 
@@ -63,16 +60,13 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
     (use-local-map rmail-edit-map)
     (setq major-mode 'rmail-edit-mode)
     (setq mode-name "RMAIL Edit")
-    (if (boundp 'mode-line-modified)
-	(setq mode-line-modified (default-value 'mode-line-modified))
-      (setq mode-line-format (default-value 'mode-line-format)))
+    (setq mode-line-modified (default-value 'mode-line-modified))
     ;; Don't turn off auto-saving based on the size of the buffer
     ;; because that code does not understand buffer-swapping.
-    (make-local-variable 'auto-save-include-big-deletions)
-    (setq auto-save-include-big-deletions t)
+    (setq-local auto-save-include-big-deletions t)
     ;; If someone uses C-x C-s, don't clobber the rmail file (bug#2625).
     (add-hook 'write-region-annotate-functions
-	      'rmail-write-region-annotate nil t)
+	      #'rmail-write-region-annotate nil t)
     (run-mode-hooks 'rmail-edit-mode-hook)))
 
 ;; Rmail Edit mode is suitable only for specially formatted data.
@@ -100,10 +94,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (if (zerop rmail-total-messages)
       (error "No messages in this buffer"))
   (rmail-modify-format)
-  (make-local-variable 'rmail-old-pruned)
-  (setq rmail-old-pruned (rmail-msg-is-pruned))
+  (setq-local rmail-old-pruned (rmail-msg-is-pruned))
   (rmail-edit-mode)
-  (set (make-local-variable 'rmail-old-mime-state)
+  (setq-local rmail-old-mime-state
        (and rmail-enable-mime
 	    ;; If you use something else, you are on your own.
 	    (eq rmail-mime-feature 'rmailmm)
@@ -127,13 +120,11 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 		(goto-char (point-min))
 		;; t = decoded; raw = raw.
 		(aref (aref (rmail-mime-entity-display entity) 0) 0)))))
-  (make-local-variable 'rmail-old-text)
-  (setq rmail-old-text
-	(save-restriction
-	  (widen)
-	  (buffer-substring (point-min) (point-max))))
-  (make-local-variable 'rmail-old-headers)
-  (setq rmail-old-headers (rmail-edit-headers-alist t))
+  (setq-local rmail-old-text
+              (save-restriction
+                (widen)
+                (buffer-substring (point-min) (point-max))))
+  (setq-local rmail-old-headers (rmail-edit-headers-alist t))
   (setq buffer-read-only nil)
   (setq buffer-undo-list nil)
   ;; Whether the buffer is initially marked as modified or not
@@ -149,9 +140,11 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 
 
 (declare-function rmail-summary-enable "rmailsum" ())
+(declare-function rmail-summary-update-line "rmailsum" (n))
 
-(defun rmail-cease-edit ()
-  "Finish editing message; switch back to Rmail proper."
+(defun rmail-cease-edit (&optional abort)
+  "Finish editing message; switch back to Rmail proper.
+If ABORT, this is the result of aborting an edit."
   (interactive)
   (if (rmail-summary-exists)
       (with-current-buffer rmail-summary-buffer
@@ -210,7 +203,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
       (kill-all-local-variables)
       (rmail-mode-1)
       (if (boundp 'tool-bar-map)
-	  (set (make-local-variable 'tool-bar-map) rmail-tool-bar-map))
+          (setq-local tool-bar-map rmail-tool-bar-map))
       (setq buffer-undo-list t)
       (rmail-variables))
     ;; If text has really changed, mark message as edited.
@@ -276,6 +269,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	   ;; No match for rmail-mime-charset-pattern, but there was some
 	   ;; other Content-Type.  We should not insert another.  (Bug#4624)
 	   (content-type)
+           ;; Don't insert anything if aborting.
+           (abort)
 	   ((null old-coding)
 	    ;; If there was no charset= spec, insert one.
 	    (backward-char 1)
@@ -312,30 +307,39 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
             (data-buffer (current-buffer))
             (start (copy-marker (point) nil)) ; new body will be between
             (end (copy-marker (point) t)))    ; these two markers
-        (with-current-buffer rmail-view-buffer
-          (encode-coding-region headers-end (point-max) coding-system
-                                data-buffer))
-        (delete-region end (point-max))
+        (if mime-state
+            ;; Message is already in encoded state
+            (insert-buffer-substring rmail-view-buffer headers-end
+                                     (with-current-buffer rmail-view-buffer
+                                       (point-max)))
+          (with-current-buffer rmail-view-buffer
+            (encode-coding-region headers-end (point-max) coding-system
+                                  data-buffer)))
 	;; Apply to the mbox buffer any changes in header fields
 	;; that the user made while editing in the view buffer.
-	(rmail-edit-update-headers (rmail-edit-diff-headers
+        (rmail-edit-update-headers (rmail-edit-diff-headers
 				    rmail-old-headers new-headers))
 	;; Re-apply content-transfer-encoding, if any, on the message body.
 	(cond
+	 (mime-state)		    ; if set, already transfer-encoded
 	 ((string= character-coding "quoted-printable")
-	  (mail-quote-printable-region start (point-max)))
+	  (mail-quote-printable-region start end))
 	 ((and (string= character-coding "base64") is-text-message)
-	  (base64-encode-region start (point-max)))
+	  (base64-encode-region start end))
 	 ((and (eq character-coding 'uuencode) is-text-message)
 	  (error "uuencoded messages are not supported")))
         ;; After encoding, make sure buffer ends with a blank line so as not to
         ;; run this message together with the following one.
-        (goto-char (point-max))
-        (rmail-ensure-blank-line))
-      (rmail-set-attribute rmail-edited-attr-index t))
-;;;??? BROKEN perhaps.
-;;;    (if (boundp 'rmail-summary-vector)
-;;;	(aset rmail-summary-vector (1- rmail-current-message) nil))
+        (goto-char end)
+        (rmail-ensure-blank-line)
+        ;; Delete previous body.  This must be after all insertions at the end,
+        ;; so the marker for the beginning of the next message isn't messed up.
+        (delete-region end (point-max)))
+      (rmail-set-attribute rmail-edited-attr-index t)
+      (if (rmail-summary-exists)
+          (let ((msgnum rmail-current-message))
+            (with-current-buffer rmail-summary-buffer
+              (rmail-summary-update-line msgnum)))))
     (rmail-show-message)
     (rmail-toggle-header (if pruned 1 0))
     ;; Restore mime display state.
@@ -348,7 +352,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (widen)
   (delete-region (point-min) (point-max))
   (insert rmail-old-text)
-  (rmail-cease-edit)
+  (rmail-cease-edit t)
   (rmail-highlight-headers))
 
 (defun rmail-edit-headers-alist (&optional widen markers)
@@ -402,7 +406,7 @@ or else nil to insert it at the beginning.
 
 DELETED's elements are elements of OLD-HEADERS.
 CHANGED's elements have the form (OLD . NEW)
-where OLD is a element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
+where OLD is an element of OLD-HEADERS and NEW is an element of NEW-HEADERS."
 
   (let ((reverse-new (reverse new-headers))
 	inserted deleted changed)
@@ -476,9 +480,5 @@ HEADER-DIFF should be a return value from `rmail-edit-diff-headers'."
       (set-marker (nth 2 hdr) nil))))
 
 (provide 'rmailedit)
-
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
 
 ;;; rmailedit.el ends here

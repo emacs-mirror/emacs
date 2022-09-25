@@ -1,6 +1,6 @@
 ;;; mb-depth.el --- Indicate minibuffer-depth in prompt -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2006-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2022 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -30,10 +30,22 @@
 
 ;;; Code:
 
-(defvar minibuffer-depth-indicator-function nil
-  "If non-nil, function to set up the minibuffer depth indicator.
-It is called with one argument, the minibuffer depth,
-and must return a string.")
+(defcustom minibuffer-depth-indicator-function nil
+  "If non-nil, a function to produce the minibuffer depth indicator.
+The function will be called with one argument, the minibuffer depth,
+and must return a string to display as indication of the minibuffer
+depth.
+If nil, display the depth as a number inside brackets, [NN], with
+the `minibuffer-depth-indicator' face."
+  :version "28.1"
+  :type '(choice (const :tag "Default indicator display, [NN]" nil)
+                 (function))
+  :group 'minibuffer)
+
+(defface minibuffer-depth-indicator '((t :inherit highlight))
+  "Face to use for minibuffer depth indicator."
+  :group 'minibuffer
+  :version "28.1")
 
 ;; An overlay covering the prompt.  This is a buffer-local variable in
 ;; each affected minibuffer.
@@ -52,15 +64,15 @@ The prompt should already have been inserted."
       (overlay-put minibuffer-depth-overlay 'before-string
                    (if minibuffer-depth-indicator-function
                        (funcall minibuffer-depth-indicator-function depth)
-                     (propertize (format "[%d]" depth) 'face 'highlight)))
+                     (concat (propertize (format "[%d]" depth)
+                                         'face
+                                         'minibuffer-depth-indicator)
+                             " ")))
       (overlay-put minibuffer-depth-overlay 'evaporate t))))
 
 ;;;###autoload
 (define-minor-mode minibuffer-depth-indicate-mode
   "Toggle Minibuffer Depth Indication mode.
-With a prefix argument ARG, enable Minibuffer Depth Indication
-mode if ARG is positive, and disable it otherwise.  If called
-from Lisp, enable the mode if ARG is omitted or nil.
 
 Minibuffer Depth Indication mode is a global minor mode.  When
 enabled, any recursive use of the minibuffer will show the

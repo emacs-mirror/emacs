@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -28,7 +28,7 @@
 ;; OVERVIEW ==========================================================
 
 ;; This file advises the function `insert-directory' to implement it
-;; directly from Emacs lisp, without running ls in a subprocess.
+;; directly from Emacs Lisp, without running ls in a subprocess.
 ;; This is useful if you don't have ls installed (ie, on MS Windows).
 
 ;; This function can use regexps instead of shell wildcards.  If you
@@ -99,14 +99,6 @@ update the dependent variables."
 	   (custom-set-default symbol value)
 	   (ls-lisp-set-options)))
   :group 'ls-lisp)
-
-;; Only made an obsolete alias in 23.3.  Before that, the initial
-;; value was set according to:
-;;  (or (memq ls-lisp-emulation '(MS-Windows MacOS))
-;;      (and (boundp 'ls-lisp-dired-ignore-case) ls-lisp-dired-ignore-case))
-;; Which isn't the right thing to do.
-(define-obsolete-variable-alias 'ls-lisp-dired-ignore-case
-  'ls-lisp-ignore-case "21.1")
 
 (defcustom ls-lisp-ignore-case
   (memq ls-lisp-emulation '(MS-Windows MacOS))
@@ -276,21 +268,32 @@ supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
 that work are: A a B C c F G g h i n R r S s t U u v X.  The l switch
-is assumed to be always present and cannot be turned off."
+is assumed to be always present and cannot be turned off.
+Long variants of the above switches, as documented for GNU `ls',
+are also supported; unsupported long options are silently ignored."
   (if ls-lisp-use-insert-directory-program
       (funcall orig-fun
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
+    (setq switches (or switches ""))
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory))
 	  (orig-file file)
-	  wildcard-regexp)
+	  wildcard-regexp
+	  (ls-lisp-dirs-first
+           (or ls-lisp-dirs-first
+               (string-match "--group-directories-first" switches))))
       (if handler
 	  (funcall handler 'insert-directory file switches
 		   wildcard full-directory-p)
-	;; Remove --dired switch
-	(if (string-match "--dired " switches)
-	    (setq switches (replace-match "" nil nil switches)))
+        (when (string-match "--group-directories-first" switches)
+            ;; if ls-lisp-dirs-first is nil, dirs are grouped but come out in
+            ;; reverse order:
+            (setq ls-lisp-dirs-first t)
+            (setq switches (replace-match "" nil nil switches)))
+	;; Remove unrecognized long options, and convert the
+	;; recognized ones to their short variants.
+        (setq switches (ls-lisp--sanitize-switches switches))
 	;; Convert SWITCHES to a list of characters.
 	(setq switches (delete ?\  (delete ?- (append switches nil))))
 	;; Sometimes we get ".../foo*/" as FILE.  While the shell and
@@ -326,18 +329,7 @@ is assumed to be always present and cannot be turned off."
 		 (ls-lisp-insert-directory
 		  file switches (ls-lisp-time-index switches)
 		  nil full-directory-p))
-	     (signal (car err) (cdr err)))))
-	;; Try to insert the amount of free space.
-	(save-excursion
-	  (goto-char (point-min))
-	  ;; First find the line to put it on.
-	  (when (re-search-forward "^total" nil t)
-	    (let ((available (get-free-disk-space ".")))
-	      (when available
-		;; Replace "total" with "total used", to avoid confusion.
-		(replace-match "total used in directory")
-		(end-of-line)
-		(insert " available " available)))))))))
+	     (signal (car err) (cdr err)))))))))
 (advice-add 'insert-directory :around #'ls-lisp--insert-directory)
 
 (defun ls-lisp-insert-directory
@@ -385,13 +377,13 @@ not contain `d', so that a full listing is expected."
 	  ;; files we are about to display.
 	  (dolist (elt file-alist)
 	    (setq attr (cdr elt)
-		  fuid (nth 2 attr)
+		  fuid (file-attribute-user-id attr)
 		  uid-len (if (stringp fuid) (string-width fuid)
 			    (length (format "%d" fuid)))
-		  fgid (nth 3 attr)
+		  fgid (file-attribute-group-id attr)
 		  gid-len (if (stringp fgid) (string-width fgid)
 			    (length (format "%d" fgid)))
-		  file-size (nth 7 attr))
+		  file-size (file-attribute-size attr))
 	    (if (> uid-len max-uid-len)
 		(setq max-uid-len uid-len))
 	    (if (> gid-len max-gid-len)
@@ -418,16 +410,9 @@ not contain `d', so that a full listing is expected."
 		  files (cdr files)
 		  short (car elt)
 		  attr (cdr elt)
-		  file-size (nth 7 attr))
+		  file-size (file-attribute-size attr))
 	    (and attr
-		 (setq sum (+ file-size
-			      ;; Even if neither SUM nor file's size
-			      ;; overflow, their sum could.
-			      (if (or (< sum (- 134217727 file-size))
-				      (floatp sum)
-				      (floatp file-size))
-				  sum
-				(float sum))))
+		 (setq sum (+ file-size sum))
 		 (insert (ls-lisp-format short attr file-size
 					 switches time-index))))
 	  ;; Insert total size of all files:
@@ -442,9 +427,9 @@ not contain `d', so that a full listing is expected."
 	;; text.  But if the listing is empty, as e.g. in empty
 	;; directories with -a removed from switches, point will be
 	;; before the inserted text, and dired-insert-directory will
-	;; not indent the listing correctly.  Going to the end of the
-	;; buffer fixes that.
-	(unless files (goto-char (point-max)))
+	;; not indent the listing correctly.  Getting past the
+	;; inserted text solves this.
+	(unless (cdr total-line) (forward-line 2))
 	(if (memq ?R switches)
 	    ;; List the contents of all directories recursively.
 	    ;; cadr of each element of `file-alist' is t for
@@ -474,16 +459,22 @@ not contain `d', so that a full listing is expected."
 		   (if (memq ?F switches)
 		       (ls-lisp-classify-file file fattr)
 		     file)
-		   fattr (nth 7 fattr)
-				  switches time-index))
-	(message "%s: doesn't exist or is inaccessible" file)
-	(ding) (sit-for 2)))))		; to show user the message!
+		   fattr (file-attribute-size fattr)
+                   switches time-index))
+        ;; Emulate what we do on Posix hosts when we call access-file
+        ;; in insert-directory.
+	(signal 'file-error
+                (list "Reading directory"
+                      "Directory doesn't exist or is inaccessible"
+                      file))))))
 
 (declare-function dired-read-dir-and-switches "dired" (str))
 (declare-function dired-goto-next-file "dired" ())
 
 (defun ls-lisp--dired (orig-fun dir-or-list &optional switches)
   (interactive (dired-read-dir-and-switches ""))
+  (unless dir-or-list
+    (setq dir-or-list default-directory))
   (if (consp dir-or-list)
       (funcall orig-fun dir-or-list switches)
     (let ((dir-wildcard (insert-directory-wildcard-in-dir-p
@@ -518,7 +509,8 @@ If the \"..\" directory entry has nil attributes, the attributes
 are copied from the \".\" entry, if they are non-nil.  Otherwise,
 the offending element is removed from the list, as are any
 elements for other directory entries with nil attributes."
-  (if (and (null (cdr (assoc ".." file-alist)))
+  (if (and (consp (assoc ".." file-alist))
+           (null (cdr (assoc ".." file-alist)))
 	   (cdr (assoc "." file-alist)))
       (setcdr (assoc ".." file-alist) (cdr (assoc "." file-alist))))
   (rassq-delete-all nil file-alist))
@@ -567,6 +559,8 @@ Responds to the window width as ls should but may not!"
       (setq list (cdr list)))
     result))
 
+(defvar w32-collate-ignore-punctuation) ; Declare for non-w32 builds.
+
 (defsubst ls-lisp-string-lessp (s1 s2)
   "Return t if string S1 should sort before string S2.
 Case is significant if `ls-lisp-ignore-case' is nil.
@@ -587,7 +581,7 @@ to a non-nil value."
   "Return t if versioned string S1 should sort before versioned string S2.
 
 Case is significant if `ls-lisp-ignore-case' is nil.
-This is the same as string-lessp (with the exception of case
+This is the same as `string-lessp' (with the exception of case
 insensitivity), but sequences of digits are compared numerically,
 as a whole, in the same manner as the `strverscmp' function available
 in some standard C libraries does."
@@ -619,14 +613,22 @@ in some standard C libraries does."
 		 (sub2 (substring s2 ni2 e2))
 		 ;; "Fraction" is a numerical sequence with leading zeros.
 		 (fr1 (string-match "\\`0+" sub1))
-		 (fr2 (string-match "\\`0+" sub2)))
+		 (efr1 (match-end 0))
+		 (fr2 (string-match "\\`0+" sub2))
+		 (efr2 (match-end 0)))
 	    (cond
-	     ((and fr1 fr2)	; two fractions, the shortest wins
-	      (setq val (- val (- (length sub1) (length sub2)))))
+             ;; Two fractions: the longer one is less than the other,
+             ;; but only if the "common prefix" is all-zeroes,
+             ;; otherwise fall back on numerical comparison.
+	     ((and fr1 fr2)
+	      (if (or (and (< efr1 (- e1 ni1)) (< efr2 (- e2 ni2))
+			   (not (eq (aref sub1 efr1) (aref sub2 efr2))))
+		      (= efr1 (- e1 ni1)) (=  efr2 (- e2 ni2)))
+		  (setq val (- val (- (length sub1) (length sub2))))))
 	     (fr1		; a fraction is always less than an integral
-	      (setq val (- ni1)))
+	      (setq val (- 0 ni1 1)))   ; make sure val is non-zero
 	     (fr2
-	      (setq val ni2)))
+	      (setq val (1+ ni2))))     ; make sure val is non-zero
 	    (if (zerop val)	; fall back on numerical comparison
 		(setq val (- (string-to-number sub1)
 			     (string-to-number sub2))))
@@ -657,10 +659,9 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 		  (sort (copy-sequence file-alist) ; modifies its argument!
 			(cond ((memq ?S switches)
 			       (lambda (x y) ; sorted on size
-				 ;; 7th file attribute is file size
 				 ;; Make largest file come first
-				 (< (nth 7 (cdr y))
-				    (nth 7 (cdr x)))))
+				 (< (file-attribute-size (cdr y))
+				    (file-attribute-size (cdr x)))))
 			      ((setq index (ls-lisp-time-index switches))
 			       (lambda (x y) ; sorted on time
 				 (time-less-p (nth index (cdr y))
@@ -711,23 +712,26 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 (defun ls-lisp-classify-file (filename fattr)
   "Append a character to FILENAME indicating the file type.
 
+This function puts the `dired-filename' property on FILENAME, but
+not on the character indicator it appends.
 FATTR is the file attributes returned by `file-attributes' for the file.
 The file type indicators are `/' for directories, `@' for symbolic
 links, `|' for FIFOs, `=' for sockets, `*' for regular files that
 are executable, and nothing for other types of files."
-  (let* ((type (car fattr))
-	 (modestr (nth 8 fattr))
-	 (typestr (substring modestr 0 1)))
+  (let* ((type (file-attribute-type fattr))
+	 (modestr (file-attribute-modes fattr))
+	 (typestr (substring modestr 0 1))
+         (file-name (propertize filename 'dired-filename t)))
     (cond
      (type
-      (concat filename (if (eq type t) "/" "@")))
+      (concat file-name (if (eq type t) "/" "@")))
      ((string-match "x" modestr)
-      (concat filename "*"))
+      (concat file-name "*"))
      ((string= "p" typestr)
-      (concat filename "|"))
+      (concat file-name "|"))
      ((string= "s" typestr)
-      (concat filename "="))
-     (t filename))))
+      (concat file-name "="))
+     (t file-name))))
 
 (defun ls-lisp-classify (filedata)
   "Append a character to file name in FILEDATA indicating the file type.
@@ -740,7 +744,6 @@ links, `|' for FIFOs, `=' for sockets, `*' for regular files that
 are executable, and nothing for other types of files."
   (let ((file-name (car filedata))
         (fattr (cdr filedata)))
-    (setq file-name (propertize file-name 'dired-filename t))
     (cons (ls-lisp-classify-file file-name fattr) fattr)))
 
 (defun ls-lisp-extension (filename)
@@ -769,41 +772,19 @@ FOLLOWED by null and full filename, SOLELY for full alpha sort."
   "Format one line of long ls output for file FILE-NAME.
 FILE-ATTR and FILE-SIZE give the file's attributes and size.
 SWITCHES and TIME-INDEX give the full switch list and time data."
-  (let ((file-type (nth 0 file-attr))
+  (let ((file-type (file-attribute-type file-attr))
 	;; t for directory, string (name linked to)
 	;; for symbolic link, or nil.
-	(drwxrwxrwx (nth 8 file-attr)))	; attribute string ("drwxrwxrwx")
+	(drwxrwxrwx (file-attribute-modes file-attr)))
     (concat (if (memq ?i switches)	; inode number
-		(let ((inode (nth 10 file-attr)))
-		  (if (consp inode)
-		      (if (consp (cdr inode))
-			  ;; 2^(24+16) = 1099511627776.0, but
-			  ;; multiplying by it and then adding the
-			  ;; other members of the cons cell in one go
-			  ;; loses precision, since a double does not
-			  ;; have enough significant digits to hold a
-			  ;; full 64-bit value.  So below we split
-			  ;; 1099511627776 into high 13 and low 5
-			  ;; digits and compute in two parts.
-			  (let ((p1 (* (car inode) 10995116.0))
-				(p2 (+ (* (car inode) 27776.0)
-				       (* (cadr inode) 65536.0)
-				       (cddr inode))))
-			    (format " %13.0f%05.0f "
-				    ;; Use floor to emulate integer
-				    ;; division.
-				    (+ p1 (floor p2 100000.0))
-				    (mod p2 100000.0)))
-			(format " %18.0f "
-				(+ (* (car inode) 65536.0)
-				   (cdr inode))))
-		    (format " %18d " inode))))
+		(let ((inode (file-attribute-inode-number file-attr)))
+		  (format " %18d " inode)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K, rounded up
 		;; In GNU ls, -h affects the size in blocks, displayed
 		;; by -s, as well.
 		(if (memq ?h switches)
-		    (format "%6s "
+		    (format "%7s "
 			    (file-size-human-readable
 			     ;; We use 1K as "block size", although
 			     ;; most Windows volumes use 4KB to 8KB
@@ -815,14 +796,14 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 			  (fceiling (/ file-size 1024.0)))))
 	    drwxrwxrwx			; attribute string
 	    (if (memq 'links ls-lisp-verbosity)
-		(format "%3d" (nth 1 file-attr))) ; link count
+		(format "%3d" (file-attribute-link-number file-attr)))
 	    ;; Numeric uid/gid are more confusing than helpful;
 	    ;; Emacs should be able to make strings of them.
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
 	    ;; optionally hide them.
 	    (if (memq 'uid ls-lisp-verbosity)
 		;; uid can be a string or an integer
-		(let ((uid (nth 2 file-attr)))
+		(let ((uid (file-attribute-user-id file-attr)))
                   (format (if (stringp uid)
 			      ls-lisp-uid-s-fmt
 			    ls-lisp-uid-d-fmt)
@@ -830,7 +811,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 	    (if (not (memq ?G switches)) ; GNU ls -- shows group by default
 		(if (or (memq ?g switches) ; UNIX ls -- no group by default
 			(memq 'gid ls-lisp-verbosity))
-                    (let ((gid (nth 3 file-attr)))
+                    (let ((gid (file-attribute-group-id file-attr)))
                       (format (if (stringp gid)
 				  ls-lisp-gid-s-fmt
 				ls-lisp-gid-d-fmt)
@@ -839,7 +820,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 	    " "
 	    (ls-lisp-format-time file-attr time-index)
 	    " "
-	    (if (not (memq ?F switches)) ; ls-lisp-classify already did that
+	    (if (not (memq ?F switches)) ; ls-lisp-classify-file already did that
 		(propertize file-name 'dired-filename t)
 	      file-name)
 	    (if (stringp file-type)	; is a symbolic link
@@ -855,13 +836,16 @@ Return nil if no time switch found."
 	((memq ?t switches) 5)		; last modtime
 	((memq ?u switches) 4)))	; last access
 
+(defvar ls-lisp--time-locale nil
+  "Locale to be used for formatting file times.")
+
 (defun ls-lisp-format-time (file-attr time-index)
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
 depending on distance between file date and the current time.
 All ls time options, namely c, t and u, are handled."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
-	 (diff (- (float-time time) (float-time)))
+	 (diff (time-subtract time nil))
 	 ;; Consider a time to be recent if it is within the past six
 	 ;; months.  A Gregorian year has 365.2425 * 24 * 60 * 60 ==
 	 ;; 31556952 seconds on the average, and half of that is 15778476.
@@ -870,15 +854,18 @@ All ls time options, namely c, t and u, are handled."
     (condition-case nil
 	;; Use traditional time format in the C or POSIX locale,
 	;; ISO-style time format otherwise, so columns line up.
-	(let ((locale system-time-locale))
+	(let ((locale (or system-time-locale ls-lisp--time-locale)))
 	  (if (not locale)
 	      (let ((vars '("LC_ALL" "LC_TIME" "LANG")))
 		(while (and vars (not (setq locale (getenv (car vars)))))
-		  (setq vars (cdr vars)))))
+		  (setq vars (cdr vars)))
+                ;; Cache the locale for next calls.
+                (setq ls-lisp--time-locale (or locale "C"))))
 	  (if (member locale '("C" "POSIX"))
 	      (setq locale nil))
 	  (format-time-string
-	   (if (and (<= past-cutoff diff) (<= diff 0))
+	   (if (and (not (time-less-p diff past-cutoff))
+		    (not (time-less-p 0 diff)))
 	       (if (and locale (not ls-lisp-use-localized-time-format))
 		   "%m-%d %H:%M"
 		 (nth 0 ls-lisp-format-time-list))
@@ -894,7 +881,7 @@ All ls time options, namely c, t and u, are handled."
 		  ls-lisp-filesize-f-fmt
 		ls-lisp-filesize-d-fmt)
 	      file-size)
-    (format " %6s" (file-size-human-readable file-size))))
+    (format " %7s" (file-size-human-readable file-size))))
 
 (defun ls-lisp-unload-function ()
   "Unload ls-lisp library."
@@ -902,6 +889,60 @@ All ls time options, namely c, t and u, are handled."
   (advice-remove 'dired #'ls-lisp--dired)
   ;; Continue standard unloading.
   nil)
+
+(defun ls-lisp--sanitize-switches (switches)
+  "Convert long options of GNU \"ls\" to their short form.
+Conversion is done only for flags supported by ls-lisp.
+Long options not supported by ls-lisp are removed.
+Supported options are: A a B C c F G g h i n R r S s t U u v X.
+The l switch is assumed to be always present and cannot be turned off."
+  (let ((lsflags '(("-a" . "--all")
+                   ("-A" . "--almost-all")
+                   ("-B" . "--ignore-backups")
+                   ("-C" . "--color")
+                   ("-F" . "--classify")
+                   ("-G" . "--no-group")
+                   ("-h" . "--human-readable")
+                   ("-H" . "--dereference-command-line")
+                   ("-i" . "--inode")
+                   ("-n" . "--numeric-uid-gid")
+                   ("-r" . "--reverse")
+                   ("-R" . "--recursive")
+                   ("-s" . "--size")
+                   ("-S" . "--sort.*[ \\\t]")
+                   (""   . "--group-directories-first")
+                   (""   . "--author")
+                   (""   . "--escape")
+                   (""   . "--directory")
+                   (""   . "--dired")
+                   (""   . "--file-type")
+                   (""   . "--format")
+                   (""   . "--full-time")
+                   (""   . "--si")
+                   (""   . "--dereference-command-line-symlink-to-dir")
+                   (""   . "--hide")
+                   (""   . "--hyperlink")
+                   (""   . "--ignore")
+                   (""   . "--kibibytes")
+                   (""   . "--dereference")
+                   (""   . "--literal")
+                   (""   . "--hide-control-chars")
+                   (""   . "--show-control-chars")
+                   (""   . "--quote-name")
+                   (""   . "--context")
+                   (""   . "--help")
+                   ;; (""   . "--indicator-style.*[ \\\t]")
+                   ;; (""   . "--quoting-style.*[ \t\\]")
+                   ;; (""   . "--time.*[ \\\t]")
+                   ;; (""   . "--time-style.*[ \\\t]")
+                   ;; (""   . "--tabsize.*[ \\\t]")
+                   ;; (""   . "--width.*[ \\\t]")
+                   (""   . "--.*=.*[ \\\t\n]?") ;; catch all with '=' sign in
+                   (""   . "--version"))))
+    (dolist (f lsflags)
+      (if (string-match (cdr f) switches)
+          (setq switches (replace-match (car f) nil nil switches))))
+    (string-trim switches)))
 
 (provide 'ls-lisp)
 

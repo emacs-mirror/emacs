@@ -1,7 +1,8 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011-2017 Free Software Foundation, Inc.
 
-;; Author: Daiki Ueno <ueno@unixuser.org>
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+
+;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: PGP, GnuPG
 
 ;; This file is part of GNU Emacs.
@@ -19,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; Plist based data store providing search and partial encryption.
 ;;
@@ -82,7 +83,7 @@
 (require 'epg)
 
 (defgroup plstore nil
-  "Searchable, partially encrypted, persistent plist store"
+  "Searchable, partially encrypted, persistent plist store."
   :version "24.1"
   :group 'files)
 
@@ -106,6 +107,7 @@ symmetric encryption will be used."
   :type '(choice (const nil) (repeat :tag "Recipient(s)" string))
   :group 'plstore)
 
+;;;###autoload
 (put 'plstore-encrypt-to 'safe-local-variable
      (lambda (val)
        (or (stringp val)
@@ -521,7 +523,7 @@ If no one is selected, symmetric encryption will be performed.  "
       t)))
 
 (defun plstore-mode-original ()
-  "Show the original form of the this buffer."
+  "Show the original form of this buffer."
   (interactive)
   (when plstore-encoded
     (if (and (buffer-modified-p)
@@ -533,7 +535,7 @@ If no one is selected, symmetric encryption will be performed.  "
     (setq plstore-encoded nil)))
 
 (defun plstore-mode-decoded ()
-  "Show the decoded form of the this buffer."
+  "Show the decoded form of this buffer."
   (interactive)
   (unless plstore-encoded
     (if (and (buffer-modified-p)

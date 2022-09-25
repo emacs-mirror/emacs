@@ -1,10 +1,11 @@
 ;;; ob-dot.el --- Babel Functions for dot            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
+;; Maintainer: Justin Abrahms
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +26,7 @@
 
 ;; Org-Babel support for evaluating dot source code.
 ;;
-;; For information on dot see http://www.graphviz.org/
+;; For information on dot see https://www.graphviz.org/
 ;;
 ;; This differs from most standard languages in that
 ;;
@@ -69,6 +70,8 @@ This function is called by `org-babel-execute-src-block'."
 	 (cmdline (or (cdr (assq :cmdline params))
 		      (format "-T%s" (file-name-extension out-file))))
 	 (cmd (or (cdr (assq :cmd params)) "dot"))
+	 (coding-system-for-read 'utf-8) ;use utf-8 with sub-processes
+	 (coding-system-for-write 'utf-8)
 	 (in-file (org-babel-temp-file "dot-")))
     (with-temp-file in-file
       (insert (org-babel-expand-body:dot body params)))
@@ -84,7 +87,5 @@ This function is called by `org-babel-execute-src-block'."
   (error "Dot does not support sessions"))
 
 (provide 'ob-dot)
-
-
 
 ;;; ob-dot.el ends here

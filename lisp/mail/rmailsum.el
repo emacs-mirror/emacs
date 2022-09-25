@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2017 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -51,10 +51,10 @@ Setting this option to nil might speed up the generation of summaries."
   :group 'rmail-summary)
 
 (defvar rmail-summary-font-lock-keywords
-  '(("^.....D.*" . font-lock-string-face)			; Deleted.
-    ("^.....-.*" . font-lock-type-face)				; Unread.
+  '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
+    ("^ *[0-9]+-.*" . font-lock-type-face)			; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
-    ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
+    ("^ *[0-9]+[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
@@ -121,6 +121,7 @@ Setting this option to nil might speed up the generation of summaries."
     (define-key map [?\S-\ ] 'rmail-summary-scroll-msg-down)
     (define-key map "\177"   'rmail-summary-scroll-msg-down)
     (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-d"      'rmail-summary-epa-decrypt)
     (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)
     (define-key map "\C-c\C-p" 'rmail-summary-previous-same-subject)
     (define-key map "\C-c\C-s\C-d" 'rmail-summary-sort-by-date)
@@ -390,8 +391,17 @@ SUBJECT is a regular expression."
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
   "Display a summary of all messages whose \"From\" field matches SENDERS.
-SENDERS is a regular expression."
-  (interactive "sSenders to summarize by: ")
+SENDERS is a regular expression.  The default for SENDERS matches the
+sender of the current message."
+  (interactive
+   (let* ((def (rmail-get-header "From"))
+          ;; We quote the default argument, because if it contains regexp
+          ;; special characters (eg "?"), it can fail to match itself.
+          (sender (regexp-quote def))
+	  (prompt (concat "Senders to summarize by (regexp"
+			  (if sender ", default this message's sender" "")
+			  "): ")))
+     (list (read-string prompt nil nil sender))))
   (rmail-new-summary
    (concat "senders " senders)
    (list 'rmail-summary-by-senders senders) 'rmail-message-senders-p senders))
@@ -523,8 +533,7 @@ message."
 	;; Set up the rest of its state and local variables.
 	(setq buffer-read-only t)
 	(rmail-summary-mode)
-	(make-local-variable 'minor-mode-alist)
-	(setq minor-mode-alist (list (list t (concat ": " description))))
+        (setq-local minor-mode-alist (list (list t (concat ": " description))))
 	(setq rmail-buffer rbuf
 	      rmail-summary-redo redo
 	      rmail-total-messages total)))
@@ -746,7 +755,12 @@ the message being processed."
 				   (forward-char -1)
 				   (skip-chars-backward " \t")
 				   (point))))))
-		    len mch lo)
+		    len mch lo newline)
+               ;; If there are multiple lines in FROM,
+               ;; discard up to the last newline in it.
+               (while (and (stringp from)
+                           (setq newline (string-search "\n" from)))
+                 (setq from (substring from (1+ newline))))
 	       (if (or (null from)
 		       (string-match
 			(or rmail-user-mail-address-regexp
@@ -777,6 +791,11 @@ the message being processed."
 		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
 		 ;; <stepnem@gmail.com>
 		 (setq from (rfc2047-decode-string from))
+                 ;; We cannot tolerate any leftover newlines in From,
+                 ;; as that disrupts the rmail-summary display.
+                 ;; Newlines can be left in From if it was malformed,
+                 ;; e.g. had unbalanced quotes.
+                 (setq from (replace-regexp-in-string "\n+" " " from))
 		 (setq len (length from))
 		 (setq mch (string-match "[@%]" from))
 		 (format "%25s"
@@ -916,14 +935,15 @@ a negative argument means to delete and move backward."
   (unless (numberp count) (setq count 1))
   (let (del-msg
         (backward (< count 0)))
-    (while (and (/= count 0)
-		;; Don't waste time if we are at the beginning
-		;; and trying to go backward.
-		(not (and backward (bobp))))
+    (while (/= count 0)
+      ;; Don't waste time counting down without doing anything if we
+      ;; are at the beginning and trying to go backward.
+      (if (and backward (bobp))
+          (setq count -1))
       (rmail-summary-goto-msg)
       (with-current-buffer rmail-buffer
-	(rmail-delete-message)
-	(setq del-msg rmail-current-message))
+	(setq del-msg rmail-current-message)
+	(rmail-delete-message))
       (rmail-summary-mark-deleted del-msg)
       (while (and (not (if backward (bobp) (eobp)))
 		  (save-excursion (beginning-of-line)
@@ -960,8 +980,9 @@ a negative argument means to delete and move forward."
 	  (delete-char 1)
 	  (insert "D"))
 	;; Discard cached new summary line.
-	(with-current-buffer rmail-buffer
-	  (aset rmail-summary-vector (1- n) nil))))
+        (when n
+	  (with-current-buffer rmail-buffer
+	    (aset rmail-summary-vector (1- n) nil)))))
   (beginning-of-line))
 
 (defun rmail-summary-update-line (n)
@@ -1080,13 +1101,10 @@ Commands for sorting the summary:
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'rmail-buffer)
   (make-local-variable 'rmail-total-messages)
-  (make-local-variable 'rmail-current-message)
-  (setq rmail-current-message nil)
-  (make-local-variable 'rmail-summary-redo)
-  (setq rmail-summary-redo nil)
+  (setq-local rmail-current-message nil)
+  (setq-local rmail-summary-redo nil)
   (make-local-variable 'revert-buffer-function)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
+  (setq-local font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable))
 
 ;; Summary features need to be disabled during edit mode.
@@ -1279,8 +1297,7 @@ Returns non-nil if message N was found."
   ;; Make sure we have an overlay to use.
   (or rmail-summary-overlay
       (progn
-	(make-local-variable 'rmail-summary-overlay)
-	(setq rmail-summary-overlay (make-overlay (point) (point)))
+        (setq-local rmail-summary-overlay (make-overlay (point) (point)))
 	(overlay-put rmail-summary-overlay 'rmail-summary t)))
   ;; If this message is in the summary, use the overlay to highlight it.
   ;; Otherwise, don't highlight anything.
@@ -1306,11 +1323,7 @@ advance to the next message."
 		(select-window rmail-buffer-window)
 		(prog1
 		    ;; Is EOB visible in the buffer?
-		    (save-excursion
-		      (let ((ht (window-height)))
-			(move-to-window-line (- ht 2))
-			(end-of-line)
-			(eobp)))
+                    (pos-visible-in-window-p (point-max))
 		  (select-window rmail-summary-window)))
 	      (if (not rmail-summary-scroll-between-messages)
 		  (error "End of buffer")
@@ -1333,10 +1346,7 @@ move to the previous message."
 		(select-window rmail-buffer-window)
 		(prog1
 		    ;; Is BOB visible in the buffer?
-		    (save-excursion
-		      (move-to-window-line 0)
-		      (beginning-of-line)
-		      (bobp))
+		    (pos-visible-in-window-p (point-min))
 		  (select-window rmail-summary-window)))
 	      (if (not rmail-summary-scroll-between-messages)
 		  (error "Beginning of buffer")
@@ -1358,7 +1368,7 @@ move to the previous message."
 
 (defun rmail-summary-show-message (where)
   "Show current mail message.
-Position it according to WHERE which can be BEG or END"
+Position it according to WHERE which can be BEG or END."
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
       (let ((buffer rmail-buffer))
@@ -1465,18 +1475,15 @@ argument says to read a file name and use that file as the inbox."
   (forward-line -1))
 
 (declare-function rmail-abort-edit "rmailedit" ())
-(declare-function rmail-cease-edit "rmailedit"())
+(declare-function rmail-cease-edit "rmailedit" (&optional abort))
 (declare-function rmail-set-label "rmailkwd" (l state &optional n))
 (declare-function rmail-output-read-file-name "rmailout" ())
 (declare-function mail-send-and-exit "sendmail" (&optional arg))
 
-(defvar rmail-summary-edit-map nil)
-(if rmail-summary-edit-map
-    nil
-  (setq rmail-summary-edit-map
-	(nconc (make-sparse-keymap) text-mode-map))
-  (define-key rmail-summary-edit-map "\C-c\C-c" 'rmail-cease-edit)
-  (define-key rmail-summary-edit-map "\C-c\C-]" 'rmail-abort-edit))
+(defvar-keymap rmail-summary-edit-map
+  :parent text-mode-map
+  "C-c C-c" #'rmail-cease-edit
+  "C-c C-]" #'rmail-abort-edit)
 
 (defun rmail-summary-edit-current-message ()
   "Edit the contents of this message."
@@ -1484,6 +1491,12 @@ argument says to read a file name and use that file as the inbox."
   (rmail-pop-to-buffer rmail-buffer)
   (rmail-edit-current-message)
   (use-local-map rmail-summary-edit-map))
+
+(defun rmail-summary-epa-decrypt ()
+  "Decrypt this message."
+  (interactive)
+  (rmail-pop-to-buffer rmail-buffer)
+  (rmail-epa-decrypt))
 
 (defun rmail-summary-cease-edit ()
   "Finish editing message, then go back to Rmail summary buffer."
@@ -1626,7 +1639,7 @@ original message into it."
 
 (defun rmail-summary-reply (just-sender)
   "Reply to the current message.
-Normally include CC: to all other recipients of original message;
+Normally include Cc: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
@@ -1692,7 +1705,7 @@ Deleted messages are skipped and don't count.
 When called from Lisp code, N may be omitted and defaults to 1.
 
 This command always outputs the complete message header,
-even the header display is currently pruned."
+even if the header display is currently pruned."
   (interactive
    (progn (require 'rmailout)
 	  (list (rmail-output-read-file-name)
@@ -1713,8 +1726,6 @@ even the header display is currently pruned."
 	  (rmail-summary-delete-forward nil)
 	(if (< i n)
 	    (rmail-summary-next-msg 1))))))
-
-(defalias 'rmail-summary-output-to-rmail-file 'rmail-summary-output)
 
 (declare-function rmail-output-as-seen "rmailout"
 		  (file-name &optional count noattribute from-gnus))
@@ -1861,10 +1872,9 @@ the summary is only showing a subset of messages."
 	       (funcall sortfun reverse))
       (select-window selwin))))
 
-(provide 'rmailsum)
+(define-obsolete-function-alias 'rmail-summary-output-to-rmail-file
+  #'rmail-summary-output "29.1")
 
-;; Local Variables:
-;; generated-autoload-file: "rmail-loaddefs.el"
-;; End:
+(provide 'rmailsum)
 
 ;;; rmailsum.el ends here

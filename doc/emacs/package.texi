@@ -1,29 +1,41 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2017 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2022 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Packages
 @chapter Emacs Lisp Packages
 @cindex Package
-@cindex Emacs Lisp package archive
 @cindex Package archive
-@cindex Emacs Lisp package
 
-Emacs includes a facility that lets you easily download and install
-@dfn{packages} that implement additional features.  Each package is a
-separate Emacs Lisp program, sometimes including other components such
-as an Info manual.
+  Emacs is extended by implementing additional features in
+@dfn{packages}, which are Emacs Lisp libraries.  These could be
+written by you or provided by someone else.  If you want to install
+such a package so it is available in your future Emacs session, you
+need to compile it and put it in a directory where Emacs looks for
+Lisp libraries.  @xref{Lisp Libraries}, for more details about this
+manual installation method.  Many packages provide installation and
+usage instructions in the large commentary near the beginning of the
+Lisp file; you can use those instructions for installing and
+fine-tuning your use of the package.
 
-  @kbd{M-x list-packages} brings up a buffer named @file{*Packages*}
-with a list of all packages.  You can install or uninstall packages
-via this buffer.  @xref{Package Menu}.
+@cindex Emacs Lisp package archive
+  Packages can also be provided by @dfn{package archives}, which are
+large collections of Emacs Lisp packages.  Each package is a separate
+Emacs Lisp program, sometimes including other components such as an
+Info manual.  Emacs includes a facility that lets you easily download
+and install packages from such archives.  The rest of this chapter
+describes this facility.
 
-@findex describe-package
+  To list the packages available for installation from package
+archives, type @w{@kbd{M-x list-packages @key{RET}}}.  It brings up a
+buffer named @file{*Packages*} with a list of all packages.  You can
+install or uninstall packages via this buffer.  @xref{Package Menu}.
+
   The command @kbd{C-h P} (@code{describe-package}) prompts for the
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-  By default, Emacs downloads packages from a @dfn{package archive}
+  By default, Emacs downloads packages from a package archive
 maintained by the Emacs developers and hosted by the GNU project.
 Optionally, you can also download packages from archives maintained by
 third parties.  @xref{Package Installation}.
@@ -34,6 +46,7 @@ Manual}.
 
 @menu
 * Package Menu::         Buffer for viewing and managing packages.
+* Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
 @end menu
@@ -59,19 +72,12 @@ The package's version number (e.g., @samp{11.86}).
 The package's status---normally one of @samp{available} (can be
 downloaded from the package archive), @samp{installed},
 @c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
-or @samp{built-in} (included in Emacs by default).  The status
-@samp{external} means the package is not built-in and not from the
-directory specified by @code{package-user-dir} (@pxref{Package
-Files}).  External packages are treated much like built-in: they
-cannot be deleted through the package menu, and are not considered for
-upgrading.
+or @samp{built-in} (included in Emacs by default).
+@xref{Package Statuses}.
 
-The status can also be @samp{new}.  This is equivalent to
-@samp{available}, except that it means the package became newly
-available on the package archive after your last invocation of
-@kbd{M-x list-packages}.  In other instances, a package may have the
-status @samp{held}, @samp{disabled}, or @samp{obsolete}.
-@xref{Package Installation}.
+@item
+Which package archive this package is from, if you have more than one
+package archive enabled.
 
 @item
 A short description of the package.
@@ -79,24 +85,36 @@ A short description of the package.
 
 @noindent
 The @code{list-packages} command accesses the network, to retrieve the
-list of available packages from the package archive server.  If the
+list of available packages from package archive servers.  If the
 network is unavailable, it falls back on the most recently retrieved
 list.
+
+The main command to use in the package list buffer is the @key{x}
+command.  If the package under point isn't installed already, this
+command will install it.  If the package under point is already
+installed, this command will delete it.
 
 The following commands are available in the package menu:
 
 @table @kbd
 @item h
+@kindex h @r{(Package Menu)}
+@findex package-menu-quick-help
 Print a short message summarizing how to use the package menu
 (@code{package-menu-quick-help}).
 
 @item ?
 @itemx @key{RET}
+@kindex ? @r{(Package Menu)}
+@kindex RET @r{(Package Menu)}
+@findex package-menu-describe-package
 Display a help buffer for the package on the current line
 (@code{package-menu-describe-package}), similar to the help window
 displayed by the @kbd{C-h P} command (@pxref{Packages}).
 
 @item i
+@kindex i @r{(Package Menu)}
+@findex package-menu-mark-install
 Mark the package on the current line for installation
 (@code{package-menu-mark-install}).  If the package status is
 @samp{available}, this adds an @samp{I} character to the start of the
@@ -104,6 +122,8 @@ line; typing @kbd{x} (see below) will download and install the
 package.
 
 @item d
+@kindex d @r{(Package Menu)}
+@findex package-menu-mark-delete
 Mark the package on the current line for deletion
 (@code{package-menu-mark-delete}).  If the package status is
 @samp{installed}, this adds a @samp{D} character to the start of the
@@ -111,60 +131,212 @@ line; typing @kbd{x} (see below) will delete the package.
 @xref{Package Files}, for information about what package deletion
 entails.
 
+@item w
+@kindex w @r{(Package Menu)}
+@findex package-browse-url
+Open the package website on the current line in a browser
+(@code{package-browse-url}).  @code{browse-url} is used to open the
+browser.
+
 @item ~
+@kindex ~ @r{(Package Menu)}
+@findex package-menu-mark-obsolete-for-deletion
 Mark all obsolete packages for deletion
 (@code{package-menu-mark-obsolete-for-deletion}).  This marks for
 deletion all the packages whose status is @samp{obsolete}.
 
 @item u
 @itemx @key{DEL}
+@kindex u @r{(Package Menu)}
+@findex package-menu-mark-unmark
 Remove any installation or deletion mark previously added to the
-current line by an @kbd{i} or @kbd{d} command.
+current line by an @kbd{i} or @kbd{d} command
+(@code{package-menu-mark-unmark}).
 
 @item U
+@kindex U @r{(Package Menu)}
+@findex package-menu-mark-upgrades
 Mark all package with a newer available version for upgrading
 (@code{package-menu-mark-upgrades}).  This places an installation mark
 on the new available versions, and a deletion mark on the old
-installed versions.
+installed versions (marked with status @samp{obsolete}).
 
 @item x
+@kindex x @r{(Package Menu)}
 @vindex package-menu-async
+@findex package-menu-execute
 Download and install all packages marked with @kbd{i}, and their
 dependencies; also, delete all packages marked with @kbd{d}
-(@code{package-menu-execute}).  This also removes the marks.
+(@code{package-menu-execute}).  This also removes the marks.  If no
+packages are marked, this command will install the package under point
+(if it isn't installed already), or delete the package under point (if
+it's already installed).
 
+@item g
 @item r
-Refresh the package list (@code{package-menu-refresh}).  This fetches
-the list of available packages from the package archive again, and
-recomputes the package list.
-
-@item f
-Filter the package list (@code{package-menu-filter}).  This prompts
-for a keyword (e.g., @samp{games}), then shows only the packages
-that relate to that keyword.  To restore the full package list,
-type @kbd{q}.
+@kindex g @r{(Package Menu)}
+@kindex r @r{(Package Menu)}
+Refresh the package list (@code{revert-buffer}).  This fetches the
+list of available packages from the package archive again, and
+redisplays the package list.
 
 @item H
-Permanently hide packages that match a regexp
-(@code{package-menu-hide-package}).
+@kindex H @r{(Package Menu)}
+@findex package-menu-hide-package
+Hide packages whose names match a regexp
+(@code{package-menu-hide-package}).  This prompts for a regexp, and
+then hides the packages with matching names.  The default value of the
+regexp will hide only the package whose name is at point, so just
+pressing @key{RET} to the prompt will hide the current package.
 
 @item (
+@kindex ( @r{(Package Menu)}
+@findex package-menu-toggle-hiding
 Toggle visibility of old versions of packages and also of versions
 from lower-priority archives (@code{package-menu-toggle-hiding}).
+
+@item / a
+@kindex / a @r{(Package Menu)}
+@findex package-menu-filter-by-archive
+Filter package list by archive (@code{package-menu-filter-by-archive}).
+This prompts for a package archive (e.g., @samp{gnu}), then shows only
+packages from that archive.
+
+@item / d
+@kindex / d @r{(Package Menu)}
+@findex package-menu-filter-by-description
+Filter package list by description
+(@code{package-menu-filter-by-description}).  This prompts for a
+regular expression, then shows only packages with descriptions
+matching that regexp.
+
+@item / k
+@kindex / k @r{(Package Menu)}
+@findex package-menu-filter-by-keyword
+Filter package list by keyword (@code{package-menu-filter-by-keyword}).
+This prompts for a keyword (e.g., @samp{games}), then shows only
+packages with that keyword.
+
+@item / N
+@kindex / N @r{(Package Menu)}
+@findex package-menu-filter-by-name-or-description
+Filter package list by name or description
+(@code{package-menu-filter-by-name-or-description}).  This prompts for
+a regular expression, then shows only packages with a name or
+description matching that regexp.
+
+@item / n
+@kindex / n @r{(Package Menu)}
+@findex package-menu-filter-by-name
+Filter package list by name (@code{package-menu-filter-by-name}).
+This prompts for a regular expression, then shows only packages
+with names matching that regexp.
+
+@item / s
+@kindex / s @r{(Package Menu)}
+@findex package-menu-filter-by-status
+Filter package list by status (@code{package-menu-filter-by-status}).
+This prompts for one or more statuses (e.g., @samp{available}), then
+shows only packages with matching status.
+
+@item / v
+@kindex / v @r{(Package Menu)}
+@findex package-menu-filter-by-version
+Filter package list by version (@code{package-menu-filter-by-version}).
+This prompts first for one of the qualifiers @samp{<}, @samp{>} or
+@samp{=}, and then a package version, and shows packages that has a
+lower, equal or higher version than the one specified.
+
+@item / m
+@kindex / m @r{(Package Menu)}
+@findex package-menu-filter-marked
+Filter package list by non-empty mark (@code{package-menu-filter-marked}).
+This shows only the packages that have been marked to be installed or deleted.
+
+@item / u
+@kindex / u @r{(Package Menu)}
+@findex package-menu-filter-upgradable
+Filter package list to show only packages for which there are
+available upgrades (@code{package-menu-filter-upgradable}).
+
+@item / /
+@kindex / / @r{(Package Menu)}
+@findex package-menu-filter-clear
+Clear filter currently applied to the package list
+(@code{package-menu-filter-clear}).
 @end table
 
 @noindent
 For example, you can install a package by typing @kbd{i} on the line
 listing that package, followed by @kbd{x}.
 
+@node Package Statuses
+@section Package Statuses
+@cindex package status
+
+A package can have one of the following statuses:
+
+@table @samp
+@item available
+The package is not installed, but can be downloaded and installed from
+the package archive.
+
+@item avail-obso
+The package is available for installation, but a newer version is also
+available.  Packages with this status are hidden by default.
+
+@item built-in
+The package is included in Emacs by default.  It cannot be deleted
+through the package menu, and is not considered for upgrading.
+
+@item dependency
+The package was installed automatically to satisfy a dependency of
+another package.
+
+@item disabled
+The package has been disabled using the @code{package-load-list}
+variable.
+
+@item external
+The package is not built-in and not from the directory specified by
+@code{package-user-dir} (@pxref{Package Files}).  External packages
+are treated much like @samp{built-in} packages and cannot be deleted.
+
+@item held
+The package is held, @xref{Package Installation}.
+
+@item incompat
+The package cannot be installed for some reason, for example because
+it depends on uninstallable packages.
+
+@item installed
+The package is installed.
+
+@item new
+Equivalent to @samp{available}, except that the package became newly
+available on the package archive after your last invocation of
+@kbd{M-x list-packages}.
+
+@item obsolete
+The package is an outdated installed version; in addition to this
+version of the package, a newer version is also installed.
+
+@c @samp{unsigned} (installed, but not signed; @pxref{Package Signing}),
+@end table
+
 @node Package Installation
 @section Package Installation
 
 @findex package-install
+@findex package-update
+@findex package-update-all
   Packages are most conveniently installed using the package menu
 (@pxref{Package Menu}), but you can also use the command @kbd{M-x
 package-install}.  This prompts for the name of a package with the
-@samp{available} status, then downloads and installs it.
+@samp{available} status, then downloads and installs it.  Similarly,
+if you want to update a package, you can use the @kbd{M-x
+package-update} command, and if you just want to update all the
+packages, you can use the @kbd{M-x package-update-all} command.
 
 @cindex package requirements
   A package may @dfn{require} certain other packages to be installed,
@@ -181,7 +353,7 @@ maintained by the Emacs developers.  This is controlled by the
 variable @code{package-archives}, whose value is a list of package
 archives known to Emacs.  Each list element must have the form
 @code{(@var{id} . @var{location})}, where @var{id} is the name of a
-package archive and @var{location} is the @acronym{HTTP} address or
+package archive and @var{location} is the @acronym{URL} or
 name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
@@ -201,7 +373,7 @@ A valid signature is not a cast-iron
 guarantee that a package is not malicious, so you should still
 exercise caution.  Package archives should provide instructions
 on how you can obtain their public key.  One way is to download the
-key from a server such as @url{http://pgp.mit.edu/}.
+key from a server such as @url{https://pgp.mit.edu/}.
 Use @kbd{M-x package-import-keyring} to import the key into Emacs.
 Emacs stores package keys in the directory specified by the variable
 @code{package-gnupghome-dir}, by default in the @file{gnupg}
@@ -216,12 +388,18 @@ in the @file{etc/package-keyring.gpg}.  Emacs uses it automatically.
 @vindex package-unsigned-archives
   If the user option @code{package-check-signature} is non-@code{nil},
 Emacs attempts to verify signatures when you install packages.  If the
-option has the value @code{allow-unsigned}, you can still install a
-package that is not signed.  If you use some archives that do not sign
-their packages, you can add them to the list @code{package-unsigned-archives}.
+option has the value @code{allow-unsigned}, and a usable OpenPGP
+configuration is found, signed packages will be checked, but you can
+still install a package that is not signed.  If you use some archives
+that do not sign their packages, you can add them to the list
+@code{package-unsigned-archives}.  (If the value is
+@code{allow-unsigned} and no usable OpenPGP is found, this option is
+treated as if its value was @code{nil}.)  If the value is @code{t}, at
+least one signature must be valid; if the value is @code{all}, all of
+them must be valid.
 
   For more information on cryptographic keys and signing,
-@pxref{Top,, Top, gnupg, The GNU Privacy Guard Manual}.
+@pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.
 Emacs comes with an interface to GNU Privacy Guard,
 @pxref{Top,, EasyPG, epa, Emacs EasyPG Assistant Manual}.
 
@@ -243,60 +421,77 @@ lower-priority archives will not be shown in the menu, if the same
 package is available from a higher-priority archive.  (This is
 controlled by the value of @code{package-menu-hide-low-priority}.)
 
-  Once a package is downloaded and installed, it is @dfn{loaded} into
-the current Emacs session.  Loading a package is not quite the same as
-loading a Lisp library (@pxref{Lisp Libraries}); loading a package
-adds its directory to @code{load-path} and loads its autoloads.  The
-effect of a package's autoloads varies from package to package.  Most
-packages just make some new commands available, while others have more
-wide-ranging effects on the Emacs session.  For such information,
-consult the package's help buffer.
+  Once a package is downloaded, byte-compiled and installed, it is
+made available to the current Emacs session.  Making a package
+available adds its directory to @code{load-path} and loads its
+autoloads.  The effect of a package's autoloads varies from package to
+package.  Most packages just make some new commands available, while
+others have more wide-ranging effects on the Emacs session.  For such
+information, consult the package's help buffer.
 
-  By default, Emacs also automatically loads all installed packages in
-subsequent Emacs sessions.  This happens at startup, after processing
-the init file (@pxref{Init File}).  As an exception, Emacs does not
-load packages at startup if invoked with the @samp{-q} or
-@samp{--no-init-file} options (@pxref{Initial Options}).
+  Installed packages are automatically made available by Emacs in all
+subsequent sessions.  This happens at startup, before processing the
+init file but after processing the early init file (@pxref{Early Init
+File}).  As an exception, Emacs does not make packages available at
+startup if invoked with the @samp{-q} or @samp{--no-init-file} options
+(@pxref{Initial Options}).
 
 @vindex package-enable-at-startup
-  To disable automatic package loading, change the variable
-@code{package-enable-at-startup} to @code{nil}.
+  To keep Emacs from automatically making packages available at
+startup, change the variable @code{package-enable-at-startup} to
+@code{nil}.  You must do this in the early init file, as the variable
+is read before loading the regular init file.  Currently this variable
+cannot be set via Customize.
 
-@findex package-initialize
-  The reason automatic package loading occurs after loading the init
-file is that user options only receive their customized values after
-loading the init file, including user options which affect the
-packaging system.  In some circumstances, you may want to load
-packages explicitly in your init file (usually because some other code
-in your init file depends on a package).  In that case, your init file
-should call the function @code{package-initialize}.  It is up to you
-to ensure that relevant user options, such as @code{package-load-list}
-(see below), are set up prior to the @code{package-initialize} call.
-This will automatically set @code{package-enable-at-startup} to @code{nil}, to
-avoid loading the packages again after processing the init file.
-Alternatively, you may choose to completely inhibit package loading at
-startup, and invoke the command @kbd{M-x package-initialize} to load
-your packages manually.
+@findex package-quickstart-refresh
+@vindex package-quickstart
+  If you have many packages installed, you can improve startup times
+by setting the user option @code{package-quickstart} to @code{t}.
+Setting this option will make Emacs precompute many things instead of
+re-computing them on every Emacs startup.  However, if you do this,
+then you have to manually run the command
+@code{package-quickstart-refresh} when the activations need to be
+changed, such as when you change the value of
+@code{package-load-list}.
+
+@findex package-activate-all
+  If you have set @code{package-enable-at-startup} to @code{nil}, you
+can still make packages available either during or after startup.  To
+make installed packages available during startup, call the function
+@code{package-activate-all} in your init file.  To make installed
+packages available after startup, invoke the command @kbd{M-:
+(package-activate-all) RET}.
 
 @vindex package-load-list
-  For finer control over package loading, you can use the variable
-@code{package-load-list}.  Its value should be a list.  A list element
-of the form @code{(@var{name} @var{version})} tells Emacs to load
-version @var{version} of the package named @var{name}.  Here,
-@var{version} should be a version string (corresponding to a specific
-version of the package), or @code{t} (which means to load any
-installed version), or @code{nil} (which means no version; this
-disables the package, preventing it from being loaded).  A list
-element can also be the symbol @code{all}, which means to load the
-latest installed version of any package not named by the other list
-elements.  The default value is just @code{'(all)}.
+  For finer control over which packages are made available at startup,
+you can use the variable @code{package-load-list}.  Its value should
+be a list.  A list element of the form @w{@code{(@var{name}
+@var{version})}} tells Emacs to make available version @var{version} of
+the package named @var{name}.  Here, @var{version} should be a version
+string (corresponding to a specific version of the package), or
+@code{t} (which means to make available any installed version), or
+@code{nil} (which means no version; this disables the package,
+preventing it from being made available).  A list element can also be
+the symbol @code{all}, which means to make available the latest
+installed version of any package not named by the other list elements.
+The default value is just @code{'(all)}.
 
-  For example, if you set @code{package-load-list} to @code{'((muse
-"3.20") all)}, then Emacs only loads version 3.20 of the @samp{muse}
-package, plus any installed version of packages other than
+  For example, if you set @code{package-load-list} to @w{@code{'((muse
+"3.20") all)}}, then Emacs only makes available version 3.20 of the
+@samp{muse} package, plus any installed version of packages other than
 @samp{muse}.  Any other version of @samp{muse} that happens to be
 installed will be ignored.  The @samp{muse} package will be listed in
 the package menu with the @samp{held} status.
+
+@findex package-recompile
+@findex package-recompile-all
+  Emacs byte code is quite stable, but it's possible for byte code to
+become outdated, or for the compiled files to rely on macros that have
+changed in new versions of Emacs.  You can use the command @w{@kbd{M-x
+package-recompile}} to recompile a particular package, or
+@w{@kbd{M-x package-recompile-all}} to recompile all the packages.  (The
+latter command might take quite a while to run if you have many
+installed packages.)
 
 @node Package Files
 @section Package Files and Directory Layout

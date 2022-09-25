@@ -1,8 +1,8 @@
-;;; descr-text-test.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
+;;; descr-text-tests.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014, 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2022 Free Software Foundation, Inc.
 
-;; Author:     Michal Nazarewicz <mina86@mina86.com>
+;; Author: Michal Nazarewicz <mina86@mina86.com>
 
 ;; This file is part of GNU Emacs.
 
@@ -75,20 +75,20 @@
     (goto-char (point-min))
     (should (eq ?a (following-char))) ; make sure we are where we think we are
     ;; Function should return nil for an ASCII character.
-    (should (not (describe-char-eldoc)))
+    (should (not (describe-char-eldoc 'ignore)))
 
     (goto-char (1+ (point)))
     (should (eq ?… (following-char)))
     (let ((eldoc-echo-area-use-multiline-p t))
       ;; Function should return description of an Unicode character.
       (should (equal "U+2026: Horizontal ellipsis (Po: Punctuation, Other)"
-                     (describe-char-eldoc))))
+                     (describe-char-eldoc 'ignore))))
 
     (goto-char (point-max))
     ;; At the end of the buffer, function should return nil and not blow up.
-    (should (not (describe-char-eldoc)))))
+    (should (not (describe-char-eldoc 'ignore)))))
 
 
 (provide 'descr-text-test)
 
-;;; descr-text-test.el ends here
+;;; descr-text-tests.el ends here

@@ -1,6 +1,6 @@
-;;; comint-testsuite.el
+;;; comint-tests.el --- Tests for comint.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,16 +29,28 @@
 (defvar comint-testsuite-password-strings
   '("foo@example.net's password: " ; ssh
     "Password for foo@example.org: " ; kinit
+    "Password for 'https://foo@example.org':"           ; git push Bug#20910
     "Please enter the password for foo@example.org: "   ; kinit
     "Kerberos password for devnull/root <at> GNU.ORG: " ; ksu
     "Enter passphrase: " ; ssh-add
     "Enter passphrase (empty for no passphrase): " ; ssh-keygen
     "Enter same passphrase again: "     ; ssh-keygen
+    "Enter your password: "             ; python3 -m twine ... Bug#37636
     "Passphrase for key root@GNU.ORG: " ; plink
     "[sudo] password for user:" ; Ubuntu sudo
+    "[sudo] user 的密码：" ; localized
+    "doas (user@host) password:" ; OpenBSD doas
+    "PIN for user:"        ; Bug#35523
     "Password (again):"
     "Enter password:"
-    "Mot de Passe:" ; localized
+    "(user@host) Password: " ; openssh-8.6p1
+    "Current password:"    ; "passwd" (to change password) in Debian.
+    "Enter encryption key: " ; ccrypt
+    "Enter decryption key: " ; ccrypt
+    "Enter encryption key: (repeat) " ; ccrypt
+    "Enter Auth Password:" ; OpenVPN (Bug#35724)
+    "Verify password: "    ; zip -e zipfile.zip ... (Bug#47209)
+    "Mot de Passe :" ; localized (Bug#29729)
     "Passwort:") ; localized
   "List of strings that should match `comint-password-prompt-regexp'.")
 
@@ -47,8 +59,40 @@
   (dolist (str comint-testsuite-password-strings)
     (should (string-match comint-password-prompt-regexp str))))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(defun comint-tests/test-password-function (password-function)
+  "PASSWORD-FUNCTION can return nil or a string."
+  (when-let ((cat (executable-find "cat")))
+    (let ((comint-password-function password-function))
+      (cl-letf (((symbol-function 'read-passwd)
+                 (lambda (&rest _args) "non-nil")))
+        (with-temp-buffer
+          (make-comint-in-buffer "test-comint-password" (current-buffer) cat)
+          (let ((proc (get-buffer-process (current-buffer))))
+            (set-process-query-on-exit-flag proc nil)
+            (set-process-query-on-exit-flag proc nil)
+            (comint-send-invisible "Password: ")
+            (accept-process-output proc 0.1)
+            (should (string-equal
+                     (buffer-substring-no-properties (point-min) (point-max))
+                     (concat (or (and password-function
+                                      (funcall password-function))
+                                 "non-nil")
+                             "\n")))))))))
 
-;;; comint-testsuite.el ends here
+(ert-deftest comint-test-no-password-function ()
+  "Test that `comint-password-function' not being set does not
+alter normal password flow."
+  (comint-tests/test-password-function nil))
+
+(ert-deftest comint-test-password-function-with-value ()
+  "Test that `comint-password-function' alters normal password
+flow.  Hook function returns alternative password."
+  (comint-tests/test-password-function
+   (lambda (&rest _args) "MaGiC-PaSsWoRd789")))
+
+(ert-deftest comint-test-password-function-with-nil ()
+  "Test that `comint-password-function' does not alter the normal
+password flow if it returns a nil value."
+  (comint-tests/test-password-function #'ignore))
+
+;;; comint-tests.el ends here

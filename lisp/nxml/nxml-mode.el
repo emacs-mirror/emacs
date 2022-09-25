@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -54,25 +54,30 @@
   "Non-nil means display glyph following character reference.
 The glyph is displayed in face `nxml-glyph'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
-(defcustom nxml-sexp-element-flag nil
+(defcustom nxml-sexp-element-flag t
   "Non-nil means sexp commands treat an element as a single expression."
+  :version "27.1"                       ; nil -> t
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-slash-auto-complete-flag nil
   "Non-nil means typing a slash automatically completes the end-tag.
 This is used by `nxml-electric-slash'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-child-indent 2
   "Indentation for the children of an element relative to the start-tag.
 This only applies when the line or lines containing the start-tag contains
 nothing else other than that start-tag."
   :group 'nxml
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom nxml-attribute-indent 4
   "Indentation for the attributes of an element relative to the start-tag.
@@ -80,12 +85,14 @@ This only applies when the first attribute of a tag starts a line.
 In other cases, the first attribute on one line is indented the same
 as the first attribute on the previous line."
   :group 'nxml
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom nxml-bind-meta-tab-to-complete-flag t
   "Non-nil means to use nXML completion in \\[completion-at-point]."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
   "Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
@@ -93,29 +100,36 @@ This is used only when a buffer does not contain an encoding declaration
 and when its current `buffer-file-coding-system' specifies neither UTF-16
 nor UTF-8."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-prefer-utf-16-little-to-big-endian-flag (eq system-type
 							    'windows-nt)
   "Non-nil means prefer little-endian to big-endian byte-order for UTF-16.
-This is used only for saving a buffer; when reading the byte-order is
-auto-detected. It may be relevant both when there is no encoding declaration
-and when the encoding declaration specifies `UTF-16'."
+This is used only for saving a buffer; when reading the
+byte-order is auto-detected.  It may be relevant both when there
+is no encoding declaration and when the encoding declaration
+specifies `UTF-16'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-default-buffer-file-coding-system nil
   "Default value for `buffer-file-coding-system' for a buffer for a new file.
-A value of nil means use the default value of `buffer-file-coding-system' as normal.
-A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
+A value of nil means use the default value of
+`buffer-file-coding-system' as normal.
+A buffer's `buffer-file-coding-system' affects what
+\\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
-  :type 'coding-system)
+  :type 'coding-system
+  :safe #'coding-system-p)
 
 (defcustom nxml-auto-insert-xml-declaration-flag nil
   "Non-nil means automatically insert an XML declaration in a new file.
 The XML declaration is inserted using `nxml-insert-xml-declaration'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defface nxml-delimited-data
   '((t (:inherit font-lock-doc-face)))
@@ -355,35 +369,33 @@ and, if `nxml-char-ref-display-glyph-flag' is non-nil, a glyph
 corresponding to the referenced character following the character
 reference.")
 
-(defvar nxml-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\M-\C-u" 'nxml-backward-up-element)
-    (define-key map "\M-\C-d" 'nxml-down-element)
-    (define-key map "\M-\C-n" 'nxml-forward-element)
-    (define-key map "\M-\C-p" 'nxml-backward-element)
-    (define-key map "\M-{" 'nxml-backward-paragraph)
-    (define-key map "\M-}" 'nxml-forward-paragraph)
-    (define-key map "\M-h" 'nxml-mark-paragraph)
-    (define-key map "\C-c\C-f" 'nxml-finish-element)
-    (define-key map "\C-c]" 'nxml-finish-element)
-    (define-key map "\C-c/" 'nxml-finish-element)
-    (define-key map "\C-c\C-m" 'nxml-split-element)
-    (define-key map "\C-c\C-b" 'nxml-balanced-close-start-tag-block)
-    (define-key map "\C-c\C-i" 'nxml-balanced-close-start-tag-inline)
-    (define-key map "\C-c\C-x" 'nxml-insert-xml-declaration)
-    (define-key map "\C-c\C-d" 'nxml-dynamic-markup-word)
-    ;; u is for Unicode
-    (define-key map "\C-c\C-u" 'nxml-insert-named-char)
-    (define-key map "\C-c\C-o" nxml-outline-prefix-map)
-    (define-key map [S-mouse-2] 'nxml-mouse-hide-direct-text-content)
-    (define-key map "/" 'nxml-electric-slash)
-    (define-key map "\M-\t" 'completion-at-point)
-    map)
-  "Keymap for nxml-mode.")
+(defvar-keymap nxml-mode-map
+  :doc "Keymap for `nxml-mode'."
+  "C-M-u"   #'nxml-backward-up-element
+  "C-M-d"   #'nxml-down-element
+  "C-M-n"   #'nxml-forward-element
+  "C-M-p"   #'nxml-backward-element
+  "M-{"     #'nxml-backward-paragraph
+  "M-}"     #'nxml-forward-paragraph
+  "M-h"     #'nxml-mark-paragraph
+  "C-c C-f" #'nxml-finish-element
+  "C-c ]"   #'nxml-finish-element
+  "C-c /"   #'nxml-finish-element
+  "C-c C-m" #'nxml-split-element
+  "C-c C-b" #'nxml-balanced-close-start-tag-block
+  "C-c C-i" #'nxml-balanced-close-start-tag-inline
+  "C-c C-x" #'nxml-insert-xml-declaration
+  "C-c C-d" #'nxml-dynamic-markup-word
+  ;; u is for Unicode
+  "C-c C-u" #'nxml-insert-named-char
+  "C-c C-o" nxml-outline-prefix-map
+  "/"       #'nxml-electric-slash
+  "M-TAB"   #'completion-at-point
+  "S-<mouse-2>" #'nxml-mouse-hide-direct-text-content)
 
 (defvar nxml-font-lock-keywords
   '(nxml-fontify-matcher)
-  "Default font lock keywords for nxml-mode.")
+  "Default font lock keywords for `nxml-mode'.")
 
 (defsubst nxml-set-face (start end face)
   (when (and face (< start end))
@@ -423,6 +435,15 @@ reference.")
     (when rng-validate-mode
       (rng-validate-while-idle (current-buffer)))))
 
+(defvar nxml-prolog-end) ;; nxml-rap.el
+
+(defun nxml-syntax-propertize (start end)
+  "Syntactic keywords for `nxml-mode'."
+  ;; Like `sgml-syntax-propertize', but rescan prolog if needed.
+  (when (< start nxml-prolog-end)
+    (nxml-scan-prolog))
+  (sgml-syntax-propertize start end))
+
 (defvar tildify-space-string)
 (defvar tildify-foreach-region-function)
 
@@ -432,8 +453,9 @@ reference.")
   ;; because Emacs turns C-c C-i into C-c TAB which is hard to type and
   ;; not mnemonic.
   "Major mode for editing XML.
-
+\\<nxml-mode-map>
 \\[nxml-finish-element] finishes the current element by inserting an end-tag.
+
 C-c C-i closes a start-tag with `>' and then inserts a balancing end-tag
 leaving point between the start-tag and end-tag.
 \\[nxml-balanced-close-start-tag-block] is similar but for block rather than inline elements:
@@ -471,11 +493,10 @@ The Emacs commands that normally operate on balanced expressions will
 operate on XML markup items.  Thus \\[forward-sexp] will move forward
 across one markup item; \\[backward-sexp] will move backward across
 one markup item; \\[kill-sexp] will kill the following markup item;
-\\[mark-sexp] will mark the following markup item.  By default, each
-tag each treated as a single markup item; to make the complete element
-be treated as a single markup item, set the variable
-`nxml-sexp-element-flag' to t.  For more details, see the function
-`nxml-forward-balanced-item'.
+\\[mark-sexp] will mark the following markup item.  By default, the
+complete element is treated as a single markup item; to make each tag be
+treated as a separate markup item, set the variable `nxml-sexp-element-flag'
+to nil.  For more details, see the function `nxml-forward-balanced-item'.
 
 \\[nxml-backward-up-element] and \\[nxml-down-element] move up and down the element structure.
 
@@ -493,7 +514,7 @@ Many aspects this mode can be customized using
   ;; FIXME: Use the fact that we're parsing the document already
   ;; rather than using regex-based filtering.
   (setq-local tildify-foreach-region-function
-              (apply-partially #'tildify-foreach-ignore-environments
+              (apply-partially 'tildify-foreach-ignore-environments
                                '(("<! *--" . "-- *>") ("<" . ">"))))
   (setq-local mode-line-process '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
@@ -518,19 +539,18 @@ Many aspects this mode can be customized using
 	(nxml-with-invisible-motion
 	  (nxml-scan-prolog)))))
   (setq-local syntax-ppss-table sgml-tag-syntax-table)
-  (setq-local syntax-propertize-function #'sgml-syntax-propertize)
+  (setq-local syntax-propertize-function #'nxml-syntax-propertize)
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'nxml--buffer-substring-filter)
   (add-hook 'change-major-mode-hook #'nxml-cleanup nil t)
 
-  ;; Emacs 23 handles the encoding attribute on the xml declaration
-  ;; transparently to nxml-mode, so there is no longer a need for the below
-  ;; hook. The hook also had the drawback of overriding explicit user
-  ;; instruction to save as some encoding other than utf-8.
-  ;;(add-hook 'write-contents-hooks #'nxml-prepare-to-save)
   (when (not (and (buffer-file-name) (file-exists-p (buffer-file-name))))
     (when (and nxml-default-buffer-file-coding-system
 	       (not (local-variable-p 'buffer-file-coding-system)))
       (setq buffer-file-coding-system nxml-default-buffer-file-coding-system))
-    (when nxml-auto-insert-xml-declaration-flag
+    ;; When starting a new file, insert the XML declaration.
+    (when (and nxml-auto-insert-xml-declaration-flag
+               (zerop (buffer-size)))
       (nxml-insert-xml-declaration)))
 
   (setq font-lock-defaults
@@ -540,12 +560,24 @@ Many aspects this mode can be customized using
           nil  ; no special syntax table
           (font-lock-extend-region-functions . (nxml-extend-region))
           (jit-lock-contextually . t)
-          (font-lock-unfontify-region-function . nxml-unfontify-region)))
+          (font-lock-unfontify-region-function . nxml-unfontify-region)
+          (font-lock-syntactic-face-function
+           . sgml-font-lock-syntactic-face)))
 
-  (with-demoted-errors (rng-nxml-mode-init)))
+  (with-demoted-errors "RNG NXML error: %S"
+    (rng-nxml-mode-init)))
+
+(defun nxml--buffer-substring-filter (string)
+  ;; The `rng-state' property is huge, so don't copy it to the kill ring.
+  ;; This avoids problems when saving the kill ring with savehist.
+  (when (seq-find (lambda (elem)
+                    (plist-get (nth 2 elem) 'rng-state))
+                  (object-intervals string))
+    (remove-text-properties 0 (length string) '(rng-state nil) string))
+    string)
 
 (defun nxml-cleanup ()
-  "Clean up after nxml-mode."
+  "Clean up after `nxml-mode'."
   ;; Disable associated minor modes.
   (rng-validate-mode -1)
   ;; Clean up fontification.
@@ -553,7 +585,7 @@ Many aspects this mode can be customized using
     (widen)
     (with-silent-modifications
       (nxml-with-invisible-motion
-       (remove-text-properties (point-min) (point-max) '(face)))))
+       (remove-text-properties (point-min) (point-max) '(face nil)))))
   (remove-hook 'change-major-mode-hook #'nxml-cleanup t))
 
 (defun nxml-degrade (context err)
@@ -1510,17 +1542,18 @@ With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions.
 This is the equivalent of `forward-sexp' for XML.
 
-An element contains as items strings with no markup, tags, processing
-instructions, comments, CDATA sections, entity references and
-characters references.  However, if the variable
-`nxml-sexp-element-flag' is non-nil, then an element is treated as a
-single markup item.  A start-tag contains an element name followed by
-one or more attributes.  An end-tag contains just an element name.
-An attribute value literals contains strings with no markup, entity
-references and character references.  A processing instruction
-consists of a target and a content string.  A comment or a CDATA
-section contains a single string.  An entity reference contains a
-single name.  A character reference contains a character number."
+An element is by default treated as a single markup item.
+However, if the variable `nxml-sexp-element-flag' is nil, then an
+element contains as items strings with no markup, tags,
+processing instructions, comments, CDATA sections, entity
+references and character references.  A start-tag contains an
+element name followed by one or more attributes.  An end-tag
+contains just an element name.  An attribute value literals
+contains strings with no markup, entity references and character
+references.  A processing instruction consists of a target and a
+content string.  A comment or a CDATA section contains a single
+string.  An entity reference contains a single name.  A character
+reference contains a character number."
   (interactive "^p")
   (or arg (setq arg 1))
   (cond ((> arg 0)
@@ -2221,7 +2254,7 @@ ENDP is t in the former case, nil in the latter."
     (skip-line-prefix fill-prefix)
     fill-prefix))
 
-(defun nxml-newline-and-indent (soft)
+(defun nxml-newline-and-indent (&optional soft)
   (delete-horizontal-space)
   (if soft (insert-and-inherit ?\n) (newline 1))
   (nxml-indent-line))
@@ -2237,7 +2270,7 @@ ENDP is t in the former case, nil in the latter."
 (defun nxml-dynamic-markup-word ()
   "Dynamically markup the word before point.
 This attempts to find a tag to put around the word before point based
-on the contents of the current buffer. The end-tag will be inserted at
+on the contents of the current buffer.  The end-tag will be inserted at
 point.  The start-tag will be inserted at or before the beginning of
 the word before point; the contents of the current buffer is used to
 decide where.
@@ -2378,7 +2411,9 @@ With a prefix argument, inserts the character directly."
 (put 'nxml-char-ref 'evaporate t)
 
 (defun nxml-char-ref-display-extra (start end n)
-  (when nxml-char-ref-extra-display
+  (when (and ;; Displaying literal newline is unhelpful.
+         (not (eql n ?\n))
+         nxml-char-ref-extra-display)
     (let ((name (or (get-char-code-property n 'name)
                     (get-char-code-property n 'old-name)))
 	  (glyph-string (and nxml-char-ref-display-glyph-flag

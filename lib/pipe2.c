@@ -1,18 +1,18 @@
 /* Create a pipe, with specific opening flags.
-   Copyright (C) 2009-2017 Free Software Foundation, Inc.
+   Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License along
-   with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -29,7 +29,7 @@
 # include "nonblocking.h"
 #endif
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 /* Native Windows API.  */
 
 # include <io.h>
@@ -73,7 +73,7 @@ pipe2 (int fd[2], int flags)
       return -1;
     }
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 /* Native Windows API.  */
 
   if (_pipe (fd, 4096, flags & ~O_NONBLOCK) < 0)
@@ -107,7 +107,7 @@ pipe2 (int fd[2], int flags)
   if (pipe (fd) < 0)
     return -1;
 
-  /* POSIX <http://www.opengroup.org/onlinepubs/9699919799/functions/pipe.html>
+  /* POSIX <https://pubs.opengroup.org/onlinepubs/9699919799/functions/pipe.html>
      says that initially, the O_NONBLOCK and FD_CLOEXEC flags are cleared on
      both fd[0] and fd[1].  */
 
@@ -152,8 +152,7 @@ pipe2 (int fd[2], int flags)
 
 #endif
 
-#if GNULIB_defined_O_NONBLOCK || \
-  !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if GNULIB_defined_O_NONBLOCK || !(defined _WIN32 && ! defined __CYGWIN__)
  fail:
   {
     int saved_errno = errno;

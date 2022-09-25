@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -66,15 +66,22 @@ If you select a region larger than this size, it won't be copied to your system
 clipboard.  Since clipboard data is base 64 encoded, the actual number of
 string bytes that can be copied is 3/4 of this value."
   :version "25.1"
-  :type 'integer)
+  :type 'natnum)
 
-(defcustom xterm-set-window-title t
+(defcustom xterm-set-window-title nil
   "Whether Emacs should set window titles to an Emacs frame in an XTerm."
   :version "27.1"
   :type 'boolean)
 
+(defcustom xterm-store-paste-on-kill-ring t
+  "If non-nil, pasting text into Emacs will put the text onto the kill ring.
+This user option is only heeded when using a terminal using xterm
+capabilities, and only when that terminal understands bracketed paste."
+  :version "28.1"
+  :type 'boolean)
+
 (defconst xterm-paste-ending-sequence "\e[201~"
-  "Characters send by the terminal to end a bracketed paste.")
+  "Characters sent by the terminal to end a bracketed paste.")
 
 (defun xterm--pasted-text ()
   "Handle the rest of a terminal paste operation.
@@ -95,14 +102,54 @@ Return the pasted text as a string."
 	(decode-coding-region (point-min) (point) (keyboard-coding-system)
                               t)))))
 
-(defun xterm-paste ()
+(defun xterm-paste (event)
   "Handle the start of a terminal paste operation."
-  (interactive)
-  (let* ((pasted-text (xterm--pasted-text))
-         (interprogram-paste-function (lambda () pasted-text)))
-    (yank)))
+  (interactive "e")
+  (unless (eq (car-safe event) 'xterm-paste)
+    (error "xterm-paste must be found to xterm-paste event"))
+  (let ((pasted-text (nth 1 event)))
+    (if xterm-store-paste-on-kill-ring
+        ;; Put the text onto the kill ring and then insert it into the
+        ;; buffer.
+        (let ((interprogram-paste-function (lambda () pasted-text)))
+          (yank))
+      ;; Insert the text without putting it onto the kill ring.
+      (push-mark)
+      (insert-for-yank pasted-text))))
 
+;; Put xterm-paste itself in global-map because, after translation,
+;; it's just a normal input event.
 (define-key global-map [xterm-paste] #'xterm-paste)
+
+;; By returning an empty key sequence, these two functions perform the
+;; moral equivalent of the kind of transparent event processing done
+;; by read-event's handling of special-event-map, but inside
+;; read-key-sequence (which can recognize multi-character terminal
+;; notifications) instead of read-event (which can't).
+
+(defun xterm-translate-focus-in (_prompt)
+  (setf (terminal-parameter nil 'tty-focus-state) 'focused)
+  (funcall after-focus-change-function)
+  [])
+
+(defun xterm-translate-focus-out (_prompt)
+  (setf (terminal-parameter nil 'tty-focus-state) 'defocused)
+  (funcall after-focus-change-function)
+  [])
+
+(defun xterm--suspend-tty-function (_tty)
+  ;; We can't know what happens to the tty after we're suspended
+  (setf (terminal-parameter nil 'tty-focus-state) nil)
+  (funcall after-focus-change-function))
+
+;; Similarly, we want to transparently slurp the entirety of a
+;; bracketed paste and encapsulate it into a single event.  We used to
+;; just slurp up the bracketed paste content in the event handler, but
+;; this strategy can produce unexpected results in a caller manually
+;; looping on read-key and buffering input for later processing.
+
+(defun xterm-translate-bracketed-paste (_prompt)
+  (vector (list 'xterm-paste (xterm--pasted-text))))
 
 (defvar xterm-rxvt-function-map
   (let ((map (make-sparse-keymap)))
@@ -132,9 +179,15 @@ Return the pasted text as a string."
     (define-key map "\e[13~" [f3])
     (define-key map "\e[14~" [f4])
 
-    ;; Recognize the start of a bracketed paste sequence.  The handler
-    ;; internally recognizes the end.
-    (define-key map "\e[200~" [xterm-paste])
+    ;; Recognize the start of a bracketed paste sequence.
+    ;; The translation function internally recognizes the end.
+    (define-key map "\e[200~" #'xterm-translate-bracketed-paste)
+
+    ;; These translation functions actually call the focus handlers
+    ;; internally and return an empty sequence, causing us to go on to
+    ;; read the next event.
+    (define-key map "\e[I" #'xterm-translate-focus-in)
+    (define-key map "\e[O" #'xterm-translate-focus-out)
 
     map)
   "Keymap of escape sequences, shared between xterm and rxvt support.")
@@ -310,7 +363,20 @@ Return the pasted text as a string."
     (define-key map "\e[5;3~" [M-prior])
     (define-key map "\e[6;3~" [M-next])
 
-    (define-key map "\e[29~" [print])
+    ;; This escape sequence has a controversial story.
+    ;; It was initially mapped to [print] (initial commit by Karl Heuer),
+    ;; but we can't find any justification for it.
+    ;; Xterm uses this escape sequence for both `F16' and `Menu' keys,
+    ;; and the reason for it is that in the VT220 keyboard the key
+    ;; placed logically at position where `F16' would be (and sending
+    ;; the escape sequence that naturally belongs to `F16') was
+    ;; labeled `Menu'.  [ The story gets even more interesting if you
+    ;; want to dig deeper, e.g. some terminals would send that same
+    ;; escape sequence in response to `S-F4' (because they (ab)used
+    ;; the escape sequence of `F<n+12>' for `S-F<n>').  ]
+    ;; The current binding was chosen because current keyboards almost never
+    ;; have an `F16' key, whereas many do have a `Menu' key.
+    (define-key map "\e[29~" [menu])
 
     (define-key map "\eOj" [kp-multiply])
     (define-key map "\eOk" [kp-add])
@@ -327,6 +393,9 @@ Return the pasted text as a string."
     (define-key map "\eOw" [kp-7])
     (define-key map "\eOx" [kp-8])
     (define-key map "\eOy" [kp-9])
+
+    ;; Some keypads have an equal key (for instance, most Apple keypads).
+    (define-key map "\eOX" [kp-equal])
 
     (define-key map "\eO2j" [S-kp-multiply])
     (define-key map "\eO2k" [S-kp-add])
@@ -639,7 +708,7 @@ Return the pasted text as a string."
   (let ((str "")
         chr)
     ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
-    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?\\)))
+    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?\\)))
       (setq str (concat str (string chr))))
     (when (string-match
            "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
@@ -667,16 +736,24 @@ Return the pasted text as a string."
     ;; respond to this escape sequence.  RMS' opinion was to remove
     ;; it completely.  That might be right, but let's first try to
     ;; see if by using a longer timeout we get rid of most issues.
-    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?c)))
+    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?c)))
       (setq str (concat str (string chr))))
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
-    (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
+    (when (string-match "\\([0-9]+\\);\\([0-9]+\\);[01]" str)
       (let ((version (string-to-number (match-string 2 str))))
-        (when (and (> version 2000) (equal (match-string 1 str) "1"))
+        (when (and (> version 2000)
+                   (or (equal (match-string 1 str) "1")
+                       (equal (match-string 1 str) "65")))
           ;; Hack attack!  bug#16988: gnome-terminal reports "1;NNNN;0"
           ;; with a large NNNN but is based on a rather old xterm code.
-          ;; Gnome terminal 3.6.1 reports 1;3406;0
           ;; Gnome terminal 2.32.1 reports 1;2802;0
+          ;; Gnome terminal 3.6.1 reports 1;3406;0
+          ;; Gnome terminal 3.22.2 reports 1;4601;0 and *does* support
+          ;; background color querying (Bug#29716).
+          ;; Gnome terminal 3.38.0 reports 65;6200;1.
+          (when (> version 4000)
+            (xterm--query "\e]11;?\e\\"
+                          '(("\e]11;" .  xterm--report-background-handler))))
           (setq version 200))
         (when (equal (match-string 1 str) "83")
           ;; `screen' (which returns 83;40003;0) seems to also lack support for
@@ -712,6 +789,25 @@ Return the pasted text as a string."
   "Seconds to wait for an answer from the terminal.
 Can be nil to mean \"no timeout\".")
 
+(defvar xterm-query-redisplay-timeout 0.2
+  "Seconds to wait before allowing redisplay during terminal query." )
+
+(defun xterm--read-event-for-query ()
+  "Like `read-event', but inhibit redisplay.
+
+By not redisplaying right away for xterm queries, we can avoid
+unsightly flashing during initialization.  Give up and redisplay
+anyway if we've been waiting a little while."
+  (let ((start-time (current-time)))
+    (or (let ((inhibit-redisplay t))
+          (read-event nil nil xterm-query-redisplay-timeout))
+        (read-event nil nil
+                    (and xterm-query-timeout
+			 (max 0 (float-time
+				 (time-subtract
+				  xterm-query-timeout
+				  (time-since start-time)))))))))
+
 (defun xterm--query (query handlers &optional no-async)
   "Send QUERY string to the terminal and watch for a response.
 HANDLERS is an alist with elements of the form (STRING . FUNCTION).
@@ -744,7 +840,7 @@ We run the first FUNCTION whose STRING matches the input events."
         (let ((handler (pop handlers))
               (i 0))
           (while (and (< i (length (car handler)))
-                      (let ((evt (read-event nil nil xterm-query-timeout)))
+                      (let ((evt (xterm--read-event-for-query)))
                         (if (and (null evt) (= i 0) (not no-async))
                             ;; Timeout on the first event: fallback on async.
                             (progn
@@ -770,8 +866,8 @@ We run the first FUNCTION whose STRING matches the input events."
    basemap
    (make-composed-keymap map (keymap-parent basemap))))
 
-(defun terminal-init-xterm ()
-  "Terminal initialization function for xterm."
+(defun xterm--init ()
+  "Initialize the terminal for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings are incompatible with xterm's. It is
   ;; better in that case to use rxvt's initialization function.
@@ -812,8 +908,19 @@ We run the first FUNCTION whose STRING matches the input events."
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)
+  ;; We likewise unconditionally enable support for focus tracking.
+  (xterm--init-focus-tracking))
 
-  (run-hooks 'terminal-init-xterm-hook))
+(defun terminal-init-xterm ()
+  "Terminal initialization function for xterm."
+  (unwind-protect
+      (progn
+        (xterm--init)
+        ;; If the terminal initialization completed without errors, clear
+        ;; the lossage to discard the responses of the terminal emulator
+        ;; during initialization; otherwise they appear in the recent keys.
+        (clear-this-command-keys))
+    (run-hooks 'terminal-init-xterm-hook)))
 
 (defun xterm--init-modify-other-keys ()
   "Terminal initialization for xterm's modifyOtherKeys support."
@@ -826,6 +933,12 @@ We run the first FUNCTION whose STRING matches the input events."
   (send-string-to-terminal "\e[?2004h")
   (push "\e[?2004l" (terminal-parameter nil 'tty-mode-reset-strings))
   (push "\e[?2004h" (terminal-parameter nil 'tty-mode-set-strings)))
+
+(defun xterm--init-focus-tracking ()
+  "Terminal initialization for focus tracking mode."
+  (send-string-to-terminal "\e[?1004h")
+  (push "\e[?1004l" (terminal-parameter nil 'tty-mode-reset-strings))
+  (push "\e[?1004h" (terminal-parameter nil 'tty-mode-set-strings)))
 
 (defun xterm--init-activate-get-selection ()
   "Terminal initialization for `gui-get-selection'."
@@ -859,9 +972,10 @@ See `xterm--init-frame-title'"
 (defun xterm-set-window-title (&optional terminal)
   "Set the window title of the Xterm TERMINAL.
 The title is constructed from `frame-title-format'."
-  (send-string-to-terminal
-   (format "\e]2;%s\a" (format-mode-line frame-title-format))
-   terminal))
+  (unless (display-graphic-p terminal)
+    (send-string-to-terminal
+     (format "\e]2;%s\a" (format-mode-line frame-title-format))
+     terminal)))
 
 (defun xterm--selection-char (type)
   (pcase type
@@ -873,21 +987,31 @@ The title is constructed from `frame-title-format'."
     (type data-type
      &context (window-system nil)
               ;; Only applies to terminals which have it enabled.
-              ((terminal-parameter nil 'xterm--get-selection) (eql t)))
+              ((terminal-parameter nil 'xterm--get-selection) (eql t))
+              ;; Doesn't work in screen; see bug#36879.
+              ((eq (terminal-parameter nil 'terminal-initted)
+                   'terminal-init-screen)
+               (eql nil)))
   (unless (eq data-type 'STRING)
     (error "Unsupported data type %S" data-type))
-  (let* ((screen (eq (terminal-parameter nil 'terminal-initted)
-                     'terminal-init-screen))
-         (query (concat "\e]52;" (xterm--selection-char type) ";")))
+  (let ((query (concat "\e]52;" (xterm--selection-char type) ";")))
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (xterm--query
-       (concat (when screen "\eP") query "?\a" (when screen "\e\\"))
-       (list (cons query (lambda ()
-                           (while (let ((char (read-char)))
-                                    (unless (eq char ?\a)
-                                      (insert char)
-                                      t))))))
+       ;; Use ST as query terminator to get ST as reply terminator (bug#36879).
+       (concat query "?\e\\")
+       (list (cons query
+                   (lambda ()
+                     ;; Read data up to the string terminator, ST.
+                     (let (char last)
+                       (while (and (setq char (read-char
+                                               nil nil
+                                               xterm-query-timeout))
+                                   (not (and (eq char ?\\)
+                                             (eq last ?\e))))
+                         (when last
+                           (insert last))
+                         (setq last char))))))
        'no-async)
       (base64-decode-region (point-min) (point-max))
       (decode-coding-region (point-min) (point-max) 'utf-8-unix t))))
@@ -920,10 +1044,9 @@ hitting screen's max DCS length."
                      'terminal-init-screen))
          (bytes (encode-coding-string data 'utf-8-unix))
          (base-64 (if screen
-                      (replace-regexp-in-string
+                      (string-replace
                        "\n" "\e\\\eP"
-                       (base64-encode-string bytes)
-                       :fixedcase :literal)
+                       (base64-encode-string bytes))
                     (base64-encode-string bytes :no-line-break)))
          (length (length base-64)))
     (if (> length xterm-max-cut-length)
@@ -938,7 +1061,7 @@ hitting screen's max DCS length."
 
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (logior prim (lsh prim 8)))
+  (logior prim (ash prim 8)))
 
 (defun xterm-register-default-colors (colors)
   "Register the default set of colors for xterm or compatible emulator.

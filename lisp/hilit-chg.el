@@ -1,6 +1,6 @@
-;;; hilit-chg.el --- minor mode displaying buffer changes with special face
+;;; hilit-chg.el --- minor mode displaying buffer changes with special face  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -68,8 +68,7 @@
 ;; (defun my-highlight-changes-mode-hook ()
 ;;   (if highlight-changes-mode
 ;;       (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)
-;;     (remove-hook 'write-file-functions 'highlight-changes-rotate-faces t)
-;;     ))
+;;     (remove-hook 'write-file-functions 'highlight-changes-rotate-faces t)))
 
 
 ;;           Automatically enabling Highlight Changes mode
@@ -114,16 +113,15 @@
 
 
 ;;     Possible bindings:
-;; (global-set-key '[C-right] 'highlight-changes-next-change)
-;; (global-set-key '[C-left]  'highlight-changes-previous-change)
+;; (global-set-key '[C-right] #'highlight-changes-next-change)
+;; (global-set-key '[C-left]  #'highlight-changes-previous-change)
 ;;
 ;;     Other interactive functions (that could be bound if desired):
-;; highlight-changes-mode
-;; highlight-changes-toggle-visibility
-;; highlight-changes-remove-highlight
-;; highlight-compare-with-file
-;; highlight-compare-buffers
-;; highlight-changes-rotate-faces
+;; `highlight-changes-mode'
+;; `highlight-changes-remove-highlight'
+;; `highlight-compare-with-file'
+;; `highlight-compare-buffers'
+;; `highlight-changes-rotate-faces'
 
 
 ;;; Bugs:
@@ -179,7 +177,6 @@
   :version "20.4"
   :group 'faces)
 
-
 ;; Face information: How the changes appear.
 
 ;; Defaults for face: red foreground, no change to background,
@@ -192,25 +189,20 @@
   '((((min-colors 88) (class color)) (:foreground "red1"))
     (((class color)) (:foreground "red" ))
     (t (:inverse-video t)))
-  "Face used for highlighting changes."
-  :group 'highlight-changes)
+  "Face used for highlighting changes.")
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
 (defface highlight-changes-delete
   '((((min-colors 88) (class color)) (:foreground "red1" :underline t))
     (((class color)) (:foreground "red" :underline t))
     (t (:inverse-video t)))
-  "Face used for highlighting deletions."
-  :group 'highlight-changes)
+  "Face used for highlighting deletions.")
 
 ;; A (not very good) default list of colors to rotate through.
-(define-obsolete-variable-alias 'highlight-changes-colours
-                                'highlight-changes-colors "22.1")
-
 (defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:
-      '( "magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
+      '("magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
       ;; defaults for dark background:
     '("yellow" "magenta" "blue" "maroon" "firebrick" "green4" "DarkOrchid"))
   "Colors used by `highlight-changes-rotate-faces'.
@@ -221,14 +213,10 @@ This list is used if `highlight-changes-face-list' is nil, otherwise that
 variable overrides this list.  If you only care about foreground
 colors then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
-  :type '(repeat color)
-  :group 'highlight-changes)
+  :type '(repeat color))
 
 ;; When you invoke highlight-changes-mode, should highlight-changes-visible-mode
 ;; be on or off?
-
-(define-obsolete-variable-alias 'highlight-changes-initial-state
-  'highlight-changes-visibility-initial-state "23.1")
 
 (defcustom highlight-changes-visibility-initial-state t
   "Controls whether changes are initially visible in Highlight Changes mode.
@@ -236,35 +224,23 @@ colors then use this, if you want fancier faces then set
 This controls the initial value of `highlight-changes-visible-mode'.
 When a buffer is in Highlight Changes mode the function
 `highlight-changes-visible-mode' is used to toggle the mode on or off."
-  :type 'boolean
-  :group 'highlight-changes)
-
-;; highlight-changes-global-initial-state has been removed
-
-
+  :type 'boolean)
 
 ;; These are the strings displayed in the mode-line for the minor mode:
-(define-obsolete-variable-alias 'highlight-changes-active-string
-  'highlight-changes-visible-string "23.1")
 
 (defcustom highlight-changes-visible-string " +Chg"
   "The string used when in Highlight Changes mode and changes are visible.
 This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
-		 (const :tag "None"  nil))
-  :group 'highlight-changes)
-
-(define-obsolete-variable-alias 'highlight-changes-passive-string
-  'highlight-changes-invisible-string "23.1")
+                 (const :tag "None" nil)))
 
 (defcustom highlight-changes-invisible-string " -Chg"
   "The string used when in Highlight Changes mode and changes are hidden.
 This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
-		 (const :tag "None"  nil))
-  :group 'highlight-changes)
+                 (const :tag "None" nil)))
 
 (defcustom highlight-changes-global-modes t
   "Determine whether a buffer is suitable for global Highlight Changes mode.
@@ -294,26 +270,21 @@ modes only."
 	       (repeat :tag "Modes" :inline t (symbol :tag "mode")))
 	  (function :menu-tag "determined by function"
 			   :value buffer-file-name)
-	  (const :tag "none" nil)
-	  )
-  :group 'highlight-changes)
+          (const :tag "none" nil)))
 
 (defcustom highlight-changes-global-changes-existing-buffers nil
   "If non-nil, toggling global Highlight Changes mode affects existing buffers.
-Normally, `global-highlight-changes' affects only new buffers (to be
+Normally, `global-highlight-changes-mode' affects only new buffers (to be
 created).  However, if `highlight-changes-global-changes-existing-buffers'
-is non-nil, then turning on `global-highlight-changes' will turn on
+is non-nil, then turning on `global-highlight-changes-mode' will turn on
 Highlight Changes mode in suitable buffers, and turning the mode off will
 remove it from existing buffers."
-  :type 'boolean
-  :group 'highlight-changes)
+  :type 'boolean)
 
 ;; These are for internal use.
 
 (defvar hilit-chg-list nil)
-(defvar hilit-chg-string " ??")
-
-(make-variable-buffer-local 'hilit-chg-string)
+(defvar-local hilit-chg-string " ??")
 
 
 
@@ -322,9 +293,6 @@ remove it from existing buffers."
 ;;;###autoload
 (define-minor-mode highlight-changes-mode
   "Toggle highlighting changes in this buffer (Highlight Changes mode).
-With a prefix argument ARG, enable Highlight Changes mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 When Highlight Changes is enabled, changes are marked with a text
 property.  Normally they are displayed in a distinctive face, but
@@ -340,9 +308,7 @@ through	various faces.
 \\[highlight-compare-with-file] - mark text as changed by comparing this
 buffer with the contents of a file
 \\[highlight-compare-buffers] highlights differences between two buffers."
-  nil			;; init-value
-  hilit-chg-string	;; lighter
-  nil			;; keymap
+  :lighter hilit-chg-string
   (if (or (display-color-p)
 	  (and (fboundp 'x-display-grayscale-p) (x-display-grayscale-p)))
       (progn
@@ -363,9 +329,6 @@ buffer with the contents of a file
 ;;;###autoload
 (define-minor-mode highlight-changes-visible-mode
   "Toggle visibility of highlighting due to Highlight Changes mode.
-With a prefix argument ARG, enable Highlight Changes Visible mode
-if ARG is positive, and disable it otherwise.  If called from
-Lisp, enable the mode if ARG is omitted or nil.
 
 Highlight Changes Visible mode only has an effect when Highlight
 Changes mode is on.  When enabled, the changed text is displayed
@@ -375,13 +338,8 @@ The default value can be customized with variable
 `highlight-changes-visibility-initial-state'.
 
 This command does not itself set Highlight Changes mode."
-
-  t		;; init-value
-  nil		;; lighter
-  nil		;; keymap
-
-  (hilit-chg-update)
-  )
+  :init-value t
+  (hilit-chg-update))
 
 
 (defun hilit-chg-cust-fix-changes-face-list (w _wc &optional event)
@@ -394,12 +352,10 @@ This command does not itself set Highlight Changes mode."
   ;; faces are saved but not to the actual list itself.
   (let ((old-list (widget-value w)))
     (if (member 'default old-list)
-	(let
-	    ((p (reverse old-list))
+        (let ((p (reverse old-list))
 	     (n (length old-list))
 	     new-name old-name
-	     (new-list nil)
-	     )
+             (new-list nil))
 	  (while p
 	    (setq old-name (car p))
 	    (setq new-name (intern (format "highlight-changes-%d" n)))
@@ -419,9 +375,7 @@ This command does not itself set Highlight Changes mode."
 	  (if (equal new-list (widget-value w))
 	      nil ;; (message "notify: no change!")
 	    (widget-value-set w new-list)
-	    (widget-setup)
-	    )
-	  )
+            (widget-setup)))
       ;; (message "notify: no default here!")
       ))
   (let ((parent (widget-get w :parent)))
@@ -440,10 +394,8 @@ Otherwise, this list will be constructed when needed from
   :type '(choice
 	  (repeat
 	    :notify hilit-chg-cust-fix-changes-face-list
-	    face  )
-	  (const :tag "Derive from highlight-changes-colors"  nil)
-	  )
-  :group 'highlight-changes)
+            face)
+          (const :tag "Derive from highlight-changes-colors"  nil)))
 
 
 (defun hilit-chg-map-changes (func &optional start-position end-position)
@@ -469,7 +421,7 @@ An overlay from BEG to END containing a change face is added
 from the information in the text property of type `hilit-chg'.
 
 This is the opposite of `hilit-chg-hide-changes'."
-  (hilit-chg-map-changes 'hilit-chg-make-ov beg end))
+  (hilit-chg-map-changes #'hilit-chg-make-ov beg end))
 
 
 (defun hilit-chg-make-ov (prop start end)
@@ -490,9 +442,8 @@ This is the opposite of `hilit-chg-hide-changes'."
 	  (overlay-put ov 'evaporate t)
 	  ;; We set the change property so we can tell this is one
 	  ;; of our overlays (so we don't delete someone else's).
-	  (overlay-put ov 'hilit-chg t)
-	  )
-      (error "hilit-chg-make-ov: no face for prop: %s" prop))))
+          (overlay-put ov 'hilit-chg t))
+      (error "hilit-chg-make-ov: No face for prop: %s" prop))))
 
 (defun hilit-chg-hide-changes (&optional beg end)
   "Remove face information for Highlight Changes mode.
@@ -540,9 +491,9 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;; otherwise an undone change shows up as changed.  While the properties
   ;; are automatically restored by undo, we must fix up the overlay.
   (save-match-data
-    (let (;;(beg-decr 1)
-          (end-incr 1)
-	  (type 'hilit-chg))
+    (let ((end-incr 1)
+	  (type 'hilit-chg)
+          (property 'hilit-chg))
       (if undo-in-progress
 	  (if (and highlight-changes-mode
 		   highlight-changes-visible-mode)
@@ -563,7 +514,8 @@ This allows you to manually remove highlighting from uninteresting changes."
                 ;;   	(setq beg-decr 0))))
                 ;; (setq beg (max (- beg beg-decr) (point-min)))
                 (setq end (min (+ end end-incr) (point-max)))
-                (setq type 'hilit-chg-delete))
+                (setq type 'hilit-chg-delete
+                      property 'hilit-chg-delete))
             ;; Not a deletion.
             ;; Most of the time the following is not necessary, but
             ;; if the current text was marked as a deletion then
@@ -571,14 +523,15 @@ This allows you to manually remove highlighting from uninteresting changes."
             ;; text where she earlier deleted text, we have to remove the
             ;; deletion marking, and replace it explicitly with a `changed'
             ;; marking, otherwise its highlighting would disappear.
-            (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
-                (save-restriction
-                  (widen)
-                  (put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
-                  (if highlight-changes-visible-mode
-                      (hilit-chg-fixup end (+ end 1))))))
+            (when (eq (get-text-property end 'hilit-chg-delete)
+                      'hilit-chg-delete)
+              (save-restriction
+                (widen)
+                (put-text-property end (+ end 1) 'hilit-chg-delete nil)
+                (if highlight-changes-visible-mode
+                    (hilit-chg-fixup end (+ end 1))))))
           (unless no-property-change
-            (put-text-property beg end 'hilit-chg type))
+            (put-text-property beg end property type))
           (if (or highlight-changes-visible-mode no-property-change)
               (hilit-chg-make-ov type beg end)))))))
 
@@ -715,7 +668,7 @@ This removes all saved change information."
 
 ;;;###autoload
 (defun highlight-changes-rotate-faces ()
-  "Rotate the faces if in Highlight Changes mode and the changes are visible.
+  "\"Age\" changes if in Highlight Changes mode and the changes are visible.
 
 Current changes are displayed in the face described by the first element
 of `highlight-changes-face-list', one level older changes are shown in
@@ -749,7 +702,7 @@ this, eval the following in the buffer to be saved:
 	    ;; remove our existing overlays
 	    (hilit-chg-hide-changes)
 	    ;; for each change text property, increment it
-	    (hilit-chg-map-changes 'hilit-chg-bump-change)
+            (hilit-chg-map-changes #'hilit-chg-bump-change)
 	    ;; and display them
 	    (hilit-chg-display-changes))
 	(unless modified
@@ -782,7 +735,7 @@ is non-nil."
 	   (buf-b-read-only (with-current-buffer buf-b buffer-read-only))
 	   temp-a temp-b)
       (if (and file-a bufa-modified)
-	  (if (y-or-n-p (format "Save buffer %s?  " buf-a))
+          (if (y-or-n-p (format "Save buffer %s? " buf-a))
 	      (with-current-buffer buf-a
 		(save-buffer)
 		(setq bufa-modified (buffer-modified-p buf-a)))
@@ -791,7 +744,7 @@ is non-nil."
 	  (setq temp-a (setq file-a (ediff-make-temp-file buf-a nil))))
 
       (if (and file-b bufb-modified)
-	  (if (y-or-n-p (format "Save buffer %s?  " buf-b))
+          (if (y-or-n-p (format "Save buffer %s? " buf-b))
 	      (with-current-buffer buf-b
 		(save-buffer)
 		(setq bufb-modified (buffer-modified-p buf-b)))
@@ -832,12 +785,11 @@ is non-nil."
       (if temp-a
 	  (delete-file temp-a))
       (if temp-b
-	  (delete-file temp-b)))
-    ))
+          (delete-file temp-b)))))
 
 ;;;###autoload
 (defun highlight-compare-buffers (buf-a buf-b)
-"Compare two buffers and highlight the differences.
+  "Compare two buffers and highlight the differences.
 
 The default is the current buffer and the one in the next window.
 
@@ -858,8 +810,7 @@ changes are made, so \\[highlight-changes-next-change] and
 		  (window-buffer (next-window)) t))))
   (let ((file-a (buffer-file-name buf-a))
 	(file-b (buffer-file-name buf-b)))
-    (highlight-markup-buffers buf-a file-a buf-b file-b)
-    ))
+    (highlight-markup-buffers buf-a file-a buf-b file-b)))
 
 ;;;###autoload
 (defun highlight-compare-with-file (file-b)
@@ -899,9 +850,11 @@ changes are made, so \\[highlight-changes-next-change] and
 		    (find-file-noselect file-b))))
     (highlight-markup-buffers buf-a file-a buf-b file-b (not existing-buf))
     (unless existing-buf
-      (kill-buffer buf-b))
-    ))
+      (kill-buffer buf-b))))
 
+(defvar hilit-x)                      ; placate the byte-compiler
+(defvar hilit-y)
+(defvar hilit-e)
 
 (defun hilit-chg-get-diff-info (buf-a file-a buf-b file-b)
    ;; hilit-e,x,y are set by function hilit-chg-get-diff-list-hk.
@@ -909,8 +862,7 @@ changes are made, so \\[highlight-changes-next-change] and
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
 	       '(hilit-chg-get-diff-list-hk)
-	       (list (cons 'ediff-job-name 'something))
-	       )
+               (list (cons 'ediff-job-name 'something)))
     (ediff-with-current-buffer hilit-e (ediff-really-quit nil))
     (list hilit-x hilit-y)))
 
@@ -918,9 +870,6 @@ changes are made, so \\[highlight-changes-next-change] and
 (defun hilit-chg-get-diff-list-hk ()
   ;; hilit-e/x/y are dynamically bound by hilit-chg-get-diff-info
   ;; which calls this function as a hook.
-  (defvar hilit-x)                      ; placate the byte-compiler
-  (defvar hilit-y)
-  (defvar hilit-e)
   (setq hilit-e (current-buffer))
   (let ((n 0) extent p va vb a b)
     (setq hilit-x nil hilit-y nil)
@@ -954,7 +903,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	(setq extent (list (overlay-start (car p))
 			   (overlay-end (car p))))
 	(setq p (cdr p))
-	(setq hilit-y (append hilit-y (list extent) )))
+        (setq hilit-y (append hilit-y (list extent))))
       (setq n (1+ n)));; while
     ;; ediff-quit doesn't work here.
     ;; No point in returning a value, since this is a hook function.
@@ -965,10 +914,6 @@ changes are made, so \\[highlight-changes-next-change] and
 ;;;###autoload
 (define-globalized-minor-mode global-highlight-changes-mode
   highlight-changes-mode highlight-changes-mode-turn-on)
-
-(define-obsolete-function-alias
- 'global-highlight-changes
-  'global-highlight-changes-mode "23.1")
 
 (defun highlight-changes-mode-turn-on ()
   "See if Highlight Changes mode should be turned on for this buffer.
@@ -988,8 +933,7 @@ This is called when `global-highlight-changes-mode' is turned on."
 	     (and
 	      (not (string-match "^[ *]" (buffer-name)))
 	      (buffer-file-name))))
-	  (highlight-changes-mode 1))
-	))
+          (highlight-changes-mode 1))))
 
 
 ;;;; Desktop support.
@@ -1012,8 +956,7 @@ This is called when `global-highlight-changes-mode' is turned on."
 ;;   (message "--- hilit-chg-debug-show ---")
 ;;   (hilit-chg-map-changes (lambda (prop start end)
 ;; 			     (message "%d-%d: %s" start end prop))
-;; 			   beg end
-;; 			   ))
+;; 			   beg end))
 ;;
 ;; ================== end of debug ===============
 

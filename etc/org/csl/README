@@ -1,0 +1,10 @@
+These data files are used by Org's oc-csl.el library.
+
+LICENSE INFORMATION
+
+chicago-author-date.csl
+locales-en-US.xml
+
+  Both of these files are part of the Citation Style Language (CSL)
+  project (<https://citationstyles.org/>) and are released under the
+  Creative Commons Attribution-ShareAlike 3.0 Unported license.

@@ -1,6 +1,6 @@
-;;; eieio-speedbar.el -- Classes for managing speedbar displays.  -*- lexical-binding:t -*-
+;;; eieio-speedbar.el --- Classes for managing speedbar displays.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2002, 2005, 2007-2017 Free Software Foundation,
+;; Copyright (C) 1999-2002, 2005, 2007-2022 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -140,11 +140,7 @@ MENU-VAR is the symbol containing an easymenu compatible menu part to use.
 MODENAME is a string used to identify this browser mode.
 FETCHER is a generic function used to fetch the base object list used when
 creating the speedbar display."
-  (if (not (featurep 'speedbar))
-      (add-hook 'speedbar-load-hook
-		(list 'lambda nil
-		      (list 'eieio-speedbar-create-engine
-			    map-fn map-var menu-var modename fetcher)))
+  (with-eval-after-load 'speedbar
     (eieio-speedbar-create-engine map-fn map-var menu-var modename fetcher)))
 
 (defun eieio-speedbar-create-engine (map-fn map-var menu-var modename fetcher)
@@ -252,7 +248,7 @@ and take the appropriate action."
 Possible values are those symbols supported by the `exp-button-type' argument
 to `speedbar-make-tag-line'."
 	       :allocation :class)
-   (buttonface :initform speedbar-tag-face
+   (buttonface :initform 'speedbar-tag-face
 	       :type (or symbol face)
 	       :documentation
 	       "The face used on the textual part of the button for this class.
@@ -269,15 +265,15 @@ Add one of the child classes to this class to the parent list of a class."
   :abstract t)
 
 (defclass eieio-speedbar-directory-button (eieio-speedbar)
-  ((buttontype :initform angle)
-   (buttonface :initform speedbar-directory-face))
+  ((buttontype :initform 'angle)
+   (buttonface :initform 'speedbar-directory-face))
   "Class providing support for objects which behave like a directory."
   :method-invocation-order :depth-first
   :abstract t)
 
 (defclass eieio-speedbar-file-button (eieio-speedbar)
-  ((buttontype :initform bracket)
-   (buttonface :initform speedbar-file-face))
+  ((buttontype :initform 'bracket)
+   (buttonface :initform 'speedbar-file-face))
   "Class providing support for objects which behave like a file."
   :method-invocation-order :depth-first
   :abstract t)
@@ -348,14 +344,14 @@ The object is at indentation level INDENT."
 (defun eieio-speedbar-object-expand (text token indent)
   "Expand object represented by TEXT.
 TOKEN is the object.  INDENT is the current indentation level."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-search "+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (oset token expanded t)
 	 (speedbar-with-writable
 	   (save-excursion
 	     (end-of-line) (forward-char 1)
 	     (eieio-speedbar-expand token (1+ indent)))))
-	((string-match "-" text)	;we have to contract this node
+	((string-search "-" text)	;we have to contract this node
 	 (speedbar-change-expand-button-char ?+)
 	 (oset token expanded nil)
 	 (speedbar-delete-subblock indent))

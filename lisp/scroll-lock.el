@@ -1,6 +1,6 @@
-;;; scroll-lock.el --- Scroll lock scrolling.
+;;; scroll-lock.el --- Scroll lock scrolling.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2005-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2022 Free Software Foundation, Inc.
 
 ;; Author: Ralf Angeli <angeli@iwi.uni-sb.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -30,18 +30,16 @@
 
 ;;; Code:
 
-(defvar scroll-lock-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [remap next-line] 'scroll-lock-next-line)
-    (define-key map [remap previous-line] 'scroll-lock-previous-line)
-    (define-key map [remap forward-paragraph] 'scroll-lock-forward-paragraph)
-    (define-key map [remap backward-paragraph] 'scroll-lock-backward-paragraph)
-    map)
-  "Keymap for Scroll Lock mode.")
+(defvar-keymap scroll-lock-mode-map
+  :doc "Keymap for Scroll Lock mode."
+  "<remap> <next-line>"          #'scroll-lock-next-line
+  "<remap> <previous-line>"      #'scroll-lock-previous-line
+  "<remap> <forward-paragraph>"  #'scroll-lock-forward-paragraph
+  "<remap> <backward-paragraph>" #'scroll-lock-backward-paragraph
+  "S-<down>"                     #'scroll-lock-next-line-always-scroll)
 
-(defvar scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
+(defvar-local scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
   "Used for saving the state of `scroll-preserve-screen-position'.")
-(make-variable-buffer-local 'scroll-lock-preserve-screen-pos-save)
 
 (defvar scroll-lock-temporary-goal-column 0
   "Like `temporary-goal-column' but for scroll-lock-* commands.")
@@ -49,19 +47,21 @@
 ;;;###autoload
 (define-minor-mode scroll-lock-mode
   "Buffer-local minor mode for pager-like scrolling.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  When enabled, keys that normally move
-point by line or paragraph will scroll the buffer by the
-respective amount of lines instead and point will be kept
-vertically fixed relative to window boundaries during scrolling."
+
+When enabled, keys that normally move point by line or paragraph
+will scroll the buffer by the respective amount of lines instead
+and point will be kept vertically fixed relative to window
+boundaries during scrolling.
+
+Note that the default key binding to `scroll' will not work on
+MS-Windows systems if `w32-scroll-lock-modifier' is non-nil."
   :lighter " ScrLck"
   :keymap scroll-lock-mode-map
   (if scroll-lock-mode
       (progn
 	(setq scroll-lock-preserve-screen-pos-save
 	      scroll-preserve-screen-position)
-	(set (make-local-variable 'scroll-preserve-screen-position) 'always))
+        (setq-local scroll-preserve-screen-position 'always))
     (setq scroll-preserve-screen-position
 	  scroll-lock-preserve-screen-pos-save)))
 
@@ -81,6 +81,16 @@ vertically fixed relative to window boundaries during scrolling."
 			   (window-width)))))
       (move-to-column column)
     (forward-char (min column (- (line-end-position) (point))))))
+
+(defun scroll-lock-next-line-always-scroll (&optional arg)
+  "Scroll up ARG lines keeping point fixed."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (scroll-lock-update-goal-column)
+  (condition-case nil
+      (scroll-up arg)
+    (end-of-buffer (goto-char (point-max)) (recenter 1)))
+  (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
 (defun scroll-lock-next-line (&optional arg)
   "Scroll up ARG lines keeping point fixed."

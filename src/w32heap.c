@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2017 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2022 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@
   Memory allocation scheme for w32/w64:
 
   - Buffers are mmap'ed using a very simple emulation of mmap/munmap
-  - During the temacs phase:
+  - During the temacs phase, if unexec is to be used:
     * we use a private heap declared to be stored into the `dumped_data'
     * unfortunately, this heap cannot be made growable, so the size of
       blocks it can allocate is limited to (0x80000 - pagesize)
@@ -37,7 +37,7 @@
       We use a very simple first-fit scheme to reuse those blocks.
     * we check that the private heap does not cross the area used
       by the bigger chunks.
-  - During the emacs phase:
+  - During the emacs phase, or always if pdumper is used:
     * we create a private heap for new memory blocks
     * we make sure that we never free a block that has been dumped.
       Freeing a dumped block could work in principle, but may prove
@@ -115,10 +115,16 @@ typedef struct _RTL_HEAP_PARAMETERS {
    than half of the size stated below.  It would be nice to find a way
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
-#if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (21*1024*1024)
+#ifndef HAVE_UNEXEC
+/* We don't use dumped_data[], so define to a small size that won't
+   matter.  */
+# define DUMPED_HEAP_SIZE 10
 #else
-# define DUMPED_HEAP_SIZE (13*1024*1024)
+# if defined _WIN64 || defined WIDE_EMACS_INT
+#  define DUMPED_HEAP_SIZE (23*1024*1024)
+# else
+#  define DUMPED_HEAP_SIZE (13*1024*1024)
+# endif
 #endif
 
 static unsigned char dumped_data[DUMPED_HEAP_SIZE];
@@ -173,8 +179,8 @@ static DWORD          blocks_number = 0;
 static unsigned char *bc_limit;
 
 /* Handle for the private heap:
-    - inside the dumped_data[] array before dump,
-    - outside of it after dump.
+    - inside the dumped_data[] array before dump with unexec,
+    - outside of it after dump, or always if pdumper is used.
 */
 HANDLE heap = NULL;
 
@@ -183,13 +189,33 @@ malloc_fn the_malloc_fn;
 realloc_fn the_realloc_fn;
 free_fn the_free_fn;
 
+static void *
+heap_alloc (size_t size)
+{
+  void *p = size <= PTRDIFF_MAX ? HeapAlloc (heap, 0, size | !size) : NULL;
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
+static void *
+heap_realloc (void *ptr, size_t size)
+{
+  void *p = (size <= PTRDIFF_MAX
+	     ? HeapReAlloc (heap, 0, ptr, size | !size)
+	     : NULL);
+  if (!p)
+    errno = ENOMEM;
+  return p;
+}
+
 /* It doesn't seem to be useful to allocate from a file mapping.
    It would be if the memory was shared.
-     http://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
+     https://stackoverflow.com/questions/307060/what-is-the-purpose-of-allocating-pages-in-the-pagefile-with-createfilemapping  */
 
 /* This is the function to commit memory when the heap allocator
-   claims for new memory.  Before dumping, we allocate space
-   from the fixed size dumped_data[] array.
+   claims for new memory.  Before dumping with unexec, we allocate
+   space from the fixed size dumped_data[] array.
 */
 static NTSTATUS NTAPI
 dumped_data_commit (PVOID Base, PVOID *CommitAddress, PSIZE_T CommitSize)
@@ -224,14 +250,13 @@ typedef WINBASEAPI BOOL (WINAPI * HeapSetInformation_Proc)(HANDLE,HEAP_INFORMATI
 #endif
 
 void
-init_heap (void)
+init_heap (bool use_dynamic_heap)
 {
-  if (using_dynamic_heap)
+  /* FIXME: Remove the condition, the 'else' branch below, and all the
+     related definitions and code, including dumped_data[], when unexec
+     support is removed from Emacs.  */
+  if (use_dynamic_heap)
     {
-#ifndef MINGW_W64
-      unsigned long enable_lfh = 2;
-#endif
-
       /* After dumping, use a new private heap.  We explicitly enable
          the low fragmentation heap (LFH) here, for the sake of pre
          Vista versions.  Note: this will harmlessly fail on Vista and
@@ -241,16 +266,19 @@ init_heap (void)
          environment before starting GDB to get low fragmentation heap
          on XP and older systems, for the price of losing "certain
          heap debug options"; for the details see
-         http://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
+	 https://msdn.microsoft.com/en-us/library/windows/desktop/aa366705%28v=vs.85%29.aspx.  */
       data_region_end = data_region_base;
 
       /* Create the private heap.  */
       heap = HeapCreate (0, 0, 0);
 
 #ifndef MINGW_W64
+      unsigned long enable_lfh = 2;
       /* Set the low-fragmentation heap for OS before Vista.  */
       HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
-      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress (hm_kernel32dll, "HeapSetInformation");
+      HeapSetInformation_Proc s_pfn_Heap_Set_Information =
+        (HeapSetInformation_Proc) get_proc_addr (hm_kernel32dll,
+                                                        "HeapSetInformation");
       if (s_pfn_Heap_Set_Information != NULL)
 	{
 	  if (s_pfn_Heap_Set_Information ((PVOID) heap,
@@ -261,7 +289,7 @@ init_heap (void)
 	}
 #endif
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           the_malloc_fn = malloc_after_dump_9x;
           the_realloc_fn = realloc_after_dump_9x;
@@ -274,14 +302,14 @@ init_heap (void)
           the_free_fn = free_after_dump;
         }
     }
-  else
+  else	/* Before dumping with unexec: use static heap.  */
     {
       /* Find the RtlCreateHeap function.  Headers for this function
          are provided with the w32 DDK, but the function is available
          in ntdll.dll since XP.  */
       HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
       RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
-	= (RtlCreateHeap_Proc) GetProcAddress (hm_ntdll, "RtlCreateHeap");
+	= (RtlCreateHeap_Proc) get_proc_addr (hm_ntdll, "RtlCreateHeap");
       /* Specific parameters for the private heap.  */
       RTL_HEAP_PARAMETERS params;
       ZeroMemory (&params, sizeof(params));
@@ -304,7 +332,7 @@ init_heap (void)
 	}
       heap = s_pfn_Rtl_Create_Heap (0, data_region_base, 0, 0, NULL, &params);
 
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
         {
           fprintf (stderr, "Cannot dump Emacs on Windows 9X; exiting.\n");
           exit (-1);
@@ -338,7 +366,7 @@ void *
 malloc_after_dump (size_t size)
 {
   /* Use the new private heap.  */
-  void *p = HeapAlloc (heap, 0, size);
+  void *p = heap_alloc (size);
 
   /* After dump, keep track of the "brk value" for sbrk(0).  */
   if (p)
@@ -348,11 +376,11 @@ malloc_after_dump (size_t size)
       if (new_brk > data_region_end)
 	data_region_end = new_brk;
     }
-  else
-    errno = ENOMEM;
   return p;
 }
 
+/* FIXME: The *_before_dump functions should be removed when pdumper
+   becomes the only dumping method.  */
 void *
 malloc_before_dump (size_t size)
 {
@@ -363,9 +391,7 @@ malloc_before_dump (size_t size)
   if (size < MaxBlockSize)
     {
       /* Use the private heap if possible.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_alloc (size);
     }
   else
     {
@@ -423,18 +449,14 @@ realloc_after_dump (void *ptr, size_t size)
   if (FREEABLE_P (ptr))
     {
       /* Reallocate the block since it lies in the new heap.  */
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {
       /* If the block lies in the dumped data, do not free it.  Only
          allocate a new one.  */
-      p = HeapAlloc (heap, 0, size);
-      if (!p)
-	errno = ENOMEM;
-      else if (ptr)
+      p = heap_alloc (size);
+      if (p && ptr)
 	CopyMemory (p, ptr, size);
     }
   /* After dump, keep track of the "brk value" for sbrk(0).  */
@@ -457,9 +479,7 @@ realloc_before_dump (void *ptr, size_t size)
   if (dumped_data < (unsigned char *)ptr
       && (unsigned char *)ptr < bc_limit && size <= MaxBlockSize)
     {
-      p = HeapReAlloc (heap, 0, ptr, size);
-      if (!p)
-	errno = ENOMEM;
+      p = heap_realloc (ptr, size);
     }
   else
     {
@@ -587,7 +607,17 @@ free_after_dump_9x (void *ptr)
     }
 }
 
-#ifdef ENABLE_CHECKING
+void *
+sys_calloc (size_t number, size_t size)
+{
+  size_t nbytes = number * size;
+  void *ptr = (*the_malloc_fn) (nbytes);
+  if (ptr)
+    memset (ptr, 0, nbytes);
+  return ptr;
+}
+
+#if defined HAVE_UNEXEC && defined ENABLE_CHECKING
 void
 report_temacs_memory_usage (void)
 {
@@ -864,7 +894,7 @@ setrlimit (rlimit_resource_t rltype, const struct rlimit *rlp)
     {
     case RLIMIT_STACK:
     case RLIMIT_NOFILE:
-      /* We cannot modfy these limits, so we always fail.  */
+      /* We cannot modify these limits, so we always fail.  */
       errno = EPERM;
       break;
     default:

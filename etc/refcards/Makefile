@@ -1,6 +1,6 @@
 ### Makefile for Emacs refcards
 
-## Copyright (C) 1993-1994, 2001-2017 Free Software Foundation, Inc.
+## Copyright (C) 1993-1994, 2001-2022 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 #
@@ -40,7 +40,7 @@ PDF_CZECH = \
 PDF_FRENCH = \
 	fr-dired-ref.pdf \
 	fr-refcard.pdf \
-	fr-survival.pdf \
+	fr-survival.pdf
 
 PDF_GERMAN = de-refcard.pdf
 
@@ -233,10 +233,11 @@ pl-refcard.pdf: $(pl_refcard_deps)
 	fi
 	$(ENVADD) pdftex -output-format=pdf pl-refcard.tex
 pl-refcard.dvi: $(pl_refcard_deps)
-	if ! kpsewhich -format=fmt mex > /dev/null; then \
-	  echo "No mex format found."; false; \
+	if kpsewhich -format=fmt mex > /dev/null; then \
+	  $(ENVADD) tex pl-refcard.tex; \
+	else \
+	  $(ENVADD) mex pl-refcard.tex; \
 	fi
-	$(ENVADD) tex pl-refcard.tex
 pl-refcard.ps: pl-refcard.dvi
 	dvips -t a4 -o $@ pl-refcard.dvi
 
@@ -311,7 +312,7 @@ viperCard.dvi: $(vipercard_deps)
 .PHONY: clean
 
 clean:
-	-rm -f *.dvi *.log *.aux
+	-rm -f ./*.dvi ./*.log ./*.aux
 
 distclean: clean
 

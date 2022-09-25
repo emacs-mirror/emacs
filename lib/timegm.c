@@ -1,40 +1,58 @@
 /* Convert UTC calendar time to simple time.  Like mktime but assumes UTC.
 
-   Copyright (C) 1994, 1997, 2003-2004, 2006-2007, 2009-2017 Free Software
-   Foundation, Inc.  This file is part of the GNU C Library.
+   Copyright (C) 1994-2022 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3, or (at your option)
-   any later version.
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LIBC
-# include <config.h>
+# include <libc-config.h>
 #endif
 
 #include <time.h>
+#include <errno.h>
 
-#ifdef _LIBC
-typedef time_t mktime_offset_t;
-#else
-# undef __gmtime_r
-# define __gmtime_r gmtime_r
-# define __mktime_internal mktime_internal
-# include "mktime-internal.h"
-#endif
+#include "mktime-internal.h"
+
+__time64_t
+__timegm64 (struct tm *tmp)
+{
+  static mktime_offset_t gmtime_offset;
+  tmp->tm_isdst = 0;
+  return __mktime_internal (tmp, __gmtime64_r, &gmtime_offset);
+}
+
+#if defined _LIBC && __TIMESIZE != 64
+
+libc_hidden_def (__timegm64)
 
 time_t
 timegm (struct tm *tmp)
 {
-  static mktime_offset_t gmtime_offset;
-  tmp->tm_isdst = 0;
-  return __mktime_internal (tmp, __gmtime_r, &gmtime_offset);
+  struct tm tm = *tmp;
+  __time64_t t = __timegm64 (&tm);
+  if (in_time_t_range (t))
+    {
+      *tmp = tm;
+      return t;
+    }
+  else
+    {
+      __set_errno (EOVERFLOW);
+      return -1;
+    }
 }
+
+#endif

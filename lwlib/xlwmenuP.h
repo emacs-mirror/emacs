@@ -1,6 +1,6 @@
 /* Internals of a lightweight menubar widget.
 
-Copyright (C) 2002-2017 Free Software Foundation, Inc.
+Copyright (C) 2002-2022 Free Software Foundation, Inc.
 Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
@@ -23,8 +23,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "xlwmenu.h"
 #include <X11/CoreP.h>
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
+#ifdef USE_CAIRO
+#include "lwlib-utils.h"
+#else  /* HAVE_XFT */
 #include <X11/Xft/Xft.h>
+#endif
 #endif
 
 /* Elements in the stack arrays. */
@@ -42,7 +46,7 @@ typedef struct _window_state
 
   /* Width of toggle buttons or radio buttons.  */
   Dimension     button_width;
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   XftDraw*      xft_draw;
 #endif
 } window_state;
@@ -56,25 +60,32 @@ typedef struct _XlwMenu_part
   XFontSet	fontSet;
   XFontSetExtents *font_extents;
 #endif
-#ifdef HAVE_XFT
+#if defined USE_CAIRO || defined HAVE_XFT
   int           default_face;
   XftFont*      xft_font;
-  XftColor      xft_fg, xft_bg, xft_disabled_fg;
+  XftColor      xft_fg, xft_bg, xft_disabled_fg, xft_highlight_fg;
 #endif
   String	fontName;
   XFontStruct*	font;
   Pixel		foreground;
   Pixel		disabled_foreground;
   Pixel		button_foreground;
+  Pixel		highlight_foreground;
+  Pixel		highlight_background;
   Dimension	margin;
   Dimension	horizontal_spacing;
   Dimension	vertical_spacing;
   Dimension	arrow_spacing;
   Dimension	shadow_thickness;
+  Dimension	border_thickness;
   Pixel 	top_shadow_color;
   Pixel 	bottom_shadow_color;
   Pixmap	top_shadow_pixmap;
   Pixmap	bottom_shadow_pixmap;
+  Pixel 	top_highlight_shadow_color;
+  Pixel 	bottom_highlight_shadow_color;
+  Pixmap	top_highlight_shadow_pixmap;
+  Pixmap	bottom_highlight_shadow_pixmap;
   Cursor	cursor_shape;
   XtCallbackList	open;
   XtCallbackList	select, highlight;
@@ -83,8 +94,10 @@ typedef struct _XlwMenu_part
   int		horizontal;
 
   /* True means top_shadow_color and/or bottom_shadow_color must be freed.  */
-  bool_bf free_top_shadow_color_p : 1;
-  bool_bf free_bottom_shadow_color_p : 1;
+  Boolean free_top_shadow_color_p;
+  Boolean free_bottom_shadow_color_p;
+  Boolean free_top_highlight_shadow_color_p;
+  Boolean free_bottom_highlight_shadow_color_p;
 
   /* State of the XlwMenu */
   int                   top_depth;
@@ -107,9 +120,13 @@ typedef struct _XlwMenu_part
   GC			button_gc;
   GC			background_gc;
   GC			disabled_gc;
+  GC			highlight_foreground_gc;
+  GC			highlight_background_gc;
   GC			inactive_button_gc;
   GC			shadow_top_gc;
   GC			shadow_bottom_gc;
+  GC			highlight_shadow_top_gc;
+  GC			highlight_shadow_bottom_gc;
   Cursor		cursor;
   Boolean		popped_up;
   Pixmap		gray_pixmap;

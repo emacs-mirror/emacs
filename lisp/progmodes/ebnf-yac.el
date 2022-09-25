@@ -1,9 +1,8 @@
-;;; ebnf-yac.el --- parser for Yacc/Bison
+;;; ebnf-yac.el --- parser for Yacc/Bison  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: wp, ebnf, PostScript
 ;; Old-Version: 1.4
 ;; Package: ebnf2ps
@@ -114,7 +113,7 @@
 ;;; YACC-Code = "any C definition".
 
 (defun ebnf-yac-parser (start)
-  "yacc/Bison parser."
+  "Yacc/Bison parser."
   (let ((total (+ (- ebnf-limit start) 1))
 	(bias (1- start))
 	(origin (point))
@@ -272,13 +271,13 @@
   (let ((table (make-vector 256 'error)))
     ;; upper & lower case letters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'non-terminal))
+     (lambda (char)
+       (aset table char 'non-terminal))
      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
     ;; printable characters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'character))
+     (lambda (char)
+       (aset table char 'character))
      "!#$&()*+-.0123456789=?@[\\]^_`~")
     ;; Override space characters:
     (aset table ?\n 'space)		; [NL] linefeed
@@ -392,15 +391,14 @@ See documentation for variable `ebnf-yac-lex'."
 (defun ebnf-yac-skip-spaces ()
   (skip-chars-forward
    (if ebnf-yac-skip-char
-       "\n\r\t !#$&()*+-.0123456789=?@[\\\\]^_`~"
+       "-\n\r\t !#$&()*+,.0123456789=?@[\\\\]^_`~"
      "\n\r\t ")
    ebnf-limit)
   (< (point) ebnf-limit))
 
 
-;; replace the range "\177-\377" (see `ebnf-range-regexp').
 (defconst ebnf-yac-skip-chars
-  (ebnf-range-regexp "^{}/'\"\000-\010\013\016-\037" ?\177 ?\377))
+  "^{}/'\"\000-\010\013\016-\037\177\u0080-\u009f")
 
 
 (defun ebnf-yac-skip-code ()
@@ -443,9 +441,8 @@ See documentation for variable `ebnf-yac-lex'."
    ))
 
 
-;; replace the range "\177-\237" (see `ebnf-range-regexp').
 (defconst ebnf-yac-comment-chars
-  (ebnf-range-regexp "^*\000-\010\013\016-\037" ?\177 ?\237))
+  "^*\000-\010\013\016-\037\177\u0080-\u009f")
 
 
 (defun ebnf-yac-skip-comment ()

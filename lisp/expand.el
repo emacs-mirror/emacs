@@ -1,6 +1,6 @@
-;;; expand.el --- make abbreviations more usable
+;;; expand.el --- make abbreviations more usable  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1996, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -55,10 +55,8 @@
 ;;
 ;;   you can also init some post-process hooks :
 ;;
-;; (add-hook 'expand-load-hook
-;; 	  (lambda ()
-;; 	    (add-hook 'expand-expand-hook 'indent-according-to-mode)
-;; 	    (add-hook 'expand-jump-hook 'indent-according-to-mode)))
+;; (add-hook 'expand-expand-hook 'indent-according-to-mode)
+;; (add-hook 'expand-jump-hook 'indent-according-to-mode)
 ;;
 ;; Remarks:
 ;;
@@ -66,9 +64,6 @@
 ;;                  Jerome Santini <santini@chambord.univ-orleans.fr>,
 ;;                  Jari Aalto <jaalto@tre.tele.nokia.fi>.
 ;;
-;;   Please send me a word to give me your feeling about this feature or
-;; to explain me how you use it (your expansions table for example) using
-;; the function expand-submit-report.
 ;;; Code:
 
 ;;; Constants:
@@ -79,22 +74,21 @@
 
 (defcustom expand-load-hook nil
   "Hooks run when `expand.el' is loaded."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
+(make-obsolete-variable 'expand-load-hook
+                        "use `with-eval-after-load' instead." "28.1")
 
 (defcustom expand-expand-hook nil
   "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
 
 (defcustom expand-jump-hook nil
   "Hooks run by `expand-jump-to-previous-slot' and `expand-jump-to-next-slot'."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
 
 ;;; Samples:
 
-(define-skeleton expand-c-for-skeleton "For loop skeleton"
+(define-skeleton expand-c-for-skeleton "For loop skeleton."
   "Loop var: "
   "for(" str _ @ "=0; " str @ "; " str @ ") {" \n
   @ _ \n
@@ -292,17 +286,14 @@ If ARG is omitted, point is placed at the end of the expanded text."
 
 (defvar expand-list nil "Temporary variable used by the Expand package.")
 
-(defvar expand-pos nil
-  "If non-nil, stores a vector containing markers to positions defined by the last expansion.")
-(make-variable-buffer-local 'expand-pos)
+(defvar-local expand-pos nil
+  "If non-nil, store a vector with position markers defined by the last expansion.")
 
-(defvar expand-index 0
+(defvar-local expand-index 0
   "Index of the last marker used in `expand-pos'.")
-(make-variable-buffer-local 'expand-index)
 
-(defvar expand-point nil
+(defvar-local expand-point nil
   "End of the expanded region.")
-(make-variable-buffer-local 'expand-point)
 
 (defun expand-add-abbrev (table abbrev expansion arg)
   "Add one abbreviation and provide the hook to move to the specified positions."
@@ -325,8 +316,7 @@ If ARG is omitted, point is placed at the end of the expanded text."
 		nil)
 	      (if (and (symbolp expansion) (fboundp expansion))
 		  expansion
-		nil)
-	      )
+                nil))
       'expand-abbrev-hook)))
 
 (put 'expand-abbrev-hook 'no-self-insert t)
@@ -374,13 +364,12 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
 	   (insert text)
 	   (setq expand-point (point))))
     (if jump-args
-	(funcall 'expand-build-list (car jump-args) (cdr jump-args)))
+        (funcall #'expand-build-list (car jump-args) (cdr jump-args)))
     (if position
 	(backward-char position))
     (if hook
 	(funcall hook))
-    t)
-  )
+    t))
 
 (defun expand-abbrev-from-expand (word)
   "Test if an abbrev has a hook."
@@ -434,8 +423,7 @@ This is used only in conjunction with `expand-add-abbrevs'."
 	(lenlist (length expand-list)))
     (while (< i lenlist)
       (aset expand-list i (- len (1- (aref expand-list i))))
-      (setq i (1+ i))))
-  )
+      (setq i (1+ i)))))
 
 (defun expand-build-marks (p)
   "Transform the offsets vector into a marker vector."
@@ -496,7 +484,6 @@ This is used only in conjunction with `expand-add-abbrevs'."
 
 (provide 'expand)
 
-;; run load hooks
 (run-hooks 'expand-load-hook)
 
 ;;; expand.el ends here

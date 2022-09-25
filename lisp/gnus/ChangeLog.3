@@ -170,7 +170,7 @@
 2015-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* mm-decode.el (mm-convert-shr-links): Don't overwrite the faces from
-	shr, beacause that breaks folding.
+	shr, because that breaks folding.
 	(mm-shr): Don't shorten the width when using fonts.
 
 2015-02-05  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -596,7 +596,7 @@
 
 2014-06-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (gnus-article-edit-part): Don't modifiy markers.
+	* gnus-art.el (gnus-article-edit-part): Don't modify markers.
 	(gnus-article-read-summary-keys):
 	Don't bug out when there is no article in the summary buffer.
 	(gnus-mime-buttonize-attachments-in-header):
@@ -655,7 +655,7 @@
 2014-05-08  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-fun.el (gnus-grab-cam-face):
-	Do not use predictable temp-file name.  (http://bugs.debian.org/747100)
+	Do not use predictable temp-file name.  (https://bugs.debian.org/747100)
 	This is CVE-2014-3421.
 
 2014-05-04  Glenn Morris  <rgm@gnu.org>
@@ -955,7 +955,7 @@
 	* gnus-sum.el (gnus-summary-read-group-1): Initialize the spam code if
 	that's needed.
 
-	* spam.el (spam-initialize): Allow calling repeatedly, but only run the
+	* spam.el (spam-initialize): Allow calling repeatedly, but only run
 	the code once (bug#9069).
 
 2014-01-18  Steinar Bang  <sb@dod.no>
@@ -1318,7 +1318,7 @@
 2013-08-06  Jan Tatarik  <jan.tatarik@gmail.com>
 
 	* gnus-icalendar.el (gnus-icalendar-event-from-ical): Replace pcase
-	with cond for backwards compatability.
+	with cond for backwards compatibility.
 
 2013-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -2221,7 +2221,7 @@
 
 2013-04-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mml.el (mml-minibuffer-read-description): Use `default' insted of
+	* mml.el (mml-minibuffer-read-description): Use `default' instead of
 	`initial-input' for the argument name.
 	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 
@@ -3819,7 +3819,7 @@
 2012-02-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* shr.el (shr-rescale-image): Undo previous change; see
-	<https://lists.gnu.org/archive/html/emacs-devel/2012-02/msg00540.html>.
+	<https://lists.gnu.org/r/emacs-devel/2012-02/msg00540.html>.
 
 2012-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
 
@@ -5541,7 +5541,7 @@
 	(registry-prune-hard): Use it.
 
 	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
-	0.1 expicitly.
+	0.1 explicitly.
 
 2011-05-13  Glenn Morris  <rgm@gnu.org>
 
@@ -7385,7 +7385,7 @@
 2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
-	backends after sanitising on entry, because this never makes sense:
+	backends after sanitizing on entry, because this never makes sense:
 	If the articles have gone missing, then the data no longer exists on
 	the backend, and if they haven't, then Gnus is wrong, and shouldn't
 	overwrite anything anyway.
@@ -8758,7 +8758,7 @@
 
 	* shr.el (shr-generic): The text nodes should be text, not :text.
 
-	* nnir.el (nnir-search-engine): Ressurect variable, since it's used
+	* nnir.el (nnir-search-engine): Resurrect variable, since it's used
 	later in the file.
 
 2010-10-30  Andrew Cohen  <cohen@andy.bu.edu>
@@ -9303,7 +9303,7 @@
 	* mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el:
 	* mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el:
 	* nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el:
-	* rfc1843.el, sieve-manage.el, smime.el, spam.el:
+	* gnus-rfc1843.el, sieve-manage.el, smime.el, spam.el:
 	Fix comment for declare-function.
 
 2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -9481,7 +9481,7 @@
 	nil.
 
 	* gnus-start.el (gnus-get-unread-articles): Require gnus-agent before
-	bidning gnus-agent variables.
+	binding gnus-agent variables.
 
 	* shr.el (shr-render-td): Use a cache for the table rendering function
 	to avoid getting an exponential rendering behavior in nested tables.
@@ -10470,7 +10470,7 @@
 
 2010-09-25  Julien Danjou  <julien@danjou.info>
 
-	* rfc1843.el: Remove useless rfc1843-old-gnus-decode-header-function
+	* gnus-rfc1843.el: Remove useless rfc1843-old-gnus-decode-header-function
 	variables.
 
 	* nnheader.el: Remove useless variables news-reply-yank-from and
@@ -11849,7 +11849,7 @@
 
 2010-08-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	Doc fixes and keep unknown groups (ammended for nunion bug fix).
+	Doc fixes and keep unknown groups (amended for nunion bug fix).
 
 	* gnus-sync.el: Fix docs.
 	(gnus-sync-save): Keep unknown groups in `gnus-sync-newsrc-loader'.
@@ -14716,14 +14716,14 @@
 	* mml2015.el (gnus-buffer-live-p, gnus-get-buffer-create):
 	* nnfolder.el (gnus-request-group):
 	* nnheader.el (ietf-drums-unfold-fws):
-	* rfc1843.el (mail-header-parse-content-type, message-narrow-to-head):
+	* gnus-rfc1843.el (mail-header-parse-content-type, message-narrow-to-head):
 	* smime.el (gnus-run-mode-hooks):
 	* spam-stat.el (gnus-message): Autoload.
 
 	* gnus-cache.el, gnus-fun.el, gnus-group.el, gnus.el, mail-source.el:
 	* mm-bodies.el, mm-decode.el, mm-extern.el, mm-util.el:
 	* mml-smime.el, mml.el, mml1991.el, mml2015.el, nndb.el, nnfolder.el:
-	* nnmail.el, nnmaildir.el, nnrss.el, rfc1843.el, spam.el:
+	* nnmail.el, nnmaildir.el, nnrss.el, gnus-rfc1843.el, spam.el:
 	Add declare-function compatibility definition.
 
 	* gnus-cache.el (nnvirtual-find-group-art):
@@ -14753,7 +14753,7 @@
 	* nnmail.el (gnus-activate-group, gnus-group-mark-article-read):
 	* nnmaildir.el (gnus-group-mark-article-read):
 	* nnrss.el (w3-parse-buffer, gnus-group-make-rss-group):
-	* rfc1843.el (message-fetch-field):
+	* gnus-rfc1843.el (message-fetch-field):
 	* spam.el (gnus-extract-address-components):
 	Declare as functions.
 
@@ -18925,7 +18925,7 @@
 	* message.el: Autoload gmm-image-load-path.
 	(message-tool-bar-retro): Prepend "gnus/" subdirectory to some
 	icon file names.  Use old Emacs 21 "mail_send.xpm" icon for
-	consitency.
+	consistency.
 
 	* gmm-utils.el (gmm-image-load-path): Also search in
 	"../etc/images".  Don't set gmm-image-load-path if we don't find
@@ -19139,7 +19139,7 @@
 	(mml-insert-parameter): Fold lines properly even if a parameter is
 	segmented into two or more lines; change the max column to 76.
 
-	* rfc1843.el (rfc1843-decode-article-body): Don't use
+	* gnus-rfc1843.el (rfc1843-decode-article-body): Don't use
 	ignore-errors when calling mail-header-parse-content-type.
 
 	* rfc2231.el (rfc2231-parse-string): Return at least type if
@@ -19523,7 +19523,7 @@
 
 	* nnml.el: Don't require gnus-bcklg.  Autoload it.
 	(nnml-use-compressed-files, nnml-save-mail): Support other
-	comression programs such as bzip2.
+	compression programs such as bzip2.
 
 2005-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -20440,7 +20440,7 @@
 	* gnus-msg.el (gnus-inews-insert-gcc): Fix the mistake of using
 	list, not listp.
 
-2005-09-02  Hrvoje Niksic  <hniksic@xemacs.org>
+2005-09-02  Hrvoje Nikšić  <hniksic@xemacs.org>
 
 	* mm-encode.el (mm-encode-content-transfer-encoding):
 	Likewise when encoding.
@@ -20525,7 +20525,7 @@
 	* mml1991.el (mc-pgp-always-sign):
 	* mml2015.el (mc-pgp-always-sign):
 	* nnheader.el (nnmail-extra-headers):
-	* rfc1843.el (gnus-decode-encoded-word-function)
+	* gnus-rfc1843.el (gnus-decode-encoded-word-function)
 	(gnus-decode-header-function, gnus-newsgroup-name):
 	* spam-stat.el (gnus-original-article-buffer): Add defvars.
 
@@ -21227,7 +21227,7 @@
 	(nntp-with-open-group): Allow debugging.
 
 	* nnheader.el (mail-header-set-extra): Make into a function
-	because I just could't understand how to quote the list properly.
+	because I just couldn't understand how to quote the list properly.
 
 	* dns.el (query-dns-cached): New function.
 
@@ -21361,7 +21361,7 @@
 	to get all the groups a message ID is in.
 
 	* spam-stat.el (spam-stat-split-fancy-spam-threshold)
-	(spam-stat-split-fancy): Change "threshhold" to "threshold".
+	(spam-stat-split-fancy): Fix typo for "threshold".
 	(spam-stat-score-buffer-user-functions): Add :number custom type.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -24966,7 +24966,7 @@
 	functions as needing (default), or not needing,
 	gnus-convert-old-newsrc's "backup before upgrading warning".
 	(gnus-convert-converter-needs-prompt): Tests whether the user
-	should be protected from potentially irreversable changes by the
+	should be protected from potentially irreversible changes by the
 	function.
 
 	* legacy-gnus-agent.el: New.  Provides converters that are only
@@ -26325,7 +26325,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004-2017 Free Software Foundation, Inc.
+  Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

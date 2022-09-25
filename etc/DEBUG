@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2022 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -12,23 +12,21 @@ debugging techniques.
 *** Configuring Emacs for debugging
 
 It is best to configure and build Emacs with special options that will
-make the debugging easier.  Here's the configure-time options we
+make the debugging easier.  Here are the configure-time options we
 recommend (they are in addition to any other options you might need,
 such as --prefix):
 
-  CFLAGS='-O0 -g3' ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type
+  ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
+    CFLAGS='-O0 -g3'
 
-The CFLAGS value is important: debugging optimized code can be very
-hard.  (If the problem only happens with optimized code, you may need
-to enable optimizations.  If that happens, try using -Og first,
-instead of -O2, as the former will disable some optimizations that
-make debugging some code exceptionally hard.)
+The -O0 flag is important, as debugging optimized code can be hard.
+If the problem happens only with optimized code, you may need to
+enable optimizations.  If that happens, try using -Og first instead of
+-O2, as -Og disables some optimizations that make debugging some code
+exceptionally hard.
 
-Modern versions of GCC support more elaborate debug info that is
-available by just using the -g3 compiler switch.  Try using -gdwarf-4
-in addition to -g3, and if that fails, try -gdwarf-3.  This is
-especially important if you have to debug optimized code.  More info
-about this is available below; search for "analyze failed assertions".
+Older versions of GCC may need more than just the -g3 flag.  For more,
+search for "analyze failed assertions" below.
 
 The 2 --enable-* switches are optional.  They don't have any effect on
 debugging with GDB, but will compile additional code that might catch
@@ -42,6 +40,11 @@ created in the 'src' directory.
 
 *** Configuring GDB
 
+To start GDB to debug Emacs, you can simply type "gdb ./emacs RET" at
+the shell prompt (assuming you do that from the directory of the Emacs
+executable, usually the 'src' sub-directory of the Emacs tree).
+However, we recommend starting GDB from Emacs, see below.
+
 When you debug Emacs with GDB, you should start GDB in the directory
 where the Emacs executable was made (the 'src' directory in the Emacs
 source tree).  That directory has a .gdbinit file that defines various
@@ -51,16 +54,19 @@ Emacs Redisplay problems".)
 
 Starting the debugger from Emacs, via the "M-x gdb" command (described
 below), when the current buffer visits one of the Emacs C source files
-will automatically start GDB in the 'src' directory.
+will automatically start GDB in the 'src' directory.  If you invoke
+"M-x gdb" from a buffer whose default directory is different, such as
+from the "*scratch*" buffer, you can change the default directory with
+the "M-x cd" command before starting the debugger.
 
-Some GDB versions by default do not automatically load .gdbinit files
-in the directory where you invoke GDB.  With those versions of GDB,
-you will see a warning when GDB starts, like this:
+Recent GDB versions by default do not automatically load .gdbinit
+files in the directory where you invoke GDB.  With those versions of
+GDB, you will see a warning when GDB starts, like this:
 
   warning: File ".../src/.gdbinit" auto-loading has been declined by your `auto-load safe-path' set to "$debugdir:$datadir/auto-load".
 
 The simplest way to fix this is to add the following line to your
-~/.gdbinit file:
+~/.gdbinit file (creating such a file if it doesn't already exist):
 
   add-auto-load-safe-path /path/to/emacs/src/.gdbinit
 
@@ -68,6 +74,14 @@ There are other ways to overcome that difficulty, they are all
 described in the node "Auto-loading safe path" in the GDB user manual.
 If nothing else helps, type "source /path/to/.gdbinit RET" at the GDB
 prompt, to unconditionally load the GDB init file.
+
+Running GDB on macOS sometimes brings an error message like this:
+
+  Unable to find Mach task port for process-id NNN: (os/kern) failure (0x5).
+
+To overcome this, search the Internet for the phrase "Unable to find
+Mach task port for process-id", and you will find detailed
+instructions to follow.
 
 *** Use the Emacs GDB UI front-end
 
@@ -132,17 +146,21 @@ to the debugger".
 
 You are now ready to start your debugging session.
 
+*** Running Emacs from GDB
+
 If you are starting a new Emacs session, type "run", followed by any
 command-line arguments (e.g., "-Q") into the *gud-emacs* buffer and
-press RET.
+press RET.  If you ran GDB outside of Emacs, type "run" followed by
+the command-line arguments at the GDB prompt instead.
 
 If you attached the debugger to a running Emacs, type "continue" into
 the *gud-emacs* buffer and press RET.
 
 Many variables you will encounter while debugging are Lisp objects.
-These are displayed as integer values (or structures, if you used the
-"--enable-check-lisp-object-type" option at configure time) that are
-hard to interpret, especially if they represent long lists.  You can
+These are normally displayed as opaque pointers or integers that are
+hard to interpret, especially if they represent long lists.
+(They are instead displayed as structures containing these opaque
+values, if --enable-check-lisp-object-type is in effect.)  You can
 use the 'pp' command to display them in their Lisp form.  That command
 displays its output on the standard error stream, which you
 can redirect to a file using "M-x redirect-debugging-output".
@@ -163,20 +181,15 @@ Good luck!
 
 ** When you are trying to analyze failed assertions or backtraces, it
 is essential to compile Emacs with flags suitable for debugging.
-With GCC 4.8 or later, you can invoke 'make' with CFLAGS="-Og -g3".
-With older GCC or non-GCC compilers, you can use CFLAGS="-O0 -g3".
+Although CFLAGS="-O0 -g3" often suffices with modern compilers,
+you may benefit further by using CFLAGS="-O0 -g3 -gdwarf-4", replacing
+"4" by the highest version of DWARF that your compiler supports;
+this is especially important for GCC versions older than 4.8.
 With GCC and higher optimization levels such as -O2, the
 -fno-omit-frame-pointer and -fno-crossjumping options are often
 essential.  The latter prevents GCC from using the same abort call for
 all assertions in a given function, rendering the stack backtrace
 useless for identifying the specific failed assertion.
-Some versions of GCC support recent versions of the DWARF standard for
-debugging info, but default to older versions; for example, they could
-support -gdwarf-4 compiler option (for DWARF v4), but default to
-version 2 of the DWARF standard.  For best results in debugging
-abilities, find out the highest version of DWARF your GCC can support,
-and use the corresponding -gdwarf-N switch instead of just -g (you
-will still need -g3, as in "-gdwarf-4 -g3").
 
 ** It is a good idea to run Emacs under GDB (or some other suitable
 debugger) *all the time*.  Then, when Emacs crashes, you will be able
@@ -200,7 +213,7 @@ errors go through there.  If you are only interested in errors that
 would fire the Lisp debugger, breaking at 'maybe_call_debugger' is
 useful.
 
-Another technique for get control to the debugger is to put a
+Another technique for getting control to the debugger is to put a
 breakpoint in some rarely used function.  One such convenient function
 is Fredraw_display, which you can invoke at will interactively with
 "M-x redraw-display RET".
@@ -560,6 +573,32 @@ debugging did not (yet) happen.  Here are some useful techniques for that:
    GET_FROM_IMAGE for displaying an image, etc.  See 'enum it_method' in
    dispextern.h for the full list of values.
 
+** Debugging problems with native-compiled Lisp.
+
+When you encounter problems specific to native-compilation of Lisp, we
+recommend to follow the procedure below to try to identify the cause:
+
+ . Reduce the problematic .el file to the minimum by bisection, and
+   try identifying the function that causes the problem.
+
+ . Reduce the problematic function to the minimal code that still
+   reproduces the problem.
+
+ . Study the problem's artifacts, like Lisp or C backtraces, to try
+   identifying the cause of the problem.
+
+If you cannot figure out the cause for the problem using the above,
+native-compile the problematic file after setting the variable
+'comp-libgccjit-reproducer' to a non-nil value.  That should produce a
+file named ELNFILENAME_libgccjit_repro.c, where ELNFILENAME is the
+name of the problematic .eln file, either in the same directory where
+the .eln file is produced, or under your ~/.emacs.d/eln-cache (which
+one depends on how the native-compilation is invoked).  It is also
+possible that the reproducer file's name will be something like
+subr--trampoline-XXXXXXX_FUNCTION_libgccjit_repro.c, where XXXXXXX is
+a long string of hex digits and FUNCTION is some function from the
+compiled .el file.  Attach that reproducer C file to your bug report.
+
 ** Following longjmp call.
 
 Recent versions of glibc (2.4+?) encrypt stored values for setjmp/longjmp which
@@ -622,14 +661,22 @@ Setting a breakpoint in the function 'x_error_quitter' and looking at
 the backtrace when Emacs stops inside that function will show what
 code causes the X protocol errors.
 
-Note that the -xrm option may have no effect when you make an Emacs
-process invoked with the -nw option a server and want to trace X
-protocol errors from subsequent invocations of emacsclient in a GUI
-frame.  In that case calling the initial Emacs via
+Note that the -xrm option may have no effect when you start a server
+in an Emacs session invoked with the -nw command-line option, and want
+to trace X protocol errors from GUI frames created by subsequent
+invocations of emacsclient.  In that case starting Emacs via
 
-emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
+  emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
 
 should give more reliable results.
+
+For X protocol errors related to displaying unusual characters or to
+font-related customizations, try invoking Emacs like this:
+
+  XFT_DEBUG=16 emacs -xrm "emacs.synchronous: true"
+
+This should produce information from the libXft library which could
+give useful hints regarding font-related problems in that library.
 
 Some bugs related to the X protocol disappear when Emacs runs in a
 synchronous mode.  To track down those bugs, we suggest the following
@@ -718,9 +765,9 @@ stepping, you will see where the loop starts and ends.  Also, examine
 the data being used in the loop and try to determine why the loop does
 not exit when it should.
 
-On GNU and Unix systems, you can also trying sending Emacs SIGUSR2,
+On GNU and Unix systems, you can also try sending Emacs SIGUSR2,
 which, if 'debug-on-event' has its default value, will cause Emacs to
-attempt to break it out of its current loop and into the Lisp
+attempt to break out of its current loop and enter the Lisp
 debugger.  (See the node "Debugging" in the ELisp manual for the
 details about the Lisp debugger.)  This feature is useful when a
 C-level debugger is not conveniently available.
@@ -813,7 +860,7 @@ the machine where you started GDB and use the debugger from there.
 ** Debugging problems which happen in GC
 
 The array 'last_marked' (defined on alloc.c) can be used to display up
-to 500 last objects marked by the garbage collection process.
+to the 512 most-recent objects marked by the garbage collection process.
 Whenever the garbage collector marks a Lisp object, it records the
 pointer to that object in the 'last_marked' array, which is maintained
 as a circular buffer.  The variable 'last_marked_index' holds the
@@ -854,15 +901,6 @@ It is also useful to look at the corrupted object or data structure in
 a fresh Emacs session and compare its contents with a session that you
 are debugging.
 
-** Debugging problems with non-ASCII characters
-
-If you experience problems which seem to be related to non-ASCII
-characters, such as \201 characters appearing in the buffer or in your
-files, set the variable byte-debug-flag to t.  This causes Emacs to do
-some extra checks, such as look for broken relations between byte and
-character positions in buffers and strings; the resulting diagnostics
-might pinpoint the cause of the problem.
-
 ** Debugging the TTY (non-windowed) version
 
 The most convenient method of debugging the character-terminal display
@@ -894,41 +932,102 @@ setting the new-console option before running Emacs under GDB:
   (gdb) set new-console 1
   (gdb) run
 
-** Running Emacs built with malloc debugging packages
+** Running Emacs with undefined-behavior sanitization
 
-If Emacs exhibits bugs that seem to be related to use of memory
-allocated off the heap, it might be useful to link Emacs with a
-special debugging library, such as Electric Fence (a.k.a. efence) or
-GNU Checker, which helps find such problems.
+Building Emacs with undefined-behavior sanitization can help find
+several kinds of low-level problems in C code, including:
 
-Emacs compiled with such packages might not run without some hacking,
-because Emacs replaces the system's memory allocation functions with
-its own versions, and because the dumping process might be
-incompatible with the way these packages use to track allocated
-memory.  Here are some of the changes you might find necessary:
+  * Out-of-bounds access of many (but not all) arrays.
+  * Signed integer overflow, e.g., (INT_MAX + 1).
+  * Integer shifts by a negative or wider-than-word value.
+  * Misaligned pointers and pointer overflow.
+  * Loading a bool or enum value that is out of range for its type.
+  * Passing NULL to or returning NULL from a function requiring nonnull.
+  * Passing a size larger than the corresponding array to memcmp etc.
+  * Passing invalid values to some builtin functions, e.g., __builtin_clz (0).
+  * Reaching __builtin_unreachable calls (in Emacs, 'eassume' failure).
 
-  - Edit configure, to set system_malloc and CANNOT_DUMP to "yes".
+To use GCC's UndefinedBehaviorSanitizer, append '-fsanitize=undefined'
+to CFLAGS, either when running 'configure' or running 'make'.
+When supported, you can also specify 'bound-strict' and
+'float-cast-overflow'.  For example:
 
-  - Configure with a different --prefix= option.  If you use GCC,
-    version 2.7.2 is preferred, as some malloc debugging packages
-    work a lot better with it than with 2.95 or later versions.
+  ./configure \
+    CFLAGS='-O0 -g3 -fsanitize=undefined,bounds-strict,float-cast-overflow'
 
-  - Type "make" then "make -k install".
+You may need to append '-static-libubsan' to CFLAGS if your version of
+GCC is installed in an unusual location.
 
-  - If required, invoke the package-specific command to prepare
-    src/temacs for execution.
+Clang's UB sanitizer can also be used, but has coverage problems.
+You'll need '-fsanitize=undefined -fno-sanitize=pointer-overflow' to
+suppress misguided warnings about adding zero to a null pointer,
+although this also suppresses any valid pointer overflow warnings.
 
-  - cd ..; src/temacs
+When using GDB to debug an executable with undefined-behavior
+sanitization, the GDB command:
 
-(Note that this runs 'temacs' instead of the usual 'emacs' executable.
-This avoids problems with dumping Emacs mentioned above.)
+  (gdb) rbreak ^__ubsan_handle_
 
-Some malloc debugging libraries might print lots of false alarms for
-bitfields used by Emacs in some data structures.  If you want to get
-rid of the false alarms, you will have to hack the definitions of
-these data structures on the respective headers to remove the ':N'
-bitfield definitions (which will cause each such field to use a full
-int).
+will let you gain control when an error is detected and before
+UndefinedBehaviorSanitizer outputs to stderr or terminates the
+program.
+
+** Running Emacs with address sanitization
+
+Building Emacs with address sanitization can help debug memory-use
+problems, such as freeing the same object twice.  To use
+AddressSanitizer with GCC and similar compilers, append
+'-fsanitize=address' to CFLAGS, either when running 'configure' or
+running 'make'.  Configure, build and run Emacs with
+ASAN_OPTIONS='detect_leaks=0' in the environment to suppress
+diagnostics of minor memory leaks in Emacs.  For example:
+
+  export ASAN_OPTIONS='detect_leaks=0'
+  ./configure CFLAGS='-O0 -g3 -fsanitize=address'
+  make
+  src/emacs
+
+You may need to append '-static-libasan' to CFLAGS if your version of
+GCC is installed in an unusual location.
+
+When using GDB to debug an executable with address sanitization, the
+GDB command:
+
+  (gdb) rbreak ^__asan_report_
+
+will let you gain control when an error is detected and before
+AddressSanitizer outputs to stderr or terminates the program.
+
+Address sanitization is incompatible with undefined-behavior
+sanitization, unfortunately.  Address sanitization is also
+incompatible with the --with-dumping=unexec option of 'configure'.
+
+** Running Emacs under Valgrind
+
+Valgrind <http://valgrind.org/> is free software that can be useful
+when debugging low-level Emacs problems.  Unlike GCC sanitizers,
+Valgrind does not need you to compile Emacs with special debugging
+flags, so it can be helpful in investigating problems that vanish when
+Emacs is recompiled with debugging enabled.  However, by default
+Valgrind generates many false alarms with Emacs, and you will need to
+maintain a suppressions file to suppress these false alarms and use
+Valgrind effectively.  For example, you might invoke Valgrind this
+way:
+
+   valgrind --suppressions=valgrind.supp ./emacs
+
+where valgrind.supp contains groups of lines like the following, which
+suppresses some Valgrind false alarms during Emacs garbage collection:
+
+   {
+     Fgarbage_collect Cond - conservative garbage collection
+     Memcheck:Cond
+     ...
+     fun:Fgarbage_collect
+   }
+
+Unfortunately Valgrind suppression files tend to be system-dependent,
+so you will need to keep one around that matches your system.
 
 ** How to recover buffer contents from an Emacs core dump file
 
@@ -936,6 +1035,42 @@ The file etc/emacs-buffer.gdb defines a set of GDB commands for
 recovering the contents of Emacs buffers from a core dump file.  You
 might also find those commands useful for displaying the list of
 buffers in human-readable format from within the debugger.
+
+*** Debugging Emacs with LLDB
+
+On systems where GDB is not available, like macOS with M1 chip, you
+can also use LLDB for Emacs debugging.
+
+To start LLDB to debug Emacs, you can simply type "lldb ./emacs RET"
+at the shell prompt in directory of the Emacs executable, usually the
+'src' sub-directory of the Emacs tree).
+
+When you debug Emacs with LLDB, you should start LLDB in the directory
+where the Emacs executable was built.  That directory has an .lldbinit
+file that loads a Python module emacs_lldb.py from the 'etc' directory
+of the Emacs source tree.  The Python module defines "user-defined"
+commands for debugging Emacs.
+
+LLDB by default does not automatically load .lldbinit files in the
+current directory.  The simplest way to fix this is to add the
+following line to your ~/.lldbinit file (creating such a file if it
+doesn't already exist):
+
+  settings set target.load-cwd-lldbinit true
+
+Alternatively, you can type "lldb --local-lldbinit ./emacs RET".
+
+If everything worked, you should see something like "Emacs debugging
+support has been installed" after starting LLDB.  You can see which
+Emacs-specific commands are defined with
+
+  (lldb) help
+
+User-defined commands for Emacs debugging start with an "x".
+
+Please refer to the LLDB reference on the web for more information
+about LLDB.  If you already know GDB, you will also find a mapping
+from GDB commands to corresponding LLDB commands there.
 
 
 This file is part of GNU Emacs.

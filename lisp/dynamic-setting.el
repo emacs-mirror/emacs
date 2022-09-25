@@ -1,6 +1,6 @@
-;;; dynamic-setting.el --- Support dynamic changes
+;;; dynamic-setting.el --- Support dynamic changes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; This file provides the lisp part of the GConf and XSetting code in
-;; xsetting.c.  But it is nothing that prevents it from being used by
+;; This file provides the Lisp part of the GConf and XSetting code in
+;; xsetting.c.  But there is nothing that prevents it from being used by
 ;; other configuration schemes.
 
 ;;; Code:
@@ -40,8 +40,8 @@
   "Change font and/or font settings for frames on display DISPLAY-OR-FRAME.
 If DISPLAY-OR-FRAME is a frame, the display is the one for that frame.
 
-If SET-FONT is non-nil, change the font for frames.  Otherwise re-apply the
-current form for the frame (i.e. hinting or somesuch changed)."
+If SET-FONT is non-nil, change the font for frames.  Otherwise re-apply
+the current form for the frame (i.e. hinting or somesuch changed)."
   (let ((new-font (and (fboundp 'font-get-system-font)
 		       (font-get-system-font)))
 	(frame-list (frames-on-display-list display-or-frame)))
@@ -68,8 +68,8 @@ current form for the frame (i.e. hinting or somesuch changed)."
 (defun dynamic-setting-handle-config-changed-event (event)
   "Handle config-changed-event on the display in EVENT.
 Changes can be
-  The monospace font. If `font-use-system-font' is nil, the font
-    is not changed.
+  The monospace font.  If `font-use-system-font' is nil,
+    the font is not changed.
   The normal font.
   Xft parameters, like DPI and hinting.
   The Gtk+ theme name.
@@ -91,4 +91,7 @@ Changes can be
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 
 (define-key special-event-map [config-changed-event]
-  'dynamic-setting-handle-config-changed-event)
+  #'dynamic-setting-handle-config-changed-event)
+
+(provide 'dynamic-setting)
+;;; dynamic-setting.el ends here

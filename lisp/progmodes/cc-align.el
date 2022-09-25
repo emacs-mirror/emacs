@@ -1,6 +1,6 @@
-;;; cc-align.el --- custom indentation functions for CC Mode
+;;; cc-align.el --- custom indentation functions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2022 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -43,6 +43,9 @@
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
 (cc-require 'cc-engine)
+
+(defvar c-syntactic-context)
+(defvar c-syntactic-element)
 
 
 ;; Standard line-up functions
@@ -90,26 +93,26 @@ Works with: topmost-intro-cont."
 
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)
   "Line up the continuation lines of a DEFUN macro in the Emacs C source.
-These lines are indented as though they were `knr-argdecl-intro' lines.
+These lines are indented `c-basic-offset' columns, usually from column 0.
 Return nil when we're not in such a construct.
 
-This function is for historical compatibility with how previous CC Modes (5.28
-and earlier) indented such lines.
+This function was formally for use in DEFUNs, which used to have knr
+argument lists.  Now (2019-05) it just indents the argument list of the
+DEFUN's function, which would otherwise go to column 0.
 
 Here is an example:
 
 DEFUN (\"forward-char\", Fforward_char, Sforward_char, 0, 1, \"p\",
        doc: /* Move point right N characters (left if N is negative).
 On reaching end of buffer, stop and signal error.  */)
-     (n)                      <- c-lineup-gnu-DEFUN-into-cont
-     Lisp_Object n;           <- c-lineup-gnu-DEFUN-into-cont
+  (Lisp_Object n)             <- c-lineup-gnu-DEFUN-into-cont
 
 Works with: topmost-intro-cont."
   (save-excursion
     (let (case-fold-search)
       (goto-char (c-langelem-pos langelem))
       (if (looking-at "\\<DEFUN\\>")
-	  (c-calc-offset '(knr-argdecl-intro))))))
+	  c-basic-offset))))
 
 (defun c-block-in-arglist-dwim (arglist-start)
   ;; This function implements the DWIM to avoid far indentation of
@@ -199,6 +202,58 @@ Works with: arglist-cont-nonempty, arglist-close."
 	    (skip-chars-forward " \t"))
 	  (vector (current-column)))))))
 
+(defun c-lineup-argcont-1 (elem)
+  ;; Move to the start of the current arg and return non-nil, otherwise
+  ;; return nil.
+  (beginning-of-line)
+
+  (when (eq (car elem) 'arglist-cont-nonempty)
+    ;; Our argument list might not be the innermost one.  If it
+    ;; isn't, go back to the first position in it.  We do this by
+    ;; stepping back over open parens until we get to the open paren
+    ;; of our argument list.
+    (let ((open-paren (c-langelem-2nd-pos c-syntactic-element))
+	  (paren-state (c-parse-state)))
+      (while (not (eq (car paren-state) open-paren))
+	(unless (consp (car paren-state)) ;; ignore matched braces
+	  (goto-char (car paren-state)))
+	(setq paren-state (cdr paren-state)))))
+
+  (let ((start (point)) c)
+
+    (when (bolp)
+      ;; Previous line ending in a comma means we're the start of an
+      ;; argument.  This should quickly catch most cases not for us.
+      ;; This case is only applicable if we're the innermost arglist.
+      (c-backward-syntactic-ws)
+      (setq c (char-before)))
+
+    (unless (eq c ?,)
+      ;; In a gcc asm, ":" on the previous line means the start of an
+      ;; argument.  And lines starting with ":" are not for us, don't
+      ;; want them to indent to the preceding operand.
+      (let ((gcc-asm (save-excursion
+		       (goto-char start)
+		       (c-in-gcc-asm-p))))
+	(unless (and gcc-asm
+		     (or (eq c ?:)
+			 (save-excursion
+			   (goto-char start)
+			   (looking-at "[ \t]*:"))))
+
+	  (c-lineup-argcont-scan (if gcc-asm ?:))
+	  t)))))
+
+(defun c-lineup-argcont-scan (&optional other-match)
+  ;; Find the start of an argument, for `c-lineup-argcont'.
+  (when (zerop (c-backward-token-2 1 t))
+    (let ((c (char-after)))
+      (if (or (eq c ?,) (eq c other-match))
+	  (progn
+	    (forward-char)
+	    (c-forward-syntactic-ws))
+	(c-lineup-argcont-scan other-match)))))
+
 ;; Contributed by Kevin Ryde <user42@zip.com.au>.
 (defun c-lineup-argcont (elem)
   "Line up a continued argument.
@@ -214,56 +269,30 @@ but of course only between operand specifications, not in the expressions
 for the operands.
 
 Works with: arglist-cont, arglist-cont-nonempty."
-
   (save-excursion
-    (beginning-of-line)
+    (when (c-lineup-argcont-1 elem)
+      (vector (current-column)))))
 
-    (when (eq (car elem) 'arglist-cont-nonempty)
-      ;; Our argument list might not be the innermost one.  If it
-      ;; isn't, go back to the last position in it.  We do this by
-      ;; stepping back over open parens until we get to the open paren
-      ;; of our argument list.
-      (let ((open-paren (c-langelem-2nd-pos c-syntactic-element))
-	    (paren-state (c-parse-state)))
-	(while (not (eq (car paren-state) open-paren))
-	  (unless (consp (car paren-state)) ;; ignore matched braces
-	    (goto-char (car paren-state)))
-	  (setq paren-state (cdr paren-state)))))
+(defun c-lineup-argcont-+ (langelem)
+  "Indent an argument continuation `c-basic-offset' in from the first argument.
 
-    (let ((start (point)) c)
+This first argument is that on a previous line at the same level of nesting.
 
-      (when (bolp)
-	;; Previous line ending in a comma means we're the start of an
-	;; argument.  This should quickly catch most cases not for us.
-	;; This case is only applicable if we're the innermost arglist.
-	(c-backward-syntactic-ws)
-	(setq c (char-before)))
+foo (xyz, uvw, aaa + bbb + ccc
+         + ddd + eee + fff);    <- c-lineup-argcont-+
+     <-->                          c-basic-offset
 
-      (unless (eq c ?,)
-	;; In a gcc asm, ":" on the previous line means the start of an
-	;; argument.  And lines starting with ":" are not for us, don't
-	;; want them to indent to the preceding operand.
-	(let ((gcc-asm (save-excursion
-			 (goto-char start)
-			 (c-in-gcc-asm-p))))
-	  (unless (and gcc-asm
-		       (or (eq c ?:)
-			   (save-excursion
-			     (goto-char start)
-			     (looking-at "[ \t]*:"))))
+Only continuation lines like this are touched, nil being returned
+on lines which are the start of an argument.
 
-	    (c-lineup-argcont-scan (if gcc-asm ?:))
-	    (vector (current-column))))))))
-
-(defun c-lineup-argcont-scan (&optional other-match)
-  ;; Find the start of an argument, for `c-lineup-argcont'.
-  (when (zerop (c-backward-token-2 1 t))
-    (let ((c (char-after)))
-      (if (or (eq c ?,) (eq c other-match))
-	  (progn
-	    (forward-char)
-	    (c-forward-syntactic-ws))
-	(c-lineup-argcont-scan other-match)))))
+Works with: arglist-cont, arglist-cont-nonempty."
+  (save-excursion
+    (when (c-lineup-argcont-1 langelem)	; Check we've got a continued argument...
+      ;; ... but ignore the position found.
+      (goto-char (c-langelem-2nd-pos c-syntactic-element))
+      (forward-char)
+      (c-forward-syntactic-ws)
+      (vector (+ (current-column) c-basic-offset)))))
 
 (defun c-lineup-arglist-intro-after-paren (_langelem)
   "Line up a line to just after the open paren of the surrounding paren
@@ -274,8 +303,10 @@ statement-block-intro, statement-case-intro, arglist-intro."
   (save-excursion
     (beginning-of-line)
     (backward-up-list 1)
+    (forward-char)
     (skip-chars-forward " \t" (c-point 'eol))
-    (vector (1+ (current-column)))))
+    (if (eolp) (skip-chars-backward " \t"))
+    (vector (current-column))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
   "Line up a line under the enclosing open paren.
@@ -322,7 +353,7 @@ if (  x < 10
 
 Since this function doesn't do anything for lines without an infix
 operator you typically want to use it together with some other line-up
-settings, e.g. as follows \(the arglist-close setting is just a
+settings, e.g. as follows (the arglist-close setting is just a
 suggestion to get a consistent style):
 
 \(c-set-offset \\='arglist-cont \\='(c-lineup-arglist-operators 0))
@@ -790,6 +821,38 @@ arglist-cont-nonempty."
   (or (c-lineup-assignments langelem)
       c-basic-offset))
 
+(defun c-lineup-ternary-bodies (langelem)
+  "Line up true and false branches of a ternary operator (i.e. `?:').
+More precisely, if the line starts with a colon which is a part of
+a said operator, align it with corresponding question mark; otherwise
+return nil.  For example:
+
+    return arg % 2 == 0 ? arg / 2
+                        : (3 * arg + 1);    <- c-lineup-ternary-bodies
+
+Works with: arglist-cont, arglist-cont-nonempty and statement-cont."
+  (save-excursion
+    (back-to-indentation)
+    (when (and (eq ?: (char-after))
+               (not (eq ?: (char-after (1+ (point))))))
+      (let ((limit (c-langelem-pos langelem)) (depth 1))
+        (catch 'done
+          (while (and (c-syntactic-skip-backward "^?:" limit t)
+		      (not (bobp)))
+            (backward-char)
+            (cond ((eq (char-after) ??)
+                   ;; If we've found a question mark, decrease depth.  If we've
+                   ;; reached zero, we've found the one we were looking for.
+                   (when (zerop (setq depth (1- depth)))
+                     (throw 'done (vector (current-column)))))
+                  ((or (eq ?: (char-before)) (eq ?? (char-before)))
+                   ;; Step over `::' and `?:' operators.  We don't have to
+                   ;; handle `?:' here but doing so saves an iteration.
+                   (if (eq (point) limit)
+                       (throw 'done nil)
+                     (goto-char (1- (point)))))
+                  ((setq depth (1+ depth)))))))))) ; Otherwise increase depth.
+
 (defun c-lineup-cascaded-calls (langelem)
   "Line up \"cascaded calls\" under each other.
 If the line begins with \"->\" or \".\" and the preceding line ends
@@ -868,17 +931,16 @@ returned if there's no template argument on the first line.
 
 Works with: template-args-cont."
   (save-excursion
-    (c-with-syntax-table c++-template-syntax-table
-      (beginning-of-line)
-      (backward-up-list 1)
-      (if (and (eq (char-after) ?<)
-	       (zerop (c-forward-token-2 1 nil (c-point 'eol))))
-	  (vector (current-column))))))
+    (beginning-of-line)
+    (backward-up-list 1)
+    (if (and (eq (char-after) ?<)
+	     (zerop (c-forward-token-2 1 nil (c-point 'eol))))
+	(vector (current-column)))))
 
 (defun c-lineup-ObjC-method-call (langelem)
   "Line up selector args as Emacs Lisp mode does with function args:
 Go to the position right after the message receiver, and if you are at
-the end of the line, indent the current line c-basic-offset columns
+the end of the line, indent the current line `c-basic-offset' columns
 from the opening bracket; otherwise you are looking at the first
 character of the first method call argument, so line up the current
 line with it.
@@ -907,9 +969,9 @@ Works with: objc-method-call-cont."
 
 (defun c-lineup-ObjC-method-call-colons (langelem)
   "Line up selector args as Project Builder / XCode: colons of first
-   selector portions on successive lines are aligned.  If no decision can
-   be made return NIL, so that other lineup methods can be tried.  This is
-   typically chained with `c-lineup-ObjC-method-call'.
+selector portions on successive lines are aligned.  If no decision can
+be made return NIL, so that other lineup methods can be tried.  This is
+typically chained with `c-lineup-ObjC-method-call'.
 
 Works with: objc-method-call-cont."
   (save-excursion
@@ -1084,6 +1146,131 @@ arglist-cont."
 	      (vector (+ (current-column) c-basic-offset))))
 	(vector 0)))))
 
+(defun c-lineup-2nd-brace-entry-in-arglist (_langelem)
+  "Lineup the second entry of a brace block under the first, when the first
+line is also contained in an arglist or an enclosing brace ON THAT LINE.
+
+I.e. handle something like the following:
+
+    set_line (line_t {point_t{0.4, 0.2},
+                      point_t{0.2, 0.5},       <---- brace-list-intro
+                      .....});
+             ^ enclosing parenthesis.
+
+The middle line of that example will have a syntactic context
+with three syntactic symbols, arglist-cont-nonempty, brace-list-intro, and
+brace-list-entry.
+
+This function is intended for use in a list.  If the construct
+being analyzed isn't like the preceding, the function returns nil.
+Otherwise it returns the function `c-lineup-arglist-intro-after-paren', which
+the caller then uses to perform indentation.
+
+Works with brace-list-intro."
+  ;; brace-list-intro and brace-list-entry are both present for the second
+  ;; entry of the list when the first entry is on the same line as the opening
+  ;; brace.
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (or (assq 'arglist-cont-nonempty c-syntactic-context) ; "(" earlier on
+							     ; the line.
+	   (save-excursion		; "{" earlier on the line
+	     (goto-char (c-langelem-pos
+			 (assq 'brace-list-entry
+			       c-syntactic-context)))
+	     (and
+	      (eq (c-backward-token-2
+		   1 nil
+		   (c-point 'bol (c-langelem-pos
+				  (assq 'brace-list-entry
+					c-syntactic-context))))
+		  0)
+	      (eq (char-after) ?{))))
+       'c-lineup-arglist-intro-after-paren))
+
+(defun c-lineup-class-decl-init-+ (_langelem)
+  "Line up the second entry of a class (etc.) initializer c-basic-offset
+characters in from the identifier when:
+\(i) The type is a class, struct, union, etc. (but not an enum);
+\(ii) There is a brace block in the type declaration, specifying it; and
+\(iii) The first element of the initializer is on the same line as its opening
+brace.
+
+I.e. we have a construct like this:
+
+    struct STR {
+        int i; float f;
+    } str_1 = {1, 1.7},
+        str_2 = {2,
+             3.1                   <---- brace-list-intro
+        };
+        <-->                       <---- c-basic-offset
+
+Note that the syntactic context of the brace-list-intro line also has a
+syntactic element with the symbol brace-list-entry.
+
+This function is intended for use in a list.  If the above structure isn't
+present, this function returns nil, allowing a different offset specification
+to indent the line.
+
+Works with: brace-list-intro."
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (let ((init-pos (c-point 'boi (c-langelem-pos
+				      (assq 'brace-list-entry
+					    c-syntactic-context))))
+	     )
+	 (save-excursion
+	   (goto-char (c-langelem-pos (assq 'brace-list-intro
+					    c-syntactic-context)))
+	   (and
+	    (c-forward-class-decl)
+	    (not (c-do-declarators init-pos t nil nil nil))
+	    (eq (point) init-pos)
+	    (vector (+ (current-column) c-basic-offset)))))))
+
+(defun c-lineup-class-decl-init-after-brace (_langelem)
+  "Line up the second entry of a class (etc.) initializer after its opening
+brace when:
+\(i) The type is a class, struct, union, etc. (but not an enum);
+\(ii) There is a brace block in the type declaration, specifying it; and
+\(iii) The first element of the initializer is on the same line as its opening
+brace.
+
+I.e. we have a construct like this:
+
+    struct STR {
+        int i; float f;
+    } str_1 = {1, 1.7},
+        str_2 = {2,
+                 3.1                   <---- brace-list-intro
+        };
+
+Note that the syntactic context of the brace-list-intro line also has a
+syntactic element with the symbol brace-list-entry.  Also note that this
+function works by returning the symbol `c-lineup-arglist-intro-after-paren',
+which the caller then uses to perform the indentation.
+
+This function is intended for use in a list.  If the above structure isn't
+present, this function returns nil, allowing a different offset specification
+to indent the line.
+
+Works with: brace-list-intro."
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (let ((init-pos (c-point 'boi (c-langelem-pos
+				      (assq 'brace-list-entry
+					    c-syntactic-context))))
+	     )
+	 (save-excursion
+	   (goto-char (c-langelem-pos (assq 'brace-list-intro
+					    c-syntactic-context)))
+	   (and
+	    (c-forward-class-decl)
+	    (not (c-do-declarators init-pos t nil nil nil))
+	    (eq (point) init-pos)
+	    'c-lineup-arglist-intro-after-paren)))))
+
 (defun c-lineup-cpp-define (_langelem)
   "Line up macro continuation lines according to the indentation of
 the construct preceding the macro.  E.g.:
@@ -1123,7 +1310,7 @@ That is useful in a list expression to specify the default indentation
 on the top level.
 
 If `c-syntactic-indentation-in-macros' is nil then this function keeps
-the current indentation, except for empty lines \(ignoring the ending
+the current indentation, except for empty lines (ignoring the ending
 backslash) where it takes the indentation from the closest preceding
 nonempty line in the macro.  If there's no such line in the macro then
 the indentation is taken from the construct preceding it, as described

@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2017 Free Software Foundation, Inc.
+Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -240,7 +240,7 @@ main (int argc, char **argv)
   if (! user)
     lose_syserr ("Couldn't determine user id");
   data = argv[optind + 2];
-  if (strlen (data) > MAX_DATA_LEN)
+  if (strnlen (data, MAX_DATA_LEN + 1) == MAX_DATA_LEN + 1)
     data[MAX_DATA_LEN] = '\0';
   nl = strchr (data, '\n');
   if (nl)
@@ -499,9 +499,9 @@ unlock_file (const char *filename, void *state)
   char *lockpath = (char *) state;
   int saved_errno = errno;
   int ret = unlink (lockpath);
-  int unlink_errno = errno;
+  if (0 <= ret)
+    errno = saved_errno;
   free (lockpath);
-  errno = ret < 0 ? unlink_errno : saved_errno;
   return ret;
 }
 

@@ -1,6 +1,6 @@
-;;; thingatpt.el --- tests for thing-at-point.
+;;; thingatpt-tests.el --- tests for thing-at-point.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'thingatpt)
 
 (defvar thing-at-point-test-data
   '(("https://1.gnu.org" 1  url "https://1.gnu.org")
@@ -65,8 +66,11 @@
     ("http://example.com/ab)c" 4 url "http://example.com/ab)c")
     ;; URL markup, lacking schema
     ("<url:foo@example.com>" 1 url "mailto:foo@example.com")
-    ("<url:ftp.example.net/abc/>" 1 url "ftp://ftp.example.net/abc/"))
-  "List of thing-at-point tests.
+    ("<url:ftp.example.net/abc/>" 1 url "ftp://ftp.example.net/abc/")
+    ;; UUID, only hex is allowed
+    ("01234567-89ab-cdef-ABCD-EF0123456789" 1 uuid "01234567-89ab-cdef-ABCD-EF0123456789")
+    ("01234567-89ab-cdef-ABCD-EF012345678G" 1 uuid nil))
+  "List of `thing-at-point' tests.
 Each list element should have the form
 
   (STRING POS THING RESULT)
@@ -84,41 +88,43 @@ position to retrieve THING.")
       (goto-char (nth 1 test))
       (should (equal (thing-at-point (nth 2 test)) (nth 3 test))))))
 
-;; These tests reflect the actual behavior of
-;; `thing-at-point-bounds-of-list-at-point'.
-(ert-deftest thing-at-point-bug24627 ()
-  "Test for https://debbugs.gnu.org/24627 ."
-  (let ((string-result '(("(a \"b\" c)" . (a "b" c))
-                         (";(a \"b\" c)")
-                         ("(a \"b\" c\n)" . (a "b" c))
-                         ("\"(a b c)\"")
-                         ("(a ;(b c d)\ne)" . (a e))
-                         ("(foo\n(a ;(b c d)\ne) bar)" . (a e))
-                         ("(foo\na ;(b c d)\ne bar)" . (foo a e bar))
-                         ("(foo\n(a \"(b c d)\"\ne) bar)" . (a "(b c d)" e))
-                         ("(b\n(a ;(foo c d)\ne) bar)" . (a e))
-                         ("(princ \"(a b c)\")" . (princ "(a b c)"))
-                         ("(defun foo ()\n  \"Test function.\"\n  ;;(a b)\n  nil)" . (defun foo nil "Test function." nil))))
-        (file
-         (expand-file-name "lisp/thingatpt.el" source-directory))
-        buf)
-    ;; Test for `thing-at-point'.
-    (when (file-exists-p file)
-      (unwind-protect
-          (progn
-            (setq buf (find-file file))
-            (goto-char (point-max))
-            (forward-line -1)
-            (should-not (thing-at-point 'list)))
-        (kill-buffer buf)))
-    ;; Tests for `list-at-point'.
-    (dolist (str-res string-result)
-      (with-temp-buffer
-        (emacs-lisp-mode)
-        (insert (car str-res))
-        (re-search-backward "\\((a\\|^a\\)")
-        (should (equal (list-at-point)
-                       (cdr str-res)))))))
+;; See bug#24627 and bug#31772.
+(ert-deftest thing-at-point-bounds-of-list-at-point ()
+  (cl-macrolet ((with-test-buffer (str &rest body)
+                  `(with-temp-buffer
+                     (emacs-lisp-mode)
+                     (insert ,str)
+                     (search-backward "|")
+                     (delete-char 1)
+                     ,@body)))
+    (let ((tests1
+           '(("|(a \"b\" c)" (a "b" c))
+             (";|(a \"b\" c)" (a "b" c) nil)
+             ("|(a \"b\" c\n)" (a "b" c))
+             ("\"|(a b c)\"" (a b c) nil)
+             ("|(a ;(b c d)\ne)" (a e))
+             ("(foo\n|(a ;(b c d)\ne) bar)" (foo (a e) bar))
+             ("(foo\n|a ;(b c d)\ne bar)" (foo a e bar))
+             ("(foo\n|(a \"(b c d)\"\ne) bar)" (foo (a "(b c d)" e) bar))
+             ("(b\n|(a ;(foo c d)\ne) bar)" (b (a e) bar))
+             ("(princ \"|(a b c)\")" (a b c) (princ "(a b c)"))
+             ("(defun foo ()\n  \"Test function.\"\n  ;;|(a b)\n  nil)"
+              (defun foo nil "Test function." nil)
+              (defun foo nil "Test function." nil))))
+          (tests2
+           '(("|list-at-point" . "list-at-point")
+             ("list-|at-point" . "list-at-point")
+             ("list-at-point|" . nil)
+             ("|(a b c)" . "(a b c)")
+             ("(a b c)|" . nil))))
+      (dolist (test tests1)
+        (with-test-buffer (car test)
+          (should (equal (list-at-point) (cl-second test)))
+          (when (cddr test)
+            (should (equal (list-at-point t) (cl-third test))))))
+      (dolist (test tests2)
+        (with-test-buffer (car test)
+          (should (equal (thing-at-point 'list) (cdr test))))))))
 
 (ert-deftest thing-at-point-url-in-comment ()
   (with-temp-buffer
@@ -129,4 +135,84 @@ position to retrieve THING.")
     (goto-char 23)
     (should (equal (thing-at-point 'url) "http://foo/bar(baz)"))))
 
-;;; thingatpt.el ends here
+(ert-deftest thing-at-point-looking-at ()
+  (with-temp-buffer
+    (insert "1abcd 2abcd 3abcd")
+    (goto-char (point-min))
+    (let ((m2 (progn (search-forward "2abcd")
+                     (match-data))))
+      (goto-char (point-min))
+      (search-forward "2ab")
+      (should (thing-at-point-looking-at "2abcd"))
+      (should (equal (match-data) m2)))))
+
+(ert-deftest test-symbol-thing-1 ()
+  (with-temp-buffer
+    (insert "foo bar zot")
+    (goto-char 4)
+    (should (eq (symbol-at-point) 'foo))
+    (forward-char 1)
+    (should (eq (symbol-at-point) 'bar))
+    (forward-char 1)
+    (should (eq (symbol-at-point) 'bar))
+    (forward-char 1)
+    (should (eq (symbol-at-point) 'bar))
+    (forward-char 1)
+    (should (eq (symbol-at-point) 'bar))
+    (forward-char 1)
+    (should (eq (symbol-at-point) 'zot))))
+
+(ert-deftest test-symbol-thing-2 ()
+  (with-temp-buffer
+    (insert " bar ")
+    (goto-char (point-max))
+    (should (eq (symbol-at-point) nil))
+    (forward-char -1)
+    (should (eq (symbol-at-point) 'bar))))
+
+(ert-deftest test-symbol-thing-3 ()
+  (with-temp-buffer
+    (insert "bar")
+    (goto-char 2)
+    (should (eq (symbol-at-point) 'bar))))
+
+(ert-deftest test-symbol-thing-4 ()
+  (with-temp-buffer
+    (insert "`[[`(")
+    (goto-char 2)
+    (should (eq (symbol-at-point) nil))))
+
+(defun test--number (number pos)
+  (with-temp-buffer
+    (insert (format "%s\n" number))
+    (goto-char (point-min))
+    (forward-char pos)
+    (number-at-point)))
+
+(ert-deftest test-numbers-none ()
+  (should (equal (test--number "foo" 0) nil)))
+
+(ert-deftest test-numbers-decimal ()
+  (should (equal (test--number "42" 0) 42))
+  (should (equal (test--number "42" 1) 42))
+  (should (equal (test--number "42" 2) 42)))
+
+(ert-deftest test-numbers-hex-lisp ()
+  (should (equal (test--number "#x42" 0) 66))
+  (should (equal (test--number "#x42" 1) 66))
+  (should (equal (test--number "#x42" 2) 66))
+  (should (equal (test--number "#xf00" 0) 3840))
+  (should (equal (test--number "#xf00" 1) 3840))
+  (should (equal (test--number "#xf00" 2) 3840))
+  (should (equal (test--number "#xf00" 3) 3840)))
+
+(ert-deftest test-numbers-hex-c ()
+  (should (equal (test--number "0x42" 0) 66))
+  (should (equal (test--number "0x42" 1) 66))
+  (should (equal (test--number "0x42" 2) 66))
+  (should (equal (test--number "0xf00" 0) 3840))
+  (should (equal (test--number "0xf00" 1) 3840))
+  (should (equal (test--number "0xf00" 2) 3840))
+  (should (equal (test--number "0xf00" 3) 3840)))
+
+;;; thingatpt-tests.el ends here

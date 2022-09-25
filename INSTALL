@@ -1,14 +1,16 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2017 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2022 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
 
-This file contains general information on building GNU Emacs.
-For more information specific to the MS-Windows, GNUstep/macOS, and
-MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
-msdos/INSTALL.  For information about building from a repository checkout
-(rather than a release), also read the file INSTALL.REPO.
+This file contains general information on building GNU Emacs.  For
+more information specific to the MS-Windows, GNUstep/macOS, and MS-DOS
+ports, also read the files nt/INSTALL, nextstep/INSTALL, and
+msdos/INSTALL.
+
+For information about building from a Git checkout (rather than an
+Emacs release), read the INSTALL.REPO file first.
 
 
 BASIC INSTALLATION
@@ -34,11 +36,12 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 25 release requires about 200 MB of free
-  disk space.  Building Emacs uses about another 200 MB of space.
-  The final installed Emacs uses about 150 MB of disk space.
-  This includes the space-saving that comes from automatically
-  compressing the Lisp source files on installation.
+  1.  Obtain and unpack the Emacs release, with commands like this:
+
+		 wget https://ftp.gnu.org/gnu/emacs/emacs-VERSION.tar.xz
+		 tar -xf emacs-VERSION.tar.xz
+
+      where VERSION is the Emacs version number.
 
   2a. 'cd' to the directory where you unpacked Emacs and invoke the
       'configure' script:
@@ -81,13 +84,17 @@ sections if you need to.
 
 		 src/emacs -Q
 
+     To test Emacs further (intended mostly to help developers):
+
+		 make check
+
   6. Assuming that the program 'src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
      files into their installation directories:
 
 		 make install
 
-  You are now ready to use Emacs.  If you wish to conserve disk space,
+  You are now ready to use Emacs.  If you wish to conserve space,
   you may remove the program binaries and object files from the
   directory where you built Emacs:
 
@@ -104,24 +111,34 @@ sections if you need to.
   (provided you have the 'gzip' program) those installed Lisp source (.el)
   files that have corresponding .elc versions, as well as the Info files.
 
+  You can read a brief summary about common make targets:
+
+                make help
+
 
 ADDITIONAL DISTRIBUTION FILES
 
 * Complex Text Layout support libraries
 
-On GNU and Unix systems, Emacs needs the optional libraries "m17n-db",
-"libm17n-flt", "libotf" to correctly display such complex scripts as
-Indic and Khmer, and also for scripts that require Arabic shaping
-support (Arabic and Farsi).  On some systems, particularly GNU/Linux,
-these libraries may be already present or available as additional
-packages.  Note that if there is a separate 'dev' or 'devel' package,
-for use at compilation time rather than run time, you will need that
-as well as the corresponding run time package; typically the dev
-package will contain header files and a library archive.  Otherwise,
-you can download the libraries from <http://www.nongnu.org/m17n/>.
+On GNU and Unix systems, Emacs needs optional libraries to correctly
+display such complex scripts as Indic and Khmer, and also for scripts
+that require Arabic shaping support (Arabic and Farsi).  If the
+HarfBuzz library is installed, Emacs will build with it and use it for
+this purpose.  HarfBuzz is the preferred shaping engine, both on Posix
+hosts and on MS-Windows, so we recommend installing it before building
+Emacs.  The alternative for GNU/Linux and Posix systems is to use the
+"m17n-db", "libm17n-flt", and "libotf" libraries.  (On some systems,
+particularly GNU/Linux, these libraries may be already present or
+available as additional packages.)  Note that if there is a separate
+'dev' or 'devel' package, for use at compilation time rather than run
+time, you will need that as well as the corresponding run time
+package; typically the dev package will contain header files and a
+library archive.  On MS-Windows, if HarfBuzz is not available, Emacs
+will use the Uniscribe shaping engine that is part of the OS.
 
 Note that Emacs cannot support complex scripts on a TTY, unless the
-terminal includes such a support.
+terminal includes such a support.  However, most modern terminal
+emulators, such as xterm, do support such scripts.
 
 * intlfonts-VERSION.tar.gz
 
@@ -139,7 +156,9 @@ lisp/ps-mule.el defines the *.bdf font files required for printing
 each character set.
 
 The intlfonts distribution contains its own installation instructions,
-in the intlfonts/README file.
+in the intlfonts/README file.  See also the Emacs Frequently Asked
+Questions info pages "(efaq) How to add fonts" for installation
+instructions.
 
 * Image support libraries
 
@@ -162,14 +181,15 @@ can be found (in the unlikely event that your distribution does not
 provide them).  By default, libraries marked with an X are required if
 X11 is being used.
 
-    libXaw3d          https://directory.fsf.org/project/xaw3d/
-  X libxpm for XPM:   http://www.x.org/releases/current/src/lib/
+    libXaw3d          https://directory.fsf.org/project/Xaw3d
+  X libxpm for XPM:   https://www.x.org/releases/current/src/lib/
   X libpng for PNG:   http://www.libpng.org/
-    libz (for PNG):   http://www.zlib.net/
-  X libjpeg for JPEG: http://www.ijg.org/
-  X libtiff for TIFF: http://www.remotesensing.org/libtiff/
-  X libgif for GIF:   http://sourceforge.net/projects/giflib/
-    librsvg2 for SVG: http://wiki.gnome.org/action/show/Projects/LibRsvg
+    libz (for PNG):   https://www.zlib.net/
+  X libjpeg for JPEG: https://www.ijg.org/
+  X libtiff for TIFF: http://www.simplesystems.org/libtiff/
+  X libgif for GIF:   http://giflib.sourceforge.net/
+    librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
+    libwebp for WebP: https://developers.google.com/speed/webp/
 
 If you supply the appropriate --without-LIB option, 'configure' will
 omit the corresponding library from Emacs, even if that makes for a
@@ -198,13 +218,48 @@ need to compile it.  For example, to compile Emacs with support for X
 and graphics libraries, you may need to install the X development
 package(s), and development versions of the jpeg, png, etc. packages.
 
-The names of the packages that you need varies according to the
+The names of the packages that you need vary according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
-like 'apt-get build-dep emacs24'.  On Red Hat systems, the
-corresponding command is 'yum-builddep emacs'.
+like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
+e.g. 'emacs25').  On Red Hat-based systems, the corresponding command is
+'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
+On FreeBSD, the command is 'pkg install -y `pkg rquery %dn emacs-devel`'.
+
+* Alternative window systems
+
+If you want to use Emacs on one of the alternative window systems
+available on GNU/Linux and some Unix systems, such as Wayland or
+Broadway, you can build the PGTK ("Pure GTK") port of Emacs, which
+utilizes the GTK+ toolkit to support those window systems.  To this
+end, invoke the configure script with the '--with-pgtk' option, like
+this:
+
+	./configure --with-pgtk
+
+This build is only supported with GTK+ version 3, and it is an error
+to specify any other X-specific configuration option when PGTK is
+enabled.
+
+If you use exclusively X, do not use the PGTK port.  There are a
+number of respects in which the regular --with-x-toolkit=gtk build
+works better.  The PGTK port should not be considered a simple upgrade
+from --with-x-toolkit=gtk.
+
+With the PGTK build, you will be able to switch between running Emacs
+on X, Wayland and Broadway using the 'GDK_BACKEND' environment
+variable.  GTK+ should automatically detect and use the correct value
+for your system, but you can also specify it manually.  For example,
+to force GTK+ to run under Broadway, start Emacs like this:
+
+	GDK_BACKEND=broadway emacs ...
+
+(where '...' denotes any further options you may want to pass to Emacs).
+
+The GNUstep build also supports the Wayland window system.  If that is
+what you want, see nextstep/INSTALL.
 
 DETAILED BUILDING AND INSTALLATION:
 
@@ -212,7 +267,7 @@ DETAILED BUILDING AND INSTALLATION:
 see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
 the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
-1) See the basic installation summary above for the disk space requirements.
+1) See BASIC INSTALLATION above for getting and configuring Emacs.
 
 2) In the unlikely event that 'configure' does not detect your system
 type correctly, consult './etc/MACHINES' to see what --host, --build
@@ -273,8 +328,10 @@ a POP3 server by default.  Versions of the POP protocol older than
 POP3 are not supported.  While POP3 support is typically enabled,
 whether Emacs actually uses POP3 is controlled by individual users;
 see the Rmail chapter of the Emacs manual.  Unless --with-mailutils is
-in effect, it is a good idea to configure --without-pop so that users
-are less likely to inadvertently read email via insecure channels.
+in effect, it is a good idea to configure without POP3 support so that
+users are less likely to inadvertently read email via insecure
+channels.  On native MS-Windows, --with-pop is the default; on other
+platforms, --without-pop is the default.
 
 For image support you may have to download, build, and install the
 appropriate image support libraries for image types other than XBM and
@@ -291,15 +348,25 @@ or more of these options:
   --without-gif          for GIF image support
   --without-png          for PNG image support
   --without-rsvg         for SVG image support
-  --without-imagemagick  for Imagemagick support
+  --without-webp         for WebP image support
+
+Although ImageMagick support is disabled by default due to security
+and stability concerns, you can enable it with --with-imagemagick.
 
 Use --without-toolkit-scroll-bars to disable Motif or Xaw3d scroll bars.
 
 Use --without-xim to inhibit the default use of X Input Methods.
 In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --disable-largefile to omit support for files larger than 2GB on
-systems which support that.
+Use --without-xinput2 to disable the use of version 2 of the X Input
+Extension.  This disables support for touchscreens, pinch gestures,
+and scroll wheels that report scroll deltas at pixel-level precision.
+
+Use --disable-largefile to omit support for files larger than 2GB, and
+--disable-year2038 to omit support for timestamps past the year 2038,
+on systems which allow omitting such support.  This may help when
+linking Emacs to a library with an ABI that requires a particular
+width for off_t or for time_t.
 
 Use --without-sound to disable sound support.
 
@@ -314,6 +381,12 @@ use --without-all --without-x.  If you want to build with just a few
 features enabled, you can combine --without-all with --with-FEATURE.
 For example, you can use --without-all --without-x --with-dbus to
 build with D-Bus support and nothing more.
+
+Use --with-gnutls=ifavailable to use GnuTLS if available but go ahead
+and build without it if not available.  This overrides Emacs's default
+behavior of refusing to build if GnuTLS is absent.  When X11 support
+is enabled, the libraries for gif, jpeg, png, tiff, and xpm are in the
+same strongly-recommended category as GnuTLS, and have similar options.
 
 Use --with-wide-int to implement Emacs values with the type 'long long',
 even on hosts where a narrower type would do.  With this option, on a
@@ -343,7 +416,7 @@ Use --enable-link-time-optimization to enable link-time optimization.
 With GCC, you need GCC 4.5.0 and later, and 'configure' arranges for
 linking to be parallelized if possible.  With Clang, you need GNU
 binutils with the gold linker and plugin support, along with the LLVM
-gold plugin <http://llvm.org/docs/GoldPlugin.html>.  Link time
+gold plugin <https://llvm.org/docs/GoldPlugin.html>.  Link time
 optimization is not the default as it tends to cause crashes and to
 make Emacs slower.
 

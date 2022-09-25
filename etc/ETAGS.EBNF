@@ -52,7 +52,7 @@ pattern ::= regstring			   /* a tag pattern */
 
 tagname ::= regchar regstring		   /* a tag name */
 
-position ::= realposition | "," 	   /* charpos,linepos */
+position ::= realposition | "," 	   /* linepos,charpos */
 
 realposition ::= "," unsint | unsint "," | unsint "," unsint
 
@@ -84,7 +84,7 @@ whether it is possible to deduce the tag name from the pattern, and make
 an unnamed tag in those cases.  The name deduced from the pattern of an
 unnamed tag is the implicit name of that tag.
   When the user looks for a tag, and Emacs finds no explicit tag names
-that match it, Emacs then looks for an tag whose implicit tag name
+that match it, Emacs then looks for a tag whose implicit tag name
 matches the request.  etags.c uses implicit tag names when possible, in
 order to reduce the size of the tags file.
   An implicit tag name is deduced from the pattern by discarding the
@@ -94,7 +94,7 @@ those.
 
 ===================== end of discussion of tag names =====================
 
-Copyright (C) 2002-2017 Free Software Foundation, Inc.
+Copyright (C) 2002-2022 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

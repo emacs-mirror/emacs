@@ -1,6 +1,6 @@
-;;; srecode/srt-mode.el --- Major mode for writing screcode macros
+;;; srecode/srt-mode.el --- Major mode for writing screcode macros  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,6 +33,7 @@
 
 (declare-function srecode-create-dictionary "srecode/dictionary")
 (declare-function srecode-resolve-argument-list "srecode/insert")
+(declare-function srecode-inserter-prin-example "srecode/insert")
 
 ;;; Code:
 (defvar srecode-template-mode-syntax-table
@@ -64,7 +65,7 @@
 (defvar srecode-font-lock-keywords
   '(
     ;; Template
-    ("^\\(template\\)\\s-+\\(\\w*\\)\\(\\( \\(:\\w+\\)\\|\\)+\\)$"
+    ("^\\(template\\)\\s-+\\(\\w*\\)\\(\\( \\(:\\w+\\)\\)*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-function-name-face)
      (3 font-lock-builtin-face ))
@@ -178,33 +179,31 @@ Don't scan past LIMIT."
 Once the escape_start, and escape_end sequences are known, then
 we can tell font lock about them.")
 
-(defvar srecode-template-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-c\C-c" 'srecode-compile-templates)
-    (define-key km "\C-c\C-m" 'srecode-macro-help)
-    (define-key km "/" 'srecode-self-insert-complete-end-macro)
-    km)
-  "Keymap used in srecode mode.")
+(defvar-keymap srecode-template-mode-map
+  :doc "Keymap used in srecode mode."
+  "C-c C-c" #'srecode-compile-templates
+  "C-c C-m" #'srecode-macro-help
+  "/"       #'srecode-self-insert-complete-end-macro)
 
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecode"
   ;; FIXME: Shouldn't it derive from prog-mode?
   "Major-mode for writing SRecode macros."
-  (set (make-local-variable 'comment-start) ";;")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
-  (set (make-local-variable 'font-lock-defaults)
-       '(srecode-font-lock-keywords
-         nil  ;; perform string/comment fontification
-         nil  ;; keywords are case sensitive.
-         ;; This puts _ & - as a word constituent,
-         ;; simplifying our keywords significantly
-         ((?_ . "w") (?- . "w")))))
+  (setq-local comment-start ";;")
+  (setq-local comment-end "")
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local comment-start-skip
+              "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+  (setq-local font-lock-defaults
+              '(srecode-font-lock-keywords
+                nil  ;; perform string/comment fontification
+                nil  ;; keywords are case sensitive.
+                ;; This puts _ & - as a word constituent,
+                ;; simplifying our keywords significantly
+                ((?_ . "w") (?- . "w")))))
 
 ;;;###autoload
-(defalias 'srt-mode 'srecode-template-mode)
+(defalias 'srt-mode #'srecode-template-mode)
 
 ;;; Template Commands
 ;;
@@ -228,10 +227,12 @@ we can tell font lock about them.")
 	(insert ee))))
   )
 
+(eieio-declare-slots key)
 
 (defun srecode-macro-help ()
   "Provide help for working with macros in a template."
   (interactive)
+  (require 'srecode/insert)
   (let* ((root 'srecode-template-inserter)
 	 (chl (eieio-class-children root))
 	 (ess (srecode-template-get-escape-start))
@@ -246,8 +247,7 @@ we can tell font lock about them.")
 	       (name (symbol-name C))
 	       (key (when (slot-exists-p C 'key)
 		      (oref C key)))
-	       (showexample t)
-	       )
+	       (showexample t))
 	  (setq chl (cdr chl))
 	  (setq chl (append (eieio-class-children C) chl))
 
@@ -258,9 +258,9 @@ we can tell font lock about them.")
 	    (when (class-abstract-p C)
 	      (throw 'skip nil))
 
-	    (princ (substitute-command-keys "`"))
+            (princ (substitute-quotes "`"))
 	    (princ name)
-	    (princ (substitute-command-keys "'"))
+            (princ (substitute-quotes "'"))
 	    (when (slot-exists-p C 'key)
 	      (when key
 		(princ " - Character Key: ")
@@ -434,7 +434,7 @@ Moves to the end of one named section."
     (when point (goto-char (point)))
     (let* ((tag (semantic-current-tag))
 	   (args (semantic-tag-function-arguments tag))
-	   (argsym (mapcar 'intern args))
+	   (argsym (mapcar #'intern args))
 	   (argvars nil)
 	   ;; Create a temporary dictionary in which the
 	   ;; arguments can be resolved so we can extract
@@ -473,7 +473,7 @@ section or ? for an ask variable."
 	  (ee (regexp-quote (srecode-template-get-escape-end)))
 	  (start (point))
 	  (macrostart nil)
-	  (raw nil)
+	  ;; (raw nil)
 	  )
       (when (and tag (semantic-tag-of-class-p tag 'function)
 		 (srecode-in-macro-p point)
@@ -494,7 +494,7 @@ section or ? for an ask variable."
 	  (let* ((macroend (match-beginning 0))
 		 (raw (buffer-substring-no-properties
 		       macrostart macroend))
-		 (STATE (srecode-compile-state "TMP"))
+		 (STATE (srecode-compile-state))
 		 (inserter (condition-case nil
 			       (srecode-compile-parse-inserter
 				raw STATE)
@@ -502,13 +502,14 @@ section or ? for an ask variable."
 		 )
 	    (when inserter
 	      (let ((base
-		     (cons (oref inserter :object-name)
+		     (cons (oref inserter object-name)
 			   (if (and (slot-boundp inserter :secondname)
-				    (oref inserter :secondname))
-			       (split-string (oref inserter :secondname)
+				    (oref inserter secondname))
+			       (split-string (oref inserter secondname)
 					     ":")
 			     nil)))
-		    (key (oref inserter key)))
+		    (key  (when (slot-exists-p inserter 'key)
+		            (oref inserter key))))
 		(cond ((null key)
 		       ;; A plain variable
 		       (cons nil base))
@@ -605,7 +606,6 @@ section or ? for an ask variable."
 
 	(setq context-return
 	      (semantic-analyze-context-functionarg
-	       "context-for-srecode"
 	       :buffer (current-buffer)
 	       :scope scope
 	       :bounds bounds
@@ -625,10 +625,10 @@ section or ? for an ask variable."
 	context-return)))
 
 (define-mode-local-override semantic-analyze-possible-completions
-  srecode-template-mode (context)
+  srecode-template-mode (context &rest _flags)
   "Return a list of possible completions based on NONTEXT."
   (with-current-buffer (oref context buffer)
-    (let* ((prefix (car (last (oref context :prefix))))
+    (let* ((prefix (car (last (oref context prefix))))
 	   (prefixstr (cond ((stringp prefix)
 			     prefix)
 			    ((semantic-tag-p prefix)
@@ -639,7 +639,7 @@ section or ? for an ask variable."
 ;				prefix)
 ;			       ((stringp (car prefix))
 ;				(car prefix))))
-	   (argtype (car (oref context :argument)))
+	   (argtype (car (oref context argument)))
 	   (matches nil))
 
       ;; Depending on what the analyzer is, we have different ways

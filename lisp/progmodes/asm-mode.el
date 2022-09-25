@@ -1,10 +1,10 @@
-;;; asm-mode.el --- mode for editing assembler code
+;;; asm-mode.el --- mode for editing assembler code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: tools, languages
+;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
 
@@ -24,16 +24,16 @@
 ;;; Commentary:
 
 ;; This mode was written by Eric S. Raymond <esr@snark.thyrsus.com>,
-;; inspired by an earlier asm-mode by Martin Neitzel.
+;; inspired by an earlier `asm-mode' by Martin Neitzel.
 
-;; This minor mode is based on text mode.  It defines a private abbrev table
-;; that can be used to save abbrevs for assembler mnemonics.  It binds just
-;; five keys:
+;; This major mode is based on `prog-mode'.  It defines a private
+;; abbrev table that can be used to save abbrevs for assembler
+;; mnemonics.  It binds just five keys:
 ;;
 ;;	TAB		tab to next tab stop
 ;;	:		outdent preceding label, tab to tab stop
 ;;	comment char	place or move comment
-;;			asm-comment-char specifies which character this is;
+;;			`asm-comment-char' specifies which character this is;
 ;;			you can use a different character in different
 ;;			Asm mode buffers.
 ;;	C-j, C-m	newline and tab to tab stop
@@ -41,9 +41,9 @@
 ;; Code is indented to the first tab stop level.
 
 ;; This mode runs two hooks:
-;;   1) An asm-mode-set-comment-hook before the part of the initialization
-;; depending on asm-comment-char, and
-;;   2) an asm-mode-hook at the end of initialization.
+;;   1) `asm-mode-set-comment-hook' before the part of the initialization
+;;      depending on `asm-comment-char', and
+;;   2) `asm-mode-hook' at the end of initialization.
 
 ;;; Code:
 
@@ -53,9 +53,8 @@
   :group 'languages)
 
 (defcustom asm-comment-char ?\;
-  "The comment-start character assumed by Asm mode."
-  :type 'character
-  :group 'asm)
+  "The `comment-start' character assumed by Asm mode."
+  :type 'character)
 
 (defvar asm-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -69,25 +68,21 @@
   "Abbrev table used while in Asm mode.")
 (define-abbrev-table 'asm-mode-abbrev-table ())
 
-(defvar asm-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Note that the comment character isn't set up until asm-mode is called.
-    (define-key map ":"		'asm-colon)
-    (define-key map "\C-c;"	'comment-region)
-    (define-key map "\C-j"	'newline-and-indent)
-    (define-key map "\C-m"	'newline-and-indent)
-    (define-key map [menu-bar asm-mode] (cons "Asm" (make-sparse-keymap)))
-    (define-key map [menu-bar asm-mode comment-region]
-      '(menu-item "Comment Region" comment-region
-		  :help "Comment or uncomment each line in the region"))
-    (define-key map [menu-bar asm-mode newline-and-indent]
-      '(menu-item "Insert Newline and Indent" newline-and-indent
-		  :help "Insert a newline, then indent according to major mode"))
-    (define-key map [menu-bar asm-mode asm-colon]
-      '(menu-item "Insert Colon" asm-colon
-		  :help "Insert a colon; if it follows a label, delete the label's indentation"))
-    map)
-  "Keymap for Asm mode.")
+(defvar-keymap asm-mode-map
+  :doc "Keymap for Asm mode."
+  ;; Note that the comment character isn't set up until asm-mode is called.
+  ":"     #'asm-colon
+  "C-c ;" #'comment-region)
+
+(easy-menu-define asm-mode-menu asm-mode-map
+  "Menu for Asm mode."
+  '("Asm"
+    ["Insert Colon" asm-colon
+     :help "Insert a colon; if it follows a label, delete the label's indentation"]
+    ["Insert Newline and Indent" newline-and-indent
+     :help "Insert a newline, then indent according to major mode"]
+    ["Comment Region" comment-region
+     :help "Comment or uncomment each line in the region"]))
 
 (defconst asm-font-lock-keywords
   (append
@@ -113,7 +108,7 @@ Features a private abbrev table and the following bindings:
 
 \\[asm-colon]\toutdent a preceding label, tab to next tab stop.
 \\[tab-to-tab-stop]\ttab to next tab stop.
-\\[asm-newline]\tnewline, then tab to next tab stop.
+\\[newline-and-indent]\tnewline, then tab to next tab stop.
 \\[asm-comment]\tsmart placement of assembler comments.
 
 The character used for making comments is set by the variable
@@ -127,26 +122,24 @@ Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 Special commands:
 \\{asm-mode-map}"
   (setq local-abbrev-table asm-mode-abbrev-table)
-  (set (make-local-variable 'font-lock-defaults) '(asm-font-lock-keywords))
-  (set (make-local-variable 'indent-line-function) 'asm-indent-line)
+  (setq-local font-lock-defaults '(asm-font-lock-keywords))
+  (setq-local indent-line-function #'asm-indent-line)
   ;; Stay closer to the old TAB behavior (was tab-to-tab-stop).
-  (set (make-local-variable 'tab-always-indent) nil)
+  (setq-local tab-always-indent nil)
 
   (run-hooks 'asm-mode-set-comment-hook)
-  ;; Make our own local child of asm-mode-map
+  ;; Make our own local child of `asm-mode-map'
   ;; so we can define our own comment character.
   (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
-  (local-set-key (vector asm-comment-char) 'asm-comment)
+  (local-set-key (vector asm-comment-char) #'asm-comment)
   (set-syntax-table (make-syntax-table asm-mode-syntax-table))
   (modify-syntax-entry	asm-comment-char "< b")
 
-  (set (make-local-variable 'comment-start) (string asm-comment-char))
-  (set (make-local-variable 'comment-add) 1)
-  (set (make-local-variable 'comment-start-skip)
-       "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*\\(\\s>\\|\\*+/\\)")
-  (set (make-local-variable 'comment-end) "")
-  (setq fill-prefix "\t"))
+  (setq-local comment-start (string asm-comment-char))
+  (setq-local comment-add 1)
+  (setq-local comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
+  (setq-local comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
+  (setq-local comment-end ""))
 
 (defun asm-indent-line ()
   "Auto-indent the current line."
@@ -172,7 +165,7 @@ Special commands:
    ;; Simple `;' comments go to the comment-column.
    (and (looking-at "\\s<\\(\\S<\\|\\'\\)") comment-column)
    ;; The rest goes at the first tab stop.
-   (or (indent-next-tab-stop 0))))
+   (indent-next-tab-stop 0)))
 
 (defun asm-colon ()
   "Insert a colon; if it follows a label, delete the label's indentation."
@@ -187,14 +180,13 @@ Special commands:
       (delete-horizontal-space)
       (tab-to-tab-stop))))
 
-;; Obsolete since Emacs-22.1.
-(defalias 'asm-newline 'newline-and-indent)
+(define-obsolete-function-alias 'asm-newline #'newline-and-indent "27.1")
 
 (defun asm-comment ()
   "Convert an empty comment to a `larger' kind, or start a new one.
 These are the known comment classes:
 
-   1 -- comment to the right of the code (at the comment-column)
+   1 -- comment to the right of the code (at the `comment-column')
    2 -- comment on its own line, indented like code
    3 -- comment on its own line, beginning at the left-most column.
 

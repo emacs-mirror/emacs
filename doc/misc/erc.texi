@@ -2,15 +2,17 @@
 @c %**start of header
 @setfilename ../../info/erc.info
 @settitle ERC Manual
+@set ERCVER 5.4.1
+@set ERCDIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi
 @syncodeindex fn cp
 @include emacsver.texi
 @c %**end of header
 
 @copying
-This manual is for ERC as distributed with Emacs @value{EMACSVER}.
+This manual is for ERC @value{ERCVER} @value{ERCDIST}.
 
-Copyright @copyright{} 2005--2017 Free Software Foundation, Inc.
+Copyright @copyright{} 2005--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -36,7 +38,7 @@ and modified without restriction.
 @titlepage
 @title ERC manual
 @subtitle a full-featured IRC client
-@subtitle for Emacs and XEmacs
+@subtitle for Emacs
 
 @c The following two commands
 @c start the copyright page.
@@ -70,7 +72,7 @@ and modified without restriction.
 
 Getting Started
 
-* Sample Session::              Example of connecting to the #emacs channel
+* Sample Session::              Example of connecting to the @samp{#emacs} channel
 * Special Features::            Differences from standalone IRC clients
 
 Advanced Usage
@@ -88,7 +90,28 @@ Advanced Usage
 ERC is a powerful, modular, and extensible IRC client for Emacs.
 It is distributed with Emacs since version 22.1.
 
-It comes with the following capabilities enabled by default.
+IRC is short for Internet Relay Chat.  When using IRC, you can
+communicate with other users on the same IRC network.  There are many
+different networks---if you search for ``IRC networks'' in your
+favorite search engine, you will find up-to-date lists of IRC networks
+catering to various interests and topics.
+
+To use IRC, you need an IRC client such as ERC.  Using the client, you
+connect to an IRC server.  Once you've done that, you will have access
+to all available channels on that server's network.  A channel is
+basically a chat room, and what you type in a channel will be shown to
+all other users in that channel.  You can be in several channels at
+the same time---ERC will show each channel in its own buffer.
+
+IRC channel names always begin with a @samp{#} character.  For
+example, the Emacs channel on Libera.Chat is @samp{#emacs}, and the
+ERC channel is @samp{#erc}.  Do not confuse them with the hashtags
+used on many social media platforms.
+
+You can also send private messages to other IRC users on the same
+network, even if they are not in the same channels as you.
+
+ERC comes with the following capabilities enabled by default.
 
 @itemize @bullet
 @item Flood control
@@ -112,15 +135,20 @@ It comes with the following capabilities enabled by default.
 @cindex settings
 
 The command @kbd{M-x erc} will start ERC and prompt for the server to
-connect to.
+connect to.  If you're unsure of which server or network to connect
+to, we suggest starting with ``irc.libera.chat''.  There you will find
+the @samp{#emacs} channels where you can chat with other Emacs users,
+and if you're having trouble with ERC, you can join the @samp{#erc}
+channel and ask for help there.
 
 If you want to place ERC settings in their own file, you can place them
 in @file{~/.emacs.d/.ercrc.el}, creating it if necessary.
 
-If you would rather use the Customize interface to change how ERC works,
-do @kbd{M-x customize-group RET erc RET}.  In particular, ERC comes with
-lots of modules that may be enabled or disabled; to select which ones
-you want, do @kbd{M-x customize-variable RET erc-modules RET}.
+If you would rather use the Customize interface to change how ERC
+works, do @kbd{M-x customize-group @key{RET} erc @key{RET}}.  In
+particular, ERC comes with lots of modules that may be enabled or
+disabled; to select which ones you want, do @kbd{M-x
+customize-variable @key{RET} erc-modules @key{RET}}.
 
 @menu
 * Sample Session::              Example of connecting to the #emacs channel
@@ -130,21 +158,31 @@ you want, do @kbd{M-x customize-variable RET erc-modules RET}.
 @node Sample Session
 @section Sample Session
 
-This is an example ERC session which shows how to connect to the #emacs
-channel on Freenode.  Another IRC channel on Freenode that may be of
-interest is #erc, which is a channel where ERC users and developers hang
-out.
+This is an example ERC session which shows how to connect to the
+@samp{#emacs} channel on Libera.Chat.  Another IRC channel on
+Libera.Chat that may be of interest is @samp{#erc}, which is a channel
+where ERC users and developers hang out.  These channels used to live
+on the Freenode IRC network until June 2021, when they---along with
+the official IRC channels of the GNU Project, the Free Software
+Foundation, and many other free software communities---relocated to
+the Libera.Chat network in the aftermath of changes in governance and
+policies of Freenode in May and June 2021.  GNU and FSF's
+announcements about this are at
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00005.html},
+@uref{https://lists.gnu.org/archive/html/info-gnu/2021-06/msg00007.html},
+and
+@uref{https://lists.gnu.org/archive/html/info-gnu-emacs/2021-06/msg00000.html}.
 
 @itemize @bullet
 
-@item Connect to Freenode
+@item Connect to Libera.Chat
 
-Run @kbd{M-x erc}.  Use ``irc.freenode.net'' as the IRC server, ``6667''
+Run @kbd{M-x erc}.  Use ``irc.libera.chat'' as the IRC server, ``6667''
 as the port, and choose a nickname.
 
 @item Get used to the interface
 
-Switch to the ``irc.freenode.net:6667'' buffer, if you're not already
+Switch to the ``irc.libera.chat:6667'' buffer, if you're not already
 there.  You will see first some messages about checking for ident, and
 then a bunch of other messages that describe the current IRC server.
 
@@ -157,13 +195,14 @@ background.  If the latter, switch to the ``#emacs'' buffer.  You will
 see the channel topic and a list of the people who are currently on the
 channel.
 
-@item Register your nickname with Freenode
+@item Register your nickname with Libera.Chat
 
 If you would like to be able to talk with people privately on the
-Freenode network, you will have to ``register'' your nickname.  To do
-so, switch to the ``irc.freenode.net:6667'' buffer and type ``/msg
-NickServ register <password>'', replacing ``<password>'' with your
-desired password.  It should tell you that the operation was successful.
+Libera.Chat network, you will have to ``register'' your nickname.
+To do so, switch to the ``irc.libera.chat:6667'' buffer and type
+``/msg NickServ register <password>'', replacing ``<password>'' with
+your desired password.  It should tell you that the operation was
+successful.
 
 @item Talk to people in the channel
 
@@ -253,7 +292,7 @@ new command in capital letters.
 If the connection goes away at some point, ERC will try to reconnect
 automatically.  If it fails to reconnect, and you want to try to
 manually reestablish the connection at some later point, switch to an
-ERC  buffer and run the @code{/RECONNECT} command.
+ERC buffer and run the @code{/RECONNECT} command.
 
 @end itemize
 
@@ -269,21 +308,21 @@ This is a summary of keystrokes available in every ERC buffer.
 @item C-a or <home> (@code{erc-bol})
 Go to beginning of line or end of prompt.
 
-@item RET (@code{erc-send-current-line})
+@item @key{RET} (@code{erc-send-current-line})
 Send the current line
 
-@item TAB (@code{erc-complete-word})
+@item @key{TAB} (@code{completion-at-point} or @code{erc-button-next})
 If at prompt, complete the current word.
 Otherwise, move to the next link or button.
 
-@item M-TAB (@code{ispell-complete-word})
+@item M-@key{TAB} (@code{ispell-complete-word})
 Complete the given word, using ispell.
 
 @item C-c C-a (@code{erc-bol})
 Go to beginning of line or end of prompt.
 
-@item C-c C-b (@code{erc-iswitchb})
-Use @code{iswitchb-read-buffer} to prompt for a ERC buffer to switch to.
+@item C-c C-b (@code{erc-switch-to-buffer})
+Use @code{read-buffer} to prompt for a ERC buffer to switch to.
 
 @item C-c C-c (@code{erc-toggle-interpret-controls})
 Toggle interpretation of control sequences in messages.
@@ -297,7 +336,7 @@ Toggle automatic CTCP replies (like VERSION and PING).
 @item C-c C-f (@code{erc-toggle-flood-control})
 Toggle use of flood control on sent messages.
 
-@item C-c TAB (@code{erc-invite-only-mode})
+@item C-c @key{TAB} (@code{erc-invite-only-mode})
 Turn on the invite only mode (+i) for the current channel.
 
 @item C-c C-j (@code{erc-join-channel})
@@ -349,8 +388,9 @@ One way to add functionality to ERC is to customize which of its many
 modules are loaded.
 
 There is a spiffy customize interface, which may be reached by typing
-@kbd{M-x customize-option erc-modules RET}.  Alternatively, set
-@code{erc-modules} manually and then call @code{erc-update-modules}.
+@kbd{M-x customize-option @key{RET} erc-modules @key{RET}}.
+Alternatively, set @code{erc-modules} manually and then call
+@code{erc-update-modules}.
 
 The following is a list of available modules.
 
@@ -505,19 +545,100 @@ Non-interactively, it takes the following keyword arguments.
 @item @var{server}
 @item @var{port}
 @item @var{nick}
+@item @var{user}
 @item @var{password}
 @item @var{full-name}
+@item @var{id}
 @end itemize
 
-That is, if called with the following arguments, @var{server} and
-@var{full-name} will be set to those values, whereas
-@code{erc-compute-port}, @code{erc-compute-nick} and
-@code{erc-compute-full-name} will be invoked for the values of the other
-parameters.
+For example, calling the command like so
+
+@example lisp
+(erc :server "irc.libera.chat" :full-name "J. Random Hacker")
+@end example
+
+@noindent
+sets @var{server} and @var{full-name} directly while leaving the rest
+up to functions like @code{erc-compute-port}.  Note that some
+arguments can't be specified interactively.  @var{id}, in particular,
+is rarely needed (@pxref{Network Identifier}).
+
+@end defun
+
+@noindent
+To connect securely over an encrypted TLS connection, use @kbd{M-x
+erc-tls}.
+
+@defun erc-tls
+Select connection parameters and run ERC over TLS@.
+Non-interactively, it takes the following keyword arguments.
+
+@itemize @bullet
+@item @var{server}
+@item @var{port}
+@item @var{nick}
+@item @var{user}
+@item @var{password}
+@item @var{full-name}
+@item @var{id}
+@item @var{client-certificate}
+@end itemize
+
+That is, if called in the following manner
+
+@example lisp
+(erc-tls :server "irc.libera.chat" :full-name "J. Random Hacker")
+@end example
+
+@noindent
+the command will set @var{server} and @var{full-name} accordingly,
+while helpers, like @code{erc-compute-nick}, will determine other
+parameters, and some, like @code{client-certificate}, will just be
+@code{nil}.
+
+To use a certificate with @code{erc-tls}, specify the optional
+@var{client-certificate} keyword argument, whose value should be as
+described in the documentation of @code{open-network-stream}: if
+non-@code{nil}, it should either be a list where the first element is
+the file name of the private key corresponding to a client certificate
+and the second element is the file name of the client certificate
+itself to use when connecting over TLS, or @code{t}, which means that
+@code{auth-source} will be queried for the private key and the
+certificate.  Authenticating using a TLS client certificate is also
+referred to as ``CertFP'' (Certificate Fingerprint) authentication by
+various IRC networks.
+
+Examples of use:
 
 @example
-(erc :server "irc.freenode.net" :full-name "Harry S Truman")
+(erc-tls :server "irc.libera.chat" :port 6697
+         :client-certificate
+         '("/home/bandali/my-cert.key"
+           "/home/bandali/my-cert.crt"))
 @end example
+
+@example
+(erc-tls :server "irc.libera.chat" :port 6697
+         :client-certificate
+         `(,(expand-file-name "~/cert-libera.key")
+           ,(expand-file-name "~/cert-libera.crt")))
+@end example
+
+@example
+(erc-tls :server "irc.libera.chat" :port 6697
+         :client-certificate t)
+@end example
+
+In the case of @code{:client-certificate t}, you will need to add a
+line like the following to your authinfo file
+(e.g. @file{~/.authinfo.gpg}):
+
+@example
+machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+@end example
+
+@xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
+@file{.authinfo}/@file{.netrc} backend of @code{auth-source}.
 @end defun
 
 @subheading Server
@@ -609,29 +730,139 @@ ERC should automatically attempt to connect with another nickname.
 You can manually set another nickname with the /NICK command.
 @end defopt
 
+@subheading User
+@defun erc-compute-user &optional user
+Determine a suitable value to send as the first argument of the
+opening @samp{USER} IRC command by consulting the following sources:
+
+@itemize
+@item
+@var{user}, the argument passed to this function
+@item
+The option @code{erc-email-userid}, assuming @code{erc-anonymous-login}
+is non-@code{nil}
+@item
+The result of calling the function @code{user-login-name}
+@end itemize
+
+@end defun
+
+@defopt erc-email-userid
+A permanent username value to send for all connections.  It should be
+a string abiding by the rules of the network.
+@end defopt
+
 @subheading Password
 @cindex password
 
 @defopt erc-prompt-for-password
-If non-@code{nil} (the default), @kbd{M-x erc} prompts for a password.
+If non-@code{nil} (the default), @kbd{M-x erc} and @kbd{M-x erc-tls}
+prompt for a server password.  This only affects interactive
+invocations of @code{erc} and @code{erc-tls}.
 @end defopt
 
+@noindent
 If you prefer, you can set this option to @code{nil} and use the
 @code{auth-source} mechanism to store your password.  For instance, if
-you use @file{~/.authinfo} as your auth-source backend, then put
+the option @code{auth-sources} contains @file{~/.authinfo}, put
 something like the following in that file:
 
 @example
-machine irc.example.net login "#fsf" password sEcReT
+machine irc.example.net login mynick password sEcReT
 @end example
 
 @noindent
-ERC also consults @code{auth-source} to find any channel keys required
-for the channels that you wish to autojoin, as specified by the
-variable @code{erc-autojoin-channels-alist}.
+For server passwords, that is, passwords sent for the IRC @samp{PASS}
+command, the @samp{host} field (@w{@code{machine irc.example.net}} in
+the above example)
+corresponds to the @var{server} parameter used by @code{erc} and
+@code{erc-tls}.  Unfortunately, specifying a network, like
+@samp{Libera.Chat}, or a specific network server, like
+@samp{platinum.libera.chat}, won't normally work for looking up a server
+password because such information isn't available during opening
+introductions.  (Actually, ERC @emph{can} find entries with arbitrary
+@samp{host} values for any context, including server passwords, but
+that requires customizing the more advanced options below.)
 
-For more details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
+If ERC can't find a suitable server password, it will just skip the IRC
+@samp{PASS} command altogether, something users may want when using
+CertFP or engaging NickServ via ERC's ``services'' module.  If that is
+what you'd like to do, you can also customize the option
+@code{erc-auth-source-server-function} to @code{nil} to skip
+server-password lookup for all servers.  Note that some networks and
+IRCds may accept account-services authentication via server password
+using the nonstandard @samp{mynick:sEcReT} convention.
 
+As just mentioned, you can also use @code{auth-source} to authenticate
+to account services the traditional way, through a bot called
+@samp{NickServ}.  To tell ERC to do that, set
+@code{erc-use-auth-source-for-nickserv-password} to @code{t}.  For
+these and most other queries, entries featuring custom identifiers and
+networks are matched first, followed by network-specific servers and
+dialed endpoints (typically, the @var{server} argument passed to
+@code{erc}). The following netrc-style entries appear in order of
+precedence:
+
+@example
+machine Libera/cellphone login MyNick password sEcReT
+machine Libera.Chat login MyNick password sEcReT
+machine zirconium.libera.chat login MyNick password sEcReT
+machine irc.libera.chat login MyNick password sEcReT
+@end example
+
+@noindent
+Remember that field labels vary per backend, so @samp{machine} (in
+netrc's case) maps to auth-source's generalized notion of a host,
+hence the @samp{:host} keyword property.  Also, be sure to mind the
+syntax of your chosen backend medium.  For example, always quote
+channel names in a netrc file.
+
+If this all seems overly nuanced or just plain doesn't appeal to you,
+see options @code{erc-auth-source-services-function} and friends, described
+below.  These let you query auth-source your way.  Most users can
+simply ignore the passed-in arguments and get by with something like
+the following:
+
+@lisp
+(defun my-fancy-auth-source-func (&rest _)
+  (let* ((host (read-string "host: " nil nil "default"))
+         (pass (auth-source-pick-first-password :host host)))
+    (if (and pass (string-search "libera" host))
+        (concat "MyNick:" pass)
+      pass)))
+@end lisp
+
+Lastly, ERC also consults @code{auth-source} to find ``keys'' that may
+be required by certain channels you join.  When modifying a
+traditional @code{auth-source} entry for this purpose, put the channel
+name in the @samp{user} field (for example, @samp{login "#fsf"}, in
+netrc's case).  The actual key goes in the @samp{password} (or
+@samp{secret}) field.
+
+@noindent
+For details, @pxref{Top,,auth-source, auth, Emacs auth-source Library}.
+
+@defopt erc-auth-source-server-function
+@end defopt
+@defopt erc-auth-source-services-function
+@end defopt
+@defopt erc-auth-source-join-function
+
+ERC calls these functions with keyword arguments recognized by
+@code{auth-source-search}, namely, those deemed most relevant to the
+current context, if any.  For example, with NickServ queries,
+@code{:user} is the ``desired'' nickname rather than the current one.
+Generalized names, like @code{:user} and @code{:host}, are always used
+over back-end specific ones, like @code{:login} or @code{:machine}.
+ERC expects a string to use as the secret or nil, if the search fails.
+
+@findex erc-auth-source-search
+The default value for all three options is the function
+@code{erc-auth-source-search}.  It tries to merge relevant contextual
+parameters with those provided or discovered from the logical connection
+or the underlying transport.  Some auth-source back ends may not be
+compatible; netrc, plstore, json, and secrets are currently supported.
+@end defopt
 
 @subheading Full name
 
@@ -642,10 +873,14 @@ This tries a number of increasingly more default methods until a
 non-@code{nil} value is found.
 
 @itemize @bullet
-@item @var{full-name} (the argument passed to this function)
-@item The @code{erc-user-full-name} option
-@item The value of the IRCNAME environment variable
-@item The result from the @code{user-full-name} function
+@item
+@var{full-name} (the argument passed to this function)
+@item
+The @code{erc-user-full-name} option
+@item
+The value of the IRCNAME environment variable
+@item
+The result from the @code{user-full-name} function
 @end itemize
 
 @end defun
@@ -655,6 +890,31 @@ User full name.
 
 This can be either a string or a function to call.
 @end defopt
+
+
+@subheading ID
+@anchor{Network Identifier}
+
+ERC uses an abstract designation, called @dfn{network context
+identifier}, for referring to a connection internally.  While normally
+derived from a combination of logical and physical connection
+parameters, an ID can also be explicitly provided via an entry-point
+command (like @code{erc-tls}).  Use this in rare situations where ERC
+would otherwise have trouble discerning between connections.
+
+One such situation might arise when using multiple connections to the
+same network with the same nick but different (nonstandard) @samp{device}
+identifiers, which some bouncers may support.  Another might be when
+mimicking the experience offered by popular standalone clients, which
+normally offer ``named'' persistent configurations with server buffers
+reflecting those names.  Yet another use case might involve
+third-party code needing to identify a connection unequivocally, but in
+a human-friendly way suitable for UI components.
+
+When providing an ID as an entry-point argument, strings and symbols
+make the most sense, but any reasonably printable object is
+acceptable.
+
 
 @node Sample Configuration
 @section Sample Configuration
@@ -689,15 +949,15 @@ stuff, to the current ERC buffer."
     (erc-send-message
      (concat "@{Uptime@} [" uname-output "]"))))
 
-;; This causes ERC to connect to the Freenode network upon hitting
+;; This causes ERC to connect to the Libera.Chat network upon hitting
 ;; C-c e f.  Replace MYNICK with your IRC nick.
 (global-set-key "\C-cef" (lambda () (interactive)
-                           (erc :server "irc.freenode.net" :port "6667"
+                           (erc :server "irc.libera.chat" :port "6667"
                                 :nick "MYNICK")))
 
 ;; This causes ERC to connect to the IRC server on your own machine (if
 ;; you have one) upon hitting C-c e b.  Replace MYNICK with your IRC
-;; nick.  Often, people like to run bitlbee (http://bitlbee.org/) as an
+;; nick.  Often, people like to run bitlbee (https://bitlbee.org/) as an
 ;; AIM/Jabber/MSN to IRC gateway, so that they can use ERC to chat with
 ;; people on those networks.
 (global-set-key "\C-ceb" (lambda () (interactive)
@@ -712,14 +972,10 @@ stuff, to the current ERC buffer."
 
 ;;; Options
 
-;; Join the #emacs and #erc channels whenever connecting to Freenode.
-(setq erc-autojoin-channels-alist '(("freenode.net" "#emacs" "#erc")))
-
-;; Rename server buffers to reflect the current network name instead
-;; of SERVER:PORT (e.g., "freenode" instead of "irc.freenode.net:6667").
-;; This is useful when using a bouncer like ZNC where you have multiple
-;; connections to the same server.
-(setq erc-rename-buffers t)
+;; Join the #emacs and #erc channels whenever connecting to
+;; Libera.Chat.
+(setq erc-autojoin-channels-alist
+      '(("Libera.Chat" "#emacs" "#erc")))
 
 ;; Interpret mIRC-style color commands in IRC chats
 (setq erc-interpret-mirc-color t)
@@ -743,7 +999,7 @@ stuff, to the current ERC buffer."
 
 This section is extremely incomplete.  For now, the easiest way to
 check out all the available options for ERC is to do
-@kbd{M-x customize-group erc RET}.
+@kbd{M-x customize-group @key{RET} erc @key{RET}}.
 
 @defopt erc-hide-list
 If non, @code{nil}, this is a list of IRC message types to hide, e.g.:
@@ -758,7 +1014,7 @@ If non, @code{nil}, this is a list of IRC networks and message types
 to hide, e.g.:
 
 @example
-(setq erc-network-hide-list (("freenode" "JOIN" "PART" "QUIT")
+(setq erc-network-hide-list (("Libera.Chat" "JOIN" "PART" "QUIT")
 ("OFTC" "JOIN" "PART""))
 @end example
 @end defopt
@@ -779,15 +1035,6 @@ lurkers.  The function @code{erc-lurker-p} determines whether a given
 nickname is considered a lurker.
 @end defopt
 
-@defopt erc-rename-buffers
-If non, @code{nil}, this will rename server buffers to reflect the
-current network name instead of IP:PORT
-
-@example
-(setq erc-rename-buffers t)
-@end example
-@end defopt
-
 @node Getting Help and Reporting Bugs
 @chapter Getting Help and Reporting Bugs
 @cindex help, getting
@@ -799,7 +1046,7 @@ or if you have bugs to report, there are several places you can go.
 @itemize @bullet
 
 @item
-@uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
+@uref{https://www.emacswiki.org/emacs/ERC} is the
 emacswiki.org page for ERC@.  Anyone may add tips, hints, etc.@: to it.
 
 @item
@@ -807,12 +1054,12 @@ You can ask questions about using ERC on the Emacs mailing list,
 @uref{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs}.
 
 @item
-You can visit the IRC Freenode channel @samp{#emacs}. Many of the
+You can visit the IRC Libera.Chat channel @samp{#emacs}.  Many of the
 contributors are frequently around and willing to answer your
 questions.
 
 @item
-To report a bug in ERC, use @kbd{M-x report-emacs-bug}.
+To report a bug in ERC, use @kbd{M-x erc-bug}.
 
 @end itemize
 
@@ -836,7 +1083,7 @@ general.
 @c mlang@@delysid.org, alex@@gnu.org
 In June 2001, Mario Lang and Alex Schroeder
 took over development and created a ERC Project at
-@uref{http://sourceforge.net/projects/erc}.
+@uref{https://sourceforge.net/projects/erc}.
 
 In reaction to a mail about the new ERC development effort, Sergey
 Berezin said, ``First of all, I'm glad that my version of ERC is being
@@ -847,7 +1094,7 @@ over the project entirely.''
 So we happily hacked away on ERC, and soon after (September 2001)
 released the next "stable" version, 2.1.
 
-Most of the development of the new ERC happened on #emacs on
+Most of the development of the new ERC happened on @samp{#emacs} on
 irc.openprojects.net.  Over time, many people contributed code, ideas,
 bugfixes, and a lot of alpha/beta/gamma testing.
 

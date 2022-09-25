@@ -1,6 +1,6 @@
-;;; srecode/compile --- Compilation of srecode template files.
+;;; srecode/compile --- Compilation of srecode template files.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -31,16 +31,12 @@
 ;; The output are a series of EIEIO objects which represent the
 ;; templates in a way that could be inserted later.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'cl-generic)
 (require 'eieio-base)
 (require 'srecode/table)
 (require 'srecode/dictionary)
-
-(declare-function srecode-template-inserter-newline-child-p "srecode/insert"
-		  t t)
 
 ;;; Code:
 
@@ -111,7 +107,12 @@ stack is broken."
 	       :type (or null string)
 	       :documentation
 	       "If there is a colon in the inserter's name, it represents
-additional static argument data."))
+additional static argument data.")
+   (key :initform nil :allocation :class
+        :documentation
+        "The character code used to identify inserters of this style.
+All children of this class should specify `key' slot with appropriate
+:initform value."))
   "This represents an item to be inserted via a template macro.
 Plain text strings are not handled via this baseclass."
   :abstract t)
@@ -132,18 +133,6 @@ STATE is the current compilation state."
   "For the template inserter INS, apply information from STATE."
   nil)
 
-(cl-defmethod srecode-inserter-prin-example ((ins (subclass srecode-template-inserter))
-						  escape-start escape-end)
-  "Insert an example using inserter INS.
-Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
-  (princ "   ")
-  (princ escape-start)
-  (when (and (slot-exists-p ins 'key) (oref ins key))
-    (princ (format "%c" (oref ins key))))
-  (princ "VARNAME")
-  (princ escape-end)
-  (terpri)
-  )
 
 
 ;;; Compile State
@@ -386,8 +375,11 @@ It is hard if the previous inserter is a newline object."
   (while (and comp (stringp (car comp)))
     (setq comp (cdr comp)))
   (or (not comp)
-      (progn (require 'srecode/insert)
-	     (srecode-template-inserter-newline-child-p (car comp)))))
+      (srecord-compile-inserter-newline-p (car comp))))
+
+(cl-defgeneric srecord-compile-inserter-newline-p (_obj)
+  "Non-nil if OBJ is a newline inserter object."
+  nil)
 
 (defun srecode-compile-split-code (tag str STATE
 				       &optional end-name)
@@ -398,8 +390,7 @@ ESCAPE_START and ESCAPE_END are regexps that indicate the beginning
 escape character, and end escape character pattern for expandable
 macro names.
 Optional argument END-NAME specifies the name of a token upon which
-parsing should stop.
-If END-NAME is specified, and the input string"
+parsing should stop."
   (let* ((what str)
 	 (end-token nil)
 	 (comp nil)
@@ -513,7 +504,7 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (apply 'srecode-template-inserter-variable name props)
+      (apply #'make-instance 'srecode-template-inserter-variable name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
@@ -524,7 +515,7 @@ to the inserter constructor."
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref-default (car classes) key) key))
 	  ;; Create the new class, and apply state.
-	  (setq new (apply (car classes) name props))
+	  (setq new (apply #'make-instance (car classes) name props))
 	  (srecode-inserter-apply-state new STATE)
 	  )
 	(setq classes (cdr classes)))
@@ -548,8 +539,8 @@ A list of defined variables VARS provides a variable table."
 
     (while lp
 
-      (let* ((objname (oref (car lp) :object-name))
-	     (context (oref (car lp) :context))
+      (let* ((objname (oref (car lp) object-name))
+	     (context (oref (car lp) context))
 	     (globalname (concat context ":" objname))
 	     )
 
@@ -584,7 +575,7 @@ A list of defined variables VARS provides a variable table."
 	   (tmpl (oref table templates)))
       ;; Loop over all the templates, and xref.
       (while tmpl
-	(oset (car tmpl) :table table)
+	(oset (car tmpl) table table)
 	(setq tmpl (cdr tmpl))))
     ))
 
@@ -630,7 +621,7 @@ Argument INDENT specifies the indentation level for the list."
       (princ ") ")
       (cond ((stringp (car code))
 	     (prin1 (car code)))
-	    ((srecode-template-inserter-child-p (car code))
+	    ((cl-typep (car code) 'srecode-template-inserter)
 	     (srecode-dump (car code) indent))
 	    (t
 	     (princ "Unknown Code: ")
@@ -645,9 +636,9 @@ Argument INDENT specifies the indentation level for the list."
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
   (princ (eieio-object-name-string ins))
-  (when (oref ins :secondname)
+  (when (oref ins secondname)
     (princ "\" : \"")
-    (princ (oref ins :secondname)))
+    (princ (oref ins secondname)))
   (princ "\" type \"")
   (let* ((oc (symbol-name (eieio-object-class ins)))
 	 (junk (string-match "srecode-template-inserter-" oc))

@@ -1,6 +1,6 @@
 ;;; esh-arg.el --- argument processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -25,9 +25,12 @@
 ;; hook `eshell-parse-argument-hook'.  For a good example of this, see
 ;; `eshell-parse-drive-letter', defined in eshell-dirs.el.
 
-(provide 'esh-arg)
+;;; Code:
 
-(require 'esh-mode)
+(require 'esh-util)
+
+(eval-when-compile
+  (require 'cl-lib))
 
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the
@@ -36,84 +39,15 @@ yield the values intended."
   :tag "Argument parsing"
   :group 'eshell)
 
-(defcustom eshell-parse-argument-hook
-  (list
-   ;; a term such as #<buffer NAME>, or #<process NAME> is a buffer
-   ;; or process reference
-   'eshell-parse-special-reference
+;;; Internal Variables:
 
-   ;; numbers convert to numbers if they stand alone
-   (function
-    (lambda ()
-      (when (and (not eshell-current-argument)
-		 (not eshell-current-quoted)
-		 (looking-at eshell-number-regexp)
-		 (eshell-arg-delimiter (match-end 0)))
-	(goto-char (match-end 0))
-	(let ((str (match-string 0)))
-	  (if (> (length str) 0)
-	      (add-text-properties 0 (length str) '(number t) str))
-	  str))))
-
-   ;; parse any non-special characters, based on the current context
-   (function
-    (lambda ()
-      (unless eshell-inside-quote-regexp
-	(setq eshell-inside-quote-regexp
-	      (format "[^%s]+"
-		      (apply 'string eshell-special-chars-inside-quoting))))
-      (unless eshell-outside-quote-regexp
-	(setq eshell-outside-quote-regexp
-	      (format "[^%s]+"
-		      (apply 'string eshell-special-chars-outside-quoting))))
-      (when (looking-at (if eshell-current-quoted
-			    eshell-inside-quote-regexp
-			  eshell-outside-quote-regexp))
-	(goto-char (match-end 0))
-	(let ((str (match-string 0)))
-	  (if str
-	      (set-text-properties 0 (length str) nil str))
-	  str))))
-
-   ;; whitespace or a comment is an argument delimiter
-   (function
-    (lambda ()
-      (let (comment-p)
-	(when (or (looking-at "[ \t]+")
-		  (and (not eshell-current-argument)
-		       (looking-at "#\\([^<'].*\\|$\\)")
-		       (setq comment-p t)))
-	  (if comment-p
-	      (add-text-properties (match-beginning 0) (match-end 0)
-				   '(comment t)))
-	  (goto-char (match-end 0))
-	  (eshell-finish-arg)))))
-
-   ;; parse backslash and the character after
-   'eshell-parse-backslash
-
-   ;; text beginning with ' is a literally quoted
-   'eshell-parse-literal-quote
-
-   ;; text beginning with " is interpolably quoted
-   'eshell-parse-double-quote
-
-   ;; argument delimiter
-   'eshell-parse-delimiter)
-  "Define how to process Eshell command line arguments.
-When each function on this hook is called, point will be at the
-current position within the argument list.  The function should either
-return nil, meaning that it did no argument parsing, or it should
-return the result of the parse as a sexp.  It is also responsible for
-moving the point forward to reflect the amount of input text that was
-parsed.
-
-If no function handles the current character at point, it will be
-treated as a literal character."
-  :type 'hook
-  :group 'eshell-arg)
-
-;;; Code:
+(defvar eshell-current-argument nil)
+(defvar eshell-current-modifiers nil)
+(defvar eshell-arg-listified nil)
+(defvar eshell-nested-argument nil)
+(defvar eshell-current-quoted nil)
+(defvar eshell-inside-quote-regexp nil)
+(defvar eshell-outside-quote-regexp nil)
 
 ;;; User Variables:
 
@@ -140,23 +74,107 @@ Without escaping them, they will introduce a change in the argument."
   :type '(repeat character)
   :group 'eshell-arg)
 
-;;; Internal Variables:
+(defsubst eshell-arg-delimiter (&optional pos)
+  "Return non-nil if POS is an argument delimiter.
+If POS is nil, the location of point is checked."
+  (let ((pos (or pos (point))))
+    (or (= pos (point-max))
+	(memq (char-after pos) eshell-delimiter-argument-list))))
 
-(defvar eshell-current-argument nil)
-(defvar eshell-current-modifiers nil)
-(defvar eshell-arg-listified nil)
-(defvar eshell-nested-argument nil)
-(defvar eshell-current-quoted nil)
-(defvar eshell-inside-quote-regexp nil)
-(defvar eshell-outside-quote-regexp nil)
+(defcustom eshell-parse-argument-hook
+  (list
+   ;; a term such as #<buffer NAME>, or #<process NAME> is a buffer
+   ;; or process reference
+   'eshell-parse-special-reference
+
+   ;; numbers convert to numbers if they stand alone
+   (lambda ()
+     (when (and (not eshell-current-argument)
+                (not eshell-current-quoted)
+                (looking-at eshell-number-regexp)
+                (eshell-arg-delimiter (match-end 0)))
+       (goto-char (match-end 0))
+       (let ((str (match-string 0)))
+         (if (> (length str) 0)
+             (add-text-properties 0 (length str) '(number t) str))
+         str)))
+
+   ;; parse any non-special characters, based on the current context
+   (lambda ()
+     (unless eshell-inside-quote-regexp
+       (setq eshell-inside-quote-regexp
+             (format "[^%s]+"
+                     (apply 'string eshell-special-chars-inside-quoting))))
+     (unless eshell-outside-quote-regexp
+       (setq eshell-outside-quote-regexp
+             (format "[^%s]+"
+                     (apply 'string eshell-special-chars-outside-quoting))))
+     (when (looking-at (if eshell-current-quoted
+                           eshell-inside-quote-regexp
+                         eshell-outside-quote-regexp))
+       (goto-char (match-end 0))
+       (let ((str (match-string 0)))
+         (if str
+             (set-text-properties 0 (length str) nil str))
+         str)))
+
+   ;; whitespace or a comment is an argument delimiter
+   (lambda ()
+     (let (comment-p)
+       (when (or (looking-at "[ \t]+")
+                 (and (not eshell-current-argument)
+                      (looking-at "#\\([^<'].*\\|$\\)")
+                      (setq comment-p t)))
+         (if comment-p
+             (add-text-properties (match-beginning 0) (match-end 0)
+                                  '(comment t)))
+         (goto-char (match-end 0))
+         (eshell-finish-arg))))
+
+   ;; parse backslash and the character after
+   'eshell-parse-backslash
+
+   ;; text beginning with ' is a literally quoted
+   'eshell-parse-literal-quote
+
+   ;; text beginning with " is interpolably quoted
+   'eshell-parse-double-quote
+
+   ;; argument delimiter
+   'eshell-parse-delimiter)
+  "Define how to process Eshell command line arguments.
+When each function on this hook is called, point will be at the
+current position within the argument list.  The function should either
+return nil, meaning that it did no argument parsing, or it should
+return the result of the parse as a sexp.  It is also responsible for
+moving the point forward to reflect the amount of input text that was
+parsed.
+
+If the hook determines that it has reached the end of an argument, it
+should call `eshell-finish-arg' to complete processing of the current
+argument and proceed to the next.
+
+If no function handles the current character at point, it will be
+treated as a literal character."
+  :type 'hook
+  :group 'eshell-arg)
+
+(defvar-keymap eshell-arg-mode-map
+  "C-c M-b" #'eshell-insert-buffer-name)
 
 ;;; Functions:
 
-(defun eshell-arg-initialize ()
+(define-minor-mode eshell-arg-mode
+  "Minor mode for the arg eshell module.
+
+\\{eshell-arg-mode-map}"
+  :keymap eshell-arg-mode-map)
+
+(defun eshell-arg-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the argument parsing code."
-  (define-key eshell-command-map [(meta ?b)] 'eshell-insert-buffer-name)
-  (set (make-local-variable 'eshell-inside-quote-regexp) nil)
-  (set (make-local-variable 'eshell-outside-quote-regexp) nil))
+  (eshell-arg-mode)
+  (setq-local eshell-inside-quote-regexp nil)
+  (setq-local eshell-outside-quote-regexp nil))
 
 (defun eshell-insert-buffer-name (buffer-name)
   "Insert BUFFER-NAME into the current buffer at point."
@@ -169,19 +187,63 @@ Without escaping them, they will introduce a change in the argument."
       (add-text-properties 0 (length string) '(escaped t) string))
   string)
 
+(defun eshell-concat (quoted &rest rest)
+  "Concatenate all the arguments in REST and return the result.
+If QUOTED is nil, the resulting value(s) may be converted to
+numbers (see `eshell-concat-1').
+
+If each argument in REST is a non-list value, the result will be
+a single value, as if (mapconcat #\\='eshell-stringify REST) had been
+called, possibly converted to a number.
+
+If there is at least one (non-nil) list argument, the result will
+be a list, with \"adjacent\" elements of consecutive arguments
+concatenated as strings (again, possibly converted to numbers).
+For example, concatenating \"a\", (\"b\"), and (\"c\" \"d\")
+would produce (\"abc\" \"d\")."
+  (let (result)
+    (dolist (i rest result)
+      (when i
+        (cond
+         ((null result)
+          (setq result i))
+         ((listp result)
+          (let (curr-head curr-tail)
+            (if (listp i)
+                (setq curr-head (car i)
+                      curr-tail (cdr i))
+              (setq curr-head i
+                    curr-tail nil))
+            (setq result
+                  (append
+                   (butlast result 1)
+                   (list (eshell-concat-1 quoted (car (last result))
+                                          curr-head))
+                   curr-tail))))
+         ((listp i)
+          (setq result
+                (cons (eshell-concat-1 quoted result (car i))
+                      (cdr i))))
+         (t
+          (setq result (eshell-concat-1 quoted result i))))))))
+
+(defun eshell-concat-1 (quoted first second)
+  "Concatenate FIRST and SECOND.
+If QUOTED is nil and either FIRST or SECOND are numbers, try to
+convert the result to a number as well."
+  (let ((result (concat (eshell-stringify first) (eshell-stringify second))))
+    (if (and (not quoted)
+             (or (numberp first) (numberp second)))
+        (eshell-convert-to-number result)
+      result)))
+
 (defun eshell-resolve-current-argument ()
   "If there are pending modifications to be made, make them now."
   (when eshell-current-argument
     (when eshell-arg-listified
-      (let ((parts eshell-current-argument))
-	(while parts
-	  (unless (stringp (car parts))
-	    (setcar parts
-		    (list 'eshell-to-flat-string (car parts))))
-	  (setq parts (cdr parts)))
-	(setq eshell-current-argument
-	      (list 'eshell-convert
-		    (append (list 'concat) eshell-current-argument))))
+      (setq eshell-current-argument
+            (append (list 'eshell-concat eshell-current-quoted)
+                    eshell-current-argument))
       (setq eshell-arg-listified nil))
     (while eshell-current-modifiers
       (setq eshell-current-argument
@@ -189,18 +251,17 @@ Without escaping them, they will introduce a change in the argument."
 	    eshell-current-modifiers (cdr eshell-current-modifiers))))
   (setq eshell-current-modifiers nil))
 
-(defun eshell-finish-arg (&optional argument)
-  "Finish the current argument being processed."
-  (if argument
-      (setq eshell-current-argument argument))
+(defun eshell-finish-arg (&rest arguments)
+  "Finish the current argument being processed.
+If any ARGUMENTS are specified, they will be added to the final
+argument list in place of the value of the current argument."
+  (when arguments
+    (if (= (length arguments) 1)
+        (setq eshell-current-argument (car arguments))
+      (cl-assert (and (not eshell-arg-listified)
+                      (not eshell-current-modifiers)))
+      (setq eshell-current-argument (cons 'eshell-flatten-args arguments))))
   (throw 'eshell-arg-done t))
-
-(defsubst eshell-arg-delimiter (&optional pos)
-  "Return non-nil if POS is an argument delimiter.
-If POS is nil, the location of point is checked."
-  (let ((pos (or pos (point))))
-    (or (= pos (point-max))
-	(memq (char-after pos) eshell-delimiter-argument-list))))
 
 (defun eshell-quote-argument (string)
   "Return STRING with magic characters quoted.
@@ -239,7 +300,11 @@ Point is left at the end of the arguments."
                      (if (= (point) here)
                          (error "Failed to parse argument `%s'"
                                 (buffer-substring here (point-max))))
-                     (and arg (nconc args (list arg)))))))
+                     (when arg
+                       (nconc args
+                              (if (eq (car-safe arg) 'eshell-flatten-args)
+                                  (cdr arg)
+                                (list arg))))))))
               (throw 'eshell-incomplete (if (listp delim)
                                             delim
                                           (list delim (point) (cdr args)))))
@@ -293,13 +358,7 @@ Point is left at the end of the arguments."
   "Intelligently backslash the character occurring in STRING at INDEX.
 If the character is itself a backslash, it needs no escaping."
   (let ((char (aref string index)))
-    (if (and (eq char ?\\)
-	     ;; In Emacs directory-sep-char is always ?/, so this does nothing.
-	     (not (and (featurep 'xemacs)
-		       (featurep 'mswindows)
-		       (eq directory-sep-char ?\\)
-		       (eq (1- (string-width string))
-			   index))))
+    (if (eq char ?\\)
 	(char-to-string char)
       (if (memq char eshell-special-chars-outside-quoting)
 	  (string ?\\ char)))))
@@ -356,6 +415,30 @@ after are both returned."
 		  (list 'eshell-escape-arg arg))))
 	  (goto-char (1+ end)))))))
 
+(defun eshell-unescape-inner-double-quote (bound)
+  "Unescape escaped characters inside a double-quoted string.
+The string to parse starts at point and ends at BOUND.
+
+If Eshell is currently parsing a quoted string and there are any
+backslash-escaped characters, this will return the unescaped
+string, updating point to BOUND.  Otherwise, this returns nil and
+leaves point where it was."
+  (when eshell-current-quoted
+    (let (strings
+          (start (point))
+          (special-char
+           (rx-to-string
+            `(seq "\\" (group (any ,@eshell-special-chars-inside-quoting))))))
+      (while (re-search-forward special-char bound t)
+        (push (concat (buffer-substring start (match-beginning 0))
+                      (match-string 1))
+              strings)
+        (setq start (match-end 0)))
+      (when strings
+        (push (buffer-substring start bound) strings)
+        (goto-char bound)
+        (apply #'concat (nreverse strings))))))
+
 (defun eshell-parse-special-reference ()
   "Parse a special syntax reference, of the form `#<args>'.
 
@@ -379,7 +462,9 @@ If the form has no `type', the syntax is parsed as if `type' were
         (if (eshell-arg-delimiter (1+ end))
             (prog1
                 (list (if buffer-p 'get-buffer-create 'get-process)
-                      (buffer-substring-no-properties (point) end))
+                      (replace-regexp-in-string
+                       (rx "\\" (group (or "\\" "<" ">"))) "\\1"
+                       (buffer-substring-no-properties (point) end)))
               (goto-char (1+ end)))
           (ignore (goto-char here)))))))
 
@@ -405,4 +490,5 @@ If the form has no `type', the syntax is parsed as if `type' were
 		   (char-to-string (char-after)))))
 	 (goto-char end)))))))
 
+(provide 'esh-arg)
 ;;; esh-arg.el ends here

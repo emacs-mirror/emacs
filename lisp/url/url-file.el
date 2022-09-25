@@ -1,6 +1,6 @@
-;;; url-file.el --- File retrieval code
+;;; url-file.el --- File retrieval code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2022 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -26,20 +26,25 @@
 (require 'mailcap)
 (require 'url-vars)
 (require 'url-parse)
-(require 'url-dired)
 (declare-function mm-disable-multibyte "mm-util" ())
+
+(defvar url-allow-non-local-files nil
+  "If non-nil, allow URL to fetch non-local files.
+By default, this is not allowed, since that would allow rendering
+HTML to fetch files on other systems if given a <img
+src=\"/ssh:host...\"> element, which can be disturbing.")
 
 (defconst url-file-default-port 21 "Default FTP port.")
 (defconst url-file-asynchronous-p t "FTP transfers are asynchronous.")
 (defalias 'url-file-expand-file-name 'url-default-expander)
 
-(defun url-file-find-possibly-compressed-file (fname &rest args)
+(defun url-file-find-possibly-compressed-file (fname &rest _)
   "Find the exact file referenced by `fname'.
 This tries the common compression extensions, because things like
-ange-ftp and efs are not quite smart enough to realize when a server
-can do automatic decompression for them, and won't find 'foo' if
-'foo.gz' exists, even though the FTP server would happily serve it up
-to them."
+ange-ftp is not quite smart enough to realize when a server can
+do automatic decompression for them, and won't find `foo' if
+`foo.gz' exists, even though the FTP server would happily serve
+it up to them."
   (let ((scratch nil)
 	(compressed-extensions '("" ".gz" ".z" ".Z" ".bz2" ".xz"))
 	(found nil))
@@ -63,25 +68,22 @@ to them."
 						(match-beginning 0))
 				   (system-name)))))))
 
-(defun url-file-asynch-callback (x y name buff func args &optional efs)
+(defun url-file-asynch-callback (_x _y name buff func args &optional efs)
   (if (not (featurep 'ange-ftp))
       ;; EFS passes us an extra argument
       (setq name buff
 	    buff func
 	    func args
 	    args efs))
-  (let ((size (nth 7 (file-attributes name))))
-    (with-current-buffer buff
-      (goto-char (point-max))
-      (if (/= -1 size)
-	  (insert (format "Content-length: %d\n" size)))
-      (insert "\n")
-      (insert-file-contents-literally name)
-      (if (not (url-file-host-is-local-p (url-host url-current-object)))
-	  (condition-case ()
-	      (delete-file name)
-	    (error nil)))
-      (apply func args))))
+  (with-current-buffer buff
+    (goto-char (point-max))
+    (insert-file-contents-literally name)
+    (insert (format "Content-length: %d\n\n" (buffer-size)))
+    (if (not (url-file-host-is-local-p (url-host url-current-object)))
+	(condition-case ()
+	    (delete-file name)
+	  (error nil)))
+    (apply func args)))
 
 (declare-function ange-ftp-set-passwd "ange-ftp" (host user passwd))
 (declare-function ange-ftp-copy-file-internal "ange-ftp"
@@ -111,19 +113,16 @@ to them."
 			  (memq system-type '(ms-dos windows-nt)))
 		     (substring file 1))
 		    ;; file: URL with a file:/bar:/foo-like spec.
-		    ((string-match "\\`/[^/]+:/" file)
+		    ((and (not url-allow-non-local-files)
+                          (string-match "\\`/[^/]+:/" file))
 		     (concat "/:" file))
 		    (t
-		     file)))
-	 pos-index)
+		     file))))
 
     (and user pass
 	 (cond
 	  ((featurep 'ange-ftp)
 	   (ange-ftp-set-passwd host user pass))
-	  ((when (featurep 'xemacs)
-             (or (featurep 'efs) (featurep 'efs-auto)
-                 (efs-set-passwd host user pass))))
 	  (t
 	   nil)))
 
@@ -142,17 +141,6 @@ to them."
 	     (not (string-match "/\\'" filename)))
 	(setf (url-filename url) (format "%s/" filename)))
 
-
-    ;; If it is a directory, look for an index file first.
-    (if (and (file-directory-p filename)
-	     url-directory-index-file
-	     (setq pos-index (expand-file-name url-directory-index-file filename))
-	     (file-exists-p pos-index)
-	     (file-readable-p pos-index))
-	(setq filename pos-index))
-
-    ;; Find the (possibly compressed) file
-    (setq filename (url-file-find-possibly-compressed-file filename))
     filename))
 
 ;;;###autoload
@@ -169,7 +157,7 @@ to them."
     ;; not the compressed one.
     ;; FIXME should this regexp not include more extensions; basically
     ;; everything that url-file-find-possibly-compressed-file does?
-    (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
+    (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)\\'" filename)
 				    (substring filename 0 (match-beginning 0))
 				  filename))
     (setq content-type (mailcap-extension-to-mime
@@ -185,9 +173,10 @@ to them."
 
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote
-	(url-find-file-dired filename)
+	(find-file filename)
       (with-current-buffer
 	  (setq buffer (generate-new-buffer " *url-file*"))
+        (require 'mm-util)
 	(mm-disable-multibyte)
 	(setq url-current-object url)
 	(insert "Content-type: " (or content-type "application/octet-stream") "\n")
@@ -210,19 +199,10 @@ to them."
 	    (if (featurep 'ange-ftp)
 		(ange-ftp-copy-file-internal filename (expand-file-name new) t
 					     nil t
-					     (list 'url-file-asynch-callback
+					     (list #'url-file-asynch-callback
 						   new (current-buffer)
 						   callback cbargs)
-					     t)
-              (when (featurep 'xemacs)
-                (autoload 'efs-copy-file-internal "efs")
-                (efs-copy-file-internal filename (efs-ftp-path filename)
-                                        new (efs-ftp-path new)
-                                        t nil 0
-                                        (list 'url-file-asynch-callback
-                                              new (current-buffer)
-                                              callback cbargs)
-                                        0 nil)))))))
+					     t))))))
     buffer))
 
 (defmacro url-file-create-wrapper (method args)

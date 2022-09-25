@@ -1,6 +1,6 @@
-;;; pcvs-parse.el --- the CVS output parser
+;;; pcvs-parse.el --- the CVS output parser  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'pcvs-util)
 (require 'pcvs-info)
 
@@ -72,12 +73,12 @@ by `$'."
   '("status" "add" "commit" "update" "remove" "checkout" "ci")
   "List of CVS commands whose output is understood by the parser.")
 
-(defun cvs-parse-buffer (parse-spec dont-change-disc &optional subdir)
+(defun cvs-parse-buffer (parse-spec dcd &optional subdir)
   "Parse current buffer according to PARSE-SPEC.
 PARSE-SPEC is a function of no argument advancing the point and returning
   either a fileinfo or t (if the matched text should be ignored) or
   nil if it didn't match anything.
-DONT-CHANGE-DISC just indicates whether the command was changing the disc
+DCD just indicates whether the command was changing the disc
   or not (useful to tell the difference between `cvs-examine' and `cvs-update'
   output.
 The path names should be interpreted as relative to SUBDIR (defaults
@@ -85,6 +86,7 @@ The path names should be interpreted as relative to SUBDIR (defaults
 Return a list of collected entries, or t if an error occurred."
   (goto-char (point-min))
   (let ((fileinfos ())
+	(dont-change-disc dcd)
 	(cvs-current-dir "")
 	(case-fold-search nil)
 	(cvs-current-subdir (or subdir "")))
@@ -133,12 +135,12 @@ Match RE and if successful, execute MATCHES."
 
 (defmacro cvs-or (&rest alts)
   "Try each one of the ALTS alternatives until one matches."
+  (declare (debug t))
   `(let ((-cvs-parse-point (point)))
      ,(cons 'or
 	    (mapcar (lambda (es)
 		      `(or ,es (ignore (goto-char -cvs-parse-point))))
 		    alts))))
-(def-edebug-spec cvs-or t)
 
 ;; This is how parser tables should be executed
 (defun cvs-parse-run-table (parse-spec)
@@ -184,17 +186,20 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
     (let ((type (if (consp type) (car type) type))
 	  (subtype (if (consp type) (cdr type))))
       (when dir (setq cvs-current-dir dir))
-      (apply 'cvs-create-fileinfo type
+      (apply #'cvs-create-fileinfo type
 	     (concat cvs-current-subdir (or dir cvs-current-dir))
 	     file (cvs-parse-msg) :subtype subtype keys))))
 
 ;;;; CVS Process Parser Tables:
-;;;;
-;;;; The table for status and update could actually be merged since they
-;;;; don't conflict.  But they don't overlap much either.
+;;
+;; The table for status and update could actually be merged since they
+;; don't conflict.  But they don't overlap much either.
 
 (defun cvs-parse-table ()
   "Table of message objects for `cvs-parse-process'."
+  (with-suppressed-warnings ((lexical c file dir path base-rev subtype))
+    (defvar c) (defvar file) (defvar dir) (defvar path) (defvar base-rev)
+    (defvar subtype))
   (let (c file dir path base-rev subtype)
     (cvs-or
 
@@ -400,6 +405,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 
 (defun cvs-parse-merge ()
+  (with-suppressed-warnings ((lexical path base-rev head-rev type))
+    (defvar path) (defvar base-rev) (defvar head-rev) (defvar type))
   (let (path base-rev head-rev type)
     ;; A merge (maybe with a conflict).
     (and
@@ -444,6 +451,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			    :merge (cons base-rev head-rev))))))
 
 (defun cvs-parse-status ()
+  (with-suppressed-warnings ((lexical nofile path base-rev head-rev type))
+    (defvar nofile) (defvar path) (defvar base-rev) (defvar head-rev)
+    (defvar type))
   (let (nofile path base-rev head-rev type)
     (and
      (cvs-match
@@ -471,7 +481,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
       ;; Let's not get all worked up if the format changes a bit
       (cvs-match " *Working revision:.*$"))
      (cvs-or
-      (cvs-match " *RCS Version:[ \t]*\\([0-9.]+\\)[ \t]*.*$" (head-rev 1))
+      (cvs-match " *RCS Version:[ \t]*\\([0-9.]+\\).*$" (head-rev 1))
       (cvs-match " *Repository revision:[ \t]*\\([0-9.]+\\)[ \t]*\\(.*\\)$"
 		 (head-rev 1))
       (cvs-match " *Repository revision:.*"))
@@ -492,6 +502,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			  :head-rev head-rev))))
 
 (defun cvs-parse-commit ()
+  (with-suppressed-warnings ((lexical path file base-rev subtype))
+    (defvar path) (defvar file) (defvar base-rev) (defvar subtype))
   (let (path file base-rev subtype)
     (cvs-or
 

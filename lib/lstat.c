@@ -1,18 +1,18 @@
 /* Work around a bug of lstat on some systems
 
-   Copyright (C) 1997-2006, 2008-2017 Free Software Foundation, Inc.
+   Copyright (C) 1997-2006, 2008-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* written by Jim Meyering */
@@ -42,10 +42,16 @@ orig_lstat (const char *filename, struct stat *buf)
 }
 
 /* Specification.  */
+# ifdef __osf__
 /* Write "sys/stat.h" here, not <sys/stat.h>, otherwise OSF/1 5.1 DTK cc
    eliminates this include because of the preliminary #include <sys/stat.h>
    above.  */
-# include "sys/stat.h"
+#  include "sys/stat.h"
+# else
+#  include <sys/stat.h>
+# endif
+
+# include "stat-time.h"
 
 # include <string.h>
 # include <errno.h>
@@ -66,32 +72,33 @@ orig_lstat (const char *filename, struct stat *buf)
 int
 rpl_lstat (const char *file, struct stat *sbuf)
 {
-  size_t len;
-  int lstat_result = orig_lstat (file, sbuf);
-
-  if (lstat_result != 0)
-    return lstat_result;
+  int result = orig_lstat (file, sbuf);
 
   /* This replacement file can blindly check against '/' rather than
      using the ISSLASH macro, because all platforms with '\\' either
      lack symlinks (mingw) or have working lstat (cygwin) and thus do
      not compile this file.  0 len should have already been filtered
      out above, with a failure return of ENOENT.  */
-  len = strlen (file);
-  if (file[len - 1] != '/' || S_ISDIR (sbuf->st_mode))
-    return 0;
-
-  /* At this point, a trailing slash is only permitted on
-     symlink-to-dir; but it should have found information on the
-     directory, not the symlink.  Call stat() to get info about the
-     link's referent.  Our replacement stat guarantees valid results,
-     even if the symlink is not pointing to a directory.  */
-  if (!S_ISLNK (sbuf->st_mode))
+  if (result == 0)
     {
-      errno = ENOTDIR;
-      return -1;
+      if (S_ISDIR (sbuf->st_mode) || file[strlen (file) - 1] != '/')
+        result = stat_time_normalize (result, sbuf);
+      else
+        {
+          /* At this point, a trailing slash is permitted only on
+             symlink-to-dir; but it should have found information on the
+             directory, not the symlink.  Call 'stat' to get info about the
+             link's referent.  Our replacement stat guarantees valid results,
+             even if the symlink is not pointing to a directory.  */
+          if (!S_ISLNK (sbuf->st_mode))
+            {
+              errno = ENOTDIR;
+              return -1;
+            }
+          result = stat (file, sbuf);
+        }
     }
-  return stat (file, sbuf);
+  return result;
 }
 
 #endif /* HAVE_LSTAT */

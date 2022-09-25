@@ -1,6 +1,6 @@
-;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
+;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1997, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -69,9 +69,6 @@
 ;; mouse-2 scrolling.  The package mouse-scroll.el by Tom Wurgler
 ;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
 ;; doesn't pass clicks through.
-;;
-;; These functions have been tested in emacs version 19.30,
-;; and this package has run in the past on 19.25-19.29.
 ;;
 ;; Originally mouse-drag was part of a larger package.
 ;; As of 11 July 96 the scrolling functions were split out
@@ -150,7 +147,7 @@ Keep the cursor on the screen as needed."
      (= (cdr start-col-row) (cdr end-col-row)))))
 
 (defvar mouse-drag-electric-col-scrolling t
-  "If non-nil, mouse-drag on a long line enables truncate-lines.")
+  "If non-nil, mouse-drag on a long line enables `truncate-lines'.")
 
 (defun mouse-drag-should-do-col-scrolling ()
   "Determine if it's wise to enable col-scrolling for the current window.
@@ -225,7 +222,7 @@ To test this function, evaluate:
       ;; Don't change the mouse pointer shape while we drag.
       (setq track-mouse 'dragging)
       (while (progn
-	       (setq event (read-event)
+	       (setq event (read--potential-mouse-event)
 		     end (event-end event)
 		     row (cdr (posn-col-row end))
 		     col (car (posn-col-row end)))
@@ -285,8 +282,10 @@ To test this function, evaluate:
     (setq window-last-row (- (window-height) 2)
 	  window-last-col (- (window-width) 2))
     (track-mouse
+      ;; Set 'track-mouse' to something neither nil nor t (Bug#51794).
+      (setq track-mouse 'drag-dragging)
       (while (progn
-	       (setq event (read-event)
+	       (setq event (read--potential-mouse-event)
 		     end (event-end event)
 		     row (cdr (posn-col-row end))
 		     col (car (posn-col-row end)))

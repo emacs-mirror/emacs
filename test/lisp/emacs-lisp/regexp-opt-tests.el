@@ -1,6 +1,6 @@
-;;; regexp-tests.el --- Test suite for regular expression handling.
+;;; regexp-opt-tests.el --- Tests for regexp-opt.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:       internal
@@ -25,9 +25,45 @@
 
 (require 'regexp-opt)
 
-(ert-deftest regexp-test-regexp-opt ()
-  "Test the `compilation-error-regexp-alist' regexps.
-The test data is in `compile-tests--test-regexps-data'."
-  (should (string-match (regexp-opt-charset '(?^)) "a^b")))
+(defun regexp-opt-test--permutations (l)
+  "All permutations of L, assuming no duplicates."
+  (if (cdr l)
+      (mapcan (lambda (x)
+                (mapcar (lambda (p) (cons x p))
+                        (regexp-opt-test--permutations (remove x l))))
+              l)
+    (list l)))
 
-;;; regexp-tests.el ends here.
+(ert-deftest regexp-opt-longest-match ()
+  "Check that the regexp always matches as much as possible."
+  (let ((s "abcd"))
+    (dolist (perm (regexp-opt-test--permutations '("a" "ab" "ac" "abc")))
+      (should (equal (and (string-match (regexp-opt perm) s)
+                          (match-string 0 s))
+                     "abc")))))
+
+(ert-deftest regexp-opt-charset ()
+  (should (equal (regexp-opt-charset '(?a ?b ?a)) "[ab]"))
+  (should (equal (regexp-opt-charset '(?D ?d ?B ?a ?b ?C ?7 ?a ?c ?A))
+                 "[7A-Da-d]"))
+  (should (equal (regexp-opt-charset '(?a)) "a"))
+
+  (should (equal (regexp-opt-charset '(?^)) "\\^"))
+  (should (equal (regexp-opt-charset '(?-)) "-"))
+  (should (equal (regexp-opt-charset '(?\])) "]"))
+  (should (equal (regexp-opt-charset '(?^ ?\])) "[]^]"))
+  (should (equal (regexp-opt-charset '(?^ ?-)) "[-^]"))
+  (should (equal (regexp-opt-charset '(?- ?\])) "[]-]"))
+  (should (equal (regexp-opt-charset '(?- ?\] ?^)) "[]^-]"))
+
+  (should (equal (regexp-opt-charset '(?^ ?a)) "[a^]"))
+  (should (equal (regexp-opt-charset '(?- ?a)) "[a-]"))
+  (should (equal (regexp-opt-charset '(?\] ?a)) "[]a]"))
+  (should (equal (regexp-opt-charset '(?^ ?\] ?a)) "[]a^]"))
+  (should (equal (regexp-opt-charset '(?^ ?- ?a)) "[a^-]"))
+  (should (equal (regexp-opt-charset '(?- ?\] ?a)) "[]a-]"))
+  (should (equal (regexp-opt-charset '(?- ?\] ?^ ?a)) "[]a^-]"))
+
+  (should (equal (regexp-opt-charset '()) regexp-unmatchable)))
+
+;;; regexp-opt-tests.el ends here

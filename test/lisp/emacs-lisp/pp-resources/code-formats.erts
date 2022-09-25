@@ -1,0 +1,142 @@
+Code:
+  (lambda ()
+    (emacs-lisp-mode)
+    (let ((code (read (current-buffer))))
+      (erase-buffer)
+      (pp-emacs-lisp-code code)
+      (untabify (point-min) (point-max))))
+
+Name: code-formats1
+
+=-=
+(defun foo (bar)
+  "Yes."
+  (let ((a 1)
+        (b 2))
+    (zot 1 2 (funcall bar 2))))
+=-=-=
+
+
+Name: code-formats2
+
+=-=
+(defun pp-emacs-lisp-code (sexp)
+  "Insert SEXP into the current buffer, formatted as Emacs Lisp code."
+  (require 'edebug)
+  (let ((start (point))
+        (standard-output (current-buffer)))
+    (pp--insert-lisp sexp)
+    (insert "\n")
+    (goto-char start)
+    (indent-sexp)))
+=-=-=
+
+
+Name: code-formats3
+
+=-=
+(defun foo (bar)
+  "Yes."
+  (let ((a 1)
+        (b 2))
+    (zot-zot-zot-zot-zot-zot 1 2 (funcall
+                                  bar-bar-bar-bar-bar-bar-bar-bar-bar-bar
+                                  2))))
+=-=-=
+
+
+Name: code-formats4
+
+=-=
+(defun foo (bar)
+  "Yes."
+  (let ((a 1)
+        (b 2)
+        foo bar zotfoo bar zotfoo bar zotfoo bar zotfoo bar zotfoo bar zotfoo
+        bar zot)
+    (zot 1 2 (funcall bar 2))))
+=-=-=
+
+
+Name: code-formats5
+
+=-=
+(defgroup pp ()
+  "Pretty printer for Emacs Lisp."
+  :prefix "pp-"
+  :group 'lisp)
+=-=-=
+
+Name: code-formats6
+
+=-=
+(defcustom pp-escape-newlines t
+  "Value of `print-escape-newlines' used by pp-* functions."
+  :type 'boolean
+  :group 'pp)
+=-=-=
+
+Name: code-formats7
+
+=-=
+(defun pp (object &optional stream)
+  (princ (pp-to-string object) (or stream standard-output)))
+=-=-=
+
+
+Name: code-formats8
+
+=-=
+(defun pp-eval-expression (expression)
+  "Evaluate EXPRESSION and pretty-print its value.
+Also add the value to the front of the list in the variable `values'."
+  (interactive (list (read--expression "Eval: ")))
+  (message "Evaluating...")
+  (let ((result (eval expression lexical-binding)))
+    (values--store-value result)
+    (pp-display-expression result "*Pp Eval Output*")))
+=-=-=
+
+Name: code-formats9
+
+=-=
+(lambda ()
+  (interactive)
+  1)
+=-=-=
+
+
+Name: code-formats10
+
+=-=
+(funcall foo (concat "zot" (if (length> site 0) site
+                             "bar")
+                     "+"
+                     (string-replace " " "+" query)))
+=-=-=
+
+
+Name: code-formats11
+
+=-=
+(lambda ()
+  [(foo bar) (foo bar)])
+=-=-=
+
+Name: code-formats12
+
+=-=
+(global-set-key (kbd "s-x") #'kill-region)
+=-=-=
+
+Name: code-formats13
+
+=-=
+'("a")
+=-=-=
+
+Name: code-formats14
+
+=-=
+'("a" . "b")
+=-=-=

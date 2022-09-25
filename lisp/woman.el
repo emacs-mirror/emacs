@@ -1,12 +1,12 @@
-;;; woman.el --- browse UN*X manual pages `wo (without) man'
+;;; woman.el --- browse UN*X manual pages `wo (without) man'  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
-;; Version: 0.551
+;; Old-Version: 0.551
 ;; URL: http://centaur.maths.qmul.ac.uk/Emacs/WoMan/
 
 ;; This file is part of GNU Emacs.
@@ -69,13 +69,7 @@
 ;; Recommended use
 ;; ===============
 
-;; Put this in your .emacs:
-;;   (autoload 'woman "woman"
-;;             "Decode and browse a UN*X man page." t)
-;;   (autoload 'woman-find-file "woman"
-;;             "Find, decode and browse a specific UN*X man-page file." t)
-
-;; Then either (1 -- *RECOMMENDED*): If the `MANPATH' environment
+;; Either (1 -- *RECOMMENDED*): If the `MANPATH' environment
 ;; variable is set then WoMan will use it; otherwise you may need to
 ;; reset the Lisp variable `woman-manpath', and you may also want to
 ;; set the Lisp variable `woman-path'.  Please see the online
@@ -90,9 +84,7 @@
 ;; for temporary files outside the standard UN*X manual directory
 ;; structure.
 
-;; Or (3): Put the next two sexpr's in your .emacs:
-;; (autoload 'woman-dired-find-file "woman"
-;;   "In dired, run the WoMan man-page browser on this file." t)
+;; Or (3): Put this in your init file:
 ;; (add-hook 'dired-mode-hook
 ;;          (lambda ()
 ;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
@@ -138,15 +130,9 @@
 ;; Customization, Hooks and Imenu
 ;; ==============================
 
-;; WoMan supports the GNU Emacs 20+ customization facility, and puts
-;; a customization group called `WoMan' in the `Help' group under the
-;; top-level `Emacs' group.  In order to be able to customize WoMan
-;; without first loading it, add the following sexp to your .emacs:
-
-;;  (defgroup woman nil
-;;     "Browse UNIX manual pages `wo (without) man'."
-;;     :tag "WoMan" :group 'help :load "woman")
-
+;; WoMan supports the GNU Emacs customization facility, and puts
+;; a customization group called `woman' in the `help' group under the
+;; top-level `emacs' group.
 
 ;; WoMan currently runs two hooks: `woman-pre-format-hook' immediately
 ;; before formatting a buffer and `woman-post-format-hook' immediately
@@ -400,10 +386,9 @@
 
 ;;; Code:
 
-(defvar woman-version "0.551 (beta)" "WoMan version information.")
+(eval-when-compile (require 'cl-lib))
 
 (require 'man)
-(require 'button)
 (define-button-type 'WoMan-xref-man-page
   :supertype 'Man-abstract-xref-man-page
   'func (lambda (arg)
@@ -430,14 +415,14 @@ As a special case, if PATHS is nil then replace it by calling
   ;; an empty substring of MANPATH denotes the default list.
   (if (memq system-type '(windows-nt ms-dos))
       (cond ((null paths)
-	     (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf)))
-	    ((string-match-p ";" paths)
+	     (mapcar #'woman-Cyg-to-Win (woman-parse-man.conf)))
+	    ((string-search ";" paths)
 	     ;; Assume DOS-style path-list...
 	     (mapcan			; splice list into list
 	      (lambda (x)
 		(if x
 		    (list x)
-		  (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf))))
+		  (mapcar #'woman-Cyg-to-Win (woman-parse-man.conf))))
 	      (parse-colon-path paths)))
 	    ((string-match-p "\\`[a-zA-Z]:" paths)
 	     ;; Assume single DOS-style path...
@@ -446,7 +431,7 @@ As a special case, if PATHS is nil then replace it by calling
 	     ;; Assume UNIX/Cygwin-style path-list...
 	     (mapcan			; splice list into list
 	      (lambda (x)
-		(mapcar 'woman-Cyg-to-Win
+		(mapcar #'woman-Cyg-to-Win
 			(if x (list x) (woman-parse-man.conf))))
 	      (let ((path-separator ":"))
 		(parse-colon-path paths)))))
@@ -521,7 +506,7 @@ Change only via `Customization' or the function `add-hook'."
 (defcustom woman-man.conf-path
   (let ((path '("/usr/lib" "/etc")))
     (cond ((eq system-type 'windows-nt)
-	   (mapcar 'woman-Cyg-to-Win path))
+	   (mapcar #'woman-Cyg-to-Win path))
 	  ((eq system-type 'darwin)
 	   (cons "/usr/share/misc" path))
 	  (t path)))
@@ -674,7 +659,7 @@ These normally have names of the form `man?'.  Its default value is
 \"[Mm][Aa][Nn]\", which is case-insensitive mainly for the benefit of
 Microsoft platforms.  Its purpose is to avoid `cat?', `.', `..', etc."
   ;; Based on a suggestion by Wei-Xue Shi.
-  :type 'string
+  :type 'regexp
   :group 'woman-interface)
 
 (defcustom woman-path
@@ -753,7 +738,7 @@ Default is t."
 An alist with elements of the form (MENU-TITLE REGEXP INDEX) --
 see the documentation for `imenu-generic-expression'."
   :type '(alist :key-type (choice :tag "Title" (const nil) string)
-                :value-type (group (choice (string :tag "Regexp")
+                :value-type (group (choice (regexp :tag "Regexp")
                                            function)
                                    integer))
   :group 'woman-interface)
@@ -796,7 +781,7 @@ Built automatically from the customizable user options
 (defvar woman-uncompressed-file-regexp)	; for the compiler
 (defvar woman-file-compression-regexp)	; for the compiler
 
-(defun set-woman-file-regexp (symbol value)
+(defun woman-set-file-regexp (symbol value)
   "Bind SYMBOL to VALUE and set `woman-file-regexp' as per user customizations.
 Used as :set cookie by Customize when customizing the user options
 `woman-uncompressed-file-regexp' and `woman-file-compression-regexp'."
@@ -821,7 +806,7 @@ in the ncurses package include `toe.1m', `form.3x', etc.
 Note: an optional compression regexp will be appended, so this regexp
 MUST NOT end with any kind of string terminator such as $ or \\\\='."
   :type 'regexp
-  :set 'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-file-compression-regexp
@@ -837,7 +822,7 @@ Should begin with \\. and end with \\\\=' and MUST NOT be optional."
   ;; not loaded by default!
   :version "24.1"                       ; added xz
   :type 'regexp
-  :set 'set-woman-file-regexp
+  :set #'woman-set-file-regexp
   :group 'woman-interface)
 
 (defcustom woman-use-own-frame nil
@@ -854,10 +839,12 @@ Only useful when run on a graphic display such as X or MS-Windows."
   :tag "WoMan Formatting"
   :group 'woman)
 
-(defcustom woman-fill-column 65
-  "Right margin for formatted text -- default is 65."
-  :type 'integer
-  :group 'woman-formatting)
+;; This could probably be 80 to match 'Man-width'.
+(defcustom woman-fill-column 70
+  "Right margin for formatted text -- default is 70."
+  :type 'natnum
+  :group 'woman-formatting
+  :version "29.1")
 
 (defcustom woman-fill-frame nil
   ;; Based loosely on a suggestion by Theodore Jump:
@@ -913,9 +900,9 @@ Troff emulation is experimental and largely untested.
   :group 'faces)
 
 (defcustom woman-fontify
-  (or (and (fboundp 'display-color-p) (display-color-p))
-      (and (fboundp 'display-graphic-p) (display-graphic-p))
-      (x-display-color-p))
+  (or (display-color-p)
+      (display-graphic-p)
+      (display-color-p))
   "If non-nil then WoMan assumes that face support is available.
 It defaults to a non-nil value if the display supports either colors
 or different fonts."
@@ -1078,9 +1065,8 @@ Set by `.ns' request; reset by any output or `.rs' request")
   ;; Could end with "\\( +\\|$\\)" instead of " *"
   "Regexp to match a ?roff request plus trailing white space.")
 
-(defvar woman-imenu-done nil
+(defvar-local woman-imenu-done nil
   "Buffer-local: set to true if function `woman-imenu' has been called.")
-(make-variable-buffer-local 'woman-imenu-done)
 
 ;; From imenu.el -- needed when reformatting a file in its old buffer.
 ;; The latest buffer index used to update the menu bar menu.
@@ -1165,7 +1151,7 @@ updated (e.g. to re-interpret the current directory).
 Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
-  ;; The following test is for non-interactive calls via gnudoit etc.
+  ;; The following test is for non-interactive calls via emacsclient, etc.
   (if (or (not (stringp topic)) (string-match-p "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
@@ -1199,7 +1185,7 @@ Called both to generate and to check the cache!"
 	      (setq dir (and (member (car dir) path) (cdr dir))))
 	    (when dir
               (cl-pushnew (substitute-in-file-name dir) lst :test #'equal))))
-	(mapcar 'substitute-in-file-name woman-path)))
+	(mapcar #'substitute-in-file-name woman-path)))
 
 (defun woman-read-directory-cache ()
   "Load the directory and topic cache.
@@ -1276,14 +1262,11 @@ cache to be re-read."
 				  (test-completion
 				   word-at-point woman-topic-all-completions))
 			 word-at-point)))
-		(completing-read
-		 (if default
-		     (format "Manual entry (default %s): " default)
-		   "Manual entry: ")
-		 woman-topic-all-completions nil 1
-		 nil
-		 'woman-topic-history
-		 default))))
+		(completing-read (format-prompt "Manual entry" default)
+		                 woman-topic-all-completions nil 1
+		                 nil
+		                 'woman-topic-history
+		                 default))))
     ;; Note that completing-read always returns a string.
     (unless (= (length topic) 0)
       (cond
@@ -1291,9 +1274,11 @@ cache to be re-read."
        ;; Complete topic more carefully, i.e. use the completion
        ;; rather than the string entered by the user:
        ((setq files (all-completions topic woman-topic-all-completions))
-	(while (/= (length topic) (length (car files)))
+	(while (and files
+                    (/= (length topic) (length (car files))))
 	  (setq files (cdr files)))
-	(setq files (woman-file-name-all-completions (car files)))))
+        (when files
+	  (setq files (woman-file-name-all-completions (car files))))))
       (cond
        ((null files) nil)		; no file found for topic.
        ((null (cdr files)) (car (car files))) ; only 1 file for topic.
@@ -1517,14 +1502,14 @@ Also make each path-info component into a list.
 	(if (woman-not-member dir path)	; use each directory only once!
 	    (setq files (nconc files
 			       (directory-files dir t topic-regexp))))))
-    (mapcar 'list files)))
+    (mapcar #'list files)))
 
 
 ;;; dired support
 
 (defun woman-dired-define-key (key)
   "Bind the argument KEY to the command `woman-dired-find-file'."
-  (define-key dired-mode-map key 'woman-dired-find-file))
+  (define-key dired-mode-map key #'woman-dired-find-file))
 
 (defsubst woman-dired-define-key-maybe (key)
   "If KEY is undefined in Dired, bind it to command `woman-dired-find-file'."
@@ -1536,7 +1521,7 @@ Also make each path-info component into a list.
   "Define dired keys to run WoMan according to `woman-dired-keys'."
   (if woman-dired-keys
       (if (listp woman-dired-keys)
-	  (mapc 'woman-dired-define-key woman-dired-keys)
+	  (mapc #'woman-dired-define-key woman-dired-keys)
 	(woman-dired-define-key-maybe "w")
 	(woman-dired-define-key-maybe "W")))
   (define-key-after (lookup-key dired-mode-map [menu-bar immediate])
@@ -1544,7 +1529,7 @@ Also make each path-info component into a list.
 
 (if (featurep 'dired)
     (woman-dired-define-keys)
-  (add-hook 'dired-mode-hook 'woman-dired-define-keys))
+  (add-hook 'dired-mode-hook #'woman-dired-define-keys))
 
 (declare-function dired-get-filename "dired"
                   (&optional localp no-error-if-not-filep))
@@ -1619,7 +1604,7 @@ decompress the file if appropriate.  See the documentation for the
 	      (setq woman-buffer-alist
 		    (cons (cons file-name bufname) woman-buffer-alist)
 		    woman-buffer-number 0)))))
-  (Man-build-section-alist)
+  (Man-build-section-list)
   (Man-build-references-alist)
   (goto-char (point-min)))
 
@@ -1714,14 +1699,14 @@ Do not call directly!"
 
   ;; Interpret overprinting to indicate bold face:
   (goto-char (point-min))
-  (while (re-search-forward "\\(.\\)\\(\\(+\\1\\)+\\)" nil t)
+  (while (re-search-forward "\\(.\\)\\(\\(\^H+\\1\\)+\\)" nil t)
     (woman-delete-match 2)
     (woman-set-face (1- (point)) (point) 'woman-bold))
 
   ;; Interpret underlining to indicate italic face:
   ;; (Must be AFTER emboldening to interpret bold _ correctly!)
   (goto-char (point-min))
-  (while (search-forward "_" nil t)
+  (while (search-forward "_\^H" nil t)
     (delete-char -2)
     (woman-set-face (point) (1+ (point)) 'woman-italic))
 
@@ -1759,8 +1744,8 @@ Leave point at end of new text.  Return length of inserted text."
 	   (condition-case ()
 	       (insert-file-contents filename nil)
 	     (file-error
-	      ;; Run find-file-not-found-hooks until one returns non-nil.
-	      ;; (run-hook-with-args-until-success 'find-file-not-found-hooks)
+	      ;; Run find-file-not-found-functions until one returns non-nil.
+	      ;; (run-hook-with-args-until-success 'find-file-not-found-functions)
 	      (insert "\n***** File " filename " not found! *****\n\n")))))))
 
 
@@ -1770,15 +1755,15 @@ Leave point at end of new text.  Return length of inserted text."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map Man-mode-map)
 
-    (define-key map "R" 'woman-reformat-last-file)
-    (define-key map "w" 'woman)
-    (define-key map "\en" 'WoMan-next-manpage)
-    (define-key map "\ep" 'WoMan-previous-manpage)
-    (define-key map [M-mouse-2] 'woman-follow-word)
+    (define-key map "R" #'woman-reformat-last-file)
+    (define-key map "w" #'woman)
+    (define-key map "\en" #'WoMan-next-manpage)
+    (define-key map "\ep" #'WoMan-previous-manpage)
+    (define-key map [M-mouse-2] #'woman-follow-word)
 
     ;; We don't need to call `man' when we are in `woman-mode'.
-    (define-key map [remap man] 'woman)
-    (define-key map [remap man-follow] 'woman-follow)
+    (define-key map [remap man] #'woman)
+    (define-key map [remap man-follow] #'woman-follow)
     map)
   "Keymap for `woman-mode'.")
 
@@ -1805,7 +1790,7 @@ Argument EVENT is the invoking mouse event."
   ;; That comment was moved after the symbol `woman-menu' to make
   ;; find-function-search-for-symbol work. -- rost
  woman-mode-map
- "WoMan Menu"
+ "WoMan Menu."
  `("WoMan"
    ["WoMan..." woman t]			; [NAME CALLBACK ENABLE]
    "--"
@@ -1828,9 +1813,7 @@ Argument EVENT is the invoking mouse event."
    "--"
    ["Describe (Wo)Man Mode" describe-mode t]
    ["Mini Help" woman-mini-help t]
-   ,@(if (fboundp 'customize-group)
-	 '(["Customize..." (customize-group 'woman) t]))
-   ["Show Version" (message "WoMan %s" woman-version) t]
+   ["Customize..." (customize-group 'woman) t]
    "--"
    ("Advanced"
     ["View Source" (view-file woman-last-file-name) woman-last-file-name]
@@ -1873,31 +1856,22 @@ Argument EVENT is the invoking mouse event."
 
 (defvar bookmark-make-record-function)
 
-(define-derived-mode woman-mode special-mode "WoMan"
+(define-derived-mode woman-mode man-common "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
 WoMan is an ELisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
-WoMan version: see `woman-version'.
 See `Man-mode' for additional details.
 \\{woman-mode-map}"
-  (let ((Man-build-page-list (symbol-function 'Man-build-page-list))
-	(Man-strip-page-headers (symbol-function 'Man-strip-page-headers))
-	(Man-unindent (symbol-function 'Man-unindent))
-	(Man-goto-page (symbol-function 'Man-goto-page)))
+  ;; FIXME: Should all this just be re-arranged so that this can just
+  ;; inherit `man-common' and be done with it?
+  (cl-letf (((symbol-function 'Man-build-page-list) #'ignore)
+	    ((symbol-function 'Man-strip-page-headers) #'ignore)
+	    ((symbol-function 'Man-unindent) #'ignore)
+	    ((symbol-function 'Man-goto-page) #'ignore))
     ;; Prevent inappropriate operations:
-    (fset 'Man-build-page-list 'ignore)
-    (fset 'Man-strip-page-headers 'ignore)
-    (fset 'Man-unindent 'ignore)
-    (fset 'Man-goto-page 'ignore)
-    (unwind-protect
-	(delay-mode-hooks (Man-mode))
-      ;; Restore the status quo:
-      (fset 'Man-build-page-list Man-build-page-list)
-      (fset 'Man-strip-page-headers Man-strip-page-headers)
-      (fset 'Man-unindent Man-unindent)
-      (fset 'Man-goto-page Man-goto-page)
-      (setq tab-width woman-tab-width)))
+    (delay-mode-hooks (Man-mode)))
+  (setq tab-width woman-tab-width)
   (setq major-mode 'woman-mode
 	mode-name "WoMan")
   ;; Don't show page numbers like Man-mode does.  (Online documents do
@@ -1908,7 +1882,7 @@ See `Man-mode' for additional details.
   (setq imenu-generic-expression woman-imenu-generic-expression)
   (setq-local imenu-space-replacement " ")
   ;; Bookmark support.
-  (setq-local bookmark-make-record-function 'woman-bookmark-make-record)
+  (setq-local bookmark-make-record-function #'woman-bookmark-make-record)
   ;; For reformat ...
   ;; necessary when reformatting a file in its old buffer:
   (setq imenu--last-menubar-index-alist nil)
@@ -1964,12 +1938,12 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 		   (setq symbol (car p)) ; 1. name
 		   (if (functionp symbol) ; 2. command doc
 		       (if (setq doc (documentation symbol t))
-			   (substring doc 0 (string-match "\n" doc))
+			   (substring doc 0 (string-search "\n" doc))
 			 "(not documented)"))
 		   (if (custom-variable-p symbol)	; 3. variable doc
 		       (if (setq doc (documentation-property
 				      symbol 'variable-documentation t))
-			   (substring doc 0 (string-match "\n" doc))))))
+			   (substring doc 0 (string-search "\n" doc))))))
 	(setq p (cdr p))))
     ;; Output the result:
     (and (apropos-print t nil)
@@ -1980,7 +1954,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defun WoMan-getpage-in-background (topic)
   "Use TOPIC to start WoMan from `Man-follow-manual-reference'."
   ;; topic is a string, generally of the form "section topic"
-  (let ((s (string-match " " topic)))
+  (let ((s (string-search " " topic)))
     (if s (setq topic (substring topic (1+ s))))
     (woman topic)))
 
@@ -2010,10 +1984,8 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 ;;   (after Man-bgproc-sentinel-advice activate)
 ;;   ;; Terminates man processing
 ;;   "Report formatting time."
-;;   (let* ((time (current-time))
-;; 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
-;; 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
-;;     (message "Man formatting done in %d seconds" time)))
+;;   (message "Man formatting done in %s seconds"
+;;            (float-time (time-since WoMan-Man-start-time))))
 
 
 ;;; Buffer handling:
@@ -2071,14 +2043,14 @@ alist in `woman-buffer-alist' and return nil."
 
 ;;; Syntax and display tables:
 
-(defconst woman-escaped-escape-char ?
+(defconst woman-escaped-escape-char ?\^\\
   ;; An arbitrary unused control character
   "Internal character representation of escaped escape characters.")
 (defconst woman-escaped-escape-string
   (char-to-string woman-escaped-escape-char)
   "Internal string representation of escaped escape characters.")
 
-(defconst woman-unpadded-space-char ?
+(defconst woman-unpadded-space-char ?\^\]
   ;; An arbitrary unused control character
   "Internal character representation of unpadded space characters.")
 (defconst woman-unpadded-space-string
@@ -2122,7 +2094,7 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
-  (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
+  (and font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))
 	time)
@@ -2209,7 +2181,7 @@ To be called on original buffer and any .so insertions."
 ;; variable.  zsoelim is always run as the very first preprocessor.
 
 (defvar woman-emulate-tbl nil
-  "True if WoMan should emulate the tbl preprocessor.
+  "Non-nil if WoMan should emulate the tbl preprocessor.
 This applies to text between .TE and .TS directives.
 Currently set only from \\='\\\" t in the first line of the source file.")
 
@@ -2295,15 +2267,21 @@ Currently set only from \\='\\\" t in the first line of the source file.")
     (setq fill-column woman-fill-column
 	  tab-width woman-tab-width)
 
+    ;; Ignore the \, and \/ kerning operators.  See
+    ;; https://www.gnu.org/software/groff/manual/groff.html#Ligatures-and-Kerning
+    (goto-char (point-min))
+    (while (re-search-forward "\\\\[,/]" nil t)
+      (replace-match "" t t))
+
     ;; Hide unpaddable and digit-width spaces \(space) and \0:
     (goto-char from)
     (while (re-search-forward "\\\\[ 0]" nil t)
       (replace-match woman-unpadded-space-string t t))
 
     ;; Discard optional hyphen \%; concealed newlines \<newline>;
-    ;; point-size change function \sN,\s+N, \s-N:
+    ;; kerning \/, \,; point-size change function \sN,\s+N, \s-N:
     (goto-char from)
-    (while (re-search-forward "\\\\\\([%\n]\\|s[-+]?[0-9]+\\)" nil t)
+    (while (re-search-forward "\\\\\\([%\n/,]\\|s[-+]?[0-9]+\\)" nil t)
       (woman-delete-match 0))
 
     ;; BEWARE: THIS SHOULD PROBABLY ALL BE DONE MUCH LATER!!!!!
@@ -2442,6 +2420,10 @@ Preserves location of `point'."
 ;; Alternatively, force maximal match (Posix?)
 
 (defvar woman0-rename-alist)		; bound in woman0-roff-buffer
+
+;; Bound locally by woman[012]-roff-buffer, and woman0-macro.
+;; Use dynamically in woman-unquote and woman-forward-arg.
+(defvar woman-request)
 
 (defun woman0-roff-buffer (from)
   "Process conditional-type requests and user-defined macros.
@@ -2626,7 +2608,7 @@ If DELETE is non-nil then delete from point."
 	(t				; Ignore -- leave in buffer
 	 ;; This does not work too well, but it's only for debugging!
 	 (skip-chars-forward "^ \t")
-	 (if (looking-at "[ \t]*\\{") (search-forward "\\}"))
+	 (if (looking-at "[ \t]*{") (search-forward "}"))
 	 (forward-line 1))))
 
 ;; request is not used dynamically by any callees.
@@ -2638,7 +2620,7 @@ If DELETE is non-nil then delete from point."
     ;; Ignore -- leave in buffer
     ;; This does not work too well, but it's only for debugging!
     (skip-chars-forward "^ \t")
-    (if (looking-at "[ \t]*\\{") (search-forward "\\}"))
+    (if (looking-at "[ \t]*{") (search-forward "}"))
     (forward-line 1)))
 
 (defun woman0-so ()
@@ -2762,15 +2744,16 @@ Optional argument APPEND, if non-nil, means append macro."
 
 ;; request may be used dynamically (woman-interpolate-macro calls
 ;; woman-forward-arg).
-(defun woman0-macro (woman-request)
-  "Process the macro call named WOMAN-REQUEST."
+(defun woman0-macro (request)
+  "Process the macro call named REQUEST."
   ;; Leaves point at start of new text.
-  (let ((macro (assoc woman-request woman0-macro-alist)))
+  (let ((woman-request request)
+        (macro (assoc request woman0-macro-alist)))
     (if macro
 	(woman-interpolate-macro (cdr macro))
       ;; SHOULD DELETE THE UNINTERPRETED REQUEST!!!!!
       ;; Output this message once only per call (cf. strings)?
-      (WoMan-warn "Undefined macro %s not interpolated!" woman-request))))
+      (WoMan-warn "Undefined macro %s not interpolated!" request))))
 
 (defun woman-interpolate-macro (macro)
   "Interpolate (.de) or append (.am) expansion of MACRO into the buffer."
@@ -2994,11 +2977,6 @@ Useful for constructing the alist variable `woman-special-characters'."
 
 ;;; Formatting macros that do not cause a break:
 
-;; Bound locally by woman[012]-roff-buffer, and also, annoyingly and
-;; confusingly, as a function argument.  Use dynamically in
-;; woman-unquote and woman-forward-arg.
-(defvar woman-request)
-
 (defun woman-unquote (to)
   "Delete any double-quote characters between point and TO.
 Leave point at TO (which should be a marker)."
@@ -3079,7 +3057,7 @@ B-OR-I is the appropriate complete control line."
   ".SM -- Set the current line in small font, i.e. IGNORE!"
   nil)
 
-(defalias 'woman1-SB 'woman1-B)
+(defalias 'woman1-SB #'woman1-B)
 ;; .SB -- Set the current line in small bold font, i.e. just embolden!
 ;; (This is what /usr/local/share/groff/tmac/tmac.an does.  The
 ;; Linux man.7 is wrong about this!)
@@ -3209,27 +3187,27 @@ If optional arg CONCAT is non-nil then join arguments."
 ;;; Other non-breaking requests correctly ignored by nroff:
 
 (put 'woman1-ps 'notfont t)
-(defalias 'woman1-ps 'woman-delete-whole-line)
+(defalias 'woman1-ps #'woman-delete-whole-line)
   ;; .ps -- Point size -- IGNORE!
 
 (put 'woman1-ss 'notfont t)
-(defalias 'woman1-ss 'woman-delete-whole-line)
+(defalias 'woman1-ss #'woman-delete-whole-line)
   ;; .ss -- Space-character size -- IGNORE!
 
 (put 'woman1-cs 'notfont t)
-(defalias 'woman1-cs 'woman-delete-whole-line)
+(defalias 'woman1-cs #'woman-delete-whole-line)
   ;; .cs -- Constant character space (width) mode -- IGNORE!
 
 (put 'woman1-ne 'notfont t)
-(defalias 'woman1-ne 'woman-delete-whole-line)
+(defalias 'woman1-ne #'woman-delete-whole-line)
   ;; .ne -- Need vertical space -- IGNORE!
 
 (put 'woman1-vs 'notfont t)
-(defalias 'woman1-vs 'woman-delete-whole-line)
+(defalias 'woman1-vs #'woman-delete-whole-line)
   ;; .vs -- Vertical base line spacing -- IGNORE!
 
 (put 'woman1-bd 'notfont t)
-(defalias 'woman1-bd 'woman-delete-whole-line)
+(defalias 'woman1-bd #'woman-delete-whole-line)
   ;; .bd -- Embolden font -- IGNORE!
 
 ;;; Non-breaking SunOS-specific macros:
@@ -3240,7 +3218,7 @@ If optional arg CONCAT is non-nil then join arguments."
   (woman-forward-arg 'unquote 'concat))
 
 (put 'woman1-IX 'notfont t)
-(defalias 'woman1-IX 'woman-delete-whole-line)
+(defalias 'woman1-IX #'woman-delete-whole-line)
   ;; .IX -- Index macro, for Sun internal use -- IGNORE!
 
 
@@ -3270,7 +3248,7 @@ If optional arg CONCAT is non-nil then join arguments."
     (while
 	;; Find font requests, paragraph macros and font escapes:
 	(re-search-forward
-	 "^[.'][ \t]*\\(\\(\\ft\\)\\|\\(.P\\)\\)\\|\\(\\\\f\\)" nil 1)
+	 "^[.'][ \t]*\\(\\(ft\\)\\|\\(.P\\)\\)\\|\\(\\\\f\\)" nil 1)
       (let (font beg notfont fescape)
 	;; Match font indicator and leave point at end of sequence:
 	(cond ((match-beginning 2)
@@ -3513,7 +3491,7 @@ The expression may be an argument in quotes."
   (let ((value (if (looking-at "[+-]") 0 (woman-parse-numeric-value)))
 	op)
     (while (cond
-	    ((looking-at "[+-/*%]")	; arithmetic operators
+	    ((looking-at "[+/*%-]")	; arithmetic operators
 	     (forward-char)
 	     (setq op (intern-soft (match-string 0)))
 	     (setq value (funcall op value (woman-parse-numeric-value))))
@@ -3589,7 +3567,7 @@ expression in parentheses.  Leaves point after the value."
 				  inc (cdr value)
 				  ;; eval internal (.X) registers
 				  ;; stored as lisp variable names:
-				  value (eval (car value)))
+				  value (eval (car value) t))
 			    (if (and pm inc) ; auto-increment
 				(setq value
 				      (funcall (intern-soft pm) value inc)
@@ -3649,64 +3627,55 @@ expression in parentheses.  Leaves point after the value."
   "Process breaks.  Format paragraphs and headings."
   (let ((case-fold-search t)
 	(to (make-marker))
-	(canonically-space-region
-	 (symbol-function 'canonically-space-region))
-	(insert-and-inherit (symbol-function 'insert-and-inherit))
-	(set-text-properties (symbol-function 'set-text-properties))
 	(woman-registers woman-registers)
 	fn woman-request woman-translations
 	tab-stop-list)
     (set-marker-insertion-type to t)
     ;; ?roff does not squeeze multiple spaces, but does fill, so...
-    (fset 'canonically-space-region 'ignore)
-    ;; Try to avoid spaces inheriting underlines from preceding text!
-    (fset 'insert-and-inherit (symbol-function 'insert))
-    (fset 'set-text-properties 'ignore)
-    (unwind-protect
-	(while
-	    ;; Find next control line:
-            (re-search-forward woman-request-regexp nil t)
-          (cond
-           ;; Construct woman function to call:
-           ((setq fn (intern-soft
-                      (concat "woman2-"
-                              (setq woman-request (match-string 1)))))
-            ;; Delete request or macro name:
-            (woman-delete-match 0))
-           ;; Unrecognized request:
-           ((prog1 nil
-              ;; (WoMan-warn ".%s request ignored!" woman-request)
-              (WoMan-warn-ignored woman-request "ignored!")
-              ;; (setq fn 'woman2-LP)
-              ;; AVOID LEAVING A BLANK LINE!
-              ;; (setq fn 'woman2-format-paragraphs)
-              ))
-           ;; .LP assumes it is at eol and leaves a (blank) line,
-           ;; so leave point at end of line before paragraph:
-           ((or (looking-at "[ \t]*$") ; no argument
-                woman-ignore)          ; ignore all
-            ;; (beginning-of-line) (kill-line)
+    (cl-letf (((symbol-function 'canonically-space-region) #'ignore)
+              ;; Try to avoid spaces inheriting underlines from preceding text!
+              ((symbol-function 'insert-and-inherit) #'insert)
+              ((symbol-function 'set-text-properties) #'ignore))
+      (while
+          ;; Find next control line:
+          (re-search-forward woman-request-regexp nil t)
+        (cond
+         ;; Construct woman function to call:
+         ((setq fn (intern-soft
+                    (concat "woman2-"
+                            (setq woman-request (match-string 1)))))
+          ;; Delete request or macro name:
+          (woman-delete-match 0))
+         ;; Unrecognized request:
+         ((prog1 nil
+            ;; (WoMan-warn ".%s request ignored!" woman-request)
+            (WoMan-warn-ignored woman-request "ignored!")
+            ;; (setq fn 'woman2-LP)
             ;; AVOID LEAVING A BLANK LINE!
-            (beginning-of-line) (woman-delete-line 1))
-           (t (end-of-line) (insert ?\n))
-           )
-           (if (not (or fn
-                        (and (not (memq (following-char) '(?. ?')))
-                             (setq fn 'woman2-format-paragraphs))))
-               ()
-             ;; Find next control line:
-	     (if (equal woman-request "TS")
-		 (set-marker to (woman-find-next-control-line "TE"))
-	       (set-marker to (woman-find-next-control-line)))
-             ;; Call the appropriate function:
-             (funcall fn to)))
-      (if (not (eobp))			; This should not happen, but ...
-	  (woman2-format-paragraphs (copy-marker (point-max) t)
-                                    woman-left-margin))
-      (fset 'canonically-space-region canonically-space-region)
-      (fset 'set-text-properties set-text-properties)
-      (fset 'insert-and-inherit insert-and-inherit)
-      (set-marker to nil))))
+            ;; (setq fn 'woman2-format-paragraphs)
+            ))
+         ;; .LP assumes it is at eol and leaves a (blank) line,
+         ;; so leave point at end of line before paragraph:
+         ((or (looking-at "[ \t]*$")    ; no argument
+              woman-ignore)             ; ignore all
+          ;; (beginning-of-line) (kill-line)
+          ;; AVOID LEAVING A BLANK LINE!
+          (beginning-of-line) (woman-delete-line 1))
+         (t (end-of-line) (insert ?\n)))
+        (if (not (or fn
+                     (and (not (memq (following-char) '(?. ?')))
+                          (setq fn 'woman2-format-paragraphs))))
+            ()
+          ;; Find next control line:
+          (if (equal woman-request "TS")
+              (set-marker to (woman-find-next-control-line "TE"))
+            (set-marker to (woman-find-next-control-line)))
+          ;; Call the appropriate function:
+          (funcall fn to)))
+      (if (not (eobp))             ; This should not happen, but ...
+          (woman2-format-paragraphs (copy-marker (point-max) t)
+                                    woman-left-margin)))
+    (set-marker to nil)))
 
 (defun woman-find-next-control-line (&optional pat)
   "Find and return start of next control line.
@@ -3817,8 +3786,8 @@ Leave 1 blank line.  Format paragraphs upto TO."
   (setq woman-prevailing-indent woman-default-indent)
   (woman2-format-paragraphs to woman-left-margin))
 
-(defalias 'woman2-PP 'woman2-LP)
-(defalias 'woman2-P 'woman2-LP)
+(defalias 'woman2-PP #'woman2-LP)
+(defalias 'woman2-P #'woman2-LP)
 
 (defun woman2-ns (to)
   ".ns -- Turn on no-space mode.  Format paragraphs upto TO."
@@ -3870,7 +3839,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 		((eolp)			; extend line
 		 ;; Insert character INCLUDING TEXT PROPERTIES:
 		 ;; (insert (substring overlap i (1+ i)))
-		 (let ((eol (string-match "\n" overlap i)))
+		 (let ((eol (string-search "\n" overlap i)))
 		   (insert (substring overlap i eol))
 		   (setq i (or eol imax)))
 		 )
@@ -4289,16 +4258,16 @@ Set prevailing indent to amount of starting .RS."
 If no argument then use value of optional arg PREVIOUS if non-nil,
 otherwise set PREVIOUS.  Delete the whole remaining control line."
   (if (eolp)				; space already skipped
-      (set arg (if previous (eval previous) 0))
-    (if previous (set previous (eval arg)))
+      (set arg (if previous (symbol-value previous) 0))
+    (if previous (set previous (symbol-value arg)))
     (woman2-process-escapes-to-eol 'numeric)
     (let ((pm (if (looking-at "[+-]")
 		(prog1 (following-char)
 		  (forward-char 1))))
 	(i (woman-parse-numeric-arg)))
     (cond ((null pm) (set arg i))
-	  ((= pm ?+) (set arg (+ (eval arg) i)))
-	  ((= pm ?-) (set arg (- (eval arg) i)))
+	  ((= pm ?+) (set arg (+ (symbol-value arg) i)))
+	  ((= pm ?-) (set arg (- (symbol-value arg) i)))
 	  ))
     (beginning-of-line))
   (woman-delete-line 1))		; ignore any remaining arguments
@@ -4495,7 +4464,7 @@ Format paragraphs upto TO."
   (setq woman-nofill t)
   (woman2-format-paragraphs to))
 
-(defalias 'woman2-TE 'woman2-fi)
+(defalias 'woman2-TE #'woman2-fi)
   ;; ".TE -- End of table code for the tbl processor."
   ;; Turn filling and adjusting back on.
 
@@ -4608,6 +4577,13 @@ logging the message."
                  (woman-find-file file) (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
+
+(put 'woman-bookmark-jump 'bookmark-handler-type "WoMan")
+
+(defvar woman-version "0.551 (beta)" "WoMan version information.")
+(make-obsolete-variable 'woman-version 'emacs-version "28.1")
+
+(define-obsolete-function-alias 'set-woman-file-regexp 'woman-set-file-regexp "29.1")
 
 (provide 'woman)
 

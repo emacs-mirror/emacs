@@ -1,6 +1,6 @@
 ;;; minibuf-tests.el --- tests for minibuf.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -398,6 +398,32 @@
 (ert-deftest test-completion-symbol-hashtable-completion-regexp ()
   (minibuf-tests--test-completion-regexp
    #'minibuf-tests--strings-to-symbol-hashtable))
+
+(ert-deftest test-try-completion-ignore-case ()
+  (let ((completion-ignore-case t))
+    (should (equal (try-completion "bar" '("bAr" "barfoo")) "bAr"))
+    (should (equal (try-completion "bar" '("bArfoo" "barbaz")) "bar"))
+    (should (equal (try-completion "bar" '("bArfoo" "barbaz"))
+                   (try-completion "bar" '("barbaz" "bArfoo"))))
+    ;; bug#11339
+    (should (equal (try-completion "baz" '("baz" "bAz")) "baz")) ;And not t!
+    (should (equal (try-completion "baz" '("bAz" "baz"))
+                   (try-completion "baz" '("baz" "bAz"))))))
+
+(ert-deftest test-inhibit-interaction ()
+  (let ((inhibit-interaction t))
+    (should-error (read-from-minibuffer "foo: ") :type 'inhibited-interaction)
+
+    (should-error (y-or-n-p "Foo?") :type 'inhibited-interaction)
+    (should-error (yes-or-no-p "Foo?") :type 'inhibited-interaction)
+    (should-error (read-no-blanks-input "foo: ") :type 'inhibited-interaction)
+
+    ;; See that we get the expected error.
+    (should (eq (condition-case nil
+                    (read-from-minibuffer "foo: ")
+                  (inhibited-interaction 'inhibit)
+                  (error nil))
+                'inhibit))))
 
 
 ;;; minibuf-tests.el ends here

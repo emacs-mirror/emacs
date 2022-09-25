@@ -65,6 +65,7 @@ notation.class =
   | "JPEG"
   | "IGES"
   | "PCX"
+  | "PDF"
   | "PIC"
   | "PNG"
   | "PS"

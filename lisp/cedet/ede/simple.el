@@ -1,8 +1,8 @@
-;;; ede/simple.el --- Overlay an EDE structure on an existing project
+;;; ede/simple.el --- Overlay an EDE structure on an existing project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -46,7 +46,7 @@
 ;;; Code:
 
 (add-to-list 'ede-project-class-files
-	     (ede-project-autoload "simple-overlay"
+	     (ede-project-autoload
 	      :name "Simple" :file 'ede/simple
 	      :proj-file 'ede-simple-projectfile-for-dir
 	      :load-type 'ede-simple-load
@@ -78,7 +78,7 @@ The directory has three parts:
      ede-simple-save-file-name)
     ))
 
-(defun ede-simple-load (dir &optional rootproj)
+(defun ede-simple-load (dir &optional _rootproj)
   "Load a project of type `Simple' for the directory DIR.
 Return nil if there isn't one.
 ROOTPROJ is nil, since we will only create a single EDE project here."
@@ -112,7 +112,7 @@ Each directory needs a project file to control it.")
   (eieio-persistent-save proj))
 
 (cl-defmethod ede-find-subproject-for-directory ((proj ede-simple-project)
-					      dir)
+					         _dir)
   "Return PROJ, for handling all subdirs below DIR."
   proj)
 

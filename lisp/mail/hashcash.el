@@ -1,6 +1,6 @@
-;;; hashcash.el --- Add hashcash payments to email
+;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2022 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
@@ -47,7 +47,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	; for case
+(eval-when-compile (require 'cl-lib))
 
 (defgroup hashcash nil
   "Hashcash configuration."
@@ -57,8 +57,7 @@
   "The default number of bits to pay to unknown users.
 If this is zero, no payment header will be generated.
 See `hashcash-payment-alist'."
-  :type 'integer
-  :group 'hashcash)
+  :type 'natnum)
 
 (defcustom hashcash-payment-alist '()
   "An association list mapping email addresses to payment amounts.
@@ -72,58 +71,44 @@ present, is the string to be hashed; if not present ADDR will be used."
 			 (list :tag "Replace hash input"
 			       (string :name "Address")
 			       (string :name "Hash input")
-			       (integer :name "Amount"))))
-  :group 'hashcash)
+                               (integer :name "Amount")))))
 
 (defcustom hashcash-default-accept-payment 20
   "The default minimum number of bits to accept on incoming payments."
-  :type 'integer
-  :group 'hashcash)
+  :type 'natnum)
 
 (defcustom hashcash-accept-resources `((,user-mail-address nil))
   "An association list mapping hashcash resources to payment amounts.
 Resources named here are to be accepted in incoming payments.  If the
 corresponding AMOUNT is NIL, the value of `hashcash-default-accept-payment'
 is used instead."
-  :type 'alist
-  :group 'hashcash)
+  :type 'alist)
 
 (define-obsolete-variable-alias 'hashcash-path 'hashcash-program "24.4")
 (defcustom hashcash-program "hashcash"
   "The name of the hashcash executable.
 If this is not in your PATH, specify an absolute file name."
-  :type '(choice (const nil) file)
-  :group 'hashcash)
+  :type '(choice (const nil) file))
 
-(defcustom hashcash-extra-generate-parameters nil
+(defcustom hashcash-extra-generate-parameters '("-Z2")
   "A list of parameter strings passed to `hashcash-program' when minting.
-For example, you may want to set this to (\"-Z2\") to reduce header length."
+For example, on very old hardware, you may want to set this
+to (\"-Z0\") to disable compression."
   :type '(repeat string)
-  :group 'hashcash)
+  :version "29.1")
 
 (defcustom hashcash-double-spend-database "hashcash.db"
   "The name of the double-spending database file."
-  :type 'file
-  :group 'hashcash)
+  :type 'file)
 
 (defcustom hashcash-in-news nil
   "Specifies whether or not hashcash payments should be made to newsgroups."
-  :type 'boolean
-  :group 'hashcash)
+  :type 'boolean)
 
 (defvar hashcash-process-alist nil
   "Alist of asynchronous hashcash processes and buffers.")
 
 (require 'mail-utils)
-
-(eval-and-compile
-  (if (fboundp 'point-at-bol)
-      (defalias 'hashcash-point-at-bol 'point-at-bol)
-    (defalias 'hashcash-point-at-bol 'line-beginning-position))
-
-  (if (fboundp 'point-at-eol)
-      (defalias 'hashcash-point-at-eol 'point-at-eol)
-    (defalias 'hashcash-point-at-eol 'line-end-position)))
 
 (defun hashcash-strip-quoted-names (addr)
   (setq addr (mail-strip-quoted-names addr))
@@ -133,18 +118,18 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
 
 (declare-function message-narrow-to-headers-or-head "message" ())
 (declare-function message-fetch-field "message" (header &optional not-all))
-(declare-function message-goto-eoh "message" ())
+(declare-function message-goto-eoh "message" (&optional interactive))
 (declare-function message-narrow-to-headers "message" ())
 
 (defun hashcash-token-substring ()
   (save-excursion
     (let ((token ""))
-      (loop
+      (cl-loop
 	(setq token
-	  (concat token (buffer-substring (point) (hashcash-point-at-eol))))
-	(goto-char (hashcash-point-at-eol))
+          (concat token (buffer-substring (point) (line-end-position))))
+        (goto-char (line-end-position))
 	(forward-char 1)
-	(unless (looking-at "[ \t]") (return token))
+	(unless (looking-at "[ \t]") (cl-return token))
 	(while (looking-at "[ \t]") (forward-char 1))))))
 
 (defun hashcash-payment-required (addr)
@@ -158,7 +143,7 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
     (or (nth 1 val) (nth 0 val) addr)))
 
 (defun hashcash-generate-payment (str val)
-  "Generate a hashcash payment by finding a VAL-bit collison on STR."
+  "Generate a hashcash payment by finding a VAL-bit collision on STR."
   (if (and (> val 0)
 	   hashcash-program)
       (with-current-buffer (get-buffer-create " *hashcash*")
@@ -171,7 +156,7 @@ For example, you may want to set this to (\"-Z2\") to reduce header length."
     (error "No `hashcash' binary found")))
 
 (defun hashcash-generate-payment-async (str val callback)
-  "Generate a hashcash payment by finding a VAL-bit collison on STR.
+  "Generate a hashcash payment by finding a VAL-bit collision on STR.
 Return immediately.  Call CALLBACK with process and result when ready."
   (if (and (> val 0)
 	   hashcash-program)
@@ -182,8 +167,7 @@ Return immediately.  Call CALLBACK with process and result when ready."
 	(setq hashcash-process-alist (cons
 				      (cons process (current-buffer))
 				      hashcash-process-alist))
-	(set-process-filter process `(lambda (process output)
-				       (funcall ,callback process output))))
+	(set-process-filter process callback))
     (funcall callback nil nil)))
 
 (defun hashcash-check-payment (token str val)
@@ -227,7 +211,7 @@ Return immediately.  Call CALLBACK with process and result when ready."
 
 ;;;###autoload
 (defun hashcash-insert-payment (arg)
-  "Insert X-Payment and X-Hashcash headers with a payment for ARG"
+  "Insert X-Payment and X-Hashcash headers with a payment for ARG."
   (interactive "sPay to: ")
   (unless (hashcash-already-paid-p arg)
     (let ((pay (hashcash-generate-payment (hashcash-payment-to arg)
@@ -244,8 +228,9 @@ Only start calculation.  Results are inserted when ready."
     (hashcash-generate-payment-async
      (hashcash-payment-to arg)
      (hashcash-payment-required arg)
-     `(lambda (process payment)
-	(hashcash-insert-payment-async-2 ,(current-buffer) process payment)))))
+     (let ((buf (current-buffer)))
+       (lambda (process payment)
+         (hashcash-insert-payment-async-2 buf process payment))))))
 
 (defun hashcash-insert-payment-async-2 (buffer process pay)
   (when (buffer-live-p buffer)
@@ -294,11 +279,11 @@ BUFFER defaults to the current buffer."
 
 ;;;###autoload
 (defun hashcash-verify-payment (token &optional resource amount)
-  "Verify a hashcash payment"
+  "Verify a hashcash payment."
   (let* ((split (split-string token ":"))
 	 (key (if (< (hashcash-version token) 1.2)
 		  (nth 1 split)
-		  (case (string-to-number (nth 0 split))
+		  (pcase (string-to-number (nth 0 split))
 		    (0 (nth 2 split))
 		    (1 (nth 3 split))))))
     (cond ((null resource)
@@ -323,6 +308,7 @@ Set ASYNC to t to start asynchronous calculation.  (See
     (save-excursion
       (save-restriction
 	(message-narrow-to-headers)
+        (goto-char (point-max))
 	(let ((to (hashcash-strip-quoted-names (mail-fetch-field "To" nil t)))
 	      (cc (hashcash-strip-quoted-names (mail-fetch-field "Cc" nil t)))
 	      (ng (hashcash-strip-quoted-names (mail-fetch-field "Newsgroups"
@@ -373,6 +359,9 @@ Prefix arg sets default accept amount temporarily."
 	(when ok
 	  (message "Payment valid"))
 	ok))))
+
+(define-obsolete-function-alias 'hashcash-point-at-bol #'line-beginning-position "28.1")
+(define-obsolete-function-alias 'hashcash-point-at-eol #'line-end-position "28.1")
 
 (provide 'hashcash)
 

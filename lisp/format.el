@@ -1,6 +1,6 @@
-;;; format.el --- read and save files in multiple formats
+;;; format.el --- read and save files in multiple formats  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2017 Free Software
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2022 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
@@ -84,7 +84,7 @@
 	   iso-sgml2iso iso-iso2sgml t nil)
     (rot13 ,(purecopy "rot13")
 	   nil
-	   ,(purecopy "tr a-mn-z n-za-m") ,(purecopy "tr a-mn-z n-za-m") t nil)
+	   rot13-region rot13-region t nil)
     (duden ,(purecopy "Duden Ersatzdarstellung")
 	   nil
 	   ,(purecopy "diac") iso-iso2duden t nil)
@@ -139,6 +139,7 @@ MODE-FN, if specified, is called when visiting a file with that format.
 
 PRESERVE, if non-nil, means that `format-write-file' should not remove
           this format from `buffer-file-format'.")
+;; Autoload if this file no longer dumped.
 ;;;###autoload
 (put 'format-alist 'risky-local-variable t)
 
@@ -181,7 +182,7 @@ it should be a Lisp function.  BUFFER is currently ignored."
 	;; We should perhaps go via a temporary buffer and copy it
 	;; back, in case of errors.
 	(if (and (zerop (save-window-excursion
-			  (shell-command-on-region from to method t t
+			  (shell-command-on-region from to method t 'no-mark
 						   error-buff)))
 		 ;; gzip gives zero exit status with bad args, for instance.
 		 (zerop (with-current-buffer error-buff
@@ -237,9 +238,8 @@ For most purposes, consider using `format-encode-region' instead."
                   ;; delete the buffer once the write is done, but do
                   ;; it after running to-fn so it doesn't affect
                   ;; write-region calls in to-fn.
-                  (set (make-local-variable
-                        'write-region-post-annotation-function)
-                       'kill-buffer)))
+                  (setq-local write-region-post-annotation-function
+                              #'kill-buffer)))
 	      nil)
 	  ;; Otherwise just call function, it will return annotations.
 	  (funcall to-fn from to orig-buf)))))
@@ -321,7 +321,7 @@ If the format is not specified, attempt a regexp-based guess.
 Set `buffer-file-format' to the format used, and call any
 format-specific mode functions."
   (interactive
-   (list (format-read "Translate buffer from format (default guess): ")))
+   (list (format-read (format-prompt "Translate buffer from format" "guess"))))
   (save-excursion
     (goto-char (point-min))
     (format-decode format (buffer-size) t)))
@@ -332,7 +332,7 @@ Arg FORMAT is optional; if omitted the format will be determined by looking
 for identifying regular expressions at the beginning of the region."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read "Translate region from format (default guess): ")))
+         (format-read (format-prompt "Translate region from format" "guess"))))
   (save-excursion
     (goto-char from)
     (format-decode format (- to from) nil)))
@@ -342,8 +342,8 @@ for identifying regular expressions at the beginning of the region."
 FORMAT defaults to `buffer-file-format'.  It is a symbol naming one of the
 formats defined in `format-alist', or a list of such symbols."
   (interactive
-   (list (format-read (format "Translate buffer to format (default %s): "
-			      buffer-file-format))))
+   (list (format-read (format-prompt "Translate buffer to format"
+			             buffer-file-format))))
   (format-encode-region (point-min) (point-max) format))
 
 (defun format-encode-region (beg end &optional format)
@@ -352,8 +352,8 @@ FORMAT defaults to `buffer-file-format'.  It is a symbol naming
 one of the formats defined in `format-alist', or a list of such symbols."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read (format "Translate region to format (default %s): "
-			      buffer-file-format))))
+	 (format-read (format-prompt "Translate region to format"
+			             buffer-file-format))))
   (if (null format)    (setq format buffer-file-format))
   (if (symbolp format) (setq format (list format)))
   (save-excursion
@@ -420,7 +420,8 @@ If FORMAT is nil then do not do any format conversion."
                                             (file-name-nondirectory file)))))
      (list file fmt)))
   (let ((format-alist nil))
-     (find-file filename))
+    (with-suppressed-warnings ((interactive-only find-file))
+      (find-file filename)))
   (if format
       (format-decode-buffer format)))
 
@@ -519,7 +520,7 @@ the value of `foo'."
       (cdr list)
     (let ((p list))
       (while (not (eq (cdr p) cons))
-	(if (null p) (error "format-delq-cons: not an element"))
+        (if (null p) (error "format-delq-cons: Not an element"))
 	(setq p (cdr p)))
       ;; Now (cdr p) is the cons to delete
       (setcdr p (cdr cons))
@@ -539,13 +540,7 @@ Compare using `equal'."
 	(setq tail next)))
     (cons acopy bcopy)))
 
-(defun format-proper-list-p (list)
-  "Return t if LIST is a proper list.
-A proper list is a list ending with a nil cdr, not with an atom "
-  (when (listp list)
-    (while (consp list)
-      (setq list (cdr list)))
-    (null list)))
+(define-obsolete-function-alias 'format-proper-list-p 'proper-list-p "27.1")
 
 (defun format-reorder (items order)
   "Arrange ITEMS to follow partial ORDER.
@@ -753,13 +748,17 @@ to write these unknown annotations back into the file."
 
 	    (if (numberp val)	; add to ambient value if numeric
 		(format-property-increment-region from to prop val 0)
-	      (put-text-property
-	       from to prop
-	       (cond ((get prop 'format-list-valued) ; value gets consed onto
-						     ; list-valued properties
-		      (let ((prev (get-text-property from prop)))
-			(cons val (if (listp prev) prev (list prev)))))
-		     (t val))))) ; normally, just set to val.
+              ;; Kludge alert: ignore items with reversed order of
+              ;; FROM and TO.  They seem to be redundant anyway, and
+              ;; in one case I've seen them refer to EOB.
+              (when (<= from to)
+	        (put-text-property
+	         from to prop
+	         (cond ((get prop 'format-list-valued) ; value gets consed onto
+						       ; list-valued properties
+		        (let ((prev (get-text-property from prop)))
+			  (cons val (if (listp prev) prev (list prev)))))
+		       (t val)))))) ; normally, just set to val.
 	  (setq todo (cdr todo)))
 
 	(if unknown-ans
@@ -1005,18 +1004,22 @@ either strings, or lists of the form (PARAMETER VALUE)."
       ;; If either old or new is a list, have to treat both that way.
       (if (and (or (listp old) (listp new))
 	       (not (get prop 'format-list-atomic-p)))
-	  (if (or (not (format-proper-list-p old))
-		  (not (format-proper-list-p new)))
+          (if (not (and (proper-list-p old)
+                        (proper-list-p new)))
 	      (format-annotate-atomic-property-change prop-alist old new)
-	    (let* ((old (if (listp old) old (list old)))
-		   (new (if (listp new) new (list new)))
-		   close open)
+	    (let (close open)
 	      (while old
 		(setq close
 		      (append (car (format-annotate-atomic-property-change
 				    prop-alist (car old) nil))
 			      close)
 		      old (cdr old)))
+              ;; If the font is on the format (:background "red"),
+              ;; then we have a single face.  We're assuming a list of
+              ;; faces, so transform.
+              (when (and (listp new)
+                         (keywordp (car new)))
+                (setq new (list new)))
 	      (while new
 		(setq open
 		      (append (cdr (format-annotate-atomic-property-change

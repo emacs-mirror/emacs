@@ -1,9 +1,8 @@
 ;;; eieio-base.el --- Base classes for EIEIO.  -*- lexical-binding:t -*-
 
-;;; Copyright (C) 2000-2002, 2004-2005, 2007-2017 Free Software
-;;; Foundation, Inc.
+;; Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
-;; Author: Eric M. Ludlam  <zappo@gnu.org>
+;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
 ;; Package: eieio
 
@@ -64,10 +63,18 @@ SLOT-NAME is the offending slot.  FN is the function signaling the error."
     ;; Throw the regular signal.
     (cl-call-next-method)))
 
-(cl-defmethod clone ((obj eieio-instance-inheritor) &rest _params)
+(cl-defmethod clone ((obj eieio-instance-inheritor) &rest params)
   "Clone OBJ, initializing `:parent' to OBJ.
 All slots are unbound, except those initialized with PARAMS."
-  (let ((nobj (cl-call-next-method)))
+  ;; call next method without params as we makeunbound slots anyhow
+  (let ((nobj  (if (stringp (car params))
+                   (cl-call-next-method obj (pop params))
+                 (cl-call-next-method obj))))
+    (dolist (descriptor (eieio-class-slots (eieio-object-class nobj)))
+      (let ((slot (eieio-slot-descriptor-name descriptor)))
+        (slot-makeunbound nobj slot)))
+    (when params
+      (shared-initialize nobj params))
     (oset nobj parent-instance obj)
     nobj))
 
@@ -149,11 +156,64 @@ only one object ever exists."
   ;; NOTE TO SELF: In next version, make `slot-boundp' support classes
   ;; with class allocated slots or default values.
   (let ((old (oref-default class singleton)))
-    (if (eq old eieio-unbound)
+    (if (eq old eieio--unbound)
 	(oset-default class singleton (cl-call-next-method))
       old)))
 
 
+;;; Named object
+
+(defclass eieio-named ()
+  ((object-name :initarg :object-name :initform nil))
+  "Object with a name."
+  :abstract t)
+
+(cl-defmethod eieio-object-name-string ((obj eieio-named))
+  "Return a string which is OBJ's name."
+  (or (slot-value obj 'object-name)
+      (cl-call-next-method)))
+
+(cl-defgeneric eieio-object-set-name-string (obj name)
+  "Set the string which is OBJ's NAME."
+  (declare (obsolete "inherit from `eieio-named' and use (setf (slot-value OBJ \\='object-name) NAME) instead" "25.1"))
+  (cl-check-type name string)
+  (setf (gethash obj eieio--object-names) name))
+(define-obsolete-function-alias
+  'object-set-name-string 'eieio-object-set-name-string "24.4")
+
+(with-suppressed-warnings ((obsolete eieio-object-set-name-string))
+  (cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
+    "Set the string which is OBJ's NAME."
+    (cl-check-type name string)
+    (eieio-oset obj 'object-name name)))
+
+(cl-defmethod clone ((obj eieio-named) &rest params)
+  "Clone OBJ, initializing `:parent' to OBJ.
+All slots are unbound, except those initialized with PARAMS."
+  (let* ((newname (and (stringp (car params)) (pop params)))
+         (nobj (apply #'cl-call-next-method obj params))
+         (nm (slot-value nobj 'object-name)))
+    (eieio-oset nobj 'object-name
+                (or newname
+                    (if (equal nm (slot-value obj 'object-name))
+                        (save-match-data
+                          (if (and nm (string-match "-\\([0-9]+\\)" nm))
+                              (let ((num (1+ (string-to-number
+                                              (match-string 1 nm)))))
+                                (concat (substring nm 0 (match-beginning 0))
+                                        "-" (int-to-string num)))
+                            (concat nm "-1")))
+                      nm)))
+    nobj))
+
+(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
+  (if (not (stringp (car args)))
+      (cl-call-next-method)
+    (funcall (if eieio-backward-compatibility #'ignore #'message)
+             "Obsolete: name passed without :object-name to %S constructor"
+             class)
+    (apply #'cl-call-next-method class :object-name args)))
+
 ;;; eieio-persistent
 ;;
 ;; For objects which must save themselves to disk.  Provides an
@@ -192,8 +252,8 @@ This is used with the `object-write' method.")
 	       :documentation
 	       "Saving this object should make backup files.
 Setting to nil will mean no backups are made."))
-  "This special class enables persistence through save files
-Use the `object-save' method to write this object to disk.  The save
+  "This special class enables persistence through save files.
+Use the `object-write' method to write this object to disk.  The save
 format is Emacs Lisp code which calls the constructor for the saved
 object.  For this reason, only slots which do not have an `:initarg'
 specified will not be saved."
@@ -219,199 +279,154 @@ for CLASS.  Optional ALLOW-SUBCLASS says that it is ok for
 `eieio-persistent-read' to load in subclasses of class instead of
 being pedantic."
   (unless class
-    (message "Unsafe call to `eieio-persistent-read'."))
+    (warn "`eieio-persistent-read' called without specifying a class"))
   (when class (cl-check-type class class))
-  (let ((ret nil)
-	(buffstr nil))
-    (unwind-protect
-	(progn
-	  (with-current-buffer (get-buffer-create " *tmp eieio read*")
-	    (insert-file-contents filename nil nil nil t)
-	    (goto-char (point-min))
-	    (setq buffstr (buffer-string)))
-	  ;; Do the read in the buffer the read was initialized from
-	  ;; so that any initialize-instance calls that depend on
-	  ;; the current buffer will work.
-	  (setq ret (read buffstr))
-	  (when (not (child-of-class-p (car ret) 'eieio-persistent))
-	    (error "Corrupt object on disk: Unknown saved object"))
-	  (when (and class
-		     (not (or (eq (car ret) class ) ; same class
-			      (and allow-subclass
-				   (child-of-class-p (car ret) class)) ; subclasses
-			      )))
-	    (error "Corrupt object on disk: Invalid saved class"))
-	  (setq ret (eieio-persistent-convert-list-to-object ret))
-	  (oset ret file filename))
-      (kill-buffer " *tmp eieio read*"))
+  (let* ((buffstr (with-temp-buffer
+                    (insert-file-contents filename)
+                    (buffer-string)))
+         ;; Do the read in the buffer the read was initialized from
+         ;; so that any initialize-instance calls that depend on
+         ;; the current buffer will work.
+         (ret (read buffstr)))
+    (when (not (child-of-class-p (car ret) 'eieio-persistent))
+      (error
+       "Invalid object: %s is not a subclass of `eieio-persistent'"
+       (car ret)))
+    (when (and class
+	       (not (or (eq (car ret) class) ; same class
+			(and allow-subclass  ; subclass
+			     (child-of-class-p (car ret) class)))))
+      (error
+       "Invalid object: %s is not an object of class %s nor a subclass"
+       (car ret) class))
+    (setq ret (eieio-persistent-make-instance (car ret) (cdr ret)))
+    (oset ret file filename)
     ret))
 
-(defun eieio-persistent-convert-list-to-object (inputlist)
-  "Convert the INPUTLIST, representing object creation to an object.
-While it is possible to just `eval' the INPUTLIST, this code instead
-validates the existing list, and explicitly creates objects instead of
-calling eval.  This avoids the possibility of accidentally running
-malicious code.
+(cl-defgeneric eieio-persistent-make-instance (objclass inputlist)
+  "Convert INPUTLIST, representing slot values, to an instance of OBJCLASS.
+Clean slot values, and possibly recursively create additional
+objects found there."
+  (:method
+   ((objclass (subclass eieio-default-superclass)) inputlist)
 
-Note: This function recurses when a slot of :type of some object is
-identified, and needing more object creation."
-  (let* ((objclass (nth 0 inputlist))
-	 ;; (objname (nth 1 inputlist))
-	 (slots (nthcdr 2 inputlist))
-	 (createslots nil)
-	 (class
-	  (progn
-	    ;; If OBJCLASS is an eieio autoload object, then we need to
-	    ;; load it.
-	    (eieio-class-un-autoload objclass)
-	    (eieio--class-object objclass))))
+   (let* ((name nil)
+          (slots (if (stringp (car inputlist))
+                     (progn
+                       ;; Earlier versions of `object-write' added a
+                       ;; string name for the object, now obsolete.
+                       ;; Save as 'name' in case this object is subclass
+                       ;; of eieio-named with no :object-name slot specified.
+                       (setq name (car inputlist))
+                       (cdr inputlist))
+                   inputlist))
+          (createslots nil))
+     ;; If OBJCLASS is an eieio autoload object, then we need to
+     ;; load it (we don't need the return value).
+     (eieio--full-class-object objclass)
+     (while slots
+       (let ((initarg (car slots))
+	     (value (car (cdr slots))))
 
-    (while slots
-      (let ((initarg (car slots))
-	    (value (car (cdr slots))))
+	 ;; Strip out quotes, list functions, and update object
+	 ;; constructors as needed.
+	 (setq value (eieio-persistent-fix-value value))
 
-	;; Make sure that the value proposed for SLOT is valid.
-	;; In addition, strip out quotes, list functions, and update
-	;; object constructors as needed.
-	(setq value (eieio-persistent-validate/fix-slot-value
-		     class (eieio--initarg-to-attribute class initarg) value))
+	 (push initarg createslots)
+	 (push value createslots))
 
-	(push initarg createslots)
-	(push value createslots)
-	)
+       (setq slots (cdr (cdr slots))))
 
-      (setq slots (cdr (cdr slots))))
+     (let ((newobj (apply #'make-instance objclass (nreverse createslots))))
 
-    (apply #'make-instance objclass (nreverse createslots))
+       ;; Check for special case of subclass of `eieio-named', and do
+       ;; name assignment.
+       (when (and eieio-backward-compatibility
+                  (object-of-class-p newobj 'eieio-named)
+                  (not (oref newobj object-name))
+                  name)
+         (oset newobj object-name name))
 
-    ;;(eval inputlist)
-    ))
+       newobj))))
 
-(defun eieio-persistent-validate/fix-slot-value (class slot proposed-value)
-  "Validate that in CLASS, the SLOT with PROPOSED-VALUE is good, then fix.
-A limited number of functions, such as quote, list, and valid object
-constructor functions are considered valid.
-Second, any text properties will be stripped from strings."
+(defun eieio-persistent-fix-value (proposed-value)
+  "Fix PROPOSED-VALUE.
+Remove leading quotes from lists, and the symbol `list' from the
+head of lists.  Explicitly construct any objects found, and strip
+any text properties from string values.
+
+This function will descend into the contents of lists, hash
+tables, and vectors."
   (cond ((consp proposed-value)
 	 ;; Lists with something in them need special treatment.
-	 (let* ((slot-idx (- (eieio--slot-name-index class slot)
-                             (eval-when-compile eieio--object-num-slots)))
-                (type (cl--slot-descriptor-type (aref (eieio--class-slots class)
-                                                      slot-idx)))
-                (classtype (eieio-persistent-slot-type-is-class-p type)))
+	 (cond ((eq (car proposed-value) 'quote)
+                (while (eq (car-safe proposed-value) 'quote)
+		  (setq proposed-value (car (cdr proposed-value))))
+                proposed-value)
 
-	   (cond ((eq (car proposed-value) 'quote)
-		  (car (cdr proposed-value)))
+	       ;; An empty list sometimes shows up as (list), which is dumb, but
+	       ;; we need to support it for backward compar.
+	       ((and (eq (car proposed-value) 'list)
+		     (= (length proposed-value) 1))
+		nil)
 
-		 ;; An empty list sometimes shows up as (list), which is dumb, but
-		 ;; we need to support it for backward compat.
-		 ((and (eq (car proposed-value) 'list)
-		       (= (length proposed-value) 1))
-		  nil)
+	       ;; List of object constructors.
+	       ((and (eq (car proposed-value) 'list)
+		     ;; 2nd item is a list.
+		     (consp (car (cdr proposed-value)))
+		     ;; 1st elt of 2nd item is a class name.
+		     (class-p (car (car (cdr proposed-value)))))
 
-		 ;; List of object constructors.
-		 ((and (eq (car proposed-value) 'list)
-		       ;; 2nd item is a list.
-		       (consp (car (cdr proposed-value)))
-		       ;; 1st elt of 2nd item is a class name.
-		       (class-p (car (car (cdr proposed-value))))
-		       )
+		;; We have a list of objects here.  Lets load them
+		;; in.
+		(let ((objlist nil))
+		  (dolist (subobj (cdr proposed-value))
+		    (push (eieio-persistent-make-instance
+                           (car subobj) (cdr subobj))
+			  objlist))
+		  ;; return the list of objects ... reversed.
+		  (nreverse objlist)))
+	       ;; We have a slot with a single object that can be
+	       ;; saved here.  Recurse and evaluate that
+	       ;; sub-object.
+	       ((class-p (car proposed-value))
+		(eieio-persistent-make-instance
+		 (car proposed-value) (cdr proposed-value)))
+	       (t
+		proposed-value)))
+        ;; For hash-tables and vectors, the top-level `read' will not
+        ;; "look inside" member values, so we need to do that
+        ;; explicitly.  Because `eieio-override-prin1' is recursive in
+        ;; the case of hash-tables and vectors, we recurse
+        ;; `eieio-persistent-validate/fix-slot-value' here as well.
+        ((hash-table-p proposed-value)
+         (maphash
+          (lambda (key value)
+            (setf (gethash key proposed-value)
+                  (if (class-p (car-safe value))
+                      (eieio-persistent-make-instance
+                       (car value) (cdr value))
+                    (eieio-persistent-fix-value value))))
+          proposed-value)
+         proposed-value)
 
-		  ;; Check the value against the input class type.
-		  ;; If something goes wrong, issue a smart warning
-		  ;; about how a :type is needed for this to work.
-		  (unless (and
-			   ;; Do we have a type?
-			   (consp classtype) (class-p (car classtype)))
-		    (error "In save file, list of object constructors found, but no :type specified for slot %S of type %S"
-			   slot classtype))
+        ((vectorp proposed-value)
+         (dotimes (i (length proposed-value))
+           (let ((val (aref proposed-value i)))
+             (aset proposed-value i
+                   (if (class-p (car-safe val))
+                       (eieio-persistent-make-instance
+                        (car val) (cdr val))
+                     (eieio-persistent-fix-value val)))))
+         proposed-value)
 
-		  ;; We have a predicate, but it doesn't satisfy the predicate?
-		  (dolist (PV (cdr proposed-value))
-		    (unless (child-of-class-p (car PV) (car classtype))
-		      (error "Corrupt object on disk")))
-
-		  ;; We have a list of objects here.  Lets load them
-		  ;; in.
-		  (let ((objlist nil))
-		    (dolist (subobj (cdr proposed-value))
-		      (push (eieio-persistent-convert-list-to-object subobj)
-			    objlist))
-		    ;; return the list of objects ... reversed.
-		    (nreverse objlist)))
-		 ;; We have a slot with a single object that can be
-		 ;; saved here.  Recurse and evaluate that
-		 ;; sub-object.
-		 ((and classtype
-                       (seq-some
-                        (lambda (elt)
-                          (child-of-class-p (car proposed-value) elt))
-                        classtype))
-		  (eieio-persistent-convert-list-to-object
-		   proposed-value))
-		 (t
-		  proposed-value))))
-
-	 ((stringp proposed-value)
-	  ;; Else, check for strings, remove properties.
-	  (substring-no-properties proposed-value))
-
-	 (t
-	  ;; Else, just return whatever the constant was.
-	  proposed-value))
-  )
-
-(defun eieio-persistent-slot-type-is-class-p (type)
-  "Return the class referred to in TYPE.
-If no class is referenced there, then return nil."
-  (cond ((class-p type)
-	 ;; If the type is a class, then return it.
-	 type)
-	((and (eq 'list-of (car-safe type)) (class-p (cadr type)))
-	 ;; If it is the type of a list of a class, then return that class and
-	 ;; the type.
-	 (cons (cadr type) type))
-
-        ((and (symbolp type) (get type 'cl-deftype-handler))
-         ;; Macro-expand the type according to cl-deftype definitions.
-         (eieio-persistent-slot-type-is-class-p
-          (funcall (get type 'cl-deftype-handler))))
-
-        ;; FIXME: foo-child should not be a valid type!
-	((and (symbolp type) (string-match "-child\\'" (symbol-name type))
-	      (class-p (intern-soft (substring (symbol-name type) 0
-					       (match-beginning 0)))))
-         (unless eieio-backward-compatibility
-           (error "Use of bogus %S type instead of %S"
-                  type (intern-soft (substring (symbol-name type) 0
-					       (match-beginning 0)))))
-	 ;; If it is the predicate ending with -child, then return
-	 ;; that class.  Unfortunately, in EIEIO, typep of just the
-	 ;; class is the same as if we used -child, so no further work needed.
-	 (intern-soft (substring (symbol-name type) 0
-				 (match-beginning 0))))
-        ;; FIXME: foo-list should not be a valid type!
-	((and (symbolp type) (string-match "-list\\'" (symbol-name type))
-	      (class-p (intern-soft (substring (symbol-name type) 0
-					       (match-beginning 0)))))
-         (unless eieio-backward-compatibility
-           (error "Use of bogus %S type instead of (list-of %S)"
-                  type (intern-soft (substring (symbol-name type) 0
-					       (match-beginning 0)))))
-	 ;; If it is the predicate ending with -list, then return
-	 ;; that class and the predicate to use.
-	 (cons (intern-soft (substring (symbol-name type) 0
-				       (match-beginning 0)))
-	       type))
-
-	((eq (car-safe type) 'or)
-	 ;; If type is a list, and is an `or', return all valid class
-	 ;; types within the `or' statement.
-	 (seq-filter #'eieio-persistent-slot-type-is-class-p (cdr type)))
+	((stringp proposed-value)
+	 ;; Else, check for strings, remove properties.
+	 (substring-no-properties proposed-value))
 
 	(t
-	 ;; No match, not a class.
-	 nil)))
+	 ;; Else, just return whatever the constant was.
+	 proposed-value)))
 
 (cl-defmethod object-write ((this eieio-persistent) &optional comment)
   "Write persistent object THIS out to the current stream.
@@ -454,48 +469,6 @@ instance."
 ;; It should also set up some hooks to help it keep itself up to date.
 
 
-;;; Named object
-
-(defclass eieio-named ()
-  ((object-name :initarg :object-name :initform nil))
-  "Object with a name."
-  :abstract t)
-
-(cl-defmethod eieio-object-name-string ((obj eieio-named))
-  "Return a string which is OBJ's name."
-  (or (slot-value obj 'object-name)
-      (symbol-name (eieio-object-class obj))))
-
-(cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
-  "Set the string which is OBJ's NAME."
-  (cl-check-type name string)
-  (eieio-oset obj 'object-name name))
-
-(cl-defmethod clone ((obj eieio-named) &rest params)
-  "Clone OBJ, initializing `:parent' to OBJ.
-All slots are unbound, except those initialized with PARAMS."
-  (let* ((newname (and (stringp (car params)) (pop params)))
-         (nobj (apply #'cl-call-next-method obj params))
-         (nm (slot-value obj 'object-name)))
-    (eieio-oset obj 'object-name
-                (or newname
-                    (save-match-data
-                      (if (and nm (string-match "-\\([0-9]+\\)" nm))
-                          (let ((num (1+ (string-to-number
-                                          (match-string 1 nm)))))
-                            (concat (substring nm 0 (match-beginning 0))
-                                    "-" (int-to-string num)))
-                        (concat nm "-1")))))
-    nobj))
-
-(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
-  (if (not (stringp (car args)))
-      (cl-call-next-method)
-    (funcall (if eieio-backward-compatibility #'ignore #'message)
-             "Obsolete: name passed without :object-name to %S constructor"
-             class)
-    (apply #'cl-call-next-method class :object-name args)))
-
 
 (provide 'eieio-base)
 

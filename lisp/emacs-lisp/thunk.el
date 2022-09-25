@@ -1,6 +1,6 @@
 ;;; thunk.el --- Lazy form evaluation  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
@@ -29,9 +29,9 @@
 ;; Thunk provides functions and macros to delay the evaluation of
 ;; forms.
 ;;
-;; Use `thunk-delay' to delay the evaluation of a form, and
-;; `thunk-force' to evaluate it. The result of the evaluation is
-;; cached, and only happens once.
+;; Use `thunk-delay' to delay the evaluation of a form (requires
+;; lexical-binding), and `thunk-force' to evaluate it.  The result of
+;; the evaluation is cached, and only happens once.
 ;;
 ;; Here is an example of a form which evaluation is delayed:
 ;;
@@ -41,22 +41,28 @@
 ;; following:
 ;;
 ;;    (thunk-force delayed)
+;;
+;; This file also defines macros `thunk-let' and `thunk-let*' that are
+;; analogous to `let' and `let*' but provide lazy evaluation of
+;; bindings by using thunks implicitly (i.e. in the expansion).
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (defmacro thunk-delay (&rest body)
   "Delay the evaluation of BODY."
-  (declare (debug t))
-  (let ((forced (make-symbol "forced"))
-        (val (make-symbol "val")))
-    `(let (,forced ,val)
-       (lambda (&optional check)
-         (if check
-             ,forced
-           (unless ,forced
-             (setf ,val (progn ,@body))
-             (setf ,forced t))
-           ,val)))))
+  (declare (debug (def-body)))
+  (cl-assert lexical-binding)
+  `(let (forced
+         (val (lambda () ,@body)))
+     (lambda (&optional check)
+       (if check
+           forced
+         (unless forced
+           (setf val (funcall val))
+           (setf forced t))
+         val))))
 
 (defun thunk-force (delayed)
   "Force the evaluation of DELAYED.
@@ -67,6 +73,61 @@ with the same DELAYED argument."
 (defun thunk-evaluated-p (delayed)
   "Return non-nil if DELAYED has been evaluated."
   (funcall delayed t))
+
+(defmacro thunk-let (bindings &rest body)
+  "Like `let' but create lazy bindings.
+
+BINDINGS is a list of elements of the form (SYMBOL EXPRESSION).
+Any binding EXPRESSION is not evaluated before the variable
+SYMBOL is used for the first time when evaluating the BODY.
+
+It is not allowed to set `thunk-let' or `thunk-let*' bound
+variables.
+
+Using `thunk-let' and `thunk-let*' requires `lexical-binding'."
+  (declare (indent 1) (debug let))
+  (cl-callf2 mapcar
+      (lambda (binding)
+        (pcase binding
+          (`(,(pred symbolp) ,_) binding)
+          (_ (signal 'error (cons "Bad binding in thunk-let"
+                                  (list binding))))))
+      bindings)
+  (cl-callf2 mapcar
+      (pcase-lambda (`(,var ,binding))
+        (list (make-symbol (concat (symbol-name var) "-thunk"))
+              var binding))
+      bindings)
+  `(let ,(mapcar
+          (pcase-lambda (`(,thunk-var ,_var ,binding))
+            `(,thunk-var (thunk-delay ,binding)))
+          bindings)
+     (cl-symbol-macrolet
+         ,(mapcar (pcase-lambda (`(,thunk-var ,var ,_binding))
+                    `(,var (thunk-force ,thunk-var)))
+                  bindings)
+       ,@body)))
+
+(defmacro thunk-let* (bindings &rest body)
+  "Like `let*' but create lazy bindings.
+
+BINDINGS is a list of elements of the form (SYMBOL EXPRESSION).
+Any binding EXPRESSION is not evaluated before the variable
+SYMBOL is used for the first time when evaluating the BODY.
+
+It is not allowed to set `thunk-let' or `thunk-let*' bound
+variables.
+
+Using `thunk-let' and `thunk-let*' requires `lexical-binding'."
+  (declare (indent 1) (debug let))
+  (cl-reduce
+   (lambda (expr binding) `(thunk-let (,binding) ,expr))
+   (reverse bindings)
+   :initial-value (macroexp-progn body)))
+
+;; (defalias 'lazy-let  #'thunk-let)
+;; (defalias 'lazy-let* #'thunk-let*)
+
 
 (provide 'thunk)
 ;;; thunk.el ends here

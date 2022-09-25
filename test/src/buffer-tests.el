@@ -1,6 +1,6 @@
 ;;; buffer-tests.el --- tests for buffer.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,201 @@
 
 (require 'ert)
 (require 'seq)
+(require 'ert-x)
+(require 'cl-lib)
+(require 'let-alist)
+
+(defun overlay-tests-start-recording-modification-hooks (overlay)
+  "Start recording modification hooks on OVERLAY.
+
+Always overwrites the `insert-in-front-hooks',
+`modification-hooks' and `insert-behind-hooks' properties.  Any
+recorded history from a previous call is erased.
+
+The history is stored in a property on the overlay itself.  Call
+`overlay-tests-get-recorded-modification-hooks' to retrieve the
+recorded calls conveniently."
+  (dolist (hooks-property '(insert-in-front-hooks
+                            modification-hooks
+                            insert-behind-hooks))
+    (overlay-put
+     overlay
+     hooks-property
+     (list (lambda (ov &rest args)
+             (message "  %S called on %S with args %S" hooks-property ov args)
+             (should inhibit-modification-hooks)
+             (should (eq ov overlay))
+             (push (list hooks-property args)
+                   (overlay-get overlay
+                                'recorded-modification-hook-calls)))))
+    (overlay-put overlay 'recorded-modification-hook-calls nil)))
+
+(defun overlay-tests-get-recorded-modification-hooks (overlay)
+  "Extract the recorded calls made to modification hooks on OVERLAY.
+
+Must be preceded by a call to
+`overlay-tests-start-recording-modification-hooks' on OVERLAY.
+
+Returns a list.  Each element of the list represents a recorded
+call to a particular modification hook.
+
+Each call is itself a sub-list where the first element is a
+symbol matching the modification hook property (one of
+`insert-in-front-hooks', `modification-hooks' or
+`insert-behind-hooks') and the second element is the list of
+arguments passed to the hook.  The first hook argument, the
+overlay itself, is omitted to make test result verification
+easier."
+  (reverse (overlay-get overlay
+                        'recorded-modification-hook-calls)))
+
+(ert-deftest overlay-modification-hooks ()
+  "Test the basic functionality of overlay modification hooks.
+
+This exercises hooks registered on the `insert-in-front-hooks',
+`modification-hooks' and `insert-behind-hooks' overlay
+properties."
+    ;; This is a data driven test loop.  Each test case is described
+    ;; by an alist.  The test loop initializes a new temporary buffer
+    ;; for each case, creates an overlay, registers modification hooks
+    ;; on the overlay, modifies the buffer, and then verifies which
+    ;; modification hooks (if any) were called for the overlay, as
+    ;; well as which arguments were passed to the hooks.
+    ;;
+    ;; The following keys are available in the alist:
+    ;;
+    ;; `buffer-text': the initial buffer text of the temporary buffer.
+    ;; Defaults to "1234".
+    ;;
+    ;; `overlay-beg' and `overlay-end': the begin and end positions of
+    ;; the overlay under test.  Defaults to 2 and 4 respectively.
+    ;;
+    ;; `insert-at': move to the given position and insert the string
+    ;; "x" into the test case's buffer.
+    ;;
+    ;; `replace': replace the first occurrence of the given string in
+    ;; the test case's buffer with "x".  The test will fail if the
+    ;; string is not found.
+    ;;
+    ;; `expected-calls': a description of the expected buffer
+    ;; modification hooks.  See
+    ;; `overlay-tests-get-recorded-modification-hooks' for the format.
+    ;; May be omitted, in which case the test will insist that no
+    ;; modification hooks are called.
+    ;;
+    ;; The test will fail itself in the degenerate case where no
+    ;; buffer modifications are requested.
+    (dolist (test-case
+             '(
+               ;; Remember that the default buffer text is "1234" and
+               ;; the default overlay begins at position 2 and ends at
+               ;; position 4.  Most of the test cases below assume
+               ;; this.
+
+               ;; TODO: (info "(elisp) Special Properties") says this
+               ;; about `modification-hooks': "Furthermore, insertion
+               ;; will not modify any existing character, so this hook
+               ;; will only be run when removing some characters,
+               ;; replacing them with others, or changing their
+               ;; text-properties."  So, why are modification-hooks
+               ;; being called when inserting at position 3 below?
+               ((insert-at . 1))
+               ((insert-at . 2)
+                (expected-calls . ((insert-in-front-hooks (nil 2 2))
+                                   (insert-in-front-hooks (t 2 3 0)))))
+               ((insert-at . 3)
+                (expected-calls . ((modification-hooks (nil 3 3))
+                                   (modification-hooks (t 3 4 0)))))
+               ((insert-at . 4)
+                (expected-calls . ((insert-behind-hooks (nil 4 4))
+                                   (insert-behind-hooks (t 4 5 0)))))
+               ((insert-at . 5))
+
+               ;; Replacing text never calls `insert-in-front-hooks'
+               ;; or `insert-behind-hooks'.  It calls
+               ;; `modification-hooks' if the overlay covers any text
+               ;; that has changed.
+               ((replace . "1"))
+               ((replace . "2")
+                (expected-calls . ((modification-hooks (nil 2 3))
+                                   (modification-hooks (t 2 3 1)))))
+               ((replace . "3")
+                (expected-calls . ((modification-hooks (nil 3 4))
+                                   (modification-hooks (t 3 4 1)))))
+               ((replace . "4"))
+               ((replace . "12")
+                (expected-calls . ((modification-hooks (nil 1 3))
+                                   (modification-hooks (t 1 2 2)))))
+               ((replace . "23")
+                (expected-calls . ((modification-hooks (nil 2 4))
+                                   (modification-hooks (t 2 3 2)))))
+               ((replace . "34")
+                (expected-calls . ((modification-hooks (nil 3 5))
+                                   (modification-hooks (t 3 4 2)))))
+               ((replace . "123")
+                (expected-calls . ((modification-hooks (nil 1 4))
+                                   (modification-hooks (t 1 2 3)))))
+               ((replace . "234")
+                (expected-calls . ((modification-hooks (nil 2 5))
+                                   (modification-hooks (t 2 3 3)))))
+               ((replace . "1234")
+                (expected-calls . ((modification-hooks (nil 1 5))
+                                   (modification-hooks (t 1 2 4)))))
+
+               ;; Inserting at the position of a zero-length overlay
+               ;; calls both `insert-in-front-hooks' and
+               ;; `insert-behind-hooks'.
+               ((buffer-text . "") (overlay-beg . 1) (overlay-end . 1)
+                (insert-at . 1)
+                (expected-calls . ((insert-in-front-hooks
+                                    (nil 1 1))
+                                   (insert-behind-hooks
+                                    (nil 1 1))
+                                   (insert-in-front-hooks
+                                    (t 1 2 0))
+                                   (insert-behind-hooks
+                                    (t 1 2 0)))))))
+      (message "BEGIN overlay-modification-hooks test-case %S" test-case)
+
+      ;; All three hooks ignore the overlay's `front-advance' and
+      ;; `rear-advance' option, so test both ways while expecting the same
+      ;; result.
+      (dolist (advance '(nil t))
+        (message "  advance is %S" advance)
+        (let-alist test-case
+          (with-temp-buffer
+            ;; Set up the temporary buffer and overlay as specified by
+            ;; the test case.
+            (insert (or .buffer-text "1234"))
+            (let ((overlay (make-overlay
+                            (or .overlay-beg 2)
+                            (or .overlay-end 4)
+                            nil
+                            advance advance)))
+              (message "  (buffer-string) is %S" (buffer-string))
+              (message "  overlay is %S" overlay)
+              (overlay-tests-start-recording-modification-hooks overlay)
+
+              ;; Modify the buffer, possibly inducing calls to the
+              ;; overlay's modification hooks.
+              (should (or .insert-at .replace))
+              (when .insert-at
+                (goto-char .insert-at)
+                (insert "x")
+                (message "  inserted \"x\" at %S, buffer-string now %S"
+                         .insert-at (buffer-string)))
+              (when .replace
+                (goto-char (point-min))
+                (search-forward .replace)
+                (replace-match "x")
+                (message "  replaced %S with \"x\"" .replace))
+
+              ;; Verify that the expected and actual modification hook
+              ;; calls match.
+              (should (equal
+                       .expected-calls
+                       (overlay-tests-get-recorded-modification-hooks
+                        overlay)))))))))
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
   "Test for bug#21824.
@@ -46,34 +241,80 @@ with parameters from the *Messages* buffer modification."
             (should (eq buf (current-buffer))))
         (when msg-ov (delete-overlay msg-ov))))))
 
+(ert-deftest overlay-modification-hooks-deleted-overlay ()
+  "Test for bug#30823."
+  (let ((check-point nil)
+	(ov-delete nil)
+	(ov-set nil))
+    (with-temp-buffer
+      (insert "abc")
+      (setq ov-set (make-overlay 1 3))
+      (overlay-put ov-set 'modification-hooks
+		   (list (lambda (_o after &rest _args)
+			   (and after (setq check-point t)))))
+      (setq ov-delete (make-overlay 1 3))
+      (overlay-put ov-delete 'modification-hooks
+		   (list (lambda (o after &rest _args)
+			   (and (not after) (delete-overlay o)))))
+      (goto-char 2)
+      (insert "1")
+      (should (eq check-point t)))))
+
 (ert-deftest test-generate-new-buffer-name-bug27966 ()
   (should-not (string-equal "nil"
                             (progn (get-buffer-create "nil")
                                    (generate-new-buffer-name "nil")))))
 
-
-;; +===================================================================================+
+(ert-deftest test-buffer-base-buffer-indirect ()
+  (with-temp-buffer
+    (let* ((ind-buf-name (generate-new-buffer-name "indbuf"))
+           (ind-buf (make-indirect-buffer (current-buffer) ind-buf-name)))
+      (should (eq (buffer-base-buffer ind-buf) (current-buffer))))))
+
+(ert-deftest test-buffer-base-buffer-non-indirect ()
+  (with-temp-buffer
+    (should (eq (buffer-base-buffer (current-buffer)) nil))))
+
+(ert-deftest overlay-evaporation-after-killed-buffer ()
+  (let* ((ols (with-temp-buffer
+                (insert "toto")
+                (list
+                 (make-overlay (point-min) (point-max))
+                 (make-overlay (point-min) (point-max))
+                 (make-overlay (point-min) (point-max)))))
+         (ol (nth 1 ols)))
+    (overlay-put ol 'evaporate t)
+    ;; Evaporation within move-overlay of an overlay that was deleted because
+    ;; of a kill-buffer, triggered an assertion failure in unchain_both.
+    (with-temp-buffer
+      (insert "toto")
+      (move-overlay ol (point-min) (point-min)))))
+
+
+;; +==========================================================================+
 ;; | Overlay test setup
-;; +===================================================================================+
+;; +==========================================================================+
 
-(eval-when-compile
-  (defun make-overlay-test-name (fn x y)
-    (intern (format "test-%s-%s-%s" fn x y))))
+(eval-and-compile
+  (defun buffer-tests--make-test-name (fn x y)
+    (intern (format "buffer-tests--%s-%s-%s" fn x y))))
 
-(defun unmake-ov-test-name (symbol)
+(defun buffer-tests--unmake-test-name (symbol)
   (let ((name (if (stringp symbol) symbol (symbol-name symbol))))
-    (when (string-match "\\`test-\\(.*\\)-\\(.*\\)-\\(.*\\)\\'" name)
-      (list (match-string 1 name) (match-string 2 name) (match-string 3 name)))))
+    (when (string-match "\\`buffer-tests--\\(.*\\)-\\(.*\\)-\\(.*\\)\\'" name)
+      (list (match-string 1 name)
+            (match-string 2 name)
+            (match-string 3 name)))))
 
 (defmacro deftest-make-overlay-1 (id args)
   (declare (indent 1))
-  `(ert-deftest ,(make-overlay-test-name 'make-overlay 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'make-overlay 1 id) ()
      (with-temp-buffer
        (should ,(cons 'make-overlay args)))))
 
 (defmacro deftest-make-overlay-2 (id args condition)
   (declare (indent 1))
-  `(ert-deftest ,(make-overlay-test-name 'make-overlay 2 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'make-overlay 2 id) ()
      (with-temp-buffer
        (should-error
         ,(cons 'make-overlay args)
@@ -84,7 +325,7 @@ with parameters from the *Messages* buffer modification."
   (declare (indent 1))
   (cl-destructuring-bind (start end sstart send)
       (append start-end-args start-end-should)
-    `(ert-deftest ,(make-overlay-test-name 'overlay-start/end 1 id) ()
+    `(ert-deftest ,(buffer-tests--make-test-name 'overlay-start/end 1 id) ()
        (with-temp-buffer
          (insert (make-string 9 ?\n))
          (let ((ov (make-overlay ,start ,end)))
@@ -93,25 +334,26 @@ with parameters from the *Messages* buffer modification."
 
 (defmacro deftest-overlay-buffer-1 (id arg-expr should-expr)
   (declare (indent 1))
-  `(ert-deftest ,(make-overlay-test-name 'overlay-buffer 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'overlay-buffer 1 id) ()
      (with-temp-buffer
        (should (equal (overlay-buffer (make-overlay 1 1 ,arg-expr))
-                   ,should-expr)))))
+                      ,should-expr)))))
 
 (defmacro deftest-overlayp-1 (id arg-expr should-expr)
   (declare (indent 1))
-  `(ert-deftest ,(make-overlay-test-name 'overlay-buffer 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'overlayp 1 id) ()
      (with-temp-buffer
        (should (equal ,should-expr (overlayp ,arg-expr))))))
 
 (defmacro deftest-next-overlay-change-1 (id pos result &rest ov-tuple)
-  `(ert-deftest ,(make-overlay-test-name 'next-overlay-change 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'next-overlay-change 1 id) ()
      (let ((tuple (copy-sequence ',ov-tuple)))
        (with-temp-buffer
          (insert (make-string (max 100 (if tuple
                                            (apply #'max
                                                   (mapcar
-                                                   (lambda (m) (apply #'max m)) tuple))
+                                                   (lambda (m) (apply #'max m))
+                                                   tuple))
                                          0))
                               ?\n))
          (dolist (tup tuple)
@@ -120,13 +362,14 @@ with parameters from the *Messages* buffer modification."
                         ,result))))))
 
 (defmacro deftest-previous-overlay-change-1 (id pos result &rest ov-tuple)
-  `(ert-deftest ,(make-overlay-test-name 'previous-overlay-change 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'previous-overlay-change 1 id) ()
      (let ((tuple ',ov-tuple))
        (with-temp-buffer
          (insert (make-string (max 100 (if tuple
                                            (apply #'max
                                                   (mapcar
-                                                   (lambda (m) (apply #'max m)) tuple))
+                                                   (lambda (m) (apply #'max m))
+                                                   tuple))
                                          0))
                               ?\n))
          (dolist (tup tuple)
@@ -135,7 +378,7 @@ with parameters from the *Messages* buffer modification."
                         ,result))))))
 
 (defmacro deftest-overlays-at-1 (id pos result &rest ov-triple)
-  `(ert-deftest ,(make-overlay-test-name 'overlays-at 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'overlays-at 1 id) ()
      (let ((pos* ,pos))
        (with-temp-buffer
          (insert (make-string 100 ?\s))
@@ -150,7 +393,7 @@ with parameters from the *Messages* buffer modification."
              (should (memq (overlay-get ov 'tag) ',result))))))))
 
 (defmacro deftest-overlays-in-1 (id beg end result &rest ov-triple)
-  `(ert-deftest ,(make-overlay-test-name 'overlays-in 1 id) ()
+  `(ert-deftest ,(buffer-tests--make-test-name 'overlays-in 1 id) ()
      (let ((beg* ,beg)
            (end* ,end))
        (with-temp-buffer
@@ -176,39 +419,42 @@ with parameters from the *Messages* buffer modification."
          ,@body))))
 
 (defmacro deftest-overlays-equal-1 (id result ov1-args ov2-args)
-  `(ert-deftest ,(make-overlay-test-name 'overlays-equal 1 id) ()
-     (cl-labels ((create-overlay (args)
-                   (cl-destructuring-bind (start end &optional fa ra &rest properties)
-                       args
-                     (let ((ov (make-overlay start end nil fa ra)))
-                       (while properties
-                         (overlay-put ov (pop properties) (pop properties)))
-                       ov))))
+  `(ert-deftest ,(buffer-tests--make-test-name 'overlays-equal 1 id) ()
+     (cl-flet ((create-overlay (args)
+                 (cl-destructuring-bind (start end &optional fa ra
+                                                   &rest properties)
+                     args
+                   (let ((ov (make-overlay start end nil fa ra)))
+                     (while properties
+                       (overlay-put ov (pop properties) (pop properties)))
+                     ov))))
        (with-temp-buffer
          (insert (make-string 1024 ?\s))
          (should (,(if result 'identity 'not)
                   (equal (create-overlay ',ov1-args)
                          (create-overlay ',ov2-args))))))))
-
 
-(defun find-ert-overlay-test (name)
-  (let ((test (unmake-ov-test-name name)))
+
+(defun buffer-tests--find-ert-test (name)
+  (let ((test (buffer-tests--unmake-test-name name)))
     (or (and test
              (cl-destructuring-bind (fn x y)
                  test
                (let ((regexp (format "deftest-%s-%s +%s" fn x y)))
                  (re-search-forward regexp nil t))))
         (let ((find-function-regexp-alist
-               (cl-remove 'find-ert-overlay-test find-function-regexp-alist :key #'cdr)))
-          (find-function-do-it name 'ert-deftest 'switch-to-buffer-other-window)))))
+               (cl-remove #'buffer-tests--find-ert-test
+                          find-function-regexp-alist :key #'cdr)))
+          (find-function-do-it name 'ert-deftest
+                               #'switch-to-buffer-other-window)))))
 
 (add-to-list 'find-function-regexp-alist
-             '(ert-deftest . find-ert-overlay-test))
+             `(ert-deftest . ,#'buffer-tests--find-ert-test))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | make-overlay
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Test if making an overlay succeeds.
 (deftest-make-overlay-1 A (1 1))
@@ -237,12 +483,12 @@ with parameters from the *Messages* buffer modification."
 (deftest-make-overlay-2 I (1 [1])       wrong-type-argument)
 (deftest-make-overlay-2 J (1 1 (with-temp-buffer
                                  (current-buffer)))
-                        error)
+  error)
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-start/end
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Test if the overlays return proper positions.  point-max of the
 ;; buffer will equal 10.        ARG RESULT
@@ -253,7 +499,8 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlay-start/end-1 E (1 11) (1 10))
 (deftest-overlay-start/end-1 F (1 most-positive-fixnum) (1 10))
 (deftest-overlay-start/end-1 G (most-positive-fixnum 1) (1 10))
-(deftest-overlay-start/end-1 H (most-positive-fixnum most-positive-fixnum) (10 10))
+(deftest-overlay-start/end-1 H (most-positive-fixnum most-positive-fixnum)
+                               (10 10))
 (deftest-overlay-start/end-1 I (100 11) (10 10))
 (deftest-overlay-start/end-1 J (11 100) (10 10))
 (deftest-overlay-start/end-1 K (0 1) (1 1))
@@ -264,10 +511,10 @@ with parameters from the *Messages* buffer modification."
   (should-not (overlay-start (with-temp-buffer (make-overlay 1 1))))
   (should-not (overlay-end (with-temp-buffer (make-overlay 1 1)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-buffer
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Test if overlay-buffer returns appropriate values.
 (deftest-overlay-buffer-1 A (current-buffer) (current-buffer))
@@ -276,10 +523,10 @@ with parameters from the *Messages* buffer modification."
   (should-error (make-overlay
                  1 1 (with-temp-buffer (current-buffer)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlayp
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Check the overlay predicate.
 (deftest-overlayp-1 A (make-overlay 1 1) t)
@@ -298,10 +545,10 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlayp-1 N (selected-window)              nil)
 (deftest-overlayp-1 O (selected-frame)               nil)
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay equality
-;; +===================================================================================+
+;; +==========================================================================+
 
 (deftest-overlays-equal-1 A t (1 1) (1 1))
 (deftest-overlays-equal-1 B t (5 10) (5 10))
@@ -313,10 +560,10 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlays-equal-1 H t (10 20 nil nil foo 42) (10 20 nil nil foo 42))
 (deftest-overlays-equal-1 I nil (10 20 nil nil foo 42) (10 20 nil nil foo 43))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-lists
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Check whether overlay-lists returns something sensible.
 (ert-deftest test-overlay-lists-1 ()
@@ -330,10 +577,10 @@ with parameters from the *Messages* buffer modification."
       (should (= 10 (length list)))
       (should (seq-every-p #'overlayp list)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-put/get/properties
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Test if overlay-put properties can be retrieved by overlay-get and
 ;; overlay-properties.
@@ -361,10 +608,10 @@ with parameters from the *Messages* buffer modification."
       ;; Check if overlay-properties is a subset.
       (should (= (length (overlay-properties ov)) (* n 2))))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | next-overlay-change
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Test if next-overlay-change returns RESULT if called with POS in a
 ;; buffer with overlays corresponding to OVS and point-max >= 100.
@@ -383,14 +630,14 @@ with parameters from the *Messages* buffer modification."
 (deftest-next-overlay-change-1 I 10 (point-max) (10 10))
 (deftest-next-overlay-change-1 J 20 (point-max) (10 10))
 ;; 2 non-empty, non-intersecting
-(deftest-next-overlay-change-1 D 10 20 (20 30) (40 50))
-(deftest-next-overlay-change-1 E 35 40 (20 30) (40 50))
-(deftest-next-overlay-change-1 F 60 (point-max) (20 30) (40 50))
-(deftest-next-overlay-change-1 G 30 40 (20 30) (40 50))
-(deftest-next-overlay-change-1 H 50 (point-max) (20 30) (40 50))
+(deftest-next-overlay-change-1 D2 10 20 (20 30) (40 50))
+(deftest-next-overlay-change-1 E2 35 40 (20 30) (40 50))
+(deftest-next-overlay-change-1 F2 60 (point-max) (20 30) (40 50))
+(deftest-next-overlay-change-1 G2 30 40 (20 30) (40 50))
+(deftest-next-overlay-change-1 H2 50 (point-max) (20 30) (40 50))
 ;; 2 non-empty, intersecting
-(deftest-next-overlay-change-1 I 10 20 (20 30) (25 35))
-(deftest-next-overlay-change-1 J 20 25 (20 30) (25 35))
+(deftest-next-overlay-change-1 I2 10 20 (20 30) (25 35))
+(deftest-next-overlay-change-1 J2 20 25 (20 30) (25 35))
 (deftest-next-overlay-change-1 K 23 25 (20 30) (25 35))
 (deftest-next-overlay-change-1 L 25 30 (20 30) (25 35))
 (deftest-next-overlay-change-1 M 28 30 (20 30) (25 35))
@@ -420,11 +667,11 @@ with parameters from the *Messages* buffer modification."
 (deftest-next-overlay-change-1 k 30 (point-max) (20 20) (20 30))
 (deftest-next-overlay-change-1 l 40 (point-max) (20 20) (20 30))
 ;; 1 empty, 1 non-empty, intersecting at end
-(deftest-next-overlay-change-1 h 10 20 (30 30) (20 30))
-(deftest-next-overlay-change-1 i 20 30 (30 30) (20 30))
-(deftest-next-overlay-change-1 j 25 30 (30 30) (20 30))
-(deftest-next-overlay-change-1 k 30 (point-max) (20 20) (20 30))
-(deftest-next-overlay-change-1 l 40 (point-max) (20 20) (20 30))
+(deftest-next-overlay-change-1 h2 10 20 (30 30) (20 30))
+(deftest-next-overlay-change-1 i2 20 30 (30 30) (20 30))
+(deftest-next-overlay-change-1 j2 25 30 (30 30) (20 30))
+(deftest-next-overlay-change-1 k2 30 (point-max) (20 20) (20 30))
+(deftest-next-overlay-change-1 l2 40 (point-max) (20 20) (20 30))
 ;; 1 empty, 1 non-empty, intersecting in the middle
 (deftest-next-overlay-change-1 m 10 20 (25 25) (20 30))
 (deftest-next-overlay-change-1 n 20 25 (25 25) (20 30))
@@ -452,10 +699,10 @@ with parameters from the *Messages* buffer modification."
   (58 66) (41 10) (9 67) (28 88) (27 43)
   (24 27) (48 36) (5 90) (61 9))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | previous-overlay-change.
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; Same for previous-overlay-change.
 ;; 1 non-empty overlay
@@ -471,14 +718,14 @@ with parameters from the *Messages* buffer modification."
 (deftest-previous-overlay-change-1 I 10 1 (10 10))
 (deftest-previous-overlay-change-1 J 20 10 (10 10))
 ;; 2 non-empty, non-intersecting
-(deftest-previous-overlay-change-1 D 10 1 (20 30) (40 50))
-(deftest-previous-overlay-change-1 E 35 30 (20 30) (40 50))
-(deftest-previous-overlay-change-1 F 60 50 (20 30) (40 50))
-(deftest-previous-overlay-change-1 G 30 20 (20 30) (40 50))
-(deftest-previous-overlay-change-1 H 50 40 (20 30) (40 50))
+(deftest-previous-overlay-change-1 D2 10 1 (20 30) (40 50))
+(deftest-previous-overlay-change-1 E2 35 30 (20 30) (40 50))
+(deftest-previous-overlay-change-1 F2 60 50 (20 30) (40 50))
+(deftest-previous-overlay-change-1 G2 30 20 (20 30) (40 50))
+(deftest-previous-overlay-change-1 H2 50 40 (20 30) (40 50))
 ;; 2 non-empty, intersecting
-(deftest-previous-overlay-change-1 I 10 1 (20 30) (25 35))
-(deftest-previous-overlay-change-1 J 20 1 (20 30) (25 35))
+(deftest-previous-overlay-change-1 I2 10 1 (20 30) (25 35))
+(deftest-previous-overlay-change-1 J2 20 1 (20 30) (25 35))
 (deftest-previous-overlay-change-1 K 23 20 (20 30) (25 35))
 (deftest-previous-overlay-change-1 L 25 20 (20 30) (25 35))
 (deftest-previous-overlay-change-1 M 28 25 (20 30) (25 35))
@@ -513,7 +760,7 @@ with parameters from the *Messages* buffer modification."
 (deftest-previous-overlay-change-1 o 25 20 (30 30) (20 30))
 (deftest-previous-overlay-change-1 p 30 20 (20 20) (20 30))
 (deftest-previous-overlay-change-1 q 40 30 (20 20) (20 30))
-;; 1 empty, 1 non-empty, intersectig in the middle
+;; 1 empty, 1 non-empty, intersecting in the middle
 (deftest-previous-overlay-change-1 r 10 1 (25 25) (20 30))
 (deftest-previous-overlay-change-1 s 20 1 (25 25) (20 30))
 (deftest-previous-overlay-change-1 t 25 20 (25 25) (20 30))
@@ -540,10 +787,10 @@ with parameters from the *Messages* buffer modification."
   (58 66) (41 10) (9 67) (28 88) (27 43)
   (24 27) (48 36) (5 90) (61 9))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlays-at
-;; +===================================================================================+
+;; +==========================================================================+
 
 
 ;; Test whether overlay-at returns RESULT at POS after overlays OVL were
@@ -568,36 +815,36 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlays-at-1 P 50 () (a 10 20) (b 30 40))
 
 ;; 2 non-empty overlays intersecting
-(deftest-overlays-at-1 G 1 () (a 10 30) (b 20 40))
-(deftest-overlays-at-1 H 10 (a) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 I 15 (a) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 K 20 (a b) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 L 25 (a b) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 M 30 (b) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 N 35 (b) (a 10 30) (b 20 40))
-(deftest-overlays-at-1 O 40 () (a 10 30) (b 20 40))
-(deftest-overlays-at-1 P 50 () (a 10 30) (b 20 40))
+(deftest-overlays-at-1 G2 1 () (a 10 30) (b 20 40))
+(deftest-overlays-at-1 H2 10 (a) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 I2 15 (a) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 K2 20 (a b) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 L2 25 (a b) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 M2 30 (b) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 N2 35 (b) (a 10 30) (b 20 40))
+(deftest-overlays-at-1 O2 40 () (a 10 30) (b 20 40))
+(deftest-overlays-at-1 P2 50 () (a 10 30) (b 20 40))
 
 ;; 2 non-empty overlays continuous
-(deftest-overlays-at-1 G 1 () (a 10 20) (b 20 30))
-(deftest-overlays-at-1 H 10 (a) (a 10 20) (b 20 30))
-(deftest-overlays-at-1 I 15 (a) (a 10 20) (b 20 30))
-(deftest-overlays-at-1 K 20 (b) (a 10 20) (b 20 30))
-(deftest-overlays-at-1 L 25 (b) (a 10 20) (b 20 30))
-(deftest-overlays-at-1 M 30 () (a 10 20) (b 20 30))
+(deftest-overlays-at-1 G3 1 () (a 10 20) (b 20 30))
+(deftest-overlays-at-1 H3 10 (a) (a 10 20) (b 20 30))
+(deftest-overlays-at-1 I3 15 (a) (a 10 20) (b 20 30))
+(deftest-overlays-at-1 K3 20 (b) (a 10 20) (b 20 30))
+(deftest-overlays-at-1 L3 25 (b) (a 10 20) (b 20 30))
+(deftest-overlays-at-1 M3 30 () (a 10 20) (b 20 30))
 
 ;; overlays-at never returns empty overlays.
-(deftest-overlays-at-1 N 1 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
-(deftest-overlays-at-1 O 20 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
-(deftest-overlays-at-1 P 30 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
+(deftest-overlays-at-1 N3 1 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
+(deftest-overlays-at-1 O3 20 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
+(deftest-overlays-at-1 P3 30 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
 (deftest-overlays-at-1 Q 40 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
 (deftest-overlays-at-1 R 50 (a) (a 1 60) (c 1 1) (b 30 30) (d 50 50))
 (deftest-overlays-at-1 S 60 () (a 1 60) (c 1 1) (b 30 30) (d 50 50))
 
-;; behaviour at point-min and point-max
+;; behavior at point-min and point-max
 (ert-deftest test-overlays-at-2 ()
   (cl-macrolet ((should-length (n list)
-                  `(should (= ,n (length ,list)))))
+                               `(should (= ,n (length ,list)))))
     (with-temp-buffer
       (insert (make-string 100 ?\s))
       (make-overlay 1 (point-max))
@@ -613,10 +860,10 @@ with parameters from the *Messages* buffer modification."
       (should-length 1 (overlays-at 15))
       (should-length 1 (overlays-at (point-max))))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-in
-;; +===================================================================================+
+;; +==========================================================================+
 
 
 ;; Test whether overlays-in returns RES in BEG,END after overlays OVL were
@@ -691,10 +938,10 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlays-in-1 af 10 11 (a) (a 10 10))
 
 
-;; behaviour at point-max
+;; behavior at point-max
 (ert-deftest test-overlays-in-2 ()
   (cl-macrolet ((should-length (n list)
-                  `(should (= ,n (length ,list)))))
+                               `(should (= ,n (length ,list)))))
     (with-temp-buffer
       (insert (make-string 100 ?\s))
       (make-overlay (point-max) (point-max))
@@ -703,13 +950,13 @@ with parameters from the *Messages* buffer modification."
       (should-length 2 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max)))
       (narrow-to-region 1 50)
-      (should-length 0 (overlays-in 1 (point-max)))
+      (should-length 1 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max))))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | overlay-recenter
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; This function is a noop in the overlay tree branch.
 (ert-deftest test-overlay-recenter ()
@@ -720,10 +967,10 @@ with parameters from the *Messages* buffer modification."
       (make-overlay i (1+ i))
       (should-not (overlay-recenter i)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | move-overlay
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; buffer nil with live overlay
 (ert-deftest test-move-overlay-1 ()
@@ -767,23 +1014,9 @@ with parameters from the *Messages* buffer modification."
     (should-not (overlay-end ov))
     (should-not (overlay-buffer ov))))
 
-;; This used to fail.
-(ert-deftest test-move-overlay-5 ()
-  (skip-unless (fboundp 'overlay-tree))
-  (with-temp-buffer
-    (insert (make-string 1 ?.))
-    (let ((other (make-overlay 1 1)))
-      (make-overlay 1 1)
-      (insert "()")
-      (move-overlay other (point-max) (1+ (point-max)) (current-buffer))
-      (delete-overlay other))
-    (should (= (plist-get (car (with-no-warnings (overlay-tree))) :limit)
-               1))))
-
-
-;; +===================================================================================+
+;; +==========================================================================+
 ;; | delete-(all-)overlay
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; delete live overlay
 (ert-deftest test-delete-overlay-1 ()
@@ -814,22 +1047,22 @@ with parameters from the *Messages* buffer modification."
     (should-not (delete-all-overlays (current-buffer)))
     (should-not (delete-all-overlays))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | get-char-property(-and-overlay)
-;; +===================================================================================+
+;; +==========================================================================+
 
 ;; FIXME: TBD
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | Moving by insertions
-;; +===================================================================================+
+;; +==========================================================================+
 
 (defmacro deftest-moving-insert-1 (id beg-end insert sbeg-send fa ra)
   (cl-destructuring-bind (beg end ipos ilen sbeg send fa ra)
       (append beg-end insert sbeg-send (list fa ra) nil)
-    `(ert-deftest ,(make-overlay-test-name 'moving-insert 1 id) ()
+    `(ert-deftest ,(buffer-tests--make-test-name 'moving-insert 1 id) ()
        (test-with-overlay-in-buffer (ov ,beg ,end ,fa ,ra)
          (should (= ,beg (overlay-start ov)))
          (should (= ,end (overlay-end ov)))
@@ -931,21 +1164,21 @@ with parameters from the *Messages* buffer modification."
       (should (= 25 (overlay-start right)))
       (should (= 75 (overlay-end right)))
       ;; Try to detect the error, by removing left.  The should fail
-      ;; an eassert, since it won't be found by a reular tree
+      ;; an eassert, since it won't be found by a regular tree
       ;; traversal - in theory.
       (delete-overlay left)
       (should (= 2 (length (overlays-in 1 (point-max))))))))
 
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | Moving by deletions
-;; +===================================================================================+
+;; +==========================================================================+
 
 (defmacro deftest-moving-delete-1 (id beg-end delete sbeg-send fa ra)
   (cl-destructuring-bind (beg end dpos dlen sbeg send fa ra)
       (append beg-end delete sbeg-send (list fa ra) nil)
-    `(ert-deftest ,(make-overlay-test-name 'moving-delete 1 id) ()
+    `(ert-deftest ,(buffer-tests--make-test-name 'moving-delete 1 id) ()
        (test-with-overlay-in-buffer (ov ,beg ,end ,fa ,ra)
          (should (= ,beg (overlay-start ov)))
          (should (= ,end (overlay-end ov)))
@@ -1002,12 +1235,12 @@ with parameters from the *Messages* buffer modification."
 (deftest-moving-delete-1 e (15 15) (5 5) (10 10) t t)
 (deftest-moving-delete-1 f (15 15) (15 3) (15 15) t t)
 
-
-;; +===================================================================================+
-;; | make-indirect-buffer
-;; +===================================================================================+
 
-;; Check if overlays are cloned/seperate from indirect buffer.
+;; +==========================================================================+
+;; | make-indirect-buffer
+;; +==========================================================================+
+
+;; Check if overlays are cloned/separate from indirect buffer.
 (ert-deftest test-make-indirect-buffer-1 ()
   (with-temp-buffer
     (dotimes (_ 10) (make-overlay 1 1))
@@ -1045,22 +1278,22 @@ with parameters from the *Messages* buffer modification."
           (kill-buffer indirect))))))
 
 
-
-;; +===================================================================================+
-;; | buffer-swap-text
-;; +===================================================================================+
 
-(defmacro test-with-temp-buffers (vars &rest body)
+;; +==========================================================================+
+;; | buffer-swap-text
+;; +==========================================================================+
+
+(defmacro buffer-tests--with-temp-buffers (vars &rest body)
   (declare (indent 1) (debug (sexp &rest form)))
   (if (null vars)
       `(progn ,@body)
     `(with-temp-buffer
        (let ((,(car vars) (current-buffer)))
-         (test-with-temp-buffers ,(cdr vars) ,@body)))))
+         (buffer-tests--with-temp-buffers ,(cdr vars) ,@body)))))
 
 ;; basic
 (ert-deftest test-buffer-swap-text-1 ()
-  (test-with-temp-buffers (buffer other)
+  (buffer-tests--with-temp-buffers (buffer other)
     (with-current-buffer buffer
       (let ((ov (make-overlay 1 1)))
         (buffer-swap-text other)
@@ -1070,8 +1303,8 @@ with parameters from the *Messages* buffer modification."
           (should (eq ov (car (overlays-in 1 1)))))))))
 
 ;; properties
-(ert-deftest test-buffer-swap-text-1 ()
-  (test-with-temp-buffers (buffer other)
+(ert-deftest test-buffer-swap-text-2 ()
+  (buffer-tests--with-temp-buffers (buffer other)
     (with-current-buffer other
       (overlay-put (make-overlay 1 1) 'buffer 'other))
     (with-current-buffer buffer
@@ -1083,10 +1316,10 @@ with parameters from the *Messages* buffer modification."
       (should (= 1 (length (overlays-in 1 1))))
       (should (eq (overlay-get (car (overlays-in 1 1)) 'buffer) 'buffer)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | priorities
-;; +===================================================================================+
+;; +==========================================================================+
 
 (ert-deftest test-overlay-priorities-1 ()
   (with-temp-buffer
@@ -1107,10 +1340,10 @@ with parameters from the *Messages* buffer modification."
         (overlay-put ov 'value i)))
     (should (eq 9 (get-char-property 1 'value)))))
 
-
-;; +===================================================================================+
+
+;; +==========================================================================+
 ;; | Other
-;; +===================================================================================+
+;; +==========================================================================+
 
 (defun test-overlay-regions ()
   (sort (mapcar (lambda (ov)
@@ -1226,9 +1459,10 @@ with parameters from the *Messages* buffer modification."
           (nonempty-eob (make-overlay 4 5))
           (empty-eob    (make-overlay 5 5)))
       (set-buffer-multibyte nil)
-      (cl-macrolet ((ovshould (ov begin end)
-                      `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
-                                      (list ,begin ,end)))))
+      (cl-macrolet
+          ((ovshould (ov begin end)
+             `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
+                             (list ,begin ,end)))))
         (ovshould nonempty-bob 1 3)
         (ovshould empty-bob    1 1)
         (ovshould empty        3 3)
@@ -1257,9 +1491,10 @@ with parameters from the *Messages* buffer modification."
           (nonempty-eob-end (make-overlay 6 9))
           (empty-eob        (make-overlay 9 9)))
       (set-buffer-multibyte t)
-      (cl-macrolet ((ovshould (ov begin end)
-                      `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
-                                      (list ,begin ,end)))))
+      (cl-macrolet
+          ((ovshould (ov begin end)
+             `(should (equal (list (overlay-start ,ov) (overlay-end ,ov))
+                             (list ,begin ,end)))))
         (ovshould nonempty-bob-end 1 2)
         (ovshould nonempty-bob-beg 1 2)
         (ovshould empty-bob        1 1)
@@ -1280,6 +1515,7 @@ with parameters from the *Messages* buffer modification."
 ;; | Autogenerated insert/delete/narrow tests
 ;; +===================================================================================+
 
+(when nil ;; Let's comment these out for now.
 
 ;; (defun test-overlay-generate-test (name)
 ;;   (interactive)
@@ -7732,5 +7968,248 @@ with parameters from the *Messages* buffer modification."
         (43 . 145)
         (101 . 138)
         (103 . 103))))))
+
+) ;; End of `when nil' for autogenerated insert/delete/narrow tests.
+
+(ert-deftest buffer-multibyte-overlong-sequences ()
+  (dolist (uni '("\xE0\x80\x80"
+                 "\xF0\x80\x80\x80"
+                 "\xF8\x8F\xBF\xBF\x80"))
+    (let ((multi (string-to-multibyte uni)))
+      (should
+       (string-equal
+        multi
+        (with-temp-buffer
+          (set-buffer-multibyte nil)
+          (insert uni)
+          (set-buffer-multibyte t)
+          (buffer-string)))))))
+
+;; https://debbugs.gnu.org/33492
+(ert-deftest buffer-tests-buffer-local-variables-undo ()
+  "Test that `buffer-undo-list' appears in `buffer-local-variables'."
+  (with-temp-buffer
+    (should (assq 'buffer-undo-list (buffer-local-variables)))))
+
+(ert-deftest buffer-tests-inhibit-buffer-hooks ()
+  "Test `get-buffer-create' argument INHIBIT-BUFFER-HOOKS."
+  (let* (run-bluh (bluh (lambda () (setq run-bluh t))))
+    (unwind-protect
+        (let* ( run-kbh  (kbh  (lambda () (setq run-kbh  t)))
+                run-kbqf (kbqf (lambda () (setq run-kbqf t))) )
+
+          ;; Inhibited.
+          (add-hook 'buffer-list-update-hook bluh)
+          (with-current-buffer (generate-new-buffer " foo" t)
+            (add-hook 'kill-buffer-hook kbh nil t)
+            (add-hook 'kill-buffer-query-functions kbqf nil t)
+            (kill-buffer))
+          (with-temp-buffer (ignore))
+          (with-output-to-string (ignore))
+          (should-not run-bluh)
+          (should-not run-kbh)
+          (should-not run-kbqf)
+
+          ;; Not inhibited.
+          (with-current-buffer (generate-new-buffer " foo")
+            (should run-bluh)
+            (add-hook 'kill-buffer-hook kbh nil t)
+            (add-hook 'kill-buffer-query-functions kbqf nil t)
+            (kill-buffer))
+          (should run-kbh)
+          (should run-kbqf))
+      (remove-hook 'buffer-list-update-hook bluh))))
+
+(ert-deftest buffer-tests-inhibit-buffer-hooks-indirect ()
+  "Indirect buffers do not call `get-buffer-create'."
+  (dolist (inhibit '(nil t))
+    (let ((base (get-buffer-create "foo" inhibit)))
+      (unwind-protect
+          (dotimes (_i 11)
+            (let* (flag*
+                   (flag (lambda () (prog1 t (setq flag* t))))
+                   (indirect (make-indirect-buffer base "foo[indirect]" nil
+                                                   inhibit)))
+              (unwind-protect
+                  (progn
+                    (with-current-buffer indirect
+                      (add-hook 'kill-buffer-query-functions flag nil t))
+                    (kill-buffer indirect)
+                    (if inhibit
+                        (should-not flag*)
+                      (should flag*)))
+                (let (kill-buffer-query-functions)
+                  (when (buffer-live-p indirect)
+                    (kill-buffer indirect))))))
+        (let (kill-buffer-query-functions)
+          (when (buffer-live-p base)
+            (kill-buffer base)))))))
+
+(ert-deftest zero-length-overlays-and-not ()
+  (with-temp-buffer
+    (insert "hello")
+    (let ((long-overlay (make-overlay 2 4))
+          (zero-overlay (make-overlay 3 3)))
+      ;; Exclude.
+      (should (= (length (overlays-at 3)) 1))
+      (should (eq (car (overlays-at 3)) long-overlay))
+      ;; Include.
+      (should (= (length (overlays-in 3 3)) 2))
+      (should (memq long-overlay (overlays-in 3 3)))
+      (should (memq zero-overlay (overlays-in 3 3))))))
+
+(ert-deftest test-remove-overlays ()
+  (with-temp-buffer
+    (insert "foo")
+    (make-overlay (point) (point))
+    (should (= (length (overlays-in (point-min) (point-max))) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0)))
+
+  (with-temp-buffer
+    (insert "foo")
+    (goto-char 2)
+    (make-overlay (point) (point))
+    ;; We only count zero-length overlays at the end of the buffer.
+    (should (= (length (overlays-in 1 2)) 0))
+    (narrow-to-region 1 2)
+    ;; We've now narrowed, so the zero-length overlay is at the end of
+    ;; the (accessible part of the) buffer.
+    (should (= (length (overlays-in 1 2)) 1))
+    (remove-overlays)
+    (should (= (length (overlays-in (point-min) (point-max))) 0))))
+
+(ert-deftest test-kill-buffer-auto-save-default ()
+  (ert-with-temp-file file
+    (let (auto-save)
+      ;; Always answer yes.
+      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              (kill-buffer (current-buffer))
+              (should (file-exists-p auto-save)))
+          (when auto-save
+            (ignore-errors (delete-file auto-save))))))))
+
+(ert-deftest test-kill-buffer-auto-save-delete ()
+  (ert-with-temp-file file
+    (let (auto-save)
+      (should (file-exists-p file))
+      (setq kill-buffer-delete-auto-save-files t)
+      ;; Always answer yes.
+      (cl-letf (((symbol-function #'yes-or-no-p) (lambda (_) t)))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              ;; This should delete the auto-save file.
+              (kill-buffer (current-buffer))
+              (should-not (file-exists-p auto-save)))
+          (ignore-errors (delete-file file))
+          (when auto-save
+            (ignore-errors (delete-file auto-save)))))
+      ;; Answer no to deletion.
+      (cl-letf (((symbol-function #'yes-or-no-p)
+                 (lambda (prompt)
+                   (not (string-search "Delete auto-save file" prompt)))))
+        (unwind-protect
+            (progn
+              (find-file file)
+              (auto-save-mode t)
+              (insert "foo\n")
+              (should buffer-auto-save-file-name)
+              (setq auto-save buffer-auto-save-file-name)
+              (do-auto-save)
+              (should (file-exists-p auto-save))
+              ;; This should not delete the auto-save file.
+              (kill-buffer (current-buffer))
+              (should (file-exists-p auto-save)))
+          (when auto-save
+            (ignore-errors (delete-file auto-save))))))))
+
+(ert-deftest test-buffer-modifications ()
+  (ert-with-temp-file file
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (buffer-modified-p))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'bold))
+      (should (eq (buffer-modified-p) 'autosaved))
+      (save-buffer)
+      (should-not (buffer-modified-p))
+      (with-silent-modifications
+        (put-text-property 1 3 'face 'italic))
+      (should-not (buffer-modified-p)))))
+
+(ert-deftest test-restore-buffer-modified-p ()
+  (ert-with-temp-file file
+    ;; This avoids the annoying "foo and bar are the same file" on
+    ;; MS-Windows.
+    (setq file (file-truename file))
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (eq (buffer-modified-p) t))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (restore-buffer-modified-p nil)
+      (should-not (buffer-modified-p))
+      (insert "bar")
+      (do-auto-save nil t)
+      (should (eq (buffer-modified-p) 'autosaved))
+      (insert "zot")
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved))
+
+      ;; Clean up.
+      (when (file-exists-p buffer-auto-save-file-name)
+        (delete-file buffer-auto-save-file-name))))
+
+  (ert-with-temp-file file
+    (setq file (file-truename file))
+    (with-current-buffer (find-file file)
+      (auto-save-mode 1)
+      (should-not (eq (buffer-modified-p) t))
+      (insert "foo")
+      (should (buffer-modified-p))
+      (should-not (eq (buffer-modified-p) 'autosaved))
+      (restore-buffer-modified-p 'autosaved)
+      (should (eq (buffer-modified-p) 'autosaved)))))
+
+(ert-deftest test-buffer-chars-modified-ticks ()
+  "Test `buffer-chars-modified-tick'."
+  (setq temporary-file-directory (file-truename temporary-file-directory))
+  (let ((text "foobar")
+        f1 f2)
+    (unwind-protect
+        (progn
+          (setq f1 (make-temp-file "buf-modiff-tests")
+                f2 (make-temp-file "buf-modiff-tests"))
+          (with-current-buffer (find-file f1)
+            (should (= (buffer-chars-modified-tick) 1))
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (write-region text nil f2 nil 'silent)
+            (insert-file-contents f2)
+            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+            (should (> (buffer-chars-modified-tick) 1))))
+      (if f1 (delete-file f1))
+      (if f2 (delete-file f2))
+      )))
 
 ;;; buffer-tests.el ends here

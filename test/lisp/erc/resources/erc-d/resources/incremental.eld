@@ -1,0 +1,43 @@
+;;; -*- mode: lisp-data -*-
+((pass 10.0 "PASS " (? ?:) "changeme"))
+((nick 0.2 "NICK tester"))
+
+((user 0.2 "USER user 0 * :tester")
+ (0.0 ":irc.foo.net 001 tester :Welcome to the Internet Relay Network tester")
+ (0.0 ":irc.foo.net 002 tester :Your host is irc.foo.net")
+ (0.0 ":irc.foo.net 003 tester :This server was created just now")
+ (0.0 ":irc.foo.net 004 tester irc.foo.net BERios CEIRabehiklmnoqstv Iabehkloqv")
+ (0.0 ":irc.foo.net 005 tester MODES NETWORK=FooNet NICKLEN=32 PREFIX=(qaohv)~&@%+"
+              " :are supported by this server")
+ (0.0 ":irc.foo.net 251 tester :There are 3 users and 0 invisible on 1 server(s)")
+ (0.0 ":irc.foo.net 252 tester 0 :IRC Operators online")
+ (0.0 ":irc.foo.net 253 tester 0 :unregistered connections")
+ (0.0 ":irc.foo.net 254 tester 1 :channels formed")
+ (0.0 ":irc.foo.net 255 tester :I have 3 clients and 0 servers")
+ (0.0 ":irc.foo.net 265 tester 3 3 :Current local users 3, max 3")
+ (0.0 ":irc.foo.net 266 tester 3 3 :Current global users 3, max 3")
+ (0.0 ":irc.foo.net 422 tester :MOTD File is missing"))
+
+((mode-user 1.2 "MODE tester +i")
+ (0.0 ":irc.foo.net 221 tester +Zi")
+ (0.0 ":irc.foo.net 306 tester :You have been marked as being away"))
+
+((join 3 "JOIN #foo")
+ (0 ":tester!~tester@localhost JOIN #foo")
+ (0 ":irc.foo.net 353 alice = #foo :+alice!~alice@example.com @%+bob!~bob@example.org")
+ (0 ":irc.foo.net 366 alice #foo :End of NAMES list"))
+
+((mode 3 "MODE #foo")
+ (0.0 ":irc.foo.net 324 tester #foo +Cint")
+ (0.0 ":irc.foo.net 329 tester #foo 1519850102")
+ (0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: But, in defense, by mercy, 'tis most just.")
+ (0.1 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: Grows, lives, and dies, in single blessedness.")
+ (0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :Look for me.")
+ (0.1 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: By this hand, it will not kill a fly. But come, now I will be your Rosalind in a more coming-on disposition; and ask me what you will, I will grant it.")
+ (0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: That I must love a loathed enemy.")
+ (0.1 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: As't please your lordship: I'll leave you.")
+ (0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :alice: Then there is no true lover in the forest; else sighing every minute and groaning every hour would detect the lazy foot of Time as well as a clock.")
+ (0.1 ":alice!~u@svpn88yjcdj42.irc PRIVMSG #foo :bob: His discretion, I am sure, cannot carry his valour, for the goose carries not the fox. It is well: leave it to his discretion, and let us listen to the moon.")
+ (0.1 ":bob!~u@svpn88yjcdj42.irc PRIVMSG #foo :Done"))
+
+((hi 10 "PRIVMSG #foo :Hi"))

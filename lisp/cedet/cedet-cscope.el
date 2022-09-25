@@ -1,6 +1,6 @@
-;;; cedet-cscope.el --- CScope support for CEDET
+;;; cedet-cscope.el --- CScope support for CEDET  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet
@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
 (defvar cedet-cscope-min-version "15.7"
   "Minimum version of CScope required.")
 
@@ -36,15 +34,15 @@
   :type 'string
   :group 'cedet)
 
-(defun cedet-cscope-search (searchtext texttype type scope)
+(defun cedet-cscope-search (searchtext texttype type _scope)
   "Perform a search with CScope, return the created buffer.
 SEARCHTEXT is text to find.
-TEXTTYPE is the type of text, such as 'regexp, 'string, 'tagname,
-'tagregexp, or 'tagcompletions.
+TEXTTYPE is the type of text, such as `regexp', `string', `tagname',
+`tagregexp', or `tagcompletions'.
 TYPE is the type of search, meaning that SEARCHTEXT is compared to
 filename, tagname (tags table), references (uses of a tag) , or
 symbol (uses of something not in the tag table.)
-SCOPE is the scope of the search, such as 'project or 'subdirs."
+SCOPE is the scope of the search, such as `project' or `subdir'."
   ;; CScope is an interactive program.  It uses number flags
   ;; in order to perform command line searches.  Useful for this
   ;; tool are:
@@ -87,7 +85,7 @@ options -cR."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-cscope-command
+    (apply #'call-process cedet-cscope-command
 	   nil b nil
 	   flags)
     b))
@@ -139,7 +137,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if CScope isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-cscope-call (list "-V"))
 	     (error nil)))
@@ -153,7 +150,7 @@ return nil."
 	(goto-char (point-min))
 	(re-search-forward "cscope: version \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
-	(if (inversion-check-version rev nil cedet-cscope-min-version)
+        (if (version< rev cedet-cscope-min-version)
 	    (if noerror
 		nil
 	      (error "Version of CScope is %s.  Need at least %s"

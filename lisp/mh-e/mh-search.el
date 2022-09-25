@@ -1,6 +1,6 @@
-;;; mh-search  ---  MH-Search mode
+;;; mh-search.el --- MH-Search mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993, 1995, 2001-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2022 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -39,12 +39,10 @@
 ;;      documentation will direct you to the specific instructions for
 ;;      your particular searcher.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
-(mh-require-cl)
+(require 'mh-letter)
 
 (require 'gnus-util)
 (require 'imenu)
@@ -227,17 +225,17 @@ folder containing the index search results."
                   mh-search-regexp-builder)
              (current-window-configuration)
            nil)))
-  (block mh-search
+  (cl-block mh-search
     ;; Redoing a sequence search?
     (when (and redo-search-flag mh-index-data mh-index-sequence-search-flag
                (not mh-flists-called-flag))
       (let ((mh-flists-called-flag t))
         (apply #'mh-index-sequenced-messages mh-index-previous-search))
-      (return-from mh-search))
+      (cl-return-from mh-search))
     ;; We have fancy query parsing.
     (when (symbolp search-regexp)
       (mh-search-folder folder window-config)
-      (return-from mh-search))
+      (cl-return-from mh-search))
     ;; Begin search proper.
     (mh-checksum-choose)
     (let ((result-count 0)
@@ -264,33 +262,34 @@ folder containing the index search results."
         ;; Parse searcher output.
         (message "Processing %s output... " mh-searcher)
         (goto-char (point-min))
-        (loop for next-result = (funcall mh-search-next-result-function)
-              while next-result
-              do (unless (eq next-result 'error)
-                   (unless (gethash (car next-result) folder-results-map)
-                     (setf (gethash (car next-result) folder-results-map)
-                           (make-hash-table :test #'equal)))
-                   (setf (gethash (cadr next-result)
-                                  (gethash (car next-result) folder-results-map))
-                         t)))
+        (cl-loop for next-result = (funcall mh-search-next-result-function)
+                 while next-result
+                 do (unless (eq next-result 'error)
+                      (unless (gethash (car next-result) folder-results-map)
+                        (setf (gethash (car next-result) folder-results-map)
+                              (make-hash-table :test #'equal)))
+                      (setf (gethash (cadr next-result)
+                                     (gethash (car next-result) folder-results-map))
+                            t)))
 
         ;; Copy the search results over.
-        (maphash #'(lambda (folder msgs)
-                     (let ((cur (car (mh-translate-range folder "cur")))
-                           (msgs (sort (loop for msg being the hash-keys of msgs
-                                             collect msg)
-                                       #'<)))
-                       (mh-exec-cmd "refile" msgs "-src" folder
-                                    "-link" index-folder)
-                       ;; Restore cur to old value, that refile changed
-                       (when cur
-                         (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
-                                            "-sequence"
-                                            "cur" (format "%s" cur)))
-                       (loop for msg in msgs
-                             do (incf result-count)
-                             (setf (gethash result-count origin-map)
-                                   (cons folder msg)))))
+        (maphash (lambda (folder msgs)
+                   (let ((cur (car (mh-translate-range folder "cur")))
+                         (msgs (sort (cl-loop
+                                      for msg being the hash-keys of msgs
+                                      collect msg)
+                                     #'<)))
+                     (mh-exec-cmd "refile" msgs "-src" folder
+                                  "-link" index-folder)
+                     ;; Restore cur to old value, that refile changed
+                     (when cur
+                       (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
+                                          "-sequence"
+                                          "cur" (format "%s" cur)))
+                     (cl-loop for msg in msgs
+                              do (cl-incf result-count)
+                              (setf (gethash result-count origin-map)
+                                    (cons folder msg)))))
                  folder-results-map)
 
         ;; Vist the results folder.
@@ -315,14 +314,10 @@ folder containing the index search results."
 
         (message "%s found %s matches in %s folders"
                  (upcase-initials (symbol-name mh-searcher))
-                 (loop for msg-hash being the hash-values of mh-index-data
-                       sum (hash-table-count msg-hash))
-                 (loop for msg-hash being the hash-values of mh-index-data
-                       count (> (hash-table-count msg-hash) 0)))))))
-
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar pick-folder))
+                 (cl-loop for msg-hash being the hash-values of mh-index-data
+                          sum (hash-table-count msg-hash))
+                 (cl-loop for msg-hash being the hash-values of mh-index-data
+                          count (> (hash-table-count msg-hash) 0)))))))
 
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
@@ -331,14 +326,15 @@ In a program, argument WINDOW-CONFIG is the current window
 configuration and is used when the search folder is dismissed."
   (interactive (list (mh-prompt-for-folder "Search" mh-current-folder nil nil t)
                      (current-window-configuration)))
-  (let ((pick-folder (if (equal folder "+") mh-current-folder folder)))
+  ;; FIXME: `pick-folder' is unused!
+  (let () ;; (pick-folder (if (equal folder "+") mh-current-folder folder))
     (switch-to-buffer-other-window "search-pattern")
     (if (or (zerop (buffer-size))
             (not (y-or-n-p "Reuse pattern? ")))
         (mh-make-pick-template)
       (message ""))
-    (mh-make-local-vars 'mh-current-folder folder
-                        'mh-previous-window-config window-config)
+    (setq-local mh-current-folder folder
+                mh-previous-window-config window-config)
     (message "%s" (substitute-command-keys
                    (concat "Type \\[mh-index-do-search] to search messages, "
                            "\\[mh-pick-do-search] to use pick, "
@@ -355,15 +351,15 @@ configuration and is used when the search folder is dismissed."
           "---------\n")
   (mh-search-mode)
   (goto-char (point-min))
-  (dotimes (i 5)
+  (dotimes (_ 5)
     (add-text-properties (point) (1+ (point)) '(front-sticky t))
-    (add-text-properties (- (mh-line-end-position) 2)
-                         (1- (mh-line-end-position))
+    (add-text-properties (- (line-end-position) 2)
+                         (1- (line-end-position))
                          '(rear-nonsticky t))
-    (add-text-properties (point) (1- (mh-line-end-position)) '(read-only t))
+    (add-text-properties (point) (1- (line-end-position)) '(read-only t))
     (forward-line))
   (add-text-properties (point) (1+ (point)) '(front-sticky t))
-  (add-text-properties (point) (1- (mh-line-end-position)) '(read-only t))
+  (add-text-properties (point) (1- (line-end-position)) '(read-only t))
   (goto-char (point-max)))
 
 ;; Sequence Searches
@@ -401,10 +397,8 @@ or nothing to search all folders."
            mh-ticked-messages-folders)))
   (mh-index-sequenced-messages folders mh-tick-seq))
 
-;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar mh-mairix-folder)
-  (defvar mh-flists-search-folders))
+(defvar mh-mairix-folder)
+(defvar mh-flists-search-folders)
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
@@ -443,7 +437,7 @@ search all folders."
            (setq redo-flag t))
           ((mh-folder-exists-p new-folder)
            ;; Folder exists but we don't have it open. That means they are
-           ;; stale results from a old flists search. Clear it out.
+           ;; stale results from an old flists search. Clear it out.
            (mh-exec-cmd-quiet nil "rmf" new-folder)))
     (setq message (mh-search "+" mh-flists-results-folder
                              redo-flag window-config)
@@ -454,7 +448,7 @@ search all folders."
 
 (defvar mh-flists-search-folders)
 
-(defun mh-flists-execute (&rest ignored)
+(defun mh-flists-execute (&rest _ignored)
   "Execute flists.
 Search for messages belonging to `mh-flists-sequence' in the
 folders specified by `mh-flists-search-folders'. If
@@ -471,9 +465,9 @@ recursively. All arguments are IGNORED."
                      (mh-quote-for-shell mh-inbox))
                     ((eq mh-flists-search-folders nil) "")
                     ((listp mh-flists-search-folders)
-                     (loop for folder in mh-flists-search-folders
-                           concat
-                           (concat " " (mh-quote-for-shell folder)))))
+                     (cl-loop for folder in mh-flists-search-folders
+                              concat
+                              (concat " " (mh-quote-for-shell folder)))))
               (if mh-recursive-folders-flag " -recurse" "")
               " -sequence " seq " -noshowzero -fast` ; do\n"
               (expand-file-name "mhpath" mh-progs) " \"+$folder\" " seq "\n"
@@ -495,16 +489,16 @@ group of results."
     (let ((point (point)))
       (forward-line (if backward-flag 0 1))
       (cond ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
+                 (re-search-backward "^\\+" (point-min) t)
+               (re-search-forward "^\\+" (point-max) t))
              (beginning-of-line))
             ((and (if backward-flag
                       (goto-char (point-max))
                     (goto-char (point-min)))
                   nil))
             ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
+                 (re-search-backward "^\\+" (point-min) t)
+               (re-search-forward "^\\+" (point-max) t))
              (beginning-of-line))
             (t (goto-char point))))))
 
@@ -525,10 +519,10 @@ group of results."
       (cond ((and (bolp) (eolp))
              (ignore-errors (forward-line -1))
              (setq msg (mh-get-msg-num t)))
-            ((equal (char-after (mh-line-beginning-position)) ?+)
+            ((equal (char-after (line-beginning-position)) ?+)
              (setq folder (buffer-substring-no-properties
-                           (mh-line-beginning-position)
-                           (mh-line-end-position))))
+                           (line-beginning-position)
+                           (line-end-position))))
             (t (setq msg (mh-get-msg-num t)))))
     (when (not folder)
       (setq folder (car (gethash (gethash msg mh-index-msg-checksum-map)
@@ -536,8 +530,9 @@ group of results."
     (when (or (not (get-buffer folder))
               (y-or-n-p (format "Reuse buffer displaying %s? " folder)))
       (mh-visit-folder
-       folder (loop for x being the hash-keys of (gethash folder mh-index-data)
-                    when (mh-msg-exists-p x folder) collect x)))))
+       folder (cl-loop
+               for x being the hash-keys of (gethash folder mh-index-data)
+               when (mh-msg-exists-p x folder) collect x)))))
 
 
 
@@ -554,20 +549,20 @@ group of results."
 ;;; MH-Search Keys
 
 ;; If this changes, modify mh-search-mode-help-messages accordingly, below.
-(gnus-define-keys  mh-search-mode-map
-  "\C-c?"               mh-help
-  "\C-c\C-c"            mh-index-do-search
-  "\C-c\C-p"            mh-pick-do-search
-  "\C-c\C-f\C-b"        mh-to-field
-  "\C-c\C-f\C-c"        mh-to-field
-  "\C-c\C-f\C-m"        mh-to-field
-  "\C-c\C-f\C-s"        mh-to-field
-  "\C-c\C-f\C-t"        mh-to-field
-  "\C-c\C-fb"           mh-to-field
-  "\C-c\C-fc"           mh-to-field
-  "\C-c\C-fm"           mh-to-field
-  "\C-c\C-fs"           mh-to-field
-  "\C-c\C-ft"           mh-to-field)
+(define-keymap :keymap mh-search-mode-map
+  "C-c ?"              #'mh-help
+  "C-c C-c"            #'mh-index-do-search
+  "C-c C-p"            #'mh-pick-do-search
+  "C-c C-f C-b"        #'mh-to-field
+  "C-c C-f C-c"        #'mh-to-field
+  "C-c C-f C-m"        #'mh-to-field
+  "C-c C-f C-s"        #'mh-to-field
+  "C-c C-f C-t"        #'mh-to-field
+  "C-c C-f b"           #'mh-to-field
+  "C-c C-f c"           #'mh-to-field
+  "C-c C-f m"           #'mh-to-field
+  "C-c C-f s"           #'mh-to-field
+  "C-c C-f t"           #'mh-to-field)
 
 
 
@@ -618,7 +613,6 @@ The hook `mh-search-mode-hook' is called upon entry to this mode.
 
 \\{mh-search-mode-map}"
 
-  (easy-menu-add mh-pick-menu)
   (mh-set-help mh-search-mode-help-messages))
 
 
@@ -655,13 +649,13 @@ The cdr of the element is the pattern to search."
           start begin)
       (goto-char (point-min))
       (while (not (eobp))
-        (if (search-forward "--------" (mh-line-end-position) t)
+        (if (search-forward "--------" (line-end-position) t)
             (setq in-body-flag t)
           (beginning-of-line)
           (setq begin (point))
           (setq start (if in-body-flag
                           (point)
-                        (search-forward ":" (mh-line-end-position) t)
+                        (search-forward ":" (line-end-position) t)
                         (point)))
           (push (cons (and (not in-body-flag)
                            (intern (downcase
@@ -669,7 +663,7 @@ The cdr of the element is the pattern to search."
                                      begin (1- start)))))
                       (mh-index-parse-search-regexp
                        (buffer-substring-no-properties
-                        start (mh-line-end-position))))
+                        start (line-end-position))))
                 pattern-list))
         (forward-line))
       pattern-list)))
@@ -716,8 +710,8 @@ parsed."
               ((equal token "or") (push 'or op-stack))
               ((equal token "and") (push 'and op-stack))
               ((equal token ")")
-               (multiple-value-setq (op-stack operand-stack)
-                 (values-list (mh-index-evaluate op-stack operand-stack)))
+               (cl-multiple-value-setq (op-stack operand-stack)
+                 (cl-values-list (mh-index-evaluate op-stack operand-stack)))
                (when (eq (car op-stack) 'not)
                  (setq op-stack (cdr op-stack))
                  (push `(not ,(pop operand-stack)) operand-stack))
@@ -762,12 +756,12 @@ parsed."
 
 (defun mh-index-evaluate (op-stack operand-stack)
   "Read expression till starting paren based on OP-STACK and OPERAND-STACK."
-  (block mh-index-evaluate
+  (cl-block mh-index-evaluate
     (let (op oper1)
       (while op-stack
         (setq op (pop op-stack))
         (cond ((eq op 'paren)
-               (return-from mh-index-evaluate (list op-stack operand-stack)))
+               (cl-return-from mh-index-evaluate (list op-stack operand-stack)))
               ((eq op 'not)
                (push `(not ,(pop operand-stack)) operand-stack))
               ((or (eq op 'and) (eq op 'or))
@@ -806,7 +800,7 @@ The side-effects of this function are that the variables
 searcher in `mh-search-choices' present on the system. If
 optional argument SEARCHER is present, use it instead of
 `mh-search-program'."
-  (block nil
+  (cl-block nil
     (let ((program-alist (cond (searcher
                                 (list (assoc searcher mh-search-choices)))
                                (mh-search-program
@@ -821,7 +815,7 @@ optional argument SEARCHER is present, use it instead of
             (setq mh-search-function (nth 2 current))
             (setq mh-search-next-result-function (nth 3 current))
             (setq mh-search-regexp-builder (nth 4 current))
-            (return mh-searcher))))
+            (cl-return mh-searcher))))
       nil)))
 
 ;;; Swish++
@@ -880,7 +874,7 @@ used to search."
               folder-path
             (format "%s/" folder-path)))))
 
-(defalias 'mh-swish++-next-result 'mh-swish-next-result)
+(defalias 'mh-swish++-next-result #'mh-swish-next-result)
 
 (defun mh-swish++-regexp-builder (regexp-list)
   "Generate query for swish++.
@@ -974,31 +968,31 @@ is used to search."
 (defun mh-swish-next-result ()
   "Get the next result from swish output."
   (prog1
-      (block nil
+      (cl-block nil
         (when (or (eobp) (equal (char-after (point)) ?.))
-          (return nil))
+          (cl-return nil))
         (when (equal (char-after (point)) ?#)
-          (return 'error))
-        (let* ((start (search-forward " " (mh-line-end-position) t))
-               (end (search-forward " " (mh-line-end-position) t)))
+          (cl-return 'error))
+        (let* ((start (search-forward " " (line-end-position) t))
+               (end (search-forward " " (line-end-position) t)))
           (unless (and start end)
-            (return 'error))
+            (cl-return 'error))
           (setq end (1- end))
           (unless (file-exists-p (buffer-substring-no-properties start end))
-            (return 'error))
+            (cl-return 'error))
           (unless (search-backward "/" start t)
-            (return 'error))
+            (cl-return 'error))
           (list (let* ((s (buffer-substring-no-properties start (1+ (point)))))
                   (unless (string-match mh-swish-folder s)
-                    (return 'error))
+                    (cl-return 'error))
                   (if (and (string-match mh-user-path s)
                            (< (match-end 0) (1- (length s))))
                       (format "+%s"
                               (substring s (match-end 0) (1- (length s))))
-                    (return 'error)))
+                    (cl-return 'error)))
                 (let* ((s (buffer-substring-no-properties (1+ (point)) end))
                        (n (ignore-errors (string-to-number s))))
-                  (if n n (return 'error)))
+                  (or n (cl-return 'error)))
                 nil)))
     (forward-line)))
 
@@ -1051,26 +1045,26 @@ SEARCH-REGEXP-LIST is used to search."
 (defun mh-mairix-next-result ()
   "Return next result from mairix output."
   (prog1
-      (block nil
+      (cl-block nil
         (when (or (eobp) (and (bolp) (eolp)))
-          (return nil))
+          (cl-return nil))
         (unless (eq (char-after) ?/)
-          (return 'error))
+          (cl-return 'error))
         (let ((start (point))
               end msg-start)
-          (setq end (mh-line-end-position))
+          (setq end (line-end-position))
           (unless (search-forward mh-mairix-folder end t)
-            (return 'error))
+            (cl-return 'error))
           (goto-char (match-beginning 0))
           (unless (equal (point) start)
-            (return 'error))
+            (cl-return 'error))
           (goto-char end)
           (unless (search-backward "/" start t)
-            (return 'error))
+            (cl-return 'error))
           (setq msg-start (1+ (point)))
           (goto-char start)
           (unless (search-forward mh-user-path end t)
-            (return 'error))
+            (cl-return 'error))
           (list (format "+%s" (buffer-substring-no-properties
                                (point) (1- msg-start)))
                 (string-to-number
@@ -1119,8 +1113,8 @@ REGEXP-LIST is an alist of fields and values."
   (cond ((atom expr) `(or (and ,expr)))
         ((eq (car expr) 'or)
          (cons 'or
-               (loop for e in (mapcar #'mh-mairix-convert-to-sop* (cdr expr))
-                     append (cdr e))))
+               (cl-loop for e in (mapcar #'mh-mairix-convert-to-sop* (cdr expr))
+                        append (cdr e))))
         ((eq (car expr) 'and)
          (let ((conjuncts (mapcar #'mh-mairix-convert-to-sop* (cdr expr)))
                result next-factor)
@@ -1136,10 +1130,10 @@ REGEXP-LIST is an alist of fields and values."
         ((atom (cadr expr)) `(or (and ,expr)))
         ((eq (caadr expr) 'not) (mh-mairix-convert-to-sop* (cadadr expr)))
         ((eq (caadr expr) 'and) (mh-mairix-convert-to-sop*
-                                 `(or ,@(mapcar #'(lambda (x) `(not ,x))
+                                 `(or ,@(mapcar (lambda (x) `(not ,x))
                                                 (cdadr expr)))))
         ((eq (caadr expr) 'or) (mh-mairix-convert-to-sop*
-                                `(and ,@(mapcar #'(lambda (x) `(not ,x))
+                                `(and ,@(mapcar (lambda (x) `(not ,x))
                                                 (cdadr expr)))))
         (t (error "Unreachable: %s" expr))))
 
@@ -1196,22 +1190,22 @@ is used to search."
 (defun mh-namazu-next-result ()
   "Get the next result from namazu output."
   (prog1
-      (block nil
-        (when (eobp) (return nil))
+      (cl-block nil
+        (when (eobp) (cl-return nil))
         (let ((file-name (buffer-substring-no-properties
-                          (point) (mh-line-end-position))))
+                          (point) (line-end-position))))
           (unless (equal (string-match mh-namazu-folder file-name) 0)
-            (return 'error))
+            (cl-return 'error))
           (unless (file-exists-p file-name)
-            (return 'error))
+            (cl-return 'error))
           (string-match mh-user-path file-name)
           (let* ((folder/msg (substring file-name (match-end 0)))
                  (mark (mh-search-from-end ?/ folder/msg)))
-            (unless mark (return 'error))
+            (unless mark (cl-return 'error))
             (list (format "+%s" (substring folder/msg 0 mark))
                   (let ((n (ignore-errors (string-to-number
                                            (substring folder/msg (1+ mark))))))
-                    (if n n (return 'error)))
+                    (or n (cl-return 'error)))
                   nil))))
     (forward-line)))
 
@@ -1235,29 +1229,29 @@ is used to search."
   (erase-buffer)
   (let ((folders
          (mh-folder-list (substring folder-path (length mh-user-path)))))
-    (loop for folder in folders do
-          (setq folder (concat "+" folder))
-          (insert folder "\n")
-          (apply #'call-process (expand-file-name "pick" mh-progs)
-                 nil '(t nil) nil folder "-list" search-regexp)))
+    (cl-loop for folder in folders do
+             (setq folder (concat "+" folder))
+             (insert folder "\n")
+             (apply #'call-process (expand-file-name "pick" mh-progs)
+                    nil '(t nil) nil folder "-list" search-regexp)))
   (goto-char (point-min)))
 
 (defun mh-pick-next-result ()
   "Return the next pick search result."
   (prog1
-      (block nil
-        (when (eobp) (return nil))
-        (when (search-forward-regexp "^\\+" (mh-line-end-position) t)
+      (cl-block nil
+        (when (eobp) (cl-return nil))
+        (when (search-forward-regexp "^\\+" (line-end-position) t)
           (setq mh-index-pick-folder
-                (buffer-substring-no-properties (mh-line-beginning-position)
-                                                (mh-line-end-position)))
-          (return 'error))
-        (unless (search-forward-regexp "^[1-9][0-9]*$" (mh-line-end-position) t)
-          (return 'error))
+                (buffer-substring-no-properties (line-beginning-position)
+                                                (line-end-position)))
+          (cl-return 'error))
+        (unless (search-forward-regexp "^[1-9][0-9]*$" (line-end-position) t)
+          (cl-return 'error))
         (list mh-index-pick-folder
               (string-to-number
-               (buffer-substring-no-properties (mh-line-beginning-position)
-                                               (mh-line-end-position)))
+               (buffer-substring-no-properties (line-beginning-position)
+                                               (line-end-position)))
               nil))
     (forward-line)))
 
@@ -1329,31 +1323,31 @@ is used to search."
   "Read the next result.
 Parse it and return the message folder, message index and the
 match. If no other matches left then return nil. If the current
-record is invalid return 'error."
+record is invalid return `error'."
   (prog1
-      (block nil
+      (cl-block nil
         (when (eobp)
-          (return nil))
-        (let ((eol-pos (mh-line-end-position))
-              (bol-pos (mh-line-beginning-position))
+          (cl-return nil))
+        (let ((eol-pos (line-end-position))
+              (bol-pos (line-beginning-position))
               folder-start msg-end)
           (goto-char bol-pos)
           (unless (search-forward mh-user-path eol-pos t)
-            (return 'error))
+            (cl-return 'error))
           (setq folder-start (point))
           (unless (search-forward ":" eol-pos t)
-            (return 'error))
+            (cl-return 'error))
           (let ((match (buffer-substring-no-properties (point) eol-pos)))
             (forward-char -1)
             (setq msg-end (point))
             (unless (search-backward "/" folder-start t)
-              (return 'error))
+              (cl-return 'error))
             (list (format "+%s" (buffer-substring-no-properties
                                  folder-start (point)))
                   (let ((n (ignore-errors (string-to-number
                                            (buffer-substring-no-properties
                                             (1+ (point)) msg-end)))))
-                    (if n n (return 'error)))
+                    (or n (cl-return 'error)))
                   match))))
     (forward-line)))
 
@@ -1369,13 +1363,14 @@ being the list of messages originally from that folder."
   (save-excursion
     (goto-char (point-min))
     (let ((result-table (make-hash-table :test #'equal)))
-      (loop for msg being the hash-keys of mh-index-msg-checksum-map
-            do (push msg (gethash (car (gethash
-                                        (gethash msg mh-index-msg-checksum-map)
-                                        mh-index-checksum-origin-map))
-                                  result-table)))
-      (loop for x being the hash-keys of result-table
-            collect (cons x (nreverse (gethash x result-table)))))))
+      (cl-loop for msg being the hash-keys of mh-index-msg-checksum-map
+               do (push msg (gethash (car (gethash
+                                           (gethash msg
+                                                    mh-index-msg-checksum-map)
+                                           mh-index-checksum-origin-map))
+                                     result-table)))
+      (cl-loop for x being the hash-keys of result-table
+               collect (cons x (nreverse (gethash x result-table)))))))
 
 ;;;###mh-autoload
 (defun mh-index-insert-folder-headers ()
@@ -1416,10 +1411,7 @@ being the list of messages originally from that folder."
     (when cur-msg (mh-goto-msg cur-msg t t))
     (set-buffer-modified-p old-buffer-modified-flag)))
 
-(eval-and-compile (mh-require 'which-func nil t))
-
-;; Shush compiler.
-(defvar which-func-mode)                ; < Emacs 22, XEmacs
+(require 'which-func)
 
 ;;;###mh-autoload
 (defun mh-index-create-imenu-index ()
@@ -1429,11 +1421,11 @@ being the list of messages originally from that folder."
         (setq which-func-mode t))
     (let ((alist ()))
       (goto-char (point-min))
-      (while (re-search-forward "^+" nil t)
+      (while (re-search-forward "^\\+" nil t)
         (save-excursion
           (beginning-of-line)
           (push (cons (buffer-substring-no-properties
-                       (point) (mh-line-end-position))
+                       (point) (line-end-position))
                       (point-marker))
                 alist)))
       (setq imenu--index-alist (nreverse alist)))))
@@ -1443,15 +1435,13 @@ being the list of messages originally from that folder."
   "Non-nil means that this folder was generated by searching."
   mh-index-data)
 
-;; Shush compiler
-(mh-do-in-xemacs
-  (defvar mh-speed-flists-inhibit-flag))
+(defvar mh-speed-flists-inhibit-flag)
 
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()
   "Perform the outstanding operations on the actual messages.
 The copies in the searched folder are then deleted, refiled,
-blacklisted and whitelisted to get the desired result. Before
+blocklisted and allowlisted to get the desired result. Before
 processing the messages we make sure that the message is
 identical to the one that the user has marked in the index
 buffer."
@@ -1468,36 +1458,37 @@ buffer."
            (with-current-buffer folder
              (let ((old-refile-list mh-refile-list)
                    (old-delete-list mh-delete-list)
-                   (old-blacklist mh-blacklist)
-                   (old-whitelist mh-whitelist))
+                   (old-blocklist mh-blocklist)
+                   (old-allowlist mh-allowlist))
                (setq mh-refile-list nil
                      mh-delete-list msgs
-                     mh-blacklist nil
-                     mh-whitelist nil)
+                     mh-blocklist nil
+                     mh-allowlist nil)
                (unwind-protect (mh-execute-commands)
                  (setq mh-refile-list
                        (mapcar (lambda (x)
                                  (cons (car x)
-                                       (loop for y in (cdr x)
-                                             unless (memq y msgs) collect y)))
+                                       (cl-loop for y in (cdr x)
+                                                unless (memq y msgs)
+                                                collect y)))
                                old-refile-list)
                        mh-delete-list
-                       (loop for x in old-delete-list
-                             unless (memq x msgs) collect x)
-                       mh-blacklist
-                       (loop for x in old-blacklist
-                             unless (memq x msgs) collect x)
-                       mh-whitelist
-                       (loop for x in old-whitelist
-                             unless (memq x msgs) collect x))
+                       (cl-loop for x in old-delete-list
+                                unless (memq x msgs) collect x)
+                       mh-blocklist
+                       (cl-loop for x in old-blocklist
+                                unless (memq x msgs) collect x)
+                       mh-allowlist
+                       (cl-loop for x in old-allowlist
+                                unless (memq x msgs) collect x))
                  (mh-set-folder-modified-p (mh-outstanding-commands-p))
                  (when (mh-outstanding-commands-p)
                    (mh-notate-deleted-and-refiled)))))))
-       (mh-index-matching-source-msgs (append (loop for x in mh-refile-list
-                                                    append (cdr x))
+       (mh-index-matching-source-msgs (append (cl-loop for x in mh-refile-list
+                                                       append (cdr x))
                                               mh-delete-list
-                                              mh-blacklist
-                                              mh-whitelist)
+                                              mh-blocklist
+                                              mh-allowlist)
                                       t))
       folders)))
 
@@ -1565,12 +1556,12 @@ If the folder returned doesn't exist then it is created."
   (unless (mh-folder-name-p name)
     (error "The argument should be a valid MH folder name"))
   (let ((chosen-name
-         (loop for i from 1
-               for candidate = (if (equal i 1) name (format "%s-%s" name i))
-               when (or (not (mh-folder-exists-p candidate))
-                        (equal (mh-index-folder-search-regexp candidate)
-                               search-regexp))
-               return candidate)))
+         (cl-loop for i from 1
+                  for candidate = (if (equal i 1) name (format "%s-%s" name i))
+                  when (or (not (mh-folder-exists-p candidate))
+                           (equal (mh-index-folder-search-regexp candidate)
+                                  search-regexp))
+                  return candidate)))
     ;; Do pending refiles/deletes...
     (when (get-buffer chosen-name)
       (mh-process-or-undo-commands chosen-name))
@@ -1583,7 +1574,7 @@ If the folder returned doesn't exist then it is created."
     chosen-name))
 
 (defun mh-index-folder-search-regexp (folder)
-  "If FOLDER was created by a index search, return the search regexp.
+  "If FOLDER was created by an index search, return the search regexp.
 Return nil if FOLDER doesn't exist or the .mhe_index file is
 garbled."
   (ignore-errors
@@ -1603,37 +1594,37 @@ garbled."
   "Mirror sequences present in source folders in index folder."
   (let ((seq-hash (make-hash-table :test #'equal))
         (seq-list ()))
-    (loop for folder being the hash-keys of mh-index-data
-          do (setf (gethash folder seq-hash)
-                   (mh-create-sequence-map
-                    (mh-read-folder-sequences folder nil))))
+    (cl-loop for folder being the hash-keys of mh-index-data
+             do (setf (gethash folder seq-hash)
+                      (mh-create-sequence-map
+                       (mh-read-folder-sequences folder nil))))
     (dolist (msg (mh-translate-range mh-current-folder "all"))
       (let* ((checksum (gethash msg mh-index-msg-checksum-map))
              (pair (gethash checksum mh-index-checksum-origin-map))
              (ofolder (car pair))
              (omsg (cdr pair)))
-        (loop for seq in (ignore-errors
-                           (gethash omsg (gethash ofolder seq-hash)))
-              do (if (assoc seq seq-list)
-                     (push msg (cdr (assoc seq seq-list)))
-                   (push (list seq msg) seq-list)))))
-    (loop for seq in seq-list
-          do (apply #'mh-exec-cmd "mark" mh-current-folder
-                    "-sequence" (symbol-name (car seq)) "-add"
-                    (mapcar #'(lambda (x) (format "%s" x)) (cdr seq))))))
+        (cl-loop for seq in (ignore-errors
+                              (gethash omsg (gethash ofolder seq-hash)))
+                 do (if (assoc seq seq-list)
+                        (push msg (cdr (assoc seq seq-list)))
+                      (push (list seq msg) seq-list)))))
+    (cl-loop for seq in seq-list
+             do (apply #'mh-exec-cmd "mark" mh-current-folder
+                       "-sequence" (symbol-name (car seq)) "-add"
+                       (mapcar (lambda (x) (format "%s" x)) (cdr seq))))))
 
 ;;;###mh-autoload
 (defun mh-create-sequence-map (seq-list)
   "Return a map from msg number to list of sequences in which it is present.
 SEQ-LIST is an assoc list whose keys are sequence names and whose
 cdr is the list of messages in that sequence."
-  (loop with map = (make-hash-table)
-        for seq in seq-list
-        when (and (not (memq (car seq) (mh-unpropagated-sequences)))
-                  (mh-valid-seq-p (car seq)))
-        do (loop for msg in (cdr seq)
-                 do (push (car seq) (gethash msg map)))
-        finally return map))
+  (cl-loop with map = (make-hash-table)
+           for seq in seq-list
+           when (and (not (memq (car seq) (mh-unpropagated-sequences)))
+                     (mh-valid-seq-p (car seq)))
+           do (cl-loop for msg in (cdr seq)
+                       do (push (car seq) (gethash msg map)))
+           finally return map))
 
 ;;;###mh-autoload
 (defun mh-index-add-to-sequence (seq msgs)
@@ -1719,7 +1710,7 @@ folder, is removed from `mh-index-data'."
                         "-format" "%{x-mhe-checksum}\n" folder msg)
     (goto-char (point-min))
     (string-equal (buffer-substring-no-properties
-                   (point) (mh-line-end-position))
+                   (point) (line-end-position))
                   checksum)))
 
 
@@ -1741,7 +1732,7 @@ folder, is removed from `mh-index-data'."
           (print-level nil))
       (with-temp-file outfile
         (mh-index-write-hashtable
-         data (lambda (x) (loop for y being the hash-keys of x collect y)))
+         data (lambda (x) (cl-loop for y being the hash-keys of x collect y)))
         (mh-index-write-hashtable msg-checksum-map #'identity)
         (mh-index-write-hashtable checksum-origin-map #'identity)
         (pp previous-search (current-buffer)) (insert "\n")
@@ -1751,8 +1742,8 @@ folder, is removed from `mh-index-data'."
   "Write TABLE to `current-buffer'.
 PROC is used to serialize the values corresponding to the hash
 table keys."
-  (pp (loop for x being the hash-keys of table
-            collect (cons x (funcall proc (gethash x table))))
+  (pp (cl-loop for x being the hash-keys of table
+               collect (cons x (funcall proc (gethash x table))))
       (current-buffer))
   (insert "\n"))
 
@@ -1769,9 +1760,9 @@ table keys."
         (goto-char (point-min))
         (setq t1 (mh-index-read-hashtable
                   (lambda (data)
-                    (loop with table = (make-hash-table :test #'equal)
-                          for x in data do (setf (gethash x table) t)
-                          finally return table)))
+                    (cl-loop with table = (make-hash-table :test #'equal)
+                             for x in data do (setf (gethash x table) t)
+                             finally return table)))
               t2 (mh-index-read-hashtable #'identity)
               t3 (mh-index-read-hashtable #'identity)
               t4 (read (current-buffer))
@@ -1785,10 +1776,10 @@ table keys."
 (defun mh-index-read-hashtable (proc)
   "From BUFFER read a hash table serialized as a list.
 PROC is used to convert the value to actual data."
-  (loop with table = (make-hash-table :test #'equal)
-        for pair in (read (current-buffer))
-        do (setf (gethash (car pair) table) (funcall proc (cdr pair)))
-        finally return table))
+  (cl-loop with table = (make-hash-table :test #'equal)
+           for pair in (read (current-buffer))
+           do (setf (gethash (car pair) table) (funcall proc (cdr pair)))
+           finally return table))
 
 
 
@@ -1828,8 +1819,8 @@ PROC is used to convert the value to actual data."
 
 (defun mh-md5sum-parser ()
   "Parse md5sum output."
-  (let ((begin (mh-line-beginning-position))
-        (end (mh-line-end-position))
+  (let ((begin (line-beginning-position))
+        (end (line-end-position))
         first-space last-slash)
     (setq first-space (search-forward " " end t))
     (goto-char end)
@@ -1842,8 +1833,8 @@ PROC is used to convert the value to actual data."
 
 (defun mh-openssl-parser ()
   "Parse openssl output."
-  (let ((begin (mh-line-beginning-position))
-        (end (mh-line-end-position))
+  (let ((begin (line-beginning-position))
+        (end (line-end-position))
         last-space last-slash)
     (goto-char end)
     (setq last-space (search-backward " " begin t))
@@ -1853,7 +1844,7 @@ PROC is used to convert the value to actual data."
                                     (1+ last-slash) (1- last-space)))
                  (buffer-substring-no-properties (1+ last-space) end))))))
 
-(defalias 'mh-md5-parser 'mh-openssl-parser)
+(defalias 'mh-md5-parser #'mh-openssl-parser)
 
 ;;;###mh-autoload
 (defun mh-index-update-maps (folder &optional origin-map)
@@ -1876,7 +1867,7 @@ origin-index) map is updated too."
       (let (msg checksum)
         (while (not (eobp))
           (setq msg (buffer-substring-no-properties
-                     (point) (mh-line-end-position)))
+                     (point) (line-end-position)))
           (forward-line)
           (save-excursion
             (cond ((not (string-match "^[0-9]*$" msg)))
@@ -1887,7 +1878,7 @@ origin-index) map is updated too."
                   (t
                    ;; update maps
                    (setq checksum (buffer-substring-no-properties
-                                   (point) (mh-line-end-position)))
+                                   (point) (line-end-position)))
                    (let ((msg (string-to-number msg)))
                      (set-buffer folder)
                      (mh-index-update-single-msg msg checksum origin-map)))))
@@ -1912,7 +1903,7 @@ origin-index) map is updated too."
 
 (defun mh-index-update-single-msg (msg checksum origin-map)
   "Update various maps for one message.
-MSG is a index folder message, CHECKSUM its MD5 hash and
+MSG is an index folder message, CHECKSUM its MD5 hash and
 ORIGIN-MAP, if non-nil, a hash table containing which maps each
 message in the index folder to the folder and message that it was
 copied from. The function updates the hash tables
@@ -1941,8 +1932,7 @@ folder buffer."
 (provide 'mh-search)
 
 ;; Local Variables:
-;; indent-tabs-mode: nil
 ;; sentence-end-double-space: nil
 ;; End:
 
-;;; mh-search ends here
+;;; mh-search.el ends here

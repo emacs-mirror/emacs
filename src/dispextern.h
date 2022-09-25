@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2017 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,16 +31,50 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/Intrinsic.h>
 #endif /* USE_X_TOOLKIT */
 
+#ifdef HAVE_XRENDER
+# include <X11/extensions/Xrender.h>
+#endif
+
+typedef XColor Emacs_Color;
+typedef Cursor Emacs_Cursor;
+#define No_Cursor (None)
+#ifndef USE_CAIRO
+typedef Pixmap Emacs_Pixmap;
+#endif
+typedef XRectangle Emacs_Rectangle;
+typedef XGCValues Emacs_GC;
 #else /* !HAVE_X_WINDOWS */
 
-/* X-related stuff used by non-X gui code.  */
+/* XColor-like struct used by non-X code.  */
 
-typedef struct {
+typedef struct
+{
   unsigned long pixel;
   unsigned short red, green, blue;
-  char flags;
-  char pad;
-} XColor;
+} Emacs_Color;
+
+/* Accommodate X's usage of None as a null resource ID.  */
+#define No_Cursor (NULL)
+
+/* XRectangle-like struct used by non-X GUI code.  */
+typedef struct
+{
+  int x, y;
+  unsigned width, height;
+} Emacs_Rectangle;
+
+/* XGCValues-like struct used by non-X GUI code.  */
+typedef struct
+{
+  unsigned long foreground;
+  unsigned long background;
+} Emacs_GC;
+
+/* Mask values to select foreground/background.  */
+/* FIXME: The GC handling in w32 really should be redesigned as to not
+   need these.  */
+#define GCForeground 0x01
+#define GCBackground 0x02
 
 #endif /* HAVE_X_WINDOWS */
 
@@ -60,24 +94,54 @@ xstrcasecmp (char const *a, char const *b)
 #ifdef HAVE_X_WINDOWS
 #include <X11/Xresource.h> /* for XrmDatabase */
 typedef struct x_display_info Display_Info;
-typedef XImage * XImagePtr;
-typedef XImagePtr XImagePtr_or_DC;
+#ifndef USE_CAIRO
+typedef XImage *Emacs_Pix_Container;
+typedef XImage *Emacs_Pix_Context;
+#endif	/* !USE_CAIRO */
 #define NativeRectangle XRectangle
+#endif
+
+#ifdef USE_CAIRO
+/* Minimal version of XImage.  */
+typedef struct
+{
+  int width, height;		/* size of image */
+  char *data;			/* pointer to image data */
+  int bytes_per_line;		/* accelarator to next line */
+  int bits_per_pixel;		/* bits per pixel (ZPixmap) */
+} *Emacs_Pix_Container;
+typedef Emacs_Pix_Container Emacs_Pixmap;
+typedef Emacs_Pix_Container Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
 typedef struct w32_display_info Display_Info;
-typedef XImage *XImagePtr;
-typedef HDC XImagePtr_or_DC;
+typedef XImage *Emacs_Pix_Container;
+typedef HDC Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_NS
 #include "nsgui.h"
 /* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
-typedef Pixmap XImagePtr;
+typedef Emacs_Pixmap Emacs_Pix_Container;
+typedef Emacs_Pixmap Emacs_Pix_Context;
+#endif
+
+#ifdef HAVE_PGTK
+#include "pgtkgui.h"
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
+typedef struct pgtk_display_info Display_Info;
+typedef Emacs_Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
+#endif /* HAVE_PGTK */
+
+#ifdef HAVE_HAIKU
+#include "haikugui.h"
+typedef struct haiku_display_info Display_Info;
+typedef Emacs_Pixmap Emacs_Pix_Container;
+typedef Emacs_Pixmap Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -86,8 +150,7 @@ typedef XImagePtr XImagePtr_or_DC;
 #endif
 
 #ifndef HAVE_WINDOW_SYSTEM
-typedef int Cursor;
-#define No_Cursor (0)
+typedef void *Emacs_Cursor;
 #endif
 
 #ifndef NativeRectangle
@@ -115,6 +178,7 @@ enum window_part
   ON_MODE_LINE,
   ON_VERTICAL_BORDER,
   ON_HEADER_LINE,
+  ON_TAB_LINE,
   ON_LEFT_FRINGE,
   ON_RIGHT_FRINGE,
   ON_LEFT_MARGIN,
@@ -145,29 +209,6 @@ enum window_part
 #else
 #define IF_DEBUG(X)	((void) 0)
 #endif
-
-/* Macro for displaying traces of redisplay.  If Emacs was compiled
-   with GLYPH_DEBUG defined, the variable trace_redisplay_p can be set to
-   a non-zero value in debugging sessions to activate traces.  */
-
-#ifdef GLYPH_DEBUG
-
-extern bool trace_redisplay_p EXTERNALLY_VISIBLE;
-#include <stdio.h>
-
-#define TRACE(X)				\
-   do {						\
-     if (trace_redisplay_p)			\
-       fprintf X;				\
-   } while (false)
-
-#else /* not GLYPH_DEBUG */
-
-#define TRACE(X)	((void) 0)
-
-#endif /* GLYPH_DEBUG */
-
-
 
 /***********************************************************************
 			    Text positions
@@ -203,7 +244,7 @@ struct text_pos
        {					\
 	 ++(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   INC_POS ((POS).bytepos);		\
+	   (POS).bytepos += next_char_len ((POS).bytepos); \
 	 else					\
 	   ++(POS).bytepos;			\
        }					\
@@ -216,7 +257,7 @@ struct text_pos
        {					\
 	 --(POS).charpos;			\
          if (MULTIBYTE_P)			\
-	   DEC_POS ((POS).bytepos);		\
+	   (POS).bytepos -= prev_char_len ((POS).bytepos); \
 	 else					\
 	   --(POS).bytepos;			\
        }					\
@@ -306,24 +347,24 @@ INLINE int
 GLYPH_CODE_CHAR (Lisp_Object gc)
 {
   return (CONSP (gc)
-	  ? XINT (XCAR (gc))
-	  : XINT (gc) & MAX_CHAR);
+	  ? XFIXNUM (XCAR (gc))
+	  : XFIXNUM (gc) & MAX_CHAR);
 }
 
 INLINE int
 GLYPH_CODE_FACE (Lisp_Object gc)
 {
-  return CONSP (gc) ? XINT (XCDR (gc)) : XINT (gc) >> CHARACTERBITS;
+  return CONSP (gc) ? XFIXNUM (XCDR (gc)) : XFIXNUM (gc) >> CHARACTERBITS;
 }
 
 #define SET_GLYPH_FROM_GLYPH_CODE(glyph, gc)				\
   do									\
     {									\
       if (CONSP (gc))							\
-	SET_GLYPH (glyph, XINT (XCAR (gc)), XINT (XCDR (gc)));		\
+	SET_GLYPH (glyph, XFIXNUM (XCAR (gc)), XFIXNUM (XCDR (gc)));		\
       else								\
-	SET_GLYPH (glyph, (XINT (gc) & ((1 << CHARACTERBITS)-1)),	\
-		   (XINT (gc) >> CHARACTERBITS));			\
+	SET_GLYPH (glyph, (XFIXNUM (gc) & ((1 << CHARACTERBITS)-1)),	\
+		   (XFIXNUM (gc) >> CHARACTERBITS));			\
     }									\
   while (false)
 
@@ -338,7 +379,7 @@ enum glyph_type
   /* Glyph describes a character.  */
   CHAR_GLYPH,
 
-  /* Glyph describes a static composition.  */
+  /* Glyph describes a static or automatic composition.  */
   COMPOSITE_GLYPH,
 
   /* Glyph describes a glyphless character.  */
@@ -505,8 +546,8 @@ struct glyph
     int img_id;
 
 #ifdef HAVE_XWIDGETS
-    /* Xwidget reference (type == XWIDGET_GLYPH).  */
-    struct xwidget *xwidget;
+    /* Xwidget ID.  */
+    uint32_t xwidget;
 #endif
 
     /* Sub-structure for type == STRETCH_GLYPH.  */
@@ -733,6 +774,9 @@ struct glyph_matrix
      update_window.  This flag is set by functions like try_window_id
      which do their own scrolling.  */
   bool_bf no_scrolling_p : 1;
+
+  /* True means window displayed in this matrix has a tab line.  */
+  bool_bf tab_line_p : 1;
 
   /* True means window displayed in this matrix has a header
      line.  */
@@ -973,8 +1017,11 @@ struct glyph_row
      implies that the row doesn't have marginal areas.  */
   bool_bf full_width_p : 1;
 
-  /* True means row is a mode or header-line.  */
+  /* True means row is a mode or header/tab-line.  */
   bool_bf mode_line_p : 1;
+
+  /* True means row is a tab-line.  */
+  bool_bf tab_line_p : 1;
 
   /* True in a current row means this row is overlapped by another row.  */
   bool_bf overlapped_p : 1;
@@ -1028,13 +1075,16 @@ struct glyph_row
      right-to-left paragraph.  */
   bool_bf reversed_p : 1;
 
+  /* Whether or not a stipple was drawn in this row at some point.  */
+  bool_bf stipple_p : 1;
+
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Non-NULL means the current clipping area.  This is temporarily
      set while exposing a region.  Coordinates are frame-relative.  */
-  XRectangle *clip;
+  const Emacs_Rectangle *clip;
 #endif
 };
 
@@ -1056,16 +1106,25 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 #define MATRIX_MODE_LINE_ROW(MATRIX) \
      ((MATRIX)->rows + (MATRIX)->nrows - 1)
 
-/* Return a pointer to the row reserved for the header line in MATRIX.
+/* Return a pointer to the row reserved for the tab line in MATRIX.
    This is always the first row in MATRIX because that's the only
    way that works in frame-based redisplay.  */
 
-#define MATRIX_HEADER_LINE_ROW(MATRIX) (MATRIX)->rows
+#define MATRIX_TAB_LINE_ROW(MATRIX) (MATRIX)->rows
+
+/* Return a pointer to the row reserved for the header line in MATRIX.
+   This is always the second row in MATRIX because that's the only
+   way that works in frame-based redisplay.  */
+
+#define MATRIX_HEADER_LINE_ROW(MATRIX) \
+     ((MATRIX)->tab_line_p ? ((MATRIX)->rows + 1) : (MATRIX)->rows)
 
 /* Return a pointer to first row in MATRIX used for text display.  */
 
 #define MATRIX_FIRST_TEXT_ROW(MATRIX) \
-     ((MATRIX)->rows->mode_line_p ? (MATRIX)->rows + 1 : (MATRIX)->rows)
+  ((MATRIX)->rows->mode_line_p ?                                        \
+   (((MATRIX)->rows + 1)->mode_line_p ?                                 \
+    (MATRIX)->rows + 2 : (MATRIX)->rows + 1) : (MATRIX)->rows)
 
 /* Return a pointer to the first glyph in the text area of a row.
    MATRIX is the glyph matrix accessed, and ROW is the row index in
@@ -1134,7 +1193,7 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
   ((ROW)->height != (ROW)->visible_height)
 
 #define MR_PARTIALLY_VISIBLE_AT_TOP(W, ROW)  \
-  ((ROW)->y < WINDOW_HEADER_LINE_HEIGHT ((W)))
+  ((ROW)->y < WINDOW_TAB_LINE_HEIGHT (W) + WINDOW_HEADER_LINE_HEIGHT (W))
 
 #define MR_PARTIALLY_VISIBLE_AT_BOTTOM(W, ROW)  \
   (((ROW)->y + (ROW)->height - (ROW)->extra_line_spacing) \
@@ -1216,8 +1275,6 @@ extern struct glyph space_glyph;
 /* True means last display completed.  False means it was preempted.  */
 
 extern bool display_completed;
-
-
 
 /************************************************************************
 			  Glyph Strings
@@ -1275,9 +1332,6 @@ struct glyph_string
   /* The window on which the glyph string is drawn.  */
   struct window *w;
 
-  /* X display and window for convenience.  */
-  Display *display;
-
   /* The glyph row for which this string was built.  It determines the
      y-origin and height of the string.  */
   struct glyph_row *row;
@@ -1285,8 +1339,10 @@ struct glyph_string
   /* The area within row.  */
   enum glyph_row_area area;
 
-  /* Characters to be drawn, and number of characters.  */
-  XChar2b *char2b;
+  /* Characters to be drawn, and number of characters.  Note that
+     NCHARS can be zero if this is a composition glyph string, as
+     evidenced by FIRST_GLYPH->type.  */
+  unsigned *char2b;
   int nchars;
 
   /* A face-override for drawing cursors, mouse face and similar.  */
@@ -1347,8 +1403,11 @@ struct glyph_string
   GC gc;
 #endif
 #if defined (HAVE_NTGUI)
-  XGCValues *gc;
+  Emacs_GC *gc;
   HDC hdc;
+#endif
+#if defined (HAVE_PGTK)
+  Emacs_GC xgcv;
 #endif
 
   /* A pointer to the first glyph in the string.  This glyph
@@ -1408,6 +1467,15 @@ struct glyph_string
       ? MATRIX_HEADER_LINE_ROW (MATRIX)->height	\
       : 0)
 
+/* Return the height of the tab line in glyph matrix MATRIX, or zero
+   if not known.  This macro is called under circumstances where
+   MATRIX might not have been allocated yet.  */
+
+#define MATRIX_TAB_LINE_HEIGHT(MATRIX)	\
+     ((MATRIX) && (MATRIX)->rows		\
+      ? MATRIX_TAB_LINE_ROW (MATRIX)->height	\
+      : 0)
+
 /* Return the desired face id for the mode line of a window, depending
    on whether the window is selected or not, or if the window is the
    scrolling window for the currently active minibuffer window.
@@ -1418,47 +1486,62 @@ struct glyph_string
    compared against minibuf_window (if SELW doesn't match), and SCRW
    which is compared against minibuf_selected_window (if MBW matches).  */
 
-#define CURRENT_MODE_LINE_FACE_ID_3(SELW, MBW, SCRW)		\
+#define CURRENT_MODE_LINE_ACTIVE_FACE_ID_3(SELW, MBW, SCRW)    	\
      ((!mode_line_in_non_selected_windows			\
        || (SELW) == XWINDOW (selected_window)			\
        || (minibuf_level > 0					\
            && !NILP (minibuf_selected_window)			\
            && (MBW) == XWINDOW (minibuf_window)			\
            && (SCRW) == XWINDOW (minibuf_selected_window)))	\
-      ? MODE_LINE_FACE_ID					\
+      ? MODE_LINE_ACTIVE_FACE_ID				\
       : MODE_LINE_INACTIVE_FACE_ID)
 
 
 /* Return the desired face id for the mode line of window W.  */
 
-#define CURRENT_MODE_LINE_FACE_ID(W)		\
-	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
+#define CURRENT_MODE_LINE_ACTIVE_FACE_ID(W)		\
+	(CURRENT_MODE_LINE_ACTIVE_FACE_ID_3((W),        \
+					    XWINDOW (selected_window), \
+					    (W)))
 
 /* Return the current height of the mode line of window W.  If not known
    from W->mode_line_height, look at W's current glyph matrix, or return
    a default based on the height of the font of the face `mode-line'.  */
 
 #define CURRENT_MODE_LINE_HEIGHT(W)					\
-  (W->mode_line_height >= 0						\
-   ? W->mode_line_height						\
-   : (W->mode_line_height						\
-      = (MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
-	 ? MATRIX_MODE_LINE_HEIGHT (W->current_matrix)			\
+  ((W)->mode_line_height >= 0						\
+   ? (W)->mode_line_height						\
+   : ((W)->mode_line_height						\
+      = (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)			\
+	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
 	 : estimate_mode_line_height					\
-	     (XFRAME (W->frame), CURRENT_MODE_LINE_FACE_ID (W)))))
+	 (XFRAME ((W)->frame), CURRENT_MODE_LINE_ACTIVE_FACE_ID (W)))))
 
 /* Return the current height of the header line of window W.  If not known
    from W->header_line_height, look at W's current glyph matrix, or return
    an estimation based on the height of the font of the face `header-line'.  */
 
 #define CURRENT_HEADER_LINE_HEIGHT(W)				\
-  (W->header_line_height >= 0					\
-   ? W->header_line_height					\
-   : (W->header_line_height					\
-      = (MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)		\
-	 ? MATRIX_HEADER_LINE_HEIGHT (W->current_matrix)	\
+  ((W)->header_line_height >= 0					\
+   ? (W)->header_line_height					\
+   : ((W)->header_line_height					\
+      = (MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
+	 ? MATRIX_HEADER_LINE_HEIGHT ((W)->current_matrix)	\
 	 : estimate_mode_line_height				\
-	     (XFRAME (W->frame), HEADER_LINE_FACE_ID))))
+	     (XFRAME ((W)->frame), HEADER_LINE_FACE_ID))))
+
+/* Return the current height of the tab line of window W.  If not known
+   from W->tab_line_height, look at W's current glyph matrix, or return
+   an estimation based on the height of the font of the face `tab-line'.  */
+
+#define CURRENT_TAB_LINE_HEIGHT(W)				\
+  ((W)->tab_line_height >= 0					\
+   ? (W)->tab_line_height					\
+   : ((W)->tab_line_height					\
+      = (MATRIX_TAB_LINE_HEIGHT ((W)->current_matrix)		\
+	 ? MATRIX_TAB_LINE_HEIGHT ((W)->current_matrix)		\
+	 : estimate_mode_line_height				\
+	     (XFRAME ((W)->frame), TAB_LINE_FACE_ID))))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -1469,6 +1552,11 @@ struct glyph_string
 
 #define DESIRED_HEADER_LINE_HEIGHT(W) \
      MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
+
+/* Return the height of the desired tab line of window W.  */
+
+#define DESIRED_TAB_LINE_HEIGHT(W) \
+     MATRIX_TAB_LINE_HEIGHT ((W)->desired_matrix)
 
 /* Return proper value to be used as baseline offset of font that has
    ASCENT and DESCENT to draw characters by the font at the vertical
@@ -1539,6 +1627,7 @@ enum lface_attribute_index
   LFACE_INHERIT_INDEX,
   LFACE_FONTSET_INDEX,
   LFACE_DISTANT_FOREGROUND_INDEX,
+  LFACE_EXTEND_INDEX,
   LFACE_VECTOR_SIZE
 };
 
@@ -1564,6 +1653,7 @@ enum face_box_type
 
 enum face_underline_type
 {
+  FACE_NO_UNDERLINE = 0,
   FACE_UNDER_LINE,
   FACE_UNDER_WAVE
 };
@@ -1589,8 +1679,11 @@ struct face
 
   /* If non-zero, this is a GC that we can use without modification for
      drawing the characters in this face.  */
+# ifdef HAVE_X_WINDOWS
   GC gc;
-
+# else
+  Emacs_GC *gc;
+# endif
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
   ptrdiff_t stipple;
@@ -1604,11 +1697,9 @@ struct face
   /* Pixel value or color index of background color.  */
   unsigned long background;
 
-  /* Pixel value or color index of underline color.  */
+  /* Pixel value or color index of underline, overlined,
+     strike-through, or box color.  */
   unsigned long underline_color;
-
-  /* Pixel value or color index of overlined, strike-through, or box
-     color.  */
   unsigned long overline_color;
   unsigned long strike_through_color;
   unsigned long box_color;
@@ -1620,12 +1711,23 @@ struct face
   int fontset;
 
   /* Non-zero means characters in this face have a box of that
-     thickness around them.  If this value is negative, its absolute
-     value indicates the thickness, and the horizontal (top and
-     bottom) borders of box are drawn inside of the character glyphs'
-     area.  The vertical (left and right) borders of the box are drawn
-     in the same way as when this value is positive.  */
-  int box_line_width;
+     thickness around them. Vertical (left and right) and horizontal
+     (top and bottom) borders size can be set separatedly using an
+     associated list of two ints in the form
+     (vertical_size . horizontal_size). In case one of the value is
+     negative, its absolute value indicates the thickness, and the
+     borders of box are drawn inside of the character glyphs' area
+     potentially over the glyph itself but the glyph drawing size is
+     not increase. If a (signed) int N is use instead of a list, it
+     is the same as setting ( abs(N) . N ) values. */
+  int box_vertical_line_width;
+  int box_horizontal_line_width;
+
+
+  /* The amount of pixels above the descent line the underline should
+     be displayed.  It does not take effect unless
+     `underline_at_descent_line_p` is t.  */
+  int underline_pixels_above_descent_line;
 
   /* Type of box drawn.  A value of FACE_NO_BOX means no box is drawn
      around text in this face.  A value of FACE_SIMPLE_BOX means a box
@@ -1635,7 +1737,7 @@ struct face
   ENUM_BF (face_box_type) box : 2;
 
   /* Style of underlining. */
-  ENUM_BF (face_underline_type) underline_type : 1;
+  ENUM_BF (face_underline_type) underline : 2;
 
   /* If `box' above specifies a 3D type, true means use box_color for
      drawing shadows.  */
@@ -1643,7 +1745,6 @@ struct face
 
   /* Non-zero if text in this face should be underlined, overlined,
      strike-through or have a box drawn around it.  */
-  bool_bf underline_p : 1;
   bool_bf overline_p : 1;
   bool_bf strike_through_p : 1;
 
@@ -1653,17 +1754,16 @@ struct face
   bool_bf foreground_defaulted_p : 1;
   bool_bf background_defaulted_p : 1;
 
-  /* True means that either no color is specified for underlining or that
-     the specified color couldn't be loaded.  Use the foreground
-     color when drawing in that case. */
-  bool_bf underline_defaulted_p : 1;
-
   /* True means that either no color is specified for the corresponding
      attribute or that the specified color couldn't be loaded.
      Use the foreground color when drawing in that case. */
+  bool_bf underline_defaulted_p : 1;
   bool_bf overline_color_defaulted_p : 1;
   bool_bf strike_through_color_defaulted_p : 1;
   bool_bf box_color_defaulted_p : 1;
+
+  /* True means the underline should be drawn at the descent line.  */
+  bool_bf underline_at_descent_line_p : 1;
 
   /* TTY appearances.  Colors are found in `lface' with empty color
      string meaning the default color of the TTY.  */
@@ -1671,10 +1771,11 @@ struct face
   bool_bf tty_italic_p : 1;
   bool_bf tty_underline_p : 1;
   bool_bf tty_reverse_p : 1;
+  bool_bf tty_strike_through_p : 1;
 
   /* True means that colors of this face may not be freed because they
      have been copied bitwise from a base face (see
-     realize_x_face).  */
+     realize_gui_face).  */
   bool_bf colors_copied_bitwise_p : 1;
 
   /* If non-zero, use overstrike (to simulate bold-face).  */
@@ -1688,7 +1789,7 @@ struct face
 #endif
 
   /* The hash value of this face.  */
-  unsigned hash;
+  uintptr_t hash;
 
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
@@ -1737,7 +1838,7 @@ face_tty_specified_color (unsigned long color)
 enum face_id
 {
   DEFAULT_FACE_ID,
-  MODE_LINE_FACE_ID,
+  MODE_LINE_ACTIVE_FACE_ID,
   MODE_LINE_INACTIVE_FACE_ID,
   TOOL_BAR_FACE_ID,
   FRINGE_FACE_ID,
@@ -1752,6 +1853,9 @@ enum face_id
   WINDOW_DIVIDER_FIRST_PIXEL_FACE_ID,
   WINDOW_DIVIDER_LAST_PIXEL_FACE_ID,
   INTERNAL_BORDER_FACE_ID,
+  CHILD_FRAME_BORDER_FACE_ID,
+  TAB_BAR_FACE_ID,
+  TAB_LINE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -1780,19 +1884,8 @@ struct face_cache
   bool_bf menu_face_changed_p : 1;
 };
 
-/* Return a non-null pointer to the cached face with ID on frame F.  */
-
-#define FACE_FROM_ID(F, ID)					\
-  (eassert (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)),	\
-   FRAME_FACE_CACHE (F)->faces_by_id[ID])
-
-/* Return a pointer to the face with ID on frame F, or null if such a
-   face doesn't exist.  */
-
-#define FACE_FROM_ID_OR_NULL(F, ID)			\
-  (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
-   ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
-   : NULL)
+#define FACE_EXTENSIBLE_P(F)			\
+  (!NILP (F->lface[LFACE_EXTEND_INDEX]))
 
 /* True if FACE is suitable for displaying ASCII characters.  */
 INLINE bool
@@ -1837,8 +1930,8 @@ GLYPH_CODE_P (Lisp_Object gc)
 {
   return (CONSP (gc)
 	  ? (CHARACTERP (XCAR (gc))
-	     && RANGED_INTEGERP (0, XCDR (gc), MAX_FACE_ID))
-	  : (RANGED_INTEGERP
+	     && RANGED_FIXNUMP (0, XCDR (gc), MAX_FACE_ID))
+	  : (RANGED_FIXNUMP
 	     (0, gc,
 	      (MAX_FACE_ID < TYPE_MAXIMUM (EMACS_INT) >> CHARACTERBITS
 	       ? ((EMACS_INT) MAX_FACE_ID << CHARACTERBITS) | MAX_CHAR
@@ -2194,6 +2287,8 @@ struct composition_it
      reverse order, and thus the grapheme clusters must be rendered
      from the last to the first.  */
   bool reversed_p;
+  /* Parent iterator. */
+  struct it *parent_it;
 
   /** The following members contain information about the current
       grapheme cluster.  */
@@ -2239,6 +2334,14 @@ struct it
      with which display_string was called.  */
   ptrdiff_t end_charpos;
 
+  /* Alternate begin position of the buffer that may be used to
+     optimize display (see the SET_WITH_NARROWED_BEGV macro).  */
+  ptrdiff_t narrowed_begv;
+
+  /* Alternate end position of the buffer that may be used to
+     optimize display.  */
+  ptrdiff_t narrowed_zv;
+
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
@@ -2249,11 +2352,11 @@ struct it
      used for overlay strings and strings from display properties.  */
   ptrdiff_t string_nchars;
 
-  /* Position at which redisplay end trigger functions should be run.  */
-  ptrdiff_t redisplay_end_trigger_charpos;
-
   /* True means multibyte characters are enabled.  */
   bool_bf multibyte_p : 1;
+
+  /* True means window has a tab line at its top.  */
+  bool_bf tab_line_p : 1;
 
   /* True means window has a mode line at its top.  */
   bool_bf header_line_p : 1;
@@ -2420,7 +2523,7 @@ struct it
   /* Face to use.  */
   int face_id;
 
-  /* Setting of buffer-local variable selective-display-ellipsis.  */
+  /* Setting of buffer-local variable selective-display-ellipses.  */
   bool_bf selective_display_ellipsis_p : 1;
 
   /* True means control characters are translated into the form `^C'
@@ -2462,10 +2565,15 @@ struct it
      descent/ascent (line-height property).  Reset after this glyph.  */
   bool_bf constrain_row_ascent_descent_p : 1;
 
+  /* If true, glyphs for line number display were already produced for
+     the current row.  */
+  bool_bf line_number_produced_p : 1;
+
   enum line_wrap_method line_wrap;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
-     MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
+     MODE_LINE_ACTIVE_FACE_ID, etc, depending on what we are
+     displaying.  */
   int base_face_id;
 
   /* If `what' == IT_CHARACTER, the character and the length in bytes
@@ -2478,7 +2586,7 @@ struct it
 
      If `what' is anything else, these two are undefined (will
      probably hold values for the last IT_CHARACTER or IT_COMPOSITION
-     traversed by the iterator.
+     traversed by the iterator).
 
      The values are updated by get_next_display_element, so they are
      out of sync with the value returned by IT_CHARPOS between the
@@ -2641,6 +2749,12 @@ struct it
   /* The line number of point's line, or zero if not computed yet.  */
   ptrdiff_t pt_lnum;
 
+  /* Number of pixels to adjust tab stops and stretch glyphs due to
+     width fixup of the first stretch glyph that crosses first_visible_x.
+     This is only needed on GUI frames, only when display-line-numbers
+     is in effect, and only in hscrolled windows.  */
+  int stretch_adjust;
+
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
 
@@ -2660,6 +2774,12 @@ struct it
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
   bidi_dir_t paragraph_embedding;
+
+  /* For handling the :min-width property.  The object is the text
+     property we're testing the `eq' of (nil if none), and the integer
+     is the x position of the start of the run of glyphs. */
+  Lisp_Object min_width_property;
+  int min_width_start;
 };
 
 
@@ -2696,7 +2816,8 @@ struct it
     else                                                \
       produce_glyphs ((IT));                            \
     if ((IT)->glyph_row != NULL)                        \
-      inhibit_free_realized_faces = true;		\
+      inhibit_free_realized_faces =true;		\
+    reset_box_start_end_flags ((IT));			\
   } while (false)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */
@@ -2753,18 +2874,17 @@ typedef struct {
 INLINE void
 reset_mouse_highlight (Mouse_HLInfo *hlinfo)
 {
-
-    hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
-    hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
-    hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
-    hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
-    hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
-    hlinfo->mouse_face_mouse_frame = NULL;
-    hlinfo->mouse_face_window = Qnil;
-    hlinfo->mouse_face_overlay = Qnil;
-    hlinfo->mouse_face_past_end = false;
-    hlinfo->mouse_face_hidden = false;
-    hlinfo->mouse_face_defer = false;
+  hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
+  hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
+  hlinfo->mouse_face_mouse_x = hlinfo->mouse_face_mouse_y = 0;
+  hlinfo->mouse_face_beg_x = hlinfo->mouse_face_end_x = 0;
+  hlinfo->mouse_face_face_id = DEFAULT_FACE_ID;
+  hlinfo->mouse_face_mouse_frame = NULL;
+  hlinfo->mouse_face_window = Qnil;
+  hlinfo->mouse_face_overlay = Qnil;
+  hlinfo->mouse_face_past_end = false;
+  hlinfo->mouse_face_hidden = false;
+  hlinfo->mouse_face_defer = false;
 }
 
 /***********************************************************************
@@ -2875,11 +2995,16 @@ struct redisplay_interface
   void (*draw_glyph_string) (struct glyph_string *s);
 
   /* Define cursor CURSOR on frame F.  */
-  void (*define_frame_cursor) (struct frame *f, Cursor cursor);
+  void (*define_frame_cursor) (struct frame *f, Emacs_Cursor cursor);
 
   /* Clear the area at (X,Y,WIDTH,HEIGHT) of frame F.  */
   void (*clear_frame_area) (struct frame *f, int x, int y,
                             int width, int height);
+
+ /* Clear area of frame F's internal border.  If the internal border
+    face of F has been specified (is not null), fill the area with
+    that face.  */
+  void (*clear_under_internal_border) (struct frame *f);
 
   /* Draw specified cursor CURSOR_TYPE of width CURSOR_WIDTH
      at row GLYPH_ROW on window W if ON_P is true.  If ON_P is
@@ -2912,6 +3037,9 @@ struct redisplay_interface
   /* Cancel hourglass cursor on frame F.  */
   void (*hide_hourglass) (struct frame *f);
 
+  /* Called to (re)calculate the default face when changing the font
+     backend.  */
+  void (*default_font_parameter) (struct frame *f, Lisp_Object parms);
 #endif /* HAVE_WINDOW_SYSTEM */
 };
 
@@ -2922,33 +3050,10 @@ struct redisplay_interface
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Each image format (JPEG, TIFF, ...) supported is described by
-   a structure of the type below.  */
-
-struct image_type
-{
-  /* Index of a symbol uniquely identifying the image type, e.g., 'jpeg'.  */
-  int type;
-
-  /* Check that SPEC is a valid image specification for the given
-     image type.  Value is true if SPEC is valid.  */
-  bool (* valid_p) (Lisp_Object spec);
-
-  /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is true if successful.  */
-  bool (* load) (struct frame *f, struct image *img);
-
-  /* Free resources of image IMG which is used on frame F.  */
-  void (* free) (struct frame *f, struct image *img);
-
-  /* Initialization function (used for dynamic loading of image
-     libraries on Windows), or NULL if none.  */
-  bool (* init) (void);
-
-  /* Next in list of all supported image types.  */
-  struct image_type *next;
-};
-
+# if (defined USE_CAIRO || defined HAVE_XRENDER \
+      || defined HAVE_NS || defined HAVE_NTGUI || defined HAVE_HAIKU)
+#  define HAVE_NATIVE_TRANSFORMS
+# endif
 
 /* Structure describing an image.  Specific image formats like XBM are
    converted into this form, so that display only has to deal with
@@ -2961,18 +3066,40 @@ struct image
   struct timespec timestamp;
 
   /* Pixmaps of the image.  */
-  Pixmap pixmap, mask;
+  Emacs_Pixmap pixmap, mask;
 
 #ifdef USE_CAIRO
   void *cr_data;
-  void *cr_data2;
 #endif
 #ifdef HAVE_X_WINDOWS
   /* X images of the image, corresponding to the above Pixmaps.
      Non-NULL means it and its Pixmap counterpart may be out of sync
      and the latter is outdated.  NULL means the X image has been
      synchronized to Pixmap.  */
-  XImagePtr ximg, mask_img;
+  XImage *ximg, *mask_img;
+
+# if !defined USE_CAIRO && defined HAVE_XRENDER
+  /* Picture versions of pixmap and mask for compositing.  */
+  Picture picture, mask_picture;
+
+  /* We need to store the original image dimensions in case we have to
+     call XGetImage.  */
+  int original_width, original_height;
+# endif
+#endif	/* HAVE_X_WINDOWS */
+#ifdef HAVE_NTGUI
+  XFORM xform;
+#endif
+#ifdef HAVE_HAIKU
+  /* The affine transformation to apply to this image.  */
+  double transform[3][3];
+
+  /* The original width and height of the image.  */
+  int original_width, original_height;
+
+  /* Whether or not bilinear filtering should be used to "smooth" the
+     image.  */
+  bool use_bilinear_filtering;
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */
@@ -2986,9 +3113,14 @@ struct image
      if necessary.  */
   unsigned long background;
 
-  /* Foreground and background colors of the frame on which the image
+  /* Foreground and background colors of the face on which the image
      is created.  */
-  unsigned long frame_foreground, frame_background;
+  unsigned long face_foreground, face_background;
+
+  /* Details of the font, only really relevant for types like SVG that
+     allow us to draw text. */
+  int face_font_size;
+  char *face_font_family;
 
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
@@ -3038,7 +3170,7 @@ struct image
   int hmargin, vmargin;
 
   /* Reference to the type of the image.  */
-  struct image_type *type;
+  struct image_type const *type;
 
   /* True means that loading the image failed.  Don't try again.  */
   bool load_failed_p;
@@ -3079,27 +3211,56 @@ struct image_cache
   ptrdiff_t refcount;
 };
 
-
-/* A non-null pointer to the image with id ID on frame F.  */
-
-#define IMAGE_FROM_ID(F, ID)					\
-  (eassert (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)),	\
-   FRAME_IMAGE_CACHE (F)->images[ID])
-
-/* Value is a pointer to the image with id ID on frame F, or null if
-   no image with that id exists.  */
-
-#define IMAGE_OPT_FROM_ID(F, ID)				\
-  (UNSIGNED_CMP (ID, <, FRAME_IMAGE_CACHE (F)->used)		\
-   ? FRAME_IMAGE_CACHE (F)->images[ID]				\
-   : NULL)
-
 /* Size of bucket vector of image caches.  Should be prime.  */
 
-#define IMAGE_CACHE_BUCKETS_SIZE 1001
+#define IMAGE_CACHE_BUCKETS_SIZE 1009
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
+
+
+/***********************************************************************
+			       Tab-bars
+ ***********************************************************************/
+
+/* Enumeration defining where to find tab-bar item information in
+   tab-bar items vectors stored with frames.  Each tab-bar item
+   occupies TAB_BAR_ITEM_NSLOTS elements in such a vector.  */
+
+enum tab_bar_item_idx
+{
+  /* The key of the tab-bar item.  Used to remove items when a binding
+     for `undefined' is found.  */
+  TAB_BAR_ITEM_KEY,
+
+  /* Non-nil if item is enabled.  */
+  TAB_BAR_ITEM_ENABLED_P,
+
+  /* Non-nil if item is selected (pressed).  */
+  TAB_BAR_ITEM_SELECTED_P,
+
+  /* Caption.  */
+  TAB_BAR_ITEM_CAPTION,
+
+  /* The binding.  */
+  TAB_BAR_ITEM_BINDING,
+
+  /* Help string.  */
+  TAB_BAR_ITEM_HELP,
+
+  /* Sentinel = number of slots in tab_bar_items occupied by one
+     tab-bar item.  */
+  TAB_BAR_ITEM_NSLOTS
+};
+
+/* Default values of the above variables.  */
+
+#define DEFAULT_TAB_BAR_BUTTON_MARGIN 1
+#define DEFAULT_TAB_BAR_BUTTON_RELIEF 1
+
+/* The height in pixels of the default tab-bar images.  */
+
+#define DEFAULT_TAB_BAR_IMAGE_HEIGHT 18
 
 
 /***********************************************************************
@@ -3191,6 +3352,7 @@ enum tool_bar_item_image
 #define TTY_CAP_BOLD		0x04
 #define TTY_CAP_DIM		0x08
 #define TTY_CAP_ITALIC  	0x10
+#define TTY_CAP_STRIKE_THROUGH	0x20
 
 
 /***********************************************************************
@@ -3240,6 +3402,9 @@ void mark_window_display_accurate (Lisp_Object, bool);
 void redisplay_preserve_echo_area (int);
 void init_iterator (struct it *, struct window *, ptrdiff_t,
                     ptrdiff_t, struct glyph_row *, enum face_id);
+ptrdiff_t get_narrowed_begv (struct window *, ptrdiff_t);
+ptrdiff_t get_narrowed_zv (struct window *, ptrdiff_t);
+ptrdiff_t get_closer_narrowed_begv (struct window *, ptrdiff_t);
 void init_iterator_to_row_start (struct it *, struct window *,
                                  struct glyph_row *);
 void start_display (struct it *, struct window *, struct text_pos);
@@ -3254,10 +3419,13 @@ int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
+extern bool display_working_on_window_p;
+extern void unwind_display_working_on_window (void);
 extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
 extern ptrdiff_t help_echo_pos;
+extern int last_tab_bar_item;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
@@ -3274,23 +3442,19 @@ extern void get_font_ascent_descent (struct font *, int *, int *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#ifdef GLYPH_DEBUG
-extern void dump_glyph_string (struct glyph_string *) EXTERNALLY_VISIBLE;
-#endif
-
-extern void x_get_glyph_overhangs (struct glyph *, struct frame *,
-                                   int *, int *);
+extern void gui_get_glyph_overhangs (struct glyph *, struct frame *,
+                                     int *, int *);
 extern struct font *font_for_underline_metrics (struct glyph_string *);
-extern void x_produce_glyphs (struct it *);
+extern void gui_produce_glyphs (struct it *);
 
-extern void x_write_glyphs (struct window *, struct glyph_row *,
-			    struct glyph *, enum glyph_row_area, int);
-extern void x_insert_glyphs (struct window *, struct glyph_row *,
-			     struct glyph *, enum glyph_row_area, int);
-extern void x_clear_end_of_line (struct window *, struct glyph_row *,
-				 enum glyph_row_area, int);
-extern void x_fix_overlapping_area (struct window *, struct glyph_row *,
-                                    enum glyph_row_area, int);
+extern void gui_write_glyphs (struct window *, struct glyph_row *,
+                              struct glyph *, enum glyph_row_area, int);
+extern void gui_insert_glyphs (struct window *, struct glyph_row *,
+                               struct glyph *, enum glyph_row_area, int);
+extern void gui_clear_end_of_line (struct window *, struct glyph_row *,
+                                   enum glyph_row_area, int);
+extern void gui_fix_overlapping_area (struct window *, struct glyph_row *,
+                                      enum glyph_row_area, int);
 extern void draw_phys_cursor_glyph (struct window *,
                                     struct glyph_row *,
                                     enum draw_glyphs_face);
@@ -3298,10 +3462,10 @@ extern void get_phys_cursor_geometry (struct window *, struct glyph_row *,
                                       struct glyph *, int *, int *, int *);
 extern void erase_phys_cursor (struct window *);
 extern void display_and_set_cursor (struct window *, bool, int, int, int, int);
-extern void x_update_cursor (struct frame *, bool);
-extern void x_clear_cursor (struct window *);
-extern void x_draw_vertical_border (struct window *w);
-extern void x_draw_right_divider (struct window *w);
+extern void gui_update_cursor (struct frame *, bool);
+extern void gui_clear_cursor (struct window *);
+extern void gui_draw_vertical_border (struct window *w);
+extern void gui_draw_right_divider (struct window *w);
 
 extern int get_glyph_string_clip_rects (struct glyph_string *,
                                         NativeRectangle *, int);
@@ -3309,15 +3473,22 @@ extern void get_glyph_string_clip_rect (struct glyph_string *,
                                         NativeRectangle *nr);
 extern Lisp_Object find_hot_spot (Lisp_Object, int, int);
 
+extern Lisp_Object handle_tab_bar_click (struct frame *,
+					 int, int, bool, int);
 extern void handle_tool_bar_click (struct frame *,
                                    int, int, bool, int);
+extern void handle_tool_bar_click_with_device (struct frame *, int, int, bool,
+					       int, Lisp_Object);
 
 extern void expose_frame (struct frame *, int, int, int, int);
-extern bool x_intersect_rectangles (XRectangle *, XRectangle *, XRectangle *);
+extern bool gui_intersect_rectangles (const Emacs_Rectangle *,
+                                      const Emacs_Rectangle *,
+                                      Emacs_Rectangle *);
+extern void gui_consider_frame_title (Lisp_Object);
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 extern void note_mouse_highlight (struct frame *, int, int);
-extern void x_clear_window_mouse_face (struct window *);
+extern void gui_clear_window_mouse_face (struct window *);
 extern void cancel_mouse_face (struct frame *);
 extern bool clear_mouse_face (Mouse_HLInfo *);
 extern bool cursor_in_mouse_face_p (struct window *w);
@@ -3335,47 +3506,56 @@ void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);
 bool draw_window_fringes (struct window *, bool);
 bool update_window_fringes (struct window *, bool);
 
+void gui_init_fringe (struct redisplay_interface *);
+
+extern int max_used_fringe_bitmap;
+void gui_define_fringe_bitmap (struct frame *, int);
+
 #ifdef HAVE_NTGUI
-void w32_init_fringe (struct redisplay_interface *);
 void w32_reset_fringes (void);
-#endif
-#ifdef USE_CAIRO
-void x_cr_init_fringe (struct redisplay_interface *);
 #endif
 
 extern unsigned row_hash (struct glyph_row *);
 
 extern bool buffer_flipping_blocked_p (void);
 
+extern void update_redisplay_ticks (int, struct window *);
+
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-extern ptrdiff_t x_bitmap_pixmap (struct frame *, ptrdiff_t);
-extern void x_reference_bitmap (struct frame *, ptrdiff_t);
-extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
-					    unsigned int, unsigned int);
-extern ptrdiff_t x_create_bitmap_from_file (struct frame *, Lisp_Object);
+extern ptrdiff_t image_bitmap_pixmap (struct frame *, ptrdiff_t);
+extern void image_reference_bitmap (struct frame *, ptrdiff_t);
+extern ptrdiff_t image_create_bitmap_from_data (struct frame *, char *,
+                                                unsigned int, unsigned int);
+extern ptrdiff_t image_create_bitmap_from_file (struct frame *, Lisp_Object);
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
 extern ptrdiff_t x_create_bitmap_from_xpm_data (struct frame *, const char **);
 #endif
-#ifndef x_destroy_bitmap
-extern void x_destroy_bitmap (struct frame *, ptrdiff_t);
+#ifndef image_destroy_bitmap
+extern void image_destroy_bitmap (struct frame *, ptrdiff_t);
 #endif
-extern void x_destroy_all_bitmaps (Display_Info *);
+extern void image_destroy_all_bitmaps (Display_Info *);
+#ifdef HAVE_X_WINDOWS
 extern void x_create_bitmap_mask (struct frame *, ptrdiff_t);
-extern Lisp_Object x_find_image_file (Lisp_Object);
+#ifndef USE_CAIRO
+extern void x_kill_gs_process (Pixmap, struct frame *);
+#endif	/* !USE_CAIRO */
+#endif
+extern Lisp_Object image_find_image_file (Lisp_Object);
 
-void x_kill_gs_process (Pixmap, struct frame *);
 struct image_cache *make_image_cache (void);
 void free_image_cache (struct frame *);
 void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
+void image_prune_animation_caches (bool);
 bool valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
-ptrdiff_t lookup_image (struct frame *, Lisp_Object);
+ptrdiff_t lookup_image (struct frame *, Lisp_Object, int);
 
-#if defined (HAVE_X_WINDOWS) ||  defined (HAVE_NS)
+#if defined HAVE_X_WINDOWS || defined USE_CAIRO || defined HAVE_NS \
+  || defined HAVE_HAIKU
 #define RGB_PIXEL_COLOR unsigned long
 #endif
 
@@ -3384,9 +3564,9 @@ ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 #endif
 
 RGB_PIXEL_COLOR image_background (struct image *, struct frame *,
-                                XImagePtr_or_DC ximg);
+                                  Emacs_Pix_Context img);
 int image_background_transparent (struct image *, struct frame *,
-                                  XImagePtr_or_DC mask);
+                                  Emacs_Pix_Context mask);
 
 int image_ascent (struct image *, struct face *, struct glyph_slice *);
 
@@ -3410,6 +3590,11 @@ void x_free_colors (struct frame *, unsigned long *, int);
 
 void update_face_from_frame_parameter (struct frame *, Lisp_Object,
                                        Lisp_Object);
+extern bool tty_defined_color (struct frame *, const char *, Emacs_Color *,
+                               bool, bool);
+bool parse_color_spec (const char *,
+                       unsigned short *, unsigned short *, unsigned short *);
+
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (bool);
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
@@ -3419,21 +3604,23 @@ char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
 #ifdef HAVE_WINDOW_SYSTEM
 void prepare_face_for_display (struct frame *, struct face *);
 #endif
-int lookup_named_face (struct frame *, Lisp_Object, bool);
-int lookup_basic_face (struct frame *, int);
+int lookup_named_face (struct window *, struct frame *, Lisp_Object, bool);
+int lookup_basic_face (struct window *, struct frame *, int);
 int smaller_face (struct frame *, int, int);
 int face_with_height (struct frame *, int, int);
-int lookup_derived_face (struct frame *, Lisp_Object, int, bool);
+int lookup_derived_face (struct window *, struct frame *,
+                         Lisp_Object, int, bool);
 void init_frame_faces (struct frame *);
 void free_frame_faces (struct frame *);
 void recompute_basic_faces (struct frame *);
-int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
-                             bool, int);
+int face_at_buffer_position (struct window *, ptrdiff_t, ptrdiff_t *,
+                             ptrdiff_t, bool, int, enum lface_attribute_index);
 int face_for_overlay_string (struct window *, ptrdiff_t, ptrdiff_t *, ptrdiff_t,
-                             bool, Lisp_Object);
+                             bool, Lisp_Object, enum lface_attribute_index);
 int face_at_string_position (struct window *, Lisp_Object, ptrdiff_t, ptrdiff_t,
-                             ptrdiff_t *, enum face_id, bool);
-int merge_faces (struct frame *, Lisp_Object, int, int);
+                             ptrdiff_t *, enum face_id, bool,
+                             enum lface_attribute_index);
+int merge_faces (struct window *, Lisp_Object, int, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
 extern char unspecified_fg[], unspecified_bg[];
@@ -3446,15 +3633,11 @@ void gamma_correct (struct frame *, XColor *);
 #ifdef HAVE_NTGUI
 void gamma_correct (struct frame *, COLORREF *);
 #endif
+#ifdef HAVE_HAIKU
+void gamma_correct (struct frame *, Emacs_Color *);
+#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
-void x_change_tool_bar_height (struct frame *f, int);
-
-extern Lisp_Object tip_frame;
-extern Window tip_window;
-extern frame_parm_handler x_frame_parm_handlers[];
 
 extern void start_hourglass (void);
 extern void cancel_hourglass (void);
@@ -3502,6 +3685,7 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
 extern void redraw_frame (struct frame *);
 extern bool update_frame (struct frame *, bool, bool);
 extern void update_frame_with_menu (struct frame *, int, int);
+extern int update_mouse_position (struct frame *, int, int);
 extern void bitch_at_user (void);
 extern void adjust_frame_glyphs (struct frame *);
 void free_glyphs (struct frame *);
@@ -3521,8 +3705,12 @@ void clear_glyph_matrix_rows (struct glyph_matrix *, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct window *, struct glyph_row *, bool);
 void update_single_window (struct window *);
+#ifdef HAVE_WINDOW_SYSTEM
+extern void gui_update_window_begin (struct window *);
+extern void gui_update_window_end (struct window *, bool, bool);
+#endif
 void do_pending_window_change (bool);
-void change_frame_size (struct frame *, int, int, bool, bool, bool, bool);
+void change_frame_size (struct frame *, int, int, bool, bool, bool);
 void init_display (void);
 void syms_of_display (void);
 extern void spec_glyph_lookup_face (struct window *, GLYPH *);
@@ -3560,6 +3748,10 @@ extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, bool);
 extern void tty_append_glyph (struct it *);
 
+/* All scrolling costs measured in characters.
+   So no cost can exceed the area of a frame, measured in characters.
+   Let's hope this is never more than 1000000 characters.  */
+enum { SCROLL_INFINITY = 1000000 };
 
 /* Defined in scroll.c */
 
@@ -3587,24 +3779,20 @@ enum resource_types
 };
 
 extern Display_Info *check_x_display_info (Lisp_Object);
-extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
-                              Lisp_Object, const char *, const char *class,
-                              enum resource_types);
-extern Lisp_Object x_frame_get_and_record_arg (struct frame *, Lisp_Object,
-                                               Lisp_Object,
-					       const char *, const char *,
-                                               enum resource_types);
-extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
-                                        Lisp_Object, Lisp_Object,
-                                        const char *, const char *,
+extern Lisp_Object gui_display_get_arg (Display_Info *, Lisp_Object,
+                                        Lisp_Object, const char *, const char *,
                                         enum resource_types);
-extern char *x_get_string_resource (XrmDatabase, const char *,
-				    const char *);
+extern Lisp_Object gui_frame_get_and_record_arg (struct frame *, Lisp_Object,
+                                                 Lisp_Object,
+                                                 const char *, const char *,
+                                                 enum resource_types);
+extern Lisp_Object gui_default_parameter (struct frame *, Lisp_Object,
+                                          Lisp_Object, Lisp_Object,
+                                          const char *, const char *,
+                                          enum resource_types);
 
-#ifndef HAVE_NS /* These both used on W32 and X only.  */
-extern bool x_mouse_grabbed (Display_Info *);
-extern void x_redo_mouse_highlight (Display_Info *);
-#endif /* HAVE_NS */
+extern bool gui_mouse_grabbed (Display_Info *);
+extern void gui_redo_mouse_highlight (Display_Info *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

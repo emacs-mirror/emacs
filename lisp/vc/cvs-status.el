@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2017 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2022 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs status tree vc tools
@@ -28,29 +28,22 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-(require 'pcvs-util)
+(require 'cl-lib)
+(require 'pcvs)
 
 ;;;
 
-(defgroup cvs-status nil
-  "Major mode for browsing `cvs status' output."
-  :group 'pcl-cvs
-  :prefix "cvs-status-")
-
-(easy-mmode-defmap cvs-status-mode-map
-  '(("n"	. next-line)
-    ("p"	. previous-line)
-    ("N"	. cvs-status-next)
-    ("P"	. cvs-status-prev)
-    ("\M-n"	. cvs-status-next)
-    ("\M-p"	. cvs-status-prev)
-    ("t"	. cvs-status-cvstrees)
-    ("T"	. cvs-status-trees)
-    (">"        . cvs-mode-checkout))
-  "CVS-Status' keymap."
-  :group 'cvs-status
-  :inherit 'cvs-mode-map)
+(defvar-keymap cvs-status-mode-map
+  :parent     cvs-mode-map
+  "n"         #'next-line
+  "p"         #'previous-line
+  "N"         #'cvs-status-next
+  "P"         #'cvs-status-prev
+  "M-n"       #'cvs-status-next
+  "M-p"       #'cvs-status-prev
+  "t"         #'cvs-status-cvstrees
+  "T"         #'cvs-status-trees
+  ">"         #'cvs-mode-checkout)
 
 ;;(easy-menu-define cvs-status-menu cvs-status-mode-map
 ;;  "Menu for `cvs-status-mode'."
@@ -97,8 +90,8 @@
 ;;;###autoload
 (define-derived-mode cvs-status-mode fundamental-mode "CVS-Status"
   "Mode used for cvs status output."
-  (set (make-local-variable 'font-lock-defaults) cvs-status-font-lock-defaults)
-  (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-status-minor-wrap))
+  (setq-local font-lock-defaults cvs-status-font-lock-defaults)
+  (setq-local cvs-minor-wrap-function #'cvs-status-minor-wrap))
 
 ;; Define cvs-status-next and cvs-status-prev
 (easy-mmode-define-navigation cvs-status cvs-status-entry-leader-re "entry")
@@ -174,7 +167,7 @@
   name
   type)
 
-(defsubst cvs-status-vl-to-str (vl) (mapconcat 'number-to-string vl "."))
+(defsubst cvs-status-vl-to-str (vl) (mapconcat #'number-to-string vl "."))
 
 (defun cvs-tag->string (tag)
   (if (stringp tag) tag
@@ -274,9 +267,9 @@ BEWARE:  because of stability issues, this is not a symmetric operation."
     (cond
      ((= l1 l2)
       (pcase (cvs-tag-compare tag1 tag2)
-	(`more1 (cons rev2 (cvs-tree-merge tree1 (cdr tree2))))
-	(`more2 (cons rev1 (cvs-tree-merge (cdr tree1) tree2)))
-	(`equal
+	('more1 (cons rev2 (cvs-tree-merge tree1 (cdr tree2))))
+	('more2 (cons rev1 (cvs-tree-merge (cdr tree1) tree2)))
+	('equal
 	 (cons (cons (cvs-tag-merge tag1 tag2)
 		     (cvs-tree-merge (cvs-cdr rev1) (cvs-cdr rev2)))
 	       (cvs-tree-merge (cdr tree1) (cdr tree2))))))
@@ -288,7 +281,7 @@ BEWARE:  because of stability issues, this is not a symmetric operation."
        tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
-  (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
+  (let ((vl (mapcar #'string-to-number (split-string (nth 2 tag) "\\."))))
     (cvs-tag-make vl (nth 0 tag) (intern (nth 1 tag)))))
 
 (defun cvs-tags->tree (tags)
@@ -361,9 +354,8 @@ the list is a three-string list TAG, KIND, REV."
 
 (defvar font-lock-mode)
 ;; (defun cvs-refontify (beg end)
-;;   (when (and (boundp 'font-lock-mode)
-;; 	     font-lock-mode
-;; 	     (fboundp 'font-lock-fontify-region))
+;;   (when (and font-lock-mode
+;; 	        (fboundp 'font-lock-fontify-region))
 ;;     (font-lock-fontify-region (1- beg) (1+ end))))
 
 (defun cvs-status-trees ()
@@ -400,33 +392,33 @@ Otherwise, default to ASCII chars like +, - and |.")
 
 (defconst cvs-tree-char-space
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 33 33))
-    (`unicode " ")
+    ('jisx0208 (make-char 'japanese-jisx0208 33 33))
+    ('unicode " ")
     (_ "  ")))
 (defconst cvs-tree-char-hbar
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 40 44))
-    (`unicode "━")
+    ('jisx0208 (make-char 'japanese-jisx0208 40 44))
+    ('unicode "━")
     (_ "--")))
 (defconst cvs-tree-char-vbar
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 40 45))
-    (`unicode "┃")
+    ('jisx0208 (make-char 'japanese-jisx0208 40 45))
+    ('unicode "┃")
     (_ "| ")))
 (defconst cvs-tree-char-branch
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 40 50))
-    (`unicode "┣")
+    ('jisx0208 (make-char 'japanese-jisx0208 40 50))
+    ('unicode "┣")
     (_ "+-")))
 (defconst cvs-tree-char-eob		;end of branch
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 40 49))
-    (`unicode "┗")
+    ('jisx0208 (make-char 'japanese-jisx0208 40 49))
+    ('unicode "┗")
     (_ "`-")))
 (defconst cvs-tree-char-bob		;beginning of branch
   (pcase cvs-tree-use-charset
-    (`jisx0208 (make-char 'japanese-jisx0208 40 51))
-    (`unicode "┳")
+    ('jisx0208 (make-char 'japanese-jisx0208 40 51))
+    ('unicode "┳")
     (_ "+-")))
 
 (defun cvs-tag-lessp (tag1 tag2)
@@ -456,10 +448,10 @@ Optional prefix ARG chooses between two representations."
 	  (tags nil)
 	  (cvs-tree-nomerge (if arg (not cvs-tree-nomerge) cvs-tree-nomerge)))
       (while (listp (setq tags (cvs-status-get-tags)))
-	(let ((tags (mapcar 'cvs-tag-make-tag tags))
+	(let ((tags (mapcar #'cvs-tag-make-tag tags))
 	      ;;(pt (save-excursion (forward-line -1) (point)))
 	      )
-	  (setq tags (sort tags 'cvs-tag-lessp))
+	  (setq tags (sort tags #'cvs-tag-lessp))
 	  (let* ((first (car tags))
 		 (prev (if (cvs-tag-p first)
 			   (list (car (cvs-tag->vlist first))) nil)))
@@ -478,7 +470,7 @@ Optional prefix ARG chooses between two representations."
 		   (nprev (if (and cvs-tree-nomerge next
 				   (equal vlist (cvs-tag->vlist next)))
 			      prev vlist)))
-	      (cvs-map (lambda (v _p) v) nprev prev)))
+	      (cl-mapcar (lambda (v _p) v) nprev prev)))
 	   (after (save-excursion
 		   (newline)
 		   (cvs-tree-tags-insert (cdr tags) nprev)))
@@ -490,7 +482,7 @@ Optional prefix ARG chooses between two representations."
                (as after (cdr as)))
 	  ((and (null as) (null vs) (null ps))
 	   (let ((revname (cvs-status-vl-to-str vlist)))
-	     (if (cvs-every 'identity (cvs-map 'equal prev vlist))
+	     (if (cl-every #'identity (cl-mapcar #'equal prev vlist))
 		 (insert (make-string (+ 4 (length revname)) ? )
 			 (or (cvs-tag->name tag) ""))
 	       (insert "  " revname ": " (or (cvs-tag->name tag) "")))))
@@ -506,7 +498,7 @@ Optional prefix ARG chooses between two representations."
 			(if next-eq (cons nil cvs-tree-char-space)
 			  (cons t cvs-tree-char-eob))
 		      (cons nil (if (and (eq (cvs-tag->type tag) 'branch)
-					 (cvs-every 'null as))
+					 (cl-every #'null as))
 				    cvs-tree-char-space
 				  cvs-tree-char-hbar))))))
 	    (insert (cdr na+char))

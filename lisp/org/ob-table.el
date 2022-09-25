@@ -1,10 +1,10 @@
 ;;; ob-table.el --- Support for Calling Babel Functions from Tables -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2022 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -54,8 +54,7 @@
 
 ;;; Code:
 (require 'ob-core)
-
-(declare-function org-trim "org" (s &optional keep-lead))
+(require 'org-macs)
 
 (defun org-babel-table-truncate-at-newline (string)
   "Replace newline character with ellipses.
@@ -63,7 +62,8 @@ If STRING ends in a newline character, then remove the newline
 character and replace it with ellipses."
   (if (and (stringp string) (string-match "[\n\r]\\(.\\)?" string))
       (concat (substring string 0 (match-beginning 0))
-	      (when (match-string 1 string) "...")) string))
+	      (when (match-string 1 string) "..."))
+    string))
 
 (defmacro org-sbe (source-block &rest variables)
   "Return the results of calling SOURCE-BLOCK with VARIABLES.
@@ -78,12 +78,13 @@ So this `org-sbe' construct
 
 is the equivalent of the following source code block:
 
- #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) :results silent
+ #+begin_src emacs-lisp :var results=source-block(n=val_at_col_2, m=3) \\
+     :results silent
  results
  #+end_src
 
 NOTE: The quotation marks around the function name,
-'source-block', are optional.
+`source-block', are optional.
 
 NOTE: By default, string variable names are interpreted as
 references to source-code blocks, to force interpretation of a
@@ -147,7 +148,5 @@ as shown in the example below.
         (org-trim (if (stringp result) result (format "%S" result)))))))
 
 (provide 'ob-table)
-
-
 
 ;;; ob-table.el ends here

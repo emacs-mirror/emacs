@@ -1,6 +1,6 @@
-;;; shr-color.el --- Simple HTML Renderer color management
+;;; shr-color.el --- Simple HTML Renderer color management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2022 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: html
@@ -27,23 +27,21 @@
 ;;; Code:
 
 (require 'color)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defgroup shr-color nil
-  "Simple HTML Renderer colors"
+  "Simple HTML Renderer colors."
   :group 'shr)
 
 (defcustom shr-color-visible-luminance-min 40
   "Minimum luminance distance between two colors to be considered visible.
 Must be between 0 and 100."
-  :group 'shr-color
   :type 'number)
 
 (defcustom shr-color-visible-distance-min 5
   "Minimum color distance between two colors to be considered visible.
 This value is used to compare result for `ciede2000'.  It's an
 absolute value without any unit."
-  :group 'shr-color
   :type 'integer)
 
 (defconst shr-color-html-colors-alist
@@ -137,7 +135,7 @@ absolute value without any unit."
     ("MediumAquaMarine" . "#66CDAA")
     ("MediumBlue" . "#0000CD")
     ("MediumOrchid" . "#BA55D3")
-    ("MediumPurple" . "#9370D8")
+    ("MediumPurple" . "#9370DB")
     ("MediumSeaGreen" . "#3CB371")
     ("MediumSlateBlue" . "#7B68EE")
     ("MediumSpringGreen" . "#00FA9A")
@@ -158,7 +156,7 @@ absolute value without any unit."
     ("PaleGoldenRod" . "#EEE8AA")
     ("PaleGreen" . "#98FB98")
     ("PaleTurquoise" . "#AFEEEE")
-    ("PaleVioletRed" . "#D87093")
+    ("PaleVioletRed" . "#DB7093")
     ("PapayaWhip" . "#FFEFD5")
     ("PeachPuff" . "#FFDAB9")
     ("Peru" . "#CD853F")
@@ -166,6 +164,7 @@ absolute value without any unit."
     ("Plum" . "#DDA0DD")
     ("PowderBlue" . "#B0E0E6")
     ("Purple" . "#800080")
+    ("RebeccaPurple" . "#663399")
     ("Red" . "#FF0000")
     ("RosyBrown" . "#BC8F8F")
     ("RoyalBlue" . "#4169E1")
@@ -209,8 +208,8 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
 
 (defun shr-color-hue-to-rgb (x y h)
   "Convert X Y H to RGB value."
-  (when (< h 0) (incf h))
-  (when (> h 1) (decf h))
+  (when (< h 0) (cl-incf h))
+  (when (> h 1) (cl-decf h))
   (cond ((< h (/ 6.0)) (+ x (* (- y x) h 6)))
         ((< h 0.5) y)
         ((< h (/ 2.0 3.0)) (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
@@ -234,7 +233,7 @@ Like rgb() or hsl()."
     (cond
      ;; Hexadecimal color: #abc or #aabbcc
      ((string-match
-       "\\(#[0-9a-fA-F]\\{3\\}[0-9a-fA-F]\\{3\\}?\\)"
+       "\\(#[[:xdigit:]]\\{3\\}[[:xdigit:]]\\{3\\}?\\)"
        color)
       (match-string 1 color))
      ;; rgb() or rgba() colors
@@ -258,8 +257,7 @@ Like rgb() or hsl()."
       (let ((h (/ (string-to-number (match-string-no-properties 1 color)) 360.0))
             (s (/ (string-to-number (match-string-no-properties 2 color)) 100.0))
             (l (/ (string-to-number (match-string-no-properties 3 color)) 100.0)))
-        (destructuring-bind (r g b)
-            (shr-color-hsl-to-rgb-fractions h s l)
+        (pcase-let ((`(,r ,g ,b) (shr-color-hsl-to-rgb-fractions h s l)))
           (color-rgb-to-hex r g b 2))))
      ;; Color names
      ((cdr (assoc-string color shr-color-html-colors-alist t)))
@@ -332,8 +330,8 @@ color will be adapted to be visible on BG."
     (if (or (null fg-norm)
 	    (null bg-norm))
 	(list bg fg)
-      (let* ((fg-lab (apply 'color-srgb-to-lab fg-norm))
-	     (bg-lab (apply 'color-srgb-to-lab bg-norm))
+      (let* ((fg-lab (apply #'color-srgb-to-lab fg-norm))
+	     (bg-lab (apply #'color-srgb-to-lab bg-norm))
 	     ;; Compute color distance using CIE DE 2000
 	     (fg-bg-distance (color-cie-de2000 fg-lab bg-lab))
 	     ;; Compute luminance distance (subtract L component)
@@ -351,12 +349,12 @@ color will be adapted to be visible on BG."
 	    (list
 	     (if fixed-background
 		 bg
-	       (apply 'format "#%02x%02x%02x"
+	       (apply #'format "#%02x%02x%02x"
 		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			      (apply 'color-lab-to-srgb bg-lab))))
-	     (apply 'format "#%02x%02x%02x"
+			      (apply #'color-lab-to-srgb bg-lab))))
+	     (apply #'format "#%02x%02x%02x"
 		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			    (apply 'color-lab-to-srgb fg-lab))))))))))
+			    (apply #'color-lab-to-srgb fg-lab))))))))))
 
 (provide 'shr-color)
 

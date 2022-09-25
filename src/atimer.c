@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2017 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include <stdio.h>
+
+#ifdef WINDOWSNT
+#define raise(s) w32_raise(s)
+#endif
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -28,7 +31,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_TIMERFD
 #include <errno.h>
-# include <sys/timerfd.h>
+#include <sys/timerfd.h>
+# ifdef CYGWIN
+# include <sys/utsname.h>
+# endif
 #endif
 
 #ifdef MSDOS
@@ -113,10 +119,10 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   sigset_t oldset;
 
   /* Round TIMESTAMP up to the next full second if we don't have itimers.  */
-#ifndef HAVE_SETITIMER
+#if ! (defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER)
   if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
     timestamp = make_timespec (timestamp.tv_sec + 1, 0);
-#endif /* not HAVE_SETITIMER */
+#endif
 
   /* Get an atimer structure from the free-list, or allocate
      a new one.  */
@@ -295,45 +301,59 @@ set_alarm (void)
 {
   if (atimers)
     {
-#ifdef HAVE_SETITIMER
-      struct itimerval it;
-#endif
-      struct timespec now, interval;
-
 #ifdef HAVE_ITIMERSPEC
       if (0 <= timerfd || alarm_timer_ok)
 	{
+	  bool exit = false;
 	  struct itimerspec ispec;
 	  ispec.it_value = atimers->expiration;
 	  ispec.it_interval.tv_sec = ispec.it_interval.tv_nsec = 0;
-# ifdef HAVE_TIMERFD
-	  if (timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
-	    {
-	      add_timer_wait_descriptor (timerfd);
-	      return;
-	    }
-# endif
 	  if (alarm_timer_ok
 	      && timer_settime (alarm_timer, TIMER_ABSTIME, &ispec, 0) == 0)
+	    exit = true;
+
+	  /* Don't start both timerfd and POSIX timers on Cygwin; this
+	     causes a slowdown (bug#51734).  Prefer POSIX timers
+	     because the timerfd notifications aren't delivered while
+	     Emacs is busy, which prevents things like the hourglass
+	     pointer from being displayed reliably (bug#19776). */
+# ifdef CYGWIN
+	  if (exit)
+	    return;
+# endif
+
+# ifdef HAVE_TIMERFD
+	  if (0 <= timerfd
+	      && timerfd_settime (timerfd, TFD_TIMER_ABSTIME, &ispec, 0) == 0)
+	    {
+	      add_timer_wait_descriptor (timerfd);
+	      exit = true;
+	    }
+# endif
+
+	  if (exit)
 	    return;
 	}
 #endif
 
-      /* Determine interval till the next timer is ripe.
-	 Don't set the interval to 0; this disables the timer.  */
-      now = current_timespec ();
-      interval = (timespec_cmp (atimers->expiration, now) <= 0
-		  ? make_timespec (0, 1000 * 1000)
-		  : timespec_sub (atimers->expiration, now));
+      /* Determine interval till the next timer is ripe.  */
+      struct timespec now = current_timespec ();
+      if (timespec_cmp (atimers->expiration, now) <= 0)
+	{
+	  /* Timer is (over)due -- just trigger the signal right way.  */
+	  raise (SIGALRM);
+	}
+      else
+	{
+	  struct timespec interval = timespec_sub (atimers->expiration, now);
 
 #ifdef HAVE_SETITIMER
-
-      memset (&it, 0, sizeof it);
-      it.it_value = make_timeval (interval);
-      setitimer (ITIMER_REAL, &it, 0);
-#else /* not HAVE_SETITIMER */
-      alarm (max (interval.tv_sec, 1));
-#endif /* not HAVE_SETITIMER */
+	  struct itimerval it = {.it_value = make_timeval (interval)};
+	  setitimer (ITIMER_REAL, &it, 0);
+#else
+	  alarm (max (interval.tv_sec, 1));
+#endif
+	}
     }
 }
 
@@ -419,7 +439,7 @@ timerfd_callback (int fd, void *arg)
   else if (nbytes < 0)
     /* For some not yet known reason, we may get weird event and no
        data on timer descriptor.  This can break Gnus at least, see:
-       https://lists.gnu.org/archive/html/emacs-devel/2014-07/msg00503.html.  */
+       https://lists.gnu.org/r/emacs-devel/2014-07/msg00503.html.  */
     eassert (errno == EAGAIN);
   else
     /* I don't know what else can happen with this descriptor.  */
@@ -494,15 +514,14 @@ debug_timer_callback (struct atimer *t)
     r->intime = 0;
   else if (result >= 0)
     {
-#ifdef HAVE_SETITIMER
+      bool intime = true;
+#if defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER
       struct timespec delta = timespec_sub (now, r->expected);
       /* Too late if later than expected + 0.02s.  FIXME:
 	 this should depend from system clock resolution.  */
-      if (timespec_cmp (delta, make_timespec (0, 20000000)) > 0)
-	r->intime = 0;
-      else
-#endif /* HAVE_SETITIMER */
-	r->intime = 1;
+      intime = timespec_cmp (delta, make_timespec (0, 20000000)) <= 0;
+#endif
+      r->intime = intime;
     }
 }
 
@@ -558,24 +577,41 @@ Return t if all self-tests are passed, nil otherwise.  */)
 
 #endif /* ENABLE_CHECKING */
 
+/* Cygwin has the timerfd interface starting with release 3.0.0, but
+   it is buggy until release 3.0.2. */
+#ifdef HAVE_TIMERFD
+static bool
+have_buggy_timerfd (void)
+{
+# ifdef CYGWIN
+  struct utsname name;
+  return uname (&name) < 0 || strverscmp (name.release, "3.0.2") < 0;
+# else
+  return false;
+# endif
+}
+#endif
+
 void
 init_atimer (void)
 {
 #ifdef HAVE_ITIMERSPEC
 # ifdef HAVE_TIMERFD
   /* Until this feature is considered stable, you can ask to not use it.  */
-  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") ? -1 :
+  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") || have_buggy_timerfd () ? -1 :
 	     timerfd_create (CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC));
 # endif
-  if (timerfd < 0)
-    {
-      struct sigevent sigev;
-      sigev.sigev_notify = SIGEV_SIGNAL;
-      sigev.sigev_signo = SIGALRM;
-      sigev.sigev_value.sival_ptr = &alarm_timer;
-      alarm_timer_ok
-	= timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
-    }
+  /* We're starting the alarms even if we have timerfd, because
+     timerfd events do not fire while Emacs Lisp is busy and doesn't
+     call thread_select.  This might or might not mean that the
+     timerfd code doesn't really give us anything and should be
+     removed, see discussion in bug#19776.  */
+  struct sigevent sigev;
+  sigev.sigev_notify = SIGEV_SIGNAL;
+  sigev.sigev_signo = SIGALRM;
+  sigev.sigev_value.sival_ptr = &alarm_timer;
+  alarm_timer_ok
+    = timer_create (CLOCK_REALTIME, &sigev, &alarm_timer) == 0;
 #endif
   free_atimers = stopped_atimers = atimers = NULL;
 
@@ -585,6 +621,7 @@ init_atimer (void)
   sigaction (SIGALRM, &action, 0);
 
 #ifdef ENABLE_CHECKING
-  defsubr (&Sdebug_timer_check);
+  if (!initialized)
+    defsubr (&Sdebug_timer_check);
 #endif
 }

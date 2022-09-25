@@ -1,7 +1,7 @@
-;;; mwheel.el --- Wheel mouse support
+;;; mwheel.el --- Mouse wheel support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2017 Free Software Foundation, Inc.
-;; Maintainer: William M. Perry <wmperry@gnu.org>
+;; Copyright (C) 1998-2022 Free Software Foundation, Inc.
+
 ;; Keywords: mouse
 ;; Package: emacs
 
@@ -22,26 +22,28 @@
 
 ;;; Commentary:
 
-;; This code will enable the use of the infamous 'wheel' on the new
-;; crop of mice.  Under XFree86 and the XSuSE X Servers, the wheel
-;; events are sent as button4/button5 events.
+;; This enables the use of the mouse wheel (or scroll wheel) in Emacs.
+;; Under X11/X.Org, the wheel events are sent as mouse-4/mouse-5
+;; events.
 
-;; I for one would prefer some way of converting the button4/button5
+;; Mouse wheel support is already enabled by default on most graphical
+;; displays.  You can toggle it using `M-x mouse-wheel-mode'.
+
+;;; Code:
+
+;; Implementation note:
+;;
+;; I for one would prefer some way of converting the mouse-4/mouse-5
 ;; events into different event types, like 'mwheel-up' or
 ;; 'mwheel-down', but I cannot find a way to do this very easily (or
 ;; portably), so for now I just live with it.
 
-;; To enable this code, simply put this at the top of your .emacs
-;; file:
-;;
-;; (mouse-wheel-mode 1)
-
-;;; Code:
-
-(require 'custom)
 (require 'timer)
 
 (defvar mouse-wheel-mode)
+
+(defvar mouse-wheel--installed-bindings-alist nil
+  "Alist of all installed mouse wheel key bindings.")
 
 ;; Setter function for mouse-button user-options.  Switch Mouse Wheel
 ;; mode off and on again so that the old button is unbound and
@@ -49,41 +51,54 @@
 
 (defun mouse-wheel-change-button (var button)
   (set-default var button)
-  ;; Sync the bindings.
-  (when (bound-and-true-p mouse-wheel-mode) (mouse-wheel-mode 1)))
+  ;; Sync the bindings if they're already setup.
+  (when (and mouse-wheel--installed-bindings-alist
+             (bound-and-true-p mouse-wheel-mode))
+    (mouse-wheel-mode 1)))
 
-(defvar mouse-wheel-down-button 4)
-(make-obsolete-variable 'mouse-wheel-down-button
-                        'mouse-wheel-down-event
-			"22.1")
 (defcustom mouse-wheel-down-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win))
+  (if (or (featurep 'w32-win) (featurep 'ns-win)
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-up
-    (intern (format "mouse-%s" mouse-wheel-down-button)))
+    'mouse-4)
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-up-button 5)
-(make-obsolete-variable 'mouse-wheel-up-button
-                        'mouse-wheel-up-event
-			"22.1")
+(defcustom mouse-wheel-down-alternate-event
+  (if (featurep 'xinput2)
+      'wheel-up
+    (unless (featurep 'x)
+      'mouse-4))
+  "Alternative wheel down event to consider."
+  :group 'mouse
+  :type 'symbol
+  :version "29.1"
+  :set 'mouse-wheel-change-button)
+
 (defcustom mouse-wheel-up-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win))
+  (if (or (featurep 'w32-win) (featurep 'ns-win)
+          (featurep 'haiku-win) (featurep 'pgtk-win))
       'wheel-down
-    (intern (format "mouse-%s" mouse-wheel-up-button)))
+    'mouse-5)
   "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-click-button 2)
-(make-obsolete-variable 'mouse-wheel-click-button
-                        'mouse-wheel-click-event
-			"22.1")
-(defcustom mouse-wheel-click-event
-  (intern (format "mouse-%s" mouse-wheel-click-button))
+(defcustom mouse-wheel-up-alternate-event
+  (if (featurep 'xinput2)
+      'wheel-down
+    (unless (featurep 'x)
+      'mouse-5))
+  "Alternative wheel up event to consider."
+  :group 'mouse
+  :type 'symbol
+  :version "29.1"
+  :set 'mouse-wheel-change-button)
+
+(defcustom mouse-wheel-click-event 'mouse-2
   "Event that should be temporarily inhibited after mouse scrolling.
 The mouse wheel is typically on the mouse-2 button, so it may easily
 happen that text is accidentally yanked into the buffer when
@@ -98,17 +113,30 @@ set to the event sent when clicking on the mouse wheel button."
   :group 'mouse
   :type 'number)
 
-(defcustom mouse-wheel-scroll-amount '(5 ((shift) . 1) ((control) . nil))
+(defcustom mouse-wheel-scroll-amount
+  '(1 ((shift) . hscroll)
+      ((meta) . nil)
+      ((control meta) . global-text-scale)
+      ((control) . text-scale))
   "Amount to scroll windows by when spinning the mouse wheel.
 This is an alist mapping the modifier key to the amount to scroll when
 the wheel is moved with the modifier key depressed.
-Elements of the list have the form (MODIFIERS . AMOUNT) or just AMOUNT if
-MODIFIERS is nil.
+Elements of the list have the form (MODIFIER . AMOUNT) or just AMOUNT if
+MODIFIER is nil.
 
 AMOUNT should be the number of lines to scroll, or nil for near full
 screen.  It can also be a floating point number, specifying the fraction of
 a full screen to scroll.  A near full screen is `next-screen-context-lines'
-less than a full screen."
+less than a full screen.
+
+If AMOUNT is the symbol `hscroll', this means that with MODIFIER,
+the mouse wheel will scroll horizontally instead of vertically.
+
+If AMOUNT is the symbol `text-scale' or `global-text-scale', this
+means that with MODIFIER, the mouse wheel will change the font size
+instead of scrolling (by adjusting the font height of the default
+face, either locally in the buffer or globally).  For more
+information, see `text-scale-adjust' and `global-text-scale-adjust'."
   :group 'mouse
   :type '(cons
 	  (choice :tag "Normal"
@@ -119,23 +147,30 @@ less than a full screen."
 		   (repeat (choice :tag "modifier"
 				   (const alt) (const control) (const hyper)
 				   (const meta) (const shift) (const super)))
-		   (choice :tag "scroll amount"
-			   (const :tag "Full screen" :value nil)
-			   (integer :tag "Specific # of lines")
-			   (float :tag "Fraction of window"))))
+		   (choice :tag "action"
+			   (const :tag "Scroll full screen" :value nil)
+			   (integer :tag "Scroll specific # of lines")
+			   (float :tag "Scroll fraction of window"))))
           (repeat
            (cons
             (repeat (choice :tag "modifier"
 			    (const alt) (const control) (const hyper)
                             (const meta) (const shift) (const super)))
-            (choice :tag "scroll amount"
-                    (const :tag "Full screen" :value nil)
-                    (integer :tag "Specific # of lines")
-                    (float :tag "Fraction of window")))))
-  :set 'mouse-wheel-change-button)
+            (choice :tag "action"
+                    (const :tag "Scroll full screen" :value nil)
+                    (integer :tag "Scroll specific # of lines")
+                    (float :tag "Scroll fraction of window")
+                    (const :tag "Scroll horizontally" :value hscroll)
+                    (const :tag "Change buffer face size" :value text-scale)
+                    (const :tag "Change global face size" :value global-text-scale)))))
+  :set 'mouse-wheel-change-button
+  :version "28.1")
 
 (defcustom mouse-wheel-progressive-speed t
-  "If non-nil, the faster the user moves the wheel, the faster the scrolling.
+  "If nil, scrolling speed is proportional to the wheel speed.
+If non-nil, moving the wheel faster will make scrolling
+progressively faster.
+
 Note that this has no effect when `mouse-wheel-scroll-amount' specifies
 a \"near full screen\" scroll or when the mouse wheel sends key instead
 of button events."
@@ -144,27 +179,53 @@ of button events."
 
 (defcustom mouse-wheel-follow-mouse t
   "Whether the mouse wheel should scroll the window that the mouse is over.
-This can be slightly disconcerting, but some people prefer it."
+This affects both the commands for scrolling and changing the
+face height."
   :group 'mouse
   :type 'boolean)
 
-(eval-and-compile
-  (if (fboundp 'event-button)
-      (fset 'mwheel-event-button 'event-button)
-    (defun mwheel-event-button (event)
-      (let ((x (event-basic-type event)))
-	;; Map mouse-wheel events to appropriate buttons
-	(if (eq 'mouse-wheel x)
-	    (let ((amount (car (cdr (cdr (cdr event))))))
-	      (if (< amount 0)
-		  mouse-wheel-up-event
-		mouse-wheel-down-event))
-	  x))))
+(defcustom mouse-wheel-scroll-amount-horizontal 1
+  "Amount to scroll windows horizontally.
+Its value can be changed dynamically by using a numeric prefix argument
+before starting horizontal scrolling.
+It has effect when `mouse-wheel-scroll-amount' binds the value `hscroll'
+to one of modifiers (`Shift' by default)."
+  :group 'mouse
+  :type 'number
+  :version "28.1")
 
-  (if (fboundp 'event-window)
-      (fset 'mwheel-event-window 'event-window)
-    (defun mwheel-event-window (event)
-      (posn-window (event-start event)))))
+;;; For tilt-scroll
+;;;
+(defcustom mouse-wheel-tilt-scroll nil
+  "Enable horizontal scrolling by tilting mouse wheel or via touchpad.
+Also see `mouse-wheel-flip-direction'."
+  :group 'mouse
+  :type 'boolean
+  :version "26.1")
+
+(defcustom mouse-wheel-flip-direction nil
+  "Swap direction of `wheel-right' and `wheel-left'.
+By default, `wheel-right' scrolls the text to the right,
+and `wheel-left' scrolls in the other direction.
+If this variable is non-nil, it inverts the direction of
+horizontal scrolling by tilting the mouse wheel.
+Also see `mouse-wheel-tilt-scroll'."
+  :group 'mouse
+  :type 'boolean
+  :version "26.1")
+
+(defun mwheel-event-button (event)
+  (let ((x (event-basic-type event)))
+    ;; Map mouse-wheel events to appropriate buttons
+    (if (eq 'mouse-wheel x)
+        (let ((amount (car (cdr (cdr (cdr event))))))
+          (if (< amount 0)
+              mouse-wheel-up-event
+            mouse-wheel-down-event))
+      x)))
+
+(defun mwheel-event-window (event)
+  (posn-window (event-start event)))
 
 (defvar mwheel-inhibit-click-event-timer nil
   "Timer running while mouse wheel click event is inhibited.")
@@ -185,41 +246,88 @@ This can be slightly disconcerting, but some people prefer it."
 (defvar mwheel-scroll-down-function 'scroll-down
   "Function that does the job of scrolling downward.")
 
-(defun mwheel-scroll (event)
+(defvar mwheel-scroll-left-function 'scroll-left
+  "Function that does the job of scrolling left.")
+
+(defvar mwheel-scroll-right-function 'scroll-right
+  "Function that does the job of scrolling right.")
+
+(defvar mouse-wheel-left-event
+  (if (or (featurep 'w32-win) (featurep 'ns-win)
+          (featurep 'haiku-win) (featurep 'pgtk-win))
+      'wheel-left
+    'mouse-6)
+  "Event used for scrolling left.")
+
+(defvar mouse-wheel-left-alternate-event
+  (if (featurep 'xinput2)
+      'wheel-left
+    (unless (featurep 'x)
+      'mouse-6))
+  "Alternative wheel left event to consider.")
+
+(defvar mouse-wheel-right-event
+  (if (or (featurep 'w32-win) (featurep 'ns-win)
+          (featurep 'haiku-win) (featurep 'pgtk-win))
+      'wheel-right
+    'mouse-7)
+  "Event used for scrolling right.")
+
+(defvar mouse-wheel-right-alternate-event
+  (if (featurep 'xinput2)
+      'wheel-right
+    (unless (featurep 'x)
+      'mouse-7))
+  "Alternative wheel right event to consider.")
+
+(defun mouse-wheel--get-scroll-window (event)
+  "Return window for mouse wheel event EVENT.
+If `mouse-wheel-follow-mouse' is non-nil, return the window that
+the mouse pointer is over.  Otherwise, return the currently
+active window."
+  (or (catch 'found
+        (let* ((window (if mouse-wheel-follow-mouse
+                           (mwheel-event-window event)
+                         (selected-window)))
+               (frame (when (window-live-p window)
+                        (frame-parameter
+                         (window-frame window) 'mouse-wheel-frame))))
+          (when (frame-live-p frame)
+            (let* ((pos (mouse-absolute-pixel-position))
+                   (pos-x (car pos))
+                   (pos-y (cdr pos)))
+              (walk-window-tree
+               (lambda (window-1)
+                 (let ((edges (window-edges window-1 nil t t)))
+                   (when (and (<= (nth 0 edges) pos-x)
+                              (<= pos-x (nth 2 edges))
+                              (<= (nth 1 edges) pos-y)
+                              (<= pos-y (nth 3 edges)))
+                     (throw 'found window-1))))
+               frame nil t)))))
+      (mwheel-event-window event)))
+
+(defun mwheel-scroll (event &optional arg)
   "Scroll up or down according to the EVENT.
 This should be bound only to mouse buttons 4, 5, 6, and 7 on
-non-Windows systems."
-  (interactive (list last-input-event))
+non-Windows systems.
+
+Optional argument ARG (interactively, prefix numeric argument) controls
+the step of horizontal scrolling.
+
+The variable `mouse-wheel-scroll-amount-horizontal' records the last
+value of ARG, and the command uses it in subsequent scrolls."
+  (interactive (list last-input-event current-prefix-arg))
   (let* ((selected-window (selected-window))
-         (scroll-window
-          (or (catch 'found
-                (let* ((window (if mouse-wheel-follow-mouse
-                                   (mwheel-event-window event)
-                                 (selected-window)))
-                       (frame (when (window-live-p window)
-                                (frame-parameter
-                                 (window-frame window) 'mouse-wheel-frame))))
-                  (when (frame-live-p frame)
-                    (let* ((pos (mouse-absolute-pixel-position))
-                           (pos-x (car pos))
-                           (pos-y (cdr pos)))
-                      (walk-window-tree
-                       (lambda (window-1)
-                         (let ((edges (window-edges window-1 nil t t)))
-                           (when (and (<= (nth 0 edges) pos-x)
-                                      (<= pos-x (nth 2 edges))
-                                      (<= (nth 1 edges) pos-y)
-                                      (<= pos-y (nth 3 edges)))
-                             (throw 'found window-1))))
-                       frame nil t)))))
-              (mwheel-event-window event)))
+         (scroll-window (mouse-wheel--get-scroll-window event))
 	 (old-point
           (and (eq scroll-window selected-window)
 	       (eq (car-safe transient-mark-mode) 'only)
 	       (window-point)))
          (mods
 	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
-         (amt (assoc mods mouse-wheel-scroll-amount)))
+         (amt (assoc mods mouse-wheel-scroll-amount))
+         saw-error)
     (unless (eq scroll-window selected-window)
       ;; Mark window to be scrolled for redisplay.
       (select-window scroll-window 'mark-for-redisplay))
@@ -233,132 +341,210 @@ non-Windows systems."
       ;; So by adding things up we get a squaring up (1, 3, 6, 10, 15, ...).
       (setq amt (* amt (event-click-count event))))
     (when (numberp amt) (setq amt (* amt (event-line-count event))))
-    (unwind-protect
-	(let ((button (mwheel-event-button event)))
-	  (cond ((eq button mouse-wheel-down-event)
-                 (condition-case nil (funcall mwheel-scroll-down-function amt)
-                   ;; Make sure we do indeed scroll to the beginning of
-                   ;; the buffer.
-                   (beginning-of-buffer
-                    (unwind-protect
-                        (funcall mwheel-scroll-down-function)
-                      ;; If the first scroll succeeded, then some scrolling
-                      ;; is possible: keep scrolling til the beginning but
-                      ;; do not signal an error.  For some reason, we have
-                      ;; to do it even if the first scroll signaled an
-                      ;; error, because otherwise the window is recentered
-                      ;; for a reason that escapes me.  This problem seems
-                      ;; to only affect scroll-down.  --Stef
-                      (set-window-start (selected-window) (point-min))))))
-		((eq button mouse-wheel-up-event)
-                 (condition-case nil (funcall mwheel-scroll-up-function amt)
-                   ;; Make sure we do indeed scroll to the end of the buffer.
-                   (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
-                ((eq button mouse-wheel-left-event) ; for tilt scroll
-                 (when mwheel-tilt-scroll-p
-                   (funcall (if mwheel-flip-direction
-                                mwheel-scroll-right-function
-                              mwheel-scroll-left-function) amt)))
-                ((eq button mouse-wheel-right-event) ; for tilt scroll
-                 (when mwheel-tilt-scroll-p
-                   (funcall (if mwheel-flip-direction
-                                mwheel-scroll-left-function
-                              mwheel-scroll-right-function) amt)))
-		(t (error "Bad binding in mwheel-scroll"))))
-      (if (eq scroll-window selected-window)
-	  ;; If there is a temporarily active region, deactivate it if
-	  ;; scrolling moved point.
-	  (when (and old-point (/= old-point (window-point)))
-	    ;; Call `deactivate-mark' at the original position, so that
-	    ;; the original region is saved to the X selection.
-	    (let ((new-point (window-point)))
-	      (goto-char old-point)
-	      (deactivate-mark)
-	      (goto-char new-point)))
-	(select-window selected-window t))))
+    (condition-case nil
+        (unwind-protect
+	    (let ((button (mwheel-event-button event)))
+              (cond ((and (eq amt 'hscroll) (memq button (list mouse-wheel-down-event
+                                                               mouse-wheel-down-alternate-event)))
+                     (when (and (natnump arg) (> arg 0))
+                       (setq mouse-wheel-scroll-amount-horizontal arg))
+                     (funcall (if mouse-wheel-flip-direction
+                                  mwheel-scroll-left-function
+                                mwheel-scroll-right-function)
+                              mouse-wheel-scroll-amount-horizontal))
+                    ((memq button (list mouse-wheel-down-event
+                                        mouse-wheel-down-alternate-event))
+                     (condition-case nil (funcall mwheel-scroll-down-function amt)
+                       ;; Make sure we do indeed scroll to the beginning of
+                       ;; the buffer.
+                       (beginning-of-buffer
+                        (unwind-protect
+                            (funcall mwheel-scroll-down-function)
+                          ;; If the first scroll succeeded, then some scrolling
+                          ;; is possible: keep scrolling til the beginning but
+                          ;; do not signal an error.  For some reason, we have
+                          ;; to do it even if the first scroll signaled an
+                          ;; error, because otherwise the window is recentered
+                          ;; for a reason that escapes me.  This problem seems
+                          ;; to only affect scroll-down.  --Stef
+                          (set-window-start (selected-window) (point-min))))))
+                    ((and (eq amt 'hscroll) (memq button (list mouse-wheel-up-event
+                                                               mouse-wheel-up-alternate-event)))
+                     (when (and (natnump arg) (> arg 0))
+                       (setq mouse-wheel-scroll-amount-horizontal arg))
+                     (funcall (if mouse-wheel-flip-direction
+                                  mwheel-scroll-right-function
+                                mwheel-scroll-left-function)
+                              mouse-wheel-scroll-amount-horizontal))
+                    ((memq button (list mouse-wheel-up-event
+                                        mouse-wheel-up-alternate-event))
+                     (condition-case nil (funcall mwheel-scroll-up-function amt)
+                       ;; Make sure we do indeed scroll to the end of the buffer.
+                       (end-of-buffer (while t (funcall mwheel-scroll-up-function)))))
+                    ((memq button (list mouse-wheel-left-event
+                                        mouse-wheel-left-alternate-event)) ; for tilt scroll
+                     (when mouse-wheel-tilt-scroll
+                       (funcall (if mouse-wheel-flip-direction
+                                    mwheel-scroll-right-function
+                                  mwheel-scroll-left-function) amt)))
+                    ((memq button (list mouse-wheel-right-event
+                                        mouse-wheel-right-alternate-event)) ; for tilt scroll
+                     (when mouse-wheel-tilt-scroll
+                       (funcall (if mouse-wheel-flip-direction
+                                    mwheel-scroll-left-function
+                                  mwheel-scroll-right-function) amt)))
+		    (t (error "Bad binding in mwheel-scroll"))))
+          (if (eq scroll-window selected-window)
+              ;; If there is a temporarily active region, deactivate it if
+              ;; scrolling moved point.
+	      (when (and old-point (/= old-point (window-point)))
+                ;; Call `deactivate-mark' at the original position, so that
+                ;; the original region is saved to the X selection.
+	        (let ((new-point (window-point)))
+	          (goto-char old-point)
+	          (deactivate-mark)
+	          (goto-char new-point)))
+	    (select-window selected-window t)))
+      ;; Do not ding at buffer limits.  Show a message instead.
+      (beginning-of-buffer
+       (message (error-message-string '(beginning-of-buffer)))
+       (setq saw-error t))
+      (end-of-buffer
+       (message (error-message-string '(end-of-buffer)))
+       (setq saw-error t)))
 
-  (when (and mouse-wheel-click-event mouse-wheel-inhibit-click-time)
-    (if mwheel-inhibit-click-event-timer
-	(cancel-timer mwheel-inhibit-click-event-timer)
-      (add-hook 'pre-command-hook 'mwheel-filter-click-events))
-    (setq mwheel-inhibit-click-event-timer
-	  (run-with-timer mouse-wheel-inhibit-click-time nil
-			  'mwheel-inhibit-click-timeout))))
+    (when (and (not saw-error)
+               mouse-wheel-click-event mouse-wheel-inhibit-click-time)
+      (if mwheel-inhibit-click-event-timer
+          (cancel-timer mwheel-inhibit-click-event-timer)
+        (add-hook 'pre-command-hook 'mwheel-filter-click-events))
+      (setq mwheel-inhibit-click-event-timer
+            (run-with-timer mouse-wheel-inhibit-click-time nil
+                            'mwheel-inhibit-click-timeout)))))
 
 (put 'mwheel-scroll 'scroll-command t)
 
-(defvar mwheel-installed-bindings nil)
+(defun mouse-wheel-text-scale (event)
+  "Adjust font size of the default face according to EVENT.
+See also `text-scale-adjust'."
+  (interactive (list last-input-event))
+  (let ((selected-window (selected-window))
+        (scroll-window (mouse-wheel--get-scroll-window event))
+        (button (mwheel-event-button event)))
+    (select-window scroll-window 'mark-for-redisplay)
+    (unwind-protect
+        (cond ((memq button (list mouse-wheel-down-event
+                                  mouse-wheel-down-alternate-event))
+               (text-scale-increase 1))
+              ((memq button (list mouse-wheel-up-event
+                                  mouse-wheel-up-alternate-event))
+               (text-scale-decrease 1)))
+      (select-window selected-window))))
 
+(declare-function global-text-scale-adjust "face-remap.el" (increment))
+(defun mouse-wheel-global-text-scale (event)
+  "Increase or decrease the global font size according to the EVENT.
+This invokes `global-text-scale-adjust', which see."
+  (interactive (list last-input-event))
+  (let ((button (mwheel-event-button event)))
+    (unwind-protect
+        (cond ((memq button (list mouse-wheel-down-event
+                                  mouse-wheel-down-alternate-event))
+               (global-text-scale-adjust 1))
+              ((memq button (list mouse-wheel-up-event
+                                  mouse-wheel-up-alternate-event))
+               (global-text-scale-adjust -1))))))
+
+(defun mouse-wheel--add-binding (key fun)
+  "Bind mouse wheel button KEY to function FUN.
+Save it for later removal by `mouse-wheel--remove-bindings'."
+  (global-set-key key fun)
+  (push (cons key fun) mouse-wheel--installed-bindings-alist))
+
+(defun mouse-wheel--remove-bindings ()
+  "Remove all mouse wheel key bindings.
+This is a helper function for `mouse-wheel-mode'."
+  (dolist (binding mouse-wheel--installed-bindings-alist)
+    (let ((key (car binding))
+          (fun (cdr binding)))
+     (when (eq (lookup-key (current-global-map) key) fun)
+       (global-unset-key key))))
+  (setq mouse-wheel--installed-bindings-alist nil))
+
+(defun mouse-wheel--create-scroll-keys (binding event)
+  "Return list of key vectors for BINDING and EVENT.
+BINDING is an element in `mouse-wheel-scroll-amount'.  EVENT is
+an event used for scrolling, such as `mouse-wheel-down-event'."
+  (let ((prefixes (list 'left-margin 'right-margin
+                        'left-fringe 'right-fringe
+                        'vertical-scroll-bar 'horizontal-scroll-bar
+                        'mode-line 'header-line)))
+    (if (consp binding)
+        ;; With modifiers, bind only the buffer area (no prefix).
+        (list `[(,@(car binding) ,event)])
+      ;; No modifier: bind also some non-buffer areas of the screen.
+      (cons (vector event)
+            (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
+
+;;;###autoload
 (define-minor-mode mouse-wheel-mode
-  "Toggle mouse wheel support (Mouse Wheel mode).
-With a prefix argument ARG, enable Mouse Wheel mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle mouse wheel support (Mouse Wheel mode)."
   :init-value t
-  ;; We'd like to use custom-initialize-set here so the setup is done
-  ;; before dumping, but at the point where the defcustom is evaluated,
-  ;; the corresponding function isn't defined yet, so
-  ;; custom-initialize-set signals an error.
-  :initialize 'custom-initialize-delay
   :global t
   :group 'mouse
   ;; Remove previous bindings, if any.
-  (while mwheel-installed-bindings
-    (let ((key (pop mwheel-installed-bindings)))
-      (when (eq (lookup-key (current-global-map) key) 'mwheel-scroll)
-        (global-unset-key key))))
+  (mouse-wheel--remove-bindings)
   ;; Setup bindings as needed.
   (when mouse-wheel-mode
-    (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event mouse-wheel-right-event mouse-wheel-left-event))
-      (dolist (key (mapcar (lambda (amt) `[(,@(if (consp amt) (car amt)) ,event)])
-                           mouse-wheel-scroll-amount))
-        (global-set-key key 'mwheel-scroll)
-        (push key mwheel-installed-bindings)))))
+    (mouse-wheel--setup-bindings)))
+
+(defun mouse-wheel--setup-bindings ()
+  (dolist (binding mouse-wheel-scroll-amount)
+    (cond
+     ;; Bindings for changing font size.
+     ((and (consp binding) (eq (cdr binding) 'text-scale))
+      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
+                           mouse-wheel-down-alternate-event
+                           mouse-wheel-up-alternate-event))
+        (when event
+          (mouse-wheel--add-binding `[,(append (car binding) (list event))]
+                                    'mouse-wheel-text-scale))))
+     ((and (consp binding) (eq (cdr binding) 'global-text-scale))
+      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
+                           mouse-wheel-down-alternate-event
+                           mouse-wheel-up-alternate-event))
+        (when event
+          (mouse-wheel--add-binding `[,(append (car binding) (list event))]
+                                    'mouse-wheel-global-text-scale))))
+     ;; Bindings for scrolling.
+     (t
+      (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
+                           mouse-wheel-left-event mouse-wheel-right-event
+                           mouse-wheel-down-alternate-event
+                           mouse-wheel-up-alternate-event
+                           mouse-wheel-left-alternate-event
+                           mouse-wheel-right-alternate-event))
+        (when event
+          (dolist (key (mouse-wheel--create-scroll-keys binding event))
+            (mouse-wheel--add-binding key 'mwheel-scroll))))))))
+
+(when mouse-wheel-mode
+  (mouse-wheel--setup-bindings))
+
+;;; Obsolete.
 
 ;;; Compatibility entry point
 ;; preloaded ;;;###autoload
 (defun mwheel-install (&optional uninstall)
   "Enable mouse wheel support."
+  (declare (obsolete mouse-wheel-mode "27.1"))
   (mouse-wheel-mode (if uninstall -1 1)))
 
+(defvar mwheel-installed-bindings nil)
+(make-obsolete-variable 'mwheel-installed-bindings nil "28.1")
 
-;;; For tilt-scroll
-;;;
-(defcustom mwheel-tilt-scroll-p nil
-  "Enable scroll using tilting mouse wheel."
-  :group 'mouse
-  :type 'boolean
-  :version "26.1")
-
-(defcustom mwheel-flip-direction nil
-  "Swap direction of 'wheel-right and 'wheel-left."
-  :group 'mouse
-  :type 'boolean
-  :version "26.1")
-
-(defcustom mwheel-scroll-left-function 'scroll-left
-  "Function that does the job of scrolling left."
-  :group 'mouse
-  :type 'function
-  :version "26.1")
-
-(defcustom mwheel-scroll-right-function 'scroll-right
-  "Function that does the job of scrolling right."
-  :group 'mouse
-  :type 'function
-  :version "26.1")
-
-(defvar mouse-wheel-left-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win))
-      'wheel-left
-    (intern "mouse-6"))
-  "Event used for scrolling left.")
-
-(defvar mouse-wheel-right-event
-  (if (or (featurep 'w32-win) (featurep 'ns-win))
-      'wheel-right
-    (intern "mouse-7"))
-  "Event used for scrolling right.")
+(defvar mwheel-installed-text-scale-bindings nil)
+(make-obsolete-variable 'mwheel-installed-text-scale-bindings nil "28.1")
 
 (provide 'mwheel)
 

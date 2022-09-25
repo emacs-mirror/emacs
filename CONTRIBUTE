@@ -7,11 +7,14 @@ or run the shell command 'info "(emacs)Contributing"'.)
 ** The Emacs repository
 
 Emacs development uses Git on Savannah for its main repository.
-Briefly, the following shell commands build and run Emacs from scratch:
+To configure Git for Emacs development, you can run the following:
 
 	git config --global user.name 'Your Name'
 	git config --global user.email 'your.name@example.com'
 	git config --global transfer.fsckObjects true
+
+The following shell commands then build and run Emacs from scratch:
+
 	git clone git://git.sv.gnu.org/emacs.git
 	cd emacs
 	./autogen.sh
@@ -20,17 +23,18 @@ Briefly, the following shell commands build and run Emacs from scratch:
 	src/emacs
 
 For more details, see
-http://www.emacswiki.org/emacs/GitQuickStartForEmacsDevs and
-http://www.emacswiki.org/emacs/GitForEmacsDevs or see the file
+https://www.emacswiki.org/emacs/GitQuickStartForEmacsDevs and
+https://www.emacswiki.org/emacs/GitForEmacsDevs or see the file
 admin/notes/git-workflow.
 
 ** Getting involved with development
 
 Discussion about Emacs development takes place on emacs-devel@gnu.org.
-You can subscribe to the emacs-devel@gnu.org mailing list, paying
-attention to postings with subject lines containing "emacs-announce",
-as these discuss important events like feature freezes.  See
-https://lists.gnu.org/mailman/listinfo/emacs-devel for mailing list
+You can subscribe to the emacs-devel@gnu.org mailing list.
+If you want to get only the important mails (for things like
+feature freezes), choose to receive only the 'emacs-announce' topic
+(although so far this feature has not been well or consistently used).
+See https://lists.gnu.org/mailman/listinfo/emacs-devel for mailing list
 instructions and archives.  You can develop and commit changes in your
 own copy of the repository, and discuss proposed changes on the
 mailing list.  Frequent contributors to Emacs can request write access
@@ -49,16 +53,41 @@ archives.
 
 To email a patch you can use a shell command like 'git format-patch -1'
 to create a file, and then attach the file to your email.  This nicely
-packages the patch's commit message and changes.  To send just one
-such patch without additional remarks, you can use a command like
-'git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch'.
+packages the patch's commit message and changes, and makes sure the
+format and whitespace are not munged in transit by the various mail
+agents.  To send just one such patch without additional remarks, it is
+also possible to use a command like
+
+  git send-email --to=bug-gnu-emacs@gnu.org 0001-DESCRIPTION.patch
+
+However, we prefer the 'git format-patch' method with attachment, as
+doing so delivers patches in the correct and easily-recognizable format
+more reliably, and makes the job of applying the patches easier and less
+error-prone.  It also allows sending patches whose author is someone
+other than the email sender.
+
+Once the cumulative amount of your submissions exceeds a dozen or so
+lines of non-trivial changes, we will need you to assign to the FSF
+the copyright for your contributions.  (To see how many lines were
+non-trivially changed, count only added and modified lines in the
+patched code.  Consider an added or changed line non-trivial if it
+includes at least one identifier, string, or substantial comment.)
+In most cases, to start the assignment process you should download
+https://git.savannah.gnu.org/cgit/gnulib.git/plain/doc/Copyright/request-assign.future
+and return the completed information to the address at the top.
+(There are other assignment options, but they are much less commonly used.)
+If you have questions about the assignment process, you can ask the
+address listed on the form, and/or emacs-devel@gnu.org.
 
 ** Issue tracker (a.k.a. "bug tracker")
 
 The Emacs issue tracker at https://debbugs.gnu.org lets you view bug
 reports and search the database for bugs matching several criteria.
 Messages posted to the bug-gnu-emacs@gnu.org mailing list, mentioned
-above, are recorded by the tracker with the corresponding bugs/issues.
+above, are recorded by the tracker with the corresponding
+bugs/issues.  If a message to the bug tracker contains a patch, please
+include the string "[PATCH]" in the subject of the message in order to
+let the bug tracker tag the bug properly.
 
 GNU ELPA has a 'debbugs' package that allows accessing the tracker
 database from Emacs.
@@ -77,20 +106,32 @@ admin/notes/bug-triage.
 ** Documenting your changes
 
 Any change that matters to end-users should have an entry in etc/NEWS.
+Try to start each NEWS entry with a sentence that summarizes the entry
+and takes just one line -- this will allow to read NEWS in Outline
+mode after hiding the body of each entry.
 
 Doc-strings should be updated together with the code.
 
+New defcustom's should always have a ':version' tag stating the first
+Emacs version in which they will appear.  Likewise with defcustom's
+whose value is changed -- update their ':version' tag.
+
 Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---".  If you know
-that *all* the necessary documentation updates have been made, mark
-the entry with "+++".  Otherwise do not mark it.
+that *all* the necessary documentation updates have been made as part
+of your changes or those by others, mark the entry with "+++".
+Otherwise do not mark it.
 
 If your change requires updating the manuals to document new
 functions/commands/variables/faces, then use the proper Texinfo
 command to index them; for instance, use @vindex for variables and
-@findex for functions/commands.  For the full list of predefine indices, see
+@findex for functions/commands.  For the full list of predefined indices, see
 https://www.gnu.org/software/texinfo/manual/texinfo/html_node/Predefined-Indices.html
 or run the shell command 'info "(texinfo)Predefined Indices"'.
+
+We prefer American English both in doc strings and in the manuals.
+That includes both spelling (e.g., "behavior", not "behaviour") and
+the convention of leaving 2 spaces between sentences.
 
 For more specific tips on Emacs's doc style, see
 https://www.gnu.org/software/emacs/manual/html_node/elisp/Documentation-Tips.html
@@ -105,7 +146,7 @@ tested).
 
 Emacs uses ERT, Emacs Lisp Regression Testing, for testing.  See
 https://www.gnu.org/software/emacs/manual/html_node/ert/
-or run 'info "(ert)"' for for more information on writing and running
+or run 'info "(ert)"' for more information on writing and running
 tests.
 
 If your test lasts longer than some few seconds, mark it in its
@@ -115,6 +156,14 @@ To run tests on the entire Emacs tree, run "make check" from the
 top-level directory.  Most tests are in the directory "test/".  From
 the "test/" directory, run "make <filename>" to run the tests for
 <filename>.el(c).  See "test/README" for more information.
+
+If you're making changes that involve the Emacs build system, please
+test 'out-of-tree' builds as well, i.e.:
+
+    mkdir emacs-build
+    cd emacs-build
+    ../path-to-emacs-sources/configure
+    make
 
 ** Commit messages
 
@@ -136,20 +185,26 @@ ChangeLog file, where they can be corrected.  It saves time to get
 them right the first time, so here are guidelines for formatting them:
 
 - Start with a single unindented summary line explaining the change;
-  do not end this line with a period.  If that line starts with a
-  semicolon and a space "; ", the commit message will be ignored when
-  generating the ChangeLog file.  Use this for minor commits that do
-  not need separate ChangeLog entries, such as changes in etc/NEWS.
+  do not end this line with a period.  If possible, try to keep the
+  summary line to 50 characters or fewer; this is for compatibility
+  with certain Git commands that print that line in width-constrained
+  contexts.
 
-- After the summary line, there should be an empty line, then
-  unindented ChangeLog entries.
+  If the summary line starts with a semicolon and a space "; ", the
+  commit message will be ignored when generating the ChangeLog file.
+  Use this for minor commits that do not need separate ChangeLog
+  entries, such as changes in etc/NEWS.
+
+- After the summary line, there should be an empty line.
+
+- Unindented ChangeLog entries normally come next.  However, if the
+  commit couldn't be properly summarized in the brief summary line,
+  you can put a paragraph (after the empty line and before the
+  individual ChangeLog entries) that further describes the commit.
 
 - Limit lines in commit messages to 78 characters, unless they consist
   of a single word of at most 140 characters; this is enforced by a
-  commit hook.  It's nicer to limit the summary line to 50 characters;
-  this isn't enforced.  If the change can't be summarized so briefly,
-  add a paragraph after the empty line and before the individual file
-  descriptions.
+  commit hook.
 
 - If only a single file is changed, the summary line can be the normal
   file first line (starting with the asterisk).  Then there is no
@@ -169,6 +224,9 @@ them right the first time, so here are guidelines for formatting them:
 - The commit message should contain "Bug#NNNNN" if it is related to
   bug number NNNNN in the debbugs database.  This string is often
   parenthesized, as in "(Bug#19003)".
+
+- When citing URLs, prefer https: to http: when either will do.  In
+  particular, gnu.org and fsf.org URLs should start with "https:".
 
 - Commit messages should contain only printable UTF-8 characters.
 
@@ -195,7 +253,9 @@ them right the first time, so here are guidelines for formatting them:
   sentences starting with a capital and ending with a period (except
   the summary line should not end in a period).  See
   https://www.gnu.org/prep/standards/html_node/Comments.html
-  or run 'info "(standards)Comments"'.
+  or run 'info "(standards)Comments"'.  American English is preferred
+  in Emacs; that includes spelling and leaving 2 blanks between
+  sentences.
 
   They are preserved indefinitely, and have a reasonable chance of
   being read in the future, so it's better that they have good
@@ -218,13 +278,12 @@ them right the first time, so here are guidelines for formatting them:
 - There is no standard or recommended way to identify revisions in
   ChangeLog entries.  Using Git SHA1 values limits the usability of
   the references to Git, and will become much less useful if Emacs
-  switches to a different VCS.  So we recommend against that.
+  switches to a different VCS.  So we recommend against doing only that.
 
   One way to identify revisions is by quoting their summary line.
-  Another is with an action stamp - an RFC3339 date followed by !
-  followed by the committer's email - for example,
-  "2014-01-16T05:43:35Z!esr@thyrsus.com".  Often, "my previous commit"
-  will suffice.
+  Prefixing the summary with the commit date can give useful context
+  (use 'git show -s "--pretty=format:%cd \"%s\"" --date=short HASH' to
+  produce that).  Often, "my previous commit" will suffice.
 
 - There is no need to mention files such as NEWS and MAINTAINERS, or
   to indicate regeneration of files such as 'lib/gnulib.mk', in the
@@ -233,29 +292,67 @@ them right the first time, so here are guidelines for formatting them:
 
 ** Generating ChangeLog entries
 
-- You can use Emacs functions to write ChangeLog entries; see
+- If you use Emacs VC, you can use 'C-c C-w' to generate formatted
+  blank ChangeLog entries from the diff being committed, then use
+  'M-q' to combine and fill them.  See 'info "(emacs) Log Buffer"'.
+
+- Alternatively, you can use Emacs functions for ChangeLog files; see
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Change-Log-Commands.html
   or run 'info "(emacs)Change Log Commands"'.
 
-- If you use Emacs VC, one way to format ChangeLog entries is to create
-  a top-level ChangeLog file manually, and update it with 'C-x 4 a' as
-  usual.  Do not register the ChangeLog file under git; instead, use
-  'C-c C-a' to insert its contents into your *vc-log* buffer.
-  Or if 'log-edit-hook' includes 'log-edit-insert-changelog' (which it
-  does by default), they will be filled in for you automatically.
+  To format ChangeLog entries with Emacs VC, create a top-level
+  ChangeLog file manually, and update it with 'C-x 4 a' as usual.  Do
+  not register the ChangeLog file under git; instead, use 'C-c C-a' to
+  insert its contents into your *vc-log* buffer.  Or if
+  'log-edit-hook' includes 'log-edit-insert-changelog' (which it does
+  by default), they will be filled in for you automatically.
 
-- Alternatively, you can use the vc-dwim command to maintain commit
+- Instead of Emacs VC, you can use the vc-dwim command to maintain commit
   messages.  When you create a source directory, run the shell command
   'git-changelog-symlink-init' to create a symbolic link from
   ChangeLog to .git/c/ChangeLog.  Edit this ChangeLog via its symlink
   with Emacs commands like 'C-x 4 a', and commit the change using the
   shell command 'vc-dwim --commit'.  Type 'vc-dwim --help' for more.
 
+** Committing your changes.
+
+When you commit changes, Git invokes several scripts that test the
+commit for validity, and may abort the commit of some of the tests
+fail.  These scripts live in the '.git/hooks/' subdirectory of the
+top-level directory of the repository, and they perform the following
+tests:
+
+- commit log message must not be empty;
+- the first line of the commit log message doesn't start with
+  whitespace characters;
+- the second line of the commit log message must be empty;
+- commit log message should include only valid printable ASCII and
+  UTF-8 characters;
+- commit log message lines must be shorter than 79 characters, unless
+  a line consists of a single long word, in which case that word can
+  be up to 140 characters long;
+- there shouldn't be any "Signed-off-by:" tags in the commit log
+  message, and "git commit" should not be invoked with the '-s' option
+  (which automatically adds "Signed-off-by:");
+- if the commit adds new files, the file names must not begin with
+  '-' and must consist of ASCII letters, digits, and characters of the
+  set [-+./_];
+- the changes don't include unresolved merge conflict markers;
+- the changes don't introduce whitespace errors: trailing whitespace,
+  lines that include nothing but whitespace characters, and indented
+  lines where a SPC character is immediately followed by a TAB in the
+  line's initial indentation
+
 ** Committing changes by others
 
 If committing changes written by someone else, commit in their name,
 not yours.  You can use 'git commit --author="AUTHOR"' to specify a
-change's author.
+change's author.  When using Emacs VC to commit, the author can be
+specified in the log-edit buffer by adding an "Author: AUTHOR" header
+line (set 'log-edit-setup-add-author' non-nil to have this header line
+added automatically).  Note that the validity checks described in the
+previous section are still applied, so you will have to correct any
+problems they uncover in the changes submitted by others.
 
 ** Branches
 
@@ -269,15 +366,25 @@ the current release branch.  Periodically, the current release branch
 is merged into the master, using the gitmerge function described in
 admin/notes/git-workflow.
 
-If you are fixing a bug that exists in the current release, be sure to
-commit it to the release branch; it will be merged to the master
-branch later by the gitmerge function.
+If you are fixing a bug that exists in the current release, you should
+generally commit it to the release branch; it will be merged to the
+master branch later by the gitmerge function.  However, when the
+release branch is for Emacs version NN.2 and later, or when it is for
+Emacs version NN.1 that is in the very last stages of its pretest,
+that branch is considered to be in a feature freeze: only bug fixes
+that are "safe" or are fixing major problems should go to the release
+branch, the rest should be committed to the master branch.  This is so
+to avoid destabilizing the next Emacs release.  If you are unsure
+whether your bug fix is "safe" enough for the release branch, ask on
+the emacs-devel mailing list.
 
-Documentation fixes (in doc strings, in manuals, and in comments)
-should always go to the release branch, if the documentation to be
-fixed exists and is relevant to the release-branch codebase.  Doc
-fixes are always considered "safe" -- even when a release branch is in
-feature freeze, it can still receive doc fixes.
+Documentation fixes (in doc strings, in manuals, in NEWS, and in
+comments) should always go to the release branch, if the documentation
+to be fixed exists and is relevant to the release-branch codebase.
+Doc fixes are always considered "safe" -- even when a release branch
+is in feature freeze, it can still receive doc fixes.  However, this
+rule is limited to fixing real problems in the documentation; cleanups
+and stylistic changes are excluded.
 
 When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can
@@ -292,6 +399,22 @@ Some changes should not be merged to master at all, for whatever
 reasons.  These should be marked by including something like "Do not
 merge to master" or anything that matches gitmerge-skip-regexp (see
 admin/gitmerge.el) in the commit message.
+
+** Some packages in Emacs are maintained externally
+
+Sometimes a package that ships as part of GNU Emacs is maintained as a
+separate project, with its own upstream repository, its own maintainer
+group, its own development conventions, etc.  The upstream project's
+code is periodically merged into Emacs (exactly when and how such
+merges happen depends on the package).
+
+So when you are making a contribution -- such as fixing a bug or
+proposing an enhancement -- to one of these externally maintained
+packages, you sometimes need to deal with that package at its upstream
+source.
+
+In the section "Externally maintained packages" in "admin/MAINTAINERS"
+we maintain a list of such packages.
 
 ** GNU ELPA
 

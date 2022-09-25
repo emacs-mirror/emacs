@@ -1,18 +1,18 @@
 /* provide consistent interface to getgroups for systems that don't allow N==0
 
-   Copyright (C) 1996, 1999, 2003, 2006-2017 Free Software Foundation, Inc.
+   Copyright (C) 1996, 1999, 2003, 2006-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* written by Jim Meyering */
@@ -30,7 +30,7 @@
 /* Provide a stub that fails with ENOSYS, since there is no group
    information available on mingw.  */
 int
-getgroups (int n _GL_UNUSED, GETGROUPS_T *groups _GL_UNUSED)
+getgroups (_GL_UNUSED int n, _GL_UNUSED GETGROUPS_T *groups)
 {
   errno = ENOSYS;
   return -1;
@@ -58,8 +58,8 @@ int posix_getgroups (int, gid_t []) __asm ("_getgroups");
 #  define getgroups posix_getgroups
 # endif
 
-/* On at least Ultrix 4.3 and NextStep 3.2, getgroups (0, NULL) always
-   fails.  On other systems, it returns the number of supplemental
+/* On at least NeXTstep 3.2, getgroups (0, NULL) always fails.
+   On other systems, it returns the number of supplemental
    groups for the process.  This function handles that special case
    and lets the system-provided function handle all others.  However,
    it can fail with ENOMEM if memory is tight.  It is unspecified
@@ -70,7 +70,6 @@ rpl_getgroups (int n, gid_t *group)
 {
   int n_groups;
   GETGROUPS_T *gbuf;
-  int saved_errno;
 
   if (n < 0)
     {
@@ -99,9 +98,7 @@ rpl_getgroups (int n, gid_t *group)
           while (n--)
             group[n] = gbuf[n];
         }
-      saved_errno = errno;
       free (gbuf);
-      errno = saved_errno;
       return result;
     }
 
@@ -121,10 +118,7 @@ rpl_getgroups (int n, gid_t *group)
       n *= 2;
     }
 
-  saved_errno = errno;
   free (gbuf);
-  errno = saved_errno;
-
   return n_groups;
 }
 

@@ -1,18 +1,18 @@
 /* Memory allocators such as malloc+free.
 
-   Copyright (C) 2011-2017 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
-   (at your option) any later version.
+   This file is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as
+   published by the Free Software Foundation; either version 2.1 of the
+   License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   This file is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert.  */
@@ -29,7 +29,7 @@ struct allocator
   /* Do not use GCC attributes such as __attribute__ ((malloc)) with
      the function types pointed at by these members, because these
      attributes do not work with pointers to functions.  See
-     <https://lists.gnu.org/archive/html/bug-gnulib/2011-04/msg00007.html>.  */
+     <https://lists.gnu.org/r/bug-gnulib/2011-04/msg00007.html>.  */
 
   /* Call ALLOCATE to allocate memory, like 'malloc'.  On failure ALLOCATE
      should return NULL, though not necessarily set errno.  When given

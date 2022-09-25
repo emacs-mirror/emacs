@@ -1,10 +1,10 @@
 ;;; ob-processing.el --- Babel functions for processing -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
 ;; Author: Jarmo Hurri (adapted from ob-asymptote.el written by Eric Schulte)
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -47,7 +47,7 @@
 ;;; Requirements:
 
 ;; - processing2-emacs mode :: https://github.com/ptrv/processing2-emacs
-;; - Processing.js module :: http://processingjs.org/
+;; - Processing.js module :: https://processingjs.org/
 
 ;;; Code:
 (require 'ob)
@@ -135,7 +135,7 @@ This function is called by `org-babel-execute-src-block'."
 
 (defun org-babel-prep-session:processing (_session _params)
   "Return an error if the :session header argument is set.
-Processing does not support sessions"
+Processing does not support sessions."
   (error "Processing does not support sessions"))
 
 (defun org-babel-variable-assignments:processing (params)

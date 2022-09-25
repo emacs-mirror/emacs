@@ -1,6 +1,6 @@
 ;;; let-alist.el --- tests for file handling. -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2022 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -82,7 +82,7 @@
 
 (ert-deftest let-alist-list-to-sexp ()
   "Check that multiple dots are handled correctly."
-  (should (= 1 (eval (let-alist--list-to-sexp '(a b c d) ''((d (c (b (a . 1)))))))))
+  (should (= 1 (eval (let-alist--list-to-sexp '(a b c d) ''((d (c (b (a . 1)))))) t)))
   (should (equal (let-alist--access-sexp '.foo.bar.baz 'var)
                  '(cdr (assq 'baz (cdr (assq 'bar (cdr (assq 'foo var))))))))
   (should (equal (let-alist--access-sexp '..foo.bar.baz 'var) '.foo.bar.baz)))
@@ -95,4 +95,9 @@ See Bug#24641."
   (should (equal (let-alist--deep-dot-search '(foo .bar (let-alist .qux .baz)))
                  '((.bar . bar) (.qux . qux)))))  ; no .baz
 
-;;; let-alist.el ends here
+(ert-deftest let-alist--vectors ()
+  (should (equal (let-alist '((a . 1) (b . 2))
+                   `[,(+ .a) ,(+ .a .b .b)])
+                 [1 5])))
+
+;;; let-alist-tests.el ends here
