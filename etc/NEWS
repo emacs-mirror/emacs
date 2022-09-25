@@ -1715,6 +1715,10 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 ** Shortdoc
 
 ---
+*** New command 'shortdoc-copy-function-as-kill' bound to 'w'.
+It copies the name of the function near point into the kill ring.
+
+---
 *** 'N' and 'P' are now bound to 'shortdoc-(next|previous)-section'.
 This is in addition to the old keybindings 'C-c C-n' and 'C-c C-p'.
 

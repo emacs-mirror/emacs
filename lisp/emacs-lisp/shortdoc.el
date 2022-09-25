@@ -1515,7 +1515,8 @@ Example:
   "N"       #'shortdoc-next-section
   "P"       #'shortdoc-previous-section
   "C-c C-n" #'shortdoc-next-section
-  "C-c C-p" #'shortdoc-previous-section)
+  "C-c C-p" #'shortdoc-previous-section
+  "w"       #'shortdoc-copy-function-as-kill)
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc."
@@ -1556,6 +1557,20 @@ With ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section t)
   (forward-line -2))
+
+(defun shortdoc-copy-function-as-kill ()
+  "Copy name of the function near point into the kill ring."
+  (interactive)
+  (save-excursion
+    (goto-char (pos-bol))
+    (when-let* ((re (rx bol "(" (group (+ (not (in " "))))))
+                (string
+                 (and (or (looking-at re)
+                          (re-search-backward re nil t))
+                      (match-string 1))))
+      (set-text-properties 0 (length string) nil string)
+      (kill-new string)
+      (message string))))
 
 (provide 'shortdoc)
 
