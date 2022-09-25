@@ -1,4 +1,4 @@
-;;; wallpaper.el --- Change desktop background from Emacs  -*- lexical-binding: t; -*-
+;;; wallpaper.el --- Change the desktop background  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -277,6 +277,19 @@ See also `wallpaper-default-width'.")
       (funcall fun)
     (read-number (format "Wallpaper %s in pixels: " desc) default)))
 
+(autoload 'ffap-file-at-point "ffap")
+
+;; FIXME: This only says which files are supported by Emacs, not by
+;;        the external tool we use to set the wallpaper.
+(defvar wallpaper-default-file-name-regexp (image-file-name-regexp))
+
+(defun wallpaper--get-default-file ()
+  (catch 'found
+    (dolist (file (list buffer-file-name (ffap-file-at-point)))
+      (when (and file (string-match wallpaper-default-file-name-regexp file))
+        (throw 'found (abbreviate-file-name
+                       (expand-file-name file)))))))
+
 (declare-function w32-set-wallpaper "w32fns.c")
 (declare-function haiku-set-wallpaper "term/haiku-win.el")
 
@@ -291,11 +304,15 @@ options `wallpaper-command' and `wallpaper-command-args'.
 
 On MS-Windows and Haiku systems, no external command is needed,
 so the value of `wallpaper-commands' is ignored."
-  (interactive (list (read-file-name "Set desktop background to: "
-                                     default-directory nil t nil
-                                     (lambda (fn)
-                                       (or (file-directory-p fn)
-                                           (string-match (image-file-name-regexp) fn))))))
+  (interactive
+   (let ((default (wallpaper--get-default-file)))
+     (list (read-file-name (format-prompt "Set desktop background to" default)
+                           default-directory default
+                           t nil
+                           (lambda (file-name)
+                             (or (file-directory-p file-name)
+                                 (string-match wallpaper-default-file-name-regexp
+                                               file-name)))))))
   (when (file-directory-p file)
     (error "Can't set wallpaper to a directory: %s" file))
   (unless (file-exists-p file)
@@ -331,8 +348,9 @@ so the value of `wallpaper-commands' is ignored."
                                      wallpaper-command-args)))))
            (unless wallpaper-command
              (error "Couldn't find a suitable command for setting the wallpaper"))
-           (wallpaper-debug "Using command %S %S" wallpaper-command
-                            wallpaper-command-args)
+           (wallpaper-debug
+            "Using command %S %S" wallpaper-command
+            wallpaper-command-args)
            (setf (process-sentinel process)
                  (lambda (process status)
                    (unwind-protect
