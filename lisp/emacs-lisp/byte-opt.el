@@ -737,7 +737,7 @@ for speeding up processing.")
                                 reverse nreverse sort))
                   (setq form (nth 1 form))
                   t)
-                 ((memq head '(mapc setq setcar setcdr puthash))
+                 ((memq head '(mapc setq setcar setcdr puthash set))
                   (setq form (nth 2 form))
                   t)
                  ((memq head '(aset put function-put))
@@ -793,6 +793,7 @@ for speeding up processing.")
                            sxhash sxhash-equal sxhash-eq sxhash-eql
                            sxhash-equal-including-properties
                            make-marker copy-marker point-marker mark-marker
+                           set-marker
                            kbd key-description
                            always))
                   t)
