@@ -4694,7 +4694,7 @@ engine described below: we only need to write some indentation rules
 and the engine takes care of the rest.
 
 To enable the indentation engine, set the value of
-@var{indent-line-function} to @code{treesit-indent}.
+@code{indent-line-function} to @code{treesit-indent}.
 
 @defvar treesit-indent-function
 This variable stores the actual function called by
