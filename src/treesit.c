@@ -1053,7 +1053,7 @@ If NODE is nil, return nil.  */)
   ts_check_node (node);
   TSNode ts_node = XTS_NODE (node)->node;
   char *string = ts_node_string (ts_node);
-  return make_string (string, strlen (string));
+  return build_string (string);
 }
 
 DEFUN ("treesit-node-parent",
@@ -1163,7 +1163,7 @@ If NODE is nil, return nil.  */)
   if (name == NULL)
     return Qnil;
 
-  return make_string (name, strlen (name));
+  return build_string (name);
 }
 
 DEFUN ("treesit-node-child-count",
