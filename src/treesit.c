@@ -2041,7 +2041,9 @@ case, only 1 3 4 8 16 would be traversed.  */)
 }
 
 /* Recursively traverse the tree under CURSOR, and append the result
-   subtree to PARENT's cdr.  See more in `ts_build_sparse_tree'.  */
+   subtree to PARENT's cdr.  See more in Ftreesit_induce_sparse_tree.
+   Note that the top-level children list is reversed, because
+   reasons.  */
 static void
 ts_build_sparse_tree
 (TSTreeCursor *cursor, Lisp_Object parent, Lisp_Object pred,
@@ -2151,6 +2153,7 @@ regexp.  */)
   ts_build_sparse_tree
     (&cursor, parent, predicate, process_fn,
      the_limit, no_limit, parser);
+  Fsetcdr (parent, Fnreverse (Fcdr (parent)));
   if (NILP (Fcdr (parent)))
     return Qnil;
   else
