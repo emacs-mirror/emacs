@@ -472,9 +472,8 @@ inside double-quotes"
                                 "t\n0\n")
    (eshell-match-command-output "zerop 1; echo $?"
                                 "0\n")
-   (let ((debug-on-error nil))
-     (eshell-match-command-output "zerop foo; echo $?"
-                                  "1\n"))))
+   (eshell-match-command-output "zerop foo; echo $?"
+                                "1\n" nil t)))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form"
@@ -484,9 +483,8 @@ inside double-quotes"
                                   "t\n0\n")
      (eshell-match-command-output "(zerop 1); echo $?"
                                   "2\n")
-     (let ((debug-on-error nil))
-       (eshell-match-command-output "(zerop \"foo\"); echo $?"
-                                    "1\n")))))
+     (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                  "1\n" nil t))))
 
 (ert-deftest esh-var-test/last-status-var-lisp-form-2 ()
   "Test using the \"last exit status\" ($?) variable with a Lisp form.
@@ -497,9 +495,8 @@ This tests when `eshell-lisp-form-nil-is-failure' is nil."
                                   "0\n")
      (eshell-match-command-output "(zerop 0); echo $?"
                                   "0\n")
-     (let ((debug-on-error nil))
-       (eshell-match-command-output "(zerop \"foo\"); echo $?"
-                                    "1\n")))))
+     (eshell-match-command-output "(zerop \"foo\"); echo $?"
+                                  "1\n" nil t))))
 
 (ert-deftest esh-var-test/last-status-var-ext-cmd ()
   "Test using the \"last exit status\" ($?) variable with an external command"

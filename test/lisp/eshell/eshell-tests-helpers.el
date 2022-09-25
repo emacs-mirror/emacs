@@ -100,9 +100,16 @@ After inserting, call FUNC.  If FUNC is nil, instead call
 
 (put 'eshell-match-output 'ert-explainer #'eshell-match-output--explainer)
 
-(defun eshell-match-command-output (command regexp &optional func)
-  "Insert a COMMAND at the end of the buffer and match the output with REGEXP."
-  (eshell-insert-command command func)
+(defun eshell-match-command-output (command regexp &optional func
+                                            ignore-errors)
+  "Insert a COMMAND at the end of the buffer and match the output with REGEXP.
+FUNC is the function to call after inserting the text (see
+`eshell-insert-command').
+
+If IGNORE-ERRORS is non-nil, ignore any errors signaled when
+inserting the command."
+  (let ((debug-on-error (and (not ignore-errors) debug-on-error)))
+    (eshell-insert-command command func))
   (eshell-wait-for-subprocess)
   (should (eshell-match-output regexp)))
 
