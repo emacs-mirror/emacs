@@ -1920,7 +1920,7 @@ ts_search_forward
       (start, pred, parser, named, forward, 0, true, skip_start))
     return true;
 
-  TSNode next = ts_traverse_sibling_helper(node, forward, named);
+  TSNode next = ts_traverse_sibling_helper (node, forward, named);
   while (ts_node_is_null (next))
     {
       node = ts_node_parent (node);
@@ -1930,9 +1930,9 @@ ts_search_forward
       if (ts_traverse_match_predicate (node, pred, parser))
 	{
 	  *start = node;
-	  return false;
+	  return true;
 	}
-      next = ts_traverse_sibling_helper(node, forward, named);
+      next = ts_traverse_sibling_helper (node, forward, named);
     }
   if (ts_search_forward
       (&next, pred, parser, named, forward, up_only, false))
