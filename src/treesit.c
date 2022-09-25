@@ -1147,7 +1147,7 @@ DEFUN ("treesit-node-field-name-for-child",
        Streesit_node_field_name_for_child, 2, 2, 0,
        doc: /* Return the field name of the Nth child of NODE.
 
-Return nil if there isn't any child or no field is found.
+Return nil if not any child or no field is found.
 If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object n)
 {
