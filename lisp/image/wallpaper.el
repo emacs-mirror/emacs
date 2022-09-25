@@ -56,7 +56,7 @@
   ;; When updating this, also update the custom :type for `wallpaper-command'.
   '(
     ;; Gnome
-    ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%f")
+    ("gsettings" "set" "org.gnome.desktop.background" "picture-uri" "file://%F")
     ;; KDE Plasma
     ("plasma-apply-wallpaperimage" "%f")
     ;; XFCE
@@ -69,9 +69,9 @@
     ;; ;; Mate
     ;; ("gsettings" "set" "org.mate.background" "picture-filename" "%f")
     ;; ;; Cinnamon
-    ;; ("gsettings" "set" "org.cinnamon.desktop.background" "picture-uri" "file://%f")
+    ;; ("gsettings" "set" "org.cinnamon.desktop.background" "picture-uri" "file://%F")
     ;; ;; Deepin
-    ;; ("gsettings" "set" "com.deepin.wrap.gnome.desktop.background" "picture-uri" "file://%f")
+    ;; ("gsettings" "set" "com.deepin.wrap.gnome.desktop.background" "picture-uri" "file://%F")
     ;; Sway (Wayland)
     ("swaybg" "-o" "*" "-i" "%f" "-m" "fill")
     ;; Wayland General
@@ -232,10 +232,11 @@ However, if you do need to change this, you might also want to
 customize `wallpaper-command' to match.
 
 In each of the command line arguments, \"%f\" will be replaced
-with the full file name, \"%h\" with the height of the selected
-frame's display (as returned by `display-pixel-height'), and
-\"%w\" with the width of the selected frame's display (as
-returned by `display-pixel-width').
+with the full file name, \"%F\" with the full file name
+URI-encoded, \"%h\" with the height of the selected frame's
+display (as returned by `display-pixel-height'), and \"%w\" with
+the width of the selected frame's display (as returned by
+`display-pixel-width').
 
 If `wallpaper-set' is run from a TTY frame, it will prompt for a
 height and width for \"%h\" and \"%w\" instead.
@@ -310,6 +311,9 @@ so the value of `wallpaper-commands' is ignored."
          (unless wallpaper-command
            (error "Couldn't find a command to set the wallpaper with"))
          (let* ((fmt-spec `((?f . ,(expand-file-name file))
+                            (?F . ,(mapconcat #'url-hexify-string
+                                              (file-name-split file)
+                                              "/"))
                             (?h . ,(wallpaper--get-height-or-width
                                     "height"
                                     #'display-pixel-height
