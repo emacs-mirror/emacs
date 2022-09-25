@@ -723,13 +723,13 @@ indentation (target) is in green, current indentation is in red."
 ;;; Search
 
 (defun treesit-search-forward-goto
-    (start predicate side &optional all backward up)
-  "Search for node in the parse tree and move point to it.
+    (predicate side &optional all backward up)
+  "Search forward for a node and move to it.
 
-Start traversing the tree from node START, and match PREDICATE with
-each node along the way (except START).  PREDICATE can be either a
-regexp that matches against each node's type, or a function that takes
-a node and returns nil/non-nil for match/no match.
+Stops at the first node after point that matches PREDICATE.
+PREDICATE can be either a regexp that matches against each node's
+type, or a function that takes a node and returns nil/non-nil for
+match/no match.
 
 If a node matches, move to that node and return the node,
 otherwise return nil.  SIDE controls whether we move to the start
@@ -737,11 +737,24 @@ or end of the matches node, it can be either \\='start or
 \\='end.
 
 ALL, BACKWARD, and UP are the same as in `treesit-search-forward'."
-  (when-let ((node (treesit-search-forward
-                    start predicate all backward up)))
-    (pcase side
-      ('start (goto-char (treesit-node-start node)))
-      ('end (goto-char (treesit-node-end node))))
+  (let ((node (treesit-node-at (point)))
+        (start (point)))
+    ;; When searching forward, it is possible for (point) < start,
+    ;; because `treesit-search-forward' goes to parents.
+    (while (and node (if backward
+                         (>= (point) start)
+                       (<= (point) start)))
+      (setq node (treesit-search-forward
+                  node predicate all backward up))
+      (if-let ((pos (pcase side
+                      ('start (treesit-node-start node))
+                      ('end (treesit-node-end node)))))
+          (goto-char pos)))
+    ;; If we made reverse progress, go back to where we started.
+    (when (if backward
+              (>= (point) start)
+            (<= (point) start))
+      (goto-char start))
     node))
 
 ;;; Debugging

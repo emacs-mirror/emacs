@@ -623,33 +623,12 @@ If @var{up} is non-nil, this function will only traverse to siblings
 and parents.  In that case, only 1 3 4 8 would be traversed.
 @end defun
 
-@defun treesit-search-forward-goto start predicate side &optional all backward up
-For those who want to not only search for a node but also move to it,
-this is the function to use.  Parameter @var{start}, @var{predicate},
-@var{all}, @var{backward}, and @var{up} are the same as in
+@defun treesit-search-forward-goto predicate side &optional all backward up
+This function jumps to the start or end of the next node in buffer
+that matches @var{predicate}.  Parameters @var{predicate}, @var{all},
+@var{backward}, and @var{up} are the same as in
 @code{treesit-search-forward}.  And @var{side} controls which side of
 the matched no do we stop at, it can be @code{'start} or @code{'end}.
-
-Beware of this common pitfall:
-
-@example
-@group
-;; This will not move point forward.
-(while (treesit-search-forward-goto
-        (treesit-node-at (point))
-        "xxx"
-        'start)
-  ...)
-
-;; This is will move point forward.
-(let ((node (treesit-node-at (point))))
-  (while (setq node (treesit-search-forward-goto
-                     node "xxx" 'start))
-    ...))
-@end group
-@end example
-
-The exact reason why is left as an exercise for the reader.
 @end defun
 
 @defun treesit-induce-sparse-tree root predicate &optional process-fn limit
