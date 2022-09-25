@@ -1529,7 +1529,7 @@ Example:
     (funcall
      (if reverse 'text-property-search-backward
        'text-property-search-forward)
-     sym nil t t)
+     sym nil t)
     (setq arg (1- arg))))
 
 (defun shortdoc-next (&optional arg)
