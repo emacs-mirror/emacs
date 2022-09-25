@@ -43,11 +43,26 @@
 ;; On macOS, the "osascript" command is used.  You might need to
 ;; disable the option "Change picture" in the "Desktop & Screensaver"
 ;; preferences for this to work (this was seen with macOS 10.13).
+;; You might also have to tweak some permissions.
 
 ;;; Code:
 
 (eval-when-compile (require 'subr-x))
 (require 'xdg)
+
+(defvar wallpaper-set-function
+  (cond ((fboundp 'w32-set-wallpaper)
+         #'w32-set-wallpaper)
+        ((and (fboundp 'haiku-set-wallpaper)
+              (featurep 'haiku))
+         'haiku-set-wallpaper)
+        (#'wallpaper-default-set-function))
+  "Function used by `wallpaper-set' to set the wallpaper.
+The function takes one argument, FILE, which is the file name of
+the image file to set the wallpaper to.")
+
+(defun wallpaper--use-default-set-function-p ()
+  (eq wallpaper-set-function #'wallpaper-default-set-function))
 
 
 ;;; Finding the wallpaper command
@@ -157,16 +172,18 @@ will be replaced as described in `wallpaper-command-args'.")
 
 (defun wallpaper--find-command ()
   "Return a valid command to set the wallpaper in this environment."
-  (catch 'found
-    (dolist (cmd wallpaper--default-commands)
-      (if (and (wallpaper--check-command (intern (car cmd)))
-               (executable-find (car cmd)))
-          (throw 'found (car cmd))))))
+  (when (wallpaper--use-default-set-function-p)
+    (catch 'found
+      (dolist (cmd wallpaper--default-commands)
+        (if (and (wallpaper--check-command (intern (car cmd)))
+                 (executable-find (car cmd)))
+            (throw 'found (car cmd)))))))
 
 (defvar wallpaper-command) ; silence byte-compiler
 (defun wallpaper--find-command-arguments ()
   "Return command line arguments matching `wallpaper-command'."
-  (cdr (assoc wallpaper-command wallpaper--default-commands)))
+  (when (wallpaper--use-default-set-function-p)
+    (cdr (assoc wallpaper-command wallpaper--default-commands))))
 
 
 ;;; Customizable variables
@@ -259,9 +276,6 @@ systems, where a native API is used instead."
            (concat "wallpaper-debug: " (car args))
            (cdr args))))
 
-
-;;; wallpaper-set
-
 (defvar wallpaper-default-width 1080
   "Default width used by `wallpaper-set'.
 This is only used when it can't be detected automatically.
@@ -279,19 +293,65 @@ See also `wallpaper-default-width'.")
 
 (autoload 'ffap-file-at-point "ffap")
 
-;; FIXME: This only says which files are supported by Emacs, not by
-;;        the external tool we use to set the wallpaper.
-(defvar wallpaper-default-file-name-regexp (image-file-name-regexp))
+(defvar wallpaper-image-file-extensions
+  '("bmp" "gif" "heif" "jpeg" "jpg" "png" "tif" "tiff" "webp")
+  "List of file extensions that `wallpaper-set' will consider for completion.")
+
+(defun wallpaper--image-file-regexp ()
+  (rx-to-string '(: "." (eval `(or ,@wallpaper-image-file-extensions)) eos) t))
 
 (defun wallpaper--get-default-file ()
   (catch 'found
     (dolist (file (list buffer-file-name (ffap-file-at-point)))
-      (when (and file (string-match wallpaper-default-file-name-regexp file))
+      (when (and file (string-match (wallpaper--image-file-regexp) file))
         (throw 'found (abbreviate-file-name
                        (expand-file-name file)))))))
 
-(declare-function w32-set-wallpaper "w32fns.c")
-(declare-function haiku-set-wallpaper "term/haiku-win.el")
+
+;;; wallpaper-set
+
+(defun wallpaper-default-set-function (file)
+  "Set the wallpaper to FILE using a command.
+This is the default function for `wallpaper-set-function'."
+  (unless wallpaper-command
+    (error "Couldn't find a command to set the wallpaper with"))
+  (let* ((fmt-spec `((?f . ,(expand-file-name file))
+                     (?F . ,(mapconcat #'url-hexify-string
+                                       (file-name-split file)
+                                       "/"))
+                     (?h . ,(wallpaper--get-height-or-width
+                             "height"
+                             #'display-pixel-height
+                             wallpaper-default-height))
+                     (?w . ,(wallpaper--get-height-or-width
+                             "width"
+                             #'display-pixel-width
+                             wallpaper-default-width))))
+         (bufname (format " *wallpaper-%s*" (random)))
+         (process
+          (and wallpaper-command
+               (apply #'start-process "set-wallpaper" bufname
+                      wallpaper-command
+                      (mapcar (lambda (arg) (format-spec arg fmt-spec))
+                              wallpaper-command-args)))))
+    (unless wallpaper-command
+      (error "Couldn't find a suitable command for setting the wallpaper"))
+    (wallpaper-debug
+     "Using command %S %S" wallpaper-command
+     wallpaper-command-args)
+    (setf (process-sentinel process)
+          (lambda (process status)
+            (unwind-protect
+                (unless (and (eq (process-status process) 'exit)
+                             (zerop (process-exit-status process)))
+                  (message "command %S %s: %S"
+                           (string-join (process-command process) " ")
+                           (string-replace "\n" "" status)
+                           (with-current-buffer (process-buffer process)
+                             (string-clean-whitespace (buffer-string)))))
+              (ignore-errors
+                (kill-buffer (process-buffer process))))))
+    process))
 
 ;;;###autoload
 (defun wallpaper-set (file)
@@ -309,10 +369,10 @@ so the value of `wallpaper-commands' is ignored."
      (list (read-file-name (format-prompt "Set desktop background to" default)
                            default-directory default
                            t nil
-                           (lambda (file-name)
-                             (or (file-directory-p file-name)
-                                 (string-match wallpaper-default-file-name-regexp
-                                               file-name)))))))
+                           (let ((re (wallpaper--image-file-regexp)))
+                             (lambda (file-name)
+                               (or (file-directory-p file-name)
+                                   (string-match re file-name))))))))
   (when (file-directory-p file)
     (error "Can't set wallpaper to a directory: %s" file))
   (unless (file-exists-p file)
@@ -320,49 +380,7 @@ so the value of `wallpaper-commands' is ignored."
   (unless (file-readable-p file)
     (error "File is not readable: %s" file))
   (wallpaper-debug "Using image %S:" file)
-  (cond ((eq system-type 'windows-nt)
-         (w32-set-wallpaper file))
-        ((featurep 'haiku)
-         (haiku-set-wallpaper file))
-        (t
-         (unless wallpaper-command
-           (error "Couldn't find a command to set the wallpaper with"))
-         (let* ((fmt-spec `((?f . ,(expand-file-name file))
-                            (?F . ,(mapconcat #'url-hexify-string
-                                              (file-name-split file)
-                                              "/"))
-                            (?h . ,(wallpaper--get-height-or-width
-                                    "height"
-                                    #'display-pixel-height
-                                    wallpaper-default-height))
-                            (?w . ,(wallpaper--get-height-or-width
-                                    "width"
-                                    #'display-pixel-width
-                                    wallpaper-default-width))))
-                (bufname (format " *wallpaper-%s*" (random)))
-                (process
-                 (and wallpaper-command
-                      (apply #'start-process "set-wallpaper" bufname
-                             wallpaper-command
-                             (mapcar (lambda (arg) (format-spec arg fmt-spec))
-                                     wallpaper-command-args)))))
-           (unless wallpaper-command
-             (error "Couldn't find a suitable command for setting the wallpaper"))
-           (wallpaper-debug
-            "Using command %S %S" wallpaper-command
-            wallpaper-command-args)
-           (setf (process-sentinel process)
-                 (lambda (process status)
-                   (unwind-protect
-                       (unless (and (eq (process-status process) 'exit)
-                                    (zerop (process-exit-status process)))
-                         (message "command %S %s: %S" (string-join (process-command process) " ")
-                                  (string-replace "\n" "" status)
-                                  (with-current-buffer (process-buffer process)
-                                    (string-clean-whitespace (buffer-string)))))
-                     (ignore-errors
-                       (kill-buffer (process-buffer process))))))
-           process))))
+  (funcall wallpaper-set-function file))
 
 (provide 'wallpaper)
 
