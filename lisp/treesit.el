@@ -336,10 +336,10 @@ Before each QUERY there could be :KEYWORD VALUE pairs that
 configure the query (and only that query).  For example,
 
     (treesit-font-lock-rules
-     :language 'javascript
-     '((true) @font-lock-constant-face
+     :language \\='javascript
+     \\='((true) @font-lock-constant-face
        (false) @font-lock-constant-face)
-     :language 'html
+     :language \\='html
      \"(script_element) @font-lock-builtin-face\")
 
 For each QUERY, a :language keyword is required.  Currently the
@@ -803,7 +803,7 @@ in (`treesit-parser-list')."
 
 The mode-line displays
 
-    PARENT FIELD-NAME: (CHILD (GRAND-CHILD (...)))
+    PARENT FIELD-NAME: (CHILD FIELD_NAME: (GRAND-CHILD (...)))
 
 CHILD, GRAND-CHILD, and GRAND-GRAND-CHILD, etc, are nodes that
 have their beginning at point.  And PARENT is the parent of
