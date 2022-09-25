@@ -2075,9 +2075,6 @@ connection."
                                   'rcirc-msgid (rcirc-get-tag "msgid"))
                       (propertize "\n" 'hard t))
 
-              ;; squeeze spaces out of text before rcirc-text
-              (fill-region (point-min) (point-max))
-
               (goto-char (or (next-single-property-change (point-min) 'rcirc-text)
                              (point)))
               (when (rcirc-buffer-process)
