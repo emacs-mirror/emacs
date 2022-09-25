@@ -1415,9 +1415,9 @@ are shared, however.
 Elements of ALIST that are not conses are also shared.  */)
   (Lisp_Object alist)
 {
+  CHECK_LIST (alist);
   if (NILP (alist))
     return alist;
-  CHECK_CONS (alist);
   alist = Fcopy_sequence (alist);
   for (Lisp_Object tem = alist; !NILP (tem); tem = XCDR (tem))
     {
