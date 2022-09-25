@@ -434,20 +434,12 @@ visible_end.)"
     ;; `treesit-parent-while'
     ;; `treesit-node-children'
     ;; `treesit-node-field-name'
-    ;; `treesit-next-sibling-or-up'
-    ;; `treesit-traverse-depth-first'
-    ;; `treesit-traverse-breadth-first'
-    ;; `treesit-traverse-forward-depth-first'
     ))
 
 ;; TODO
 ;; - Functions in treesit.el
 ;; - treesit-load-name-override-list
 ;; - treesit-search-forward
-;; - treesit-search-beginning
-;; - treesit-search-end
-;; - treesit-beginning-of-defun
-;; - treesit-end-of-defun
 
 (provide 'treesit-tests)
 ;;; treesit-tests.el ends here

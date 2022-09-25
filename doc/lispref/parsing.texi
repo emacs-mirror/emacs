@@ -580,34 +580,11 @@ for named child (@pxref{tree-sitter named node, named node}).
 
 @heading Searching for node
 
-@defun treesit-search-beginning query arg &optional lang up-only
-This function searches for the next node that @var{query} captures,
-starting at point.  Use the parser in current buffer that has
-@var{lang} as its language, if @var{lang} is nil, use the first parser
-in current buffer’s buffer list.
 
-This function stops at the @var{arg}'th match.  If @var{arg} is
-negative, search backward.  If the search succeeds, stop at the
-beginning of the matched node and return the node.  Return nil if
-search failed.
-
-By default, this function searches by traversing the parse tree depth
-first, starting from the node at point.  If @var{up-only} is non-nil,
-this function only go to siblings and parents, but never go down into
-children nodes.
 @end defun
 
-@defun treesit-search-end query arg &optional lang up-only
-This function is like @code{treesit-search-beginning}, but stops at
-the end of the matched node.
 @end defun
 
-@defun treesit-search-forward pos-fn arg query &optional lang up-only
-This function is like @code{treesit-search-beginning} and
-@code{treesit-search-end}, but instead of stopping at the beginning or
-end of the matched node, it determines where to stop by @var{pos-fn},
-where @var{pos-fn} is a function that takes a node and returns a
-position
 @end defun
 
 @heading More convenient functions
@@ -632,73 +609,6 @@ This function repeatedly finds the parent of @var{node}, and keeps
 doing so as long as the parent satisfies @var{pred} (which takes the
 parent as the single argument).  I.e., this function returns the
 farthest parent that still satisfies @var{pred}.
-@end defun
-
-@cindex trees-sitter tree traversal
-@defun treesit-traverse-depth-first node pred &optional step depth
-Traverse the subtree of @var{node} depth-first. Traverse starting from
-@var{node} (i.e., @var{node} is passed to @var{pred}).  For each node
-traversed, we call @var{pred} with the node, and we stop and return
-the node if @var{pred} returns non-nil.  If no node satisfies
-@var{pred}, return nil.
-
-If @var{step} >= 0 or nil, go forward, if @var{step} < 0, go backward.
-(The quantity of @var{step} doesn't matter.)
-
-@var{depth} can be a positive integer or 0, meaning go @var{depth}
-levels deep, counting from @var{node}, or nil, meaning there is no
-limit.  For example, a value 0 means only traverse @var{node} itself,
-a value 1 means traverse @var{node} and its immediate children.
-@end defun
-
-@defun treesit-traverse-breadth-first node pred &optional step
-Traverse the subtree of @var{node} breadth-first.  Traverse starting
-from @var{node} (i.e., @var{node} is passed to @var{pred}).  For each
-node traversed, call @var{pred} with the node, stop and return the
-node if @var{pred} returns non-nil.  If no node satisfies @var{pred},
-return nil.
-
-If @var{step} >= 0 or nil, go forward, if @var{step} < 0, go backward.
-(The quantity of @var{step} doesn't matter.)
-@end defun
-
-@defun treesit-traverse-forward node pred &optional step depth
-Traverses the whole tree forward from NODE depth-first.  Traverse
-starting from @var{node} (i.e., @var{node} is passed to @var{pred}).
-For each node traversed, call @var{pred} with the node, stop and
-return the node if @var{pred} returns non-nil.  If no node satisfies
-@var{pred}, return nil.
-
-If @var{step} >= 0 or nil, go forward, if @var{step} < 0, go backward.
-(The quantity of @var{step} doesn't matter.)
-
-Traversing forward means that for a tree like the below where
-@var{node} is marked 1, traverse as numbered:
-
-@example
-@group
-                16
-                |
-       3--------4-----------8
-       |        |           |
-  o--o-+--1  5--+--6    9---+-----12
-  |  |    |        |    |         |
-  o  o    2        7  +-+-+    +--+--+
-                      |   |    |  |  |
-                      10  11   13 14 15
-@end group
-@end example
-
-@var{depth} can be a positive integer, 0, nil, or @code{'up}.  A
-positive integer or 0 means go @var{depth} deep counting from
-@var{node}.  A nil means no limit.  And a symbol @code{'up} means go
-upwards only: only traverse to sibling and parent, never go down to
-children.
-
-The difference between 0 and @code{'up} is subtle: in the above
-example, if given 0 as @var{depth}, node 1 3 4 5 6 8 9 12 16 are
-visited; if given @code{'up} as @var{depth}, only node 1 3 4 8 16 are
-visited.
 @end defun
 
 @node Accessing Node
