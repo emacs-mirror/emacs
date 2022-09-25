@@ -172,14 +172,15 @@ NAMED non-nil, only search for named node."
 (defun treesit-node-text (node &optional no-property)
   "Return the buffer (or string) content corresponding to NODE.
 If NO-PROPERTY is non-nil, remove text properties."
-  (with-current-buffer (treesit-node-buffer node)
-    (if no-property
-        (buffer-substring-no-properties
+  (when node
+    (with-current-buffer (treesit-node-buffer node)
+      (if no-property
+          (buffer-substring-no-properties
+           (treesit-node-start node)
+           (treesit-node-end node))
+        (buffer-substring
          (treesit-node-start node)
-         (treesit-node-end node))
-      (buffer-substring
-       (treesit-node-start node)
-       (treesit-node-end node)))))
+         (treesit-node-end node))))))
 
 (defun treesit-parent-until (node pred)
   "Return the closest parent of NODE that satisfies PRED.
