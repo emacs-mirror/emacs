@@ -22,6 +22,15 @@
 
 ;;; Commentary:
 
+;; This package lists functions based on various groupings.
+;;
+;; For instance, `string-trim' and `mapconcat' are `string' functions,
+;; so `M-x shortdoc RET string RET' will give an overview of functions
+;; that operate on strings.
+;;
+;; The documentation groups are created with the
+;; `define-short-documentation-group' macro.
+
 ;;; Code:
 
 (require 'seq)
@@ -1533,27 +1542,27 @@ Example:
     (setq arg (1- arg))))
 
 (defun shortdoc-next (&optional arg)
-  "Move cursor to the next function.
-With ARG, do it that many times."
+  "Move point to the next function.
+With prefix argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function))
 
 (defun shortdoc-previous (&optional arg)
-  "Move cursor to the previous function.
-With ARG, do it that many times."
+  "Move point to the previous function.
+With prefix argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function t)
   (backward-char 1))
 
 (defun shortdoc-next-section (&optional arg)
-  "Move cursor to the next section.
-With ARG, do it that many times."
+  "Move point to the next section.
+With prefix argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section))
 
 (defun shortdoc-previous-section (&optional arg)
-  "Move cursor to the previous section.
-With ARG, do it that many times."
+  "Move point to the previous section.
+With prefix argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section t)
   (forward-line -2))

@@ -827,7 +827,7 @@ if the user types the help character again.
 
 Emacs can list functions based on various groupings.  For instance,
 @code{string-trim} and @code{mapconcat} are ``string'' functions, so
-@kbd{M-x shortdoc-display-group RET string RET} will give an overview
+@kbd{M-x shortdoc RET string RET} will give an overview
 of functions that operate on strings.
 
 The documentation groups are created with the
