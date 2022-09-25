@@ -1035,7 +1035,9 @@ Do not fontify the initial f for f-strings."
                 `(seq bol (or ,@python--treesit-exceptions)
                       eol))
               @font-lock-type-face))
-     (type (identifier) @font-lock-type-face))))
+     (type (identifier) @font-lock-type-face)))
+  "Tree-sitter font-lock settings.")
+
 
 ;;; Indentation
 
@@ -5244,13 +5246,58 @@ To this:
           (python-imenu-create-index))))))
 
 ;;; Tree-sitter imenu
-;;
-;; This works, but is slower than the native functions, presumably
-;; because traversing the parser tree is slower than scanning the
-;; text.  Also I'm sure this consumes more memory as we allocate
-;; memory for every node in the tree.
 
-(defun python--imenu-treesit-create-index (&optional node)
+(defun python--imenu-treesit-create-index-1 (node)
+  "Given a sparse tree, create an imenu alist.
+
+NODE is the root node of the tree returned by
+`treesit-induce-sparse-tree' (not a tree-sitter node, its car is
+a tree-sitter node).  Walk that tree and return an imenu alist.
+
+Return a list of ENTRY where
+
+ENTRY := (NAME . MARKER)
+       | (NAME . ((JUMP-LABEL . MARKER)
+                  ENTRY
+                  ...)
+
+NAME is the function/class's name, JUMP-LABEL is like \"*function
+definition*\"."
+  (let* ((ts-node (car node))
+         (children (cdr node))
+         (subtrees (mapcan #'python--imenu-treesit-create-index-1
+                           children))
+         (type (pcase (treesit-node-type ts-node)
+                 ("function_definition" 'def)
+                 ("class_definition" 'class)))
+         ;; The root of the tree could have a nil ts-node.
+         (name (when ts-node
+                 (treesit-node-text
+                  (treesit-node-child-by-field-name
+                   ts-node "name") t)))
+         (marker (when ts-node
+                   (set-marker (make-marker)
+                               (treesit-node-start ts-node)))))
+    (cond
+     ((null ts-node)
+      subtrees)
+     (subtrees
+      (let ((parent-label
+             (funcall python-imenu-format-parent-item-label-function
+                      type name))
+            (jump-label
+             (funcall
+              python-imenu-format-parent-item-jump-label-function
+              type name)))
+        `((,parent-label
+           ,(cons jump-label marker)
+           ,@subtrees))))
+     (t (let ((label
+               (funcall python-imenu-format-item-label-function
+                        type name)))
+          (list (cons label marker)))))))
+
+(defun python-imenu-treesit-create-index (&optional node)
   "Return tree Imenu alist for the current Python buffer.
 
 Change `python-imenu-format-item-label-function',
@@ -5263,42 +5310,15 @@ of.  If nil, use the root node of the whole parse tree.
 
 Similar to `python-imenu-create-index' but use tree-sitter."
   (let* ((node (or node (treesit-buffer-root-node 'python)))
-         (children (treesit-node-children node t))
-         (subtrees (mapcan #'python--imenu-treesit-create-index
-                           children))
-         (type (pcase (treesit-node-type node)
-                ("function_definition" 'def)
-                ("class_definition" 'class)
-                (_ nil)))
-         (name (when type
-                 (treesit-node-text
-                  (treesit-node-child-by-field-name
-                   node "name") t))))
-    (cond
-     ;; 1. This node is a function/class and doesn't have children.
-     ((and type (not subtrees))
-      (let ((label
-             (funcall python-imenu-format-item-label-function
-                           type name)))
-        (list (cons label
-                    (set-marker (make-marker)
-                                (treesit-node-start node))))))
-     ;; 2. This node is a function/class and has children.
-     ((and type subtrees)
-      (let ((parent-label
-             (funcall python-imenu-format-parent-item-label-function
-                      type name))
-            (jump-label
-             (funcall python-imenu-format-parent-item-jump-label-function
-                      type name)))
-        `((,parent-label
-           ,(cons jump-label (set-marker (make-marker)
-                                         (treesit-node-start node)))
-           ,@subtrees))))
-     ;; 3. This node is not a function/class.
-     ((not type) subtrees))))
+         (tree (treesit-induce-sparse-tree
+                node
+                (rx (seq bol
+                         (or "function" "class")
+                         "_definition"
+                         eol)))))
+    (python--imenu-treesit-create-index-1 tree)))
 
-(defun python--imenu-treesit-create-flat-index ()
+(defun python-imenu-treesit-create-flat-index ()
   "Return flat outline of the current Python buffer for Imenu.
 
 Change `python-imenu-format-item-label-function',
@@ -5309,7 +5329,7 @@ customize how labels are formatted.
 Similar to `python-imenu-create-flat-index' but use
 tree-sitter."
   (python-imenu-create-flat-index
-   (python--imenu-treesit-create-index)))
+   (python-imenu-treesit-create-index)))
 
 ;;; Misc helpers
 
@@ -6120,14 +6140,18 @@ REPORT-FN is Flymake's callback function."
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
-  (setq-local imenu-create-index-function
-              #'python-imenu-create-index)
+  (if (and python-use-tree-sitter
+           (treesit-can-enable-p))
+      (setq-local imenu-create-index-function
+                  #'python-treesit-imenu-create-index)
+    (setq-local imenu-create-index-function
+                #'python-imenu-create-index))
 
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
 
   (if (and python-use-tree-sitter
-             (treesit-can-enable-p))
+           (treesit-can-enable-p))
       (add-hook 'which-func-functions
                 #'python-info-treesit-current-defun nil t)
     (add-hook 'which-func-functions #'python-info-current-defun nil t))
