@@ -451,6 +451,10 @@ The following keyword arguments are supported:
 :text STRING    If non-nil, pass STRING to `make-temp-file' as
                 the TEXT argument.
 
+:buffer SYMBOL  Open the temporary file using `find-file-noselect'
+                and bind SYMBOL to the buffer.  Kill the buffer
+                after BODY exits normally or non-locally.
+
 :coding CODING  If non-nil, bind `coding-system-for-write' to CODING
                 when executing BODY.  This is handy when STRING includes
                 non-ASCII characters or the temporary file must have a
@@ -459,14 +463,17 @@ The following keyword arguments are supported:
 See also `ert-with-temp-directory'."
   (declare (indent 1) (debug (symbolp body)))
   (cl-check-type name symbol)
-  (let (keyw prefix suffix directory text extra-keywords coding)
+  (let (keyw prefix suffix directory text extra-keywords buffer coding)
     (while (keywordp (setq keyw (car body)))
       (setq body (cdr body))
       (pcase keyw
         (:prefix (setq prefix (pop body)))
         (:suffix (setq suffix (pop body)))
+        ;; This is only for internal use by `ert-with-temp-directory'
+        ;; and is therefore not documented.
         (:directory (setq directory (pop body)))
         (:text (setq text (pop body)))
+        (:buffer (setq buffer (pop body)))
         (:coding (setq coding (pop body)))
         (_ (push keyw extra-keywords) (pop body))))
     (when extra-keywords
@@ -481,9 +488,16 @@ See also `ert-with-temp-directory'."
                            (make-temp-file ,prefix ,directory ,suffix ,text)))
               (,name ,(if directory
                           `(file-name-as-directory ,temp-file)
-                        temp-file)))
+                        temp-file))
+              ,@(when buffer
+                  (list `(,buffer (find-file-literally ,temp-file)))))
          (unwind-protect
              (progn ,@body)
+           (ignore-errors
+             ,@(when buffer
+                 (list `(with-current-buffer buf
+                          (set-buffer-modified-p nil))
+                       `(kill-buffer ,buffer))))
            (ignore-errors
              ,(if directory
                   `(delete-directory ,temp-file :recursive)
