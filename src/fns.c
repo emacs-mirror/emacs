@@ -1417,6 +1417,7 @@ Elements of ALIST that are not conses are also shared.  */)
 {
   if (NILP (alist))
     return alist;
+  CHECK_CONS (alist);
   alist = Fcopy_sequence (alist);
   for (Lisp_Object tem = alist; !NILP (tem); tem = XCDR (tem))
     {

@@ -1422,4 +1422,31 @@
     (should (equal (ntake (- most-negative-fixnum 1) list) nil))
     (should (equal list '(a b c)))))
 
+(ert-deftest fns--copy-alist ()
+  (dolist (orig '(nil
+                  ((a . 1) (b . 2) (a . 3))
+                  (a (b . 3) ((c) (d)))))
+    (ert-info ((prin1-to-string orig) :prefix "orig: ")
+      (let ((copy (copy-alist orig)))
+        (should (equal orig copy))
+        (while orig
+          (should-not (eq orig copy))
+          ;; Check that cons pairs are copied but nothing else.
+          (let ((orig-elt (car orig))
+                (copy-elt (car copy)))
+            (if (atom orig-elt)
+                (should (eq orig-elt copy-elt))
+              (should-not (eq orig-elt copy-elt))
+              (should (eq (car orig-elt) (car copy-elt)))
+              (should (eq (cdr orig-elt) (cdr copy-elt)))))
+          (setq orig (cdr orig))
+          (setq copy (cdr copy))))))
+
+  (should-error (copy-alist 'a)
+                :type 'wrong-type-argument)
+  (should-error (copy-alist [(a . 1) (b . 2) (a . 3)])
+                :type 'wrong-type-argument)
+  (should-error (copy-alist "abc")
+                :type 'wrong-type-argument))
+
 ;;; fns-tests.el ends here
