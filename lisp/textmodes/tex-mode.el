@@ -1043,12 +1043,9 @@ says which mode to use."
 ;; users who may have files annotated with -*- LaTeX -*- (e.g. because they
 ;; received them from someone using AUCTeX).
 
-;;;###autoload
-(defalias 'TeX-mode #'tex-mode)
-;;;###autoload
-(defalias 'plain-TeX-mode #'plain-tex-mode)
-;;;###autoload
-(defalias 'LaTeX-mode #'latex-mode)
+;;;###autoload (defalias 'TeX-mode #'tex-mode)
+;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
+;;;###autoload (defalias 'LaTeX-mode #'latex-mode)
 
 ;;;###autoload
 (define-derived-mode plain-tex-mode tex-mode "TeX"
