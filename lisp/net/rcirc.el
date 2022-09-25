@@ -1340,12 +1340,91 @@ The list is updated automatically by `defun-rcirc-command'.")
   'set-rcirc-encode-coding-system
   "28.1")
 
+(defun rcirc-format (pre &optional replace)
+  "Insert markup formatting PRE.
+PRE and \"^O\" (ASCII #x0f) will either be inserted around the
+current point respectively or the active region, if present.
+This function an auxiliary function is not meant to be used
+directly, but is invoked by other commands.  If the optional
+argument REPLACE is non-nil, first remove any formatting before
+inserting the new one."
+  (when replace (rcirc-unformat))
+  (save-excursion
+    (if (use-region-p)
+        (let ((beg (region-beginning)))
+          (goto-char (region-end))
+          (insert "")
+          (goto-char beg)
+          (insert pre))
+      (insert pre "")))
+  (when (or (not (region-active-p)) (< (point) (mark)))
+    (forward-char (length pre))))
+
+(defun rcirc-unformat ()
+  "Remove the closes formatting found closes to the current point."
+  (interactive)
+  (save-excursion
+    (when (and (search-backward-regexp (rx (or "" "" "" "" ""))
+                                       rcirc-prompt-end-marker t)
+               (looking-at (rx (group (or "" "" "" "" ""))
+                               (*? nonl)
+                               (group ""))))
+      (replace-match "" nil nil nil 2)
+      (replace-match "" nil nil nil 1))))
+
+(defun rcirc-format-bold (replace)
+  "Insert bold formatting.
+If REPLACE is non-nil or a prefix argument is given, any prior
+formatting will be replaced before the bold formatting is
+inserted."
+  (interactive "P")
+  (rcirc-format "" replace))
+
+(defun rcirc-format-italic (replace)
+  "Insert italic formatting.
+If REPLACE is non-nil or a prefix argument is given, any prior
+formatting will be replaced before the italic formatting is
+inserted."
+  (interactive "P")
+  (rcirc-format "" replace))
+
+(defun rcirc-format-underline (replace)
+  "Insert underlining formatting.
+If REPLACE is non-nil or a prefix argument is given, any prior
+formatting will be replaced before the underline formatting is
+inserted."
+  (interactive "P")
+  (rcirc-format "" replace))
+
+(defun rcirc-format-strike-trough (replace)
+  "Insert strike-trough formatting.
+If REPLACE is non-nil or a prefix argument is given, any prior
+formatting will be replaced before the strike-trough formatting
+is inserted."
+  (interactive "P")
+  (rcirc-format "" replace))
+
+(defun rcirc-format-fixed-width (replace)
+  "Insert fixed-width formatting.
+If REPLACE is non-nil or a prefix argument is given, any prior
+formatting will be replaced before the fixed width formatting is
+inserted."
+  (interactive "P")
+  (rcirc-format "" replace))
+
 (defvar-keymap rcirc-mode-map
   :doc "Keymap for rcirc mode."
   "RET"     #'rcirc-send-input
   "M-p"     #'rcirc-insert-prev-input
   "M-n"     #'rcirc-insert-next-input
   "TAB"     #'completion-at-point
+  "C-c C-f C-b" #'rcirc-format-bold
+  "C-c C-f C-i" #'rcirc-format-italic
+  "C-c C-f C-u" #'rcirc-format-underline
+  "C-c C-f C-s" #'rcirc-format-strike-trough
+  "C-c C-f C-f" #'rcirc-format-fixed-width
+  "C-c C-f C-t" #'rcirc-format-fixed-width ;as in AucTeX
+  "C-c C-f C-d" #'rcirc-unformat
   "C-c C-b" #'rcirc-browse-url
   "C-c C-c" #'rcirc-edit-multiline
   "C-c C-j" #'rcirc-cmd-join
@@ -1725,6 +1804,13 @@ extracted."
 
 (defvar-keymap rcirc-multiline-minor-mode-map
   :doc "Keymap for multiline mode in rcirc."
+  "C-c C-f C-b" #'rcirc-format-bold
+  "C-c C-f C-i" #'rcirc-format-italic
+  "C-c C-f C-u" #'rcirc-format-underline
+  "C-c C-f C-s" #'rcirc-format-strike-trough
+  "C-c C-f C-f" #'rcirc-format-fixed-width
+  "C-c C-f C-t" #'rcirc-format-fixed-width ;as in AucTeX
+  "C-c C-f C-d" #'rcirc-unformat
   "C-c C-c"     #'rcirc-multiline-minor-submit
   "C-x C-s"     #'rcirc-multiline-minor-submit
   "C-c C-k"     #'rcirc-multiline-minor-cancel

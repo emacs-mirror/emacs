@@ -1089,6 +1089,15 @@ to be reformatted into
 
     09:47 <john> I am not on IRC
 
+---
+*** New formatting commands.
+Most IRC clients (including rcirc) support basic formatting using
+control codes.  Under the 'C-c C-f' prefix a few commands have been
+added to insert these automatically.  For example, if a region is
+active and 'C-c C-f C-b' is invoked, markup is inserted for the region
+to be highlighted bold.
+
+
 ** Imenu
 
 +++
