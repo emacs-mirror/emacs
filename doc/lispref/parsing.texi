@@ -617,7 +617,7 @@ This function finds children of @var{node} that satisfies @var{pred}.
 
 Function @var{pred} takes the child node as the argument and should
 return non-nil to indicated keeping the child.  If @var{named}
-non-nil, this function only searches for named nodes."
+non-nil, this function only searches for named nodes.
 @end defun
 
 @defun treesit-parent-until node pred
