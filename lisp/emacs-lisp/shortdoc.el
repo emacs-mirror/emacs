@@ -1512,6 +1512,8 @@ Example:
   :doc "Keymap for `shortdoc-mode'."
   "n"       #'shortdoc-next
   "p"       #'shortdoc-previous
+  "N"       #'shortdoc-next-section
+  "P"       #'shortdoc-previous-section
   "C-c C-n" #'shortdoc-next-section
   "C-c C-p" #'shortdoc-previous-section)
 
