@@ -2988,18 +2988,11 @@ haiku_default_font_parameter (struct frame *f, Lisp_Object parms)
     font_param = Qnil;
 
   if (NILP (font_param))
-    {
-      /* System font should take precedence over X resources.  We suggest this
-         regardless of font-use-system-font because .emacs may not have been
-         read yet.  */
-      struct haiku_font_pattern ptn;
-      ptn.specified = 0;
-
-      BFont_populate_fixed_family (&ptn);
-
-      if (ptn.specified & FSPEC_FAMILY)
-	font = font_open_by_name (f, build_unibyte_string (ptn.family));
-    }
+    /* System font should take precedence over X resources.  We
+       suggest this regardless of font-use-system-font because .emacs
+       may not have been read yet.  Returning a font-spec is Haiku
+       specific behavior.  */
+    font = font_open_by_spec (f, Ffont_get_system_font ());
 
   if (NILP (font))
       font = !NILP (font_param) ? font_param
@@ -4027,6 +4020,11 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	  inev.kind = SAVE_SESSION_EVENT;
 	  inev.arg = Qt;
 	  break;
+	case FONT_CHANGE_EVENT:
+	  /* This generates CONFIG_CHANGED_EVENTs, which are then
+	     handled in Lisp.  */
+	  haiku_handle_font_change_event (buf, &inev);
+	  break;
 	case KEY_UP:
 	case DUMMY_EVENT:
 	default:
@@ -4417,6 +4415,9 @@ haiku_term_init (void)
     dpyinfo->default_name = build_string ("GNU Emacs");
 
   haiku_start_watching_selections ();
+
+  /* Start listening for font configuration changes.  */
+  be_listen_font_settings ();
   unblock_input ();
 
   return dpyinfo;

@@ -652,14 +652,15 @@ resources file to take effect.  @xref{Resources}.  Do not quote
 font names in X resource files.
 
 @item
-If you are running Emacs on the GNOME desktop, you can tell Emacs to
-use the default system font by setting the variable
+If you are running Emacs on the GNOME desktop or Haiku, you can tell
+Emacs to adjust the frame's default font along with changes to the
+default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
 For this to work, Emacs must have been compiled with support for
 Gsettings (or the older Gconf).  (To be specific, the Gsettings
-configuration names used are
-@samp{org.gnome.desktop.interface monospace-font-name} and
-@samp{org.gnome.desktop.interface font-name}.)
+configuration names used are @samp{org.gnome.desktop.interface
+monospace-font-name} and @samp{org.gnome.desktop.interface
+font-name}.)
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font

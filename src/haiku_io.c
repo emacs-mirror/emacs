@@ -109,6 +109,8 @@ haiku_len (enum haiku_event_type type)
       return sizeof (struct haiku_screen_changed_event);
     case CLIPBOARD_CHANGED_EVENT:
       return sizeof (struct haiku_clipboard_changed_event);
+    case FONT_CHANGE_EVENT:
+      return sizeof (struct haiku_font_change_event);
     }
 
   emacs_abort ();

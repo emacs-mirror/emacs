@@ -34,6 +34,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define HAVE_CHAR_CACHE_MAX 65535
 
+/* This is really defined in haiku_support.h.  */
+struct haiku_font_change_event;
+
 extern int popup_activated_p;
 
 struct haikufont_info
@@ -361,4 +364,7 @@ extern void haiku_merge_cursor_foreground (struct glyph_string *, unsigned long 
 					   unsigned long *);
 extern void haiku_handle_selection_clear (struct input_event *);
 extern void haiku_start_watching_selections (void);
+extern void haiku_handle_font_change_event (struct haiku_font_change_event *,
+					    struct input_event *);
+
 #endif /* _HAIKU_TERM_H_ */

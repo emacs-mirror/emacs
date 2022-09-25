@@ -21,6 +21,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <Font.h>
 #include <Rect.h>
 #include <AffineTransform.h>
+#include <FindDirectory.h>
+#include <Path.h>
+#include <File.h>
+#include <Message.h>
+#include <OS.h>
+#include <Locker.h>
+#include <NodeMonitor.h>
+#include <Looper.h>
 
 #include <cstring>
 #include <cmath>
@@ -39,15 +47,57 @@ struct font_object_cache_bucket
 
 static struct font_object_cache_bucket *font_object_cache[2048];
 
+/* The current global monospace family and style.  */
+static char *fixed_family, *fixed_style;
+
+/* The current global variable-width family and style.  */
+static char *default_family, *default_style;
+
+/* The sizes of each of those fonts.  */
+static float default_size, fixed_size;
+
+/* The locker controlling access to those variables.  */
+static BLocker default_locker;
+
 /* Haiku doesn't expose font language data in BFont objects.  Thus, we
    select a few representative characters for each supported `:lang'
    (currently Chinese, Korean and Japanese,) and test for those
    instead.  */
 
 static int language_code_points[MAX_LANGUAGE][3] =
-  {{20154, 20754, 22996}, /* Chinese.  */
-   {51312, 49440, 44544}, /* Korean.  */
-   {26085, 26412, 12371}, /* Japanese.  */};
+  {
+    {20154, 20754, 22996}, /* Chinese.  */
+    {51312, 49440, 44544}, /* Korean.  */
+    {26085, 26412, 12371}, /* Japanese.  */
+  };
+
+static void be_send_font_settings (void);
+
+/* Looper used to track changes to system-wide font settings.  */
+class EmacsFontMonitorLooper : public BLooper
+{
+  void
+  MessageReceived (BMessage *msg)
+  {
+    int32 opcode;
+
+    if (msg->what != B_NODE_MONITOR)
+      return;
+
+    if (msg->FindInt32 ("opcode", &opcode) != B_OK)
+      return;
+
+    if (opcode != B_STAT_CHANGED)
+      return;
+
+    /* Wait a little for any message to be completely written after
+       the file's modification time changes.  */
+    snooze (10000);
+
+    /* Read and apply font settings.  */
+    be_send_font_settings ();
+  }
+};
 
 static unsigned int
 hash_string (const char *name_or_style)
@@ -288,11 +338,14 @@ BFont_nchar_bounds (void *font, const char *mb_str, int *advance,
 }
 
 static void
-font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
+font_style_to_flags (const char *style_string,
+		     struct haiku_font_pattern *pattern)
 {
-  char *style = strdup (st);
+  char *style;
   char *token;
   int tok = 0;
+
+  style = strdup (style_string);
 
   if (!style)
     return;
@@ -385,7 +438,8 @@ font_style_to_flags (char *st, struct haiku_font_pattern *pattern)
       pattern->specified &= ~FSPEC_WEIGHT;
       pattern->specified &= ~FSPEC_WIDTH;
       pattern->specified |= FSPEC_STYLE;
-      std::strncpy ((char *) &pattern->style, st,
+      std::strncpy ((char *) &pattern->style,
+		    style_string,
 		    sizeof pattern->style - 1);
       pattern->style[sizeof pattern->style - 1] = '\0';
     }
@@ -887,7 +941,7 @@ be_evict_font_cache (void)
 }
 
 void
-be_font_style_to_flags (char *style, struct haiku_font_pattern *pattern)
+be_font_style_to_flags (const char *style, struct haiku_font_pattern *pattern)
 {
   pattern->specified = 0;
 
@@ -938,4 +992,218 @@ be_set_font_antialiasing (void *font, bool antialias_p)
   font_object->SetFlags (antialias_p
 			 ? B_FORCE_ANTIALIASING
 			 : B_DISABLE_ANTIALIASING);
+}
+
+static void
+be_send_font_settings (void)
+{
+  struct haiku_font_change_event rq;
+  BFile file;
+  BPath path;
+  status_t rc;
+  BMessage message;
+  font_family family;
+  font_style style;
+  const char *new_family, *new_style;
+  float new_size;
+
+  rc = find_directory (B_USER_SETTINGS_DIRECTORY, &path);
+
+  if (rc < B_OK)
+    return;
+
+  rc = path.Append ("system/app_server/fonts");
+
+  if (rc < B_OK)
+    return;
+
+  if (file.SetTo (path.Path (), B_READ_ONLY) != B_OK)
+    return;
+
+  if (message.Unflatten (&file) != B_OK)
+    return;
+
+  /* Now, populate with new values.  */
+  if (!default_locker.Lock ())
+    gui_abort ("Failed to lock font data locker");
+
+  /* Obtain default values.  */
+  be_fixed_font->GetFamilyAndStyle (&family, &style);
+  default_size = be_fixed_font->Size ();
+
+  /* And the new values.  */
+  new_family = message.GetString ("fixed family", family);
+  new_style = message.GetString ("fixed style", style);
+  new_size = message.GetFloat ("fixed size", default_size);
+
+  /* If it turns out the fixed family changed, send the new family and
+     style.  */
+
+  if (!fixed_family || !fixed_style
+      || new_size != fixed_size
+      || strcmp (new_family, fixed_family)
+      || strcmp (new_style, fixed_style))
+    {
+      memset (&rq, 0, sizeof rq);
+      strncpy (rq.new_family, (char *) new_family,
+	       sizeof rq.new_family - 1);
+      strncpy (rq.new_style, (char *) new_style,
+	       sizeof rq.new_style - 1);
+      rq.new_size = new_size;
+      rq.what = FIXED_FAMILY;
+
+      haiku_write (FONT_CHANGE_EVENT, &rq);
+    }
+
+  if (fixed_family)
+    free (fixed_family);
+
+  if (fixed_style)
+    free (fixed_style);
+
+  fixed_family = strdup (new_family);
+  fixed_style = strdup (new_style);
+  fixed_size = new_size;
+
+  /* Obtain default values.  */
+  be_plain_font->GetFamilyAndStyle (&family, &style);
+  default_size = be_plain_font->Size ();
+
+  /* And the new values.  */
+  new_family = message.GetString ("plain family", family);
+  new_style = message.GetString ("plain style", style);
+  new_size = message.GetFloat ("plain style", default_size);
+
+  if (!default_family || !default_style
+      || new_size != default_size
+      || strcmp (new_family, default_family)
+      || strcmp (new_style, default_style))
+    {
+      memset (&rq, 0, sizeof rq);
+      strncpy (rq.new_family, (char *) new_family,
+	       sizeof rq.new_family - 1);
+      strncpy (rq.new_style, (char *) new_style,
+	       sizeof rq.new_style - 1);
+      rq.new_size = new_size;
+      rq.what = DEFAULT_FAMILY;
+
+      haiku_write (FONT_CHANGE_EVENT, &rq);
+    }
+
+  if (default_family)
+    free (default_family);
+
+  if (default_style)
+    free (default_style);
+
+  default_family = strdup (new_family);
+  default_style = strdup (new_style);
+  default_size = new_size;
+
+  default_locker.Unlock ();
+}
+
+/* Begin listening to font settings changes, by installing a node
+   watcher.  This relies on the settings file already being present
+   and has several inherent race conditions, but users shouldn't be
+   changing font settings very quickly.  */
+
+void
+be_listen_font_settings (void)
+{
+  BPath path;
+  status_t rc;
+  BNode node;
+  node_ref node_ref;
+  EmacsFontMonitorLooper *looper;
+  font_family family;
+  font_style style;
+
+  /* Set up initial values.  */
+  be_fixed_font->GetFamilyAndStyle (&family, &style);
+  fixed_family = strdup (family);
+  fixed_style = strdup (style);
+  fixed_size = be_fixed_font->Size ();
+
+  be_plain_font->GetFamilyAndStyle (&family, &style);
+  default_family = strdup (family);
+  default_style = strdup (style);
+  default_size = be_plain_font->Size ();
+
+  rc = find_directory (B_USER_SETTINGS_DIRECTORY, &path);
+
+  if (rc < B_OK)
+    return;
+
+  rc = path.Append ("system/app_server/fonts");
+
+  if (rc < B_OK)
+    return;
+
+  rc = node.SetTo (path.Path ());
+
+  if (rc < B_OK)
+    return;
+
+  if (node.GetNodeRef (&node_ref) < B_OK)
+    return;
+
+  looper = new EmacsFontMonitorLooper;
+
+  if (watch_node (&node_ref, B_WATCH_STAT, looper) < B_OK)
+    {
+      delete looper;
+      return;
+    }
+
+  looper->Run ();
+}
+
+bool
+be_lock_font_defaults (void)
+{
+  return default_locker.Lock ();
+}
+
+void
+be_unlock_font_defaults (void)
+{
+  return default_locker.Unlock ();
+}
+
+const char *
+be_get_font_default (enum haiku_what_font what)
+{
+  switch (what)
+    {
+    case FIXED_FAMILY:
+      return fixed_family;
+
+    case FIXED_STYLE:
+      return fixed_style;
+
+    case DEFAULT_FAMILY:
+      return default_family;
+
+    case DEFAULT_STYLE:
+      return default_style;
+    }
+
+  return NULL;
+}
+
+int
+be_get_font_size (enum haiku_what_font what)
+{
+  switch (what)
+    {
+    case FIXED_FAMILY:
+      return fixed_size;
+
+    case DEFAULT_FAMILY:
+      return default_size;
+
+    default:
+      return 0;
+    }
 }
