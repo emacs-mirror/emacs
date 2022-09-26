@@ -126,7 +126,15 @@ value is the last form in BODY."
                  (body-function
                   . ,(lambda (window)
                        (select-window window t)
-                       (let ((inhibit-modification-hooks nil))
+                       ;; body-function is intended to initialize the
+                       ;; contents of a temporary read-only buffer, so
+                       ;; it is executed with some convenience
+                       ;; changes.  Undo those changes so that the
+                       ;; test buffer behaves more like an ordinary
+                       ;; buffer while the body executes.
+                       (let ((inhibit-modification-hooks nil)
+                             (inhibit-read-only nil)
+                             (buffer-read-only nil))
                          (setq ,ret (progn ,@body))))))
              nil))
          ,ret))))
