@@ -1061,7 +1061,9 @@ Otherwise, display the image by calling `image-mode'."
              ;; Don't resize anything if we're in the minibuffer
              ;; (which may transitively change the window sizes if you
              ;; hit TAB, for instance).
-             (not (minibuffer-window-active-p (selected-window))))
+             (not (minibuffer-window-active-p (selected-window)))
+             ;; Don't resize if there's a message in the echo area.
+             (not (current-message)))
     (with-current-buffer (window-buffer window)
       (when (derived-mode-p 'image-mode)
         (let ((spec (image-get-display-property)))
