@@ -209,8 +209,8 @@ https://specifications.freedesktop.org/thumbnail-spec/thumbnail-spec-latest.html
                  (const :tag "Thumbnail Managing Standard (extra large 1024x1024)"
                         standard-xx-large)
                  (const :tag "Per-directory" per-directory))
-  :safe (lambda (value) (eq value 'per-directory))
   :version "29.1")
+;;;###autoload(put 'image-dired-thumbnail-storage 'safe-local-variable (lambda (x) (eq x 'per-directory)))
 
 (define-obsolete-variable-alias 'image-dired-db-file
   'image-dired-tags-db-file "29.1")
