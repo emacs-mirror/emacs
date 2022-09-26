@@ -325,6 +325,11 @@ automatically."
 (defface log-edit-summary '((t :inherit font-lock-function-name-face))
   "Face for the summary in `log-edit-mode' buffers.")
 
+(defface log-edit-headers-separator
+  '((t :height 0.1 :inverse-video t :extend t))
+  "Face for the separator line in `log-edit-mode' buffers."
+  :version "29.1")
+
 (defface log-edit-header '((t :inherit font-lock-keyword-face))
   "Face for the headers in `log-edit-mode' buffers.")
 
@@ -393,7 +398,7 @@ The first subexpression is the actual text of the field.")
          nil lax))
      ("^\n"
       (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(face (:height 0.1 :inverse-video t :extend t)
+      (0 '(face log-edit-headers-separator
            display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 

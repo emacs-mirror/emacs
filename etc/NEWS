@@ -1766,6 +1766,11 @@ Writing shorter summary lines avoids truncation in contexts in which
 Git commands display summary lines.  See the two new user options
 'vc-git-log-edit-summary-target-len' and 'vc-git-log-edit-summary-max-len'.
 
+---
+*** New 'log-edit-headers-separator' face
+It is used to style the line that separates the 'log-edit' headers
+from the 'log-edit' summary.
+
 ** Message
 
 ---
