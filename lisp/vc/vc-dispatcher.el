@@ -269,7 +269,7 @@ SUCCESS process has a zero exit code."
   (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
 
-(defvar vc-filter-command-function (lambda (&rest args) args)
+(defvar vc-filter-command-function #'list
   "Function called to transform VC commands before execution.
 The function is called inside the buffer in which the command
 will be run and is passed the COMMAND, FILE-OR-LIST and FLAGS
