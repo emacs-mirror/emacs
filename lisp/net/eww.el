@@ -1179,7 +1179,27 @@ the like."
   (setq-local bookmark-make-record-function #'eww-bookmark-make-record)
   (buffer-disable-undo)
   (setq-local shr-url-transformer #'eww--transform-url)
+  ;; Also rescale images when rescaling the text.
+  (add-hook 'text-scale-mode-hook #'eww--rescale-images nil t)
   (setq buffer-read-only t))
+
+(defvar text-scale-mode)
+(defvar text-scale-mode-amount)
+(defun eww--rescale-images ()
+  (let ((scaling (if text-scale-mode
+                     (+ 1 (* text-scale-mode-amount 0.1))
+                   1))
+        match)
+    (save-excursion
+      (goto-char (point-min))
+      (while (setq match (text-property-search-forward 'display))
+        (let ((image (prop-match-value match)))
+          (when (imagep image)
+            (unless (image-property image :original-scale)
+              (setf (image-property image :original-scale)
+                    (or (image-property image :scale) 1)))
+            (setf (image-property image :scale)
+                  (* (image-property image :original-scale) scaling))))))))
 
 (defun eww--url-at-point ()
   "`thing-at-point' provider function."
