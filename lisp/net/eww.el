@@ -415,13 +415,11 @@ For more information, see Info node `(eww) Top'."
 (defun eww-retrieve (url callback cbargs)
   (cond
    ((null eww-retrieve-command)
-    (url-retrieve url #'eww-render
-                  (list url nil (current-buffer))))
+    (url-retrieve url #'eww-render cbargs))
    ((eq eww-retrieve-command 'sync)
-    (let ((orig-buffer (current-buffer))
-          (data-buffer (url-retrieve-synchronously url)))
+    (let ((data-buffer (url-retrieve-synchronously url)))
       (with-current-buffer data-buffer
-        (eww-render nil url nil orig-buffer))))
+        (apply #'eww-render nil url cbargs))))
    (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
