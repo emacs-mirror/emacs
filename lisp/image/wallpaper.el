@@ -90,7 +90,7 @@ the image file to set the wallpaper to.")
                 ( name command args-raw
                   &rest rest-plist
                   &aux
-                  (args (if (listp args-raw)
+                  (args (if (or (listp args-raw) (symbolp args-raw))
                             args-raw
                           (string-split args-raw)))
                   (predicate (plist-get rest-plist :predicate))))
@@ -153,9 +153,7 @@ and returns non-nil if this setter should be used."
                  (member "KDE" (xdg-current-desktop))))
 
    ("XFCE"
-    "xfconf-query" '("-c" "xfce4-desktop"
-                     "-p" "/backdrop/screen%S/monitor%M/workspace%W/last-image"
-                     "-s" "%f")
+    "xfconf-query" #'wallpaper-xfce-command-args
     :predicate (lambda ()
                  (or (and (getenv "DESKTOP_SESSION")
                           (member (downcase (getenv "DESKTOP_SESSION"))
@@ -240,6 +238,20 @@ This is used by `wallpaper--find-command' to automatically set
 `wallpaper-command-args'.  The setters will be tested in the
 order in which they appear.")
 
+(defun wallpaper-xfce-command-args ()
+  (let ((info
+         (with-temp-buffer
+           (call-process "xfconf-query" nil t nil
+                         "-c" "xfce4-desktop"
+                         "-p" "/backdrop/single-workspace-mode")
+           (buffer-string))))
+    (list "-c" "xfce4-desktop"
+          "-p" (format "/backdrop/screen%%S/monitor%%M/workspace%s/last-image"
+                       (if (equal info "true")
+                           "0"
+                         "%W"))
+          "-s" "%f")))
+
 (defvar wallpaper--current-setter nil)
 
 (defun wallpaper--find-setter ()
@@ -321,6 +333,9 @@ automatically, so there is usually no need to customize this.
 However, if you do need to change this, you might also want to
 customize `wallpaper-command' to match.
 
+The value is a list of command list arguments to use, or a
+function that returns a list of command line arguments.
+
 In each command line argument, these specifiers will be replaced:
 
   %f   full file name
@@ -338,7 +353,8 @@ height and width to use for %h and %w.
 
 The value of this variable is ignored on MS-Windows and Haiku
 systems, where a native API is used instead."
-  :type '(repeat string)
+  :type '(choice (repeat string)
+                 function)
   :group 'image
   :version "29.1")
 
@@ -424,8 +440,11 @@ FILE is the image file name."
 This is the default function for `wallpaper-set-function'."
   (unless wallpaper-command
     (error "Couldn't find a command to set the wallpaper with"))
-  (let* ((real-args (mapcar (lambda (arg) (wallpaper--format-arg arg file))
-                            wallpaper-command-args))
+  (let* ((args (if (functionp wallpaper-command-args)
+                   (funcall wallpaper-command-args)
+                 wallpaper-command-args))
+         (real-args (mapcar (lambda (arg) (wallpaper--format-arg arg file))
+                            args))
          (bufname (format " *wallpaper-%s*" (random)))
          (process
           (and wallpaper-command
@@ -434,7 +453,7 @@ This is the default function for `wallpaper-set-function'."
     (unless wallpaper-command
       (error "Couldn't find a suitable command for setting the wallpaper"))
     (wallpaper-debug "Using command: \"%s %s\""
-            wallpaper-command (string-join wallpaper-command-args " "))
+            wallpaper-command (string-join args " "))
     (wallpaper-debug (wallpaper--format-arg
              "f=%f w=%w h=%h S=%S M=%M W=%W" file))
     (setf (process-sentinel process)
