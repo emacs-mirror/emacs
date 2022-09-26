@@ -359,6 +359,17 @@ should invoke the 'shape' method.  'hbfont_shape' should be extended
 to pass to 'hb_shape_full' the required array of features, as
 mentioned in the above HarfBuzz discussion.
 
+Alternatively, stylistic sets could be a font property, or a face
+property.  See this discussion:
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01597.html
+
+For some relevant use cases, see
+
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01652.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01701.html
+  https://lists.gnu.org/archive/html/emacs-devel/2022-09/msg01772.html
+
 ** Concurrency
 Stefan Monnier writes: "Including it as an 'experimental' compile-time
 option sounds good.  Of course there might still be big questions
