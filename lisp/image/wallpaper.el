@@ -84,7 +84,8 @@ the image file to set the wallpaper to.")
 ;;; Finding the wallpaper command
 
 (cl-defstruct (wallpaper-setter
-               ;; Rename the default constructor from `make-wallpaper-cmd'.
+               ;; Get rid of the default constructor (`make-wallpaper-cmd').
+               (:constructor nil)
                (:constructor
                 wallpaper-setter-create
                 ( name command args-raw
