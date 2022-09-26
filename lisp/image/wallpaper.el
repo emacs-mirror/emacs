@@ -55,6 +55,7 @@
 
 (eval-when-compile (require 'subr-x))
 (require 'xdg)
+(require 'cl-macs)
 
 (defvar wallpaper-debug nil
   "If non-nil, display debug messages.")
