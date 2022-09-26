@@ -503,7 +503,7 @@ Value is a pair of positions (START . END) if there is a non-nil
 (defun shr-next-link ()
   "Skip to the next link."
   (interactive)
-  (let ((match (text-property-search-forward 'shr-url nil nil t)))
+  (let ((match (text-property-search-forward 'shr-tab-stop nil nil t)))
     (if (not match)
         (message "No next link")
       (goto-char (prop-match-beginning match))
@@ -512,7 +512,7 @@ Value is a pair of positions (START . END) if there is a non-nil
 (defun shr-previous-link ()
   "Skip to the previous link."
   (interactive)
-  (if (not (text-property-search-backward 'shr-url nil nil t))
+  (if (not (text-property-search-backward 'shr-tab-stop nil nil t))
       (message "No previous link")
     (message "%s" (get-text-property (point) 'help-echo))))
 
@@ -1215,6 +1215,7 @@ START, and END.  Note that START and END should be markers."
   (add-text-properties
    start (point)
    (list 'shr-url url
+         'shr-tab-stop t
          'button t
          'category 'shr                ; For button.el button buffers.
 	 'help-echo (let ((parsed (url-generic-parse-url
