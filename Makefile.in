@@ -698,8 +698,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest="$$1" ; shift ; \
 	  if [ -d "$${dest}" ]; then \
-	    exp_dest=`cd "$${dest}" && /bin/pwd`; \
-	    [ "$$exp_dest" = "`cd $${dir} && /bin/pwd`" ] && continue ; \
+	    exp_dest=`cd "$${dest}" && pwd -P`; \
+	    [ "$$exp_dest" = "`cd $${dir} && pwd -P`" ] && continue ; \
 	  else true; \
 	  fi; \
 	  rm -rf "$${dest}" ; \
@@ -755,8 +755,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} "$(DESTDIR)${etcdocdir}" ; \
-	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; /bin/pwd`; \
-	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
+	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; pwd -P`; \
+	if [ "`cd ./etc; pwd -P`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
 	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
@@ -771,9 +771,9 @@ install-etcdoc: src install-arch-indep
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
-	thisdir=`/bin/pwd`; \
-	exp_infodir=`cd "$(DESTDIR)${infodir}" && /bin/pwd`; \
-	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
+	thisdir=`pwd -P`; \
+	exp_infodir=`cd "$(DESTDIR)${infodir}" && pwd -P`; \
+	if [ "`cd ${srcdir}/info && pwd -P`" = "$$exp_infodir" ]; then \
 	  true; \
 	else \
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
@@ -802,7 +802,7 @@ install-info: info
 ## but not sure if portable.
 install-man:
 	umask 022; ${MKDIR_P} "$(DESTDIR)${man1dir}"
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	cd ${mansrcdir}; \
 	for page in *.1; do \
 	  test "$$page" = ChangeLog.1 && continue; \
@@ -869,7 +869,7 @@ install-etc:
 	  ${srcdir}/etc/emacs.service > $${tmp}; \
 	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
 	rm -f $${tmp}
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
@@ -906,8 +906,8 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" "$(ELN_DESTDIR)" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
-	    case `cd "$${dir}" ; /bin/pwd` in		\
-	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\
+	    case `cd "$${dir}" ; pwd -P` in		\
+	      "`cd ${srcdir} ; pwd -P`"* ) ;;		\
 	      * ) rm -rf "$${dir}" ;;			\
 	    esac ;					\
 	    case "$${dir}" in				\
@@ -918,7 +918,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	  fi ;						\
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	(info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
