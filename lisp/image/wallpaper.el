@@ -439,8 +439,10 @@ This is the default function for `wallpaper-set-function'."
     (setf (process-sentinel process)
           (lambda (process status)
             (unwind-protect
-                (unless (and (eq (process-status process) 'exit)
-                             (zerop (process-exit-status process)))
+                (if (and (eq (process-status process) 'exit)
+                         (zerop (process-exit-status process)))
+                    (message "Desktop wallpaper changed to %s"
+                             (abbreviate-file-name file))
                   (message "command \"%s %s\": %S"
                            (string-join (process-command process) " ")
                            (string-replace "\n" "" status)
