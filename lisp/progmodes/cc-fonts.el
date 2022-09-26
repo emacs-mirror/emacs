@@ -887,6 +887,23 @@ casts and declarations are fontified.  Used on level 2 and higher."
       ,@(when (c-major-mode-is 'c++-mode)
 	  '(c-font-lock-c++-modules))
 
+      ;; The next regexp is highlighted with narrowing.  This is so that the
+      ;; final "context" bit of the regexp, "\\(?:[^=]\\|$\\)", which cannot
+      ;; match anything non-empty at LIMIT, will match "$" instead.
+      ,@(when (c-lang-const c-equals-nontype-decl-kwds)
+	  `((,(byte-compile
+	       `(lambda (limit)
+		  (save-restriction
+		    (narrow-to-region (point-min) limit)
+		    ,(c-make-font-lock-search-form
+		      (concat (c-lang-const c-equals-nontype-decl-key) ;no \\(
+			      (c-lang-const c-simple-ws) "+\\("
+			      (c-lang-const c-symbol-key) "\\)"
+			      (c-lang-const c-simple-ws) "*"
+			      "=\\(?:[^=]\\|$\\)")
+		      `((,(+ 1 (c-lang-const c-simple-ws-depth))
+			 font-lock-type-face t)))))))))
+
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
 	  `(;; Fontify class names in the beginning of message expressions.
@@ -1278,15 +1295,19 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		    (or (memq type '(c-decl-arg-start c-decl-type-start))
 			(and
 			 (progn (c-backward-syntactic-ws) t)
-			 (c-back-over-compound-identifier)
-			 (progn
-			   (c-backward-syntactic-ws)
-			   (or (bobp)
-			       (progn
-				 (setq type (c-get-char-property (1- (point))
-								 'c-type))
-				 (memq type '(c-decl-arg-start
-					      c-decl-type-start))))))))))
+			 (or
+			  (and
+		           (c-back-over-compound-identifier)
+			   (progn
+			     (c-backward-syntactic-ws)
+			     (or (bobp)
+				 (progn
+				   (setq type (c-get-char-property (1- (point))
+								   'c-type))
+				   (memq type '(c-decl-arg-start
+						c-decl-type-start))))))
+			  (and (zerop (c-backward-token-2))
+			       (looking-at c-fun-name-substitute-key))))))))
 	   (cons 'decl nil))
 	  (t (cons 'arglist t)))))
 

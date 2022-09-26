@@ -2403,7 +2403,7 @@ with // and /*, not more generic line and block comments."
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
 	     t)
-	   (> (point) bod-lim)
+	   (>= (point) bod-lim)
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
 		  (not (and (eobp)
@@ -2427,7 +2427,8 @@ with // and /*, not more generic line and block comments."
 	     (and (> (point) bod-lim)
 		  (or (memq (char-before) '(?\( ?\[))
 		      (and (eq (char-before) ?\<)
-			   (eq (c-get-char-property
+			   (equal
+			    (c-get-char-property
 				(1- (point)) 'syntax-table)
 			       c-<-as-paren-syntax))
 		      (and (eq (char-before) ?{)

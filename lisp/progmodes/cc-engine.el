@@ -9512,6 +9512,84 @@ point unchanged and return nil."
 
 ;; Handling of large scale constructs like statements and declarations.
 
+(defun c-forward-primary-expression (&optional limit)
+  ;; Go over the primary expression (if any) at point, moving to the next
+  ;; token and return non-nil.  If we're not at a primary expression leave
+  ;; point unchanged and return nil.
+  ;;
+  ;; Note that this function is incomplete, handling only those cases expected
+  ;; to be common in a C++20 requires clause.
+  (let ((here (point))
+	(c-restricted-<>-arglists t)
+	(c-parse-and-markup-<>-arglists nil)
+	)
+    (if	(cond
+	 ((looking-at c-constant-key)
+	  (goto-char (match-end 1))
+	  (c-forward-syntactic-ws limit)
+	  t)
+	 ((eq (char-after) ?\()
+	  (and (c-go-list-forward (point) limit)
+	       (eq (char-before) ?\))
+	       (progn (c-forward-syntactic-ws limit)
+		      t)))
+	 ((c-forward-over-compound-identifier)
+	  (c-forward-syntactic-ws limit)
+	  (while (cond
+		  ((looking-at "<")
+		   (prog1
+		       (c-forward-<>-arglist nil)
+		     (c-forward-syntactic-ws limit)))
+		  ((looking-at c-opt-identifier-concat-key)
+		   (and
+		    (zerop (c-forward-token-2 1 nil limit))
+		    (prog1
+			(c-forward-over-compound-identifier)
+		      (c-forward-syntactic-ws limit))))))
+	  t)
+	 ((looking-at c-fun-name-substitute-key) ; "requires"
+	  (goto-char (match-end 1))
+	  (c-forward-syntactic-ws limit)
+	  (and
+	   (or (not (eq (char-after) ?\())
+	       (prog1
+		   (and (c-go-list-forward (point) limit)
+			(eq (char-before) ?\)))
+		 (c-forward-syntactic-ws)))
+	   (eq (char-after) ?{)
+	   (and (c-go-list-forward (point) limit)
+		(eq (char-before) ?}))
+	   (progn
+	     (c-forward-syntactic-ws limit)
+	     t))))
+	t
+      (goto-char here)
+      nil)))
+
+(defun c-forward-c++-requires-clause (&optional limit)
+  ;; Point is at the keyword "requires".  Move forward over the requires
+  ;; clause to the next token after it and return non-nil.  If there is no
+  ;; valid requires clause at point, leave point unmoved and return nil.
+  (let ((here (point))
+	final-point)
+    (or limit (setq limit (point-max)))
+    (if (and
+	 (zerop (c-forward-token-2 1 nil limit)) ; over "requires".
+	 (prog1
+	     (c-forward-primary-expression limit)
+	   (setq final-point (point))
+	   (while
+	       (and (looking-at "\\(?:&&\\|||\\)")
+		    (progn (goto-char (match-end 0))
+			   (c-forward-syntactic-ws limit)
+			   (and (< (point) limit)
+				(c-forward-primary-expression limit))))
+	     (setq final-point (point)))))
+	(progn (goto-char final-point)
+	       t)
+      (goto-char here)
+      nil)))
+
 (defun c-forward-declarator (&optional limit accept-anon)
   ;; Assuming point is at the start of a declarator, move forward over it,
   ;; leaving point at the next token after it (e.g. a ) or a ; or a ,), or at
@@ -9565,7 +9643,7 @@ point unchanged and return nil."
 		((and (looking-at c-type-decl-prefix-key)
 		      (if (and (c-major-mode-is 'c++-mode)
 			       (match-beginning 4)) ; Was 3 - 2021-01-01
-			  ;; If the third submatch matches in C++ then
+			  ;; If the fourth submatch matches in C++ then
 			  ;; we're looking at an identifier that's a
 			  ;; prefix only if it specifies a member pointer.
 			  (progn
@@ -9621,6 +9699,11 @@ point unchanged and return nil."
 	      (while (cond
 		      ((looking-at c-decl-hangon-key)
 		       (c-forward-keyword-clause 1))
+		      ((looking-at c-type-decl-suffix-key)
+		       (if (save-match-data
+			     (looking-at c-fun-name-substitute-key))
+			   (c-forward-c++-requires-clause)
+			 (c-forward-keyword-clause 1)))
 		      ((and c-opt-cpp-prefix
 			    (looking-at c-noise-macro-with-parens-name-re))
 		       (c-forward-noise-clause))))
@@ -9890,13 +9973,13 @@ This function might do hidden buffer changes."
   ;;
   ;;
   ;;
-  ;;   The second element of the return value is non-nil when a
-  ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
-  ;;   Specifically it is a dotted pair (A . B) where B is t when a
-  ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some
-  ;;   other `c-typedef-decl-kwds' (e.g. class, struct, enum)
-  ;;   specifier is present.  I.e., (some of) the declared
-  ;;   identifier(s) are types.
+  ;;   The second element of the return value is non-nil when something
+  ;;   indicating the identifier is a type occurs in the declaration.
+  ;;   Specifically it is nil, or a three element list (A B C) where C is t
+  ;;   when context is '<> and the "identifier" is a found type, B is t when a
+  ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some other
+  ;;   `c-typedef-declkwds' (e.g. class, struct, enum) specifier is present.
+  ;;   I.e., (some of) the declared identifier(s) are types.
   ;;
   ;;   The third element of the return value is non-nil when the declaration
   ;;   parsed might be an expression.  The fourth element is the position of
@@ -9972,6 +10055,9 @@ This function might do hidden buffer changes."
 	at-type-decl
 	;; Set if we've a "typedef" keyword.
 	at-typedef
+	;; Set if `context' is '<> and the identifier is definitely a type, or
+	;; has already been recorded as a found type.
+	at-<>-type
 	;; Set if we've found a specifier that can start a declaration
 	;; where there's no type.
 	maybe-typeless
@@ -10050,6 +10136,11 @@ This function might do hidden buffer changes."
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))
 	    (save-excursion
 	      (c-forward-keyword-clause 1)
+	      (when (and (c-major-mode-is 'c++-mode)
+			 (c-keyword-member kwd-sym 'c-<>-sexp-kwds)
+			 (save-match-data
+			   (looking-at c-fun-name-substitute-key)))
+		(c-forward-c++-requires-clause))
 	      (setq kwd-clause-end (point))))
 	   ((and c-opt-cpp-prefix
 		 (looking-at c-noise-macro-with-parens-name-re))
@@ -10088,6 +10179,11 @@ This function might do hidden buffer changes."
 			       (c-end-of-token)
 			       (point))))
 		      found-type-list))
+
+	      ;; Might we have a C++20 concept?  i.e. template<foo bar>?
+	      (setq at-<>-type
+		    (and (eq context '<>)
+			 (memq found-type '(t known prefix found))))
 
 	      ;; Signal a type declaration for "struct foo {".
 	      (when (and backup-at-type-decl
@@ -10377,8 +10473,11 @@ This function might do hidden buffer changes."
 		  t)
 	      (when (if (save-match-data (looking-at "\\s("))
 			(c-safe (c-forward-sexp 1) t)
-		      (goto-char (match-end 1))
-		      t)
+		      (if (save-match-data
+			    (looking-at c-fun-name-substitute-key)) ; requires
+			  (c-forward-c++-requires-clause)
+			(goto-char (match-end 1))
+			t))
 		(when (and (not got-suffix-after-parens)
 			   (= paren-depth 0))
 		  (setq got-suffix-after-parens (match-beginning 0)))
@@ -10971,8 +11070,8 @@ This function might do hidden buffer changes."
 	    (c-forward-type))))
 
       (list id-start
-	    (and (or at-type-decl at-typedef)
-		 (cons at-type-decl at-typedef))
+	    (and (or at-type-decl at-typedef at-<>-type)
+		 (list at-type-decl at-typedef at-<>-type))
 	    maybe-expression
 	    type-start
 	    (or (eq context 'top) make-top)))
@@ -12429,6 +12528,8 @@ comment at the start of cc-engine.el for more info."
 		       in-paren 'in-paren))
 		((looking-at c-pre-brace-non-bracelist-key)
 		 (setq braceassignp nil))
+		((looking-at c-fun-name-substitute-key)
+		 (setq braceassignp nil))
 		((looking-at c-return-key))
 		((and (looking-at c-symbol-start)
 		      (not (looking-at c-keywords-regexp)))
@@ -12439,6 +12540,11 @@ comment at the start of cc-engine.el for more info."
 		   (setq after-type-id-pos (point))))
 		((eq (char-after) ?\()
 		 (setq parens-before-brace t)
+		 ;; Have we a requires with a parenthesis list?
+		 (when (save-excursion
+			 (and (zerop (c-backward-token-2 1 nil lim))
+			      (looking-at c-fun-name-substitute-key)))
+		   (setq braceassignp nil))
 		 nil)
 		(t nil))
 	       (save-excursion
@@ -14200,6 +14306,25 @@ comment at the start of cc-engine.el for more info."
 			(eq (char-after) ?:))))
 	    (goto-char placeholder)
 	    (c-add-syntax 'inher-cont (c-point 'boi)))
+
+	   ;; CASE 5D.7: Continuation of a "concept foo =" line in C++20 (or
+	   ;; similar).
+	   ((and c-equals-nontype-decl-key
+		 (save-excursion
+		   (prog1
+		       (and (zerop (c-backward-token-2 1 nil lim))
+			    (looking-at c-operator-re)
+			    (equal (match-string 0) "=")
+			    (zerop (c-backward-token-2 1 nil lim))
+			    (looking-at c-symbol-start)
+			    (not (looking-at c-keywords-regexp))
+			    (zerop (c-backward-token-2 1 nil lim))
+			    (looking-at c-equals-nontype-decl-key)
+			    (eq (c-beginning-of-statement-1 lim) 'same))
+		     (setq placeholder (point)))))
+	    (goto-char placeholder)
+	    (c-add-stmt-syntax 'topmost-intro-cont nil nil containing-sexp
+			       paren-state))
 
 	   ;; CASE 5D.5: Continuation of the "expression part" of a
 	   ;; top level construct.  Or, perhaps, an unrecognized construct.

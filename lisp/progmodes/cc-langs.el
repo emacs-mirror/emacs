@@ -2593,6 +2593,35 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-equals-type-clause-kwds)))
 (c-lang-defvar c-equals-type-clause-key (c-lang-const c-equals-type-clause-key))
 
+(c-lang-defconst c-equals-nontype-decl-kwds
+  "Keywords which are followed by an identifier then an \"=\"
+sign, which declares the identifier to be something other than a
+type."
+  t nil
+  c++ '("concept"))
+
+(c-lang-defconst c-equals-nontype-decl-key
+  ;; An unadorned regular expression which matches any member of
+  ;; `c-equals-decl-kwds', or nil if such don't exist in the current language.
+  t (when (c-lang-const c-equals-nontype-decl-kwds)
+      (c-make-keywords-re nil (c-lang-const c-equals-nontype-decl-kwds))))
+(c-lang-defvar c-equals-nontype-decl-key
+	       (c-lang-const c-equals-nontype-decl-key))
+
+(c-lang-defconst c-fun-name-substitute-kwds
+  "Keywords which take the place of type+declarator at the beginning
+of a function-like structure, such as a C++20 \"requires\"
+clause.  An arglist may or may not follow such a keyword."
+  t nil
+  c++ '("requires"))
+
+(c-lang-defconst c-fun-name-substitute-key
+  ;; An adorned regular expression which matches any member of
+  ;; `c-fun-name-substitute-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
+(c-lang-defvar c-fun-name-substitute-key
+	       (c-lang-const c-fun-name-substitute-key))
+
 (c-lang-defconst c-modifier-kwds
   "Keywords that can prefix normal declarations of identifiers
 \(and typically act as flags).  Things like argument declarations
@@ -2938,6 +2967,17 @@ if this isn't nil."
 	 ;; In CORBA PSDL:
 	 "ref"))
 
+(c-lang-defconst c-pre-concept-<>-kwds
+  "Keywords that may be followed by an angle bracket expression containing
+uses of \"concepts\".  This is currently (2022-09) used only by C++."
+  t nil
+  c++ '("template"))
+
+(c-lang-defconst c-pre-concept-<>-key
+  ;; Regexp matching any element of `c-pre-concept-<>-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-pre-concept-<>-kwds)))
+(c-lang-defvar c-pre-concept-<>-key (c-lang-const c-pre-concept-<>-key))
+
 (c-lang-defconst c-<>-arglist-kwds
   "Keywords that can be followed by a C++ style template arglist; see
 `c-recognize-<>-arglists' for details.  That language constant is
@@ -3145,6 +3185,10 @@ not really template operators."
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.
+
+(c-lang-defconst c-constant-key
+  t (c-make-keywords-re t (c-lang-const c-constant-kwds)))
+(c-lang-defvar c-constant-key (c-lang-const c-constant-key))
 
 (c-lang-defconst c-primary-expr-kwds
   "Keywords besides constants and operators that start primary expressions."
@@ -3781,7 +3825,10 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     ;; "throw" in `c-type-modifier-kwds' is followed
 		     ;; by a parenthesis list, but no extra measures
 		     ;; are necessary to handle that.
-		     (regexp-opt (c-lang-const c-type-modifier-kwds) t)
+		     (regexp-opt 
+		      (append (c-lang-const c-fun-name-substitute-kwds)
+			      (c-lang-const c-type-modifier-kwds))
+		      t)
 		     "\\>")
 		  "")
 		"\\)")
