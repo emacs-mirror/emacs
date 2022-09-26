@@ -27,7 +27,8 @@
 (defmacro whitespace-tests--with-test-buffer (style &rest body)
   "Run BODY in a buffer with `whitespace-mode' style STYLE.
 The buffer is displayed in `selected-window', and
-`noninteractive' is set to nil even in batch mode."
+`noninteractive' is set to nil even in batch mode.  If STYLE is
+nil, `whitespace-mode' is left disabled."
   (declare (debug ((style form) def-body))
            (indent 1))
   `(ert-with-test-buffer-selected ()
@@ -37,7 +38,8 @@ The buffer is displayed in `selected-window', and
      (let ((noninteractive nil)
            (whitespace-style ,style))
        (font-lock-mode 1)
-       (whitespace-mode 1)
+       ,(when style
+          '(whitespace-mode 1))
        ,@body)))
 
 (defun whitespace-tests--faceup (&rest lines)
@@ -309,6 +311,21 @@ buffer's content."
                                       "«:whitespace-empty:\n"
                                       "\t\n"
                                       " »"))))
+
+(ert-deftest whitespace-tests--empty-bob-eob-read-only-buffer ()
+  (whitespace-tests--with-test-buffer '()
+    (insert "\nx\n\n")
+    (should (equal (buffer-string) "\nx\n\n"))
+    (setq-local buffer-read-only t)
+    (goto-char 2)
+    (should (equal (line-number-at-pos) 2))
+    (should (equal (- (point) (line-beginning-position)) 0))
+    (let ((whitespace-style '(face empty)))
+      (whitespace-mode 1)
+      (should (whitespace-tests--faceup "«:whitespace-empty:\n"
+                                        "»x\n"
+                                        "«:whitespace-empty:\n"
+                                        "»")))))
 
 (provide 'whitespace-tests)
 
