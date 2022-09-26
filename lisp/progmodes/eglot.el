@@ -9,6 +9,10 @@
 ;; Keywords: convenience, languages
 ;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.14") (flymake "1.2.1") (project "0.3.0") (xref "1.0.1") (eldoc "1.11.0") (seq "2.23"))
 
+;; This is (or will soon) be a GNU ELPA :core package.  Avoid using
+;; functionality that not compatible with the version of Emacs
+;; recorded above.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -1336,7 +1340,7 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
-(defun eglot-current-column () (- (point) (point-at-bol)))
+(defun eglot-current-column () (- (point) (line-beginning-position)))
 
 (defvar eglot-current-column-function #'eglot-lsp-abiding-column
   "Function to calculate the current column.
@@ -1985,10 +1989,10 @@ COMMAND is a symbol naming the command."
                            (eglot--widening
                             (goto-char (point-min))
                             (setq beg
-                                  (point-at-bol
+                                  (line-beginning-position
                                    (1+ (plist-get (plist-get range :start) :line))))
                             (setq end
-                                  (point-at-eol
+                                  (line-end-position
                                    (1+ (plist-get (plist-get range :end) :line)))))))
                        (eglot--make-diag
                         (current-buffer) beg end
@@ -2422,14 +2426,14 @@ Try to visit the target file for a richer summary line."
        (collect (lambda ()
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
-                                (bol (progn (goto-char beg) (point-at-bol)))
-                                (substring (buffer-substring bol (point-at-eol)))
+                                (bol (progn (goto-char beg) (line-beginning-position)))
+                                (substring (buffer-substring bol (line-end-position)))
                                 (hi-beg (- beg bol))
-                                (hi-end (- (min (point-at-eol) end) bol)))
+                                (hi-end (- (min (line-end-position) end) bol)))
                      (add-face-text-property hi-beg hi-end 'xref-match
                                              t substring)
-                     (list substring (1+ (current-line)) (eglot-current-column)
-                           (- end beg))))))
+                     (list substring (line-number-at-pos (point) t)
+                           (eglot-current-column) (- end beg))))))
        (`(,summary ,line ,column ,length)
         (cond
          (visiting (with-current-buffer visiting (funcall collect)))
