@@ -153,7 +153,7 @@ and returns non-nil if this setter should be used."
 
    ("XFCE"
     "xfconf-query" '("-c" "xfce4-desktop"
-                     "-p" "/backdrop/screen0/monitoreDP/workspace0/last-image"
+                     "-p" "/backdrop/screen%S/monitor%M/workspace%W/last-image"
                      "-s" "%f")
     :predicate (lambda ()
                  (or (and (getenv "DESKTOP_SESSION")
@@ -320,15 +320,20 @@ automatically, so there is usually no need to customize this.
 However, if you do need to change this, you might also want to
 customize `wallpaper-command' to match.
 
-In each of the command line arguments, \"%f\" will be replaced
-with the full file name, \"%F\" with the full file name
-URI-encoded, \"%h\" with the height of the selected frame's
-display (as returned by `display-pixel-height'), and \"%w\" with
-the width of the selected frame's display (as returned by
-`display-pixel-width').
+In each command line argument, these specifiers will be replaced:
 
-If `wallpaper-set' is run from a TTY frame, it will prompt for a
-height and width for \"%h\" and \"%w\" instead.
+  %f   full file name
+  %h   height of the selected frame's display (as returned
+         by `display-pixel-height')
+  %w   the width of the selected frame's display (as returned
+         by `display-pixel-width').
+  %F   full file name URI-encoded
+  %S   current X screen (e.g. \"0\")
+  %W   current workspace (e.g., \"0\")
+  %M   name of the monitor (e.g., \"0\" or \"LVDS\")
+
+If `wallpaper-set' is run from a TTY frame, instead prompt for a
+height and width to use for %h and %w.
 
 The value of this variable is ignored on MS-Windows and Haiku
 systems, where a native API is used instead."
@@ -350,9 +355,9 @@ This is only used when it can't be detected automatically.
 See also `wallpaper-default-width'.")
 
 (defun wallpaper--get-height-or-width (desc fun default)
-  (if (display-graphic-p)
-      (funcall fun)
-    (read-number (format "Wallpaper %s in pixels: " desc) default)))
+  (cond ((display-graphic-p) (funcall fun))
+        (noninteractive default)
+        ((read-number (format "Wallpaper %s in pixels: " desc) default))))
 
 (autoload 'ffap-file-at-point "ffap")
 
@@ -373,41 +378,70 @@ See also `wallpaper-default-width'.")
 
 ;;; wallpaper-set
 
+(defun wallpaper--format-arg (format file)
+  "Format a `wallpaper-command-args' argument ARG.
+FILE is the image file name."
+  (format-spec
+   format
+   `((?f . ,(expand-file-name file))
+     (?F . ,(mapconcat #'url-hexify-string
+                       (file-name-split file)
+                       "/"))
+     (?h . ,(wallpaper--get-height-or-width
+             "height"
+             #'display-pixel-height
+             wallpaper-default-height))
+     (?w . ,(wallpaper--get-height-or-width
+             "width"
+             #'display-pixel-width
+             wallpaper-default-width))
+     ;; screen number
+     (?S . ,(let ((display (frame-parameter (selected-frame) 'display)))
+              (if (and display
+                       (string-match (rx ":" (+ (in "0-9")) "."
+                                         (group (+ (in "0-9"))) eos)
+                                     display))
+                  (match-string 1 display)
+                "0")))
+     ;; monitor name
+     (?M . ,(let* ((attrs (car (display-monitor-attributes-list)))
+                   (source (cdr (assq 'source attrs)))
+                   (monitor (cdr (assq 'name attrs))))
+              (if (and monitor (member source '("XRandr" "XRandr 1.5" "Gdk")))
+                  monitor
+                "0")))
+     ;; workspace
+     (?W . ,(or (and (fboundp 'x-window-property)
+                     (display-graphic-p)
+                     (number-to-string
+                      (or (x-window-property "_NET_CURRENT_DESKTOP" nil "CARDINAL" 0 nil t)
+                          (x-window-property "WIN_WORKSPACE" nil "CARDINAL" 0 nil t))))
+                "0")))))
+
 (defun wallpaper-default-set-function (file)
   "Set the wallpaper to FILE using a command.
 This is the default function for `wallpaper-set-function'."
   (unless wallpaper-command
     (error "Couldn't find a command to set the wallpaper with"))
-  (let* ((fmt-spec `((?f . ,(expand-file-name file))
-                     (?F . ,(mapconcat #'url-hexify-string
-                                       (file-name-split file)
-                                       "/"))
-                     (?h . ,(wallpaper--get-height-or-width
-                             "height"
-                             #'display-pixel-height
-                             wallpaper-default-height))
-                     (?w . ,(wallpaper--get-height-or-width
-                             "width"
-                             #'display-pixel-width
-                             wallpaper-default-width))))
+  (let* ((real-args (mapcar (lambda (arg) (wallpaper--format-arg arg file))
+                            wallpaper-command-args))
          (bufname (format " *wallpaper-%s*" (random)))
          (process
           (and wallpaper-command
                (apply #'start-process "set-wallpaper" bufname
-                      wallpaper-command
-                      (mapcar (lambda (arg) (format-spec arg fmt-spec))
-                              wallpaper-command-args)))))
+                      wallpaper-command real-args))))
     (unless wallpaper-command
       (error "Couldn't find a suitable command for setting the wallpaper"))
-    (wallpaper-debug
-     "Using command %S %S" wallpaper-command
-     wallpaper-command-args)
+    (wallpaper-debug "Using command: \"%s %s\""
+            wallpaper-command (string-join wallpaper-command-args " "))
+    (wallpaper-debug (wallpaper--format-arg
+             "f=%f w=%w h=%h S=%S M=%M W=%W" file))
     (setf (process-sentinel process)
           (lambda (process status)
             (unwind-protect
                 (unless (and (eq (process-status process) 'exit)
                              (zerop (process-exit-status process)))
-                  (message "command %S %s: %S"
+                  (message "command \"%s %s\": %S"
                            (string-join (process-command process) " ")
                            (string-replace "\n" "" status)
                            (with-current-buffer (process-buffer process)

@@ -54,4 +54,33 @@
       (insert fil)
       (should (stringp (wallpaper--get-default-file))))))
 
+(ert-deftest wallpaper--format-arg/filename ()
+  (should (file-name-absolute-p (wallpaper--format-arg "%f" "foo.jpg"))))
+
+(ert-deftest wallpaper--format-arg/filename-hex ()
+  (should (equal (wallpaper--format-arg "%F" "foo bar åäö.jpg")
+                 "foo%20bar%20%C3%A5%C3%A4%C3%B6.jpg")))
+
+(ert-deftest wallpaper--format-arg/width ()
+  (skip-unless noninteractive)
+  (should (equal (wallpaper--format-arg "%w" "foo.jpg")
+                 (number-to-string wallpaper-default-width))))
+
+(ert-deftest wallpaper--format-arg/height ()
+  (skip-unless noninteractive)
+  (should (equal (wallpaper--format-arg "%h" "foo.jpg")
+                 (number-to-string wallpaper-default-height))))
+
+(ert-deftest wallpaper--format-arg/screen ()
+  (skip-unless noninteractive)
+  (should (equal (wallpaper--format-arg "%S" "foo.jpg") "0")))
+
+(ert-deftest wallpaper--format-arg/monitor ()
+  (skip-unless noninteractive)
+  (should (equal (wallpaper--format-arg "%M" "foo.jpg") "0")))
+
+(ert-deftest wallpaper--format-arg/workspace ()
+  (skip-unless noninteractive)
+  (should (equal (wallpaper--format-arg "%W" "foo.jpg") "0")))
+
 ;;; wallpaper-tests.el ends here
