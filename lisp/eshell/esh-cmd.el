@@ -261,9 +261,9 @@ the command."
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
     (eshell-in-pipeline-p nil)
-    (default-directory default-directory)
-    (process-environment (eshell-copy-environment)))
+    (default-directory default-directory))
   "A list of `let' bindings for subcommand environments."
+  :version "29.1"		       ; removed `process-environment'
   :type 'sexp
   :risky t)
 
