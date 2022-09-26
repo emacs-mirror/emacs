@@ -2385,38 +2385,39 @@ purposes)."
     (save-excursion
       (save-restriction
         (widen)
-        (when (or (null beg)
-                  (<= beg (save-excursion
-                            (goto-char whitespace-bob-marker)
-                            ;; Any change in the first non-`empty'
-                            ;; line, even if it's not the first
-                            ;; character in the line, can potentially
-                            ;; cause subsequent lines to become
-                            ;; classified as `empty' (e.g., delete the
-                            ;; "x" from " x").
-                            (forward-line 1)
-                            (point))))
-          (goto-char 1)
-          (set-marker whitespace-bob-marker (point))
-          (save-match-data
-            (when (looking-at whitespace-empty-at-bob-regexp)
-              (set-marker whitespace-bob-marker (match-end 1))
-              (put-text-property (match-beginning 1) (match-end 1)
-                                 'font-lock-multiline t))))
-        (when (or (null end)
-                  (>= end (save-excursion
-                            (goto-char whitespace-eob-marker)
-                            ;; See above comment for the BoB case.
-                            (forward-line -1)
-                            (point))))
-          (goto-char (1+ (buffer-size)))
-          (set-marker whitespace-eob-marker (point))
-          (save-match-data
-            (when (whitespace--looking-back
-                   whitespace-empty-at-eob-regexp)
-              (set-marker whitespace-eob-marker (match-beginning 1))
-              (put-text-property (match-beginning 1) (match-end 1)
-                                 'font-lock-multiline t))))))))
+        (let ((inhibit-read-only t))
+          (when (or (null beg)
+                    (<= beg (save-excursion
+                              (goto-char whitespace-bob-marker)
+                              ;; Any change in the first non-`empty'
+                              ;; line, even if it's not the first
+                              ;; character in the line, can potentially
+                              ;; cause subsequent lines to become
+                              ;; classified as `empty' (e.g., delete the
+                              ;; "x" from " x").
+                              (forward-line 1)
+                              (point))))
+            (goto-char 1)
+            (set-marker whitespace-bob-marker (point))
+            (save-match-data
+              (when (looking-at whitespace-empty-at-bob-regexp)
+                (set-marker whitespace-bob-marker (match-end 1))
+                (put-text-property (match-beginning 1) (match-end 1)
+                                   'font-lock-multiline t))))
+          (when (or (null end)
+                    (>= end (save-excursion
+                              (goto-char whitespace-eob-marker)
+                              ;; See above comment for the BoB case.
+                              (forward-line -1)
+                              (point))))
+            (goto-char (1+ (buffer-size)))
+            (set-marker whitespace-eob-marker (point))
+            (save-match-data
+              (when (whitespace--looking-back
+                     whitespace-empty-at-eob-regexp)
+                (set-marker whitespace-eob-marker (match-beginning 1))
+                (put-text-property (match-beginning 1) (match-end 1)
+                                   'font-lock-multiline t)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
