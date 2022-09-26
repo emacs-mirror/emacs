@@ -340,23 +340,24 @@ language environment."))
 
 (defconst gurmukhi-composable-pattern
   (let ((table
-	 '(("a" . "[\u0A01\u0A02\u0A70]") ; SIGN ADAK BINDI .. BINDI, TIPPI
+	 '(("a" . "[\u0A01\u0A02\u0A70\u0A71\u0A75]") ; SIGN ADAK BINDI .. BINDI, TIPPI, ADDAK, YAKASH
 	   ("A" . "\u0A03")		; SIGN VISARGA
-	   ("V" . "[\u0A05-\u0A14]")	; independent vowel
+	   ("V" . "[\u0A05-\u0A14\u0A72\u0A73]")	; independent vowel
 	   ("C" . "[\u0A15-\u0A39\u0A59-\u0A5E]")	; consonant
 	   ("Y" . "[\u0A2F\u0A30\u0A35\u0A39]") ; YA, RA, VA, HA
 	   ("n" . "\u0A3C")		; NUKTA
 	   ("v" . "[\u0A3E-\u0A4C]")	; vowel sign
 	   ("H" . "\u0A4D")		; VIRAMA
+           ("s" . "\u0A51")		; stress sign
 	   ("N" . "\u200C")		; ZWNJ
 	   ("J" . "\u200D")		; ZWJ
 	   ("X" . "[\u0A00-\u0A7F]"))))	; all coverage
     (indian-compose-regexp
      (concat
       ;; consonant-based syllables, or
-      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?A?\\)\\|"
+      "Cn?\\(?:J?HJ?Cn?\\)*\\(?:H[NJ]?\\|v*n?a?s?v?A?\\)\\|"
       ;; syllables with an independent vowel, or
-      "Vn?\\(?:J?HY\\)?v*n?a?A?\\|"
+      "Vn?\\(?:J?HY\\)?v*n?a?s?A?\\|"
       ;; special consonant form, or
       "JHY\\|"
       ;; any other singleton characters

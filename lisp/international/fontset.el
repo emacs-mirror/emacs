@@ -300,7 +300,8 @@
 	(ottoman-siyaq-number #x1ed01)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)
-        (emoji #x1F300 #x1F600)))
+        (emoji #x1F300 #x1F600)
+        (chess-symbol . [#x1FA00 #x1FA67])))
 
 (defvar otf-script-alist)
 
@@ -836,7 +837,8 @@
                     tai-tham
 		    mahjong-tile
 		    domino-tile
-                    emoji))
+                    emoji
+                    chess-symbol))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))
