@@ -770,7 +770,8 @@ If NEXT, do the next column."
    ((string-match "\\([0-9.]+\\)px" spec)
     (string-to-number (match-string 1 spec)))
    ((string-match "\\([0-9.]+\\)%" spec)
-    (* (string-to-number (match-string 1 spec)) (window-width nil t)))
+    (/ (* (string-to-number (match-string 1 spec)) (window-width nil t))
+       100))
    (t
     (error "Invalid spec: %s" spec))))
 
