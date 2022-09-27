@@ -2543,6 +2543,8 @@ a list of buffers/files to search for a string/regexp.
 ** The new major mode 'special-mode' is intended as a parent for
 major modes such as those that set the "'mode-class 'special" property.
 
+** New package format-spec.el provides 'format-spec'.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
