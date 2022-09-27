@@ -269,6 +269,28 @@ using the Kharoṣṭhī script.")))
                                   modifier "*")
                           1 'font-shape-gstring))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Adlam
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Adlam" '((charset unicode)
+           (coding-system utf-8)
+           (coding-priority utf-8)
+           (input-method . "adlam")
+           (sample-text . "Adlam (𞤀𞤣𞤤𞤢𞤥)	𞤅𞤢𞤤𞤢𞥄𞤥")
+           (documentation . "\
+Fulani language and its script Adlam are supported
+in this language environment.")))
+
+;; Adlam composition rules
+(set-char-table-range
+ composition-function-table
+ '(#x1E900 . #x1E95F)
+ (list (vector
+        "[\x1E900-\x1E95F]+"
+        0 'font-shape-gstring)))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

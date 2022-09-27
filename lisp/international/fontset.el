@@ -295,7 +295,7 @@
 	(wancho #x1e2c0)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
 	(mende-kikakui #x1E810)
-	(adlam #x1E900)
+	(adlam #x1E900 #x1E943)
 	(indic-siyaq-number #x1ec71)
 	(ottoman-siyaq-number #x1ed01)
 	(mahjong-tile #x1F000)

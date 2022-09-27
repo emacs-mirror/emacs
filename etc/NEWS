@@ -1229,10 +1229,10 @@ to edit such sequences by allowing point to "enter" the sequence.
 *** Support for many old scripts and writing systems.
 Emacs now supports and has language-environments and input methods for
 several dozens of old scripts that were used in the past for various
-languages in South and South-East Asia.  For each such script Emacs
-now has font-selection and character composition rules, a language
-environment, and an input method.  The newly-added scripts and the
-corresponding language environments are:
+languages.  For each such script Emacs now has font-selection and
+character composition rules, a language environment, and an input
+method.  The newly-added scripts and the corresponding language
+environments are:
 
 Tai Tham script and the Northern Thai language environment
 Brahmi script and language environment
@@ -1259,6 +1259,7 @@ Grantha script and language environment
 Kharoshthi script and language environment
 Lepcha script and language environment
 Meetei Mayek script and language environment
+Adlam script and language environment
 
 ---
 *** The "Oriya" language environment was renamed to "Odia".
