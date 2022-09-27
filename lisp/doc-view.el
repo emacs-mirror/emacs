@@ -214,6 +214,11 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "29.1")
 
+(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
+  "Whether to generate an imenu outline when mutool is available."
+  :type 'boolean
+  :version "29.1")
+
 (defcustom doc-view-svg-background "white"
   "Background color for svg images.
 See `doc-view-mupdf-use-svg'."
@@ -1874,6 +1879,69 @@ If BACKWARD is non-nil, jump to the previous match."
 	     (y-or-n-p "No more matches before current page.  Wrap to last match? "))
 	(doc-view-goto-page (caar (last doc-view--current-search-matches)))))))
 
+;;;; Imenu support
+(defconst doc-view--outline-rx
+  "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
+
+(defun doc-view--pdf-outline (&optional file-name)
+  "Return a describing the outline of FILE-NAME (or current if nil).
+
+Each element in the list contains information about a section's
+title, nesting level and page number.  The list is flat: its tree
+structure is extracted by `doc-view--imenu-subtree'."
+  (let* ((outline nil)
+         (fn (or file-name (buffer-file-name)))
+         (fn (shell-quote-argument (expand-file-name fn))))
+    (with-temp-buffer
+      (insert (shell-command-to-string (format "mutool show %s outline" fn)))
+      (goto-char (point-min))
+      (while (re-search-forward doc-view--outline-rx nil t)
+        (push `((level . ,(length (match-string 1)))
+                (title . ,(match-string 2))
+                (page . ,(string-to-number (match-string 3))))
+              outline)))
+    (nreverse outline)))
+
+(defun doc-view--imenu-subtree (outline act)
+  "Construct a tree of imenu items for the given outline list and action.
+
+This auxliary function constructs recursively all the items for
+the first node in the outline and all its siblings at the same
+level.  Returns that imenu alist together with any other pending outline
+entries at an upper level."
+  (let ((level (alist-get 'level (car outline)))
+        (index nil))
+    (while (and (car outline) (<= level (alist-get 'level (car outline))))
+      (let-alist (car outline)
+        (let ((title (format "%s (%s)" .title .page)))
+          (if (> .level level)
+              (let ((sub (doc-view--imenu-subtree outline act))
+                    (fst (car index)))
+                (setq index (cdr index))
+                (push (cons (car fst) (cons fst (car sub))) index)
+                (setq outline (cdr sub)))
+            (push `(,title 0 ,act ,.page) index)
+            (setq outline (cdr outline))))))
+    (cons (nreverse index) outline)))
+
+(defun doc-view-imenu-index (&optional file-name goto-page-fn)
+  "Create an imenu index using mutool to extract its outline.
+
+For extensibility, a FILE-NAME other than the current buffer and
+a jumping function, GOTO-PAGE-FN other than `doc-view-goto-page'
+can be specified."
+  (let* ((goto (or goto-page-fn 'doc-view-goto-page))
+         (act (lambda (_name _pos page) (funcall goto page))))
+    (car (doc-view--imenu-subtree (doc-view--pdf-outline file-name) act))))
+
+(defun doc-view-imenu-setup ()
+  "Set up local state in the current buffer for imenu, if needed."
+  (when (and doc-view-imenu-enabled (executable-find "mutool"))
+    (setq-local imenu-create-index-function #'doc-view-imenu-index
+                imenu-submenus-on-top nil
+                imenu-sort-function nil)
+    (imenu-add-to-menubar "Outline")))
+
 ;;;; User interface commands and the mode
 
 (put 'doc-view-mode 'mode-class 'special)
@@ -2047,7 +2115,7 @@ If BACKWARD is non-nil, jump to the previous match."
   "Major mode in DocView buffers.
 
 DocView Mode is an Emacs document viewer.  It displays PDF, PS
-and DVI files (as PNG images) in Emacs buffers.
+and DVI files (as PNG or SVG images) in Emacs buffers.
 
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text.
@@ -2142,6 +2210,7 @@ toggle between displaying the document or editing it as text.
     (setq mode-name "DocView"
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
+    (doc-view-imenu-setup)
     (doc-view-initiate-display)
     ;; Switch off view-mode explicitly, because doc-view-mode is the
     ;; canonical view mode for PDF/PS/DVI files.  This could be
