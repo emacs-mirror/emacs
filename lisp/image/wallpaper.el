@@ -405,14 +405,16 @@ FILE is the image file name."
      (?F . ,(mapconcat #'url-hexify-string
                        (file-name-split file)
                        "/"))
-     (?h . ,(wallpaper--get-height-or-width
-             "height"
-             #'display-pixel-height
-             wallpaper-default-height))
-     (?w . ,(wallpaper--get-height-or-width
-             "width"
-             #'display-pixel-width
-             wallpaper-default-width))
+     (?h . ,(lambda ()
+              (wallpaper--get-height-or-width
+               "height"
+               #'display-pixel-height
+               wallpaper-default-height)))
+     (?w . ,(lambda ()
+              (wallpaper--get-height-or-width
+               "width"
+               #'display-pixel-width
+               wallpaper-default-width)))
      ;; screen number
      (?S . ,(let ((display (frame-parameter (selected-frame) 'display)))
               (if (and display
