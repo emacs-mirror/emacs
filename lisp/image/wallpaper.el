@@ -425,7 +425,7 @@ FILE is the image file name."
      (?M . ,(let* ((attrs (car (display-monitor-attributes-list)))
                    (source (cdr (assq 'source attrs)))
                    (monitor (cdr (assq 'name attrs))))
-              (if (and monitor (member source '("XRandr" "XRandr 1.5" "Gdk")))
+              (if (and monitor (member source '("XRandr" "XRandR 1.5" "Gdk")))
                   monitor
                 "0")))
      ;; workspace
