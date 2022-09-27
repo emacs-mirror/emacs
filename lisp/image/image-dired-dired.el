@@ -83,8 +83,8 @@ previous -ARG, if ARG<0) files."
                           if (overlay-get ov 'put-image) return ov))
            (overlay-put overlay 'image-file image-file)
            (overlay-put overlay 'thumb-file thumb-file)))))
-   arg             ; Show or hide image on ARG next files.
-   'show-progress) ; Update dired display after each image is updated.
+   ;; Show or hide thumbnail on ARG next files.
+   arg)
   (add-hook 'dired-after-readin-hook
             'image-dired-dired-after-readin-hook nil t))
 
