@@ -469,7 +469,7 @@ thumbnail."
            (when (image-dired-thumb-file-marked-p)
              (setq found t)
              ,@body)
-           (forward-char)))
+           (forward-char 2)))
        (unless found
          ,@body))))
 
