@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; Post Office Protocol version 3 (RFC 1460) interface.
+;;
 ;; Most of the standard Post Office Protocol version 3 (RFC 1460) commands
 ;; are implemented.  The LIST command has not been implemented due to lack
 ;; of actual usefulness.
