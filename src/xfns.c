@@ -6244,8 +6244,8 @@ In addition to the standard attribute keys listed in
 the attributes:
 
  source -- String describing the source from which multi-monitor
-	   information is obtained, one of \"Gdk\", \"XRandr\",
-	   \"Xinerama\", or \"fallback\"
+	   information is obtained, one of \"Gdk\", \"XRandR 1.5\",
+	   \"XRandr\", \"Xinerama\", or \"fallback\"
 
 Internal use only, use `display-monitor-attributes-list' instead.  */)
   (Lisp_Object terminal)

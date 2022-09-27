@@ -407,7 +407,7 @@ Name of the physical monitor as @var{string}.
 
 @item source
 Source of the multi-monitor information as @var{string};
-e.g., @samp{XRandr} or @samp{Xinerama}.
+e.g., @samp{XRandR 1.5}, @samp{XRandr} or @samp{Xinerama}.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.

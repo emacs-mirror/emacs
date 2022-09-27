@@ -2425,9 +2425,9 @@ It may be less than the total screen size, owing to space taken up
 by window manager features (docks, taskbars, etc.).  The precise
 details depend on the platform and environment.
 
-The `source' attribute describes the source from which the information
-was obtained.  On X, this may be one of: \"Gdk\", \"XRandr\", \"Xinerama\",
-or \"fallback\".
+The `source' attribute describes the source from which the
+information was obtained.  On X, this may be one of: \"Gdk\",
+\"XRandR 1.5\", \"XRandr\", \"Xinerama\", or \"fallback\".
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
