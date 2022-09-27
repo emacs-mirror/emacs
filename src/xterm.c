@@ -1143,6 +1143,7 @@ static Window x_get_window_below (Display *, Window, int, int, int *, int *);
 #ifndef USE_TOOLKIT_SCROLL_BARS
 static void x_scroll_bar_redraw (struct scroll_bar *);
 #endif
+static void x_translate_coordinates (struct frame *, int, int, int *, int *);
 
 /* Global state maintained during a drag-and-drop operation.  */
 
@@ -4852,16 +4853,13 @@ x_dnd_note_self_position (struct x_display_info *dpyinfo, Window target,
 {
   struct frame *f;
   int dest_x, dest_y;
-  Window child_return;
 
   f = x_top_window_to_frame (dpyinfo, target);
 
-  if (f && XTranslateCoordinates (dpyinfo->display,
-				  dpyinfo->root_window,
-				  FRAME_X_WINDOW (f),
-				  root_x, root_y, &dest_x,
-				  &dest_y, &child_return))
+  if (f)
     {
+      x_translate_coordinates (f, root_x, root_y, &dest_x, &dest_y);
+
       x_dnd_movement_frame = f;
       x_dnd_movement_x = dest_x;
       x_dnd_movement_y = dest_y;
@@ -4877,19 +4875,16 @@ x_dnd_note_self_wheel (struct x_display_info *dpyinfo, Window target,
 {
   struct frame *f;
   int dest_x, dest_y;
-  Window child_return;
 
   if (button < 4 || button > 7)
     return;
 
   f = x_top_window_to_frame (dpyinfo, target);
 
-  if (f && XTranslateCoordinates (dpyinfo->display,
-				  dpyinfo->root_window,
-				  FRAME_X_WINDOW (f),
-				  root_x, root_y, &dest_x,
-				  &dest_y, &child_return))
+  if (f)
     {
+      x_translate_coordinates (f, root_x, root_y, &dest_x, &dest_y);
+
       x_dnd_wheel_frame = f;
       x_dnd_wheel_x = dest_x;
       x_dnd_wheel_y = dest_y;
@@ -4912,7 +4907,6 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
   char **atom_names;
   char *name;
   int win_x, win_y, i;
-  Window dummy;
 
   if (!x_dnd_allow_current_frame
       && (FRAME_OUTER_WINDOW (x_dnd_frame)
@@ -4927,10 +4921,7 @@ x_dnd_note_self_drop (struct x_display_info *dpyinfo, Window target,
   if (NILP (Vx_dnd_native_test_function))
     return;
 
-  if (!XTranslateCoordinates (dpyinfo->display, dpyinfo->root_window,
-			      FRAME_X_WINDOW (f), root_x, root_y,
-			      &win_x, &win_y, &dummy))
-    return;
+  x_translate_coordinates (f, root_x, root_y, &win_x, &win_y);
 
   /* Emacs can't respond to DND events inside the nested event loop,
      so when dragging items to itself, call the test function
@@ -13523,6 +13514,91 @@ get_keysym_name (int keysym)
   return value;
 }
 
+/* Given the root and event coordinates of an X event destined for F's
+   edit window, compute the offset between that window and F's root
+   window.  This information is then used as an optimization to avoid
+   synchronizing when converting coordinates from some other event to
+   F's edit window.  */
+
+static void
+x_compute_root_window_offset (struct frame *f, int root_x, int root_y,
+			      int event_x, int event_y)
+{
+  FRAME_X_OUTPUT (f)->window_offset_certain_p = true;
+  FRAME_X_OUTPUT (f)->root_x = root_x - event_x;
+  FRAME_X_OUTPUT (f)->root_y = root_y - event_y;
+}
+
+/* Translate the given coordinates from the root window to the edit
+   window of FRAME, taking into account any cached root window
+   offsets.  This allows Emacs to avoid excessive calls to _XReply in
+   many cases while handling events, which would otherwise result in
+   slowdowns over slow network connections.  */
+
+static void
+x_translate_coordinates (struct frame *f, int root_x, int root_y,
+			 int *x_out, int *y_out)
+{
+  struct x_output *output;
+  Window dummy;
+
+  output = FRAME_X_OUTPUT (f);
+
+  if (output->window_offset_certain_p)
+    {
+      /* Use the cached root window offset.  */
+      *x_out = root_x - output->root_x;
+      *y_out = root_y - output->root_y;
+
+      return;
+    }
+
+  /* Otherwise, do the transformation manually.  Then, cache the root
+     window position.  */
+  if (!XTranslateCoordinates (FRAME_X_DISPLAY (f),
+			      FRAME_DISPLAY_INFO (f)->root_window,
+			      FRAME_X_WINDOW (f), root_x, root_y,
+			      x_out, y_out, &dummy))
+    /* Use some dummy values.  This is not supposed to be called with
+       coordinates out of the screen.  */
+    *x_out = 0, *y_out = 0;
+  else
+    {
+      /* Cache the root window offset of the edit window.  */
+      output->window_offset_certain_p = true;
+      output->root_x = root_x - *x_out;
+      output->root_y = root_y - *y_out;
+    }
+}
+
+/* The same, but for an XIDeviceEvent.  */
+
+#ifdef HAVE_XINPUT2
+
+static void
+xi_compute_root_window_offset (struct frame *f, XIDeviceEvent *xev)
+{
+  /* Truncate coordinates instead of rounding them, because that is
+     how the X server handles window hierarchy.  */
+  x_compute_root_window_offset (f, xev->root_x, xev->root_y,
+				xev->event_x, xev->event_y);
+}
+
+#ifdef HAVE_XINPUT2_4
+
+static void
+xi_compute_root_window_offset_pinch (struct frame *f, XIGesturePinchEvent *pev)
+{
+  /* Truncate coordinates instead of rounding them, because that is
+     how the X server handles window hierarchy.  */
+  x_compute_root_window_offset (f, pev->root_x, pev->root_y,
+				pev->event_x, pev->event_y);
+}
+
+#endif
+
+#endif
+
 static Bool
 x_query_pointer_1 (struct x_display_info *dpyinfo,
 		   int client_pointer_device, Window w,
@@ -13651,10 +13727,10 @@ x_query_pointer (Display *dpy, Window w, Window *root_return,
    X server, and instead be artificially constructed from input
    extension events.  In these special events, the only fields that
    are initialized are `time', `button', `state', `type', `window' and
-   `x' and `y'.  This function should not access any other fields in
-   EVENT without also initializing the corresponding fields in `bv'
-   under the XI_ButtonPress and XI_ButtonRelease labels inside
-   `handle_one_xevent'.  */
+   `x', `y', `x_root' and `y_root'.  This function should not access
+   any other fields in EVENT without also initializing the
+   corresponding fields in `bv' under the XI_ButtonPress and
+   XI_ButtonRelease labels inside `handle_one_xevent'.  */
 
 static Lisp_Object
 x_construct_mouse_click (struct input_event *result,
@@ -13663,7 +13739,6 @@ x_construct_mouse_click (struct input_event *result,
 {
   int x = event->x;
   int y = event->y;
-  Window dummy;
 
   /* Make the event type NO_EVENT; we'll change that when we decide
      otherwise.  */
@@ -13680,9 +13755,8 @@ x_construct_mouse_click (struct input_event *result,
      happen with GTK+ scroll bars, for example), translate the
      coordinates so they appear at the correct position.  */
   if (event->window != FRAME_X_WINDOW (f))
-    XTranslateCoordinates (FRAME_X_DISPLAY (f),
-			   event->window, FRAME_X_WINDOW (f),
-			   x, y, &x, &y, &dummy);
+    x_translate_coordinates (f, event->x_root, event->y_root,
+			     &x, &y);
 
   XSETINT (result->x, x);
   XSETINT (result->y, y);
@@ -18968,6 +19042,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	     `event' itself.  */
 	  XKeyEvent xkey = event->xkey;
 
+	  if (event->xkey.window == FRAME_X_WINDOW (f))
+	    /* See the comment above x_compute_root_window_offset for
+	       why this optimization is performed.  */
+	    x_compute_root_window_offset (f, event->xkey.x_root,
+					  event->xkey.y_root,
+					  event->xkey.x, event->xkey.y);
+
 #ifdef HAVE_XINPUT2
 	  Time pending_keystroke_time;
 	  struct xi_device_t *source;
@@ -19601,6 +19682,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	f = mouse_or_wdesc_frame (dpyinfo, event->xmotion.window);
 
+	if (f && event->xmotion.window == FRAME_X_WINDOW (f))
+	  /* See the comment above x_compute_root_window_offset for
+	     why this optimization is performed.  */
+	  x_compute_root_window_offset (f, event->xmotion.x_root,
+					event->xmotion.y_root,
+					event->xmotion.x,
+					event->xmotion.y);
+
 	if (x_dnd_in_progress
 	    /* Handle these events normally if the recursion
 	       level is higher than when the drag-and-drop
@@ -19865,10 +19954,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		if (xmotion.window != FRAME_X_WINDOW (f))
 		  {
-		    XTranslateCoordinates (FRAME_X_DISPLAY (f),
-					   xmotion.window, FRAME_X_WINDOW (f),
-					   xmotion.x, xmotion.y, &xmotion.x,
-					   &xmotion.y, &xmotion.subwindow);
+		    x_translate_coordinates (f, xmotion.x_root, xmotion.y_root,
+					     &xmotion.x, &xmotion.y);
 		    xmotion.window = FRAME_X_WINDOW (f);
 		  }
 
@@ -20091,6 +20178,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
       f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
+
+      /* This means we can no longer be certain of the root window
+	 coordinates of any's edit window.  */
+      if (any)
+	FRAME_X_OUTPUT (any)->window_offset_certain_p = false;
+
       /* Unfortunately, we need to call x_drop_xrender_surfaces for
          _all_ ConfigureNotify events, otherwise we miss some and
          flicker.  Don't try to optimize these calls by looking only
@@ -20320,6 +20413,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  {
 	    f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
 
+	    if (f && event->xbutton.window == FRAME_X_WINDOW (f))
+	      /* See the comment above x_compute_root_window_offset
+		 for why this optimization is performed.  */
+	      x_compute_root_window_offset (f, event->xbutton.x_root,
+					    event->xbutton.y_root,
+					    event->xbutton.x,
+					    event->xbutton.y);
+
 	    if (event->type == ButtonPress)
 	      {
 		x_display_set_last_user_time (dpyinfo, event->xbutton.time,
@@ -20493,6 +20594,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	dpyinfo->last_mouse_glyph_frame = NULL;
 
 	f = mouse_or_wdesc_frame (dpyinfo, event->xbutton.window);
+
+	if (f && event->xbutton.window == FRAME_X_WINDOW (f))
+	  /* See the comment above x_compute_root_window_offset
+	     for why this optimization is performed.  */
+	  x_compute_root_window_offset (f, event->xbutton.x_root,
+					event->xbutton.y_root,
+					event->xbutton.x,
+					event->xbutton.y);
+
 	if (f && event->xbutton.type == ButtonPress
 	    && !popup_activated ()
 	    && !x_window_to_scroll_bar (event->xbutton.display,
@@ -21178,8 +21288,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		goto XI_OTHER;
 #endif
 
-	      Window dummy;
-
 #ifdef HAVE_XINPUT2_1
 #ifdef HAVE_XWIDGETS
 	      struct xwidget_view *xv = xwidget_view_from_window (xev->event);
@@ -21257,11 +21365,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				  real_y = lrint (xev->event_y + bar->top);
 				}
 			      else
-				XTranslateCoordinates (dpyinfo->display,
-						       xev->event, FRAME_X_WINDOW (f),
-						       lrint (xev->event_x),
-						       lrint (xev->event_y),
-						       &real_x, &real_y, &dummy);
+			        x_translate_coordinates (f,
+							 lrint (xev->root_x),
+							 lrint (xev->root_y),
+							 &real_x, &real_y);
 			    }
 			  else
 			    {
@@ -21462,6 +21569,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		}
 
 	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+
+	      if (f && xev->event == FRAME_X_WINDOW (f))
+		/* See the comment above x_compute_root_window_offset
+		   for why this optimization is performed.  */
+		xi_compute_root_window_offset (f, xev);
 
 	      if (x_dnd_in_progress
 		  /* Handle these events normally if the recursion
@@ -21711,9 +21823,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  if (xev->event != FRAME_X_WINDOW (f))
 		    {
-		      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-					     xev->event, FRAME_X_WINDOW (f),
-					     ev.x, ev.y, &ev.x, &ev.y, &dummy);
+		      x_translate_coordinates (f, lrint (xev->root_x),
+					       lrint (xev->root_y),
+					       &ev.x, &ev.y);
 		      ev.window = FRAME_X_WINDOW (f);
 		    }
 
@@ -21818,6 +21930,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  f = mouse_or_wdesc_frame (dpyinfo, xev->event);
 		  device = xi_device_from_id (dpyinfo, xev->deviceid);
+
+		  if (f && xev->event == FRAME_X_WINDOW (f))
+		    /* See the comment above
+		       x_compute_root_window_offset for why this
+		       optimization is performed.  */
+		    xi_compute_root_window_offset (f, xev);
 
 		  /* Don't track grab status for emulated pointer
 		     events, because they are ignored by the regular
@@ -22150,6 +22268,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      bv.type = xev->evtype == XI_ButtonPress ? ButtonPress : ButtonRelease;
 	      bv.x = lrint (xev->event_x);
 	      bv.y = lrint (xev->event_y);
+	      bv.x_root = lrint (xev->root_x);
+	      bv.y_root = lrint (xev->root_y);
 	      bv.window = xev->event;
 	      bv.state = xi_convert_event_state (xev);
 	      bv.time = xev->time;
@@ -22157,6 +22277,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      dpyinfo->last_mouse_glyph_frame = NULL;
 
 	      f = mouse_or_wdesc_frame (dpyinfo, xev->event);
+
+	      if (f && xev->event == FRAME_X_WINDOW (f))
+		/* See the comment above x_compute_root_window_offset
+		   for why this optimization is performed.  */
+		xi_compute_root_window_offset (f, xev);
 
 	      if (f && xev->evtype == XI_ButtonPress
 		  && !popup_activated ()
@@ -22209,9 +22334,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef USE_GTK
 	      if (!f)
 		{
-		  int real_x = lrint (xev->event_x);
-		  int real_y = lrint (xev->event_y);
-		  Window child;
+		  int real_x = lrint (xev->root_x);
+		  int real_y = lrint (xev->root_y);
 
 		  f = x_any_window_to_frame (dpyinfo, xev->event);
 
@@ -22220,9 +22344,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (xev->evtype == XI_ButtonRelease)
 			{
 			  if (FRAME_X_WINDOW (f) != xev->event)
-			    XTranslateCoordinates (dpyinfo->display, xev->event,
-						   FRAME_X_WINDOW (f), real_x,
-						   real_y, &real_x, &real_y, &child);
+			    x_translate_coordinates (f, real_x, real_y,
+						     &real_x, &real_y);
 
 			  if (xev->detail <= 5)
 			    inev.ie.kind = WHEEL_EVENT;
@@ -22486,6 +22609,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ignore_next_mouse_click_timeout = 0;
 
 	      f = x_any_window_to_frame (dpyinfo, xev->event);
+
+	      if (f && xev->event == FRAME_X_WINDOW (f))
+		/* See the comment above x_compute_root_window_offset
+		   for why this optimization is performed.  */
+		xi_compute_root_window_offset (f, xev);
 
 	      /* GTK handles TAB events in an undesirable manner, so
 		 keyboard events are always dropped.  But as a side
@@ -23126,6 +23254,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      f = x_window_to_frame (dpyinfo, xev->event);
 
+	      if (f)
+		/* See the comment above x_compute_root_window_offset
+		   for why this optimization is performed.  */
+		xi_compute_root_window_offset (f, xev);
+
 #ifdef HAVE_GTK3
 	      menu_bar_p = (f && FRAME_X_OUTPUT (f)->menubar_widget
 			    && xg_event_is_for_menubar (f, event));
@@ -23314,8 +23447,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      any = x_window_to_frame (dpyinfo, pev->event);
+
 	      if (any)
 		{
+		  if (pev->event == FRAME_X_WINDOW (any))
+		    xi_compute_root_window_offset_pinch (any, pev);
+
 		  inev.ie.kind = PINCH_EVENT;
 		  inev.ie.modifiers = x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (any),
 							      pev->mods.effective);

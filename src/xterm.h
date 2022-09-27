@@ -1196,6 +1196,15 @@ struct x_output
   XIEventMask *xi_masks;
   int num_xi_masks;
 #endif
+
+  /* Whether or not we are certain we know the offset from the root
+     window to this frame.  */
+  bool window_offset_certain_p;
+
+  /* The offset of the edit window from the root window.  This is
+     strictly an optimization to avoid extraneous synchronizing in
+     some cases.  */
+  int root_x, root_y;
 };
 
 enum
