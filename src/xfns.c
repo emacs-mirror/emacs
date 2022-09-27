@@ -7739,7 +7739,7 @@ properties are specified as part of the Extended Window Manager Hints
 and the Inter-Client Communication Conventions Manual, which are
 located here:
 
-   https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
+  https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 
 and
 
