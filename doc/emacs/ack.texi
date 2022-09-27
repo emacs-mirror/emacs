@@ -1442,8 +1442,8 @@ zone out in front of Emacs.
 
 @item
 Eli Zaretskii was the was the Emacs (co-)maintainer from Emacs 25
-onwards.  He wrote made many standard Emacs features work on MS-DOS
-and Microsoft Windows.  He also wrote @file{tty-colors.el}, which
+onwards.  He made many standard Emacs features work on MS-DOS and
+Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
 @file{rxvt.el}.  He implemented support for bidirectional text, menus
 on text-mode terminals, and built-in display of line numbers.
