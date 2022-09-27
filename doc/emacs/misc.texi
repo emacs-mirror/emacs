@@ -585,11 +585,11 @@ default size for DocView, customize the variable
 @code{doc-view-resolution}.
 
 @vindex doc-view-imenu-enabled
-  When the @command{mutool} executable is available, DocView will use
+  When the @command{mutool} program is available, DocView will use it
 to generate entries for an outline menu, making it accessible via the
-imenu facility (@pxref{Imenu}).  To disable this functionality even
-when @command{mutool} can be found in your @code{exec-path}, customize
-the variable @code{doc-view-imenu-enabled}.
+@code{imenu} facility (@pxref{Imenu}).  To disable this functionality
+even when @command{mutool} can be found on your system, customize
+the variable @code{doc-view-imenu-enabled} to the @code{nil} value.
 
 @node DocView Searching
 @subsection DocView Searching

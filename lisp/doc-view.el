@@ -215,7 +215,7 @@ are available (see Info node `(emacs)Document View')."
   :version "29.1")
 
 (defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
-  "Whether to generate an imenu outline when mutool is available."
+  "Whether to generate an imenu outline when \"mutool\" is available."
   :type 'boolean
   :version "29.1")
 
@@ -1884,9 +1884,10 @@ If BACKWARD is non-nil, jump to the previous match."
   "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
 
 (defun doc-view--pdf-outline (&optional file-name)
-  "Return a describing the outline of FILE-NAME (or current if nil).
+  "Return a list describing the outline of FILE-NAME.
+Return a list describing the current file if FILE-NAME is nil.
 
-Each element in the list contains information about a section's
+Each element in the returned list contains information about a section's
 title, nesting level and page number.  The list is flat: its tree
 structure is extracted by `doc-view--imenu-subtree'."
   (let* ((outline nil)
@@ -1925,11 +1926,11 @@ entries at an upper level."
     (cons (nreverse index) outline)))
 
 (defun doc-view-imenu-index (&optional file-name goto-page-fn)
-  "Create an imenu index using mutool to extract its outline.
+  "Create an imenu index using \"mutool\" to extract its outline.
 
-For extensibility, a FILE-NAME other than the current buffer and
-a jumping function, GOTO-PAGE-FN other than `doc-view-goto-page'
-can be specified."
+For extensibility, callers can specify a FILE-NAME to indicate
+the buffer other than the current buffer, and a jumping function
+GOTO-PAGE-FN other than `doc-view-goto-page'."
   (let* ((goto (or goto-page-fn 'doc-view-goto-page))
          (act (lambda (_name _pos page) (funcall goto page))))
     (car (doc-view--imenu-subtree (doc-view--pdf-outline file-name) act))))
