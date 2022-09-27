@@ -70,37 +70,28 @@ file name of the thumbnail will vary:
   of the image file's directory name will be added to the
   filename.
 See also `image-dired-thumbnail-storage'."
-  (cond ((memq image-dired-thumbnail-storage
-               image-dired--thumbnail-standard-sizes)
-         (let ((thumbdir (cl-case image-dired-thumbnail-storage
-                           (standard "thumbnails/normal")
-                           (standard-large "thumbnails/large")
-                           (standard-x-large "thumbnails/x-large")
-                           (standard-xx-large "thumbnails/xx-large"))))
-           (expand-file-name
-            ;; MD5 is mandated by the Thumbnail Managing Standard.
-            (concat (md5 (concat "file://" (expand-file-name file))) ".png")
-            (expand-file-name thumbdir (xdg-cache-home)))))
-        ((or (eq 'image-dired image-dired-thumbnail-storage)
-             ;; Maintained for backwards compatibility:
-             (eq 'use-image-dired-dir image-dired-thumbnail-storage))
-         (let* ((f (expand-file-name file))
-                (hash (md5 (file-name-as-directory (file-name-directory f)))))
-           (expand-file-name
-            (format "%s%s.thumb.%s"
-                    (file-name-base f)
-                    (if hash (concat "_" hash) "")
-                    (file-name-extension f))
-            (image-dired-dir))))
-        ((eq 'per-directory image-dired-thumbnail-storage)
-         (let ((f (expand-file-name file)))
-           (expand-file-name
-            (format "%s.thumb.%s"
-                    (file-name-base f)
-                    (file-name-extension f))
-            (expand-file-name
-             ".image-dired"
-             (file-name-directory f)))))))
+  (let ((file (expand-file-name file)))
+    (cond ((memq image-dired-thumbnail-storage
+                 image-dired--thumbnail-standard-sizes)
+           (let ((thumbdir (cl-case image-dired-thumbnail-storage
+                             (standard "thumbnails/normal")
+                             (standard-large "thumbnails/large")
+                             (standard-x-large "thumbnails/x-large")
+                             (standard-xx-large "thumbnails/xx-large"))))
+             (expand-file-name
+              ;; MD5 is mandated by the Thumbnail Managing Standard.
+              (concat (md5 (concat "file://" file)) ".png")
+              (expand-file-name thumbdir (xdg-cache-home)))))
+          ((or (eq 'image-dired image-dired-thumbnail-storage)
+               ;; Maintained for backwards compatibility:
+               (eq 'use-image-dired-dir image-dired-thumbnail-storage))
+           (expand-file-name (format "%s.jpg" (sha1 file))
+                             (image-dired-dir)))
+          ((eq 'per-directory image-dired-thumbnail-storage)
+           (expand-file-name (format "%s.thumb.jpg" file)
+                             (expand-file-name
+                              ".image-dired"
+                              (file-name-directory file)))))))
 
 (defvar image-dired-thumbnail-buffer "*image-dired*"
   "Image-Dired's thumbnail buffer.")
