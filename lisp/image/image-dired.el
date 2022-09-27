@@ -768,9 +768,11 @@ comment."
                         'face 'image-dired-thumb-header-file-name))
      (?n . ,(propertize image-count
                         'face 'image-dired-thumb-header-image-count))
-     (?s . ,(propertize (file-size-human-readable
-                         (file-attribute-size
-                          (file-attributes file)))
+     (?s . ,(propertize (if (file-exists-p file)
+                            (file-size-human-readable
+                             (file-attribute-size
+                              (file-attributes file)))
+                          "<File missing>")
                         'face 'image-dired-thumb-header-file-size))
      (?t . ,(or props ""))
      (?c . ,(or comment "")))))
