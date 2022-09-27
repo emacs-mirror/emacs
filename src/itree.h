@@ -1,8 +1,8 @@
 /* This file implements an efficient interval data-structure.
 
-Copyright (C) 2017 Andreas Politz (politza@hochschule-trier.de)
+Copyright (C) 2017-2022  Free Software Foundation, Inc.
 
-This file is not part of GNU Emacs.
+This file is part of GNU Emacs.
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ struct interval_node
 struct interval_tree
 {
   struct interval_node *root;
-  struct interval_node nil;	/* The tree's version of NULL. */
+  struct interval_node null;    /* The tree's version of NULL. */
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */
   struct interval_generator *iter;
