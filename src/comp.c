@@ -109,6 +109,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_struct_set_fields
 #undef gcc_jit_type_get_const
 #undef gcc_jit_type_get_pointer
+#undef gcc_jit_type_is_pointer
 #undef gcc_jit_version_major
 #undef gcc_jit_version_minor
 #undef gcc_jit_version_patchlevel
@@ -230,6 +231,9 @@ DEF_DLL_FN (gcc_jit_type *, gcc_jit_struct_as_type,
             (gcc_jit_struct *struct_type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_const, (gcc_jit_type *type));
 DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_get_pointer, (gcc_jit_type *type));
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+DEF_DLL_FN (gcc_jit_type *, gcc_jit_type_is_pointer, (gcc_jit_type *type));
+#endif
 DEF_DLL_FN (void, gcc_jit_block_add_assignment,
             (gcc_jit_block *block, gcc_jit_location *loc, gcc_jit_lvalue *lvalue,
              gcc_jit_rvalue *rvalue));
@@ -343,6 +347,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+  LOAD_DLL_FN (library, gcc_jit_type_is_pointer);
+#endif
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
@@ -422,6 +429,9 @@ init_gccjit_functions (void)
 #define gcc_jit_rvalue_get_type fn_gcc_jit_rvalue_get_type
 #define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
+#ifdef LIBGCCJIT_HAVE_REFLECTION
+#define gcc_jit_type_is_pointer fn_gcc_jit_type_is_pointer
+#endif
 #define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version)
@@ -1164,8 +1174,8 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 #endif
 
 #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
-  bool old_is_ptr = gcc_jit_type_is_pointer (old_type);
-  bool new_is_ptr = gcc_jit_type_is_pointer (new_type);
+  bool old_is_ptr = gcc_jit_type_is_pointer (old_type) != NULL;
+  bool new_is_ptr = gcc_jit_type_is_pointer (new_type) != NULL;
 
   gcc_jit_rvalue *tmp = obj;
 
