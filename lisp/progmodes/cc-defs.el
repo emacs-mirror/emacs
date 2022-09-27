@@ -2633,7 +2633,7 @@ fallback definition for all modes, to break the cycle).")
   ;; Like let*, but doesn't bind `max-specpdl-size' if that variable
   ;; is in the bindings list and either doesn't exist or is obsolete.
   (declare (debug let*) (indent 1))
-  (let ((-varlist- varlist) msp-binding)
+  (let ((-varlist- (copy-sequence varlist)) msp-binding)
     (if (or (not (boundp 'max-specpdl-size))
 	    (get 'max-specpdl-size 'byte-obsolete-variable))
 	(cond
@@ -2641,7 +2641,7 @@ fallback definition for all modes, to break the cycle).")
 	  (setq -varlist- (delq 'max-specpdl-size -varlist-)))
 	 ((setq msp-binding (assq 'max-specpdl-size -varlist-))
 	  (setq -varlist- (delq msp-binding -varlist-)))))
-    `(let* ,varlist ,@body)))
+    `(let* ,-varlist- ,@body)))
 
 (defun c-get-lang-constant (name &optional source-files mode)
   ;; Used by `c-lang-const'.
