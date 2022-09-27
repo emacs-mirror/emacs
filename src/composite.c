@@ -800,6 +800,50 @@ composition_gstring_width (Lisp_Object gstring, ptrdiff_t from, ptrdiff_t to,
   return width;
 }
 
+/* Adjust the width of each grapheme cluster of GSTRING because
+   zero-width grapheme clusters are not displayed.  If the width is
+   zero, then the width of the last glyph in the cluster is
+   incremented.  */
+
+void
+composition_gstring_adjust_zero_width (Lisp_Object gstring)
+{
+  ptrdiff_t from = 0;
+  int width = 0;
+
+  for (ptrdiff_t i = 0; ; i++)
+    {
+      Lisp_Object glyph;
+
+      if (i == LGSTRING_GLYPH_LEN (gstring)
+	  || (glyph = LGSTRING_GLYPH (gstring, i),
+	      (NILP (glyph) || from != LGLYPH_FROM (glyph))))
+	{
+	  eassert (i > 0);
+	  Lisp_Object last = LGSTRING_GLYPH (gstring, i - 1);
+
+	  if (width == 0)
+	    {
+	      if (NILP (LGLYPH_ADJUSTMENT (last)))
+		LGLYPH_SET_ADJUSTMENT (last,
+				       CALLN (Fvector,
+					      make_fixnum (0), make_fixnum (0),
+					      make_fixnum (LGLYPH_WIDTH (last)
+							   + 1)));
+	      else
+		ASET (LGLYPH_ADJUSTMENT (last), 2,
+		      make_fixnum (LGLYPH_WADJUST (last) + 1));
+	    }
+	  if (i == LGSTRING_GLYPH_LEN (gstring) || NILP (glyph))
+	    break;
+	  from = LGLYPH_FROM (glyph);
+	  width = 0;
+	}
+      width += (NILP (LGLYPH_ADJUSTMENT (glyph))
+		? LGLYPH_WIDTH (glyph) : LGLYPH_WADJUST (glyph));
+    }
+}
+
 
 static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;

@@ -4678,6 +4678,7 @@ GSTRING.  */)
       from = LGLYPH_FROM (glyph);
       to = LGLYPH_TO (glyph);
     }
+  composition_gstring_adjust_zero_width (gstring);
   return composition_gstring_put_cache (gstring, XFIXNUM (n));
 
  shaper_error:
