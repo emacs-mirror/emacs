@@ -422,11 +422,9 @@ FILE is the image file name."
                   (match-string 1 display)
                 "0")))
      ;; monitor name
-     (?M . ,(let* ((attrs (car (display-monitor-attributes-list)))
-                   (source (cdr (assq 'source attrs)))
-                   (monitor (cdr (assq 'name attrs))))
-              (if (and monitor (member source '("XRandr" "XRandR 1.5" "Gdk")))
-                  monitor
+     (?M . ,(let-alist (car (display-monitor-attributes-list))
+              (if (and .name (member .source '("XRandr" "XRandR 1.5" "Gdk")))
+                  .name
                 "0")))
      ;; workspace
      (?W . ,(or (and (fboundp 'x-window-property)
