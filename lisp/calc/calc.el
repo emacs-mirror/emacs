@@ -1162,7 +1162,7 @@ Used by `calc-user-invocation'.")
 
 
 ;;;; (Autoloads here)
-(load "calc-loaddefs.el" nil t)
+(load "calc-loaddefs" nil t)
 
 ;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 
