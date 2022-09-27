@@ -1293,6 +1293,11 @@ The order of specifications in @var{template} need not correspond to
 the order of associations in @var{spec-alist}.
 @end itemize
 
+REPLACEMENT can also be a function taking no arguments, and returning
+a string to be used for the replacement.  It will only be called when
+the corresponding LETTER is used in the TEMPLATE.  This is useful, for
+example, to avoid prompting for input unless it is needed.
+
 The optional argument @var{ignore-missing} indicates how to handle
 specification characters in @var{template} that are not found in
 @var{spec-alist}.  If it is @code{nil} or omitted, the function

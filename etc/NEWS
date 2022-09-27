@@ -3927,6 +3927,12 @@ the same but works by modifying LIST destructively.
 ** 'string-split' is now an alias for 'split-string'.
 
 +++
+** 'format-spec' now accepts functions in the replacement.
+The function is called only when used in the format string.  This is
+useful to avoid side-effects such as prompting, when the value is not
+actually being used for anything.
+
++++
 ** The variable 'max-specpdl-size' has been made obsolete.
 Now 'max-lisp-eval-depth' alone is used for limiting Lisp recursion
 and stack usage.  'max-specpdl-size' is still present as a plain
