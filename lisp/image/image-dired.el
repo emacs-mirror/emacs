@@ -361,7 +361,7 @@ This affects the following commands:
   "Face for the directory name in the header line of the thumbnail buffer."
   :version "29.1")
 
-(defface -image-dired-thumb-header-file-size
+(defface image-dired-thumb-header-file-size
   '((((class color) (min-colors 88)) :foreground "cadet blue")
     (((class color) (min-colors 16)) :foreground "black")
     (default :inherit header-line))
