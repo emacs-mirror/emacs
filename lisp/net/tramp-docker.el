@@ -53,23 +53,26 @@
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
 
+;;;###tramp-autoload
 (defun tramp-docker--completion-function (&rest _args)
   "List Docker containers available for connection.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
-  (let* ((raw-list (shell-command-to-string
-                    (concat tramp-docker-program
-                            " ps --format '{{.ID}}\t{{.Names}}'")))
-         (lines (split-string raw-list "\n"))
-         (names (mapcar (lambda (line)
-                          (let ((words (split-string line "\t")))
-                            (or (nth 1 words) (nth 0 words))))
-                        lines))
-         (machines (seq-take-while (lambda (name) name) names)))
-    (mapcar (lambda (m) (list nil m)) machines)))
+  (when-let ((raw-list (shell-command-to-string
+			(concat tramp-docker-program
+				" ps --format '{{.ID}}\t{{.Names}}'")))
+             (lines (split-string raw-list "\n" 'omit))
+             (names (mapcar
+		     (lambda (line)
+                       (when (string-match
+			      (rx bol (group (1+ nonl))
+				  "\t" (? (group (1+ nonl))) eol)
+			      line)
+			 (or (match-string 2 line) (match-string 1 line))))
+                     lines)))
+    (mapcar (lambda (m) (list nil m)) (delq nil names))))
 
-;; todo: check tramp-async-args and tramp-direct-async
 ;;;###tramp-autoload
 (tramp--with-startup
  (push `(,tramp-docker-method
@@ -78,8 +81,8 @@ see its function help for a description of the format."
                             ("-it")
                             ("-u" "%u")
                             ("%h")
-			    ("/bin/sh")))
-         (tramp-remote-shell "/bin/sh")
+			    ("%l")))
+         (tramp-remote-shell ,tramp-default-remote-shell)
          (tramp-remote-shell-login ("-l"))
          (tramp-remote-shell-args ("-i" "-c")))
        tramp-methods)
