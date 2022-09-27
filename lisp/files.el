@@ -6127,16 +6127,17 @@ recent files are first."
   (let* ((filename (file-name-sans-versions
 		    (make-backup-file-name (expand-file-name filename))))
          (dir (file-name-directory filename)))
-    (sort
-     (seq-filter
-      (lambda (candidate)
-        (and (backup-file-name-p candidate)
-             (string= (file-name-sans-versions candidate) filename)))
-      (mapcar
-       (lambda (file)
-         (concat dir file))
-       (file-name-all-completions (file-name-nondirectory filename) dir)))
-     #'file-newer-than-file-p)))
+    (when (file-directory-p dir)
+      (sort
+       (seq-filter
+        (lambda (candidate)
+          (and (backup-file-name-p candidate)
+               (string= (file-name-sans-versions candidate) filename)))
+        (mapcar
+         (lambda (file)
+           (concat dir file))
+         (file-name-all-completions (file-name-nondirectory filename) dir)))
+       #'file-newer-than-file-p))))
 
 (defun rename-uniquely ()
   "Rename current buffer to a similar name not already taken.
