@@ -815,9 +815,12 @@ composition_gstring_adjust_zero_width (Lisp_Object gstring)
     {
       Lisp_Object glyph;
 
-      if (i == LGSTRING_GLYPH_LEN (gstring)
-	  || (glyph = LGSTRING_GLYPH (gstring, i),
-	      (NILP (glyph) || from != LGLYPH_FROM (glyph))))
+      if (i < LGSTRING_GLYPH_LEN (gstring))
+	glyph = LGSTRING_GLYPH (gstring, i);
+      else
+	glyph = Qnil;
+
+      if (NILP (glyph) || from != LGLYPH_FROM (glyph))
 	{
 	  eassert (i > 0);
 	  Lisp_Object last = LGSTRING_GLYPH (gstring, i - 1);
@@ -834,7 +837,7 @@ composition_gstring_adjust_zero_width (Lisp_Object gstring)
 		ASET (LGLYPH_ADJUSTMENT (last), 2,
 		      make_fixnum (LGLYPH_WADJUST (last) + 1));
 	    }
-	  if (i == LGSTRING_GLYPH_LEN (gstring) || NILP (glyph))
+	  if (NILP (glyph))
 	    break;
 	  from = LGLYPH_FROM (glyph);
 	  width = 0;
