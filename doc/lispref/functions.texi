@@ -2478,9 +2478,10 @@ expander will call @var{expander} with that form as well as with
 instead of the function call, or it can return just the form unchanged,
 to indicate that the function call should be left alone.
 
-When @var{expander} is a lambda form it should be of the form
-@code{(lambda (@var{arg}) @var{body})} because the function's formal
-arguments are automatically added to the lambda's list of arguments.
+When @var{expander} is a lambda form it should be written with
+a single argument (i.e., be of the form @code{(lambda (@var{arg})
+@var{body})}) because the function's formal arguments are
+automatically added to the lambda's list of arguments for you.
 
 @item (gv-expander @var{expander})
 Declare @var{expander} to be the function to handle calls to the macro (or
