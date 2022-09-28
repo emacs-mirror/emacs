@@ -2220,15 +2220,6 @@ nil to disable this confirmation completely.
 *** 'image-dired-db-file' renamed to 'image-dired-tags-db-file'.
 
 ---
-*** Naming of thumbnail files has changed.
-Thumbnail files generated when 'image-dired-thumbnail-storage' is
-'image-dired' now always end in ".jpg".  This fixes various issues on
-different platforms, but means that thumbnails generated in Emacs 28
-will not be used in Emacs 29, and vice-versa.  If disk space is an
-issue, consider deleting the directory 'image-dired-dir' after
-upgrading (usually "~/.emacs.d/image-dired/").
-
----
 *** 'image-dired-thumb-{height,width}' are now obsolete.
 Customize 'image-dired-thumb-size' instead, which will set both the
 height and width.
@@ -2672,6 +2663,15 @@ will have key definitions and single quotes handled specially.
 This means that images found through 'find-image' also have
 auto-scaling applied.  (This only makes a difference on HiDPI
 displays.)
+
+---
+** Naming of thumbnail files has changed.
+Names of thumbnail files generated when 'image-dired-thumbnail-storage'
+is 'image-dired' now always end in ".jpg".  This fixes various issues
+on different platforms, but means that thumbnails generated in Emacs 28
+will not be used in Emacs 29, and vice-versa.  If disk space is an
+issue, consider deleting the directory 'image-dired-dir' after
+upgrading (usually "~/.emacs.d/image-dired/").
 
 +++
 ** Changes to "raw" in-memory xbm images are specified.
