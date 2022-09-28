@@ -25,19 +25,19 @@
    works as per C11.  This is supported by GCC 4.6.0+ and by clang 4+.
 
    Define _GL_HAVE__STATIC_ASSERT1 to 1 if _Static_assert (R) works as
-   per C2x.  This is supported by GCC 9.1+.
+   per C23.  This is supported by GCC 9.1+.
 
    Support compilers claiming conformance to the relevant standard,
    and also support GCC when not pedantic.  If we were willing to slow
    'configure' down we could also use it with other compilers, but
    since this affects only the quality of diagnostics, why bother?  */
 #ifndef __cplusplus
-# if (201112L <= __STDC_VERSION__ \
+# if (201112 <= __STDC_VERSION__ \
       || (!defined __STRICT_ANSI__ \
           && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || 5 <= __clang_major__)))
 #  define _GL_HAVE__STATIC_ASSERT 1
 # endif
-# if (202000L <= __STDC_VERSION__ \
+# if (202000 <= __STDC_VERSION__ \
       || (!defined __STRICT_ANSI__ && 9 <= __GNUC__))
 #  define _GL_HAVE__STATIC_ASSERT1 1
 # endif
@@ -202,12 +202,12 @@ template <int w>
 
    This macro requires three or more arguments but uses at most the first
    two, so that the _Static_assert macro optionally defined below supports
-   both the C11 two-argument syntax and the C2x one-argument syntax.
+   both the C11 two-argument syntax and the C23 one-argument syntax.
 
    Unfortunately, unlike C11, this implementation must appear as an
    ordinary declaration, and cannot appear inside struct { ... }.  */
 
-#if 200410 <= __cpp_static_assert
+#if 202311 <= __STDC_VERSION__ || 200410 <= __cpp_static_assert
 # define _GL_VERIFY(R, DIAGNOSTIC, ...) static_assert (R, DIAGNOSTIC)
 #elif defined _GL_HAVE__STATIC_ASSERT
 # define _GL_VERIFY(R, DIAGNOSTIC, ...) _Static_assert (R, DIAGNOSTIC)
@@ -223,11 +223,30 @@ template <int w>
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
 #ifdef _GL_STATIC_ASSERT_H
 # if !defined _GL_HAVE__STATIC_ASSERT1 && !defined _Static_assert
-#  define _Static_assert(...) \
-     _GL_VERIFY (__VA_ARGS__, "static assertion failed", -)
+#  define _Static_assert(R, ...) \
+     _GL_VERIFY ((R), "static assertion failed", -)
 # endif
-# if __cpp_static_assert < 201411 && !defined static_assert
-#  define static_assert _Static_assert /* C11 requires this #define.  */
+# if (!defined static_assert \
+      && __STDC_VERSION__ < 202311 \
+      && (!defined __cplusplus \
+          || (__cpp_static_assert < 201411 \
+              && __GNUG__ < 6 && __clang_major__ < 6)))
+#  if defined __cplusplus && _MSC_VER >= 1900 && !defined __clang__
+/* MSVC 14 in C++ mode supports the two-arguments static_assert but not
+   the one-argument static_assert, and it does not support _Static_assert.
+   We have to play preprocessor tricks to distinguish the two cases.
+   Since the MSVC preprocessor is not ISO C compliant (cf.
+   <https://stackoverflow.com/questions/5134523/>), the solution is specific
+   to MSVC.  */
+#   define _GL_EXPAND(x) x
+#   define _GL_SA1(a1) static_assert ((a1), "static assertion failed")
+#   define _GL_SA2 static_assert
+#   define _GL_SA3 static_assert
+#   define _GL_SA_PICK(x1,x2,x3,x4,...) x4
+#   define static_assert(...) _GL_EXPAND(_GL_SA_PICK(__VA_ARGS__,_GL_SA3,_GL_SA2,_GL_SA1)) (__VA_ARGS__)
+#  else
+#   define static_assert _Static_assert /* C11 requires this #define. */
+#  endif
 # endif
 #endif
 
@@ -303,7 +322,7 @@ template <int w>
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
 #elif 1200 <= _MSC_VER
 # define assume(R) __assume (R)
-#elif 202311L <= __STDC_VERSION__
+#elif 202311 <= __STDC_VERSION__
 # include <stddef.h>
 # define assume(R) ((R) ? (void) 0 : unreachable ())
 #elif (defined GCC_LINT || defined lint) && _GL_HAS_BUILTIN_TRAP

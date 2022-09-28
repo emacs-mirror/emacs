@@ -84,7 +84,9 @@ _GL_FUNCDECL_SYS (getrandom, ssize_t,
 _GL_CXXALIAS_SYS (getrandom, ssize_t,
                   (void *buffer, size_t length, unsigned int flags));
 # endif
+# if __GLIBC__ + (__GLIBC_MINOR__ >= 25) > 2
 _GL_CXXALIASWARN (getrandom);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef getrandom
 # if HAVE_RAW_DECL_GETRANDOM

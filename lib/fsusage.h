@@ -22,7 +22,6 @@
 # define FSUSAGE_H_
 
 # include <stdint.h>
-# include <stdbool.h>
 
 struct fs_usage
 {

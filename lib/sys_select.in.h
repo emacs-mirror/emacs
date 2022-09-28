@@ -82,9 +82,10 @@
    of 'struct timeval', and no definition of this type.
    Also, Mac OS X, AIX, HP-UX, IRIX, Solaris, Interix declare select()
    in <sys/time.h>.
-   But avoid namespace pollution on glibc systems and "unknown type
-   name" problems on Cygwin.  */
-# if !(defined __GLIBC__ || defined __CYGWIN__)
+   But avoid namespace pollution on glibc systems, a circular include
+   <sys/select.h> -> <sys/time.h> -> <sys/select.h> on FreeBSD 13.1, and
+   "unknown type name" problems on Cygwin.  */
+# if !(defined __GLIBC__ || defined __FreeBSD__ || defined __CYGWIN__)
 #  include <sys/time.h>
 # endif
 
@@ -287,7 +288,9 @@ _GL_CXXALIAS_SYS_CAST (pselect, int,
                         struct timespec const *restrict,
                         const sigset_t *restrict));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (pselect);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef pselect
 # if HAVE_RAW_DECL_PSELECT

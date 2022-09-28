@@ -943,7 +943,9 @@ _GL_FUNCDECL_SYS (mbslen, size_t, (const char *string)
                                   _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_SYS (mbslen, size_t, (const char *string));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (mbslen);
+# endif
 #endif
 
 #if @GNULIB_MBSNLEN@

@@ -25,8 +25,6 @@
 
 #include <stdlib.h>
 
-#include "verify.h"
-
 #ifdef UNSIGNED
 # ifndef HAVE_DECL_STRTOULL
 "this configure-time declaration test was not run"
@@ -62,8 +60,8 @@ long long int strtoll (char const *, char **, int);
 Int
 Strtoimax (char const *ptr, char **endptr, int base)
 {
-  verify (sizeof (Int) == sizeof (Unsigned long int)
-          || sizeof (Int) == sizeof (Unsigned long long int));
+  static_assert (sizeof (Int) == sizeof (Unsigned long int)
+                 || sizeof (Int) == sizeof (Unsigned long long int));
 
   if (sizeof (Int) != sizeof (Unsigned long int))
     return Strtoll (ptr, endptr, base);

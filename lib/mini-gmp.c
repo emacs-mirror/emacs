@@ -1,8 +1,9 @@
 /* mini-gmp, a minimalistic implementation of a GNU GMP subset.
 
    Contributed to the GNU project by Niels Möller
+   Additional functionalities and improvements by Marco Bodrato.
 
-Copyright 1991-1997, 1999-2021 Free Software Foundation, Inc.
+Copyright 1991-1997, 1999-2022 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -3098,7 +3099,7 @@ mpz_powm (mpz_t r, const mpz_t b, const mpz_t e, const mpz_t m)
 
   if (en == 0)
     {
-      mpz_set_ui (r, 1);
+      mpz_set_ui (r, mpz_cmpabs_ui (m, 1));
       return;
     }
 

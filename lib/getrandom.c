@@ -23,7 +23,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <unistd.h>
 
 #if defined _WIN32 && ! defined __CYGWIN__

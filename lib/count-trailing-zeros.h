@@ -43,8 +43,10 @@ extern "C" {
 # define COUNT_TRAILING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)               \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER
-# pragma intrinsic _BitScanForward
-# pragma intrinsic _BitScanForward64
+# pragma intrinsic (_BitScanForward)
+# if defined _M_X64
+#  pragma intrinsic (_BitScanForward64)
+# endif
 # define COUNT_TRAILING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)               \
     do                                                                  \
       {                                                                 \
@@ -101,8 +103,18 @@ count_trailing_zeros_l (unsigned long int x)
 COUNT_TRAILING_ZEROS_INLINE int
 count_trailing_zeros_ll (unsigned long long int x)
 {
+#if (defined _MSC_VER && !defined __clang__) && !defined _M_X64
+  /* 32-bit MSVC does not have _BitScanForward64, only _BitScanForward.  */
+  unsigned long result;
+  if (_BitScanForward (&result, (unsigned long) x))
+    return result;
+  if (_BitScanForward (&result, (unsigned long) (x >> 32)))
+    return result + 32;
+  return CHAR_BIT * sizeof x;
+#else
   COUNT_TRAILING_ZEROS (__builtin_ctzll, _BitScanForward64,
                         unsigned long long int);
+#endif
 }
 
 #ifdef __cplusplus

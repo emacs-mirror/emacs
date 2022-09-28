@@ -20,7 +20,6 @@
 # include "tempname.h"
 #endif
 
-#include <stdbool.h>
 #include <errno.h>
 
 #include <stdio.h>

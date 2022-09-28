@@ -42,10 +42,7 @@
    '-malign-double' is used.
 
    The result cannot be used as a value for an 'enum' constant, if you
-   want to be portable to HP-UX 10.20 cc and AIX 3.2.5 xlc.
-
-   Include <stddef.h> for offsetof.  */
-#include <stddef.h>
+   want to be portable to HP-UX 10.20 cc and AIX 3.2.5 xlc.  */
 
 /* FreeBSD 9.1 <sys/cdefs.h>, included by <stddef.h> and lots of other
    standard headers, defines conflicting implementations of _Alignas
@@ -61,17 +58,19 @@
          && !defined __clang__) \
      || (defined __clang__ && __clang_major__ < 8))
 # ifdef __cplusplus
-#  if 201103 <= __cplusplus
+#  if (201103 <= __cplusplus || defined _MSC_VER)
 #   define _Alignof(type) alignof (type)
 #  else
    template <class __t> struct __alignof_helper { char __a; __t __b; };
 #   define _Alignof(type) offsetof (__alignof_helper<type>, __b)
+#   define _GL_STDALIGN_NEEDS_STDDEF 1
 #  endif
 # else
 #  define _Alignof(type) offsetof (struct { char __a; type __b; }, __b)
+#  define _GL_STDALIGN_NEEDS_STDDEF 1
 # endif
 #endif
-#if ! (defined __cplusplus && 201103 <= __cplusplus)
+#if ! (defined __cplusplus && (201103 <= __cplusplus || defined _MSC_VER))
 # define alignof _Alignof
 #endif
 #define __alignof_is_defined 1
@@ -102,7 +101,7 @@
    */
 
 #if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112
-# if defined __cplusplus && 201103 <= __cplusplus
+# if defined __cplusplus && (201103 <= __cplusplus || defined _MSC_VER)
 #  define _Alignas(a) alignas (a)
 # elif (!defined __attribute__ \
         && ((defined __APPLE__ && defined __MACH__ \
@@ -116,12 +115,19 @@
 #  define _Alignas(a) __declspec (align (a))
 # endif
 #endif
-#if ((defined _Alignas && ! (defined __cplusplus && 201103 <= __cplusplus)) \
+#if ((defined _Alignas \
+      && !(defined __cplusplus && (201103 <= __cplusplus || defined _MSC_VER))) \
      || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
 # define alignas _Alignas
 #endif
-#if defined alignas || (defined __cplusplus && 201103 <= __cplusplus)
+#if (defined alignas \
+     || (defined __cplusplus && (201103 <= __cplusplus || defined _MSC_VER)))
 # define __alignas_is_defined 1
+#endif
+
+/* Include <stddef.h> if needed for offsetof.  */
+#if _GL_STDALIGN_NEEDS_STDDEF
+# include <stddef.h>
 #endif
 
 #endif /* _GL_STDALIGN_H */

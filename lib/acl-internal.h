@@ -19,7 +19,6 @@
 
 #include "acl.h"
 
-#include <stdbool.h>
 #include <stdlib.h>
 
 /* All systems define the ACL related API in <sys/acl.h>.  */
