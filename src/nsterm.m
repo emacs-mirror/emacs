@@ -37,7 +37,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>

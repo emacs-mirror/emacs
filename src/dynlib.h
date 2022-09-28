@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define DYNLIB_H
 
 #include <attribute.h>
-#include <stdbool.h>
 
 typedef void *dynlib_handle_ptr;
 dynlib_handle_ptr dynlib_open (const char *path);
