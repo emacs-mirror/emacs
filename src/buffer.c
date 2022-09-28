@@ -2933,7 +2933,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
 
   buffer_overlay_iter_start (current_buffer, beg,
                              /* Find empty OV at Z ? */
-                             (end >= Z && empty) ? Z + 1 : ZV,
+                             (end >= ZV && empty) ? ZV + 1 : ZV,
                              ITREE_ASCENDING);
 
   while ((node = buffer_overlay_iter_next (current_buffer)))
@@ -2946,7 +2946,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
       else if (node->begin == end)
         {
           next = node->begin;
-          if ((! empty || end < Z) && beg < end)
+          if ((! empty || end < ZV) && beg < end)
             break;
         }
 

@@ -2871,9 +2871,6 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   else
     out->overlays = NULL;
 
-  /* dump_field_lv_rawptr (ctx, out, buffer, &buffer->overlays,
-                          ?Lisp_Vectorlike?, WEIGHT_NORMAL); */
-
   dump_field_lv (ctx, out, buffer, &buffer->undo_list_,
                  WEIGHT_STRONG);
   dump_off offset = finish_dump_pvec (ctx, &out->header);
