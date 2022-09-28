@@ -281,7 +281,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   eassert (node && node->begin <= node->end && node != &tree->null);
 
   struct interval_node *parent = &tree->null;
-  struct interval_node *child = &tree->null;
+  struct interval_node *child = tree->root;
   ptrdiff_t offset = 0;
 
   /* Find the insertion point, accumulate node's offset and update
