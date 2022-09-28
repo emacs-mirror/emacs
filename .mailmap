@@ -30,6 +30,8 @@ Artur Malabarba <bruce.connor.am@gmail.com> <am12548@it055607.users.bris.ac.uk>
 Bastien Guerry <bzg@gnu.org>
 Bastien Guerry <bzg@gnu.org> <bastien1@free.fr>
 Bastien Guerry <bzg@gnu.org> <bzg@altern.org>
+Benjamin Schwerdtner <Benjamin.Schwerdtner@gmail.com>
+Bob Rogers <rogers@rgrjr.com> <rogers-emacs@rgrjr.homedns.org>
 Bruno Félix Rezende Ribeiro <oitofelix@gnu.org> <oitofelix@gmail.com>
 Carlos Pita <carlosjosepita@gmail.com>
 Chong Yidong <cyd@gnu.org> <cyd@stupidchicken.com>
@@ -77,6 +79,9 @@ Ian Dunn <dunni@gnu.org>
 Jan Djärv <jan.h.d@swipnet.se>
 Jan Djärv <jan.h.d@swipnet.se> <jhd@f20.localdomain>
 Jason Rumney <jasonr@gnu.org> <jasonr@wanchan>
+Jeff Walsh <fejfighter@gmail.com> <jawalsh@localhost.localdomain>
+Jeff Walsh <fejfighter@gmail.com> <jeff.walsh@drtusers-MacBook-Pro.local>
+Jeff Walsh <fejfighter@gmail.com> <jewalsh@redhat.com>
 Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 Jim Blandy <jimb@red-bean.com> <jimb@redhat.com>
 Jimmy Aguilar Mena <spacibba@aol.com>
@@ -100,12 +105,14 @@ Kenichi Handa <handa@gnu.org>
 Kenichi Handa <handa@gnu.org> <handa@etlken>
 Kenichi Handa <handa@gnu.org> <handa@m17n.org>
 Kenjiro Nakayama <nakayamakenjiro@gmail.com>
+Kjartan Óli Ágústsson <kjartanoli@outlook.com>
 Károly Lőrentey <lorentey@elte.hu>
 Lars Ingebrigtsen <larsi@gnus.org>
 Lars Ingebrigtsen <larsi@gnus.org> <larsi@emkay.local>
 Lars Ingebrigtsen <larsi@gnus.org> <larsi@openbsd6.gnus.org>
 Lars Ingebrigtsen <larsi@gnus.org> <larsi@quimbies.gnus.org>
 Lars Ingebrigtsen <larsi@gnus.org> <larsi@stories.gnus.org>
+Laurence Warne <laurencewarne@gmail.com>
 Lin Sun <lin.sun@zoom.us>
 Ludovic Courtès <ludo@gnu.org>
 Luke Lee <luke.yx.lee@gmail.com>
@@ -119,6 +126,7 @@ Maxim Nikulin <manikulin@gmail.com>
 Michael Albinus <michael.albinus@gmx.de> <albinus@detlef>
 Michalis V <mvar.40k@gmail.com>
 Miha Rihtaršič <miha@kamnitnik.top>
+Morgan J. Smith <Morgan.J.Smith@outlook.com>
 Nick Drozd <nicholasdrozd@gmail.com>
 Nicolas Petton <nicolas@petton.fr> <petton.nicolas@gmail.com>
 Nitish Chandra <nitishchandrachinta@gmail.com>
@@ -133,6 +141,7 @@ Peter Oliver <p.d.oliver@mavit.org.uk> <bzr@mavit.org.uk>
 Peter Oliver <p.d.oliver@mavit.org.uk> <git@mavit.org.uk>
 Philip Kaludercic <philipk@posteo.net>
 Philip Kaludercic <philipk@posteo.net> <philip.kaludercic@fau.de>
+Philip Kaludercic <philipk@posteo.net> <philip@icterid>
 Philip Kaludercic <philipk@posteo.net> <philip@warpmail.net>
 Philipp Stephani <phst@google.com>
 Philipp Stephani <phst@google.com> Philipp Stephani <p.stephani2@gmail.com>
@@ -140,6 +149,7 @@ Phillip Lord <phillip.lord@russet.org.uk> <phillip.lord@newcastle.ac.uk>
 Pierre Lorenzon <devel@pollock-nageoire.net>
 Pieter van Oostrum <pieter@vanoostrum.org> <pieter-l@vanoostrum.org>
 Pip Cet <pipcet@gmail.com>
+Po Lu <luangruo@yahoo.com>
 Po Lu <luangruo@yahoo.com> Po Lu via <emacs-devel@gnu.org>
 Przemysław Wojnowski <esperanto@cumego.com>
 Rasmus <rasmus@gmx.us>
@@ -149,8 +159,10 @@ Robert Weiner <rsw@gnu.org> <rswgnu@gmail.com>
 Roland Winkler <winkler@gnu.org> <Roland.Winkler@physik.uni-erlangen.de>
 Ronnie Schnell <ronnie@driver-aces.com>
 Ryan C. Thompson <rct@thompsonclan.org>
-Simen Heggestøyl <simenheg@gmail.com>
-Simen Heggestøyl <simenheg@gmail.com> <simenheg@ifi.uio.no>
+Sam Steingold <sds@gnu.org> <sdsg@amazon.com>
+Simen Heggestøyl <simenheg@runbox.com>
+Simen Heggestøyl <simenheg@runbox.com> <simenheg@ifi.uio.no>
+Simen Heggestøyl <simenheg@runbox.com> <simenheg@gmail.com>
 Simon Josefsson <simon@josefsson.org> <jas@extundo.com>
 Stefan Kangas <stefankangas@gmail.com> <stefan@marxist.se>
 Stefan Monnier <monnier@iro.umontreal.ca> <monnier@IRO.UMontreal.CA>
@@ -172,10 +184,13 @@ Ulf Jasper <ulf.jasper@web.de> Ulf Jasper <>
 Ulf Jasper <ulf.jasper@web.de> Ulf Jasper <ulf@uthinkpad>
 Ulrich Müller <ulm@gentoo.org>
 Vinicius Jose Latorre <viniciusjl@ig.com.br> <viniciusjl.gnu@gmail.com>
+Vladimir Nikishkin <lockywolf@gmail.com> <for.emacs-table.el-environment-patch_2022-05-09@lockywolf.net>
 Werner Lemberg <wl@gnu.org>
 Wolfgang Scherer <wolfgang.scherer@gmx.de> <Wolfgang.Scherer@gmx.de>
 Xi Lu <lx@shellcodes.org>
 Xue Fuqiao <xfq.free@gmail.com> <xfq@gnu.org>
+Yilkal Argaw <yilkalargawworkneh@gmail.com>
+Yuuki Harano <masm+github@masm11.me> <masm@masm11.ddo.jp>
 Óscar Fuentes <ofv@wanadoo.es>
 İ. Göktuğ Kayaalp <self@gkayaalp.com>
 Łukasz Stelmach <stlman@poczta.fm> <l.stelmach@samsung.com>
