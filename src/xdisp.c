@@ -7031,12 +7031,20 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       str = Foverlay_get (overlay, Qbefore_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	return true;
+	{
+	  buffer_overlay_iter_finish (current_buffer);
+	  return true;
+	}
       str = Foverlay_get (overlay, Qafter_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
-	return true;
+	{
+	  buffer_overlay_iter_finish (current_buffer);
+	  return true;
+	}
     }
+
+  buffer_overlay_iter_finish (current_buffer);
 
   /* Check for 'display' properties whose values include strings.  */
   Lisp_Object cpos = make_fixnum (startpos);
