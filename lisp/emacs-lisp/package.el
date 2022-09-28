@@ -2189,8 +2189,8 @@ to install it but still mark it as selected."
              (assq (car elt) package-archive-contents)))
         (and available
              (version-list-<
-              (package-desc-priority-version (cadr elt))
-              (package-desc-priority-version (cadr available))))))
+              (package-desc-version (cadr elt))
+              (package-desc-version (cadr available))))))
     package-alist)))
 
 ;;;###autoload
