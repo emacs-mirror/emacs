@@ -328,7 +328,7 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
 {
   struct interval_node *other;
 
-  interval_tree_iter_start (tree, node->begin, PTRDIFF_MAX, ITREE_ASCENDING);
+  interval_tree_iter_start (tree, node->begin, PTRDIFF_MAX, ITREE_ASCENDING, __FILE__, __LINE__);
   while ((other = interval_tree_iter_next (tree)))
     if (other == node)
       break;
@@ -417,7 +417,7 @@ interval_tree_nodes (struct interval_tree *tree,
 {
   struct interval_node *node;
 
-  interval_tree_iter_start (tree, PTRDIFF_MIN, PTRDIFF_MAX, order);
+  interval_tree_iter_start (tree, PTRDIFF_MIN, PTRDIFF_MAX, order, __FILE__, __LINE__);
   while ((node = interval_tree_iter_next (tree)))
     {
       *nodes = node;
@@ -434,12 +434,15 @@ interval_tree_nodes (struct interval_tree *tree,
 void
 interval_tree_iter_start (struct interval_tree *tree,
                           ptrdiff_t begin, ptrdiff_t end,
-                          enum interval_tree_order order)
+                          enum interval_tree_order order,
+			  const char* file, int line)
 {
   if (tree->iter_running)
     emacs_abort ();
   interval_generator_reset (tree->iter, begin, end, order);
   tree->iter_running = 1;
+  tree->file = file;
+  tree->line = line;
 }
 
 /* Limit the search interval of the iterator to the given values.  The
@@ -511,7 +514,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
      order, so we need to remove them first. */
   struct interval_stack *saved = interval_stack_create (0);
   struct interval_node *node = NULL;
-  interval_tree_iter_start (tree, pos, pos + 1, ITREE_PRE_ORDER);
+  interval_tree_iter_start (tree, pos, pos + 1, ITREE_PRE_ORDER, __FILE__, __LINE__);
   while ((node = interval_tree_iter_next (tree)))
     {
       if (node->begin == pos && node->front_advance

@@ -1457,12 +1457,15 @@ remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
 }
 
 INLINE void
-buffer_overlay_iter_start (struct buffer *b, ptrdiff_t begin, ptrdiff_t end,
-                           enum interval_tree_order order)
+buffer_overlay_iter_start1 (struct buffer *b, ptrdiff_t begin, ptrdiff_t end,
+                           enum interval_tree_order order, const char* file, int line)
 {
   if (b->overlays)
-    interval_tree_iter_start (b->overlays, begin, end, order);
+    interval_tree_iter_start (b->overlays, begin, end, order, file, line);
 }
+
+#define buffer_overlay_iter_start(b, begin, end, order) \
+  buffer_overlay_iter_start1 ((b), (begin), (end), (order), __FILE__, __LINE__)
 
 INLINE struct interval_node*
 buffer_overlay_iter_next (struct buffer *b)

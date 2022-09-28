@@ -59,6 +59,8 @@ struct interval_tree
   intmax_t size;                /* Number of nodes in the tree. */
   struct interval_generator *iter;
   bool_bf iter_running : 1;
+  const char* file;
+  int line;
 };
 
 enum interval_tree_order {
@@ -79,7 +81,8 @@ void interval_tree_clear (struct interval_tree *);
 void interval_tree_insert (struct interval_tree *, struct interval_node *);
 bool interval_tree_contains (struct interval_tree *, struct interval_node *);
 struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
-void interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order);
+void interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order,
+			       const char* file, int line);
 void interval_tree_iter_narrow (struct interval_tree *, ptrdiff_t, ptrdiff_t);
 void interval_tree_iter_finish (struct interval_tree *);
 struct interval_node *interval_tree_iter_next (struct interval_tree *);
