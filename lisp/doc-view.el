@@ -220,7 +220,7 @@ are available (see Info node `(emacs)Document View')."
   :version "29.1")
 
 (defcustom doc-view-imenu-title-format "%t (%p)"
-  "Format string for document section titles in imenu.
+  "Format spec for imenu's display of section titles from docview documents.
 
 The special markers '%t' and '%p' are replaced by the section
 title and page number in this format string, which uses
@@ -232,7 +232,7 @@ showing only titles and no page number."
   :version "29.1")
 
 (defcustom doc-view-imenu-flatten nil
-  "Whether to generate a flat list of sections instead of a nested tree."
+  "Whether to flatten the list of sections in an imenu or show it nested."
   :type 'boolean
   :version "29.1")
 
