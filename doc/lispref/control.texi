@@ -295,9 +295,9 @@ For example:
 @end example
 
 If can be convenient to bind variables in conjunction with using a
-conditional.  It's often the case that you do a computation, and then
-want to do something with that computation if it's non-@code{nil}.
-The straightforward way to do that is to just write, for instance:
+conditional.  It's often the case that you compute a value, and then
+want to do something with that value if it's non-@code{nil}.  The
+straightforward way to do that is to just write, for instance:
 
 @example
 (let ((result1 (do-computation)))
