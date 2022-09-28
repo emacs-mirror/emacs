@@ -2992,7 +2992,7 @@ next_overlay_change (ptrdiff_t pos)
   ptrdiff_t next = ZV;
   struct interval_node *node;
 
-  buffer_overlay_iter_start (current_buffer, pos, ZV, ITREE_ASCENDING);
+  buffer_overlay_iter_start (current_buffer, pos, next, ITREE_ASCENDING);
   while ((node = buffer_overlay_iter_next (current_buffer)))
     {
       if (node->begin > pos)
@@ -3020,7 +3020,7 @@ previous_overlay_change (ptrdiff_t pos)
   struct interval_node *node;
   ptrdiff_t prev = BEGV;
 
-  buffer_overlay_iter_start (current_buffer, BEGV, pos, ITREE_DESCENDING);
+  buffer_overlay_iter_start (current_buffer, prev, pos, ITREE_DESCENDING);
   while ((node = buffer_overlay_iter_next (current_buffer)))
     {
       if (node->end < pos)

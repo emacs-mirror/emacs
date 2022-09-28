@@ -45,8 +45,8 @@ struct interval_node
   ptrdiff_t offset;		/* The amount of shift to apply to this subtree. */
   uintmax_t otick;              /* offset modified tick */
   Lisp_Object data;             /* Exclusively used by the client. */
-  enum { ITREE_RED, ITREE_BLACK } color;
-  bool_bf visited : 1;          /* For traversal via generator. */
+  bool_bf red : 1;
+  bool_bf visited : 1;          /* Internal to `interval_generator_next`.  */
   bool_bf rear_advance : 1;     /* Same as for marker and overlays.  */
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
@@ -64,8 +64,7 @@ struct interval_tree
 };
 
 enum interval_tree_order {
-  ITREE_ASCENDING = 0,
-  ITREE_DEFLT_ORDER = 0,
+  ITREE_ASCENDING,
   ITREE_DESCENDING,
   ITREE_PRE_ORDER,
 };

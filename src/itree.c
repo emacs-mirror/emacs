@@ -233,11 +233,11 @@ interval_tree_clear (struct interval_tree *tree)
   null->begin = PTRDIFF_MIN;
   null->end = PTRDIFF_MIN;
   null->limit = PTRDIFF_MIN;     /* => max(x, null.limit) = x */
-  null->color = ITREE_BLACK;
+  null->red = false;
   tree->root = null;
   tree->otick = 1;
   tree->size = 0;
-  tree->iter_running = 0;
+  tree->iter_running = false;
 }
 
 #ifdef ITREE_TESTING
@@ -308,7 +308,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   node->parent = parent;
   node->left = &tree->null;
   node->right = &tree->null;
-  node->color = ITREE_RED;
+  node->red = true;
   node->offset = 0;
   node->begin -= offset;
   node->end -= offset;
@@ -351,7 +351,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
     {
       struct interval_node *subst =
         (node->right == &tree->null) ? node->left : node->right;
-      if (node->color == ITREE_BLACK)
+      if (!node->red)
         broken = subst;
       interval_tree_transplant (tree, subst, node);
       interval_tree_propagate_limit (tree, subst);
@@ -361,7 +361,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       struct interval_node *min = interval_tree_subtree_min (tree, node->right);
       struct interval_node *min_right = min->right;
 
-      if (min->color == ITREE_BLACK)
+      if (!min->red)
         broken = min->right;
       if (min->parent == node)
         min_right->parent = min; /* set parent, if min_right = null */
@@ -375,7 +375,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_transplant (tree, min, node);
       min->left = node->left;
       min->left->parent = min;
-      min->color = node->color;
+      min->red = node->red;
       interval_tree_propagate_limit (tree, min_right);
       interval_tree_propagate_limit (tree, min);
     }
@@ -440,7 +440,7 @@ interval_tree_iter_start (struct interval_tree *tree,
   if (tree->iter_running)
     emacs_abort ();
   interval_generator_reset (tree->iter, begin, end, order);
-  tree->iter_running = 1;
+  tree->iter_running = true;
   tree->file = file;
   tree->line = line;
 }
@@ -464,7 +464,7 @@ interval_tree_iter_finish (struct interval_tree *tree)
 {
   if (! tree->iter_running)
     emacs_abort ();
-  tree->iter_running = 0;
+  tree->iter_running = false;
 }
 
 /* Return the next node of the iterator in the order given when it was
@@ -637,7 +637,7 @@ interval_generator_create  (struct interval_tree *tree)
 
   g->stack = interval_stack_create (size);
   g->tree = tree;
-  interval_generator_reset (g, 1, 0, 0);
+  interval_generator_reset (g, 1, 0, ITREE_ASCENDING);
   return g;
 }
 
@@ -667,7 +667,13 @@ interval_generator_ensure_space (struct interval_generator *g)
   interval_stack_ensure_space (g->stack, interval_tree_max_height (g->tree) + 1);
 }
 
-/* Return true, if NODE's interval intersects with [BEGIN, END). */
+/* Return true, if NODE's interval intersects with [BEGIN, END).
+   Note: We always include empty nodes at BEGIN (and not at END),
+   but if BEGIN==END, then we don't include non-empty nodes starting
+   at BEGIN or ending at END.  This seems to match the behavior of the
+   old overlays code but it's not clear if it's The Right Thing
+   (e.g. it breaks the expectation that if NODE1 is included, then
+   a NODE2 strictly bigger than NODE1 should also be included).  */
 
 static inline bool
 interval_node_intersects (const struct interval_node *node,
@@ -687,10 +693,29 @@ interval_generator_next (struct interval_generator *g)
   struct interval_node * const null = &g->tree->null;
   struct interval_node *node;
 
-  do {
-    node = interval_stack_pop (g->stack);
+  /* The `visited` flag stored in each node is used here (and only here):
+     We keep a "workstack" of nodes we need to consider.  This stack
+     consist of nodes of two types: nodes that we have decided
+     should be returned by the generator, and nodes which we may
+     need to consider (including checking their children).
+     We start an iteration with a stack containing just the root
+     node marked as "not visited" which means that it (and its children)
+     needs to be considered but we haven't yet decided whether it's included
+     in the generator's output.  */
 
-    while (node && ! node->visited)
+  /* FIXME: We should move the `visited` flag to the stack: each entry
+     there should simply consist of a node and a bool (the `visited` status)
+     so this internal implementation detail doesn't leak into the
+     `interval_node` structure.
+     [ In theory it would also allow multiple iterations to be active
+       at the same time, tho that does not seem particularly useful at
+       this time and would require further changes anyway.  ]
+     To save space on the stack, we could hijack the LSB bit of the `node*`
+     word to hold the `visited` bit.  */
+
+  do {
+    while ((node = interval_stack_pop (g->stack))
+           && ! node->visited)
       {
         struct interval_node * const left = node->left;
         struct interval_node * const right = node->right;
@@ -724,7 +749,6 @@ interval_generator_next (struct interval_generator *g)
               interval_stack_push_flagged (g->stack, node, true);
             break;
           }
-        node = interval_stack_pop (g->stack);
       }
     /* Node may have been invalidated by interval_generator_narrow
        after it was pushed: Check if it still intersects. */
@@ -740,6 +764,8 @@ static inline void
 interval_generator_narrow (struct interval_generator *g,
                            ptrdiff_t begin, ptrdiff_t end)
 {
+  eassert (begin >= g->begin);
+  eassert (end <= g->end);
   g->begin =  max (begin, g->begin);
   g->end =  min (end, g->end);
 }
@@ -980,7 +1006,7 @@ interval_tree_rotate_right (struct interval_tree *tree, struct interval_node *no
 static void
 interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node)
 {
-  while (node->parent->color == ITREE_RED)
+  while (node->parent->red)
     {
       /* NODE is red and its parent is red.  This is a violation of
 	 red-black tree property #3.  */
@@ -991,14 +1017,14 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 	     our "uncle".  */
 	  struct interval_node *uncle = node->parent->parent->right;
 
-	  if (uncle->color == ITREE_RED) /* case 1.a */
+	  if (uncle->red) /* case 1.a */
 	    {
 	      /* Uncle and parent are red but should be black because
 		 NODE is red.  Change the colors accordingly and
 		 proceed with the grandparent.  */
-	      node->parent->color = ITREE_BLACK;
-	      uncle->color = ITREE_BLACK;
-	      node->parent->parent->color = ITREE_RED;
+	      node->parent->red = false;
+	      uncle->red = false;
+	      node->parent->parent->red = true;
 	      node = node->parent->parent;
             }
 	  else
@@ -1011,8 +1037,8 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 		  interval_tree_rotate_left (tree, node);
                 }
               /* case 3.a */
-	      node->parent->color = ITREE_BLACK;
-	      node->parent->parent->color = ITREE_RED;
+	      node->parent->red = false;
+	      node->parent->parent->red = true;
 	      interval_tree_rotate_right (tree, node->parent->parent);
             }
         }
@@ -1021,11 +1047,11 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 	  /* This is the symmetrical case of above.  */
 	  struct interval_node *uncle = node->parent->parent->left;
 
-	  if (uncle->color == ITREE_RED) /* case 1.b */
+	  if (uncle->red) /* case 1.b */
 	    {
-	      node->parent->color = ITREE_BLACK;
-	      uncle->color = ITREE_BLACK;
-	      node->parent->parent->color = ITREE_RED;
+	      node->parent->red = false;
+	      uncle->red = false;
+	      node->parent->parent->red = true;
 	      node = node->parent->parent;
             }
 	  else
@@ -1036,8 +1062,8 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 		  interval_tree_rotate_right (tree, node);
 		}
               /* case 3.b */
-	      node->parent->color = ITREE_BLACK;
-	      node->parent->parent->color = ITREE_RED;
+	      node->parent->red = false;
+	      node->parent->parent->red = true;
 	      interval_tree_rotate_left (tree, node->parent->parent);
             }
         }
@@ -1045,7 +1071,7 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 
   /* The root may have been changed to red due to the algorithm.  Set
      it to black so that property #5 is satisfied.  */
-  tree->root->color = ITREE_BLACK;
+  tree->root->red = false;
 }
 
 /* Repair the tree after a deletion.  Part of the RB-Tree
@@ -1054,38 +1080,38 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
 static void
 interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node)
 {
-  while (node != tree->root && node->color == ITREE_BLACK)
+  while (node != tree->root && !node->red)
     {
       if (node == node->parent->left)
 	{
 	  struct interval_node *other = node->parent->right;
 
-	  if (other->color == ITREE_RED) /* case 1.a */
+	  if (other->red) /* case 1.a */
 	    {
-	      other->color = ITREE_BLACK;
-	      node->parent->color = ITREE_RED;
+	      other->red = false;
+	      node->parent->red = true;
 	      interval_tree_rotate_left (tree, node->parent);
 	      other = node->parent->right;
             }
 
-	  if (other->left->color == ITREE_BLACK /* 2.a */
-              && other->right->color == ITREE_BLACK)
+	  if (!other->left->red /* 2.a */
+              && !other->right->red)
 	    {
-	      other->color = ITREE_RED;
+	      other->red = true;
 	      node = node->parent;
             }
 	  else
 	    {
-	      if (other->right->color == ITREE_BLACK) /* 3.a */
+	      if (!other->right->red) /* 3.a */
 		{
-		  other->left->color = ITREE_BLACK;
-		  other->color = ITREE_RED;
+		  other->left->red = false;
+		  other->red = true;
 		  interval_tree_rotate_right (tree, other);
 		  other = node->parent->right;
                 }
-	      other->color = node->parent->color; /* 4.a */
-	      node->parent->color = ITREE_BLACK;
-	      other->right->color = ITREE_BLACK;
+	      other->red = node->parent->red; /* 4.a */
+	      node->parent->red = false;
+	      other->right->red = false;
 	      interval_tree_rotate_left (tree, node->parent);
 	      node = tree->root;
             }
@@ -1094,40 +1120,40 @@ interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node
 	{
 	  struct interval_node *other = node->parent->left;
 
-	  if (other->color == ITREE_RED) /* 1.b */
+	  if (other->red) /* 1.b */
 	    {
-	      other->color = ITREE_BLACK;
-	      node->parent->color = ITREE_RED;
+	      other->red = false;
+	      node->parent->red = true;
 	      interval_tree_rotate_right (tree, node->parent);
 	      other = node->parent->left;
             }
 
-	  if (other->right->color == ITREE_BLACK /* 2.b */
-              && other->left->color == ITREE_BLACK)
+	  if (!other->right->red /* 2.b */
+              && !other->left->red)
 	    {
-	      other->color = ITREE_RED;
+	      other->red = true;
 	      node = node->parent;
             }
 	  else
 	    {
-	      if (other->left->color == ITREE_BLACK) /* 3.b */
+	      if (!other->left->red) /* 3.b */
 		{
-		  other->right->color = ITREE_BLACK;
-		  other->color = ITREE_RED;
+		  other->right->red = false;
+		  other->red = true;
 		  interval_tree_rotate_left (tree, other);
 		  other = node->parent->left;
                 }
 
-	      other->color = node->parent->color; /* 4.b */
-	      node->parent->color = ITREE_BLACK;
-	      other->left->color = ITREE_BLACK;
+	      other->red = node->parent->red; /* 4.b */
+	      node->parent->red = false;
+	      other->left->red = false;
 	      interval_tree_rotate_right (tree, node->parent);
 	      node = tree->root;
             }
         }
     }
 
-  node->color = ITREE_BLACK;
+  node->red = false;
 }
 
 /* Link node SOURCE in DEST's place. */
