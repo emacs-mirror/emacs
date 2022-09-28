@@ -63,6 +63,7 @@ current line.  ARG, if non-nil, specifies the files to use instead
 of the marked files.  If ARG is an integer, use the next ARG (or
 previous -ARG, if ARG<0) files."
   (interactive "P" dired-mode)
+  (setq image-dired--generate-thumbs-start  (current-time))
   (dired-map-over-marks
    (let ((image-pos  (dired-move-to-filename))
          (image-file (dired-get-filename nil t))
