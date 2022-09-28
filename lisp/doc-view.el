@@ -219,6 +219,23 @@ are available (see Info node `(emacs)Document View')."
   :type 'boolean
   :version "29.1")
 
+(defcustom doc-view-imenu-title-format "%t (%p)"
+  "Format string for document section titles in imenu.
+
+The special markers '%t' and '%p' are replaced by the section
+title and page number in this format string, which uses
+`format-spec'.
+
+For instance, setting this variable to \"%t\" will produce items
+showing only titles and no page number."
+  :type 'string
+  :version "29.1")
+
+(defcustom doc-view-imenu-flatten nil
+  "Whether to generate a flat list of sections instead of a nested tree."
+  :type 'boolean
+  :version "29.1")
+
 (defcustom doc-view-svg-background "white"
   "Background color for svg images.
 See `doc-view-mupdf-use-svg'."
@@ -1898,7 +1915,8 @@ structure is extracted by `doc-view--imenu-subtree'."
       (goto-char (point-min))
       (while (re-search-forward doc-view--outline-rx nil t)
         (push `((level . ,(length (match-string 1)))
-                (title . ,(match-string 2))
+                (title . ,(replace-regexp-in-string "\\\\[rt]" " "
+                                                    (match-string 2)))
                 (page . ,(string-to-number (match-string 3))))
               outline)))
     (nreverse outline)))
@@ -1911,11 +1929,14 @@ the first node in the outline and all its siblings at the same
 level.  Returns that imenu alist together with any other pending outline
 entries at an upper level."
   (let ((level (alist-get 'level (car outline)))
+        (nested (not doc-view-imenu-flatten))
         (index nil))
-    (while (and (car outline) (<= level (alist-get 'level (car outline))))
+    (while (and (car outline)
+                (or nested (<= level (alist-get 'level (car outline)))))
       (let-alist (car outline)
-        (let ((title (format "%s (%s)" .title .page)))
-          (if (> .level level)
+        (let ((title (format-spec doc-view-imenu-title-format
+                                  `((?t . ,.title) (?p . ,.page)))))
+          (if (and nested (> .level level))
               (let ((sub (doc-view--imenu-subtree outline act))
                     (fst (car index)))
                 (setq index (cdr index))
