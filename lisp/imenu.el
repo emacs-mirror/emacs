@@ -210,7 +210,7 @@ See `imenu--index-alist' for the format of the buffer index alist.")
 
 ;;;###autoload
 (defvar-local imenu-submenus-on-top t
-  "Flag specifiying whether items with sublists should be kept at top.
+  "Flag specifying whether items with sublists should be kept at top.
 
 For some indexes, such as those describing sections in a document, it
 makes sense to keep their original order even in the menubar.")

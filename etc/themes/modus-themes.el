@@ -2270,7 +2270,7 @@ follows (order is not significant):
 
 The `popup' key takes the same values as `selection'.
 
-Apart from specfying each key separately, a fallback list is
+Apart from specifying each key separately, a fallback list is
 accepted.  This is only useful when the desired aesthetic is the
 same across all keys that are not explicitly referenced.  For
 example, this:

@@ -1677,7 +1677,7 @@ inserting it like with @code{>>> @var{file}}.
 @item >&@var{other-fd}
 @itemx @var{fd}>&@var{other-fd}
 Duplicate the file descriptor @var{other-fd} to @var{fd} (or 1 if
-unspecified).  The order in which this is used is signficant, so
+unspecified).  The order in which this is used is significant, so
 
 @example
 @var{command} > @var{file} 2>&1

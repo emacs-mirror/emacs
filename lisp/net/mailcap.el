@@ -724,7 +724,7 @@ appropriately.
 
 The format of INFO is described in `mailcap-mime-data'.
 
-STORAGE should be a symbol refering to a variable.  The value of
+STORAGE should be a symbol referring to a variable.  The value of
 this variable should have the same format as `mailcap-mime-data'.
 STORAGE defaults to `mailcap--computed-mime-data'.
 

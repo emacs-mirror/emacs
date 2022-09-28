@@ -28278,7 +28278,7 @@ xi_select_hierarchy_events (struct x_display_info *dpyinfo)
    extension.
 
    Value is 0 if GTK was not built with the input extension, or if it
-   was explictly disabled, 1 if GTK enabled the input extension and
+   was explicitly disabled, 1 if GTK enabled the input extension and
    the version was successfully determined, and 2 if that information
    could not be determined.  */
 

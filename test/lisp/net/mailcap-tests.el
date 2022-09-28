@@ -239,7 +239,7 @@
                                    (print . "print1")))))))))
 
 (ert-deftest mailcap-add-mailcap-entry-new-minor-to-various-major-positions ()
-  "Add a new minor entry to major entries at various postions
+  "Add a new minor entry to major entries at various positions
 in ‘mailcap-mime-data’."
   (let ((mailcap-mime-data
          (list

@@ -2060,7 +2060,7 @@ IF MULTIPLE is non-nil, return a list of faces.
 
 Return nil if there is no face at point.
 
-This function is not meant for handling faces programatically; to
+This function is not meant for handling faces programmatically; to
 do that, use `get-text-property' and `get-char-property'."
   (let (faces)
     (when text
