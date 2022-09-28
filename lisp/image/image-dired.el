@@ -905,6 +905,7 @@ You probably want to use this together with
   "m"          #'image-dired-mark-thumb-original-file
   "u"          #'image-dired-unmark-thumb-original-file
   "U"          #'image-dired-unmark-all-marks
+  "x"          #'image-dired-do-flagged-delete
   "."          #'image-dired-track-original-file
   "<tab>"      #'image-dired-jump-original-dired-buffer
 
@@ -960,7 +961,7 @@ You probably want to use this together with
     ["Unmark image" image-dired-unmark-thumb-original-file]
     ["Unmark all images" image-dired-unmark-all-marks]
     ["Flag for deletion" image-dired-flag-thumb-original-file]
-    ["Delete marked images" image-dired-delete-marked]
+    ["Delete flagged images" image-dired-do-flagged-delete]
     "---"
     ["Rotate original right" image-dired-rotate-original-right]
     ["Rotate original left" image-dired-rotate-original-left]
@@ -1341,18 +1342,22 @@ for deletion instead."
   "Check if file is flagged for deletion in associated Dired buffer."
   (image-dired-thumb-file-marked-p t))
 
-(defun image-dired-delete-marked ()
-  "Delete current or marked thumbnails and associated images."
+(defun image-dired-do-flagged-delete ()
+  "Delete flagged thumbnails and associated images."
   (interactive nil image-dired-thumbnail-mode)
   (unless (derived-mode-p 'image-dired-thumbnail-mode)
     (user-error "Not in `image-dired-thumbnail-mode'"))
-  (image-dired--with-marked
-   (image-dired-delete-char)
-   (unless (bobp)
-     (backward-char)))
+  (let ((inhibit-read-only t))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (if (image-dired-thumb-file-flagged-p)
+          (progn
+            (delete-char 1)
+            (forward-char))
+        (forward-char 2))))
   (image-dired--line-up-with-method)
   (image-dired--on-file-in-dired-buffer
-    (dired-do-delete)))
+    (dired-do-flagged-delete)))
 
 (defun image-dired--thumb-update-mark-at-point ()
   (with-silent-modifications
@@ -1950,6 +1955,8 @@ when using per-directory thumbnail file storage"))
   #'image-dired--get-create-thumbnail-file "29.1")
 (define-obsolete-function-alias 'image-dired-display-thumb-properties
   #'image-dired--update-header-line "29.1")
+(define-obsolete-function-alias 'image-dired-delete-marked
+  #'image-dired-do-flagged-delete "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
