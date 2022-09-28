@@ -460,7 +460,8 @@ and IMAGE-NUMBER."
 (defmacro image-dired--with-marked (&rest body)
   "Eval BODY with point on each marked thumbnail.
 If no marked file could be found, execute BODY on the current
-thumbnail."
+thumbnail.  It's expected that a thumbnail is always followed
+by exactly one space or one newline character."
   `(with-current-buffer image-dired-thumbnail-buffer
      (let (found)
        (save-mark-and-excursion
@@ -1113,9 +1114,10 @@ With a negative prefix argument, prompt user for the delay."
   "Remove current thumbnail from thumbnail buffer and line up."
   (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
-    (delete-char 1)
-    (when (= (following-char) ?\s)
-      (delete-char 1))))
+    (delete-char 1))
+  (let ((pos (point)))
+    (image-dired--line-up-with-method)
+    (goto-char pos)))
 
 (defun image-dired-line-up ()
   "Line up thumbnails according to `image-dired-thumbs-per-row'.
@@ -1364,7 +1366,9 @@ for deletion instead."
                                      '(face image-dired-thumb-mark))))))
 
 (defun image-dired--thumb-update-marks ()
-  "Update the marks in the thumbnail buffer."
+  "Update the marks in the thumbnail buffer.
+It's expected, that a thumbnail is always followed
+by exactly one space or one newline character."
   (when image-dired-thumb-visible-marks
     (with-current-buffer image-dired-thumbnail-buffer
       (save-mark-and-excursion
