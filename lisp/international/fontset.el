@@ -294,10 +294,10 @@
 	(toto #x1E290)
 	(wancho #x1e2c0)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
-	(mende-kikakui #x1E810)
+	(mende-kikakui #x1E810 #x1E8A6)
 	(adlam #x1E900 #x1E943)
-	(indic-siyaq-number #x1ec71)
-	(ottoman-siyaq-number #x1ed01)
+	(indic-siyaq-number #x1EC71 #x1EC9F)
+	(ottoman-siyaq-number #x1ED01 #x1ED27)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)
         (emoji #x1F300 #x1F600)
@@ -833,8 +833,11 @@
 		    counting-rod-numeral
                     toto
                     nag-mundari
+                    mende-kikakui
 		    adlam
                     tai-tham
+                    indic-siyaq-number
+                    ottoman-siyaq-number
 		    mahjong-tile
 		    domino-tile
                     emoji

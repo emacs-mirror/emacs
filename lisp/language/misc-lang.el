@@ -291,6 +291,20 @@ in this language environment.")))
         "[\x1E900-\x1E95F]+"
         0 'font-shape-gstring)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mende Kikakui
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Mende Kikakui" '((charset unicode)
+                   (coding-system utf-8)
+                   (coding-priority utf-8)
+                   (input-method . "mende-kikakui")
+                   (sample-text . "Mende Kikakui (𞠀𞠁𞠂)	𞠛𞠉")
+                   (documentation . "\
+Mende language and its script Kikakui are supported
+in this language environment.")))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here
