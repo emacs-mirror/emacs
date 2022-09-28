@@ -315,7 +315,8 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar-keymap eww-link-keymap
   :parent shr-map
-  "RET" #'eww-follow-link)
+  "RET" #'eww-follow-link
+  "<mouse-2>" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
   :parent shr-map
@@ -1901,7 +1902,8 @@ If EXTERNAL is double prefix, browse in new buffer."
    eww-mode)
   (mouse-set-point mouse-event)
   (let* ((orig-url (get-text-property (point) 'shr-url))
-         (url (eww--transform-url orig-url)))
+         (url (eww--transform-url orig-url))
+         target)
     (cond
      ((not url)
       (message "No link under point"))
@@ -1913,12 +1915,17 @@ If EXTERNAL is double prefix, browse in new buffer."
       (funcall browse-url-secondary-browser-function url)
       (shr--blink-link))
      ;; This is a #target url in the same page as the current one.
-     ((and (url-target (url-generic-parse-url url))
+     ((and (setq target (url-target (url-generic-parse-url url)))
 	   (eww-same-page-p url (plist-get eww-data :url)))
-      (let ((dom (plist-get eww-data :dom)))
+      (let ((point (point)))
 	(eww-save-history)
 	(plist-put eww-data :url url)
-	(eww-display-html 'utf-8 url dom nil (current-buffer))))
+        (goto-char (point-min))
+        (if-let ((match (text-property-search-forward 'shr-target-id target #'member)))
+            (goto-char (prop-match-beginning match))
+          (goto-char (if (equal target "top")
+                         (point-min)
+                       point)))))
      (t
       (eww-browse-url orig-url external)))))
 
