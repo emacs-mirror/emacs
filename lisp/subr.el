@@ -2514,7 +2514,20 @@ The variable list SPEC is the same as in `if-let'."
   (declare (indent 1) (debug if-let))
   (list 'if-let spec (macroexp-progn body)))
 
+(defmacro while-let (spec &rest body)
+  "Bind variables according to SPEC and conditionally evaluate BODY.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all bindings are non-nil, eval BODY and repeat.
 
+The variable list SPEC is the same as in `if-let'."
+  (declare (indent 1) (debug if-let))
+  (let ((done (gensym "done")))
+    `(catch ',done
+       (while t
+         (if-let ,spec
+             (progn
+               ,@body)
+           (throw ',done nil))))))
 
 ;; PUBLIC: find if the current mode derives from another.
 

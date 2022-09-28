@@ -3013,6 +3013,10 @@ The following generalized variables have been made obsolete:
 * Lisp Changes in Emacs 29.1
 
 +++
+** New macro 'while-let'.
+This is like 'when-let', but repeats until a binding form is nil.
+
++++
 ** New function 'make-obsolete-generalized-variable'.
 This can be used to mark setters used by 'setf' as obsolete, and the
 byte-compiler will then warn about using them.
