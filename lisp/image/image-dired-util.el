@@ -88,7 +88,8 @@ See also `image-dired-thumbnail-storage'."
            (expand-file-name (format "%s.jpg" (sha1 file))
                              (image-dired-dir)))
           ((eq 'per-directory image-dired-thumbnail-storage)
-           (expand-file-name (format "%s.thumb.jpg" file)
+           (expand-file-name (format "%s.thumb.jpg"
+                                     (file-name-nondirectory file))
                              (expand-file-name
                               ".image-dired"
                               (file-name-directory file)))))))

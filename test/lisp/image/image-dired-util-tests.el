@@ -63,9 +63,9 @@
              (file-name-nondirectory (image-dired-thumb-name "foo.jpg"))
              (file-name-nondirectory (image-dired-thumb-name "/tmp/foo.jpg"))))
     (should (equal (file-name-split (image-dired-thumb-name "/tmp/foo.jpg"))
-                   '("" "tmp" ".image-dired" "foo.thumb.jpg")))
+                   '("" "tmp" ".image-dired" "foo.jpg.thumb.jpg")))
     (should (equal (file-name-nondirectory
                     (image-dired-thumb-name "foo.jpg"))
-                   "foo.thumb.jpg"))))
+                   "foo.jpg.thumb.jpg"))))
 
 ;;; image-dired-util-tests.el ends here
