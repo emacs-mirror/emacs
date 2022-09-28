@@ -439,11 +439,6 @@ Print the current local time as a human-readable string.  This command
 is similar to, but slightly different from, the GNU Coreutils
 @command{date} command.
 
-@item define
-@cmindex define
-Define a variable alias.
-@xref{Variable Aliases, , , elisp, The Emacs Lisp Reference Manual}.
-
 @item diff
 @cmindex diff
 Compare files using Emacs's internal @code{diff} (not to be confused

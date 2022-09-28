@@ -302,6 +302,11 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 
 (defun eshell/define (var-alias definition)
   "Define a VAR-ALIAS using DEFINITION."
+  ;; FIXME: This function doesn't work (it produces variable aliases
+  ;; in a form not recognized by other parts of the code), and likely
+  ;; hasn't worked since before its introduction into Emacs.  It
+  ;; should either be removed or fixed up.
+  (declare (obsolete nil "29.1"))
   (if (not definition)
       (setq eshell-variable-aliases-list
 	    (delq (assoc var-alias eshell-variable-aliases-list)
