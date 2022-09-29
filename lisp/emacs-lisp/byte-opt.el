@@ -812,7 +812,7 @@ for speeding up processing.")
 (defun byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
   (setq form (byte-opt--bool-value-form form))
-  (or (not form)   ; assume (quote nil) always being normalised to nil
+  (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
              ;; FIXME: There are many other expressions that are statically nil.
@@ -1184,7 +1184,7 @@ See Info node `(elisp) Integer Basics'."
     (if (equal new-args (cdr form))
         ;; Input is unchanged: keep original form, and don't represent
         ;; a nil result explicitly because that would lead to infinite
-        ;; growth when the optimiser is iterated.
+        ;; growth when the optimizer is iterated.
         (setq nil-result nil)
       (setq form (cons (car form) new-args)))
 

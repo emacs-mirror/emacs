@@ -1972,7 +1972,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-forward-syntactic-ws limit))))
 
 (defun c-font-lock-c++-modules (limit)
-  ;; Fontify the C++20 module stanzas, characterised by the keywords `module',
+  ;; Fontify the C++20 module stanzas, characterized by the keywords `module',
   ;; `export' and `import'.  Note that this has to be done by a function (as
   ;; opposed to regexps) due to the presence of optional C++ attributes.
   ;;

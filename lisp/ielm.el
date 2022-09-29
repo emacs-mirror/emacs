@@ -491,7 +491,7 @@ and syntax highlighting are set up with `emacs-lisp-mode'.  In
 addition to `comint-indirect-setup-hook', run this hook with the
 indirect buffer as the current buffer after its setup is done.
 This can be used to further customize fontification and other
-behaviour of the indirect buffer."
+behavior of the indirect buffer."
   :type 'boolean
   :safe 'booleanp
   :version "29.1")

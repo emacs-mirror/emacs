@@ -324,7 +324,7 @@ enabled, is performed in an indirect buffer, whose indentation
 and syntax highlighting is set up with `sh-mode'.  In addition to
 `comint-indirect-setup-hook', run this hook with the indirect
 buffer as the current buffer after its setup is done.  This can
-be used to further customize fontification and other behaviour of
+be used to further customize fontification and other behavior of
 the indirect buffer."
   :type 'boolean
   :group 'shell

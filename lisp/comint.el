@@ -3966,7 +3966,7 @@ an indirect buffer, whose major mode and syntax highlighting are
 set up according to `comint-indirect-setup-function'.  After this
 setup is done, run this hook with the indirect buffer as the
 current buffer.  This can be used to further customize
-fontification and other behaviour of the indirect buffer."
+fontification and other behavior of the indirect buffer."
   :group 'comint
   :type 'hook
   :version "29.1")

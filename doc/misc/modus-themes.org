@@ -5852,7 +5852,7 @@ interface virtually unusable.
 
 [[#h:5808be52-361a-4d18-88fd-90129d206f9b][Option for links]].
 
-Again, one must exercise judgement in order to avoid discrimination,
+Again, one must exercise judgment in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5868,11 +5868,11 @@ usability beyond matters of color---they would be making a
 not-so-obvious error of treating different cases as if they were the
 same.
 
-The Modus themes prioritise "thematic consistency" over abstract harmony
+The Modus themes prioritize "thematic consistency" over abstract harmony
 or regularity among their applicable colors.  In concrete terms, we do
 not claim that, say, our yellows are the best complements for our blues
 because we generally avoid using complementary colors side-by-side, so
-it is wrong to optimise for a decontextualised blue+yellow combination.
+it is wrong to optimize for a decontextualised blue+yellow combination.
 Not to imply that our colors do not work well together because they do,
 just to clarify that consistency of context is what themes must strive
 for, and that requires widening the scope of the design beyond the

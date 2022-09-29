@@ -515,7 +515,7 @@ in ‘mailcap-mime-data’."
 In its current implementation ‘mailcap-add-mailcap-entry’ loses
 extra fields of an entry already existing in ‘mailcap-mime-data’.
 This test does not actually verify a correct result; it merely
-checks whether ‘mailcap-add-mailcap-entry’ behaviour is still the
+checks whether ‘mailcap-add-mailcap-entry’ behavior is still the
 incorrect one.  As such, it can be satisfied by any other result
 than the expected and known wrong one, and its success does not
 help to verify the correct addition and merging of an entry."
