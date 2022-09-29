@@ -2471,38 +2471,43 @@ with // and /*, not more generic line and block comments."
       (c-backward-syntactic-ws lim))
     (when (setq pos1 (c-on-identifier))
       (goto-char pos1)
-      (let ((lim (save-excursion
-		   (and (c-beginning-of-macro)
-			(progn (c-end-of-macro) (point))))))
-	(and (c-forward-declarator lim)
-	     (if (and (eq (char-after) ?\()
-		      (c-go-list-forward nil lim))
+      (let* ((lim (save-excursion
+		    (and (c-beginning-of-macro)
+			 (progn (c-end-of-macro) (point)))))
+	     (decl-res (c-forward-declarator lim)))
+	 (if (or (cadr (cddr (cddr decl-res))) ; We scanned an arglist.
+		 (and (eq (char-after) ?\() ; Move over a non arglist (...).
+		      (prog1 (c-go-list-forward nil lim)
+			(c-forward-syntactic-ws lim))))
+	     (if (looking-at c-symbol-char-key)
+		 ;; Deal with baz (foo((bar)) type var), where `pos'
+		 ;; was inside foo, but foo((bar)) is not semantically
+		 ;; valid.  The result must be after var).
 		 (and
-		  (progn (c-forward-syntactic-ws lim)
-			 (not (eobp)))
+		  (goto-char pos)
+		  (setq pos1 (c-on-identifier))
+		  (goto-char pos1)
 		  (progn
-		    (if (looking-at c-symbol-char-key)
-			;; Deal with baz (foo((bar)) type var), where
-			;; foo((bar)) is not semantically valid.  The result
-			;; must be after var).
-			(and
-			 (goto-char pos)
-			 (setq pos1 (c-on-identifier))
-			 (goto-char pos1)
-			 (progn
-			   (c-backward-syntactic-ws lim)
-			   (eq (char-before) ?\())
-			 (c-fl-decl-end (1- (point))))
-		      (c-backward-syntactic-ws lim)
-		      (point))))
-	       (if (progn (c-forward-syntactic-ws lim)
-			  (not (eobp)))
-		   (c-forward-over-token)
-		 (let ((lit-start (c-literal-start)))
-		   (when lit-start
-		       (goto-char lit-start))
-		   (c-backward-syntactic-ws)))
-	       (and (>= (point) pos) (point))))))))
+		    (c-backward-syntactic-ws lim)
+		    (eq (char-before) ?\())
+		  (c-fl-decl-end (1- (point))))
+	       (c-backward-syntactic-ws lim)
+	       (point))
+	   (if (progn (c-forward-syntactic-ws lim)
+		      (not (eobp)))
+	       (progn
+		 (c-forward-over-token)
+		 ;; Cope with having POS withing a syntactically invalid
+		 ;; (...), by moving backward out of the parens and trying
+		 ;; again.
+		 (when (and (eq (char-before) ?\))
+			    (c-go-list-backward (point) lim))
+		   (c-fl-decl-end (point))))
+	     (let ((lit-start (c-literal-start)))
+	       (when lit-start
+		 (goto-char lit-start))
+	       (c-backward-syntactic-ws)))
+	   (and (>= (point) pos) (point)))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock

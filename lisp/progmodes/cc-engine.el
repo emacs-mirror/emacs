@@ -9590,14 +9590,71 @@ point unchanged and return nil."
       (goto-char here)
       nil)))
 
-(defun c-forward-declarator (&optional limit accept-anon)
+(defun c-forward-decl-arglist (not-top id-in-parens &optional limit)
+  ;; Point is at an open parenthesis, assumed to be the arglist of a function
+  ;; declaration.  Move over this arglist and following syntactic whitespace,
+  ;; and return non-nil.  If the construct isn't such an arglist, leave point
+  ;; unmoved and return nil.
+  ;;
+  ;; Note that point is assumed to be at a place where an arglist is expected.
+  ;; Only for C++, where there are other possibilities, is any actual
+  ;; processing done.  Otherwise, t is simply returned.
+  (let ((here (point)) got-type)
+    (if	(or
+	 (not (c-major-mode-is 'c++-mode))
+	 (and
+	  (or (not not-top)
+	      id-in-parens		; Id is in parens, etc.
+	      (save-excursion
+		(forward-char)
+		(c-forward-syntactic-ws limit)
+		(looking-at "[*&]")))
+	  (when
+	      (save-excursion
+		(let (c-last-identifier-range)
+		  (forward-char)
+		  (c-forward-syntactic-ws limit)
+		  (catch 'is-function
+		    (while
+			;; Go forward one argument at each iteration.
+			(progn
+			  (while
+			      (cond
+			       ((looking-at c-decl-hangon-key)
+				(c-forward-keyword-clause 1))
+			       ((looking-at
+				 c-noise-macro-with-parens-name-re)
+				(c-forward-noise-clause))))
+			  (when (eq (char-after) ?\))
+			    (forward-char)
+			    (c-forward-syntactic-ws limit)
+			    (throw 'is-function t))
+			  (setq got-type (c-forward-type))
+			  (cond
+			   ((null got-type)
+			    (throw 'is-function nil))
+			   ((not (eq got-type 'maybe))
+			    (throw 'is-function t)))
+			  (c-forward-declarator limit t t)
+			  (eq (char-after) ?,))
+		      (forward-char)
+		      (c-forward-syntactic-ws))
+		    t)))
+	    (and (c-go-list-forward (point) limit)
+		 (progn (c-forward-syntactic-ws limit) t)))))
+	t
+      (goto-char here)
+      nil)))
+
+(defun c-forward-declarator (&optional limit accept-anon not-top)
   ;; Assuming point is at the start of a declarator, move forward over it,
   ;; leaving point at the next token after it (e.g. a ) or a ; or a ,), or at
   ;; end of buffer if there is no such token.
   ;;
-  ;; Return a list (ID-START ID-END BRACKETS-AFTER-ID GOT-INIT DECORATED),
-  ;; where ID-START and ID-END are the bounds of the declarator's identifier,
-  ;; and BRACKETS-AFTER-ID is non-nil if a [...] pair is present after the id.
+  ;; Return a list (ID-START ID-END BRACKETS-AFTER-ID GOT-INIT DECORATED
+  ;; ARGLIST), where ID-START and ID-END are the bounds of the declarator's
+  ;; identifier, BRACKETS-AFTER-ID is non-nil if a [...] pair is present after
+  ;; the id, and ARGLIST is non-nil if an arglist has been moved over.
   ;; GOT-INIT is non-nil when the declarator is followed by "=" or "(",
   ;; DECORATED is non-nil when the identifier is embellished by an operator,
   ;; like "*x", or "(*x)".
@@ -9619,7 +9676,8 @@ point unchanged and return nil."
   ;; array/struct initialization) or "=" or terminating delimiter
   ;; (e.g. "," or ";" or "}").
   (let ((here (point))
-	id-start id-end brackets-after-id paren-depth decorated)
+	id-start id-end brackets-after-id paren-depth decorated
+	got-init arglist)
     (or limit (setq limit (point-max)))
     (if	(and
 	 (< (point) limit)
@@ -9640,6 +9698,18 @@ point unchanged and return nil."
 		((and c-opt-cpp-prefix
 		      (looking-at c-noise-macro-with-parens-name-re))
 		 (c-forward-noise-clause))
+		;; Special handling for operator<op>.
+		((and c-opt-op-identifier-prefix
+		      (looking-at c-opt-op-identifier-prefix))
+		 (goto-char (match-end 1))
+		 (c-forward-syntactic-ws limit)
+		 (setq id-start (point))
+		 (if (looking-at c-overloadable-operators-regexp)
+		     (progn
+		       (goto-char (match-end 0))
+		       (setq got-identifier t)
+		       nil)
+		   t))
 		((and (looking-at c-type-decl-prefix-key)
 		      (if (and (c-major-mode-is 'c++-mode)
 			       (match-beginning 4)) ; Was 3 - 2021-01-01
@@ -9648,17 +9718,17 @@ point unchanged and return nil."
 			  ;; prefix only if it specifies a member pointer.
 			  (progn
 			    (setq id-start (point))
-			    (c-forward-name)
-			    (if (save-match-data
-				  (looking-at "\\(::\\)"))
-				;; We only check for a trailing "::" and
-				;; let the "*" that should follow be
-				;; matched in the next round.
-				t
-			      ;; It turned out to be the real identifier,
-			      ;; so flag that and stop.
-			      (setq got-identifier t)
-			      nil))
+			    (when (c-forward-name)
+			      (if (save-match-data
+				    (looking-at "\\(::\\)"))
+				  ;; We only check for a trailing "::" and
+				  ;; let the "*" that should follow be
+				  ;; matched in the next round.
+				  t
+				;; It turned out to be the real identifier,
+				;; so flag that and stop.
+				(setq got-identifier t)
+				nil)))
 			t))
 		 (if (save-match-data
 		       (looking-at c-type-decl-operator-prefix-key))
@@ -9684,7 +9754,7 @@ point unchanged and return nil."
 	    (accept-anon
 	     (setq id-start nil id-end nil)
 	     t)
-	    (t (/= (point) here))))
+	    (t nil)))
 
 	 ;; Skip out of the parens surrounding the identifier.  If closing
 	 ;; parens are missing, this form returns nil.
@@ -9725,10 +9795,13 @@ point unchanged and return nil."
 		      (while
 			  (and
 			   (< (point) limit)
-			   (setq found
-				 (c-syntactic-re-search-forward
-				  "[;:,]\\|\\s)\\|\\(=\\|\\s(\\)"
-				  limit t t))
+			   (prog1
+			       (setq found
+				     (c-syntactic-re-search-forward
+				      "[;:,]\\|\\s)\\|\\(=\\|\\s(\\)"
+				      limit t t))
+			     (setq got-init
+				   (and found (match-beginning 1))))
 			   (eq (char-before) ?:)
 			   (if (looking-at c-:-op-cont-regexp)
 			       (progn (goto-char (match-end 0)) t)
@@ -9742,18 +9815,30 @@ point unchanged and return nil."
 					     (c-simple-skip-symbol-backward))
 				      (looking-at c-paren-stmt-key))))))))
 		      found)
-		    (eq (char-before) ?\[)
-		    (c-go-up-list-forward))
-	     (setq brackets-after-id t))
-	   (when found (backward-char))
+		    (cond ((eq (char-before) ?\[)
+			   (setq brackets-after-id t)
+			   (prog1 (c-go-up-list-forward)
+			     (c-forward-syntactic-ws)))
+			  ((and (not brackets-after-id)
+				(eq (char-before) ?\())
+			   (backward-char)
+			   (if (c-forward-decl-arglist not-top decorated limit)
+			       (setq arglist t
+				     got-init nil)
+			     (forward-char))
+			   nil))))	; To end the loop.
+	   (when (and found
+		      (memq (char-before) '(?\; ?\: ?, ?= ?\( ?\[ ?{)))
+	       (backward-char))
 	   (<= (point) limit)))
-	(list id-start id-end brackets-after-id (match-beginning 1) decorated)
+	(list id-start id-end brackets-after-id got-init decorated arglist)
 
       (goto-char here)
       nil)))
 
 (defun c-do-declarators
-    (cdd-limit cdd-list cdd-not-top cdd-comma-prop cdd-function)
+    (cdd-limit cdd-list cdd-not-top cdd-comma-prop cdd-function
+	       &optional cdd-accept-anon)
   "Assuming point is at the start of a comma separated list of declarators,
 apply CDD-FUNCTION to each declarator (when CDD-LIST is non-nil) or just the
 first declarator (when CDD-LIST is nil).  When CDD-FUNCTION is nil, no
@@ -9778,6 +9863,9 @@ Stop at or before CDD-LIMIT (which may NOT be nil).
 If CDD-NOT-TOP is non-nil, we are not at the top-level (\"top-level\" includes
 being directly inside a class or namespace, etc.).
 
+If CDD-ACCEPT-ANON is non-nil, we also process declarators without names,
+e.g. \"int (*)(int)\" in a function prototype.
+
 Return non-nil if we've reached the token after the last declarator (often a
 semicolon, or a comma when CDD-LIST is nil); otherwise (when we hit CDD-LIMIT,
 or fail otherwise) return nil, leaving point at the beginning of the putative
@@ -9789,67 +9877,25 @@ This function might do hidden buffer changes."
   ;; CDD-FUNCTION.
   (let
       ((cdd-pos (point)) cdd-next-pos cdd-id-start cdd-id-end
-       cdd-decl-res cdd-got-func cdd-got-type cdd-got-init
+       cdd-decl-res cdd-got-func cdd-got-init
        c-last-identifier-range cdd-exhausted cdd-after-block)
 
     ;; The following `while' applies `cdd-function' to a single declarator id
     ;; each time round.  It loops only when CDD-LIST is non-nil.
     (while
 	(and (not cdd-exhausted)
-	     (setq cdd-decl-res (c-forward-declarator cdd-limit)))
+	     (setq cdd-decl-res (c-forward-declarator
+				 cdd-limit cdd-accept-anon cdd-not-top)))
+
       (setq cdd-next-pos (point)
 	    cdd-id-start (car cdd-decl-res)
 	    cdd-id-end (cadr cdd-decl-res)
-	    cdd-got-func (and (eq (char-after) ?\()
-			  (or (not (c-major-mode-is 'c++-mode))
-			      (not cdd-not-top)
-			      (car (cddr (cddr cdd-decl-res))) ; Id is in
-					; parens, etc.
-			      (save-excursion
-				(forward-char)
-				(c-forward-syntactic-ws)
-				(looking-at "[*&]")))
-			  (not (car (cddr cdd-decl-res)))
-			  (or (not (c-major-mode-is 'c++-mode))
-			      (save-excursion
-				(let (c-last-identifier-range)
-				  (forward-char)
-				  (c-forward-syntactic-ws)
-				  (catch 'is-function
-				    (while
-					(progn
-					  (while
-					      (cond
-					       ((looking-at c-decl-hangon-key)
-						(c-forward-keyword-clause 1))
-					       ((looking-at c-noise-macro-with-parens-name-re)
-						(c-forward-noise-clause))))
-					  (if (eq (char-after) ?\))
-					      (throw 'is-function t))
-					  (setq cdd-got-type (c-forward-type))
-					  (cond
-					   ((null cdd-got-type)
-					    (throw 'is-function nil))
-					   ((not (eq cdd-got-type 'maybe))
-					    (throw 'is-function t)))
-					  (c-forward-declarator nil t)
-					  (eq (char-after) ?,))
-				      (forward-char)
-				      (c-forward-syntactic-ws))
-				    t)))))
-	    cdd-got-init (and (cadr (cddr cdd-decl-res))
-			  (char-after)))
+	    cdd-got-func (cadr (cddr (cddr cdd-decl-res)))
+	    cdd-got-init (and (cadr (cddr cdd-decl-res)) (char-after)))
 
       ;; Jump past any initializer or function prototype to see if
       ;; there's a ',' to continue at.
-      (cond (cdd-got-func
-	     ;; Skip a parenthesized initializer (C++) or a function
-	     ;; prototype.
-	     (if (c-go-list-forward (point) cdd-limit) ; over the parameter list.
-		 (c-forward-syntactic-ws cdd-limit)
-	       (setq cdd-exhausted t)))	; unbalanced parens
-
-	    (cdd-got-init		; "=" sign OR opening "(", "[", or "("
+      (cond (cdd-got-init		; "=" sign OR opening "(", "[", or "("
 	     ;; Skip an initializer expression in braces, whether or not (in
 	     ;; C++ Mode) preceded by an "=".  Be careful that the brace list
 	     ;; isn't a code block or a struct (etc.) block.
@@ -9872,8 +9918,9 @@ This function might do hidden buffer changes."
 	    (t (c-forward-syntactic-ws cdd-limit)))
 
       (if cdd-function
-	  (funcall cdd-function cdd-id-start cdd-id-end cdd-next-pos
-		   cdd-not-top cdd-got-func cdd-got-init))
+	  (save-excursion
+	    (funcall cdd-function cdd-id-start cdd-id-end cdd-next-pos
+		     cdd-not-top cdd-got-func cdd-got-init)))
 
       ;; If a ',' is found we set cdd-pos to the next declarator and iterate.
       (if (and cdd-list (< (point) cdd-limit) (looking-at ","))

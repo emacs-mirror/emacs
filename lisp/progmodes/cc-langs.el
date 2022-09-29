@@ -934,6 +934,8 @@ This value is by default merged into `c-operators'."
 			     t)))
       (when ops
 	(c-make-keywords-re 'appendable ops))))
+(c-lang-defvar c-opt-identifier-prefix-key
+	       (c-lang-const c-opt-identifier-prefix-key))
 
 (c-lang-defconst c-after-id-concat-ops
   "Operators that can occur after a binary operator on `c-identifier-ops'
