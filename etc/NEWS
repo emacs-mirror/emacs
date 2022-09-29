@@ -381,6 +381,15 @@ startup.  Previously, these functions ignored
 'initial-scratch-message' and left "*scratch*" in 'fundamental-mode'.
 
 ---
+** Naming of Image-Dired thumbnail files has changed.
+Names of thumbnail files generated when 'image-dired-thumbnail-storage'
+is 'image-dired' now always end in ".jpg".  This fixes various issues
+on different platforms, but means that thumbnails generated in Emacs 28
+will not be used in Emacs 29, and vice-versa.  If disk space is an
+issue, consider deleting the 'image-dired-dir' directory after
+upgrading (usually "~/.emacs.d/image-dired/").
+
+---
 ** The 'rlogin' method in the URL library is now obsolete.
 Emacs will now display a warning if you request a URL like
 "rlogin://foo@example.org".
@@ -2671,15 +2680,6 @@ will have key definitions and single quotes handled specially.
 This means that images found through 'find-image' also have
 auto-scaling applied.  (This only makes a difference on HiDPI
 displays.)
-
----
-** Naming of thumbnail files has changed.
-Names of thumbnail files generated when 'image-dired-thumbnail-storage'
-is 'image-dired' now always end in ".jpg".  This fixes various issues
-on different platforms, but means that thumbnails generated in Emacs 28
-will not be used in Emacs 29, and vice-versa.  If disk space is an
-issue, consider deleting the directory 'image-dired-dir' after
-upgrading (usually "~/.emacs.d/image-dired/").
 
 +++
 ** Changes to "raw" in-memory xbm images are specified.
