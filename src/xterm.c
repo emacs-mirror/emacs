@@ -17699,7 +17699,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   int do_help = 0;
 #ifdef HAVE_XINPUT2
   struct xi_device_t *gen_help_device;
-  Time gen_help_time;
+  Time gen_help_time UNINIT;
 #endif
   ptrdiff_t nbytes = 0;
   struct frame *any, *f = NULL;
