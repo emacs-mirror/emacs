@@ -396,6 +396,40 @@ See also `wallpaper-default-width'.")
 
 ;;; wallpaper-set
 
+(defun wallpaper--x-monitor-name ()
+  "Get the monitor name for `wallpaper-set'.
+On a graphical display, try using the same monitor as the current
+frame.
+On a non-graphical display, try to get the name by connecting to
+the display server directly, and run \"xrandr\" if that doesn't
+work.  Prompt for the monitor name if neither method works."
+  (if (or (display-graphic-p)
+          noninteractive)
+      (let-alist (car (display-monitor-attributes-list))
+        (if (and .name (member .source '("XRandr" "XRandR 1.5" "Gdk")))
+            .name
+          "0"))
+    (if-let ((name
+              (and (getenv "DISPLAY")
+                   (or
+                    (cdr (assq 'name
+                               (progn
+                                 (x-open-connection (getenv "DISPLAY"))
+                                 (car (display-monitor-attributes-list
+                                       (car (last (terminal-list))))))))
+                    (and (executable-find "xrandr")
+                         (with-temp-buffer
+                           (call-process "xrandr" nil t nil)
+                           (goto-char (point-min))
+                           (re-search-forward (rx bol
+                                                  (group (+ (not (in " \n"))))
+                                                  " connected")
+                                              nil t)
+                           (match-string 1)))))))
+        ;; Prefer "0" to "default" as that works in XFCE.
+        (if (equal name "default") "0" name)
+      (read-string (format-prompt "Monitor name" nil)))))
+
 (defun wallpaper--format-arg (format file)
   "Format a `wallpaper-command-args' argument ARG.
 FILE is the image file name."
@@ -424,10 +458,7 @@ FILE is the image file name."
                   (match-string 1 display)
                 "0")))
      ;; monitor name
-     (?M . ,(let-alist (car (display-monitor-attributes-list))
-              (if (and .name (member .source '("XRandr" "XRandR 1.5" "Gdk")))
-                  .name
-                "0")))
+     (?M . ,#'wallpaper--x-monitor-name)
      ;; workspace
      (?W . ,(or (and (fboundp 'x-window-property)
                      (display-graphic-p)
@@ -454,9 +485,7 @@ This is the default function for `wallpaper-set-function'."
     (unless wallpaper-command
       (error "Couldn't find a suitable command for setting the wallpaper"))
     (wallpaper-debug "Using command: \"%s %s\""
-            wallpaper-command (string-join args " "))
-    (wallpaper-debug (wallpaper--format-arg
-             "f=%f w=%w h=%h S=%S M=%M W=%W" file))
+            wallpaper-command (string-join real-args " "))
     (setf (process-sentinel process)
           (lambda (process status)
             (unwind-protect
