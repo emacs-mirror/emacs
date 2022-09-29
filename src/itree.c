@@ -94,26 +94,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    incremented whenever some node's offset has changed.
 */
 
-static struct interval_node *interval_tree_validate(struct interval_tree *, struct interval_node *);
-static void interval_generator_ensure_space(struct interval_generator *);
-static bool interval_node_intersects(const struct interval_node *, ptrdiff_t, ptrdiff_t);
-static int interval_tree_max_height(const struct interval_tree *);
-static struct interval_stack *interval_stack_create(intmax_t);
-static void interval_stack_destroy(struct interval_stack *);
-static void interval_stack_clear(struct interval_stack *);
-static void interval_stack_ensure_space(struct interval_stack *, intmax_t);
-static void interval_stack_push(struct interval_stack *, struct interval_node *);
-static void interval_stack_push_flagged(struct interval_stack *, struct interval_node *, bool);
-static struct interval_node *interval_stack_pop(struct interval_stack *);
-static void interval_tree_update_limit(const struct interval_tree *, struct interval_node *);
-static void interval_tree_inherit_offset(const struct interval_tree *, struct interval_node *);
-static void interval_tree_propagate_limit(const struct interval_tree *, struct interval_node *);
-static void interval_tree_rotate_left(struct interval_tree *, struct interval_node *);
-static void interval_tree_rotate_right(struct interval_tree *, struct interval_node *);
-static void interval_tree_insert_fix(struct interval_tree *, struct interval_node *);
-static void interval_tree_remove_fix(struct interval_tree *, struct interval_node *);
-static void interval_tree_transplant(struct interval_tree *, struct interval_node *, struct interval_node *);
-static struct interval_node *interval_tree_subtree_min(const struct interval_tree *, struct interval_node *);
+static struct interval_node *interval_tree_validate (struct interval_tree *, struct interval_node *);
+static void interval_generator_ensure_space (struct interval_generator *);
+static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
+static int interval_tree_max_height (const struct interval_tree *);
+static struct interval_stack *interval_stack_create (intmax_t);
+static void interval_stack_destroy (struct interval_stack *);
+static void interval_stack_clear (struct interval_stack *);
+static void interval_stack_ensure_space (struct interval_stack *, intmax_t);
+static void interval_stack_push (struct interval_stack *, struct interval_node *);
+static void interval_stack_push_flagged (struct interval_stack *, struct interval_node *, bool);
+static struct interval_node *interval_stack_pop (struct interval_stack *);
+static void interval_tree_update_limit (const struct interval_tree *, struct interval_node *);
+static void interval_tree_inherit_offset (const struct interval_tree *, struct interval_node *);
+static void interval_tree_propagate_limit (const struct interval_tree *, struct interval_node *);
+static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
+static void interval_tree_rotate_right (struct interval_tree *, struct interval_node *);
+static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
+static void interval_tree_remove_fix (struct interval_tree *, struct interval_node *);
+static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
+static struct interval_node *interval_tree_subtree_min (const struct interval_tree *, struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 static void interval_generator_destroy (struct interval_generator *);
 static void interval_generator_reset (struct interval_generator *,
@@ -124,7 +124,7 @@ interval_generator_narrow (struct interval_generator *g,
                              ptrdiff_t begin, ptrdiff_t end);
 static inline struct interval_node*
 interval_generator_next (struct interval_generator *g);
-static inline void interval_tree_iter_ensure_space(struct interval_tree *);
+static inline void interval_tree_iter_ensure_space (struct interval_tree *);
 
 
 
@@ -454,11 +454,10 @@ interval_tree_iter_start (struct interval_tree *tree,
    interval can only shrink, but never grow.*/
 
 inline void
-interval_tree_iter_narrow(struct interval_tree *tree,
-                               ptrdiff_t begin, ptrdiff_t end)
+interval_tree_iter_narrow (struct interval_tree *tree,
+                           ptrdiff_t begin, ptrdiff_t end)
 {
-  if (! tree->iter_running)
-    emacs_abort ();
+  eassert (tree->iter_running);
   interval_generator_narrow (tree->iter, begin, end);
 }
 
@@ -467,8 +466,7 @@ interval_tree_iter_narrow(struct interval_tree *tree,
 void
 interval_tree_iter_finish (struct interval_tree *tree)
 {
-  if (! tree->iter_running)
-    emacs_abort ();
+  eassert (tree->iter_running);
   tree->iter_running = false;
 }
 
@@ -478,8 +476,7 @@ interval_tree_iter_finish (struct interval_tree *tree)
 inline struct interval_node*
 interval_tree_iter_next (struct interval_tree *tree)
 {
-  if (! tree->iter_running)
-    emacs_abort ();
+  eassert (tree->iter_running);
   return interval_generator_next (tree->iter);
 }
 

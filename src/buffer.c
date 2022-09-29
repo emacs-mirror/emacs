@@ -932,6 +932,18 @@ delete_all_overlays (struct buffer *b)
   interval_tree_clear (b->overlays);
 }
 
+static void
+free_buffer_overlays (struct buffer *b)
+{
+  /* Actually this does not free any overlay, but the tree only.  --ap */
+  eassert (! b->overlays || 0 == interval_tree_size (b->overlays));
+  if (b->overlays)
+    {
+      interval_tree_destroy (b->overlays);
+      b->overlays = NULL;
+    }
+}
+
 /* Adjust the position of overlays in the current buffer according to
    MULTIBYTE.
 

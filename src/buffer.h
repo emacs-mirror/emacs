@@ -1424,20 +1424,6 @@ maybe_alloc_buffer_overlays (struct buffer *b)
     b->overlays = interval_tree_create ();
 }
 
-/* FIXME: Actually this does not free any overlay, but the tree
-   only. --ap */
-
-INLINE void
-free_buffer_overlays (struct buffer *b)
-{
-  eassert (! b->overlays || 0 == interval_tree_size (b->overlays));
-  if (b->overlays)
-    {
-      interval_tree_destroy (b->overlays);
-      b->overlays = NULL;
-    }
-}
-
 INLINE void
 add_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
 {
