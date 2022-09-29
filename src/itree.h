@@ -46,7 +46,6 @@ struct interval_node
   uintmax_t otick;              /* offset modified tick */
   Lisp_Object data;             /* Exclusively used by the client. */
   bool_bf red : 1;
-  bool_bf visited : 1;          /* Internal to `interval_generator_next`.  */
   bool_bf rear_advance : 1;     /* Same as for marker and overlays.  */
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };

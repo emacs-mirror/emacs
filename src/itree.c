@@ -98,13 +98,6 @@ static struct interval_node *interval_tree_validate (struct interval_tree *, str
 static void interval_generator_ensure_space (struct interval_generator *);
 static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
 static int interval_tree_max_height (const struct interval_tree *);
-static struct interval_stack *interval_stack_create (intmax_t);
-static void interval_stack_destroy (struct interval_stack *);
-static void interval_stack_clear (struct interval_stack *);
-static void interval_stack_ensure_space (struct interval_stack *, intmax_t);
-static void interval_stack_push (struct interval_stack *, struct interval_node *);
-static void interval_stack_push_flagged (struct interval_stack *, struct interval_node *, bool);
-static struct interval_node *interval_stack_pop (struct interval_stack *);
 static void interval_tree_update_limit (const struct interval_tree *, struct interval_node *);
 static void interval_tree_inherit_offset (const struct interval_tree *, struct interval_node *);
 static void interval_tree_propagate_limit (const struct interval_tree *, struct interval_node *);
@@ -130,10 +123,12 @@ static inline void interval_tree_iter_ensure_space (struct interval_tree *);
 
 /* +------------------------------------------------------------------------------------+ */
 
+typedef uintptr_t nodeptr_and_flag;
+
 /* Simple dynamic array. */
 struct interval_stack
 {
-  struct interval_node **nodes;
+  nodeptr_and_flag *nodes;
   size_t size;
   size_t length;
 };
@@ -148,6 +143,97 @@ struct interval_generator
   enum interval_tree_order order;
 };
 
+
+/* +===================================================================================+
+ * | Stack
+ * +===================================================================================+ */
+
+static inline nodeptr_and_flag
+make_nav (struct interval_node *ptr, bool flag)
+{
+  uintptr_t v = (uintptr_t) ptr;
+  /* We assume alignment imposes the LSB is clear for us to use it.  */
+  eassert (!(v & 1));
+  return v | !!flag;
+}
+
+static inline struct interval_node *
+nav_nodeptr (nodeptr_and_flag nav)
+{
+  return (struct interval_node *) (nav & (~(uintptr_t)1));
+}
+
+static inline bool
+nav_flag (nodeptr_and_flag nav)
+{
+  return (bool) (nav & 1);
+}
+
+/* This is just a simple dynamic array with stack semantics. */
+
+static struct interval_stack*
+interval_stack_create (intmax_t initial_size)
+{
+  struct interval_stack *stack = xmalloc (sizeof (struct interval_stack));
+  stack->size = max (0, initial_size);
+  stack->nodes = xmalloc (stack->size * sizeof (struct interval_node*));
+  stack->length = 0;
+  return stack;
+}
+
+static void
+interval_stack_destroy (struct interval_stack *stack)
+{
+  if (! stack)
+    return;
+  if (stack->nodes)
+    xfree (stack->nodes);
+  xfree (stack);
+}
+
+static void
+interval_stack_clear (struct interval_stack *stack)
+{
+  stack->length = 0;
+}
+
+static inline void
+interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
+{
+  if (nelements > stack->size)
+    {
+      stack->size = (nelements + 1) * 2;
+      stack->nodes = xrealloc (stack->nodes, stack->size * sizeof (*stack->nodes));
+    }
+}
+
+/* Push NODE on the STACK, while settings its visited flag to FLAG. */
+
+static inline void
+interval_stack_push_flagged (struct interval_stack *stack,
+                             struct interval_node *node, bool flag)
+{
+  /* FIXME: Isn't this redundant with the calls that are passed
+     `interval_tree_max_height` before the iteration?  */
+  interval_stack_ensure_space (stack, stack->length + 1);
+
+  stack->nodes[stack->length] = make_nav (node, flag);
+  stack->length++;
+}
+
+static inline void
+interval_stack_push (struct interval_stack *stack, struct interval_node *node)
+{
+  interval_stack_push_flagged (stack, node, false);
+}
+
+static inline nodeptr_and_flag
+interval_stack_pop (struct interval_stack *stack)
+{
+  if (stack->length == 0)
+    return make_nav (NULL, false);
+  return stack->nodes[--stack->length];
+}
 
 
 /* +===================================================================================+
@@ -525,7 +611,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
     }
   interval_tree_iter_finish (tree);
   for (int i = 0; i < saved->length; ++i)
-    interval_tree_remove (tree, saved->nodes[i]);
+    interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
 
   /* We can't use a generator here, because we can't effectively
@@ -533,7 +619,9 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   const int size = interval_tree_max_height (tree) + 1;
   struct interval_stack *stack = interval_stack_create (size);
   interval_stack_push (stack, tree->root);
-  while ((node = interval_stack_pop (stack)))
+  nodeptr_and_flag nav;
+  while ((nav = interval_stack_pop (stack),
+          node = nav_nodeptr (nav)))
     {
       /* Process in pre-order. */
       interval_tree_inherit_offset (tree, node);
@@ -564,7 +652,8 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   interval_stack_destroy (stack);
 
   /* Reinsert nodes starting at POS having front-advance. */
-  while ((node = interval_stack_pop (saved)))
+  while ((nav = interval_stack_pop (saved),
+          node = nav_nodeptr (nav)))
     {
       node->begin += length;
       if (node->end != pos || node->rear_advance)
@@ -594,8 +683,10 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   struct interval_node *node;
 
   interval_stack_push (stack, tree->root);
-  while ((node = interval_stack_pop (stack)))
+  nodeptr_and_flag nav;
+  while ((nav = interval_stack_pop (stack)))
     {
+      node = nav_nodeptr (nav);
       interval_tree_inherit_offset (tree, node);
       if (node->right != &tree->null)
         {
@@ -705,19 +796,13 @@ interval_generator_next (struct interval_generator *g)
      needs to be considered but we haven't yet decided whether it's included
      in the generator's output.  */
 
-  /* FIXME: We should move the `visited` flag to the stack: each entry
-     there should simply consist of a node and a bool (the `visited` status)
-     so this internal implementation detail doesn't leak into the
-     `interval_node` structure.
-     [ In theory it would also allow multiple iterations to be active
-       at the same time, tho that does not seem particularly useful at
-       this time and would require further changes anyway.  ]
-     To save space on the stack, we could hijack the LSB bit of the `node*`
-     word to hold the `visited` bit.  */
-
   do {
-    while ((node = interval_stack_pop (g->stack))
-           && ! node->visited)
+    nodeptr_and_flag nav;
+    bool visited;
+    while ((nav = interval_stack_pop (g->stack),
+            node = nav_nodeptr (nav),
+            visited = nav_flag (nav),
+            node && !visited))
       {
         struct interval_node * const left = node->left;
         struct interval_node * const right = node->right;
@@ -781,75 +866,6 @@ interval_generator_destroy (struct interval_generator *g)
   if (g->stack)
     interval_stack_destroy (g->stack);
   xfree (g);
-}
-
-
-/* +===================================================================================+
- * | Stack
- * +===================================================================================+ */
-
-/* This is just a simple dynamic array with stack semantics. */
-
-static struct interval_stack*
-interval_stack_create (intmax_t initial_size)
-{
-  struct interval_stack *stack = xmalloc (sizeof (struct interval_stack));
-  stack->size = max (0, initial_size);
-  stack->nodes = xmalloc (stack->size * sizeof (struct interval_node*));
-  stack->length = 0;
-  return stack;
-}
-
-static void
-interval_stack_destroy (struct interval_stack *stack)
-{
-  if (! stack)
-    return;
-  if (stack->nodes)
-    xfree (stack->nodes);
-  xfree (stack);
-}
-
-static void
-interval_stack_clear (struct interval_stack *stack)
-{
-  stack->length = 0;
-}
-
-static inline void
-interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
-{
-  if (nelements > stack->size)
-    {
-      stack->size = (nelements + 1) * 2;
-      stack->nodes = xrealloc (stack->nodes, stack->size * sizeof (*stack->nodes));
-    }
-}
-
-static inline void
-interval_stack_push (struct interval_stack *stack, struct interval_node *node)
-{
-  interval_stack_ensure_space (stack, stack->length + 1);
-  stack->nodes[stack->length] = node;
-  stack->length++;
-}
-
-/* Push NODE on the STACK, while settings its visited flag to FLAG. */
-
-static inline void
-interval_stack_push_flagged (struct interval_stack *stack,
-                             struct interval_node *node, bool flag)
-{
-  interval_stack_push (stack, node);
-  node->visited = flag;
-}
-
-static inline struct interval_node*
-interval_stack_pop (struct interval_stack *stack)
-{
-  if (stack->length == 0)
-    return NULL;
-  return stack->nodes[--stack->length];
 }
 
 

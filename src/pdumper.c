@@ -2155,7 +2155,6 @@ dump_interval_node (struct dump_context *ctx, struct interval_node *node,
   DUMP_FIELD_COPY (&out, node, otick);
   dump_field_lv (ctx, &out, node, &node->data, WEIGHT_STRONG);
   DUMP_FIELD_COPY (&out, node, red);
-  DUMP_FIELD_COPY (&out, node, visited);
   DUMP_FIELD_COPY (&out, node, rear_advance);
   DUMP_FIELD_COPY (&out, node, front_advance);
   dump_off offset = dump_object_finish (ctx, &out, sizeof (out));
