@@ -2253,25 +2253,6 @@ string, be sure to use a valid format, see RFC 2616."
                                     (const :value config :tag "system configuration"))))
 		 (string)))
 
-;; Convert old (< 2005-01-10) symbol type values:
-(when (symbolp gnus-user-agent)
-  (setq gnus-user-agent
-	(cond ((eq gnus-user-agent 'emacs-gnus-config)
-	       '(emacs gnus config))
-	      ((eq gnus-user-agent 'emacs-gnus-type)
-	       '(emacs gnus type))
-	      ((eq gnus-user-agent 'emacs-gnus)
-	       '(emacs gnus))
-	      ((eq gnus-user-agent 'gnus)
-	       '(gnus))
-	      (t gnus-user-agent)))
-  (gnus-message 1 "Converted `gnus-user-agent' to `%s'." gnus-user-agent)
-  (sit-for 1)
-  (if (get 'gnus-user-agent 'saved-value)
-      (customize-save-variable 'gnus-user-agent gnus-user-agent)
-    (gnus-message 1 "Edit your init file to make this change permanent.")
-    (sit-for 2)))
-
 (defcustom gnus-agent-eagerly-store-articles t
   "If non-nil, cache articles eagerly.
 
