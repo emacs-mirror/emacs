@@ -476,8 +476,9 @@ must be available."
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
-  "Create an image.
-FILE-OR-DATA is an image file name or image data.
+  "Create an image from FILE-OR-DATA.
+FILE-OR-DATA is an image file name or image data.  If it is a relative
+file name, the function will look for it along `image-load-path'.
 
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes

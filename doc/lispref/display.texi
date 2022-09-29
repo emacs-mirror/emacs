@@ -5646,10 +5646,9 @@ Every image descriptor must include this property.
 
 @item :file @var{file}
 This says to load the image from file @var{file}.  If @var{file} is
-not an absolute file name, it is expanded relative to the
-@file{images} subdirectory of @code{data-directory}, and failing that,
-relative to the directories listed by @code{x-bitmap-file-path}
-(@pxref{Face Attributes}).
+not an absolute file name, it is expanded relative to each of the
+directories mentioned by @code{image-load-path} (@pxref{Defining
+Images}).
 
 @item :data @var{data}
 This specifies the raw image data.  Each image descriptor must have
@@ -6596,7 +6595,9 @@ Image type @code{webp}.
 This function creates and returns an image descriptor which uses the
 data in @var{file-or-data}.  @var{file-or-data} can be a file name or
 a string containing the image data; @var{data-p} should be @code{nil}
-for the former case, non-@code{nil} for the latter case.
+for the former case, non-@code{nil} for the latter case.  If
+@var{file-or-data} is a relative file name, the function will search
+for it in directories mentioned in @code{image-load-path}.
 
 The optional argument @var{type} is a symbol specifying the image type.
 If @var{type} is omitted or @code{nil}, @code{create-image} tries to

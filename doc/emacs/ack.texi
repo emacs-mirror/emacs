@@ -1441,7 +1441,7 @@ Victor Zandy wrote @file{zone.el}, a package for people who like to
 zone out in front of Emacs.
 
 @item
-Eli Zaretskii was the the Emacs (co-)maintainer from Emacs 25
+Eli Zaretskii was the Emacs (co-)maintainer from Emacs 25
 onwards.  He made many standard Emacs features work on MS-DOS and
 Microsoft Windows.  He also wrote @file{tty-colors.el}, which
 implements transparent mapping of X colors to tty colors; and
