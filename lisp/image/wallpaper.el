@@ -271,11 +271,13 @@ order in which they appear.")
 
 (defun wallpaper--find-command ()
   "Return a valid command to set the wallpaper in this environment."
-  (wallpaper-setter-command (wallpaper--find-setter)))
+  (when-let ((setter (wallpaper--find-setter)))
+    (wallpaper-setter-command setter)))
 
 (defun wallpaper--find-command-args ()
   "Return command line arguments matching `wallpaper-command'."
-  (wallpaper-setter-args (wallpaper--find-setter)))
+  (when-let ((setter (wallpaper--find-setter)))
+    (wallpaper-setter-args setter)))
 
 
 ;;; Customizable variables
