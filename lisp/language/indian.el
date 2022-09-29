@@ -277,6 +277,16 @@ Wancho language and its script are supported in this language
 environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Toto" '((charset unicode)
+          (coding-system utf-8)
+          (coding-priority utf-8)
+          (input-method . "toto")
+          (documentation . "\
+Toto language and its script are supported in this language
+environment."))
+ '("Indian"))
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 

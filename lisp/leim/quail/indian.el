@@ -2211,5 +2211,42 @@ is."
  ("m"  ?𞋘)
  ("M"  ?𞋨))
 
+(quail-define-package
+ "toto" "Toto" "𞊒𞊪" nil "Toto phonetic input method."
+ nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q"  ?𞊫)
+ ("Q"  ?𞊬)
+ ("w"  ?𞊜)
+ ("e"  ?𞊦)
+ ("E"  ?𞊧)
+ ("r"  ?𞊟)
+ ("t"  ?𞊒)
+ ("y"  ?𞊛)
+ ("u"  ?𞊥)
+ ("i"  ?𞊡)
+ ("I"  ?𞊢)
+ ("o"  ?𞊪)
+ ("p"  ?𞊐)
+ ("a"  ?𞊭)
+ ("s"  ?𞊙)
+ ("d"  ?𞊓)
+ ("f"  ?𞊮)
+ ("g"  ?𞊕)
+ ("h"  ?𞊞)
+ ("j"  ?𞊝)
+ ("k"  ?𞊔)
+ ("l"  ?𞊠)
+ ("z"  ?𞊣)
+ ("Z"  ?𞊤)
+ ("x"  ?𞊨)
+ ("X"  ?𞊩)
+ ("c"  ?𞊚)
+ ("b"  ?𞊑)
+ ("n"  ?𞊗)
+ ("N"  ?𞊘)
+ ("m"  ?𞊖))
+
 (provide 'indian)
 ;;; indian.el ends here

@@ -291,7 +291,7 @@
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
 	(nyiakeng-puachue-hmong #x1e100)
-	(toto #x1E290)
+	(toto #x1E290 #x1E295 #x1E2AD)
 	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
 	(mende-kikakui #x1E810 #x1E8A6)
