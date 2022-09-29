@@ -2117,6 +2117,12 @@ associated Dired buffer, and is bound to 'U' in the thumbnail and
 display buffer.
 
 ---
+*** New command 'image-dired-do-flagged-delete'.
+It deletes all flagged files, and is bound to 'x' in the thumbnail
+buffer.  It replaces the command 'image-dired-delete-marked', which is
+now an obsolete alias.
+
+---
 *** New command 'image-dired-copy-filename-as-kill'.
 It copies the name of the marked or current image to the kill ring,
 and is bound to "w" in the thumbnail buffer.
