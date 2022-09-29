@@ -292,7 +292,7 @@
 	(counting-rod-numeral #x1D360)
 	(nyiakeng-puachue-hmong #x1e100)
 	(toto #x1E290)
-	(wancho #x1e2c0)
+	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
         (nag-mundari #x1E4D0 #x1E4EB #x1E4F0)
 	(mende-kikakui #x1E810 #x1E8A6)
 	(adlam #x1E900 #x1E943)
@@ -832,6 +832,7 @@
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
                     toto
+                    wancho
                     nag-mundari
                     mende-kikakui
 		    adlam

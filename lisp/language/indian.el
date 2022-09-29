@@ -266,6 +266,17 @@ Meetei language and its script Meetei Mayek are supported in this
 language environment."))
  '("Indian"))
 
+(set-language-info-alist
+ "Wancho" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "wancho")
+            (sample-text . "Wancho (𞋒𞋀𞋉𞋃𞋕)	𞋂𞋈𞋛")
+            (documentation . "\
+Wancho language and its script are supported in this language
+environment."))
+ '("Indian"))
+
 ;; Replace mnemonic characters in REGEXP according to TABLE.  TABLE is
 ;; an alist of (MNEMONIC-STRING . REPLACEMENT-STRING).
 
