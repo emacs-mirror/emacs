@@ -438,7 +438,12 @@ interval_tree_iter_start (struct interval_tree *tree,
 			  const char* file, int line)
 {
   if (tree->iter_running)
-    emacs_abort ();
+    {
+      fprintf (stderr,
+               "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
+               tree->file, tree->line, file, line);
+      emacs_abort ();
+    }
   interval_generator_reset (tree->iter, begin, end, order);
   tree->iter_running = true;
   tree->file = file;
