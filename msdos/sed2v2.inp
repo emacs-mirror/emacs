@@ -114,6 +114,7 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #else\
 #undef HAVE_INTTYPES_H\
 #endif
+s/^#undef HAVE_STDBOOL_H/#define HAVE_STDBOOL_H 1/
 /^#undef HAVE_STDINT_H/c\
 #if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3\
 #define HAVE_STDINT_H 1\
