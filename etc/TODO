@@ -1763,6 +1763,26 @@ enough environment under which the fix can be tested.
 The MPX code has not been tested under X toolkit or GTK+ 2.x builds
 and is not expected to work there.
 
+** Framework for doing animations
+Emacs does animations all over the place, usually "pluse" animations.
+These currently animate by waiting for a small but fixed amount of
+time between each redisplay, which causes screen tearing by not
+synchronizing with the vertical refresh.  Frame synchronization works
+by causing redisplay to delay until the next time the monitor can
+refresh; this works, but can cause substandard frame rate when
+redisplay happens less often than the monitor refreshing, as redisplay
+will have to continually wait for missed monitor refresh.
+
+The right remedy for this problem is to define a function that returns
+the amount of time remaining before the next vertical blanking period,
+and to schedule animation redisplay within that period, using the
+information provided by the _NET_WM_FRAME_DRAWN and
+_NET_WM_FRAME_TIMINGS compositor messages on X and the
+BScreen::GetMonitorInfo function on Haiku.  Ideally, all features
+performing animations should be modified to use that method of
+scheduling redisplay.  Examples include xref-pulse-momentarily and
+pixel-scroll-precision-start-momentum.
+
 
 This file is part of GNU Emacs.
 

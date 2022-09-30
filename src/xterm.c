@@ -7607,6 +7607,11 @@ static void
 x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 			      bool send_event)
 {
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
+  uint_fast64_t monotonic_time;
+  uint_fast64_t monotonic_ms;
+  int_fast64_t diff_ms;
+#endif
 #ifndef USE_GTK
   struct frame *focus_frame;
   Time old_time;
@@ -7627,9 +7632,8 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
     {
       /* See if the current CLOCK_MONOTONIC time is reasonably close
 	 to the X server time.  */
-      uint_fast64_t monotonic_time = x_sync_current_monotonic_time ();
-      uint_fast64_t monotonic_ms = monotonic_time / 1000;
-      int_fast64_t diff_ms;
+      monotonic_time = x_sync_current_monotonic_time ();
+      monotonic_ms = monotonic_time / 1000;
 
       dpyinfo->server_time_monotonic_p
 	= (monotonic_time != 0
@@ -7647,6 +7651,27 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 				     monotonic_time,
 				     &dpyinfo->server_time_offset))
 	    dpyinfo->server_time_offset = 0;
+
+	  /* If the server time is reasonably close to the monotonic
+	     time after the latter is truncated to CARD32, simply make
+	     the offset that between the server time in ms and the
+	     actual time in ms.  */
+
+	  monotonic_ms = monotonic_ms & 0xffffffff;
+	  if (!INT_SUBTRACT_WRAPV (time, monotonic_ms, &diff_ms)
+	      && -500 < diff_ms && diff_ms < 500)
+	    {
+	      /* The server timestamp overflowed.  Make the time
+		 offset exactly how much it overflowed by.  */
+
+	      if (INT_SUBTRACT_WRAPV (monotonic_time / 1000, monotonic_ms,
+				      &dpyinfo->server_time_offset)
+		  || INT_MULTIPLY_WRAPV (dpyinfo->server_time_offset,
+					 1000, &dpyinfo->server_time_offset)
+		  || INT_SUBTRACT_WRAPV (0, dpyinfo->server_time_offset,
+					 &dpyinfo->server_time_offset))
+		dpyinfo->server_time_offset = 0;
+	    }
 	}
     }
 #endif
