@@ -3886,10 +3886,7 @@ reasonably fast.
 Besides simple syntactic font lock and regexp-based font lock, Emacs
 also provides complete syntactic font lock with the help of a parser,
 currently provided by the tree-sitter library (@pxref{Parsing Program
-Source}).  Because it is an optional feature, parser-based font lock
-is less integrated with Emacs.  Most variables introduced in previous
-sections only apply to regexp-based font lock, except for
-@var{font-lock-maximum-decoration}.
+Source}).
 
 @defun treesit-font-lock-enable
 This function enables parser-based font lock in the current buffer.
@@ -3923,7 +3920,7 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 
 This function takes a list of text or s-exp queries.  Before each
 query, there are @var{:keyword} and @var{value} pairs that configures
-that query.  The @var{:lang} keyword sets the query’s language, and is
+that query.  The @code{:lang} keyword sets the query’s language, and is
 currently the only recognized keyword.
 
 Capture names in @var{query} should be face names like
@@ -3931,8 +3928,8 @@ Capture names in @var{query} should be face names like
 with that face.  Capture names can also be function names, in which
 case the function is called with (@var{start} @var{end} @var{node}),
 where @var{start} and @var{end} are the start and end position of the
-node in buffer, and @var{node} is the tree-sitter node object.  If a
-capture name is both a face and a function, the face takes priority.
+node in buffer, and @var{node} is the node itself.  If a capture name
+is both a face and a function, the face takes priority.
 @end defun
 
 @defvar treesit-font-lock-settings
@@ -3948,12 +3945,11 @@ Each @var{setting} is of form
 
 Each @var{setting} controls one parser (often of different language).
 And @var{language} is the language symbol (@pxref{Language
-Definitions}); @var{query} is either a string query or a sexp query
-(@pxref{Pattern Matching}).
+Definitions}); @var{query} is the query (@pxref{Pattern Matching}).
 @end defvar
 
 Multi-language major modes should provide range functions in
-@var{treesit-range-functions}, and Emacs will set the ranges
+@code{treesit-range-functions}, and Emacs will set the ranges
 accordingly before fontifing a region (@pxref{Multiple Languages}).
 
 @node Auto-Indentation
@@ -4700,8 +4696,7 @@ To enable the indentation engine, set the value of
 This variable stores the actual function called by
 @code{treesit-indent}.  By default, its value is
 @code{treesit-simple-indent}.  In the future we might add other
-more complex indentation engines, if @code{treesit-simple-indent}
-proves to be insufficient.
+more complex indentation engines.
 @end defvar
 
 @heading Writing indentation rules
@@ -4714,57 +4709,37 @@ a list of
 (@var{language} . @var{rules})
 @end example
 
-where @var{language} is a language symbol, @var{rules} is a list of
+where @var{language} is a language symbol, and @var{rules} is a list
+of
 
 @example
 (@var{matcher} @var{anchor} @var{offset})
 @end example
 
-The @var{matcher} determines whether this rule applies, @var{anchor}
-and @var{offset} together determines which column to indent to.
+First Emacs passes the node at point to @var{matcher}, if it return
+non-nil, this rule applies.  Then Emacs passes the node to
+@var{anchor}, it returns a point.  Emacs takes the column number of
+that point, add @var{offset} to it, and the result is the indent for
+the current line.
 
-A @var{matcher} is a function that takes three arguments (@var{node}
-@var{parent} @var{bol}).  Argument @var{bol} is the point at where we
-are indenting: the position of the first non-whitespace character from
-the beginning of line; @var{node} is the largest (highest-in-tree)
-node that starts at that point; @var{parent} is the parent of
-@var{node};
+The @var{matcher} and @var{anchor} are functions, and Emacs provides
+convenient presets for them.  You can skip over to
+@code{treesit-simple-indent-presets} below, those presets should be
+more than enough.
 
-If @var{matcher} returns non-nil, meaning the rule matches, Emacs then
-uses @var{anchor} to find an anchor, it should be a function that
-takes the same argument (@var{node} @var{parent} @var{bol}) and
-returns a point.
-
-Finally Emacs computes the column of that point returned by
-@var{anchor} and adds @var{offset} to it, and indents to that column.
-
-For @var{matcher} and @var{anchor}, Emacs provides some convenient
-presets to spare us from writing these functions ourselves. They are
-stored in @var{treesit-simple-indent-presets}, see below.
+A @var{matcher} or an @var{anchor} is a function that takes three
+arguments (@var{node} @var{parent} @var{bol}).  Argument @var{bol} is
+the point at where we are indenting: the position of the first
+non-whitespace character from the beginning of line; @var{node} is the
+largest (highest-in-tree) node that starts at that point; @var{parent}
+is the parent of @var{node}.  A @var{matcher} returns nil/non-nil, and
+@var{anchor} returns a point.
 @end defvar
 
 @defvar treesit-simple-indent-presets
 This is a list of presets for @var{matcher}s and @var{anchor}s in
-@var{treesit-simple-indent-rules}. Each of them represent a
-function that takes @var{node}, @var{parent} and @var{bol} as
-arguments.
-
-@example
-(match @var{node-type} @var{parent-type}
-       @var{node-field} @var{node-index-min} @var{node-index-max})
-@end example
-
-This matcher checks if @var{node}'s type is @var{node-type},
-@var{parent}'s type is @var{parent-type}, @var{node}'s field name in
-@var{parent} is @var{node-field}, and @var{node}'s index among its
-siblings is between @var{node-index-min} and @var{node-index-max}.  If
-the value of a constraint is nil, this matcher doesn't check for that
-constraint.  For example, to match the first child where parent is
-@code{argument_list}, use
-
-@example
-(match nil "argument_list" nil nil 0 0)
-@end example
+@code{treesit-simple-indent-rules}.  Each of them represent a function
+that takes @var{node}, @var{parent} and @var{bol} as arguments.
 
 @example
 no-node
@@ -4792,6 +4767,23 @@ This matcher matches if @var{node}'s type is @var{type}.
 
 This matcher matches if querying @var{parent} with @var{query}
 captures @var{node}.  The capture name does not matter.
+
+@example
+(match @var{node-type} @var{parent-type}
+       @var{node-field} @var{node-index-min} @var{node-index-max})
+@end example
+
+This matcher checks if @var{node}'s type is @var{node-type},
+@var{parent}'s type is @var{parent-type}, @var{node}'s field name in
+@var{parent} is @var{node-field}, and @var{node}'s index among its
+siblings is between @var{node-index-min} and @var{node-index-max}.  If
+the value of a constraint is nil, this matcher doesn't check for that
+constraint.  For example, to match the first child where parent is
+@code{argument_list}, use
+
+@example
+(match nil "argument_list" nil nil 0 0)
+@end example
 
 @example
 first-sibling
@@ -4822,7 +4814,7 @@ This anchor returns the start of the previous sibling of @var{node}.
 no-indent
 @end example
 
-This anchor returns the start of @var{node}, i.e., do not indent.
+This anchor returns the start of @var{node}, i.e., no indent.
 
 @example
 prev-line
@@ -4838,8 +4830,8 @@ Here are some utility functions that can help writing indentation
 rules.
 
 @defun treesit-check-indent mode
-This function check current buffer's indentation against major mode
-@var{mode}.  It indents the current line in @var{mode} and compares
+This function checks current buffer's indentation against major mode
+@var{mode}.  It indents the current buffer in @var{mode} and compares
 the indentation with the current indentation.  Then it pops up a diff
 buffer showing the difference.  Correct indentation (target) is in
 green, current indentation is in red.
