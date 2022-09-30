@@ -4866,6 +4866,14 @@ Interactively, this prompts for NEW-LOCATION."
                            (expand-file-name
                             (file-name-nondirectory (buffer-name))
                             default-directory)))))
+  ;; If the user has given a directory name, the file should be moved
+  ;; there (under the same file name).
+  (when (file-directory-p new-location)
+    (unless buffer-file-name
+      (user-error "Can't rename buffer to a directory file name"))
+    (setq new-location (expand-file-name
+                        (file-name-nondirectory buffer-file-name)
+                        new-location)))
   (when (and buffer-file-name
              (file-exists-p buffer-file-name))
     (rename-file buffer-file-name new-location))
