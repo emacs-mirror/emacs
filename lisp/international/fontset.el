@@ -221,6 +221,7 @@
 	(lycian #x10280)
 	(carian #x102A0)
 	(old-italic #x10300)
+        (gothic #x10330 #x10348)
 	(ugaritic #x10380)
 	(old-permic #x10350)
 	(old-persian #x103A0)
@@ -791,6 +792,7 @@
 		    lycian
 		    carian
 		    old-italic
+                    gothic
 		    ugaritic
 		    old-persian
 		    deseret

@@ -305,6 +305,20 @@ in this language environment.")))
 Mende language and its script Kikakui are supported
 in this language environment.")))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Gothic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Gothic" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "gothic")
+            (sample-text . "Gothic (𐌲𐌿𐍄𐌹𐍃𐌺𐌰)	𐌷𐌰𐌹𐌻𐍃 / 𐌷𐌰𐌹𐌻𐌰")
+            (documentation . "\
+Gothic language using the Gothic script is supported in this
+language environment.")))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

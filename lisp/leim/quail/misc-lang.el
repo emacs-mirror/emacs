@@ -1524,5 +1524,38 @@
  ("nyen"  ?𞣃)
  ("nyon"  ?𞣄))
 
+(quail-define-package
+ "gothic" "Gothic" "𐌰" nil
+ "Gothic script input method." nil t t t t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("q"  ?𐌵)
+ ("w"  ?𐍅)
+ ("e"  ?𐌴)
+ ("r"  ?𐍂)
+ ("t"  ?𐍄)
+ ("y"  ?𐌸)
+ ("u"  ?𐌿)
+ ("i"  ?𐌹)
+ ("o"  ?𐍉)
+ ("p"  ?𐍀)
+ ("a"  ?𐌰)
+ ("s"  ?𐍃)
+ ("d"  ?𐌳)
+ ("f"  ?𐍆)
+ ("g"  ?𐌲)
+ ("h"  ?𐌷)
+ ("j"  ?𐌾)
+ ("k"  ?𐌺)
+ ("l"  ?𐌻)
+ ("z"  ?𐌶)
+ ("x"  ?𐍇)
+ ("c"  ?𐍈)
+ ("v"  ?𐍁)
+ ("V"  ?𐍊)
+ ("b"  ?𐌱)
+ ("n"  ?𐌽)
+ ("m"  ?𐌼))
+
 (provide 'misc-lang)
 ;;; misc-lang.el ends here
