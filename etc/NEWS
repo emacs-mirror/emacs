@@ -1214,6 +1214,14 @@ When nil, this prevents comint from deleting the current input when
 inserting previous input using '<mouse-2>'.  The default is t, to
 preserve past behavior.
 
+---
+*** New minor mode 'comint-fontify-input-mode'.
+This minor mode is enabled by default in "*shell*" and "*ielm*"
+buffers.  It fontifies input text according to 'shell-mode' or
+'emacs-lisp-mode' font-lock rules.  Customize the user options
+'shell-fontify-input-enable' and 'ielm-fontify-input-enable' to nil if
+you don't want to enable input fontification by default.
+
 ** Mwheel
 
 ---
@@ -2519,6 +2527,12 @@ behavior, customize the new 'eshell-lisp-form-nil-is-failure' option.
 *** New user option 'shell-kill-buffer-on-exit'.
 Enabling this will automatically kill a "*shell*" buffer as soon as
 the shell session terminates.
+
+---
+*** New minor mode 'shell-highlight-undef-mode'
+Customize 'shell-highlight-undef-enable' to t if you want to enable
+this minor mode in "*shell*" buffers.  It will highlight undefined
+commands with a warning face as you type.
 
 ** Calc
 

@@ -308,10 +308,11 @@ for Shell mode only."
 		 (const :tag "on" t))
   :group 'shell)
 
-(defcustom shell-comint-fl-enable t
+(defcustom shell-fontify-input-enable t
   "Enable fontification of input in shell buffers.
 This variable only has effect when the shell is started.  Use the
-command `comint-fl-mode' to toggle fontification of input."
+command `comint-fontify-input-mode' to toggle fontification of
+input."
   :type 'boolean
   :group 'shell
   :safe 'booleanp
@@ -623,8 +624,8 @@ command."
   :interactive nil
   :after-hook
   (unless comint-use-prompt-regexp
-    (if shell-comint-fl-enable
-        (comint-fl-mode))
+    (if shell-fontify-input-enable
+        (comint-fontify-input-mode))
     (if shell-highlight-undef-enable
         (shell-highlight-undef-mode)))
 
@@ -1664,8 +1665,8 @@ Similar to `executable-find', but use cache stored in
                       (if buf (buffer-local-value 'default-directory buf)
                         default-directory)))
                 (cond
-                 ;; Don't highlight command output.  Mostly useful if
-                 ;; `comint-fl-mode' is disabled.
+                 ;; Don't fontify command output.  Mostly useful if
+                 ;; `comint-fontify-input-mode' is disabled.
                  ((text-property-any beg (point) 'field 'output)
                   nil)
                  ((member cmd shell-highlight-undef-aliases)
@@ -1696,7 +1697,7 @@ Similar to `executable-find', but use cache stored in
 (define-minor-mode shell-highlight-undef-mode
   "Highlight undefined shell commands and aliases.
 This minor mode is mostly useful in `shell-mode' buffers and
-works better if `comint-fl-mode' is enabled."
+works better if `comint-fontify-input-mode' is enabled."
   :init-value nil
   (if shell--highlight-undef-indirect
       (progn
@@ -1706,7 +1707,7 @@ works better if `comint-fl-mode' is enabled."
           (with-current-buffer buf
             (font-lock-remove-keywords nil shell-highlight-undef-keywords))))
     (font-lock-remove-keywords nil shell-highlight-undef-keywords))
-  (remove-hook 'comint-fl-mode-hook
+  (remove-hook 'comint-fontify-input-mode-hook
                #'shell-highlight-undef-mode-restart t)
 
   (when shell-highlight-undef-mode
@@ -1722,9 +1723,9 @@ works better if `comint-fl-mode' is enabled."
             (concat
              "\\("
              "[;(){}`|&]"
-             (if comint-fl-mode
-                 ;; `comint-fl-mode' already puts point-min on end of
-                 ;; prompt
+             (if comint-fontify-input-mode
+                 ;; `comint-fontify-input-mode' already puts
+                 ;; point-min on end of prompt
                  ""
                (concat "\\|" comint-prompt-regexp))
              "\\|^"
@@ -1740,7 +1741,7 @@ works better if `comint-fl-mode' is enabled."
             (lambda ()
               (setq shell-highlight-undef-regexp regexp)
               (font-lock-add-keywords nil shell-highlight-undef-keywords t))))
-      (cond (comint-fl-mode
+      (cond (comint-fontify-input-mode
              (setq shell--highlight-undef-indirect setup)
              (if-let ((buf (comint-indirect-buffer t)))
                  (with-current-buffer buf
@@ -1748,7 +1749,7 @@ works better if `comint-fl-mode' is enabled."
                (add-hook 'comint-indirect-setup-hook setup nil t)))
             (t (funcall setup))))
 
-    (add-hook 'comint-fl-mode-hook
+    (add-hook 'comint-fontify-input-mode-hook
               #'shell-highlight-undef-mode-restart nil t))
 
   (font-lock-flush))
@@ -1756,9 +1757,9 @@ works better if `comint-fl-mode' is enabled."
 (defun shell-highlight-undef-mode-restart ()
   "If `shell-highlight-undef-mode' is on, restart it.
 `shell-highlight-undef-mode' performs its setup differently
-depending on `comint-fl-mode'.  It's useful to call this function
-when switching `comint-fl-mode' in order to make
-`shell-highlight-undef-mode' redo its setup."
+depending on `comint-fontify-input-mode'.  It's useful to call
+this function when switching `comint-fontify-input-mode' in order
+to make `shell-highlight-undef-mode' redo its setup."
   (when shell-highlight-undef-mode
     (shell-highlight-undef-mode 1)))
 

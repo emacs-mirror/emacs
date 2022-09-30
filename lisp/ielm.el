@@ -474,11 +474,11 @@ nonempty, then flushes the buffer."
 
 ;;; Input fontification
 
-(defcustom ielm-comint-fl-enable t
+(defcustom ielm-fontify-input-enable t
   "Enable fontification of input in ielm buffers.
 This variable only has effect when creating an ielm buffer.  Use
-the command `comint-fl-mode' to toggle fontification of input in
-an already existing ielm buffer."
+the command `comint-fontify-input-mode' to toggle fontification
+of input in an already existing ielm buffer."
   :type 'boolean
   :safe 'booleanp
   :version "29.1")
@@ -556,8 +556,8 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   :syntax-table emacs-lisp-mode-syntax-table
   :after-hook
   (and (null comint-use-prompt-regexp)
-       ielm-comint-fl-enable
-       (comint-fl-mode))
+       ielm-fontify-input-enable
+       (comint-fontify-input-mode))
 
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (setq-local paragraph-separate "\\'")
