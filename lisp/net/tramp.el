@@ -5459,6 +5459,11 @@ This handles also chrooted environments, which are not regarded as local."
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
   (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
+    ;; Prior Tramp 2.5.3.2, the connection property "tmpdir" did exist
+    ;; with a remote file name.  This must be discarded.  (Bug#57800)
+    (when-let ((tmpdir (tramp-get-connection-property vec "tmpdir" nil)))
+      (when (tramp-tramp-file-p tmpdir)
+	(tramp-flush-connection-property vec "tmpdir")))
     (let ((dir
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
