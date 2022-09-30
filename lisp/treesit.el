@@ -522,9 +522,7 @@ See `treesit-simple-indent-presets'.")
                    (save-excursion
                      (goto-char bol)
                      (forward-line -1)
-                     (skip-chars-forward " \t")
-                     (treesit-node-start
-                      (treesit-node-at (point) nil t))))))
+                     (skip-chars-forward " \t")))))
   "A list of presets.
 These presets that can be used as MATHER and ANCHOR in
 `treesit-simple-indent-rules'.
@@ -585,8 +583,7 @@ no-indent
 
 prev-line
 
-    Find the named node on the previous line.  This can be used when
-    indenting an empty line: just indent like the previous node.")
+    The first non-whitespace charater on the previous line.")
 
 (defun treesit--simple-apply (fn args)
   "Apply ARGS to FN.

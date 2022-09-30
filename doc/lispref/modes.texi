@@ -4820,8 +4820,8 @@ This anchor returns the start of @var{node}, i.e., no indent.
 prev-line
 @end example
 
-This anchor returns the start of the first named node on the previous
-line.  This can be used for indenting an empty line.
+This anchor returns the first non-whitespace charater on the previous
+line.
 @end defvar
 
 @heading Indentation utilities
