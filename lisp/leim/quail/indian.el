@@ -2212,7 +2212,7 @@ is."
  ("M"  ?𞋨))
 
 (quail-define-package
- "toto" "Toto" "𞊒𞊪" nil "Toto phonetic input method."
+ "toto" "Toto" "𞊒𞊪" nil "Toto script phonetic input method."
  nil t t t t nil nil nil nil nil t)
 
 (quail-define-rules

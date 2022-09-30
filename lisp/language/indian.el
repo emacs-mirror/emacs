@@ -283,7 +283,7 @@ environment."))
           (coding-priority utf-8)
           (input-method . "toto")
           (documentation . "\
-Toto language and its script are supported in this language
+Toto language using the Toto script is supported in this language
 environment."))
  '("Indian"))
 
