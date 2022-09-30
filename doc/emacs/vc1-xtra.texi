@@ -270,16 +270,17 @@ with the file's version control type.
 @findex vc-edit-next-command
 @kindex C-x v !
 You can use the @kbd{C-x v !} (@code{vc-edit-next-command}) prefix
-command to request an opportunity to edit the VC shell commands that
-Emacs will run.  This is primarily intended to make it possible to
-access version control system-specific functionality without
-complexifying either the VC command set or the backend API.
+command to edit the shell command line that VC is about to run.  This
+is primarily intended to make it possible to add optional command-line
+arguments to VCS commands without unnecessary complications of the VC
+command set and its interfaces with the backend.
 
 For example, Git can produce logs of more than one branch, but
 @kbd{C-x v b l} (@code{vc-print-branch-log}) prompts for the name of
 just one branch.  To obtain a log of more than one branch, you can
-type @kbd{C-x v ! C-x v b l} and then append the names of additional
-branches to the end of the @code{git log} command that VC prepares.
+type @w{@kbd{C-x v ! C-x v b l}} and then append the names of
+additional branches to the end of the @samp{git log} command that VC
+is about to run.
 
 @node Customizing VC
 @subsection Customizing VC
