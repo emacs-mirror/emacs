@@ -2666,11 +2666,11 @@ For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
     `(let ((,current current-locale-environment))
        (unwind-protect
            (progn
-             (set-locale-environment ,locale-name)
+             (set-locale-environment ,locale-name nil t)
              ,@body)
-         (set-locale-environment ,current)))))
+         (set-locale-environment ,current nil t)))))
 
-(defun set-locale-environment (&optional locale-name frame)
+(defun set-locale-environment (&optional locale-name frame inhibit-refresh)
   "Set up multilingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
@@ -2698,6 +2698,9 @@ touch session-global parameters like the language environment.
 This function sets the `current-locale-environment' variable.  To
 change the locale temporarily, `with-locale-environment' can be
 used.
+
+By default, this function will redraw the current frame.  If
+INHIBIT-REFRESH is non-nil, this isn't done.
 
 See also `locale-charset-language-names', `locale-language-names',
 `locale-preferred-coding-systems' and `locale-coding-system'."
@@ -2865,7 +2868,7 @@ See also `locale-charset-language-names', `locale-language-names',
           (or output-coding (setq output-coding code-page-coding))
 	  (unless frame (setq locale-coding-system locale-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
-	  (set-terminal-coding-system output-coding frame)
+	  (set-terminal-coding-system output-coding frame inhibit-refresh)
 	  (setq default-file-name-coding-system ansi-code-page-coding))))
 
     (when (eq system-type 'darwin)
@@ -2876,7 +2879,7 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; the locale.
       (when (and (null window-system)
 		 (equal (getenv "TERM_PROGRAM" frame) "Apple_Terminal"))
-	(set-terminal-coding-system 'utf-8)
+	(set-terminal-coding-system 'utf-8 nil inhibit-refresh)
 	(set-keyboard-coding-system 'utf-8)))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.

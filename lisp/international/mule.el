@@ -1362,7 +1362,8 @@ to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system &optional terminal)
+(defun set-terminal-coding-system (coding-system &optional terminal
+                                                 inhibit-refresh)
   "Set coding system of terminal output to CODING-SYSTEM.
 All text output to TERMINAL will be encoded
 with the specified coding system.
@@ -1373,7 +1374,10 @@ or by the previous use of this command.
 
 TERMINAL may be a terminal object, a frame, or nil for the
 selected frame's terminal.  The setting has no effect on
-graphical terminals."
+graphical terminals.
+
+By default, this function will redraw the current frame.  If
+INHIBIT-REFRESH is non-nil, this isn't done."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
@@ -1387,7 +1391,8 @@ graphical terminals."
   (if coding-system
       (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system terminal)
-  (redraw-frame))
+  (unless inhibit-refresh
+    (redraw-frame)))
 
 (defvar default-keyboard-coding-system nil
   "Default value of the keyboard coding system.
