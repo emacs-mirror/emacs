@@ -30,12 +30,11 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 
 * Changes in Specialized Modes and Packages in Emacs 28.3
 
-** 'native-comp-driver-options' on macOS
-
+** 'native-comp-driver-options' on macOS.
 The value of 'native-comp-driver-options' has been changed to contain
 "-Wl,-w" to suppress warnings of the form
 
-  ld: warning: -undefined dynamic_lookup may not work with chained fixups
+    ld: warning: -undefined dynamic_lookup may not work with chained fixups
 
 emitted during native compilation on macOS 12.6 with Xcode 14.
 
