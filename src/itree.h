@@ -50,10 +50,13 @@ struct interval_node
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
 
+/* The sentinel node, the null node.  */
+extern struct interval_node itree_null;
+#define ITREE_NULL (&itree_null)
+
 struct interval_tree
 {
   struct interval_node *root;
-  struct interval_node null;    /* The tree's version of NULL. */
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */
   struct interval_generator *iter;

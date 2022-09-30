@@ -6519,7 +6519,7 @@ mark_overlays (struct interval_tree *it, struct interval_node *in)
      they use the `null` node instead when the overlay is not deleted
      (i.e. is within an overlay tree).  */
   eassert (in);
-  if (in == &it->null)
+  if (in == ITREE_NULL)
     return;
 
   mark_object (in->data);
