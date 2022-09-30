@@ -853,6 +853,7 @@ Miscellaneous Commands and Features of VC
 * VC Delete/Rename::      Deleting and renaming version-controlled files.
 * Revision Tags::         Symbolic names for revisions.
 * Version Headers::       Inserting version control headers into working files.
+* Editing VC Commands:: Editing the VC shell commands that Emacs will run.
 
 Customizing VC
 
