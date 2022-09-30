@@ -888,9 +888,22 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; FIXME: This is related to `mail-specify-envelope-from' but works
   ;; differently (bug#36937).
   nil
-  "Non-nil means don't add \"-f username\" to the sendmail command line.
-See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
-of what the \"-f\" parameter does."
+  "Non-nil means don't add \"-f username\" to the \"sendmail\" command line.
+The \"sendmail\" program has a useful feature to let you set the
+envelope FROM address via a command line option, \"-f\".
+Unfortunately, it also has a widely disliked default behavior of
+disclosing your actual user name anyway by inserting an
+unattractive warning in the headers.  It looks something like
+this:
+
+  X-Authentication-Warning: u1.example.com: niceguy set
+      sender to niceguy@example.com using -f
+
+It is possible to configure \"sendmail\" to not do this, but such a
+reconfiguration is not an option for some users.
+
+Note that this user option is mostly useful for actual \"sendmail\"
+installations, which are rare these days."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
