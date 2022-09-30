@@ -26,10 +26,10 @@
 
 ;;; Code:
 
-(require 'osc)
+(require 'ansi-osc)
 (require 'ert)
 
-(defvar osc-tests--strings
+(defvar ansi-osc-tests--strings
   `(
     ("Hello World" "Hello World")
 
@@ -48,10 +48,10 @@
 ;; Don't output those strings to stdout since they may have
 ;; side-effects on the environment
 
-(ert-deftest osc-tests-apply-region-no-handlers ()
-  (let ((osc-handlers nil))
-    (pcase-dolist (`(,input ,text) osc-tests--strings)
+(ert-deftest ansi-osc-tests-apply-region-no-handlers ()
+  (let ((ansi-osc-handlers nil))
+    (pcase-dolist (`(,input ,text) ansi-osc-tests--strings)
       (with-temp-buffer
         (insert input)
-        (osc-apply-on-region (point-min) (point-max))
+        (ansi-osc-apply-on-region (point-min) (point-max))
         (should (equal (buffer-string) text))))))

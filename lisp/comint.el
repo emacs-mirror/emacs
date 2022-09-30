@@ -103,7 +103,7 @@
 
 (require 'ring)
 (require 'ansi-color)
-(require 'osc)
+(require 'ansi-osc)
 (require 'regexp-opt)                   ;For regexp-opt-charset.
 (eval-when-compile (require 'subr-x))
 
@@ -3918,11 +3918,11 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;; sequences.
 
 ;; Aliases defined for reverse compatibility
-(defvaralias 'comint-osc-handlers 'osc-handlers)
-(defalias 'comint-osc-directory-tracker 'osc-directory-tracker)
-(defalias 'comint-osc-hyperlink-handler 'osc-hyperlink-handler)
-(defalias 'comint-osc-hyperlink 'osc-hyperlink)
-(defvaralias 'comint-osc-hyperlink-map 'osc-hyperlink-map)
+(defvaralias 'comint-osc-handlers 'ansi-osc-handlers)
+(defalias 'comint-osc-directory-tracker 'ansi-osc-directory-tracker)
+(defalias 'comint-osc-hyperlink-handler 'ansi-osc-hyperlink-handler)
+(defalias 'comint-osc-hyperlink 'ansi-osc-hyperlink)
+(defvaralias 'comint-osc-hyperlink-map 'ansi-osc-hyperlink-map)
 
 (defun comint-osc-process-output (_)
   "Interpret OSC escape sequences in comint output.
@@ -3941,7 +3941,7 @@ arguments, with point where the escape sequence was located."
   (let ((start (1- comint-last-output-start))
         ;; Start one char before last output to catch a possibly stray ESC
         (bound (process-mark (get-buffer-process (current-buffer)))))
-    (osc-apply-on-region start bound)))
+    (ansi-osc-apply-on-region start bound)))
 
 
 ;;; Input fontification and indentation through an indirect buffer

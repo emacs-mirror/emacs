@@ -2577,12 +2577,12 @@ Enabling this minor mode turns on hiding header material, like
 'elide-head' does; disabling it shows the header.  The commands
 'elide-head' and 'elide-head-show' are now obsolete.
 
-*** New package osc.el.
+*** New package ansi-osc.el.
 Support for OSC ("Operating System Command") escape sequences has been
 extracted from comint.el in order to provide interpretation of OSC
 sequences in compilation buffers.
 
-Adding the new function 'osc-compilation-filter' to
+Adding the new function 'ansi-osc-compilation-filter' to
 'compilation-filter-hook' enables interpretation of OSC escape
 sequences in compilation buffers.  By default, all sequences are
 filtered out.
