@@ -2235,7 +2235,7 @@ Disabling the agent may result in noticeable loss of performance."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value"))))
 
-(defcustom gnus-user-agent '(emacs gnus type)
+(defcustom gnus-user-agent '(gnus)
   "Which information should be exposed in the User-Agent header.
 
 Can be a list of symbols or a string.  Valid symbols are `gnus'
@@ -2243,7 +2243,7 @@ Can be a list of symbols or a string.  Valid symbols are `gnus'
 addition to the Emacs version, you can add `config' (show system
 configuration) or `type' (show system type).  If you set it to a
 string, be sure to use a valid format, see RFC 2616."
-  :version "22.1"
+  :version "29.1"
   :group 'gnus-message
   :type '(choice (list (set :inline t
                             (const :value gnus  :tag "Gnus version")
