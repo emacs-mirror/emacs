@@ -449,25 +449,55 @@ Symbols are also allowed; their print names are used instead.  */)
     CHECK_STRING (string2);
 
   ptrdiff_t n = min (SCHARS (string1), SCHARS (string2));
-  if (!STRING_MULTIBYTE (string1) && !STRING_MULTIBYTE (string2))
+
+  if ((!STRING_MULTIBYTE (string1) || SCHARS (string1) == SBYTES (string1))
+      && (!STRING_MULTIBYTE (string2) || SCHARS (string2) == SBYTES (string2)))
     {
-      /* Both arguments are unibyte (hot path).  */
+      /* Each argument is either unibyte or all-ASCII multibyte:
+	 we can compare bytewise.
+	 (Arbitrary multibyte strings cannot be compared bytewise because
+	 that would give a different order for raw bytes 80..FF.)  */
       int d = memcmp (SSDATA (string1), SSDATA (string2), n);
       return d < 0 || (d == 0 && n < SCHARS (string2)) ? Qt : Qnil;
     }
-
-  ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
-
-  while (i1 < n)
+  else if (STRING_MULTIBYTE (string1) && STRING_MULTIBYTE (string2))
     {
-      /* When we find a mismatch, we must compare the
-	 characters, not just the bytes.  */
-      int c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
-      int c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
-      if (c1 != c2)
-	return c1 < c2 ? Qt : Qnil;
+      ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
+      while (i1 < n)
+	{
+	  int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
+	  int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
+	  if (c1 != c2)
+	    return c1 < c2 ? Qt : Qnil;
+	}
+      return i1 < SCHARS (string2) ? Qt : Qnil;
     }
-  return i1 < SCHARS (string2) ? Qt : Qnil;
+  else if (STRING_MULTIBYTE (string1))
+    {
+      /* string1 multibyte, string2 unibyte */
+      ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0;
+      while (i1 < n)
+	{
+	  int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
+	  int c2 = SREF (string2, i2++);
+	  if (c1 != c2)
+	    return c1 < c2 ? Qt : Qnil;
+	}
+      return i1 < SCHARS (string2) ? Qt : Qnil;
+    }
+  else
+    {
+      /* string1 unibyte, string2 multibyte */
+      ptrdiff_t i1 = 0, i2 = 0, i2_byte = 0;
+      while (i1 < n)
+	{
+	  int c1 = SREF (string1, i1++);
+	  int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
+	  if (c1 != c2)
+	    return c1 < c2 ? Qt : Qnil;
+	}
+      return i1 < SCHARS (string2) ? Qt : Qnil;
+    }
 }
 
 DEFUN ("string-version-lessp", Fstring_version_lessp,
