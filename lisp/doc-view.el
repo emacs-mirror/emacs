@@ -1900,6 +1900,9 @@ If BACKWARD is non-nil, jump to the previous match."
 (defconst doc-view--outline-rx
   "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
 
+(defvar-local doc-view--outline nil
+  "Cached PDF outline, so that it is only computed once per document.")
+
 (defun doc-view--pdf-outline (&optional file-name)
   "Return a list describing the outline of FILE-NAME.
 Return a list describing the current file if FILE-NAME is nil.
@@ -1907,19 +1910,20 @@ Return a list describing the current file if FILE-NAME is nil.
 Each element in the returned list contains information about a section's
 title, nesting level and page number.  The list is flat: its tree
 structure is extracted by `doc-view--imenu-subtree'."
-  (let* ((outline nil)
-         (fn (or file-name (buffer-file-name)))
-         (fn (shell-quote-argument (expand-file-name fn))))
-    (with-temp-buffer
-      (insert (shell-command-to-string (format "mutool show %s outline" fn)))
-      (goto-char (point-min))
-      (while (re-search-forward doc-view--outline-rx nil t)
-        (push `((level . ,(length (match-string 1)))
-                (title . ,(replace-regexp-in-string "\\\\[rt]" " "
-                                                    (match-string 2)))
-                (page . ,(string-to-number (match-string 3))))
-              outline)))
-    (nreverse outline)))
+  (let ((fn (or file-name (buffer-file-name))))
+    (when fn
+      (let ((outline nil)
+            (fn (shell-quote-argument (expand-file-name fn))))
+        (with-temp-buffer
+          (insert (shell-command-to-string (format "mutool show %s outline" fn)))
+          (goto-char (point-min))
+          (while (re-search-forward doc-view--outline-rx nil t)
+            (push `((level . ,(length (match-string 1)))
+                    (title . ,(replace-regexp-in-string "\\\\[rt]" " "
+                                                        (match-string 2)))
+                    (page . ,(string-to-number (match-string 3))))
+                  outline)))
+        (nreverse outline)))))
 
 (defun doc-view--imenu-subtree (outline act)
   "Construct a tree of imenu items for the given outline list and action.
@@ -1932,7 +1936,8 @@ entries at an upper level."
         (nested (not doc-view-imenu-flatten))
         (index nil))
     (while (and (car outline)
-                (or nested (<= level (alist-get 'level (car outline)))))
+                (or (not nested)
+                    (<= level (alist-get 'level (car outline)))))
       (let-alist (car outline)
         (let ((title (format-spec doc-view-imenu-title-format
                                   `((?t . ,.title) (?p . ,.page)))))
@@ -1953,16 +1958,18 @@ For extensibility, callers can specify a FILE-NAME to indicate
 the buffer other than the current buffer, and a jumping function
 GOTO-PAGE-FN other than `doc-view-goto-page'."
   (let* ((goto (or goto-page-fn 'doc-view-goto-page))
-         (act (lambda (_name _pos page) (funcall goto page))))
-    (car (doc-view--imenu-subtree (doc-view--pdf-outline file-name) act))))
+         (act (lambda (_name _pos page) (funcall goto page)))
+         (outline (or doc-view--outline (doc-view--pdf-outline file-name))))
+    (car (doc-view--imenu-subtree outline act))))
 
 (defun doc-view-imenu-setup ()
   "Set up local state in the current buffer for imenu, if needed."
   (when (and doc-view-imenu-enabled (executable-find "mutool"))
     (setq-local imenu-create-index-function #'doc-view-imenu-index
                 imenu-submenus-on-top nil
-                imenu-sort-function nil)
-    (imenu-add-to-menubar "Outline")))
+                imenu-sort-function nil
+                doc-view--outline (doc-view--pdf-outline))
+    (when doc-view--outline (imenu-add-to-menubar "Outline"))))
 
 ;;;; User interface commands and the mode
 
