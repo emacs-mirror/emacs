@@ -1372,12 +1372,12 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-TERMINAL may be a terminal object, a frame, or nil for the
-selected frame's terminal.  The setting has no effect on
-graphical terminals.
+Optional argument TERMINAL may be a terminal object or a frame,
+and defaults to the selected frame's terminal.  The setting has no
+effect on graphical terminals.
 
-By default, this function will redraw the current frame.  If
-INHIBIT-REFRESH is non-nil, this isn't done."
+By default, this function will redraw the current frame;
+optional argument INHIBIT-REFRESH, if non-nil, prevents that."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
