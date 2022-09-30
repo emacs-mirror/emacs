@@ -1909,8 +1909,11 @@ The default status is as follows:
 
 (reset-language-environment)
 
-(defun set-display-table-and-terminal-coding-system (language-name &optional coding-system display)
-  "Set up the display table and terminal coding system for LANGUAGE-NAME."
+(defun set-display-table-and-terminal-coding-system (language-name
+                                                     &optional coding-system
+                                                     display inhibit-refresh)
+  "Set up the display table and terminal coding system for LANGUAGE-NAME.
+If INHIBIT-REFRESH, don't redraw the current frame."
   (let ((coding (get-language-info language-name 'unibyte-display)))
     (if (and coding
 	     (or (not coding-system)
@@ -1923,7 +1926,8 @@ The default status is as follows:
       (when standard-display-table
 	(dotimes (i 128)
 	  (aset standard-display-table (+ i 128) nil))))
-    (set-terminal-coding-system (or coding-system coding) display)))
+    (set-terminal-coding-system (or coding-system coding) display
+                                inhibit-refresh)))
 
 (defun set-language-environment (language-name)
   "Set up multilingual environment for using LANGUAGE-NAME.
@@ -2811,7 +2815,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (set-language-environment language-name))
 
 	  (set-display-table-and-terminal-coding-system
-	   language-name coding-system frame)
+	   language-name coding-system frame inhibit-refresh)
 
 	  ;; Set the `keyboard-coding-system' if appropriate (tty
 	  ;; only).  At least X and MS Windows can generate
