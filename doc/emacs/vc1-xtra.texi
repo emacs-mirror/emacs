@@ -279,7 +279,7 @@ For example, Git can produce logs of more than one branch, but
 @kbd{C-x v b l} (@code{vc-print-branch-log}) prompts for the name of
 just one branch.  To obtain a log of more than one branch, you can
 type @kbd{C-x v ! C-x v b l} and then append the names of additional
-branches to the end of the 'git log' command that VC prepares.
+branches to the end of the @code{git log} command that VC prepares.
 
 @node Customizing VC
 @subsection Customizing VC
