@@ -495,11 +495,7 @@ automatically scaled up in proportion to the default font.
 
 Value is the image created, or nil if images of type TYPE are not supported.
 
-Images should not be larger than specified by `max-image-size'.
-
-Image file names that are not absolute are searched for in the
-\"images\" sub-directory of `data-directory' and
-`x-bitmap-file-path' (in that order)."
+Images should not be larger than specified by `max-image-size'."
   (let ((data-format
          ;; Pass the image format, if any, if this is data.
          (and data-p (or (plist-get props :format) t))))
