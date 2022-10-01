@@ -897,6 +897,15 @@ variable, and is meant to be used in `compilation-filter-hook'.")
 (register-definition-prefixes "ansi-color" '("ansi-color-"))
 
 
+;;; Generated autoloads from ansi-osc.el
+
+(autoload 'ansi-osc-compilation-filter "ansi-osc" "\
+Maybe collect OSC control sequences.
+This function depends on the variable `ansi-osc-for-compilation-buffer',
+and is meant to be used in `compilation-filter-hook'.")
+(register-definition-prefixes "ansi-osc" '("ansi-osc-"))
+
+
 ;;; Generated autoloads from progmodes/antlr-mode.el
 
 (push (purecopy '(antlr-mode 2 2 3)) package--builtin-versions)
@@ -4951,6 +4960,8 @@ evaluate `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{compilation-shell-minor-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
@@ -4973,6 +4984,8 @@ evaluate `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
+
+\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile" "\
@@ -7796,7 +7809,7 @@ Document types are symbols like `dvi', `ps', `pdf', `epub',
 Major mode in DocView buffers.
 
 DocView Mode is an Emacs document viewer.  It displays PDF, PS
-and DVI files (as PNG images) in Emacs buffers.
+and DVI files (as PNG or SVG images) in Emacs buffers.
 
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text.
@@ -8358,7 +8371,7 @@ A second call of this function without changing point inserts the next match.
 A call with prefix PREFIX reads the symbol to insert from the minibuffer with
 completion.
 
-(fn PREFIX)" '("P"))
+(fn PREFIX)" t)
 (autoload 'ebrowse-tags-loop-continue "ebrowse" "\
 Repeat last operation on files in tree.
 FIRST-TIME non-nil means this is not a repetition, but the first time.
@@ -9907,7 +9920,7 @@ When present, ID should be an opaque object used to identify the
 connection unequivocally.  This is rarely needed and not available
 interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" '((erc-select-read-args)))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) ID)" t)
 (defalias 'erc-select #'erc)
 (autoload 'erc-tls "erc" "\
 ERC is a powerful, modular, and extensible IRC client.
@@ -9954,7 +9967,7 @@ symbol composed of letters from the Latin alphabet.)  This option is
 generally unneeded, however.  See info node `(erc) Connecting' for use
 cases.  Not available interactively.
 
-(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" '((let ((erc-default-port erc-default-port-tls)) (erc-select-read-args))))
+(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) (USER (erc-compute-user)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE ID)" t)
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
 If ERC is already connected to HOST:PORT, simply /join CHANNEL.
@@ -10170,7 +10183,9 @@ it has to be wrapped in `(eval (quote ...))'.
 If NAME is already defined as a test and Emacs is running
 in batch mode, an error is signalled.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil 'macro)
+(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] BODY...)" nil t)
+(function-put 'ert-deftest 'doc-string-elt 3)
+(function-put 'ert-deftest 'lisp-indent-function 2)
 (autoload 'ert-run-tests-batch "ert" "\
 Run the tests specified by SELECTOR, printing results to the terminal.
 
@@ -12246,6 +12261,8 @@ evaluate `flymake-mode'.
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
+\\{flymake-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake" "\
 Turn Flymake mode on.")
@@ -12542,6 +12559,18 @@ For example, \"%<010b\" means \"substitute into the output the
 value associated with ?b in SPECIFICATION, either padding it with
 leading zeros or truncating leading characters until it's ten
 characters wide\".
+
+the substitution for a specification character can also be a
+function, taking no arguments and returning a string to be used
+for the replacement.  It will only be called if FORMAT uses that
+character.  For example:
+
+  (format-spec \"%n\"
+               \\=`((?n . ,(lambda ()
+                          (read-number \"Number: \")))))
+
+Note that it is best to make sure the function is not quoted,
+like above, so that it is compiled by the byte-compiler.
 
 Any text properties of FORMAT are copied to the result, with any
 text properties of a %-spec itself copied to its substitution.
@@ -15859,7 +15888,8 @@ inlined into the compiled format versions.  This means that if you
 change its definition, you should explicitly call
 `ibuffer-recompile-formats'.
 
-(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil 'macro)
+(fn SYMBOL (&key NAME INLINE PROPS SUMMARIZER) &rest BODY)" nil t)
+(function-put 'define-ibuffer-column 'lisp-indent-function 'defun)
 (autoload 'define-ibuffer-sorter "ibuf-macs" "\
 Define a method of sorting named NAME.
 DOCUMENTATION is the documentation of the function, which will be called
@@ -15870,7 +15900,9 @@ For sorting, the forms in BODY will be evaluated with `a' bound to one
 buffer object, and `b' bound to another.  BODY should return a non-nil
 value if and only if `a' is \"less than\" `b'.
 
-(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-sorter 'lisp-indent-function 1)
+(function-put 'define-ibuffer-sorter 'doc-string-elt 2)
 (autoload 'define-ibuffer-op "ibuf-macs" "\
 Generate a function which operates on a buffer.
 OP becomes the name of the function; if it doesn't begin with
@@ -15909,7 +15941,9 @@ BODY define the operation; they are forms to evaluate per each
 marked buffer.  BODY is evaluated with `buf' bound to the
 buffer object.
 
-(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil 'macro)
+(fn OP ARGS DOCUMENTATION (&key INTERACTIVE MARK MODIFIER-P DANGEROUS OPSTRING ACTIVE-OPSTRING BEFORE AFTER COMPLEX) &rest BODY)" nil t)
+(function-put 'define-ibuffer-op 'lisp-indent-function 2)
+(function-put 'define-ibuffer-op 'doc-string-elt 3)
 (autoload 'define-ibuffer-filter "ibuf-macs" "\
 Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
@@ -15924,7 +15958,9 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter.
 
-(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil 'macro)
+(fn NAME DOCUMENTATION (&key READER DESCRIPTION) &rest BODY)" nil t)
+(function-put 'define-ibuffer-filter 'lisp-indent-function 2)
+(function-put 'define-ibuffer-filter 'doc-string-elt 2)
 (register-definition-prefixes "ibuf-macs" '("ibuffer-"))
 
 
@@ -16708,8 +16744,9 @@ and that image type is present in `image-type-auto-detectable' with a
 non-nil value.  If that value is non-nil, but not t, then the image type
 must be available.")
 (autoload 'create-image "image" "\
-Create an image.
-FILE-OR-DATA is an image file name or image data.
+Create an image from FILE-OR-DATA.
+FILE-OR-DATA is an image file name or image data.  If it is a relative
+file name, the function will look for it along `image-load-path'.
 
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
@@ -16727,10 +16764,6 @@ automatically scaled up in proportion to the default font.
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'.
-
-Image file names that are not absolute are searched for in the
-\"images\" sub-directory of `data-directory' and
-`x-bitmap-file-path' (in that order).
 
 (fn FILE-OR-DATA &optional TYPE DATA-P &rest PROPS)")
 (autoload 'put-image "image" "\
@@ -16898,6 +16931,7 @@ After cropping an image, you can save it by `M-x image-save' or
 ;;; Generated autoloads from image/image-dired.el
 
 (push (purecopy '(image-dired 0 5)) package--builtin-versions)
+(put 'image-dired-thumbnail-storage 'safe-local-variable (lambda (x) (eq x 'per-directory)))
 (autoload 'image-dired-dired-with-window-configuration "image-dired" "\
 Open directory DIR and create a default window configuration.
 
@@ -17243,6 +17277,11 @@ an index alist of the current buffer.  The function is
 called within a `save-excursion'.
 
 See `imenu--index-alist' for the format of the buffer index alist.")
+(defvar-local imenu-submenus-on-top t "\
+Flag specifying whether items with sublists should be kept at top.
+
+For some indexes, such as those describing sections in a document, it
+makes sense to keep their original order even in the menubar.")
 (defvar-local imenu-prev-index-position-function 'beginning-of-defun "\
 Function for finding the next index position.
 
@@ -22558,15 +22597,6 @@ The Git version of Org mode.
 Inserted by installing Org or when a release is made.")
 
 
-;;; Generated autoloads from osc.el
-
-(autoload 'osc-compilation-filter "osc" "\
-Maybe collect OSC control sequences.
-This function depends on the variable `osc-for-compilation-buffer',
-and is meant to be used in `compilation-filter-hook'.")
-(register-definition-prefixes "osc" '("osc-"))
-
-
 ;;; Generated autoloads from outline.el
 
 (put 'outline-regexp 'safe-local-variable 'stringp)
@@ -25565,6 +25595,8 @@ evaluate `rectangle-mark-mode'.
 
 The mode's hook is called both when the mode is enabled and when
 it is disabled.
+
+\\{rectangle-mark-mode-map}
 
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
@@ -30746,9 +30778,9 @@ such as if there are no commands in the file, the value of `tex-default-mode'
 says which mode to use.
 
 (fn)" t)
-(defalias 'TeX-mode #'tex-mode)
-(defalias 'plain-TeX-mode #'plain-tex-mode)
-(defalias 'LaTeX-mode #'latex-mode)
+ (defalias 'TeX-mode #'tex-mode)
+ (defalias 'plain-TeX-mode #'plain-tex-mode)
+ (defalias 'LaTeX-mode #'latex-mode)
 (autoload 'plain-tex-mode "tex-mode" "\
 Major mode for editing files of input for plain TeX.
 Makes $ and } display the characters they match.
@@ -31971,6 +32003,11 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 ;;; Generated autoloads from net/tramp-crypt.el
 
 (register-definition-prefixes "tramp-crypt" '("tramp-crypt-"))
+
+
+;;; Generated autoloads from net/tramp-docker.el
+
+(register-definition-prefixes "tramp-docker" '("tramp-docker-"))
 
 
 ;;; Generated autoloads from net/tramp-ftp.el
@@ -33398,11 +33435,8 @@ with its diffs (if the underlying VCS supports that).
 (fn &optional LIMIT REVISION)" t)
 (autoload 'vc-print-branch-log "vc" "\
 Show the change log for BRANCH root in a window.
-Optional prefix ARG non-nil requests an opportunity for the user
-to edit the VC shell command that will be run to generate the
-log.
 
-(fn BRANCH &optional ARG)" t)
+(fn BRANCH)" t)
 (autoload 'vc-log-incoming "vc" "\
 Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
@@ -33533,6 +33567,10 @@ From a program, any ARGS are assumed to be filenames for which
 log entries should be gathered.
 
 (fn &rest ARGS)" t)
+(autoload 'vc-edit-next-command "vc" "\
+Request editing the next VC shell command before execution.
+This is a prefix command.  It affects only a VC command executed
+immediately after this one." t)
 (register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
 
 
@@ -33652,9 +33690,6 @@ FILE-OR-LIST is the name of a working file; it may be a list of
 files or be nil (to execute commands that don't expect a file
 name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
-
-If `vc-want-edit-command-p' is non-nil, prompt the user to edit
-COMMAND and FLAGS before execution.
 
 Return the return value of the slave command in the synchronous
 case, and the process object in the asynchronous case.
@@ -34832,6 +34867,7 @@ Turn on Viper emulation of Vi in Emacs.  See Info node `(viper)Top'." t)
 
 ;;; Generated autoloads from image/wallpaper.el
 
+(put 'wallpaper-setter-create 'lisp-indent-function 1)
 (autoload 'wallpaper-set "wallpaper" "\
 Set the desktop background to FILE in a graphical environment.
 
