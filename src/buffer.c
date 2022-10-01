@@ -4913,15 +4913,15 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 static Lisp_Object
 make_lispy_interval_node (const struct interval_node *node)
 {
-  return listn (CONSTYPE_HEAP, 12,
+  return listn (12,
                 intern (":begin"),
-                make_number (node->begin),
+                make_fixnum (node->begin),
                 intern (":end"),
-                make_number (node->end),
+                make_fixnum (node->end),
                 intern (":limit"),
-                make_number (node->limit),
+                make_fixnum (node->limit),
                 intern (":offset"),
-                make_number (node->offset),
+                make_fixnum (node->offset),
                 intern (":rear-advance"),
                 node->rear_advance ? Qt : Qnil,
                 intern (":front-advance"),
@@ -4932,7 +4932,7 @@ static Lisp_Object
 overlay_tree (const struct interval_tree *tree,
               const struct interval_node *node)
 {
-  if (node == &tree->nil)
+  if (node == ITREE_NULL)
     return Qnil;
   return list3 (make_lispy_interval_node (node),
                 overlay_tree (tree, node->left),
