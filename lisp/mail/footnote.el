@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This file provides footnote[1] support for message-mode in emacsen.
+;; This file provides footnote[1] support for message-mode in Emacs.
 ;; footnote-mode is implemented as a minor mode.
 
 ;; [1] Footnotes look something like this.  Along with some decorative

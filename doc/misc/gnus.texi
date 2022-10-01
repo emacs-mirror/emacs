@@ -28121,7 +28121,7 @@ If you use a stand-alone Gnus distribution, you'd better add
 lisp directory into load-path.
 
 File @file{gnus-load.el} contains autoload commands, functions and variables,
-some of which may not be included in distributions of Emacsen.
+some of which may not be included in distributions of Emacs.
 
 @end itemize
 

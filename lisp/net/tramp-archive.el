@@ -201,7 +201,7 @@ It must be supported by libarchive(3).")
 
 (put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
 
-;; In older Emacsen (prior 27.1), `tramp-archive-autoload-file-name-regexp'
+;; In older Emacs (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
 ;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
 ;;;###tramp-autoload
@@ -332,7 +332,7 @@ arguments to pass to the OPERATION."
 
 ;; Starting with Emacs 29, `tramp-archive-file-name-handler' is
 ;; autoloaded.  But it must still be in tramp-loaddefs.el for older
-;; Emacsen.
+;; versions of Emacs.
 ;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archive")
 ;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)

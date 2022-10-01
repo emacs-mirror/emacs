@@ -48,7 +48,7 @@
 (require 'cl-lib)
 (require 'eww)
 
-;; For Emacsen < 25.
+;; For Emacs < 25.
 (defvar eww-current-title)
 (defvar eww-current-url)
 

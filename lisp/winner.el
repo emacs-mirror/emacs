@@ -171,8 +171,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
               (/= 0 (minibuffer-depth)))
     (push (selected-frame) winner-modified-list)))
 
-;; A `post-command-hook' for emacsen with
-;; `window-configuration-change-hook'.
+;; Used as `post-command-hook'.
 (defun winner-save-old-configurations ()
   (when (zerop (minibuffer-depth))
     (unless (eq this-command winner-last-command)
@@ -191,8 +190,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (winner-insert-if-new (selected-frame))
   (winner-remember))
 
-;; A `post-command-hook' for other emacsen.
-;; Also called by `winner-undo' before "undoing".
+;; Called by `winner-undo' before "undoing".
 (defun winner-save-conditionally ()
   (when (zerop (minibuffer-depth))
     (winner-save-unconditionally)))

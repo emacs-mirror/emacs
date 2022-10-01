@@ -56,8 +56,9 @@
 
 ;; Bugs & Warnings:
 ;;
-;;  - It is bad to have two Emacsen both running shadowfile at the same
-;;  time.  It tries to detect this condition, but is not always successful.
+;;  - It is bad to have two instances of Emacs both running shadowfile
+;;  at the same time.  It tries to detect this condition, but is not
+;;  always successful.
 ;;
 ;;  - You have to be careful not to edit a file in two locations
 ;;  before shadowfile has had a chance to copy it; otherwise

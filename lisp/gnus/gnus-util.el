@@ -78,7 +78,7 @@
 If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
 string containing the replacements.
 
-This is a compatibility function for different Emacsen."
+This is a compatibility function."
   (declare (obsolete replace-regexp-in-string "26.1"))
   (replace-regexp-in-string regexp newtext string nil literal))
 
