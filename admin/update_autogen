@@ -95,6 +95,7 @@ genfiles="
 ## msdos-only:
 genfiles="src/config.in"
 
+basegen=""
 for g in $genfiles; do
     basegen="$basegen ${g##*/}"
 done
