@@ -24,12 +24,12 @@
 (require 'wallpaper)
 
 (ert-deftest wallpaper--find-command/return-string ()
-  (should (and (wallpaper--find-command)
-               (stringp (wallpaper--find-command)))))
+  (should (or (not (wallpaper--find-command))
+              (stringp (wallpaper--find-command)))))
 
 (ert-deftest wallpaper--find-command-args/return-list ()
-  (should (and (wallpaper--find-command-args)
-               (listp (wallpaper--find-command-args)))))
+  (should (or (not (wallpaper--find-command-args))
+              (listp (wallpaper--find-command-args)))))
 
 (ert-deftest wallpaper--image-file-regexp/return-string ()
   (should (stringp (wallpaper--image-file-regexp))))
