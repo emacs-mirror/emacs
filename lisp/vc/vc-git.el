@@ -1110,6 +1110,14 @@ If PROMPT is non-nil, prompt for the Git command to run."
             vc-filter-command-function))
          (proc (apply #'vc-do-async-command
                       buffer root git-program command extra-args)))
+    ;; "git pull" includes progress output that uses ^M to move point
+    ;; to the beginning of the line.  Just translate these to newlines
+    ;; (but don't do anything with the CRLF sequence).
+    (add-function :around (process-filter proc)
+                  (lambda (filter process string)
+                    (funcall filter process
+                             (replace-regexp-in-string "\r\\(\\'\\|[^\n]\\)"
+                                                       "\n\\1" string))))
     (with-current-buffer buffer
       (vc-run-delayed
         (vc-compilation-mode 'git)
