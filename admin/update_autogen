@@ -147,6 +147,7 @@ status ()
 
     local stat file modified
 
+    modified=""
     while read stat file; do
 
         [ "$stat" != "M" ] && \
