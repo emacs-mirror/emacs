@@ -155,6 +155,17 @@ that is the value of `ansi-osc-handlers'."
         (and (string-match ";\\(.+\\)" text)
              (cons (point-marker) (match-string-no-properties 1 text)))))
 
+(defgroup ansi-osc nil
+  "Interpretation of OSC escape sequences.
+Handlers for OSC 2, 7 and 8 (for window title, current directory
+and hyperlinks respectively) are provided.  OSC (Operating System
+Commands) control sequences are defined in section 8.3.89 of the
+ECMA-48 standard is freely available at
+<URL:https://www.ecma-international.org/publications/standards/Ecma-048.htm>
+as a PDF file."
+  :version "29.1"
+  :group 'processes)
+
 (defcustom ansi-osc-for-compilation-buffer 'filter
   "What to do with OSC escape sequences in compilation output.
 
@@ -170,7 +181,7 @@ must be in `compilation-filter-hook'."
   :type '(choice (const :tag "Do nothing" nil)
                  (const :tag "Filter out OSC" filter)
                  (other :tag "Translate OSC" t))
-  :group 'osc
+  :group 'ansi-osc
   :version "29.1")
 
 (defvar compilation-filter-start)
