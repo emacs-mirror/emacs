@@ -74,6 +74,9 @@ see its function help for a description of the format."
     (mapcar (lambda (m) (list nil m)) (delq nil names))))
 
 ;;;###tramp-autoload
+(defvar tramp-default-remote-shell) ;; Silence byte compiler.
+
+;;;###tramp-autoload
 (tramp--with-startup
  (push `(,tramp-docker-method
          (tramp-login-program ,tramp-docker-program)

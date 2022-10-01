@@ -2000,10 +2000,10 @@ password of the target user.  If these connections happen on the local
 host, an entry with the local user and local host is used:
 
 @example
-machine @var{HOST} port sudo login @var{USER} password secret
+machine @var{host} port sudo login @var{user} password secret
 @end example
 
-@var{USER} and @var{HOST} are the strings returned by
+@var{user} and @var{host} are the strings returned by
 @code{(user-login-name)} and @code{(system-name)}.  If one of these
 methods is connected via a multi hop (@pxref{Multi-hops}), the
 credentials of the previous hop are used.

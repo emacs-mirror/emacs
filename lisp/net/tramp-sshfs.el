@@ -47,6 +47,9 @@
   :type 'string)
 
 ;;;###tramp-autoload
+(defvar tramp-default-remote-shell) ;; Silence byte compiler.
+
+;;;###tramp-autoload
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method

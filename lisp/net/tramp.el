@@ -205,9 +205,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     MUST be a Bourne-like shell.  It is normally not necessary to
     set this to any value other than \"/bin/sh\": Tramp wants to
     use a shell which groks tilde expansion, but it can search
-    for it.  Also note that \"/bin/sh\" exists on all Unixen,
-    this might not be true for the value that you decide to use.
-    You Have Been Warned.
+    for it.  Also note that \"/bin/sh\" exists on all Unixen
+    except Andtoid, this might not be true for the value that you
+    decide to use.  You Have Been Warned.
 
   * `tramp-remote-shell-login'
     This specifies the arguments to let `tramp-remote-shell' run
@@ -278,7 +278,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
 
   * `tramp-direct-async'
     Whether the method supports direct asynchronous processes.
-    Until now, just \"ssh\"-based and \"adb\"-based methods do.
+    Until now, just \"ssh\"-based, \"sshfs\"-based and
+    \"adb\"-based methods do.
 
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
@@ -2876,6 +2877,7 @@ remote file names."
   (put #'tramp-completion-file-name-handler 'operations
        (mapcar #'car tramp-completion-file-name-handler-alist))
 
+  ;; Integrated in Emacs 27.
   (when (bound-and-true-p tramp-archive-enabled)
     (add-to-list 'file-name-handler-alist
 	         (cons tramp-archive-file-name-regexp
@@ -6124,11 +6126,6 @@ This handles also chrooted environments, which are not regarded as local."
 (defun tramp-get-remote-tmpdir (vec)
   "Return directory for temporary files on the remote host identified by VEC."
   (with-tramp-connection-property (tramp-get-process vec) "remote-tmpdir"
-    ;; Prior Tramp 2.5.3.2, the connection property "tmpdir" did exist
-    ;; with a remote file name.  This must be discarded.  (Bug#57800)
-    (when-let ((tmpdir (tramp-get-connection-property vec "tmpdir" nil)))
-      (when (tramp-tramp-file-p tmpdir)
-	(tramp-flush-connection-property vec "tmpdir")))
     (let ((dir
 	   (tramp-make-tramp-file-name
 	    vec (or (tramp-get-method-parameter vec 'tramp-tmpdir) "/tmp"))))
