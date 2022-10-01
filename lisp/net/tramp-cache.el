@@ -28,7 +28,7 @@
 ;; An implementation of information caching for remote files.
 
 ;; Each connection, identified by a `tramp-file-name' structure or by
-;; a process, has a unique cache.  We distinguish 5 kind of caches,
+;; a process, has a unique cache.  We distinguish 6 kind of caches,
 ;; depending on the key:
 ;;
 ;; - localname is nil.  These are reusable properties.  Examples:
@@ -55,6 +55,10 @@
 ;;   the results of parsing "/etc/passwd" and "/etc/group",
 ;;   "{uid,gid}-{integer,string}" are the local uid and gid, and
 ;;   "locale" is the used shell locale.
+;;
+;; - The key is `tramp-cache-version'.  It keeps the Tramp version the
+;;   cache data was produced with.  If the cache is read by another
+;;   Tramp version, it is flushed.
 ;;
 ;; - The key is `tramp-cache-undefined'.  All functions return the
 ;;   expected values, but nothing is cached.
@@ -104,6 +108,10 @@ details see the info pages."
   "File which keeps connection history for Tramp connections."
   :group 'tramp
   :type 'file)
+
+;;;###tramp-autoload
+(defconst tramp-cache-version (make-tramp-file-name :method "cache")
+"Virtual connection vector for Tramp version.")
 
 (defvar tramp-cache-data-changed nil
   "Whether persistent cache data have been changed.")
@@ -632,15 +640,25 @@ for all methods.  Resulting data are derived from connection history."
 		;; initialized properly by side effect.
 		(unless (tramp-connection-property-p key (car item))
 		  (tramp-set-connection-property key (pop item) (car item)))))))
+	;; Check Tramp version.  Clear cache in case of mismatch.
+	(unless (string-equal
+		 (tramp-get-connection-property
+		  tramp-cache-version "tramp-version" "")
+		 tramp-version)
+	  (signal 'file-error nil))
 	(setq tramp-cache-data-changed nil))
     (file-error
-     ;; Most likely because the file doesn't exist yet.  No message.
+     ;; Most likely because the file doesn't exist yet, or the Tramp
+     ;; version doesn't match.  No message.
      (clrhash tramp-cache-data))
     (error
      ;; File is corrupted.
      (message "Tramp persistency file `%s' is corrupted: %s"
 	      tramp-persistency-file-name (error-message-string err))
      (clrhash tramp-cache-data))))
+
+;; Initialize the cache version.
+(tramp-set-connection-property tramp-cache-version "tramp-version" tramp-version)
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

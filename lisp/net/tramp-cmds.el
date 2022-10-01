@@ -179,6 +179,10 @@ This includes password cache, file cache, connection cache, buffers."
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
 
+  ;; Initialize the cache version.
+  (tramp-set-connection-property
+   tramp-cache-version "tramp-version" tramp-version)
+
   ;; Remove ad-hoc proxies.
   (let ((proxies tramp-default-proxies-alist))
     (while proxies
