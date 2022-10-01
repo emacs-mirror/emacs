@@ -18222,8 +18222,9 @@ non-nil value.  If that value is non-nil, but not t, then the image type
 must be available." nil nil)
 
 (autoload 'create-image "image" "\
-Create an image.
-FILE-OR-DATA is an image file name or image data.
+Create an image from FILE-OR-DATA.
+FILE-OR-DATA is an image file name or image data.  If it is a relative
+file name, the function will look for it along `image-load-path'.
 
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
@@ -18241,10 +18242,6 @@ automatically scaled up in proportion to the default font.
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'.
-
-Image file names that are not absolute are searched for in the
-\"images\" sub-directory of `data-directory' and
-`x-bitmap-file-path' (in that order).
 
 \(fn FILE-OR-DATA &optional TYPE DATA-P &rest PROPS)" nil nil)
 
@@ -35091,7 +35088,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 3 28 2)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 4 -1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -39538,21 +39535,11 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
 ;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
 ;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
-;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
-;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/emoji-zwj.el" "international/eucjp-ms.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/emoji-zwj.el" "international/eucjp-ms.el"
 ;;;;;;  "international/iso-transl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
