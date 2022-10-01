@@ -20,11 +20,12 @@
 ;;; Commentary:
 ;;
 ;; Note to self: we don't create parsers automatically in any provided
-;; functions.
+;; functions if we don't know what language to use.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x)) ; For `string-join'.
 (require 'cl-seq)
 (require 'font-lock)
 
@@ -227,33 +228,6 @@ If NAMED is non-nil, count named child only."
 
 ;;; Query API supplement
 
-(defun treesit-query-in (source query &optional beg end node-only)
-  "Query the current buffer with QUERY.
-
-SOURCE can be a language symbol, a parser, or a node.  If a
-language symbol, use the root node of the first parser for that
-language; if a parser, use the root node of that parser; if a
-node, use that node.
-
-QUERY is either a string query, a sexp query, or a compiled
-query.  See Info node `(elisp)Pattern Matching' for how to write
-a query in either string or s-expression form.  When using
-repeatedly, a compiled query is much faster than a string or sexp
-one, so it is recommend to compile your queries if it will be
-used over and over.
-
-BEG and END, if _both_ non-nil, specifies the range in which the query
-is executed.  If NODE-ONLY non-nil, return a list of nodes.
-
-Raise an treesit-query-error if QUERY is malformed."
-  (treesit-query-capture
-   (cond ((symbolp source) (treesit-buffer-root-node source))
-         ((treesit-parser-p source)
-          (treesit-parser-root-node source))
-         ((treesit-node-p source) source))
-   query
-   beg end node-only))
-
 (defun treesit-query-string (string query language)
   "Query STRING with QUERY in LANGUAGE.
 See `treesit-query-capture' for QUERY."
@@ -272,7 +246,7 @@ QUERY, SOURCE, BEG, END are the same as in
 of (START . END), where START and END specifics the range of each
 captured node.  Capture names don't matter."
   (cl-loop for capture
-           in (treesit-query-in source query beg end)
+           in (treesit-query-capture source query beg end)
            for node = (cdr capture)
            collect (cons (treesit-node-start node)
                          (treesit-node-end node))))
@@ -847,7 +821,7 @@ to the offending pattern and highlight the pattern."
     (with-temp-buffer
       (treesit-parser-create language)
       (condition-case err
-          (progn (treesit-query-in language query)
+          (progn (treesit-query-capture language query)
                  (message "QUERY is valid"))
         (treesit-query-error
          (with-current-buffer buf

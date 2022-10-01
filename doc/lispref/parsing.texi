@@ -867,6 +867,11 @@ compiled query object.  For now, we focus on the string syntax;
 s-expression syntax and compiled query are described at the end of the
 section.
 
+Parameter @var{node} can also be a parser or a language symbol.  A
+parser means using its root node, a language symbol means find or
+create a parser for that language in the current buffer, and use the
+root node.
+
 The function returns all captured nodes in a list of
 @code{(@var{capture_name} . @var{node})}.  If @var{node-only} is
 non-nil, a list of node is returned instead.  If @var{beg} and
@@ -877,22 +882,6 @@ in that range.
 This function raise a @var{treesit-query-error} if @var{query} is
 malformed.  The signal data contains a description of the specific
 error.  You can use @code{treesit-query-validate} to debug the query.
-@end defun
-
-@defun treesit-query-in source query &optional beg end node-only
-This function matches patterns in @var{query} in @var{source}, and
-returns all captured nodes in a list of @code{(@var{capture_name}
-. @var{node})}.  If @var{node-only} is non-nil, a list of node is
-returned instead.  If @var{beg} and @var{end} are both non-nil, it
-only pattern match nodes in that range.
-
-Argument @var{source} designates a node, it can be a language symbol,
-a parser, or simply a node.  If a language symbol, @var{source}
-represents the root node of the first parser for that language in the
-current buffer; if a parser, @var{source} represents the root node of
-that parser.
-
-This function also raises @var{treesit-query-error}.
 @end defun
 
 For example, suppose @var{node}'s content is @code{1 + 2}, and

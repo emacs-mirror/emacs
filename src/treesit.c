@@ -1691,13 +1691,17 @@ compile your queries if it will be used over and over.
 BEG and END, if both non-nil, specifies the range in which the query
 is executed.  If NODE-ONLY is non-nil, return a list of nodes.
 
+Besides a node, NODE can also be a parser, then the root node of that
+parser is used; NODE can be a language symbol, then the root node of a
+parser for that language is used.  If such a parser doesn't exist, it
+is created.
+
 Signals treesit-query-error if QUERY is malformed or something else
 goes wrong.  You can use `treesit-query-validate' to debug the
 query.  */)
   (Lisp_Object node, Lisp_Object query,
    Lisp_Object beg, Lisp_Object end, Lisp_Object node_only)
 {
-  ts_check_node (node);
   if (!NILP (beg))
     CHECK_INTEGER (beg);
   if (!NILP (end))
@@ -1707,11 +1711,29 @@ query.  */)
 	|| CONSP (query) || STRINGP (query)))
     wrong_type_argument (Qtreesit_query_p, query);
 
+
+  Lisp_Object lisp_node;
+  if (TS_NODEP (node))
+    lisp_node = node;
+  else if (TS_PARSERP (node))
+    lisp_node = Ftreesit_parser_root_node (node);
+  else if (SYMBOLP (node))
+    {
+      Lisp_Object parser
+	= Ftreesit_parser_create (node, Fcurrent_buffer (), Qnil);
+      lisp_node = Ftreesit_parser_root_node (parser);
+    }
+  else
+    xsignal2 (Qwrong_type_argument,
+	      list4 (Qor, Qtreesit_node_p,
+		     Qtreesit_parser_p, Qsymbolp),
+	      node);
+
   /* Extract C values from Lisp objects.  */
-  TSNode ts_node = XTS_NODE (node)->node;
-  Lisp_Object lisp_parser = XTS_NODE (node)->parser;
+  TSNode ts_node = XTS_NODE (lisp_node)->node;
+  Lisp_Object lisp_parser = XTS_NODE (lisp_node)->parser;
   ptrdiff_t visible_beg =
-    XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
+    XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
   const TSLanguage *lang = ts_parser_language
     (XTS_PARSER (lisp_parser)->parser);
 
