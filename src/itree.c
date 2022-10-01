@@ -94,6 +94,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    incremented whenever some node's offset has changed.
 */
 
+/* FIXME: The code seems to use "generator" and "iterator"
+   inconsistently/interchangeably.  We should fix this naming.  */
+
 static struct interval_node *interval_tree_validate (struct interval_tree *, struct interval_node *);
 static void interval_generator_ensure_space (struct interval_generator *);
 static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
@@ -110,13 +113,8 @@ static struct interval_node *interval_tree_subtree_min (const struct interval_tr
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 static void interval_generator_destroy (struct interval_generator *);
 static void interval_generator_reset (struct interval_generator *,
-                               ptrdiff_t, ptrdiff_t,
-                               enum interval_tree_order);
-static void
-interval_generator_narrow (struct interval_generator *g,
-                             ptrdiff_t begin, ptrdiff_t end);
-static inline struct interval_node*
-interval_generator_next (struct interval_generator *g);
+                                      ptrdiff_t, ptrdiff_t,
+                                      enum interval_tree_order);
 static inline void interval_tree_iter_ensure_space (struct interval_tree *);
 
 /* The sentinel node, the null node.  */
@@ -149,6 +147,9 @@ struct interval_generator
   ptrdiff_t begin;
   ptrdiff_t end;
   enum interval_tree_order order;
+  bool_bf running : 1;
+  const char* file;
+  int line;
 };
 
 
@@ -221,8 +222,11 @@ static inline void
 interval_stack_push_flagged (struct interval_stack *stack,
                              struct interval_node *node, bool flag)
 {
-  /* FIXME: Isn't this redundant with the calls that are passed
-     `interval_tree_max_height` before the iteration?  */
+  /* FIXME: This call to `interval_stack_ensure_space` is a bit redundant
+     with the work of `interval_generator_ensure_space` but it's still needed
+     here because `interval_generator_next` can push up to 3 elements per
+     node it visits, so for a tree of depth N it can use up a stack
+     space up to 3 times larger than what we computed.  :-(  */
   interval_stack_ensure_space (stack, stack->length + 1);
 
   stack->nodes[stack->length] = make_nav (node, flag);
@@ -338,7 +342,6 @@ interval_tree_clear (struct interval_tree *tree)
   tree->root = null;
   tree->otick = 1;
   tree->size = 0;
-  tree->iter_running = false;
 }
 
 #ifdef ITREE_TESTING
@@ -430,11 +433,11 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
   struct interval_node *other;
 
   interval_tree_iter_start (tree, node->begin, PTRDIFF_MAX, ITREE_ASCENDING, __FILE__, __LINE__);
-  while ((other = interval_tree_iter_next (tree)))
+  while ((other = interval_generator_next (tree->iter)))
     if (other == node)
       break;
 
-  interval_tree_iter_finish (tree);
+  interval_tree_iter_finish (tree->iter);
   return other == node;
 }
 
@@ -519,12 +522,12 @@ interval_tree_nodes (struct interval_tree *tree,
   struct interval_node *node;
 
   interval_tree_iter_start (tree, PTRDIFF_MIN, PTRDIFF_MAX, order, __FILE__, __LINE__);
-  while ((node = interval_tree_iter_next (tree)))
+  while ((node = interval_generator_next (tree->iter)))
     {
       *nodes = node;
       ++nodes;
     }
-  interval_tree_iter_finish (tree);
+  interval_tree_iter_finish (tree->iter);
 }
 
 /* Start a generator iterating all intervals in [BEGIN,END) in the
@@ -538,47 +541,27 @@ interval_tree_iter_start (struct interval_tree *tree,
                           enum interval_tree_order order,
 			  const char* file, int line)
 {
-  if (tree->iter_running)
+  struct interval_generator *iter = tree->iter;
+  if (iter->running)
     {
       fprintf (stderr,
                "Detected nested iteration!\nOuter: %s:%d\nInner: %s:%d\n",
-               tree->file, tree->line, file, line);
+               iter->file, iter->line, file, line);
       emacs_abort ();
     }
-  interval_generator_reset (tree->iter, begin, end, order);
-  tree->iter_running = true;
-  tree->file = file;
-  tree->line = line;
-}
-
-/* Limit the search interval of the iterator to the given values.  The
-   interval can only shrink, but never grow.*/
-
-inline void
-interval_tree_iter_narrow (struct interval_tree *tree,
-                           ptrdiff_t begin, ptrdiff_t end)
-{
-  eassert (tree->iter_running);
-  interval_generator_narrow (tree->iter, begin, end);
+  interval_generator_reset (iter, begin, end, order);
+  iter->running = true;
+  iter->file = file;
+  iter->line = line;
 }
 
 /* Stop using the iterator. */
 
 void
-interval_tree_iter_finish (struct interval_tree *tree)
+interval_tree_iter_finish (struct interval_generator *iter)
 {
-  eassert (tree->iter_running);
-  tree->iter_running = false;
-}
-
-/* Return the next node of the iterator in the order given when it was
-   started; or NULL if there are no more nodes. */
-
-inline struct interval_node*
-interval_tree_iter_next (struct interval_tree *tree)
-{
-  eassert (tree->iter_running);
-  return interval_generator_next (tree->iter);
+  eassert (iter->running);
+  iter->running = false;
 }
 
 /* Ensure that the tree's iterator does not need to allocate space
@@ -617,14 +600,15 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
      order, so we need to remove them first. */
   struct interval_stack *saved = interval_stack_create (0);
   struct interval_node *node = NULL;
-  interval_tree_iter_start (tree, pos, pos + 1, ITREE_PRE_ORDER, __FILE__, __LINE__);
-  while ((node = interval_tree_iter_next (tree)))
+  interval_tree_iter_start (tree, pos, pos + 1,
+                            ITREE_PRE_ORDER, __FILE__, __LINE__);
+  while ((node = interval_generator_next (tree->iter)))
     {
       if (node->begin == pos && node->front_advance
           && (node->begin != node->end || node->rear_advance))
         interval_stack_push (saved, node);
     }
-  interval_tree_iter_finish (tree);
+  interval_tree_iter_finish (tree->iter);
   for (int i = 0; i < saved->length; ++i)
     interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
@@ -737,14 +721,16 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
 
 /* Allocate a new generator for TREE. */
 
-static struct interval_generator*
-interval_generator_create  (struct interval_tree *tree)
+static struct interval_generator *
+interval_generator_create (struct interval_tree *tree)
 {
   struct interval_generator *g = xmalloc (sizeof *g);
+  /* FIXME: Is tree ever non-empty here?  */
   const int size = interval_tree_max_height (tree) + 1;
 
   g->stack = interval_stack_create (size);
   g->tree = tree;
+  g->running = false;
   interval_generator_reset (g, 1, 0, ITREE_ASCENDING);
   return g;
 }
@@ -791,11 +777,13 @@ interval_node_intersects (const struct interval_node *node,
     || (node->begin == node->end && begin == node->begin);
 }
 
-/* Return the next node of G, or NULL if there is none. */
+/* Return the next node of the iterator in the order given when it was
+   started; or NULL if there are no more nodes. */
 
 inline struct interval_node*
 interval_generator_next (struct interval_generator *g)
 {
+  eassert (g->running);
   if (! g) return NULL;
 
   struct interval_node * const null = ITREE_NULL;
@@ -862,10 +850,11 @@ interval_generator_next (struct interval_generator *g)
 /* Limit G to the new interval [BEGIN, END), which must be a subset of
    the current one.  I.E. it can't grow on either side. */
 
-static inline void
+inline void
 interval_generator_narrow (struct interval_generator *g,
                            ptrdiff_t begin, ptrdiff_t end)
 {
+  eassert (g->running);
   eassert (begin >= g->begin);
   eassert (end <= g->end);
   g->begin =  max (begin, g->begin);
@@ -923,6 +912,8 @@ interval_tree_inherit_offset (const struct interval_tree *tree,
   if (node->right != ITREE_NULL)
     node->right->offset += node->offset;
   node->offset = 0;
+  /* FIXME: I wonder when/why this condition can be false, and more generally
+     why we'd want to propagate offsets that may not be fully up-to-date.  */
   if (node == tree->root || node->parent->otick == tree->otick)
     node->otick = tree->otick;
 }

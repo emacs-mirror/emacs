@@ -1458,21 +1458,21 @@ buffer_overlay_iter_next (struct buffer *b)
 {
   if (! b->overlays)
     return NULL;
-  return interval_tree_iter_next (b->overlays);
+  return interval_generator_next (b->overlays->iter);
 }
 
 INLINE void
 buffer_overlay_iter_finish (struct buffer *b)
 {
   if (b->overlays)
-    interval_tree_iter_finish (b->overlays);
+    interval_tree_iter_finish (b->overlays->iter);
 }
 
 INLINE void
 buffer_overlay_iter_narrow (struct buffer *b, ptrdiff_t begin, ptrdiff_t end)
 {
   if (b->overlays)
-    interval_tree_iter_narrow (b->overlays, begin, end);
+    interval_generator_narrow (b->overlays->iter, begin, end);
 }
 
 /* Return the start of OV in its buffer, or -1 if OV is not associated

@@ -921,6 +921,14 @@ delete_all_overlays (struct buffer *b)
   if (! b->overlays)
     return;
 
+  /* FIXME: This loop sets the overlays' `buffer` field to NULL but
+     doesn't set the interval_nodes' `parent`, `left` and `right`
+     fields accordingly.  I believe it's harmless, but a bit untidy since
+     other parts of the code are careful to set those fields to NULL when
+     the overlay is deleted.
+     Of course, we can't set them to NULL from within the iteration
+     because the iterator may need them (tho we could if we added
+     an ITREE_POST_ORDER iteration order).  */
   buffer_overlay_iter_start (b, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
   while ((node = buffer_overlay_iter_next (b)))
     {
