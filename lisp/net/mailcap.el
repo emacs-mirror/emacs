@@ -1066,8 +1066,10 @@ If FORCE, re-parse even if already parsed."
               extns nil)))))
 
 (defun mailcap--regexp-quote-type (type)
-  (pcase-let ((`(,major ,minor) (split-string type "/")))
-    (concat major "/" (regexp-quote minor))))
+  (if (not (string-search "/" type))
+      type
+    (pcase-let ((`(,major ,minor) (split-string type "/")))
+      (concat major "/" (regexp-quote minor)))))
 
 (defun mailcap-extension-to-mime (extn)
   "Return the MIME content type of the file extensions EXTN."
