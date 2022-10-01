@@ -10709,11 +10709,6 @@ move_it_vertically_backward (struct it *it, int dy)
 
   /* Estimate how many newlines we must move back.  */
   nlines = max (1, dy / default_line_pixel_height (it->w));
-  /* Move one line more back, for the (rare) situation where we have
-     bidi-reordered continued lines, and we start from the top-most
-     screen line, which is the last in logical order.  */
-  if (it->bidi_p && dy == 0)
-    nlines++;
   if (it->line_wrap == TRUNCATE || nchars_per_row == 0)
     pos_limit = BEGV;
   else
@@ -10776,10 +10771,10 @@ move_it_vertically_backward (struct it *it, int dy)
   if (dy == 0)
     {
       /* DY == 0 means move to the start of the screen line.  The
-	 value of nlines is > 1 if continuation lines were involved,
+	 value of nlines is > 0 if continuation lines were involved,
 	 or if the original IT position was at start of a line.  */
       RESTORE_IT (it, it, it2data);
-      if (nlines > 1)
+      if (nlines > 0)
 	move_it_by_lines (it, nlines);
       /* The above code moves us to some position NLINES down,
 	 usually to its first glyph (leftmost in an L2R line), but
