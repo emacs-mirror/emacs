@@ -74,21 +74,21 @@
 ;;; TODO:
 ;;
 ;; * Really, we need to lock the logfiles somehow, so that if a user
-;;   is running multiple Emacs processes and/or on the same channel as
-;;   more than one user, only one process writes to the logfile.  This
-;;   is especially needed for those logfiles with no nick in them, as
+;;   is running multiple emacsen and/or on the same channel as more
+;;   than one user, only one process writes to the logfile.  This is
+;;   especially needed for those logfiles with no nick in them, as
 ;;   these would become corrupted.
-;;   For a single Emacs process, the problem could be solved using a
+;;   For a single emacs process, the problem could be solved using a
 ;;   variable which contained the names of buffers already being
 ;;   logged.  This would require that logging be buffer-local,
 ;;   possibly not a bad thing anyway, since many people don't want to
 ;;   log the server buffer.
-;;   For multiple Emacs processes the problem is trickier.  On some
-;;   systems, on could use the function `lock-buffer' and
-;;   `unlock-buffer'.  However, file locking isn't implemented on all
-;;   platforms, for example, there is none on w32 systems.
+;;   For multiple emacsen the problem is trickier.  On some systems,
+;;   on could use the function `lock-buffer' and `unlock-buffer'.
+;;   However, file locking isn't implemented on all platforms, for
+;;   example, there is none on w32 systems.
 ;;   A third possibility might be to fake lockfiles.  However, this
-;;   might lead to problems if one Emacs crashes, as the lockfile
+;;   might lead to problems if an emacs crashes, as the lockfile
 ;;   would be left lying around.
 
 ;;; Code:

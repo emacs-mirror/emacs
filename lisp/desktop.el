@@ -1186,7 +1186,7 @@ no questions asked."
 	  (goto-char (point-max))
 	  (insert "\n;; Global section:\n")
 	  ;; Called here because we save the window/frame state as a global
-          ;; variable for compatibility with older versions of Emacs.
+	  ;; variable for compatibility with previous Emacsen.
 	  (desktop-save-frameset)
 	  (unless (memq 'desktop-saved-frameset desktop-globals-to-save)
 	    (desktop-outvar 'desktop-saved-frameset))

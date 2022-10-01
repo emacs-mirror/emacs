@@ -587,7 +587,8 @@ string.
 
 @vindex tag-glyph@r{ keyword}
 @item :tag-glyph
-Name of image to use instead of the string specified by @code{:tag}.
+Name of image to use instead of the string specified by @code{:tag} on
+Emacsen that supports it.
 
 @vindex help-echo@r{ keyword}
 @item :help-echo
@@ -1013,10 +1014,12 @@ A string representing the @samp{off} state.  By default the string
 @samp{off}.
 @vindex on-glyph@r{ keyword}
 @item :on-glyph
-Name of a glyph to be used instead of the @samp{:on} text string.
+Name of a glyph to be used instead of the @samp{:on} text string, on
+emacsen that supports this.
 @vindex off-glyph@r{ keyword}
 @item :off-glyph
-Name of a glyph to be used instead of the @samp{:off} text string.
+Name of a glyph to be used instead of the @samp{:off} text string, on
+emacsen that supports this.
 @end table
 
 @node checkbox

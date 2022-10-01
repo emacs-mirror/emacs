@@ -1761,7 +1761,7 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 ;;
 ;; Problems:
 ;; * Modern regexp constructs, like spy groups and counted repetitions, aren't
-;;   available in older versions of Emacs.
+;;   available in older Emacsen.
 ;; * The length of constructs (file name, size) might exceed the default.
 ;; * File names might contain spaces.
 ;; * Permissions might be empty.

@@ -1,4 +1,4 @@
-;;; org-compat.el --- Compatibility Code for Older Emacs -*- lexical-binding: t; -*-
+;;; org-compat.el --- Compatibility Code for Older Emacsen -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2022 Free Software Foundation, Inc.
 
@@ -929,7 +929,7 @@ Pass COLUMN and FORCE to `move-to-column'."
   "Define NAME as a new error signal.
 MESSAGE is a string that will be output to the echo area if such
 an error is signaled without being caught by a `condition-case'.
-Implements `define-error' for older versions of Emacs."
+Implements `define-error' for older emacsen."
   (if (fboundp 'define-error) (define-error name message)
     (put name 'error-conditions
          (copy-sequence (cons name (get 'error 'error-conditions))))))

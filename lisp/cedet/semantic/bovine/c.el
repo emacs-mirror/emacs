@@ -308,7 +308,7 @@ Moves completely over balanced #if blocks."
 	;; We found a nested if.  Skip it.
 	(if (fboundp 'c-scan-conditionals)
 	    (goto-char (c-scan-conditionals 1))
-          ;; For older versions of Emacs, but this will set the mark.
+	  ;; For older Emacsen, but this will set the mark.
 	  (c-forward-conditional 1)))
        ((looking-at "^\\s-*#\\s-*elif")
 	;; We need to let the preprocessor analyze this one.

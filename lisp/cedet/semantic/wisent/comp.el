@@ -3449,7 +3449,7 @@ Automatically called by the Emacs Lisp byte compiler as a
 
 (defun wisent-compile-grammar (grammar &optional start-list)
   ;; This is kept for compatibility with FOO-wy.el files generated
-  ;; with older versions of Emacs.
+  ;; with older Emacsen.
   (declare (obsolete wisent-compiled-grammar "Mar 2021"))
   (wisent--compile-grammar grammar start-list))
 
