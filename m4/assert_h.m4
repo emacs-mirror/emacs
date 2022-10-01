@@ -18,6 +18,7 @@ AC_DEFUN([gl_ASSERT_H],
        [AC_LANG_PROGRAM(
           [[#if defined __clang__ && __STDC_VERSION__ < 202311
              #pragma clang diagnostic error "-Wc2x-extensions"
+             #pragma clang diagnostic error "-Wc++17-extensions"
             #endif
             #ifdef INCLUDE_ASSERT_H
              #include <assert.h>
