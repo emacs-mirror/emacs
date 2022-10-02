@@ -325,7 +325,9 @@ with that face.  Capture names can also be function names, in
 which case the function is called with (START END NODE), where
 START and END are the start and end position of the node in
 buffer, and NODE is the tree-sitter node object.  If a capture
-name is both a face and a function, the face takes priority.
+name is both a face and a function, the face takes priority.  If
+a capture name is not a face name nor a function name, it is
+ignored.
 
 \(fn :KEYWORD VALUE QUERY...)"
   (let (;; Tracks the current language that following queries will
@@ -382,8 +384,10 @@ If LOUDLY is non-nil, message some debugging information."
                 (cond ((facep face)
                        (put-text-property start end 'face face))
                       ((functionp face)
-                       (funcall face start end node))
-                      (t (error "Capture name %s is neither a face nor a function" face)))
+                       (funcall face start end node)))
+                ;; Don't raise an error if FACE is neither a face nor
+                ;; a function.  This is to allow intermediate capture
+                ;; names used for #match and #eq.
                 (when loudly
                   (message "Fontifying text from %d to %d, Face: %s Language: %s"
                            start end face language)))))))))
