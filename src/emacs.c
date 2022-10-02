@@ -903,7 +903,7 @@ load_pdump (int argc, char **argv)
 	exenamelen = prefix_length;
     }
   ptrdiff_t needed = exenamelen + strlen (suffix) + 1;
-  dump_file = xpalloc (NULL, &bufsize, needed - bufsize, -1, 1);
+  dump_file = xpalloc (NULL, &bufsize, max (1, needed - bufsize), -1, 1);
   memcpy (dump_file, emacs_executable, exenamelen);
   strcpy (dump_file + exenamelen, suffix);
   result = pdumper_load (dump_file, emacs_executable);
