@@ -304,16 +304,18 @@ endif
 ifeq ($(HAVE_NATIVE_COMP),yes)
 ifeq ($(ANCIENT),yes)
 # The first compilation of compile-first, using an interpreted compiler:
-# The resulting .elc files get given a date of 1971-01-01 so that their
-# date stamp is earlier than the source files, causing these to be compiled
-# into native code at the second recursive invocation of this $(MAKE),
-# using these .elc's.  This is faster than just compiling the native code
-# directly using the interpreted compile-first files.  (Note: 1970-01-01
-# fails on some systems.)
+# The resulting .elc files get given a timestamp of the Unix epoch,
+# 1970-01-01, so that their timestamps are earlier than the source files,
+# causing these to be compiled into native code at the second recursive
+# invocation of this $(MAKE), using these .elc's.  This is faster than just
+# compiling the native code directly using the interpreted compile-first
+# files.  Note that the epoch date is hard-coded into Fload in src/lread.c
+# which uses it to avoid displaying certain messages which might be
+# irritating/misleading during a bootstrap.
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 	-l comp -f batch-byte-compile $<
-	touch -t 197101010000 $@
+	TZ=UTC touch -t 197001010000 $@
 else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
