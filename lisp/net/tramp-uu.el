@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; An implementation of "uuencode" in Lisp.  Uses the function
-;; base64-encode-region which is built-in to modern Emacsen.
+;; base64-encode-region which is built-in to modern Emacs.
 
 ;;; Code:
 
