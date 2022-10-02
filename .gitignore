@@ -53,6 +53,7 @@ src/emacs-module.h
 
 # C-level sources built by 'make'.
 lib/alloca.h
+lib/assert.h
 lib/byteswap.h
 lib/dirent.h
 lib/errno.h
