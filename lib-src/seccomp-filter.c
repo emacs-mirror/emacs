@@ -69,19 +69,16 @@ fail (int error, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
+  vfprintf (stderr, format, ap);
+  va_end (ap);
   if (error == 0)
-    {
-      vfprintf (stderr, format, ap);
-      fputc ('\n', stderr);
-    }
+    fputc ('\n', stderr);
   else
     {
-      char buffer[1000];
-      vsnprintf (buffer, sizeof buffer, format, ap);
+      fputs (": ", stderr);
       errno = error;
-      perror (buffer);
+      perror (NULL);
     }
-  va_end (ap);
   fflush (NULL);
   exit (EXIT_FAILURE);
 }
