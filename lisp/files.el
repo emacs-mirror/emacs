@@ -2711,7 +2711,8 @@ unless NOMODES is non-nil."
 		   (file-newer-than-file-p (or buffer-auto-save-file-name
 					       (make-auto-save-file-name))
 					   buffer-file-name))
-		  (format "%s has auto save data; consider M-x recover-this-file"
+                  (format (substitute-command-keys
+                           "%s has auto save data; consider \\`M-x recover-this-file'")
 			  (file-name-nondirectory buffer-file-name))
 		(setq not-serious t)
 		(if error "(New file)" nil)))
