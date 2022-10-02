@@ -1041,13 +1041,14 @@ revision at point.  A second @key{RET} hides it again.
 (@code{vc-log-incoming}) command displays a log buffer showing the
 changes that will be applied, the next time you run the version
 control system's pull command to get new revisions from another
-repository (@pxref{Pulling / Pushing}).  This other repository is the default
+remote location (@pxref{Pulling / Pushing}).  This other remote location is the default
 one from which changes are pulled, as defined by the version control
 system; with a prefix argument, @code{vc-log-incoming} prompts for a
-specific repository.  Similarly, @kbd{C-x v O}
+specific remote location.  Similarly, @kbd{C-x v O}
 (@code{vc-log-outgoing}) shows the changes that will be sent to
-another repository, the next time you run the push command; with a
-prefix argument, it prompts for a specific destination repository.
+another remote location, the next time you run the push command; with a
+prefix argument, it prompts for a specific destination that
+in case of some version control system can be a branch name.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer

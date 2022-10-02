@@ -1322,7 +1322,12 @@ If LIMIT is a revision string, use it as an end-revision."
 
 (defun vc-git-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)
-  (vc-git-command nil 0 nil "fetch")
+  (vc-git-command nil 0 nil "fetch"
+                  (unless (string= remote-location "")
+                    ;; `remote-location' is in format "repository/branch",
+                    ;; so remove everything except a repository name.
+                    (replace-regexp-in-string
+                     "/.*" "" remote-location)))
   (vc-git-command
    buffer 'async nil
    "log"

@@ -2765,10 +2765,11 @@ with its diffs (if the underlying VCS supports that)."
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
   "Show log of changes that will be received with pull from REMOTE-LOCATION.
-When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name."
   (interactive
    (when current-prefix-arg
-     (list (read-string "Remote location (empty for default): "))))
+     (list (read-string "Remote location/branch (empty for default): "))))
   (let ((backend (vc-deduce-backend)))
     (unless backend
       (error "Buffer is not version controlled"))
@@ -2778,10 +2779,11 @@ When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
   "Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
-When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name."
   (interactive
    (when current-prefix-arg
-     (list (read-string "Remote location (empty for default): "))))
+     (list (read-string "Remote location/branch (empty for default): "))))
   (let ((backend (vc-deduce-backend)))
     (unless backend
       (error "Buffer is not version controlled"))
