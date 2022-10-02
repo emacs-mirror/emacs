@@ -1347,17 +1347,21 @@ for deletion instead."
   (interactive nil image-dired-thumbnail-mode)
   (unless (derived-mode-p 'image-dired-thumbnail-mode)
     (user-error "Not in `image-dired-thumbnail-mode'"))
-  (let ((inhibit-read-only t))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (if (image-dired-thumb-file-flagged-p)
-          (progn
-            (delete-char 1)
-            (forward-char))
-        (forward-char 2))))
-  (image-dired--line-up-with-method)
-  (image-dired--on-file-in-dired-buffer
-    (dired-do-flagged-delete)))
+  (image-dired--with-dired-buffer
+    (dired-do-flagged-delete))
+  (let (deletions)
+    (save-excursion
+      (let ((inhibit-read-only t))
+        (goto-char (point-min))
+        (while (not (eobp))
+          (let ((file-name (image-dired-original-file-name)))
+            (if (image-dired--with-dired-buffer (dired-goto-file file-name))
+                (forward-char 2)
+              (delete-char 1)
+              (forward-char)
+              (setq deletions t))))))
+    (if deletions
+        (image-dired--line-up-with-method))))
 
 (defun image-dired--thumb-update-mark-at-point ()
   (with-silent-modifications
