@@ -59,11 +59,6 @@ struct interval_tree
   struct interval_node *root;
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */
-  /* FIXME: We can only have one iteration active per tree, which is very
-     restrictive.  Actually, in practice this is no better than limiting
-     to a single active iteration *globally*, so we could move this `iter`
-     to a global variable!  */
-  struct interval_generator *iter;
 };
 
 enum interval_tree_order {

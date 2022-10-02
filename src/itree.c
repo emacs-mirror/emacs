@@ -110,18 +110,9 @@ static void interval_tree_remove_fix (struct interval_tree *, struct interval_no
 static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
 static struct interval_node *interval_tree_subtree_min (const struct interval_tree *, struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
-static void interval_generator_destroy (struct interval_generator *);
-static inline void interval_tree_iter_ensure_space (struct interval_tree *);
 
 /* The sentinel node, the null node.  */
 struct interval_node itree_null;
-
-static void
-init_itree_null (void)
-{
-  itree_null.parent = itree_null.left = itree_null.right = ITREE_NULL;
-}
-
 
 /* +------------------------------------------------------------------------------------+ */
 
@@ -147,6 +138,20 @@ struct interval_generator
   const char* file;
   int line;
 };
+
+/* Ideally, every iteration would use its own `iter` object, so we could
+   have several iterations active at the same time.  In practice, iterations
+   are limited by the fact we don't allow modifying the tree at the same
+   time, making the use of nested iterations quite rare anyway.
+   So we just use a single global iterator instead for now.  */
+static struct interval_generator *iter;
+
+static void
+itree_init (void)
+{
+  itree_null.parent = itree_null.left = itree_null.right = ITREE_NULL;
+  iter = interval_generator_create (NULL);
+}
 
 
 /* +===================================================================================+
@@ -208,7 +213,8 @@ interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
   if (nelements > stack->size)
     {
       stack->size = (nelements + 1) * 2;
-      stack->nodes = xrealloc (stack->nodes, stack->size * sizeof (*stack->nodes));
+      stack->nodes = xrealloc (stack->nodes,
+                               stack->size * sizeof (*stack->nodes));
     }
 }
 
@@ -220,11 +226,12 @@ interval_stack_push_flagged (struct interval_stack *stack,
 {
   eassert (node && node != ITREE_NULL);
 
-  /* FIXME: This call to `interval_stack_ensure_space` is a bit redundant
-     with the work of `interval_generator_ensure_space` but it's still needed
-     here because `interval_generator_next` can push up to 3 elements per
-     node it visits, so for a tree of depth N it can use up a stack
-     space up to 3 times larger than what we computed.  :-(  */
+  /* FIXME: While the stack used in the iterator is bounded by the tree
+     depth and could be easily pre-allocated to a large enough size to avoid
+     this "ensure" check, `interval_stack_push` is also used elsewhere to
+     simply collect some subset of the overlays, where it's only bounded by
+     the total number of overlays in the buffer (which can be large and thus
+     preferably not pre-allocated needlessly).  */
   interval_stack_ensure_space (stack, stack->length + 1);
 
   stack->nodes[stack->length] = make_nav (node, flag);
@@ -315,11 +322,10 @@ interval_tree_create (void)
   /* FIXME?  Maybe avoid the initialization of itree_null in the same
      way that is used to call mem_init in alloc.c?  It's not really
      important though.  */
-  init_itree_null ();
+  itree_init ();
 
   struct interval_tree *tree = xmalloc (sizeof (*tree));
   interval_tree_clear (tree);
-  tree->iter = interval_generator_create (tree);
   return tree;
 }
 
@@ -349,7 +355,7 @@ static void
 interval_tree_init (struct interval_tree *tree)
 {
   interval_tree_clear (tree);
-  tree->iter = interval_generator_create (tree);
+  /* tree->iter = interval_generator_create (tree); */
 }
 #endif
 
@@ -358,8 +364,8 @@ void
 interval_tree_destroy (struct interval_tree *tree)
 {
   eassert (tree->root == ITREE_NULL);
-  if (tree->iter)
-    interval_generator_destroy (tree->iter);
+  /* if (tree->iter)
+   *   interval_generator_destroy (tree->iter); */
   xfree (tree);
 }
 
@@ -419,7 +425,6 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   /* Fix/update the tree */
   ++tree->size;
   interval_tree_insert_fix (tree, node);
-  interval_tree_iter_ensure_space (tree);
 }
 
 /* Return true, if NODE is a member of TREE. */
@@ -488,7 +493,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
   node->right = node->left = node->parent = NULL;
   --tree->size;
 
-  eassert (tree->size == 0 || (tree->size > 0 && tree->root != ITREE_NULL));
+  eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
 
   return node;
 }
@@ -517,7 +522,7 @@ interval_tree_iter_start (struct interval_tree *tree,
                           enum interval_tree_order order,
 			  const char* file, int line)
 {
-  struct interval_generator *iter = tree->iter;
+  /* struct interval_generator *iter = tree->iter; */
   if (iter->running)
     {
       fprintf (stderr,
@@ -535,6 +540,8 @@ interval_tree_iter_start (struct interval_tree *tree,
   iter->file = file;
   iter->line = line;
   iter->running = true;
+  /* interval_stack_ensure_space (iter->stack,
+                                  2 * interval_tree_max_height (tree)); */
   return iter;
 }
 
@@ -545,16 +552,6 @@ interval_tree_iter_finish (struct interval_generator *iter)
 {
   eassert (iter->running);
   iter->running = false;
-}
-
-/* Ensure that the tree's iterator does not need to allocate space
-   until the tree grows in size. */
-
-static inline void
-interval_tree_iter_ensure_space (struct interval_tree *tree)
-{
-  interval_stack_ensure_space (tree->iter->stack,
-                               interval_tree_max_height (tree) + 1);
 }
 
 static int
@@ -709,8 +706,11 @@ static struct interval_generator *
 interval_generator_create (struct interval_tree *tree)
 {
   struct interval_generator *g = xmalloc (sizeof *g);
-  /* FIXME: Is tree ever non-empty here?  */
-  const int size = interval_tree_max_height (tree) + 1;
+  /* 19 here just avoids starting with a silly-small stack.
+     FIXME: Since this stack only needs to be about 2*max_depth
+     in the worst case, we could completely pre-allocate it to something
+     like word-bit-size * 2 and then never worry about growing it.  */
+  const int size = (tree ? interval_tree_max_height (tree) : 19) + 1;
 
   g->stack = interval_stack_create (size);
   g->running = false;
@@ -818,17 +818,6 @@ interval_generator_narrow (struct interval_generator *g,
   eassert (end <= g->end);
   g->begin =  max (begin, g->begin);
   g->end =  min (end, g->end);
-}
-
-/* Free the memory allocated for G. */
-
-void
-interval_generator_destroy (struct interval_generator *g)
-{
-  if (! g) return;
-  if (g->stack)
-    interval_stack_destroy (g->stack);
-  xfree (g);
 }
 
 
