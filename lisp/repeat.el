@@ -89,9 +89,15 @@
 
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
+(defgroup repeat nil
+  "Convenient way to repeat previous commands."
+  :prefix "repeat-"
+  :version "29.1"
+  :group 'convenience)
+
 (defcustom repeat-too-dangerous '(kill-this-buffer)
   "Commands too dangerous to repeat with \\[repeat]."
-  :group 'convenience
+  :group 'repeat
   :type '(repeat function))
 
 ;; If the last command was self-insert-command, the char to be inserted was
@@ -120,7 +126,7 @@ if `repeat' is bound to C-x z, typing C-x z z z repeats the previous command
 3 times.  If this variable is a sequence of characters, then re-execution
 only occurs if the final character by which `repeat' was invoked is a
 member of that sequence.  If this variable is nil, no re-execution occurs."
-  :group 'convenience
+  :group 'repeat
   :type '(choice (const :tag "Repeat for all keys" t)
 		 (const :tag "Don't repeat" nil)
 		 (sexp :tag "Repeat for specific keys")))
@@ -339,7 +345,7 @@ recently executed command not bound to an input event\"."
 For example, you can set it to <return> like `isearch-exit'."
   :type '(choice (const :tag "No special key to exit repeating sequence" nil)
                  (key-sequence :tag "Key that exits repeating sequence"))
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-exit-timeout nil
@@ -350,7 +356,7 @@ You can also set the property `repeat-exit-timeout' on the command symbol.
 This property can override the value of this variable."
   :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
                  (number :tag "Timeout in seconds to exit repeating"))
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defvar repeat-exit-timer nil
@@ -359,7 +365,7 @@ This property can override the value of this variable."
 (defcustom repeat-keep-prefix nil
   "Whether to keep the prefix arg of the previous command when repeating."
   :type 'boolean
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-check-key t
@@ -377,7 +383,7 @@ When the variable value is non-nil, but the property value is `no',
 then don't check the last key.  Also when the variable value is nil,
 but the property value is `t', then check the last key."
   :type 'boolean
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-echo-function #'repeat-echo-message
@@ -390,7 +396,7 @@ a repeating map, or nil after deactivating the transient repeating mode."
                         repeat-echo-mode-line)
                  (const :tag "No visual feedback" ignore)
                  (function :tag "Function"))
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defvar repeat-in-progress nil
@@ -408,7 +414,7 @@ the map can't be set on the command symbol property `repeat-map'.")
 When Repeat mode is enabled, and the command symbol has the property named
 `repeat-map', this map is activated temporarily for the next command.
 See `describe-repeat-maps' for a list of all repeatable commands."
-  :global t :group 'convenience
+  :global t :group 'repeat
   (if (not repeat-mode)
       (remove-hook 'post-command-hook 'repeat-post-hook)
     (add-hook 'post-command-hook 'repeat-post-hook)
