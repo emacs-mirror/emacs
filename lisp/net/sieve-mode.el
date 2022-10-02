@@ -200,7 +200,13 @@ Turning on Sieve mode runs `sieve-mode-hook'."
     (let ((depth (car (syntax-ppss))))
       (when (looking-at "[ \t]*}")
         (setq depth (1- depth)))
-      (indent-line-to (* 2 depth)))))
+      (indent-line-to (* 2 depth))))
+  ;; Skip to the end of the indentation if at the beginning of the
+  ;; line.
+  (when (save-excursion
+          (skip-chars-backward " \t")
+          (bolp))
+    (skip-chars-forward " \t")))
 
 (provide 'sieve-mode)
 
