@@ -385,7 +385,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_new_array_access fn_gcc_jit_context_new_array_access
 #define gcc_jit_context_new_array_type fn_gcc_jit_context_new_array_type
 #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
-  #define gcc_jit_context_new_bitcast fn_gcc_jit_context_new_bitcast
+# define gcc_jit_context_new_bitcast fn_gcc_jit_context_new_bitcast
 #endif
 #define gcc_jit_context_new_binary_op fn_gcc_jit_context_new_binary_op
 #define gcc_jit_context_new_call fn_gcc_jit_context_new_call
@@ -430,7 +430,7 @@ init_gccjit_functions (void)
 #define gcc_jit_struct_as_type fn_gcc_jit_struct_as_type
 #define gcc_jit_struct_set_fields fn_gcc_jit_struct_set_fields
 #ifdef LIBGCCJIT_HAVE_REFLECTION
-#define gcc_jit_type_is_pointer fn_gcc_jit_type_is_pointer
+# define gcc_jit_type_is_pointer fn_gcc_jit_type_is_pointer
 #endif
 #define gcc_jit_type_get_const fn_gcc_jit_type_get_const
 #define gcc_jit_type_get_pointer fn_gcc_jit_type_get_pointer
@@ -541,7 +541,7 @@ typedef struct {
 static f_reloc_t freloc;
 
 #ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
-#define NUM_CAST_TYPES 15
+# define NUM_CAST_TYPES 15
 #endif
 
 typedef struct {
@@ -1197,7 +1197,9 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 	}
     }
   return gcc_jit_context_new_cast (comp.ctxt, NULL, tmp, new_type);
-#else /* !defined(LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast) */
+
+#else /* !LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast */
+
   int old_index = type_to_cast_index (old_type);
   int new_index = type_to_cast_index (new_type);
 
@@ -3392,7 +3394,6 @@ define_type_punning (const char *name,
 
   DECL_BLOCK (entry_block, result);
 
-
   gcc_jit_lvalue *tmp_union
     = gcc_jit_function_new_local (result,
                                   NULL,
@@ -3479,7 +3480,6 @@ define_cast_functions (void)
         { comp.unsigned_long_type, "unsigned_long", false },
         { comp.unsigned_type, "unsigned", false },
         { comp.void_ptr_type, "void_ptr", true } };
-
   gcc_jit_field *cast_union_fields[2];
 
   /* Define the union used for type punning.  */
@@ -3519,7 +3519,7 @@ define_cast_functions (void)
         comp.cast_functions_from_to[i][j] =
           define_cast_from_to (cast_types[i], cast_types[j]);
 }
-#endif /* !defined(LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast) */
+#endif /* !LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast */
 
 static void
 define_CHECK_TYPE (void)
