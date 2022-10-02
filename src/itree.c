@@ -98,11 +98,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    inconsistently/interchangeably.  We should fix this naming.  */
 
 static struct interval_node *interval_tree_validate (struct interval_tree *, struct interval_node *);
-static void interval_generator_ensure_space (struct interval_generator *);
 static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
 static int interval_tree_max_height (const struct interval_tree *);
 static void interval_tree_update_limit (const struct interval_tree *, struct interval_node *);
-static void interval_tree_inherit_offset (const struct interval_tree *, struct interval_node *);
+static void interval_tree_inherit_offset (uintmax_t otick, struct interval_node *);
 static void interval_tree_propagate_limit (const struct interval_tree *, struct interval_node *);
 static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
 static void interval_tree_rotate_right (struct interval_tree *, struct interval_node *);
@@ -112,9 +111,6 @@ static void interval_tree_transplant (struct interval_tree *, struct interval_no
 static struct interval_node *interval_tree_subtree_min (const struct interval_tree *, struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 static void interval_generator_destroy (struct interval_generator *);
-static void interval_generator_reset (struct interval_generator *,
-                                      ptrdiff_t, ptrdiff_t,
-                                      enum interval_tree_order);
 static inline void interval_tree_iter_ensure_space (struct interval_tree *);
 
 /* The sentinel node, the null node.  */
@@ -142,10 +138,10 @@ struct interval_stack
 /* State used when iterating interval. */
 struct interval_generator
 {
-  struct interval_tree *tree;
   struct interval_stack *stack;
   ptrdiff_t begin;
   ptrdiff_t end;
+  uintmax_t otick;              /* A copy of the tree's `otick`.  */
   enum interval_tree_order order;
   bool_bf running : 1;
   const char* file;
@@ -222,6 +218,8 @@ static inline void
 interval_stack_push_flagged (struct interval_stack *stack,
                              struct interval_node *node, bool flag)
 {
+  eassert (node && node != ITREE_NULL);
+
   /* FIXME: This call to `interval_stack_ensure_space` is a bit redundant
      with the work of `interval_generator_ensure_space` but it's still needed
      here because `interval_generator_next` can push up to 3 elements per
@@ -450,7 +448,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 
   struct interval_node *broken = NULL;
 
-  interval_tree_inherit_offset (tree, node);
+  interval_tree_inherit_offset (tree->otick, node);
   if (node->left == ITREE_NULL || node->right == ITREE_NULL)
     {
       struct interval_node *subst
@@ -475,7 +473,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
           min->right = node->right;
           min->right->parent = min;
         }
-      interval_tree_inherit_offset (tree, min);
+      interval_tree_inherit_offset (tree->otick, min);
       interval_tree_transplant (tree, min, node);
       min->left = node->left;
       min->left->parent = min;
@@ -504,7 +502,7 @@ interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
   if (node != tree->root)
     interval_tree_validate (tree, node->parent);
 
-  interval_tree_inherit_offset (tree, node);
+  interval_tree_inherit_offset (tree->otick, node);
   return node;
 }
 
@@ -527,10 +525,16 @@ interval_tree_iter_start (struct interval_tree *tree,
                iter->file, iter->line, file, line);
       emacs_abort ();
     }
-  interval_generator_reset (iter, begin, end, order);
-  iter->running = true;
+  iter->begin = begin;
+  iter->end = end;
+  iter->otick = tree->otick;
+  iter->order = order;
+  interval_stack_clear (iter->stack);
+  if (begin <= end && tree->root != ITREE_NULL)
+    interval_stack_push_flagged (iter->stack, tree->root, false);
   iter->file = file;
   iter->line = line;
+  iter->running = true;
   return iter;
 }
 
@@ -549,7 +553,8 @@ interval_tree_iter_finish (struct interval_generator *iter)
 static inline void
 interval_tree_iter_ensure_space (struct interval_tree *tree)
 {
-  interval_generator_ensure_space (tree->iter);
+  interval_stack_ensure_space (tree->iter->stack,
+                               interval_tree_max_height (tree) + 1);
 }
 
 static int
@@ -570,7 +575,7 @@ interval_tree_max_height (const struct interval_tree *tree)
 void
 interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t length)
 {
-  if (length <= 0 || tree->size == 0)
+  if (length <= 0 || tree->root == ITREE_NULL)
     return;
 
   /* FIXME: Don't allocate generator/stack anew every time. */
@@ -588,45 +593,48 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   for (int i = 0; i < saved->length; ++i)
     interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
-
   /* We can't use a generator here, because we can't effectively
      narrow AND shift some subtree at the same time. */
-  const int size = interval_tree_max_height (tree) + 1;
-  struct interval_stack *stack = interval_stack_create (size);
-  interval_stack_push (stack, tree->root);
-  nodeptr_and_flag nav;
-  while ((nav = interval_stack_pop (stack),
-          node = nav_nodeptr (nav)))
+  if (tree->root != ITREE_NULL)
     {
-      /* Process in pre-order. */
-      interval_tree_inherit_offset (tree, node);
-      if (node->right != ITREE_NULL)
+      const int size = interval_tree_max_height (tree) + 1;
+      struct interval_stack *stack = interval_stack_create (size);
+      interval_stack_push (stack, tree->root);
+      nodeptr_and_flag nav;
+      while ((nav = interval_stack_pop (stack),
+              node = nav_nodeptr (nav)))
         {
-          if (node->begin > pos)
+          /* Process in pre-order. */
+          interval_tree_inherit_offset (tree->otick, node);
+          if (node->right != ITREE_NULL)
             {
-              /* All nodes in this subtree are shifted by length. */
-              node->right->offset += length;
-              ++tree->otick;
+              if (node->begin > pos)
+                {
+                  /* All nodes in this subtree are shifted by length. */
+                  node->right->offset += length;
+                  ++tree->otick;
+                }
+              else
+                interval_stack_push (stack, node->right);
             }
-          else
-            interval_stack_push (stack, node->right);
-        }
-      if (node->left != ITREE_NULL
-          && pos <= node->left->limit + node->left->offset)
-        interval_stack_push (stack, node->left);
+          if (node->left != ITREE_NULL
+              && pos <= node->left->limit + node->left->offset)
+            interval_stack_push (stack, node->left);
 
-      /* node->begin == pos implies no front-advance. */
-      if (node->begin > pos)
-        node->begin += length;
-      if (node->end > pos || (node->end == pos && node->rear_advance))
-        {
-          node->end += length;
-          interval_tree_propagate_limit (tree, node);
+          /* node->begin == pos implies no front-advance. */
+          if (node->begin > pos)
+            node->begin += length;
+          if (node->end > pos || (node->end == pos && node->rear_advance))
+            {
+              node->end += length;
+              interval_tree_propagate_limit (tree, node);
+            }
         }
+      interval_stack_destroy (stack);
     }
-  interval_stack_destroy (stack);
 
   /* Reinsert nodes starting at POS having front-advance. */
+  nodeptr_and_flag nav;
   while ((nav = interval_stack_pop (saved),
           node = nav_nodeptr (nav)))
     {
@@ -645,7 +653,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
 void
 interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t length)
 {
-  if (length <= 0 || tree->size == 0)
+  if (length <= 0 || tree->root == ITREE_NULL)
     return;
 
   /* FIXME: Don't allocate stack anew every time. */
@@ -662,7 +670,7 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   while ((nav = interval_stack_pop (stack)))
     {
       node = nav_nodeptr (nav);
-      interval_tree_inherit_offset (tree, node);
+      interval_tree_inherit_offset (tree->otick, node);
       if (node->right != ITREE_NULL)
         {
           if (node->begin > pos + length)
@@ -705,36 +713,12 @@ interval_generator_create (struct interval_tree *tree)
   const int size = interval_tree_max_height (tree) + 1;
 
   g->stack = interval_stack_create (size);
-  g->tree = tree;
   g->running = false;
-  interval_generator_reset (g, 1, 0, ITREE_ASCENDING);
+  g->begin = 0;
+  g->end = 0;
+  g->file = NULL;
+  g->line = 0;
   return g;
-}
-
-/* Reset generator G such that it iterates over intervals intersecting
-   with [BEGIN, END) in the given ORDER. */
-
-void
-interval_generator_reset (struct interval_generator *g,
-                          ptrdiff_t begin, ptrdiff_t end,
-                          enum interval_tree_order order)
-{
-  if (! g) return;
-
-  g->begin = begin;
-  g->end = end;
-  g->order = order;
-  interval_stack_clear (g->stack);
-  if (begin <= end  && g->tree->size > 0)
-    interval_stack_push_flagged (g->stack, g->tree->root, false);
-}
-
-/* Allocate enough space for the tree of G in its current shape. */
-
-static inline void
-interval_generator_ensure_space (struct interval_generator *g)
-{
-  interval_stack_ensure_space (g->stack, interval_tree_max_height (g->tree) + 1);
 }
 
 /* Return true, if NODE's interval intersects with [BEGIN, END).
@@ -785,7 +769,7 @@ interval_generator_next (struct interval_generator *g)
         struct interval_node * const left = node->left;
         struct interval_node * const right = node->right;
 
-        interval_tree_inherit_offset (g->tree, node);
+        interval_tree_inherit_offset (g->otick, node);
         switch (g->order)
           {
           case ITREE_ASCENDING:
@@ -872,11 +856,9 @@ interval_tree_update_limit (const struct interval_tree *tree,
 */
 
 static void
-interval_tree_inherit_offset (const struct interval_tree *tree,
-                              struct interval_node *node)
+interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 {
-
-  if (node->otick == tree->otick)
+  if (node->otick == otick)
     return;
 
   node->begin += node->offset;
@@ -889,8 +871,8 @@ interval_tree_inherit_offset (const struct interval_tree *tree,
   node->offset = 0;
   /* FIXME: I wonder when/why this condition can be false, and more generally
      why we'd want to propagate offsets that may not be fully up-to-date.  */
-  if (node == tree->root || node->parent->otick == tree->otick)
-    node->otick = tree->otick;
+  if (node->parent == ITREE_NULL || node->parent->otick == otick)
+    node->otick = otick;
 }
 
 /* Update limit of NODE and its ancestors.  Stop when it becomes
@@ -910,8 +892,9 @@ interval_tree_propagate_limit (const struct interval_tree *tree,
     return;
 
   while (1) {
-    ptrdiff_t newlimit = max (node->end, max (node->left->limit + node->left->offset,
-                                              node->right->limit + node->right->offset));
+    ptrdiff_t newlimit = max (node->end,
+                              max (node->left->limit + node->left->offset,
+                                   node->right->limit + node->right->offset));
     if (newlimit == node->limit)
       break;
     node->limit = newlimit;
@@ -930,8 +913,8 @@ interval_tree_rotate_left (struct interval_tree *tree, struct interval_node *nod
 
   struct interval_node *right = node->right;
 
-  interval_tree_inherit_offset (tree, node);
-  interval_tree_inherit_offset (tree, right);
+  interval_tree_inherit_offset (tree->otick, node);
+  interval_tree_inherit_offset (tree->otick, right);
 
   /* Turn right's left subtree into node's right subtree.  */
   node->right = right->left;
@@ -972,8 +955,8 @@ interval_tree_rotate_right (struct interval_tree *tree, struct interval_node *no
 
   struct interval_node *left = node->left;
 
-  interval_tree_inherit_offset (tree, node);
-  interval_tree_inherit_offset (tree, left);
+  interval_tree_inherit_offset (tree->otick, node);
+  interval_tree_inherit_offset (tree->otick, left);
 
   node->left = left->right;
   if (left->right != ITREE_NULL)
