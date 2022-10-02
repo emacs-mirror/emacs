@@ -2817,8 +2817,8 @@ which will run faster and probably do exactly what you want.  Please
 see the documentation of `replace-match' to find out how to simulate
 `case-replace'.
 
-This function returns nil if and only if there were no matches to
-make, or the user didn't cancel the call.
+This function returns nil if there were no matches to make, or
+the user cancelled the call.
 
 REPLACEMENTS is either a string, a list of strings, or a cons cell
 containing a function and its first argument.  The function is
