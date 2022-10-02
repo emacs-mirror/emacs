@@ -218,10 +218,11 @@ and reference them using the function `class-option'."
           (when (and eieio-backward-compatibility (eq alloc :class))
             ;; FIXME: How could I declare this *method* as obsolete.
             (push `(cl-defmethod ,acces ((this (subclass ,name)))
-                     ,(format
-                       "Retrieve the class slot `%S' from a class `%S'.
-This method is obsolete."
-                       sname name)
+                     ,(concat
+                       (internal--format-docstring-line
+                        "Retrieve the class slot `%S' from a class `%S'."
+                        sname name)
+                       "\nThis method is obsolete.")
                      (if (slot-boundp this ',sname)
                          (eieio-oref-default this ',sname)))
                   accessors)))
@@ -230,16 +231,18 @@ This method is obsolete."
 	;; name whose purpose is to set the value of the slot.
 	(if writer
             (push `(cl-defmethod ,writer ((this ,name) value)
-                     ,(format "Set the slot `%S' of an object of class `%S'."
-                              sname name)
+                     ,(internal--format-docstring-line
+                       "Set the slot `%S' of an object of class `%S'."
+                       sname name)
                      (setf (slot-value this ',sname) value))
                   accessors))
 	;; If a reader is defined, then create a generic method
 	;; of that name whose purpose is to access this slot value.
 	(if reader
             (push `(cl-defmethod ,reader ((this ,name))
-                     ,(format "Access the slot `%S' from object of class `%S'."
-                              sname name)
+                     ,(internal--format-docstring-line
+                       "Access the slot `%S' from object of class `%S'."
+                       sname name)
                      (slot-value this ',sname))
                   accessors))
 	))
