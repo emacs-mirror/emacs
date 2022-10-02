@@ -105,7 +105,8 @@ void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
    - The expression T may be evaluated more than once, so make sure
      it is cheap a pure.
    - Only a single iteration can happen at a time, so make sure none of the
-     code within the loop can start another tree_itertion.
+     code within the loop can start another tree iteration, i.e. it shouldn't
+     be able to run ELisp code (or GC for that matter).
    - If you need to exit the loop early, you *have* to call `ITREE_ABORT`
      just before exiting (e.g. with `break` or `return`).
    - Non-local exits are not supported within the body of the loop,

@@ -6512,21 +6512,6 @@ mark_overlay (struct Lisp_Overlay *ov)
   mark_object (ov->plist);
 }
 
-static void
-mark_overlays (struct interval_tree *it, struct interval_node *in)
-{
-  /* `left/right` are set to NULL when the overlay is deleted, but
-     they use the `null` node instead when the overlay is not deleted
-     (i.e. is within an overlay tree).  */
-  eassert (in);
-  if (in == ITREE_NULL)
-    return;
-
-  mark_object (in->data);
-  mark_overlays (it, in->left);
-  mark_overlays (it, in->right);
-}
-
 /* Mark Lisp_Objects and special pointers in BUFFER.  */
 
 static void
@@ -6548,8 +6533,9 @@ mark_buffer (struct buffer *buffer)
   if (!BUFFER_LIVE_P (buffer))
       mark_object (BVAR (buffer, undo_list));
 
-  if (buffer->overlays)
-    mark_overlays (buffer->overlays, buffer->overlays->root);
+  struct interval_node *node;
+  ITREE_FOREACH (node, buffer->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
+    mark_object (node->data);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer &&
