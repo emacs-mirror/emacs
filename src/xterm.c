@@ -26842,8 +26842,7 @@ x_ewmh_activate_frame (struct frame *f)
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  if (FRAME_VISIBLE_P (f)
-      && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+  if (FRAME_VISIBLE_P (f))
     {
       /* See the documentation at
 	 https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
@@ -26903,14 +26902,23 @@ x_focus_frame (struct frame *f, bool noactivate)
     xembed_request_focus (f);
   else
     {
+      if (!noactivate
+	  && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+	{
+	  /* When window manager activation is possible, use it
+	     instead.  The window manager is expected to perform any
+	     necessary actions such as raising the frame, moving it to
+	     the current workspace, and mapping it, etc, before moving
+	     input focus to the frame.  */
+	  x_ewmh_activate_frame (f);
+	  return;
+	}
+
       /* Ignore any BadMatch error this request might result in.  */
       x_ignore_errors_for_next_request (dpyinfo);
       XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		      RevertToParent, CurrentTime);
       x_stop_ignoring_errors (dpyinfo);
-
-      if (!noactivate)
-	x_ewmh_activate_frame (f);
     }
 }
 
