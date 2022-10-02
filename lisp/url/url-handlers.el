@@ -371,7 +371,9 @@ if it had been inserted from a file named URL."
   (let ((buffer (url-retrieve-synchronously url)))
     (unless buffer
       (signal 'file-error (list url "No Data")))
-    (url-insert buffer nil nil t)))
+    (url-insert buffer nil nil t)
+    (kill-buffer buffer)
+    nil))
 
 (defun url-file-name-completion (url _directory &optional _predicate)
   ;; Even if it's not implemented, it's not an error to ask for completion,
