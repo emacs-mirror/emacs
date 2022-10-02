@@ -316,7 +316,7 @@ in this language environment.")))
             (input-method . "gothic")
             (sample-text . "Gothic (𐌲𐌿𐍄𐌹𐍃𐌺𐌰)	𐌷𐌰𐌹𐌻𐍃 / 𐌷𐌰𐌹𐌻𐌰")
             (documentation . "\
-Gothic language using the Gothic script is supported in this
+Ancient Gothic language using the Gothic script is supported in this
 language environment.")))
 
 (provide 'misc-lang)
