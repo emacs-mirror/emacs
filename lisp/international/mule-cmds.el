@@ -2664,7 +2664,13 @@ For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
   "The currently set locale environment.")
 
 (defmacro with-locale-environment (locale-name &rest body)
-  "Execute BODY with the locale set to LOCALE-NAME."
+  "Execute BODY with the locale set to LOCALE-NAME.
+
+Note that changing the locale modifies settings that affect
+the display, such as `terminal-coding-system' and `standard-display-table',
+but this macro does not by itself perform redisplay.  If BODY needs to
+display something with LOCALE-NAME's settings, include a call
+to `redraw-frame' in BODY."
   (declare (indent 1) (debug (sexp def-body)))
   (let ((current (gensym)))
     `(let ((,current current-locale-environment))
