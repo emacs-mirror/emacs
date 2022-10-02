@@ -643,10 +643,8 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
 	     && pos <= BUF_ZV (b)))
 	xsignal1 (Qargs_out_of_range, position);
 
-      buffer_overlay_iter_start (b, pos, pos + 1, ITREE_ASCENDING);
-
       /* Now check the overlays in order of decreasing priority.  */
-      while ((node = buffer_overlay_iter_next (b)))
+      ITREE_FOREACH (node, b->overlays, pos, pos + 1, ASCENDING)
 	{
 	  Lisp_Object tem = Foverlay_get (node->data, prop);
           struct sortvec *this;
@@ -662,7 +660,6 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
               result_tem = tem;
             }
 	}
-      buffer_overlay_iter_finish (b);
       if (result)
         {
           if (overlay)

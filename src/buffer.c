@@ -647,8 +647,7 @@ copy_overlays (struct buffer *from, struct buffer *to)
   eassert (to && ! to->overlays);
   struct interval_node *node;
 
-  buffer_overlay_iter_start (from, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (from)))
+  ITREE_FOREACH (node, from->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     {
       Lisp_Object ov = node->data;
       Lisp_Object copy = build_overlay (node->begin, node->end,
@@ -657,7 +656,6 @@ copy_overlays (struct buffer *from, struct buffer *to)
                                         Fcopy_sequence (OVERLAY_PLIST (ov)));
       add_buffer_overlay (to, XOVERLAY (copy));
     }
-  buffer_overlay_iter_finish (from);
 }
 
 bool
@@ -929,14 +927,12 @@ delete_all_overlays (struct buffer *b)
      Of course, we can't set them to NULL from within the iteration
      because the iterator may need them (tho we could if we added
      an ITREE_POST_ORDER iteration order).  */
-  buffer_overlay_iter_start (b, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (b)))
+  ITREE_FOREACH (node, b->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     {
       modify_overlay (b, node->begin, node->end);
       /* Where are the nodes freed ? --ap */
       XOVERLAY (node->data)->buffer = NULL;
     }
-  buffer_overlay_iter_finish (b);
   interval_tree_clear (b->overlays);
 }
 
@@ -944,7 +940,6 @@ static void
 free_buffer_overlays (struct buffer *b)
 {
   /* Actually this does not free any overlay, but the tree only.  --ap */
-  eassert (! b->overlays || 0 == interval_tree_size (b->overlays));
   if (b->overlays)
     {
       interval_tree_destroy (b->overlays);
@@ -969,9 +964,16 @@ set_overlays_multibyte (bool multibyte)
   struct interval_tree *tree = current_buffer->overlays;
   const intmax_t size = interval_tree_size (tree);
 
+  /* We can't use `interval_node_set_region` at the same time
+     as we iterate over the itree, so we need an auxiliary storage
+     to keep the list of nodes.  */
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (nodes, 1, size);
-  interval_tree_nodes (tree, nodes, ITREE_ASCENDING);
+  {
+    struct interval_node *node, **cursor = nodes;
+    ITREE_FOREACH (node, tree, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
+      *(cursor++) = node;
+  }
 
   for (int i = 0; i < size; ++i, ++nodes)
     {
@@ -2418,15 +2420,11 @@ swap_buffer_overlays (struct buffer *buffer, struct buffer *other)
 {
   struct interval_node *node;
 
-  buffer_overlay_iter_start  (buffer, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (buffer)))
+  ITREE_FOREACH (node, buffer->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     XOVERLAY (node->data)->buffer = other;
-  buffer_overlay_iter_finish (buffer);
 
-  buffer_overlay_iter_start (other, PTRDIFF_MIN, PTRDIFF_MAX, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (other)))
+  ITREE_FOREACH (node, other->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     XOVERLAY (node->data)->buffer = buffer;
-  buffer_overlay_iter_finish (other);
 
   /* Swap the interval trees. */
   void *tmp = buffer->overlays;
@@ -2951,23 +2949,24 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
   Lisp_Object *vec = *vec_ptr;
   struct interval_node *node;
 
-  buffer_overlay_iter_start (current_buffer, beg,
-                             /* Find empty OV at Z ? */
-                             (end >= ZV && empty) ? ZV + 1 : ZV,
-                             ITREE_ASCENDING);
-
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, beg,
+                 /* Find empty OV at Z ? */
+                 (end >= ZV && empty) ? ZV + 1 : ZV, ASCENDING)
     {
       if (node->begin > end)
         {
           next = min (next, node->begin);
+          ITREE_FOREACH_ABORT ();
           break;
         }
       else if (node->begin == end)
         {
           next = node->begin;
           if ((! empty || end < ZV) && beg < end)
-            break;
+            {
+              ITREE_FOREACH_ABORT ();
+              break;
+            }
         }
 
       if (! empty && node->begin == node->end)
@@ -2985,7 +2984,6 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
       /* Keep counting overlays even if we can't return them all.  */
       idx++;
     }
-  buffer_overlay_iter_finish (current_buffer);
   if (next_ptr)
     *next_ptr = next ? next : ZV;
 
@@ -3012,8 +3010,7 @@ next_overlay_change (ptrdiff_t pos)
   ptrdiff_t next = ZV;
   struct interval_node *node;
 
-  buffer_overlay_iter_start (current_buffer, pos, next, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, pos, next, ASCENDING)
     {
       if (node->begin > pos)
         {
@@ -3021,15 +3018,15 @@ next_overlay_change (ptrdiff_t pos)
              of pos, because the search is limited to [pos,next) . */
           eassert (node->begin < next);
           next = node->begin;
+          ITREE_FOREACH_ABORT ();
           break;
         }
       else if (node->begin < node->end && node->end < next)
         {
           next = node->end;
-          buffer_overlay_iter_narrow (current_buffer, pos, next);
+          ITREE_FOREACH_NARROW (pos, next);
         }
     }
-  buffer_overlay_iter_finish (current_buffer);
 
   return next;
 }
@@ -3040,16 +3037,14 @@ previous_overlay_change (ptrdiff_t pos)
   struct interval_node *node;
   ptrdiff_t prev = BEGV;
 
-  buffer_overlay_iter_start (current_buffer, prev, pos, ITREE_DESCENDING);
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, prev, pos, DESCENDING)
     {
       if (node->end < pos)
         prev = node->end;
       else
         prev = max (prev, node->begin);
-      buffer_overlay_iter_narrow (current_buffer, prev, pos);
+      ITREE_FOREACH_NARROW (prev, pos);
     }
-  buffer_overlay_iter_finish (current_buffer);
 
   return prev;
 }
@@ -3123,19 +3118,16 @@ bool
 overlay_touches_p (ptrdiff_t pos)
 {
   struct interval_node *node;
-  bool result = false;
 
   /* We need to find overlays ending in pos, as well as empty ones at
      pos. */
-  buffer_overlay_iter_start (current_buffer,
-                             pos - 1, pos + 1, ITREE_DESCENDING);
-
-  while (! result && (node = buffer_overlay_iter_next (current_buffer)))
-    result = (node->begin == pos || node->end == pos);
-
-  buffer_overlay_iter_finish (current_buffer);
-
-  return result;
+  ITREE_FOREACH (node, current_buffer->overlays, pos - 1, pos + 1, DESCENDING)
+    if (node->begin == pos || node->end == pos)
+      {
+        ITREE_FOREACH_ABORT ();
+        return true;
+      }
+  return false;
 }
 
 
@@ -3342,9 +3334,7 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
   overlay_heads.used = overlay_heads.bytes = 0;
   overlay_tails.used = overlay_tails.bytes = 0;
 
-  buffer_overlay_iter_start (current_buffer,
-                             pos - 1, pos + 1, ITREE_DESCENDING);
-  while ((node  = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, pos - 1, pos + 1, DESCENDING)
     {
       Lisp_Object overlay = node->data;
       eassert (OVERLAYP (overlay));
@@ -3358,6 +3348,8 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
       if (WINDOWP (window) && XWINDOW (window) != w)
 	continue;
       Lisp_Object str;
+      /* FIXME: Are we really sure that `record_overlay_string` can
+         never cause a non-local exit?  */
       if (startpos == pos
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
 	record_overlay_string (&overlay_heads, str,
@@ -3372,7 +3364,6 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 			       Foverlay_get (overlay, Qpriority),
 			       endpos - startpos);
     }
-  buffer_overlay_iter_finish (current_buffer);
 
   if (overlay_tails.used > 1)
     qsort (overlay_tails.buf, overlay_tails.used, sizeof (struct sortstr),
@@ -3842,10 +3833,8 @@ However, the overlays you get are the real objects that the buffer uses. */)
   Lisp_Object overlays = Qnil;
   struct interval_node *node;
 
-  buffer_overlay_iter_start (current_buffer, BEG, Z, ITREE_DESCENDING);
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, BEG, Z, DESCENDING)
     overlays = Fcons (node->data, overlays);
-  buffer_overlay_iter_finish (current_buffer);
 
   return Fcons (overlays, Qnil);
 }
@@ -3983,11 +3972,10 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 
       if (! current_buffer->overlays)
         return;
-      buffer_overlay_iter_start (current_buffer,
-                                 begin_arg - (insertion ? 1 : 0),
-                                 end_arg + (insertion ? 1 : 0),
-                                 ITREE_ASCENDING);
-      while ((node = buffer_overlay_iter_next (current_buffer)))
+      ITREE_FOREACH (node, current_buffer->overlays,
+                     begin_arg - (insertion ? 1 : 0),
+                     end_arg   + (insertion ? 1 : 0),
+                     ASCENDING)
 	{
           Lisp_Object overlay = node->data;
 	  ptrdiff_t obegin = OVERLAY_START (overlay);
@@ -4016,7 +4004,6 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 		add_overlay_mod_hooklist (prop, overlay);
 	    }
 	}
-      buffer_overlay_iter_finish (current_buffer);
     }
   {
     /* Call the functions recorded in last_overlay_modification_hooks.
@@ -4070,14 +4057,12 @@ evaporate_overlays (ptrdiff_t pos)
   Lisp_Object hit_list = Qnil;
   struct interval_node *node;
 
-  buffer_overlay_iter_start (current_buffer, pos, pos, ITREE_ASCENDING);
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, pos, pos, ASCENDING)
     {
       if (node->end == pos
           && ! NILP (Foverlay_get (node->data, Qevaporate)))
         hit_list = Fcons (node->data, hit_list);
     }
-  buffer_overlay_iter_finish (current_buffer);
 
   for (; CONSP (hit_list); hit_list = XCDR (hit_list))
     Fdelete_overlay (XCAR (hit_list));

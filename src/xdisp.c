@@ -6568,10 +6568,8 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   while (false)
 
 
-  buffer_overlay_iter_start (current_buffer,
-                             charpos - 1, charpos + 1, ITREE_DESCENDING);
   /* Process overlays.  */
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  ITREE_FOREACH (node, current_buffer->overlays, charpos - 1, charpos + 1, DESCENDING)
     {
       Lisp_Object overlay = node->data;
       eassert (OVERLAYP (overlay));
@@ -6607,7 +6605,6 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
           && SCHARS (str))
         RECORD_OVERLAY_STRING (overlay, str, true);
     }
-  buffer_overlay_iter_finish (current_buffer);
 
 #undef RECORD_OVERLAY_STRING
 
@@ -7005,10 +7002,8 @@ static bool
 strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
 {
   struct interval_node *node;
-  /* Process overlays before the overlay center.  */
-  buffer_overlay_iter_start (current_buffer,
-                             startpos, endpos, ITREE_DESCENDING);
-  while ((node = buffer_overlay_iter_next (current_buffer)))
+  /* Process overlays.  */
+  ITREE_FOREACH (node, current_buffer->overlays, startpos, endpos, DESCENDING)
     {
       Lisp_Object overlay = node->data;
       eassert (OVERLAYP (overlay));
@@ -7032,19 +7027,17 @@ strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
 	{
-	  buffer_overlay_iter_finish (current_buffer);
+	  ITREE_FOREACH_ABORT ();
 	  return true;
 	}
       str = Foverlay_get (overlay, Qafter_string);
       if (STRINGP (str) && SCHARS (str)
 	  && memchr (SDATA (str), '\n', SBYTES (str)))
 	{
-	  buffer_overlay_iter_finish (current_buffer);
+	  ITREE_FOREACH_ABORT ();
 	  return true;
 	}
     }
-
-  buffer_overlay_iter_finish (current_buffer);
 
   /* Check for 'display' properties whose values include strings.  */
   Lisp_Object cpos = make_fixnum (startpos);

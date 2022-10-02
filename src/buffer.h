@@ -1442,39 +1442,6 @@ remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
   ov->buffer = NULL;
 }
 
-INLINE void
-buffer_overlay_iter_start1 (struct buffer *b, ptrdiff_t begin, ptrdiff_t end,
-                           enum interval_tree_order order, const char* file, int line)
-{
-  if (b->overlays)
-    interval_tree_iter_start (b->overlays, begin, end, order, file, line);
-}
-
-#define buffer_overlay_iter_start(b, begin, end, order) \
-  buffer_overlay_iter_start1 ((b), (begin), (end), (order), __FILE__, __LINE__)
-
-INLINE struct interval_node*
-buffer_overlay_iter_next (struct buffer *b)
-{
-  if (! b->overlays)
-    return NULL;
-  return interval_generator_next (b->overlays->iter);
-}
-
-INLINE void
-buffer_overlay_iter_finish (struct buffer *b)
-{
-  if (b->overlays)
-    interval_tree_iter_finish (b->overlays->iter);
-}
-
-INLINE void
-buffer_overlay_iter_narrow (struct buffer *b, ptrdiff_t begin, ptrdiff_t end)
-{
-  if (b->overlays)
-    interval_generator_narrow (b->overlays->iter, begin, end);
-}
-
 /* Return the start of OV in its buffer, or -1 if OV is not associated
    with any buffer.  */
 

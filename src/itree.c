@@ -325,7 +325,7 @@ interval_tree_create (void)
   return tree;
 }
 
-/* Reset the tree TREE to its empty state. */
+/* Reset the tree TREE to its empty state.  */
 
 void
 interval_tree_clear (struct interval_tree *tree)
@@ -345,7 +345,7 @@ interval_tree_clear (struct interval_tree *tree)
 }
 
 #ifdef ITREE_TESTING
-/* Initialize a pre-allocated tree (presumably on the stack). */
+/* Initialize a pre-allocated tree (presumably on the stack).  */
 
 static void
 interval_tree_init (struct interval_tree *tree)
@@ -355,12 +355,11 @@ interval_tree_init (struct interval_tree *tree)
 }
 #endif
 
-/* Release a tree, freeing its allocated memory. */
+/* Release a tree, freeing its allocated memory.  */
 void
 interval_tree_destroy (struct interval_tree *tree)
 {
-  if (! tree)
-    return;
+  eassert (tree->root == ITREE_NULL);
   if (tree->iter)
     interval_generator_destroy (tree->iter);
   xfree (tree);
@@ -389,14 +388,14 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   ptrdiff_t offset = 0;
 
   /* Find the insertion point, accumulate node's offset and update
-     ancestors limit values. */
+     ancestors limit values.  */
   while (child != ITREE_NULL)
     {
       parent = child;
       offset += child->offset;
       child->limit = max (child->limit, node->end - offset);
       /* This suggests that nodes in the right subtree are strictly
-         greater.  But this is not true due to later rotations. */
+         greater.  But this is not true due to later rotations.  */
       child = node->begin <= child->begin ? child->left : child->right;
     }
 
@@ -430,15 +429,16 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 bool
 interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
 {
+  eassert (node);
   struct interval_node *other;
-
-  interval_tree_iter_start (tree, node->begin, PTRDIFF_MAX, ITREE_ASCENDING, __FILE__, __LINE__);
-  while ((other = interval_generator_next (tree->iter)))
+  ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
     if (other == node)
-      break;
+      {
+        ITREE_FOREACH_ABORT ();
+        return true;
+      }
 
-  interval_tree_iter_finish (tree->iter);
-  return other == node;
+  return false;
 }
 
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
@@ -508,34 +508,12 @@ interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
   return node;
 }
 
-/* Fill memory pointed at via NODES with all nodes of TREE in the
-   given ORDER.
-
-   The size of NODES must be sufficiently large.
- */
-
-void
-interval_tree_nodes (struct interval_tree *tree,
-                     struct interval_node **nodes,
-                     enum interval_tree_order order)
-{
-  struct interval_node *node;
-
-  interval_tree_iter_start (tree, PTRDIFF_MIN, PTRDIFF_MAX, order, __FILE__, __LINE__);
-  while ((node = interval_generator_next (tree->iter)))
-    {
-      *nodes = node;
-      ++nodes;
-    }
-  interval_tree_iter_finish (tree->iter);
-}
-
 /* Start a generator iterating all intervals in [BEGIN,END) in the
    given ORDER. Only one iterator per tree can be running at any
    time.
 */
 
-void
+struct interval_generator *
 interval_tree_iter_start (struct interval_tree *tree,
                           ptrdiff_t begin, ptrdiff_t end,
                           enum interval_tree_order order,
@@ -553,6 +531,7 @@ interval_tree_iter_start (struct interval_tree *tree,
   iter->running = true;
   iter->file = file;
   iter->line = line;
+  return iter;
 }
 
 /* Stop using the iterator. */
@@ -600,15 +579,12 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
      order, so we need to remove them first. */
   struct interval_stack *saved = interval_stack_create (0);
   struct interval_node *node = NULL;
-  interval_tree_iter_start (tree, pos, pos + 1,
-                            ITREE_PRE_ORDER, __FILE__, __LINE__);
-  while ((node = interval_generator_next (tree->iter)))
+  ITREE_FOREACH (node, tree, pos, pos + 1, PRE_ORDER)
     {
       if (node->begin == pos && node->front_advance
           && (node->begin != node->end || node->rear_advance))
         interval_stack_push (saved, node);
     }
-  interval_tree_iter_finish (tree->iter);
   for (int i = 0; i < saved->length; ++i)
     interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
@@ -784,7 +760,6 @@ inline struct interval_node*
 interval_generator_next (struct interval_generator *g)
 {
   eassert (g->running);
-  if (! g) return NULL;
 
   struct interval_node * const null = ITREE_NULL;
   struct interval_node *node;
