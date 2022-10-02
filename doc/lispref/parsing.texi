@@ -575,10 +575,10 @@ looks for named child.
 @defun treesit-search-subtree node predicate &optional all backward limit
 This function traverses the subtree of @var{node} (including
 @var{node}), and match @var{predicate} with each node along the way.
-And @var{predicate} is a regexp that matches against each node's type,
-or a function that takes a node and returns nil/non-nil.  If a node
-matches, that node is returned, if no node ever matches, nil is
-returned.
+And @var{predicate} is a regexp that matches (case-insensitively)
+against each node's type, or a function that takes a node and returns
+nil/non-nil.  If a node matches, that node is returned, if no node
+ever matches, nil is returned.
 
 By default, this function only traverses named nodes, if @var{all} is
 non-nil, it traverses all nodes.  If @var{backward} is non-nil, it
@@ -590,8 +590,8 @@ that number of levels down in the tree.
 This function is somewhat similar to @code{treesit-search-subtree}.
 It also traverse the parse tree and match each node with
 @var{predicate} (except for @var{start}), where @var{predicate} can be
-a regexp or a function.  For a tree like the below where @var{start}
-is marked 1, this function traverses as numbered:
+a (case-insensitive) regexp or a function.  For a tree like the below
+where @var{start} is marked 1, this function traverses as numbered:
 
 @example
 @group
@@ -629,8 +629,8 @@ This function creates a sparse tree from @var{root}'s subtree.
 Basically, it takes the subtree under @var{root}, and combs it so only
 the nodes that match @var{predicate} are left, like picking out grapes
 on the vine.  Like previous functions, @var{predicate} can be a regexp
-string that matches against each node's type, or a function that takes
-a node and return nil/non-nil.
+string that matches against each node's type case-insensitively, or a
+function that takes a node and return nil/non-nil.
 
 For example, for a subtree on the left that consist of both numbers
 and letters, if @var{predicate} is ``letter only'', the returned tree

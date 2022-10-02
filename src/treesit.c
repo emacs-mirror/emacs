@@ -1973,7 +1973,8 @@ DEFUN ("treesit-search-subtree",
 
 Traverse the subtree of NODE, and match PREDICATE with each node along
 the way.  PREDICATE is a regexp string that matches against each
-node's type, or a function that takes a node and returns nil/non-nil.
+node's type case-insensitively, or a function that takes a node and
+returns nil/non-nil.
 
 By default, only traverse named nodes, if ALL is non-nil, traverse all
 nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
@@ -2018,8 +2019,8 @@ DEFUN ("treesit-search-forward",
 
 Start traversing the tree from node START, and match PREDICATE with
 each node along the way (except START).  PREDICATE is a regexp string
-that matches against each node's type, or a function that takes a node
-and returns nil/non-nil.
+that matches against each node's type case-insensitively, or a
+function that takes a node and returns nil/non-nil.
 
 By default, only search for named nodes, if ALL is non-nil, search for
 all nodes.  If BACKWARD is non-nil, search backwards.
@@ -2122,7 +2123,8 @@ DEFUN ("treesit-induce-sparse-tree",
 
 Basically, take the subtree under ROOT, and comb it so only the nodes
 that match PREDICATE are left, like picking out grapes on the vine.
-PREDICATE is a regexp string that matches against each node's type.
+PREDICATE is a regexp string that matches against each node's type
+case-insensitively.
 
 For a subtree on the left that consist of both numbers and letters, if
 PREDICATE is "is letter", the returned tree is the one on the right.

@@ -703,8 +703,8 @@ indentation (target) is in green, current indentation is in red."
 
 Stops at the first node after point that matches PREDICATE.
 PREDICATE can be either a regexp that matches against each node's
-type, or a function that takes a node and returns nil/non-nil for
-match/no match.
+type case-insensitively, or a function that takes a node and
+returns nil/non-nil for match/no match.
 
 If a node matches, move to that node and return the node,
 otherwise return nil.  SIDE controls whether we move to the start
