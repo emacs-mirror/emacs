@@ -315,7 +315,7 @@ ifeq ($(ANCIENT),yes)
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 	-l comp -f batch-byte-compile $<
-	TZ=UTC touch -t 197001010000 $@
+	TZ=UTC0 touch -t 197001010000 $@
 else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \

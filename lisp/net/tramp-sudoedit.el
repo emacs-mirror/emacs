@@ -568,7 +568,7 @@ the result will be a local, non-Tramp, file name."
 	       nil
 	     time)))
       (tramp-sudoedit-send-command
-       v "env" "TZ=UTC" "touch" "-t"
+       v "env" "TZ=UTC0" "touch" "-t"
        (format-time-string "%Y%m%d%H%M.%S" time t)
        (if (eq flag 'nofollow) "-h" "")
        (tramp-compat-file-name-unquote localname)))))

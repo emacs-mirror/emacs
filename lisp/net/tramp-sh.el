@@ -1528,7 +1528,7 @@ of."
 	       time)))
 	(tramp-send-command-and-check
 	 v (format
-	    "env TZ=UTC %s %s %s %s"
+	    "env TZ=UTC0 %s %s %s %s"
 	    (tramp-get-remote-touch v)
 	    (if (tramp-get-connection-property v "touch-t")
 		(format "-t %s" (format-time-string "%Y%m%d%H%M.%S" time t))
