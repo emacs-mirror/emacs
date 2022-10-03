@@ -588,36 +588,43 @@ the C sources, too."
                   keys))
 
 (defun help-fns--insert-menu-bindings (menus heading)
-  (seq-do-indexed
-   (lambda (menu i)
-     (insert
-      (cond ((zerop i) "")
-            ((= i (1- (length menus))) " and ")
-            (t ", ")))
-     (let ((map (lookup-key global-map (seq-take menu 1)))
-           (start (point)))
-       (seq-do-indexed
-        (lambda (entry level)
-          (when (symbolp map)
-            (setq map (symbol-function map)))
-          (when-let ((elem (assq entry (cdr map))))
-            (when heading
-              (insert heading)
-              (setq heading nil start (point)))
-            (when (> level 0)
-              (insert
-               (if (char-displayable-p ?→)
-                   " → "
-                 " => ")))
-            (if (eq (nth 1 elem) 'menu-item)
-                (progn
-                  (insert (nth 2 elem))
-                  (setq map (cadddr elem)))
-              (insert (nth 1 elem))
-              (setq map (cddr elem)))))
-        (cdr (seq-into menu 'list)))
-       (put-text-property start (point) 'face 'help-key-binding)))
-   menus))
+  (let ((strings nil))
+    ;; First collect all the printed representations of menus.
+    (dolist (menu menus)
+      (let ((map (lookup-key global-map (seq-take menu 1)))
+            (string nil))
+        (seq-do-indexed
+         (lambda (entry level)
+           (when (symbolp map)
+             (setq map (symbol-function map)))
+           (when-let ((elem (assq entry (cdr map))))
+             (when (> level 0)
+               (push (if (char-displayable-p ?→)
+                         " → "
+                       " => ")
+                     string))
+             (if (eq (nth 1 elem) 'menu-item)
+                 (progn
+                   (push (nth 2 elem) string)
+                   (setq map (cadddr elem)))
+               (push (nth 1 elem) string)
+               (setq map (cddr elem)))))
+         (cdr (seq-into menu 'list)))
+        (when string
+          (push string strings))))
+    ;; Then output them.
+    (when strings
+      (when heading
+        (insert heading)
+        (seq-do-indexed
+         (lambda (string i)
+           (insert
+            (cond ((zerop i) "")
+                  ((= i (1- (length menus))) " and ")
+                  (t ", ")))
+           (insert (propertize (string-join (nreverse string))
+                               'face 'help-key-binding)))
+         strings)))))
 
 (defun help-fns--compiler-macro (function)
   (pcase-dolist (`(,type . ,handler)
