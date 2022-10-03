@@ -477,6 +477,15 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 
 * Changes in Emacs 29.1
 
++++
+** New variable 'major-mode-remap-alist' to specify your favorite major modes.
+This variable lets you remap the default modes (e.g. 'perl-mode' or
+'latex-mode') to your favorite ones (e.g. 'cperl-mode' or
+'LaTeX-mode') without having to use 'defalias', which can have
+undesirable side effects.
+This applies to all modes specified via 'auto-mode-alist', file-local
+variables, etc...
+
 ---
 ** Emacs now supports Unicode Standard version 15.0.
 

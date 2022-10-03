@@ -980,24 +980,23 @@ Inherits `shell-mode-map' with a few additions.")
 				  (save-excursion
 				    (beginning-of-line)
 				    (search-forward "%" search-end t))))))
-      (when (and slash (not comment))
-	(setq mode
-	      (if (looking-at
-		   (concat
-		    (regexp-opt '("documentstyle" "documentclass"
-				  "begin" "subsection" "section"
-				  "part" "chapter" "newcommand"
-				  "renewcommand" "RequirePackage")
-				'words)
-		    "\\|NeedsTeXFormat{LaTeX"))
-		  (if (and (looking-at
-			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
-			   ;; SliTeX is almost never used any more nowadays.
-			   (tex-executable-exists-p slitex-run-command))
-		      #'slitex-mode
-		    #'latex-mode)
-		#'plain-tex-mode))))
-    mode))
+      (if (not (and slash (not comment)))
+	  mode
+	(if (looking-at
+	     (concat
+	      (regexp-opt '("documentstyle" "documentclass"
+			    "begin" "subsection" "section"
+			    "part" "chapter" "newcommand"
+			    "renewcommand" "RequirePackage")
+			  'words)
+	      "\\|NeedsTeXFormat{LaTeX"))
+	    (if (and (looking-at
+		      "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
+		     ;; SliTeX is almost never used any more nowadays.
+		     (tex-executable-exists-p slitex-run-command))
+		#'slitex-mode
+	      #'latex-mode)
+	  #'plain-tex-mode)))))
 
 ;; `tex-mode' plays two roles: it's the parent of several sub-modes
 ;; but it's also the function that chooses between those submodes.
@@ -1029,20 +1028,18 @@ says which mode to use."
                  ;; We're called from one of the children already.
                  orig-fun
                (setq tex-mode--recursing t)
-               (tex--guess-mode)))))
+               (let ((mode (tex--guess-mode)))
+                 ;; `tex--guess-mode' really tries to guess the *type* of file,
+                 ;; so we still need to consult `major-mode-remap-alist'
+                 ;; to see which mode to use for that type.
+                 (funcall (alist-get mode major-mode-remap-alist mode)))))))
 
 ;; The following three autoloaded aliases appear to conflict with
-;; AUCTeX.  However, even though AUCTeX uses the mixed case variants
-;; for all mode relevant variables and hooks, the invocation function
-;; and setting of `major-mode' themselves need to be lowercase for
-;; AUCTeX to provide a fully functional user-level replacement.  So
-;; these aliases should remain as they are, in particular since AUCTeX
-;; users are likely to use them.
-;; Note from Stef: I don't understand the above explanation, the only
-;; justification I can find to keep those confusing aliases is for those
-;; users who may have files annotated with -*- LaTeX -*- (e.g. because they
-;; received them from someone using AUCTeX).
-
+;; AUCTeX.  We keep those confusing aliases for those users who may
+;; have files annotated with -*- LaTeX -*- (e.g. because they received
+;; them from someone using AUCTeX).
+;; FIXME: Turn them into autoloads so that AUCTeX can override them
+;; with it's own autoloads?  Or maybe rely on `major-mode-remap-alist'?
 ;;;###autoload (defalias 'TeX-mode #'tex-mode)
 ;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload (defalias 'LaTeX-mode #'latex-mode)

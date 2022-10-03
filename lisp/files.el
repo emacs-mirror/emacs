@@ -3333,6 +3333,7 @@ checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the file name against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
+It also obeys `major-mode-remap-alist'.
 
 If `enable-local-variables' is nil, or if the file name matches
 `inhibit-local-variables-regexps', this function does not check
@@ -3470,6 +3471,17 @@ we don't actually set it to the same mode the buffer already has."
     (unless done
       (set-buffer-major-mode (current-buffer)))))
 
+(defvar-local set-auto-mode--last nil
+  "Remember the mode we have set via `set-auto-mode-0'.")
+
+(defcustom major-mode-remap-alist nil
+  "Alist mapping file-specified mode to actual mode.
+Every entry is of the form (MODE . FUNCTION) which means that in order
+to activate the major mode MODE (specified via something like
+`auto-mode-alist', file-local variables, ...) we should actually call
+FUNCTION instead."
+  :type '(alist (symbol) (function)))
+
 ;; When `keep-mode-if-same' is set, we are working on behalf of
 ;; set-visited-file-name.  In that case, if the major mode specified is the
 ;; same one we already have, don't actually reset it.  We don't want to lose
@@ -3480,10 +3492,15 @@ If optional arg KEEP-MODE-IF-SAME is non-nil, MODE is chased of
 any aliases and compared to current major mode.  If they are the
 same, do nothing and return nil."
   (unless (and keep-mode-if-same
-	       (eq (indirect-function mode)
-		   (indirect-function major-mode)))
+	       (or (eq (indirect-function mode)
+		       (indirect-function major-mode))
+		   (and set-auto-mode--last
+		        (eq mode (car set-auto-mode--last))
+		        (eq major-mode (cdr set-auto-mode--last)))))
     (when mode
-      (funcall mode)
+      (funcall (alist-get mode major-mode-remap-alist mode))
+      (unless (eq mode major-mode)
+        (setq set-auto-mode--last (cons mode major-mode)))
       mode)))
 
 (defvar file-auto-mode-skip "^\\(#!\\|'\\\\\"\\)"
@@ -3513,7 +3530,8 @@ have no effect."
                             ;; interpreter invocation.  The same holds
                             ;; for '\" in man pages (preprocessor
                             ;; magic for the `man' program).
-                            (and (looking-at file-auto-mode-skip) 2)) t)
+                            (and (looking-at file-auto-mode-skip) 2))
+                     t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))

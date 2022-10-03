@@ -454,6 +454,13 @@ only @emph{after} @code{auto-mode-alist}.  By default,
 files, HTML/XML/SGML files, PostScript files, and Unix style Conf
 files.
 
+@vindex major-mode-remap-alist
+  Once a major mode is found, Emacs does a final check to see if the
+mode has been remapped by @code{major-mode-remap-alist}, in which case
+it uses the remapped mode instead.  This is used when several
+different major modes can be used for the same file type, so you can
+specify which mode you prefer.
+
 @findex normal-mode
   If you have changed the major mode of a buffer, you can return to
 the major mode Emacs would have chosen automatically, by typing

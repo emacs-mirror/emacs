@@ -632,7 +632,7 @@ mode-compile.el.
 If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
-  (defalias \\='perl-mode \\='cperl-mode)
+  (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
 
 Get perl5-info from
   $CPAN/doc/manual/info/perl5-old/perl5-info.tar.gz
