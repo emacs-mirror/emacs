@@ -1,7 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1994-1995, 1998, 2000-2022 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1985-2022 Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -25,27 +24,27 @@
 
 ;;; Commentary:
 
-;;  The following defines an association list for text to be
-;;  automatically inserted when a new file is created, and a function
-;;  which automatically inserts these files; the idea is to insert
-;;  default text much as the mode is automatically set using
-;;  auto-mode-alist.
+;; The following defines an association list for text to be
+;; automatically inserted when a new file is created, and a function
+;; which automatically inserts these files; the idea is to insert
+;; default text much as the mode is automatically set using
+;; auto-mode-alist.
 ;;
-;;  To use:
+;; To use, add this to your Init file:
+;;
 ;;     (auto-insert-mode t)
-;;     setq auto-insert-directory to an appropriate slash-terminated value
+;;     (setq auto-insert-directory "~/some-dir")
 ;;
-;;  You can also customize the variable `auto-insert-mode' to load the
-;;  package.  Alternatively, add the following to your init file:
-;;  (auto-insert-mode 1)
+;; You can also customize the variable `auto-insert-mode' to load the
+;; package.
 ;;
-;;  Author:  Charlie Martin
-;;           Department of Computer Science and
-;;           National Biomedical Simulation Resource
-;;           Box 3709
-;;           Duke University Medical Center
-;;           Durham, NC 27710
-;;	      (crm@cs.duke.edu,mcnc!duke!crm)
+;; Author:  Charlie Martin
+;;          Department of Computer Science and
+;;          National Biomedical Simulation Resource
+;;          Box 3709
+;;          Duke University Medical Center
+;;          Durham, NC 27710
+;;           (crm@cs.duke.edu,mcnc!duke!crm)
 
 ;;; Code:
 
@@ -348,9 +347,7 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
 
 ;; Establish a default value for auto-insert-directory
 (defcustom auto-insert-directory "~/insert/"
-  "Directory from which auto-inserted files are taken.
-The value must be an absolute directory name;
-thus, on a GNU or Unix system, it must end in a slash."
+  "Directory from which auto-inserted files are taken."
   :type 'directory)
 
 
