@@ -1032,7 +1032,7 @@ says which mode to use."
                  ;; `tex--guess-mode' really tries to guess the *type* of file,
                  ;; so we still need to consult `major-mode-remap-alist'
                  ;; to see which mode to use for that type.
-                 (funcall (alist-get mode major-mode-remap-alist mode)))))))
+                 (alist-get mode major-mode-remap-alist mode))))))
 
 ;; The following three autoloaded aliases appear to conflict with
 ;; AUCTeX.  We keep those confusing aliases for those users who may
