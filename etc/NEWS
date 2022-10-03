@@ -1342,6 +1342,11 @@ change the input method's translation rules, customize the user option
 ** ecomplete
 
 ---
+*** New commands 'ecomplete-edit' and 'ecomplete-remove'.
+These allow you to (respectively) edit and bulk-remove entries from
+the ecomplete database.
+
+---
 *** New user option 'ecomplete-auto-select'.
 If non-nil and there's only one matching option, auto-select that.
 

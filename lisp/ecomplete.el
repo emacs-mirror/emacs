@@ -99,8 +99,10 @@ string that was matched."
 	(insert-file-contents ecomplete-database-file)
 	(setq ecomplete-database (read (current-buffer)))))))
 
-(defun ecomplete-add-item (type key text)
-  "Add item TEXT of TYPE to the database, using KEY as the identifier."
+(defun ecomplete-add-item (type key text &optional force)
+  "Add item TEXT of TYPE to the database, using KEY as the identifier.
+By default, the longest version of TEXT will be preserved, but if
+FORCE is non-nil, use TEXT exactly as is."
   (unless ecomplete-database (ecomplete-setup))
   (let ((elems (assq type ecomplete-database))
 	(now (time-convert nil 'integer))
@@ -111,9 +113,23 @@ string that was matched."
 	(pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
 	  (setcdr entry (list (1+ count) now
 	                      ;; Preserve the "more complete" text.
-	                      (if (>= (length text) (length oldtext))
-	                          text oldtext))))
+	                      (if (or force
+                                      (>= (length text) (length oldtext)))
+	                          text
+                                oldtext))))
       (nconc elems (list (list key 1 now text))))))
+
+(defun ecomplete--remove-item (type key)
+  "Remove the element of TYPE and KEY from the ecomplete database."
+  (unless ecomplete-database
+    (ecomplete-setup))
+  (let ((elems (assq type ecomplete-database)))
+    (unless elems
+      (user-error "No elements of type %s" type))
+    (let ((entry (assoc key elems)))
+      (unless entry
+        (user-error "No entry with key %s" key))
+      (setcdr elems (delq entry (cdr elems))))))
 
 (defun ecomplete-get-item (type key)
   "Return the text for the item identified by KEY of the required TYPE."
@@ -262,6 +278,48 @@ non-nil and there is only a single completion option available."
 		                 collect (cdr x))
                         ecomplete-sort-predicate))))
          (complete-with-action action candidates string pred))))))
+
+(defun ecomplete--prompt-type ()
+  (unless ecomplete-database
+    (ecomplete-setup))
+  (if (length= ecomplete-database 1)
+      (caar ecomplete-database)
+    (completing-read "Item type to edit: "
+                     (mapcar #'car ecomplete-database)
+                     nil t)))
+
+(defun ecomplete-edit ()
+  "Prompt for an item and allow editing it."
+  (interactive)
+  (let* ((type (ecomplete--prompt-type))
+         (data (cdr (assq type ecomplete-database)))
+         (key (completing-read "Key to edit: " data nil t))
+         (new (read-string "New value (empty to remove): "
+                           (nth 3 (assoc key data)))))
+    (if (zerop (length new))
+        (progn
+          (ecomplete--remove-item type key)
+          (message "Removed %s" key))
+      (ecomplete-add-item type key new t)
+      (message "Updated %s to %s" key new))
+    (ecomplete-save)))
+
+(defun ecomplete-remove ()
+  "Remove entries matching a regexp from the ecomplete database."
+  (interactive)
+  (let* ((type (ecomplete--prompt-type))
+         (data (cdr (assq type ecomplete-database)))
+         (match (read-regexp (format "Remove %s keys matching (regexp): "
+                                     type)))
+         (elems (seq-filter (lambda (elem)
+                              (string-match-p match (car elem)))
+                            data)))
+    (when (yes-or-no-p (format "Delete %s matching ecomplete entries? "
+                               (length elems)))
+      (dolist (elem elems)
+        (ecomplete--remove-item type (car elem)))
+      (ecomplete-save)
+      (message "Deleted entries"))))
 
 (provide 'ecomplete)
 
