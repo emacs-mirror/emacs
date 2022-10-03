@@ -615,16 +615,16 @@ the C sources, too."
     ;; Then output them.
     (when strings
       (when heading
-        (insert heading)
-        (seq-do-indexed
-         (lambda (string i)
-           (insert
-            (cond ((zerop i) "")
-                  ((= i (1- (length menus))) " and ")
-                  (t ", ")))
-           (insert (propertize (string-join (nreverse string))
-                               'face 'help-key-binding)))
-         strings)))))
+        (insert heading))
+      (seq-do-indexed
+       (lambda (string i)
+         (insert
+          (cond ((zerop i) "")
+                ((= i (1- (length menus))) " and ")
+                (t ", "))
+          (propertize (string-join (nreverse string))
+                      'face 'help-key-binding)))
+       strings))))
 
 (defun help-fns--compiler-macro (function)
   (pcase-dolist (`(,type . ,handler)
