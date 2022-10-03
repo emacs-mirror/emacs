@@ -3354,22 +3354,30 @@ struct x_xim_text_conversion_data
 {
   struct coding_system *coding;
   char *source;
+  struct x_display_info *dpyinfo;
 };
 
 static Lisp_Object
-x_xim_text_to_utf8_unix_1 (ptrdiff_t nargs,
-			   Lisp_Object *args)
+x_xim_text_to_utf8_unix_1 (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct x_xim_text_conversion_data *data;
   ptrdiff_t nbytes;
+  Lisp_Object coding_system;
 
   data = xmint_pointer (args[0]);
+
+  if (SYMBOLP (Vx_input_coding_system))
+    coding_system = Vx_input_coding_system;
+  else if (!NILP (data->dpyinfo->xim_coding))
+    coding_system = data->dpyinfo->xim_coding;
+  else
+    coding_system = Vlocale_coding_system;
+
   nbytes = strlen (data->source);
 
   data->coding->destination = NULL;
 
-  setup_coding_system (Vlocale_coding_system,
-		       data->coding);
+  setup_coding_system (coding_system, data->coding);
   data->coding->mode |= (CODING_MODE_LAST_BLOCK
 			 | CODING_MODE_SAFE_ENCODING);
   data->coding->source = (const unsigned char *) data->source;
@@ -3382,8 +3390,7 @@ x_xim_text_to_utf8_unix_1 (ptrdiff_t nargs,
 }
 
 static Lisp_Object
-x_xim_text_to_utf8_unix_2 (Lisp_Object val,
-			   ptrdiff_t nargs,
+x_xim_text_to_utf8_unix_2 (Lisp_Object val, ptrdiff_t nargs,
 			   Lisp_Object *args)
 {
   struct x_xim_text_conversion_data *data;
@@ -3400,7 +3407,8 @@ x_xim_text_to_utf8_unix_2 (Lisp_Object val,
 
 /* The string returned is not null-terminated.  */
 static char *
-x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
+x_xim_text_to_utf8_unix (struct x_display_info *dpyinfo,
+			 XIMText *text, ptrdiff_t *length)
 {
   unsigned char *wchar_buf;
   ptrdiff_t wchar_actual_length, i;
@@ -3424,6 +3432,7 @@ x_xim_text_to_utf8_unix (XIMText *text, ptrdiff_t *length)
 
   data.coding = &coding;
   data.source = text->string.multi_byte;
+  data.dpyinfo = dpyinfo;
 
   was_waiting_for_input_p = waiting_for_input;
   /* Otherwise Fsignal will crash.  */
@@ -3441,18 +3450,21 @@ static void
 xic_preedit_draw_callback (XIC xic, XPointer client_data,
 			   XIMPreeditDrawCallbackStruct *call_data)
 {
-  struct frame *f = x_xic_to_frame (xic);
+  struct frame *f;
   struct x_output *output;
-  ptrdiff_t text_length = 0;
+  ptrdiff_t text_length;
   ptrdiff_t charpos;
   ptrdiff_t original_size;
   char *text;
   char *chg_start, *chg_end;
   struct input_event ie;
+
+  f = x_xic_to_frame (xic);
   EVENT_INIT (ie);
 
   if (f)
     {
+      text_length = 0;
       output = FRAME_X_OUTPUT (f);
 
       if (!output->preedit_active)
@@ -3460,7 +3472,8 @@ xic_preedit_draw_callback (XIC xic, XPointer client_data,
 
       if (call_data->text)
 	{
-	  text = x_xim_text_to_utf8_unix (call_data->text, &text_length);
+	  text = x_xim_text_to_utf8_unix (FRAME_DISPLAY_INFO (f),
+					  call_data->text, &text_length);
 
 	  if (!text)
 	    /* Decoding the IM text failed.  */

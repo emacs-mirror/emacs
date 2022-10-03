@@ -61,7 +61,7 @@ can also be input by using the @kbd{C-x 8} prefix, see @ref{Unibyte Mode}.
 
 With the X Window System, your locale should be set to an appropriate
 value to make sure Emacs interprets keyboard input correctly; see
-@ref{Language Environments, locales}.
+@ref{Language Environments, locales}, and @ref{X Coding}.
 @end itemize
 
   The rest of this chapter describes these issues in detail.
@@ -79,6 +79,7 @@ value to make sure Emacs interprets keyboard input correctly; see
 * Text Coding::             Choosing conversion to use for file text.
 * Communication Coding::    Coding systems for interprocess communication.
 * File Name Coding::        Coding systems for file @emph{names}.
+* X Coding::                Coding systems for X input methods.
 * Terminal Coding::         Specifying coding systems for converting
                               terminal input and output.
 * Fontsets::                Fontsets are collections of fonts
@@ -1241,15 +1242,14 @@ current language environment.
   The variable @code{locale-coding-system} specifies a coding system
 to use when encoding and decoding system strings such as system error
 messages and @code{format-time-string} formats and time stamps.  That
-coding system is also used for decoding non-@acronym{ASCII} keyboard
-input on the X Window System and for encoding text sent to the
-standard output and error streams when in batch mode.  You should
-choose a coding system that is compatible
-with the underlying system's text representation, which is normally
-specified by one of the environment variables @env{LC_ALL},
-@env{LC_CTYPE}, and @env{LANG}.  (The first one, in the order
-specified above, whose value is nonempty is the one that determines
-the text representation.)
+coding system might also be used for decoding non-@acronym{ASCII}
+keyboard input on the X Window System and will also be used to encode
+text sent to the standard output and error streams in batch mode.  You
+should choose a coding system that is compatible with the underlying
+system's text representation, which is normally specified by one of
+the environment variables @env{LC_ALL}, @env{LC_CTYPE}, and
+@env{LANG}.  (The first one, in the order specified above, whose value
+is nonempty is the one that determines the text representation.)
 
 @node File Name Coding
 @section Coding Systems for File Names
@@ -1310,6 +1310,26 @@ C-w} to specify a new file name for that buffer.
 @kbd{M-x recode-file-name} to change the file name's coding
 system.  This prompts for an existing file name, its old coding
 system, and the coding system to which you wish to convert.
+
+@node X Coding
+@section Coding Systems for X Keyboard Input
+@cindex X input method coding systems
+  Input methods under the X Window System specify their own coding
+systems that must be used to decode keyboard input.  By default, Emacs
+determines the coding system used for each input method automatically
+upon establishing the connection to the input method server, and uses
+that specific coding system to decode keyboard input.  However, that
+determination can sometimes fail; in that situation, the locale coding
+system (@pxref{Communication Coding}) is used instead.
+
+@cindex X input method coding systems, overriding
+@vindex x-input-coding-system
+  If the input method does not correctly announce the coding system it
+uses to encode text, then the coding system used by Emacs to decode
+text from input methods must be manually specified.  The value of the
+variable @code{x-input-coding-system}, when set to a symbol, is
+unconditionally used as the coding system used to decode keyboard
+input from input methods.
 
 @node Terminal Coding
 @section Coding Systems for Terminal I/O

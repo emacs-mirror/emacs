@@ -187,6 +187,19 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 +++
+*** Emacs now picks the correct coding system for X input methods.
+Previously, Emacs would use the locale coding system for input
+methods, which could in some circumstances be incorrect, especially
+when the input method chose to fall back to some other coding system.
+
+Now, Emacs automatically detects the coding system used by input
+methods, and uses that to decode input in preference to the value of
+'locale-coding-system'.  This unfortunately means that users who have
+changed the coding system used to decode X keyboard input must adjust
+their customizations to 'locale-coding-system' to the variable
+'x-input-coding-system' instead.
+
++++
 *** Bookmarks no longer include context for encrypted files.
 If you're visiting an encrypted file, setting a bookmark no longer
 includes excerpts from that buffer in the bookmarks file.  This is

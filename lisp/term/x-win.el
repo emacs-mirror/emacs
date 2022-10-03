@@ -1613,6 +1613,28 @@ Users should not call this function; see `device-class' instead."
 (setq x-dnd-movement-function #'x-dnd-movement)
 (setq x-dnd-unsupported-drop-function #'x-dnd-handle-unsupported-drop)
 
+(defvar x-input-coding-function)
+
+(defun x-get-input-coding-system (x-locale)
+  "Return a coding system for the locale X-LOCALE.
+Return a coding system that is able to decode text sent with the
+X input method locale X-LOCALE, or nil if no coding system was
+found."
+  (if (equal x-locale "C")
+      ;; Treat the C locale specially, as it means "ascii" under X.
+      'ascii
+    (let ((locale (downcase x-locale)))
+      (or (locale-name-match locale locale-preferred-coding-systems)
+	  (when locale
+	    (if (string-match "\\.\\([^@]+\\)" locale)
+	        (locale-charset-to-coding-system
+	         (match-string 1 locale))))
+          (let ((language-name
+                 (locale-name-match locale locale-language-names)))
+            (and (consp language-name) (cdr language-name)))))))
+
+(setq x-input-coding-function #'x-get-input-coding-system)
+
 (provide 'x-win)
 (provide 'term/x-win)
 

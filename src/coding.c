@@ -12014,9 +12014,9 @@ See also the function `find-operation-coding-system'.  */);
   Vnetwork_coding_system_alist = Qnil;
 
   DEFVAR_LISP ("locale-coding-system", Vlocale_coding_system,
-	       doc: /* Coding system to use with system messages.
-Also used for decoding keyboard input on X Window system, and for
-encoding standard output and error streams.  */);
+    doc: /* Coding system to use with system messages.
+Potentially also used for decoding keyboard input on X Windows, and is
+used for encoding standard output and error streams.  */);
   Vlocale_coding_system = Qnil;
 
   /* The eol mnemonics are reset in startup.el system-dependently.  */
