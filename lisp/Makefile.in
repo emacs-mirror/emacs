@@ -31,9 +31,15 @@ EXEEXT = @EXEEXT@
 XARGS_LIMIT = @XARGS_LIMIT@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+NATIVE_COMPILATION_AOT = @NATIVE_COMPILATION_AOT@
 ifeq ($(HAVE_NATIVE_COMP),yes)
+# Environment variable to enable Ahead-Of-Time compilation.
 ifndef NATIVE_FULL_AOT
 NATIVE_SKIP_NONDUMP = 1
+endif
+# Configured for Ahead-Of-Time compilation.
+ifeq ($(NATIVE_COMPILATION_AOT),yes)
+NATIVE_SKIP_NONDUMP = ""
 endif
 endif
 

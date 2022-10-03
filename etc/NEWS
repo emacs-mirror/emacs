@@ -24,6 +24,12 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 29.1
 
+---
+** Ahead-of-time native compilation can now be specified via configure.
+Use --with-native-compilation=aot to specify that all the Lisp files
+in the Emacs tree should be natively compiled ahead of time.  (This is
+slow on most machines.)
+
 +++
 ** Emacs can be built with built-in support for accessing SQLite databases.
 This uses the popular sqlite3 library, and can be disabled by using

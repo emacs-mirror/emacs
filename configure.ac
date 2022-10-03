@@ -494,7 +494,6 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
-OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 OPTION_DEFAULT_OFF([cygwin32-native-compilation],[use native compilation on 32-bit Cygwin])
 OPTION_DEFAULT_ON([xinput2],[don't use version 2 of the X Input Extension for input])
 OPTION_DEFAULT_OFF([small-ja-dic],[generate a smaller-size Japanese dictionary])
@@ -1008,6 +1007,29 @@ AC_ARG_ENABLE([gcc-warnings],
          [gl_gcc_warnings=warn-only],
          [gl_GCC_VERSION_IFELSE([5], [3], [gl_gcc_warnings=warn-only])])
    fi])
+
+NATIVE_COMPILATION_AOT=no
+AC_ARG_WITH([native-compilation],
+  [AS_HELP_STRING([--with-native-compilation@<:@=TYPE@:>@],
+                  [compile with Emacs Lisp native compiler support.  The TYPE
+		   'yes' (or empty) means to enable it and compile natively
+		   preloaded Lisp files; 'no' means to disable it;
+		   'aot' will make the build process compile all the Lisp
+		   files in the tree natively ahead of time.  (This will
+		   usually be quite slow.)])],
+  [
+  case $withval in
+     aot)
+       withval=yes
+       NATIVE_COMPILATION_AOT=yes
+       ;;
+     yes|no) ;;
+     *)      AC_MSG_ERROR([bad value $withval for native-compilation option]) ;;
+   esac
+   with_native_compilation=$withval],
+  [with_native_compilation=no]
+)
+AC_SUBST([NATIVE_COMPILATION_AOT])
 
 AC_ARG_ENABLE([check-lisp-object-type],
   [AS_HELP_STRING([--enable-check-lisp-object-type],
