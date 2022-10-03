@@ -359,6 +359,9 @@ This property can override the value of this variable."
   :group 'repeat
   :version "28.1")
 
+(defvar repeat-exit-function nil
+  "Function that exits the repeating sequence.")
+
 (defvar repeat-exit-timer nil
   "Timer activated after the last key typed in the repeating key sequence.")
 
@@ -479,29 +482,36 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 
               (setq repeat-in-progress t)
               (let ((exitfun (set-transient-map map)))
-
-                (when repeat-exit-timer
-                  (cancel-timer repeat-exit-timer)
-                  (setq repeat-exit-timer nil))
+                (repeat--exit)
+                (setq repeat-exit-function exitfun)
 
                 (let* ((prop (repeat--command-property 'repeat-exit-timeout))
                        (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
                   (when timeout
                     (setq repeat-exit-timer
-                          (run-with-idle-timer
-                           timeout nil
-                           (lambda ()
-                             (setq repeat-in-progress nil)
-                             (funcall exitfun)
-                             (funcall repeat-echo-function nil))))))))))))
+                          (run-with-idle-timer timeout nil #'repeat-exit))))))))))
 
     (setq repeat-map nil)
     (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
     (when (and was-in-progress (not repeat-in-progress))
-      (when repeat-exit-timer
-        (cancel-timer repeat-exit-timer)
-        (setq repeat-exit-timer nil))
-      (funcall repeat-echo-function nil))))
+      (repeat-exit))))
+
+(defun repeat-exit ()
+  "Exit the repeating sequence.
+This function can be used to force exit of repetition while it's active."
+  (interactive)
+  (setq repeat-in-progress nil)
+  (repeat--exit)
+  (funcall repeat-echo-function nil))
+
+(defun repeat--exit ()
+  "Internal function to clean up previously set exit function and timer."
+  (when repeat-exit-timer
+    (cancel-timer repeat-exit-timer)
+    (setq repeat-exit-timer nil))
+  (when repeat-exit-function
+    (funcall repeat-exit-function)
+    (setq repeat-exit-function nil)))
 
 (defun repeat-echo-message-string (keymap)
   "Return a string with a list of repeating keys."
