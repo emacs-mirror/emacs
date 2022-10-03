@@ -39,8 +39,7 @@
 
 (defun keymap-set (keymap key definition)
   "Set KEY to DEFINITION in KEYMAP.
-KEY is a string that satisfies `key-valid-p' (or a vector using the
-internal representation of key sequences).
+KEY is a string that satisfies `key-valid-p'.
 
 DEFINITION is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
@@ -58,13 +57,13 @@ DEFINITION is anything that can be a key's definition:
  or an extended menu item definition.
  (See info node `(elisp)Extended Menu Items'.)"
   (declare (compiler-macro (lambda (form) (keymap--compile-check key) form)))
-  (unless (vectorp key) (keymap--check key))
+  (keymap--check key)
   ;; If we're binding this key to another key, then parse that other
   ;; key, too.
   (when (stringp definition)
     (keymap--check definition)
     (setq definition (key-parse definition)))
-  (define-key keymap (if (vectorp key) key (key-parse key)) definition))
+  (define-key keymap (key-parse key) definition))
 
 (defun keymap-global-set (key command)
   "Give KEY a global binding as COMMAND.
@@ -283,18 +282,6 @@ See `kbd' for a descripion of KEYS."
             (dolist (_ (number-sequence 1 times))
               (setq res (vconcat res key))))))
       res)))
-
-(defun key-parse-old-format (keys)
-  "Convert old-style string representation of KEYS to a vector.
-Simpler alternative to the Rube-Goldbergesque composition of
-`key-description' and `key-parse'."
-  (cond
-   ((vectorp keys) keys)
-   ((multibyte-string-p keys) (vconcat keys))
-   ((stringp keys)
-    (vconcat (mapcar (lambda (c) (if (> c 127) (logior (- c 128) ?\M-\0) c))
-                     keys)))
-   (t (error "Invalid old-style key sequence: %S" keys))))
 
 (defun key-valid-p (keys)
   "Say whether KEYS is a valid key.

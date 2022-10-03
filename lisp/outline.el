@@ -496,8 +496,7 @@ See the command `outline-mode' for more information on this mode."
             "<right-margin> <mouse-1>" 'outline-cycle
             "<left-margin> S-<mouse-1>" 'outline-cycle-buffer
             "<right-margin> S-<mouse-1>" 'outline-cycle-buffer
-            (key-parse-old-format outline-minor-mode-prefix)
-            outline-mode-prefix-map)
+            (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
         (cond
