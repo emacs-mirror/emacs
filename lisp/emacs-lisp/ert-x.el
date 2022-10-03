@@ -568,7 +568,7 @@ The same keyword arguments are supported as in
          `("\\`mock\\'" nil ,(system-name)))
         ;; Emacs's Makefile sets $HOME to a nonexistent value.  Needed
         ;; in batch mode only, therefore.
-        (unless (and (null noninteractive) (file-directory-p "~/"))
+        (when (and noninteractive (not (file-directory-p "~/")))
           (setenv "HOME" temporary-file-directory))
         (format "/mock::%s" temporary-file-directory))))
     "Temporary directory for remote file tests.")
