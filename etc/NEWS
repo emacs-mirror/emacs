@@ -484,7 +484,7 @@ This variable lets you remap the default modes (e.g. 'perl-mode' or
 'LaTeX-mode') without having to use 'defalias', which can have
 undesirable side effects.
 This applies to all modes specified via 'auto-mode-alist', file-local
-variables, etc...
+variables, etc.
 
 ---
 ** Emacs now supports Unicode Standard version 15.0.
@@ -528,10 +528,6 @@ and 'C-x C-M-+ + +' increase the font size by three steps.  When
 increase and decrease the font size globally.  Additionally, the
 user option 'global-text-scale-adjust-resizes-frames' controls whether
 the frames are resized when the font size is changed.
-
-+++
-** New function 'file-name-parent-directory'.
-Get the parent directory of a file.
 
 ** New config variable 'syntax-wholeline-max' to reduce the cost of long lines.
 This variable is used by some operations (mostly syntax-propertization
@@ -643,7 +639,7 @@ If non-nil, this option allows scrolling a window while dragging text
 around without a scroll wheel.
 
 +++
-*** 'mouse-drag-copy-region' can now be 'non-empty'.
+*** 'mouse-drag-copy-region' can now be 'non-empty' (the Lisp symbol).
 This inhibits putting empty strings onto the kill ring.
 
 +++
@@ -677,7 +673,9 @@ yes/no question before executing.  The new function 'command-query' is
 a convenient method of making commands disabled in this way.
 
 ---
-** 'count-lines' will now report buffer totals if given a prefix.
+** 'count-words' will now report buffer totals if given a prefix.
+Without a prefix, it will only report the word count for the narrowed
+part of the buffer.
 
 +++
 ** 'count-words' will now report sentence count when used interactively.
@@ -721,11 +719,6 @@ on the mode lines (along with 'mode-line-inactive').
 This value stands for the value of the corresponding attribute of the
 'default' face.  It can be used to reset attribute values produced by
 inheriting from other faces.
-
-+++
-** New function 'buffer-text-pixel-size'.
-This is similar to 'window-text-pixel-size', but can be used when the
-buffer isn't displayed.
 
 +++
 ** New X resource: "borderThickness".
@@ -3603,6 +3596,10 @@ a valid key sequence according to 'key-valid-p'.
 This returns a list of all the components of a file name.
 
 +++
+** New function 'file-name-parent-directory'.
+This returns the parent directory of a file name.
+
++++
 ** New macro 'with-undo-amalgamate'.
 It records a particular sequence of operations as a single undo step.
 
@@ -3803,6 +3800,11 @@ It no longer depends on edmacro.el and cl-lib.el.
 ** New function 'image-at-point-p'.
 This function returns t if point is on a valid image, and nil
 otherwise.
+
++++
+** New function 'buffer-text-pixel-size'.
+This is similar to 'window-text-pixel-size', but can be used when the
+buffer isn't displayed.
 
 +++
 ** New function 'string-pixel-width'.
