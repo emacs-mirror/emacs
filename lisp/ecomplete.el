@@ -314,12 +314,17 @@ non-nil and there is only a single completion option available."
          (elems (seq-filter (lambda (elem)
                               (string-match-p match (car elem)))
                             data)))
-    (when (yes-or-no-p (format "Delete %s matching ecomplete entries? "
-                               (length elems)))
-      (dolist (elem elems)
-        (ecomplete--remove-item type (car elem)))
-      (ecomplete-save)
-      (message "Deleted entries"))))
+    (if (length= elems 0)
+        (message "No matching entries for %s" match)
+      (when (yes-or-no-p (format "Delete %s matching ecomplete %s? "
+                                 (length elems)
+                                 (if (length= elems 1)
+                                     "entry"
+                                   "entries")))
+        (dolist (elem elems)
+          (ecomplete--remove-item type (car elem)))
+        (ecomplete-save)
+        (message "Deleted entries")))))
 
 (provide 'ecomplete)
 
