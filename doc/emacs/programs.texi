@@ -508,9 +508,9 @@ Reindent each line in the balanced expression that follows point
 about invalid syntax.
 
 @item @key{TAB}
-@findex c-indent-command
-Reindent the current line, and/or in some cases insert a tab character
-(@code{c-indent-command}).
+@findex c-indent-line-or-region
+Reindent the current line, active region, or block starting on this
+line (@code{c-indent-line-or-region}).
 
 @vindex c-tab-always-indent
 If @code{c-tab-always-indent} is @code{t}, this command always reindents

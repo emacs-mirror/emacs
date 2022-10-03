@@ -1514,15 +1514,15 @@ etc.
 @subsection Org as an authoring system
 @cindex Org exporting
 
-@findex org-export
+@findex org-export-dispatch
 @kindex C-c C-e @r{(Org mode)}
   You may want to format your Org notes nicely and to prepare them for
 export and publication.  To export the current buffer, type @kbd{C-c
-C-e} (@code{org-export}) anywhere in an Org buffer.  This command
-prompts for an export format; currently supported formats include
-HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}), iCalendar,
-Markdown, man-page, and PDF@.  Some formats, such as PDF, require
-certain system tools to be installed.
+C-e} (@code{org-export-dispatch}) anywhere in an Org buffer.  This
+command prompts for an export format; currently supported formats
+include HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}),
+iCalendar, Markdown, man-page, and PDF@.  Some formats, such as PDF,
+require certain system tools to be installed.
 
 @vindex org-publish-project-alist
   To export several files at once to a specific directory, either
