@@ -95,6 +95,7 @@
 ;; - find-file-hook ()                             OK
 ;; - conflicted-files                              OK
 ;; - repository-url (file-or-dir)                  OK
+;; - prepare-patch (rev)                           OK
 
 ;;; Code:
 
@@ -1741,6 +1742,29 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-root (file)
   (vc-find-root file ".git"))
+
+(defun vc-git-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-git-prepare-patch*")
+    (vc-git-command
+     t 0 '()  "format-patch"
+     "--no-numbered" "--stdout"
+     ;; From gitrevisions(7): ^<n> means the <n>th parent
+     ;; (i.e.  <rev>^ is equivalent to <rev>^1). As a
+     ;; special rule, <rev>^0 means the commit itself and
+     ;; is used when <rev> is the object name of a tag
+     ;; object that refers to a commit object.
+     (concat rev "^.." rev))
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^Subject: \\(.+\\)")
+      (setq subject (match-string 1))
+      ;; Jump to the beginning for the patch
+      (search-forward-regexp "\n\n")
+      ;; Return the extracted data
+      (list :subject subject
+            :buffer (current-buffer)
+            :body-start (point)))))
 
 ;; grep-compute-defaults autoloads grep.
 (declare-function grep-read-regexp "grep" ())

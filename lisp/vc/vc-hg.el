@@ -80,6 +80,7 @@
 ;; - delete-file (file)                        TEST IT
 ;; - rename-file (old new)                     OK
 ;; - find-file-hook ()                         added for bug#10709
+;; - prepare-patch (rev)                       OK
 
 ;; 2) Implement Stefan Monnier's advice:
 ;; vc-hg-registered and vc-hg-state
@@ -1506,6 +1507,17 @@ This runs the command \"hg merge\"."
                    (unless (string= branch "") (list branch))))
     (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
+
+(defun vc-hg-prepare-patch (rev)
+  (with-current-buffer (generate-new-buffer " *vc-hg-prepare-patch*")
+    (vc-hg-command t 0 '() "export" "--rev" rev)
+    (let (subject)
+      ;; Extract the subject line
+      (goto-char (point-min))
+      (search-forward-regexp "^[^#].*")
+      (setq subject (match-string 0))
+      ;; Return the extracted data
+      (list :subject subject :buffer (current-buffer)))))
 
 ;;; Internal functions
 

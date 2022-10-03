@@ -16,6 +16,7 @@
 * Revision Tags::       Symbolic names for revisions.
 * Version Headers::     Inserting version control headers into working files.
 * Editing VC Commands:: Editing the VC shell commands that Emacs will run.
+* Preparing Patches::   Preparing and Composing patches from within VC
 @end menu
 
 @node Change Logs and VC
@@ -281,6 +282,32 @@ just one branch.  To obtain a log of more than one branch, you can
 type @w{@kbd{C-x v ! C-x v b l}} and then append the names of
 additional branches to the end of the @samp{git log} command that VC
 is about to run.
+
+@node Preparing Patches
+@subsubsection Preparing Patches
+
+@findex vc-prepare-patch
+When collaborating on projects it is common to send patches via email,
+to share changes.  If you wish to do this using VC, you can use the
+@code{vc-prepare-patch} command.  This will prompt you for the
+revisions you wish to share, and which destination email address(es)
+to use.  The command will then prepare those revisions using your
+@abbr{MUA, Mail User Agent} for you to review and send.
+
+@vindex vc-prepare-patches-separately
+Depending on the value of the user option
+@code{vc-prepare-patches-separately}, @code{vc-prepare-patch} will
+generate one or more messages.  The default value @code{t} means
+prepare and display a message for each revision, one after another.  A
+value of @code{nil} means to generate a single message with all
+patches attached in the body.
+
+@vindex vc-default-patch-addressee
+If you expect to contribute patches on a regular basis, you can set
+the user option @code{vc-default-patch-addressee} to the address(es)
+you wish to use.  This will be used as the default value when invoking
+@code{vc-prepare-patch}.  Project maintainers may consider setting
+this as a directory local variable (@pxref{Directory Variables}).
 
 @node Customizing VC
 @subsection Customizing VC

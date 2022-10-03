@@ -1866,6 +1866,24 @@ Git commands display summary lines.  See the two new user options
 It is used to style the line that separates the 'log-edit' headers
 from the 'log-edit' summary.
 
+---
+*** The function 'vc-read-revision' accepts a new MULTIPLE argument.
+If non-nil, multiple revisions can be queried.  This is done using
+'completing-read-multiple'.
+
+---
+*** New function 'vc-read-multiple-revisions'
+This function invokes 'vc-read-revision' with a non-nil value for
+MULTIPLE.
+
++++
+*** New command 'vc-prepare-patch'.
+Patches for any version control system can be prepared using VC.  The
+command will query what commits to send and will compose messages for
+your mail user agent.  The behaviour of 'vc-prepare-patch' can be
+modified by the user options 'vc-prepare-patches-separately' and
+'vc-default-patch-addressee'.
+
 ** Message
 
 ---

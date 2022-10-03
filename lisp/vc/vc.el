@@ -574,6 +574,16 @@
 ;;   containing FILE-OR-DIR.  The optional REMOTE-NAME specifies the
 ;;   remote (in Git parlance) whose URL is to be returned.  It has
 ;;   only a meaning for distributed VCS and is ignored otherwise.
+;;
+;; - prepare-patch (rev)
+;;
+;;   Prepare a patch and return a property list with the keys
+;;   `:subject' indicating the patch message as a string, `:buffer'
+;;   with a buffer object that contains the entire patch message and
+;;   `:body-start' and `:body-end' demarcating what part of said
+;;   buffer should be inserted into an inline patch.  If the two last
+;;   properties are omitted, `point-min' and `point-max' will
+;;   respectively be used instead.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -1910,7 +1920,7 @@ Return t if the buffer had changes, nil otherwise."
 (defvar vc-revision-history nil
   "History for `vc-read-revision'.")
 
-(defun vc-read-revision (prompt &optional files backend default initial-input)
+(defun vc-read-revision (prompt &optional files backend default initial-input multiple)
   (cond
    ((null files)
     (let ((vc-fileset (vc-deduce-fileset t))) ;FIXME: why t?  --Stef
@@ -1923,9 +1933,16 @@ Return t if the buffer had changes, nil otherwise."
          (completion-table
           (vc-call-backend backend 'revision-completion-table files)))
     (if completion-table
-        (completing-read prompt completion-table
-                         nil nil initial-input 'vc-revision-history default)
-      (read-string prompt initial-input nil default))))
+        (funcall
+         (if multiple #'completing-read-multiple #'completing-read)
+         prompt completion-table nil nil initial-input 'vc-revision-history default)
+      (let ((answer (read-string prompt initial-input nil default)))
+        (if multiple
+            (split-string answer "[ \t]*,[ \t]*")
+          answer)))))
+
+(defun vc-read-multiple-revisions (prompt &optional files backend default initial-input)
+  (vc-read-revision prompt files backend default initial-input t))
 
 (defun vc-diff-build-argument-list-internal (&optional fileset)
   "Build argument list for calling internal diff functions."
@@ -3263,6 +3280,105 @@ immediately after this one."
     (setq vc-filter-command-function
           (lambda (&rest args)
             (apply #'vc-user-edit-command (apply old args))))))
+
+(defcustom vc-prepare-patches-separately t
+  "Non-nil means that `vc-prepare-patch' creates a single message.
+A single message is created by attaching all patches to the body
+of a single message.  If nil, each patch will be sent out in a
+separate message, which will be prepared sequentially."
+  :type 'boolean
+  :safe #'booleanp
+  :version "29.1")
+
+(defcustom vc-default-patch-addressee nil
+  "Default addressee for `vc-prepare-patch'.
+If nil, no default will be used.  This option may be set locally."
+  :type '(choice (const :tag "No default" nil)
+                 (string :tag "Addressee"))
+  :safe #'stringp
+  :version "29.1")
+
+(declare-function message--name-table "message" (orig-string))
+(declare-function mml-attach-buffer "mml"
+                  (buffer &optional type description disposition))
+(declare-function log-view-get-marked "log-view" ())
+
+(defun vc-default-prepare-patch (rev)
+  (let ((backend (vc-backend buffer-file-name)))
+    (with-current-buffer (generate-new-buffer " *vc-default-prepare-patch*")
+      (vc-diff-internal
+       nil (list backend) rev
+       (vc-call-backend backend 'previous-revision
+                        buffer-file-name rev)
+       nil t)
+      (list :subject (concat "Patch for "
+                             (file-name-nondirectory
+                              (directory-file-name
+                               (vc-root-dir))))
+            :buffer (current-buffer)))))
+
+;;;###autoload
+(defun vc-prepare-patch (addressee subject revisions)
+  "Compose an Email sending patches for REVISIONS to ADDRESSEE.
+If `vc-prepare-patches-separately' is non-nil, SUBJECT will be used
+as the default subject for the message.  Otherwise a separate
+message will be composed for each revision.
+
+When invoked interactively in a Log View buffer with marked
+revisions, these revisions will be used."
+  (interactive
+   (let ((revs (or (log-view-get-marked)
+                   (vc-read-multiple-revisions "Revisions: ")))
+         to)
+     (require 'message)
+     (while (null (setq to (completing-read-multiple
+                            (format-prompt
+                             "Addressee"
+                             vc-default-patch-addressee)
+                            (message--name-table "")
+                            nil nil nil nil
+                            vc-default-patch-addressee)))
+       (message "At least one addressee required.")
+       (sit-for blink-matching-delay))
+     (list (string-join to ", ")
+           (and (not vc-prepare-patches-separately)
+                (read-string "Subject: " "[PATCH] " nil nil t))
+           revs)))
+  (save-current-buffer
+    (vc-ensure-vc-buffer)
+    (let ((patches (mapcar (lambda (rev)
+                             (vc-call-backend
+                              (vc-responsible-backend default-directory)
+                              'prepare-patch rev))
+                           revisions)))
+      (if vc-prepare-patches-separately
+          (dolist (patch patches)
+            (compose-mail addressee
+                          (plist-get patch :subject)
+                          nil nil nil nil
+                          `((kill-buffer ,(plist-get patch :buffer))
+                            (exit-recursive-edit)))
+            (rfc822-goto-eoh) (forward-line)
+            (save-excursion             ;don't jump to the end
+              (insert-buffer-substring
+               (plist-get patch :buffer)
+               (plist-get patch :body-start)
+               (plist-get patch :body-end)))
+            (recursive-edit))
+        (compose-mail addressee subject nil nil nil nil
+                      (mapcar
+                       (lambda (p)
+                         (list #'kill-buffer (plist-get p :buffer)))
+                       patches))
+        (rfc822-goto-eoh)
+        (forward-line)
+        (save-excursion
+          (dolist (patch patches)
+            (mml-attach-buffer (buffer-name (plist-get patch :buffer))
+                               "text/x-patch"
+                               (plist-get patch :subject)
+                               "attachment")))
+        (open-line 2)))))
 
 (defun vc-default-responsible-p (_backend _file)
   "Indicate whether BACKEND is responsible for FILE.
