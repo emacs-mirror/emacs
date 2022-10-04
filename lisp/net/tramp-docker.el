@@ -1,4 +1,4 @@
-;;; tramp-docker.el --- Tramp integration for Docker containers  -*- lexical-binding: t; -*-
+;;; tramp-docker.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
 
 ;; Copyright © 2022 Free Software Foundation, Inc.
 
@@ -24,13 +24,17 @@
 ;;; Commentary:
 
 ;; ‘tramp-docker’ allows Tramp access to environments provided by
-;; Docker.
+;; Docker and similar programs.
 ;;
 ;; ## Usage
 ;;
-;; Open a file on a running systemd-docker container:
+;; Open a file on a running Docker container:
 ;;
 ;;     C-x C-f /docker:USER@CONTAINER:/path/to/file
+;;
+;; or Podman:
+;;
+;;     C-x C-f /podman:USER@CONTAINER:/path/to/file
 ;;
 ;; Where:
 ;;     USER          is the user on the container to connect as (optional)
@@ -46,7 +50,14 @@
   :group 'tramp
   :version "29.1"
   :type '(choice (const "docker")
-                 (const "podman")
+                 (string)))
+
+;;;###tramp-autoload
+(defcustom tramp-podman-program "podman"
+  "Name of the Podman client program."
+  :group 'tramp
+  :version "29.1"
+  :type '(choice (const "podman")
                  (string)))
 
 ;;;###tramp-autoload
@@ -54,8 +65,12 @@
   "Tramp method name to use to connect to Docker containers.")
 
 ;;;###tramp-autoload
+(defconst tramp-podman-method "podman"
+  "Tramp method name to use to connect to Podman containers.")
+
+;;;###tramp-autoload
 (defun tramp-docker--completion-function (&rest _args)
-  "List Docker containers available for connection.
+  "List Docker-like containers available for connection.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
@@ -90,8 +105,24 @@ see its function help for a description of the format."
          (tramp-remote-shell-args ("-i" "-c")))
        tramp-methods)
 
+ (push `(,tramp-podman-method
+         (tramp-login-program ,tramp-podman-program)
+         (tramp-login-args (("exec")
+                            ("-it")
+                            ("-u" "%u")
+                            ("%h")
+			    ("%l")))
+         (tramp-remote-shell ,tramp-default-remote-shell)
+         (tramp-remote-shell-login ("-l"))
+         (tramp-remote-shell-args ("-i" "-c")))
+       tramp-methods)
+
  (tramp-set-completion-function
   tramp-docker-method
+  '((tramp-docker--completion-function "")))
+
+ (tramp-set-completion-function
+  tramp-podman-method
   '((tramp-docker--completion-function ""))))
 
 (add-hook 'tramp-unload-hook
