@@ -137,7 +137,7 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	       (coding-priority koi8-u)
 	       (nonascii-translation . koi8-u)
 	       (input-method . "ukrainian-computer")
-	       (sample-text . "Ukrainian (Українська)	Слава Україні!")
+	       (sample-text . "Ukrainian (Українська)  Доброго дня!")
 	       (documentation
 		. "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
