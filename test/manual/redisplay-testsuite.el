@@ -305,7 +305,7 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
   (let ((label (if display-raw-bytes-as-hex "\\x80" "\\200")))
     (overlay-put test-redisplay-5a-expected-overlay 'display
                  (propertize label 'face 'escape-glyph)))
-  (let ((label (if display-raw-bytes-as-hex "\\xfc" "\\374")))
+  (let ((label (if display-raw-bytes-as-hex "\\x3fffc" "\\777774")))
     (overlay-put test-redisplay-5b-expected-overlay 'display
                  (propertize label 'face 'escape-glyph))))
 
@@ -320,36 +320,18 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
         (test-insert-overlay " " 'display "\200"))
   (insert "\n\n")
   (insert "  Expected: ")
-  (setq test-redisplay-5b-expected-overlay
-        (test-insert-overlay " " 'display
-                             (propertize "\\374" 'face 'escape-glyph)))
-  (insert "\n    Result: ")
-  (setq test-redisplay-5b-result-overlay
-        (test-insert-overlay " " 'display (char-to-string #x3ffffc)))
-  (insert "\n\n")
-  (insert-button "Toggle between octal and hex display for raw bytes"
-                 'action 'test-redisplay-5-toggle)
-  (insert "\n\n"))
-
-(defun test-redisplay-6 ()
-  (insert "Test 6: Display of unprintable Unicode chars:\n\n")
-  (insert "  Expected: ")
-  (test-insert-overlay " " 'display
-                       (propertize "\\200" 'face 'escape-glyph))
-  (insert "  (representing U+0100)")
-  (insert "\n    Result: ")
-  (test-insert-overlay " " 'display "\u0080")
-  (insert "\n\n")
   ;; This tests a large codepoint, to make sure the internal buffer we
   ;; use to produce the representation is large enough.
-  (insert "  Expected: ")
-  (aset printable-chars #x10abcd nil)
-  (test-insert-overlay " " 'display
-                       (propertize "\\4125715" 'face 'escape-glyph))
-  (insert "  (representing U+0010ABCD)")
+  (aset printable-chars #x3fffc nil)
+  (setq test-redisplay-5b-expected-overlay
+        (test-insert-overlay " " 'display
+                             (propertize "\\777774" 'face 'escape-glyph)))
   (insert "\n    Result: ")
-  (test-insert-overlay " " 'display "\U0010ABCD")
-  (insert "\n\n"))
+  (setq test-redisplay-5b-result-overlay
+        (test-insert-overlay " " 'display (char-to-string #x3fffc)))
+  (insert "\n\n")
+  (insert-button "Toggle between octal and hex display"
+                 'action 'test-redisplay-5-toggle))
 
 (defun test-redisplay ()
   (interactive)
@@ -367,7 +349,6 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (test-redisplay-3)
     (test-redisplay-4)
     (test-redisplay-5)
-    (test-redisplay-6)
     (goto-char (point-min))))
 
 ;;; redisplay-testsuite.el ends here
