@@ -6850,27 +6850,36 @@ keymap installed in the text properties (or overlays) that span the
 displayed image.  This keymap defines the following commands:
 
 @table @kbd
-@item +
+@item i +
 Increase the image size (@code{image-increase-size}).  A prefix value
 of @samp{4} means to increase the size by 40%.  The default is 20%.
 
-@item -
+@item i -
 Decrease the image size (@code{image-increase-size}).  A prefix value
 of @samp{4} means to decrease the size by 40%.  The default is 20%.
 
-@item r
+@item i r
 Rotate the image by 90 degrees clockwise (@code{image-rotate}).
 A prefix means to rotate by 90 degrees counter-clockwise instead.
 
-@item o
+@item i h
+Flip the image horizontally (@code{image-flip-horizontally}).
+
+@item i v
+Flip the image vertically (@code{image-flip-vertically}).
+
+@item i o
 Save the image to a file (@code{image-save}).
 
-@item c
+@item i c
 Crop the image interactively (@code{image-crop}).
 
-@item x
+@item i x
 Cut a rectangle from the image interactively (@code{image-cut}).
 @end table
+
+The size and rotation commands are ``repeating'', which means that you
+can continue adjusting the image without using the @kbd{i} prefix.
 
 @node Multi-Frame Images
 @subsection Multi-Frame Images

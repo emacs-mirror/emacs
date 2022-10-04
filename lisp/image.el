@@ -174,14 +174,15 @@ or \"ffmpeg\") is installed."
 
 (defvar-keymap image-map
   :doc "Map put into text properties on images."
-  "-" #'image-decrease-size
-  "+" #'image-increase-size
-  "r" #'image-rotate
-  "o" #'image-save
-  "c" #'image-crop
-  "x" #'image-cut
-  "h" #'image-flip-horizontally
-  "v" #'image-flip-vertically
+  "i" (define-keymap
+        "-" #'image-decrease-size
+        "+" #'image-increase-size
+        "r" #'image-rotate
+        "o" #'image-save
+        "c" #'image-crop
+        "x" #'image-cut
+        "h" #'image-flip-horizontally
+        "v" #'image-flip-vertically)
   "C-<wheel-down>" #'image-mouse-decrease-size
   "C-<mouse-5>"    #'image-mouse-decrease-size
   "C-<wheel-up>"   #'image-mouse-increase-size
@@ -1151,41 +1152,43 @@ has no effect."
 
 (imagemagick-register-types)
 
+(defvar-keymap image--repeat-map
+  "+" #'image-increase-size
+  "-" #'image-decrease-size
+  "r" #'image-rotate)
+
 (defun image-increase-size (&optional n position)
   "Increase the image size by a factor of N.
 If N is 3, then the image size will be increased by 30%.  The
 default is 20%."
   (interactive "P")
+  (image--delayed-change-size (if n
+                                  (1+ (/ (prefix-numeric-value n) 10.0))
+                                1.2)
+                              position)
+  (set-transient-map image--repeat-map nil nil
+                     "Use %k for further adjustments"))
+
+(defun image--delayed-change-size (size position)
   ;; Wait for a bit of idle-time before actually performing the change,
   ;; so as to batch together sequences of closely consecutive size changes.
   ;; `image--change-size' just changes one value in a plist.  The actual
   ;; image resizing happens later during redisplay.  So if those
   ;; consecutive calls happen without any redisplay between them,
   ;; the costly operation of image resizing should happen only once.
-  (run-with-idle-timer 0.3 nil
-                       #'image--change-size
-                       (if n
-                           (1+ (/ (prefix-numeric-value n) 10.0))
-                         1.2)
-                       position))
+  (run-with-idle-timer 0.3 nil #'image--change-size size position))
 
 (defun image-decrease-size (&optional n position)
   "Decrease the image size by a factor of N.
 If N is 3, then the image size will be decreased by 30%.  The
 default is 20%."
   (interactive "P")
-  ;; Wait for a bit of idle-time before actually performing the change,
-  ;; so as to batch together sequences of closely consecutive size changes.
-  ;; `image--change-size' just changes one value in a plist.  The actual
-  ;; image resizing happens later during redisplay.  So if those
-  ;; consecutive calls happen without any redisplay between them,
-  ;; the costly operation of image resizing should happen only once.
-  (run-with-idle-timer 0.3 nil
-                       #'image--change-size
-                       (if n
-                           (- 1 (/ (prefix-numeric-value n) 10.0))
-                         0.8)
-                       position))
+  (image--delayed-change-size (if n
+                                  (- 1 (/ (prefix-numeric-value n) 10.0))
+                                0.8)
+                              position)
+  (set-transient-map image--repeat-map nil nil
+                     "Use %k for further adjustments"))
 
 (defun image-mouse-increase-size (&optional event)
   "Increase the image size using the mouse."
@@ -1270,7 +1273,9 @@ rotations by only multiples of 90 degrees."
                          (or angle 90))
                       ;; We don't want to exceed 360 degrees rotation,
                       ;; because it's not seen as valid in Exif data.
-                      360)))))
+                      360))))
+  (set-transient-map image--repeat-map nil nil
+                     "Use %k for further adjustments"))
 
 (defun image-save ()
   "Save the image under point.

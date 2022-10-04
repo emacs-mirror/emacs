@@ -194,6 +194,16 @@ of 'user-emacs-directory'.
 * Incompatible changes in Emacs 29.1
 
 +++
+*** The image commands have changed key bindings.
+In previous Emacs versions, images have had the '+', '-' and 'r' keys
+bound when point is over an image.  In Emacs 29.1, additional commands
+were added, and this made it more likely that users would trigger the
+image commands by mistake.  To avoid this, all image commands have
+moved to the 'i' keymap, so '+' is now 'i +', '-' is now 'i -', and
+'r' is now 'i r'.  In addition, these commands are now repeating, so
+you can rotate an image twice by saying 'i r r', for instance.
+
++++
 *** Emacs now picks the correct coding system for X input methods.
 Previously, Emacs would use the locale coding system for input
 methods, which could in some circumstances be incorrect, especially
@@ -2134,7 +2144,8 @@ this message for SVG and XPM.
 
 +++
 *** New commands: 'image-flip-horizontally' and 'image-flip-vertically'.
-These commands horizontally and vertically flip the image under point.
+These commands horizontally and vertically flip the image under point,
+and are bound to 'i h' and 'i v', respectively.
 
 +++
 *** New command 'image-transform-set-percent'.
@@ -2685,8 +2696,8 @@ name.
 +++
 ** New commands 'image-crop' and 'image-cut.
 These commands allow interactively cropping/cutting the image at
-point.  The commands are bound to keys 'c' and 'x' (respectively) in
-the local keymap over images.  They rely on external programs, by
+point.  The commands are bound to keys 'i c' and 'i x' (respectively)
+in the local keymap over images.  They rely on external programs, by
 default "convert" from ImageMagick, to do the actual cropping/eliding
 of the image file.
 
