@@ -3208,7 +3208,8 @@ Like `text-mode', but with these additional commands:
   ;;
   (setq-local syntax-propertize-function #'message--syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local message-encoded-mail-cache nil))
+  (setq-local message-encoded-mail-cache nil)
+  (setq-local image-crop-buffer-text-function #'message--update-image-crop))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
@@ -8927,18 +8928,25 @@ used to take the screenshot."
 		 :max-width (truncate (* (frame-pixel-width) 0.8))
 		 :max-height (truncate (* (frame-pixel-height) 0.8))
 		 :scale 1)
-   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-           type
-	   ;; Get a base64 version of the image -- this avoids later
-	   ;; complications if we're auto-saving the buffer and
-	   ;; restoring from a file.
-	   (with-temp-buffer
-	     (set-buffer-multibyte nil)
-	     (insert image)
-	     (base64-encode-region (point-min) (point-max) t)
-	     (buffer-string)))
+   (message--image-part-string type image)
    nil nil t)
   (insert "\n\n"))
+
+(defun message--image-part-string (type image)
+  (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+          type
+	  ;; Get a base64 version of the image -- this avoids later
+	  ;; complications if we're auto-saving the buffer and
+	  ;; restoring from a file.
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert image)
+	    (base64-encode-region (point-min) (point-max) t)
+	    (buffer-string))))
+
+(declare-function image-crop--content-type "image-crop")
+(defun message--update-image-crop (_text image)
+  (message--image-part-string (image-crop--content-type image) image))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 
