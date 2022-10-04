@@ -2169,7 +2169,7 @@ This is done via 'image-converter-add-handler'.
 ** Image-Dired
 
 +++
-*** 'image-dired-display-image-mode' is now based on 'image-mode'.
+*** 'image-dired-image-mode' is now based on 'image-mode'.
 This avoids converting images in the background, and makes Image-Dired
 noticeably faster.  New keybindings from 'image-mode' are now
 available in the "*image-dired-display-image*" buffer; press '?' or
@@ -2178,8 +2178,8 @@ available in the "*image-dired-display-image*" buffer; press '?' or
 ---
 *** Navigation and marking commands now work in image display buffer.
 The following new bindings have been added:
-- 'n', 'SPC' => 'image-dired-display-next-thumbnail-original'
-- 'p', 'DEL' => 'image-dired-display-previous-thumbnail-original'
+- 'n', 'SPC' => 'image-dired-display-next'
+- 'p', 'DEL' => 'image-dired-display-previous'
 - 'm'        => 'image-dired-mark-thumb-original-file'
 - 'd'        => 'image-dired-flag-thumb-original-file'
 - 'u'        => 'image-dired-unmark-thumb-original-file'
@@ -2300,6 +2300,20 @@ nil to disable this confirmation completely.
 
 +++
 *** 'image-dired-db-file' renamed to 'image-dired-tags-db-file'.
+
+---
+*** 'image-dired-display-image-mode' renamed to 'image-dired-image-mode'.
+The corresponding keymap is now named 'image-dired-image-mode-map'.
+
++++
+*** Some commands have been renamed to be shorter to be shorter.
+- 'image-dired-display-thumbnail-original-image' has been renamed to
+  'image-dired-display-this'.
+- 'image-dired-display-next-thumbnail-original' has been renamed to
+  'image-dired-display-next'.
+- 'image-dired-display-previous-thumbnail-original' has been renamed
+  to 'image-dired-display-previous'.
+The old names are now obsolete aliases.
 
 ---
 *** 'image-dired-thumb-{height,width}' are now obsolete.

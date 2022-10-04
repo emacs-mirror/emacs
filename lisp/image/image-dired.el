@@ -635,7 +635,7 @@ never ask for confirmation."
   "Track the original file in the associated Dired buffer.
 See `image-dired-toggle-movement-tracking'.  Interactive use is
 only useful if `image-dired-track-movement' is nil."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (let ((file-name (image-dired-original-file-name)))
     (image-dired--with-dired-buffer
       (if (not (dired-goto-file file-name))
@@ -649,7 +649,7 @@ Tracking of the movements between thumbnail and Dired buffer so that
 they are \"mirrored\" in the dired buffer.  When this is on, moving
 around in the thumbnail or dired buffer will find the matching
 position in the other buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (setq image-dired-track-movement (not image-dired-track-movement))
   (message "Movement tracking %s" (if image-dired-track-movement "on" "off")))
 
@@ -852,31 +852,31 @@ buffer with `image-dired--thumb-update-mark-at-point'."
         '(image-dired--thumb-update-mark-at-point))
      ,(when maybe-next
         '(if image-dired-marking-shows-next
-             (image-dired-display-next-thumbnail-original)
+             (image-dired-display-next)
            (image-dired-forward-image)))))
 
 (defun image-dired-mark-thumb-original-file ()
   "Mark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--do-mark-command t t
     (dired-mark 1)))
 
 (defun image-dired-unmark-thumb-original-file ()
   "Unmark original image file in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--do-mark-command t t
     (dired-unmark 1)))
 
 (defun image-dired-flag-thumb-original-file ()
   "Flag original image file for deletion in associated Dired buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--do-mark-command t t
     (dired-flag-file-deletion 1)))
 
 (defun image-dired-unmark-all-marks ()
   "Remove all marks from all files in associated Dired buffer.
 Also update the marks in the thumbnail buffer."
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--do-mark-command nil t
     (dired-unmark-all-marks))
   (image-dired--with-thumbnail-buffer
@@ -916,7 +916,7 @@ You probably want to use this together with
   "t t"        #'image-dired-tag-thumbnail
   "t r"        #'image-dired-tag-thumbnail-remove
 
-  "RET"        #'image-dired-display-thumbnail-original-image
+  "RET"        #'image-dired-display-this
   "C-<return>" #'image-dired-thumbnail-display-external
 
   "L"          #'image-dired-rotate-original-left
@@ -925,8 +925,8 @@ You probably want to use this together with
   "D"          #'image-dired-thumbnail-set-image-description
   "S"          #'image-dired-slideshow-start
   "C-d"        #'image-dired-delete-char
-  "SPC"        #'image-dired-display-next-thumbnail-original
-  "DEL"        #'image-dired-display-previous-thumbnail-original
+  "SPC"        #'image-dired-display-next
+  "DEL"        #'image-dired-display-previous
   "c"          #'image-dired-comment-thumbnail
   "w"          #'image-dired-copy-filename-as-kill
   "W"          #'image-dired-wallpaper-set
@@ -955,7 +955,7 @@ You probably want to use this together with
 
   :menu
   '("Image-Dired"
-    ["Display image" image-dired-display-thumbnail-original-image]
+    ["Display image" image-dired-display-this]
     ["Display in external viewer" image-dired-thumbnail-display-external]
     ["Jump to Dired buffer" image-dired-jump-original-dired-buffer]
     "---"
@@ -984,20 +984,6 @@ You probably want to use this together with
      ["Refresh thumb" image-dired-refresh-thumb])
     ["Quit" quit-window]))
 
-(defvar-keymap image-dired-display-image-mode-map
-  :doc "Keymap for `image-dired-display-image-mode'."
-  "S"   #'image-dired-slideshow-start
-  "SPC" #'image-dired-display-next-thumbnail-original
-  "DEL" #'image-dired-display-previous-thumbnail-original
-  "n"   #'image-dired-display-next-thumbnail-original
-  "p"   #'image-dired-display-previous-thumbnail-original
-  "m"   #'image-dired-mark-thumb-original-file
-  "d"   #'image-dired-flag-thumb-original-file
-  "u"   #'image-dired-unmark-thumb-original-file
-  "U"   #'image-dired-unmark-all-marks
-  ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
-  "o" nil)   ; image-save
-
 (define-derived-mode image-dired-thumbnail-mode
   special-mode "image-dired-thumbnail"
   "Browse and manipulate thumbnail images using Dired.
@@ -1011,7 +997,26 @@ Use `image-dired-minor-mode' to get a nice setup."
   ;; Use approximately as much vertical spacing as horizontal.
   (setq-local line-spacing (frame-char-width)))
 
-(define-derived-mode image-dired-display-image-mode
+
+;;; image-dired-image-mode
+
+(define-obsolete-variable-alias 'image-dired-display-image-mode-map
+  'image-dired-image-mode-map "29.1")
+(defvar-keymap image-dired-image-mode-map
+  :doc "Keymap for `image-dired-image-mode'."
+  "S"   #'image-dired-slideshow-start
+  "SPC" #'image-dired-display-next
+  "DEL" #'image-dired-display-previous
+  "n"   #'image-dired-display-next
+  "p"   #'image-dired-display-previous
+  "m"   #'image-dired-mark-thumb-original-file
+  "d"   #'image-dired-flag-thumb-original-file
+  "u"   #'image-dired-unmark-thumb-original-file
+  "U"   #'image-dired-unmark-all-marks
+  ;; Disable keybindings from `image-mode-map' that doesn't make sense here.
+  "o" nil)   ; image-save
+
+(define-derived-mode image-dired-image-mode
   image-mode "image-dired-image-display"
   "Mode for displaying and manipulating original image.
 Resized or in full-size."
@@ -1041,7 +1046,7 @@ This is used by `image-dired-slideshow-start'."
   "Step to the next image in a slideshow."
   (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
       (with-current-buffer buf
-        (image-dired-display-next-thumbnail-original))
+        (image-dired-display-next))
     (image-dired--slideshow-stop)))
 
 (defun image-dired--slideshow-start-timer ()
@@ -1063,7 +1068,7 @@ With prefix argument ARG, wait that many seconds before going to
 the next image.
 
 With a negative prefix argument, prompt user for the delay."
-  (interactive "P" image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive "P" image-dired-thumbnail-mode image-dired-image-mode)
   (let ((delay
          (cond ((not arg)
                 image-dired-slideshow-delay)
@@ -1076,7 +1081,7 @@ With a negative prefix argument, prompt user for the delay."
                     (format-prompt "Delay, in seconds.  Decimals are accepted"
                                    delay))
                    delay))))))
-    (image-dired-display-thumbnail-original-image)
+    (image-dired-display-this)
     (setq image-dired--slideshow-current-delay delay)
     (add-hook 'post-command-hook 'image-dired--slideshow-stop)))
 
@@ -1085,9 +1090,9 @@ With a negative prefix argument, prompt user for the delay."
   (message (substitute-command-keys
             (format
              (concat
-              "\\[image-dired-display-next-thumbnail-original] next, "
-              "\\[image-dired-display-previous-thumbnail-original] previous, "
-              "\\[image-dired-display-thumbnail-original-image] pause/unpause, "
+              "\\[image-dired-display-next] next, "
+              "\\[image-dired-display-previous] previous, "
+              "\\[image-dired-display-this] pause/unpause, "
               "any other command to stop%s")
              (or suffix "")))))
 
@@ -1096,11 +1101,11 @@ With a negative prefix argument, prompt user for the delay."
   (cond
    ((memq this-command
           '( image-dired-slideshow-start
-             image-dired-display-next-thumbnail-original
-             image-dired-display-previous-thumbnail-original))
+             image-dired-display-next
+             image-dired-display-previous))
     (image-dired--slideshow-start-timer)
     (image-dired--slideshow-show-message))
-   ((eq this-command 'image-dired-display-thumbnail-original-image)
+   ((eq this-command 'image-dired-display-this)
     (let ((pause image-dired--slideshow-timer))
       (if pause
           (image-dired--slideshow-stop-timer)
@@ -1200,7 +1205,7 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun image-dired-display-image (file &optional _ignored)
   "Display image FILE in the image buffer window.
-If it is an image, the window will use `image-dired-display-image-mode'
+If it is an image, the window will use `image-dired-image-mode'
 which is based on `image-mode'."
   (declare (advertised-calling-convention (file) "29.1"))
   (setq file (expand-file-name file))
@@ -1214,12 +1219,12 @@ which is based on `image-mode'."
       (pop-to-buffer buf)
       (rename-buffer image-dired-display-image-buffer)
       (if (string-match (image-file-name-regexp) file)
-          (image-dired-display-image-mode)
+          (image-dired-image-mode)
         ;; Support visiting PDF files.
         (normal-mode))
       (select-window cur-win))))
 
-(defun image-dired-display-thumbnail-original-image (&optional arg)
+(defun image-dired-display-this (&optional arg)
   "Display current thumbnail's original image in display buffer.
 See documentation for `image-dired-display-image' for more information.
 With prefix argument ARG, display image in its original size."
@@ -1234,19 +1239,19 @@ With prefix argument ARG, display image in its original size."
           (t
            (image-dired-display-image file arg)))))
 
-(defun image-dired-display-next-thumbnail-original (&optional arg)
+(defun image-dired-display-next (&optional arg)
   "Move to the next image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive "p" image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--with-thumbnail-buffer
     (image-dired-forward-image arg t)
-    (image-dired-display-thumbnail-original-image)))
+    (image-dired-display-this)))
 
-(defun image-dired-display-previous-thumbnail-original (arg)
+(defun image-dired-display-previous (arg)
   "Move to the previous image in the thumbnail buffer and display it.
 With prefix ARG, move that many thumbnails."
-  (interactive "p" image-dired-thumbnail-mode image-dired-display-image-mode)
-  (image-dired-display-next-thumbnail-original (- arg)))
+  (interactive "p" image-dired-thumbnail-mode image-dired-image-mode)
+  (image-dired-display-next (- arg)))
 
 
 ;;; Misc commands
@@ -1525,7 +1530,7 @@ completely fit)."
 (defun image-dired-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated Dired buffer."
   (declare (obsolete nil "29.1"))
-  (interactive nil image-dired-thumbnail-mode image-dired-display-image-mode)
+  (interactive nil image-dired-thumbnail-mode image-dired-image-mode)
   (image-dired--do-mark-command nil t
     (if (image-dired-dired-file-marked-p)
         (dired-unmark 1)
@@ -1963,6 +1968,14 @@ when using per-directory thumbnail file storage"))
   #'image-dired--update-header-line "29.1")
 (define-obsolete-function-alias 'image-dired-delete-marked
   #'image-dired-do-flagged-delete "29.1")
+(define-obsolete-function-alias 'image-dired-display-image-mode
+  #'image-dired-image-mode "29.1")
+(define-obsolete-function-alias 'image-dired-display-thumbnail-original-image
+  #'image-dired-display-this "29.1")
+(define-obsolete-function-alias 'image-dired-display-next-thumbnail-original
+  #'image-dired-display-next "29.1")
+(define-obsolete-function-alias 'image-dired-display-previous-thumbnail-original
+  #'image-dired-display-previous "29.1")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
