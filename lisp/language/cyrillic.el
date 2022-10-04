@@ -137,9 +137,9 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	       (coding-priority koi8-u)
 	       (nonascii-translation . koi8-u)
 	       (input-method . "ukrainian-computer")
-	       (sample-text . "Ukrainian (Українська)  Доброго дня!")
+	       (sample-text . "Ukrainian (Українська)	Вітаю / Добрий день! / Привіт")
 	       (documentation
-		. "Support for Ukrainian with KOI8-U character set."))
+		. "Support for Ukrainian with koi8-u character set."))
  '("Cyrillic"))
 
 ;;; ALTERNATIVNYJ stuff
@@ -254,14 +254,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
- '("Cyrillic"))
-
-(set-language-info-alist
- "Ukrainian" '((coding-system koi8-u)
-	       (coding-priority koi8-u)
-	       (input-method . "ukrainian-computer")
-	       (documentation
-		. "Support for Ukrainian with koi8-u character set."))
  '("Cyrillic"))
 
 (provide 'cyrillic)
