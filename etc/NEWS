@@ -639,8 +639,9 @@ If non-nil, this option allows scrolling a window while dragging text
 around without a scroll wheel.
 
 +++
-*** 'mouse-drag-copy-region' can now be 'non-empty' (the Lisp symbol).
-This inhibits putting empty strings onto the kill ring.
+*** The value of 'mouse-drag-copy-region' can now be the symbol 'non-empty'.
+This prevents mouse drag gestures from putting empty strings onto the
+kill ring.
 
 +++
 ** New user options 'dnd-indicate-insertion-point' and 'dnd-scroll-margin'.
