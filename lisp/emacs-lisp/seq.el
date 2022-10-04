@@ -695,5 +695,9 @@ which may be shorter."
             result))
     (nreverse result)))
 
+(defun seq-keep (function sequence)
+  "Apply FUNCTION to SEQUENCE and return all non-nil results."
+  (delq nil (seq-map function sequence)))
+
 (provide 'seq)
 ;;; seq.el ends here

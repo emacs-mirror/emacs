@@ -3151,6 +3151,11 @@ This returns a list of the (zero-based) indices of elements matching a
 given predicate in the specified sequence.
 
 +++
+** New function 'seq-keep'.
+This is like 'seq-map', but removes all non-nil results from the
+returned list.
+
++++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
 MESSAGE specifies a message to display after activating the transient
 map, including a special formatting spec to list available keys.

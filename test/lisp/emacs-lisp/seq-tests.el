@@ -592,5 +592,11 @@ Evaluate BODY for each created sequence.
     (should (= (length list) 10000))
     (should (= (length (seq-uniq (append list list))) 10000))))
 
+(ert-deftest test-seq-keep ()
+  (should (equal (seq-keep #'cl-digit-char-p '(?6 ?a ?7))
+                 '(6 7)))
+  (should (equal (seq-keep #'cl-digit-char-p [?6 ?a ?7])
+                 '(6 7))))
+
 (provide 'seq-tests)
 ;;; seq-tests.el ends here

@@ -698,6 +698,19 @@ the same type as @var{sequence}.
 @end example
 @end defun
 
+@defun seq-keep function sequence
+  This function returns a list of all non-@code{nil} results from
+calling @var{function} on the elements in @var{sequence}.
+
+@example
+@group
+(seq-keep #'cl-digit-char-p '(?6 ?a ?7))
+@result{} (6 7)
+@end group
+@end example
+
+@end defun
+
 @defun seq-reduce function sequence initial-value
 @cindex reducing sequences
   This function returns the result of calling @var{function} with
