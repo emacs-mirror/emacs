@@ -907,10 +907,15 @@ session.
 @cindex method @option{docker}
 @cindex @option{docker} method
 
-Integration for Docker containers.  A container is accessed via
-@file{@trampfn{docker,user@@container,/path/to/file}}, where
-@samp{user} is the (optional) user that you want to use, and
-@samp{container} is the id or name of the container.
+Integration for Docker containers.  The host name may be either a
+running container's name or ID, as returned by @samp{docker ps}.
+
+@item @option{podman}
+@cindex method @option{podman}
+@cindex @option{podman} method
+
+Podman is an alternative to @option{docker} which may be run rootless,
+if desired.
 
 @end table
 
