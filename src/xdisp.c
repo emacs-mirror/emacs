@@ -6312,7 +6312,10 @@ handle_composition_prop (struct it *it)
       pos_byte = IT_STRING_BYTEPOS (*it);
       string = it->string;
       s = SDATA (string) + pos_byte;
-      it->c = STRING_CHAR (s);
+      if (STRING_MULTIBYTE (string))
+	it->c = STRING_CHAR (s);
+      else
+	it->c = *s;
     }
   else
     {
