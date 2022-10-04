@@ -3547,11 +3547,12 @@ like) while `y-or-n-p' is running)."
 			    (if (or (zerop l) (eq ?\s (aref prompt (1- l))))
 				"" " ")
 			    (if dialog ""
-                              (if help-form
-                                  (format "(y, n or %s) "
-		                          (key-description
-                                           (vector help-char)))
-                                "(y or n) "))))))
+                              (substitute-command-keys
+                               (if help-form
+                                   (format "(\\`y', \\`n' or \\`%s') "
+                                           (key-description
+                                            (vector help-char)))
+                                 "(\\`y' or \\`n') ")))))))
         ;; Preserve the actual command that eventually called
         ;; `y-or-n-p' (otherwise `repeat' will be repeating
         ;; `exit-minibuffer').
