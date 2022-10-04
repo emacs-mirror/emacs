@@ -125,7 +125,7 @@ The result of the body appears to the compiler as a quoted constant.
 
 This variant works around bugs in `eval-when-compile' in various
 \(X)Emacs versions.  See cc-defs.el for details."
-    (declare (indent 0) (debug t))
+    (declare (indent 0) (debug (&rest def-form)))
     (if c-inside-eval-when-compile
 	;; XEmacs 21.4.6 has a bug in `eval-when-compile' in that it
 	;; evaluates its body at macro expansion time if it's nested
