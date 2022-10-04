@@ -946,6 +946,8 @@ You probably want to use this together with
   "<remap> <backward-char>"          #'image-dired-backward-image
   "<remap> <next-line>"              #'image-dired-next-line
   "<remap> <previous-line>"          #'image-dired-previous-line
+  "<remap> <left-char>"              #'image-dired-backward-image
+  "<remap> <right-char>"             #'image-dired-forward-image
   "<remap> <beginning-of-buffer>"    #'image-dired-beginning-of-buffer
   "<remap> <end-of-buffer>"          #'image-dired-end-of-buffer
   "<remap> <move-beginning-of-line>" #'image-dired-move-beginning-of-line
