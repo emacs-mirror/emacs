@@ -157,7 +157,8 @@ DOC is a string where \"FUNCTION\" and \"OLDFUN\" are expected.")
          (when before
            (insert before)
            (ensure-empty-lines 1))
-         (insert origdoc)
+         (when origdoc
+           (insert origdoc))
          (when after
            (ensure-empty-lines 1)
            (insert after))
