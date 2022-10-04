@@ -3317,6 +3317,40 @@ If NOERROR, return predicate, else erroring function."
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
 
 
+;;; List connections mode
+
+(define-derived-mode eglot-list-connections-mode  tabulated-list-mode
+  "" "Eglot Connection List Mode
+
+\\{sly-connection-list-mode-map}"
+  (setq-local tabulated-list-format
+              `[("Language server" 16) ("Project name" 16) ("Modes handled" 16)])
+  (tabulated-list-init-header))
+
+(defun eglot-list-connections ()
+  "List currently active Eglot connections."
+  (interactive)
+  (with-current-buffer
+      (get-buffer-create "*EGLOT connections*")
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (eglot-list-connections-mode)
+      (setq-local tabulated-list-entries
+                  (mapcar
+                   (lambda (server)
+                     (list server
+                           `[,(or (plist-get (eglot--server-info server) :name)
+                                  (jsonrpc-name server))
+                             ,(eglot-project-nickname server)
+                             ,(mapconcat #'symbol-name
+                                         (eglot--major-modes server)
+                                         ", ")]))
+                   (cl-reduce #'append
+                              (hash-table-values eglot--servers-by-project))))
+      (revert-buffer)
+      (pop-to-buffer (current-buffer)))))
+
+
 ;;; Hacks
 ;;;
 ;; FIXME: Although desktop.el compatibility is Emacs bug#56407, the
