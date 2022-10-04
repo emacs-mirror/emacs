@@ -3146,31 +3146,12 @@ These can be used for buttons in buffers and the like.  See the
 "(elisp) Icons" and "(emacs) Icons" nodes in the manuals for details.
 
 +++
-** New function 'seq-positions'.
-This returns a list of the (zero-based) indices of elements matching a
-given predicate in the specified sequence.
-
-+++
-** New function 'seq-keep'.
-This is like 'seq-map', but removes all non-nil results from the
-returned list.
-
-+++
 ** New arguments MESSAGE and TIMEOUT of 'set-transient-map'.
 MESSAGE specifies a message to display after activating the transient
 map, including a special formatting spec to list available keys.
 TIMEOUT is the idle time after which to deactivate the transient map.
 The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
-
-+++
-** New function 'seq-split'.
-This returns a list of sub-sequences of the specified sequence.
-
-+++
-** New function 'seq-remove-at-position'.
-This function returns a copy of the specified sequence where the
-element at a given (zero-based) index got removed.
 
 +++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
@@ -3232,6 +3213,27 @@ request the name of the ".eln" file which defined a given symbol.
 When called with a new optional argument UNICODE non-nil, 'max-char'
 will now report the maximum valid codepoint defined by the Unicode
 Standard.
+
+** seq
+
++++
+** New function 'seq-split'.
+This returns a list of sub-sequences of the specified sequence.
+
++++
+** New function 'seq-remove-at-position'.
+This function returns a copy of the specified sequence where the
+element at a given (zero-based) index got removed.
+
++++
+** New function 'seq-positions'.
+This returns a list of the (zero-based) indices of elements matching a
+given predicate in the specified sequence.
+
++++
+** New function 'seq-keep'.
+This is like 'seq-map', but removes all non-nil results from the
+returned list.
 
 ** Themes
 
