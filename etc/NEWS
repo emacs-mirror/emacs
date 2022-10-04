@@ -2450,8 +2450,9 @@ and friends.
 ** Tramp
 
 +++
-*** New connection methods "docker" and "podman".
-It allows accessing environments provided by Docker and similar programs.
+*** New connection methods "docker", "podman" and "kubernetes".
+They allow accessing environments provided by Docker and similar
+programs.
 
 ---
 *** Tramp supports abbreviating remote home directories now.

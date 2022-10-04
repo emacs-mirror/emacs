@@ -39,6 +39,21 @@
 ;; Where:
 ;;     USER          is the user on the container to connect as (optional)
 ;;     CONTAINER     is the container to connect to
+;;
+;;
+;; Open file in a Kubernetes container:
+;;
+;;     C-x C-f /kubernetes:POD:/path/to/file
+;;
+;; Where:
+;;     POD     is the pod to connect to.
+;;             By default, the first container in that pod will be
+;;             used.
+;;
+;; Completion for POD and accessing it operate in the current
+;; namespace, use this command to change it:
+;;
+;; "kubectl config set-context --current --namespace=<name>"
 
 ;;; Code:
 
@@ -61,12 +76,24 @@
                  (string)))
 
 ;;;###tramp-autoload
+(defcustom tramp-kubernetes-program "kubectl"
+  "Name of the Kubernetes client program."
+  :group 'tramp
+  :version "29.1"
+  :type '(choice (const "kubectl")
+                 (string)))
+
+;;;###tramp-autoload
 (defconst tramp-docker-method "docker"
   "Tramp method name to use to connect to Docker containers.")
 
 ;;;###tramp-autoload
 (defconst tramp-podman-method "podman"
   "Tramp method name to use to connect to Podman containers.")
+
+;;;###tramp-autoload
+(defconst tramp-kubernetes-method "kubernetes"
+  "Tramp method name to use to connect to Kubernetes containers.")
 
 ;;;###tramp-autoload
 (defun tramp-docker--completion-function (&rest _args)
@@ -89,33 +116,58 @@ see its function help for a description of the format."
     (mapcar (lambda (m) (list nil m)) (delq nil names))))
 
 ;;;###tramp-autoload
+(defun tramp-kubernetes--completion-function (&rest _args)
+  "List Kubernetes pods available for connection.
+
+This function is used by `tramp-set-completion-function', please
+see its function help for a description of the format."
+  (when-let ((raw-list (shell-command-to-string
+			(concat tramp-kubernetes-program
+                                " get pods --no-headers "
+                                "-o custom-columns=NAME:.metadata.name")))
+             (names (split-string raw-list "\n" 'omit)))
+    (mapcar (lambda (name)
+              (list nil name))
+            names)))
+
+;;;###tramp-autoload
 (defvar tramp-default-remote-shell) ;; Silence byte compiler.
 
 ;;;###tramp-autoload
 (tramp--with-startup
- (push `(,tramp-docker-method
-         (tramp-login-program ,tramp-docker-program)
-         (tramp-login-args (("exec")
-                            ("-it")
-                            ("-u" "%u")
-                            ("%h")
-			    ("%l")))
-         (tramp-remote-shell ,tramp-default-remote-shell)
-         (tramp-remote-shell-login ("-l"))
-         (tramp-remote-shell-args ("-i" "-c")))
-       tramp-methods)
-
- (push `(,tramp-podman-method
-         (tramp-login-program ,tramp-podman-program)
-         (tramp-login-args (("exec")
-                            ("-it")
-                            ("-u" "%u")
-                            ("%h")
-			    ("%l")))
-         (tramp-remote-shell ,tramp-default-remote-shell)
-         (tramp-remote-shell-login ("-l"))
-         (tramp-remote-shell-args ("-i" "-c")))
-       tramp-methods)
+ (add-to-list 'tramp-methods
+              `(,tramp-docker-method
+                (tramp-login-program ,tramp-docker-program)
+                (tramp-login-args (("exec")
+                                   ("-it")
+                                   ("-u" "%u")
+                                   ("%h")
+			           ("%l")))
+                (tramp-remote-shell ,tramp-default-remote-shell)
+                (tramp-remote-shell-login ("-l"))
+                (tramp-remote-shell-args ("-i" "-c"))))
+ (add-to-list 'tramp-methods
+              `(,tramp-podman-method
+                (tramp-login-program ,tramp-podman-program)
+                (tramp-login-args (("exec")
+                                   ("-it")
+                                   ("-u" "%u")
+                                   ("%h")
+			           ("%l")))
+                (tramp-remote-shell ,tramp-default-remote-shell)
+                (tramp-remote-shell-login ("-l"))
+                (tramp-remote-shell-args ("-i" "-c"))))
+ (add-to-list 'tramp-methods
+              `(,tramp-kubernetes-method
+                (tramp-login-program ,tramp-kubernetes-program)
+                (tramp-login-args (("exec")
+                                   ("%h")
+                                   ("-it")
+                                   ("--")
+			           ("%l")))
+                (tramp-remote-shell ,tramp-default-remote-shell)
+                (tramp-remote-shell-login ("-l"))
+                (tramp-remote-shell-args ("-i" "-c"))))
 
  (tramp-set-completion-function
   tramp-docker-method
@@ -123,7 +175,11 @@ see its function help for a description of the format."
 
  (tramp-set-completion-function
   tramp-podman-method
-  '((tramp-docker--completion-function ""))))
+  '((tramp-docker--completion-function "")))
+
+ (tramp-set-completion-function
+  tramp-kubernetes-method
+  '((tramp-kubernetes--completion-function ""))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

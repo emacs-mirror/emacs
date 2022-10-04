@@ -917,6 +917,14 @@ running container's name or ID, as returned by @samp{docker ps}.
 Podman is an alternative to @option{docker} which may be run rootless,
 if desired.
 
+@item @option{kubernetes}
+@cindex method @option{kubernetes}
+@cindex @option{kubernetes} method
+
+Integration for containers in Kubernetes pods.  The host name is a pod
+name returned by @samp{kubectl get pods}.  The first container in a
+pod is used.
+
 @end table
 
 
@@ -1776,15 +1784,6 @@ They can be installed with Emacs's Package Manager.  This includes
 
 @c @item ibuffer-tramp.el
 @c Contact Svend Sorensen <svend@@ciffer.net>
-
-@item kubernetes-tramp
-@cindex method @option{kubectl}
-@cindex @option{kubectl} method
-Integration for Docker containers deployed in a Kubernetes cluster.  A
-container is accessed via
-@file{@trampfn{kubectl,user@@container,/path/to/file}}, @samp{user}
-and @samp{container} have the same meaning as with the @option{docker}
-method.
 
 @item lxc-tramp
 @cindex method @option{lxc}
