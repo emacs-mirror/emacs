@@ -642,22 +642,27 @@ type \\<proced-mode-map>\\[proced-mark] to mark a process for later commands.
 Type \\[proced-send-signal] to send signals to marked processes.
 Type \\[proced-renice] to renice marked processes.
 
-The initial content of a listing is defined by the variable `proced-filter'
-and the variable `proced-format'.
-The variable `proced-filter' specifies which system processes are displayed.
-The variable `proced-format' specifies which attributes are displayed for
-each process.  Type \\[proced-filter-interactive] and \\[proced-format-interactive]
-to change the values of `proced-filter' and `proced-format'.
-The current value of the variable `proced-filter' is indicated in the
-mode line.
+The initial content of a listing is defined by the variable
+`proced-filter' and the variable `proced-format'.
+
+The variable `proced-filter' specifies which system processes are
+displayed.
+
+The variable `proced-format' specifies which attributes are
+displayed for each process.
+
+Type \\[proced-filter-interactive] and \\[proced-format-interactive] to \
+change the values of `proced-filter' and
+`proced-format'.  The current value of the variable
+`proced-filter' is indicated in the mode line.
 
 The sort order of Proced listings is defined by the variable `proced-sort'.
-Type \\[proced-sort-interactive] or click on a header in the header line
-to change the sort scheme.  The current sort scheme is indicated in the
-mode line, using \"+\" or \"-\" for ascending or descending sort order.
+Type \\[proced-sort-interactive] or click on a header in the header \
+line to change the sort scheme.
+The current sort scheme is indicated in the mode line, using
+\"+\" or \"-\" for ascending or descending sort order.
 
-Type \\[proced-toggle-tree] to toggle whether the listing is
-displayed as process tree.
+Type \\[proced-toggle-tree] to toggle whether the listing is displayed as process tree.
 
 Type \\[proced-toggle-auto-update] to automatically update the
 process list.  The time interval for updates can be configured
@@ -666,11 +671,11 @@ via `proced-auto-update-interval'.
 An existing Proced listing can be refined by typing \\[proced-refine].
 Refining an existing listing does not update the variable `proced-filter'.
 
-The attribute-specific rules for formatting, filtering, sorting, and refining
-are defined in `proced-grammar-alist'.
+The attribute-specific rules for formatting, filtering, sorting,
+and refining are defined in `proced-grammar-alist'.
 
-After displaying or updating a Proced buffer, Proced runs the normal hook
-`proced-post-display-hook'.
+After displaying or updating a Proced buffer, Proced runs the
+normal hook `proced-post-display-hook'.
 
 \\{proced-mode-map}"
   :interactive nil
