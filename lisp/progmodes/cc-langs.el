@@ -1330,6 +1330,10 @@ since CC Mode treats every identifier as an expression."
 		  ,@(when (c-major-mode-is 'java-mode)
 		      '(">>>")))
 
+      ;; The C++ "spaceship" operator.
+      ,@(when (c-major-mode-is 'c++-mode)
+	  `((left-assoc "<=>")))
+
       ;; Relational.
       (left-assoc "<" ">" "<=" ">="
 		  ,@(when (c-major-mode-is 'java-mode)
@@ -1443,7 +1447,7 @@ form\".  See also `c-op-identifier-prefix'."
 	 "^" "??'" "xor" "&" "bitand" "|" "??!" "bitor" "~" "??-" "compl"
 	 "!" "=" "<" ">" "+=" "-=" "*=" "/=" "%=" "^="
 	 "??'=" "xor_eq" "&=" "and_eq" "|=" "??!=" "or_eq"
-	 "<<" ">>" ">>=" "<<=" "==" "!=" "not_eq" "<=" ">="
+	 "<<" ">>" ">>=" "<<=" "==" "!=" "not_eq" "<=>" "<=" ">="
 	 "&&" "and" "||" "??!??!" "or" "++" "--" "," "->*" "->"
 	 "()" "[]" "<::>" "??(??)")
   ;; These work like identifiers in Pike.
@@ -1565,8 +1569,10 @@ operators."
   "List of all arithmetic operators, including \"+=\", etc."
   ;; Note: in the following, there are too many operators for AWK and IDL.
   t (append (c-lang-const c-assignment-operators)
-	    '("+" "-" "*" "/" "%"
+	    `("+" "-" "*" "/" "%"
 	      "<<" ">>"
+	      ,@(if (c-major-mode-is 'c++-mode)
+		    '("<=>"))
 	      "<" ">" "<=" ">="
 	      "==" "!="
 	      "&" "^" "|"
@@ -2216,7 +2222,7 @@ the appropriate place for that."
 	'("_Bool" "_Complex" "_Imaginary") ; Conditionally defined in C99.
 	(c-lang-const c-primitive-type-kwds))
   c++  (append
-	'("bool" "wchar_t" "char16_t" "char32_t")
+	'("bool" "wchar_t" "char8_t" "char16_t" "char32_t")
 	(c-lang-const c-primitive-type-kwds))
   ;; Objective-C extends C, but probably not the new stuff in C99.
   objc (append
@@ -2713,7 +2719,8 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   (c c++) '(;; GCC extension.
 	    "__attribute__"
 	    ;; MSVC extension.
-	    "__declspec"))
+	    "__declspec")
+  c++ (append (c-lang-const c-decl-hangon-kwds) '("alignas")))
 
 (c-lang-defconst c-decl-hangon-key
   ;; Adorned regexp matching `c-decl-hangon-kwds'.
@@ -2937,7 +2944,7 @@ contain type identifiers."
 	    "__attribute__"
 	    ;; MSVC extension.
 	    "__declspec")
-  c++ (append (c-lang-const c-paren-nontype-kwds) '("noexcept")))
+  c++ (append (c-lang-const c-paren-nontype-kwds) '("noexcept" "alignas")))
 
 (c-lang-defconst c-paren-nontype-key
   t (c-make-keywords-re t (c-lang-const c-paren-nontype-kwds)))
