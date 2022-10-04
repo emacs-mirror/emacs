@@ -7028,7 +7028,7 @@ which is the window that will be redisplayed.  When run, the `current-buffer'
 is set to the buffer displayed in that window.")
 
 (define-minor-mode cursor-face-highlight-mode
-  "When enabled, respect the cursor-face property."
+  "When enabled, highlight text that has `cursor-face' property near point."
   :global nil
   (if cursor-face-highlight-mode
       (add-hook 'pre-redisplay-functions
