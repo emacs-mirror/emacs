@@ -131,11 +131,13 @@ Support for Russian using koi8-r and the russian-computer input method.")
   :mime-charset 'koi8-u)
 
 (set-language-info-alist
- "Ukrainian" '((charset koi8-u)
+ "Ukrainian" '((tutorial . "TUTORIAL.uk")
+	       (charset koi8-u)
 	       (coding-system koi8-u)
 	       (coding-priority koi8-u)
 	       (nonascii-translation . koi8-u)
 	       (input-method . "ukrainian-computer")
+	       (sample-text . "Ukrainian (Українська)	Слава Україні!")
 	       (documentation
 		. "Support for Ukrainian with KOI8-U character set."))
  '("Cyrillic"))
