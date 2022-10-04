@@ -3911,6 +3911,7 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 @group
 (treesit-font-lock-rules
  :language 'javascript
+ :override t
  '((true) @@font-lock-constant-face
    (false) @@font-lock-constant-face)
  :language 'html
@@ -3919,9 +3920,19 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 @end example
 
 This function takes a list of text or s-exp queries.  Before each
-query, there are @var{:keyword} and @var{value} pairs that configures
-that query.  The @code{:lang} keyword sets the query’s language, and is
-currently the only recognized keyword.
+query, there are @var{:keyword} and @var{value} pairs that configure
+that query.  The @code{:lang} keyword sets the query’s language and
+every query must specify the language.  Other keywords are optional:
+
+@multitable @columnfractions .15 .15 .6
+@headitem Keyword @tab Value @tab Description
+@item @code{:override} @tab nil
+@tab If the region already has a face, discard the new face
+@item @tab t @tab Always apply the new face
+@item @tab @code{append} @tab Append the new face to existing ones
+@item @tab @code{prepend} @tab Prepend the new face to existing ones
+@item @tab @code{keep} @tab Fill-in regions without an existing face
+@end multitable
 
 Capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified

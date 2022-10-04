@@ -277,6 +277,10 @@ in-order.  START and END are passed to each range function."
 
 ;;; Font-lock
 
+(define-error 'treesit-font-lock-error
+              "Generic tree-sitter font-lock error"
+              'treesit-error)
+
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
@@ -285,7 +289,7 @@ should always use `treesit-font-lock-rules' to set this variable.
 
 Each SETTING is of form
 
-    (LANGUAGE QUERY)
+    (LANGUAGE QUERY OVERRIDE)
 
 Each SETTING controls one parser (often of different language).
 LANGUAGE is the language symbol.  See Info node `(elisp)Language
@@ -296,7 +300,11 @@ query.  See Info node `(elisp)Pattern Matching' for how to write
 a query in either string or s-expression form.  When using
 repeatedly, a compiled query is much faster than a string or sexp
 one, so it is recommend to compile your queries if it will be
-used over and over.")
+used over and over.
+
+OVERRIDE is the override flag for this query.  Its value can be
+t, nil, append, prepend, keep.  See more in
+`treesit-font-lock-rules'.")
 
 (defun treesit-font-lock-rules (&rest args)
   "Return a value suitable for `treesit-font-lock-settings'.
@@ -311,13 +319,22 @@ configure the query (and only that query).  For example,
 
     (treesit-font-lock-rules
      :language \\='javascript
+     :override t
      \\='((true) @font-lock-constant-face
        (false) @font-lock-constant-face)
      :language \\='html
      \"(script_element) @font-lock-builtin-face\")
 
-For each QUERY, a :language keyword is required.  Currently the
-only recognized keyword is :language.
+For each QUERY, a :language keyword is required.  Other keywords
+include:
+
+  KEYWORD    VALUE    DESCRIPTION
+  :override  nil      If the region already has a face,
+                      discard the new face
+             t        Always apply the new face
+             append   Append the new face to existing ones
+             prepend  Prepend the new face to existing ones
+             keep     Fill-in regions without an existing face
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -333,6 +350,8 @@ ignored.
   (let (;; Tracks the current language that following queries will
         ;; apply to.
         (current-language nil)
+        ;; Tracks :override flag.
+        (current-override nil)
         ;; The list this function returns.
         (result nil))
     (while args
@@ -343,30 +362,41 @@ ignored.
              (when (or (not (symbolp lang)) (null lang))
                (signal 'wrong-type-argument `(symbolp ,lang)))
              (setq current-language lang)))
+          (:override
+           (let ((flag (pop args)))
+             (when (not (memq flag '(t nil append prepend keep)))
+               (signal 'wrong-type-argument
+                       `((or t nil append prepend keep)
+                         ,flag)))
+             (setq current-override flag)))
           ((pred treesit-query-p)
            (when (null current-language)
-             (signal 'treesit-error
+             (signal 'treesit-font-lock-error
                      `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
            (if (treesit-compiled-query-p token)
                (push `(,current-language token) result)
              (push `(,current-language
-                     ,(treesit-query-compile current-language token))
+                     ,(treesit-query-compile current-language token)
+                     ,current-override)
                    result))
            ;; Clears any configurations set for this query.
-           (setq current-language nil))
-          (_ (signal 'treesit-error
+           (setq current-language nil
+                 current-override nil))
+          (_ (signal 'treesit-font-lock-error
                      `("Unexpected value" token))))))
     (nreverse result)))
 
-(defun treesit-font-lock-fontify-region (start end &optional loudly)
+(defun treesit-font-lock-fontify-region
+    (start end &optional loudly)
   "Fontify the region between START and END.
 If LOUDLY is non-nil, message some debugging information."
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
   (dolist (setting treesit-font-lock-settings)
-    (when-let* ((language (nth 0 setting))
-                (match-pattern (nth 1 setting))
-                (parser (treesit-parser-create language)))
+    (let* ((language (nth 0 setting))
+           (match-pattern (nth 1 setting))
+           (override (nth 2 setting))
+           (parser (treesit-parser-create language)))
       (when-let ((node (treesit-node-on start end parser)))
         (let ((captures (treesit-query-capture
                          node match-pattern
@@ -374,17 +404,33 @@ If LOUDLY is non-nil, message some debugging information."
                          ;; often than not, NODE will be the root
                          ;; node, and if we don't specify the range,
                          ;; we are basically querying the whole file.
-                         start end)))
+                         start end))
+              (inhibit-point-motion-hooks t))
           (with-silent-modifications
             (dolist (capture captures)
               (let* ((face (car capture))
                      (node (cdr capture))
                      (start (treesit-node-start node))
                      (end (treesit-node-end node)))
-                (cond ((facep face)
-                       (put-text-property start end 'face face))
-                      ((functionp face)
-                       (funcall face start end node)))
+                (cond
+                 ((facep face)
+                  (pcase override
+                    ('nil (unless (text-property-not-all
+                                   start end 'face nil)
+                            (put-text-property start end 'face face)))
+                    ('t (put-text-property start end 'face face))
+                    ('append (font-lock-append-text-property
+                              start end 'face face))
+                    ('prepend (font-lock-prepend-text-property
+                               start end 'face face))
+                    ('keep (font-lock-fillin-text-property
+                            start end 'face face))
+                    (_ (signal 'treesit-font-lock-error
+                               (list
+                                "Unrecognized value of :override option"
+                                override)))))
+                 ((functionp face)
+                  (funcall face start end node)))
                 ;; Don't raise an error if FACE is neither a face nor
                 ;; a function.  This is to allow intermediate capture
                 ;; names used for #match and #eq.
