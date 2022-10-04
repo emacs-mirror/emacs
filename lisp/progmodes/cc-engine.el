@@ -9609,40 +9609,38 @@ point unchanged and return nil."
 		(forward-char)
 		(c-forward-syntactic-ws limit)
 		(looking-at "[*&]")))
-	  (when
-	      (save-excursion
-		(let (c-last-identifier-range)
-		  (forward-char)
-		  (c-forward-syntactic-ws limit)
-		  (catch 'is-function
-		    (while
-			;; Go forward one argument at each iteration.
-			(progn
-			  (while
-			      (cond
-			       ((looking-at c-decl-hangon-key)
-				(c-forward-keyword-clause 1))
-			       ((looking-at
-				 c-noise-macro-with-parens-name-re)
-				(c-forward-noise-clause))))
-			  (when (eq (char-after) ?\))
-			    (forward-char)
-			    (c-forward-syntactic-ws limit)
-			    (throw 'is-function t))
-			  (setq got-type (c-forward-type))
+	  (save-excursion
+	    (let (c-last-identifier-range)
+	      (forward-char)
+	      (c-forward-syntactic-ws limit)
+	      (catch 'is-function
+		(while
+		    ;; Go forward one argument at each iteration.
+		    (progn
+		      (while
 			  (cond
-			   ((null got-type)
-			    (throw 'is-function nil))
-			   ((not (eq got-type 'maybe))
-			    (throw 'is-function t)))
-			  (c-forward-declarator limit t t)
-			  (eq (char-after) ?,))
-		      (forward-char)
-		      (c-forward-syntactic-ws))
-		    t)))
-	    (and (c-go-list-forward (point) limit)
-		 (progn (c-forward-syntactic-ws limit) t)))))
-	t
+			   ((looking-at c-decl-hangon-key)
+			    (c-forward-keyword-clause 1))
+			   ((looking-at
+			     c-noise-macro-with-parens-name-re)
+			    (c-forward-noise-clause))))
+		      (when (eq (char-after) ?\))
+			(forward-char)
+			(c-forward-syntactic-ws limit)
+			(throw 'is-function t))
+		      (setq got-type (c-forward-type))
+		      (cond
+		       ((null got-type)
+			(throw 'is-function nil))
+		       ((not (eq got-type 'maybe))
+			(throw 'is-function t)))
+		      (c-forward-declarator limit t t)
+		      (eq (char-after) ?,))
+		  (forward-char)
+		  (c-forward-syntactic-ws))
+		t)))))
+	(and (c-go-list-forward (point) limit)
+	     (progn (c-forward-syntactic-ws limit) t))
       (goto-char here)
       nil)))
 
@@ -9654,10 +9652,11 @@ point unchanged and return nil."
   ;; Return a list (ID-START ID-END BRACKETS-AFTER-ID GOT-INIT DECORATED
   ;; ARGLIST), where ID-START and ID-END are the bounds of the declarator's
   ;; identifier, BRACKETS-AFTER-ID is non-nil if a [...] pair is present after
-  ;; the id, and ARGLIST is non-nil if an arglist has been moved over.
-  ;; GOT-INIT is non-nil when the declarator is followed by "=" or "(",
-  ;; DECORATED is non-nil when the identifier is embellished by an operator,
-  ;; like "*x", or "(*x)".
+  ;; the id, and ARGLIST is non-nil either when an arglist has been moved
+  ;; over, or when we have stopped at an unbalanced open-paren.  GOT-INIT is
+  ;; non-nil when the declarator is followed by "=" or "(", DECORATED is
+  ;; non-nil when the identifier is embellished by an operator, like "*x", or
+  ;; "(*x)".
   ;;
   ;; If ACCEPT-ANON is non-nil, move forward over any "anonymous declarator",
   ;; i.e. something like the (*) in int (*), such as might be found in a
@@ -9707,6 +9706,7 @@ point unchanged and return nil."
 		 (if (looking-at c-overloadable-operators-regexp)
 		     (progn
 		       (goto-char (match-end 0))
+		       (c-forward-syntactic-ws limit)
 		       (setq got-identifier t)
 		       nil)
 		   t))
@@ -9759,25 +9759,37 @@ point unchanged and return nil."
 	 ;; Skip out of the parens surrounding the identifier.  If closing
 	 ;; parens are missing, this form returns nil.
 	 (or (= paren-depth 0)
-	     (c-safe (goto-char (scan-lists (point) 1 paren-depth))))
+	     (prog1
+		 (c-safe (goto-char (scan-lists (point) 1 paren-depth)))
+	       (c-forward-syntactic-ws)))
 
 	 (or (eq (point) (point-max))	; No token after identifier.
 	     (< (point) limit))
 
 	 ;; Skip over any trailing bit, such as "__attribute__".
 	 (progn
-	      (while (cond
-		      ((looking-at c-decl-hangon-key)
-		       (c-forward-keyword-clause 1))
-		      ((looking-at c-type-decl-suffix-key)
-		       (if (save-match-data
-			     (looking-at c-fun-name-substitute-key))
-			   (c-forward-c++-requires-clause)
-			 (c-forward-keyword-clause 1)))
-		      ((and c-opt-cpp-prefix
-			    (looking-at c-noise-macro-with-parens-name-re))
-		       (c-forward-noise-clause))))
-	      (<= (point) limit))
+	   (while (cond
+		   ((looking-at c-decl-hangon-key)
+		    (c-forward-keyword-clause 1))
+		   ((looking-at c-type-decl-suffix-key)
+		    (cond
+		     ((save-match-data
+			(looking-at c-fun-name-substitute-key))
+		      (c-forward-c++-requires-clause))
+		     ((eq (char-after) ?\()
+		      (if (c-forward-decl-arglist not-top decorated limit)
+			  (progn (setq arglist t
+				       got-init nil)
+				 t)
+			(if (c-go-list-forward (point) limit)
+			    t
+			  (setq arglist t) ; For unbalanced (.
+			  nil)))
+		     (t (c-forward-keyword-clause 1))))
+		   ((and c-opt-cpp-prefix
+			 (looking-at c-noise-macro-with-parens-name-re))
+		    (c-forward-noise-clause))))
+	   (<= (point) limit))
 
 	 ;; Search syntactically to the end of the declarator (";",
 	 ;; ",", a closing paren, eob etc) or to the beginning of an
@@ -9785,52 +9797,48 @@ point unchanged and return nil."
 	 ;; Note that square brackets are now not also treated as
 	 ;; initializers, since this broke when there were also
 	 ;; initializing brace lists.
-	 (let (found)
-	   (while
-	       (and (< (point) limit)
-		    (progn
-		      ;; In the next loop, we keep searching forward whilst
-		      ;; we find ":"s which aren't single colons inside C++
-		      ;; "for" statements.
-		      (while
-			  (and
-			   (< (point) limit)
-			   (prog1
-			       (setq found
-				     (c-syntactic-re-search-forward
-				      "[;:,]\\|\\s)\\|\\(=\\|\\s(\\)"
-				      limit t t))
-			     (setq got-init
-				   (and found (match-beginning 1))))
-			   (eq (char-before) ?:)
-			   (if (looking-at c-:-op-cont-regexp)
-			       (progn (goto-char (match-end 0)) t)
-			     (not
-			      (and (c-major-mode-is '(c++-mode java-mode))
-				   (save-excursion
-				     (and
-				      (c-go-up-list-backward)
-				      (eq (char-after) ?\()
-				      (progn (c-backward-syntactic-ws)
-					     (c-simple-skip-symbol-backward))
-				      (looking-at c-paren-stmt-key))))))))
-		      found)
-		    (cond ((eq (char-before) ?\[)
-			   (setq brackets-after-id t)
-			   (prog1 (c-go-up-list-forward)
-			     (c-forward-syntactic-ws)))
-			  ((and (not brackets-after-id)
-				(eq (char-before) ?\())
-			   (backward-char)
-			   (if (c-forward-decl-arglist not-top decorated limit)
-			       (setq arglist t
-				     got-init nil)
-			     (forward-char))
-			   nil))))	; To end the loop.
-	   (when (and found
-		      (memq (char-before) '(?\; ?\: ?, ?= ?\( ?\[ ?{)))
-	       (backward-char))
-	   (<= (point) limit)))
+	 (or (eq (char-after) ?\()	; Not an arglist.
+	     (let (found)
+	       (while
+		   (and (< (point) limit)
+			(progn
+			  ;; In the next loop, we keep searching forward
+			  ;; whilst we find ":"s which aren't single colons
+			  ;; inside C++ "for" statements.
+			  (while
+			      (and
+			       (< (point) limit)
+			       (prog1
+				   (setq found
+					 (c-syntactic-re-search-forward
+					  "[;:,]\\|\\(=\\|\\s(\\)"
+					  limit 'limit t))
+				 (setq got-init
+				       (and found (match-beginning 1))))
+			       (eq (char-before) ?:)
+                               (not
+				(and (c-major-mode-is '(c++-mode java-mode))
+                                     (save-excursion
+                                       (and
+					(c-go-up-list-backward)
+					(eq (char-after) ?\()
+					(progn (c-backward-syntactic-ws)
+                                               (c-simple-skip-symbol-backward))
+					(looking-at c-paren-stmt-key)))))
+			       (if (looking-at c-:-op-cont-regexp)
+				   (progn (goto-char (match-end 0)) t)
+				 ;; Does this : introduce the class
+				 ;; initialization list, or a bitfield?
+				 (not arglist)))) ; Carry on for a bitfield
+			  found)
+			(when (eq (char-before) ?\[)
+			  (setq brackets-after-id t)
+			  (prog1 (c-go-up-list-forward)
+			    (c-forward-syntactic-ws)))))
+	       (when (and found
+			  (memq (char-before) '(?\; ?\: ?, ?= ?\( ?\[ ?{)))
+		 (backward-char))
+	       (<= (point) limit))))
 	(list id-start id-end brackets-after-id got-init decorated arglist)
 
       (goto-char here)

@@ -2458,9 +2458,12 @@ with // and /*, not more generic line and block comments."
   (goto-char pos)
   (let ((lit-start (c-literal-start))
 	(lim (c-determine-limit 1000))
-	enclosing-attribute pos1)
+	enclosing-attribute pos1 ml-delim)
     (if lit-start
 	(goto-char lit-start))
+    (when (and lit-start c-ml-string-opener-re
+	       (setq ml-delim (c-ml-string-opener-around-point)))
+      (goto-char (car ml-delim)))
     (c-backward-syntactic-ws lim)
     (when (setq enclosing-attribute (c-enclosing-c++-attribute))
       (goto-char (car enclosing-attribute)) ; Only happens in C++ Mode.
@@ -2471,43 +2474,43 @@ with // and /*, not more generic line and block comments."
       (c-backward-syntactic-ws lim))
     (when (setq pos1 (c-on-identifier))
       (goto-char pos1)
-      (let* ((lim (save-excursion
-		    (and (c-beginning-of-macro)
-			 (progn (c-end-of-macro) (point)))))
-	     (decl-res (c-forward-declarator lim)))
-	 (if (or (cadr (cddr (cddr decl-res))) ; We scanned an arglist.
-		 (and (eq (char-after) ?\() ; Move over a non arglist (...).
-		      (prog1 (c-go-list-forward nil lim)
-			(c-forward-syntactic-ws lim))))
-	     (if (looking-at c-symbol-char-key)
-		 ;; Deal with baz (foo((bar)) type var), where `pos'
-		 ;; was inside foo, but foo((bar)) is not semantically
-		 ;; valid.  The result must be after var).
-		 (and
-		  (goto-char pos)
-		  (setq pos1 (c-on-identifier))
-		  (goto-char pos1)
-		  (progn
-		    (c-backward-syntactic-ws lim)
-		    (eq (char-before) ?\())
-		  (c-fl-decl-end (1- (point))))
-	       (c-backward-syntactic-ws lim)
-	       (point))
-	   (if (progn (c-forward-syntactic-ws lim)
-		      (not (eobp)))
-	       (progn
-		 (c-forward-over-token)
-		 ;; Cope with having POS withing a syntactically invalid
-		 ;; (...), by moving backward out of the parens and trying
-		 ;; again.
-		 (when (and (eq (char-before) ?\))
-			    (c-go-list-backward (point) lim))
-		   (c-fl-decl-end (point))))
-	     (let ((lit-start (c-literal-start)))
-	       (when lit-start
-		 (goto-char lit-start))
-	       (c-backward-syntactic-ws)))
-	   (and (>= (point) pos) (point)))))))
+      (let* ((lim1 (save-excursion
+		     (and (c-beginning-of-macro)
+			  (progn (c-end-of-macro) (point)))))
+	     (decl-res (c-forward-declarator)))
+	(if (or (cadr (cddr (cddr decl-res))) ; We scanned an arglist.
+		(and (eq (char-after) ?\()    ; Move over a non arglist (...).
+		     (prog1 (c-go-list-forward)
+		       (c-forward-syntactic-ws))))
+	    (if (looking-at c-symbol-char-key)
+		;; Deal with baz (foo((bar)) type var), where `pos'
+		;; was inside foo, but foo((bar)) is not semantically
+		;; valid.  The result must be after var).
+		(and
+		 (goto-char pos)
+		 (setq pos1 (c-on-identifier))
+		 (goto-char pos1)
+		 (progn
+		   (c-backward-syntactic-ws lim1)
+		   (eq (char-before) ?\())
+		 (c-fl-decl-end (1- (point))))
+	      (c-forward-over-token)
+	      (point))
+	  (if (progn (c-forward-syntactic-ws)
+		     (not (eobp)))
+	      (progn
+		(c-forward-over-token)
+		;; Cope with having POS withing a syntactically invalid
+		;; (...), by moving backward out of the parens and trying
+		;; again.
+		(when (and (eq (char-before) ?\))
+			   (c-go-list-backward (point) lim1))
+		  (c-fl-decl-end (point))))
+	    (let ((lit-start (c-literal-start)))
+	      (when lit-start
+		(goto-char lit-start))
+	      (c-backward-syntactic-ws)))
+	  (and (>= (point) pos) (point)))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock
