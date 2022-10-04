@@ -987,6 +987,7 @@ Do not fontify the initial f for f-strings."
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :language 'python
+   :override t
    `(;; Queries for def and class.
      (function_definition
       name: (identifier) @font-lock-function-name-face)
