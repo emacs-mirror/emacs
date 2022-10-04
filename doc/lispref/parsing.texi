@@ -83,7 +83,7 @@ By convention, the dynamic library for @var{language} is
 @code{libtree-sitter-@var{language}.@var{ext}}, where @var{ext} is the
 system-specific extension for dynamic libraries. Also by convention,
 the function provided by that library is named
-@code{tree_sitter_@var{language}.  If a language definition doesn't
+@code{tree_sitter_@var{language}}.  If a language definition doesn't
 follow this convention, you should add an entry
 
 @example
