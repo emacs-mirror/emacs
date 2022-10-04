@@ -26,7 +26,7 @@ applies, and please also update docstrings as needed.
 
 ---
 ** Ahead-of-time native compilation can now be specified via configure.
-Use --with-native-compilation=aot to specify that all the Lisp files
+Use '--with-native-compilation=aot' to specify that all the Lisp files
 in the Emacs tree should be natively compiled ahead of time.  (This is
 slow on most machines.)
 
@@ -174,27 +174,27 @@ time.
 *** New variable 'inhibit-automatic-native-compilation'.
 If set, Emacs will inhibit native compilation (and won't write
 anything to the eln cache automatically).  The variable is initialised
-from the EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION environment
+from the 'EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION' environment
 variable on Emacs startup.
 
-
---- *** New command 'native-compile-prune-cache'.  This command
-deletes older ".eln" cache entries (but not the ones for the current
-Emacs version).
+---
+*** New command 'native-compile-prune-cache'.
+This command deletes older eln cache entries (but not the ones for
+the current Emacs version).
 
 ---
 *** New function 'startup-redirect-eln-cache'.
 This function can be called in your init files to change the
 user-specific directory where Emacs stores the "*.eln" files produced
 by native compilation of Lisp packages Emacs loads.  The default
-eln-cache directory is unchanged: it is the "eln-cache" subdirectory
+eln cache directory is unchanged: it is the "eln-cache" subdirectory
 of 'user-emacs-directory'.
 
 
 * Incompatible changes in Emacs 29.1
 
 +++
-*** The image commands have changed key bindings.
+** The image commands have changed key bindings.
 In previous Emacs versions, images have had the '+', '-' and 'r' keys
 bound when point is over an image.  In Emacs 29.1, additional commands
 were added, and this made it more likely that users would trigger the
@@ -204,7 +204,7 @@ moved to the 'i' keymap, so '+' is now 'i +', '-' is now 'i -', and
 you can rotate an image twice by saying 'i r r', for instance.
 
 +++
-*** Emacs now picks the correct coding system for X input methods.
+** Emacs now picks the correct coding system for X input methods.
 Previously, Emacs would use the locale coding system for input
 methods, which could in some circumstances be incorrect, especially
 when the input method chose to fall back to some other coding system.
@@ -217,7 +217,7 @@ their customizations to 'locale-coding-system' to the variable
 'x-input-coding-system' instead.
 
 +++
-*** Bookmarks no longer include context for encrypted files.
+** Bookmarks no longer include context for encrypted files.
 If you're visiting an encrypted file, setting a bookmark no longer
 includes excerpts from that buffer in the bookmarks file.  This is
 implemented by the new hook 'bookmark-inhibit-context-functions',
@@ -225,7 +225,7 @@ where packages can register a function which returns non-nil for file
 names to be excluded from adding such excerpts.
 
 ---
-*** 'show-paren-mode' is now disabled in 'special-mode' buffers.
+** 'show-paren-mode' is now disabled in 'special-mode' buffers.
 In Emacs versions previous to Emacs 28.1, 'show-paren-mode' defaulted
 off.  In Emacs 28.1, the mode was switched on in all buffers.  In
 Emacs 29.1, this was changed to be switched on in all editing-related
@@ -236,7 +236,7 @@ init file:
     (setopt show-paren-predicate t)
 
 +++
-*** Explicitly-set read-only state is preserved when reverting a buffer.
+** Explicitly-set read-only state is preserved when reverting a buffer.
 If you use the 'C-x C-q' command to change the read-only state of the
 buffer and then revert it, Emacs would previously use the file
 permission bits to determine whether the buffer should be read-only
@@ -244,7 +244,7 @@ after reverting the buffer.  Emacs now remembers the decision made in
 'C-x C-q'.
 
 ---
-*** The Gtk selection face is no longer used for the region.
+** The Gtk selection face is no longer used for the region.
 The combination of a Gtk-controlled background and a foreground color
 controlled by the internal Emacs machinery led to low-contrast faces
 in common default setups.  Emacs now uses the same 'region' face on
@@ -488,8 +488,8 @@ option) and can be set to nil to disable Just-in-time Lock mode.
 * Changes in Emacs 29.1
 
 +++
-** New variable 'major-mode-remap-alist' to specify your favorite major modes.
-This variable lets you remap the default modes (e.g. 'perl-mode' or
+** New user option 'major-mode-remap-alist' to specify favorite major modes.
+This user option lets you remap the default modes (e.g. 'perl-mode' or
 'latex-mode') to your favorite ones (e.g. 'cperl-mode' or
 'LaTeX-mode') without having to use 'defalias', which can have
 undesirable side effects.
@@ -1145,7 +1145,6 @@ added to insert these automatically.  For example, if a region is
 active and 'C-c C-f C-b' is invoked, markup is inserted for the region
 to be highlighted bold.
 
-
 ** Imenu
 
 +++
@@ -1788,7 +1787,7 @@ info node.  This command only works for the Emacs and Emacs Lisp manuals.
 It copies the name of the function near point into the kill ring.
 
 ---
-*** 'N' and 'P' are now bound to 'shortdoc-(next|previous)-section'.
+*** 'N' and 'P' are now bound to 'shortdoc-{next,previous}-section'.
 This is in addition to the old keybindings 'C-c C-n' and 'C-c C-p'.
 
 ** VC
@@ -1811,7 +1810,7 @@ This command marks files based on a regexp.  If given a prefix
 argument, unmark instead.
 
 +++
-*** New command 'C-x v !' ('vc-edit-next-command')
+*** New command 'C-x v !' ('vc-edit-next-command').
 This prefix command requests editing of the next VC shell command
 before execution.  For example, in a Git repository, you can produce a
 log of more than one branch by typing 'C-x v ! C-x v b l' and then
@@ -1843,7 +1842,7 @@ Git commands display summary lines.  See the two new user options
 'vc-git-log-edit-summary-target-len' and 'vc-git-log-edit-summary-max-len'.
 
 ---
-*** New 'log-edit-headers-separator' face
+*** New 'log-edit-headers-separator' face.
 It is used to style the line that separates the 'log-edit' headers
 from the 'log-edit' summary.
 
@@ -2199,7 +2198,7 @@ now an obsolete alias.
 ---
 *** New command 'image-dired-copy-filename-as-kill'.
 It copies the name of the marked or current image to the kill ring,
-and is bound to "w" in the thumbnail buffer.
+and is bound to 'w' in the thumbnail buffer.
 
 ---
 *** New command 'image-dired-wallpaper-set'.
@@ -2244,8 +2243,8 @@ old format, add this to your Init file:
 *** New faces for the header line of the thumbnail buffer.
 These faces correspond to different parts of the header line, as
 specified in 'image-dired-display-properties-format':
-- 'image-dired-thumb-header-file-name'
 - 'image-dired-thumb-header-directory-name'
+- 'image-dired-thumb-header-file-name'
 - 'image-dired-thumb-header-file-size'
 - 'image-dired-thumb-header-image-count'
 
@@ -2306,7 +2305,7 @@ nil to disable this confirmation completely.
 The corresponding keymap is now named 'image-dired-image-mode-map'.
 
 +++
-*** Some commands have been renamed to be shorter to be shorter.
+*** Some commands have been renamed to be shorter.
 - 'image-dired-display-thumbnail-original-image' has been renamed to
   'image-dired-display-this'.
 - 'image-dired-display-next-thumbnail-original' has been renamed to
@@ -2451,8 +2450,8 @@ and friends.
 ** Tramp
 
 +++
-*** New connection method "docker".
-It allows accessing environments provided by Docker.
+*** New connection methods "docker" and "podman".
+It allows accessing environments provided by Docker and similar programs.
 
 ---
 *** Tramp supports abbreviating remote home directories now.
@@ -2591,7 +2590,7 @@ Enabling this will automatically kill a "*shell*" buffer as soon as
 the shell session terminates.
 
 ---
-*** New minor mode 'shell-highlight-undef-mode'
+*** New minor mode 'shell-highlight-undef-mode'.
 Customize 'shell-highlight-undef-enable' to t if you want to enable
 this minor mode in "*shell*" buffers.  It will highlight undefined
 commands with a warning face as you type.
@@ -3093,7 +3092,7 @@ The following generalized variables have been made obsolete:
 'buffer-name', 'buffer-string', 'buffer-substring', 'current-buffer',
 'current-column', 'current-global-map', 'current-input-mode',
 'current-local-map', 'current-window-configuration',
-'default-file-modes', 'documentation-property', `eq', 'frame-height',
+'default-file-modes', 'documentation-property', 'eq', 'frame-height',
 'frame-width', 'frame-visible-p', 'global-key-binding',
 'local-key-binding', 'mark', 'mark-marker', 'marker-position',
 'mouse-position', 'point', 'point-marker', 'point-max', 'point-min',
