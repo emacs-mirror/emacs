@@ -632,7 +632,7 @@ instead of just updating them with the new/changed autoloads."
                       ;; It's a new file; put the data at the end.
                       (progn
                         (goto-char (point-max))
-                        (search-backward "\f\n"))
+                        (search-backward "\f\n" nil t))
                     ;; Delete the old version of the section.
                     (delete-region (match-beginning 0)
                                    (and (search-forward "\n\f\n;;;")
