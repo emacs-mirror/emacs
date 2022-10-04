@@ -1179,6 +1179,11 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 
   gcc_jit_rvalue *tmp = obj;
 
+  /* `gcc_jit_context_new_bitcast` requires that the types being converted
+     between have the same layout and as such, doesn't allow converting
+     between an arbitrarily sized integer/boolean and a pointer. Casting it
+     to a uintptr/void* is still necessary, to ensure that it can be bitcast
+     into a (void *)/uintptr respectively.  */
   if (old_is_ptr != new_is_ptr)
     {
       if (old_is_ptr)
