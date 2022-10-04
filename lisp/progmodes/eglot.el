@@ -273,7 +273,7 @@ CONTACT can be:
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
-  "Face for package-name in EGLOT's mode line.")
+  "Face for package-name in Eglot's mode line.")
 
 (defface eglot-diagnostic-tag-unnecessary-face
   '((t (:inherit shadow)))
@@ -671,7 +671,7 @@ treated as in `eglot-dbind'."
                 method)))
 
 (cl-defgeneric eglot-client-capabilities (server)
-  "What the EGLOT LSP client supports for SERVER."
+  "What the Eglot LSP client supports for SERVER."
   (:method (s)
            (list
             :workspace (list
@@ -1131,7 +1131,7 @@ Each function is passed the server as an argument")
     contact))
 
 (defvar-local eglot--cached-server nil
-  "A cached reference to the current EGLOT server.")
+  "A cached reference to the current Eglot server.")
 
 (defun eglot--connect (managed-modes project class contact language-id)
   "Connect to MANAGED-MODES, LANGUAGE-ID, PROJECT, CLASS and CONTACT.
@@ -1625,7 +1625,7 @@ For example, to keep your Company customization, add the symbol
 `company' to this variable.")
 
 (defun eglot--stay-out-of-p (symbol)
-  "Tell if EGLOT should stay of of SYMBOL."
+  "Tell if Eglot should stay of of SYMBOL."
   (cl-find (symbol-name symbol) eglot-stay-out-of
            :test (lambda (s thing)
                    (let ((re (if (symbolp thing) (symbol-name thing) thing)))
@@ -1637,15 +1637,15 @@ For example, to keep your Company customization, add the symbol
      (setq-local ,symbol ,binding)))
 
 (defun eglot-managed-p ()
-  "Tell if current buffer is managed by EGLOT."
+  "Tell if current buffer is managed by Eglot."
   eglot--managed-mode)
 
 (defvar eglot-managed-mode-hook nil
-  "A hook run by EGLOT after it started/stopped managing a buffer.
+  "A hook run by Eglot after it started/stopped managing a buffer.
 Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (define-minor-mode eglot--managed-mode
-  "Mode for source buffers managed by some EGLOT project."
+  "Mode for source buffers managed by some Eglot project."
   :init-value nil :lighter nil :keymap eglot-mode-map
   (cond
    (eglot--managed-mode
@@ -1715,7 +1715,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
   (eglot--managed-mode -1))
 
 (defun eglot-current-server ()
-  "Return logical EGLOT server for current buffer, nil if none."
+  "Return logical Eglot server for current buffer, nil if none."
   (setq eglot--cached-server
         (or eglot--cached-server
             (cl-find major-mode
@@ -1728,7 +1728,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
                           eglot--servers-by-xrefed-file)))))
 
 (defun eglot--current-server-or-lose ()
-  "Return current logical EGLOT server connection or error."
+  "Return current logical Eglot server connection or error."
   (or (eglot-current-server)
       (jsonrpc-error "No current JSON-RPC connection")))
 
@@ -1859,7 +1859,7 @@ Uses THING, FACE, DEFS and PREPEND."
                                          mouse-face mode-line-highlight))))
 
 (defun eglot--mode-line-format ()
-  "Compose the EGLOT's mode-line."
+  "Compose the Eglot's mode-line."
   (pcase-let* ((server (eglot-current-server))
                (nick (and server (eglot-project-nickname server)))
                (pending (and server (hash-table-count
@@ -2416,7 +2416,7 @@ may be called multiple times (respecting the protocol of
              :region (cons (point-min) (point-max))))
   (setq eglot--diagnostics diags))
 
-(defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
+(defun eglot-xref-backend () "Eglot xref backend." 'eglot)
 
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
   "Helper variable for `eglot--handling-xrefs'.")
@@ -2666,7 +2666,7 @@ for which LSP on-type-formatting should be requested."
       :deferred method))))
 
 (defun eglot-completion-at-point ()
-  "EGLOT's `completion-at-point' function."
+  "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
   (when-let (completion-capability (eglot--server-capable :completionProvider))
     (let* ((server (eglot--current-server-or-lose))
@@ -2983,7 +2983,7 @@ for which LSP on-type-formatting should be requested."
       nil)))
 
 (defun eglot-imenu ()
-  "EGLOT's `imenu-create-index-function'.
+  "Eglot's `imenu-create-index-function'.
 Returns a list as described in docstring of `imenu--index-alist'."
   (cl-labels
       ((unfurl (obj)
