@@ -812,6 +812,7 @@ REF must have been previously obtained with `gv-ref'."
                    `(cond
                      (,v ,(funcall setter val))
                      ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
+(make-obsolete-generalized-variable 'eq nil "29.1")
 
 (gv-define-expander substring
   (lambda (do place from &optional to)

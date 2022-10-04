@@ -3066,7 +3066,7 @@ The following generalized variables have been made obsolete:
 'current-column', 'current-global-map', 'current-input-mode',
 'current-local-map', 'current-window-configuration',
 'default-file-modes', 'documentation-property', 'frame-height',
-'frame-width', 'frame-visible-p', 'global-key-binding',
+'frame-width', 'frame-visible-p', 'global-key-binding', `if'
 'local-key-binding', 'mark', 'mark-marker', 'marker-position',
 'mouse-position', 'point', 'point-marker', 'point-max', 'point-min',
 'read-mouse-position', 'screen-height', 'screen-width',
