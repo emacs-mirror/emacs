@@ -2306,9 +2306,8 @@ the thumbnail file.
 
 +++
 *** Some commands and user options are now obsolete.
-Since Image-Dired no longer converts images in the background before
-displaying them, some commands and user options that are no longer
-needed are now obsolete:
+Since 'image-dired-display-image-mode' is now based on 'image-mode',
+some commands and user options are no longer needed and are now obsolete:
 'image-dired-cmd-create-temp-image-options',
 'image-dired-cmd-create-temp-image-program',
 'image-dired-display-current-image-full',
