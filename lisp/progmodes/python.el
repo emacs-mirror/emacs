@@ -915,7 +915,10 @@ It makes underscores and dots word constituent chars.")
   '("as" "assert" "async" "await" "break" "class" "continue" "def"
     "del" "elif" "else" "except" "exec" "finally" "for" "from"
     "global" "if" "import" "lambda" "nonlocal" "pass" "print"
-    "raise" "return" "try" "while" "with" "yield"))
+    "raise" "return" "try" "while" "with" "yield"
+    ;; These are technically operators, but we fontify them as
+    ;; keywords.
+    "and" "in" "is" "not" "or"))
 
 (defvar python--treesit-builtins
   '("abs" "all" "any" "ascii" "bin" "bool" "breakpoint" "bytearray"
@@ -934,6 +937,8 @@ It makes underscores and dots word constituent chars.")
     "copyright" "credits" "exit" "license" "quit"))
 
 (defvar python--treesit-operators
+  ;; This is not used. And and, or, not, is, in are fontified as
+  ;; keywords.
   '("-" "-=" "!=" "*" "**" "**=" "*=" "/" "//" "//=" "/=" "&" "%" "%="
     "^" "+" "+=" "<" "<<" "<=" "<>" "=" "==" ">" ">=" ">>" "|" "~"
     "and" "in" "is" "not" "or"))
@@ -1019,6 +1024,9 @@ Do not fontify the initial f for f-strings."
      ;; Variable names.
      (assignment left: (identifier)
                  @font-lock-variable-name-face)
+     (assignment left: (attribute
+                        attribute: (identifier)
+                        @font-lock-variable-name-face))
      (pattern_list (identifier)
                    @font-lock-variable-name-face)
      (tuple_pattern (identifier)
