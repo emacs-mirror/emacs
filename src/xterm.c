@@ -17701,6 +17701,53 @@ x_coords_from_dnd_message (struct x_display_info *dpyinfo,
   return false;
 }
 
+static void
+x_handle_wm_state (struct frame *f, struct input_event *ie)
+{
+  Atom type;
+  int format;
+  unsigned long nitems, bytes_after;
+  unsigned char *data;
+  unsigned long *state;
+
+  data = NULL;
+
+  if (XGetWindowProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			  FRAME_DISPLAY_INFO (f)->Xatom_wm_state, 0, 2,
+			  False, AnyPropertyType, &type, &format, &nitems,
+			  &bytes_after, &data) != Success)
+    return;
+
+  if (!data || nitems != 2 || format != 32)
+    {
+      if (data)
+	XFree (data);
+
+      return;
+    }
+
+  state = (unsigned long *) data;
+
+  if (state[0] == NormalState && FRAME_ICONIFIED_P (f))
+    {
+      /* The frame has been deiconified.  It has not been withdrawn
+	 and is now visible.  */
+      SET_FRAME_VISIBLE (f, 1);
+      SET_FRAME_ICONIFIED (f, false);
+      f->output_data.x->has_been_visible = true;
+
+      ie->kind = DEICONIFY_EVENT;
+      XSETFRAME (ie->frame_or_window, f);
+    }
+
+  /* state[0] can also be WithdrawnState, meaning that the window has
+     been withdrawn and is no longer iconified.  However, Emacs sets
+     the correct flags upon withdrawing the window, so there is no
+     need to do anything here.  */
+
+  XFree (data);
+}
+
 /* Handles the XEvent EVENT on display DPYINFO.
 
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
@@ -18488,6 +18535,19 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
 	}
+
+      if (f && event->xproperty.atom == dpyinfo->Xatom_wm_state
+	  && !FRAME_X_EMBEDDED_P (f) && !FRAME_PARENT_FRAME (f))
+	/* Handle WM_STATE.  We use this to clear the iconified flag
+	   on a frame if it is set.
+
+	   GTK builds ignore deiconifying frames on FocusIn or Expose
+	   by default, and cannot wait for the window manager to
+	   remove _NET_WM_STATE_HIDDEN, as it is ambiguous when not
+	   set.  Handling UnmapNotify also checks for
+	   _NET_WM_STATE_HIDDEN, and thus suffers from the same
+	   problem.  */
+	x_handle_wm_state (f, &inev.ie);
 
       if (f && FRAME_X_OUTPUT (f)->alpha_identical_p
 	  && (event->xproperty.atom
