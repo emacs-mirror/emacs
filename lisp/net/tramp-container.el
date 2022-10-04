@@ -1,4 +1,4 @@
-;;; tramp-docker.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
+;;; tramp-container.el --- Tramp integration for Docker-like containers  -*- lexical-binding: t; -*-
 
 ;; Copyright © 2022 Free Software Foundation, Inc.
 
@@ -23,8 +23,8 @@
 
 ;;; Commentary:
 
-;; ‘tramp-docker’ allows Tramp access to environments provided by
-;; Docker and similar programs.
+;; Allows Tramp access to environments provided by Docker and similar
+;; programs.
 ;;
 ;; ## Usage
 ;;
@@ -127,8 +127,8 @@ see its function help for a description of the format."
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
-	    (unload-feature 'tramp-docker 'force)))
+	    (unload-feature 'tramp-container 'force)))
 
-(provide 'tramp-docker)
+(provide 'tramp-container)
 
-;;; tramp-docker.el ends here
+;;; tramp-container.el ends here
