@@ -2697,7 +2697,17 @@ a
      @result{} ("hello" "wood")
 @end example
 
-@c FIXME?  Also 'eq'? (see gv.el)
+@item
+The @code{if} and @code{cond} conditionals will work as generalized
+variables.  For instance, this will set either the @code{foo} or the
+@code{bar} variable to @code{zot}:
+
+@example
+(setf (if (zerop (random 2))
+	  foo
+	bar)
+      'zot)
+@end example
 @end itemize
 
 @noindent
