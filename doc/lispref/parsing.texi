@@ -102,6 +102,15 @@ to @code{treesit-load-name-override-list}, where
 
 for a language too cool to abide by conventions.
 
+@defun treesit-language-version &optional min-compatible
+Tree-sitter library has a @dfn{language version}, a language
+definition's version needs to match this version to be compatible.
+
+This function returns tree-sitter library’s language version.  If
+@var{min-compatible} is non-nil, it returns the minimal compatible
+version.
+@end defun
+
 @heading Concrete syntax tree
 
 A syntax tree is what a parser generates.  In a syntax tree, each node

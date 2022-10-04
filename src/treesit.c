@@ -316,6 +316,20 @@ DEFUN ("treesit-language-available-p",
     return Qt;
 }
 
+DEFUN ("treesit-language-version",
+       Ftreesit_language_version,
+       Streesit_language_version,
+       0, 1, 0,
+       doc: /* Return the language version of tree-sitter library.
+If MIN-COMPATIBLE non-nil, return the minimal compatible version.  */)
+  (Lisp_Object min_compatible)
+{
+  if (NILP (min_compatible))
+    return make_fixnum (TREE_SITTER_LANGUAGE_VERSION);
+  else
+    return make_fixnum (TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION);
+}
+
 /*** Parsing functions */
 
 static void
