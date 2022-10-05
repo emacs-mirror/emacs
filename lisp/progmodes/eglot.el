@@ -3124,8 +3124,9 @@ Returns a list as described in docstring of `imenu--index-alist'."
     (let ((boftap (bounds-of-thing-at-point 'sexp)))
       (list (car boftap) (cdr boftap)))))
 
-(defun eglot-code-actions (beg &optional end action-kind)
-  "Offer to execute actions of ACTION-KIND between BEG and END.
+(defun eglot-code-actions (beg &optional end action-kind interactive)
+  "Find LSP code actions of type ACTION-KIND between BEG and END.
+Interactively, offer to execute them.
 If ACTION-KIND is nil, consider all kinds of actions.
 Interactively, default BEG and END to region's bounds else BEG is
 point and END is nil, which results in a request for code actions
@@ -3135,8 +3136,10 @@ at point.  With prefix argument, prompt for ACTION-KIND."
      ,(and current-prefix-arg
            (completing-read "[eglot] Action kind: "
                             '("quickfix" "refactor.extract" "refactor.inline"
-                              "refactor.rewrite" "source.organizeImports")))))
-  (unless (eglot--server-capable :codeActionProvider)
+                              "refactor.rewrite" "source.organizeImports")))
+     t))
+  (unless (or (not interactive)
+              (eglot--server-capable :codeActionProvider))
     (eglot--error "Server can't execute code actions!"))
   (let* ((server (eglot--current-server-or-lose))
          (actions
@@ -3154,13 +3157,20 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                collect it)]
                    ,@(when action-kind `(:only [,action-kind]))))
            :deferred t))
-         (menu-items
-          (or (cl-loop for action across actions
-                       ;; Do filtering ourselves, in case the `:only'
-                       ;; didn't go through.
-                       when (or (not action-kind)
-                                (equal action-kind (plist-get action :kind)))
-                       collect (cons (plist-get action :title) action))
+         ;; Redo filtering, in case the `:only' didn't go through.
+         (actions (cl-loop for a across actions
+                           when (or (not action-kind)
+                                    (equal action-kind (plist-get a :kind)))
+                           collect a)))
+    (if interactive
+        (eglot--read-execute-code-action actions server action-kind)
+      actions)))
+
+(defun eglot--read-execute-code-action (actions server &optional action-kind)
+  "Helper for interactive calls to `eglot-code-actions'"
+  (let* ((menu-items
+          (or (cl-loop for a in actions
+                       collect (cons (plist-get a :title) a))
               (apply #'eglot--error
                      (if action-kind `("No \"%s\" code actions here" ,action-kind)
                        `("No code actions here")))))
@@ -3169,7 +3179,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                               (plist-get (cdr menu-item) :isPreferred))
                             menu-items))
          (default-action (car (or preferred-action (car menu-items))))
-         (action (if (and action-kind (null (cadr menu-items)))
+         (chosen (if (and action-kind (null (cadr menu-items)))
                      (cdr (car menu-items))
                    (if (listp last-nonmenu-event)
                        (x-popup-menu last-nonmenu-event `("Eglot code actions:"
@@ -3179,7 +3189,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                           default-action)
                                   menu-items nil t nil nil default-action)
                                  menu-items))))))
-    (eglot--dcase action
+    (eglot--dcase chosen
       (((Command) command arguments)
        (eglot-execute-command server (intern command) arguments))
       (((CodeAction) edit command)
