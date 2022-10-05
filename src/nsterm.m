@@ -3995,6 +3995,7 @@ static void
 ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
   struct face *face;
+  NSColor *fg_color;
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -4091,8 +4092,20 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
 	}
     }
-}
 
+  /* Draw overlining, etc. on the stretch glyph (or the part of the
+     stretch glyph after the cursor).  If the glyph has a box, then
+     decorations will be drawn after drawing the box in
+     ns_draw_glyph_string, in order to prevent them from being
+     overwritten by the box.  */
+  if (s->face->box == FACE_NO_BOX)
+    {
+      fg_color = [NSColor colorWithUnsignedLong:
+			    NS_FACE_FOREGROUND (s->face)];
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
+}
 
 static void
 ns_draw_glyph_string_foreground (struct glyph_string *s)
@@ -4410,7 +4423,8 @@ ns_draw_glyph_string (struct glyph_string *s)
     {
       NSColor *fg_color;
 
-      fg_color = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)];
+      fg_color = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (s->face)];
+
       ns_draw_text_decoration (s, s->face, fg_color,
 			       s->background_width, s->x);
     }
