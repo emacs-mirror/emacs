@@ -925,6 +925,8 @@ Integration for containers in Kubernetes pods.  The host name is a pod
 name returned by @samp{kubectl get pods}.  The first container in a
 pod is used.
 
+This method does not support user names.
+
 @end table
 
 
