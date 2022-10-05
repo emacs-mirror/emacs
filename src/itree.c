@@ -114,6 +114,19 @@ static struct interval_generator* interval_generator_create (struct interval_tre
 /* The sentinel node, the null node.  */
 struct interval_node itree_null;
 
+static inline bool
+null_is_sane (void)
+{
+  /* The sentinel node has most of its fields read-only, except for `parent`,
+     `left`, `right` which are write only. */
+  return itree_null.red == false
+         && itree_null.otick == 0
+         && itree_null.offset == 0
+         && itree_null.begin == PTRDIFF_MIN
+         && itree_null.end == PTRDIFF_MIN
+         && itree_null.limit == PTRDIFF_MIN;
+}
+
 /* +------------------------------------------------------------------------------------+ */
 
 typedef uintptr_t nodeptr_and_flag;
@@ -149,7 +162,13 @@ static struct interval_generator *iter;
 static void
 itree_init (void)
 {
-  itree_null.parent = itree_null.left = itree_null.right = ITREE_NULL;
+  struct interval_node *null = ITREE_NULL;
+  null->left = null->right = null->parent = null;
+  null->offset = null->otick = 0;
+  null->begin = PTRDIFF_MIN;
+  null->end = PTRDIFF_MIN;
+  null->limit = PTRDIFF_MIN;     /* => max(x, null.limit) = x */
+  null->red = false;
   iter = interval_generator_create (NULL);
 }
 
@@ -310,6 +329,7 @@ interval_node_set_region (struct interval_tree *tree,
   else if (end != node->end)
     {
       node->end = max (node->begin, end);
+      eassert (node != ITREE_NULL);
       interval_tree_propagate_limit (node);
     }
 }
@@ -334,16 +354,7 @@ interval_tree_create (void)
 void
 interval_tree_clear (struct interval_tree *tree)
 {
-  /* FIXME: Why is this done?  */
-  struct interval_node *null = ITREE_NULL;
-  null->left = null->right = null->parent = null;
-  null->offset = null->otick = 0;
-  null->begin = PTRDIFF_MIN;
-  null->end = PTRDIFF_MIN;
-  null->limit = PTRDIFF_MIN;     /* => max(x, null.limit) = x */
-  null->red = false;
-
-  tree->root = null;
+  tree->root = ITREE_NULL;
   tree->otick = 1;
   tree->size = 0;
 }
@@ -461,7 +472,9 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       if (!node->red)
         broken = subst;
       interval_tree_transplant (tree, subst, node);
-      interval_tree_propagate_limit (subst);
+      interval_tree_propagate_limit
+        /* FIXME: null->parent is supposed to be write only!  */
+        (subst == ITREE_NULL ? ITREE_NULL->parent : subst);
     }
   else
     {
@@ -472,7 +485,12 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
         broken = min->right;
       eassert (min != ITREE_NULL);
       if (min->parent == node)
-        min_right->parent = min; /* set parent, if min_right = null */
+        {
+          if (min_right == ITREE_NULL)
+            ITREE_NULL->parent = min; /* set parent, if min_right = null */
+          else
+            eassert (min_right->parent == min);
+        }
       else
         {
           interval_tree_transplant (tree, min->right, min);
@@ -484,7 +502,9 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       min->left = node->left;
       min->left->parent = min;
       min->red = node->red;
-      interval_tree_propagate_limit (min_right);
+      interval_tree_propagate_limit
+        /* FIXME: null->parent is supposed to be write only!  */
+        (min_right == ITREE_NULL ? ITREE_NULL->parent : min_right);
       interval_tree_propagate_limit (min);
     }
 
@@ -523,6 +543,7 @@ interval_tree_iter_start (struct interval_tree *tree,
                           enum interval_tree_order order,
 			  const char* file, int line)
 {
+  eassert (null_is_sane ());
   /* struct interval_generator *iter = tree->iter; */
   if (iter->running)
     {
@@ -625,6 +646,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
           if (node->end > pos || (node->end == pos && node->rear_advance))
             {
               node->end += length;
+              eassert (node != ITREE_NULL);
               interval_tree_propagate_limit (node);
             }
         }
@@ -689,6 +711,7 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
       if (node->end > pos)
         {
           node->end = max (pos , node->end - length);
+          eassert (node != ITREE_NULL);
           interval_tree_propagate_limit (node);
         }
     }
@@ -875,8 +898,6 @@ interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 static void
 interval_tree_propagate_limit (struct interval_node *node)
 {
-  if (node == ITREE_NULL)
-    node = node->parent;
   if (node == ITREE_NULL)
     return;
 
