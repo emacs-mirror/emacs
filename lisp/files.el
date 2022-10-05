@@ -2379,16 +2379,15 @@ the various files."
                                          'buffer-file-name buffer)))
                               (and file (file-exists-p file))))))))
 	;; Let user know if there is a buffer with the same truename.
-	(if other
-	    (progn
-	      (or nowarn
-		  find-file-suppress-same-file-warnings
-		  (string-equal filename (buffer-file-name other))
-		  (files--message "%s and %s are the same file"
-                                  filename (buffer-file-name other)))
-	      ;; Optionally also find that buffer.
-	      (if (or find-file-existing-other-name find-file-visit-truename)
-		  (setq buf other))))
+        (when other
+          (or nowarn
+              find-file-suppress-same-file-warnings
+              (string-equal filename (buffer-file-name other))
+              (files--message "%s and %s are the same file"
+                         filename (buffer-file-name other)))
+          ;; Optionally also find that buffer.
+          (if (or find-file-existing-other-name find-file-visit-truename)
+              (setq buf other)))
 	;; Check to see if the file looks uncommonly large.
 	(when (not (or buf nowarn))
           (when (eq (abort-if-file-too-large
