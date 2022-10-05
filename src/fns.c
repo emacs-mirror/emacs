@@ -4161,7 +4161,7 @@ set_hash_index_slot (struct Lisp_Hash_Table *h, ptrdiff_t idx, ptrdiff_t val)
 /* If OBJ is a Lisp hash table, return a pointer to its struct
    Lisp_Hash_Table.  Otherwise, signal an error.  */
 
-static struct Lisp_Hash_Table *
+struct Lisp_Hash_Table *
 check_hash_table (Lisp_Object obj)
 {
   CHECK_HASH_TABLE (obj);
@@ -4189,7 +4189,7 @@ next_almost_prime (EMACS_INT n)
    0.  This function is used to extract a keyword/argument pair from
    a DEFUN parameter list.  */
 
-static ptrdiff_t
+ptrdiff_t
 get_key_arg (Lisp_Object key, ptrdiff_t nargs, Lisp_Object *args, char *used)
 {
   ptrdiff_t i;

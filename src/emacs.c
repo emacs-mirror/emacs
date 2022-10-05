@@ -1878,6 +1878,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   if (!initialized)
     {
       init_alloc_once ();
+      init_pkg_once ();
       init_pdumper_once ();
       init_obarray_once ();
       init_eval_once ();
@@ -1907,6 +1908,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
       syms_of_data ();
       syms_of_fns ();  /* Before syms_of_charset which uses hash tables.  */
+      syms_of_pkg ();
+
       syms_of_fileio ();
       /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
       syms_of_alloc ();
@@ -1925,6 +1928,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
+  init_pkg ();
   init_bignum ();
   init_threads ();
   init_eval ();
@@ -2455,6 +2459,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_macros ();
   init_window ();
   init_font ();
+
+  fix_symbol_packages ();
 
   if (!initialized)
     {

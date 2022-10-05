@@ -2450,6 +2450,7 @@ dump_symbol (struct dump_context *ctx,
   DUMP_FIELD_COPY (&out, symbol, u.s.interned);
   DUMP_FIELD_COPY (&out, symbol, u.s.declared_special);
   DUMP_FIELD_COPY (&out, symbol, u.s.pinned);
+  DUMP_FIELD_COPY (&out, symbol, u.s.external);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.name, WEIGHT_STRONG);
   switch (symbol->u.s.redirect)
     {
@@ -2472,6 +2473,7 @@ dump_symbol (struct dump_context *ctx,
       emacs_abort ();
     }
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.function, WEIGHT_NORMAL);
+  dump_field_lv (ctx, &out, symbol, &symbol->u.s.package, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.plist, WEIGHT_NORMAL);
   dump_field_lv_rawptr (ctx, &out, symbol, &symbol->u.s.next, Lisp_Symbol,
                         WEIGHT_STRONG);
@@ -2975,6 +2977,7 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
+    case PVEC_PACKAGE:
       offset = dump_vectorlike_generic (ctx, &v->header);
       break;
     case PVEC_BOOL_VECTOR:

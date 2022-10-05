@@ -863,6 +863,9 @@ struct Lisp_Symbol
       /* True if pointed to from purespace and hence can't be GC'd.  */
       bool_bf pinned : 1;
 
+      /* True if external symbol in its home package.  */
+      bool_bf external : 1;
+
       /* The symbol's name, as a Lisp string.  */
       Lisp_Object name;
 
@@ -880,6 +883,9 @@ struct Lisp_Symbol
 
       /* The symbol's property list.  */
       Lisp_Object plist;
+
+      /* The symbol's package, or nil.  */
+      Lisp_Object package;
 
       /* Next symbol in obarray bucket, if the symbol is interned.  */
       struct Lisp_Symbol *next;
@@ -1054,6 +1060,7 @@ enum pvec_type
   PVEC_TERMINAL,
   PVEC_WINDOW_CONFIGURATION,
   PVEC_SUBR,
+  PVEC_PACKAGE,
   PVEC_OTHER,            /* Should never be visible to Elisp code.  */
   PVEC_XWIDGET,
   PVEC_XWIDGET_VIEW,
@@ -1402,6 +1409,7 @@ dead_object (void)
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
+#define XSETPACKAGE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PACKAGE))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
@@ -2197,6 +2205,62 @@ XSUBR (Lisp_Object a)
   return &XUNTAG (a, Lisp_Vectorlike, union Aligned_Lisp_Subr)->s;
 }
 
+
+/************************************************************************
+                               Packages
+************************************************************************/
+
+struct Lisp_Package
+{
+  union vectorlike_header header;
+
+  /* The package name, a string.  */
+  Lisp_Object name;
+
+  /* Package nicknames as List of strings.  */
+  Lisp_Object nicknames;
+
+  /* List of package objects for the packages used by this
+     package.  */
+  Lisp_Object used_packages;
+
+  /* List of shadowing symbols.  */
+  Lisp_Object shadowing_symbols;
+
+  /* Hash table mapping symbol names to symbols present in the
+     package.  */
+  Lisp_Object symbols;
+
+} GCALIGNED_STRUCT;
+
+union Aligned_Lisp_Package
+{
+  struct Lisp_Package s;
+  GCALIGNED_UNION_MEMBER
+};
+
+verify (GCALIGNED (union Aligned_Lisp_Package));
+
+INLINE bool
+PACKAGEP (Lisp_Object a)
+{
+  return PSEUDOVECTORP (a, PVEC_PACKAGE);
+}
+
+INLINE struct Lisp_Package *
+XPACKAGE (Lisp_Object a)
+{
+  eassert (PACKAGEP (a));
+  return &XUNTAG (a, Lisp_Vectorlike, union Aligned_Lisp_Package)->s;
+}
+
+extern void init_pkg_once (void);
+extern void init_pkg (void);
+extern void syms_of_pkg (void);
+extern void fix_symbol_packages (void);
+extern Lisp_Object pkg_insert_new_symbol (Lisp_Object symbol, Lisp_Object package);
+
+
 /* Return whether a value might be a valid docstring.
    Used to distinguish the presence of non-docstring in the docstring slot,
    as in the case of OClosures.  */
@@ -2320,6 +2384,18 @@ INLINE Lisp_Object
 SYMBOL_NAME (Lisp_Object sym)
 {
   return XSYMBOL (sym)->u.s.name;
+}
+
+INLINE Lisp_Object
+SYMBOL_PACKAGE (Lisp_Object sym)
+{
+  return XSYMBOL (sym)->u.s.package;
+}
+
+INLINE bool
+SYMBOL_EXTERNAL_P (Lisp_Object sym)
+{
+  return XSYMBOL (sym)->u.s.external;
 }
 
 /* Value is true if SYM is an interned symbol.  */
@@ -3775,6 +3851,12 @@ set_symbol_function (Lisp_Object sym, Lisp_Object function)
 }
 
 INLINE void
+set_symbol_package (Lisp_Object sym, Lisp_Object package)
+{
+  XSYMBOL (sym)->u.s.package = package;
+}
+
+INLINE void
 set_symbol_plist (Lisp_Object sym, Lisp_Object plist)
 {
   XSYMBOL (sym)->u.s.plist = plist;
@@ -4004,6 +4086,8 @@ extern void init_syntax_once (void);
 extern void syms_of_syntax (void);
 
 /* Defined in fns.c.  */
+extern struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
+extern ptrdiff_t get_key_arg (Lisp_Object, ptrdiff_t, Lisp_Object *, char *);
 enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 extern ptrdiff_t list_length (Lisp_Object);
 extern EMACS_INT next_almost_prime (EMACS_INT) ATTRIBUTE_CONST;

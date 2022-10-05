@@ -225,6 +225,7 @@ for example, (type-of 1) returns `integer'.  */)
         case PVEC_PROCESS: return Qprocess;
         case PVEC_WINDOW: return Qwindow;
         case PVEC_SUBR: return Qsubr;
+        case PVEC_PACKAGE: return Qpackage;
         case PVEC_COMPILED: return Qcompiled_function;
         case PVEC_BUFFER: return Qbuffer;
         case PVEC_CHAR_TABLE: return Qchar_table;
@@ -775,6 +776,14 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   CHECK_SYMBOL (symbol);
   name = SYMBOL_NAME (symbol);
   return name;
+}
+
+DEFUN ("symbol-package", Fsymbol_package, Ssymbol_package, 1, 1, 0,
+       doc: /* Return SYMBOL's package, a package or nil.  */)
+  (Lisp_Object symbol)
+{
+  CHECK_SYMBOL (symbol);
+  return SYMBOL_PACKAGE (symbol);
 }
 
 DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
@@ -4254,6 +4263,7 @@ syms_of_data (void)
   DEFSYM (Qprocess, "process");
   DEFSYM (Qwindow, "window");
   DEFSYM (Qsubr, "subr");
+  DEFSYM (Qpackage, "package");
   DEFSYM (Qcompiled_function, "compiled-function");
   DEFSYM (Qbuffer, "buffer");
   DEFSYM (Qframe, "frame");
@@ -4328,6 +4338,7 @@ syms_of_data (void)
   defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
+  defsubr (&Ssymbol_package);
   defsubr (&Sbare_symbol);
   defsubr (&Ssymbol_with_pos_pos);
   defsubr (&Sremove_pos_from_symbol);

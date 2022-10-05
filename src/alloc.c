@@ -3625,12 +3625,14 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   p->u.s.redirect = SYMBOL_PLAINVAL;
   SET_SYMBOL_VAL (p, Qunbound);
   set_symbol_function (val, Qnil);
+  set_symbol_package (val, Qnil);
   set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
   p->u.s.interned = SYMBOL_UNINTERNED;
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
   p->u.s.pinned = false;
+  p->u.s.external = false;
 }
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
@@ -4641,6 +4643,7 @@ live_symbol_holding (struct mem_node *m, void *p)
 	  || off == offsetof (struct Lisp_Symbol, u.s.name)
 	  || off == offsetof (struct Lisp_Symbol, u.s.val)
 	  || off == offsetof (struct Lisp_Symbol, u.s.function)
+	  || off == offsetof (struct Lisp_Symbol, u.s.package)
 	  || off == offsetof (struct Lisp_Symbol, u.s.plist)
 	  || off == offsetof (struct Lisp_Symbol, u.s.next))
 	{
@@ -6947,6 +6950,8 @@ process_mark_stack (ptrdiff_t base_sp)
 	    /* Attempt to catch bogus objects.  */
 	    eassert (valid_lisp_object_p (ptr->u.s.function));
 	    mark_stack_push_value (ptr->u.s.function);
+	    eassert (valid_lisp_object_p (ptr->u.s.package));
+	    mark_stack_push_value (ptr->u.s.package);
 	    mark_stack_push_value (ptr->u.s.plist);
 	    switch (ptr->u.s.redirect)
 	      {

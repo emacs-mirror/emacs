@@ -1803,6 +1803,17 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       printchar ('>', printcharfun);
       break;
 
+    case PVEC_PACKAGE:
+      if (STRINGP (XPACKAGE (obj)->name))
+	{
+	  print_c_string ("#<package \"", printcharfun);
+	  print_string (XPACKAGE (obj)->name, printcharfun);
+	  print_c_string ("\">", printcharfun);
+	}
+      else
+	print_c_string ("#<deleted package>", printcharfun);
+      break;
+
     case PVEC_XWIDGET:
 #ifdef HAVE_XWIDGETS
       {
@@ -2369,6 +2380,38 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  {
 	    print_c_string ("##", printcharfun);
 	    break;
+	  }
+
+	/* Package prefix, maybe.  */
+	const Lisp_Object package = SYMBOL_PACKAGE (obj);
+	if (NILP (package) || EQ (package, Vearmuffs_package))
+	  {
+	    /* Nothing to do for uninterned symbols, or symbols in
+	       their home package.  */
+	  }
+	else if (EQ (package, Vkeyword_package))
+	  {
+	    /* FIXME: If symbol names of keywords didn't include the
+	       colon, we'd have to print it here.  */
+	    // print_c_string (":", printcharfun);
+	  }
+	else
+	  {
+	    const Lisp_Object found
+	      = Ffind_symbol (SYMBOL_NAME (obj), Vearmuffs_package);
+	    if (!NILP (found) && EQ (XCAR (found), obj))
+	      {
+		/* Don't print qualification if accessible in current
+		   package.  */
+	      }
+	    else
+	      {
+		print_object (XPACKAGE (package)->name, printcharfun, false);
+		if (SYMBOL_EXTERNAL_P (obj))
+		  print_c_string (":", printcharfun);
+		else
+		  print_c_string ("::", printcharfun);
+	      }
 	  }
 
 	ptrdiff_t i = 0;
