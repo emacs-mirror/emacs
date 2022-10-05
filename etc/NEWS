@@ -2700,6 +2700,10 @@ remote host are shown.  Alternatively, the user option
 The old name is still available as an obsolete function alias.
 
 ---
+*** New command 'world-clock-copy-time-as-kill' for 'M-x world-clock'.
+It copies the current line into the kill ring.
+
+---
 *** 'edit-abbrevs' now uses font-locking.
 The new face 'abbrev-table-name' is used to display the abbrev table
 name.
