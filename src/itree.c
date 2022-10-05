@@ -100,7 +100,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static struct interval_node *interval_tree_validate (struct interval_tree *, struct interval_node *);
 static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
 static int interval_tree_max_height (const struct interval_tree *);
-static void interval_tree_update_limit (const struct interval_tree *, struct interval_node *);
+static void interval_tree_update_limit (struct interval_node *);
 static void interval_tree_inherit_offset (uintmax_t otick, struct interval_node *);
 static void interval_tree_propagate_limit (struct interval_node *);
 static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
@@ -440,7 +440,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 
 /* Return true, if NODE is a member of TREE. */
 
-bool
+static bool
 interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
 {
   eassert (node);
@@ -455,12 +455,44 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
   return false;
 }
 
+static inline bool
+itree_limit_is_stable (struct interval_node *node)
+{
+  if (node == ITREE_NULL)
+    return true;
+  ptrdiff_t newlimit = max (node->end,
+                            max (node->left->limit + node->left->offset,
+                                 node->right->limit + node->right->offset));
+  return (newlimit == node->limit);
+}
+
+static inline bool
+itree_limits_are_stable (struct interval_node *node)
+{
+  if (node == ITREE_NULL)
+    return true;
+  return itree_limit_is_stable (node)
+         && itree_limits_are_stable (node->right)
+         && itree_limits_are_stable (node->left);
+}
+
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
 
 struct interval_node*
 interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 {
+  /* eassert (itree_limits_are_stable (tree->root)); */
   eassert (interval_tree_contains (tree, node));
+
+  /* `broken`, if non-NULL, holds a node that's being moved up to where a black
+     node used to be, which may thus require further fixups in its parents
+     (done in `interval_tree_remove_fix`).
+     BEWARE: `null->parent` is usually write-only, *BUT* in this function,
+     we use `null->parent` to simplify the code for the case where the
+     "broken" node is null: `broken->parent` is set typically in
+     `interval_tree_transplant` and then used in
+     `interval_tree_remove_fix`.
+     This trick is described in Cormen et al.'s Introduction to Algorithms.  */
 
   struct interval_node *broken = NULL;
 
@@ -471,29 +503,30 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 	= node->right == ITREE_NULL ? node->left : node->right;
       if (!node->red)
         broken = subst;
+      /* BEWARE: Here is one place we may set `null->parent`.  */
       interval_tree_transplant (tree, subst, node);
-      interval_tree_propagate_limit
-        /* FIXME: null->parent is supposed to be write only!  */
-        (subst == ITREE_NULL ? ITREE_NULL->parent : subst);
     }
   else
     {
       struct interval_node *min = interval_tree_subtree_min (node->right);
       struct interval_node *min_right = min->right;
+      struct interval_node *min_parent = min->parent;
 
       if (!min->red)
-        broken = min->right;
+        broken = min_right;
       eassert (min != ITREE_NULL);
       if (min->parent == node)
         {
           if (min_right == ITREE_NULL)
-            ITREE_NULL->parent = min; /* set parent, if min_right = null */
+            /* BEWARE: Here is one place we set `null->parent`.  */
+            min_right->parent = min;
           else
             eassert (min_right->parent == min);
         }
       else
         {
-          interval_tree_transplant (tree, min->right, min);
+          /* BEWARE: Here is one place we may set `null->parent`.  */
+          interval_tree_transplant (tree, min_right, min);
           min->right = node->right;
           min->right->parent = min;
         }
@@ -502,19 +535,27 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       min->left = node->left;
       min->left->parent = min;
       min->red = node->red;
-      interval_tree_propagate_limit
-        /* FIXME: null->parent is supposed to be write only!  */
-        (min_right == ITREE_NULL ? ITREE_NULL->parent : min_right);
-      interval_tree_propagate_limit (min);
+      interval_tree_update_limit (min);
+      /* This call "belongs" with the first `interval_tree_transplant`
+         (of `min_right`, done earlier in the `if`) but we prefer to do it
+         here ("late") because otherwise it would sometimes update part of
+         the tree with values that would be invalidated by the second
+         `interval_tree_transplant`.  */
+      interval_tree_propagate_limit (min_parent);
     }
+  interval_tree_propagate_limit (node->parent);
+  /* eassert (itree_limits_are_stable (tree->root)); */
 
   if (broken)
+    /* BEWARE: Here is where we may end up relying on the `null->parent`
+       set earlier.  */
     interval_tree_remove_fix (tree, broken);
 
   node->right = node->left = node->parent = NULL;
   --tree->size;
 
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
+  /* eassert (itree_limits_are_stable (tree->root)); */
 
   return node;
 }
@@ -794,6 +835,7 @@ interval_generator_next (struct interval_generator *g)
         struct interval_node * const right = node->right;
 
         interval_tree_inherit_offset (g->otick, node);
+        eassert (itree_limit_is_stable (node));
         switch (g->order)
           {
           case ITREE_ASCENDING:
@@ -852,8 +894,7 @@ interval_generator_narrow (struct interval_generator *g,
 /* Update NODE's limit attribute according to its children. */
 
 static void
-interval_tree_update_limit (const struct interval_tree *tree,
-                            struct interval_node *node)
+interval_tree_update_limit (struct interval_node *node)
 {
   if (node == ITREE_NULL)
     return;
@@ -952,8 +993,8 @@ interval_tree_rotate_left (struct interval_tree *tree, struct interval_node *nod
     node->parent = right;
 
   /* Order matters here. */
-  interval_tree_update_limit (tree, node);
-  interval_tree_update_limit (tree, right);
+  interval_tree_update_limit (node);
+  interval_tree_update_limit (right);
 }
 
 /* Perform the familiar right-rotation on node NODE. */
@@ -988,12 +1029,13 @@ interval_tree_rotate_right (struct interval_tree *tree, struct interval_node *no
   if (node != ITREE_NULL)
     node->parent = left;
 
-  interval_tree_update_limit (tree, left);
-  interval_tree_update_limit (tree, node);
+  interval_tree_update_limit (left);
+  interval_tree_update_limit (node);
 }
 
-/* Repair the tree after an insertion.  Part of the RB-Tree
-   algorithm. */
+/* Repair the tree after an insertion.
+   The new NODE was added as red, so we may have 2 reds in a row.
+   Rebalance the parents as needed to re-establish the RB invariants. */
 
 static void
 interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node)
@@ -1066,12 +1108,16 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
   tree->root->red = false;
 }
 
-/* Repair the tree after a deletion.  Part of the RB-Tree
-   algorithm. */
+/* Repair the tree after a deletion.
+   The black-depth of NODE is one less than that of its sibling,
+   so re-balance the parents to re-establish the RB invariants.  */
 
 static void
 interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node)
 {
+  /* BEWARE: null->parent is usually write-only, *BUT*
+     NODE here can be the NULL node, in which case its `parent` field
+     has to be properly set to point to the intended "parent" node.  */
   while (node != tree->root && !node->red)
     {
       if (node == node->parent->left)
@@ -1148,7 +1194,9 @@ interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node
   node->red = false;
 }
 
-/* Link node SOURCE in DEST's place. */
+/* Link node SOURCE in DEST's place.
+   It's the caller's responsability to refresh the `limit`s
+   of DEST->parents afterwards.  */
 
 static void
 interval_tree_transplant (struct interval_tree *tree, struct interval_node *source,

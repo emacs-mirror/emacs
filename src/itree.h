@@ -76,7 +76,6 @@ void interval_tree_destroy (struct interval_tree *);
 intmax_t interval_tree_size (struct interval_tree *);
 void interval_tree_clear (struct interval_tree *);
 void interval_tree_insert (struct interval_tree *, struct interval_node *);
-bool interval_tree_contains (struct interval_tree *, struct interval_node *);
 struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
 struct interval_generator *interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order,
 			       const char* file, int line);
