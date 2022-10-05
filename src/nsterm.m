@@ -37,7 +37,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 #include <c-ctype.h>
 #include <c-strcase.h>
@@ -3996,6 +3995,7 @@ static void
 ns_draw_stretch_glyph_string (struct glyph_string *s)
 {
   struct face *face;
+  NSColor *fg_color;
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -4092,8 +4092,20 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	  NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
 	}
     }
-}
 
+  /* Draw overlining, etc. on the stretch glyph (or the part of the
+     stretch glyph after the cursor).  If the glyph has a box, then
+     decorations will be drawn after drawing the box in
+     ns_draw_glyph_string, in order to prevent them from being
+     overwritten by the box.  */
+  if (s->face->box == FACE_NO_BOX)
+    {
+      fg_color = [NSColor colorWithUnsignedLong:
+			    NS_FACE_FOREGROUND (s->face)];
+      ns_draw_text_decoration (s, s->face, fg_color,
+			       s->background_width, s->x);
+    }
+}
 
 static void
 ns_draw_glyph_string_foreground (struct glyph_string *s)
@@ -4411,7 +4423,8 @@ ns_draw_glyph_string (struct glyph_string *s)
     {
       NSColor *fg_color;
 
-      fg_color = [NSColor colorWithUnsignedLong:NS_FACE_FOREGROUND (s->face)];
+      fg_color = [NSColor colorWithUnsignedLong: NS_FACE_FOREGROUND (s->face)];
+
       ns_draw_text_decoration (s, s->face, fg_color,
 			       s->background_width, s->x);
     }
@@ -5606,17 +5619,6 @@ ns_term_init (Lisp_Object display_name)
   }
 
   NSTRACE_MSG ("Versions");
-
-  {
-#ifdef NS_IMPL_GNUSTEP
-    Vwindow_system_version = build_string (gnustep_base_version);
-#else
-    /* PSnextrelease (128, c); */
-    char c[DBL_BUFSIZE_BOUND];
-    int len = dtoastr (c, sizeof c, 0, 0, NSAppKitVersionNumber);
-    Vwindow_system_version = make_unibyte_string (c, len);
-#endif
-  }
 
   delete_keyboard_wait_descriptor (0);
 
@@ -7917,17 +7919,24 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   if (!emacsframe->output_data.ns)
     return;
+
   if (screen != nil)
     {
-      emacsframe->left_pos = NSMinX (r) - NS_PARENT_WINDOW_LEFT_POS (emacsframe);
-      emacsframe->top_pos = NS_PARENT_WINDOW_TOP_POS (emacsframe) - NSMaxY (r);
+      emacsframe->left_pos = (NSMinX (r)
+			      - NS_PARENT_WINDOW_LEFT_POS (emacsframe));
+      emacsframe->top_pos = (NS_PARENT_WINDOW_TOP_POS (emacsframe)
+			     - NSMaxY (r));
 
-      // FIXME: after event part below didExitFullScreen is not received
-      // if (emacs_event)
-      //   {
-      //     emacs_event->kind = MOVE_FRAME_EVENT;
-      //     EV_TRAILER ((id)nil);
-      //   }
+      if (emacs_event)
+	{
+	  struct input_event ie;
+	  EVENT_INIT (ie);
+	  ie.kind = MOVE_FRAME_EVENT;
+	  XSETFRAME (ie.frame_or_window, emacsframe);
+	  XSETINT (ie.x, emacsframe->left_pos);
+	  XSETINT (ie.y, emacsframe->top_pos);
+	  kbd_buffer_store_event (&ie);
+	}
     }
 }
 

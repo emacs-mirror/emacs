@@ -4,9 +4,9 @@
 #+language:              en
 #+options:               ':t toc:nil author:t email:t num:t
 #+startup:               content
-#+macro:                 stable-version 2.6.0
-#+macro:                 release-date 2022-08-19
-#+macro:                 development-version 2.7.0-dev
+#+macro:                 stable-version 2.7.0
+#+macro:                 release-date 2022-10-01
+#+macro:                 development-version 2.8.0-dev
 #+macro:                 file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro:                 space @@texinfo:@: @@
 #+macro:                 kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -3902,6 +3902,7 @@ package:
 (use-package circadian                  ; you need to install this
   :ensure
   :after solar
+  :config
   (setq circadian-themes '((:sunrise . modus-operandi)
                            (:sunset  . modus-vivendi)))
   (circadian-setup))
@@ -4514,6 +4515,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + calendar and diary
 + calfw
 + calibredb
++ centaur-tabs
 + cfrs
 + change-log and log-view (such as ~vc-print-log~, ~vc-print-root-log~)
 + chart
@@ -4533,6 +4535,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + counsel-css
 + cov
 + cperl-mode
++ crontab-mode
 + css-mode
 + csv-mode
 + ctrlf
@@ -4705,6 +4708,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + powerline
 + powerline-evil
 + prism ([[#h:a94272e0-99da-4149-9e80-11a7e67a2cf2][Note for prism.el]])
++ prescient
 + proced
 + prodigy
 + pulse
@@ -4738,6 +4742,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + smerge
 + spaceline
 + speedbar
++ spell-fu
 + stripes
 + suggest
 + switch-window
@@ -5596,6 +5601,32 @@ those buttons.  Disabling the logo fixes the problem:
 (setq notmuch-show-logo nil)
 #+end_src
 
+** Note on goto-address-mode faces
+:PROPERTIES:
+:CUSTOM_ID: h:2d74236a-e41c-4616-8735-75f949a67334
+:END:
+
+The built-in ~goto-address-mode~ uses heuristics to identify URLs and
+email addresses in the current buffer.  It then applies a face to them
+to change their style.  Some packages, such as =notmuch=, use this
+minor-mode automatically.
+
+The faces are not declared with ~defface~, meaning that it is better
+that the theme does not modify them.  The user is thus encouraged to
+consider including (or equivalent) this in their setup:
+
+#+begin_src emacs-lisp
+(setq goto-address-url-face 'link
+      goto-address-url-mouse-face 'highlight
+      goto-address-mail-face 'link
+      goto-address-mail-mouse-face 'highlight)
+#+end_src
+
+My personal preference is to set ~goto-address-mail-face~ to nil, as
+it otherwise adds too much visual noise to the buffer (email addresses
+stand out more, due to the use of the uncommon =@= character but also
+because they are often enclosed in angled brackets).
+
 * Frequently Asked Questions
 :properties:
 :custom_id: h:b3384767-30d3-4484-ba7f-081729f03a47
@@ -5868,11 +5899,11 @@ usability beyond matters of color---they would be making a
 not-so-obvious error of treating different cases as if they were the
 same.
 
-The Modus themes prioritise "thematic consistency" over abstract harmony
+The Modus themes prioritize "thematic consistency" over abstract harmony
 or regularity among their applicable colors.  In concrete terms, we do
 not claim that, say, our yellows are the best complements for our blues
 because we generally avoid using complementary colors side-by-side, so
-it is wrong to optimise for a decontextualised blue+yellow combination.
+it is wrong to optimize for a decontextualised blue+yellow combination.
 Not to imply that our colors do not work well together because they do,
 just to clarify that consistency of context is what themes must strive
 for, and that requires widening the scope of the design beyond the
@@ -6072,42 +6103,44 @@ The Modus themes are a collective effort.  Every bit of work matters.
 + Author/maintainer :: Protesilaos Stavrou.
 
 + Contributions to code or documentation :: Alex Griffin, Anders
-  Johansson, Basil L.{{{space()}}} Contovounesios, Björn Lindström,
-  Carlo Zancanaro, Christian Tietze, Daniel Mendler, Eli Zaretskii,
-  Fritz Grabo, Illia Ostapyshyn, Kévin Le Gouguec, Kostadin Ninev,
-  Madhavan Krishnan, Manuel Giraud, Markus Beppler, Matthew Stevenson,
-  Mauro Aranda, Nicolas De Jaeghere, Paul David, Philip Kaludercic,
-  Pierre Téchoueyres, Rudolf Adamkovič, Stephen Gildea, Shreyas Ragavan,
-  Stefan Kangas, Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen
-  Xie.
+  Johansson, Antonio Ruiz, Basil L.{{{space()}}} Contovounesios, Björn
+  Lindström, Carlo Zancanaro, Christian Tietze, Daniel Mendler, Eli
+  Zaretskii, Fritz Grabo, Illia Ostapyshyn, Kévin Le Gouguec, Koen van
+  Greevenbroek, Kostadin Ninev, Madhavan Krishnan, Manuel Giraud,
+  Markus Beppler, Matthew Stevenson, Mauro Aranda, Nicolas De
+  Jaeghere, Paul David, Philip Kaludercic, Pierre Téchoueyres, Rudolf
+  Adamkovič, Stephen Gildea, Shreyas Ragavan, Stefan Kangas, Utkarsh
+  Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie, okamsn.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
-  Adrian Manea, Alex Griffin, Alex Koen, Alex Peitsinis, Alexey Shmalko,
-  Alok Singh, Anders Johansson, André Alexandre Gomes, Andrew Tropin,
-  Antonio Hernández Blas, Arif Rezai, Augusto Stoffel, Basil
+  Adrian Manea, Alex Griffin, Alex Koen, Alex Peitsinis, Alexey
+  Shmalko, Alok Singh, Anders Johansson, André Alexandre Gomes, Andrew
+  Tropin, Antonio Hernández Blas, Arif Rezai, Augusto Stoffel, Basil
   L.{{{space()}}} Contovounesios, Burgess Chang, Christian Tietze,
-  Christopher Dimech, Christopher League, Damien Cassou, Daniel Mendler,
-  Dario Gjorgjevski, David Edmondson, Davor Rotim, Divan Santana, Eliraz
-  Kedmi, Emanuele Michele Alberto Monterosso, Farasha Euker, Feng Shu,
-  Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia, Gonçalo Marrafa,
-  Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken, Iris
-  Garcia, Ivan Popovych, Jeremy Friesen, Jerry Zhang, Johannes Grødem,
-  John Haman, Jonas Collberg, Jorge Morais, Joshua O'Connor, Julio
-  C. Villasante, Kenta Usami, Kevin Fleming, Kévin Le Gouguec, Kostadin
-  Ninev, Len Trigg, Lennart C. Karssen, Magne Hov, Manuel Uberti, Mark
-  Bestley, Mark Burton, Markus Beppler, Matt Armstrong, Mauro Aranda,
-  Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
-  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Paul Poloskov,
-  Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic, Pierre
-  Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov, Ryan
-  Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel
-  Culpepper, Saša Janiška, Shreyas Ragavan, Simon Pugnet, Tassilo Horn,
-  Thibaut Verron, Thomas Heartman, Togan Muftuoglu, Tony Zorman, Trey
-  Merkley, Tomasz Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh,
-  Vincent Foley.  As well as users: Ben, CsBigDataHub1, Emacs Contrib,
-  Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
-  Trey, bepolymathe, bit9tream, derek-upham, doolio, fleimgruber,
-  gitrj95, iSeeU, jixiuf, okamsn, pRot0ta1p.
+  Christopher Dimech, Christopher League, Damien Cassou, Daniel
+  Mendler, Dario Gjorgjevski, David Edmondson, Davor Rotim, Divan
+  Santana, Eliraz Kedmi, Emanuele Michele Alberto Monterosso, Farasha
+  Euker, Feng Shu, Gautier Ponsinet, Gerry Agbobada, Gianluca Recchia,
+  Gonçalo Marrafa, Guilherme Semente, Gustavo Barros, Hörmetjan
+  Yiltiz, Ilja Kocken, Iris Garcia, Ivan Popovych, Jeremy Friesen,
+  Jerry Zhang, Johannes Grødem, John Haman, Jonas Collberg, Jorge
+  Morais, Joshua O'Connor, Julio C. Villasante, Kenta Usami, Kevin
+  Fleming, Kévin Le Gouguec, Kostadin Ninev, Len Trigg, Lennart
+  C. Karssen, Luis Miguel Castañeda, Magne Hov, Manuel Uberti, Mark
+  Bestley, Mark Burton, Mark Simpson, Markus Beppler, Matt Armstrong,
+  Mauro Aranda, Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan
+  Willcock, Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere,
+  Paul Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip
+  Kaludercic, Pierre Téchoueyres, Przemysław Kryger, Robert Hepple,
+  Roman Rudakov, Ryan Phillips, Rytis Paškauskas, Rudolf Adamkovič,
+  Sam Kleinman, Samuel Culpepper, Saša Janiška, Shreyas Ragavan, Simon
+  Pugnet, Tassilo Horn, Thibaut Verron, Thomas Heartman, Togan
+  Muftuoglu, Tony Zorman, Trey Merkley, Tomasz Hołubowicz, Toon Claes,
+  Uri Sharf, Utkarsh Singh, Vincent Foley.  As well as users: Ben,
+  CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux, Fredrik, Moesasji,
+  Nick, Summer Emacs, TheBlob42, Trey, bepolymathe, bit9tream,
+  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, okamsn,
+  pRot0ta1p.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core

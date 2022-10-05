@@ -767,7 +767,7 @@ VALUE must be a translation table to use on encoding.
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
-`after-insert-functions' are called.  This function is passed one
+`after-insert-file-functions' are called.  This function is passed one
 argument: the number of characters in the text to convert, with
 point at the start of the text.  The function should leave point
 and the match data unchanged, and should return the new character
@@ -1362,7 +1362,8 @@ to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system &optional terminal)
+(defun set-terminal-coding-system (coding-system &optional terminal
+                                                 inhibit-refresh)
   "Set coding system of terminal output to CODING-SYSTEM.
 All text output to TERMINAL will be encoded
 with the specified coding system.
@@ -1371,9 +1372,12 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
 or by the previous use of this command.
 
-TERMINAL may be a terminal object, a frame, or nil for the
-selected frame's terminal.  The setting has no effect on
-graphical terminals."
+Optional argument TERMINAL may be a terminal object or a frame,
+and defaults to the selected frame's terminal.  The setting has no
+effect on graphical terminals.
+
+By default, this function will redraw the current frame;
+optional argument INHIBIT-REFRESH, if non-nil, prevents that."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
@@ -1387,7 +1391,8 @@ graphical terminals."
   (if coding-system
       (setq default-terminal-coding-system coding-system))
   (set-terminal-coding-system-internal coding-system terminal)
-  (redraw-frame))
+  (unless inhibit-refresh
+    (redraw-frame)))
 
 (defvar default-keyboard-coding-system nil
   "Default value of the keyboard coding system.

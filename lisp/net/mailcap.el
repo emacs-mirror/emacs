@@ -125,7 +125,7 @@ is consulted."
      ("vnd\\.ms-excel"
       (viewer . "gnumeric %s")
       (test   . (getenv "DISPLAY"))
-      (type . "application/vnd.ms-excel"))
+      (type . "application/vnd\\.ms-excel"))
      ("octet-stream"
       (viewer . mailcap-save-binary-file)
       (non-viewer . t)
@@ -716,27 +716,43 @@ to supply to the test."
 	   result))))
 
 (defun mailcap-add-mailcap-entry (major minor info &optional storage)
+  "Add handler INFO for mime type MAJOR/MINOR to STORAGE.
+
+MAJOR and MINOR should be strings.  MINOR is treated as a regexp
+in later lookups, and, therefore, you may need to escape it
+appropriately.
+
+The format of INFO is described in `mailcap-mime-data'.
+
+STORAGE should be a symbol referring to a variable.  The value of
+this variable should have the same format as `mailcap-mime-data'.
+STORAGE defaults to `mailcap--computed-mime-data'.
+
+None of this is enforced."
   (let* ((storage (or storage 'mailcap--computed-mime-data))
-         (old-major (assoc major (symbol-value storage))))
-    (if (null old-major)		; New major area
-        (set storage
-             (cons (cons major (list (cons minor info)))
-                   (symbol-value storage)))
-      (let ((cur-minor (assoc minor old-major)))
-	(cond
-	 ((or (null cur-minor)		; New minor area, or
-	      (assq 'test info))	; Has a test, insert at beginning
-	  (setcdr old-major
-                  (cons (cons minor info) (cdr old-major))))
-	 ((and (not (assq 'test info))	; No test info, replace completely
-	       (not (assq 'test cur-minor))
-	       (equal (assq 'viewer info)  ; Keep alternative viewer
-		      (assq 'viewer cur-minor)))
-	  (setcdr cur-minor info))
-	 (t
-	  (setcdr old-major
-                  (setcdr old-major
-                          (cons (cons minor info) (cdr old-major))))))))))
+	 (major-entry (assoc major (symbol-value storage)))
+	 (new-minor-entry (cons minor info))
+	 minor-entry)
+    (cond
+     ((null major-entry)
+      ;; Add a new major entry containing the new minor entry.
+      (setf major-entry (list major new-minor-entry))
+      (push major-entry (symbol-value storage)))
+     ((and (setf minor-entry (assoc minor major-entry))
+	   (not (assq 'test info))
+	   (not (assq 'test minor-entry))
+	   (equal (assq 'viewer info)
+		  (assq 'viewer minor-entry)))
+      ;; Replace a previous MINOR entry if it and the entry to be
+      ;; added both do *not* have a ‘test’ associated in their info
+      ;; alist and both use the same ‘viewer’ command.  This ignores
+      ;; other fields in the previous entryʼs info alist: they will be
+      ;; lost when the info alist in the cdr of the previous entry is
+      ;; replaced with the new INFO alist.
+      (setf (cdr minor-entry) info))
+     (t
+      ;; Add the new minor entry to the existing major entry.
+      (push new-minor-entry (cdr major-entry))))))
 
 (defun mailcap-add (type viewer &optional test)
   "Add VIEWER as a handler for TYPE.
@@ -963,7 +979,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".vox"   . "audio/basic")
     (".vrml"  . "x-world/x-vrml")
     (".wav"   . "audio/x-wav")
-    (".xls"   . "application/vnd.ms-excel")
+    (".xls"   . "application/vnd\\.ms-excel")
     (".wrl"   . "x-world/x-vrml")
     (".xbm"   . "image/xbm")
     (".xpm"   . "image/xpm")
@@ -1035,7 +1051,8 @@ If FORCE, re-parse even if already parsed."
 	(setq save-pos (point))
 	(skip-chars-forward "^ \t\n")
 	(downcase-region save-pos (point))
-	(setq type (buffer-substring save-pos (point)))
+	(setq type (mailcap--regexp-quote-type
+                    (buffer-substring save-pos (point))))
 	(while (not (eolp))
 	  (skip-chars-forward " \t")
 	  (setq save-pos (point))
@@ -1047,6 +1064,12 @@ If FORCE, re-parse even if already parsed."
                 extns))
         (setq mailcap-mime-extensions (append extns mailcap-mime-extensions)
               extns nil)))))
+
+(defun mailcap--regexp-quote-type (type)
+  (if (not (string-search "/" type))
+      type
+    (pcase-let ((`(,major ,minor) (split-string type "/")))
+      (concat major "/" (regexp-quote minor)))))
 
 (defun mailcap-extension-to-mime (extn)
   "Return the MIME content type of the file extensions EXTN."

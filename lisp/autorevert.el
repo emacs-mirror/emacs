@@ -677,7 +677,7 @@ will use an up-to-date value of `auto-revert-interval'."
 ;;
 ;; We do this by reverting immediately in response to the first in a
 ;; flurry of notifications. Any notifications during the following
-;; `auto-revert-lockout-interval' seconds are noted but not acted upon
+;; `auto-revert--lockout-interval' seconds are noted but not acted upon
 ;; until the end of that interval.
 
 (defconst auto-revert--lockout-interval 2.5

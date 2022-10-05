@@ -1784,10 +1784,10 @@ Bind `case-fold-search' during the evaluation, depending on the value of
 (defun tags--compat-initialize (initialize)
   (fileloop-initialize
    (tags--compat-files initialize)
+   (lambda () (tags-loop-eval tags-loop-scan))
    (if tags-loop-operate
        (lambda () (tags-loop-eval tags-loop-operate))
-     (lambda () (message "Scanning file %s...found" buffer-file-name) nil))
-   (lambda () (tags-loop-eval tags-loop-scan))))
+     (lambda () (message "Scanning file %s...found" buffer-file-name) nil))))
 
 ;;;###autoload
 (defun tags-loop-continue (&optional first-time)

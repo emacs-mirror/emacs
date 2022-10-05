@@ -545,7 +545,7 @@ Will fail unless you have administrative privileges on the repo."
 ;;;
 
 ;; Follows vc-cvs-command, which uses vc-do-command from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
 
 (defun vc-cvs-print-log (files buffer &optional _shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.

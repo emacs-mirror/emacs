@@ -20,8 +20,6 @@
 
 #include "intprops-internal.h"
 
-#include <stdbool.h>
-
 /* Store into *R the low-order bits of A + B, A - B, A * B, respectively.
    Return 1 if the result overflows, 0 otherwise.
    A, B, and *R can have any integer type other than char, bool, a

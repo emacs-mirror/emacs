@@ -456,6 +456,7 @@ so that all identifiers are recognized as words.")
 	c-depropertize-CPP
 	c-before-change-check-ml-strings
 	c-before-change-check-<>-operators
+	c-before-after-change-check-c++-modules
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change
@@ -516,6 +517,7 @@ parameters \(point-min) and \(point-max).")
 	c-parse-quotes-after-change
 	c-after-change-mark-abnormal-strings
 	c-extend-font-lock-region-for-macros
+	c-before-after-change-check-c++-modules
 	c-neutralize-syntax-in-CPP
 	c-restore-<>-properties
 	c-change-expand-fl-region)
@@ -932,6 +934,8 @@ This value is by default merged into `c-operators'."
 			     t)))
       (when ops
 	(c-make-keywords-re 'appendable ops))))
+(c-lang-defvar c-opt-identifier-prefix-key
+	       (c-lang-const c-opt-identifier-prefix-key))
 
 (c-lang-defconst c-after-id-concat-ops
   "Operators that can occur after a binary operator on `c-identifier-ops'
@@ -1017,6 +1021,16 @@ e.g. identifiers with template arguments such as \"A<X,Y>\" in C++."
 		 "\\)*")
 	      "")))
 (c-lang-defvar c-identifier-key (c-lang-const c-identifier-key))
+
+(c-lang-defconst c-module-name-re
+  "This regexp matches (a component of) a module name.
+Currently (2022-09) just C++ Mode uses this."
+  t nil
+  c++ (concat (c-lang-const c-symbol-key)
+	      "\\(?:\\."
+	      (c-lang-const c-symbol-key)
+	      "\\)*"))
+(c-lang-defvar c-module-name-re (c-lang-const c-module-name-re))
 
 (c-lang-defconst c-identifier-last-sym-match
   ;; This was a docstring constant in 5.30 but it's no longer used.
@@ -1316,6 +1330,10 @@ since CC Mode treats every identifier as an expression."
 		  ,@(when (c-major-mode-is 'java-mode)
 		      '(">>>")))
 
+      ;; The C++ "spaceship" operator.
+      ,@(when (c-major-mode-is 'c++-mode)
+	  `((left-assoc "<=>")))
+
       ;; Relational.
       (left-assoc "<" ">" "<=" ">="
 		  ,@(when (c-major-mode-is 'java-mode)
@@ -1429,7 +1447,7 @@ form\".  See also `c-op-identifier-prefix'."
 	 "^" "??'" "xor" "&" "bitand" "|" "??!" "bitor" "~" "??-" "compl"
 	 "!" "=" "<" ">" "+=" "-=" "*=" "/=" "%=" "^="
 	 "??'=" "xor_eq" "&=" "and_eq" "|=" "??!=" "or_eq"
-	 "<<" ">>" ">>=" "<<=" "==" "!=" "not_eq" "<=" ">="
+	 "<<" ">>" ">>=" "<<=" "==" "!=" "not_eq" "<=>" "<=" ">="
 	 "&&" "and" "||" "??!??!" "or" "++" "--" "," "->*" "->"
 	 "()" "[]" "<::>" "??(??)")
   ;; These work like identifiers in Pike.
@@ -1551,8 +1569,10 @@ operators."
   "List of all arithmetic operators, including \"+=\", etc."
   ;; Note: in the following, there are too many operators for AWK and IDL.
   t (append (c-lang-const c-assignment-operators)
-	    '("+" "-" "*" "/" "%"
+	    `("+" "-" "*" "/" "%"
 	      "<<" ">>"
+	      ,@(if (c-major-mode-is 'c++-mode)
+		    '("<=>"))
 	      "<" ">" "<=" ">="
 	      "==" "!="
 	      "&" "^" "|"
@@ -2202,7 +2222,7 @@ the appropriate place for that."
 	'("_Bool" "_Complex" "_Imaginary") ; Conditionally defined in C99.
 	(c-lang-const c-primitive-type-kwds))
   c++  (append
-	'("bool" "wchar_t" "char16_t" "char32_t")
+	'("bool" "wchar_t" "char8_t" "char16_t" "char32_t")
 	(c-lang-const c-primitive-type-kwds))
   ;; Objective-C extends C, but probably not the new stuff in C99.
   objc (append
@@ -2581,6 +2601,35 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-equals-type-clause-kwds)))
 (c-lang-defvar c-equals-type-clause-key (c-lang-const c-equals-type-clause-key))
 
+(c-lang-defconst c-equals-nontype-decl-kwds
+  "Keywords which are followed by an identifier then an \"=\"
+sign, which declares the identifier to be something other than a
+type."
+  t nil
+  c++ '("concept"))
+
+(c-lang-defconst c-equals-nontype-decl-key
+  ;; An unadorned regular expression which matches any member of
+  ;; `c-equals-decl-kwds', or nil if such don't exist in the current language.
+  t (when (c-lang-const c-equals-nontype-decl-kwds)
+      (c-make-keywords-re nil (c-lang-const c-equals-nontype-decl-kwds))))
+(c-lang-defvar c-equals-nontype-decl-key
+	       (c-lang-const c-equals-nontype-decl-key))
+
+(c-lang-defconst c-fun-name-substitute-kwds
+  "Keywords which take the place of type+declarator at the beginning
+of a function-like structure, such as a C++20 \"requires\"
+clause.  An arglist may or may not follow such a keyword."
+  t nil
+  c++ '("requires"))
+
+(c-lang-defconst c-fun-name-substitute-key
+  ;; An adorned regular expression which matches any member of
+  ;; `c-fun-name-substitute-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
+(c-lang-defvar c-fun-name-substitute-key
+	       (c-lang-const c-fun-name-substitute-key))
+
 (c-lang-defconst c-modifier-kwds
   "Keywords that can prefix normal declarations of identifiers
 \(and typically act as flags).  Things like argument declarations
@@ -2594,8 +2643,8 @@ will be handled."
   t    nil
   (c c++) '("extern" "inline" "register" "static")
   c    (append '("auto") (c-lang-const c-modifier-kwds))
-  c++  (append '("constexpr" "explicit" "friend" "mutable" "template"
-		 "thread_local" "virtual")
+  c++  (append '("consteval" "constexpr" "constinit" "explicit"
+		 "friend" "mutable" "template" "thread_local" "virtual")
 	       ;; "using" is now handled specially (2020-09-14).
 	       (c-lang-const c-modifier-kwds))
   objc '("auto" "bycopy" "byref" "extern" "in" "inout" "oneway" "out" "static")
@@ -2624,6 +2673,7 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t       nil
+  c++     '("export")
   objc    '("@class" "@defs" "@end" "@property" "@dynamic" "@synthesize"
 	    "@compatibility_alias")
   java    '("import" "package")
@@ -2669,7 +2719,8 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
   (c c++) '(;; GCC extension.
 	    "__attribute__"
 	    ;; MSVC extension.
-	    "__declspec"))
+	    "__declspec")
+  c++ (append (c-lang-const c-decl-hangon-kwds) '("alignas")))
 
 (c-lang-defconst c-decl-hangon-key
   ;; Adorned regexp matching `c-decl-hangon-kwds'.
@@ -2893,7 +2944,7 @@ contain type identifiers."
 	    "__attribute__"
 	    ;; MSVC extension.
 	    "__declspec")
-  c++ (append (c-lang-const c-paren-nontype-kwds) '("noexcept")))
+  c++ (append (c-lang-const c-paren-nontype-kwds) '("noexcept" "alignas")))
 
 (c-lang-defconst c-paren-nontype-key
   t (c-make-keywords-re t (c-lang-const c-paren-nontype-kwds)))
@@ -2925,6 +2976,17 @@ if this isn't nil."
 	 ;; In CORBA PSDL:
 	 "ref"))
 
+(c-lang-defconst c-pre-concept-<>-kwds
+  "Keywords that may be followed by an angle bracket expression containing
+uses of \"concepts\".  This is currently (2022-09) used only by C++."
+  t nil
+  c++ '("template"))
+
+(c-lang-defconst c-pre-concept-<>-key
+  ;; Regexp matching any element of `c-pre-concept-<>-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-pre-concept-<>-kwds)))
+(c-lang-defvar c-pre-concept-<>-key (c-lang-const c-pre-concept-<>-key))
+
 (c-lang-defconst c-<>-arglist-kwds
   "Keywords that can be followed by a C++ style template arglist; see
 `c-recognize-<>-arglists' for details.  That language constant is
@@ -2937,7 +2999,8 @@ assumed to be set if this isn't nil."
 (c-lang-defconst c-<>-sexp-kwds
   ;; All keywords that can be followed by an angle bracket sexp.
   t (c--delete-duplicates (append (c-lang-const c-<>-type-kwds)
-				  (c-lang-const c-<>-arglist-kwds))
+				  (c-lang-const c-<>-arglist-kwds)
+				  (c-lang-const c-import-<>-kwds))
 			  :test 'string-equal))
 
 (c-lang-defconst c-opt-<>-sexp-key
@@ -3099,6 +3162,25 @@ This construct is \"<keyword> <expression> :\"."
   idl  nil
   awk  nil)
 
+(c-lang-defconst c-import-<>-kwds
+  "Keywords which can start an expression like \"import <...>\" in C++20.
+The <, and > operators are like those of #include <...>, they are
+not really template operators."
+  t nil
+  c++ '("import"))
+
+(c-lang-defconst c-module-kwds
+  "The keywords which introduce module constructs in C++20 onwards."
+  t nil
+  c++ '("module" "import" "export"))
+
+(c-lang-defconst c-module-key
+  ;; Adorned regexp matching module declaration keywords, or nil if there are
+  ;; none.
+  t (if (c-lang-const c-module-kwds)
+	(c-make-keywords-re t (c-lang-const c-module-kwds))))
+(c-lang-defvar c-module-key (c-lang-const c-module-key))
+
 (c-lang-defconst c-constant-kwds
   "Keywords for constants."
   t       nil
@@ -3112,6 +3194,10 @@ This construct is \"<keyword> <expression> :\"."
   idl     '("TRUE" "FALSE")
   java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.
+
+(c-lang-defconst c-constant-key
+  t (c-make-keywords-re t (c-lang-const c-constant-kwds)))
+(c-lang-defvar c-constant-key (c-lang-const c-constant-key))
 
 (c-lang-defconst c-primary-expr-kwds
   "Keywords besides constants and operators that start primary expressions."
@@ -3748,7 +3834,10 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     ;; "throw" in `c-type-modifier-kwds' is followed
 		     ;; by a parenthesis list, but no extra measures
 		     ;; are necessary to handle that.
-		     (regexp-opt (c-lang-const c-type-modifier-kwds) t)
+		     (regexp-opt 
+		      (append (c-lang-const c-fun-name-substitute-kwds)
+			      (c-lang-const c-type-modifier-kwds))
+		      t)
 		     "\\>")
 		  "")
 		"\\)")

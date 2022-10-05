@@ -137,6 +137,11 @@ is less than this number.")
   ;; Alist associating to each function body the list of its free variables.
   )
 
+(defvar cconv--interactive-form-funs
+  ;; Table used to hold the functions we create internally for
+  ;; interactive forms.
+  (make-hash-table :test #'eq :weakness 'key))
+
 ;;;###autoload
 (defun cconv-closure-convert (form)
   "Main entry point for closure conversion.
@@ -503,9 +508,23 @@ places where they originally did not directly appear."
                               cond-forms)))
 
     (`(function (lambda ,args . ,body) . ,_)
-     (let ((docstring (if (eq :documentation (car-safe (car body)))
-                          (cconv-convert (cadr (pop body)) env extend))))
-       (cconv--convert-function args body env form docstring)))
+     (let* ((docstring (if (eq :documentation (car-safe (car body)))
+                           (cconv-convert (cadr (pop body)) env extend)))
+            (bf (if (stringp (car body)) (cdr body) body))
+            (if (when (eq 'interactive (car-safe (car bf)))
+                  (gethash form cconv--interactive-form-funs)))
+            (cif (when if (cconv-convert if env extend)))
+            (_ (pcase cif
+                 (`#'(lambda () ,form) (setf (cadr (car bf)) form) (setq cif nil))
+                 ('nil nil)
+                 ;; The interactive form needs special treatment, so the form
+                 ;; inside the `interactive' won't be used any further.
+                 (_ (setf (cadr (car bf)) nil))))
+            (cf (cconv--convert-function args body env form docstring)))
+       (if (not cif)
+           ;; Normal case, the interactive form needs no special treatment.
+           cf
+         `(cconv--interactive-helper ,cf ,cif))))
 
     (`(internal-make-closure . ,_)
      (byte-compile-report-error
@@ -589,12 +608,12 @@ places where they originally did not directly appear."
                                    (cconv-convert arg env extend))
                                  (cons fun args)))))))
 
-    (`(interactive . ,forms)
-     `(,(car form) . ,(mapcar (lambda (form)
-                                (cconv-convert form nil nil))
-                              forms)))
+    ;; The form (if any) is converted beforehand as part of the `lambda' case.
+    (`(interactive . ,_) form)
 
-    (`(declare . ,_) form)              ;The args don't contain code.
+    ;; `declare' should now be macro-expanded away (and if they're not, we're
+    ;; in trouble because they *can* contain code nowadays).
+    ;; (`(declare . ,_) form)              ;The args don't contain code.
 
     (`(oclosure--fix-type (ignore . ,vars) ,exp)
      (dolist (var vars)
@@ -739,6 +758,13 @@ This function does not return anything but instead fills the
     (`(function (lambda ,vrs . ,body-forms))
      (when (eq :documentation (car-safe (car body-forms)))
        (cconv-analyze-form (cadr (pop body-forms)) env))
+     (let ((bf (if (stringp (car body-forms)) (cdr body-forms) body-forms)))
+       (when (eq 'interactive (car-safe (car bf)))
+         (let ((if (cadr (car bf))))
+           (unless (macroexp-const-p if) ;Optimize this common case.
+             (let ((f `#'(lambda () ,if)))
+               (setf (gethash form cconv--interactive-form-funs) f)
+               (cconv-analyze-form f env))))))
      (cconv--analyze-function vrs body-forms env form))
 
     (`(setq ,var ,expr)
@@ -803,13 +829,8 @@ This function does not return anything but instead fills the
          (cconv-analyze-form fun env)))
      (dolist (form args) (cconv-analyze-form form env)))
 
-    (`(interactive . ,forms)
-     ;; These appear within the function body but they don't have access
-     ;; to the function's arguments.
-     ;; We could extend this to allow interactive specs to refer to
-     ;; variables in the function's enclosing environment, but it doesn't
-     ;; seem worth the trouble.
-     (dolist (form forms) (cconv-analyze-form form nil)))
+    ;; The form (if any) is converted beforehand as part of the `lambda' case.
+    (`(interactive . ,_) nil)
 
     ;; `declare' should now be macro-expanded away (and if they're not, we're
     ;; in trouble because they *can* contain code nowadays).

@@ -2247,11 +2247,9 @@ article came from is also searched."
 	    (forward-line)))))
     groups))
 
-(defvar gnus-search-minibuffer-map
-  (let ((km (make-sparse-keymap)))
-    (set-keymap-parent km minibuffer-local-map)
-    (define-key km (kbd "TAB") #'completion-at-point)
-    km))
+(defvar-keymap gnus-search-minibuffer-map
+  :parent minibuffer-local-map
+  "TAB" #'completion-at-point)
 
 (defun gnus-search--complete-key-data ()
   "Potentially return completion data for a search key or value."

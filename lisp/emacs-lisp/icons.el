@@ -202,7 +202,11 @@ present if the icon is represented by an image."
                             :height (if (eq height 'line)
                                         (window-default-line-height)
                                       height)
-                            :scale 1)
+                            :scale 1
+                            :rotation (or (plist-get keywords :rotation) 0)
+                            :ascent (if (plist-member keywords :ascent)
+                                        (plist-get keywords :ascent)
+                                      'center))
             (create-image file))))))
 
 (cl-defmethod icons--create ((_type (eql 'emoji)) icon _keywords)

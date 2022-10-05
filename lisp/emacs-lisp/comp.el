@@ -178,14 +178,15 @@ and above."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom native-comp-driver-options nil
+(defcustom native-comp-driver-options (when (eq system-type 'darwin)
+                                        '("-Wl,-w"))
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type '(repeat string)                ; FIXME is this right?
+  :type '(repeat string)
   :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
@@ -462,7 +463,7 @@ Useful to hook into pass checkers.")
     (marker-buffer (function (marker) (or buffer null)))
     (markerp (function (t) boolean))
     (max (function ((or number marker) &rest (or number marker)) number))
-    (max-char (function () fixnum))
+    (max-char (function (&optional t) fixnum))
     (member (function (t list) list))
     (memory-limit (function () integer))
     (memq (function (t list) list))
@@ -3800,22 +3801,25 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     (cl-loop
-      for dir in (if native-compile-target-directory
-                     (list (expand-file-name comp-native-version-dir
-                                             native-compile-target-directory))
-                   (comp-eln-load-path-eff))
-      for f = (expand-file-name
-               (comp-trampoline-filename subr-name)
-               dir)
-      unless (file-exists-p dir)
-        do (ignore-errors
-             (make-directory dir t)
-             (cl-return f))
-      when (file-writable-p f)
-        do (cl-return f)
-      finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'")))))
+     ;; If we've disabled nativecomp, don't write the trampolines to
+     ;; the eln cache (but create them).
+     (and (not inhibit-automatic-native-compilation)
+          (cl-loop
+           for dir in (if native-compile-target-directory
+                          (list (expand-file-name comp-native-version-dir
+                                                  native-compile-target-directory))
+                        (comp-eln-load-path-eff))
+           for f = (expand-file-name
+                    (comp-trampoline-filename subr-name)
+                    dir)
+           unless (file-exists-p dir)
+           do (ignore-errors
+                (make-directory dir t)
+                (cl-return f))
+           when (file-writable-p f)
+           do (cl-return f)
+           finally (error "Cannot find suitable directory for output in \
+`native-comp-eln-load-path'"))))))
 
 
 ;; Some entry point support code.
@@ -3935,8 +3939,11 @@ display a message."
          when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
-                  (file-newer-than-file-p
-                   source-file (comp-el-to-eln-filename source-file)))
+                  ;; Skip compilation if `comp-el-to-eln-filename' fails
+                  ;; to find a writable directory.
+                  (with-demoted-errors "Async compilation :%S"
+                    (file-newer-than-file-p
+                     source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
                            (setq comp-async-compilation t)
                            (setq warning-fill-column most-positive-fixnum)
@@ -4041,7 +4048,6 @@ the deferred compilation mechanism."
             (list "Not a function symbol or file" function-or-file)))
   (catch 'no-native-compile
     (let* ((print-symbols-bare t)
-           (max-specpdl-size (max max-specpdl-size 5000))
            (data function-or-file)
            (comp-native-compiling t)
            (byte-native-qualities nil)
@@ -4104,6 +4110,7 @@ the deferred compilation mechanism."
                    comp-ctxt
                    (comp-ctxt-output comp-ctxt)
                    (file-exists-p (comp-ctxt-output comp-ctxt)))
+          (message "Deleting %s" (comp-ctxt-output comp-ctxt))
           (delete-file (comp-ctxt-output comp-ctxt)))))))
 
 (defun native-compile-async-skip-p (file load selector)

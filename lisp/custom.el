@@ -674,8 +674,6 @@ property, or (ii) an alias for another customizable variable."
   "Return the standard value of VARIABLE."
   (eval (car (get variable 'standard-value)) t))
 
-(define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
-
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
 VARIABLE is a symbol that names a user option.
@@ -1708,6 +1706,13 @@ If a choice with the same tag already exists, no action is taken."
       ;; Put the new choice at the end.
       (put variable 'custom-type
            (append choices (list choice))))))
+
+(defun custom--add-custom-loads (symbol loads)
+  ;; Don't overwrite existing `custom-loads'.
+  (dolist (load (get symbol 'custom-loads))
+    (unless (memq load loads)
+      (push load loads)))
+  (put symbol 'custom-loads loads))
 
 (provide 'custom)
 

@@ -5646,10 +5646,9 @@ Every image descriptor must include this property.
 
 @item :file @var{file}
 This says to load the image from file @var{file}.  If @var{file} is
-not an absolute file name, it is expanded relative to the
-@file{images} subdirectory of @code{data-directory}, and failing that,
-relative to the directories listed by @code{x-bitmap-file-path}
-(@pxref{Face Attributes}).
+not an absolute file name, it is expanded relative to each of the
+directories mentioned by @code{image-load-path} (@pxref{Defining
+Images}).
 
 @item :data @var{data}
 This specifies the raw image data.  Each image descriptor must have
@@ -6596,7 +6595,9 @@ Image type @code{webp}.
 This function creates and returns an image descriptor which uses the
 data in @var{file-or-data}.  @var{file-or-data} can be a file name or
 a string containing the image data; @var{data-p} should be @code{nil}
-for the former case, non-@code{nil} for the latter case.
+for the former case, non-@code{nil} for the latter case.  If
+@var{file-or-data} is a relative file name, the function will search
+for it in directories mentioned in @code{image-load-path}.
 
 The optional argument @var{type} is a symbol specifying the image type.
 If @var{type} is omitted or @code{nil}, @code{create-image} tries to
@@ -6849,21 +6850,36 @@ keymap installed in the text properties (or overlays) that span the
 displayed image.  This keymap defines the following commands:
 
 @table @kbd
-@item +
+@item i +
 Increase the image size (@code{image-increase-size}).  A prefix value
 of @samp{4} means to increase the size by 40%.  The default is 20%.
 
-@item -
+@item i -
 Decrease the image size (@code{image-increase-size}).  A prefix value
 of @samp{4} means to decrease the size by 40%.  The default is 20%.
 
-@item r
+@item i r
 Rotate the image by 90 degrees clockwise (@code{image-rotate}).
 A prefix means to rotate by 90 degrees counter-clockwise instead.
 
-@item o
+@item i h
+Flip the image horizontally (@code{image-flip-horizontally}).
+
+@item i v
+Flip the image vertically (@code{image-flip-vertically}).
+
+@item i o
 Save the image to a file (@code{image-save}).
+
+@item i c
+Crop the image interactively (@code{image-crop}).
+
+@item i x
+Cut a rectangle from the image interactively (@code{image-cut}).
 @end table
+
+The size and rotation commands are ``repeating'', which means that you
+can continue adjusting the image without using the @kbd{i} prefix.
 
 @node Multi-Frame Images
 @subsection Multi-Frame Images
@@ -8554,6 +8570,7 @@ Display with @var{graphical} on graphical displays, and with
 must be one of the display methods described above.
 @end table
 
+@vindex glyphless-char@r{ face}
 @noindent
 The @code{thin-space}, @code{empty-box}, @code{hex-code}, and
 @acronym{ASCII} string display methods are drawn with the
@@ -8563,7 +8580,7 @@ square brackets, @samp{[]}.
 The char-table has one extra slot, which determines how to display any
 character that cannot be displayed with any available font, or cannot
 be encoded by the terminal's coding system.  Its value should be one
-of the above display methods, except @code{zero-width} or a cons cell.
+of the above display methods, except @code{zero-width}.
 
 If a character has a non-@code{nil} entry in an active display table,
 the display table takes effect; in this case, Emacs does not consult
@@ -8618,7 +8635,8 @@ codepoints (typically emojis).
 
 @item no-font
 Characters for which there is no suitable font, or which cannot be
-encoded by the terminal's coding system.
+encoded by the terminal's coding system, or those for which the
+text-mode terminal has no glyphs.
 @end table
 
 @c FIXME: this can also be 'acronym', but that's not currently

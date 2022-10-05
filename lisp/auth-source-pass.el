@@ -319,6 +319,16 @@ then NAME & USER, then NAME & PORT, then just NAME."
     (list
      (format "%s" name)))))
 
+(defun auth-source-pass-file-name-p (file)
+  "Say whether FILE is used by `auth-source-pass'."
+  (and (stringp file) (stringp auth-source-pass-filename)
+       (string-equal
+        (expand-file-name file) (expand-file-name auth-source-pass-filename))))
+
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'auth-source-pass-file-name-p))
+
 (provide 'auth-source-pass)
 ;;; auth-source-pass.el ends here
 

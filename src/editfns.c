@@ -3552,7 +3552,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		      || conversion == 'o' || conversion == 'x'
 		      || conversion == 'X'))
 	    error ("Invalid format operation %%%c",
-		   STRING_CHAR ((unsigned char *) format - 1));
+		   multibyte_format
+		   ? STRING_CHAR ((unsigned char *) format - 1)
+		   : *((unsigned char *) format - 1));
 	  else if (! (FIXNUMP (arg) || ((BIGNUMP (arg) || FLOATP (arg))
 					&& conversion != 'c')))
 	    error ("Format specifier doesn't match argument type");
@@ -4603,10 +4605,7 @@ it to be non-nil.  */);
 
   DEFSYM (Qrestrictions_locked, "restrictions-locked");
   DEFVAR_LISP ("restrictions-locked", Vrestrictions_locked,
-	       doc: /* If non-nil, restrictions are currently locked.
-
-This happens when `narrow-to-region', which see, is called from Lisp
-with an optional argument LOCK non-nil.  */);
+	       doc: /* If non-nil, restrictions are currently locked.  */);
   Vrestrictions_locked = Qnil;
   Funintern (Qrestrictions_locked, Qnil);
 

@@ -1705,12 +1705,12 @@ URLs."
               (+ " " (or
                       ;; Arguments.
                       (+ (or (syntax symbol)
-                             (any word "-/:[]&=().?^\\#'")))
+                             (any word "-/:[]&=()<>.,?^\\#*'\"")))
                       ;; Argument that is a list.
                       (seq "(" (* (not ")")) ")")))
               ")")))
     ""
-    ;; Heuristic: We can't reliably do `subsititute-command-keys'
+    ;; Heuristic: We can't reliably do `substitute-command-keys'
     ;; substitutions, since the value of a keymap in general can't be
     ;; known at compile time.  So instead, we assume that these
     ;; substitutions are of some length N.
@@ -3104,8 +3104,8 @@ lambda-expression."
              ;; Check that the bit after the `interactive' spec is
              ;; just a list of symbols (i.e., modes).
 	     (unless (seq-every-p #'symbolp (cdr (cdr int)))
-	       (byte-compile-warn-x int "malformed interactive specc: %s"
-				    int))
+	       (byte-compile-warn-x
+                int "malformed `interactive' specification: %s" int))
              (setq command-modes (cdr (cdr int)))
 	     ;; If the interactive spec is a call to `list', don't
 	     ;; compile it, because `call-interactively' looks at the

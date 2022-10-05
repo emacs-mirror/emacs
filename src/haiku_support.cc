@@ -54,12 +54,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <game/WindowScreen.h>
 #include <game/DirectWindow.h>
 
+#include <storage/FindDirectory.h>
 #include <storage/Entry.h>
 #include <storage/Path.h>
 #include <storage/FilePanel.h>
 #include <storage/AppFileInfo.h>
 #include <storage/Path.h>
 #include <storage/PathFinder.h>
+#include <storage/Node.h>
 
 #include <support/Beep.h>
 #include <support/DataIO.h>
@@ -5500,4 +5502,55 @@ be_set_use_frame_synchronization (void *view, bool sync)
 
   vw = (EmacsView *) view;
   vw->SetFrameSynchronization (sync);
+}
+
+status_t
+be_write_node_message (const char *path, const char *name, void *message)
+{
+  BNode node (path);
+  status_t rc;
+  ssize_t flat, result;
+  char *buffer;
+  BMessage *msg;
+
+  rc = node.InitCheck ();
+  msg = (BMessage *) message;
+
+  if (rc < B_OK)
+    return rc;
+
+  flat = msg->FlattenedSize ();
+  if (flat < B_OK)
+    return flat;
+
+  buffer = new (std::nothrow) char[flat];
+  if (!buffer)
+    return B_NO_MEMORY;
+
+  rc = msg->Flatten (buffer, flat);
+  if (rc < B_OK)
+    {
+      delete[] buffer;
+      return rc;
+    }
+
+  result = node.WriteAttr (name, B_MIME_TYPE, 0,
+			   buffer, flat);
+  delete[] buffer;
+
+  if (result < B_OK)
+    return result;
+
+  if (result != flat)
+    return B_ERROR;
+
+  return B_OK;
+}
+
+void
+be_send_message (const char *app_id, void *message)
+{
+  BMessenger messenger (app_id);
+
+  messenger.SendMessage ((BMessage *) message);
 }

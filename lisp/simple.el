@@ -2653,6 +2653,9 @@ function as needed."
 (cl-defmethod function-documentation ((function accessor))
   (oclosure--accessor-docstring function)) ;; FIXME: η-reduce!
 
+(cl-defmethod function-documentation ((f cconv--interactive-helper))
+  (function-documentation (cconv--interactive-helper--fun f)))
+
 ;; This should be in `oclosure.el' but that file is loaded before `cl-generic'.
 (cl-defgeneric oclosure-interactive-form (_function)
   "Return the interactive form of FUNCTION or nil if none.
@@ -2663,6 +2666,9 @@ Add your methods to this generic function, but always call `interactive-form'
 instead."
   ;; (interactive-form function)
   nil)
+
+(cl-defmethod oclosure-interactive-form ((f cconv--interactive-helper))
+  `(interactive (funcall ',(cconv--interactive-helper--if f))))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
@@ -4563,85 +4569,81 @@ impose the use of a shell (with its need to quote arguments)."
 			 (set-marker (mark-marker) (point)
 				     (current-buffer)))))
 	;; Output goes in a separate buffer.
-	;; Preserve the match data in case called from a program.
-        ;; FIXME: It'd be ridiculous for an Elisp function to call
-        ;; shell-command and assume that it won't mess the match-data!
-	(save-match-data
-	  (if (string-match "[ \t]*&[ \t]*\\'" command)
-	      ;; Command ending with ampersand means asynchronous.
-              (let* ((buffer (get-buffer-create
-                              (or output-buffer shell-command-buffer-name-async)))
-                     (bname (buffer-name buffer))
-                     (proc (get-buffer-process buffer))
-                     (directory default-directory))
-		;; Remove the ampersand.
-		(setq command (substring command 0 (match-beginning 0)))
-		;; Ask the user what to do with already running process.
-		(when proc
-		  (cond
-		   ((eq async-shell-command-buffer 'confirm-kill-process)
-		    ;; If will kill a process, query first.
-                    (shell-command--same-buffer-confirm "Kill it")
-		    (kill-process proc))
-		   ((eq async-shell-command-buffer 'confirm-new-buffer)
-		    ;; If will create a new buffer, query first.
-                    (shell-command--same-buffer-confirm "Use a new buffer")
-                    (setq buffer (generate-new-buffer bname)))
-		   ((eq async-shell-command-buffer 'new-buffer)
-		    ;; It will create a new buffer.
-                    (setq buffer (generate-new-buffer bname)))
-		   ((eq async-shell-command-buffer 'confirm-rename-buffer)
-		    ;; If will rename the buffer, query first.
-                    (shell-command--same-buffer-confirm "Rename it")
-		    (with-current-buffer buffer
-		      (rename-uniquely))
-                    (setq buffer (get-buffer-create bname)))
-		   ((eq async-shell-command-buffer 'rename-buffer)
-		    ;; It will rename the buffer.
-		    (with-current-buffer buffer
-		      (rename-uniquely))
-                    (setq buffer (get-buffer-create bname)))))
-		(with-current-buffer buffer
-                  (shell-command-save-pos-or-erase)
-		  (setq default-directory directory)
-                  (require 'shell)
-                  (let ((process-environment
-                         (append
-                          (and (natnump async-shell-command-width)
-                               (list
-                                (format "COLUMNS=%d"
-                                        async-shell-command-width)))
-                          (comint-term-environment)
-                          process-environment)))
-		    (setq proc
-			  (start-process-shell-command "Shell" buffer command)))
-		  (setq mode-line-process '(":%s"))
-                  (shell-mode)
-                  (setq-local revert-buffer-function
-                              (lambda (&rest _)
-                                (async-shell-command command buffer)))
-                  (set-process-sentinel proc #'shell-command-sentinel)
-		  ;; Use the comint filter for proper handling of
-		  ;; carriage motion (see comint-inhibit-carriage-motion).
-                  (set-process-filter proc #'comint-output-filter)
-                  (if async-shell-command-display-buffer
-                      ;; Display buffer immediately.
-                      (display-buffer buffer '(nil (allow-no-window . t)))
-                    ;; Defer displaying buffer until first process output.
-                    ;; Use disposable named advice so that the buffer is
-                    ;; displayed at most once per process lifetime.
-                    (let ((nonce (make-symbol "nonce")))
-                      (add-function :before (process-filter proc)
-                                    (lambda (proc _string)
-                                      (let ((buf (process-buffer proc)))
-                                        (when (buffer-live-p buf)
-                                          (remove-function (process-filter proc)
-                                                           nonce)
-                                          (display-buffer buf))))
-                                    `((name . ,nonce)))))))
-	    ;; Otherwise, command is executed synchronously.
-	    (shell-command-on-region (point) (point) command
-				     output-buffer nil error-buffer)))))))
+	(if (string-match "[ \t]*&[ \t]*\\'" command)
+	    ;; Command ending with ampersand means asynchronous.
+            (let* ((buffer (get-buffer-create
+                            (or output-buffer shell-command-buffer-name-async)))
+                   (bname (buffer-name buffer))
+                   (proc (get-buffer-process buffer))
+                   (directory default-directory))
+	      ;; Remove the ampersand.
+	      (setq command (substring command 0 (match-beginning 0)))
+	      ;; Ask the user what to do with already running process.
+	      (when proc
+		(cond
+		 ((eq async-shell-command-buffer 'confirm-kill-process)
+		  ;; If will kill a process, query first.
+                  (shell-command--same-buffer-confirm "Kill it")
+		  (kill-process proc))
+		 ((eq async-shell-command-buffer 'confirm-new-buffer)
+		  ;; If will create a new buffer, query first.
+                  (shell-command--same-buffer-confirm "Use a new buffer")
+                  (setq buffer (generate-new-buffer bname)))
+		 ((eq async-shell-command-buffer 'new-buffer)
+		  ;; It will create a new buffer.
+                  (setq buffer (generate-new-buffer bname)))
+		 ((eq async-shell-command-buffer 'confirm-rename-buffer)
+		  ;; If will rename the buffer, query first.
+                  (shell-command--same-buffer-confirm "Rename it")
+		  (with-current-buffer buffer
+		    (rename-uniquely))
+                  (setq buffer (get-buffer-create bname)))
+		 ((eq async-shell-command-buffer 'rename-buffer)
+		  ;; It will rename the buffer.
+		  (with-current-buffer buffer
+		    (rename-uniquely))
+                  (setq buffer (get-buffer-create bname)))))
+	      (with-current-buffer buffer
+                (shell-command-save-pos-or-erase)
+		(setq default-directory directory)
+                (require 'shell)
+                (let ((process-environment
+                       (append
+                        (and (natnump async-shell-command-width)
+                             (list
+                              (format "COLUMNS=%d"
+                                      async-shell-command-width)))
+                        (comint-term-environment)
+                        process-environment)))
+		  (setq proc
+			(start-process-shell-command "Shell" buffer command)))
+		(setq mode-line-process '(":%s"))
+                (shell-mode)
+                (setq-local revert-buffer-function
+                            (lambda (&rest _)
+                              (async-shell-command command buffer)))
+                (set-process-sentinel proc #'shell-command-sentinel)
+		;; Use the comint filter for proper handling of
+		;; carriage motion (see comint-inhibit-carriage-motion).
+                (set-process-filter proc #'comint-output-filter)
+                (if async-shell-command-display-buffer
+                    ;; Display buffer immediately.
+                    (display-buffer buffer '(nil (allow-no-window . t)))
+                  ;; Defer displaying buffer until first process output.
+                  ;; Use disposable named advice so that the buffer is
+                  ;; displayed at most once per process lifetime.
+                  (let ((nonce (make-symbol "nonce")))
+                    (add-function :before (process-filter proc)
+                                  (lambda (proc _string)
+                                    (let ((buf (process-buffer proc)))
+                                      (when (buffer-live-p buf)
+                                        (remove-function (process-filter proc)
+                                                         nonce)
+                                        (display-buffer buf))))
+                                  `((name . ,nonce)))))))
+	  ;; Otherwise, command is executed synchronously.
+	  (shell-command-on-region (point) (point) command
+				   output-buffer nil error-buffer))))))
 
 (defun shell-command--same-buffer-confirm (action)
   (let ((help-form
@@ -6878,6 +6880,10 @@ point otherwise."
   "Return the end of the region if `use-region-p'."
   (and (use-region-p) (region-end)))
 
+(defun use-region-noncontiguous-p ()
+  "Return non-nil for a non-contiguous region if `use-region-p'."
+  (and (use-region-p) (region-noncontiguous-p)))
+
 (defun use-region-p ()
   "Return t if the region is active and it is appropriate to act on it.
 This is used by commands that act specially on the region under
@@ -6887,6 +6893,11 @@ The return value is t if Transient Mark mode is enabled and the
 mark is active; furthermore, if `use-empty-active-region' is nil,
 the region must not be empty.  Otherwise, the return value is nil.
 
+If `use-empty-active-region' is non-nil, there is one further
+caveat: If the user has used `mouse-1' to set point, but used the
+mouse to move point to a different character yet, this function
+returns nil.
+
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'.
 
@@ -6894,8 +6905,10 @@ Also see the convenience functions `use-region-beginning' and
 `use-region-end', which may be handy when writing `interactive'
 specs."
   (and (region-active-p)
-       (or use-empty-active-region (> (region-end) (region-beginning)))
-       t))
+       (or (> (region-end) (region-beginning))
+           (and use-empty-active-region
+                (not (eq (car-safe last-input-event) 'down-mouse-1))
+                (not (mouse-movement-p last-input-event))))))
 
 (defun region-active-p ()
   "Return t if Transient Mark mode is enabled and the mark is active.
@@ -6922,7 +6935,7 @@ see `region-noncontiguous-p' and `extract-rectangle-bounds'."
   "Return non-nil if the region contains several pieces.
 An example is a rectangular region handled as a list of
 separate contiguous regions for each line."
-  (cdr (region-bounds)))
+  (let ((bounds (region-bounds))) (and (cdr bounds) bounds)))
 
 (defun redisplay--unhighlight-overlay-function (rol)
   "If ROL is an overlay, call `delete-overlay'."
@@ -7015,7 +7028,7 @@ which is the window that will be redisplayed.  When run, the `current-buffer'
 is set to the buffer displayed in that window.")
 
 (define-minor-mode cursor-face-highlight-mode
-  "When enabled, respect the cursor-face property."
+  "When enabled, highlight text that has `cursor-face' property near point."
   :global nil
   (if cursor-face-highlight-mode
       (add-hook 'pre-redisplay-functions
@@ -7973,7 +7986,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 
 	;; Move to the desired column.
         (if (and line-move-visual
-                 (not (or truncate-lines (truncated-partial-width-window-p))))
+                 (not (or truncate-lines truncate-partial-width-windows)))
             ;; Under line-move-visual, goal-column should be
             ;; interpreted in units of the frame's canonical character
             ;; width, which is exactly what vertical-motion does.
@@ -10431,7 +10444,9 @@ and setting it to nil."
     map))
 
 (define-derived-mode messages-buffer-mode special-mode "Messages"
-  "Major mode used in the \"*Messages*\" buffer.")
+  "Major mode used in the \"*Messages*\" buffer."
+  ;; Make it easy to do like "tail -f".
+  (setq-local window-point-insertion-type t))
 
 (defun messages-buffer ()
   "Return the \"*Messages*\" buffer.

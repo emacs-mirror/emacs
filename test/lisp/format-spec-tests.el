@@ -148,6 +148,17 @@
              (format-spec fmt '((?b . "asd") (?a . "fgh")))
              #("fgh%asdasd" 0 3 (a b) 3 4 (c d) 7 10 (e f))))))
 
+(ert-deftest format-spec/function ()
+  (let* (called
+         (spec `((?a . "foo")
+                 (?f . ,(lambda ()
+                          (setq called t)
+                          "bar")))))
+    (should (equal (format-spec "%a" spec) "foo"))
+    (should-not called)
+    (should (equal (format-spec "%f" spec) "bar"))
+    (should called)))
+
 (ert-deftest format-spec-unknown ()
   (should-error (format-spec "foo %b %z zot" '((?b . "bar"))))
   (should-error (format-spec "foo %b %%%z zot" '((?b . "bar"))))

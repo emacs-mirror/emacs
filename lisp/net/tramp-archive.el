@@ -112,8 +112,10 @@
 (eval-when-compile (require 'cl-lib))
 ;; Sometimes, compilation fails with "Variable binding depth exceeds
 ;; max-specpdl-size".  Shall be fixed in Emacs 27.
-(eval-and-compile
-  (let ((max-specpdl-size (* 2 max-specpdl-size))) (require 'tramp-gvfs)))
+(with-no-warnings ;; max-specpdl-size
+  (eval-and-compile
+    (let ((max-specpdl-size (* 2 max-specpdl-size)))
+      (require 'tramp-gvfs))))
 
 (autoload 'dired-uncache "dired")
 (autoload 'url-tramp-convert-url-to-tramp "url-tramp")
@@ -184,21 +186,22 @@ It must be supported by libarchive(3).")
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  '(rx bos
-       ;; \1
-       (group
-	(+ nonl)
-	;; Default suffixes ...
-	"." (regexp (regexp-opt tramp-archive-suffixes))
-	;; ... with compression.
-	(? "." (regexp (regexp-opt tramp-archive-compression-suffixes))))
-       ;; \2
-       (group "/" (* nonl))
-       eos)))
+  `(rx
+    bos
+    ;; This group is used in `tramp-archive-file-name-archive'.
+    (group
+     (+ nonl)
+     ;; Default suffixes ...
+     "." ,(cons '| tramp-archive-suffixes)
+     ;; ... with compression.
+     (? "." ,(cons '| tramp-archive-compression-suffixes)))
+    ;; This group is used in `tramp-archive-file-name-localname'.
+    (group "/" (* nonl))
+    eos)))
 
 (put #'tramp-archive-autoload-file-name-regexp 'tramp-autoload t)
 
-;; In older Emacsen (prior 27.1), `tramp-archive-autoload-file-name-regexp'
+;; In older Emacs (prior 27.1), `tramp-archive-autoload-file-name-regexp'
 ;; is not autoloaded.  So we cannot expect it to be known in
 ;; tramp-loaddefs.el.  But it exists, when tramp-archive.el is loaded.
 ;;;###tramp-autoload
@@ -297,6 +300,7 @@ It must be supported by libarchive(3).")
     (temporary-file-directory . tramp-archive-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -328,7 +332,7 @@ arguments to pass to the OPERATION."
 
 ;; Starting with Emacs 29, `tramp-archive-file-name-handler' is
 ;; autoloaded.  But it must still be in tramp-loaddefs.el for older
-;; Emacsen.
+;; versions of Emacs.
 ;;;###autoload(autoload 'tramp-archive-file-name-handler "tramp-archive")
 ;;;###tramp-autoload
 (defun tramp-archive-file-name-handler (operation &rest args)
@@ -341,6 +345,7 @@ arguments to pass to the OPERATION."
           (tramp-register-file-name-handlers)
           (tramp-archive-run-real-handler operation args))
 
+      (with-no-warnings ;; max-specpdl-size
       (let* ((filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
 	     (archive (tramp-archive-file-name-archive filename))
@@ -374,7 +379,7 @@ arguments to pass to the OPERATION."
 	      (setq args (cons operation args)))
 	    (if fn
 	        (save-match-data (apply (cdr fn) args))
-	      (tramp-archive-run-real-handler operation args)))))))
+	      (tramp-archive-run-real-handler operation args))))))))
 
 ;;;###autoload
 (progn (defun tramp-archive-autoload-file-name-handler (operation &rest args)

@@ -596,44 +596,6 @@ _GL_WARN_ON_USE (lchmod, "lchmod is unportable - "
 #endif
 
 
-#if @GNULIB_LSTAT@
-# if ! @HAVE_LSTAT@
-/* mingw does not support symlinks, therefore it does not have lstat.  But
-   without links, stat does just fine.  */
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   define lstat stat
-#  endif
-_GL_CXXALIAS_RPL_1 (lstat, stat, int,
-                    (const char *restrict name, struct stat *restrict buf));
-# elif @REPLACE_LSTAT@
-#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   undef lstat
-#   define lstat rpl_lstat
-#  endif
-_GL_FUNCDECL_RPL (lstat, int,
-                  (const char *restrict name, struct stat *restrict buf)
-                  _GL_ARG_NONNULL ((1, 2)));
-_GL_CXXALIAS_RPL (lstat, int,
-                  (const char *restrict name, struct stat *restrict buf));
-# else
-_GL_CXXALIAS_SYS (lstat, int,
-                  (const char *restrict name, struct stat *restrict buf));
-# endif
-# if @HAVE_LSTAT@
-_GL_CXXALIASWARN (lstat);
-# endif
-#elif @GNULIB_OVERRIDES_STRUCT_STAT@
-# undef lstat
-# define lstat lstat_used_without_requesting_gnulib_module_lstat
-#elif defined GNULIB_POSIXCHECK
-# undef lstat
-# if HAVE_RAW_DECL_LSTAT
-_GL_WARN_ON_USE (lstat, "lstat is unportable - "
-                 "use gnulib module lstat for portability");
-# endif
-#endif
-
-
 #if @GNULIB_MKDIR@
 # if @REPLACE_MKDIR@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
@@ -891,6 +853,44 @@ _GL_EXTERN_C int stat (const char *restrict name, struct stat *restrict buf)
 # if HAVE_RAW_DECL_STAT
 _GL_WARN_ON_USE (stat, "stat is unportable - "
                  "use gnulib module stat for portability");
+# endif
+#endif
+
+
+#if @GNULIB_LSTAT@
+# if ! @HAVE_LSTAT@
+/* mingw does not support symlinks, therefore it does not have lstat.  But
+   without links, stat does just fine.  */
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define lstat stat
+#  endif
+_GL_CXXALIAS_RPL_1 (lstat, stat, int,
+                    (const char *restrict name, struct stat *restrict buf));
+# elif @REPLACE_LSTAT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef lstat
+#   define lstat rpl_lstat
+#  endif
+_GL_FUNCDECL_RPL (lstat, int,
+                  (const char *restrict name, struct stat *restrict buf)
+                  _GL_ARG_NONNULL ((1, 2)));
+_GL_CXXALIAS_RPL (lstat, int,
+                  (const char *restrict name, struct stat *restrict buf));
+# else
+_GL_CXXALIAS_SYS (lstat, int,
+                  (const char *restrict name, struct stat *restrict buf));
+# endif
+# if @HAVE_LSTAT@
+_GL_CXXALIASWARN (lstat);
+# endif
+#elif @GNULIB_OVERRIDES_STRUCT_STAT@
+# undef lstat
+# define lstat lstat_used_without_requesting_gnulib_module_lstat
+#elif defined GNULIB_POSIXCHECK
+# undef lstat
+# if HAVE_RAW_DECL_LSTAT
+_GL_WARN_ON_USE (lstat, "lstat is unportable - "
+                 "use gnulib module lstat for portability");
 # endif
 #endif
 

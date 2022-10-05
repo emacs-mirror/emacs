@@ -87,7 +87,11 @@ with a (not necessarily copyable) Elisp expression that returns the value to
 set it to.
 DO must return an Elisp expression."
   (cond
-   ((symbolp place) (funcall do place (lambda (v) `(setq ,place ,v))))
+   ((symbolp place)
+    (let ((me (macroexpand-1 place macroexpand-all-environment)))
+      (if (eq me place)
+          (funcall do place (lambda (v) `(setq ,place ,v)))
+        (gv-get me do))))
    ((not (consp place)) (signal 'gv-invalid-place (list place)))
    (t
     (let* ((head (car place))
@@ -532,13 +536,15 @@ The return value is the last VAL in the list.
        (funcall do `(error . ,args)
                 (lambda (v) `(progn ,v (error . ,args))))))
 
-(defmacro gv-synthetic-place (getter setter)
+(defun gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.
 GETTER and SETTER (typically obtained via `gv-letplace') get and
-set that place.  I.e. This macro allows you to do the \"reverse\" of what
-`gv-letplace' does.
-This macro only makes sense when used in a place."
-  (declare (gv-expander funcall))
+set that place.  I.e. this function allows you to do the
+\"reverse\" of what `gv-letplace' does.
+
+This function is only useful when used in conjunction with
+generalized variables in place forms."
+  (declare (gv-expander funcall) (compiler-macro (lambda (_) getter)))
   (ignore setter)
   getter)
 
@@ -806,6 +812,7 @@ REF must have been previously obtained with `gv-ref'."
                    `(cond
                      (,v ,(funcall setter val))
                      ((eq ,getter ,val) ,(funcall setter `(not ,val))))))))))
+(make-obsolete-generalized-variable 'eq nil "29.1")
 
 (gv-define-expander substring
   (lambda (do place from &optional to)

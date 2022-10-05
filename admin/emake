@@ -20,7 +20,20 @@ if [ -f /proc/cpuinfo ]; then
 	sed 's/^[0-9]*/+/')))
 fi
 
-make FAST=true -j$cores "$@" 2>&1 | \
+NOCOLOR=0
+NOCHECK=0
+FASTOPT="FAST=true"
+QUIETER=0
+while :
+do
+    [[ "X$1" == "X--no-color" ]] && { NOCOLOR=1; shift; continue; }
+    [[ "X$1" == "X--no-check" ]] && { NOCHECK=1; shift; continue; }
+    [[ "X$1" == "X--no-fast" ]] && { FASTOPT=""; shift; continue; }
+    [[ "X$1" == "X--quieter" ]] && { QUIETER=1; shift; continue; }
+    break
+done
+
+make $FASTOPT -j$cores "$@" 2>&1 | \
 sed -u 's# \.\./\.\./# #
 s# \.\./# #
 s#^Configuring local git # Configuring local git #
@@ -30,6 +43,7 @@ s#^Configured for # Configured for #
 s#^./temacs.*#  \\& #
 s#^make.*Error#  \\& #
 s#^Dumping under the name.*#  \\& #
+:a;/\\$/N;s/\\\n//;ta
 ' | \
 grep -E --line-buffered -v "^make|\
 ^Loading|\
@@ -82,15 +96,37 @@ The GNU allocators don't work|\
 ^\^\(\(|\
 ^ANCIENT=yes make|\
 ^touch -t|\
-^'build-aux/git-hooks\
+^'build-aux/git-hooks|\
+^GNUmakefile:[0-9]*: There seems to be no |\
+^GNUmakefile:[0-9]*: Running |\
+^GNUmakefile:[0-9]*: No Makefile|\
+^rm -f |\
+^rm -rf|\
+^find \. |\
+^rm -fr deps|\
+^if test -f \./\.gdbinit|\
+^true|\
+^for file in |\
+^rmdir|\
+^\[ \"\.\" = \"\.\" \]\
 " | \
 while read
 do
   C=""
-  [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
-  [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
-  [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+  (($NOCOLOR == 0)) && [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
+  (($NOCOLOR == 0)) && [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
+  if (($QUIETER == 0))
+  then
+      [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+  else
+      [[ "X$C" == "X" ]] && printf "%-80s\r" "$REPLY" || printf "$C%-80s\033[0m\n" "$REPLY"
+  fi
 done
+
+# If make failed, exit now with its error code.
+((${PIPESTATUS[0]} != 0)) && exit ${PIPESTATUS[0]}
+
+(($NOCHECK == 1)) && exit 0
 
 # Run a "make check" on all test files belonging to files that have
 # changed since last time.

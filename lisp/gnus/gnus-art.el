@@ -8550,17 +8550,13 @@ url is put as the `gnus-button-url' overlay property on the button."
 (defvar gnus-next-page-line-format "%{%(Next page...%)%}\n")
 (defvar gnus-prev-page-line-format "%{%(Previous page...%)%}\n")
 
-(defvar gnus-prev-page-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'gnus-button-prev-page)
-    (define-key map "\r"      #'gnus-button-prev-page)
-    map))
+(defvar-keymap gnus-prev-page-map
+  "<mouse-2>" #'gnus-button-prev-page
+  "RET"       #'gnus-button-prev-page)
 
-(defvar gnus-next-page-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'gnus-button-next-page)
-    (define-key map "\r"      #'gnus-button-next-page)
-    map))
+(defvar-keymap gnus-next-page-map
+  "<mouse-2>" #'gnus-button-next-page
+  "RET"       #'gnus-button-next-page)
 
 (defun gnus-insert-prev-page-button ()
   (let ((b (point)) e

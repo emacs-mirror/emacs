@@ -55,7 +55,7 @@ It is used for TCP/IP devices."
 (defconst tramp-adb-method "adb"
   "When this method name is used, forward all calls to Android Debug Bridge.")
 
-(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") space)
+(defcustom tramp-adb-prompt (rx bol (* (not (any "#$\n\r"))) (any "#$") blank)
   "Regexp used as prompt in almquist shell."
   :type 'regexp
   :version "28.1"
@@ -71,20 +71,22 @@ It is used for TCP/IP devices."
   "Regexp for date time format in ls output."))
 
 (defconst tramp-adb-ls-date-regexp
-  (rx space (regexp tramp-adb-ls-date-year-regexp)
-      space (regexp tramp-adb-ls-date-time-regexp)
-      space)
+  (tramp-compat-rx
+   blank (regexp tramp-adb-ls-date-year-regexp)
+   blank (regexp tramp-adb-ls-date-time-regexp)
+   blank)
   "Regexp for date format in ls output.")
 
 (defconst tramp-adb-ls-toolbox-regexp
-  (rx bol (* space) (group (+ (any ".-" alpha)))		; \1 permissions
-      (? (+ space) (+ digit))			      ; links (Android 7/toybox)
-      (* space) (group (+ (not space)))				; \2 username
-      (+ space) (group (+ (not space)))				; \3 group
-      (+ space) (group (+ digit))				; \4 size
-      (+ space) (group (regexp tramp-adb-ls-date-year-regexp)
-		 space (regexp tramp-adb-ls-date-time-regexp))	; \5 date
-      space (group (* nonl)) eol)				; \6 filename
+  (tramp-compat-rx
+   bol (* blank) (group (+ (any ".-" alpha)))			; \1 permissions
+   (? (+ blank) (+ digit))			      ; links (Android 7/toybox)
+   (* blank) (group (+ (not blank)))				; \2 username
+   (+ blank) (group (+ (not blank)))				; \3 group
+   (+ blank) (group (+ digit))					; \4 size
+   (+ blank) (group (regexp tramp-adb-ls-date-year-regexp)
+	      blank (regexp tramp-adb-ls-date-time-regexp))	; \5 date
+   blank (group (* nonl)) eol)					; \6 filename
   "Regexp for ls output.")
 
 ;;;###tramp-autoload
@@ -127,7 +129,7 @@ It is used for TCP/IP devices."
     (file-directory-p . tramp-handle-file-directory-p)
     (file-equal-p . tramp-handle-file-equal-p)
     (file-executable-p . tramp-adb-handle-file-executable-p)
-    (file-exists-p . tramp-handle-file-exists-p)
+    (file-exists-p . tramp-adb-handle-file-exists-p)
     (file-in-directory-p . tramp-handle-file-in-directory-p)
     (file-local-copy . tramp-adb-handle-file-local-copy)
     (file-locked-p . tramp-handle-file-locked-p)
@@ -180,6 +182,7 @@ It is used for TCP/IP devices."
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . ignore)
     (tramp-get-remote-gid . tramp-adb-handle-get-remote-gid)
+    (tramp-get-remote-groups . tramp-adb-handle-get-remote-groups)
     (tramp-get-remote-uid . tramp-adb-handle-get-remote-uid)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -218,7 +221,7 @@ arguments to pass to the OPERATION."
 	(mapcar
 	 (lambda (line)
 	   (when (string-match
-		  (rx bol (group (+ (not space))) (+ space) "device" eol) line)
+		  (rx bol (group (+ (not blank))) (+ blank) "device" eol) line)
 	     ;; Replace ":" by "#".
 	     `(nil ,(tramp-compat-string-replace
 		     ":" tramp-prefix-port-format (match-string 1 line)))))
@@ -235,10 +238,10 @@ arguments to pass to the OPERATION."
 	(goto-char (point-min))
 	(forward-line)
 	(when (looking-at
-	       (rx (* space) (+ (not space))
-		   (+ space) (group (+ digit))
-		   (+ space) (group (+ digit))
-		   (+ space) (group (+ digit))))
+	       (rx (* blank) (+ (not blank))
+		   (+ blank) (group (+ digit))
+		   (+ blank) (group (+ digit))
+		   (+ blank) (group (+ digit))))
 	  ;; The values are given as 1k numbers, so we must change
 	  ;; them to number of bytes.
 	  (list (* 1024 (string-to-number (match-string 1)))
@@ -278,10 +281,10 @@ arguments to pass to the OPERATION."
 	       (name (match-string 6))
 	       (symlink-target
 		(and is-symlink
-		     (cadr (split-string name (rx (group (| " -> " "\n"))))))))
+		     (cadr (split-string name (rx (| " -> " "\n")))))))
 	  (push (list
 		 (if is-symlink
-		     (car (split-string name (rx (group (| " -> " "\n")))))
+		     (car (split-string name (rx (| " -> " "\n"))))
 		   name)
 		 (or is-dir symlink-target)
 		 1     ;link-count
@@ -323,8 +326,8 @@ arguments to pass to the OPERATION."
 		     (tramp-shell-quote-argument
 		      (tramp-compat-file-name-concat localname ".."))))
 	  (tramp-compat-replace-regexp-in-region
-	   (rx (literal (tramp-compat-file-name-unquote
-			 (file-name-as-directory localname))))
+	   (tramp-compat-rx (literal (tramp-compat-file-name-unquote
+				      (file-name-as-directory localname))))
 	   "" (point-min))
 	  (widen)))
       (tramp-adb-sh-fix-ls-output)
@@ -362,12 +365,14 @@ Emacs dired can't find files."
     (goto-char (point-min))
     (while
 	(search-forward-regexp
-	 (rx space (group space (regexp tramp-adb-ls-date-year-regexp) space))
+	 (tramp-compat-rx
+	  blank (group blank (regexp tramp-adb-ls-date-year-regexp) blank))
 	 nil t)
       (replace-match "0\\1" "\\1" nil)
       ;; Insert missing "/".
       (when (looking-at-p
-	     (rx (regexp tramp-adb-ls-date-time-regexp) (+ space) eol))
+	     (tramp-compat-rx
+	      (regexp tramp-adb-ls-date-time-regexp) (+ blank) eol))
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
@@ -466,7 +471,7 @@ Emacs dired can't find files."
 	     nil
 	     (mapcar
 	      (lambda (l)
-		(and (not (string-match-p (rx bol (* space) eol) l)) l))
+		(and (not (string-match-p (rx bol (* blank) eol) l)) l))
 	      (split-string (buffer-string) "\n")))))))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
@@ -486,26 +491,52 @@ Emacs dired can't find files."
 
 (defun tramp-adb-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
-      (tramp-adb-send-command-and-check
-       v (format "test -x %s" (tramp-shell-quote-argument localname))))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (or (tramp-check-cached-permissions v ?x)
+	      (tramp-check-cached-permissions v ?s))
+	(tramp-adb-send-command-and-check
+	 v (format "test -x %s" (tramp-shell-quote-argument localname)))))))
+
+(defun tramp-adb-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  ;; `file-exists-p' is used as predicate in file name completion.
+  ;; We don't want to run it when `non-essential' is t, or there is
+  ;; no connection process yet.
+  (when (tramp-connectable-p filename)
+    (with-parsed-tramp-file-name (expand-file-name filename) nil
+      (with-tramp-file-property v localname "file-exists-p"
+	(if (tramp-file-property-p v localname "file-attributes")
+	    (not (null (tramp-get-file-property v localname "file-attributes")))
+	  (tramp-adb-send-command-and-check
+	   v (format "test -e %s" (tramp-shell-quote-argument localname))))))))
 
 (defun tramp-adb-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
-      (or (tramp-handle-file-readable-p filename)
-	  (tramp-adb-send-command-and-check
-	   v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
+      ;; Examine `file-attributes' cache to see if request can be
+      ;; satisfied without remote operation.
+      (if (tramp-file-property-p v localname "file-attributes")
+	  (tramp-handle-file-readable-p filename)
+	(tramp-adb-send-command-and-check
+	 v (format "test -r %s" (tramp-shell-quote-argument localname)))))))
 
 (defun tramp-adb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  (tramp-adb-send-command-and-check
-	   v (format "test -w %s" (tramp-shell-quote-argument localname)))
+	  (if (tramp-file-property-p v localname "file-attributes")
+	      ;; Examine `file-attributes' cache to see if request can
+	      ;; be satisfied without remote operation.
+	      (tramp-check-cached-permissions v ?w)
+	    (tramp-adb-send-command-and-check
+	     v (format "test -w %s" (tramp-shell-quote-argument localname))))
+	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
 	 (file-writable-p (file-name-directory filename)))))))
@@ -560,10 +591,9 @@ Emacs dired can't find files."
       ;; (introduced in POSIX.1-2008) fails.
       (tramp-adb-send-command-and-check
        v (format
-	  (eval-when-compile
-	    (concat "touch -d %s %s %s 2>%s || "
-		    "touch -d %s %s %s 2>%s || "
-		    "touch -t %s %s %s"))
+	  (concat "touch -d %s %s %s 2>%s || "
+		  "touch -d %s %s %s 2>%s || "
+		  "touch -t %s %s %s")
 	  (format-time-string "%Y-%m-%dT%H:%M:%S.%NZ" time t)
 	  nofollow quoted-name (tramp-get-remote-null-device v)
 	  (format-time-string "%Y-%m-%dT%H:%M:%S" time t)
@@ -718,9 +748,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (setcar result 0)
       (dolist (line signals)
 	(when (string-match
-	       (rx bol (* space) (group (+ digit))
-		   (+ space) (+ (not space))
-		   (+ space) (group alpha (* nonl)) eol)
+	       (rx bol (* blank) (group (+ digit))
+		   (+ blank) (+ (not blank))
+		   (+ blank) (group alpha (* nonl)) eol)
 	       line)
 	  (setcar
 	   (nthcdr (string-to-number (match-string 1 line)) result)
@@ -918,7 +948,7 @@ implementation will be used."
 		 (i 0)
 		 p)
 
-	    (when (string-match-p (rx multibyte) command)
+	    (when (string-match-p (tramp-compat-rx multibyte) command)
 	      (tramp-error
 	       v 'file-error "Cannot apply multi-byte command `%s'" command))
 
@@ -1040,32 +1070,23 @@ implementation will be used."
 (defun tramp-adb-handle-get-remote-uid (vec id-format)
   "Like `tramp-get-remote-uid' for Tramp files.
  ID-FORMAT valid values are `string' and `integer'."
- ;; The result is cached in `tramp-get-remote-uid'.
-  (tramp-adb-send-command
-   vec
-   (format "id -u%s %s"
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    ;; Read the expression.
-    (goto-char (point-min))
-    (read (current-buffer))))
+  (tramp-adb-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "uid-%s" id-format)))
 
 (defun tramp-adb-handle-get-remote-gid (vec id-format)
   "Like `tramp-get-remote-gid' for Tramp files.
 ID-FORMAT valid values are `string' and `integer'."
-  ;; The result is cached in `tramp-get-remote-gid'.
-  (tramp-adb-send-command
-   vec
-   (format "id -g%s %s"
-	   (if (equal id-format 'integer) "" "n")
-	   (if (equal id-format 'integer)
-	       "" "| sed -e s/^/\\\"/ -e s/\\$/\\\"/")))
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    ;; Read the expression.
-    (goto-char (point-min))
-    (read (current-buffer))))
+  (tramp-adb-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "gid-%s" id-format)))
+
+(defun tramp-adb-handle-get-remote-groups (vec id-format)
+  "Like `tramp-get-remote-groups' for Tramp files.
+ID-FORMAT valid values are `string' and `integer'."
+  (tramp-adb-send-command vec "id")
+  (tramp-read-id-output vec)
+  (tramp-get-connection-property vec (format "groups-%s" id-format)))
 
 (defun tramp-adb-get-device (vec)
   "Return full host name from VEC to be used in shell execution.
@@ -1119,7 +1140,7 @@ error and non-nil on success."
 
 (defun tramp-adb-send-command (vec command &optional neveropen nooutput)
   "Send the COMMAND to connection VEC."
-  (if (string-match-p (rx multibyte) command)
+  (if (string-match-p (tramp-compat-rx multibyte) command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
 
@@ -1143,7 +1164,7 @@ error and non-nil on success."
 	  ;; We can't use stty to disable echo of command.  stty is said
 	  ;; to be added to toybox 0.7.6.  busybox shall have it, but this
 	  ;; isn't used any longer for Android.
-	  (delete-matching-lines (rx (literal command)))
+	  (delete-matching-lines (tramp-compat-rx bol (literal command) eol))
 	  ;; When the local machine is W32, there are still trailing ^M.
 	  ;; There must be a better solution by setting the correct coding
 	  ;; system, but this requires changes in core Tramp.
@@ -1266,7 +1287,7 @@ connection if a previous connection has died for some reason."
 
 	    ;; Change prompt.
 	    (tramp-set-connection-property
-	     p "prompt" (rx "///" (literal prompt) "#$"))
+	     p "prompt" (tramp-compat-rx "///" (literal prompt) "#$"))
 	    (tramp-adb-send-command
 	     vec (format "PS1=\"///\"\"%s\"\"#$\"" prompt))
 
@@ -1284,11 +1305,10 @@ connection if a previous connection has died for some reason."
 	    (tramp-message vec 5 "Checking system information")
 	    (tramp-adb-send-command
 	     vec
-	     (eval-when-compile
-	       (concat
-		"echo \\\"`getprop ro.product.model` "
-		"`getprop ro.product.version` "
-		"`getprop ro.build.version.release`\\\"")))
+	     (concat
+	      "echo \\\"`getprop ro.product.model` "
+	      "`getprop ro.product.version` "
+	      "`getprop ro.build.version.release`\\\""))
 	    (let ((old-getprop (tramp-get-connection-property vec "getprop"))
 		  (new-getprop
 		   (tramp-set-connection-property

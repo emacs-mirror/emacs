@@ -456,8 +456,8 @@
             (dolist (file '(a b c d))
               (make-empty-file (expand-file-name (symbol-name file) testdir)))
             (should (= 6 (length (directory-files testdir))))
-            (should (equal "abcd" (mapconcat 'identity (directory-files
-                                                        testdir nil nod) "")))
+            (should (equal "abcd" (mapconcat #'identity (directory-files
+                                                         testdir nil nod))))
             (should (= 2 (length (directory-files testdir nil "[bc]"))))
             (should (= 3 (length (directory-files testdir nil nod nil 3))))
             (dolist (file '(5 4 3 2 1))

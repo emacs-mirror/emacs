@@ -48,7 +48,7 @@
   (should (equal (encode-hex-string
                   (hmac-md5 (decode-hex-string
                              (mapconcat (lambda (c) (concat (list c) "d"))
-                                        (make-string 50 ?c) ""))
+                                        (make-string 50 ?c)))
                             (decode-hex-string "0102030405060708090a0b0c0d0e0f10111213141516171819")))
                  "697eaf0aca3a3aea3a75164746ffaa79"))
 

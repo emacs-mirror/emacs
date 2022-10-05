@@ -325,6 +325,15 @@ haiku_message_to_lisp (void *message)
 	      t1 = make_float (*(float *) buf);
 	      break;
 
+	    case 'CSTR':
+	      /* Is this even possible? */
+	      if (!buf_size)
+		buf_size = 1;
+
+	      t1 = make_uninit_string (buf_size - 1);
+	      memcpy (SDATA (t1), buf, buf_size - 1);
+	      break;
+
 	    default:
 	      t1 = make_uninit_string (buf_size);
 	      memcpy (SDATA (t1), buf, buf_size);
@@ -747,6 +756,21 @@ haiku_lisp_to_message (Lisp_Object obj, void *message)
 		signal_error ("Failed to add bool", data);
 	      break;
 
+	    case 'CSTR':
+	      /* C strings must be handled specially, since they
+		 include a trailing NULL byte.  */
+	      CHECK_STRING (data);
+
+	      block_input ();
+	      rc = be_add_message_data (message, SSDATA (name),
+					type_code, SDATA (data),
+					SBYTES (data) + 1);
+	      unblock_input ();
+
+	      if (rc)
+		signal_error ("Failed to add", data);
+	      break;
+
 	    default:
 	    decode_normally:
 	      CHECK_STRING (data);
@@ -777,6 +801,49 @@ haiku_unwind_drag_message (void *message)
 {
   haiku_dnd_frame = NULL;
   BMessage_delete (message);
+}
+
+static void
+haiku_report_system_error (status_t code, const char *format)
+{
+  switch (code)
+    {
+    case B_BAD_VALUE:
+      error (format, "Bad value");
+      break;
+
+    case B_ENTRY_NOT_FOUND:
+      error (format, "File not found");
+      break;
+
+    case B_PERMISSION_DENIED:
+      error (format, "Permission denied");
+      break;
+
+    case B_LINK_LIMIT:
+      error (format, "Link limit reached");
+      break;
+
+    case B_BUSY:
+      error (format, "Device busy");
+      break;
+
+    case B_NO_MORE_FDS:
+      error (format, "No more file descriptors");
+      break;
+
+    case B_FILE_ERROR:
+      error (format, "File error");
+      break;
+
+    case B_NO_MEMORY:
+      memory_full (SIZE_MAX);
+      break;
+
+    default:
+      error (format, "Unknown error");
+      break;
+    }
 }
 
 DEFUN ("haiku-drag-message", Fhaiku_drag_message, Shaiku_drag_message,
@@ -956,6 +1023,66 @@ after it starts.  */)
 		  list2 (file_or_type, args));
 
   return SAFE_FREE_UNBIND_TO (depth, Qnil);
+}
+
+DEFUN ("haiku-write-node-attribute", Fhaiku_write_node_attribute,
+       Shaiku_write_node_attribute, 3, 3, 0,
+       doc: /* Write a message as a file-system attribute of NODE.
+FILE should be a file name of a file on a Be File System volume, NAME
+should be a string describing the name of the attribute that will be
+written, and MESSAGE will be the attribute written to FILE, as a
+system message in the format accepted by `haiku-drag-message', which
+see.  */)
+  (Lisp_Object file, Lisp_Object name, Lisp_Object message)
+{
+  void *be_message;
+  status_t rc;
+  specpdl_ref count;
+
+  CHECK_STRING (file);
+  CHECK_STRING (name);
+
+  file = ENCODE_FILE (file);
+  name = ENCODE_SYSTEM (name);
+
+  be_message = be_create_simple_message ();
+  count = SPECPDL_INDEX ();
+
+  record_unwind_protect_ptr (BMessage_delete, be_message);
+  haiku_lisp_to_message (message, be_message);
+  rc = be_write_node_message (SSDATA (file), SSDATA (name),
+			      be_message);
+
+  if (rc < B_OK)
+    haiku_report_system_error (rc, "Failed to set attribute: %s");
+
+  return unbind_to (count, Qnil);
+}
+
+DEFUN ("haiku-send-message", Fhaiku_send_message, Shaiku_send_message,
+       2, 2, 0,
+       doc: /* Send a system message to PROGRAM.
+PROGRAM must be the name of the application to which the message will
+be sent.  MESSAGE is the system message, serialized in the format
+accepted by `haiku-drag-message', that will be sent to the application
+specified by PROGRAM.  There is no guarantee that the message will
+arrive after this function is called.  */)
+  (Lisp_Object program, Lisp_Object message)
+{
+  specpdl_ref count;
+  void *be_message;
+
+  CHECK_STRING (program);
+  program = ENCODE_SYSTEM (program);
+
+  be_message = be_create_simple_message ();
+  count = SPECPDL_INDEX ();
+
+  record_unwind_protect_ptr (BMessage_delete, be_message);
+  haiku_lisp_to_message (message, be_message);
+  be_send_message (SSDATA (program), be_message);
+
+  return unbind_to (count, Qnil);
 }
 
 static void
@@ -1191,6 +1318,8 @@ keyboard modifiers currently held down.  */);
   defsubr (&Shaiku_selection_owner_p);
   defsubr (&Shaiku_drag_message);
   defsubr (&Shaiku_roster_launch);
+  defsubr (&Shaiku_write_node_attribute);
+  defsubr (&Shaiku_send_message);
 
   haiku_dnd_frame = NULL;
 }

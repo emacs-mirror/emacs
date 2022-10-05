@@ -522,7 +522,7 @@
         (erc-send-current-line)
         (should (ring-p erc-input-ring))
         (should (zerop (ring-member erc-input-ring "/one"))) ; equal
-        (should (save-excursion (forward-line -1) (goto-char (pos-bol))
+        (should (save-excursion (forward-line -1)
                                 (looking-at-p "[*]+ echo: one")))
         (should-not erc-input-ring-index)
         (erc-bol)

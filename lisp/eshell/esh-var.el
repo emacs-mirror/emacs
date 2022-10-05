@@ -646,23 +646,24 @@ For example, to retrieve the second element of a user's record in
   "Reference VALUE using the given INDEX."
   (when (and (stringp index) (get-text-property 0 'number index))
     (setq index (string-to-number index)))
-  (if (stringp index)
-      (cdr (assoc index value))
-    (cond
-     ((ring-p value)
-      (if (> index (ring-length value))
-	  (error "Index exceeds length of ring")
-	(ring-ref value index)))
-     ((listp value)
-      (if (> index (length value))
-	  (error "Index exceeds length of list")
-	(nth index value)))
-     ((vectorp value)
-      (if (> index (length value))
-	  (error "Index exceeds length of vector")
-	(aref value index)))
-     (t
-      (error "Invalid data type for indexing")))))
+  (if (integerp index)
+      (cond
+       ((ring-p value)
+        (if (> index (ring-length value))
+            (error "Index exceeds length of ring")
+          (ring-ref value index)))
+       ((listp value)
+        (if (> index (length value))
+            (error "Index exceeds length of list")
+          (nth index value)))
+       ((vectorp value)
+        (if (> index (length value))
+            (error "Index exceeds length of vector")
+          (aref value index)))
+       (t
+        (error "Invalid data type for indexing")))
+    ;; INDEX is some non-integer value, so treat VALUE as an alist.
+    (cdr (assoc index value))))
 
 ;;;_* Variable name completion
 

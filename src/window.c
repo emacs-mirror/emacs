@@ -8363,7 +8363,8 @@ on their symbols to be controlled by this variable.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-point-insertion-type", Vwindow_point_insertion_type,
-	       doc: /* Type of marker to use for `window-point'.  */);
+	       doc: /* Insertion type of marker to use for `window-point'.
+See `marker-insertion-type' for the meaning of the possible values.  */);
   Vwindow_point_insertion_type = Qnil;
   DEFSYM (Qwindow_point_insertion_type, "window-point-insertion-type");
 

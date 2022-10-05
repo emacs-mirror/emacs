@@ -637,8 +637,7 @@ argument is maybe, return maybe.  Return 1value only if both arguments
 are 1value."
   (cl-case val
     (testcover-1value result)
-    (maybe (and result 'maybe))
-    (nil nil)))
+    (maybe (and result 'maybe))))
 
 (defun testcover-analyze-coverage-compose (forms func)
   "Analyze a list of FORMS for code coverage using FUNC.

@@ -421,13 +421,13 @@ lower-priority archives will not be shown in the menu, if the same
 package is available from a higher-priority archive.  (This is
 controlled by the value of @code{package-menu-hide-low-priority}.)
 
-  Once a package is downloaded and installed, it is made available to
-the current Emacs session.  Making a package available adds its
-directory to @code{load-path} and loads its autoloads.  The effect of
-a package's autoloads varies from package to package.  Most packages
-just make some new commands available, while others have more
-wide-ranging effects on the Emacs session.  For such information,
-consult the package's help buffer.
+  Once a package is downloaded, byte-compiled and installed, it is
+made available to the current Emacs session.  Making a package
+available adds its directory to @code{load-path} and loads its
+autoloads.  The effect of a package's autoloads varies from package to
+package.  Most packages just make some new commands available, while
+others have more wide-ranging effects on the Emacs session.  For such
+information, consult the package's help buffer.
 
   Installed packages are automatically made available by Emacs in all
 subsequent sessions.  This happens at startup, before processing the

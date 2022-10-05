@@ -380,7 +380,7 @@ for specific schemes.
 * info::                        Emacs "Info" pages.
 * mailto::                      Sending email.
 * news/nntp/snews::             Usenet news.
-* rlogin/telnet/tn3270::        Remote host connectivity.
+* telnet/tn3270::               Remote host connectivity.
 * irc::                         Internet Relay Chat.
 * data::                        Embedded data URLs.
 * nfs::                         Networked File System.
@@ -675,9 +675,8 @@ environment variable @samp{NNTPSERVER}, or @samp{news} if that
 environment variable is unset.
 @end defopt
 
-@node rlogin/telnet/tn3270
-@section rlogin, telnet and tn3270
-@cindex rlogin
+@node telnet/tn3270
+@section telnet and tn3270
 @cindex telnet
 @cindex tn3270
 @cindex terminal emulation
@@ -694,10 +693,10 @@ telnet://@var{user}:@var{password}@@@var{host}:@var{port}
 but the @var{password} component is ignored.  By default, the
 @code{telnet} scheme is handled via Tramp (@pxref{Tramp}).
 
-To handle rlogin, telnet and tn3270 URLs, a @code{rlogin},
-@code{telnet} or @code{tn3270} (the program names and arguments are
-hardcoded) session is run in a @code{terminal-emulator} buffer.
-Well-known ports are used if the URL does not specify a port.
+To handle telnet and tn3270 URLs, a @code{telnet} or @code{tn3270}
+(the program names and arguments are hardcoded) session is run in a
+@code{terminal-emulator} buffer.  Well-known ports are used if the URL
+does not specify a port.
 
 @node irc
 @section irc
@@ -1039,12 +1038,6 @@ a list of symbols.  Possible values are:
 Use this method if you must first telnet and log into a gateway host,
 and then run telnet from that host to connect to outside machines.
 
-@item rlogin
-@cindex @command{rlogin}
-This method is identical to @code{telnet}, but uses @command{rlogin}
-to log into the remote machine without having to send the username and
-password over the wire every time.
-
 @item socks
 @cindex @sc{socks}
 Use if the firewall has a @sc{socks} gateway running on it.  The
@@ -1082,19 +1075,6 @@ The username to log in with.
 @end defopt
 @defopt url-gateway-telnet-password
 The password to send when logging in.
-@end defopt
-@defopt url-gateway-prompt-pattern
-This is a regular expression that matches the shell prompt.
-@end defopt
-
-@defopt url-gateway-rlogin-host
-Host to @samp{rlogin} to before telnetting out.
-@end defopt
-@defopt url-gateway-rlogin-parameters
-Parameters to pass to @samp{rsh}.
-@end defopt
-@defopt url-gateway-rlogin-user-name
-User name to use when logging in to the gateway.
 @end defopt
 @defopt url-gateway-prompt-pattern
 This is a regular expression that matches the shell prompt.
@@ -1327,8 +1307,6 @@ from the local machine.  The supported methods are:
 @table @code
 @item telnet
 Run telnet in a subprocess to connect;
-@item rlogin
-Rlogin to another machine to connect;
 @item socks
 Connect through a socks server;
 @item ssl

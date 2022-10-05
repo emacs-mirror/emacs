@@ -7391,7 +7391,8 @@ child_signal_notify (void)
 }
 
 /* LIB_CHILD_HANDLER is a SIGCHLD handler that Emacs calls while doing
-   its own SIGCHLD handling.  On POSIXish systems, glib needs this to
+   its own SIGCHLD handling.  On POSIXish systems lacking
+   pidfd_open+waitid or using Glib 2.73.1-, Glib needs this to
    keep track of its own children.  GNUstep is similar.  */
 
 static void dummy_handler (int sig) {}
@@ -8358,7 +8359,7 @@ DEFUN ("signal-names", Fsignal_names, Ssignal_names, 0, 0, 0,
 
 #ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
-   Invoke this after init_process_emacs, and after glib and/or GNUstep
+   Invoke this after init_process_emacs, and after Glib and/or GNUstep
    futz with the SIGCHLD handler, but before Emacs forks any children.
    This function's caller should block SIGCHLD.  */
 
@@ -8423,26 +8424,35 @@ init_process_emacs (int sockfd)
   if (!will_dump_with_unexec_p ())
     {
 #if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code.  Ask glib to install a
+      /* Tickle Glib's child-handling code.  Ask Glib to install a
 	 watch source for Emacs itself which will initialize glib's
 	 private SIGCHLD handler, allowing catch_child_signal to copy
-	 it into lib_child_handler.
+	 it into lib_child_handler.  This is a hacky workaround to get
+	 glib's g_unix_signal_handler into lib_child_handler.
 
-         Unfortunately in glib commit 2e471acf, the behavior changed to
+	 In Glib 2.37.5 (2013), commit 2e471acf changed Glib to
          always install a signal handler when g_child_watch_source_new
-         is called and not just the first time it's called.  Glib also
-         now resets signal handlers to SIG_DFL when it no longer has a
-         watcher on that signal.  This is a hackey work around to get
-         glib's g_unix_signal_handler into lib_child_handler.  */
+	 is called and not just the first time it's called, and to
+	 reset signal handlers to SIG_DFL when it no longer has a
+	 watcher on that signal.  Arrange for Emacs's signal handler
+	 to be reinstalled even if this happens.
+
+	 In Glib 2.73.2 (2022), commit f615eef4 changed Glib again,
+	 to not install a signal handler if the system supports
+	 pidfd_open and waitid (as in Linux kernel 5.3+).  The hacky
+	 workaround is not needed in this case.  */
       GSource *source = g_child_watch_source_new (getpid ());
       catch_child_signal ();
       g_source_unref (source);
 
-      eassert (lib_child_handler != dummy_handler);
-      signal_handler_t lib_child_handler_glib = lib_child_handler;
-      catch_child_signal ();
-      eassert (lib_child_handler == dummy_handler);
-      lib_child_handler = lib_child_handler_glib;
+      if (lib_child_handler != dummy_handler)
+	{
+	  /* The hacky workaround is needed on this platform.  */
+	  signal_handler_t lib_child_handler_glib = lib_child_handler;
+	  catch_child_signal ();
+	  eassert (lib_child_handler == dummy_handler);
+	  lib_child_handler = lib_child_handler_glib;
+	}
 #else
       catch_child_signal ();
 #endif

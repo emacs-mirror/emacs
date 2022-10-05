@@ -4461,6 +4461,11 @@ FORMAT-ARGS is non-nil, PROMPT is used as a format control
 string, and FORMAT-ARGS are the arguments to be substituted into
 it.  See `format' for details.
 
+Both PROMPT and `minibuffer-default-prompt-format' are run
+through `substitute-command-keys' (which see).  In particular,
+this means that single quotes may be displayed by equivalent
+characters, according to the capabilities of the terminal.
+
 If DEFAULT is a list, the first element is used as the default.
 If not, the element is used as is.
 
@@ -4468,12 +4473,12 @@ If DEFAULT is nil or an empty string, no \"default value\" string
 is included in the return value."
   (concat
    (if (null format-args)
-       prompt
-     (apply #'format prompt format-args))
+       (substitute-command-keys prompt)
+     (apply #'format (substitute-command-keys prompt) format-args))
    (and default
         (or (not (stringp default))
             (length> default 0))
-        (format minibuffer-default-prompt-format
+        (format (substitute-command-keys minibuffer-default-prompt-format)
                 (if (consp default)
                     (car default)
                   default)))

@@ -36,6 +36,7 @@
 
 ### Code:
 
+set -o nounset
 
 die ()                          # write error to stderr and exit
 {

@@ -2189,8 +2189,8 @@ to install it but still mark it as selected."
              (assq (car elt) package-archive-contents)))
         (and available
              (version-list-<
-              (package-desc-priority-version (cadr elt))
-              (package-desc-priority-version (cadr available))))))
+              (package-desc-version (cadr elt))
+              (package-desc-version (cadr available))))))
     package-alist)))
 
 ;;;###autoload
@@ -2648,7 +2648,7 @@ Helper function for `describe-package'."
                         "',\n             shadowing a ")
                        (propertize "built-in package"
                                    'font-lock-face 'package-status-built-in))
-             (insert (substitute-command-keys "'")))
+             (insert (substitute-quotes "'")))
            (if signed
                (insert ".")
              (insert " (unsigned)."))
@@ -3700,30 +3700,34 @@ objects removed."
     `((delete . ,del) (install . ,ins) (upgrade . ,upg))))
 
 (defun package-menu--perform-transaction (install-list delete-list)
-  "Install packages in INSTALL-LIST and delete DELETE-LIST."
-  (if install-list
-      (let ((status-format (format ":Installing %%d/%d"
-                             (length install-list)))
-            (i 0)
-            (package-menu--transaction-status))
-        (dolist (pkg install-list)
-          (setq package-menu--transaction-status
-                (format status-format (cl-incf i)))
-          (force-mode-line-update)
-          (redisplay 'force)
-          ;; Don't mark as selected, `package-menu-execute' already
-          ;; does that.
-          (package-install pkg 'dont-select))))
-  (let ((package-menu--transaction-status ":Deleting"))
-    (force-mode-line-update)
-    (redisplay 'force)
-    (dolist (elt (package--sort-by-dependence delete-list))
-      (condition-case-unless-debug err
-          (let ((inhibit-message (or inhibit-message package-menu-async)))
-            (package-delete elt nil 'nosave))
-        (error (message "Error trying to delete `%s': %S"
-                 (package-desc-full-name elt)
-                 err))))))
+  "Install packages in INSTALL-LIST and delete DELETE-LIST.
+Return nil if there were no errors; non-nil otherwise."
+  (let ((errors nil))
+    (if install-list
+        (let ((status-format (format ":Installing %%d/%d"
+                                     (length install-list)))
+              (i 0)
+              (package-menu--transaction-status))
+          (dolist (pkg install-list)
+            (setq package-menu--transaction-status
+                  (format status-format (cl-incf i)))
+            (force-mode-line-update)
+            (redisplay 'force)
+            ;; Don't mark as selected, `package-menu-execute' already
+            ;; does that.
+            (package-install pkg 'dont-select))))
+    (let ((package-menu--transaction-status ":Deleting"))
+      (force-mode-line-update)
+      (redisplay 'force)
+      (dolist (elt (package--sort-by-dependence delete-list))
+        (condition-case-unless-debug err
+            (let ((inhibit-message (or inhibit-message package-menu-async)))
+              (package-delete elt nil 'nosave))
+          (error
+           (push (package-desc-full-name elt) errors)
+           (message "Error trying to delete `%s': %S"
+                    (package-desc-full-name elt) err)))))
+    errors))
 
 (defun package--update-selected-packages (add remove)
   "Update the `package-selected-packages' list according to ADD and REMOVE.
@@ -3796,8 +3800,8 @@ Optional argument NOQUERY non-nil means do not ask the user to confirm."
           (message "Operation %s started" message-template)
           ;; Packages being upgraded are not marked as selected.
           (package--update-selected-packages .install .delete)
-          (package-menu--perform-transaction install-list delete-list)
-          (when package-selected-packages
+          (unless (package-menu--perform-transaction install-list delete-list)
+            ;; If there weren't errors, output data.
             (if-let* ((removable (package--removable-packages)))
                 (message "Operation finished.  Packages that are no longer needed: %d.  Type `%s' to remove them"
                          (length removable)

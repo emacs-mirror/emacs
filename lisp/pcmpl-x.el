@@ -28,6 +28,22 @@
 (eval-when-compile (require 'cl-lib))
 (require 'pcomplete)
 
+;;; TeX
+
+;;;###autoload
+(defun pcomplete/tex ()
+  "Completion for the `tex' command."
+  (pcomplete-here-using-help "tex --help"
+                             :margin "^\\(?:\\[-no\\]\\)?\\(\\)-"))
+;;;###autoload(defalias 'pcomplete/pdftex 'pcomplete/tex)
+;;;###autoload(defalias 'pcomplete/latex 'pcomplete/tex)
+;;;###autoload(defalias 'pcomplete/pdflatex 'pcomplete/tex)
+
+;;;###autoload
+(defun pcomplete/luatex ()
+  "Completion for the `luatex' command."
+  (pcomplete-here-using-help "luatex --help"))
+;;;###autoload(defalias 'pcomplete/lualatex 'pcomplete/luatex)
 
 ;;;; tlmgr - https://www.tug.org/texlive/tlmgr.html
 
@@ -142,6 +158,12 @@
         (unless (pcomplete-match "^--" 0)
           (pcomplete-here* (pcomplete-dirs-or-entries)))))))
 
+;;; Grep-like tools
+
+;;;###autoload
+(defun pcomplete/rg ()
+  "Completion for the `rg' command."
+  (pcomplete-here-using-help "rg --help"))
 
 ;;;; ack - https://betterthangrep.com
 
@@ -288,6 +310,8 @@ long options."
                                     (pcmpl-x-ag-options))))
       (pcomplete-here* (pcomplete-dirs-or-entries)))))
 
+;;; Borland
+
 ;;;###autoload
 (defun pcomplete/bcc32 ()
   "Completion function for Borland's C++ compiler."
@@ -320,6 +344,25 @@ long options."
 
 ;;;###autoload
 (defalias 'pcomplete/bcc 'pcomplete/bcc32)
+
+;;; Network tools
+
+;;;###autoload
+(defun pcomplete/rclone ()
+  "Completion for the `rclone' command."
+  (let ((subcmds (pcomplete-from-help "rclone help"
+                                      :margin "^  "
+                                      :argument "[a-z]+"
+                                      :narrow-start "\n\n")))
+    (while (not (member (pcomplete-arg 1) subcmds))
+      (pcomplete-here (completion-table-merge
+                       subcmds
+                       (pcomplete-from-help "rclone help flags"))))
+    (let ((subcmd (pcomplete-arg 1)))
+      (while (if (pcomplete-match "\\`-" 0)
+                 (pcomplete-here (pcomplete-from-help
+                                  `("rclone" ,subcmd "--help")))
+               (pcomplete-here (pcomplete-entries)))))))
 
 (provide 'pcmpl-x)
 ;;; pcmpl-x.el ends here

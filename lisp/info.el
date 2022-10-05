@@ -451,6 +451,7 @@ or `Info-virtual-nodes'."
        (".info.z"    . "gunzip")
        (".info.bz2"  . ("bzip2" "-dc"))
        (".info.xz"   . "unxz")
+       (".info.zst"  . ("zstd" "-dc"))
        (".info"      . nil)
        ("-info.Z"    . "uncompress")
        ("-info.Y"    . "unyabba")
@@ -458,6 +459,7 @@ or `Info-virtual-nodes'."
        ("-info.bz2"  . ("bzip2" "-dc"))
        ("-info.z"    . "gunzip")
        ("-info.xz"   . "unxz")
+       ("-info.zst"  . ("zstd" "-dc"))
        ("-info"      . nil)
        ("/index.Z"   . "uncompress")
        ("/index.Y"   . "unyabba")
@@ -465,6 +467,7 @@ or `Info-virtual-nodes'."
        ("/index.z"   . "gunzip")
        ("/index.bz2" . ("bzip2" "-dc"))
        ("/index.xz"  . "unxz")
+       ("/index.zst" . ("zstd" "-dc"))
        ("/index"     . nil)
        (".Z"         . "uncompress")
        (".Y"         . "unyabba")
@@ -472,6 +475,7 @@ or `Info-virtual-nodes'."
        (".z"         . "gunzip")
        (".bz2"       . ("bzip2" "-dc"))
        (".xz"        . "unxz")
+       (".zst"       . ("zstd" "-dc"))
        (""           . nil)))
   "List of file name suffixes and associated decoding commands.
 Each entry should be (SUFFIX . STRING); the file is given to
@@ -4451,9 +4455,12 @@ Advanced commands:
   (setq buffer-read-only t)
   (setq Info-tag-table-marker (make-marker))
   (unless (or (display-multi-font-p)
-              (coding-system-equal
-               (coding-system-base (terminal-coding-system))
-               'utf-8))
+              (and (coding-system-equal
+                    (coding-system-base (terminal-coding-system))
+                    'utf-8)
+                   ;; The Linux console has limited character
+                   ;; repertoire even when its encoding is UTF-8.
+                   (not (equal (tty-type) "linux"))))
     (dolist (elt info-symbols-and-replacements)
       (let ((ch (car elt))
             (repl (cdr elt)))

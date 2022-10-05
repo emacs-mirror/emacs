@@ -339,7 +339,7 @@ calling this one."
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.
 FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
-  (let* ((recentf-exclude #'always)
+  (let* ((recentf-exclude '(always))
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
 	 ;; of time for a buffer we intend to kill.

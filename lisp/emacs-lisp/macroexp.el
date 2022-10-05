@@ -110,7 +110,8 @@ each clause."
       (let ((symbols-with-pos-enabled t))
         (apply handler form (cdr form)))
     (error
-     (message "Compiler-macro error for %S: Handler: %S\n%S" (car form) handler err)
+     (message "Warning: Optimization failure for %S: Handler: %S\n%S"
+              (car form) handler err)
      form)))
 
 (defun macroexp--funcall-if-compiled (_form)

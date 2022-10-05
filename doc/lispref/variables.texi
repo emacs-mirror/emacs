@@ -358,27 +358,6 @@ Variables}); a few variables have terminal-local bindings
 like ordinary local bindings, but they are localized depending on
 where you are in Emacs.
 
-@defopt max-specpdl-size
-@anchor{Definition of max-specpdl-size}
-@cindex variable limit error
-@cindex evaluation error
-@cindex infinite recursion
-This variable defines the limit on the total number of local variable
-bindings and @code{unwind-protect} cleanups (@pxref{Cleanups,,
-Cleaning Up from Nonlocal Exits}) that are allowed before Emacs
-signals an error (with data @code{"Variable binding depth exceeds
-max-specpdl-size"}).
-
-This limit, with the associated error when it is exceeded, is one way
-that Lisp avoids infinite recursion on an ill-defined function.
-@code{max-lisp-eval-depth} provides another limit on depth of nesting.
-@xref{Definition of max-lisp-eval-depth,, Eval}.
-
-The default value is 1600.  Entry to the Lisp debugger increases the
-value, if there is little room left, to make sure the debugger itself
-has room to execute.
-@end defopt
-
 @node Void Variables
 @section When a Variable is Void
 @cindex @code{void-variable} error
@@ -2635,15 +2614,15 @@ is a set of forms that can be generalized variables in Lisp.
 
 The @code{setf} macro is the most basic way to operate on generalized
 variables.  The @code{setf} form is like @code{setq}, except that it
-accepts arbitrary place forms on the left side rather than just
-symbols.  For example, @code{(setf (car a) b)} sets the car of
-@code{a} to @code{b}, doing the same operation as @code{(setcar a b)},
-but without you having to use two separate functions for setting and
-accessing this type of place.
+accepts arbitrary place forms in the first (left) argument of each
+pair rather than just symbols.  For example, @code{(setf (car a) b)}
+sets the car of @code{a} to @code{b}, doing the same operation as
+@code{(setcar a b)}, but without you having to use two separate
+functions for setting and accessing this type of place.
 
 @defmac setf [place form]@dots{}
-This macro evaluates @var{form} and stores it in @var{place}, which
-must be a valid generalized variable form.  If there are several
+This macro evaluates @var{form} and stores its value in @var{place},
+which must be a valid generalized variable form.  If there are several
 @var{place} and @var{form} pairs, the assignments are done sequentially
 just as with @code{setq}.  @code{setf} returns the value of the last
 @var{form}.
@@ -2718,7 +2697,17 @@ a
      @result{} ("hello" "wood")
 @end example
 
-@c FIXME?  Also 'eq'? (see gv.el)
+@item
+The @code{if} and @code{cond} conditionals will work as generalized
+variables.  For instance, this will set either the @code{foo} or the
+@code{bar} variable to @code{zot}:
+
+@example
+(setf (if (zerop (random 2))
+	  foo
+	bar)
+      'zot)
+@end example
 @end itemize
 
 @noindent

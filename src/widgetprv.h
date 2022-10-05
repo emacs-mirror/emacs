@@ -49,6 +49,8 @@ typedef struct {
 
   Boolean	visual_bell;		/* flash instead of beep */
   int		bell_volume;		/* how loud is beep */
+  int		size_switch;		/* hack to make setting size
+					   hints work correctly */
 
   /* private state */
 

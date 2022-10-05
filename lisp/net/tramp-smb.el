@@ -53,7 +53,7 @@
 ;;;###tramp-autoload
 (tramp--with-startup
  (add-to-list 'tramp-default-user-alist
-	      `(,(rx bos (literal tramp-smb-method) eos) nil nil))
+	      `(,(tramp-compat-rx bos (literal tramp-smb-method) eos) nil nil))
 
  ;; Add completion function for SMB method.
  (tramp-set-completion-function
@@ -92,81 +92,79 @@ this variable \"client min protocol=NT1\"."
   "Version string of the SMB client.")
 
 (defconst tramp-smb-server-version
-  (rx "Domain=[" (* (not (any "]"))) "] "
-      "OS=[" (* (not (any "]"))) "] "
-      "Server=[" (* (not (any "]"))) "]")
+  (tramp-compat-rx "Domain=[" (* (not "]")) "] "
+		   "OS=[" (* (not "]")) "] "
+		   "Server=[" (* (not "]")) "]")
   "Regexp of SMB server identification.")
 
 (defconst tramp-smb-prompt
-  (rx bol (| (: (| "smb:" "PS") " " (+ nonl) "> ")
-	     (: (+ space) "Server"
-		(+ space) "Comment" eol)))
+  (rx bol (| (: (| "smb:" "PS") blank (+ nonl) "> ")
+	     (: (+ blank) "Server"
+		(+ blank) "Comment" eol)))
   "Regexp used as prompt in smbclient or powershell.")
 
 (defconst tramp-smb-wrong-passwd-regexp
-  (regexp-opt
-   '("NT_STATUS_LOGON_FAILURE"
-     "NT_STATUS_WRONG_PASSWORD"))
+  (rx (| "NT_STATUS_LOGON_FAILURE"
+	 "NT_STATUS_WRONG_PASSWORD"))
   "Regexp for login error strings of SMB servers.")
 
 (defconst tramp-smb-errors
   (rx (| ;; Connection error / timeout / unknown command.
-       (: "Connection" (? " to " (+ (not space))) " failed")
+       (: "Connection" (? " to " (+ (not blank))) " failed")
        "Read from server failed, maybe it closed the connection"
        "Call timed out: server did not respond"
-       (: (+ (not space)) ": command not found")
+       (: (+ (not blank)) ": command not found")
        "Server doesn't support UNIX CIFS calls"
-       (regexp (regexp-opt
-		'(;; Samba.
-		  "ERRDOS"
-		  "ERRHRD"
-		  "ERRSRV"
-		  "ERRbadfile"
-		  "ERRbadpw"
-		  "ERRfilexists"
-		  "ERRnoaccess"
-		  "ERRnomem"
-		  "ERRnosuchshare"
-		  ;; See /usr/include/samba-4.0/core/ntstatus.h.
-		  ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
-		  ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
-		  ;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
-		  ;; Windows 6.3 (Windows Server 2012, Windows 10).
-		  "NT_STATUS_ACCESS_DENIED"
-		  "NT_STATUS_ACCOUNT_LOCKED_OUT"
-		  "NT_STATUS_BAD_NETWORK_NAME"
-		  "NT_STATUS_CANNOT_DELETE"
-		  "NT_STATUS_CONNECTION_DISCONNECTED"
-		  "NT_STATUS_CONNECTION_REFUSED"
-		  "NT_STATUS_CONNECTION_RESET"
-		  "NT_STATUS_DIRECTORY_NOT_EMPTY"
-		  "NT_STATUS_DUPLICATE_NAME"
-		  "NT_STATUS_FILE_IS_A_DIRECTORY"
-		  "NT_STATUS_HOST_UNREACHABLE"
-		  "NT_STATUS_IMAGE_ALREADY_LOADED"
-		  "NT_STATUS_INVALID_LEVEL"
-		  "NT_STATUS_INVALID_PARAMETER"
-		  "NT_STATUS_INVALID_PARAMETER_MIX"
-		  "NT_STATUS_IO_TIMEOUT"
-		  "NT_STATUS_LOGON_FAILURE"
-		  "NT_STATUS_NETWORK_ACCESS_DENIED"
-		  "NT_STATUS_NOT_IMPLEMENTED"
-		  "NT_STATUS_NO_LOGON_SERVERS"
-		  "NT_STATUS_NO_SUCH_FILE"
-		  "NT_STATUS_NO_SUCH_USER"
-		  "NT_STATUS_NOT_A_DIRECTORY"
-		  "NT_STATUS_NOT_SUPPORTED"
-		  "NT_STATUS_OBJECT_NAME_COLLISION"
-		  "NT_STATUS_OBJECT_NAME_INVALID"
-		  "NT_STATUS_OBJECT_NAME_NOT_FOUND"
-		  "NT_STATUS_OBJECT_PATH_SYNTAX_BAD"
-		  "NT_STATUS_PASSWORD_MUST_CHANGE"
-		  "NT_STATUS_RESOURCE_NAME_NOT_FOUND"
-		  "NT_STATUS_REVISION_MISMATCH"
-		  "NT_STATUS_SHARING_VIOLATION"
-		  "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
-		  "NT_STATUS_UNSUCCESSFUL"
-		  "NT_STATUS_WRONG_PASSWORD")))))
+       (| ;; Samba.
+	"ERRDOS"
+	"ERRHRD"
+	"ERRSRV"
+	"ERRbadfile"
+	"ERRbadpw"
+	"ERRfilexists"
+	"ERRnoaccess"
+	"ERRnomem"
+	"ERRnosuchshare"
+	;; See /usr/include/samba-4.0/core/ntstatus.h.
+	;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
+	;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
+	;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
+	;; Windows 6.3 (Windows Server 2012, Windows 10).
+	"NT_STATUS_ACCESS_DENIED"
+	"NT_STATUS_ACCOUNT_LOCKED_OUT"
+	"NT_STATUS_BAD_NETWORK_NAME"
+	"NT_STATUS_CANNOT_DELETE"
+	"NT_STATUS_CONNECTION_DISCONNECTED"
+	"NT_STATUS_CONNECTION_REFUSED"
+	"NT_STATUS_CONNECTION_RESET"
+	"NT_STATUS_DIRECTORY_NOT_EMPTY"
+	"NT_STATUS_DUPLICATE_NAME"
+	"NT_STATUS_FILE_IS_A_DIRECTORY"
+	"NT_STATUS_HOST_UNREACHABLE"
+	"NT_STATUS_IMAGE_ALREADY_LOADED"
+	"NT_STATUS_INVALID_LEVEL"
+	"NT_STATUS_INVALID_PARAMETER"
+	"NT_STATUS_INVALID_PARAMETER_MIX"
+	"NT_STATUS_IO_TIMEOUT"
+	"NT_STATUS_LOGON_FAILURE"
+	"NT_STATUS_NETWORK_ACCESS_DENIED"
+	"NT_STATUS_NOT_IMPLEMENTED"
+	"NT_STATUS_NO_LOGON_SERVERS"
+	"NT_STATUS_NO_SUCH_FILE"
+	"NT_STATUS_NO_SUCH_USER"
+	"NT_STATUS_NOT_A_DIRECTORY"
+	"NT_STATUS_NOT_SUPPORTED"
+	"NT_STATUS_OBJECT_NAME_COLLISION"
+	"NT_STATUS_OBJECT_NAME_INVALID"
+	"NT_STATUS_OBJECT_NAME_NOT_FOUND"
+	"NT_STATUS_OBJECT_PATH_SYNTAX_BAD"
+	"NT_STATUS_PASSWORD_MUST_CHANGE"
+	"NT_STATUS_RESOURCE_NAME_NOT_FOUND"
+	"NT_STATUS_REVISION_MISMATCH"
+	"NT_STATUS_SHARING_VIOLATION"
+	"NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
+	"NT_STATUS_UNSUCCESSFUL"
+	"NT_STATUS_WRONG_PASSWORD")))
   "Regexp for possible error strings of SMB servers.
 Used instead of analyzing error codes of commands.")
 
@@ -300,6 +298,7 @@ See `tramp-actions-before-shell' for more info.")
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     (tramp-get-home-directory . tramp-smb-handle-get-home-directory)
     (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-groups . ignore)
     (tramp-get-remote-uid . ignore)
     (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
@@ -730,7 +729,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (with-parsed-tramp-file-name name nil
       ;; Tilde expansion if necessary.
       (when (string-match
-	     (rx bos "~" (group (* (not (any "/")))) (group (* nonl)) eos)
+	     (tramp-compat-rx bos "~" (group (* (not "/"))) (group (* nonl)) eos)
 	     localname)
 	(let ((uname (match-string 1 localname))
 	      (fname (match-string 2 localname))
@@ -886,28 +885,28 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (while (not (eobp))
 	    (cond
 	     ((looking-at
-	       (rx "Size:" (+ space) (group (+ digit)) (+ space)
-		   "Blocks:" (+ space) (+ digit) (+ space) (group (+ wordchar))))
+	       (rx "Size:" (+ blank) (group (+ digit)) (+ blank)
+		   "Blocks:" (+ blank) (+ digit) (+ blank) (group (+ wordchar))))
 	      (setq size (string-to-number (match-string 1))
 		    id (if (string-equal "directory" (match-string 2)) t
 			 (if (string-equal "symbolic" (match-string 2)) ""))))
 	     ((looking-at
-	       (rx "Inode:" (+ space) (group (+ digit)) (+ space)
-		   "Links:" (+ space) (group (+ digit))))
+	       (rx "Inode:" (+ blank) (group (+ digit)) (+ blank)
+		   "Links:" (+ blank) (group (+ digit))))
 	      (setq inode (string-to-number (match-string 1))
 		    link (string-to-number (match-string 2))))
 	     ((looking-at
-	       (rx "Access:" (+ space)
-		   "(" (+ digit) "/" (group (+ (not space))) ")" (+ space)
-		   "Uid:" (+ space) (group (+ digit)) (+ whitespace)
-		   "Gid:" (+ space) (group (+ digit))))
+	       (rx "Access:" (+ blank)
+		   "(" (+ digit) "/" (group (+ (not blank))) ")" (+ blank)
+		   "Uid:" (+ blank) (group (+ digit)) (+ blank)
+		   "Gid:" (+ blank) (group (+ digit))))
 	      (setq mode (match-string 1)
 		    uid (match-string 2)
 		    gid (match-string 3)))
 	     ((looking-at
-	       (rx "Access:" (+ space)
+	       (rx "Access:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq atime
@@ -919,9 +918,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (rx "Modify:" (+ space)
+	       (rx "Modify:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq mtime
@@ -933,9 +932,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (string-to-number (match-string 2)) ;; month
 		     (string-to-number (match-string 1))))) ;; year
 	     ((looking-at
-	       (rx "Change:" (+ space)
+	       (rx "Change:" (+ blank)
 		   (group (+ digit)) "-" (group (+ digit)) "-"
-		   (group (+ digit)) (+ space)
+		   (group (+ digit)) (+ blank)
 		   (group (+ digit)) ":" (group (+ digit)) ":"
 		   (group (+ digit))))
 	      (setq ctime
@@ -1010,7 +1009,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (goto-char (point-min))
 	    (forward-line)
 	    (when (looking-at
-		   (rx (* space) (group (+ digit))
+		   (rx (* blank) (group (+ digit))
 		       " blocks of size " (group (+ digit))
 		       ". " (group (+ digit)) " blocks available"))
 	      (setq blocksize (string-to-number (match-string 2))
@@ -1083,7 +1082,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     ;; Check for matching entries.
 		     (mapcar
 		      (lambda (x)
-			(when (string-match-p (rx bol (literal base)) (nth 0 x))
+			(when (string-match-p
+			       (tramp-compat-rx bol (literal base)) (nth 0 x))
 			  x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
@@ -1213,50 +1213,47 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 If TARGET is a non-Tramp file, it is used verbatim as the target
 of the symlink.  If TARGET is a Tramp file, only the localname
 component is used as the target of the symlink."
-  (if (not (tramp-tramp-file-p (expand-file-name linkname)))
-      (tramp-run-real-handler
-       #'make-symbolic-link (list target linkname ok-if-already-exists))
+  (with-parsed-tramp-file-name linkname nil
+    ;; If TARGET is a Tramp name, use just the localname component.
+    ;; Don't check for a proper method.
+    (let ((non-essential t))
+      (when (and (tramp-tramp-file-p target)
+		 (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
+	(setq target (tramp-file-local-name (expand-file-name target)))))
 
-    (with-parsed-tramp-file-name linkname nil
-      ;; If TARGET is a Tramp name, use just the localname component.
-      ;; Don't check for a proper method.
-      (let ((non-essential t))
-	(when (and (tramp-tramp-file-p target)
-		   (tramp-file-name-equal-p v (tramp-dissect-file-name target)))
-	  (setq target (tramp-file-local-name (expand-file-name target)))))
+    ;; If TARGET is still remote, quote it.
+    (if (tramp-tramp-file-p target)
+	(make-symbolic-link
+	 (tramp-compat-file-name-quote target 'top)
+	 linkname ok-if-already-exists)
 
-      ;; If TARGET is still remote, quote it.
-      (if (tramp-tramp-file-p target)
-	  (make-symbolic-link (tramp-compat-file-name-quote target 'top)
-	   linkname ok-if-already-exists)
+      ;; Do the 'confirm if exists' thing.
+      (when (file-exists-p linkname)
+	;; What to do?
+	(if (or (null ok-if-already-exists) ; not allowed to exist
+		(and (numberp ok-if-already-exists)
+		     (not (yes-or-no-p
+			   (format
+			    "File %s already exists; make it a link anyway?"
+			    localname)))))
+	    (tramp-error v 'file-already-exists localname)
+	  (delete-file linkname)))
 
-	;; Do the 'confirm if exists' thing.
-	(when (file-exists-p linkname)
-	  ;; What to do?
-	  (if (or (null ok-if-already-exists) ; not allowed to exist
-		  (and (numberp ok-if-already-exists)
-		       (not (yes-or-no-p
-			     (format
-			      "File %s already exists; make it a link anyway?"
-			      localname)))))
-	      (tramp-error v 'file-already-exists localname)
-	    (delete-file linkname)))
+      (unless (tramp-smb-get-cifs-capabilities v)
+	(tramp-error v 'file-error "make-symbolic-link not supported"))
 
-	(unless (tramp-smb-get-cifs-capabilities v)
-	  (tramp-error v 'file-error "make-symbolic-link not supported"))
+      ;; We must also flush the cache of the directory, because
+      ;; `file-attributes' reads the values from there.
+      (tramp-flush-file-properties v localname)
 
-	;; We must also flush the cache of the directory, because
-	;; `file-attributes' reads the values from there.
-	(tramp-flush-file-properties v localname)
-
-	(unless (tramp-smb-send-command
-		 v (format "symlink %s %s"
-			   (tramp-smb-shell-quote-argument target)
-			   (tramp-smb-shell-quote-localname v)))
-	  (tramp-error
-	   v 'file-error
-	   "error with make-symbolic-link, see buffer `%s' for details"
-	   (tramp-get-connection-buffer v)))))))
+      (unless (tramp-smb-send-command
+	       v (format "symlink %s %s"
+			 (tramp-smb-shell-quote-argument target)
+			 (tramp-smb-shell-quote-localname v)))
+	(tramp-error
+	 v 'file-error
+	 "error with make-symbolic-link, see buffer `%s' for details"
+	 (tramp-get-connection-buffer v))))))
 
 (defun tramp-smb-handle-process-file
   (program &optional infile destination display &rest args)
@@ -1633,7 +1630,7 @@ VEC or USER, or if there is no home directory, return nil."
   (save-match-data
     (let ((localname (tramp-file-name-unquote-localname vec)))
       (when (string-match
-	     (rx bol (? "/") (group (+ (not (any "/")))) "/") localname)
+	     (tramp-compat-rx bol (? "/") (group (+ (not "/"))) "/") localname)
 	(match-string 1 localname)))))
 
 (defun tramp-smb-get-localname (vec)
@@ -1644,7 +1641,8 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
       (setq
        localname
        (if (string-match
-	    (rx bol (? "/") (+ (not (any "/"))) (group "/" (* nonl))) localname)
+	    (tramp-compat-rx bol (? "/") (+ (not "/")) (group "/" (* nonl)))
+	    localname)
 	   ;; There is a share, separated by "/".
 	   (if (not (tramp-smb-get-cifs-capabilities vec))
 	       (mapconcat
@@ -1653,16 +1651,16 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	     (match-string 1 localname))
 	 ;; There is just a share.
 	 (if (string-match
-	      (rx bol (? "/") (group (+ (not (any "/")))) eol) localname)
+	      (tramp-compat-rx bol (? "/") (group (+ (not "/"))) eol) localname)
 	     (match-string 1 localname)
 	   "")))
 
       ;; Sometimes we have discarded `substitute-in-file-name'.
-      (when (string-match (rx (group "$$") (group (| "/" eol))) localname)
+      (when (string-match (rx (group "$$") (| "/" eol)) localname)
 	(setq localname (replace-match "$" nil nil localname 1)))
 
       ;; A trailing space is not supported.
-      (when (string-match-p (rx " " eol) localname)
+      (when (string-match-p (rx blank eol) localname)
 	(tramp-error
 	 vec 'file-error
 	 "Invalid file name %s" (tramp-make-tramp-file-name vec localname)))
@@ -1763,7 +1761,7 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 ;;
 ;; Problems:
 ;; * Modern regexp constructs, like spy groups and counted repetitions, aren't
-;;   available in older Emacsen.
+;;   available in older versions of Emacs.
 ;; * The length of constructs (file name, size) might exceed the default.
 ;; * File names might contain spaces.
 ;; * Permissions might be empty.
@@ -1782,7 +1780,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 	;; Read share entries.
 	(when (string-match
-	       (rx bol "Disk|" (group (+ (not (any "|")))) "|") line)
+	       (tramp-compat-rx bol "Disk|" (group (+ (not "|"))) "|") line)
 	  (setq localname (match-string 1 line)
 		mode "dr-xr-xr-x"
 		size 0))
@@ -1821,7 +1819,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 	  (cl-return))
 
 	;; weekday.
-	(if (string-match-p (rx (group (+ wordchar)) eol) line)
+	(if (string-match-p (rx (+ wordchar) eol) line)
 	    (setq line (substring line 0 -5))
 	  (cl-return))
 
@@ -1855,9 +1853,9 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 
 	;; localname.
 	(if (string-match
-	     (rx bol (+ space)
-		 (group (not space) (? (group (* nonl) (not space))))
-		 (* space) eol)
+	     (rx bol (+ blank)
+		 (group (not blank) (? (* nonl) (not blank)))
+		 (* blank) eol)
 	     line)
 	    (setq localname (match-string 1 line))
 	  (cl-return))))

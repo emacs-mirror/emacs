@@ -179,13 +179,11 @@ Don't scan past LIMIT."
 Once the escape_start, and escape_end sequences are known, then
 we can tell font lock about them.")
 
-(defvar srecode-template-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-c\C-c" #'srecode-compile-templates)
-    (define-key km "\C-c\C-m" #'srecode-macro-help)
-    (define-key km "/" #'srecode-self-insert-complete-end-macro)
-    km)
-  "Keymap used in srecode mode.")
+(defvar-keymap srecode-template-mode-map
+  :doc "Keymap used in srecode mode."
+  "C-c C-c" #'srecode-compile-templates
+  "C-c C-m" #'srecode-macro-help
+  "/"       #'srecode-self-insert-complete-end-macro)
 
 ;;;###autoload
 (define-derived-mode srecode-template-mode fundamental-mode "SRecode"
@@ -260,9 +258,9 @@ we can tell font lock about them.")
 	    (when (class-abstract-p C)
 	      (throw 'skip nil))
 
-	    (princ (substitute-command-keys "`"))
+            (princ (substitute-quotes "`"))
 	    (princ name)
-	    (princ (substitute-command-keys "'"))
+            (princ (substitute-quotes "'"))
 	    (when (slot-exists-p C 'key)
 	      (when key
 		(princ " - Character Key: ")

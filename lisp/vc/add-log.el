@@ -208,8 +208,6 @@ a case simply use the directory containing the changed file."
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1")
-(define-obsolete-face-alias 'change-log-acknowledgement
-  'change-log-acknowledgment "24.3")
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
 (defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
@@ -808,7 +806,7 @@ if it were to exist."
 
 (defun add-log-find-changelog-buffer (changelog-file-name)
   "Find a ChangeLog buffer for CHANGELOG-FILE-NAME.
-Respect `add-log-use-pseudo-changelog', which see."
+Respect `add-log--pseudo-changelog-buffer-name', which see."
   (if (or (file-exists-p changelog-file-name)
           (not add-log-dont-create-changelog-file))
       (find-file-noselect changelog-file-name)

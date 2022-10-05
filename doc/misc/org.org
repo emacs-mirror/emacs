@@ -11042,7 +11042,7 @@ a major LaTeX mode like AUCTeX in order to speed-up insertion of
 environments and math templates.  Inside Org mode, you can make use of
 some of the features of CDLaTeX mode.  You need to install
 =cdlatex.el= and =texmathp.el= (the latter comes also with AUCTeX)
-using [[https://melpa.org/][MELPA]] with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html][Emacs packaging system]] or alternatively from
+from [[https://elpa.nongnu.org/][NonGNU ELPA]] with the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html][Emacs packaging system]] or alternatively from
 [[https://staff.fnwi.uva.nl/c.dominik/Tools/cdlatex/]].  Do not use
 CDLaTeX mode itself under Org mode, but use the special version Org
 CDLaTeX minor mode that comes as part of Org.  Turn it on for the
@@ -22024,7 +22024,7 @@ a deadline string.  See ~org-agenda-entry-types~ on how to set what
 planning information is taken into account.
 
 [fn:104] For HTML you need to install Hrvoje Nikšić's =htmlize.el=
-as an Emacs package from MELPA or from [[https://github.com/hniksic/emacs-htmlize][Hrvoje Nikšić's repository]].
+as an Emacs package from [[https://elpa.nongnu.org/][NonGNU ELPA]] or from [[https://github.com/hniksic/emacs-htmlize][Hrvoje Nikšić's repository]].
 
 [fn:105] To create PDF output, the Ghostscript ps2pdf utility must be
 installed on the system.  Selecting a PDF file also creates the

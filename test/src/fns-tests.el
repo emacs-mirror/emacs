@@ -131,47 +131,54 @@
     (should (equal [t t t t t nil nil nil nil nil] (vconcat (nreverse A))))))
 
 (defconst fns-tests--string-lessp-cases
-  '((a 97 error)
-    (97 "a" error)
-    ("abc" "abd" t)
-    ("abd" "abc" nil)
-    (abc "abd" t)
-    ("abd" abc nil)
-    (abc abd t)
-    (abd abc nil)
-    ("" "" nil)
-    ("" " " t)
-    (" " "" nil)
-    ("abc" "abcd" t)
-    ("abcd" "abc" nil)
-    ("abc" "abc" nil)
-    (abc abc nil)
-    ("\0" "" nil)
-    ("" "\0" t)
-    ("~" "\x80" t)
-    ("\x80" "\x80" nil)
-    ("\xfe" "\xff" t)
-    ("Munchen" "München" t)
-    ("München" "Munchen" nil)
-    ("München" "München" nil)
-    ("Ré" "Réunion" t)))
+  `(("abc" < "abd")
+    (abc < "abd")
+    (abc < abd)
+    ("" = "")
+    ("" < " ")
+    ("abc" < "abcd")
+    ("abc" = "abc")
+    (abc = abc)
+    ("" < "\0")
+    ("~" < "\x80")
+    ("\x80" = "\x80")
+    ("\xfe" < "\xff")
+    ("Munchen" < "München")
+    ("München" = "München")
+    ("Ré" < "Réunion")
+    ("abc" = ,(string-to-multibyte "abc"))
+    (,(string-to-multibyte "abc") = ,(string-to-multibyte "abc"))
+    ("abc" < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "abc") < "abd")
+    (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
+    (,(string-to-multibyte "\x80") = ,(string-to-multibyte "\x80"))
 
+    ;; Cases concerning the ordering of raw bytes: these are
+    ;; troublesome because the current `string<' order is not very useful as
+    ;; it equates unibyte 80..FF with multibyte U+0080..00FF, and is also
+    ;; inconsistent with `string=' (see bug#58168).
+    ;;("\x80" < ,(string-to-multibyte "\x80"))
+    ;;("\xff" < ,(string-to-multibyte "\x80"))
+    ;;("ü" < "\xfc")
+    ;;("ü" < ,(string-to-multibyte "\xfc"))
+    )
+  "List of (A REL B) where REL is the relation (`<' or `=') between A and B.")
 
 (ert-deftest fns-tests-string-lessp ()
   ;; Exercise both `string-lessp' and its alias `string<', both directly
   ;; and in a function (exercising its bytecode).
-  (dolist (lessp (list #'string-lessp #'string<
-                       (lambda (a b) (string-lessp a b))
-                       (lambda (a b) (string< a b))))
-    (ert-info ((prin1-to-string lessp) :prefix "function: ")
+  (dolist (fun (list #'string-lessp #'string<
+                     (lambda (a b) (string-lessp a b))
+                     (lambda (a b) (string< a b))))
+    (ert-info ((prin1-to-string fun) :prefix "function: ")
+      (should-error (funcall fun 'a 97))
+      (should-error (funcall fun 97 "a"))
       (dolist (case fns-tests--string-lessp-cases)
         (ert-info ((prin1-to-string case) :prefix "case: ")
-          (pcase case
-            (`(,x ,y error)
-             (should-error (funcall lessp x y)))
-            (`(,x ,y ,expected)
-             (should (equal (funcall lessp x y) expected)))))))))
-
+          (pcase-let ((`(,x ,rel ,y) case))
+            (cl-assert (memq rel '(< =)))
+            (should (equal (funcall fun x y) (eq rel '<)))
+            (should (equal (funcall fun y x) nil))))))))
 
 (ert-deftest fns-tests-compare-strings ()
   (should-error (compare-strings))
@@ -614,9 +621,9 @@
   (should (string= (mapconcat #'identity '("Ä" "ø" "☭" "தமிழ்") "_漢字_")
                    "Ä_漢字_ø_漢字_☭_漢字_தமிழ்"))
   ;; vector
-  (should (string= (mapconcat #'identity ["a" "b"] "") "ab"))
+  (should (string= (mapconcat #'identity ["a" "b"]) "ab"))
   ;; bool-vector
-  (should (string= (mapconcat #'identity [nil nil] "") ""))
+  (should (string= (mapconcat #'identity [nil nil]) ""))
   (should-error (mapconcat #'identity [nil nil t])
                 :type 'wrong-type-argument))
 
@@ -1412,6 +1419,41 @@
     (should (equal (take 5 list) '(a b c b c)))
     (should (equal (take 10 list) '(a b c b c b c b c b)))
 
-    (should (equal (ntake 10 list) '(a b)))))
+    (should (equal (ntake 10 list) '(a b))))
+
+  ;; Bignum N argument.
+  (let ((list (list 'a 'b 'c)))
+    (should (equal (take (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (take (- most-negative-fixnum 1) list) nil))
+    (should (equal (ntake (+ most-positive-fixnum 1) list) '(a b c)))
+    (should (equal (ntake (- most-negative-fixnum 1) list) nil))
+    (should (equal list '(a b c)))))
+
+(ert-deftest fns--copy-alist ()
+  (dolist (orig '(nil
+                  ((a . 1) (b . 2) (a . 3))
+                  (a (b . 3) ((c) (d)))))
+    (ert-info ((prin1-to-string orig) :prefix "orig: ")
+      (let ((copy (copy-alist orig)))
+        (should (equal orig copy))
+        (while orig
+          (should-not (eq orig copy))
+          ;; Check that cons pairs are copied but nothing else.
+          (let ((orig-elt (car orig))
+                (copy-elt (car copy)))
+            (if (atom orig-elt)
+                (should (eq orig-elt copy-elt))
+              (should-not (eq orig-elt copy-elt))
+              (should (eq (car orig-elt) (car copy-elt)))
+              (should (eq (cdr orig-elt) (cdr copy-elt)))))
+          (setq orig (cdr orig))
+          (setq copy (cdr copy))))))
+
+  (should-error (copy-alist 'a)
+                :type 'wrong-type-argument)
+  (should-error (copy-alist [(a . 1) (b . 2) (a . 3)])
+                :type 'wrong-type-argument)
+  (should-error (copy-alist "abc")
+                :type 'wrong-type-argument))
 
 ;;; fns-tests.el ends here

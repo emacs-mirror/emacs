@@ -215,6 +215,10 @@ deactivating the mark.  @xref{Shift Selection}.
 @vindex mouse-wheel-follow-mouse
 @vindex mouse-wheel-scroll-amount
 @vindex mouse-wheel-progressive-speed
+@cindex wheel-up, a mouse event
+@cindex wheel-down, a mouse event
+@cindex wheel-left, a mouse event
+@cindex wheel-right, a mouse event
   Some mice have a ``wheel'' which can be used for scrolling.  Emacs
 supports scrolling windows with the mouse wheel, by default, on most
 graphical displays.  To toggle this feature, use @kbd{M-x
@@ -224,7 +228,11 @@ buffers are scrolled.  The variable
 @code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.  This mode also
 supports increasing or decreasing the font size, by default bound to
-scrolling with the @key{Ctrl} modifier.
+scrolling with the @key{Ctrl} modifier.  When this mode is enabled,
+mouse wheel produces special events like @code{wheel-up} and
+@code{wheel-down}.  (Some older systems report them as @code{mouse-4}
+and @code{mouse-5}.)  If the mouse has a horizontal scroll wheel, it
+produces @code{wheel-left} and @code{wheel-right} events as well.
 
 @vindex mouse-wheel-scroll-amount-horizontal
 Emacs also supports horizontal scrolling with the @key{Shift}
@@ -644,14 +652,15 @@ resources file to take effect.  @xref{Resources}.  Do not quote
 font names in X resource files.
 
 @item
-If you are running Emacs on the GNOME desktop, you can tell Emacs to
-use the default system font by setting the variable
+If you are running Emacs on the GNOME desktop or Haiku, you can tell
+Emacs to adjust the frame's default font along with changes to the
+default system font by setting the variable
 @code{font-use-system-font} to @code{t} (the default is @code{nil}).
 For this to work, Emacs must have been compiled with support for
 Gsettings (or the older Gconf).  (To be specific, the Gsettings
-configuration names used are
-@samp{org.gnome.desktop.interface monospace-font-name} and
-@samp{org.gnome.desktop.interface font-name}.)
+configuration names used are @samp{org.gnome.desktop.interface
+monospace-font-name} and @samp{org.gnome.desktop.interface
+font-name}.)
 
 @item
 Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font

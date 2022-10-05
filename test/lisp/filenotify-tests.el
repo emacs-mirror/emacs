@@ -137,6 +137,10 @@ Return nil when any other file notification watch is still active."
 
 (defun file-notify--test-cleanup ()
   "Cleanup after a test."
+  ;; (when (getenv "EMACS_EMBA_CI")
+  ;;   (dolist (buf (tramp-list-tramp-buffers))
+  ;;     (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
+  ;;     (kill-buffer buf)))
   (file-notify-rm-all-watches)
 
   (ignore-errors
@@ -173,6 +177,7 @@ Return nil when any other file notification watch is still active."
 
 (setq file-notify-debug nil
       password-cache-expiry nil
+      ;; tramp-verbose (if (getenv "EMACS_EMBA_CI") 10 0)
       tramp-verbose 0
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
@@ -639,7 +644,9 @@ delivered."
 
 (ert-deftest file-notify-test03-events ()
   "Check file creation/change/removal notifications."
-  :tags '(:expensive-test)
+  :tags (if (getenv "EMACS_EMBA_CI")
+            '(:expensive-test :unstable)
+          '(:expensive-test))
   (skip-unless (file-notify--test-local-enabled))
 
   (unwind-protect
@@ -1382,7 +1389,9 @@ descriptors that were issued when registering the watches.  This
 test caters for the situation in bug#22736 where the callback for
 the directory received events for the file with the descriptor of
 the file watch."
-  :tags '(:expensive-test)
+  :tags (if (getenv "EMACS_EMBA_CI")
+            '(:expensive-test :unstable)
+          '(:expensive-test))
   (skip-unless (file-notify--test-local-enabled))
 
   ;; A directory to be watched.
@@ -1566,6 +1575,136 @@ the file watch."
 
 (file-notify--deftest-remote file-notify-test10-sufficient-resources
   "Check `file-notify-test10-sufficient-resources' for remote files.")
+
+(ert-deftest file-notify-test11-symlinks ()
+  "Check that file notification do not follow symbolic links."
+  :tags '(:expensive-test)
+  (skip-unless (file-notify--test-local-enabled))
+  ;; This test does not work for kqueue (yet).
+  (skip-unless (not (string-equal (file-notify--test-library) "kqueue")))
+
+  (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
+        file-notify--test-tmpfile1 (file-notify--test-make-temp-name))
+
+  ;; Symlink a file.
+  (unwind-protect
+      (progn
+	(write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
+        ;; Some systems, like MS Windows w/o sufficient privileges, do
+        ;; not allow creation of symbolic links.
+        (condition-case nil
+            (make-symbolic-link
+             file-notify--test-tmpfile1 file-notify--test-tmpfile)
+	  (error (ert-skip "`make-symbolic-link' not supported")))
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; Writing to either the symlink or the target should not
+        ;; raise any event.
+        (file-notify--test-with-actions nil
+          (write-region
+           "another text" nil file-notify--test-tmpfile nil 'no-message)
+          (write-region
+           "another text" nil file-notify--test-tmpfile1 nil 'no-message))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; Changing timestamp of the target should not raise any
+        ;; event.  We don't use `nofollow'.
+        (file-notify--test-with-actions nil
+          (set-file-times file-notify--test-tmpfile1 '(0 0))
+          (set-file-times file-notify--test-tmpfile '(0 0)))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; Changing timestamp of the symlink shows the event.
+        (file-notify--test-with-actions
+	 (cond
+	  ;; w32notify does not distinguish between `changed' and
+	  ;; `attribute-changed'.
+	  ((string-equal (file-notify--test-library) "w32notify")
+	   '(changed))
+	  ;; GFam{File,Directory}Monitor, GKqueueFileMonitor and
+	  ;; GPollFileMonitor do not report the `attribute-changed'
+	  ;; event.
+	  ((memq (file-notify--test-monitor)
+                 '(GFamFileMonitor GFamDirectoryMonitor
+                   GKqueueFileMonitor GPollFileMonitor))
+           '())
+          (t '(attribute-changed)))
+         (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow))
+
+        ;; Deleting the target should not raise any event.
+        (file-notify--test-with-actions nil
+          (delete-file file-notify--test-tmpfile1)
+          (delete-file file-notify--test-tmpfile))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; The environment shall be cleaned up.
+	(file-notify-rm-watch file-notify--test-desc)
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup))
+
+  (setq file-notify--test-tmpfile1 (file-notify--test-make-temp-name)
+        file-notify--test-tmpfile (file-notify--test-make-temp-name))
+
+  ;; Symlink a directory.
+  (unwind-protect
+      (let ((tmpfile (expand-file-name "foo" file-notify--test-tmpfile))
+            (tmpfile1 (expand-file-name "foo" file-notify--test-tmpfile1)))
+	(make-directory file-notify--test-tmpfile1)
+        (make-symbolic-link file-notify--test-tmpfile1 file-notify--test-tmpfile)
+	(write-region "any text" nil tmpfile1 nil 'no-message)
+	(should
+	 (setq file-notify--test-desc
+	       (file-notify--test-add-watch
+                file-notify--test-tmpfile
+                '(attribute-change change) #'file-notify--test-event-handler)))
+        (should (file-notify-valid-p file-notify--test-desc))
+
+        ;; None of the actions on a file in the symlinked directory
+        ;; will be reported.
+        (file-notify--test-with-actions nil
+          (write-region "another text" nil tmpfile nil 'no-message)
+          (write-region "another text" nil tmpfile1 nil 'no-message)
+          (set-file-times tmpfile '(0 0))
+          (set-file-times tmpfile '(0 0) 'nofollow)
+          (set-file-times tmpfile1 '(0 0))
+          (set-file-times tmpfile1 '(0 0) 'nofollow)
+          (delete-file tmpfile)
+          (delete-file tmpfile1))
+        ;; Sanity check.
+        (file-notify--test-wait-for-events
+         (file-notify--test-timeout)
+         (not (input-pending-p)))
+        (should-not file-notify--test-events)
+
+        ;; The environment shall be cleaned up.
+        (delete-directory file-notify--test-tmpdir 'recursive)
+	(file-notify-rm-watch file-notify--test-desc)
+        (file-notify--test-cleanup-p))
+
+    ;; Cleanup.
+    (file-notify--test-cleanup)))
+
+(file-notify--deftest-remote file-notify-test11-symlinks
+  "Check `file-notify-test11-symlinks' for remote files.")
 
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."

@@ -209,6 +209,13 @@ called within a `save-excursion'.
 See `imenu--index-alist' for the format of the buffer index alist.")
 
 ;;;###autoload
+(defvar-local imenu-submenus-on-top t
+  "Flag specifying whether items with sublists should be kept at top.
+
+For some indexes, such as those describing sections in a document, it
+makes sense to keep their original order even in the menubar.")
+
+;;;###autoload
 (defvar-local imenu-prev-index-position-function 'beginning-of-defun
   "Function for finding the next index position.
 
@@ -310,7 +317,7 @@ element recalculates the buffer's index alist.")
 
 (defvar imenu--history-list nil
   ;; Making this buffer local caused it not to work!
-  "History list for `jump-to-function-in-buffer'.")
+  "History list for `imenu-choose-buffer-index'.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -373,10 +380,11 @@ The returned alist DOES NOT share structure with MENULIST."
     (if (memq imenu--rescan-item menulist)
 	(setq keep-at-top (list imenu--rescan-item)
 	      menulist (delq imenu--rescan-item menulist)))
-    (dolist (item menulist)
-      (when (imenu--subalist-p item)
-	(push item keep-at-top)
-	(setq menulist (delq item menulist))))
+    (if imenu-submenus-on-top
+        (dolist (item menulist)
+          (when (imenu--subalist-p item)
+	    (push item keep-at-top)
+	    (setq menulist (delq item menulist)))))
     (if imenu-sort-function
 	(setq menulist (sort menulist imenu-sort-function)))
     (if (> (length menulist) imenu-max-items)

@@ -287,10 +287,14 @@ expression, in which case we want to handle forms differently."
       ;; In Emacs this is normally handled separately by cus-dep.el, but for
       ;; third party packages, it can be convenient to explicitly autoload
       ;; a group.
-      (let ((groupname (nth 1 form)))
+      (let ((groupname (nth 1 form))
+            (parent (eval (plist-get form :group) t)))
         `(let ((loads (get ',groupname 'custom-loads)))
            (if (member ',file loads) nil
-             (put ',groupname 'custom-loads (cons ',file loads))))))
+             (put ',groupname 'custom-loads (cons ',file loads))
+             ,@(when parent
+               `((put ',parent 'custom-loads
+                      (cons ',groupname (get ',parent 'custom-loads)))))))))
 
      ;; When processing a macro expansion, any expression
      ;; before a :autoload-end should be included.  These are typically (put
@@ -504,6 +508,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
       (generate-lisp-file-trailer
        file :provide (and (stringp feature) feature)
        :compile compile
+       :inhibit-native-compile t
        :inhibit-provide (not feature))
       (buffer-string))))
 
@@ -511,7 +516,7 @@ If COMPILE, don't include a \"don't compile\" cookie."
 (defun loaddefs-generate (dir output-file &optional excluded-files
                               extra-data include-package-version
                               generate-full)
-  "Generate loaddefs files for Lisp files in the directories DIRS.
+  "Generate loaddefs files for Lisp files in one or more directories given by DIR.
 DIR can be either a single directory or a list of directories.
 
 The autoloads will be written to OUTPUT-FILE.  If any Lisp file
@@ -519,7 +524,7 @@ binds `generated-autoload-file' as a file-local variable, write
 its autoloads into the specified file instead.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified by DIRS.
+directories specified by DIR.
 
 Optional argument EXCLUDED-FILES, if non-nil, should be a list of
 files, such as preloaded files, whose autoloads should not be written
@@ -627,7 +632,7 @@ instead of just updating them with the new/changed autoloads."
                       ;; It's a new file; put the data at the end.
                       (progn
                         (goto-char (point-max))
-                        (search-backward "\f\n"))
+                        (search-backward "\f\n" nil t))
                     ;; Delete the old version of the section.
                     (delete-region (match-beginning 0)
                                    (and (search-forward "\n\f\n;;;")

@@ -50,7 +50,7 @@ modify this GNU manual.''
 @titlepage
 @title Ediff User's Manual
 @sp 4
-@subtitle Ediff version 2.81.2
+@subtitle Ediff version 2.81.6
 @sp 1
 @subtitle November 2008
 @sp 5

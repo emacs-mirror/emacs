@@ -209,7 +209,6 @@ frames where the source code location is known.")
   "v"   #'backtrace-toggle-locals
   "#"   #'backtrace-toggle-print-circle
   ":"   #'backtrace-toggle-print-gensym
-  "s"   #'backtrace-goto-source
   "RET" #'backtrace-help-follow-symbol
   "+"   #'backtrace-multi-line
   "-"   #'backtrace-single-line

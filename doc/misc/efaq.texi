@@ -1602,6 +1602,7 @@ is better to write ``Emacs and XEmacs.''
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
 * Fullscreen mode on MS-Windows::
+* Emacs in a Linux console::
 @end menu
 
 @node Setting up a customization file
@@ -1808,9 +1809,6 @@ optional display.  Alternatively, you can use the
 @code{global-display-line-numbers-mode}.  When using these modes,
 customize @code{display-line-numbers-type} with the same value as you
 would use with @code{display-line-numbers}.
-
-There is also the @samp{linum} package which will henceforth become
-obsolete.  We recommend using @samp{display-line-numbers} instead.
 
 @node Displaying the current file name in the titlebar
 @section How can I modify the titlebar to contain the current file name?
@@ -2363,16 +2361,7 @@ new paragraph.  There are many packages available to deal with this
 @cindex Pairs of parentheses, highlighting
 @cindex Matching parentheses
 
-Call @code{show-paren-mode} in your init file (@pxref{Setting up a
-customization file}):
-
-@lisp
-(show-paren-mode 1)
-@end lisp
-
-You can also enable this mode by selecting the @samp{Paren Match
-Highlighting} option from the @samp{Options} menu of the Emacs menu bar
-at the top of any Emacs frame.
+By default, @code{show-paren-mode} is enabled in all editing buffers.
 
 Alternatives to this mode include:
 
@@ -3030,6 +3019,115 @@ its default frame size and then growing to fullscreen, you can add an
 To compute the correct values for width and height, first maximize the
 Emacs frame and then evaluate @code{(frame-height)} and
 @code{(frame-width)} with @kbd{M-:}.
+
+@node Emacs in a Linux console
+@section How can I alleviate the limitations of the Linux console?
+@cindex Console, Linux console, TTY, fbterm
+
+If possible, we recommend running Emacs inside @command{fbterm}, when
+in a Linux console.  This brings the Linux console on par with most
+terminal emulators under X.  To do this, install @command{fbterm}, for
+example with the package manager of your GNU/Linux distribution, and
+execute the command
+
+@example
+$ fbterm
+@end example
+
+This will create a sample configuration file @file{~/.fbtermrc} in
+your home directory.  Edit that file and change the options
+@code{font-names} and @code{font-size} if necessary.  For the former,
+you can choose one or more of the lines in the output of the following
+command, separated by commas:
+
+@example
+$ fc-list :spacing=mono family | sed 's/ /\\ /g'
+@end example
+
+@noindent
+Note that you can fine-tune the appearance of the fonts by adding
+attribute-value pairs, separated by colons, after each font name.  For
+example,
+
+@example
+font-names=DejaVu\ Sans\ Mono:style=bold:antialias=false
+@end example
+
+@noindent
+selects the bold style of the DejaVu Sans Mono font, and disables
+anti-aliasing.
+
+You can now start Emacs inside @command{fbterm} with the command
+
+@example
+$ fbterm -- env TERM=fbterm emacs
+@end example
+
+In some versions of @command{fbterm}, setting @env{TERM} to
+@samp{fbterm} can be omitted.  To check whether it is needed, start
+Emacs inside @command{fbterm} with the command
+
+@example
+$ fbterm -- emacs
+@end example
+
+@noindent
+and type @kbd{M-x list-colors-display}.  If only 8 colors are
+displayed, it is necessary; if 256 colors are displayed, it isn't.
+
+You may want to add an alias for that command in your shell
+configuration file.  For example, if you use Bash, you can add the
+following line to your @file{~/.bashrc} file:
+
+@example
+alias emacs="fbterm -- env TERM=fbterm emacs"
+@end example
+
+@noindent
+or, if you use Emacs both in the Linux console and under X:
+
+@example
+[[ "$(tty)" =~ "/dev/tty" ]] && alias emacs="fbterm -- env TERM=fbterm emacs"
+@end example
+
+The @command{fbterm} terminal emulator may define a number of key
+bindings for its own use, some of which conflict with those that Emacs
+uses.  Execute the following two commands as root to ensure that
+@command{fbterm} does not define these key bindings:
+
+@example
+# chmod a-s `which fbterm`
+# setcap cap_sys_tty_config=-ep `which fbterm`
+@end example
+
+If you use Emacs as root, the above is not enough however, because the
+root user has all privileges.  You can use the following command to
+start Emacs inside @command{fbterm} as root while ensuring that
+@command{fbterm} does not define any key bindings for its own use:
+
+@example
+# capsh --drop=cap_sys_tty_config -- -c "fbterm -- env TERM=fbterm emacs"
+@end example
+
+Again you may want to add a shortcut for that command in the shell
+configuration file of the root user.  In this case however, it is not
+possible to use an alias, because the command line arguments passed to
+Emacs need to be inserted in the string at the end of the command.  A
+wrapper script or a function can be used to do that.  For example, if
+you use Bash, you can add the following function in the root user
+@file{~/.bashrc} file:
+
+@example
+function emacs ()
+@{
+  CMD="fbterm -- env TERM=fbterm emacs "
+  for ARG in "$@@"
+  do
+    CMD="$CMD '$ARG' "
+  done
+  capsh --drop=cap_sys_tty_config -- -c "$CMD"
+@}
+@end example
 
 @c ------------------------------------------------------------
 @node Bugs and problems

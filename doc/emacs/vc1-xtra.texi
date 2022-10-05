@@ -15,6 +15,7 @@
 * VC Delete/Rename::    Deleting and renaming version-controlled files.
 * Revision Tags::       Symbolic names for revisions.
 * Version Headers::     Inserting version control headers into working files.
+* Editing VC Commands:: Editing the VC shell commands that Emacs will run.
 @end menu
 
 @node Change Logs and VC
@@ -262,6 +263,24 @@ elements of the form @code{(@var{regexp} . @var{format})}.  Whenever
 @var{regexp} matches the buffer name, @var{format} is also inserted as
 part of the version header.  A @samp{%s} in @var{format} is replaced
 with the file's version control type.
+
+@node Editing VC Commands
+@subsubsection Editing VC Commands
+
+@findex vc-edit-next-command
+@kindex C-x v !
+You can use the @kbd{C-x v !} (@code{vc-edit-next-command}) prefix
+command to edit the shell command line that VC is about to run.  This
+is primarily intended to make it possible to add optional command-line
+arguments to VCS commands without unnecessary complications of the VC
+command set and its interfaces with the backend.
+
+For example, Git can produce logs of more than one branch, but
+@kbd{C-x v b l} (@code{vc-print-branch-log}) prompts for the name of
+just one branch.  To obtain a log of more than one branch, you can
+type @w{@kbd{C-x v ! C-x v b l}} and then append the names of
+additional branches to the end of the @samp{git log} command that VC
+is about to run.
 
 @node Customizing VC
 @subsection Customizing VC

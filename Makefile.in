@@ -366,7 +366,67 @@ endif
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 
-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+all:
+	$(MAKE) actual-all || $(MAKE) advice-on-failure make-target=all exit-status=$$?
+	$(MAKE) sanity-check make-target=all
+
+# This target is used by the 'bootstrap' target in GNUmakefile, instead of 'all'.
+bootstrap-all:
+	$(MAKE) actual-all || $(MAKE) advice-on-failure make-target=bootstrap exit-status=$$?
+	$(MAKE) sanity-check make-target=bootstrap
+
+.PHONY: bootstrap-all actual-all advice-on-failure sanity-check
+
+actual-all: ${SUBDIR} info $(gsettings_SCHEMAS:.xml=.valid) src-depending-on-lisp
+
+# ADVICE-ON-FAILURE-BEGIN:all
+# You could try to:
+# - run "make bootstrap", which might fix the problem
+# - run "make V=1", which displays the full commands invoked by make,
+#   to further investigate the problem
+# ADVICE-ON-FAILURE-END:all
+
+# ADVICE-ON-FAILURE-BEGIN:bootstrap
+# You could try to:
+# - run "make extraclean" and run "make" again (or, equivalently, run
+#   "make bootstrap configure=default"), to rebuild Emacs with the
+#   default configuration options, which might fix the problem
+# - run "git clean -fdx" and run "make bootstrap" again, which might
+#   fix the problem if "make bootstrap configure=default" did not
+#   !BEWARE! "git clean -fdx" deletes all files that are not under
+#   !BEWARE! version control, which means that all changes to such
+#   !BEWARE! files will be lost and cannot be restored later
+# - run "make V=1", which displays the full commands invoked by make,
+#   to further investigate the problem
+# - report the problem and ask for help by sending an email to
+#   bug-gnu-emacs@gnu.org, mentioning at least the build error
+#   message, the platform, and the repository revision displayed by
+#   "git rev-parse HEAD"
+# ADVICE-ON-FAILURE-END:bootstrap
+
+advice-on-failure:
+	@echo >&2 '***'
+	@echo >&2 '*** '"\"make ${make-target}\" failed with exit status ${exit-status}."
+	@echo >&2 '***'
+	@cat Makefile | \
+	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
+	  sed 's/^# /*** /' | grep -v '^*** ADVICE-ON-FAILURE-' >&2
+	@echo >&2 '***'
+	@exit ${exit-status}
+
+sanity-check:
+	@v=$$(src/emacs${EXEEXT} --batch --eval \
+	  '(progn (defun f (n) (if (= 0 n) 1 (* n (f (- n 1))))) (princ (f 10)))' \
+	  2> /dev/null); \
+	[ "X$$v" = "X3628800" ] && exit 0; \
+	echo >&2 '***'; \
+	echo >&2 '*** '"\"make ${make-target}\" succeeded, but Emacs is not functional."; \
+	echo >&2 '***'; \
+	cat Makefile | \
+	  sed -n '/^# ADVICE-ON-FAILURE-BEGIN:${make-target}/,$${p;/^# ADVICE-ON-FAILURE-END:${make-target}/q};' | \
+	  sed 's/^# /*** /' | grep -v '^*** ADVICE-ON-FAILURE-' >&2; \
+	echo >&2 '***'; \
+	exit 1
 
 .PHONY: all ${SUBDIR} blessmail epaths-force epaths-force-w32 epaths-force-ns-self-contained etc-emacsver
 
@@ -522,7 +582,7 @@ $(srcdir)/configure: $(srcdir)/configure.ac $(srcdir)/m4/*.m4
 ## don't have to duplicate the list of utilities to install in
 ## this Makefile as well.
 
-install: all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln install-gsettings-schemas
+install: actual-all install-arch-indep install-etcdoc install-arch-dep install-$(NTDIR) blessmail install-eln install-gsettings-schemas
 	@true
 
 ## Ensure that $subdir contains a subdirs.el file.
@@ -638,8 +698,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 	  [ -d $${dir} ] || exit 1 ; \
 	  dest="$$1" ; shift ; \
 	  if [ -d "$${dest}" ]; then \
-	    exp_dest=`cd "$${dest}" && /bin/pwd`; \
-	    [ "$$exp_dest" = "`cd $${dir} && /bin/pwd`" ] && continue ; \
+	    exp_dest=`cd "$${dest}" && pwd -P`; \
+	    [ "$$exp_dest" = "`cd $${dir} && pwd -P`" ] && continue ; \
 	  else true; \
 	  fi; \
 	  rm -rf "$${dest}" ; \
@@ -695,8 +755,8 @@ install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
 install-etcdoc: src install-arch-indep
 	-unset CDPATH; \
 	umask 022; ${MKDIR_P} "$(DESTDIR)${etcdocdir}" ; \
-	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; /bin/pwd`; \
-	if [ "`cd ./etc; /bin/pwd`" != "$$exp_etcdocdir" ]; \
+	exp_etcdocdir=`cd "$(DESTDIR)${etcdocdir}"; pwd -P`; \
+	if [ "`cd ./etc; pwd -P`" != "$$exp_etcdocdir" ]; \
 	then \
 	   docfile="DOC"; \
 	   printf 'Copying %s to %s ...\n' "etc/$$docfile" \
@@ -711,9 +771,9 @@ install-etcdoc: src install-arch-indep
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
-	thisdir=`/bin/pwd`; \
-	exp_infodir=`cd "$(DESTDIR)${infodir}" && /bin/pwd`; \
-	if [ "`cd ${srcdir}/info && /bin/pwd`" = "$$exp_infodir" ]; then \
+	thisdir=`pwd -P`; \
+	exp_infodir=`cd "$(DESTDIR)${infodir}" && pwd -P`; \
+	if [ "`cd ${srcdir}/info && pwd -P`" = "$$exp_infodir" ]; then \
 	  true; \
 	else \
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
@@ -742,7 +802,7 @@ install-info: info
 ## but not sure if portable.
 install-man:
 	umask 022; ${MKDIR_P} "$(DESTDIR)${man1dir}"
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	cd ${mansrcdir}; \
 	for page in *.1; do \
 	  test "$$page" = ChangeLog.1 && continue; \
@@ -809,7 +869,7 @@ install-etc:
 	  ${srcdir}/etc/emacs.service > $${tmp}; \
 	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
 	rm -f $${tmp}
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
 	  [ -d $${dir} ] || continue ; \
@@ -844,10 +904,10 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
-	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
+	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" "$(ELN_DESTDIR)" ; do 	\
 	  if [ -d "$${dir}" ]; then			\
-	    case `cd "$${dir}" ; /bin/pwd` in		\
-	      "`cd ${srcdir} ; /bin/pwd`"* ) ;;		\
+	    case `cd "$${dir}" ; pwd -P` in		\
+	      "`cd ${srcdir} ; pwd -P`"* ) ;;		\
 	      * ) rm -rf "$${dir}" ;;			\
 	    esac ;					\
 	    case "$${dir}" in				\
@@ -858,7 +918,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	  fi ;						\
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
-	thisdir=`/bin/pwd`; \
+	thisdir=`pwd -P`; \
 	(info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
@@ -1170,7 +1230,11 @@ check-info: info
 ### This first cleans the lisp subdirectory, removing all compiled
 ### Lisp files.  Then re-run make to build all the files anew.
 
-.PHONY: bootstrap
+.PHONY: bootstrap actual-bootstrap
+
+bootstrap:
+	$(MAKE) actual-bootstrap || $(MAKE) advice-on-failure make-target=bootstrap exit-status=$$?
+	$(MAKE) sanity-check make-target=bootstrap
 
 # Without a 'configure' variable, bootstrapping does the following:
 #  * Remove files to start from a bootstrap-clean slate.
@@ -1181,7 +1245,7 @@ check-info: info
 #  * Remove files to start from an extraclean slate.
 #  * Do the actual build, during which the 'configure' variable is
 #    used (see the Makefile goal in GNUmakefile).
-bootstrap:
+actual-bootstrap:
 ifndef configure
 	$(MAKE) bootstrap-clean
 	cd $(srcdir) && ./autogen.sh autoconf
@@ -1189,7 +1253,7 @@ ifndef configure
 else
 	$(MAKE) extraclean
 endif
-	$(MAKE) all
+	$(MAKE) actual-all
 
 .PHONY: ChangeLog change-history change-history-commit change-history-nocommit
 .PHONY: preferred-branch-is-current unchanged-history-files

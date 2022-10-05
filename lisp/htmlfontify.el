@@ -226,7 +226,6 @@ to make them safe."
   :tag   "html-quote-regex"
   :type  '(regexp))
 
-(define-obsolete-variable-alias 'hfy-post-html-hooks 'hfy-post-html-hook "24.3")
 (defcustom hfy-post-html-hook nil
   "List of functions to call after creating and filling the HTML buffer.
 These functions will be called with the HTML buffer as the current buffer."

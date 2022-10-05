@@ -250,7 +250,7 @@ with these words enabled."
 (defvar checkdoc-ispell-lisp-words
   '("alist" "emacs" "etags" "keymap" "paren" "regexp" "sexp")
   "List of words that are correct when spell-checking Lisp documentation.")
-;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'checkdoc-list-of-strings-p)
+;;;###autoload(put 'checkdoc-ispell-list-words 'safe-local-variable #'list-of-strings-p)
 
 (defcustom checkdoc-max-keyref-before-warn nil
   "If non-nil, number of \\\\=[command-to-keystroke] tokens allowed in a doc string.
@@ -281,8 +281,6 @@ Currently, all recognized keywords must be on `finder-known-keywords'."
   :version "25.1"
   :type 'boolean)
 
-(define-obsolete-variable-alias 'checkdoc-style-hooks
-  'checkdoc-style-functions "24.3")
 (defvar checkdoc-style-functions nil
   "Hook run after the standard style check is completed.
 All functions must return nil or a string representing the error found.
@@ -292,8 +290,6 @@ Each hook is called with two parameters, (DEFUNINFO ENDPOINT).
 DEFUNINFO is the return value of `checkdoc-defun-info'.  ENDPOINT is the
 location of end of the documentation string.")
 
-(define-obsolete-variable-alias 'checkdoc-comment-style-hooks
-  'checkdoc-comment-style-functions "24.3")
 (defvar checkdoc-comment-style-functions nil
   "Hook run after the standard comment style check is completed.
 Must return nil if no errors are found, or a string describing the
@@ -324,7 +320,7 @@ These words are ignored when unquoted symbols are searched for.
 This should be set in an Emacs Lisp file's local variables."
   :type '(repeat (string :tag "Word"))
   :version "28.1")
-;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'checkdoc-list-of-strings-p)
+;;;###autoload(put 'checkdoc-symbol-words 'safe-local-variable #'list-of-strings-p)
 
 (defcustom checkdoc-column-zero-backslash-before-paren t
   "Non-nil means to warn if there is no \"\\\" before \"(\" in column zero.
@@ -364,9 +360,9 @@ large number of libraries means it is impractical to fix all
 of these warnings masse.  In almost any other case, setting
 this to anything but t is likely to be counter-productive.")
 
-;;;###autoload
 (defun checkdoc-list-of-strings-p (obj)
   "Return t when OBJ is a list of strings."
+  (declare (obsolete list-of-strings-p "29.1"))
   ;; this is a function so it might be shared by checkdoc-proper-noun-list
   ;; and/or checkdoc-ispell-lisp-words in the future
   (and (listp obj)

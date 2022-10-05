@@ -25,8 +25,7 @@
 @copying
 This manual documents the Semantic library and utilities.
 
-Copyright @copyright{} 1999--2005, 2007, 2009--2022 Free Software
-Foundation, Inc.
+Copyright @copyright{} 1999--2022 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -63,13 +62,6 @@ modify this GNU manual.''
 @macro keyword{kw}
 @anchor{\kw\}
 @b{\kw\}
-@end macro
-
-@macro obsolete{old,new}
-@sp 1
-@strong{Compatibility}:
-@code{\new\} introduced in @semantic{} version 2.0 supersedes
-@code{\old\} which is now obsolete.
 @end macro
 
 @c *************************************************************************

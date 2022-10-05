@@ -47,6 +47,9 @@
       (error "Malformed url: %s" (url-recreate-url url)))
     nil))
 
+(defvar url-misc-rlogin-obsolete-warned-once nil)
+(make-obsolete-variable url-misc-rlogin-obsolete-warned-once nil "29.1")
+
 (defun url-do-terminal-emulator (type server port user)
   (switch-to-buffer
    (apply
@@ -58,6 +61,9 @@
 	  (t (error "Unknown terminal emulator required: %s" type)))
     nil
     (cond ((eq type 'rlogin)
+           (unless url-misc-rlogin-obsolete-warned-once
+             (lwarn 'url :error "Method `rlogin' is obsolete")
+             (setq url-misc-rlogin-obsolete-warned-once t))
 	   (if user (list server "-l" user) (list server)))
 	  ((eq type 'telnet)
 	   (if port (list server port) (list server)))
@@ -74,7 +80,7 @@
   nil)
 
 ;;;###autoload
-(defalias 'url-rlogin 'url-generic-emulator-loader)
+(define-obsolete-function-alias 'url-rlogin #'url-generic-emulator-loader "29.1")
 ;;;###autoload
 (defalias 'url-telnet 'url-generic-emulator-loader)
 ;;;###autoload

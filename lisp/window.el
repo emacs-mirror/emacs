@@ -5672,9 +5672,9 @@ the original point in both windows."
   :type 'boolean
   :group 'windows)
 
-(defun split-window-below (&optional size)
-  "Split the selected window into two windows, one above the other.
-The selected window is above.  The newly split-off window is
+(defun split-window-below (&optional size window-to-split)
+  "Split WINDOW-TO-SPLIT into two windows, one above the other.
+WINDOW-TO-SPLIT is above.  The newly split-off window is
 below and displays the same buffer.  Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
@@ -5683,22 +5683,22 @@ same height, or close to it.  If SIZE is positive, the upper
 lower (new) window gets -SIZE lines.
 
 If the variable `split-window-keep-point' is non-nil, both
-windows get the same value of point as the selected window.
+windows get the same value of point as the WINDOW-TO-SPLIT.
 Otherwise, the window starts are chosen so as to minimize the
 amount of redisplay; this is convenient on slow terminals."
-  (interactive "P")
-  (let ((old-window (selected-window))
-	(old-point (window-point))
-	(size (and size (prefix-numeric-value size)))
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))
+                 ,(selected-window)))
+  (let ((old-point (window-point))
         moved-by-window-height moved new-window bottom)
     (when (and size (< size 0) (< (- size) window-min-height))
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
-    (setq new-window (split-window nil size))
+    (setq new-window (split-window window-to-split size))
     (unless split-window-keep-point
-      (with-current-buffer (window-buffer)
+      (with-current-buffer (window-buffer window-to-split)
 	;; Use `save-excursion' around vertical movements below
-	;; (Bug#10971).  Note: When the selected window's buffer has a
+	;; (Bug#10971).  Note: When WINDOW-TO-SPLIT's buffer has a
 	;; header line, up to two lines of the buffer may not show up
 	;; in the resulting configuration.
 	(save-excursion
@@ -5713,24 +5713,31 @@ amount of redisplay; this is convenient on slow terminals."
 	  (setq bottom (point)))
 	(and moved-by-window-height
 	     (<= bottom (point))
-	     (set-window-point old-window (1- bottom)))
+	     (set-window-point window-to-split (1- bottom)))
 	(and moved-by-window-height
 	     (<= (window-start new-window) old-point)
 	     (set-window-point new-window old-point)
 	     (select-window new-window))))
     ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
       (when quit-restore
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 (defalias 'split-window-vertically 'split-window-below)
 
-(defun split-window-right (&optional size)
-  "Split the selected window into two side-by-side windows.
-The selected window is on the left.  The newly split-off window
-is on the right and displays the same buffer.  Return the new
-window.
+(defun split-root-window-below (&optional size)
+  "Split root window of current frame in two.
+The current window configuration is retained in the top window,
+the lower window takes up the whole width of the frame.  SIZE is
+handled as in `split-window-below'."
+  (interactive "P")
+  (split-window-below size (frame-root-window)))
+
+(defun split-window-right (&optional size window-to-split)
+  "Split WINDOW-TO-SPLIT into two side-by-side windows.
+WINDOW-TO-SPLIT is on the left.  The newly split-off window is on
+the right and displays the same buffer.  Return the new window.
 
 If optional argument SIZE is omitted or nil, both windows get the
 same width, or close to it.  If SIZE is positive, the left-hand
@@ -5739,21 +5746,30 @@ right-hand (new) window gets -SIZE columns.  Here, SIZE includes
 the width of the window's scroll bar; if there are no scroll
 bars, it includes the width of the divider column to the window's
 right, if any."
-  (interactive "P")
-  (let ((old-window (selected-window))
-	(size (and size (prefix-numeric-value size)))
-	new-window)
+  (interactive `(,(when current-prefix-arg
+                    (prefix-numeric-value current-prefix-arg))
+                 ,(selected-window)))
+  (let (new-window)
     (when (and size (< size 0) (< (- size) window-min-width))
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
-    (setq new-window (split-window nil size t))
+    (setq new-window (split-window window-to-split size t))
     ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter old-window 'quit-restore)))
+    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
       (when quit-restore
 	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 (defalias 'split-window-horizontally 'split-window-right)
+
+(defun split-root-window-right (&optional size)
+  "Split root window of current frame into two side-by-side windows.
+The current window configuration is retained within the left
+window, and a new window is created on the right, taking up the
+whole height of the frame.  SIZE is treated as by
+`split-window-right'."
+  (interactive "P")
+  (split-window-right size (frame-root-window)))
 
 ;;; Balancing windows.
 
@@ -6605,24 +6621,6 @@ fourth element is BUFFER."
     (set-window-parameter
      window 'quit-restore
      (list 'tab 'tab (selected-window) buffer)))))
-
-(defcustom display-buffer-function nil
-  "If non-nil, function to call to handle `display-buffer'.
-It will receive two args, the buffer and a flag which if non-nil
-means that the currently selected window is not acceptable.  It
-should choose or create a window, display the specified buffer in
-it, and return the window.
-
-The specified function should call `display-buffer-record-window'
-with corresponding arguments to set up the quit-restore parameter
-of the window used."
-  :type '(choice
-	  (const nil)
-	  (function :tag "function"))
-  :group 'windows)
-
-(make-obsolete-variable 'display-buffer-function
-			'display-buffer-alist "24.3")
 
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
@@ -7729,38 +7727,34 @@ specified by the ACTION argument."
 	;; Handle the old form of the first argument.
 	(inhibit-same-window (and action (not (listp action)))))
     (unless (listp action) (setq action nil))
-    (if display-buffer-function
-	;; If `display-buffer-function' is defined, let it do the job.
-	(funcall display-buffer-function buffer inhibit-same-window)
-      ;; Otherwise, use the defined actions.
-      (let* ((user-action
-	      (display-buffer-assq-regexp
-	       buffer display-buffer-alist action))
-             (special-action (display-buffer--special-action buffer))
-	     ;; Extra actions from the arguments to this function:
-	     (extra-action
-	      (cons nil (append (if inhibit-same-window
-				    '((inhibit-same-window . t)))
-				(if frame
-				    `((reusable-frames . ,frame))))))
-	     ;; Construct action function list and action alist.
-	     (actions (list display-buffer-overriding-action
-			    user-action special-action action extra-action
-			    display-buffer-base-action
-			    display-buffer-fallback-action))
-	     (functions (apply 'append
-			       (mapcar (lambda (x)
-					 (setq x (car x))
-					 (if (functionp x) (list x) x))
-				       actions)))
-	     (alist (apply 'append (mapcar 'cdr actions)))
-	     window)
-	(unless (buffer-live-p buffer)
-	  (error "Invalid buffer"))
-	(while (and functions (not window))
-	  (setq window (funcall (car functions) buffer alist)
-	  	functions (cdr functions)))
-	(and (windowp window) window)))))
+    (let* ((user-action
+            (display-buffer-assq-regexp
+             buffer display-buffer-alist action))
+           (special-action (display-buffer--special-action buffer))
+           ;; Extra actions from the arguments to this function:
+           (extra-action
+            (cons nil (append (if inhibit-same-window
+                                  '((inhibit-same-window . t)))
+                              (if frame
+                                  `((reusable-frames . ,frame))))))
+           ;; Construct action function list and action alist.
+           (actions (list display-buffer-overriding-action
+                          user-action special-action action extra-action
+                          display-buffer-base-action
+                          display-buffer-fallback-action))
+           (functions (apply 'append
+                             (mapcar (lambda (x)
+                                       (setq x (car x))
+                                       (if (functionp x) (list x) x))
+                                     actions)))
+           (alist (apply 'append (mapcar 'cdr actions)))
+           window)
+      (unless (buffer-live-p buffer)
+        (error "Invalid buffer"))
+      (while (and functions (not window))
+        (setq window (funcall (car functions) buffer alist)
+              functions (cdr functions)))
+      (and (windowp window) window))))
 
 (defun display-buffer-other-frame (buffer)
   "Display buffer BUFFER preferably in another frame.
@@ -10137,7 +10131,7 @@ semipermanent goal column for this command."
   (when goal-column
     ;; Move to the desired column.
     (if (and line-move-visual
-             (not (or truncate-lines (truncated-partial-width-window-p))))
+             (not (or truncate-lines truncate-partial-width-windows)))
         ;; Under line-move-visual, goal-column should be
         ;; interpreted in units of the frame's canonical character
         ;; width, which is exactly what vertical-motion does.
@@ -10593,6 +10587,17 @@ displaying that processes's buffer."
 (put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
 (put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)
 (put 'shrink-window 'repeat-map 'resize-window-repeat-map)
+
+(defvar-keymap window-prefix-map
+  :doc "Keymap for subcommands of \\`C-x w'."
+  "2" #'split-root-window-below
+  "3" #'split-root-window-right
+  "s" #'window-toggle-side-windows
+  "^ f" #'tear-off-window
+  "^ t" #'tab-window-detach
+  "-" #'fit-window-to-buffer
+  "0" #'delete-windows-on)
+(define-key ctl-x-map "w" window-prefix-map)
 
 (provide 'window)
 

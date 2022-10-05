@@ -987,7 +987,7 @@ Also see the `dired-confirm-shell-command' variable."
                ;; Add 'wait' to force those POSIX shells to wait until
                ;; all commands finish.
                (or (and parallel-in-background (not w32-shell)
-                        "&wait")
+                        " &wait")
                    "")))
       (t
        (let ((files (mapconcat #'shell-quote-argument
@@ -999,7 +999,7 @@ Also see the `dired-confirm-shell-command' variable."
           ;; Be consistent in how we treat inputs to commands -- do
           ;; the same here as in the `on-each' case.
           (if (and in-background (not w32-shell))
-              "&wait"
+              " &wait"
             "")))))
      (or (and in-background "&")
          ""))))
@@ -1168,6 +1168,10 @@ Return the result of `process-file' - zero for success."
                   (file-name-sans-extension file) " -xvf -")
          ;; Optional decompression.
          "unxz")
+
+   ;; zstandard archives
+   `(,(rx (or ".tar.zst" ".tzst") eos) "unzstd -c %i | tar -xf -")
+   `(,(rx ".zst" eos)                  "unzstd --rm")
 
    '("\\.shar\\.Z\\'" "zcat * | unshar")
    '("\\.shar\\.g?z\\'" "gunzip -qc * | unshar")
@@ -2876,6 +2880,10 @@ of `dired-dwim-target', which see.
 
 Also see `dired-do-revert-buffer'."
   (interactive "P")
+  (when (seq-find (lambda (file)
+                    (member (file-name-nondirectory file) '("." "..")))
+                  (dired-get-marked-files nil arg))
+    (user-error "Can't rename \".\" or \"..\" files"))
   (dired-do-create-files 'move #'dired-rename-file
 			 "Move" arg dired-keep-marker-rename "Rename"))
 

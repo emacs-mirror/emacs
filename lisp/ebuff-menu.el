@@ -203,9 +203,6 @@ See the documentation of `electric-buffer-list' for details."
   (setq mode-line-buffer-identification "Electric Buffer List")
   (setq-local Helper-return-blurb "return to buffer editing"))
 
-(define-obsolete-function-alias 'Electric-buffer-menu-mode
-  #'electric-buffer-menu-mode "24.3")
-
 ;; generally the same as Buffer-menu-mode-map
 ;;  (except we don't indirect to global-map)
 (put 'Electric-buffer-menu-undefined 'suppress-keymap t)

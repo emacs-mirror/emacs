@@ -786,6 +786,14 @@ and `case-fold-search' are both t."
            (case-fold-search t))
        ,@body)))
 
+(defun hs-find-block-beginning-match ()
+  "Reposition point at the end of match of the block-start regexp.
+Return point, or nil if original point was not in a block."
+  (when (and (funcall hs-find-block-beginning-func)
+	     (funcall hs-looking-at-block-start-p-func))
+    ;; point is inside a block
+    (goto-char (match-end 0))))
+
 (defun hs-overlay-at (position)
   "Return hideshow overlay at POSITION, or nil if none to be found."
   (let ((overlays (overlays-at position))
@@ -802,12 +810,13 @@ and `case-fold-search' are both t."
       (if (and c-reg (nth 0 c-reg))
           ;; point is inside a comment, and that comment is hideable
           (goto-char (nth 0 c-reg))
-        (end-of-line)
-        (when (and (not c-reg)
-                   (funcall hs-find-block-beginning-func)
-		   (funcall hs-looking-at-block-start-p-func))
-          ;; point is inside a block
-          (goto-char (match-end 0)))))
+        (when (not c-reg)
+          (end-of-line)
+          (when (not (hs-find-block-beginning-match))
+            ;; We should also consider ourselves "in" a hidden block when
+            ;; point is right at the edge after a hidden block (bug#52092).
+            (beginning-of-line)
+            (hs-find-block-beginning-match)))))
     (end-of-line)
     (hs-overlay-at (point))))
 
@@ -948,9 +957,9 @@ The hook `hs-hide-hook' is run; see `run-hooks'."
   "Toggle hiding/showing of a block.
 See `hs-hide-block' and `hs-show-block'.
 Argument E should be the event that triggered this action."
-  (interactive)
+  (interactive (list last-nonmenu-event))
   (hs-life-goes-on
-   (posn-set-point (event-end e))
+   (when e (posn-set-point (event-end e)))
    (if (hs-already-hidden-p)
        (hs-show-block)
      (hs-hide-block))))

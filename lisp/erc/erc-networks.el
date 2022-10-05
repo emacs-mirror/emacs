@@ -996,8 +996,8 @@ Rename the current buffer if its NID has grown."
   "Return a list of target BUFFERS, newest to oldest."
   (sort buffers
         (lambda (a b)
-          (> (with-current-buffer a (erc-networks--id-ts erc-networks--id))
-             (with-current-buffer b (erc-networks--id-ts erc-networks--id))))))
+          (> (erc-networks--id-ts (buffer-local-value 'erc-networks--id a))
+             (erc-networks--id-ts (buffer-local-value 'erc-networks--id b))))))
 
 
 ;;;; Buffer association

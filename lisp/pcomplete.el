@@ -119,6 +119,9 @@
 ;;; Code:
 
 (require 'comint)
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'rx))
 
 (defgroup pcomplete nil
   "Programmable completion."
@@ -154,9 +157,6 @@ This mirrors the optional behavior of tcsh.
 
 A non-nil value is useful if `pcomplete-autolist' is non-nil too."
   :type 'boolean)
-
-(define-obsolete-variable-alias
-  'pcomplete-arg-quote-list 'comint-file-name-quote-list "24.3")
 
 (defcustom pcomplete-man-function #'man
   "A function to that will be called to display a manual page.
@@ -364,11 +364,10 @@ modified to be an empty string, or the desired separation string."
 
 ;;; Alternative front-end using the standard completion facilities.
 
-;; The way pcomplete-parse-arguments, pcomplete-stub, and
-;; pcomplete-quote-argument work only works because of some deep
-;; hypothesis about the way the completion work.  Basically, it makes
-;; it pretty much impossible to have completion other than
-;; prefix-completion.
+;; The way pcomplete-parse-arguments and pcomplete-stub work only
+;; works because of some deep hypothesis about the way the completion
+;; work.  Basically, it makes it pretty much impossible to have
+;; completion other than prefix-completion.
 ;;
 ;; pcomplete--common-suffix and completion-table-subvert try to work around
 ;; this difficulty with heuristics, but it's really a hack.
@@ -485,6 +484,14 @@ Same as `pcomplete' but using the standard completion UI."
           (when completion-ignore-case
             (setq table (completion-table-case-fold table)))
           (list beg (point) table
+                :annotation-function
+                (lambda (cand)
+                  (when (stringp cand)
+                    (get-text-property 0 'pcomplete-annotation cand)))
+                :company-docsig
+                (lambda (cand)
+                  (when (stringp cand)
+                    (get-text-property 0 'pcomplete-help cand)))
                 :predicate pred
                 :exit-function
 		;; If completion is finished, add a terminating space.
@@ -840,9 +847,6 @@ this is `comint-dynamic-complete-functions'."
 	  (if pcomplete-expand-only-p
 	      (throw 'pcompleted t)
 	    pcomplete-args))))))
-
-(define-obsolete-function-alias
-  'pcomplete-quote-argument #'comint-quote-filename "24.3")
 
 ;; file-system completion lists
 
@@ -1331,6 +1335,133 @@ If specific documentation can't be given, be generic."
   (if pcomplete-hosts-file
       (pcomplete-read-hosts pcomplete-hosts-file 'pcomplete--host-name-cache
                    'pcomplete--host-name-cache-timestamp)))
+
+;;; Parsing help messages
+
+(defvar pcomplete-from-help (make-hash-table :test #'equal)
+  "Memoization table for function `pcomplete-from-help'.")
+
+(cl-defun pcomplete-from-help (command
+                               &rest args
+                               &key
+                               (margin (rx bol (+ " ")))
+                               (argument (rx "-" (+ (any "-" alnum)) (? "=")))
+                               (metavar (rx (? " ")
+                                            (or (+ (any alnum "_-"))
+                                                (seq "[" (+? nonl) "]")
+                                                (seq "<" (+? nonl) ">")
+                                                (seq "{" (+? nonl) "}"))))
+                               (separator (rx ", " symbol-start))
+                               (description (rx (* nonl)
+                                                (* "\n" (>= 9 " ") (* nonl))))
+                               narrow-start
+                               narrow-end)
+  "Parse output of COMMAND into a list of completion candidates.
+
+COMMAND can be a string to be executed in a shell or a list of
+strings (program name and arguments).  It should print a help
+message.
+
+A list of arguments is collected after each match of MARGIN.
+Each argument should match ARGUMENT, possibly followed by a match
+of METAVAR.  If a match of SEPARATOR follows, then more
+argument-metavar pairs are collected.  Finally, a match of
+DESCRIPTION is collected.
+
+Keyword ARGS:
+
+MARGIN: regular expression after which argument descriptions are
+  to be found.  Parsing continues at the end of the first match
+  group or, failing that, the entire match.
+
+ARGUMENT: regular expression matching an argument name.  The
+  first match group (failing that, the entire match) is collected
+  as the argument name.  Parsing continues at the end of the
+  second matching group (failing that, the first group or entire
+  match).
+
+METAVAR: regular expression matching an argument parameter name.
+  The first match group (failing that, the entire match) is
+  collected as the parameter name and used as completion
+  annotation.  Parsing continues at the end of the second
+  matching group (failing that, the first group or entire match).
+
+SEPARATOR: regular expression matching the separator between
+  arguments.  Parsing continues at the end of the first match
+  group (failing that, the entire match).
+
+DESCRIPTION: regular expression matching the description of an
+  argument.  The first match group (failing that, the entire
+  match) is collected as the parameter name and used as
+  completion help.  Parsing continues at the end of the first
+  matching group (failing that, the entire match).
+
+NARROW-START, NARROW-END: if non-nil, parsing of the help message
+  is narrowed to the region between the end of the first match
+  group (failing that, the entire match) of these regular
+  expressions."
+  (with-memoization (gethash (cons command args) pcomplete-from-help)
+    (with-temp-buffer
+      (let ((case-fold-search nil)
+            (default-directory (expand-file-name "~/"))
+            (command (if (stringp command)
+                         (list shell-file-name
+                               shell-command-switch
+                               command)
+                       command))
+            i result)
+        (apply #'call-process (car command) nil t nil (cdr command))
+        (goto-char (point-min))
+        (narrow-to-region (or (and narrow-start
+                                   (re-search-forward narrow-start nil t)
+                                   (or (match-beginning 1) (match-beginning 0)))
+                              (point-min))
+                          (or (and narrow-end
+                                   (re-search-forward narrow-end nil t)
+                                   (or (match-beginning 1) (match-beginning 0)))
+                              (point-max)))
+        (goto-char (point-min))
+        (while (re-search-forward margin nil t)
+          (goto-char (or (match-end 1) (match-end 0)))
+          (setq i 0)
+          (while (and (or (zerop i)
+                          (and (looking-at separator)
+                               (goto-char (or (match-end 1)
+                                              (match-end 0)))))
+                      (looking-at argument))
+            (setq i (1+ i))
+            (goto-char (seq-some #'match-end '(2 1 0)))
+            (push (or (match-string 1) (match-string 0)) result)
+            (when (looking-at metavar)
+              (goto-char (seq-some #'match-end '(2 1 0)))
+              (put-text-property 0 1
+                                 'pcomplete-annotation
+                                 (or (match-string 1) (match-string 0))
+                                 (car result))))
+          (when (looking-at description)
+            (goto-char (seq-some #'match-end '(2 1 0)))
+            (let ((help (string-clean-whitespace
+                         (or (match-string 1) (match-string 0))))
+                  (items (take i result)))
+              (while items
+                (put-text-property 0 1 'pcomplete-help help
+                                   (pop items))))))
+        (nreverse result)))))
+
+(defun pcomplete-here-using-help (command &rest args)
+  "Perform completion for a simple command.
+Offer switches and directory entries as completion candidates.
+The switches are obtained by calling `pcomplete-from-help' with
+COMMAND and ARGS as arguments."
+  (while (cond
+          ((string= "--" (pcomplete-arg 1))
+           (while (pcomplete-here (pcomplete-entries))))
+          ((pcomplete-match "\\`--[^=]+=\\(.*\\)" 0)
+           (pcomplete-here (pcomplete-entries)
+                           (pcomplete-match-string 1 0)))
+          ((string-prefix-p "-" (pcomplete-arg 0))
+           (pcomplete-here (apply #'pcomplete-from-help command args)))
+          (t (pcomplete-here (pcomplete-entries))))))
 
 (provide 'pcomplete)
 

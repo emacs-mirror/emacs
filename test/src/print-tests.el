@@ -190,7 +190,8 @@ otherwise, use a different charset."
   "Printing observes `print-continuous-numbering'."
   ;; cl-print does not support print-continuous-numbering.
   :expected-result (if (eq (symbol-function #'print-tests--prin1-to-string)
-                           #'cl-prin1-to-string) :failed :passed)
+                           #'cl-prin1-to-string)
+                       :failed :passed)
   (let* ((x (list 1))
          (y "hello")
          (g (gensym))
@@ -201,7 +202,8 @@ otherwise, use a different charset."
           (print-number-table nil))
       (should (string-match
                "(#1=(1) #1# #2=\"hello\" #2#)(#3=#:g[[:digit:]]+ #3#)(#1# #2# #3#)#2#$"
-               (mapconcat #'print-tests--prin1-to-string `((,x ,x ,y ,y) (,g ,g) (,x ,y ,g) ,y) ""))))
+               (mapconcat #'print-tests--prin1-to-string
+                          `((,x ,x ,y ,y) (,g ,g) (,x ,y ,g) ,y)))))
 
     ;; This is the special case for byte-compile-output-docform
     ;; mentioned in a comment in print_preprocess.  When

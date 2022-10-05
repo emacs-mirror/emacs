@@ -1204,7 +1204,16 @@ Otherwise, return a new string."
                 (delete-char 2)
                 (let* ((fun (intern (buffer-substring (point) (1- end-point))))
                        (key (with-current-buffer orig-buf
-                              (where-is-internal fun keymap t))))
+                              (where-is-internal fun
+                                                 (and keymap
+                                                      (list keymap))
+                                                 t))))
+                  ;; If we're looking in a particular keymap which has
+                  ;; no binding, then we need to redo the lookup, with
+                  ;; the global map as well this time.
+                  (when (and (not key) keymap)
+                    (setq key (with-current-buffer orig-buf
+                                (where-is-internal fun keymap t))))
                   (if (not key)
                       ;; Function is not on any key.
                       (let ((op (point)))
@@ -1260,9 +1269,9 @@ Otherwise, return a new string."
                   (cond
                    ((null this-keymap)
                     (insert "\nUses keymap "
-                            (substitute-command-keys "`")
+                            (substitute-quotes "`")
                             (symbol-name name)
-                            (substitute-command-keys "'")
+                            (substitute-quotes "'")
                             ", which is not currently defined.\n")
                     (unless generate-summary
                       (setq keymap nil)))
@@ -1290,6 +1299,18 @@ Otherwise, return a new string."
              ;; 3. Nothing to do -- next character.
              (t (forward-char 1)))))
         (buffer-string)))))
+
+(defun substitute-quotes (string)
+  "Substitute quote characters for display.
+Each grave accent \\=` is replaced by left quote, and each
+apostrophe \\=' is replaced by right quote.  Left and right quote
+characters are specified by `text-quoting-style'."
+  (cond ((eq (text-quoting-style) 'curve)
+         (string-replace "`" "‘"
+                         (string-replace "'" "’" string)))
+        ((eq (text-quoting-style) 'straight)
+         (string-replace "`" "'" string))
+        (t string)))
 
 (defvar help--keymaps-seen nil)
 (defun describe-map-tree (startmap &optional partial shadow prefix title

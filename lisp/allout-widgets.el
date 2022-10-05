@@ -312,7 +312,7 @@ enhancements, directly.")
 (defvar-local allout-inhibit-body-modification-hook nil
   "Override de-escaping of text-prefixes in item bodies during specific changes.
 
-This is used by `allout-buffer-modification-handler' to signal such changes
+This is used by `allout-body-modification-handler' to signal such changes
 to `allout-body-modification-handler', and is always reset by
 `allout-post-command-business'.")
 ;;;_    = allout-widgets-icons-cache
@@ -2180,7 +2180,7 @@ Operation is inhibited by `allout-inhibit-body-modification-handler'."
 ;; `allout-before-modification-handler' and
 ;; `allout-inhibit-body-modification-handler'.
 ;;
-;; Adds the overlay to the `allout-unresolved-body-mod-workhash' during
+;; Adds the overlay to the `allout-unresolved-body-mod-workroster' during
 ;; before-change operation, and removes from that list during after-change
 ;; operation.
   (cond (allout-inhibit-body-modification-hook nil)))

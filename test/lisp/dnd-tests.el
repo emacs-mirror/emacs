@@ -52,13 +52,13 @@
       ;; Verify that the action is valid and pretend the drag succeeded
       ;; (by returning the action).
       (cl-ecase action
-        ('XdndActionCopy action)
-        ('XdndActionMove action)
-        ('XdndActionLink action)
+        (XdndActionCopy action)
+        (XdndActionMove action)
+        (XdndActionLink action)
         ;; These two are not technically valid, but x-begin-drag accepts
         ;; them anyway.
-        ('XdndActionPrivate action)
-        ('XdndActionAsk 'XdndActionPrivate))))
+        (XdndActionPrivate action)
+        (XdndActionAsk 'XdndActionPrivate))))
 
   ;; This doesn't work during tests.
   (defalias 'gui-set-selection

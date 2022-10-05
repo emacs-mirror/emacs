@@ -425,11 +425,9 @@ like <img alt=\"Some thing.\">."
 ;;*---------------------------------------------------------------------*/
 ;;*    The minor mode declaration.                                      */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-mouse-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'flyspell-correct-word)
-    map)
-  "Keymap for Flyspell to put on erroneous words.")
+(defvar-keymap flyspell-mouse-map
+  :doc "Keymap for Flyspell to put on erroneous words."
+  "<mouse-2>" #'flyspell-correct-word)
 
 (defvar flyspell-mode-map
   (let ((map (make-sparse-keymap)))

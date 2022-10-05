@@ -233,6 +233,7 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (temporary-file-directory . tramp-handle-temporary-file-directory)
     ;; `tramp-get-home-directory' performed by default-handler.
     ;; `tramp-get-remote-gid' performed by default handler.
+    ;; `tramp-get-remote-groups' performed by default handler.
     ;; `tramp-get-remote-uid' performed by default handler.
     (tramp-set-file-uid-gid . tramp-crypt-handle-set-file-uid-gid)
     (unhandled-file-name-directory . ignore)
@@ -554,7 +555,7 @@ localname."
 (defun tramp-crypt-handle-access-file (filename string)
   "Like `access-file' for Tramp files."
   (let* ((encrypt-filename (tramp-crypt-encrypt-file-name filename))
-	 (encrypt-regexp (rx (literal encrypt-filename) eos))
+	 (encrypt-regexp (tramp-compat-rx (literal encrypt-filename) eos))
 	 tramp-crypt-enabled)
     (condition-case err
 	(access-file encrypt-filename string)
@@ -583,6 +584,7 @@ This function is invoked by `tramp-crypt-handle-copy-file' and
 `tramp-crypt-handle-rename-file'.  It is an error if OP is
 neither of `copy' and `rename'.  FILENAME and NEWNAME must be
 absolute file names."
+  ;; FILENAME and NEWNAME are already expanded.
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
@@ -706,7 +708,7 @@ absolute file names."
       (mapcar
        (lambda (x)
 	 (replace-regexp-in-string
-	  (rx bos (literal directory)) ""
+	  (tramp-compat-rx bos (literal directory)) ""
 	  (tramp-crypt-decrypt-file-name x)))
        (directory-files (tramp-crypt-encrypt-file-name directory) 'full)))))
 
@@ -849,6 +851,14 @@ WILDCARD is not supported."
     ;; `unlock-file' exists since Emacs 28.1.
     (tramp-compat-funcall
      'unlock-file (tramp-crypt-encrypt-file-name filename))))
+
+(with-eval-after-load 'bookmark
+  (add-hook 'bookmark-inhibit-context-functions
+	    #'tramp-crypt-file-name-p)
+  (add-hook 'tramp-crypt-unload-hook
+	    (lambda ()
+	      (remove-hook 'bookmark-inhibit-context-functions
+			   #'tramp-crypt-file-name-p))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

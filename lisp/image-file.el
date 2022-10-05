@@ -91,9 +91,10 @@ the variable is set using \\[customize]."
 		      "\\'"))))
     (mapconcat
      #'identity
-     (delq nil (list exts-regexp
-		     image-file-name-regexps
-		     (car (rassq 'imagemagick image-type-file-name-regexps))))
+     (delq nil
+           (nconc (list exts-regexp
+                        (car (rassq 'imagemagick image-type-file-name-regexps)))
+		  (ensure-list image-file-name-regexps)))
      "\\|")))
 
 

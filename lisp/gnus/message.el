@@ -888,9 +888,22 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; FIXME: This is related to `mail-specify-envelope-from' but works
   ;; differently (bug#36937).
   nil
-  "Non-nil means don't add \"-f username\" to the sendmail command line.
-See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
-of what the \"-f\" parameter does."
+  "Non-nil means don't add \"-f username\" to the \"sendmail\" command line.
+The \"sendmail\" program has a useful feature to let you set the
+envelope FROM address via a command line option, \"-f\".
+Unfortunately, it also has a widely disliked default behavior of
+disclosing your actual user name anyway by inserting an
+unattractive warning in the headers.  It looks something like
+this:
+
+  X-Authentication-Warning: u1.example.com: niceguy set
+      sender to niceguy@example.com using -f
+
+It is possible to configure \"sendmail\" to not do this, but such a
+reconfiguration is not an option for some users.
+
+Note that this user option is mostly useful for actual \"sendmail\"
+installations, which are rare these days."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
@@ -3195,7 +3208,8 @@ Like `text-mode', but with these additional commands:
   ;;
   (setq-local syntax-propertize-function #'message--syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local message-encoded-mail-cache nil))
+  (setq-local message-encoded-mail-cache nil)
+  (setq-local image-crop-buffer-text-function #'message--update-image-crop))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
@@ -3551,7 +3565,12 @@ of lines before the signature intact."
 
 (defun message-newline-and-reformat (&optional arg not-break)
   "Insert four newlines, and then reformat if inside quoted text.
-Prefix arg means justify as well."
+Prefix arg means justify as well.
+
+This function tries to guess what the quote prefix is based on
+the text on the current line before point.  If point is at the
+start of the line, the formatted text (if any) is filled without
+a quote prefix."
   (interactive (list (if current-prefix-arg 'full)) message-mode)
   (unless (message-in-body-p)
     (error "This command only works in the body of the message"))
@@ -8909,18 +8928,25 @@ used to take the screenshot."
 		 :max-width (truncate (* (frame-pixel-width) 0.8))
 		 :max-height (truncate (* (frame-pixel-height) 0.8))
 		 :scale 1)
-   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-           type
-	   ;; Get a base64 version of the image -- this avoids later
-	   ;; complications if we're auto-saving the buffer and
-	   ;; restoring from a file.
-	   (with-temp-buffer
-	     (set-buffer-multibyte nil)
-	     (insert image)
-	     (base64-encode-region (point-min) (point-max) t)
-	     (buffer-string)))
+   (message--image-part-string type image)
    nil nil t)
   (insert "\n\n"))
+
+(defun message--image-part-string (type image)
+  (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+          type
+	  ;; Get a base64 version of the image -- this avoids later
+	  ;; complications if we're auto-saving the buffer and
+	  ;; restoring from a file.
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert image)
+	    (base64-encode-region (point-min) (point-max) t)
+	    (buffer-string))))
+
+(declare-function image-crop--content-type "image-crop")
+(defun message--update-image-crop (_text image)
+  (message--image-part-string (image-crop--content-type image) image))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 

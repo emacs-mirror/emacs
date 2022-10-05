@@ -72,8 +72,6 @@ updated in the current buffer.
 
 For language specific hooks, make sure you define this as a local hook.")
 
-(define-obsolete-variable-alias 'semantic-change-hooks
-  'semantic-change-functions "24.3")
 (defvar semantic-change-functions
   '(semantic-edits-change-function-handle-changes)
   "Abnormal hook run when semantic detects a change in a buffer.
@@ -91,14 +89,10 @@ If the hook returns non-nil, then declare that a reparse is needed.
 For language specific hooks, make sure you define this as a local hook.
 Not used yet; part of the next generation reparse mechanism.")
 
-(define-obsolete-variable-alias 'semantic-edits-new-change-hooks
-  'semantic-edits-new-change-functions "24.3")
 (defvar semantic-edits-new-change-functions nil
   "Abnormal hook run when a new change is found.
 Functions must take one argument representing an overlay on that change.")
 
-(define-obsolete-variable-alias 'semantic-edits-delete-change-hooks
-  'semantic-edits-delete-change-functions "24.3")
 (defvar semantic-edits-delete-change-functions nil
   "Abnormal hook run before a change overlay is deleted.
 Deleted changes occur when multiple changes are merged.
@@ -110,8 +104,6 @@ Changes move when a new change overlaps an old change.  The old change
 will be moved.
 Functions must take one argument representing an overlay being moved.")
 
-(define-obsolete-variable-alias 'semantic-edits-reparse-change-hooks
-  'semantic-edits-reparse-change-functions "24.3")
 (defvar semantic-edits-reparse-change-functions nil
   "Abnormal hook run after a change results in a reparse.
 Functions are called before the overlay is deleted, and after the

@@ -264,11 +264,9 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-mru-bookmark-mode-map
-  (let ((km (make-sparse-keymap)))
-    (define-key km "\C-xB" #'semantic-mrub-switch-tags)
-    km)
-  "Keymap for mru-bookmark minor mode.")
+(defvar-keymap semantic-mru-bookmark-mode-map
+  :doc "Keymap for mru-bookmark minor mode."
+  "C-x B" #'semantic-mrub-switch-tags)
 
 (define-minor-mode semantic-mru-bookmark-mode
   "Minor mode for tracking tag-based bookmarks automatically.

@@ -668,13 +668,11 @@ Interactively, reads the register using `register-read-with-preview'."
   (backward-char 1)
   (calc-set-command-flag 'do-edit))
 
-(defvar calc-edit-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\n" #'calc-edit-finish)
-    (define-key map "\r" #'calc-edit-return)
-    (define-key map "\C-c\C-c" #'calc-edit-finish)
-    map)
-  "Keymap for use by the `calc-edit' command.")
+(defvar-keymap calc-edit-mode-map
+  :doc "Keymap for use by the `calc-edit' command."
+  "C-j"     #'calc-edit-finish
+  "RET"     #'calc-edit-return
+  "C-c C-c" #'calc-edit-finish)
 
 (defvar calc-original-buffer nil)
 (defvar calc-return-buffer nil)

@@ -6,6 +6,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
 ;; Old-Version: 0.9x
+;; Obsolete-since: 29.1
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +25,13 @@
 
 ;;; Commentary:
 
+;; NOTE: This library was made obsolete in Emacs 29.1.  We recommend
+;; using either the built-in `display-line-numbers-mode', or the
+;; `nlinum' package from GNU ELPA instead.  The former has better
+;; performance, but the latter is closer to a drop-in replacement.
+;;
+;; --------------------
+;;
 ;; Display line numbers for the current buffer.
 ;;
 ;; Toggle display of line numbers with M-x linum-mode.  To enable
@@ -239,6 +247,9 @@ Linum mode is a buffer-local minor mode."
 
 (defconst linum-version "0.9x")
 (make-obsolete-variable 'linum-version 'emacs-version "28.1")
+
+(make-obsolete 'linum-mode #'display-line-numbers-mode "29.1")
+(make-obsolete 'global-linum-mode #'global-display-line-numbers-mode "29.1")
 
 (provide 'linum)
 

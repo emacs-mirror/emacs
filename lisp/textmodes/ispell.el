@@ -262,12 +262,14 @@ This must be an absolute file name."
   "Non-nil means use `look' rather than `grep'.
 Default is based on whether `look' seems to be available."
   :type 'boolean)
+(make-obsolete-variable 'ispell-look-p nil "29.1")
 
 (defcustom ispell-have-new-look nil
   "Non-nil means use the `-r' option (regexp) when running `look'."
   :type 'boolean)
+(make-obsolete-variable 'ispell-have-new-look nil "29.1")
 
-(defcustom ispell-look-options (if ispell-have-new-look "-dfr" "-df")
+(defcustom ispell-look-options "-df"
   "String of command options for `ispell-look-command'."
   :type 'string)
 
@@ -738,7 +740,8 @@ Otherwise returns the library directory name, if that is defined."
   "Execute the forms in BODY with a reasonable `default-directory'."
   (declare (indent 0) (debug t))
   `(let ((default-directory default-directory))
-     (unless (file-accessible-directory-p default-directory)
+     (unless (and (not (file-remote-p default-directory))
+                  (file-accessible-directory-p default-directory))
        (setq default-directory (expand-file-name "~/")))
      ,@body))
 
@@ -2519,8 +2522,10 @@ if defined."
 
   (let* ((process-connection-type ispell-use-ptys-p)
 	 (wild-p (string-search "*" word))
-	 (look-p (and ispell-look-p	; Only use look for an exact match.
-		      (or ispell-have-new-look (not wild-p))))
+	 (look-p (and ispell-look-command
+                      (file-exists-p ispell-look-command)
+                      ;; Only use look for an exact match.
+		      (not wild-p)))
 	 (prog (if look-p ispell-look-command ispell-grep-command))
 	 (args (if look-p ispell-look-options ispell-grep-options))
 	 status results loc)

@@ -128,7 +128,6 @@ leim-list.el: ${leimdir}/leim-list.el
 ${leimdir}/leim-list.el: ${srcdir}/leim-ext.el ${TIT_MISC}
 	$(AM_V_GEN)rm -f $@
 	$(AM_V_at)${RUN_EMACS} -l international/quail \
-	  --eval "(setq max-specpdl-size 5000)" \
 	  --eval "(update-leim-list-file (unmsys--file-name \"${leimdir}\"))"
 	$(AM_V_at)sed -n -e '/^[^;]/p' -e 's/^;\(;*\)inc /;\1 /p' < $< >> $@
 
@@ -139,7 +138,6 @@ ${leimdir}/ja-dic/ja-dic.el: | $(leimdir)/ja-dic
 generate-ja-dic: ${leimdir}/ja-dic/ja-dic.el
 ${leimdir}/ja-dic/ja-dic.el: $(srcdir)/SKK-DIC/SKK-JISYO.L
 	$(AM_V_GEN)$(RUN_EMACS) -batch -l ja-dic-cnv \
-	  --eval "(setq max-specpdl-size 5000)" \
 	  -f batch-skkdic-convert -dir "$(leimdir)/ja-dic" $(JA_DIC_NO_REDUCTION_OPTION) "$<"
 
 ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map

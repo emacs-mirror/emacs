@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2022-08-20.19}
+\def\texinfoversion{2022-09-21.15}
 %
 % Copyright 1985, 1986, 1988, 1990-2022 Free Software Foundation, Inc.
 %
@@ -241,9 +241,6 @@
 %
 \def\finalout{\overfullrule=0pt }
 
-\newdimen\outerhsize \newdimen\outervsize % set by the paper size routines
-\newdimen\topandbottommargin \topandbottommargin=.75in
-
 % Output a mark which sets \thischapter, \thissection and \thiscolor.
 % We dump everything together because we only have one kind of mark.
 % This works because we only use \botmark / \topmark, not \firstmark.
@@ -317,16 +314,8 @@
 \newbox\footlinebox
 
 % When outputting the double column layout for indices, an output routine
-% is run several times, which hides the original value of \topmark.  This
-% can lead to a page heading being output and duplicating the chapter heading
-% of the index.  Hence, save the contents of \topmark at the beginning of
-% the output routine.  The saved contents are valid until we actually
-% \shipout a page.
-%
-% (We used to run a short output routine to actually set \topmark and
-% \firstmark to the right values, but if this was called with an empty page
-% containing whatsits for writing index entries, the whatsits would be thrown
-% away and the index auxiliary file would remain empty.)
+% is run several times, hiding the original value of \topmark.  Hence, save
+% \topmark at the beginning.
 %
 \newtoks\savedtopmark
 \newif\iftopmarksaved
@@ -351,15 +340,9 @@
   %
   \checkchapterpage
   %
-  % Retrieve the information for the headings from the marks in the page,
-  % and call Plain TeX's \makeheadline and \makefootline, which use the
-  % values in \headline and \footline.
-  %
-  % Common context changes for both heading and footing.
-  % Do this outside of the \shipout so @code etc. will be expanded in
-  % the headline as they should be, not taken literally (outputting ''code).
+  % Make the heading and footing.  \makeheadline and \makefootline
+  % use the contents of \headline and \footline.
   \def\commonheadfootline{\let\hsize=\txipagewidth \texinfochars}
-  %
   \ifodd\pageno \getoddheadingmarks \else \getevenheadingmarks \fi
   \global\setbox\headlinebox = \vbox{\commonheadfootline \makeheadline}%
   \ifodd\pageno \getoddfootingmarks \else \getevenfootingmarks \fi
@@ -616,21 +599,6 @@
 
 % @? is an end-of-sentence query.
 \def\?{?\spacefactor=\endofsentencespacefactor\space}
-
-% @frenchspacing on|off  says whether to put extra space after punctuation.
-%
-\def\onword{on}
-\def\offword{off}
-%
-\parseargdef\frenchspacing{%
-  \def\temp{#1}%
-  \ifx\temp\onword \plainfrenchspacing
-  \else\ifx\temp\offword \plainnonfrenchspacing
-  \else
-    \errhelp = \EMsimple
-    \errmessage{Unknown @frenchspacing option `\temp', must be on|off}%
-  \fi\fi
-}
 
 % @w prevents a word break.  Without the \leavevmode, @w at the
 % beginning of a paragraph, when TeX is still in vertical mode, would
@@ -2803,13 +2771,21 @@ end
 % @var unconditionally uses \sl.  This gives consistency for
 % parameter names whether they are in @def, @table @code or a
 % regular paragraph.
+%  To get ttsl font for @var when used in code context, @set txicodevaristt.
 % The \null is to reset \spacefactor.
 \def\aftersmartic{}
 \def\var#1{%
   \let\saveaftersmartic = \aftersmartic
   \def\aftersmartic{\null\let\aftersmartic=\saveaftersmartic}%
-  {\sl #1}\smartitaliccorrection
+  %
+  \ifflagclear{txicodevaristt}%
+    {\def\varnext{{{\sl #1}}\smartitaliccorrection}}%
+    {\def\varnext{\smartslanted{#1}}}%
+  \varnext
 }
+
+% To be removed after next release
+\def\SETtxicodevaristt{}% @set txicodevaristt
 
 \let\i=\smartitalic
 \let\slanted=\smartslanted
@@ -2858,6 +2834,24 @@ end
   }
 \catcode`@=\other
 \def\endofsentencespacefactor{3000}% default
+
+% @frenchspacing on|off  says whether to put extra space after punctuation.
+%
+\def\onword{on}
+\def\offword{off}
+%
+\let\frenchspacingsetting\plainnonfrenchspacing % used in output routine
+\parseargdef\frenchspacing{%
+  \def\temp{#1}%
+  \ifx\temp\onword \let\frenchspacingsetting\plainfrenchspacing
+  \else\ifx\temp\offword \let\frenchspacingsetting\plainnonfrenchspacing
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @frenchspacing option `\temp', must be on|off}%
+  \fi\fi
+  \frenchspacingsetting
+}
+
 
 % @t, explicit typewriter.
 \def\t#1{%
@@ -3450,8 +3444,13 @@ $$%
        % Revert to plain's \scriptsize, which is 7pt.
        \count255=\the\fam $\fam\count255 \scriptstyle A$%
      \else
-       % For 11pt, we can use our lllsize.
-       \switchtolllsize A%
+       \ifx\curfontsize\smallword
+         % For footnotes and indices
+         \count255=\the\fam $\fam\count255 \scriptstyle A$%
+       \else
+         % For 11pt, we can use our lllsize.
+         \switchtolllsize A%
+       \fi
      \fi
      }%
      \vss
@@ -3459,6 +3458,7 @@ $$%
   \kern-.15em
   \TeX
 }
+\def\smallword{small}
 
 % Some math mode symbols.  Define \ensuremath to switch into math mode
 % unless we are already there.  Expansion tricks may not be needed here,
@@ -3829,15 +3829,16 @@ $$%
 \newtoks\oddfootline     % footline on odd pages
 
 % Now make \makeheadline and \makefootline in Plain TeX use those variables
-\headline={{\textfonts\rm
+\headline={{\textfonts\rm\frenchspacingsetting
             \ifchapterpage
               \ifodd\pageno\the\oddchapheadline\else\the\evenchapheadline\fi
             \else
               \ifodd\pageno\the\oddheadline\else\the\evenheadline\fi
             \fi}}
 
-\footline={{\textfonts\rm \ifodd\pageno \the\oddfootline
-                            \else \the\evenfootline \fi}\HEADINGShook}
+\footline={{\textfonts\rm\frenchspacingsetting
+            \ifodd\pageno \the\oddfootline \else \the\evenfootline \fi}%
+           \HEADINGShook}
 \let\HEADINGShook=\relax
 
 % Commands to set those variables.
@@ -3963,7 +3964,7 @@ $$%
 \global\oddfootline={\hfil}
 \global\evenheadline={\line{\folio\hfil\thistitle}}
 \global\oddheadline={\line{\thischapter\hfil\folio}}
-\global\evenchapheadline={\line{\folio\hfil}}
+\global\evenchapheadline={\line{\folio\hfil\thistitle}}
 \global\oddchapheadline={\line{\hfil\folio}}
 \global\let\contentsalignmacro = \chapoddpage
 }
@@ -4351,8 +4352,7 @@ $$%
 % undo it ourselves.
 \def\headitemfont{\b}% for people to use in the template row; not changeable
 \def\headitem{%
-  \checkenv\multitable
-  \crcr
+  \crcr % must appear first
   \gdef\headitemcrhook{\nobreak}% attempt to avoid page break after headings
   \global\everytab={\bf}% can't use \headitemfont since the parsing differs
   \the\everytab % for the first item
@@ -6755,6 +6755,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \ifnum\romancount=0 \global\romancount=\pagecount \fi
 }
 
+% \raggedbottom in plain.tex hardcodes \topskip so override it
+\catcode`\@=11
+\def\raggedbottom{\advance\topskip by 0pt plus60pt \r@ggedbottomtrue}
+\catcode`\@=\other
+
 % redefined for the two-volume lispref.  We always output on
 % \jobname.toc even if this is redefined.
 %
@@ -7115,7 +7120,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % collide with the section heading.
   \ifnum\lastpenalty>10000 \vskip\parskip \penalty\lastpenalty \fi
   %
-  \setbox\groupbox=\vbox\bgroup
+  \setbox\groupbox=\vtop\bgroup
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
       \carttop
       \hbox\bgroup
@@ -7801,6 +7806,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Print arguments.  Use slanted for @def*, typewriter for @deftype*.
 \def\defunargs#1{%
   \df \ifdoingtypefn \tt \else \sl \fi
+  \ifflagclear{txicodevaristt}{}%
+    {\def\var##1{{\setregularquotes \ttsl ##1}}}%
   #1%
 }
 
@@ -9311,6 +9318,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \imagexxx #1,,,,,\finish
   \fi
 }
+
+% Approximate height of a line in the standard text font.
+\newdimen\capheight
+\setbox0=\vbox{\tenrm H}
+\capheight=\ht0
+
 %
 % Arguments to @image:
 % #1 is (mandatory) image filename; we tack on .eps extension.
@@ -9340,7 +9353,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     %
     % Place image in a \vtop for a top page margin that is (close to) correct,
     % as \topskip glue is relative to the first baseline.
-    \vtop\bgroup\hrule height 0pt\vskip-\parskip
+    \vtop\bgroup \kern -\capheight \vskip-\parskip
   \fi
   %
   % Enter horizontal mode so that indentation from an enclosing
@@ -11217,13 +11230,9 @@ directory should work if nowhere else does.}
   %
   \vsize = #1\relax
   \advance\vsize by \topskip
-  \outervsize = \vsize
-  \advance\outervsize by 2\topandbottommargin
   \txipageheight = \vsize
   %
   \hsize = #2\relax
-  \outerhsize = \hsize
-  \advance\outerhsize by 0.5in
   \txipagewidth = \hsize
   %
   \normaloffset = #4\relax

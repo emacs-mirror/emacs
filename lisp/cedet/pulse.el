@@ -202,12 +202,8 @@ If POINT is nil or missing, the current point is used instead.
 Optional argument FACE specifies the face to do the highlighting."
   (save-excursion
     (goto-char (or point (point)))
-    (let ((start (line-beginning-position))
-          (end (save-excursion
-                 (end-of-line)
-                 (when (not (eobp))
-                   (forward-char 1))
-                 (point))))
+    (let ((start (progn (vertical-motion 0) (point)))
+          (end (progn (vertical-motion 1) (point))))
       (pulse-momentary-highlight-region start end face))))
 
 ;;;###autoload

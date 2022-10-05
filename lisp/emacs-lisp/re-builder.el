@@ -369,7 +369,8 @@ provided in the Commentary section of this library."
             (get-buffer-create reb-buffer)
             `((display-buffer-in-direction)
               (direction . ,dir)
-              (dedicated . t))))))
+              (dedicated . t)
+              (window-height . fit-window-to-buffer))))))
     (font-lock-mode 1)
     (reb-initialize-buffer)))
 

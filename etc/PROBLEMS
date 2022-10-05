@@ -2267,6 +2267,13 @@ term/xterm.el) for more details.
 
 *** Linux console problems with double-width characters
 
+If possible, we recommend running Emacs inside fbterm, when in a Linux
+console (see the node "Emacs in a Linux console" in the Emacs FAQ).
+Most Unicode characters should then be displayed correctly.
+
+If that is not possible, the following may be useful to alleviate the
+problem of displaying Unicode characters in a raw console.
+
 The Linux console declares UTF-8 encoding, but supports only a limited
 number of Unicode characters, and can cause Emacs produce corrupted or
 garbled display with some unusual characters and sequences.  Emacs 28

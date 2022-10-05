@@ -539,21 +539,10 @@ string or symbol, @code{string=} signals an error.
      @result{} nil
 @end example
 
-For technical reasons, a unibyte and a multibyte string are
-@code{equal} if and only if they contain the same sequence of
-character codes and all these codes are either in the range 0 through
-127 (@acronym{ASCII}) or 160 through 255 (@code{eight-bit-graphic}).
-However, when a unibyte string is converted to a multibyte string, all
-characters with codes in the range 160 through 255 are converted to
-characters with higher codes, whereas @acronym{ASCII} characters
-remain unchanged.  Thus, a unibyte string and its conversion to
-multibyte are only @code{equal} if the string is all @acronym{ASCII}.
-Character codes 160 through 255 are not entirely proper in multibyte
-text, even though they can occur.  As a consequence, the situation
-where a unibyte and a multibyte string are @code{equal} without both
-being all @acronym{ASCII} is a technical oddity that very few Emacs
-Lisp programmers ever get confronted with.  @xref{Text
-Representations}.
+A unibyte and a multibyte string are equal in the sense of
+@code{string=} if and only if they contain the same sequence of
+character codes all being in the range 0--127 (@acronym{ASCII}).
+@xref{Text Representations}.
 @end defun
 
 @defun string-equal string1 string2
@@ -1292,6 +1281,11 @@ used as a basis for all of that character's substitutions.
 The order of specifications in @var{template} need not correspond to
 the order of associations in @var{spec-alist}.
 @end itemize
+
+REPLACEMENT can also be a function taking no arguments, and returning
+a string to be used for the replacement.  It will only be called when
+the corresponding LETTER is used in the TEMPLATE.  This is useful, for
+example, to avoid prompting for input unless it is needed.
 
 The optional argument @var{ignore-missing} indicates how to handle
 specification characters in @var{template} that are not found in

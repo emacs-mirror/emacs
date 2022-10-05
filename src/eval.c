@@ -211,15 +211,8 @@ backtrace_thread_next (struct thread_state *tstate, union specbinding *pdl)
 void
 init_eval_once (void)
 {
-  /* Don't forget to update docs (lispref node "Local Variables").  */
-#ifndef HAVE_NATIVE_COMP
-  max_specpdl_size = 1800; /* See bug#46818.  */
-  max_lisp_eval_depth = 800;
-#else
-  /* Original values increased for comp.el.  */
-  max_specpdl_size = 2500;
+  /* Don't forget to update docs (lispref node "Eval").  */
   max_lisp_eval_depth = 1600;
-#endif
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -270,8 +263,7 @@ max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
 static void
 restore_stack_limits (Lisp_Object data)
 {
-  integer_to_intmax (XCAR (data), &max_specpdl_size);
-  integer_to_intmax (XCDR (data), &max_lisp_eval_depth);
+  integer_to_intmax (data, &max_lisp_eval_depth);
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
@@ -283,9 +275,6 @@ call_debugger (Lisp_Object arg)
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object val;
   intmax_t old_depth = max_lisp_eval_depth;
-  /* Do not allow max_specpdl_size less than actual depth (Bug#16603).  */
-  ptrdiff_t counti = specpdl_ref_to_count (count);
-  intmax_t old_max = max (max_specpdl_size, counti);
 
   /* The previous value of 40 is too small now that the debugger
      prints using cl-prin1 instead of prin1.  Printing lists nested 8
@@ -293,20 +282,8 @@ call_debugger (Lisp_Object arg)
      currently requires 77 additional frames.  See bug#31919.  */
   max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
 
-  /* While debugging Bug#16603, previous value of 100 was found
-     too small to avoid specpdl overflow in the debugger itself.  */
-  max_ensure_room (&max_specpdl_size, counti, 200);
-
-  if (old_max == counti)
-    {
-      /* We can enter the debugger due to specpdl overflow (Bug#16603).  */
-      specpdl_ptr--;
-      grow_specpdl ();
-    }
-
   /* Restore limits after leaving the debugger.  */
-  record_unwind_protect (restore_stack_limits,
-			 Fcons (make_int (old_max), make_int (old_depth)));
+  record_unwind_protect (restore_stack_limits, make_int (old_depth));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -938,12 +915,9 @@ usage: (let* VARLIST BODY...)  */)
   lexenv = Vinternal_interpreter_environment;
 
   Lisp_Object varlist = XCAR (args);
-  while (CONSP (varlist))
+  FOR_EACH_TAIL (varlist)
     {
-      maybe_quit ();
-
       elt = XCAR (varlist);
-      varlist = XCDR (varlist);
       if (SYMBOLP (elt))
 	{
 	  var = elt;
@@ -1757,8 +1731,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
-      ptrdiff_t counti = specpdl_ref_to_count (SPECPDL_INDEX ());
-      max_ensure_room (&max_specpdl_size, counti, 40);
 
       call2 (Vsignal_hook_function, error_symbol, data);
     }
@@ -1827,8 +1799,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     {
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
       specpdl_ref count = SPECPDL_INDEX ();
-      ptrdiff_t counti = specpdl_ref_to_count (count);
-      max_ensure_room (&max_specpdl_size, counti, 200);
       specbind (Qdebugger, Qdebug_early);
       call_debugger (list2 (Qerror, Fcons (error_symbol, data)));
       unbind_to (count, Qnil);
@@ -1844,12 +1814,10 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
     {
       max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
       specpdl_ref count = SPECPDL_INDEX ();
-      ptrdiff_t counti = specpdl_ref_to_count (count);
       AUTO_STRING (redisplay_trace, "*Redisplay_trace*");
       Lisp_Object redisplay_trace_buffer;
       AUTO_STRING (gap, "\n\n\n\n"); /* Separates things in *Redisplay-trace* */
       Lisp_Object delayed_warning;
-      max_ensure_room (&max_specpdl_size, counti, 200);
       redisplay_trace_buffer = Fget_buffer_create (redisplay_trace, Qnil);
       current_buffer = XBUFFER (redisplay_trace_buffer);
       if (!backtrace_yet) /* Are we on the first backtrace of the command?  */
@@ -2394,17 +2362,12 @@ grow_specpdl_allocation (void)
   eassert (specpdl_ptr == specpdl_end);
 
   specpdl_ref count = SPECPDL_INDEX ();
-  ptrdiff_t max_size = min (max_specpdl_size, PTRDIFF_MAX - 1000);
+  ptrdiff_t max_size = PTRDIFF_MAX - 1000;
   union specbinding *pdlvec = specpdl - 1;
   ptrdiff_t size = specpdl_end - specpdl;
   ptrdiff_t pdlvecsize = size + 1;
   if (max_size <= size)
-    {
-      if (max_specpdl_size < 400)
-	max_size = max_specpdl_size = 400;
-      if (max_size <= size)
-	xsignal0 (Qexcessive_variable_binding);
-    }
+    xsignal0 (Qexcessive_variable_binding);  /* Can't happen, essentially.  */
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
   specpdl = pdlvec + 1;
   specpdl_end = specpdl + pdlvecsize - 1;
@@ -4247,22 +4210,6 @@ Lisp_Object backtrace_top_function (void)
 void
 syms_of_eval (void)
 {
-  DEFVAR_INT ("max-specpdl-size", max_specpdl_size,
-	      doc: /* Limit on number of Lisp variable bindings and `unwind-protect's.
-
-If Lisp code tries to use more bindings than this amount, an error is
-signaled.
-
-You can safely increase this variable substantially if the default
-value proves inconveniently small.  However, if you increase it too
-much, Emacs could run out of memory trying to make the stack bigger.
-Note that this limit may be silently increased by the debugger if
-`debug-on-error' or `debug-on-quit' is set.
-
-\"spec\" is short for \"special variables\", i.e., dynamically bound
-variables.  \"PDL\" is short for \"push-down list\", which is an old
-term for \"stack\".  */);
-
   DEFVAR_INT ("max-lisp-eval-depth", max_lisp_eval_depth,
 	      doc: /* Limit on depth in `eval', `apply' and `funcall' before error.
 

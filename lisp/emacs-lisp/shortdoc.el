@@ -22,6 +22,15 @@
 
 ;;; Commentary:
 
+;; This package lists functions based on various groupings.
+;;
+;; For instance, `string-trim' and `mapconcat' are `string' functions,
+;; so `M-x shortdoc RET string RET' will give an overview of functions
+;; that operate on strings.
+;;
+;; The documentation groups are created with the
+;; `define-short-documentation-group' macro.
+
 ;;; Code:
 
 (require 'seq)
@@ -355,13 +364,11 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (abbreviate-file-name
    :no-eval (abbreviate-file-name "/home/some-user")
    :eg-result "~some-user")
-  (file-parent-directory
-   :eval (file-parent-directory "/foo/bar")
-   :eval (file-parent-directory "~")
-   :eval (file-parent-directory "/tmp/")
-   :eval (file-parent-directory "foo/bar")
-   :eval (file-parent-directory "foo")
-   :eval (file-parent-directory "/"))
+  (file-name-parent-directory
+   :eval (file-name-parent-directory "/foo/bar")
+   :eval (file-name-parent-directory "/foo/")
+   :eval (file-name-parent-directory "foo/bar")
+   :eval (file-name-parent-directory "foo"))
   "Quoted File Names"
   (file-name-quote
    :args (name)
@@ -846,6 +853,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-find #'numberp '(a b 3 4 f 6)))
   (seq-position
    :eval (seq-position '(a b c) 'c))
+  (seq-positions
+   :eval (seq-positions '(a b c a d) 'a)
+   :eval (seq-positions '(a b c a d) 'z)
+   :eval (seq-positions '(11 5 7 12 9 15) 10 #'>=))
   (seq-length
    :eval (seq-length "abcde"))
   (seq-max
@@ -888,6 +899,9 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (seq-filter #'numberp '(a b 3 4 f 6)))
   (seq-remove
    :eval (seq-remove #'numberp '(1 2 c d 5)))
+  (seq-remove-at-position
+   :eval (seq-remove-at-position '(a b c d e) 3)
+   :eval (seq-remove-at-position [a b c d e] 0))
   (seq-group-by
    :eval (seq-group-by #'cl-plusp '(-1 2 3 -4 -5 6)))
   (seq-union
@@ -1507,8 +1521,11 @@ Example:
   :doc "Keymap for `shortdoc-mode'."
   "n"       #'shortdoc-next
   "p"       #'shortdoc-previous
+  "N"       #'shortdoc-next-section
+  "P"       #'shortdoc-previous-section
   "C-c C-n" #'shortdoc-next-section
-  "C-c C-p" #'shortdoc-previous-section)
+  "C-c C-p" #'shortdoc-previous-section
+  "w"       #'shortdoc-copy-function-as-kill)
 
 (define-derived-mode shortdoc-mode special-mode "shortdoc"
   "Mode for shortdoc."
@@ -1521,34 +1538,48 @@ Example:
     (funcall
      (if reverse 'text-property-search-backward
        'text-property-search-forward)
-     sym nil t t)
+     sym nil t)
     (setq arg (1- arg))))
 
 (defun shortdoc-next (&optional arg)
-  "Move cursor to the next function.
-With ARG, do it that many times."
+  "Move point to the next function.
+With prefix numeric argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function))
 
 (defun shortdoc-previous (&optional arg)
-  "Move cursor to the previous function.
-With ARG, do it that many times."
+  "Move point to the previous function.
+With prefix numeric argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-function t)
   (backward-char 1))
 
 (defun shortdoc-next-section (&optional arg)
-  "Move cursor to the next section.
-With ARG, do it that many times."
+  "Move point to the next section.
+With prefix numeric argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section))
 
 (defun shortdoc-previous-section (&optional arg)
-  "Move cursor to the previous section.
-With ARG, do it that many times."
+  "Move point to the previous section.
+With prefix numeric argument ARG, do it that many times."
   (interactive "p" shortdoc-mode)
   (shortdoc--goto-section arg 'shortdoc-section t)
   (forward-line -2))
+
+(defun shortdoc-copy-function-as-kill ()
+  "Copy name of the function near point into the kill ring."
+  (interactive)
+  (save-excursion
+    (goto-char (pos-bol))
+    (when-let* ((re (rx bol "(" (group (+ (not (in " "))))))
+                (string
+                 (and (or (looking-at re)
+                          (re-search-backward re nil t))
+                      (match-string 1))))
+      (set-text-properties 0 (length string) nil string)
+      (kill-new string)
+      (message string))))
 
 (provide 'shortdoc)
 

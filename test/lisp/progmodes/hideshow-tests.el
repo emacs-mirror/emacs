@@ -41,6 +41,18 @@ always located at the beginning of buffer."
      (goto-char (point-min))
      ,@body))
 
+(defmacro hideshow-tests-with-temp-buffer-selected (mode contents &rest body)
+  "Create and switch to a `hs-minor-mode' enabled MODE temp buffer with CONTENTS.
+BODY is code to be executed within the temp buffer.  Point is
+always located at the beginning of buffer."
+  (declare (indent 1) (debug t))
+  `(ert-with-test-buffer-selected ()
+     (,mode)
+     (hs-minor-mode 1)
+     (insert ,contents)
+     (goto-char (point-min))
+     ,@body))
+
 (defun hideshow-tests-look-at (string &optional num restore-point)
   "Move point at beginning of STRING in the current buffer.
 Optional argument NUM defaults to 1 and is an integer indicating
@@ -95,6 +107,39 @@ default to `point-min' and `point-max' respectively."
             (delete-region (overlay-start overlay)
                            (overlay-end overlay))))
       (buffer-substring-no-properties (point-min) (point-max)))))
+
+(defun hideshow-tests-make-event-at (string)
+  "Make dummy mouse event at beginning of STRING."
+  (save-excursion
+    (let ((pos (hideshow-tests-look-at string)))
+      (vector
+       `(S-mouse-2
+         (,(get-buffer-window) ,pos (1 . 1) 0 nil ,pos (1 . 1)
+          nil (1 . 1) (1 . 1)))))))
+
+(ert-deftest hideshow-already-hidden-p-1 ()
+  (let ((contents "
+int
+main()
+{
+  printf(\"Hello\\n\");
+}
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "printf")
+     (should (not (hs-already-hidden-p)))
+     (hs-hide-block)
+     (goto-char (point-min))
+     (hideshow-tests-look-at "{")
+     (should (hs-already-hidden-p))
+     (forward-line -1)
+     (should (not (hs-already-hidden-p)))
+     (hideshow-tests-look-at "}")
+     (should (hs-already-hidden-p))
+     (forward-line)
+     (should (not (hs-already-hidden-p))))))
 
 (ert-deftest hideshow-hide-block-1 ()
   "Should hide current block."
@@ -262,6 +307,67 @@ main(int argc, char **argv)
   if (argc > 1) {}
 }
 "))))
+
+(ert-deftest hideshow-toggle-hiding-1 ()
+  "Should toggle hiding/showing of a block."
+  (let ((contents "
+int
+main()
+{
+  printf(\"Hello\\n\");
+}
+"))
+    (hideshow-tests-with-temp-buffer
+     c-mode
+     contents
+     (hideshow-tests-look-at "printf")
+     (hs-toggle-hiding)
+     (should (string=
+              (hideshow-tests-visible-string)
+              "
+int
+main()
+{}
+"))
+     (hs-toggle-hiding)
+     (should (string= (hideshow-tests-visible-string) contents)))))
+
+(ert-deftest hideshow-mouse-toggle-hiding-1 ()
+  "Should toggle hiding/showing of a block by mouse events."
+  (let ((contents "
+int
+main()
+{
+  printf(\"Hello\\n\");
+}
+")
+        (hidden "
+int
+main()
+{}
+")
+        (call-at (lambda (str)
+                   (let* ((events (hideshow-tests-make-event-at str))
+                          (last-nonmenu-event (aref events 0)))
+                     (call-interactively #'hs-toggle-hiding nil events)))))
+    (hideshow-tests-with-temp-buffer-selected
+     c-mode
+     contents
+     ;; Should not hide the block when clicked outside of the block.
+     (funcall call-at "int")
+     (should (string= (hideshow-tests-visible-string) contents))
+     ;; Should hide the block when clicked inside of the block.
+     (goto-char (point-min))
+     (funcall call-at "printf")
+     (should (string= (hideshow-tests-visible-string) hidden))
+     ;; Should not show the block when clicked outside of the block.
+     (goto-char (point-min))
+     (funcall call-at "int")
+     (should (string= (hideshow-tests-visible-string) hidden))
+     ;; Should show the block when clicked inside of the block.
+     (goto-char (point-min))
+     (funcall call-at "}")
+     (should (string= (hideshow-tests-visible-string) contents)))))
 
 (provide 'hideshow-tests)
 

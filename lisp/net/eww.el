@@ -315,7 +315,8 @@ parameter, and should return the (possibly) transformed URL."
 
 (defvar-keymap eww-link-keymap
   :parent shr-map
-  "RET" #'eww-follow-link)
+  "RET" #'eww-follow-link
+  "<mouse-2>" #'eww-follow-link)
 
 (defvar-keymap eww-image-link-keymap
   :parent shr-map
@@ -415,13 +416,11 @@ For more information, see Info node `(eww) Top'."
 (defun eww-retrieve (url callback cbargs)
   (cond
    ((null eww-retrieve-command)
-    (url-retrieve url #'eww-render
-                  (list url nil (current-buffer))))
+    (url-retrieve url #'eww-render cbargs))
    ((eq eww-retrieve-command 'sync)
-    (let ((orig-buffer (current-buffer))
-          (data-buffer (url-retrieve-synchronously url)))
+    (let ((data-buffer (url-retrieve-synchronously url)))
       (with-current-buffer data-buffer
-        (eww-render nil url nil orig-buffer))))
+        (apply #'eww-render nil url cbargs))))
    (t
     (let ((buffer (generate-new-buffer " *eww retrieve*"))
           (error-buffer (generate-new-buffer " *eww error*")))
@@ -626,7 +625,10 @@ The renaming scheme is performed in accordance with
 	    (setq eww-history-position 0)
 	    (and last-coding-system-used
 		 (set-buffer-file-coding-system last-coding-system-used))
-	    (run-hooks 'eww-after-render-hook)))
+	    (run-hooks 'eww-after-render-hook)
+            ;; Enable undo again so that undo works in text input
+            ;; boxes.
+            (setq buffer-undo-list nil)))
       (kill-buffer data-buffer))))
 
 (defun eww-parse-headers ()
@@ -928,7 +930,8 @@ The renaming scheme is performed in accordance with
   ;; May be set later if there's a next/prev link.
   (setq-local multi-isearch-next-buffer-function nil)
   (unless (eq major-mode 'eww-mode)
-    (eww-mode)))
+    (eww-mode))
+  (buffer-disable-undo))
 
 (defun eww-current-url nil
   "Return URI of the Web page the current EWW buffer is visiting."
@@ -1176,7 +1179,27 @@ the like."
                       '((url . eww--url-at-point))))
   (setq-local bookmark-make-record-function #'eww-bookmark-make-record)
   (buffer-disable-undo)
+  (setq-local shr-url-transformer #'eww--transform-url)
+  ;; Also rescale images when rescaling the text.
+  (add-hook 'text-scale-mode-hook #'eww--rescale-images nil t)
   (setq buffer-read-only t))
+
+(defvar text-scale-mode)
+(defvar text-scale-mode-amount)
+(defun eww--rescale-images ()
+  (let ((scaling (if text-scale-mode
+                     (+ 1 (* text-scale-mode-amount 0.1))
+                   1)))
+    (save-excursion
+      (goto-char (point-min))
+      (while-let ((match (text-property-search-forward
+                          'display nil (lambda (_ value) (imagep value)))))
+        (let ((image (prop-match-value match)))
+          (unless (image-property image :original-scale)
+            (setf (image-property image :original-scale)
+                  (or (image-property image :scale) 1)))
+          (setf (image-property image :scale)
+                (* (image-property image :original-scale) scaling)))))))
 
 (defun eww--url-at-point ()
   "`thing-at-point' provider function."
@@ -1606,7 +1629,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
     (unless (= start (point))
       (put-text-property start (1+ start) 'help-echo "Input field")
       ;; Mark this as an element we can TAB to.
-      (put-text-property start (1+ start) 'shr-url dom))))
+      (put-text-property start (1+ start) 'shr-tab-stop t))))
 
 (defun eww-tag-select (dom)
   (shr-ensure-paragraph)
@@ -1878,7 +1901,8 @@ If EXTERNAL is double prefix, browse in new buffer."
    eww-mode)
   (mouse-set-point mouse-event)
   (let* ((orig-url (get-text-property (point) 'shr-url))
-         (url (eww--transform-url orig-url)))
+         (url (eww--transform-url orig-url))
+         target)
     (cond
      ((not url)
       (message "No link under point"))
@@ -1890,12 +1914,17 @@ If EXTERNAL is double prefix, browse in new buffer."
       (funcall browse-url-secondary-browser-function url)
       (shr--blink-link))
      ;; This is a #target url in the same page as the current one.
-     ((and (url-target (url-generic-parse-url url))
+     ((and (setq target (url-target (url-generic-parse-url url)))
 	   (eww-same-page-p url (plist-get eww-data :url)))
-      (let ((dom (plist-get eww-data :dom)))
+      (let ((point (point)))
 	(eww-save-history)
 	(plist-put eww-data :url url)
-	(eww-display-html 'utf-8 url dom nil (current-buffer))))
+        (goto-char (point-min))
+        (if-let ((match (text-property-search-forward 'shr-target-id target #'member)))
+            (goto-char (prop-match-beginning match))
+          (goto-char (if (equal target "top")
+                         (point-min)
+                       point)))))
      (t
       (eww-browse-url orig-url external)))))
 

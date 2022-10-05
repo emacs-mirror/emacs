@@ -1507,15 +1507,18 @@ Removes badly formatted data and ignored directories."
   (add-hook 'minibuffer-setup-hook #'ido-minibuffer-setup)
   (add-hook 'choose-completion-string-functions #'ido-choose-completion-string))
 
+(defun ido--ffap-find-file (file)
+  (find-file file))
+
 (define-minor-mode ido-everywhere
   "Toggle use of Ido for all buffer/file reading."
   :global t
   (remove-function read-file-name-function #'ido-read-file-name)
   (remove-function read-buffer-function #'ido-read-buffer)
   (when (boundp 'ffap-file-finder)
-    (remove-function ffap-file-finder #'ido-find-file)
+    (remove-function ffap-file-finder #'ido--ffap-find-file)
     (when ido-mode
-      (add-function :override ffap-file-finder #'ido-find-file)))
+      (add-function :override ffap-file-finder #'ido--ffap-find-file)))
   (when ido-everywhere
     (if (not ido-mode)
         (ido-mode 'both)

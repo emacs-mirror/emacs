@@ -6,7 +6,7 @@
 ;; Maintainer: Modus-Themes Development <~protesilaos/modus-themes@lists.sr.ht>
 ;; URL: https://git.sr.ht/~protesilaos/modus-themes
 ;; Mailing-List: https://lists.sr.ht/~protesilaos/modus-themes
-;; Version: 2.6.0
+;; Version: 2.7.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -109,7 +109,7 @@ cover the blue-cyan-magenta side of the spectrum."
   :prefix "modus-themes-"
   :tag "Modus Themes Faces")
 
-(defvar modus-themes--version "2.6.0"
+(defvar modus-themes--version "2.7.0"
   "Current version of the Modus themes.
 
 The version either is the last tagged release, such as '1.0.0',
@@ -634,7 +634,7 @@ symbol and the latter as a string.")
     (bg-diff-focus-added . "#1d3c25") (fg-diff-focus-added . "#b4ddb4")
     (bg-diff-focus-added-deuteran . "#003959") (fg-diff-focus-added-deuteran . "#bfe4ff")
     (bg-diff-focus-changed . "#424200") (fg-diff-focus-changed . "#d0daaf")
-    (bg-diff-focus-removed . "#500f29") (fg-diff-focus-removed . "#eebdba")
+    (bg-diff-focus-removed . "#601f29") (fg-diff-focus-removed . "#eebdba")
 
     (bg-mark-sel . "#002f2f") (fg-mark-sel . "#60cfa2")
     (bg-mark-del . "#5a0000") (fg-mark-del . "#ff99aa")
@@ -1435,7 +1435,7 @@ By default, customizing a theme-related user option through the
 Custom interfaces or with `customize-set-variable' will not
 reload the currently active Modus theme.
 
-Enable this behaviour by setting this variable to nil."
+Enable this behavior by setting this variable to nil."
   :group 'modus-themes
   :package-version '(modus-themes . "1.5.0")
   :version "28.1"
@@ -2270,7 +2270,7 @@ follows (order is not significant):
 
 The `popup' key takes the same values as `selection'.
 
-Apart from specfying each key separately, a fallback list is
+Apart from specifying each key separately, a fallback list is
 accepted.  This is only useful when the desired aesthetic is the
 same across all keys that are not explicitly referenced.  For
 example, this:
@@ -4387,6 +4387,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(help-key-binding ((,class :inherit modus-themes-key-binding)))
     `(homoglyph ((,class :foreground ,red-alt-faint)))
     `(ibuffer-locked-buffer ((,class :foreground ,yellow-alt-other-faint)))
+    `(icon-button ((,class :inherit modus-themes-box-button)))
     `(italic ((,class :slant italic)))
     `(nobreak-hyphen ((,class :foreground ,fg-escape-char-construct)))
     `(nobreak-space ((,class :foreground ,fg-escape-char-construct :underline t)))
@@ -4396,6 +4397,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(mm-uu-extract ((,class :background ,bg-dim :foreground ,fg-special-mild)))
     `(next-error ((,class :inherit modus-themes-subtle-red :extend t)))
     `(pgtk-im-0 ((,class :inherit modus-themes-refine-cyan)))
+    `(read-multiple-choice-face ((,class :inherit (bold modus-themes-mark-alt))))
     `(rectangle-preview ((,class :inherit modus-themes-special-warm)))
     `(region ((,class ,@(modus-themes--region bg-region fg-main
                                               bg-hl-alt-intense bg-region-accent
@@ -4532,9 +4534,9 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(font-latex-string-face ((,class :inherit font-lock-string-face)))
     `(font-latex-subscript-face ((,class :height 0.95)))
     `(font-latex-superscript-face ((,class :height 0.95)))
+    `(font-latex-underline-face ((,class :inherit underline)))
     `(font-latex-verbatim-face ((,class :inherit modus-themes-markup-verbatim)))
     `(font-latex-warning-face ((,class :inherit font-lock-warning-face)))
-    `(tex-match ((,class :foreground ,blue-alt-other)))
     `(tex-verbatim ((,class :inherit modus-themes-markup-verbatim)))
     `(texinfo-heading ((,class :foreground ,magenta)))
     `(TeX-error-description-error ((,class :inherit error)))
@@ -4657,6 +4659,18 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(calibredb-mark-face ((,class :inherit modus-themes-mark-sel)))
     `(calibredb-size-face (( )))
     `(calibredb-tag-face ((,class :foreground ,magenta-alt-faint)))
+;;;;; centaur-tabs
+    `(centaur-tabs-active-bar-face ((,class :background ,blue-active)))
+    `(centaur-tabs-close-mouse-face ((,class :inherit bold :foreground ,red-active :underline t)))
+    `(centaur-tabs-close-selected ((,class :inherit centaur-tabs-selected)))
+    `(centaur-tabs-close-unselected ((,class :inherit centaur-tabs-unselected)))
+    `(centaur-tabs-modified-marker-selected ((,class :inherit centaur-tabs-selected)))
+    `(centaur-tabs-modified-marker-unselected ((,class :inherit centaur-tabs-unselected)))
+    `(centaur-tabs-default ((,class :background ,bg-main)))
+    `(centaur-tabs-selected ((,class :inherit modus-themes-tab-active)))
+    `(centaur-tabs-selected-modified ((,class :inherit (italic centaur-tabs-selected))))
+    `(centaur-tabs-unselected ((,class :inherit modus-themes-tab-inactive)))
+    `(centaur-tabs-unselected-modified ((,class :inherit (italic centaur-tabs-unselected))))
 ;;;;; cfrs
     `(cfrs-border-color ((,class :background ,fg-window-divider-inner)))
 ;;;;; change-log and log-view (`vc-print-log' and `vc-print-root-log')
@@ -4669,6 +4683,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(change-log-list ((,class :foreground ,magenta-alt)))
     `(change-log-name ((,class :foreground ,magenta-alt-other)))
     `(log-edit-header ((,class :foreground ,fg-special-warm)))
+    `(log-edit-headers-separator ((,class :height 1 :background ,fg-window-divider-inner :extend t)))
     `(log-edit-summary ((,class :inherit bold :foreground ,blue)))
     `(log-edit-unknown-header ((,class :inherit shadow)))
     `(log-view-commit-body ((,class :foreground ,blue-nuanced-fg)))
@@ -4743,6 +4758,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(company-preview-common ((,class :inherit company-echo-common)))
     `(company-preview-search ((,class :inherit modus-themes-special-calm)))
     `(company-template-field ((,class :inherit modus-themes-intense-magenta)))
+    `(company-scrollbar-bg ((,class :background ,bg-active)))
+    `(company-scrollbar-fg ((,class :background ,fg-active)))
     `(company-tooltip ((,class :background ,bg-alt)))
     `(company-tooltip-annotation ((,class :inherit completions-annotations)))
     `(company-tooltip-common ((,class :inherit company-echo-common)))
@@ -4824,6 +4841,13 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(cperl-nonoverridable-face ((,class :foreground unspecified)))
     `(cperl-array-face ((,class :inherit font-lock-keyword-face)))
     `(cperl-hash-face ((,class :inherit font-lock-variable-name-face)))
+;;;;; crontab-mode
+    `(crontab-minute ((,class :foreground ,blue-alt)))
+    `(crontab-hour ((,class :foreground ,magenta-alt-other)))
+    `(crontab-month-day ((,class :foreground ,magenta-alt)))
+    `(crontab-month ((,class :foreground ,blue)))
+    `(crontab-week-day ((,class :foreground ,cyan)))
+    `(crontab-predefined ((,class :foreground ,blue-alt)))
 ;;;;; css-mode
     `(css-property ((,class :inherit font-lock-type-face)))
     `(css-selector ((,class :inherit font-lock-keyword-face)))
@@ -5041,7 +5065,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(diredp-tagged-autofile-name ((,class :inherit modus-themes-refine-magenta)))
     `(diredp-write-priv ((,class :foreground ,cyan)))
 ;;;;; display-fill-column-indicator-mode
-    `(fill-column-indicator ((,class :height 1 :background ,bg-inactive :foreground ,bg-inactive)))
+    `(fill-column-indicator ((,class :height 1 :background ,bg-region :foreground ,bg-region)))
 ;;;;; doom-modeline
     `(doom-modeline-bar ((,class :inherit modus-themes-active-blue)))
     `(doom-modeline-bar-inactive ((,class :background ,fg-inactive :foreground ,bg-main)))
@@ -5608,7 +5632,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(gnus-summary-low-read ((,class :inherit italic :foreground ,fg-alt)))
     `(gnus-summary-low-ticked ((,class :inherit italic :foreground ,red-refine-fg)))
     `(gnus-summary-low-undownloaded ((,class :inherit italic :foreground ,yellow-refine-fg)))
-    `(gnus-summary-low-unread ((,class :inherit bold :foreground ,fg-special-cold)))
+    `(gnus-summary-low-unread ((,class :inherit italic :foreground ,fg-special-cold)))
     `(gnus-summary-normal-ancient ((,class :foreground ,fg-special-calm)))
     `(gnus-summary-normal-read ((,class :inherit shadow)))
     `(gnus-summary-normal-ticked ((,class :foreground ,red-alt-other)))
@@ -6723,6 +6747,9 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(powerline-evil-operator-face ((,class :inherit modus-themes-active-yellow)))
     `(powerline-evil-replace-face ((,class :inherit modus-themes-active-red)))
     `(powerline-evil-visual-face ((,class :inherit modus-themes-active-cyan)))
+;;;;; prescient
+    `(prescient-primary-highlight ((,class :inherit modus-themes-completion-match-0)))
+    `(prescient-secondary-highlight ((,class :inherit modus-themes-completion-match-1)))
 ;;;;; proced
     `(proced-mark ((,class :inherit modus-themes-mark-symbol)))
     `(proced-marked ((,class :inherit modus-themes-mark-alt)))
@@ -6841,9 +6868,6 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(selectrum-mouse-highlight ((,class :inherit highlight)))
     `(selectrum-quick-keys-highlight ((,class :inherit bold :background ,bg-char-0)))
     `(selectrum-quick-keys-match ((,class :inherit bold :background ,bg-char-1)))
-;;;;; selectrum-prescient
-    `(selectrum-prescient-primary-highlight ((,class :inherit modus-themes-completion-match-0)))
-    `(selectrum-prescient-secondary-highlight ((,class :inherit modus-themes-completion-match-1)))
 ;;;;; semantic
     `(semantic-complete-inline-face ((,class :foreground ,fg-special-warm :underline t)))
     `(semantic-decoration-on-fileless-includes ((,class :inherit modus-themes-refine-green)))
@@ -6988,6 +7012,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(speedbar-selected-face ((,class :inherit bold :foreground ,cyan)))
     `(speedbar-separator-face ((,class :inherit modus-themes-intense-neutral)))
     `(speedbar-tag-face ((,class :foreground ,yellow-alt-other)))
+;;;;; spell-fu
+    `(spell-fu-incorrect-face ((,class :inherit modus-themes-lang-error)))
 ;;;;; stripes
     `(stripes ((,class :background ,bg-alt)))
 ;;;;; suggest
@@ -7526,7 +7552,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(xterm-color-names-bright ["gray35" ,red-alt ,green-alt ,yellow-alt ,blue-alt ,magenta-alt ,cyan-alt "white"])
     (if (or (eq modus-themes-org-blocks 'tinted-background)
             (eq modus-themes-org-blocks 'rainbow))
-        `(org-src-block-faces              ; TODO this list should be expanded
+        `(org-src-block-faces
           `(("emacs-lisp" modus-themes-nuanced-magenta)
             ("elisp" modus-themes-nuanced-magenta)
             ("clojure" modus-themes-nuanced-magenta)

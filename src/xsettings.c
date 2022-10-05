@@ -1225,7 +1225,8 @@ xsettings_get_font_options (void)
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
-       doc: /* Get the system default application font. */)
+       doc: /* Get the system default application font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_font ? build_string (current_font) : Qnil;
@@ -1233,7 +1234,8 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
-       doc: /* Get the system default fixed width font. */)
+       doc: /* Get the system default fixed width font.
+The font is returned as either a font-spec or font name.  */)
   (void)
 {
   return current_mono_font ? build_string (current_mono_font) : Qnil;
@@ -1282,6 +1284,10 @@ syms_of_xsettings (void)
   DEFSYM (Qmonospace_font_name, "monospace-font-name");
   DEFSYM (Qfont_name, "font-name");
   DEFSYM (Qfont_render, "font-render");
+  DEFSYM (Qdynamic_setting, "dynamic-setting");
+  DEFSYM (Qfont_render_setting, "font-render-setting");
+  DEFSYM (Qsystem_font_setting, "system-font-setting");
+
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
@@ -1297,9 +1303,9 @@ If this variable is nil, Emacs ignores system font changes.  */);
   Vxft_settings = empty_unibyte_string;
 
 #if defined USE_CAIRO || defined HAVE_XFT
-  Fprovide (intern_c_string ("font-render-setting"), Qnil);
+  Fprovide (Qfont_render_setting, Qnil);
 #if defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
-  Fprovide (intern_c_string ("system-font-setting"), Qnil);
+  Fprovide (Qsystem_font_setting, Qnil);
 #endif
 #endif
 
@@ -1307,5 +1313,5 @@ If this variable is nil, Emacs ignores system font changes.  */);
   DEFSYM (Qtool_bar_style, "tool-bar-style");
   defsubr (&Stool_bar_get_system_style);
 
-  Fprovide (intern_c_string ("dynamic-setting"), Qnil);
+  Fprovide (Qdynamic_setting, Qnil);
 }

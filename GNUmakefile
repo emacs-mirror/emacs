@@ -115,7 +115,7 @@ endif
 
 # 'make bootstrap' in a fresh checkout needn't run 'configure' twice.
 bootstrap: Makefile
-	$(MAKE) -f Makefile all
+	$(MAKE) -f Makefile bootstrap-all
 
 .PHONY: bootstrap default $(ORDINARY_GOALS)
 

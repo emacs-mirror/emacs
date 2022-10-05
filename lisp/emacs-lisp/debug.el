@@ -110,10 +110,6 @@ The value used here is passed to `quit-restore-window'."
 (defvar debugger-previous-window-height nil
   "The last recorded height of `debugger-previous-window'.")
 
-(defvar debugger-previous-backtrace nil
-  "The contents of the previous backtrace (including text properties).
-This is to optimize `debugger-make-xrefs'.")
-
 (defvar debugger-outer-match-data)
 (defvar debugger-will-be-back nil
   "Non-nil if we expect to get back in the debugger soon.")
@@ -835,6 +831,10 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 
 ;;;###autoload
 (defalias 'cancel-debug-watch #'cancel-debug-on-variable-change)
+
+(make-obsolete-variable 'debugger-previous-backtrace
+                        "no longer used." "29.1")
+(defvar debugger-previous-backtrace nil)
 
 (provide 'debug)
 

@@ -6480,6 +6480,17 @@ chase_symlinks (const char *file)
   return target;
 }
 
+/* Return non-zero if FILE's filesystem supports symlinks.  */
+bool
+symlinks_supported (const char *file)
+{
+  if (is_windows_9x () != TRUE
+      && get_volume_info (file, NULL)
+      && (volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0)
+    return true;
+  return false;
+}
+
 
 /* Posix ACL emulation.  */
 

@@ -580,6 +580,9 @@ struct x_display_info
   XIMStyles *xim_styles;
   struct xim_inst_t *xim_callback_data;
   XIMStyle preferred_xim_style;
+
+  /* The named coding system to use for this input method.  */
+  Lisp_Object xim_coding;
 #endif
 
   /* A cache mapping color names to RGB values.  */
@@ -656,7 +659,8 @@ struct x_display_info
     Xatom_net_wm_sync_request, Xatom_net_wm_sync_request_counter,
     Xatom_net_wm_sync_fences, Xatom_net_wm_frame_drawn, Xatom_net_wm_frame_timings,
     Xatom_net_wm_user_time, Xatom_net_wm_user_time_window,
-    Xatom_net_client_list_stacking, Xatom_net_wm_pid;
+    Xatom_net_client_list_stacking, Xatom_net_wm_pid,
+    Xatom_net_wm_bypass_compositor;
 
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
@@ -1195,6 +1199,15 @@ struct x_output
   XIEventMask *xi_masks;
   int num_xi_masks;
 #endif
+
+  /* Whether or not we are certain we know the offset from the root
+     window to this frame.  */
+  bool window_offset_certain_p;
+
+  /* The offset of the edit window from the root window.  This is
+     strictly an optimization to avoid extraneous synchronizing in
+     some cases.  */
+  int root_x, root_y;
 };
 
 enum
@@ -1208,7 +1221,6 @@ enum
   FOCUS_IMPLICIT = 1,
   FOCUS_EXPLICIT = 2
 };
-
 
 /* Return the X output data for frame F.  */
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
@@ -1339,6 +1351,12 @@ extern void x_mark_frame_dirty (struct frame *f);
 #define FRAME_X_XIM_STYLES(f) (FRAME_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
+#define FRAME_X_XIM_CODING(f)				\
+  (SYMBOLP (Vx_input_coding_system)			\
+   ? Vx_input_coding_system				\
+   : (!NILP (FRAME_DISPLAY_INFO (f)->xim_coding)	\
+      ? FRAME_DISPLAY_INFO(f)->xim_coding		\
+      : Vlocale_coding_system))
 
 /* X-specific scroll bar stuff.  */
 
@@ -1588,6 +1606,7 @@ extern void x_wm_set_size_hint (struct frame *, long, bool);
   && defined HAVE_CLOCK_GETTIME
 extern void x_sync_init_fences (struct frame *);
 #endif
+extern bool x_embed_frame (struct x_display_info *, struct frame *);
 
 extern void x_delete_terminal (struct terminal *);
 extern Cursor x_create_font_cursor (struct x_display_info *, int);
@@ -1827,7 +1846,7 @@ extern void mark_xterm (void);
 
 /* Is the frame embedded into another application? */
 
-#define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT(f)->explicit_parent != 0)
+#define FRAME_X_EMBEDDED_P(f) (FRAME_X_OUTPUT (f)->explicit_parent != 0)
 
 #define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
   ((nr).x = (rx),					\

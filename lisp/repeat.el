@@ -89,9 +89,15 @@
 
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
+(defgroup repeat nil
+  "Convenient way to repeat previous commands."
+  :prefix "repeat-"
+  :version "29.1"
+  :group 'convenience)
+
 (defcustom repeat-too-dangerous '(kill-this-buffer)
   "Commands too dangerous to repeat with \\[repeat]."
-  :group 'convenience
+  :group 'repeat
   :type '(repeat function))
 
 ;; If the last command was self-insert-command, the char to be inserted was
@@ -120,7 +126,7 @@ if `repeat' is bound to C-x z, typing C-x z z z repeats the previous command
 3 times.  If this variable is a sequence of characters, then re-execution
 only occurs if the final character by which `repeat' was invoked is a
 member of that sequence.  If this variable is nil, no re-execution occurs."
-  :group 'convenience
+  :group 'repeat
   :type '(choice (const :tag "Repeat for all keys" t)
 		 (const :tag "Don't repeat" nil)
 		 (sexp :tag "Repeat for specific keys")))
@@ -338,8 +344,8 @@ recently executed command not bound to an input event\"."
   "Key that stops the modal repeating of keys in sequence.
 For example, you can set it to <return> like `isearch-exit'."
   :type '(choice (const :tag "No special key to exit repeating sequence" nil)
-                 (key-sequence :tag "Key that exits repeating sequence"))
-  :group 'convenience
+                 (key :tag "Kbd keys that exit repeating sequence"))
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-exit-timeout nil
@@ -350,8 +356,11 @@ You can also set the property `repeat-exit-timeout' on the command symbol.
 This property can override the value of this variable."
   :type '(choice (const :tag "No timeout to exit repeating sequence" nil)
                  (number :tag "Timeout in seconds to exit repeating"))
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
+
+(defvar repeat-exit-function nil
+  "Function that exits the repeating sequence.")
 
 (defvar repeat-exit-timer nil
   "Timer activated after the last key typed in the repeating key sequence.")
@@ -359,7 +368,7 @@ This property can override the value of this variable."
 (defcustom repeat-keep-prefix nil
   "Whether to keep the prefix arg of the previous command when repeating."
   :type 'boolean
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-check-key t
@@ -377,7 +386,7 @@ When the variable value is non-nil, but the property value is `no',
 then don't check the last key.  Also when the variable value is nil,
 but the property value is `t', then check the last key."
   :type 'boolean
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defcustom repeat-echo-function #'repeat-echo-message
@@ -390,7 +399,7 @@ a repeating map, or nil after deactivating the transient repeating mode."
                         repeat-echo-mode-line)
                  (const :tag "No visual feedback" ignore)
                  (function :tag "Function"))
-  :group 'convenience
+  :group 'repeat
   :version "28.1")
 
 (defvar repeat-in-progress nil
@@ -408,7 +417,7 @@ the map can't be set on the command symbol property `repeat-map'.")
 When Repeat mode is enabled, and the command symbol has the property named
 `repeat-map', this map is activated temporarily for the next command.
 See `describe-repeat-maps' for a list of all repeatable commands."
-  :global t :group 'convenience
+  :global t :group 'repeat
   (if (not repeat-mode)
       (remove-hook 'post-command-hook 'repeat-post-hook)
     (add-hook 'post-command-hook 'repeat-post-hook)
@@ -466,36 +475,47 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 
               ;; Adding an exit key
               (when repeat-exit-key
-                (define-key map repeat-exit-key 'ignore))
+                (define-key map (if (key-valid-p repeat-exit-key)
+                                    (kbd repeat-exit-key)
+                                  repeat-exit-key)
+                            'ignore))
 
               (when (and repeat-keep-prefix (not prefix-arg))
                 (setq prefix-arg current-prefix-arg))
 
               (setq repeat-in-progress t)
               (let ((exitfun (set-transient-map map)))
-
-                (when repeat-exit-timer
-                  (cancel-timer repeat-exit-timer)
-                  (setq repeat-exit-timer nil))
+                (repeat--exit)
+                (setq repeat-exit-function exitfun)
 
                 (let* ((prop (repeat--command-property 'repeat-exit-timeout))
                        (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
                   (when timeout
                     (setq repeat-exit-timer
-                          (run-with-idle-timer
-                           timeout nil
-                           (lambda ()
-                             (setq repeat-in-progress nil)
-                             (funcall exitfun)
-                             (funcall repeat-echo-function nil))))))))))))
+                          (run-with-idle-timer timeout nil #'repeat-exit))))))))))
 
     (setq repeat-map nil)
     (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
     (when (and was-in-progress (not repeat-in-progress))
-      (when repeat-exit-timer
-        (cancel-timer repeat-exit-timer)
-        (setq repeat-exit-timer nil))
-      (funcall repeat-echo-function nil))))
+      (repeat-exit))))
+
+;;;###autoload
+(defun repeat-exit ()
+  "Exit the repeating sequence.
+This function can be used to force exit of repetition while it's active."
+  (interactive)
+  (setq repeat-in-progress nil)
+  (repeat--exit)
+  (funcall repeat-echo-function nil))
+
+(defun repeat--exit ()
+  "Internal function to clean up previously set exit function and timer."
+  (when repeat-exit-timer
+    (cancel-timer repeat-exit-timer)
+    (setq repeat-exit-timer nil))
+  (when repeat-exit-function
+    (funcall repeat-exit-function)
+    (setq repeat-exit-function nil)))
 
 (defun repeat-echo-message-string (keymap)
   "Return a string with a list of repeating keys."
@@ -510,7 +530,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
                     (if repeat-exit-key
                         (substitute-command-keys
                          (format ", or exit with \\`%s'"
-                                 (key-description repeat-exit-key)))
+                                 (if (key-valid-p repeat-exit-key)
+                                     repeat-exit-key
+                                   (key-description repeat-exit-key))))
                       ""))))
 
 (defun repeat-echo-message (keymap)

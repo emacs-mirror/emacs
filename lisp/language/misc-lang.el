@@ -269,6 +269,56 @@ using the Kharoṣṭhī script.")))
                                   modifier "*")
                           1 'font-shape-gstring))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Adlam
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Adlam" '((charset unicode)
+           (coding-system utf-8)
+           (coding-priority utf-8)
+           (input-method . "adlam")
+           (sample-text . "Adlam (𞤀𞤣𞤤𞤢𞤥)	𞤅𞤢𞤤𞤢𞥄𞤥")
+           (documentation . "\
+Fulani language and its script Adlam are supported
+in this language environment.")))
+
+;; Adlam composition rules
+(set-char-table-range
+ composition-function-table
+ '(#x1E900 . #x1E95F)
+ (list (vector
+        "[\x1E900-\x1E95F]+"
+        0 'font-shape-gstring)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mende Kikakui
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Mende Kikakui" '((charset unicode)
+                   (coding-system utf-8)
+                   (coding-priority utf-8)
+                   (input-method . "mende-kikakui")
+                   (sample-text . "Mende Kikakui (𞠀𞠁𞠂)	𞠛𞠉")
+                   (documentation . "\
+Mende language and its script Kikakui are supported
+in this language environment.")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Gothic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Gothic" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "gothic")
+            (sample-text . "Gothic (𐌲𐌿𐍄𐌹𐍃𐌺𐌰)	𐌷𐌰𐌹𐌻𐍃 / 𐌷𐌰𐌹𐌻𐌰")
+            (documentation . "\
+Ancient Gothic language using the Gothic script is supported in this
+language environment.")))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

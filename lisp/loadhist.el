@@ -171,6 +171,13 @@ unloading."
     (cond
      ((null hist)
       (defalias fun nil)
+      ;; FIXME: Arguably these properties should be applied via
+      ;; `define-symbol-prop', but most code still uses just `put'.
+      ;; FIXME: Maybe these properties should be attached to the
+      ;; function itself (as for `advertised-calling-convention')
+      ;; rather than to its symbol.
+      (if (get fun 'compiler-macro) (put fun 'compiler-macro nil))
+      (if (get fun 'gv-expander)    (put fun 'gv-expander nil))
       ;; Override the change that `defalias' just recorded.
       (put fun 'function-history nil))
      ((equal (car hist) loadhist-unload-filename)

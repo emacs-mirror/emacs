@@ -181,8 +181,12 @@ M-g M-c		switch-to-completions
 
 (ert-deftest help-tests-substitute-command-keys/keymap-change ()
   (with-substitute-command-keys-test
+   ;; Global binding should be found even if specifying a specific map
    (test "\\<minibuffer-local-must-match-map>\\[abort-recursive-edit]" "C-]")
-   (test "\\<emacs-lisp-mode-map>\\[eval-defun]" "C-M-x")))
+   (test "\\<emacs-lisp-mode-map>\\[eval-defun]" "C-M-x")
+   ;; Specific map overrides advertised-binding
+   (test "\\<undo-repeat-map>\\[undo]" "u")
+   (test "\\[undo]" "C-x u")))
 
 (defvar-keymap help-tests-remap-map
   :full t
@@ -200,25 +204,45 @@ M-g M-c		switch-to-completions
             "\nUses keymap [`'‘]foobar-map['’], which is not currently defined.\n")))
 
 (ert-deftest help-tests-substitute-command-keys/quotes ()
- (with-substitute-command-keys-test
+  (with-substitute-command-keys-test
+   (let ((text-quoting-style 'curve))
+     (test "quotes ‘like this’" "quotes ‘like this’")
+     (test "`x'" "‘x’")
+     (test "`" "‘")
+     (test "'" "’")
+     (test "\\`" "\\‘"))
+   (let ((text-quoting-style 'straight))
+     (test "quotes `like this'" "quotes 'like this'")
+     (test "`x'" "'x'")
+     (test "`" "'")
+     (test "'" "'")
+     (test "\\`" "\\'"))
+   (let ((text-quoting-style 'grave))
+     (test "quotes `like this'" "quotes `like this'")
+     (test "`x'" "`x'")
+     (test "`" "`")
+     (test "'" "'")
+     (test "\\`" "\\`"))))
+
+(ert-deftest help-tests-substitute-quotes ()
   (let ((text-quoting-style 'curve))
-    (test "quotes ‘like this’" "quotes ‘like this’")
-    (test "`x'" "‘x’")
-    (test "`" "‘")
-    (test "'" "’")
-    (test "\\`" "\\‘"))
+    (should (string= (substitute-quotes "quotes ‘like this’") "quotes ‘like this’"))
+    (should (string= (substitute-quotes "`x'") "‘x’"))
+    (should (string= (substitute-quotes "`") "‘"))
+    (should (string= (substitute-quotes "'") "’"))
+    (should (string= (substitute-quotes "\\`") "\\‘")))
   (let ((text-quoting-style 'straight))
-    (test "quotes `like this'" "quotes 'like this'")
-    (test "`x'" "'x'")
-    (test "`" "'")
-    (test "'" "'")
-    (test "\\`" "\\'"))
+    (should (string= (substitute-quotes "quotes `like this'") "quotes 'like this'"))
+    (should (string= (substitute-quotes "`x'") "'x'"))
+    (should (string= (substitute-quotes "`") "'"))
+    (should (string= (substitute-quotes "'") "'"))
+    (should (string= (substitute-quotes "\\`") "\\'")))
   (let ((text-quoting-style 'grave))
-    (test "quotes `like this'" "quotes `like this'")
-    (test "`x'" "`x'")
-    (test "`" "`")
-    (test "'" "'")
-    (test "\\`" "\\`"))))
+    (should (string= (substitute-quotes "quotes `like this'") "quotes `like this'"))
+    (should (string= (substitute-quotes "`x'") "`x'"))
+    (should (string= (substitute-quotes "`") "`"))
+    (should (string= (substitute-quotes "'") "'"))
+    (should (string= (substitute-quotes "\\`") "\\`"))))
 
 (ert-deftest help-tests-substitute-command-keys/literals ()
   (with-substitute-command-keys-test
