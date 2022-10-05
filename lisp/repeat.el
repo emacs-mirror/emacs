@@ -499,6 +499,7 @@ See `describe-repeat-maps' for a list of all repeatable commands."
     (when (and was-in-progress (not repeat-in-progress))
       (repeat-exit))))
 
+;;;###autoload
 (defun repeat-exit ()
   "Exit the repeating sequence.
 This function can be used to force exit of repetition while it's active."
