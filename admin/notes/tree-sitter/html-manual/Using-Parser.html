@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.8, https://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- This is the GNU Emacs Lisp Reference Manual
+corresponding to Emacs version 29.0.50.
+
+Copyright © 1990-1996, 1998-2022 Free Software Foundation,
+Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being "GNU General Public License," with the
+Front-Cover Texts being "A GNU Manual," and with the Back-Cover
+Texts as in (a) below.  A copy of the license is included in the
+section entitled "GNU Free Documentation License."
+
+(a) The FSF's Back-Cover Text is: "You have the freedom to copy and
+modify this GNU manual.  Buying copies from the FSF supports it in
+developing GNU and promoting software freedom." -->
+<title>Using Parser (GNU Emacs Lisp Reference Manual)</title>
+
+<meta name="description" content="Using Parser (GNU Emacs Lisp Reference Manual)">
+<meta name="keywords" content="Using Parser (GNU Emacs Lisp Reference Manual)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="index.html" rel="start" title="Top">
+<link href="Index.html" rel="index" title="Index">
+<link href="index.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Parsing-Program-Source.html" rel="up" title="Parsing Program Source">
+<link href="Retrieving-Node.html" rel="next" title="Retrieving Node">
+<link href="Language-Definitions.html" rel="prev" title="Language Definitions">
+<style type="text/css">
+<!--
+a.copiable-anchor {visibility: hidden; text-decoration: none; line-height: 0em}
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+span:hover a.copiable-anchor {visibility: visible}
+ul.no-bullet {list-style: none}
+-->
+</style>
+<link rel="stylesheet" type="text/css" href="./manual.css">
+
+
+</head>
+
+<body lang="en">
+<div class="section" id="Using-Parser">
+<div class="header">
+<p>
+Next: <a href="Retrieving-Node.html" accesskey="n" rel="next">Retrieving Node</a>, Previous: <a href="Language-Definitions.html" accesskey="p" rel="prev">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html" accesskey="u" rel="up">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+<hr>
+<span id="Using-Tree_002dsitter-Parser"></span><h3 class="section">37.2 Using Tree-sitter Parser</h3>
+<span id="index-Tree_002dsitter-parser"></span>
+
+<p>This section described how to create and configure a tree-sitter
+parser.  In Emacs, each tree-sitter parser is associated with a
+buffer.  As we edit the buffer, the associated parser and the syntax
+tree is automatically kept up-to-date.
+</p>
+<dl class="def">
+<dt id="index-treesit_002dmax_002dbuffer_002dsize"><span class="category">Variable: </span><span><strong>treesit-max-buffer-size</strong><a href='#index-treesit_002dmax_002dbuffer_002dsize' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This variable contains the maximum size of buffers in which
+tree-sitter can be activated.  Major modes should check this value
+when deciding whether to enable tree-sitter features.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dcan_002denable_002dp"><span class="category">Function: </span><span><strong>treesit-can-enable-p</strong><a href='#index-treesit_002dcan_002denable_002dp' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function checks whether the current buffer is suitable for
+activating tree-sitter features.  It basically checks
+<code>treesit-available-p</code> and <code>treesit-max-buffer-size</code>.
+</p></dd></dl>
+
+<span id="index-Creating-tree_002dsitter-parsers"></span>
+<dl class="def">
+<dt id="index-treesit_002dparser_002dcreate"><span class="category">Function: </span><span><strong>treesit-parser-create</strong> <em>language &amp;optional buffer no-reuse</em><a href='#index-treesit_002dparser_002dcreate' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>To create a parser, we provide a <var>buffer</var> and the <var>language</var>
+to use (see <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>).  If <var>buffer</var> is nil, the
+current buffer is used.
+</p>
+<p>By default, this function reuses a parser if one already exists for
+<var>language</var> in <var>buffer</var>, if <var>no-reuse</var> is non-nil, this
+function always creates a new parser.
+</p></dd></dl>
+
+<p>Given a parser, we can query information about it:
+</p>
+<dl class="def">
+<dt id="index-treesit_002dparser_002dbuffer"><span class="category">Function: </span><span><strong>treesit-parser-buffer</strong> <em>parser</em><a href='#index-treesit_002dparser_002dbuffer' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>Returns the buffer associated with <var>parser</var>.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dparser_002dlanguage"><span class="category">Function: </span><span><strong>treesit-parser-language</strong> <em>parser</em><a href='#index-treesit_002dparser_002dlanguage' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>Returns the language that <var>parser</var> uses.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dparser_002dp"><span class="category">Function: </span><span><strong>treesit-parser-p</strong> <em>object</em><a href='#index-treesit_002dparser_002dp' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>Checks if <var>object</var> is a tree-sitter parser. Return non-nil if it
+is, return nil otherwise.
+</p></dd></dl>
+
+<p>There is no need to explicitly parse a buffer, because parsing is done
+automatically and lazily.  A parser only parses when we query for a
+node in its syntax tree.  Therefore, when a parser is first created,
+it doesn&rsquo;t parse the buffer; it waits until we query for a node for
+the first time.  Similarly, when some change is made in the buffer, a
+parser doesn&rsquo;t re-parse immediately.
+</p>
+<span id="index-treesit_002dbuffer_002dtoo_002dlarge"></span>
+<p>When a parser do parse, it checks for the size of the buffer.
+Tree-sitter can only handle buffer no larger than about 4GB.  If the
+size exceeds that, Emacs signals <code>treesit-buffer-too-large</code>
+with signal data being the buffer size.
+</p>
+<p>Once a parser is created, Emacs automatically adds it to the
+internal parser list.  Every time a change is made to the buffer,
+Emacs updates parsers in this list so they can update their syntax
+tree incrementally.
+</p>
+<dl class="def">
+<dt id="index-treesit_002dparser_002dlist"><span class="category">Function: </span><span><strong>treesit-parser-list</strong> <em>&amp;optional buffer</em><a href='#index-treesit_002dparser_002dlist' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function returns the parser list of <var>buffer</var>.  And
+<var>buffer</var> defaults to the current buffer.
+</p></dd></dl>
+
+<dl class="def">
+<dt id="index-treesit_002dparser_002ddelete"><span class="category">Function: </span><span><strong>treesit-parser-delete</strong> <em>parser</em><a href='#index-treesit_002dparser_002ddelete' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>This function deletes <var>parser</var>.
+</p></dd></dl>
+
+<span id="index-tree_002dsitter-narrowing"></span>
+<span id="tree_002dsitter-narrowing"></span><p>Normally, a parser &ldquo;sees&rdquo; the whole
+buffer, but when the buffer is narrowed (see <a href="Narrowing.html">Narrowing</a>), the
+parser will only see the visible region.  As far as the parser can
+tell, the hidden region is deleted.  And when the buffer is later
+widened, the parser thinks text is inserted in the beginning and in
+the end.  Although parsers respect narrowing, narrowing shouldn&rsquo;t be
+the mean to handle a multi-language buffer; instead, set the ranges in
+which a parser should operate in.  See <a href="Multiple-Languages.html">Parsing Text in Multiple Languages</a>.
+</p>
+<p>Because a parser parses lazily, when we narrow the buffer, the parser
+is not affected immediately; as long as we don&rsquo;t query for a node
+while the buffer is narrowed, the parser is oblivious of the
+narrowing.
+</p>
+<span id="index-tree_002dsitter-parse-string"></span>
+<dl class="def">
+<dt id="index-treesit_002dparse_002dstring"><span class="category">Function: </span><span><strong>treesit-parse-string</strong> <em>string language</em><a href='#index-treesit_002dparse_002dstring' class='copiable-anchor'> &para;</a></span></dt>
+<dd><p>Besides creating a parser for a buffer, we can also just parse a
+string.  Unlike a buffer, parsing a string is a one-time deal, and
+there is no way to update the result.
+</p>
+<p>This function parses <var>string</var> with <var>language</var>, and returns the
+root node of the generated syntax tree.
+</p></dd></dl>
+
+</div>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Retrieving-Node.html">Retrieving Node</a>, Previous: <a href="Language-Definitions.html">Tree-sitter Language Definitions</a>, Up: <a href="Parsing-Program-Source.html">Parsing Program Source</a> &nbsp; [<a href="index.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="Index.html" title="Index" rel="index">Index</a>]</p>
+</div>
+
+
+
+</body>
+</html>
