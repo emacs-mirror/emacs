@@ -102,13 +102,13 @@ static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, p
 static int interval_tree_max_height (const struct interval_tree *);
 static void interval_tree_update_limit (const struct interval_tree *, struct interval_node *);
 static void interval_tree_inherit_offset (uintmax_t otick, struct interval_node *);
-static void interval_tree_propagate_limit (const struct interval_tree *, struct interval_node *);
+static void interval_tree_propagate_limit (struct interval_node *);
 static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
 static void interval_tree_rotate_right (struct interval_tree *, struct interval_node *);
 static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_remove_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
-static struct interval_node *interval_tree_subtree_min (const struct interval_tree *, struct interval_node *);
+static struct interval_node *interval_tree_subtree_min (struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 
 /* The sentinel node, the null node.  */
@@ -310,7 +310,7 @@ interval_node_set_region (struct interval_tree *tree,
   else if (end != node->end)
     {
       node->end = max (node->begin, end);
-      interval_tree_propagate_limit (tree, node);
+      interval_tree_propagate_limit (node);
     }
 }
 
@@ -461,15 +461,16 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       if (!node->red)
         broken = subst;
       interval_tree_transplant (tree, subst, node);
-      interval_tree_propagate_limit (tree, subst);
+      interval_tree_propagate_limit (subst);
     }
   else
     {
-      struct interval_node *min = interval_tree_subtree_min (tree, node->right);
+      struct interval_node *min = interval_tree_subtree_min (node->right);
       struct interval_node *min_right = min->right;
 
       if (!min->red)
         broken = min->right;
+      eassert (min != ITREE_NULL);
       if (min->parent == node)
         min_right->parent = min; /* set parent, if min_right = null */
       else
@@ -483,8 +484,8 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       min->left = node->left;
       min->left->parent = min;
       min->red = node->red;
-      interval_tree_propagate_limit (tree, min_right);
-      interval_tree_propagate_limit (tree, min);
+      interval_tree_propagate_limit (min_right);
+      interval_tree_propagate_limit (min);
     }
 
   if (broken)
@@ -624,7 +625,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
           if (node->end > pos || (node->end == pos && node->rear_advance))
             {
               node->end += length;
-              interval_tree_propagate_limit (tree, node);
+              interval_tree_propagate_limit (node);
             }
         }
       interval_stack_destroy (stack);
@@ -688,7 +689,7 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
       if (node->end > pos)
         {
           node->end = max (pos , node->end - length);
-          interval_tree_propagate_limit (tree, node);
+          interval_tree_propagate_limit (node);
         }
     }
   interval_stack_destroy (stack);
@@ -872,8 +873,7 @@ interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 */
 
 static void
-interval_tree_propagate_limit (const struct interval_tree *tree,
-                               struct interval_node *node)
+interval_tree_propagate_limit (struct interval_node *node)
 {
   if (node == ITREE_NULL)
     node = node->parent;
@@ -887,7 +887,7 @@ interval_tree_propagate_limit (const struct interval_tree *tree,
     if (newlimit == node->limit)
       break;
     node->limit = newlimit;
-    if (node == tree->root)
+    if (node->parent == ITREE_NULL)
       break;
     node = node->parent;
   }
@@ -1147,7 +1147,7 @@ interval_tree_transplant (struct interval_tree *tree, struct interval_node *sour
 
 
 static struct interval_node*
-interval_tree_subtree_min (const struct interval_tree *tree, struct interval_node *node)
+interval_tree_subtree_min (struct interval_node *node)
 {
   if (node == ITREE_NULL)
     return node;
