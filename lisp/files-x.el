@@ -489,7 +489,7 @@ from the MODE alist ignoring the input argument VALUE."
                               dir-locals-directory-cache))
 
       ;; Insert modified alist of directory-local variables.
-      (insert ";;; Directory Local Variables\n")
+      (insert ";;; Directory Local Variables            -*- no-byte-compile: t -*-\n")
       (insert ";;; For more information see (info \"(emacs) Directory Variables\")\n\n")
       (princ (dir-locals-to-string
               (sort variables
