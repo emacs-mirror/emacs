@@ -145,7 +145,7 @@ struct interval_generator
   ptrdiff_t end;
   uintmax_t otick;              /* A copy of the tree's `otick`.  */
   enum interval_tree_order order;
-  bool_bf running : 1;
+  bool running;
   const char* file;
   int line;
 };
