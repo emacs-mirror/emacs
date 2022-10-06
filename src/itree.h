@@ -25,7 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-/* The tree and node structs are mainly here, so they can be allocated.
+/* The tree and node structs are mainly here, so they can be
+   allocated.
 
    NOTE: The only time where it is safe to modify node.begin and
    node.end directly, is while the node is not part of any tree.
@@ -33,14 +34,56 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    NOTE: It is safe to read node.begin and node.end directly, if the
    node came from a generator, because it validates the nodes it
    returns as a side-effect.
-*/
+ */
 
 struct interval_node;
 struct interval_node
 {
+  /* The normal parent, left and right links found in binary trees.
+     See also `red`, below, which completes the Red-Black tree
+     representation.  */
   struct interval_node *parent;
   struct interval_node *left;
   struct interval_node *right;
+
+  /* The following five fields comprise the interval abstraction.
+
+     BEGIN, END are buffer positions describing the range.  When a
+     node is in a tree these fields are read only, written only by
+     itree functions.
+
+     The LIMIT, OFFSET and OTICK fields should be considered internal
+     to itree.c and used only by itree functions.
+
+     LIMIT is a buffer position, the maximum of END of this node and
+     its children.  See itree.c for its use.
+
+     OFFSET is in buffer position units, and will be non-zero only
+     when the node is dirty.
+
+     OTICK determines whether BEGIN, END, LIMIT and OFFSET are
+     considered dirty.  A node is clean when its OTICK is equal to the
+     OTICK of its tree (see struct interval_tree).  Otherwise, it is
+     dirty.
+
+     In a clean node, BEGIN, END and LIMIT are correct buffer
+     positions, and OFFSET is zero.  The parent of a clean node is
+     also clean, recursively.
+
+     In a dirty node, the node's OTICK won't equal its tree's OTICK,
+     and its OFFSET may be non-zero.  At all times the descendents of
+     a dirty node are also dirty.  BEGIN, END and LIMIT require
+     adjustment before use as buffer positions.
+
+     NOTE: BEGIN and END must not be modified while the node is part
+     of a tree.  Use interval_tree_insert_gap and
+     interval_tree_delete_gap instead.
+
+     NOTE: The interval generators ensure nodes are clean before
+     yielding them, so BEGIN and END may be safely used as buffer
+     positions then.
+  */
+
   ptrdiff_t begin;		/* The beginning of this interval. */
   ptrdiff_t end;		/* The end of the interval. */
   ptrdiff_t limit;		/* The maximum end in this subtree. */
