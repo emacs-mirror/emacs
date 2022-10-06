@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stddef.h>
 #include <inttypes.h>
 
+#include "lisp.h"
+
 /* The tree and node structs are mainly here, so they can be allocated.
 
    NOTE: The only time where it is safe to modify node.begin and
