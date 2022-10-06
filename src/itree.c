@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /*
    Intervals of the form [BEGIN, END), are stored as nodes inside a RB
-   tree, sorted by BEGIN .  The core operation of this tree (besides
+   tree, ordered by BEGIN.  The core operation of this tree (besides
    insert, remove, etc.) is finding all intervals intersecting with
    some given interval.  In order to perform this operation
    efficiently, every node stores a third value called LIMIT. (See
@@ -65,10 +65,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    ==== Adjusting intervals ====
 
    Since this data-structure will be used for overlays in an Emacs
-   buffer, a second core operation implements the ability to insert or
-   delete gaps in resp. from the tree.  This models the insertion
-   resp. deletion of text in a buffer and the effects it may have on
-   the positions of overlays.
+   buffer, a second core operation is the ability to insert and delete
+   gaps in the tree.  This models the insertion and deletion of text
+   in a buffer and the effects it may have on the positions of
+   overlays.
 
    Consider this: Something gets inserted at position P into a buffer
    and assume that all overlays occur strictly after P.  Ordinarily,
@@ -79,10 +79,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    The OFFSET of some some subtree, represented by its root, is the
    amount of shift that needs to be applied to its BEGIN, END and
-   LIMIT values, in order to get to the real values.  Coming back to
-   the example, all we would need to do in this case, is to increment
-   the OFFSET of the tree's root, without any traversal of the tree
-   itself.
+   LIMIT values, in order to get to the actual buffer positions.
+   Coming back to the example, all we would need to do in this case,
+   is to increment the OFFSET of the tree's root, without any
+   traversal of the tree itself.
 
    As a consequence, the real values of BEGIN, END and LIMIT of some
    NODE need to be computed by incrementing them by the sum of NODE's
