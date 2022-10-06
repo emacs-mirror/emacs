@@ -2964,6 +2964,7 @@ either a full name or nil, and EMAIL is a valid email address."
   "~"     #'package-menu-mark-obsolete-for-deletion
   "w"     #'package-browse-url
   "m"     #'package-contact-maintainer
+  "b"     #'package-report-bug
   "x"     #'package-menu-execute
   "h"     #'package-menu-quick-help
   "H"     #'package-menu-hide-package
@@ -4515,6 +4516,37 @@ DESC must be a `package-desc' object."
        (package--print-email-button maint)
        (string-trim (substring-no-properties (buffer-string))))
      (format "[%s] %s" name subject))))
+
+(defun package-report-bug (desc)
+  "Prepare a message to send to the maintainers of a package.
+DESC must be a `package-desc' object."
+  (interactive (list (package--query-desc package-alist))
+               package-menu-mode)
+  (unless desc
+    (user-error "Package must be non-nil"))
+  (let* ((extras (package-desc-extras desc))
+         (maint (alist-get :maintainer extras))
+         vars)
+    (unless maint
+      (user-error "Package %s has no explicit maintainer"
+                  (package-desc-name desc)))
+    (let ((check (apply-partially #'file-equal-p (package-desc-dir desc))))
+      (dolist-with-progress-reporter (group custom-current-group-alist)
+          "Scanning for modified user options..."
+        (dolist (ent (get (cdr group) 'custom-group))
+          (when (and (custom-variable-p (car ent))
+                     (boundp (car ent))
+                     (not (eq (custom--standard-value (car ent))
+                              (default-toplevel-value (car ent))))
+                     (locate-dominating-file (car group) check))
+            (push (car ent) vars)))))
+    (dlet ((reporter-prompt-for-summary-p t))
+      (reporter-submit-bug-report
+       (with-temp-buffer
+         (package--print-email-button maint)
+         (string-trim (substring-no-properties (buffer-string))))
+       (symbol-name (package-desc-name desc))
+       vars))))
 
 ;;;; Introspection
 
