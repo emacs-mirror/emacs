@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    some given interval.  In order to perform this operation
    efficiently, every node stores a third value called LIMIT. (See
    https://en.wikipedia.org/wiki/Interval_tree#Augmented_tree and its
-   source Introduction to Algorithms (Section 14.3), Cormen et al. .)
+   source Introduction to Algorithms, Cormen et al. .)
 
    ==== Finding intervals ====
 
@@ -108,17 +108,18 @@ static void interval_tree_rotate_right (struct interval_tree *, struct interval_
 static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_remove_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
-static struct interval_node *interval_tree_subtree_min (struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 
 /* The sentinel node, the null node.  */
 struct interval_node itree_null;
 
-static inline bool
+static bool
 null_is_sane (void)
 {
   /* The sentinel node has most of its fields read-only, except for `parent`,
-     `left`, `right` which are write only. */
+     `left`, `right` which are write only.
+     BEWARE: The `parent` field is actually used both for read&write
+     in the code of `interval_tree_remove`.  */
   return itree_null.red == false
          && itree_null.otick == 0
          && itree_null.offset == 0
@@ -455,14 +456,21 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
   return false;
 }
 
-static inline bool
+static inline ptrdiff_t
+itree_newlimit (struct interval_node *node)
+{
+  eassert (node != ITREE_NULL);
+  return max (node->end,
+              max (node->left->limit + node->left->offset,
+                   node->right->limit + node->right->offset));
+}
+
+static bool
 itree_limit_is_stable (struct interval_node *node)
 {
   if (node == ITREE_NULL)
     return true;
-  ptrdiff_t newlimit = max (node->end,
-                            max (node->left->limit + node->left->offset,
-                                 node->right->limit + node->right->offset));
+  ptrdiff_t newlimit = itree_newlimit (node);
   return (newlimit == node->limit);
 }
 
@@ -474,6 +482,17 @@ itree_limits_are_stable (struct interval_node *node)
   return itree_limit_is_stable (node)
          && itree_limits_are_stable (node->right)
          && itree_limits_are_stable (node->left);
+}
+
+static struct interval_node*
+interval_tree_subtree_min (uintmax_t otick, struct interval_node *node)
+{
+  if (node == ITREE_NULL)
+    return node;
+  while ((interval_tree_inherit_offset (otick, node),
+          node->left != ITREE_NULL))
+    node = node->left;
+  return node;
 }
 
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
@@ -508,33 +527,33 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
     }
   else
     {
-      struct interval_node *min = interval_tree_subtree_min (node->right);
+      struct interval_node *min
+        = interval_tree_subtree_min (tree->otick, node->right);
       struct interval_node *min_right = min->right;
       struct interval_node *min_parent = min->parent;
 
       if (!min->red)
         broken = min_right;
       eassert (min != ITREE_NULL);
-      if (min->parent == node)
-        {
-          if (min_right == ITREE_NULL)
-            /* BEWARE: Here is one place we set `null->parent`.  */
-            min_right->parent = min;
-          else
-            eassert (min_right->parent == min);
-        }
-      else
+      /* `min` should not have any offsets any more so we can move nodes
+         underneath it without risking changing their begin/end.  */
+      eassert (min->offset == 0);
+      if (min->parent != node)
         {
           /* BEWARE: Here is one place we may set `null->parent`.  */
           interval_tree_transplant (tree, min_right, min);
           min->right = node->right;
-          min->right->parent = min;
         }
-      interval_tree_inherit_offset (tree->otick, min);
-      interval_tree_transplant (tree, min, node);
       min->left = node->left;
       min->left->parent = min;
       min->red = node->red;
+      /* FIXME: At this point node->right->parent = min but node->right
+         is a parent of `min` so total_offsets gets stuck in an inf-loop!  */
+      interval_tree_transplant (tree, min, node);
+      /* We set min->right->parent after `interval_tree_transplant` so
+         that calls to `itree_total_offset` don't get stuck in an inf-loop.  */
+      /* BEWARE: Here is one place we may set `null->parent`.  */
+      min->right->parent = min;
       interval_tree_update_limit (min);
       /* This call "belongs" with the first `interval_tree_transplant`
          (of `min_right`, done earlier in the `if`) but we prefer to do it
@@ -544,7 +563,6 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_propagate_limit (min_parent);
     }
   interval_tree_propagate_limit (node->parent);
-  /* eassert (itree_limits_are_stable (tree->root)); */
 
   if (broken)
     /* BEWARE: Here is where we may end up relying on the `null->parent`
@@ -899,8 +917,7 @@ interval_tree_update_limit (struct interval_node *node)
   if (node == ITREE_NULL)
     return;
 
-  node->limit = max (node->end, max (node->left->limit + node->left->offset,
-                                     node->right->limit + node->right->offset));
+  node->limit = itree_newlimit (node);
 }
 
 /* Apply NODE's offset to its begin, end and limit values and
@@ -913,16 +930,22 @@ static void
 interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 {
   if (node->otick == otick)
-    return;
+    {
+      eassert (node->offset == 0);
+      return;
+    }
 
-  node->begin += node->offset;
-  node->end += node->offset;
-  node->limit += node->offset;
-  if (node->left != ITREE_NULL)
-    node->left->offset += node->offset;
-  if (node->right != ITREE_NULL)
-    node->right->offset += node->offset;
-  node->offset = 0;
+  if (node->offset)
+    {
+      node->begin += node->offset;
+      node->end   += node->offset;
+      node->limit += node->offset;
+      if (node->left != ITREE_NULL)
+        node->left->offset += node->offset;
+      if (node->right != ITREE_NULL)
+        node->right->offset += node->offset;
+      node->offset = 0;
+    }
   /* FIXME: I wonder when/why this condition can be false, and more generally
      why we'd want to propagate offsets that may not be fully up-to-date.  */
   if (node->parent == ITREE_NULL || node->parent->otick == otick)
@@ -943,9 +966,7 @@ interval_tree_propagate_limit (struct interval_node *node)
     return;
 
   while (1) {
-    ptrdiff_t newlimit = max (node->end,
-                              max (node->left->limit + node->left->offset,
-                                   node->right->limit + node->right->offset));
+    ptrdiff_t newlimit = itree_newlimit (node);
     if (newlimit == node->limit)
       break;
     node->limit = newlimit;
@@ -1044,6 +1065,7 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
     {
       /* NODE is red and its parent is red.  This is a violation of
 	 red-black tree property #3.  */
+      eassert (node->red);
 
       if (node->parent == node->parent->parent->left)
 	{
@@ -1194,6 +1216,20 @@ interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node
   node->red = false;
 }
 
+/* Return accumulated offsets of NODE's parents.  */
+static ptrdiff_t
+itree_total_offset (struct interval_node *node)
+{
+  eassert (node != ITREE_NULL);
+  ptrdiff_t offset = 0;
+  while (node->parent != ITREE_NULL)
+    {
+      node = node->parent;
+      offset += node->offset;
+    }
+  return offset;
+}
+
 /* Link node SOURCE in DEST's place.
    It's the caller's responsability to refresh the `limit`s
    of DEST->parents afterwards.  */
@@ -1203,6 +1239,8 @@ interval_tree_transplant (struct interval_tree *tree, struct interval_node *sour
                           struct interval_node *dest)
 {
   eassert (tree && source && dest && dest != ITREE_NULL);
+  eassert (source == ITREE_NULL
+           || itree_total_offset (source) == itree_total_offset (dest));
 
   if (dest == tree->root)
     tree->root = source;
@@ -1212,17 +1250,6 @@ interval_tree_transplant (struct interval_tree *tree, struct interval_node *sour
     dest->parent->right = source;
 
   source->parent = dest->parent;
-}
-
-
-static struct interval_node*
-interval_tree_subtree_min (struct interval_node *node)
-{
-  if (node == ITREE_NULL)
-    return node;
-  while (node->left != ITREE_NULL)
-    node = node->left;
-  return node;
 }
 
 
