@@ -817,6 +817,9 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
                       "info" "--show-item" "repos-root-url")
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
+(defun vc-svn-clone (remote directory)
+  (vc-svn-command nil 0 '() "checkout" remove directory))
+
 (provide 'vc-svn)
 
 ;;; vc-svn.el ends here
