@@ -1623,7 +1623,7 @@ found."
   (if (equal x-locale "C")
       ;; Treat the C locale specially, as it means "ascii" under X.
       'ascii
-    (let ((locale (downcase x-locale)))
+    (let ((locale (locale-translate (downcase x-locale))))
       (or (locale-name-match locale locale-preferred-coding-systems)
 	  (when locale
 	    (if (string-match "\\.\\([^@]+\\)" locale)
