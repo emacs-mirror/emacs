@@ -2147,6 +2147,12 @@ Make backspaces delete the previous character."
 	    (goto-char (process-mark process))
 	    (set-marker comint-last-output-start (point))
 
+            ;; Before we call `comint--mark-as-output' later,
+            ;; redisplay can be called.  We mark the inserted text as
+            ;; output early, to prevent redisplay from fontifying it
+            ;; as input in case of `comint-fontify-input-mode'.
+            (put-text-property 0 (length string) 'field 'output string)
+
 	    ;; insert-before-markers is a bad thing. XXX
 	    ;; Luckily we don't have to use it any more, we use
 	    ;; window-point-insertion-type instead.
