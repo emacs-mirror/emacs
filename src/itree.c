@@ -62,6 +62,40 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    complexity of O(K*log(N)) for this operation, where K is the size
    of the result set and N the size of the tree.
 
+   ==== FIXME: bug#58342 some important operations remain slow ===
+
+   The amortized costs of Emacs' previous-overlay-change and
+   next-overlay-change functions are O(N) with this data structure.
+   The root problem is that we only have an order for the BEG field,
+   but not the END.  The previous/next overlay change operations need
+   to find the nearest point where there is *either* an interval BEG
+   or END point, but there is no efficient way to narrow the search
+   space over END postions.
+
+   Consider the case where next-overlay-change is called at POS, all
+   interval BEG positions are less than pos POS and all interval END
+   posistions are after.  These END positions have no order, and so
+   *every* interval must be examined.  This is at least O(N).  The
+   previous-overlay-change case is similar.  The root issue is that
+   the iterative "narrowing" approach is not guaranteed to reduce the
+   search space in logarithmic time, since END is not ordered in the
+   tree.
+
+   One might argue that the LIMIT value will do this narrowing, but
+   this narrowing is O(K*log(N)) where K is the size of the result
+   set.  If we are interested in finding the node in a range with the
+   smallest END, we might have to examine all K nodes in that range.
+   In the case of the *-overlay-channge functions, K may well be equal
+   to N.
+
+   Ideally, a tree based data structure for overlays would have
+   O(log(N)) performance for previous-overlay-change and
+   next-overlay-change, as these are called in performance sensitive
+   situations such as redisplay.  The only way I can think of
+   achieving this is by keeping one ordering by BEG and a separate
+   ordering by END, and then performing logic quite similar to the
+   current Emacs overlays-before and overlays-after lists.
+
    ==== Adjusting intervals ====
 
    Since this data-structure will be used for overlays in an Emacs
