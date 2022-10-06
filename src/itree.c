@@ -116,9 +116,7 @@ static bool
 null_is_sane (void)
 {
   /* The sentinel node has most of its fields read-only, except for `parent`,
-     `left`, `right` which are write only.
-     BEWARE: The `parent` field is actually used both for read&write
-     in the code of `interval_tree_remove`.  */
+     `left`, `right` which are write only.  */
   return itree_null.red == false
          && itree_null.otick == 0
          && itree_null.offset == 0
@@ -499,30 +497,36 @@ interval_tree_subtree_min (uintmax_t otick, struct interval_node *node)
    so re-balance the parents to re-establish the RB invariants.  */
 
 static void
-interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node)
+interval_tree_remove_fix (struct interval_tree *tree,
+                          struct interval_node *node,
+                          struct interval_node *parent)
 {
-  /* BEWARE: null->parent is usually write-only, *BUT*
-     NODE here can be the NULL node, in which case its `parent` field
-     has to be properly set to point to the intended "parent" node.  */
-  while (node != tree->root && !node->red)
+  eassert (node == ITREE_NULL || node->parent == parent);
+  eassert (parent == ITREE_NULL
+           || node == parent->left || node == parent->right);
+
+  while (parent != ITREE_NULL && !node->red)
     {
-      if (node == node->parent->left)
+      if (node == parent->left)
 	{
-	  struct interval_node *other = node->parent->right;
+	  struct interval_node *other = parent->right;
 
 	  if (other->red) /* case 1.a */
 	    {
 	      other->red = false;
-	      node->parent->red = true;
-	      interval_tree_rotate_left (tree, node->parent);
-	      other = node->parent->right;
+	      parent->red = true;
+	      interval_tree_rotate_left (tree, parent);
+	      parent = node->parent;
+	      other = parent->right;
             }
 
 	  if (!other->left->red /* 2.a */
               && !other->right->red)
 	    {
 	      other->red = true;
-	      node = node->parent;
+	      node = parent;
+	      eassert (node != ITREE_NULL);
+	      parent = node->parent;
             }
 	  else
 	    {
@@ -531,32 +535,37 @@ interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node
 		  other->left->red = false;
 		  other->red = true;
 		  interval_tree_rotate_right (tree, other);
-		  other = node->parent->right;
+		  parent = node->parent;
+		  other = parent->right;
                 }
-	      other->red = node->parent->red; /* 4.a */
-	      node->parent->red = false;
+	      other->red = parent->red; /* 4.a */
+	      parent->red = false;
 	      other->right->red = false;
-	      interval_tree_rotate_left (tree, node->parent);
+	      interval_tree_rotate_left (tree, parent);
 	      node = tree->root;
+	      parent = ITREE_NULL;
             }
         }
       else
 	{
-	  struct interval_node *other = node->parent->left;
+	  struct interval_node *other = parent->left;
 
 	  if (other->red) /* 1.b */
 	    {
 	      other->red = false;
-	      node->parent->red = true;
-	      interval_tree_rotate_right (tree, node->parent);
-	      other = node->parent->left;
+	      parent->red = true;
+	      interval_tree_rotate_right (tree, parent);
+	      parent = node->parent;
+	      other = parent->left;
             }
 
 	  if (!other->right->red /* 2.b */
               && !other->left->red)
 	    {
 	      other->red = true;
-	      node = node->parent;
+	      node = parent;
+	      eassert (node != ITREE_NULL);
+	      parent = node->parent;
             }
 	  else
 	    {
@@ -565,14 +574,16 @@ interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node
 		  other->right->red = false;
 		  other->red = true;
 		  interval_tree_rotate_left (tree, other);
-		  other = node->parent->left;
+		  parent = node->parent;
+		  other = parent->left;
                 }
 
-	      other->red = node->parent->red; /* 4.b */
-	      node->parent->red = false;
+	      other->red = parent->red; /* 4.b */
+	      parent->red = false;
 	      other->left->red = false;
-	      interval_tree_rotate_right (tree, node->parent);
+	      interval_tree_rotate_right (tree, parent);
 	      node = tree->root;
+	      parent = ITREE_NULL;
             }
         }
     }
@@ -590,15 +601,18 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 
   /* `broken`, if non-NULL, holds a node that's being moved up to where a black
      node used to be, which may thus require further fixups in its parents
-     (done in `interval_tree_remove_fix`).
-     BEWARE: `null->parent` is usually write-only, *BUT* in this function,
-     we use `null->parent` to simplify the code for the case where the
-     "broken" node is null: `broken->parent` is set typically in
-     `interval_tree_transplant` and then used in
-     `interval_tree_remove_fix`.
-     This trick is described in Cormen et al.'s Introduction to Algorithms.  */
-
+     (done in `interval_tree_remove_fix`).  */
   struct interval_node *broken = NULL;
+  /* `broken` may be null but `interval_tree_remove_fix` still
+     needs to know its "parent".
+     Cormen et al.'s Introduction to Algorithms uses a trick where
+     they rely on the null sentinel node's `parent` field to hold
+     the right value.  While this works, it breaks the rule that
+     the `parent` field is write-only making correctness much more tricky
+     and introducing a dependency on a global state (which is incompatible
+     with concurrency among other things), so instead we keep track of
+     `broken`'s parent manually.  */
+  struct interval_node *broken_parent = NULL;
 
   interval_tree_inherit_offset (tree->otick, node);
   if (node->left == ITREE_NULL || node->right == ITREE_NULL)
@@ -606,8 +620,10 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       struct interval_node *subst
 	= node->right == ITREE_NULL ? node->left : node->right;
       if (!node->red)
-        broken = subst;
-      /* BEWARE: Here is one place we may set `null->parent`.  */
+        {
+          broken = subst;
+          broken_parent = node->parent; /* The future parent.  */
+        }
       interval_tree_transplant (tree, subst, node);
     }
   else
@@ -623,10 +639,12 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       /* `min` should not have any offsets any more so we can move nodes
          underneath it without risking changing their begin/end.  */
       eassert (min->offset == 0);
-      if (min->parent != node)
+      if (min->parent == node)
+        broken_parent = min; /* The future parent.  */
+      else
         {
-          /* BEWARE: Here is one place we may set `null->parent`.  */
           interval_tree_transplant (tree, min_right, min);
+          broken_parent = min->parent; /* The parent.  */
           min->right = node->right;
         }
       min->left = node->left;
@@ -637,7 +655,6 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_transplant (tree, min, node);
       /* We set min->right->parent after `interval_tree_transplant` so
          that calls to `itree_total_offset` don't get stuck in an inf-loop.  */
-      /* BEWARE: Here is one place we may set `null->parent`.  */
       min->right->parent = min;
       interval_tree_update_limit (min);
       /* This call "belongs" with the first `interval_tree_transplant`
@@ -650,9 +667,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
   interval_tree_propagate_limit (node->parent);
 
   if (broken)
-    /* BEWARE: Here is where we may end up relying on the `null->parent`
-       set earlier.  */
-    interval_tree_remove_fix (tree, broken);
+    interval_tree_remove_fix (tree, broken, broken_parent);
 
   node->right = node->left = node->parent = NULL;
   --tree->size;
