@@ -101,16 +101,15 @@
 (ert-deftest epg-decrypt-1 ()
   :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
   (with-epg-tests (:require-passphrase t)
-    (with-temp-file (expand-file-name "gpg.conf" epg-tests-home-directory)
-      (insert "ignore-mdc-error"))
     (should (equal "test"
 		   (epg-decrypt-string epg-tests-context "\
 -----BEGIN PGP MESSAGE-----
-Version: GnuPG v2
 
-jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
-=U8z7
------END PGP MESSAGE-----")))))
+jA0ECQMCdW8+qtS9Tin/0jUBO1/9Oz69BWPmtFKEeBM62WpFP4o1+bNzdxogdyeg
++WTt292OD0yV85m5UqvLgp4ttVUmAw==
+=K5Eh
+-----END PGP MESSAGE-----
+")))))
 
 (ert-deftest epg-roundtrip-1 ()
  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
@@ -123,7 +122,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
-    (let* ((recipients (epg-list-keys epg-tests-context "joe@example.com"))
+    (let* ((recipients (epg-list-keys epg-tests-context "alice@openpgp.example"))
 	   (cipher (epg-encrypt-string epg-tests-context "public key"
 				       recipients nil t)))
       (should (equal "public key"
@@ -135,7 +134,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 		   :require-secret-key t)
     (let (signature verify-result)
       (setf (epg-context-signers epg-tests-context)
-	    (epg-list-keys epg-tests-context "joe@example.com"))
+	    (epg-list-keys epg-tests-context "alice@openpgp.example"))
       (setq signature (epg-sign-string epg-tests-context "signed" t))
       (epg-verify-string epg-tests-context signature "signed")
       (setq verify-result (epg-context-result-for context 'verify))
@@ -148,7 +147,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 		   :require-secret-key t)
     (let (signature verify-result)
       (setf (epg-context-signers epg-tests-context)
-	    (epg-list-keys epg-tests-context "joe@example.com"))
+	    (epg-list-keys epg-tests-context "alice@openpgp.example"))
       (setq signature (epg-sign-string epg-tests-context "clearsigned" 'clear))
       ;; Clearsign signature always ends with a new line.
       (should (equal "clearsigned\n"
@@ -163,7 +162,7 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 		   :require-secret-key t)
     (let (signature verify-result)
       (setf (epg-context-signers epg-tests-context)
-	    (epg-list-keys epg-tests-context "joe@example.com"))
+	    (epg-list-keys epg-tests-context "alice@openpgp.example"))
       (setq signature (epg-sign-string epg-tests-context "normal signed"))
       (should (equal "normal signed"
 		     (epg-verify-string epg-tests-context signature)))

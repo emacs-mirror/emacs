@@ -1557,7 +1557,7 @@ a skeleton (see `skeleton-insert').")
      '(if (and (boundp 'reftex-mode) reftex-mode) (reftex-label "table"))
      \n _)
     ("figure" nil  > _ \n "\\caption{" > (skeleton-read "Caption: ") "}" > \n
-     '(if (and (boundp 'reftex-mode) reftex-mode) (reftex-label "table"))))
+     '(if (and (boundp 'reftex-mode) reftex-mode) (reftex-label "figure"))))
   "Skeleton element to use for the body of particular environments.
 Every element of the list has the form (NAME . SKEL-ELEM) where NAME is
 the name of the environment and SKEL-ELEM is an element to use in

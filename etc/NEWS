@@ -443,6 +443,25 @@ We recommend using either the built-in 'display-line-numbers-mode', or
 the 'nlinum' package from GNU ELPA instead.  The former has better
 performance, but the latter is closer to a drop-in replacement.
 
+1. To use 'display-line-numbers-mode', add something like this to your
+   Init file:
+
+    (global-display-line-numbers-mode 1)
+    ;; Alternatively, to use it only in programming modes:
+    (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+
+2. To use 'nlinum', add this to your Init file:
+
+    (package-install 'nlinum)
+    (global-nlinum-mode 1)
+    ;; Alternatively, to use it only in programming modes:
+    (add-hook 'prog-mode-hook #'nlinum-mode)
+
+3. To continue using the obsolete package 'linum', add this line to
+   your Init file, in addition to any existing customizations:
+
+    (require 'linum)
+
 ---
 ** The thumbs.el library is now obsolete.
 We recommend using 'M-x image-dired' instead.
@@ -3237,8 +3256,8 @@ given predicate in the specified sequence.
 
 +++
 ** New function 'seq-keep'.
-This is like 'seq-map', but removes all non-nil results from the
-returned list.
+This is like 'seq-map', but removes all nil results from the returned
+list.
 
 ** Themes
 

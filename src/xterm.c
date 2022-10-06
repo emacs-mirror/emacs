@@ -29252,7 +29252,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
 #ifdef HAVE_X_I18N
-  xim_initialize (dpyinfo, resource_name);
+  /* Avoid initializing input methods if the X library does not
+     support Emacs's locale.  When the current locale is not
+     supported, decoding input method strings becomes undefined.  */
+  if (XSupportsLocale ())
+    xim_initialize (dpyinfo, resource_name);
 #endif
 
   xsettings_initialize (dpyinfo);
