@@ -2436,10 +2436,14 @@ If NOSAVE is non-nil, the package is not removed from
   "Reinstall package PKG.
 PKG should be either a symbol, the package name, or a `package-desc'
 object."
-  (interactive (list (intern (completing-read
-                              "Reinstall package: "
-                              (mapcar #'symbol-name
-                                      (mapcar #'car package-alist))))))
+  (interactive
+   (progn
+     (package--archives-initialize)
+     (list (intern (completing-read
+                    "Reinstall package: "
+                    (mapcar #'symbol-name
+                            (mapcar #'car package-alist)))))))
+  (package--archives-initialize)
   (package-delete
    (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
    'force 'nosave)
