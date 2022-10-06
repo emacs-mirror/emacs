@@ -2280,6 +2280,7 @@ dynamic libraries, in that order.  */);
   Vtreesit_extra_load_path = Qnil;
 
   defsubr (&Streesit_language_available_p);
+  defsubr (&Streesit_language_version);
 
   defsubr (&Streesit_parser_p);
   defsubr (&Streesit_node_p);
