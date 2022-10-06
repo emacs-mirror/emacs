@@ -106,7 +106,6 @@ static void interval_tree_propagate_limit (struct interval_node *);
 static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
 static void interval_tree_rotate_right (struct interval_tree *, struct interval_node *);
 static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
-static void interval_tree_remove_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
 
@@ -493,6 +492,92 @@ interval_tree_subtree_min (uintmax_t otick, struct interval_node *node)
           node->left != ITREE_NULL))
     node = node->left;
   return node;
+}
+
+/* Repair the tree after a deletion.
+   The black-depth of NODE is one less than that of its sibling,
+   so re-balance the parents to re-establish the RB invariants.  */
+
+static void
+interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node)
+{
+  /* BEWARE: null->parent is usually write-only, *BUT*
+     NODE here can be the NULL node, in which case its `parent` field
+     has to be properly set to point to the intended "parent" node.  */
+  while (node != tree->root && !node->red)
+    {
+      if (node == node->parent->left)
+	{
+	  struct interval_node *other = node->parent->right;
+
+	  if (other->red) /* case 1.a */
+	    {
+	      other->red = false;
+	      node->parent->red = true;
+	      interval_tree_rotate_left (tree, node->parent);
+	      other = node->parent->right;
+            }
+
+	  if (!other->left->red /* 2.a */
+              && !other->right->red)
+	    {
+	      other->red = true;
+	      node = node->parent;
+            }
+	  else
+	    {
+	      if (!other->right->red) /* 3.a */
+		{
+		  other->left->red = false;
+		  other->red = true;
+		  interval_tree_rotate_right (tree, other);
+		  other = node->parent->right;
+                }
+	      other->red = node->parent->red; /* 4.a */
+	      node->parent->red = false;
+	      other->right->red = false;
+	      interval_tree_rotate_left (tree, node->parent);
+	      node = tree->root;
+            }
+        }
+      else
+	{
+	  struct interval_node *other = node->parent->left;
+
+	  if (other->red) /* 1.b */
+	    {
+	      other->red = false;
+	      node->parent->red = true;
+	      interval_tree_rotate_right (tree, node->parent);
+	      other = node->parent->left;
+            }
+
+	  if (!other->right->red /* 2.b */
+              && !other->left->red)
+	    {
+	      other->red = true;
+	      node = node->parent;
+            }
+	  else
+	    {
+	      if (!other->left->red) /* 3.b */
+		{
+		  other->right->red = false;
+		  other->red = true;
+		  interval_tree_rotate_left (tree, other);
+		  other = node->parent->left;
+                }
+
+	      other->red = node->parent->red; /* 4.b */
+	      node->parent->red = false;
+	      other->left->red = false;
+	      interval_tree_rotate_right (tree, node->parent);
+	      node = tree->root;
+            }
+        }
+    }
+
+  node->red = false;
 }
 
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
@@ -1128,92 +1213,6 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
   /* The root may have been changed to red due to the algorithm.  Set
      it to black so that property #5 is satisfied.  */
   tree->root->red = false;
-}
-
-/* Repair the tree after a deletion.
-   The black-depth of NODE is one less than that of its sibling,
-   so re-balance the parents to re-establish the RB invariants.  */
-
-static void
-interval_tree_remove_fix (struct interval_tree *tree, struct interval_node *node)
-{
-  /* BEWARE: null->parent is usually write-only, *BUT*
-     NODE here can be the NULL node, in which case its `parent` field
-     has to be properly set to point to the intended "parent" node.  */
-  while (node != tree->root && !node->red)
-    {
-      if (node == node->parent->left)
-	{
-	  struct interval_node *other = node->parent->right;
-
-	  if (other->red) /* case 1.a */
-	    {
-	      other->red = false;
-	      node->parent->red = true;
-	      interval_tree_rotate_left (tree, node->parent);
-	      other = node->parent->right;
-            }
-
-	  if (!other->left->red /* 2.a */
-              && !other->right->red)
-	    {
-	      other->red = true;
-	      node = node->parent;
-            }
-	  else
-	    {
-	      if (!other->right->red) /* 3.a */
-		{
-		  other->left->red = false;
-		  other->red = true;
-		  interval_tree_rotate_right (tree, other);
-		  other = node->parent->right;
-                }
-	      other->red = node->parent->red; /* 4.a */
-	      node->parent->red = false;
-	      other->right->red = false;
-	      interval_tree_rotate_left (tree, node->parent);
-	      node = tree->root;
-            }
-        }
-      else
-	{
-	  struct interval_node *other = node->parent->left;
-
-	  if (other->red) /* 1.b */
-	    {
-	      other->red = false;
-	      node->parent->red = true;
-	      interval_tree_rotate_right (tree, node->parent);
-	      other = node->parent->left;
-            }
-
-	  if (!other->right->red /* 2.b */
-              && !other->left->red)
-	    {
-	      other->red = true;
-	      node = node->parent;
-            }
-	  else
-	    {
-	      if (!other->left->red) /* 3.b */
-		{
-		  other->right->red = false;
-		  other->red = true;
-		  interval_tree_rotate_left (tree, other);
-		  other = node->parent->left;
-                }
-
-	      other->red = node->parent->red; /* 4.b */
-	      node->parent->red = false;
-	      other->left->red = false;
-	      interval_tree_rotate_right (tree, node->parent);
-	      node = tree->root;
-            }
-        }
-    }
-
-  node->red = false;
 }
 
 /* Return accumulated offsets of NODE's parents.  */
