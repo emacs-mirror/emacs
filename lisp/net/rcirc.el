@@ -2176,9 +2176,11 @@ connection."
 
 (defun rcirc-generate-log-filename (process target)
   "Return filename for log file based on PROCESS and TARGET."
-  (if target
-      (rcirc-generate-new-buffer-name process target)
-    (process-name process)))
+  (concat
+   (if target
+       (rcirc-generate-new-buffer-name process target)
+     (process-name process))
+   ".log"))
 
 (defcustom rcirc-log-filename-function 'rcirc-generate-log-filename
   "A function to generate the filename used by rcirc's logging facility.
