@@ -319,6 +319,20 @@ in this language environment.")))
 Ancient Gothic language using the Gothic script is supported in this
 language environment.")))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Coptic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(set-language-info-alist
+ "Coptic" '((charset unicode)
+            (coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "coptic")
+            (sample-text . "Coptic (ⲘⲉⲧⲢⲉⲙ̀ⲛⲭⲏⲙⲓ)	Ⲛⲟⲩϥⲣⲓ")
+            (documentation . "\
+Coptic language using the Coptic script is supported in this
+language environment.")))
+
 (provide 'misc-lang)
 
 ;;; misc-lang.el ends here

@@ -152,7 +152,7 @@
       '((latin ?A ?Z ?a ?z #x00C0 #x0100 #x0180 #x1e00)
 	(phonetic #x250 #x283)
 	(greek #x3A9)
-	(coptic #x3E2)
+	(coptic #x3E2 #x2C80 #x2CAE)
 	(cyrillic #x42F)
 	(armenian #x531)
 	(hebrew #x5D0)
@@ -779,6 +779,7 @@
                     lepcha
 		    symbol
 		    braille
+                    coptic
 		    yi
                     syloti-nagri
                     rejang
