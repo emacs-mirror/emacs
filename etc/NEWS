@@ -457,6 +457,11 @@ performance, but the latter is closer to a drop-in replacement.
     ;; Alternatively, to use it only in programming modes:
     (add-hook 'prog-mode-hook #'nlinum-mode)
 
+3. To continue using the obsolete package 'linum', add this line to
+   your Init file, in addition to any existing customizations:
+
+    (require 'linum)
+
 ---
 ** The thumbs.el library is now obsolete.
 We recommend using 'M-x image-dired' instead.
