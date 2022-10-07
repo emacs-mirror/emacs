@@ -440,9 +440,10 @@ FILE is the image file name."
   (format-spec
    format
    `((?f . ,(expand-file-name file))
-     (?F . ,(mapconcat #'url-hexify-string
-                       (file-name-split file)
-                       "/"))
+     (?F . ,(lambda ()
+              (mapconcat #'url-hexify-string
+                         (file-name-split file)
+                         "/")))
      (?h . ,(lambda ()
               (wallpaper--get-height-or-width
                "height"
@@ -454,22 +455,25 @@ FILE is the image file name."
                #'display-pixel-width
                wallpaper-default-width)))
      ;; screen number
-     (?S . ,(let ((display (frame-parameter (selected-frame) 'display)))
-              (if (and display
-                       (string-match (rx ":" (+ (in "0-9")) "."
-                                         (group (+ (in "0-9"))) eos)
-                                     display))
-                  (match-string 1 display)
-                "0")))
+     (?S . ,(lambda ()
+              (let ((display (frame-parameter (selected-frame) 'display)))
+                (if (and display
+                         (string-match (rx ":" (+ (in "0-9")) "."
+                                           (group (+ (in "0-9"))) eos)
+                                       display))
+                    (match-string 1 display)
+                  "0"))))
      ;; monitor name
      (?M . ,#'wallpaper--x-monitor-name)
      ;; workspace
-     (?W . ,(or (and (fboundp 'x-window-property)
-                     (display-graphic-p)
-                     (number-to-string
-                      (or (x-window-property "_NET_CURRENT_DESKTOP" nil "CARDINAL" 0 nil t)
-                          (x-window-property "WIN_WORKSPACE" nil "CARDINAL" 0 nil t))))
-                "0")))))
+     (?W . ,(lambda ()
+              (or (and (fboundp 'x-window-property)
+                       (display-graphic-p)
+                       (number-to-string
+                        (or (x-window-property "_NET_CURRENT_DESKTOP" nil "CARDINAL" 0 nil t)
+                            (x-window-property "WIN_WORKSPACE" nil "CARDINAL" 0 nil t)
+                            0)))
+                  "0"))))))
 
 (defun wallpaper-default-set-function (file)
   "Set the wallpaper to FILE using a command.
