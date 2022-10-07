@@ -25511,6 +25511,39 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 #ifdef HAVE_X11R6
 
+/* If preedit text is set on F, cancel preedit, free the text, and
+   generate the appropriate events to cancel the preedit display.
+
+   This is mainly useful when the connection to the IM server is
+   dropped during preconversion.  */
+
+static void
+x_maybe_clear_preedit (struct frame *f)
+{
+  struct x_output *output;
+  struct input_event ie;
+
+  output = FRAME_X_OUTPUT (f);
+
+  if (!output->preedit_chars)
+    return;
+
+  EVENT_INIT (ie);
+  ie.kind = PREEDIT_TEXT_EVENT;
+  ie.arg = Qnil;
+  XSETFRAME (ie.frame_or_window, f);
+  XSETINT (ie.x, 0);
+  XSETINT (ie.y, 0);
+  kbd_buffer_store_event (&ie);
+
+  xfree (output->preedit_chars);
+
+  output->preedit_size = 0;
+  output->preedit_active = false;
+  output->preedit_chars = NULL;
+  output->preedit_caret = 0;
+}
+
 /* XIM destroy callback function, which is called whenever the
    connection to input method XIM dies.  CLIENT_DATA contains a
    pointer to the x_display_info structure corresponding to XIM.  */
@@ -25531,6 +25564,9 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 	{
 	  FRAME_XIC (f) = NULL;
           xic_free_xfontset (f);
+
+	  /* Free the preedit text if necessary.  */
+	  x_maybe_clear_preedit (f);
 	}
     }
 
