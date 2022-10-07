@@ -5929,10 +5929,7 @@ If TAG is a number, get the corresponding match group."
 (defun org-unfontify-region (beg end &optional _maybe_loudly)
   "Remove fontification and activation overlays from links."
   (font-lock-default-unfontify-region beg end)
-  (let* ((buffer-undo-list t)
-	 (inhibit-read-only t) (inhibit-point-motion-hooks t)
-	 (inhibit-modification-hooks t)
-	 deactivate-mark buffer-file-name buffer-file-truename)
+  (with-silent-modifications
     (decompose-region beg end)
     (remove-text-properties beg end
 			    '(mouse-face t keymap t org-linked-text t
@@ -16702,10 +16699,9 @@ buffer boundaries with possible narrowing."
 
 (defun org-display-inline-remove-overlay (ov after _beg _end &optional _len)
   "Remove inline-display overlay if a corresponding region is modified."
-  (let ((inhibit-modification-hooks t))
-    (when (and ov after)
-      (delete ov org-inline-image-overlays)
-      (delete-overlay ov))))
+  (when (and ov after)
+    (delete ov org-inline-image-overlays)
+    (delete-overlay ov)))
 
 (defun org-remove-inline-images ()
   "Remove inline display of images."
