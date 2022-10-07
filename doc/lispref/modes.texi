@@ -3932,6 +3932,9 @@ every query must specify the language.  Other keywords are optional:
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
+@item @code{:toggle} @tab @var{symbol} @tab
+If non-nil, its value should be a variable name.  The variable's value
+(nil/non-nil) disables/enables the query during fontification.
 @end multitable
 
 Capture names in @var{query} should be face names like

@@ -238,22 +238,22 @@ You’ll notice that tree-sitter’s font-lock doesn’t respect
 ‘font-lock-maximum-decoration’, major modes are free to set
 ‘treesit-font-lock-settings’ based on the value of
 ‘font-lock-maximum-decoration’, or provide more fine-grained control
-through other mode-specific means.
+through other mode-specific means. (Towards that end, the :toggle option in treesit-font-lock-rules is very useful.)
 
 * Indent
 
-Indent works like this: We have a bunch of rules that look like this:
+Indent works like this: We have a bunch of rules that look like
 
    (MATCHER ANCHOR OFFSET)
 
-At the beginning point is at the BOL of a line, we want to know which
-column to indent this line to. Let NODE be the node at point, we pass
-this node to the MATCHER of each rule, one of them will match the node
-("this node is a closing bracket!"). Then we pass the node to the
-ANCHOR, which returns a point, eg, the BOL of the previous line. We
-find the column number of that point (eg, 4), add OFFSET to it (eg,
-0), and that is the column we want to indent the current line to (4 +
-0 = 4).
+When the indentation process starts, point is at the BOL of a line, we
+want to know which column to indent this line to. Let NODE be the node
+at point, we pass this node to the MATCHER of each rule, one of them
+will match the node (eg, "this node is a closing bracket!"). Then we pass
+the node to the ANCHOR, which returns a point, eg, the BOL of the
+previous line. We find the column number of that point (eg, 4), add
+OFFSET to it (eg, 0), and that is the column we want to indent the
+current line to (4 + 0 = 4).
 
 For MATHCER we have
 

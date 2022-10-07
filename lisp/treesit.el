@@ -289,7 +289,7 @@ should always use `treesit-font-lock-rules' to set this variable.
 
 Each SETTING is of form
 
-    (LANGUAGE QUERY OVERRIDE)
+    (LANGUAGE QUERY OVERRIDE TOGGLE)
 
 Each SETTING controls one parser (often of different language).
 LANGUAGE is the language symbol.  See Info node `(elisp)Language
@@ -304,7 +304,11 @@ used over and over.
 
 OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
-`treesit-font-lock-rules'.")
+`treesit-font-lock-rules'.
+
+TOGGLE should be a variable (symbol) or nil.  The variable's
+value (nil/non-nil) controls whether to activate the query during
+fontification.  If TOGGLE is nil, the query is always activated.")
 
 (defun treesit-font-lock-rules (&rest args)
   "Return a value suitable for `treesit-font-lock-settings'.
@@ -320,6 +324,7 @@ configure the query (and only that query).  For example,
     (treesit-font-lock-rules
      :language \\='javascript
      :override t
+     :enable 'html-fontify-script
      \\='((true) @font-lock-constant-face
        (false) @font-lock-constant-face)
      :language \\='html
@@ -335,6 +340,10 @@ include:
              append   Append the new face to existing ones
              prepend  Prepend the new face to existing ones
              keep     Fill-in regions without an existing face
+  :toggle    <symbol> If non-nil, the value should be a variable.
+                      The value of that variable (non-nil/nil)
+                      activates/deactivates the query during
+                      fontification.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -352,6 +361,8 @@ ignored.
         (current-language nil)
         ;; Tracks :override flag.
         (current-override nil)
+        ;; Track :toggle flag.
+        (current-toggle t)
         ;; The list this function returns.
         (result nil))
     (while args
@@ -360,15 +371,28 @@ ignored.
           (:language
            (let ((lang (pop args)))
              (when (or (not (symbolp lang)) (null lang))
-               (signal 'wrong-type-argument `(symbolp ,lang)))
+               (signal 'treesit-font-lock-error
+                       `("Value of :language should be a symbol"
+                         ,lang)))
              (setq current-language lang)))
           (:override
            (let ((flag (pop args)))
              (when (not (memq flag '(t nil append prepend keep)))
+               (signal 'treesit-font-lock-error
+                       `("Value of :override should be one of t, nil, append, prepend, keep"
+                         ,flag))
                (signal 'wrong-type-argument
                        `((or t nil append prepend keep)
                          ,flag)))
              (setq current-override flag)))
+          (:toggle
+           (let ((var (pop args)))
+             (when (or (not (symbolp var))
+                       (memq var '(t nil)))
+               (signal 'treesit-font-lock-error
+                       `("Value of :toggle should be a variable name"
+                         ,var)))
+             (setq current-toggle var)))
           ((pred treesit-query-p)
            (when (null current-language)
              (signal 'treesit-font-lock-error
@@ -377,11 +401,13 @@ ignored.
                (push `(,current-language token) result)
              (push `(,current-language
                      ,(treesit-query-compile current-language token)
-                     ,current-override)
+                     ,current-override
+                     ,current-toggle)
                    result))
            ;; Clears any configurations set for this query.
            (setq current-language nil
-                 current-override nil))
+                 current-override nil
+                 current-toggle nil))
           (_ (signal 'treesit-font-lock-error
                      `("Unexpected value" token))))))
     (nreverse result)))
@@ -396,8 +422,12 @@ If LOUDLY is non-nil, message some debugging information."
     (let* ((language (nth 0 setting))
            (match-pattern (nth 1 setting))
            (override (nth 2 setting))
+           (toggle (nth 3 setting))
            (parser (treesit-parser-create language)))
-      (when-let ((node (treesit-node-on start end parser)))
+      (when-let ((node (treesit-node-on start end parser))
+                 (activate (or (null toggle)
+                               (symbol-value toggle))))
+        (ignore activate)
         (let ((captures (treesit-query-capture
                          node match-pattern
                          ;; Specifying the range is important. More

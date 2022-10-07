@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MANUAL_DIR="../../../doc/lispref"
+MANUAL_DIR="../../../../doc/lispref"
 THIS_DIR=$(pwd)
 
 echo "Build manual"
