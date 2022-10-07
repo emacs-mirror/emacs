@@ -146,6 +146,7 @@
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
 (eval-when-compile (require 'epg))      ;For setf accessors.
+(eval-when-compile (require 'inline))   ;For `define-inline'
 (require 'seq)
 
 (require 'tabulated-list)
@@ -456,6 +457,11 @@ synchronously."
 
 (defvar package--default-summary "No description available.")
 
+(define-inline package-vc-p (pkg-desc)
+  "Return non-nil if PKG-DESC is a source package."
+  (inline-letevals (pkg-desc)
+    (inline-quote (eq (package-desc-kind ,pkg-desc) 'vc))))
+
 (cl-defstruct (package-desc
                ;; Rename the default constructor from `make-package-desc'.
                (:constructor package-desc-create)
@@ -571,7 +577,7 @@ This is, approximately, the inverse of `version-to-list'.
 (defun package-desc-full-name (pkg-desc)
   "Return full name of package-desc object PKG-DESC.
 This is the name of the package with its version appended."
-  (if (eq (package-desc-kind pkg-desc) 'vc)
+  (if (package-vc-p pkg-desc)
       (symbol-name (package-desc-name pkg-desc))
     (format "%s-%s"
             (package-desc-name pkg-desc)
@@ -720,7 +726,7 @@ return it."
                              (read (current-buffer)))
                             (error "Can't find define-package in %s" pkg-file))))
           (setf (package-desc-dir pkg-desc) pkg-dir)
-          (when (eq (package-desc-kind pkg-desc) 'vc)
+          (when (package-vc-p pkg-desc)
             (require 'package-vc)
             (push (cons :commit (package-vc-commit pkg-desc))
                   (package-desc-extras pkg-desc)))
@@ -911,8 +917,8 @@ correspond to previously loaded files (those returned by
                                  (v2 (package-desc-version p2)))
                              (or
                               ;; Prefer source packages.
-                              (eq (package-desc-kind p1) 'vc)
-                              (not (eq (package-desc-kind p2) 'vc))
+                              (package-vc-p p1)
+                              (package-vc-p p2)
                               ;; Prefer builtin packages.
                               (package-disabled-p p1 v1)
                               (not (package-disabled-p p2 v2))))))))
@@ -2076,7 +2082,7 @@ if all the in-between dependencies are also in PACKAGE-LIST."
 (defun package-install-from-archive (pkg-desc)
   "Download and install a package defined by PKG-DESC."
   ;; This won't happen, unless the archive is doing something wrong.
-  (when (eq (package-desc-kind pkg-desc) 'dir)
+  (when (package-vc-p pkg-desc)
     (error "Can't install directory package from archive"))
   (let* ((location (package-archive-base pkg-desc))
          (file (concat (package-desc-full-name pkg-desc)
@@ -2226,7 +2232,7 @@ to install it but still mark it as selected."
                       name
                     (intern name)))
          (pkg-desc (cadr (assq package package-alist))))
-    (if (eq (package-desc-kind pkg-desc) 'vc)
+    (if (package-vc-p pkg-desc)
         (package-vc-update pkg-desc)
       (package-delete pkg-desc 'force)
       (package-install package 'dont-select))))
@@ -3134,7 +3140,7 @@ of these dependencies, similar to the list returned by
          (signed (or (not package-list-unsigned)
                      (package-desc-signed pkg-desc))))
     (cond
-     ((eq (package-desc-kind pkg-desc) 'vc) "source")
+     ((package-vc-p pkg-desc) "source")
      ((eq dir 'builtin) "built-in")
      ((and lle (null held)) "disabled")
      ((stringp held)
@@ -3225,7 +3231,7 @@ to their archives."
             (let ((ins-version (package-desc-version installed)))
               (cl-remove-if (lambda (p) (or (version-list-= (package-desc-version p)
                                                             ins-version)
-                                            (eq (package-desc-kind installed) 'vc)))
+                                            (package-vc-p installed)))
                             filtered-by-priority))))))))
 
 (defcustom package-hidden-regexps nil
@@ -3482,7 +3488,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
              package-desc ,pkg
              action package-menu-describe-package)
             ,(propertize
-              (if (eq (package-desc-kind pkg) 'vc)
+              (if (package-vc-p pkg)
                   (progn
                     (require 'package-vc)
                     (package-vc-commit pkg))
