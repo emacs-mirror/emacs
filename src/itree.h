@@ -129,6 +129,7 @@ void interval_tree_iter_finish (struct interval_generator *);
 struct interval_node *interval_generator_next (struct interval_generator *);
 void interval_tree_insert_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
 void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
+bool itree_busy_p (void);
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
@@ -148,9 +149,7 @@ void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
      be able to run ELisp code (or GC for that matter).
    - If you need to exit the loop early, you *have* to call `ITREE_ABORT`
      just before exiting (e.g. with `break` or `return`).
-   - Non-local exits are not supported within the body of the loop,
-     unless the caller makes sure `ITREE_ABORT` is called via some
-     kind of unwind_protect.
+   - Non-local exits are not supported within the body of the loop.
    - Don't modify the tree during the iteration.
  */
 #define ITREE_FOREACH(n, t, beg, end, order)                        \

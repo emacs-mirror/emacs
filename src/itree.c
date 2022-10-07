@@ -725,6 +725,12 @@ interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
   return node;
 }
 
+bool
+itree_busy_p (void)
+{
+  return (iter && iter->running);
+}
+
 /* Start a generator iterating all intervals in [BEGIN,END) in the
    given ORDER. Only one iterator per tree can be running at any
    time.
