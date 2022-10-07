@@ -4516,6 +4516,21 @@ DESC must be a `package-desc' object."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
+(defun package-maintainers (pkg-desc)
+  "Return an email address for the maintainers of PKG-DESC.
+The email address may contain commas, if there are multiple
+maintainers.  If no maintainers are found, an error will be
+thrown."
+  (unless pkg-desc
+    (user-error "Invalid package description"))
+  (let* ((extras (package-desc-extras pkg-desc))
+         (maint (alist-get :maintainer extras)))
+    (unless maint
+      (user-error "Package has no explicit maintainer"))
+    (with-temp-buffer
+      (package--print-email-button maint)
+      (string-trim (substring-no-properties (buffer-string))))))
+
 ;; TODO: Allow attaching a patch to send directly to the maintainer.
 ;; Ideally this should be able to detect the local changes, convert
 ;; these into patches.
@@ -4524,33 +4539,19 @@ DESC must be a `package-desc' object."
 DESC must be a `package-desc' object."
   (interactive (list (package--query-desc package-archive-contents))
                package-menu-mode)
-  (unless desc
-    (user-error "No package here"))
-  (let* ((extras (package-desc-extras desc))
-         (maint (alist-get :maintainer extras))
-         (name (package-desc-name desc))
-         (subject (read-string "Subject: ")))
-    (unless maint
-      (user-error "Package has no explicit maintainer"))
-    (compose-mail
-     (with-temp-buffer
-       (package--print-email-button maint)
-       (string-trim (substring-no-properties (buffer-string))))
-     (format "[%s] %s" name subject))))
+  (let ((maint (package-maintainers desc))
+        (name (package-desc-name desc))
+        (subject (read-string "Subject: ")))
+    (compose-mail maint (format "[%s] %s" name subject))))
 
 (defun package-report-bug (desc)
   "Prepare a message to send to the maintainers of a package.
 DESC must be a `package-desc' object."
   (interactive (list (package--query-desc package-alist))
                package-menu-mode)
-  (unless desc
-    (user-error "Package must be non-nil"))
-  (let* ((extras (package-desc-extras desc))
-         (maint (alist-get :maintainer extras))
-         vars)
-    (unless maint
-      (user-error "Package %s has no explicit maintainer"
-                  (package-desc-name desc)))
+  (let ((maint (package-maintainers desc))
+        (name (symbol-name (package-desc-name desc)))
+        vars)
     (let ((check (apply-partially #'file-equal-p (package-desc-dir desc))))
       (dolist-with-progress-reporter (group custom-current-group-alist)
           "Scanning for modified user options..."
@@ -4562,12 +4563,7 @@ DESC must be a `package-desc' object."
                      (locate-dominating-file (car group) check))
             (push (car ent) vars)))))
     (dlet ((reporter-prompt-for-summary-p t))
-      (reporter-submit-bug-report
-       (with-temp-buffer
-         (package--print-email-button maint)
-         (string-trim (substring-no-properties (buffer-string))))
-       (symbol-name (package-desc-name desc))
-       vars))))
+      (reporter-submit-bug-report maint name vars))))
 
 ;;;; Introspection
 
