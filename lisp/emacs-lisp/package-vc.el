@@ -50,24 +50,44 @@
   :group 'package
   :version "29.1")
 
-(defcustom package-vc-probable-repository-regexp
-  (rx bos "http" (? "s") "://"
-      (or (: (? "www.") "github.com"
-             "/" (+ (or alnum "-" "." "_"))
-             "/" (+ (or alnum "-" "." "_")))
-          (: "codeberg.org"
-             "/" (+ (or alnum "-" "." "_"))
-             "/" (+ (or alnum "-" "." "_")))
-          (: (? "www.") "gitlab" (+ "." (+ alnum))
-             "/" (+ (or alnum "-" "." "_"))
-             "/" (+ (or alnum "-" "." "_")))
-          (: "git.sr.ht"
-             "/~" (+ (or alnum "-" "." "_"))
-             "/" (+ (or alnum "-" "." "_"))))
-      (or (? "/") ".git") eos)
-  "Regular expression matching URLs that are repositories."
-  :version "29.1"
-  :type 'regex)
+(defcustom package-vc-heusitic-alist
+  `((,(rx bos "http" (? "s") "://"
+          (or (: (? "www.") "github.com"
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "codeberg.org"
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: (? "www.") "gitlab" (+ "." (+ alnum))
+                 "/" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "git.sr.ht"
+                 "/~" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "git." (or "savannah" "sv") "." (? "non") "gnu.org/"
+                 (or "r" "git") "/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          (or (? "/") ".git") eos)
+     . Git)
+    (,(rx bos "http" (? "s") "://"
+          (or (: "hg.sr.ht"
+                 "/~" (+ (or alnum "-" "." "_"))
+                 "/" (+ (or alnum "-" "." "_")))
+              (: "hg." (or "savannah" "sv") "." (? "non") "gnu.org/hgweb/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          eos)
+     . Hg)
+    (,(rx bos "http" (? "s") "://"
+          (or (: "bzr." (or "savannah" "sv") "." (? "non") "gnu.org/r/"
+                 (+ (or alnum "-" "." "_")) (? "/")))
+          eos)
+     . Bzr))
+  "Heuristic mapping URL regular expressions to VC backends."
+  :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
+                :value-type (choice :tag "VC Backend"
+                                    ,@(mapcar (lambda (b) `(const ,b))
+                                              vc-handled-backends)))
+  :version "29.1")
 
 (defun package-vc-commit (pkg)
   "Extract the commit of a development package PKG."
@@ -223,14 +243,10 @@ The output is written out into PKG-FILE."
            ;; heuristic and use the URL header, that might already be
            ;; pointing towards a repository, and use that as a backup
            (and-let* ((url (alist-get :url extras))
-                      ((string-match-p package-vc-probable-repository-regexp
-                                       url)))
-             ;; XXX: Currently `package-vc-probable-repository-regexp'
-             ;; only contains Git repositories, so we can infer the
-             ;; repository type.  This might work for now, but is not a
-             ;; particularly resilient approach.
+                      (backend (alist-get url package-vc-heusitic-alist
+                                          nil nil #'string-match-p)))
              (setf (alist-get :vc (package-desc-extras (cadr pkg)))
-                   (list 'Git url))
+                   (list backend url))
              t))))
    package-archive-contents))
 
