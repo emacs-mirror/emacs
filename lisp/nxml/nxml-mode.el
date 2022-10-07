@@ -536,8 +536,7 @@ Many aspects this mode can be customized using
     (save-restriction
       (widen)
       (with-silent-modifications
-	(nxml-with-invisible-motion
-	  (nxml-scan-prolog)))))
+	(nxml-scan-prolog))))
   (setq-local syntax-ppss-table sgml-tag-syntax-table)
   (setq-local syntax-propertize-function #'nxml-syntax-propertize)
   (add-function :filter-return (local 'filter-buffer-substring-function)
@@ -584,8 +583,7 @@ Many aspects this mode can be customized using
   (save-excursion
     (widen)
     (with-silent-modifications
-      (nxml-with-invisible-motion
-       (remove-text-properties (point-min) (point-max) '(face nil)))))
+      (remove-text-properties (point-min) (point-max) '(face nil))))
   (remove-hook 'change-major-mode-hook #'nxml-cleanup t))
 
 (defun nxml-degrade (context err)

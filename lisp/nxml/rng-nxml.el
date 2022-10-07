@@ -366,45 +366,44 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
   (save-excursion
     (save-restriction
       (widen)
-      (nxml-with-invisible-motion
-	(if (= pos (point-min))
-	    (rng-set-initial-state)
-	  (let ((state (get-text-property (1- pos) 'rng-state)))
-	    (cond (state
-		   (rng-restore-state state)
-		   (goto-char pos))
-		  (t
-		   (let ((start (previous-single-property-change pos
-								 'rng-state)))
-		     (cond (start
-			    (rng-restore-state (get-text-property (1- start)
-								  'rng-state))
-			    (goto-char start))
-			   (t (rng-set-initial-state))))))))
-	(xmltok-save
-	  (if (= (point) 1)
-	      (xmltok-forward-prolog)
-	    (setq xmltok-dtd rng-dtd))
-	  (cond ((and (< pos (point))
-		      ;; This handles the case where the prolog ends
-		      ;; with a < without any following name-start
-		      ;; character. This will be treated by the parser
-		      ;; as part of the prolog, but we want to treat
-		      ;; it as the start of the instance.
-		      (eq (char-after pos) ?<)
-		      (<= (point)
-			  (save-excursion
-			    (goto-char (1+ pos))
-			    (skip-chars-forward " \t\r\n")
-			    (point))))
-		 pos)
-		((< (point) pos)
-		 (let ((rng-dt-namespace-context-getter
-			'(nxml-ns-get-context))
-		       (rng-parsing-for-state t))
-		   (rng-forward pos))
-		 (point))
-		(t pos)))))))
+      (if (= pos (point-min))
+	  (rng-set-initial-state)
+	(let ((state (get-text-property (1- pos) 'rng-state)))
+	  (cond (state
+		 (rng-restore-state state)
+		 (goto-char pos))
+		(t
+		 (let ((start (previous-single-property-change pos
+							       'rng-state)))
+		   (cond (start
+			  (rng-restore-state (get-text-property (1- start)
+								'rng-state))
+			  (goto-char start))
+			 (t (rng-set-initial-state))))))))
+      (xmltok-save
+	(if (= (point) 1)
+	    (xmltok-forward-prolog)
+	  (setq xmltok-dtd rng-dtd))
+	(cond ((and (< pos (point))
+		    ;; This handles the case where the prolog ends
+		    ;; with a < without any following name-start
+		    ;; character. This will be treated by the parser
+		    ;; as part of the prolog, but we want to treat
+		    ;; it as the start of the instance.
+		    (eq (char-after pos) ?<)
+		    (<= (point)
+			(save-excursion
+			  (goto-char (1+ pos))
+			  (skip-chars-forward " \t\r\n")
+			  (point))))
+	       pos)
+	      ((< (point) pos)
+	       (let ((rng-dt-namespace-context-getter
+		      '(nxml-ns-get-context))
+		     (rng-parsing-for-state t))
+		 (rng-forward pos))
+	       (point))
+	      (t pos))))))
 
 (defun rng-adjust-state-for-attribute (lt-pos start)
   (xmltok-save
