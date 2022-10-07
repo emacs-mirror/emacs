@@ -288,11 +288,13 @@ be requested using REV."
 
 (defun package-vc-read-pkg (prompt)
   "Query for a source package description with PROMPT."
-  (completing-read
-   prompt
-   package-alist
-   (lambda (pkg) (package-vc-p (cadr pkg)))
-   t))
+  (cadr (assoc (completing-read
+                prompt
+                package-alist
+                (lambda (pkg) (package-vc-p (cadr pkg)))
+                t)
+               package-alist
+               #'string=)))
 
 (defun package-vc-prepare-patch (pkg subject revisions)
   "Send a patch to the maintainer of a package PKG.
