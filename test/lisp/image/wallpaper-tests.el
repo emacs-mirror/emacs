@@ -23,6 +23,101 @@
 (require 'ert-x)
 (require 'wallpaper)
 
+(ert-deftest wallpaper--find-setter ()
+  (skip-unless (executable-find "touch"))
+  (let (wallpaper--current-setter
+        (wallpaper--default-setters
+         (wallpaper--default-methods-create
+          ("touch" "touch" "/tmp/touched"))))
+    (should (wallpaper--find-setter))))
+
+(ert-deftest wallpaper--find-setter/call-predicate ()
+  (skip-unless (executable-find "touch"))
+  (let* ( wallpaper--current-setter called
+          (wallpaper--default-setters
+           (wallpaper--default-methods-create
+            ("touch" "touch" "/tmp/touched"
+             :predicate (lambda () (setq called t))))))
+    (should-not called)
+    (wallpaper--find-setter)
+    (should called)))
+
+(ert-deftest wallpaper--find-setter/set-current-setter ()
+  (skip-unless (executable-find "touch"))
+  (let (wallpaper--current-setter
+        (wallpaper--default-setters
+         (wallpaper--default-methods-create
+          ("touch" "touch" "/tmp/touched"))))
+    (wallpaper--find-setter)
+    (should wallpaper--current-setter)))
+
+(ert-deftest wallpaper-set/runs-command ()
+  (skip-unless (executable-find "touch"))
+  (ert-with-temp-file fil-jpg
+    :suffix ".jpg"
+    (ert-with-temp-file fil
+      (let* ( wallpaper--current-setter
+              (wallpaper--default-setters
+               (wallpaper--default-methods-create
+                ("touch" "touch" fil)))
+              (wallpaper-command (wallpaper--find-command))
+              (wallpaper-command-args (wallpaper--find-command-args)))
+        (delete-file fil)
+        (let ((process (wallpaper-set fil-jpg)))
+          (while (process-live-p process)
+            (sit-for 0.001))
+          ;; Touch has recreated the file:
+          (should (file-exists-p fil)))))))
+
+(ert-deftest wallpaper-set/runs-command/detach ()
+  (skip-unless (executable-find "touch"))
+  (ert-with-temp-file fil-jpg
+    :suffix ".jpg"
+    (ert-with-temp-file fil
+      (let* ( wallpaper--current-setter
+              (wallpaper--default-setters
+               (wallpaper--default-methods-create
+                ("touch" "touch" fil
+                 :detach t)))
+              (wallpaper-command (wallpaper--find-command))
+              (wallpaper-command-args (wallpaper--find-command-args)))
+        (delete-file fil)
+        (wallpaper-set fil-jpg)
+        (while (not (file-exists-p fil))
+          (sit-for 0.001))
+        ;; Touch has recreated the file:
+        (should (file-exists-p fil))))))
+
+(ert-deftest wallpaper-set/calls-init-action ()
+  (skip-unless (executable-find "touch"))
+  (ert-with-temp-file fil-jpg
+    :suffix ".jpg"
+    (ert-with-temp-file fil
+      (let* ( wallpaper--current-setter called
+              (wallpaper--default-setters
+               (wallpaper--default-methods-create
+                ("touch" "touch" fil
+                 :init-action (lambda () (setq called t)))))
+              (wallpaper-command (wallpaper--find-command))
+              (wallpaper-command-args (wallpaper--find-command-args)))
+        (should (functionp (wallpaper-setter-init-action wallpaper--current-setter)))
+        (wallpaper-set fil-jpg)
+        (should called)))))
+
+(ert-deftest wallpaper-set/calls-wallpaper-set-function ()
+  (skip-unless (executable-find "touch"))
+  (ert-with-temp-file fil-jpg
+    :suffix ".jpg"
+    (let* ( wallpaper--current-setter called
+            (wallpaper--default-setters
+             (wallpaper--default-methods-create
+              ("touch" "touch" "foo")))
+            (wallpaper-set-function
+             (lambda (file) (setq called file))))
+      (wallpaper--find-setter)
+      (wallpaper-set fil-jpg)
+      (should (equal called fil-jpg)))))
+
 (ert-deftest wallpaper--find-command/return-string ()
   (should (or (not (wallpaper--find-command))
               (stringp (wallpaper--find-command)))))
