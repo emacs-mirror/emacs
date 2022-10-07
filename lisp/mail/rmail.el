@@ -4693,15 +4693,23 @@ Argument MIME is non-nil if this is a mime message."
   (save-excursion
     (goto-char (point-min))
     (while (re-search-forward "--------------[0-9a-zA-Z]+\n" nil t)
-      (let ((delim (concat (substring (match-string 0) 0 -1) "--\n")))
+      ;; The ending delimiter is a start delimiter if another section follows.
+      ;; Otherwise it is an end delimiter, with -- affixed.
+      (let ((delim (concat (substring (match-string 0) 0 -1) "\\(\\|--\\)\n")))
         (when (looking-at "\
 Content-Type: text/[a-z]+; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: base64\n")
           (goto-char (match-end 0))
+          ;; Sometimes the attachment's headers are followed by blank lines
+          (while (eolp)
+            (forward-line 1))
           (let ((start (point))
                 (inhibit-read-only t))
-            (search-forward delim)
+            (re-search-forward delim)
             (forward-line -1)
+            ;; Sometimes the attachment's contents are followed by blank lines
+            (while (save-excursion (forward-line -1) (eolp))
+              (forward-line -1))
             (base64-decode-region start (point))
             (forward-line 1)))))))
 
