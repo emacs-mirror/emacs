@@ -44,6 +44,7 @@
 (require 'lisp-mnt)
 (require 'vc)
 (require 'seq)
+(require 'xdg)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -87,6 +88,12 @@
                 :value-type (choice :tag "VC Backend"
                                     ,@(mapcar (lambda (b) `(const ,b))
                                               vc-handled-backends)))
+  :version "29.1")
+
+(defcustom package-vc-repository-store
+  (expand-file-name "emacs/vc-packages" (xdg-data-home))
+  "Directory used by `package-vc-unpack' to store repositories."
+  :type 'directory
   :version "29.1")
 
 (defun package-vc-commit (pkg)
@@ -150,25 +157,39 @@ The output is written out into PKG-FILE."
 
 (defun package-vc-unpack (pkg-desc)
   "Install the package described by PKG-DESC."
+  (unless (file-exists-p package-vc-repository-store)
+    (make-directory package-vc-repository-store t))
   (let* ((name (package-desc-name pkg-desc))
          (dirname (package-desc-full-name pkg-desc))
          (pkg-dir (expand-file-name dirname package-user-dir)))
     (setf (package-desc-dir pkg-desc) pkg-dir)
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p "Overwrite previous checkout?")
-          (package--delete-directory pkg-dir)
+          (package--delete-directory pkg-dir pkg-desc)
         (error "There already exists a checkout for %s" name)))
     (pcase-let* ((attr (package-desc-extras pkg-desc))
                  (`(,backend ,repo ,dir ,branch)
                   (or (alist-get :upstream attr)
-                      (error "Source package has no repository"))))
-      (make-directory (file-name-directory pkg-dir) t)
+                      (error "Source package has no repository")))
+                 (repo-dir (file-name-concat
+                            package-vc-repository-store
+                            ;; FIXME: We aren't sure this directory
+                            ;; will be unique, but we can try other
+                            ;; names to avoid an unnecessary error.
+                            (file-name-base repo))))
+
+      ;; Clone the repository into `repo-dir'.
+      (make-directory (file-name-directory repo-dir) t)
       (unless (setf (car (alist-get :upstream attr))
-                    (vc-clone backend repo pkg-dir))
+                    (vc-clone backend repo repo-dir))
         (error "Failed to clone %s from %s" name repo))
-      (when-let ((rev (or (alist-get :rev attr) branch)))
+
+      ;; Link from the right position in `repo-dir' to the package
+      ;; directory in the ELPA store.
+      (make-symbolic-link (file-name-concat repo-dir dir) pkg-dir)
+      (when-let ((default-directory repo-dir)
+                 (rev (or (alist-get :rev attr) branch)))
         (vc-retrieve-tag pkg-dir rev))
-      (when dir (setq pkg-dir (file-name-concat pkg-dir dir)))
 
       ;; In case the package was installed directly from source, the
       ;; dependency list wasn't know beforehand, and they might have

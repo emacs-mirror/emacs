@@ -2407,15 +2407,28 @@ installed), maybe you need to \\[package-refresh-contents]")
          pkg))
 
 (declare-function comp-el-to-eln-filename "comp.c")
-(defun package--delete-directory (dir)
-  "Delete DIR recursively.
+(defvar package-vc-repository-store)
+(defun package--delete-directory (dir pkg-desc)
+  "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
   (when (featurep 'native-compile)
     (cl-loop
      for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
-  (delete-directory dir t))
+  (cond
+   ((not (package-vc-p pkg-desc))
+    (delete-directory dir t))
+   ((progn
+      (require 'package-vc)          ;load `package-vc-repository-store'
+      (file-in-directory-p dir package-vc-repository-store))
+    (delete-directory
+     (expand-file-name
+      (car (file-name-split
+            (file-relative-name dir package-vc-repository-store)))
+      package-vc-repository-store)
+     t)
+    (delete-file (directory-file-name dir)))))
 
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
@@ -2469,7 +2482,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (package--delete-directory dir)
+           (package--delete-directory dir pkg-desc)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            ;;
            ;; NAME-readme.txt files are no longer created, but they
