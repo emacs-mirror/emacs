@@ -1469,9 +1469,11 @@ when printing the error message."
 
 (defun byte-compile-arglist-signature-string (signature)
   (cond ((null (cdr signature))
-	 (format "%d+" (car signature)))
+	 (format "%d or more" (car signature)))
 	((= (car signature) (cdr signature))
 	 (format "%d" (car signature)))
+	((= (1+ (car signature)) (cdr signature))
+	 (format "%d or %d" (car signature) (cdr signature)))
 	(t (format "%d-%d" (car signature) (cdr signature)))))
 
 (defun byte-compile-function-warn (f nargs def)
