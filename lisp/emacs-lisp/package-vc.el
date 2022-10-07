@@ -286,5 +286,26 @@ be requested using REV."
 ;;;###autoload
 (defalias 'package-checkout #'package-vc-fetch)
 
+(defun package-vc-read-pkg (prompt)
+  "Query for a source package description with PROMPT."
+  (completing-read
+   prompt
+   package-alist
+   (lambda (pkg) (package-vc-p (cadr pkg)))
+   t))
+
+(defun package-vc-prepare-patch (pkg subject revisions)
+  "Send a patch to the maintainer of a package PKG.
+SUBJECT and REVISIONS are used passed on to `vc-prepare-patch'.
+PKG must be a package description."
+  (interactive
+   (list (package-vc-read-pkg "Package to prepare a patch for: ")
+         (and (not vc-prepare-patches-separately)
+              (read-string "Subject: " "[PATCH] " nil nil t))
+         (or (log-view-get-marked)
+             (vc-read-multiple-revisions "Revisions: "))))
+  (vc-prepare-patch (package-maintainers pkg t)
+                    subject revisions))
+
 (provide 'package-vc)
 ;;; package-vc.el ends here

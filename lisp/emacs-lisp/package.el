@@ -4516,20 +4516,23 @@ DESC must be a `package-desc' object."
         (funcall browse-url-secondary-browser-function url)
       (browse-url url))))
 
-(defun package-maintainers (pkg-desc)
+(defun package-maintainers (pkg-desc &optional no-error)
   "Return an email address for the maintainers of PKG-DESC.
 The email address may contain commas, if there are multiple
 maintainers.  If no maintainers are found, an error will be
-thrown."
+signalled.  If the optional argument NO-ERROR is non-nil no error
+will be signalled in that case."
   (unless pkg-desc
-    (user-error "Invalid package description"))
+    (error "Invalid package description"))
   (let* ((extras (package-desc-extras pkg-desc))
          (maint (alist-get :maintainer extras)))
-    (unless maint
+    (cond
+     ((and (null maint) (null no-error))
       (user-error "Package has no explicit maintainer"))
-    (with-temp-buffer
-      (package--print-email-button maint)
-      (string-trim (substring-no-properties (buffer-string))))))
+     ((not (null maint))
+      (with-temp-buffer
+        (package--print-email-button maint)
+        (string-trim (substring-no-properties (buffer-string))))))))
 
 ;; TODO: Allow attaching a patch to send directly to the maintainer.
 ;; Ideally this should be able to detect the local changes, convert
