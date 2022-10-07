@@ -633,16 +633,6 @@ Major/minor modes can set this variable if they know which option applies.")
 
 ;; Font Lock mode.
 
-(eval-when-compile
-  ;;
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (&rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (declare (indent 0) (debug t))
-    `(let ((inhibit-point-motion-hooks t))
-       (with-silent-modifications
-         ,@body))))
-
 (defvar-local font-lock-set-defaults nil) ; Whether we have set up defaults.
 
 (defun font-lock-specified-p (mode)
@@ -1002,7 +992,7 @@ This works by calling `font-lock-fontify-region-function'."
 (defun font-lock-unfontify-region (beg end)
   "Unfontify the text between BEG and END.
 This works by calling `font-lock-unfontify-region-function'."
-  (save-buffer-state
+  (with-silent-modifications
     (funcall font-lock-unfontify-region-function beg end)))
 
 (defvar font-lock-flush-function #'font-lock-after-change-function
@@ -1152,7 +1142,7 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   "Fontify the text between BEG and END.
 If LOUDLY is non-nil, print status messages while fontifying.
 This function is the default `font-lock-fontify-region-function'."
-  (save-buffer-state
+  (with-silent-modifications
    ;; Use the fontification syntax table, if any.
    (with-syntax-table (or font-lock-syntax-table (syntax-table))
      ;; Extend the region to fontify so that it starts and ends at
@@ -1211,8 +1201,7 @@ This function is the default `font-lock-unfontify-region-function'."
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end &optional old-len)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-          (inhibit-quit t)
+    (let ((inhibit-quit t)
           (region (if font-lock-extend-after-change-region-function
                       (funcall font-lock-extend-after-change-region-function
                                beg end old-len))))
@@ -1307,8 +1296,7 @@ no ARG is given and `font-lock-mark-block-function' is nil.
 If `font-lock-mark-block-function' non-nil and no ARG is given, it is used to
 delimit the region to fontify."
   (interactive "P")
-  (let ((inhibit-point-motion-hooks t)
-	deactivate-mark)
+  (let (deactivate-mark)
     ;; Make sure we have the right `font-lock-keywords' etc.
     (if (not font-lock-mode) (font-lock-set-defaults))
     (save-mark-and-excursion

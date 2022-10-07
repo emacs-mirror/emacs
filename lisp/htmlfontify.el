@@ -1539,33 +1539,13 @@ See also `hfy-html-enkludge-buffer'."
       (if (get-text-property (match-beginning 0) 'hfy-quoteme)
           (replace-match (hfy-html-quote (match-string 1))) )) ))
 
-;; Borrowed from font-lock.el
-(defmacro hfy-save-buffer-state (varlist &rest body)
-  "Bind variables according to VARLIST and eval BODY restoring buffer state.
-Do not record undo information during evaluation of BODY."
-  (declare (indent 1) (debug let))
-  (let ((modified (make-symbol "modified")))
-    `(let* ,(append varlist
-                    `((,modified (buffer-modified-p))
-                      (buffer-undo-list t)
-                      (inhibit-read-only t)
-                      (inhibit-point-motion-hooks t)
-                      (inhibit-modification-hooks t)
-                      deactivate-mark
-                      buffer-file-name
-                      buffer-file-truename))
-       (progn
-         ,@body)
-       (unless ,modified
-         (restore-buffer-modified-p nil)))))
-
 (defun hfy-mark-trailing-whitespace ()
   "Tag trailing whitespace with a hfy property if it is currently highlighted."
   (when show-trailing-whitespace
     (let ((inhibit-read-only t))
       (save-excursion
         (goto-char (point-min))
-        (hfy-save-buffer-state nil
+        (with-silent-modifications
           (while (re-search-forward "[ \t]+$" nil t)
             (put-text-property (match-beginning 0) (match-end 0)
                                    'hfy-show-trailing-whitespace t)))))))
@@ -1573,7 +1553,7 @@ Do not record undo information during evaluation of BODY."
 (defun hfy-unmark-trailing-whitespace ()
   "Undo the effect of `hfy-mark-trailing-whitespace'."
   (when show-trailing-whitespace
-    (hfy-save-buffer-state nil
+    (with-silent-modifications
       (remove-text-properties (point-min) (point-max)
                               '(hfy-show-trailing-whitespace nil)))))
 
