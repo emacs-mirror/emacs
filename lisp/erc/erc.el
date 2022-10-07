@@ -2749,8 +2749,7 @@ current session.  `active' means the current active buffer
 buffer is used.  `erc-display-line-1' is used to display STRING.
 
 If STRING is nil, the function does nothing."
-  (let ((inhibit-point-motion-hooks t)
-        new-bufs)
+  (let (new-bufs)
     (dolist (buf (cond
                   ((bufferp buffer) (list buffer))
                   ((listp buffer) buffer)

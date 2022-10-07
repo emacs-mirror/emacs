@@ -2651,6 +2651,7 @@ If EXCLUDE-GROUP, do not go to that group."
     (and best-point (gnus-group-group-name))))
 
 ;; Is there something like an after-point-motion-hook?
+;; FIXME: There's `cursor-sensor-mode's `cursor-sensor-functions' property.
 ;; (inhibit-point-motion-hooks?).  Is there a tool-bar-update function?
 
 ;; (defun gnus-group-menu-bar-update ()

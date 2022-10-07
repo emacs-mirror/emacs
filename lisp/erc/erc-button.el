@@ -248,7 +248,6 @@ specified by `erc-button-alist'."
   (save-excursion
     (with-syntax-table erc-button-syntax-table
       (let ((buffer-read-only nil)
-            (inhibit-point-motion-hooks t)
             (inhibit-field-text-motion t)
             (alist erc-button-alist)
             regexp)

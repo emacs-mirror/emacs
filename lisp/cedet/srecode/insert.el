@@ -125,9 +125,7 @@ has set everything up already."
 	;; I tried `combine-after-change-calls', but it did not have
 	;; the effect I wanted.
 	(let ((start (point)))
-	  (let ((inhibit-point-motion-hooks t)
-		(inhibit-modification-hooks t)
-		)
+	  (let ((inhibit-modification-hooks t))
 	    (srecode--insert-into-buffer template dictionary)
 	    )
 	  ;; Now call those after change functions.

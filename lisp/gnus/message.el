@@ -2172,8 +2172,7 @@ If FIRST is non-nil, only the first value is returned.
 
 The buffer is expected to be narrowed to just the header of the message;
 see `message-narrow-to-headers-or-head'."
-  (let* ((inhibit-point-motion-hooks t)
-	 (value (mail-fetch-field header nil (not first))))
+  (let* ((value (mail-fetch-field header nil (not first))))
     (when value
       (while (string-match "\n[\t ]+" value)
 	(setq value (replace-match " " t t value)))
@@ -7309,7 +7308,6 @@ specified by FUNCTIONS, if non-nil, or by the variable
   (let ((cur (current-buffer))
 	from subject date
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
 	gnus-warning)
     (save-restriction
@@ -7370,7 +7368,6 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
   (let ((cur (current-buffer))
 	from subject date reply-to mrt mct
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-news t)
 	followup-to distribution newsgroups gnus-warning posted-to)
     (save-restriction
@@ -8609,7 +8606,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps

@@ -1039,7 +1039,7 @@ says which mode to use."
 ;; have files annotated with -*- LaTeX -*- (e.g. because they received
 ;; them from someone using AUCTeX).
 ;; FIXME: Turn them into autoloads so that AUCTeX can override them
-;; with it's own autoloads?  Or maybe rely on `major-mode-remap-alist'?
+;; with its own autoloads?  Or maybe rely on `major-mode-remap-alist'?
 ;;;###autoload (defalias 'TeX-mode #'tex-mode)
 ;;;###autoload (defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload (defalias 'LaTeX-mode #'latex-mode)

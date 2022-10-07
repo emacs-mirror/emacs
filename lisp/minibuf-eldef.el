@@ -110,8 +110,7 @@ should be displayed in its place.")
   "Set up a minibuffer for `minibuffer-electric-default-mode'.
 The prompt and initial input should already have been inserted."
   (let ((regexps minibuffer-default-in-prompt-regexps)
-	(match nil)
-	(inhibit-point-motion-hooks t))
+	(match nil))
     (save-excursion
       (save-restriction
 	;; Narrow to only the prompt.

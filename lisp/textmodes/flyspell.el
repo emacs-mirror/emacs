@@ -1032,7 +1032,6 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-backward (word bound &optional ignore-case)
   (save-excursion
     (let* ((r '())
-	   (inhibit-point-motion-hooks t)
 	   (flyspell-not-casechars (flyspell-get-not-casechars))
 	   (bound (if (and bound
 			   (> bound (point-min)))
@@ -1066,7 +1065,6 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-forward (word bound)
   (save-excursion
     (let* ((r '())
-	   (inhibit-point-motion-hooks t)
 	   (flyspell-not-casechars (flyspell-get-not-casechars))
 	   (bound (if (and bound
 			   (< bound (point-max)))

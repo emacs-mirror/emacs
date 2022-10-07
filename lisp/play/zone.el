@@ -204,8 +204,7 @@ If the element is a function or a list of a function and a number,
     (insert s)))
 
 (defun zone-shift-left ()
-  (let ((inhibit-point-motion-hooks t)
-        s)
+  (let (s)
     (while (not (eobp))
       (unless (eolp)
         (setq s (buffer-substring (point) (1+ (point))))
@@ -216,8 +215,7 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-shift-right ()
   (goto-char (point-max))
-  (let ((inhibit-point-motion-hooks t)
-        s)
+  (let (s)
     (while (not (bobp))
       (unless (bolp)
         (setq s (buffer-substring (1- (point)) (point)))
@@ -448,8 +446,7 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-fill-out-screen (width height)
   (let ((start (window-start))
-	(line (make-string width 32))
-	(inhibit-point-motion-hooks t))
+	(line (make-string width 32)))
     (goto-char start)
     ;; fill out rectangular ws block
     (while (progn (end-of-line)
@@ -664,8 +661,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
       (setq c (point))
       (move-to-column 9)
       (setq col (cons (buffer-substring (point) c) col))
-;      (let ((inhibit-point-motion-hooks t))
-        (end-of-line 0);)
+      (end-of-line 0)
       (forward-char -10))
     (let ((life-patterns (vector
                           (if (and col (search-forward "@" max t))

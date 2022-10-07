@@ -372,8 +372,7 @@ The value returned is the last form in BODY."
          ;; Since parsing relies partly on buffer-local state
          ;; (e.g. that of `eshell-parse-argument-hook'), we need to
          ;; perform the parsing in the Eshell buffer.
-         (let ((begin (point)) end
-	       (inhibit-point-motion-hooks t))
+         (let ((begin (point)) end)
            (with-silent-modifications
              (insert reg)
              (setq end (point))

@@ -128,11 +128,9 @@ If nil, errors are still displayed, but informative messages are not."
   "Provide a mechanism for semantic tag management.
 Argument START, END, and LENGTH specify the bounds of the change."
    (setq semantic-unmatched-syntax-cache-check t)
-   (let ((inhibit-point-motion-hooks t)
-	 )
-     (save-match-data
-       (run-hook-with-args 'semantic-change-functions start end length)
-       )))
+   (save-match-data
+     (run-hook-with-args 'semantic-change-functions start end length)
+     ))
 
 (defun semantic-changes-in-region (start end &optional buffer)
   "Find change overlays which exist in whole or in part between START and END.

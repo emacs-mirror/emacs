@@ -598,7 +598,6 @@ newline."
   ;; Note that the input string does not include its terminal newline.
   (let ((proc-running-p (and (eshell-head-process)
 			     (not queue-p)))
-	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t))
     (unless (and proc-running-p
 		 (not (eq (process-status
@@ -687,7 +686,6 @@ newline."
 This is done after all necessary filtering has been done."
   (let ((oprocbuf (if process (process-buffer process)
                     (current-buffer)))
-        (inhibit-point-motion-hooks t)
         (inhibit-modification-hooks t))
     (when (and string oprocbuf (buffer-name oprocbuf))
       (with-current-buffer oprocbuf

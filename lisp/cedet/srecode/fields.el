@@ -334,9 +334,7 @@ START and END are the bounds of the change.
 PRE-LEN is used in the after mode for the length of the changed text."
   (when (and after (not undo-in-progress))
     (let* ((field (overlay-get ol 'srecode))
-	   (inhibit-point-motion-hooks t)
-	   (inhibit-modification-hooks t)
-	   )
+	   (inhibit-modification-hooks t))
       ;; Sometimes a field is deleted, but we might still get a stray
       ;; event.  Let's just ignore those events.
       (when (slot-boundp field 'overlay)

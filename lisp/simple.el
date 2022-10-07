@@ -3526,8 +3526,6 @@ Return what remains of the list."
         ;; In a writable buffer, enable undoing read-only text that is
         ;; so because of text properties.
         (inhibit-read-only t)
-        ;; Don't let `intangible' properties interfere with undo.
-        (inhibit-point-motion-hooks t)
         ;; We use oldlist only to check for EQ.  ++kfs
         (oldlist buffer-undo-list)
         (did-apply nil)
