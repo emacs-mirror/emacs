@@ -985,7 +985,7 @@ Set comment column (@code{comment-set-column}).
 @item @kbd{C-M-j}
 @itemx @kbd{M-j}
 Like @kbd{@key{RET}} followed by inserting and aligning a comment
-(@code{comment-indent-new-line}).  @xref{Multi-Line Comments}.
+(@code{default-indent-new-line}).  @xref{Multi-Line Comments}.
 @item @kbd{M-x comment-region}
 @itemx @kbd{C-c C-c} (in C-like modes)
 Add comment delimiters to all the lines in the region.
@@ -1080,10 +1080,10 @@ the brace rather than at @code{comment-column}.  For full details see
 @kindex C-M-j
 @kindex M-j
 @cindex blank lines in programs
-@findex comment-indent-new-line
+@findex default-indent-new-line
 @vindex comment-multi-line
   If you are typing a comment and wish to continue it to another line,
-type @kbd{M-j} or @kbd{C-M-j} (@code{comment-indent-new-line}).  This
+type @kbd{M-j} or @kbd{C-M-j} (@code{default-indent-new-line}).  This
 breaks the current line, and inserts the necessary comment delimiters
 and indentation to continue the comment.
 
@@ -1331,8 +1331,8 @@ This abnormal hook holds documentation functions.  It acts as a
 collection of backends for ElDoc.  This is what modes should use to
 register their documentation functions with ElDoc.
 
-@vindex eldoc-display-truncation-message
-@item eldoc-display-truncation-message
+@vindex eldoc-echo-area-display-truncation-message
+@item eldoc-echo-area-display-truncation-message
 If non-@code{nil} (the default), display a verbose message about how
 to view a complete documentation (if it has been truncated in the echo
 area).  If @code{nil}, just mark truncated messages with @samp{...}.
