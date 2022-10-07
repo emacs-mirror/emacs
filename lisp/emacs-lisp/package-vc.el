@@ -71,7 +71,7 @@
 
 (defun package-vc-commit (pkg)
   "Extract the commit of a development package PKG."
-  (cl-assert (eq (package-desc-kind pkg) 'vc))
+  (cl-assert (package-vc-p pkg))
   ;; FIXME: vc should be extended to allow querying the commit of a
   ;; directory (as is possible when dealing with git repositores).
   ;; This should be a fallback option.
@@ -82,7 +82,7 @@
 
 (defun package-vc-version (pkg)
   "Extract the commit of a development package PKG."
-  (cl-assert (eq (package-desc-kind pkg) 'vc))
+  (cl-assert (package-vc-p pkg))
   (cl-loop with dir = (package-desc-dir pkg) ;FIXME: dir is nil
            for file in (sort (directory-files dir t "\\.el\\'")
                              (lambda (s1 s2)
