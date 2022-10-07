@@ -2953,7 +2953,11 @@ Optional arg GLOBAL means to replace all matches."
 If DIR is omitted or nil, it defaults to `default-directory'.
 If FILE is not in the directory tree of DIR, return FILE
 unchanged."
-  (setq dir (expand-file-name (or dir default-directory)))
+  (or dir (setq dir default-directory))
+  ;; This case comes into play if default-directory is set to
+  ;; use ~.
+  (if (string-match-p "\\(\\`\\|:\\)~" dir)
+      (setq dir (expand-file-name dir)))
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
     file))
