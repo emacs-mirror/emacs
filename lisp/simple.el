@@ -7837,6 +7837,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 (defun line-move-1 (arg &optional noerror _to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
+  (with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
   (let ((outer-ipmh inhibit-point-motion-hooks)
 	(inhibit-point-motion-hooks t)
 	(opoint (point))
@@ -7961,7 +7962,7 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	       (goto-char npoint)))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
-			       opoint (> orig-arg 0) (not outer-ipmh)))))))
+			       opoint (> orig-arg 0) (not outer-ipmh))))))))
 
 (defun line-move-finish (column opoint forward &optional not-ipmh)
   (let ((repeat t))
@@ -8014,42 +8015,44 @@ If NOERROR, don't signal an error if we can't move that many lines."
 	;; unnecessarily.  Note that we move *forward* past intangible
 	;; text when the initial and final points are the same.
 	(goto-char new)
-	(let ((inhibit-point-motion-hooks (not not-ipmh)))
-	  (goto-char new)
+	(with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
+	  (let ((inhibit-point-motion-hooks (not not-ipmh)))
+	    (goto-char new)
 
-	  ;; If intangibility moves us to a different (later) place
-	  ;; in the same line, use that as the destination.
-	  (if (<= (point) line-end)
-	      (setq new (point))
-	    ;; If that position is "too late",
-	    ;; try the previous allowable position.
-	    ;; See if it is ok.
-	    (backward-char)
-	    (if (if forward
-		    ;; If going forward, don't accept the previous
-		    ;; allowable position if it is before the target line.
-		    (< line-beg (point))
-		  ;; If going backward, don't accept the previous
-		  ;; allowable position if it is still after the target line.
-		  (<= (point) line-end))
-		(setq new (point))
-	      ;; As a last resort, use the end of the line.
-	      (setq new line-end))))
+	    ;; If intangibility moves us to a different (later) place
+	    ;; in the same line, use that as the destination.
+	    (if (<= (point) line-end)
+	        (setq new (point))
+	      ;; If that position is "too late",
+	      ;; try the previous allowable position.
+	      ;; See if it is ok.
+	      (backward-char)
+	      (if (if forward
+		      ;; If going forward, don't accept the previous
+		      ;; allowable position if it is before the target line.
+		      (< line-beg (point))
+		    ;; If going backward, don't accept the previous
+		    ;; allowable position if it is still after the target line.
+		    (<= (point) line-end))
+		  (setq new (point))
+		;; As a last resort, use the end of the line.
+		(setq new line-end)))))
 
 	;; Now move to the updated destination, processing fields
 	;; as well as intangibility.
 	(goto-char opoint)
-	(let ((inhibit-point-motion-hooks (not not-ipmh)))
-	  (goto-char
-	   ;; Ignore field boundaries if the initial and final
-	   ;; positions have the same `field' property, even if the
-	   ;; fields are non-contiguous.  This seems to be "nicer"
-	   ;; behavior in many situations.
-	   (if (eq (get-char-property new 'field)
-	   	   (get-char-property opoint 'field))
-	       new
-	     (constrain-to-field new opoint t t
-				 'inhibit-line-move-field-capture))))
+	(with-suppressed-warnings ((obsolete inhibit-point-motion-hooks))
+	  (let ((inhibit-point-motion-hooks (not not-ipmh)))
+	    (goto-char
+	     ;; Ignore field boundaries if the initial and final
+	     ;; positions have the same `field' property, even if the
+	     ;; fields are non-contiguous.  This seems to be "nicer"
+	     ;; behavior in many situations.
+	     (if (eq (get-char-property new 'field)
+		     (get-char-property opoint 'field))
+		 new
+	       (constrain-to-field new opoint t t
+				   'inhibit-line-move-field-capture)))))
 
 	;; If all this moved us to a different line,
 	;; retry everything within that new line.
