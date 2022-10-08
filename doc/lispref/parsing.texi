@@ -30,6 +30,10 @@ For tree-sitter integration with existing Emacs features,
 @pxref{Parser-based Font Lock}, @ref{Parser-based Indentation}, and
 @ref{List Motion}.
 
+About naming convention: use ``tree-sitter'' when referring to it as a
+noun, like @code{python-use-tree-sitter}, but use ``treesit'' for
+prefixes, like @code{python-treesit-indent-function}.
+
 To access the syntax tree of the text in a buffer, we need to first
 load a language definition and create a parser with it.  Next, we can
 query the parser for specific nodes in the syntax tree.  Then, we can

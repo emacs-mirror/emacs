@@ -8,6 +8,7 @@ TOC:
 - Building Emacs with tree-sitter
 - Install language definitions
 - Setup
+- Naming convention
 - Font-lock
 - Indent
 - Imenu
@@ -93,6 +94,12 @@ Then in other places, we decide on whether to enable tree-sitter by
 (and python-use-tree-sitter
      (treesit-can-enable-p))
 #+end_src
+
+* Naming convention
+
+When referring to tree-sitter as a noun, use “tree-sitter”, like
+python-use-tree-sitter. For prefix use “treesit”, like
+python-treesit-indent.
 
 * Font-lock
 
