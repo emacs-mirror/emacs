@@ -3293,10 +3293,11 @@ immediately after this one."
             (apply #'vc-user-edit-command (apply old args))))))
 
 (defcustom vc-prepare-patches-separately t
-  "Non-nil means that `vc-prepare-patch' creates a single message.
-A single message is created by attaching all patches to the body
-of a single message.  If nil, each patch will be sent out in a
-separate message, which will be prepared sequentially."
+  "Configure the default behaviour of `vc-prepare-patch'.
+If nil, a single message is created by attaching all patches to
+the body of a single message.  If non-nil, each patch will be
+sent out in a separate message, which will be prepared
+sequentially."
   :type 'boolean
   :safe #'booleanp
   :version "29.1")
