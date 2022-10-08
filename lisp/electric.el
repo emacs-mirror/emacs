@@ -340,7 +340,8 @@ use `electric-indent-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-indent-local-mode
   "Toggle `electric-indent-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-indent-mode (current-buffer))
+  :variable ( electric-indent-mode .
+              (lambda (val) (setq-local electric-indent-mode val)))
   (cond
    ((eq electric-indent-mode (default-value 'electric-indent-mode))
     (kill-local-variable 'electric-indent-mode))
@@ -484,7 +485,8 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 ;;;###autoload
 (define-minor-mode electric-layout-local-mode
   "Toggle `electric-layout-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-layout-mode (current-buffer))
+  :variable ( electric-layout-mode .
+              (lambda (val) (setq-local electric-layout-mode val)))
   (cond
    ((eq electric-layout-mode (default-value 'electric-layout-mode))
     (kill-local-variable 'electric-layout-mode))
@@ -661,7 +663,8 @@ use `electric-quote-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-quote-local-mode
   "Toggle `electric-quote-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-quote-mode (current-buffer))
+  :variable ( electric-quote-mode .
+              (lambda (val) (setq-local electric-quote-mode val)))
   (cond
    ((eq electric-quote-mode (default-value 'electric-quote-mode))
     (kill-local-variable 'electric-quote-mode))

@@ -31,6 +31,9 @@
 ;; available for filenames, variables known from the script, the shell and
 ;; the environment as well as commands.
 
+;; A Flymake backend using the "shellcheck" program is provided.  See
+;; https://www.shellcheck.net/ for installation instructions.
+
 ;;; Known Bugs:
 
 ;; - In Bourne the keyword `in' is not anchored to case, for, select ...
@@ -141,7 +144,9 @@
 (eval-when-compile
   (require 'skeleton)
   (require 'cl-lib)
-  (require 'comint))
+  (require 'comint)
+  (require 'let-alist)
+  (require 'subr-x))
 (require 'executable)
 
 (autoload 'comint-completion-at-point "comint")
@@ -1580,6 +1585,7 @@ with your script for an edit-interpret-debug cycle."
 	 ((equal (file-name-nondirectory buffer-file-name) ".profile") "sh")
          (t sh-shell-file))
    nil nil)
+  (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
   (add-hook 'hack-local-variables-hook
     #'sh-after-hack-local-variables nil t))
 
@@ -2982,14 +2988,6 @@ option followed by a colon `:' if the option accepts an argument."
 	   (match-string 1))))))
 
 
-(defun sh-maybe-here-document (arg)
-  "Insert self.  Without prefix, following unquoted `<' inserts here document.
-The document is bounded by `sh-here-document-word'."
-  (declare (obsolete sh-electric-here-document-mode "24.3"))
-  (interactive "*P")
-  (self-insert-command (prefix-numeric-value arg))
-  (or arg (sh--maybe-here-document)))
-
 (defun sh--maybe-here-document ()
   (when (and (looking-back "[^<]<<[ E-]" (line-beginning-position))
              (save-excursion
@@ -3110,6 +3108,88 @@ shell command and conveniently use this command."
  	(if (looking-at "\\\\")
  	    (delete-region (1+ (point))
  			   (progn (skip-chars-backward " \t") (point)))))))
+
+;;; Flymake backend
+
+(defcustom sh-shellcheck-program "shellcheck"
+  "Name of the shellcheck executable."
+  :type 'string
+  :version "29.1")
+
+(defcustom sh-shellcheck-arguments nil
+  "Additional arguments to the shellcheck program."
+  :type '(repeat string)
+  :version "29.1")
+
+(defvar-local sh--shellcheck-process nil)
+
+(defalias 'sh--json-read
+  (if (fboundp 'json-parse-buffer)
+      (lambda () (json-parse-buffer :object-type 'alist))
+    (require 'json)
+    'json-read))
+
+(defun sh-shellcheck-flymake (report-fn &rest _args)
+  "Flymake backend using the shellcheck program.
+Takes a Flymake callback REPORT-FN as argument, as expected of a
+member of `flymake-diagnostic-functions'."
+  (when (process-live-p sh--shellcheck-process)
+    (kill-process sh--shellcheck-process))
+  (let* ((source (current-buffer))
+         (dialect (named-let recur ((s sh-shell))
+                    (pcase s
+                      ((or 'bash 'dash 'sh) (symbol-name s))
+                      ('ksh88 "ksh")
+                      ((guard s)
+                       (recur (alist-get s sh-ancestor-alist))))))
+         (sentinel
+          (lambda (proc _event)
+            (when (memq (process-status proc) '(exit signal))
+              (unwind-protect
+                  (if (with-current-buffer source
+                        (not (eq proc sh--shellcheck-process)))
+                      (flymake-log :warning "Canceling obsolete check %s" proc)
+                    (with-current-buffer (process-buffer proc)
+                      (goto-char (point-min))
+                      (thread-last
+                        (sh--json-read)
+                        (alist-get 'comments)
+                        (seq-filter
+                         (lambda (item)
+                           (let-alist item (string= .file "-"))))
+                        (mapcar
+                         (lambda (item)
+                           (let-alist item
+                             (flymake-make-diagnostic
+                              source
+                              (cons .line .column)
+                              (unless (and (eq .line .endLine)
+                                           (eq .column .endColumn))
+                                (cons .endLine .endColumn))
+                              (pcase .level
+                                ("error" :error)
+                                ("warning" :warning)
+                                (_ :note))
+                              (format "SC%s: %s" .code .message)))))
+                        (funcall report-fn))))
+                (kill-buffer (process-buffer proc)))))))
+    (unless dialect
+      (error "`sh-shellcheck-flymake' is not suitable for shell type `%s'"
+             sh-shell))
+    (setq sh--shellcheck-process
+          (make-process
+           :name "shellcheck" :noquery t :connection-type 'pipe
+           :buffer (generate-new-buffer " *flymake-shellcheck*")
+           :command `(,sh-shellcheck-program
+                      "--format=json1"
+                      "-s" ,dialect
+                      ,@sh-shellcheck-arguments
+                      "-")
+           :sentinel sentinel))
+    (save-restriction
+      (widen)
+      (process-send-region sh--shellcheck-process (point-min) (point-max))
+      (process-send-eof sh--shellcheck-process))))
 
 (provide 'sh-script)
 

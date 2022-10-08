@@ -100,7 +100,7 @@
      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
     (minted	"The minted package"
-     (("minted" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
+     (("listing" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
     ;; The LaTeX core stuff
     (LaTeX       "LaTeX default environments"

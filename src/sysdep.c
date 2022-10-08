@@ -1304,7 +1304,10 @@ init_sys_modes (struct tty_display_info *tty_out)
     }
 #endif /* F_GETOWN */
 
-  setvbuf (tty_out->output, NULL, _IOFBF, BUFSIZ);
+  const size_t buffer_size = (tty_out->output_buffer_size
+			      ? tty_out->output_buffer_size
+			      : BUFSIZ);
+  setvbuf (tty_out->output, NULL, _IOFBF, buffer_size);
 
   if (tty_out->terminal->set_terminal_modes_hook)
     tty_out->terminal->set_terminal_modes_hook (tty_out->terminal);

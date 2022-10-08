@@ -232,11 +232,10 @@
 ;; =======================
 ;;
 ;; If Emacs has set the variable window-system to nil, vcursor will
-;; assume that overlays cannot be displayed in a different face,
-;; and will instead use a string (the variable vcursor-string, by
-;; default "**>") to show its position.  This was first implemented
-;; in Emacs 19.29.  Unlike the old-fashioned overlay arrow (as used
-;; by debuggers), this appears between existing text, which can
+;; assume that overlays cannot be displayed in a different face, and
+;; will instead use a string (the variable vcursor-string, by default "**>")
+;; to show its position.  Unlike the old-fashioned overlay arrow (as
+;; used by debuggers), this appears between existing text, which can
 ;; make it hard to read if you're not used to it.  (This seemed the
 ;; better option here.)  This means moving the vcursor up and down is
 ;; a very efficient way of locating it!

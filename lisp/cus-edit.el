@@ -4291,11 +4291,19 @@ restoring it to the state of a face that has never been customized."
 (defvar widget-fringe-bitmap-prompt-value-history nil
   "History of input to `widget-fringe-bitmap-prompt-value'.")
 
+;; In no-X builds, fringe.el isn't preloaded.
+(autoload 'fringe-bitmap-p "fringe")
+
 (define-widget 'fringe-bitmap 'symbol
   "A Lisp fringe bitmap name."
   :format "%v"
   :tag "Fringe bitmap"
-  :match (lambda (_widget value) (fringe-bitmap-p value))
+  :match (lambda (_widget value)
+           ;; In no-X builds (where `fringe-bitmaps' is undefined),
+           ;; allow anything.  This ensures that customizations set on
+           ;; a with-X build aren't considered invalid under no-X.
+           (or (not (boundp 'fringe-bitmaps))
+               (fringe-bitmap-p value)))
   :completions (apply-partially #'completion-table-with-predicate
                                 obarray #'fringe-bitmap-p 'strict)
   :prompt-match 'fringe-bitmap-p

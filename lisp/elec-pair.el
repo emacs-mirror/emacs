@@ -666,7 +666,8 @@ To toggle the mode in a single buffer, use `electric-pair-local-mode'."
 ;;;###autoload
 (define-minor-mode electric-pair-local-mode
   "Toggle `electric-pair-mode' only in this buffer."
-  :variable (buffer-local-value 'electric-pair-mode (current-buffer))
+  :variable ( electric-pair-mode .
+              (lambda (val) (setq-local electric-pair-mode val)))
   (cond
    ((eq electric-pair-mode (default-value 'electric-pair-mode))
     (kill-local-variable 'electric-pair-mode))

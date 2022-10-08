@@ -242,45 +242,52 @@ x_menu_translate_generic_event (XEvent *event)
     {
       eassert (!event->xcookie.data);
 
-      if (XGetEventData (dpyinfo->display, &event->xcookie))
+      switch (event->xcookie.evtype)
 	{
-	  switch (event->xcookie.evtype)
-	    {
-	    case XI_ButtonPress:
-	    case XI_ButtonRelease:
-	      xev = (XIDeviceEvent *) event->xcookie.data;
-	      copy.xbutton.type = (event->xcookie.evtype == XI_ButtonPress
-				   ? ButtonPress : ButtonRelease);
-	      copy.xbutton.serial = xev->serial;
-	      copy.xbutton.send_event = xev->send_event;
-	      copy.xbutton.display = dpyinfo->display;
-	      copy.xbutton.window = xev->event;
-	      copy.xbutton.root = xev->root;
-	      copy.xbutton.subwindow = xev->child;
-	      copy.xbutton.time = xev->time;
-	      copy.xbutton.x = lrint (xev->event_x);
-	      copy.xbutton.y = lrint (xev->event_y);
-	      copy.xbutton.x_root = lrint (xev->root_x);
-	      copy.xbutton.y_root = lrint (xev->root_y);
-	      copy.xbutton.state = xi_convert_event_state (xev);
-	      copy.xbutton.button = xev->detail;
-	      copy.xbutton.same_screen = True;
+	case XI_ButtonPress:
+	case XI_ButtonRelease:
 
-	      device = xi_device_from_id (dpyinfo, xev->deviceid);
+	  if (!XGetEventData (dpyinfo->display, &event->xcookie))
+	    break;
 
-	      /* I don't know the repercussions of changing
-		 device->grab on XI_ButtonPress events, so be safe and
-		 only do what is necessary to prevent the grab from
-		 being left invalid as XMenuActivate swallows
-		 events.  */
-	      if (device && xev->evtype == XI_ButtonRelease)
-		device->grab &= ~(1 << xev->detail);
+	  xev = (XIDeviceEvent *) event->xcookie.data;
+	  copy.xbutton.type = (event->xcookie.evtype == XI_ButtonPress
+			       ? ButtonPress : ButtonRelease);
+	  copy.xbutton.serial = xev->serial;
+	  copy.xbutton.send_event = xev->send_event;
+	  copy.xbutton.display = dpyinfo->display;
+	  copy.xbutton.window = xev->event;
+	  copy.xbutton.root = xev->root;
+	  copy.xbutton.subwindow = xev->child;
+	  copy.xbutton.time = xev->time;
+	  copy.xbutton.x = lrint (xev->event_x);
+	  copy.xbutton.y = lrint (xev->event_y);
+	  copy.xbutton.x_root = lrint (xev->root_x);
+	  copy.xbutton.y_root = lrint (xev->root_y);
+	  copy.xbutton.state = xi_convert_event_state (xev);
+	  copy.xbutton.button = xev->detail;
+	  copy.xbutton.same_screen = True;
 
-	      XPutBackEvent (dpyinfo->display, &copy);
+	  device = xi_device_from_id (dpyinfo, xev->deviceid);
 
-	      break;
-	    }
+	  /* I don't know the repercussions of changing
+	     device->grab on XI_ButtonPress events, so be safe and
+	     only do what is necessary to prevent the grab from
+	     being left invalid as XMenuActivate swallows
+	     events.  */
+	  if (device && xev->evtype == XI_ButtonRelease)
+	    device->grab &= ~(1 << xev->detail);
+
+	  XPutBackEvent (dpyinfo->display, &copy);
 	  XFreeEventData (dpyinfo->display, &event->xcookie);
+
+	  break;
+
+	case XI_HierarchyChanged:
+	case XI_DeviceChanged:
+	  /* These events must always be handled.  */
+	  x_dispatch_event (event, dpyinfo->display);
+	  break;
 	}
     }
 }
@@ -2783,6 +2790,9 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   DEFER_SELECTIONS;
 
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
+  /* When the input extension is in use, the owner_events grab will
+     report extension events on frames, which the XMenu library does
+     not normally understand.  */
 #ifdef HAVE_XINPUT2
   XMenuActivateSetTranslateFunction (x_menu_translate_generic_event);
 #endif

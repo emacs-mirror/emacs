@@ -105,7 +105,7 @@ This expects `auto-revert--messages' to be bound by
                    (auto-revert--timeout))
                 (null (string-match
                        (format-message
-                        "Reverting buffer `%s'\\." (buffer-name buffer))
+                        "Reverting buffer `%s'" (buffer-name buffer))
                        (or auto-revert--messages ""))))
       (if (and (or file-notify--library
                    (file-remote-p temporary-file-directory))

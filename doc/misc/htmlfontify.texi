@@ -33,7 +33,7 @@ modify this GNU manual.''
 @titlepage
 @title Htmlfontify User Manual
 @sp 4
-@subtitle Htmlfontify version 0.20
+@subtitle Htmlfontify version 0.21
 @sp 1
 @subtitle Jun 2002
 @sp 5

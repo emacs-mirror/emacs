@@ -398,7 +398,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_BOOLEAN:
       /* There must be an argument.  */
       if (EQ (QCboolean, object))
-	wrong_type_argument (intern ("booleanp"), object);
+	wrong_type_argument (Qbooleanp, object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -649,7 +649,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
       case DBUS_TYPE_BOOLEAN:
 	/* There must be an argument.  */
 	if (EQ (QCboolean, object))
-	  wrong_type_argument (intern ("booleanp"), object);
+	  wrong_type_argument (Qbooleanp, object);
 	{
 	  dbus_bool_t val = (NILP (object)) ? FALSE : TRUE;
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");

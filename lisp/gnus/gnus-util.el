@@ -118,7 +118,7 @@ This is a compatibility function for different Emacsen."
 
 ;; Delete the current line (and the next N lines).
 (defmacro gnus-delete-line (&optional n)
-  `(delete-region (point-at-bol)
+  `(delete-region (line-beginning-position)
 		  (progn (forward-line ,(or n 1)) (point))))
 
 (defun gnus-extract-address-components (from)
@@ -166,9 +166,8 @@ is slower."
   (require 'message)
   (save-excursion
     (save-restriction
-      (let ((inhibit-point-motion-hooks t))
-	(nnheader-narrow-to-headers)
-	(message-fetch-field field)))))
+      (nnheader-narrow-to-headers)
+      (message-fetch-field field))))
 
 (defun gnus-fetch-original-field (field)
   "Fetch FIELD from the original version of the current article."
@@ -178,7 +177,7 @@ is slower."
 
 (defun gnus-goto-colon ()
   (move-beginning-of-line 1)
-  (let ((eol (point-at-eol)))
+  (let ((eol (line-end-position)))
     (goto-char (or (text-property-any (point) eol 'gnus-position t)
 		   (search-forward ":" eol t)
 		   (point)))))

@@ -888,9 +888,22 @@ symbol `never', the posting is not allowed.  If it is the symbol
   ;; FIXME: This is related to `mail-specify-envelope-from' but works
   ;; differently (bug#36937).
   nil
-  "Non-nil means don't add \"-f username\" to the sendmail command line.
-See `feedmail-sendmail-f-doesnt-sell-me-out' for an explanation
-of what the \"-f\" parameter does."
+  "Non-nil means don't add \"-f username\" to the \"sendmail\" command line.
+The \"sendmail\" program has a useful feature to let you set the
+envelope FROM address via a command line option, \"-f\".
+Unfortunately, it also has a widely disliked default behavior of
+disclosing your actual user name anyway by inserting an
+unattractive warning in the headers.  It looks something like
+this:
+
+  X-Authentication-Warning: u1.example.com: niceguy set
+      sender to niceguy@example.com using -f
+
+It is possible to configure \"sendmail\" to not do this, but such a
+reconfiguration is not an option for some users.
+
+Note that this user option is mostly useful for actual \"sendmail\"
+installations, which are rare these days."
   :group 'message-sending
   :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
@@ -2159,8 +2172,7 @@ If FIRST is non-nil, only the first value is returned.
 
 The buffer is expected to be narrowed to just the header of the message;
 see `message-narrow-to-headers-or-head'."
-  (let* ((inhibit-point-motion-hooks t)
-	 (value (mail-fetch-field header nil (not first))))
+  (let* ((value (mail-fetch-field header nil (not first))))
     (when value
       (while (string-match "\n[\t ]+" value)
 	(setq value (replace-match " " t t value)))
@@ -2185,7 +2197,7 @@ see `message-narrow-to-headers-or-head'."
    (progn
      (forward-line 1)
      (if (re-search-forward "^[^ \n\t]" nil t)
-	 (point-at-bol)
+         (line-beginning-position)
        (point-max))))
   (goto-char (point-min)))
 
@@ -3195,7 +3207,8 @@ Like `text-mode', but with these additional commands:
   ;;
   (setq-local syntax-propertize-function #'message--syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local message-encoded-mail-cache nil))
+  (setq-local message-encoded-mail-cache nil)
+  (setq-local image-crop-buffer-text-function #'message--update-image-crop))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
@@ -3551,7 +3564,12 @@ of lines before the signature intact."
 
 (defun message-newline-and-reformat (&optional arg not-break)
   "Insert four newlines, and then reformat if inside quoted text.
-Prefix arg means justify as well."
+Prefix arg means justify as well.
+
+This function tries to guess what the quote prefix is based on
+the text on the current line before point.  If point is at the
+start of the line, the formatted text (if any) is filled without
+a quote prefix."
   (interactive (list (if current-prefix-arg 'full)) message-mode)
   (unless (message-in-body-p)
     (error "This command only works in the body of the message"))
@@ -3664,7 +3682,7 @@ Message buffers and is not meant to be called directly."
   (save-excursion
     (save-restriction
       (widen)
-      (let ((bound (+ (point-at-eol) 1)) case-fold-search)
+      (let ((bound (+ (line-end-position) 1)) case-fold-search)
         (goto-char (point-min))
         (not (search-forward (concat "\n" mail-header-separator "\n")
                              bound t))))))
@@ -3928,8 +3946,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
 	(if all-removed
 	    (goto-char start)
 	  (forward-line 1))))
-    ;; Delete blank lines at the start of the buffer.
-    (goto-char (point-min))
+    ;; Delete blank lines at the start of the cited text.
     (while (and (eolp) (not (eobp)))
       (delete-line))
     ;; Delete blank lines at the end of the buffer.
@@ -5671,11 +5688,11 @@ Otherwise, generate and save a value for `canlock-password' first."
        (goto-char (point-max))
        (if (not (re-search-backward message-signature-separator nil t))
 	   t
-	 (setq sig-start (1+ (point-at-eol)))
+         (setq sig-start (1+ (line-end-position)))
 	 (setq sig-end
 	       (if (re-search-forward
 		    "<#/?\\(multipart\\|part\\|external\\|mml\\)" nil t)
-		   (- (point-at-bol) 1)
+                   (- (line-beginning-position) 1)
 		 (point-max)))
 	 (if (>= (count-lines sig-start sig-end) 5)
 	     (if (message-gnksa-enable-p 'signature)
@@ -6361,7 +6378,7 @@ Headers already prepared in the buffer are not modified."
 		      (forward-line -1)))
 		;; The value of this header was empty, so we clear
 		;; totally and insert the new value.
-		(delete-region (point) (point-at-eol))
+                (delete-region (point) (line-end-position))
 		;; If the header is optional, and the header was
 		;; empty, we can't insert it anyway.
 		(unless optionalp
@@ -6616,10 +6633,10 @@ beginning of a folded header)."
                 (or (eq (char-after) ?\s) (eq (char-after) ?\t)))
       (beginning-of-line 0)))
   (when (or (eq (char-after) ?\s) (eq (char-after) ?\t)
-            (search-forward ":" (point-at-eol) t))
+            (search-forward ":" (line-end-position) t))
     ;; We are a bit more lacks than the RFC and allow any positive number of WSP
     ;; characters.
-    (skip-chars-forward " \t" (point-at-eol))
+    (skip-chars-forward " \t" (line-end-position))
     (point)))
 
 (defun message-beginning-of-line (&optional n)
@@ -7291,7 +7308,6 @@ specified by FUNCTIONS, if non-nil, or by the variable
   (let ((cur (current-buffer))
 	from subject date
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-mail t)
 	gnus-warning)
     (save-restriction
@@ -7352,7 +7368,6 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
   (let ((cur (current-buffer))
 	from subject date reply-to mrt mct
 	references message-id follow-to
-	(inhibit-point-motion-hooks t)
 	(message-this-is-news t)
 	followup-to distribution newsgroups gnus-warning posted-to)
     (save-restriction
@@ -8591,7 +8606,6 @@ From headers in the original article."
   (let ((regexps (if (stringp message-hidden-headers)
 		     (list message-hidden-headers)
 		   message-hidden-headers))
-	(inhibit-point-motion-hooks t)
 	(inhibit-modification-hooks t)
 	end-of-headers)
     (when regexps
@@ -8642,7 +8656,7 @@ From headers in the original article."
 (autoload 'ecomplete-display-matches "ecomplete")
 
 (defun message--in-tocc-p ()
-  (and (memq (char-after (point-at-bol)) '(?C ?T ?\t ? ))
+  (and (memq (char-after (line-beginning-position)) '(?C ?T ?\t ? ))
        (message-point-in-header-p)
        (save-excursion
 	 (beginning-of-line)
@@ -8910,18 +8924,25 @@ used to take the screenshot."
 		 :max-width (truncate (* (frame-pixel-width) 0.8))
 		 :max-height (truncate (* (frame-pixel-height) 0.8))
 		 :scale 1)
-   (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
-           type
-	   ;; Get a base64 version of the image -- this avoids later
-	   ;; complications if we're auto-saving the buffer and
-	   ;; restoring from a file.
-	   (with-temp-buffer
-	     (set-buffer-multibyte nil)
-	     (insert image)
-	     (base64-encode-region (point-min) (point-max) t)
-	     (buffer-string)))
+   (message--image-part-string type image)
    nil nil t)
   (insert "\n\n"))
+
+(defun message--image-part-string (type image)
+  (format "<#part type=\"%s\" disposition=inline data-encoding=base64 raw=t>\n%s\n<#/part>"
+          type
+	  ;; Get a base64 version of the image -- this avoids later
+	  ;; complications if we're auto-saving the buffer and
+	  ;; restoring from a file.
+	  (with-temp-buffer
+	    (set-buffer-multibyte nil)
+	    (insert image)
+	    (base64-encode-region (point-min) (point-max) t)
+	    (buffer-string))))
+
+(declare-function image-crop--content-type "image-crop")
+(defun message--update-image-crop (_text image)
+  (message--image-part-string (image-crop--content-type image) image))
 
 (declare-function gnus-url-unhex-string "gnus-util")
 

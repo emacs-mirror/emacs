@@ -32,7 +32,7 @@
   (or (get 'url-extension-protocols 'probed)
       (mapc (lambda (s) (url-scheme-get-property s 'name))
 	    (or (get 'url-extension-protocols 'schemes)
-		(let ((schemes '("info" "man" "rlogin" "telnet"
+                (let ((schemes '("info" "man" "telnet"
 				 "tn3270" "data" "snews")))
 		  (mapc (lambda (d)
 			  (mapc (lambda (f)

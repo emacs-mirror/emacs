@@ -229,7 +229,7 @@ EVENT is a `preedit-text-event'."
   '(
     ("etc/images/new" . ("document-new" "gtk-new"))
     ("etc/images/open" . ("document-open" "gtk-open"))
-    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/diropen" . "gtk-directory")
     ("etc/images/close" . ("window-close" "gtk-close"))
     ("etc/images/save" . ("document-save" "gtk-save"))
     ("etc/images/saveas" . ("document-save-as" "gtk-save-as"))
@@ -371,6 +371,7 @@ This uses `icon-map-list' to map icon file names to stock icon names."
   "Return the device class of NAME.
 Users should not call this function; see `device-class' instead."
   (cond
+   ((not name) nil)
    ((string-match-p "XTEST" name) 'test)
    ((string= "Virtual core pointer" name) 'core-pointer)
    ((string= "Virtual core keyboard" name) 'core-keyboard)

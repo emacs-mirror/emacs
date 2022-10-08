@@ -60,7 +60,6 @@
 #  --avoid=sigprocmask \
 #  --avoid=stat \
 #  --avoid=stdarg \
-#  --avoid=stdbool \
 #  --avoid=threadlib \
 #  --avoid=tzset \
 #  --avoid=unsetenv \
@@ -147,6 +146,7 @@
 #  stat-time \
 #  std-gnu11 \
 #  stdalign \
+#  stdbool \
 #  stddef \
 #  stdio \
 #  stpcpy \
@@ -180,6 +180,7 @@ AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 APPLE_UNIVERSAL_BUILD = @APPLE_UNIVERSAL_BUILD@
 AR = @AR@
 ARFLAGS = @ARFLAGS@
+ASSERT_H = @ASSERT_H@
 AUTO_DEPEND = @AUTO_DEPEND@
 AWK = @AWK@
 BITSIZEOF_PTRDIFF_T = @BITSIZEOF_PTRDIFF_T@
@@ -307,6 +308,7 @@ GL_COND_OBJ_TIME_RZ_CONDITION = @GL_COND_OBJ_TIME_RZ_CONDITION@
 GL_COND_OBJ_TIME_R_CONDITION = @GL_COND_OBJ_TIME_R_CONDITION@
 GL_COND_OBJ_UTIMENSAT_CONDITION = @GL_COND_OBJ_UTIMENSAT_CONDITION@
 GL_GENERATE_ALLOCA_H_CONDITION = @GL_GENERATE_ALLOCA_H_CONDITION@
+GL_GENERATE_ASSERT_H_CONDITION = @GL_GENERATE_ASSERT_H_CONDITION@
 GL_GENERATE_BYTESWAP_H_CONDITION = @GL_GENERATE_BYTESWAP_H_CONDITION@
 GL_GENERATE_ERRNO_H_CONDITION = @GL_GENERATE_ERRNO_H_CONDITION@
 GL_GENERATE_EXECINFO_H_CONDITION = @GL_GENERATE_EXECINFO_H_CONDITION@
@@ -951,6 +953,8 @@ MKDIR_P = @MKDIR_P@
 MODULES_OBJ = @MODULES_OBJ@
 MODULES_SECONDARY_SUFFIX = @MODULES_SECONDARY_SUFFIX@
 MODULES_SUFFIX = @MODULES_SUFFIX@
+NEXT_ASSERT_H = @NEXT_ASSERT_H@
+NEXT_AS_FIRST_DIRECTIVE_ASSERT_H = @NEXT_AS_FIRST_DIRECTIVE_ASSERT_H@
 NEXT_AS_FIRST_DIRECTIVE_DIRENT_H = @NEXT_AS_FIRST_DIRECTIVE_DIRENT_H@
 NEXT_AS_FIRST_DIRECTIVE_ERRNO_H = @NEXT_AS_FIRST_DIRECTIVE_ERRNO_H@
 NEXT_AS_FIRST_DIRECTIVE_FCNTL_H = @NEXT_AS_FIRST_DIRECTIVE_FCNTL_H@
@@ -1439,6 +1443,39 @@ EXTRA_DIST += allocator.h
 
 endif
 ## end   gnulib module allocator
+
+## begin gnulib module assert-h
+ifeq (,$(OMIT_GNULIB_MODULE_assert-h))
+
+BUILT_SOURCES += $(ASSERT_H)
+
+# We need the following in order to create <assert.h> when the system
+# doesn't have one that works with the given compiler.
+ifneq (,$(GL_GENERATE_ASSERT_H_CONDITION))
+assert.h: assert.in.h verify.h $(top_builddir)/config.status
+	$(gl_V_at){ $(SED_HEADER_STDOUT) \
+	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
+	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
+	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
+	      -e 's|@''NEXT_ASSERT_H''@|$(NEXT_ASSERT_H)|g' \
+	      < $(srcdir)/assert.in.h && \
+	  sed -e '/@assert.h omit start@/,/@assert.h omit end@/d' \
+	      -e 's|_gl_verify|_gl_static_assert|g' \
+	      -e 's|_GL_VERIFY|_GL_STATIC_ASSERT|g' \
+	      -e 's|_GL\(_STATIC_ASSERT_H\)|_GL\1|g' \
+	      < $(srcdir)/verify.h; \
+	} > $@-t
+	$(AM_V_at)mv $@-t $@
+else
+assert.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += assert.h assert.h-t
+
+EXTRA_DIST += assert.in.h verify.h
+
+endif
+## end   gnulib module assert-h
 
 ## begin gnulib module at-internal
 ifeq (,$(OMIT_GNULIB_MODULE_at-internal))

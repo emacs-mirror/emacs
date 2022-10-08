@@ -105,25 +105,6 @@
      (format template "format \"%s\" eshell-in-pipeline-p")
      "nil")))
 
-(ert-deftest eshell-test/redirect-buffer ()
-  "Check that piping to a buffer works"
-  (with-temp-buffer
-    (rename-buffer "eshell-temp-buffer" t)
-    (let ((bufname (buffer-name)))
-      (with-temp-eshell
-       (eshell-insert-command (format "echo hi > #<%s>" bufname)))
-      (should (equal (buffer-string) "hi")))))
-
-(ert-deftest eshell-test/redirect-buffer-escaped ()
-  "Check that piping to a buffer with escaped characters works"
-  (with-temp-buffer
-    (rename-buffer "eshell\\temp\\buffer" t)
-    (let ((bufname (buffer-name)))
-      (with-temp-eshell
-       (eshell-insert-command (format "echo hi > #<%s>"
-                                      (string-replace "\\" "\\\\" bufname))))
-      (should (equal (buffer-string) "hi")))))
-
 (ert-deftest eshell-test/escape-nonspecial ()
   "Test that \"\\c\" and \"c\" are equivalent when \"c\" is not a
 special character."

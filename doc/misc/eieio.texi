@@ -193,7 +193,7 @@ also differs in some other aspects which are mentioned below (also
 @enumerate
 @item
 A structured framework for the creation of basic classes with attributes
-and methods using singular inheritance similar to CLOS.
+and methods using inheritance similar to CLOS.
 @item
 Type checking, and slot unbinding.
 @item
@@ -224,11 +224,6 @@ setf.  Here are some important CLOS features that @eieio{} presently
 lacks:
 
 @table @asis
-
-@item Method dispatch
-EIEO does not support method dispatch for built-in types and multiple
-arguments types.  In other words, method dispatch only looks at the
-first argument, and this one must be an @eieio{} type.
 
 @item Support for metaclasses
 There is just one default metaclass, @code{eieio-default-superclass},
@@ -856,11 +851,6 @@ You can also create a generic method with @code{cl-defmethod}
 (@pxref{Methods}).  When a method is created and there is no generic
 method in place with that name, then a new generic will be created,
 and the new method will use it.
-
-In CLOS, a generic method can also be used to provide an argument list
-and dispatch precedence for all the arguments.  In @eieio{},
-dispatching only occurs for the first argument, so the @var{arglist}
-is not used.
 @end defmac
 
 @node Methods

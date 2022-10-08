@@ -46,6 +46,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module acl-permissions:
   # Code from module alloca-opt:
   # Code from module allocator:
+  # Code from module assert-h:
   # Code from module at-internal:
   # Code from module attribute:
   # Code from module binary-io:
@@ -122,8 +123,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module intprops:
   # Code from module inttypes-incomplete:
   # Code from module largefile:
-  AC_REQUIRE([AC_SYS_LARGEFILE])
   AC_REQUIRE([gl_YEAR2038_EARLY])
+  AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lchmod:
   # Code from module libc-config:
   # Code from module libgmp:
@@ -171,6 +172,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stat-time:
   # Code from module std-gnu11:
   # Code from module stdalign:
+  # Code from module stdbool:
   # Code from module stdckdint:
   # Code from module stddef:
   # Code from module stdint:
@@ -232,6 +234,9 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_ACL
   gl_FUNC_ALLOCA
   gl_CONDITIONAL_HEADER([alloca.h])
+  AC_PROG_MKDIR_P
+  gl_ASSERT_H
+  gl_CONDITIONAL_HEADER([assert.h])
   AC_PROG_MKDIR_P
   gl___BUILTIN_EXPECT
   gl_BYTESWAP
@@ -486,6 +491,7 @@ AC_DEFUN([gl_INIT],
   gl_STDALIGN_H
   gl_CONDITIONAL_HEADER([stdalign.h])
   AC_PROG_MKDIR_P
+  gl_C_BOOL
   gl_STDDEF_H
   gl_STDDEF_H_REQUIRE_DEFAULTS
   gl_CONDITIONAL_HEADER([stddef.h])
@@ -1214,6 +1220,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/allocator.c
   lib/allocator.h
   lib/arg-nonnull.h
+  lib/assert.in.h
   lib/at-func.c
   lib/attribute.h
   lib/binary-io.c
@@ -1420,8 +1427,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/absolute-header.m4
   m4/acl.m4
   m4/alloca.m4
+  m4/assert_h.m4
   m4/builtin-expect.m4
   m4/byteswap.m4
+  m4/c-bool.m4
   m4/canonicalize.m4
   m4/clock_time.m4
   m4/copy-file-range.m4

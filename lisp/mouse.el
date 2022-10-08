@@ -869,6 +869,9 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       map)
 	     t (lambda () (setq track-mouse old-track-mouse)))))))
 
+;; In no-X builds, dnd.el isn't preloaded.
+(autoload 'dnd-begin-file-drag "dnd")
+
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on its mode line.
 START-EVENT is the starting mouse event of the drag action.

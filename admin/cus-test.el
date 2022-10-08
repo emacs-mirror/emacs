@@ -272,7 +272,7 @@ currently defined groups."
 	(if group
 	    (memq symbol groups)
 	  (or
-	   ;; (user-variable-p symbol)
+           ;; (custom-variable-p symbol)
 	   (get symbol 'standard-value)
 	   ;; (get symbol 'saved-value)
 	   (get symbol 'custom-type)))

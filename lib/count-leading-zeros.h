@@ -43,13 +43,17 @@ extern "C" {
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \
   return x ? BUILTIN (x) : CHAR_BIT * sizeof x;
 #elif _MSC_VER
-# pragma intrinsic _BitScanReverse
-# pragma intrinsic _BitScanReverse64
+# pragma intrinsic (_BitScanReverse)
+# if defined _M_X64
+#  pragma intrinsic (_BitScanReverse64)
+# endif
 # define COUNT_LEADING_ZEROS(BUILTIN, MSC_BUILTIN, TYPE)                \
     do                                                                  \
       {                                                                 \
         unsigned long result;                                           \
-        return MSC_BUILTIN (&result, x) ? result : CHAR_BIT * sizeof x; \
+        if (MSC_BUILTIN (&result, x))                                   \
+          return CHAR_BIT * sizeof x - 1 - result;                      \
+        return CHAR_BIT * sizeof x;                                     \
       }                                                                 \
     while (0)
 #else
@@ -109,8 +113,18 @@ count_leading_zeros_l (unsigned long int x)
 COUNT_LEADING_ZEROS_INLINE int
 count_leading_zeros_ll (unsigned long long int x)
 {
+#if (defined _MSC_VER && !defined __clang__) && !defined _M_X64
+  /* 32-bit MSVC does not have _BitScanReverse64, only _BitScanReverse.  */
+  unsigned long result;
+  if (_BitScanReverse (&result, (unsigned long) (x >> 32)))
+    return CHAR_BIT * sizeof x - 1 - 32 - result;
+  if (_BitScanReverse (&result, (unsigned long) x))
+    return CHAR_BIT * sizeof x - 1 - result;
+  return CHAR_BIT * sizeof x;
+#else
   COUNT_LEADING_ZEROS (__builtin_clzll, _BitScanReverse64,
                        unsigned long long int);
+#endif
 }
 
 #ifdef __cplusplus

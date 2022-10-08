@@ -387,7 +387,7 @@
   (interactive)
   (unless (eq major-mode 'calc-keypad-mode)
     (error "Must be in *Calc Keypad* buffer for this command"))
-  (let* ((row (count-lines (point-min) (point-at-bol)))
+  (let* ((row (count-lines (point-min) (line-beginning-position)))
 	 (y (/ row 2))
 	 (x (/ (current-column) (if (>= y 4) 6 5)))
 	 radix frac inv

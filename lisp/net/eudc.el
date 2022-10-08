@@ -856,7 +856,7 @@ non-nil, collect results from all servers."
   (let* ((end (point))
 	 (beg (save-excursion
 		(if (re-search-backward "\\([:,]\\|^\\)[ \t]*"
-					(point-at-bol) 'move)
+                                        (line-beginning-position) 'move)
 		    (goto-char (match-end 0)))
 		(point)))
 	 (query-words (split-string (buffer-substring-no-properties beg end)

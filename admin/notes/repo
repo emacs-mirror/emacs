@@ -124,6 +124,11 @@ This ChangeLog file is not put into the repository.
 'make change-history' copies all newer ChangeLog entries into the
 start of the newest ChangeLog history file.  These ChangeLog entries
 are thereafter considered to be old, so later uses of 'make ChangeLog'
-and/or 'make change-history' will no longer copy the entries.  To
-alter ChangeLog history, run 'make change-history', then edit
-the ChangeLog history files manually and commit your changes.
+and/or 'make change-history' will no longer copy the entries.
+
+To alter ChangeLog history, run 'make change-history' and commit the
+changes made by that command.  Then edit the ChangeLog history files
+manually and commit those changes in a second, distinct commit.
+Altering ChangeLog history like this can make things harder for those
+who handle merging branches and Emacs releases, so reserve it for
+correcting more serious mistakes.

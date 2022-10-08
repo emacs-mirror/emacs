@@ -1824,7 +1824,7 @@ If set will become buffer local.")
 ;;
 
 (defsubst verilog-within-string ()
-  (nth 3 (parse-partial-sexp (point-at-bol) (point))))
+  (nth 3 (parse-partial-sexp (line-beginning-position) (point))))
 
 (defsubst verilog-string-match-fold (regexp string &optional start)
   "Like `string-match', but use `verilog-case-fold'.
@@ -1927,7 +1927,7 @@ This speeds up complicated regexp matches."
 		(search-forward substr bound noerror))
       (save-excursion
 	(beginning-of-line)
-	(setq done (re-search-forward regexp (point-at-eol) noerror)))
+        (setq done (re-search-forward regexp (line-end-position) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -1947,7 +1947,7 @@ This speeds up complicated regexp matches."
 		(search-backward substr bound noerror))
       (save-excursion
 	(end-of-line)
-	(setq done (re-search-backward regexp (point-at-bol) noerror)))
+        (setq done (re-search-backward regexp (line-beginning-position) noerror)))
       (unless (and (<= (match-beginning 0) (point))
 		   (>= (match-end 0) (point)))
 	(setq done nil)))
@@ -3409,7 +3409,8 @@ A change is considered significant if it affects the buffer text
 in any way that isn't completely restored again.  Any
 user-visible changes to the buffer must not be within a
 `verilog-save-buffer-state'."
-  `(let ((inhibit-point-motion-hooks t)
+  `(let (,@(unless (>= emacs-major-version 25)
+             '((inhibit-point-motion-hooks t)))
          (verilog-no-change-functions t))
      ,(if (fboundp 'with-silent-modifications)
           `(with-silent-modifications ,@body)
@@ -3455,11 +3456,13 @@ For insignificant changes, see instead `verilog-save-buffer-state'."
       (run-hook-with-args 'before-change-functions (point-min) (point-max))
       (unwind-protect
           ;; Must inhibit and restore hooks before restoring font-lock
-          (let* ((inhibit-point-motion-hooks t)
+          (let* (,@(unless (>= emacs-major-version 25)
+                     '((inhibit-point-motion-hooks t) ;Obsolete since 25.1
+                       ;; XEmacs and pre-Emacs 21 ignore
+                       ;; `inhibit-modification-hooks'.
+                       before-change-functions after-change-functions))
                  (inhibit-modification-hooks t)
-                 (verilog-no-change-functions t)
-                 ;; XEmacs and pre-Emacs 21 ignore inhibit-modification-hooks.
-                 before-change-functions after-change-functions)
+                 (verilog-no-change-functions t))
             (progn ,@body))
         ;; Unwind forms
         (run-hook-with-args 'after-change-functions (point-min) (point-max)
@@ -4908,7 +4911,7 @@ primitive or interface named NAME."
        (or  kill-existing-comment
 	    (not (save-excursion
 		   (end-of-line)
-		   (search-backward "//" (point-at-bol) t)))))
+                   (search-backward "//" (line-beginning-position) t)))))
       (let ((nest 1) b e
 	    m
 	    (else (if (match-end 2) "!" " ")))
@@ -4961,7 +4964,7 @@ primitive or interface named NAME."
 	   (or kill-existing-comment
 	       (not (save-excursion
 		      (end-of-line)
-		      (search-backward "//" (point-at-bol) t)))))
+                      (search-backward "//" (line-beginning-position) t)))))
       (let ((type (car indent-str)))
 	(unless (eq type 'declaration)
           (unless (looking-at (concat "\\(" verilog-end-block-ordered-re "\\)[ \t]*:"))  ; ignore named ends
@@ -5503,7 +5506,7 @@ becomes:
                 (cond
                  ((looking-at "// surefire lint_off_line ")
                   (goto-char (match-end 0))
-                  (let ((lim (point-at-eol)))
+                  (let ((lim (line-end-position)))
                     (if (re-search-forward code lim 'move)
                         (throw 'already t)
                       (insert (concat " " code)))))
@@ -9958,7 +9961,7 @@ Use DEFAULT-DIR to anchor paths if non-nil."
 	       (verilog-point-text) filename))
       (goto-char (point-min))
       (while (not (eobp))
-	(setq line (buffer-substring (point) (point-at-eol)))
+        (setq line (buffer-substring (point) (line-end-position)))
 	(forward-line 1)
 	(when (string-match "//" line)
 	  (setq line (substring line 0 (match-beginning 0))))
@@ -14758,7 +14761,7 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 	 (verilog-save-scan-cache
 	  (let (end-point)
 	    (goto-char end)
-	    (setq end-point (point-at-eol))
+            (setq end-point (line-end-position))
 	    (goto-char beg)
 	    (beginning-of-line)  ; scan entire line
 	    ;; delete overlays existing on this line

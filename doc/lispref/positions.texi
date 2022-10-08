@@ -387,6 +387,16 @@ Return the position that @code{(end-of-line @var{count})}
 would move to.
 @end defun
 
+@defun pos-bol &optional count
+Like @code{line-beginning-position}, but ignores fields (and is more
+efficient).
+@end defun
+
+@defun pos-eol &optional count
+Like @code{line-end-position}, but ignores fields (and is more
+efficient).
+@end defun
+
 @deffn Command forward-line &optional count
 @cindex beginning of line
 This function moves point forward @var{count} lines, to the beginning of

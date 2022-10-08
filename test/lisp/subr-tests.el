@@ -635,7 +635,7 @@ cf. Bug#25477."
   (let ((default "foo") res)
     (cl-letf (((symbol-function 'read-string)
                (lambda (_prompt &optional _init _hist def _inher-input) def)))
-      (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
+      (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default)))
       (should (string= default res)))))
 
 (ert-deftest subr-tests--gensym ()
@@ -968,7 +968,21 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (insert "Foo bar zot foobar")
     (should (= (replace-string-in-region "Foo" "new" (point-min))
                1))
-    (should (equal (buffer-string) "new bar zot foobar"))))
+    (should (equal (buffer-string) "new bar zot foobar")))
+
+  (with-temp-buffer
+    (insert "foo bar baz")
+    (should (= (replace-string-in-region "ba" "quux corge grault" (point-min))
+               2))
+    (should (equal (buffer-string)
+                    "foo quux corge graultr quux corge graultz")))
+
+  (with-temp-buffer
+    (insert "foo bar bar")
+    (should (= (replace-string-in-region " bar" "" (point-min) 8)
+               1))
+    (should (equal (buffer-string)
+                    "foo bar"))))
 
 (ert-deftest test-replace-regexp-in-region ()
   (with-temp-buffer
@@ -991,7 +1005,21 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (insert "Foo bar zot foobar")
     (should (= (replace-regexp-in-region "Fo+" "new" (point-min))
                1))
-    (should (equal (buffer-string) "new bar zot foobar"))))
+    (should (equal (buffer-string) "new bar zot foobar")))
+
+  (with-temp-buffer
+    (insert "foo bar baz")
+    (should (= (replace-regexp-in-region "ba." "quux corge grault" (point-min))
+               2))
+    (should (equal (buffer-string)
+                    "foo quux corge grault quux corge grault")))
+
+  (with-temp-buffer
+    (insert "foo bar bar")
+    (should (= (replace-regexp-in-region " bar" "" (point-min) 8)
+               1))
+    (should (equal (buffer-string)
+                    "foo bar"))))
 
 (ert-deftest test-with-existing-directory ()
   (let ((dir (make-temp-name "/tmp/not-exist-")))
@@ -1129,6 +1157,14 @@ final or penultimate step during initialization."))
     (dolist (n (cons nil (number-sequence -2 6)))
       (should (equal (butlast l n)
                      (subr-tests--butlast-ref l n))))))
+
+(ert-deftest test-list-of-strings-p ()
+  (should-not (list-of-strings-p 1))
+  (should (list-of-strings-p nil))
+  (should (list-of-strings-p '("a" "b")))
+  (should-not (list-of-strings-p ["a" "b"]))
+  (should-not (list-of-strings-p '("a" nil "b")))
+  (should-not (list-of-strings-p '("a" "b" . "c"))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

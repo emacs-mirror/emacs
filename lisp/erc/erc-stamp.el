@@ -303,7 +303,7 @@ printed just after each line's text (no alignment)."
       ;; to the next line before inserting a stamp.  It allows for
       ;; some margin of error if what is displayed on the line differs
       ;; from the number of characters on the line.
-      (setq col (+ col (ceiling (/ (- col (- (point) (point-at-bol))) 1.6))))
+      (setq col (+ col (ceiling (/ (- col (- (point) (line-beginning-position))) 1.6))))
       (if (< col pos)
 	  (erc-insert-aligned string pos)
 	(newline)

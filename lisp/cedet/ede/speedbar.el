@@ -175,7 +175,7 @@ Argument DIR is the directory from which to derive the list of objects."
     (beginning-of-line)
     (looking-at "^\\([0-9]+\\):")
     (let ((depth (string-to-number (match-string 1))))
-      (while (not (re-search-forward "[]] [^ ]" (point-at-eol) t))
+      (while (not (re-search-forward "[]] [^ ]" (line-end-position) t))
 	(re-search-backward (format "^%d:" (1- depth)))
 	(setq depth (1- depth)))
       (speedbar-line-token))))

@@ -520,7 +520,7 @@ If the list was changed, sort the list and remove duplicates first."
            (looking-at meta-ignore-comment-regexp))
       (current-indentation))
      ;; Beginning of buffer.
-     ((eq (point-at-bol) (point-min))
+     ((eq (line-beginning-position) (point-min))
       0)
      ;; Backindent at end of environments.
      ((meta-indent-looking-at-code
@@ -558,14 +558,14 @@ If the list was changed, sort the list and remove duplicates first."
     (end-of-line)
     ;; Skip backward the comments.
     (let ((point-not-in-string (point)))
-      (while (search-backward comment-start (point-at-bol) t)
+      (while (search-backward comment-start (line-beginning-position) t)
 	(unless (meta-indent-in-string-p)
 	  (setq point-not-in-string (point))))
       (goto-char point-not-in-string))
     ;; Search for the end of the previous expression.
-    (if (search-backward ";" (point-at-bol) t)
+    (if (search-backward ";" (line-beginning-position) t)
 	(progn (while (and (meta-indent-in-string-p)
-			   (search-backward ";" (point-at-bol) t)))
+                           (search-backward ";" (line-beginning-position) t)))
 	       (if (= (char-after) ?\;)
 		   (forward-char)
 		 (beginning-of-line)))

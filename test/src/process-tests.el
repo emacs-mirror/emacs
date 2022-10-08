@@ -134,12 +134,12 @@ process to complete."
     (should (equal 1 (with-current-buffer stdout-buffer
 		       (point-max))))
     (should (equal "hello stdout!\n"
-		   (mapconcat #'identity (nreverse stdout-output) "")))
+		   (mapconcat #'identity (nreverse stdout-output))))
     (should stderr-sentinel-called)
     (should (equal 1 (with-current-buffer stderr-buffer
 		       (point-max))))
     (should (equal "hello stderr!\n"
-		   (mapconcat #'identity (nreverse stderr-output) ""))))))
+		   (mapconcat #'identity (nreverse stderr-output)))))))
 
 (ert-deftest set-process-filter-t ()
   "Test setting process filter to t and back." ;; Bug#36591
@@ -160,8 +160,7 @@ process to complete."
                         (setq count (1+ count))))))))
       (set-process-query-on-exit-flag proc nil)
       (send-string proc "one\n")
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "1> "))
         (accept-process-output proc))   ; Read "one".
       (should (equal (buffer-string) "0> one\n1> "))
@@ -171,8 +170,7 @@ process to complete."
        (accept-process-output proc 1))  ; Can't read "two" yet.
       (should (equal (buffer-string) "0> one\n1> "))
       (set-process-filter proc nil)     ; Resume reading from proc.
-      (while (not (equal (buffer-substring
-                          (line-beginning-position) (point-max))
+      (while (not (equal (buffer-substring (pos-bol) (point-max))
                          "2> "))
         (accept-process-output proc))   ; Read "Two".
       (should (equal (buffer-string) "0> one\n1> two\n2> "))))))

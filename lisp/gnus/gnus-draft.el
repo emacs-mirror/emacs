@@ -150,7 +150,7 @@ Obeys the standard process/prefix convention."
 	     (concat "^" (regexp-quote gnus-agent-target-move-group-header)
 		     ":") nil t)
 	(skip-syntax-forward "-")
-	(setq move-to (buffer-substring (point) (point-at-eol)))
+        (setq move-to (buffer-substring (point) (line-end-position)))
 	(message-remove-header gnus-agent-target-move-group-header))
       (goto-char (point-min))
       (when (re-search-forward

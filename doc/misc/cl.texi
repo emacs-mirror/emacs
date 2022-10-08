@@ -920,69 +920,6 @@ cl-caaar@dots{}cl-cddddr          cl-first@dots{}cl-tenth
 Note that for @code{cl-getf} (as for @code{nthcdr}), the list argument
 of the function must itself be a valid @var{place} form.
 
-@item
-General Emacs Lisp functions:
-@example
-buffer-file-name                   getenv
-buffer-modified-p                  global-key-binding
-buffer-name                        local-key-binding
-buffer-string                      mark
-buffer-substring                   mark-marker
-current-buffer                     marker-position
-current-case-table                 mouse-position
-current-column                     point
-current-global-map                 point-marker
-current-input-mode                 point-max
-current-local-map                  point-min
-current-window-configuration       read-mouse-position
-default-file-modes                 screen-height
-documentation-property             screen-width
-face-background                    selected-window
-face-background-pixmap             selected-screen
-face-font                          selected-frame
-face-foreground                    standard-case-table
-face-underline-p                   syntax-table
-file-modes                         visited-file-modtime
-frame-height                       window-height
-frame-parameters                   window-width
-frame-visible-p                    x-get-secondary-selection
-frame-width                        x-get-selection
-get-register
-@end example
-
-Most of these have directly corresponding ``set'' functions, like
-@code{use-local-map} for @code{current-local-map}, or @code{goto-char}
-for @code{point}.  A few, like @code{point-min}, expand to longer
-sequences of code when they are used with @code{setf}
-(@code{(narrow-to-region x (point-max))} in this case).
-
-@item
-A call of the form @code{(substring @var{subplace} @var{n} [@var{m}])},
-where @var{subplace} is itself a valid generalized variable whose
-current value is a string, and where the value stored is also a
-string.  The new string is spliced into the specified part of the
-destination string.  For example:
-
-@example
-(setq a (list "hello" "world"))
-     @result{} ("hello" "world")
-(cadr a)
-     @result{} "world"
-(substring (cadr a) 2 4)
-     @result{} "rl"
-(setf (substring (cadr a) 2 4) "o")
-     @result{} "o"
-(cadr a)
-     @result{} "wood"
-a
-     @result{} ("hello" "wood")
-@end example
-
-The generalized variable @code{buffer-substring}, listed above,
-also works in this way by replacing a portion of the current buffer.
-
-@c FIXME?  Also 'eq'? (see cl-lib.el)
-
 @c Currently commented out in cl.el.
 @ignore
 @item
@@ -1381,19 +1318,10 @@ bar
 
 A @code{setq} of a symbol macro is treated the same as a @code{setf}.
 I.e., @code{(setq foo 4)} in the above would be equivalent to
-@code{(setf foo 4)}, which in turn expands to @code{(setf (car bar) 4)}.
-
-Likewise, a @code{let} or @code{let*} binding a symbol macro is
-treated like a @code{cl-letf} or @code{cl-letf*}.  This differs from true
-Common Lisp, where the rules of lexical scoping cause a @code{let}
-binding to shadow a @code{symbol-macrolet} binding.  In this package,
-such shadowing does not occur, even when @code{lexical-binding} is
-@c See https://debbugs.gnu.org/12119
-@code{t}.  (This behavior predates the addition of lexical binding to
-Emacs Lisp, and may change in future to respect @code{lexical-binding}.)
-At present in this package, only @code{lexical-let} and
-@code{lexical-let*} will shadow a symbol macro.  @xref{Obsolete
-Lexical Binding}.
+@code{(setf foo 4)}, which in turn expands to @code{(setf (car bar)
+4)}.  A @code{let} (or @code{let*}, @code{lambda}, ...) binding of
+the same symbol will locally shadow the symbol macro as is the case in
+Common Lisp.
 
 There is no analogue of @code{defmacro} for symbol macros; all symbol
 macros are local.  A typical use of @code{cl-symbol-macrolet} is in the

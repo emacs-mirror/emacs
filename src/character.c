@@ -178,12 +178,16 @@ usage: (characterp OBJECT)  */
   return (CHARACTERP (object) ? Qt : Qnil);
 }
 
-DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
-       doc: /* Return the character of the maximum code.  */
+DEFUN ("max-char", Fmax_char, Smax_char, 0, 1, 0,
+       doc: /* Return the maximum character code.
+If UNICODE is non-nil, return the maximum character code defined
+by the Unicode Standard.  */
        attributes: const)
-  (void)
+  (Lisp_Object unicode)
 {
-  return make_fixnum (MAX_CHAR);
+  return (!NILP (unicode)
+	  ? make_fixnum (MAX_UNICODE_CHAR)
+	  : make_fixnum (MAX_CHAR));
 }
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,

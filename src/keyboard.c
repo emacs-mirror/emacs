@@ -499,27 +499,18 @@ echo_add_key (Lisp_Object c)
 			STRING_MULTIBYTE (name), 1);
     }
 
+  Lisp_Object new_string = make_string (buffer, ptr - buffer);
   if ((NILP (echo_string) || SCHARS (echo_string) == 0)
       && help_char_p (c))
     {
-      static const char text[] = " (Type ? for further options)";
-      int len = sizeof text - 1;
-
-      if (size - (ptr - buffer) < len)
-	{
-	  ptrdiff_t offset = ptr - buffer;
-	  size += len;
-	  buffer = SAFE_ALLOCA (size);
-	  ptr = buffer + offset;
-	}
-
-      memcpy (ptr, text, len);
-      ptr += len;
+      AUTO_STRING (str, " (Type ? for further options)");
+      AUTO_LIST2 (props, Qface, Qhelp_key_binding);
+      Fadd_text_properties (make_fixnum (7), make_fixnum (8), props, str);
+      new_string = concat2 (new_string, str);
     }
 
-  kset_echo_string
-    (current_kboard,
-     concat2 (echo_string, make_string (buffer, ptr - buffer)));
+  kset_echo_string (current_kboard,
+		    concat2 (echo_string, new_string));
   SAFE_FREE ();
 }
 
@@ -1827,21 +1818,15 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
     }
 }
 
-/* Subroutine for safe_run_hooks: run the hook, which is ARGS[1].  */
+/* Subroutine for safe_run_hooks: run the hook's function.
+   ARGS[0] holds the name of the hook, which we don't need here (we only use
+   it in the failure case of the internal_condition_case_n).  */
 
 static Lisp_Object
 safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
-  switch (nargs)
-    {
-    case 2:
-      return call0 (args[1]);
-    case 3:
-      return call1 (args[1], args[2]);
-    default:
-      return call2 (args[1], args[2], args[3]);
-    }
+  eassert (nargs >= 2);
+  return Ffuncall (nargs - 1, args + 1);
 }
 
 /* Subroutine for safe_run_hooks: handle an error by clearing out the function
@@ -1850,7 +1835,7 @@ safe_run_hooks_1 (ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
+  eassert (nargs >= 2);
   AUTO_STRING (format, "Error in %s (%S): %S");
   Lisp_Object hook = args[0];
   Lisp_Object fun = args[1];
@@ -1886,27 +1871,22 @@ safe_run_hooks_error (Lisp_Object error, ptrdiff_t nargs, Lisp_Object *args)
 static Lisp_Object
 safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
-  eassert (nargs >= 2 && nargs <= 4);
-  /* Yes, run_hook_with_args works with args in the other order.  */
-  switch (nargs)
-    {
-    case 2:
-      internal_condition_case_n (safe_run_hooks_1,
-				 2, ((Lisp_Object []) {args[1], args[0]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    case 3:
-      internal_condition_case_n (safe_run_hooks_1,
-				 3, ((Lisp_Object []) {args[1], args[0], args[2]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    default:
-      internal_condition_case_n (safe_run_hooks_1,
-				 4, ((Lisp_Object [])
-				     {args[1], args[0], args[2], args[3]}),
-				 Qt, safe_run_hooks_error);
-      break;
-    }
+  /* We need to swap args[0] and args[1] here or in `safe_run_hooks_1`.
+     It's more convenient to do it here.  */
+  eassert (nargs >= 2);
+  Lisp_Object fun = args[0], hook = args[1];
+  /* The `nargs` array cannot be mutated safely here because it is
+     reused by our caller `run_hook_with_args`.
+     We could arguably change it temporarily if we set it back
+     to its original state before returning, but it's too ugly.  */
+  USE_SAFE_ALLOCA;
+  Lisp_Object *newargs;
+  SAFE_ALLOCA_LISP (newargs, nargs);
+  newargs[0] = hook, newargs[1] = fun;
+  memcpy (newargs + 2, args + 2, (nargs - 2) * word_size);
+  internal_condition_case_n (safe_run_hooks_1, nargs, newargs,
+                             Qt, safe_run_hooks_error);
+  SAFE_FREE ();
   return Qnil;
 }
 
@@ -1920,7 +1900,8 @@ safe_run_hooks (Lisp_Object hook)
   specpdl_ref count = SPECPDL_INDEX ();
 
   specbind (Qinhibit_quit, Qt);
-  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
+                      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
@@ -1936,7 +1917,8 @@ safe_run_hooks_maybe_narrowed (Lisp_Object hook, struct window *w)
 			       make_fixnum (get_narrowed_zv (w, PT)),
 			       true);
 
-  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}), safe_run_hook_funcall);
+  run_hook_with_args (2, ((Lisp_Object []) {hook, hook}),
+                      safe_run_hook_funcall);
   unbind_to (count, Qnil);
 }
 
@@ -11806,6 +11788,9 @@ DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
        doc: /* Return position information for buffer position POS in WINDOW.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
+If POS is in invisible text or is hidden by `display' properties,
+this function may report on buffer positions before or after POS.
+
 Return nil if POS is not visible in WINDOW.  Otherwise,
 the return value is similar to that returned by `event-start' for
 a mouse click at the upper left corner of the glyph corresponding
@@ -12257,6 +12242,8 @@ syms_of_keyboard (void)
   DEFSYM (Qinput_method_use_echo_area, "input-method-use-echo-area");
 
   DEFSYM (Qhelp_form_show, "help-form-show");
+
+  DEFSYM (Qhelp_key_binding, "help-key-binding");
 
   DEFSYM (Qecho_keystrokes, "echo-keystrokes");
 

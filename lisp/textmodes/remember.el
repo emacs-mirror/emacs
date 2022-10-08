@@ -548,13 +548,11 @@ If this is nil, then `diary-file' will be used instead."
 
 ;;; Internal Functions:
 
-(defvar remember-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" #'remember-finalize)
-    (define-key map "\C-c\C-c" #'remember-finalize)
-    (define-key map "\C-c\C-k" #'remember-destroy)
-    map)
-  "Keymap used in `remember-mode'.")
+(defvar-keymap remember-mode-map
+  :doc "Keymap used in `remember-mode'."
+  "C-x C-s" #'remember-finalize
+  "C-c C-c" #'remember-finalize
+  "C-c C-k" #'remember-destroy)
 
 (define-derived-mode remember-mode text-mode "Remember"
   "Major mode for output from \\[remember].
@@ -596,11 +594,9 @@ If this is nil, use `initial-major-mode'."
 
 
 
-(defvar remember-notes-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" #'remember-notes-save-and-bury-buffer)
-    map)
-  "Keymap used in `remember-notes-mode'.")
+(defvar-keymap remember-notes-mode-map
+  :doc "Keymap used in `remember-notes-mode'."
+  "C-c C-c" #'remember-notes-save-and-bury-buffer)
 
 (define-minor-mode remember-notes-mode
   "Minor mode for the `remember-notes' buffer.

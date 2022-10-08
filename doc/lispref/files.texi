@@ -2445,7 +2445,7 @@ You can use this function for directory names and for file names,
 because it recognizes abbreviations even as part of the name.
 @end defun
 
-@defun file-parent-directory filename
+@defun file-name-parent-directory filename
 This function returns the directory name of the parent directory of
 @var{filename}.  If @var{filename} is at the root directory of the
 filesystem, it returns @code{nil}.  A relative @var{filename} is

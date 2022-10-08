@@ -94,11 +94,6 @@
 ;; This second one is closely related to what we do here (and that's
 ;; the name "generalizer" comes from).
 
-;; The autoloads.el mechanism which adds package--builtin-versions
-;; maintenance to loaddefs.el doesn't work for preloaded packages (such
-;; as this one), so we have to do it by hand!
-(push (purecopy '(cl-generic 1 0)) package--builtin-versions)
-
 ;; Note: For generic functions that dispatch on several arguments (i.e. those
 ;; which use the multiple-dispatch feature), we always use the same "tagcodes"
 ;; and the same set of arguments on which to dispatch.  This works, but is
@@ -425,11 +420,13 @@ the specializer used will be the one returned by BODY."
                 ;; only called with explicit arguments.
                 (uses-cnm (macroexp--fgrep `((,cnm) (,nmp)) nbody))
                 (λ-lift (mapcar #'car uses-cnm)))
-           (if (not uses-cnm)
-               (cons nil
-                     `#'(lambda (,@args)
-                          ,@(car parsed-body)
-                          ,nbody))
+           (cond
+            ((not uses-cnm)
+             (cons nil
+                   `#'(lambda (,@args)
+                        ,@(car parsed-body)
+                        ,nbody)))
+            (lexical-binding
              (cons 'curried
                    `#'(lambda (,nm) ;Called when constructing the effective method.
                         (let ((,nmp (if (cl--generic-isnot-nnm-p ,nm)
@@ -465,7 +462,20 @@ the specializer used will be the one returned by BODY."
                               ;; A destructuring-bind would do the trick
                               ;; as well when/if it's more efficient.
                               (apply (lambda (,@λ-lift ,@args) ,nbody)
-                                     ,@λ-lift ,arglist)))))))))
+                                     ,@λ-lift ,arglist)))))))
+            (t
+             (cons t
+                 `#'(lambda (,cnm ,@args)
+                      ,@(car parsed-body)
+                      ,(macroexp-warn-and-return
+                        "cl-defmethod used without lexical-binding"
+                        (if (not (assq nmp uses-cnm))
+                            nbody
+                          `(let ((,nmp (lambda ()
+                                         (cl--generic-isnot-nnm-p ,cnm))))
+                             ,nbody))
+                        'lexical t)))))
+           ))
         (f (error "Unexpected macroexpansion result: %S" f))))))
 
 (put 'cl-defmethod 'function-documentation

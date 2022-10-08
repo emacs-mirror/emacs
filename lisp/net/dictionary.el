@@ -59,7 +59,7 @@ the existing connection."
 
 (defgroup dictionary nil
   "Client for accessing the dictd server based dictionaries."
-  :group 'hypermedia)
+  :group 'applications)
 
 (defgroup dictionary-proxy nil
   "Proxy configuration options for the dictionary client."

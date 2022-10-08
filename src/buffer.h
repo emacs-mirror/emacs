@@ -149,12 +149,18 @@ enum { BEG = 1, BEG_BYTE = BEG };
 #define BUF_BEG_UNCHANGED(buf) ((buf)->text->beg_unchanged)
 #define BUF_END_UNCHANGED(buf) ((buf)->text->end_unchanged)
 
+#define BUF_CHARS_UNCHANGED_MODIFIED(buf) \
+  ((buf)->text->chars_unchanged_modified)
+
 #define UNCHANGED_MODIFIED \
   BUF_UNCHANGED_MODIFIED (current_buffer)
 #define OVERLAY_UNCHANGED_MODIFIED \
   BUF_OVERLAY_UNCHANGED_MODIFIED (current_buffer)
 #define BEG_UNCHANGED BUF_BEG_UNCHANGED (current_buffer)
 #define END_UNCHANGED BUF_END_UNCHANGED (current_buffer)
+
+#define CHARS_UNCHANGED_MODIFIED \
+  BUF_CHARS_UNCHANGED_MODIFIED (current_buffer)
 
 /* Functions to set PT in the current buffer, or another buffer.  */
 
@@ -267,6 +273,11 @@ struct buffer_text
        finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
        end_unchanged contain no useful information.  */
     modiff_count overlay_unchanged_modified;
+
+    /* CHARS_MODIFF as of last redisplay that finished.  It's used
+       when we only care about changes in actual buffer text, not in
+       any other kind of changes, like properties etc.  */
+    modiff_count chars_unchanged_modified;
 
     /* Properties of this buffer's text.  */
     INTERVAL intervals;

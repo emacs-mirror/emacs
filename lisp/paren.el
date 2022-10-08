@@ -118,6 +118,14 @@ On non-graphical frames, the context is shown in the echo area."
   (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
   "Overlay used to highlight the paren at point.")
 
+(defcustom show-paren-predicate '(not (derived-mode . special-mode))
+  "Whether to use `show-paren-mode' in a buffer.
+The default is to enable the mode in all buffers that have don't
+derive from `special-mode', which means that it's on (by default)
+in all editing buffers."
+  :type 'buffer-predicate
+  :safe #'booleanp
+  :version "29.1")
 
 ;;;###autoload
 (define-minor-mode show-paren-mode
@@ -125,6 +133,9 @@ On non-graphical frames, the context is shown in the echo area."
 
 When enabled, any matching parenthesis is highlighted in `show-paren-style'
 after `show-paren-delay' seconds of Emacs idle time.
+
+Also see `show-paren-predicate', which controls which buffers
+this mode is enabled in.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `show-paren-local-mode'."
@@ -149,7 +160,8 @@ use `show-paren-local-mode'."
 ;;;###autoload
 (define-minor-mode show-paren-local-mode
   "Toggle `show-paren-mode' only in this buffer."
-  :variable (buffer-local-value 'show-paren-mode (current-buffer))
+  :variable ( show-paren-mode .
+              (lambda (val) (setq-local show-paren-mode val)))
   (cond
    ((eq show-paren-mode (default-value 'show-paren-mode))
     (unless show-paren-mode
@@ -413,7 +425,13 @@ It is the default value of `show-paren-data-function'."
 
 (defun show-paren-function ()
   "Highlight the parentheses until the next input arrives."
-  (let ((data (and show-paren-mode (funcall show-paren-data-function))))
+  (let ((data (and show-paren-mode
+                   ;; If we're using `show-paren-local-mode', then
+                   ;; always heed the value.
+                   (or (local-variable-p 'show-paren-mode)
+                       ;; If not, check that the predicate matches.
+                       (buffer-match-p show-paren-predicate (current-buffer)))
+                   (funcall show-paren-data-function))))
     (if (not data)
         (progn
           ;; If show-paren-mode is nil in this buffer or if not at a paren that

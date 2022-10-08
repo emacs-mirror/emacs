@@ -177,10 +177,9 @@ Lays claim to all -by.el, and -wy.el files."
 
 (cl-defmethod ede-proj-makefile-insert-rules :after ((this semantic-ede-proj-target-grammar))
     "Insert rules needed by THIS target.
-This raises `max-specpdl-size' and `max-lisp-eval-depth', which can be
-needed for the compilation of the resulting parsers."
-    (insert (format "%s: EMACSFLAGS+= --eval '(setq max-specpdl-size 1500 \
-max-lisp-eval-depth 700)'\n"
+This raises `max-lisp-eval-depth', which can be needed for the compilation
+of the resulting parsers."
+    (insert (format "%s: EMACSFLAGS+= --eval '(setq max-lisp-eval-depth 700)'\n"
 		    (oref this name))))
 
 (cl-defmethod ede-proj-makefile-insert-dist-dependencies ((this semantic-ede-proj-target-grammar))

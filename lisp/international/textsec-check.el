@@ -35,7 +35,7 @@ If nil, these checks are disabled."
   :version "29.1")
 
 (defface textsec-suspicious
-  '((t (:weight bold :background "red")))
+  '((t (:weight bold :background "red" :foreground "white")))
   "Face used to highlight suspicious strings.")
 
 ;;;###autoload

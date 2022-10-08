@@ -29,7 +29,6 @@
 #endif
 #include "sha1.h"
 
-#include <stdalign.h>
 #include <stdint.h>
 #include <string.h>
 

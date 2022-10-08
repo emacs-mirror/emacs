@@ -370,7 +370,7 @@ haikufont_maybe_handle_special_family (Lisp_Object family,
       BFont_populate_fixed_family (ptn);
       return 1;
     }
-  else if (EQ (family, intern ("Sans Serif")))
+  else if (EQ (family, QSans_Serif))
     {
       BFont_populate_plain_family (ptn);
       return 1;
@@ -1311,6 +1311,98 @@ in the font selection dialog.  */)
 		QCsize, lsize);
 }
 
+DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
+       Sfont_get_system_normal_font, 0, 0, 0,
+       doc: /* SKIP: real doc in xsettings.c.  */)
+  (void)
+{
+  Lisp_Object value;
+  const char *name, *style;
+  struct haiku_font_pattern pattern;
+  Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle;
+  int size;
+
+  if (!be_lock_font_defaults ())
+    return Qnil;
+
+  name = be_get_font_default (DEFAULT_FAMILY);
+  style = be_get_font_default (DEFAULT_STYLE);
+  size = be_get_font_size (DEFAULT_FAMILY);
+
+  be_font_style_to_flags (style, &pattern);
+
+  lfamily = build_string_from_utf8 (name);
+  lweight = (pattern.specified & FSPEC_WEIGHT
+	     ? haikufont_weight_to_lisp (pattern.weight) : Qnil);
+  lslant = (pattern.specified & FSPEC_SLANT
+	    ? haikufont_slant_to_lisp (pattern.slant) : Qnil);
+  lwidth = (pattern.specified & FSPEC_WIDTH
+	    ? haikufont_width_to_lisp (pattern.width) : Qnil);
+  ladstyle = (pattern.specified & FSPEC_STYLE
+	      ? intern (pattern.style) : Qnil);
+
+  value = CALLN (Ffont_spec, QCfamily, lfamily,
+		 QCweight, lweight, QCslant, lslant,
+		 QCwidth, lwidth, QCadstyle, ladstyle,
+		 QCsize, make_fixnum (size));
+  be_unlock_font_defaults ();
+
+  return value;
+}
+
+DEFUN ("font-get-system-font", Ffont_get_system_font,
+       Sfont_get_system_font, 0, 0, 0,
+       doc: /* SKIP: real doc in xsettings.c.  */)
+  (void)
+{
+  Lisp_Object value;
+  const char *name, *style;
+  struct haiku_font_pattern pattern;
+  Lisp_Object lfamily, lweight, lslant, lwidth, ladstyle;
+  int size;
+
+  if (!be_lock_font_defaults ())
+    return Qnil;
+
+  name = be_get_font_default (FIXED_FAMILY);
+  style = be_get_font_default (FIXED_STYLE);
+  size = be_get_font_size (FIXED_FAMILY);
+
+  be_font_style_to_flags (style, &pattern);
+
+  lfamily = build_string_from_utf8 (name);
+  lweight = (pattern.specified & FSPEC_WEIGHT
+	     ? haikufont_weight_to_lisp (pattern.weight) : Qnil);
+  lslant = (pattern.specified & FSPEC_SLANT
+	    ? haikufont_slant_to_lisp (pattern.slant) : Qnil);
+  lwidth = (pattern.specified & FSPEC_WIDTH
+	    ? haikufont_width_to_lisp (pattern.width) : Qnil);
+  ladstyle = (pattern.specified & FSPEC_STYLE
+	      ? intern (pattern.style) : Qnil);
+
+  value = CALLN (Ffont_spec, QCfamily, lfamily,
+		 QCweight, lweight, QCslant, lslant,
+		 QCwidth, lwidth, QCadstyle, ladstyle,
+		 QCsize, make_fixnum (size));
+  be_unlock_font_defaults ();
+
+  return value;
+}
+
+void
+haiku_handle_font_change_event (struct haiku_font_change_event *event,
+				struct input_event *ie)
+{
+  ie->kind = CONFIG_CHANGED_EVENT;
+
+  /* This is the name of the display.  */
+  ie->frame_or_window = XCAR (x_display_list->name_list_element);
+
+  /* And this is the font that changed.  */
+  ie->arg = (event->what == FIXED_FAMILY
+	     ? Qmonospace_font_name : Qfont_name);
+}
+
 static void
 syms_of_haikufont_for_pdumper (void)
 {
@@ -1320,6 +1412,7 @@ syms_of_haikufont_for_pdumper (void)
 void
 syms_of_haikufont (void)
 {
+  DEFSYM (QSans_Serif, "Sans Serif");
   DEFSYM (Qfontsize, "fontsize");
   DEFSYM (Qfixed, "fixed");
   DEFSYM (Qplain, "plain");
@@ -1343,6 +1436,14 @@ syms_of_haikufont (void)
 
   DEFSYM (QCindices, ":indices");
 
+  DEFSYM (Qmonospace_font_name, "monospace-font-name");
+  DEFSYM (Qfont_name, "font-name");
+  DEFSYM (Qdynamic_setting, "dynamic-setting");
+
+  DEFVAR_BOOL ("font-use-system-font", use_system_font,
+    doc: /* SKIP: real doc in xsettings.c.  */);
+  use_system_font = false;
+
 #ifdef USE_BE_CAIRO
   Fput (Qhaiku, Qfont_driver_superseded_by, Qftcr);
 #endif
@@ -1352,6 +1453,12 @@ syms_of_haikufont (void)
   staticpro (&font_cache);
 
   defsubr (&Sx_select_font);
+  defsubr (&Sfont_get_system_normal_font);
+  defsubr (&Sfont_get_system_font);
 
   be_init_font_data ();
+
+  /* This tells loadup to load dynamic-setting.el, which handles
+     config-changed events.  */
+  Fprovide (Qdynamic_setting, Qnil);
 }

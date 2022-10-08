@@ -911,7 +911,7 @@ Kill the Configure buffer if it was not already in a buffer."
     (goto-char (point-min))
     (when (re-search-forward (concat "^" (regexp-quote var) "\\s-*=\\s-*")
 			     nil t)
-      (buffer-substring-no-properties (point) (point-at-eol)))))
+      (buffer-substring-no-properties (point) (line-end-position)))))
 
 (defun project-am-extract-package-info (dir)
   "Extract the package information for directory DIR."

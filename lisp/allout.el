@@ -1352,8 +1352,6 @@ their settings before `allout-mode' was started."
   "Symbol for use as allout invisible-text overlay category.")
 
 ;;;_   = allout-exposure-change-functions
-(define-obsolete-variable-alias 'allout-exposure-change-hook
-  'allout-exposure-change-functions "24.3")
 (defcustom allout-exposure-change-functions nil
   "Abnormal hook run after allout outline subtree exposure changes.
 It is run at the conclusion of `allout-flag-region'.
@@ -1370,8 +1368,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-added-functions
-(define-obsolete-variable-alias 'allout-structure-added-hook
-  'allout-structure-added-functions "24.3")
 (defcustom allout-structure-added-functions nil
   "Abnormal hook run after adding items to an Allout outline.
 Functions on the hook should take two arguments:
@@ -1385,8 +1381,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-deleted-functions
-(define-obsolete-variable-alias 'allout-structure-deleted-hook
-  'allout-structure-deleted-functions "24.3")
 (defcustom allout-structure-deleted-functions nil
   "Abnormal hook run after deleting subtrees from an Allout outline.
 Functions on the hook must take two arguments:
@@ -1403,8 +1397,6 @@ This hook might be invoked multiple times by a single command."
   :version "24.3")
 
 ;;;_   = allout-structure-shifted-functions
-(define-obsolete-variable-alias 'allout-structure-shifted-hook
-  'allout-structure-shifted-functions "24.3")
 (defcustom allout-structure-shifted-functions nil
   "Abnormal hook run after shifting items in an Allout outline.
 Functions on the hook should take two arguments:
@@ -4598,7 +4590,7 @@ by pops to non-distinctive yanks.  Bug..."
         (save-match-data
           (save-excursion
             (let* ((text-start allout-recent-prefix-end)
-                   (heading-end (point-at-eol)))
+                   (heading-end (line-end-position)))
               (goto-char text-start)
               (setq file-name
                     (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
@@ -4874,7 +4866,7 @@ siblings, even if the target topic is already closed."
   (interactive)
   (save-excursion
     (allout-back-to-heading)
-    (if (allout-hidden-p (point-at-eol))
+    (if (allout-hidden-p (line-end-position))
         (allout-show-current-subtree)
       (allout-hide-current-subtree))))
 ;;;_   > allout-show-current-branches ()
@@ -5537,7 +5529,7 @@ environment.  Leaves point at the end of the line."
   (let ((inhibit-field-text-motion t))
     (beginning-of-line)
     (let (;(beg (point))
-          (end (point-at-eol)))
+          (end (line-end-position)))
       (save-match-data
         (while (re-search-forward "\\\\"
   ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"

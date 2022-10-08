@@ -84,12 +84,22 @@ performed."
 
 
 (defcustom glasses-face nil
-  "Face to be put on capitals of an identifier looked through glasses.
-If it is nil, no face is placed at the capitalized letter.
+  "Face to use for capital letters of identifiers where separators were added.
+If it is nil, the capital letters will display with their usual faces.
 
 For example, you can set `glasses-separator' to an empty string and
 `glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
-but will have their capitals in bold."
+but will have their capitals in bold.
+
+As another example, you may wish to have a clear visual indication of
+where the `glasses-separator' string was inserted by `glasses-mode',
+as opposed to where they are part of the original identifiers.  This
+can be useful when the program source code uses mixed CamelCase and
+normal_readable identifiers, and you want to know which underscores
+were added by this mode.  Customizing this face to something like `bold'
+will show the capital letters following the inserted `glasses-separator'
+in a distinct face.  Note that you must use `customize-variable' for
+changing the face; just assigning the value has no effect."
   :type '(choice (const :tag "None" nil) face)
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
@@ -243,7 +253,8 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
 	  (while (re-search-forward "[a-zA-Z]_*\\((\\)" end t)
-	    (unless (glasses-parenthesis-exception-p (point-at-bol) (match-end 1))
+            (unless (glasses-parenthesis-exception-p (line-beginning-position)
+                                                     (match-end 1))
 	      (glasses-make-overlay (match-beginning 1) (match-end 1)
 				    'glasses-parenthesis))))))))
 
@@ -282,7 +293,8 @@ recognized according to the current value of the variable `glasses-separator'."
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)(" nil t)
-	    (unless (glasses-parenthesis-exception-p (point-at-bol) (1+ (match-end 1)))
+            (unless (glasses-parenthesis-exception-p (line-beginning-position)
+                                                     (1+ (match-end 1)))
 	      (replace-match "" t nil nil 1)))))))
   ;; nil must be returned to allow use in write file hooks
   nil)

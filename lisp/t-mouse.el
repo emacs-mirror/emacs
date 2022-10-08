@@ -62,6 +62,9 @@
     (gpm-mouse-stop))
   (set-terminal-parameter nil 'gpm-mouse-active nil))
 
+(defun gpm-mouse-tty-setup ()
+  (if gpm-mouse-mode (gpm-mouse-enable) (gpm-mouse-disable)))
+
 ;;;###autoload
 (define-minor-mode gpm-mouse-mode
   "Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
@@ -80,7 +83,9 @@ GPM.  This is due to limitations in GPM and the Linux kernel."
                         (terminal-parameter terminal 'gpm-mouse-active))))
       ;; Simulate selecting a terminal by selecting one of its frames ;-(
       (with-selected-frame (car (frames-on-display-list terminal))
-        (if gpm-mouse-mode (gpm-mouse-enable) (gpm-mouse-disable))))))
+        (gpm-mouse-tty-setup))))
+  (when gpm-mouse-mode
+    (add-hook 'tty-setup-hook #'gpm-mouse-tty-setup)))
 
 (provide 't-mouse)
 

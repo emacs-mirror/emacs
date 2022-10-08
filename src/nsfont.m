@@ -324,106 +324,98 @@ ns_get_family (Lisp_Object font_spec)
 static NSFontDescriptor *
 ns_spec_to_descriptor (Lisp_Object font_spec)
 {
-    NSFontDescriptor *fdesc;
-    NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
-    NSString *family = ns_get_family (font_spec);
-    NSMutableDictionary *tdict = [NSMutableDictionary new];
+  NSFontDescriptor *fdesc;
+  NSMutableDictionary *fdAttrs = [NSMutableDictionary new];
+  NSString *family = ns_get_family (font_spec);
+  NSMutableDictionary *tdict = [NSMutableDictionary new];
 
-    Lisp_Object tem;
+  Lisp_Object tem;
 
-    tem = FONT_SLANT_SYMBOLIC (font_spec);
-    if (!NILP (tem))
-      {
-	if (EQ (tem, Qitalic) || EQ (tem, Qoblique))
+  tem = FONT_SLANT_SYMBOLIC (font_spec);
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qitalic) || EQ (tem, Qoblique))
+	[tdict setObject: [NSNumber numberWithFloat: 1.0]
+		  forKey: NSFontSlantTrait];
+      else if (EQ (tem, intern ("reverse-italic"))
+	       || EQ (tem, intern ("reverse-oblique")))
+	[tdict setObject: [NSNumber numberWithFloat: -1.0]
+		  forKey: NSFontSlantTrait];
+      else
+	[tdict setObject: [NSNumber numberWithFloat: 0.0]
+		  forKey: NSFontSlantTrait];
+    }
+
+  tem = FONT_WIDTH_SYMBOLIC (font_spec);
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qcondensed))
+	[tdict setObject: [NSNumber numberWithFloat: -1.0]
+		  forKey: NSFontWidthTrait];
+      else if (EQ (tem, Qexpanded))
+	[tdict setObject: [NSNumber numberWithFloat: 1.0]
+		  forKey: NSFontWidthTrait];
+      else
+	[tdict setObject: [NSNumber numberWithFloat: 0.0]
+		  forKey: NSFontWidthTrait];
+    }
+
+  tem = FONT_WEIGHT_SYMBOLIC (font_spec);
+
+  if (!NILP (tem))
+    {
+      if (EQ (tem, Qbold))
+	{
 	  [tdict setObject: [NSNumber numberWithFloat: 1.0]
-		    forKey: NSFontSlantTrait];
-	else if (EQ (tem, intern ("reverse-italic")) ||
-		 EQ (tem, intern ("reverse-oblique")))
+		    forKey: NSFontWeightTrait];
+	}
+      else if (EQ (tem, Qlight))
+	{
 	  [tdict setObject: [NSNumber numberWithFloat: -1.0]
-		    forKey: NSFontSlantTrait];
-	else
+		    forKey: NSFontWeightTrait];
+	}
+      else
+	{
 	  [tdict setObject: [NSNumber numberWithFloat: 0.0]
-		    forKey: NSFontSlantTrait];
-      }
+		    forKey: NSFontWeightTrait];
+	}
+    }
 
-    tem = FONT_WIDTH_SYMBOLIC (font_spec);
-    if (!NILP (tem))
-      {
-	if (EQ (tem, Qcondensed))
-	  [tdict setObject: [NSNumber numberWithFloat: -1.0]
-		    forKey: NSFontWidthTrait];
-	else if (EQ (tem, Qexpanded))
-	  [tdict setObject: [NSNumber numberWithFloat: 1.0]
-		    forKey: NSFontWidthTrait];
-	else
-	  [tdict setObject: [NSNumber numberWithFloat: 0.0]
-		    forKey: NSFontWidthTrait];
-      }
+  tem = AREF (font_spec, FONT_SPACING_INDEX);
 
-    tem = FONT_WEIGHT_SYMBOLIC (font_spec);
+  if (family != nil)
+    [fdAttrs setObject: family
+		forKey: NSFontFamilyAttribute];
 
-    if (!NILP (tem))
-      {
-	if (EQ (tem, Qbold))
-	  {
-	    [tdict setObject: [NSNumber numberWithFloat: 1.0]
-		      forKey: NSFontWeightTrait];
-	  }
-	else if (EQ (tem, Qlight))
-	  {
-	    [tdict setObject: [NSNumber numberWithFloat: -1.0]
-		      forKey: NSFontWeightTrait];
-	  }
-	else
-	  {
-	    [tdict setObject: [NSNumber numberWithFloat: 0.0]
-		      forKey: NSFontWeightTrait];
-	  }
-      }
+  if (FIXNUMP (tem))
+    {
+      if (XFIXNUM (tem) != FONT_SPACING_PROPORTIONAL)
+	[fdAttrs setObject: [NSNumber numberWithBool: YES]
+		    forKey: NSFontFixedAdvanceAttribute];
+      else
+	[fdAttrs setObject: [NSNumber numberWithBool: NO]
+		    forKey: NSFontFixedAdvanceAttribute];
+    }
 
-    tem = AREF (font_spec, FONT_SPACING_INDEX);
+  /* Handle special families such as ``fixed'', ``monospace'' or
+     ``Sans Serif''.  */
 
-    if (family != nil)
-      {
-	[fdAttrs setObject: family
-		    forKey: NSFontFamilyAttribute];
-      }
+  if ([family isEqualToString: @"fixed"]
+      || [family isEqualToString: @"monospace"])
+    [fdAttrs setObject: [[NSFont userFixedPitchFontOfSize: 0] familyName]
+		forKey: NSFontFamilyAttribute];
+  else if ([family isEqualToString: @"Sans Serif"])
+    [fdAttrs setObject: [[NSFont userFontOfSize: 0] familyName]
+		forKey: NSFontFamilyAttribute];
 
-    if (FIXNUMP (tem))
-      {
-	if (XFIXNUM (tem) != FONT_SPACING_PROPORTIONAL)
-	  {
-	    [fdAttrs setObject: [NSNumber numberWithBool:YES]
-			forKey: NSFontFixedAdvanceAttribute];
-	  }
-	else
-	  {
-	    [fdAttrs setObject: [NSNumber numberWithBool:NO]
-			forKey: NSFontFixedAdvanceAttribute];
-	  }
-      }
+  [fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
 
-    /* Handle special families such as ``fixed'' or ``Sans Serif''.  */
+  fdesc = [[[NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs]
+	     retain] autorelease];
 
-    if ([family isEqualToString: @"fixed"])
-      {
-	[fdAttrs setObject: [[NSFont userFixedPitchFontOfSize: 0] familyName]
-		    forKey: NSFontFamilyAttribute];
-      }
-    else if ([family isEqualToString: @"Sans Serif"])
-      {
-	[fdAttrs setObject: [[NSFont userFontOfSize: 0] familyName]
-		    forKey: NSFontFamilyAttribute];
-      }
-
-    [fdAttrs setObject: tdict forKey: NSFontTraitsAttribute];
-
-    fdesc = [[[NSFontDescriptor fontDescriptorWithFontAttributes: fdAttrs]
-               retain] autorelease];
-
-    [tdict release];
-    [fdAttrs release];
-    return fdesc;
+  [tdict release];
+  [fdAttrs release];
+  return fdesc;
 }
 
 
@@ -477,7 +469,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
   ASET (font_entity, FONT_SIZE_INDEX, make_fixnum (0));
   ASET (font_entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
   ASET (font_entity, FONT_SPACING_INDEX,
-	make_fixnum ((data.specified & GS_SPECIFIED_WIDTH && data.monospace_p)
+	make_fixnum ((data.specified & GS_SPECIFIED_SPACING && data.monospace_p)
 		     ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL));
 
   ASET (font_entity, FONT_EXTRA_INDEX, extra);
@@ -792,53 +784,53 @@ static NSSet
 static Lisp_Object
 ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 {
-    Lisp_Object tem, list = Qnil;
-    NSFontDescriptor *fdesc;
-    NSArray *all_descs;
-    GSFontEnumerator *enumerator = [GSFontEnumerator sharedEnumerator];
+  Lisp_Object tem, list = Qnil;
+  NSFontDescriptor *fdesc;
+  NSArray *all_descs;
+  GSFontEnumerator *enumerator = [GSFontEnumerator sharedEnumerator];
 
-    NSSet *cFamilies;
+  NSSet *cFamilies;
 
-    block_input ();
-    if (NSFONT_TRACE)
-      {
-	fprintf (stderr, "nsfont: %s for fontspec:\n    ",
-		 (isMatch ? "match" : "list"));
-	debug_print (font_spec);
-      }
+  block_input ();
+  if (NSFONT_TRACE)
+    {
+      fprintf (stderr, "nsfont: %s for fontspec:\n    ",
+	       (isMatch ? "match" : "list"));
+      debug_print (font_spec);
+    }
 
-    cFamilies = ns_get_covering_families (ns_get_req_script (font_spec), 0.90);
+  cFamilies = ns_get_covering_families (ns_get_req_script (font_spec), 0.90);
 
-    fdesc = ns_spec_to_descriptor (font_spec);
-    all_descs = [enumerator availableFontDescriptors];
+  fdesc = ns_spec_to_descriptor (font_spec);
+  all_descs = [enumerator availableFontDescriptors];
 
-    for (NSFontDescriptor *desc in all_descs)
-      {
-	if (![cFamilies containsObject:
-	         [desc objectForKey: NSFontFamilyAttribute]])
-	    continue;
-	if (!ns_font_descs_match_p (fdesc, desc))
-	  continue;
+  for (NSFontDescriptor *desc in all_descs)
+    {
+      if (![cFamilies containsObject:
+		  [desc objectForKey: NSFontFamilyAttribute]])
+	continue;
+      if (!ns_font_descs_match_p (fdesc, desc))
+	continue;
 
-        tem = ns_descriptor_to_entity (desc,
-				       AREF (font_spec, FONT_EXTRA_INDEX),
-                                       NULL);
-        if (isMatch)
-          return tem;
-	list = Fcons (tem, list);
-      }
+      tem = ns_descriptor_to_entity (desc,
+				     AREF (font_spec, FONT_EXTRA_INDEX),
+				     NULL);
+      if (isMatch)
+	return tem;
+      list = Fcons (tem, list);
+    }
 
-    unblock_input ();
+  unblock_input ();
 
-    /* Return something if was a match and nothing found.  */
-    if (isMatch)
-      return ns_fallback_entity ();
+  /* Return something if was a match and nothing found.  */
+  if (isMatch)
+    return ns_fallback_entity ();
 
-    if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %"pD"d entities.\n",
-		 list_length (list));
+  if (NSFONT_TRACE)
+    fprintf (stderr, "    Returning %"pD"d entities.\n",
+	     list_length (list));
 
-    return list;
+  return list;
 }
 
 

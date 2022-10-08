@@ -197,8 +197,7 @@ The options are `begin', `after' or `end'."
 (defun eshell-smart-scroll-window (wind _start)
   "Scroll the given Eshell window WIND accordingly."
   (unless eshell-currently-handling-window
-    (let ((inhibit-point-motion-hooks t)
-	  (eshell-currently-handling-window t))
+    (let ((eshell-currently-handling-window t))
       (with-selected-window wind
 	(eshell-smart-redisplay)))))
 

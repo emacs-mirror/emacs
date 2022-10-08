@@ -626,7 +626,7 @@ The string represents the same events; Meta is indicated by bit 7.
 This function assumes that the events can be stored in a string."
   (setq seq (copy-sequence seq))
   (cl-loop for i below (length seq) do
-           (when (logand (aref seq i) 128)
+           (when (/= (logand (aref seq i) 128) 0)
              (setf (aref seq i) (logand (aref seq i) 127))))
   seq)
 

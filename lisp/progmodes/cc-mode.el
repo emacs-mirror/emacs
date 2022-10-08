@@ -1421,6 +1421,13 @@ Note that the style variables are always made local to the buffer."
       (c-clear-syn-tab (point)))
      (t (c-benign-error "c-remove-string-fences: Wrong position")))))
 
+(defvar c-open-string-opener nil
+  "The position of the opening delimiter of an unterminated string or nil.
+This is valid only immediately after a buffer change, and refers
+only to an opener in the (logical) line containing the END
+position of `after-change-functions'.")
+(make-variable-buffer-local 'c-open-string-opener)
+
 (defun c-before-change-check-unbalanced-strings (beg end)
   ;; If BEG or END is inside an unbalanced string, remove the syntax-table
   ;; text property from respectively the start or end of the string.  Also
@@ -1685,13 +1692,14 @@ Note that the style variables are always made local to the buffer."
 	    (c-put-syn-tab (1- (point)) '(15))
 	    (c-put-syn-tab (match-end 0) '(15))
 	    (setq c-new-BEG (min c-new-BEG (point))
-		  c-new-END (max c-new-END (match-end 0))))
+		  c-new-END (max c-new-END (match-end 0)))
+	    (setq c-open-string-opener (1- (point))))
 	   ((or (eq (match-end 0) (point-max))
 		(eq (char-after (match-end 0)) ?\\)) ; \ at EOB
 	    (c-put-syn-tab (1- (point)) '(15))
 	    (setq c-new-BEG (min c-new-BEG (point))
 		  c-new-END (max c-new-END (match-end 0))) ; Do we need c-new-END?
-	    ))
+	    (setq c-open-string-opener (1- (point)))))
 	  (goto-char (min (1+ (match-end 0)) (point-max))))
 	(setq s nil)))))
 
@@ -2130,6 +2138,7 @@ with // and /*, not more generic line and block comments."
        ;; (c-new-BEG c-new-END) will be the region to fontify.
        (setq c-new-BEG beg  c-new-END end)
        (setq c-maybe-stale-found-type nil)
+       (setq c-open-string-opener nil)
        ;; A workaround for syntax-ppss's failure to notice syntax-table text
        ;; property changes.
        (when (fboundp 'syntax-ppss)
@@ -2394,7 +2403,7 @@ with // and /*, not more generic line and block comments."
 			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
 	     t)
-	   (> (point) bod-lim)
+	   (>= (point) bod-lim)
 	   (progn (c-forward-syntactic-ws)
 		  ;; Have we got stuck in a comment at EOB?
 		  (not (and (eobp)
@@ -2418,7 +2427,8 @@ with // and /*, not more generic line and block comments."
 	     (and (> (point) bod-lim)
 		  (or (memq (char-before) '(?\( ?\[))
 		      (and (eq (char-before) ?\<)
-			   (eq (c-get-char-property
+			   (equal
+			    (c-get-char-property
 				(1- (point)) 'syntax-table)
 			       c-<-as-paren-syntax))
 		      (and (eq (char-before) ?{)
@@ -2440,49 +2450,67 @@ with // and /*, not more generic line and block comments."
       (and (/= new-pos pos) new-pos))))
 
 (defun c-fl-decl-end (pos)
-  ;; If POS is inside a declarator, return the end of the token that follows
-  ;; the declarator, otherwise return nil.  POS being in a literal does not
-  ;; count as being in a declarator (on pragmatic grounds).  POINT is not
-  ;; preserved.
+  ;; If POS is inside a declarator, return the position of the end of the
+  ;; paren pair that terminates it, or of the end of the token that follows
+  ;; the declarator, otherwise return nil.  If there is no such token, the end
+  ;; of the last token in the buffer is used.  POS being in a literal is now
+  ;; (2022-07) handled correctly.  POINT is not preserved.
   (goto-char pos)
   (let ((lit-start (c-literal-start))
 	(lim (c-determine-limit 1000))
-	enclosing-attribute pos1)
-    (unless lit-start
-      (c-backward-syntactic-ws
-       lim)
-      (when (setq enclosing-attribute (c-enclosing-c++-attribute))
-	(goto-char (car enclosing-attribute))) ; Only happens in C++ Mode.
-      (when (setq pos1 (c-on-identifier))
-	(goto-char pos1)
-	(let ((lim (save-excursion
+	enclosing-attribute pos1 ml-delim)
+    (if lit-start
+	(goto-char lit-start))
+    (when (and lit-start c-ml-string-opener-re
+	       (setq ml-delim (c-ml-string-opener-around-point)))
+      (goto-char (car ml-delim)))
+    (c-backward-syntactic-ws lim)
+    (when (setq enclosing-attribute (c-enclosing-c++-attribute))
+      (goto-char (car enclosing-attribute)) ; Only happens in C++ Mode.
+      (c-backward-syntactic-ws lim))
+    (while (and (> (point) lim)
+		(memq (char-before) '(?\[ ?\()))
+      (backward-char)
+      (c-backward-syntactic-ws lim))
+    (when (setq pos1 (c-on-identifier))
+      (goto-char pos1)
+      (let* ((lim1 (save-excursion
 		     (and (c-beginning-of-macro)
-			  (progn (c-end-of-macro) (point))))))
-	  (and (c-forward-declarator lim)
-	       (if (eq (char-after) ?\()
-		   (and
-		    (c-go-list-forward nil lim)
-		    (progn (c-forward-syntactic-ws lim)
-			   (not (eobp)))
-		    (progn
-		      (if (looking-at c-symbol-char-key)
-			  ;; Deal with baz (foo((bar)) type var), where
-			  ;; foo((bar)) is not semantically valid.  The result
-			  ;; must be after var).
-			  (and
-			   (goto-char pos)
-			   (setq pos1 (c-on-identifier))
-			   (goto-char pos1)
-			   (progn
-			     (c-backward-syntactic-ws lim)
-			     (eq (char-before) ?\())
-			   (c-fl-decl-end (1- (point))))
-			(c-backward-syntactic-ws lim)
-			(point))))
-		 (and (progn (c-forward-syntactic-ws lim)
-			     (not (eobp)))
-		      (c-backward-syntactic-ws lim)
-		      (point)))))))))
+			  (progn (c-end-of-macro) (point)))))
+	     (decl-res (c-forward-declarator)))
+	(if (or (cadr (cddr (cddr decl-res))) ; We scanned an arglist.
+		(and (eq (char-after) ?\()    ; Move over a non arglist (...).
+		     (prog1 (c-go-list-forward)
+		       (c-forward-syntactic-ws))))
+	    (if (looking-at c-symbol-char-key)
+		;; Deal with baz (foo((bar)) type var), where `pos'
+		;; was inside foo, but foo((bar)) is not semantically
+		;; valid.  The result must be after var).
+		(and
+		 (goto-char pos)
+		 (setq pos1 (c-on-identifier))
+		 (goto-char pos1)
+		 (progn
+		   (c-backward-syntactic-ws lim1)
+		   (eq (char-before) ?\())
+		 (c-fl-decl-end (1- (point))))
+	      (c-forward-over-token)
+	      (point))
+	  (if (progn (c-forward-syntactic-ws)
+		     (not (eobp)))
+	      (progn
+		(c-forward-over-token)
+		;; Cope with having POS withing a syntactically invalid
+		;; (...), by moving backward out of the parens and trying
+		;; again.
+		(when (and (eq (char-before) ?\))
+			   (c-go-list-backward (point) lim1))
+		  (c-fl-decl-end (point))))
+	    (let ((lit-start (c-literal-start)))
+	      (when lit-start
+		(goto-char lit-start))
+	      (c-backward-syntactic-ws)))
+	  (and (>= (point) pos) (point)))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)
   ;; Expand the region (c-new-BEG c-new-END) to an after-change font-lock
@@ -2688,11 +2716,9 @@ This function is called from `c-common-init', once per mode initialization."
 At the time of call, point is just after the newly inserted CHAR.
 
 When CHAR is \" and not within a comment, t will be returned if
-the quotes on the current line are already balanced (i.e. if the
-last \" is not marked with a string fence syntax-table text
-property).  For other cases, the default value of
-`electric-pair-inhibit-predicate' is called and its value
-returned.
+the quotes on the current line are already balanced.  For other
+cases, the default value of `electric-pair-inhibit-predicate' is
+called and its value returned.
 
 This function is the appropriate value of
 `electric-pair-inhibit-predicate' for CC Mode modes, which mark
@@ -2700,11 +2726,7 @@ invalid strings with such a syntax table text property on the
 opening \" and the next unescaped end of line."
   (if (and (eq char ?\")
 	   (not (memq (cadr (c-semi-pp-to-literal (1- (point)))) '(c c++))))
-      (let ((last-quote (save-match-data
-			  (save-excursion
-			    (goto-char (c-point 'eoll))
-			    (search-backward "\"")))))
-	(not (equal (c-get-char-property last-quote 'c-fl-syn-tab) '(15))))
+      (not c-open-string-opener)
     (funcall (default-value 'electric-pair-inhibit-predicate) char)))
 
 
@@ -3138,8 +3160,6 @@ Key bindings:
   (message "Using CC Mode version %s" c-version)
   (c-keep-region-active))
 
-(define-obsolete-variable-alias 'c-prepare-bug-report-hooks
-  'c-prepare-bug-report-hook "24.3")
 (defvar c-prepare-bug-report-hook nil)
 
 ;; Dynamic variables used by reporter.

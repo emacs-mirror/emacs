@@ -1209,8 +1209,8 @@ If PROCESS has not yet exited or died, return 0.  */)
 
 DEFUN ("process-id", Fprocess_id, Sprocess_id, 1, 1, 0,
        doc: /* Return the process id of PROCESS.
-This is the pid of the external process which PROCESS uses or talks to.
-It is a fixnum if the value is small enough, otherwise a bignum.
+This is the pid of the external process which PROCESS uses or talks to,
+an integer.
 For a network, serial, and pipe connections, this value is nil.  */)
   (register Lisp_Object process)
 {
@@ -7391,7 +7391,8 @@ child_signal_notify (void)
 }
 
 /* LIB_CHILD_HANDLER is a SIGCHLD handler that Emacs calls while doing
-   its own SIGCHLD handling.  On POSIXish systems, glib needs this to
+   its own SIGCHLD handling.  On POSIXish systems lacking
+   pidfd_open+waitid or using Glib 2.73.1-, Glib needs this to
    keep track of its own children.  GNUstep is similar.  */
 
 static void dummy_handler (int sig) {}
@@ -7771,46 +7772,6 @@ DEFUN ("process-coding-system",
   CHECK_PROCESS (process);
   return Fcons (XPROCESS (process)->decode_coding_system,
 		XPROCESS (process)->encode_coding_system);
-}
-
-DEFUN ("set-process-filter-multibyte", Fset_process_filter_multibyte,
-       Sset_process_filter_multibyte, 2, 2, 0,
-       doc: /* Set multibyteness of the strings given to PROCESS's filter.
-If FLAG is non-nil, the filter is given multibyte strings.
-If FLAG is nil, the filter is given unibyte strings.  In this case,
-all character code conversion except for end-of-line conversion is
-suppressed.  */)
-  (Lisp_Object process, Lisp_Object flag)
-{
-  CHECK_PROCESS (process);
-
-  struct Lisp_Process *p = XPROCESS (process);
-  if (NILP (flag))
-    pset_decode_coding_system
-      (p, raw_text_coding_system (p->decode_coding_system));
-
-  /* If the sockets haven't been set up yet, the final setup part of
-     this will be called asynchronously. */
-  if (p->infd < 0 || p->outfd < 0)
-    return Qnil;
-
-  setup_process_coding_systems (process);
-
-  return Qnil;
-}
-
-DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
-       Sprocess_filter_multibyte_p, 1, 1, 0,
-       doc: /* Return t if a multibyte string is given to PROCESS's filter.*/)
-  (Lisp_Object process)
-{
-  CHECK_PROCESS (process);
-  struct Lisp_Process *p = XPROCESS (process);
-  if (p->infd < 0)
-    return Qnil;
-  eassert (p->infd < FD_SETSIZE);
-  struct coding_system *coding = proc_decode_coding_system[p->infd];
-  return (CODING_FOR_UNIBYTE (coding) ? Qnil : Qt);
 }
 
 
@@ -8398,7 +8359,7 @@ DEFUN ("signal-names", Fsignal_names, Ssignal_names, 0, 0, 0,
 
 #ifdef subprocesses
 /* Arrange to catch SIGCHLD if this hasn't already been arranged.
-   Invoke this after init_process_emacs, and after glib and/or GNUstep
+   Invoke this after init_process_emacs, and after Glib and/or GNUstep
    futz with the SIGCHLD handler, but before Emacs forks any children.
    This function's caller should block SIGCHLD.  */
 
@@ -8463,26 +8424,35 @@ init_process_emacs (int sockfd)
   if (!will_dump_with_unexec_p ())
     {
 #if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle glib's child-handling code.  Ask glib to install a
+      /* Tickle Glib's child-handling code.  Ask Glib to install a
 	 watch source for Emacs itself which will initialize glib's
 	 private SIGCHLD handler, allowing catch_child_signal to copy
-	 it into lib_child_handler.
+	 it into lib_child_handler.  This is a hacky workaround to get
+	 glib's g_unix_signal_handler into lib_child_handler.
 
-         Unfortunately in glib commit 2e471acf, the behavior changed to
+	 In Glib 2.37.5 (2013), commit 2e471acf changed Glib to
          always install a signal handler when g_child_watch_source_new
-         is called and not just the first time it's called.  Glib also
-         now resets signal handlers to SIG_DFL when it no longer has a
-         watcher on that signal.  This is a hackey work around to get
-         glib's g_unix_signal_handler into lib_child_handler.  */
+	 is called and not just the first time it's called, and to
+	 reset signal handlers to SIG_DFL when it no longer has a
+	 watcher on that signal.  Arrange for Emacs's signal handler
+	 to be reinstalled even if this happens.
+
+	 In Glib 2.73.2 (2022), commit f615eef4 changed Glib again,
+	 to not install a signal handler if the system supports
+	 pidfd_open and waitid (as in Linux kernel 5.3+).  The hacky
+	 workaround is not needed in this case.  */
       GSource *source = g_child_watch_source_new (getpid ());
       catch_child_signal ();
       g_source_unref (source);
 
-      eassert (lib_child_handler != dummy_handler);
-      signal_handler_t lib_child_handler_glib = lib_child_handler;
-      catch_child_signal ();
-      eassert (lib_child_handler == dummy_handler);
-      lib_child_handler = lib_child_handler_glib;
+      if (lib_child_handler != dummy_handler)
+	{
+	  /* The hacky workaround is needed on this platform.  */
+	  signal_handler_t lib_child_handler_glib = lib_child_handler;
+	  catch_child_signal ();
+	  eassert (lib_child_handler == dummy_handler);
+	  lib_child_handler = lib_child_handler_glib;
+	}
 #else
       catch_child_signal ();
 #endif
@@ -8808,8 +8778,6 @@ sentinel or a process filter function has an error.  */);
   defsubr (&Sinternal_default_process_filter);
   defsubr (&Sset_process_coding_system);
   defsubr (&Sprocess_coding_system);
-  defsubr (&Sset_process_filter_multibyte);
-  defsubr (&Sprocess_filter_multibyte_p);
 
  {
    Lisp_Object subfeatures = Qnil;

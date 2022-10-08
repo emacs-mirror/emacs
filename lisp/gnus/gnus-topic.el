@@ -107,15 +107,15 @@ should return non-nil if the topic is to be displayed."
 
 (defun gnus-group-topic-name ()
   "The name of the topic on the current line."
-  (get-text-property (point-at-bol) 'gnus-topic))
+  (get-text-property (line-beginning-position) 'gnus-topic))
 
 (defun gnus-group-topic-level ()
   "The level of the topic on the current line."
-  (get-text-property (point-at-bol) 'gnus-topic-level))
+  (get-text-property (line-beginning-position) 'gnus-topic-level))
 
 (defun gnus-group-topic-unread ()
   "The number of unread articles in topic on the current line."
-  (get-text-property (point-at-bol) 'gnus-topic-unread))
+  (get-text-property (line-beginning-position) 'gnus-topic-unread))
 
 (defun gnus-topic-unread (topic)
   "Return the number of unread articles in TOPIC."
@@ -128,7 +128,7 @@ should return non-nil if the topic is to be displayed."
 
 (defun gnus-topic-visible-p ()
   "Return non-nil if the current topic is visible."
-  (get-text-property (point-at-bol) 'gnus-topic-visible))
+  (get-text-property (line-beginning-position) 'gnus-topic-visible))
 
 (defun gnus-topic-articles-in-topic (entries)
   (let ((total 0)
@@ -188,7 +188,7 @@ If TOPIC, start with that topic."
 
 (defun gnus-group-active-topic-p ()
   "Say whether the current topic comes from the active topics."
-  (get-text-property (point-at-bol) 'gnus-active))
+  (get-text-property (line-beginning-position) 'gnus-active))
 
 (defun gnus-topic-find-groups (topic &optional level all lowest recursive)
   "Return entries for all visible groups in TOPIC.

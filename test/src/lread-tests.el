@@ -128,7 +128,7 @@
     (save-excursion
       (goto-char (point-max))
       (skip-chars-backward "\n")
-      (buffer-substring (line-beginning-position) (point)))))
+      (buffer-substring (pos-bol) (point)))))
 
 (ert-deftest lread-tests--unescaped-char-literals ()
   "Check that loading warns about unescaped character

@@ -2556,7 +2556,7 @@ Return nil if no complete line has arrived."
 			      ;; next line for Courier IMAP bug.
 			      (skip-chars-forward " ")
 			      (point)))
-		(> (skip-chars-forward "^ )" (point-at-eol)) 0))
+                (> (skip-chars-forward "^ )" (line-end-position)) 0))
       (push (buffer-substring start (point)) flag-list))
     (cl-assert (eq (char-after) ?\)) nil "In imap-parse-flag-list 2")
     (imap-forward)

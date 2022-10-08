@@ -6699,8 +6699,6 @@ w32_display_info_for_name (Lisp_Object name)
   if (dpyinfo == 0)
     error ("Cannot connect to server %s", SDATA (name));
 
-  XSETFASTINT (Vwindow_system_version, w32_major_version);
-
   return dpyinfo;
 }
 
@@ -6781,7 +6779,6 @@ DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
 	error ("Cannot connect to server %s", SDATA (display));
     }
 
-  XSETFASTINT (Vwindow_system_version, w32_major_version);
   return Qnil;
 }
 
@@ -10450,6 +10447,66 @@ w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
   return (NULL);
 }
 
+#ifdef WINDOWSNT
+
+/***********************************************************************
+			    Wallpaper
+ ***********************************************************************/
+
+typedef BOOL (WINAPI * SystemParametersInfoW_Proc) (UINT,UINT,PVOID,UINT);
+SystemParametersInfoW_Proc system_parameters_info_w_fn = NULL;
+
+DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
+       doc: /* Set the desktop wallpaper image to IMAGE-FILE.  */)
+  (Lisp_Object image_file)
+{
+  Lisp_Object encoded = ENCODE_FILE (Fexpand_file_name (image_file, Qnil));
+  char *fname = SSDATA (encoded);
+  BOOL result = false;
+  DWORD err = 0;
+
+  /* UNICOWS.DLL seems to have SystemParametersInfoW, but it doesn't
+     seem to be worth the hassle to support that on Windows 9X for the
+     benefit of this minor feature.  Let them use on Windows 9X only
+     image file names that can be encoded by the system codepage.  */
+  if (w32_unicode_filenames && system_parameters_info_w_fn)
+    {
+      wchar_t fname_w[MAX_PATH];
+
+      if (filename_to_utf16 (fname, fname_w) != 0)
+	err = ERROR_FILE_NOT_FOUND;
+      else
+	result = SystemParametersInfoW (SPI_SETDESKWALLPAPER, 0, fname_w,
+					SPIF_SENDCHANGE);
+    }
+  else
+    {
+      char fname_a[MAX_PATH];
+
+      if (filename_to_ansi (fname, fname_a) != 0)
+	err = ERROR_FILE_NOT_FOUND;
+      else
+	result = SystemParametersInfoA (SPI_SETDESKWALLPAPER, 0, fname_a,
+					SPIF_SENDCHANGE);
+    }
+  if (!result)
+    {
+      if (err == ERROR_FILE_NOT_FOUND)
+	error ("Wallpaper file %s does not exist or cannot be accessed", fname);
+      else
+	{
+	  err = GetLastError ();
+	  if (err)
+	    error ("Could not set desktop wallpaper: %s", w32_strerror (err));
+	  else
+	    error ("Could not set desktop wallpaper (wrong image type?)");
+	}
+    }
+
+  return Qnil;
+}
+#endif
+
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
@@ -10929,6 +10986,7 @@ keys when IME input is received.  */);
   defsubr (&Sx_file_dialog);
 #ifdef WINDOWSNT
   defsubr (&Ssystem_move_file_to_trash);
+  defsubr (&Sw32_set_wallpaper);
 #endif
 }
 
@@ -11182,6 +11240,10 @@ globals_of_w32fns (void)
     get_proc_addr (user32_lib, "EnumDisplayMonitors");
   get_title_bar_info_fn = (GetTitleBarInfo_Proc)
     get_proc_addr (user32_lib, "GetTitleBarInfo");
+#ifndef CYGWIN
+  system_parameters_info_w_fn = (SystemParametersInfoW_Proc)
+    get_proc_addr (user32_lib, "SystemParametersInfoW");
+#endif
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");

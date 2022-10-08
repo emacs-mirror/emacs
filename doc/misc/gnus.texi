@@ -30580,7 +30580,6 @@ Below is a slightly shortened version of the @code{nndir} back end.
 (defvoo nndir-get-new-mail nil nil nnml-get-new-mail nnmh-get-new-mail)
 
 (defvoo nndir-status-string "" nil nnmh-status-string)
-(defconst nndir-version "nndir 1.0")
 
 ;;; @r{Interface functions.}
 

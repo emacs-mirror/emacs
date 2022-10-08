@@ -209,7 +209,6 @@ frames where the source code location is known.")
   "v"   #'backtrace-toggle-locals
   "#"   #'backtrace-toggle-print-circle
   ":"   #'backtrace-toggle-print-gensym
-  "s"   #'backtrace-goto-source
   "RET" #'backtrace-help-follow-symbol
   "+"   #'backtrace-multi-line
   "-"   #'backtrace-single-line
@@ -591,7 +590,7 @@ content of the sexp."
          (begin (previous-single-property-change end 'backtrace-form
                                                  nil (point-min))))
     (unless tag
-      (when (or (= end (point-max)) (> end (point-at-eol)))
+      (when (or (= end (point-max)) (> end (line-end-position)))
         (user-error "No form here to reformat"))
       (goto-char end)
       (setq pos end

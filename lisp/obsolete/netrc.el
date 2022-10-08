@@ -82,7 +82,7 @@
 	  (goto-char (point-min))
 	  ;; Go through the file, line by line.
 	  (while (not (eobp))
-	    (narrow-to-region (point) (point-at-eol))
+            (narrow-to-region (point) (line-end-position))
 	    ;; For each line, get the tokens and values.
 	    (while (not (eobp))
 	      (skip-chars-forward "\t ")
@@ -205,7 +205,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
       (with-temp-buffer
 	(insert-file-contents netrc-services-file)
 	(while (search-forward "#" nil t)
-	  (delete-region (1- (point)) (point-at-eol)))
+          (delete-region (1- (point)) (line-end-position)))
 	(goto-char (point-min))
 	(while (re-search-forward
 		"^ *\\([^ \n\t]+\\)[ \t]+\\([0-9]+\\)/\\([^ \t\n]+\\)" nil t)

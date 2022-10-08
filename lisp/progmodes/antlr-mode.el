@@ -83,14 +83,6 @@
   (require 'easymenu))
 (require 'cc-mode)
 
-;; More compile-time-macros
-(eval-when-compile
-  (defmacro save-buffer-state-x (&rest body) ; similar to EMACS/lazy-lock.el
-    (declare (debug t) (indent 0))
-    `(let ((inhibit-point-motion-hooks t))
-       (with-silent-modifications
-         ,@body))))
-
 (defvar outline-level)
 (defvar imenu-use-markers)
 (defvar imenu-create-index-function)
@@ -1320,7 +1312,7 @@ actions if ARG is 0 or negative.  See `antlr-action-visibility'.
 
 Display a message unless optional argument SILENT is non-nil."
   (interactive "p")
-  (save-buffer-state-x
+  (with-silent-modifications
     (if (> arg 0)
 	(let ((regexp (if (= arg 1) "[]}]" "}"))
 	      (diff (and antlr-action-visibility

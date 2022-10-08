@@ -178,14 +178,15 @@ and above."
   :type '(repeat string)
   :version "28.1")
 
-(defcustom native-comp-driver-options nil
+(defcustom native-comp-driver-options (when (eq system-type 'darwin)
+                                        '("-Wl,-w"))
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type '(repeat string)                ; FIXME is this right?
+  :type '(repeat string)
   :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
@@ -304,7 +305,7 @@ Useful to hook into pass checkers.")
     (bool-vector-subsetp (function (bool-vector bool-vector) boolean))
     (boundp (function (symbol) boolean))
     (buffer-end (function ((or number marker)) integer))
-    (buffer-file-name (function (&optional buffer) string))
+    (buffer-file-name (function (&optional buffer) (or string null)))
     (buffer-list (function (&optional frame) list))
     (buffer-local-variables (function (&optional buffer) list))
     (buffer-modified-p (function (&optional buffer) boolean))
@@ -321,8 +322,8 @@ Useful to hook into pass checkers.")
     (cdr (function (list) t))
     (cdr-safe (function (t) t))
     (ceiling (function (number &optional number) integer))
-    (char-after (function (&optional (or marker integer)) fixnum))
-    (char-before (function (&optional (or marker integer)) fixnum))
+    (char-after (function (&optional (or marker integer)) (or fixnum null)))
+    (char-before (function (&optional (or marker integer)) (or fixnum null)))
     (char-equal (function (integer integer) boolean))
     (char-or-string-p (function (t) boolean))
     (char-to-string (function (fixnum) string))
@@ -344,14 +345,21 @@ Useful to hook into pass checkers.")
     (current-buffer (function () buffer))
     (current-global-map (function () cons))
     (current-indentation (function () integer))
-    (current-local-map (function () cons))
-    (current-minor-mode-maps (function () cons))
+    (current-local-map (function () (or cons null)))
+    (current-minor-mode-maps (function () (or cons null)))
     (current-time (function () cons))
-    (current-time-string (function (&optional string boolean) string))
-    (current-time-zone (function (&optional string boolean) cons))
+    (current-time-string (function (&optional (or number list)
+                                              (or symbol string cons integer))
+                                   string))
+    (current-time-zone (function (&optional (or number list)
+                                            (or symbol string cons integer))
+                                 cons))
     (custom-variable-p (function (symbol) boolean))
     (decode-char (function (cons t) (or fixnum null)))
-    (decode-time (function (&optional string symbol symbol) cons))
+    (decode-time (function (&optional (or number list)
+                                      (or symbol string cons integer)
+                                      symbol)
+                           cons))
     (default-boundp (function (symbol) boolean))
     (default-value (function (symbol) t))
     (degrees-to-radians (function (number) float))
@@ -383,12 +391,14 @@ Useful to hook into pass checkers.")
     (file-writable-p (function (string) boolean))
     (fixnump (function (t) boolean))
     (float (function (number) float))
-    (float-time (function (&optional cons) float))
+    (float-time (function (&optional (or number list)) float))
     (floatp (function (t) boolean))
     (floor (function (number &optional number) integer))
     (following-char (function () fixnum))
     (format (function (string &rest t) string))
-    (format-time-string (function (string &optional cons symbol) string))
+    (format-time-string (function (string &optional (or number list)
+                                          (or symbol string cons integer))
+                                  string))
     (frame-first-window (function ((or frame window)) window))
     (frame-root-window (function (&optional (or frame window)) window))
     (frame-selected-window (function (&optional (or frame window)) window))
@@ -400,8 +410,8 @@ Useful to hook into pass checkers.")
     (get-buffer (function ((or buffer string)) (or buffer null)))
     (get-buffer-window (function (&optional (or buffer string) (or symbol (integer 0 0))) (or null window)))
     (get-file-buffer (function (string) (or null buffer)))
-    (get-largest-window (function (&optional t t t) window))
-    (get-lru-window (function (&optional t t t) window))
+    (get-largest-window (function (&optional t t t) (or window null)))
+    (get-lru-window (function (&optional t t t) (or window null)))
     (getenv (function (string &optional frame) (or null string)))
     (gethash (function (t hash-table &optional t) t))
     (hash-table-count (function (hash-table) integer))
@@ -450,16 +460,16 @@ Useful to hook into pass checkers.")
     (make-symbol (function (string) symbol))
     (mark (function (&optional t) (or integer null)))
     (mark-marker (function () marker))
-    (marker-buffer (function (marker) buffer))
+    (marker-buffer (function (marker) (or buffer null)))
     (markerp (function (t) boolean))
     (max (function ((or number marker) &rest (or number marker)) number))
-    (max-char (function () fixnum))
+    (max-char (function (&optional t) fixnum))
     (member (function (t list) list))
     (memory-limit (function () integer))
     (memq (function (t list) list))
     (memql (function (t list) list))
     (min (function ((or number marker) &rest (or number marker)) number))
-    (minibuffer-selected-window (function () window))
+    (minibuffer-selected-window (function () (or window null)))
     (minibuffer-window (function (&optional frame) window))
     (mod (function ((or number marker) (or number marker)) (or (integer 0 *) (float 0 *))))
     (mouse-movement-p (function (t) boolean))
@@ -487,7 +497,7 @@ Useful to hook into pass checkers.")
     (previous-window (function (&optional window t t) window))
     (prin1-to-string (function (t &optional t t) string))
     (processp (function (t) boolean))
-    (proper-list-p (function (t) integer))
+    (proper-list-p (function (t) boolean))
     (propertize (function (string &rest t) string))
     (radians-to-degrees (function (number) float))
     (rassoc (function (t list) list))
@@ -520,7 +530,7 @@ Useful to hook into pass checkers.")
     (string-to-char (function (string) fixnum))
     (string-to-multibyte (function (string) string))
     (string-to-number (function (string &optional integer) number))
-    (string-to-syntax (function (string) cons))
+    (string-to-syntax (function (string) (or cons null)))
     (string< (function ((or string symbol) (or string symbol)) boolean))
     (string= (function ((or string symbol) (or string symbol)) boolean))
     (stringp (function (t) boolean))
@@ -542,7 +552,8 @@ Useful to hook into pass checkers.")
     (this-command-keys-vector (function () vector))
     (this-single-command-keys (function () vector))
     (this-single-command-raw-keys (function () vector))
-    (time-convert (function (t &optional (or boolean integer)) cons))
+    (time-convert (function ((or number list) &optional (or symbol integer))
+                            (or cons number)))
     (truncate (function (number &optional number) integer))
     (type-of (function (t) symbol))
     (unibyte-char-to-multibyte (function (fixnum) fixnum)) ;; byte is fixnum
@@ -3790,22 +3801,25 @@ Return the trampoline if found or nil otherwise."
          (lexical-binding t))
     (comp--native-compile
      form nil
-     (cl-loop
-      for dir in (if native-compile-target-directory
-                     (list (expand-file-name comp-native-version-dir
-                                             native-compile-target-directory))
-                   (comp-eln-load-path-eff))
-      for f = (expand-file-name
-               (comp-trampoline-filename subr-name)
-               dir)
-      unless (file-exists-p dir)
-        do (ignore-errors
-             (make-directory dir t)
-             (cl-return f))
-      when (file-writable-p f)
-        do (cl-return f)
-      finally (error "Cannot find suitable directory for output in \
-`native-comp-eln-load-path'")))))
+     ;; If we've disabled nativecomp, don't write the trampolines to
+     ;; the eln cache (but create them).
+     (and (not inhibit-automatic-native-compilation)
+          (cl-loop
+           for dir in (if native-compile-target-directory
+                          (list (expand-file-name comp-native-version-dir
+                                                  native-compile-target-directory))
+                        (comp-eln-load-path-eff))
+           for f = (expand-file-name
+                    (comp-trampoline-filename subr-name)
+                    dir)
+           unless (file-exists-p dir)
+           do (ignore-errors
+                (make-directory dir t)
+                (cl-return f))
+           when (file-writable-p f)
+           do (cl-return f)
+           finally (error "Cannot find suitable directory for output in \
+`native-comp-eln-load-path'"))))))
 
 
 ;; Some entry point support code.
@@ -3925,8 +3939,11 @@ display a message."
          when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
-                  (file-newer-than-file-p
-                   source-file (comp-el-to-eln-filename source-file)))
+                  ;; Skip compilation if `comp-el-to-eln-filename' fails
+                  ;; to find a writable directory.
+                  (with-demoted-errors "Async compilation :%S"
+                    (file-newer-than-file-p
+                     source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
                            (setq comp-async-compilation t)
                            (setq warning-fill-column most-positive-fixnum)
@@ -4031,7 +4048,6 @@ the deferred compilation mechanism."
             (list "Not a function symbol or file" function-or-file)))
   (catch 'no-native-compile
     (let* ((print-symbols-bare t)
-           (max-specpdl-size (max max-specpdl-size 5000))
            (data function-or-file)
            (comp-native-compiling t)
            (byte-native-qualities nil)
@@ -4094,6 +4110,7 @@ the deferred compilation mechanism."
                    comp-ctxt
                    (comp-ctxt-output comp-ctxt)
                    (file-exists-p (comp-ctxt-output comp-ctxt)))
+          (message "Deleting %s" (comp-ctxt-output comp-ctxt))
           (delete-file (comp-ctxt-output comp-ctxt)))))))
 
 (defun native-compile-async-skip-p (file load selector)

@@ -135,7 +135,7 @@ strings with `eq', this function compares them with `equal'."
     (with-temp-buffer
       (should (equal-including-properties
                filtered-str
-               (mapconcat ansi-filt strs ""))))
+               (mapconcat ansi-filt strs))))
 
     ;; Tests for `ansi-color-filter-region'
     (with-temp-buffer
@@ -156,7 +156,7 @@ strings with `eq', this function compares them with `equal'."
     (with-temp-buffer
       (should (ansi-color-tests-equal-props
                propertized-str
-               (mapconcat ansi-app strs ""))))
+               (mapconcat ansi-app strs))))
 
     ;; Tests for `ansi-color-apply-on-region'
     (with-temp-buffer

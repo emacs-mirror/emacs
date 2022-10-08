@@ -194,7 +194,7 @@
 
 	(goto-char a)
 
-	(let ((bss (buffer-substring-no-properties (point) (point-at-eol))))
+        (let ((bss (buffer-substring-no-properties (point) (pos-eol))))
 	  (condition-case nil
 	      (setq desired (read bss))
 	    (error (setq desired (format "  FAILED TO PARSE: %S"
@@ -215,8 +215,8 @@
                        )
                       fail)))
 
-      (setq p nil a nil)
-      (setq idx (1+ idx)))
+        (setq p nil a nil)
+        (setq idx (1+ idx)))
       )
 
     (when fail
@@ -353,7 +353,7 @@
 	       (when (re-search-forward regex-p nil t)
 		 (setq tag (semantic-current-tag))
 		 (goto-char (match-end 0))
-		 (setq desired (read (buffer-substring (point) (point-at-eol))))
+                 (setq desired (read (buffer-substring (point) (pos-eol))))
 		 ))
 	     tag)
 
@@ -451,7 +451,7 @@ tag that contains point, and return that."
 	       (when (re-search-forward regex-p nil t)
 		 (goto-char (match-end 0))
 		 (skip-syntax-backward "w")
-		 (setq desired (read (buffer-substring (point) (point-at-eol))))
+                 (setq desired (read (buffer-substring (point) (pos-eol))))
 		 (setq start (match-beginning 0))
 		 (goto-char start)
 		 (setq actual (semantic-symref-test-count-hits-in-tag))
@@ -463,7 +463,7 @@ tag that contains point, and return that."
                         (list
 	                 (format
 	                  "Symref id %d: No results." idx))
-                         fail))
+                        fail))
 
 	    )
 

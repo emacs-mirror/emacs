@@ -1235,7 +1235,8 @@ Order is by depth-first search."
                     (let (new-l new-c)
                       (save-excursion
                         (goto-char offset)
-                        (setq new-l (1+ (count-lines (point-min) (point-at-bol)))
+                        (setq new-l (1+ (count-lines (point-min)
+                                                     (line-beginning-position)))
                               new-c (1+ (current-column)))
                         (format "%d:%d:" new-l new-c))))
 		""))
@@ -1355,16 +1356,23 @@ FORMAT and ARGS are as in `byte-compile-warn'."
   (let ((byte-compile-form-stack (cons arg byte-compile-form-stack)))
     (apply #'byte-compile-warn format args)))
 
-(defun byte-compile-warn-obsolete (symbol)
-  "Warn that SYMBOL (a variable or function) is obsolete."
+;;;###autoload
+(defun byte-compile-warn-obsolete (symbol type)
+  "Warn that SYMBOL (a variable, function or generalized variable) is obsolete.
+TYPE is a string that say which one of these three types it is."
   (when (byte-compile-warning-enabled-p 'obsolete symbol)
-    (let* ((funcp (get symbol 'byte-obsolete-info))
-           (msg (macroexp--obsolete-warning
-                 symbol
-                 (or funcp (get symbol 'byte-obsolete-variable))
-                 (if funcp "function" "variable"))))
-      (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
-	(byte-compile-warn-x symbol "%s" msg)))))
+    (byte-compile-warn-x
+     symbol "%s"
+     (macroexp--obsolete-warning
+      symbol
+      (pcase type
+        ("function"
+         (get symbol 'byte-obsolete-info))
+        ("variable"
+         (get symbol 'byte-obsolete-variable))
+        ("generalized variable"
+         (get symbol 'byte-obsolete-generalized-variable)))
+      type))))
 
 (defun byte-compile-report-error (error-info &optional fill)
   "Report Lisp error in compilation.
@@ -1461,15 +1469,17 @@ when printing the error message."
 
 (defun byte-compile-arglist-signature-string (signature)
   (cond ((null (cdr signature))
-	 (format "%d+" (car signature)))
+	 (format "%d or more" (car signature)))
 	((= (car signature) (cdr signature))
 	 (format "%d" (car signature)))
+	((= (1+ (car signature)) (cdr signature))
+	 (format "%d or %d" (car signature) (cdr signature)))
 	(t (format "%d-%d" (car signature) (cdr signature)))))
 
 (defun byte-compile-function-warn (f nargs def)
   (when (and (get f 'byte-obsolete-info)
-             (byte-compile-warning-enabled-p 'obsolete f))
-    (byte-compile-warn-obsolete f))
+             (not (memq f byte-compile-not-obsolete-funcs)))
+    (byte-compile-warn-obsolete f "function"))
 
   ;; Check to see if the function will be available at runtime
   ;; and/or remember its arity if it's unknown.
@@ -1697,12 +1707,12 @@ URLs."
               (+ " " (or
                       ;; Arguments.
                       (+ (or (syntax symbol)
-                             (any word "-/:[]&=().?^\\#'")))
+                             (any word "-/:[]&=()<>.,?^\\#*'\"")))
                       ;; Argument that is a list.
                       (seq "(" (* (not ")")) ")")))
               ")")))
     ""
-    ;; Heuristic: We can't reliably do `subsititute-command-keys'
+    ;; Heuristic: We can't reliably do `substitute-command-keys'
     ;; substitutions, since the value of a keymap in general can't be
     ;; known at compile time.  So instead, we assume that these
     ;; substitutions are of some length N.
@@ -3108,8 +3118,8 @@ lambda-expression."
              ;; Check that the bit after the `interactive' spec is
              ;; just a list of symbols (i.e., modes).
 	     (unless (seq-every-p #'symbolp (cdr (cdr int)))
-	       (byte-compile-warn-x int "malformed interactive specc: %s"
-				    int))
+	       (byte-compile-warn-x
+                int "malformed `interactive' specification: %s" int))
              (setq command-modes (cdr (cdr int)))
 	     ;; If the interactive spec is a call to `list', don't
 	     ;; compile it, because `call-interactively' looks at the
@@ -3616,7 +3626,7 @@ lambda-expression."
                   ('set (not (eq access-type 'reference)))
                   ('get (eq access-type 'reference))
                   (_ t))))
-	 (byte-compile-warn-obsolete var))))
+	 (byte-compile-warn-obsolete var "variable"))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
   (let ((tmp (assq var byte-compile-variables)))

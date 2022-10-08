@@ -109,9 +109,7 @@ expected function symbol and function library, respectively."
       (skip-chars-backward "\n")
       (should (string-match-p
                ".join-line. is an alias for .delete-indentation."
-               (buffer-substring
-                (line-beginning-position)
-                (point)))))))
+               (buffer-substring (pos-bol) (point)))))))
 
 ;; Avoid a byte-compilation warning that may confuse people reading
 ;; the result of the following test.

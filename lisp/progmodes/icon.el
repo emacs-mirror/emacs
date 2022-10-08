@@ -163,8 +163,6 @@ with no args, if that value is non-nil."
               '((icon-font-lock-keywords
                  icon-font-lock-keywords-1 icon-font-lock-keywords-2)
                 nil nil ((?_ . "w")) beginning-of-defun
-                ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
-                ;;(font-lock-comment-start-regexp . "#")
                 (font-lock-mark-block-function . mark-defun)))
   ;; imenu support
   (setq-local imenu-generic-expression icon-imenu-generic-expression)

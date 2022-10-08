@@ -5314,6 +5314,7 @@ static void *
 pure_alloc (size_t size, int type)
 {
   void *result;
+  static bool pure_overflow_warned = false;
 
  again:
   if (type >= 0)
@@ -5338,6 +5339,12 @@ pure_alloc (size_t size, int type)
   if (pure_bytes_used <= pure_size)
     return result;
 
+  if (!pure_overflow_warned)
+    {
+      message ("Pure Lisp storage overflowed");
+      pure_overflow_warned = true;
+    }
+
   /* Don't allocate a large amount here,
      because it might get mmap'd and then its address
      might not be usable.  */
@@ -5355,21 +5362,16 @@ pure_alloc (size_t size, int type)
   goto again;
 }
 
-
-#ifdef HAVE_UNEXEC
-
 /* Print a warning if PURESIZE is too small.  */
 
 void
 check_pure_size (void)
 {
   if (pure_bytes_used_before_overflow)
-    message (("emacs:0:Pure Lisp storage overflow (approx. %"pI"d"
+    message (("emacs:0:Pure Lisp storage overflow (approx. %jd"
 	      " bytes needed)"),
 	     pure_bytes_used + pure_bytes_used_before_overflow);
 }
-#endif
-
 
 /* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
    the non-Lisp data pool of the pure storage, and return its start

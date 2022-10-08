@@ -435,13 +435,14 @@ Lines are highlighted according to `ns-input-line'."
 ;; nsterm.m
 
 (declare-function ns-read-file-name "nsfns.m"
-		  (prompt &optional dir mustmatch init dir_only_p))
+		  (prompt &optional dir mustmatch init dir-only-p))
 
 ;;;; File handling.
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
+(defun x-file-dialog (prompt dir &optional default-filename
+                             mustmatch only-dir-p)
   "SKIP: real doc in xfns.c."
-  (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
+  (ns-read-file-name prompt dir mustmatch default-filename only-dir-p))
 
 (defun ns-open-file-using-panel ()
   "Pop up open-file panel, and load the result in a buffer."

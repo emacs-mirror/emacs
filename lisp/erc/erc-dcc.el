@@ -357,10 +357,7 @@ Returns the newly created subprocess, or nil."
                                         :server t))
             (when (processp process)
               (when (fboundp 'set-process-coding-system)
-                (set-process-coding-system process 'binary 'binary))
-              (when (fboundp 'set-process-filter-multibyte)
-                (with-no-warnings       ; obsolete since 23.1
-                  (set-process-filter-multibyte process nil)))))
+                (set-process-coding-system process 'binary 'binary))))
         (file-error
          (unless (and (string= "Cannot bind server socket" (nth 1 err))
                       (string= "address already in use" (downcase (nth 2 err))))
@@ -1110,9 +1107,6 @@ Possible values are: ask, auto, ignore."
 (defun pcomplete/erc-mode/CREQ ()
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ #'pcomplete/erc-mode/CREQ)
-
-(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
-  'erc-dcc-chat-filter-functions "24.3")
 
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.

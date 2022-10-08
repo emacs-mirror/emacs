@@ -914,6 +914,15 @@ The following %-sequences are provided:
 
 ;;; `apm' interface for BSD.
 
+;; This function is a wrapper on `call-process' that return the
+;; standard output in a string.  We are using it instead
+;; `shell-command-to-string' because this last one is trying to run
+;; PROGRAM on the remote host if the buffer is remote.
+(defun battery--call-process-to-string (program &rest args)
+  (with-output-to-string
+    (with-current-buffer standard-output
+      (apply #'call-process program nil t nil args))))
+
 (defun battery-bsd-apm ()
   "Get APM status information from BSD apm binary.
 The following %-sequences are provided:
@@ -929,13 +938,14 @@ The following %-sequences are provided:
 %t Remaining time (to charge or discharge) in the form `h:min'"
   (let* ((os-name (car (split-string
                         ;; FIXME: Can't we use something like `system-type'?
-                        (shell-command-to-string "/usr/bin/uname"))))
+                        (battery--call-process-to-string "uname"))))
          (apm-flag (pcase os-name
                      ("OpenBSD" "mP")
                      ("FreeBSD" "st")
                      (_         "ms")))
-         (apm-cmd (concat "/usr/sbin/apm -abl" apm-flag))
-         (apm-output (split-string (shell-command-to-string apm-cmd)))
+         (apm-args (concat "-abl" apm-flag))
+         (apm-output (split-string
+                      (battery--call-process-to-string "apm" apm-args)))
          (indices (pcase os-name
                     ;; FreeBSD's manpage documents that multiple
                     ;; outputs are ordered by "the order in which

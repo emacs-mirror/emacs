@@ -1162,7 +1162,7 @@ Used by `calc-user-invocation'.")
 
 
 ;;;; (Autoloads here)
-(load "calc-loaddefs.el" nil t)
+(load "calc-loaddefs" nil t)
 
 ;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 
@@ -1373,10 +1373,8 @@ Notations:  3.14e6     3.14 * 10^6
 	      (calc-check-defines))
 	  (setplist 'calc-define nil)))))
 
-(defvar calc-trail-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map calc-mode-map)
-    map))
+(defvar-keymap calc-trail-mode-map
+  :parent calc-mode-map)
 
 (defun calc--header-line (long short width &optional fudge)
   "Return a Calc header line appropriate for the buffer WIDTH.
@@ -1627,8 +1625,7 @@ See calc-keypad for details."
 	  (error
 	   (if (and (eq (car err) 'error)
 		    (stringp (nth 1 err))
-		    (string-match "max-specpdl-size\\|max-lisp-eval-depth"
-				  (nth 1 err)))
+		    (string-search "max-lisp-eval-depth" (nth 1 err)))
                (error (substitute-command-keys
                        "Computation got stuck or ran too long.  Type \\`M' to increase the limit"))
 	     (setq calc-aborted-prefix nil)

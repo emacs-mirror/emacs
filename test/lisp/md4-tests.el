@@ -29,7 +29,7 @@
 
 (defun md4-tests-digest->hex (str)
   "Print digest STR in hexadecimal."
-  (mapconcat (lambda (x) (format "%02x" x)) str ""))
+  (mapconcat (lambda (x) (format "%02x" x)) str))
 
 (ert-deftest md4-test-rfc1320 ()
   "Verify the test suite results in RFC 1320.

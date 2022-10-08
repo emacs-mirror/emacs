@@ -245,7 +245,8 @@ DEFINE_GDB_SYMBOL_BEGIN (EMACS_INT, VALMASK)
 DEFINE_GDB_SYMBOL_END (VALMASK)
 
 /* Ignore 'alignas' on compilers lacking it.  */
-#if !defined alignas && !defined __alignas_is_defined
+#if (!defined alignas && !defined __alignas_is_defined \
+     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
 # define alignas(a)
 #endif
 

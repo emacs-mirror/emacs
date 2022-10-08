@@ -139,11 +139,9 @@ not align (only setting space according to `conf-assignment-space')."
   "Syntax table in use in Unix style `conf-mode' buffers.")
 
 (defvar conf-javaprop-mode-syntax-table
-  (let ((table (make-syntax-table conf-unix-mode-syntax-table)))
-    (modify-syntax-entry ?/  ". 124" table)
-    (modify-syntax-entry ?*  ". 23b" table)
-    table)
+  (make-syntax-table conf-unix-mode-syntax-table)
   "Syntax table in use in Java properties buffers.")
+(make-obsolete-variable 'conf-javaprop-mode-syntax-table nil "29.1")
 
 (defvar conf-ppd-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -470,13 +468,9 @@ PersistMoniker=file://Folder.htt"
 ;;;###autoload
 (define-derived-mode conf-javaprop-mode conf-mode "Conf[JavaProp]"
   "Conf Mode starter for Java properties files.
-Comments start with `#' but are also recognized with `//' or
-between `/*' and `*/'.
-For details see `conf-mode'.  Example:
+Comments start with `#'.  Example:
 
 # Conf mode font-locks this right with \\[conf-javaprop-mode] (Java properties)
-// another kind of comment
-/* yet another */
 
 name:value
 name=value
@@ -487,7 +481,6 @@ x.2.y.1.z.2.zz ="
   (conf-mode-initialize "#" 'conf-javaprop-font-lock-keywords)
   (setq-local conf-assignment-column conf-javaprop-assignment-column)
   (setq-local conf-assignment-regexp ".+?\\([ \t]*[=: \t][ \t]*\\|$\\)")
-  (setq-local comment-start-skip "\\(?:#+\\|/[/*]+\\)\\s *")
   (setq-local imenu-generic-expression
 	      '(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
 

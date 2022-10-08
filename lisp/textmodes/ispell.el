@@ -262,12 +262,14 @@ This must be an absolute file name."
   "Non-nil means use `look' rather than `grep'.
 Default is based on whether `look' seems to be available."
   :type 'boolean)
+(make-obsolete-variable 'ispell-look-p nil "29.1")
 
 (defcustom ispell-have-new-look nil
   "Non-nil means use the `-r' option (regexp) when running `look'."
   :type 'boolean)
+(make-obsolete-variable 'ispell-have-new-look nil "29.1")
 
-(defcustom ispell-look-options (if ispell-have-new-look "-dfr" "-df")
+(defcustom ispell-look-options "-df"
   "String of command options for `ispell-look-command'."
   :type 'string)
 
@@ -738,7 +740,8 @@ Otherwise returns the library directory name, if that is defined."
   "Execute the forms in BODY with a reasonable `default-directory'."
   (declare (indent 0) (debug t))
   `(let ((default-directory default-directory))
-     (unless (file-accessible-directory-p default-directory)
+     (unless (and (not (file-remote-p default-directory))
+                  (file-accessible-directory-p default-directory))
        (setq default-directory (expand-file-name "~/")))
      ,@body))
 
@@ -1062,12 +1065,14 @@ calls it only when invoked interactively."
   (cl-pushnew (list dict '()) ispell-dictionary-alist :test #'equal)
   (ispell-hunspell-fill-dictionary-entry dict))
 
-(defun ispell-find-hunspell-dictionaries ()
+(defun ispell-find-hunspell-dictionaries (&optional dictionary)
   "Look for installed Hunspell dictionaries.
 Will initialize `ispell-hunspell-dictionary-alist' according
 to dictionaries found, and will remove aliases from the list
 in `ispell-dicts-name2locale-equivs-alist' if an explicit
-dictionary from that list was found."
+dictionary from that list was found.
+
+If DICTIONARY, check for that dictionary explicitly."
   (let ((hunspell-found-dicts
          (seq-filter
           (lambda (str)
@@ -1081,23 +1086,20 @@ dictionary from that list was found."
             (file-name-absolute-p str))
           (split-string
            (with-temp-buffer
-             (ispell-call-process ispell-program-name
-                            nil
-                            t
-                            nil
-                            "-D"
-                            ;; Use -a to prevent Hunspell from
-                            ;; trying to initialize its
-                            ;; curses/termcap UI, which causes it
-                            ;; to crash or fail to start in some
-                            ;; MS-Windows ports.
-                            "-a"
-                            ;; Hunspell 1.7.0 (and later?) won't
-                            ;; show LOADED DICTIONARY unless
-                            ;; there's at least one file argument
-                            ;; on the command line.  So we feed
-                            ;; it with the null device.
-                            null-device)
+             (apply #'ispell-call-process
+                    ispell-program-name nil t nil
+                    `("-D"
+                      ,@(and dictionary (list "-d" dictionary))
+                      ;; Use -a to prevent Hunspell from trying to
+                      ;; initialize its curses/termcap UI, which
+                      ;; causes it to crash or fail to start in some
+                      ;; MS-Windows ports.
+                      "-a"
+                      ;; Hunspell 1.7.0 (and later?) won't show LOADED
+                      ;; DICTIONARY unless there's at least one file
+                      ;; argument on the command line.  So we feed it
+                      ;; with the null device.
+                      ,null-device))
              (buffer-string))
            "[\n\r]+"
            t)))
@@ -1164,12 +1166,20 @@ dictionary from that list was found."
     ;; Parse and set values for default dictionary.
     (setq hunspell-default-dict (or hunspell-multi-dict
 				    (car hunspell-default-dict)))
+    ;; If we didn't find a dictionary based on the environment (i.e.,
+    ;; the locale and the DICTIONARY variable), try again if
+    ;; `ispell-dictionary' is set.
+    (when (and (not hunspell-default-dict)
+               (not dictionary)
+               ispell-dictionary)
+      (setq hunspell-default-dict
+            (ispell-find-hunspell-dictionaries ispell-dictionary)))
     ;; If hunspell-default-dict is nil, ispell-parse-hunspell-affix-file
     ;; will barf with an error message that doesn't help users figure
     ;; out what is wrong.  Produce an error message that points to the
     ;; root cause of the problem.
-    (or hunspell-default-dict
-        (error "Can't find Hunspell dictionary with a .aff affix file"))
+    (unless hunspell-default-dict
+      (error "Can't find Hunspell dictionary with a .aff affix file"))
     (setq hunspell-default-dict-entry
 	  (ispell-parse-hunspell-affix-file hunspell-default-dict))
     ;; Create an alist of found dicts with only names, except for default dict.
@@ -1179,7 +1189,8 @@ dictionary from that list was found."
       (cl-pushnew (if (string= dict hunspell-default-dict)
                       hunspell-default-dict-entry
                     (list dict))
-                  ispell-hunspell-dictionary-alist :test #'equal))))
+                  ispell-hunspell-dictionary-alist :test #'equal))
+    hunspell-default-dict))
 
 ;; Make ispell.el work better with enchant.
 
@@ -2511,8 +2522,10 @@ if defined."
 
   (let* ((process-connection-type ispell-use-ptys-p)
 	 (wild-p (string-search "*" word))
-	 (look-p (and ispell-look-p	; Only use look for an exact match.
-		      (or ispell-have-new-look (not wild-p))))
+	 (look-p (and ispell-look-command
+                      (file-exists-p ispell-look-command)
+                      ;; Only use look for an exact match.
+		      (not wild-p)))
 	 (prog (if look-p ispell-look-command ispell-grep-command))
 	 (args (if look-p ispell-look-options ispell-grep-options))
 	 status results loc)
@@ -3146,7 +3159,7 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 				       (min skip-region-start ispell-region-end)
 				     (marker-position ispell-region-end))))
 		(let* ((ispell-start (point))
-		       (ispell-end (min (point-at-eol) reg-end))
+                       (ispell-end (min (line-end-position) reg-end))
 		       ;; See if line must be prefixed by comment string to let ispell know this is
 		       ;; part of a comment string.  This is only supported in some modes.
 		       ;; In particular, this is not supported in autoconf mode where adding the
@@ -3159,7 +3172,8 @@ ispell-region: Search for first region to skip after (ispell-begin-skip-region-r
 				ispell-start ispell-end add-comment)))
 		  (ispell-print-if-debug
                    "ispell-region: string pos (%s->%s), eol: %s, [in-comment]: [%s], [add-comment]: [%s], [string]: [%s]\n"
-                   ispell-start ispell-end (point-at-eol) in-comment add-comment string)
+                   ispell-start ispell-end (line-end-position)
+                   in-comment add-comment string)
 		  (if add-comment		; account for comment chars added
 		      (setq ispell-start (- ispell-start (length add-comment))
 			    ;; Reset `in-comment' (and indirectly `add-comment') for new line
@@ -4096,7 +4110,7 @@ Includes LaTeX/Nroff modes and extended character mode."
     (goto-char (point-max))
     ;; Uses last occurrence of ispell-parsing-keyword
     (if (search-backward ispell-parsing-keyword nil t)
-	(let ((end (point-at-eol))
+        (let ((end (line-end-position))
 	      string)
 	  (search-forward ispell-parsing-keyword)
 	  (while (re-search-forward " *\\([^ \"]+\\)" end t)
@@ -4132,7 +4146,7 @@ Both should not be used to define a buffer-local dictionary."
 	(if (search-backward ispell-dictionary-keyword nil t)
 	    (progn
 	      (search-forward ispell-dictionary-keyword)
-	      (setq end (point-at-eol))
+              (setq end (line-end-position))
 	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		  (setq ispell-local-dictionary
 			(match-string-no-properties 1))))))
@@ -4140,7 +4154,7 @@ Both should not be used to define a buffer-local dictionary."
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
 	    (search-forward ispell-pdict-keyword)
-	    (setq end (point-at-eol))
+            (setq end (line-end-position))
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
@@ -4169,7 +4183,7 @@ Both should not be used to define a buffer-local dictionary."
     (while (search-forward ispell-words-keyword nil t)
       (or ispell-buffer-local-name
 	  (setq ispell-buffer-local-name (buffer-name)))
-      (let ((end (point-at-eol))
+      (let ((end (line-end-position))
 	    (ispell-casechars (ispell-get-casechars))
 	    string)
 	;; buffer-local words separated by a space, and can contain

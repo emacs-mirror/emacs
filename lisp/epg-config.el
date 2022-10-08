@@ -246,9 +246,9 @@ version requirement is met."
       (goto-char (match-end 0))
       (backward-char)
       (forward-sexp)
-      (skip-syntax-forward "-" (point-at-eol))
+      (skip-syntax-forward "-" (line-end-position))
       (list (cons 'program program)
-            (cons 'version (buffer-substring (point) (point-at-eol)))))))
+            (cons 'version (buffer-substring (point) (line-end-position)))))))
 
 ;;;###autoload
 (defun epg-configuration ()

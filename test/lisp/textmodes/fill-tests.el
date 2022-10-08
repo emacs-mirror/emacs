@@ -53,8 +53,8 @@
       (goto-char (point-min))
       (search-forward "b")
       (let* ((pos (point))
-             (beg (line-beginning-position))
-             (end (line-end-position))
+             (beg (pos-bol))
+             (end (pos-eol))
              (fill-prefix (make-string (- pos beg) ?\s))
              ;; `fill-column' is too small to accommodate the current line
              (fill-column (- end beg 10)))
@@ -68,8 +68,8 @@
       (goto-char (point-min))
       (search-forward "b")
       (let* ((pos (point))
-             (beg (line-beginning-position))
-             (end (line-end-position))
+             (beg (pos-bol))
+             (end (pos-eol))
              (fill-prefix (make-string (- pos beg) ?\s))
              ;; `fill-column' is too small to accommodate the current line
              (fill-column (- end beg 10)))

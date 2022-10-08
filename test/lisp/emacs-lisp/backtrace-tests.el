@@ -274,16 +274,16 @@ line contains the strings \"lambda\" and \"number\"."
   ;; Verify the form now spans multiple lines.
   (let ((pos (point)))
     (search-forward "number")
-    (should-not (= pos (point-at-bol))))
+    (should-not (= pos (pos-bol))))
   ;; Collapse the form.
   (backtrace-single-line)
   ;; Verify that the form is now back on one line,
   ;; and that point is at the same place.
   (should (string= (backtrace-tests--get-substring
                     (- (point) 6) (point)) "number"))
-  (should-not (= (point) (point-at-bol)))
+  (should-not (= (point) (pos-bol)))
   (should (string= (backtrace-tests--get-substring
-                    (point-at-bol) (1+ (point-at-eol)))
+                    (pos-bol) (1+ (pos-eol)))
                    line)))
 
 (ert-deftest backtrace-tests--print-circle ()

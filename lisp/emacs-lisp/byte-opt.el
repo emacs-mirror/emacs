@@ -728,17 +728,20 @@ for speeding up processing.")
   (while (let ((head (car-safe form)))
            (cond ((memq head '( progn inline save-excursion save-restriction
                                 save-current-buffer))
-                  (setq form (car (last form)))
+                  (setq form (car (last (cdr form))))
                   t)
-                 ((memq head '(let let* setq setcar setcdr))
+                 ((memq head '(let let*))
                   (setq form (car (last (cddr form))))
                   t)
                  ((memq head '( prog1 unwind-protect copy-sequence identity
                                 reverse nreverse sort))
                   (setq form (nth 1 form))
                   t)
-                 ((eq head 'mapc)
+                 ((memq head '(mapc setq setcar setcdr puthash set))
                   (setq form (nth 2 form))
+                  t)
+                 ((memq head '(aset put function-put))
+                  (setq form (nth 3 form))
                   t))))
   form)
 
@@ -753,22 +756,45 @@ for speeding up processing.")
                  ((memq head
                         ;; FIXME: Replace this list with a function property?
                         '( length safe-length cons lambda
-                           string make-string format concat
+                           string unibyte-string make-string concat
+                           format format-message
                            substring substring-no-properties string-replace
                            replace-regexp-in-string symbol-name make-symbol
+                           compare-strings string-distance
                            mapconcat
                            vector make-vector vconcat make-record record
                            regexp-quote regexp-opt
                            buffer-string buffer-substring
                            buffer-substring-no-properties
-                           current-buffer buffer-size
-                           point point-min point-max
-                           following-char preceding-char max-char
-                           + - * / % 1+ 1- min max abs
-                           logand logior lorxor lognot ash
+                           current-buffer buffer-size get-buffer-create
+                           point point-min point-max buffer-end count-lines
+                           following-char preceding-char get-byte max-char
+                           region-beginning region-end
+                           line-beginning-position line-end-position
+                           pos-bol pos-eol
+                           + - * / % 1+ 1- min max abs mod expt logb
+                           logand logior logxor lognot ash logcount
+                           floor ceiling round truncate
+                           sqrt sin cos tan asin acos atan exp log copysign
+                           ffloor fceiling fround ftruncate float
+                           ldexp frexp
                            number-to-string string-to-number
-                           int-to-string char-to-string prin1-to-string
+                           int-to-string char-to-string
+                           prin1-to-string read-from-string
                            byte-to-string string-to-vector string-to-char
+                           capitalize upcase downcase
+                           propertize
+                           string-as-multibyte string-as-unibyte
+                           string-to-multibyte string-to-unibyte
+                           string-make-multibyte string-make-unibyte
+                           string-width char-width
+                           make-hash-table hash-table-count
+                           unibyte-char-to-multibyte multibyte-char-to-unibyte
+                           sxhash sxhash-equal sxhash-eq sxhash-eql
+                           sxhash-equal-including-properties
+                           make-marker copy-marker point-marker mark-marker
+                           set-marker
+                           kbd key-description
                            always))
                   t)
                  ((eq head 'if)
@@ -786,7 +812,7 @@ for speeding up processing.")
 (defun byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
   (setq form (byte-opt--bool-value-form form))
-  (or (not form)   ; assume (quote nil) always being normalised to nil
+  (or (not form)   ; assume (quote nil) always being normalized to nil
       (and (consp form)
            (let ((head (car form)))
              ;; FIXME: There are many other expressions that are statically nil.
@@ -1158,7 +1184,7 @@ See Info node `(elisp) Integer Basics'."
     (if (equal new-args (cdr form))
         ;; Input is unchanged: keep original form, and don't represent
         ;; a nil result explicitly because that would lead to infinite
-        ;; growth when the optimiser is iterated.
+        ;; growth when the optimizer is iterated.
         (setq nil-result nil)
       (setq form (cons (car form) new-args)))
 
@@ -1298,9 +1324,6 @@ See Info node `(elisp) Integer Basics'."
       (list 'progn condition nil)))))
 
 (defun byte-optimize-while (form)
-  ;; FIXME: This check does not belong here, move!
-  (when (< (length form) 2)
-    (byte-compile-warn-x form "too few arguments for `while'"))
   (let ((condition (nth 1 form)))
     (if (byte-compile-nilconstp condition)
         condition
@@ -1509,15 +1532,16 @@ See Info node `(elisp) Integer Basics'."
 
 (put 'set 'byte-optimizer #'byte-optimize-set)
 (defun byte-optimize-set (form)
-  (let ((var (car-safe (cdr-safe form))))
-    (cond
-     ((and (eq (car-safe var) 'quote) (consp (cdr var)))
-      `(setq ,(cadr var) ,@(cddr form)))
-     ((and (eq (car-safe var) 'make-local-variable)
-	   (eq (car-safe (setq var (car-safe (cdr var)))) 'quote)
-	   (consp (cdr var)))
-      `(progn ,(cadr form) (setq ,(cadr var) ,@(cddr form))))
-     (t form))))
+  (pcase (cdr form)
+    ;; Make sure we only turn `set' into `setq' for dynamic variables.
+    (`((quote ,(and var (guard (and (symbolp var)
+                                    (not (macroexp--const-symbol-p var))
+                                    (not (assq var byte-optimize--lexvars))))))
+       ,newval)
+     `(setq ,var ,newval))
+    (`(,(and ml `(make-local-variable ,(and v `(quote ,_)))) ,newval)
+     `(progn ,ml (,(car form) ,v ,newval)))
+    (_ form)))
 
 ;; enumerating those functions which need not be called if the returned
 ;; value is not used.  That is, something like
@@ -1570,7 +1594,7 @@ See Info node `(elisp) Integer Basics'."
 	 keymap-parent
          lax-plist-get ldexp
          length length< length> length=
-         line-beginning-position line-end-position
+         line-beginning-position line-end-position pos-bol pos-eol
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-byte-code make-list make-string make-symbol mark marker-buffer max
@@ -1977,20 +2001,20 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setq keep-going t)
 	  (setq tmp (aref byte-stack+-info (symbol-value (car lap0))))
 	  (setq rest (cdr rest))
-	  (cond ((= tmp 1)
+	  (cond ((eql tmp 1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted>" lap0)
 		 (setq lap (delq lap0 (delq lap1 lap))))
-		((= tmp 0)
+		((eql tmp 0)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\t<deleted> discard" lap0)
 		 (setq lap (delq lap0 lap)))
-		((= tmp -1)
+		((eql tmp -1)
 		 (byte-compile-log-lap
 		  "  %s discard\t-->\tdiscard discard" lap0)
 		 (setcar lap0 'byte-discard)
 		 (setcdr lap0 0))
-		((error "Optimizer error: too much on the stack"))))
+		(t (error "Optimizer error: too much on the stack"))))
 	 ;;
 	 ;; goto*-X X:  -->  X:
 	 ;;

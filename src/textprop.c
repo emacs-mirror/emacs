@@ -2389,15 +2389,7 @@ returned. */);
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
-This also inhibits the use of the `intangible' text property.
-
-This variable is obsolete since Emacs-25.1.  Use `cursor-intangible-mode'
-or `cursor-sensor-mode' instead.  */);
-  /* FIXME: We should make-obsolete-variable, but that signals too many
-     warnings in code which does (let ((inhibit-point-motion-hooks t)) ...)
-     Ideally, make-obsolete-variable should let us specify that only the nil
-     value is obsolete, but that requires too many changes in bytecomp.el,
-     so for now we'll keep it "obsolete via the docstring".  */
+This also inhibits the use of the `intangible' text property.  */);
   Vinhibit_point_motion_hooks = Qt;
 
   DEFVAR_LISP ("text-property-default-nonsticky",

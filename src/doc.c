@@ -342,7 +342,7 @@ string is passed through `substitute-command-keys'.  */)
     doc = module_function_documentation (XMODULE_FUNCTION (fun));
 #endif
   else
-    doc = call1 (intern ("function-documentation"), fun);
+    doc = call1 (Qfunction_documentation, fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
@@ -643,7 +643,14 @@ default_to_grave_quoting_style (void)
 DEFUN ("text-quoting-style", Ftext_quoting_style,
        Stext_quoting_style, 0, 0, 0,
        doc: /* Return the current effective text quoting style.
-See variable `text-quoting-style'.  */)
+If the variable `text-quoting-style' is `grave', `straight' or
+`curve', just return that value.  If it is nil (the default), return
+`grave' if curved quotes cannot be displayed (for instance, on a
+terminal with no support for these characters), otherwise return
+`quote'.  Any other value is treated as `grave'.
+
+Note that in contrast to the variable `text-quoting-style', this
+function will never return nil.  */)
   (void)
 {
   /* Use grave accent and apostrophe `like this'.  */
@@ -694,7 +701,11 @@ The value should be one of these symbols:
   `grave':    quote with grave accent and apostrophe \\=`like this\\=';
 	      i.e., do not alter the original quote marks.
   nil:        like `curve' if curved single quotes are displayable,
-	      and like `grave' otherwise.  This is the default.  */);
+	      and like `grave' otherwise.  This is the default.
+
+You should never read the value of this variable directly from a Lisp
+program.  Use the function `text-quoting-style' instead, as that will
+compute the correct value for the current terminal in the nil case.  */);
   Vtext_quoting_style = Qnil;
 
   DEFVAR_BOOL ("internal--text-quoting-flag", text_quoting_flag,

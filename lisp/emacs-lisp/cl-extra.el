@@ -772,7 +772,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       (help-insert-xref-button
        (help-fns-short-filename location)
        'cl-type-definition type location 'define-type)
-      (insert (substitute-command-keys "'")))
+      (insert (substitute-quotes "'")))
     (insert ".\n")
 
     ;; Parents.
@@ -782,7 +782,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
         (insert " Inherits from ")
         (while (setq cur (pop pl))
           (setq cur (cl--class-name cur))
-          (insert (substitute-command-keys "`"))
+          (insert (substitute-quotes "`"))
           (help-insert-xref-button (symbol-name cur)
                                    'cl-help-type cur)
           (insert (substitute-command-keys (if pl "', " "'"))))
@@ -796,7 +796,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       (when ch
         (insert " Children ")
         (while (setq cur (pop ch))
-          (insert (substitute-command-keys "`"))
+          (insert (substitute-quotes "`"))
           (help-insert-xref-button (symbol-name cur)
                                    'cl-help-type cur)
           (insert (substitute-command-keys (if ch "', " "'"))))
@@ -815,10 +815,10 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
       (when generics
         (insert (propertize "Specialized Methods:\n\n" 'face 'bold))
         (dolist (generic generics)
-          (insert (substitute-command-keys "`"))
+          (insert (substitute-quotes "`"))
           (help-insert-xref-button (symbol-name generic)
                                    'help-function generic)
-          (insert (substitute-command-keys "'"))
+          (insert (substitute-quotes "'"))
           (pcase-dolist (`(,qualifiers ,args ,doc)
                          (cl--generic-method-documentation generic type))
             (insert (format " %s%S\n" qualifiers args)

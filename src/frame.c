@@ -6243,7 +6243,7 @@ You can also use a floating number between 0.0 and 1.0.  */);
 #endif
 
   DEFVAR_LISP ("default-frame-alist", Vdefault_frame_alist,
-	       doc: /* Alist of default values for frame creation.
+    doc: /* Alist of default values of frame parameters for frame creation.
 These may be set in your init file, like this:
   (setq default-frame-alist \\='((width . 80) (height . 55) (menu-bar-lines . 1)))
 

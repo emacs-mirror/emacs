@@ -253,9 +253,9 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
 
   /* Two special cases to avoid opening rather big fonts.  */
   if (EQ (AREF (props, 2), Qja))
-    return list2 (intern ("kana"), intern ("han"));
+    return list2 (Qkana, Qhan);
   if (EQ (AREF (props, 2), Qko))
-    return list1 (intern ("hangul"));
+    return list1 (Qhangul);
   scripts = Fgethash (props, xfont_scripts_cache, Qt);
   if (EQ (scripts, Qt))
     {
@@ -1130,19 +1130,19 @@ static void syms_of_xfont_for_pdumper (void);
 
 struct font_driver const xfont_driver =
   {
-  .type = LISPSYM_INITIALLY (Qx),
-  .get_cache = xfont_get_cache,
-  .list = xfont_list,
-  .match = xfont_match,
-  .list_family = xfont_list_family,
-  .open_font = xfont_open,
-  .close_font = xfont_close,
-  .prepare_face = xfont_prepare_face,
-  .has_char = xfont_has_char,
-  .encode_char = xfont_encode_char,
-  .text_extents = xfont_text_extents,
-  .draw = xfont_draw,
-  .check = xfont_check,
+    .type = LISPSYM_INITIALLY (Qx),
+    .get_cache = xfont_get_cache,
+    .list = xfont_list,
+    .match = xfont_match,
+    .list_family = xfont_list_family,
+    .open_font = xfont_open,
+    .close_font = xfont_close,
+    .prepare_face = xfont_prepare_face,
+    .has_char = xfont_has_char,
+    .encode_char = xfont_encode_char,
+    .text_extents = xfont_text_extents,
+    .draw = xfont_draw,
+    .check = xfont_check,
   };
 
 void
@@ -1153,6 +1153,10 @@ syms_of_xfont (void)
   staticpro (&xfont_scratch_props);
   xfont_scratch_props = make_nil_vector (8);
   pdumper_do_now_and_after_load (syms_of_xfont_for_pdumper);
+
+  DEFSYM (Qkana, "kana");
+  DEFSYM (Qhan, "han");
+  DEFSYM (Qhangul, "hangul");
 }
 
 static void

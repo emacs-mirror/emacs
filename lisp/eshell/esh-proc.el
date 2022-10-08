@@ -99,7 +99,13 @@ information, for example."
 (defvar eshell-current-subjob-p nil)
 
 (defvar eshell-process-list nil
-  "A list of the current status of subprocesses.")
+  "A list of the current status of subprocesses.
+Each element has the form (PROC . SUBJOB-P), where PROC is the
+process object and SUBJOB-P is non-nil if the process is a
+subjob.
+
+To add or remove elements of this list, see
+`eshell-record-process-object' and `eshell-remove-process-entry'.")
 
 (declare-function eshell-send-eof-to-process "esh-mode")
 (declare-function eshell-tail-process "esh-cmd")
@@ -229,20 +235,29 @@ The prompt will be set to PROMPT."
     (declare-function eshell-interactive-print "esh-mode" (string))
     (eshell-interactive-print
      (format "[%s] %d\n" (process-name object) (process-id object))))
-  (setq eshell-process-list
-	(cons (list object eshell-current-handles
-		    eshell-current-subjob-p nil nil)
-	      eshell-process-list)))
+  (push (cons object eshell-current-subjob-p) eshell-process-list))
 
 (defun eshell-remove-process-entry (entry)
   "Record the process ENTRY as fully completed."
   (if (and (eshell-processp (car entry))
-	   (nth 2 entry)
+	   (cdr entry)
 	   eshell-done-messages-in-minibuffer)
       (message "[%s]+ Done %s" (process-name (car entry))
 	       (process-command (car entry))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
+
+(defun eshell-record-process-properties (process &optional index)
+  "Record Eshell bookkeeping properties for PROCESS.
+`eshell-insertion-filter' and `eshell-sentinel' will use these to
+do their jobs.
+
+INDEX is the index of the output handle to use for writing; if
+nil, write to `eshell-output-handle'."
+  (process-put process :eshell-handles eshell-current-handles)
+  (process-put process :eshell-handle-index (or index eshell-output-handle))
+  (process-put process :eshell-pending nil)
+  (process-put process :eshell-busy nil))
 
 (defvar eshell-scratch-buffer " *eshell-scratch*"
   "Scratch buffer for holding Eshell's input/output.")
@@ -262,9 +277,21 @@ Used only on systems which do not support async subprocesses.")
 	      eshell-delete-exited-processes
 	    delete-exited-processes))
 	 (process-environment (eshell-environment-variables))
-	 proc decoding encoding changed)
+	 proc stderr-proc decoding encoding changed)
     (cond
      ((fboundp 'make-process)
+      (unless (equal (car (aref eshell-current-handles eshell-output-handle))
+                     (car (aref eshell-current-handles eshell-error-handle)))
+        (eshell-protect-handles eshell-current-handles)
+        (setq stderr-proc
+              (make-pipe-process
+               :name (concat (file-name-nondirectory command) "-stderr")
+               :buffer (current-buffer)
+               :filter (if (eshell-interactive-output-p eshell-error-handle)
+                           #'eshell-output-filter
+                         #'eshell-insertion-filter)
+               :sentinel #'eshell-sentinel))
+        (eshell-record-process-properties stderr-proc eshell-error-handle))
       (setq proc
             (let ((command (file-local-name (expand-file-name command)))
                   (conn-type (pcase (bound-and-true-p eshell-in-pipeline-p)
@@ -281,8 +308,10 @@ Used only on systems which do not support async subprocesses.")
                          #'eshell-insertion-filter)
                :sentinel #'eshell-sentinel
                :connection-type conn-type
+               :stderr stderr-proc
                :file-handler t)))
       (eshell-record-process-object proc)
+      (eshell-record-process-properties proc)
       (run-hook-with-args 'eshell-exec-hook proc)
       (when (fboundp 'process-coding-system)
 	(let ((coding-systems (process-coding-system proc)))
@@ -363,36 +392,36 @@ PROC is the process for which we're inserting output.  STRING is the
 output."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      (let ((entry (assq proc eshell-process-list)))
-	(when entry
-	  (setcar (nthcdr 3 entry)
-		  (concat (nth 3 entry) string))
-	  (unless (nth 4 entry)		; already being handled?
-	    (while (nth 3 entry)
-	      (let ((data (nth 3 entry)))
-		(setcar (nthcdr 3 entry) nil)
-		(setcar (nthcdr 4 entry) t)
-                (unwind-protect
-                    (condition-case nil
-                        (eshell-output-object data nil (cadr entry))
-                      ;; FIXME: We want to send SIGPIPE to the process
-                      ;; here.  However, remote processes don't
-                      ;; currently support that, and not all systems
-                      ;; have SIGPIPE in the first place (e.g. MS
-                      ;; Windows).  In these cases, just delete the
-                      ;; process; this is reasonably close to the
-                      ;; right behavior, since the default action for
-                      ;; SIGPIPE is to terminate the process.  For use
-                      ;; cases where SIGPIPE is truly needed, using an
-                      ;; external pipe operator (`*|') may work
-                      ;; instead (e.g. when working with remote
-                      ;; processes).
-                      (eshell-pipe-broken
-                       (if (or (process-get proc 'remote-pid)
-                               (eq system-type 'windows-nt))
-                           (delete-process proc)
-                         (signal-process proc 'SIGPIPE))))
-                  (setcar (nthcdr 4 entry) nil))))))))))
+      (process-put proc :eshell-pending
+                   (concat (process-get proc :eshell-pending)
+                           string))
+      (unless (process-get proc :eshell-busy) ; Already being handled?
+        (while (process-get proc :eshell-pending)
+          (let ((handles (process-get proc :eshell-handles))
+                (index (process-get proc :eshell-handle-index))
+                (data (process-get proc :eshell-pending)))
+            (process-put proc :eshell-pending nil)
+            (process-put proc :eshell-busy t)
+            (unwind-protect
+                (condition-case nil
+                    (eshell-output-object data index handles)
+                  ;; FIXME: We want to send SIGPIPE to the process
+                  ;; here.  However, remote processes don't currently
+                  ;; support that, and not all systems have SIGPIPE in
+                  ;; the first place (e.g. MS Windows).  In these
+                  ;; cases, just delete the process; this is
+                  ;; reasonably close to the right behavior, since the
+                  ;; default action for SIGPIPE is to terminate the
+                  ;; process.  For use cases where SIGPIPE is truly
+                  ;; needed, using an external pipe operator (`*|')
+                  ;; may work instead (e.g. when working with remote
+                  ;; processes).
+                  (eshell-pipe-broken
+                   (if (or (process-get proc 'remote-pid)
+                           (eq system-type 'windows-nt))
+                       (delete-process proc)
+                     (signal-process proc 'SIGPIPE))))
+              (process-put proc :eshell-busy nil))))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
@@ -400,37 +429,39 @@ PROC is the process that's exiting.  STRING is the exit message."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (unwind-protect
-          (when-let ((entry (assq proc eshell-process-list)))
-	    (unwind-protect
-		(unless (string= string "run")
-                  ;; Write the exit message if the status is
-                  ;; abnormal and the process is already writing
-                  ;; to the terminal.
-                  (when (and (eq proc (eshell-tail-process))
-                             (not (string-match "^\\(finished\\|exited\\)"
-                                                string)))
-                    (funcall (process-filter proc) proc string))
-                  (let ((handles (nth 1 entry))
-                        (str (prog1 (nth 3 entry)
-                               (setf (nth 3 entry) nil)))
-                        (status (process-exit-status proc)))
-                    ;; If we're in the middle of handling output
-                    ;; from this process then schedule the EOF for
-                    ;; later.
-                    (letrec ((finish-io
-                              (lambda ()
-                                (if (nth 4 entry)
-                                    (run-at-time 0 nil finish-io)
-                                  (when str
-                                    (ignore-error 'eshell-pipe-broken
-                                      (eshell-output-object
-                                       str nil handles)))
-                                  (eshell-close-handles
-                                   status (list 'quote (= status 0))
-                                   handles)))))
-                      (funcall finish-io))))
-	      (eshell-remove-process-entry entry)))
-	(eshell-kill-process-function proc string)))))
+          (unless (string= string "run")
+            ;; Write the exit message if the status is abnormal and
+            ;; the process is already writing to the terminal.
+            (when (and (eq proc (eshell-tail-process))
+                       (not (string-match "^\\(finished\\|exited\\)"
+                                          string)))
+              (funcall (process-filter proc) proc string))
+            (let* ((handles (process-get proc :eshell-handles))
+                   (index (process-get proc :eshell-handle-index))
+                   (data (process-get proc :eshell-pending))
+                   ;; Only get the status for the primary subprocess,
+                   ;; not the pipe process (if any).
+                   (status (when (= index eshell-output-handle)
+                            (process-exit-status proc))))
+              (process-put proc :eshell-pending nil)
+              ;; If we're in the middle of handling output from this
+              ;; process then schedule the EOF for later.
+              (letrec ((finish-io
+                        (lambda ()
+                          (if (process-get proc :eshell-busy)
+                              (run-at-time 0 nil finish-io)
+                            (when data
+                              (ignore-error 'eshell-pipe-broken
+                                (eshell-output-object
+                                 data index handles)))
+                            (eshell-close-handles
+                             status
+                             (when status (list 'quote (= status 0)))
+                             handles)))))
+                (funcall finish-io))))
+        (when-let ((entry (assq proc eshell-process-list)))
+          (eshell-remove-process-entry entry))
+        (eshell-kill-process-function proc string)))))
 
 (defun eshell-process-interact (func &optional all query)
   "Interact with a process, using PROMPT if more than one, via FUNC.
@@ -441,7 +472,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
       (if (and (memq (process-status (car entry))
 		    '(run stop open closed))
 	       (or all
-		   (not (nth 2 entry)))
+		   (not (cdr entry)))
 	       (or (not query)
 		   (y-or-n-p (format-message query
 					     (process-name (car entry))))))

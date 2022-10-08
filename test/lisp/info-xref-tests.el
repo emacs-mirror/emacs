@@ -161,8 +161,7 @@ text.
       (should (search-backward "done" nil t))
       (should (string-match-p
                " [0-9]\\{3,\\} good, 0 bad"
-               (buffer-substring-no-properties (line-beginning-position)
-                                               (line-end-position)))))))
+               (buffer-substring-no-properties (pos-bol) (pos-eol)))))))
 
 
 ;;; info-xref-tests.el ends here

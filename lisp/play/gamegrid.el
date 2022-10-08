@@ -1,6 +1,6 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Old-Version: 1.02
@@ -72,7 +72,7 @@ directory will be used.")
 (defvar gamegrid-mono-x-face nil)
 (defvar gamegrid-mono-tty-face nil)
 
-(defvar gamegrid-glyph-height-mm 7.0
+(defvar gamegrid-glyph-height-mm 5.0
   "Desired glyph height in mm.")
 
 ;; ;;;;;;;;;;;;; glyph generation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -80,12 +80,20 @@ directory will be used.")
 (defun gamegrid-calculate-glyph-size ()
   "Calculate appropriate glyph size in pixels based on display resolution.
 Return a multiple of 8 no less than 16."
-  (if (and (display-pixel-height) (display-mm-height))
-      (let* ((y-pitch (/ (display-pixel-height) (float (display-mm-height))))
-             (pixels (* y-pitch gamegrid-glyph-height-mm))
-             (rounded (* (floor (/ (+ pixels 4) 8)) 8)))
-        (max 16 rounded))
-    16))
+  (let ((atts (frame-monitor-attributes))
+        y-pitch)
+    (setq y-pitch (cond
+                   (atts
+                    (/ (nth 4 (assq 'geometry atts))
+                       (nth 2 (assq 'mm-size atts))
+                       (or (cdr (assq 'scale-factor atts)) 1.0)))
+                   ((and (display-pixel-height) (display-mm-height))
+                    (/ (display-pixel-height) (float (display-mm-height))))))
+    (if y-pitch
+        (let* ((pixels (* y-pitch gamegrid-glyph-height-mm))
+               (rounded (* (floor (/ (+ pixels 4) 8)) 8)))
+          (max 16 rounded))
+      16)))
 
 ;; Example of glyph in XPM format:
 ;;
@@ -251,7 +259,7 @@ format."
   (set-face-foreground face color)
   (set-face-background face color)
   (gamegrid-set-font face)
-  (set-face-background-pixmap face nil))
+  (set-face-stipple face nil))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
@@ -335,8 +343,11 @@ format."
 	   (gamegrid-match-spec-list (cdr spec-list)))))
 
 (defun gamegrid-make-glyph (data-spec-list color-spec-list)
+  ;; image.el is not preloaded in --without-x builds.
+  (defvar image-scaling-factor)
   (let ((data (gamegrid-match-spec-list data-spec-list))
-	(color (gamegrid-match-spec-list color-spec-list)))
+	(color (gamegrid-match-spec-list color-spec-list))
+        (image-scaling-factor 1.0))
     (cond ((characterp data)
 	   (vector data))
 	  ((eq data 'colorize)

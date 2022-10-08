@@ -369,7 +369,8 @@ provided in the Commentary section of this library."
             (get-buffer-create reb-buffer)
             `((display-buffer-in-direction)
               (direction . ,dir)
-              (dedicated . t))))))
+              (dedicated . t)
+              (window-height . fit-window-to-buffer))))))
     (font-lock-mode 1)
     (reb-initialize-buffer)))
 
@@ -497,7 +498,8 @@ Optional argument SYNTAX must be specified if called non-interactively."
 	(setq reb-re-syntax syntax)
 	(when buffer
           (with-current-buffer buffer
-            (reb-initialize-buffer))))
+            (reb-initialize-buffer))
+          (message "Switched syntax to `%s'" reb-re-syntax)))
     (error "Invalid syntax: %s" syntax)))
 
 
@@ -737,8 +739,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
           (let ((face (get-text-property (1- (point)) 'face)))
             (when (or (and (listp face)
                            (memq 'font-lock-string-face face))
-                      (eq 'font-lock-string-face face)
-                      t)
+                      (eq 'font-lock-string-face face))
               (throw 'found t))))))))
 
 (defface reb-regexp-grouping-backslash
@@ -819,7 +820,6 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
 
 (defun reb-restart-font-lock ()
   "Restart `font-lock-mode' to fit current regexp format."
-  (message "reb-restart-font-lock re-re-syntax=%s" reb-re-syntax)
   (with-current-buffer (get-buffer reb-buffer)
     (let ((font-lock-is-on font-lock-mode))
       (font-lock-mode -1)

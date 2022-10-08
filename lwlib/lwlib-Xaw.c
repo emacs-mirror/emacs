@@ -594,6 +594,8 @@ make_dialog (char* name,
             int nr_xft_data = left_buttons + right_buttons + 1;
             instance->xft_data = calloc (nr_xft_data + 1,
                                          sizeof(*instance->xft_data));
+	    if (!instance->xft_data)
+	      memory_full ((nr_xft_data + 1) * sizeof *instance->xft_data);
 
             fill_xft_data (&instance->xft_data[0], w, xft_font);
 	    XtAddCallback (dialog, XtNdestroyCallback, destroy_xft_data,

@@ -514,9 +514,9 @@ Second and third arg START and END specify the region to operate on.
 If optional argument NO-QUERY is non-nil, make changes without asking
 for confirmation.  You can use `repunctuate-sentences-filter' to add
 filters to skip occurrences of spaces that don't need to be replaced."
-  (interactive (list nil
-                     (if (use-region-p) (region-beginning))
-                     (if (use-region-p) (region-end))))
+  (declare (interactive-args (start (use-region-beginning))
+                             (end (use-region-end))))
+  (interactive (list nil (use-region-beginning) (use-region-end)))
   (let ((regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +")
         (to-string "\\1\\2\\3  "))
     (if no-query

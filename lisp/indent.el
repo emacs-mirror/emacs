@@ -695,12 +695,10 @@ A value of nil means a tab stop every `tab-width' columns."
   :safe 'listp
   :type '(repeat integer))
 
-(defvar edit-tab-stops-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'edit-tab-stops-note-changes)
-    (define-key map "\C-c\C-c" 'edit-tab-stops-note-changes)
-    map)
-  "Keymap used in `edit-tab-stops'.")
+(defvar-keymap edit-tab-stops-map
+  :doc "Keymap used in `edit-tab-stops'."
+  "C-x C-s" #'edit-tab-stops-note-changes
+  "C-c C-c" #'edit-tab-stops-note-changes)
 
 (defvar edit-tab-stops-buffer nil
   "Buffer whose tab stops are being edited.
@@ -734,7 +732,9 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
     (while (> count 0)
       (insert "0123456789")
       (setq count (1- count))))
-  (insert "\nTo install changes, type C-c C-c")
+  (insert (substitute-command-keys
+           (concat "\nTo install changes, type \\<edit-tab-stops-map>"
+                   "\\[edit-tab-stops-note-changes]")))
   (goto-char (point-min)))
 
 (defun edit-tab-stops-note-changes ()

@@ -52,10 +52,12 @@ General steps (for each step, check for possible errors):
       ./autogen.sh
       ./configure --with-native-compilation && make
 
-    For a release (as opposed to pretest), delete any left-over "---"
-    and "+++" markers from etc/NEWS, as well as the "Temporary note"
-    section at the beginning of that file, and commit etc/NEWS if it
-    was modified.
+    For a release (as opposed to pretest), visit etc/NEWS and use the
+    "M-x emacs-news-delete-temporary-markers" command to delete any
+    left-over "---" and "+++" markers from etc/NEWS, as well as the
+    "Temporary note" section at the beginning of that file, and commit
+    etc/NEWS if it was modified.  For a bug fix release (e.g. 28.2),
+    delete any empty headlines too.
 
 2.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
 
@@ -118,12 +120,13 @@ General steps (for each step, check for possible errors):
 
     Set the version number to that of the actual release (commit in
     one, as described above).  Pick a date about a week from now when
-    you intend to make the release.  Use M-x add-release-logs to add
-    entries to etc/HISTORY and the ChangeLog file.  It's best not to
-    commit these files until the release is actually made.  Merge the
-    entries from (unversioned) ChangeLog into the top of the current
-    versioned ChangeLog.N and commit that along with etc/HISTORY.
-    Then you can tag that commit as the release.
+    you intend to make the release.  Use M-x add-release-logs from
+    admin/admin.el to add entries to etc/HISTORY and the ChangeLog
+    file.  It's best not to commit these files until the release is
+    actually made.  Merge the entries from (unversioned) ChangeLog
+    into the top of the current versioned ChangeLog.N and commit that
+    along with etc/HISTORY.  Then you can tag that commit as the
+    release.
 
     Alternatively, you can commit and tag with the RC tag right away,
     and delay the final tagging until you actually decide to make a
@@ -163,7 +166,10 @@ General steps (for each step, check for possible errors):
 
     Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the files
     changed by M-x set-version.  Note that the set-version changes
-    should be committed separately, as described in step 3 above.
+    should be committed separately, as described in step 3 above, to
+    avoid them being merged to master.  The lisp/ldefs-boot.el file
+    should not be merged to master either, so it could be added to the
+    same commit or committed separately.
 
     The easiest way of doing that is "C-x v d ROOT-DIR RET", then go
     to the first modified file, press 'M' to mark all modified files,

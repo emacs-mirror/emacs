@@ -718,8 +718,6 @@ This is an alist of (ANCHOR . STREAM) elements where ANCHOR is the
 start position of the block, and STREAM is the list of tokens in that
 block.")
 
-(define-obsolete-variable-alias 'semantic-lex-reset-hooks
-  'semantic-lex-reset-functions "24.3")
 (defvar semantic-lex-reset-functions nil
   "Abnormal hook used by major-modes to reset lexical analyzers.
 Hook functions are called with START and END values for the
@@ -1423,7 +1421,7 @@ Return either a paren token or a semantic list token depending on
 	;; to work properly.  Lets try and move over
 	;; whatever white space we matched to begin
 	;; with.
-	(skip-syntax-forward "-.'" (point-at-eol))
+        (skip-syntax-forward "-.'" (line-end-position))
       ;; We may need to back up so newlines or whitespace is generated.
       (if (bolp)
 	  (backward-char 1)))

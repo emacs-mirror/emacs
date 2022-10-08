@@ -765,7 +765,7 @@ Ediff needs to find fine differences."
   "Set stipple pixmap of FACE to PIXMAP on a monochrome display."
   (if (and (display-graphic-p) (not (display-color-p)))
       (condition-case nil
-	  (set-face-background-pixmap face pixmap)
+          (set-face-stipple face pixmap)
 	(error
 	 (message "Pixmap not found for %S: %s" (face-name face) pixmap)
 	 (sit-for 1)))))

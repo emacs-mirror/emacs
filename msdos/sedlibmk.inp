@@ -182,6 +182,7 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_GETLOADAVG *=/s/@GL_GNULIB_GETLOADAVG@/1/
 /^GL_GNULIB_GETRANDOM *=/s/@GL_GNULIB_GETRANDOM@/1/
 /^GL_GNULIB_UNISTD_H_GETOPT *=/s/@GL_GNULIB_UNISTD_H_GETOPT@/1/
+/^GL_GNULIB_LCHMOD *=/s/@GL_GNULIB_LCHMOD@/1/
 /^GL_GNULIB_MEMMEM *=/s/@GL_GNULIB_MEMMEM@/1/
 /^GL_GNULIB_MEMRCHR *=/s/@GL_GNULIB_MEMRCHR@/1/
 /^GL_GNULIB_MEMPCPY *=/s/@GL_GNULIB_MEMPCPY@/1/
@@ -216,7 +217,8 @@ s/@PACKAGE@/emacs/
 /^HAVE_GETHOSTNAME *=/s/@HAVE_GETHOSTNAME@/1/
 /^HAVE_GETLOGIN *=/s/@HAVE_GETLOGIN@/1/
 /^HAVE_GETPAGESIZE *=/s/@HAVE_GETPAGESIZE@/1/
-/^HAVE_INTTYPES_H *=/s/@HAVE_INTTYPES_H@/HAVE_INTTYPES_H/
+/^HAVE_INTTYPES_H *=/s/@HAVE_INTTYPES_H@/1/
+/^HAVE_LCHMOD *=/s/@HAVE_LCHMOD@/0/
 /^HAVE_LINK *=/s/@HAVE_LINK@/1/
 /^HAVE_LONG_LONG_INT *=/s/@HAVE_LONG_LONG_INT@/1/
 /^HAVE_LSTAT *=/s/@HAVE_LSTAT@/HAVE_LSTAT/
@@ -293,7 +295,8 @@ s/@PACKAGE@/emacs/
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_TIME_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_SYS_TYPES_H *=/s!@[^@\n]*@!<sys/types.h>!
 /^NEXT_AS_FIRST_DIRECTIVE_TIME_H *=/s/@[^@\n]*@/<time.h>/
-/^NEXT_AS_FIRST_DIRECTIVE_UNISTD_H *=/s/@[^@\n]*@/<unistd.h>/
+/^NEXT_ASSERT_H *=/s/@[^@\n]*@/<assert.h>/
+/^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
 /^NEXT_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
@@ -323,6 +326,7 @@ s/@PACKAGE@/emacs/
 /^LIB_GETRANDOM[^ =]* *= *@/s/@[^@\n]*@//
 /^SIG_ATOMIC_T_SUFFIX *=/s/@SIG_ATOMIC_T_SUFFIX@//
 /^SIZE_T_SUFFIX *=/s/@SIZE_T_SUFFIX@/u/
+/^ASSERT_H *=/s/@[^@\n]*@/assert.h/
 /^ALLOCA_H *=/s/@[^@\n]*@/alloca.h/
 /^BYTESWAP_H *=/s/@[^@\n]*@/byteswap.h/
 /^DIRENT_H *=/s/@[^@\n]*@//
@@ -412,6 +416,9 @@ s/^	-*test -z.*|| rm/	 -rm/
 s/@echo /@djecho /
 #
 # Determine which headers to generate
+# DJGPP assert.h lacks static_assert, so assert.h will have to be
+# generated
+s/= @GL_GENERATE_ASSERT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_ALLOCA_H_CONDITION@/= 1/
 s/= @GL_GENERATE_BYTESWAP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_EXECINFO_H_CONDITION@/= 1/
@@ -496,6 +503,14 @@ s/\.in-h\;  *\\$/.in-h >> $@-t/
 /^string\.h:/,/^	[ 	]*mv /{
   s/'\; \\ *$/' >> $@-t/
   /< \$(srcdir)\/string\.in-h >>/d
+}
+/^assert\.h/,/^	\$(AM_V_AT)mv \$@-t \$@/{
+  s/\$(gl_V_at){/\$(gl_V_at)/
+  s/< \$(srcdir)\/assert\.in-h/& > $@-t/
+  s/	  sed/	\$(gl_V_at) \$(SED_HEADER_STDOUT)\\\
+	     /
+  s/\} > \$@-t/>> $@-t/
+  s/< \$(srcdir)\/verify\.h; \\/\$(srcdir)\/verify\.h >> \$@-t/
 }
 s!\$(MKDIR_P)[ 	][ 	]*sys!command.com /c "if not exist sys\\stat.h md sys"!
 /^	@for dir in/,/^[^	 ]/c\

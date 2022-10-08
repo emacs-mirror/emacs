@@ -153,7 +153,7 @@
   "In-buffer document viewer.
 The viewer handles PDF, PostScript, DVI, DJVU, ODF, EPUB, CBZ,
 FB2, XPS and OXPS files, if the appropriate converter programs
-are available (see Info node `(emacs)Document View')"
+are available (see Info node `(emacs)Document View')."
   :link '(function-link doc-view)
   :version "22.2"
   :group 'applications
@@ -208,6 +208,45 @@ are available (see Info node `(emacs)Document View')"
                          :doc "Use mupdf")
           function)
   :version "24.4")
+
+(defcustom doc-view-mupdf-use-svg (image-type-available-p 'svg)
+  "Whether to use svg images for PDF files."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom doc-view-imenu-enabled (and (executable-find "mutool") t)
+  "Whether to generate an imenu outline when \"mutool\" is available."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom doc-view-imenu-title-format "%t (%p)"
+  "Format spec for imenu's display of section titles from docview documents.
+
+The special markers '%t' and '%p' are replaced by the section
+title and page number in this format string, which uses
+`format-spec'.
+
+For instance, setting this variable to \"%t\" will produce items
+showing only titles and no page number."
+  :type 'string
+  :version "29.1")
+
+(defcustom doc-view-imenu-flatten nil
+  "Whether to flatten the list of sections in an imenu or show it nested."
+  :type 'boolean
+  :version "29.1")
+
+(defcustom doc-view-svg-background "white"
+  "Background color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
+
+(defcustom doc-view-svg-foreground "black"
+  "Foreground color for svg images.
+See `doc-view-mupdf-use-svg'."
+  :type 'color
+  :version "29.1")
 
 (defcustom doc-view-ghostscript-options
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
@@ -458,62 +497,60 @@ Typically \"page-%s.png\".")
 
 ;;;; DocView Keymaps
 
-(defvar doc-view-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map image-mode-map)
-    ;; Navigation in the document
-    (define-key map (kbd "n")         'doc-view-next-page)
-    (define-key map (kbd "p")         'doc-view-previous-page)
-    (define-key map (kbd "<next>")    'forward-page)
-    (define-key map (kbd "<prior>")   'backward-page)
-    (define-key map [remap forward-page]  'doc-view-next-page)
-    (define-key map [remap backward-page] 'doc-view-previous-page)
-    (define-key map (kbd "SPC")       'doc-view-scroll-up-or-next-page)
-    (define-key map (kbd "S-SPC")     'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "DEL")       'doc-view-scroll-down-or-previous-page)
-    (define-key map (kbd "C-n")       'doc-view-next-line-or-next-page)
-    (define-key map (kbd "<down>")    'doc-view-next-line-or-next-page)
-    (define-key map (kbd "C-p")       'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "<up>")      'doc-view-previous-line-or-previous-page)
-    (define-key map (kbd "M-<")       'doc-view-first-page)
-    (define-key map (kbd "M->")       'doc-view-last-page)
-    (define-key map [remap goto-line] 'doc-view-goto-page)
-    (define-key map (kbd "RET")       'image-next-line)
-    ;; Zoom in/out.
-    (define-key map "+"               'doc-view-enlarge)
-    (define-key map "="               'doc-view-enlarge)
-    (define-key map "-"               'doc-view-shrink)
-    (define-key map "0"               'doc-view-scale-reset)
-    (define-key map [remap text-scale-adjust] 'doc-view-scale-adjust)
-    ;; Fit the image to the window
-    (define-key map "W"               'doc-view-fit-width-to-window)
-    (define-key map "H"               'doc-view-fit-height-to-window)
-    (define-key map "P"               'doc-view-fit-page-to-window)
-    (define-key map "F"               'doc-view-fit-window-to-page) ;F = frame
-    ;; Killing the buffer (and the process)
-    (define-key map (kbd "k")         'image-kill-buffer)
-    (define-key map (kbd "K")         'doc-view-kill-proc)
-    ;; Slicing the image
-    (define-key map (kbd "c s")       'doc-view-set-slice)
-    (define-key map (kbd "c m")       'doc-view-set-slice-using-mouse)
-    (define-key map (kbd "c b")       'doc-view-set-slice-from-bounding-box)
-    (define-key map (kbd "c r")       'doc-view-reset-slice)
-    ;; Centering the image
-    (define-key map (kbd "c h")       'doc-view-center-page-horizontally)
-    (define-key map (kbd "c v")       'doc-view-center-page-vertically)
-    ;; Searching
-    (define-key map (kbd "C-s")       'doc-view-search)
-    (define-key map (kbd "<find>")    'doc-view-search)
-    (define-key map (kbd "C-r")       'doc-view-search-backward)
-    ;; Show the tooltip
-    (define-key map (kbd "C-t")       'doc-view-show-tooltip)
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
-    ;; Open a new buffer with doc's text contents
-    (define-key map (kbd "C-c C-t")   'doc-view-open-text)
-    (define-key map (kbd "r")         'revert-buffer)
-    map)
-  "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+(defvar-keymap doc-view-mode-map
+  :doc "Keymap used by `doc-view-mode' when displaying a doc as a set of images."
+  :parent image-mode-map
+  ;; Navigation in the document
+  "n"       #'doc-view-next-page
+  "p"       #'doc-view-previous-page
+  "<next>"  #'forward-page
+  "<prior>" #'backward-page
+  "<remap> <forward-page>"  #'doc-view-next-page
+  "<remap> <backward-page>" #'doc-view-previous-page
+  "SPC"     #'doc-view-scroll-up-or-next-page
+  "S-SPC"   #'doc-view-scroll-down-or-previous-page
+  "DEL"     #'doc-view-scroll-down-or-previous-page
+  "C-n"     #'doc-view-next-line-or-next-page
+  "<down>"  #'doc-view-next-line-or-next-page
+  "C-p"     #'doc-view-previous-line-or-previous-page
+  "<up>"    #'doc-view-previous-line-or-previous-page
+  "M-<"     #'doc-view-first-page
+  "M->"     #'doc-view-last-page
+  "<remap> <goto-line>" #'doc-view-goto-page
+  "RET"     #'image-next-line
+  ;; Zoom in/out.
+  "+"       #'doc-view-enlarge
+  "="       #'doc-view-enlarge
+  "-"       #'doc-view-shrink
+  "0"       #'doc-view-scale-reset
+  "<remap> <text-scale-adjust>" #'doc-view-scale-adjust
+  ;; Fit the image to the window
+  "W"       #'doc-view-fit-width-to-window
+  "H"       #'doc-view-fit-height-to-window
+  "P"       #'doc-view-fit-page-to-window
+  "F"       #'doc-view-fit-window-to-page ;F = frame
+  ;; Killing the buffer (and the process)
+  "k"       #'image-kill-buffer
+  "K"       #'doc-view-kill-proc
+  ;; Slicing the image
+  "c s"     #'doc-view-set-slice
+  "c m"     #'doc-view-set-slice-using-mouse
+  "c b"     #'doc-view-set-slice-from-bounding-box
+  "c r"     #'doc-view-reset-slice
+  ;; Centering the image
+  "c h"     #'doc-view-center-page-horizontally
+  "c v"     #'doc-view-center-page-vertically
+  ;; Searching
+  "C-s"     #'doc-view-search
+  "<find>"  #'doc-view-search
+  "C-r"     #'doc-view-search-backward
+  ;; Show the tooltip
+  "C-t"     #'doc-view-show-tooltip
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display
+  ;; Open a new buffer with doc's text contents
+  "C-c C-t" #'doc-view-open-text
+  "r"       #'revert-buffer)
 
 (define-obsolete-function-alias 'doc-view-revert-buffer #'revert-buffer "27.1")
 (defvar revert-buffer-preserve-modes)
@@ -617,12 +654,10 @@ Typically \"page-%s.png\".")
      :help                      "Jump to the previous match or initiate a new search"]
     ))
 
-(defvar doc-view-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Toggle between text and image display or editing
-    (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
-    map)
-  "Keymap used by `doc-view-minor-mode'.")
+(defvar-keymap doc-view-minor-mode-map
+  :doc "Keymap used by `doc-view-minor-mode'."
+  ;; Toggle between text and image display or editing
+  "C-c C-c" #'doc-view-toggle-display)
 
 (easy-menu-define doc-view-minor-mode-menu doc-view-minor-mode-map
   "Menu for Doc View minor mode."
@@ -1566,6 +1601,9 @@ ARGS is a list of image descriptors."
 			    (setq args `(,@args :width ,doc-view-image-width)))
                           (unless (member :transform-smoothing args)
                             (setq args `(,@args :transform-smoothing t)))
+                          (when (eq doc-view--image-type 'svg)
+                            (setq args `(,@args :background ,doc-view-svg-background
+                                               :foreground ,doc-view-svg-foreground)))
 			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))
@@ -1858,6 +1896,81 @@ If BACKWARD is non-nil, jump to the previous match."
 	     (y-or-n-p "No more matches before current page.  Wrap to last match? "))
 	(doc-view-goto-page (caar (last doc-view--current-search-matches)))))))
 
+;;;; Imenu support
+(defconst doc-view--outline-rx
+  "[^\t]+\\(\t+\\)\"\\(.+\\)\"\t#\\(?:page=\\)?\\([0-9]+\\)")
+
+(defvar-local doc-view--outline nil
+  "Cached PDF outline, so that it is only computed once per document.")
+
+(defun doc-view--pdf-outline (&optional file-name)
+  "Return a list describing the outline of FILE-NAME.
+Return a list describing the current file if FILE-NAME is nil.
+
+Each element in the returned list contains information about a section's
+title, nesting level and page number.  The list is flat: its tree
+structure is extracted by `doc-view--imenu-subtree'."
+  (let ((fn (or file-name (buffer-file-name))))
+    (when fn
+      (let ((outline nil)
+            (fn (shell-quote-argument (expand-file-name fn))))
+        (with-temp-buffer
+          (insert (shell-command-to-string (format "mutool show %s outline" fn)))
+          (goto-char (point-min))
+          (while (re-search-forward doc-view--outline-rx nil t)
+            (push `((level . ,(length (match-string 1)))
+                    (title . ,(replace-regexp-in-string "\\\\[rt]" " "
+                                                        (match-string 2)))
+                    (page . ,(string-to-number (match-string 3))))
+                  outline)))
+        (nreverse outline)))))
+
+(defun doc-view--imenu-subtree (outline act)
+  "Construct a tree of imenu items for the given outline list and action.
+
+This auxliary function constructs recursively all the items for
+the first node in the outline and all its siblings at the same
+level.  Returns that imenu alist together with any other pending outline
+entries at an upper level."
+  (let ((level (alist-get 'level (car outline)))
+        (nested (not doc-view-imenu-flatten))
+        (index nil))
+    (while (and (car outline)
+                (or (not nested)
+                    (<= level (alist-get 'level (car outline)))))
+      (let-alist (car outline)
+        (let ((title (format-spec doc-view-imenu-title-format
+                                  `((?t . ,.title) (?p . ,.page)))))
+          (if (and nested (> .level level))
+              (let ((sub (doc-view--imenu-subtree outline act))
+                    (fst (car index)))
+                (setq index (cdr index))
+                (push (cons (car fst) (cons fst (car sub))) index)
+                (setq outline (cdr sub)))
+            (push `(,title 0 ,act ,.page) index)
+            (setq outline (cdr outline))))))
+    (cons (nreverse index) outline)))
+
+(defun doc-view-imenu-index (&optional file-name goto-page-fn)
+  "Create an imenu index using \"mutool\" to extract its outline.
+
+For extensibility, callers can specify a FILE-NAME to indicate
+the buffer other than the current buffer, and a jumping function
+GOTO-PAGE-FN other than `doc-view-goto-page'."
+  (let* ((goto (or goto-page-fn 'doc-view-goto-page))
+         (act (lambda (_name _pos page) (funcall goto page)))
+         (outline (or doc-view--outline (doc-view--pdf-outline file-name))))
+    (car (doc-view--imenu-subtree outline act))))
+
+(defun doc-view-imenu-setup ()
+  "Set up local state in the current buffer for imenu, if needed."
+  (when (and doc-view-imenu-enabled (executable-find "mutool"))
+    (setq-local imenu-create-index-function #'doc-view-imenu-index
+                imenu-submenus-on-top nil
+                imenu-sort-function nil
+                doc-view--outline (doc-view--pdf-outline))
+    (when doc-view--outline (imenu-add-to-menubar "Outline"))))
+
 ;;;; User interface commands and the mode
 
 (put 'doc-view-mode 'mode-class 'special)
@@ -1987,7 +2100,11 @@ If BACKWARD is non-nil, jump to the previous match."
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
                  ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
-                 (_     (list doc-view-pdf->png-converter-function  'png  "png")))))
+                 (_ (if (and (eq doc-view-pdf->png-converter-function
+                                 #'doc-view-pdf->png-converter-mupdf)
+                             doc-view-mupdf-use-svg)
+                        (list doc-view-pdf->png-converter-function 'svg "svg")
+                      (list doc-view-pdf->png-converter-function 'png "png"))))))
     (setq-local doc-view-single-page-converter-function conv-function)
     (setq-local doc-view--image-type type)
     (setq-local doc-view--image-file-pattern (concat "page-%s." extension))))
@@ -2027,7 +2144,7 @@ If BACKWARD is non-nil, jump to the previous match."
   "Major mode in DocView buffers.
 
 DocView Mode is an Emacs document viewer.  It displays PDF, PS
-and DVI files (as PNG images) in Emacs buffers.
+and DVI files (as PNG or SVG images) in Emacs buffers.
 
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text.
@@ -2122,6 +2239,7 @@ toggle between displaying the document or editing it as text.
     (setq mode-name "DocView"
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
+    (doc-view-imenu-setup)
     (doc-view-initiate-display)
     ;; Switch off view-mode explicitly, because doc-view-mode is the
     ;; canonical view mode for PDF/PS/DVI files.  This could be
@@ -2178,12 +2296,11 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Presentation mode
 
-(defvar doc-view-presentation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e" 'doc-view-presentation-exit)
-    (define-key map "q" 'doc-view-presentation-exit)
-    ;; (define-key map "C" 'doc-view-convert-all-pages)
-    map))
+(defvar-keymap doc-view-presentation-mode-map
+  "ESC"  #'doc-view-presentation-exit
+  "q"    #'doc-view-presentation-exit
+  ;; "C" #'doc-view-convert-all-pages
+  )
 
 (defvar-local doc-view-presentation--src-data nil)
 

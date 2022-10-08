@@ -779,10 +779,10 @@ braces."
   nil
   (cond
    ;; parenthesis
-   ((looking-back "([^)]*" (point-at-bol 0))
+   ((looking-back "([^)]*" (line-beginning-position 0))
     "@pxref{")
    ;; beginning of sentence or buffer
-   ((or (looking-back (sentence-end) (point-at-bol 0))
+   ((or (looking-back (sentence-end) (line-beginning-position 0))
         (= (point) (point-min)))
     "@xref{")
    ;; bol or eol
@@ -790,7 +790,7 @@ braces."
     "@ref{")
    ;; inside word
    ((not (eq (char-syntax (char-after)) ? ))
-    (skip-syntax-backward "^ " (point-at-bol))
+    (skip-syntax-backward "^ " (line-beginning-position))
     "@ref{")
    ;; everything else
    (t

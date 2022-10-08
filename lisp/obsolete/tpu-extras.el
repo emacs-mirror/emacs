@@ -292,7 +292,7 @@ Prefix argument serves as repeat count."
           (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
           (far (save-excursion
                  (goto-char bottom)
-                 (point-at-bol (1- height)))))
+                 (line-beginning-position (1- height)))))
      ,@body))
 
 (defun tpu-paragraph (num)

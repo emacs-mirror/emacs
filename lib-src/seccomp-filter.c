@@ -39,7 +39,6 @@ variants of those files that can be used to sandbox Emacs before
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -60,7 +59,6 @@ variants of those files that can be used to sandbox Emacs before
 #include <unistd.h>
 
 #include <attribute.h>
-#include <verify.h>
 
 #ifndef ARCH_CET_STATUS
 #define ARCH_CET_STATUS 0x3001
@@ -71,19 +69,16 @@ fail (int error, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
+  vfprintf (stderr, format, ap);
+  va_end (ap);
   if (error == 0)
-    {
-      vfprintf (stderr, format, ap);
-      fputc ('\n', stderr);
-    }
+    fputc ('\n', stderr);
   else
     {
-      char buffer[1000];
-      vsnprintf (buffer, sizeof buffer, format, ap);
+      fputs (": ", stderr);
       errno = error;
-      perror (buffer);
+      perror (NULL);
     }
-  va_end (ap);
   fflush (NULL);
   exit (EXIT_FAILURE);
 }
@@ -168,12 +163,12 @@ main (int argc, char **argv)
   set_attribute (SCMP_FLTATR_CTL_NNP, 1);
   set_attribute (SCMP_FLTATR_CTL_TSYNC, 1);
 
-  verify (CHAR_BIT == 8);
-  verify (sizeof (int) == 4 && INT_MIN == INT32_MIN
-          && INT_MAX == INT32_MAX);
-  verify (sizeof (long) == 8 && LONG_MIN == INT64_MIN
-          && LONG_MAX == INT64_MAX);
-  verify (sizeof (void *) == 8);
+  static_assert (CHAR_BIT == 8);
+  static_assert (sizeof (int) == 4 && INT_MIN == INT32_MIN
+		 && INT_MAX == INT32_MAX);
+  static_assert (sizeof (long) == 8 && LONG_MIN == INT64_MIN
+		 && LONG_MAX == INT64_MAX);
+  static_assert (sizeof (void *) == 8);
   assert ((uintptr_t) NULL == 0);
 
   /* Allow a clean exit.  */
@@ -183,8 +178,8 @@ main (int argc, char **argv)
   /* Allow `mmap' and friends.  This is necessary for dynamic loading,
      reading the portable dump file, and thread creation.  We don't
      allow pages to be both writable and executable.  */
-  verify (MAP_PRIVATE != 0);
-  verify (MAP_SHARED != 0);
+  static_assert (MAP_PRIVATE != 0);
+  static_assert (MAP_SHARED != 0);
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (mmap),
         SCMP_A2_32 (SCMP_CMP_MASKED_EQ,
                     ~(PROT_NONE | PROT_READ | PROT_WRITE)),
@@ -256,9 +251,9 @@ main (int argc, char **argv)
 
   /* Allow opening files, assuming they are only opened for
      reading.  */
-  verify (O_WRONLY != 0);
-  verify (O_RDWR != 0);
-  verify (O_CREAT != 0);
+  static_assert (O_WRONLY != 0);
+  static_assert (O_RDWR != 0);
+  static_assert (O_CREAT != 0);
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (open),
         SCMP_A1_32 (SCMP_CMP_MASKED_EQ,
                     ~(O_RDONLY | O_BINARY | O_CLOEXEC | O_PATH

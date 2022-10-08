@@ -1765,7 +1765,6 @@ Initialized from `text-mode-syntax-table'.")
   `(with-current-buffer gnus-article-buffer
      (save-restriction
        (let ((inhibit-read-only t)
-	     (inhibit-point-motion-hooks t)
 	     (case-fold-search t))
 	 (article-narrow-to-head)
 	 ,@forms))))
@@ -1852,7 +1851,6 @@ Initialized from `text-mode-syntax-table'.")
     (let ((inhibit-read-only t)
 	  (case-fold-search t)
 	  (max (1+ (length gnus-sorted-header-list)))
-	  (inhibit-point-motion-hooks t)
 	  (cur (current-buffer))
 	  ignored visible beg)
       (save-excursion
@@ -1919,8 +1917,7 @@ always hide."
 	     (not gnus-show-all-headers))
     (save-excursion
       (save-restriction
-	(let ((inhibit-read-only t)
-	      (inhibit-point-motion-hooks t))
+	(let ((inhibit-read-only t))
 	  (article-narrow-to-head)
 	  (dolist (elem gnus-boring-article-headers)
 	    (goto-char (point-min))
@@ -1930,7 +1927,7 @@ always hide."
 	      (while (re-search-forward "^[^: \t]+:[ \t]*\n[^ \t]" nil t)
 		(forward-line -1)
 		(gnus-article-hide-text-type
-		 (point-at-bol)
+                 (line-beginning-position)
 		 (progn
 		   (end-of-line)
 		   (if (re-search-forward "^[^ \t]" nil t)
@@ -2060,7 +2057,7 @@ always hide."
     (goto-char (point-min))
     (when (re-search-forward (concat "^" header ":") nil t)
       (gnus-article-hide-text-type
-       (point-at-bol)
+       (line-beginning-position)
        (progn
 	 (end-of-line)
 	 (if (re-search-forward "^[^ \t]" nil t)
@@ -2081,7 +2078,7 @@ always hide."
 	(article-narrow-to-head)
 	(while (not (eobp))
 	  (cond
-	   ((< (setq column (- (point-at-eol) (point)))
+           ((< (setq column (- (line-end-position) (point)))
 	       gnus-article-normalized-header-length)
 	    (end-of-line)
 	    (insert (make-string
@@ -2092,7 +2089,7 @@ always hide."
 	     (progn
 	       (forward-char gnus-article-normalized-header-length)
 	       (point))
-	     (point-at-eol)
+             (line-end-position)
 	     'invisible t))
 	   (t
 	    ;; Do nothing.
@@ -2389,7 +2386,7 @@ fill width."
 	    (end-of-line)
 	    (when (>= (current-column) width)
 	      (narrow-to-region (min (1+ (point)) (point-max))
-				(point-at-bol))
+                                (line-beginning-position))
               (let ((goback (point-marker))
 		    (fill-column width))
                 (fill-paragraph nil)
@@ -2446,7 +2443,7 @@ fill width."
 	 (while (and (not (bobp))
 		     (looking-at "^[ \t]*$")
 		     (not (gnus-annotation-in-region-p
-			   (point) (point-at-eol))))
+                           (point) (line-end-position))))
 	   (forward-line -1))
 	 (forward-line 1)
 	 (point))))))
@@ -2567,8 +2564,7 @@ fill width."
   "Decode all MIME-encoded words in the article."
   (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
-    (let ((inhibit-point-motion-hooks t)
-	  (mail-parse-charset gnus-newsgroup-charset)
+    (let ((mail-parse-charset gnus-newsgroup-charset)
 	  (mail-parse-ignored-charsets
 	   (with-current-buffer gnus-summary-buffer
 	     gnus-newsgroup-ignored-charsets)))
@@ -2578,7 +2574,7 @@ fill width."
   "Decode charset-encoded text in the article.
 If PROMPT (the prefix), prompt for a coding system to use."
   (interactive "P" gnus-article-mode)
-  (let ((inhibit-point-motion-hooks t) (case-fold-search t)
+  (let ((case-fold-search t)
 	(inhibit-read-only t)
 	(mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets
@@ -2620,8 +2616,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 
 (defun article-decode-encoded-words ()
   "Remove encoded-word encoding from headers."
-  (let ((inhibit-point-motion-hooks t)
-	(mail-parse-charset gnus-newsgroup-charset)
+  (let ((mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets
 	 (save-excursion (condition-case nil
 			     (set-buffer gnus-summary-buffer)
@@ -2668,8 +2663,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 
 (defun article-decode-group-name ()
   "Decode group names in Newsgroups, Followup-To and Xref headers."
-  (let ((inhibit-point-motion-hooks t)
-	(inhibit-read-only t)
+  (let ((inhibit-read-only t)
 	(method (gnus-find-method-for-group gnus-newsgroup-name))
 	regexp)
     (when (and (or gnus-group-name-charset-method-alist
@@ -2699,8 +2693,7 @@ The following headers are decoded: From:, To:, Cc:, Reply-To:,
 Mail-Reply-To: and Mail-Followup-To:."
   (when gnus-use-idna
     (save-restriction
-      (let ((inhibit-point-motion-hooks t)
-	    (inhibit-read-only t))
+      (let ((inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
 	(while (re-search-forward "@[^ \t\n\r,>]*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
@@ -3171,8 +3164,7 @@ images if any to the browser, and deletes them when exiting the group
   "Remove list identifiers from the Subject header.
 The `gnus-list-identifiers' variable specifies what to do."
   (interactive nil gnus-article-mode)
-  (let ((inhibit-point-motion-hooks t)
-        (regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
+  (let ((regexp (gnus-group-get-list-identifiers gnus-newsgroup-name))
         (inhibit-read-only t))
     (when regexp
       (save-excursion
@@ -3221,34 +3213,32 @@ always hide."
   (interactive nil gnus-article-mode)
   (save-excursion
     (save-restriction
-      (let ((inhibit-point-motion-hooks t))
-	(when (gnus-parameter-banner gnus-newsgroup-name)
-	  (article-really-strip-banner
-	   (gnus-parameter-banner gnus-newsgroup-name)))
-	(when gnus-article-address-banner-alist
-	  ;; Note that the From header is decoded here, so it is
-	  ;; required that the *-extract-address-components function
-	  ;; supports non-ASCII text.
-	  (let ((from (save-restriction
-			(widen)
-			(article-narrow-to-head)
-			(mail-fetch-field "from"))))
-	    (when (and from
-		       (setq from
-			     (cadr (funcall gnus-extract-address-components
-					    from))))
-	      (catch 'found
-		(dolist (pair gnus-article-address-banner-alist)
-		  (when (string-match (car pair) from)
-		    (throw 'found
-			   (article-really-strip-banner (cdr pair)))))))))))))
+      (when (gnus-parameter-banner gnus-newsgroup-name)
+	(article-really-strip-banner
+	 (gnus-parameter-banner gnus-newsgroup-name)))
+      (when gnus-article-address-banner-alist
+	;; Note that the From header is decoded here, so it is
+	;; required that the *-extract-address-components function
+	;; supports non-ASCII text.
+	(let ((from (save-restriction
+		      (widen)
+		      (article-narrow-to-head)
+		      (mail-fetch-field "from"))))
+	  (when (and from
+		     (setq from
+			   (cadr (funcall gnus-extract-address-components
+					  from))))
+	    (catch 'found
+	      (dolist (pair gnus-article-address-banner-alist)
+		(when (string-match (car pair) from)
+		  (throw 'found
+			 (article-really-strip-banner (cdr pair))))))))))))
 
 (defun article-really-strip-banner (banner)
   "Strip the banner specified by the argument."
   (save-excursion
     (save-restriction
-      (let ((inhibit-point-motion-hooks t)
-	    (gnus-signature-limit nil)
+      (let ((gnus-signature-limit nil)
 	    (inhibit-read-only t))
 	(article-goto-body)
 	(cond
@@ -3307,8 +3297,7 @@ always hide."
   "Remove all blank lines from the beginning of the article."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       (when (article-goto-body)
 	(while (and (not (eobp))
 		    (looking-at "[ \t]*$"))
@@ -3349,8 +3338,7 @@ Point is left at the beginning of the narrowed-to region."
   "Replace consecutive blank lines with one empty line."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       ;; First make all blank lines empty.
       (article-goto-body)
       (while (re-search-forward "^[ \t]+$" nil t)
@@ -3368,8 +3356,7 @@ Point is left at the beginning of the narrowed-to region."
   "Remove all white space from the beginning of the lines in the article."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "^[ \t]+" nil t)
 	(replace-match "" t t)))))
@@ -3378,8 +3365,7 @@ Point is left at the beginning of the narrowed-to region."
   "Remove all white space from the end of the lines in the article."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "[ \t]+$" nil t)
 	(replace-match "" t t)))))
@@ -3395,37 +3381,35 @@ Point is left at the beginning of the narrowed-to region."
   "Strip all blank lines."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-read-only t))
+    (let ((inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "^[ \t]*\n" nil t)
 	(replace-match "" t t)))))
 
 (defun gnus-article-narrow-to-signature ()
   "Narrow to the signature; return t if a signature is found, else nil."
-  (let ((inhibit-point-motion-hooks t))
-    (when (gnus-article-search-signature)
-      (forward-line 1)
-      ;; Check whether we have some limits to what we consider
-      ;; to be a signature.
-      (let ((limits (if (listp gnus-signature-limit) gnus-signature-limit
-		      (list gnus-signature-limit)))
-	    limit limited)
-	(while (setq limit (pop limits))
-	  (if (or (and (integerp limit)
-		       (< (- (point-max) (point)) limit))
-		  (and (floatp limit)
-		       (< (count-lines (point) (point-max)) limit))
-		  (and (functionp limit)
-		       (funcall limit))
-		  (and (stringp limit)
-		       (not (re-search-forward limit nil t))))
-	      ()			; This limit did not succeed.
-	    (setq limited t
-		  limits nil)))
-	(unless limited
-	  (narrow-to-region (point) (point-max))
-	  t)))))
+  (when (gnus-article-search-signature)
+    (forward-line 1)
+    ;; Check whether we have some limits to what we consider
+    ;; to be a signature.
+    (let ((limits (if (listp gnus-signature-limit) gnus-signature-limit
+		    (list gnus-signature-limit)))
+	  limit limited)
+      (while (setq limit (pop limits))
+	(if (or (and (integerp limit)
+		     (< (- (point-max) (point)) limit))
+		(and (floatp limit)
+		     (< (count-lines (point) (point-max)) limit))
+		(and (functionp limit)
+		     (funcall limit))
+		(and (stringp limit)
+		     (not (re-search-forward limit nil t))))
+	    ()                          ; This limit did not succeed.
+	  (setq limited t
+		limits nil)))
+      (unless limited
+	(narrow-to-region (point) (point-max))
+	t))))
 
 (defun gnus-article-search-signature ()
   "Search the current buffer for the signature separator.
@@ -3485,8 +3469,7 @@ means show, 0 means toggle."
 (defun gnus-article-show-hidden-text (type &optional _dummy)
   "Show all hidden text of type TYPE.
 Originally it is hide instead of DUMMY."
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t))
+  (let ((inhibit-read-only t))
     (gnus-remove-text-properties-when
      'article-type type
      (point-min) (point-max)
@@ -3528,7 +3511,6 @@ possible values."
   (interactive (list 'ut t) gnus-article-mode)
   (let* ((case-fold-search t)
 	 (inhibit-read-only t)
-	 (inhibit-point-motion-hooks t)
 	 (visible-date (mail-fetch-field "Date"))
 	 pos date bface eface)
     (save-excursion
@@ -3583,9 +3565,10 @@ possible values."
 					      'original-date)
 		      bface (get-text-property (match-beginning 0) 'face)
 		      eface (get-text-property (match-end 0) 'face))
-		(delete-region (point-at-bol) (progn
-						(gnus-article-forward-header)
-						(point)))))
+                (delete-region (line-beginning-position)
+                               (progn
+                                 (gnus-article-forward-header)
+                                 (point)))))
 	    (when (and (not date)
 		       visible-date)
 	      (setq date visible-date))
@@ -4350,8 +4333,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 	    (insert-buffer-substring gnus-original-article-buffer)
 	    (setq items (split-string sig))
 	    (message-narrow-to-head)
-	    (let ((inhibit-point-motion-hooks t)
-		  (case-fold-search t))
+	    (let ((case-fold-search t))
 	      ;; Don't verify multiple headers.
 	      (setq headers (mapconcat (lambda (header)
 					 (concat header ": "
@@ -4388,8 +4370,8 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 		(message-narrow-to-head)
 		(goto-char (point-max))
 		(forward-line -1)
-		(setq bface (get-text-property (point-at-bol) 'face)
-		      eface (get-text-property (1- (point-at-eol)) 'face))
+                (setq bface (get-text-property (line-beginning-position) 'face)
+                      eface (get-text-property (1- (line-end-position)) 'face))
 		(message-remove-header "X-Gnus-PGP-Verify")
 		(if (re-search-forward "^X-PGP-Sig:" nil t)
 		    (forward-line)
@@ -5925,7 +5907,7 @@ all parts."
 	    ;; Go to the displayed subpart, assuming this is
 	    ;; multipart/alternative.
 	    (setq part start
-		  end (point-at-eol))
+                  end (line-end-position))
 	    (while (and (not handle)
 			part
 			(< part end)
@@ -6810,24 +6792,23 @@ not have a face in `gnus-article-boring-faces'."
 	     (boundp 'gnus-article-boring-faces)
 	     (symbol-value 'gnus-article-boring-faces))
     (save-excursion
-      (let ((inhibit-point-motion-hooks t))
-	(catch 'only-boring
-	  (while (re-search-forward "\\b\\w\\w" nil t)
-	    (forward-char -1)
-            (when (not (seq-intersection
-			(gnus-faces-at (point))
-                        (symbol-value 'gnus-article-boring-faces)
-                        #'eq))
-	      (throw 'only-boring nil)))
-	  (throw 'only-boring t))))))
+      (catch 'only-boring
+	(while (re-search-forward "\\b\\w\\w" nil t)
+	  (forward-char -1)
+          (when (not (seq-intersection
+		      (gnus-faces-at (point))
+                      (symbol-value 'gnus-article-boring-faces)
+                      #'eq))
+	    (throw 'only-boring nil)))
+	(throw 'only-boring t)))))
 
 (defun gnus-article-refer-article ()
   "Read article specified by message-id around point."
   (interactive nil gnus-article-mode)
   (save-excursion
-    (re-search-backward "[ \t]\\|^" (point-at-bol) t)
-    (re-search-forward "<?news:<?\\|<" (point-at-eol) t)
-    (if (re-search-forward "[^@ ]+@[^ \t>]+" (point-at-eol) t)
+    (re-search-backward "[ \t]\\|^" (line-beginning-position) t)
+    (re-search-forward "<?news:<?\\|<" (line-end-position) t)
+    (if (re-search-forward "[^@ ]+@[^ \t>]+" (line-end-position) t)
 	(let ((msg-id (concat "<" (match-string 0) ">")))
 	  (set-buffer gnus-summary-buffer)
 	  (gnus-summary-refer-article msg-id))
@@ -8111,18 +8092,17 @@ It does this by highlighting everything after
 `gnus-signature-separator' using the face `gnus-signature'."
   (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
-    (let ((inhibit-point-motion-hooks t))
-      (save-restriction
-	(when (and gnus-signature-face
-		   (gnus-article-narrow-to-signature))
-	  (overlay-put (make-overlay (point-min) (point-max) nil t)
-		       'face gnus-signature-face)
-	  (widen)
-	  (gnus-article-search-signature)
-	  (let ((start (match-beginning 0))
-		(end (set-marker (make-marker) (1+ (match-end 0)))))
-	    (gnus-article-add-button start (1- end) 'gnus-signature-toggle
-				     end)))))))
+   (save-restriction
+     (when (and gnus-signature-face
+		(gnus-article-narrow-to-signature))
+       (overlay-put (make-overlay (point-min) (point-max) nil t)
+		    'face gnus-signature-face)
+       (widen)
+       (gnus-article-search-signature)
+       (let ((start (match-beginning 0))
+	     (end (set-marker (make-marker) (1+ (match-end 0)))))
+	 (gnus-article-add-button start (1- end) 'gnus-signature-toggle
+				  end))))))
 
 (defun gnus-button-in-region-p (b e prop)
   "Say whether PROP exists in the region."
@@ -8134,8 +8114,7 @@ It does this by highlighting everything after
 specified by `gnus-button-alist'."
   (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
-    (let ((inhibit-point-motion-hooks t)
-	  (case-fold-search t)
+    (let ((case-fold-search t)
 	  (alist gnus-button-alist)
 	  beg entry regexp)
       ;; We skip the headers.
@@ -8180,7 +8159,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 		     (goto-char start)
 		     (string-match
 		      "\\(?:\"\\|\\(<\\)\\)[\t ]*\\(?:url[\t ]*:[\t ]*\\)?\\'"
-		      (buffer-substring (point-at-bol) start)))
+                      (buffer-substring (line-beginning-position) start)))
 		   (progn
 		     (setq url (list (buffer-substring start end))
 			   delim (if (match-beginning 1) ">" "\""))
@@ -8291,19 +8270,18 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 (defun gnus-signature-toggle (end)
   (gnus-with-article-buffer
-    (let ((inhibit-point-motion-hooks t))
-      (if (text-property-any end (point-max) 'article-type 'signature)
-	  (progn
-	    (gnus-delete-wash-type 'signature)
-	    (gnus-remove-text-properties-when
-	     'article-type 'signature end (point-max)
-	     (cons 'article-type (cons 'signature
-				       gnus-hidden-properties))))
-	(gnus-add-wash-type 'signature)
-	(gnus-add-text-properties-when
-	 'article-type nil end (point-max)
-	 (cons 'article-type (cons 'signature
-				   gnus-hidden-properties)))))
+   (if (text-property-any end (point-max) 'article-type 'signature)
+       (progn
+	 (gnus-delete-wash-type 'signature)
+	 (gnus-remove-text-properties-when
+	  'article-type 'signature end (point-max)
+	  (cons 'article-type (cons 'signature
+				    gnus-hidden-properties))))
+     (gnus-add-wash-type 'signature)
+     (gnus-add-text-properties-when
+      'article-type nil end (point-max)
+      (cons 'article-type (cons 'signature
+				gnus-hidden-properties))))
     (let ((gnus-article-mime-handle-alist-1 gnus-article-mime-handle-alist))
       (gnus-set-mode-line 'article))))
 
@@ -8312,8 +8290,7 @@ url is put as the `gnus-button-url' overlay property on the button."
   (save-excursion
     (let* ((marker (car marker-and-entry))
            (entry (cadr marker-and-entry))
-           (regexp (car entry))
-           (inhibit-point-motion-hooks t))
+           (regexp (car entry)))
       (goto-char marker)
       ;; This is obviously true, or something bad is happening :)
       ;; But we need it to have the match-data
@@ -8549,17 +8526,13 @@ url is put as the `gnus-button-url' overlay property on the button."
 (defvar gnus-next-page-line-format "%{%(Next page...%)%}\n")
 (defvar gnus-prev-page-line-format "%{%(Previous page...%)%}\n")
 
-(defvar gnus-prev-page-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'gnus-button-prev-page)
-    (define-key map "\r"      #'gnus-button-prev-page)
-    map))
+(defvar-keymap gnus-prev-page-map
+  "<mouse-2>" #'gnus-button-prev-page
+  "RET"       #'gnus-button-prev-page)
 
-(defvar gnus-next-page-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'gnus-button-next-page)
-    (define-key map "\r"      #'gnus-button-next-page)
-    map))
+(defvar-keymap gnus-next-page-map
+  "<mouse-2>" #'gnus-button-next-page
+  "RET"       #'gnus-button-next-page)
 
 (defun gnus-insert-prev-page-button ()
   (let ((b (point)) e

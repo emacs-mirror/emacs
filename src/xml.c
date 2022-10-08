@@ -186,6 +186,12 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url,
 
   xmlCheckVersion (LIBXML_VERSION);
 
+  if (NILP (start))
+    start = Fpoint_min ();
+
+  if (NILP (end))
+    end = Fpoint_max ();
+
   validate_region (&start, &end);
 
   istart = XFIXNUM (start);
@@ -269,8 +275,11 @@ xml_cleanup_parser (void)
 
 DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
        Slibxml_parse_html_region,
-       2, 4, 0,
+       0, 4, 0,
        doc: /* Parse the region as an HTML document and return the parse tree.
+If START is nil, it defaults to `point-min'.  If END is nil, it
+defaults to `point-max'.
+
 If BASE-URL is non-nil, it is used to expand relative URLs.
 
 If you want comments to be stripped, use the `xml-remove-comments'
@@ -284,8 +293,11 @@ function to strip comments before calling this function.  */)
 
 DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
        Slibxml_parse_xml_region,
-       2, 4, 0,
+       0, 4, 0,
        doc: /* Parse the region as an XML document and return the parse tree.
+If START is nil, it defaults to `point-min'.  If END is nil, it
+defaults to `point-max'.
+
 If BASE-URL is non-nil, it is used to expand relative URLs.
 
 If you want comments to be stripped, use the `xml-remove-comments'

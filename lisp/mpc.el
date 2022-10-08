@@ -182,8 +182,6 @@ numerically rather than lexicographically."
                     (abs res))
                 res))))))))
 
-(define-obsolete-function-alias 'mpc-string-prefix-p #'string-prefix-p "24.3")
-
 ;; This can speed up mpc--song-search significantly.  The table may grow
 ;; very large, tho.  It's only bounded by the fact that it gets flushed
 ;; whenever the connection is established; which seems to work OK thanks

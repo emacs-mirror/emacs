@@ -97,11 +97,14 @@ If nil, the function `gitmerge-default-branch' guesses.")
 
 (defvar gitmerge-mode-map
   (let ((map (make-keymap)))
-    (define-key map [(l)] 'gitmerge-show-log)
-    (define-key map [(d)] 'gitmerge-show-diff)
-    (define-key map [(f)] 'gitmerge-show-files)
-    (define-key map [(s)] 'gitmerge-toggle-skip)
-    (define-key map [(m)] 'gitmerge-start-merge)
+    (define-key map [(l)] #'gitmerge-show-log)
+    (define-key map [(d)] #'gitmerge-show-diff)
+    (define-key map [(f)] #'gitmerge-show-files)
+    (define-key map [(s)] #'gitmerge-toggle-skip)
+    (define-key map [(m)] #'gitmerge-start-merge)
+    ;; For convenience:
+    (define-key map [(n)] #'next-line)
+    (define-key map [(p)] #'previous-line)
     map)
   "Keymap for gitmerge major mode.")
 
@@ -135,7 +138,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 (defun gitmerge-get-sha1 ()
   "Get SHA1 from commit at point."
   (save-excursion
-    (goto-char (point-at-bol))
+    (goto-char (line-beginning-position))
     (when (looking-at "^[A-Z ]\\s-*\\([a-f0-9]+\\)")
       (match-string 1))))
 
@@ -187,7 +190,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	skip)
     (when commit
       (save-excursion
-	(goto-char (point-at-bol))
+        (goto-char (line-beginning-position))
 	(when (looking-at "^\\([A-Z ]\\)\\s-*\\([a-f0-9]+\\)")
 	  (setq skip (string= (match-string 1) " "))
 	  (goto-char (match-beginning 2))
@@ -195,7 +198,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
 	  (dolist (ct gitmerge--commits)
 	    (when (string-match commit (car ct))
 	      (setcdr ct (when skip "M"))))
-	  (goto-char (point-at-bol))
+          (goto-char (line-beginning-position))
 	  (setq buffer-read-only nil)
 	  (delete-char 1)
 	  (insert (if skip "M" " "))
@@ -631,12 +634,18 @@ Branch FROM will be prepended to the list."
       (with-current-buffer
 	  (gitmerge-setup-log-buffer gitmerge--commits gitmerge--from)
 	(goto-char (point-min))
-	(insert (propertize "Commands: " 'font-lock-face 'bold)
-		"(s) Toggle skip, (l) Show log, (d) Show diff, "
-		"(f) Show files, (m) Start merge\n"
-		(propertize "Flags:    " 'font-lock-face 'bold)
-		"(C) Detected backport (cherry-mark), (R) Matches skip "
-		"regexp, (M) Manually picked\n\n")
+        (insert (substitute-command-keys
+                 (concat
+                  (propertize "Commands: " 'font-lock-face 'bold)
+                  "\\<gitmerge-mode-map>"
+                  "(\\[gitmerge-toggle-skip]) Toggle skip, "
+                  "(\\[gitmerge-show-log]) Show log, "
+                  "(\\[gitmerge-show-diff]) Show diff, "
+                  "(\\[gitmerge-show-files]) Show files, "
+                  "(\\[gitmerge-start-merge]) Start merge\n"
+                  (propertize "Flags:    " 'font-lock-face 'bold)
+                  "(C) Detected backport (cherry-mark), (R) Matches skip "
+                  "regexp, (M) Manually picked\n\n")))
 	(gitmerge-mode)
 	(pop-to-buffer (current-buffer))
 	(if noninteractive (gitmerge-start-merge))))))

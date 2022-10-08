@@ -152,7 +152,8 @@ require \"fileinto\";
   (interactive)
   (sieve-manage-close sieve-manage-buffer)
   (kill-buffer sieve-manage-buffer)
-  (kill-buffer (current-buffer)))
+  (when-let ((buffer (get-buffer sieve-buffer)))
+    (kill-buffer buffer)))
 
 (defun sieve-bury-buffer ()
   "Bury the Manage Sieve buffer without closing the connection."

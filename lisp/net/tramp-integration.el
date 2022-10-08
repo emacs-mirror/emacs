@@ -85,7 +85,8 @@ special handling of `substitute-in-file-name'."
 
 (defun tramp-rfn-eshadow-update-overlay-regexp ()
   "An overlay covering the shadowed part of the filename."
-  (format "[^%s/~]*\\(/\\|~\\)" tramp-postfix-host-format))
+  (rx-to-string
+   `(: (* (not (any ,tramp-postfix-host-format "/~"))) (| "/" "~"))))
 
 (defun tramp-rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
@@ -129,8 +130,10 @@ been set up by `rfn-eshadow-setup-minibuffer'."
   ;; Remove last element of `(exec-path)', which is `exec-directory'.
   ;; Use `path-separator' as it does eshell.
   (setq eshell-path-env
-	(mapconcat
-	 #'identity (butlast (tramp-compat-exec-path)) path-separator)))
+        (if (file-remote-p default-directory)
+            (mapconcat
+	     #'identity (butlast (tramp-compat-exec-path)) path-separator)
+          (getenv "PATH"))))
 
 (with-eval-after-load 'esh-util
   (add-hook 'eshell-mode-hook
@@ -215,9 +218,13 @@ NAME must be equal to `tramp-current-connection'."
   ;; Create a pseudo mode `tramp-info-lookup-mode' for Tramp symbol lookup.
   (info-lookup-maybe-add-help
    :mode 'tramp-info-lookup-mode :topic 'symbol
-   :regexp "[^][()`'‘’,\" \t\n]+"
-   :doc-spec '(("(tramp)Function Index" nil "^ -+ .*: " "\\( \\|$\\)")
-	       ("(tramp)Variable Index" nil "^ -+ .*: " "\\( \\|$\\)")))
+   :regexp (rx (+ (not (any "\t\n \"'(),[]`‘’"))))
+   :doc-spec `(("(tramp)Function Index" nil
+		,(rx bol blank (+ "-") blank (* nonl) ":" blank)
+		,(rx (| blank eol)))
+	       ("(tramp)Variable Index" nil
+		,(rx bol blank (+ "-") blank (* nonl) ":" blank)
+		,(rx (| blank eol)))))
 
   (add-hook
    'tramp-integration-unload-hook

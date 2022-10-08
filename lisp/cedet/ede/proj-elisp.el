@@ -272,7 +272,8 @@ is found, such as a `-version' variable, or the standard header."
 	    (let ((path (match-string 1)))
 	      (if (string= path "nil")
 		  nil
-		(delete-region (point-at-bol) (point-at-bol 2)))))))))
+                (delete-region (line-beginning-position)
+                               (line-beginning-position 2)))))))))
 
 ;;;
 ;; Autoload generators

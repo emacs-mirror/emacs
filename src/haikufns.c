@@ -2636,8 +2636,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
-		     intern ("x-hide-tip"));
+  tip_timer = call3 (Qrun_at_time, timeout, Qnil, Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -3148,6 +3147,9 @@ syms_of_haikufns (void)
   DEFSYM (Qfont_parameter, "font-parameter");
   DEFSYM (Qcancel_timer, "cancel-timer");
   DEFSYM (Qassq_delete_all, "assq-delete-all");
+
+  DEFSYM (Qrun_at_time, "run-at-time");
+  DEFSYM (Qx_hide_tip, "x-hide-tip");
 
   DEFSYM (Qalways, "always");
   DEFSYM (Qnot_useful, "not-useful");

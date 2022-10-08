@@ -574,10 +574,14 @@ u\"\\n\""
      (195 . font-lock-string-face)
      (196 . font-lock-constant-face)
      (215 . font-lock-string-face) (218)
-     (221 . font-lock-string-face) (274)
-     (277 . font-lock-string-face) (330)
-     (333 . font-lock-string-face) (386)
-     (389 . font-lock-string-face) (442)
+     (221 . font-lock-string-face) (254)
+     (271 . font-lock-string-face) (274)
+     (277 . font-lock-string-face) (310)
+     (327 . font-lock-string-face) (330)
+     (333 . font-lock-string-face) (366)
+     (383 . font-lock-string-face) (386)
+     (389 . font-lock-string-face) (422)
+     (439 . font-lock-string-face) (442)
      (444 . font-lock-string-face) (497)
      (499 . font-lock-string-face) (552)
      (555 . font-lock-string-face) (608)
@@ -1250,6 +1254,25 @@ def delete_all_things():
                :after-backslash-dotted-continuation))
    (should (= (python-indent-calculate-indentation) 16))))
 
+(ert-deftest python-indent-after-backslash-6 ()
+  "Backslash continuation from for block."
+  (python-tests-with-temp-buffer
+   "
+for long_variable_name \\
+        in (1, 2):
+    print(long_variable_name)
+"
+   (python-tests-look-at "for long_variable_name \\")
+   (should (eq (car (python-indent-context)) :no-indent))
+   (should (= (python-indent-calculate-indentation) 0))
+   (python-tests-look-at "in (1, 2):")
+   (should (eq (car (python-indent-context))
+               :after-backslash-block-continuation))
+   (should (= (python-indent-calculate-indentation) 8))
+   (python-tests-look-at "print(long_variable_name)")
+   (should (eq (car (python-indent-context)) :after-block-start))
+   (should (= (python-indent-calculate-indentation) 4))))
+
 (ert-deftest python-indent-block-enders-1 ()
   "Test de-indentation for pass keyword."
   (python-tests-with-temp-buffer
@@ -1620,7 +1643,7 @@ a = (
 "
    (python-tests-look-at "- bar")
    (should (eq (car (python-indent-context)) :inside-string))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ",")
    (should (= (current-indentation) 0))))
 
@@ -1635,7 +1658,7 @@ a = (
 "
    (python-tests-look-at "- bar'''")
    (should (eq (car (python-indent-context)) :inside-string))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ",")
    (should (= (current-indentation) 0))))
 
@@ -1649,7 +1672,7 @@ def a():
 def b()
 "
    (python-tests-look-at "def b()")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (should (= (current-indentation) 0))))
 
@@ -1663,7 +1686,7 @@ if do:
 outside
 "
    (python-tests-look-at "else")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (should (= (current-indentation) 0))
    (python-tests-look-at "outside")
@@ -1680,7 +1703,7 @@ if do:
           that)
 "
    (python-tests-look-at "that)")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (python-tests-look-at "elif" -1)
    (should (= (current-indentation) 0))
@@ -1705,7 +1728,7 @@ def f():
 else
 "
    (python-tests-look-at "else")
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (python-tests-self-insert ":")
    (python-tests-look-at "else" -1)
    (should (= (current-indentation) 4))))
@@ -1965,7 +1988,7 @@ class C:
          (expected-mark-beginning-position
           (progn
             (python-tests-look-at "def __init__(self):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position-1
           (save-excursion
             (python-tests-look-at "self.b = 'b'")
@@ -2022,7 +2045,7 @@ class C:
           (progn
             (python-tests-look-at "def fun(self):")
             (python-tests-look-at "(self):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position
           (save-excursion
             (python-tests-look-at "return self.b")
@@ -2047,7 +2070,7 @@ def foo(x):
    (let ((expected-mark-beginning-position
           (progn
             (python-tests-look-at "def foo(x):")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position (point-max)))
      (python-tests-look-at "return bar")
      (python-mark-defun 1)
@@ -2067,7 +2090,7 @@ def \\
          (expected-mark-beginning-position
           (progn
             (python-tests-look-at "def ")
-            (1- (line-beginning-position))))
+            (1- (pos-bol))))
          (expected-mark-end-position
           (save-excursion
             (python-tests-look-at "return x")
@@ -2319,6 +2342,21 @@ class C:
                 (beginning-of-line)
                 (point))))))
 
+(ert-deftest python-nav-beginning-of-defun-6 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+    def foo(self):
+        pass
+"
+   (python-tests-look-at "self")
+   (should (= (save-excursion
+                (python-nav-beginning-of-defun)
+                (point))
+              (save-excursion
+                (beginning-of-line)
+                (point))))))
+
 (ert-deftest python-nav-end-of-defun-1 ()
   (python-tests-with-temp-buffer
    "
@@ -2419,21 +2457,21 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (point))
               (save-excursion
                 (python-tests-look-at "return wwrap")
-                (line-beginning-position))))
+                (pos-bol))))
    (should (= (save-excursion
                 (python-tests-look-at "def wrapped_f(*args):")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-beginning-position))))
+                (pos-bol))))
    (should (= (save-excursion
                 (python-tests-look-at "f(*args)")
                 (python-nav-end-of-defun)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-beginning-position))))))
+                (pos-bol))))))
 
 (ert-deftest python-nav-end-of-defun-3 ()
   (python-tests-with-temp-buffer
@@ -2448,6 +2486,26 @@ def \\
                 (point))
               (save-excursion
                 (point-max))))))
+
+(ert-deftest python-end-of-defun-1 ()
+  (python-tests-with-temp-buffer
+   "
+class C:
+    def a(self
+          ):
+        pass
+
+    def b(self):
+        pass
+"
+   (should (= (save-excursion
+                (python-tests-look-at "def a")
+                (end-of-defun)
+                (point))
+              (save-excursion
+                (python-tests-look-at "def b")
+                (forward-line -1)
+                (point))))))
 
 (ert-deftest python-nav-backward-defun-1 ()
   (python-tests-with-temp-buffer
@@ -2746,14 +2804,14 @@ string
                 (point))
               (save-excursion
                 (python-tests-look-at "789")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v2 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
                 (point))
               (save-excursion
                 (python-tests-look-at "value4)")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v3 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
@@ -2761,7 +2819,7 @@ string
               (save-excursion
                 (python-tests-look-at
                  "'continue previous line')")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "v4 =")
    (should (= (save-excursion
                 (python-nav-end-of-statement)
@@ -2985,21 +3043,21 @@ def decoratorFunctionWithArguments(arg1, arg2, arg3):
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-end-position))))
+                (pos-eol))))
    (end-of-line)
    (should (= (save-excursion
                 (python-nav-end-of-block)
                 (point))
               (save-excursion
                 (python-tests-look-at "return wrapped_f")
-                (line-end-position))))
+                (pos-eol))))
    (python-tests-look-at "f(*args)")
    (should (= (save-excursion
                 (python-nav-end-of-block)
                 (point))
               (save-excursion
                 (python-tests-look-at "print 'After f(*args)'")
-                (line-end-position))))))
+                (pos-eol))))))
 
 (ert-deftest python-nav-end-of-block-2 ()
   "Ensure that `python-nav-end-of-block' does not enter an infinite loop."
@@ -3289,11 +3347,11 @@ if x:
 \tabcdefg
 "
      (python-tests-look-at "abcdefg")
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\tabcdef")))))
 
 (ert-deftest python-indent-dedent-line-backspace-3 ()
@@ -3306,27 +3364,27 @@ if x:
 \t abcdefg
 "
      (python-tests-look-at "abcdefg")
-     (goto-char (line-end-position))
+     (goto-char (pos-eol))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\t abcdef"))
      (back-to-indentation)
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "\tabcdef"))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "    abcdef"))
      (call-interactively #'python-indent-dedent-line-backspace)
      (should
       (string= (buffer-substring-no-properties
-                (line-beginning-position) (line-end-position))
+                (pos-bol) (pos-eol))
                "abcdef")))))
 
 (ert-deftest python-bob-infloop-avoid ()
@@ -4339,11 +4397,11 @@ map(codecs.open('somefile'
 "
    (python-tests-look-at "ap(xx")
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
    (python-tests-look-at "('somefile'")
    (should (string= (python-eldoc--get-symbol-at-point) "map"))
-   (goto-char (line-end-position))
+   (goto-char (pos-eol))
    (should (string= (python-eldoc--get-symbol-at-point) "codecs.open"))))
 
 (ert-deftest python-eldoc--get-symbol-at-point-2 ()
@@ -4856,7 +4914,7 @@ def long_function_name(
    (should (not (python-info-beginning-of-statement-p)))
    (python-tests-look-at "print (var_one)")
    (should (python-info-beginning-of-statement-p))
-   (goto-char (line-beginning-position))
+   (goto-char (pos-bol))
    (should (not (python-info-beginning-of-statement-p)))))
 
 (ert-deftest python-info-beginning-of-statement-p-2 ()
@@ -4876,7 +4934,7 @@ if width == 0 and height == 0 and \\
    (should (not (python-info-beginning-of-statement-p)))
    (python-tests-look-at "raise ValueError(")
    (should (python-info-beginning-of-statement-p))
-   (goto-char (line-beginning-position))
+   (goto-char (pos-bol))
    (should (not (python-info-beginning-of-statement-p)))))
 
 (ert-deftest python-info-end-of-statement-p-1 ()
@@ -5711,6 +5769,52 @@ def \\
    (should (not (python-info-looking-at-beginning-of-defun)))
    (should (not (python-info-looking-at-beginning-of-defun nil t)))))
 
+(ert-deftest python-info-looking-at-beginning-of-defun-3 ()
+  (python-tests-with-temp-buffer
+   "
+def foo(arg=\"default\"):  # Comment
+    pass
+"
+   (python-tests-look-at "arg")
+   (should (python-info-looking-at-beginning-of-defun))
+   (python-tests-look-at "default")
+   (should (python-info-looking-at-beginning-of-defun))
+   (python-tests-look-at "Comment")
+   (should (python-info-looking-at-beginning-of-defun))))
+
+(ert-deftest python-info-looking-at-beginning-of-block-1 ()
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if True:
+        pass
+    l = [x * 2
+         for x in range(5)
+         if x < 3]
+# if False:
+\"\"\"
+if 0:
+\"\"\"
+"
+   (python-tests-look-at "def f():")
+   (should (python-info-looking-at-beginning-of-block))
+   (forward-char)
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if True:")
+   (should (python-info-looking-at-beginning-of-block))
+   (forward-char)
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (beginning-of-line)
+   (should (python-info-looking-at-beginning-of-block))
+   (python-tests-look-at "for x")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if x < 3")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if False:")
+   (should (not (python-info-looking-at-beginning-of-block)))
+   (python-tests-look-at "if 0:")
+   (should (not (python-info-looking-at-beginning-of-block)))))
+
 (ert-deftest python-info-current-line-comment-p-1 ()
   (python-tests-with-temp-buffer
    "
@@ -6164,8 +6268,11 @@ class SomeClass:
 class SomeClass:
 
     def __init__(self, arg, kwarg=1):
+
     def filter(self, nums):
-    def __str__(self):"))))
+
+    def __str__(self):
+"))))
       (or enabled (hs-minor-mode -1)))))
 
 (ert-deftest python-hideshow-hide-levels-2 ()
@@ -6210,6 +6317,165 @@ class SomeClass:
         return '%s-%s' % (self.arg, self.kwarg)
 "))))
       (or enabled (hs-minor-mode -1)))))
+
+(ert-deftest python-hideshow-hide-levels-3 ()
+  "Should hide all blocks."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if 0:
+        l = [i for i in range(5)
+             if i < 3]
+        abc = o.match(1, 2, 3)
+
+def g():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-level 1)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+def f():
+
+def g():
+"))))
+
+(ert-deftest python-hideshow-hide-levels-4 ()
+  "Should hide 2nd level block."
+  (python-tests-with-temp-buffer
+   "
+def f():
+    if 0:
+        l = [i for i in range(5)
+             if i < 3]
+        abc = o.match(1, 2, 3)
+
+def g():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-level 2)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+def f():
+    if 0:
+
+def g():
+    pass
+"))))
+
+(ert-deftest python-hideshow-hide-all-1 ()
+  "Should hide all blocks."
+  (python-tests-with-temp-buffer
+   "if 0:
+
+    aaa
+    l = [i for i in range(5)
+         if i < 3]
+    ccc
+    abc = o.match(1, 2, 3)
+    ddd
+
+def f():
+    pass
+"
+   (hs-minor-mode 1)
+   (hs-hide-all)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "if 0:
+
+def f():
+"))))
+
+(ert-deftest python-hideshow-hide-all-2 ()
+  "Should hide comments."
+  (python-tests-with-temp-buffer
+   "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"
+   (hs-minor-mode 1)
+   (hs-hide-all)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+# Multi line
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"))))
+
+(ert-deftest python-hideshow-hide-all-3 ()
+  "Should not hide comments when `hs-hide-comments-when-hiding-all' is nil."
+  (python-tests-with-temp-buffer
+   "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"
+   (hs-minor-mode 1)
+   (let ((hs-hide-comments-when-hiding-all nil))
+     (hs-hide-all))
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+# Multi line
+# comment
+
+\"\"\"
+# Multi line
+# string
+\"\"\"
+"))))
+
+(ert-deftest python-hideshow-hide-block-1 ()
+  "Should hide current block."
+  (python-tests-with-temp-buffer
+   "
+if 0:
+
+    aaa
+    l = [i for i in range(5)
+         if i < 3]
+    ccc
+    abc = o.match(1, 2, 3)
+    ddd
+
+def f():
+    pass
+"
+   (hs-minor-mode 1)
+   (python-tests-look-at "ddd")
+   (forward-line)
+   (hs-hide-block)
+   (should
+    (string=
+     (python-tests-visible-string)
+     "
+if 0:
+
+def f():
+    pass
+"))))
 
 
 (ert-deftest python-tests--python-nav-end-of-statement--infloop ()
@@ -6280,6 +6546,40 @@ buffer with overlapping strings."
     \"\"\"
     a = 1
 ")))
+
+
+;;; Flymake
+
+(ert-deftest python-tests--flymake-command-output-pattern ()
+  (pcase-let ((`(,patt ,line ,col ,type ,msg)
+               python-flymake-command-output-pattern))
+    ;; Pyflakes output as of version 2.4.0
+    (let ((output "<stdin>:12:34 'a.b.c as d' imported but unused"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (should (equal (match-string msg output)
+                     "'a.b.c as d' imported but unused")))
+    ;; Flake8 output as of version 4.0.1
+    (let ((output "stdin:12:34: F401 'a.b.c as d' imported but unused"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (when type (should (equal (match-string type output) "F401")))
+      (should (equal (match-string msg output)
+                     (if type
+                         "'a.b.c as d' imported but unused"
+                       "F401 'a.b.c as d' imported but unused"))))
+    ;; Pylint output as of version 2.14.5
+    (let ((output "stdin:12:34: W0611: Unused import a.b.c (unused-import)"))
+      (string-match patt output)
+      (should (equal (match-string line output) "12"))
+      (when col (should (equal (match-string col output) "34")))
+      (when type (should (equal (match-string type output) "W0611")))
+      (should (equal (match-string msg output)
+                     (if type
+                         "Unused import a.b.c (unused-import)"
+                       "W0611: Unused import a.b.c (unused-import)"))))))
 
 (provide 'python-tests)
 

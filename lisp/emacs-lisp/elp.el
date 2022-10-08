@@ -111,7 +111,7 @@
 ;; provide the functionality or interface that I wanted, so I wrote
 ;; this.
 
-;; Unlike previous profilers, elp uses Emacs 19's built-in function
+;; Unlike previous profilers, elp uses the built-in function
 ;; current-time to return interval times.  This obviates the need for
 ;; both an external C program and Emacs processes to communicate with
 ;; such a program, and thus simplifies the package as a whole.

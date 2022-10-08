@@ -229,7 +229,7 @@ interactive command."
                (lambda (f) (if want-command
                           (commandp f)
                         (or (fboundp f) (get f 'function-documentation))))
-               t nil nil
+               'confirm nil nil
                (and fn (symbol-name fn)))))
     (unless (equal val "")
       (setq fn (intern val)))
@@ -457,7 +457,9 @@ the C sources, too."
 		     load-path '(".el" ".elc") 'readable))))))))
 
     (cond
-     ((and (not file-name) (subrp type))
+     ((and (not file-name)
+           (subrp type)
+           (not (subr-native-elisp-p type)))
       ;; A built-in function.  The form is from `describe-function-1'.
       (if (or (get-buffer " *DOC*")
               (and also-c-source
@@ -515,8 +517,11 @@ the C sources, too."
     (let ((pt2 (with-current-buffer standard-output (point)))
           (remapped (command-remapping function)))
       (unless (memq remapped '(ignore undefined))
-        (let* ((all-keys (where-is-internal
-                          (or remapped function) overriding-local-map nil nil))
+        (let* ((all-keys
+                (with-current-buffer
+                    (or describe-function-orig-buffer (current-buffer))
+                  (where-is-internal
+                   (or remapped function) overriding-local-map nil nil)))
                (seps (seq-group-by
                       (lambda (key)
                         (and (vectorp key)
@@ -583,36 +588,43 @@ the C sources, too."
                   keys))
 
 (defun help-fns--insert-menu-bindings (menus heading)
-  (seq-do-indexed
-   (lambda (menu i)
-     (insert
-      (cond ((zerop i) "")
-            ((= i (1- (length menus))) " and ")
-            (t ", ")))
-     (let ((map (lookup-key global-map (seq-take menu 1)))
-           (start (point)))
-       (seq-do-indexed
-        (lambda (entry level)
-          (when (symbolp map)
-            (setq map (symbol-function map)))
-          (when-let ((elem (assq entry (cdr map))))
-            (when heading
-              (insert heading)
-              (setq heading nil start (point)))
-            (when (> level 0)
-              (insert
-               (if (char-displayable-p ?→)
-                   " → "
-                 " => ")))
-            (if (eq (nth 1 elem) 'menu-item)
-                (progn
-                  (insert (nth 2 elem))
-                  (setq map (cadddr elem)))
-              (insert (nth 1 elem))
-              (setq map (cddr elem)))))
-        (cdr (seq-into menu 'list)))
-       (put-text-property start (point) 'face 'help-key-binding)))
-   menus))
+  (let ((strings nil))
+    ;; First collect all the printed representations of menus.
+    (dolist (menu menus)
+      (let ((map (lookup-key global-map (seq-take menu 1)))
+            (string nil))
+        (seq-do-indexed
+         (lambda (entry level)
+           (when (symbolp map)
+             (setq map (symbol-function map)))
+           (when-let ((elem (assq entry (cdr map))))
+             (when (> level 0)
+               (push (if (char-displayable-p ?→)
+                         " → "
+                       " => ")
+                     string))
+             (if (eq (nth 1 elem) 'menu-item)
+                 (progn
+                   (push (nth 2 elem) string)
+                   (setq map (cadddr elem)))
+               (push (nth 1 elem) string)
+               (setq map (cddr elem)))))
+         (cdr (seq-into menu 'list)))
+        (when string
+          (push string strings))))
+    ;; Then output them.
+    (when strings
+      (when heading
+        (insert heading))
+      (seq-do-indexed
+       (lambda (string i)
+         (insert
+          (cond ((zerop i) "")
+                ((= i (1- (length menus))) " and ")
+                (t ", "))
+          (propertize (string-join (nreverse string))
+                      'face 'help-key-binding)))
+       strings))))
 
 (defun help-fns--compiler-macro (function)
   (pcase-dolist (`(,type . ,handler)
@@ -709,13 +721,13 @@ the C sources, too."
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
-      (insert (substitute-command-keys "  Parent mode: `"))
+      (insert (substitute-quotes "  Parent mode: `"))
       (let ((beg (point)))
         (insert (format "%s" parent-mode))
         (make-text-button beg (point)
                           'type 'help-function
                           'help-args (list parent-mode)))
-      (insert (substitute-command-keys "'.\n")))))
+      (insert (substitute-quotes "'.\n")))))
 
 (defun help-fns--obsolete (function)
   ;; Ignore lambda constructs, keyboard macros, etc.
@@ -1155,6 +1167,18 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 (add-hook 'help-fns-describe-function-functions #'help-fns--parent-mode)
 (add-hook 'help-fns-describe-function-functions #'help-fns--compiler-macro 100)
 
+(defun help-fns--generalized-variable (function)
+  (when (and (symbolp function)
+             (get function 'gv-expander)
+             ;; Don't mention obsolete generalized variables.
+             (not (get function 'byte-obsolete-generalized-variable)))
+    (insert (format-message "  `%s' is also a " function)
+            (buttonize "generalized variable"
+                       (lambda (_) (info "(elisp)Generalized Variables")))
+            ".\n")))
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--generalized-variable)
+
 
 ;; Variables
 
@@ -1545,7 +1569,7 @@ This cancels value editing without updating the value."
     (princ "  This variable may be risky if used as a \
 file-local variable.\n")
     (when (assq variable safe-local-variable-values)
-      (princ (substitute-command-keys
+      (princ (substitute-quotes
               "  However, you have added it to \
 `safe-local-variable-values'.\n")))))
 
@@ -1595,8 +1619,8 @@ variable.\n")))
 	          (insert-text-button
 	           file 'type 'help-dir-local-var-def
                    'help-args (list variable file)))
-	        (princ (substitute-command-keys "'.\n"))))
-          (princ (substitute-command-keys
+                (princ (substitute-quotes "'.\n"))))
+          (princ (substitute-quotes
 	          "  This variable's value is file-local.\n")))))))
 
 (add-hook 'help-fns-describe-variable-functions #'help-fns--var-watchpoints)
@@ -1676,10 +1700,10 @@ variable.\n")))
      ((not permanent-local))
      ((bufferp locus)
       (princ
-       (substitute-command-keys
+       (substitute-quotes
         "  This variable's buffer-local value is permanent.\n")))
      (t
-      (princ (substitute-command-keys
+      (princ (substitute-quotes
 	      "  This variable's value is permanent \
 if it is given a local binding.\n"))))))
 
@@ -1756,9 +1780,9 @@ If FRAME is omitted or nil, use the selected frame."
                     (setq help-mode--current-data (list :symbol f))
                   (setq help-mode--current-data (list :symbol f
                                                       :file file-name))
-		  (princ (substitute-command-keys "Defined in `"))
+                (princ (substitute-quotes "Defined in `"))
 		  (princ (help-fns-short-filename file-name))
-		  (princ (substitute-command-keys "'"))
+                (princ (substitute-quotes "'"))
 		  ;; Make a hyperlink to the library.
 		  (save-excursion
 		    (re-search-backward
@@ -2168,8 +2192,7 @@ documentation for the major and minor modes of that buffer."
 	;; Document the minor modes fully.
         (insert (buttonize
                  (propertize pretty-minor-mode 'help-minor-mode mode)
-                 (lambda (mode)
-                   (describe-function mode))
+                 #'describe-function
                  mode))
         (let ((indicator
                (format-mode-line (assq mode minor-mode-alist))))
@@ -2178,7 +2201,8 @@ documentation for the major and minor modes of that buffer."
 			      "no indicator"
 			    (format "indicator%s"
 				    indicator)))))
-	(insert (help-split-fundoc (documentation mode) nil 'doc)))))
+	(insert (or (help-split-fundoc (documentation mode) nil 'doc)
+	            "No docstring")))))
   (forward-line -1)
   (fill-paragraph nil)
   (forward-paragraph 1)

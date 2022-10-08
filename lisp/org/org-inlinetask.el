@@ -238,7 +238,7 @@ going below `org-inlinetask-min-level'."
 	  (setq beg (point))
 	  (replace-match down-task nil t nil 1)
 	  (org-inlinetask-goto-end)
-	  (if (and (eobp) (looking-back "END\\s-*" (point-at-bol)))
+          (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
               (beginning-of-line)
             (forward-line -1))
 	  (unless (= (point) beg)
@@ -264,7 +264,7 @@ If the task has an end part, also demote it."
 	(setq beg (point))
 	(replace-match down-task nil t nil 1)
 	(org-inlinetask-goto-end)
-        (if (and (eobp) (looking-back "END\\s-*" (point-at-bol)))
+        (if (and (eobp) (looking-back "END\\s-*" (line-beginning-position)))
             (beginning-of-line)
           (forward-line -1))
 	(unless (= (point) beg)
@@ -312,7 +312,7 @@ If the task has an end part, also demote it."
 	       (if (bolp) (1- (point)) (point))))
 	(start (save-excursion
 		 (org-inlinetask-goto-beginning)
-		 (point-at-eol))))
+                 (line-end-position))))
     (cond
      ;; Nothing to show/hide.
      ((= end start))

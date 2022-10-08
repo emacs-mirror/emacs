@@ -266,7 +266,7 @@ See `run-hooks'."
 		  :enable (vc-find-backend-function vc-dir-backend 'push)
 		  :help "Push the current branch's changes"))
     (define-key map [update]
-      '(menu-item "Update to Latest Version" vc-update
+      '(menu-item "Update to Latest Version" vc-pull
 		  :help "Update the current fileset's files to their tip revisions"))
     (define-key map [revert]
       '(menu-item "Revert to Base Version" vc-revert
@@ -306,8 +306,8 @@ See `run-hooks'."
     (define-key map "=" #'vc-diff)	   ;; C-x v =
     (define-key map "D" #'vc-root-diff)	   ;; C-x v D
     (define-key map "i" #'vc-register)	   ;; C-x v i
-    (define-key map "+" #'vc-update)	   ;; C-x v +
-    ;; I'd prefer some kind of symmetry with vc-update:
+    (define-key map "+" #'vc-pull)	   ;; C-x v +
+    ;; I'd prefer some kind of symmetry with vc-pull:
     (define-key map "P" #'vc-push)	   ;; C-x v P
     (define-key map "l" #'vc-print-log)	   ;; C-x v l
     (define-key map "L" #'vc-print-root-log) ;; C-x v L
@@ -356,10 +356,10 @@ See `run-hooks'."
     (define-key map "G" #'vc-dir-ignore)
 
     (let ((branch-map (make-sparse-keymap)))
-      (define-key map "B" branch-map)
-      (define-key branch-map "c" #'vc-create-tag)
+      (define-key map "b" branch-map)
+      (define-key branch-map "c" #'vc-create-branch)
       (define-key branch-map "l" #'vc-print-branch-log)
-      (define-key branch-map "s" #'vc-retrieve-tag))
+      (define-key branch-map "s" #'vc-switch-branch))
 
     (let ((mark-map (make-sparse-keymap)))
       (define-key map "*" mark-map)

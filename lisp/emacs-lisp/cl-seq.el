@@ -139,6 +139,10 @@ only case where FUNCTION is called with fewer than two arguments.
 If SEQ contains exactly one element and no :INITIAL-VALUE is
 specified, then return that element and FUNCTION is not called.
 
+If :FROM-END is non-nil, the reduction occurs from the back of
+the SEQ moving forward, and the order of arguments to the
+FUNCTION is also reversed.
+
 \n(fn FUNCTION SEQ [KEYWORD VALUE]...)"
   (cl--parsing-keywords (:from-end (:start 0) :end :initial-value :key) ()
     (or (listp cl-seq) (setq cl-seq (append cl-seq nil)))

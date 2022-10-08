@@ -948,7 +948,7 @@ out of NAME."
                (save-excursion
                  (re-search-backward (regexp-opt
                                       (mapcar 'car preferred-suffix-rules))
-                                     (point-at-bol)
+                                     (line-beginning-position)
                                      t))
              (push (cons "" (cdr (assoc (match-string 0) ; i.e. "(TeX-current-macro)"
                                         preferred-suffix-rules)))
@@ -962,7 +962,7 @@ out of NAME."
                                           (concat (car rule) name (cdr rule)))
                                         guess-rules)))
              (when (< (point-min) (point-max))
-               (buffer-substring (goto-char (point-min)) (point-at-eol))))))))
+               (buffer-substring (goto-char (point-min)) (line-end-position))))))))
 
 (defun ffap-tex (name)
   (ffap-tex-init)
@@ -1504,7 +1504,11 @@ which may actually result in an URL rather than a filename."
         (progn
           (push elem file-name-handler-alist)
           (if (ffap-url-p guess)
-              (read-file-name prompt guess guess)
+              ;; We're using the default file name prompter here -- it
+              ;; allows you to switch back to reading a file name,
+              ;; while other prompters, like ido, really expect a
+              ;; file, and don't allow you to edit it if it's an URL.
+              (funcall #'read-file-name-default prompt guess guess)
             (unless guess
               (setq guess default-directory))
             (unless (ffap-file-remote-p guess)
@@ -1623,9 +1627,9 @@ and `ffap-url-at-point'."
        ((or (not ffap-newfile-prompt)
 	    (file-exists-p filename)
 	    (y-or-n-p "File does not exist, create buffer? "))
-	(find-file
-         ;; expand-file-name fixes "~/~/.emacs" bug
-	 (expand-file-name filename)))
+	(funcall ffap-file-finder
+                 ;; expand-file-name fixes "~/~/.emacs" bug
+	         (expand-file-name filename)))
        ;; User does not want to find a non-existent file:
        ((signal 'file-missing (list "Opening file buffer"
 				    "No such file or directory"

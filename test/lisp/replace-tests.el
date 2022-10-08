@@ -378,7 +378,7 @@ Each element has the format:
               (goto-char (point-min))
               (should (string-match "\\`2 matches for \"and\" in buffer: "
                                     (buffer-substring-no-properties
-                                     (point) (line-end-position)))))))
+                                     (point) (pos-eol)))))))
       (and (buffer-name temp-buffer)
            (kill-buffer temp-buffer)))))
 
@@ -401,7 +401,7 @@ Each element has the format:
               (goto-char (point-min))
               (should (string-match "\\`2 matches for \"and\" in buffer: "
                                     (buffer-substring-no-properties
-                                     (point) (line-end-position)))))))
+                                     (point) (pos-eol)))))))
       (and (buffer-name temp-buffer)
            (kill-buffer temp-buffer)))))
 

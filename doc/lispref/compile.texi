@@ -973,6 +973,24 @@ whether native-compilation is available should use this predicate.
   This section documents the variables that control
 native-compilation.
 
+@defvar inhibit-automatic-native-compilation
+If your Emacs has support for native compilation, Emacs will (by
+default) compile the Lisp files you're loading in the background, and
+then install the native-compiled versions of the functions.  If you
+wish to disable this, you can set this variable to non-@code{nil}.  If
+you want to set it permanently, this should probably be done from the
+early init file, since setting it in the normal init file is probably
+too late.
+
+While setting this variable disables automatic compilation of Lisp
+files, the compiler may still be invoked to install @dfn{trampolines}
+if any built-in functions are redefined.  However, these trampolines
+will not get written to disk.
+
+You can also use the @samp{EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION}
+environment variable to disable native compilation.
+@end defvar
+
 @defopt native-comp-speed
 This variable specifies the optimization level for native compilation.
 Its value should be a number between @minus{}1 and 3.  Values between

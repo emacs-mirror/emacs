@@ -55,18 +55,24 @@
     (should (equal (help-split-fundoc nil t 'usage)  nil))
     (should (equal (help-split-fundoc nil t 'doc)    nil))))
 
+(ert-deftest help--key-description-fontified ()
+  (should (equal (help--key-description-fontified
+                  (where-is-internal #'next-line nil t))
+                 "C-n"))
+  (should-not (help--key-description-fontified nil)))
+
 
 ;;; substitute-command-keys
 
 (defmacro with-substitute-command-keys-test (&rest body)
   `(cl-flet* ((test
-               (lambda (orig result)
-                 (should (equal (substitute-command-keys orig)
-                                result))))
+                (lambda (orig result)
+                  (should (equal (substitute-command-keys orig)
+                                 result))))
               (test-re
-               (lambda (orig regexp)
-                 (should (string-match (concat "\\`" regexp "\\'")
-                                       (substitute-command-keys orig))))))
+                (lambda (orig regexp)
+                  (should (string-match (concat "\\`" regexp "\\'")
+                                        (substitute-command-keys orig))))))
      ,@body))
 
 (ert-deftest help-tests-substitute-command-keys/no-change ()
@@ -175,8 +181,12 @@ M-g M-c		switch-to-completions
 
 (ert-deftest help-tests-substitute-command-keys/keymap-change ()
   (with-substitute-command-keys-test
+   ;; Global binding should be found even if specifying a specific map
    (test "\\<minibuffer-local-must-match-map>\\[abort-recursive-edit]" "C-]")
-   (test "\\<emacs-lisp-mode-map>\\[eval-defun]" "C-M-x")))
+   (test "\\<emacs-lisp-mode-map>\\[eval-defun]" "C-M-x")
+   ;; Specific map overrides advertised-binding
+   (test "\\<undo-repeat-map>\\[undo]" "u")
+   (test "\\[undo]" "C-x u")))
 
 (defvar-keymap help-tests-remap-map
   :full t
@@ -194,25 +204,45 @@ M-g M-c		switch-to-completions
             "\nUses keymap [`'‘]foobar-map['’], which is not currently defined.\n")))
 
 (ert-deftest help-tests-substitute-command-keys/quotes ()
- (with-substitute-command-keys-test
+  (with-substitute-command-keys-test
+   (let ((text-quoting-style 'curve))
+     (test "quotes ‘like this’" "quotes ‘like this’")
+     (test "`x'" "‘x’")
+     (test "`" "‘")
+     (test "'" "’")
+     (test "\\`" "\\‘"))
+   (let ((text-quoting-style 'straight))
+     (test "quotes `like this'" "quotes 'like this'")
+     (test "`x'" "'x'")
+     (test "`" "'")
+     (test "'" "'")
+     (test "\\`" "\\'"))
+   (let ((text-quoting-style 'grave))
+     (test "quotes `like this'" "quotes `like this'")
+     (test "`x'" "`x'")
+     (test "`" "`")
+     (test "'" "'")
+     (test "\\`" "\\`"))))
+
+(ert-deftest help-tests-substitute-quotes ()
   (let ((text-quoting-style 'curve))
-    (test "quotes ‘like this’" "quotes ‘like this’")
-    (test "`x'" "‘x’")
-    (test "`" "‘")
-    (test "'" "’")
-    (test "\\`" "\\‘"))
+    (should (string= (substitute-quotes "quotes ‘like this’") "quotes ‘like this’"))
+    (should (string= (substitute-quotes "`x'") "‘x’"))
+    (should (string= (substitute-quotes "`") "‘"))
+    (should (string= (substitute-quotes "'") "’"))
+    (should (string= (substitute-quotes "\\`") "\\‘")))
   (let ((text-quoting-style 'straight))
-    (test "quotes `like this'" "quotes 'like this'")
-    (test "`x'" "'x'")
-    (test "`" "'")
-    (test "'" "'")
-    (test "\\`" "\\'"))
+    (should (string= (substitute-quotes "quotes `like this'") "quotes 'like this'"))
+    (should (string= (substitute-quotes "`x'") "'x'"))
+    (should (string= (substitute-quotes "`") "'"))
+    (should (string= (substitute-quotes "'") "'"))
+    (should (string= (substitute-quotes "\\`") "\\'")))
   (let ((text-quoting-style 'grave))
-    (test "quotes `like this'" "quotes `like this'")
-    (test "`x'" "`x'")
-    (test "`" "`")
-    (test "'" "'")
-    (test "\\`" "\\`"))))
+    (should (string= (substitute-quotes "quotes `like this'") "quotes `like this'"))
+    (should (string= (substitute-quotes "`x'") "`x'"))
+    (should (string= (substitute-quotes "`") "`"))
+    (should (string= (substitute-quotes "'") "'"))
+    (should (string= (substitute-quotes "\\`") "\\`"))))
 
 (ert-deftest help-tests-substitute-command-keys/literals ()
   (with-substitute-command-keys-test

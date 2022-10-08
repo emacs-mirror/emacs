@@ -26,7 +26,7 @@ more specialized, alternative to M-x vc-dir.
 * Manual pages
 
 The scripts admin/make-manuals, admin/upload-manuals can be used to do
-a complete update of the on-line manual pages (eg after a release).
+a complete update of the on-line manual pages (e.g. after a release).
 
 * Renaming pages, redirects
 
@@ -99,7 +99,7 @@ https://lists.gnu.org/r/bug-gnulib/2012-12/msg00072.html
 To use something other than CVS, convert the web-pages CVS repository
 to the other VCS, then set up a two-way sync between them.
 It needs to be two-way in case eg GNU webmasters make a change to the CVS.
-Ref eg
+Ref e.g.
 https://github.com/mikjo/bigitr
 https://lists.gnu.org/r/savannah-hackers-public/2013-04/msg00022.html
 

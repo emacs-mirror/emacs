@@ -325,6 +325,20 @@ This will generate compile-time constants from BINDINGS."
               (throw 'matched t)))
         (throw 'matched nil)))))
 
+(defun lisp-mode--search-key (char bound)
+  (catch 'found
+    (while (re-search-forward
+            (concat "\\_<" char (rx lisp-mode-symbol) "\\_>")
+            bound t)
+      (when (or (< (match-beginning 0) (+ (point-min) 2))
+                ;; A quoted white space before the &/: means that this
+                ;; is not the start of a :keyword or an &option.
+                (not (eql (char-after (- (match-beginning 0) 2))
+                          ?\\))
+                (not (memq (char-after (- (match-beginning 0) 1))
+                           '(?\s ?\n ?\t))))
+        (throw 'found t)))))
+
 (let-when-compile
     ((lisp-fdefs '("defmacro" "defun"))
      (lisp-vdefs '("defvar"))
@@ -496,11 +510,11 @@ This will generate compile-time constants from BINDINGS."
          (,(rx "\\\\=")
           (0 font-lock-builtin-face prepend))
          ;; Constant values.
-         (,(concat "\\_<:" (rx lisp-mode-symbol) "\\_>")
+         (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<&" (rx lisp-mode-symbol) "\\_>")
-          . font-lock-type-face)
+         (,(lambda (bound) (lisp-mode--search-key "&" bound))
+          (0 font-lock-builtin-face))
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
@@ -549,11 +563,12 @@ This will generate compile-time constants from BINDINGS."
          ;; must come before keywords below to have effect
          (,(concat "#:" (rx lisp-mode-symbol) "") 0 font-lock-builtin-face)
          ;; Constant values.
-         (,(concat "\\_<:" (rx lisp-mode-symbol) "\\_>")
+         (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
-         (,(concat "\\_<&" (rx lisp-mode-symbol) "\\_>")
-          . font-lock-type-face)
+         (,(lambda (bound) (lisp-mode--search-key "&" bound))
+          (0 font-lock-builtin-face))
+         ;; ELisp regexp grouping constructs
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.
@@ -728,67 +743,30 @@ font-lock keywords will not be case sensitive."
            len))))
 
 (defun lisp-current-defun-name ()
-  "Return the name of the defun at point.
-If there is no defun at point, return the first symbol from the
-top-level form.  If there is no top-level form, return nil.
-
-(\"defun\" here means \"form that defines something\", and is
-decided heuristically.)"
+  "Return the name of the defun at point, or nil."
   (save-excursion
-    (let ((location (point))
-          name)
+    (let ((location (point)))
       ;; If we are now precisely at the beginning of a defun, make sure
       ;; beginning-of-defun finds that one rather than the previous one.
-      (unless (eobp)
-        (forward-char 1))
+      (or (eobp) (forward-char 1))
       (beginning-of-defun)
       ;; Make sure we are really inside the defun found, not after it.
-      (when (and (looking-at "(")
-		 (progn
-                   (end-of-defun)
-		   (< location (point)))
-		 (progn
-                   (forward-sexp -1)
-		   (>= location (point))))
-	(when (looking-at "(")
-	  (forward-char 1))
-	;; Read the defining construct name, typically "defun" or
+      (when (and (looking-at "\\s(")
+		 (progn (end-of-defun)
+			(< location (point)))
+		 (progn (forward-sexp -1)
+			(>= location (point))))
+	(if (looking-at "\\s(")
+	    (forward-char 1))
+	;; Skip the defining construct name, typically "defun" or
 	;; "defvar".
-        (let ((symbol (ignore-errors (read (current-buffer)))))
-          (when (and symbol (not (symbolp symbol)))
-            (setq symbol nil))
-          ;; If there's an edebug spec, use that to determine what the
-          ;; name is.
-          (when symbol
-            (let ((spec (or (get symbol 'edebug-form-spec)
-                            (and (eq (get symbol 'lisp-indent-function) 'defun)
-                                 (get 'defun 'edebug-form-spec)))))
-              (save-excursion
-                (when (and (eq (car-safe spec) '&define)
-                           (memq 'name spec))
-                  (pop spec)
-                  (while (and spec (not name))
-                    (let ((candidate (ignore-errors (read (current-buffer)))))
-                      (when (eq (pop spec) 'name)
-                        (when (and (consp candidate)
-                                   (symbolp (car (delete 'quote candidate))))
-                          (setq candidate (car (delete 'quote candidate))))
-                        (setq name candidate
-                              spec nil))))))))
-          ;; We didn't have an edebug spec (or couldn't find the
-          ;; name).  If the symbol starts with \"def\", then it's
-          ;; likely that the next symbol is the name.
-          (when (and (not name)
-                     (string-match-p "\\(\\`\\|-\\)def" (symbol-name symbol)))
-            (when-let ((candidate (ignore-errors (read (current-buffer)))))
-              (cond
-               ((symbolp candidate)
-                (setq name candidate))
-               ((and (consp candidate)
-                     (symbolp (car (delete 'quote candidate))))
-                (setq name (car (delete 'quote candidate)))))))
-          (when-let ((result (or name symbol)))
-            (and (symbolp result) (symbol-name result))))))))
+	(forward-sexp 1)
+	;; The second element is usually a symbol being defined.  If it
+	;; is not, use the first symbol in it.
+	(skip-chars-forward " \t\n'(")
+	(buffer-substring-no-properties (point)
+					(progn (forward-sexp 1)
+					       (point)))))))
 
 (defvar-keymap lisp-mode-shared-map
   :doc "Keymap for commands shared by all sorts of Lisp modes."

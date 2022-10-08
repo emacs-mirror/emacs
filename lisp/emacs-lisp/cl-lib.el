@@ -90,12 +90,6 @@
 (defvar cl--optimize-safety 1)
 
 ;;;###autoload
-(define-obsolete-variable-alias
-  ;; This alias is needed for compatibility with .elc files that use defstruct
-  ;; and were compiled with Emacs<24.3.
-  'custom-print-functions 'cl-custom-print-functions "24.3")
-
-;;;###autoload
 (defvar cl-custom-print-functions nil
   "This is a list of functions that format user objects for printing.
 Each function is called in turn with three arguments: the object, the

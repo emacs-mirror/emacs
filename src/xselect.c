@@ -1567,7 +1567,8 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
 			       unsigned char **data_ret,
 			       ptrdiff_t *size_bytes_ret,
 			       Atom *type_ret, int *format_ret,
-			       unsigned long *size_ret)
+			       unsigned long *size_ret,
+			       ptrdiff_t *real_bytes_ret)
 {
   ptrdiff_t offset = 0;
   struct prop_location *wait_object;
@@ -1622,7 +1623,8 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
 
       if (tmp_size_bytes == 0) /* we're done */
 	{
-	  TRACE0 ("Done reading incrementally");
+	  TRACE1 ("Done reading incrementally; total bytes: %"pD"d",
+		  *size_bytes_ret);
 
 	  if (! waiting_for_other_props_on_window (display, window))
 	    XSelectInput (display, window, STANDARD_EVENT_SET);
@@ -1652,6 +1654,19 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
       memcpy ((*data_ret) + offset, tmp_data, tmp_size_bytes);
       offset += tmp_size_bytes;
 
+      /* *size_bytes_ret is not really the size of the data inside the
+	 buffer; it is the size of the buffer allocated by xpalloc.
+
+	 This matters when the cardinal specified in the INCR property
+	 (a _lower bound_ on the size of the selection data) is
+	 smaller than the actual selection contents, which can happen
+	 when programs are streaming selection data from a file
+	 descriptor.  In that case, we used to return junk if xpalloc
+	 decided to grow the buffer by more than the provided
+	 increment; to avoid that, store the actual size of the
+	 selection data in *real_bytes_ret.  */
+      *real_bytes_ret += tmp_size_bytes;
+
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
       xfree (tmp_data);
@@ -1674,9 +1689,13 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
   int actual_format;
   unsigned long actual_size;
   unsigned char *data = 0;
-  ptrdiff_t bytes = 0;
+  ptrdiff_t bytes = 0, array_bytes;
   Lisp_Object val;
   Display *display = dpyinfo->display;
+
+  /* array_bytes is only used as an argument to xpalloc.  The actual
+     size of the data inside the buffer is inside bytes.  */
+  array_bytes = 0;
 
   TRACE0 ("Reading selection data");
 
@@ -1718,10 +1737,15 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	 calls xmalloc itself.  */
       xfree (data);
       unblock_input ();
+
+      /* Clear bytes again.  Previously, receive_incremental_selection
+	 would set this to min_size_bytes, but that is now done to
+	 array_bytes instead.  */
+      bytes = 0;
       receive_incremental_selection (dpyinfo, window, property, target_type,
-				     min_size_bytes, &data, &bytes,
+				     min_size_bytes, &data, &array_bytes,
 				     &actual_type, &actual_format,
-				     &actual_size);
+				     &actual_size, &bytes);
     }
 
   if (!for_multiple)
@@ -1754,8 +1778,7 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	ATOM	32	> 1		Vector of Symbols
 	*	16	1		Integer
 	*	16	> 1		Vector of Integers
-	*	32	1		if small enough: fixnum
-					otherwise: bignum
+	*	32	1		Integer
 	*	32	> 1		Vector of the above
 
    When converting an object to C, it may be of the form (SYMBOL . <data>)
@@ -1994,7 +2017,17 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
 
-      if (SYMBOLP (AREF (obj, 0)))
+      if (!size)
+	{
+	  /* This vector is empty and of unknown type.  Assume that it
+	     is a vector of integers.  */
+
+	  cs->data = NULL;
+	  cs->format = 32;
+	  cs->size = 0;
+	  type = QINTEGER;
+	}
+      else if (SYMBOLP (AREF (obj, 0)))
 	/* This vector is an ATOM set */
 	{
 	  void *data;

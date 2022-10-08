@@ -49,23 +49,23 @@ This is the Gnus Frequently Asked Questions list.
 Gnus is a Usenet Newsreader and Electronic Mail User Agent implemented
 as a part of Emacs.  It's been around in some form since the early
 1990s, and has been distributed as a standard part of Emacs for much
-of that time. Gnus 5 is the latest (and greatest) incarnation.  The
+of that time.  Gnus 5 is the latest (and greatest) incarnation.  The
 original version was called GNUS, and was written by Masanobu UMEDA@.
 When autumn crept up in 1994, Lars Magne Ingebrigtsen grew bored and
 decided to rewrite Gnus.
 
 Its biggest strength is the fact that it is extremely
-customizable. It is somewhat intimidating at first glance, but
+customizable.  It is somewhat intimidating at first glance, but
 most of the complexity can be ignored until you're ready to take
-advantage of it. If you receive a reasonable volume of e-mail
+advantage of it.  If you receive a reasonable volume of e-mail
 (you're on various mailing lists), or you would like to read
 high-volume mailing lists but cannot keep up with them, or read
 high volume newsgroups or are just bored, then Gnus is what you
 want.
 
-This FAQ was maintained by Justin Sheehy until March 2002. He
+This FAQ was maintained by Justin Sheehy until March 2002.  He
 would like to thank Steve Baur and Per Abrahamsen for doing a wonderful
-job with this FAQ before him. We would like to do the same: thanks,
+job with this FAQ before him.  We would like to do the same: thanks,
 Justin!
 
 The information contained here was compiled with the assistance
@@ -117,7 +117,7 @@ development version that became Gnus 5.12.
 
 @menu
 * FAQ 2-1::    Every time I start Gnus I get a message "Gnus auto-save
-               file exists. Do you want to read it?", what does this mean and
+               file exists.  Do you want to read it?", what does this mean and
                how to prevent it?
 * FAQ 2-2::    Gnus doesn't remember which groups I'm subscribed to,
                what's this?
@@ -133,7 +133,7 @@ development version that became Gnus 5.12.
 @subsubheading Question 2.1
 
 Every time I start Gnus I get a message "Gnus auto-save
-file exists. Do you want to read it?", what does this mean
+file exists.  Do you want to read it?", what does this mean
 and how to prevent it?
 
 @subsubheading Answer
@@ -168,8 +168,8 @@ How to change the format of the lines in Group buffer?
 @subsubheading Answer
 
 You've got to tweak the value of the variable
-gnus-group-line-format. See the manual node "Group Line
-Specification" for information on how to do this. An
+gnus-group-line-format.  See the manual node "Group Line
+Specification" for information on how to do this.  An
 example for this (guess from whose .gnus :-)):
 
 @example
@@ -192,11 +192,11 @@ Linux under the topic linux, all dealing with music under
 the topic music and all dealing with scottish music under
 the topic scottish which is a subtopic of music.
 
-To enter topic mode, just hit t while in Group buffer. Now
+To enter topic mode, just hit t while in Group buffer.  Now
 you can use @samp{T n} to create a topic
 at point and @samp{T m} to move a group to
-a specific topic. For more commands see the manual or the
-menu. You might want to include the %P specifier at the
+a specific topic.  For more commands see the manual or the
+menu.  You might want to include the %P specifier at the
 beginning of your gnus-group-line-format variable to have
 the groups nicely indented.
 
@@ -231,7 +231,7 @@ hit @samp{C-y}.
                 possible?
 * FAQ 3-7::     And how about local spool files?
 * FAQ 3-8::     OK, reading news works now, but I want to be able to
-                read my mail with Gnus, too. How to do it?
+                read my mail with Gnus, too.  How to do it?
 * FAQ 3-9::     And what about IMAP?
 * FAQ 3-10::    At the office we use one of those MS Exchange servers,
                 can I use Gnus to read my mail from it?
@@ -248,8 +248,8 @@ but it only says "nntp (news) open error", what to do?
 
 @subsubheading Answer
 
-You've got to tell Gnus where to fetch the news from. Read
-the documentation for information on how to do this. As a
+You've got to tell Gnus where to fetch the news from.  Read
+the documentation for information on how to do this.  As a
 first start, put those lines in @file{~/.gnus.el}:
 
 @example
@@ -279,7 +279,7 @@ directory Emacs chooses will most certainly not be what
 you want, so let's do it the correct way.
 The first thing you've got to do is to
 create a suitable directory (no blanks in names
-please), e.g., c:\myhome. Then you must set the environment
+please), e.g., c:\myhome.  Then you must set the environment
 variable HOME to this directory.  To do this under Windows 9x
 or Me include the line
 
@@ -290,7 +290,7 @@ SET HOME=C:\myhome
 
 in your autoexec.bat and reboot.  Under NT, 2000 and XP, hit
 Winkey+Pause/Break to enter system options (if it doesn't work, go
-to Control Panel -> System -> Advanced). There you'll find the
+to Control Panel -> System -> Advanced).  There you'll find the
 possibility to set environment variables.  Create a new one with
 name HOME and value C:\myhome.  Rebooting is not necessary.
 
@@ -333,8 +333,8 @@ subscribe to a group.
 
 If you know the name of the group say @samp{U
 name.of.group @key{RET}} in group buffer (use the
-tab-completion Luke). Otherwise hit ^ in group buffer,
-this brings you to the server buffer. Now place point (the
+tab-completion Luke).  Otherwise hit ^ in group buffer,
+this brings you to the server buffer.  Now place point (the
 cursor) over the server which carries the group you want,
 hit @samp{@key{RET}}, move point to the group
 you want to subscribe to and say @samp{u}
@@ -349,7 +349,7 @@ post on this server as well as I am, what's that?
 @subsubheading Answer
 
 Some providers allow restricted anonymous access and full
-access only after authorization. To make Gnus send authinfo
+access only after authorization.  To make Gnus send authinfo
 to those servers append
 
 @example
@@ -366,8 +366,8 @@ I want Gnus to fetch news from several servers, is this possible?
 
 @subsubheading Answer
 
-Of course. You can specify more sources for articles in the
-variable gnus-secondary-select-methods. Add something like
+Of course.  You can specify more sources for articles in the
+variable gnus-secondary-select-methods.  Add something like
 this in @file{~/.gnus.el}:
 
 @example
@@ -418,25 +418,25 @@ to post articles, see the Gnus manual on how to do this.
 @subsubheading Question 3.8
 
 OK, reading news works now, but I want to be able to read my mail
-with Gnus, too. How to do it?
+with Gnus, too.  How to do it?
 
 @subsubheading Answer
 
 That's a bit harder since there are many possible sources
 for mail, many possible ways for storing mail and many
-different ways for sending mail. The most common cases are
+different ways for sending mail.  The most common cases are
 these: 1: You want to read your mail from a pop3 server and
 send them directly to a SMTP Server 2: Some program like
 fetchmail retrieves your mail and stores it on disk from
-where Gnus shall read it. Outgoing mail is sent by
-Sendmail, Postfix or some other MTA@. Sometimes, you even
+where Gnus shall read it.  Outgoing mail is sent by
+Sendmail, Postfix or some other MTA@.  Sometimes, you even
 need a combination of the above cases.
 
 However, the first thing to do is to tell Gnus in which way
 it should store the mail, in Gnus terminology which back end
-to use. Gnus supports many different back ends, the most
-commonly used one is nnml. It stores every mail in one file
-and is therefore quite fast. However you might prefer a one
+to use.  Gnus supports many different back ends, the most
+commonly used one is nnml.  It stores every mail in one file
+and is therefore quite fast.  However you might prefer a one
 file per group approach if your file system has problems with
 many small files, the nnfolder back end is then probably the
 choice for you.  To use nnml add the following to @file{~/.gnus.el}:
@@ -453,7 +453,7 @@ As you might have guessed, if you want nnfolder, it's
 @end example
 @noindent
 
-Now we need to tell Gnus, where to get its mail from. If
+Now we need to tell Gnus, where to get its mail from.  If
 it's a POP3 server, then you need something like this:
 
 @example
@@ -465,7 +465,7 @@ it's a POP3 server, then you need something like this:
 @noindent
 
 Make sure @file{~/.gnus.el} isn't readable to others if you store
-your password there. If you want to read your mail from a
+your password there.  If you want to read your mail from a
 traditional spool file on your local machine, it's
 
 @example
@@ -499,10 +499,10 @@ mail, it's
 Where :suffix ".prcml" tells Gnus only to use files with the
 suffix .prcml.
 
-OK, now you only need to tell Gnus how to send mail. If you
+OK, now you only need to tell Gnus how to send mail.  If you
 want to send mail via sendmail (or whichever MTA is playing
 the role of sendmail on your system), you don't need to do
-anything. However, if you want to send your mail to an
+anything.  However, if you want to send your mail to an
 SMTP Server you need the following in your @file{~/.gnus.el}
 
 @example
@@ -519,9 +519,9 @@ And what about IMAP?
 
 @subsubheading Answer
 
-There are two ways of using IMAP with Gnus. The first one is
+There are two ways of using IMAP with Gnus.  The first one is
 to use IMAP like POP3, that means Gnus fetches the mail from
-the IMAP server and stores it on disk. If you want to do
+the IMAP server and stores it on disk.  If you want to do
 this (you don't really want to do this) add the following to
 @file{~/.gnus.el}
 
@@ -586,7 +586,7 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
 @subsection Reading messages
 
 @menu
-* FAQ 4-1::     When I enter a group, all read messages are gone. How to
+* FAQ 4-1::     When I enter a group, all read messages are gone.  How to
                 view them again?
 * FAQ 4-2::     How to tell Gnus to show an important message every time
                 I enter a group, even when it's read?
@@ -595,7 +595,7 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
 * FAQ 4-5::     How can I change the headers Gnus displays by default at
                 the top of the article buffer?
 * FAQ 4-6::     I'd like Gnus NOT to render HTML-mails but show me the
-                text part if it's available. How to do it?
+                text part if it's available.  How to do it?
 * FAQ 4-7::     Can I use some other browser than shr to render my
                 HTML-mails?
 * FAQ 4-8::     Is there anything I can do to make poorly formatted
@@ -609,7 +609,7 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
                 those?
 * FAQ 4-12::    The number of total messages in a group which Gnus
                 displays in group buffer is by far to high, especially in mail
-                groups. Is this a bug?
+                groups.  Is this a bug?
 * FAQ 4-13::    I don't like the layout of summary and article buffer,
                 how to change it? Perhaps even a three pane display?
 * FAQ 4-14::    I don't like the way the Summary buffer looks, how to
@@ -621,15 +621,15 @@ each POP3 mail source.  @xref{Mail Source Specifiers}, for details on
 @node FAQ 4-1
 @subsubheading Question 4.1
 
-When I enter a group, all read messages are gone. How to view them again?
+When I enter a group, all read messages are gone.  How to view them again?
 
 @subsubheading Answer
 
 If you enter the group by saying
 @samp{@key{RET}}
-in group buffer with point over the group, only unread and ticked messages are loaded. Say
+in group buffer with point over the group, only unread and ticked messages are loaded.  Say
 @samp{C-u @key{RET}}
-instead to load all available messages. If you want only the 300 newest say
+instead to load all available messages.  If you want only the 300 newest say
 @samp{C-u 300 @key{RET}}
 
 Loading only unread messages can be annoying if you have threaded view enabled, say
@@ -658,9 +658,9 @@ enter a group, even when it's read?
 
 @subsubheading Answer
 
-You can tick important messages. To do this hit
+You can tick important messages.  To do this hit
 @samp{u} while point is in summary buffer
-over the message. When you want to remove the mark, hit
+over the message.  When you want to remove the mark, hit
 either @samp{d} (this deletes the tick
 mark and set's unread mark) or @samp{M c}
 (which deletes all marks for the message).
@@ -700,7 +700,7 @@ the top of the article buffer?
 
 The variable gnus-visible-headers controls which headers
 are shown, its value is a regular expression, header lines
-which match it are shown. So if you want author, subject,
+which match it are shown.  So if you want author, subject,
 date, and if the header exists, Followup-To and MUA / NUA
 say this in @file{~/.gnus.el}:
 
@@ -715,7 +715,7 @@ say this in @file{~/.gnus.el}:
 @subsubheading Question 4.6
 
 I'd like Gnus NOT to render HTML-mails but show me the
-text part if it's available. How to do it?
+text part if it's available.  How to do it?
 
 @subsubheading Answer
 
@@ -728,7 +728,7 @@ Say
 @end example
 @noindent
 
-in @file{~/.gnus.el}. If you don't want HTML rendered, even if there's no text alternative add
+in @file{~/.gnus.el}.  If you don't want HTML rendered, even if there's no text alternative add
 
 @example
 (setq mm-automatic-display (remove "text/html" mm-automatic-display))
@@ -764,7 +764,7 @@ more readable?
 
 Gnus offers you several functions to ``wash'' incoming mail, you can
 find them if you browse through the menu, item
-Article->Washing. The most interesting ones are probably ``Wrap
+Article->Washing.  The most interesting ones are probably ``Wrap
 long lines'' (@samp{W w}), ``Decode ROT13''
 (@samp{W r}) and ``Outlook Deuglify'' which repairs
 the dumb quoting used by many users of Microsoft products
@@ -781,40 +781,40 @@ highlight more interesting ones in some way?
 
 @subsubheading Answer
 
-You want Scoring. Scoring means, that you define rules
-which assign each message an integer value. Depending on
+You want Scoring.  Scoring means, that you define rules
+which assign each message an integer value.  Depending on
 the value the message is highlighted in summary buffer (if
 it's high, say +2000) or automatically marked read (if the
 value is low, say @minus{}800) or some other action happens.
 
 There are basically three ways of setting up rules which assign
-the scoring-value to messages. The first and easiest way is to set
-up rules based on the article you are just reading. Say you're
+the scoring-value to messages.  The first and easiest way is to set
+up rules based on the article you are just reading.  Say you're
 reading a message by a guy who always writes nonsense and you want
-to ignore his messages in the future. Hit
+to ignore his messages in the future.  Hit
 @samp{L}, to set up a rule which lowers the score.
 Now Gnus asks you which the criteria for lowering the Score shall
-be. Hit @samp{?} twice to see all possibilities,
+be.  Hit @samp{?} twice to see all possibilities,
 we want @samp{a} which means the author (the from
-header). Now Gnus wants to know which kind of matching we want.
+header).  Now Gnus wants to know which kind of matching we want.
 Hit either @samp{e} for an exact match or
 @samp{s} for substring-match and delete afterwards
 everything but the name to score down all authors with the given
-name no matter which email address is used. Now you need to tell
+name no matter which email address is used.  Now you need to tell
 Gnus when to apply the rule and how long it should last, hit
 @samp{p} to apply the rule now and let it last
-forever. If you want to raise the score instead of lowering it say
+forever.  If you want to raise the score instead of lowering it say
 @samp{I} instead of @samp{L}.
 
-You can also set up rules by hand. To do this say @samp{V
-f} in summary buffer. Then you are asked for the name
+You can also set up rules by hand.  To do this say @samp{V
+f} in summary buffer.  Then you are asked for the name
 of the score file, it's name.of.group.SCORE for rules valid in
-only one group or all.Score for rules valid in all groups. See the
+only one group or all.Score for rules valid in all groups.  See the
 Gnus manual for the exact syntax, basically it's one big list
 whose elements are lists again. the first element of those lists
 is the header to score on, then one more list with what to match,
 which score to assign, when to expire the rule and how to do the
-matching. If you find me very interesting, you could add the
+matching.  If you find me very interesting, you could add the
 following to your all.Score:
 
 @example
@@ -825,14 +825,14 @@ following to your all.Score:
 
 This would add 999 to the score of messages written by me
 and 500 to the score of messages which are a (possibly
-indirect) answer to a message written by me. Of course
+indirect) answer to a message written by me.  Of course
 nobody with a sane mind would do this :-)
 
-The third alternative is adaptive scoring. This means Gnus
+The third alternative is adaptive scoring.  This means Gnus
 watches you and tries to find out what you find
 interesting and what annoying and sets up rules
-which reflect this. Adaptive scoring can be a huge help
-when reading high traffic groups. If you want to activate
+which reflect this.  Adaptive scoring can be a huge help
+when reading high traffic groups.  If you want to activate
 adaptive scoring say
 
 @example
@@ -852,11 +852,11 @@ set other variables specific for some groups?
 
 While in group buffer move point over the group and hit
 @samp{G c}, this opens a buffer where you
-can set options for the group. At the bottom of the buffer
+can set options for the group.  At the bottom of the buffer
 you'll find an item that allows you to set variables
-locally for the group. To disable threading enter
+locally for the group.  To disable threading enter
 gnus-show-threads as name of variable and @code{nil} as
-value. Hit button done at the top of the buffer when
+value.  Hit button done at the top of the buffer when
 you're ready.
 
 @node FAQ 4-11
@@ -868,7 +868,7 @@ those?
 @subsubheading Answer
 
 Stop those "Can I ..." questions, the answer is always yes
-in Gnus Country :-). It's a three step process: First we
+in Gnus Country :-).  It's a three step process: First we
 make faces (specifications of how summary-line shall look
 like) for those postings, then we'll give them some
 special score and finally we'll tell Gnus to use the new
@@ -879,16 +879,16 @@ faces.
 
 The number of total messages in a group which Gnus
 displays in group buffer is by far to high, especially in
-mail groups. Is this a bug?
+mail groups.  Is this a bug?
 
 @subsubheading Answer
 
 No, that's a matter of design of Gnus, fixing this would
 mean reimplementation of major parts of Gnus'
-back ends. Gnus thinks ``highest-article-number @minus{}
-lowest-article-number = total-number-of-articles''. This
+back ends.  Gnus thinks ``highest-article-number @minus{}
+lowest-article-number = total-number-of-articles''.  This
 works OK for Usenet groups, but if you delete and move
-many messages in mail groups, this fails. To cure the
+many messages in mail groups, this fails.  To cure the
 symptom, enter the group via @samp{C-u @key{RET}}
 (this makes Gnus get all messages), then
 hit @samp{M P b} to mark all messages and
@@ -907,9 +907,9 @@ to change it? Perhaps even a three pane display?
 @subsubheading Answer
 
 You can control the windows configuration by calling the
-function gnus-add-configuration. The syntax is a bit
+function gnus-add-configuration.  The syntax is a bit
 complicated but explained very well in the manual node
-"Window Layout". Some popular examples:
+"Window Layout".  Some popular examples:
 
 Instead 25% summary 75% article buffer 35% summary and 65%
 article (the 1.0 for article means "take the remaining
@@ -951,11 +951,11 @@ I don't like the way the Summary buffer looks, how to tweak it?
 @subsubheading Answer
 
 You've got to play around with the variable
-gnus-summary-line-format. Its value is a string of
+gnus-summary-line-format.  Its value is a string of
 symbols which stand for things like author, date, subject
-etc. A list of the available specifiers can be found in the
+etc.  A list of the available specifiers can be found in the
 manual node ``Summary Buffer Lines'' and the often forgotten
-node ``Formatting Variables'' and its sub-nodes. There
+node ``Formatting Variables'' and its sub-nodes.  There
 you'll find useful things like positioning the cursor and
 tabulators which allow you a summary in table form, but
 sadly hard tabulators are broken in 5.8.8.
@@ -963,7 +963,7 @@ sadly hard tabulators are broken in 5.8.8.
 Gnus offers you some very nice new specifiers,
 e.g., %B which draws a thread-tree and %&user-date which
 gives you a date where the details are dependent of the
-articles age. Here's an example which uses both:
+articles age.  Here's an example which uses both:
 
 @example
 (setq gnus-summary-line-format ":%U%R %B %s %-60=|%4L |%-20,20f |%&user-date; \n")
@@ -997,19 +997,19 @@ How to split incoming mails in several groups?
 
 Gnus offers two possibilities for splitting mail, the easy
 nnmail-split-methods and the more powerful Fancy Mail
-Splitting. I'll only talk about the first one, refer to
+Splitting.  I'll only talk about the first one, refer to
 the manual, node "Fancy Mail Splitting" for the latter.
 
 The value of nnmail-split-methods is a list, each element
-is a list which stands for a splitting rule. Each rule has
+is a list which stands for a splitting rule.  Each rule has
 the form "group where matching articles should go to",
 "regular expression which has to be matched", the first
-rule which matches wins. The last rule must always be a
+rule which matches wins.  The last rule must always be a
 general rule (regular expression .*) which denotes where
-articles should go which don't match any other rule. If
+articles should go which don't match any other rule.  If
 the folder doesn't exist yet, it will be created as soon
 as an article lands there.  By default the mail will be
-send to all groups whose rules match. If you
+send to all groups whose rules match.  If you
 don't want that (you probably don't want), say
 
 @example
@@ -1020,11 +1020,11 @@ don't want that (you probably don't want), say
 in @file{~/.gnus.el}.
 
 An example might be better than thousand words, so here's
-my nnmail-split-methods. Note that I send duplicates in a
+my nnmail-split-methods.  Note that I send duplicates in a
 special group and that the default group is spam, since I
 filter all mails out which are from some list I'm
 subscribed to or which are addressed directly to me
-before. Those rules kill about 80% of the Spam which
+before.  Those rules kill about 80% of the Spam which
 reaches me (Email addresses are changed to prevent spammers
 from using them):
 
@@ -1089,10 +1089,10 @@ of the variables @code{shr-color-visible-distance-min} and
 * FAQ 5-7::     Is there some kind of address-book, so I needn't
                 remember all those email addresses?
 * FAQ 5-8::     Sometimes I see little images at the top of article
-                buffer. What's that and how can I send one with my postings,
+                buffer.  What's that and how can I send one with my postings,
                 too?
 * FAQ 5-9::     Sometimes I accidentally hit r instead of f in
-                newsgroups. Can Gnus warn me, when I'm replying by mail in
+                newsgroups.  Can Gnus warn me, when I'm replying by mail in
                 newsgroups?
 * FAQ 5-10::    How to tell Gnus not to generate a sender header?
 * FAQ 5-11::    I want Gnus to locally store copies of my send mail and
@@ -1115,18 +1115,18 @@ either in Group or Summary buffer, for a posting, it's
 either @samp{a} in Group buffer and
 filling the Newsgroups header manually
 or @samp{a} in the Summary buffer of the
-group where the posting shall be send to. Replying by mail
+group where the posting shall be send to.  Replying by mail
 is
 @samp{r} if you don't want to cite the
 author, or import the cited text manually and
 @samp{R} to cite the text of the original
-message. For a follow up to a newsgroup, it's
+message.  For a follow up to a newsgroup, it's
 @samp{f} and @samp{F}
 (analogously to @samp{r} and
 @samp{R}).
 
 Enter new headers above the line saying "--text follows
-this line--", enter the text below the line. When ready
+this line--", enter the text below the line.  When ready
 hit @samp{C-c C-c}, to send the message,
 if you want to finish it later hit @samp{C-c
 C-d} to save it in the drafts group, where you
@@ -1189,7 +1189,7 @@ organization, address, name or body.  The attribute name
 can also be a string.  In that case, this will be used as
 a header name, and the value will be inserted in the
 headers of the article; if the value is @code{nil}, the header
-name will be removed. You can also say (eval (foo bar)),
+name will be removed.  You can also say (eval (foo bar)),
 then the function foo will be evaluated with argument bar
 and the result will be thrown away.
 
@@ -1200,8 +1200,8 @@ Can I set things like From, Signature etc group based on the group I post too?
 
 @subsubheading Answer
 
-That's the strength of posting styles. Before, we used ".*"
-to set the default for all groups. You can use a regexp
+That's the strength of posting styles.  Before, we used ".*"
+to set the default for all groups.  You can use a regexp
 like "^gmane" and the following settings are only applied
 to postings you send to the gmane hierarchy, use
 ".*binaries" instead and they will be applied to postings
@@ -1210,7 +1210,7 @@ name etc.
 
 You can instead of specifying a regexp specify a function
 which is evaluated, only if it returns true, the
-corresponding settings take effect. Two interesting
+corresponding settings take effect.  Two interesting
 candidates for this are message-news-p which returns t if
 the current Group is a newsgroup and the corresponding
 message-mail-p.
@@ -1220,7 +1220,7 @@ the example below, when I post to
 gmane.mail.spam.spamassassin.general, the settings under
 ".*" are applied and the settings under message-news-p and
 those under "^gmane" and those under
-"^gmane\\.mail\\.spam\\.spamassassin\\.general$". Because
+"^gmane\\.mail\\.spam\\.spamassassin\\.general$".  Because
 of this put general settings at the top and specific ones
 at the bottom.
 
@@ -1302,7 +1302,7 @@ Yes, say something like
 @end example
 @noindent
 
-in @file{~/.gnus.el}. Change "^de\\." and "deutsch8" to something
+in @file{~/.gnus.el}.  Change "^de\\." and "deutsch8" to something
 that suits your needs.
 
 @node FAQ 5-7
@@ -1324,12 +1324,12 @@ alias al        "Al <al@@english-heritage.invalid>"
 
 Then typing your alias (followed by a space or punctuation
 character) on a To: or Cc: line in the message buffer will
-cause Gnus to insert the full address for you. See the
+cause Gnus to insert the full address for you.  See the
 node "Mail Aliases" in Message (not Gnus) manual for
 details.
 
 However, what you really want is the Insidious Big Brother
-Database bbdb. Get it from
+Database bbdb.  Get it from
 @uref{http://bbdb.sourceforge.net/, bbdb's website}.
 Now place the following in @file{~/.gnus.el}, to activate bbdb for Gnus:
 
@@ -1358,14 +1358,14 @@ place them in ~/.emacs:
 @end example
 @noindent
 
-Now you should be ready to go. Say @samp{M-x bbdb @key{RET}
+Now you should be ready to go.  Say @samp{M-x bbdb @key{RET}
 @key{RET}} to open a bbdb buffer showing all
-entries. Say @samp{c} to create a new
+entries.  Say @samp{c} to create a new
 entry, @samp{b} to search your BBDB and
 @samp{C-o} to add a new field to an
-entry. If you want to add a sender to the BBDB you can
+entry.  If you want to add a sender to the BBDB you can
 also just hit @kbd{:} on the posting in the summary buffer and
-you are done. When you now compose a new mail,
+you are done.  When you now compose a new mail,
 hit @samp{TAB} to cycle through know
 recipients.
 
@@ -1373,18 +1373,18 @@ recipients.
 @subsubheading Question 5.8
 
 Sometimes I see little images at the top of article
-buffer. What's that and how can I send one with my
+buffer.  What's that and how can I send one with my
 postings, too?
 
 @subsubheading Answer
 
-Those images are called X-Faces. They are 48*48 pixel b/w
-pictures, encoded in a header line. If you want to include
+Those images are called X-Faces.  They are 48*48 pixel b/w
+pictures, encoded in a header line.  If you want to include
 one in your posts, you've got to convert some image to a
-X-Face. So fire up some image manipulation program (say
+X-Face.  So fire up some image manipulation program (say
 Gimp), open the image you want to include, cut out the
 relevant part, reduce color depth to 1 bit, resize to
-48*48 and save as bitmap. Now you should get the compface
+48*48 and save as bitmap.  Now you should get the compface
 package from
 @uref{ftp://ftp.cs.indiana.edu/pub/faces/, this site}.
 and create the actual X-face by saying
@@ -1424,7 +1424,7 @@ to @code{gnus-posting-styles}.
 @subsubheading Question 5.9
 
 Sometimes I accidentally hit r instead of f in
-newsgroups. Can Gnus warn me, when I'm replying by mail in
+newsgroups.  Can Gnus warn me, when I'm replying by mail in
 newsgroups?
 
 @subsubheading Answer
@@ -1454,7 +1454,7 @@ news, how to do it?
 @subsubheading Answer
 
 You must set the variable gnus-message-archive-group to do
-this. You can set it to a string giving the name of the
+this.  You can set it to a string giving the name of the
 group where the copies shall go or like in the example
 below use a function which is evaluated and which returns
 the group to use.
@@ -1491,8 +1491,8 @@ aren't they and how to fix it?
 @subsubheading Answer
 
 The message-ID is a unique identifier for messages you
-send. To make it unique, Gnus need to know which machine
-name to put after the "@@". If the name of the machine
+send.  To make it unique, Gnus need to know which machine
+name to put after the "@@".  If the name of the machine
 where Gnus is running isn't suitable (it probably isn't
 at most private machines) you can tell Gnus what to use
 by saying:
@@ -1519,7 +1519,7 @@ instead (works for newer versions as well):
 
 If you have no idea what to insert for
 "yourmachine.yourdomain.tld", you've got several
-choices. You can either ask your provider if he allows
+choices.  You can either ask your provider if he allows
 you to use something like
 yourUserName.userfqdn.provider.net, or you can use
 somethingUnique.yourdomain.tld if you own the domain
@@ -1556,7 +1556,7 @@ correctly by sending yourself a Mail and looking at the Message-ID.
 * FAQ 6-3::    How to search for a specific message?
 * FAQ 6-4::    How to get rid of old unwanted mail?
 * FAQ 6-5::    I want that all read messages are expired (at least in
-               some groups). How to do it?
+               some groups).  How to do it?
 * FAQ 6-6::    I don't want expiration to delete my mails but to move
                them to another group.
 @end menu
@@ -1569,16 +1569,16 @@ How to import my old mail into Gnus?
 @subsubheading Answer
 
 The easiest way is to tell your old mail program to
-export the messages in mbox format. Most Unix mailers
+export the messages in mbox format.  Most Unix mailers
 are able to do this, if you come from the MS Windows
 world, you may find tools at
 @uref{https://sourceforge.net/projects/mbx2mbox/}.
 
-Now you've got to import this mbox file into Gnus. To do
+Now you've got to import this mbox file into Gnus.  To do
 this, create a nndoc group based on the mbox file by
 saying @samp{G f /path/file.mbox @key{RET}} in
-Group buffer. You now have read-only access to your
-mail. If you want to import the messages to your normal
+Group buffer.  You now have read-only access to your
+mail.  If you want to import the messages to your normal
 Gnus mail groups hierarchy, enter the nndoc group you've
 just created by saying @samp{C-u @key{RET}}
 (thus making sure all messages are retrieved), mark all
@@ -1597,8 +1597,8 @@ How to archive interesting messages?
 
 If you stumble across an interesting message, say in
 gnu.emacs.gnus and want to archive it there are several
-solutions. The first and easiest is to save it to a file
-by saying @samp{O f}. However, wouldn't
+solutions.  The first and easiest is to save it to a file
+by saying @samp{O f}.  However, wouldn't
 it be much more convenient to have more direct access to
 the archived message from Gnus? If you say yes, put this
 snippet by Frank Haun <pille3003@@fhaun.de> in
@@ -1607,7 +1607,7 @@ snippet by Frank Haun <pille3003@@fhaun.de> in
 @example
 (defun my-archive-article (&optional n)
   "Copies one or more article(s) to a corresponding `nnml:' group, e.g.,
-`gnus.ding' goes to `nnml:1.gnus.ding'. And `nnml:List-gnus.ding' goes
+`gnus.ding' goes to `nnml:1.gnus.ding'.  And `nnml:List-gnus.ding' goes
 to `nnml:1.List-gnus-ding'.
 
 Use process marks or mark a region in the summary buffer to archive
@@ -1644,7 +1644,7 @@ How to search for a specific message?
 
 @subsubheading Answer
 
-There are several ways for this, too. For a posting from
+There are several ways for this, too.  For a posting from
 a Usenet group the easiest solution is probably to ask
 @uref{https://groups.google.com, groups.google.com},
 if you found the posting there, tell Google to display
@@ -1659,9 +1659,9 @@ Another idea which works for both mail and news groups
 is to enter the group where the message you are
 searching is and use the standard Emacs search
 @samp{C-s}, it's smart enough to look at
-articles in collapsed threads, too. If you want to
+articles in collapsed threads, too.  If you want to
 search bodies, too try @samp{M-s}
-instead. Further on there are the
+instead.  Further on there are the
 gnus-summary-limit-to-foo functions, which can help you,
 too.
 
@@ -1675,17 +1675,17 @@ How to get rid of old unwanted mail?
 You can of course just mark the mail you don't need
 anymore by saying @samp{#} with point
 over the mail and then say @samp{B @key{DEL}}
-to get rid of them forever. You could also instead of
+to get rid of them forever.  You could also instead of
 actually deleting them, send them to a junk-group by
 saying @samp{B m nnml:trash-bin} which
 you clear from time to time, but both are not the intended
 way in Gnus.
 
 In Gnus, we let mail expire like news expires on a news
-server. That means you tell Gnus the message is
+server.  That means you tell Gnus the message is
 expirable (you tell Gnus "I don't need this mail
 anymore") by saying @samp{E} with point
-over the mail in summary buffer. Now when you leave the
+over the mail in summary buffer.  Now when you leave the
 group, Gnus looks at all messages which you marked as
 expirable before and if they are old enough (default is
 older than a week) they are deleted.
@@ -1694,24 +1694,24 @@ older than a week) they are deleted.
 @subsubheading Question 6.5
 
 I want that all read messages are expired (at least in
-some groups). How to do it?
+some groups).  How to do it?
 
 @subsubheading Answer
 
 If you want all read messages to be expired (e.g., in
 mailing lists where there's an online archive), you've
 got two choices: auto-expire and
-total-expire. Auto-expire means, that every article
+total-expire.  Auto-expire means, that every article
 which has no marks set and is selected for reading is
 marked as expirable, Gnus hits @samp{E}
-for you every time you read a message. Total-expire
+for you every time you read a message.  Total-expire
 follows a slightly different approach, here all article
 where the read mark is set are expirable.
 
 To activate auto-expire, include auto-expire in the
 Group parameters for the group. (Hit @samp{G
 c} in summary buffer with point over the
-group to change group parameters). For total-expire add
+group to change group parameters).  For total-expire add
 total-expire to the group-parameters.
 
 Which method you choose is merely a matter of taste:
@@ -1753,7 +1753,7 @@ variables specific for some groups?")
 * FAQ 7-1::    I don't have a permanent connection to the net, how can I
                minimize the time I've got to be connected?
 * FAQ 7-2::    So what was this thing about the Agent?
-* FAQ 7-3::    I want to store article bodies on disk, too. How to do
+* FAQ 7-3::    I want to store article bodies on disk, too.  How to do
                it?
 * FAQ 7-4::    How to tell Gnus not to try to send mails / postings
                while I'm offline?
@@ -1790,7 +1790,7 @@ Then you want to fetch your Mail, popular choices
 are @uref{https://www.fetchmail.info/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.
 You should tell those to write the mail to your disk and
-Gnus to read it from there. Last but not least the mail
+Gnus to read it from there.  Last but not least the mail
 sending part: This can be done with every MTA like
 @uref{https://www.proofpoint.com/us/open-source-email-solution, sendmail} or
 @uref{https://www.exim.org/, exim}.
@@ -1800,7 +1800,7 @@ On windows boxes I'd vote for
 it's a small freeware, open-source program which fetches
 your mail and news from remote servers and offers them
 to Gnus (or any other mail and/or news reader) via nntp
-respectively POP3 or IMAP@. It also includes a smtp
+respectively POP3 or IMAP@.  It also includes a smtp
 server for receiving mails from Gnus.
 
 @node FAQ 7-2
@@ -1812,7 +1812,7 @@ So what was this thing about the Agent?
 
 The Gnus agent is part of Gnus, it allows you to fetch
 mail and news and store them on disk for reading them
-later when you're offline. It kind of mimics offline
+later when you're offline.  It kind of mimics offline
 newsreaders like Forte Agent.  It is enabled by default.
 
 You've got to select the servers whose groups can be
@@ -1831,7 +1831,7 @@ there the next time you enter the group.
 @node FAQ 7-3
 @subsubheading Question 7.3
 
-I want to store article bodies on disk, too. How to do it?
+I want to store article bodies on disk, too.  How to do it?
 
 @subsubheading Answer
 
@@ -1839,16 +1839,16 @@ You can tell the agent to automatically fetch the bodies
 of articles which fulfill certain predicates, this is
 done in a special buffer which can be reached by
 saying @samp{J c} in group
-buffer. Please refer to the documentation for
+buffer.  Please refer to the documentation for
 information which predicates are possible and how
 exactly to do it.
 
 Further on you can tell the agent manually which
-articles to store on disk. There are two ways to do
+articles to store on disk.  There are two ways to do
 this: Number one: In the summary buffer, process mark a
 set of articles that shall be stored in the agent by
 saying @samp{#} with point over the
-article and then type @samp{J s}. The
+article and then type @samp{J s}.  The
 other possibility is to set, again in the summary
 buffer, downloadable (%) marks for the articles you
 want by typing @samp{@@} with point over
@@ -1873,11 +1873,11 @@ while I'm offline?
 
 All you've got to do is to tell Gnus when you are online
 (plugged) and when you are offline (unplugged), the rest
-works automatically. You can toggle plugged/unplugged
+works automatically.  You can toggle plugged/unplugged
 state by saying @samp{J j} in group
-buffer. To start Gnus unplugged say @samp{M-x
+buffer.  To start Gnus unplugged say @samp{M-x
 gnus-unplugged} instead of
-@samp{M-x gnus}. Note that for this to
+@samp{M-x gnus}.  Note that for this to
 work, the agent must be active.
 
 @node FAQ 8 - Getting help
@@ -1903,10 +1903,10 @@ How to find information and help inside Emacs?
 The first stop should be the Gnus manual (Say
 @samp{C-h i d m Gnus @key{RET}} to start the
 Gnus manual, then walk through the menus or do a
-full-text search with @samp{s}). Then
+full-text search with @samp{s}).  Then
 there are the general Emacs help commands starting with
 C-h, type @samp{C-h ? ?} to get a list
-of all available help commands and their meaning. Finally
+of all available help commands and their meaning.  Finally
 @samp{M-x apropos-command} lets you
 search through all available functions and @samp{M-x
 apropos} searches the bound variables.
@@ -1999,10 +1999,10 @@ active file, see the node "The Active File" in the Gnus
 manual for things you might try to speed the process up.
 An other idea would be to byte compile your @file{~/.gnus.el} (say
 @samp{M-x byte-compile-file @key{RET} ~/.gnus.el
-@key{RET}} to do it). Finally, if you have require
+@key{RET}} to do it).  Finally, if you have require
 statements in your .gnus, you could replace them with
 @code{with-eval-after-load}, which loads the stuff not at startup
-time, but when it's needed. Say you've got this in your
+time, but when it's needed.  Say you've got this in your
 @file{~/.gnus.el}:
 
 @example
@@ -2011,7 +2011,7 @@ time, but when it's needed. Say you've got this in your
 @end example
 @noindent
 
-then as soon as you start Gnus, message.el is loaded. If
+then as soon as you start Gnus, message.el is loaded.  If
 you replace it with
 
 @example
@@ -2052,7 +2052,7 @@ Sending mail becomes slower and slower, what's up?
 
 The reason could be that you told Gnus to archive the
 messages you wrote by setting
-gnus-message-archive-group. Try to use a nnml group
+gnus-message-archive-group.  Try to use a nnml group
 instead of an archive group, this should bring you back
 to normal speed.
 
@@ -2063,7 +2063,7 @@ to normal speed.
 
 @item ~/.gnus.el
 When the term @file{~/.gnus.el} is used it just means your Gnus
-configuration file. You might as well call it @file{~/.gnus} or
+configuration file.  You might as well call it @file{~/.gnus} or
 specify another name.
 
 @item Back End

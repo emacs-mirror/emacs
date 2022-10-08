@@ -221,22 +221,41 @@ form.")
                 ("x:/foo//bar/" "y:/bar/qux/" "z:/qux/foo/"))
                ("x:/foo/bar" "$FOO/baz/;z:/qux/foo/"
                 ("x:/foo/bar/baz/" "z:/qux/foo/"))
-               ("//foo/bar/" "$FOO/baz/;/qux/foo/"
-                ("/foo/bar//baz/" "/qux/foo/")))
-           '(("/foo/bar//baz/:/bar/foo/baz//" nil
-              ("/foo/bar//baz/" "/bar/foo/baz//"))
-             ("/foo/bar/:/bar/qux/:/qux/foo" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("//foo/bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo/bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo//bar/:/bar/qux/:/qux/foo/" nil
-              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo//bar/:/bar/qux/:/qux/foo" nil
-              ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
-             ("/foo/bar" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))
-             ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar//baz/" "/qux/foo/")))))
+               ("///foo/bar/" "$FOO/baz/;/qux/foo/"
+                ("//foo/bar//baz/" "/qux/foo/")))
+           (if (eq system-type 'cygwin)
+               '(("/foo/bar//baz/:/bar/foo/baz//" nil
+                  ("/foo/bar//baz/" "/bar/foo/baz//"))
+                 ("/foo/bar/:/bar/qux/:/qux/foo" nil
+                  ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("//foo/bar/:/bar/qux/:/qux/foo/" nil
+                  ("//foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo/bar/:/bar/qux/:/qux/foo/" nil
+                  ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo//bar/:/bar/qux/:/qux/foo/" nil
+                  ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo//bar/:/bar/qux/:/qux/foo" nil
+                  ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+                 ("/foo/bar" "$FOO/baz/:/qux/foo/"
+                  ("/foo/bar/baz/" "/qux/foo/"))
+                 ("///foo/bar/" "$FOO/baz/:/qux/foo/"
+                  ("//foo/bar//baz/" "/qux/foo/")))
+             '(("/foo/bar//baz/:/bar/foo/baz//" nil
+                ("/foo/bar//baz/" "/bar/foo/baz//"))
+               ("/foo/bar/:/bar/qux/:/qux/foo" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("//foo/bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo/bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo//bar/:/bar/qux/:/qux/foo/" nil
+                ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo//bar/:/bar/qux/:/qux/foo" nil
+                ("/foo//bar/" "/bar/qux/" "/qux/foo/"))
+               ("/foo/bar" "$FOO/baz/:/qux/foo/"
+                ("/foo/bar/baz/" "/qux/foo/"))
+               ("//foo/bar/" "$FOO/baz/:/qux/foo/"
+                ("/foo/bar//baz/" "/qux/foo/"))))))
         (foo-env (getenv "FOO"))
         (bar-env (getenv "BAR")))
     (unwind-protect
@@ -1504,7 +1523,11 @@ See <https://debbugs.gnu.org/36401>."
     (should (equal (parse-colon-path "/foo//bar/baz")
                    '("/foo//bar/baz/"))))
   (should (equal (parse-colon-path (concat "." path-separator "/tmp"))
-                 '("./" "/tmp/"))))
+                 '("./" "/tmp/")))
+  (should (equal (parse-colon-path (concat "/foo" path-separator "///bar"))
+                 (if (memq system-type '(windows-nt cygwin ms-dos))
+                     '("/foo/" "//bar/")
+                   '("/foo/" "/bar/")))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."

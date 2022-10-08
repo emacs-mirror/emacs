@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2022 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2022 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -583,9 +583,6 @@ with the `default' face (which is always completely specified)."
 			       nil))
 
 
-(defalias 'face-background-pixmap 'face-stipple)
-
-
 (defun face-underline-p (face &optional frame inherit)
  "Return non-nil if FACE specifies a non-nil underlining.
 If the optional argument FRAME is given, report on face FACE in that frame.
@@ -669,21 +666,28 @@ If FACE is a face-alias, get the documentation for the target face."
 
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
-This function overrides the face attributes specified by FACE's
-face spec.  It is mostly intended for internal use only.
+This function overrides the face attributes specified by FACE's face spec.
+It is mostly intended for internal use.
 
-If FRAME is nil, set the attributes for all existing frames, as
-well as the default for new frames.  If FRAME is t, change the
-default for new frames only.  As an exception, to reset the value
-of some attribute to `unspecified' in a way that overrides the
-non-`unspecified' value defined by the face's spec in `defface',
-for new frames, you must explicitly call this function with FRAME
-set to t and the attribute's value set to `unspecified'; just
-using FRAME of nil will not affect new frames in this case.
+If FRAME is a frame, set the FACE's attributes only for that frame.  If
+FRAME is nil, set attribute values for all existing frames, as well as
+the default for new frames.  If FRAME is t, change the default values
+of attributes for new frames.
 
-ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a
-valid face attribute name.  All attributes can be set to
-`unspecified'; this fact is not further mentioned below.
+ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid face
+attribute name and VALUE must be a value that is valid for ATTRIBUTE,
+as described below for each attribute.
+
+In addition to the attribute values listed below, all attributes can
+also be set to the special value `unspecified', which means the face
+doesn't by itself specify a value for the attribute.
+
+When a new frame is created, attribute values in the FACE's `defface'
+spec normally override the `unspecified' values in the FACE's
+default attributes.  To avoid that, i.e. to cause ATTRIBUTE's value
+be reset to `unspecified' when creating new frames, disregarding
+what the FACE's face spec says, call this function with FRAME set to
+t and the ATTRIBUTE's value set to `unspecified'.
 
 The following attributes are recognized:
 
@@ -997,9 +1001,6 @@ Use `set-face-attribute' to \"unspecify\" underlining."
   (interactive (read-face-and-attribute :underline))
   (set-face-attribute face frame :underline underline))
 
-(define-obsolete-function-alias 'set-face-underline-p
-                                'set-face-underline "24.3")
-
 
 (defun set-face-inverse-video (face inverse-video-p &optional frame)
   "Specify whether face FACE is in inverse video.
@@ -1051,9 +1052,6 @@ Use `set-face-attribute' to \"unspecify\" underlining."
    (let ((list (read-face-and-attribute :extend)))
      (list (car list) (if (cadr list) t))))
   (set-face-attribute face frame :extend extend-p))
-
-
-(defalias 'set-face-background-pixmap 'set-face-stipple)
 
 
 (defun invert-face (face &optional frame)
@@ -2062,7 +2060,7 @@ IF MULTIPLE is non-nil, return a list of faces.
 
 Return nil if there is no face at point.
 
-This function is not meant for handling faces programatically; to
+This function is not meant for handling faces programmatically; to
 do that, use `get-text-property' and `get-char-property'."
   (let (faces)
     (when text
@@ -2550,7 +2548,6 @@ default."
   :version "21.1"
   :group 'basic-faces)
 
-;; Definition stolen from linum.el.
 (defface line-number
   '((t :inherit (shadow default)))
   "Face for displaying line numbers.
@@ -2984,7 +2981,7 @@ bindings.  See also the face `tooltip'."
   :group 'help)
 
 (defface glyphless-char
-  '((((type tty)) :inherit underline)
+  '((((type tty)) :inherit escape-glyph :underline t)
     (((type pc)) :inherit escape-glyph)
     (t :height 0.6))
   "Face for displaying non-graphic characters (e.g. U+202A (LRE)).
@@ -3173,11 +3170,8 @@ also the same size as FACE on FRAME, or fail."
 	(car fonts))
     (frame-parameter nil 'font)))
 
-(defcustom font-list-limit 100
-  "This variable is obsolete and has no effect."
-  :type 'integer
-  :group 'display)
-(make-obsolete-variable 'font-list-limit nil "24.3")
+(define-obsolete-function-alias 'face-background-pixmap #'face-stipple "29.1")
+(define-obsolete-function-alias 'set-face-background-pixmap #'set-face-stipple "29.1")
 
 (provide 'faces)
 

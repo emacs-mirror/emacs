@@ -218,7 +218,7 @@ The returned value has the form of (WIDTH . HEIGHT)."
 			  (point)))))
 
 (defun delete-extract-rectangle-line (startcol endcol lines fill)
-  (let ((pt (point-at-eol)))
+  (let ((pt (line-end-position)))
     (if (< (move-to-column startcol (if fill t 'coerce)) startcol)
 	(setcdr lines (cons (spaces-string (- endcol startcol))
 			    (cdr lines)))
@@ -397,13 +397,13 @@ no text on the right side of the rectangle."
 (defun open-rectangle-line (startcol endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
     (unless (and (not fill)
-		 (= (point) (point-at-eol)))
+                 (= (point) (line-end-position)))
       (indent-to endcol))))
 
 (defun delete-whitespace-rectangle-line (startcol _endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
-    (unless (= (point) (point-at-eol))
-      (delete-region (point) (progn (skip-syntax-forward " " (point-at-eol))
+    (unless (= (point) (line-end-position))
+      (delete-region (point) (progn (skip-syntax-forward " " (line-end-position))
 				    (point))))))
 
 ;;;###autoload
@@ -568,7 +568,7 @@ rectangle which were empty."
   (apply-on-rectangle 'clear-rectangle-line start end fill))
 
 (defun clear-rectangle-line (startcol endcol fill)
-  (let ((pt (point-at-eol)))
+  (let ((pt (line-end-position)))
     (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
       (if (and (not fill)
 	       (<= (save-excursion (goto-char pt) (current-column)) endcol))

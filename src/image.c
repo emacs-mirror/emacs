@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2022 Free Software Foundation, Inc.
+Copyright (C) 1989-2022 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -10907,7 +10907,7 @@ DEF_DLL_FN (int, gdk_pixbuf_get_bits_per_sample, (const GdkPixbuf *));
 DEF_DLL_FN (void, g_type_init, (void));
 #  endif
 DEF_DLL_FN (void, g_object_unref, (gpointer));
-DEF_DLL_FN (void, g_clear_error, (GError **));
+DEF_DLL_FN (void, g_error_free, (GError *));
 
 static bool
 init_svg_functions (void)
@@ -10967,7 +10967,7 @@ init_svg_functions (void)
   LOAD_DLL_FN (gobject, g_type_init);
 #  endif
   LOAD_DLL_FN (gobject, g_object_unref);
-  LOAD_DLL_FN (glib, g_clear_error);
+  LOAD_DLL_FN (glib, g_error_free);
 
   return 1;
 }
@@ -10983,7 +10983,7 @@ init_svg_functions (void)
 #  undef gdk_pixbuf_get_pixels
 #  undef gdk_pixbuf_get_rowstride
 #  undef gdk_pixbuf_get_width
-#  undef g_clear_error
+#  undef g_error_free
 #  undef g_object_unref
 #  undef g_type_init
 #  if LIBRSVG_CHECK_VERSION (2, 52, 1)
@@ -11019,7 +11019,7 @@ init_svg_functions (void)
 #  define gdk_pixbuf_get_pixels fn_gdk_pixbuf_get_pixels
 #  define gdk_pixbuf_get_rowstride fn_gdk_pixbuf_get_rowstride
 #  define gdk_pixbuf_get_width fn_gdk_pixbuf_get_width
-#  define g_clear_error fn_g_clear_error
+#  define g_error_free fn_g_error_free
 #  define g_object_unref fn_g_object_unref
 #  if ! GLIB_CHECK_VERSION (2, 36, 0)
 #   define g_type_init fn_g_type_init
@@ -11182,6 +11182,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   int rowstride;
   char *wrapped_contents = NULL;
   ptrdiff_t wrapped_size;
+
+  bool empty_errmsg = true;
+  const char *errmsg = "";
+  ptrdiff_t errlen = 0;
 
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
   char *css = NULL;
@@ -11353,7 +11357,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (! check_image_size (f, width, height))
     {
       image_size_error ();
-      goto rsvg_error;
+      goto done_error;
     }
 
   /* We are now done with the unmodified data.  */
@@ -11491,7 +11495,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     if (!image_create_x_image_and_pixmap (f, img, width, height, 0, &ximg, 0))
       {
 	g_object_unref (pixbuf);
-	return 0;
+	return false;
       }
 
     init_color_table ();
@@ -11536,9 +11540,30 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     image_put_x_image (f, img, ximg, 0);
   }
 
-  return 1;
+  eassume (err == NULL);
+  return true;
 
  rsvg_error:
+  if (err && err->message[0])
+    {
+      errmsg = err->message;
+      errlen = strlen (errmsg);
+      /* Remove trailing whitespace from the error message text.  It
+	 has a newline at the end, and perhaps more whitespace.  */
+      while (errlen && c_isspace (errmsg[errlen - 1]))
+	errlen--;
+      empty_errmsg = errlen == 0;
+    }
+
+  if (empty_errmsg)
+    image_error ("Error parsing SVG image");
+  else
+    image_error ("Error parsing SVG image: %s", make_string (errmsg, errlen));
+
+  if (err)
+    g_error_free (err);
+
+ done_error:
   if (rsvg_handle)
     g_object_unref (rsvg_handle);
   if (wrapped_contents)
@@ -11547,11 +11572,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (css && !STRINGP (lcss))
     xfree (css);
 #endif
-  /* FIXME: Use error->message so the user knows what is the actual
-     problem with the image.  */
-  image_error ("Error parsing SVG image");
-  g_clear_error (&err);
-  return 0;
+  return false;
 }
 
 #endif	/* defined (HAVE_RSVG) */
@@ -11817,9 +11838,6 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 /***********************************************************************
 				Tests
  ***********************************************************************/
-
-#ifdef GLYPH_DEBUG
-
 DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
   (Lisp_Object spec)
@@ -11827,6 +11845,7 @@ DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
   return valid_image_p (spec) ? Qt : Qnil;
 }
 
+#ifdef GLYPH_DEBUG
 
 DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0,
        doc: /* */)
@@ -12219,9 +12238,9 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_metadata);
   defsubr (&Simage_cache_size);
+  defsubr (&Simagep);
 
 #ifdef GLYPH_DEBUG
-  defsubr (&Simagep);
   defsubr (&Slookup_image);
 #endif
 
@@ -12264,5 +12283,4 @@ The options are:
   /* MagickExportImagePixels is in 6.4.6-9, but not 6.4.4-10.  */
   imagemagick_render_type = 0;
 #endif
-
 }

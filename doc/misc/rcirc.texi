@@ -177,7 +177,7 @@ using a different nick.  This will prompt you for four things:
 @cindex server, connecting
 @cindex Libera.Chat network
 @item IRC Server
-What server do you want to connect to? All the servers in a particular
+What server do you want to connect to?  All the servers in a particular
 network are equivalent.  Some networks use a round-robin system where
 a single server redirects new connections to a random server in the
 network.  @code{irc.libera.chat} is such a server for the Libera.Chat
@@ -531,7 +531,7 @@ This variable is used for the default nick.  It defaults to the login
 name returned by @code{user-login-name}.
 
 @example
-(setq rcirc-default-nick "kensanata")
+(setopt rcirc-default-nick "kensanata")
 @end example
 
 @item rcirc-default-port
@@ -557,7 +557,7 @@ to the name returned by @code{user-full-name}.  If you want to hide
 your full name, you might want to set it to some pseudonym.
 
 @example
-(setq rcirc-default-full-name "Curious Minds Want To Know")
+(setopt rcirc-default-full-name "Curious Minds Want To Know")
 @end example
 
 @item rcirc-authinfo
@@ -575,10 +575,10 @@ followed by the arguments this method requires.
 Here is an example to illustrate how you would set it:
 
 @example
-(setq rcirc-authinfo
-      '(("Libera.Chat" nickserv "bob" "p455w0rd")
-        ("Libera.Chat" chanserv "bob" "#bobland" "passwd99")
-        ("bitlbee" bitlbee "robert" "sekrit")))
+(setopt rcirc-authinfo
+        '(("Libera.Chat" nickserv "bob" "p455w0rd")
+          ("Libera.Chat" chanserv "bob" "#bobland" "passwd99")
+          ("bitlbee" bitlbee "robert" "sekrit")))
 @end example
 
 And here are the valid method symbols and the arguments they require:
@@ -821,7 +821,7 @@ You can control which notices get omitted via the
 omit away messages:
 
 @example
-(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
+(setopt rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
 @end example
 
 @vindex rcirc-omit-threshold
@@ -840,7 +840,7 @@ and @code{NAMES} messages, after reconnecting, you can configure
 @code{rcirc-omit-unless-requested} to hide:
 
 @example
-(setq rcirc-omit-unless-requested '("TOPIC" "NAMES"))
+(setopt rcirc-omit-unless-requested '("TOPIC" "NAMES"))
 @end example
 
 Now NAMES will only be displayed, after it has been requested via the
@@ -859,6 +859,7 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Changing the time stamp format::
 * Defining a new command::
 * Using rcirc with bouncers::
+* Dealing with Bridge Bots::
 @end menu
 
 @node Skipping /away messages using handlers
@@ -933,7 +934,7 @@ Manual}, for details.
 how to include the date in the time stamp:
 
 @example
-(setq rcirc-time-format "%Y-%m-%d %H:%M ")
+(setopt rcirc-time-format "%Y-%m-%d %H:%M ")
 @end example
 
 @findex rcirc-when
@@ -969,16 +970,16 @@ because @code{rcirc-define-command} is not yet available, and without
 @cindex bouncer
 
 Some bouncers multiplex connections to various servers, but have to
-modify nicks and channel names to make this work. The channel
+modify nicks and channel names to make this work.  The channel
 @code{#emacs} on @code{irc.libera.chat} becomes
 @code{#emacs/irc.libera.chat}.
 
 @vindex rcirc-nick-filter
 @vindex rcirc-channel-filter
 The options @code{rcirc-nick-filter} and @code{rcirc-channel-filter}
-can be used to make this feel more natural. When set to functions,
+can be used to make this feel more natural.  When set to functions,
 these will be used to change how nicks and channel names are
-displayed. A simple configuration to fix the above example might be:
+displayed.  A simple configuration to fix the above example might be:
 
 @smallexample
 (defun my/rcirc-remove-suffix (STR)
@@ -988,9 +989,49 @@ displayed. A simple configuration to fix the above example might be:
         (substring str 0 (match-beginning 0))
       str)))
 
-(setq rcirc-nick-filter #'my/rcirc-remove-suffix
-      rcirc-channel-filter #'local/rcirc-soju-suffix)
+(setopt rcirc-nick-filter #'my/rcirc-remove-suffix
+        rcirc-channel-filter #'local/rcirc-soju-suffix)
 @end smallexample
+
+@node Dealing with Bridge Bots
+@section Dealing with Bridge Bots
+@cindex bridge
+
+It is increasingly common for IRC channels to be ``bridged'' onto
+other networks such as XMPP, Matrix, etc.  Sometimes the software does
+a good job at mapping each non-IRC user into an IRC user, but more
+often than not it doesn't.  In that case you might receive a message
+like:
+
+@example
+@verbatim
+09:47 <bridge> <john> I am not on IRC
+@end verbatim
+@end example
+
+where @samp{bridge} is a bot responsible for sending messages back and
+forth between networks, and @samp{john} is the user name of someone on
+a different network.  Note that the bot indicates this within the
+message (@verb{|<john> I am not on IRC|}) that appears in your chat
+buffer.
+
+@vindex rcirc-bridge-bot-alist
+If this annoys you, the user option @code{rcirc-bridge-bot-alist} may
+be of use.  It consists of descriptions of what users are these kinds
+of ``bridge bots'' and how they format their messages.  To handle the
+above example, we might set the user option to:
+
+@example
+(setopt rcirc-bridge-bot-alist
+        '(("bridge" . "<\\(.+?\\)>[[:space:]]+")))
+@end example
+
+If there is an entry for the current user, @code{rcirc} will take the
+associated regular expression and try to find a match in the message
+string.  If it manages to find anything, the matching expression is
+deleted from the message.  The regular expression must contain at
+least one group that will match the user name of the bridged message.
+This will then be used to replace the username of the bridge bot.
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

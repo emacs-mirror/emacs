@@ -449,25 +449,82 @@ Symbols are also allowed; their print names are used instead.  */)
     CHECK_STRING (string2);
 
   ptrdiff_t n = min (SCHARS (string1), SCHARS (string2));
-  if (!STRING_MULTIBYTE (string1) && !STRING_MULTIBYTE (string2))
+
+  if ((!STRING_MULTIBYTE (string1) || SCHARS (string1) == SBYTES (string1))
+      && (!STRING_MULTIBYTE (string2) || SCHARS (string2) == SBYTES (string2)))
     {
-      /* Both arguments are unibyte (hot path).  */
+      /* Each argument is either unibyte or all-ASCII multibyte:
+	 we can compare bytewise.  */
       int d = memcmp (SSDATA (string1), SSDATA (string2), n);
       return d < 0 || (d == 0 && n < SCHARS (string2)) ? Qt : Qnil;
     }
-
-  ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0, i2_byte = 0;
-
-  while (i1 < n)
+  else if (STRING_MULTIBYTE (string1) && STRING_MULTIBYTE (string2))
     {
-      /* When we find a mismatch, we must compare the
-	 characters, not just the bytes.  */
-      int c1 = fetch_string_char_advance (string1, &i1, &i1_byte);
-      int c2 = fetch_string_char_advance (string2, &i2, &i2_byte);
-      if (c1 != c2)
-	return c1 < c2 ? Qt : Qnil;
+      /* Two arbitrary multibyte strings: we cannot use memcmp because
+	 the encoding for raw bytes would sort those between U+007F and U+0080
+	 which isn't where we want them.
+	 Instead, we skip the longest common prefix and look at
+	 what follows.  */
+      ptrdiff_t nb1 = SBYTES (string1);
+      ptrdiff_t nb2 = SBYTES (string2);
+      ptrdiff_t nb = min (nb1, nb2);
+
+      /* First compare entire machine words.  (String data is allocated
+	 with word alignment.)  */
+      typedef size_t word_t;
+      int ws = sizeof (word_t);
+      const word_t *w1 = (const word_t *) SDATA (string1);
+      const word_t *w2 = (const word_t *) SDATA (string2);
+      ptrdiff_t b = 0;
+      while (b < nb - ws + 1 && w1[b / ws] == w2[b / ws])
+	b += ws;
+
+      /* Scan forward to the differing byte (at most ws-1 bytes).  */
+      while (b < nb && SREF (string1, b) == SREF (string2, b))
+	b++;
+
+      if (b >= nb)
+	/* One string is a prefix of the other.  */
+	return b < nb2 ? Qt : Qnil;
+
+      /* Now back up to the start of the differing characters:
+	 it's the last byte not having the bit pattern 10xxxxxx.  */
+      while ((SREF (string1, b) & 0xc0) == 0x80)
+	b--;
+
+      /* Compare the differing characters.  */
+      ptrdiff_t i1 = 0, i2 = 0;
+      ptrdiff_t i1_byte = b, i2_byte = b;
+      int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
+      int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
+      return c1 < c2 ? Qt : Qnil;
     }
-  return i1 < SCHARS (string2) ? Qt : Qnil;
+  else if (STRING_MULTIBYTE (string1))
+    {
+      /* string1 multibyte, string2 unibyte */
+      ptrdiff_t i1 = 0, i1_byte = 0, i2 = 0;
+      while (i1 < n)
+	{
+	  int c1 = fetch_string_char_advance_no_check (string1, &i1, &i1_byte);
+	  int c2 = SREF (string2, i2++);
+	  if (c1 != c2)
+	    return c1 < c2 ? Qt : Qnil;
+	}
+      return i1 < SCHARS (string2) ? Qt : Qnil;
+    }
+  else
+    {
+      /* string1 unibyte, string2 multibyte */
+      ptrdiff_t i1 = 0, i2 = 0, i2_byte = 0;
+      while (i1 < n)
+	{
+	  int c1 = SREF (string1, i1++);
+	  int c2 = fetch_string_char_advance_no_check (string2, &i2, &i2_byte);
+	  if (c1 != c2)
+	    return c1 < c2 ? Qt : Qnil;
+	}
+      return i1 < SCHARS (string2) ? Qt : Qnil;
+    }
 }
 
 DEFUN ("string-version-lessp", Fstring_version_lessp,
@@ -610,7 +667,10 @@ DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a list.
 The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
-The last argument is not copied, just used as the tail of the new list.
+
+All arguments except the last argument are copied.  The last argument
+is just used as the tail of the new list.
+
 usage: (append &rest SEQUENCES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -1412,6 +1472,7 @@ are shared, however.
 Elements of ALIST that are not conses are also shared.  */)
   (Lisp_Object alist)
 {
+  CHECK_LIST (alist);
   if (NILP (alist))
     return alist;
   alist = Fcopy_sequence (alist);
@@ -1563,10 +1624,21 @@ If N is zero or negative, return nil.
 If N is greater or equal to the length of LIST, return LIST (or a copy).  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  CHECK_FIXNUM (n);
-  EMACS_INT m = XFIXNUM (n);
-  if (m <= 0)
-    return Qnil;
+  EMACS_INT m;
+  if (FIXNUMP (n))
+    {
+      m = XFIXNUM (n);
+      if (m <= 0)
+	return Qnil;
+    }
+  else if (BIGNUMP (n))
+    {
+      if (mpz_sgn (*xbignum_val (n)) < 0)
+	return Qnil;
+      m = MOST_POSITIVE_FIXNUM;
+    }
+  else
+    wrong_type_argument (Qintegerp, n);
   CHECK_LIST (list);
   if (NILP (list))
     return Qnil;
@@ -1594,10 +1666,21 @@ If N is greater or equal to the length of LIST, return LIST unmodified.
 Otherwise, return LIST after truncating it.  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  CHECK_FIXNUM (n);
-  EMACS_INT m = XFIXNUM (n);
-  if (m <= 0)
-    return Qnil;
+  EMACS_INT m;
+  if (FIXNUMP (n))
+    {
+      m = XFIXNUM (n);
+      if (m <= 0)
+	return Qnil;
+    }
+  else if (BIGNUMP (n))
+    {
+      if (mpz_sgn (*xbignum_val (n)) < 0)
+	return Qnil;
+      m = MOST_POSITIVE_FIXNUM;
+    }
+  else
+    wrong_type_argument (Qintegerp, n);
   CHECK_LIST (list);
   Lisp_Object tail = list;
   --m;
@@ -2908,15 +2991,37 @@ FUNCTION must be a function of one argument, and must return a value
     return empty_unibyte_string;
   Lisp_Object *args;
   SAFE_ALLOCA_LISP (args, args_alloc);
+  if (EQ (function, Qidentity))
+    {
+      /* Fast path when no function call is necessary.  */
+      if (CONSP (sequence))
+	{
+	  Lisp_Object src = sequence;
+	  Lisp_Object *dst = args;
+	  do
+	    {
+	      *dst++ = XCAR (src);
+	      src = XCDR (src);
+	    }
+	  while (!NILP (src));
+	  goto concat;
+	}
+      else if (VECTORP (sequence))
+	{
+	  memcpy (args, XVECTOR (sequence)->contents, leni * sizeof *args);
+	  goto concat;
+	}
+    }
   ptrdiff_t nmapped = mapcar1 (leni, args, function, sequence);
-  ptrdiff_t nargs = 2 * nmapped - 1;
   eassert (nmapped == leni);
 
+ concat: ;
+  ptrdiff_t nargs = args_alloc;
   if (NILP (separator) || (STRINGP (separator) && SCHARS (separator) == 0))
-    nargs = nmapped;
+    nargs = leni;
   else
     {
-      for (ptrdiff_t i = nmapped - 1; i > 0; i--)
+      for (ptrdiff_t i = leni - 1; i > 0; i--)
         args[i + i] = args[i];
 
       for (ptrdiff_t i = 1; i < nargs; i += 2)

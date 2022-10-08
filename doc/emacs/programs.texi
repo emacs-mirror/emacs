@@ -508,9 +508,9 @@ Reindent each line in the balanced expression that follows point
 about invalid syntax.
 
 @item @key{TAB}
-@findex c-indent-command
-Reindent the current line, and/or in some cases insert a tab character
-(@code{c-indent-command}).
+@findex c-indent-line-or-region
+Reindent the current line, active region, or block starting on this
+line (@code{c-indent-line-or-region}).
 
 @vindex c-tab-always-indent
 If @code{c-tab-always-indent} is @code{t}, this command always reindents
@@ -834,10 +834,16 @@ of automatic matching.  Whenever point is before an opening delimiter
 or after a closing delimiter, the delimiter, its matching delimiter,
 and optionally the text between them are highlighted.  To toggle Show
 Paren mode globally, type @kbd{M-x show-paren-mode}.  To toggle it
-only in the current buffer, type @kbd{M-x show-paren-local-mode}.  To
-customize it, type @w{@kbd{M-x customize-group @key{RET} paren-showing}}.
-The customizable options which control the operation of this mode
-include:
+only in the current buffer, type @kbd{M-x show-paren-local-mode}.
+
+@vindex show-paren-predicate
+  By default, this mode is switched on in all buffers that are meant
+for editing, but is not enabled in buffers that show data.  This is
+controlled by the @code{show-paren-predicate} user option.
+
+  To customize the mode, type @w{@kbd{M-x customize-group @key{RET}
+paren-showing}}.  The customizable options which control the operation
+of this mode include:
 
 @itemize @bullet
 @item
@@ -979,7 +985,7 @@ Set comment column (@code{comment-set-column}).
 @item @kbd{C-M-j}
 @itemx @kbd{M-j}
 Like @kbd{@key{RET}} followed by inserting and aligning a comment
-(@code{comment-indent-new-line}).  @xref{Multi-Line Comments}.
+(@code{default-indent-new-line}).  @xref{Multi-Line Comments}.
 @item @kbd{M-x comment-region}
 @itemx @kbd{C-c C-c} (in C-like modes)
 Add comment delimiters to all the lines in the region.
@@ -1074,10 +1080,10 @@ the brace rather than at @code{comment-column}.  For full details see
 @kindex C-M-j
 @kindex M-j
 @cindex blank lines in programs
-@findex comment-indent-new-line
+@findex default-indent-new-line
 @vindex comment-multi-line
   If you are typing a comment and wish to continue it to another line,
-type @kbd{M-j} or @kbd{C-M-j} (@code{comment-indent-new-line}).  This
+type @kbd{M-j} or @kbd{C-M-j} (@code{default-indent-new-line}).  This
 breaks the current line, and inserts the necessary comment delimiters
 and indentation to continue the comment.
 
@@ -1325,8 +1331,8 @@ This abnormal hook holds documentation functions.  It acts as a
 collection of backends for ElDoc.  This is what modes should use to
 register their documentation functions with ElDoc.
 
-@vindex eldoc-display-truncation-message
-@item eldoc-display-truncation-message
+@vindex eldoc-echo-area-display-truncation-message
+@item eldoc-echo-area-display-truncation-message
 If non-@code{nil} (the default), display a verbose message about how
 to view a complete documentation (if it has been truncated in the echo
 area).  If @code{nil}, just mark truncated messages with @samp{...}.
@@ -1359,7 +1365,7 @@ count as blocks.
 @findex hs-show-region
 @findex hs-hide-level
 @findex hs-toggle-hiding
-@findex hs-mouse-toggle-hiding
+@findex hs-toggle-hiding
 @kindex C-c @@ C-h
 @kindex C-c @@ C-s
 @kindex C-c @@ C-c
@@ -1376,9 +1382,8 @@ Hide the current block (@code{hs-hide-block}).
 Show the current block (@code{hs-show-block}).
 @item C-c @@ C-c
 @itemx C-c @@ C-e
+@itemx S-mouse-2
 Either hide or show the current block (@code{hs-toggle-hiding}).
-@item S-mouse-2
-Toggle hiding for the block you click on (@code{hs-mouse-toggle-hiding}).
 @item C-c @@ C-M-h
 @itemx C-c @@ C-t
 Hide all top-level blocks (@code{hs-hide-all}).

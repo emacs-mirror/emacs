@@ -40,7 +40,7 @@
     (footnote-back-to-message)
     (should (equal (buffer-substring (point-min) (point))
                    "hello[1]"))
-    (should (equal (buffer-substring (point-min) (line-end-position))
+    (should (equal (buffer-substring (point-min) (pos-eol))
                    "hello[1][2] world"))))
 
 (provide 'footnote-tests)

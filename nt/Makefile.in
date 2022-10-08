@@ -163,8 +163,8 @@ $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	umask 022; ${MKDIR_P} "$(DESTDIR)${archlibdir}"
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd`; \
-	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P`; \
+	if [ "$$exp_archlibdir" != "`pwd -P`" ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file "$(DESTDIR)${archlibdir}/$$file" ; \
 	  done ; \

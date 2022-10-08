@@ -279,20 +279,21 @@ and hunk-based syntax highlighting otherwise as a fallback."
   :doc "Keymap for `diff-minor-mode'.  See also `diff-mode-shared-map'."
   (key-description diff-minor-mode-prefix) diff-mode-shared-map)
 
-(define-minor-mode diff-auto-refine-mode
-  "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).
+(with-suppressed-warnings ((obsolete diff-auto-refine-mode))
+  (define-minor-mode diff-auto-refine-mode
+    "Toggle automatic diff hunk finer highlighting (Diff Auto Refine mode).
 
 Diff Auto Refine mode is a buffer-local minor mode used with
 `diff-mode'.  When enabled, Emacs automatically highlights
 changes in detail as the user visits hunks.  When transitioning
 from disabled to enabled, it tries to refine the current hunk, as
 well."
-  :group 'diff-mode :init-value nil :lighter nil ;; " Auto-Refine"
-  (if diff-auto-refine-mode
-      (progn
-        (customize-set-variable 'diff-refine 'navigation)
-        (condition-case-unless-debug nil (diff-refine-hunk) (error nil)))
-    (customize-set-variable 'diff-refine nil)))
+    :group 'diff-mode :init-value nil :lighter nil ;; " Auto-Refine"
+    (if diff-auto-refine-mode
+        (progn
+          (customize-set-variable 'diff-refine 'navigation)
+          (condition-case-unless-debug nil (diff-refine-hunk) (error nil)))
+      (customize-set-variable 'diff-refine nil))))
 (make-obsolete 'diff-auto-refine-mode "set `diff-refine' instead." "27.1")
 (make-obsolete-variable 'diff-auto-refine-mode
                         "set `diff-refine' instead." "27.1")
@@ -633,7 +634,7 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
         (when (looking-at regexp-hunk) ; Hunk header.
           (throw 'headerp (point)))
         (forward-line -1)
-        (when (re-search-forward regexp-file (point-at-eol 4) t) ; File header.
+        (when (re-search-forward regexp-file (line-end-position 4) t) ; File header.
           (forward-line 0)
           (throw 'headerp (point)))
         (goto-char orig)
@@ -2336,10 +2337,22 @@ Call FUN with two args (BEG and END) for each hunk."
   (let ((inhibit-read-only t))
     (undo arg)))
 
+;;;###autoload
+(defcustom diff-add-log-use-relative-names nil
+  "Use relative file names when generating ChangeLog skeletons.
+The files will be relative to the root directory of the VC
+repository.  This option affects the behavior of
+`diff-add-log-current-defuns'."
+  :type 'boolean
+  :safe #'booleanp
+  :version "29.1")
+
 (defun diff-add-log-current-defuns ()
   "Return an alist of defun names for the current diff.
 The elements of the alist are of the form (FILE . (DEFUN...)),
-where DEFUN... is a list of function names found in FILE."
+where DEFUN... is a list of function names found in FILE.  If
+`diff-add-log-use-relative-names' is non-nil, file names in the alist
+are relative to the root directory of the VC repository."
   (save-excursion
     (goto-char (point-min))
     (let* ((defuns nil)
@@ -2373,7 +2386,12 @@ where DEFUN... is a list of function names found in FILE."
           ;; hunks (e.g., "diff --git ..." etc).
           (re-search-forward diff-hunk-header-re nil t)
         (setq hunk-end (save-excursion (diff-end-of-hunk)))
-        (pcase-let* ((filename (substring-no-properties (diff-find-file-name)))
+        (pcase-let* ((filename (substring-no-properties
+                                (if diff-add-log-use-relative-names
+                                    (file-relative-name
+                                     (diff-find-file-name)
+                                     (vc-root-dir))
+                                  (diff-find-file-name))))
                      (=lines 0)
                      (+lines 0)
                      (-lines 0)
@@ -2928,6 +2946,15 @@ hunk text is not found in the source file."
         (forward-line 1)))
     (nreverse props)))
 
+;;;###autoload
+(defun diff-vc-deduce-fileset ()
+  (let ((backend (vc-responsible-backend default-directory))
+        files)
+    (save-excursion
+      (goto-char (point-min))
+      (while (progn (diff-file-next) (not (eobp)))
+        (push (diff-find-file-name nil t) files)))
+    (list backend (nreverse files) nil nil 'patch)))
 
 (defun diff--filter-substring (str)
   (when diff-font-lock-prettify

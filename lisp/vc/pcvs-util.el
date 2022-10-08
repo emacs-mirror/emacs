@@ -164,8 +164,6 @@ arguments.  If ARGS is not a list, no argument will be passed."
 			  (if oneline (line-end-position) (point-max))))
     (file-error nil)))
 
-(define-obsolete-function-alias 'cvs-string-prefix-p #'string-prefix-p "24.3")
-
 ;;;;
 ;;;; file names
 ;;;;

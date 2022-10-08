@@ -677,7 +677,7 @@ will use an up-to-date value of `auto-revert-interval'."
 ;;
 ;; We do this by reverting immediately in response to the first in a
 ;; flurry of notifications. Any notifications during the following
-;; `auto-revert-lockout-interval' seconds are noted but not acted upon
+;; `auto-revert--lockout-interval' seconds are noted but not acted upon
 ;; until the end of that interval.
 
 (defconst auto-revert--lockout-interval 2.5
@@ -800,7 +800,7 @@ This is an internal function used by Auto-Revert Mode."
     (when revert
       (when (and auto-revert-verbose
                  (not (eq revert 'fast)))
-        (message "Reverting buffer `%s'." (buffer-name)))
+        (message "Reverting buffer `%s'" (buffer-name)))
       ;; If point (or a window point) is at the end of the buffer, we
       ;; want to keep it at the end after reverting.  This allows one
       ;; to tail a file.

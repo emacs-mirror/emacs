@@ -394,7 +394,7 @@ with a space."
     (let (p)
       (save-excursion
 	(while (>= (current-column) fill-column)
-	  (while (and (search-backward "," (point-at-bol) 'move)
+          (while (and (search-backward "," (line-beginning-position) 'move)
 		      (>= (current-column) (1- fill-column))
 		      (setq p (point))))
 	  (when (or (not (bolp))

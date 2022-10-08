@@ -184,7 +184,7 @@ Changing this variable requires a restart of Emacs to get activated."
 (defun org-mouse-re-search-line (regexp)
   "Search the current line for a given regular expression."
   (beginning-of-line)
-  (re-search-forward regexp (point-at-eol) t))
+  (re-search-forward regexp (line-end-position) t))
 
 (defun org-mouse-end-headline ()
   "Go to the end of current headline (ignoring tags)."
@@ -574,7 +574,7 @@ This means, between the beginning of line and the point."
      (insert "+ "))
     (:end				; insert text here
      (skip-chars-backward " \t")
-     (kill-region (point) (point-at-eol))
+     (kill-region (point) (line-end-position))
      (unless (looking-back org-mouse-punctuation (line-beginning-position))
        (insert (concat org-mouse-punctuation " ")))))
   (insert text)
@@ -985,7 +985,7 @@ This means, between the beginning of line and the point."
 (defun org-mouse-do-remotely (command)
   ;;  (org-agenda-check-no-diary)
   (when (get-text-property (point) 'org-marker)
-    (let* ((anticol (- (point-at-eol) (point)))
+    (let* ((anticol (- (line-end-position) (point)))
 	   (marker (get-text-property (point) 'org-marker))
 	   (buffer (marker-buffer marker))
 	   (pos (marker-position marker))
@@ -1009,7 +1009,7 @@ This means, between the beginning of line and the point."
 		     (org-flag-heading nil)))   ; show the next heading
 	      (org-back-to-heading)
 	      (setq marker (point-marker))
-	      (goto-char (max (point-at-bol) (- (point-at-eol) anticol)))
+              (goto-char (max (line-beginning-position) (- (line-end-position) anticol)))
 	      (funcall command)
 	      (message "_cmd: %S" org-mouse-cmd)
 	      (message "this-command: %S" this-command)

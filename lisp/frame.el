@@ -64,7 +64,7 @@ handles the corresponding kind of display.")
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
 (defcustom initial-frame-alist nil
-  "Alist of parameters for the initial X window frame.
+  "Alist of parameters for the initial window-system (a.k.a. \"GUI\") frame.
 You can set this in your init file; for example,
 
  (setq initial-frame-alist
@@ -77,17 +77,20 @@ If the value calls for a frame without a minibuffer, and you have
 not created a minibuffer frame on your own, a minibuffer frame is
 created according to `minibuffer-frame-alist'.
 
-You can specify geometry-related options for just the initial
-frame by setting this variable in your init file; however, they
-won't take effect until Emacs reads your init file, which happens
-after creating the initial frame.  If you want the initial frame
-to have the proper geometry as soon as it appears, you need to
-use this three-step process:
+Emacs reads your main init file after creating the initial frame,
+so setting it there won't have the expected effect.  Instead, you
+can set it in `early-init-file'.
+
+If you're using X, and you want (for instance) to have different
+geometries on different displays, you need to use this three-step
+process:
+
 * Specify X resources to give the geometry you want.
 * Set `default-frame-alist' to override these options so that they
   don't affect subsequent frames.
-* Set `initial-frame-alist' in a way that matches the X resources,
-  to override what you put in `default-frame-alist'."
+* Set `initial-frame-alist' in your normal init file in a way
+  that matches the X resources, to override what you put in
+  `default-frame-alist'."
   :type '(repeat (cons :format "%v"
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
@@ -1790,7 +1793,7 @@ of frames like calls to map a frame or change its visibility."
             (insert (format ", DS=%sx%s" (nth 0 item) (nth 1 item))))
           (insert "\n"))
          ((and (eq (nth 0 item) frame) (= (nth 1 item) 5))
-          ;; Length 5 is an `adjust-frame-size' item.
+          ;; Length 5 is an 'adjust_frame_size' item.
           (insert (format "%s (%s)" (nth 3 item) (nth 2 item)))
           (setq item (nth 0 (cdr entry)))
           (unless (and (= (nth 0 item) (nth 2 item))
@@ -2422,9 +2425,9 @@ It may be less than the total screen size, owing to space taken up
 by window manager features (docks, taskbars, etc.).  The precise
 details depend on the platform and environment.
 
-The `source' attribute describes the source from which the information
-was obtained.  On X, this may be one of: \"Gdk\", \"XRandr\", \"Xinerama\",
-or \"fallback\".
+The `source' attribute describes the source from which the
+information was obtained.  On X, this may be one of: \"Gdk\",
+\"XRandR 1.5\", \"XRandr\", \"Xinerama\", or \"fallback\".
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor
@@ -2513,6 +2516,7 @@ symbols."
           ((eq frame-type 'pgtk)
            (pgtk-device-class name))
           (t (cond
+              ((not name) nil)
               ((string= name "Virtual core pointer")
                'core-pointer)
               ((string= name "Virtual core keyboard")
@@ -3048,15 +3052,7 @@ See also `toggle-frame-maximized'."
 
 ;; Misc.
 
-;; Only marked as obsolete in 24.3.
-(define-obsolete-variable-alias 'automatic-hscrolling
-  'auto-hscroll-mode "22.1")
-
 (make-variable-buffer-local 'show-trailing-whitespace)
-
-;; Defined in dispnew.c.
-(make-obsolete-variable
- 'window-system-version "it does not give useful information." "24.3")
 
 (defun set-frame-property--interactive (prompt number)
   "Get a value for `set-frame-width' or `set-frame-height', prompting with PROMPT.

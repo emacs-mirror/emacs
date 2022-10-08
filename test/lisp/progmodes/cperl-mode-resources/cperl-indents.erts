@@ -1,0 +1,26 @@
+Code:
+  (lambda ()
+    (cperl-mode)
+    (indent-region (point-min) (point-max)))
+
+Name: cperl-indent1
+
+=-=
+{
+  print "",
+    "",
+    foo::bar(),
+    "";
+}
+=-=-=
+
+Name: cperl-indents1
+
+=-=
+{
+  print "",
+    "",
+    foobar(),
+    "";
+}
+=-=-=

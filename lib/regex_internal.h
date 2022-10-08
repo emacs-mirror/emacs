@@ -29,7 +29,6 @@
 #include <locale.h>
 #include <wchar.h>
 #include <wctype.h>
-#include <stdbool.h>
 #include <stdint.h>
 
 #ifndef _LIBC

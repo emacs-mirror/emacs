@@ -566,7 +566,7 @@ Argument THIS is the target that should insert stuff."
 	    (cond ((eq (cdr sv) 'share)
 		   ;; This variable may be shared between multiple targets.
 		   (if (re-search-backward (concat "\\$(" (car sv) ")")
-					   (point-at-bol) t)
+                                           (line-beginning-position) t)
 		       ;; If its already in the dist target, then skip it.
 		       nil
 		     (setq sv (car sv))))

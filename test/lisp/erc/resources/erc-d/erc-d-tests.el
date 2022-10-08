@@ -673,7 +673,7 @@ nonzero for this to work."
                             (cadr (pop errors))))))
 
 (ert-deftest erc-d-run-linger ()
-  :tags '(:expensive-test)
+  :tags '(:unstable :expensive-test)
   (erc-d-tests-with-server (dumb-s _) linger
     (with-current-buffer (erc-d-t-wait-for 6 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
@@ -683,7 +683,7 @@ nonzero for this to work."
       (erc-d-t-search-for 3 "Lingered for 1.00 seconds"))))
 
 (ert-deftest erc-d-run-linger-fail ()
-  :tags '(:expensive-test)
+  :tags '(:unstable :expensive-test)
   (let ((erc-server-flood-penalty 0.1)
         errors)
     (erc-d-tests-with-failure-spy
@@ -696,7 +696,7 @@ nonzero for this to work."
     (should (string-match-p "Match failed.*hi" (cadr (pop errors))))))
 
 (ert-deftest erc-d-run-linger-direct ()
-  :tags '(:expensive-test)
+  :tags '(:unstable :expensive-test)
   (let* ((dumb-server (erc-d-run "localhost" t
                                  'linger-multi-a 'linger-multi-b))
          (port (process-contact dumb-server :service))

@@ -199,7 +199,7 @@ In both cases, the first key is customized for signing and encryption."
      (let* ((mml-secure-key-preferences
 	     '((OpenPGP (sign) (encrypt)) (CMS (sign) (encrypt))))
 	    (pcontext (epg-make-context 'OpenPGP))
-	    (pkey (epg-list-keys pcontext "C3999CF1268DBEA2"))
+	    (pkey (epg-list-keys pcontext "2FAF8726121EB3C6"))
 	    (scontext (epg-make-context 'CMS))
 	    (skey (epg-list-keys scontext "0x479DC6E2")))
        (mml-secure-cust-record-keys pcontext 'encrypt "sub@example.org" pkey)
@@ -259,17 +259,17 @@ In both cases, the first key is customized for signing and encryption."
        (should-not (mml-secure-check-sub-key context (car keys5) 'sign))
 
        ;; The next key has multiple subkeys.
-       ;; 42466F0F is valid sign subkey, 501FFD98 is expired
-       (should (mml-secure-check-sub-key context (car keys6) 'sign "42466F0F"))
+       ;; 167C1C27A9D25305 is valid sign subkey, 2DD796DBDAC43424 is expired
+       (should (mml-secure-check-sub-key context (car keys6) 'sign "167C1C27A9D25305"))
        (should-not
-	(mml-secure-check-sub-key context (car keys6) 'sign "501FFD98"))
-       ;; DC7F66E7 is encrypt subkey
+	(mml-secure-check-sub-key context (car keys6) 'sign "2DD796DBDAC43424"))
+       ;; 8D850AA2B34936F9 is encrypt subkey
        (should
-	(mml-secure-check-sub-key context (car keys6) 'encrypt "DC7F66E7"))
+	(mml-secure-check-sub-key context (car keys6) 'encrypt "8D850AA2B34936F9"))
        (should-not
-	(mml-secure-check-sub-key context (car keys6) 'sign "DC7F66E7"))
+	(mml-secure-check-sub-key context (car keys6) 'sign "8D850AA2B34936F9"))
        (should-not
-	(mml-secure-check-sub-key context (car keys6) 'encrypt "42466F0F"))
+	(mml-secure-check-sub-key context (car keys6) 'encrypt "167C1C27A9D25305"))
 
        ;; The final key is just a public key.
        (should (mml-secure-check-sub-key context (car keys7) 'encrypt))
@@ -305,9 +305,9 @@ In both cases, the first key is customized for signing and encryption."
 
        ;; Expired key should not be usable.
        ;; Will fail for Ma Gnus v0.14 and earlier.
-       ;; sign@example.org has the expired subkey 0x501FFD98.
+       ;; sign@example.org has the expired subkey 0x2DD796DBDAC43424.
        (should-not
-	(mml-secure-find-usable-keys context "0x501FFD98" 'sign))
+	(mml-secure-find-usable-keys context "0x2DD796DBDAC43424" 'sign))
 
        (should
 	(mml-secure-find-usable-keys context "no-exp@example.org" 'encrypt))
@@ -355,16 +355,16 @@ In both cases, the first key is customized for signing and encryption."
        ;; Search works with key IDs, with and without prefix "0x".
        (should
 	(= 1 (length (mml-secure-find-usable-keys
-		      context "A142FD84" 'encrypt))))
+		      context "CA9EA5175C9043FB" 'encrypt))))
        (should
 	(= 1 (length (mml-secure-find-usable-keys
-		      context "0xA142FD84" 'encrypt))))
+		      context "0xCA9EA5175C9043FB" 'encrypt))))
        (should
 	(= 0 (length (mml-secure-find-usable-keys
-		      context "A142FD84" 'sign))))
+		      context "CA9EA5175C9043FB" 'sign))))
        (should
 	(= 0 (length (mml-secure-find-usable-keys
-		      context "0xA142FD84" 'sign))))
+		      context "0xCA9EA5175C9043FB" 'sign))))
        ))))
 
 (ert-deftest mml-secure-select-preferred-keys-1 ()
@@ -373,7 +373,7 @@ In both cases, the first key is customized for signing and encryption."
   (mml-secure-test-fixture
    (lambda ()
      (let ((context (epg-make-context 'OpenPGP)))
-       (should (equal "832F3CC6518D37BC658261B802372A42CA6D40FB"
+       (should (equal "0281C7D97E90771C0D9A61BFA049C1E9179C086B"
 		      (mml-secure-fingerprint
 		       (car (mml-secure-select-preferred-keys
 			     context '("no-exp@example.org") 'encrypt)))))))))
@@ -413,18 +413,18 @@ In both cases, the first key is customized for signing and encryption."
      (let ((context (epg-make-context 'OpenPGP))
 	   (mml-secure-key-preferences
 	    '((OpenPGP (sign) (encrypt)) (CMS (sign) (encrypt)))))
-       ;; sub@example.org has two keys (268DBEA2, AE31D471).
+       ;; sub@example.org has two keys (2FAF8726121EB3C6, 8E7FEE76BB1FB195).
        ;; Normal preference works.
        (mml-secure-cust-record-keys
-        context 'encrypt "sub@example.org" (epg-list-keys context "268DBEA2"))
+        context 'encrypt "sub@example.org" (epg-list-keys context "2FAF8726121EB3C6"))
        (should (mml-secure-select-preferred-keys
 		context '("sub@example.org") 'encrypt))
        (mml-secure-cust-remove-keys context 'encrypt "sub@example.org")
 
-       ;; Fake preference for expired (unrelated) key CE15FAE7,
+       ;; Fake preference for expired (unrelated) key 22F24E21C5010683,
        ;; results in error (and automatic removal of outdated preference).
        (mml-secure-cust-record-keys
-        context 'encrypt "sub@example.org" (epg-list-keys context "CE15FAE7"))
+        context 'encrypt "sub@example.org" (epg-list-keys context "22F24E21C5010683"))
        (should-error (mml-secure-select-preferred-keys
 		      context '("sub@example.org") 'encrypt))
        (should-not
@@ -438,8 +438,8 @@ In both cases, the first key is customized for signing and encryption."
    (lambda ()
      (let ((pcontext (epg-make-context 'OpenPGP))
 	   (scontext (epg-make-context 'CMS))
-	   (pkeys '("1E6BFA973D9E3103B77FD399C3999CF1268DBEA2"
-		    "14632ECAB9E227369C8DD97BF7E79AB7AE31D471"))
+	   (pkeys '("4D661F67B8BC4F7F1C53C2232FAF8726121EB3C6"
+		    "EB67A6310389C9AE8A5695908E7FEE76BB1FB195"))
 	   (skeys  '("0x5F88E9FC" "0x479DC6E2"))
 	   (mml-secure-key-preferences
 	    '((OpenPGP (sign) (encrypt)) (CMS (sign) (encrypt)))))
@@ -456,17 +456,17 @@ In both cases, the first key is customized for signing and encryption."
 			pcontext 'sign "sub@example.org")))
 	 (should (= 2 (length p-e-fprs)))
 	 (should (= 2 (length p-s-fprs)))
-	 (should (member "1E6BFA973D9E3103B77FD399C3999CF1268DBEA2" p-e-fprs))
-	 (should (member "14632ECAB9E227369C8DD97BF7E79AB7AE31D471" p-e-fprs))
-	 (should (member "1E6BFA973D9E3103B77FD399C3999CF1268DBEA2" p-s-fprs))
-	 (should (member "14632ECAB9E227369C8DD97BF7E79AB7AE31D471" p-s-fprs)))
+	 (should (member "4D661F67B8BC4F7F1C53C2232FAF8726121EB3C6" p-e-fprs))
+	 (should (member "EB67A6310389C9AE8A5695908E7FEE76BB1FB195" p-e-fprs))
+	 (should (member "4D661F67B8BC4F7F1C53C2232FAF8726121EB3C6" p-s-fprs))
+	 (should (member "EB67A6310389C9AE8A5695908E7FEE76BB1FB195" p-s-fprs)))
        ;; Duplicate record does not change anything.
        (mml-secure-cust-record-keys
 	pcontext 'encrypt "sub@example.org"
-	(epg-list-keys pcontext "1E6BFA973D9E3103B77FD399C3999CF1268DBEA2"))
+	(epg-list-keys pcontext "4D661F67B8BC4F7F1C53C2232FAF8726121EB3C6"))
        (mml-secure-cust-record-keys
 	pcontext 'sign "sub@example.org"
-	(epg-list-keys pcontext "1E6BFA973D9E3103B77FD399C3999CF1268DBEA2"))
+	(epg-list-keys pcontext "4D661F67B8BC4F7F1C53C2232FAF8726121EB3C6"))
        (let ((p-e-fprs (mml-secure-cust-fpr-lookup
 			pcontext 'encrypt "sub@example.org"))
 	     (p-s-fprs (mml-secure-cust-fpr-lookup
@@ -524,10 +524,10 @@ Pass optional INTERACTIVE to mml-secure-test-mail-fixture."
 			  (concat "Good signature from "
 				  (if (eq protocol 'CMS)
 				      "0E58229B80EE33959FF718FEEF25402B479DC6E2"
-				    "02372A42CA6D40FB"))
+				    "A049C1E9179C086B"))
 			  gnus-info)))
 	     (dolist (fpr signer-fprs nil)
-	       ;; OpenPGP: "Good signature from 02372A42CA6D40FB No Expiry <no-exp@example.org> (trust undefined) created ..."
+	       ;; OpenPGP: "Good signature from A049C1E9179C086B No Expiry <no-exp@example.org> (trust undefined) created ..."
 	       ;; S/MIME:  "Good signature from D06AA118653CC38E9D0CAF56ED7A2135E1582177 /CN=No Expiry (trust full) ..."
 	       (should (string-match-p
 			(concat "Good signature from "
@@ -586,7 +586,7 @@ In this test, the single matching key is chosen automatically."
     ;; no-exp@example.org with single encryption key
     (mml-secure-test-en-decrypt
      method "no-exp@example.org" "sub@example.org" nil t
-     (list (cons "02372A42CA6D40FB" "ED7A2135E1582177")))))
+     (list (cons "A049C1E9179C086B" "ED7A2135E1582177")))))
 
 (ert-deftest mml-secure-en-decrypt-2 ()
   "Encrypt message; then decrypt and test for expected result.
@@ -600,7 +600,7 @@ In this test, the encryption key needs to fixed among multiple ones."
      (dolist (method (enc-standards) nil)
        (mml-secure-test-en-decrypt
 	method "sub@example.org" "no-exp@example.org" nil t
-	(list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")))))))
+	(list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")))))))
 
 (ert-deftest mml-secure-en-decrypt-3 ()
   "Encrypt message; then decrypt and test for expected result.
@@ -619,8 +619,8 @@ In this test, encrypt-to-self variables are set to t."
        (dolist (method (enc-standards) nil)
 	 (mml-secure-test-en-decrypt
 	  method "sub@example.org" "no-exp@example.org" nil t
-	  (list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")
-		(cons "02372A42CA6D40FB" "ED7A2135E1582177"))))))))
+	  (list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")
+		(cons "A049C1E9179C086B" "ED7A2135E1582177"))))))))
 
 (ert-deftest mml-secure-en-decrypt-4 ()
   "Encrypt message; then decrypt and test for expected result.
@@ -628,14 +628,14 @@ In this test, encrypt-to-self variables are set to lists."
   (skip-unless (test-conf))
   ;; Send from sub@example.org, which has two keys; encrypt to both.
   (let ((mml-secure-openpgp-encrypt-to-self
-	 '("C3999CF1268DBEA2" "F7E79AB7AE31D471"))
+	 '("2FAF8726121EB3C6" "8E7FEE76BB1FB195"))
 	(mml-secure-smime-encrypt-to-self
 	 '("EF25402B479DC6E2" "4035D59B5F88E9FC")))
     (dolist (method (enc-standards) nil)
       (mml-secure-test-en-decrypt
        method "no-exp@example.org" "sub@example.org" nil t
-       (list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")
-	     (cons "F7E79AB7AE31D471" "4035D59B5F88E9FC"))))))
+       (list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")
+	     (cons "8E7FEE76BB1FB195" "4035D59B5F88E9FC"))))))
 
 (ert-deftest mml-secure-en-decrypt-sign-1-1-single ()
   "Sign and encrypt message; then decrypt and test for expected result.
@@ -672,7 +672,7 @@ In this test, just multiple encryption and signing keys may be available."
 	   (mml-secure-smime-sign-with-sender t))
        ;; Now use both keys to sign.  The customized one via sign-with-sender,
        ;; the other one via the following setting.
-       (let ((mml-secure-openpgp-signers '("F7E79AB7AE31D471"))
+       (let ((mml-secure-openpgp-signers '("8E7FEE76BB1FB195"))
 	     (mml-secure-smime-signers '("0x5F88E9FC")))
 	 (dolist (method (enc-sign-standards) nil)
 	   (mml-secure-test-en-decrypt
@@ -690,7 +690,7 @@ In this test, just multiple encryption and signing keys may be available."
      (let ((mml-secure-openpgp-sign-with-sender nil)
 	   (mml-secure-smime-sign-with-sender nil)
 	   (mml-secure-openpgp-signers
-	    '("F7E79AB7AE31D471" "C3999CF1268DBEA2"))
+	    '("8E7FEE76BB1FB195" "2FAF8726121EB3C6"))
 	   (mml-secure-smime-signers '("0x5F88E9FC" "0x479DC6E2")))
        (dolist (method (enc-sign-standards) nil)
 	 (mml-secure-test-en-decrypt
@@ -709,7 +709,7 @@ In this test, lists of encryption and signing keys are customized."
 	   (scontext (epg-make-context 'CMS))
 	   (mml-secure-openpgp-sign-with-sender t)
 	   (mml-secure-smime-sign-with-sender t))
-       (dolist (key '("F7E79AB7AE31D471" "C3999CF1268DBEA2") nil)
+       (dolist (key '("8E7FEE76BB1FB195" "2FAF8726121EB3C6") nil)
 	 (mml-secure-cust-record-keys
 	  pcontext 'encrypt "sub@example.org" (epg-list-keys pcontext key))
 	 (mml-secure-cust-record-keys
@@ -745,8 +745,8 @@ Use sign-with-sender and encrypt-to-self."
        (dolist (method (enc-sign-standards) nil)
 	 (mml-secure-test-en-decrypt
 	  method "sub@example.org" "no-exp@example.org" 1 t
-	  (list (cons "C3999CF1268DBEA2" "EF25402B479DC6E2")
-		(cons "02372A42CA6D40FB" "ED7A2135E1582177"))))
+	  (list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")
+		(cons "A049C1E9179C086B" "ED7A2135E1582177"))))
        ))))
 
 (ert-deftest mml-secure-sign-verify-1 ()
@@ -765,7 +765,7 @@ Use sign-with-sender and encrypt-to-self."
 
 	 ;; From sub@example.org, sign with two keys;
 	 ;; sign-with-sender and one from signers-variable:
-	 (let ((mml-secure-openpgp-signers '("02372A42CA6D40FB"))
+	 (let ((mml-secure-openpgp-signers '("A049C1E9179C086B"))
 	       (mml-secure-smime-signers
 		'("D06AA118653CC38E9D0CAF56ED7A2135E1582177")))
 	   (mml-secure-test-en-decrypt
@@ -781,7 +781,7 @@ With Ma Gnus v0.14 and earlier a signature would be created with a wrong key."
     (lambda ()
       (let ((with-smime nil)
 	    (mml-secure-openpgp-sign-with-sender nil)
-	    (mml-secure-openpgp-signers '("501FFD98")))
+	    (mml-secure-openpgp-signers '("2DD796DBDAC43424")))
 	(dolist (method (sign-standards) nil)
 	  (mml-secure-test-en-decrypt
 	   method "no-exp@example.org" "sign@example.org" 1 nil)

@@ -244,9 +244,7 @@
 (load "language/indonesian")
 
 (load "indent")
-(let ((max-specpdl-size (max max-specpdl-size 1800)))
-  ;; A particularly demanding file to load; 1600 does not seem to be enough.
-  (load "emacs-lisp/cl-generic"))
+(load "emacs-lisp/cl-generic")
 (load "simple")
 (load "emacs-lisp/seq")
 (load "emacs-lisp/nadvice")
@@ -478,17 +476,12 @@ lost after dumping")))
   ;; installed or if the source directory got moved.  This is set to be
   ;; a pair in the form of:
   ;;     (rel-filename-from-install-bin . rel-filename-from-local-bin).
-  (let ((h (make-hash-table :test #'eq))
-        (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
+  (let ((bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
         (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
     (when (and bin-dest-dir eln-dest-dir)
       (setq eln-dest-dir
             (concat eln-dest-dir "native-lisp/" comp-native-version-dir "/"))
-      (mapatoms (lambda (s)
-                  (let ((f (symbol-function s)))
-                    (when (subr-native-elisp-p f)
-                      (puthash (subr-native-comp-unit f) nil h)))))
-      (maphash (lambda (cu _)
+      (maphash (lambda (_ cu)
                  (let* ((file (native-comp-unit-file cu))
                         (preloaded (equal (substring (file-name-directory file)
                                                      -10 -1)
@@ -508,7 +501,7 @@ lost after dumping")))
                                          bin-dest-dir)
                      ;; Relative filename from the built uninstalled binary.
                      (file-relative-name file invocation-directory)))))
-	       h))))
+	       comp-loaded-comp-units-h))))
 
 (when (hash-table-p purify-flag)
   (let ((strings 0)

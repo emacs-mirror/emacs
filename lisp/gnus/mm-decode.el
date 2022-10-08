@@ -117,7 +117,8 @@
   (cond ((fboundp 'libxml-parse-html-region) 'shr)
 	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
-        ((executable-find "lynx") 'lynx))
+        ((executable-find "lynx") 'lynx)
+        (t 'shr))
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:

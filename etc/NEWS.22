@@ -1413,7 +1413,8 @@ with different file attributes in two dired buffers.
 *** New Dired command 'dired-do-touch' (bound to T) changes timestamps
 of marked files with the value entered in the minibuffer.
 
-*** In Dired, the w command now stores the current line's file name
+*** New Dired command 'dired-copy-filename-as-kill' copies file name.
+In Dired, the w command now stores the current line's file name
 into the kill ring.  With a zero prefix arg, it stores the absolute file name.
 
 *** In Dired-x, Omitting files is now a minor mode, dired-omit-mode.

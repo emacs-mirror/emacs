@@ -51,6 +51,16 @@ See `eshell-wait-for-subprocess'.")
            (let (kill-buffer-query-functions)
              (kill-buffer eshell-buffer)))))))
 
+(defmacro eshell-with-temp-buffer (bufname text &rest body)
+  "Create a temporary buffer containing TEXT and evaluate BODY there.
+BUFNAME will be set to the name of the temporary buffer."
+  (declare (indent 2))
+  `(with-temp-buffer
+     (insert ,text)
+     (rename-buffer "eshell-temp-buffer" t)
+     (let ((,bufname (buffer-name)))
+       ,@body)))
+
 (defun eshell-wait-for-subprocess (&optional all)
   "Wait until there is no interactive subprocess running in Eshell.
 If ALL is non-nil, wait until there are no Eshell subprocesses at

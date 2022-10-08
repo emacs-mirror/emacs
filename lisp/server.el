@@ -27,12 +27,12 @@
 
 ;;; Commentary:
 
-;; This Lisp code is run in Emacs when it is to operate as
-;; a server for other processes.
+;; This library allows Emacs to operate as a server for other
+;; processes.
 
-;; Load this library and do M-x server-edit to enable Emacs as a server.
+;; Load this library and do `M-x server-start' to enable Emacs as a server.
 ;; Emacs opens up a socket for communication with clients.  If there are no
-;; client buffers to edit, server-edit acts like (switch-to-buffer
+;; client buffers to edit, `server-edit' acts like (switch-to-buffer
 ;; (other-buffer))
 
 ;; When some other program runs "the editor" to edit a file,
@@ -42,10 +42,10 @@
 
 ;; Note that any number of clients may dispatch files to Emacs to be edited.
 
-;; When you finish editing a Server buffer, again call server-edit
+;; When you finish editing a Server buffer, again call `server-edit'
 ;; to mark that buffer as done for the client and switch to the next
 ;; Server buffer.  When all the buffers for a client have been edited
-;; and exited with server-edit, the client "editor" will return
+;; and exited with `server-edit', the client "editor" will return
 ;; to the program that invoked it.
 
 ;; Your editing commands and Emacs's display output go to and from
@@ -54,24 +54,27 @@
 ;; the client.  This is possible in four cases:
 
 ;; 1. On a window system, where Emacs runs in one window and the
-;; program that wants to use "the editor" runs in another.
+;;    program that wants to use "the editor" runs in another.
 
-;; 2. On a multi-terminal system, where Emacs runs on one terminal and the
-;; program that wants to use "the editor" runs on another.
+;; 2. On a multi-terminal system, where Emacs runs on one terminal and
+;;    the program that wants to use "the editor" runs on another.
 
-;; 3. When the program that wants to use "the editor" is running
-;; as a subprocess of Emacs.
+;; 3. When the program that wants to use "the editor" is running as a
+;;    subprocess of Emacs.
 
-;; 4. On a system with job control, when Emacs is suspended, the program
-;; that wants to use "the editor" will stop and display
-;; "Waiting for Emacs...".  It can then be suspended, and Emacs can be
-;; brought into the foreground for editing.  When done editing, Emacs is
-;; suspended again, and the client program is brought into the foreground.
+;; 4. On a system with job control, when Emacs is suspended, the
+;;    program that wants to use "the editor" will stop and display
+;;    "Waiting for Emacs...".  It can then be suspended, and Emacs can
+;;    be brought into the foreground for editing.  When done editing,
+;;    Emacs is suspended again, and the client program is brought into
+;;    the foreground.
 
-;; The buffer local variable "server-buffer-clients" lists
+;; The buffer local variable `server-buffer-clients' lists
 ;; the clients who are waiting for this buffer to be edited.
-;; The global variable "server-clients" lists all the waiting clients,
+;; The global variable `server-clients' lists all the waiting clients,
 ;; and which files are yet to be edited for each.
+
+;;; Code:
 
 ;; Todo:
 
@@ -79,8 +82,6 @@
 ;; - move most of the args processing and decision making from emacsclient.c
 ;;   to here.
 ;; - fix up handling of the client's environment (place it in the terminal?).
-
-;;; Code:
 
 (eval-when-compile (require 'cl-lib))
 
@@ -544,7 +545,8 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir 'integer)))
     (unless attrs
-      (cl-letf (((default-file-modes) ?\700)) (make-directory dir t))
+      (with-file-modes ?\700
+        (make-directory dir t))
       (setq attrs (file-attributes dir 'integer)))
 
     ;; Check that it's safe for use.
@@ -691,7 +693,7 @@ server or call `\\[server-force-delete]' to forcibly disconnect it."))
 	(server-ensure-safe-dir server-dir)
 	(when server-process
 	  (server-log (message "Restarting server")))
-	(cl-letf (((default-file-modes) ?\700))
+        (with-file-modes ?\700
 	  (add-hook 'suspend-tty-functions #'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions #'server-handle-delete-frame)
 	  (add-hook 'kill-emacs-query-functions

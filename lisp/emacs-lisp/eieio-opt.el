@@ -153,7 +153,7 @@ are not abstract."
         (help-insert-xref-button
 	 (help-fns-short-filename location)
 	 'cl-type-definition ctr location 'define-type)
-	(insert (substitute-command-keys "'")))
+        (insert (substitute-quotes "'")))
       (insert ".\nCreates an object of class " (symbol-name ctr) ".")
       (goto-char (point-max))
       (if (autoloadp def)

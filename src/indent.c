@@ -577,12 +577,15 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
 
       if (!NILP (BVAR (current_buffer, truncate_lines)))
 	lines_truncated = true;
-      else if (w && FIXNUMP (Vtruncate_partial_width_windows))
-	lines_truncated =
-	  w->total_cols < XFIXNAT (Vtruncate_partial_width_windows);
-      else if (w && !NILP (Vtruncate_partial_width_windows))
-	lines_truncated =
-	  w->total_cols < FRAME_COLS (XFRAME (WINDOW_FRAME (w)));
+      else if (!NILP (Vtruncate_partial_width_windows) && w
+	       && w->total_cols < FRAME_COLS (XFRAME (WINDOW_FRAME (w))))
+	{
+	  if (FIXNUMP (Vtruncate_partial_width_windows))
+	    lines_truncated =
+	      w->total_cols < XFIXNAT (Vtruncate_partial_width_windows);
+	  else
+	    lines_truncated = true;
+	}
       /* Special optimization for buffers with long and truncated
 	 lines: assumes that each character is a single column.  */
       if (lines_truncated)

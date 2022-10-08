@@ -28,14 +28,96 @@
                            (file-name-directory (or load-file-name
                                                     default-directory))))
 
+(defvar esh-proc-test--output-cmd
+  (concat "sh -c '"
+          "echo stdout; "
+          "echo stderr >&2"
+          "'")
+  "A shell command that prints to both stdout and stderr.")
+
 (defvar esh-proc-test--detect-pty-cmd
   (concat "sh -c '"
           "if [ -t 0 ]; then echo stdin; fi; "
           "if [ -t 1 ]; then echo stdout; fi; "
           "if [ -t 2 ]; then echo stderr; fi"
-          "'"))
+          "'")
+  "A shell command that prints the standard streams connected as TTYs.")
 
 ;;; Tests:
+
+
+;; Output and redirection
+
+(ert-deftest esh-proc-test/output/to-screen ()
+  "Check that outputting stdout and stderr to the screen works."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   (eshell-match-command-output esh-proc-test--output-cmd
+                                "stdout\nstderr\n")))
+
+(ert-deftest esh-proc-test/output/stdout-to-buffer ()
+  "Check that redirecting only stdout works."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "%s > #<%s>" esh-proc-test--output-cmd bufname)
+      "stderr\n"))
+    (should (equal (buffer-string) "stdout\n"))))
+
+(ert-deftest esh-proc-test/output/stderr-to-buffer ()
+  "Check that redirecting only stderr works."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "%s 2> #<%s>" esh-proc-test--output-cmd bufname)
+      "stdout\n"))
+    (should (equal (buffer-string) "stderr\n"))))
+
+(ert-deftest esh-proc-test/output/stdout-and-stderr-to-buffer ()
+  "Check that redirecting stdout and stderr works."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-match-command-output
+      (format "%s &> #<%s>" esh-proc-test--output-cmd bufname)
+      "\\`\\'"))
+    (should (equal (buffer-string) "stdout\nstderr\n"))))
+
+
+;; Exit status
+
+(ert-deftest esh-proc-test/exit-status/success ()
+  "Check that successful execution is properly recorded."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   (eshell-insert-command "sh -c 'exit 0'")
+   (eshell-wait-for-subprocess)
+   (should (= eshell-last-command-status 0))
+   (should (eq eshell-last-command-result t))))
+
+(ert-deftest esh-proc-test/exit-status/failure ()
+  "Check that failed execution is properly recorded."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   (eshell-insert-command "sh -c 'exit 1'")
+   (eshell-wait-for-subprocess)
+   (should (= eshell-last-command-status 1))
+   (should (eq eshell-last-command-result nil))))
+
+(ert-deftest esh-proc-test/exit-status/with-stderr-pipe ()
+  "Check that failed execution is properly recorded even with a pipe process."
+  (skip-unless (executable-find "sh"))
+  (eshell-with-temp-buffer bufname "old"
+    (with-temp-eshell
+     (eshell-insert-command (format "sh -c 'exit 1' > #<%s>" bufname))
+     (eshell-wait-for-subprocess)
+     (should (= eshell-last-command-status 1))
+     (should (eq eshell-last-command-result nil)))))
+
+
+;; Pipelines
 
 (ert-deftest esh-proc-test/sigpipe-exits-process ()
   "Test that a SIGPIPE is properly sent to a process if a pipe closes"
@@ -46,8 +128,10 @@
    (eshell-match-command-output
     ;; The first command is like `yes' but slower.  This is to prevent
     ;; it from taxing Emacs's process filter too much and causing a
-    ;; hang.
-    (concat "sh -c 'while true; do echo y; sleep 1; done' | "
+    ;; hang.  Note that we use "|&" to connect the processes so that
+    ;; Emacs doesn't create an extra pipe process for the first "sh"
+    ;; invocation.
+    (concat "sh -c 'while true; do echo y; sleep 1; done' |& "
             "sh -c 'read NAME; echo ${NAME}'")
     "y\n")
    (eshell-wait-for-subprocess t)
@@ -76,17 +160,52 @@
 pipeline."
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
-  (eshell-command-result-equal
-   (concat "echo | " esh-proc-test--detect-pty-cmd " | cat")
-   nil))
+  ;; An `eshell-pipe-broken' signal might occur internally; let Eshell
+  ;; handle it!
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     (concat "echo hi | " esh-proc-test--detect-pty-cmd " | cat")
+     nil)))
 
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
   "Test that only output streams are PTYs when a command ends a pipeline."
   (skip-unless (executable-find "sh"))
-  (eshell-command-result-equal
-   (concat "echo | " esh-proc-test--detect-pty-cmd)
-   (unless (eq system-type 'windows-nt)
-     "stdout\nstderr\n")))
+  ;; An `eshell-pipe-broken' signal might occur internally; let Eshell
+  ;; handle it!
+  (let ((debug-on-error nil))
+    (eshell-command-result-equal
+     (concat "echo hi | " esh-proc-test--detect-pty-cmd)
+     (unless (eq system-type 'windows-nt)
+       "stdout\nstderr\n"))))
+
+
+;; Killing processes
+
+(ert-deftest esh-proc-test/kill-process/foreground-only ()
+  "Test that `eshell-kill-process' only kills foreground processes."
+  (with-temp-eshell
+   (eshell-insert-command "sleep 100 &")
+   (eshell-insert-command "sleep 100")
+   (should (equal (length eshell-process-list) 2))
+   ;; This should kill only the foreground process.
+   (eshell-kill-process)
+   (eshell-wait-for-subprocess)
+   (should (equal (length eshell-process-list) 1))
+   ;; Now kill everything, including the background process.
+   (eshell-process-interact 'kill-process t)
+   (eshell-wait-for-subprocess t)
+   (should (equal (length eshell-process-list) 0))))
+
+(ert-deftest esh-proc-test/kill-process/background-prompt ()
+  "Test that killing a background process doesn't emit a new
+prompt.  See bug#54136."
+  (skip-unless (and (executable-find "sh")
+                    (executable-find "sleep")))
+  (with-temp-eshell
+   (eshell-insert-command "sh -c 'while true; do sleep 1; done' &")
+   (kill-process (caar eshell-process-list))
+   (eshell-wait-for-subprocess)
+   (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))
 
 (ert-deftest esh-proc-test/kill-pipeline ()
   "Test that killing a pipeline of processes only emits a single
@@ -127,14 +246,4 @@ write the exit status to the pipe.  See bug#54136."
                      output-start (eshell-end-of-output))
                     "")))))
 
-(ert-deftest esh-proc-test/kill-background-process ()
-  "Test that killing a background process doesn't emit a new
-prompt.  See bug#54136."
-  (skip-unless (and (executable-find "sh")
-                    (executable-find "sleep")))
-  (with-temp-eshell
-   (eshell-insert-command "sh -c 'while true; do sleep 1; done' &")
-   (kill-process (caar eshell-process-list))
-   ;; Give `eshell-sentinel' a chance to run.
-   (sit-for 0.1)
-   (should (eshell-match-output "\\[sh\\(\\.exe\\)?\\] [[:digit:]]+\n"))))
+;;; esh-proc-tests.el ends here

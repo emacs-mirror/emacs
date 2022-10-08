@@ -511,7 +511,7 @@ Do not call this function yourself. */)
      this at the wrong time. */
   if (doing_interact && ! kill_emacs)
     {
-      bool cancel_shutdown = ! NILP (call0 (intern ("emacs-session-save")));
+      bool cancel_shutdown = ! NILP (call0 (Qemacs_session_save));
 
       SmcInteractDone (smc_conn, cancel_shutdown);
       SmcSaveYourselfDone (smc_conn, True);
@@ -542,6 +542,8 @@ Do not call this function yourself. */)
 void
 syms_of_xsmfns (void)
 {
+  DEFSYM (Qemacs_session_save, "emacs-session-save");
+
   DEFVAR_LISP ("x-session-id", Vx_session_id,
     doc: /* The session id Emacs got from the session manager for this session.
 Changing the value does not change the session id used by Emacs.

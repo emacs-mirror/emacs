@@ -5,7 +5,7 @@
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.28
-;; Package-Requires: ((emacs "24.4") (cl-lib "1.0"))
+;; Package-Requires: ((emacs "24.4") (compat "28.1.2.1") (seq "2.23"))
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
@@ -34,7 +34,8 @@
 ;; Implements Syntax highlighting, Indentation, Movement, Shell
 ;; interaction, Shell completion, Shell virtualenv support, Shell
 ;; package support, Shell syntax highlighting, Pdb tracking, Symbol
-;; completion, Skeletons, FFAP, Code Check, ElDoc, Imenu.
+;; completion, Skeletons, FFAP, Code Check, ElDoc, Imenu, Flymake,
+;; Import management.
 
 ;; Syntax highlighting: Fontification of code is provided and supports
 ;; python's triple quoted strings properly.
@@ -69,7 +70,7 @@
 ;; variables.  This example enables IPython globally:
 
 ;; (setq python-shell-interpreter "ipython"
-;;       python-shell-interpreter-args "-i")
+;;       python-shell-interpreter-args "--simple-prompt")
 
 ;; Using the "console" subcommand to start IPython in server-client
 ;; mode is known to fail intermittently due a bug on IPython itself
@@ -240,11 +241,29 @@
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
 
+;; Flymake: A Flymake backend, using the pyflakes program by default,
+;; is provided.  You can also use flake8 or pylint by customizing
+;; `python-flymake-command'.
+
+;; Import management: The commands `python-sort-imports',
+;; `python-add-import', `python-remove-import', and
+;; `python-fix-imports' automate the editing of import statements at
+;; the top of the buffer, which tend to be a tedious task in larger
+;; projects.  These commands require that the isort library is
+;; available to the interpreter pointed at by `python-interpreter'.
+;; The last command also requires pyflakes.  These dependencies can be
+;; installed, among other methods, with the following command:
+;;
+;;     pip install isort pyflakes
+
 ;;; Code:
 
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'comint)
+(require 'compat nil 'noerror)
+(require 'project nil 'noerror)
+(require 'seq)
 (eval-when-compile (require 'subr-x))   ;For `string-empty-p'.
 
 ;; Avoid compiler warnings
@@ -265,6 +284,12 @@
   :version "24.3"
   :link '(emacs-commentary-link "python"))
 
+(defcustom python-interpreter "python"
+  "Python interpreter for noninteractive use.
+To customize the Python shell, modify `python-shell-interpreter'
+instead."
+  :version "29.1"
+  :type 'string)
 
 
 ;;; Bindings
@@ -275,6 +300,7 @@
     (define-key map [remap backward-sentence] #'python-nav-backward-block)
     (define-key map [remap forward-sentence] #'python-nav-forward-block)
     (define-key map [remap backward-up-list] #'python-nav-backward-up-list)
+    (define-key map [remap up-list] #'python-nav-up-list)
     (define-key map [remap mark-defun] #'python-mark-defun)
     (define-key map "\C-c\C-j" #'imenu)
     ;; Indent specific
@@ -303,6 +329,11 @@
     (define-key map "\C-c\C-v" #'python-check)
     (define-key map "\C-c\C-f" #'python-eldoc-at-point)
     (define-key map "\C-c\C-d" #'python-describe-at-point)
+    ;; Import management
+    (define-key map "\C-c\C-ia" #'python-add-import)
+    (define-key map "\C-c\C-if" #'python-fix-imports)
+    (define-key map "\C-c\C-ir" #'python-remove-import)
+    (define-key map "\C-c\C-is" #'python-sort-imports)
     ;; Utilities
     (substitute-key-definition #'complete-symbol #'completion-at-point
                                map global-map)
@@ -348,7 +379,17 @@
         ["Help on symbol" python-eldoc-at-point
          :help "Get help on symbol at point"]
         ["Complete symbol" completion-at-point
-         :help "Complete symbol before point"]))
+         :help "Complete symbol before point"]
+        "-----"
+        ["Add import" python-add-import
+         :help "Add an import statement to the top of this buffer"]
+        ["Remove import" python-remove-import
+         :help "Remove an import statement from the top of this buffer"]
+        ["Sort imports" python-sort-imports
+         :help "Sort the import statements at the top of this buffer"]
+        ["Fix imports" python-fix-imports
+         :help "Add missing imports and remove unused ones from the current buffer"]
+        ))
     map)
   "Keymap for `python-mode'.")
 
@@ -488,16 +529,6 @@ The type returned can be `comment', `string' or `paren'."
   (eql (syntax-class (syntax-after (point)))
        (syntax-class (string-to-syntax ")"))))
 
-(define-obsolete-function-alias
-  'python-info-ppss-context #'python-syntax-context "24.3")
-
-(define-obsolete-function-alias
-  'python-info-ppss-context-type #'python-syntax-context-type "24.3")
-
-(define-obsolete-function-alias
-  'python-info-ppss-comment-or-string-p
-  #'python-syntax-comment-or-string-p "24.3")
-
 (defun python-font-lock-syntactic-face-function (state)
   "Return syntactic face given STATE."
   (if (nth 3 state)
@@ -506,11 +537,22 @@ The type returned can be `comment', `string' or `paren'."
         font-lock-string-face)
     font-lock-comment-face))
 
+(defconst python--f-string-start-regexp
+  (rx bow
+      (or "f" "F" "fr" "Fr" "fR" "FR" "rf" "rF" "Rf" "RF")
+      (or "\"" "\"\"\"" "'" "'''"))
+  "A regular expression matching the beginning of an f-string.
+
+See URL `https://docs.python.org/3/reference/lexical_analysis.html#string-and-bytes-literals'.")
+
 (defun python--f-string-p (ppss)
   "Return non-nil if the pos where PPSS was found is inside an f-string."
   (and (nth 3 ppss)
-       (let ((spos (1- (nth 8 ppss))))
-         (and (memq (char-after spos) '(?f ?F))
+       (let* ((spos (1- (nth 8 ppss)))
+              (before-quote
+               (buffer-substring-no-properties (max (- spos 4) (point-min))
+                                               (min (+ spos 2) (point-max)))))
+         (and (string-match-p python--f-string-start-regexp before-quote)
               (or (< (point-min) spos)
                   (not (memq (char-syntax (char-before spos)) '(?w ?_))))))))
 
@@ -529,7 +571,7 @@ the {...} holes that appear within f-strings."
     (while
         (progn
           (while (and (not (python--f-string-p ppss))
-                      (re-search-forward "\\<f['\"]" limit 'move))
+                      (re-search-forward python--f-string-start-regexp limit 'move))
             (setq ppss (syntax-ppss)))
           (< (point) limit))
       (cl-assert (python--f-string-p ppss))
@@ -902,16 +944,10 @@ It makes underscores and dots word constituent chars.")
 
 ;;; Indentation
 
-(define-obsolete-variable-alias
-  'python-indent 'python-indent-offset "24.3")
-
 (defcustom python-indent-offset 4
   "Default indentation offset for Python."
   :type 'integer
   :safe 'integerp)
-
-(define-obsolete-variable-alias
-  'python-guess-indent 'python-indent-guess-indent-offset "24.3")
 
 (defcustom python-indent-guess-indent-offset t
   "Non-nil tells Python mode to guess `python-indent-offset' value."
@@ -1238,8 +1274,14 @@ possibilities can be narrowed to specific indentation points."
          ;; Add one indentation level.
          (goto-char start)
          (+ (current-indentation) python-indent-offset))
+        (`(:after-backslash-block-continuation . ,start)
+         (goto-char start)
+         (let ((column (current-column)))
+           (if (= column (+ (current-indentation) python-indent-offset))
+               ;; Add one level to avoid same indent as next logical line.
+               (+ column python-indent-offset)
+             column)))
         (`(,(or :inside-paren
-                :after-backslash-block-continuation
                 :after-backslash-dotted-continuation) . ,start)
          ;; Use the column given by the context.
          (goto-char start)
@@ -1517,6 +1559,10 @@ marks the next defun after the ones already marked."
   "Regexp matching class or function definition.
 The name of the defun should be grouped so it can be retrieved
 via `match-string'.")
+
+(defvar python-nav-beginning-of-block-regexp
+  (python-rx line-start (* space) block-start)
+  "Regexp matching block start.")
 
 (defun python-nav--beginning-of-defun (&optional arg)
   "Internal implementation of `python-nav-beginning-of-defun'.
@@ -2294,6 +2340,16 @@ virtualenv."
   "`compilation-error-regexp-alist' for inferior Python."
   :type '(alist regexp))
 
+(defcustom python-shell-dedicated nil
+  "Whether to make Python shells dedicated by default.
+This option influences `run-python' when called without a prefix
+argument.  If `buffer' or `project', create a Python shell
+dedicated to the current buffer or its project (if one is found)."
+  :version "29.1"
+  :type '(choice (const :tag "To buffer" buffer)
+                 (const :tag "To project" project)
+                 (const :tag "Not dedicated" nil)))
+
 (defvar python-shell-output-filter-in-progress nil)
 (defvar python-shell-output-filter-buffer nil)
 
@@ -2656,12 +2712,19 @@ from `python-shell-prompt-regexp',
 
 (defun python-shell-get-process-name (dedicated)
   "Calculate the appropriate process name for inferior Python process.
-If DEDICATED is t returns a string with the form
-`python-shell-buffer-name'[`buffer-name'] else returns the value
-of `python-shell-buffer-name'."
-  (if dedicated
-      (format "%s[%s]" python-shell-buffer-name (buffer-name))
-    python-shell-buffer-name))
+If DEDICATED is nil, this is simply `python-shell-buffer-name'.
+If DEDICATED is `buffer' or `project', append the current buffer
+name respectively the current project name."
+  (pcase dedicated
+    ('nil python-shell-buffer-name)
+    ('project
+     (if-let ((proj (and (featurep 'project)
+                         (project-current))))
+         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
+                                                    (directory-file-name
+                                                     (project-root proj))))
+       python-shell-buffer-name))
+    (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
 (defun python-shell-internal-get-process-name ()
   "Calculate the appropriate process name for Internal Python process.
@@ -3024,8 +3087,8 @@ interpreter is run.  Variables
 `python-shell-font-lock-enable',
 `python-shell-completion-setup-code',
 `python-shell-completion-string-code',
-`python-eldoc-setup-code', `python-eldoc-string-code',
-`python-ffap-setup-code' and `python-ffap-string-code' can
+`python-eldoc-setup-code',
+`python-ffap-setup-code' can
 customize this mode for different Python interpreters.
 
 This mode resets `comint-output-filter-functions' locally, so you
@@ -3119,8 +3182,8 @@ killed."
 Argument CMD defaults to `python-shell-calculate-command' return
 value.  When called interactively with `prefix-arg', it allows
 the user to edit such value and choose whether the interpreter
-should be DEDICATED for the current buffer.  When numeric prefix
-arg is other than 0 or 4 do not SHOW.
+should be DEDICATED to the current buffer or project.  When
+numeric prefix arg is other than 0 or 4 do not SHOW.
 
 For a given buffer and same values of DEDICATED, if a process is
 already running for it, it will do nothing.  This means that if
@@ -3134,14 +3197,46 @@ process buffer for a list of commands.)"
    (if current-prefix-arg
        (list
         (read-shell-command "Run Python: " (python-shell-calculate-command))
-        (y-or-n-p "Make dedicated process? ")
+        (alist-get (car (read-multiple-choice "Make dedicated process?"
+                                              '((?b "to buffer")
+                                                (?p "to project")
+                                                (?n "no"))))
+                   '((?b . buffer) (?p . project)))
         (= (prefix-numeric-value current-prefix-arg) 4))
-     (list (python-shell-calculate-command) nil t)))
-  (let ((buffer
-         (python-shell-make-comint
-          (or cmd (python-shell-calculate-command))
-          (python-shell-get-process-name dedicated) show)))
+     (list (python-shell-calculate-command)
+           python-shell-dedicated
+           t)))
+  (let* ((project (and (eq 'project dedicated)
+                       (featurep 'project)
+                       (project-current t)))
+         (default-directory (if project
+                                (project-root project)
+                              default-directory))
+         (buffer (python-shell-make-comint
+                  (or cmd (python-shell-calculate-command))
+                  (python-shell-get-process-name dedicated)
+                  show)))
     (get-buffer-process buffer)))
+
+(defun python-shell-restart (&optional show)
+  "Restart the Python shell.
+Optional argument SHOW (interactively, the prefix argument), if
+non-nil, means also display the Python shell buffer."
+  (interactive "P")
+  (with-current-buffer
+      (or (and (derived-mode-p 'inferior-python-mode)
+               (current-buffer))
+          (seq-some (lambda (dedicated)
+                      (get-buffer (format "*%s*" (python-shell-get-process-name
+                                                  dedicated))))
+                    '(buffer project nil))
+          (user-error "No Python shell"))
+    (when-let ((proc (get-buffer-process (current-buffer))))
+      (kill-process proc)
+      (while (accept-process-output proc)))
+    (python-shell-make-comint (python-shell-calculate-command)
+                              (string-trim (buffer-name) "\\*" "\\*")
+                              show)))
 
 (defun run-python-internal ()
   "Run an inferior Internal Python process.
@@ -3170,15 +3265,13 @@ startup."
 If current buffer is in `inferior-python-mode', return it."
   (if (derived-mode-p 'inferior-python-mode)
       (current-buffer)
-    (let* ((dedicated-proc-name (python-shell-get-process-name t))
-           (dedicated-proc-buffer-name (format "*%s*" dedicated-proc-name))
-           (global-proc-name  (python-shell-get-process-name nil))
-           (global-proc-buffer-name (format "*%s*" global-proc-name))
-           (dedicated-running (comint-check-proc dedicated-proc-buffer-name))
-           (global-running (comint-check-proc global-proc-buffer-name)))
-      ;; Always prefer dedicated
-      (or (and dedicated-running dedicated-proc-buffer-name)
-          (and global-running global-proc-buffer-name)))))
+    (seq-some
+     (lambda (dedicated)
+       (let* ((proc-name (python-shell-get-process-name dedicated))
+              (buffer-name (format "*%s*" proc-name)))
+         (when (comint-check-proc buffer-name)
+           buffer-name)))
+     '(buffer project nil))))
 
 (defun python-shell-get-process ()
   "Return inferior Python process for current buffer."
@@ -3219,16 +3312,10 @@ be asked for their values."
  "Instead call `python-shell-get-process' and create one if returns nil."
  "25.1")
 
-(define-obsolete-variable-alias
-  'python-buffer 'python-shell-internal-buffer "24.3")
-
 (defvar python-shell-internal-buffer nil
   "Current internal shell buffer for the current buffer.
 This is really not necessary at all for the code to work but it's
 there for compatibility with CEDET.")
-
-(define-obsolete-variable-alias
-  'python-preoutput-result 'python-shell-internal-last-output "24.3")
 
 (defvar python-shell-internal-last-output nil
   "Last output captured by the internal shell.
@@ -3241,9 +3328,6 @@ there for compatibility with CEDET.")
     (if (process-live-p proc-name)
         (get-process proc-name)
       (run-python-internal))))
-
-(define-obsolete-function-alias
-  'python-proc #'python-shell-internal-get-or-create-process "24.3")
 
 (defun python-shell--save-temp-file (string)
   (let* ((temporary-file-directory
@@ -3360,12 +3444,6 @@ Returns the output.  See `python-shell-send-string-no-output'."
          ;; python-send-receive. (At least for CEDET).
          (replace-regexp-in-string "_emacs_out +" "" string)
          (python-shell-internal-get-or-create-process))))
-
-(define-obsolete-function-alias
-  'python-send-receive #'python-shell-internal-send-string "24.3")
-
-(define-obsolete-function-alias
-  'python-send-string #'python-shell-internal-send-string "24.3")
 
 (defun python-shell-buffer-substring (start end &optional nomain no-cookie)
   "Send buffer substring from START to END formatted for shell.
@@ -4532,9 +4610,6 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
 
 ;;; Skeletons
 
-(define-obsolete-variable-alias
-  'python-use-skeletons 'python-skeleton-autoinsert "24.3")
-
 (defcustom python-skeleton-autoinsert nil
   "Non-nil means template skeletons will be automagically inserted.
 This happens when pressing \"if<SPACE>\", for example, to prompt for
@@ -4556,6 +4631,11 @@ the if condition."
                       (not (python-syntax-comment-or-string-p))
                       python-skeleton-autoinsert)))
 
+(defun python--completion-predicate (_ buffer)
+  (provided-mode-derived-p
+   (buffer-local-value 'major-mode buffer)
+   'python-mode))
+
 (defmacro python-skeleton-define (name doc &rest skel)
   "Define a `python-mode' skeleton using NAME DOC and SKEL.
 The skeleton will be bound to python-skeleton-NAME and will
@@ -4564,6 +4644,7 @@ be added to `python-mode-skeleton-abbrev-table'."
   (let* ((name (symbol-name name))
          (function-name (intern (concat "python-skeleton-" name))))
     `(progn
+       (put ',function-name 'completion-predicate #'python--completion-predicate)
        (define-abbrev python-mode-skeleton-abbrev-table
          ,name "" ',function-name :system t)
        (setq python-skeleton-available
@@ -4589,13 +4670,15 @@ The skeleton will be bound to python-skeleton-NAME."
       (setq skel
             `(< ,(format "%s:" name) \n \n
                 > _ \n)))
-    `(define-skeleton ,function-name
-       ,(or doc
-            (format "Auxiliary skeleton for %s statement." name))
-       nil
-       (unless (y-or-n-p ,msg)
-         (signal 'quit t))
-       ,@skel)))
+    `(progn
+       (put ',function-name 'completion-predicate #'ignore)
+       (define-skeleton ,function-name
+         ,(or doc
+              (format "Auxiliary skeleton for %s statement." name))
+         nil
+         (unless (y-or-n-p ,msg)
+           (signal 'quit t))
+         ,@skel))))
 
 (python-define-auxiliary-skeleton else)
 
@@ -4718,11 +4801,12 @@ def __FFAP_get_module_path(objstr):
 ;;; Code check
 
 (defcustom python-check-command
-  (or (executable-find "pyflakes")
-      (executable-find "epylint")
-      "install pyflakes, pylint or something else")
+  (cond ((executable-find "pyflakes") "pyflakes")
+        ((executable-find "epylint") "epylint")
+        (t "pyflakes"))
   "Command used to check a Python file."
-  :type 'string)
+  :type 'string
+  :version "29.1")
 
 (defcustom python-check-buffer-name
   "*Python check: %s*"
@@ -4901,9 +4985,37 @@ Interactively, prompt for symbol."
 (defun python-hideshow-forward-sexp-function (_arg)
   "Python specific `forward-sexp' function for `hs-minor-mode'.
 Argument ARG is ignored."
-  (python-nav-end-of-defun)
-  (unless (python-info-current-line-empty-p)
-    (backward-char)))
+  (python-nav-end-of-block))
+
+(defun python-hideshow-find-next-block (regexp maxp comments)
+  "Python specific `hs-find-next-block' function for `hs-minor-mode'.
+Call `python-nav-forward-block' to find next block and check if
+block-start ends within MAXP.  If COMMENTS is not nil, comments
+are also searched.  REGEXP is passed to `looking-at' to set
+`match-data'."
+  (let* ((next-block (save-excursion
+                       (or (and
+                            (python-info-looking-at-beginning-of-block)
+                            (re-search-forward
+                             (python-rx block-start) maxp t))
+                           (and (python-nav-forward-block)
+                                (< (point) maxp)
+                                (re-search-forward
+                                 (python-rx block-start) maxp t))
+                           (1+ maxp))))
+         (next-comment
+          (or (when comments
+                (save-excursion
+                  (cl-loop while (re-search-forward "#" maxp t)
+                           if (python-syntax-context 'comment)
+                           return (point))))
+              (1+ maxp)))
+         (next-block-or-comment (min next-block next-comment)))
+    (when (<= next-block-or-comment maxp)
+      (goto-char next-block-or-comment)
+      (save-excursion
+        (beginning-of-line)
+        (looking-at regexp)))))
 
 
 ;;; Imenu
@@ -5393,12 +5505,22 @@ operator."
   "Check if point is at `beginning-of-defun' using SYNTAX-PPSS.
 When CHECK-STATEMENT is non-nil, the current statement is checked
 instead of the current physical line."
-  (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
-       (save-excursion
-         (when check-statement
-           (python-nav-beginning-of-statement))
-         (beginning-of-line 1)
+  (save-excursion
+    (when check-statement
+      (python-nav-beginning-of-statement))
+    (beginning-of-line 1)
+    (and (not (python-syntax-context-type (or syntax-ppss (syntax-ppss))))
          (looking-at python-nav-beginning-of-defun-regexp))))
+
+(defun python-info-looking-at-beginning-of-block ()
+  "Check if point is at the beginning of block."
+  (let ((pos (point)))
+    (save-excursion
+      (python-nav-beginning-of-statement)
+      (beginning-of-line)
+      (and
+       (<= (point) pos (+ (point) (current-indentation)))
+       (looking-at python-nav-beginning-of-block-regexp)))))
 
 (defun python-info-current-line-comment-p ()
   "Return non-nil if current line is a comment line."
@@ -5641,9 +5763,13 @@ returned as is."
 This is a non empty list of strings, the checker tool possibly followed by
 required arguments.  Once launched it will receive the Python source to be
 checked as its standard input.
-To use `flake8' you would set this to (\"flake8\" \"-\")."
+To use `flake8' you would set this to (\"flake8\" \"-\").
+To use `pylint' you would set this to (\"pylint\" \"--from-stdin\" \"stdin\")."
   :version "26.1"
-  :type '(repeat string))
+  :type '(choice (const :tag "Pyflakes" ("pyflakes"))
+                 (const :tag "Flake8" ("flake8" "-"))
+                 (const :tag "Pylint" ("pylint" "--from-stdin" "stdin"))
+                 (repeat :tag "Custom command" string)))
 
 ;; The default regexp accommodates for older pyflakes, which did not
 ;; report the column number, and at the same time it's compatible with
@@ -5651,7 +5777,7 @@ To use `flake8' you would set this to (\"flake8\" \"-\")."
 ;; TYPE
 (defcustom python-flymake-command-output-pattern
   (list
-   "^\\(?:<?stdin>?\\):\\(?1:[0-9]+\\):\\(?:\\(?2:[0-9]+\\):\\)? \\(?3:.*\\)$"
+   "^\\(?:<?stdin>?\\):\\(?1:[0-9]+\\):\\(?:\\(?2:[0-9]+\\):?\\)? \\(?3:.*\\)$"
    1 2 nil 3)
   "Specify how to parse the output of `python-flymake-command'.
 The value has the form (REGEXP LINE COLUMN TYPE MESSAGE): if
@@ -5663,7 +5789,6 @@ MESSAGE'th gives the message text itself.
 If COLUMN or TYPE are nil or that index didn't match, that
 information is not present on the matched line and a default will
 be used."
-  :version "26.1"
   :type '(list regexp
                (integer :tag "Line's index")
                (choice
@@ -5672,7 +5797,8 @@ be used."
                (choice
                 (const :tag "No type" nil)
                 (integer :tag "Type's index"))
-               (integer :tag "Message's index")))
+               (integer :tag "Message's index"))
+  :version "29.1")
 
 (defcustom python-flymake-msg-alist
   '(("\\(^redefinition\\|.*unused.*\\|used$\\)" . :warning))
@@ -5761,6 +5887,225 @@ REPORT-FN is Flymake's callback function."
       (process-send-eof python--flymake-proc))))
 
 
+;;; Import management
+(defconst python--list-imports "\
+from isort import find_imports_in_stream, find_imports_in_paths
+from sys import argv, stdin
+
+query, files, result = argv[1] or None, argv[2:], {}
+
+if files:
+    imports = find_imports_in_paths(files, top_only=True)
+else:
+    imports = find_imports_in_stream(stdin, top_only=True)
+
+for imp in imports:
+    if query is None or query == (imp.alias or imp.attribute or imp.module):
+        key = (imp.module, imp.attribute or '', imp.alias or '')
+        if key not in result:
+            result[key] = imp.statement()
+
+for key in sorted(result):
+    print(result[key])
+"
+  "Script to list import statements in Python code.")
+
+(defvar python-import-history nil
+  "History variable for `python-import' commands.")
+
+(defun python--import-sources ()
+  "List files containing Python imports that may be useful in the current buffer."
+  (if-let (((featurep 'project))        ;For compatibility with Emacs < 26
+           (proj (project-current)))
+      (seq-filter (lambda (s) (string-match-p "\\.py[ciw]?\\'" s))
+                  (project-files proj))
+    (list default-directory)))
+
+(defun python--list-imports (name source)
+  "List all Python imports matching NAME in SOURCE.
+If NAME is nil, list all imports.  SOURCE can be a buffer or a
+list of file names or directories; the latter are searched
+recursively."
+  (let ((buffer (current-buffer)))
+    (with-temp-buffer
+      (let* ((temp (current-buffer))
+             (status (if (bufferp source)
+                         (with-current-buffer source
+                           (call-process-region (point-min) (point-max)
+                                                python-interpreter
+                                                nil (list temp nil) nil
+                                                "-c" python--list-imports
+                                                (or name "")))
+                       (with-current-buffer buffer
+                         (apply #'call-process
+                                python-interpreter
+                                nil (list temp nil) nil
+                                "-c" python--list-imports
+                                (or name "")
+                                (mapcar #'file-local-name source)))))
+             lines)
+        (unless (eq 0 status)
+          (error "%s exited with status %s (maybe isort is missing?)"
+                 python-interpreter status))
+        (goto-char (point-min))
+        (while (not (eobp))
+	  (push (buffer-substring-no-properties (point) (pos-eol))
+                lines)
+	  (forward-line 1))
+        (nreverse lines)))))
+
+(defun python--query-import (name source prompt)
+  "Read a Python import statement defining NAME.
+A list of candidates is produced by `python--list-imports' using
+the NAME and SOURCE arguments.  An interactive query, using the
+PROMPT string, is made unless there is a single candidate."
+  (let* ((cands (python--list-imports name source))
+         ;; Don't use DEF argument of `completing-read', so it is able
+         ;; to return the empty string.
+         (minibuffer-default-add-function
+          (lambda ()
+            (setq minibuffer-default (with-minibuffer-selected-window
+                                       (thing-at-point 'symbol)))))
+         (statement (cond ((and name (length= cands 1))
+                           (car cands))
+                          (prompt
+                           (completing-read prompt
+                                            (or cands python-import-history)
+                                            nil nil nil
+                                            'python-import-history)))))
+    (unless (string-empty-p statement)
+      statement)))
+
+(defun python--do-isort (&rest args)
+  "Edit the current buffer using isort called with ARGS.
+Return non-nil if the buffer was actually modified."
+  (let ((buffer (current-buffer)))
+    (with-temp-buffer
+      (let ((temp (current-buffer)))
+        (with-current-buffer buffer
+          (let ((status (apply #'call-process-region
+                               (point-min) (point-max)
+                               python-interpreter
+                               nil (list temp nil) nil
+                               "-m" "isort" "-" args))
+                (tick (buffer-chars-modified-tick)))
+            (unless (eq 0 status)
+              (error "%s exited with status %s (maybe isort is missing?)"
+                     python-interpreter status))
+            (replace-buffer-contents temp)
+            (not (eq tick (buffer-chars-modified-tick)))))))))
+
+;;;###autoload
+(defun python-add-import (name)
+  "Add an import statement to the current buffer.
+
+Interactively, ask for an import statement using all imports
+found in the current project as suggestions.  With a prefix
+argument, restrict the suggestions to imports defining the symbol
+at point.  If there is only one such suggestion, act without
+asking.
+
+When calling from Lisp, use a non-nil NAME to restrict the
+suggestions to imports defining NAME."
+  (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
+  (when-let ((statement (python--query-import name
+                                              (python--import-sources)
+                                              "Add import: ")))
+    (if (python--do-isort "--add" statement)
+        (message "Added `%s'" statement)
+      (message "(No changes in Python imports needed)"))))
+
+;;;###autoload
+(defun python-import-symbol-at-point ()
+  "Add an import statement for the symbol at point to the current buffer.
+This works like `python-add-import', but with the opposite
+behavior regarding the prefix argument."
+  (interactive nil)
+  (python-add-import (unless current-prefix-arg (thing-at-point 'symbol))))
+
+;;;###autoload
+(defun python-remove-import (name)
+  "Remove an import statement from the current buffer.
+
+Interactively, ask for an import statement to remove, displaying
+the imports of the current buffer as suggestions.  With a prefix
+argument, restrict the suggestions to imports defining the symbol
+at point.  If there is only one such suggestion, act without
+asking."
+  (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
+  (when-let ((statement (python--query-import name (current-buffer)
+                                              "Remove import: ")))
+    (if (python--do-isort "--rm" statement)
+        (message "Removed `%s'" statement)
+      (message "(No changes in Python imports needed)"))))
+
+;;;###autoload
+(defun python-sort-imports ()
+  "Sort Python imports in the current buffer."
+  (interactive)
+  (if (python--do-isort)
+      (message "Sorted imports")
+    (message "(No changes in Python imports needed)")))
+
+;;;###autoload
+(defun python-fix-imports ()
+  "Add missing imports and remove unused ones from the current buffer."
+  (interactive)
+  (let ((buffer (current-buffer))
+        undefined unused add remove)
+    ;; Compute list of undefined and unused names
+    (with-temp-buffer
+      (let ((temp (current-buffer)))
+        (with-current-buffer buffer
+          (call-process-region (point-min) (point-max)
+                               python-interpreter
+                               nil temp nil
+                               "-m" "pyflakes"))
+        (goto-char (point-min))
+        (when (looking-at-p ".* No module named pyflakes$")
+          (error "%s couldn't find pyflakes" python-interpreter))
+        (while (not (eobp))
+          (cond ((looking-at ".* undefined name '\\([^']+\\)'$")
+                 (push (match-string 1) undefined))
+                ((looking-at ".*'\\([^']+\\)' imported but unused$")
+                 (push (match-string 1) unused)))
+	  (forward-line 1))))
+    ;; Compute imports to be added
+    (dolist (name (seq-uniq undefined))
+      (when-let ((statement (python--query-import name
+                                                  (python--import-sources)
+                                                  (format "\
+Add import for undefined name `%s' (empty to skip): "
+                                                          name))))
+        (push statement add)))
+    ;; Compute imports to be removed
+    (dolist (name (seq-uniq unused))
+      ;; The unused imported names, as provided by pyflakes, are of
+      ;; the form "module.var" or "module.var as alias", independently
+      ;; of style of import statement used.
+      (let* ((filter
+              (lambda (statement)
+                (string= name
+                         (thread-last
+                           statement
+                           (replace-regexp-in-string "^\\(from\\|import\\) " "")
+                           (replace-regexp-in-string " import " ".")))))
+             (statements (seq-filter filter (python--list-imports nil buffer))))
+        (when (length= statements 1)
+          (push (car statements) remove))))
+    ;; Edit buffer and say goodbye
+    (if (not (or add remove))
+        (message "(No changes in Python imports needed)")
+      (apply #'python--do-isort
+             (append (mapcan (lambda (x) (list "--add" x)) add)
+                     (mapcan (lambda (x) (list "--rm" x)) remove)))
+      (message "%s" (concat (when add "Added ")
+                            (when add (string-join add ", "))
+                            (when remove (if add " and removed " "Removed "))
+                            (when remove (string-join remove ", " )))))))
+
+
+;;; Major mode
 (defun python-electric-pair-string-delimiter ()
   (when (and electric-pair-mode
              (memq last-command-event '(?\" ?\'))
@@ -5851,17 +6196,19 @@ REPORT-FN is Flymake's callback function."
 
   (add-to-list
    'hs-special-modes-alist
-   '(python-mode
-     "\\s-*\\_<\\(?:def\\|class\\)\\_>"
+   `(python-mode
+     ,python-nav-beginning-of-block-regexp
      ;; Use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  This way parens at end of defun are properly hidden.
      ""
      "#"
      python-hideshow-forward-sexp-function
-     nil))
+     nil
+     python-nav-beginning-of-block
+     python-hideshow-find-next-block
+     python-info-looking-at-beginning-of-block))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
-  (setq-local outline-heading-end-regexp ":[^\n]*\n")
   (setq-local outline-level
               (lambda ()
                 "`outline-level' function for Python mode."
@@ -5877,6 +6224,64 @@ REPORT-FN is Flymake's callback function."
     (python-indent-guess-indent-offset))
 
   (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
+
+;;; Completion predicates for M-x
+;; Commands that only make sense when editing Python code
+(dolist (sym '(python-add-import
+               python-check
+               python-fill-paragraph
+               python-fix-imports
+               python-indent-dedent-line
+               python-indent-dedent-line-backspace
+               python-indent-guess-indent-offset
+               python-indent-shift-left
+               python-indent-shift-right
+               python-mark-defun
+               python-nav-backward-block
+               python-nav-backward-defun
+               python-nav-backward-sexp
+               python-nav-backward-sexp-safe
+               python-nav-backward-statement
+               python-nav-backward-up-list
+               python-nav-beginning-of-block
+               python-nav-beginning-of-statement
+               python-nav-end-of-block
+               python-nav-end-of-defun
+               python-nav-end-of-statement
+               python-nav-forward-block
+               python-nav-forward-defun
+               python-nav-forward-sexp
+               python-nav-forward-sexp-safe
+               python-nav-forward-statement
+               python-nav-if-name-main
+               python-nav-up-list
+               python-remove-import
+               python-shell-send-buffer
+               python-shell-send-defun
+               python-shell-send-statement
+               python-sort-imports))
+  (put sym 'completion-predicate #'python--completion-predicate))
+
+(defun python-shell--completion-predicate (_ buffer)
+  (provided-mode-derived-p
+   (buffer-local-value 'major-mode buffer)
+   'python-mode 'inferior-python-mode))
+
+;; Commands that only make sense in the Python shell or when editing
+;; Python code.
+(dolist (sym '(python-describe-at-point
+               python-eldoc-at-point
+               python-shell-completion-native-toggle
+               python-shell-completion-native-turn-off
+               python-shell-completion-native-turn-on
+               python-shell-completion-native-turn-on-maybe
+               python-shell-font-lock-cleanup-buffer
+               python-shell-font-lock-toggle
+               python-shell-font-lock-turn-off
+               python-shell-font-lock-turn-on
+               python-shell-package-enable
+               python-shell-completion-complete-or-indent  ))
+  (put sym 'completion-predicate #'python-shell--completion-predicate))
 
 (provide 'python)
 

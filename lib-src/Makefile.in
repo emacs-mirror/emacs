@@ -306,8 +306,8 @@ $(DESTDIR)${archlibdir}: all
 	$(info $ )
 	$(info Installing utilities run internally by Emacs.)
 	umask 022 && ${MKDIR_P} "$(DESTDIR)${archlibdir}"
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
-	if [ "$$exp_archlibdir" != "`/bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P` && \
+	if [ "$$exp_archlibdir" != "`pwd -P`" ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file \
 	      "$(DESTDIR)${archlibdir}/$$file" || exit; \
@@ -333,8 +333,8 @@ $(DESTDIR)${archlibdir}: all
 	 chmod u=rwx,g=rwx,o=rx "$(DESTDIR)${gamedir}"
     endif
   endif
-	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && /bin/pwd` && \
-	if [ "$$exp_archlibdir" != "`cd ${srcdir} && /bin/pwd`" ]; then \
+	exp_archlibdir=`cd "$(DESTDIR)${archlibdir}" && pwd -P` && \
+	if [ "$$exp_archlibdir" != "`cd ${srcdir} && pwd -P`" ]; then \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_SCRIPT) ${srcdir}/$$file \
 	      "$(DESTDIR)${archlibdir}/$$file" || exit; \

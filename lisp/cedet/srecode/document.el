@@ -496,7 +496,7 @@ It is assumed that the comment occurs just after VAR-IN."
 
     ;; Find any existing doc strings.
     (goto-char (semantic-tag-end var-in))
-    (skip-syntax-forward "-" (point-at-eol))
+    (skip-syntax-forward "-" (line-end-position))
     (let ((lextok (semantic-doc-snarf-comment-for-tag 'lex))
 	  )
 
@@ -521,7 +521,7 @@ It is assumed that the comment occurs just after VAR-IN."
     (end-of-line)
     (delete-horizontal-space)
     (move-to-column comment-column t)
-    (when (< (point) (point-at-eol)) (end-of-line))
+    (when (< (point) (line-end-position)) (end-of-line))
 
     ;; Perform the insertion
     (let ((srecode-semantic-selected-tag var-in)
@@ -819,7 +819,7 @@ not account for verb parts."
   "Does TAG fit on one line with space on the end?"
   (save-excursion
     (semantic-go-to-tag tag)
-    (and (<= (semantic-tag-end tag) (point-at-eol))
+    (and (<= (semantic-tag-end tag) (line-end-position))
 	 (goto-char (semantic-tag-end tag))
 	 (< (current-column) 70))))
 

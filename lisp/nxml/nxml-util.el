@@ -65,12 +65,6 @@ This is the inverse of `nxml-make-namespace'."
             (nxml-degrade ,context ,error-symbol))))
     `(progn ,@body)))
 
-(defmacro nxml-with-invisible-motion (&rest body)
-  "Evaluate body without calling any point motion hooks."
-  (declare (indent 0) (debug t))
-  `(let ((inhibit-point-motion-hooks t))
-     ,@body))
-
 (defun nxml-display-file-parse-error (err)
   (let* ((filename (nth 1 err))
 	 (buffer (find-file-noselect filename))

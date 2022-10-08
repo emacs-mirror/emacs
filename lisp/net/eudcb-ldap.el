@@ -38,14 +38,6 @@
 
 ;;{{{      Internal cooking
 
-(defalias 'eudc-ldap-get-host-parameter
-  (if (fboundp 'ldap-get-host-parameter)
-      #'ldap-get-host-parameter
-    (lambda (host parameter)
-      "Get the value of PARAMETER for HOST in `ldap-host-parameters-alist'."
-      (plist-get (cdr (assoc host ldap-host-parameters-alist))
-		 parameter))))
-
 (defvar eudc-ldap-attributes-translation-alist
   '((name . sn)
     (firstname . givenname)
@@ -209,7 +201,7 @@ attribute names are returned.  Default to `person'."
 
 (defun eudc-ldap-check-base ()
   "Check if the current LDAP server has a configured search base."
-  (unless (or (eudc-ldap-get-host-parameter eudc-server 'base)
+  (unless (or (ldap-get-host-parameter eudc-server 'base)
 	      ldap-default-base
               (null (y-or-n-p "No search base defined.  Configure it now?")))
     ;; If the server is not in ldap-host-parameters-alist we add it for the
@@ -223,6 +215,8 @@ attribute names are returned.  Default to `person'."
 
 
 (eudc-register-protocol 'ldap)
+
+(define-obsolete-function-alias 'eudc-ldap-get-host-parameter #'ldap-get-host-parameter "29.1")
 
 (provide 'eudcb-ldap)
 

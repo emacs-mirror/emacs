@@ -30,7 +30,8 @@ information how to write modules and use this header file.
 #include <stdint.h>
 #include <time.h>
 
-#ifndef __cplusplus
+#if ((defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 202311 \
+     && !defined __bool_true_false_are_defined && !defined __cplusplus)
 #include <stdbool.h>
 #endif
 

@@ -202,12 +202,6 @@ If nil, don't display a mark on the fringe."
   :set #'fringe-custom-set-bitmap
   :version "29.1")
 
-;; FIXME: No longer used.  Should be declared obsolete or removed.
-(defface bookmark-menu-heading
-  '((t (:inherit font-lock-type-face)))
-  "Face used to highlight the heading in bookmark menu buffers."
-  :version "22.1")
-
 (defface bookmark-face
   '((((class grayscale)
       (background light))
@@ -501,7 +495,7 @@ In other words, return all information but the name."
 (defun bookmark--set-fringe-mark ()
   "Apply a colorized overlay to the bookmarked location.
 See user option `bookmark-fringe-mark'."
-  (let ((bm (make-overlay (point-at-bol) (1+ (point-at-bol)))))
+  (let ((bm (make-overlay (pos-bol) (1+ (pos-bol)))))
     (overlay-put bm 'category 'bookmark)
     (overlay-put bm 'evaporate t)
     (overlay-put bm 'before-string
@@ -524,7 +518,7 @@ See user option `bookmark-fringe-mark'."
             (setq overlays
                   (save-excursion
                     (goto-char pos)
-                    (overlays-in (point-at-bol) (1+ (point-at-bol)))))
+                    (overlays-in (pos-bol) (1+ (pos-bol)))))
             (while (and (not found) (setq temp (pop overlays)))
               (when (eq 'bookmark (overlay-get temp 'category))
                 (delete-overlay (setq found temp))))))))))
@@ -598,9 +592,26 @@ NAME is a suggested name for the constructed bookmark.  It can be nil
 in which case a default heuristic will be used.  The function can also
 equivalently just return ALIST without NAME.")
 
+(defcustom bookmark-inhibit-context-functions nil
+  "List of functions to call before making a bookmark record.
+The functions take `buffer-file-name' as argument.  If any of
+these functions returns non-nil, the bookmark does not record
+context strings from the current buffer."
+  :type 'hook
+  :version "29.1")
+
 (defun bookmark-make-record ()
   "Return a new bookmark record (NAME . ALIST) for the current location."
-  (let ((record (funcall bookmark-make-record-function)))
+  (let* ((bookmark-search-size
+          ;; If we're in a buffer that's visiting an encrypted file,
+          ;; don't include any context in the bookmark file, because
+          ;; that would leak (possibly secret) data.
+          (if (and buffer-file-name
+                   (run-hook-with-args-until-success
+                    'bookmark-inhibit-context-functions buffer-file-name))
+              0
+            bookmark-search-size))
+         (record (funcall bookmark-make-record-function)))
     ;; Set up default name if the function does not provide one.
     (unless (stringp (car record))
       (if (car record) (push nil record))
@@ -1020,7 +1031,7 @@ the list of bookmarks.)"
   "Kill from point to end of line.
 If optional arg NEWLINE-TOO is non-nil, delete the newline too.
 Does not affect the kill ring."
-  (let ((eol (line-end-position)))
+  (let ((eol (pos-eol)))
     (delete-region (point) eol)
     (when (and newline-too (= (following-char) ?\n))
       (delete-char 1))))
@@ -1227,7 +1238,7 @@ and then show any annotations for this bookmark."
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
   (when bookmark-fringe-mark
-    (let ((overlays (overlays-in (point-at-bol) (1+ (point-at-bol))))
+    (let ((overlays (overlays-in (pos-bol) (1+ (pos-bol))))
           temp found)
       (while (and (not found) (setq temp (pop overlays)))
         (when (eq 'bookmark (overlay-get temp 'category))
@@ -1447,7 +1458,7 @@ name."
   (let ((final-new-name
          (or new-name   ; use second arg, if non-nil
              (read-from-minibuffer
-              "New name: "
+              (format-prompt "Rename \"%s\" to" nil old-name)
               nil
               (define-keymap
                 :parent minibuffer-local-map

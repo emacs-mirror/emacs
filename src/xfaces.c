@@ -3052,6 +3052,15 @@ The value is TO.  */)
 }
 
 
+#define HANDLE_INVALID_NIL_VALUE(A,F)					\
+  if (NILP (value))							\
+    {									\
+      add_to_log ("Warning: setting attribute `%s' of face `%s': nil "	\
+		  "value is invalid, use `unspecified' instead.", A, F); \
+      /* Compatibility with 20.x.  */					\
+      value = Qunspecified;						\
+    }
+
 DEFUN ("internal-set-lisp-face-attribute", Finternal_set_lisp_face_attribute,
        Sinternal_set_lisp_face_attribute, 3, 4, 0,
        doc: /* Set attribute ATTR of FACE to VALUE.
@@ -3390,9 +3399,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCforeground))
     {
-      /* Compatibility with 20.x.  */
-      if (NILP (value))
-	value = Qunspecified;
+      HANDLE_INVALID_NIL_VALUE (QCforeground, face);
       if (!UNSPECIFIEDP (value)
 	  && !IGNORE_DEFFACE_P (value)
 	  && !RESET_P (value))
@@ -3409,9 +3416,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCdistant_foreground))
     {
-      /* Compatibility with 20.x.  */
-      if (NILP (value))
-	value = Qunspecified;
+      HANDLE_INVALID_NIL_VALUE (QCdistant_foreground, face);
       if (!UNSPECIFIEDP (value)
 	  && !IGNORE_DEFFACE_P (value)
 	  && !RESET_P (value))
@@ -3428,9 +3433,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCbackground))
     {
-      /* Compatibility with 20.x.  */
-      if (NILP (value))
-	value = Qunspecified;
+      HANDLE_INVALID_NIL_VALUE (QCbackground, face);
       if (!UNSPECIFIEDP (value)
 	  && !IGNORE_DEFFACE_P (value)
 	  && !RESET_P (value))
@@ -6012,8 +6015,7 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 #ifdef HAVE_WINDOW_SYSTEM
   struct face *default_face;
   struct frame *f;
-  Lisp_Object stipple, underline, overline, strike_through, box, temp_spec;
-  Lisp_Object temp_extra, antialias;
+  Lisp_Object stipple, underline, overline, strike_through, box;
 
   eassert (FRAME_WINDOW_P (cache->f));
 
@@ -6055,28 +6057,8 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 	    emacs_abort ();
 	}
       if (! FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
-	{
-	  /* We want attrs to allow overriding most elements in the
-	     spec (IOW, to start out as an empty font spec), but
-	     preserve the antialiasing attribute.  (bug#17973,
-	     bug#37473).  */
-	  temp_spec = Ffont_spec (0, NULL);
-	  temp_extra = AREF (attrs[LFACE_FONT_INDEX],
-			     FONT_EXTRA_INDEX);
-	  /* If `:antialias' wasn't specified, keep it unspecified
-	     instead of changing it to nil.  */
-
-	  if (CONSP (temp_extra))
-	    antialias = Fassq (QCantialias, temp_extra);
-	  else
-	    antialias = Qnil;
-
-	  if (FONTP (attrs[LFACE_FONT_INDEX]) && !NILP (antialias))
-	    Ffont_put (temp_spec, QCantialias, Fcdr (antialias));
-
-	  attrs[LFACE_FONT_INDEX]
-	    = font_load_for_lface (f, attrs, temp_spec);
-	}
+	attrs[LFACE_FONT_INDEX]
+	  = font_load_for_lface (f, attrs, attrs[LFACE_FONT_INDEX]);
       if (FONT_OBJECT_P (attrs[LFACE_FONT_INDEX]))
 	{
 	  face->font = XFONT_OBJECT (attrs[LFACE_FONT_INDEX]);

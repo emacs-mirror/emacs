@@ -220,8 +220,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map."
 Load the compiled code when finished.
 
 Use `emacs-lisp-byte-compile-and-load' in combination with
-`native-comp-deferred-compilation' set to t to achieve asynchronous
-native compilation."
+`inhibit-automatic-native-compilation' set to nil to achieve
+asynchronous native compilation."
   (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (load (native-compile buffer-file-name)))
@@ -383,7 +383,9 @@ be used instead.
                      (setq sexp nil))
                     (`(lambda ,args . ,body)
                      (elisp--local-variables-1
-                      (append (remq '&optional (remq '&rest args)) vars)
+                      (let ((args (if (listp args) args)))
+                        ;; FIXME: Exit the loop if witness is in args.
+                        (append (remq '&optional (remq '&rest args)) vars))
                       (car (last body))))
                     (`(condition-case ,_ ,e) (elisp--local-variables-1 vars e))
                     (`(condition-case ,v ,_ . ,catches)
@@ -1644,6 +1646,7 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
+        (edebugging edebug-all-defs)
         elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
@@ -1668,8 +1671,9 @@ Return the result of evaluation."
                          (elisp--eval-defun-1
                           (macroexpand form)))))
 	      (print-length eval-expression-print-length)
-	      (print-level eval-expression-print-level))
-          (eval-region beg end standard-output
+	      (print-level eval-expression-print-level)
+              (should-print (if (not edebugging) standard-output)))
+          (eval-region beg end should-print
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
                          ;; will make eval-region return.
@@ -1899,7 +1903,7 @@ or elsewhere, return a 1-line docstring."
           ;; go to the arg after `&rest'.
           (if (and key-have-value
                    (save-excursion
-                     (not (re-search-forward ":.*" (point-at-eol) t)))
+                     (not (re-search-forward ":.*" (line-end-position) t)))
                    (string-match "&rest \\([^ ()]*\\)" args))
               (setq index nil ; Skip next block based on positional args.
                     start (match-beginning 1)

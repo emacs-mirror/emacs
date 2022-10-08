@@ -72,6 +72,9 @@ HOST is the hostname of an LDAP server (with an optional TCP port number
 appended to it using a colon as a separator).
 PROPn and VALn are property/value pairs describing parameters for the server.
 Valid properties include:
+  `auth-source' specifies whether or not to look up, via the
+  `auth-source' library, options which are not otherwise provided
+  in this list.  See `ldap-search-internal'.
   `binddn' is the distinguished name of the user to bind as
     (in RFC 1779 syntax).
   `passwd' is the password to use for simple authentication.
@@ -90,6 +93,11 @@ Valid properties include:
 		       (string :tag "Host name")
 		       (checklist :inline t
 				  :greedy t
+				  (list
+				   :tag "Use auth-source"
+				   :inline t
+				   (const :tag "Use auth-source" auth-source)
+				   boolean)
 				  (list
 				   :tag "Search Base"
 				   :inline t
@@ -694,7 +702,7 @@ an alist of attribute/value pairs."
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
-	  (setq dn (buffer-substring (point) (point-at-eol)))
+          (setq dn (buffer-substring (point) (line-end-position)))
 	  (forward-line 1)
           (while (looking-at "^\\([A-Za-z][-A-Za-z0-9]*\
 \\|[0-9]+\\(?:\\.[0-9]+\\)*\\)\\(;[-A-Za-z0-9]+\\)*[=:\t ]+\

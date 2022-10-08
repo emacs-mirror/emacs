@@ -24,8 +24,8 @@ input.
 
   GNU Emacs is primarily designed for use with the keyboard.  While it
 is possible to use the mouse to issue editing commands through the
-menu bar and tool bar, that is not as efficient as using the keyboard.
-Therefore, this manual mainly documents how to edit with the keyboard.
+menu bar and tool bar, that is usually not as efficient as using the
+keyboard.
 
 @cindex control character
   Keyboard input into Emacs is based on a heavily-extended version of
@@ -66,6 +66,10 @@ the next character.  This feature is useful on certain text terminals
 where the @key{Meta} key does not function reliably.
 
   Emacs supports 3 additional modifier keys, see @ref{Modifier Keys}.
+
+  Emacs has extensive support for using mouse buttons, mouse wheels
+and other pointing devices like touchpads and touch screens.
+@xref{Mouse Input}, for details.
 
 @cindex keys stolen by window manager
 @cindex window manager, keys stolen by
@@ -134,6 +138,47 @@ displays a list of the commands starting with that prefix.  The sole
 exception to this rule is @key{ESC}: @kbd{@key{ESC} C-h} is equivalent
 to @kbd{C-M-h}, which does something else entirely.  You can, however,
 use @key{F1} to display a list of commands starting with @key{ESC}.
+
+@node Mouse Input
+@section Mouse Input
+@cindex mouse input
+
+  By default, Emacs supports all the normal mouse actions like setting
+the cursor by clicking on the left mouse button, and selecting an area
+by dragging the mouse pointer.  All mouse actions can be used to bind
+commands in the same way you bind them to keyboard events
+(@pxref{Keys}).  This section provides a general overview of using the
+mouse in Emacs; @pxref{Mouse Commands}, and the sections that follow
+it, for more details about mouse commands in Emacs.
+
+  When you click the left mouse button, Emacs receives a
+@code{mouse-1} event.  To see what command is bound to that event, you
+can type @kbd{C-h c} and then press the left mouse button.  Similarly,
+the middle mouse button is @code{mouse-2} and the right mouse button is
+@code{mouse-3}.  If you have a mouse with a wheel, the wheel events
+are commonly bound to either @code{wheel-down} or @code{wheel-up}, or
+@code{mouse-4} and @code{mouse-5}, but that depends on the operating
+system configuration.
+
+  In general, legacy X systems and terminals (@pxref{Text-Only Mouse})
+will report @code{mouse-4} and @code{mouse-5}, while all other systems
+will report @code{wheel-down} and @code{wheel-up}.
+
+  Some mice also have a horizontal scroll wheel, and touchpads usually
+support scrolling horizontally as well.  These events are reported as
+@code{wheel-left} and @code{wheel-right} on all systems other than
+terminals and legacy X systems, where they are @code{mouse-6} and
+@code{mouse-7}.
+
+  You can also combine keyboard modifiers with mouse events, so you
+can bind a special command that triggers when you, for instance, holds
+down the Meta key and then uses the middle mouse button.  In that
+case, the event name will be @code{M-mouse-2}.
+
+@cindex touchscreen events
+  On some systems, you can also bind commands for handling touch
+screen events.  In that case, the events are called
+@code{touchscreen-update} and @code{touchscreen-end}.
 
 @node Commands
 @section Keys and Commands

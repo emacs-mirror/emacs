@@ -407,7 +407,7 @@ Name of the physical monitor as @var{string}.
 
 @item source
 Source of the multi-monitor information as @var{string};
-e.g., @samp{XRandr} or @samp{Xinerama}.
+e.g., @samp{XRandR 1.5}, @samp{XRandr} or @samp{Xinerama}.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.
@@ -2997,17 +2997,25 @@ explicit focus notifications.)
 @end defun
 
 @defvar after-focus-change-function
-This function is an extension point that code can use to receive a
-notification that focus has changed.
+This function is called with no arguments when Emacs notices that a
+frame may have gotten or lost focus.  Focus events are delivered
+asynchronously, and may not be delivered in the expected order, so
+code that wants to do something depending on the state of focused
+frames have go through all the frames and check.
 
-This function is called with no arguments when Emacs notices that the
-set of focused frames may have changed.  Code wanting to do something
-when frame focus changes should use @code{add-function} to add a
-function to this one, and in this added function, re-scan the set of
-focused frames, calling @code{frame-focus-state} to retrieve the last
-known focus state of each frame.  Focus events are delivered
-asynchronously, and frame input focus according to an external system
-may not correspond to the notion of the Emacs selected frame.
+For instance, here's a simple example function that sets the
+background color based on whether the frame has focus or not:
+
+@lisp
+(add-function :after after-focus-change-function
+              #'my-change-background)
+(defun my-change-background ()
+  (dolist (frame (frame-list))
+    (pcase (frame-focus-state frame)
+      (`t (set-face-background 'default "black" frame))
+      (`nil (set-face-background 'default "#404040" frame)))))
+@end lisp
+
 Multiple frames may appear to have input focus simultaneously due to
 focus event delivery differences, the presence of multiple Emacs
 terminals, and other factors, and code should be robust in the face of

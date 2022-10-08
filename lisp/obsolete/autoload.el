@@ -713,7 +713,7 @@ autoload definitions.  When called from Lisp, use the existing
 value of `generated-autoload-file'.  If any Lisp file binds
 `generated-autoload-file' as a file-local variable, write its
 autoloads into the specified file instead."
-  (declare (obsolete make-directory-autoloads "28.1"))
+  (declare (obsolete loaddefs-generate "29.1"))
   (interactive "DUpdate autoloads from directory: ")
   (make-directory-autoloads
    dirs

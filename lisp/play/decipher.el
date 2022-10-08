@@ -445,7 +445,7 @@ The most useful commands are:
       (let ((font-lock-fontify-region-function #'ignore))
         ;; insert-and-inherit will pick the right face automatically
         (while (search-forward-regexp "^:" nil t)
-          (setq bound (point-at-eol))
+          (setq bound (line-end-position))
           (while (search-forward cipher-string bound 'end)
             (decipher-insert plain-char)))))))
 

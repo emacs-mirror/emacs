@@ -1204,7 +1204,7 @@ case interactively), the level will be updated by this command."
   (gnus-group-setup-buffer)
   (gnus-update-format-specifications nil 'group 'group-mode)
   (let ((case-fold-search nil)
-	(props (text-properties-at (point-at-bol)))
+        (props (text-properties-at (line-beginning-position)))
 	(empty (= (point-min) (point-max)))
 	(group (gnus-group-group-name))
 	number)
@@ -1717,31 +1717,29 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 	  (setq mode-string (substring mode-string 0 (- max-len 4))))
 	(prog1
 	    (setq mode-line-buffer-identification
-		  (gnus-mode-line-buffer-identification
-		   (list (propertize mode-string
-				     'face 'mode-line-buffer-id))))
+		  (gnus-mode-line-buffer-identification (list mode-string)))
 	  (set-buffer-modified-p modified))))))
 
 (defun gnus-group-group-name ()
   "Get the name of the newsgroup on the current line."
-  (let ((group (get-text-property (point-at-bol) 'gnus-group)))
+  (let ((group (get-text-property (line-beginning-position) 'gnus-group)))
     (cond ((stringp group) group)
           (group (symbol-name group)))))
 
 (defun gnus-group-group-level ()
   "Get the level of the newsgroup on the current line."
-  (get-text-property (point-at-bol) 'gnus-level))
+  (get-text-property (line-beginning-position) 'gnus-level))
 
 (defun gnus-group-group-indentation ()
   "Get the indentation of the newsgroup on the current line."
-  (or (get-text-property (point-at-bol) 'gnus-indentation)
+  (or (get-text-property (line-beginning-position) 'gnus-indentation)
       (and gnus-group-indentation-function
 	   (funcall gnus-group-indentation-function))
       ""))
 
 (defun gnus-group-group-unread ()
   "Get the number of unread articles of the newsgroup on the current line."
-  (get-text-property (point-at-bol) 'gnus-unread))
+  (get-text-property (line-beginning-position) 'gnus-unread))
 
 (defun gnus-group-new-mail (group)
   (if (nnmail-new-mail-p group)
@@ -2095,14 +2093,14 @@ be permanent."
 				(looking-at "[][\C-@-*,/;-@\\^`{-\C-?]")))
 		       (prog1 t
 			 (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-					      (point-at-bol))))
+                                              (line-beginning-position))))
 		  (and (looking-at "[][\C-@-\t\v-*,/;-@\\^`{-\C-?]*$")
 		       (prog1 t
 			 (skip-chars-backward "][\C-@-\t\v-*,/;-@\\^`{-\C-?")
 			 (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-					      (point-at-bol))))
+                                              (line-beginning-position))))
 		  (string-match "\\`[][\C-@-\t\v-*,/;-@\\^`{-\C-?]*\\'"
-				(buffer-substring (point-at-bol) (point))))
+                                (buffer-substring (line-beginning-position) (point))))
 	      (when (looking-at regexp)
 		(match-string 1))
 	    (let (group distance)
@@ -2111,7 +2109,7 @@ be permanent."
 		      distance (- (match-beginning 1) (match-beginning 0))))
 	      (skip-chars-backward "][\C-@-\t\v-*,/;-@\\^`{-\C-?")
 	      (skip-chars-backward "^][\C-@-\t\v-*,/;-@\\^`{-\C-?"
-				   (point-at-bol))
+                                   (line-beginning-position))
 	      (if (looking-at regexp)
 		  (if (and group (<= distance (- start (match-end 0))))
 		      group
@@ -2423,44 +2421,37 @@ the ephemeral group."
                                    (regexp-quote address)
                                    "\\(?:\\'\\|[ ,>]\\)"))
                (delim (concat "^" message-unix-mail-delimiter)))
-          (let ((coding-system-for-write 'binary)
-                (coding-system-for-read 'binary))
-            (with-temp-file tmpfile
-              (mm-disable-multibyte)
-              (dolist (id ids)
-                (let ((file (expand-file-name id (locate-user-emacs-file
-                                                  "debbugs-cache"))))
-                  (if (and (not gnus-plugged)
-                           (file-exists-p file))
-                      (insert-file-contents file)
-                    ;; Pass non-nil VISIT to avoid errors with non-nil
-                    ;; `url-automatic-caching' (bug#26063, bug#29008)
-                    ;; and immediately unvisit.
-                    ;; FIXME: This masks real errors!
-                    (url-insert-file-contents (format mbox-url id) t)
-                    (setq buffer-file-name nil))))
-	      (goto-char (point-min))
-              ;; Throw an informative error early instead of passing nonsense
-              ;; to `gnus-group-read-ephemeral-group' (bug#36433).
-              (unless (save-excursion (re-search-forward delim nil t))
-                (error "Invalid mbox format for bug IDs: %s"
-                       (string-join ids ", ")))
-              (while (re-search-forward delim nil t)
-                (narrow-to-region (point)
-                                  (if (search-forward "\n\n" nil t)
-                                      (1- (point))
-                                    (point-max)))
-                (unless (string-match-p address-re
-                                        (concat (message-fetch-field "to") " "
-                                                (message-fetch-field "cc")))
-                  (goto-char (point-min))
-                  (if (not (re-search-forward "^To:" nil t))
-                      (insert "To: " address "\n")
-		    (message-next-header)
-		    (skip-chars-backward "\t\n ")
-                    (insert ", " address)))
-                (goto-char (point-max))
-                (widen))))
+          (with-temp-file tmpfile
+            (mm-disable-multibyte)
+            (dolist (id ids)
+              (let ((file (expand-file-name id (locate-user-emacs-file
+                                                "debbugs-cache"))))
+                (if (and (not gnus-plugged)
+                         (file-exists-p file))
+                    (insert-file-contents-literally file)
+                  (url-insert-file-contents-literally (format mbox-url id)))))
+	    (goto-char (point-min))
+            ;; Throw an informative error early instead of passing nonsense
+            ;; to `gnus-group-read-ephemeral-group' (bug#36433).
+            (unless (save-excursion (re-search-forward delim nil t))
+              (error "Invalid mbox format for bug IDs: %s"
+                     (string-join ids ", ")))
+            (while (re-search-forward delim nil t)
+              (narrow-to-region (point)
+                                (if (search-forward "\n\n" nil t)
+                                    (1- (point))
+                                  (point-max)))
+              (unless (string-match-p address-re
+                                      (concat (message-fetch-field "to") " "
+                                              (message-fetch-field "cc")))
+                (goto-char (point-min))
+                (if (not (re-search-forward "^To:" nil t))
+                    (insert "To: " address "\n")
+		  (message-next-header)
+		  (skip-chars-backward "\t\n ")
+                  (insert ", " address)))
+              (goto-char (point-max))
+              (widen)))
           (gnus-group-read-ephemeral-group
            (concat "nndoc+ephemeral:bug#" (string-join ids ","))
            `(nndoc ,tmpfile
@@ -2660,6 +2651,7 @@ If EXCLUDE-GROUP, do not go to that group."
     (and best-point (gnus-group-group-name))))
 
 ;; Is there something like an after-point-motion-hook?
+;; FIXME: There's `cursor-sensor-mode's `cursor-sensor-functions' property.
 ;; (inhibit-point-motion-hooks?).  Is there a tool-bar-update function?
 
 ;; (defun gnus-group-menu-bar-update ()
@@ -3948,10 +3940,10 @@ The killed newsgroups can be yanked by using \\[gnus-group-yank-group]."
 	   (count-lines
 	    (progn
 	      (goto-char begin)
-	      (point-at-bol))
+              (line-beginning-position))
 	    (progn
 	      (goto-char end)
-	      (point-at-bol))))))
+              (line-beginning-position))))))
     (goto-char begin)
     (beginning-of-line)			;Important when LINES < 1
     (gnus-group-kill-group lines)))

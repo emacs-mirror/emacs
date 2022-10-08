@@ -5221,16 +5221,15 @@ instead of the current buffer and returns the OBJECT."
   "Point has entered a cell.
 Refresh the menu bar."
   ;; Avoid calling point-motion-hooks recursively.
-  (let ((inhibit-point-motion-hooks t))
-    (force-mode-line-update)
-    (pcase dir
-     ('left
-      (setq table-mode-indicator nil)
-      (run-hooks 'table-point-left-cell-hook))
-     ('entered
-      (setq table-mode-indicator t)
-      (table--warn-incompatibility)
-      (run-hooks 'table-point-entered-cell-hook)))))
+  (force-mode-line-update)
+  (pcase dir
+    ('left
+     (setq table-mode-indicator nil)
+     (run-hooks 'table-point-left-cell-hook))
+    ('entered
+     (setq table-mode-indicator t)
+     (table--warn-incompatibility)
+     (run-hooks 'table-point-entered-cell-hook))))
 
 (defun table--warn-incompatibility ()
   "If called from interactive operation warn the know incompatibilities.

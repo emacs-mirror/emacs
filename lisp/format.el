@@ -440,10 +440,9 @@ a list (ABSOLUTE-FILE-NAME SIZE)."
                                             (file-name-nondirectory file)))))
      (list file fmt)))
   (let (value size old-undo)
-    ;; Record only one undo entry for the insertion.  Inhibit point-motion and
-    ;; modification hooks as with `insert-file-contents'.
-    (let ((inhibit-point-motion-hooks t)
-	  (inhibit-modification-hooks t))
+    ;; Record only one undo entry for the insertion.
+    ;; Inhibit modification hooks as with `insert-file-contents'.
+    (let ((inhibit-modification-hooks t))
       ;; Don't bind `buffer-undo-list' to t here to assert that
       ;; `insert-file-contents' may record whether the buffer was unmodified
       ;; before.
