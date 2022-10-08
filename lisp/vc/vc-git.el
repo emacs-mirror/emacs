@@ -1635,7 +1635,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
         (start-point (when branchp (vc-read-revision
                                     (format-prompt "Start point"
                                                    (car (vc-git-branches)))
-                                    (list dir) 'Git))))
+                                    (list dir) 'Git (car (vc-git-branches))))))
     (and (or (zerop (vc-git-command nil t nil "update-index" "--refresh"))
              (y-or-n-p "Modified files exist.  Proceed? ")
              (user-error (format "Can't create %s with modified files"
