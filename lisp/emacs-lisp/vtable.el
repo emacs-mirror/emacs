@@ -353,6 +353,11 @@ This also updates the displayed table."
     (let* ((cache (vtable--cache table))
            (inhibit-read-only t)
            (keymap (get-text-property (point) 'keymap))
+           (ellipsis (if (vtable-ellipsis table)
+                         (propertize (truncate-string-ellipsis)
+                                     'face (vtable-face table))
+                       ""))
+           (ellipsis-width (string-pixel-width ellipsis))
            (elem (and after-object
                       (assq after-object (car cache))))
            (line (cons object (vtable--compute-cached-line table object))))
@@ -370,7 +375,8 @@ This also updates the displayed table."
         ;; FIXME: We have to adjust colors in lines below this if we
         ;; have :row-colors.
         (vtable--insert-line table line 0
-                             (nth 1 cache) (vtable--spacer table))
+                             (nth 1 cache) (vtable--spacer table)
+                             ellipsis ellipsis-width)
         (add-text-properties start (point) (list 'keymap keymap
                                                  'vtable table)))
       ;; We may have inserted a non-numerical value into a previously
@@ -516,7 +522,8 @@ This also updates the displayed table."
                   (if (> (nth 1 elem) (elt widths index))
                       (concat
                        (vtable--limit-string
-                        pre-computed (- (elt widths index) ellipsis-width))
+                        pre-computed (- (elt widths index)
+                                        (or ellipsis-width 0)))
                        ellipsis)
                     pre-computed))
                  ;; Recompute widths.
@@ -524,7 +531,8 @@ This also updates the displayed table."
                   (if (> (string-pixel-width value) (elt widths index))
                       (concat
                        (vtable--limit-string
-                        value (- (elt widths index) ellipsis-width))
+                        value (- (elt widths index)
+                                 (or ellipsis-width 0)))
                        ellipsis)
                     value))))
                (start (point))
