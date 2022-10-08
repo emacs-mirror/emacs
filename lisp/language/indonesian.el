@@ -34,7 +34,8 @@
               (input-method . "balinese")
               (sample-text . "Balinese (ᬅᬓ᭄ᬱᬭᬩᬮᬶ)	ᬒᬁᬲ᭄ᬯᬲ᭄ᬢ᭄ᬬᬲ᭄ᬢᬸ")
               (documentation . "\
-Balinese language and its script are supported in this language environment.")))
+Balinese language and its script are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Javanese" '((charset unicode)
@@ -43,7 +44,8 @@ Balinese language and its script are supported in this language environment.")))
               (input-method . "javanese")
               (sample-text . "Javanese (ꦲꦏ꧀ꦱꦫꦗꦮ)	ꦲꦭꦺꦴ")
               (documentation . "\
-Javanese language and its script are supported in this language environment.")))
+Javanese language and its script are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Sundanese" '((charset unicode)
@@ -52,7 +54,8 @@ Javanese language and its script are supported in this language environment.")))
               (input-method . "sundanese")
               (sample-text . "Sundanese (ᮃᮊ᮪ᮞᮛᮞᮥᮔ᮪ᮓ)    ᮞᮙ᮪ᮕᮥᮛᮞᮥᮔ᮪")
               (documentation . "\
-Sundanese language and its script are supported in this language environment.")))
+Sundanese language and its script are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Batak" '((charset unicode)
@@ -62,7 +65,8 @@ Sundanese language and its script are supported in this language environment."))
            (sample-text . "Batak (ᯘᯮᯒᯗ᯲ᯅᯗᯂ᯲)    ᯂᯬᯒᯘ᯲ / ᯔᯧᯐᯬᯀᯱᯐᯬᯀᯱ")
            (documentation . "\
 Languages that use the Batak script, such as Karo, Toba, Pakpak, Mandailing
-and Simalungun, are supported in this language environment.")))
+and Simalungun, are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Rejang" '((charset unicode)
@@ -71,7 +75,8 @@ and Simalungun, are supported in this language environment.")))
             (input-method . "rejang")
             (sample-text . "Rejang (ꥆꤰ꥓ꤼꤽ ꤽꥍꤺꥏ)    ꤸꥉꥐꤺꥉꥂꥎ")
             (documentation . "\
-Rejang language and its script are supported in this language environment.")))
+Rejang language and its script are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Makasar" '((charset unicode)
@@ -80,7 +85,8 @@ Rejang language and its script are supported in this language environment.")))
              (input-method . "makasar")
              (sample-text . "Makasar (𑻪𑻢𑻪𑻢)    𑻦𑻤𑻵𑻱")
              (documentation . "\
-Makassarese language and its script Makasar are supported in this language environment.")))
+Makassarese language and its script Makasar are supported in this language environment."))
+ '("Indonesian"))
 
 (set-language-info-alist
  "Buginese" '((charset unicode)
@@ -89,7 +95,8 @@ Makassarese language and its script Makasar are supported in this language envir
               (input-method . "lontara")
               (sample-text . "Buginese (ᨒᨚᨈᨑ)    ᨖᨒᨚ")
               (documentation . "\
-Buginese language and its script Lontara are supported in this language environment.")))
+Buginese language and its script Lontara are supported in this language environment."))
+ '("Indonesian"))
 
 ;; Balinese composition rules
 (let ((consonant            "[\x1B13-\x1B33\x1B45-\x1B4B]")
