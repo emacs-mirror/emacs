@@ -34,8 +34,6 @@
 ;;     of the package if already installed.
 ;; - Allow for ELPA specifications to be respected without      TODO
 ;;   endangering the user with arbitrary code execution
-;; - Allow sending patches to package maintainers               TODO
-;;   * Add `vc-send-patch' to vc.el                             TODO
 
 ;;; Code:
 
@@ -333,6 +331,7 @@ be requested using REV."
                package-alist
                #'string=)))
 
+;;;###autoload
 (defun package-vc-prepare-patch (pkg subject revisions)
   "Send a patch to the maintainer of a package PKG.
 SUBJECT and REVISIONS are used passed on to `vc-prepare-patch'.
