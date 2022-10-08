@@ -1086,8 +1086,17 @@ interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
         node->right->offset += node->offset;
       node->offset = 0;
     }
-  /* FIXME: I wonder when/why this condition can be false, and more generally
-     why we'd want to propagate offsets that may not be fully up-to-date.  */
+  /* FIXME: I wonder when/why this condition can be false, and more
+     generally why we'd want to propagate offsets that may not be
+     fully up-to-date. --stef
+
+     Offsets can be inherited from dirty nodes (with out of date
+     otick) during insert and remove.  Offsets aren't inherited
+     downward from the root for these operations so rotations are
+     performed on potentially "dirty" nodes.  We could fix this by
+     always inheriting offsets downward from the root for every insert
+     and remove.  --matt
+  */
   if (node->parent == ITREE_NULL || node->parent->otick == otick)
     node->otick = otick;
 }
