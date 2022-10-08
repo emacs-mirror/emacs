@@ -1575,10 +1575,15 @@ struct Lisp_String
   {
     struct
     {
-      ptrdiff_t size;           /* MSB is used as the markbit.  */
-      ptrdiff_t size_byte;      /* Set to -1 for unibyte strings,
-				   -2 for data in rodata,
-				   -3 for immovable unibyte strings.  */
+      /* Number of characters in string; MSB is used as the mark bit.  */
+      ptrdiff_t size;
+      /* If nonnegative, number of bytes in the string (which is multibyte).
+	 If negative, the string is unibyte:
+	 -1 for data normally allocated
+	 -2 for data in rodata (C string constants)
+	 -3 for data that must be immovable (used for bytecode)  */
+      ptrdiff_t size_byte;
+
       INTERVAL intervals;	/* Text properties in this string.  */
       unsigned char *data;
     } s;
