@@ -3330,9 +3330,8 @@ If NOERROR, return predicate, else erroring function."
 ;;; List connections mode
 
 (define-derived-mode eglot-list-connections-mode  tabulated-list-mode
-  "" "Eglot Connection List Mode
-
-\\{sly-connection-list-mode-map}"
+  "" "Eglot mode for listing server connections
+\\{eglot-list-connections-mode-map}"
   (setq-local tabulated-list-format
               `[("Language server" 16) ("Project name" 16) ("Modes handled" 16)])
   (tabulated-list-init-header))
