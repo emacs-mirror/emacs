@@ -152,6 +152,8 @@
     (,(string-to-multibyte "abc") < "abd")
     (,(string-to-multibyte "abc") < ,(string-to-multibyte "abd"))
     (,(string-to-multibyte "\x80") = ,(string-to-multibyte "\x80"))
+    ("Liberté, Égalité, Fraternité" = "Liberté, Égalité, Fraternité")
+    ("Liberté, Égalité, Fraternité" < "Liberté, Égalité, Sororité")
 
     ;; Cases concerning the ordering of raw bytes: these are
     ;; troublesome because the current `string<' order is not very useful as
