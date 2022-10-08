@@ -3293,11 +3293,11 @@ immediately after this one."
             (apply #'vc-user-edit-command (apply old args))))))
 
 (defcustom vc-prepare-patches-separately t
-  "Configure the default behaviour of `vc-prepare-patch'.
-If nil, a single message is created by attaching all patches to
-the body of a single message.  If non-nil, each patch will be
-sent out in a separate message, which will be prepared
-sequentially."
+  "Whether `vc-prepare-patch' should generate a separate message for each patch.
+If nil, `vc-prepare-patch' creates a single email message by attaching
+all the patches to the body of that message.  If non-nil, each patch
+will be sent out in a separate message, and the messages will be
+prepared sequentially."
   :type 'boolean
   :safe #'booleanp
   :version "29.1")
