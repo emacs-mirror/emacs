@@ -1745,7 +1745,7 @@ defined.  See bug#57607.
 
 ** Replace tramp-archive.el by a native libarchive(3) implementation.
 The former is based on the GVFS archive backend, which makes it
-available on GNU/Linix only.  That implementation has further
+available on GNU/Linux only.  That implementation has further
 drawbacks like it doesn't support to write into archives.
 
 * Other known bugs
