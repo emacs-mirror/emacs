@@ -1508,6 +1508,98 @@ with parameters from the *Messages* buffer modification."
         (ovshould nonempty-eob-end 4 5)
         (ovshould empty-eob        5 5)))))
 
+(ert-deftest test-overlay-randomly ()
+  "Exercise overlay code, but perform few assertions.
+
+This test works best when Emacs is configured with
+--enable-checking=yes.  This is a little bit like fuzz testing,
+except this test has no way to reduce to a minimal failng test
+case.  Regardless, by exercising many corner cases bugs can be
+found using Emacs' internal consistency assertions."
+  (let* (
+         ;; The size and slack for the test buffer size.
+         (buffer-size-target 1000)
+         (buffer-size-slack 200)
+
+         ;; Use up to 100 overlays.  We need not use more to observe
+         ;; reasonable variation in the overlay data structures.
+         (overlay-count-limit 100)
+
+         ;; This test maintains a vector of overlays.  Each iteration
+         ;; may append or erase one overlay.
+         (overlays (make-vector overlay-count-limit nil))
+         (overlay-count 0)
+
+         ;; The test is either slowly growing or shrinking the overlay
+         ;; count.  Deletions still occur while growing, and additions
+         ;; still occur while shrinking.  The GROWING variable only
+         ;; controls the relative probability of doing one or the
+         ;; other.
+         (growing t)
+
+         ;; Loop up to 1M times.
+         (iteration-count 0)
+         (iteration-target 100000))
+    (with-temp-buffer
+      (while (< (buffer-size) buffer-size-target)
+        (insert "Sed ut perspiciatis, unde omnis iste natus error sit voluptatem
+accusantium doloremque laudantium, totam rem aperiam eaque ipsa,
+quae ab illo inventore veritatis et quasi architecto beatae vitae
+dicta sunt, explicabo.  "))
+
+      (while (< iteration-count iteration-target)
+        (cl-incf iteration-count)
+
+        ;; Toggle GROWING if we've reached a size boundary.  The idea
+        ;; is to initially steadily increase the overlay count, then
+        ;; steadily decrease it, then repeat.
+        (when (and growing (= overlay-count overlay-count-limit))
+          (message "now shrinking")
+          (setq growing nil))
+        (when (and (not growing) (= overlay-count 0))
+          (message "now growing")
+          (setq growing t))
+
+        ;; Create or delete a random overlay according to a
+        ;; probability chosen by GROWING.
+        (let ((create-overlay (>= (random 100) (if growing 40 60))))
+          (cond
+           ;; Possibly create a new overlay in a random place in the
+           ;; buffer.  We have two easy choices.  We can choose the
+           ;; overlay BEGIN randomly, then choose its END among the
+           ;; valid remaining buffer posiitions.  Or we could choose
+           ;; the overlay width randomly, then choose a valid BEGIN.
+           ;; We take the former approach, because the overlay data
+           ;; structure is ordered primarily by BEGIN.
+           ((and create-overlay (< overlay-count overlay-count-limit))
+            (let* ((begin (random (buffer-size)))
+                   (end (+ begin (random (- (buffer-size) begin))))
+                   (ov (make-overlay begin end nil
+                                     (= 0 (random 2)) (= 0 (random 2)))))
+              (aset overlays overlay-count ov)
+              (cl-incf overlay-count)))
+           ((and (not create-overlay) (> overlay-count 0))
+
+            ;; Possibly delete a random overlay.
+            (let* ((last-index (1- overlay-count))
+                   (index (random overlay-count))
+                   (ov (aref overlays index)))
+              (when (< index last-index)
+                (aset overlays index (aref overlays last-index)))
+              (aset overlays last-index nil)
+              (cl-decf overlay-count)
+              (delete-overlay ov)))))
+
+        ;; Modify the buffer on occasion, which exercises the
+        ;; insert/remove gap logic in the overlay implementation.
+        (when (and (< (buffer-size) (+ buffer-size-target buffer-size-slack))
+                   (zerop (random 10)))
+          (goto-char (1+ (random (buffer-size))))
+          (insert (+ ?a (random 26))))
+        (when (and (> (buffer-size) (- buffer-size-target buffer-size-slack))
+                   (zerop (random 10)))
+          (goto-char (1+ (random (buffer-size))))
+          (delete-char 1))))))
 
 
 
