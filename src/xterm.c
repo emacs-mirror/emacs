@@ -12758,11 +12758,21 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
   switch (event->evtype)
     {
     case XI_FocusIn:
+      /* The last-focus-change time of the device changed, so update the
+	 frame's user time.  */
+      x_display_set_last_user_time (dpyinfo, event->time,
+				    event->send_event);
+
       device->focus_frame = mentioned_frame;
       device->focus_frame_time = event->time;
       break;
 
     case XI_FocusOut:
+      /* The last-focus-change time of the device changed, so update the
+	 frame's user time.  */
+      x_display_set_last_user_time (dpyinfo, event->time,
+				    event->send_event);
+
       device->focus_frame = NULL;
 
       /* So, unfortunately, the X Input Extension is implemented such
@@ -18077,6 +18087,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                   }
                 /* Not certain about handling scroll bars here */
 #endif
+		/* Set the provided time as the user time, which is
+		   required for SetInputFocus to work correctly after
+		   taking the input focus.  */
+		x_display_set_last_user_time (dpyinfo, event->xclient.data.l[1],
+					      true);
 		goto done;
               }
 
@@ -27021,8 +27036,22 @@ x_focus_frame (struct frame *f, bool noactivate)
 
       /* Ignore any BadMatch error this request might result in.  */
       x_ignore_errors_for_next_request (dpyinfo);
-      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		      RevertToParent, CurrentTime);
+      if (NILP (Vx_no_window_manager))
+	XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			/* It is invalid to use CurrentTime according to
+			   the ICCCM:
+
+			   Clients that use a SetInputFocus request must
+			   set the time field to the timestamp of the
+			   event that caused them to make the
+			   attempt. [...] Note that clients must not use
+			   CurrentTime in the time field. */
+			RevertToParent, dpyinfo->last_user_time);
+      else
+	XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			/* But when no window manager is in use, we
+			   don't care.  */
+			RevertToParent, CurrentTime);
       x_stop_ignoring_errors (dpyinfo);
     }
 }
