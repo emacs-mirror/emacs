@@ -51,6 +51,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_bind_double, (sqlite3_stmt*, int, double));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_null, (sqlite3_stmt*, int));
 DEF_DLL_FN (SQLITE_API int, sqlite3_bind_int, (sqlite3_stmt*, int, int));
 DEF_DLL_FN (SQLITE_API const char*, sqlite3_errmsg, (sqlite3*));
+DEF_DLL_FN (SQLITE_API const char*, sqlite3_errstr, (int));
 DEF_DLL_FN (SQLITE_API int, sqlite3_step, (sqlite3_stmt*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_changes, (sqlite3*));
 DEF_DLL_FN (SQLITE_API int, sqlite3_column_count, (sqlite3_stmt*));
@@ -88,6 +89,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # undef sqlite3_bind_null
 # undef sqlite3_bind_int
 # undef sqlite3_errmsg
+# undef sqlite3_errstr
 # undef sqlite3_step
 # undef sqlite3_changes
 # undef sqlite3_column_count
@@ -112,6 +114,7 @@ DEF_DLL_FN (SQLITE_API int, sqlite3_load_extension,
 # define sqlite3_bind_null fn_sqlite3_bind_null
 # define sqlite3_bind_int fn_sqlite3_bind_int
 # define sqlite3_errmsg fn_sqlite3_errmsg
+# define sqlite3_errstr fn_sqlite3_errstr
 # define sqlite3_step fn_sqlite3_step
 # define sqlite3_changes fn_sqlite3_changes
 # define sqlite3_column_count fn_sqlite3_column_count
@@ -139,6 +142,7 @@ load_dll_functions (HMODULE library)
   LOAD_DLL_FN (library, sqlite3_bind_null);
   LOAD_DLL_FN (library, sqlite3_bind_int);
   LOAD_DLL_FN (library, sqlite3_errmsg);
+  LOAD_DLL_FN (library, sqlite3_errstr);
   LOAD_DLL_FN (library, sqlite3_step);
   LOAD_DLL_FN (library, sqlite3_changes);
   LOAD_DLL_FN (library, sqlite3_column_count);
@@ -528,7 +532,7 @@ which means that we return a set object that can be queried with
     {
       if (stmt)
 	sqlite3_finalize (stmt);
-
+      errmsg = sqlite3_errstr (ret);
       goto exit;
     }
 
