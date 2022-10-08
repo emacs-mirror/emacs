@@ -6166,9 +6166,10 @@ If FILE1 or FILE2 does not exist, the return value is unspecified."
 	     (equal f1-attr f2-attr))))))
 
 (defun file-in-directory-p (file dir)
-  "Return non-nil if FILE is in DIR or a subdirectory of DIR.
-A directory is considered to be \"in\" itself.
-Return nil if DIR is not an existing directory."
+  "Return non-nil if DIR is a parent directory of FILE.
+Value is non-nil if FILE is inside DIR or inside a subdirectory of DIR.
+A directory is considered to be a \"parent\" of itself.
+DIR must be an existing directory, otherwise the function returns nil."
   (let ((handler (or (find-file-name-handler file 'file-in-directory-p)
                      (find-file-name-handler dir  'file-in-directory-p))))
     (if handler
