@@ -3935,7 +3935,17 @@ every query must specify the language.  Other keywords are optional:
 @item @code{:toggle} @tab @var{symbol} @tab
 If non-nil, its value should be a variable name.  The variable's value
 (nil/non-nil) disables/enables the query during fontification.
+@item @tab nil @tab Always enable this query.
+@item @code{:level} @tab @var{integer} @tab
+If non-nil, its value should be the decoration level for this query.
+Decoration level is controlled by @code{font-lock-maximum-decoration}.
+@item @tab nil @tab Always enable this query.
 @end multitable
+
+Note that a query is applied only when both @code{:toggle} and
+@code{:level} permit it.  @code{:level} is used for global,
+coarse-grained control, whereas @code{:toggle} is for local,
+fine-grained control.
 
 Capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified

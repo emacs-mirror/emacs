@@ -94,6 +94,10 @@ for this Emacs instance.
 see <a href="Parser_002dbased-Font-Lock.html">Parser-based Font Lock</a>, <a href="Parser_002dbased-Indentation.html">Parser-based Indentation</a>, and
 <a href="List-Motion.html">Moving over Balanced Expressions</a>.
 </p>
+<p>About naming convention: use &ldquo;tree-sitter&rdquo; when referring to it as a
+noun, like <code>python-use-tree-sitter</code>, but use &ldquo;treesit&rdquo; for
+prefixes, like <code>python-treesit-indent-function</code>.
+</p>
 <p>To access the syntax tree of the text in a buffer, we need to first
 load a language definition and create a parser with it.  Next, we can
 query the parser for specific nodes in the syntax tree.  Then, we can

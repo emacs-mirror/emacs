@@ -289,7 +289,7 @@ should always use `treesit-font-lock-rules' to set this variable.
 
 Each SETTING is of form
 
-    (LANGUAGE QUERY OVERRIDE TOGGLE)
+    (LANGUAGE QUERY OVERRIDE TOGGLE LEVEL)
 
 Each SETTING controls one parser (often of different language).
 LANGUAGE is the language symbol.  See Info node `(elisp)Language
@@ -308,7 +308,11 @@ t, nil, append, prepend, keep.  See more in
 
 TOGGLE should be a variable (symbol) or nil.  The variable's
 value (nil/non-nil) controls whether to activate the query during
-fontification.  If TOGGLE is nil, the query is always activated.")
+fontification.  If TOGGLE is nil, the query is always activated.
+
+LEVEL is the decoration level of this query or nil.  Decoration
+level is controlled by `font-lock-maximum-decoration'.  If LEVEL
+is nil, the query is always activated.")
 
 (defun treesit-font-lock-rules (&rest args)
   "Return a value suitable for `treesit-font-lock-settings'.
@@ -344,6 +348,15 @@ include:
                       The value of that variable (non-nil/nil)
                       activates/deactivates the query during
                       fontification.
+             nil      Always activate this query.
+  :level     <integer>If non-nil, the value is the decoration
+                      level of this query.
+                      (See `font-lock-maximum-decoration'.)
+             nil      Always activate this query.
+
+Note that a query is applied only when both :toggle and :level
+permit it.  :level is used for global, coarse-grained control,
+whereas :toggle is for local, fine-grained control.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -356,18 +369,16 @@ a capture name is not a face name nor a function name, it is
 ignored.
 
 \(fn :KEYWORD VALUE QUERY...)"
-  (let (;; Tracks the current language that following queries will
-        ;; apply to.
-        (current-language nil)
-        ;; Tracks :override flag.
-        (current-override nil)
-        ;; Track :toggle flag.
-        (current-toggle t)
+  (let (;; Tracks the current :language/:override/:toggle/:level value
+        ;; that following queries will apply to.
+        current-language current-override
+        current-toggle current-level
         ;; The list this function returns.
         (result nil))
     (while args
       (let ((token (pop args)))
         (pcase token
+          ;; (1) Process keywords.
           (:language
            (let ((lang (pop args)))
              (when (or (not (symbolp lang)) (null lang))
@@ -393,6 +404,14 @@ ignored.
                        `("Value of :toggle should be a variable name"
                          ,var)))
              (setq current-toggle var)))
+          (:level
+           (let ((level (pop args)))
+             (when (not (and (integerp level) (> level 0)))
+               (signal 'treesit-font-lock-error
+                       `("Value of :level should be a positive integer"
+                         ,level)))
+             (setq current-level level)))
+          ;; (2) Process query.
           ((pred treesit-query-p)
            (when (null current-language)
              (signal 'treesit-font-lock-error
@@ -402,12 +421,14 @@ ignored.
              (push `(,current-language
                      ,(treesit-query-compile current-language token)
                      ,current-override
-                     ,current-toggle)
+                     ,current-toggle
+                     ,current-level)
                    result))
            ;; Clears any configurations set for this query.
            (setq current-language nil
                  current-override nil
-                 current-toggle nil))
+                 current-toggle nil
+                 current-level nil))
           (_ (signal 'treesit-font-lock-error
                      `("Unexpected value" token))))))
     (nreverse result)))
@@ -423,10 +444,20 @@ If LOUDLY is non-nil, message some debugging information."
            (match-pattern (nth 1 setting))
            (override (nth 2 setting))
            (toggle (nth 3 setting))
+           (level (nth 4 setting))
            (parser (treesit-parser-create language)))
       (when-let ((node (treesit-node-on start end parser))
-                 (activate (or (null toggle)
-                               (symbol-value toggle))))
+                 ;; Only activate this query if both :toggle and
+                 ;; :level permit it.
+                 (activate
+                  (and (or (null toggle)
+                           (symbol-value toggle))
+                       (or (null level)
+                           (pcase (font-lock-value-in-major-mode
+                                   font-lock-maximum-decoration)
+                             ('t t)
+                             ('nil (eq level 1))
+                             (lvl (<= level lvl)))))))
         (ignore activate)
         (let ((captures (treesit-query-capture
                          node match-pattern
