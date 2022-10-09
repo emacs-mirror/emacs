@@ -204,7 +204,67 @@ itree_init (void)
   iter = interval_generator_create (NULL);
 }
 
-
+static ptrdiff_t
+recurse_check_tree (struct interval_node *node, uintmax_t tree_otick,
+                    ptrdiff_t offset, ptrdiff_t min_begin,
+                    ptrdiff_t max_begin, intmax_t *size)
+{
+  if (node == ITREE_NULL)
+    return PTRDIFF_MIN;
+  ++*size;
+
+  /* Validate structure.  */
+  eassert (
+    node->parent == ITREE_NULL
+    || (node->parent->left == node || node->parent->right == node));
+  eassert (node->left == ITREE_NULL || node->left->parent == node);
+  eassert (node->right == ITREE_NULL || node->right->parent == node);
+
+  /* Red nodes cannot have red parents.  */
+  eassert (node->parent == ITREE_NULL
+           || !(node->red && node->parent->red));
+
+  eassert (node->offset == 0 || node->otick < tree_otick);
+
+  offset += node->offset;
+  ptrdiff_t begin = node->begin + offset;
+  ptrdiff_t end = node->end + offset;
+  ptrdiff_t limit = node->limit + offset;
+
+  eassert (min_begin <= max_begin);
+  eassert (min_begin <= begin);
+  eassert (begin <= max_begin);
+  eassert (end <= limit);
+
+  ptrdiff_t left_limit
+    = recurse_check_tree (node->left, tree_otick, offset, min_begin,
+                          begin, size);
+  ptrdiff_t right_limit
+    = recurse_check_tree (node->right, tree_otick, offset, begin,
+                          max_begin, size);
+  eassert (left_limit <= limit);
+  eassert (right_limit <= limit);
+  eassert (limit == max (end, max (left_limit, right_limit)));
+  return limit;
+}
+
+static bool
+check_tree (struct interval_tree *tree)
+{
+  eassert (tree != NULL);
+  eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
+  if (tree->root == ITREE_NULL)
+    return true;
+
+  intmax_t size = 0;
+  ptrdiff_t offset = tree->root->offset;
+  ptrdiff_t limit
+    = recurse_check_tree (tree->root, tree->otick, offset,
+                          PTRDIFF_MIN, PTRDIFF_MAX, &size);
+  eassert (limit == tree->root->limit + offset);
+  return true;
+}
+
 /* +===================================================================================+
  * | Stack
  * +===================================================================================+ */
@@ -429,6 +489,7 @@ void
 interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 {
   eassert (node && node->begin <= node->end && node != ITREE_NULL);
+  eassert (check_tree (tree));
 
   struct interval_node *parent = ITREE_NULL;
   struct interval_node *child = tree->root;
@@ -468,6 +529,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   /* Fix/update the tree */
   ++tree->size;
   interval_tree_insert_fix (tree, node);
+  eassert (check_tree (tree));
 }
 
 /* Return true, if NODE is a member of TREE. */
@@ -632,6 +694,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 {
   /* eassert (itree_limits_are_stable (tree->root)); */
   eassert (interval_tree_contains (tree, node));
+  eassert (check_tree (tree));
 
   /* `broken`, if non-NULL, holds a node that's being moved up to where a black
      node used to be, which may thus require further fixups in its parents
@@ -708,6 +771,7 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
   /* eassert (itree_limits_are_stable (tree->root)); */
+  eassert (check_tree (tree));
 
   return node;
 }
@@ -1277,6 +1341,7 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
   /* The root may have been changed to red due to the algorithm.  Set
      it to black so that property #5 is satisfied.  */
   tree->root->red = false;
+  eassert (check_tree (tree));
 }
 
 /* Return accumulated offsets of NODE's parents.  */
