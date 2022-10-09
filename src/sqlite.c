@@ -557,7 +557,7 @@ which means that we return a set object that can be queried with
 
   /* Return the data directly.  */
   Lisp_Object data = Qnil;
-  while ((ret = sqlite3_step (stmt)) == SQLITE_ROW)
+  while (sqlite3_step (stmt) == SQLITE_ROW)
     data = Fcons (row_to_value (stmt), data);
 
   if (EQ (return_type, Qfull))
