@@ -1031,8 +1031,8 @@ Do not fontify the initial f for f-strings."
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :language 'python
-   :override t
-   `(;; Queries for def and class.
+   :level 1
+   '(;; Queries for def and class.
      (function_definition
       name: (identifier) @font-lock-function-name-face)
 
@@ -1045,9 +1045,11 @@ Do not fontify the initial f for f-strings."
      (string) @python--treesit-fontify-string
      ((string) @font-lock-doc-face
       (:match "^\"\"\"" @font-lock-doc-face))
-     (interpolation (identifier) @font-lock-variable-name-face)
-
-     ;; Keywords, builtins, and constants.
+     (interpolation (identifier) @font-lock-variable-name-face))
+   :language 'python
+   :level 2
+   :override t
+   `(;; Keywords, builtins, and constants.
      [,@python--treesit-keywords] @font-lock-keyword-face
 
      ((identifier) @font-lock-keyword-face
@@ -1061,12 +1063,11 @@ Do not fontify the initial f for f-strings."
                       eol))
               @font-lock-builtin-face))
 
-     [(true) (false) (none)] @font-lock-constant-face
-
-     ;; Escape sequences
-     (escape_sequence) @font-lock-constant-face
-
-     ;; Variable names.
+     [(true) (false) (none)] @font-lock-constant-face)
+   :language 'python
+   :level 3
+   :override t
+   `(;; Variable names.
      (assignment left: (identifier)
                  @font-lock-variable-name-face)
      (assignment left: (attribute
@@ -1088,7 +1089,10 @@ Do not fontify the initial f for f-strings."
                 `(seq bol (or ,@python--treesit-exceptions)
                       eol))
               @font-lock-type-face))
-     (type (identifier) @font-lock-type-face)))
+     (type (identifier) @font-lock-type-face)
+
+     ;; Escape sequences
+     (escape_sequence) @font-lock-constant-face))
   "Tree-sitter font-lock settings.")
 
 
