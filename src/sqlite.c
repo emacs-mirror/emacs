@@ -415,14 +415,15 @@ Value is the number of affected rows.  */)
     }
 
   /* Bind ? values.  */
-  if (!NILP (values)) {
-    const char *err = bind_values (sdb, stmt, values);
-    if (err != NULL)
-      {
-	errmsg = err;
-	goto exit;
-      }
-  }
+  if (!NILP (values))
+    {
+      const char *err = bind_values (sdb, stmt, values);
+      if (err != NULL)
+	{
+	  errmsg = err;
+	  goto exit;
+	}
+    }
 
   ret = sqlite3_step (stmt);
   sqlite3_finalize (stmt);
