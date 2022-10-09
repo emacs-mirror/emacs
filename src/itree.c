@@ -220,9 +220,12 @@ recurse_check_tree (struct interval_node *node, uintmax_t tree_otick,
   eassert (node->left == ITREE_NULL || node->left->parent == node);
   eassert (node->right == ITREE_NULL || node->right->parent == node);
 
+  /* We don't check the RB invariants here (neither the absence of
+     red+red nor the equal-black-depth), so that we can use this check
+     even while the tree is temporarily breaking some of those invarints.  */
   /* Red nodes cannot have red parents.  */
-  eassert (node->parent == ITREE_NULL
-           || !(node->red && node->parent->red));
+  /* eassert (node->parent == ITREE_NULL
+              || !(node->red && node->parent->red)); */
 
   eassert (node->offset == 0 || node->otick < tree_otick);
 
@@ -493,15 +496,16 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 
   struct interval_node *parent = ITREE_NULL;
   struct interval_node *child = tree->root;
-  ptrdiff_t offset = 0;
+  uintmax_t otick = tree->otick;
 
   /* Find the insertion point, accumulate node's offset and update
      ancestors limit values.  */
   while (child != ITREE_NULL)
     {
+      interval_tree_inherit_offset (otick, child);
       parent = child;
-      offset += child->offset;
-      child->limit = max (child->limit, node->end - offset);
+      eassert (child->offset == 0);
+      child->limit = max (child->limit, node->end);
       /* This suggests that nodes in the right subtree are strictly
          greater.  But this is not true due to later rotations.  */
       child = node->begin <= child->begin ? child->left : child->right;
@@ -521,15 +525,13 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   node->right = ITREE_NULL;
   node->red = true;
   node->offset = 0;
-  node->begin -= offset;
-  node->end -= offset;
   node->limit = node->end;
-  node->otick = tree->otick - 1;
+  node->otick = otick;
 
   /* Fix/update the tree */
   ++tree->size;
-  interval_tree_insert_fix (tree, node);
   eassert (check_tree (tree));
+  interval_tree_insert_fix (tree, node);
 }
 
 /* Return true, if NODE is a member of TREE. */
@@ -565,16 +567,6 @@ itree_limit_is_stable (struct interval_node *node)
     return true;
   ptrdiff_t newlimit = itree_newlimit (node);
   return (newlimit == node->limit);
-}
-
-static inline bool
-itree_limits_are_stable (struct interval_node *node)
-{
-  if (node == ITREE_NULL)
-    return true;
-  return itree_limit_is_stable (node)
-         && itree_limits_are_stable (node->right)
-         && itree_limits_are_stable (node->left);
 }
 
 static struct interval_node*
@@ -692,7 +684,6 @@ interval_tree_remove_fix (struct interval_tree *tree,
 struct interval_node*
 interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 {
-  /* eassert (itree_limits_are_stable (tree->root)); */
   eassert (interval_tree_contains (tree, node));
   eassert (check_tree (tree));
 
@@ -770,7 +761,6 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
   --tree->size;
 
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
-  /* eassert (itree_limits_are_stable (tree->root)); */
   eassert (check_tree (tree));
 
   return node;
