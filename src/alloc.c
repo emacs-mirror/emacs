@@ -3702,19 +3702,17 @@ build_symbol_with_pos (Lisp_Object symbol, Lisp_Object position)
   return val;
 }
 
-/* Return a new overlay with specified START, END and PLIST.  */
+/* Return a new (deleted) overlay with PLIST.  */
 
 Lisp_Object
-build_overlay (ptrdiff_t begin, ptrdiff_t end,
-               bool front_advance, bool rear_advance,
+build_overlay (bool front_advance, bool rear_advance,
                Lisp_Object plist)
 {
   struct Lisp_Overlay *p = ALLOCATE_PSEUDOVECTOR (struct Lisp_Overlay, plist,
 						  PVEC_OVERLAY);
   Lisp_Object overlay = make_lisp_ptr (p, Lisp_Vectorlike);
   struct interval_node *node = xmalloc (sizeof (*node));
-  interval_node_init (node, begin, end, front_advance,
-                      rear_advance, overlay);
+  interval_node_init (node, front_advance, rear_advance, overlay);
   p->interval = node;
   p->buffer = NULL;
   set_overlay_plist (overlay, plist);

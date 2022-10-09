@@ -142,6 +142,7 @@ static void interval_tree_rotate_right (struct interval_tree *, struct interval_
 static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
 static void interval_tree_transplant (struct interval_tree *, struct interval_node *, struct interval_node *);
 static struct interval_generator* interval_generator_create (struct interval_tree *);
+static void interval_tree_insert (struct interval_tree *, struct interval_node *);
 
 /* The sentinel node, the null node.  */
 struct interval_node itree_null;
@@ -260,11 +261,8 @@ check_tree (struct interval_tree *tree)
     return true;
 
   intmax_t size = 0;
-  ptrdiff_t offset = tree->root->offset;
-  ptrdiff_t limit
-    = recurse_check_tree (tree->root, tree->otick, offset,
-                          PTRDIFF_MIN, PTRDIFF_MAX, &size);
-  eassert (limit == tree->root->limit + offset);
+  recurse_check_tree (tree->root, tree->otick, 0,
+                      PTRDIFF_MIN, PTRDIFF_MAX, &size);
   return true;
 }
 
@@ -375,12 +373,11 @@ interval_stack_pop (struct interval_stack *stack)
 
 void
 interval_node_init (struct interval_node *node,
-                    ptrdiff_t begin, ptrdiff_t end,
                     bool front_advance, bool rear_advance,
                     Lisp_Object data)
 {
-  node->begin = begin;
-  node->end = max (begin, end);
+  node->begin = -1;
+  node->end = -1;
   node->front_advance = front_advance;
   node->rear_advance = rear_advance;
   node->data = data;
@@ -488,7 +485,7 @@ interval_tree_size (struct interval_tree *tree)
    Note, that inserting a node twice results in undefined behaviour.
 */
 
-void
+static void
 interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 {
   eassert (node && node->begin <= node->end && node != ITREE_NULL);
@@ -497,6 +494,9 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   struct interval_node *parent = ITREE_NULL;
   struct interval_node *child = tree->root;
   uintmax_t otick = tree->otick;
+  /* It's the responsability of the caller to set `otick` on the node,
+     to "confirm" that the begin/end fields are uptodate.  */
+  eassert (node->otick == otick);
 
   /* Find the insertion point, accumulate node's offset and update
      ancestors limit values.  */
@@ -526,12 +526,22 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   node->red = true;
   node->offset = 0;
   node->limit = node->end;
-  node->otick = otick;
+  eassert (node->parent == ITREE_NULL || node->parent->otick >= node->otick);
 
   /* Fix/update the tree */
   ++tree->size;
   eassert (check_tree (tree));
   interval_tree_insert_fix (tree, node);
+}
+
+void
+itree_insert_node (struct interval_tree *tree, struct interval_node *node,
+                   ptrdiff_t begin, ptrdiff_t end)
+{
+  node->begin = begin;
+  node->end = end;
+  node->otick = tree->otick;
+  interval_tree_insert (tree, node);
 }
 
 /* Return true, if NODE is a member of TREE. */
@@ -849,6 +859,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
 {
   if (length <= 0 || tree->root == ITREE_NULL)
     return;
+  uintmax_t ootick = tree->otick;
 
   /* FIXME: Don't allocate generator/stack anew every time. */
 
@@ -907,13 +918,16 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
     }
 
   /* Reinsert nodes starting at POS having front-advance. */
+  uintmax_t notick = tree->otick;
   nodeptr_and_flag nav;
   while ((nav = interval_stack_pop (saved),
           node = nav_nodeptr (nav)))
     {
+      eassert (node->otick == ootick);
       node->begin += length;
       if (node->end != pos || node->rear_advance)
         node->end += length;
+      node->otick = notick;
       interval_tree_insert (tree, node);
     }
 
@@ -1123,11 +1137,18 @@ interval_tree_update_limit (struct interval_node *node)
 static void
 interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 {
+  eassert (node->parent == ITREE_NULL || node->parent->otick >= node->otick);
   if (node->otick == otick)
     {
       eassert (node->offset == 0);
       return;
     }
+
+  /* Offsets can be inherited from dirty nodes (with out of date
+     otick) during insert and remove.  Offsets aren't inherited
+     downward from the root for these operations so rotations are
+     performed on potentially "dirty" nodes, where we only make sure
+     the *local* offsets are all zero.  */
 
   if (node->offset)
     {
@@ -1140,17 +1161,9 @@ interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
         node->right->offset += node->offset;
       node->offset = 0;
     }
-  /* FIXME: I wonder when/why this condition can be false, and more
-     generally why we'd want to propagate offsets that may not be
-     fully up-to-date. --stef
-
-     Offsets can be inherited from dirty nodes (with out of date
-     otick) during insert and remove.  Offsets aren't inherited
-     downward from the root for these operations so rotations are
-     performed on potentially "dirty" nodes.  We could fix this by
-     always inheriting offsets downward from the root for every insert
-     and remove.  --matt
-  */
+  /* The only thing that matters about `otick` is whether it's equal to
+     that of the tree.  We could also "blindly" inherit from parent->otick,
+     but we need to tree's `otick` anyway for when there's no parent.  */
   if (node->parent == ITREE_NULL || node->parent->otick == otick)
     node->otick = otick;
 }

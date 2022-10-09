@@ -1189,6 +1189,7 @@ extern void fix_overlays_before (struct buffer *, ptrdiff_t, ptrdiff_t);
 extern void mmap_set_vars (bool);
 extern void restore_buffer (Lisp_Object);
 extern void set_buffer_if_live (Lisp_Object);
+extern Lisp_Object build_overlay (bool, bool, Lisp_Object);
 
 /* Return B as a struct buffer pointer, defaulting to the current buffer.  */
 
@@ -1406,40 +1407,6 @@ overlay_end (struct Lisp_Overlay *ov)
   if (! ov->buffer)
     return -1;
   return interval_node_end (ov->buffer->overlays, ov->interval);
-}
-
-INLINE void
-set_overlay_region (struct Lisp_Overlay *ov, ptrdiff_t begin, ptrdiff_t end)
-{
-  eassert (ov->buffer);
-  begin = clip_to_bounds (BEG, begin, ov->buffer->text->z);
-  end = clip_to_bounds (begin, end, ov->buffer->text->z);
-  interval_node_set_region (ov->buffer->overlays, ov->interval, begin, end);
-}
-
-INLINE void
-maybe_alloc_buffer_overlays (struct buffer *b)
-{
-  if (! b->overlays)
-    b->overlays = interval_tree_create ();
-}
-
-INLINE void
-add_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
-{
-  eassert (! ov->buffer);
-  maybe_alloc_buffer_overlays (b);
-  ov->buffer = b;
-  interval_tree_insert (b->overlays, ov->interval);
-}
-
-INLINE void
-remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
-{
-  eassert (b->overlays);
-  eassert (ov->buffer == b);
-  interval_tree_remove (ov->buffer->overlays, ov->interval);
-  ov->buffer = NULL;
 }
 
 /* Return the start of OV in its buffer, or -1 if OV is not associated

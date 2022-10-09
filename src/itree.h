@@ -112,7 +112,7 @@ enum interval_tree_order {
   ITREE_PRE_ORDER,
 };
 
-void interval_node_init (struct interval_node *, ptrdiff_t, ptrdiff_t, bool, bool, Lisp_Object);
+void interval_node_init (struct interval_node *, bool, bool, Lisp_Object);
 ptrdiff_t interval_node_begin (struct interval_tree *, struct interval_node *);
 ptrdiff_t interval_node_end (struct interval_tree *, struct interval_node *);
 void interval_node_set_region (struct interval_tree *, struct interval_node *, ptrdiff_t, ptrdiff_t);
@@ -120,7 +120,8 @@ struct interval_tree *interval_tree_create (void);
 void interval_tree_destroy (struct interval_tree *);
 intmax_t interval_tree_size (struct interval_tree *);
 void interval_tree_clear (struct interval_tree *);
-void interval_tree_insert (struct interval_tree *, struct interval_node *);
+void itree_insert_node (struct interval_tree *tree, struct interval_node *node,
+                        ptrdiff_t begin, ptrdiff_t end);
 struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
 struct interval_generator *interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order,
 			       const char* file, int line);

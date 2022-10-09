@@ -638,6 +638,16 @@ even if it is dead.  The return value is never nil.  */)
   return buffer;
 }
 
+static void
+add_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov,
+                    ptrdiff_t begin, ptrdiff_t end)
+{
+  eassert (! ov->buffer);
+  if (! b->overlays)
+    b->overlays = interval_tree_create ();
+  ov->buffer = b;
+  itree_insert_node (b->overlays, ov->interval, begin, end);
+}
 
 /* Copy overlays of buffer FROM to buffer TO.  */
 
@@ -650,11 +660,10 @@ copy_overlays (struct buffer *from, struct buffer *to)
   ITREE_FOREACH (node, from->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     {
       Lisp_Object ov = node->data;
-      Lisp_Object copy = build_overlay (node->begin, node->end,
-                                        node->front_advance,
+      Lisp_Object copy = build_overlay (node->front_advance,
                                         node->rear_advance,
                                         Fcopy_sequence (OVERLAY_PLIST (ov)));
-      add_buffer_overlay (to, XOVERLAY (copy));
+      add_buffer_overlay (to, XOVERLAY (copy), node->begin, node->end);
     }
 }
 
@@ -895,6 +904,15 @@ does not run the hooks `kill-buffer-hook',
   run_buffer_list_update_hook (NULL);
 
   return buf;
+}
+
+static void
+remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
+{
+  eassert (b->overlays);
+  eassert (ov->buffer == b);
+  interval_tree_remove (ov->buffer->overlays, ov->interval);
+  ov->buffer = NULL;
 }
 
 /* Mark OV as no longer associated with its buffer.  */
@@ -3486,12 +3504,11 @@ for the rear of the overlay advance when text is inserted there
       temp = beg; beg = end; end = temp;
     }
 
-  ptrdiff_t obeg = clip_to_bounds (BEG, XFIXNUM (beg), b->text->z);
-  ptrdiff_t oend = clip_to_bounds (obeg, XFIXNUM (end), b->text->z);
-  ov = build_overlay (obeg, oend,
-                      ! NILP (front_advance),
+  ptrdiff_t obeg = clip_to_bounds (BUF_BEG (b), XFIXNUM (beg), BUF_Z (b));
+  ptrdiff_t oend = clip_to_bounds (obeg, XFIXNUM (end), BUF_Z (b));
+  ov = build_overlay (! NILP (front_advance),
                       ! NILP (rear_advance), Qnil);
-  add_buffer_overlay (b, XOVERLAY (ov));
+  add_buffer_overlay (b, XOVERLAY (ov), obeg, oend);
 
   /* We don't need to redisplay the region covered by the overlay, because
      the overlay has no properties at the moment.  */
@@ -3518,6 +3535,15 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   modiff_incr (&BUF_OVERLAY_MODIFF (buf), 1);
 }
 
+INLINE void
+set_overlay_region (struct Lisp_Overlay *ov, ptrdiff_t begin, ptrdiff_t end)
+{
+  eassert (ov->buffer);
+  begin = clip_to_bounds (BEG, begin, ov->buffer->text->z);
+  end = clip_to_bounds (begin, end, ov->buffer->text->z);
+  interval_node_set_region (ov->buffer->overlays, ov->interval, begin, end);
+}
+
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
        doc: /* Set the endpoints of OVERLAY to BEG and END in BUFFER.
 If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.
@@ -3528,7 +3554,6 @@ buffer.  */)
   struct buffer *b, *ob = 0;
   Lisp_Object obuffer;
   specpdl_ref count = SPECPDL_INDEX ();
-  ptrdiff_t n_beg, n_end;
   ptrdiff_t o_beg UNINIT, o_end UNINIT;
 
   CHECK_OVERLAY (overlay);
@@ -3555,10 +3580,13 @@ buffer.  */)
       temp = beg; beg = end; end = temp;
     }
 
-  specbind (Qinhibit_quit, Qt);
+  specbind (Qinhibit_quit, Qt); /* FIXME: Why?  */
 
   obuffer = Foverlay_buffer (overlay);
   b = XBUFFER (buffer);
+
+  ptrdiff_t n_beg = clip_to_bounds (BUF_BEG (b), XFIXNUM (beg), BUF_Z (b));
+  ptrdiff_t n_end = clip_to_bounds (n_beg, XFIXNUM (end), BUF_Z (b));
 
   if (!NILP (obuffer))
     {
@@ -3572,13 +3600,11 @@ buffer.  */)
     {
       if (! NILP (obuffer))
         remove_buffer_overlay (XBUFFER (obuffer), XOVERLAY (overlay));
-      add_buffer_overlay (XBUFFER (buffer), XOVERLAY (overlay));
+      add_buffer_overlay (XBUFFER (buffer), XOVERLAY (overlay), n_beg, n_end);
     }
-  /* Set the overlay boundaries, which may clip them.  */
-  set_overlay_region (XOVERLAY (overlay), XFIXNUM (beg), XFIXNUM (end));
-
-  n_beg = OVERLAY_START (overlay);
-  n_end = OVERLAY_END (overlay);
+  else
+    interval_node_set_region (b->overlays, XOVERLAY (overlay)->interval,
+                              n_beg, n_end);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
   if (!BASE_EQ (buffer, obuffer))
