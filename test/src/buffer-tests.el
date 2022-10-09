@@ -1554,10 +1554,8 @@ dicta sunt, explicabo.  "))
         ;; is to initially steadily increase the overlay count, then
         ;; steadily decrease it, then repeat.
         (when (and growing (= overlay-count overlay-count-limit))
-          (message "now shrinking")
           (setq growing nil))
         (when (and (not growing) (= overlay-count 0))
-          (message "now growing")
           (setq growing t))
 
         ;; Create or delete a random overlay according to a
