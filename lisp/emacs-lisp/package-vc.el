@@ -30,7 +30,7 @@
 ;;   * Detect merge conflicts                                   TODO
 ;;   * Check if there are upstream changes                      TODO
 ;; - Allow finding revisions that bump the version tag          TODO
-;;   * Allow for `package-vc-fetch' to use the version
+;;   * Allow for `package-vc-install' to use the version
 ;;     of the package if already installed.
 ;; - Allow for ELPA specifications to be respected without      TODO
 ;;   endangering the user with arbitrary code execution
@@ -276,7 +276,7 @@ The output is written out into PKG-FILE."
       (vc-pull))))
 
 ;;;###autoload
-(defun package-vc-fetch (name-or-url &optional name rev)
+(defun package-vc-install (name-or-url &optional name rev)
   "Fetch the source of NAME-OR-URL.
 If NAME-OR-URL is a URL, then the package will be downloaded from
 the repository indicated by the URL.  The function will try to
@@ -319,7 +319,7 @@ be requested using REV."
     ((user-error "Unknown package to fetch: %s" name-or-url)))))
 
 ;;;###autoload
-(defalias 'package-checkout #'package-vc-fetch)
+(defalias 'package-checkout #'package-vc-install)
 
 (defun package-vc-read-pkg (prompt)
   "Query for a source package description with PROMPT."
