@@ -115,19 +115,17 @@ greater or larger than POINT.  Return nil if none find.  If NAMED
 non-nil, only look for named node.
 
 If PARSER-OR-LANG is nil, use the first parser in
-(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
+\(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
 that parser; if PARSER-OR-LANG is a language, find a parser using
 that language in the current buffer, and use that."
   (let ((node (if (treesit-parser-p parser-or-lang)
                   (treesit-parser-root-node parser-or-lang)
-                (treesit-buffer-root-node parser-or-lang))))
-    ;; TODO: We might want a `treesit-node-descendant-for-pos' in C.
-    (while (cond ((and node (< (treesit-node-end node) point))
-                  (setq node (treesit-node-next-sibling node))
-                  t)
-                 ((treesit-node-child node 0 named)
-                  (setq node (treesit-node-child node 0 named))
-                  t)))
+                (treesit-buffer-root-node parser-or-lang)))
+        next)
+    ;; This is very fast so no need for C implementation.
+    (while (setq next (treesit-node-first-child-for-pos
+                       node point named))
+      (setq node next))
     node))
 
 (defun treesit-node-on (beg end &optional parser-or-lang named)
