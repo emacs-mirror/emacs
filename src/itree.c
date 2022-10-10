@@ -145,19 +145,42 @@ static struct interval_generator* interval_generator_create (struct interval_tre
 static void interval_tree_insert (struct interval_tree *, struct interval_node *);
 
 /* The sentinel node, the null node.  */
-struct interval_node itree_null;
+struct interval_node itree_null = {
+  .parent = &itree_null,
+  .left = &itree_null,
+  .right = &itree_null,
+  .begin = PTRDIFF_MIN,
+  .end = PTRDIFF_MIN,
+  .limit = PTRDIFF_MIN, /* => max(x, null.limit) = x */
+  .offset = 0,
+  .otick = 0,
+  .red = false,
+  .rear_advance = false,
+  .front_advance = false,
+};
 
 static bool
 null_is_sane (void)
 {
-  /* The sentinel node has most of its fields read-only, except for `parent`,
-     `left`, `right` which are write only.  */
-  return itree_null.red == false
-         && itree_null.otick == 0
-         && itree_null.offset == 0
-         && itree_null.begin == PTRDIFF_MIN
-         && itree_null.end == PTRDIFF_MIN
-         && itree_null.limit == PTRDIFF_MIN;
+  /* The sentinel node has most of its fields read-only.
+
+     FIXME: PARENT is still read/write.  It is written to
+     ininterval_tree_transplant, and later read.  --matt
+  */
+  /* eassert (itree_null.parent == &itree_null); */
+  eassert (itree_null.left == &itree_null);
+  eassert (itree_null.right == &itree_null);
+  eassert (itree_null.begin == PTRDIFF_MIN);
+  eassert (itree_null.end == PTRDIFF_MIN);
+  eassert (itree_null.limit == PTRDIFF_MIN);
+  eassert (itree_null.offset == 0);
+  eassert (itree_null.otick == 0);
+  eassert (itree_null.red == false);
+  eassert (itree_null.rear_advance == false);
+  eassert (itree_null.front_advance == false);
+
+  /* if we get this far things must be good */
+  return true;
 }
 
 /* +------------------------------------------------------------------------------------+ */
@@ -195,13 +218,8 @@ static struct interval_generator *iter;
 static void
 itree_init (void)
 {
-  struct interval_node *null = ITREE_NULL;
-  null->left = null->right = null->parent = null;
-  null->offset = null->otick = 0;
-  null->begin = PTRDIFF_MIN;
-  null->end = PTRDIFF_MIN;
-  null->limit = PTRDIFF_MIN;     /* => max(x, null.limit) = x */
-  null->red = false;
+  eassert (null_is_sane ());
+
   iter = interval_generator_create (NULL);
 }
 
@@ -327,6 +345,8 @@ static bool
 check_tree_common (struct interval_tree *tree,
                    bool check_red_black_invariants)
 {
+  eassert (null_is_sane ());
+
   eassert (tree != NULL);
   eassert (tree->size >= 0);
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
