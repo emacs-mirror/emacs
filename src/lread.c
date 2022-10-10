@@ -3523,7 +3523,8 @@ get_lazy_string (Lisp_Object val)
   return make_unibyte_string (str + start, to - start);
 }
 
-
+#if 0 /* PKG-FIXME: UNused because shorthands.el is currently
+	 not supported.  Should it?  */
 /* Length of prefix only consisting of symbol constituent characters.  */
 static ptrdiff_t
 symbol_char_span (const char *s)
@@ -3534,6 +3535,8 @@ symbol_char_span (const char *s)
     p++;
   return p - s;
 }
+
+#endif
 
 static void
 skip_space_and_comments (Lisp_Object readcharfun)
@@ -3691,6 +3694,17 @@ read_stack_reset (intmax_t sp)
 {
   eassert (sp <= rdstack.sp);
   rdstack.sp = sp;
+}
+
+static Lisp_Object
+read_make_string (const char *s, ptrdiff_t nbytes, bool multibyte)
+{
+  ptrdiff_t nchars = nbytes;
+  if (multibyte)
+    nchars = multibyte_chars_in_text ((unsigned char *) s, nbytes);
+  if (NILP (Vpurify_flag))
+    return make_specified_string (s, nchars, nbytes, multibyte);
+  return make_pure_string (s, nchars, nbytes, multibyte);
 }
 
 /* Read a Lisp object.
@@ -4122,122 +4136,201 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
       {
 	char *p = read_buffer;
 	char *end = read_buffer + read_buffer_size;
-	bool quoted = false;
 	EMACS_INT start_position = readchar_offset - 1;
 
-	do
+	/* PKG-FIXME check.  And this code is much too long.  */
+
+	/* If of the form ||, everything except '|' is considered quoted.
+	   the bars doesn't belong to the symbol name.  */
+	bool in_vertical_bar = false;
+	if (c == '|')
 	  {
+	    in_vertical_bar = true;
+	    c = READCHAR;
+	    if (c < 0)
+	      end_of_file_error ();
+	  }
+
+	/* Remember where package prefixes end in COLON, which
+	   will be set to the first colon we find.  NCOLONS is the
+	   number of colons found so far.  */
+	char *colon = NULL;
+	int ncolons = 0;
+
+	/* True means last character read was a backslash.  */
+	bool last_was_backslash = false;
+	bool any_quoted = false;
+
+	for (;;)
+	  {
+	    if (c == ':' && !last_was_backslash && !in_vertical_bar)
+	      {
+		/* #:xyz should not contain a colon.  */
+		if (uninterned_symbol)
+		  invalid_syntax ("colon in uninterned symbol", readcharfun);
+
+		/* Remember where the first : is.  */
+		if (colon == NULL)
+		  colon = p;
+		++ncolons;
+
+		/* Up to two colons are allowed if they are
+		   consecutive.  PKG-FIXME check consecutive :.  */
+		if (ncolons > 2)
+		  invalid_syntax ("too many colons", readcharfun);
+	      }
+
+	    /* Handle backslash.  The first backslash is not part of
+	       the symbol name.  \\ gives a single \ in the
+	       symbol.  */
+	    if (c == '\\' && !last_was_backslash)
+	      {
+		c = READCHAR;
+		if (c < 0)
+		  end_of_file_error ();
+		last_was_backslash = true;
+		any_quoted = true;
+		continue;
+	      }
+	    last_was_backslash = false;
+
+	    /* Store the character read, and advance the write pointer
+	       for by the length of the the character we read.  But
+	       first make sure that buffer is large enough.  */
 	    if (end - p < MAX_MULTIBYTE_LENGTH + 1)
 	      {
 		ptrdiff_t offset = p - read_buffer;
+		ptrdiff_t colon_offset = -1;
+		if (colon)
+		  colon_offset = colon - read_buffer;
 		read_buffer = grow_read_buffer (read_buffer, offset,
 						&heapbuf, &read_buffer_size,
 						count);
 		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
+		if (colon_offset >= 0)
+		  colon = read_buffer + colon_offset;
 	      }
-
-	    if (c == '\\')
-	      {
-		c = READCHAR;
-		if (c < 0)
-		  end_of_file_error ();
-		quoted = true;
-	      }
-
 	    if (multibyte)
 	      p += CHAR_STRING (c, (unsigned char *) p);
 	    else
 	      *p++ = c;
+
+	    /* Proceed with the next character.  */
 	    c = READCHAR;
-	  }
-	while (c > 32
-	       && c != NO_BREAK_SPACE
-	       && (c >= 128
-		   || !(   c == '"' || c == '\'' || c == ';' || c == '#'
-			|| c == '(' || c == ')'  || c == '[' || c == ']'
-			|| c == '`' || c == ',')));
 
-	*p = 0;
-	ptrdiff_t nbytes = p - read_buffer;
-	UNREAD (c);
-
-	/* Only attempt to parse the token as a number if it starts as one.  */
-	char c0 = read_buffer[0];
-	if (((c0 >= '0' && c0 <= '9') || c0 == '.' || c0 == '-' || c0 == '+')
-	    && !quoted && !uninterned_symbol && !skip_shorthand)
-	  {
-	    ptrdiff_t len;
-	    Lisp_Object result = string_to_number (read_buffer, 10, &len);
-	    if (!NILP (result) && len == nbytes)
+	    /* If in |...| everything is quoted by default, except |.
+	       An unquoted bar ends the symbol, and is not part of the
+	       symbol.  */
+	    if (in_vertical_bar)
 	      {
-		obj = result;
+		if (c < 0)
+		  end_of_file_error ();
+		if (c == '|')
+		  c = READCHAR;
 		break;
 	      }
+	    else
+	      {
+		/* Symbols end at control characters like newlines or
+		   tabs, or space of course.  This if includes end of
+		   input, where c < 0.  */
+		if (c <= ' ')
+		  break;
+
+		/* Let symbols end at NO_BREAK_SPACE.  */
+		if (c == NO_BREAK_SPACE)
+		  break;
+
+		/* Accept characters >= 128 as symbol constituents, like
+		   unlauts and so on.  */
+		if (c >= 128)
+		  continue;
+
+		/* End reading when we reach a character that can not
+		   be part of a symbol name, unless quoted. */
+		if (c == '"' || c == '\'' || c == ';' || c == '#'
+		    || c == '(' || c == ')'  || c == '[' || c == ']'
+		    || c == '`' || c == ',')
+		  break;
+	      }
 	  }
 
-	/* symbol, possibly uninterned */
-	ptrdiff_t nchars
-	  = (multibyte
-	     ? multibyte_chars_in_text ((unsigned char *)read_buffer, nbytes)
-	     : nbytes);
-	Lisp_Object result;
-	if (uninterned_symbol)
+	*p = 0;
+	UNREAD (c);
+
+	/* The start of the symbol, If a package prefix is present,
+	   the start of the symbol-name part.  */
+	char *symbol_start;
+
+	/* Package for the package prefix, if there is one, or nil
+	   if there is none.  */
+	Lisp_Object package = Qnil;
+
+	/* If a package prefix was found, determine the package it
+	   names.  It is an error if a package of that name does not
+	   exist, or ':' is used for an internal symbol.  */
+	if (colon)
 	  {
-	    Lisp_Object name
-	      = (!NILP (Vpurify_flag)
-		 ? make_pure_string (read_buffer, nchars, nbytes, multibyte)
-		 : make_specified_string (read_buffer, nchars, nbytes,
-					  multibyte));
-	    result = Fmake_symbol (name);
+	    /* Package name is in read_buffer, colon + ncolons is the
+	       start of the symbol name.  */
+	    *colon = 0;
+
+	    /* Make a Lisp string for the package name.  */
+	    const char* pkg_start = read_buffer;
+	    const ptrdiff_t pkg_nbytes = colon - read_buffer;
+	    const Lisp_Object pkg_name
+	      = read_make_string (pkg_start, pkg_nbytes, multibyte);
+
+	    /* If there is no package with the give name, error.
+	       PKG-FIXME is it okay to signal like this here?  Is
+	       there a better way? */
+	    package = Ffind_package (pkg_name);
+	    if (NILP (package))
+	      pkg_error ("unknown package '%s'", read_buffer);
+
+	    /* Symbol name starts after the package prefix.  */
+	    symbol_start = colon + ncolons;
 	  }
 	else
+	  symbol_start = read_buffer;
+	const ptrdiff_t symbol_nbytes = p - symbol_start;
+
+	/* This could be number after all.  But not if empty, and not
+	   if in |...|, and not if any quoted characters were found,
+	   or a package prefix was found, or we have #:xyz.  */
+	if (!any_quoted
+	    && !in_vertical_bar
+	    && !colon
+	    && !uninterned_symbol)
 	  {
-	    /* Don't create the string object for the name unless
-	       we're going to retain it in a new symbol.
-
-	       Like intern_1 but supports multibyte names.  */
-	    Lisp_Object obarray = check_obarray (Vobarray);
-
-	    char *longhand = NULL;
-	    ptrdiff_t longhand_chars = 0;
-	    ptrdiff_t longhand_bytes = 0;
-
-	    Lisp_Object found;
-	    if (skip_shorthand
-		/* We exempt characters used in the "core" Emacs Lisp
-		   symbols that are comprised entirely of characters
-		   that have the 'symbol constituent' syntax from
-		   transforming according to shorthands.  */
-		|| symbol_char_span (read_buffer) >= nbytes)
-	      found = oblookup (obarray, read_buffer, nchars, nbytes);
-	    else
-	      found = oblookup_considering_shorthand (obarray, read_buffer,
-						      nchars, nbytes, &longhand,
-						      &longhand_chars,
-						      &longhand_bytes);
-
-	    if (SYMBOLP (found))
-	      result = found;
-	    else if (longhand)
+	    char c0 = symbol_start[0];
+	    if (((c0 >= '0' && c0 <= '9') || c0 == '.' || c0 == '-' || c0 == '+')
+		&& !skip_shorthand)
 	      {
-		Lisp_Object name = make_specified_string (longhand,
-							  longhand_chars,
-							  longhand_bytes,
-							  multibyte);
-		xfree (longhand);
-		result = intern_driver (name, obarray, found);
-	      }
-	    else
-	      {
-		Lisp_Object name = make_specified_string (read_buffer, nchars,
-							  nbytes, multibyte);
-		result = intern_driver (name, obarray, found);
+		ptrdiff_t len;
+		Lisp_Object result = string_to_number (read_buffer, 10, &len);
+		if (!NILP (result) && len == symbol_nbytes)
+		  {
+		    obj = result;
+		    break;
+		  }
 	      }
 	  }
+
+	/* PKG-FIXME: What to do about shorthands.el?  */
+	const Lisp_Object symbol_name
+	  = read_make_string (symbol_start, symbol_nbytes, multibyte);
+	Lisp_Object result;
+	if (uninterned_symbol)
+	  result = Fmake_symbol (symbol_name);
+	else if (NILP (package))
+	  result = pkg_unqualified_symbol (symbol_name);
+	else
+	  result = pkg_qualified_symbol (symbol_name, package, ncolons == 1);
+
 	if (locate_syms && !NILP (result))
-	  result = build_symbol_with_pos (result,
-					  make_fixnum (start_position));
+	  result = build_symbol_with_pos (result, make_fixnum (start_position));
 
 	obj = result;
 	break;
