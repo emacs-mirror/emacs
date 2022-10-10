@@ -2338,7 +2338,7 @@ them.
 @item M-?
 Find all the references for the identifier at point.
 
-@item r@r{, Xref command}
+@item r
 @itemx M-x xref-query-replace-in-results @key{RET} @var{replacement} @key{RET}
 @itemx C-u M-x xref-query-replace-in-results @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Interactively replace @var{regexp} with @var{replacement} in the names

@@ -897,7 +897,8 @@ ITEMS is an xref item which " ; FIXME: Expand documentation.
       (setq continue
             (perform-replace from to t t nil nil multi-query-replace-map)))
     (unless did-it-once
-      (user-error "Cannot use subset of matches for global renaming"))
+      (user-error
+       "Cannot use subset of matches of identifier for global renaming"))
     (when (and continue (not buf-pairs))
       (message "All results processed"))))
 
