@@ -964,13 +964,13 @@ to the offending pattern and highlight the pattern."
 ;;; Etc
 
 (declare-function find-library-name "find-func.el")
-(defun treesit--check-manual-covarage ()
+(defun treesit--check-manual-coverage ()
   "Print tree-sitter functions missing from the manual in message buffer."
   (interactive)
   (require 'find-func)
   (let ((functions-in-source
          (with-temp-buffer
-           (insert-file-contents (find-library-name "tree-sitter"))
+           (insert-file-contents (find-library-name "treesit"))
            (cl-remove-if
             (lambda (name) (string-match "treesit--" name))
             (cl-sort
