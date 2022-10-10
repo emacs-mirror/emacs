@@ -2460,8 +2460,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_window ();
   init_font ();
 
-  fix_symbol_packages ();
-
   if (!initialized)
     {
       char *file;
