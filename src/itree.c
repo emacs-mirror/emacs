@@ -146,7 +146,7 @@ static void interval_tree_insert (struct interval_tree *, struct interval_node *
 
 /* The sentinel node, the null node.  */
 struct interval_node itree_null = {
-  .parent = &itree_null,
+  .parent = NULL, /* never accessed */
   .left = &itree_null,
   .right = &itree_null,
   .begin = PTRDIFF_MIN,
@@ -162,12 +162,8 @@ struct interval_node itree_null = {
 static bool
 null_is_sane (void)
 {
-  /* The sentinel node has most of its fields read-only.
-
-     FIXME: PARENT is still read/write.  It is written to
-     ininterval_tree_transplant, and later read.  --matt
-  */
-  /* eassert (itree_null.parent == &itree_null); */
+  /* All sentinel node fields are read-only.  */
+  eassert (itree_null.parent == NULL);
   eassert (itree_null.left == &itree_null);
   eassert (itree_null.right == &itree_null);
   eassert (itree_null.begin == PTRDIFF_MIN);
@@ -742,7 +738,6 @@ interval_tree_remove_fix (struct interval_tree *tree,
 	      other->red = false;
 	      parent->red = true;
 	      interval_tree_rotate_left (tree, parent);
-	      parent = node->parent;
 	      other = parent->right;
             }
 
@@ -761,7 +756,6 @@ interval_tree_remove_fix (struct interval_tree *tree,
 		  other->left->red = false;
 		  other->red = true;
 		  interval_tree_rotate_right (tree, other);
-		  parent = node->parent;
 		  other = parent->right;
                 }
 	      other->red = parent->red; /* 4.a */
@@ -781,7 +775,6 @@ interval_tree_remove_fix (struct interval_tree *tree,
 	      other->red = false;
 	      parent->red = true;
 	      interval_tree_rotate_right (tree, parent);
-	      parent = node->parent;
 	      other = parent->left;
             }
 
@@ -800,7 +793,6 @@ interval_tree_remove_fix (struct interval_tree *tree,
 		  other->right->red = false;
 		  other->red = true;
 		  interval_tree_rotate_left (tree, other);
-		  parent = node->parent;
 		  other = parent->left;
                 }
 
@@ -881,7 +873,8 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_transplant (tree, min, node);
       /* We set min->right->parent after `interval_tree_transplant` so
          that calls to `itree_total_offset` don't get stuck in an inf-loop.  */
-      min->right->parent = min;
+      if (min->right != ITREE_NULL)
+        min->right->parent = min;
       interval_tree_update_limit (min);
       /* This call "belongs" with the first `interval_tree_transplant`
          (of `min_right`, done earlier in the `if`) but we prefer to do it
@@ -1508,7 +1501,8 @@ interval_tree_transplant (struct interval_tree *tree, struct interval_node *sour
   else
     dest->parent->right = source;
 
-  source->parent = dest->parent;
+  if (source != ITREE_NULL)
+    source->parent = dest->parent;
 }
 
 
