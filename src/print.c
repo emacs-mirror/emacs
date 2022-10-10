@@ -2159,6 +2159,98 @@ print_stack_push_vector (const char *lbrac, const char *rbrac,
     });
 }
 
+/* Return true if symbol name NAME needs quoting.  */
+
+static bool
+print_quoted_p (Lisp_Object name)
+{
+  for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
+    {
+      /* PKG-FIXME: Are these all characters?  */
+      int c = fetch_string_char_advance (name, &ichar, &ibyte);
+      if (c == '\"' || c == '\\' || c == '\''
+	  || (ichar == 0
+	      && (c == '+' || c == '-' || c == '.' || c == '?'))
+	  || c == ';' || c == '#' || c == '(' || c == ')'
+	  || c == ',' || c == '`' || c == '|'
+	  || c == '[' || c == ']' || c <= 040
+	  || c == NO_BREAK_SPACE)
+	return true;
+    }
+  return false;
+}
+
+/* Return true if symbol name NAME needs quoting.  */
+
+static void
+print_symbol_name (Lisp_Object name, Lisp_Object printcharfun)
+{
+  /* A symbol's name may look like something else, like a number,
+     character, string, etc.  In that case print it as |...|.  */
+  const bool quote = print_quoted_p (name);
+
+  if (quote)
+    print_c_string ("|", printcharfun);
+
+  for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
+    {
+      const int c = fetch_string_char_advance (name, &ichar, &ibyte);
+      maybe_quit ();
+      if (c == '|')
+	printchar ('\\', printcharfun);
+      printchar (c, printcharfun);
+    }
+
+  if (quote)
+    print_c_string ("|", printcharfun);
+}
+
+/* Print SYMBOL, imcluding package prefixes and whatnot.  */
+
+static void
+print_symbol (Lisp_Object symbol, Lisp_Object printcharfun)
+{
+  const Lisp_Object name = SYMBOL_NAME (symbol);
+  const char *p = SSDATA (name);
+  const Lisp_Object package = SYMBOL_PACKAGE (symbol);
+
+  /* print-gensym true means print #: for uninterned symbols.
+     PKG_FIXME: This looks like #: for an uninterned symbol with empty
+     name?  */
+  if (!NILP (Vprint_gensym) && NILP (package))
+    print_c_string ("#:", printcharfun);
+  else if (*p == 0)
+    {
+      print_c_string ("##", printcharfun);
+      return;
+    }
+
+  /* Note that Clisp and SBCL print |pkg|::|sym], if package names
+     contain silly characters.  */
+  if (EQ (package, Vkeyword_package))
+    print_c_string (":", printcharfun);
+  else if (!NILP (package) && !EQ (package, Vearmuffs_package))
+    {
+      const Lisp_Object found = Ffind_symbol (name, Vearmuffs_package);
+      if (!NILP (found) && EQ (XCAR (found), symbol))
+	{
+	  /* Don't print qualification if accessible in current
+	     package.  */
+	}
+      else
+	{
+	  print_symbol_name (XPACKAGE (package)->name, printcharfun);
+	  if (SYMBOL_EXTERNAL_P (symbol))
+	    print_c_string (":", printcharfun);
+	  else
+	    print_c_string ("::", printcharfun);
+	}
+    }
+
+  print_symbol_name (name, printcharfun);
+}
+
+
 static void
 print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
@@ -2355,89 +2447,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       break;
 
     case Lisp_Symbol:
-      {
-	Lisp_Object name = SYMBOL_NAME (obj);
-	ptrdiff_t size_byte = SBYTES (name);
-
-	char *p = SSDATA (name);
-	bool signedp = *p == '-' || *p == '+';
-	ptrdiff_t len;
-	bool confusing =
-	  /* Set CONFUSING if NAME looks like a number, calling
-	     string_to_number for non-obvious cases.  */
-	  ((c_isdigit (p[signedp]) || p[signedp] == '.')
-	   && !NILP (string_to_number (p, 10, &len))
-	   && len == size_byte)
-	  /* We don't escape "." or "?" (unless they're the first
-	     character in the symbol name).  */
-	  || *p == '?'
-	  || *p == '.';
-
-	if (! NILP (Vprint_gensym)
-	    && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
-	  print_c_string ("#:", printcharfun);
-	else if (size_byte == 0)
-	  {
-	    print_c_string ("##", printcharfun);
-	    break;
-	  }
-
-	/* Package prefix, maybe.  */
-	const Lisp_Object package = SYMBOL_PACKAGE (obj);
-	if (NILP (package) || EQ (package, Vearmuffs_package))
-	  {
-	    /* Nothing to do for uninterned symbols, or symbols in
-	       their home package.  */
-	  }
-	else if (EQ (package, Vkeyword_package))
-	  {
-	    /* FIXME: If symbol names of keywords didn't include the
-	       colon, we'd have to print it here.  */
-	    // print_c_string (":", printcharfun);
-	  }
-	else
-	  {
-	    const Lisp_Object found
-	      = Ffind_symbol (SYMBOL_NAME (obj), Vearmuffs_package);
-	    if (!NILP (found) && EQ (XCAR (found), obj))
-	      {
-		/* Don't print qualification if accessible in current
-		   package.  */
-	      }
-	    else
-	      {
-		print_object (XPACKAGE (package)->name, printcharfun, false);
-		if (SYMBOL_EXTERNAL_P (obj))
-		  print_c_string (":", printcharfun);
-		else
-		  print_c_string ("::", printcharfun);
-	      }
-	  }
-
-	ptrdiff_t i = 0;
-	for (ptrdiff_t i_byte = 0; i_byte < size_byte; )
-	  {
-	    /* Here, we must convert each multi-byte form to the
-	       corresponding character code before handing it to PRINTCHAR.  */
-	    int c = fetch_string_char_advance (name, &i, &i_byte);
-	    maybe_quit ();
-
-	    if (escapeflag)
-	      {
-		if (c == '\"' || c == '\\' || c == '\''
-		    || c == ';' || c == '#' || c == '(' || c == ')'
-		    || c == ',' || c == '`'
-		    || c == '[' || c == ']' || c <= 040
-		    || c == NO_BREAK_SPACE
-		    || confusing)
-		  {
-		    printchar ('\\', printcharfun);
-		    confusing = false;
-		  }
-	      }
-	    printchar (c, printcharfun);
-	  }
-      }
+      print_symbol (obj, printcharfun);
       break;
 
     case Lisp_Cons:
