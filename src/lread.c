@@ -4742,10 +4742,10 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
 	 in lexically bound elisp signal an error, as documented.  */
       XSYMBOL (sym)->u.s.declared_special = true;
       SET_SYMBOL_VAL (XSYMBOL (sym), sym);
-      pkg_insert_new_symbol (sym, Vkeyword_package);
+      pkg_add_keyword (sym);
     }
   else
-      pkg_insert_new_symbol (sym, Vearmuffs_package);
+      pkg_add_symbol (sym, Vearmuffs_package);
 
   ptr = aref_addr (obarray, XFIXNUM (index));
   set_symbol_next (sym, SYMBOLP (*ptr) ? XSYMBOL (*ptr) : NULL);

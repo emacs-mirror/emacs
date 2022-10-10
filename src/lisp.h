@@ -2257,8 +2257,12 @@ XPACKAGE (Lisp_Object a)
 extern void init_pkg_once (void);
 extern void init_pkg (void);
 extern void syms_of_pkg (void);
-extern void fix_symbol_packages (void);
-extern Lisp_Object pkg_insert_new_symbol (Lisp_Object symbol, Lisp_Object package);
+extern Lisp_Object pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external);
+extern void pkg_error (const char *fmt, ...);
+extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
+extern bool pkg_keywordp (Lisp_Object obj);
+extern Lisp_Object pkg_add_keyword (Lisp_Object sym);
+extern Lisp_Object pkg_add_symbol (Lisp_Object symbol, Lisp_Object package);
 
 
 /* Return whether a value might be a valid docstring.
@@ -4571,9 +4575,6 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
 
 /* Defined in lread.c.  */
 extern Lisp_Object check_obarray (Lisp_Object);
-extern Lisp_Object intern_1 (const char *, ptrdiff_t);
-extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
-extern Lisp_Object intern_driver (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_symbol (Lisp_Object, Lisp_Object);
 extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
 INLINE void
@@ -4596,6 +4597,9 @@ extern void init_obarray_once (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
 extern void mark_lread (void);
+extern Lisp_Object intern_1 (const char *str, ptrdiff_t len);
+extern Lisp_Object intern_c_string_1 (const char *str, ptrdiff_t len);
+extern Lisp_Object intern_driver (Lisp_Object string, Lisp_Object obarray, Lisp_Object index);
 
 INLINE Lisp_Object
 intern (const char *str)

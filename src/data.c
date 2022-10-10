@@ -357,11 +357,7 @@ This means that it is a symbol with a print name beginning with `:'
 interned in the initial obarray.  */)
   (Lisp_Object object)
 {
-  if (SYMBOLP (object)
-      && SREF (SYMBOL_NAME (object), 0) == ':'
-      && SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (object))
-    return Qt;
-  return Qnil;
+  return pkg_keywordp (object) ? Qt : Qnil;
 }
 
 DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0,
@@ -1566,28 +1562,30 @@ swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_
 Lisp_Object
 find_symbol_value (Lisp_Object symbol)
 {
-  struct Lisp_Symbol *sym;
-
   CHECK_SYMBOL (symbol);
-  sym = XSYMBOL (symbol);
+  struct Lisp_Symbol *sym = XSYMBOL (symbol);
 
- start:
-  switch (sym->u.s.redirect)
-    {
-    case SYMBOL_VARALIAS: sym = indirect_variable (sym); goto start;
-    case SYMBOL_PLAINVAL: return SYMBOL_VAL (sym);
-    case SYMBOL_LOCALIZED:
+  for (;;)
+    switch (sym->u.s.redirect)
       {
-	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	swap_in_symval_forwarding (sym, blv);
-	return (blv->fwd.fwdptr
-		? do_symval_forwarding (blv->fwd)
-		: blv_value (blv));
+      case SYMBOL_VARALIAS:
+	sym = indirect_variable (sym);
+	break;
+      case SYMBOL_PLAINVAL:
+	return SYMBOL_VAL (sym);
+      case SYMBOL_LOCALIZED:
+	{
+	  struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
+	  swap_in_symval_forwarding (sym, blv);
+	  return (blv->fwd.fwdptr
+		  ? do_symval_forwarding (blv->fwd)
+		  : blv_value (blv));
+	}
+      case SYMBOL_FORWARDED:
+	return do_symval_forwarding (SYMBOL_FWD (sym));
+      default:
+	emacs_abort ();
       }
-    case SYMBOL_FORWARDED:
-      return do_symval_forwarding (SYMBOL_FWD (sym));
-    default: emacs_abort ();
-    }
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
@@ -1596,13 +1594,10 @@ Note that if `lexical-binding' is in effect, this returns the
 global value outside of any lexical scope.  */)
   (Lisp_Object symbol)
 {
-  Lisp_Object val;
-
-  val = find_symbol_value (symbol);
-  if (!BASE_EQ (val, Qunbound))
-    return val;
-
-  xsignal1 (Qvoid_variable, symbol);
+  const Lisp_Object val = find_symbol_value (symbol);
+  if (EQ (val, Qunbound))
+    xsignal1 (Qvoid_variable, symbol);
+  return val;
 }
 
 DEFUN ("set", Fset, Sset, 2, 2, 0,
