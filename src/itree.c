@@ -205,14 +205,44 @@ itree_init (void)
   iter = interval_generator_create (NULL);
 }
 
-static ptrdiff_t
-recurse_check_tree (struct interval_node *node, uintmax_t tree_otick,
-                    ptrdiff_t offset, ptrdiff_t min_begin,
-                    ptrdiff_t max_begin, intmax_t *size)
+struct check_subtree_result
 {
+  /* Were all nodes visited?  */
+  bool complete;
+
+  /* Computed node count of the tree.  */
+  int size;
+
+  /* Computed limit of the tree (max END).  */
+  ptrdiff_t limit;
+
+  /* Computed black height of the tree (count of black nodes from the
+     bottom up to the root).  */
+  int black_height;
+};
+
+static struct check_subtree_result
+check_subtree (struct interval_node *node, uintmax_t tree_otick,
+               int max_depth, ptrdiff_t offset, ptrdiff_t min_begin,
+               ptrdiff_t max_begin)
+{
+  struct check_subtree_result result = { .complete = false,
+                                         .size = 0,
+                                         .limit = PTRDIFF_MIN,
+                                         .black_height = 0 };
   if (node == ITREE_NULL)
-    return PTRDIFF_MIN;
-  ++*size;
+    {
+      /* Every nil node of a Red-Black tree is black */
+      result.black_height = 1;
+      result.complete = true;
+      return result;
+    };
+
+  if (max_depth == 0)
+    {
+      result.complete = false;
+      return result;
+    }
 
   /* Validate structure.  */
   eassert (
@@ -221,14 +251,35 @@ recurse_check_tree (struct interval_node *node, uintmax_t tree_otick,
   eassert (node->left == ITREE_NULL || node->left->parent == node);
   eassert (node->right == ITREE_NULL || node->right->parent == node);
 
-  /* We don't check the RB invariants here (neither the absence of
-     red+red nor the equal-black-depth), so that we can use this check
-     even while the tree is temporarily breaking some of those invarints.  */
-  /* Red nodes cannot have red parents.  */
-  /* eassert (node->parent == ITREE_NULL
-              || !(node->red && node->parent->red)); */
+  /* We don't normally check the RB invariants here (neither the
+     absence of red+red nor the equal-black-depth), so that we can use
+     this check even while the tree is temporarily breaking some of
+     those invarints.  You can enable them if you want.  */
+  if (false)
+    {
+      /* If a node is red then both of its children are black.  Red
+         nodes cannot have red parents.  */
+      if (node->red)
+        {
+          eassert (node->left == ITREE_NULL
+                   || node->left->red == false);
+          eassert (node->right == ITREE_NULL
+                   || node->right->red == false);
+          eassert (node->parent == ITREE_NULL || !node->parent->red);
+        }
+    }
 
-  eassert (node->offset == 0 || node->otick < tree_otick);
+  /* Validate otick.  A node's otick must be <= to the tree's otick
+     and <= to its parent's otick.
+
+     Note: we cannot assert that (NODE.otick == NODE.parent.otick)
+     implies (NODE.offset == 0) because interval_tree_inherit_offset()
+     doesn't always update otick.  It could, but it is not clear there
+     is a need.  */
+  eassert (node->otick <= tree_otick);
+  eassert (node->parent == ITREE_NULL
+           || node->otick <= node->parent->otick);
+  eassert (node->otick != tree_otick || node->offset == 0);
 
   offset += node->offset;
   ptrdiff_t begin = node->begin + offset;
@@ -240,29 +291,74 @@ recurse_check_tree (struct interval_node *node, uintmax_t tree_otick,
   eassert (begin <= max_begin);
   eassert (end <= limit);
 
-  ptrdiff_t left_limit
-    = recurse_check_tree (node->left, tree_otick, offset, min_begin,
-                          begin, size);
-  ptrdiff_t right_limit
-    = recurse_check_tree (node->right, tree_otick, offset, begin,
-                          max_begin, size);
-  eassert (left_limit <= limit);
-  eassert (right_limit <= limit);
-  eassert (limit == max (end, max (left_limit, right_limit)));
-  return limit;
+  struct check_subtree_result left_result
+    = check_subtree (node->left, tree_otick, max_depth - 1, offset,
+                     min_begin, begin);
+  struct check_subtree_result right_result
+    = check_subtree (node->right, tree_otick, max_depth - 1, offset,
+                     begin, max_begin);
+
+  eassert (left_result.limit <= limit);
+  eassert (right_result.limit <= limit);
+
+  result.complete = left_result.complete && right_result.complete;
+  if (result.complete)
+    {
+      /* Every path from a node to a descendent leaf contains the same
+         number of black nodes.  Often said this way: all nodes have
+         the same "black height".  */
+      eassert (left_result.black_height == right_result.black_height);
+      result.black_height
+        = (node->red ? 0 : 1) + left_result.black_height;
+
+      result.size = 1 + left_result.size + right_result.size;
+      result.limit
+        = max (end, max (left_result.limit, right_result.limit));
+
+      eassert (limit == result.limit);
+    }
+
+  return result;
 }
 
+/* Validate invariants for TREE.
+
+   This runs in constant time when ENABLE_OVERLAY_CHECKING is 0
+   (i.e. Emacs is not configured with
+   "--enable_checking=yes,overlays").  In this mode it can't check all
+   the invariants.  When ENABLE_OVERLAY_CHECKING is 1 it checks the
+   entire tree and validates all invariants.
+*/
 static bool
 check_tree (struct interval_tree *tree)
 {
   eassert (tree != NULL);
+  eassert (tree->size >= 0);
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
   if (tree->root == ITREE_NULL)
     return true;
 
-  intmax_t size = 0;
-  recurse_check_tree (tree->root, tree->otick, 0,
-                      PTRDIFF_MIN, PTRDIFF_MAX, &size);
+  /* Limit the traversal depth to what 'interval_tree_max_height'
+     returns.  Later, verify that this is enough height to traverse
+     the complete tree.  */
+  const int max_height = interval_tree_max_height (tree);
+  eassert (max_height >= 0);
+  eassert (max_height <= 120);
+
+  /* NOTE: if this check is too expensive an easy fix is to reduce
+     max_height to for large trees, then relax the assertion on
+     result.complete.  Assertions in check_subtree will still be made
+     at the bottom of the tree (where they are probably most
+     interesting), but some will be skipped closer to the root.  */
+
+  struct interval_node *node = tree->root;
+  struct check_subtree_result result
+    = check_subtree (node, tree->otick, max_height, node->offset,
+                     PTRDIFF_MIN, PTRDIFF_MAX);
+  eassert (result.complete);
+  eassert (result.size == tree->size);
+
+  /* The only way this function fails is eassert().  */
   return true;
 }
 
@@ -1145,10 +1241,10 @@ interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
     }
 
   /* Offsets can be inherited from dirty nodes (with out of date
-     otick) during insert and remove.  Offsets aren't inherited
-     downward from the root for these operations so rotations are
-     performed on potentially "dirty" nodes, where we only make sure
-     the *local* offsets are all zero.  */
+     otick) during removal, since we do not travel down from the root
+     in that case.  In this case rotations are performed on
+     potentially "dirty" nodes, where we only need to make sure the
+     *local* offsets are zero.  */
 
   if (node->offset)
     {
