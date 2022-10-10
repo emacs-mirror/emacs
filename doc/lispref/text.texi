@@ -5325,8 +5325,8 @@ interpolation).
 For instance, an @samp{insert} statement will typically return
 @samp{1}, whereas an @samp{update} statement may return zero or a
 higher number.  However, when using @acronym{SQL} statements like
-@samp{insert into ... returning ...} and the like, the values
-specified by @samp{returning ...} will be returned instead.
+@w{@samp{insert into @dots{} returning @dots{}}} and the like, the values
+specified by @w{@samp{returning @dots{}}} will be returned instead.
 
 Strings in SQLite are, by default, stored as @code{utf-8}, and
 selecting a text column will decode the string using that charset.
