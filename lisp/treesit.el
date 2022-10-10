@@ -31,7 +31,10 @@
 
 ;;; Activating tree-sitter
 
-(defgroup treesit
+;; Per our naming guideline, we use "tree-sitter" when referring to it
+;; as a name and only use "treesit" for prefix.  Since a group name is
+;; not a prefix, we use "tree-sitter" here.
+(defgroup tree-sitter
   nil
   "Tree-sitter is an incremental parser."
   :group 'tools
