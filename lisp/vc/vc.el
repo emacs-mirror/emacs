@@ -3332,12 +3332,14 @@ If nil, no default will be used.  This option may be set locally."
 ;;;###autoload
 (defun vc-prepare-patch (addressee subject revisions)
   "Compose an Email sending patches for REVISIONS to ADDRESSEE.
-If `vc-prepare-patches-separately' is non-nil, SUBJECT will be used
-as the default subject for the message.  Otherwise a separate
-message will be composed for each revision.
+If `vc-prepare-patches-separately' is nil, SUBJECT will be used
+as the default subject for the message (and it will be prompted
+for when called interactively).  Otherwise a separate message
+will be composed for each revision, with SUBJECT derived from the
+invidividual commits.
 
 When invoked interactively in a Log View buffer with marked
-revisions, these revisions will be used."
+revisions, those revisions will be used."
   (interactive
    (let ((revs (or (log-view-get-marked)
                    (vc-read-multiple-revisions "Revisions: ")))
