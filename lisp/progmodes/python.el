@@ -3413,15 +3413,25 @@ detecting a prompt at the end of the buffer."
   "Send STRING to PROCESS and inhibit output.
 Return the output."
   (or process (setq process (python-shell-get-process-or-error)))
-  (cl-letf (((process-filter process)
-             (lambda (_proc str)
-               (with-current-buffer (process-buffer process)
-                 (python-shell-output-filter str))))
-            (python-shell-output-filter-in-progress t)
-            (inhibit-quit t))
+  (cl-letf* (((process-filter process)
+              (lambda (_proc str)
+                (with-current-buffer (process-buffer process)
+                  (python-shell-output-filter str))))
+             (python-shell-output-filter-in-progress t)
+             (inhibit-quit t)
+             (buffer (process-buffer process))
+             (last-prompt (cond ((boundp 'comint-last-prompt-overlay)
+                                 'comint-last-prompt-overlay)
+                                ((boundp 'comint-last-prompt)
+                                 'comint-last-prompt)))
+             (last-prompt-value (buffer-local-value last-prompt buffer)))
     (or
      (with-local-quit
-       (python-shell-send-string string process)
+       (unwind-protect
+           (python-shell-send-string string process)
+         (when (not (null last-prompt))
+           (with-current-buffer buffer
+             (set last-prompt last-prompt-value))))
        (while python-shell-output-filter-in-progress
          ;; `python-shell-output-filter' takes care of setting
          ;; `python-shell-output-filter-in-progress' to NIL after it
@@ -3430,7 +3440,7 @@ Return the output."
        (prog1
            python-shell-output-filter-buffer
          (setq python-shell-output-filter-buffer nil)))
-     (with-current-buffer (process-buffer process)
+     (with-current-buffer buffer
        (comint-interrupt-subjob)))))
 
 (defun python-shell-internal-send-string (string)
