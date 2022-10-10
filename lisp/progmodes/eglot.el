@@ -1282,7 +1282,8 @@ in project `%s'."
                      (cond ((numberp eglot-sync-connect)
                             (accept-process-output nil eglot-sync-connect))
                            (eglot-sync-connect
-                            (while t (accept-process-output nil 30)))))))
+                            (while t (accept-process-output
+                                      nil eglot-connect-timeout)))))))
               (pcase retval
                 (`(error . ,msg) (eglot--error msg))
                 (`nil (eglot--message "Waiting in background for server `%s'"
