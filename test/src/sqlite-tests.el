@@ -241,4 +241,17 @@
           (should (multibyte-string-p c1))
           (should-not (multibyte-string-p c2)))))))
 
+(ert-deftest sqlite-returning ()
+  (skip-unless (sqlite-available-p))
+  (let (db)
+    (progn
+      (setq db (sqlite-open))
+      (sqlite-execute db "CREATE TABLE people1 (people_id INTEGER PRIMARY KEY, first TEXT, last TEXT)")
+      (should (null (sqlite-select db "select * from people1")))
+      (should
+       (equal
+        (sqlite-execute db "INSERT INTO people1 (first, last) values (?, ?) RETURNING people_id, first"
+		        '("Joe" "Doe"))
+        '((1 "Joe")))))))
+
 ;;; sqlite-tests.el ends here
