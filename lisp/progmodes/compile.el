@@ -358,7 +358,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?\\(?:\\([:,]\\|$\\)\\)?"
      1 2 3 (nil . 4))
 
-    (ruby-Test::Unit
+    ;; PKG-FIXME
+    (|ruby-Test::Unit|
      "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
     (gmake
@@ -562,7 +563,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      (0 'default)
      (1 compilation-error-face) (2 compilation-line-face))
 
-    (perl--Pod::Checker
+    (|perl--Pod::Checker|
      ;; podchecker error messages, per Pod::Checker.
      ;; The style is from the Pod::Checker::poderror() function, eg.
      ;; *** ERROR: Spurious text after =cut at line 193 in file foo.pm
@@ -599,7 +600,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
 \\([0-9]+\\)\\( fail #[0-9]+\\)?)"
      2 3)
-    (perl--Test::Harness
+    (|perl--Test::Harness|
      ;; perl Test::Harness output, eg.
      ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
      ;;

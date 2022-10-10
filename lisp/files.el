@@ -7607,20 +7607,20 @@ If DIR's free space cannot be obtained, this function returns nil."
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (dd "[ 0-3][0-9]")
-	 (HH:MM "[ 0-2][0-9][:.][0-5][0-9]")
+	 (HH\:MM "[ 0-2][0-9][:.][0-5][0-9]")
 	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
 	 (zone "[-+][0-2][0-9][0-5][0-9]")
 	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
-	 (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
+	 (iso-time (concat HH\:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
 	 (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
 		      "\\|" yyyy "-" iso-mm-dd "\\)"))
 	 (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
 			  s "+"
-			  "\\(" HH:MM "\\|" yyyy "\\)"))
+			  "\\(" HH\:MM "\\|" yyyy "\\)"))
 	 (western-comma (concat month s "+" dd "," s "+" yyyy))
          ;; This represents the date in strftime(3) format "%e-%b-%Y"
          ;; (aka "%v"), as it is the default for many ls incarnations.
-         (DD-MMM-YYYY (concat dd "-" month "-" yyyy s HH:MM))
+         (DD-MMM-YYYY (concat dd "-" month "-" yyyy s HH\:MM))
 	 ;; Japanese MS-Windows ls-lisp has one-digit months, and
 	 ;; omits the Kanji characters after month and day-of-month.
 	 ;; On Mac OS X 10.3, the date format in East Asian locales is
@@ -7629,7 +7629,7 @@ If DIR's free space cannot be obtained, this function returns nil."
 	 (east-asian
 	  (concat "\\(" mm l "?" s dd l "?" s "+"
 		  "\\|" dd s mm s "+" "\\)"
-		  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
+		  "\\(" HH\:MM "\\|" yyyy l "?" "\\)")))
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README

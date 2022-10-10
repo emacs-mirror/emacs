@@ -208,12 +208,12 @@ SPECIALIZERS-FUNCTION takes as first argument a tag value TAG
   (let ((cl--generic-edebug-name (car name)))
     (funcall pf specs)))
 
-(defun cl--generic-edebug-make-name (in:method _oldname &rest quals-and-args)
+(defun cl--generic-edebug-make-name (in--method _oldname &rest quals-and-args)
   ;; The name to use in Edebug for a method: use the generic
   ;; function's name plus all its qualifiers and finish with
   ;; its specializers.
   (pcase-let*
-      ((basename (if in:method cl--generic-edebug-name (pop quals-and-args)))
+      ((basename (if in--method cl--generic-edebug-name (pop quals-and-args)))
        (args (car (last quals-and-args)))
        (`(,spec-args . ,_) (cl--generic-split-args args))
        (specializers (mapcar (lambda (spec-arg)
@@ -255,7 +255,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
                               [&name
                                [[&rest cl-generic--method-qualifier-p]
                                 listp] ;Formal args
-                               cl--generic-edebug-make-name in:method]
+                               cl--generic-edebug-make-name in--method]
                               lambda-doc
                               def-body)]]
              def-body)))
