@@ -222,7 +222,8 @@ struct check_subtree_result
 };
 
 static struct check_subtree_result
-check_subtree (struct interval_node *node, uintmax_t tree_otick,
+check_subtree (struct interval_node *node,
+               bool check_red_black_invariants, uintmax_t tree_otick,
                int max_depth, ptrdiff_t offset, ptrdiff_t min_begin,
                ptrdiff_t max_begin)
 {
@@ -251,23 +252,9 @@ check_subtree (struct interval_node *node, uintmax_t tree_otick,
   eassert (node->left == ITREE_NULL || node->left->parent == node);
   eassert (node->right == ITREE_NULL || node->right->parent == node);
 
-  /* We don't normally check the RB invariants here (neither the
-     absence of red+red nor the equal-black-depth), so that we can use
-     this check even while the tree is temporarily breaking some of
-     those invarints.  You can enable them if you want.  */
-  if (false)
-    {
-      /* If a node is red then both of its children are black.  Red
-         nodes cannot have red parents.  */
-      if (node->red)
-        {
-          eassert (node->left == ITREE_NULL
-                   || node->left->red == false);
-          eassert (node->right == ITREE_NULL
-                   || node->right->red == false);
-          eassert (node->parent == ITREE_NULL || !node->parent->red);
-        }
-    }
+  /* No red nodes have red parents.  */
+  if (check_red_black_invariants && node->parent != ITREE_NULL)
+    eassert (!node->red || !node->parent->red);
 
   /* Validate otick.  A node's otick must be <= to the tree's otick
      and <= to its parent's otick.
@@ -292,11 +279,13 @@ check_subtree (struct interval_node *node, uintmax_t tree_otick,
   eassert (end <= limit);
 
   struct check_subtree_result left_result
-    = check_subtree (node->left, tree_otick, max_depth - 1, offset,
-                     min_begin, begin);
+    = check_subtree (node->left, check_red_black_invariants,
+                     tree_otick, max_depth - 1, offset, min_begin,
+                     begin);
   struct check_subtree_result right_result
-    = check_subtree (node->right, tree_otick, max_depth - 1, offset,
-                     begin, max_begin);
+    = check_subtree (node->right, check_red_black_invariants,
+                     tree_otick, max_depth - 1, offset, begin,
+                     max_begin);
 
   eassert (left_result.limit <= limit);
   eassert (right_result.limit <= limit);
@@ -304,24 +293,29 @@ check_subtree (struct interval_node *node, uintmax_t tree_otick,
   result.complete = left_result.complete && right_result.complete;
   if (result.complete)
     {
-      /* Every path from a node to a descendent leaf contains the same
-         number of black nodes.  Often said this way: all nodes have
-         the same "black height".  */
-      eassert (left_result.black_height == right_result.black_height);
-      result.black_height
-        = (node->red ? 0 : 1) + left_result.black_height;
-
       result.size = 1 + left_result.size + right_result.size;
       result.limit
         = max (end, max (left_result.limit, right_result.limit));
 
       eassert (limit == result.limit);
+
+      if (check_red_black_invariants)
+        {
+          /* Every path from a node to a descendent leaf contains the
+             same number of black nodes.  Often said this way: all
+             nodes have the same "black height".  */
+          eassert (left_result.black_height
+                   == right_result.black_height);
+          result.black_height
+            = (node->red ? 0 : 1) + left_result.black_height;
+        }
     }
 
   return result;
 }
 
-/* Validate invariants for TREE.
+/* Validate invariants for TREE.  If CHECK_RED_BLACK_INVARIANTS, red
+   nodes with red children are considered invalid.
 
    This runs in constant time when ENABLE_OVERLAY_CHECKING is 0
    (i.e. Emacs is not configured with
@@ -330,7 +324,8 @@ check_subtree (struct interval_node *node, uintmax_t tree_otick,
    entire tree and validates all invariants.
 */
 static bool
-check_tree (struct interval_tree *tree)
+check_tree_common (struct interval_tree *tree,
+                   bool check_red_black_invariants)
 {
   eassert (tree != NULL);
   eassert (tree->size >= 0);
@@ -353,13 +348,30 @@ check_tree (struct interval_tree *tree)
 
   struct interval_node *node = tree->root;
   struct check_subtree_result result
-    = check_subtree (node, tree->otick, max_height, node->offset,
-                     PTRDIFF_MIN, PTRDIFF_MAX);
+    = check_subtree (node, check_red_black_invariants, tree->otick,
+                     max_height, node->offset, PTRDIFF_MIN,
+                     PTRDIFF_MAX);
   eassert (result.complete);
   eassert (result.size == tree->size);
 
   /* The only way this function fails is eassert().  */
   return true;
+}
+
+/* Check the tree with all invariant checks enabled.  */
+static bool
+check_tree (struct interval_tree *tree)
+{
+  return check_tree_common (tree, true);
+}
+
+/* Check the tree with all invariant checks enabled, except for the
+   red-black tree invariants.  Useful for asserting the other
+   invariants while inserting or removing.  */
+static bool
+check_tree_no_rb (struct interval_tree *tree)
+{
+  return check_tree_common (tree, false);
 }
 
 /* +===================================================================================+
@@ -626,7 +638,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 
   /* Fix/update the tree */
   ++tree->size;
-  eassert (check_tree (tree));
+  eassert (check_tree_no_rb (tree));
   interval_tree_insert_fix (tree, node);
 }
 
