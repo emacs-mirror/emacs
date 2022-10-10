@@ -25,7 +25,7 @@ cd "tree-sitter-${lang}/src"
 
 if [ "${lang}" == "typescript/tsx" ]
 then
-    lang="typescript"
+    lang="tsx"
 fi
 
 # Build.

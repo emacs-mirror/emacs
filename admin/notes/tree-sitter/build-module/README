@@ -12,6 +12,6 @@ To build all modules at once, run
 
     ./batch.sh
 
-This gives you C, JSON, Go, HTML, Javascript, CSS, Python, Typescript,
-C#, C++, Rust. More can be added to batch.sh unless it's directory
-strucure is not standard.
+This gives you C, JSON, Go, HTML, Javascript, CSS, Python, Typescript
+(tsx), C# (csharp), C++ (cpp), Rust. More can be added to batch.sh
+unless it's directory strucure is not standard.
