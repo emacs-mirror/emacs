@@ -137,7 +137,8 @@ class Lisp_Object:
             self.value = self.eval(f"((EMACS_INT) {self.unsigned}) "
                                    f">> (GCTYPEBITS - 1)")
         else:
-            assert False, "Unknown Lisp type"
+            msg = f"Unknown Lisp type {self.lisp_type}"
+            assert False, msg
 
     # Create an SBValue for EXPR with name NAME.
     def create_value(self, name, expr):
@@ -168,9 +169,31 @@ class Lisp_Object:
             return Lisp_Object(name).get_string_data()
         return None
 
+    def is_nil(self):
+        return self.lisp_type == None
+
+    # Get the package of a symbol or None if not a symbol.
+    def get_symbol_package(self):
+        if self.lisp_type == "Lisp_Symbol":
+            value = self.value.GetValueForExpressionPath("->u.s.package")
+            package = Lisp_Object(value)
+            if package.pvec_type:
+                name = Lisp_Object(package.value.GetValueForExpressionPath("->name"))
+                return name.get_string_data()
+        return None
+
     # Return a summary string for this object.
     def summary(self):
         return str(self.value)
+
+    def dump(self, result):
+        if self.lisp_type == "Lisp_Symbol":
+            result.AppendMessage(f"package: {self.get_symbol_package()}")
+            result.AppendMessage(f"name:    {self.get_symbol_name()}")
+        elif self.lisp_type == "Lisp_String":
+            result.AppendMessage(str(self.get_string_data()))
+        else:
+            result.AppendMessage(self.summary())
 
 
 ########################################################################
@@ -199,6 +222,12 @@ def xdebug_print(debugger, command, result, internal_dict):
     """Print Lisp_Objects using safe_debug_print()"""
     debugger.HandleCommand(f"expr safe_debug_print({command})")
 
+def xprint(debugger, command, ctx, result, internal_dict):
+    frame = ctx.GetFrame()
+    lisp_obj = Lisp_Object(frame.EvaluateExpression(command))
+    lisp_obj.dump(result)
+
+ 
 
 ########################################################################
 #                             Formatters
@@ -248,6 +277,7 @@ def enable_type_category(debugger, category):
 def __lldb_init_module(debugger, internal_dict):
     define_command(debugger, xbacktrace)
     define_command(debugger, xdebug_print)
+    define_command(debugger, xprint)
     define_type_summary(debugger, "Lisp_Object", type_summary_Lisp_Object)
     enable_type_category(debugger, "Emacs")
     print('Emacs debugging support has been installed.')
