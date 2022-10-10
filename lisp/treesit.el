@@ -34,11 +34,13 @@
 (defgroup treesit
   nil
   "Tree-sitter is an incremental parser."
-  :group 'tools)
+  :group 'tools
+  :version "29.1")
 
 (defcustom treesit-max-buffer-size (* 4 1024 1024)
-  "Maximum buffer size for enabling tree-sitter parsing."
-  :type 'integer)
+  "Maximum buffer size for enabling tree-sitter parsing (in bytes)."
+  :type 'integer
+  :version "29.1")
 
 (defun treesit-available-p ()
   "Return non-nil if tree-sitter features are available."

@@ -290,7 +290,8 @@
   "If non-nil, `python-mode' tries to use tree-sitter.
 Currently `python-mode' uses tree-sitter for font-locking, imenu,
 and movement functions."
-  :type 'boolean)
+  :type 'boolean
+  :version "29.1")
 
 (defcustom python-interpreter "python"
   "Python interpreter for noninteractive use.
