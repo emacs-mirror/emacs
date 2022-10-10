@@ -57,7 +57,8 @@
 
 (eval-when-compile
   (require 'cl-lib)
-  (require 'ido))
+  (require 'ido)
+  (require 'rx))
 
 (defvar ido-cur-list)
 (defvar electric-layout-rules)
@@ -3581,29 +3582,45 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
-(defun js--treesit-move-to-node (fn)
-  (when-let ((found-node
-              (treesit-parent-until
-               (treesit-node-at (point))
-               (lambda (parent)
-                 (treesit-query-capture
-                  parent
-                  js-treesit--defun-query)))))
-    (goto-char (funcall fn found-node))))
+(defun js--treesit-beginning-of-defun (&optional arg)
+  "Tree-sitter `beginning-of-defun' function.
+ARG is the same as in `beginning-of-defun."
+  (let ((arg (or arg 1)))
+    (if (> arg 0)
+        ;; Go backward.
+        (while (and (> arg 0)
+                    (treesit-search-forward-goto
+                     js--treesit-defun-type-regexp 'start nil t))
+          (setq arg (1- arg)))
+      ;; Go forward.
+      (while (and (< arg 0)
+                  (treesit-search-forward-goto
+                   js--treesit-defun-type-regexp 'start))
+        (setq arg (1+ arg))))))
 
-(defun js--treesit-beginning-of-defun (&optional _arg)
-  (js--treesit-move-to-node #'treesit-node-start))
+(defun js--treesit-end-of-defun (&optional arg)
+  "Tree-sitter `end-of-defun' function.
+ARG is the same as in `end-of-defun."
+  (let ((arg (or arg 1)))
+    (if (< arg 0)
+        ;; Go backward.
+        (while (and (< arg 0)
+                    (treesit-search-forward-goto
+                     js--treesit-defun-type-regexp 'end nil t))
+          (setq arg (1+ arg)))
+      ;; Go forward.
+      (while (and (> arg 0)
+                  (treesit-search-forward-goto
+                   js--treesit-defun-type-regexp 'end))
+        (setq arg (1- arg))))))
 
-(defun js--treesit--end-of-defun (&optional _arg)
-  (js--tressit-move-to-node #'treesit-node-end))
-
-(defvar js-treesit--defun-query
-  (treesit-query-compile
-   'javascript
-   "[(class_declaration)
-    (method_definition)
-    (function_declaration)
-    (variable_declarator)] @defun"))
+(defvar js--treesit-defun-type-regexp
+  (rx (or "class_declaration"
+          "method_definition"
+          "function_declaration"
+          "lexical_declaration"))
+  "Regular expression that matches type of defun nodes.
+Used in `js--treesit-beginning-of-defun' and friends.")
 
 (defun js--treesit-can-enable-p ()
   (if (and js-use-tree-sitter
