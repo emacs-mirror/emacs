@@ -826,6 +826,12 @@ or end of the matches node, it can be either \\='start or
 ALL, BACKWARD, and UP are the same as in `treesit-search-forward'."
   (let ((node (treesit-node-at (point)))
         (start (point)))
+    ;; Often the EOF (point-max) is a newline, and `treesit-node-at'
+    ;; will return nil at that point (which is fair).  But we need a
+    ;; node as the starting point to traverse the tree.  So we try to
+    ;; use the node before point.
+    (when (and (not node) (eq (point) (point-max)))
+      (setq node (treesit-node-at (max (1- (point)) (point-min)))))
     ;; When searching forward, it is possible for (point) < start,
     ;; because `treesit-search-forward' goes to parents.
     (while (and node (if backward
