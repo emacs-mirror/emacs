@@ -54,7 +54,7 @@ pkg_error (const char *fmt, ...)
 
 /* Iterator for hash tables.  */
 
-struct h_iterator
+struct h_iter
 {
   /* Hash table being iterated over.  */
   struct Lisp_Hash_Table *h;
@@ -69,19 +69,20 @@ struct h_iterator
 /* Return a freshly initialized iterator for iterating over hash table
    TABLE.  */
 
-static struct h_iterator
+static struct h_iter
 h_init (Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  struct h_iterator it = {.h = h, .i = 0, .key = Qnil, .value = Qnil};
+  struct h_iter it = {.h = h, .i = 0, .key = Qnil, .value = Qnil};
   return it;
 }
 
 /* Value is true if iterator IT is on a valid poisition.  If it is,
-   IT.key and IT.value are set to key and value at that position.  */
+   IT->key and IT->value are set to key and value at that
+   position.  */
 
 static bool
-h_valid (struct h_iterator *it)
+h_valid (struct h_iter *it)
 {
   for (; it->i < HASH_TABLE_SIZE (it->h); ++it->i)
     if (!EQ (HASH_KEY (it->h, it->i), Qunbound))
@@ -96,7 +97,7 @@ h_valid (struct h_iterator *it)
 /* Advance to next element.  */
 
 static void
-h_next (struct h_iterator *it)
+h_next (struct h_iter *it)
 {
   ++it->i;
 }
@@ -105,24 +106,23 @@ h_next (struct h_iterator *it)
    hash table TABLE for the duration of the loop.  */
 
 #define FOR_EACH_KEY_VALUE(it, table) \
-  for (struct h_iterator it = h_init (table); h_valid (&it); h_next (&it))
+  for (struct h_iter it = h_init (table); h_valid (&it); h_next (&it))
 
 /* Cons ELT onto *LIST, and return *LIST.  */
 
-static Lisp_Object
+static void
 add_to_list (Lisp_Object elt, Lisp_Object *list)
 {
-  return *list = Fcons (elt, *list);
+  *list = Fcons (elt, *list);
 }
 
 /* Cons ELT onto *LIST, if not already present.  Return *LIST.  */
 
-static Lisp_Object
+static void
 add_new_to_list (Lisp_Object elt, Lisp_Object *list)
 {
   if (NILP (Fmemq (elt, *list)))
     add_to_list (elt, list);
-  return *list;
 }
 
 /***********************************************************************
@@ -166,11 +166,12 @@ symbols_to_list (Lisp_Object thing)
 static Lisp_Object
 make_package (Lisp_Object name)
 {
-  eassert (STRINGP (name));
   struct Lisp_Package *pkg
     = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Package, symbols, PVEC_PACKAGE);
+  eassert (STRINGP (name));
   pkg->name = name;
   pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize, make_fixnum (1024));
+
   Lisp_Object package;
   XSETPACKAGE (package, pkg);
   return package;
@@ -239,7 +240,7 @@ check_package (Lisp_Object package)
 static Lisp_Object
 package_from_designator (Lisp_Object designator)
 {
-  /* OKG-FIXME? Not signaling here if DESIGNATOR is not registered is
+  /* PKG-FIXME? Not signaling here if DESIGNATOR is not registered is
      odd, but I think that's what CLHS says.  */
   if (PACKAGEP (designator))
     return designator;
@@ -303,6 +304,25 @@ conflicting_package (Lisp_Object name, Lisp_Object nicknames)
   return Qnil;
 }
 
+/* Register NAME as a name for PACKAGE in the package registry.  */
+
+static void
+add_to_package_registry (Lisp_Object name, Lisp_Object package)
+{
+  eassert (STRINGP (name));
+  eassert (PACKAGEP (package));
+  Fputhash (name, package, Vpackage_registry);
+}
+
+/* Remove NAME as a name for PACKAGE from the package registry.  */
+
+static void
+remove_from_package_registry (Lisp_Object name)
+{
+  eassert (STRINGP (name));
+  Fremhash (name, Vpackage_registry);
+}
+
 /* Register package PACKAGE in the package registry, that is, make it
    known under its name and all its nicknames.  */
 
@@ -315,10 +335,10 @@ register_package (Lisp_Object package)
   if (!NILP (conflict))
     signal_error ("Package name conflict", conflict);
 
-  Fputhash (pkg->name, package, Vpackage_registry);
+  add_to_package_registry (pkg->name, package);
   Lisp_Object tail = pkg->nicknames;
   FOR_EACH_TAIL (tail)
-    Fputhash (XCAR (tail), package, Vpackage_registry);
+    add_to_package_registry (XCAR (tail), package);
 }
 
 /* Remove PACKAGE fromt the package registry, that is, remove its name
@@ -328,10 +348,10 @@ register_package (Lisp_Object package)
 static void
 unregister_package (Lisp_Object package)
 {
+  remove_from_package_registry (XPACKAGE (package)->name);
   Lisp_Object tail = XPACKAGE (package)->nicknames;
   FOR_EACH_TAIL (tail)
-    Fremhash (XCAR (tail), Vpackage_registry);
-  Fremhash (XPACKAGE (package)->name, Vpackage_registry);
+    remove_from_package_registry (XCAR (tail));
 }
 
 
@@ -350,6 +370,10 @@ unregister_package (Lisp_Object package)
 static Lisp_Object
 lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
 {
+  eassert (STRINGP (name));
+  eassert (PACKAGEP (package));
+  eassert (CONSP (seen) || NILP (seen));
+
   const struct Lisp_Package *pkg = XPACKAGE (package);
   Lisp_Object symbol = Fgethash (name, pkg->symbols, Qunbound);
   if (EQ (symbol, Qunbound))
@@ -363,12 +387,32 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
 	      seen = Fcons (used_package, seen);
 	      symbol = lookup_symbol1 (name, used_package, seen);
 	      if (!EQ (symbol, Qunbound))
-		break;
+		return symbol;
 	    }
 	}
     }
 
   return symbol;
+}
+
+static Lisp_Object
+add_to_package_symbols (Lisp_Object symbol, Lisp_Object package)
+{
+  eassert (SYMBOLP (symbol));
+  eassert (PACKAGEP (package));
+  Fputhash (SYMBOL_NAME (symbol), symbol, XPACKAGE (package)->symbols);
+  return symbol;
+}
+
+/* Remove NAME as a name for PACKAGE from the package registry.  */
+
+static void
+remove_from_package_symbols (Lisp_Object symbol, Lisp_Object package)
+{
+  eassert (SYMBOLP (symbol));
+  eassert (PACKAGEP (package));
+  eassert (EQ (SYMBOL_PACKAGE (symbol), package));
+  Fremhash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols);
 }
 
 static Lisp_Object
@@ -384,23 +428,30 @@ lookup_symbol (Lisp_Object name, Lisp_Object package)
 Lisp_Object
 pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
 {
-#if 0
-  if (strcmp ("autoload-end", (char*) SDATA (SYMBOL_NAME (symbol))) == 0)
-    symbol = symbol;
-#endif
+  eassert (SYMBOLP (symbol));
+  eassert (!package_system_ready || PACKAGEP (package));
+  eassert (NILP (SYMBOL_PACKAGE (symbol)));
+
+  /* IF we are not ready yet to do the right thing, remember
+     the symbol for later.  There is only one candidate package
+     to add it to later: the emacs package.  */
   if (!package_system_ready)
     {
-      early_symbols = Fcons (symbol, early_symbols);
+      add_new_to_list (symbol, &early_symbols);
       return symbol;
     }
 
-  eassert (NILP (SYMBOL_PACKAGE (symbol)));
   XSYMBOL (symbol)->u.s.package = package;
   XSYMBOL (symbol)->u.s.external = EQ (package, Vkeyword_package);
-  eassert (EQ (Fgethash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols, Qunbound),
-	       Qunbound));
-  Fputhash (SYMBOL_NAME (symbol), symbol, XPACKAGE (package)->symbols);
-  return symbol;
+
+  /* There should be no symbol with the name in the package.  */
+#ifdef ENABLE_CHECKING
+  const Lisp_Object existing
+    = Fgethash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols, Qunbound);
+  eassert (EQ (existing, Qunbound));
+#endif
+
+  return add_to_package_symbols (symbol, package);
 }
 
 /* Add a new keyword by adding SYMBOL to the keyword package.  */
@@ -464,26 +515,75 @@ symbol_and_status (Lisp_Object symbol, Lisp_Object package)
    or newly inserted.  */
 
 static Lisp_Object
-pkg_intern_symbol (Lisp_Object name, Lisp_Object package)
+pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 {
+  eassert (package_system_ready);
+  eassert (PACKAGEP (package));
+
+  const Lisp_Object name
+    = SYMBOLP (symbol_or_name) ? SYMBOL_NAME (symbol_or_name) : symbol_or_name;
+  CHECK_STRING (name);
+
+  /* If already present in package, return that.  */
   Lisp_Object found = lookup_symbol (name, package);
   if (!EQ (found, Qunbound))
-    return found;
+    {
+      /* We should never find an uninterned symbol in a package.  */
+      eassert (!NILP (SYMBOL_PACKAGE (found)));
+      return found;
+    }
+
+  /* Not found.  If intended as a keyword, add it there. */
   if (EQ (package, Vkeyword_package))
     return pkg_add_keyword (Fmake_symbol (name));
+
+  /* Not found, and we have already a symbol, use that symbol.  */
+  if (SYMBOLP (symbol_or_name))
+    return pkg_add_symbol (symbol_or_name, package);
+
+  /* Make a new symbol and add it.  */
   return pkg_add_symbol (Fmake_symbol (name), package);
+}
+
+bool
+pkg_intern_name (Lisp_Object name, Lisp_Object *tem)
+{
+  if (!package_system_ready)
+    return false;
+  *tem = pkg_intern_symbol (name, Vearmuffs_package);
+  return true;
+}
+
+bool
+pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
+{
+  if (!package_system_ready)
+    return false;
+  Lisp_Object name = make_unibyte_string (p, len);
+  *symbol = pkg_intern_symbol (name, Vearmuffs_package);
+  return true;
+}
+
+void
+pkg_early_intern_symbol (Lisp_Object symbol)
+{
+  if (package_system_ready)
+    pkg_intern_symbol (symbol, Vemacs_package);
+  else
+    pkg_add_symbol (symbol, Qnil);
 }
 
 static Lisp_Object
 pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
 {
+  eassert (package_system_ready);
   CHECK_SYMBOL (symbol);
   remove_shadowing_symbol (symbol, package);
   package = package_or_default (package);
   remove_shadowing_symbol (symbol, package);
   if (EQ (package, SYMBOL_PACKAGE (symbol)))
     {
-      Fremhash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols);
+      remove_from_package_symbols (symbol, package);
       return Qt;
     }
 
@@ -935,9 +1035,12 @@ DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
 static void
 fix_symbol_packages (void)
 {
+  int len_keywords = 0, len_symbols = 0;
+
   Lisp_Object tail = early_keywords;
   FOR_EACH_TAIL (tail)
     {
+
       /* Fix symbol names of keywords by removing the leading colon.  */
       Lisp_Object symbol = XCAR (tail);
       Lisp_Object name = SYMBOL_NAME (symbol);
@@ -949,13 +1052,30 @@ fix_symbol_packages (void)
 	  --s->u.s.size;
 	}
       pkg_add_symbol (symbol, Vkeyword_package);
+      ++len_keywords;
     }
 
   tail = early_symbols;
   FOR_EACH_TAIL (tail)
-    pkg_add_symbol (XCAR (tail), Vemacs_package);
+    {
+      ++len_symbols;
+      pkg_add_symbol (XCAR (tail), Vemacs_package);
+    }
+
+  fprintf (stderr, "Early keywords = %d, symbols = %d\n", len_keywords, len_symbols);
 
   early_keywords = early_symbols = Qnil;
+
+#ifdef ENABLE_CHECKING
+  const Lisp_Object nil = lookup_symbol (SYMBOL_NAME (Qnil), Vemacs_package);
+  eassert (EQ (nil, Qnil));
+  eassert (NILP (nil));
+  eassert (NILP (XSYMBOL (nil)->u.s.val.value));
+
+  const Lisp_Object t = lookup_symbol (SYMBOL_NAME (Qt), Vemacs_package);
+  eassert (EQ (t, Qt));
+  eassert (EQ (XSYMBOL (t)->u.s.val.value, Qt));
+#endif
 }
 
 /* Called very early, after init_alloc_once and init_obarray_once.

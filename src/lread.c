@@ -4745,7 +4745,7 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
       pkg_add_keyword (sym);
     }
   else
-      pkg_add_symbol (sym, Vearmuffs_package);
+    pkg_early_intern_symbol (sym);
 
   ptr = aref_addr (obarray, XFIXNUM (index));
   set_symbol_next (sym, SYMBOLP (*ptr) ? XSYMBOL (*ptr) : NULL);
@@ -4768,6 +4768,13 @@ intern_driver (Lisp_Object string, Lisp_Object obarray, Lisp_Object index)
 Lisp_Object
 intern_1 (const char *str, ptrdiff_t len)
 {
+  /* If we can find a symbol with that name "normally", return that
+     symbol.  */
+  Lisp_Object symbol;
+  if (pkg_intern_name_c_string (str, len, &symbol))
+    return symbol;
+
+  /* Not found: Do the obarray dance.  */
   Lisp_Object obarray = check_obarray (Vobarray);
   Lisp_Object tem = oblookup (obarray, str, len, len);
 
@@ -4827,6 +4834,12 @@ it defaults to the value of `obarray'.  */)
   obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
+  /* If the package system finds it, return that.  */
+  if (pkg_intern_name (string, &tem))
+    {
+      eassert (!NILP (SYMBOL_PACKAGE (tem)));
+      return tem;
+    }
 
   char* longhand = NULL;
   ptrdiff_t longhand_chars = 0;
@@ -4861,6 +4874,8 @@ it defaults to the value of `obarray'.  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object tem, string;
+
+  /* PKG-FIXME: Find it in the package system.  */
 
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
