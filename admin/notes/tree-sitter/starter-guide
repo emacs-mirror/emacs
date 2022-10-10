@@ -350,23 +350,37 @@ node.
 Something like this should suffice:
 
 #+begin_src elisp
-(defun xxx-beginning-of-defun (&optional arg)
-  (if (> arg 0)
-      ;; Go backward.
+(defun js--treesit-beginning-of-defun (&optional arg)
+  (let ((arg (or arg 1)))
+    (if (> arg 0)
+        ;; Go backward.
+        (while (and (> arg 0)
+                    (treesit-search-forward-goto
+                     "function_definition" 'start nil t))
+          (setq arg (1- arg)))
+      ;; Go forward.
+      (while (and (< arg 0)
+                  (treesit-search-forward-goto
+                   "function_definition" 'start))
+        (setq arg (1+ arg))))))
+
+(defun xxx-end-of-defun (&optional arg)
+  (let ((arg (or arg 1)))
+    (if (< arg 0)
+        ;; Go backward.
+        (while (and (< arg 0)
+                    (treesit-search-forward-goto
+                     "function_definition" 'end nil t))
+          (setq arg (1+ arg)))
+      ;; Go forward.
       (while (and (> arg 0)
                   (treesit-search-forward-goto
-                   "function_definition" 'start nil t))
-        (setq arg (1- arg)))
-    ;; Go forward.
-    (while (and (< arg 0)
-                (treesit-search-forward-goto
-                 "function_definition" 'start))
-      (setq arg (1+ arg)))))
+                   "function_definition" 'end))
+        (setq arg (1- arg))))))
 
 (setq-local beginning-of-defun-function #'xxx-beginning-of-defun)
+(setq-local end-of-defun-function #'xxx-end-of-defun)
 #+end_src
-
-And the same for end-of-defun.
 
 * Which-func
 
