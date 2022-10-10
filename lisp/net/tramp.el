@@ -1088,34 +1088,18 @@ Derived from `tramp-postfix-host-format'.")
 (defun tramp-build-remote-file-name-spec-regexp ()
   "Construct a regexp matching a Tramp file name for a Tramp syntax.
 It is expected, that `tramp-syntax' has the proper value."
-  ;; Starting with Emacs 27, we can use `rx-let'.
-  (let* ((user-regexp
-	  (tramp-compat-rx
-	   (group-n 6 (regexp tramp-user-regexp))
-	   (regexp tramp-postfix-user-regexp)))
-	 (host-regexp
-	  (tramp-compat-rx
-	   (group-n 7 (| (regexp tramp-host-regexp)
-			 (: (regexp tramp-prefix-ipv6-regexp)
-			    (? (regexp tramp-ipv6-regexp))
-			    (regexp tramp-postfix-ipv6-regexp)))
-		    ;; Optional port.
-		    (? (regexp tramp-prefix-port-regexp)
-		       (regexp tramp-port-regexp)))))
-	 (user-host-regexp
-	  (if (eq tramp-syntax 'simplified)
-	      ;; There must be either user or host.
-	      (tramp-compat-rx
-	       (| (: (regexp user-regexp) (? (regexp host-regexp)))
-		  (: (? (regexp user-regexp)) (regexp host-regexp))))
-	    (tramp-compat-rx
-	     (? (regexp user-regexp)) (? (regexp host-regexp))))))
-    (tramp-compat-rx
-     ;; Method.
-     (group-n 5 (regexp tramp-method-regexp))
-     (regexp tramp-postfix-method-regexp)
-     ;; User and host.
-     (regexp user-host-regexp))))
+  (tramp-compat-rx
+   ;; Method.
+   (group (regexp tramp-method-regexp)) (regexp tramp-postfix-method-regexp)
+   ;; Optional user.  This includes domain.
+   (? (group (regexp tramp-user-regexp)) (regexp tramp-postfix-user-regexp))
+   ;; Optional host.
+   (? (group (| (regexp tramp-host-regexp)
+                (: (regexp tramp-prefix-ipv6-regexp)
+		   (? (regexp tramp-ipv6-regexp))
+		   (regexp tramp-postfix-ipv6-regexp)))
+   ;; Optional port.
+   (? (regexp tramp-prefix-port-regexp) (regexp tramp-port-regexp))))))
 
 (defvar tramp-remote-file-name-spec-regexp
   nil ; Initialized when defining `tramp-syntax'!
@@ -1214,7 +1198,8 @@ The `ftp' syntax does not support methods.")
      ;; "/ssh:host:~/path" becomes "c:/ssh:host:~/path".  See also
      ;; `tramp-drop-volume-letter'.
      (? (regexp tramp-volume-letter-regexp))
-     (regexp tramp-prefix-regexp)
+     ;; We cannot use `tramp-prefix-regexp', because it starts with `bol'.
+     (literal tramp-prefix-format)
 
      ;; Optional multi hops.
      (* (regexp tramp-remote-file-name-spec-regexp)
@@ -1862,7 +1847,8 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
     tramp-prefix-regexp ""
     (replace-regexp-in-string
      (tramp-compat-rx
-      (regexp tramp-postfix-host-regexp) eos) tramp-postfix-hop-format
+      (regexp tramp-postfix-host-regexp) eos)
+     tramp-postfix-hop-format
      (tramp-make-tramp-file-name vec 'noloc)))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
