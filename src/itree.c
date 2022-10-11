@@ -221,54 +221,26 @@ itree_init (void)
 
 struct check_subtree_result
 {
-  /* Were all nodes visited?  */
-  bool complete;
-
-  /* Computed node count of the tree.  */
-  int size;
-
-  /* Computed limit of the tree (max END).  */
-  ptrdiff_t limit;
-
-  /* Computed black height of the tree (count of black nodes from the
-     bottom up to the root).  */
-  int black_height;
+  int size;               /* Node count of the tree.  */
+  ptrdiff_t limit;        /* Limit of the tree (max END).  */
+  int black_height;       /* Black height of the tree.  */
 };
 
 static struct check_subtree_result
 check_subtree (struct interval_node *node,
                bool check_red_black_invariants, uintmax_t tree_otick,
-               int max_depth, ptrdiff_t offset, ptrdiff_t min_begin,
+               ptrdiff_t offset, ptrdiff_t min_begin,
                ptrdiff_t max_begin)
 {
-  struct check_subtree_result result = { .complete = false,
-                                         .size = 0,
+  struct check_subtree_result result = { .size = 0,
                                          .limit = PTRDIFF_MIN,
                                          .black_height = 0 };
   if (node == ITREE_NULL)
-    {
-      /* Every nil node of a Red-Black tree is black */
-      result.black_height = 1;
-      result.complete = true;
-      return result;
-    };
-
-  if (max_depth == 0)
-    {
-      result.complete = false;
-      return result;
-    }
+    return result;
 
   /* Validate structure.  */
-  eassert (
-    node->parent == ITREE_NULL
-    || (node->parent->left == node || node->parent->right == node));
   eassert (node->left == ITREE_NULL || node->left->parent == node);
   eassert (node->right == ITREE_NULL || node->right->parent == node);
-
-  /* No red nodes have red parents.  */
-  if (check_red_black_invariants && node->parent != ITREE_NULL)
-    eassert (!node->red || !node->parent->red);
 
   /* Validate otick.  A node's otick must be <= to the tree's otick
      and <= to its parent's otick.
@@ -278,8 +250,7 @@ check_subtree (struct interval_node *node,
      doesn't always update otick.  It could, but it is not clear there
      is a need.  */
   eassert (node->otick <= tree_otick);
-  eassert (node->parent == ITREE_NULL
-           || node->otick <= node->parent->otick);
+  eassert (node->parent == ITREE_NULL || node->otick <= node->parent->otick);
   eassert (node->otick != tree_otick || node->offset == 0);
 
   offset += node->offset;
@@ -294,37 +265,24 @@ check_subtree (struct interval_node *node,
 
   struct check_subtree_result left_result
     = check_subtree (node->left, check_red_black_invariants,
-                     tree_otick, max_depth - 1, offset, min_begin,
-                     begin);
+                     tree_otick, offset, min_begin, begin);
   struct check_subtree_result right_result
     = check_subtree (node->right, check_red_black_invariants,
-                     tree_otick, max_depth - 1, offset, begin,
-                     max_begin);
+                     tree_otick, offset, begin, max_begin);
 
   eassert (left_result.limit <= limit);
   eassert (right_result.limit <= limit);
+  eassert (limit == max (end, max (left_result.limit, right_result.limit)));
 
-  result.complete = left_result.complete && right_result.complete;
-  if (result.complete)
+  if (check_red_black_invariants)
     {
-      result.size = 1 + left_result.size + right_result.size;
-      result.limit
-        = max (end, max (left_result.limit, right_result.limit));
-
-      eassert (limit == result.limit);
-
-      if (check_red_black_invariants)
-        {
-          /* Every path from a node to a descendent leaf contains the
-             same number of black nodes.  Often said this way: all
-             nodes have the same "black height".  */
-          eassert (left_result.black_height
-                   == right_result.black_height);
-          result.black_height
-            = (node->red ? 0 : 1) + left_result.black_height;
-        }
+      eassert (left_result.black_height == right_result.black_height);
+      eassert (node->parent != ITREE_NULL || !node->red || !node->parent->red);
     }
 
+  result.size = 1 + left_result.size + right_result.size;
+  result.limit = limit;
+  result.black_height = (node->red ? 0 : 1) + left_result.black_height;
   return result;
 }
 
@@ -338,8 +296,8 @@ check_subtree (struct interval_node *node,
    entire tree and validates all invariants.
 */
 static bool
-check_tree_common (struct interval_tree *tree,
-                   bool check_red_black_invariants)
+check_tree (struct interval_tree *tree,
+            bool check_red_black_invariants)
 {
   eassert (null_is_sane ());
 
@@ -348,46 +306,17 @@ check_tree_common (struct interval_tree *tree,
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
   if (tree->root == ITREE_NULL)
     return true;
-
-  /* Limit the traversal depth to what 'interval_tree_max_height'
-     returns.  Later, verify that this is enough height to traverse
-     the complete tree.  */
-  const int max_height = interval_tree_max_height (tree);
-  eassert (max_height >= 0);
-  eassert (max_height <= 120);
-
-  /* NOTE: if this check is too expensive an easy fix is to reduce
-     max_height to for large trees, then relax the assertion on
-     result.complete.  Assertions in check_subtree will still be made
-     at the bottom of the tree (where they are probably most
-     interesting), but some will be skipped closer to the root.  */
+  eassert (tree->root->parent == ITREE_NULL);
 
   struct interval_node *node = tree->root;
   struct check_subtree_result result
     = check_subtree (node, check_red_black_invariants, tree->otick,
-                     max_height, node->offset, PTRDIFF_MIN,
+                     node->offset, PTRDIFF_MIN,
                      PTRDIFF_MAX);
-  eassert (result.complete);
   eassert (result.size == tree->size);
 
   /* The only way this function fails is eassert().  */
   return true;
-}
-
-/* Check the tree with all invariant checks enabled.  */
-static bool
-check_tree (struct interval_tree *tree)
-{
-  return check_tree_common (tree, true);
-}
-
-/* Check the tree with all invariant checks enabled, except for the
-   red-black tree invariants.  Useful for asserting the other
-   invariants while inserting or removing.  */
-static bool
-check_tree_no_rb (struct interval_tree *tree)
-{
-  return check_tree_common (tree, false);
 }
 
 /* +===================================================================================+
@@ -613,7 +542,7 @@ static void
 interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 {
   eassert (node && node->begin <= node->end && node != ITREE_NULL);
-  eassert (check_tree (tree));
+  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   struct interval_node *parent = ITREE_NULL;
   struct interval_node *child = tree->root;
@@ -654,7 +583,7 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 
   /* Fix/update the tree */
   ++tree->size;
-  eassert (check_tree_no_rb (tree));
+  eassert (check_tree (tree, false)); /* FIXME: Too expensive.  */
   interval_tree_insert_fix (tree, node);
 }
 
@@ -815,7 +744,7 @@ struct interval_node*
 interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
 {
   eassert (interval_tree_contains (tree, node));
-  eassert (check_tree (tree));
+  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   /* `broken`, if non-NULL, holds a node that's being moved up to where a black
      node used to be, which may thus require further fixups in its parents
@@ -884,15 +813,18 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_propagate_limit (min_parent);
     }
   interval_tree_propagate_limit (node->parent);
-
-  if (broken)
-    interval_tree_remove_fix (tree, broken, broken_parent);
-
-  node->right = node->left = node->parent = NULL;
   --tree->size;
 
+  if (broken)
+    {
+      eassert (check_tree (tree, false)); /* FIXME: Too expensive.  */
+      interval_tree_remove_fix (tree, broken, broken_parent);
+    }
+
+  node->right = node->left = node->parent = NULL;
+
   eassert ((tree->size == 0) == (tree->root == ITREE_NULL));
-  eassert (check_tree (tree));
+  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   return node;
 }
@@ -1462,10 +1394,10 @@ interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node
         }
     }
 
-  /* The root may have been changed to red due to the algorithm.  Set
-     it to black so that property #5 is satisfied.  */
+  /* The root may have been changed to red due to the algorithm.
+     Set it to black so that property #5 is satisfied.  */
   tree->root->red = false;
-  eassert (check_tree (tree));
+  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 }
 
 /* Return accumulated offsets of NODE's parents.  */
