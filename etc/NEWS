@@ -2775,6 +2775,13 @@ This is a lightweight variant of 'js-mode' that is used by default
 when visiting JSON files.
 
 
+** New mode ts-mode'.
+Support is added for TypeScript, based on the new integration with
+Tree-Sitter. There's support for font-locking, indentation and
+navigation.  Tree-Sitter is required for this mode to function, but if
+it is not available, we will default to use 'js-mode'.
+
+
 * Incompatible Lisp Changes in Emacs 29.1
 
 +++
