@@ -221,6 +221,7 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getuid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (geteuid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpid));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (gettid));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (getpgrp));
 
   /* Allow operations on open file descriptors.  File descriptors are
