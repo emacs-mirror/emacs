@@ -2263,9 +2263,13 @@ extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
 extern bool pkg_keywordp (Lisp_Object obj);
 extern Lisp_Object pkg_add_keyword (Lisp_Object sym);
 extern Lisp_Object pkg_add_symbol (Lisp_Object symbol, Lisp_Object package);
-extern bool pkg_intern_name (Lisp_Object name, Lisp_Object *tem);
-extern void pkg_early_intern_symbol (Lisp_Object symbol);
+extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package);
+extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package);
+extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
 extern bool pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol);
+extern void pkg_early_intern_symbol (Lisp_Object symbol);
+
+extern bool package_system_ready;
 
 
 /* Return whether a value might be a valid docstring.

@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 
-static bool package_system_ready = false;
+bool package_system_ready = false;
 
 /* Lists of keywords and other symbols that are defined before
    packages are ready to use.  These are fixed up and the lists set
@@ -546,15 +546,6 @@ pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 }
 
 bool
-pkg_intern_name (Lisp_Object name, Lisp_Object *tem)
-{
-  if (!package_system_ready)
-    return false;
-  *tem = pkg_intern_symbol (name, Vearmuffs_package);
-  return true;
-}
-
-bool
 pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
 {
   if (!package_system_ready)
@@ -589,6 +580,53 @@ pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
 
   /* PKG-FIXME: What to do if PACKAGE is not the home package?  */
   return Qnil;
+}
+
+
+/***********************************************************************
+			Old Emacs intern stuff
+ ***********************************************************************/
+
+/* Implements Emacs' old Fintern function.  */
+
+Lisp_Object
+pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
+{
+  eassert (package_system_ready);
+  CHECK_STRING (name);
+  return pkg_intern_symbol (name, Vearmuffs_package);
+}
+
+/* Implements Emacs' old Fintern_soft function.  */
+
+Lisp_Object
+pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
+{
+  eassert (package_system_ready);
+
+  const Lisp_Object name = SYMBOLP (symbol) ? SYMBOL_NAME (symbol) : symbol;
+  CHECK_STRING (name);
+  package = package_or_default (package);
+
+  Lisp_Object found = lookup_symbol (name, package);
+  if (!EQ (found, Qunbound))
+    {
+      /* We should never find an uninterned symbol in a package.  */
+      eassert (!NILP (SYMBOL_PACKAGE (found)));
+      return found;
+    }
+
+  return Qnil;
+}
+
+/* Implements Emacs' old Funintern function.  */
+
+Lisp_Object
+pkg_emacs_unintern (Lisp_Object name, Lisp_Object package)
+{
+  eassert (package_system_ready);
+  package = package_or_default (package);
+  return pkg_unintern_symbol (name, package);
 }
 
 
