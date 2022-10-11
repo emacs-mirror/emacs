@@ -68,13 +68,6 @@ the F command in `view-mode', but you can set it to t if you want the action
 for all scroll commands in view mode."
   :type 'boolean)
 
-;;;###autoload
-(defcustom view-remove-frame-by-deleting t
-  "Determine how View mode removes a frame no longer needed.
-If nil, make an icon of the frame.  If non-nil, delete the frame."
-  :type 'boolean
-  :version "23.1")
-
 (defcustom view-exits-all-viewing-windows nil
   "Non-nil means restore all windows used to view buffer.
 Commands that restore windows when finished viewing a buffer,
