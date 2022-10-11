@@ -530,6 +530,11 @@ lisp: src
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
 
+trampolines: src lisp
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(MAKE) -C lisp trampolines
+endif
+
 # Pass an unexpanded $srcdir to src's Makefile, which then
 # expands it using its own value of srcdir (which points to the
 # source directory of src/).

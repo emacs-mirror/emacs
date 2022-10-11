@@ -4204,6 +4204,17 @@ bytecode definition was not changed in the meantime)."
 
 ;;; Compiler entry points.
 
+(defun comp-compile-all-trampolines ()
+  "Pre-compile AOT all trampolines."
+  (let ((comp-running-batch-compilation t)
+        ;; We want to target only the 'native-lisp' directory.
+        (native-compile-target-directory
+         (car (last native-comp-eln-load-path))))
+    (mapatoms (lambda (f)
+                (when (subr-primitive-p (symbol-function f))
+                  (message "Compiling trampoline for: %s" f)
+                  (comp-trampoline-compile f))))))
+
 ;;;###autoload
 (defun comp-lookup-eln (filename)
   "Given a Lisp source FILENAME return the corresponding .eln file if found.
