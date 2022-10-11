@@ -3315,7 +3315,7 @@ If nil, no default will be used.  This option may be set locally."
                   (buffer &optional type description disposition))
 (declare-function log-view-get-marked "log-view" ())
 
-(defun vc-default-prepare-patch (rev)
+(defun vc-default-prepare-patch (_backend rev)
   (let ((backend (vc-backend buffer-file-name)))
     (with-current-buffer (generate-new-buffer " *vc-default-prepare-patch*")
       (vc-diff-internal
