@@ -3370,7 +3370,8 @@ revisions, those revisions will be used."
                               'prepare-patch rev))
                            revisions)))
       (if vc-prepare-patches-separately
-          (dolist (patch patches)
+          (dolist (patch (reverse patches)
+                         (message "Prepared %d patches..." (length patches)))
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
@@ -3381,8 +3382,7 @@ revisions, those revisions will be used."
               (insert-buffer-substring
                (plist-get patch :buffer)
                (plist-get patch :body-start)
-               (plist-get patch :body-end)))
-            (recursive-edit))
+               (plist-get patch :body-end))))
         (compose-mail addressee subject nil nil nil nil
                       (mapcar
                        (lambda (p)
