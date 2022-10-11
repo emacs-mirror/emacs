@@ -373,8 +373,9 @@ in the order given by `git status'."
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
-  (let (process-file-side-effects)
-    (vc-git--rev-parse "HEAD")))
+  (let* ((process-file-side-effects nil)
+         (commit (vc-git--rev-parse "HEAD" t)))
+    (or (vc-git-symbolic-commit commit) commit)))
 
 (defun vc-git--symbolic-ref (file)
   (or
@@ -1674,11 +1675,15 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     ;; does not (and cannot) quote.
     (vc-git--rev-parse (concat rev "~1"))))
 
-(defun vc-git--rev-parse (rev)
+(defun vc-git--rev-parse (rev &optional short)
   (with-temp-buffer
     (and
-     (vc-git--out-ok "rev-parse" rev)
-     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
+     (if short
+         (vc-git--out-ok "rev-parse" "--short" rev)
+       (vc-git--out-ok "rev-parse" rev))
+     (string-trim-right
+      (buffer-substring-no-properties (point-min) (min (+ (point-min) 40)
+                                                       (point-max)))))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
