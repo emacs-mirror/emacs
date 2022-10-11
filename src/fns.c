@@ -442,7 +442,8 @@ If string STR1 is greater, the value is a positive number N;
     || defined __i386__ || defined __i386	\
     || defined __arm64__ || defined __aarch64__	\
     || defined __powerpc__ || defined __powerpc	\
-    || defined __ppc__ || defined __ppc
+    || defined __ppc__ || defined __ppc		\
+    || defined __s390__ || defined __s390x__
 #define HAVE_FAST_UNALIGNED_ACCESS 1
 #else
 #define HAVE_FAST_UNALIGNED_ACCESS 0
