@@ -5139,24 +5139,20 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
   if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
     return;
 
-  block_input ();
   if (f->alpha_background < 1.0)
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     NULL, 0);
 #ifndef HAVE_GTK3
   else
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     (unsigned char *) &opaque_region, 4);
 #else
   else if (FRAME_TOOLTIP_P (f))
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     (unsigned char *) &opaque_region, 4);
@@ -5174,7 +5170,6 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 	}
     }
 #endif
-  unblock_input ();
 }
 
 
@@ -7144,8 +7139,6 @@ show_back_buffer (struct frame *f)
   cairo_t *cr;
 #endif
 
-  block_input ();
-
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     {
 #if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
@@ -7174,8 +7167,6 @@ show_back_buffer (struct frame *f)
     }
 
   FRAME_X_NEED_BUFFER_FLIP (f) = false;
-
-  unblock_input ();
 }
 
 #endif
@@ -7283,8 +7274,12 @@ XTframe_up_to_date (struct frame *f)
 static void
 XTbuffer_flipping_unblocked_hook (struct frame *f)
 {
+  block_input ();
+
   if (FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
+
+  unblock_input ();
 }
 #endif
 
@@ -7313,8 +7308,6 @@ x_clear_under_internal_border (struct frame *f)
 	    : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
-      block_input ();
-
       if (face)
 	{
 	  unsigned long color = face->background;
@@ -7335,8 +7328,6 @@ x_clear_under_internal_border (struct frame *f)
 	  x_clear_area (f, width - border, 0, border, height);
 	  x_clear_area (f, 0, height - border, width, border);
 	}
-
-      unblock_input ();
     }
 }
 
@@ -7384,7 +7375,6 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	      : INTERNAL_BORDER_FACE_ID));
 	struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
-	block_input ();
 	if (face)
 	  {
 	    unsigned long color = face->background;
@@ -7402,7 +7392,6 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	    x_clear_area (f, 0, y, width, height);
 	    x_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
 	  }
-	unblock_input ();
       }
   }
 #endif
