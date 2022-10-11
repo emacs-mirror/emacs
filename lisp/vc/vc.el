@@ -3341,8 +3341,12 @@ invidividual commits.
 When invoked interactively in a Log View buffer with marked
 revisions, those revisions will be used."
   (interactive
-   (let ((revs (or (log-view-get-marked)
-                   (vc-read-multiple-revisions "Revisions: ")))
+   (let ((revs (vc-read-multiple-revisions
+                "Revisions: " nil nil nil
+                (or (and-let* ((revs (log-view-get-marked)))
+                      (mapconcat #'identity revs ","))
+                    (and-let* ((file (buffer-file-name)))
+                      (vc-working-revision file)))))
          to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
