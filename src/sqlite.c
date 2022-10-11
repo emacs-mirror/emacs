@@ -421,6 +421,19 @@ row_to_value (sqlite3_stmt *stmt)
   return Fnreverse (values);
 }
 
+static Lisp_Object
+sqlite_prepare_errmsg (int code, sqlite3 *sdb)
+{
+  Lisp_Object errmsg = build_string (sqlite3_errstr (code));
+  /* More details about what went wrong.  */
+  const char *sql_error = sqlite3_errmsg (sdb);
+  if (sql_error)
+    return CALLN (Fformat, build_string ("%s (%s)"),
+		  errmsg, build_string (sql_error));
+  else
+    return errmsg;
+}
+
 DEFUN ("sqlite-execute", Fsqlite_execute, Ssqlite_execute, 2, 3, 0,
        doc: /* Execute a non-select SQL statement.
 If VALUES is non-nil, it should be a vector or a list of values
@@ -437,8 +450,8 @@ Value is the number of affected rows.  */)
     xsignal1 (Qerror, build_string ("VALUES must be a list or a vector"));
 
   sqlite3 *sdb = XSQLITE (db)->db;
-  const char *errmsg = NULL;
-  Lisp_Object encoded = encode_string (query);
+  Lisp_Object errmsg = Qnil,
+    encoded = encode_string (query);
   sqlite3_stmt *stmt = NULL;
 
   /* We only execute the first statement -- if there's several
@@ -453,7 +466,7 @@ Value is the number of affected rows.  */)
 	  sqlite3_reset (stmt);
 	}
 
-      errmsg = sqlite3_errmsg (sdb);
+      errmsg = sqlite_prepare_errmsg (ret, sdb);
       goto exit;
     }
 
@@ -463,7 +476,7 @@ Value is the number of affected rows.  */)
       const char *err = bind_values (sdb, stmt, values);
       if (err != NULL)
 	{
-	  errmsg = err;
+	  errmsg = build_string (err);
 	  goto exit;
 	}
     }
@@ -487,13 +500,13 @@ Value is the number of affected rows.  */)
       return rows;
     }
   else
-    errmsg = sqlite3_errmsg (sdb);
+    errmsg = build_string (sqlite3_errmsg (sdb));
 
  exit:
   sqlite3_finalize (stmt);
   xsignal1 (ret == SQLITE_LOCKED || ret == SQLITE_BUSY?
 	    Qsqlite_locked_error: Qerror,
-	    build_string (errmsg));
+	    errmsg);
 }
 
 static Lisp_Object
@@ -540,12 +553,7 @@ which means that we return a set object that can be queried with
     {
       if (stmt)
 	sqlite3_finalize (stmt);
-      errmsg = build_string (sqlite3_errstr (ret));
-      /* More details about what went wrong.  */
-      const char *sql_error = sqlite3_errmsg (sdb);
-      if (sql_error)
-	errmsg = CALLN (Fformat, build_string ("%s (%s)"),
-			errmsg, build_string (sql_error));
+      errmsg = sqlite_prepare_errmsg (ret, sdb);
       goto exit;
     }
 
