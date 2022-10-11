@@ -3582,6 +3582,14 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
+(defvar js--treesit-defun-type-regexp
+  (rx (or "class_declaration"
+          "method_definition"
+          "function_declaration"
+          "lexical_declaration"))
+  "Regular expression that matches type of defun nodes.
+Used in `js--treesit-beginning-of-defun' and friends.")
+
 (defun js--treesit-beginning-of-defun (&optional arg)
   "Tree-sitter `beginning-of-defun' function.
 ARG is the same as in `beginning-of-defun."
@@ -3613,14 +3621,6 @@ ARG is the same as in `end-of-defun."
                   (treesit-search-forward-goto
                    js--treesit-defun-type-regexp 'end))
         (setq arg (1- arg))))))
-
-(defvar js--treesit-defun-type-regexp
-  (rx (or "class_declaration"
-          "method_definition"
-          "function_declaration"
-          "lexical_declaration"))
-  "Regular expression that matches type of defun nodes.
-Used in `js--treesit-beginning-of-defun' and friends.")
 
 (defun js--treesit-can-enable-p ()
   (if (and js-use-tree-sitter
