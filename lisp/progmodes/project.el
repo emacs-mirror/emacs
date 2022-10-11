@@ -947,11 +947,15 @@ by the user at will."
          (_ (when included-cpd
               (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (res (project--completing-read-strict prompt
-                                               new-collection
-                                               predicate
-                                               hist mb-default)))
-    (concat common-parent-directory res)))
+         (relname (let ((history-add-new-input nil))
+                    (project--completing-read-strict prompt
+                                                     new-collection
+                                                     predicate
+                                                     hist mb-default)))
+         (absname (expand-file-name relname common-parent-directory)))
+    (when (and hist history-add-new-input)
+      (add-to-history hist absname))
+    absname))
 
 (defun project--read-file-absolute (prompt
                                     all-files &optional predicate
