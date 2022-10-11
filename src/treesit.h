@@ -84,11 +84,27 @@ struct Lisp_TS_Node
   ptrdiff_t timestamp;
 };
 
-/* A compiled tree-sitter query.  */
+/* A compiled tree-sitter query.
+
+   When we create a query object by treesit-compile-query, it is not
+   immediately compiled, because that would require the language
+   definition to be loaded.  For example, python.el contains
+
+   (defvar xxx (treesit-compile-query ...))
+
+   and (require 'python.el) requires python's language definition to
+   be available.  In the case of python.el, Emacs requires it when
+   building, so that breaks the build.  */
 struct Lisp_TS_Query
 {
   union vectorlike_header header;
-  /* Pointer to the query object.  */
+  /* Language symbol for the query.  */
+  Lisp_Object language;
+  /* Source lisp (sexp or string) query.  */
+  Lisp_Object source;
+  /* Pointer to the query object.  This can be NULL, meaning this
+     query is not initialized/compiled.  We compile the query when
+     it is used the first time (in treesit-query-capture).  */
   TSQuery *query;
   /* Pointer to a cursor.  If we are storing the query object, we
      might as well store a cursor, too.  */

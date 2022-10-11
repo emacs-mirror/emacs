@@ -89,6 +89,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    - lisp/emacs-lisp/cl-preloaded.el & data.c & lisp.h for parser and
      node type.
 
+   Regarding signals: only raise signals in lisp functions.
+
    We don't parse at every keystroke.  Instead we only record the
    changes at each keystroke, and only parse when requested.  It is
    possible that lazy parsing is worse: instead of dispersed little
@@ -196,10 +198,11 @@ ts_load_language_push_for_each_suffix
    Qtreesit_load_language_error carries the error message from
    trying to load the library with each extension.
 
-   If SIGNAL is true, signal an error when failed to load LANGUAGE; if
-   false, return NULL when failed.  */
+   If error occurs, return NULL and fill SIGNAL_SYMBOL and SIGNAL_DATA
+   with values suitable for xsignal. */
 static TSLanguage *
-ts_load_language (Lisp_Object language_symbol, bool signal)
+ts_load_language (Lisp_Object language_symbol,
+		  Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
   Lisp_Object symbol_name = Fsymbol_name (language_symbol);
 
@@ -263,11 +266,9 @@ ts_load_language (Lisp_Object language_symbol, bool signal)
     }
   if (error != NULL)
     {
-      if (signal)
-	xsignal2 (Qtreesit_load_language_error,
-		  symbol_name, Fnreverse (error_list));
-      else
-	return NULL;
+      *signal_symbol = Qtreesit_load_language_error;
+      *signal_data = list2 (symbol_name, Fnreverse (error_list));
+      return NULL;
     }
 
   /* Load TSLanguage.  */
@@ -277,11 +278,9 @@ ts_load_language (Lisp_Object language_symbol, bool signal)
   error = dynlib_error ();
   if (error != NULL)
     {
-      if (signal)
-	xsignal1 (Qtreesit_load_language_error,
-		  build_string (error));
-      else
-	return NULL;
+      *signal_symbol = Qtreesit_load_language_error;
+      *signal_data = build_string (error);
+      return NULL;
     }
   TSLanguage *lang = (*langfn) ();
 
@@ -291,12 +290,10 @@ ts_load_language (Lisp_Object language_symbol, bool signal)
   ts_parser_delete (parser);
   if (!success)
     {
-      if (signal)
-	xsignal2 (Qtreesit_load_language_error,
-		  build_pure_c_string ("Language version doesn't match tree-sitter version, language version:"),
-		  make_fixnum (ts_language_version (lang)));
-      else
-	return NULL;
+      *signal_symbol = Qtreesit_load_language_error;
+      *signal_data = list2 (build_pure_c_string ("Language version doesn't match tree-sitter version, language version:"),
+			    make_fixnum (ts_language_version (lang)));
+      return NULL;
     }
   return lang;
 }
@@ -310,7 +307,9 @@ DEFUN ("treesit-language-available-p",
 {
   CHECK_SYMBOL (language);
   ts_initialize ();
-  if (ts_load_language(language, false) == NULL)
+  Lisp_Object signal_symbol = Qnil;
+  Lisp_Object signal_data = Qnil;
+  if (ts_load_language(language, &signal_symbol, &signal_data) == NULL)
     return Qnil;
   else
     return Qt;
@@ -634,29 +633,96 @@ make_ts_node (Lisp_Object parser, TSNode node)
   return make_lisp_ptr (lisp_node, Lisp_Vectorlike);
 }
 
-/* Make a compiled query struct.  Return NULL if error occurs.  QUERY
-   has to be either a cons or a string.  */
-static struct Lisp_TS_Query *
-make_ts_query (Lisp_Object query, const TSLanguage *language,
-	       uint32_t *error_offset, TSQueryError *error_type)
+/* Make a compiled query.  QUERY has to be either a cons or a
+   string.  */
+static Lisp_Object
+make_ts_query (Lisp_Object query, Lisp_Object language)
 {
-  if (CONSP (query))
-    query = Ftreesit_query_expand (query);
-  char *source = SSDATA (query);
-
-  TSQuery *ts_query = ts_query_new (language, source, strlen (source),
-				    error_offset, error_type);
   TSQueryCursor *ts_cursor = ts_query_cursor_new ();
+  struct Lisp_TS_Query *lisp_query
+    = ALLOCATE_PSEUDOVECTOR (struct Lisp_TS_Query, source,
+			     PVEC_TS_COMPILED_QUERY);
 
-  if (ts_query == NULL)
+  lisp_query->language = language;
+  lisp_query->source = query;
+  lisp_query->query = NULL;
+  lisp_query->cursor = ts_cursor;
+  return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
+}
+
+static const char*
+ts_query_error_to_string (TSQueryError error)
+{
+  switch (error)
+    {
+    case TSQueryErrorNone:
+      return "None";
+    case TSQueryErrorSyntax:
+      return "Syntax error at";
+    case TSQueryErrorNodeType:
+      return "Node type error at";
+    case TSQueryErrorField:
+      return "Field error at";
+    case TSQueryErrorCapture:
+      return "Capture error at";
+    case TSQueryErrorStructure:
+      return "Structure error at";
+    default:
+      return "Unknown error";
+    }
+}
+
+static Lisp_Object
+ts_compose_query_signal_data
+(uint32_t error_offset, TSQueryError error_type)
+{
+  return list3 (build_string
+		(ts_query_error_to_string (error_type)),
+		make_fixnum (error_offset + 1),
+		build_pure_c_string("Debug the query with `treesit-query-validate'"));
+}
+
+/* Ensure the QUERY is compiled.  Return the TSQuery.  It could be
+   NULL if error occurs, in which case ERROR_OFFSET and ERROR_TYPE are
+   bound.  If error occures, return NULL, and assign SIGNAL_SYMBOL and
+   SIGNAL_DATA accordingly.  */
+static TSQuery *
+ts_ensure_query_compiled
+(Lisp_Object query, Lisp_Object *signal_symbol, Lisp_Object *signal_data)
+{
+  /* If query is already compiled (not null), return that, otherwise
+     compile and return it.  */
+  TSQuery *ts_query = XTS_COMPILED_QUERY (query)->query;
+  if (ts_query != NULL)
+    return ts_query;
+
+  /* Get query source and TSLanguage ready.  */
+  Lisp_Object source = XTS_COMPILED_QUERY (query)->source;
+  Lisp_Object language = XTS_COMPILED_QUERY (query)->language;
+  /* This is the main reason why we compile query lazily: to avoid
+     loading languages early.  */
+  TSLanguage *ts_lang = ts_load_language (language, signal_symbol,
+					  signal_data);
+  if (ts_lang == NULL)
     return NULL;
 
-  struct Lisp_TS_Query *lisp_query
-    = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_TS_Query,
-				   PVEC_TS_COMPILED_QUERY);
-  lisp_query->query = ts_query;
-  lisp_query->cursor = ts_cursor;
-  return lisp_query;
+  if (CONSP (source))
+    source = Ftreesit_query_expand (source);
+
+  /* Create TSQuery.  */
+  uint32_t error_offset;
+  TSQueryError error_type;
+  char *ts_source = SSDATA (source);
+  ts_query = ts_query_new (ts_lang, ts_source, strlen (ts_source),
+			   &error_offset, &error_type);
+  if (ts_query == NULL)
+    {
+      *signal_symbol = Qtreesit_query_error;
+      *signal_data = ts_compose_query_signal_data
+	(error_offset, error_type);
+    }
+  XTS_COMPILED_QUERY (query)->query = ts_query;
+  return ts_query;
 }
 
 DEFUN ("treesit-parser-p",
@@ -750,15 +816,23 @@ parser.  If NO-REUSE is non-nil, always create a new parser.  */)
 	}
     }
 
+  /* Load language.  */
+  Lisp_Object signal_symbol = Qnil;
+  Lisp_Object signal_data = Qnil;
   TSParser *parser = ts_parser_new ();
-  TSLanguage *lang = ts_load_language (language, true);
+  TSLanguage *lang = ts_load_language (language, &signal_symbol,
+				       &signal_data);
+  if (lang == NULL)
+    xsignal (signal_symbol, signal_data);
   /* We check language version when loading a language, so this should
      always succeed.  */
   ts_parser_set_language (parser, lang);
 
+  /* Create parser.  */
   Lisp_Object lisp_parser
     = make_ts_parser (Fcurrent_buffer (), parser, NULL, language);
 
+  /* Update parser-list.  */
   BVAR (buf, ts_parser_list)
     = Fcons (lisp_parser, BVAR (buf, ts_parser_list));
 
@@ -1454,28 +1528,6 @@ explanation.  */)
 		     query, build_pure_c_string (" "));
 }
 
-static const char*
-ts_query_error_to_string (TSQueryError error)
-{
-  switch (error)
-    {
-    case TSQueryErrorNone:
-      return "None";
-    case TSQueryErrorSyntax:
-      return "Syntax error at";
-    case TSQueryErrorNodeType:
-      return "Node type error at";
-    case TSQueryErrorField:
-      return "Field error at";
-    case TSQueryErrorCapture:
-      return "Capture error at";
-    case TSQueryErrorStructure:
-      return "Structure error at";
-    default:
-      return "Unknown error";
-    }
-}
-
 /* This struct is used for passing captures to be check against
    predicates.  Captures we check for are the ones in START before
    END.  For example, if START and END are
@@ -1656,16 +1708,19 @@ ts_eval_predicates
 
 DEFUN ("treesit-query-compile",
        Ftreesit_query_compile,
-       Streesit_query_compile, 2, 2, 0,
+       Streesit_query_compile, 2, 3, 0,
        doc: /* Compile QUERY to a compiled query.
 
 Querying a compiled query is much faster than an uncompiled one.
 LANGUAGE is the language this query is for.
 
+If EAGER is non-nil, immediately load LANGUAGE and compile the query.
+Otherwise defer until the query is first used.
+
 Signals treesit-query-error if QUERY is malformed or something else
-goes wrong.  You can use `treesit-query-validate' to debug the
-query.  */)
-  (Lisp_Object language, Lisp_Object query)
+goes wrong.  (This of course would only happen if EAGER is non-nil.)
+You can use `treesit-query-validate' to debug the query.  */)
+  (Lisp_Object language, Lisp_Object query, Lisp_Object eager)
 {
   if (NILP (Ftreesit_query_p (query)))
     wrong_type_argument (Qtreesit_query_p, query);
@@ -1673,19 +1728,23 @@ query.  */)
   if (TS_COMPILED_QUERY_P (query))
     return query;
 
-  TSLanguage *ts_lang = ts_load_language (language, true);
-  uint32_t error_offset;
-  TSQueryError error_type;
+  Lisp_Object lisp_query = make_ts_query (query, language);
 
-  struct Lisp_TS_Query *lisp_query
-    = make_ts_query (query, ts_lang, &error_offset, &error_type);
+  /* Maybe actually compile. */
+  if (NILP (eager))
+      return lisp_query;
+  else
+    {
+      Lisp_Object signal_symbol = Qnil;
+      Lisp_Object signal_data = Qnil;
+      TSQuery *ts_query = ts_ensure_query_compiled
+	(lisp_query, &signal_symbol, &signal_data);
 
-  if (lisp_query == NULL)
-    xsignal2 (Qtreesit_query_error,
-	      build_string (ts_query_error_to_string (error_type)),
-	      make_fixnum (error_offset + 1));
+      if (ts_query == NULL)
+	xsignal (signal_symbol, signal_data);
 
-  return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
+      return lisp_query;
+    }
 }
 
 DEFUN ("treesit-query-capture",
@@ -1725,7 +1784,7 @@ query.  */)
 	|| CONSP (query) || STRINGP (query)))
     wrong_type_argument (Qtreesit_query_p, query);
 
-
+  /* Resolve NODE into an actual node. */
   Lisp_Object lisp_node;
   if (TS_NODEP (node))
     lisp_node = node;
@@ -1751,30 +1810,50 @@ query.  */)
   const TSLanguage *lang = ts_parser_language
     (XTS_PARSER (lisp_parser)->parser);
 
-  /* Initialize query objects, and execute query.  */
-  struct Lisp_TS_Query *lisp_query;
+  /* Initialize query objects.  At the end of this block, we should
+     have a working TSQuery and a TSQueryCursor.  */
+  TSQuery *ts_query;
+  TSQueryCursor *cursor;
+  bool needs_to_free_query_and_cursor;
   if (TS_COMPILED_QUERY_P (query))
-      lisp_query = XTS_COMPILED_QUERY (query);
+    {
+      Lisp_Object signal_symbol = Qnil;
+      Lisp_Object signal_data = Qnil;
+      ts_query = ts_ensure_query_compiled
+	(query, &signal_symbol, &signal_data);
+      cursor = XTS_COMPILED_QUERY (query)->cursor;
+      /* We don't need to free ts_query and cursor because they
+	 are stored in a lisp object, which is tracked by gc.  */
+      needs_to_free_query_and_cursor = false;
+      if (ts_query == NULL)
+	{
+	  xsignal (signal_symbol, signal_data);
+	}
+    }
   else
     {
+      /* Since query is not TS_COMPILED_QUERY, it can only be a string
+	 or a cons.  */
+      if (CONSP (query))
+	query = Ftreesit_query_expand (query);
+      char *query_string = SSDATA (query);
       uint32_t error_offset;
       TSQueryError error_type;
-      lisp_query = make_ts_query (query, lang,
-				  &error_offset, &error_type);
-      if (lisp_query == NULL)
+      ts_query = ts_query_new (lang, query_string, strlen (query_string),
+			       &error_offset, &error_type);
+      if (ts_query == NULL)
 	{
-	  xsignal3 (Qtreesit_query_error,
-		    build_string
-		    (ts_query_error_to_string (error_type)),
-		    make_fixnum (error_offset + 1),
-		    build_pure_c_string("Debug the query with `treesit-query-validate'"));
+	  xsignal (Qtreesit_query_error, ts_compose_query_signal_data
+		   (error_offset, error_type));
 	}
-      /* We don't need need to free TS_QUERY and CURSOR, they are stored
-	 in a lisp object, which is tracked by gc.  */
+      cursor = ts_query_cursor_new ();
+      needs_to_free_query_and_cursor = true;
     }
-  TSQuery *ts_query = lisp_query->query;
-  TSQueryCursor *cursor = lisp_query->cursor;
 
+  /* WARN: After this point, free ts_query and cursor before every
+     signal and return.  */
+
+  /* Set query range. */
   if (!NILP (beg) && !NILP (end))
     {
       EMACS_INT beg_byte = XFIXNUM (beg);
@@ -1784,6 +1863,7 @@ query.  */)
 	 (uint32_t) end_byte - visible_beg);
     }
 
+  /* Execute query.  */
   ts_query_cursor_exec (cursor, ts_query, ts_node);
   TSQueryMatch match;
 
@@ -1837,6 +1917,11 @@ query.  */)
 	  /* Predicates didn't pass, roll back.  */
 	  result = prev_result;
 	}
+    }
+  if (needs_to_free_query_and_cursor)
+    {
+      ts_query_delete (ts_query);
+      ts_query_cursor_delete (cursor);
     }
   return Fnreverse (result);
 }
