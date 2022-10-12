@@ -2311,13 +2311,13 @@ always applies.  Example:
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash 'remote-null-device)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh 'remote-null-device)
 @end group
@@ -2329,13 +2329,13 @@ Therefore, the example above would be equivalent to
 @example
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "localhost")
+  '(:application tramp :protocol "ssh" :machine "localhost")
   'remote-bash)
 @end group
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "sudo"
+  '(:application tramp :protocol "sudo"
     :user "root" :machine "localhost")
   'remote-ksh)
 @end group
@@ -2365,7 +2365,7 @@ Example:
 @example
 @group
 (hack-connection-local-variables
-  '(:application 'tramp :protocol "ssh" :machine "localhost"))
+  '(:application tramp :protocol "ssh" :machine "localhost"))
 @end group
 
 @group
@@ -2401,7 +2401,7 @@ are unwound.  Example:
 
 @group
 (connection-local-set-profiles
-  '(:application 'tramp :protocol "ssh" :machine "remotehost")
+  '(:application tramp :protocol "ssh" :machine "remotehost")
   'remote-perl)
 @end group
 
@@ -2429,7 +2429,7 @@ could let-bind it like
 
 @group
 (connection-local-set-profiles
-  '(:application 'my-app :protocol "ssh" :machine "remotehost")
+  '(:application my-app :protocol "ssh" :machine "remotehost")
   'my-remote-perl)
 @end group
 

@@ -42,9 +42,9 @@
 (put 'remote-shell-login-switch 'safe-local-variable #'identity)
 (put 'remote-null-device 'safe-local-variable #'identity)
 
-(defconst files-x-test--application '(:application 'my-application))
+(defconst files-x-test--application '(:application my-application))
 (defconst files-x-test--another-application
-  '(:application 'another-application))
+  '(:application another-application))
 (defconst files-x-test--protocol '(:protocol "my-protocol"))
 (defconst files-x-test--user '(:user "my-user"))
 (defconst files-x-test--machine '(:machine "my-machine"))
