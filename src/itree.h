@@ -95,9 +95,8 @@ struct interval_node
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
 
-/* The sentinel node, the null node.  */
-extern struct interval_node itree_null;
-#define ITREE_NULL (&itree_null)
+/* FIXME: replace ITREE_NULL -> NULL everywhere  */
+#define ITREE_NULL NULL
 
 struct interval_tree
 {
