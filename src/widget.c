@@ -195,7 +195,7 @@ round_size_to_char (EmacsFrame ew, Dimension in_width, Dimension in_height,
 		      out_width, out_height);
 }
 
-static Widget
+static WMShellWidget
 get_wm_shell (Widget w)
 {
   Widget wmshell;
@@ -204,7 +204,7 @@ get_wm_shell (Widget w)
        wmshell && !XtIsWMShell (wmshell);
        wmshell = XtParent (wmshell));
 
-  return wmshell;
+  return (WMShellWidget) wmshell;
 }
 
 #if 0 /* Currently not used.  */
@@ -269,8 +269,8 @@ set_frame_size (EmacsFrame ew)
       (f, build_string ("set_frame_size"));
 }
 
-static void
-update_wm_hints (Widget wmshell, EmacsFrame ew)
+static bool
+update_wm_hints (WMShellWidget wmshell, EmacsFrame ew)
 {
   int cw;
   int ch;
@@ -280,6 +280,12 @@ update_wm_hints (Widget wmshell, EmacsFrame ew)
   int char_height;
   int base_width;
   int base_height;
+  char buffer[sizeof wmshell->wm.size_hints];
+  char *hints_ptr;
+
+  /* Copy the old size hints to the buffer.  */
+  memcpy (buffer, &wmshell->wm.size_hints,
+	  sizeof wmshell->wm.size_hints);
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height,
 		      &char_width, &char_height);
@@ -292,27 +298,29 @@ update_wm_hints (Widget wmshell, EmacsFrame ew)
   base_height = (wmshell->core.height - ew->core.height
 		 + (rounded_height - (char_height * ch)));
 
-  /* Ensure that Xt actually sets window manager hint flags specified
-     by the caller by making sure XtNminWidth (a relatively harmless
-     resource) always changes each time this function is invoked.  */
-  ew->emacs_frame.size_switch = !ew->emacs_frame.size_switch;
-
-  XtVaSetValues (wmshell,
+  XtVaSetValues ((Widget) wmshell,
 		 XtNbaseWidth, (XtArgVal) base_width,
 		 XtNbaseHeight, (XtArgVal) base_height,
 		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
 		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
-		 XtNminWidth, (XtArgVal) (base_width
-					  + ew->emacs_frame.size_switch),
-		 XtNminHeight, (XtArgVal) (base_height
-					   + ew->emacs_frame.size_switch),
+		 XtNminWidth, (XtArgVal) base_width,
+		 XtNminHeight, (XtArgVal) base_height,
 		 NULL);
+
+  /* Return if size hints really changed.  If they did not, then Xt
+     probably didn't set them either (or take the flags into
+     account.)  */
+  hints_ptr = (char *) &wmshell->wm.size_hints;
+
+  /* Skip flags, which is unsigned long.  */
+  return memcmp (hints_ptr + sizeof (long), buffer + sizeof (long),
+		 sizeof wmshell->wm.wm_hints - sizeof (long));
 }
 
-void
+bool
 widget_update_wm_size_hints (Widget widget, Widget frame)
 {
-  update_wm_hints (widget, (EmacsFrame) frame);
+  return update_wm_hints ((WMShellWidget) widget, (EmacsFrame) frame);
 }
 
 static void
@@ -356,8 +364,6 @@ EmacsFrameInitialize (Widget request, Widget new,
       fputs ("can't create an emacs frame widget without a frame\n", stderr);
       exit (1);
     }
-
-  ew->emacs_frame.size_switch = 1;
 
   update_from_various_frame_slots (ew);
   set_frame_size (ew);

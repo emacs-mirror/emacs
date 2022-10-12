@@ -28006,6 +28006,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   Window window = FRAME_OUTER_WINDOW (f);
 #ifdef USE_X_TOOLKIT
   WMShellWidget shell;
+  bool hints_changed;
 #endif
 
   if (!window)
@@ -28032,8 +28033,9 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 	  shell->wm.size_hints.flags |= USPosition;
 	}
 
-      widget_update_wm_size_hints (f->output_data.x->widget,
-				   f->output_data.x->edit_widget);
+      hints_changed
+	= widget_update_wm_size_hints (f->output_data.x->widget,
+				       f->output_data.x->edit_widget);
 
 #ifdef USE_MOTIF
       /* Do this all over again for the benefit of Motif, which always
@@ -28046,6 +28048,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 	  shell->wm.size_hints.flags &= ~PPosition;
 	  shell->wm.size_hints.flags |= USPosition;
 	}
+#endif
 
       /* Drill hints into Motif, since it keeps setting its own.  */
       size_hints.flags = shell->wm.size_hints.flags;
@@ -28063,15 +28066,23 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
       size_hints.min_aspect.y = shell->wm.size_hints.min_aspect.y;
       size_hints.max_aspect.x = shell->wm.size_hints.max_aspect.x;
       size_hints.max_aspect.y = shell->wm.size_hints.max_aspect.y;
-#ifdef HAVE_X11XTR6
       size_hints.base_width = shell->wm.base_width;
       size_hints.base_height = shell->wm.base_height;
       size_hints.win_gravity = shell->wm.win_gravity;
-#endif
 
+#ifdef USE_MOTIF
       XSetWMNormalHints (XtDisplay (f->output_data.x->widget),
 			 XtWindow (f->output_data.x->widget),
 			 &size_hints);
+#else
+      /* In many cases, widget_update_wm_size_hints will not have
+	 updated the size hints if only flags changed.  When that
+	 happens, set the WM hints manually.  */
+
+      if (!hints_changed)
+	XSetWMNormalHints (XtDisplay (f->output_data.x->widget),
+			   XtWindow (f->output_data.x->widget),
+			   &size_hints);
 #endif
 
       return;
