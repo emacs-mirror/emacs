@@ -3220,6 +3220,13 @@ The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
 
 +++
+** New macro 'setq-connection-local'.
+This allows dynamically setting variable values for a particular
+connection within the body of 'with-connection-local-variables'.  See
+the "(elisp) Connection Local Variables" node in the Lisp Reference
+manual for more information.
+
++++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
 These function now take an optional comparison predicate argument.
 
