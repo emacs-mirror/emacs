@@ -281,9 +281,18 @@ The output is written out into PKG-FILE."
 
 (defun package-vc-update (pkg-desc)
   "Attempt to update the packager PKG-DESC."
-  (let ((default-directory (package-desc-dir pkg-desc)))
-    (with-demoted-errors "Error during package update: %S"
-      (vc-pull))))
+  (let* ((default-directory (package-desc-dir pkg-desc))
+         (ret (with-demoted-errors "Error during package update: %S"
+                (vc-pull)))
+         (buf (cond
+               ((processp ret) (process-buffer ret))
+               ((bufferp ret) ret))))
+    (if buf
+        (with-current-buffer buf
+          (vc-run-delayed
+            (package-vc-unpack-1 pkg-desc default-directory)))
+      (package-vc-unpack-1 pkg-desc default-directory))))
+
 
 ;;;###autoload
 (defun package-vc-install (name-or-url &optional name rev)
