@@ -94,6 +94,7 @@
     ;; Any other keyword that also declares commands to be autoloaded (such as
     ;; :bind) must appear before this keyword.
     :commands
+    :autoload
     :init
     :defer
     :demand
@@ -119,7 +120,8 @@ declaration is incorrect."
 (defcustom use-package-deferring-keywords
   '(:bind-keymap
     :bind-keymap*
-    :commands)
+    :commands
+    :autoload)
   "Unless `:demand' is used, keywords in this list imply deferred loading.
 The reason keywords like `:hook' are not in this list is that
 they only imply deferred loading if they reference actual
@@ -1347,6 +1349,28 @@ meaning:
       (delete-dups arg)))
    (use-package-process-keywords name rest state)))
 
+;;;; :autoload
+
+(defalias 'use-package-normalize/:autoload 'use-package-normalize/:commands)
+
+(defun use-package-handler/:autoload (name _keyword arg rest state)
+  (use-package-concat
+   ;; Since we deferring load, establish any necessary autoloads, and also
+   ;; keep the byte-compiler happy.
+   (let ((name-string (use-package-as-string name)))
+     (cl-mapcan
+      #'(lambda (command)
+          (when (symbolp command)
+            (append
+             (unless (plist-get state :demand)
+               `((unless (fboundp ',command)
+                   (autoload #',command ,name-string))))
+             (when (bound-and-true-p byte-compile-current-file)
+               `((eval-when-compile
+                   (declare-function ,command ,name-string)))))))
+      (delete-dups arg)))
+   (use-package-process-keywords name rest state)))
+
 ;;;; :defer
 
 (defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
@@ -1633,6 +1657,7 @@ this file.  Usage:
                  package.  This is useful if the package is being lazily
                  loaded, and you wish to conditionally call functions in your
                  `:init' block that are defined in the package.
+:autoload        Similar to :commands, but it for no-interactive one.
 :hook            Specify hook(s) to attach this package to.
 
 :bind            Bind keys, and define autoloads for the bound commands.

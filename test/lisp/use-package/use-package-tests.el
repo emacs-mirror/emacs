@@ -875,6 +875,12 @@
           (gnus-harvest-install))
         t))))
 
+(ert-deftest use-package-test/:autoload-1 ()
+  (match-expansion
+   (use-package foo :autoload bar)
+   `(unless (fboundp 'bar)
+      (autoload #'bar "foo"))))
+
 (ert-deftest use-package-test/:defines-1 ()
   (match-expansion
    (use-package foo :defines bar)
