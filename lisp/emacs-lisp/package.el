@@ -2416,19 +2416,19 @@ compiled."
     (cl-loop
      for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
-  (cond
-   ((not (package-vc-p pkg-desc))
-    (delete-directory dir t))
-   ((progn
-      (require 'package-vc)          ;load `package-vc-repository-store'
-      (file-in-directory-p dir package-vc-repository-store))
-    (delete-directory
-     (expand-file-name
-      (car (file-name-split
-            (file-relative-name dir package-vc-repository-store)))
-      package-vc-repository-store)
-     t)
-    (delete-file (directory-file-name dir)))))
+  (if (and (package-vc-p pkg-desc)
+           (require 'package-vc)   ;load `package-vc-repository-store'
+           (file-in-directory-p dir package-vc-repository-store))
+      (progn
+        (delete-directory
+         (expand-file-name
+          (car (file-name-split
+                (file-relative-name dir package-vc-repository-store)))
+          package-vc-repository-store)
+         t)
+        (delete-file (directory-file-name dir)))
+    (delete-directory dir t)))
+
 
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.

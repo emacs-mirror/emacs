@@ -155,8 +155,6 @@ The output is written out into PKG-FILE."
 
 (defun package-vc-unpack (pkg-desc)
   "Install the package described by PKG-DESC."
-  (unless (file-exists-p package-vc-repository-store)
-    (make-directory package-vc-repository-store t))
   (let* ((name (package-desc-name pkg-desc))
          (dirname (package-desc-full-name pkg-desc))
          (pkg-dir (expand-file-name dirname package-user-dir)))
@@ -169,12 +167,17 @@ The output is written out into PKG-FILE."
                  (`(,backend ,repo ,dir ,branch)
                   (or (alist-get :upstream attr)
                       (error "Source package has no repository")))
-                 (repo-dir (file-name-concat
-                            package-vc-repository-store
-                            ;; FIXME: We aren't sure this directory
-                            ;; will be unique, but we can try other
-                            ;; names to avoid an unnecessary error.
-                            (file-name-base repo))))
+                 (repo-dir
+                  (if (null dir)
+                      pkg-dir
+                    (unless (file-exists-p package-vc-repository-store)
+                      (make-directory package-vc-repository-store t))
+                    (file-name-concat
+                     package-vc-repository-store
+                     ;; FIXME: We aren't sure this directory
+                     ;; will be unique, but we can try other
+                     ;; names to avoid an unnecessary error.
+                     (file-name-base repo)))))
 
       ;; Clone the repository into `repo-dir'.
       (make-directory (file-name-directory repo-dir) t)
@@ -182,9 +185,10 @@ The output is written out into PKG-FILE."
                     (vc-clone backend repo repo-dir))
         (error "Failed to clone %s from %s" name repo))
 
-      ;; Link from the right position in `repo-dir' to the package
-      ;; directory in the ELPA store.
-      (make-symbolic-link (file-name-concat repo-dir dir) pkg-dir)
+      (unless (eq pkg-dir repo-dir)
+        ;; Link from the right position in `repo-dir' to the package
+        ;; directory in the ELPA store.
+        (make-symbolic-link (file-name-concat repo-dir dir) pkg-dir))
       (when-let ((default-directory repo-dir)
                  (rev (or (alist-get :rev attr) branch)))
         (vc-retrieve-tag pkg-dir rev))
