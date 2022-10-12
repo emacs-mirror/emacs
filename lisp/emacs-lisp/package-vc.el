@@ -43,6 +43,7 @@
 (require 'vc)
 (require 'seq)
 (require 'xdg)
+(require 'project)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -153,6 +154,72 @@ The output is written out into PKG-FILE."
         "\n")
        nil pkg-file nil 'silent))))
 
+(defun package-vc-unpack-1 (pkg-desc pkg-dir)
+  "Install PKG-DESC that is already located in PKG-DIR."
+  ;; In case the package was installed directly from source, the
+  ;; dependency list wasn't know beforehand, and they might have
+  ;; to be installed explicitly.
+  (let (deps)
+    (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
+      (with-temp-buffer
+        (insert-file-contents file)
+        (when-let* ((require-lines (lm-header-multiline "package-requires")))
+          (thread-last
+            (mapconcat #'identity require-lines " ")
+            package-read-from-string
+            package--prepare-dependencies
+            (nconc deps)
+            (setq deps)))))
+    (dolist (dep deps)
+      (cl-callf version-to-list (cadr dep)))
+    (package-download-transaction
+     (package-compute-transaction nil (delete-dups deps))))
+
+  (let ((default-directory (file-name-as-directory pkg-dir))
+        (name (package-desc-name pkg-desc))
+        (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
+    ;; Generate autoloads
+    (package-generate-autoloads name pkg-dir)
+    (vc-ignore (concat "/" (file-relative-name
+                            (expand-file-name (format "%s-autoloads.el" name))
+                            default-directory)))
+
+    ;; Generate package file
+    (package-vc-generate-description-file pkg-desc pkg-file)
+    (vc-ignore (concat "/" (file-relative-name pkg-file default-directory)))
+
+    ;; Detect a manual
+    (when (executable-find "install-info")
+      ;; Only proceed if we can find an unambiguous TeXinfo file
+      (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
+            (dir-file (expand-file-name "dir" pkg-dir)))
+        (when (length= texi-files 1)
+          (call-process "install-info" nil nil nil
+                        (concat "--dir=" dir-file)
+                        (car texi-files)))
+        (vc-ignore "/dir"))))
+
+  ;; Update package-alist.
+  (let ((new-desc (package-load-descriptor pkg-dir)))
+    ;; Activation has to be done before compilation, so that if we're
+    ;; upgrading and macros have changed we load the new definitions
+    ;; before compiling.
+    (when (package-activate-1 new-desc :reload :deps)
+      ;; FIXME: Compilation should be done as a separate, optional, step.
+      ;; E.g. for multi-package installs, we should first install all packages
+      ;; and then compile them.
+      (package--compile new-desc)
+      (when package-native-compile
+        (package--native-compile-async new-desc))
+      ;; After compilation, load again any files loaded by
+      ;; `activate-1', so that we use the byte-compiled definitions.
+      (package--reload-previously-loaded new-desc)))
+
+  ;; Mark package as selected
+  (package--save-selected-packages
+   (cons (package-desc-name pkg-desc)
+         package-selected-packages)))
+
 (defun package-vc-unpack (pkg-desc)
   "Install the package described by PKG-DESC."
   (let* ((name (package-desc-name pkg-desc))
@@ -191,70 +258,9 @@ The output is written out into PKG-FILE."
         (make-symbolic-link (file-name-concat repo-dir dir) pkg-dir))
       (when-let ((default-directory repo-dir)
                  (rev (or (alist-get :rev attr) branch)))
-        (vc-retrieve-tag pkg-dir rev))
+        (vc-retrieve-tag pkg-dir rev)))
 
-      ;; In case the package was installed directly from source, the
-      ;; dependency list wasn't know beforehand, and they might have
-      ;; to be installed explicitly.
-      (let (deps)
-        (dolist (file (directory-files pkg-dir t "\\.el\\'" t))
-          (with-temp-buffer
-            (insert-file-contents file)
-            (when-let* ((require-lines (lm-header-multiline "package-requires")))
-              (thread-last
-                (mapconcat #'identity require-lines " ")
-                package-read-from-string
-                package--prepare-dependencies
-                (nconc deps)
-                (setq deps)))))
-        (dolist (dep deps)
-          (cl-callf version-to-list (cadr dep)))
-        (package-download-transaction
-         (package-compute-transaction nil (delete-dups deps)))))
-
-    (let ((default-directory (file-name-as-directory pkg-dir))
-          (name (package-desc-name pkg-desc))
-          (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
-      ;; Generate autoloads
-      (package-generate-autoloads name pkg-dir)
-      (vc-ignore (concat "/" (file-relative-name
-                              (expand-file-name (format "%s-autoloads.el" name))
-                              default-directory)))
-
-      ;; Generate package file
-      (package-vc-generate-description-file pkg-desc pkg-file)
-      (vc-ignore (concat "/" (file-relative-name pkg-file default-directory)))
-
-      ;; Detect a manual
-      (when (executable-find "install-info")
-        ;; Only proceed if we can find an unambiguous TeXinfo file
-        (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
-              (dir-file (expand-file-name "dir" pkg-dir)))
-          (when (length= texi-files 1)
-            (call-process "install-info" nil nil nil
-                          (concat "--dir=" dir-file)
-                          (car texi-files)))
-          (vc-ignore "/dir"))))
-
-    ;; Update package-alist.
-    (let ((new-desc (package-load-descriptor pkg-dir)))
-      ;; Activation has to be done before compilation, so that if we're
-      ;; upgrading and macros have changed we load the new definitions
-      ;; before compiling.
-      (when (package-activate-1 new-desc :reload :deps)
-        ;; FIXME: Compilation should be done as a separate, optional, step.
-        ;; E.g. for multi-package installs, we should first install all packages
-        ;; and then compile them.
-        (package--compile new-desc)
-        (when package-native-compile
-          (package--native-compile-async new-desc))
-        ;; After compilation, load again any files loaded by
-        ;; `activate-1', so that we use the byte-compiled definitions.
-        (package--reload-previously-loaded new-desc)))
-
-    ;; Mark package as selected
-    (package--save-selected-packages
-     (cons name package-selected-packages))))
+    (package-vc-unpack-1 pkg-desc pkg-dir)))
 
 (defun package-vc-sourced-packages-list ()
   "Generate a list of packages with VC data."
@@ -324,6 +330,20 @@ be requested using REV."
 
 ;;;###autoload
 (defalias 'package-checkout #'package-vc-install)
+
+(defun package-vc-link-project (dir)
+  "Install the package in DIR by linking it into the ELPA directory."
+  (interactive (list (project-prompt-project-dir)))
+  (unless (vc-responsible-backend dir)
+    (user-error "Directory %S is not under version control" dir))
+  (package--archives-initialize)
+  (let* ((name (file-name-base (directory-file-name dir)))
+         (pkg-dir (expand-file-name name package-user-dir)))
+    (make-symbolic-link dir pkg-dir)
+    (package-vc-unpack-1 (package-desc-create
+                          :name (intern name)
+                          :kind 'vc)
+                         pkg-dir)))
 
 (defun package-vc-read-pkg (prompt)
   "Query for a source package description with PROMPT."
