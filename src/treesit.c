@@ -193,10 +193,7 @@ ts_load_language_push_for_each_suffix
 }
 
 /* Load the dynamic library of LANGUAGE_SYMBOL and return the pointer
-   to the language definition.  Signals
-   Qtreesit_load_language_error if something goes wrong.
-   Qtreesit_load_language_error carries the error message from
-   trying to load the library with each extension.
+   to the language definition.
 
    If error occurs, return NULL and fill SIGNAL_SYMBOL and SIGNAL_DATA
    with values suitable for xsignal. */
@@ -267,7 +264,7 @@ ts_load_language (Lisp_Object language_symbol,
   if (error != NULL)
     {
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = list2 (symbol_name, Fnreverse (error_list));
+      *signal_data = Fcons (Qnot_found, Fnreverse (error_list));
       return NULL;
     }
 
@@ -279,7 +276,7 @@ ts_load_language (Lisp_Object language_symbol,
   if (error != NULL)
     {
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = build_string (error);
+      *signal_data = list2 (Qsymbol_error, build_string (error));
       return NULL;
     }
   TSLanguage *lang = (*langfn) ();
@@ -291,7 +288,7 @@ ts_load_language (Lisp_Object language_symbol,
   if (!success)
     {
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = list2 (build_pure_c_string ("Language version doesn't match tree-sitter version, language version:"),
+      *signal_data = list2 (Qversion_mismatch,
 			    make_fixnum (ts_language_version (lang)));
       return NULL;
     }
@@ -301,18 +298,32 @@ ts_load_language (Lisp_Object language_symbol,
 DEFUN ("treesit-language-available-p",
        Ftreesit_langauge_available_p,
        Streesit_language_available_p,
-       1, 1, 0,
-       doc: /* Return non-nil if LANGUAGE exists and is loadable.  */)
-  (Lisp_Object language)
+       1, 2, 0,
+       doc: /* Return non-nil if LANGUAGE exists and is loadable.
+
+If DETAIL is non-nil, return (t . nil) when LANGUAGE is available,
+(nil . DATA) when unavailable.  DATA is the signal data of
+`treesit-load-language-error'.  */)
+  (Lisp_Object language, Lisp_Object detail)
 {
   CHECK_SYMBOL (language);
   ts_initialize ();
   Lisp_Object signal_symbol = Qnil;
   Lisp_Object signal_data = Qnil;
   if (ts_load_language(language, &signal_symbol, &signal_data) == NULL)
-    return Qnil;
+    {
+      if (NILP (detail))
+	return Qnil;
+      else
+	return Fcons (Qnil, signal_data);
+    }
   else
-    return Qt;
+    {
+      if (NILP (detail))
+	return Qt;
+      else
+	return Fcons (Qt, Qnil);
+    }
 }
 
 DEFUN ("treesit-language-version",
@@ -2298,6 +2309,10 @@ syms_of_treesit (void)
   DEFSYM (Qextra, "extra");
   DEFSYM (Qhas_changes, "has-changes");
   DEFSYM (Qhas_error, "has-error");
+
+  DEFSYM (Qnot_found, "not-found");
+  DEFSYM (Qsymbol_error, "symbol-error");
+  DEFSYM (Qversion_mismatch, "version-mismatch");
 
   DEFSYM (Qtreesit_error, "treesit-error");
   DEFSYM (Qtreesit_query_error, "treesit-query-error");

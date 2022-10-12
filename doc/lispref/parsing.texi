@@ -70,16 +70,26 @@ Tree-sitter language definitions are distributed as dynamic libraries.
 In order to use a language definition in Emacs, you need to make sure
 that the dynamic library is installed on the system.  Emacs looks for
 language definitions under load paths in
-@code{treesit-extra-load-path}, @code{user-emacs-directory}/tree-sitter,
-and system default locations for dynamic libraries, in that order.
-Emacs tries each extensions in @code{treesit-load-suffixes}.  If Emacs
-cannot find the library or has problem loading it, Emacs signals
-@code{treesit-load-language-error}.  The signal data is a list of
-specific error messages.
+@code{treesit-extra-load-path},
+@code{user-emacs-directory}/tree-sitter, and system default locations
+for dynamic libraries, in that order.  Emacs tries each extensions in
+@code{treesit-load-suffixes}.  If Emacs cannot find the library or has
+problem loading it, Emacs signals @code{treesit-load-language-error}.
+
+The signal data could be @code{(not-found @var{error-msg} ...)} if
+Emacs cannot find the language definition, or @code{(symbol-error
+@var{error-msg})} if the Emacs cannot find the correct symbol in the
+language definition, or @code{(version_mismatch @var{error-msg})} if
+the language definition's version does match that of the tree-sitter
+library.
 
 @defun treesit-language-available-p language
-This function checks whether the dynamic library for @var{language} is
-present on the system, and return non-nil if it is.
+This function returns non-nil if @var{language} exists and is
+loadable.
+
+If @var{detail} is non-nil, return @code{(t . nil) when @var{language}
+is available, @code{(nil . DATA)} when unavailable.  @var{data} is the
+signal data of @code{treesit-load-language-error}.
 @end defun
 
 @vindex treesit-load-name-override-list
