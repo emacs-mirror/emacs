@@ -49,6 +49,7 @@ Manual}.
 * Package Statuses::     Which statuses a package can have.
 * Package Installation:: Options for package installation.
 * Package Files::        Where packages are installed.
+* Package from Source::  Managing packages directly from source.
 @end menu
 
 @node Package Menu
@@ -530,3 +531,47 @@ are laid out in the same way as in @code{package-user-dir}.
 corresponding package subdirectory.  This only works for packages
 installed in @code{package-user-dir}; if told to act on a package in a
 system-wide package directory, the deletion command signals an error.
+
+@node Package from Source
+@section Package from Source
+@cindex package source vcs git @c "git" is not technically correct
+                               @c but it is a popular term
+
+  By default @code{package-install} will download a Tarball from a
+package archive and install the files therein contained.  Most of the
+time this is just what you want.  One exception is when you decide to
+hack on the source code of a package, and would like to share these
+changes with other users.  In that case you usually want to fetch and
+work on the upstream source, so that you can prepare a usable patch.
+
+@findex package-vc-install
+  One way to do this is to use @code{package-vc-install}, to fetch the
+source code for a package directly from source.  The command will also
+automatically ensure that all files are byte-compiled and auto-loaded,
+just like with a regular package.  From this point on the package can
+be regarded just like any other package, that can be updated (using
+@code{package-update}), deleted (using @code{package-delete}) and
+viewed in the package listing.
+
+@findex package-contact-maintainer
+@findex package-report-bug
+@findex package-vc-prepare-patch
+  With the source checkout, you might want to reproduce a bug against
+the current development head or implement a new feature to scratch an
+itch.  If the package metadata indicates that a maintainer can be
+contacted via Email, you can use the commands
+@code{package-contact-maintainer} to send them a message, or
+@code{package-report-bug} to report a bug that will include all the
+user options that you have customised.  Patches can be sent out using
+@code{package-vc-prepare-patch}, that makes use of
+@code{vc-prepare-patch} under the hold (@pxref{Preparing Patches}).
+
+@findex package-vc-link-directory
+@findex package-vc-refresh
+  If you maintain your own packages you might want to use a local
+checkout instead of cloning a remote repository.  This can be done
+using @code{package-vc-link-directory}, that creates a symbolic link
+from the package directory (@pxref{Package Files}) to your checkout
+and initialises the code.  Note that if changes are made such as
+adding autoloads, you should use @code{package-vc-refresh} to repeat
+the initialisation.
