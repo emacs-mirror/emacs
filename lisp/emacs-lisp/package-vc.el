@@ -339,9 +339,16 @@ be requested using REV."
 ;;;###autoload
 (defalias 'package-checkout #'package-vc-install)
 
-(defun package-vc-link-directory (dir)
-  "Install the package in DIR by linking it into the ELPA directory."
-  (interactive (list (read-directory-name "Directory: ")))
+(defun package-vc-link-directory (dir name)
+  "Install the package NAME in DIR by linking it into the ELPA directory.
+If invoked interactively with a prefix argument, the user will be
+prompted for the package NAME.  Otherwise it will be inferred
+from the base name of DIR."
+  (interactive (let ((dir (read-directory-name "Directory: ")))
+                 (list dir
+                       (if current-prefix-arg
+                           (read-string "Package name: ")
+                         (file-name-base (directory-file-name dir))))))
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
   (package--archives-initialize)
