@@ -1258,9 +1258,6 @@ ignore file."
         (if sort (sort-lines nil (point-min) (point-max)))
         (save-buffer)))))
 
-(defun vc-cvs-clone (remote directory)
-  (vc-cvs-command nil 0 '() "checkout" "-d" directory remote))
-
 (defvar-keymap vc-cvs-log-view-mode-map
   "N" #'log-view-file-next
   "P" #'log-view-file-prev
