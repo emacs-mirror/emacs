@@ -353,6 +353,11 @@ be requested using REV."
                           :kind 'vc)
                          pkg-dir)))
 
+(defun package-vc-refresh (pkg-desc)
+  "Refresh the installation for PKG-DESC."
+  (interactive (package-vc-read-pkg "Refresh package: "))
+  (package-vc-unpack-1 pkg-desc (package-desc-dir pkg-desc)))
+
 (defun package-vc-read-pkg (prompt)
   "Query for a source package description with PROMPT."
   (cadr (assoc (completing-read
