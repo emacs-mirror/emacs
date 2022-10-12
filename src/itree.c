@@ -307,6 +307,7 @@ check_tree (struct interval_tree *tree,
   if (tree->root == ITREE_NULL)
     return true;
   eassert (tree->root->parent == ITREE_NULL);
+  eassert (!check_red_black_invariants || !tree->root->red);
 
   struct interval_node *node = tree->root;
   struct check_subtree_result result
