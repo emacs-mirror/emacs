@@ -4069,7 +4069,8 @@ With argument MSG show activation/deactivation message."
 Optional argument PROCESS forces completions to be retrieved
 using that one instead of current buffer's process."
   (setq process (or process (get-buffer-process (current-buffer))))
-  (let* ((line-start (if (derived-mode-p 'inferior-python-mode)
+  (let* ((is-shell-buffer (derived-mode-p 'inferior-python-mode))
+         (line-start (if is-shell-buffer
                          ;; Working on a shell buffer: use prompt end.
                          (cdr (python-util-comint-last-prompt))
                        (line-beginning-position)))
@@ -4100,7 +4101,8 @@ using that one instead of current buffer's process."
          (completion-fn
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
-                       (< (point) (cdr prompt-boundaries)))
+                       (and is-shell-buffer
+                            (< (point) (cdr prompt-boundaries))))
                    #'ignore)
                   ((or (not python-shell-completion-native-enable)
                        ;; Even if native completion is enabled, for

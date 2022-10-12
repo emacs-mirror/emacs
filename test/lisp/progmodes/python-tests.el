@@ -4411,6 +4411,22 @@ import abc
      (insert "A")
      (should (completion-at-point)))))
 
+(ert-deftest python-shell-completion-2 ()
+  "Should work regardless of the point in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (python-shell-with-shell-buffer
+       (goto-char (point-min)))
+     (goto-char (point-max))
+     (insert "abc.")
+     (should (completion-at-point)))))
+
 (ert-deftest python-shell-completion-native-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-buffer-with-shell
@@ -4425,6 +4441,23 @@ import abc
      (insert "abc.")
      (should (completion-at-point))
      (insert "A")
+     (should (completion-at-point)))))
+
+(ert-deftest python-shell-completion-native-2 ()
+  "Should work regardless of the point in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-completion-native-turn-on)
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (python-shell-with-shell-buffer
+       (goto-char (point-min)))
+     (goto-char (point-max))
+     (insert "abc.")
      (should (completion-at-point)))))
 
 (ert-deftest python-shell-completion-native-with-ffap-1 ()
