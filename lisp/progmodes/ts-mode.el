@@ -22,6 +22,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;;; Code:
+
 (require 'treesit)
 (require 'rx)
 (require 'js)
@@ -99,7 +101,8 @@
      ((node-is "/") parent 0)
      ((parent-is "jsx_self_closing_element")
       parent ,ts-mode-indent-offset)
-     (no-node parent-bol 0))))
+     (no-node parent-bol 0)))
+  "Tree-sitter indent rules.")
 
 (defvar ts-mode--settings
   (treesit-font-lock-rules
@@ -281,7 +284,8 @@
       ] @font-lock-keyword-face
 
      (comment) @font-lock-comment-face
-     )))
+     ))
+  "Tree-sitter font-lock settings.")
 
 (defvar ts-mode--defun-type-regexp
   (rx (or "class_declaration"
