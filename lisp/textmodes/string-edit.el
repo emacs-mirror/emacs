@@ -119,9 +119,7 @@ This will kill the current buffer."
   (interactive)
   (goto-char (point-min))
   ;; Skip past the help text.
-  (when-let ((match (text-property-search-forward
-                     'string-edit--prompt nil t)))
-    (goto-char (prop-match-beginning match)))
+  (text-property-search-forward 'string-edit--prompt)
   (let ((string (buffer-substring (point) (point-max)))
         (callback string-edit--success-callback))
     (quit-window 'kill)
