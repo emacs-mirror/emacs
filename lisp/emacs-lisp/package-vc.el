@@ -43,7 +43,6 @@
 (require 'vc)
 (require 'seq)
 (require 'xdg)
-(require 'project)
 
 (defgroup package-vc nil
   "Manage packages from VC checkouts."
@@ -340,9 +339,9 @@ be requested using REV."
 ;;;###autoload
 (defalias 'package-checkout #'package-vc-install)
 
-(defun package-vc-link-project (dir)
+(defun package-vc-link-directory (dir)
   "Install the package in DIR by linking it into the ELPA directory."
-  (interactive (list (project-prompt-project-dir)))
+  (interactive (list (read-directory-name "Directory: ")))
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
   (package--archives-initialize)
