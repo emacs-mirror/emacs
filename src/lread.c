@@ -4133,18 +4133,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	char *end = read_buffer + read_buffer_size;
 	EMACS_INT start_position = readchar_offset - 1;
 
-	/* PKG-FIXME check.  And this code is much too long.  */
-
-	/* If of the form ||, everything except '|' is considered quoted.
-	   the bars doesn't belong to the symbol name.  */
-	bool in_vertical_bar = false;
-	if (!read_emacs_syntax && c == '|')
-	  {
-	    in_vertical_bar = true;
-	    c = READCHAR;
-	    if (c < 0)
-	      end_of_file_error ();
-	  }
+	/* PKG-FIXME: This is too complicated.  */
 
 	/* Remember where package prefixes end in COLON, which
 	   will be set to the first colon we find.  NCOLONS is the
@@ -4154,11 +4143,14 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	/* True means last character read was a backslash.  */
 	bool last_was_backslash = false;
+	bool in_vertical_bar = false;
 	bool any_quoted = false;
 
 	for (;;)
 	  {
-	    if (c == ':' && !last_was_backslash && !in_vertical_bar)
+	    if (c == ':'
+		// This is actually \: or |...:
+		&& !last_was_backslash && !in_vertical_bar)
 	      {
 		/* Remember where the first : is.  */
 		if (colon == NULL)
@@ -4167,7 +4159,8 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 		if (!read_emacs_syntax)
 		  {
-		    /* #:xyz should not contain a colon.  */
+		    /* #:xyz should not contain a colon unless in Emacs
+		       original syntax.  */
 		    if (uninterned_symbol)
 		      invalid_syntax ("colon in uninterned symbol", readcharfun);
 
@@ -4178,18 +4171,36 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		  }
 	      }
 
-	    /* Handle backslash.  The first backslash is not part of
-	       the symbol name.  \\ gives a single \ in the
-	       symbol.  */
-	    if (c == '\\' && !last_was_backslash)
+	    /* Handle unquote backslash and bar .    */
+	    if (!last_was_backslash)
 	      {
-		c = READCHAR;
-		if (c < 0)
-		  end_of_file_error ();
-		last_was_backslash = true;
-		any_quoted = true;
-		continue;
+		/* Unquoted backslash: The first backslash is not part
+		   of the symbol name.  \\ gives a single \ in the
+		   symbol.  */
+		if (c == '\\')
+		  {
+		    c = READCHAR;
+		    if (c < 0)
+		      end_of_file_error ();
+		    last_was_backslash = true;
+		    any_quoted = true;
+		    continue;
+		  }
+
+		/* Unquoted vertical bar.  Begin or end multi-escape,
+		   unless in Emacs syntax.  In either case, proceed
+		   with next char, the bar is not part of the
+		   name.  */
+		if (c == '|' && !read_emacs_syntax)
+		  {
+		    c = READCHAR;
+		    if (c < 0)
+		      end_of_file_error ();
+		    in_vertical_bar = !in_vertical_bar;
+		    continue;
+		  }
 	      }
+
 	    last_was_backslash = false;
 
 	    /* Store the character read, and advance the write pointer
