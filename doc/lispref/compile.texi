@@ -985,7 +985,7 @@ too late.
 While setting this variable disables automatic compilation of Lisp
 files, the compiler may still be invoked to install @dfn{trampolines}
 if any built-in functions are redefined.  However, these trampolines
-will not get written to disk.
+will not get written to your cache directory.
 
 You can also use the @samp{EMACS_INHIBIT_AUTOMATIC_NATIVE_COMPILATION}
 environment variable to disable native compilation.
