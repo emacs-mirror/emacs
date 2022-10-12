@@ -277,7 +277,7 @@ check_subtree (struct interval_node *node,
   if (check_red_black_invariants)
     {
       eassert (left_result.black_height == right_result.black_height);
-      eassert (node->parent != ITREE_NULL || !node->red || !node->parent->red);
+      eassert (node->parent == ITREE_NULL || !node->red || !node->parent->red);
     }
 
   result.size = 1 + left_result.size + right_result.size;
