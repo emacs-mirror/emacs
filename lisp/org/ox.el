@@ -1969,7 +1969,7 @@ Return a string."
 	    ;; as in the original buffer, and call appropriate filters.
 	    (t
 	     (org-export-filter-apply-functions
-	      (plist-get info (intern (format ":filter-%s" type)))
+	      (plist-get info (intern (format "filter-%s" type) :keyword))
 	      (let ((blank (or (org-element-property :post-blank data) 0)))
 		(if (eq (org-element-class data parent) 'object)
 		    (concat results (make-string blank ?\s))

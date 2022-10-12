@@ -2268,6 +2268,8 @@ extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
 extern bool pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol);
 extern void pkg_early_intern_symbol (Lisp_Object symbol);
+extern Lisp_Object pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
+extern void pkg_break (void);
 
 extern bool package_system_ready;
 

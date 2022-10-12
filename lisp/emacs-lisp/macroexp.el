@@ -819,7 +819,7 @@ test of free variables in the following ways:
          ;; Hopefully this shouldn't happen thanks to the cycle detection,
          ;; but in case it does happen, let's catch the error and give the
          ;; code a chance to macro-expand later.
-         (error "Eager macro-expansion failure: %S" err)
+         (error "Eager macro-expansion failure: %S in %S" err form)
          form))))))
 
 ;; ¡¡¡ Big Ugly Hack !!!

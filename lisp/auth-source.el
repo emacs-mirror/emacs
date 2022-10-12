@@ -1160,7 +1160,7 @@ FILE is the file from which we obtained this token."
                       (point-max))))))
 
 (defun auth-source--symbol-keyword (symbol)
-  (intern (format ":%s" symbol)))
+  (intern (format "%s" symbol) :keyword))
 
 (defun auth-source-netrc-normalize (alist filename)
   (mapcar (lambda (entry)

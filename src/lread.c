@@ -4138,7 +4138,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	/* If of the form ||, everything except '|' is considered quoted.
 	   the bars doesn't belong to the symbol name.  */
 	bool in_vertical_bar = false;
-	if (c == '|')
+	if (!read_emacs_syntax && c == '|')
 	  {
 	    in_vertical_bar = true;
 	    c = READCHAR;
@@ -4160,19 +4160,22 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  {
 	    if (c == ':' && !last_was_backslash && !in_vertical_bar)
 	      {
-		/* #:xyz should not contain a colon.  */
-		if (uninterned_symbol)
-		  invalid_syntax ("colon in uninterned symbol", readcharfun);
-
 		/* Remember where the first : is.  */
 		if (colon == NULL)
 		  colon = p;
 		++ncolons;
 
-		/* Up to two colons are allowed if they are
-		   consecutive.  PKG-FIXME check consecutive :.  */
-		if (ncolons > 2)
-		  invalid_syntax ("too many colons", readcharfun);
+		if (!read_emacs_syntax)
+		  {
+		    /* #:xyz should not contain a colon.  */
+		    if (uninterned_symbol)
+		      invalid_syntax ("colon in uninterned symbol", readcharfun);
+
+		    /* Up to two colons are allowed if they are
+		       consecutive.  PKG-FIXME check consecutive :.  */
+		    if (ncolons > 2)
+		      invalid_syntax ("too many colons", readcharfun);
+		  }
 	      }
 
 	    /* Handle backslash.  The first backslash is not part of
@@ -4219,6 +4222,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	       symbol.  */
 	    if (in_vertical_bar)
 	      {
+		eassert (!read_emacs_syntax);
 		if (c < 0)
 		  end_of_file_error ();
 		if (c == '|')
@@ -4826,6 +4830,8 @@ A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
   (Lisp_Object string, Lisp_Object package)
 {
+  /* PKG-FIXME: Remove this eassert.  */
+  eassert (SREF (string, 0) != ':' || !package_system_ready);
   return pkg_emacs_intern (string, package);
 }
 
@@ -4862,6 +4868,10 @@ usage: (unintern NAME OBARRAY)  */)
 Lisp_Object
 oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff_t size_byte)
 {
+  const Lisp_Object found = pkg_lookup_c_string (ptr, size, size_byte);
+  if (!EQ (found, Qunbound))
+    return found;
+
   size_t hash;
   size_t obsize;
   register Lisp_Object tail;
@@ -4897,6 +4907,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 void
 map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
+  eassert (package_system_ready);
   ptrdiff_t i;
   register Lisp_Object tail;
   CHECK_VECTOR (obarray);
@@ -4917,6 +4928,7 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
 static void
 mapatoms_1 (Lisp_Object sym, Lisp_Object function)
 {
+  eassert (package_system_ready);
   call1 (function, sym);
 }
 
@@ -4925,6 +4937,7 @@ DEFUN ("mapatoms", Fmapatoms, Smapatoms, 1, 2, 0,
 OBARRAY defaults to the value of `obarray'.  */)
   (Lisp_Object function, Lisp_Object obarray)
 {
+  eassert (package_system_ready);
   if (NILP (obarray)) obarray = Vobarray;
   obarray = check_obarray (obarray);
 
@@ -5574,6 +5587,10 @@ that are loaded before your customizations are read!  */);
   DEFVAR_BOOL ("load-no-native", load_no_native,
                doc: /* Non-nil means not to load a .eln file when a .elc was requested.  */);
   load_no_native = false;
+
+  DEFVAR_BOOL ("read-emacs-syntax", read_emacs_syntax,
+               doc: /* Non-nil means don't treat ':' or '|' specially in symbols.  */);
+  read_emacs_syntax = true;
 
   /* Vsource_directory was initialized in init_lread.  */
 

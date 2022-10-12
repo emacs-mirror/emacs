@@ -555,6 +555,15 @@ pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
   return true;
 }
 
+Lisp_Object
+pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes)
+{
+  if (!package_system_ready)
+    return Qunbound;
+  const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
+  return lookup_symbol (name, Vearmuffs_package);
+}
+
 void
 pkg_early_intern_symbol (Lisp_Object symbol)
 {
@@ -580,6 +589,10 @@ pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
 
   /* PKG-FIXME: What to do if PACKAGE is not the home package?  */
   return Qnil;
+}
+
+void pkg_break (void)
+{
 }
 
 

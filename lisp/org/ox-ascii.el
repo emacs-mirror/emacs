@@ -1157,7 +1157,7 @@ holding export options."
 (defun org-ascii--translate (s info)
   "Translate string S according to specified language and charset.
 INFO is a plist used as a communication channel."
-  (let ((charset (intern (format ":%s" (plist-get info :ascii-charset)))))
+  (let ((charset (intern (format "%s" (plist-get info :ascii-charset)) :keyword)))
     (org-export-translate s charset info)))
 
 
