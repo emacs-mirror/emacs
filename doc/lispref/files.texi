@@ -1405,12 +1405,15 @@ a nonnegative integer.
 
 @item
 The filesystem number of the device that the file is on
-@code{file-attribute-device-number}), an integer.
-This element and the file's inode number
-together give enough information to distinguish any two files on the
-system---no two files can have the same values for both of these
-numbers.
+(@code{file-attribute-device-number}), an integer or a cons cell of
+integers.  The latter is sometimes used by remote files, in order to
+distinguish the remote filesystems from the local ones.
 @end enumerate
+
+The file's inode and device numbers together give enough information
+to distinguish any two files on the system---no two files can have the
+same values for both of these numbers.  This tupel is returned by
+@code{file-attribute-file-number}.
 
 For example, here are the file attributes for @file{files.texi}:
 

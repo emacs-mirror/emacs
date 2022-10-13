@@ -1872,7 +1872,7 @@ If non-nil, multiple revisions can be queried.  This is done using
 'completing-read-multiple'.
 
 ---
-*** New function 'vc-read-multiple-revisions'
+*** New function 'vc-read-multiple-revisions'.
 This function invokes 'vc-read-revision' with a non-nil value for
 MULTIPLE.
 
@@ -1880,7 +1880,7 @@ MULTIPLE.
 *** New command 'vc-prepare-patch'.
 Patches for any version control system can be prepared using VC.  The
 command will query what commits to send and will compose messages for
-your mail user agent.  The behaviour of 'vc-prepare-patch' can be
+your mail user agent.  The behavior of 'vc-prepare-patch' can be
 modified by the user options 'vc-prepare-patches-separately' and
 'vc-default-patch-addressee'.
 
@@ -3146,6 +3146,11 @@ The following generalized variables have been made obsolete:
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New accessor function 'file-attribute-file-number'.
+It returns the list of the inode and device numbers retrieved by
+'file-attributes'.  This value can be used to identify a file uniquely.
 
 +++
 ** New macro 'while-let'.

@@ -427,12 +427,12 @@ It is a permanent local, unaffected by
 @end defvar
 
 @defvar buffer-file-number
-This buffer-local variable holds the file number and directory device
+This buffer-local variable holds the inode number and directory device
 number of the file visited in the current buffer, or @code{nil} if no
 file or a nonexistent file is visited.  It is a permanent local,
 unaffected by @code{kill-all-local-variables}.
 
-The value is normally a list of the form @code{(@var{filenum}
+The value is normally a list of the form @code{(@var{inodenum}
 @var{devnum})}.  This pair of numbers uniquely identifies the file among
 all files accessible on the system.  See the function
 @code{file-attributes}, in @ref{File Attributes}, for more information
