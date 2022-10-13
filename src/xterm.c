@@ -1425,9 +1425,6 @@ struct x_client_list_window
   /* The width and height of the window.  */
   int width, height;
 
-  /* Whether or not the window is mapped.  */
-  bool mapped_p;
-
   /* A bitmask describing events Emacs was listening for from the
      window before some extra events were added in
      `x_dnd_compute_toplevels'.  */
@@ -1439,9 +1436,6 @@ struct x_client_list_window
   /* The next window in this list.  */
   struct x_client_list_window *next;
 
-  /* The Motif protocol style of this window, if any.  */
-  uint8_t xm_protocol_style;
-
   /* The extents of the frame window in each direction.  */
   int frame_extents_left;
   int frame_extents_right;
@@ -1452,11 +1446,11 @@ struct x_client_list_window
   /* The border width of this window.  */
   int border_width;
 
-  /* The rectangles making up the input shape.  */
-  XRectangle *input_rects;
-
   /* The number of rectangles composing the input shape.  */
   int n_input_rects;
+
+  /* The rectangles making up the input shape.  */
+  XRectangle *input_rects;
 
   /* The rectangles making up the bounding shape.  */
   XRectangle *bounding_rects;
@@ -1464,6 +1458,12 @@ struct x_client_list_window
   /* The number of rectangles composing the bounding shape.  */
   int n_bounding_rects;
 #endif
+
+  /* The Motif protocol style of this window, if any.  */
+  uint8_t xm_protocol_style;
+
+  /* Whether or not the window is mapped.  */
+  bool mapped_p;
 };
 
 /* List of all toplevels in stacking order, from top to bottom.  */
