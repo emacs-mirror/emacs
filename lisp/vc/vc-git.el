@@ -2030,14 +2030,19 @@ FILE can be nil."
                     (setq ok nil))))))
     (and ok str)))
 
-(defun vc-git-symbolic-commit (commit)
-  "Translate COMMIT string into symbolic form.
-Returns nil if not possible."
+(defun vc-git-symbolic-commit (commit &optional force)
+  "Translate revision string of COMMIT to a symbolic form.
+If the optional argument FORCE is non-nil, the returned value is
+allowed to include revision specifications like \"master~8\"
+\(the 8th parent of the commit currently pointed to by the master
+branch), otherwise such revision specifications are rejected, and
+the function returns nil."
   (and commit
        (let ((name (with-temp-buffer
                      (and
                       (vc-git--out-ok "name-rev" "--name-only" commit)
                       (goto-char (point-min))
+                      (or force (not (looking-at "^.*[~^].*$" t)))
                       (= (forward-line 2) 1)
                       (bolp)
                       (buffer-substring-no-properties (point-min)
