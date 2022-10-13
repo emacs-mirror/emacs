@@ -516,13 +516,7 @@ See the command `outline-mode' for more information on this mode."
           (set-window-buffer nil (window-buffer)))
         (when (or outline--use-buttons outline--use-margins)
           (add-hook 'after-change-functions
-                    (lambda (beg end _len)
-                      (when outline--use-buttons
-                        (remove-overlays beg end 'outline-button t))
-                      (when outline--use-margins
-                        (remove-overlays beg end 'outline-margin t))
-                      (outline--fix-up-all-buttons beg end))
-                    nil t))
+                    #'outline--fix-buttons-after-change nil t))
         (when outline-minor-mode-highlight
           (if (and global-font-lock-mode (font-lock-specified-p major-mode))
               (progn
@@ -1105,8 +1099,7 @@ If non-nil, EVENT should be a mouse event."
                                    (if outline--use-rtl
                                        'outline-close-rtl-in-margins
                                      'outline-close-in-margins)
-                                 'outline-open-in-margins)))
-          (inhibit-read-only t))
+                                 'outline-open-in-margins))))
       (overlay-put
        o 'before-string
        (propertize " " 'display
@@ -1451,6 +1444,9 @@ convenient way to make a table of contents of the buffer."
                     (insert "\n\n"))))))
           (kill-new (buffer-string)))))))
 
+
+;;; Initial visibility
+
 (defcustom outline-default-state nil
   "If non-nil, some headings are initially outlined.
 
@@ -1629,6 +1625,9 @@ LEVEL, decides of subtree visibility according to
          beg end)))
     (run-hooks 'outline-view-change-hook)))
 
+
+;;; Visibility cycling
+
 (defun outline--cycle-state ()
   "Return the cycle state of current heading.
 Return either `hide-all', `headings-only', or `show-all'."
@@ -1740,6 +1739,19 @@ With a prefix argument, show headings up to that LEVEL."
       (outline-show-all)
       (setq outline--cycle-buffer-state 'show-all)
       (message "Show all")))))
+
+
+;;; Button/margin indicators
+
+(defun outline--fix-buttons-after-change (beg end _len)
+  ;; Handle whole lines
+  (save-excursion (goto-char beg) (setq beg (pos-bol)))
+  (save-excursion (goto-char end) (setq end (pos-eol)))
+  (when outline--use-buttons
+    (remove-overlays beg end 'outline-button t))
+  (when outline--use-margins
+    (remove-overlays beg end 'outline-margin t))
+  (outline--fix-up-all-buttons beg end))
 
 
 (defvar-keymap outline-navigation-repeat-map
