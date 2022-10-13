@@ -284,6 +284,28 @@ in-order.  START and END are passed to each range function."
               "Generic tree-sitter font-lock error"
               'treesit-error)
 
+(defvar-local treesit-font-lock-feature-list nil
+  "A list of lists of feature symbols.
+
+Each sublist represents a decoration level.
+`font-lock-maximum-decoration' controls which levels are
+activated.
+
+Inside each sublist are feature symbols, which corresponds to the
+:feature value of a query defined in `treesit-font-lock-rules'.
+Removing a feature symbol from this list disables the
+corresponding query during font-lock.
+
+Common feature names (for general programming language) include
+function-name, type, variable-name (LHS of assignments), builtin,
+constant, keyword, string-interpolation, comment, doc, string,
+operator, preprocessor, escape-sequence, key (in key-value
+pairs).  Major modes are free to subdivide or extend on these
+common features.
+
+For changes to this variable to take effect, run
+`treesit-font-lock-recompute-features'.")
+
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
 
@@ -292,30 +314,21 @@ should always use `treesit-font-lock-rules' to set this variable.
 
 Each SETTING is of form
 
-    (LANGUAGE QUERY OVERRIDE TOGGLE LEVEL)
+    (QUERY ENABLE FEATURE OVERRIDE)
 
-Each SETTING controls one parser (often of different language).
-LANGUAGE is the language symbol.  See Info node `(elisp)Language
-Definitions'.
+QUERY must be a compiled query.  See Info node `(elisp)Pattern
+Matching' for how to write a query and compile it.
 
-QUERY is either a string query, a sexp query, or a compiled
-query.  See Info node `(elisp)Pattern Matching' for how to write
-a query in either string or s-expression form.  When using
-repeatedly, a compiled query is much faster than a string or sexp
-one, so it is recommend to compile your queries if it will be
-used over and over.
+For SETTING to be activated for font-lock, ENABLE must be t.  To
+disable this SETTING, set ENABLE to nil.
+
+FEATURE is the \"feature name\" of the query, users can control
+which features are enabled with `font-lock-maximum-decoration'
+and `treesit-font-lock-feature-list'.
 
 OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
-`treesit-font-lock-rules'.
-
-TOGGLE should be a variable (symbol) or nil.  The variable's
-value (nil/non-nil) controls whether to activate the query during
-fontification.  If TOGGLE is nil, the query is always activated.
-
-LEVEL is the decoration level of this query or nil.  Decoration
-level is controlled by `font-lock-maximum-decoration'.  If LEVEL
-is nil, the query is always activated.")
+`treesit-font-lock-rules'.")
 
 (defun treesit-font-lock-rules (&rest args)
   "Return a value suitable for `treesit-font-lock-settings'.
@@ -331,14 +344,18 @@ configure the query (and only that query).  For example,
     (treesit-font-lock-rules
      :language \\='javascript
      :override t
-     :enable 'html-fontify-script
+     :feature\\='constant
      \\='((true) @font-lock-constant-face
        (false) @font-lock-constant-face)
      :language \\='html
+     :feature \\='script
      \"(script_element) @font-lock-builtin-face\")
 
-For each QUERY, a :language keyword is required.  Other keywords
-include:
+For each QUERY, a :language keyword and a :feature keyword is
+required. Each query's :feature is a symbol summarizing what does
+the query fontify.  It is used to allow users to enable/disable
+certain features.  See `treesit-font-lock-kind-list' for more.
+Other keywords include:
 
   KEYWORD    VALUE    DESCRIPTION
   :override  nil      If the region already has a face,
@@ -347,19 +364,6 @@ include:
              append   Append the new face to existing ones
              prepend  Prepend the new face to existing ones
              keep     Fill-in regions without an existing face
-  :toggle    <symbol> If non-nil, the value should be a variable.
-                      The value of that variable (non-nil/nil)
-                      activates/deactivates the query during
-                      fontification.
-             nil      Always activate this query.
-  :level     <integer>If non-nil, the value is the decoration
-                      level of this query.
-                      (See `font-lock-maximum-decoration'.)
-             nil      Always activate this query.
-
-Note that a query is applied only when both :toggle and :level
-permit it.  :level is used for global, coarse-grained control,
-whereas :toggle is for local, fine-grained control.
 
 Capture names in QUERY should be face names like
 `font-lock-keyword-face'.  The captured node will be fontified
@@ -375,7 +379,7 @@ ignored.
   (let (;; Tracks the current :language/:override/:toggle/:level value
         ;; that following queries will apply to.
         current-language current-override
-        current-toggle current-level
+        current-feature
         ;; The list this function returns.
         (result nil))
     (while args
@@ -399,21 +403,14 @@ ignored.
                        `((or t nil append prepend keep)
                          ,flag)))
              (setq current-override flag)))
-          (:toggle
+          (:feature
            (let ((var (pop args)))
              (when (or (not (symbolp var))
                        (memq var '(t nil)))
                (signal 'treesit-font-lock-error
-                       `("Value of :toggle should be a variable name"
+                       `("Value of :feature should be a symbol"
                          ,var)))
-             (setq current-toggle var)))
-          (:level
-           (let ((level (pop args)))
-             (when (not (and (integerp level) (> level 0)))
-               (signal 'treesit-font-lock-error
-                       `("Value of :level should be a positive integer"
-                         ,level)))
-             (setq current-level level)))
+             (setq current-feature var)))
           ;; (2) Process query.
           ((pred treesit-query-p)
            (when (null current-language)
@@ -421,20 +418,39 @@ ignored.
                      `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
            (if (treesit-compiled-query-p token)
                (push `(,current-language token) result)
-             (push `(,current-language
-                     ,(treesit-query-compile current-language token)
-                     ,current-override
-                     ,current-toggle
-                     ,current-level)
+             (push `(,(treesit-query-compile current-language token)
+                     t
+                     ,current-feature
+                     ,current-override)
                    result))
            ;; Clears any configurations set for this query.
            (setq current-language nil
                  current-override nil
-                 current-toggle nil
-                 current-level nil))
+                 current-feature nil))
           (_ (signal 'treesit-font-lock-error
-                     `("Unexpected value" token))))))
+                     `("Unexpected value" ,token))))))
     (nreverse result)))
+
+(defun treesit-font-lock-recompute-features ()
+  "Enable/disable font-lock settings according to decoration level.
+Sets the ENABLE flag for each setting in
+`treesit-font-lock-settings', according to
+`treesit-font-lock-feature-list' and
+`font-lock-maximum-decoration'."
+  (let* ((level (font-lock-value-in-major-mode
+                 font-lock-maximum-decoration))
+         (features (cl-loop
+                    for idx = 0 then (1+ idx)
+                    for features in treesit-font-lock-feature-list
+                    if (or (eq level t)
+                           (>= level (1+ idx)))
+                    append features)))
+    (cl-loop for idx = 0 then (1+ idx)
+             for setting in treesit-font-lock-settings
+             for feature = (nth 2 setting)
+             ;; Set the ENABLE flag for the setting.
+             do (setf (nth 1 (nth idx treesit-font-lock-settings))
+                      (if (memq feature features) t nil)))))
 
 (defun treesit-font-lock-fontify-region
     (start end &optional loudly)
@@ -443,27 +459,16 @@ If LOUDLY is non-nil, message some debugging information."
   (treesit-update-ranges start end)
   (font-lock-unfontify-region start end)
   (dolist (setting treesit-font-lock-settings)
-    (let* ((language (nth 0 setting))
-           (match-pattern (nth 1 setting))
-           (override (nth 2 setting))
-           (toggle (nth 3 setting))
-           (level (nth 4 setting))
-           (parser (treesit-parser-create language)))
-      (when-let ((node (treesit-node-on start end parser))
-                 ;; Only activate this query if both :toggle and
-                 ;; :level permit it.
-                 (activate
-                  (and (or (null toggle)
-                           (symbol-value toggle))
-                       (or (null level)
-                           (pcase (font-lock-value-in-major-mode
-                                   font-lock-maximum-decoration)
-                             ('t t)
-                             ('nil (eq level 1))
-                             (lvl (<= level lvl)))))))
+    (let* ((query (nth 0 setting))
+           (enable (nth 1 setting))
+           (override (nth 3 setting))
+           (language (treesit-query-language query)))
+      (when-let ((node (treesit-node-on start end language))
+                 ;; Only activate if ENABLE flag is t.
+                 (activate (eq t enable)))
         (ignore activate)
         (let ((captures (treesit-query-capture
-                         node match-pattern
+                         node query
                          ;; Specifying the range is important. More
                          ;; often than not, NODE will be the root
                          ;; node, and if we don't specify the range,
@@ -508,17 +513,15 @@ If LOUDLY is non-nil, message some debugging information."
 
 (defun treesit-font-lock-enable ()
   "Enable tree-sitter font-locking for the current buffer."
+  (treesit-font-lock-recompute-features)
   (setq-local font-lock-fontify-region-function
               #'treesit-font-lock-fontify-region)
   ;; If we don't set `font-lock-defaults' to some non-nil value,
-  ;; font-lock doesn't enable properly (the font-lock-mode-internal
-  ;; doesn't run).  See `font-lock-add-keywords'.
-  (when (and font-lock-mode
-             (null font-lock-keywords)
-             (null font-lock-defaults))
-    (font-lock-mode -1)
-    (setq-local font-lock-defaults '(nil t))
-    (font-lock-mode 1)))
+  ;; font-lock doesn't enable properly (`font-lock-mode-internal'
+  ;; doesn't run).  See `font-lock-specified-p'.
+  (when (null font-lock-defaults)
+    (setq font-lock-defaults '(nil)))
+  (font-lock-mode 1))
 
 ;;; Indent
 

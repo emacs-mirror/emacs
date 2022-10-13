@@ -3459,6 +3459,7 @@ indentation, which-function and movement functions."
 (defvar js--treesit-settings
   (treesit-font-lock-rules
    :language 'javascript
+   :feature 'basic
    :override t
    `(;; Everything overrides template string.
      (template_string) @font-lock-string-face
@@ -3637,8 +3638,9 @@ ARG is the same as in `end-of-defun."
   (setq-local beginning-of-defun-function #'js--treesit-beginning-of-defun)
   (setq-local end-of-defun-function #'js--treesit-end-of-defun)
 
-  (setq-local font-lock-defaults '(nil t))
+  (setq-local font-lock-keywords-only t)
   (setq-local treesit-font-lock-settings js--treesit-settings)
+  (setq-local treesit-font-lock-feature-list '((basic)))
 
   (add-hook 'which-func-functions #'js-treesit-current-defun nil t)
 

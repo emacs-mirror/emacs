@@ -1032,7 +1032,7 @@ Do not fontify the initial f for f-strings."
 (defvar python--treesit-settings
   (treesit-font-lock-rules
    :language 'python
-   :level 1
+   :feature 'basic
    '(;; Queries for def and class.
      (function_definition
       name: (identifier) @font-lock-function-name-face)
@@ -1048,7 +1048,7 @@ Do not fontify the initial f for f-strings."
       (:match "^\"\"\"" @font-lock-doc-face))
      (interpolation (identifier) @font-lock-variable-name-face))
    :language 'python
-   :level 2
+   :feature 'moderate
    :override t
    `(;; Keywords, builtins, and constants.
      [,@python--treesit-keywords] @font-lock-keyword-face
@@ -1066,7 +1066,7 @@ Do not fontify the initial f for f-strings."
 
      [(true) (false) (none)] @font-lock-constant-face)
    :language 'python
-   :level 3
+   :feature 'elaborate
    :override t
    `(;; Variable names.
      (assignment left: (identifier)
@@ -6401,7 +6401,9 @@ Add import for undefined name `%s' (empty to skip): "
   (if (and python-use-tree-sitter
            (treesit-can-enable-p))
       (progn
-        (setq-local font-lock-defaults '(nil t))
+        (setq-local font-lock-keywords-only t)
+        (setq-local treesit-font-lock-feature-list
+                    '((basic) (moderate) (elaborate)))
         (setq-local treesit-font-lock-settings
                     python--treesit-settings)
         (treesit-font-lock-enable))
