@@ -3911,10 +3911,12 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 @group
 (treesit-font-lock-rules
  :language 'javascript
+ :feature 'constant
  :override t
  '((true) @@font-lock-constant-face
    (false) @@font-lock-constant-face)
  :language 'html
+ :feature 'script
  "(script_element) @@font-lock-builtin-face")
 @end group
 @end example
@@ -3922,7 +3924,12 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 This function takes a list of text or s-exp queries.  Before each
 query, there are @var{:keyword} and @var{value} pairs that configure
 that query.  The @code{:lang} keyword sets the query’s language and
-every query must specify the language.  Other keywords are optional:
+every query must specify the language.  The @code{:feature} keyword
+sets the feature name of the query.  Users can control which features
+are enabled with @code{font-lock-maximum-decoration} and
+@code{treesit-font-lock-feature-list} (see below).
+
+Other keywords are optional:
 
 @multitable @columnfractions .15 .15 .6
 @headitem Keyword @tab Value @tab Description
@@ -3932,20 +3939,7 @@ every query must specify the language.  Other keywords are optional:
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
-@item @code{:toggle} @tab @var{symbol} @tab
-If non-nil, its value should be a variable name.  The variable's value
-(nil/non-nil) disables/enables the query during fontification.
-@item @tab nil @tab Always enable this query.
-@item @code{:level} @tab @var{integer} @tab
-If non-nil, its value should be the decoration level for this query.
-Decoration level is controlled by @code{font-lock-maximum-decoration}.
-@item @tab nil @tab Always enable this query.
 @end multitable
-
-Note that a query is applied only when both @code{:toggle} and
-@code{:level} permit it.  @code{:level} is used for global,
-coarse-grained control, whereas @code{:toggle} is for local,
-fine-grained control.
 
 Capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
@@ -3957,6 +3951,42 @@ is both a face and a function, the face takes priority.  If a capture
 name is not a face name nor a function name, it is ignored.
 @end defun
 
+@defvar treesit-font-lock-feature-list
+This is a list of lists of feature symbols.
+
+Each sublist represents a decoration level.
+@code{font-lock-maximum-decoration} controls which levels are
+activated.
+
+Inside each sublist are feature symbols, which corresponds to the
+@code{:feature} value of a query defined in
+@code{treesit-font-lock-rules}.  Removing a feature symbol from this
+list disables the corresponding query during font-lock.
+
+Common feature names (for general programming language) include
+function-name, type, variable-name (LHS of assignments), builtin,
+constant, keyword, string-interpolation, comment, doc, string,
+operator, preprocessor, escape-sequence, key (in key-value
+pairs).  Major modes are free to subdivide or extend on these
+common features.
+
+For example, the value of this variable could be:
+@example
+@group
+((comment string doc) ; level 1
+ (function-name keyword type builtin constant) ; level 2
+ (variable-name string-interpolation key)) ; level 3
+@end group
+@end example
+
+Major modes should set this variable before calling
+@code{treesit-font-lock-enable}.
+
+@findex treesit-font-lock-recompute-features
+In addition, for further changes to this variable to take effect, run
+@code{treesit-font-lock-recompute-features}.
+@end defvar
+
 @defvar treesit-font-lock-settings
 A list of @var{setting}s for tree-sitter font lock.  The exact format
 of this variable is considered internal.  One should always use
@@ -3965,12 +3995,21 @@ of this variable is considered internal.  One should always use
 Each @var{setting} is of form
 
 @example
-(@var{language} @var{query})
+(@var{query} @var{enable} @var{feature} @var{override})
 @end example
 
-Each @var{setting} controls one parser (often of different language).
-And @var{language} is the language symbol (@pxref{Language
-Definitions}); @var{query} is the query (@pxref{Pattern Matching}).
+@var{query} must be a compiled query (@pxref{Pattern Matching}).
+
+For @var{setting} to be activated for font-lock, @var{enable} must be
+t.  To disable this @var{setting}, set @var{enable} to nil.
+
+@var{feature} is the ``feature name'' of the query, users can control
+which features are enabled with @code{font-lock-maximum-decoration}
+and @code{treesit-font-lock-feature-list}.
+
+@var{override} is the override flag for this query.  Its value can be
+t, nil, append, prepend, keep.  See more in
+@code{treesit-font-lock-rules}.
 @end defvar
 
 Multi-language major modes should provide range functions in

@@ -87,9 +87,9 @@ library.
 This function returns non-nil if @var{language} exists and is
 loadable.
 
-If @var{detail} is non-nil, return @code{(t . nil) when @var{language}
-is available, @code{(nil . DATA)} when unavailable.  @var{data} is the
-signal data of @code{treesit-load-language-error}.
+If @var{detail} is non-nil, return @code{(t . nil)} when
+@var{language} is available, @code{(nil . DATA)} when unavailable.
+@var{data} is the signal data of @code{treesit-load-language-error}.
 @end defun
 
 @vindex treesit-load-name-override-list
