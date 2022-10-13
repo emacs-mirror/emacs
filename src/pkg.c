@@ -607,7 +607,14 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 {
   eassert (package_system_ready);
   CHECK_STRING (name);
-  return pkg_intern_symbol (name, Vearmuffs_package);
+
+  /* This is presumable an obarray, and we are intending
+     to intern into the default pacakge.  */
+  if (VECTORP (package))
+    package = Vearmuffs_package;
+  package = package_or_default (package);
+
+  return pkg_intern_symbol (name, package);
 }
 
 /* Implements Emacs' old Fintern_soft function.  */
@@ -619,6 +626,11 @@ pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
 
   const Lisp_Object name = SYMBOLP (symbol) ? SYMBOL_NAME (symbol) : symbol;
   CHECK_STRING (name);
+
+  /* This is presumable an obarray, and we are intending
+     to intern into the default pacakge.  */
+  if (VECTORP (package))
+    package = Vearmuffs_package;
   package = package_or_default (package);
 
   Lisp_Object found = lookup_symbol (name, package);
@@ -1076,11 +1088,12 @@ DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
   return Qt;
 }
 
-DEFUN ("pkg-read", Fpkg_read, Spkg_read, 1, 1, 0,
+DEFUN ("pkg-break", Fpkg_read, Spkg_read, 1, 1, 0,
        doc: /* tbd  */)
   (Lisp_Object stream)
 {
-  return Fread (stream);
+  pkg_break ();
+  return Qnil;
 }
 
 
@@ -1223,4 +1236,5 @@ syms_of_pkg (void)
 void
 init_pkg (void)
 {
+  package_system_ready = true;
 }

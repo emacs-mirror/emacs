@@ -2159,56 +2159,45 @@ print_stack_push_vector (const char *lbrac, const char *rbrac,
     });
 }
 
-/* Return true if symbol name NAME needs quoting.  */
+/* Return true if characer C at character index ICHAR (within a name)
+   needs quoting.  */
 
+/* PKG-FIXME: No longer right.  */
 static bool
-print_quoted_p (Lisp_Object name)
+must_escape_p (int c, int ichar)
 {
-  for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
-    {
-      /* PKG-FIXME: Are these all characters?  */
-      int c = fetch_string_char_advance (name, &ichar, &ibyte);
-      if (c == '\"' || c == '\\' || c == '\''
-	  || (ichar == 0
-	      && (c == '+' || c == '-' || c == '.' || c == '?'))
-	  || c == ';' || c == '#' || c == '(' || c == ')'
-	  || c == ',' || c == '`' || c == '|'
-	  || c == '[' || c == ']' || c <= 040
-	  || c == NO_BREAK_SPACE)
-	return true;
-    }
+  if (c == '\"' || c == '\\' || c == '\''
+      || (ichar == 0
+	  && (c == '+' || c == '-' || c == '.' || c == '?'))
+      || c == ';' || c == '#' || c == '(' || c == ')'
+      || c == ',' || c == '`' || c == '|'
+      || c == '[' || c == ']' || c <= 040
+      || c == NO_BREAK_SPACE)
+    return true;
   return false;
 }
 
-/* Return true if symbol name NAME needs quoting.  */
+/* Print string NAME like a symbol name.  */
 
 static void
-print_symbol_name (Lisp_Object name, Lisp_Object printcharfun)
+print_symbol_name (Lisp_Object name, Lisp_Object printcharfun,
+		   bool escape)
 {
-  /* A symbol's name may look like something else, like a number,
-     character, string, etc.  In that case print it as |...|.  */
-  const bool quote = print_quoted_p (name);
-
-  if (quote)
-    print_c_string ("|", printcharfun);
-
   for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
     {
       const int c = fetch_string_char_advance (name, &ichar, &ibyte);
       maybe_quit ();
-      if (c == '|')
+      if (escape && must_escape_p (c, ichar))
 	printchar ('\\', printcharfun);
       printchar (c, printcharfun);
     }
-
-  if (quote)
-    print_c_string ("|", printcharfun);
 }
 
 /* Print SYMBOL, imcluding package prefixes and whatnot.  */
 
 static void
-print_symbol (Lisp_Object symbol, Lisp_Object printcharfun)
+print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
+	      bool escape)
 {
   const Lisp_Object name = SYMBOL_NAME (symbol);
   const char *p = SSDATA (name);
@@ -2225,21 +2214,16 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun)
       return;
     }
 
-  /* Note that Clisp and SBCL print |pkg|::|sym], if package names
-     contain silly characters.  */
   if (EQ (package, Vkeyword_package))
     print_c_string (":", printcharfun);
   else if (!NILP (package) && !EQ (package, Vearmuffs_package))
     {
+      /* Don't print qualification if in current package.  */
       const Lisp_Object found = Ffind_symbol (name, Vearmuffs_package);
-      if (!NILP (found) && EQ (XCAR (found), symbol))
+      if (NILP (found) || !EQ (XCAR (found), symbol))
 	{
-	  /* Don't print qualification if accessible in current
-	     package.  */
-	}
-      else
-	{
-	  print_symbol_name (XPACKAGE (package)->name, printcharfun);
+	  print_symbol_name (XPACKAGE (package)->name,
+			     printcharfun, escape);
 	  if (SYMBOL_EXTERNAL_P (symbol))
 	    print_c_string (":", printcharfun);
 	  else
@@ -2247,7 +2231,7 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun)
 	}
     }
 
-  print_symbol_name (name, printcharfun);
+  print_symbol_name (name, printcharfun, escape);
 }
 
 
@@ -2447,7 +2431,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
       break;
 
     case Lisp_Symbol:
-      print_symbol (obj, printcharfun);
+      print_symbol (obj, printcharfun, escapeflag);
       break;
 
     case Lisp_Cons:

@@ -2422,6 +2422,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
     }
 
+  /* PKG-FIXME: maybe we should make package_system_ready persistent
+     in the dump?  */
+  init_pkg ();
+
 #ifdef HAVE_HAIKU
   init_haiku_select ();
 #endif
