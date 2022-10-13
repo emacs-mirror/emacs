@@ -1076,6 +1076,13 @@ DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
   return Qt;
 }
 
+DEFUN ("pkg-read", Fpkg_read, Spkg_read, 1, 1, 0,
+       doc: /* tbd  */)
+  (Lisp_Object stream)
+{
+  return Fread (stream);
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -1167,6 +1174,7 @@ syms_of_pkg (void)
   defsubr (&Sunexport);
   defsubr (&Sunuse_package);
   defsubr (&Suse_package);
+  defsubr (&Spkg_read);
 
   DEFSYM (QCexternal, ":external");
   DEFSYM (QCinherited, ":inherited");
@@ -1175,6 +1183,7 @@ syms_of_pkg (void)
   DEFSYM (QCuse, ":use");
 
   DEFSYM (Qearmuffs_package, "*package*");
+  DEFSYM (Qpackage_prefixes, "package-prefixes");
   DEFSYM (Qemacs_package, "emacs-package");
   DEFSYM (Qkeyword_package, "keyword-package");
   DEFSYM (Qpackage_registry, "package-registry");
@@ -1198,6 +1207,12 @@ syms_of_pkg (void)
   DEFVAR_LISP ("*package*", Vearmuffs_package, doc: "The current package.");
   Vearmuffs_package = Vemacs_package;
   XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
+
+  DEFSYM (Qpackage_prefixes, "package-prefixes");
+  DEFVAR_LISP ("package-prefixes", Vpackage_prefixes,
+	       doc: /* Whether to read package prefixes in symbol names.  */);
+  Vpackage_prefixes = Qnil;
+  Fmake_variable_buffer_local (Qpackage_prefixes);
 
   package_system_ready = true;
   fix_symbol_packages ();

@@ -904,9 +904,12 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
    otherwise nothing is read.  */
 
 static bool
-lisp_file_lexically_bound_p (Lisp_Object readcharfun)
+lisp_file_lexically_bound_p (Lisp_Object readcharfun, bool *prefixes)
 {
   int ch = READCHAR;
+
+  /* We don't read package names as part of symbol_names by default.  */
+  *prefixes = false;
 
   if (ch == '#')
     {
@@ -1012,12 +1015,11 @@ lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 		i--;
 	      val[i] = '\0';
 
-	      if (strcmp (var, "lexical-binding") == 0)
-		/* This is it...  */
-		{
-		  rv = (strcmp (val, "nil") != 0);
-		  break;
-		}
+	      /* PKG-FIXME Do this more elegantly?  */
+	      if (strcmp (var, "package-prefixes") == 0)
+		*prefixes = strcmp (val, "nil") == 0 ? false : true;
+	      else if (strcmp (var, "lexical-binding") == 0)
+		rv = (strcmp (val, "nil") != 0);
 	    }
 	}
 
@@ -1575,8 +1577,11 @@ Return t if the file exists and loads successfully.  */)
     }
   else
     {
-      if (lisp_file_lexically_bound_p (Qget_file_char))
+      bool prefixes;
+      if (lisp_file_lexically_bound_p (Qget_file_char, &prefixes))
         Fset (Qlexical_binding, Qt);
+      if (prefixes)
+        Fset (Qpackage_prefixes, Qt);
 
       if (! version || version >= 22)
         readevalloop (Qget_file_char, &input, hist_file_name,
@@ -2406,7 +2411,9 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf) ? Qt : Qnil);
+  bool prefixes;
+  specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf, &prefixes) ? Qt : Qnil);
+  specbind (Qpackage_prefixes, prefixes ? Qt : Qnil);
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
@@ -3702,6 +3709,34 @@ read_make_string (const char *s, ptrdiff_t nbytes, bool multibyte)
   return make_pure_string (s, nchars, nbytes, multibyte);
 }
 
+static bool
+is_symbol_constituent (int c)
+{
+  /* Symbols end at control characters like newlines or
+     tabs, or space of course.  This if includes end of
+     input, where c < 0.  */
+  if (c <= ' ')
+    return false;
+
+  /* Let symbols end at NO_BREAK_SPACE.  */
+  if (c == NO_BREAK_SPACE)
+    return false;
+
+  /* Accept characters >= 128 as symbol constituents, like
+     unlauts and so on.  */
+  if (c >= 128)
+    return true;
+
+  /* End reading when we reach a character that can not
+     be part of a symbol name, unless quoted. */
+  if (c == '"' || c == '\'' || c == ';' || c == '#'
+      || c == '(' || c == ')'  || c == '[' || c == ']'
+      || c == '`' || c == ',')
+    return false;
+
+  return true;
+}
+
 /* Read a Lisp object.
    If LOCATE_SYMS is true, symbols are read with position.  */
 static Lisp_Object
@@ -4134,6 +4169,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	EMACS_INT start_position = readchar_offset - 1;
 
 	/* PKG-FIXME: This is too complicated.  */
+	/* PKG-FIXME: Check package-prefixes binding working.  */
 
 	/* Remember where package prefixes end in COLON, which
 	   will be set to the first colon we find.  NCOLONS is the
@@ -4141,64 +4177,46 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	char *colon = NULL;
 	int ncolons = 0;
 
-	/* True means last character read was a backslash.  */
+	/* True if last character read was a backslash.  */
 	bool last_was_backslash = false;
-	bool in_vertical_bar = false;
+	/* True if \ for escaping appeared.  */
 	bool any_quoted = false;
 
 	for (;;)
 	  {
-	    if (c == ':'
-		// This is actually \: or |...:
-		&& !last_was_backslash && !in_vertical_bar)
+	    eassert (is_symbol_constituent (c) || last_was_backslash);
+
+	    /* Treat ':' as package prefix, unless someone says we
+	       should't, or it is escaped by a preceding '\\' or
+	       inside a multi-escape.  Note that we don't land here
+	       for #:.  */
+	    if (c == ':' && !last_was_backslash && !NILP (Vpackage_prefixes))
 	      {
 		/* Remember where the first : is.  */
 		if (colon == NULL)
 		  colon = p;
 		++ncolons;
 
-		if (!read_emacs_syntax)
-		  {
-		    /* #:xyz should not contain a colon unless in Emacs
-		       original syntax.  */
-		    if (uninterned_symbol)
-		      invalid_syntax ("colon in uninterned symbol", readcharfun);
+		/* #:xyz should not contain a colon unless in Emacs
+		   original syntax.  */
+		if (uninterned_symbol)
+		  invalid_syntax ("colon in uninterned symbol", readcharfun);
 
-		    /* Up to two colons are allowed if they are
-		       consecutive.  PKG-FIXME check consecutive :.  */
-		    if (ncolons > 2)
-		      invalid_syntax ("too many colons", readcharfun);
-		  }
+		/* Up to two colons are allowed if they are
+		   consecutive.  PKG-FIXME check consecutive :.  */
+		if (ncolons > 2)
+		  invalid_syntax ("too many colons", readcharfun);
 	      }
 
-	    /* Handle unquote backslash and bar .    */
-	    if (!last_was_backslash)
+	    /* unescaped backslash.  Remember that we have seen it.  */
+	    if (c == '\\' && !last_was_backslash)
 	      {
-		/* Unquoted backslash: The first backslash is not part
-		   of the symbol name.  \\ gives a single \ in the
-		   symbol.  */
-		if (c == '\\')
-		  {
-		    c = READCHAR;
-		    if (c < 0)
-		      end_of_file_error ();
-		    last_was_backslash = true;
-		    any_quoted = true;
-		    continue;
-		  }
-
-		/* Unquoted vertical bar.  Begin or end multi-escape,
-		   unless in Emacs syntax.  In either case, proceed
-		   with next char, the bar is not part of the
-		   name.  */
-		if (c == '|' && !read_emacs_syntax)
-		  {
-		    c = READCHAR;
-		    if (c < 0)
-		      end_of_file_error ();
-		    in_vertical_bar = !in_vertical_bar;
-		    continue;
-		  }
+		any_quoted = true;
+		last_was_backslash = true;
+		c = READCHAR;
+		if (c < 0)
+		  invalid_syntax ("eof in single-escape", readcharfun);
+		continue;
 	      }
 
 	    last_was_backslash = false;
@@ -4228,52 +4246,38 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    /* Proceed with the next character.  */
 	    c = READCHAR;
 
-	    /* If in |...| everything is quoted by default, except |.
-	       An unquoted bar ends the symbol, and is not part of the
-	       symbol.  */
-	    if (in_vertical_bar)
-	      {
-		eassert (!read_emacs_syntax);
-		if (c < 0)
-		  end_of_file_error ();
-		if (c == '|')
-		  {
-		    c = READCHAR;
-		    break;
-		  }
-	      }
-	    else
-	      {
-		/* Symbols end at control characters like newlines or
-		   tabs, or space of course.  This if includes end of
-		   input, where c < 0.  */
-		if (c <= ' ')
-		  break;
+	    /* Symbols end at control characters like newlines or
+	       tabs, or space of course.  This if includes end of
+	       input, where c < 0.  */
+	    if (c <= ' ')
+	      break;
 
-		/* Let symbols end at NO_BREAK_SPACE.  */
-		if (c == NO_BREAK_SPACE)
-		  break;
+	    /* Let symbols end at NO_BREAK_SPACE.  */
+	    if (c == NO_BREAK_SPACE)
+	      break;
 
-		/* Accept characters >= 128 as symbol constituents, like
-		   unlauts and so on.  */
-		if (c >= 128)
-		  continue;
+	    /* Accept characters >= 128 as symbol constituents, like
+	       unlauts and so on.  */
+	    if (c >= 128)
+	      continue;
 
-		/* End reading when we reach a character that can not
-		   be part of a symbol name, unless quoted. */
-		if (c == '"' || c == '\'' || c == ';' || c == '#'
-		    || c == '(' || c == ')'  || c == '[' || c == ']'
-		    || c == '`' || c == ',')
-		  break;
-	      }
+	    /* End reading when we reach a character that can not
+	       be part of a symbol name, unless quoted. */
+	    if (c == '"' || c == '\'' || c == ';' || c == '#'
+		|| c == '(' || c == ')'  || c == '[' || c == ']'
+		|| c == '`' || c == ',')
+	      break;
 	  }
 
+	eassert (!is_symbol_constituent (c));
+	/* c maybe -1 here, hut we can unread EOF.  */
 	*p = 0;
 	UNREAD (c);
 
 	/* The start of the symbol, If a package prefix is present,
-	   the start of the symbol-name part.  */
-	char *symbol_start;
+	   set to the start of the symbol-name part later on.  */
+	char *symbol_start = read_buffer;
+	const char *symbol_end = p;
 
 	/* Package for the package prefix, if there is one, or nil
 	   if there is none.  */
@@ -4281,10 +4285,22 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 
 	/* If a package prefix was found, determine the package it
 	   names.  It is an error if a package of that name does not
-	   exist, or ':' is used for an internal symbol.  */
-	if (colon)
+	   exist, or ':' is used for an internal symbol.
+
+	   If we don't want to recognize ':' as a package indicator,
+	   nevertheless handle keywords.  */
+	if (NILP (Vpackage_prefixes))
 	  {
-	    /* Package name is in read_buffer, colon + ncolons is the
+	    if (*symbol_start == ':')
+	      {
+		++symbol_start;
+		package = Ffind_package (Qkeyword);
+		eassert (!NILP (package));
+	      }
+	  }
+	else if (colon)
+	  {
+	    /* PACKAGE name is in read_buffer, colon + ncolons is the
 	       start of the symbol name.  */
 	    *colon = 0;
 
@@ -4304,24 +4320,24 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    /* Symbol name starts after the package prefix.  */
 	    symbol_start = colon + ncolons;
 	  }
-	else
-	  symbol_start = read_buffer;
-	const ptrdiff_t symbol_nbytes = p - symbol_start;
 
-	/* This could be a number after all.  But not if empty, and not
-	   if in |...|, and not if any quoted characters were found,
-	   or a package prefix was found, or we have #:xyz.  */
+	/* This could be a number after all.  But not if empty, and
+	   not if anything was quoted. or a package prefix was found,
+	   or we have #:xyz.  */
+	const ptrdiff_t symbol_nbytes = symbol_end - symbol_start;
 	if (!any_quoted
-	    && !in_vertical_bar
-	    && !colon
-	    && !uninterned_symbol)
+	    && !uninterned_symbol
+	    && NILP (package)
+	    && symbol_end != symbol_start)
 	  {
-	    char c0 = symbol_start[0];
+	    char c0 = *symbol_start;
 	    if (((c0 >= '0' && c0 <= '9') || c0 == '.' || c0 == '-' || c0 == '+')
 		&& !skip_shorthand)
 	      {
 		ptrdiff_t len;
-		Lisp_Object result = string_to_number (read_buffer, 10, &len);
+		/* 10 as base because the other bases require a #, and
+		   don't land here.  */
+		Lisp_Object result = string_to_number (symbol_start, 10, &len);
 		if (!NILP (result) && len == symbol_nbytes)
 		  {
 		    obj = result;
@@ -5598,10 +5614,6 @@ that are loaded before your customizations are read!  */);
   DEFVAR_BOOL ("load-no-native", load_no_native,
                doc: /* Non-nil means not to load a .eln file when a .elc was requested.  */);
   load_no_native = false;
-
-  DEFVAR_BOOL ("read-emacs-syntax", read_emacs_syntax,
-               doc: /* Non-nil means don't treat ':' or '|' specially in symbols.  */);
-  read_emacs_syntax = true;
 
   /* Vsource_directory was initialized in init_lread.  */
 

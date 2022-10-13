@@ -30,4 +30,10 @@ script -- sys.path.append('../etc')
 # Load our Python files
 command script import emacs_lldb
 
+# b xsignal
+b pkg_break
+b pkg_error
+b Fpkg_read
+
+
 # end.
