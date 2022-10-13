@@ -781,6 +781,16 @@ DEFUN ("treesit-query-p",
     return Qnil;
 }
 
+DEFUN ("treesit-query-language",
+       Ftreesit_query_language, Streesit_query_language, 1, 1, 0,
+       doc: /* Return the language of QUERY.
+QUERY has to be a compiled query.  */)
+  (Lisp_Object query)
+{
+  CHECK_TS_COMPILED_QUERY (query);
+  return XTS_COMPILED_QUERY(query)->language;
+}
+
 DEFUN ("treesit-node-parser",
        Ftreesit_node_parser, Streesit_node_parser,
        1, 1, 0,
@@ -2386,6 +2396,7 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_node_p);
   defsubr (&Streesit_compiled_query_p);
   defsubr (&Streesit_query_p);
+  defsubr (&Streesit_query_language);
 
   defsubr (&Streesit_node_parser);
 
