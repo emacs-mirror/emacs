@@ -1188,6 +1188,10 @@ malformed.  The signal data contains a description of the specific
 error.  You can use @code{treesit-query-validate} to debug the query.
 @end defun
 
+@defun treesit-query-language query
+This function return the language of @var{query}.
+@end defun
+
 @defun treesit-query-expand query
 This function expands the s-expression @var{query} into a string
 query.
