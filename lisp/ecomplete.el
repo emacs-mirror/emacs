@@ -86,6 +86,11 @@ string that was matched."
   :type 'boolean
   :version "29.1")
 
+(defcustom ecomplete-filter-regexp nil
+  "Regular expression of addresses to not store."
+  :type 'regexp
+  :version "29.1")
+
 ;;; Internal variables.
 
 (defvar ecomplete-database nil)
@@ -104,20 +109,22 @@ string that was matched."
 By default, the longest version of TEXT will be preserved, but if
 FORCE is non-nil, use TEXT exactly as is."
   (unless ecomplete-database (ecomplete-setup))
-  (let ((elems (assq type ecomplete-database))
-	(now (time-convert nil 'integer))
-	entry)
-    (unless elems
-      (push (setq elems (list type)) ecomplete-database))
-    (if (setq entry (assoc key (cdr elems)))
-	(pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
-	  (setcdr entry (list (1+ count) now
-	                      ;; Preserve the "more complete" text.
-	                      (if (or force
-                                      (>= (length text) (length oldtext)))
-	                          text
-                                oldtext))))
-      (nconc elems (list (list key 1 now text))))))
+  (unless (and ecomplete-filter-regexp
+               (string-match-p ecomplete-filter-regexp key))
+    (let ((elems (assq type ecomplete-database))
+          (now (time-convert nil 'integer))
+          entry)
+      (unless elems
+        (push (setq elems (list type)) ecomplete-database))
+      (if (setq entry (assoc key (cdr elems)))
+          (pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
+            (setcdr entry (list (1+ count) now
+                                ;; Preserve the "more complete" text.
+                                (if (or force
+                                        (>= (length text) (length oldtext)))
+                                    text
+                                  oldtext))))
+        (nconc elems (list (list key 1 now text)))))))
 
 (defun ecomplete--remove-item (type key)
   "Remove the element of TYPE and KEY from the ecomplete database."

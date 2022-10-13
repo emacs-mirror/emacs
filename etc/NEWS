@@ -1376,6 +1376,11 @@ the ecomplete database.
 *** New user option 'ecomplete-auto-select'.
 If non-nil and there's only one matching option, auto-select that.
 
+---
+*** New user option 'ecomplete-filter-regexp'.
+If non-nil this user option describes what email addresses to ignore
+and not add to the database.
+
 ** Dired
 
 +++
