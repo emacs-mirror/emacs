@@ -2846,6 +2846,11 @@ Previously, ';;;###' specs inside a top-level form (i.e., something
 like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
 
+---
+** Themes have special autoload cookies.
+All build-in themes are scraped for ;;;###theme-autoload cookies that
+are loaded along with the regular auto-loaded code.
+
 +++
 ** 'buffer-modified-p' has been extended.
 This function was previously documented to return only nil or t.  This

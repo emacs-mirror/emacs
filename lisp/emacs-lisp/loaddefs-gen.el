@@ -736,7 +736,14 @@ rules for built-in packages and excluded files."
      ;; updated.
      (file-newer-than-file-p
       (expand-file-name "emacs-lisp/loaddefs-gen.el" lisp-directory)
-      output-file))))
+      output-file)))
+  (let ((lisp-mode-autoload-regexp
+           "^;;;###\\(\\(noexist\\)-\\)?\\(theme-autoload\\)"))
+      (loaddefs-generate
+       (expand-file-name "../etc/themes/" lisp-directory)
+       (expand-file-name "theme-loaddefs.el" lisp-directory))))
+
+;;;###autoload (load "theme-loaddefs.el")
 
 (provide 'loaddefs-gen)
 
