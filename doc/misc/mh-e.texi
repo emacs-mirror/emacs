@@ -3120,7 +3120,7 @@ retracted---without question@footnote{In previous versions of MH-E,
 this option suppressed the confirmation in @code{mh-kill-folder}.
 Since this kept most users from setting this option,
 @code{mh-kill-folder} was modified in version 6.0 to always ask for
-confirmation subject to @code{mh-kill-folder-suppress-prompt-hook}.
+confirmation subject to @code{mh-kill-folder-suppress-prompt-functions}.
 @xref{Folders}.}.
 
 @cindex MH-Folder mode
@@ -3402,7 +3402,7 @@ Hook run by q before quitting MH-E (default: @code{nil}).
 Hook run by @code{mh-folder-mode} when visiting a new folder (default:
 @code{nil}).
 @c -------------------------
-@item mh-kill-folder-suppress-prompt-hook
+@item mh-kill-folder-suppress-prompt-functions
 Abnormal hook run at the beginning of @code{mh-kill-folder} (default:
 @code{'mh-search-p}).
 @c -------------------------
