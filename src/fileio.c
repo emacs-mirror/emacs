@@ -5003,6 +5003,7 @@ by calling `format-decode', which see.  */)
   if (save_errno != 0)
     {
       /* Signal an error if visiting a file that could not be opened.  */
+      eassert (!NILP (visit) && NILP (handler));
       report_file_errno ("Opening input file", orig_filename, save_errno);
     }
 
