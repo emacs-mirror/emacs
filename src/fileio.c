@@ -5000,7 +5000,7 @@ by calling `format-decode', which see.  */)
       unbind_to (count1, Qnil);
     }
 
-  if (!NILP (visit) && current_buffer->modtime.tv_nsec < 0)
+  if (NILP (handler) && !NILP (visit) && current_buffer->modtime.tv_nsec < 0)
     {
       /* Signal an error if visiting a file that could not be opened.  */
       report_file_errno ("Opening input file", orig_filename, save_errno);
