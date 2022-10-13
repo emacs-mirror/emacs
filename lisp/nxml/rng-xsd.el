@@ -40,7 +40,7 @@
 (require 'xsd-regexp)
 
 ;;;###autoload
-(put '|http://www.w3.org/2001/XMLSchema-datatypes|
+(put 'http://www.w3.org/2001/XMLSchema-datatypes
      'rng-dt-compile
      #'rng-xsd-compile)
 
