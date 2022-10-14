@@ -928,7 +928,7 @@ Elements of the attribute list are:
 Large integers are bignums, so `eq' might not work on them.
 On most filesystems, the combination of the inode and the device
 identifier uniquely identifies the file.  This unique file identification
-is provided by the access function `file-attribute-file-number'.
+is provided by the access function `file-attribute-file-identifier'.
 
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.

@@ -1413,7 +1413,7 @@ to distinguish remote filesystems from local ones.
 The file's inode and device together give enough information
 to distinguish any two files on the system---no two files can have the
 same values for both of these attributes.  This tuple that uniquely
-identifies the file is returned by @code{file-attribute-file-number}.
+identifies the file is returned by @code{file-attribute-file-identifier}.
 
 For example, here are the file attributes for @file{files.texi}:
 
