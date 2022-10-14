@@ -8356,6 +8356,23 @@ multi-line strings (but not C++, for example)."
 	  (goto-char here))))
   t)
 
+(defun c-forward-over-colon-type-list ()
+  ;; If we're at a sequence of characters which can extend from, e.g.,
+  ;; a class name up to a colon introducing an inheritance list,
+  ;; move forward over them, including the colon, and return non-nil.
+  ;; Otherwise return nil, leaving point unmoved.
+  (let ((here (point)) pos)
+    (while (and (re-search-forward c-sub-colon-type-list-re nil t)
+		(not (eq (char-after) ?:))
+		(c-major-mode-is 'c++-mode)
+		(setq pos (c-looking-at-c++-attribute)))
+      (goto-char pos))
+    (if (eq (char-after) ?:)
+	(progn (forward-char)
+	       t)
+      (goto-char here)
+      nil)))
+
 (defun c-forward-keyword-clause (match)
   ;; Submatch MATCH in the current match data is assumed to surround a
   ;; token.  If it's a keyword, move over it and any immediately
@@ -8463,12 +8480,11 @@ multi-line strings (but not C++, for example)."
 	  (and c-record-type-identifiers
 	       (progn
 		 ;; If a keyword matched both one of the types above and
-		 ;; this one, we match `c-colon-type-list-re' after the
+		 ;; this one, we move forward to the colon following the
 		 ;; clause matched above.
 		 (goto-char safe-pos)
-		 (looking-at c-colon-type-list-re))
+		 (c-forward-over-colon-type-list))
 	       (progn
-		 (goto-char (match-end 0))
 		 (c-forward-syntactic-ws)
 		 (c-forward-keyword-prefixed-id type))
 	       ;; There's a type after the `c-colon-type-list-re' match
@@ -8921,8 +8937,16 @@ multi-line strings (but not C++, for example)."
 			;; Got some other operator.
 			(setq c-last-identifier-range
 			      (cons (point) (match-end 0)))
+			(if (and (eq (char-after) ?\")
+				 (eq (char-after (1+ (point))) ?\"))
+			    ;; operator"" has an (?)optional tag after it.
+			    (progn
+			      (goto-char (match-end 0))
+			      (c-forward-syntactic-ws lim+)
+			      (when (c-on-identifier)
+				(c-forward-token-2 1 nil lim+)))
 			(goto-char (match-end 0))
-			(c-forward-syntactic-ws lim+)
+			(c-forward-syntactic-ws lim+))
 			(setq pos (point)
 			      res 'operator)))
 
@@ -9676,7 +9700,7 @@ point unchanged and return nil."
   ;; (e.g. "," or ";" or "}").
   (let ((here (point))
 	id-start id-end brackets-after-id paren-depth decorated
-	got-init arglist)
+	got-init arglist double-double-quote)
     (or limit (setq limit (point-max)))
     (if	(and
 	 (< (point) limit)
@@ -9705,6 +9729,10 @@ point unchanged and return nil."
 		 (setq id-start (point))
 		 (if (looking-at c-overloadable-operators-regexp)
 		     (progn
+		       (when (and (c-major-mode-is 'c++-mode)
+				  (eq (char-after) ?\")
+				  (eq (char-after (1+ (point))) ?\"))
+			 (setq double-double-quote t))
 		       (goto-char (match-end 0))
 		       (c-forward-syntactic-ws limit)
 		       (setq got-identifier t)
@@ -9755,6 +9783,13 @@ point unchanged and return nil."
 	     (setq id-start nil id-end nil)
 	     t)
 	    (t nil)))
+
+	 (progn
+	   (c-forward-syntactic-ws limit)
+	   (when (and double-double-quote	; C++'s operator"" _tag
+		      (c-on-identifier))
+	     (c-forward-token-2 1 nil limit))
+	   t)
 
 	 ;; Skip out of the parens surrounding the identifier.  If closing
 	 ;; parens are missing, this form returns nil.
