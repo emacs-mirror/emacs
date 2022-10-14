@@ -1816,7 +1816,7 @@ All writes to aliases of SYMBOL will call WATCH-FUNCTION too.  */)
   symbol = Findirect_variable (symbol);
   CHECK_SYMBOL (symbol);
   set_symbol_trapped_write (symbol, SYMBOL_TRAPPED_WRITE);
-  map_obarray (Vobarray, harmonize_variable_watchers, symbol);
+  pkg_map_symbols_c_fn (harmonize_variable_watchers, symbol);
 
   Lisp_Object watchers = Fget (symbol, Qwatchers);
   Lisp_Object member = Fmember (watch_function, watchers);
@@ -1838,7 +1838,7 @@ SYMBOL (or its aliases) are set.  */)
   if (NILP (watchers))
     {
       set_symbol_trapped_write (symbol, SYMBOL_UNTRAPPED_WRITE);
-      map_obarray (Vobarray, harmonize_variable_watchers, symbol);
+      pkg_map_symbols_c_fn (harmonize_variable_watchers, symbol);
     }
   Fput (symbol, Qwatchers, watchers);
   return Qnil;

@@ -30,13 +30,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 
-bool package_system_ready = false;
-
 /* Lists of keywords and other symbols that are defined before
    packages are ready to use.  These are fixed up and the lists set
    to nil when the package system is ready.  */
 
 static Lisp_Object early_keywords, early_symbols;
+
+Lisp_Object Vpackage_registry;
+Lisp_Object Vemacs_package, Vkeyword_package;
+Lisp_Object Vearmuffs_package;
+Lisp_Object Vpackage_prefixes;
 
 /***********************************************************************
 			    Useless tools
@@ -429,17 +432,8 @@ Lisp_Object
 pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
 {
   eassert (SYMBOLP (symbol));
-  eassert (!package_system_ready || PACKAGEP (package));
+  eassert (PACKAGEP (package));
   eassert (NILP (SYMBOL_PACKAGE (symbol)));
-
-  /* IF we are not ready yet to do the right thing, remember
-     the symbol for later.  There is only one candidate package
-     to add it to later: the emacs package.  */
-  if (!package_system_ready)
-    {
-      add_new_to_list (symbol, &early_symbols);
-      return symbol;
-    }
 
   XSYMBOL (symbol)->u.s.package = package;
   XSYMBOL (symbol)->u.s.external = EQ (package, Vkeyword_package);
@@ -468,10 +462,7 @@ pkg_add_keyword (Lisp_Object symbol)
      in lexically bound elisp signal an error, as documented.  */
   XSYMBOL (symbol)->u.s.declared_special = true;
 
-  if (package_system_ready)
-    pkg_add_symbol (symbol, Vkeyword_package);
-  else
-    early_keywords = Fcons (symbol, early_keywords);
+  pkg_add_symbol (symbol, Vkeyword_package);
   return symbol;
 }
 
@@ -517,7 +508,6 @@ symbol_and_status (Lisp_Object symbol, Lisp_Object package)
 static Lisp_Object
 pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 {
-  eassert (package_system_ready);
   eassert (PACKAGEP (package));
 
   const Lisp_Object name
@@ -548,8 +538,6 @@ pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 bool
 pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
 {
-  if (!package_system_ready)
-    return false;
   Lisp_Object name = make_unibyte_string (p, len);
   *symbol = pkg_intern_symbol (name, Vearmuffs_package);
   return true;
@@ -558,8 +546,6 @@ pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
 Lisp_Object
 pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes)
 {
-  if (!package_system_ready)
-    return Qunbound;
   const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
   return lookup_symbol (name, Vearmuffs_package);
 }
@@ -567,16 +553,12 @@ pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes)
 void
 pkg_early_intern_symbol (Lisp_Object symbol)
 {
-  if (package_system_ready)
-    pkg_intern_symbol (symbol, Vemacs_package);
-  else
-    pkg_add_symbol (symbol, Qnil);
+  pkg_intern_symbol (symbol, Vemacs_package);
 }
 
 static Lisp_Object
 pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
 {
-  eassert (package_system_ready);
   CHECK_SYMBOL (symbol);
   remove_shadowing_symbol (symbol, package);
   package = package_or_default (package);
@@ -605,8 +587,9 @@ void pkg_break (void)
 Lisp_Object
 pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 {
-  eassert (package_system_ready);
   CHECK_STRING (name);
+
+  eassert (SREF (name, 0) != ':');
 
   /* This is presumable an obarray, and we are intending
      to intern into the default pacakge.  */
@@ -622,8 +605,6 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 Lisp_Object
 pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
 {
-  eassert (package_system_ready);
-
   const Lisp_Object name = SYMBOLP (symbol) ? SYMBOL_NAME (symbol) : symbol;
   CHECK_STRING (name);
 
@@ -649,7 +630,6 @@ pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
 Lisp_Object
 pkg_emacs_unintern (Lisp_Object name, Lisp_Object package)
 {
-  eassert (package_system_ready);
   package = package_or_default (package);
   return pkg_unintern_symbol (name, package);
 }
@@ -716,21 +696,33 @@ pkg_keywordp (Lisp_Object obj)
 {
   if (!SYMBOLP (obj))
     return false;
-  if (package_system_ready)
-    return EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
-  return !NILP (Fmemq (obj, early_keywords));
+  return EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
 }
 
+void
+pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
+{
+  package = check_package (package);
+  FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (package))
+    call1 (fn, it_symbol.value);
+
+}
 
 /* Map FUNCTION over all symbols in PACKAGE.  */
 
 void
-pkg_map_symbols (Lisp_Object function, Lisp_Object package)
+pkg_map_symbols (Lisp_Object function)
 {
-  eassert (package_system_ready);
-  package = package_or_default (package);
-  FOR_EACH_KEY_VALUE (it, XPACKAGE (package)->symbols)
-    call1 (function, it.key);
+  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
+    pkg_map_package_symbols (function, it_package.value);
+}
+
+void
+pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
+{
+  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
+    FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
+      fn (it_symbol.value, arg);
 }
 
 
@@ -1115,64 +1107,56 @@ DEFUN ("pkg-break", Fpkg_read, Spkg_read, 1, 1, 0,
 			    Initialization
  ***********************************************************************/
 
-/* Loop over early-defined symbols and fix their packages.  */
-
-static void
-fix_symbol_packages (void)
-{
-  int len_keywords = 0, len_symbols = 0;
-
-  Lisp_Object tail = early_keywords;
-  FOR_EACH_TAIL (tail)
-    {
-
-      /* Fix symbol names of keywords by removing the leading colon.  */
-      Lisp_Object symbol = XCAR (tail);
-      Lisp_Object name = SYMBOL_NAME (symbol);
-      struct Lisp_String *s = XSTRING (name);
-      if (s->u.s.size > 0 && *s->u.s.data == ':')
-	{
-	  eassume (s->u.s.size_byte == -2);
-	  ++s->u.s.data;
-	  --s->u.s.size;
-	}
-      pkg_add_symbol (symbol, Vkeyword_package);
-      ++len_keywords;
-    }
-
-  tail = early_symbols;
-  FOR_EACH_TAIL (tail)
-    {
-      ++len_symbols;
-      pkg_add_symbol (XCAR (tail), Vemacs_package);
-    }
-
-  fprintf (stderr, "Early keywords = %d, symbols = %d\n", len_keywords, len_symbols);
-
-  early_keywords = early_symbols = Qnil;
-
-#ifdef ENABLE_CHECKING
-  const Lisp_Object nil = lookup_symbol (SYMBOL_NAME (Qnil), Vemacs_package);
-  eassert (EQ (nil, Qnil));
-  eassert (NILP (nil));
-  eassert (NILP (XSYMBOL (nil)->u.s.val.value));
-
-  const Lisp_Object t = lookup_symbol (SYMBOL_NAME (Qt), Vemacs_package);
-  eassert (EQ (t, Qt));
-  eassert (EQ (XSYMBOL (t)->u.s.val.value, Qt));
-#endif
-}
-
 /* Called very early, after init_alloc_once and init_obarray_once.
    Not called when starting a dumped Emacs.  */
 
 void
 init_pkg_once (void)
 {
+  DEFSYM (QCexternal, ":external");
+  DEFSYM (QCinherited, ":inherited");
+  DEFSYM (QCinternal, ":internal");
+  DEFSYM (QCnicknames, ":nicknames");
+  DEFSYM (QCuse, ":use");
+
+  DEFSYM (Qearmuffs_package, "*package*");
+  DEFSYM (Qemacs_package, "emacs-package");
+  DEFSYM (Qkeyword, "keyword");
+  DEFSYM (Qkeyword_package, "keyword-package");
+  DEFSYM (Qpackage, "package");
+  DEFSYM (Qpackage_prefixes, "package-prefixes");
+  DEFSYM (Qpackage_registry, "package-registry");
+  DEFSYM (Qpackagep, "packagep");
+
   staticpro (&early_symbols);
   early_keywords = Qnil;
   staticpro (&early_keywords);
   early_keywords = Qnil;
+
+  staticpro (&Vpackage_registry);
+  /* PKG-FIXME: Not sure about the purecopy (last arg).  */
+  Vpackage_registry = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
+				       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
+				       Qnil, false);
+
+  Vemacs_package = make_package (build_string ("emacs"));
+  staticpro (&Vemacs_package);
+  Vkeyword_package = make_package (build_string ("keyword"));
+  register_package (Vemacs_package);
+
+  staticpro (&Vkeyword_package);
+  XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
+  register_package (Vkeyword_package);
+
+  staticpro (&Vearmuffs_package);
+  Vearmuffs_package = Vemacs_package;
+  XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
+
+  DEFSYM (Qpackage_prefixes, "package-prefixes");
+  staticpro (&Vpackage_prefixes);
+  Vpackage_prefixes = Qnil;
+
+  pkg_define_builtin_symbols ();
 }
 
 /* Not called when starting a dumped Emacs.  */
@@ -1204,48 +1188,7 @@ syms_of_pkg (void)
   defsubr (&Sunuse_package);
   defsubr (&Suse_package);
 
-  DEFSYM (QCexternal, ":external");
-  DEFSYM (QCinherited, ":inherited");
-  DEFSYM (QCinternal, ":internal");
-  DEFSYM (QCnicknames, ":nicknames");
-  DEFSYM (QCuse, ":use");
-
-  DEFSYM (Qearmuffs_package, "*package*");
-  DEFSYM (Qemacs_package, "emacs-package");
-  DEFSYM (Qkeyword, "keyword");
-  DEFSYM (Qkeyword_package, "keyword-package");
-  DEFSYM (Qpackage, "package");
-  DEFSYM (Qpackage_prefixes, "package-prefixes");
-  DEFSYM (Qpackage_registry, "package-registry");
-  DEFSYM (Qpackagep, "packagep");
-
-  DEFVAR_LISP ("package-registry", Vpackage_registry,
-	       doc: "A map of names to packages.");
-  Vpackage_registry = CALLN (Fmake_hash_table, QCtest, Qequal);
-
-  DEFVAR_LISP ("emacs-package", Vemacs_package, doc: "The emacs package.");
-  Vemacs_package = CALLN (Fmake_package, Qemacs);
-  make_symbol_constant (Qemacs_package);
-  register_package (Vemacs_package);
-
-  DEFVAR_LISP ("keyword-package", Vkeyword_package, doc: "The keyword package.");
-  Vkeyword_package = CALLN (Fmake_package, Qkeyword,
-			    QCnicknames, list1 (make_string ("", 0)));
-  make_symbol_constant (Qkeyword_package);
-  register_package (Vkeyword_package);
-
-  DEFVAR_LISP ("*package*", Vearmuffs_package, doc: "The current package.");
-  Vearmuffs_package = Vemacs_package;
-  XSYMBOL (Qearmuffs_package)->u.s.declared_special = true;
-
-  DEFSYM (Qpackage_prefixes, "package-prefixes");
-  DEFVAR_LISP ("package-prefixes", Vpackage_prefixes,
-	       doc: /* Whether to read package prefixes in symbol names.  */);
-  Vpackage_prefixes = Qnil;
   Fmake_variable_buffer_local (Qpackage_prefixes);
-
-  package_system_ready = true;
-  fix_symbol_packages ();
 }
 
 /* Called when starting a dumped Emacs.  */
@@ -1253,5 +1196,4 @@ syms_of_pkg (void)
 void
 init_pkg (void)
 {
-  package_system_ready = true;
 }

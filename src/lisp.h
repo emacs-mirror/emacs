@@ -2247,6 +2247,12 @@ XPACKAGE (Lisp_Object a)
   return &XUNTAG (a, Lisp_Vectorlike, union Aligned_Lisp_Package)->s;
 }
 
+INLINE Lisp_Object
+PACKAGE_SYMBOLS (Lisp_Object package)
+{
+  return XPACKAGE (package)->symbols;
+}
+
 extern void init_pkg_once (void);
 extern void init_pkg (void);
 extern void syms_of_pkg (void);
@@ -2263,9 +2269,16 @@ extern bool pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object 
 extern void pkg_early_intern_symbol (Lisp_Object symbol);
 extern Lisp_Object pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
 extern void pkg_break (void);
-extern void pkg_map_symbols (Lisp_Object function, Lisp_Object oackage);
+extern void pkg_define_builtin_symbols (void);
+extern void pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package);
+extern void pkg_map_symbols (Lisp_Object function);
+extern void pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg);
 
-extern bool package_system_ready;
+extern Lisp_Object Vpackage_registry;
+extern Lisp_Object Vemacs_package, Vkeyword_package;
+extern Lisp_Object Vearmuffs_package;
+extern Lisp_Object Vpackage_prefixes;
+
 
 
 /* Return whether a value might be a valid docstring.

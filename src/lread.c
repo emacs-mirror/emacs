@@ -4832,18 +4832,29 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
 static void
 define_symbol (Lisp_Object sym, char const *str)
 {
-  ptrdiff_t len = strlen (str);
-  Lisp_Object string = make_pure_c_string (str, len);
-  init_symbol (sym, string);
+  const bool keyword = *str == ':';
+  const char *name_start = keyword ? str + 1 : str;
+
+  const Lisp_Object symbol_name
+    = make_pure_c_string (name_start, strlen (name_start));
+  init_symbol (sym, symbol_name);
 
   /* Qunbound is uninterned, so that it's not confused with any symbol
      'unbound' created by a Lisp program.  */
-  if (! BASE_EQ (sym, Qunbound))
+  if (!BASE_EQ (sym, Qunbound))
     {
-      Lisp_Object bucket = oblookup (initial_obarray, str, len, len);
-      eassert (FIXNUMP (bucket));
-      intern_sym (sym, initial_obarray, bucket);
+      if (keyword)
+	pkg_add_keyword (sym);
+      else
+	pkg_add_symbol (sym, Vemacs_package);
     }
+}
+
+void
+pkg_define_builtin_symbols (void)
+{
+  for (int i = 0; i < ARRAYELTS (lispsym); i++)
+    define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
@@ -4853,8 +4864,8 @@ A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
   (Lisp_Object string, Lisp_Object package)
 {
-  /* PKG-FIXME: Remove this eassert.  */
-  eassert (SREF (string, 0) != ':' || !package_system_ready);
+  /* PKG-FIXME: What's the right thing to do */
+  eassert (SREF (string, 0) != ':');
   return pkg_emacs_intern (string, package);
 }
 
@@ -4930,7 +4941,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 void
 map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
-  eassert (package_system_ready);
+  eassert (false);
   ptrdiff_t i;
   register Lisp_Object tail;
   CHECK_VECTOR (obarray);
@@ -4953,7 +4964,7 @@ DEFUN ("mapatoms", Fmapatoms, Smapatoms, 1, 2, 0,
 OBARRAY defaults to the value of `obarray'.  */)
   (Lisp_Object function, Lisp_Object obarray)
 {
-  pkg_map_symbols (function, obarray);
+  pkg_map_package_symbols (function, obarray);
   return Qnil;
 }
 
@@ -4965,9 +4976,6 @@ init_obarray_once (void)
   Vobarray = make_vector (OBARRAY_SIZE, make_fixnum (0));
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
-
-  for (int i = 0; i < ARRAYELTS (lispsym); i++)
-    define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
 
   DEFSYM (Qunbound, "unbound");
 
