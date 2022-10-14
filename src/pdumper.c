@@ -2447,7 +2447,6 @@ dump_symbol (struct dump_context *ctx,
   eassert (symbol->u.s.gcmarkbit == 0);
   DUMP_FIELD_COPY (&out, symbol, u.s.redirect);
   DUMP_FIELD_COPY (&out, symbol, u.s.trapped_write);
-  DUMP_FIELD_COPY (&out, symbol, u.s.interned);
   DUMP_FIELD_COPY (&out, symbol, u.s.declared_special);
   DUMP_FIELD_COPY (&out, symbol, u.s.pinned);
   DUMP_FIELD_COPY (&out, symbol, u.s.external);

@@ -3628,7 +3628,6 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   set_symbol_package (val, Qnil);
   set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
-  p->u.s.interned = SYMBOL_UNINTERNED;
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
   p->u.s.pinned = false;

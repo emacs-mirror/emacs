@@ -4758,10 +4758,6 @@ intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
 {
   Lisp_Object *ptr;
 
-  XSYMBOL (sym)->u.s.interned = (EQ (obarray, initial_obarray)
-				 ? SYMBOL_INTERNED_IN_INITIAL_OBARRAY
-				 : SYMBOL_INTERNED);
-
   if (SREF (SYMBOL_NAME (sym), 0) == ':' && EQ (obarray, initial_obarray))
     {
       make_symbol_constant (sym);

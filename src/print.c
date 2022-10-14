@@ -1310,7 +1310,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	   || RECORDP (obj)))				   \
    || (! NILP (Vprint_gensym)				   \
        && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)))
+       && NILP (SYMBOL_PACKAGE (obj))))
 
 /* The print preprocess stack, used to traverse data structures.  */
 
@@ -1412,7 +1412,7 @@ print_preprocess (Lisp_Object obj)
 		 the lisp function byte-compile-output-docform.  */
 	      || (!NILP (Vprint_continuous_numbering)
 		  && SYMBOLP (obj)
-		  && !SYMBOL_INTERNED_P (obj)))
+		  && NILP (SYMBOL_PACKAGE (obj))))
 	    { /* OBJ appears more than once.  Let's remember that.  */
 	      if (!FIXNUMP (num))
 		{

@@ -808,15 +808,6 @@ INLINE void
    help static checking.  */
 typedef struct { void const *fwdptr; } lispfwd;
 
-/* Interned state of a symbol.  */
-
-enum symbol_interned
-{
-  SYMBOL_UNINTERNED = 0,
-  SYMBOL_INTERNED = 1,
-  SYMBOL_INTERNED_IN_INITIAL_OBARRAY = 2
-};
-
 enum symbol_redirect
 {
   SYMBOL_PLAINVAL  = 4,
@@ -851,10 +842,6 @@ struct Lisp_Symbol
 	 1 : constant, cannot set, e.g. nil, t, :keywords.
 	 2 : trap the write, call watcher functions.  */
       ENUM_BF (symbol_trapped_write) trapped_write : 2;
-
-      /* Interned state of the symbol.  This is an enumerator from
-	 enum symbol_interned.  */
-      unsigned interned : 2;
 
       /* True means that this variable has been explicitly declared
 	 special (with `defvar' etc), and shouldn't be lexically bound.  */
@@ -2409,22 +2396,6 @@ INLINE bool
 SYMBOL_EXTERNAL_P (Lisp_Object sym)
 {
   return XSYMBOL (sym)->u.s.external;
-}
-
-/* Value is true if SYM is an interned symbol.  */
-
-INLINE bool
-SYMBOL_INTERNED_P (Lisp_Object sym)
-{
-  return XSYMBOL (sym)->u.s.interned != SYMBOL_UNINTERNED;
-}
-
-/* Value is true if SYM is interned in initial_obarray.  */
-
-INLINE bool
-SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (Lisp_Object sym)
-{
-  return XSYMBOL (sym)->u.s.interned == SYMBOL_INTERNED_IN_INITIAL_OBARRAY;
 }
 
 /* Value is non-zero if symbol cannot be changed through a simple set,
