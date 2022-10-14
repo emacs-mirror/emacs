@@ -847,6 +847,14 @@ native compilation of that file.  In addition, a similar variable
 file.  If both @code{no-byte-compile} and @code{no-native-compile} are
 specified, the former takes precedence.
 
+@cindex native compilation, prevent writing @file{*.eln} files
+  Sometimes there could be a need to prevent the native compilation
+from writing its results, the @file{*.eln} files, into a subdirectory
+of @code{user-emacs-directory} (@pxref{Init File}).  You can do that
+by either changing the value of @code{native-comp-eln-load-path}
+(@pxref{Native-Compilation Variables}) or by temporarily pointing the
+@env{HOME} environment variable to a non-existing directory.
+
 @menu
 * Native-Compilation Functions::  Functions to natively-compile Lisp.
 * Native-Compilation Variables::  Variables controlling native compilation.
@@ -1061,3 +1069,13 @@ subprocesses that are still running, thus preventing the corresponding
 @file{.eln} files from being written.  If the value is @code{nil}, the
 default, Emacs will kill these subprocesses without querying.
 @end defopt
+
+The variable @code{native-comp-eln-load-path} holds the list of
+directories where Emacs looks for the @file{*.eln} files
+(@pxref{Library Search}); in that role it is the equivalent of
+@code{load-path} used to look for @file{*.el} and @file{*.elc} files.
+The directories in this list are also used for writing the
+@file{*.eln} files produced by asynchronous native-compilation;
+specifically, Emacs will write these files into the first writable
+directory in the list.  Thus, you can control where native-compilation
+stores the results by changing the value of this variable.
