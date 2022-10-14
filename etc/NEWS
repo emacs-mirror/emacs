@@ -3149,8 +3149,10 @@ The following generalized variables have been made obsolete:
 
 +++
 ** New accessor function 'file-attribute-file-number'.
-It returns the list of the inode and device numbers retrieved by
-'file-attributes'.  This value can be used to identify a file uniquely.
+It returns the list of the inode number and device identifier
+retrieved by 'file-attributes'.  This value can be used to identify a
+file uniquely.  The device identifier can be a single number or (for
+remote files) a cons of 2 numbers.
 
 +++
 ** New macro 'while-let'.

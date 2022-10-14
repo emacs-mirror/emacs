@@ -208,9 +208,10 @@ if the file has changed on disk and you have not edited the buffer."
   :group 'find-file)
 
 (defvar-local buffer-file-number nil
-  "The inode and device numbers of the file visited in the current buffer.
-The value is a list of the form (INODENUM DEVNUM).
-This pair of numbers uniquely identifies the file.
+  "The inode number and the device of the file visited in the current buffer.
+The value is a list of the form (INODENUM DEVICE), where DEVICE can be
+either a single number or a cons cell of two numbers.
+This tuple of numbers uniquely identifies the file.
 If the buffer is visiting a new file, the value is nil.")
 (put 'buffer-file-number 'permanent-local t)
 
@@ -8663,8 +8664,9 @@ It is an integer or a cons cell of integers."
 
 (defsubst file-attribute-file-number (attributes)
   "The inode and device numbers in ATTRIBUTES returned by `file-attributes'.
-The value is a list of the form (INODENUM DEVNUM).
-This pair of numbers uniquely identifies the file."
+The value is a list of the form (INODENUM DEVICE), where DEVICE could be
+either a single number or a cons cell of two numbers.
+This tuple of numbers uniquely identifies the file."
   (nthcdr 10 attributes))
 
 (defun file-attribute-collect (attributes &rest attr-names)
