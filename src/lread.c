@@ -4948,23 +4948,12 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
     }
 }
 
-static void
-mapatoms_1 (Lisp_Object sym, Lisp_Object function)
-{
-  eassert (package_system_ready);
-  call1 (function, sym);
-}
-
 DEFUN ("mapatoms", Fmapatoms, Smapatoms, 1, 2, 0,
        doc: /* Call FUNCTION on every symbol in OBARRAY.
 OBARRAY defaults to the value of `obarray'.  */)
   (Lisp_Object function, Lisp_Object obarray)
 {
-  eassert (package_system_ready);
-  if (NILP (obarray)) obarray = Vobarray;
-  obarray = check_obarray (obarray);
-
-  map_obarray (obarray, mapatoms_1, function);
+  pkg_map_symbols (function, obarray);
   return Qnil;
 }
 

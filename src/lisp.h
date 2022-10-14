@@ -2263,6 +2263,7 @@ extern bool pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object 
 extern void pkg_early_intern_symbol (Lisp_Object symbol);
 extern Lisp_Object pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
 extern void pkg_break (void);
+extern void pkg_map_symbols (Lisp_Object function, Lisp_Object oackage);
 
 extern bool package_system_ready;
 

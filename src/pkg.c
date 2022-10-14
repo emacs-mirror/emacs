@@ -721,6 +721,18 @@ pkg_keywordp (Lisp_Object obj)
   return !NILP (Fmemq (obj, early_keywords));
 }
 
+
+/* Map FUNCTION over all symbols in PACKAGE.  */
+
+void
+pkg_map_symbols (Lisp_Object function, Lisp_Object package)
+{
+  eassert (package_system_ready);
+  package = package_or_default (package);
+  FOR_EACH_KEY_VALUE (it, XPACKAGE (package)->symbols)
+    call1 (function, it.key);
+}
+
 
 /***********************************************************************
 			    Lisp functions
