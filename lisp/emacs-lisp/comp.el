@@ -687,6 +687,9 @@ Useful to hook into pass checkers.")
   'native-compiler-error)
 
 
+(defvar comp-no-spawn nil
+  "Non-nil don't spawn native compilation processes.")
+
 ;; Moved early to avoid circularity when comp.el is loaded and
 ;; `macroexpand' needs to be advised (bug#47049).
 ;;;###autoload
@@ -696,12 +699,9 @@ Useful to hook into pass checkers.")
               (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (comp--install-trampoline
-     subr-name
-     (or (comp-trampoline-search subr-name)
-         (comp-trampoline-compile subr-name)
-         ;; Should never happen.
-         (cl-assert nil)))))
+    (when-let ((trampoline (or (comp-trampoline-search subr-name)
+                               (comp-trampoline-compile subr-name))))
+        (comp--install-trampoline subr-name trampoline))))
 
 
 (cl-defstruct (comp-vec (:copier nil))
@@ -3689,7 +3689,8 @@ Prepare every function for final compilation and drive the C back-end."
              (print-circle t)
              (print-escape-multibyte t)
              (expr `((require 'comp)
-                     (setf native-comp-verbose ,native-comp-verbose
+                     (setf comp-no-spawn t
+                           native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            native-comp-eln-load-path ',native-comp-eln-load-path
@@ -3945,8 +3946,9 @@ display a message."
                     (file-newer-than-file-p
                      source-file (comp-el-to-eln-filename source-file))))
          do (let* ((expr `((require 'comp)
-                           (setq comp-async-compilation t)
-                           (setq warning-fill-column most-positive-fixnum)
+                           (setq comp-async-compilation t
+                                 comp-no-spawn t
+                                 warning-fill-column most-positive-fixnum)
                            ,(let ((set (list 'setq)))
                               (dolist (var '(comp-file-preloaded-p
                                              native-compile-target-directory
@@ -4046,72 +4048,73 @@ the deferred compilation mechanism."
               (stringp function-or-file))
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
-  (catch 'no-native-compile
-    (let* ((print-symbols-bare t)
-           (data function-or-file)
-           (comp-native-compiling t)
-           (byte-native-qualities nil)
-           (symbols-with-pos-enabled t)
-           ;; Have byte compiler signal an error when compilation fails.
-           (byte-compile-debug t)
-           (comp-ctxt (make-comp-ctxt :output output
-                                      :with-late-load with-late-load)))
-      (comp-log "\n\n" 1)
-      (unwind-protect
-          (progn
-            (condition-case err
-                (cl-loop
-                 with report = nil
-                 for t0 = (current-time)
-                 for pass in comp-passes
-                 unless (memq pass comp-disabled-passes)
-                 do
-                 (comp-log (format "(%s) Running pass %s:\n"
-                                   function-or-file pass)
-                           2)
-                 (setf data (funcall pass data))
-                 (push (cons pass (float-time (time-since t0))) report)
-                 (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                          do (funcall f data))
-                 finally
-                 (when comp-log-time-report
-                   (comp-log (format "Done compiling %s" data) 0)
-                   (cl-loop for (pass . time) in (reverse report)
-                            do (comp-log (format "Pass %s took: %fs."
-                                                 pass time) 0))))
-              (native-compiler-skip)
-              (t
-               (let ((err-val (cdr err)))
-                 ;; If we are doing an async native compilation print the
-                 ;; error in the correct format so is parsable and abort.
-                 (if (and comp-async-compilation
-                          (not (eq (car err) 'native-compiler-error)))
-                     (progn
-                       (message (if err-val
-                                    "%s: Error: %s %s"
-                                  "%s: Error %s")
-                                function-or-file
-                                (get (car err) 'error-message)
-                                (car-safe err-val))
-                       (kill-emacs -1))
-                   ;; Otherwise re-signal it adding the compilation input.
-	           (signal (car err) (if (consp err-val)
-			                 (cons function-or-file err-val)
-			               (list function-or-file err-val)))))))
-            (if (stringp function-or-file)
-                data
-              ;; So we return the compiled function.
-              (native-elisp-load data)))
-        ;; We may have created a temporary file when we're being
-        ;; called with something other than a file as the argument.
-        ;; Delete it.
-        (when (and (not (stringp function-or-file))
-                   (not output)
-                   comp-ctxt
-                   (comp-ctxt-output comp-ctxt)
-                   (file-exists-p (comp-ctxt-output comp-ctxt)))
-          (message "Deleting %s" (comp-ctxt-output comp-ctxt))
-          (delete-file (comp-ctxt-output comp-ctxt)))))))
+  (unless comp-no-spawn
+    (catch 'no-native-compile
+      (let* ((print-symbols-bare t)
+             (data function-or-file)
+             (comp-native-compiling t)
+             (byte-native-qualities nil)
+             (symbols-with-pos-enabled t)
+             ;; Have byte compiler signal an error when compilation fails.
+             (byte-compile-debug t)
+             (comp-ctxt (make-comp-ctxt :output output
+                                        :with-late-load with-late-load)))
+        (comp-log "\n\n" 1)
+        (unwind-protect
+            (progn
+              (condition-case err
+                  (cl-loop
+                   with report = nil
+                   for t0 = (current-time)
+                   for pass in comp-passes
+                   unless (memq pass comp-disabled-passes)
+                   do
+                   (comp-log (format "(%s) Running pass %s:\n"
+                                     function-or-file pass)
+                             2)
+                   (setf data (funcall pass data))
+                   (push (cons pass (float-time (time-since t0))) report)
+                   (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                            do (funcall f data))
+                   finally
+                   (when comp-log-time-report
+                     (comp-log (format "Done compiling %s" data) 0)
+                     (cl-loop for (pass . time) in (reverse report)
+                              do (comp-log (format "Pass %s took: %fs."
+                                                   pass time) 0))))
+                (native-compiler-skip)
+                (t
+                 (let ((err-val (cdr err)))
+                   ;; If we are doing an async native compilation print the
+                   ;; error in the correct format so is parsable and abort.
+                   (if (and comp-async-compilation
+                            (not (eq (car err) 'native-compiler-error)))
+                       (progn
+                         (message (if err-val
+                                      "%s: Error: %s %s"
+                                    "%s: Error %s")
+                                  function-or-file
+                                  (get (car err) 'error-message)
+                                  (car-safe err-val))
+                         (kill-emacs -1))
+                     ;; Otherwise re-signal it adding the compilation input.
+	             (signal (car err) (if (consp err-val)
+			                   (cons function-or-file err-val)
+			                 (list function-or-file err-val)))))))
+              (if (stringp function-or-file)
+                  data
+                ;; So we return the compiled function.
+                (native-elisp-load data)))
+          ;; We may have created a temporary file when we're being
+          ;; called with something other than a file as the argument.
+          ;; Delete it.
+          (when (and (not (stringp function-or-file))
+                     (not output)
+                     comp-ctxt
+                     (comp-ctxt-output comp-ctxt)
+                     (file-exists-p (comp-ctxt-output comp-ctxt)))
+            (message "Deleting %s" (comp-ctxt-output comp-ctxt))
+            (delete-file (comp-ctxt-output comp-ctxt))))))))
 
 (defun native-compile-async-skip-p (file load selector)
   "Return non-nil if FILE's compilation should be skipped.
@@ -4240,14 +4243,13 @@ Search happens in `native-comp-eln-load-path'."
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
 This is the synchronous entry-point for the Emacs Lisp native
-compiler.
-FUNCTION-OR-FILE is a function symbol, a form, or the filename of
-an Emacs Lisp source file.
-If OUTPUT is non-nil, use it as the filename for the compiled
-object.
-If FUNCTION-OR-FILE is a filename, return the filename of the
-compiled object.  If FUNCTION-OR-FILE is a function symbol or a
-form, return the compiled function."
+compiler.  FUNCTION-OR-FILE is a function symbol, a form, or the
+filename of an Emacs Lisp source file.  If OUTPUT is non-nil, use
+it as the filename for the compiled object.  If FUNCTION-OR-FILE
+is a filename, if the compilation was successful return the
+filename of the compiled object.  If FUNCTION-OR-FILE is a
+function symbol or a form, if the compilation was successful
+return the compiled function."
   (comp--native-compile function-or-file nil output))
 
 ;;;###autoload
