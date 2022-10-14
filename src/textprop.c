@@ -649,7 +649,8 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
 	  Lisp_Object tem = Foverlay_get (node->data, prop);
           struct sortvec *this;
 
-	  if (NILP (tem) || (w && ! overlay_matches_window (w, node->data)))
+	  if (NILP (tem) || node->end < pos + 1
+	      || (w && ! overlay_matches_window (w, node->data)))
 	    continue;
 
           this = (result == items ? items + 1 : items);

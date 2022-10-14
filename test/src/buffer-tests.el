@@ -1340,6 +1340,14 @@ with parameters from the *Messages* buffer modification."
         (overlay-put ov 'value i)))
     (should (eq 9 (get-char-property 1 'value)))))
 
+(ert-deftest buffer-tests--overlay-bug58479 ()
+  (with-temp-buffer
+    (insert "ab")
+    (let* ((pos (+ (point-min) 1))
+           (ol (make-overlay pos pos)))
+      (overlay-put ol 'my-prop 'set)
+      (should (null (get-char-property pos 'my-prop))))))
+
 
 ;; +==========================================================================+
 ;; | Other

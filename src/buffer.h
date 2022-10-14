@@ -1275,7 +1275,7 @@ INLINE bool
 buffer_has_overlays (void)
 {
   return current_buffer->overlays
-    && (interval_tree_size (current_buffer->overlays) > 0);
+         && (current_buffer->overlays->root != ITREE_NULL);
 }
 
 /* Functions for accessing a character or byte,
