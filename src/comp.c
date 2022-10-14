@@ -67,6 +67,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_get_int_type
 #undef gcc_jit_context_get_type
 #undef gcc_jit_context_new_array_access
+#undef gcc_jit_context_new_array_constructor
 #undef gcc_jit_context_new_array_type
 #undef gcc_jit_context_new_bitcast
 #undef gcc_jit_context_new_binary_op
@@ -84,7 +85,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_new_rvalue_from_long
 #undef gcc_jit_context_new_rvalue_from_ptr
 #undef gcc_jit_context_new_string_literal
+#undef gcc_jit_context_new_struct_constructor
 #undef gcc_jit_context_new_struct_type
+#undef gcc_jit_context_new_union_constructor
 #undef gcc_jit_context_new_unary_op
 #undef gcc_jit_context_new_union_type
 #undef gcc_jit_context_release
@@ -96,6 +99,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_function_new_block
 #undef gcc_jit_function_new_local
 #undef gcc_jit_global_set_initializer
+#undef gcc_jit_global_set_initializer_rvalue
 #undef gcc_jit_lvalue_access_field
 #undef gcc_jit_lvalue_as_rvalue
 #undef gcc_jit_lvalue_get_address
@@ -147,6 +151,12 @@ DEF_DLL_FN (gcc_jit_function *, gcc_jit_context_new_function,
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_array_access,
             (gcc_jit_context *ctxt, gcc_jit_location *loc, gcc_jit_rvalue *ptr,
              gcc_jit_rvalue *index));
+#ifdef LIBGCCJIT_HAVE_CTORS
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_array_constructor,
+            (gcc_jit_context * ctxt, gcc_jit_location *loc,
+             gcc_jit_type *type, size_t num_values,
+             gcc_jit_rvalue **values));
+#endif
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_context_new_global,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              enum gcc_jit_global_kind kind, gcc_jit_type *type,
@@ -157,6 +167,10 @@ DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_function_new_local,
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_global_set_initializer,
 	    (gcc_jit_lvalue *global, const void *blob, size_t num_bytes));
+#endif
+#ifdef LIBGCCJIT_HAVE_CTORS
+DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_global_set_initializer_rvalue,
+	    (gcc_jit_lvalue *global, gcc_jit_rvalue *init_value));
 #endif
 DEF_DLL_FN (gcc_jit_lvalue *, gcc_jit_lvalue_access_field,
             (gcc_jit_lvalue *struct_or_union, gcc_jit_location *loc,
@@ -200,6 +214,16 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_ptr,
 #endif
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_string_literal,
             (gcc_jit_context *ctxt, const char *value));
+#ifdef LIBGCCJIT_HAVE_CTORS
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_struct_constructor,
+            (gcc_jit_context * ctxt, gcc_jit_location *loc,
+             gcc_jit_type *type, size_t num_values,
+             gcc_jit_field **fields, gcc_jit_rvalue **values));
+DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_union_constructor,
+            (gcc_jit_context * ctxt, gcc_jit_location *loc,
+             gcc_jit_type *type, gcc_jit_field *field,
+             gcc_jit_rvalue *value));
+#endif
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_unary_op,
             (gcc_jit_context *ctxt, gcc_jit_location *loc,
              enum gcc_jit_unary_op op, gcc_jit_type *result_type,
@@ -302,6 +326,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_get_int_type);
   LOAD_DLL_FN (library, gcc_jit_context_get_type);
   LOAD_DLL_FN (library, gcc_jit_context_new_array_access);
+#ifdef LIBGCCJIT_HAVE_CTORS
+  LOAD_DLL_FN (library, gcc_jit_context_new_array_constructor);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_array_type);
 #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
   LOAD_DLL_FN (library, gcc_jit_context_new_bitcast);
@@ -323,7 +350,13 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_ptr);
 #endif
   LOAD_DLL_FN (library, gcc_jit_context_new_string_literal);
+#ifdef LIBGCCJIT_HAVE_CTORS
+  LOAD_DLL_FN (library, gcc_jit_context_new_struct_constructor);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_struct_type);
+#ifdef LIBGCCJIT_HAVE_CTORS
+  LOAD_DLL_FN (library, gcc_jit_context_new_union_constructor);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_unary_op);
   LOAD_DLL_FN (library, gcc_jit_context_new_union_type);
   LOAD_DLL_FN (library, gcc_jit_context_release);
@@ -355,6 +388,10 @@ init_gccjit_functions (void)
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
 #endif
+#ifdef LIBGCCJIT_HAVE_CTORS
+  LOAD_DLL_FN (gcc_jit_global_set_initializer_rvalue);
+#endif
+
 #if defined (LIBGCCJIT_HAVE_gcc_jit_version)
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_minor);
@@ -383,6 +420,9 @@ init_gccjit_functions (void)
 #define gcc_jit_context_get_int_type fn_gcc_jit_context_get_int_type
 #define gcc_jit_context_get_type fn_gcc_jit_context_get_type
 #define gcc_jit_context_new_array_access fn_gcc_jit_context_new_array_access
+#ifdef LIBGCCJIT_HAVE_CTORS
+#define gcc_jit_context_new_array_constructor fn_gcc_jit_context_new_array_constructor
+#endif
 #define gcc_jit_context_new_array_type fn_gcc_jit_context_new_array_type
 #ifdef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
 # define gcc_jit_context_new_bitcast fn_gcc_jit_context_new_bitcast
@@ -404,7 +444,13 @@ init_gccjit_functions (void)
 # define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
 #endif
 #define gcc_jit_context_new_string_literal fn_gcc_jit_context_new_string_literal
+#ifdef LIBGCCJIT_HAVE_CTORS
+#define gcc_jit_context_new_struct_constructor fn_gcc_jit_context_new_struct_constructor
+#endif
 #define gcc_jit_context_new_struct_type fn_gcc_jit_context_new_struct_type
+#ifdef LIBGCCJIT_HAVE_CTORS
+#define gcc_jit_context_new_union_constructor fn_gcc_jit_context_new_union_constructor
+#endif
 #define gcc_jit_context_new_unary_op fn_gcc_jit_context_new_unary_op
 #define gcc_jit_context_new_union_type fn_gcc_jit_context_new_union_type
 #define gcc_jit_context_release fn_gcc_jit_context_release
@@ -417,6 +463,9 @@ init_gccjit_functions (void)
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
 #if defined (LIBGCCJIT_HAVE_gcc_jit_global_set_initializer)
  #define gcc_jit_global_set_initializer fn_gcc_jit_global_set_initializer
+#endif
+#ifdef LIBGCCJIT_HAVE_CTORS
+#define gcc_jit_global_set_initializer_rvalue fn_gcc_jit_global_set_initializer_rvalue
 #endif
 #define gcc_jit_lvalue_access_field fn_gcc_jit_lvalue_access_field
 #define gcc_jit_lvalue_as_rvalue fn_gcc_jit_lvalue_as_rvalue
@@ -1159,6 +1208,14 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
       gcc_jit_rvalue *lwordobj =
         emit_coerce (comp.lisp_word_type, obj);
 
+#ifdef LIBGCCJIT_HAVE_CTORS
+      gcc_jit_rvalue *s
+        = gcc_jit_context_new_struct_constructor (comp.ctxt, NULL,
+                                                  comp.lisp_obj_type,
+                                                  1, &comp.lisp_obj_i,
+                                                  &lwordobj);
+      return s;
+#else /* !LIBGCCJIT_HAVE_CTORS */
       static ptrdiff_t i;
       gcc_jit_lvalue *tmp_s =
 	gcc_jit_function_new_local (comp.func, NULL, comp.lisp_obj_type,
@@ -1170,6 +1227,7 @@ emit_coerce (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 				     comp.lisp_obj_i),
 	lwordobj);
       return gcc_jit_lvalue_as_rvalue (tmp_s);
+#endif
     }
 #endif
 
@@ -2138,6 +2196,10 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
   /* Ex: (funcall #s(comp-mvar 1 5 t eql symbol t)
                   #s(comp-mvar 2 6 nil nil nil t)
 		  #s(comp-mvar 3 7 t 0 fixnum t)).  */
+#ifdef LIBGCCJIT_HAVE_CTORS
+  USE_SAFE_ALLOCA;
+#endif
+
   static int i = 0;
   Lisp_Object callee = FIRST (insn);
   EMACS_INT nargs = XFIXNUM (Flength (CDR (insn)));
@@ -2153,20 +2215,30 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
       return emit_call_ref (callee, nargs, comp.frame[first_slot], direct);
     }
 
+  gcc_jit_type *call_arr_type
+    = gcc_jit_context_new_array_type (comp.ctxt, NULL,
+                                      comp.lisp_obj_type, nargs);
   gcc_jit_lvalue *tmp_arr =
     gcc_jit_function_new_local (
       comp.func,
       NULL,
-      gcc_jit_context_new_array_type (comp.ctxt,
-				      NULL,
-				      comp.lisp_obj_type,
-				      nargs),
+      call_arr_type,
       format_string ("call_arr_%d", i++));
 
   ptrdiff_t j = 0;
   Lisp_Object arg = CDR (insn);
+#ifdef LIBGCCJIT_HAVE_CTORS
+  /* Instead of emitting nargs assignments to the call array, emit
+   a single initialize expression for the array.  */
+  gcc_jit_rvalue **values;
+  SAFE_NALLOCA (values, 1, nargs);
+#endif
+
   FOR_EACH_TAIL (arg)
     {
+#ifdef LIBGCCJIT_HAVE_CTORS
+      values[j] = emit_mvar_rval (XCAR (arg));
+#else /* !LIBGCCJIT_HAVE_CTORS*/
       gcc_jit_block_add_assignment (
         comp.block,
 	NULL,
@@ -2178,17 +2250,30 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
 					       comp.int_type,
 					       j)),
 	emit_mvar_rval (XCAR (arg)));
+#endif
       ++j;
     }
 
-  return emit_call_ref (
-	   callee,
-	   nargs,
-	   gcc_jit_context_new_array_access (comp.ctxt,
-					     NULL,
-					     gcc_jit_lvalue_as_rvalue (tmp_arr),
-					     comp.zero),
-	   direct);
+#ifdef LIBGCCJIT_HAVE_CTORS
+  gcc_jit_rvalue *ctor
+    = gcc_jit_context_new_array_constructor (comp.ctxt, NULL,
+                                             call_arr_type, nargs,
+                                             values);
+  gcc_jit_block_add_assignment (comp.block, NULL, tmp_arr, ctor);
+#endif
+
+  gcc_jit_rvalue *call
+    = emit_call_ref (callee, nargs,
+                     gcc_jit_context_new_array_access (
+                       comp.ctxt, NULL,
+                       gcc_jit_lvalue_as_rvalue (tmp_arr), comp.zero),
+                     direct);
+
+#ifdef LIBGCCJIT_HAVE_CTORS
+  SAFE_FREE();
+#endif
+
+  return call;
 }
 
 static gcc_jit_rvalue *
