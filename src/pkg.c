@@ -723,11 +723,6 @@ pkg_keywordp (Lisp_Object obj)
 
 
 /***********************************************************************
-			       Printer
- ***********************************************************************/
-
-
-/***********************************************************************
 			    Lisp functions
  ***********************************************************************/
 
@@ -840,12 +835,19 @@ usage: (make-package NAME &rest KEYWORD-ARGS)  */)
   XPACKAGE (package)->nicknames = nicknames;
   XPACKAGE (package)->used_packages = used_packages;
 
-  /* PKG-FIXME:  Don't register, it's done by defpackage. */
-  register_package (package);
-
   SAFE_FREE ();
   return package;
 }
+
+DEFUN ("%register-package", Fregister_package, Sregister_package, 1, 1, 0, doc:
+       /* Register PACKAGE in the package registry.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  register_package (package);
+  return Qnil;
+}
+
 
 DEFUN ("list-all-packages", Flist_all_packages, Slist_all_packages, 0, 0, 0, doc:
        /* Return a list of all registered packages.  */)
@@ -1181,13 +1183,14 @@ syms_of_pkg (void)
   defsubr (&Spackage_use_list);
   defsubr (&Spackage_used_by_list);
   defsubr (&Spackagep);
+  defsubr (&Spkg_read);
+  defsubr (&Sregister_package);
   defsubr (&Srename_package);
   defsubr (&Sshadow);
   defsubr (&Sshadowing_import);
   defsubr (&Sunexport);
   defsubr (&Sunuse_package);
   defsubr (&Suse_package);
-  defsubr (&Spkg_read);
 
   DEFSYM (QCexternal, ":external");
   DEFSYM (QCinherited, ":inherited");
@@ -1196,13 +1199,13 @@ syms_of_pkg (void)
   DEFSYM (QCuse, ":use");
 
   DEFSYM (Qearmuffs_package, "*package*");
-  DEFSYM (Qpackage_prefixes, "package-prefixes");
   DEFSYM (Qemacs_package, "emacs-package");
-  DEFSYM (Qkeyword_package, "keyword-package");
-  DEFSYM (Qpackage_registry, "package-registry");
-
   DEFSYM (Qkeyword, "keyword");
+  DEFSYM (Qkeyword_package, "keyword-package");
   DEFSYM (Qpackage, "package");
+  DEFSYM (Qpackage_prefixes, "package-prefixes");
+  DEFSYM (Qpackage_registry, "package-registry");
+  DEFSYM (Qpackagep, "packagep");
 
   DEFVAR_LISP ("package-registry", Vpackage_registry,
 	       doc: "A map of names to packages.");
@@ -1211,11 +1214,13 @@ syms_of_pkg (void)
   DEFVAR_LISP ("emacs-package", Vemacs_package, doc: "The emacs package.");
   Vemacs_package = CALLN (Fmake_package, Qemacs);
   make_symbol_constant (Qemacs_package);
+  register_package (Vemacs_package);
 
   DEFVAR_LISP ("keyword-package", Vkeyword_package, doc: "The keyword package.");
   Vkeyword_package = CALLN (Fmake_package, Qkeyword,
 			    QCnicknames, list1 (make_string ("", 0)));
   make_symbol_constant (Qkeyword_package);
+  register_package (Vkeyword_package);
 
   DEFVAR_LISP ("*package*", Vearmuffs_package, doc: "The current package.");
   Vearmuffs_package = Vemacs_package;

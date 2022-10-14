@@ -2234,6 +2234,12 @@ PACKAGEP (Lisp_Object a)
   return PSEUDOVECTORP (a, PVEC_PACKAGE);
 }
 
+INLINE void
+CHECK_PACKAGE (Lisp_Object x)
+{
+  CHECK_TYPE (PACKAGEP (x), Qpackagep, x);
+}
+
 INLINE struct Lisp_Package *
 XPACKAGE (Lisp_Object a)
 {
