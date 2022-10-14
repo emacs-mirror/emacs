@@ -3020,11 +3020,7 @@ for nick completion."
   :version "29.1")
 
 (defface rcirc-bridged-nick
-  '((((class color) (min-colors 88) (background light)) :background "SlateGray1")
-    (((class color) (min-colors 88) (background dark))  :background "DarkSlateGray4")
-    (((class color) (min-colors 16) (background light)) :background "LightBlue")
-    (((class color) (min-colors 16) (background dark))  :background "DarkSlateGray")
-    (t :background "blue"))
+  '((t :inherit highlight))
   "Face used for pseudo-nick ."
   :version "29.1")
 
