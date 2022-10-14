@@ -9603,31 +9603,49 @@ x_draw_glyph_string_box (struct glyph_string *s)
 
 
 #ifndef USE_CAIRO
+
 static void
 x_composite_image (struct glyph_string *s, Pixmap dest,
+#ifdef HAVE_XRENDER
+		   Picture destination,
+#endif
                    int srcX, int srcY, int dstX, int dstY,
                    int width, int height)
 {
-  Display *display = FRAME_X_DISPLAY (s->f);
+  Display *display;
+#ifdef HAVE_XRENDER
+  XRenderPictFormat *default_format;
+  XRenderPictureAttributes attr UNINIT;
+#endif
+
+  display = FRAME_X_DISPLAY (s->f);
+
 #ifdef HAVE_XRENDER
   if (s->img->picture && FRAME_X_PICTURE_FORMAT (s->f))
     {
-      Picture destination;
-      XRenderPictFormat *default_format;
-      XRenderPictureAttributes attr UNINIT;
+      if (destination == None)
+	{
+	  /* The destination picture was not specified.  This means we
+	     have to create a picture representing the */
+	  default_format = FRAME_X_PICTURE_FORMAT (s->f);
+	  destination = XRenderCreatePicture (display, dest,
+					      default_format, 0, &attr);
 
-      default_format = FRAME_X_PICTURE_FORMAT (s->f);
-      destination = XRenderCreatePicture (display, dest,
-                                          default_format, 0, &attr);
+	  XRenderComposite (display, (s->img->mask_picture
+				      ? PictOpOver : PictOpSrc),
+			    s->img->picture, s->img->mask_picture,
+			    destination, srcX, srcY, srcX, srcY,
+			    dstX, dstY, width, height);
 
-      XRenderComposite (display, s->img->mask_picture ? PictOpOver : PictOpSrc,
-                        s->img->picture, s->img->mask_picture, destination,
-                        srcX, srcY,
-                        srcX, srcY,
-                        dstX, dstY,
-                        width, height);
+	  XRenderFreePicture (display, destination);
+	}
+      else
+	XRenderComposite (display, (s->img->mask_picture
+				    ? PictOpOver : PictOpSrc),
+			  s->img->picture, s->img->mask_picture,
+			  destination, srcX, srcY, srcX, srcY,
+			  dstX, dstY, width, height);
 
-      XRenderFreePicture (display, destination);
       return;
     }
 #endif
@@ -9637,6 +9655,7 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
 	     srcX, srcY,
 	     width, height, dstX, dstY);
 }
+
 #endif	/* !USE_CAIRO */
 
 
@@ -9715,6 +9734,9 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.height = s->slice.height;
 	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
             x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+#ifdef HAVE_XRENDER
+			       FRAME_X_PICTURE (s->f),
+#endif
 			       s->slice.x + r.x - x, s->slice.y + r.y - y,
                                r.x, r.y, r.width, r.height);
 	}
@@ -9728,7 +9750,12 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
-            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+#ifdef HAVE_XRENDER
+			       FRAME_X_PICTURE (s->f),
+#endif
+			       s->slice.x + r.x - x,
+			       s->slice.y + r.y - y,
                                r.x, r.y, r.width, r.height);
 
 	  /* When the image has a mask, we can expect that at
@@ -9894,8 +9921,11 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
 	  XChangeGC (display, s->gc, mask, &xgcv);
 
 	  x_composite_image (s, pixmap,
-                             s->slice.x, s->slice.y,
-                             x, y, s->slice.width, s->slice.height);
+#ifdef HAVE_XRENDER
+			     None,
+#endif
+                             s->slice.x, s->slice.y, x, y,
+			     s->slice.width, s->slice.height);
 	  XSetClipMask (display, s->gc, None);
 	}
       else
