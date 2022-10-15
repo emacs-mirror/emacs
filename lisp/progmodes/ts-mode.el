@@ -108,6 +108,7 @@
   (treesit-font-lock-rules
    :language 'tsx
    :override t
+   :feature 'basic
    '(
      (template_string) @font-lock-string-face
 
@@ -358,6 +359,7 @@ ARG is the same as in `end-of-defun."
 
     (setq-local treesit-font-lock-settings ts-mode--settings)
 
+    (setq treesit-font-lock-feature-list '((basic)))
     (treesit-font-lock-enable))
    (t
     (message "Tree sitter for TypeScript isn't available, defaulting to js-mode")
