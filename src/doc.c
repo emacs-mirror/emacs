@@ -501,7 +501,6 @@ the same file name is found in the `doc-directory'.  */)
   char buf[1024 + 1];
   int filled;
   EMACS_INT pos;
-  Lisp_Object sym;
   char *p, *name;
   char const *dirname;
   ptrdiff_t dirlen;
@@ -580,20 +579,18 @@ the same file name is found in the `doc-directory'.  */)
 	     But this meant the doc had to be kept and updated in
 	     multiple files.  Nowadays we keep the doc only in eg xterm.
 	     The (f)boundp checks below ensure we don't report
-	     docs for eg w32-specific items on X.
-	  */
+	     docs for eg w32-specific items on X. */
 
-	  sym = oblookup (Vobarray, p + 2,
-			  multibyte_chars_in_text ((unsigned char *) p + 2,
-						   end - p - 2),
-			  end - p - 2);
-          /* Ignore docs that start with SKIP.  These mark
-             placeholders where the real doc is elsewhere.  */
-	  if (SYMBOLP (sym))
+	  const ptrdiff_t nbytes = end - p - 2;
+	  const ptrdiff_t nchars = multibyte_chars_in_text ((unsigned char *) p + 2, nbytes);
+	  const Lisp_Object sym = pkg_lookup_non_keyword_c_string (p + 2, nchars, nbytes);
+	  if (!EQ (sym, Qunbound))
 	    {
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
 		{
+		  /* Ignore docs that start with SKIP.  These mark
+		     placeholders where the real doc is elsewhere.  */
 		  /* Install file-position as variable-documentation property
 		     and make it negative for a user-variable
 		     (doc starts with a `*').  */
@@ -604,7 +601,6 @@ the same file name is found in the `doc-directory'.  */)
                           make_fixnum ((pos + end + 1 - buf)
                                        * (end[1] == '*' ? -1 : 1)));
 		}
-
 	      /* Attach a docstring to a function?  */
 	      else if (p[1] == 'F')
                 {
@@ -613,7 +609,6 @@ the same file name is found in the `doc-directory'.  */)
                 }
 	      else if (p[1] == 'S')
 		; /* Just a source file name boundary marker.  Ignore it.  */
-
 	      else
 		error ("DOC file invalid at position %"pI"d", pos);
 	    }

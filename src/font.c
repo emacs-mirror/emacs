@@ -261,8 +261,7 @@ static int num_font_drivers;
 Lisp_Object
 font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 {
-  ptrdiff_t i, nbytes, nchars;
-  Lisp_Object tem, name, obarray;
+  ptrdiff_t i;
 
   if (len == 1 && *str == '*')
     return Qnil;
@@ -287,16 +286,13 @@ font_intern_prop (const char *str, ptrdiff_t len, bool force_symbol)
 	}
     }
 
-  /* This code is similar to intern function from lread.c.  */
-  obarray = check_obarray (Vobarray);
+  /* PKG-FIXME: These many make_xyz_string variants are confusing.
+     Simplify.  */
+  ptrdiff_t nbytes, nchars;
   parse_str_as_multibyte ((unsigned char *) str, len, &nchars, &nbytes);
-  tem = oblookup (obarray, str,
-		  (len == nchars || len != nbytes) ? len : nchars, len);
-  if (SYMBOLP (tem))
-    return tem;
-  name = make_specified_string (str, nchars, len,
-				len != nchars && len == nbytes);
-  return intern_driver (name, obarray, tem);
+  Lisp_Object name = make_specified_string (str, nchars, len,
+					    len != nchars && len == nbytes);
+  return pkg_intern_maybe_keyword (name);
 }
 
 /* Return a pixel size of font-spec SPEC on frame F.  */

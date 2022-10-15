@@ -2260,14 +2260,17 @@ extern Lisp_Object pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, 
 extern void pkg_error (const char *fmt, ...);
 extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
 extern bool pkg_keywordp (Lisp_Object obj);
-extern Lisp_Object pkg_add_keyword (Lisp_Object sym);
-extern Lisp_Object pkg_add_symbol (Lisp_Object symbol, Lisp_Object package);
+extern Lisp_Object pkg_intern_keyword (Lisp_Object sym);
+extern Lisp_Object pkg_define_keyword (Lisp_Object sym);
+extern Lisp_Object pkg_define_non_keyword (Lisp_Object sym);
+extern Lisp_Object pkg_intern_symbol (Lisp_Object sym, Lisp_Object package);
 extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
-extern bool pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol);
-extern void pkg_early_intern_symbol (Lisp_Object symbol);
-extern Lisp_Object pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
+extern Lisp_Object pkg_intern_non_keyword (Lisp_Object name);
+extern Lisp_Object pkg_intern_non_keyword_c_string (const char *p, ptrdiff_t len);
+extern Lisp_Object pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
+extern Lisp_Object pkg_intern_maybe_keyword (Lisp_Object name);
 extern void pkg_break (void);
 extern void pkg_define_builtin_symbols (void);
 extern void pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package);
@@ -4574,9 +4577,7 @@ extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char *, ptrdiff_t,
   ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
-extern Lisp_Object check_obarray (Lisp_Object);
 extern void init_symbol (Lisp_Object, Lisp_Object);
-extern Lisp_Object oblookup (Lisp_Object, const char *, ptrdiff_t, ptrdiff_t);
 INLINE void
 LOADHIST_ATTACH (Lisp_Object x)
 {
@@ -4590,16 +4591,14 @@ extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object, bool, bool);
 enum { S2N_IGNORE_TRAILING = 1 };
 extern Lisp_Object string_to_number (char const *, int, ptrdiff_t *);
-extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
-                         Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
 extern void init_obarray_once (void);
 extern void init_lread (void);
 extern void syms_of_lread (void);
 extern void mark_lread (void);
 extern Lisp_Object intern_1 (const char *str, ptrdiff_t len);
-extern Lisp_Object intern_c_string_1 (const char *str, ptrdiff_t len);
-extern Lisp_Object intern_driver (Lisp_Object string, Lisp_Object obarray, Lisp_Object index);
+extern Lisp_Object intern_c_string_1 (const char *str, ptrdiff_t len,
+				      bool allow_pure_p);
 
 INLINE Lisp_Object
 intern (const char *str)
@@ -4610,7 +4609,7 @@ intern (const char *str)
 INLINE Lisp_Object
 intern_c_string (const char *str)
 {
-  return intern_c_string_1 (str, strlen (str));
+  return intern_c_string_1 (str, strlen (str), true);
 }
 
 /* Defined in eval.c.  */

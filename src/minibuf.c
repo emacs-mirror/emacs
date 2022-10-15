@@ -1616,31 +1616,26 @@ or from one of the possible completions.  */)
   ptrdiff_t bestmatchsize = 0;
   /* These are in bytes, too.  */
   ptrdiff_t compare, matchsize;
-  enum { function_table, list_table, obarray_table, hash_table}
-    type = (HASH_TABLE_P (collection) ? hash_table
-	    : VECTORP (collection) ? obarray_table
-	    : ((NILP (collection)
-		|| (CONSP (collection) && !FUNCTIONP (collection)))
-	       ? list_table : function_table));
-  ptrdiff_t idx = 0, obsize = 0;
-  int matchcount = 0;
-  Lisp_Object bucket, zero, end, tem;
 
   CHECK_STRING (string);
-  if (type == function_table)
+
+  if (FUNCTIONP (collection))
     return call3 (collection, string, predicate, Qnil);
+
+  if (PACKAGEP (collection))
+    collection = PACKAGE_SYMBOLS (collection);
+
+  ptrdiff_t idx = 0;
+  int matchcount = 0;
+  Lisp_Object bucket, zero, end, tem;
 
   bestmatch = bucket = Qnil;
   zero = make_fixnum (0);
 
+  eassert (HASH_TABLE_P (collection) || NILP (collection) || CONSP (collection));
+
   /* If COLLECTION is not a list, set TAIL just for gc pro.  */
   tail = collection;
-  if (type == obarray_table)
-    {
-      collection = check_obarray (collection);
-      obsize = ASIZE (collection);
-      bucket = AREF (collection, idx);
-    }
 
   while (1)
     {
@@ -1649,36 +1644,7 @@ or from one of the possible completions.  */)
       /* elt gets the alist element or symbol.
 	 eltstring gets the name to check as a completion.  */
 
-      if (type == list_table)
-	{
-	  if (!CONSP (tail))
-	    break;
-	  elt = XCAR (tail);
-	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
-	  tail = XCDR (tail);
-	}
-      else if (type == obarray_table)
-	{
-	  if (!EQ (bucket, zero))
-	    {
-	      if (!SYMBOLP (bucket))
-		error ("Bad data in guts of obarray");
-	      elt = bucket;
-	      eltstring = elt;
-	      if (XSYMBOL (bucket)->u.s.next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
-	      else
-		XSETFASTINT (bucket, 0);
-	    }
-	  else if (++idx >= obsize)
-	    break;
-	  else
-	    {
-	      bucket = AREF (collection, idx);
-	      continue;
-	    }
-	}
-      else /* if (type == hash_table) */
+      if (HASH_TABLE_P (collection))
 	{
 	  while (idx < HASH_TABLE_SIZE (XHASH_TABLE (collection))
 		 && BASE_EQ (HASH_KEY (XHASH_TABLE (collection), idx),
@@ -1688,6 +1654,14 @@ or from one of the possible completions.  */)
 	    break;
 	  else
 	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
+	}
+      else
+	{
+	  if (!CONSP (tail))
+	    break;
+	  elt = XCAR (tail);
+	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
+	  tail = XCDR (tail);
 	}
 
       /* Is this element a possible completion?  */
@@ -1717,7 +1691,7 @@ or from one of the possible completions.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  tem = (type == hash_table
+		  tem = (HASH_TABLE_P (collection)
 			 ? call2 (predicate, elt,
 				  HASH_VALUE (XHASH_TABLE (collection),
 					      idx - 1))
@@ -1860,25 +1834,26 @@ with a space are ignored unless STRING itself starts with a space.  */)
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
   int type = HASH_TABLE_P (collection) ? 3
-    : VECTORP (collection) ? 2
+    : PACKAGEP (collection) ? 2
     : NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection));
-  ptrdiff_t idx = 0, obsize = 0;
+  ptrdiff_t idx = 0;
   Lisp_Object bucket, tem, zero;
 
   CHECK_STRING (string);
   if (type == 0)
     return call3 (collection, string, predicate, Qt);
+
+  if (type == 2)
+    {
+      collection = PACKAGE_SYMBOLS (collection);
+      type = 3;
+    }
+
   allmatches = bucket = Qnil;
   zero = make_fixnum (0);
 
   /* If COLLECTION is not a list, set TAIL just for gc pro.  */
   tail = collection;
-  if (type == 2)
-    {
-      collection = check_obarray (collection);
-      obsize = ASIZE (collection);
-      bucket = AREF (collection, idx);
-    }
 
   while (1)
     {
@@ -1894,27 +1869,6 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	  elt = XCAR (tail);
 	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
 	  tail = XCDR (tail);
-	}
-      else if (type == 2)
-	{
-	  if (!EQ (bucket, zero))
-	    {
-	      if (!SYMBOLP (bucket))
-		error ("Bad data in guts of obarray");
-	      elt = bucket;
-	      eltstring = elt;
-	      if (XSYMBOL (bucket)->u.s.next)
-		XSETSYMBOL (bucket, XSYMBOL (bucket)->u.s.next);
-	      else
-		XSETFASTINT (bucket, 0);
-	    }
-	  else if (++idx >= obsize)
-	    break;
-	  else
-	    {
-	      bucket = AREF (collection, idx);
-	      continue;
-	    }
 	}
       else /* if (type == 3) */
 	{
@@ -2060,49 +2014,18 @@ If COLLECTION is a function, it is called with three arguments:
 the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
-  Lisp_Object tail, tem = Qnil;
+  Lisp_Object tem = Qnil;
   ptrdiff_t i = 0;
 
   CHECK_STRING (string);
+
+  if (PACKAGEP (collection))
+    collection = PACKAGE_SYMBOLS (collection);
 
   if (NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection)))
     {
       tem = Fassoc_string (string, collection, completion_ignore_case ? Qt : Qnil);
       if (NILP (tem))
-	return Qnil;
-    }
-  else if (VECTORP (collection))
-    {
-      /* Bypass intern-soft as that loses for nil.  */
-      tem = oblookup (collection,
-		      SSDATA (string),
-		      SCHARS (string),
-		      SBYTES (string));
-      if (completion_ignore_case && !SYMBOLP (tem))
-	{
-	  for (i = ASIZE (collection) - 1; i >= 0; i--)
-	    {
-	      tail = AREF (collection, i);
-	      if (SYMBOLP (tail))
-		while (1)
-		  {
-		    if (BASE_EQ (Fcompare_strings (string, make_fixnum (0),
-						   Qnil,
-						   Fsymbol_name (tail),
-						   make_fixnum (0) , Qnil, Qt),
-				 Qt))
-		      {
-			tem = tail;
-			break;
-		      }
-		    if (XSYMBOL (tail)->u.s.next == 0)
-		      break;
-		    XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next);
-		  }
-	    }
-	}
-
-      if (!SYMBOLP (tem))
 	return Qnil;
     }
   else if (HASH_TABLE_P (collection))

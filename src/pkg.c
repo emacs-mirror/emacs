@@ -30,15 +30,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 
-/* Lists of keywords and other symbols that are defined before
-   packages are ready to use.  These are fixed up and the lists set
-   to nil when the package system is ready.  */
-
-static Lisp_Object early_keywords, early_symbols;
+/* The package registry, a hash-table of package names to package
+   objects.  */
 
 Lisp_Object Vpackage_registry;
+
+/* The two standard packages.  */
+
 Lisp_Object Vemacs_package, Vkeyword_package;
+
+/* The current package.  */
+
 Lisp_Object Vearmuffs_package;
+
+/* If nil, */
+
 Lisp_Object Vpackage_prefixes;
 
 /***********************************************************************
@@ -399,6 +405,12 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
 }
 
 static Lisp_Object
+lookup_symbol (Lisp_Object name, Lisp_Object package)
+{
+  return lookup_symbol1(name, package, Qnil);
+}
+
+static Lisp_Object
 add_to_package_symbols (Lisp_Object symbol, Lisp_Object package)
 {
   eassert (SYMBOLP (symbol));
@@ -418,17 +430,11 @@ remove_from_package_symbols (Lisp_Object symbol, Lisp_Object package)
   Fremhash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols);
 }
 
-static Lisp_Object
-lookup_symbol (Lisp_Object name, Lisp_Object package)
-{
-  return lookup_symbol1(name, package, Qnil);
-}
-
 /* Add a new SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol
    is made external if PACKAGE is the keyword package.  Otherwise it
    is internal.  */
 
-Lisp_Object
+static Lisp_Object
 pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
 {
   eassert (SYMBOLP (symbol));
@@ -446,24 +452,6 @@ pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
 #endif
 
   return add_to_package_symbols (symbol, package);
-}
-
-/* Add a new keyword by adding SYMBOL to the keyword package.  */
-
-Lisp_Object
-pkg_add_keyword (Lisp_Object symbol)
-{
-  /* Symbol-value of a keyword is itself, and cannot be set.  */
-  XSYMBOL (symbol)->u.s.redirect = SYMBOL_PLAINVAL;
-  XSYMBOL (symbol)->u.s.val.value = symbol;
-  make_symbol_constant (symbol);
-
-  /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
-     in lexically bound elisp signal an error, as documented.  */
-  XSYMBOL (symbol)->u.s.declared_special = true;
-
-  pkg_add_symbol (symbol, Vkeyword_package);
-  return symbol;
 }
 
 /* Add SYMBOL to PACKAGE's shadowing symbols, if not already
@@ -505,9 +493,10 @@ symbol_and_status (Lisp_Object symbol, Lisp_Object package)
    Otherwise, add a new symbol to PACKAGE.  Value is the symbol found
    or newly inserted.  */
 
-static Lisp_Object
+Lisp_Object
 pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 {
+  /* PKG-FIXME this symbol_or_name is shit.  */
   eassert (PACKAGEP (package));
 
   const Lisp_Object name
@@ -525,7 +514,7 @@ pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
 
   /* Not found.  If intended as a keyword, add it there. */
   if (EQ (package, Vkeyword_package))
-    return pkg_add_keyword (Fmake_symbol (name));
+    return pkg_intern_keyword (name);
 
   /* Not found, and we have already a symbol, use that symbol.  */
   if (SYMBOLP (symbol_or_name))
@@ -535,25 +524,89 @@ pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
   return pkg_add_symbol (Fmake_symbol (name), package);
 }
 
-bool
-pkg_intern_name_c_string (const char *p, ptrdiff_t len, Lisp_Object *symbol)
+/* Lookup or create a new keyword with name NAME.  */
+
+Lisp_Object
+pkg_intern_keyword (Lisp_Object name)
 {
-  Lisp_Object name = make_unibyte_string (p, len);
-  *symbol = pkg_intern_symbol (name, Vearmuffs_package);
-  return true;
+  eassert (STRINGP (name));
+  eassert (SREF (name, 0) != ':');
+  Lisp_Object keyword = lookup_symbol (name, Vkeyword_package);
+  if (EQ (keyword, Qunbound))
+    {
+      keyword = Fmake_symbol (name);
+      /* Symbol-value of a keyword is itself, and cannot be set.  */
+      XSYMBOL (keyword)->u.s.redirect = SYMBOL_PLAINVAL;
+      XSYMBOL (keyword)->u.s.val.value = keyword;
+      make_symbol_constant (keyword);
+      /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
+	 in lexically bound elisp signal an error, as documented.  */
+      XSYMBOL (keyword)->u.s.declared_special = true;
+      pkg_add_symbol (keyword, Vkeyword_package);
+    }
+  else
+    eassert (EQ (SYMBOL_PACKAGE (keyword), Vkeyword_package));
+
+  return keyword;
+}
+
+/* Define KEYWORD as keyword symbol.  */
+
+Lisp_Object
+pkg_define_keyword (Lisp_Object keyword)
+{
+  eassert (SYMBOLP (keyword));
+  eassert (!EQ (keyword, Qunbound));
+  eassert (SREF (SYMBOL_NAME (keyword), 0) != ':');
+
+  /* Symbol-value of a keyword is itself, and cannot be set.  */
+  XSYMBOL (keyword)->u.s.redirect = SYMBOL_PLAINVAL;
+  XSYMBOL (keyword)->u.s.val.value = keyword;
+  make_symbol_constant (keyword);
+  /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
+     in lexically bound elisp signal an error, as documented.  */
+  XSYMBOL (keyword)->u.s.declared_special = true;
+  return pkg_add_symbol (keyword, Vkeyword_package);
 }
 
 Lisp_Object
-pkg_lookup_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes)
+pkg_define_non_keyword (Lisp_Object symbol)
 {
-  const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
-  return lookup_symbol (name, Vearmuffs_package);
+  eassert (!EQ (symbol, Qunbound));
+  return pkg_add_symbol (symbol, Vemacs_package);
 }
 
-void
-pkg_early_intern_symbol (Lisp_Object symbol)
+Lisp_Object
+pkg_intern_non_keyword (Lisp_Object name)
 {
-  pkg_intern_symbol (symbol, Vemacs_package);
+  return pkg_intern_symbol (name, Vearmuffs_package);
+}
+
+Lisp_Object
+pkg_intern_non_keyword_c_string (const char *p, ptrdiff_t len)
+{
+  const Lisp_Object name = make_unibyte_string (p, len);
+  return pkg_intern_non_keyword (name);
+}
+
+Lisp_Object
+pkg_intern_maybe_keyword (Lisp_Object name)
+{
+  CHECK_STRING (name);
+  if (SREF (name, 0) == ':')
+    {
+      const Lisp_Object keyword_name = Fsubstring (name, make_fixnum (1), Qnil);
+      return pkg_intern_keyword (keyword_name);
+    }
+  return pkg_intern_non_keyword (name);
+}
+
+Lisp_Object
+pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes)
+{
+  eassert (*ptr != ':');
+  const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
+  return lookup_symbol (name, Vearmuffs_package);
 }
 
 static Lisp_Object
@@ -1127,11 +1180,6 @@ init_pkg_once (void)
   DEFSYM (Qpackage_prefixes, "package-prefixes");
   DEFSYM (Qpackage_registry, "package-registry");
   DEFSYM (Qpackagep, "packagep");
-
-  staticpro (&early_symbols);
-  early_keywords = Qnil;
-  staticpro (&early_keywords);
-  early_keywords = Qnil;
 
   staticpro (&Vpackage_registry);
   /* PKG-FIXME: Not sure about the purecopy (last arg).  */

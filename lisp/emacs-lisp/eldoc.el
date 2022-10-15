@@ -146,7 +146,7 @@ Remember to keep it a prime number to improve hash performance.")
 
 (defvar eldoc-message-commands
   ;; Don't define as `defconst' since it would then go to (read-only) purespace.
-  (make-vector eldoc-message-commands-table-size 0)
+  (make-package "eldoc-message-commands")
   "Commands after which it is appropriate to print in the echo area.
 ElDoc does not try to print function arglists, etc., after just any command,
 because some commands print their own messages in the echo area and these

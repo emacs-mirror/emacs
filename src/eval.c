@@ -1676,6 +1676,9 @@ See also the function `condition-case'.  */
        attributes: noreturn)
   (Lisp_Object error_symbol, Lisp_Object data)
 {
+  if (EQ (error_symbol, Qwrong_type_argument))
+    pkg_break ();
+
   /* If they call us with nonsensical arguments, produce "peculiar error".  */
   if (NILP (error_symbol) && NILP (data))
     error_symbol = Qerror;

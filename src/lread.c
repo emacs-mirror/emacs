@@ -4726,107 +4726,28 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 }
 
 
-static Lisp_Object initial_obarray;
-
-/* `oblookup' stores the bucket number here, for the sake of Funintern.  */
-
-static size_t oblookup_last_bucket_number;
-
-/* Get an error if OBARRAY is not an obarray.
-   If it is one, return it.  */
+/* Intern symbol with name given by STR and LEN.  ALLOW_PURE_P means
+   that the symbol name may be allocated from pure space if necessary.
+   If STR starts with a colon, consider it a keyword.  */
 
 Lisp_Object
-check_obarray (Lisp_Object obarray)
+intern_c_string_1 (const char *str, ptrdiff_t len, bool allow_pure_p)
 {
-  /* We don't want to signal a wrong-type-argument error when we are
-     shutting down due to a fatal error, and we don't want to hit
-     assertions in VECTORP and ASIZE if the fatal error was during GC.  */
-  if (!fatal_error_in_progress
-      && (!VECTORP (obarray) || ASIZE (obarray) == 0))
-    {
-      /* If Vobarray is now invalid, force it to be valid.  */
-      if (EQ (Vobarray, obarray)) Vobarray = initial_obarray;
-      wrong_type_argument (Qvectorp, obarray);
-    }
-  return obarray;
+  const bool keyword = *str == ':';
+  const char *name_start = keyword ? str + 1 : str;
+  const ptrdiff_t name_len = keyword ? len - 1 : len;
+  const Lisp_Object name = ((!allow_pure_p || NILP (Vpurify_flag))
+			    ? make_string (name_start, name_len)
+			    : make_pure_c_string (name_start, name_len));
+  if (keyword)
+    return pkg_intern_keyword (name);
+  return pkg_intern_non_keyword (name);
 }
-
-/* Intern symbol SYM in OBARRAY using bucket INDEX.  */
-
-static Lisp_Object
-intern_sym (Lisp_Object sym, Lisp_Object obarray, Lisp_Object index)
-{
-  Lisp_Object *ptr;
-
-  if (SREF (SYMBOL_NAME (sym), 0) == ':' && EQ (obarray, initial_obarray))
-    {
-      make_symbol_constant (sym);
-      XSYMBOL (sym)->u.s.redirect = SYMBOL_PLAINVAL;
-      /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
-	 in lexically bound elisp signal an error, as documented.  */
-      XSYMBOL (sym)->u.s.declared_special = true;
-      SET_SYMBOL_VAL (XSYMBOL (sym), sym);
-      pkg_add_keyword (sym);
-    }
-  else
-    pkg_early_intern_symbol (sym);
-
-  ptr = aref_addr (obarray, XFIXNUM (index));
-  set_symbol_next (sym, SYMBOLP (*ptr) ? XSYMBOL (*ptr) : NULL);
-  *ptr = sym;
-  return sym;
-}
-
-/* Intern a symbol with name STRING in OBARRAY using bucket INDEX.  */
-
-Lisp_Object
-intern_driver (Lisp_Object string, Lisp_Object obarray, Lisp_Object index)
-{
-  SET_SYMBOL_VAL (XSYMBOL (Qobarray_cache), Qnil);
-  return intern_sym (Fmake_symbol (string), obarray, index);
-}
-
-/* Intern the C string STR: return a symbol with that name,
-   interned in the current obarray.  */
 
 Lisp_Object
 intern_1 (const char *str, ptrdiff_t len)
 {
-  /* If we can find a symbol with that name "normally", return that
-     symbol.  */
-  Lisp_Object symbol;
-  if (pkg_intern_name_c_string (str, len, &symbol))
-    return symbol;
-
-  /* Not found: Do the obarray dance.  */
-  Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, str, len, len);
-
-  return (SYMBOLP (tem) ? tem
-	  /* The above `oblookup' was done on the basis of nchars==nbytes, so
-	     the string has to be unibyte.  */
-	  : intern_driver (make_unibyte_string (str, len),
-			   obarray, tem));
-}
-
-Lisp_Object
-intern_c_string_1 (const char *str, ptrdiff_t len)
-{
-  Lisp_Object obarray = check_obarray (Vobarray);
-  Lisp_Object tem = oblookup (obarray, str, len, len);
-
-  if (!SYMBOLP (tem))
-    {
-      Lisp_Object string;
-
-      if (NILP (Vpurify_flag))
-	string = make_string (str, len);
-      else
-	string = make_pure_c_string (str, len);
-
-      tem = intern_driver (string, obarray, tem);
-    }
-  return tem;
+  return intern_c_string_1 (str, len, false);
 }
 
 static void
@@ -4844,9 +4765,9 @@ define_symbol (Lisp_Object sym, char const *str)
   if (!BASE_EQ (sym, Qunbound))
     {
       if (keyword)
-	pkg_add_keyword (sym);
+	pkg_define_keyword (sym);
       else
-	pkg_add_symbol (sym, Vemacs_package);
+	pkg_define_non_keyword (sym);
     }
 }
 
@@ -4892,72 +4813,6 @@ usage: (unintern NAME OBARRAY)  */)
   return pkg_emacs_unintern (name, obarray);
 }
 
-/* Return the symbol in OBARRAY whose names matches the string
-   of SIZE characters (SIZE_BYTE bytes) at PTR.
-   If there is no such symbol, return the integer bucket number of
-   where the symbol would be if it were present.
-
-   Also store the bucket number in oblookup_last_bucket_number.  */
-
-Lisp_Object
-oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff_t size_byte)
-{
-  const Lisp_Object found = pkg_lookup_c_string (ptr, size, size_byte);
-  if (!EQ (found, Qunbound))
-    return found;
-
-  size_t hash;
-  size_t obsize;
-  register Lisp_Object tail;
-  Lisp_Object bucket, tem;
-
-  obarray = check_obarray (obarray);
-  /* This is sometimes needed in the middle of GC.  */
-  obsize = gc_asize (obarray);
-  hash = hash_string (ptr, size_byte) % obsize;
-  bucket = AREF (obarray, hash);
-  oblookup_last_bucket_number = hash;
-  if (BASE_EQ (bucket, make_fixnum (0)))
-    ;
-  else if (!SYMBOLP (bucket))
-    /* Like CADR error message.  */
-    xsignal2 (Qwrong_type_argument, Qobarrayp,
-	      build_string ("Bad data in guts of obarray"));
-  else
-    for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next))
-      {
-	if (SBYTES (SYMBOL_NAME (tail)) == size_byte
-	    && SCHARS (SYMBOL_NAME (tail)) == size
-	    && !memcmp (SDATA (SYMBOL_NAME (tail)), ptr, size_byte))
-	  return tail;
-	else if (XSYMBOL (tail)->u.s.next == 0)
-	  break;
-      }
-  XSETINT (tem, hash);
-  return tem;
-}
-
-
-void
-map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
-{
-  eassert (false);
-  ptrdiff_t i;
-  register Lisp_Object tail;
-  CHECK_VECTOR (obarray);
-  for (i = ASIZE (obarray) - 1; i >= 0; i--)
-    {
-      tail = AREF (obarray, i);
-      if (SYMBOLP (tail))
-	while (1)
-	  {
-	    (*fn) (tail, arg);
-	    if (XSYMBOL (tail)->u.s.next == 0)
-	      break;
-	    XSETSYMBOL (tail, XSYMBOL (tail)->u.s.next);
-	  }
-    }
-}
 
 DEFUN ("mapatoms", Fmapatoms, Smapatoms, 1, 2, 0,
        doc: /* Call FUNCTION on every symbol in OBARRAY.
@@ -4968,14 +4823,10 @@ OBARRAY defaults to the value of `obarray'.  */)
   return Qnil;
 }
 
-#define OBARRAY_SIZE 15121
-
 void
 init_obarray_once (void)
 {
-  Vobarray = make_vector (OBARRAY_SIZE, make_fixnum (0));
-  initial_obarray = Vobarray;
-  staticpro (&initial_obarray);
+  Vobarray = Vemacs_package;
 
   DEFSYM (Qunbound, "unbound");
 
