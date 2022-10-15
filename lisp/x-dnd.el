@@ -1640,8 +1640,9 @@ VERSION is the version of the XDND protocol understood by SOURCE."
                                 desired-name
                                 (or file-name-coding-system
                                     default-file-name-coding-system)))
-            (let ((name (funcall x-dnd-direct-save-function
-                                 t desired-name)))
+            (let ((name (expand-file-name
+                         (funcall x-dnd-direct-save-function
+                                  t desired-name))))
               (setq save-to name save-to-remote name))
             (when save-to
               (if (file-remote-p save-to)
