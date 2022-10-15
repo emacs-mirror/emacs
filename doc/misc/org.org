@@ -68,8 +68,8 @@ of Org, as well as additional information, frequently asked questions
 [[https://orgmode.org]].
 
 #+cindex: print edition
-An earlier version (7.3) of this manual is available as a [[http://www.network-theory.co.uk/org/manual/][paperback
-book from Network Theory Ltd.]].
+An earlier version (7.3) of this manual was published as a paperback book by
+Network Theory Ltd. in 2010.
 
 ** Installation
 :PROPERTIES:
