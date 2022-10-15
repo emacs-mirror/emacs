@@ -58,7 +58,7 @@
                (if (eq var :if-not)
                    (setq mem `(and ,mem (setq cl-if ,mem) t)))
                (list (intern
-                      (format "cl-%s" (substring (symbol-name var) 1)))
+                      (format "cl-%s" (substring (symbol-name var) 0)))
                      (if (consp x) `(or ,mem ,(car (cdr x))) mem))))
            kwords)
      ,@(append
