@@ -1384,8 +1384,8 @@ If non-nil and there's only one matching option, auto-select that.
 
 ---
 *** New user option 'ecomplete-filter-regexp'.
-If non-nil this user option describes what email addresses to ignore
-and not add to the database.
+If non-nil, this user option describes what entries not to add to the
+database stored on disk.
 
 ** Dired
 
