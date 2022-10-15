@@ -1253,14 +1253,6 @@ the @samp{smb} method.  For all other connection methods, runtime
 tests are performed.
 @end defun
 
-@defun file-in-directory-p file dir
-This function returns @code{t} if @var{file} is a file in directory
-@var{dir}, or in a subdirectory of @var{dir}.  It also returns
-@code{t} if @var{file} and @var{dir} are the same directory.  It
-compares the truenames of the two directories.  If @var{dir} does not
-name an existing directory, the return value is @code{nil}.
-@end defun
-
 @defun vc-responsible-backend file
 This function determines the responsible VC backend of the given
 @var{file}.  For example, if @file{emacs.c} is a file tracked by Git,
@@ -1412,13 +1404,16 @@ The file's inode number (@code{file-attribute-inode-number}),
 a nonnegative integer.
 
 @item
-The filesystem number of the device that the file is on
-@code{file-attribute-device-number}), an integer.
-This element and the file's inode number
-together give enough information to distinguish any two files on the
-system---no two files can have the same values for both of these
-numbers.
+The filesystem's identifier of the device that the file is on
+(@code{file-attribute-device-number}), an integer or a cons cell of
+two integers.  The latter is sometimes used by remote files, in order
+to distinguish remote filesystems from local ones.
 @end enumerate
+
+The file's inode and device together give enough information
+to distinguish any two files on the system---no two files can have the
+same values for both of these attributes.  This tuple that uniquely
+identifies the file is returned by @code{file-attribute-file-identifier}.
 
 For example, here are the file attributes for @file{files.texi}:
 
@@ -3098,6 +3093,17 @@ predicate is called for every directory examined by the function,
 starting from @var{file} (even if @var{file} is not a directory).  It
 is called with one argument (the file or directory) and should return
 non-@code{nil} if that directory is the one it is looking for.
+@end defun
+
+@cindex parent directory of file
+@cindex ancestor directory of file
+@cindex file, ancestor directory of
+@defun file-in-directory-p file dir
+This function returns @code{t} if @var{file} is a file in directory
+@var{dir}, or in a subdirectory of @var{dir}.  It also returns
+@code{t} if @var{file} and @var{dir} are the same directory.  It
+compares the truenames of the two directories.  If @var{dir} does not
+name an existing directory, the return value is @code{nil}.
 @end defun
 
 @defun directory-files-and-attributes directory &optional full-name match-regexp nosort id-format count

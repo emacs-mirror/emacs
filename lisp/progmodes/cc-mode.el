@@ -66,12 +66,12 @@
 ;; You can get the latest version of CC Mode, including PostScript
 ;; documentation and separate individual files from:
 ;;
-;;     http://cc-mode.sourceforge.net/
+;;     https://cc-mode.sourceforge.net/
 ;;
 ;; You can join a moderated CC Mode announcement-only mailing list by
 ;; visiting
 ;;
-;;    http://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
+;;    https://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
 
 ;; Externally maintained major modes which use CC-mode's engine include:
 ;; - cuda-mode
@@ -172,7 +172,7 @@
 ;; `c-font-lock-init' too to set up CC Mode's font lock support.
 ;;
 ;; See cc-langs.el for further info.  A small example of a derived mode
-;; is also available at <http://cc-mode.sourceforge.net/
+;; is also available at <https://cc-mode.sourceforge.net/
 ;; derived-mode-ex.el>.
 
 (defun c-leave-cc-mode-mode ()

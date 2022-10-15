@@ -373,8 +373,9 @@ in the order given by `git status'."
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."
-  (let (process-file-side-effects)
-    (vc-git--rev-parse "HEAD")))
+  (let* ((process-file-side-effects nil)
+         (commit (vc-git--rev-parse "HEAD" t)))
+    (or (vc-git-symbolic-commit commit) commit)))
 
 (defun vc-git--symbolic-ref (file)
   (or
@@ -1638,7 +1639,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
         (start-point (when branchp (vc-read-revision
                                     (format-prompt "Start point"
                                                    (car (vc-git-branches)))
-                                    (list dir) 'Git))))
+                                    (list dir) 'Git (car (vc-git-branches))))))
     (and (or (zerop (vc-git-command nil t nil "update-index" "--refresh"))
              (y-or-n-p "Modified files exist.  Proceed? ")
              (user-error (format "Can't create %s with modified files"
@@ -1677,11 +1678,15 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     ;; does not (and cannot) quote.
     (vc-git--rev-parse (concat rev "~1"))))
 
-(defun vc-git--rev-parse (rev)
+(defun vc-git--rev-parse (rev &optional short)
   (with-temp-buffer
     (and
-     (vc-git--out-ok "rev-parse" rev)
-     (buffer-substring-no-properties (point-min) (+ (point-min) 40)))))
+     (if short
+         (vc-git--out-ok "rev-parse" "--short" rev)
+       (vc-git--out-ok "rev-parse" rev))
+     (string-trim-right
+      (buffer-substring-no-properties (point-min) (min (+ (point-min) 40)
+                                                       (point-max)))))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
@@ -2028,19 +2033,23 @@ FILE can be nil."
                     (setq ok nil))))))
     (and ok str)))
 
-(defun vc-git-symbolic-commit (commit)
-  "Translate COMMIT string into symbolic form.
-Returns nil if not possible."
+(defun vc-git-symbolic-commit (commit &optional force)
+  "Translate revision string of COMMIT to a symbolic form.
+If the optional argument FORCE is non-nil, the returned value is
+allowed to include revision specifications like \"master~8\"
+\(the 8th parent of the commit currently pointed to by the master
+branch), otherwise such revision specifications are rejected, and
+the function returns nil."
   (and commit
-       (let ((name (with-temp-buffer
-                     (and
-                      (vc-git--out-ok "name-rev" "--name-only" commit)
-                      (goto-char (point-min))
-                      (= (forward-line 2) 1)
-                      (bolp)
-                      (buffer-substring-no-properties (point-min)
-                                                      (1- (point-max)))))))
-         (and name (not (string= name "undefined")) name))))
+       (with-temp-buffer
+         (and
+          (vc-git--out-ok "name-rev" "--no-undefined" "--name-only" commit)
+          (goto-char (point-min))
+          (or force (not (looking-at "^.*[~^].*$" t)))
+          (= (forward-line 2) 1)
+          (bolp)
+          (buffer-substring-no-properties (point-min)
+                                          (1- (point-max)))))))
 
 (defvar-keymap vc-dir-git-mode-map
   "z c" #'vc-git-stash

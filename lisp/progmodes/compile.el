@@ -980,12 +980,17 @@ Faces `compilation-error-face', `compilation-warning-face',
   "Face name to use for leaving directory messages.")
 
 (defcustom compilation-auto-jump-to-first-error nil
-  "If non-nil, automatically jump to the first error during compilation."
+  "If non-nil, automatically jump to the first error during compilation.
+
+The value `if-location-known' means automatically jump to the first error
+if the error's file can be found.  The value `first-known' means jump to
+the first error whose file can be found.  Any other non-nil value means
+jump to the first error unconditionally."
   :type '(choice (const :tag "Never" nil)
                  (const :tag "Always" t)
                  (const :tag "If location known" if-location-known)
                  (const :tag "First known location" first-known))
-  :version "23.1")
+  :version "29.1")
 
 (defvar-local compilation-auto-jump-to-next nil
   "If non-nil, automatically jump to the next error encountered.")

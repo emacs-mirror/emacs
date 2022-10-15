@@ -433,6 +433,22 @@ If string STR1 is greater, the value is a positive number N;
   return Qt;
 }
 
+/* Check whether the platform allows access to unaligned addresses for
+   size_t integers without trapping or undue penalty (a few cycles is OK).
+
+   This whitelist is incomplete but since it is only used to improve
+   performance, omitting cases is safe.  */
+#if defined __x86_64__|| defined __amd64__	\
+    || defined __i386__ || defined __i386	\
+    || defined __arm64__ || defined __aarch64__	\
+    || defined __powerpc__ || defined __powerpc	\
+    || defined __ppc__ || defined __ppc		\
+    || defined __s390__ || defined __s390x__
+#define HAVE_FAST_UNALIGNED_ACCESS 1
+#else
+#define HAVE_FAST_UNALIGNED_ACCESS 0
+#endif
+
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return non-nil if STRING1 is less than STRING2 in lexicographic order.
 Case is significant.
@@ -468,18 +484,23 @@ Symbols are also allowed; their print names are used instead.  */)
       ptrdiff_t nb1 = SBYTES (string1);
       ptrdiff_t nb2 = SBYTES (string2);
       ptrdiff_t nb = min (nb1, nb2);
-
-      /* First compare entire machine words.  (String data is allocated
-	 with word alignment.)  */
-      typedef size_t word_t;
-      int ws = sizeof (word_t);
-      const word_t *w1 = (const word_t *) SDATA (string1);
-      const word_t *w2 = (const word_t *) SDATA (string2);
       ptrdiff_t b = 0;
-      while (b < nb - ws + 1 && w1[b / ws] == w2[b / ws])
-	b += ws;
 
-      /* Scan forward to the differing byte (at most ws-1 bytes).  */
+      /* String data is normally allocated with word alignment, but
+	 there are exceptions (notably pure strings) so we restrict the
+	 wordwise skipping to safe architectures.  */
+      if (HAVE_FAST_UNALIGNED_ACCESS)
+	{
+	  /* First compare entire machine words.  */
+	  typedef size_t word_t;
+	  int ws = sizeof (word_t);
+	  const word_t *w1 = (const word_t *) SDATA (string1);
+	  const word_t *w2 = (const word_t *) SDATA (string2);
+	  while (b < nb - ws + 1 && w1[b / ws] == w2[b / ws])
+	    b += ws;
+	}
+
+      /* Scan forward to the differing byte.  */
       while (b < nb && SREF (string1, b) == SREF (string2, b))
 	b++;
 

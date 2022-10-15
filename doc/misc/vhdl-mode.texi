@@ -892,7 +892,7 @@ list.  Send email to the maintainer @email{reto@@gnu.org} to join
 either of these lists.
 
 The official Emacs VHDL Mode Home Page can be found at
-@uref{http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html}.
+@uref{https://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html}.
 
 @node  Sample Init File
 @chapter  Sample Init File

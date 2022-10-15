@@ -944,7 +944,7 @@
 ;;                   `https://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    gsprint        `https://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;    enscript       `https://people.ssh.fi/mtr/genscript/'
-;;    psnup          `http://gnuwin32.sourceforge.net/packages/psutils.htm'
+;;    psnup          `https://gnuwin32.sourceforge.net/packages/psutils.htm'
 ;;    redmon         `http://www.ghostgum.com.au/software/redmon.htm'
 ;;
 ;;
@@ -1752,7 +1752,7 @@ Useful links:
   `https://linux.die.net/man/1/lp'
 
 * GNU utilities for w32 (cp.exe)
-  `http://unxutils.sourceforge.net/'"
+  `https://unxutils.sourceforge.net/'"
   :type '(repeat
 	  (list
 	   :tag "PostScript Printer"
@@ -2382,7 +2382,7 @@ Useful links:
   `http://gershwin.ens.fr/vdaniel/Doc-Locale/Outils-Gnu-Linux/PsUtils/'
 
 * psnup (PsUtils for Windows)
-  `http://gnuwin32.sourceforge.net/packages/psutils.htm'
+  `https://gnuwin32.sourceforge.net/packages/psutils.htm'
 
 * psnup documentation (GNU or Unix - or type `man psnup')
   `https://linux.die.net/man/1/psnup'

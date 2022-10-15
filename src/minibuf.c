@@ -187,13 +187,15 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
 
 /* If `minibuffer_follows_selected_frame' is t, or we're about to
    delete a frame which potentially "contains" minibuffers, move them
-   from the old frame to the selected frame.  This function is
+   from the old frame to the to-be-selected frame.  This function is
    intended to be called from `do_switch_frame' in frame.c.  OF is the
-   old frame, FOR_DELETION is true if OF is about to be deleted.  */
+   old frame, FRAME is the to-be-selected frame, and FOR_DELETION is true
+   if OF is about to be deleted.  */
 void
-move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
+move_minibuffers_onto_frame (struct frame *of, Lisp_Object frame,
+                             bool for_deletion)
 {
-  struct frame *f = XFRAME (selected_frame);
+  struct frame *f = XFRAME (frame);
 
   minibuf_window = f->minibuffer_window;
   if (!(minibuf_level
@@ -206,7 +208,7 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
     {
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
-	MB_frame = selected_frame;
+	MB_frame = frame;
     }
 }
 

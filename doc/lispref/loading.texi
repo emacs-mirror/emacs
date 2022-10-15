@@ -662,7 +662,7 @@ and @code{define-overloadable-function} (see the commentary in
 and @code{define-global-minor-mode}.
 
 @item Other definition types:
-@code{defcustom}, @code{defgroup}, @code{defclass}
+@code{defcustom}, @code{defgroup}, @code{deftheme}, @code{defclass}
 (@pxref{Top,EIEIO,,eieio,EIEIO}), and @code{define-skeleton}
 (@pxref{Top,Autotyping,,autotype,Autotyping}).
 @end table

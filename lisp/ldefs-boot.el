@@ -15397,7 +15397,7 @@ it is disabled.
 
 ;;; Generated autoloads from progmodes/hideshow.el
 
-(defvar hs-special-modes-alist (mapcar 'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
+(defvar hs-special-modes-alist (mapcar #'purecopy '((c-mode "{" "}" "/[*/]" nil nil) (c++-mode "{" "}" "/[*/]" nil nil) (bibtex-mode ("@\\S(*\\(\\s(\\)" 1)) (java-mode "{" "}" "/[*/]" nil nil) (js-mode "{" "}" "/[*/]" nil) (mhtml-mode "{\\|<[^/>]*?" "}\\|</[^/>]*[^/]>" "<!--" mhtml-forward nil))) "\
 Alist for initializing the hideshow variables for different modes.
 Each element has the form
   (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC
@@ -18847,6 +18847,8 @@ done.  Otherwise, this function will use the current buffer.
 Major mode for browsing CVS log output.
 
 (fn)" t)
+(autoload 'log-view-get-marked "log-view" "\
+Return the list of tags for the marked log entries.")
 (register-definition-prefixes "log-view" '("log-view-"))
 
 
@@ -24534,7 +24536,7 @@ Open profile FILENAME.
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push (purecopy '(project 0 8 1)) package--builtin-versions)
+(push (purecopy '(project 0 8 2)) package--builtin-versions)
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -25926,6 +25928,9 @@ The mode's hook is called both when the mode is enabled and when
 it is disabled.
 
 (fn &optional ARG)" t)
+(autoload 'repeat-exit "repeat" "\
+Exit the repeating sequence.
+This function can be used to force exit of repetition while it's active." t)
 (register-definition-prefixes "repeat" '("describe-repeat-maps" "repeat-"))
 
 
@@ -29436,6 +29441,8 @@ PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If PROMPT is nil, no help text
 will be inserted.
 
+Also see `read-string-from-buffer'.
+
 (fn PROMPT STRING SUCCESS-CALLBACK &key ABORT-CALLBACK)")
 (autoload 'read-string-from-buffer "string-edit" "\
 Switch to a new buffer to edit STRING in a recursive edit.
@@ -29444,6 +29451,8 @@ The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or 
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If nil, no prompt will be
 inserted in the buffer.
+
+Also see `string-edit'.
 
 (fn PROMPT STRING)")
 (register-definition-prefixes "string-edit" '("string-edit-"))
@@ -32000,14 +32009,14 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 (register-definition-prefixes "tramp-compat" '("tramp-"))
 
 
+;;; Generated autoloads from net/tramp-container.el
+
+(register-definition-prefixes "tramp-container" '("tramp-"))
+
+
 ;;; Generated autoloads from net/tramp-crypt.el
 
 (register-definition-prefixes "tramp-crypt" '("tramp-crypt-"))
-
-
-;;; Generated autoloads from net/tramp-docker.el
-
-(register-definition-prefixes "tramp-docker" '("tramp-docker-"))
 
 
 ;;; Generated autoloads from net/tramp-ftp.el
@@ -32740,6 +32749,10 @@ if it had been inserted from a file named URL.
 
 
 (fn URL &optional VISIT BEG END REPLACE)")
+(autoload 'url-insert-file-contents-literally "url-handlers" "\
+Insert the data retrieved from URL literally in the current buffer.
+
+(fn URL)")
 (register-definition-prefixes "url-handlers" '("url-"))
 
 
@@ -33440,11 +33453,13 @@ Show the change log for BRANCH root in a window.
 (autoload 'vc-log-incoming "vc" "\
 Show log of changes that will be received with pull from REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-outgoing "vc" "\
 Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
 When called interactively with a prefix argument, prompt for REMOTE-LOCATION.
+In some version control systems REMOTE-LOCATION can be a remote branch name.
 
 (fn &optional REMOTE-LOCATION)" t)
 (autoload 'vc-log-search "vc" "\
@@ -33571,6 +33586,18 @@ log entries should be gathered.
 Request editing the next VC shell command before execution.
 This is a prefix command.  It affects only a VC command executed
 immediately after this one." t)
+(autoload 'vc-prepare-patch "vc" "\
+Compose an Email sending patches for REVISIONS to ADDRESSEE.
+If `vc-prepare-patches-separately' is nil, SUBJECT will be used
+as the default subject for the message (and it will be prompted
+for when called interactively).  Otherwise a separate message
+will be composed for each revision, with SUBJECT derived from the
+invidividual commits.
+
+When invoked interactively in a Log View buffer with marked
+revisions, those revisions will be used.
+
+(fn ADDRESSEE SUBJECT REVISIONS)" t)
 (register-definition-prefixes "vc" '("vc-" "with-vc-properties"))
 
 
@@ -34565,10 +34592,6 @@ Convert Vietnamese characters of the current buffer to `VIQR' mnemonics." t)
 
 ;;; Generated autoloads from view.el
 
-(defvar view-remove-frame-by-deleting t "\
-Determine how View mode removes a frame no longer needed.
-If nil, make an icon of the frame.  If non-nil, delete the frame.")
-(custom-autoload 'view-remove-frame-by-deleting "view" t)
 (defvar-local view-mode nil "\
 Non-nil if View mode is enabled.
 Don't change this variable directly, you must change it by one of the
@@ -36122,7 +36145,13 @@ Extract file name from an yenc header.")
 ;;; Generated autoloads from play/zone.el
 
 (autoload 'zone "zone" "\
-Zone out, completely." t)
+Zone out, completely.
+With a prefix argument the user is prompted for a program to run.
+When called from Lisp the optional argument PGM can be used to
+run a specific program.  The program must be a member of
+`zone-programs'.
+
+(fn &optional PGM)" t)
 (register-definition-prefixes "zone" '("zone-"))
 
 ;;; End of scraped data

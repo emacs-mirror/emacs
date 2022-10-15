@@ -1425,9 +1425,6 @@ struct x_client_list_window
   /* The width and height of the window.  */
   int width, height;
 
-  /* Whether or not the window is mapped.  */
-  bool mapped_p;
-
   /* A bitmask describing events Emacs was listening for from the
      window before some extra events were added in
      `x_dnd_compute_toplevels'.  */
@@ -1439,9 +1436,6 @@ struct x_client_list_window
   /* The next window in this list.  */
   struct x_client_list_window *next;
 
-  /* The Motif protocol style of this window, if any.  */
-  uint8_t xm_protocol_style;
-
   /* The extents of the frame window in each direction.  */
   int frame_extents_left;
   int frame_extents_right;
@@ -1452,11 +1446,11 @@ struct x_client_list_window
   /* The border width of this window.  */
   int border_width;
 
-  /* The rectangles making up the input shape.  */
-  XRectangle *input_rects;
-
   /* The number of rectangles composing the input shape.  */
   int n_input_rects;
+
+  /* The rectangles making up the input shape.  */
+  XRectangle *input_rects;
 
   /* The rectangles making up the bounding shape.  */
   XRectangle *bounding_rects;
@@ -1464,6 +1458,12 @@ struct x_client_list_window
   /* The number of rectangles composing the bounding shape.  */
   int n_bounding_rects;
 #endif
+
+  /* The Motif protocol style of this window, if any.  */
+  uint8_t xm_protocol_style;
+
+  /* Whether or not the window is mapped.  */
+  bool mapped_p;
 };
 
 /* List of all toplevels in stacking order, from top to bottom.  */
@@ -5139,24 +5139,20 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
   if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
     return;
 
-  block_input ();
   if (f->alpha_background < 1.0)
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     NULL, 0);
 #ifndef HAVE_GTK3
   else
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     (unsigned char *) &opaque_region, 4);
 #else
   else if (FRAME_TOOLTIP_P (f))
-    XChangeProperty (FRAME_X_DISPLAY (f),
-		     FRAME_X_WINDOW (f),
+    XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     FRAME_DISPLAY_INFO (f)->Xatom_net_wm_opaque_region,
 		     XA_CARDINAL, 32, PropModeReplace,
 		     (unsigned char *) &opaque_region, 4);
@@ -5174,7 +5170,6 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 	}
     }
 #endif
-  unblock_input ();
 }
 
 
@@ -7144,8 +7139,6 @@ show_back_buffer (struct frame *f)
   cairo_t *cr;
 #endif
 
-  block_input ();
-
   if (FRAME_X_DOUBLE_BUFFERED_P (f))
     {
 #if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
@@ -7174,8 +7167,6 @@ show_back_buffer (struct frame *f)
     }
 
   FRAME_X_NEED_BUFFER_FLIP (f) = false;
-
-  unblock_input ();
 }
 
 #endif
@@ -7283,8 +7274,12 @@ XTframe_up_to_date (struct frame *f)
 static void
 XTbuffer_flipping_unblocked_hook (struct frame *f)
 {
+  block_input ();
+
   if (FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
+
+  unblock_input ();
 }
 #endif
 
@@ -7313,8 +7308,6 @@ x_clear_under_internal_border (struct frame *f)
 	    : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
-      block_input ();
-
       if (face)
 	{
 	  unsigned long color = face->background;
@@ -7335,8 +7328,6 @@ x_clear_under_internal_border (struct frame *f)
 	  x_clear_area (f, width - border, 0, border, height);
 	  x_clear_area (f, 0, height - border, width, border);
 	}
-
-      unblock_input ();
     }
 }
 
@@ -7384,7 +7375,6 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	      : INTERNAL_BORDER_FACE_ID));
 	struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
-	block_input ();
 	if (face)
 	  {
 	    unsigned long color = face->background;
@@ -7402,7 +7392,6 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	    x_clear_area (f, 0, y, width, height);
 	    x_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
 	  }
-	unblock_input ();
       }
   }
 #endif
@@ -7601,11 +7590,27 @@ static void x_check_font (struct frame *, struct font *);
    user time.  We don't sanitize timestamps from events sent by the X
    server itself because some Lisp might have set the user time to a
    ridiculously large value, and this way a more reasonable timestamp
-   can be obtained upon the next event.  */
+   can be obtained upon the next event.
+
+   Alternatively, the server time could've overflowed.
+
+   SET_PROPERTY specifies whether or not to change the user time
+   property for the active frame.  The important thing is to not set
+   the last user time upon leave events; on Metacity and GNOME Shell,
+   mapping a new frame on top of the old frame potentially causes
+   crossing events to be sent to the old frame if it contains the
+   pointer, as the new frame will initially stack above the old frame.
+   If _NET_WM_USER_TIME is changed at that point, then GNOME may get
+   notified about the user time change on the old frame before it
+   tries to focus the new frame, which will make it consider the new
+   frame (whose user time property will not have been updated at that
+   point, due to not being focused) as having been mapped
+   out-of-order, and lower the new frame, which is typically not what
+   users want.  */
 
 static void
 x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
-			      bool send_event)
+			      bool send_event, bool set_property)
 {
 #if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
   uint_fast64_t monotonic_time;
@@ -7678,7 +7683,8 @@ x_display_set_last_user_time (struct x_display_info *dpyinfo, Time time,
 
 #ifndef USE_GTK
   /* Don't waste bandwidth if the time hasn't actually changed.  */
-  if (focus_frame && old_time != dpyinfo->last_user_time)
+  if (focus_frame && old_time != dpyinfo->last_user_time
+      && set_property)
     {
       time = dpyinfo->last_user_time;
 
@@ -7719,6 +7725,7 @@ x_set_gtk_user_time (struct frame *f, Time time)
    itself.  */
 
 #ifndef USE_GTK
+
 static void
 x_update_frame_user_time_window (struct frame *f)
 {
@@ -7782,13 +7789,14 @@ x_update_frame_user_time_window (struct frame *f)
 	}
     }
 }
+
 #endif
 
 void
 x_set_last_user_time_from_lisp (struct x_display_info *dpyinfo,
 				Time time)
 {
-  x_display_set_last_user_time (dpyinfo, time, true);
+  x_display_set_last_user_time (dpyinfo, time, true, true);
 }
 
 
@@ -9595,31 +9603,49 @@ x_draw_glyph_string_box (struct glyph_string *s)
 
 
 #ifndef USE_CAIRO
+
 static void
 x_composite_image (struct glyph_string *s, Pixmap dest,
+#ifdef HAVE_XRENDER
+		   Picture destination,
+#endif
                    int srcX, int srcY, int dstX, int dstY,
                    int width, int height)
 {
-  Display *display = FRAME_X_DISPLAY (s->f);
+  Display *display;
+#ifdef HAVE_XRENDER
+  XRenderPictFormat *default_format;
+  XRenderPictureAttributes attr UNINIT;
+#endif
+
+  display = FRAME_X_DISPLAY (s->f);
+
 #ifdef HAVE_XRENDER
   if (s->img->picture && FRAME_X_PICTURE_FORMAT (s->f))
     {
-      Picture destination;
-      XRenderPictFormat *default_format;
-      XRenderPictureAttributes attr UNINIT;
+      if (destination == None)
+	{
+	  /* The destination picture was not specified.  This means we
+	     have to create a picture representing the */
+	  default_format = FRAME_X_PICTURE_FORMAT (s->f);
+	  destination = XRenderCreatePicture (display, dest,
+					      default_format, 0, &attr);
 
-      default_format = FRAME_X_PICTURE_FORMAT (s->f);
-      destination = XRenderCreatePicture (display, dest,
-                                          default_format, 0, &attr);
+	  XRenderComposite (display, (s->img->mask_picture
+				      ? PictOpOver : PictOpSrc),
+			    s->img->picture, s->img->mask_picture,
+			    destination, srcX, srcY, srcX, srcY,
+			    dstX, dstY, width, height);
 
-      XRenderComposite (display, s->img->mask_picture ? PictOpOver : PictOpSrc,
-                        s->img->picture, s->img->mask_picture, destination,
-                        srcX, srcY,
-                        srcX, srcY,
-                        dstX, dstY,
-                        width, height);
+	  XRenderFreePicture (display, destination);
+	}
+      else
+	XRenderComposite (display, (s->img->mask_picture
+				    ? PictOpOver : PictOpSrc),
+			  s->img->picture, s->img->mask_picture,
+			  destination, srcX, srcY, srcX, srcY,
+			  dstX, dstY, width, height);
 
-      XRenderFreePicture (display, destination);
       return;
     }
 #endif
@@ -9629,6 +9655,7 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
 	     srcX, srcY,
 	     width, height, dstX, dstY);
 }
+
 #endif	/* !USE_CAIRO */
 
 
@@ -9707,6 +9734,9 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.height = s->slice.height;
 	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
             x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+#ifdef HAVE_XRENDER
+			       FRAME_X_PICTURE (s->f),
+#endif
 			       s->slice.x + r.x - x, s->slice.y + r.y - y,
                                r.x, r.y, r.width, r.height);
 	}
@@ -9720,7 +9750,12 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (gui_intersect_rectangles (&clip_rect, &image_rect, &r))
-            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+#ifdef HAVE_XRENDER
+			       FRAME_X_PICTURE (s->f),
+#endif
+			       s->slice.x + r.x - x,
+			       s->slice.y + r.y - y,
                                r.x, r.y, r.width, r.height);
 
 	  /* When the image has a mask, we can expect that at
@@ -9886,8 +9921,11 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
 	  XChangeGC (display, s->gc, mask, &xgcv);
 
 	  x_composite_image (s, pixmap,
-                             s->slice.x, s->slice.y,
-                             x, y, s->slice.width, s->slice.height);
+#ifdef HAVE_XRENDER
+			     None,
+#endif
+                             s->slice.x, s->slice.y, x, y,
+			     s->slice.width, s->slice.height);
 	  XSetClipMask (display, s->gc, None);
 	}
       else
@@ -12761,7 +12799,7 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
       /* The last-focus-change time of the device changed, so update the
 	 frame's user time.  */
       x_display_set_last_user_time (dpyinfo, event->time,
-				    event->send_event);
+				    event->send_event, true);
 
       device->focus_frame = mentioned_frame;
       device->focus_frame_time = event->time;
@@ -12771,7 +12809,7 @@ xi_focus_handle_for_device (struct x_display_info *dpyinfo,
       /* The last-focus-change time of the device changed, so update the
 	 frame's user time.  */
       x_display_set_last_user_time (dpyinfo, event->time,
-				    event->send_event);
+				    event->send_event, false);
 
       device->focus_frame = NULL;
 
@@ -14153,7 +14191,8 @@ XTmouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		< dpyinfo->last_mouse_movement_time))
 	  x_display_set_last_user_time (dpyinfo,
 					dpyinfo->last_mouse_movement_time,
-					dpyinfo->last_mouse_movement_time_send_event);
+					dpyinfo->last_mouse_movement_time_send_event,
+					true);
 
 	if ((!f1 || FRAME_TOOLTIP_P (f1))
 	    && (EQ (track_mouse, Qdropping)
@@ -14769,7 +14808,8 @@ xg_scroll_callback (GtkRange *range, GtkScrollType scroll,
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
   if (time != GDK_CURRENT_TIME)
-    x_display_set_last_user_time (dpyinfo, time, true);
+    x_display_set_last_user_time (dpyinfo, time, true,
+				  true);
 
   switch (scroll)
     {
@@ -18091,7 +18131,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		   required for SetInputFocus to work correctly after
 		   taking the input focus.  */
 		x_display_set_last_user_time (dpyinfo, event->xclient.data.l[1],
-					      true);
+					      true, true);
 		goto done;
               }
 
@@ -19079,7 +19119,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case KeyPress:
       x_display_set_last_user_time (dpyinfo, event->xkey.time,
-				    event->xkey.send_event);
+				    event->xkey.send_event,
+				    true);
       ignore_next_mouse_click_timeout = 0;
 
       coding = Qlatin_1;
@@ -19558,7 +19599,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case EnterNotify:
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
-				    event->xcrossing.send_event);
+				    event->xcrossing.send_event, false);
 
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
@@ -19681,7 +19722,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
     case LeaveNotify:
       x_display_set_last_user_time (dpyinfo, event->xcrossing.time,
-				    event->xcrossing.send_event);
+				    event->xcrossing.send_event, false);
 
 #ifdef HAVE_XINPUT2
       /* For whatever reason, the X server continues to deliver
@@ -20496,7 +20537,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       {
 	if (event->xbutton.type == ButtonPress)
 	  x_display_set_last_user_time (dpyinfo, event->xbutton.time,
-					event->xbutton.send_event);
+					event->xbutton.send_event, true);
 
 #ifdef HAVE_XWIDGETS
 	struct xwidget_view *xvw = xwidget_view_from_window (event->xbutton.window);
@@ -20548,7 +20589,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (event->type == ButtonPress)
 	      {
 		x_display_set_last_user_time (dpyinfo, event->xbutton.time,
-					      event->xbutton.send_event);
+					      event->xbutton.send_event, true);
 
 		dpyinfo->grabbed |= (1 << event->xbutton.button);
 		dpyinfo->last_mouse_frame = f;
@@ -21105,7 +21146,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      ev.send_event = enter->send_event;
 
 	      x_display_set_last_user_time (dpyinfo, enter->time,
-					    enter->send_event);
+					    enter->send_event, false);
 
 #ifdef USE_MOTIF
 	      use_copy = true;
@@ -21291,7 +21332,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      x_display_set_last_user_time (dpyinfo, leave->time,
-					    leave->send_event);
+					    leave->send_event, false);
 
 #ifdef HAVE_XWIDGETS
 	      {
@@ -21566,7 +21607,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  state = xi_convert_event_state (xev);
 		  x_display_set_last_user_time (dpyinfo, xev->time,
-						xev->send_event);
+						xev->send_event, true);
 
 		  if (found_valuator)
 		    xwidget_scroll (xv, xev->event_x, xev->event_y,
@@ -21586,7 +21627,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  if (found_valuator)
 		    {
 		      x_display_set_last_user_time (dpyinfo, xev->time,
-						    xev->send_event);
+						    xev->send_event, true);
 
 
 #if defined USE_GTK && !defined HAVE_GTK3
@@ -22077,7 +22118,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      if (xev->evtype == XI_ButtonPress)
 			{
 			  x_display_set_last_user_time (dpyinfo, xev->time,
-							xev->send_event);
+							xev->send_event, true);
 
 			  dpyinfo->grabbed |= (1 << xev->detail);
 			  dpyinfo->last_mouse_frame = f;
@@ -22120,7 +22161,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 			  if (xev->flags & XIPointerEmulated)
 			    x_display_set_last_user_time (dpyinfo, xev->time,
-							  xev->send_event);
+							  xev->send_event, true);
 #endif
 			  x_dnd_note_self_wheel (dpyinfo,
 						 x_dnd_last_seen_window,
@@ -22356,7 +22397,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	      if (xev->evtype == XI_ButtonPress)
 		x_display_set_last_user_time (dpyinfo, xev->time,
-					      xev->send_event);
+					      xev->send_event, true);
 
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
@@ -22735,7 +22776,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #endif
 
 	      x_display_set_last_user_time (dpyinfo, xev->time,
-					    xev->send_event);
+					    xev->send_event, true);
 	      ignore_next_mouse_click_timeout = 0;
 
 	      f = x_any_window_to_frame (dpyinfo, xev->event);
@@ -23374,7 +23415,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time,
-					    xev->send_event);
+					    xev->send_event, true);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -23472,7 +23513,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time,
-					    xev->send_event);
+					    xev->send_event, true);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -23519,7 +23560,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, xev->time,
-					    xev->send_event);
+					    xev->send_event, true);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -23560,7 +23601,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      device = xi_device_from_id (dpyinfo, pev->deviceid);
 	      source = xi_device_from_id (dpyinfo, pev->sourceid);
 	      x_display_set_last_user_time (dpyinfo, pev->time,
-					    pev->send_event);
+					    pev->send_event, true);
 
 	      if (!device)
 		goto XI_OTHER;
@@ -27995,6 +28036,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   Window window = FRAME_OUTER_WINDOW (f);
 #ifdef USE_X_TOOLKIT
   WMShellWidget shell;
+  bool hints_changed;
 #endif
 
   if (!window)
@@ -28021,8 +28063,9 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 	  shell->wm.size_hints.flags |= USPosition;
 	}
 
-      widget_update_wm_size_hints (f->output_data.x->widget,
-				   f->output_data.x->edit_widget);
+      hints_changed
+	= widget_update_wm_size_hints (f->output_data.x->widget,
+				       f->output_data.x->edit_widget);
 
 #ifdef USE_MOTIF
       /* Do this all over again for the benefit of Motif, which always
@@ -28035,6 +28078,7 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 	  shell->wm.size_hints.flags &= ~PPosition;
 	  shell->wm.size_hints.flags |= USPosition;
 	}
+#endif
 
       /* Drill hints into Motif, since it keeps setting its own.  */
       size_hints.flags = shell->wm.size_hints.flags;
@@ -28052,15 +28096,23 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
       size_hints.min_aspect.y = shell->wm.size_hints.min_aspect.y;
       size_hints.max_aspect.x = shell->wm.size_hints.max_aspect.x;
       size_hints.max_aspect.y = shell->wm.size_hints.max_aspect.y;
-#ifdef HAVE_X11XTR6
       size_hints.base_width = shell->wm.base_width;
       size_hints.base_height = shell->wm.base_height;
       size_hints.win_gravity = shell->wm.win_gravity;
-#endif
 
+#ifdef USE_MOTIF
       XSetWMNormalHints (XtDisplay (f->output_data.x->widget),
 			 XtWindow (f->output_data.x->widget),
 			 &size_hints);
+#else
+      /* In many cases, widget_update_wm_size_hints will not have
+	 updated the size hints if only flags changed.  When that
+	 happens, set the WM hints manually.  */
+
+      if (!hints_changed)
+	XSetWMNormalHints (XtDisplay (f->output_data.x->widget),
+			   XtWindow (f->output_data.x->widget),
+			   &size_hints);
 #endif
 
       return;
@@ -28475,9 +28527,10 @@ xi_check_toolkit (Display *display)
 
 #endif
 
-/* Open a connection to X display DISPLAY_NAME, and return
-   the structure that describes the open display.
-   If we cannot contact the display, return null.  */
+/* Open a connection to X display DISPLAY_NAME, and return the
+   structure that describes the open display.  If obtaining the XCB
+   connection or toolkit-specific display fails, return NULL.  Signal
+   an error if opening the display itself failed.  */
 
 struct x_display_info *
 x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
@@ -28504,8 +28557,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ++x_initialized;
     }
 
-  if (! x_display_ok (SSDATA (display_name)))
+#if defined USE_X_TOOLKIT || defined USE_GTK
+
+  if (!x_display_ok (SSDATA (display_name)))
     error ("Display %s can't be opened", SSDATA (display_name));
+
+#endif
 
 #ifdef USE_GTK
   {
@@ -28633,6 +28690,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* Detect failure.  */
   if (dpy == 0)
     {
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+      /* Avoid opening a display three times (once in dispextern.c
+	 upon startup, once in x_display_ok, and once above) to
+	 determine whether or not the display is alive on no toolkit
+	 builds, where no toolkit initialization happens at all.  */
+
+      error ("Display %s can't be opened", SSDATA (display_name));
+#endif
+
       unblock_input ();
       return 0;
     }

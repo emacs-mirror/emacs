@@ -8323,7 +8323,7 @@ the appropriate statement modifier."
 				  'cperl-short-docs
 				  'variable-documentation))))
 	 (Man-switches "")
-	 (manual-program (if is-func "perldoc -f" "perldoc")))
+         (manual-program (concat "perldoc -i" (if is-func " -f"))))
     (Man-getpage-in-background word)))
 
 ;;;###autoload

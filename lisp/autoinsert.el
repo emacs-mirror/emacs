@@ -168,7 +168,7 @@ If this contains a %s, that will be replaced by the matching rule."
 
     (".dir-locals.el"
      nil
-     ";;; Directory Local Variables\n"
+     ";;; Directory Local Variables         -*- no-byte-compile: t; -*-\n"
      ";;; For more information see (info \"(emacs) Directory Variables\")\n\n"
      "(("
      '(setq v1 (let (modes)

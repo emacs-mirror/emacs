@@ -47,7 +47,7 @@
 ;; The original pulse code was written for semantic tag highlighting.
 ;; It has been extracted, and adapted for general purpose pulsing.
 ;;
-;; Pulse is a part of CEDET.  http://cedet.sf.net
+;; Pulse is a part of CEDET.  https://cedet.sourceforge.net
 
 (require 'color)
 

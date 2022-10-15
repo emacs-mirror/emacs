@@ -6684,32 +6684,32 @@ time window change functions were run for @var{window}'s frame.  If it
 returns @code{nil}, @var{window} has been created after that.  If it
 returns @code{t}, @var{window} was not shown at that time but has been
 restored from a previously saved window configuration afterwards.
-Otherwise, the return value is the buffer shown by @code{window} at
+Otherwise, the return value is the buffer shown by @var{window} at
 that time.
 @end defun
 
 @defun window-old-pixel-width &optional window
 This function returns the total pixel width of @var{window} the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-pixel-height &optional window
 This function returns the total pixel height of @var{window} the last
-time window change functions found @code{window} live on its frame.
-It is zero if @code{window} was created after that.
+time window change functions found @var{window} live on its frame.
+It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-width &optional window
 This function returns the pixel width of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 @defun window-old-body-pixel-height &optional window
 This function returns the pixel height of @var{window}'s text area the
-last time window change functions found @code{window} live on its
-frame.  It is zero if @code{window} was created after that.
+last time window change functions found @var{window} live on its
+frame.  It is zero if @var{window} was created after that.
 @end defun
 
 In order to find out which window or frame was selected the last time

@@ -1294,6 +1294,11 @@ currently selected window instead."
         (let ((file (url-unhex-string (url-filename parsed))))
           (when-let ((coding (browse-url--file-name-coding-system)))
             (setq file (decode-coding-string file 'utf-8)))
+          ;; The local-part of file: URLs on Windows is supposed to
+          ;; start with an extra slash.
+          (when (eq system-type 'windows-nt)
+            (setq file (replace-regexp-in-string
+                        "\\`/\\([a-z]:\\)" "\\1" file)))
           (funcall func file))
       (let ((file-name-handler-alist
              (cons (cons url-handler-regexp 'url-file-handler)

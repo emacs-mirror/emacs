@@ -26,8 +26,11 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme light-blue
-  "Face colors utilizing a light blue background.")
+  "Face colors utilizing a light blue background."
+  :background-mode 'light
+  :kind 'color-scheme)
 
 (make-obsolete 'light-blue nil "29.1")
 

@@ -2432,7 +2432,7 @@ emacs_pipe (int fd[2])
 
 /* Approximate posix_close and POSIX_CLOSE_RESTART well enough for Emacs.
    For the background behind this mess, please see Austin Group defect 529
-   <http://austingroupbugs.net/view.php?id=529>.  */
+   <https://austingroupbugs.net/view.php?id=529>.  */
 
 #ifndef POSIX_CLOSE_RESTART
 # define POSIX_CLOSE_RESTART 1

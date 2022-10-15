@@ -4179,11 +4179,15 @@ x_window (struct frame *f)
 	{
 	  /* XIM server might require some X events. */
 	  unsigned long fevent = NoEventMask;
-	  XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
-	  attributes.event_mask |= fevent;
-	  attribute_mask = CWEventMask;
-	  XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-				   attribute_mask, &attributes);
+
+	  if (fevent)
+	    {
+	      XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	      attributes.event_mask |= fevent;
+	      attribute_mask = CWEventMask;
+	      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				       attribute_mask, &attributes);
+	    }
 	}
     }
 #endif /* HAVE_X_I18N */

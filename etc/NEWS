@@ -1024,6 +1024,12 @@ The apropos commands will now select the apropos window if
 If the symbol at point is a keymap, 'describe-keymap' suggests it as
 the default candidate.
 
+---
+*** New command 'help-quick' displays an overview of common commands.
+The command pops up a buffer at the bottom of the screen with a few
+helpful commands for various tasks.  You can toggle the display using
+'C-h q'.
+
 ** Outline Mode
 
 +++
@@ -1375,6 +1381,11 @@ the ecomplete database.
 ---
 *** New user option 'ecomplete-auto-select'.
 If non-nil and there's only one matching option, auto-select that.
+
+---
+*** New user option 'ecomplete-filter-regexp'.
+If non-nil, this user option describes what entries not to add to the
+database stored on disk.
 
 ** Dired
 
@@ -1897,7 +1908,7 @@ If non-nil, multiple revisions can be queried.  This is done using
 'completing-read-multiple'.
 
 ---
-*** New function 'vc-read-multiple-revisions'
+*** New function 'vc-read-multiple-revisions'.
 This function invokes 'vc-read-revision' with a non-nil value for
 MULTIPLE.
 
@@ -1905,7 +1916,7 @@ MULTIPLE.
 *** New command 'vc-prepare-patch'.
 Patches for any version control system can be prepared using VC.  The
 command will query what commits to send and will compose messages for
-your mail user agent.  The behaviour of 'vc-prepare-patch' can be
+your mail user agent.  The behavior of 'vc-prepare-patch' can be
 modified by the user options 'vc-prepare-patches-separately' and
 'vc-default-patch-addressee'.
 
@@ -2860,6 +2871,11 @@ Previously, ';;;###' specs inside a top-level form (i.e., something
 like '(when ... ;;;### ...)' would be ignored.  They are now parsed as
 normal.
 
+---
+** Themes have special autoload cookies.
+All build-in themes are scraped for ;;;###theme-autoload cookies that
+are loaded along with the regular auto-loaded code.
+
 +++
 ** 'buffer-modified-p' has been extended.
 This function was previously documented to return only nil or t.  This
@@ -3171,6 +3187,13 @@ The following generalized variables have been made obsolete:
 
 
 * Lisp Changes in Emacs 29.1
+
++++
+** New accessor function 'file-attribute-file-identifier'.
+It returns the list of the inode number and device identifier
+retrieved by 'file-attributes'.  This value can be used to identify a
+file uniquely.  The device identifier can be a single number or (for
+remote files) a cons of 2 numbers.
 
 +++
 ** New macro 'while-let'.

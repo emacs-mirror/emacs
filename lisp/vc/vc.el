@@ -1926,6 +1926,13 @@ Return t if the buffer had changes, nil otherwise."
   "History for `vc-read-revision'.")
 
 (defun vc-read-revision (prompt &optional files backend default initial-input multiple)
+  "Query the user for a revision using PROMPT.
+All subsequent arguments are optional.  FILES may specify a file
+set to restrict the revisions to.  BACKEND is a VC backend as
+listed in `vc-handled-backends'.  DEFAULT and INITIAL-INPUT are
+handled as defined by `completing-read'.  If MULTIPLE is non-nil,
+the user may be prompted for multiple revisions.  If possible
+this means that `completing-read-multiple' will be used."
   (cond
    ((null files)
     (let ((vc-fileset (vc-deduce-fileset t))) ;FIXME: why t?  --Stef
@@ -1947,6 +1954,10 @@ Return t if the buffer had changes, nil otherwise."
           answer)))))
 
 (defun vc-read-multiple-revisions (prompt &optional files backend default initial-input)
+  "Query the user for multiple revisions.
+This is equivalent to invoking `vc-read-revision' with t for
+MULTIPLE.  The arguments PROMPT, FILES, BACKEND, DEFAULT and
+INITIAL-INPUT are passed on to `vc-read-revision' directly."
   (vc-read-revision prompt files backend default initial-input t))
 
 (defun vc-diff-build-argument-list-internal (&optional fileset)
@@ -3287,10 +3298,11 @@ immediately after this one."
             (apply #'vc-user-edit-command (apply old args))))))
 
 (defcustom vc-prepare-patches-separately t
-  "Non-nil means that `vc-prepare-patch' creates a single message.
-A single message is created by attaching all patches to the body
-of a single message.  If nil, each patch will be sent out in a
-separate message, which will be prepared sequentially."
+  "Whether `vc-prepare-patch' should generate a separate message for each patch.
+If nil, `vc-prepare-patch' creates a single email message by attaching
+all the patches to the body of that message.  If non-nil, each patch
+will be sent out in a separate message, and the messages will be
+prepared sequentially."
   :type 'boolean
   :safe #'booleanp
   :version "29.1")
@@ -3308,7 +3320,7 @@ If nil, no default will be used.  This option may be set locally."
                   (buffer &optional type description disposition))
 (declare-function log-view-get-marked "log-view" ())
 
-(defun vc-default-prepare-patch (rev)
+(defun vc-default-prepare-patch (_backend rev)
   (let ((backend (vc-backend buffer-file-name)))
     (with-current-buffer (generate-new-buffer " *vc-default-prepare-patch*")
       (vc-diff-internal
@@ -3325,15 +3337,21 @@ If nil, no default will be used.  This option may be set locally."
 ;;;###autoload
 (defun vc-prepare-patch (addressee subject revisions)
   "Compose an Email sending patches for REVISIONS to ADDRESSEE.
-If `vc-prepare-patches-separately' is non-nil, SUBJECT will be used
-as the default subject for the message.  Otherwise a separate
-message will be composed for each revision.
+If `vc-prepare-patches-separately' is nil, SUBJECT will be used
+as the default subject for the message (and it will be prompted
+for when called interactively).  Otherwise a separate message
+will be composed for each revision, with SUBJECT derived from the
+invidividual commits.
 
 When invoked interactively in a Log View buffer with marked
-revisions, these revisions will be used."
+revisions, those revisions will be used."
   (interactive
-   (let ((revs (or (log-view-get-marked)
-                   (vc-read-multiple-revisions "Revisions: ")))
+   (let ((revs (vc-read-multiple-revisions
+                "Revisions: " nil nil nil
+                (or (and-let* ((revs (log-view-get-marked)))
+                      (mapconcat #'identity revs ","))
+                    (and-let* ((file (buffer-file-name)))
+                      (vc-working-revision file)))))
          to)
      (require 'message)
      (while (null (setq to (completing-read-multiple
@@ -3357,7 +3375,8 @@ revisions, these revisions will be used."
                               'prepare-patch rev))
                            revisions)))
       (if vc-prepare-patches-separately
-          (dolist (patch patches)
+          (dolist (patch (reverse patches)
+                         (message "Prepared %d patches..." (length patches)))
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
@@ -3368,8 +3387,7 @@ revisions, these revisions will be used."
               (insert-buffer-substring
                (plist-get patch :buffer)
                (plist-get patch :body-start)
-               (plist-get patch :body-end)))
-            (recursive-edit))
+               (plist-get patch :body-end))))
         (compose-mail addressee subject nil nil nil nil
                       (mapcar
                        (lambda (p)

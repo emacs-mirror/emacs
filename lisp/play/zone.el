@@ -103,9 +103,24 @@ If the element is a function or a list of a function and a number,
                  program))))
 
 ;;;###autoload
-(defun zone ()
-  "Zone out, completely."
-  (interactive)
+(defun zone (&optional pgm)
+  "Zone out, completely.
+With a prefix argument the user is prompted for a program to run.
+When called from Lisp the optional argument PGM can be used to
+run a specific program.  The program must be a member of
+`zone-programs'."
+  (interactive
+   (and current-prefix-arg
+        (let ((choice (completing-read
+                       "Program: "
+                       (mapcar
+                        (lambda (prog)
+                          (substring (symbol-name prog) 9))
+                        zone-programs)
+                       nil t)))
+          (list (intern (concat "zone-pgm-" choice))))))
+  (unless pgm
+    (setq pgm (aref zone-programs (random (length zone-programs)))))
   (save-window-excursion
     (let ((f (selected-frame))
           (outbuf (get-buffer-create "*zone*"))
@@ -125,8 +140,7 @@ If the element is a function or a list of a function and a number,
       (set-window-start (selected-window) (point-min))
       (set-window-point (selected-window) wp)
       (sit-for 0 500)
-      (let ((pgm (elt zone-programs (random (length zone-programs))))
-            (ct (and f (frame-parameter f 'cursor-type)))
+      (let ((ct (and f (frame-parameter f 'cursor-type)))
             (show-trailing-whitespace nil)
             restore)
         (when ct

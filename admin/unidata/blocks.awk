@@ -23,7 +23,7 @@
 ### Commentary:
 
 ## This script takes as input Unicode's Blocks.txt
-## (http://www.unicode.org/Public/UNIDATA/Blocks.txt)
+## (https://www.unicode.org/Public/UNIDATA/Blocks.txt)
 ## and produces output for Emacs's lisp/international/charscript.el.
 
 ## It lumps together all the blocks belonging to the same language.

@@ -458,7 +458,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; The Windows version doesn't report meaningful inode numbers, so
 	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
-			(nthcdr 10 (file-attributes this-dir))))
+			(file-attribute-file-identifier
+                         (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)

@@ -187,7 +187,7 @@ X11 is being used.
     libz (for PNG):   https://www.zlib.net/
   X libjpeg for JPEG: https://www.ijg.org/
   X libtiff for TIFF: http://www.simplesystems.org/libtiff/
-  X libgif for GIF:   http://giflib.sourceforge.net/
+  X libgif for GIF:   https://giflib.sourceforge.net/
     librsvg2 for SVG: https://wiki.gnome.org/Projects/LibRsvg
     libwebp for WebP: https://developers.google.com/speed/webp/
 

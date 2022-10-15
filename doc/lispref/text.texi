@@ -5321,9 +5321,12 @@ This has exactly the same effect as the previous example, but is more
 efficient and safer (because it doesn't involve any string parsing or
 interpolation).
 
-@code{sqlite-execute} returns the number of affected rows.  For
-instance, an @samp{insert} statement will return @samp{1}, whereas an
-@samp{update} statement may return zero or a higher number.
+@code{sqlite-execute} usually returns the number of affected rows.
+For instance, an @samp{insert} statement will typically return
+@samp{1}, whereas an @samp{update} statement may return zero or a
+higher number.  However, when using @acronym{SQL} statements like
+@w{@samp{insert into @dots{} returning @dots{}}} and the like, the values
+specified by @w{@samp{returning @dots{}}} will be returned instead.
 
 Strings in SQLite are, by default, stored as @code{utf-8}, and
 selecting a text column will decode the string using that charset.

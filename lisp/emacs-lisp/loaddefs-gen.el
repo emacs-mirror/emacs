@@ -283,6 +283,12 @@ expression, in which case we want to handle forms differently."
            ,@(when-let ((safe (plist-get props :safe)))
                `((put ',varname 'safe-local-variable ,safe))))))
 
+     ;; Extract theme properties.
+     ((eq car 'deftheme)
+      (let* ((name (car-safe (cdr-safe form)))
+	     (props (nthcdr 3 form)))
+	`(put ',name 'theme-properties (list ,@props))))
+
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for
       ;; third party packages, it can be convenient to explicitly autoload
@@ -730,7 +736,14 @@ rules for built-in packages and excluded files."
      ;; updated.
      (file-newer-than-file-p
       (expand-file-name "emacs-lisp/loaddefs-gen.el" lisp-directory)
-      output-file))))
+      output-file)))
+  (let ((lisp-mode-autoload-regexp
+           "^;;;###\\(\\(noexist\\)-\\)?\\(theme-autoload\\)"))
+      (loaddefs-generate
+       (expand-file-name "../etc/themes/" lisp-directory)
+       (expand-file-name "theme-loaddefs.el" lisp-directory))))
+
+;;;###autoload (load "theme-loaddefs.el")
 
 (provide 'loaddefs-gen)
 

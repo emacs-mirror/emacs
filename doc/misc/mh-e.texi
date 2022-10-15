@@ -3082,7 +3082,7 @@ retracted---without question@footnote{In previous versions of MH-E,
 this option suppressed the confirmation in @code{mh-kill-folder}.
 Since this kept most users from setting this option,
 @code{mh-kill-folder} was modified in version 6.0 to always ask for
-confirmation subject to @code{mh-kill-folder-suppress-prompt-hook}.
+confirmation subject to @code{mh-kill-folder-suppress-prompt-functions}.
 @xref{Folders}.}.
 
 @cindex MH-Folder mode
@@ -3364,7 +3364,7 @@ Hook run by q before quitting MH-E (default: @code{nil}).
 Hook run by @code{mh-folder-mode} when visiting a new folder (default:
 @code{nil}).
 @c -------------------------
-@item mh-kill-folder-suppress-prompt-hook
+@item mh-kill-folder-suppress-prompt-functions
 Abnormal hook run at the beginning of @code{mh-kill-folder} (default:
 @code{'mh-search-p}).
 @c -------------------------
@@ -7540,8 +7540,8 @@ Allowlisted message face
 @cindex spam filters, bogofilter
 
 MH-E depends on @uref{https://spamassassin.apache.org/, SpamAssassin},
-@uref{http://bogofilter.sourceforge.net/, bogofilter}, or
-@uref{http://spamprobe.sourceforge.net/, SpamProbe} to throw the dreck
+@uref{https://bogofilter.sourceforge.net/, bogofilter}, or
+@uref{https://spamprobe.sourceforge.net/, SpamProbe} to throw the dreck
 away. This chapter describes briefly how to configure these programs
 to work well with MH-E and how to use MH-E's interface that provides
 continuing education for these programs.
@@ -7721,7 +7721,7 @@ done by adding the following to your @file{crontab}:
 
 Bogofilter is a Bayesian spam filtering program. Get it from your
 local distribution or from the
-@uref{http://bogofilter.sourceforge.net/, bogofilter web site}.
+@uref{https://bogofilter.sourceforge.net/, bogofilter web site}.
 
 Bogofilter is taught by running:
 
@@ -7791,7 +7791,7 @@ bogofilter.
 @cindex spam filters, SpamProbe
 
 SpamProbe is a Bayesian spam filtering program. Get it from your local
-distribution or from the @uref{http://spamprobe.sourceforge.net,
+distribution or from the @uref{https://spamprobe.sourceforge.net,
 SpamProbe web site}.
 
 To use SpamProbe, add the following recipes to @file{~/.procmailrc}:
@@ -8633,7 +8633,7 @@ via SourceForge (@pxref{Bug Reports}).
 @cindex FAQ
 @cindex MH FAQ
 
-The article @uref{http://www.newt.com/faq/mh.html, @cite{MH Frequently
+The article @uref{https://www.newt.com/faq/mh.html, @cite{MH Frequently
 Asked Questions (FAQ) with Answers}} appears monthly in the newsgroup
 @samp{comp.mail.mh}. While very little is there that deals with MH-E
 specifically, there is an incredible wealth of material about MH

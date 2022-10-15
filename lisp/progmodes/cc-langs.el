@@ -93,7 +93,7 @@
 ;; definitions (i.e. this file and/or cc-fonts.el) if necessary.
 ;;
 ;; A small example of a derived mode is available at
-;; <http://cc-mode.sourceforge.net/derived-mode-ex.el>.  It also
+;; <https://cc-mode.sourceforge.net/derived-mode-ex.el>.  It also
 ;; contains some useful hints for derived mode developers.
 
 ;;; Using language variables:
@@ -1449,8 +1449,7 @@ form\".  See also `c-op-identifier-prefix'."
 	 "??'=" "xor_eq" "&=" "and_eq" "|=" "??!=" "or_eq"
 	 "<<" ">>" ">>=" "<<=" "==" "!=" "not_eq" "<=>" "<=" ">="
 	 "&&" "and" "||" "??!??!" "or" "++" "--" "," "->*" "->"
-	 "()" "[]" "<::>" "??(??)")
-  ;; These work like identifiers in Pike.
+	 "()" "[]" "\"\"" "<::>" "??(??)")
   pike '("`+" "`-" "`&" "`|" "`^" "`<<" "`>>" "`*" "`/" "`%" "`~"
 	 "`==" "`<" "`>" "`!" "`[]" "`[]=" "`->" "`->=" "`()" "``+"
 	 "``-" "``&" "``|" "``^" "``<<" "``>>" "``*" "``/" "``%"
@@ -2935,6 +2934,15 @@ regexp if `c-colon-type-list-kwds' isn't nil."
 		    "\\)*:")
 	  "[^][{}();,/#=:]*:")))
 (c-lang-defvar c-colon-type-list-re (c-lang-const c-colon-type-list-re))
+
+(c-lang-defconst c-sub-colon-type-list-re
+  "Regexp matching buffer content that may come between a keyword in
+`c-colon-type-list-kwds' and a putative colon, or nil if there are no
+such keywords.  Exception: it does not match any C++ attributes."
+  t (if (c-lang-const c-colon-type-list-re)
+	(substring (c-lang-const c-colon-type-list-re) 0 -1)))
+(c-lang-defvar c-sub-colon-type-list-re
+  (c-lang-const c-sub-colon-type-list-re))
 
 (c-lang-defconst c-paren-nontype-kwds
   "Keywords that may be followed by a parenthesis expression that doesn't

@@ -19,11 +19,14 @@
 
 ;;; Code:
 
+;;;###theme-autoload
 (deftheme wheatgrass
   "High-contrast green/blue/brown faces on a black background.
 Basic, Font Lock, Isearch, Gnus, and Message faces are included.
 The default face foreground is wheat, with other faces in shades
-of green, brown, and blue.")
+of green, brown, and blue."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

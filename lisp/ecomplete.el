@@ -70,9 +70,9 @@
   :type '(symbol :tag "Coding system"))
 
 (defcustom ecomplete-sort-predicate #'ecomplete-decay
-  "Predicate to use when sorting matched.
-The predicate is called with two parameters that represent the
-completion.  Each parameter is a list where the first element is
+  "Predicate to use when sorting matched ecomplete candidates.
+The predicate is called with two arguments that represent the
+completion.  Each argument is a list where the first element is
 the times the completion has been used, the second is the
 timestamp of the most recent usage, and the third item is the
 string that was matched."
@@ -84,6 +84,11 @@ string that was matched."
 (defcustom ecomplete-auto-select nil
   "Whether `ecomplete-display-matches' should automatically select a sole option."
   :type 'boolean
+  :version "29.1")
+
+(defcustom ecomplete-filter-regexp nil
+  "Regular expression of addresses that should not be stored by ecomplete."
+  :type 'regexp
   :version "29.1")
 
 ;;; Internal variables.
@@ -104,20 +109,22 @@ string that was matched."
 By default, the longest version of TEXT will be preserved, but if
 FORCE is non-nil, use TEXT exactly as is."
   (unless ecomplete-database (ecomplete-setup))
-  (let ((elems (assq type ecomplete-database))
-	(now (time-convert nil 'integer))
-	entry)
-    (unless elems
-      (push (setq elems (list type)) ecomplete-database))
-    (if (setq entry (assoc key (cdr elems)))
-	(pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
-	  (setcdr entry (list (1+ count) now
-	                      ;; Preserve the "more complete" text.
-	                      (if (or force
-                                      (>= (length text) (length oldtext)))
-	                          text
-                                oldtext))))
-      (nconc elems (list (list key 1 now text))))))
+  (unless (and ecomplete-filter-regexp
+               (string-match-p ecomplete-filter-regexp key))
+    (let ((elems (assq type ecomplete-database))
+          (now (time-convert nil 'integer))
+          entry)
+      (unless elems
+        (push (setq elems (list type)) ecomplete-database))
+      (if (setq entry (assoc key (cdr elems)))
+          (pcase-let ((`(,_key ,count ,_time ,oldtext) entry))
+            (setcdr entry (list (1+ count) now
+                                ;; Preserve the "more complete" text.
+                                (if (or force
+                                        (>= (length text) (length oldtext)))
+                                    text
+                                  oldtext))))
+        (nconc elems (list (list key 1 now text)))))))
 
 (defun ecomplete--remove-item (type key)
   "Remove the element of TYPE and KEY from the ecomplete database."
@@ -289,7 +296,7 @@ non-nil and there is only a single completion option available."
                      nil t)))
 
 (defun ecomplete-edit ()
-  "Prompt for an item and allow editing it."
+  "Prompt for an ecomplete item and allow editing it."
   (interactive)
   (let* ((type (ecomplete--prompt-type))
          (data (cdr (assq type ecomplete-database)))
@@ -305,7 +312,8 @@ non-nil and there is only a single completion option available."
     (ecomplete-save)))
 
 (defun ecomplete-remove ()
-  "Remove entries matching a regexp from the ecomplete database."
+  "Remove from the ecomplete database the entries matching a regexp.
+Prompt for the regexp to match the database entries to be removed."
   (interactive)
   (let* ((type (ecomplete--prompt-type))
          (data (cdr (assq type ecomplete-database)))

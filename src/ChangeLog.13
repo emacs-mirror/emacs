@@ -11147,7 +11147,7 @@
 2013-11-01  Claudio Bley  <claudio.bley@googlemail.com>
 
 	* image.c (pbm_next_char): New function.
-	See http://netpbm.sourceforge.net/doc/pbm.html for the details.
+	See https://netpbm.sourceforge.net/doc/pbm.html for the details.
 	(pbm_scan_number): Use it.
 	(Qlibjpeg_version): New variable.
 	(syms_of_image): DEFSYM and initialize it.
@@ -14215,7 +14215,7 @@
 	* w32.c (PEXCEPTION_POINTERS, PEXCEPTION_RECORD, PCONTEXT): Define
 	variables of these types so that GDB would know about them, as aid
 	for debugging fatal exceptions.  (Bug#15024)  See also
-	http://sourceware.org/ml/gdb/2013-08/msg00010.html for related
+	https://sourceware.org/ml/gdb/2013-08/msg00010.html for related
 	discussions.
 
 2013-08-08  Jan Djärv  <jan.h.d@swipnet.se>
