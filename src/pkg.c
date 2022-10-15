@@ -661,12 +661,7 @@ pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
   const Lisp_Object name = SYMBOLP (symbol) ? SYMBOL_NAME (symbol) : symbol;
   CHECK_STRING (name);
 
-  /* This is presumable an obarray, and we are intending
-     to intern into the default pacakge.  */
-  if (VECTORP (package))
-    package = Vearmuffs_package;
   package = package_or_default (package);
-
   Lisp_Object found = lookup_symbol (name, package);
   if (!EQ (found, Qunbound))
     {

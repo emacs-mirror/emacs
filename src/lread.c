@@ -4785,7 +4785,6 @@ A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
   (Lisp_Object string, Lisp_Object package)
 {
-  /* PKG-FIXME: What's the right thing to do */
   eassert (SREF (string, 0) != ':');
   return pkg_emacs_intern (string, package);
 }
