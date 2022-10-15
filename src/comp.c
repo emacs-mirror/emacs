@@ -5523,8 +5523,21 @@ The last directory of this list is assumed to be the system one.  */);
   Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* If non-nil enable primitive trampoline synthesis.
-This makes primitive functions redefinable or advisable effectively.  */);
+	       doc: /* If non-nil, enable primitive trampoline synthesis.
+This makes Emacs respect redefinition or advises of primitive functions
+when they are called from Lisp code natively-compiled at `native-comp-speed'
+of 2.
+
+By default, this is enabled, and when Emacs sees a redefined or advised
+primitive called from natively-compiled Lisp, it generates a trampoline
+for it on-the-fly.
+
+Disabling this, when a trampoline for a redefined or advised primitive is
+not available from previous compilations, means that such redefinition
+or advise will not have effect on calls from natively-compiled Lisp code.
+That is, calls to primitives without existing trampolines from
+natively-compiled Lisp will behave as if the primitive was called
+directly from C.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> installed trampoline.
