@@ -1004,7 +1004,7 @@ incompatible with the --with-dumping=unexec option of 'configure'.
 
 ** Running Emacs under Valgrind
 
-Valgrind <http://valgrind.org/> is free software that can be useful
+Valgrind <https://valgrind.org/> is free software that can be useful
 when debugging low-level Emacs problems.  Unlike GCC sanitizers,
 Valgrind does not need you to compile Emacs with special debugging
 flags, so it can be helpful in investigating problems that vanish when

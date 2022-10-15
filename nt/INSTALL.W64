@@ -19,7 +19,7 @@ Emacs with the full repository, or less if you're using a release tarball.
 * Set up the MinGW-w64 / MSYS2 build environment
 
 MinGW-w64 provides a complete runtime for projects built with GCC for 64-bit
-Windows -- it's located at http://mingw-w64.org/.
+Windows -- it's located at https://mingw-w64.org/.
 
 MSYS2 is a Cygwin-derived software distribution for Windows which provides
 build tools for MinGW-w64 -- see https://msys2.github.io/.

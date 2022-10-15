@@ -509,7 +509,7 @@ Also for listing fonts, displaying a font as a sample, etc.
 
 ** Program Enriched mode to read and save in RTF
 Is there actually a decent single definition of RTF?  Maybe see info at
-http://latex2rtf.sourceforge.net/.
+https://latex2rtf.sourceforge.net/.
 
 This task seems to be addressed by
 https://savannah.nongnu.org/projects/emacs-rtf/, which is still in

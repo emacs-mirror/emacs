@@ -93,7 +93,7 @@
 ;; definitions (i.e. this file and/or cc-fonts.el) if necessary.
 ;;
 ;; A small example of a derived mode is available at
-;; <http://cc-mode.sourceforge.net/derived-mode-ex.el>.  It also
+;; <https://cc-mode.sourceforge.net/derived-mode-ex.el>.  It also
 ;; contains some useful hints for derived mode developers.
 
 ;;; Using language variables:

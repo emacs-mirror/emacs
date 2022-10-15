@@ -22762,7 +22762,7 @@
 
 	Automatically handle .xz suffix (XZ-compressed files), too.
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add xz.
-	XZ is the successor to LZMA: <http://tukaani.org/xz/>
+	XZ is the successor to LZMA: <https://tukaani.org/xz/>
 
 2009-06-22  Dmitry Dzhus  <dima@sphinx.net.ru>
 	    Nick Roberts  <nickrob@snap.net.nz>
