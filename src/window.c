@@ -5403,12 +5403,13 @@ window_wants_mode_line (struct window *w)
  * Return 1 if window W wants a header line and is high enough to
  * accommodate it, 0 otherwise.
  *
- * W wants a header line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
- * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
- * be higher than its frame's canonical character height and be able to
- * accommodate a mode line too if necessary (the mode line prevails).
+ * W wants a header line if it's a leaf window and neither a
+ * minibuffer nor a pseudo window.  Moreover, its
+ * 'window-header-line-format' parameter must not be 'none' and either
+ * that parameter or W's buffer's 'header-line-format' value must be
+ * non-nil.  Finally, W must be higher than its frame's canonical
+ * character height and be able to accommodate a mode line too if
+ * necessary (the mode line prevails).
  */
 bool
 window_wants_header_line (struct window *w)
@@ -5436,9 +5437,9 @@ window_wants_header_line (struct window *w)
  * accommodate it, 0 otherwise.
  *
  * W wants a tab line if it's a leaf window and neither a minibuffer
- * nor a pseudo window.  Moreover, its 'window-mode-line-format'
+ * nor a pseudo window.  Moreover, its 'window-tab-line-format'
  * parameter must not be 'none' and either that parameter or W's
- * buffer's 'mode-line-format' value must be non-nil.  Finally, W must
+ * buffer's 'tab-line-format' value must be non-nil.  Finally, W must
  * be higher than its frame's canonical character height and be able
  * to accommodate a mode line and a header line too if necessary (the
  * mode line and a header line prevail).
