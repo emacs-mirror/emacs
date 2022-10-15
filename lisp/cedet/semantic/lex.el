@@ -416,7 +416,7 @@ If optional argument PROPSPECS is non-nil, then interpret it, and
 apply those properties.
 PROPSPECS must be a list of (TYPE PROPERTY VALUE)."
   ;; Create the symbol hash table
-  (let* ((semantic-lex-types-obarray (make-vector 13 0))
+  (let* ((semantic-lex-types-obarray (make-package "semantic-lex-types-obarray"))
          spec type tokens token alist default)
     ;; fill it with stuff
     (while specs
