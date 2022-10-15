@@ -1179,16 +1179,17 @@ init_pkg_once (void)
   staticpro (&Vpackage_registry);
   /* PKG-FIXME: Not sure about the purecopy (last arg).  */
   Vpackage_registry = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
-				       DEFAULT_REHASH_SIZE, DEFAULT_REHASH_THRESHOLD,
+				       DEFAULT_REHASH_SIZE,
+				       DEFAULT_REHASH_THRESHOLD,
 				       Qnil, false);
 
-  Vemacs_package = make_package (build_string ("emacs"));
+  Vemacs_package = make_package (build_pure_c_string ("emacs"));
   staticpro (&Vemacs_package);
-  Vkeyword_package = make_package (build_string ("keyword"));
+  Vkeyword_package = make_package (build_pure_c_string ("keyword"));
   register_package (Vemacs_package);
 
   staticpro (&Vkeyword_package);
-  XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
+  XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_pure_c_string (""), Qnil);
   register_package (Vkeyword_package);
 
   staticpro (&Vearmuffs_package);
