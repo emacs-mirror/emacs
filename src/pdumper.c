@@ -2474,8 +2474,6 @@ dump_symbol (struct dump_context *ctx,
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.function, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.package, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.plist, WEIGHT_NORMAL);
-  dump_field_lv_rawptr (ctx, &out, symbol, &symbol->u.s.next, Lisp_Symbol,
-                        WEIGHT_STRONG);
 
   offset = dump_object_finish (ctx, &out, sizeof (out));
   dump_off aux_offset;

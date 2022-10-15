@@ -3626,7 +3626,6 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   SET_SYMBOL_VAL (p, Qunbound);
   set_symbol_function (val, Qnil);
   set_symbol_package (val, Qnil);
-  set_symbol_next (val, NULL);
   p->u.s.gcmarkbit = false;
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
@@ -3648,7 +3647,7 @@ Its value is void, and its function definition and property list are nil.  */)
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list = symbol_free_list->u.s.next;
+      symbol_free_list = next_free_symbol (symbol_free_list);
     }
   else
     {
@@ -4643,8 +4642,7 @@ live_symbol_holding (struct mem_node *m, void *p)
 	  || off == offsetof (struct Lisp_Symbol, u.s.val)
 	  || off == offsetof (struct Lisp_Symbol, u.s.function)
 	  || off == offsetof (struct Lisp_Symbol, u.s.package)
-	  || off == offsetof (struct Lisp_Symbol, u.s.plist)
-	  || off == offsetof (struct Lisp_Symbol, u.s.next))
+	  || off == offsetof (struct Lisp_Symbol, u.s.plist))
 	{
 	  struct Lisp_Symbol *s = p = cp -= off;
 	  if (!deadp (s->u.s.function))
@@ -6941,7 +6939,6 @@ process_mark_stack (ptrdiff_t base_sp)
 	case Lisp_Symbol:
 	  {
 	    struct Lisp_Symbol *ptr = XBARE_SYMBOL (obj);
-	  nextsym:
 	    if (symbol_marked_p (ptr))
 	      break;
 	    CHECK_ALLOCATED_AND_LIVE_SYMBOL ();
@@ -6979,9 +6976,6 @@ process_mark_stack (ptrdiff_t base_sp)
 	      set_string_marked (XSTRING (ptr->u.s.name));
 	    mark_interval_tree (string_intervals (ptr->u.s.name));
 	    /* Inner loop to mark next symbol in this bucket, if any.  */
-	    po = ptr = ptr->u.s.next;
-	    if (ptr)
-	      goto nextsym;
 	  }
 	  break;
 
@@ -7325,7 +7319,7 @@ sweep_symbols (void)
                      time we sweep this symbol_block (bug#29066).  */
                   sym->u.s.redirect = SYMBOL_PLAINVAL;
                 }
-              sym->u.s.next = symbol_free_list;
+              set_next_free_symbol (sym, symbol_free_list);
               symbol_free_list = sym;
               symbol_free_list->u.s.function = dead_object ();
               ++this_free;
@@ -7347,7 +7341,7 @@ sweep_symbols (void)
         {
           *sprev = sblk->next;
           /* Unhook from the free list.  */
-          symbol_free_list = sblk->symbols[0].u.s.next;
+          symbol_free_list = next_free_symbol (&sblk->symbols[0]);
           lisp_free (sblk);
         }
       else

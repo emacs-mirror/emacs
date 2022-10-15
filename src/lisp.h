@@ -873,14 +873,25 @@ struct Lisp_Symbol
 
       /* The symbol's package, or nil.  */
       Lisp_Object package;
-
-      /* Next symbol in obarray bucket, if the symbol is interned.  */
-      struct Lisp_Symbol *next;
     } s;
     GCALIGNED_UNION_MEMBER
   } u;
 };
 verify (GCALIGNED (struct Lisp_Symbol));
+
+INLINE struct Lisp_Symbol *
+next_free_symbol (struct Lisp_Symbol *sym)
+{
+  return *(struct Lisp_Symbol **) sym;
+}
+
+INLINE void
+set_next_free_symbol (struct Lisp_Symbol *sym, struct Lisp_Symbol *free)
+{
+  *(struct Lisp_Symbol **) sym = free;
+}
+
+
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
@@ -3867,12 +3878,6 @@ INLINE void
 set_symbol_plist (Lisp_Object sym, Lisp_Object plist)
 {
   XSYMBOL (sym)->u.s.plist = plist;
-}
-
-INLINE void
-set_symbol_next (Lisp_Object sym, struct Lisp_Symbol *next)
-{
-  XSYMBOL (sym)->u.s.next = next;
 }
 
 INLINE void
