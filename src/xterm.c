@@ -28527,9 +28527,10 @@ xi_check_toolkit (Display *display)
 
 #endif
 
-/* Open a connection to X display DISPLAY_NAME, and return
-   the structure that describes the open display.
-   If we cannot contact the display, return null.  */
+/* Open a connection to X display DISPLAY_NAME, and return the
+   structure that describes the open display.  If obtaining the XCB
+   connection or toolkit-specific display fails, return NULL.  Signal
+   an error if opening the display itself failed.  */
 
 struct x_display_info *
 x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
@@ -28556,8 +28557,12 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       ++x_initialized;
     }
 
-  if (! x_display_ok (SSDATA (display_name)))
+#if defined USE_X_TOOLKIT || defined USE_GTK
+
+  if (!x_display_ok (SSDATA (display_name)))
     error ("Display %s can't be opened", SSDATA (display_name));
+
+#endif
 
 #ifdef USE_GTK
   {
@@ -28685,6 +28690,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* Detect failure.  */
   if (dpy == 0)
     {
+#if !defined USE_X_TOOLKIT && !defined USE_GTK
+      /* Avoid opening a display three times (once in dispextern.c
+	 upon startup, once in x_display_ok, and once above) to
+	 determine whether or not the display is alive on no toolkit
+	 builds, where no toolkit initialization happens at all.  */
+
+      error ("Display %s can't be opened", SSDATA (display_name));
+#endif
+
       unblock_input ();
       return 0;
     }
