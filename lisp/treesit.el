@@ -414,6 +414,9 @@ ignored.
            (when (null current-language)
              (signal 'treesit-font-lock-error
                      `("Language unspecified, use :language keyword to specify a language for this query" ,token)))
+           (when (null current-feature)
+             (signal 'treesit-font-lock-error
+                     `("Feature unspecified, use :feature keyword to specify the feature name for this query" ,token)))
            (if (treesit-compiled-query-p token)
                (push `(,current-language token) result)
              (push `(,(treesit-query-compile current-language token)
