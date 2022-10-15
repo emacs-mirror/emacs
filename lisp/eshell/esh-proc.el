@@ -277,7 +277,23 @@ Used only on systems which do not support async subprocesses.")
 	      eshell-delete-exited-processes
 	    delete-exited-processes))
 	 (process-environment (eshell-environment-variables))
+         (coding-system-for-read coding-system-for-read)
+         (coding-system-for-write coding-system-for-write)
 	 proc stderr-proc decoding encoding changed)
+    ;; MS-Windows needs special setting of encoding/decoding, because
+    ;; (a) non-ASCII text in command-line arguments needs to be
+    ;; encoded in the system's codepage; and (b) because many Windows
+    ;; programs will always interpret any non-ASCII input as encoded
+    ;; in the system codepage.
+    (when (eq system-type 'windows-nt)
+      (or coding-system-for-read        ; Honor manual decoding settings
+          (setq coding-system-for-read
+                (coding-system-change-eol-conversion locale-coding-system
+                                                     'dos)))
+      (or coding-system-for-write       ; Honor manual encoding settings
+          (setq coding-system-for-write
+                (coding-system-change-eol-conversion locale-coding-system
+                                                     'unix))))
     (cond
      ((fboundp 'make-process)
       (unless (equal (car (aref eshell-current-handles eshell-output-handle))
@@ -325,7 +341,7 @@ Used only on systems which do not support async subprocesses.")
 	    (setq decoding (coding-system-change-eol-conversion decoding 'dos)
 		  changed t))
 	;; Even if `make-process' left the coding system for encoding
-	;; data sent from the process undecided, we had better use the
+	;; data sent to the process undecided, we had better use the
 	;; same one as what we use for decoding.  But, we should
 	;; suppress EOL conversion.
 	(if (and decoding (not encoding))
