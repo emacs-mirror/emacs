@@ -1156,7 +1156,7 @@
   (match-expansion
    (use-package foo :custom-face (foo ((t (:background "#e4edfc")))))
    `(progn
-      (custom-set-faces (backquote (foo ((t (:background "#e4edfc"))))))
+      (apply #'face-spec-set (backquote (foo ((t (:background "#e4edfc"))))))
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:custom-face-2 ()
@@ -1166,11 +1166,11 @@
      (example-1-face ((t (:foreground "LightPink"))))
      (example-2-face ((t (:foreground "LightGreen")))))
    `(progn
-     (custom-set-faces
-      (backquote (example-1-face ((t (:foreground "LightPink"))))))
-     (custom-set-faces
-      (backquote (example-2-face ((t (:foreground "LightGreen"))))))
-     (require 'example nil nil))))
+      (apply #'face-spec-set
+             (backquote (example-1-face ((t (:foreground "LightPink"))))))
+      (apply #'face-spec-set
+             (backquote (example-2-face ((t (:foreground "LightGreen"))))))
+      (require 'example nil nil))))
 
 (ert-deftest use-package-test/:init-1 ()
   (match-expansion
