@@ -287,7 +287,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(zlib "zlib1.dll" "libz-1.dll")
        '(lcms2 "liblcms2-2.dll")
        '(json "libjansson-4.dll")
-       '(gccjit "libgccjit-0.dll")))
+       '(gccjit "libgccjit-0.dll")
+       ;; MSYS2 distributes libtree-sitter.dll, without API version
+       ;; number...
+       '(tree-sitter "libtree-sitter.dll" "libtree-sitter-0.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil

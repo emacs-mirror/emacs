@@ -180,6 +180,10 @@ make_ts_parser (Lisp_Object buffer, TSParser *parser,
 Lisp_Object
 make_ts_node (Lisp_Object parser, TSNode node);
 
+extern void ts_delete_parser (struct Lisp_TS_Parser *);
+extern void ts_delete_query (struct Lisp_TS_Query *);
+extern bool ts_named_node_p (TSNode);
+
 extern void syms_of_treesit (void);
 
 INLINE_HEADER_END

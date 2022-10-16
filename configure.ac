@@ -3223,13 +3223,16 @@ if test "${with_tree_sitter}" != "no"; then
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
-    TREE_SITTER_OBJ="treesit.o"
+  fi
+
+  # Windows loads tree-sitter dynamically
+  if test "${opsys}" = "mingw32"; then
+    TREE_SITTER_LIBS=
   fi
 fi
 
 AC_SUBST(TREE_SITTER_LIBS)
 AC_SUBST(TREE_SITTER_CFLAGS)
-AC_SUBST(TREE_SITTER_OBJ)
 
 NOTIFY_OBJ=
 NOTIFY_SUMMARY=no

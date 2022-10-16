@@ -45,9 +45,7 @@
   :type 'integer
   :version "29.1")
 
-(defun treesit-available-p ()
-  "Return non-nil if tree-sitter features are available."
-  (fboundp 'treesit-parser-create))
+(declare-function treesit-available-p "treesit.c")
 
 (defun treesit-can-enable-p ()
   "Return non-nil if current buffer can activate tree-sitter.

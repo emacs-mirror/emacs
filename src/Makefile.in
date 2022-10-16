@@ -345,7 +345,6 @@ JSON_OBJ = @JSON_OBJ@
 
 TREE_SITTER_LIBS = @TREE_SITTER_LIBS@
 TREE_SITTER_CFLAGS = @TREE_SITTER_CFLAGS@
-TREE_SITTER_OBJ = @TREE_SITTER_OBJ@
 
 INTERVALS_H = dispextern.h intervals.h composite.h
 
@@ -445,11 +444,11 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) \
 	profiler.o decompress.o \
-	thread.o systhread.o sqlite.o \
+	thread.o systhread.o sqlite.o treesit.o \
 	$(if $(HYBRID_MALLOC),sheap.o) \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ) \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ) $(JSON_OBJ) \
-	$(TREE_SITTER_OBJ) $(HAIKU_OBJ) $(PGTK_OBJ)
+	$(HAIKU_OBJ) $(PGTK_OBJ)
 doc_obj = $(base_obj) $(NS_OBJC_OBJ)
 obj = $(doc_obj) $(HAIKU_CXX_OBJ)
 

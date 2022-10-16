@@ -20,8 +20,261 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
+
+#if HAVE_TREE_SITTER
+
 #include "treesit.h"
 
+
+/* Dynamic loading of libtree-sitter.  */
+
+#ifdef WINDOWSNT
+# include "w32common.h"
+
+/* In alphabetical order.  */
+#undef ts_language_version
+#undef ts_node_child
+#undef ts_node_child_by_field_name
+#undef ts_node_child_count
+#undef ts_node_descendant_for_byte_range
+#undef ts_node_end_byte
+#undef ts_node_eq
+#undef ts_node_field_name_for_child
+#undef ts_node_first_child_for_byte
+#undef ts_node_first_named_child_for_byte
+#undef ts_node_has_changes
+#undef ts_node_has_error
+#undef ts_node_is_extra
+#undef ts_node_is_missing
+#undef ts_node_is_named
+#undef ts_node_is_null
+#undef ts_node_named_child
+#undef ts_node_named_child_count
+#undef ts_node_named_descendant_for_byte_range
+#undef ts_node_next_named_sibling
+#undef ts_node_next_sibling
+#undef ts_node_parent
+#undef ts_node_prev_named_sibling
+#undef ts_node_prev_sibling
+#undef ts_node_start_byte
+#undef ts_node_string
+#undef ts_node_type
+#undef ts_parser_delete
+#undef ts_parser_included_ranges
+#undef ts_parser_language
+#undef ts_parser_new
+#undef ts_parser_parse
+#undef ts_parser_set_included_ranges
+#undef ts_parser_set_language
+#undef ts_query_capture_name_for_id
+#undef ts_query_cursor_delete
+#undef ts_query_cursor_exec
+#undef ts_query_cursor_new
+#undef ts_query_cursor_next_match
+#undef ts_query_cursor_set_byte_range
+#undef ts_query_delete
+#undef ts_query_new
+#undef ts_query_predicates_for_pattern
+#undef ts_query_string_value_for_id
+#undef ts_set_allocator
+#undef ts_tree_cursor_current_node
+#undef ts_tree_cursor_goto_first_child
+#undef ts_tree_cursor_goto_next_sibling
+#undef ts_tree_cursor_goto_parent
+#undef ts_tree_cursor_new
+#undef ts_tree_delete
+#undef ts_tree_edit
+#undef ts_tree_root_node
+
+DEF_DLL_FN (uint32_t, ts_language_version, (const TSLanguage *));
+DEF_DLL_FN (TSNode, ts_node_child, (TSNode, uint32_t));
+DEF_DLL_FN (TSNode, ts_node_child_by_field_name,
+	    (TSNode, const char *, uint32_t));
+DEF_DLL_FN (uint32_t, ts_node_child_count, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_descendant_for_byte_range,
+	    (TSNode, uint32_t, uint32_t));
+DEF_DLL_FN (uint32_t, ts_node_end_byte, (TSNode));
+DEF_DLL_FN (bool, ts_node_eq, (TSNode, TSNode));
+DEF_DLL_FN (const char *, ts_node_field_name_for_child, (TSNode, uint32_t));
+DEF_DLL_FN (TSNode, ts_node_first_child_for_byte, (TSNode, uint32_t));
+DEF_DLL_FN (TSNode, ts_node_first_named_child_for_byte, (TSNode, uint32_t));
+DEF_DLL_FN (bool, ts_node_has_changes, (TSNode));
+DEF_DLL_FN (bool, ts_node_has_error, (TSNode));
+DEF_DLL_FN (bool, ts_node_is_extra, (TSNode));
+DEF_DLL_FN (bool, ts_node_is_missing, (TSNode));
+DEF_DLL_FN (bool, ts_node_is_named, (TSNode));
+DEF_DLL_FN (bool, ts_node_is_null, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_named_child, (TSNode, uint32_t));
+DEF_DLL_FN (uint32_t, ts_node_named_child_count, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_named_descendant_for_byte_range,
+	    (TSNode, uint32_t, uint32_t));
+DEF_DLL_FN (TSNode, ts_node_next_named_sibling, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_next_sibling, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_parent, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_prev_named_sibling, (TSNode));
+DEF_DLL_FN (TSNode, ts_node_prev_sibling, (TSNode));
+DEF_DLL_FN (uint32_t, ts_node_start_byte, (TSNode));
+DEF_DLL_FN (char *, ts_node_string, (TSNode));
+DEF_DLL_FN (const char *, ts_node_type, (TSNode));
+DEF_DLL_FN (void, ts_parser_delete, (TSParser *));
+DEF_DLL_FN (const TSRange *, ts_parser_included_ranges,
+	    (const TSParser *, uint32_t *));
+DEF_DLL_FN (const TSLanguage *, ts_parser_language, (const TSParser *));
+DEF_DLL_FN (TSParser *, ts_parser_new, (void));
+DEF_DLL_FN (TSTree *, ts_parser_parse, (TSParser *, const TSTree *, TSInput));
+DEF_DLL_FN (bool, ts_parser_set_included_ranges,
+	    (TSParser *, const TSRange *, uint32_t));
+DEF_DLL_FN (bool, ts_parser_set_language, (TSParser *, const TSLanguage *));
+DEF_DLL_FN (const char *, ts_query_capture_name_for_id,
+	    (const TSQuery *, uint32_t, uint32_t *));
+DEF_DLL_FN (void, ts_query_cursor_delete, (TSQueryCursor *));
+DEF_DLL_FN (void, ts_query_cursor_exec,
+	    (TSQueryCursor *, const TSQuery *, TSNode));
+DEF_DLL_FN (TSQueryCursor *, ts_query_cursor_new, (void));
+DEF_DLL_FN (bool, ts_query_cursor_next_match,
+	    (TSQueryCursor *, TSQueryMatch *));
+DEF_DLL_FN (void, ts_query_cursor_set_byte_range,
+	    (TSQueryCursor *, uint32_t, uint32_t));
+DEF_DLL_FN (void, ts_query_delete, (TSQuery *));
+DEF_DLL_FN (TSQuery *, ts_query_new,
+	    (const TSLanguage *, const char *, uint32_t, uint32_t *, TSQueryError *));
+DEF_DLL_FN (const TSQueryPredicateStep *, ts_query_predicates_for_pattern,
+	    ( const TSQuery *, uint32_t, uint32_t *));
+DEF_DLL_FN (const char *, ts_query_string_value_for_id,
+	    (const TSQuery *, uint32_t, uint32_t *));
+DEF_DLL_FN (void, ts_set_allocator,
+	    (void *(*)(size_t), void *(*)(size_t, size_t), void *(*)(void *, size_t), void (*)(void *)));
+DEF_DLL_FN (TSNode, ts_tree_cursor_current_node, (const TSTreeCursor *));
+DEF_DLL_FN (bool, ts_tree_cursor_goto_first_child, (TSTreeCursor *));
+DEF_DLL_FN (bool, ts_tree_cursor_goto_next_sibling, (TSTreeCursor *));
+DEF_DLL_FN (bool, ts_tree_cursor_goto_parent, (TSTreeCursor *));
+DEF_DLL_FN (TSTreeCursor, ts_tree_cursor_new, (TSNode));
+DEF_DLL_FN (void, ts_tree_delete, (TSTree *));
+DEF_DLL_FN (void, ts_tree_edit, (TSTree *, const TSInputEdit *));
+DEF_DLL_FN (TSNode, ts_tree_root_node, (const TSTree *));
+
+static bool
+init_treesit_functions (void)
+{
+  HMODULE library = w32_delayed_load (Qtree_sitter);
+
+  if (!library)
+    return false;
+
+  LOAD_DLL_FN (library, ts_language_version);
+  LOAD_DLL_FN (library, ts_node_child);
+  LOAD_DLL_FN (library, ts_node_child_by_field_name);
+  LOAD_DLL_FN (library, ts_node_child_count);
+  LOAD_DLL_FN (library, ts_node_descendant_for_byte_range);
+  LOAD_DLL_FN (library, ts_node_end_byte);
+  LOAD_DLL_FN (library, ts_node_eq);
+  LOAD_DLL_FN (library, ts_node_field_name_for_child);
+  LOAD_DLL_FN (library, ts_node_first_child_for_byte);
+  LOAD_DLL_FN (library, ts_node_first_named_child_for_byte);
+  LOAD_DLL_FN (library, ts_node_has_changes);
+  LOAD_DLL_FN (library, ts_node_has_error);
+  LOAD_DLL_FN (library, ts_node_is_extra);
+  LOAD_DLL_FN (library, ts_node_is_missing);
+  LOAD_DLL_FN (library, ts_node_is_named);
+  LOAD_DLL_FN (library, ts_node_is_null);
+  LOAD_DLL_FN (library, ts_node_named_child);
+  LOAD_DLL_FN (library, ts_node_named_child_count);
+  LOAD_DLL_FN (library, ts_node_named_descendant_for_byte_range);
+  LOAD_DLL_FN (library, ts_node_next_named_sibling);
+  LOAD_DLL_FN (library, ts_node_next_sibling);
+  LOAD_DLL_FN (library, ts_node_parent);
+  LOAD_DLL_FN (library, ts_node_prev_named_sibling);
+  LOAD_DLL_FN (library, ts_node_prev_sibling);
+  LOAD_DLL_FN (library, ts_node_start_byte);
+  LOAD_DLL_FN (library, ts_node_string);
+  LOAD_DLL_FN (library, ts_node_type);
+  LOAD_DLL_FN (library, ts_parser_delete);
+  LOAD_DLL_FN (library, ts_parser_included_ranges);
+  LOAD_DLL_FN (library, ts_parser_language);
+  LOAD_DLL_FN (library, ts_parser_new);
+  LOAD_DLL_FN (library, ts_parser_parse);
+  LOAD_DLL_FN (library, ts_parser_set_included_ranges);
+  LOAD_DLL_FN (library, ts_parser_set_language);
+  LOAD_DLL_FN (library, ts_query_capture_name_for_id);
+  LOAD_DLL_FN (library, ts_query_cursor_delete);
+  LOAD_DLL_FN (library, ts_query_cursor_exec);
+  LOAD_DLL_FN (library, ts_query_cursor_new);
+  LOAD_DLL_FN (library, ts_query_cursor_next_match);
+  LOAD_DLL_FN (library, ts_query_cursor_set_byte_range);
+  LOAD_DLL_FN (library, ts_query_delete);
+  LOAD_DLL_FN (library, ts_query_new);
+  LOAD_DLL_FN (library, ts_query_predicates_for_pattern);
+  LOAD_DLL_FN (library, ts_query_string_value_for_id);
+  LOAD_DLL_FN (library, ts_set_allocator);
+  LOAD_DLL_FN (library, ts_tree_cursor_current_node);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_first_child);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_next_sibling);
+  LOAD_DLL_FN (library, ts_tree_cursor_goto_parent);
+  LOAD_DLL_FN (library, ts_tree_cursor_new);
+  LOAD_DLL_FN (library, ts_tree_delete);
+  LOAD_DLL_FN (library, ts_tree_edit);
+  LOAD_DLL_FN (library, ts_tree_root_node);
+
+  return true;
+}
+
+#define ts_language_version fn_ts_language_version
+#define ts_node_child fn_ts_node_child
+#define ts_node_child_by_field_name fn_ts_node_child_by_field_name
+#define ts_node_child_count fn_ts_node_child_count
+#define ts_node_descendant_for_byte_range fn_ts_node_descendant_for_byte_range
+#define ts_node_end_byte fn_ts_node_end_byte
+#define ts_node_eq fn_ts_node_eq
+#define ts_node_field_name_for_child fn_ts_node_field_name_for_child
+#define ts_node_first_child_for_byte fn_ts_node_first_child_for_byte
+#define ts_node_first_named_child_for_byte fn_ts_node_first_named_child_for_byte
+#define ts_node_has_changes fn_ts_node_has_changes
+#define ts_node_has_error fn_ts_node_has_error
+#define ts_node_is_extra fn_ts_node_is_extra
+#define ts_node_is_missing fn_ts_node_is_missing
+#define ts_node_is_named fn_ts_node_is_named
+#define ts_node_is_null fn_ts_node_is_null
+#define ts_node_named_child fn_ts_node_named_child
+#define ts_node_named_child_count fn_ts_node_named_child_count
+#define ts_node_named_descendant_for_byte_range fn_ts_node_named_descendant_for_byte_range
+#define ts_node_next_named_sibling fn_ts_node_next_named_sibling
+#define ts_node_next_sibling fn_ts_node_next_sibling
+#define ts_node_parent fn_ts_node_parent
+#define ts_node_prev_named_sibling fn_ts_node_prev_named_sibling
+#define ts_node_prev_sibling fn_ts_node_prev_sibling
+#define ts_node_start_byte fn_ts_node_start_byte
+#define ts_node_string fn_ts_node_string
+#define ts_node_type fn_ts_node_type
+#define ts_parser_delete fn_ts_parser_delete
+#define ts_parser_included_ranges fn_ts_parser_included_ranges
+#define ts_parser_language fn_ts_parser_language
+#define ts_parser_new fn_ts_parser_new
+#define ts_parser_parse fn_ts_parser_parse
+#define ts_parser_set_included_ranges fn_ts_parser_set_included_ranges
+#define ts_parser_set_language fn_ts_parser_set_language
+#define ts_query_capture_name_for_id fn_ts_query_capture_name_for_id
+#define ts_query_cursor_delete fn_ts_query_cursor_delete
+#define ts_query_cursor_exec fn_ts_query_cursor_exec
+#define ts_query_cursor_new fn_ts_query_cursor_new
+#define ts_query_cursor_next_match fn_ts_query_cursor_next_match
+#define ts_query_cursor_set_byte_range fn_ts_query_cursor_set_byte_range
+#define ts_query_delete fn_ts_query_delete
+#define ts_query_new fn_ts_query_new
+#define ts_query_predicates_for_pattern fn_ts_query_predicates_for_pattern
+#define ts_query_string_value_for_id fn_ts_query_string_value_for_id
+#define ts_set_allocator fn_ts_set_allocator
+#define ts_tree_cursor_current_node fn_ts_tree_cursor_current_node
+#define ts_tree_cursor_goto_first_child fn_ts_tree_cursor_goto_first_child
+#define ts_tree_cursor_goto_next_sibling fn_ts_tree_cursor_goto_next_sibling
+#define ts_tree_cursor_goto_parent fn_ts_tree_cursor_goto_parent
+#define ts_tree_cursor_new fn_ts_tree_cursor_new
+#define ts_tree_delete fn_ts_tree_delete
+#define ts_tree_edit fn_ts_tree_edit
+#define ts_tree_root_node fn_ts_tree_root_node
+
+#endif	/* WINDOWSNT */
+
+
 /* Commentary
 
    The Emacs wrapper of tree-sitter does not expose everything the C
@@ -126,6 +379,33 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 bool ts_initialized = false;
 
+static bool
+load_tree_sitter_if_necessary (bool required)
+{
+#ifdef WINDOWSNT
+  static bool tried_to_initialize_once;
+  static bool tree_sitter_initialized;
+
+  if (!tried_to_initialize_once)
+    {
+      Lisp_Object status;
+
+      tried_to_initialize_once = true;
+      tree_sitter_initialized = init_treesit_functions ();
+      status = tree_sitter_initialized ? Qt : Qnil;
+      Vlibrary_cache = Fcons (Fcons (Qtree_sitter, status), Vlibrary_cache);
+    }
+
+  if (required && !tree_sitter_initialized)
+    xsignal1 (Qtreesit_error,
+	      build_string ("tree-sitter library not found or failed to load"));
+
+  return tree_sitter_initialized;
+#else
+  return true;
+#endif
+}
+
 static void *
 ts_calloc_wrapper (size_t n, size_t size)
 {
@@ -137,6 +417,7 @@ ts_initialize (void)
 {
   if (!ts_initialized)
     {
+      load_tree_sitter_if_necessary (true);
       ts_set_allocator (xmalloc, ts_calloc_wrapper, xrealloc, xfree);
       ts_initialized = true;
     }
@@ -536,7 +817,7 @@ ts_ensure_parsed (Lisp_Object parser)
   /* Before we parse, catch up with the narrowing situation.  */
   ts_ensure_position_synced (parser);
 
-  TSTree *new_tree = ts_parser_parse(ts_parser, tree, input);
+  TSTree *new_tree = ts_parser_parse (ts_parser, tree, input);
   /* This should be very rare (impossible, really): it only happens
      when 1) language is not set (impossible in Emacs because the user
      has to supply a language to create a parser), 2) parse canceled
@@ -659,6 +940,28 @@ make_ts_query (Lisp_Object query, Lisp_Object language)
   lisp_query->query = NULL;
   lisp_query->cursor = ts_cursor;
   return make_lisp_ptr (lisp_query, Lisp_Vectorlike);
+}
+
+/* The following two functions are called from alloc.c:cleanup_vector.  */
+void
+ts_delete_parser (struct Lisp_TS_Parser *lisp_parser)
+{
+  ts_tree_delete(lisp_parser->tree);
+  ts_parser_delete(lisp_parser->parser);
+}
+
+void
+ts_delete_query (struct Lisp_TS_Query *lisp_query)
+{
+  ts_query_delete (lisp_query->query);
+  ts_query_cursor_delete (lisp_query->cursor);
+}
+
+/* The following function is called from print.c:print_vectorlike.  */
+bool
+ts_named_node_p (TSNode node)
+{
+  return ts_node_is_named (node);
 }
 
 static const char*
@@ -936,6 +1239,7 @@ DEFUN ("treesit-parser-root-node",
   (Lisp_Object parser)
 {
   ts_check_parser (parser);
+  ts_initialize ();
   ts_ensure_parsed (parser);
   TSNode root_node = ts_tree_root_node (XTS_PARSER (parser)->tree);
   return make_ts_node (parser, root_node);
@@ -987,6 +1291,7 @@ is nil, set PARSER to parse the whole buffer.  */)
   CHECK_CONS (ranges);
   ts_check_range_argument (ranges);
 
+  ts_initialize ();
   /* Before we parse, catch up with narrowing/widening.  */
   ts_ensure_position_synced (parser);
 
@@ -1049,6 +1354,7 @@ nil.  */)
   (Lisp_Object parser)
 {
   ts_check_parser (parser);
+  ts_initialize ();
   uint32_t len;
   const TSRange *ranges = ts_parser_included_ranges
     (XTS_PARSER (parser)->parser, &len);
@@ -1109,6 +1415,8 @@ If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   const char *type = ts_node_type (ts_node);
   return build_string (type);
@@ -1122,6 +1430,8 @@ If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   ptrdiff_t visible_beg =
     XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
@@ -1141,6 +1451,8 @@ If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   ptrdiff_t visible_beg =
     XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
@@ -1160,6 +1472,8 @@ If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   char *string = ts_node_string (ts_node);
   return build_string (string);
@@ -1173,6 +1487,8 @@ Return nil if there isn't any.  If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode parent = ts_node_parent (ts_node);
 
@@ -1195,6 +1511,8 @@ child only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
   ts_check_positive_integer (n);
   EMACS_INT idx = XFIXNUM (n);
   if (idx > UINT32_MAX) xsignal1 (Qargs_out_of_range, n);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode child;
   if (NILP (named))
@@ -1233,6 +1551,8 @@ errors.  */)
   if (NILP (node)) return Qnil;
   ts_check_node (node);
   CHECK_SYMBOL (property);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   bool result;
   if (EQ (property, Qnamed))
@@ -1265,6 +1585,8 @@ If NODE is nil, return nil.  */)
   ts_check_positive_integer (n);
   EMACS_INT idx = XFIXNUM (n);
   if (idx > UINT32_MAX) xsignal1 (Qargs_out_of_range, n);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   const char *name
     = ts_node_field_name_for_child (ts_node, (uint32_t) idx);
@@ -1286,6 +1608,8 @@ nil.  If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   uint32_t count;
   if (NILP (named))
@@ -1305,6 +1629,8 @@ Return nil if there isn't any.  If NODE is nil, return nil.  */)
   if (NILP (node)) return Qnil;
   ts_check_node (node);
   CHECK_STRING (field_name);
+  ts_initialize ();
+
   char *name_str = SSDATA (field_name);
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode child
@@ -1327,6 +1653,8 @@ child only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode sibling;
   if (NILP (named))
@@ -1351,6 +1679,8 @@ child only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
 {
   if (NILP (node)) return Qnil;
   ts_check_node (node);
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode sibling;
 
@@ -1389,6 +1719,8 @@ this function returns an immediate child, not the smallest
 
   if (byte_pos < BUF_BEGV_BYTE (buf) || byte_pos > BUF_ZV_BYTE (buf))
     xsignal1 (Qargs_out_of_range, pos);
+
+  ts_initialize ();
 
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode child;
@@ -1433,6 +1765,8 @@ only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
 	&& byte_end <= BUF_ZV_BYTE (buf)))
     xsignal2 (Qargs_out_of_range, beg, end);
 
+  ts_initialize ();
+
   TSNode ts_node = XTS_NODE (node)->node;
   TSNode child;
   if (NILP (named))
@@ -1459,6 +1793,8 @@ If any one of NODE1 and NODE2 is nil, return nil.  */)
     return Qnil;
   CHECK_TS_NODE (node1);
   CHECK_TS_NODE (node2);
+
+  ts_initialize ();
 
   TSNode ts_node_1 = XTS_NODE (node1)->node;
   TSNode ts_node_2 = XTS_NODE (node2)->node;
@@ -1749,6 +2085,8 @@ You can use `treesit-query-validate' to debug the query.  */)
   if (TS_COMPILED_QUERY_P (query))
     return query;
 
+  ts_initialize ();
+
   Lisp_Object lisp_query = make_ts_query (query, language);
 
   /* Maybe actually compile. */
@@ -1822,6 +2160,8 @@ query.  */)
 	      list4 (Qor, Qtreesit_node_p,
 		     Qtreesit_parser_p, Qsymbolp),
 	      node);
+
+  ts_initialize ();
 
   /* Extract C values from Lisp objects.  */
   TSNode ts_node = XTS_NODE (lisp_node)->node;
@@ -2113,12 +2453,14 @@ Return the first matched node, or nil if none matches.  */)
   ptrdiff_t the_limit = 0;
   bool no_limit = false;
   if (NILP (limit))
-      no_limit = true;
+    no_limit = true;
   else
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
     }
+
+  ts_initialize ();
 
   TSNode ts_node = XTS_NODE (node)->node;
   Lisp_Object parser = XTS_NODE (node)->parser;
@@ -2170,6 +2512,8 @@ case, only 1 3 4 8 16 would be traversed.  */)
   CHECK_SYMBOL (all);
   CHECK_SYMBOL (backward);
   CHECK_SYMBOL (up);
+
+  ts_initialize ();
 
   TSNode ts_start = XTS_NODE (start)->node;
   Lisp_Object parser = XTS_NODE (start)->parser;
@@ -2284,12 +2628,14 @@ regexp.  */)
   ptrdiff_t the_limit = 0;
   bool no_limit = false;
   if (NILP (limit))
-      no_limit = true;
+    no_limit = true;
   else
     {
       CHECK_FIXNUM (limit);
       the_limit = XFIXNUM (limit);
     }
+
+  ts_initialize ();
 
   TSTreeCursor cursor = ts_tree_cursor_new (XTS_NODE (root)->node);
   Lisp_Object parser = XTS_NODE (root)->parser;
@@ -2304,12 +2650,28 @@ regexp.  */)
     return parent;
 }
 
+#endif	/* HAVE_TREE_SITTER */
+
+DEFUN ("treesit-available-p", Ftreesit_available_p,
+       Streesit_available_p, 0, 0, 0,
+       doc: /* Return non-nil if tree-sitter support is built-in and available.  */)
+  (void)
+{
+#if HAVE_TREE_SITTER
+  return load_tree_sitter_if_necessary (false) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif
+}
+
+
 /*** Initialization */
 
 /* Initialize the tree-sitter routines.  */
 void
 syms_of_treesit (void)
 {
+#if HAVE_TREE_SITTER
   DEFSYM (Qtreesit_parser_p, "treesit-parser-p");
   DEFSYM (Qtreesit_node_p, "treesit-node-p");
   DEFSYM (Qtreesit_compiled_query_p, "treesit-compiled-query-p");
@@ -2339,6 +2701,10 @@ syms_of_treesit (void)
   DEFSYM (Qtreesit_parser_deleted, "treesit-parser-deleted");
 
   DEFSYM (Qor, "or");
+
+#ifdef WINDOWSNT
+  DEFSYM (Qtree_sitter, "tree-sitter");
+#endif
 
   define_error (Qtreesit_error, "Generic tree-sitter error", Qerror);
   define_error (Qtreesit_query_error, "Query pattern is malformed",
@@ -2436,4 +2802,6 @@ dynamic libraries, in that order.  */);
   defsubr (&Streesit_search_subtree);
   defsubr (&Streesit_search_forward);
   defsubr (&Streesit_induce_sparse_tree);
+#endif	/* HAVE_TREE_SITTER */
+  defsubr (&Streesit_available_p);
 }
