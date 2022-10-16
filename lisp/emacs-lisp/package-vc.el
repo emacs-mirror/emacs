@@ -267,11 +267,12 @@ The output is written out into PKG-FILE."
                      ;; names to avoid an unnecessary error.
                      (file-name-base repo)))))
 
-      ;; Clone the repository into `repo-dir'.
-      (make-directory (file-name-directory repo-dir) t)
-      (unless (setf (car (alist-get :upstream attr))
-                    (vc-clone backend repo repo-dir))
-        (error "Failed to clone %s from %s" name repo))
+      ;; Clone the repository into `repo-dir' if necessary
+      (unless (file-exists-p repo-dir)
+        (make-directory (file-name-directory repo-dir) t)
+        (unless (setf (car (alist-get :upstream attr))
+                      (vc-clone backend repo repo-dir))
+          (error "Failed to clone %s from %s" name repo)))
 
       (unless (eq pkg-dir repo-dir)
         ;; Link from the right position in `repo-dir' to the package
