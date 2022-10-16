@@ -210,7 +210,8 @@ and then returns."
                            (unless (eq new-frame (selected-frame))
                              (iconify-frame new-frame))
                            (setq new-frame nil)))
-                     (ding)))))
+                     (unless (equal (key-description key) "C-g")
+                       (ding))))))
            (when config
              (set-window-configuration config))
            (when new-frame
