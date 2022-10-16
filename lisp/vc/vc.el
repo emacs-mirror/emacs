@@ -3371,7 +3371,8 @@ revisions, those revisions will be used."
                            revisions)))
       (if vc-prepare-patches-separately
           (dolist (patch (reverse patches)
-                         (message "Prepared %d patches..." (length patches)))
+                         (message "Prepared %d patch%s..." (length patches)
+                                  (if (length> patches 1) "es" "")))
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
