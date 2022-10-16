@@ -211,6 +211,9 @@ and then returns."
                              (iconify-frame new-frame))
                            (setq new-frame nil)))
                      (unless (equal (key-description key) "C-g")
+                       (message (substitute-command-keys
+                                (format "No help command is bound to `\\`%s''"
+                                        (key-description key))))
                        (ding))))))
            (when config
              (set-window-configuration config))
