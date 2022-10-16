@@ -1405,11 +1405,11 @@ when printing the error message."
 			  (and (not macro-p)
 			       (compiled-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
-          (let ((advertised (gethash (if (and (symbolp fn) (fboundp fn))
-                                         ;; Could be a subr.
-                                         (symbol-function fn)
-                                       fn)
-                                     advertised-signature-table t)))
+          (let ((advertised (get-advertised-calling-convention
+                             (if (and (symbolp fn) (fboundp fn))
+                                 ;; Could be a subr.
+                                 (symbol-function fn)
+                               fn))))
             (cond
              ((listp advertised)
               (if macro-p
