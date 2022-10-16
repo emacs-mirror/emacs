@@ -4102,7 +4102,10 @@ using that one instead of current buffer's process."
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
                        (and is-shell-buffer
-                            (< (point) (cdr prompt-boundaries))))
+                            (< (point) (cdr prompt-boundaries)))
+                       (and (not is-shell-buffer)
+                            (string-match-p
+                             python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
                   ((or (not python-shell-completion-native-enable)
                        ;; Even if native completion is enabled, for

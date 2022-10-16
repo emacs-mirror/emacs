@@ -4427,6 +4427,23 @@ import abc
      (insert "abc.")
      (should (completion-at-point)))))
 
+(ert-deftest python-shell-completion-pdb-1 ()
+  "Should not complete PDB commands in Python buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import pdb
+
+pdb.set_trace()
+print('Hello')
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (goto-char (point-max))
+     (insert "u")
+     (should-not (nth 2 (python-completion-at-point))))))
+
 (ert-deftest python-shell-completion-native-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-buffer-with-shell
