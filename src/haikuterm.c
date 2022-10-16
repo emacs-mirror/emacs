@@ -232,6 +232,9 @@ haiku_frame_up_to_date (struct frame *f)
       be_evict_font_cache ();
       up_to_date_count = 0;
     }
+
+  /* Mark the frame as complete.  */
+  FRAME_COMPLETE_P (f) = true;
   unblock_input ();
 }
 
@@ -264,6 +267,8 @@ haiku_clear_frame (struct frame *f)
   void *view = FRAME_HAIKU_DRAWABLE (f);
 
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
+
+  FRAME_COMPLETE_P (f) = false;
 
   block_input ();
   BView_draw_lock (view, true, 0, 0, FRAME_PIXEL_WIDTH (f),
@@ -1436,6 +1441,9 @@ haiku_clip_to_row (struct window *w, struct glyph_row *row,
 static void
 haiku_update_begin (struct frame *f)
 {
+  /* Mark the frame as incomplete so it is not flushed upon handling
+     input.  */
+  FRAME_COMPLETE_P (f) = false;
 }
 
 static void
@@ -2959,6 +2967,10 @@ haiku_flush (struct frame *f)
   if (FRAME_DIRTY_P (f) && !buffer_flipping_blocked_p ())
     haiku_flip_buffers (f);
 
+  /* The frame is complete again as its contents were just
+     flushed.  */
+  FRAME_COMPLETE_P (f) = true;
+
   if (FRAME_VISIBLE_P (f) && !FRAME_TOOLTIP_P (f))
     BWindow_Flush (FRAME_HAIKU_WINDOW (f));
 }
@@ -3086,10 +3098,15 @@ haiku_make_fullscreen_consistent (struct frame *f)
 static void
 haiku_flush_dirty_back_buffer_on (struct frame *f)
 {
-  if (!FRAME_GARBAGED_P (f)
-      && !buffer_flipping_blocked_p ()
-      && FRAME_DIRTY_P (f))
-    haiku_flip_buffers (f);
+  if (FRAME_GARBAGED_P (f)
+      || buffer_flipping_blocked_p ()
+      /* If the frame is not already up to date, do not flush buffers
+	 on input, as that will result in flicker.  */
+      || !FRAME_COMPLETE_P (f)
+      || !FRAME_DIRTY_P (f))
+    return;
+
+  haiku_flip_buffers (f);
 }
 
 /* N.B. that support for TYPE must be explicitly added to
@@ -3135,6 +3152,7 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
   int button_or_motion_p, do_help;
   enum haiku_event_type type;
   struct input_event inev, inev2;
+  struct frame *mouse_frame;
 
   message_count = 0;
   button_or_motion_p = 0;
@@ -3252,9 +3270,13 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 		    || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
 		    || !EQ (f->tab_bar_window, hlinfo->mouse_face_window)))
 	      {
+		mouse_frame = hlinfo->mouse_face_mouse_frame;
+
 		clear_mouse_face (hlinfo);
 		hlinfo->mouse_face_hidden = true;
-		haiku_flush_dirty_back_buffer_on (f);
+
+		if (mouse_frame)
+		  haiku_flush_dirty_back_buffer_on (mouse_frame);
 	      }
 
 	    inev.code = b->keysym ? b->keysym : b->multibyte_char;
