@@ -2821,6 +2821,24 @@ strings incorrectly.  You should then avoid adding Emacs Lisp code
 that modifies the coding system in other ways, such as calls to
 @code{set-language-environment}.
 
+  An alternative to using non-@acronym{ASCII} characters directly is
+to use one of the character escape syntaxes described in
+@pxref{General Escape Syntax,,, elisp, The Emacs Lisp Reference
+Manual}, as they allow all Unicode codepoints to be specified using
+only @acronym{ASCII} characters.
+
+  To bind non-@acronym{ASCII} keys, you must use a vector (@pxref{Init
+Rebinding}).  The string syntax cannot be used, since the
+non-@acronym{ASCII} characters will be interpreted as meta keys.  For
+instance:
+
+@example
+(global-set-key [?@var{char}] 'some-function)
+@end example
+
+@noindent
+Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
+
 @node Early Init File
 @subsection The Early Init File
 @cindex early init file

@@ -3146,9 +3146,10 @@ match found by @var{matcher} acts as the anchor for further searches
 specified by @var{anchored-highlighter}.  @var{anchored-highlighter}
 is a list of the following form:
 
+@c Don't wrap the line in the next @example, because that tends to
+@c produce ugly indentation in Info
 @example
-(@var{anchored-matcher} @var{pre-form} @var{post-form}
-                        @var{subexp-highlighters}@dots{})
+(@var{anchored-matcher} @var{pre-form} @var{post-form} @var{subexp-highlighters}@dots{})
 @end example
 
 Here, @var{anchored-matcher}, like @var{matcher}, is either a regular

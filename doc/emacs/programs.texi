@@ -1421,27 +1421,38 @@ nor comments).  The default value is @code{code}.
   Completion is normally done in the minibuffer (@pxref{Completion}),
 but you can also complete symbol names in ordinary Emacs buffers.
 
+@cindex tags-based completion
 @kindex M-TAB
 @kindex C-M-i
-  In programming language modes, type @kbd{C-M-i} or @kbd{M-@key{TAB}}
-to complete the partial symbol before point.  On graphical displays,
-the @kbd{M-@key{TAB}} key is usually reserved by the window manager
-for switching graphical windows, so you should type @kbd{C-M-i} or
-@kbd{@key{ESC} @key{TAB}} instead.
-
-@cindex tags-based completion
 @findex completion-at-point@r{, in programming language modes}
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
   In most programming language modes, @kbd{C-M-i} (or
-@kbd{M-@key{TAB}}) invokes the command @code{completion-at-point},
-which generates its completion list in a flexible way.  If Semantic
-mode is enabled, it tries to use the Semantic parser data for
-completion (@pxref{Semantic}).  If Semantic mode is not enabled or
-fails at performing completion, it tries to complete using the
-selected tags table (@pxref{Tags Tables}).  If in Emacs Lisp mode, it
-performs completion using the function, variable, or property names
-defined in the current Emacs session.
+@kbd{M-@key{TAB}}@footnote{
+On graphical displays, the @kbd{M-@key{TAB}} key is usually reserved
+by the window manager for switching graphical windows, so you should
+type @kbd{C-M-i} or @kbd{@key{ESC} @key{TAB}} instead.
+}) invokes the command @code{completion-at-point}, which generates the
+list of possible completions for the symbol at point.  This command
+uses the available support facilities to come up with the completion
+candidates:
+
+@itemize @bullet
+@item
+If Semantic mode is enabled (@pxref{Semantic}), the command tries to
+use the Semantic parser data for completion.
+
+@item
+If Semantic mode is not enabled or fails at performing completion, the
+command tries to complete using the selected tags table (@pxref{Tags
+Tables}); you need to visit the tags table with @w{@kbd{M-x
+visit-tags-table}} for that to work.
+
+@item
+In Emacs Lisp mode, the command performs completion using the
+function, variable, or property names defined in the current Emacs
+session.
+@end itemize
 
   In all other respects, in-buffer symbol completion behaves like
 minibuffer completion.  For instance, if Emacs cannot complete to
