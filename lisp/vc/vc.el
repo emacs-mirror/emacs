@@ -3375,8 +3375,7 @@ revisions, those revisions will be used."
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
-                          `((kill-buffer ,(plist-get patch :buffer))
-                            (exit-recursive-edit)))
+                          `((kill-buffer ,(plist-get patch :buffer))))
             (rfc822-goto-eoh) (forward-line)
             (save-excursion             ;don't jump to the end
               (insert-buffer-substring
