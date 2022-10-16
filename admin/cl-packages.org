@@ -1,0 +1,116 @@
+# -*- mode: org; eval: (auto-fill-mode 1); org-indent-mode: 1; -*-
+#+STARTUP: show3levels
+
+* Common Lisp Packages for Emacs
+
+This is an experimental implementation of CL packages for Emacs.  It
+builds and runs successfully under macOS 12.6.
+
+There are two packages defined at present.  The keyword package, named
+"keyword" or "" contains keywords, the Emacs package, with name
+"emacs" contains all other symbols.
+
+Please see a description of the CL package system for what you can do
+with it.  Not everything might yet be implemented.
+
+And bugs, for sure, and so on...
+
+** Implementation notes
+
+*** No pure space support
+The branch contains a patch by Stefan Monnier that makes it no longer
+use pure space. I didn't want to deal with pure space.
+Note that a small fix in init_vectors is needed for making Stefan's
+patch work.
+
+*** New type Lisp_Package, changes in Lisp_Symbol
+There is a new Lisp data type Lisp_Package defined in lisp.h.
+
+Struct Lisp_Symbol has lost its interned flag and its next pointer.
+All symbols now have a package.  Uninterned symbols have a nil
+package.  Keywords have the keyword package.  Other symbols currently
+are in the Emacs package.
+
+*** Obarrays removed
+Obarrays have been removed completely, except for the variable
+Vobarray which is now set to the Emacs package.
+
+obarray.el has been changed to use packages.  Some places in lisp/
+using make-vector for an obarray were changed to use make-package.
+
+*** Keywords
+Keywords are symbols in the keyword package, which has the nickname
+"".  Keywords no longer contain the colon as part of their symbol name.
+
+Old:
+
+#+begin_src
+(symbol-name :hansi)
+ -> ":hansi"
+#+end_src
+
+New:
+#+begin_src
+(symbol-name :hansi)
+ -> "hansi"
+(symbol-package :hansi
+ -> <PACKAEG "keyword">
+#+end_src
+
+A workaround for existing code that does something like
+
+#+begin_src
+(intern ":hansi")
+#+end_src
+
+is currently implemented and produces a keyword as it did before. The
+preferred way is to
+
+#+begin_src
+(intern "hansi" :keyword)
+(intern "hansi" "KEYWORD")
+#+end_src
+
+or something.
+
+*** Predefined packages
+
+The packages with names "emacs" and "keyword" are defined in
+init_pkg_once as Vemacs_package and Vkeyword_package.  This is called
+directly after init_alloc, which means that the package system is
+ready to use in C code from the start.
+
+The initialization in init_pkg_once includes defining built-in symbols
+(defined with DEFSYM etc, so these are also ready to use.
+
+The variable *package* is found in Vearmuffs_package and default to
+the Emacs package.
+
+*** Reader
+
+The variable 'package-prefixes' determines if the reader will
+interpret a colon in a symbol name part of a package prefix or not.
+Default is nil.
+
+With package-prefix nil
+
+
+
+Use a file-local package-prefix to enable it.
+
+*** Printer
+
+The printer prints package prefixes if necessary, which is the case if
+*package* is different from a symbol's package.
+
+With package-prefixes nil:
+#+begin_src
+  'GUI:hansi
+  -> 'GUI:hansi
+#+end_src
+
+Without:
+#+begin_src
+  'GUI:hansi
+  -> unknown package GUI
+#+end_src
