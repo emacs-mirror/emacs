@@ -2249,12 +2249,13 @@ to install it but still mark it as selected."
    #'car
    (seq-filter
     (lambda (elt)
-      (let ((available
-             (assq (car elt) package-archive-contents)))
-        (and available
-             (version-list-<
-              (package-desc-version (cadr elt))
-              (package-desc-version (cadr available))))))
+      (or (let ((available
+                 (assq (car elt) package-archive-contents)))
+            (and available
+                 (version-list-<
+                  (package-desc-version (cadr elt))
+                  (package-desc-version (cadr available)))))
+          (package-vc-p (cadr (assq (car elt) package-alist)))))
     package-alist)))
 
 ;;;###autoload
