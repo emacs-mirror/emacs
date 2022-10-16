@@ -2278,14 +2278,13 @@ extern Lisp_Object pkg_intern_symbol (Lisp_Object sym, Lisp_Object package);
 extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
+extern Lisp_Object pkg_emacs_mapatoms (Lisp_Object fn, Lisp_Object package);
 extern Lisp_Object pkg_intern_non_keyword (Lisp_Object name);
 extern Lisp_Object pkg_intern_non_keyword_c_string (const char *p, ptrdiff_t len);
 extern Lisp_Object pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
 extern Lisp_Object pkg_intern_maybe_keyword (Lisp_Object name);
 extern void pkg_break (void);
 extern void pkg_define_builtin_symbols (void);
-extern void pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package);
-extern void pkg_map_symbols (Lisp_Object function);
 extern void pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg);
 
 extern Lisp_Object Vpackage_registry;

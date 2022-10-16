@@ -747,7 +747,7 @@ pkg_keywordp (Lisp_Object obj)
   return EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
 }
 
-void
+static void
 pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
 {
   package = check_package (package);
@@ -758,7 +758,7 @@ pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
 
 /* Map FUNCTION over all symbols in PACKAGE.  */
 
-void
+static void
 pkg_map_symbols (Lisp_Object function)
 {
   FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
@@ -771,6 +771,16 @@ pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
   FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
     FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
       fn (it_symbol.value, arg);
+}
+
+Lisp_Object
+pkg_emacs_mapatoms (Lisp_Object function, Lisp_Object package)
+{
+  if (NILP (package))
+    pkg_map_symbols (function);
+  else
+    pkg_map_package_symbols (function, package);
+  return Qnil;
 }
 
 
@@ -1177,19 +1187,18 @@ init_pkg_once (void)
   DEFSYM (Qpackagep, "packagep");
 
   staticpro (&Vpackage_registry);
-  /* PKG-FIXME: Not sure about the purecopy (last arg).  */
   Vpackage_registry = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
 				       DEFAULT_REHASH_SIZE,
 				       DEFAULT_REHASH_THRESHOLD,
 				       Qnil, false);
 
-  Vemacs_package = make_package (build_pure_c_string ("emacs"));
+  Vemacs_package = make_package (build_string ("emacs"));
   staticpro (&Vemacs_package);
-  Vkeyword_package = make_package (build_pure_c_string ("keyword"));
+  Vkeyword_package = make_package (build_string ("keyword"));
   register_package (Vemacs_package);
 
   staticpro (&Vkeyword_package);
-  XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_pure_c_string (""), Qnil);
+  XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
   register_package (Vkeyword_package);
 
   staticpro (&Vearmuffs_package);
