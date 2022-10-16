@@ -146,8 +146,8 @@ static void interval_tree_replace_child (struct interval_tree *,
 static void interval_tree_transplant (struct interval_tree *tree,
                                       struct interval_node *source,
                                       struct interval_node *dest);
-static struct interval_generator *
-interval_generator_create (struct interval_tree *);
+static struct itree_iterator *
+itree_iterator_create (struct interval_tree *);
 static void interval_tree_insert (struct interval_tree *, struct interval_node *);
 static bool null_safe_is_red (struct interval_node *node);
 static bool null_safe_is_black (struct interval_node *node);
@@ -165,7 +165,7 @@ struct interval_stack
 };
 
 /* State used when iterating interval. */
-struct interval_generator
+struct itree_iterator
 {
   struct interval_stack *stack;
   ptrdiff_t begin;
@@ -182,12 +182,12 @@ struct interval_generator
    are limited by the fact we don't allow modifying the tree at the same
    time, making the use of nested iterations quite rare anyway.
    So we just use a single global iterator instead for now.  */
-static struct interval_generator *iter;
+static struct itree_iterator *iter;
 
 static void
 itree_init (void)
 {
-  iter = interval_generator_create (NULL);
+  iter = itree_iterator_create (NULL);
 }
 
 struct check_subtree_result
@@ -481,7 +481,7 @@ static void
 interval_tree_init (struct interval_tree *tree)
 {
   interval_tree_clear (tree);
-  /* tree->iter = interval_generator_create (tree); */
+  /* tree->iter = itree_iterator_create (tree); */
 }
 #endif
 
@@ -491,7 +491,7 @@ interval_tree_destroy (struct interval_tree *tree)
 {
   eassert (tree->root == ITREE_NULL);
   /* if (tree->iter)
-   *   interval_generator_destroy (tree->iter); */
+   *   itree_iterator_destroy (tree->iter); */
   xfree (tree);
 }
 
@@ -805,7 +805,7 @@ interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
 }
 
 bool
-itree_busy_p (void)
+itree_iterator_busy_p (void)
 {
   return (iter && iter->running);
 }
@@ -815,13 +815,12 @@ itree_busy_p (void)
    time.
 */
 
-struct interval_generator *
-interval_tree_iter_start (struct interval_tree *tree,
-                          ptrdiff_t begin, ptrdiff_t end,
-                          enum interval_tree_order order,
-			  const char* file, int line)
+struct itree_iterator *
+itree_iterator_start (struct interval_tree *tree, ptrdiff_t begin,
+                      ptrdiff_t end, enum interval_tree_order order,
+                      const char *file, int line)
 {
-  /* struct interval_generator *iter = tree->iter; */
+  /* struct itree_iterator *iter = tree->iter; */
   if (iter->running)
     {
       fprintf (stderr,
@@ -847,7 +846,7 @@ interval_tree_iter_start (struct interval_tree *tree,
 /* Stop using the iterator. */
 
 void
-interval_tree_iter_finish (struct interval_generator *iter)
+itree_iterator_finish (struct itree_iterator *iter)
 {
   eassert (iter->running);
   iter->running = false;
@@ -1007,10 +1006,10 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
 
 /* Allocate a new generator for TREE. */
 
-static struct interval_generator *
-interval_generator_create (struct interval_tree *tree)
+static struct itree_iterator *
+itree_iterator_create (struct interval_tree *tree)
 {
-  struct interval_generator *g = xmalloc (sizeof *g);
+  struct itree_iterator *g = xmalloc (sizeof *g);
   /* 19 here just avoids starting with a silly-small stack.
      FIXME: Since this stack only needs to be about 2*max_depth
      in the worst case, we could completely pre-allocate it to something
@@ -1046,7 +1045,7 @@ interval_node_intersects (const struct interval_node *node,
    started; or NULL if there are no more nodes. */
 
 struct interval_node *
-interval_generator_next (struct interval_generator *g)
+itree_iterator_next (struct itree_iterator *g)
 {
   eassert (g->running);
 
@@ -1105,7 +1104,7 @@ interval_generator_next (struct interval_generator *g)
             break;
           }
       }
-    /* Node may have been invalidated by interval_generator_narrow
+    /* Node may have been invalidated by itree_iterator_narrow
        after it was pushed: Check if it still intersects. */
   } while (node && ! interval_node_intersects (node, g->begin, g->end));
 
@@ -1116,8 +1115,8 @@ interval_generator_next (struct interval_generator *g)
    the current one.  I.E. it can't grow on either side. */
 
 void
-interval_generator_narrow (struct interval_generator *g,
-                           ptrdiff_t begin, ptrdiff_t end)
+itree_iterator_narrow (struct itree_iterator *g,
+                       ptrdiff_t begin, ptrdiff_t end)
 {
   eassert (g->running);
   eassert (begin >= g->begin);

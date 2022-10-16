@@ -32,8 +32,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    node.end directly, is while the node is not part of any tree.
 
    NOTE: It is safe to read node.begin and node.end directly, if the
-   node came from a generator, because it validates the nodes it
-   returns as a side-effect.
+   node came from an iterator, because it validates the nodes it
+   returns as a side-effect.  See ITREE_FOREACH.
  */
 
 struct interval_node;
@@ -122,14 +122,20 @@ void interval_tree_clear (struct interval_tree *);
 void itree_insert_node (struct interval_tree *tree, struct interval_node *node,
                         ptrdiff_t begin, ptrdiff_t end);
 struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
-struct interval_generator *interval_tree_iter_start (struct interval_tree *, ptrdiff_t, ptrdiff_t, enum interval_tree_order,
-			       const char* file, int line);
-void interval_generator_narrow (struct interval_generator *, ptrdiff_t, ptrdiff_t);
-void interval_tree_iter_finish (struct interval_generator *);
-struct interval_node *interval_generator_next (struct interval_generator *);
 void interval_tree_insert_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
 void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
-bool itree_busy_p (void);
+
+/* Iteration functions.  Almost all code should use ITREE_FOREACH
+   instead.  */
+bool itree_iterator_busy_p (void);
+struct itree_iterator *
+itree_iterator_start (struct interval_tree *tree, ptrdiff_t begin,
+                      ptrdiff_t end, enum interval_tree_order order,
+                      const char *file, int line);
+void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
+                            ptrdiff_t);
+void itree_iterator_finish (struct itree_iterator *);
+struct interval_node *itree_iterator_next (struct itree_iterator *);
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
@@ -162,16 +168,16 @@ bool itree_busy_p (void);
   if (!t)                                                           \
     { }                                                             \
   else                                                              \
-    for (struct interval_generator *itree_iter_                     \
-            = interval_tree_iter_start (t, beg, end, ITREE_##order, \
+    for (struct itree_iterator *itree_iter_                         \
+            = itree_iterator_start (t, beg, end, ITREE_##order,     \
                                         __FILE__, __LINE__);        \
-          ((n = interval_generator_next (itree_iter_))              \
-           || (interval_tree_iter_finish (itree_iter_), false));)
+          ((n = itree_iterator_next (itree_iter_))                  \
+           || (itree_iterator_finish (itree_iter_), false));)
 
 #define ITREE_FOREACH_ABORT() \
-  interval_tree_iter_finish (itree_iter_)
+  itree_iterator_finish (itree_iter_)
 
 #define ITREE_FOREACH_NARROW(beg, end) \
-  interval_generator_narrow (itree_iter_, beg, end)
+  itree_iterator_narrow (itree_iter_, beg, end)
 
 #endif
