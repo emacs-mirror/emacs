@@ -642,12 +642,20 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 {
   CHECK_STRING (name);
 
+  /* PKG-FIXME: We are assuming that this is intended to be a keyword
+     like it was before.  */
+  if (SREF (name, 0) == ':' && NILP (package))
+    {
+      name = Fsubstring (name, make_fixnum (1), Qnil);
+      package = Vkeyword_package;
+    }
+
   eassert (SREF (name, 0) != ':');
 
-  /* This is presumable an obarray, and we are intending
-     to intern into the default pacakge.  */
+  /* PKG-FIXME: This is presumable an obarray, and we are intending to
+     intern into the default pacakge.  */
   if (VECTORP (package))
-    package = Vearmuffs_package;
+    package = Vemacs_package;
   package = package_or_default (package);
 
   return pkg_intern_symbol (name, package);
@@ -656,10 +664,20 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 /* Implements Emacs' old Fintern_soft function.  */
 
 Lisp_Object
-pkg_emacs_intern_soft (Lisp_Object symbol, Lisp_Object package)
+pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 {
-  const Lisp_Object name = SYMBOLP (symbol) ? SYMBOL_NAME (symbol) : symbol;
+  /* intern-soft allows symbols.  */
+  if (SYMBOLP (name))
+    name = SYMBOL_NAME (name);
   CHECK_STRING (name);
+
+  /* PKG-FIXME: We are assuming that this is intended to be a keyword
+     like it was before.  */
+  if (SREF (name, 0) == ':' && NILP (package))
+    {
+      name = Fsubstring (name, make_fixnum (1), Qnil);
+      package = Vkeyword_package;
+    }
 
   package = package_or_default (package);
   Lisp_Object found = lookup_symbol (name, package);

@@ -4785,13 +4785,6 @@ A second optional argument specifies the obarray to use;
 it defaults to the value of `obarray'.  */)
   (Lisp_Object string, Lisp_Object package)
 {
-  if (SREF (string, 0) == ':' && NILP (package))
-    {
-      /* PKG-FIXME: We are assuming that this is intended to be a
-	 keyword like it was before.  */
-      string = Fsubstring (string, make_fixnum (1), Qnil);
-      package = Vkeyword_package;
-    }
   return pkg_emacs_intern (string, package);
 }
 
