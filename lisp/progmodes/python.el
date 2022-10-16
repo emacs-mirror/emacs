@@ -4080,15 +4080,18 @@ using that one instead of current buffer's process."
                  (buffer-substring-no-properties line-start (point)))
             (buffer-substring-no-properties line-start (point))))
          (start
-          (save-excursion
-            (if (not (re-search-backward
-                      (python-rx
-                       (or whitespace open-paren close-paren string-delimiter simple-operator))
-                      line-start
-                      t 1))
-                line-start
-              (forward-char (length (match-string-no-properties 0)))
-              (point))))
+          (if (< (point) line-start)
+              (point)
+            (save-excursion
+              (if (not (re-search-backward
+                        (python-rx
+                         (or whitespace open-paren close-paren
+                             string-delimiter simple-operator))
+                        line-start
+                        t 1))
+                  line-start
+                (forward-char (length (match-string-no-properties 0)))
+                (point)))))
          (end (point))
          (prompt-boundaries
           (with-current-buffer (process-buffer process)

@@ -4509,6 +4509,33 @@ import abc
      (python-eldoc-function)
      (should (completion-at-point)))))
 
+(ert-deftest python-shell-completion-shell-buffer-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   ""
+   (python-shell-with-shell-buffer
+     (insert "import abc")
+     (comint-send-input)
+     (python-tests-shell-wait-for-prompt)
+     (insert "abc.")
+     (should (nth 2 (python-shell-completion-at-point)))
+     (end-of-line 0)
+     (should-not (nth 2 (python-shell-completion-at-point))))))
+
+(ert-deftest python-shell-completion-shell-buffer-native-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   ""
+   (python-shell-completion-native-turn-on)
+   (python-shell-with-shell-buffer
+     (insert "import abc")
+     (comint-send-input)
+     (python-tests-shell-wait-for-prompt)
+     (insert "abc.")
+     (should (nth 2 (python-shell-completion-at-point)))
+     (end-of-line 0)
+     (should-not (nth 2 (python-shell-completion-at-point))))))
+
 
 
 ;;; PDB Track integration
