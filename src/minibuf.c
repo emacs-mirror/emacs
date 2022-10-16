@@ -1622,7 +1622,13 @@ or from one of the possible completions.  */)
   if (FUNCTIONP (collection))
     return call3 (collection, string, predicate, Qnil);
 
-  if (PACKAGEP (collection))
+  /* Use a package's symbol table for completion, but remember that we
+     are working on a package, because we are called with a predicate
+     that takes only one argument, which is a remnant ob obarrays.
+     Sad that we are receiving predicates of different arity depending
+     on the type of collection.  */
+  const bool symbol_table_p = PACKAGEP (collection);
+  if (symbol_table_p)
     collection = PACKAGE_SYMBOLS (collection);
 
   ptrdiff_t idx = 0;
@@ -1689,15 +1695,18 @@ or from one of the possible completions.  */)
 	    {
 	      if (EQ (predicate, Qcommandp))
 		tem = Fcommandp (elt, Qnil);
-	      else
+	      else if (HASH_TABLE_P (collection))
 		{
-		  tem = (HASH_TABLE_P (collection)
-			 ? call2 (predicate, elt,
-				  HASH_VALUE (XHASH_TABLE (collection),
-					      idx - 1))
-			 : call1 (predicate, elt));
+		  const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
+		  if (symbol_table_p)
+		    tem = call1 (predicate, value);
+		  else
+		    tem = call2 (predicate, elt, value);
 		}
-	      if (NILP (tem)) continue;
+	      else
+		tem = call1 (predicate, elt);
+	      if (NILP (tem))
+		continue;
 	    }
 
 	  /* Update computation of how much all possible completions match */
@@ -1843,7 +1852,13 @@ with a space are ignored unless STRING itself starts with a space.  */)
   if (type == 0)
     return call3 (collection, string, predicate, Qt);
 
-  if (type == 2)
+  /* Use a package's symbol table for completion, but remember that we
+     are working on a package, because we are called with a predicate
+     that takes only one argument, which is a remnant ob obarrays.
+     Sad that we are receiving predicates of different arity depending
+     on the type of collection.  */
+  const bool symbol_table_p = PACKAGEP (collection);
+  if (symbol_table_p)
     {
       collection = PACKAGE_SYMBOLS (collection);
       type = 3;
@@ -1914,13 +1929,16 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    {
 	      if (EQ (predicate, Qcommandp))
 		tem = Fcommandp (elt, Qnil);
-	      else
+	      else if (HASH_TABLE_P (collection))
 		{
-		  tem = type == 3
-		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), idx - 1))
-		    : call1 (predicate, elt);
+		  const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
+		  if (symbol_table_p)
+		    tem = call1 (predicate, value);
+		  else
+		    tem = call2 (predicate, elt, value);
 		}
+	      else
+		tem = call1 (predicate, elt);
 	      if (NILP (tem)) continue;
 	    }
 	  /* Ok => put it on the list.  */
@@ -2019,7 +2037,8 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   CHECK_STRING (string);
 
-  if (PACKAGEP (collection))
+  const bool symbol_table_p = PACKAGEP (collection);
+  if (symbol_table_p)
     collection = PACKAGE_SYMBOLS (collection);
 
   if (NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection)))
@@ -2062,14 +2081,18 @@ the values STRING, PREDICATE and `lambda'.  */)
     return Qnil;
 
   /* Finally, check the predicate.  */
-  if (!NILP (predicate))
-    {
-      return HASH_TABLE_P (collection)
-	? call2 (predicate, tem, HASH_VALUE (XHASH_TABLE (collection), i))
-	: call1 (predicate, tem);
-    }
-  else
+  if (NILP (predicate))
     return Qt;
+
+  if (HASH_TABLE_P (collection))
+    {
+      const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), i);
+      if (symbol_table_p)
+	return call1 (predicate, value);
+      return call2 (predicate, tem, value);
+    }
+
+  return call1 (predicate, tem);
 }
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
