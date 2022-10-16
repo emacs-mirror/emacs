@@ -259,7 +259,10 @@ buffer.")
     ;;        help command loop.
     (help-quit))
    ((and-let* ((window (get-buffer-window "*Quick Help*")))
-      (quit-window t window)))
+      (quit-window t window)
+      ;; Clear the message we may have gotten from `C-h' and then
+      ;; waiting before hitting `q'.
+      (message "")))
    ((help-quick))))
 
 (defvar help-return-method nil
