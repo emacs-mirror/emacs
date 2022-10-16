@@ -120,10 +120,32 @@
            return it
            finally return "0"))
 
+(defun package-vc-main-file (pkg-desc)
+  "Return the main file of the package PKG-DESC.
+If no file can be found that appends \".el\" to the end of the
+package name, the file with the closest file name is chosen."
+  (let* ((default-directory (package-desc-dir pkg-desc))
+         (best (format "%s.el" (package-desc-name pkg-desc)))
+         (distance most-positive-fixnum) next-best)
+    (if (file-exists-p best)
+        (expand-file-name best)
+      (dolist (file (directory-files default-directory nil "\\.el\\'"))
+        (let ((distance* (string-distance best file)))
+          (when (< distance* distance)
+            (setq distance distance* next-best file))))
+      next-best)))
+
 (defun package-vc-generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC.
 The output is written out into PKG-FILE."
-  (let* ((name (package-desc-name pkg-desc)))
+  (let ((name (package-desc-name pkg-desc)))
+    ;; Infer the subject if missing.
+    (unless (package-desc-summary pkg-desc)
+      (setf (package-desc-summary pkg-desc)
+            (or (and-let* ((pkg (cadr (assq name package-archive-contents))))
+                  (package-desc-summary pkg))
+                (lm-summary (package-vc-main-file pkg-desc))
+                package--default-summary)))
     (let ((print-level nil)
           (print-quoted t)
           (print-length nil))
