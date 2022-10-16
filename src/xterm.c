@@ -7044,6 +7044,13 @@ x_update_begin (struct frame *f)
 #else
   /* Nothing to do.  */
 #endif
+
+#ifdef HAVE_XDBE
+  if (FRAME_X_DOUBLE_BUFFERED_P (f))
+    /* The frame is no longer complete, as it is in the midst of an
+       update.  */
+    FRAME_X_COMPLETE_P (f) = false;
+#endif
 }
 
 /* Draw a vertical window border from (x,y0) to (x,y1)  */
@@ -7190,6 +7197,10 @@ x_flip_and_flush (struct frame *f)
 #ifdef HAVE_XDBE
   if (FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
+
+  /* The frame is complete again as its contents were just
+     flushed.  */
+  FRAME_X_COMPLETE_P (f) = true;
 #endif
   x_flush (f);
   unblock_input ();
@@ -7240,6 +7251,9 @@ XTframe_up_to_date (struct frame *f)
   if (!buffer_flipping_blocked_p ()
       && FRAME_X_NEED_BUFFER_FLIP (f))
     show_back_buffer (f);
+
+  /* The frame is now complete, as its contents have been drawn.  */
+  FRAME_X_COMPLETE_P (f) = true;
 #endif
 
 #ifdef HAVE_XSYNC
@@ -10806,6 +10820,7 @@ x_clear_frame (struct frame *f)
   /* We have to clear the scroll bars.  If we have changed colors or
      something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
+
   unblock_input ();
 }
 
@@ -10857,7 +10872,7 @@ x_show_hourglass (struct frame *f)
 				(xcb_window_t) x->hourglass_window,
 				parent, 0, 0, FRAME_PIXEL_WIDTH (f),
 				FRAME_PIXEL_HEIGHT (f), 0,
-				XCB_WINDOW_CLASS_INPUT_OUTPUT,
+				XCB_WINDOW_CLASS_INPUT_ONLY,
 				XCB_COPY_FROM_PARENT, XCB_CW_CURSOR,
 				&cursor);
 #endif
@@ -17033,18 +17048,21 @@ x_net_wm_state (struct frame *f, Window window)
 
 /* Flip back buffers on F if it has undrawn content.  */
 
-#ifdef HAVE_XDBE
 static void
-flush_dirty_back_buffer_on (struct frame *f)
+x_flush_dirty_back_buffer_on (struct frame *f)
 {
-  block_input ();
-  if (!FRAME_GARBAGED_P (f)
-      && !buffer_flipping_blocked_p ()
-      && FRAME_X_NEED_BUFFER_FLIP (f))
-    show_back_buffer (f);
-  unblock_input ();
-}
+#ifdef HAVE_XDBE
+  if (FRAME_GARBAGED_P (f)
+      || buffer_flipping_blocked_p ()
+      /* If the frame is not already up to date, do not flush buffers
+	 on input, as that will result in flicker.  */
+      || !FRAME_X_COMPLETE_P (f)
+      || !FRAME_X_NEED_BUFFER_FLIP (f))
+    return;
+
+  show_back_buffer (f);
 #endif
+}
 
 #ifdef HAVE_GTK3
 void
@@ -17824,7 +17842,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   Time gen_help_time UNINIT;
 #endif
   ptrdiff_t nbytes = 0;
-  struct frame *any, *f = NULL;
+  struct frame *any, *f = NULL, *mouse_frame;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
   /* This holds the state XLookupString needs to implement dead keys
      and other tricks known as "compose processing".  _X Window System_
@@ -19148,9 +19166,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      || !EQ (f->tab_bar_window, hlinfo->mouse_face_window))
 	  )
         {
-          clear_mouse_face (hlinfo);
-          hlinfo->mouse_face_hidden = true;
-        }
+	  mouse_frame = hlinfo->mouse_face_mouse_frame;
+
+	  clear_mouse_face (hlinfo);
+	  hlinfo->mouse_face_hidden = true;
+
+	  if (mouse_frame)
+	    x_flush_dirty_back_buffer_on (mouse_frame);
+	}
 
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
       if (f == 0)
@@ -19630,6 +19653,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      {
 		clear_mouse_face (hlinfo);
 		hlinfo->mouse_face_mouse_frame = 0;
+		x_flush_dirty_back_buffer_on (xvw->frame);
 	      }
 
 	    if (any_help_event_p)
@@ -19783,6 +19807,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                  certainly no longer on any text in the frame.  */
               clear_mouse_face (hlinfo);
               hlinfo->mouse_face_mouse_frame = 0;
+	      x_flush_dirty_back_buffer_on (f);
             }
 
           /* Generate a nil HELP_EVENT to cancel a help-echo.
@@ -19840,7 +19865,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         help_echo_string = Qnil;
 
 	if (hlinfo->mouse_face_hidden)
-          {
+	  {
             hlinfo->mouse_face_hidden = false;
             clear_mouse_face (hlinfo);
           }
@@ -20171,6 +20196,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
         if (!NILP (help_echo_string)
             || !NILP (previous_help_echo_string))
 	  do_help = 1;
+
+	if (f)
+	  x_flush_dirty_back_buffer_on (f);
         goto OTHER;
       }
 
@@ -20837,9 +20865,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                 tab_bar_p = EQ (window, f->tab_bar_window);
 
                 if (tab_bar_p)
-		  tab_bar_arg = handle_tab_bar_click
-		    (f, x, y, event->xbutton.type == ButtonPress,
-		     x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));
+		  {
+		    tab_bar_arg = handle_tab_bar_click
+		      (f, x, y, event->xbutton.type == ButtonPress,
+		       x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));
+		    x_flush_dirty_back_buffer_on (f);
+		  }
               }
 
 #if ! defined (USE_GTK)
@@ -20857,9 +20888,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 				  || f->last_tool_bar_item != -1));
 
                 if (tool_bar_p && event->xbutton.button < 4)
-		  handle_tool_bar_click
-		    (f, x, y, event->xbutton.type == ButtonPress,
-		     x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));
+		  {
+		    handle_tool_bar_click
+		      (f, x, y, event->xbutton.type == ButtonPress,
+		       x_x_to_emacs_modifiers (dpyinfo, event->xbutton.state));
+		    x_flush_dirty_back_buffer_on (f);
+		  }
               }
 #endif /* !USE_GTK */
 
@@ -21398,6 +21432,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			 certainly no longer on any text in the frame.  */
 		      clear_mouse_face (hlinfo);
 		      hlinfo->mouse_face_mouse_frame = 0;
+		      x_flush_dirty_back_buffer_on (f);
 		    }
 
 		  /* Generate a nil HELP_EVENT to cancel a help-echo.
@@ -22073,6 +22108,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		  do_help = 1;
 		}
+
+	      if (f)
+		x_flush_dirty_back_buffer_on (f);
 	      goto XI_OTHER;
 	    }
 
@@ -22592,9 +22630,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      tab_bar_p = EQ (window, f->tab_bar_window);
 
 		      if (tab_bar_p)
-			tab_bar_arg = handle_tab_bar_click
-			  (f, x, y, xev->evtype == XI_ButtonPress,
-			   x_x_to_emacs_modifiers (dpyinfo, bv.state));
+			{
+			  tab_bar_arg = handle_tab_bar_click
+			    (f, x, y, xev->evtype == XI_ButtonPress,
+			     x_x_to_emacs_modifiers (dpyinfo, bv.state));
+			  x_flush_dirty_back_buffer_on (f);
+			}
 		    }
 
 #if ! defined (USE_GTK)
@@ -22619,10 +22660,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					|| f->last_tool_bar_item != -1));
 
 		      if (tool_bar_p && xev->detail < 4)
-			handle_tool_bar_click_with_device
-			  (f, x, y, xev->evtype == XI_ButtonPress,
-			   x_x_to_emacs_modifiers (dpyinfo, bv.state),
-			   source ? source->name : Qt);
+			{
+			  handle_tool_bar_click_with_device
+			    (f, x, y, xev->evtype == XI_ButtonPress,
+			     x_x_to_emacs_modifiers (dpyinfo, bv.state),
+			     source ? source->name : Qt);
+			  x_flush_dirty_back_buffer_on (f);
+			}
 		    }
 #endif /* !USE_GTK */
 
@@ -22919,8 +22963,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      || !EQ (f->tab_bar_window, hlinfo->mouse_face_window))
 		  )
 		{
+		  mouse_frame = hlinfo->mouse_face_mouse_frame;
+
 		  clear_mouse_face (hlinfo);
 		  hlinfo->mouse_face_hidden = true;
+
+		  if (mouse_frame)
+		    x_flush_dirty_back_buffer_on (mouse_frame);
 		}
 
 	      if (f != 0)
@@ -24083,18 +24132,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	}
       count++;
     }
-
-  /* Sometimes event processing draws to either F or ANY outside
-     redisplay.  To ensure that these changes become visible, draw
-     them here.  */
-
-#ifdef HAVE_XDBE
-  if (f)
-    flush_dirty_back_buffer_on (f);
-
-  if (any && any != f)
-    flush_dirty_back_buffer_on (any);
-#endif
 
   SAFE_FREE ();
   return count;

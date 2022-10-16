@@ -916,11 +916,6 @@ struct x_output
   Picture picture;
 #endif
 
-  /* Flag that indicates whether we've modified the back buffer and
-     need to publish our modifications to the front buffer at a
-     convenient time.  */
-  bool need_buffer_flip;
-
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
   Window icon_desc;
@@ -1091,6 +1086,18 @@ struct x_output
      and inactive states.  */
   bool_bf alpha_identical_p : 1;
 
+#ifdef HAVE_XDBE
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool_bf need_buffer_flip : 1;
+
+  /* Flag that indicates whether or not the frame contents are
+     complete and can be safely flushed while handling async
+     input.  */
+  bool_bf complete : 1;
+#endif
+
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
@@ -1248,6 +1255,10 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+
+/* Return whether or not the frame F has been completely drawn.  Used
+   while handling async input.  */
+#define FRAME_X_COMPLETE_P(f) ((f)->output_data.x->complete)
 #endif
 
 /* Return the outermost X window associated with the frame F.  */
