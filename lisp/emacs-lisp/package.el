@@ -2997,7 +2997,6 @@ either a full name or nil, and EMAIL is a valid email address."
   "r"     #'revert-buffer
   "~"     #'package-menu-mark-obsolete-for-deletion
   "w"     #'package-browse-url
-  "m"     #'package-contact-maintainer
   "b"     #'package-report-bug
   "x"     #'package-menu-execute
   "h"     #'package-menu-quick-help
@@ -4550,19 +4549,6 @@ will be signalled in that case."
       (with-temp-buffer
         (package--print-email-button maint)
         (string-trim (substring-no-properties (buffer-string))))))))
-
-;; TODO: Allow attaching a patch to send directly to the maintainer.
-;; Ideally this should be able to detect the local changes, convert
-;; these into patches.
-(defun package-contact-maintainer (desc)
-  "Prepare a message to send to the maintainers of a package.
-DESC must be a `package-desc' object."
-  (interactive (list (package--query-desc package-archive-contents))
-               package-menu-mode)
-  (let ((maint (package-maintainers desc))
-        (name (package-desc-name desc))
-        (subject (read-string "Subject: ")))
-    (compose-mail maint (format "[%s] %s" name subject))))
 
 (defun package-report-bug (desc)
   "Prepare a message to send to the maintainers of a package.

@@ -1578,11 +1578,6 @@ This command allows you to send patches to package maintainers, for
 packages checked out using 'package-vc-install'.
 
 +++
-*** New command 'package-contact-maintainer'
-This command gives you a generic way to send messages to package
-maintainers.
-
-+++
 *** New command 'package-report-bug'
 This command helps you compose an email for sending bug reports to
 package maintainers.

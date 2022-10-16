@@ -553,16 +553,14 @@ be regarded just like any other package, that can be updated (using
 @code{package-update}), deleted (using @code{package-delete}) and
 viewed in the package listing.
 
-@findex package-contact-maintainer
 @findex package-report-bug
 @findex package-vc-prepare-patch
   With the source checkout, you might want to reproduce a bug against
 the current development head or implement a new feature to scratch an
 itch.  If the package metadata indicates that a maintainer can be
-contacted via Email, you can use the commands
-@code{package-contact-maintainer} to send them a message, or
-@code{package-report-bug} to report a bug that will include all the
-user options that you have customised.  Patches can be sent out using
+contacted via Email, you can use the command @code{package-report-bug}
+to report a bug that will include all the user options that you have
+customised.  Patches can be sent out using
 @code{package-vc-prepare-patch}, that makes use of
 @code{vc-prepare-patch} under the hold (@pxref{Preparing Patches}).
 
