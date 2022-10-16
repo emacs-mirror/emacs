@@ -3030,6 +3030,23 @@ allocate_vector_from_block (ptrdiff_t nbytes);
 
 /* Called once to initialize vector allocation.  */
 
+
+/* PKG-FIXME: Stefan's original patch allocates the zero vector
+   from a block, which doesn't work because that code is not
+   prepared to handle allocations of that size.  Do it as before
+   Stefan's patch, because I don't want to deal with it now.  */
+
+static Lisp_Object
+xmake_pure_vector (ptrdiff_t len)
+{
+  Lisp_Object new;
+  size_t size = header_size + len * word_size;
+  struct Lisp_Vector *p = pure_alloc (size, Lisp_Vectorlike);
+  XSETVECTOR (new, p);
+  XVECTOR (new)->header.size = len;
+  return new;
+}
+
 static void
 init_vectors (void)
 {
@@ -3041,9 +3058,7 @@ init_vectors (void)
      normal heap, e.g. as a static object, and then to "hide" it from the GC,
      for example by marking it by hand at the beginning of the GC and unmarking
      it by hand at the end.  */
-  struct Lisp_Vector *zv = allocate_vector_from_block (vroundup (header_size));
-  zv->header.size = 0;
-  zero_vector = make_lisp_ptr (zv, Lisp_Vectorlike);
+  zero_vector = xmake_pure_vector (0);
   staticpro (&zero_vector);
 }
 
