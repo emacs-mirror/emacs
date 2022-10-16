@@ -3535,15 +3535,6 @@ modify_overlay (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
   modiff_incr (&BUF_OVERLAY_MODIFF (buf), 1);
 }
 
-INLINE void
-set_overlay_region (struct Lisp_Overlay *ov, ptrdiff_t begin, ptrdiff_t end)
-{
-  eassert (ov->buffer);
-  begin = clip_to_bounds (BEG, begin, ov->buffer->text->z);
-  end = clip_to_bounds (begin, end, ov->buffer->text->z);
-  interval_node_set_region (ov->buffer->overlays, ov->interval, begin, end);
-}
-
 DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
        doc: /* Set the endpoints of OVERLAY to BEG and END in BUFFER.
 If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.
