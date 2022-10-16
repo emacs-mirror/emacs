@@ -1045,7 +1045,7 @@ interval_node_intersects (const struct interval_node *node,
 /* Return the next node of the iterator in the order given when it was
    started; or NULL if there are no more nodes. */
 
-inline struct interval_node*
+struct interval_node *
 interval_generator_next (struct interval_generator *g)
 {
   eassert (g->running);
@@ -1115,7 +1115,7 @@ interval_generator_next (struct interval_generator *g)
 /* Limit G to the new interval [BEGIN, END), which must be a subset of
    the current one.  I.E. it can't grow on either side. */
 
-inline void
+void
 interval_generator_narrow (struct interval_generator *g,
                            ptrdiff_t begin, ptrdiff_t end)
 {
