@@ -2167,10 +2167,8 @@ static bool
 must_escape_p (int c, int ichar)
 {
   if (c == '\"' || c == '\\' || c == '\''
-      || (ichar == 0
-	  && (c == '+' || c == '-' || c == '?' || c == '.'))
       || c == ';' || c == '#' || c == '(' || c == ')'
-      || c == ',' || c == '`' || c == '|'
+      || c == ',' || c == '`' || c == ':'
       || c == '[' || c == ']' || c <= 040
       || c == NO_BREAK_SPACE)
     return true;
@@ -2185,9 +2183,13 @@ looks_like_number_p (Lisp_Object name)
   const char *p = (const char *) SDATA (name);
   const bool signedp = *p == '-' || *p == '+';
   ptrdiff_t len;
-  return ((c_isdigit (p[signedp]) || p[signedp] == '.')
+  return (((c_isdigit (p[signedp]) || p[signedp] == '.')
 	  && !NILP (string_to_number (p, 10, &len))
-	  && len == SBYTES (name));
+	  && len == SBYTES (name))
+	  /* We don't escape "." or "?" (unless they're the first
+	     character in the symbol name).  */
+	  || *p == '?'
+	  || *p == '.');
 }
 
 /* Print string NAME like a symbol name.  */
