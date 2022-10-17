@@ -3,8 +3,16 @@
 
 * Common Lisp Packages for Emacs
 
-This is an experimental implementation of CL packages for Emacs.  It
-builds and runs successfully under macOS 12.6.
+This is an experimental implementation of CL packages for Emacs.
+The question is if it is possible to add CL packages to Emacs with
+reasonable effort and reasonable compatibility.
+
+I answer this with yes.
+
+Note that this branch is only known to build and run under macOS 12.6.
+I don't have other systems.
+
+
 
 There are two packages defined at present.  The keyword package, named
 "keyword" or "" contains keywords, the Emacs package, with name
