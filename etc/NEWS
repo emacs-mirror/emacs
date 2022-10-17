@@ -3172,6 +3172,15 @@ The following generalized variables have been made obsolete:
 * Lisp Changes in Emacs 29.1
 
 +++
+** Interpreted closures are "safe for space".
+As was already the case for byte-compiled closures, instead of capturing
+the whole current lexical environment, interpreted closures now only
+capture the part of the environment that they need.
+The previous behavior could occasionally lead to memory leaks or
+to problems where a printed closure would not be 'read'able because
+of an un'read'able value in an unrelated lexical variable.
+
++++
 ** New accessor function 'file-attribute-file-identifier'.
 It returns the list of the inode number and device identifier
 retrieved by 'file-attributes'.  This value can be used to identify a
