@@ -630,10 +630,64 @@ void pkg_break (void)
 {
 }
 
-
+
+static void
+pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
+{
+  package = check_package (package);
+  FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (package))
+    call1 (fn, it_symbol.value);
+
+}
+
+/* Map FUNCTION over all symbols in PACKAGE.  */
+
+static void
+pkg_map_symbols (Lisp_Object function)
+{
+  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
+    pkg_map_package_symbols (function, it_package.value);
+}
+
+void
+pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
+{
+  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
+    FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
+      fn (it_symbol.value, arg);
+}
+
 /***********************************************************************
-			Old Emacs intern stuff
+                        Old Emacs intern stuff
  ***********************************************************************/
+
+/* The idea begind this is as follows:
+
+   We want to het rid of Lisp_Symbol::next.  But legcaly code may
+   still contain code for intended for obarrays.  These are the
+   possibilities:
+
+   1. The code uses the obarray variable.  In this case, he doesn't
+   get a vector, but the Emacs package.
+
+   2. The code makes an obarray with obarray-make, in which case he
+   got a package.
+
+   3. The code uses make-vector, in which case we make a package for
+   him. */
+
+static Lisp_Object
+fake_me_an_obarray (Lisp_Object vector)
+{
+  eassert (VECTORP (vector));
+  Lisp_Object package = Faref (vector, make_fixnum (0));
+  if (!PACKAGEP (package))
+    {
+      package = make_package (build_string ("fake obarray"));
+      Faset (vector, make_fixnum (0), package);
+    }
+  return package;
+}
 
 /* Implements Emacs' old Fintern function.  */
 
@@ -652,10 +706,8 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
 
   eassert (SREF (name, 0) != ':');
 
-  /* PKG-FIXME: This is presumable an obarray, and we are intending to
-     intern into the default pacakge.  */
   if (VECTORP (package))
-    package = Vemacs_package;
+    package = fake_me_an_obarray (package);
   package = package_or_default (package);
 
   return pkg_intern_symbol (name, package);
@@ -679,7 +731,10 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
       package = Vkeyword_package;
     }
 
+  if (VECTORP (package))
+    package = fake_me_an_obarray (package);
   package = package_or_default (package);
+
   Lisp_Object found = lookup_symbol (name, package);
   if (!EQ (found, Qunbound))
     {
@@ -696,8 +751,22 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 Lisp_Object
 pkg_emacs_unintern (Lisp_Object name, Lisp_Object package)
 {
+  if (VECTORP (package))
+    package = fake_me_an_obarray (package);
   package = package_or_default (package);
   return pkg_unintern_symbol (name, package);
+}
+
+Lisp_Object
+pkg_emacs_mapatoms (Lisp_Object function, Lisp_Object package)
+{
+  if (VECTORP (package))
+    package = fake_me_an_obarray (package);
+  if (NILP (package))
+    pkg_map_symbols (function);
+  else
+    pkg_map_package_symbols (function, package);
+  return Qnil;
 }
 
 
@@ -763,42 +832,6 @@ pkg_keywordp (Lisp_Object obj)
   if (!SYMBOLP (obj))
     return false;
   return EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
-}
-
-static void
-pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
-{
-  package = check_package (package);
-  FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (package))
-    call1 (fn, it_symbol.value);
-
-}
-
-/* Map FUNCTION over all symbols in PACKAGE.  */
-
-static void
-pkg_map_symbols (Lisp_Object function)
-{
-  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
-    pkg_map_package_symbols (function, it_package.value);
-}
-
-void
-pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
-{
-  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
-    FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
-      fn (it_symbol.value, arg);
-}
-
-Lisp_Object
-pkg_emacs_mapatoms (Lisp_Object function, Lisp_Object package)
-{
-  if (NILP (package))
-    pkg_map_symbols (function);
-  else
-    pkg_map_package_symbols (function, package);
-  return Qnil;
 }
 
 
