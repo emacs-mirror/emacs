@@ -2168,7 +2168,7 @@ must_escape_p (int c, int ichar)
 {
   if (c == '\"' || c == '\\' || c == '\''
       || (ichar == 0
-	  && (c == '+' || c == '-' || c == '.' || c == '?'))
+	  && (c == '+' || c == '-' || c == '?' || c == '.'))
       || c == ';' || c == '#' || c == '(' || c == ')'
       || c == ',' || c == '`' || c == '|'
       || c == '[' || c == ']' || c <= 040
@@ -2177,17 +2177,31 @@ must_escape_p (int c, int ichar)
   return false;
 }
 
+/* Return true if NAME looks like a number.  */
+
+static bool
+looks_like_number_p (Lisp_Object name)
+{
+  const char *p = (const char *) SDATA (name);
+  const bool signedp = *p == '-' || *p == '+';
+  ptrdiff_t len;
+  return ((c_isdigit (p[signedp]) || p[signedp] == '.')
+	  && !NILP (string_to_number (p, 10, &len))
+	  && len == SBYTES (name));
+}
+
 /* Print string NAME like a symbol name.  */
 
 static void
 print_symbol_name (Lisp_Object name, Lisp_Object printcharfun,
 		   bool escape)
 {
+  const bool like_number_p = looks_like_number_p (name);
   for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
     {
       const int c = fetch_string_char_advance (name, &ichar, &ibyte);
       maybe_quit ();
-      if (escape && must_escape_p (c, ichar))
+      if (escape && (like_number_p || must_escape_p (c, ichar)))
 	printchar ('\\', printcharfun);
       printchar (c, printcharfun);
     }
