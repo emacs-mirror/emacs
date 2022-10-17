@@ -501,7 +501,10 @@ lost after dumping")))
                                          bin-dest-dir)
                      ;; Relative filename from the built uninstalled binary.
                      (file-relative-name file invocation-directory)))))
-	       comp-loaded-comp-units-h))))
+	       comp-loaded-comp-units-h)))
+  ;; Set up the mechanism to allow inhibiting native-comp via
+  ;; file-local variables.
+  (defvar comp--no-native-compile (make-hash-table :test #'equal)))
 
 (when (hash-table-p purify-flag)
   (let ((strings 0)

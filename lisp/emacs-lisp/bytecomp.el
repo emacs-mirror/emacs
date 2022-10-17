@@ -2323,9 +2323,15 @@ With argument ARG, insert value in current buffer after the form."
        (setq case-fold-search nil))
      (displaying-byte-compile-warnings
       (with-current-buffer inbuffer
-	(and byte-compile-current-file
-	     (byte-compile-insert-header byte-compile-current-file
-                                         byte-compile--outbuffer))
+	(when byte-compile-current-file
+	  (byte-compile-insert-header byte-compile-current-file
+                                      byte-compile--outbuffer)
+          ;; Instruct native-comp to ignore this file.
+          (when (bound-and-true-p no-native-compile)
+            (with-current-buffer byte-compile--outbuffer
+              (insert
+               "(when (boundp 'comp--no-native-compile)
+  (puthash load-file-name t comp--no-native-compile))\n\n"))))
 	(goto-char (point-min))
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have been

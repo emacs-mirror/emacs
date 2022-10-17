@@ -4119,6 +4119,7 @@ the deferred compilation mechanism."
 LOAD and SELECTOR work as described in `native--compile-async'."
   ;; Make sure we are not already compiling `file' (bug#40838).
   (or (gethash file comp-async-compilations)
+      (gethash (file-name-with-extension file "elc") comp--no-native-compile)
       (cond
        ((null selector) nil)
        ((functionp selector) (not (funcall selector file)))
