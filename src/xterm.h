@@ -308,6 +308,22 @@ struct x_failable_request
   unsigned long end;
 };
 
+#ifdef HAVE_XFIXES
+
+struct x_monitored_selection
+{
+  /* The name of the selection.  */
+  Atom name;
+
+  /* The current owner of the selection.  */
+  Window owner;
+};
+
+/* An invalid window.  */
+#define X_INVALID_WINDOW 0xffffffff
+
+#endif
+
 
 /* For each X display, we have a structure that records
    information about it.  */
@@ -778,6 +794,7 @@ struct x_display_info
   bool xfixes_supported_p;
   int xfixes_major;
   int xfixes_minor;
+  int xfixes_event_base;
 #endif
 
 #ifdef HAVE_XSYNC
@@ -827,6 +844,17 @@ struct x_display_info
 
   /* Pointer to the next request in `failable_requests'.  */
   struct x_failable_request *next_failable_request;
+
+#ifdef HAVE_XFIXES
+  /* Array of selections being monitored and their owners.  */
+  struct x_monitored_selection *monitored_selections;
+
+  /* Window used to monitor those selections.  */
+  Window selection_tracking_window;
+
+  /* The number of those selections.  */
+  int n_monitored_selections;
+#endif
 
   /* The pending drag-and-drop time for middle-click based
      drag-and-drop emulation.  */
@@ -1656,6 +1684,10 @@ extern void x_cr_draw_frame (cairo_t *, struct frame *);
 extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
+#ifdef HAVE_XFIXES
+extern Window x_find_selection_owner (struct x_display_info *, Atom);
+#endif
+
 #ifdef HAVE_XRENDER
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
@@ -1664,6 +1696,8 @@ extern void x_xr_apply_ext_clip (struct frame *, GC);
 extern void x_xr_reset_ext_clip (struct frame *);
 #endif
 
+extern void x_translate_coordinates_to_root (struct frame *, int, int,
+					     int *, int *);
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);
 

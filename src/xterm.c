@@ -13659,6 +13659,43 @@ x_translate_coordinates (struct frame *f, int root_x, int root_y,
     }
 }
 
+/* Translate the given coordinates from the edit window of FRAME,
+   taking into account any cached root window offsets.  This is mainly
+   used from the popup menu code.  */
+
+void
+x_translate_coordinates_to_root (struct frame *f, int x, int y,
+				 int *x_out, int *y_out)
+{
+  struct x_output *output;
+  Window dummy;
+
+  output = FRAME_X_OUTPUT (f);
+
+  if (output->window_offset_certain_p)
+    {
+      /* Use the cached root window offset.  */
+      *x_out = x + output->root_x;
+      *y_out = y + output->root_y;
+
+      return;
+    }
+
+  /* Otherwise, do the transform manually and compute and cache the
+     root window position.  */
+  if (!XTranslateCoordinates (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			      FRAME_DISPLAY_INFO (f)->root_window,
+			      x, y, x_out, y_out, &dummy))
+    *x_out = 0, *y_out = 0;
+  else
+    {
+      /* Cache the root window offset of the edit window.  */
+      output->window_offset_certain_p = true;
+      output->root_x = *x_out - x;
+      output->root_y = *y_out - y;
+    }
+}
+
 /* The same, but for an XIDeviceEvent.  */
 
 #ifdef HAVE_XINPUT2
@@ -17816,6 +17853,44 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
   XFree (data);
 }
 
+#ifdef HAVE_XFIXES
+
+static void
+x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
+				  XEvent *event)
+{
+  XFixesSelectionNotifyEvent *notify;
+  int i;
+
+  notify = (XFixesSelectionNotifyEvent *) event;
+
+  if (notify->window != dpyinfo->selection_tracking_window)
+    return;
+
+  for (i = 0; i < dpyinfo->n_monitored_selections; ++i)
+    {
+      /* We don't have to keep track of timestamps here.  */
+      if (notify->selection == dpyinfo->monitored_selections[i].name)
+	dpyinfo->monitored_selections[i].owner = notify->owner;
+    }
+}
+
+Window
+x_find_selection_owner (struct x_display_info *dpyinfo, Atom selection)
+{
+  int i;
+
+  for (i = 0; i < dpyinfo->n_monitored_selections; ++i)
+    {
+      if (selection == dpyinfo->monitored_selections[i].name)
+	return dpyinfo->monitored_selections[i].owner;
+    }
+
+  return X_INVALID_WINDOW;
+}
+
+#endif
+
 /* Handles the XEvent EVENT on display DPYINFO.
 
    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
@@ -20495,7 +20570,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      int old_left = f->left_pos;
 	      int old_top = f->top_pos;
-	      Lisp_Object frame = Qnil;
+	      Lisp_Object frame;
 
 	      XSETFRAME (frame, f);
 
@@ -23348,7 +23423,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      /* Handle all disabled devices now, to prevent
 			 things happening out-of-order later.  */
 
-		      if (ndevices)
+		      if (n_disabled)
 			{
 			  xi_disable_devices (dpyinfo, disabled, n_disabled);
 			  n_disabled = 0;
@@ -23753,12 +23828,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 					 | XkbModifierMapMask
 					 | XkbVirtualModsMask),
 					dpyinfo->xkb_desc) == Success)
-		    XkbGetNames (dpyinfo->display,
-				 XkbGroupNamesMask | XkbVirtualModNamesMask,
+		    XkbGetNames (dpyinfo->display, XkbAllNamesMask,
 				 dpyinfo->xkb_desc);
 		  else
 		    {
-		      XkbFreeKeyboard (dpyinfo->xkb_desc, XkbAllComponentsMask, True);
+		      XkbFreeKeyboard (dpyinfo->xkb_desc,
+				       XkbAllComponentsMask, True);
 		      dpyinfo->xkb_desc = NULL;
 		    }
 		}
@@ -23772,8 +23847,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 						 XkbUseCoreKbd);
 
 		  if (dpyinfo->xkb_desc)
-		    XkbGetNames (dpyinfo->display,
-				 XkbGroupNamesMask | XkbVirtualModNamesMask,
+		    XkbGetNames (dpyinfo->display, XkbAllNamesMask,
 				 dpyinfo->xkb_desc);
 		}
 
@@ -24063,6 +24137,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  if (inev.ie.kind != NO_EVENT)
 	    x_dnd_update_tooltip_now ();
 	}
+#endif
+#ifdef HAVE_XFIXES
+      if (dpyinfo->xfixes_supported_p
+	  && event->type == (dpyinfo->xfixes_event_base
+			     + XFixesSelectionNotify))
+	x_handle_selection_monitor_event (dpyinfo, event);
 #endif
     OTHER:
 #ifdef USE_X_TOOLKIT
@@ -28564,6 +28644,27 @@ xi_check_toolkit (Display *display)
 
 #endif
 
+#ifdef HAVE_XFIXES
+
+/* Create and return a special window for receiving events such as
+   selection notify events.  The window is an 1x1 unmapped
+   override-redirect InputOnly window at -1, -1, which should prevent
+   it from doing anything.  */
+
+static Window
+x_create_special_window (struct x_display_info *dpyinfo)
+{
+  XSetWindowAttributes attrs;
+
+  attrs.override_redirect = True;
+
+  return XCreateWindow (dpyinfo->display, dpyinfo->root_window,
+			-1, -1, 1, 1, 0, CopyFromParent, InputOnly,
+			CopyFromParent, CWOverrideRedirect, &attrs);
+}
+
+#endif
+
 /* Open a connection to X display DISPLAY_NAME, and return the
    structure that describes the open display.  If obtaining the XCB
    connection or toolkit-specific display fails, return NULL.  Signal
@@ -28585,6 +28686,22 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   GdkDisplay *gdpy;
   GdkScreen *gscr;
 #endif
+#ifdef HAVE_XFIXES
+  Lisp_Object tem, lisp_name;
+  int num_fast_selections;
+  Atom selection_name;
+#ifdef USE_XCB
+  xcb_get_selection_owner_cookie_t *selection_cookies;
+  xcb_get_selection_owner_reply_t *selection_reply;
+  xcb_generic_error_t *selection_error;
+#endif
+#endif
+  int i;
+
+  USE_SAFE_ALLOCA;
+
+  /* Avoid warnings when SAFE_ALLOCA is not actually used.  */
+  ((void) SAFE_ALLOCA (0));
 
   block_input ();
 
@@ -28737,12 +28854,14 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
       unblock_input ();
+
+      SAFE_FREE ();
       return 0;
     }
 
 #ifdef USE_XCB
   xcb_conn = XGetXCBConnection (dpy);
-  if (xcb_conn == 0)
+  if (!xcb_conn)
     {
 #ifdef USE_GTK
       xg_display_close (dpy);
@@ -28755,6 +28874,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif /* ! USE_GTK */
 
       unblock_input ();
+
+      SAFE_FREE ();
       return 0;
     }
 #endif
@@ -29307,8 +29428,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 				     XkbUseCoreKbd);
 
       if (dpyinfo->xkb_desc)
-	XkbGetNames (dpyinfo->display,
-		     XkbGroupNamesMask | XkbVirtualModNamesMask,
+	XkbGetNames (dpyinfo->display, XkbAllNamesMask,
 		     dpyinfo->xkb_desc);
 
       XkbSelectEvents (dpyinfo->display, XkbUseCoreKbd,
@@ -29318,9 +29438,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 #endif
 
 #ifdef HAVE_XFIXES
-  int xfixes_event_base, xfixes_error_base;
+  int xfixes_error_base;
   dpyinfo->xfixes_supported_p
-    = XFixesQueryExtension (dpyinfo->display, &xfixes_event_base,
+    = XFixesQueryExtension (dpyinfo->display,
+			    &dpyinfo->xfixes_event_base,
 			    &xfixes_error_base);
 
   if (dpyinfo->xfixes_supported_p)
@@ -29371,7 +29492,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	   XScreenNumberOfScreen (dpyinfo->screen));
 
   {
-    int i;
     enum { atom_count = ARRAYELTS (x_atom_refs) };
     /* 1 for _XSETTINGS_SN.  */
     enum { total_atom_count = 2 + atom_count };
@@ -29539,8 +29659,100 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->protected_windows_max = 256;
 #endif
 
+#ifdef HAVE_XFIXES
+  /* Initialize selection tracking for the selections in
+     x-fast-selection-list.  */
+
+  if (CONSP (Vx_fast_selection_list)
+      && dpyinfo->xfixes_supported_p
+      && dpyinfo->xfixes_major >= 1)
+    {
+      num_fast_selections = 0;
+      tem = Vx_fast_selection_list;
+
+      FOR_EACH_TAIL_SAFE (tem)
+	{
+	  if (!SYMBOLP (XCAR (tem)))
+	    continue;
+
+	  num_fast_selections++;
+	}
+
+      dpyinfo->n_monitored_selections = num_fast_selections;
+      dpyinfo->selection_tracking_window
+	= x_create_special_window (dpyinfo);
+      dpyinfo->monitored_selections
+	= xmalloc (num_fast_selections
+		   * sizeof *dpyinfo->monitored_selections);
+
+      num_fast_selections = 0;
+      tem = Vx_fast_selection_list;
+
+      FOR_EACH_TAIL_SAFE (tem)
+	{
+	  lisp_name = XCAR (tem);
+
+	  if (!SYMBOLP (lisp_name))
+	    continue;
+
+	  selection_name = symbol_to_x_atom (dpyinfo, lisp_name);
+	  dpyinfo->monitored_selections[num_fast_selections++].name
+	    = selection_name;
+	  dpyinfo->monitored_selections[num_fast_selections - 1].owner
+	    = X_INVALID_WINDOW;
+
+	  /* Select for selection input.  */
+	  XFixesSelectSelectionInput (dpyinfo->display,
+				      dpyinfo->selection_tracking_window,
+				      selection_name,
+				      (XFixesSetSelectionOwnerNotifyMask
+				       | XFixesSetSelectionOwnerNotifyMask
+				       | XFixesSelectionClientCloseNotifyMask));
+	}
+
+#ifdef USE_XCB
+      selection_cookies = SAFE_ALLOCA (sizeof *selection_cookies
+				       * num_fast_selections);
+#endif
+
+      /* Now, ask for the current owners of all those selections.  */
+      for (i = 0; i < num_fast_selections; ++i)
+	{
+#ifdef USE_XCB
+	  selection_cookies[i]
+	    = xcb_get_selection_owner (dpyinfo->xcb_connection,
+				       dpyinfo->monitored_selections[i].name);
+#else
+	  dpyinfo->monitored_selections[i].owner
+	    = XGetSelectionOwner (dpyinfo->display,
+				  dpyinfo->monitored_selections[i].name);
+#endif
+	}
+
+#ifdef USE_XCB
+      for (i = 0; i < num_fast_selections; ++i)
+	{
+	  selection_reply
+	    = xcb_get_selection_owner_reply (dpyinfo->xcb_connection,
+					     selection_cookies[i],
+					     &selection_error);
+
+	  if (selection_reply)
+	    {
+	      dpyinfo->monitored_selections[i].owner
+		= selection_reply->owner;
+	      free (selection_reply);
+	    }
+	  else if (selection_error)
+	    free (selection_error);
+	}
+#endif
+    }
+#endif
+
   unblock_input ();
 
+  SAFE_FREE ();
   return dpyinfo;
 }
 
@@ -29676,6 +29888,10 @@ x_delete_display (struct x_display_info *dpyinfo)
   xfree (dpyinfo->x_id_name);
   xfree (dpyinfo->x_dnd_atoms);
   xfree (dpyinfo->color_cells);
+#ifdef HAVE_XFIXES
+  if (dpyinfo->monitored_selections)
+    xfree (dpyinfo->monitored_selections);
+#endif
 #ifdef USE_TOOLKIT_SCROLL_BARS
   xfree (dpyinfo->protected_windows);
 #endif
@@ -30643,4 +30859,17 @@ It should accept a single argument, a string describing the locale of
 the input method, and return a coding system that can decode keyboard
 input generated by said input method.  */);
   Vx_input_coding_function = Qnil;
+
+  DEFVAR_LISP ("x-fast-selection-list", Vx_fast_selection_list,
+    doc: /* List of selections for which `x-selection-exists-p' should be fast.
+
+List of selection names as atoms that will be monitored by Emacs for
+ownership changes when the X server supports the XFIXES extension.
+The result of the monitoring is then used by `x-selection-exists-p' to
+avoid a server round trip, which is important as it is called while
+updating the tool bar.  The value of this variable is only read upon
+connection setup.  */);
+  /* The default value of this variable is chosen so that updating the
+     tool bar does not require a call to _XReply.  */
+  Vx_fast_selection_list = list1 (QCLIPBOARD);
 }
