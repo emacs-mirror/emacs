@@ -611,8 +611,12 @@ DEFUN ("treesit-language-version",
        Ftreesit_language_version,
        Streesit_language_version,
        0, 1, 0,
-       doc: /* Return the language version of tree-sitter library.
-If MIN-COMPATIBLE is non-nil, return the minimal compatible version.  */)
+       doc: /* Return the language ABI version of the tree-sitter library.
+
+By default, report the latest ABI version supported by the library for
+loading language support modules.  The library is backward-compatible
+with language modules which use older ABI versions; if MIN-COMPATIBLE
+is non-nil, return the oldest compatible ABI version.  */)
   (Lisp_Object min_compatible)
 {
   if (NILP (min_compatible))
@@ -1104,10 +1108,12 @@ DEFUN ("treesit-parser-create",
        1, 3, 0,
        doc: /* Create and return a parser in BUFFER for LANGUAGE.
 
-The parser is automatically added to BUFFER's `treesit-parser-list'.
-LANGUAGE is a language symbol.  If BUFFER is nil, use the current
-buffer.  If BUFFER already has a parser for LANGUAGE, return that
-parser.  If NO-REUSE is non-nil, always create a new parser.  */)
+The parser is automatically added to BUFFER's parser list, as
+returned by `treesit-parser-list'.
+LANGUAGE is a language symbol.  If BUFFER is nil or omitted, it
+defaults to the current buffer.  If BUFFER already has a parser for
+LANGUAGE, return that parser, but if NO-REUSE is non-nil, always
+create a new parser.  */)
   (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse)
 {
   ts_initialize ();
@@ -1158,7 +1164,8 @@ parser.  If NO-REUSE is non-nil, always create a new parser.  */)
 DEFUN ("treesit-parser-delete",
        Ftreesit_parser_delete, Streesit_parser_delete,
        1, 1, 0,
-       doc: /* Delete PARSER from its buffer.  */)
+       doc: /* Delete PARSER from its buffer's parser list.
+See `treesit-parser-list' for the buffer's parser list.  */)
   (Lisp_Object parser)
 {
   ts_check_parser (parser);
@@ -1213,7 +1220,7 @@ DEFUN ("treesit-parser-buffer",
 DEFUN ("treesit-parser-language",
        Ftreesit_parser_language, Streesit_parser_language,
        1, 1, 0,
-       doc: /* Return parser's language symbol.
+       doc: /* Return PARSER's language symbol.
 This symbol is the one used to create the parser.  */)
   (Lisp_Object parser)
 {
@@ -1269,11 +1276,11 @@ DEFUN ("treesit-parser-set-included-ranges",
        2, 2, 0,
        doc: /* Limit PARSER to RANGES.
 
-RANGES is a list of (BEG . END), each (BEG . END) confines a range in
-which the parser should operate in.  Each range must not overlap, and
-each range should come in order.  Signal `treesit-set-range-error'
+RANGES is a list of (BEG . END), each (BEG . END) defines a region in
+which the parser should operate.  Regions must not overlap, and the
+regions should come in order in the list.  Signal `treesit-set-range-error'
 if the argument is invalid, or something else went wrong.  If RANGES
-is nil, set PARSER to parse the whole buffer.  */)
+is nil, the PARSER is to parse the whole buffer.  */)
   (Lisp_Object parser, Lisp_Object ranges)
 {
   ts_check_parser (parser);
@@ -1340,7 +1347,8 @@ DEFUN ("treesit-parser-included-ranges",
        Streesit_parser_included_ranges,
        1, 1, 0,
        doc: /* Return the ranges set for PARSER.
-See `treesit-parser-set-ranges'.  If no range is set, return nil.  */)
+See `treesit-parser-set-ranges'.  If no ranges are set for PARSER,
+return nil.  */)
   (Lisp_Object parser)
 {
   ts_check_parser (parser);
@@ -1413,7 +1421,7 @@ If NODE is nil, return nil.  */)
 
 DEFUN ("treesit-node-start",
        Ftreesit_node_start, Streesit_node_start, 1, 1, 0,
-       doc: /* Return the NODE's start position.
+       doc: /* Return the NODE's start position in its buffer.
 If NODE is nil, return nil.  */)
   (Lisp_Object node)
 {
@@ -1433,7 +1441,7 @@ If NODE is nil, return nil.  */)
 
 DEFUN ("treesit-node-end",
        Ftreesit_node_end, Streesit_node_end, 1, 1, 0,
-       doc: /* Return the NODE's end position.
+       doc: /* Return the NODE's end position in its buffer.
 If NODE is nil, return nil.  */)
   (Lisp_Object node)
 {
@@ -1469,7 +1477,7 @@ If NODE is nil, return nil.  */)
 DEFUN ("treesit-node-parent",
        Ftreesit_node_parent, Streesit_node_parent, 1, 1, 0,
        doc: /* Return the immediate parent of NODE.
-Return nil if there isn't any.  If NODE is nil, return nil.  */)
+Return nil if NODE has no parent.  If NODE is nil, return nil.  */)
   (Lisp_Object node)
 {
   if (NILP (node)) return Qnil;
@@ -1489,7 +1497,7 @@ DEFUN ("treesit-node-child",
        Ftreesit_node_child, Streesit_node_child, 2, 3, 0,
        doc: /* Return the Nth child of NODE.
 
-Return nil if there isn't any.  If NAMED is non-nil, look for named
+Return nil if there is no Nth child.  If NAMED is non-nil, look for named
 child only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object n, Lisp_Object named)
 {
@@ -1519,6 +1527,7 @@ DEFUN ("treesit-node-check",
        doc: /* Return non-nil if NODE has PROPERTY, nil otherwise.
 
 PROPERTY could be `named', `missing', `extra', `has-changes', or `has-error'.
+
 Named nodes correspond to named rules in the language definition,
 whereas "anonymous" nodes correspond to string literals in the
 language definition.
@@ -1564,7 +1573,7 @@ DEFUN ("treesit-node-field-name-for-child",
        Streesit_node_field_name_for_child, 2, 2, 0,
        doc: /* Return the field name of the Nth child of NODE.
 
-Return nil if not any child or no field is found.
+Return nil if there's no Nth child, or if it has no field.
 If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object n)
 {
@@ -1614,7 +1623,7 @@ DEFUN ("treesit-node-child-by-field-name",
        Ftreesit_node_child_by_field_name,
        Streesit_node_child_by_field_name, 2, 2, 0,
        doc: /* Return the child of NODE with FIELD-NAME.
-Return nil if there isn't any.  If NODE is nil, return nil.  */)
+Return nil if there is no such child.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object field_name)
 {
   if (NILP (node))
@@ -1639,7 +1648,7 @@ DEFUN ("treesit-node-next-sibling",
        Streesit_node_next_sibling, 1, 2, 0,
        doc: /* Return the next sibling of NODE.
 
-Return nil if there isn't any.  If NAMED is non-nil, look for named
+Return nil if there is no next sibling.  If NAMED is non-nil, look for named
 siblings only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object named)
 {
@@ -1665,8 +1674,9 @@ DEFUN ("treesit-node-prev-sibling",
        Streesit_node_prev_sibling, 1, 2, 0,
        doc: /* Return the previous sibling of NODE.
 
-Return nil if there isn't any.  If NAMED is non-nil, look for named
-siblings only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
+Return nil if there is no previous sibling.  If NAMED is non-nil, look
+for named siblings only.  NAMED defaults to nil.  If NODE is nil,
+return nil.  */)
   (Lisp_Object node, Lisp_Object named)
 {
   if (NILP (node)) return Qnil;
@@ -1690,12 +1700,12 @@ siblings only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
 DEFUN ("treesit-node-first-child-for-pos",
        Ftreesit_node_first_child_for_pos,
        Streesit_node_first_child_for_pos, 2, 3, 0,
-       doc: /* Return the first child of NODE on POS.
+       doc: /* Return the first child of NODE for buffer position POS.
 
-Specifically, return the first child that extends beyond POS.  POS is
-a position in the buffer.  Return nil if there isn't any.  If NAMED is
-non-nil, look for named children only.  NAMED defaults to nil.  Note that
-this function returns an immediate child, not the smallest
+Specifically, return the first child that extends beyond POS.
+Return nil if there is no such child.
+If NAMED is non-nil, look for named children only.  NAMED defaults to nil.
+Note that this function returns an immediate child, not the smallest
 (grand)child.  If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object pos, Lisp_Object named)
 {
@@ -1730,11 +1740,12 @@ this function returns an immediate child, not the smallest
 DEFUN ("treesit-node-descendant-for-range",
        Ftreesit_node_descendant_for_range,
        Streesit_node_descendant_for_range, 3, 4, 0,
-       doc: /* Return the smallest node that covers BEG to END.
+       doc: /* Return the smallest node that covers buffer positions BEG to END.
 
-The returned node is a descendant of NODE.  POS is a position.  Return
-nil if there isn't any.  If NAMED is non-nil, look for named child
-only.  NAMED defaults to nil.  If NODE is nil, return nil.  */)
+The returned node is a descendant of NODE.
+Return nil if there is no such node.
+If NAMED is non-nil, look for named child only.  NAMED defaults to nil.
+If NODE is nil, return nil.  */)
   (Lisp_Object node, Lisp_Object beg, Lisp_Object end, Lisp_Object named)
 {
   if (NILP (node)) return Qnil;
@@ -1815,8 +1826,7 @@ PATTERN can be
     _
     \"TYPE\"
 
-Consult Info node `(elisp)Pattern Matching' form detailed
-explanation.  */)
+See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object pattern)
 {
   if (EQ (pattern, intern_c_string (":anchor")))
@@ -1865,8 +1875,7 @@ A PATTERN in QUERY can be
     _
     \"TYPE\"
 
-Consult Info node `(elisp)Pattern Matching' form detailed
-explanation.  */)
+See Info node `(elisp)Pattern Matching' for detailed explanation.  */)
   (Lisp_Object query)
 {
   return Fmapconcat (intern_c_string ("treesit-pattern-expand"),
@@ -2056,15 +2065,15 @@ DEFUN ("treesit-query-compile",
        Streesit_query_compile, 2, 3, 0,
        doc: /* Compile QUERY to a compiled query.
 
-Querying a compiled query is much faster than an uncompiled one.
+Querying with a compiled query is much faster than an uncompiled one.
 LANGUAGE is the language this query is for.
 
 If EAGER is non-nil, immediately load LANGUAGE and compile the query.
-Otherwise defer until the query is first used.
+Otherwise defer the compilation until the query is first used.
 
 Signals treesit-query-error if QUERY is malformed or something else
-goes wrong.  (This of course would only happen if EAGER is non-nil.)
-You can use `treesit-query-validate' to debug the query.  */)
+goes wrong.  (This only happens if EAGER is non-nil.)
+You can use `treesit-query-validate' to validate and debug a query.  */)
   (Lisp_Object language, Lisp_Object query, Lisp_Object eager)
 {
   if (NILP (Ftreesit_query_p (query)))
@@ -2104,21 +2113,24 @@ assigned to the node in PATTERN.  NODE is the captured node.
 
 QUERY is either a string query, a sexp query, or a compiled query.
 See Info node `(elisp)Pattern Matching' for how to write a query in
-either string or s-expression form.  When using repeatedly, a compiled
-query is much faster than a string or sexp one, so it is recommend to
-compile your queries if it will be used over and over.
+either string or sexp form.  When using repeatedly, a compiled query
+is much faster than a string or sexp one, so it is recommend to
+compile your query if it will be used repeatedly.
 
-BEG and END, if both non-nil, specifies the range in which the query
-is executed.  If NODE-ONLY is non-nil, return a list of nodes.
+BEG and END, if both non-nil, specify the region  of buffer positions
+in which the query is executed.
 
-Besides a node, NODE can also be a parser, then the root node of that
-parser is used; NODE can be a language symbol, then the root node of a
+If NODE-ONLY is non-nil, return a list of nodes.
+
+Besides a node, NODE can also be a parser, in which case the root node
+of that parser is used.
+NODE can also be a language symbol, in which case the root node of a
 parser for that language is used.  If such a parser doesn't exist, it
 is created.
 
-Signals treesit-query-error if QUERY is malformed or something else
-goes wrong.  You can use `treesit-query-validate' to debug the
-query.  */)
+Signal `treesit-query-error' if QUERY is malformed or something else
+goes wrong.  You can use `treesit-query-validate' to validate and debug
+the query.  */)
   (Lisp_Object node, Lisp_Object query,
    Lisp_Object beg, Lisp_Object end, Lisp_Object node_only)
 {
@@ -2403,16 +2415,16 @@ ts_search_forward (TSNode *start, Lisp_Object pred, Lisp_Object parser,
 DEFUN ("treesit-search-subtree",
        Ftreesit_search_subtree,
        Streesit_search_subtree, 2, 5, 0,
-       doc: /* Traverse the parse tree depth-first.
+       doc: /* Traverse the parse tree of NODE depth-first using PREDICATE.
 
 Traverse the subtree of NODE, and match PREDICATE with each node along
 the way.  PREDICATE is a regexp string that matches against each
 node's type case-insensitively, or a function that takes a node and
 returns nil/non-nil.
 
-By default, only traverse named nodes, if ALL is non-nil, traverse all
-nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
-non-nil, we only traverse that number of levels down in the tree.
+By default, only traverse named nodes, but if ALL is non-nil, traverse
+all nodes.  If BACKWARD is non-nil, traverse backwards.  If LIMIT is
+non-nil, only traverse nodes up to that number of levels down in the tree.
 
 Return the first matched node, or nil if none matches.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object all,
@@ -2448,20 +2460,20 @@ Return the first matched node, or nil if none matches.  */)
 DEFUN ("treesit-search-forward",
        Ftreesit_search_forward,
        Streesit_search_forward, 2, 5, 0,
-       doc: /* Search for node in the parse tree.
+       doc: /* Search for node matching PREDICATE in the parse tree of START.
 
 Start traversing the tree from node START, and match PREDICATE with
-each node along the way (except START).  PREDICATE is a regexp string
-that matches against each node's type case-insensitively, or a
-function that takes a node and returns nil/non-nil.
+each node (except START itself) along the way.  PREDICATE is a regexp
+string that matches against each node's type case-insensitively, or a
+function that takes a node and returns non-nil if it matches.
 
-By default, only search for named nodes, if ALL is non-nil, search for
-all nodes.  If BACKWARD is non-nil, search backwards.
+By default, only search for named nodes, but if ALL is non-nil, search
+for all nodes.  If BACKWARD is non-nil, search backwards.
 
 Return the first matched node, or nil if none matches.
 
-For a tree like the below where START is marked 1, traverse as
-numbered:
+For a tree like below,  where START is marked by 1, traverse in the
+order of numbers:
                 16
                 |
        3--------4-----------8
@@ -2472,8 +2484,8 @@ numbered:
                       |   |    |  |  |
                       10  11   13 14 15
 
-If UP is non-nil, only traverse to siblings and parents.  In that
-case, only 1 3 4 8 16 would be traversed.  */)
+If UP is non-nil, only traverse siblings and parents of START.  In that
+case, only the nodes 1, 3, 4, 8, and 16 would be traversed.  */)
   (Lisp_Object start, Lisp_Object predicate, Lisp_Object all,
    Lisp_Object backward, Lisp_Object up)
 {
@@ -2550,7 +2562,7 @@ DEFUN ("treesit-induce-sparse-tree",
        Streesit_induce_sparse_tree, 2, 4, 0,
        doc: /* Create a sparse tree of ROOT's subtree.
 
-Basically, take the subtree under ROOT, and comb it so only the nodes
+This takes the subtree under ROOT, and combs it so only the nodes
 that match PREDICATE are left, like picking out grapes on the vine.
 PREDICATE is a regexp string that matches against each node's type
 case-insensitively.
@@ -2570,17 +2582,20 @@ PREDICATE is "is letter", the returned tree is the one on the right.
      |  |              |
      e  5              e
 
-If PROCESS-FN is non-nil, instead of returning the matched nodes, pass
-each node to PROCESS-FN use the return value instead.  If non-nil,
-LIMIT is the number of levels to go down from ROOT.
+If PROCESS-FN is non-nil, it should be a function of one argument. In
+that case, instead of returning the matched nodes, pass each node to
+PROCESS-FN, and use its return value instead.
+
+If non-nil, LIMIT is the number of levels to go down the tree from ROOT.
 
 Each node in the returned tree looks like (NODE . (CHILD ...)).  The
-root of this tree might be nil, if ROOT doesn't match PREDICATE.  If
-no node matches PRED, return nil.
+root of this tree might be nil, if ROOT doesn't match PREDICATE.
+
+If no node matches PREDICATE, return nil.
 
 PREDICATE can also be a function that takes a node and returns
-nil/non-nil, but it is slower and more memory consuming than
-regexp.  */)
+nil/non-nil, but it is slower and more memory consuming than using
+a regexp.  */)
   (Lisp_Object root, Lisp_Object predicate, Lisp_Object process_fn,
    Lisp_Object limit)
 {
@@ -2700,23 +2715,24 @@ By default, Emacs assumes the dynamic library for LANG is
 libtree-sitter-LANG.EXT, where EXT is the OS specific extension for
 dynamic libraries.  Emacs also assumes that the name of the C function
 the library provides is tree_sitter_LANG.  If that is not the case,
-add an entry
+you can add an entry
 
     (LANG LIBRARY-BASE-NAME FUNCTION-NAME)
 
 to this list, where LIBRARY-BASE-NAME is the filename of the dynamic
-library without extension, FUNCTION-NAME is the function provided by
-the library.  */);
+library without the file-name extension, and FUNCTION-NAME is the
+function provided by the library.  */);
   Vtreesit_load_name_override_list = Qnil;
 
   DEFVAR_LISP ("treesit-extra-load-path",
 	       Vtreesit_extra_load_path,
 	       doc:
-	       /* Extra load paths of tree-sitter language definitions.
+	       /* Additional directories to look for tree-sitter language definitions.
+The value should be a list of directories.
 When trying to load a tree-sitter language definition,
-Emacs looks at directories in this variable,
-`user-emacs-directory'/tree-sitter, and system default locations for
-dynamic libraries, in that order.  */);
+Emacs first looks in the directories mentioned in in this variable,
+then in the `tree-sitter' subdirectory of `user-emacs-directory', and
+then in the system default locations for dynamic libraries, in that order.  */);
   Vtreesit_extra_load_path = Qnil;
 
   defsubr (&Streesit_language_available_p);
