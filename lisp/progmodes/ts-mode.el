@@ -109,10 +109,7 @@
    :language 'tsx
    :override t
    :feature 'basic
-   '(
-     (template_string) @font-lock-string-face
-
-     ((identifier) @font-lock-constant-face
+   '(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
      (nested_type_identifier
@@ -223,8 +220,8 @@
      (number) @font-lock-constant-face
 
      (string) @font-lock-string-face
-     (template_string) @font-lock-string-face
 
+     (template_string) @js--fontify-template-string
      (template_substitution
       ["${" "}"] @font-lock-constant-face)
 

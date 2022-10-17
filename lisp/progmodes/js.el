@@ -3461,10 +3461,7 @@ indentation, which-function and movement functions."
    :language 'javascript
    :feature 'basic
    :override t
-   `(;; Everything overrides template string.
-     (template_string) @font-lock-string-face
-
-     ((identifier) @font-lock-constant-face
+   `(((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
      (new_expression
@@ -3561,8 +3558,27 @@ indentation, which-function and movement functions."
      (comment) @font-lock-comment-face
      [,@js--treesit-keywords] @font-lock-keyword-face
 
+     (template_string) @js--fontify-template-string
      (template_substitution ["${" "}"] @font-lock-constant-face))))
 
+(defun js--fontify-template-string (beg end node)
+  "Fontify template string but not substitution inside it.
+BEG, END, NODE refers to the template_string node."
+  (ignore end)
+  ;; You would have thought that the children of the string node spans
+  ;; the whole string.  No, the children of the template_string only
+  ;; includes the starting "`", any template_substitution, and the
+  ;; closing "`".  That's why we have to track BEG instead of just
+  ;; fontifying each child.
+  (let ((child (treesit-node-child node 0)))
+    (while child
+      (if (equal (treesit-node-type child) "template_substitution")
+          (put-text-property beg (treesit-node-start child)
+                             'face 'font-lock-string-face)
+        (put-text-property beg (treesit-node-end child)
+                           'face 'font-lock-string-face))
+      (setq beg (treesit-node-end child)
+            child (treesit-node-next-sibling child)))))
 
 (defun js-treesit-current-defun ()
   "Return name of surrounding function.
@@ -3748,6 +3764,7 @@ indentation."
 (defvar js--json-treesit-settings
   (treesit-font-lock-rules
    :language 'json
+   :feature 'basic
    :override t
    `(
      (pair
