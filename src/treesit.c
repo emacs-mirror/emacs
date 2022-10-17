@@ -497,9 +497,6 @@ treesit_load_language (Lisp_Object language_symbol,
     concat2 (build_pure_c_string ("libtree-sitter-"), symbol_name);
   Lisp_Object base_name =
     concat2 (build_pure_c_string ("tree-sitter-"), symbol_name);
-  /* FIXME: The result of strdup leaks memory in some cases.  */
-  char *c_name = strdup (SSDATA (base_name));
-  treesit_symbol_to_c_name (c_name);
 
   /* Override the library name and C name, if appropriate.  */
   Lisp_Object override_name;
@@ -508,10 +505,7 @@ treesit_load_language (Lisp_Object language_symbol,
 						    &override_name,
 						    &override_c_name);
   if (found_override)
-    {
       lib_base_name = override_name;
-      c_name = SSDATA (override_c_name);
-    }
 
   /* Now we generate a list of possible library paths.  */
   Lisp_Object path_candidates = Qnil;
@@ -560,7 +554,12 @@ treesit_load_language (Lisp_Object language_symbol,
   /* Load TSLanguage.  */
   dynlib_error ();
   TSLanguage *(*langfn) (void);
+  char *c_name = strdup (SSDATA (base_name));
+  treesit_symbol_to_c_name (c_name);
+  if (found_override)
+    c_name = SSDATA (override_c_name);
   langfn = dynlib_sym (handle, c_name);
+  free(c_name);
   error = dynlib_error ();
   if (error != NULL)
     {
