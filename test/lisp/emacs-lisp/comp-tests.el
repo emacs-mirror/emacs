@@ -59,4 +59,15 @@
    (should (file-regular-p (expand-file-name "keep1.txt" c1)))
    (should (file-regular-p (expand-file-name "keep2.txt" c2)))))
 
+(ert-deftest test-native-compile-prune-cache/dont-delete-in-parent-of-cache ()
+  (skip-unless (featurep 'native-compile))
+  (with-test-native-compile-prune-cache
+   (let ((f1 (expand-file-name "some.eln" (expand-file-name ".." testdir)))
+         (f2 (expand-file-name "some.eln" testdir)))
+     (with-temp-file f1 (insert "foo"))
+     (with-temp-file f2 (insert "foo"))
+     (native-compile-prune-cache)
+     (should (file-regular-p f1))
+     (should (file-regular-p f2)))))
+
 ;;; comp-tests.el ends here

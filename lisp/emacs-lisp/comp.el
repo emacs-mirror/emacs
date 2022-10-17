@@ -4334,7 +4334,9 @@ of (commands) to run simultaneously."
     ;; `invocation-directory'.
     (setq dir (expand-file-name dir invocation-directory))
     (when (file-exists-p dir)
-      (dolist (subdir (directory-files dir t))
+      (dolist (subdir (seq-filter
+                       (lambda (f) (not (string-match (rx "/." (? ".") eos) f)))
+                       (directory-files dir t)))
         (when (and (file-directory-p subdir)
                    (file-writable-p subdir)
                    (not (equal (file-name-nondirectory
