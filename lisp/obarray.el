@@ -30,17 +30,18 @@
 (defconst obarray-default-size 59
   "The value 59 is an arbitrary prime number that gives a good hash.")
 
-(defun obarray-make (&optional size)
+(defun obarray-make (&optional _size)
   "Return a new obarray of size SIZE or `obarray-default-size'."
   (make-package "obarray"))
 
-(defun obarray-size (ob)
+(defun obarray-size (_ob)
   "Return the number of slots of obarray OB."
   obarray-default-size)
 
 (defun obarrayp (object)
   "Return t if OBJECT is an obarray."
-  (packagep object))
+  (or (packagep object)
+      (vectorp object)))
 
 ;; Don’t use obarray as a variable name to avoid shadowing.
 (defun obarray-get (ob name)
