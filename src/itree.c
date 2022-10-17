@@ -128,33 +128,32 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    incremented whenever some node's offset has changed.
 */
 
-/* FIXME: The code seems to use "generator" and "iterator"
-   inconsistently/interchangeably.  We should fix this naming.  */
-
-static struct interval_node *interval_tree_validate (struct interval_tree *, struct interval_node *);
-static bool interval_node_intersects (const struct interval_node *, ptrdiff_t, ptrdiff_t);
-static int interval_tree_max_height (const struct interval_tree *);
-static void interval_tree_update_limit (struct interval_node *);
-static void interval_tree_inherit_offset (uintmax_t otick, struct interval_node *);
-static void interval_tree_propagate_limit (struct interval_node *);
-static void interval_tree_rotate_left (struct interval_tree *, struct interval_node *);
-static void interval_tree_rotate_right (struct interval_tree *, struct interval_node *);
-static void interval_tree_insert_fix (struct interval_tree *, struct interval_node *);
-static void interval_tree_replace_child (struct interval_tree *,
-					 struct interval_node *,
-					 struct interval_node *);
-static void interval_tree_transplant (struct interval_tree *tree,
-                                      struct interval_node *source,
-                                      struct interval_node *dest);
-static struct itree_iterator *
-itree_iterator_create (struct interval_tree *);
-static void interval_tree_insert (struct interval_tree *, struct interval_node *);
-static bool null_safe_is_red (struct interval_node *node);
-static bool null_safe_is_black (struct interval_node *node);
-
-/* +------------------------------------------------------------------------------------+ */
+/* +=======================================================================+
+ * | Stack
+ * +=======================================================================+ */
 
 typedef uintptr_t nodeptr_and_flag;
+
+static inline nodeptr_and_flag
+make_nav (struct interval_node *ptr, bool flag)
+{
+  uintptr_t v = (uintptr_t) ptr;
+  /* We assume alignment imposes the LSB is clear for us to use it.  */
+  eassert (!(v & 1));
+  return v | !!flag;
+}
+
+static inline struct interval_node *
+nav_nodeptr (nodeptr_and_flag nav)
+{
+  return (struct interval_node *) (nav & (~(uintptr_t)1));
+}
+
+static inline bool
+nav_flag (nodeptr_and_flag nav)
+{
+  return (bool) (nav & 1);
+}
 
 /* Simple dynamic array. */
 struct interval_stack
@@ -163,6 +162,82 @@ struct interval_stack
   size_t size;
   size_t length;
 };
+
+/* This is just a simple dynamic array with stack semantics. */
+
+static struct interval_stack*
+interval_stack_create (intmax_t initial_size)
+{
+  struct interval_stack *stack = xmalloc (sizeof (struct interval_stack));
+  stack->size = max (0, initial_size);
+  stack->nodes = xmalloc (stack->size * sizeof (struct interval_node*));
+  stack->length = 0;
+  return stack;
+}
+
+static void
+interval_stack_destroy (struct interval_stack *stack)
+{
+  if (! stack)
+    return;
+  if (stack->nodes)
+    xfree (stack->nodes);
+  xfree (stack);
+}
+
+static void
+interval_stack_clear (struct interval_stack *stack)
+{
+  stack->length = 0;
+}
+
+static inline void
+interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
+{
+  if (nelements > stack->size)
+    {
+      stack->size = (nelements + 1) * 2;
+      stack->nodes = xrealloc (stack->nodes,
+                               stack->size * sizeof (*stack->nodes));
+    }
+}
+
+/* Push NODE on the STACK, while settings its visited flag to FLAG. */
+
+static inline void
+interval_stack_push_flagged (struct interval_stack *stack,
+                             struct interval_node *node, bool flag)
+{
+  eassert (node && node != ITREE_NULL);
+
+  /* FIXME: While the stack used in the iterator is bounded by the tree
+     depth and could be easily pre-allocated to a large enough size to avoid
+     this "ensure" check, `interval_stack_push` is also used elsewhere to
+     simply collect some subset of the overlays, where it's only bounded by
+     the total number of overlays in the buffer (which can be large and thus
+     preferably not pre-allocated needlessly).  */
+  interval_stack_ensure_space (stack, stack->length + 1);
+
+  stack->nodes[stack->length] = make_nav (node, flag);
+  stack->length++;
+}
+
+static inline void
+interval_stack_push (struct interval_stack *stack, struct interval_node *node)
+{
+  interval_stack_push_flagged (stack, node, false);
+}
+
+static inline nodeptr_and_flag
+interval_stack_pop (struct interval_stack *stack)
+{
+  if (stack->length == 0)
+    return make_nav (NULL, false);
+  return stack->nodes[--stack->length];
+}
+
+
+/* +-----------------------------------------------------------------------+ */
 
 /* State used when iterating interval. */
 struct itree_iterator
@@ -183,6 +258,33 @@ struct itree_iterator
    time, making the use of nested iterations quite rare anyway.
    So we just use a single global iterator instead for now.  */
 static struct itree_iterator *iter;
+
+static int
+interval_tree_max_height (const struct interval_tree *tree)
+{
+  return 2 * log (tree->size + 1) / log (2) + 0.5;
+}
+
+/* Allocate a new iterator for TREE. */
+
+static struct itree_iterator *
+itree_iterator_create (struct interval_tree *tree)
+{
+  struct itree_iterator *g = xmalloc (sizeof *g);
+  /* 19 here just avoids starting with a silly-small stack.
+     FIXME: Since this stack only needs to be about 2*max_depth
+     in the worst case, we could completely pre-allocate it to something
+     like word-bit-size * 2 and then never worry about growing it.  */
+  const int size = (tree ? interval_tree_max_height (tree) : 19) + 1;
+
+  g->stack = interval_stack_create (size);
+  g->running = false;
+  g->begin = 0;
+  g->end = 0;
+  g->file = NULL;
+  g->line = 0;
+  return g;
+}
 
 static void
 itree_init (void)
@@ -289,108 +391,122 @@ check_tree (struct interval_tree *tree,
   return true;
 }
 
-/* +===================================================================================+
- * | Stack
- * +===================================================================================+ */
+/* +=======================================================================+
+ * | Internal Functions
+ * +=======================================================================+ */
 
-static inline nodeptr_and_flag
-make_nav (struct interval_node *ptr, bool flag)
+static bool
+null_safe_is_red (struct interval_node *node)
 {
-  uintptr_t v = (uintptr_t) ptr;
-  /* We assume alignment imposes the LSB is clear for us to use it.  */
-  eassert (!(v & 1));
-  return v | !!flag;
+  return node != ITREE_NULL && node->red;
 }
 
-static inline struct interval_node *
-nav_nodeptr (nodeptr_and_flag nav)
+static bool
+null_safe_is_black (struct interval_node *node)
 {
-  return (struct interval_node *) (nav & (~(uintptr_t)1));
+  return node == ITREE_NULL || !node->red; /* NULL nodes are black */
 }
 
-static inline bool
-nav_flag (nodeptr_and_flag nav)
+static inline ptrdiff_t
+itree_newlimit (struct interval_node *node)
 {
-  return (bool) (nav & 1);
+  eassert (node != ITREE_NULL);
+  return max (node->end,
+              max (node->left == ITREE_NULL
+                     ? PTRDIFF_MIN
+                     : node->left->limit + node->left->offset,
+                   node->right == ITREE_NULL
+                     ? PTRDIFF_MIN
+                     : node->right->limit + node->right->offset));
 }
 
-/* This is just a simple dynamic array with stack semantics. */
-
-static struct interval_stack*
-interval_stack_create (intmax_t initial_size)
-{
-  struct interval_stack *stack = xmalloc (sizeof (struct interval_stack));
-  stack->size = max (0, initial_size);
-  stack->nodes = xmalloc (stack->size * sizeof (struct interval_node*));
-  stack->length = 0;
-  return stack;
-}
+/* Update NODE's limit attribute according to its children. */
 
 static void
-interval_stack_destroy (struct interval_stack *stack)
+interval_tree_update_limit (struct interval_node *node)
 {
-  if (! stack)
+  if (node == ITREE_NULL)
     return;
-  if (stack->nodes)
-    xfree (stack->nodes);
-  xfree (stack);
+
+  node->limit = itree_newlimit (node);
 }
+
+/* Apply NODE's offset to its begin, end and limit values and
+   propagate it to its children.
+
+   Does nothing, if NODE is clean, i.e. NODE.otick = tree.otick .
+*/
 
 static void
-interval_stack_clear (struct interval_stack *stack)
+interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
 {
-  stack->length = 0;
-}
-
-static inline void
-interval_stack_ensure_space (struct interval_stack *stack, intmax_t nelements)
-{
-  if (nelements > stack->size)
+  eassert (node->parent == ITREE_NULL || node->parent->otick >= node->otick);
+  if (node->otick == otick)
     {
-      stack->size = (nelements + 1) * 2;
-      stack->nodes = xrealloc (stack->nodes,
-                               stack->size * sizeof (*stack->nodes));
+      eassert (node->offset == 0);
+      return;
     }
+
+  /* Offsets can be inherited from dirty nodes (with out of date
+     otick) during removal, since we do not travel down from the root
+     in that case.  In this case rotations are performed on
+     potentially "dirty" nodes, where we only need to make sure the
+     *local* offsets are zero.  */
+
+  if (node->offset)
+    {
+      node->begin += node->offset;
+      node->end   += node->offset;
+      node->limit += node->offset;
+      if (node->left != ITREE_NULL)
+        node->left->offset += node->offset;
+      if (node->right != ITREE_NULL)
+        node->right->offset += node->offset;
+      node->offset = 0;
+    }
+  /* The only thing that matters about `otick` is whether it's equal to
+     that of the tree.  We could also "blindly" inherit from parent->otick,
+     but we need to tree's `otick` anyway for when there's no parent.  */
+  if (node->parent == ITREE_NULL || node->parent->otick == otick)
+    node->otick = otick;
 }
 
-/* Push NODE on the STACK, while settings its visited flag to FLAG. */
+/* Update limit of NODE and its ancestors.  Stop when it becomes
+   stable, i.e. new_limit = old_limit.  */
 
-static inline void
-interval_stack_push_flagged (struct interval_stack *stack,
-                             struct interval_node *node, bool flag)
+static void
+interval_tree_propagate_limit (struct interval_node *node)
 {
-  eassert (node && node != ITREE_NULL);
+  if (node == ITREE_NULL)
+    return;
 
-  /* FIXME: While the stack used in the iterator is bounded by the tree
-     depth and could be easily pre-allocated to a large enough size to avoid
-     this "ensure" check, `interval_stack_push` is also used elsewhere to
-     simply collect some subset of the overlays, where it's only bounded by
-     the total number of overlays in the buffer (which can be large and thus
-     preferably not pre-allocated needlessly).  */
-  interval_stack_ensure_space (stack, stack->length + 1);
-
-  stack->nodes[stack->length] = make_nav (node, flag);
-  stack->length++;
+  while (1) {
+    ptrdiff_t newlimit = itree_newlimit (node);
+    if (newlimit == node->limit)
+      break;
+    node->limit = newlimit;
+    if (node->parent == ITREE_NULL)
+      break;
+    node = node->parent;
+  }
 }
 
-static inline void
-interval_stack_push (struct interval_stack *stack, struct interval_node *node)
+static struct interval_node*
+interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
 {
-  interval_stack_push_flagged (stack, node, false);
+
+  if (tree->otick == node->otick || node == ITREE_NULL)
+    return node;
+  if (node != tree->root)
+    interval_tree_validate (tree, node->parent);
+
+  interval_tree_inherit_offset (tree->otick, node);
+  return node;
 }
 
-static inline nodeptr_and_flag
-interval_stack_pop (struct interval_stack *stack)
-{
-  if (stack->length == 0)
-    return make_nav (NULL, false);
-  return stack->nodes[--stack->length];
-}
-
-
-/* +===================================================================================+
+/* +=======================================================================+
  * | Tree operations
- * +===================================================================================+ */
+ * +=======================================================================+ */
 
 /* Initialize an allocated node. */
 
@@ -399,6 +515,9 @@ interval_node_init (struct interval_node *node,
                     bool front_advance, bool rear_advance,
                     Lisp_Object data)
 {
+  node->parent = ITREE_NULL;
+  node->left = ITREE_NULL;
+  node->right = ITREE_NULL;
   node->begin = -1;
   node->end = -1;
   node->front_advance = front_advance;
@@ -424,29 +543,6 @@ interval_node_end (struct interval_tree *tree,
 {
   interval_tree_validate (tree, node);
   return node->end;
-}
-
-/* Safely modify a node's interval. */
-
-void
-interval_node_set_region (struct interval_tree *tree,
-                          struct interval_node *node,
-                          ptrdiff_t begin, ptrdiff_t end)
-{
-  interval_tree_validate (tree, node);
-  if (begin != node->begin)
-    {
-      interval_tree_remove (tree, node);
-      node->begin = min (begin, PTRDIFF_MAX - 1);
-      node->end = max (node->begin, end);
-      interval_tree_insert (tree, node);
-    }
-  else if (end != node->end)
-    {
-      node->end = max (node->begin, end);
-      eassert (node != ITREE_NULL);
-      interval_tree_propagate_limit (node);
-    }
 }
 
 /* Allocate an interval_tree. Free with interval_tree_destroy. */
@@ -503,15 +599,177 @@ interval_tree_size (struct interval_tree *tree)
   return tree->size;
 }
 
-/* Insert a NODE into the TREE.
+/* Perform the familiar left-rotation on node NODE.  */
 
-   Note, that inserting a node twice results in undefined behaviour.
-*/
+static void
+interval_tree_rotate_left (struct interval_tree *tree,
+                           struct interval_node *node)
+{
+  eassert (node->right != ITREE_NULL);
+
+  struct interval_node *right = node->right;
+
+  interval_tree_inherit_offset (tree->otick, node);
+  interval_tree_inherit_offset (tree->otick, right);
+
+  /* Turn right's left subtree into node's right subtree.  */
+  node->right = right->left;
+  if (right->left != ITREE_NULL)
+    right->left->parent = node;
+
+  /* right's parent was node's parent.  */
+  if (right != ITREE_NULL)
+    right->parent = node->parent;
+
+  /* Get the parent to point to right instead of node.  */
+  if (node != tree->root)
+    {
+      if (node == node->parent->left)
+	node->parent->left = right;
+      else
+	node->parent->right = right;
+    }
+  else
+    tree->root = right;
+
+  /* Put node on right's left.  */
+  right->left = node;
+  if (node != ITREE_NULL)
+    node->parent = right;
+
+  /* Order matters here.  */
+  interval_tree_update_limit (node);
+  interval_tree_update_limit (right);
+}
+
+/* Perform the familiar right-rotation on node NODE.  */
+
+static void
+interval_tree_rotate_right (struct interval_tree *tree,
+                            struct interval_node *node)
+{
+  eassert (tree && node && node->left != ITREE_NULL);
+
+  struct interval_node *left = node->left;
+
+  interval_tree_inherit_offset (tree->otick, node);
+  interval_tree_inherit_offset (tree->otick, left);
+
+  node->left = left->right;
+  if (left->right != ITREE_NULL)
+    left->right->parent = node;
+
+  if (left != ITREE_NULL)
+    left->parent = node->parent;
+  if (node != tree->root)
+    {
+      if (node == node->parent->right)
+	node->parent->right = left;
+      else
+	node->parent->left = left;
+    }
+  else
+    tree->root = left;
+
+  left->right = node;
+  if (node != ITREE_NULL)
+    node->parent = left;
+
+  interval_tree_update_limit (left);
+  interval_tree_update_limit (node);
+}
+
+/* Repair the tree after an insertion.
+   The new NODE was added as red, so we may have 2 reds in a row.
+   Rebalance the parents as needed to re-establish the RB invariants.  */
+
+static void
+interval_tree_insert_fix (struct interval_tree *tree,
+                          struct interval_node *node)
+{
+  eassert (tree->root->red == false);
+
+  while (null_safe_is_red (node->parent))
+    {
+      /* NODE is red and its parent is red.  This is a violation of
+	 red-black tree property #3.  */
+      eassert (node->red);
+
+      if (node->parent == node->parent->parent->left)
+	{
+	  /* We're on the left side of our grandparent, and OTHER is
+	     our "uncle".  */
+	  struct interval_node *uncle = node->parent->parent->right;
+
+          if (null_safe_is_red (uncle)) /* case 1.a */
+	    {
+	      /* Uncle and parent are red but should be black because
+		 NODE is red.  Change the colors accordingly and
+		 proceed with the grandparent.  */
+	      node->parent->red = false;
+	      uncle->red = false;
+	      node->parent->parent->red = true;
+	      node = node->parent->parent;
+            }
+	  else
+	    {
+	      /* Parent and uncle have different colors; parent is
+		 red, uncle is black.  */
+	      if (node == node->parent->right) /* case 2.a */
+		{
+		  node = node->parent;
+		  interval_tree_rotate_left (tree, node);
+                }
+              /* case 3.a */
+	      node->parent->red = false;
+	      node->parent->parent->red = true;
+	      interval_tree_rotate_right (tree, node->parent->parent);
+            }
+        }
+      else
+	{
+	  /* This is the symmetrical case of above.  */
+	  struct interval_node *uncle = node->parent->parent->left;
+
+          if (null_safe_is_red (uncle)) /* case 1.b */
+	    {
+	      node->parent->red = false;
+	      uncle->red = false;
+	      node->parent->parent->red = true;
+	      node = node->parent->parent;
+            }
+	  else
+	    {
+	      if (node == node->parent->left) /* case 2.b */
+		{
+		  node = node->parent;
+		  interval_tree_rotate_right (tree, node);
+		}
+              /* case 3.b */
+	      node->parent->red = false;
+	      node->parent->parent->red = true;
+	      interval_tree_rotate_left (tree, node->parent->parent);
+            }
+        }
+    }
+
+  /* The root may have been changed to red due to the algorithm.
+     Set it to black so that property #5 is satisfied.  */
+  tree->root->red = false;
+  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
+}
+
+/* Insert a NODE into the TREE.
+   Note, that inserting a node twice results in undefined behaviour.  */
 
 static void
 interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
 {
-  eassert (node && node->begin <= node->end && node != ITREE_NULL);
+  eassert (node->begin <= node->end && node != ITREE_NULL);
+  /* FIXME: The assertion below fails because `delete_all_overlays`
+     doesn't set left/right/parent to ITREE_NULL.  */
+  /* eassert (node->left == ITREE_NULL && node->right == ITREE_NULL
+             && node->parent == ITREE_NULL) */;
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
   struct interval_node *parent = ITREE_NULL;
@@ -546,15 +804,20 @@ interval_tree_insert (struct interval_tree *tree, struct interval_node *node)
   node->parent = parent;
   node->left = ITREE_NULL;
   node->right = ITREE_NULL;
-  node->red = node != tree->root;
   node->offset = 0;
   node->limit = node->end;
   eassert (node->parent == ITREE_NULL || node->parent->otick >= node->otick);
 
   /* Fix/update the tree */
   ++tree->size;
-  eassert (check_tree (tree, false)); /* FIXME: Too expensive.  */
-  interval_tree_insert_fix (tree, node);
+  if (node == tree->root)
+    node->red = false;
+  else
+    {
+      node->red = true;
+      eassert (check_tree (tree, false)); /* FIXME: Too expensive.  */
+      interval_tree_insert_fix (tree, node);
+    }
 }
 
 void
@@ -565,6 +828,29 @@ itree_insert_node (struct interval_tree *tree, struct interval_node *node,
   node->end = end;
   node->otick = tree->otick;
   interval_tree_insert (tree, node);
+}
+
+/* Safely modify a node's interval. */
+
+void
+interval_node_set_region (struct interval_tree *tree,
+                          struct interval_node *node,
+                          ptrdiff_t begin, ptrdiff_t end)
+{
+  interval_tree_validate (tree, node);
+  if (begin != node->begin)
+    {
+      interval_tree_remove (tree, node);
+      node->begin = min (begin, PTRDIFF_MAX - 1);
+      node->end = max (node->begin, end);
+      interval_tree_insert (tree, node);
+    }
+  else if (end != node->end)
+    {
+      node->end = max (node->begin, end);
+      eassert (node != ITREE_NULL);
+      interval_tree_propagate_limit (node);
+    }
 }
 
 /* Return true, if NODE is a member of TREE. */
@@ -582,19 +868,6 @@ interval_tree_contains (struct interval_tree *tree, struct interval_node *node)
       }
 
   return false;
-}
-
-static inline ptrdiff_t
-itree_newlimit (struct interval_node *node)
-{
-  eassert (node != ITREE_NULL);
-  return max (node->end,
-              max (node->left == ITREE_NULL
-                     ? PTRDIFF_MIN
-                     : node->left->limit + node->left->offset,
-                   node->right == ITREE_NULL
-                     ? PTRDIFF_MIN
-                     : node->right->limit + node->right->offset));
 }
 
 static bool
@@ -716,6 +989,68 @@ interval_tree_remove_fix (struct interval_tree *tree,
   node->red = false;
 }
 
+/* Return accumulated offsets of NODE's parents.  */
+static ptrdiff_t
+itree_total_offset (struct interval_node *node)
+{
+  eassert (node != ITREE_NULL);
+  ptrdiff_t offset = 0;
+  while (node->parent != ITREE_NULL)
+    {
+      node = node->parent;
+      offset += node->offset;
+    }
+  return offset;
+}
+
+/* Replace DEST with SOURCE as a child of DEST's parent.  Adjusts
+   *only* the parent linkage of SOURCE and either the parent's child
+   link the tree root.
+
+   Warning: DEST is left unmodified.  SOURCE's child links are
+   unchanged.  Caller is responsible for recalculation of `limit`.
+   Requires both nodes to be using the same effective `offset`.  */
+static void
+interval_tree_replace_child (struct interval_tree *tree,
+                             struct interval_node *source,
+                             struct interval_node *dest)
+{
+  eassert (tree && dest != ITREE_NULL);
+  eassert (source == ITREE_NULL
+           || itree_total_offset (source) == itree_total_offset (dest));
+
+  if (dest == tree->root)
+    tree->root = source;
+  else if (dest == dest->parent->left)
+    dest->parent->left = source;
+  else
+    dest->parent->right = source;
+
+  if (source != ITREE_NULL)
+    source->parent = dest->parent;
+}
+/* Replace DEST with SOURCE in the tree.  Copies the following fields
+   from DEST to SOURCE: red, parent, left, right.  Also updates
+   parent, left and right in surrounding nodes to point to SOURCE.
+
+   Warning: DEST is left unmodified.  Caller is responsible for
+   recalculation of `limit`.  Requires both nodes to be using the same
+   effective `offset`. */
+static void
+interval_tree_transplant (struct interval_tree *tree,
+                          struct interval_node *source,
+                          struct interval_node *dest)
+{
+  interval_tree_replace_child (tree, source, dest);
+  source->left = dest->left;
+  if (source->left != ITREE_NULL)
+    source->left->parent = source;
+  source->right = dest->right;
+  if (source->right != ITREE_NULL)
+    source->right->parent = source;
+  source->red = dest->red;
+}
+
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
 
 struct interval_node*
@@ -764,14 +1099,13 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
       interval_tree_transplant (tree, splice, node);
       interval_tree_propagate_limit (subtree_parent);
       if (splice != subtree_parent)
-        interval_tree_propagate_limit (splice);
+        interval_tree_update_limit (splice);
     }
   interval_tree_propagate_limit (splice->parent);
 
   --tree->size;
 
-  /* Fix any black height violation caused by removing a black
-     node.  */
+  /* Fix any black height violation caused by removing a black node.  */
   if (removed_black)
     interval_tree_remove_fix (tree, subtree, subtree_parent);
 
@@ -791,29 +1125,14 @@ interval_tree_remove (struct interval_tree *tree, struct interval_node *node)
   return node;
 }
 
-static struct interval_node*
-interval_tree_validate (struct interval_tree *tree, struct interval_node *node)
-{
-
-  if (tree->otick == node->otick || node == ITREE_NULL)
-    return node;
-  if (node != tree->root)
-    interval_tree_validate (tree, node->parent);
-
-  interval_tree_inherit_offset (tree->otick, node);
-  return node;
-}
-
 bool
 itree_iterator_busy_p (void)
 {
   return (iter && iter->running);
 }
 
-/* Start a generator iterating all intervals in [BEGIN,END) in the
-   given ORDER. Only one iterator per tree can be running at any
-   time.
-*/
+/* Start a iterator enumerating all intervals in [BEGIN,END) in the
+   given ORDER.  Only one iterator per tree can be running at any time.  */
 
 struct itree_iterator *
 itree_iterator_start (struct interval_tree *tree, ptrdiff_t begin,
@@ -852,29 +1171,24 @@ itree_iterator_finish (struct itree_iterator *iter)
   iter->running = false;
 }
 
-static int
-interval_tree_max_height (const struct interval_tree *tree)
-{
-  return 2 * log (tree->size + 1) / log (2) + 0.5;
-}
-
 
-/* +===================================================================================+
+/* +=======================================================================+
  * | Insert/Delete Gaps
- * +===================================================================================+ */
+ * +=======================================================================+ */
 
 /* Insert a gap at POS of length LENGTH expanding all intervals
    intersecting it, while respecting their rear_advance and
    front_advance setting. */
 
 void
-interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t length)
+interval_tree_insert_gap (struct interval_tree *tree,
+                          ptrdiff_t pos, ptrdiff_t length)
 {
   if (length <= 0 || tree->root == ITREE_NULL)
     return;
   uintmax_t ootick = tree->otick;
 
-  /* FIXME: Don't allocate generator/stack anew every time. */
+  /* FIXME: Don't allocate iterator/stack anew every time. */
 
   /* Nodes with front_advance starting at pos may mess up the tree
      order, so we need to remove them first. */
@@ -889,7 +1203,7 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
   for (int i = 0; i < saved->length; ++i)
     interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
-  /* We can't use a generator here, because we can't effectively
+  /* We can't use an iterator here, because we can't effectively
      narrow AND shift some subtree at the same time. */
   if (tree->root != ITREE_NULL)
     {
@@ -951,16 +1265,16 @@ interval_tree_insert_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
    intersecting it. */
 
 void
-interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t length)
+interval_tree_delete_gap (struct interval_tree *tree,
+                          ptrdiff_t pos, ptrdiff_t length)
 {
   if (length <= 0 || tree->root == ITREE_NULL)
     return;
 
   /* FIXME: Don't allocate stack anew every time. */
 
-  /* Can't use the generator here, because by decrementing begin, we
-     might unintentionally bring shifted nodes back into our search
-     space. */
+  /* Can't use the iterator here, because by decrementing begin, we
+     might unintentionally bring shifted nodes back into our search space. */
   const int size = interval_tree_max_height (tree) + 1;
   struct interval_stack *stack = interval_stack_create (size);
   struct interval_node *node;
@@ -1000,30 +1314,9 @@ interval_tree_delete_gap (struct interval_tree *tree, ptrdiff_t pos, ptrdiff_t l
 
 
 
-/* +===================================================================================+
- * | Generator
- * +===================================================================================+ */
-
-/* Allocate a new generator for TREE. */
-
-static struct itree_iterator *
-itree_iterator_create (struct interval_tree *tree)
-{
-  struct itree_iterator *g = xmalloc (sizeof *g);
-  /* 19 here just avoids starting with a silly-small stack.
-     FIXME: Since this stack only needs to be about 2*max_depth
-     in the worst case, we could completely pre-allocate it to something
-     like word-bit-size * 2 and then never worry about growing it.  */
-  const int size = (tree ? interval_tree_max_height (tree) : 19) + 1;
-
-  g->stack = interval_stack_create (size);
-  g->running = false;
-  g->begin = 0;
-  g->end = 0;
-  g->file = NULL;
-  g->line = 0;
-  return g;
-}
+/* +=======================================================================+
+ * | Iterator
+ * +=======================================================================+ */
 
 /* Return true, if NODE's interval intersects with [BEGIN, END).
    Note: We always include empty nodes at BEGIN (and not at END),
@@ -1055,12 +1348,12 @@ itree_iterator_next (struct itree_iterator *g)
   /* The `visited` flag stored in each node is used here (and only here):
      We keep a "workstack" of nodes we need to consider.  This stack
      consist of nodes of two types: nodes that we have decided
-     should be returned by the generator, and nodes which we may
+     should be returned by the iterator, and nodes which we may
      need to consider (including checking their children).
      We start an iteration with a stack containing just the root
      node marked as "not visited" which means that it (and its children)
      needs to be considered but we haven't yet decided whether it's included
-     in the generator's output.  */
+     in the iterator's output.  */
 
   do {
     nodeptr_and_flag nav;
@@ -1082,7 +1375,7 @@ itree_iterator_next (struct itree_iterator *g)
               interval_stack_push_flagged (g->stack, right, false);
             if (interval_node_intersects (node, g->begin, g->end))
               interval_stack_push_flagged (g->stack, node, true);
-            /* Node's children may still be off-set and we need to add it. */
+            /* Node's children may still be off-set and we need to add it.  */
             if (left != null && g->begin <= left->limit + left->offset)
               interval_stack_push_flagged (g->stack, left, false);
             break;
@@ -1124,320 +1417,3 @@ itree_iterator_narrow (struct itree_iterator *g,
   g->begin =  max (begin, g->begin);
   g->end =  min (end, g->end);
 }
-
-
-/* +===================================================================================+
- * | Internal Functions
- * +===================================================================================+ */
-
-static bool
-null_safe_is_red (struct interval_node *node)
-{
-  return node != ITREE_NULL && node->red;
-}
-
-static bool
-null_safe_is_black (struct interval_node *node)
-{
-  return node == ITREE_NULL || !node->red; /* NULL nodes are black */
-}
-
-/* Update NODE's limit attribute according to its children. */
-
-static void
-interval_tree_update_limit (struct interval_node *node)
-{
-  if (node == ITREE_NULL)
-    return;
-
-  node->limit = itree_newlimit (node);
-}
-
-/* Apply NODE's offset to its begin, end and limit values and
-   propagate it to its children.
-
-   Does nothing, if NODE is clean, i.e. NODE.otick = tree.otick .
-*/
-
-static void
-interval_tree_inherit_offset (uintmax_t otick, struct interval_node *node)
-{
-  eassert (node->parent == ITREE_NULL || node->parent->otick >= node->otick);
-  if (node->otick == otick)
-    {
-      eassert (node->offset == 0);
-      return;
-    }
-
-  /* Offsets can be inherited from dirty nodes (with out of date
-     otick) during removal, since we do not travel down from the root
-     in that case.  In this case rotations are performed on
-     potentially "dirty" nodes, where we only need to make sure the
-     *local* offsets are zero.  */
-
-  if (node->offset)
-    {
-      node->begin += node->offset;
-      node->end   += node->offset;
-      node->limit += node->offset;
-      if (node->left != ITREE_NULL)
-        node->left->offset += node->offset;
-      if (node->right != ITREE_NULL)
-        node->right->offset += node->offset;
-      node->offset = 0;
-    }
-  /* The only thing that matters about `otick` is whether it's equal to
-     that of the tree.  We could also "blindly" inherit from parent->otick,
-     but we need to tree's `otick` anyway for when there's no parent.  */
-  if (node->parent == ITREE_NULL || node->parent->otick == otick)
-    node->otick = otick;
-}
-
-/* Update limit of NODE and its ancestors.  Stop when it becomes
-   stable, i.e. new_limit = old_limit.
-*/
-
-static void
-interval_tree_propagate_limit (struct interval_node *node)
-{
-  if (node == ITREE_NULL)
-    return;
-
-  while (1) {
-    ptrdiff_t newlimit = itree_newlimit (node);
-    if (newlimit == node->limit)
-      break;
-    node->limit = newlimit;
-    if (node->parent == ITREE_NULL)
-      break;
-    node = node->parent;
-  }
-}
-
-/* Perform the familiar left-rotation on node NODE. */
-
-static void
-interval_tree_rotate_left (struct interval_tree *tree, struct interval_node *node)
-{
-  eassert (node->right != ITREE_NULL);
-
-  struct interval_node *right = node->right;
-
-  interval_tree_inherit_offset (tree->otick, node);
-  interval_tree_inherit_offset (tree->otick, right);
-
-  /* Turn right's left subtree into node's right subtree.  */
-  node->right = right->left;
-  if (right->left != ITREE_NULL)
-    right->left->parent = node;
-
-  /* right's parent was node's parent.  */
-  if (right != ITREE_NULL)
-    right->parent = node->parent;
-
-  /* Get the parent to point to right instead of node.  */
-  if (node != tree->root)
-    {
-      if (node == node->parent->left)
-	node->parent->left = right;
-      else
-	node->parent->right = right;
-    }
-  else
-    tree->root = right;
-
-  /* Put node on right's left.  */
-  right->left = node;
-  if (node != ITREE_NULL)
-    node->parent = right;
-
-  /* Order matters here. */
-  interval_tree_update_limit (node);
-  interval_tree_update_limit (right);
-}
-
-/* Perform the familiar right-rotation on node NODE. */
-
-static void
-interval_tree_rotate_right (struct interval_tree *tree, struct interval_node *node)
-{
-  eassert (tree && node && node->left != ITREE_NULL);
-
-  struct interval_node *left = node->left;
-
-  interval_tree_inherit_offset (tree->otick, node);
-  interval_tree_inherit_offset (tree->otick, left);
-
-  node->left = left->right;
-  if (left->right != ITREE_NULL)
-    left->right->parent = node;
-
-  if (left != ITREE_NULL)
-    left->parent = node->parent;
-  if (node != tree->root)
-    {
-      if (node == node->parent->right)
-	node->parent->right = left;
-      else
-	node->parent->left = left;
-    }
-  else
-    tree->root = left;
-
-  left->right = node;
-  if (node != ITREE_NULL)
-    node->parent = left;
-
-  interval_tree_update_limit (left);
-  interval_tree_update_limit (node);
-}
-
-/* Repair the tree after an insertion.
-   The new NODE was added as red, so we may have 2 reds in a row.
-   Rebalance the parents as needed to re-establish the RB invariants. */
-
-static void
-interval_tree_insert_fix (struct interval_tree *tree, struct interval_node *node)
-{
-  eassert (tree->root->red == false);
-
-  while (null_safe_is_red (node->parent))
-    {
-      /* NODE is red and its parent is red.  This is a violation of
-	 red-black tree property #3.  */
-      eassert (node->red);
-
-      if (node->parent == node->parent->parent->left)
-	{
-	  /* We're on the left side of our grandparent, and OTHER is
-	     our "uncle".  */
-	  struct interval_node *uncle = node->parent->parent->right;
-
-          if (null_safe_is_red (uncle)) /* case 1.a */
-	    {
-	      /* Uncle and parent are red but should be black because
-		 NODE is red.  Change the colors accordingly and
-		 proceed with the grandparent.  */
-	      node->parent->red = false;
-	      uncle->red = false;
-	      node->parent->parent->red = true;
-	      node = node->parent->parent;
-            }
-	  else
-	    {
-	      /* Parent and uncle have different colors; parent is
-		 red, uncle is black.  */
-	      if (node == node->parent->right) /* case 2.a */
-		{
-		  node = node->parent;
-		  interval_tree_rotate_left (tree, node);
-                }
-              /* case 3.a */
-	      node->parent->red = false;
-	      node->parent->parent->red = true;
-	      interval_tree_rotate_right (tree, node->parent->parent);
-            }
-        }
-      else
-	{
-	  /* This is the symmetrical case of above.  */
-	  struct interval_node *uncle = node->parent->parent->left;
-
-          if (null_safe_is_red (uncle)) /* case 1.b */
-	    {
-	      node->parent->red = false;
-	      uncle->red = false;
-	      node->parent->parent->red = true;
-	      node = node->parent->parent;
-            }
-	  else
-	    {
-	      if (node == node->parent->left) /* case 2.b */
-		{
-		  node = node->parent;
-		  interval_tree_rotate_right (tree, node);
-		}
-              /* case 3.b */
-	      node->parent->red = false;
-	      node->parent->parent->red = true;
-	      interval_tree_rotate_left (tree, node->parent->parent);
-            }
-        }
-    }
-
-  /* The root may have been changed to red due to the algorithm.
-     Set it to black so that property #5 is satisfied.  */
-  tree->root->red = false;
-  eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
-}
-
-/* Return accumulated offsets of NODE's parents.  */
-static ptrdiff_t
-itree_total_offset (struct interval_node *node)
-{
-  eassert (node != ITREE_NULL);
-  ptrdiff_t offset = 0;
-  while (node->parent != ITREE_NULL)
-    {
-      node = node->parent;
-      offset += node->offset;
-    }
-  return offset;
-}
-
-/* Replace DEST with SOURCE as a child of DEST's parent.  Adjusts
-   *only* the parent linkage of SOURCE and either the parent's child
-   link the tree root.
-
-   Warning: DEST is left unmodified.  SOURCE's child links are
-   unchanged.  Caller is responsible for recalculation of `limit`.
-   Requires both nodes to be using the same effective `offset`.  */
-
-static void
-interval_tree_replace_child (struct interval_tree *tree,
-                             struct interval_node *source,
-                             struct interval_node *dest)
-{
-  eassert (tree && dest != ITREE_NULL);
-  eassert (source == ITREE_NULL
-           || itree_total_offset (source) == itree_total_offset (dest));
-
-  if (dest == tree->root)
-    tree->root = source;
-  else if (dest == dest->parent->left)
-    dest->parent->left = source;
-  else
-    dest->parent->right = source;
-
-  if (source != ITREE_NULL)
-    source->parent = dest->parent;
-}
-
-/* Replace DEST with SOURCE in the tree.  Copies the following fields
-   from DEST to SOURCE: red, parent, left, right.  Also updates
-   parent, left and right in surrounding nodes to point to SOURCE.
-
-   Warning: DEST is left unmodified.  Caller is responsible for
-   recalculation of `limit`.  Requires both nodes to be using the same
-   effective `offset`. */
-static void
-interval_tree_transplant (struct interval_tree *tree,
-                          struct interval_node *source,
-                          struct interval_node *dest)
-{
-  interval_tree_replace_child (tree, source, dest);
-  source->left = dest->left;
-  if (source->left != ITREE_NULL)
-    source->left->parent = source;
-  source->right = dest->right;
-  if (source->right != ITREE_NULL)
-    source->right->parent = source;
-  source->red = dest->red;
-}
-
-
-/* +===================================================================================+
- * | Debugging
- * +===================================================================================+ */
-
-/* See Foverlay_tree in buffer.c */
