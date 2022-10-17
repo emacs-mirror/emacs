@@ -2294,10 +2294,21 @@ declaration with a type as a default value.  This is used only in
 C++ Mode, e.g. \"<typename X = Y>\"."
   t    nil
   c++  '("class" "typename"))
-
 (c-lang-defconst c-template-typename-key
   t (c-make-keywords-re t (c-lang-const c-template-typename-kwds)))
 (c-lang-defvar c-template-typename-key (c-lang-const c-template-typename-key))
+
+(c-lang-defconst c-self-contained-typename-kwds
+  "Keywords where the following name is a type name which can be
+used in declarations without the keyword."
+  t    nil
+  c++  '("typename"))
+
+(c-lang-defconst c-self-contained-typename-key
+  ;; Adorned regexp matching `c-self-contained-typename-key'.
+  t (c-make-keywords-re t (c-lang-const c-self-contained-typename-kwds)))
+(c-lang-defvar c-self-contained-typename-key
+	       (c-lang-const c-self-contained-typename-key))
 
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
