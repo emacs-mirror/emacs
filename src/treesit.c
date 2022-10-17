@@ -445,6 +445,7 @@ static bool
 treesit_find_override_name (Lisp_Object language_symbol, Lisp_Object *name,
 			    Lisp_Object *c_symbol)
 {
+  CHECK_LIST (Vtreesit_load_name_override_list);
   for (Lisp_Object list = Vtreesit_load_name_override_list;
        !NILP (list); list = XCDR (list))
     {
@@ -488,6 +489,8 @@ treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
   Lisp_Object symbol_name = Fsymbol_name (language_symbol);
+
+  CHECK_LIST (Vtreesit_extra_load_path);
 
   /* Figure out the library name and C name.  */
   Lisp_Object lib_base_name =
