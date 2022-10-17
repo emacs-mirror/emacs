@@ -328,8 +328,10 @@ init_treesit_functions (void)
 
    Initializing tree-sitter: there are two entry points to tree-sitter
    functions: 'treesit-parser-create' and
-   'treesit-language-available-p'.  Therefore we only need to call
-   initialization function in those two functions.
+   'treesit-language-available-p'.  Technically we only need to call
+   initialization function in those two functions, but in reality we
+   check at the beginning of every lisp function.  That should be more
+   fool-proof.
 
    Tree-sitter offset (0-based) and buffer position (1-based):
      tree-sitter offset + buffer position = buffer position
