@@ -2357,7 +2357,7 @@ ts_search_dfs (TSNode *root, Lisp_Object pred, Lisp_Object parser,
   else
     {
       int count =
-	named ?	ts_node_named_child_count( node) : ts_node_child_count (node);
+	named ? ts_node_named_child_count(node) : ts_node_child_count (node);
       for (int offset = 0; offset < count; offset++)
 	{
 	  uint32_t idx = forward ? offset : count - offset - 1;
