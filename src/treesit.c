@@ -469,7 +469,7 @@ treesit_find_override_name (Lisp_Object language_symbol, Lisp_Object *name,
 
 /* For example, if Vdynamic_library_suffixes is (".so", ".dylib"),
    this function pushes "lib_base_name.so" and "lib_base_name.dylib"
-   into *path_candidates.  Obiviously path_candidates should be a Lisp
+   into *path_candidates.  Obviously path_candidates should be a Lisp
    list of Lisp strings.  */
 static void
 treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
@@ -2771,7 +2771,7 @@ function provided by the library.  */);
 	       /* Additional directories to look for tree-sitter language definitions.
 The value should be a list of directories.
 When trying to load a tree-sitter language definition,
-Emacs first looks in the directories mentioned in in this variable,
+Emacs first looks in the directories mentioned in this variable,
 then in the `tree-sitter' subdirectory of `user-emacs-directory', and
 then in the system default locations for dynamic libraries, in that order.  */);
   Vtreesit_extra_load_path = Qnil;
