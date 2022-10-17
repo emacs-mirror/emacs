@@ -25,8 +25,9 @@ TRUSTDB="./trust.db"
 GPG="gpg --no-default-keyring --trustdb-name $TRUSTDB --keyring $KEYRING --yes"
 
 rm $KEYRING
-$GPG --full-generate-key
-$GPG --export --armor > "../key.pub"
-$GPG --export-secret-keys -armor > "../key.sec"
+#$GPG --full-generate-key
+#$GPG --export --armor > "../key.pub"
+#$GPG --export-secret-keys -armor > "../key.sec"
+$GPG --import ../key.sec
 $GPG --detach-sign --sign "./archive-contents"
 $GPG --detach-sign --sign "./signed-good-1.0.el"

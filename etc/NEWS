@@ -3256,8 +3256,8 @@ given predicate in the specified sequence.
 
 +++
 ** New function 'seq-keep'.
-This is like 'seq-map', but removes all non-nil results from the
-returned list.
+This is like 'seq-map', but removes all nil results from the returned
+list.
 
 ** Themes
 
