@@ -24,6 +24,7 @@
 
 (ert-deftest treesit-basic-parsing ()
   "Test basic parsing routines."
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let ((parser (treesit-parser-create 'json)))
       (should
@@ -50,6 +51,7 @@
 
 (ert-deftest treesit-node-api ()
   "Tests for node API."
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let (parser root-node doc-node object-node pair-node)
       (progn
@@ -123,6 +125,7 @@
 
 (ert-deftest treesit-query-api ()
   "Tests for query API."
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
@@ -173,6 +176,7 @@
 
 (ert-deftest treesit-narrow ()
   "Tests if narrowing works."
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
@@ -230,6 +234,7 @@ don't test if parser parses correctly, instead we just check
 edits like this don't produce assertion errors.  (I inserted a
 bunch of assertions that checks e.g. visible_beg <=
 visible_end.)"
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
@@ -308,6 +313,7 @@ visible_end.)"
 
 (ert-deftest treesit-range ()
   "Tests if range works."
+  (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
     (let (parser root-node pattern doc-node object-node pair-node)
       (progn
@@ -332,6 +338,9 @@ visible_end.)"
 
 (ert-deftest treesit-multi-lang ()
   "Tests if parsing multiple language works."
+  (skip-unless (and (treesit-language-available-p 'html)
+                    (treesit-language-available-p 'css)
+                    (treesit-language-available-p 'javascript)))
   (with-temp-buffer
     (let (html css js html-range css-range js-range)
       (progn
@@ -365,6 +374,7 @@ visible_end.)"
 
 (ert-deftest treesit-parser-supplemental ()
   "Supplemental node functions."
+  (skip-unless (treesit-language-available-p 'json))
   ;; `treesit-parse-string'.
   (should (equal (treesit-node-string
                   (treesit-parse-string
@@ -390,6 +400,7 @@ visible_end.)"
 
 (ert-deftest treesit-node-supplemental ()
   "Supplemental node functions."
+  (skip-unless (treesit-language-available-p 'json))
   (let (parser root-node doc-node array-node)
     (progn
       (insert "[1,2,{\"name\": \"Bob\"},3]")
