@@ -4342,7 +4342,7 @@ of (commands) to run simultaneously."
                    (not (equal (file-name-nondirectory
                                 (directory-file-name subdir))
                                comp-native-version-dir)))
-          (message "Deleting %s..." subdir)
+          (message "Deleting `%s'..." subdir)
           ;; We're being overly cautious here -- there shouldn't be
           ;; anything but .eln files in these directories.
           (dolist (eln (directory-files subdir t "\\.eln\\(\\.tmp\\)?\\'"))
