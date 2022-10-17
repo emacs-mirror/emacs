@@ -774,7 +774,7 @@ a communication channel."
   (let* ((check-scope
           ;; Non-nil value when SETTING was defined in SCOPE.
           (lambda (setting)
-            (let ((property (intern (format "inbuffer-%s" setting) :keyword)))
+            (let ((property (intern (format ":inbuffer-%s" setting))))
               (if (eq scope 'global)
                   (eq (plist-get info property) 'koma-letter:empty)
                 (not (eq (plist-get info property) 'koma-letter:empty))))))

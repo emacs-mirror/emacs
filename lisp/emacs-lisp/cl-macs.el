@@ -611,7 +611,7 @@ its argument list allows full Common Lisp conventions."
                              ;; shouldn't affect the key's name (bug#12367).
                              (if (eq ?_ (aref name 0))
                                  (setq name (substring name 1)))
-                             (intern (format "%s" name) :keyword))))
+                             (intern (format ":%s" name)))))
                    (varg (if (consp (car arg)) (cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
                           ;; The ordering between those two or clauses is

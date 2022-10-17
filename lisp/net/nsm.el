@@ -273,7 +273,7 @@ See also: `network-security-protocol-checks' and `nsm-noninteractive'"
     (let* ((results
             (cl-loop
              for check in network-security-protocol-checks
-             for type = (intern (format "%s" (car check)) :keyword)
+             for type = (intern (format ":%s" (car check)))
              ;; Skip the check if the user has already said that this
              ;; host is OK for this type of "error".
              for result = (and (not (memq type

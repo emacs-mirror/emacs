@@ -951,7 +951,7 @@ appearing among DIALOGS."
                                              erc-d-match-handlers))))
     (pcase-dolist (`(,var . ,def) defaults)
       (push (or (plist-get kwds var) def) args)
-      (push (intern (format "dialog-%s" var) :keyword) args))
+      (push (intern (format ":dialog-%s" var)) args))
     (apply #'erc-d--start host service (or server-name erc-d-server-name)
            args)))
 

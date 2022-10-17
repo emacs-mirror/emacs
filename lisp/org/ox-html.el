@@ -1979,7 +1979,7 @@ INFO is a plist used as a communication channel."
   "Return document preamble or postamble as a string, or nil.
 TYPE is either `preamble' or `postamble', INFO is a plist used as a
 communication channel."
-  (let ((section (plist-get info (intern (format "html-%s" type) :keyword)))
+  (let ((section (plist-get info (intern (format ":html-%s" type))))
 	(spec (org-html-format-spec info)))
     (when section
       (let ((section-contents
