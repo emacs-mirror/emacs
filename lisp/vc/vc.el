@@ -1699,7 +1699,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
               (vc-revert-file buffer-file-name)))
           (with-temp-buffer
             ;; Trying to support CVS too.  Assuming that vc-diff
-            ;; there will usually the diff root in default-directory.
+            ;; there will usually have diff root in default-directory.
             (when (vc-find-backend-function backend 'root)
               (setq-local default-directory
                           (vc-call-backend backend 'root (car files))))
