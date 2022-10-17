@@ -25,7 +25,11 @@
 (require 'ert-x)
 (require 'comp)
 
+(defvar comp-native-version-dir)
+(defvar native-comp-eln-load-path)
+
 (defmacro with-test-native-compile-prune-cache (&rest body)
+  (declare (indent 0) (debug t))
   `(ert-with-temp-directory testdir
      (setq testdir (expand-file-name "eln-cache" testdir))
      (make-directory testdir)
@@ -42,32 +46,32 @@
 (ert-deftest test-native-compile-prune-cache ()
   (skip-unless (featurep 'native-compile))
   (with-test-native-compile-prune-cache
-   (native-compile-prune-cache)
-   (should (file-directory-p c1))
-   (should (file-regular-p (expand-file-name "some.eln" c1)))
-   (should (file-regular-p (expand-file-name "some.eln.tmp" c1)))
-   (should-not (file-directory-p c2))
-   (should-not (file-regular-p (expand-file-name "some.eln" c2)))
-   (should-not (file-regular-p (expand-file-name "some.eln.tmp" c2)))))
+    (native-compile-prune-cache)
+    (should (file-directory-p c1))
+    (should (file-regular-p (expand-file-name "some.eln" c1)))
+    (should (file-regular-p (expand-file-name "some.eln.tmp" c1)))
+    (should-not (file-directory-p c2))
+    (should-not (file-regular-p (expand-file-name "some.eln" c2)))
+    (should-not (file-regular-p (expand-file-name "some.eln.tmp" c2)))))
 
 (ert-deftest test-native-compile-prune-cache/delete-only-eln ()
   (skip-unless (featurep 'native-compile))
   (with-test-native-compile-prune-cache
-   (with-temp-file (expand-file-name "keep1.txt" c1) (insert "foo"))
-   (with-temp-file (expand-file-name "keep2.txt" c2) (insert "foo"))
-   (native-compile-prune-cache)
-   (should (file-regular-p (expand-file-name "keep1.txt" c1)))
-   (should (file-regular-p (expand-file-name "keep2.txt" c2)))))
+    (with-temp-file (expand-file-name "keep1.txt" c1) (insert "foo"))
+    (with-temp-file (expand-file-name "keep2.txt" c2) (insert "foo"))
+    (native-compile-prune-cache)
+    (should (file-regular-p (expand-file-name "keep1.txt" c1)))
+    (should (file-regular-p (expand-file-name "keep2.txt" c2)))))
 
 (ert-deftest test-native-compile-prune-cache/dont-delete-in-parent-of-cache ()
   (skip-unless (featurep 'native-compile))
   (with-test-native-compile-prune-cache
-   (let ((f1 (expand-file-name "some.eln" (expand-file-name ".." testdir)))
-         (f2 (expand-file-name "some.eln" testdir)))
-     (with-temp-file f1 (insert "foo"))
-     (with-temp-file f2 (insert "foo"))
-     (native-compile-prune-cache)
-     (should (file-regular-p f1))
-     (should (file-regular-p f2)))))
+    (let ((f1 (expand-file-name "../some.eln" testdir))
+          (f2 (expand-file-name "some.eln" testdir)))
+      (with-temp-file f1 (insert "foo"))
+      (with-temp-file f2 (insert "foo"))
+      (native-compile-prune-cache)
+      (should (file-regular-p f1))
+      (should (file-regular-p f2)))))
 
 ;;; comp-tests.el ends here
