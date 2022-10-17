@@ -3171,9 +3171,9 @@ cleanup_vector (struct Lisp_Vector *vector)
     }
 #ifdef HAVE_TREE_SITTER
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_PARSER))
-    ts_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
+    treesit_delete_parser (PSEUDOVEC_STRUCT (vector, Lisp_TS_Parser));
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_TS_COMPILED_QUERY))
-    ts_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
+    treesit_delete_query (PSEUDOVEC_STRUCT (vector, Lisp_TS_Query));
 #endif
 #ifdef HAVE_MODULES
   else if (PSEUDOVECTOR_TYPEP (&vector->header, PVEC_MODULE_FUNCTION))

@@ -58,7 +58,7 @@ struct Lisp_TS_Parser
   ptrdiff_t visible_beg;
   ptrdiff_t visible_end;
   /* This counter is incremented every time a change is made to the
-     buffer in ts_record_change.  The node retrieved from this parser
+     buffer in treesit_record_change.  The node retrieved from this parser
      inherits this timestamp.  This way we can make sure the node is
      not outdated when we access its information.  */
   ptrdiff_t timestamp;
@@ -170,19 +170,19 @@ CHECK_TS_COMPILED_QUERY (Lisp_Object query)
 }
 
 void
-ts_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
-		  ptrdiff_t new_end_byte);
+treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
+		       ptrdiff_t new_end_byte);
 
 Lisp_Object
-make_ts_parser (Lisp_Object buffer, TSParser *parser,
-		TSTree *tree, Lisp_Object language_symbol);
+make_treesit_parser (Lisp_Object buffer, TSParser *parser,
+		     TSTree *tree, Lisp_Object language_symbol);
 
 Lisp_Object
-make_ts_node (Lisp_Object parser, TSNode node);
+make_treesit_node (Lisp_Object parser, TSNode node);
 
-extern void ts_delete_parser (struct Lisp_TS_Parser *);
-extern void ts_delete_query (struct Lisp_TS_Query *);
-extern bool ts_named_node_p (TSNode);
+extern void treesit_delete_parser (struct Lisp_TS_Parser *);
+extern void treesit_delete_query (struct Lisp_TS_Query *);
+extern bool treesit_named_node_p (TSNode);
 
 extern void syms_of_treesit (void);
 
