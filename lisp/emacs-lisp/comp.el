@@ -4167,7 +4167,8 @@ bytecode definition was not changed in the meantime)."
     (error "LOAD must be nil, t or 'late"))
   (unless (listp files)
     (setf files (list files)))
-  (let (file-list)
+  (let ((added-something nil)
+        file-list)
     (dolist (file-or-dir files)
       (cond ((file-directory-p file-or-dir)
              (dolist (file (if recursively
@@ -4195,11 +4196,15 @@ bytecode definition was not changed in the meantime)."
               (make-directory out-dir t))
             (if (file-writable-p out-filename)
                 (setf comp-files-queue
-                      (append comp-files-queue `((,file . ,load))))
+                      (append comp-files-queue `((,file . ,load)))
+                      added-something t)
               (display-warning 'comp
                                (format "No write access for %s skipping."
                                        out-filename)))))))
-    (when (zerop (comp-async-runnings))
+    ;; Perhaps nothing passed `native-compile-async-skip-p'?
+    (when (and added-something
+               ;; Don't start if there's one already running.
+               (zerop (comp-async-runnings)))
       (comp-run-async-workers))))
 
 
