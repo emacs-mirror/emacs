@@ -3454,19 +3454,34 @@ indentation, which-function and movement functions."
     "debugger" "default" "delete" "do" "else" "export" "extends" "finally"
     "for" "from" "function" "get" "if" "import" "in" "instanceof" "let" "new"
     "of" "return" "set" "static" "switch" "switch" "target" "throw" "try"
-    "typeof" "var" "void" "while" "with" "yield"))
+    "typeof" "var" "void" "while" "with" "yield")
+  "JavaScript keywords for tree-sitter font-locking.")
 
-(defvar js--treesit-settings
+(defvar js--treesit-font-lock-settings
   (treesit-font-lock-rules
    :language 'javascript
-   :feature 'basic
    :override t
-   `(((identifier) @font-lock-constant-face
+   :feature 'minimal
+   `(
+     ((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
-     (new_expression
-      constructor: (identifier) @font-lock-type-face)
+     [(this) (super)] @font-lock-keyword-face
 
+     [(true) (false) (null)] @font-lock-constant-face
+     (regex pattern: (regex_pattern)) @font-lock-string-face
+     (number) @font-lock-constant-face
+
+     (string) @font-lock-string-face
+     (comment) @font-lock-comment-face
+     [,@js--treesit-keywords] @font-lock-keyword-face
+
+     (template_string) @js--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-constant-face))
+   :language 'javascript
+   :override t
+   :feature 'moderate
+   `(
      (function
       name: (identifier) @font-lock-function-name-face)
 
@@ -3479,6 +3494,21 @@ indentation, which-function and movement functions."
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
+
+     (new_expression
+      constructor: (identifier) @font-lock-type-face)
+
+     (for_in_statement
+      left: (identifier) @font-lock-variable-name-face)
+
+     (arrow_function
+      parameter: (identifier) @font-lock-variable-name-face))
+   :language 'javascript
+   :override t
+   :feature 'full
+   `(
      (variable_declarator
       name: (identifier) @font-lock-function-name-face
       value: [(function) (arrow_function)])
@@ -3502,19 +3532,10 @@ indentation, which-function and movement functions."
                   property:
                   (property_identifier) @font-lock-function-name-face)])
 
-     (variable_declarator
-      name: (identifier) @font-lock-variable-name-face)
-
      (assignment_expression
       left: [(identifier) @font-lock-variable-name-face
              (member_expression
               property: (property_identifier) @font-lock-variable-name-face)])
-
-     (for_in_statement
-      left: (identifier) @font-lock-variable-name-face)
-
-     (arrow_function
-      parameter: (identifier) @font-lock-variable-name-face)
 
      (pair key: (property_identifier) @font-lock-variable-name-face)
 
@@ -3546,20 +3567,8 @@ indentation, which-function and movement functions."
 
      (jsx_attribute
       (property_identifier)
-      @font-lock-constant-face)
-
-     [(this) (super)] @font-lock-keyword-face
-
-     [(true) (false) (null)] @font-lock-constant-face
-     (regex pattern: (regex_pattern)) @font-lock-string-face
-     (number) @font-lock-constant-face
-
-     (string) @font-lock-string-face
-     (comment) @font-lock-comment-face
-     [,@js--treesit-keywords] @font-lock-keyword-face
-
-     (template_string) @js--fontify-template-string
-     (template_substitution ["${" "}"] @font-lock-constant-face))))
+      @font-lock-constant-face)))
+  "Tree-sitter font-lock settings.")
 
 (defun js--fontify-template-string (beg end node)
   "Fontify template string but not substitution inside it.
@@ -3651,12 +3660,11 @@ For BACKEND and WARN see `treesit-mode-function'."
     (setq-local beginning-of-defun-function #'js--treesit-beginning-of-defun)
     (setq-local end-of-defun-function #'js--treesit-end-of-defun)
 
-    (setq-local font-lock-keywords-only t)
-    (setq-local treesit-font-lock-settings js--treesit-settings)
-    (setq-local treesit-font-lock-feature-list '((basic)))
-
     (add-hook 'which-func-functions #'js-treesit-current-defun nil t)
 
+    (setq-local font-lock-keywords-only t)
+  (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
+  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
     (treesit-font-lock-enable))
    ;; Elisp.
    ((eq backend 'elisp)
@@ -3753,10 +3761,10 @@ For BACKEND and WARN see `treesit-mode-function'."
   (js--backend-toggle 'elisp nil)
   (setq-local major-mode-backend-function #'js--backend-toggle))
 
-(defvar js--json-treesit-settings
+(defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules
    :language 'json
-   :feature 'basic
+   :feature 'minimal
    :override t
    `(
      (pair
@@ -3770,8 +3778,8 @@ For BACKEND and WARN see `treesit-mode-function'."
 
      (escape_sequence) @font-lock-constant-face
 
-     (comment) @font-lock-comment-face
-     )))
+     (comment) @font-lock-comment-face))
+  "Font-lock settings for JSON.")
 
 
 (defvar js--json-treesit-indent-rules
@@ -3793,7 +3801,7 @@ For BACKEND and WARN see `treesit-mode-function'."
     (setq-local indent-line-function #'treesit-indent)
 
     (setq-local font-lock-keywords-only t)
-    (setq-local treesit-font-lock-settings js--json-treesit-settings)
+    (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings)
     (treesit-font-lock-enable))
    ;; Elisp.
    ((eq backend 'elisp)

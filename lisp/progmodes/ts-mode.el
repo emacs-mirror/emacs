@@ -104,17 +104,49 @@
      (no-node parent-bol 0)))
   "Tree-sitter indent rules.")
 
-(defvar ts-mode--settings
+(defvar ts-mode--keywords
+  '("!" "abstract" "as" "async" "await" "break"
+    "case" "catch" "class" "const" "continue" "debugger"
+    "declare" "default" "delete" "do" "else" "enum"
+    "export" "extends" "finally" "for" "from" "function"
+    "get" "if" "implements" "import" "in" "instanceof" "interface"
+    "keyof" "let" "namespace" "new" "of" "private" "protected"
+    "public" "readonly" "return" "set" "static" "switch"
+    "target" "throw" "try" "type" "typeof" "var" "void"
+    "while" "with" "yield")
+  "TypeScript keywords for tree-sitter font-locking.")
+
+(defvar ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'tsx
    :override t
-   :feature 'basic
-   '(((identifier) @font-lock-constant-face
+   :feature 'minimal
+   `(
+     ((identifier) @font-lock-constant-face
       (:match "^[A-Z_][A-Z_\\d]*$" @font-lock-constant-face))
 
+     [,@ts-mode--keywords] @font-lock-keyword-face
+     [(this) (super)] @font-lock-keyword-face
+
+     [(true) (false) (null)] @font-lock-constant-face
+     (regex pattern: (regex_pattern)) @font-lock-string-face
+     (number) @font-lock-constant-face
+
+     (string) @font-lock-string-face
+
+     (template_string) @ts-mode--fontify-template-string
+     (template_substitution ["${" "}"] @font-lock-builtin-face)
+
+     (comment) @font-lock-comment-face)
+   :language 'tsx
+   :override t
+   :feature 'moderate
+   '(
      (nested_type_identifier
       module: (identifier) @font-lock-type-face)
+
      (type_identifier) @font-lock-type-face
+
      (predefined_type) @font-lock-type-face
 
      (new_expression
@@ -129,6 +161,29 @@
      (method_definition
       name: (property_identifier) @font-lock-function-name-face)
 
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face)
+
+     (enum_declaration (identifier) @font-lock-type-face)
+
+     (enum_body (property_identifier) @font-lock-type-face)
+
+     (enum_assignment name: (property_identifier) @font-lock-type-face)
+
+     (assignment_expression
+      left: [(identifier) @font-lock-variable-name-face
+             (member_expression
+              property: (property_identifier) @font-lock-variable-name-face)])
+
+     (for_in_statement
+      left: (identifier) @font-lock-variable-name-face)
+
+     (arrow_function
+      parameter: (identifier) @font-lock-variable-name-face))
+   :language 'tsx
+   :override t
+   :feature 'full
+   '(
      (variable_declarator
       name: (identifier) @font-lock-function-name-face
       value: [(function) (arrow_function)])
@@ -151,32 +206,11 @@
        (member_expression
         property: (property_identifier) @font-lock-function-name-face)])
 
-     (variable_declarator
-      name: (identifier) @font-lock-variable-name-face)
-
-     (enum_declaration (identifier) @font-lock-type-face)
-
-     (enum_body (property_identifier) @font-lock-type-face)
-
-     (enum_assignment name: (property_identifier) @font-lock-type-face)
-
-     (assignment_expression
-      left: [(identifier) @font-lock-variable-name-face
-             (member_expression
-              property: (property_identifier) @font-lock-variable-name-face)])
-
-     (for_in_statement
-      left: (identifier) @font-lock-variable-name-face)
-
-     (arrow_function
-      parameter: (identifier) @font-lock-variable-name-face)
-
      (arrow_function
       parameters:
       [(_ (identifier) @font-lock-variable-name-face)
        (_ (_ (identifier) @font-lock-variable-name-face))
        (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
-
 
      (pair key: (property_identifier) @font-lock-variable-name-face)
 
@@ -211,79 +245,23 @@
       [(nested_identifier (identifier)) (identifier)]
       @font-lock-function-name-face)
 
-     (jsx_attribute (property_identifier) @font-lock-constant-face)
-
-     [(this) (super)] @font-lock-keyword-face
-
-     [(true) (false) (null)] @font-lock-constant-face
-     (regex pattern: (regex_pattern)) @font-lock-string-face
-     (number) @font-lock-constant-face
-
-     (string) @font-lock-string-face
-
-     (template_string) @js--fontify-template-string
-     (template_substitution
-      ["${" "}"] @font-lock-constant-face)
-
-     ["!"
-      "abstract"
-      "as"
-      "async"
-      "await"
-      "break"
-      "case"
-      "catch"
-      "class"
-      "const"
-      "continue"
-      "debugger"
-      "declare"
-      "default"
-      "delete"
-      "do"
-      "else"
-      "enum"
-      "export"
-      "extends"
-      "finally"
-      "for"
-      "from"
-      "function"
-      "get"
-      "if"
-      "implements"
-      "import"
-      "in"
-      "instanceof"
-      "interface"
-      "keyof"
-      "let"
-      "namespace"
-      "new"
-      "of"
-      "private"
-      "protected"
-      "public"
-      "readonly"
-      "return"
-      "set"
-      "static"
-      "switch"
-      "target"
-      "throw"
-      "try"
-      "type"
-      "typeof"
-      "var"
-      "void"
-      "while"
-      "with"
-      "yield"
-      ] @font-lock-keyword-face
-
-     (comment) @font-lock-comment-face
-     ))
+     (jsx_attribute (property_identifier) @font-lock-constant-face)))
   "Tree-sitter font-lock settings.")
+
+(defun ts-mode--fontify-template-string (beg end node)
+  "Fontify template string but not substitution inside it.
+BEG, END, NODE refers to the template_string node."
+  (ignore end)
+  ;; Stolen from `js--fontify-template-string'
+  (let ((child (treesit-node-child node 0)))
+    (while child
+      (if (equal (treesit-node-type child) "template_substitution")
+          (put-text-property beg (treesit-node-start child)
+                             'face 'font-lock-string-face)
+        (put-text-property beg (treesit-node-end child)
+                           'face 'font-lock-string-face))
+      (setq beg (treesit-node-end child)
+            child (treesit-node-next-sibling child)))))
 
 (defvar ts-mode--defun-type-regexp
   (rx (or "class_declaration"
@@ -351,9 +329,8 @@ ARG is the same as in `end-of-defun."
     (setq-local end-of-defun-function #'ts-mode--end-of-defun)
 
     (setq font-lock-keywords-only t)
-    (setq-local treesit-font-lock-settings ts-mode--settings)
-
-    (setq treesit-font-lock-feature-list '((basic)))
+    (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
+    (setq treesit-font-lock-feature-list '((minimal) (moderate) (full)))
     (treesit-font-lock-enable))
    (t
     (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'")
