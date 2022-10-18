@@ -1357,6 +1357,9 @@ The default input method for the Tamil language environment is now
 change the input method's translation rules, customize the user option
 'tamil-translation-rules'.
 
+---
+*** New tamil99 input method for the Tamil language
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 
