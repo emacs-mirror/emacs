@@ -19,8 +19,12 @@
 
 ;;; Commentary:
 ;;
-;; Note to self: we don't create parsers automatically in any provided
-;; functions if we don't know what language to use.
+;; This file is the lisp counterpart of treesit.c, together they
+;; provide tree-sitter integration for Emacs.  This file contains
+;; convenient functions that are more idiomatic and flexible than the
+;; exposed C API of tree-sitter.  It also contains frameworks for
+;; integrating tree-sitter with font-lock, indent, activate/deactivate
+;; tree-sitter, debugging tree-sitter, etc.
 
 ;;; Code:
 
