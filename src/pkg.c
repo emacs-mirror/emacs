@@ -100,52 +100,15 @@ h_next (struct h_iter *it)
 #define FOR_EACH_KEY_VALUE(it, table) \
   for (struct h_iter it = h_init (table); h_valid (&it); h_next (&it))
 
-/* Cons ELT onto *LIST, and return *LIST.  */
-
-static void
-add_to_list (Lisp_Object elt, Lisp_Object *list)
-{
-  *list = Fcons (elt, *list);
-}
-
-/* Cons ELT onto *LIST, if not already present.  Return *LIST.  */
-
-static void
-add_new_to_list (Lisp_Object elt, Lisp_Object *list)
-{
-  if (NILP (Fmemq (elt, *list)))
-    add_to_list (elt, list);
-}
-
 /***********************************************************************
 			       Helpers
  ***********************************************************************/
 
-/* If THING is nil, return nil.  If THING is symbol, return a list of
-   length 1 containing THING: Otherwise, THING must be a list.  Check
-   that each element of the list is a symbol, and return a new list
-   containing all elements of THING, with duplicates removed.  */
-
-static Lisp_Object
-symbols_to_list (Lisp_Object thing)
+Lisp_Object
+pkg_find_package (Lisp_Object name)
 {
-  if (NILP (thing))
-    return Qnil;
-  if (SYMBOLP (thing))
-    return list1 (thing);
-  if (CONSP (thing))
-    {
-      Lisp_Object result = Qnil;
-      Lisp_Object tail = thing;
-      FOR_EACH_TAIL (tail)
-	{
-	  Lisp_Object symbol = XCAR (tail);
-	  CHECK_SYMBOL (symbol);
-	  add_new_to_list (symbol, &result);
-	  return result;
-	}
-    }
-  signal_error ("Not a list of symbols", thing);
+  CHECK_STRING (name);
+  return Fgethash (name, Vpackage_registry, Qnil);
 }
 
 /* Create and return a new Lisp package object for a package with name
@@ -182,32 +145,6 @@ string_from_designator (Lisp_Object designator)
   signal_error ("Not a string designator", designator);
 }
 
-/* Return a list of strings for a list of string designators
-   DESIGNATORS.  If DESIGNATORS is nil, return nil.  if DESIGNATORS is
-   a list, return a new list of strings for the designators with order
-   being preserved, and duplicates removed.  Signal an error if
-   DESIGNATORS is neither nil nor a cons.  */
-
-static Lisp_Object
-string_list_from_designators (Lisp_Object designators)
-{
-  if (CONSP (designators))
-    {
-      Lisp_Object result = Qnil;
-      Lisp_Object tail = designators;
-      FOR_EACH_TAIL (tail)
-	{
-	  const Lisp_Object name = string_from_designator (XCAR (tail));
-	  if (NILP (Fmember (name, result)))
-	    result = Fcons (name, result);
-	}
-      return Fnreverse (result);
-    }
-  else if (NILP (designators))
-    return Qnil;
-  signal_error ("Not a list of strings designators", designators);
-}
-
 /* Valiue is PACKAGE, if it is a package, otherwise signal an
    error.  */
 
@@ -233,7 +170,7 @@ package_from_designator (Lisp_Object designator)
   if (PACKAGEP (designator))
     return designator;
   const Lisp_Object name = string_from_designator (designator);
-  const Lisp_Object package = Ffind_package (name);
+  const Lisp_Object package = pkg_find_package (name);
   return check_package (package);
 }
 
@@ -249,66 +186,25 @@ package_or_default (Lisp_Object designator)
   return package_from_designator (designator);
 }
 
-/* Convert a list of package designators to a list of packages.
-   Order is preserved, and duplicates are removed.  */
-
-static Lisp_Object
-package_list_from_designators (Lisp_Object designators)
-{
-  if (NILP (designators))
-    return Qnil;
-  if (CONSP (designators))
-    {
-      Lisp_Object result = Qnil;
-      Lisp_Object tail = designators;
-      FOR_EACH_TAIL (tail)
-	{
-	  Lisp_Object package = package_from_designator (XCAR (tail));
-	  add_new_to_list (package, &result);
-	}
-      return Fnreverse (result);
-    }
-  signal_error ("Not a package designator list", designators);
-}
-
 /* Check for conflicts of NAME and NICKNAMES with registered packages.
    Value is the conflicting package or nil.  */
 
 static Lisp_Object
 conflicting_package (Lisp_Object name, Lisp_Object nicknames)
 {
-  const Lisp_Object conflict = Ffind_package (name);
+  const Lisp_Object conflict = pkg_find_package (name);
   if (!NILP (conflict))
     return conflict;
 
   Lisp_Object tail = nicknames;
   FOR_EACH_TAIL (tail)
     {
-      const Lisp_Object conflict = Ffind_package (XCAR (tail));
+      const Lisp_Object conflict = pkg_find_package (XCAR (tail));
       if (!NILP (conflict))
 	return conflict;
     }
 
   return Qnil;
-}
-
-/* Register NAME as a name for PACKAGE in the package registry.  */
-
-static void
-add_to_package_registry (Lisp_Object name, Lisp_Object package)
-{
-  eassert (STRINGP (name));
-  eassert (PACKAGEP (package));
-  Fputhash (name, package, Vpackage_registry);
-}
-
-/* Remove NAME as a name for PACKAGE from the package registry.  */
-
-static void
-remove_from_package_registry (Lisp_Object name)
-{
-  eassert (STRINGP (name));
-  Fremhash (name, Vpackage_registry);
 }
 
 /* Register package PACKAGE in the package registry, that is, make it
@@ -318,30 +214,11 @@ static void
 register_package (Lisp_Object package)
 {
   const struct Lisp_Package *pkg = XPACKAGE (package);
-
-  const Lisp_Object conflict = conflicting_package (pkg->name, pkg->nicknames);
-  if (!NILP (conflict))
-    signal_error ("Package name conflict", conflict);
-
-  add_to_package_registry (pkg->name, package);
+  Fputhash (pkg->name, package, Vpackage_registry);
   Lisp_Object tail = pkg->nicknames;
   FOR_EACH_TAIL (tail)
-    add_to_package_registry (XCAR (tail), package);
+    Fputhash (XCAR (tail), package, Vpackage_registry);
 }
-
-/* Remove PACKAGE fromt the package registry, that is, remove its name
-   all its nicknames. Note that we intentionally don't remove the
-   package from used_packages of other packages.  */
-
-static void
-unregister_package (Lisp_Object package)
-{
-  remove_from_package_registry (XPACKAGE (package)->name);
-  Lisp_Object tail = XPACKAGE (package)->nicknames;
-  FOR_EACH_TAIL (tail)
-    remove_from_package_registry (XCAR (tail));
-}
-
 
 /***********************************************************************
                              Symbol table
@@ -431,16 +308,6 @@ pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
 #endif
 
   return add_to_package_symbols (symbol, package);
-}
-
-/* Add SYMBOL to PACKAGE's shadowing symbols, if not already
-   present.  */
-
-static void
-add_shadowing_symbol (Lisp_Object symbol, Lisp_Object package)
-{
-  struct Lisp_Package *pkg = XPACKAGE (package);
-  add_new_to_list (symbol, &pkg->shadowing_symbols);
 }
 
 /* Remvoe SYMBOL from the shadowing list of PACKAGE.  */
@@ -834,167 +701,6 @@ DEFUN ("packagep", Fpackagep, Spackagep, 1, 1, 0, doc:
   return PACKAGEP (package) ? Qt : Qnil;
 }
 
-DEFUN ("package-name", Fpackage_name, Spackage_name, 1, 1, 0, doc:
-       /* Value is the name of package PACKAGE.  */)
-  (Lisp_Object package)
-{
-  package = package_from_designator (package);
-  return XPACKAGE (package)->name;
-}
-
-DEFUN ("package-nicknames", Fpackage_nicknames,
-       Spackage_nicknames, 1, 1, 0, doc:
-       /* Valus is the package nicknames of package PACKAGE.  */)
-  (Lisp_Object package)
-{
-  package = package_from_designator (package);
-  return Fcopy_sequence (XPACKAGE (package)->nicknames);
-}
-
-DEFUN ("package-shadowing-symbols", Fpackage_shadowing_symbols,
-       Spackage_shadowing_symbols, 1, 1, 0, doc:
-       /* tbd.  */)
-  (Lisp_Object package)
-{
-  package = package_from_designator (package);
-  return Fcopy_sequence (XPACKAGE (package)->shadowing_symbols);
-}
-
-DEFUN ("package-use-list", Fpackage_use_list, Spackage_use_list, 1, 1, 0, doc:
-       /* tbd.  */)
-  (Lisp_Object package)
-{
-  package = package_from_designator (package);
-  return Fcopy_sequence (XPACKAGE (package)->use_list);
-}
-
-DEFUN ("package-used-by-list", Fpackage_used_by_list, Spackage_used_by_list,
-       1, 1, 0, doc:
-       /* tbd.  */)
-  (Lisp_Object package)
-{
-  package = package_from_designator (package);
-  Lisp_Object result = Qnil;
-  FOR_EACH_KEY_VALUE (it, Vpackage_registry)
-    if (!NILP (Fmemq (package, XPACKAGE (it.value)->use_list)))
-      add_to_list (it.value, &result);
-  return result;
-}
-
-DEFUN ("%register-package", Fregister_package, Sregister_package, 1, 1, 0, doc:
-       /* Register PACKAGE in the package registry.  */)
-  (Lisp_Object package)
-{
-  CHECK_PACKAGE (package);
-  register_package (package);
-  return Qnil;
-}
-
-
-DEFUN ("list-all-packages", Flist_all_packages, Slist_all_packages, 0, 0, 0, doc:
-       /* Return a list of all registered packages.  */)
-  (void)
-{
-  Lisp_Object result = Qnil;
-  FOR_EACH_KEY_VALUE (it, Vpackage_registry)
-    result = Fcons (it.value, result);
-  return result;
-}
-
-DEFUN ("find-package", Ffind_package, Sfind_package, 1, 1, 0, doc:
-       /* Find the package with name or nickname NAME.
-
-If NAME is a package object, return that.  Otherwise, NAME must be a
-string designator.
-
-Value is nil if no such package exists.  */)
-  (Lisp_Object name)
-{
-  if (PACKAGEP (name))
-    return name;
-  name = string_from_designator (name);
-  return Fgethash (name, Vpackage_registry, Qnil);
-}
-
-DEFUN ("delete-package", Fdelete_package, Sdelete_package, 1, 1, 0, doc:
-       /* Delete package PACKAGE.
-
-If the operation is successful, delete-package returns t, otherwise
-nil.  The effect of delete-package is that the name and nicknames of
-PACKAGE cease to be recognized package names.  The package object is
-still a package (i.e., packagep is true of it) but package-name
-returns nil.
-
-The consequences of deleting the EMACS package or the KEYWORD package
-are undefined.  The consequences of invoking any other package
-operation on package once it has been deleted are unspecified. In
-particular, the consequences of invoking find-symbol, intern and other
-functions that look for a symbol name in a package are unspecified if
-they are called with *package* bound to the deleted package or with
-the deleted package as an argument.
-
-If package is a package object that has already been deleted,
-delete-package immediately returns nil.
-
-After this operation completes, the home package of any symbol whose
-home package had previously been package is
-implementation-dependent. Except for this, symbols accessible in
-package are not modified in any other way; symbols whose home package
-is not package remain unchanged.  */)
-  (Lisp_Object package)
-{
-  /* Deleting an already deleted package.  */
-  if (NILP (XPACKAGE (package)->name))
-    return Qnil;
-
-  package = package_from_designator (package);
-
-  /* Don't allow deleting the standard packages.  */
-  if (EQ (package, Vemacs_package) || EQ (package, Vkeyword_package))
-    signal_error ("Cannot delete standard package", package);
-
-  unregister_package (package);
-  XPACKAGE (package)->name = Qnil;
-  return Qt;
-}
-
-DEFUN ("rename-package", Frename_package, Srename_package, 2, 3, 0, doc:
-       /* Replace the name and nicknames of package.
-
-PACKAGE must be a package designator.
-
-NEW-NAME is the new name for the package.
-
-Optional NEW-NICKNAMES replaces the nicknames of the package.  Note
-that omitting NEW-NICKNAMES removes all nicknames.
-
-The consequences are undefined if NEW-NAME or any NEW-NICKNAMES
-conflicts with any existing package names.
-
-Value is the package object after renaming.  */)
-  (Lisp_Object package, Lisp_Object new_name, Lisp_Object new_nicknames)
-{
-  package = package_from_designator (package);
-
-  /* Don't rename deleted package, which is what CLHS says, and SBCL
-     does.  */
-  if (NILP (XPACKAGE (package)->name))
-    signal_error ("Cannot rename deleted package", package);
-
-  /* Don't change anything if register would fail.  */
-  new_name = string_from_designator (new_name);
-  new_nicknames = string_list_from_designators (new_nicknames);
-  const Lisp_Object conflict = conflicting_package (new_name, new_nicknames);
-  if (!NILP (conflict))
-    signal_error("Package name conflict", conflict);
-
-  unregister_package (package);
-  XPACKAGE (package)->name = new_name;
-  XPACKAGE (package)->nicknames = new_nicknames;
-  register_package (package);
-  return package;
-}
-
 DEFUN ("find-symbol", Ffind_symbol, Sfind_symbol, 1, 2, 0, doc:
        /* Find symbol with name NAME in PACKAGE.
 If PACKAGE is omitted, use the current package.
@@ -1044,92 +750,6 @@ DEFUN ("cl-unintern", Fcl_unintern, Scl_unintern, 1, 2, 0, doc:
   (Lisp_Object symbol, Lisp_Object package)
 {
   return pkg_unintern_symbol (symbol, package);
-}
-
-DEFUN ("export", Fexport, Sexport, 1, 2, 0, doc: /* tbd  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  return Qt;
-}
-
-DEFUN ("unexport", Funexport, Sunexport, 1, 2, 0, doc: /* tbd  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  return Qt;
-}
-
-DEFUN ("import", Fimport, Simport, 1, 2, 0, doc: /* tbd  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  return Qt;
-}
-
-DEFUN ("shadow", Fshadow, Sshadow, 1, 2, 0, doc:
-       /* Make an internal symbol in PACKAGE with the same name as
-  each of the specified SYMBOLS, adding the new symbols to the
-  package-shadowing-symbols.  If a symbol with the given name is
-  already present in PACKAGE, then the existing symbol is placed in
-  the shadowing symbols list if it is not already present.  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  package = package_or_default (package);
-  Lisp_Object tail = symbols_to_list (symbols);
-  FOR_EACH_TAIL (tail)
-    {
-      const Lisp_Object name = string_from_designator (XCAR (tail));
-      const Lisp_Object found = Ffind_symbol (name, package);
-      Lisp_Object symbol = NILP (found) ? Qnil : XCAR (found);
-      if (NILP (symbol) || EQ (XCAR (XCDR (found)), QCinherited))
-	{
-	  symbol = Fmake_symbol (name);
-	  pkg_add_symbol (symbol, package);
-	}
-      add_shadowing_symbol (symbol, package);
-    }
-  return Qt;
-}
-
-DEFUN ("shadowing-import", Fshadowing_import, Sshadowing_import, 1, 2, 0,
-       doc: /* Import SYMBOLS into PACKAGE, disregarding any name conflict.
-  If a symbol of the same name is present, then it is uninterned.  The
-  symbols are added to the 'package-shadowing-symbols'.  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  package = package_or_default (package);
-  Lisp_Object tail = symbols_to_list (symbols);
-  FOR_EACH_TAIL (tail)
-    {
-      const Lisp_Object import = XCAR (tail);
-      const Lisp_Object found = Ffind_symbol (SYMBOL_NAME (import), package);
-      const Lisp_Object symbol = NILP (found) ? Qnil : XCAR (found);
-      const Lisp_Object status = NILP (found) ? Qnil : XCAR (XCDR (found));
-
-      if (!EQ (import, symbol))
-	{
-	  /* Inintern if symbol with the same name is found.  */
-	  if (EQ (status, QCinternal) || EQ (status, QCexternal))
-	    {
-	      remove_shadowing_symbol (symbol, package);
-	      Fcl_unintern (symbol, package);
-	    }
-	}
-      add_shadowing_symbol (import, package);
-    }
-  return Qt;
-}
-
-DEFUN ("use-package", Fuse_package, Suse_package, 1, 2, 0,
-       doc: /* tbd  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  return Qt;
-}
-
-DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
-       doc: /* tbd  */)
-  (Lisp_Object symbols, Lisp_Object package)
-{
-  return Qt;
 }
 
 DEFUN ("pkg-break", Fpkg_read, Spkg_read, 1, 1, 0,
@@ -1301,26 +921,9 @@ syms_of_pkg (void)
   defsubr (&Smake_percent_package);
   defsubr (&Scl_intern);
   defsubr (&Scl_unintern);
-  defsubr (&Sdelete_package);
-  defsubr (&Sexport);
-  defsubr (&Sfind_package);
   defsubr (&Sfind_symbol);
-  defsubr (&Simport);
-  defsubr (&Slist_all_packages);
-  defsubr (&Spackage_name);
-  defsubr (&Spackage_nicknames);
-  defsubr (&Spackage_shadowing_symbols);
-  defsubr (&Spackage_use_list);
-  defsubr (&Spackage_used_by_list);
   defsubr (&Spackagep);
   defsubr (&Spkg_read);
-  defsubr (&Sregister_package);
-  defsubr (&Srename_package);
-  defsubr (&Sshadow);
-  defsubr (&Sshadowing_import);
-  defsubr (&Sunexport);
-  defsubr (&Sunuse_package);
-  defsubr (&Suse_package);
 
   Fmake_variable_buffer_local (Qpackage_prefixes);
 }

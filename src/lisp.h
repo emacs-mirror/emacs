@@ -2286,6 +2286,7 @@ extern Lisp_Object pkg_intern_maybe_keyword (Lisp_Object name);
 extern void pkg_break (void);
 extern void pkg_define_builtin_symbols (void);
 extern void pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg);
+extern Lisp_Object pkg_find_package (Lisp_Object name);
 
 
 /* Return whether a value might be a valid docstring.

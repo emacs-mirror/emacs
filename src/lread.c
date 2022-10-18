@@ -4294,7 +4294,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    if (*symbol_start == ':')
 	      {
 		++symbol_start;
-		package = Ffind_package (Qkeyword);
+		package = Vkeyword_package;
 		eassert (!NILP (package));
 	      }
 	  }
@@ -4313,7 +4313,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	    /* If there is no package with the give name, error.
 	       PKG-FIXME is it okay to signal like this here?  Is
 	       there a better way? */
-	    package = Ffind_package (pkg_name);
+	    package = pkg_find_package (pkg_name);
 	    if (NILP (package))
 	      pkg_error ("unknown package '%s'", read_buffer);
 

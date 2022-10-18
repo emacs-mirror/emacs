@@ -70,7 +70,7 @@ but have common elements %s" key1 key2 common))))
 (defun pkg-stringify-name (name kind)
   (cl-typecase name
     (string name)
-    (symbol (symbol-name name))
+    (symbol (cl-symbol-name name))
     (base-char (char-to-string name))
     (t (error "Bogus %s name: %s" kind name))))
 
@@ -97,9 +97,49 @@ but have common elements %s" key1 key2 common))))
   (mapcar (lambda (name) (pkg-find-or-make-package name))
           names))
 
+(defun pkg-package-or-lose (name)
+  (if (packagep name)
+      name
+    (let ((pkg-name (pkg-stringify-name name "package")))
+      (or (find-package pkg-name)
+          (error "No package %s found" name)))))
+
+(defun pkg--check-name-conflicts (package)
+  (cl-flet ((check (name)
+              (when (gethash name *package-registry*)
+                (error "%s conflicts with existing package" name))))
+    (check (package-%name package))
+    (dolist (n (package-%nicknames package)) (check n))))
+
+(defun pkg--add-to-registry (package)
+  (pkg--check-name-conflicts package)
+  (puthash (package-%name package) package *package-registry*)
+  (mapc (lambda (name) (puthash name package *package-registry*))
+        (package-%nicknames package)))
+
+(defun pkg--remove-from-registry (package)
+  (remhash (package-%name package) *package-registry*)
+  (mapc (lambda (name) (remhash name *package-registry*))
+        (package-%nicknames package)))
+
+(defun pkg--package-or-default (package)
+  (cond ((packagep package) package)
+        ((null package) *package*)
+        (t (pkg-package-or-lose package))))
+
+(defun pkg--symbol-listify (thing)
+  (cond ((listp thing)
+	 (dolist (s thing)
+	   (unless (symbolp s)
+             (error "%s is not a symbol") s))
+	 thing)
+	((symbolp thing)
+         (list thing))
+	(t
+	 (error "%s is neither a symbol nor a list of symbols" thing))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Creating packages
+;;                        Basic stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
@@ -114,9 +154,110 @@ but have common elements %s" key1 key2 common))))
           (package-%use-list package) use)
     package))
 
+;;;###autoload
+(defun package-name (package)
+  (setq package (pkg-package-or-lose package))
+  (package-%name package))
 
+;;;###autoload
+(defun package-nicknames (package)
+  (setq package (pkg-package-or-lose package))
+  (copy-sequence (package-%nicknames package)))
 
+;;;###autoload
+(defun package-shadowing-symbols (package)
+  (setq package (pkg-package-or-lose package))
+  (copy-sequence (package-%shadowing-symbols package)))
 
+;;;###autoload
+(defun package-use-list (package)
+  (setq package (pkg-package-or-lose package))
+  (copy-sequence (package-%use-list package)))
+
+;;;###autoload
+(defun package-used-by-list (package)
+  (setq package (pkg-package-or-lose package))
+  (let ((used-by nil))
+    (maphash (lambda (_n p)
+               (when (memq package (package-%use-list p))
+                   (push p used-by)))
+             *package-registry*)
+    used-by))
+
+;;;###autoload
+(defun list-all-packages ()
+  (let ((all nil))
+    (maphash (lambda (_name package)
+               (cl-pushnew package all))
+             *package-registry*)
+    all))
+
+;;;###autoload
+(defun find-package (package)
+  (if (packagep package)
+      package
+    (let ((name (pkg-stringify-name package "package name")))
+      (gethash name *package-registry*))))
+
+;;;###autoload
+(defun delete-package (package)
+  (unless (null package)
+    (setq package (pkg-package-or-lose package))
+    (when (or (eq package *emacs-package*)
+              (eq package *keyword-package*))
+      (error "Cannot delete standard package %s" package))
+    (pkg--remove-from-registry (package-%name package))
+    (setf (package-%name package) nil)
+    t))
+
+;;;###autoload
+(defun rename-package (package new-name &optional new-nicknames)
+  (setq package (pkg-package-or-lose package))
+  (unless (package-%name package)
+    ;; That's what CLHS says, and SBCL does...
+    (error "Cannot rename deleted package"))
+  (pkg--remove-from-registry package)
+  (setf (package-%nicknames package) new-nicknames)
+  (setf (package-%name package) new-name)
+  (pkg--add-to-registry package))
+
+;;;###autoload
+(defun export (symbols &optional package)
+  (setq package (pkg--package-or-default package))
+  (error "not yet implemented"))
+
+;;;###autoload
+(defun unexport (symbols &optional package)
+  (setq package (pkg--package-or-default package))
+  (error "not yet implemented"))
+
+;;;###autoload
+(defun import (symbols &optional package)
+  (let ((package (pkg--package-or-default package))
+        (symbols (pkg--symbol-listify symbols)))
+
+  (error "not yet implemented"))
+
+;;;###autoload
+(defun shadow (symbols &optional package)
+  (setq package (pkg--package-or-default package))
+  (error "not yet implemented"))
+
+;;;###autoload
+(defun shadowing-import (symbols &optional package)
+  (setq package (pkg--package-or-default package))
+  (error "not yet implemented"))
+
+;;;###autoload
+(defun use-package (use package)
+  (setq package (pkg--package-or-default package))
+  (cl-pushnew (package-%use-list package) package))
+
+;;;###autoload
+(defun unuse-package (unuse package)
+  (setq package (pkg--package-or-default package))
+  (setf (package-%use-list package)
+        (delq package (package-%use-list package))))
 
 ;; (defun pkg-enter-new-nicknames (package nicknames)
 ;;   (cl-check-type nicknames list)
