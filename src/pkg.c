@@ -1185,6 +1185,14 @@ DEFUN ("use-package", Fuse_package, Suse_package, 1, 2, 0,
   return Qt;
 }
 
+DEFUN ("package-symbols", Fpackage_symbols, Spackage_symbols, 1, 1, 0,
+       doc: /* Return symbol table of PACKAGE.  Internal use only.  */)
+  (Lisp_Object package)
+{
+  package = package_or_default (package);
+  return XPACKAGE (package)->symbols;
+}
+
 DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
        doc: /* tbd  */)
   (Lisp_Object symbols, Lisp_Object package)
@@ -1233,11 +1241,11 @@ init_pkg_once (void)
 				       Qnil, false);
 
   staticpro (&Vemacs_package);
-  Vemacs_package = make_package (build_string ("emacs"), make_fixnum (20000));
+  Vemacs_package = make_package (build_string ("emacs"), make_fixnum (100000));
   register_package (Vemacs_package);
 
   staticpro (&Vkeyword_package);
-  Vkeyword_package = make_package (build_string ("keyword"), make_fixnum (2000));
+  Vkeyword_package = make_package (build_string ("keyword"), make_fixnum (5000));
   XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
   register_package (Vkeyword_package);
 
@@ -1286,6 +1294,7 @@ syms_of_pkg (void)
   defsubr (&Spackage_use_list);
   defsubr (&Spackage_used_by_list);
   defsubr (&Spackagep);
+  defsubr (&Spackage_symbols);
   defsubr (&Spkg_read);
   defsubr (&Sregister_package);
   defsubr (&Srename_package);
