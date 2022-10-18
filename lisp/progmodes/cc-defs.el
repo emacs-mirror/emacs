@@ -60,7 +60,6 @@
 (cc-bytecomp-defun region-active-p)	; XEmacs
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
-(cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
