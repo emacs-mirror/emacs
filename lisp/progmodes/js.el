@@ -3639,28 +3639,39 @@ ARG is the same as in `end-of-defun."
                    js--treesit-defun-type-regexp 'end))
         (setq arg (1- arg))))))
 
-(defun js--treesit-can-enable-p ()
-  (if (and js-use-tree-sitter
-           (treesit-can-enable-p)
-           (treesit-language-available-p 'javascript))
-      t
-    (message "Cannot enable Tree Sitter for JavaScript.")
-    nil))
+(defun js--backend-toggle (backend warn)
+  "Toggle backend for `js-mode'.
+For BACKEND and WARN see `treesit-mode-function'."
+  (cond
+   ;; Tree-sitter.
+   ((and (eq backend 'treesit) (treesit-ready-p warn 'javascript))
+    (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
+    (setq-local indent-line-function #'treesit-indent)
 
-(defun js--treesit-enable ()
-  (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
-  (setq-local indent-line-function #'treesit-indent)
+    (setq-local beginning-of-defun-function #'js--treesit-beginning-of-defun)
+    (setq-local end-of-defun-function #'js--treesit-end-of-defun)
 
-  (setq-local beginning-of-defun-function #'js--treesit-beginning-of-defun)
-  (setq-local end-of-defun-function #'js--treesit-end-of-defun)
+    (setq-local font-lock-keywords-only t)
+    (setq-local treesit-font-lock-settings js--treesit-settings)
+    (setq-local treesit-font-lock-feature-list '((basic)))
 
-  (setq-local font-lock-keywords-only t)
-  (setq-local treesit-font-lock-settings js--treesit-settings)
-  (setq-local treesit-font-lock-feature-list '((basic)))
+    (add-hook 'which-func-functions #'js-treesit-current-defun nil t)
 
-  (add-hook 'which-func-functions #'js-treesit-current-defun nil t)
+    (treesit-font-lock-enable))
+   ;; Elisp.
+   ((eq backend 'elisp)
+    (setq-local indent-line-function #'js-indent-line)
+    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
+    (setq-local end-of-defun-function #'js-end-of-defun)
 
-  (treesit-font-lock-enable))
+    (setq-local font-lock-defaults
+                (list js--font-lock-keywords nil nil nil nil
+                      '(font-lock-syntactic-face-function
+                        . js-font-lock-syntactic-face-function)))
+
+    ;; Imenu
+    (setq imenu-case-fold-search nil)
+    (setq imenu-create-index-function #'js--imenu-create-index))))
 
 ;;; Main Function
 
@@ -3668,98 +3679,79 @@ ARG is the same as in `end-of-defun."
 (define-derived-mode js-mode prog-mode "JavaScript"
   "Major mode for editing JavaScript."
   :group 'js
+  ;; Ensure all CC Mode "lang variables" are set to valid values.
+  (c-init-language-vars js-mode)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local syntax-propertize-function #'js-syntax-propertize)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'js--syntax-propertize-extend-region 'append 'local)
+  (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+
+  (setq-local parse-sexp-ignore-comments t)
+  (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
+
   ;; Comments
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
 
-  (if (js--treesit-can-enable-p)
-      (js--treesit-enable)
-    ;; Ensure all CC Mode "lang variables" are set to valid values.
-    (c-init-language-vars js-mode)
-    (setq-local indent-line-function #'js-indent-line)
-    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
-    (setq-local end-of-defun-function #'js-end-of-defun)
-    (setq-local open-paren-in-column-0-is-defun-start nil)
-    (setq-local font-lock-defaults
-                (list js--font-lock-keywords nil nil nil nil
-                      '(font-lock-syntactic-face-function
-                        . js-font-lock-syntactic-face-function)))
-    (setq-local syntax-propertize-function #'js-syntax-propertize)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'syntax-propertize-multiline 'append 'local)
-    (add-hook 'syntax-propertize-extend-region-functions
-              #'js--syntax-propertize-extend-region 'append 'local)
-    (setq-local prettify-symbols-alist js--prettify-symbols-alist)
+  ;; Parse cache
+  (add-hook 'before-change-functions #'js--flush-caches t t)
 
-    (setq-local parse-sexp-ignore-comments t)
-    (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
+  ;; Frameworks
+  (js--update-quick-match-re)
 
-    (setq-local fill-paragraph-function #'js-fill-paragraph)
-    (setq-local normal-auto-fill-function #'js-do-auto-fill)
+  ;; Syntax extensions
+  (unless (js-jsx--detect-and-enable)
+    (add-hook 'after-change-functions #'js-jsx--detect-after-change nil t))
+  (js-use-syntactic-mode-name)
 
-    ;; Parse cache
-    (add-hook 'before-change-functions #'js--flush-caches t t)
+  ;; for filling, pretend we're cc-mode
+  (c-foreign-init-lit-pos-cache)
+  (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
+  (setq-local comment-line-break-function #'c-indent-new-comment-line)
+  (setq-local comment-multi-line t)
+  (setq-local electric-indent-chars
+	      (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
+  (setq-local electric-layout-rules
+	      '((?\; . after) (?\{ . after) (?\} . before)))
 
-    ;; Frameworks
-    (js--update-quick-match-re)
+  (setq-local fill-paragraph-function #'js-fill-paragraph)
+  (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
-    ;; Syntax extensions
-    (unless (js-jsx--detect-and-enable)
-      (add-hook 'after-change-functions #'js-jsx--detect-after-change nil t))
-    (js-use-syntactic-mode-name)
+  (let ((c-buffer-is-cc-mode t))
+    ;; FIXME: These are normally set by `c-basic-common-init'.  Should
+    ;; we call it instead?  (Bug#6071)
+    (make-local-variable 'paragraph-start)
+    (make-local-variable 'paragraph-separate)
+    (make-local-variable 'paragraph-ignore-fill-prefix)
+    (make-local-variable 'adaptive-fill-mode)
+    (make-local-variable 'adaptive-fill-regexp)
+    ;; While the full CC Mode style system is not yet in use, set the
+    ;; pertinent style variables manually.
+    (c-initialize-builtin-style)
+    (let ((style (cc-choose-style-for-mode 'js-mode c-default-style)))
+      (c-set-style style))
+    (setq c-block-comment-prefix "* "
+          c-comment-prefix-regexp "//+\\|\\**")
+    (c-setup-paragraph-variables))
 
-    ;; Imenu
-    (setq imenu-case-fold-search nil)
-    (setq imenu-create-index-function #'js--imenu-create-index)
+  ;; Important to fontify the whole buffer syntactically! If we don't,
+  ;; then we might have regular expression literals that aren't marked
+  ;; as strings, which will screw up parse-partial-sexp, scan-lists,
+  ;; etc. and produce maddening "unbalanced parenthesis" errors.
+  ;; When we attempt to find the error and scroll to the portion of
+  ;; the buffer containing the problem, JIT-lock will apply the
+  ;; correct syntax to the regular expression literal and the problem
+  ;; will mysteriously disappear.
+  ;; FIXME: We should instead do this fontification lazily by adding
+  ;; calls to syntax-propertize wherever it's really needed.
+  ;; (syntax-propertize (point-max))
 
-    ;; for filling, pretend we're cc-mode
-    (c-foreign-init-lit-pos-cache)
-    (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
-    (setq-local comment-line-break-function #'c-indent-new-comment-line)
-    (setq-local comment-multi-line t)
-    (setq-local electric-indent-chars
-	        (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
-    (setq-local electric-layout-rules
-	        '((?\; . after) (?\{ . after) (?\} . before)))
-
-    (let ((c-buffer-is-cc-mode t))
-      ;; FIXME: These are normally set by `c-basic-common-init'.  Should
-      ;; we call it instead?  (Bug#6071)
-      (make-local-variable 'paragraph-start)
-      (make-local-variable 'paragraph-separate)
-      (make-local-variable 'paragraph-ignore-fill-prefix)
-      (make-local-variable 'adaptive-fill-mode)
-      (make-local-variable 'adaptive-fill-regexp)
-      ;; While the full CC Mode style system is not yet in use, set the
-      ;; pertinent style variables manually.
-      (c-initialize-builtin-style)
-      (let ((style (cc-choose-style-for-mode 'js-mode c-default-style)))
-        (c-set-style style))
-      (setq c-block-comment-prefix "* "
-            c-comment-prefix-regexp "//+\\|\\**")
-      (c-setup-paragraph-variables))
-
-    ;; Important to fontify the whole buffer syntactically! If we don't,
-    ;; then we might have regular expression literals that aren't marked
-    ;; as strings, which will screw up parse-partial-sexp, scan-lists,
-    ;; etc. and produce maddening "unbalanced parenthesis" errors.
-    ;; When we attempt to find the error and scroll to the portion of
-    ;; the buffer containing the problem, JIT-lock will apply the
-    ;; correct syntax to the regular expression literal and the problem
-    ;; will mysteriously disappear.
-    ;; FIXME: We should instead do this fontification lazily by adding
-    ;; calls to syntax-propertize wherever it's really needed.
-    ;;(syntax-propertize (point-max))
-    ))
-
-(defcustom js-json-use-tree-sitter nil
-  "If non-nil, `js-json-mode' tries to use tree-sitter.
-Currently `js-json-mode' uses tree-sitter for font-locking and
-indentation."
-  :version "29.1"
-  :type 'boolean
-  :safe 'booleanp)
+  (js--backend-toggle 'elisp nil)
+  (setq-local major-mode-backend-function #'js--backend-toggle))
 
 (defvar js--json-treesit-settings
   (treesit-font-lock-rules
@@ -3791,37 +3783,29 @@ indentation."
      ((parent-is "object") parent-bol ,js-indent-level)
      )))
 
+(defun js--json-backend-toggle (backend warn)
+  "Toggle backend for `json-mode'.
+For BACKEND and WARN see `treesit-mode-function'."
+  (cond
+   ;; Tree-sitter.
+   ((and (eq backend 'treesit) (treesit-ready-p warn 'json))
+    (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
+    (setq-local indent-line-function #'treesit-indent)
 
-(defun js--json-treesit-can-enable-p ()
-  (if (and js-json-use-tree-sitter
-           (treesit-can-enable-p)
-           (treesit-language-available-p 'json))
-      t
-    (error "Cannot enable Tree Sitter for JSON.")
-    nil))
-
-
-(defun js--json-treesit-enable ()
-  (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
-  (setq-local indent-line-function #'treesit-indent)
-
-  (setq-local beginning-of-defun-function #'ignore)
-  (setq-local end-of-defun-function #'ignore)
-
-  (setq-local font-lock-defaults '(nil t))
-  (setq-local treesit-font-lock-settings js--json-treesit-settings)
-
-  (treesit-font-lock-enable))
-
+    (setq-local font-lock-keywords-only t)
+    (setq-local treesit-font-lock-settings js--json-treesit-settings)
+    (treesit-font-lock-enable))
+   ;; Elisp.
+   ((eq backend 'elisp)
+    (js--backend-toggle 'elisp nil))))
 
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"
-  (if (js--json-treesit-can-enable-p)
-      (js--json-treesit-enable)
-    (setq-local js-enabled-frameworks nil)
-    ;; Speed up `syntax-ppss': JSON files can be big but can't hold
-    ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
-    (setq-local syntax-propertize-function #'ignore)))
+  (setq-local js-enabled-frameworks nil)
+  ;; Speed up `syntax-ppss': JSON files can be big but can't hold
+  ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
+  (setq-local syntax-propertize-function #'ignore)
+  (setq-local major-mode-backend-function #'js--json-backend-toggle))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply
@@ -3848,11 +3832,9 @@ could set `js-jsx-syntax' to t in your init file, or in a
 `js-jsx-enable' in `js-mode-hook'.  You may be better served by
 one of the aforementioned options instead of using this mode."
   :group 'js
-  (if (js--treesit-can-enable-p)
-      (js--treesit-enable)
-    (js-jsx-enable)
-    (setq-local comment-region-function #'js-jsx--comment-region)
-    (js-use-syntactic-mode-name)))
+  (js-jsx-enable)
+  (setq-local comment-region-function #'js-jsx--comment-region)
+  (js-use-syntactic-mode-name))
 
 (defun js-jsx--comment-region (beg end &optional arg)
   (if (or (js-jsx--context)

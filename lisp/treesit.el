@@ -45,14 +45,103 @@
   :type 'integer
   :version "29.1")
 
+(defcustom treesit-mode-inhibit-message nil
+  "If non-nil, don't print message when tree-sitter can't activate."
+  :type 'boolean
+  :version "29.1")
+
 (declare-function treesit-available-p "treesit.c")
 
-(defun treesit-can-enable-p ()
-  "Return non-nil if current buffer can activate tree-sitter.
-Currently this function checks whether tree-sitter is available
-and the buffer size."
-  (and (treesit-available-p)
-       (< (buffer-size) treesit-max-buffer-size)))
+(defvar-local major-mode-backend-function nil
+  "A function that toggles the \"backend\" for a major mode.
+
+The function is passed two argument BACKEND and WARN.  BACKEND is
+a symbol representing the backend we want to activate.  Currently
+it can be `treesit' or `elisp'.
+
+If WARN is non-nil, display a warning if tree-sitter can't
+activate, if WARN is nil, just print an message and don't display
+warning.")
+
+;;;###autoload
+(define-minor-mode treesit-mode
+  "Activate tree-sitter to power major-mode features.
+
+This mode is merely a SUGGESTION of turning on tree-sitter,
+actual activation of tree-sitter functionalities depends on
+whether the major mode supports tree-sitter, availability of
+specific tree-sitter language definition, etc."
+  :version "29.1"
+  :group 'languages
+  (when major-mode-backend-function
+    (funcall major-mode-backend-function
+             (if treesit-mode 'treesit 'elisp)
+             (eq this-command 'treesit-mode))))
+
+(defvar treesit-remapped-major-mode-alist nil
+  "A list like `major-mode-remap-alist'.
+
+When major modes activate tree-sitter by switching to another
+major mode and `global-treesit-mode' is on, they add an
+entry (MODE . NEW-MODE) to `major-mode-remap-alist', so next time
+Emacs uses NEW-MODE directly.
+
+These remaps should be removed when `global-treesit-mode' is
+turned off, so we record each (MODE . NEW-MODE) in this variable.")
+
+;;;###autoload
+(define-globalized-minor-mode global-treesit-mode treesit-mode
+  global-treesit-mode--turn-on
+  :group 'languages
+  :predicate t
+  (when (not global-treesit-mode)
+    (dolist (map treesit-remapped-major-mode-alist)
+      (setq major-mode-remap-alist
+            (remove map major-mode-remap-alist)))))
+
+(defun global-treesit-mode--turn-on ()
+  "Function used to determine whether to turn on `treesit-mode'.
+Called in every buffer if `global-treesit-mode' is on."
+  (treesit-mode))
+
+(defun treesit-ready-p (warn &rest languages)
+  "Check that tree-sitter is ready to be used.
+
+If tree-sitter is not ready and WARN is nil-nil, emit a warning;
+if WARN is nil, print a message.  But if
+`treesit-mode-inhibit-message' is non-nil, don't even print the
+message.
+
+LANGUAGES are languages we want check for availability."
+  (let (msg)
+    ;; Check for each condition and set MSG.
+    (catch 'term
+      (when (not (treesit-available-p))
+        (setq msg "tree-sitter library is not built with Emacs")
+        (throw 'term nil))
+      (when (> (buffer-size) treesit-max-buffer-size)
+        (setq msg "buffer larger than `treesit-max-buffer-size'")
+        (throw 'term nil))
+      (dolist (lang languages)
+        (pcase-let ((`(,available . ,err)
+                     (treesit-language-available-p lang t)))
+          (when (not available)
+            (setq msg (format "language definition for %s is unavailable (%s): %s"
+                              lang (nth 0 err)
+                              (string-join
+                               (mapcar (lambda (x) (format "%s" x))
+                                       (cdr err))
+                               " ")))
+            (throw 'term nil)))))
+    ;; Decide if all conditions met and whether emit a warning.
+    (if (not msg)
+        t
+      (setq msg (concat "Cannot activate tree-sitter, because " msg))
+      (if warn
+          (display-warning 'treesit msg)
+        (unless treesit-mode-inhibit-message
+          (message "%s" msg)))
+      nil)))
 
 ;;; Parser API supplement
 

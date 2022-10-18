@@ -286,13 +286,6 @@
   :version "24.3"
   :link '(emacs-commentary-link "python"))
 
-(defcustom python-use-tree-sitter nil
-  "If non-nil, `python-mode' tries to use tree-sitter.
-Currently `python-mode' uses tree-sitter for font-locking, imenu,
-and movement functions."
-  :type 'boolean
-  :version "29.1")
-
 (defcustom python-interpreter "python"
   "Python interpreter for noninteractive use.
 To customize the Python shell, modify `python-shell-interpreter'
@@ -6382,6 +6375,32 @@ Add import for undefined name `%s' (empty to skip): "
 (defvar electric-indent-inhibit)
 (defvar prettify-symbols-alist)
 
+(defun python--backend-toggle (backend warn)
+  "Toggle backend for `python-mode'.
+BACKEND and WARN are explained in `treesit-mode-function'."
+  (if (and (eq backend 'treesit) (treesit-ready-p warn 'python))
+      (progn
+        (setq-local font-lock-keywords-only t)
+        (setq-local treesit-font-lock-feature-list
+                    '((basic) (moderate) (elaborate)))
+        (setq-local treesit-font-lock-settings
+                    python--treesit-settings)
+        (treesit-font-lock-enable)
+        (setq-local imenu-create-index-function
+                    #'python-imenu-treesit-create-index)
+        (add-hook 'which-func-functions
+                  #'python-info-treesit-current-defun nil t))
+    (setq-local font-lock-defaults
+                `(,python-font-lock-keywords
+                  nil nil nil nil
+                  (font-lock-syntactic-face-function
+                   . python-font-lock-syntactic-face-function)
+                  (font-lock-extend-after-change-region-function
+                   . python-font-lock-extend-region)))
+    (setq-local imenu-create-index-function
+                #'python-imenu-create-index)
+    (add-hook 'which-func-functions #'python-info-current-defun nil t)))
+
 ;;;###autoload
 (define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
@@ -6398,22 +6417,9 @@ Add import for undefined name `%s' (empty to skip): "
 
   (setq-local forward-sexp-function python-forward-sexp-function)
 
-  (if (and python-use-tree-sitter
-           (treesit-can-enable-p))
-      (progn
-        (setq-local font-lock-keywords-only t)
-        (setq-local treesit-font-lock-feature-list
-                    '((basic) (moderate) (elaborate)))
-        (setq-local treesit-font-lock-settings
-                    python--treesit-settings)
-        (treesit-font-lock-enable))
-    (setq-local font-lock-defaults
-              `(,python-font-lock-keywords
-                nil nil nil nil
-                (font-lock-syntactic-face-function
-                 . python-font-lock-syntactic-face-function)
-                (font-lock-extend-after-change-region-function
-                 . python-font-lock-extend-region))))
+  (python--backend-toggle 'elisp nil)
+
+  (setq-local major-mode-backend-function #'python--backend-toggle)
 
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)
@@ -6442,21 +6448,8 @@ Add import for undefined name `%s' (empty to skip): "
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
-  (if (and python-use-tree-sitter
-           (treesit-can-enable-p))
-      (setq-local imenu-create-index-function
-                  #'python-imenu-treesit-create-index)
-    (setq-local imenu-create-index-function
-                #'python-imenu-create-index))
-
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
-
-  (if (and python-use-tree-sitter
-           (treesit-can-enable-p))
-      (add-hook 'which-func-functions
-                #'python-info-treesit-current-defun nil t)
-    (add-hook 'which-func-functions #'python-info-current-defun nil t))
 
   (setq-local skeleton-further-elements
               '((abbrev-mode nil)

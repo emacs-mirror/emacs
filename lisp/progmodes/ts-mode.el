@@ -338,8 +338,7 @@ ARG is the same as in `end-of-defun."
   :syntax-table ts-mode--syntax-table
 
   (cond
-   ((and (treesit-can-enable-p)
-         (treesit-language-available-p 'tsx))
+   ((treesit-ready-p nil 'tsx)
     ;; Comments
     (setq-local comment-start "// ")
     (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
@@ -351,15 +350,13 @@ ARG is the same as in `end-of-defun."
     (setq-local beginning-of-defun-function #'ts-mode--beginning-of-defun)
     (setq-local end-of-defun-function #'ts-mode--end-of-defun)
 
-    (unless font-lock-defaults
-      (setq font-lock-defaults '(nil t)))
-
+    (setq font-lock-keywords-only t)
     (setq-local treesit-font-lock-settings ts-mode--settings)
 
     (setq treesit-font-lock-feature-list '((basic)))
     (treesit-font-lock-enable))
    (t
-    (message "Tree sitter for TypeScript isn't available, defaulting to js-mode")
+    (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'")
     (js-mode))))
 
 (provide 'ts-mode)
