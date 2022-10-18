@@ -4080,15 +4080,18 @@ using that one instead of current buffer's process."
                  (buffer-substring-no-properties line-start (point)))
             (buffer-substring-no-properties line-start (point))))
          (start
-          (save-excursion
-            (if (not (re-search-backward
-                      (python-rx
-                       (or whitespace open-paren close-paren string-delimiter simple-operator))
-                      line-start
-                      t 1))
-                line-start
-              (forward-char (length (match-string-no-properties 0)))
-              (point))))
+          (if (< (point) line-start)
+              (point)
+            (save-excursion
+              (if (not (re-search-backward
+                        (python-rx
+                         (or whitespace open-paren close-paren
+                             string-delimiter simple-operator))
+                        line-start
+                        t 1))
+                  line-start
+                (forward-char (length (match-string-no-properties 0)))
+                (point)))))
          (end (point))
          (prompt-boundaries
           (with-current-buffer (process-buffer process)
@@ -4102,7 +4105,10 @@ using that one instead of current buffer's process."
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
                        (and is-shell-buffer
-                            (< (point) (cdr prompt-boundaries))))
+                            (< (point) (cdr prompt-boundaries)))
+                       (and (not is-shell-buffer)
+                            (string-match-p
+                             python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
                   ((or (not python-shell-completion-native-enable)
                        ;; Even if native completion is enabled, for

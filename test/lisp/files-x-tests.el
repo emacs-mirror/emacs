@@ -23,6 +23,7 @@
 
 (require 'ert)
 (require 'files-x)
+(require 'tramp-integration)
 
 (defconst files-x-test--variables1
   '((remote-shell-file-name . "/bin/bash")
@@ -35,16 +36,20 @@
   '((remote-null-device . "/dev/null")))
 (defconst files-x-test--variables4
   '((remote-null-device . "null")))
+(defconst files-x-test--variables5
+  '((remote-lazy-var . nil)
+    (remote-null-device . "/dev/null")))
 (defvar remote-null-device)
+(defvar remote-lazy-var nil)
 (put 'remote-shell-file-name 'safe-local-variable #'identity)
 (put 'remote-shell-command-switch 'safe-local-variable #'identity)
 (put 'remote-shell-interactive-switch 'safe-local-variable #'identity)
 (put 'remote-shell-login-switch 'safe-local-variable #'identity)
 (put 'remote-null-device 'safe-local-variable #'identity)
 
-(defconst files-x-test--application '(:application 'my-application))
+(defconst files-x-test--application '(:application my-application))
 (defconst files-x-test--another-application
-  '(:application 'another-application))
+  '(:application another-application))
 (defconst files-x-test--protocol '(:protocol "my-protocol"))
 (defconst files-x-test--user '(:user "my-user"))
 (defconst files-x-test--machine '(:machine "my-machine"))
@@ -90,6 +95,28 @@
      (equal
       (connection-local-get-profile-variables 'remote-nullfile)
       files-x-test--variables4))))
+
+(ert-deftest files-x-test-connection-local-update-profile-variables ()
+  "Test updating connection-local profile variables."
+
+  ;; Declare (PROFILE VARIABLES) objects.
+  (let (connection-local-profile-alist connection-local-criteria-alist)
+    (connection-local-set-profile-variables
+     'remote-bash (copy-alist files-x-test--variables1))
+    (should
+     (equal
+      (connection-local-get-profile-variables 'remote-bash)
+      files-x-test--variables1))
+
+    ;; Updating overwrites only the values specified in this call, but
+    ;; retains all the other values from previous calls.
+    (connection-local-update-profile-variables
+     'remote-bash files-x-test--variables2)
+    (should
+     (equal
+      (connection-local-get-profile-variables 'remote-bash)
+      (cons (car files-x-test--variables2)
+            (cdr files-x-test--variables1))))))
 
 (ert-deftest files-x-test-connection-local-set-profiles ()
   "Test setting connection-local profiles."
@@ -233,9 +260,12 @@
                  (nreverse (copy-tree files-x-test--variables2)))))
         ;; The variables exist also as local variables.
         (should (local-variable-p 'remote-shell-file-name))
+        (should (local-variable-p 'remote-null-device))
         ;; The proper variable value is set.
         (should
-         (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))))
+         (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
+        (should
+         (string-equal (symbol-value 'remote-null-device) "/dev/null"))))
 
     ;; The third test case.  Both criteria `files-x-test--criteria1'
     ;; and `files-x-test--criteria2' apply, but there are no double
@@ -274,13 +304,11 @@
         (should-not (local-variable-p 'remote-shell-file-name))
         (should-not (boundp 'remote-shell-file-name))))))
 
-(defvar tramp-connection-local-default-shell-variables)
-(defvar tramp-connection-local-default-system-variables)
-
 (ert-deftest files-x-test-with-connection-local-variables ()
   "Test setting connection-local variables."
 
-  (let (connection-local-profile-alist connection-local-criteria-alist)
+  (let ((connection-local-profile-alist connection-local-profile-alist)
+        (connection-local-criteria-alist connection-local-criteria-alist))
     (connection-local-set-profile-variables
      'remote-bash files-x-test--variables1)
     (connection-local-set-profile-variables
@@ -290,29 +318,6 @@
 
     (connection-local-set-profiles
      nil 'remote-ksh 'remote-nullfile)
-
-    (with-temp-buffer
-      (let ((enable-connection-local-variables t))
-        (hack-connection-local-variables-apply nil)
-
-	;; All connection-local variables are set.  They apply in
-        ;; reverse order in `connection-local-variables-alist'.
-        (should
-         (equal connection-local-variables-alist
-		(append
-		 (nreverse (copy-tree files-x-test--variables3))
-		 (nreverse (copy-tree files-x-test--variables2)))))
-        ;; The variables exist also as local variables.
-        (should (local-variable-p 'remote-shell-file-name))
-        (should (local-variable-p 'remote-null-device))
-        ;; The proper variable values are set.
-        (should
-         (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
-        (should
-         (string-equal (symbol-value 'remote-null-device) "/dev/null"))
-
-	;; A candidate connection-local variable is not bound yet.
-        (should-not (local-variable-p 'remote-shell-command-switch))))
 
     (with-temp-buffer
       ;; Use the macro.  We need a remote `default-directory'.
@@ -331,18 +336,18 @@
 	(with-connection-local-variables
 	 ;; All connection-local variables are set.  They apply in
 	 ;; reverse order in `connection-local-variables-alist'.
-	 ;; Since we ha a remote default directory, Tramp's settings
+	 ;; Since we have a remote default directory, Tramp's settings
 	 ;; are appended as well.
          (should
           (equal
            connection-local-variables-alist
 	   (append
-	    (nreverse (copy-tree files-x-test--variables3))
-	    (nreverse (copy-tree files-x-test--variables2))
             (nreverse
              (copy-tree tramp-connection-local-default-shell-variables))
             (nreverse
-             (copy-tree tramp-connection-local-default-system-variables)))))
+             (copy-tree tramp-connection-local-default-system-variables))
+	    (nreverse (copy-tree files-x-test--variables3))
+	    (nreverse (copy-tree files-x-test--variables2)))))
          ;; The variables exist also as local variables.
          (should (local-variable-p 'remote-shell-file-name))
          (should (local-variable-p 'remote-null-device))
@@ -352,15 +357,21 @@
          (should
           (string-equal (symbol-value 'remote-null-device) "/dev/null"))
 
-         ;; Run another instance of `with-connection-local-variables'
-         ;; with a different application.
-         (let ((connection-local-default-application (cadr files-x-test--application)))
-	   (with-connection-local-variables
-            ;; The proper variable values are set.
-            (should
-             (string-equal (symbol-value 'remote-shell-file-name) "/bin/bash"))
-            (should
-             (string-equal (symbol-value 'remote-null-device) "/dev/null"))))
+         ;; Run `with-connection-local-application-variables' to use a
+         ;; different application.
+	 (with-connection-local-application-variables
+             (cadr files-x-test--application)
+         (should
+          (equal
+           connection-local-variables-alist
+	   (append
+	    (nreverse (copy-tree files-x-test--variables3))
+	    (nreverse (copy-tree files-x-test--variables1)))))
+           ;; The proper variable values are set.
+           (should
+            (string-equal (symbol-value 'remote-shell-file-name) "/bin/bash"))
+           (should
+            (string-equal (symbol-value 'remote-null-device) "/dev/null")))
          ;; The variable values are reset.
          (should
           (string-equal (symbol-value 'remote-shell-file-name) "/bin/ksh"))
@@ -375,6 +386,61 @@
 	;; The variable values are reset.
 	(should-not (boundp 'remote-shell-file-name))
 	(should (string-equal (symbol-value 'remote-null-device) "null"))))))
+
+(defun files-x-test--get-lazy-var ()
+  "Get the connection-local value of `remote-lazy-var'.
+If it's not initialized yet, initialize it."
+  (with-connection-local-application-variables
+      (cadr files-x-test--application)
+    (or remote-lazy-var
+        (setq-connection-local remote-lazy-var
+                               (or (file-remote-p default-directory 'host)
+                                   "local")))))
+
+(defun files-x-test--set-lazy-var (value)
+  "Set the connection-local value of `remote-lazy-var'"
+  (with-connection-local-application-variables
+      (cadr files-x-test--application)
+    (setq-connection-local remote-lazy-var value)))
+
+(ert-deftest files-x-test-setq-connection-local ()
+  "Test dynamically setting connection local variables."
+  (let (connection-local-profile-alist connection-local-criteria-alist)
+    (connection-local-set-profile-variables
+     'remote-lazy files-x-test--variables5)
+    (connection-local-set-profiles
+     files-x-test--application
+     'remote-lazy)
+
+    ;; Test the initial local value.
+    (should (equal (files-x-test--get-lazy-var) "local"))
+
+    ;; Set the local value and make sure it retains the value we set.
+    (should (equal (files-x-test--set-lazy-var "here") "here"))
+    (should (equal (files-x-test--get-lazy-var) "here"))
+
+    (let ((default-directory "/method:host:"))
+      ;; Test the initial remote value.
+      (should (equal (files-x-test--get-lazy-var) "host"))
+
+      ;; Set the remote value and make sure it retains the value we set.
+      (should (equal (files-x-test--set-lazy-var "there") "there"))
+      (should (equal (files-x-test--get-lazy-var) "there"))
+      ;; Set another connection-local variable.
+      (with-connection-local-application-variables
+          (cadr files-x-test--application)
+        (setq-connection-local remote-null-device "null")))
+
+    ;; Make sure we get the local value we set above.
+    (should (equal (files-x-test--get-lazy-var) "here"))
+    (should-not (boundp 'remote-null-device))
+
+    ;; Make sure we get the remote values we set above.
+    (let ((default-directory "/method:host:"))
+      (should (equal (files-x-test--get-lazy-var) "there"))
+      (with-connection-local-application-variables
+          (cadr files-x-test--application)
+        (should (equal remote-null-device "null"))))))
 
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

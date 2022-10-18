@@ -297,5 +297,27 @@ Edebug symbols (Bug#42672)."
                      (intern "cl-defgeneric/edebug/method/2 (number)")
                      'cl-defgeneric/edebug/method/2))))))
 
+(cl-defgeneric cl-generic-tests--acc (x &optional y)
+  (declare (advertised-calling-convention (x) "671.2")))
+
+(cl-defmethod cl-generic-tests--acc ((x float)) (+ x 5.0))
+
+(ert-deftest cl-generic-tests--advertised-calling-convention-bug58563 ()
+  (should (equal (get-advertised-calling-convention
+                  (indirect-function 'cl-generic-tests--acc))
+                 '(x)))
+  (should
+   (condition-case err
+       (let ((lexical-binding t)
+             (byte-compile-debug t)
+             (byte-compile-error-on-warn t))
+         (byte-compile '(cl-defmethod cl-generic-tests--acc ((x list))
+                          (declare (advertised-calling-convention (y) "1.1"))
+                          (cons x '(5 5 5 5 5))))
+         nil)
+     (error
+      (and (eq 'error (car err))
+           (string-match "Stray.*declare" (cadr err)))))))
+
 (provide 'cl-generic-tests)
 ;;; cl-generic-tests.el ends here

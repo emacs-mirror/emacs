@@ -5192,10 +5192,7 @@ command evaluates `message-send-mail-hook' just before sending a message."
 (defun message-canlock-generate ()
   "Return a string that is non-trivial to guess.
 Do not use this for anything important, it is cryptographically weak."
-  (sha1 (concat (message-unique-id)
-                (format "%x%x%x" (random) (random) (random))
-                (prin1-to-string (recent-keys))
-                (prin1-to-string (garbage-collect)))))
+  (secure-hash 'sha1 'iv-auto 128))
 
 (defvar canlock-password)
 (defvar canlock-password-for-verify)

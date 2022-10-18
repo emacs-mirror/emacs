@@ -308,6 +308,22 @@ struct x_failable_request
   unsigned long end;
 };
 
+#ifdef HAVE_XFIXES
+
+struct x_monitored_selection
+{
+  /* The name of the selection.  */
+  Atom name;
+
+  /* The current owner of the selection.  */
+  Window owner;
+};
+
+/* An invalid window.  */
+#define X_INVALID_WINDOW 0xffffffff
+
+#endif
+
 
 /* For each X display, we have a structure that records
    information about it.  */
@@ -778,6 +794,7 @@ struct x_display_info
   bool xfixes_supported_p;
   int xfixes_major;
   int xfixes_minor;
+  int xfixes_event_base;
 #endif
 
 #ifdef HAVE_XSYNC
@@ -827,6 +844,17 @@ struct x_display_info
 
   /* Pointer to the next request in `failable_requests'.  */
   struct x_failable_request *next_failable_request;
+
+#ifdef HAVE_XFIXES
+  /* Array of selections being monitored and their owners.  */
+  struct x_monitored_selection *monitored_selections;
+
+  /* Window used to monitor those selections.  */
+  Window selection_tracking_window;
+
+  /* The number of those selections.  */
+  int n_monitored_selections;
+#endif
 
   /* The pending drag-and-drop time for middle-click based
      drag-and-drop emulation.  */
@@ -915,11 +943,6 @@ struct x_output
      not present.  */
   Picture picture;
 #endif
-
-  /* Flag that indicates whether we've modified the back buffer and
-     need to publish our modifications to the front buffer at a
-     convenient time.  */
-  bool need_buffer_flip;
 
   /* The X window used for the bitmap icon;
      or 0 if we don't have a bitmap icon.  */
@@ -1091,6 +1114,18 @@ struct x_output
      and inactive states.  */
   bool_bf alpha_identical_p : 1;
 
+#ifdef HAVE_XDBE
+  /* Flag that indicates whether we've modified the back buffer and
+     need to publish our modifications to the front buffer at a
+     convenient time.  */
+  bool_bf need_buffer_flip : 1;
+
+  /* Flag that indicates whether or not the frame contents are
+     complete and can be safely flushed while handling async
+     input.  */
+  bool_bf complete : 1;
+#endif
+
 #ifdef HAVE_X_I18N
   /* Input context (currently, this means Compose key handler setup).  */
   XIC xic;
@@ -1248,6 +1283,10 @@ extern void x_mark_frame_dirty (struct frame *f);
 
 /* Return the need-buffer-flip flag for frame F.  */
 #define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
+
+/* Return whether or not the frame F has been completely drawn.  Used
+   while handling async input.  */
+#define FRAME_X_COMPLETE_P(f) ((f)->output_data.x->complete)
 #endif
 
 /* Return the outermost X window associated with the frame F.  */
@@ -1645,6 +1684,10 @@ extern void x_cr_draw_frame (cairo_t *, struct frame *);
 extern Lisp_Object x_cr_export_frames (Lisp_Object, cairo_surface_type_t);
 #endif
 
+#ifdef HAVE_XFIXES
+extern Window x_find_selection_owner (struct x_display_info *, Atom);
+#endif
+
 #ifdef HAVE_XRENDER
 extern void x_xrender_color_from_gc_background (struct frame *, GC,
 						XRenderColor *, bool);
@@ -1653,6 +1696,8 @@ extern void x_xr_apply_ext_clip (struct frame *, GC);
 extern void x_xr_reset_ext_clip (struct frame *);
 #endif
 
+extern void x_translate_coordinates_to_root (struct frame *, int, int,
+					     int *, int *);
 extern Bool x_query_pointer (Display *, Window, Window *, Window *, int *,
 			     int *, int *, int *, unsigned int *);
 

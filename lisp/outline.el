@@ -295,6 +295,9 @@ buffers (yet) -- that will be amended in a future version."
 (defvar-local outline--use-buttons nil
   "Non-nil when buffer displays clickable buttons on the headings.")
 
+(defvar-local outline-minor-mode-insert-buttons nil
+  "Non-nil when it's allowed to modify buffer to insert buttons.")
+
 (defvar-local outline--use-rtl nil
   "Non-nil when direction of clickable buttons is right-to-left.")
 
@@ -339,17 +342,26 @@ Note that this feature is meant to be used in editing buffers."
   :version "29.1")
 
 (define-icon outline-open-in-margins outline-open
-  '((image "outline-open.svg" "outline-open.pbm" :height 10))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10)
+    (emoji "🔽")
+    (symbol "▼")
+    (text "v"))
   "Icon used for buttons for opened sections in margins."
   :version "29.1")
 
 (define-icon outline-close-in-margins outline-close
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation -90))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation -90)
+    (emoji "▶️")
+    (symbol "▶")
+    (text ">"))
   "Icon used for buttons for closed sections in margins."
   :version "29.1")
 
 (define-icon outline-close-rtl-in-margins outline-close-rtl
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation 90))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation 90)
+    (emoji "◀️")
+    (symbol "◀")
+    (text "<"))
   "Right-to-left icon used for closed sections in margins."
   :version "29.1")
 
@@ -513,7 +525,8 @@ See the command `outline-mode' for more information on this mode."
             (setq-local left-margin-width (1+ left-margin-width)))
           (setq-local fringes-outside-margins t)
           ;; Force display of margins
-          (set-window-buffer nil (window-buffer)))
+          (when (eq (current-buffer) (window-buffer))
+            (set-window-buffer nil (window-buffer))))
         (when (or outline--use-buttons outline--use-margins)
           (add-hook 'after-change-functions
                     #'outline--fix-buttons-after-change nil t))
@@ -551,7 +564,8 @@ See the command `outline-mode' for more information on this mode."
         (setq-local left-margin-width (1- left-margin-width)))
       (setq-local fringes-outside-margins nil)
       ;; Force removal of margins
-      (set-window-buffer nil (window-buffer)))))
+      (when (eq (current-buffer) (window-buffer))
+        (set-window-buffer nil (window-buffer))))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
@@ -1657,18 +1671,24 @@ With a prefix argument, show headings up to that LEVEL."
                                    (if outline--use-rtl
                                        'outline-close-rtl
                                      'outline-close)
-                                 'outline-open)))
-          (inhibit-read-only t))
+                                 'outline-open))))
       ;; In editing buffers we use overlays only, but in other buffers
       ;; we use a mix of text properties, text and overlays to make
       ;; movement commands work more logically.
-      (when (derived-mode-p 'special-mode)
-        (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face)))
-      (if-let ((image (plist-get icon 'image)))
-          (overlay-put o 'display image)
-        (overlay-put o 'display (concat (plist-get icon 'string)
-                                        (string (char-after (point)))))
-        (overlay-put o 'face (plist-get icon 'face))))
+      (if outline-minor-mode-insert-buttons
+          (let ((inhibit-read-only t))
+            (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face))
+            (if-let ((image (plist-get icon 'image)))
+                (overlay-put o 'display image)
+              (overlay-put o 'display (concat (plist-get icon 'string)
+                                              (string (char-after (point)))))
+              (overlay-put o 'face (plist-get icon 'face))))
+        (overlay-put
+         o 'before-string
+         (propertize " "
+                     'display
+                     (or (plist-get icon 'image)
+                         (plist-get icon 'string))))))
     o))
 
 (defun outline--make-margin-overlay (type)
@@ -1699,7 +1719,7 @@ With a prefix argument, show headings up to that LEVEL."
       (beginning-of-line)
       (if use-margins
           (outline--make-margin-overlay 'open)
-        (when (derived-mode-p 'special-mode)
+        (when outline-minor-mode-insert-buttons
           (let ((inhibit-read-only t))
             (insert "  ")
             (beginning-of-line)))
@@ -1716,7 +1736,7 @@ With a prefix argument, show headings up to that LEVEL."
       (beginning-of-line)
       (if use-margins
           (outline--make-margin-overlay 'close)
-        (when (derived-mode-p 'special-mode)
+        (when outline-minor-mode-insert-buttons
           (let ((inhibit-read-only t))
             (insert "  ")
             (beginning-of-line)))

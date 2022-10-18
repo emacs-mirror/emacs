@@ -1826,8 +1826,8 @@ or elsewhere, return a 1-line docstring."
 		(eq 'function (aref elisp--eldoc-last-data 2)))
 	   (aref elisp--eldoc-last-data 1))
 	  (t
-	   (let* ((advertised (gethash (indirect-function sym)
-                                       advertised-signature-table t))
+	   (let* ((advertised (get-advertised-calling-convention
+                               (indirect-function sym)))
                   doc
 		  (args
 		   (cond

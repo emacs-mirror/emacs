@@ -129,6 +129,7 @@
 ;; us from emitting warnings when compiling files which use cl-lib without
 ;; requiring it! (bug#30635)
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'subr-x))
 
 ;; The feature of compiling in a specific target Emacs version
 ;; has been turned off because compile time options are a bad idea.
@@ -1185,27 +1186,22 @@ message buffer `default-directory'."
 (defun byte-compile--first-symbol-with-pos (form)
   "Return the first symbol with position in form, or nil if none.
 Order is by depth-first search."
-  (cond
-   ((symbol-with-pos-p form) form)
-   ((consp form)
-    (or (byte-compile--first-symbol-with-pos (car form))
-        (let ((sym nil))
-          (setq form (cdr form))
-          (while (and (consp form)
-                      (not (setq sym (byte-compile--first-symbol-with-pos
-                                      (car form)))))
-            (setq form (cdr form)))
-          (or sym
-              (and form (byte-compile--first-symbol-with-pos form))))))
-   ((or (vectorp form) (recordp form))
-    (let ((len (length form))
-          (i 0)
-          (sym nil))
-      (while (and (< i len)
-                  (not (setq sym (byte-compile--first-symbol-with-pos
-                                  (aref form i)))))
-        (setq i (1+ i)))
-      sym))))
+  (named-let loop ((form form)
+                   (depth 10))          ;Arbitrary limit.
+    (cond
+     ((<= depth 0) nil)                 ;Avoid cycles (bug#58601).
+     ((symbol-with-pos-p form) form)
+     ((consp form)
+      (or (loop (car form) (1- depth))
+          (loop (cdr form) (1- depth))))
+     ((or (vectorp form) (recordp form))
+      (let ((len (length form))
+            (i 0)
+            (sym nil))
+        (while (and (< i len)
+                    (not (setq sym (loop (aref form i) (1- depth)))))
+          (setq i (1+ i)))
+        sym)))))
 
 (defun byte-compile--warning-source-offset ()
   "Return a source offset from `byte-compile-form-stack' or nil if none."
@@ -1405,11 +1401,11 @@ when printing the error message."
 			  (and (not macro-p)
 			       (compiled-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
-          (let ((advertised (gethash (if (and (symbolp fn) (fboundp fn))
-                                         ;; Could be a subr.
-                                         (symbol-function fn)
-                                       fn)
-                                     advertised-signature-table t)))
+          (let ((advertised (get-advertised-calling-convention
+                             (if (and (symbolp fn) (fboundp fn))
+                                 ;; Could be a subr.
+                                 (symbol-function fn)
+                               fn))))
             (cond
              ((listp advertised)
               (if macro-p
@@ -2335,9 +2331,15 @@ With argument ARG, insert value in current buffer after the form."
        (setq case-fold-search nil))
      (displaying-byte-compile-warnings
       (with-current-buffer inbuffer
-	(and byte-compile-current-file
-	     (byte-compile-insert-header byte-compile-current-file
-                                         byte-compile--outbuffer))
+	(when byte-compile-current-file
+	  (byte-compile-insert-header byte-compile-current-file
+                                      byte-compile--outbuffer)
+          ;; Instruct native-comp to ignore this file.
+          (when (bound-and-true-p no-native-compile)
+            (with-current-buffer byte-compile--outbuffer
+              (insert
+               "(when (boundp 'comp--no-native-compile)
+  (puthash load-file-name t comp--no-native-compile))\n\n"))))
 	(goto-char (point-min))
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have been

@@ -9055,7 +9055,8 @@ multi-line strings (but not C++, for example)."
     (c-forward-<>-arglist t)
     (c-forward-syntactic-ws))
 
-  (let ((start (point)) pos res name-res id-start id-end id-range)
+  (let ((start (point)) pos res name-res id-start id-end id-range
+	post-prefix-pos)
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
@@ -9067,6 +9068,7 @@ multi-line strings (but not C++, for example)."
 	(c-forward-syntactic-ws)
 	(or (eq res 'no-id)
 	    (setq res 'prefix))))
+    (setq post-prefix-pos (point))
 
     (cond
      ((looking-at c-typeof-key) ; e.g. C++'s "decltype".
@@ -9099,9 +9101,12 @@ multi-line strings (but not C++, for example)."
       (setq name-res (c-forward-name))
       (setq res (not (null name-res)))
       (when (eq name-res t)
-	;; In many languages the name can be used without the
-	;; prefix, so we add it to `c-found-types'.
-	(c-add-type pos (point))
+	;; With some keywords the name can be used without the prefix, so we
+	;; add the name to `c-found-types' when this is the case.
+	(when (save-excursion
+		(goto-char post-prefix-pos)
+		(looking-at c-self-contained-typename-key))
+	  (c-add-type pos (point)))
 	(when (and c-record-type-identifiers
 		   c-last-identifier-range)
 	  (c-record-type-id c-last-identifier-range)))

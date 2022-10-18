@@ -2376,12 +2376,19 @@ On Nextstep, TERMINAL is unused.  */)
 {
   Window owner;
   Atom atom;
+#ifdef HAVE_XFIXES
+  Window temp_owner;
+#endif
   struct frame *f = frame_for_x_selection (terminal);
   struct x_display_info *dpyinfo;
 
   CHECK_SYMBOL (selection);
-  if (NILP (selection)) selection = QPRIMARY;
-  if (EQ (selection, Qt)) selection = QSECONDARY;
+
+  if (NILP (selection))
+    selection = QPRIMARY;
+
+  if (EQ (selection, Qt))
+    selection = QSECONDARY;
 
   if (!f)
     return Qnil;
@@ -2392,10 +2399,22 @@ On Nextstep, TERMINAL is unused.  */)
     return Qt;
 
   atom = symbol_to_x_atom (dpyinfo, selection);
-  if (atom == 0) return Qnil;
+
+  if (!atom)
+    return Qnil;
+
+#ifdef HAVE_XFIXES
+  /* See if this information can be obtained without a roundtrip.  */
+  temp_owner = x_find_selection_owner (dpyinfo, atom);
+
+  if (temp_owner != X_INVALID_WINDOW)
+    return (temp_owner != None ? Qt : Qnil);
+#endif
+
   block_input ();
   owner = XGetSelectionOwner (dpyinfo->display, atom);
   unblock_input ();
+
   return (owner ? Qt : Qnil);
 }
 

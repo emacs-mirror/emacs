@@ -22,6 +22,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'ert)
 
 (ert-deftest fns-tests-identity ()
   (let ((num 12345)) (should (eq (identity num) num)))
@@ -29,9 +30,22 @@
   (let ((lst '(11))) (should (eq (identity lst) lst))))
 
 (ert-deftest fns-tests-random ()
-  (should (integerp (random)))
-  (should (>= (random 10) 0))
-  (should (< (random 10) 10)))
+  (unwind-protect
+      (progn
+        (should-error (random -1) :type 'args-out-of-range)
+        (should-error (random 0) :type 'args-out-of-range)
+        (should (integerp (random)))
+        (should (= (random 1) 0))
+        (should (>= (random 10) 0))
+        (should (< (random 10) 10))
+        (should (equal (random "seed") (random "seed")))
+        ;; The probability of four calls being the same is low.
+        ;; This makes sure that the value isn't constant.
+        (should (not (= (random t) (random t) (random t) (random t))))
+        ;; Handle bignums.
+        (should (integerp (random (1+ most-positive-fixnum)))))
+    ;; Reset the PRNG seed after testing.
+    (random t)))
 
 (ert-deftest fns-tests-length ()
   (should (= (length nil) 0))

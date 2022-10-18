@@ -1689,6 +1689,50 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    backend
    patch-string))
 
+(defun vc-default-checkin-patch (_backend patch-string comment)
+  (pcase-let* ((`(,backend ,files) (with-temp-buffer
+                                     (insert patch-string)
+                                     (diff-vc-deduce-fileset)))
+               (tmpdir (make-temp-file "vc-checkin-patch" t)))
+    (dolist (f files)
+      (make-directory (file-name-directory (expand-file-name f tmpdir)) t)
+      (copy-file (expand-file-name f)
+                 (expand-file-name f tmpdir)))
+    (unwind-protect
+        (progn
+          (dolist (f files)
+            (with-current-buffer (find-file-noselect f)
+              (vc-revert-file buffer-file-name)))
+          (with-temp-buffer
+            ;; Trying to support CVS too.  Assuming that vc-diff
+            ;; there will usually have diff root in default-directory.
+            (when (vc-find-backend-function backend 'root)
+              (setq-local default-directory
+                          (vc-call-backend backend 'root (car files))))
+            (unless (eq 0
+                        (call-process-region patch-string
+                                             nil
+                                             "patch"
+                                             nil
+                                             t
+                                             nil
+                                             "-p1"
+                                             "-r" null-device
+                                             "--no-backup-if-mismatch"
+                                             "-i" "-"))
+              (user-error "Patch failed: %s" (buffer-string))))
+          (dolist (f files)
+            (with-current-buffer (get-file-buffer f)
+              (revert-buffer t t t)))
+          (vc-call-backend backend 'checkin files comment))
+      (dolist (f files)
+        (copy-file (expand-file-name f tmpdir)
+                   (expand-file-name f)
+                   t)
+        (with-current-buffer (get-file-buffer f)
+          (revert-buffer t t t)))
+      (delete-directory tmpdir t))))
+
 ;;; Additional entry points for examining version histories
 
 ;; (defun vc-default-diff-tree (backend dir rev1 rev2)
@@ -3377,12 +3421,12 @@ revisions, those revisions will be used."
                            revisions)))
       (if vc-prepare-patches-separately
           (dolist (patch (reverse patches)
-                         (message "Prepared %d patches..." (length patches)))
+                         (message "Prepared %d patch%s..." (length patches)
+                                  (if (length> patches 1) "es" "")))
             (compose-mail addressee
                           (plist-get patch :subject)
                           nil nil nil nil
-                          `((kill-buffer ,(plist-get patch :buffer))
-                            (exit-recursive-edit)))
+                          `((kill-buffer ,(plist-get patch :buffer))))
             (rfc822-goto-eoh) (forward-line)
             (save-excursion             ;don't jump to the end
               (insert-buffer-substring

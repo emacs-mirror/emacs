@@ -1521,26 +1521,15 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
 
   if (use_pos_func)
     {
-      Window dummy_window;
-
       /* Not invoked by a click.  pop up at x/y.  */
       pos_func = menu_position_func;
 
       /* Adjust coordinates to be root-window-relative.  */
       block_input ();
-      XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                             /* From-window, to-window.  */
-                             FRAME_X_WINDOW (f),
-                             FRAME_DISPLAY_INFO (f)->root_window,
-
-                             /* From-position, to-position.  */
-                             x, y, &x, &y,
-
-                             /* Child of win.  */
-                             &dummy_window);
+      x_translate_coordinates_to_root (f, x, y, &x, &y);
 #ifdef HAVE_GTK3
-      /* Use window scaling factor to adjust position for hidpi screens. */
+      /* Use window scaling factor to adjust position for scaled
+	 outputs.  */
       x /= xg_get_scale (f);
       y /= xg_get_scale (f);
 #endif
@@ -1743,7 +1732,6 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   XButtonPressedEvent *event = &(dummy.xbutton);
   LWLIB_ID menu_id;
   Widget menu;
-  Window dummy_window;
 #if defined HAVE_XINPUT2 && defined USE_MOTIF
   XEvent property_dummy;
   Atom property_atom;
@@ -1775,17 +1763,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
   /* Adjust coordinates to be root-window-relative.  */
   block_input ();
   x += FRAME_LEFT_SCROLL_BAR_AREA_WIDTH (f);
-  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                         /* From-window, to-window.  */
-                         FRAME_X_WINDOW (f),
-                         FRAME_DISPLAY_INFO (f)->root_window,
-
-                         /* From-position, to-position.  */
-                         x, y, &x, &y,
-
-                         /* Child of win.  */
-                         &dummy_window);
+  x_translate_coordinates_to_root (f, x, y, &x, &y);
   unblock_input ();
 
   event->x_root = x;
@@ -2569,9 +2547,6 @@ Lisp_Object
 x_menu_show (struct frame *f, int x, int y, int menuflags,
 	     Lisp_Object title, const char **error_name)
 {
-#ifdef HAVE_X_WINDOWS
-  Window dummy_window;
-#endif
   Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
@@ -2620,17 +2595,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
-  XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-                         /* From-window, to-window.  */
-                         FRAME_X_WINDOW (f),
-                         FRAME_DISPLAY_INFO (f)->root_window,
-
-                         /* From-position, to-position.  */
-                         x, y, &x, &y,
-
-                         /* Child of win.  */
-                         &dummy_window);
+  x_translate_coordinates_to_root (f, x, y, &x, &y);
 #else
   /* MSDOS without X support.  */
   x += f->left_pos;

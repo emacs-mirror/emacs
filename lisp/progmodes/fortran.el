@@ -1,7 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1993-1995, 1997-2022 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1986-2022 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -624,34 +623,32 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
     st)
   "Syntax table used to parse Fortran expressions for printing in GUD.")
 
-(defvar fortran-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map ";"        'fortran-abbrev-start)
-    (define-key map "\C-c;"    'fortran-comment-region)
-    ;; The default comment-dwim does at least as much as this.
-;;;    (define-key map "\M-;"     'fortran-indent-comment)
-    (define-key map "\M-\n"    'fortran-split-line)
-    (define-key map "\M-\C-n"  'fortran-end-of-block)
-    (define-key map "\M-\C-p"  'fortran-beginning-of-block)
-    (define-key map "\M-\C-q"  'fortran-indent-subprogram)
-    (define-key map "\C-c\C-w" 'fortran-window-create-momentarily)
-    (define-key map "\C-c\C-r" 'fortran-column-ruler)
-    (define-key map "\C-c\C-p" 'fortran-previous-statement)
-    (define-key map "\C-c\C-n" 'fortran-next-statement)
-    (define-key map "\C-c\C-d" 'fortran-join-line) ; like f90
-    (define-key map "\M-^"     'fortran-join-line) ; subvert delete-indentation
-    (define-key map "0" 'fortran-electric-line-number)
-    (define-key map "1" 'fortran-electric-line-number)
-    (define-key map "2" 'fortran-electric-line-number)
-    (define-key map "3" 'fortran-electric-line-number)
-    (define-key map "4" 'fortran-electric-line-number)
-    (define-key map "5" 'fortran-electric-line-number)
-    (define-key map "6" 'fortran-electric-line-number)
-    (define-key map "7" 'fortran-electric-line-number)
-    (define-key map "8" 'fortran-electric-line-number)
-    (define-key map "9" 'fortran-electric-line-number)
-    map)
-  "Keymap used in Fortran mode.")
+(defvar-keymap fortran-mode-map
+  :doc "Keymap used in Fortran mode."
+  ";"        #'fortran-abbrev-start
+  "C-c ;"    #'fortran-comment-region
+  ;; The default comment-dwim does at least as much as this.
+  ;; "M-;"   #'fortran-indent-comment
+  "C-M-j"    #'fortran-split-line
+  "C-M-n"    #'fortran-end-of-block
+  "C-M-p"    #'fortran-beginning-of-block
+  "C-M-q"    #'fortran-indent-subprogram
+  "C-c C-w"  #'fortran-window-create-momentarily
+  "C-c C-r"  #'fortran-column-ruler
+  "C-c C-p"  #'fortran-previous-statement
+  "C-c C-n"  #'fortran-next-statement
+  "C-c C-d"  #'fortran-join-line        ; like f90
+  "M-^"      #'fortran-join-line        ; subvert delete-indentation
+  "0"        #'fortran-electric-line-number
+  "1"        #'fortran-electric-line-number
+  "2"        #'fortran-electric-line-number
+  "3"        #'fortran-electric-line-number
+  "4"        #'fortran-electric-line-number
+  "5"        #'fortran-electric-line-number
+  "6"        #'fortran-electric-line-number
+  "7"        #'fortran-electric-line-number
+  "8"        #'fortran-electric-line-number
+  "9"        #'fortran-electric-line-number)
 
 
 (define-abbrev-table 'fortran-mode-abbrev-table
