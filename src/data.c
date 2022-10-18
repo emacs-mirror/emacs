@@ -773,6 +773,14 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   return SYMBOL_NAME (symbol);
 }
 
+DEFUN ("cl-symbol-name", Fcl_symbol_name, Scl_symbol_name, 1, 1, 0,
+       doc: /* Return SYMBOL's name, a string.  */)
+  (register Lisp_Object symbol)
+{
+  CHECK_SYMBOL (symbol);
+  return SYMBOL_NAME (symbol);
+}
+
 DEFUN ("symbol-package", Fsymbol_package, Ssymbol_package, 1, 1, 0,
        doc: /* Return SYMBOL's package, a package or nil.  */)
   (Lisp_Object symbol)
@@ -4332,6 +4340,7 @@ syms_of_data (void)
   defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
+  defsubr (&Scl_symbol_name);
   defsubr (&Ssymbol_package);
   defsubr (&Sbare_symbol);
   defsubr (&Ssymbol_with_pos_pos);
