@@ -35,12 +35,11 @@
 
 ;;; Activating tree-sitter
 
-;; Per our naming guideline, we use "tree-sitter" when referring to it
-;; as a name and only use "treesit" for prefix.  Since a group name is
-;; not a prefix, we use "tree-sitter" here.
-(defgroup tree-sitter
-  nil
-  "Tree-sitter is an incremental parser."
+;; Tree-sitter always appear as treesit in symbols.
+(defgroup treesit nil
+  "Incremental parser.
+It is used to enhance major mode features like font-lock,
+indent, imenu, etc."
   :group 'tools
   :version "29.1")
 
@@ -76,7 +75,7 @@ actual activation of tree-sitter functionalities depends on
 whether the major mode supports tree-sitter, availability of
 specific tree-sitter language definition, etc."
   :version "29.1"
-  :group 'languages
+  :group 'treesit
   (when major-mode-backend-function
     (funcall major-mode-backend-function
              (if treesit-mode 'treesit 'elisp)
@@ -96,7 +95,8 @@ turned off, so we record each (MODE . NEW-MODE) in this variable.")
 ;;;###autoload
 (define-globalized-minor-mode global-treesit-mode treesit-mode
   global-treesit-mode--turn-on
-  :group 'languages
+  :version "29.1"
+  :group 'treesit
   :predicate t
   (when (not global-treesit-mode)
     (dolist (map treesit-remapped-major-mode-alist)
