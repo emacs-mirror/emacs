@@ -339,17 +339,26 @@ Note that this feature is meant to be used in editing buffers."
   :version "29.1")
 
 (define-icon outline-open-in-margins outline-open
-  '((image "outline-open.svg" "outline-open.pbm" :height 10))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10)
+    (emoji "🔽")
+    (symbol "▼")
+    (text "v"))
   "Icon used for buttons for opened sections in margins."
   :version "29.1")
 
 (define-icon outline-close-in-margins outline-close
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation -90))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation -90)
+    (emoji "▶️")
+    (symbol "▶")
+    (text ">"))
   "Icon used for buttons for closed sections in margins."
   :version "29.1")
 
 (define-icon outline-close-rtl-in-margins outline-close-rtl
-  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation 90))
+  '((image "outline-open.svg" "outline-open.pbm" :height 10 :rotation 90)
+    (emoji "◀️")
+    (symbol "◀")
+    (text "<"))
   "Right-to-left icon used for closed sections in margins."
   :version "29.1")
 
@@ -513,7 +522,8 @@ See the command `outline-mode' for more information on this mode."
             (setq-local left-margin-width (1+ left-margin-width)))
           (setq-local fringes-outside-margins t)
           ;; Force display of margins
-          (set-window-buffer nil (window-buffer)))
+          (when (eq (current-buffer) (window-buffer))
+            (set-window-buffer nil (window-buffer))))
         (when (or outline--use-buttons outline--use-margins)
           (add-hook 'after-change-functions
                     #'outline--fix-buttons-after-change nil t))
@@ -551,7 +561,8 @@ See the command `outline-mode' for more information on this mode."
         (setq-local left-margin-width (1- left-margin-width)))
       (setq-local fringes-outside-margins nil)
       ;; Force removal of margins
-      (set-window-buffer nil (window-buffer)))))
+      (when (eq (current-buffer) (window-buffer))
+        (set-window-buffer nil (window-buffer))))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
