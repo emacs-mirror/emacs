@@ -139,7 +139,7 @@ run a specific program.  The program must be a member of
       (untabify (point-min) (point-max))
       (set-window-start (selected-window) (point-min))
       (set-window-point (selected-window) wp)
-      (sit-for 0 500)
+      (sit-for 0.500)
       (let ((ct (and f (frame-parameter f 'cursor-type)))
             (show-trailing-whitespace nil)
             restore)
@@ -249,7 +249,7 @@ run a specific program.  The program must be a member of
     (while (not (input-pending-p))
       (funcall (elt ops (random (length ops))))
       (goto-char (point-min))
-      (sit-for 0 10))))
+      (sit-for 0.01))))
 
 
 ;;;; whacking chars
@@ -262,7 +262,7 @@ run a specific program.  The program must be a member of
           (aset tbl i (+ 48 (random (- 123 48))))
           (setq i (1+ i)))
         (translate-region (point-min) (point-max) tbl)
-        (sit-for 0 2)))))
+        (sit-for 0.002)))))
 
 (put 'zone-pgm-whack-chars 'wc-tbl
      (let ((tbl (make-string 128 ?x))
@@ -290,7 +290,7 @@ run a specific program.  The program must be a member of
                   (delete-char 1)
                   (insert " ")))
             (forward-char 1))))
-      (sit-for 0 2))))
+      (sit-for 0.002))))
 
 (defun zone-pgm-dissolve ()
   (zone-remove-text)

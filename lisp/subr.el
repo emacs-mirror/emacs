@@ -3270,7 +3270,14 @@ An obsolete, but still supported form is
 where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
 floating point support."
-  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1"))
+  (declare (advertised-calling-convention (seconds &optional nodisp) "22.1")
+           (compiler-macro
+            (lambda (form)
+              (if (not (or (numberp nodisp) obsolete)) form
+                (macroexp-warn-and-return
+                 "Obsolete calling convention for 'sit-for'"
+                 `(,(car form) (+ ,seconds (/ (or ,nodisp 0) 1000.0)) ,obsolete)
+                 '(obsolete sit-for))))))
   ;; This used to be implemented in C until the following discussion:
   ;; https://lists.gnu.org/r/emacs-devel/2006-07/msg00401.html
   ;; Then it was moved here using an implementation based on an idle timer,
