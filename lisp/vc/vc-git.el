@@ -1269,7 +1269,8 @@ This prompts for a branch to merge from."
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-git-clone (remote directory)
-  (vc-git--out-ok "clone" remote directory))
+  (vc-git--out-ok "clone" remote directory)
+  directory)
 
 ;;; HISTORY FUNCTIONS
 

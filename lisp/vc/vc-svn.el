@@ -818,7 +818,8 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
       (buffer-substring-no-properties (point-min) (1- (point-max))))))
 
 (defun vc-svn-clone (remote directory)
-  (vc-svn-command nil 0 '() "checkout" remote directory))
+  (vc-svn-command nil 0 '() "checkout" remote directory)
+  (file-name-concat directory "trunk"))
 
 (provide 'vc-svn)
 

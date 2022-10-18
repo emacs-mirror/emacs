@@ -533,7 +533,8 @@ in the branch repository (or whose status not be determined)."
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-bzr-clone (remote directory)
-  (vc-bzr-command nil 0 '() "branch" remote directory))
+  (vc-bzr-command nil 0 '() "branch" remote directory)
+  directory)
 
 (defun vc-bzr-version-dirstate (dir)
   "Try to return as a string the bzr revision ID of directory DIR.

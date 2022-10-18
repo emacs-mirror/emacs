@@ -588,7 +588,8 @@
 ;; - clone (remote directory)
 ;;
 ;;   Attempt to clone a REMOTE repository, into a local DIRECTORY.
-;;   Returns the symbol of the backend used if successful.
+;;   Returns a string with the directory with the contents of the
+;;   repository if successful, otherwise nil.
 
 ;;; Changes from the pre-25.1 API:
 ;;
@@ -3517,24 +3518,23 @@ to provide the `find-revision' operation instead."
 
 (defun vc-clone (backend remote &optional directory)
   "Use BACKEND to clone REMOTE into DIRECTORY.
-If successful, returns the symbol of the backed used to clone.
-If BACKEND is nil, iterate through every known backend in
-`vc-handled-backends' until one succeeds."
+If successful, returns the a string with the directory of the
+checkout.  If BACKEND is nil, iterate through every known backend
+in `vc-handled-backends' until one succeeds."
   (unless directory
     (setq directory default-directory))
   (if backend
       (progn
         (unless (memq backend vc-handled-backends)
           (error "Unknown VC backend %s" backend))
-        (vc-call-backend backend 'clone remote directory)
-        backend)
+        (vc-call-backend backend 'clone remote directory))
     (catch 'ok
       (dolist (backend vc-handled-backends)
         (ignore-error vc-not-supported
-          (when-let (res (vc-call-backend
-                          backend 'clone
-                          remote directory))
-            (throw 'ok backend)))))))
+          (when-let ((res (vc-call-backend
+                           backend 'clone
+                           remote directory)))
+            (throw 'ok res)))))))
 
 
 

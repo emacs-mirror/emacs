@@ -1251,7 +1251,8 @@ REV is the revision to check out into WORKFILE."
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-hg-clone (remote directory)
-  (vc-hg-command nil 0 '() "clone" remote directory))
+  (vc-hg-command nil 0 '() "clone" remote directory)
+  directory)
 
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
