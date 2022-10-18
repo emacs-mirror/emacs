@@ -534,7 +534,7 @@ compiler emit a warning message when it compiles Lisp programs which
 use the deprecated calling convention.
 
 @cindex computed documentation string
-@kindex{:documentation}
+@kindex :documentation
 Documentation strings are usually static, but occasionally it can be
 necessary to generate them dynamically.  In some cases you can do so
 by writing a macro which generates at compile time the code of the
