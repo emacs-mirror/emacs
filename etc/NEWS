@@ -2606,7 +2606,7 @@ otherwise be returned.
 *** Concatenating Eshell expansions now works more similarly to other shells.
 When concatenating an Eshell expansion that returns a list, "adjacent"
 elements of each operand are now concatenated together,
-e.g. '$list("a" "b")c' returns '("a" "bc")'.  See the "(eshell)
+e.g. '$(list "a" "b")c' returns '("a" "bc")'.  See the "(eshell)
 Expansion" node in the Eshell manual for more details.
 
 +++

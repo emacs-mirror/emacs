@@ -1176,7 +1176,7 @@ a number if possible.
 
 @item one or both (non-@code{nil}) lists
 Concatenate ``adjacent'' elements of each value (possibly converting
-back to a number as above).  For example, @samp{$list("a" "b")c}
+back to a number as above).  For example, @samp{$(list "a" "b")c}
 returns @samp{("a" "bc")}.
 
 @item anything else
