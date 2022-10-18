@@ -268,13 +268,9 @@ The output is written out into PKG-FILE."
         (pkg-file (expand-file-name (package--description-file pkg-dir) pkg-dir)))
     ;; Generate autoloads
     (package-generate-autoloads name pkg-dir)
-    (vc-ignore (concat "/" (file-relative-name
-                            (expand-file-name (format "%s-autoloads.el" name))
-                            default-directory)))
 
     ;; Generate package file
     (package-vc-generate-description-file pkg-desc pkg-file)
-    (vc-ignore (concat "/" (file-relative-name pkg-file default-directory)))
 
     ;; Detect a manual
     (when (executable-find "install-info")
@@ -284,8 +280,7 @@ The output is written out into PKG-FILE."
         (when (length= texi-files 1)
           (call-process "install-info" nil nil nil
                         (concat "--dir=" dir-file)
-                        (car texi-files)))
-        (vc-ignore "/dir"))))
+                        (car texi-files))))))
 
   ;; Update package-alist.
   (let ((new-desc (package-load-descriptor pkg-dir)))
