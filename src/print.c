@@ -2222,12 +2222,15 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
   /* print-gensym true means print #: for uninterned symbols.
      PKG_FIXME: This looks like #: for an uninterned symbol with empty
      name?  */
-  if (!NILP (Vprint_gensym) && NILP (package))
-    print_c_string ("#:", printcharfun);
-  else if (*p == 0)
+  if (NILP (package))
     {
-      print_c_string ("##", printcharfun);
-      return;
+      if (!NILP (Vprint_gensym))
+	print_c_string ("#:", printcharfun);
+      else if (*p == 0)
+	{
+	  print_c_string ("##", printcharfun);
+	  return;
+	}
     }
 
   if (EQ (package, Vkeyword_package))
