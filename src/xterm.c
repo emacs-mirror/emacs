@@ -30281,7 +30281,7 @@ mark_xterm (void)
 {
   Lisp_Object val;
 #if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS \
-  || defined HAVE_XRANDR || defined USE_GTK
+  || defined HAVE_XRANDR || defined USE_GTK || defined HAVE_X_I18N
   struct x_display_info *dpyinfo;
 #if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS
   int i;
