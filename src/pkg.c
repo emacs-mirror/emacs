@@ -530,7 +530,7 @@ pkg_intern_keyword (Lisp_Object name)
       pkg_add_symbol (keyword, Vkeyword_package);
     }
   else
-    eassert (EQ (SYMBOL_PACKAGE (keyword), Vkeyword_package));
+    eassert SYMBOL_KEYWORD_P (keyword);
 
   return keyword;
 }

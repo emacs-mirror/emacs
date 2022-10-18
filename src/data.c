@@ -768,7 +768,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
-  if (EQ (SYMBOL_PACKAGE (symbol), Vkeyword_package))
+  if (SYMBOL_KEYWORD_P (symbol))
     return concat2 (build_string (":"), SYMBOL_NAME (symbol));
   return SYMBOL_NAME (symbol);
 }

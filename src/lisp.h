@@ -2425,6 +2425,20 @@ SYMBOL_EXTERNAL_P (Lisp_Object sym)
   return XSYMBOL (sym)->u.s.external;
 }
 
+INLINE bool
+SYMBOL_KEYWORD_P (Lisp_Object sym)
+{
+  return EQ (XSYMBOL (sym)->u.s.package, Vkeyword_package);
+}
+
+INLINE Lisp_Object
+LISP_SYMBOL_NAME (Lisp_Object sym)
+{
+  if (SYMBOL_KEYWORD_P (sym))
+    return Fsymbol_name (sym);
+  return SYMBOL_NAME (sym);
+}
+
 /* Value is non-zero if symbol cannot be changed through a simple set,
    i.e. it's a constant (e.g. nil, t, :keywords), or it has some
    watching functions.  */
