@@ -1650,13 +1650,19 @@ This is the value of `package-archive-priorities' last time
 by arbitrary functions to decide whether it is necessary to call
 it again.")
 
+(defvar package-read-archive-hook (list #'package-read-archive-contents)
+  "List of functions to call to read the archive contents.
+Each function must take an optional argument, a symbol indicating
+what archive to read in.  The symbol ought to be a key in
+`package-archives'.")
+
 (defun package-read-all-archive-contents ()
   "Read cached archive file for all archives in `package-archives'.
 If successful, set or update `package-archive-contents'."
   (setq package-archive-contents nil)
   (setq package--old-archive-priorities package-archive-priorities)
   (dolist (archive package-archives)
-    (package-read-archive-contents (car archive))))
+    (run-hook-with-args 'package-read-archive-hook (car archive))))
 
 
 ;;;; Package Initialize
@@ -1832,6 +1838,11 @@ asynchronously."
       (error (message "Failed to download `%s' archive."
                (car archive))))))
 
+(defvar package-refresh-contents-hook (list #'package--download-and-read-archives)
+  "List of functions to call to refresh the package archive.
+Each function may take an optional argument indicating that the
+operation ought to be executed asynchronously.")
+
 ;;;###autoload
 (defun package-refresh-contents (&optional async)
   "Download descriptions of all configured ELPA packages.
@@ -1850,7 +1861,7 @@ downloads in the background."
       (condition-case-unless-debug error
           (package-import-keyring default-keyring)
         (error (message "Cannot import default keyring: %S" (cdr error))))))
-  (package--download-and-read-archives async))
+  (run-hook-with-args 'package-refresh-contents-hook async))
 
 
 ;;; Dependency Management
