@@ -30,9 +30,9 @@
 (defconst obarray-default-size 59
   "The value 59 is an arbitrary prime number that gives a good hash.")
 
-(defun obarray-make (&optional _size)
+(defun obarray-make (&optional size)
   "Return a new obarray of size SIZE or `obarray-default-size'."
-  (make-package "obarray"))
+  (make-%package "obarray" (or size 31)))
 
 (defun obarray-size (_ob)
   "Return the number of slots of obarray OB."

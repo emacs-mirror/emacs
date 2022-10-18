@@ -149,23 +149,17 @@ symbols_to_list (Lisp_Object thing)
 }
 
 /* Create and return a new Lisp package object for a package with name
-   NAME, a string.  NSYMBOLS is the expected number of symbols.  */
+   NAME, a string.  NSYMBOLS is the sieo of the symbol-table to allocate.  */
 
 static Lisp_Object
 make_package (Lisp_Object name, Lisp_Object nsymbols)
 {
-  eassert (STRINGP (name));
-  if (NILP (nsymbols))
-    nsymbols = make_fixnum (50);
-  CHECK_FIXNAT (nsymbols);
-
   struct Lisp_Package *pkg
     = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Package, symbols,
 				    PVEC_PACKAGE);
   pkg->name = name;
   pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qequal,
 			QCsize, nsymbols);
-
   Lisp_Object package;
   XSETPACKAGE (package, pkg);
   return package;
@@ -530,7 +524,7 @@ pkg_intern_keyword (Lisp_Object name)
       pkg_add_symbol (keyword, Vkeyword_package);
     }
   else
-    eassert SYMBOL_KEYWORD_P (keyword);
+    eassert (SYMBOL_KEYWORD_P (keyword));
 
   return keyword;
 }
@@ -824,6 +818,15 @@ pkg_keywordp (Lisp_Object obj)
 			    Lisp functions
  ***********************************************************************/
 
+DEFUN ("make-%package", Fmake_percent_package, Smake_percent_package,
+       2, 2, 0, doc: /**/)
+  (Lisp_Object name, Lisp_Object size)
+{
+  CHECK_STRING (name);
+  CHECK_FIXNAT (size);
+  return make_package (name, size);
+}
+
 DEFUN ("packagep", Fpackagep, Spackagep, 1, 1, 0, doc:
        /* Value is non-nil if PACKAGE is a package object. */)
   (Lisp_Object package)
@@ -876,69 +879,6 @@ DEFUN ("package-used-by-list", Fpackage_used_by_list, Spackage_used_by_list,
     if (!NILP (Fmemq (package, XPACKAGE (it.value)->use_list)))
       add_to_list (it.value, &result);
   return result;
-}
-
-DEFUN ("make-package", Fmake_package, Smake_package, 0, MANY, 0,
-       doc: /* Value is a new package with name NAME.
-
-NAME must be a string designator.
-
-Additional arguments are specified as keyword/argument pairs.  The
-following keyword arguments are defined:
-
-:nicknames NICKNAMES is a list of additional names which may be used
-to refer to the new package.
-
-:use USE specifies a list of zero or more packages the external
-symbols of which are to be inherited by the new package. See the
-function 'use-package'.
-
-usage: (make-package NAME &rest KEYWORD-ARGS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  if (nargs <= 0)
-    signal_error ("make-package: no package name", Qnil);
-
-  /* Determine the package's name as a string.  A package with the
-     same name or nickname must not be known yet.  */
-  const Lisp_Object name = string_from_designator (args[0]);
-  ++args;
-  --nargs;
-
-  /* The vector `used' is used to keep track of arguments that have
-     been consumed below.  */
-  USE_SAFE_ALLOCA;
-  char *used_args = SAFE_ALLOCA (nargs * sizeof *used_args);
-  memset (used_args, 0, nargs * sizeof *used_args);
-
-  /* Check for :USE.  Argument must be a list of package designators
-     for known packages.  */
-  const ptrdiff_t use_index = get_key_arg (QCuse, nargs, args, used_args);
-  const Lisp_Object use_designators = use_index ? args[use_index] : Qnil;
-  const Lisp_Object used_packages = package_list_from_designators (use_designators);
-
-  /* Check for :NICKNAMES.  Argument must be a list of string
-     designators.  Note that we don't check if the package name
-     appears also as a nickname, because SBCL also doesn't.  */
-  const ptrdiff_t nicknames_index = get_key_arg (QCnicknames, nargs, args, used_args);
-  const Lisp_Object nickname_designators = nicknames_index ? args[nicknames_index] : Qnil;
-  const Lisp_Object nicknames = string_list_from_designators (nickname_designators);
-
-  /* Check for :SIZE.  Argument is checked in make_package.  */
-  const ptrdiff_t size_index = get_key_arg (QCsize, nargs, args, used_args);
-  const Lisp_Object size = size_index ? args[size_index] : Qnil;
-
-  /* Now, all args should have been used up, or there's a problem.  */
-  for (ptrdiff_t i = 0; i < nargs; ++i)
-    if (!used_args[i])
-      signal_error ("make-package: invalid argument", args[i]);
-
-  const Lisp_Object package = make_package (name, size);
-  XPACKAGE (package)->nicknames = nicknames;
-  XPACKAGE (package)->use_list = used_packages;
-
-  SAFE_FREE ();
-  return package;
 }
 
 DEFUN ("%register-package", Fregister_package, Sregister_package, 1, 1, 0, doc:
@@ -1358,6 +1298,7 @@ syms_of_pkg (void)
   defsubr (&Spackage_percent_symbols);
   defsubr (&Spackage_percent_use_list);
 
+  defsubr (&Smake_percent_package);
   defsubr (&Scl_intern);
   defsubr (&Scl_unintern);
   defsubr (&Sdelete_package);
@@ -1366,7 +1307,6 @@ syms_of_pkg (void)
   defsubr (&Sfind_symbol);
   defsubr (&Simport);
   defsubr (&Slist_all_packages);
-  defsubr (&Smake_package);
   defsubr (&Spackage_name);
   defsubr (&Spackage_nicknames);
   defsubr (&Spackage_shadowing_symbols);
