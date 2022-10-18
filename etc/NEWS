@@ -820,22 +820,6 @@ This means Emacs built with GNUstep or built on macOS is now able to
 display different faces and images inside tooltips when the
 'use-system-tooltips' user option is nil.
 
-** Connection-local variables
-
-+++
-*** Some connection-local variables are now user options.
-The variables 'connection-local-profile-alist' and
-'connection-local-criteria-alist' are now user options, in order to
-make it more convenient to inspect and modify them.
-
-+++
-*** The default connection-local application can be changed temporarily.
-Running 'with-connection-local-variables' defaults to application
-'tramp'.  This can be changed by let-binding
-'connection-local-default-application' to another symbol.  This is
-useful when running code in a buffer where Tramp has already set some
-connection-local variables.
-
 ---
 ** New minor mode 'pixel-scroll-precision-mode'.
 When enabled, and if your mouse supports it, you can scroll the
@@ -2853,8 +2837,8 @@ normal.
 
 ---
 ** Themes have special autoload cookies.
-All build-in themes are scraped for ;;;###theme-autoload cookies that
-are loaded along with the regular auto-loaded code.
+All build-in themes are scraped for ';;;###theme-autoload' cookies
+that are loaded along with the regular auto-loaded code.
 
 +++
 ** 'buffer-modified-p' has been extended.
@@ -3224,12 +3208,32 @@ TIMEOUT is the idle time after which to deactivate the transient map.
 The default timeout value can be defined by the new variable
 'set-transient-map-timeout'.
 
+** Connection-local variables
+
 +++
-** New macro 'setq-connection-local'.
+*** Some connection-local variables are now user options.
+The variables 'connection-local-profile-alist' and
+'connection-local-criteria-alist' are now user options, in order to
+make it more convenient to inspect and modify them.
+
++++
+*** New function 'connection-local-update-profile-variables'.
+This function allows to modify the settings of an existing
+connection-local profile.
+
++++
+*** New macro 'with-connection-local-application-variables'.
+This macro works like 'with-connection-local-variables', but it allows
+to use another application but 'tramp'.  This is useful when running
+code in a buffer where Tramp has already set some connection-local
+variables.
+
++++
+*** New macro 'setq-connection-local'.
 This allows dynamically setting variable values for a particular
-connection within the body of 'with-connection-local-variables'.  See
-the "(elisp) Connection Local Variables" node in the Lisp Reference
-manual for more information.
+connection within the body of 'with-connection-local-{application-}variables'.
+See the "(elisp) Connection Local Variables" node in the Lisp
+Reference manual for more information.
 
 +++
 ** 'plist-get', 'plist-put' and 'plist-member' are no longer limited to 'eq'.
