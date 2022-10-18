@@ -26,14 +26,6 @@ This function returns non-nil if tree-sitter features are available
 for this Emacs instance.
 @end defun
 
-For tree-sitter integration with existing Emacs features,
-@pxref{Parser-based Font Lock}, @ref{Parser-based Indentation}, and
-@ref{List Motion}.
-
-About naming convention: use ``tree-sitter'' when referring to it as a
-noun, like @code{python-use-tree-sitter}, but use ``treesit'' for
-prefixes, like @code{python-treesit-indent-function}.
-
 To access the syntax tree of the text in a buffer, we need to first
 load a language definition and create a parser with it.  Next, we can
 query the parser for specific nodes in the syntax tree.  Then, we can
@@ -49,6 +41,7 @@ explain how to do each of the tasks in detail.
 * Accessing Node::           Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.
+* Tree-sitter major modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
 @end menu
 
@@ -1385,6 +1378,45 @@ We first parse with HTML, then set ranges for CSS and JavaScript:
 We use a query pattern @code{(style_element (raw_text) @@capture)} to
 find CSS nodes in the HTML parse tree. For how to write query
 patterns, @pxref{Pattern Matching}.
+
+@node Tree-sitter major modes
+@section Developing major modes with tree-sitter
+
+This section covers some general guidelines on developing tree-sitter
+integration for a major mode.  For tree-sitter integration with
+specific Emacs features, @pxref{Parser-based Font Lock},
+@ref{Parser-based Indentation}.
+
+Emacs provides @code{treesit-mode} and @code{global-treesit-mode},
+when these two modes are on, major modes should turn on their
+tree-sitter support, should they have one.  Major modes works with
+@code{treesit-mode} by setting @code{major-mode-backend-function}.
+
+@defvar major-mode-backend-function
+This is a buffer-local variable that holds a function.
+@code{treesit-mode} uses this function to turn on/off tree-sitter
+support.
+
+This function is passed two argument @var{backend} and @var{warn}.
+@var{backend} is a symbol representing the backend we want to
+activate.  Currently it can be @code{treesit} or @code{elisp}.
+
+If @var{warn} is non-nil, display a warning if a @code{backend} can't
+activate, if @var{warn} is nil, just print an message and don't
+display any warning.
+@end defvar
+
+@defun treesit-ready-p warn &rest languages
+This is a convenient function that checks for conditions for
+activating tree-sitter.  It checks for whether tree-sitter is built
+with Emacs, the buffer's size, and whether each @var{language} is
+available.
+
+If all conditions are met, it returns non-nil.  If not, it signals a
+warning or displays a message depending on the value of @var{warn}.
+If @var{warn} is non-nil, signal warning, if nil, display message.
+@end defun
+
 
 @node Tree-sitter C API
 @section Tree-sitter C API Correspondence
