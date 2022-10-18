@@ -2124,14 +2124,14 @@ set_lface_from_font (struct frame *f, Lisp_Object lface,
     {
       Lisp_Object family = AREF (font_object, FONT_FAMILY_INDEX);
 
-      ASET (lface, LFACE_FAMILY_INDEX, SYMBOL_NAME (family));
+      ASET (lface, LFACE_FAMILY_INDEX, LISP_SYMBOL_NAME (family));
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_FOUNDRY (lface)))
     {
       Lisp_Object foundry = AREF (font_object, FONT_FOUNDRY_INDEX);
 
-      ASET (lface, LFACE_FOUNDRY_INDEX, SYMBOL_NAME (foundry));
+      ASET (lface, LFACE_FOUNDRY_INDEX, LISP_SYMBOL_NAME (foundry));
     }
 
   if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
@@ -2272,9 +2272,9 @@ merge_face_vectors (struct window *w,
   if (!NILP (font))
     {
       if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-	to[LFACE_FOUNDRY_INDEX] = SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX));
+	to[LFACE_FOUNDRY_INDEX] = LISP_SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX));
       if (! NILP (AREF (font, FONT_FAMILY_INDEX)))
-	to[LFACE_FAMILY_INDEX] = SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX));
+	to[LFACE_FAMILY_INDEX] = LISP_SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX));
       if (! NILP (AREF (font, FONT_WEIGHT_INDEX)))
 	to[LFACE_WEIGHT_INDEX] = FONT_WEIGHT_FOR_FACE (font);
       if (! NILP (AREF (font, FONT_SLANT_INDEX)))
@@ -2589,8 +2589,7 @@ merge_face_ref (struct window *w,
 	      ok = false;
 	    }
 	}
-      else if (SYMBOLP (first)
-	       && *SDATA (SYMBOL_NAME (first)) == ':')
+      else if (SYMBOLP (first) && SYMBOL_KEYWORD_P (first))
 	{
 	  /* Assume this is the property list form.  */
 	  if (attr_filter > 0)
@@ -5273,8 +5272,8 @@ gui_supports_face_attributes_p (struct frame *f,
 	    if (i < FONT_FOUNDRY_INDEX || i > FONT_REGISTRY_INDEX
 		|| face->font->driver->case_sensitive)
 	      return true;
-	    s1 = SYMBOL_NAME (face->font->props[i]);
-	    s2 = SYMBOL_NAME (def_face->font->props[i]);
+	    s1 = LISP_SYMBOL_NAME (face->font->props[i]);
+	    s2 = LISP_SYMBOL_NAME (def_face->font->props[i]);
 	    if (! BASE_EQ (Fcompare_strings (s1, make_fixnum (0), Qnil,
 					     s2, make_fixnum (0), Qnil, Qt),
 			   Qt))
