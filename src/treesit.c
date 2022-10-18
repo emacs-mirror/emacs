@@ -346,6 +346,10 @@ init_treesit_functions (void)
 
    Regarding signals: only raise signals in lisp functions.
 
+   Casts from EMACS_INT and ptrdiff_t to uint32_t: We install checks
+   for buffer size and range and thus able to assume these casts never
+   overflow.
+
    We don't parse at every keystroke.  Instead we only record the
    changes at each keystroke, and only parse when requested.  It is
    possible that lazy parsing is worse: instead of dispersed little
@@ -643,7 +647,8 @@ treesit_check_parser (Lisp_Object obj)
 }
 
 /* An auxiliary function that saves a few lines of code.  Assumes TREE
-   is not NULL.  */
+   is not NULL.  START_BYTE, OLD_END_BYTE, NEW_END_BYTE must not be
+   larger than UINT32_MAX.  */
 static inline void
 treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
 		     ptrdiff_t old_end_byte, ptrdiff_t new_end_byte)
@@ -652,8 +657,9 @@ treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
   eassert (start_byte <= old_end_byte);
   eassert (start_byte <= new_end_byte);
   TSPoint dummy_point = {0, 0};
-  /* FIXME: We should signal an error below if START_BYTE
-     etc. overflow the 32-bit unsigned data type.  */
+  eassert (start_byte <= UINT32_MAX);
+  eassert (old_end_byte <= UINT32_MAX);
+  eassert (new_end_byte <= UINT32_MAX);
   TSInputEdit edit = {(uint32_t) start_byte,
 		      (uint32_t) old_end_byte,
 		      (uint32_t) new_end_byte,
@@ -737,6 +743,11 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
     }
 }
 
+/* Make sure PARSER's visible_beg and visible_end are in sync with
+   BUF_BEGV_BYTE and BUG_ZV_BYTE.  When calling this function you must
+   make sure the current buffer's size is not larger than UINT32_MAX.
+   Basically always call treesit_check_buffer_size before this
+   function.  */
 static void
 treesit_ensure_position_synced (Lisp_Object parser)
 {
@@ -750,6 +761,9 @@ treesit_ensure_position_synced (Lisp_Object parser)
   ptrdiff_t visible_end = XTS_PARSER (parser)->visible_end;
   eassert (0 <= visible_beg);
   eassert (visible_beg <= visible_end);
+
+  eassert (BUF_BEGV_BYTE (buffer) <= UINT32_MAX);
+  eassert (BUF_ZV_BYTE (buffer) <= UINT32_MAX);
 
   /* Before we parse or set ranges, catch up with the narrowing
      situation.  We change visible_beg and visible_end to match
@@ -807,7 +821,7 @@ treesit_check_buffer_size (struct buffer *buffer)
   ptrdiff_t buffer_size = (BUF_Z (buffer) - BUF_BEG (buffer));
   if (buffer_size > UINT32_MAX)
     xsignal2 (Qtreesit_buffer_too_large,
-	      build_pure_c_string ("Buffer size larger than 4GB, size:"),
+	      build_pure_c_string ("Buffer size cannot be larger than 4GB"),
 	      make_fixnum (buffer_size));
 }
 
@@ -822,9 +836,9 @@ treesit_ensure_parsed (Lisp_Object parser)
   TSTree *tree = XTS_PARSER (parser)->tree;
   TSInput input = XTS_PARSER (parser)->input;
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
-  treesit_check_buffer_size (buffer);
 
   /* Before we parse, catch up with the narrowing situation.  */
+  treesit_check_buffer_size (buffer);
   treesit_ensure_position_synced (parser);
 
   TSTree *new_tree = ts_parser_parse (treesit_parser, tree, input);
@@ -892,6 +906,9 @@ treesit_read_buffer (void *parser, uint32_t byte_index,
       beg = (char *) BUF_BYTE_ADDRESS (buffer, byte_pos);
       len = BYTES_BY_CHAR_HEAD ((int) *beg);
     }
+  /* We never let tree-sitter to parse buffers that large so this
+     assertion should never hit.  */
+  eassert (len < UINT32_MAX);
   *bytes_read = (uint32_t) len;
   return beg;
 }
@@ -1298,6 +1315,7 @@ is nil, the PARSER is to parse the whole buffer.  */)
 
   treesit_initialize ();
   /* Before we parse, catch up with narrowing/widening.  */
+  treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
   treesit_ensure_position_synced (parser);
 
   bool success;
@@ -1313,7 +1331,10 @@ is nil, the PARSER is to parse the whole buffer.  */)
   else
     {
       /* Set ranges for PARSER.  */
-      ptrdiff_t len = list_length (ranges);
+
+      if (list_length (ranges) > UINT32_MAX)
+	xsignal (Qargs_out_of_range, list2 (ranges, Flength (ranges)));
+      uint32_t len = (uint32_t) list_length (ranges);
       /* FIXME: We should test the return value of malloc below.  */
       TSRange *treesit_ranges = malloc (sizeof(TSRange) * len);
       struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
@@ -1325,6 +1346,10 @@ is nil, the PARSER is to parse the whole buffer.  */)
 						       XFIXNUM (XCAR (range)));
 	  EMACS_INT end_byte = buf_charpos_to_bytepos (buffer,
 						       XFIXNUM (XCDR (range)));
+	  /* Shouldn't violate assertion since we just checked for
+	     buffer size at the beginning of this function.  */
+	  eassert (beg_byte - BUF_BEGV_BYTE (buffer) <= UINT32_MAX);
+	  eassert (end_byte - BUF_BEGV_BYTE (buffer) <= UINT32_MAX);
 	  /* We don't care about start and end points, put in dummy
 	     values.  */
 	  TSRange rg = {{0,0}, {0,0},
@@ -1332,10 +1357,8 @@ is nil, the PARSER is to parse the whole buffer.  */)
 			(uint32_t) end_byte - BUF_BEGV_BYTE (buffer)};
 	  treesit_ranges[idx] = rg;
 	}
-      /* FIXME: 'len' below is ptrdiff_t, so can overflow a 32-bit
-	 unsigned data type.  */
       success = ts_parser_set_included_ranges (XTS_PARSER (parser)->parser,
-					       treesit_ranges, (uint32_t) len);
+					       treesit_ranges, len);
       /* Although XFIXNUM could signal, it should be impossible
 	 because we have checked the input by treesit_check_range_argument.
 	 So there is no need for unwind-protect.  */
@@ -1370,6 +1393,7 @@ return nil.  */)
 
   /* Our return value depends on the buffer state (BUF_BEGV_BYTE,
      etc), so we need to sync up.  */
+  treesit_check_buffer_size (XBUFFER (XTS_PARSER (parser)->buffer));
   treesit_ensure_position_synced (parser);
 
   struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
@@ -2225,7 +2249,10 @@ the query.  */)
     {
       EMACS_INT beg_byte = XFIXNUM (beg);
       EMACS_INT end_byte = XFIXNUM (end);
-      /* FIXME: EMACS_INT values could overflow uint32_t.  */
+      /* We never let tree-sitter run on buffers too large, so these
+	 assertion should never hit. */
+      eassert (beg_byte - visible_beg <= UINT32_MAX);
+      eassert (end_byte - visible_beg <= UINT32_MAX);
       ts_query_cursor_set_byte_range (cursor, (uint32_t) beg_byte - visible_beg,
 				      (uint32_t) end_byte - visible_beg);
     }
