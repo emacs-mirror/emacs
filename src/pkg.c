@@ -166,20 +166,22 @@ symbols_to_list (Lisp_Object thing)
 }
 
 /* Create and return a new Lisp package object for a package with name
-   NAME, a string.
-
-   What are the contents of the symbol hash table?  Mapping symbol
-   names to entries of which form?  Can there be more than one
-   symbol-name for different symbols */
+   NAME, a string.  NSYMBOLS is the expected number of symbols.  */
 
 static Lisp_Object
-make_package (Lisp_Object name)
+make_package (Lisp_Object name, Lisp_Object nsymbols)
 {
-  struct Lisp_Package *pkg
-    = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Package, symbols, PVEC_PACKAGE);
   eassert (STRINGP (name));
+  if (NILP (nsymbols))
+    nsymbols = make_fixnum (50);
+  CHECK_FIXNAT (nsymbols);
+
+  struct Lisp_Package *pkg
+    = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Package, symbols,
+				    PVEC_PACKAGE);
   pkg->name = name;
-  pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize, make_fixnum (1024));
+  pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qequal,
+			QCsize, nsymbols);
 
   Lisp_Object package;
   XSETPACKAGE (package, pkg);
@@ -683,7 +685,7 @@ fake_me_an_obarray (Lisp_Object vector)
   Lisp_Object package = Faref (vector, make_fixnum (0));
   if (!PACKAGEP (package))
     {
-      package = make_package (build_string ("fake obarray"));
+      package = make_package (build_string ("fake obarray"), Qnil);
       Faset (vector, make_fixnum (0), package);
     }
   return package;
@@ -939,12 +941,16 @@ usage: (make-package NAME &rest KEYWORD-ARGS)  */)
   const Lisp_Object nickname_designators = nicknames_index ? args[nicknames_index] : Qnil;
   const Lisp_Object nicknames = string_list_from_designators (nickname_designators);
 
+  /* Check for :SIZE.  Argument is checked in make_package.  */
+  const ptrdiff_t size_index = get_key_arg (QCsize, nargs, args, used_args);
+  const Lisp_Object size = size_index ? args[size_index] : Qnil;
+
   /* Now, all args should have been used up, or there's a problem.  */
   for (ptrdiff_t i = 0; i < nargs; ++i)
     if (!used_args[i])
       signal_error ("make-package: invalid argument", args[i]);
 
-  const Lisp_Object package = make_package (name);
+  const Lisp_Object package = make_package (name, size);
   XPACKAGE (package)->nicknames = nicknames;
   XPACKAGE (package)->used_packages = used_packages;
 
@@ -1243,9 +1249,11 @@ init_pkg_once (void)
 				       DEFAULT_REHASH_THRESHOLD,
 				       Qnil, false);
 
-  Vemacs_package = make_package (build_string ("emacs"));
+  Vemacs_package = make_package (build_string ("emacs"),
+				 make_fixnum (20000));
   staticpro (&Vemacs_package);
-  Vkeyword_package = make_package (build_string ("keyword"));
+  Vkeyword_package = make_package (build_string ("keyword"),
+				   make_fixnum (2000));
   register_package (Vemacs_package);
 
   staticpro (&Vkeyword_package);
