@@ -1335,8 +1335,7 @@ is nil, the PARSER is to parse the whole buffer.  */)
       if (list_length (ranges) > UINT32_MAX)
 	xsignal (Qargs_out_of_range, list2 (ranges, Flength (ranges)));
       uint32_t len = (uint32_t) list_length (ranges);
-      /* FIXME: We should test the return value of malloc below.  */
-      TSRange *treesit_ranges = malloc (sizeof(TSRange) * len);
+      TSRange *treesit_ranges = xmalloc (sizeof(TSRange) * len);
       struct buffer *buffer = XBUFFER (XTS_PARSER (parser)->buffer);
 
       for (int idx = 0; !NILP (ranges); idx++, ranges = XCDR (ranges))
