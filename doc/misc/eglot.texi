@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename ../../eglot.info
-@settitle Eglot: The Emacs Client for Language Server Protocol
+@settitle Eglot: The Emacs Client for the Language Server Protocol
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -60,24 +60,24 @@ modify this GNU manual.''
 
 @cindex LSP
 @cindex language server protocol
-Eglot is the Emacs client for Language Server Protocol.  The name
-``Eglot'' is an acronym that stands for ``@emph{E}macs
-Poly@emph{glot}''.@footnote{
-A @dfn{polyglot} is a person who is able to use several languages.
+Eglot is the Emacs client for the @dfn{Language Server Protocol}
+(@acronym{LSP}).  The name ``Eglot'' is an acronym that stands for
+``@emph{E}macs Poly@emph{glot}''.@footnote{
+A @dfn{polyglot} is a
+person who is able to use several languages.
 } Eglot provides infrastructure and a set of commands for enriching
-Emacs source code editing capabilities using the @dfn{Language Server
-Protocol} (@acronym{LSP}) -- a standardized communications protocol
-between source code editors (such as Emacs) and language servers --
-programs external to Emacs that analyze the source code on behalf of
-Emacs.  The protocol allows Emacs to receive various source code
-services from the server, such as description and location of
-functions calls, types of variables, class definitions, syntactic
-errors, etc.  This way, Emacs doesn't need to implement the
-language-specific parsing and analysis capabilities in its own code,
-but is still capable of providing sophisticated editing features that
-rely on such capabilities, such as automatic code completion, go-to
-definition of function/class, documentation of symbol at-point,
-refactoring, on-the-fly diagnostics, and more.
+the source code editing capabilities of Emacs via LSP.  LSP is a
+standardized communications protocol between source code editors (such
+as Emacs) and language servers, programs external to Emacs for
+analyzing source code on behalf of Emacs.  The protocol allows Emacs
+to receive various source code services from the server, such as
+description and location of functions calls, types of variables, class
+definitions, syntactic errors, etc.  This way, Emacs doesn't need to
+implement the language-specific parsing and analysis capabilities in
+its own code, but is still capable of providing sophisticated editing
+features that rely on such capabilities, such as automatic code
+completion, go-to definition of function/class, documentation of
+symbol at-point, refactoring, on-the-fly diagnostics, and more.
 
 Eglot itself is completely language-agnostic, but it can support any
 programming language for which there is a language server and an Emacs
