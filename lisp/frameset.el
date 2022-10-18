@@ -38,8 +38,6 @@
 
 ;;; Code:
 
-;;; FIXME: Do something about the face package name GUI.
-
 (require 'cl-lib)
 
 

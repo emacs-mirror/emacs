@@ -26592,7 +26592,7 @@ it is disabled.
 
 ;;; Generated autoloads from nxml/rng-xsd.el
 
-(put 'http-//www.w3.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
+(put 'http://www.w3.org/2001/XMLSchema-datatypes 'rng-dt-compile #'rng-xsd-compile)
 (autoload 'rng-xsd-compile "rng-xsd" "\
 Provide W3C XML Schema as a RELAX NG datatypes library.
 NAME is a symbol giving the local name of the datatype.  PARAMS is a
