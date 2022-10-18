@@ -17855,7 +17855,7 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
 
 #ifdef HAVE_XFIXES
 
-static void
+static bool
 x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
 				  XEvent *event)
 {
@@ -17865,7 +17865,7 @@ x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
   notify = (XFixesSelectionNotifyEvent *) event;
 
   if (notify->window != dpyinfo->selection_tracking_window)
-    return;
+    return false;
 
   for (i = 0; i < dpyinfo->n_monitored_selections; ++i)
     {
@@ -17873,6 +17873,8 @@ x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
       if (notify->selection == dpyinfo->monitored_selections[i].name)
 	dpyinfo->monitored_selections[i].owner = notify->owner;
     }
+
+  return true;
 }
 
 Window
@@ -24141,8 +24143,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #ifdef HAVE_XFIXES
       if (dpyinfo->xfixes_supported_p
 	  && event->type == (dpyinfo->xfixes_event_base
-			     + XFixesSelectionNotify))
-	x_handle_selection_monitor_event (dpyinfo, event);
+			     + XFixesSelectionNotify)
+	  && x_handle_selection_monitor_event (dpyinfo, event))
+	/* GTK 3 crashes if an XFixesSelectionNotify arrives with a
+	   window other than the root window, because it wants to know
+	   the screen in order to determine the compositing manager
+	   selection name.  (bug#58584) */
+	*finish = X_EVENT_DROP;
 #endif
     OTHER:
 #ifdef USE_X_TOOLKIT
