@@ -6378,18 +6378,21 @@ Add import for undefined name `%s' (empty to skip): "
 (defun python--backend-toggle (backend warn)
   "Toggle backend for `python-mode'.
 BACKEND and WARN are explained in `treesit-mode-function'."
-  (if (and (eq backend 'treesit) (treesit-ready-p warn 'python))
-      (progn
-        (setq-local font-lock-keywords-only t)
-        (setq-local treesit-font-lock-feature-list
-                    '((basic) (moderate) (elaborate)))
-        (setq-local treesit-font-lock-settings
-                    python--treesit-settings)
-        (treesit-font-lock-enable)
-        (setq-local imenu-create-index-function
-                    #'python-imenu-treesit-create-index)
-        (add-hook 'which-func-functions
-                  #'python-info-treesit-current-defun nil t))
+  (cond
+   ;; Tree-sitter.
+   ((and (eq backend 'treesit) (treesit-ready-p warn 'python))
+    (setq-local font-lock-keywords-only t)
+    (setq-local treesit-font-lock-feature-list
+                '((basic) (moderate) (elaborate)))
+    (setq-local treesit-font-lock-settings
+                python--treesit-settings)
+    (treesit-font-lock-enable)
+    (setq-local imenu-create-index-function
+                #'python-imenu-treesit-create-index)
+    (add-hook 'which-func-functions
+              #'python-info-treesit-current-defun nil t))
+   ;; Elisp.
+   ((eq backend 'elisp)
     (setq-local font-lock-defaults
                 `(,python-font-lock-keywords
                   nil nil nil nil
@@ -6399,7 +6402,7 @@ BACKEND and WARN are explained in `treesit-mode-function'."
                    . python-font-lock-extend-region)))
     (setq-local imenu-create-index-function
                 #'python-imenu-create-index)
-    (add-hook 'which-func-functions #'python-info-current-defun nil t)))
+    (add-hook 'which-func-functions #'python-info-current-defun nil t))))
 
 ;;;###autoload
 (define-derived-mode python-mode prog-mode "Python"
