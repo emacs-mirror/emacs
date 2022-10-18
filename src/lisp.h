@@ -2287,12 +2287,6 @@ extern void pkg_break (void);
 extern void pkg_define_builtin_symbols (void);
 extern void pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg);
 
-extern Lisp_Object Vpackage_registry;
-extern Lisp_Object Vemacs_package, Vkeyword_package;
-extern Lisp_Object Vearmuffs_package;
-extern Lisp_Object Vpackage_prefixes;
-
-
 
 /* Return whether a value might be a valid docstring.
    Used to distinguish the presence of non-docstring in the docstring slot,

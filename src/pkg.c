@@ -30,23 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 
-/* The package registry, a hash-table of package names to package
-   objects.  */
-
-Lisp_Object Vpackage_registry;
-
-/* The two standard packages.  */
-
-Lisp_Object Vemacs_package, Vkeyword_package;
-
-/* The current package.  */
-
-Lisp_Object Vearmuffs_package;
-
-/* If nil, */
-
-Lisp_Object Vpackage_prefixes;
-
 /***********************************************************************
 			    Useless tools
  ***********************************************************************/
@@ -1249,14 +1232,12 @@ init_pkg_once (void)
 				       DEFAULT_REHASH_THRESHOLD,
 				       Qnil, false);
 
-  Vemacs_package = make_package (build_string ("emacs"),
-				 make_fixnum (20000));
   staticpro (&Vemacs_package);
-  Vkeyword_package = make_package (build_string ("keyword"),
-				   make_fixnum (2000));
+  Vemacs_package = make_package (build_string ("emacs"), make_fixnum (20000));
   register_package (Vemacs_package);
 
   staticpro (&Vkeyword_package);
+  Vkeyword_package = make_package (build_string ("keyword"), make_fixnum (2000));
   XPACKAGE (Vkeyword_package)->nicknames = Fcons (build_string (""), Qnil);
   register_package (Vkeyword_package);
 
@@ -1276,6 +1257,20 @@ init_pkg_once (void)
 void
 syms_of_pkg (void)
 {
+  DEFVAR_LISP_NOPRO ("*package-registry*", Vpackage_registry,
+		     doc: /* The package registry.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*emacs-package*", Vemacs_package,
+		     doc: /* The Emacs package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*keyword-package*", Vkeyword_package,
+		     doc: /* The keyword package.  For internal use only.  */);
+  DEFVAR_LISP_NOPRO ("*package*", Vearmuffs_package,
+		     doc: /* The current package.  */);
+
+  DEFVAR_LISP_NOPRO ("package-prefixes", Vpackage_prefixes,
+		     doc: /* */);
+  Fmake_variable_buffer_local (Qpackage_prefixes);
+
+  Vmacroexp__dynvars = Qnil;
   defsubr (&Scl_intern);
   defsubr (&Scl_unintern);
   defsubr (&Sdelete_package);
