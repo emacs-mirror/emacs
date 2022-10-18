@@ -191,9 +191,9 @@ provided by the @code{eglot-server-programs} variable.
 @defvar eglot-server-programs
 This variable associates major modes with names and command-line
 arguments of the language server programs corresponding to the
-programming language of each major mode.  This variable provides all
-the information that Eglot needs to know about the programming
-language of the source you are editing.
+programming language of each major mode.  It provides all the
+information that Eglot needs to know about the programming language of
+the source you are editing.
 
 The value of the variable is an alist, whose elements are of the form
 @w{@code{(@var{major-mode} . @var{server})}}.
@@ -205,8 +205,9 @@ and @var{id} a string that identifies the language to the server (if
 Eglot cannot by itself convert the major-mode to the language
 identifier string required by the server).  In addition,
 @var{major-mode} can be a list of several major mode specified in one
-of the above forms -- this means the server can support more than one
-major mode.
+of the above forms -- this means a running instance of the associated
+server is responsible for files of multiple major modes or languages
+in the project.
 
 The @var{server} part of the alist elements can be one of the
 following:
@@ -280,17 +281,14 @@ The most common way to start Eglot is to simply visit a source file of
 a given language and use the command @kbd{M-x eglot}.  This starts the
 language server suitable for the visited file's major-mode, and
 attempts to connect to it.  If the connection to the language server
-is successful, you will see the @code{eglot:@var{server}} indicator on
-the mode line which reflects the server that was started.  If the
+is successful, you will see the @code{[eglot:@var{project}]} indicator
+on the mode line which reflects the server that was started.  If the
 server program couldn't be started or connection to it failed, you
 will see an error message; in that case, try to troubleshoot the
-problem as described in @ref{Troubleshooting Eglot}.
-@c FIXME: Is the mode-line indication just eglot:server, or
-@c egloit:serve/project, as described farther down?
-
-Once a language server was successfully started and Eglot connected to
-it, you can immediately start using the Emacs features supported by
-Eglot, as described in @ref{Eglot Features}.
+problem as described in @ref{Troubleshooting Eglot}.  Once a language
+server was successfully started and Eglot connected to it, you can
+immediately start using the Emacs features supported by Eglot, as
+described in @ref{Eglot Features}.
 
 A single Eglot session for a certain major-mode usually serves all the
 buffers under that mode which visit files from the same project, so
@@ -417,16 +415,22 @@ to what the @code{eglot-format} command does (see below), but is
 activated automatically as you type.
 
 @item
-If @code{company-mode}, a popular 3rd-party completion package, is
-installed, Eglot enhances it by providing completion candidates based
-on the language-server analysis of the source code.
+If a completion package such as @code{company-mode}, a popular
+3rd-party completion package, is installed, Eglot enhances it by
+providing completion candidates based on the language-server analysis
+of the source code.
 
 @item
 If @code{yasnippet}, a popular package for automatic insertion of code
-templates, is installed, and the language server supports
-template-based completion, Eglot provides to @code{yasnippet}
-completion templates based on the language-server analysis and
-knowledge bases.
+templates (snippets), is installed, and the language server supports
+snippet completion candidates, Eglot arranges for the completion
+package to instantiate these snippets using @code{yasnippet}.
+
+@item
+If the popular package @code{markdown-mode} is installed, and the
+server provides at-point documentation formatted as Markdown in
+addition to plain text, Eglot arranges for the ElDoc package to enrich
+this text with e.g. fontification before displaying it to the user.
 
 @item
 In addition to enabling and enhancing other features and packages,
@@ -547,7 +551,7 @@ are served by a single language-server connection.  (If the project
 uses several programming languages, there will usually be a separate
 server connection for each group of files written in the same language
 and using the same Emacs major-mode.)  Eglot adds the
-@samp{eglot:@var{server}/@var{project}} indication to the mode line of
+@samp{[eglot:@var{project}]} indication to the mode line of
 each such buffer, where @var{server} is the name of the server and
 @var{project} identifies the project by its root directory.  Clicking
 the mouse on the Eglot mode-line indication activates a menu with
@@ -630,8 +634,10 @@ Emacs features will be configured to use Eglot, use the
 @code{eglot-stay-out-of} option (@pxref{Customizing Eglot}).
 
 @item M-x eglot-reconnect
-@c FIXME: When and why would this command be useful?  Move to less common?
-Reconnect to current language server.
+Shuts down an the current connection to the language server and
+immediately restarts it using the same options used originally.  This
+can sometimes be useful to unclog a partially malfunctioning server
+connection.
 
 @item M-x eglot-shutdown
 Shut down a language server.  This commands prompts for a language
@@ -706,7 +712,13 @@ the current value of the variable @code{eglot-workspace-configuration}
 
 @item M-x eglot-clear-status
 Clear the last JSONRPC error for the server of the current buffer.
-@c FIXME: Better description of the need and the effect.
+Eglot keeps track of erroneous situations encountered by the server in
+its mode-line indication so that the user may inspect the
+communication leading up to it (@pxref{Troubleshooting Eglot}).  If
+the situation is deemed uninteresting or temporary, this command can
+be used to ``forget'' the error.  Note that the command @code{M-x
+eglot-reconnect} can sometimes be used to unclog a temporarily
+malfunctioning server.
 @end ftable
 
 As described in @ref{Eglot Features} most features associated with
@@ -757,13 +769,12 @@ This section provides a reference of the Eglot' user options.
 @vtable @code
 @item eglot-autoreconnect
 This option controls the ability to reconnect automatically to the
-language server.  The default value 3 means to attempt reconnection
-only if the previous successful connection lasted for more than that
-number of seconds; a different positive value changes the minimal
-length of the connection to trigger reconnection.  A value of @code{t}
-means always reconnect automatically, and @code{nil} means never
-reconnect.  The alternative to automatic reconnection is the command
-@code{eglot-reconnect} (@pxref{Eglot Commands}).
+language server when Eglot detects that the server process terminated
+unexpectedly.  The default value 3 means to attempt reconnection only
+if the previous successful connection lasted for more than that number
+of seconds; a different positive value changes the minimal length of
+the connection to trigger reconnection.  A value of @code{t} means
+always reconnect automatically, and @code{nil} means never reconnect.
 
 @item eglot-connect-timeout
 This specifies the number of seconds before connection attempt to a
@@ -771,14 +782,14 @@ language server times out.  The value of @code{nil} means never time
 out.  The default is 30 seconds.
 
 @item eglot-sync-connect
-This controls whether attempts to connect to language servers should
-be blocking.  The setting is mainly important for slow connections.
-The default value is 3; a positive value means block for that many
-seconds, then wait for the connection in the background.  The value
-of @code{t} means block for @code{eglot-connect-timeout} seconds.  The
-value of @code{nil} or zero means don't block at all.
-@c FIXME: the code doesn't use eglot-connect-timeout, it uses a
-@c hard-coded value of 30.
+This setting is mainly important for connections which are slow to
+establish.  Whereas the variable @code{eglot-connect-timeout} controls
+how long to wait for, this variable controls whether to block Emacs's
+user interface while waiting.  The default value is 3; a positive
+value means block for that many seconds, then wait for the connection
+in the background.  The value of @code{t} means block during the whole
+waiting period.  The value of @code{nil} or zero means don't block at
+all during the waiting period.
 
 @item eglot-events-buffer-size
 This determines the size of the Eglot events buffer.  @xref{Eglot
@@ -800,11 +811,8 @@ The default is @code{nil}; if you want to shut down a server, use
 Various Eglot commands and code actions result in the language server
 sending editing commands to Emacs.  If this option's value is
 non-@code{nil} (the default), Eglot will ask for confirmation before
-performing the edits requested by the server.
-@c FIXME: Not clear: is the confirmation required for each individual
-@c edit, or for as group? for each buffer or just once?  And what
-@c about on-type reformatting -- does that require confirmation as
-@c well (which would be annoying)?
+performing edits initiated by the server or edits whose scope affects
+buffers other than the one where the user initiated the request.
 
 @item eglot-ignored-server-capabilities
 This variable's value is a list of language server capabilities that
