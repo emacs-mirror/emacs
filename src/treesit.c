@@ -1361,7 +1361,7 @@ is nil, the PARSER is to parse the whole buffer.  */)
       /* Although XFIXNUM could signal, it should be impossible
 	 because we have checked the input by treesit_check_range_argument.
 	 So there is no need for unwind-protect.  */
-      free (treesit_ranges);
+      xfree (treesit_ranges);
     }
 
   if (!success)
