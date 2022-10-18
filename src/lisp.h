@@ -2220,7 +2220,7 @@ struct Lisp_Package
 
   /* List of package objects for the packages used by this
      package.  */
-  Lisp_Object used_packages;
+  Lisp_Object use_list;
 
   /* List of shadowing symbols.  */
   Lisp_Object shadowing_symbols;

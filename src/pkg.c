@@ -372,7 +372,7 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
   Lisp_Object symbol = Fgethash (name, pkg->symbols, Qunbound);
   if (EQ (symbol, Qunbound))
     {
-      Lisp_Object tail = pkg->used_packages;
+      Lisp_Object tail = pkg->use_list;
       FOR_EACH_TAIL (tail)
 	{
 	  const Lisp_Object used_package = XCAR (tail);
@@ -862,7 +862,7 @@ DEFUN ("package-use-list", Fpackage_use_list, Spackage_use_list, 1, 1, 0, doc:
   (Lisp_Object package)
 {
   package = package_from_designator (package);
-  return Fcopy_sequence (XPACKAGE (package)->used_packages);
+  return Fcopy_sequence (XPACKAGE (package)->use_list);
 }
 
 DEFUN ("package-used-by-list", Fpackage_used_by_list, Spackage_used_by_list,
@@ -873,7 +873,7 @@ DEFUN ("package-used-by-list", Fpackage_used_by_list, Spackage_used_by_list,
   package = package_from_designator (package);
   Lisp_Object result = Qnil;
   FOR_EACH_KEY_VALUE (it, Vpackage_registry)
-    if (!NILP (Fmemq (package, XPACKAGE (it.value)->used_packages)))
+    if (!NILP (Fmemq (package, XPACKAGE (it.value)->use_list)))
       add_to_list (it.value, &result);
   return result;
 }
@@ -935,7 +935,7 @@ usage: (make-package NAME &rest KEYWORD-ARGS)  */)
 
   const Lisp_Object package = make_package (name, size);
   XPACKAGE (package)->nicknames = nicknames;
-  XPACKAGE (package)->used_packages = used_packages;
+  XPACKAGE (package)->use_list = used_packages;
 
   SAFE_FREE ();
   return package;
@@ -1185,14 +1185,6 @@ DEFUN ("use-package", Fuse_package, Suse_package, 1, 2, 0,
   return Qt;
 }
 
-DEFUN ("package-symbols", Fpackage_symbols, Spackage_symbols, 1, 1, 0,
-       doc: /* Return symbol table of PACKAGE.  Internal use only.  */)
-  (Lisp_Object package)
-{
-  package = package_or_default (package);
-  return XPACKAGE (package)->symbols;
-}
-
 DEFUN ("unuse-package", Funuse_package, Sunuse_package, 1, 2, 0,
        doc: /* tbd  */)
   (Lisp_Object symbols, Lisp_Object package)
@@ -1206,6 +1198,84 @@ DEFUN ("pkg-break", Fpkg_read, Spkg_read, 1, 1, 0,
 {
   pkg_break ();
   return Qnil;
+}
+
+
+/***********************************************************************
+                     Internal access to packages
+ ***********************************************************************/
+
+DEFUN ("package-%name", Fpackage_percent_name, Spackage_percent_name, 1, 1, 0,
+       doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->name;
+}
+
+DEFUN ("package-%set-name", Fpackage_percent_set_name, Spackage_percent_set_name,
+       2, 2, 0, doc: /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object name)
+{
+  CHECK_PACKAGE (package);
+  CHECK_STRING (name);
+  return XPACKAGE (package)->name = name;
+}
+
+DEFUN ("package-%nicknames", Fpackage_percent_nicknames,
+       Spackage_percent_nicknames, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->nicknames;
+}
+
+DEFUN ("package-%set-nicknames", Fpackage_percent_set_nicknames,
+       Spackage_percent_set_nicknames, 2, 2, 0, doc: /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object nicknames)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->nicknames = nicknames;
+}
+
+DEFUN ("package-%use-list", Fpackage_percent_use_list,
+       Spackage_percent_use_list, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->use_list;
+}
+
+DEFUN ("package-%set-use-list", Fpackage_percent_set_use_list,
+       Spackage_percent_set_use_list, 2, 2, 0, doc: /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object use_list)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->use_list = use_list;
+}
+
+DEFUN ("package-%shadowing-symbols", Fpackage_percent_shadowing_symbols,
+       Spackage_percent_shadowing_symbols, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->shadowing_symbols;
+}
+
+DEFUN ("package-%set-shadowing-symbols", Fpackage_percent_set_shadowing_symbols,
+       Spackage_percent_set_shadowing_symbols, 2, 2, 0, doc: /* Internal use only.  */)
+  (Lisp_Object package, Lisp_Object shadowing_symbols)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->shadowing_symbols = shadowing_symbols;
+}
+
+DEFUN ("package-%symbols", Fpackage_percent_symbols,
+       Spackage_percent_symbols, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  CHECK_PACKAGE (package);
+  return XPACKAGE (package)->symbols;
 }
 
 
@@ -1278,7 +1348,16 @@ syms_of_pkg (void)
 		     doc: /* */);
   Fmake_variable_buffer_local (Qpackage_prefixes);
 
-  Vmacroexp__dynvars = Qnil;
+  defsubr (&Spackage_percent_name);
+  defsubr (&Spackage_percent_nicknames);
+  defsubr (&Spackage_percent_set_name);
+  defsubr (&Spackage_percent_set_nicknames);
+  defsubr (&Spackage_percent_set_shadowing_symbols);
+  defsubr (&Spackage_percent_set_use_list);
+  defsubr (&Spackage_percent_shadowing_symbols);
+  defsubr (&Spackage_percent_symbols);
+  defsubr (&Spackage_percent_use_list);
+
   defsubr (&Scl_intern);
   defsubr (&Scl_unintern);
   defsubr (&Sdelete_package);
@@ -1294,7 +1373,6 @@ syms_of_pkg (void)
   defsubr (&Spackage_use_list);
   defsubr (&Spackage_used_by_list);
   defsubr (&Spackagep);
-  defsubr (&Spackage_symbols);
   defsubr (&Spkg_read);
   defsubr (&Sregister_package);
   defsubr (&Srename_package);
