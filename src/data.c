@@ -767,11 +767,10 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
        doc: /* Return SYMBOL's name, a string.  */)
   (register Lisp_Object symbol)
 {
-  register Lisp_Object name;
-
   CHECK_SYMBOL (symbol);
-  name = SYMBOL_NAME (symbol);
-  return name;
+  if (EQ (SYMBOL_PACKAGE (symbol), Vkeyword_package))
+    return concat2 (build_string (":"), SYMBOL_NAME (symbol));
+  return SYMBOL_NAME (symbol);
 }
 
 DEFUN ("symbol-package", Fsymbol_package, Ssymbol_package, 1, 1, 0,
