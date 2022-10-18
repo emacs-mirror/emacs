@@ -125,6 +125,8 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 
 ;; eshell.el keeps the path in `eshell-path-env'.  We must change it
 ;; when `default-directory' points to another host.
+;; This is fixed in Eshell with Emacs 29.1.
+
 (defun tramp-eshell-directory-change ()
   "Set `eshell-path-env' to $PATH of the host related to `default-directory'."
   ;; Remove last element of `(exec-path)', which is `exec-directory'.
