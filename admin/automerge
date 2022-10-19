@@ -35,18 +35,7 @@
 ## it with the -d option in the repository directory, in case a pull
 ## updates this script while it is working.
 
-set -o nounset
-
-die ()                 # write error to stderr and exit
-{
-    [ $# -gt 0 ] && echo "$PN: $*" >&2
-    exit 1
-}
-
-PN=${0##*/}                     # basename of script
-PD=${0%/*}
-
-[ "$PD" = "$0" ] && PD=.        # if PATH includes PWD
+source "${0%/*}/emacs-shell-lib"
 
 usage ()
 {
@@ -129,13 +118,7 @@ OPTIND=1
 [ "$test" ] && build=1
 
 
-if [ -x "$(command -v mktemp)" ]; then
-    tempfile=$(mktemp "/tmp/$PN.XXXXXXXXXX")
-else
-    tempfile=/tmp/$PN.$$
-fi
-
-trap 'rm -f $tempfile 2> /dev/null' EXIT
+tempfile="$(emacs_mktemp)"
 
 
 [ -e Makefile ] && [ "$build" ] && {
@@ -263,5 +246,3 @@ git push || die "push error"
 
 
 exit 0
-
-### automerge ends here

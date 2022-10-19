@@ -33,15 +33,7 @@
 
 ### Code:
 
-set -o nounset
-
-die ()                          # write error to stderr and exit
-{
-    [ $# -gt 0 ] && echo "$PN: $@" >&2
-    exit 1
-}
-
-PN=${0##*/}                     # basename of script
+source "${0%/*}/emacs-shell-lib"
 
 usage ()
 {
@@ -96,8 +88,7 @@ OPTIND=1
 [ -e admin/admin.el ] || die "admin/admin.el not found"
 
 
-tempfile=/tmp/$PN.$$
-trap "rm -f $tempfile 2> /dev/null" EXIT
+tempfile="$(emacs_mktemp)"
 
 
 [ "$continue" ] || rm -rf $outdir
