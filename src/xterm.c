@@ -17857,7 +17857,7 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
 
 static bool
 x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
-				  XEvent *event)
+				  const XEvent *event)
 {
   XFixesSelectionNotifyEvent *notify;
   int i;
@@ -25698,6 +25698,14 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 #ifdef HAVE_X11R6
 
+/* HAVE_X11R6 means Xlib conforms to the R6 specification or later.
+   HAVE_X11R6_XIM, OTOH, means that Emacs should try to use R6-style
+   callback driven input method initialization.  They are separate
+   because Sun apparently ships buggy Xlib with some versions of
+   Solaris... */
+
+#ifdef HAVE_X11R6_XIM
+
 /* If preedit text is set on F, cancel preedit, free the text, and
    generate the appropriate events to cancel the preedit display.
 
@@ -25762,6 +25770,8 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
   XFree (dpyinfo->xim_styles);
   unblock_input ();
 }
+
+#endif
 
 #endif /* HAVE_X11R6 */
 
@@ -30512,8 +30522,14 @@ x_get_keyboard_modifiers (struct x_display_info *dpyinfo)
   /* This sometimes happens when the function is called during display
      initialization, which can happen while obtaining vendor specific
      keysyms.  */
+
+#ifdef HAVE_XKB
   if (!dpyinfo->xkb_desc && !dpyinfo->modmap)
     x_find_modifier_meanings (dpyinfo);
+#else
+  if (!dpyinfo->modmap)
+    x_find_modifier_meanings (dpyinfo);
+#endif
 
   return list5 (make_uint (dpyinfo->hyper_mod_mask),
 		make_uint (dpyinfo->super_mod_mask),
