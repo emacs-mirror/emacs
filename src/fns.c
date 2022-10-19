@@ -4314,6 +4314,14 @@ cmpfn_equal (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
   return Fequal (key1, key2);
 }
 
+/* Ignore H and compare KEY1 and KEY2 using 'string-equal'.
+   Value is true if KEY1 and KEY2 are the same.  */
+
+static Lisp_Object
+cmpfn_string_equal (Lisp_Object key1, Lisp_Object key2, struct Lisp_Hash_Table *h)
+{
+  return Fstring_equal (key1, key2);
+}
 
 /* Given H, compare KEY1 and KEY2 using H->user_cmp_function.
    Value is true if KEY1 and KEY2 are the same.  */
@@ -4354,6 +4362,17 @@ hashfn_eql (Lisp_Object key, struct Lisp_Hash_Table *h)
   return (FLOATP (key) || BIGNUMP (key) ? hashfn_equal : hashfn_eq) (key, h);
 }
 
+/* Ignore H and return a hash code for KEY which uses 'string-equal'
+   to compare keys.  The hash code is at most INTMASK.  */
+
+static Lisp_Object
+hashfn_string_equal (Lisp_Object key, struct Lisp_Hash_Table *h)
+{
+  if (SYMBOLP (key))
+    key = SYMBOL_NAME (key);
+  return make_ufixnum (sxhash (key));
+}
+
 /* Given H, return a hash code for KEY which uses a user-defined
    function to compare keys.  */
 
@@ -4371,7 +4390,14 @@ struct hash_table_test const
   hashtest_eql = { LISPSYM_INITIALLY (Qeql), LISPSYM_INITIALLY (Qnil),
 		   LISPSYM_INITIALLY (Qnil), cmpfn_eql, hashfn_eql },
   hashtest_equal = { LISPSYM_INITIALLY (Qequal), LISPSYM_INITIALLY (Qnil),
-		     LISPSYM_INITIALLY (Qnil), cmpfn_equal, hashfn_equal };
+		     LISPSYM_INITIALLY (Qnil), cmpfn_equal, hashfn_equal },
+  hashtest_string_equal = {
+    LISPSYM_INITIALLY (Qstring_equal),
+    LISPSYM_INITIALLY (Qnil),
+    LISPSYM_INITIALLY (Qnil),
+    cmpfn_string_equal,
+    hashfn_string_equal
+  };
 
 /* Allocate basically initialized hash table.  */
 
@@ -5188,6 +5214,8 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     testdesc = hashtest_eql;
   else if (EQ (test, Qequal))
     testdesc = hashtest_equal;
+  else if (EQ (test, Qstring_equal))
+    testdesc = hashtest_string_equal;
   else
     {
       /* See if it is a user-defined test.  */
@@ -6084,6 +6112,7 @@ syms_of_fns (void)
   DEFSYM (Qhash_table_test, "hash-table-test");
   DEFSYM (Qkey_or_value, "key-or-value");
   DEFSYM (Qkey_and_value, "key-and-value");
+  DEFSYM (Qstring_equal, "string-equal");
 
   defsubr (&Ssxhash_eq);
   defsubr (&Ssxhash_eql);
