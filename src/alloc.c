@@ -6279,6 +6279,11 @@ garbage_collect (void)
   image_prune_animation_caches (false);
 #endif
 
+  /* ELisp code run by `gc-post-hook' could result in itree iteration,
+     which must not happen while the itree is already busy.  See
+     bug#58639.  */
+  eassert (!itree_iterator_busy_p ());
+
   if (!NILP (Vpost_gc_hook))
     {
       specpdl_ref gc_count = inhibit_garbage_collection ();
@@ -6510,6 +6515,18 @@ mark_overlay (struct Lisp_Overlay *ov)
   mark_object (ov->plist);
 }
 
+/* Mark the overlay subtree rooted at NODE.  */
+
+static void
+mark_overlays (struct interval_node *node)
+{
+  if (node == NULL)
+    return;
+  mark_object (node->data);
+  mark_overlays (node->left);
+  mark_overlays (node->right);
+}
+
 /* Mark Lisp_Objects and special pointers in BUFFER.  */
 
 static void
@@ -6531,9 +6548,8 @@ mark_buffer (struct buffer *buffer)
   if (!BUFFER_LIVE_P (buffer))
       mark_object (BVAR (buffer, undo_list));
 
-  struct interval_node *node;
-  ITREE_FOREACH (node, buffer->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
-    mark_object (node->data);
+  if (buffer->overlays)
+    mark_overlays (buffer->overlays->root);
 
   /* If this is an indirect buffer, mark its base buffer.  */
   if (buffer->base_buffer &&
