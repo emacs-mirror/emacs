@@ -86,7 +86,7 @@ but have common elements %s" key1 key2 common))))
 (defun pkg-find-or-make-package (name)
   (if (packagep name)
       (progn
-	(unless (package-%name thing)
+	(unless (package-%name name)
 	  (error "Can't do anything with deleted package: %s" name))
 	name)
     (let* ((name (pkg-stringify-name name "package name")))
@@ -131,7 +131,7 @@ but have common elements %s" key1 key2 common))))
   (cond ((listp thing)
 	 (dolist (s thing)
 	   (unless (symbolp s)
-             (error "%s is not a symbol") s))
+             (error "%s is not a symbol" s)))
 	 thing)
 	((symbolp thing)
          (list thing))
@@ -222,12 +222,12 @@ but have common elements %s" key1 key2 common))))
   (pkg--add-to-registry package))
 
 ;;;###autoload
-(defun export (symbols &optional package)
+(defun export (_symbols &optional package)
   (setq package (pkg--package-or-default package))
   (error "not yet implemented"))
 
 ;;;###autoload
-(defun unexport (symbols &optional package)
+(defun unexport (_symbols &optional package)
   (setq package (pkg--package-or-default package))
   (error "not yet implemented"))
 
@@ -235,25 +235,26 @@ but have common elements %s" key1 key2 common))))
 (defun import (symbols &optional package)
   (let ((package (pkg--package-or-default package))
         (symbols (pkg--symbol-listify symbols)))
+    (list package symbols)
     (error "not yet implemented")))
 
 ;;;###autoload
-(defun shadow (symbols &optional package)
+(defun shadow (_symbols &optional package)
   (setq package (pkg--package-or-default package))
   (error "not yet implemented"))
 
 ;;;###autoload
-(defun shadowing-import (symbols &optional package)
+(defun shadowing-import (_symbols &optional package)
   (setq package (pkg--package-or-default package))
   (error "not yet implemented"))
 
 ;;;###autoload
-(defun use-package (use package)
+(defun use-package (_use package)
   (setq package (pkg--package-or-default package))
   (cl-pushnew (package-%use-list package) package))
 
 ;;;###autoload
-(defun unuse-package (unuse package)
+(defun unuse-package (_unuse package)
   (setq package (pkg--package-or-default package))
   (setf (package-%use-list package)
         (delq package (package-%use-list package))))
