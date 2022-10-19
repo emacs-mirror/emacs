@@ -3403,13 +3403,6 @@ This function is intended for use in `after-change-functions'."
   js-mode "\\(@[[:alpha:]]+\\>\\|$\\)")
 
 ;;; Tree sitter integration
-(defcustom js-use-tree-sitter nil
-  "If non-nil, `js-mode' tries to use tree-sitter.
-Currently `js-mode' uses tree-sitter for font-locking,
-indentation, which-function and movement functions."
-  :version "29.1"
-  :type 'boolean
-  :safe 'booleanp)
 
 (defun js--treesit-backward-up-list ()
   (lambda (_node _parent _bol &rest _)
@@ -3608,79 +3601,6 @@ This function can be used as a value in `which-func-functions'"
              do (setq node (treesit-node-parent node))
              finally return  (string-join name-list "."))))
 
-(defvar js--treesit-defun-type-regexp
-  (rx (or "class_declaration"
-          "method_definition"
-          "function_declaration"
-          "lexical_declaration"))
-  "Regular expression that matches type of defun nodes.
-Used in `js--treesit-beginning-of-defun' and friends.")
-
-(defun js--treesit-beginning-of-defun (&optional arg)
-  "Tree-sitter `beginning-of-defun' function.
-ARG is the same as in `beginning-of-defun."
-  (let ((arg (or arg 1)))
-    (if (> arg 0)
-        ;; Go backward.
-        (while (and (> arg 0)
-                    (treesit-search-forward-goto
-                     js--treesit-defun-type-regexp 'start nil t))
-          (setq arg (1- arg)))
-      ;; Go forward.
-      (while (and (< arg 0)
-                  (treesit-search-forward-goto
-                   js--treesit-defun-type-regexp 'start))
-        (setq arg (1+ arg))))))
-
-(defun js--treesit-end-of-defun (&optional arg)
-  "Tree-sitter `end-of-defun' function.
-ARG is the same as in `end-of-defun."
-  (let ((arg (or arg 1)))
-    (if (< arg 0)
-        ;; Go backward.
-        (while (and (< arg 0)
-                    (treesit-search-forward-goto
-                     js--treesit-defun-type-regexp 'end nil t))
-          (setq arg (1+ arg)))
-      ;; Go forward.
-      (while (and (> arg 0)
-                  (treesit-search-forward-goto
-                   js--treesit-defun-type-regexp 'end))
-        (setq arg (1- arg))))))
-
-(defun js--backend-toggle (backend warn)
-  "Toggle backend for `js-mode'.
-For BACKEND and WARN see `treesit-mode-function'."
-  (cond
-   ;; Tree-sitter.
-   ((and (eq backend 'treesit) (treesit-ready-p warn 'javascript))
-    (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
-    (setq-local indent-line-function #'treesit-indent)
-
-    (setq-local beginning-of-defun-function #'js--treesit-beginning-of-defun)
-    (setq-local end-of-defun-function #'js--treesit-end-of-defun)
-
-    (add-hook 'which-func-functions #'js-treesit-current-defun nil t)
-
-    (setq-local font-lock-keywords-only t)
-  (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
-  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
-    (treesit-font-lock-enable))
-   ;; Elisp.
-   ((eq backend 'elisp)
-    (setq-local indent-line-function #'js-indent-line)
-    (setq-local beginning-of-defun-function #'js-beginning-of-defun)
-    (setq-local end-of-defun-function #'js-end-of-defun)
-
-    (setq-local font-lock-defaults
-                (list js--font-lock-keywords nil nil nil nil
-                      '(font-lock-syntactic-face-function
-                        . js-font-lock-syntactic-face-function)))
-
-    ;; Imenu
-    (setq imenu-case-fold-search nil)
-    (setq imenu-create-index-function #'js--imenu-create-index))))
-
 ;;; Main Function
 
 ;;;###autoload
@@ -3689,7 +3609,14 @@ For BACKEND and WARN see `treesit-mode-function'."
   :group 'js
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
+  (setq-local indent-line-function #'js-indent-line)
+  (setq-local beginning-of-defun-function #'js-beginning-of-defun)
+  (setq-local end-of-defun-function #'js-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
+  (setq-local font-lock-defaults
+              (list js--font-lock-keywords nil nil nil nil
+                    '(font-lock-syntactic-face-function
+                      . js-font-lock-syntactic-face-function)))
   (setq-local syntax-propertize-function #'js-syntax-propertize)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
@@ -3704,6 +3631,8 @@ For BACKEND and WARN see `treesit-mode-function'."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local fill-paragraph-function #'js-fill-paragraph)
+  (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
   ;; Parse cache
   (add-hook 'before-change-functions #'js--flush-caches t t)
@@ -3716,6 +3645,10 @@ For BACKEND and WARN see `treesit-mode-function'."
     (add-hook 'after-change-functions #'js-jsx--detect-after-change nil t))
   (js-use-syntactic-mode-name)
 
+  ;; Imenu
+  (setq imenu-case-fold-search nil)
+  (setq imenu-create-index-function #'js--imenu-create-index)
+
   ;; for filling, pretend we're cc-mode
   (c-foreign-init-lit-pos-cache)
   (add-hook 'before-change-functions #'c-foreign-truncate-lit-pos-cache nil t)
@@ -3725,9 +3658,6 @@ For BACKEND and WARN see `treesit-mode-function'."
 	      (append "{}():;," electric-indent-chars)) ;FIXME: js2-mode adds "[]*".
   (setq-local electric-layout-rules
 	      '((?\; . after) (?\{ . after) (?\} . before)))
-
-  (setq-local fill-paragraph-function #'js-fill-paragraph)
-  (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
   (let ((c-buffer-is-cc-mode t))
     ;; FIXME: These are normally set by `c-basic-common-init'.  Should
@@ -3756,10 +3686,19 @@ For BACKEND and WARN see `treesit-mode-function'."
   ;; will mysteriously disappear.
   ;; FIXME: We should instead do this fontification lazily by adding
   ;; calls to syntax-propertize wherever it's really needed.
-  ;; (syntax-propertize (point-max))
+  ;;(syntax-propertize (point-max))
 
-  (js--backend-toggle 'elisp nil)
-  (setq-local major-mode-backend-function #'js--backend-toggle))
+  ;; Tree-sitter support.
+  (setq-local treesit-mode-supported t)
+  (setq-local treesit-required-languages '(javascript))
+  (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
+  (setq-local treesit-defun-type-regexp
+              (rx (or "class_declaration"
+                      "method_definition"
+                      "function_declaration"
+                      "lexical_declaration")))
+  (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
+  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full))))
 
 (defvar js-json--treesit-font-lock-settings
   (treesit-font-lock-rules
@@ -3791,29 +3730,18 @@ For BACKEND and WARN see `treesit-mode-function'."
      ((parent-is "object") parent-bol ,js-indent-level)
      )))
 
-(defun js--json-backend-toggle (backend warn)
-  "Toggle backend for `json-mode'.
-For BACKEND and WARN see `treesit-mode-function'."
-  (cond
-   ;; Tree-sitter.
-   ((and (eq backend 'treesit) (treesit-ready-p warn 'json))
-    (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
-    (setq-local indent-line-function #'treesit-indent)
-
-    (setq-local font-lock-keywords-only t)
-    (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings)
-    (treesit-font-lock-enable))
-   ;; Elisp.
-   ((eq backend 'elisp)
-    (js--backend-toggle 'elisp nil))))
-
 ;;;###autoload
 (define-derived-mode js-json-mode js-mode "JSON"
   (setq-local js-enabled-frameworks nil)
   ;; Speed up `syntax-ppss': JSON files can be big but can't hold
   ;; regexp matchers nor #! thingies (and `js-enabled-frameworks' is nil).
   (setq-local syntax-propertize-function #'ignore)
-  (setq-local major-mode-backend-function #'js--json-backend-toggle))
+
+  ;; Tree-sitter support.
+  (setq-local treesit-mode-supported t)
+  (setq-local treesit-required-languages '(json))
+  (setq-local treesit-simple-indent-rules js--json-treesit-indent-rules)
+  (setq-local treesit-font-lock-settings js-json--treesit-font-lock-settings))
 
 ;; Since we made JSX support available and automatically-enabled in
 ;; the base `js-mode' (for ease of use), now `js-jsx-mode' simply

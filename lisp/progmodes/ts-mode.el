@@ -134,7 +134,7 @@
 
      (string) @font-lock-string-face
 
-     (template_string) @ts-mode--fontify-template-string
+     (template_string) @js--fontify-template-string
      (template_substitution ["${" "}"] @font-lock-builtin-face)
 
      (comment) @font-lock-comment-face)
@@ -248,61 +248,6 @@
      (jsx_attribute (property_identifier) @font-lock-constant-face)))
   "Tree-sitter font-lock settings.")
 
-(defun ts-mode--fontify-template-string (beg end node)
-  "Fontify template string but not substitution inside it.
-BEG, END, NODE refers to the template_string node."
-  (ignore end)
-  ;; Stolen from `js--fontify-template-string'
-  (let ((child (treesit-node-child node 0)))
-    (while child
-      (if (equal (treesit-node-type child) "template_substitution")
-          (put-text-property beg (treesit-node-start child)
-                             'face 'font-lock-string-face)
-        (put-text-property beg (treesit-node-end child)
-                           'face 'font-lock-string-face))
-      (setq beg (treesit-node-end child)
-            child (treesit-node-next-sibling child)))))
-
-(defvar ts-mode--defun-type-regexp
-  (rx (or "class_declaration"
-          "method_definition"
-          "function_declaration"
-          "lexical_declaration"))
-  "Regular expression that matches type of defun nodes.
-Used in `ts-mode--beginning-of-defun' and friends.")
-
-(defun ts-mode--beginning-of-defun (&optional arg)
-  "Tree-sitter `beginning-of-defun' function.
-ARG is the same as in `beginning-of-defun."
-  (let ((arg (or arg 1)))
-    (if (> arg 0)
-        ;; Go backward.
-        (while (and (> arg 0)
-                    (treesit-search-forward-goto
-                     ts-mode--defun-type-regexp 'start nil t))
-          (setq arg (1- arg)))
-      ;; Go forward.
-      (while (and (< arg 0)
-                  (treesit-search-forward-goto
-                   ts-mode--defun-type-regexp 'start))
-        (setq arg (1+ arg))))))
-
-(defun ts-mode--end-of-defun (&optional arg)
-  "Tree-sitter `end-of-defun' function.
-ARG is the same as in `end-of-defun."
-  (let ((arg (or arg 1)))
-    (if (< arg 0)
-        ;; Go backward.
-        (while (and (< arg 0)
-                    (treesit-search-forward-goto
-                     ts-mode--defun-type-regexp 'end nil t))
-          (setq arg (1+ arg)))
-      ;; Go forward.
-      (while (and (> arg 0)
-                  (treesit-search-forward-goto
-                   ts-mode--defun-type-regexp 'end))
-        (setq arg (1- arg))))))
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . ts-mode))
 
@@ -315,26 +260,31 @@ ARG is the same as in `end-of-defun."
   :group 'typescript
   :syntax-table ts-mode--syntax-table
 
+  ;; Treesit-mode.
+  (setq-local treesit-mode-supported t)
+  (setq-local treesit-required-languages '(tsx))
+  ;; Comments.
+  (setq-local comment-start "// ")
+  (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+  (setq-local comment-end "")
+  ;; Indent.
+  (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
+  ;; Navigation.
+  (setq-local treesit-defun-type-regexp
+              (rx (or "class_declaration"
+                      "method_definition"
+                      "function_declaration"
+                      "lexical_declaration")))
+  ;; Font-lock.
+  (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
+  (setq-local treesit-font-lock-feature-list '((minimal) (moderate) (full)))
+
   (cond
-   ((treesit-ready-p nil 'tsx)
-    ;; Comments
-    (setq-local comment-start "// ")
-    (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
-    (setq-local comment-end "")
-
-    (setq-local treesit-simple-indent-rules ts-mode--indent-rules)
-    (setq-local indent-line-function #'treesit-indent)
-
-    (setq-local beginning-of-defun-function #'ts-mode--beginning-of-defun)
-    (setq-local end-of-defun-function #'ts-mode--end-of-defun)
-
-    (setq font-lock-keywords-only t)
-    (setq-local treesit-font-lock-settings ts-mode--font-lock-settings)
-    (setq treesit-font-lock-feature-list '((minimal) (moderate) (full)))
-    (treesit-font-lock-enable))
+   ((treesit-ready-p '(tsx))
+    (treesit-mode))
    (t
-    (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'")
-    (js-mode))))
+    (js-mode)
+    (message "Tree-sitter for TypeScript isn't available, falling back to `js-mode'"))))
 
 (provide 'ts-mode)
 

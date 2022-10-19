@@ -6375,35 +6375,6 @@ Add import for undefined name `%s' (empty to skip): "
 (defvar electric-indent-inhibit)
 (defvar prettify-symbols-alist)
 
-(defun python--backend-toggle (backend warn)
-  "Toggle backend for `python-mode'.
-BACKEND and WARN are explained in `treesit-mode-function'."
-  (cond
-   ;; Tree-sitter.
-   ((and (eq backend 'treesit) (treesit-ready-p warn 'python))
-    (setq-local font-lock-keywords-only t)
-    (setq-local treesit-font-lock-feature-list
-                '((basic) (moderate) (elaborate)))
-    (setq-local treesit-font-lock-settings
-                python--treesit-settings)
-    (treesit-font-lock-enable)
-    (setq-local imenu-create-index-function
-                #'python-imenu-treesit-create-index)
-    (add-hook 'which-func-functions
-              #'python-info-treesit-current-defun nil t))
-   ;; Elisp.
-   ((eq backend 'elisp)
-    (setq-local font-lock-defaults
-                `(,python-font-lock-keywords
-                  nil nil nil nil
-                  (font-lock-syntactic-face-function
-                   . python-font-lock-syntactic-face-function)
-                  (font-lock-extend-after-change-region-function
-                   . python-font-lock-extend-region)))
-    (setq-local imenu-create-index-function
-                #'python-imenu-create-index)
-    (add-hook 'which-func-functions #'python-info-current-defun nil t))))
-
 ;;;###autoload
 (define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
@@ -6420,9 +6391,11 @@ BACKEND and WARN are explained in `treesit-mode-function'."
 
   (setq-local forward-sexp-function python-forward-sexp-function)
 
-  (python--backend-toggle 'elisp nil)
-
-  (setq-local major-mode-backend-function #'python--backend-toggle)
+  (setq-local font-lock-defaults
+              `(,python-font-lock-keywords
+                nil nil nil nil
+                (font-lock-syntactic-face-function
+                 . python-font-lock-syntactic-face-function)))
 
   (setq-local syntax-propertize-function
               python-syntax-propertize-function)
@@ -6451,8 +6424,13 @@ BACKEND and WARN are explained in `treesit-mode-function'."
   (add-hook 'post-self-insert-hook
             #'python-indent-post-self-insert-function 'append 'local)
 
+  (setq-local imenu-create-index-function
+              #'python-imenu-create-index)
+
   (setq-local add-log-current-defun-function
               #'python-info-current-defun)
+
+  (add-hook 'which-func-functions #'python-info-current-defun nil t)
 
   (setq-local skeleton-further-elements
               '((abbrev-mode nil)
@@ -6462,13 +6440,13 @@ BACKEND and WARN are explained in `treesit-mode-function'."
 
   (with-no-warnings
     ;; suppress warnings about eldoc-documentation-function being obsolete
-   (if (null eldoc-documentation-function)
-       ;; Emacs<25
-       (setq-local eldoc-documentation-function #'python-eldoc-function)
-     (if (boundp 'eldoc-documentation-functions)
-         (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
-       (add-function :before-until (local 'eldoc-documentation-function)
-                     #'python-eldoc-function))))
+    (if (null eldoc-documentation-function)
+        ;; Emacs<25
+        (setq-local eldoc-documentation-function #'python-eldoc-function)
+      (if (boundp 'eldoc-documentation-functions)
+          (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
+        (add-function :before-until (local 'eldoc-documentation-function)
+                      #'python-eldoc-function))))
 
   (add-to-list
    'hs-special-modes-alist
@@ -6499,7 +6477,15 @@ BACKEND and WARN are explained in `treesit-mode-function'."
   (when python-indent-guess-indent-offset
     (python-indent-guess-indent-offset))
 
-  (add-hook 'flymake-diagnostic-functions #'python-flymake nil t))
+  (add-hook 'flymake-diagnostic-functions #'python-flymake nil t)
+
+  (setq-local treesit-mode-supported t)
+  (setq-local treesit-required-languages '(python))
+  (setq-local treesit-font-lock-feature-list
+              '((basic) (moderate) (elaborate)))
+  (setq-local treesit-font-lock-settings python--treesit-settings)
+  (setq-local treesit-imenu-function
+              #'python-imenu-treesit-create-index))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code
