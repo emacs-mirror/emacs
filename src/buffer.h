@@ -1275,7 +1275,7 @@ INLINE bool
 buffer_has_overlays (void)
 {
   return current_buffer->overlays
-         && (current_buffer->overlays->root != ITREE_NULL);
+         && (current_buffer->overlays->root != NULL);
 }
 
 /* Functions for accessing a character or byte,

@@ -2863,7 +2863,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   DUMP_FIELD_COPY (out, buffer, inhibit_buffer_hooks);
   DUMP_FIELD_COPY (out, buffer, long_line_optimizations_p);
 
-  if (buffer->overlays && buffer->overlays->root != ITREE_NULL)
+  if (buffer->overlays && buffer->overlays->root != NULL)
     /* We haven't implemented the code to dump overlays.  */
     emacs_abort ();
   else

@@ -95,9 +95,6 @@ struct interval_node
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
 
-/* FIXME: replace ITREE_NULL -> NULL everywhere  */
-#define ITREE_NULL NULL
-
 struct interval_tree
 {
   struct interval_node *root;
