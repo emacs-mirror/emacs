@@ -235,8 +235,7 @@ but have common elements %s" key1 key2 common))))
 (defun import (symbols &optional package)
   (let ((package (pkg--package-or-default package))
         (symbols (pkg--symbol-listify symbols)))
-
-  (error "not yet implemented"))
+    (error "not yet implemented")))
 
 ;;;###autoload
 (defun shadow (symbols &optional package)
