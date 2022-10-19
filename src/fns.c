@@ -4705,12 +4705,13 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 
 /* Remove the entry matching KEY from hash table H, if there is one.  */
 
-void
+bool
 hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   Lisp_Object hash_code = h->test.hashfn (key, h);
   ptrdiff_t start_of_bucket = XUFIXNUM (hash_code) % ASIZE (h->index);
   ptrdiff_t prev = -1;
+  bool deleted = false;
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i;
@@ -4736,11 +4737,14 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 	  h->next_free = i;
 	  h->count--;
 	  eassert (h->count >= 0);
+	  deleted = true;
 	  break;
 	}
 
       prev = i;
     }
+
+  return deleted;
 }
 
 
