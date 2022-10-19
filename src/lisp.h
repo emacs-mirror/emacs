@@ -2604,7 +2604,7 @@ struct Lisp_Overlay
     union vectorlike_header header;
     Lisp_Object plist;
     struct buffer *buffer;        /* eassert (live buffer || NULL). */
-    struct interval_node *interval;
+    struct itree_node *interval;
   } GCALIGNED_STRUCT;
 
 struct Lisp_Misc_Ptr

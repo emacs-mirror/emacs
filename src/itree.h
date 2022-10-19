@@ -36,15 +36,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    returns as a side-effect.  See ITREE_FOREACH.
  */
 
-struct interval_node;
-struct interval_node
+struct itree_node
 {
   /* The normal parent, left and right links found in binary trees.
      See also `red`, below, which completes the Red-Black tree
      representation.  */
-  struct interval_node *parent;
-  struct interval_node *left;
-  struct interval_node *right;
+  struct itree_node *parent;
+  struct itree_node *left;
+  struct itree_node *right;
 
   /* The following five fields comprise the interval abstraction.
 
@@ -63,7 +62,7 @@ struct interval_node
 
      OTICK determines whether BEGIN, END, LIMIT and OFFSET are
      considered dirty.  A node is clean when its OTICK is equal to the
-     OTICK of its tree (see struct interval_tree).  Otherwise, it is
+     OTICK of its tree (see struct itree_tree).  Otherwise, it is
      dirty.
 
      In a clean node, BEGIN, END and LIMIT are correct buffer
@@ -95,44 +94,44 @@ struct interval_node
   bool_bf front_advance : 1;    /* Same as for marker and overlays.  */
 };
 
-struct interval_tree
+struct itree_tree
 {
-  struct interval_node *root;
+  struct itree_node *root;
   uintmax_t otick;              /* offset tick, compared with node's otick. */
   intmax_t size;                /* Number of nodes in the tree. */
 };
 
-enum interval_tree_order {
+enum itree_order {
   ITREE_ASCENDING,
   ITREE_DESCENDING,
   ITREE_PRE_ORDER,
 };
 
-void interval_node_init (struct interval_node *, bool, bool, Lisp_Object);
-ptrdiff_t interval_node_begin (struct interval_tree *, struct interval_node *);
-ptrdiff_t interval_node_end (struct interval_tree *, struct interval_node *);
-void interval_node_set_region (struct interval_tree *, struct interval_node *, ptrdiff_t, ptrdiff_t);
-struct interval_tree *interval_tree_create (void);
-void interval_tree_destroy (struct interval_tree *);
-intmax_t interval_tree_size (struct interval_tree *);
-void interval_tree_clear (struct interval_tree *);
-void itree_insert_node (struct interval_tree *tree, struct interval_node *node,
+void interval_node_init (struct itree_node *, bool, bool, Lisp_Object);
+ptrdiff_t interval_node_begin (struct itree_tree *, struct itree_node *);
+ptrdiff_t interval_node_end (struct itree_tree *, struct itree_node *);
+void interval_node_set_region (struct itree_tree *, struct itree_node *, ptrdiff_t, ptrdiff_t);
+struct itree_tree *interval_tree_create (void);
+void interval_tree_destroy (struct itree_tree *);
+intmax_t interval_tree_size (struct itree_tree *);
+void interval_tree_clear (struct itree_tree *);
+void itree_insert_node (struct itree_tree *tree, struct itree_node *node,
                         ptrdiff_t begin, ptrdiff_t end);
-struct interval_node *interval_tree_remove (struct interval_tree *, struct interval_node *);
-void interval_tree_insert_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
-void interval_tree_delete_gap (struct interval_tree *, ptrdiff_t, ptrdiff_t);
+struct itree_node *interval_tree_remove (struct itree_tree *, struct itree_node *);
+void interval_tree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+void interval_tree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
 
 /* Iteration functions.  Almost all code should use ITREE_FOREACH
    instead.  */
 bool itree_iterator_busy_p (void);
 struct itree_iterator *
-itree_iterator_start (struct interval_tree *tree, ptrdiff_t begin,
-                      ptrdiff_t end, enum interval_tree_order order,
+itree_iterator_start (struct itree_tree *tree, ptrdiff_t begin,
+                      ptrdiff_t end, enum itree_order order,
                       const char *file, int line);
 void itree_iterator_narrow (struct itree_iterator *, ptrdiff_t,
                             ptrdiff_t);
 void itree_iterator_finish (struct itree_iterator *);
-struct interval_node *itree_iterator_next (struct itree_iterator *);
+struct itree_node *itree_iterator_next (struct itree_iterator *);
 
 /* Iterate over the intervals between BEG and END in the tree T.
    N will hold successive nodes.  ORDER can be one of : `ASCENDING`,

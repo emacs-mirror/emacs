@@ -634,7 +634,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
   if (BUFFERP (object))
     {
       struct buffer *b = XBUFFER (object);
-      struct interval_node *node;
+      struct itree_node *node;
       struct sortvec items[2];
       struct sortvec *result = NULL;
       Lisp_Object result_tem = Qnil;

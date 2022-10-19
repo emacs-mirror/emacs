@@ -655,7 +655,7 @@ static void
 copy_overlays (struct buffer *from, struct buffer *to)
 {
   eassert (to && ! to->overlays);
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, from->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     {
@@ -932,13 +932,13 @@ drop_overlay (struct Lisp_Overlay *ov)
 void
 delete_all_overlays (struct buffer *b)
 {
-  struct interval_node *node;
+  struct itree_node *node;
 
   if (! b->overlays)
     return;
 
   /* FIXME: This loop sets the overlays' `buffer` field to NULL but
-     doesn't set the interval_nodes' `parent`, `left` and `right`
+     doesn't set the itree_nodes' `parent`, `left` and `right`
      fields accordingly.  I believe it's harmless, but a bit untidy since
      other parts of the code are careful to set those fields to NULL when
      the overlay is deleted.
@@ -978,8 +978,8 @@ set_overlays_multibyte (bool multibyte)
   if (! current_buffer->overlays || Z == Z_BYTE)
     return;
 
-  struct interval_node **nodes = NULL;
-  struct interval_tree *tree = current_buffer->overlays;
+  struct itree_node **nodes = NULL;
+  struct itree_tree *tree = current_buffer->overlays;
   const intmax_t size = interval_tree_size (tree);
 
   /* We can't use `interval_node_set_region` at the same time
@@ -988,14 +988,14 @@ set_overlays_multibyte (bool multibyte)
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (nodes, 1, size);
   {
-    struct interval_node *node, **cursor = nodes;
+    struct itree_node *node, **cursor = nodes;
     ITREE_FOREACH (node, tree, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
       *(cursor++) = node;
   }
 
   for (int i = 0; i < size; ++i, ++nodes)
     {
-      struct interval_node * const node = *nodes;
+      struct itree_node * const node = *nodes;
 
       if (multibyte)
         {
@@ -2436,7 +2436,7 @@ advance_to_char_boundary (ptrdiff_t byte_pos)
 static void
 swap_buffer_overlays (struct buffer *buffer, struct buffer *other)
 {
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, buffer->overlays, PTRDIFF_MIN, PTRDIFF_MAX, ASCENDING)
     XOVERLAY (node->data)->buffer = other;
@@ -2965,7 +2965,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
   ptrdiff_t len = *len_ptr;
   ptrdiff_t next = ZV;
   Lisp_Object *vec = *vec_ptr;
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, current_buffer->overlays, beg,
                  /* Find empty OV at Z ? */
@@ -3026,7 +3026,7 @@ ptrdiff_t
 next_overlay_change (ptrdiff_t pos)
 {
   ptrdiff_t next = ZV;
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, current_buffer->overlays, pos, next, ASCENDING)
     {
@@ -3052,7 +3052,7 @@ next_overlay_change (ptrdiff_t pos)
 ptrdiff_t
 previous_overlay_change (ptrdiff_t pos)
 {
-  struct interval_node *node;
+  struct itree_node *node;
   ptrdiff_t prev = BEGV;
 
   ITREE_FOREACH (node, current_buffer->overlays, prev, pos, DESCENDING)
@@ -3135,7 +3135,7 @@ disable_line_numbers_overlay_at_eob (void)
 bool
 overlay_touches_p (ptrdiff_t pos)
 {
-  struct interval_node *node;
+  struct itree_node *node;
 
   /* We need to find overlays ending in pos, as well as empty ones at
      pos. */
@@ -3347,7 +3347,7 @@ ptrdiff_t
 overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
 {
   bool multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
-  struct interval_node *node;
+  struct itree_node *node;
 
   overlay_heads.used = overlay_heads.bytes = 0;
   overlay_tails.used = overlay_tails.bytes = 0;
@@ -3848,7 +3848,7 @@ However, the overlays you get are the real objects that the buffer uses. */)
   (void)
 {
   Lisp_Object overlays = Qnil;
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, current_buffer->overlays, BEG, Z, DESCENDING)
     overlays = Fcons (node->data, overlays);
@@ -3980,7 +3980,7 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 
   if (!after)
     {
-      struct interval_node *node;
+      struct itree_node *node;
       EMACS_INT begin_arg = XFIXNUM (start);
       EMACS_INT end_arg = XFIXNUM (end);
       /* We are being called before a change.
@@ -4072,7 +4072,7 @@ void
 evaporate_overlays (ptrdiff_t pos)
 {
   Lisp_Object hit_list = Qnil;
-  struct interval_node *node;
+  struct itree_node *node;
 
   ITREE_FOREACH (node, current_buffer->overlays, pos, pos, ASCENDING)
     {
@@ -4913,7 +4913,7 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 
 #ifdef ITREE_DEBUG
 static Lisp_Object
-make_lispy_interval_node (const struct interval_node *node)
+make_lispy_itree_node (const struct itree_node *node)
 {
   return listn (12,
                 intern (":begin"),
@@ -4931,12 +4931,12 @@ make_lispy_interval_node (const struct interval_node *node)
 }
 
 static Lisp_Object
-overlay_tree (const struct interval_tree *tree,
-              const struct interval_node *node)
+overlay_tree (const struct itree_tree *tree,
+              const struct itree_node *node)
 {
   if (node == ITREE_NULL)
     return Qnil;
-  return list3 (make_lispy_interval_node (node),
+  return list3 (make_lispy_itree_node (node),
                 overlay_tree (tree, node->left),
                 overlay_tree (tree, node->right));
 }

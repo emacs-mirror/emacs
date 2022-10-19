@@ -3711,7 +3711,7 @@ build_overlay (bool front_advance, bool rear_advance,
   struct Lisp_Overlay *p = ALLOCATE_PSEUDOVECTOR (struct Lisp_Overlay, plist,
 						  PVEC_OVERLAY);
   Lisp_Object overlay = make_lisp_ptr (p, Lisp_Vectorlike);
-  struct interval_node *node = xmalloc (sizeof (*node));
+  struct itree_node *node = xmalloc (sizeof (*node));
   interval_node_init (node, front_advance, rear_advance, overlay);
   p->interval = node;
   p->buffer = NULL;
@@ -6518,7 +6518,7 @@ mark_overlay (struct Lisp_Overlay *ov)
 /* Mark the overlay subtree rooted at NODE.  */
 
 static void
-mark_overlays (struct interval_node *node)
+mark_overlays (struct itree_node *node)
 {
   if (node == NULL)
     return;

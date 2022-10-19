@@ -698,7 +698,7 @@ struct buffer
   bool_bf long_line_optimizations_p : 1;
 
   /* The inveral tree containing this buffer's overlays. */
-  struct interval_tree *overlays;
+  struct itree_tree *overlays;
 
   /* Changes in the buffer are recorded here for undo, and t means
      don't record anything.  This information belongs to the base

@@ -6534,7 +6534,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
   struct overlay_entry entriesbuf[20];
   ptrdiff_t size = ARRAYELTS (entriesbuf);
   struct overlay_entry *entries = entriesbuf;
-  struct interval_node *node;
+  struct itree_node *node;
 
   USE_SAFE_ALLOCA;
 
@@ -7001,7 +7001,7 @@ back_to_previous_line_start (struct it *it)
 static bool
 strings_with_newlines (ptrdiff_t startpos, ptrdiff_t endpos, struct window *w)
 {
-  struct interval_node *node;
+  struct itree_node *node;
   /* Process overlays.  */
   ITREE_FOREACH (node, current_buffer->overlays, startpos, endpos, DESCENDING)
     {

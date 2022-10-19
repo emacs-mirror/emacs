@@ -2134,13 +2134,13 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 }
 
 static dump_off
-dump_interval_node (struct dump_context *ctx, struct interval_node *node,
+dump_interval_node (struct dump_context *ctx, struct itree_node *node,
                     dump_off parent_offset)
 {
 #if CHECK_STRUCTS && !defined (HASH_interval_node_5765524F7E)
 # error "interval_node changed. See CHECK_STRUCTS comment in config.h."
 #endif
-  struct interval_node out;
+  struct itree_node out;
   dump_object_start (ctx, &out, sizeof (out));
   if (node->parent)
     dump_field_fixup_later (ctx, &out, node, &node->parent);
@@ -2161,17 +2161,17 @@ dump_interval_node (struct dump_context *ctx, struct interval_node *node,
   if (node->parent)
       dump_remember_fixup_ptr_raw
 	(ctx,
-	 offset + dump_offsetof (struct interval_node, parent),
+	 offset + dump_offsetof (struct itree_node, parent),
 	 dump_interval_node (ctx, node->parent, offset));
   if (node->left)
       dump_remember_fixup_ptr_raw
 	(ctx,
-	 offset + dump_offsetof (struct interval_node, left),
+	 offset + dump_offsetof (struct itree_node, left),
 	 dump_interval_node (ctx, node->left, offset));
   if (node->right)
       dump_remember_fixup_ptr_raw
 	(ctx,
-	 offset + dump_offsetof (struct interval_node, right),
+	 offset + dump_offsetof (struct itree_node, right),
 	 dump_interval_node (ctx, node->right, offset));
   return offset;
 }
