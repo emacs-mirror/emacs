@@ -885,7 +885,7 @@ supported major mode, and how to invoke that server's program.
 @xref{Setting Up LSP Servers}, for the details.
 
 @vindex eglot-strict-mode
-@item eglot-strict-mode:
+@item eglot-strict-mode
 This is @code{nil} by default, meaning that Eglot is generally lenient
 about non-conforming servers.  If you need to debug a server, set this
 to @w{@code{(disallow-non-standard-keys enforce-required-keys)}}.
