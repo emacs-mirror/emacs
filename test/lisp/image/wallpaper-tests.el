@@ -99,9 +99,16 @@
                 ("touch" "touch" fil
                  :init-action (lambda () (setq called t)))))
               (wallpaper-command (wallpaper--find-command))
-              (wallpaper-command-args (wallpaper--find-command-args)))
+              (wallpaper-command-args (wallpaper--find-command-args))
+              (start (time-convert nil 'integer))
+              (timeout 3) process)
         (should (functionp (wallpaper-setter-init-action wallpaper--current-setter)))
-        (wallpaper-set fil-jpg)
+        (setq process (wallpaper-set fil-jpg))
+        ;; Wait for "touch" process to exit so temp file is removed.
+        (while (and (< (- (time-convert nil 'integer) start)
+                       timeout)
+                    (process-live-p process))
+          (sit-for 0.01))
         (should called)))))
 
 (ert-deftest wallpaper-set/calls-wallpaper-set-function ()
