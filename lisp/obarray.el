@@ -32,16 +32,19 @@
 
 (defun obarray-make (&optional size)
   "Return a new obarray of size SIZE or `obarray-default-size'."
-  (make-%package "obarray" (or size 31)))
+  (let ((size (or size obarray-default-size)))
+    (if (< 0 size)
+        (make-vector size 0)
+      (signal 'wrong-type-argument '(size 0)))))
 
-(defun obarray-size (_ob)
+(defun obarray-size (ob)
   "Return the number of slots of obarray OB."
-  obarray-default-size)
+  (length ob))
 
 (defun obarrayp (object)
   "Return t if OBJECT is an obarray."
-  (or (packagep object)
-      (vectorp object)))
+  (and (vectorp object)
+       (< 0 (length object))))
 
 ;; Don’t use obarray as a variable name to avoid shadowing.
 (defun obarray-get (ob name)
