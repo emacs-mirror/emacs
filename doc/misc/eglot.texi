@@ -88,11 +88,11 @@ This manual documents how to configure, use, and customize Eglot.
 @insertcopying
 
 @menu
-* Quick Start::              For the impatient.
-* Eglot and LSP Servers::    How to work with language servers
-* Using Eglot::              Important Eglot commands and variables.
-* Customizing Eglot::        Eglot customization and advanced features.
-* Troubleshooting Eglot::    Troubleshooting and reporting bugs.
+* Quick Start::                 For the impatient.
+* Eglot and LSP Servers::       How to work with language servers
+* Using Eglot::                 Important Eglot commands and variables.
+* Customizing Eglot::           Eglot customization and advanced features.
+* Troubleshooting Eglot::       Troubleshooting and reporting bugs.
 * GNU Free Documentation License::  The license for this manual.
 * Index::
 @end menu
@@ -164,13 +164,13 @@ This chapter describes how to set up Eglot for your needs, and how to
 start it.
 
 @menu
-* Setting Up LSP Server::        How to configure LSP servers for your needs.
-* Starting Eglot::               Ways of starting Eglot for your project.
-* Shutting Down LSP Server::
+* Setting Up LSP Servers::   How to configure LSP servers for your needs.
+* Starting Eglot::              Ways of starting Eglot for your project.
+* Shutting Down LSP Servers::
 @end menu
 
-@node Setting Up LSP Server
-@section Setting Up LSP Server
+@node Setting Up LSP Servers
+@section Setting Up LSP Servers
 @cindex setting up LSP server for Eglot
 @cindex language server for Eglot
 
@@ -321,8 +321,8 @@ When Eglot connects to a language server for the first time in an
 Emacs session, it runs the hook @code{eglot-connect-hook}
 (@pxref{Eglot Variables}).
 
-@node Shutting Down LSP Server
-@section Shutting Down LSP Server
+@node Shutting Down LSP Servers
+@section Shutting Down LSP Servers
 @cindex shutting down LSP server
 
 When Eglot is turned on, it arranges for turning itself off
@@ -803,7 +803,7 @@ restarted using @kbd{eglot-shutdown} followed by
 
 @item eglot-autoshutdown
 If this is non-@code{nil}, Eglot shuts down a language server when the
-last buffer managed by it is killed.  @xref{Shutting Down LSP Server}.
+last buffer managed by it is killed.  @xref{Shutting Down LSP Servers}.
 The default is @code{nil}; if you want to shut down a server, use
 @kbd{M-x eglot-shutdown} (@pxref{Eglot Commands}).
 
@@ -882,7 +882,7 @@ connections and the server features to be used by Eglot.
 @item eglot-server-programs
 This variable determines which language server to start for each
 supported major mode, and how to invoke that server's program.
-@xref{Setting Up LSP Server}, for the details.
+@xref{Setting Up LSP Servers}, for the details.
 
 @vindex eglot-strict-mode
 @item eglot-strict-mode:
