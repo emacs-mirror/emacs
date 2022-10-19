@@ -2080,13 +2080,14 @@ with // and /*, not more generic line and block comments."
 (defun c-update-new-id (end)
   ;; Note the bounds of any identifier that END is in or just after, in
   ;; `c-new-id-start' and `c-new-id-end'.  Otherwise set these variables to
-  ;; nil.
+  ;; nil.  Set `c-new-id-is-type' unconditionally to nil.
   (save-excursion
     (goto-char end)
     (let ((id-beg (c-on-identifier)))
       (setq c-new-id-start id-beg
 	    c-new-id-end (and id-beg
-			      (progn (c-end-of-current-token) (point)))))))
+			      (progn (c-end-of-current-token) (point)))
+	    c-new-id-is-type nil))))
 
 (defun c-post-command ()
   ;; If point was inside of a new identifier and no longer is, record that
