@@ -186,27 +186,6 @@ package_or_default (Lisp_Object designator)
   return package_from_designator (designator);
 }
 
-/* Check for conflicts of NAME and NICKNAMES with registered packages.
-   Value is the conflicting package or nil.  */
-
-static Lisp_Object
-conflicting_package (Lisp_Object name, Lisp_Object nicknames)
-{
-  const Lisp_Object conflict = pkg_find_package (name);
-  if (!NILP (conflict))
-    return conflict;
-
-  Lisp_Object tail = nicknames;
-  FOR_EACH_TAIL (tail)
-    {
-      const Lisp_Object conflict = pkg_find_package (XCAR (tail));
-      if (!NILP (conflict))
-	return conflict;
-    }
-
-  return Qnil;
-}
-
 /* Register package PACKAGE in the package registry, that is, make it
    known under its name and all its nicknames.  */
 
@@ -565,6 +544,7 @@ Lisp_Object
 pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 {
   /* intern-soft allows symbols.  */
+  Lisp_Object orig = name;
   if (SYMBOLP (name))
     name = SYMBOL_NAME (name);
   CHECK_STRING (name);
@@ -582,14 +562,14 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
   package = package_or_default (package);
 
   Lisp_Object found = lookup_symbol (name, package);
-  if (!EQ (found, Qunbound))
-    {
-      /* We should never find an uninterned symbol in a package.  */
-      eassert (!NILP (SYMBOL_PACKAGE (found)));
-      return found;
-    }
+  if (EQ (found, Qunbound))
+    return Qnil;
+  if (SYMBOLP (orig) && !EQ (found, orig))
+    return Qnil;
 
-  return Qnil;
+  /* We should never find an uninterned symbol in a package.  */
+  eassert (!NILP (SYMBOL_PACKAGE (found)));
+  return found;
 }
 
 /* Implements Emacs' old Funintern function.  */
