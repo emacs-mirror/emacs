@@ -1398,7 +1398,7 @@ overlay_start (struct Lisp_Overlay *ov)
 {
   if (! ov->buffer)
     return -1;
-  return interval_node_begin (ov->buffer->overlays, ov->interval);
+  return itree_node_begin (ov->buffer->overlays, ov->interval);
 }
 
 INLINE ptrdiff_t
@@ -1406,7 +1406,7 @@ overlay_end (struct Lisp_Overlay *ov)
 {
   if (! ov->buffer)
     return -1;
-  return interval_node_end (ov->buffer->overlays, ov->interval);
+  return itree_node_end (ov->buffer->overlays, ov->interval);
 }
 
 /* Return the start of OV in its buffer, or -1 if OV is not associated

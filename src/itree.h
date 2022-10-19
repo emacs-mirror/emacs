@@ -75,10 +75,9 @@ struct itree_node
      adjustment before use as buffer positions.
 
      NOTE: BEGIN and END must not be modified while the node is part
-     of a tree.  Use interval_tree_insert_gap and
-     interval_tree_delete_gap instead.
+     of a tree.  Use itree_insert_gap and itree_delete_gap instead.
 
-     NOTE: The interval generators ensure nodes are clean before
+     NOTE: The interval iterators ensure nodes are clean before
      yielding them, so BEGIN and END may be safely used as buffer
      positions then.
   */
@@ -107,19 +106,21 @@ enum itree_order {
   ITREE_PRE_ORDER,
 };
 
-void interval_node_init (struct itree_node *, bool, bool, Lisp_Object);
-ptrdiff_t interval_node_begin (struct itree_tree *, struct itree_node *);
-ptrdiff_t interval_node_end (struct itree_tree *, struct itree_node *);
-void interval_node_set_region (struct itree_tree *, struct itree_node *, ptrdiff_t, ptrdiff_t);
-struct itree_tree *interval_tree_create (void);
-void interval_tree_destroy (struct itree_tree *);
-intmax_t interval_tree_size (struct itree_tree *);
-void interval_tree_clear (struct itree_tree *);
-void itree_insert_node (struct itree_tree *tree, struct itree_node *node,
-                        ptrdiff_t begin, ptrdiff_t end);
-struct itree_node *interval_tree_remove (struct itree_tree *, struct itree_node *);
-void interval_tree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
-void interval_tree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+void itree_node_init (struct itree_node *, bool, bool, Lisp_Object);
+ptrdiff_t itree_node_begin (struct itree_tree *, struct itree_node *);
+ptrdiff_t itree_node_end (struct itree_tree *, struct itree_node *);
+void itree_node_set_region (struct itree_tree *, struct itree_node *,
+                            ptrdiff_t, ptrdiff_t);
+struct itree_tree *itree_create (void);
+void itree_destroy (struct itree_tree *);
+intmax_t itree_size (struct itree_tree *);
+void itree_clear (struct itree_tree *);
+void itree_insert (struct itree_tree *tree, struct itree_node *node,
+                   ptrdiff_t begin, ptrdiff_t end);
+struct itree_node *itree_remove (struct itree_tree *,
+                                 struct itree_node *);
+void itree_insert_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
+void itree_delete_gap (struct itree_tree *, ptrdiff_t, ptrdiff_t);
 
 /* Iteration functions.  Almost all code should use ITREE_FOREACH
    instead.  */

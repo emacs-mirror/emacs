@@ -3712,7 +3712,7 @@ build_overlay (bool front_advance, bool rear_advance,
 						  PVEC_OVERLAY);
   Lisp_Object overlay = make_lisp_ptr (p, Lisp_Vectorlike);
   struct itree_node *node = xmalloc (sizeof (*node));
-  interval_node_init (node, front_advance, rear_advance, overlay);
+  itree_node_init (node, front_advance, rear_advance, overlay);
   p->interval = node;
   p->buffer = NULL;
   set_overlay_plist (overlay, plist);

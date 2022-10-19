@@ -511,7 +511,7 @@ interval_tree_validate (struct itree_tree *tree, struct itree_node *node)
 /* Initialize an allocated node. */
 
 void
-interval_node_init (struct itree_node *node,
+itree_node_init (struct itree_node *node,
                     bool front_advance, bool rear_advance,
                     Lisp_Object data)
 {
@@ -528,7 +528,7 @@ interval_node_init (struct itree_node *node,
 /* Return NODE's begin value, computing it if necessary. */
 
 ptrdiff_t
-interval_node_begin (struct itree_tree *tree,
+itree_node_begin (struct itree_tree *tree,
                      struct itree_node *node)
 {
   interval_tree_validate (tree, node);
@@ -538,7 +538,7 @@ interval_node_begin (struct itree_tree *tree,
 /* Return NODE's end value, computing it if necessary. */
 
 ptrdiff_t
-interval_node_end (struct itree_tree *tree,
+itree_node_end (struct itree_tree *tree,
                    struct itree_node *node)
 {
   interval_tree_validate (tree, node);
@@ -548,7 +548,7 @@ interval_node_end (struct itree_tree *tree,
 /* Allocate an interval_tree. Free with interval_tree_destroy. */
 
 struct itree_tree*
-interval_tree_create (void)
+itree_create (void)
 {
   /* FIXME?  Maybe avoid the initialization of itree_null in the same
      way that is used to call mem_init in alloc.c?  It's not really
@@ -556,14 +556,14 @@ interval_tree_create (void)
   itree_init ();
 
   struct itree_tree *tree = xmalloc (sizeof (*tree));
-  interval_tree_clear (tree);
+  itree_clear (tree);
   return tree;
 }
 
 /* Reset the tree TREE to its empty state.  */
 
 void
-interval_tree_clear (struct itree_tree *tree)
+itree_clear (struct itree_tree *tree)
 {
   tree->root = NULL;
   tree->otick = 1;
@@ -583,7 +583,7 @@ interval_tree_init (struct interval_tree *tree)
 
 /* Release a tree, freeing its allocated memory.  */
 void
-interval_tree_destroy (struct itree_tree *tree)
+itree_destroy (struct itree_tree *tree)
 {
   eassert (tree->root == NULL);
   /* if (tree->iter)
@@ -594,7 +594,7 @@ interval_tree_destroy (struct itree_tree *tree)
 /* Return the number of nodes in TREE.  */
 
 intmax_t
-interval_tree_size (struct itree_tree *tree)
+itree_size (struct itree_tree *tree)
 {
   return tree->size;
 }
@@ -821,7 +821,7 @@ interval_tree_insert (struct itree_tree *tree, struct itree_node *node)
 }
 
 void
-itree_insert_node (struct itree_tree *tree, struct itree_node *node,
+itree_insert (struct itree_tree *tree, struct itree_node *node,
                    ptrdiff_t begin, ptrdiff_t end)
 {
   node->begin = begin;
@@ -833,14 +833,14 @@ itree_insert_node (struct itree_tree *tree, struct itree_node *node,
 /* Safely modify a node's interval. */
 
 void
-interval_node_set_region (struct itree_tree *tree,
+itree_node_set_region (struct itree_tree *tree,
                           struct itree_node *node,
                           ptrdiff_t begin, ptrdiff_t end)
 {
   interval_tree_validate (tree, node);
   if (begin != node->begin)
     {
-      interval_tree_remove (tree, node);
+      itree_remove (tree, node);
       node->begin = min (begin, PTRDIFF_MAX - 1);
       node->end = max (node->begin, end);
       interval_tree_insert (tree, node);
@@ -1054,7 +1054,7 @@ interval_tree_transplant (struct itree_tree *tree,
 /* Remove NODE from TREE and return it.  NODE must exist in TREE.  */
 
 struct itree_node*
-interval_tree_remove (struct itree_tree *tree, struct itree_node *node)
+itree_remove (struct itree_tree *tree, struct itree_node *node)
 {
   eassert (interval_tree_contains (tree, node));
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
@@ -1181,7 +1181,7 @@ itree_iterator_finish (struct itree_iterator *iter)
    front_advance setting. */
 
 void
-interval_tree_insert_gap (struct itree_tree *tree,
+itree_insert_gap (struct itree_tree *tree,
                           ptrdiff_t pos, ptrdiff_t length)
 {
   if (length <= 0 || tree->root == NULL)
@@ -1201,7 +1201,7 @@ interval_tree_insert_gap (struct itree_tree *tree,
         interval_stack_push (saved, node);
     }
   for (int i = 0; i < saved->length; ++i)
-    interval_tree_remove (tree, nav_nodeptr (saved->nodes[i]));
+    itree_remove (tree, nav_nodeptr (saved->nodes[i]));
 
   /* We can't use an iterator here, because we can't effectively
      narrow AND shift some subtree at the same time. */
@@ -1265,7 +1265,7 @@ interval_tree_insert_gap (struct itree_tree *tree,
    intersecting it. */
 
 void
-interval_tree_delete_gap (struct itree_tree *tree,
+itree_delete_gap (struct itree_tree *tree,
                           ptrdiff_t pos, ptrdiff_t length)
 {
   if (length <= 0 || tree->root == NULL)

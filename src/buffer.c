@@ -644,9 +644,9 @@ add_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov,
 {
   eassert (! ov->buffer);
   if (! b->overlays)
-    b->overlays = interval_tree_create ();
+    b->overlays = itree_create ();
   ov->buffer = b;
-  itree_insert_node (b->overlays, ov->interval, begin, end);
+  itree_insert (b->overlays, ov->interval, begin, end);
 }
 
 /* Copy overlays of buffer FROM to buffer TO.  */
@@ -911,7 +911,7 @@ remove_buffer_overlay (struct buffer *b, struct Lisp_Overlay *ov)
 {
   eassert (b->overlays);
   eassert (ov->buffer == b);
-  interval_tree_remove (ov->buffer->overlays, ov->interval);
+  itree_remove (ov->buffer->overlays, ov->interval);
   ov->buffer = NULL;
 }
 
@@ -951,7 +951,7 @@ delete_all_overlays (struct buffer *b)
       /* Where are the nodes freed ? --ap */
       XOVERLAY (node->data)->buffer = NULL;
     }
-  interval_tree_clear (b->overlays);
+  itree_clear (b->overlays);
 }
 
 static void
@@ -960,7 +960,7 @@ free_buffer_overlays (struct buffer *b)
   /* Actually this does not free any overlay, but the tree only.  --ap */
   if (b->overlays)
     {
-      interval_tree_destroy (b->overlays);
+      itree_destroy (b->overlays);
       b->overlays = NULL;
     }
 }
@@ -980,7 +980,7 @@ set_overlays_multibyte (bool multibyte)
 
   struct itree_node **nodes = NULL;
   struct itree_tree *tree = current_buffer->overlays;
-  const intmax_t size = interval_tree_size (tree);
+  const intmax_t size = itree_size (tree);
 
   /* We can't use `interval_node_set_region` at the same time
      as we iterate over the itree, so we need an auxiliary storage
@@ -999,8 +999,8 @@ set_overlays_multibyte (bool multibyte)
 
       if (multibyte)
         {
-          ptrdiff_t begin = interval_node_begin (tree, node);
-          ptrdiff_t end = interval_node_end (tree, node);
+          ptrdiff_t begin = itree_node_begin (tree, node);
+          ptrdiff_t end = itree_node_end (tree, node);
 
           /* This models the behavior of markers.  (The behavior of
              text-intervals differs slightly.) */
@@ -1010,12 +1010,12 @@ set_overlays_multibyte (bool multibyte)
           while (end < Z_BYTE
                  && !CHAR_HEAD_P (FETCH_BYTE (end)))
             end++;
-          interval_node_set_region (tree, node, BYTE_TO_CHAR (begin),
+          itree_node_set_region (tree, node, BYTE_TO_CHAR (begin),
                                     BYTE_TO_CHAR (end));
         }
       else
         {
-          interval_node_set_region (tree, node, CHAR_TO_BYTE (node->begin),
+          itree_node_set_region (tree, node, CHAR_TO_BYTE (node->begin),
                                     CHAR_TO_BYTE (node->end));
         }
     }
@@ -3446,7 +3446,7 @@ adjust_overlays_for_insert (ptrdiff_t pos, ptrdiff_t length)
      but we may need to update the value of the overlay center.  */
   if (! current_buffer->overlays)
     return;
-  interval_tree_insert_gap (current_buffer->overlays, pos, length);
+  itree_insert_gap (current_buffer->overlays, pos, length);
 }
 
 void
@@ -3454,7 +3454,7 @@ adjust_overlays_for_delete (ptrdiff_t pos, ptrdiff_t length)
 {
   if (! current_buffer->overlays)
     return;
-  interval_tree_delete_gap (current_buffer->overlays, pos, length);
+  itree_delete_gap (current_buffer->overlays, pos, length);
 }
 
 
@@ -3594,7 +3594,7 @@ buffer.  */)
       add_buffer_overlay (XBUFFER (buffer), XOVERLAY (overlay), n_beg, n_end);
     }
   else
-    interval_node_set_region (b->overlays, XOVERLAY (overlay)->interval,
+    itree_node_set_region (b->overlays, XOVERLAY (overlay)->interval,
                               n_beg, n_end);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
