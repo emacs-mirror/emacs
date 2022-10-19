@@ -1358,7 +1358,9 @@ change the input method's translation rules, customize the user option
 'tamil-translation-rules'.
 
 ---
-*** New tamil99 input method for the Tamil language
+*** New tamil99 input method for the Tamil language.
+This supports the keyboard layout specifically designed for the Tamil
+language.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1

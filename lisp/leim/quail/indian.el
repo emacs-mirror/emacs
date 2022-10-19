@@ -704,7 +704,7 @@ is."
 ;; Tamil99 input method
 ;;
 ;; Tamil99 is a keyboard layout and input method that is specifically
-;; designed for the Tamil language. Vowels and vowel modifiers are
+;; designed for the Tamil language.  Vowels and vowel modifiers are
 ;; input with your left hand, and consonants are input with your right
 ;; hand. See https://en.wikipedia.org/wiki/Tamil_99
 ;;
