@@ -17940,7 +17940,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
 #endif
   int dx, dy;
+
+  /* Avoid warnings when SAFE_ALLOCA is not actually used.  */
+#if defined HAVE_XINPUT2 || defined HAVE_XKB || defined HAVE_X_I18N
   USE_SAFE_ALLOCA;
+#endif
 
   /* This function is not reentrant, so input should be blocked before
      it is called.  */
@@ -24220,7 +24224,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       count++;
     }
 
+#if defined HAVE_XINPUT2 || defined HAVE_XKB || defined HAVE_X_I18N
   SAFE_FREE ();
+#endif
+
   return count;
 }
 
