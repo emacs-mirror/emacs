@@ -523,13 +523,13 @@ directory, which is usually the top-level directory of the project's
 directory hierarchy.  This ensures the language server has the same
 comprehensive view of the project's files as you do.
 
-For example, if you visit the file @file{~/projects/fooey/lib/x.foo}
-and @file{x.foo} belongs to a project rooted at
+For example, if you visit the file @file{~/projects/fooey/lib/x.c}
+and @file{x.c} belongs to a project rooted at
 @file{~/projects/fooey} (perhaps because a @file{.git} directory
 exists there), then @kbd{M-x eglot} causes the server program to start
 with that root as the current working directory.  The server then will
-analyze not only the file @file{lib/x.foo} you visited, but likely
-also all the other @file{*.foo} files under the
+analyze not only the file @file{lib/x.c} you visited, but likely
+also all the other @file{*.c} files under the
 @file{~/projects/fooey} directory.
 
 In some cases, additional information specific to a given project will
@@ -592,8 +592,8 @@ When you visit a file under the same project, whether an existing or a
 new file, its buffer is automatically added to the set of buffers
 managed by Eglot, and the server which supports the buffer's
 major-mode is notified about that.  Thus, visiting a non-existent file
-@file{/home/joe/projects/fooey/lib/y.foo} in the above example will
-notify the server of the @file{*.foo} files' language that a new file
+@file{/home/joe/projects/fooey/lib/y.c} in the above example will
+notify the server of the @file{*.c} files' language that a new file
 was added to the project, even before the file appears on disk.  The
 special Eglot minor mode is also turned on automatically in the buffer
 visiting the file.
