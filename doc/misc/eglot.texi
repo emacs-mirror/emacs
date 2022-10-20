@@ -964,11 +964,12 @@ this variable should be a property list of the following format:
 @noindent
 Here @code{:@var{server}} identifies a particular language server and
 @var{plist} is the corresponding keyword-value property list of one or
-more parameter settings for that server.  That list of parameters is
-serialized to JSON by Eglot and sent to the server.  For that reason
-JSON values @code{true}, @code{false}, and @code{@{@}} should be
-represented in the property lists as Lisp symbols @code{t},
-@code{:json-false}, and @code{nil}, respectively.
+more parameter settings for that server, serialized by Eglot as a JSON
+object.  @var{plist} may be arbitrarity complex, generally containing
+other keywork-value property sublists corresponding to JSON subobjects.
+The JSON values @code{true}, @code{false}, @code{null} and @code{@{@}}
+are represented by the Lisp values @code{t}, @code{:json-false},
+@code{nil}, and @{eglot-@{@}}, respectively.
 
 @findex eglot-show-workspace-configuration
 When experimenting with workspace settings, you can use the command
