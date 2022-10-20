@@ -122,7 +122,7 @@ you want to use Eglot, you just need to make sure those servers are
 installed on your system.  Alternatively, install one or more servers
 of your choice and add them to the value of
 @code{eglot-server-programs}, as described in @ref{Setting Up LSP
-Servers}.
+Server}.
 
 @item
 Turn on Eglot for your project.
@@ -185,10 +185,8 @@ further discussed in this manual; refer to the documentation of the
 particular server(s) you want to install.
 
 To use a language server, Eglot must know how to start it and which
-programming languages each server supports.  Eglot comes with a fairly
-complete set of associations of major-modes to popular language
-servers predefined.  This information is provided by the
-@code{eglot-server-programs} variable.
+programming languages each server supports.  This information is
+provided by the variable @code{eglot-server-programs}.
 
 @defvar eglot-server-programs
 This variable associates major modes with names and command-line
@@ -203,13 +201,13 @@ The value of the variable is an alist, whose elements are of the form
 The @var{major-mode} of the alist elements can be either a symbol of
 an Emacs major mode or a list of the form @w{@code{(@var{mode}
 :language-id @var{id})}}, with @var{mode} being a major-mode symbol
-and @var{id} a string that identifies the language to the server.  The
-latter form should be used if Eglot cannot by itself convert the
-major-mode to the language identifier string required by the server.
-In addition, @var{major-mode} can be a list of several major modes
-specified in one of the above forms -- this means a running instance
-of the associated server is responsible for files of multiple major
-modes or languages in the project.
+and @var{id} a string that identifies the language to the server (if
+Eglot cannot by itself convert the major-mode to the language
+identifier string required by the server).  In addition,
+@var{major-mode} can be a list of several major modes specified in one
+of the above forms -- this means a running instance of the associated
+server is responsible for files of multiple major modes or languages
+in the project.
 
 The @var{server} part of the alist elements can be one of the
 following:
@@ -251,11 +249,13 @@ arguments.
 
 @end defvar
 
-If you need to add server associations to the default list, use
-@code{add-to-list}.  For example, if there is a hypothetical language
-server program @command{fools} for the language @code{Foo} which is
-supported by an Emacs major-mode @code{foo-mode}, you can add it to
-the alist like this:
+Eglot comes with a fairly complete set of associations of major-modes
+to popular language servers predefined.  If you need to add server
+associations to the default list, use @code{add-to-list}.  For
+example, if there is a hypothetical language server program
+@command{fools} for the language @code{Foo} which is supported by an
+Emacs major-mode @code{foo-mode}, you can add it to the alist like
+this:
 
 @lisp
 (add-to-list 'eglot-server-programs
@@ -372,7 +372,8 @@ commands and variables.
 Once Eglot is enabled in a buffer, it uses LSP and the language-server
 capabilities to activate, enable, and enhance modern IDE features in
 Emacs.  The features themselves are usually provided via other Emacs
-packages.  These are the main features that Eglot enables and provides:
+packages.  Here's the list of the main features that Eglot enables and
+provides:
 
 @itemize @bullet
 @item
@@ -395,7 +396,7 @@ emacs, GNU Emacs Manual}).  Eglot provides a backend for the Xref
 capabilities which uses the language-server understanding of the
 program source.  In particular, it eliminates the need to generate
 tags tables (@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for
-languages that are only supported by the @code{etags} backend.
+languages which are only supported by the @code{etags} backend.
 
 @item
 Buffer navigation by name of function, class, method, etc., via Imenu
@@ -507,7 +508,7 @@ directory.
 
 @item
 A VC project: source files in a directory hierarchy under some VCS,
-e.g.@: a Git repository (@pxref{Version Control,,, emacs, GNU Emacs
+e.g.@: a VCS repository (@pxref{Version Control,,, emacs, GNU Emacs
 Manual}).
 
 @item
@@ -620,9 +621,8 @@ will be added to those managed by an existing server session.
 The command attempts to figure out the buffer's major mode and the
 suitable language server; in case it fails, it might prompt for the
 major mode to use and for the server program to start.  If invoked
-with a prefix argument @kbd{C-u}, it always prompts for the server
-program, and if invoked with @kbd{C-u C-u}, also prompt for the major
-mode.
+with @kbd{C-u}, it always prompts for the server program, and if
+invoked with @kbd{C-u C-u}, it also prompts for the major mode.
 
 If the language server is successfully started and contacted, this
 command arranges for any other buffers belonging to the same project
@@ -637,13 +637,13 @@ Emacs features will be configured to use Eglot, use the
 @code{eglot-stay-out-of} option (@pxref{Customizing Eglot}).
 
 @item M-x eglot-reconnect
-Shuts down an the current connection to the language server and
-immediately restarts it using the same options used originally.  This
-can sometimes be useful to unclog a partially malfunctioning server
-connection.
+This command shuts down the current connection to the language
+server and immediately restarts it using the same options used
+originally.  This can sometimes be useful to unclog a partially
+malfunctioning server connection.
 
 @item M-x eglot-shutdown
-Shuts down a language server.  This commands prompts for a language
+This command shuts down a language server.  It prompts for a language
 server to shut down (unless there's only one server session, and it
 manages the current buffer).  Then the command shuts down the server
 and stops managing the buffers the server was used for.  Emacs
@@ -1126,4 +1126,3 @@ that used Eglot to communicate with the language server.
 @printindex cp
 
 @bye
-        
