@@ -72,12 +72,12 @@ Eglot is the Emacs client for the @dfn{Language Server Protocol}
 A @dfn{polyglot} is a
 person who is able to use several languages.
 } Eglot provides infrastructure and a set of commands for enriching
-the source code editing capabilities of Emacs via LSP.  LSP is a
+the source code editing capabilities of Emacs via LSP@.  LSP is a
 standardized communications protocol between source code editors (such
 as Emacs) and language servers---programs external to Emacs which
 analyze the source code on behalf of Emacs.  The protocol allows Emacs
 to receive various source code services from the server, such as
-description and location of functions calls, types of variables, class
+description and location of function calls, types of variables, class
 definitions, syntactic errors, etc.  This way, Emacs doesn't need to
 implement the language-specific parsing and analysis capabilities in
 its own code, but is still capable of providing sophisticated editing
