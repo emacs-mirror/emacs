@@ -483,6 +483,23 @@ pkg_keywordp (Lisp_Object obj)
   return SYMBOLP (obj) && EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
 }
 
+static Lisp_Object
+pkg_set_status (Lisp_Object symbol, Lisp_Object package, Lisp_Object status)
+{
+  CHECK_SYMBOL (symbol);
+  CHECK_PACKAGE (package);
+  if (!EQ (status, QCinternal) && !EQ (status, QCexternal))
+    pkg_error ("Invalid symbol status %s", status);
+
+  struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (package));
+  ptrdiff_t i = hash_lookup (h, SYMBOL_NAME (symbol), NULL);
+  eassert (i >= 0);
+  ASET (h->key_and_value, 2 * i + 1, status);
+  return Qnil;
+}
+
+
+
 /***********************************************************************
                         Traditional Emacs intern stuff
  ***********************************************************************/
@@ -817,6 +834,13 @@ DEFUN ("package-%symbols", Fpackage_percent_symbols,
   return XPACKAGE (package)->symbols;
 }
 
+DEFUN ("package-%set-status", Fpackage_percent_set_status,
+       Spackage_percent_set_status, 3, 3, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object symbol, Lisp_Object package, Lisp_Object status)
+{
+  return pkg_set_status (symbol, package, status);
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -889,20 +913,20 @@ syms_of_pkg (void)
 		     doc: /* */);
   Fmake_variable_buffer_local (Qpackage_prefixes);
 
+  defsubr (&Scl_intern);
+  defsubr (&Scl_unintern);
+  defsubr (&Sfind_symbol);
+  defsubr (&Smake_percent_package);
   defsubr (&Spackage_percent_name);
   defsubr (&Spackage_percent_nicknames);
   defsubr (&Spackage_percent_set_name);
   defsubr (&Spackage_percent_set_nicknames);
   defsubr (&Spackage_percent_set_shadowing_symbols);
+  defsubr (&Spackage_percent_set_status);
   defsubr (&Spackage_percent_set_use_list);
   defsubr (&Spackage_percent_shadowing_symbols);
   defsubr (&Spackage_percent_symbols);
   defsubr (&Spackage_percent_use_list);
-
-  defsubr (&Smake_percent_package);
-  defsubr (&Scl_intern);
-  defsubr (&Scl_unintern);
-  defsubr (&Sfind_symbol);
   defsubr (&Spackagep);
   defsubr (&Spkg_read);
 

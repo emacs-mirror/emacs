@@ -45,9 +45,6 @@
 (gv-define-simple-setter package-%nicknames package-%set-nicknames)
 (gv-define-simple-setter package-%use-list package-%set-use-list)
 
-(defvar *default-package-use-list* nil
-  "List of packages to use when defpackage is used without :use.")
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Helpers
@@ -82,6 +79,17 @@ but have common elements %s" key1 key2 common))))
 
 (defun pkg-find-package (name)
   (gethash name *package-registry* nil))
+
+(defun pkg--symbol-listify (thing)
+  (cond ((listp thing)
+	 (dolist (s thing)
+	   (unless (symbolp s)
+             (error "%s is not a symbol") s))
+	 thing)
+	((symbolp thing)
+         (list thing))
+	(t
+	 (error "%s is neither a symbol nor a list of symbols" thing))))
 
 (defun pkg-find-or-make-package (name)
   (if (packagep name)
@@ -118,6 +126,7 @@ but have common elements %s" key1 key2 common))))
         (package-%nicknames package)))
 
 (defun pkg--remove-from-registry (package)
+  "Remove PACKAGE from the package registry."
   (remhash (package-%name package) *package-registry*)
   (mapc (lambda (name) (remhash name *package-registry*))
         (package-%nicknames package)))
@@ -156,37 +165,32 @@ but have common elements %s" key1 key2 common))))
 
 ;;;###autoload
 (defun package-name (package)
-  (setq package (pkg-package-or-lose package))
-  (package-%name package))
+  (package-%name (pkg-package-or-lose package)))
 
 ;;;###autoload
 (defun package-nicknames (package)
-  (setq package (pkg-package-or-lose package))
-  (copy-sequence (package-%nicknames package)))
+  (package-%nicknames (pkg-package-or-lose package)))
 
 ;;;###autoload
 (defun package-shadowing-symbols (package)
-  (setq package (pkg-package-or-lose package))
-  (copy-sequence (package-%shadowing-symbols package)))
+  (package-%shadowing-symbols (pkg-package-or-lose package)))
 
 ;;;###autoload
 (defun package-use-list (package)
-  (setq package (pkg-package-or-lose package))
-  (copy-sequence (package-%use-list package)))
+  (package-%use-list (pkg-package-or-lose package)))
 
 ;;;###autoload
 (defun package-used-by-list (package)
-  (setq package (pkg-package-or-lose package))
-  (let ((used-by nil))
-    (maphash (lambda (_n p)
-               (when (memq package (package-%use-list p))
-                   (push p used-by)))
-             *package-registry*)
+  (let ((package (pkg-package-or-lose package))
+        ((used-by ())))
+    (dolist (p (list-all-packages))
+      (when (memq package (package-%use-list p))
+        (cl-pushnew p used-by)))
     used-by))
 
 ;;;###autoload
 (defun list-all-packages ()
-  (let ((all nil))
+  (let ((all ()))
     (maphash (lambda (_name package)
                (cl-pushnew package all))
              *package-registry*)
@@ -201,29 +205,113 @@ but have common elements %s" key1 key2 common))))
 
 ;;;###autoload
 (defun delete-package (package)
-  (unless (null package)
-    (setq package (pkg-package-or-lose package))
+  (if (and (packagep package)
+           (null (package-name package)))
+      nil
+    (let ((package (pkg-package-or-lose package)))
     (when (or (eq package *emacs-package*)
               (eq package *keyword-package*))
-      (error "Cannot delete standard package %s" package))
-    (pkg--remove-from-registry (package-%name package))
+      (error "Cannot delete standard package"))
+    (pkg--remove-from-registry package)
     (setf (package-%name package) nil)
-    t))
+    t)))
 
 ;;;###autoload
 (defun rename-package (package new-name &optional new-nicknames)
-  (setq package (pkg-package-or-lose package))
-  (unless (package-%name package)
-    ;; That's what CLHS says, and SBCL does...
-    (error "Cannot rename deleted package"))
-  (pkg--remove-from-registry package)
-  (setf (package-%nicknames package) new-nicknames)
-  (setf (package-%name package) new-name)
-  (pkg--add-to-registry package))
+  (let ((package (pkg-package-or-lose package)))
+    (unless (package-%name package)
+      ;; That's what CLHS says, and SBCL does...
+      (error "Cannot rename deleted package"))
+    (pkg--remove-from-registry package)
+    (setf (package-%nicknames package) new-nicknames)
+    (setf (package-%name package) new-name)
+    (pkg--add-to-registry package)))
+
+
+;;; Here...
 
 ;;;###autoload
-(defun export (_symbols &optional package)
-  (setq package (pkg--package-or-default package))
+(defun export (symbols &optional package)
+  "tbd"
+  (let ((symbols (pkg--symbol-listify symbols))
+        (package (pkg--package-or-default package))
+        (syms ()))
+  (let ((syms ()))
+    ;; Ignore any symbols that are already external.
+    (dolist (sym symbols)
+      (cl-multiple-value-bind (_s status)
+	  (find-symbol (cl-symbol-name sym) package)
+        (unless (or (eq :external status)
+                    (memq (sym syms)))
+          (push sym syms))))
+
+    ;; Find symbols and packages with conflicts.
+    (let ((used-by (package-used-by-list package))
+	  (cpackages ())
+	  (cset ()))
+      (dolist (sym syms)
+	(let ((name (cl-symbol-name sym)))
+	  (dolist (p used-by)
+	    (cl-multiple-value-bind (s w)
+                (find-symbol name p)
+	      (when (and w (not (eq s sym))
+			 (not (member s (package-%shadowing-symbols p))))
+		(pushnew sym cset)
+		(pushnew p cpackages))))))
+
+      (when cset
+	(restart-case
+	    (error
+	     'simple-package-error
+	     :package package
+	     :format-control
+	     (intl:gettext "Exporting these symbols from the ~A package:~%~S~%~
+	      results in name conflicts with these packages:~%~{~A ~}")
+	     :format-arguments
+	     (list (package-%name package) cset
+		   (mapcar #'package-%name cpackages)))
+	  (unintern-conflicting-symbols ()
+	   :report (lambda (stream)
+		     (write-string (intl:gettext "Unintern conflicting symbols.") stream))
+	   (dolist (p cpackages)
+	     (dolist (sym cset)
+	       (moby-unintern sym p))))
+	  (skip-exporting-these-symbols ()
+	   :report (lambda (stream)
+		     (write-string (intl:gettext "Skip exporting conflicting symbols.") stream))
+	   (setq syms (nset-difference syms cset))))))
+    ;;
+    ;; Check that all symbols are accessible.  If not, ask to import them.
+    (let ((missing ())
+	  (imports ()))
+      (dolist (sym syms)
+	(multiple-value-bind (s w) (find-symbol (symbol-name sym) package)
+	  (cond ((not (and w (eq s sym))) (push sym missing))
+		((eq w :inherited) (push sym imports)))))
+      (when missing
+	(with-simple-restart
+	    (continue (intl:gettext "Import these symbols into the ~A package.")
+	      (package-%name package))
+	  (error 'simple-package-error
+		 :package package
+		 :format-control
+		 (intl:gettext "These symbols are not accessible in the ~A package:~%~S")
+		 :format-arguments
+		 (list (package-%name package) missing)))
+	(import missing package))
+      (import imports package))
+    ;;
+    ;; And now, three pages later, we export the suckers.
+    (let ((internal (package-internal-symbols package))
+	  (external (package-external-symbols package)))
+      (dolist (sym syms)
+	(nuke-symbol internal (symbol-name sym))
+	(add-symbol external sym)))
+    t))
+
+
+
+
   (error "not yet implemented"))
 
 ;;;###autoload
@@ -259,7 +347,11 @@ but have common elements %s" key1 key2 common))))
   (setf (package-%use-list package)
         (delq package (package-%use-list package))))
 
-;; (defun pkg-enter-new-nicknames (package nicknames)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                            defpackage
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (defun pkg--enter-new-nicknames (package nicknames)
 ;;   (cl-check-type nicknames list)
 ;;   (dolist (n nicknames)
 ;;     (let* ((n (pkg-package-namify n))
@@ -276,19 +368,18 @@ but have common elements %s" key1 key2 common))))
 ;;                     n (package-name found)))))))
 
 ;; (defun pkg-defpackage (name nicknames size shadows shadowing-imports
-;; 			 use imports interns exports doc-string)
-;;   (let ((package (or (find-package name)
-;; 		     (progn
-;; 		       (when (eq use :default)
-;; 			 (setf use *default-package-use-list*))
-;; 		       (make-package name
-;; 				     :use nil
-;; 				     :size (or size 10))))))
+;; 			    use imports interns exports doc-string)
+;;   (let ((package (find-package name)))
+;;     (unless package
+;;       (setq package (make-package name :use nil :size (or size 10))))
 ;;     (unless (string= (package-name package) name)
-;;       (error "%s is a nick-name for the package %s" name (package-name name)))
-;;     (pkg-enter-new-nicknames package nicknames)
+;;       (error "%s is a nickname for the package %s"
+;;              name (package-name package)))
 
-;;     ;; Shadows and Shadowing-imports.
+;;     Nicknames
+;;     (pkg--enter-new-nicknames package nicknames)
+
+;;     Shadows and Shadowing-imports.
 ;;     (let ((old-shadows (package-%shadowing-symbols package)))
 ;;       (shadow shadows package)
 ;;       (dolist (sym-name shadows)
@@ -303,18 +394,17 @@ but have common elements %s" key1 key2 common))))
 ;; 	(warn "%s also shadows the following symbols: %s"
 ;; 	      name old-shadows)))
 
-;;     ;; Use
-;;     (unless (eq use :default)
-;;       (let ((old-use-list (package-use-list package))
-;; 	    (new-use-list (mapcar #'package-or-lose use)))
-;; 	(use-package (cl-set-difference new-use-list old-use-list) package)
-;; 	(let ((laterize (cl-set-difference old-use-list new-use-list)))
-;; 	  (when laterize
-;; 	    (unuse-package laterize package)
+;;     Use
+;;     (let ((old-use-list (package-use-list package))
+;; 	  (new-use-list (mapcar #'package-or-lose use)))
+;;       (use-package (cl-set-difference new-use-list old-use-list) package)
+;;       (let ((laterize (cl-set-difference old-use-list new-use-list)))
+;; 	(when laterize
+;; 	  (unuse-package laterize package)
 ;; 	    (warn "%s previously used the following packages: %s"
-;; 		  name laterize)))))
+;; 		  name laterize))))
 
-;;     ;; Import and Intern.
+;;     Import and Intern.
 ;;     (dolist (sym-name interns)
 ;;       (intern sym-name package))
 ;;     (dolist (imports-from imports)
@@ -323,7 +413,7 @@ but have common elements %s" key1 key2 common))))
 ;; 	  (import (list (find-or-make-symbol sym-name other-package))
 ;; 		  package))))
 
-;;     ;; Exports.
+;;     Exports.
 ;;     (let ((old-exports nil)
 ;; 	  (exports (mapcar (lambda (sym-name) (intern sym-name package)) exports)))
 ;;       (do-external-symbols (sym package)
@@ -333,7 +423,7 @@ but have common elements %s" key1 key2 common))))
 ;; 	(when diff
 ;; 	  (warn "%s also exports the following symbols: %s" name diff))))
 
-;;     ;; Documentation
+;;     Documentation
 ;;     (setf (package-doc-string package) doc-string)
 ;;     package))
 
