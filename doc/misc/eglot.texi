@@ -122,7 +122,7 @@ you want to use Eglot, you just need to make sure those servers are
 installed on your system.  Alternatively, install one or more servers
 of your choice and add them to the value of
 @code{eglot-server-programs}, as described in @ref{Setting Up LSP
-Server}.
+Servers}.
 
 @item
 Turn on Eglot for your project.
