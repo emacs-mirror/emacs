@@ -1051,6 +1051,7 @@ Return nil if there is nothing appropriate in the buffer near point."
    ("eieio" "Function Index")
    ("gnutls" "(emacs-gnutls)Variable Index" "(emacs-gnutls)Function Index")
    ("mm" "(emacs-mime)Index")
+   ("eglot" "Index")
    ("epa" "Variable Index" "Function Index")
    ("ert" "Index")
    ("eshell" "Function and Variable Index")
