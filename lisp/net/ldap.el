@@ -715,14 +715,14 @@ an alist of attribute/value pairs."
                      (eq (string-match "/\\(.:.*\\)$" value) 0))
                 (setq value (match-string 1 value)))
 	    ;; Do not try to open non-existent files
-	    (if (equal value "")
-		(setq value " ")
-	      (with-current-buffer bufval
+            (if (match-string 3)
+              (with-current-buffer bufval
 		(erase-buffer)
 		(set-buffer-multibyte nil)
 		(insert-file-contents-literally value)
 		(delete-file value)
-		(setq value (buffer-string))))
+		(setq value (buffer-string)))
+              (setq value " "))
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))

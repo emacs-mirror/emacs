@@ -17857,7 +17857,7 @@ x_handle_wm_state (struct frame *f, struct input_event *ie)
 
 static bool
 x_handle_selection_monitor_event (struct x_display_info *dpyinfo,
-				  XEvent *event)
+				  const XEvent *event)
 {
   XFixesSelectionNotifyEvent *notify;
   int i;
@@ -17940,7 +17940,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
 #endif
   int dx, dy;
+
+  /* Avoid warnings when SAFE_ALLOCA is not actually used.  */
+#if defined HAVE_XINPUT2 || defined HAVE_XKB || defined HAVE_X_I18N
   USE_SAFE_ALLOCA;
+#endif
 
   /* This function is not reentrant, so input should be blocked before
      it is called.  */
@@ -24220,7 +24224,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       count++;
     }
 
+#if defined HAVE_XINPUT2 || defined HAVE_XKB || defined HAVE_X_I18N
   SAFE_FREE ();
+#endif
+
   return count;
 }
 
@@ -25691,6 +25698,14 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 #ifdef HAVE_X11R6
 
+/* HAVE_X11R6 means Xlib conforms to the R6 specification or later.
+   HAVE_X11R6_XIM, OTOH, means that Emacs should try to use R6-style
+   callback driven input method initialization.  They are separate
+   because Sun apparently ships buggy Xlib with some versions of
+   Solaris... */
+
+#ifdef HAVE_X11R6_XIM
+
 /* If preedit text is set on F, cancel preedit, free the text, and
    generate the appropriate events to cancel the preedit display.
 
@@ -25755,6 +25770,8 @@ xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
   XFree (dpyinfo->xim_styles);
   unblock_input ();
 }
+
+#endif
 
 #endif /* HAVE_X11R6 */
 
@@ -27117,6 +27134,64 @@ xembed_request_focus (struct frame *f)
 			 XEMBED_REQUEST_FOCUS, 0, 0, 0);
 }
 
+static Bool
+server_timestamp_predicate (Display *display, XEvent *xevent,
+			    XPointer arg)
+{
+  XID *args = (XID *) arg;
+
+  if (xevent->type == PropertyNotify
+      && xevent->xproperty.window == args[0]
+      && xevent->xproperty.atom == args[1])
+    return True;
+
+  return False;
+}
+
+/* Get the server time.  The X server is guaranteed to deliver the
+   PropertyNotify event, so there is no reason to use x_if_event.  */
+
+static Time
+x_get_server_time (struct frame *f)
+{
+  Atom property_atom;
+  XEvent property_dummy;
+  struct x_display_info *dpyinfo;
+  XID client_data[2];
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
+  uint_fast64_t current_monotonic_time;
+#endif
+
+  /* If the server time is the same as the monotonic time, avoid a
+     roundtrip by using that instead.  */
+
+#if defined HAVE_XSYNC && !defined USE_GTK && defined HAVE_CLOCK_GETTIME
+  if (FRAME_DISPLAY_INFO (f)->server_time_monotonic_p)
+    {
+      current_monotonic_time = x_sync_current_monotonic_time ();
+
+      if (current_monotonic_time)
+	/* Truncate the time to CARD32.  */
+	return (current_monotonic_time / 1000) & X_ULONG_MAX;
+    }
+#endif
+
+  dpyinfo = FRAME_DISPLAY_INFO (f);
+  property_atom = dpyinfo->Xatom_EMACS_SERVER_TIME_PROP;
+  client_data[0] = FRAME_OUTER_WINDOW (f);
+  client_data[1] = property_atom;
+
+  XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
+		   property_atom, XA_ATOM, 32,
+		   PropModeReplace,
+		   (unsigned char *) &property_atom, 1);
+
+  XIfEvent (dpyinfo->display, &property_dummy,
+	    server_timestamp_predicate, (XPointer) client_data);
+
+  return property_dummy.xproperty.time;
+}
+
 /* Activate frame with Extended Window Manager Hints */
 
 static void
@@ -27124,6 +27199,7 @@ x_ewmh_activate_frame (struct frame *f)
 {
   XEvent msg;
   struct x_display_info *dpyinfo;
+  Time time;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
@@ -27143,6 +27219,43 @@ x_ewmh_activate_frame (struct frame *f)
 			       : FRAME_OUTER_WINDOW (dpyinfo->x_focus_frame));
       msg.xclient.data.l[3] = 0;
       msg.xclient.data.l[4] = 0;
+
+      /* No frame is currently focused on that display, so apply any
+	 bypass for focus stealing prevention that the user has
+	 specified.  */
+      if (!dpyinfo->x_focus_frame)
+	{
+	  if (EQ (Vx_allow_focus_stealing, Qimitate_pager))
+	    msg.xclient.data.l[0] = 2;
+	  else if (EQ (Vx_allow_focus_stealing, Qnewer_time))
+	    {
+	      block_input ();
+	      time = x_get_server_time (f);
+#ifdef USE_GTK
+	      x_set_gtk_user_time (f, time);
+#endif
+	      /* Temporarily override dpyinfo->x_focus_frame so the
+		 user time property is set on the right window.  */
+	      dpyinfo->x_focus_frame = f;
+	      x_display_set_last_user_time (dpyinfo, time, true, true);
+	      dpyinfo->x_focus_frame = NULL;
+	      unblock_input ();
+
+	      msg.xclient.data.l[1] = time;
+	    }
+	  else if (EQ (Vx_allow_focus_stealing, Qraise_and_focus))
+	    {
+	      time = x_get_server_time (f);
+
+	      x_ignore_errors_for_next_request (dpyinfo);
+	      XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			      RevertToParent, time);
+	      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
+	      x_stop_ignoring_errors (dpyinfo);
+
+	      return;
+	    }
+	}
 
       XSendEvent (dpyinfo->display, dpyinfo->root_window,
 		  False, (SubstructureRedirectMask
@@ -30281,7 +30394,7 @@ mark_xterm (void)
 {
   Lisp_Object val;
 #if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS \
-  || defined HAVE_XRANDR || defined USE_GTK
+  || defined HAVE_XRANDR || defined USE_GTK || defined HAVE_X_I18N
   struct x_display_info *dpyinfo;
 #if defined HAVE_XINPUT2 || defined USE_TOOLKIT_SCROLL_BARS
   int i;
@@ -30505,8 +30618,14 @@ x_get_keyboard_modifiers (struct x_display_info *dpyinfo)
   /* This sometimes happens when the function is called during display
      initialization, which can happen while obtaining vendor specific
      keysyms.  */
+
+#ifdef HAVE_XKB
   if (!dpyinfo->xkb_desc && !dpyinfo->modmap)
     x_find_modifier_meanings (dpyinfo);
+#else
+  if (!dpyinfo->modmap)
+    x_find_modifier_meanings (dpyinfo);
+#endif
 
   return list5 (make_uint (dpyinfo->hyper_mod_mask),
 		make_uint (dpyinfo->super_mod_mask),
@@ -30626,6 +30745,9 @@ With MS Windows, Haiku windowing or Nextstep, the value is t.  */);
   Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
   DEFSYM (QXdndSelection, "XdndSelection");
   DEFSYM (Qx_selection_alias_alist, "x-selection-alias-alist");
+  DEFSYM (Qimitate_pager, "imitate-pager");
+  DEFSYM (Qnewer_time, "newer-time");
+  DEFSYM (Qraise_and_focus, "raise-and-focus");
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.
@@ -30879,4 +31001,24 @@ connection setup.  */);
   /* The default value of this variable is chosen so that updating the
      tool bar does not require a call to _XReply.  */
   Vx_fast_selection_list = list1 (QCLIPBOARD);
+
+  DEFVAR_LISP ("x-allow-focus-stealing", Vx_allow_focus_stealing,
+    doc: /* How to bypass window manager focus stealing prevention.
+
+Some window managers prevent `x-focus-frame' from activating the given
+frame when Emacs is in the background, which is especially prone to
+cause problems when the Emacs server wants to activate itself.  This
+variable specifies the strategy used to activate frames when that is
+the case, and has several valid values (any other value means to not
+bypass window manager focus stealing prevention):
+
+  - The symbol `imitate-pager', which means to pretend that Emacs is a
+    pager.
+
+  - The symbol `newer-time', which means to fetch the current time
+    from the X server and use it to activate the frame.
+
+  - The symbol `raise-and-focus', which means to raise the window and
+    focus it manually.  */);
+  Vx_allow_focus_stealing = Qnewer_time;
 }

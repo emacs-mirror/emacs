@@ -3,7 +3,8 @@
 ;; Copyright (C) 1998, 2001-2022 Free Software Foundation, Inc.
 
 ;; Authors: Tibor Šimko <tibor.simko@fmph.uniba.sk>
-;;	Milan Zamazal <pdm@zamazal.org>
+;;          Milan Zamazal <pdm@zamazal.org>
+;;          Rudolf Adamkovič <salutis@me.com>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: i18n, multilingual, input method, Slovak
 
@@ -25,8 +26,9 @@
 ;;; Commentary:
 
 ;; This file defines the following Slovak keyboards:
-;; - standard Slovak keyboard
+;; - standard Slovak keyboards, QWERTZ and QWERTY variants
 ;; - three Slovak keyboards for programmers
+;; LocalWords: QWERTZ
 
 ;;; Code:
 
@@ -35,7 +37,7 @@
 
 (quail-define-package
  "slovak" "Slovak" "SK" t
- "Standard Slovak keyboard."
+ "Standard Slovak QWERTZ keyboard."
  nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
@@ -132,6 +134,123 @@
  ("+=U" ?Ü)
  ("=Z" ?Ý)
  ("+Y" ?Ž)
+ ("=q" ?`)
+ ("=2" ?@)
+ ("=3" ?#)
+ ("=4" ?$)
+ ("=5" ?%)
+ ("=6" ?^)
+ ("=7" ?&)
+ ("=8" ?*)
+ ("=9" ?\()
+ ("=0" ?\))
+ ("+1" ?!)
+ ("+2" ?@)
+ ("+3" ?#)
+ ("+4" ?$)
+ ("+5" ?%)
+ ("+6" ?^)
+ ("+7" ?&)
+ ("+8" ?*)
+ ("+9" ?\()
+ ("+0" ?\)))
+
+
+(quail-define-package
+ "slovak-qwerty" "Slovak" "SK" t
+ "Standard Slovak QWERTY keyboard."
+ nil t nil nil t nil nil nil nil nil t)
+
+(quail-define-rules
+ ("1" ?+)
+ ("2" ?ľ)
+ ("3" ?š)
+ ("4" ?č)
+ ("5" ?ť)
+ ("6" ?ž)
+ ("7" ?ý)
+ ("8" ?á)
+ ("9" ?í)
+ ("0" ?é)
+ ("!" ?1)
+ ("@" ?2)
+ ("#" ?3)
+ ("$" ?4)
+ ("%" ?5)
+ ("^" ?6)
+ ("&" ?7)
+ ("*" ?8)
+ ("(" ?9)
+ (")" ?0)
+ ("-" ?=)
+ ("_" ?%)
+ ("=" ?')
+ ("[" ?ú)
+ ("{" ?/)
+ ("]" ?ä)
+ ("}" ?\()
+ ("\\" ?ň)
+ ("|" ?\))
+ (";" ?ô)
+ (":" ?\")
+ ("'" ?§)
+ ("\"" ?!)
+ ("<" ??)
+ (">" ?:)
+ ("/" ?-)
+ ("?" ?_)
+ ("`" ?\;)
+ ("~" ?^)
+ ("=a" ?á)
+ ("+a" ?ä)
+ ("+=a" ?ä)
+ ("+c" ?č)
+ ("+d" ?ď)
+ ("=e" ?é)
+ ("+e" ?ě)
+ ("=i" ?í)
+ ("=l" ?ĺ)
+ ("+l" ?ľ)
+ ("+n" ?ň)
+ ("=o" ?ó)
+ ("+o" ?ô)
+ ("~o" ?ô)
+ ("+=o" ?ö)
+ ("=r" ?ŕ)
+ ("+r" ?ř)
+ ("=s" ?ß)
+ ("+s" ?š)
+ ("+t" ?ť)
+ ("=u" ?ú)
+ ("+u" ?ů)
+ ("+=u" ?ü)
+ ("=y" ?ý)
+ ("+z" ?ž)
+ ("=A" ?Á)
+ ("+A" ?Ä)
+ ("+=A" ?Ä)
+ ("+C" ?Č)
+ ("+D" ?Ď)
+ ("=E" ?É)
+ ("+E" ?Ě)
+ ("=I" ?Í)
+ ("=L" ?Ĺ)
+ ("+L" ?Ľ)
+ ("+N" ?Ň)
+ ("=O" ?Ó)
+ ("+O" ?Ô)
+ ("~O" ?Ô)
+ ("+=O" ?Ö)
+ ("=R" ?Ŕ)
+ ("+R" ?Ř)
+ ("=S" ?ß)
+ ("+S" ?Š)
+ ("+T" ?Ť)
+ ("=U" ?Ú)
+ ("+U" ?Ů)
+ ("+=U" ?Ü)
+ ("=Y" ?Ý)
+ ("+Z" ?Ž)
  ("=q" ?`)
  ("=2" ?@)
  ("=3" ?#)

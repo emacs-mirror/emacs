@@ -1197,8 +1197,21 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; arguments lists (i.e. lists enclosed by <...>) is more strict about what
   ;; characters it allows within the list.
   (let ((type (and (> match-pos (point-min))
-		   (c-get-char-property (1- match-pos) 'c-type))))
-    (cond ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?< ?{)))
+		   (c-get-char-property (1- match-pos) 'c-type)))
+	id-pos)
+    (cond
+     ;; Are we just after something like "(foo((bar))" ?
+     ((and (eq (char-before match-pos) ?\))
+	   (c-go-list-backward match-pos)
+	   (progn
+	     (c-backward-syntactic-ws)
+	     (and (setq id-pos (c-on-identifier))
+		  (goto-char id-pos)
+		  (progn
+		    (c-backward-syntactic-ws)
+		    (eq (char-before) ?\()))))
+      (c-get-fontification-context (point) not-front-decl toplev))
+	  ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?< ?{)))
 	   (cons (and toplev 'top) nil))
 	  ;; A control flow expression or a decltype
 	  ((and (eq (char-before match-pos) ?\()

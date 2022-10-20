@@ -2095,6 +2095,13 @@ that it only knows about subunits that were loaded into the
 interpreter.)
 
 @item
+If Eglot is activated for the current buffer's project
+(@pxref{Projects}) and the current buffer's major mode, Eglot consults
+an external language server program and provides the data supplied by
+the server regarding the definitions of the identifiers in the
+project.  @xref{Eglot Features,,, eglot, Eglot: The Emacs LSP Client}.
+
+@item
 An external program can extract references by scanning the relevant
 files, and build a database of these references.  A backend can then
 access this database whenever it needs to list or look up references.

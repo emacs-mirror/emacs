@@ -1357,6 +1357,16 @@ The default input method for the Tamil language environment is now
 change the input method's translation rules, customize the user option
 'tamil-translation-rules'.
 
+---
+*** New tamil99 input method for the Tamil language.
+This supports the keyboard layout specifically designed for the Tamil
+language.
+
+---
+*** New input method 'slovak-qwerty'.
+This is a variant of the 'slovak' input method, which corresponds to
+the QWERTY Slovak keyboards.
+
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
 

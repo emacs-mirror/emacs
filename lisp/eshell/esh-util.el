@@ -455,7 +455,7 @@ list."
   ;; runs while point is in the minibuffer and the users attempt
   ;; to use completion.  Don't ask me.
   (condition-case nil
-      (sit-for 0 0)
+      (sit-for 0)
     (error nil)))
 
 (defun eshell-read-passwd-file (file)

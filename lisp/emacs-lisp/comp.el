@@ -3928,6 +3928,7 @@ processes from `comp-async-compilations'"
   "Start compiling files from `comp-files-queue' asynchronously.
 When compilation is finished, run `native-comp-async-all-done-hook' and
 display a message."
+  (cl-assert (null comp-no-spawn))
   (if (or comp-files-queue
           (> (comp-async-runnings) 0))
       (unless (>= (comp-async-runnings) (comp-effective-async-max-jobs))
@@ -4048,7 +4049,7 @@ the deferred compilation mechanism."
               (stringp function-or-file))
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
-  (unless comp-no-spawn
+  (when (or (null comp-no-spawn) comp-async-compilation)
     (catch 'no-native-compile
       (let* ((print-symbols-bare t)
              (data function-or-file)

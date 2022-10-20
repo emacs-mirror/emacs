@@ -1847,6 +1847,10 @@ mail status in mode line"))
                   :help "Toggle automatic parsing in source code buffers (Semantic mode)"
                   :button (:toggle . (bound-and-true-p semantic-mode))))
 
+    (bindings--define-key menu [eglot]
+      '(menu-item "Language Server Support (Eglot)" eglot
+                  :help "Start language server suitable for this buffer's major-mode"))
+
     (bindings--define-key menu [ede]
       '(menu-item "Project Support (EDE)"
                   global-ede-mode
