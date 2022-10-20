@@ -1226,7 +1226,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
       /* First element of a pair must be a symbol.  */
       key = XCAR (plist);
       plist = XCDR (plist);
-      if (!SYMBOLP (key))
+      if (!SYMBOLP (key) || !SYMBOL_KEYWORD_P (key))
 	return false;
 
       /* There must follow a value.  */
@@ -1234,9 +1234,11 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	return false;
       value = XCAR (plist);
 
-      /* Find key in KEYWORDS.  Error if not found.  */
+      /* Find key in KEYWORDS.  Error if not found.  The keywords in
+	 keywords have a ':' in their name, which we ignore, because
+	 the keyword names have no ':'.  */
       for (i = 0; i < nkeywords; ++i)
-	if (strcmp (keywords[i].name, SSDATA (SYMBOL_NAME (key))) == 0)
+	if (strcmp (keywords[i].name + 1, SSDATA (SYMBOL_NAME (key))) == 0)
 	  break;
 
       if (i == nkeywords)
