@@ -68,7 +68,7 @@ DOCMISC_W32 = @DOCMISC_W32@
 
 ## Info files to build and install on all platforms.
 INFO_COMMON = auth autotype bovine calc ccmode cl \
-	dbus dired-x ebrowse ede ediff edt eieio \
+	dbus dired-x ebrowse ede ediff edt eglot eieio \
 	emacs-mime epa erc ert eshell eudc efaq eww \
 	flymake forms gnus emacs-gnutls htmlfontify idlwave ido info.info \
 	mairix-el message mh-e modus-themes newsticker nxml-mode octave-mode \
