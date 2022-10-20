@@ -89,7 +89,7 @@ This manual documents how to configure, use, and customize Eglot.
 
 @menu
 * Quick Start::                 For the impatient.
-* Eglot and LSP Servers::       How to work with language servers
+* Eglot and LSP Servers::       How to work with language servers.
 * Using Eglot::                 Important Eglot commands and variables.
 * Customizing Eglot::           Eglot customization and advanced features.
 * Troubleshooting Eglot::       Troubleshooting and reporting bugs.
@@ -201,13 +201,13 @@ The value of the variable is an alist, whose elements are of the form
 The @var{major-mode} of the alist elements can be either a symbol of
 an Emacs major mode or a list of the form @w{@code{(@var{mode}
 :language-id @var{id})}}, with @var{mode} being a major-mode symbol
-and @var{id} a string that identifies the language to the server (if
-Eglot cannot by itself convert the major-mode to the language
-identifier string required by the server).  In addition,
-@var{major-mode} can be a list of several major mode specified in one
-of the above forms -- this means a running instance of the associated
-server is responsible for files of multiple major modes or languages
-in the project.
+and @var{id} a string that identifies the language to the server.  The
+latter form should be used if Eglot cannot by itself convert the
+major-mode to the language identifier string required by the server.
+In addition, @var{major-mode} can be a list of several major modes
+specified in one of the above forms -- this means a running instance
+of the associated server is responsible for files of multiple major
+modes or languages in the project.
 
 The @var{server} part of the alist elements can be one of the
 following:
@@ -327,12 +327,12 @@ Emacs session, it runs the hook @code{eglot-connect-hook}
 
 When Eglot is turned on, it arranges for turning itself off
 automatically if the language server process terminates.  Turning off
-Eglot means it shuts down the server connection, ceases its management
-of all the buffers that use the server connection which was
+Eglot means that it shuts down the server connection, ceases its
+management of all the buffers that use the server connection which was
 terminated, deactivates its minor mode, and restores the original
 values of the Emacs variables that Eglot changed when it was turned
-on.  @xref{Eglot and Buffers}, for more details of what does Eglot
-management of a buffer entail.
+on.  @xref{Eglot and Buffers}, for more details of what Eglot
+management of a buffer entails.
 
 @findex eglot-shutdown
 You can also shut down a language server manually, by using the
@@ -372,7 +372,7 @@ commands and variables.
 Once Eglot is enabled in a buffer, it uses LSP and the language-server
 capabilities to activate, enable, and enhance modern IDE features in
 Emacs.  The features themselves are usually provided via other Emacs
-packages.  Here are the main features Eglot enables and provides:
+packages.  These are the main features that Eglot enables and provides:
 
 @itemize @bullet
 @item
@@ -395,7 +395,7 @@ emacs, GNU Emacs Manual}).  Eglot provides a backend for the Xref
 capabilities which uses the language-server understanding of the
 program source.  In particular, it eliminates the need to generate
 tags tables (@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for
-languages which are only supported by the @code{etags} backend.
+languages that are only supported by the @code{etags} backend.
 
 @item
 Buffer navigation by name of function, class, method, etc., via Imenu
@@ -416,7 +416,7 @@ activated automatically as you type.
 
 @item
 If a completion package such as @code{company-mode}, a popular
-3rd-party completion package, is installed, Eglot enhances it by
+third-party completion package, is installed, Eglot enhances it by
 providing completion candidates based on the language-server analysis
 of the source code.
 
@@ -505,7 +505,7 @@ directory.
 
 @item
 A VC project: source files in a directory hierarchy under some VCS,
-i.e.@: a VCS repository (@pxref{Version Control,,, emacs, GNU Emacs
+e.g.@: a Git repository (@pxref{Version Control,,, emacs, GNU Emacs
 Manual}).
 
 @item
@@ -618,8 +618,9 @@ will be added to those managed by an existing server session.
 The command attempts to figure out the buffer's major mode and the
 suitable language server; in case it fails, it might prompt for the
 major mode to use and for the server program to start.  If invoked
-with @kbd{C-u}, it always prompts for the server program, and if
-invoked with @kbd{C-u C-u}, also prompt for the major mode.
+with a prefix argument @kbd{C-u}, it always prompts for the server
+program, and if invoked with @kbd{C-u C-u}, also prompt for the major
+mode.
 
 If the language server is successfully started and contacted, this
 command arranges for any other buffers belonging to the same project
@@ -640,7 +641,7 @@ can sometimes be useful to unclog a partially malfunctioning server
 connection.
 
 @item M-x eglot-shutdown
-Shut down a language server.  This commands prompts for a language
+Shuts down a language server.  This commands prompts for a language
 server to shut down (unless there's only one server session, and it
 manages the current buffer).  Then the command shuts down the server
 and stops managing the buffers the server was used for.  Emacs
@@ -863,7 +864,7 @@ customize the Flymake faces @code{flymake-error} and
 
 @item
 To configure the amount of space taken up by documentation in the
-echo area, the customize the ElDoc variable
+echo area, customize the ElDoc variable
 @code{eldoc-echo-area-use-multiline-p}.
 
 @item
@@ -1008,7 +1009,7 @@ Alternatively, the same configuration could be defined as follows:
 
 This is an equivalent setup which sets the value for all the
 major-modes inside the project; Eglot will use for each server only
-the section of the parameters intended for that server
+the section of the parameters intended for that server.
 
 As yet another alternative, you can set the value of
 @code{eglot-workspace-configuration} programmatically, via the
