@@ -287,6 +287,13 @@ they occur in the buffer; if you want alphabetic sorting, use the
 symbol @code{imenu--sort-by-name} as the value.  You can also
 define your own comparison function by writing Lisp code.
 
+  If Eglot is activated for the current buffer's project
+(@pxref{Projects}) and the current buffer's major mode, Eglot provides
+its own facility for producing the buffer's index based on the
+analysis of the program source by the language-server which manages
+the current buffer.  @xref{Eglot Features,,, eglot, Eglot: The Emacs
+LSP Client}.
+
   Imenu provides the information to guide Which Function mode
 @ifnottex
 (@pxref{Which Function}).
@@ -1438,6 +1445,13 @@ uses the available support facilities to come up with the completion
 candidates:
 
 @itemize @bullet
+@item
+If Eglot is activated for the current buffer's project
+(@pxref{Projects}) and the current buffer's major mode, the command
+tries to use the corresponding language server for producing the list
+of completion candidates.  @xref{Eglot Features,,, eglot, Eglot: The
+Emacs LSP Client}.
+
 @item
 If Semantic mode is enabled (@pxref{Semantic}), the command tries to
 use the Semantic parser data for completion.
