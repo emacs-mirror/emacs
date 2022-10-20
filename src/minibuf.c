@@ -1658,6 +1658,12 @@ or from one of the possible completions.  */)
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
+	  else if (symbol_table_p)
+	    {
+	      elt = HASH_KEY (XHASH_TABLE (collection), idx);
+	      eltstring = SYMBOL_NAME (elt);
+	      ++idx;
+	    }
 	  else
 	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
@@ -1697,11 +1703,13 @@ or from one of the possible completions.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else if (HASH_TABLE_P (collection))
 		{
-		  const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
 		  if (symbol_table_p)
-		    tem = call1 (predicate, value);
+		    tem = call1 (predicate, elt);
 		  else
-		    tem = call2 (predicate, elt, value);
+		    {
+		      const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
+		      tem = call2 (predicate, elt, value);
+		    }
 		}
 	      else
 		tem = call1 (predicate, elt);
@@ -1893,6 +1901,11 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    idx++;
 	  if (idx >= HASH_TABLE_SIZE (XHASH_TABLE (collection)))
 	    break;
+	  else if (symbol_table_p)
+	    {
+	      elt = HASH_KEY (XHASH_TABLE (collection), idx++);
+	      eltstring = SYMBOL_NAME (elt);
+	    }
 	  else
 	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
@@ -1931,11 +1944,13 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else if (HASH_TABLE_P (collection))
 		{
-		  const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
 		  if (symbol_table_p)
-		    tem = call1 (predicate, value);
+		    tem = call1 (predicate, elt);
 		  else
-		    tem = call2 (predicate, elt, value);
+		    {
+		      const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), idx - 1);
+		      tem = call2 (predicate, elt, value);
+		    }
 		}
 	      else
 		tem = call1 (predicate, elt);
@@ -2086,9 +2101,12 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   if (HASH_TABLE_P (collection))
     {
-      const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), i);
       if (symbol_table_p)
-	return call1 (predicate, value);
+	{
+	  Lisp_Object sym = HASH_KEY (XHASH_TABLE (collection), i);
+	  return call1 (predicate, sym);
+	}
+      const Lisp_Object value = HASH_VALUE (XHASH_TABLE (collection), i);
       return call2 (predicate, tem, value);
     }
 
