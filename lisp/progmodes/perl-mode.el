@@ -968,7 +968,7 @@ changed by, or (parse-state) if line starts in a quoted string."
 
 (defun perl-hanging-paren-p ()
   "Non-nil if we are right after a hanging parenthesis-like char."
-  (and (looking-at "[ \t]*$")
+  (and (looking-at "[ \t]*\\(?:#.*\\)?$")
        (save-excursion
 	 (skip-syntax-backward " (") (not (bolp)))))
 
