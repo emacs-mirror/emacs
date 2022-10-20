@@ -62,14 +62,20 @@ modify this GNU manual.''
 @cindex language server protocol
 Eglot is the Emacs client for the @dfn{Language Server Protocol}
 (@acronym{LSP}).  The name ``Eglot'' is an acronym that stands for
-``@emph{E}macs Poly@emph{glot}''.@footnote{
+@ifhtml
+``@emph{E}macs Poly@emph{glot}''.
+@end ifhtml
+@ifnothtml
+``Emacs polyGLOT''.
+@end ifnothtml
+@footnote{
 A @dfn{polyglot} is a
 person who is able to use several languages.
 } Eglot provides infrastructure and a set of commands for enriching
 the source code editing capabilities of Emacs via LSP.  LSP is a
 standardized communications protocol between source code editors (such
-as Emacs) and language servers, programs external to Emacs for
-analyzing source code on behalf of Emacs.  The protocol allows Emacs
+as Emacs) and language servers---programs external to Emacs which
+analyze the source code on behalf of Emacs.  The protocol allows Emacs
 to receive various source code services from the server, such as
 description and location of functions calls, types of variables, class
 definitions, syntactic errors, etc.  This way, Emacs doesn't need to
@@ -417,9 +423,10 @@ activated automatically as you type.
 
 @item
 If a completion package such as @code{company-mode}, a popular
-third-party completion package, is installed, Eglot enhances it by
-providing completion candidates based on the language-server analysis
-of the source code.  (@code{company-mode} can be installed from GNU ELPA.)
+third-party completion package (or any other completion package), is
+installed, Eglot enhances it by providing completion candidates based
+on the language-server analysis of the source code.
+(@code{company-mode} can be installed from GNU ELPA.)
 
 @item
 If @code{yasnippet}, a popular third-party package for automatic
@@ -432,8 +439,9 @@ completion package to instantiate these snippets using
 If the popular third-party package @code{markdown-mode} is installed,
 and the server provides at-point documentation formatted as Markdown
 in addition to plain text, Eglot arranges for the ElDoc package to
-enrich this text with e.g. fontification before displaying it to the
-user.
+enrich this text with fontifications and other nice formatting before
+displaying it to the user.  This makes the documentation shown by
+ElDoc look nicer on display.
 
 @item
 In addition to enabling and enhancing other features and packages,
@@ -777,7 +785,9 @@ unexpectedly.  The default value 3 means to attempt reconnection only
 if the previous successful connection lasted for more than that number
 of seconds; a different positive value changes the minimal length of
 the connection to trigger reconnection.  A value of @code{t} means
-always reconnect automatically, and @code{nil} means never reconnect.
+always reconnect automatically, and @code{nil} means never reconnect
+(in which case you will need to reconnect manually using @kbd{M-x
+eglot}).
 
 @item eglot-connect-timeout
 This specifies the number of seconds before connection attempt to a
@@ -798,8 +808,7 @@ all during the waiting period.
 This determines the size of the Eglot events buffer.  @xref{Eglot
 Commands, eglot-events-buffer}, for how to display that buffer.  If
 the value is changed, for it to take effect the connection should be
-restarted using @kbd{eglot-shutdown} followed by
-@kbd{eglot-reconnect}.
+restarted using @kbd{M-x eglot-reconnect}.
 @c FIXME: Shouldn't the defcustom do this by itself using the :set
 @c attribute?
 @xref{Troubleshooting Eglot}, for when this could be useful.
@@ -854,6 +863,7 @@ connections, are documented in @ref{Customizing Eglot}.
 @chapter Customizing Eglot
 @cindex customizing Eglot
 
+Eglot itself has a relatively small number of customization options.
 A large part of customizing Eglot to your needs and preferences should
 actually be done via options of the Emacs packages and features which
 Eglot supports and enhances (@pxref{Eglot Features}).  For example:
