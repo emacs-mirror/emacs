@@ -209,7 +209,7 @@ package_or_default (Lisp_Object designator)
    recursion.  */
 
 static Lisp_Object
-lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
+pkg_find_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
 		Lisp_Object *status)
 {
   eassert (STRINGP (name));
@@ -240,7 +240,7 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
 	  if (NILP (Fmemq (used_package, seen)))
 	    {
 	      seen = Fcons (used_package, seen);
-	      symbol = lookup_symbol1 (name, used_package, seen, NULL);
+	      symbol = pkg_find_symbol1 (name, used_package, seen, NULL);
 	      if (!EQ (symbol, Qunbound))
 		return symbol;
 	    }
@@ -250,10 +250,10 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
   return symbol;
 }
 
-static Lisp_Object
-lookup_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
+Lisp_Object
+pkg_find_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
 {
-  return lookup_symbol1 (name, package, Qnil, status);
+  return pkg_find_symbol1 (name, package, Qnil, status);
 }
 
 /* Add a SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol
@@ -303,7 +303,7 @@ pkg_intern_symbol1 (const Lisp_Object name, Lisp_Object package,
   eassert (PACKAGEP (package));
 
   /* If already accessible in package, return that.  */
-  Lisp_Object symbol = lookup_symbol (name, package, status);
+  Lisp_Object symbol = pkg_find_symbol (name, package, status);
   if (!EQ (symbol, Qunbound))
     return symbol;
 
@@ -376,7 +376,7 @@ pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nb
 {
   eassert (*ptr != ':');
   const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
-  return lookup_symbol (name, Vearmuffs_package, NULL);
+  return pkg_find_symbol (name, Vearmuffs_package, NULL);
 }
 
 static Lisp_Object
@@ -386,7 +386,7 @@ pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
   package = package_or_default (package);
 
   Lisp_Object status;
-  Lisp_Object found = lookup_symbol (SYMBOL_NAME (symbol), package, &status);
+  Lisp_Object found = pkg_find_symbol (SYMBOL_NAME (symbol), package, &status);
   Lisp_Object removedp = Qnil;
 
   if (!EQ (found, Qunbound) && !EQ (status, QCinherited))
@@ -514,7 +514,7 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
     package = fake_me_an_obarray (package);
   package = package_or_default (package);
 
-  Lisp_Object found = lookup_symbol (name, package, NULL);
+  Lisp_Object found = pkg_find_symbol (name, package, NULL);
   if (EQ (found, Qunbound))
     return Qnil;
 
@@ -563,7 +563,8 @@ pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
 {
   /* If we want a symbol for a given package, check the
      package has that symbol and its accessibily.  */
-  Lisp_Object found = Ffind_symbol (name, package);
+  Lisp_Object status;
+  Lisp_Object found = pkg_find_symbol (name, package, &status);
 
   if (EQ (package, Vkeyword_package))
     {
@@ -571,23 +572,22 @@ pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
 	 PKG-FIXME: there might already be a symbol named
 	 'test' in the obarray, and we'd like to use that
 	 name for ':test'.  That's a problem.  */
-      if (NILP (found))
+      if (EQ (found, Qunbound))
 	return pkg_intern_symbol (name, package, NULL);
-      return XCAR (found);
+      return found;
     }
 
-  if (NILP (found))
+  if (EQ (found, Qunbound))
     pkg_error ("Symbol '%s' is not accessible in package '%s'",
 	       SDATA (name), SDATA (XPACKAGE (package)->name));
 
   /* Check if the symbol is accesible in the package as external
      symbol.  PKG-FIXME: Check what to do for inherited symbols.  */
-  const Lisp_Object status = XCAR (XCDR (found));
   if (external && EQ (status, QCinternal))
     pkg_error ("Symbol '%s' is internal in package '%s'",
 	       SDATA (name), SDATA (XPACKAGE (package)->name));
 
-  return XCAR (found);
+  return found;
 }
 
 /* Return symbol with name NAME when accessed without qualification in
@@ -603,9 +603,10 @@ pkg_unqualified_symbol (Lisp_Object name)
 
   /* If we want a symbol for a given package, check the
      package has that symboland its accessibily.  */
-  const Lisp_Object found = Ffind_symbol (name, package);
-  if (!NILP (found))
-    return XCAR (found);
+  Lisp_Object status;
+  const Lisp_Object found = pkg_find_symbol (name, package, &status);
+  if (!EQ (found, Qunbound))
+    return found;
   return pkg_intern_symbol (name, package, NULL);
 }
 
@@ -657,7 +658,7 @@ symbol that was found, and STATUS is one of the following:
   CHECK_STRING (name);
   package = package_or_default (package);
   Lisp_Object status;
-  const Lisp_Object symbol = lookup_symbol (name, package, &status);
+  const Lisp_Object symbol = pkg_find_symbol (name, package, &status);
   if (EQ (symbol, Qunbound))
     return Qnil;
   return list2 (symbol, status);

@@ -2235,15 +2235,15 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
   else
     {
       /* If the symbol is accessible, it need not be qualified.  */
-      const Lisp_Object found = Ffind_symbol (name, Vearmuffs_package);
-      const bool accessible = !NILP (found);
-      if (!accessible || !EQ (XCAR (found), symbol))
+      Lisp_Object status;
+      const Lisp_Object found = pkg_find_symbol (name, Vearmuffs_package, &status);
+      const bool accessible = !EQ (found, Qunbound);
+      if (!accessible || !EQ (found, symbol))
 	{
 	  print_symbol_name (XPACKAGE (package)->name,
 			     printcharfun, escape);
-	  const Lisp_Object found = Ffind_symbol (name, package);
-	  eassert (!NILP (found));
-	  const Lisp_Object status = XCAR (XCDR (found));
+	  const Lisp_Object found = pkg_find_symbol (name, package, &status);
+	  eassert (!EQ (found, Qunbound));
 	  if (EQ (status, QCexternal))
 	    print_c_string (":", printcharfun);
 	  else
