@@ -37,7 +37,7 @@
 
 (quail-define-package
  "slovak" "Slovak" "SK" t
- "Standard Slovak keyboard."
+ "Standard Slovak QWERTZ keyboard."
  nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules
@@ -157,8 +157,8 @@
 
 
 (quail-define-package
- "slovak-querty" "Slovak" "SK" t
- "Standard Slovak keyboard, QWERTY variant."
+ "slovak-qwerty" "Slovak" "SK" t
+ "Standard Slovak QWERTY keyboard."
  nil t nil nil t nil nil nil nil nil t)
 
 (quail-define-rules

@@ -1363,9 +1363,9 @@ This supports the keyboard layout specifically designed for the Tamil
 language.
 
 ---
-*** New 'slovak-qwerty' input method
-This completes the set of the standard Slovak keyboards, now
-containing both the QWERTZ and the QWERTY variants.
+*** New input method 'slovak-qwerty'.
+This is a variant of the 'slovak' input method, which corresponds to
+the QWERTY Slovak keyboards.
 
 
 * Changes in Specialized Modes and Packages in Emacs 29.1
