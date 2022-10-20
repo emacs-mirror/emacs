@@ -2262,6 +2262,12 @@ PACKAGE_SYMBOLS (Lisp_Object package)
   return XPACKAGE (package)->symbols;
 }
 
+INLINE Lisp_Object
+PACKAGE_NAMEX (Lisp_Object package)
+{
+  return XPACKAGE (package)->name;
+}
+
 extern void init_pkg_once (void);
 extern void init_pkg (void);
 extern void syms_of_pkg (void);

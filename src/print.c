@@ -1804,10 +1804,10 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       break;
 
     case PVEC_PACKAGE:
-      if (STRINGP (XPACKAGE (obj)->name))
+      if (STRINGP (PACKAGE_NAMEX (obj)))
 	{
 	  print_c_string ("#<package \"", printcharfun);
-	  print_string (XPACKAGE (obj)->name, printcharfun);
+	  print_string (PACKAGE_NAMEX (obj), printcharfun);
 	  print_c_string ("\">", printcharfun);
 	}
       else
@@ -2240,8 +2240,7 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
       const bool accessible = !EQ (found, Qunbound);
       if (!accessible || !EQ (found, symbol))
 	{
-	  print_symbol_name (XPACKAGE (package)->name,
-			     printcharfun, escape);
+	  print_symbol_name (PACKAGE_NAMEX (package), printcharfun, escape);
 	  const Lisp_Object found = pkg_find_symbol (name, package, &status);
 	  eassert (!EQ (found, Qunbound));
 	  if (EQ (status, QCexternal))

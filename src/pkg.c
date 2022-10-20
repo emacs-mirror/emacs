@@ -611,13 +611,13 @@ pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
 
   if (EQ (found, Qunbound))
     pkg_error ("Symbol '%s' is not accessible in package '%s'",
-	       SDATA (name), SDATA (XPACKAGE (package)->name));
+	       SDATA (name), SDATA (PACKAGE_NAMEX (package)));
 
   /* Check if the symbol is accesible in the package as external
      symbol.  PKG-FIXME: Check what to do for inherited symbols.  */
   if (external && EQ (status, QCinternal))
     pkg_error ("Symbol '%s' is internal in package '%s'",
-	       SDATA (name), SDATA (XPACKAGE (package)->name));
+	       SDATA (name), SDATA (PACKAGE_NAMEX (package)));
 
   return found;
 }
@@ -736,7 +736,7 @@ DEFUN ("package-%name", Fpackage_percent_name, Spackage_percent_name, 1, 1, 0,
   (Lisp_Object package)
 {
   CHECK_PACKAGE (package);
-  return XPACKAGE (package)->name;
+  return PACKAGE_NAMEX (package);
 }
 
 DEFUN ("package-%set-name", Fpackage_percent_set_name, Spackage_percent_set_name,
