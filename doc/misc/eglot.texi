@@ -185,8 +185,10 @@ further discussed in this manual; refer to the documentation of the
 particular server(s) you want to install.
 
 To use a language server, Eglot must know how to start it and which
-programming languages each server supports.  This information is
-provided by the @code{eglot-server-programs} variable.
+programming languages each server supports.  Eglot comes with a fairly
+complete set of associations of major-modes to popular language
+servers predefined.  This information is provided by the
+@code{eglot-server-programs} variable.
 
 @defvar eglot-server-programs
 This variable associates major modes with names and command-line
@@ -249,9 +251,7 @@ arguments.
 
 @end defvar
 
-Eglot comes with a fairly complete set of associations of major-modes
-to popular language servers predefined in this variable.  If you need
-to add server associations to the default list, use
+If you need to add server associations to the default list, use
 @code{add-to-list}.  For example, if there is a hypothetical language
 server program @command{fools} for the language @code{Foo} which is
 supported by an Emacs major-mode @code{foo-mode}, you can add it to
