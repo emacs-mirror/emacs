@@ -2212,7 +2212,7 @@ struct Lisp_Package
   /* The package name, a string.  */
   Lisp_Object name;
 
-  /* Package nicknames as List of strings.  */
+  /* Package nicknames, a List of strings.  */
   Lisp_Object nicknames;
 
   /* List of package objects for the packages used by this
@@ -2222,8 +2222,9 @@ struct Lisp_Package
   /* List of shadowing symbols.  */
   Lisp_Object shadowing_symbols;
 
-  /* Hash table mapping symbol names to symbols present in the
-     package.  */
+  /* Hash table mapping of symbols present in this package.  This maps
+     symbols present in the package to their accessibility, one of
+     :internal or :external.  */
   Lisp_Object symbols;
 
 } GCALIGNED_STRUCT;
