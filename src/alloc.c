@@ -3675,7 +3675,6 @@ init_symbol (Lisp_Object val, Lisp_Object name)
   p->u.s.trapped_write = SYMBOL_UNTRAPPED_WRITE;
   p->u.s.declared_special = false;
   p->u.s.pinned = false;
-  p->u.s.external = false;
 }
 
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,

@@ -266,7 +266,6 @@ pkg_add_symbol (Lisp_Object symbol, Lisp_Object status, Lisp_Object package)
   eassert (SYMBOLP (symbol));
   eassert (SYMBOLP (status));
   eassert (PACKAGEP (package));
-  XSYMBOL (symbol)->u.s.external = EQ (package, Vkeyword_package);
   Fputhash (symbol, status, PACKAGE_SYMBOLS (package));
   return symbol;
 }

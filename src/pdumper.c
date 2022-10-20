@@ -2449,7 +2449,6 @@ dump_symbol (struct dump_context *ctx,
   DUMP_FIELD_COPY (&out, symbol, u.s.trapped_write);
   DUMP_FIELD_COPY (&out, symbol, u.s.declared_special);
   DUMP_FIELD_COPY (&out, symbol, u.s.pinned);
-  DUMP_FIELD_COPY (&out, symbol, u.s.external);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.name, WEIGHT_STRONG);
   switch (symbol->u.s.redirect)
     {

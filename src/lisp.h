@@ -850,9 +850,6 @@ struct Lisp_Symbol
       /* True if pointed to from purespace and hence can't be GC'd.  */
       bool_bf pinned : 1;
 
-      /* True if external symbol in its home package.  */
-      bool_bf external : 1;
-
       /* The symbol's name, as a Lisp string.  */
       Lisp_Object name;
 
@@ -2414,12 +2411,6 @@ INLINE Lisp_Object
 SYMBOL_PACKAGE (Lisp_Object sym)
 {
   return XSYMBOL (sym)->u.s.package;
-}
-
-INLINE bool
-SYMBOL_EXTERNAL_P (Lisp_Object sym)
-{
-  return XSYMBOL (sym)->u.s.external;
 }
 
 INLINE bool
