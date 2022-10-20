@@ -2760,6 +2760,13 @@ name.
 * New Modes and Packages in Emacs 29.1
 
 +++
+** Eglot: Emacs Client for the Language Server Protocol.
+Emacs now comes with the Eglot package, which enhances various Emacs
+features, such as completion, documentation, error detection, etc.,
+based on data provided by language servers using the Language Server
+Protocol (LSP).
+
++++
 ** New commands 'image-crop' and 'image-cut.
 These commands allow interactively cropping/cutting the image at
 point.  The commands are bound to keys 'i c' and 'i x' (respectively)
