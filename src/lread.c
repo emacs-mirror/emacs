@@ -4354,6 +4354,12 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 	  result = Fmake_symbol (symbol_name);
 	else if (NILP (package))
 	  result = pkg_unqualified_symbol (symbol_name);
+	else if (NILP (Vpackage_prefixes))
+	  {
+	    /* package should be nil unless we found a keyword.  */
+	    eassert (EQ (package, Vkeyword_package));
+	    result = pkg_qualified_symbol (symbol_name, package, true);
+	  }
 	else
 	  result = pkg_qualified_symbol (symbol_name, package, ncolons == 1);
 
@@ -4740,8 +4746,8 @@ intern_c_string_1 (const char *str, ptrdiff_t len, bool allow_pure_p)
 			    ? make_string (name_start, name_len)
 			    : make_pure_c_string (name_start, name_len));
   if (keyword)
-    return pkg_intern_keyword (name);
-  return pkg_intern_non_keyword (name);
+    return pkg_intern_symbol (name, Vkeyword_package, NULL);
+  return pkg_intern_symbol (name, Vearmuffs_package, NULL);
 }
 
 Lisp_Object
@@ -4765,9 +4771,9 @@ define_symbol (Lisp_Object sym, char const *str)
   if (!BASE_EQ (sym, Qunbound))
     {
       if (keyword)
-	pkg_define_keyword (sym);
+	pkg_define_symbol (sym, Vkeyword_package);
       else
-	pkg_define_non_keyword (sym);
+	pkg_define_symbol (sym, Vemacs_package);
     }
 }
 

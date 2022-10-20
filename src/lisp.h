@@ -2271,15 +2271,12 @@ extern Lisp_Object pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, 
 extern void pkg_error (const char *fmt, ...);
 extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
 extern bool pkg_keywordp (Lisp_Object obj);
-extern Lisp_Object pkg_intern_keyword (Lisp_Object sym);
-extern Lisp_Object pkg_define_keyword (Lisp_Object sym);
-extern Lisp_Object pkg_define_non_keyword (Lisp_Object sym);
-extern Lisp_Object pkg_intern_symbol (Lisp_Object sym, Lisp_Object package);
+extern Lisp_Object pkg_define_symbol (Lisp_Object sym, Lisp_Object package);
+extern Lisp_Object pkg_intern_symbol (Lisp_Object sym, Lisp_Object package, Lisp_Object *status);
 extern Lisp_Object pkg_emacs_intern (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_unintern (Lisp_Object name, Lisp_Object package);
 extern Lisp_Object pkg_emacs_mapatoms (Lisp_Object fn, Lisp_Object package);
-extern Lisp_Object pkg_intern_non_keyword (Lisp_Object name);
 extern Lisp_Object pkg_intern_non_keyword_c_string (const char *p, ptrdiff_t len);
 extern Lisp_Object pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nbytes);
 extern Lisp_Object pkg_intern_maybe_keyword (Lisp_Object name);
@@ -4125,6 +4122,7 @@ ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    Lisp_Object);
 bool hash_remove_from_table (struct Lisp_Hash_Table *, Lisp_Object);
 extern struct hash_table_test const hashtest_eq, hashtest_eql, hashtest_equal;
+extern struct hash_table_test const hashtest_string_equal;
 extern void validate_subarray (Lisp_Object, Lisp_Object, Lisp_Object,
 			       ptrdiff_t, ptrdiff_t *, ptrdiff_t *);
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,

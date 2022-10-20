@@ -104,13 +104,6 @@ h_next (struct h_iter *it)
 			       Helpers
  ***********************************************************************/
 
-Lisp_Object
-pkg_find_package (Lisp_Object name)
-{
-  CHECK_STRING (name);
-  return Fgethash (name, Vpackage_registry, Qnil);
-}
-
 /* Create and return a new Lisp package object for a package with name
    NAME, a string.  NSYMBOLS is the sieo of the symbol-table to allocate.  */
 
@@ -121,11 +114,31 @@ make_package (Lisp_Object name, Lisp_Object nsymbols)
     = ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Package, symbols,
 				    PVEC_PACKAGE);
   pkg->name = name;
-  pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qequal,
+  pkg->symbols = CALLN (Fmake_hash_table, QCtest, Qstring_equal,
 			QCsize, nsymbols);
   Lisp_Object package;
   XSETPACKAGE (package, pkg);
   return package;
+}
+
+Lisp_Object
+pkg_find_package (Lisp_Object name)
+{
+  CHECK_STRING (name);
+  return Fgethash (name, Vpackage_registry, Qnil);
+}
+
+/* Register package PACKAGE in the package registry, that is, make it
+   known under its name and all its nicknames.  */
+
+static void
+register_package (Lisp_Object package)
+{
+  const struct Lisp_Package *pkg = XPACKAGE (package);
+  Fputhash (pkg->name, package, Vpackage_registry);
+  Lisp_Object tail = pkg->nicknames;
+  FOR_EACH_TAIL (tail)
+    Fputhash (XCAR (tail), package, Vpackage_registry);
 }
 
 /* Return a string for DESIGNATOR.  If DESIGNATOR is a symbol, return
@@ -186,25 +199,9 @@ package_or_default (Lisp_Object designator)
   return package_from_designator (designator);
 }
 
-/* Register package PACKAGE in the package registry, that is, make it
-   known under its name and all its nicknames.  */
-
-static void
-register_package (Lisp_Object package)
-{
-  const struct Lisp_Package *pkg = XPACKAGE (package);
-  Fputhash (pkg->name, package, Vpackage_registry);
-  Lisp_Object tail = pkg->nicknames;
-  FOR_EACH_TAIL (tail)
-    Fputhash (XCAR (tail), package, Vpackage_registry);
-}
-
 /***********************************************************************
                              Symbol table
  ***********************************************************************/
-
-/* This is a bit fiddly because nil is a "normal" symbol that has
-   a package and so on.  */
 
 /* Find a symbol with name NAME in PACKAGE or one of the packages it
    inherits from.  Value is Qunbound if no symbol is found.  SEEN is a
@@ -212,16 +209,30 @@ register_package (Lisp_Object package)
    recursion.  */
 
 static Lisp_Object
-lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
+lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen,
+		Lisp_Object *status)
 {
   eassert (STRINGP (name));
   eassert (PACKAGEP (package));
   eassert (CONSP (seen) || NILP (seen));
 
+  Lisp_Object symbol = Qunbound;
+  if (status)
+    *status = Qnil;
+
   const struct Lisp_Package *pkg = XPACKAGE (package);
-  Lisp_Object symbol = Fgethash (name, pkg->symbols, Qunbound);
-  if (EQ (symbol, Qunbound))
+  struct Lisp_Hash_Table *h = XHASH_TABLE (PACKAGE_SYMBOLS (package));
+  ptrdiff_t i = hash_lookup (h, name, NULL);
+  if (i >= 0)
     {
+      symbol = HASH_KEY (h, i);
+      if (status)
+	*status = HASH_VALUE (h, i);
+    }
+  else
+    {
+      if (status)
+	*status = QCinherited;
       Lisp_Object tail = pkg->use_list;
       FOR_EACH_TAIL (tail)
 	{
@@ -229,7 +240,7 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
 	  if (NILP (Fmemq (used_package, seen)))
 	    {
 	      seen = Fcons (used_package, seen);
-	      symbol = lookup_symbol1 (name, used_package, seen);
+	      symbol = lookup_symbol1 (name, used_package, seen, NULL);
 	      if (!EQ (symbol, Qunbound))
 		return symbol;
 	    }
@@ -240,53 +251,34 @@ lookup_symbol1 (Lisp_Object name, Lisp_Object package, Lisp_Object seen)
 }
 
 static Lisp_Object
-lookup_symbol (Lisp_Object name, Lisp_Object package)
+lookup_symbol (Lisp_Object name, Lisp_Object package, Lisp_Object *status)
 {
-  return lookup_symbol1(name, package, Qnil);
+  return lookup_symbol1 (name, package, Qnil, status);
 }
 
-static Lisp_Object
-add_to_package_symbols (Lisp_Object symbol, Lisp_Object package)
-{
-  eassert (SYMBOLP (symbol));
-  eassert (PACKAGEP (package));
-  Fputhash (SYMBOL_NAME (symbol), symbol, XPACKAGE (package)->symbols);
-  return symbol;
-}
-
-/* Remove NAME as a name for PACKAGE from the package registry.  */
-
-static void
-remove_from_package_symbols (Lisp_Object symbol, Lisp_Object package)
-{
-  eassert (SYMBOLP (symbol));
-  eassert (PACKAGEP (package));
-  eassert (EQ (SYMBOL_PACKAGE (symbol), package));
-  Fremhash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols);
-}
-
-/* Add a new SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol
+/* Add a SYMBOL to package PACKAGE.  Value is SYMBOL.  The symbol
    is made external if PACKAGE is the keyword package.  Otherwise it
    is internal.  */
 
 static Lisp_Object
-pkg_add_symbol (Lisp_Object symbol, Lisp_Object package)
+pkg_add_symbol (Lisp_Object symbol, Lisp_Object status, Lisp_Object package)
+{
+  eassert (SYMBOLP (symbol));
+  eassert (SYMBOLP (status));
+  eassert (PACKAGEP (package));
+  XSYMBOL (symbol)->u.s.external = EQ (package, Vkeyword_package);
+  Fputhash (symbol, status, PACKAGE_SYMBOLS (package));
+  return symbol;
+}
+
+/* Remove SYMBOL from PACKAGE.  */
+
+static void
+pkg_remove_symbol (Lisp_Object symbol, Lisp_Object package)
 {
   eassert (SYMBOLP (symbol));
   eassert (PACKAGEP (package));
-  eassert (NILP (SYMBOL_PACKAGE (symbol)));
-
-  XSYMBOL (symbol)->u.s.package = package;
-  XSYMBOL (symbol)->u.s.external = EQ (package, Vkeyword_package);
-
-  /* There should be no symbol with the name in the package.  */
-#ifdef ENABLE_CHECKING
-  const Lisp_Object existing
-    = Fgethash (SYMBOL_NAME (symbol), XPACKAGE (package)->symbols, Qunbound);
-  eassert (EQ (existing, Qunbound));
-#endif
-
-  return add_to_package_symbols (symbol, package);
+  Fremhash (symbol, PACKAGE_SYMBOLS (package));
 }
 
 /* Remvoe SYMBOL from the shadowing list of PACKAGE.  */
@@ -298,121 +290,75 @@ remove_shadowing_symbol (Lisp_Object symbol, Lisp_Object package)
   pkg->shadowing_symbols = Fdelq (symbol, pkg->shadowing_symbols);
 }
 
-/* Return a list (SYMBOL STATUS) where STATUS is a symbol describing
-   the status of SYMBOL relative to PACKAGE (internal, external,
-   inherted).  This is kind of a poor man's substitude for multiple
-   values.  */
-
-static Lisp_Object
-symbol_and_status (Lisp_Object symbol, Lisp_Object package)
-{
-  if (EQ (symbol, Qunbound))
-    return Qnil;
-  if (EQ (SYMBOL_PACKAGE (symbol), package))
-    return list2 (symbol, SYMBOL_EXTERNAL_P (symbol) ? QCexternal : QCinternal);
-  return list2 (symbol, QCinherited);
-}
-
 /* Add a new symbol with name NAME to PACKAGE.  If a symbol with name
    NAME is already accessible in PACKAGE, return that symbol.
    Otherwise, add a new symbol to PACKAGE.  Value is the symbol found
    or newly inserted.  */
 
-Lisp_Object
-pkg_intern_symbol (const Lisp_Object symbol_or_name, Lisp_Object package)
+static Lisp_Object
+pkg_intern_symbol1 (const Lisp_Object name, Lisp_Object package,
+		    Lisp_Object *status, Lisp_Object existing_symbol)
 {
   /* PKG-FIXME this symbol_or_name is shit.  */
+  CHECK_STRING (name);
   eassert (PACKAGEP (package));
 
-  const Lisp_Object name
-    = SYMBOLP (symbol_or_name) ? SYMBOL_NAME (symbol_or_name) : symbol_or_name;
-  CHECK_STRING (name);
+  /* If already accessible in package, return that.  */
+  Lisp_Object symbol = lookup_symbol (name, package, status);
+  if (!EQ (symbol, Qunbound))
+    return symbol;
 
-  /* If already present in package, return that.  */
-  Lisp_Object found = lookup_symbol (name, package);
-  if (!EQ (found, Qunbound))
-    {
-      /* We should never find an uninterned symbol in a package.  */
-      eassert (!NILP (SYMBOL_PACKAGE (found)));
-      return found;
-    }
+  /* Not found.  If we have an existing symbol (which should be a
+     built-in symbol), use that, otherwise make a new one.  */
+  if (!EQ (existing_symbol, Qunbound))
+    symbol = existing_symbol;
+  else
+    symbol = Fmake_symbol (name);
 
-  /* Not found.  If intended as a keyword, add it there. */
+  /* PACKAGE becomes the home package of the symbol created.  */
+  XSYMBOL (symbol)->u.s.package = package;
+
   if (EQ (package, Vkeyword_package))
-    return pkg_intern_keyword (name);
-
-  /* Not found, and we have already a symbol, use that symbol.  */
-  if (SYMBOLP (symbol_or_name))
-    return pkg_add_symbol (symbol_or_name, package);
-
-  /* Make a new symbol and add it.  */
-  return pkg_add_symbol (Fmake_symbol (name), package);
-}
-
-/* Lookup or create a new keyword with name NAME.  */
-
-Lisp_Object
-pkg_intern_keyword (Lisp_Object name)
-{
-  eassert (STRINGP (name));
-  eassert (SREF (name, 0) != ':');
-  Lisp_Object keyword = lookup_symbol (name, Vkeyword_package);
-  if (EQ (keyword, Qunbound))
     {
-      keyword = Fmake_symbol (name);
+      if (status)
+	*status = QCexternal;
       /* Symbol-value of a keyword is itself, and cannot be set.  */
-      XSYMBOL (keyword)->u.s.redirect = SYMBOL_PLAINVAL;
-      XSYMBOL (keyword)->u.s.val.value = keyword;
-      make_symbol_constant (keyword);
+      XSYMBOL (symbol)->u.s.redirect = SYMBOL_PLAINVAL;
+      XSYMBOL (symbol)->u.s.val.value = symbol;
+      make_symbol_constant (symbol);
       /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
 	 in lexically bound elisp signal an error, as documented.  */
-      XSYMBOL (keyword)->u.s.declared_special = true;
-      pkg_add_symbol (keyword, Vkeyword_package);
+      XSYMBOL (symbol)->u.s.declared_special = true;
+      pkg_add_symbol (symbol, QCexternal, Vkeyword_package);
     }
   else
-    eassert (SYMBOL_KEYWORD_P (keyword));
+    {
+      if (status)
+	*status = QCinternal;
+      pkg_add_symbol (symbol, QCinternal, package);
+    }
 
-  return keyword;
-}
-
-/* Define KEYWORD as keyword symbol.  */
-
-Lisp_Object
-pkg_define_keyword (Lisp_Object keyword)
-{
-  eassert (SYMBOLP (keyword));
-  eassert (!EQ (keyword, Qunbound));
-  eassert (SREF (SYMBOL_NAME (keyword), 0) != ':');
-
-  /* Symbol-value of a keyword is itself, and cannot be set.  */
-  XSYMBOL (keyword)->u.s.redirect = SYMBOL_PLAINVAL;
-  XSYMBOL (keyword)->u.s.val.value = keyword;
-  make_symbol_constant (keyword);
-  /* Mark keywords as special.  This makes (let ((:key 'foo)) ...)
-     in lexically bound elisp signal an error, as documented.  */
-  XSYMBOL (keyword)->u.s.declared_special = true;
-  return pkg_add_symbol (keyword, Vkeyword_package);
+  return symbol;
 }
 
 Lisp_Object
-pkg_define_non_keyword (Lisp_Object symbol)
+pkg_intern_symbol (const Lisp_Object name, Lisp_Object package,
+		   Lisp_Object *status)
 {
-  eassert (!EQ (symbol, Qunbound));
-  return pkg_add_symbol (symbol, Vemacs_package);
+  return pkg_intern_symbol1 (name, package, status, Qunbound);
 }
 
-Lisp_Object
-pkg_intern_non_keyword (Lisp_Object name)
-{
-  return pkg_intern_symbol (name, Vearmuffs_package);
-}
+/* Define SYMBOL in package.  This is called from define_symbol for
+   built-in symbols.  */
 
 Lisp_Object
-pkg_intern_non_keyword_c_string (const char *p, ptrdiff_t len)
+pkg_define_symbol (Lisp_Object symbol, Lisp_Object package)
 {
-  const Lisp_Object name = make_unibyte_string (p, len);
-  return pkg_intern_non_keyword (name);
+  return pkg_intern_symbol1 (SYMBOL_NAME (symbol), package, NULL, symbol);
 }
+
+/* Intern NAME, which may or may not have a ':' in its name, that is
+   might be intended to be a keyword.  */
 
 Lisp_Object
 pkg_intern_maybe_keyword (Lisp_Object name)
@@ -420,10 +366,10 @@ pkg_intern_maybe_keyword (Lisp_Object name)
   CHECK_STRING (name);
   if (SREF (name, 0) == ':')
     {
-      const Lisp_Object keyword_name = Fsubstring (name, make_fixnum (1), Qnil);
-      return pkg_intern_keyword (keyword_name);
+      name = Fsubstring (name, make_fixnum (1), Qnil);
+      return pkg_intern_symbol (name, Vkeyword_package, NULL);
     }
-  return pkg_intern_non_keyword (name);
+  return pkg_intern_symbol (name, Vearmuffs_package, NULL);
 }
 
 Lisp_Object
@@ -431,24 +377,32 @@ pkg_lookup_non_keyword_c_string (const char *ptr, ptrdiff_t nchars, ptrdiff_t nb
 {
   eassert (*ptr != ':');
   const Lisp_Object name = make_string_from_bytes (ptr, nchars, nbytes);
-  return lookup_symbol (name, Vearmuffs_package);
+  return lookup_symbol (name, Vearmuffs_package, NULL);
 }
 
 static Lisp_Object
 pkg_unintern_symbol (Lisp_Object symbol, Lisp_Object package)
 {
   CHECK_SYMBOL (symbol);
-  remove_shadowing_symbol (symbol, package);
   package = package_or_default (package);
-  remove_shadowing_symbol (symbol, package);
-  if (EQ (package, SYMBOL_PACKAGE (symbol)))
+
+  Lisp_Object status;
+  Lisp_Object found = lookup_symbol (SYMBOL_NAME (symbol), package, &status);
+  Lisp_Object removedp = Qnil;
+
+  if (!EQ (found, Qunbound) && !EQ (status, QCinherited))
     {
-      remove_from_package_symbols (symbol, package);
-      return Qt;
+      /* Symbol is present in the package. Remove it from the symbol
+	 table and shadowing list.  */
+      removedp = Qt;
+      remove_shadowing_symbol (symbol, package);
+      pkg_remove_symbol (symbol, package);
     }
 
-  /* PKG-FIXME: What to do if PACKAGE is not the home package?  */
-  return Qnil;
+  if (EQ (package, SYMBOL_PACKAGE (symbol)))
+    XSYMBOL (symbol)->u.s.package = Qnil;
+
+  return removedp;
 }
 
 void pkg_break (void)
@@ -461,7 +415,7 @@ pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
 {
   package = check_package (package);
   FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (package))
-    call1 (fn, it_symbol.value);
+    call1 (fn, it_symbol.key);
 
 }
 
@@ -479,7 +433,7 @@ pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
   FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
     FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
-      fn (it_symbol.value, arg);
+      fn (it_symbol.key, arg);
 }
 
 /***********************************************************************
@@ -508,13 +462,13 @@ fake_me_an_obarray (Lisp_Object vector)
   Lisp_Object package = Faref (vector, make_fixnum (0));
   if (!PACKAGEP (package))
     {
-      package = make_package (build_string ("fake obarray"), Qnil);
+      package = make_package (build_string ("obarray"), Qnil);
       Faset (vector, make_fixnum (0), package);
     }
   return package;
 }
 
-/* Implements Emacs' old Fintern function.  */
+/* Implements Emacs' traditional Fintern function.  */
 
 Lisp_Object
 pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
@@ -535,7 +489,7 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
     package = fake_me_an_obarray (package);
   package = package_or_default (package);
 
-  return pkg_intern_symbol (name, package);
+  return pkg_intern_symbol (name, package, NULL);
 }
 
 /* Implements Emacs' old Fintern_soft function.  */
@@ -561,9 +515,10 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
     package = fake_me_an_obarray (package);
   package = package_or_default (package);
 
-  Lisp_Object found = lookup_symbol (name, package);
+  Lisp_Object found = lookup_symbol (name, package, NULL);
   if (EQ (found, Qunbound))
     return Qnil;
+
   if (SYMBOLP (orig) && !EQ (found, orig))
     return Qnil;
 
@@ -600,11 +555,15 @@ pkg_emacs_mapatoms (Lisp_Object function, Lisp_Object package)
 				Reader
  ***********************************************************************/
 
+/* We have read a symbol with NAME, and a package prefix for PACKAGE.
+   EXTERNAL means that we have seen ':' and not '::'.  Value is the
+   symbol for that case.  */
+
 Lisp_Object
 pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
 {
   /* If we want a symbol for a given package, check the
-     package has that symboland its accessibily.  */
+     package has that symbol and its accessibily.  */
   Lisp_Object found = Ffind_symbol (name, package);
 
   if (EQ (package, Vkeyword_package))
@@ -613,15 +572,14 @@ pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external)
 	 PKG-FIXME: there might already be a symbol named
 	 'test' in the obarray, and we'd like to use that
 	 name for ':test'.  That's a problem.  */
-
-      /* PKG-FIXME: Make keywords constants.  */
       if (NILP (found))
-	return pkg_intern_symbol (name, package);
+	return pkg_intern_symbol (name, package, NULL);
       return XCAR (found);
     }
 
   if (NILP (found))
-    pkg_error ("Symbol '%s' is not present in package", SDATA (name));
+    pkg_error ("Symbol '%s' is not accessible in package '%s'",
+	       SDATA (name), SDATA (XPACKAGE (package)->name));
 
   /* Check if the symbol is accesible in the package as external
      symbol.  PKG-FIXME: Check what to do for inherited symbols.  */
@@ -649,15 +607,15 @@ pkg_unqualified_symbol (Lisp_Object name)
   const Lisp_Object found = Ffind_symbol (name, package);
   if (!NILP (found))
     return XCAR (found);
-  return pkg_intern_symbol (name, package);
+  return pkg_intern_symbol (name, package, NULL);
 }
+
+/* Value is true if obj is a keyword symbol.  */
 
 bool
 pkg_keywordp (Lisp_Object obj)
 {
-  if (!SYMBOLP (obj))
-    return false;
-  return EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
+  return SYMBOLP (obj) && EQ (SYMBOL_PACKAGE (obj), Vkeyword_package);
 }
 
 
@@ -699,8 +657,11 @@ symbol that was found, and STATUS is one of the following:
 {
   CHECK_STRING (name);
   package = package_or_default (package);
-  const Lisp_Object symbol = lookup_symbol (name, package);
-  return symbol_and_status (symbol, package);
+  Lisp_Object status;
+  const Lisp_Object symbol = lookup_symbol (name, package, &status);
+  if (EQ (symbol, Qunbound))
+    return Qnil;
+  return list2 (symbol, status);
 }
 
 /* PKG-FIXME: Make this somehow compatible with Emacs' intern?  */
@@ -721,8 +682,9 @@ package is the keyword package, or 'internal' if not.  */)
 {
   CHECK_STRING (name);
   package = package_or_default (package);
-  const Lisp_Object symbol = pkg_intern_symbol (name, package);
-  return symbol_and_status (symbol, package);
+  Lisp_Object status;
+  const Lisp_Object symbol = pkg_intern_symbol (name, package, &status);
+  return list2 (symbol, status);
 }
 
 DEFUN ("cl-unintern", Fcl_unintern, Scl_unintern, 1, 2, 0, doc:
