@@ -2216,34 +2216,35 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
 	      bool escape)
 {
   const Lisp_Object name = SYMBOL_NAME (symbol);
-  const char *p = SSDATA (name);
   const Lisp_Object package = SYMBOL_PACKAGE (symbol);
 
-  /* print-gensym true means print #: for uninterned symbols.
-     PKG_FIXME: This looks like #: for an uninterned symbol with empty
-     name?  */
-  if (NILP (package))
+  if (EQ (package, Vkeyword_package))
+    print_c_string (":", printcharfun);
+  else if (EQ (package, Vearmuffs_package))
+    ;
+  else if (NILP (package))
     {
       if (!NILP (Vprint_gensym))
 	print_c_string ("#:", printcharfun);
-      else if (*p == 0)
+      else if (*SDATA (name) == 0)
 	{
 	  print_c_string ("##", printcharfun);
 	  return;
 	}
     }
-
-  if (EQ (package, Vkeyword_package))
-    print_c_string (":", printcharfun);
-  else if (!NILP (package) && !EQ (package, Vearmuffs_package))
+  else
     {
-      /* Don't print qualification if in current package.  */
+      /* If the symbol is accessible, it need not be qualified.  */
       const Lisp_Object found = Ffind_symbol (name, Vearmuffs_package);
-      if (NILP (found) || !EQ (XCAR (found), symbol))
+      const bool accessible = !NILP (found);
+      if (!accessible || !EQ (XCAR (found), symbol))
 	{
 	  print_symbol_name (XPACKAGE (package)->name,
 			     printcharfun, escape);
-	  if (SYMBOL_EXTERNAL_P (symbol))
+	  const Lisp_Object found = Ffind_symbol (name, package);
+	  eassert (!NILP (found));
+	  const Lisp_Object status = XCAR (XCDR (found));
+	  if (EQ (status, QCexternal))
 	    print_c_string (":", printcharfun);
 	  else
 	    print_c_string ("::", printcharfun);
