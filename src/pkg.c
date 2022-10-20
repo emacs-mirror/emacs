@@ -436,9 +436,20 @@ static void
 pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
 {
   package = pkg_package_or_lose (package);
-  FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (package))
-    call1 (fn, it_symbol.key);
+  FOR_EACH_KEY_VALUE (it, PACKAGE_SYMBOLS (package))
+    call1 (fn, it.key);
+}
 
+/* Return a list of all registered packages.  */
+
+static Lisp_Object
+pkg_list_all_packages (void)
+{
+  Lisp_Object all = Qnil;
+  FOR_EACH_KEY_VALUE (it, Vpackage_registry)
+    if (NILP (Fmemq (it.value, all)))
+      all = Fcons (it.value, all);
+  return all;
 }
 
 /* Map FUNCTION over all symbols in PACKAGE.  */
@@ -446,8 +457,9 @@ pkg_map_package_symbols (Lisp_Object fn, Lisp_Object package)
 static void
 pkg_map_symbols (Lisp_Object function)
 {
-  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
-    pkg_map_package_symbols (function, it_package.value);
+  Lisp_Object tail = pkg_list_all_packages ();
+  FOR_EACH_TAIL (tail)
+    pkg_map_package_symbols (function, XCAR (tail));
 }
 
 /* Map a C funtion FN over all symbols in all registered packages.
@@ -457,9 +469,10 @@ pkg_map_symbols (Lisp_Object function)
 void
 pkg_map_symbols_c_fn (void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
-  FOR_EACH_KEY_VALUE (it_package, Vpackage_registry)
-    FOR_EACH_KEY_VALUE (it_symbol, PACKAGE_SYMBOLS (it_package.value))
-      fn (it_symbol.key, arg);
+  Lisp_Object tail = pkg_list_all_packages ();
+  FOR_EACH_TAIL (tail)
+    FOR_EACH_KEY_VALUE (it, PACKAGE_SYMBOLS (XCAR (tail)))
+      fn (it.key, arg);
 }
 
 /* Value is true if obj is a keyword symbol.  */
