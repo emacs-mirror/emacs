@@ -122,7 +122,7 @@ you want to use Eglot, you just need to make sure those servers are
 installed on your system.  Alternatively, install one or more servers
 of your choice and add them to the value of
 @code{eglot-server-programs}, as described in @ref{Setting Up LSP
-Server}.
+Servers}.
 
 @item
 Turn on Eglot for your project.
@@ -969,7 +969,7 @@ object.  @var{plist} may be arbitrarity complex, generally containing
 other keywork-value property sublists corresponding to JSON subobjects.
 The JSON values @code{true}, @code{false}, @code{null} and @code{@{@}}
 are represented by the Lisp values @code{t}, @code{:json-false},
-@code{nil}, and @{eglot-@{@}}, respectively.
+@code{nil}, and @code{eglot-@{@}}, respectively.
 
 @findex eglot-show-workspace-configuration
 When experimenting with workspace settings, you can use the command
@@ -1126,3 +1126,4 @@ that used Eglot to communicate with the language server.
 @printindex cp
 
 @bye
+        
