@@ -446,7 +446,7 @@ from the base name of DIR."
   (unless (vc-responsible-backend dir)
     (user-error "Directory %S is not under version control" dir))
   (package--archives-initialize)
-  (let* ((name (file-name-base (directory-file-name dir)))
+  (let* ((name (or name (file-name-base (directory-file-name dir))))
          (pkg-dir (expand-file-name name package-user-dir)))
     (make-symbolic-link dir pkg-dir)
     (package-vc-unpack-1 (package-desc-create
