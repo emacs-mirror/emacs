@@ -242,6 +242,21 @@ The output is written out into PKG-FILE."
         "\n")
        nil pkg-file nil 'silent))))
 
+(declare-function org-export-to-file "ox" (backend file))
+
+(defun package-vc-build-documentation (pkg-desc file)
+  "Build documentation FILE for PKG-DESC."
+  (let ((pkg-dir (package-desc-dir pkg-desc)))
+    (when (string-match-p "\\.org\\'" file)
+      (require 'ox)
+      (require 'ox-texinfo)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (setq file (make-temp-file "ox-texinfo-"))
+        (org-export-to-file 'texinfo file)))
+    (call-process "install-info" nil nil nil
+                  file pkg-dir)))
+
 (defun package-vc-unpack-1 (pkg-desc pkg-dir)
   "Install PKG-DESC that is already located in PKG-DIR."
   ;; In case the package was installed directly from source, the
@@ -273,14 +288,10 @@ The output is written out into PKG-FILE."
     (package-vc-generate-description-file pkg-desc pkg-file)
 
     ;; Detect a manual
-    (when (executable-find "install-info")
-      ;; Only proceed if we can find an unambiguous TeXinfo file
-      (let ((texi-files (directory-files pkg-dir t "\\.texi\\'"))
-            (dir-file (expand-file-name "dir" pkg-dir)))
-        (when (length= texi-files 1)
-          (call-process "install-info" nil nil nil
-                        (concat "--dir=" dir-file)
-                        (car texi-files))))))
+    (when-let ((pkg-spec (pacakge-vc-desc->spec pkg-desc))
+               ((executable-find "install-info")))
+      (dolist (doc-file (ensure-list (plist-get pkg-spec :doc)))
+        (package-vc-build-documentation pkg-desc doc-file))))
 
   ;; Update package-alist.
   (let ((new-desc (package-load-descriptor pkg-dir)))
