@@ -418,19 +418,21 @@ activated automatically as you type.
 If a completion package such as @code{company-mode}, a popular
 third-party completion package, is installed, Eglot enhances it by
 providing completion candidates based on the language-server analysis
-of the source code.
+of the source code.  (@code{company-mode} can be installed from GNU ELPA.)
 
 @item
-If @code{yasnippet}, a popular package for automatic insertion of code
-templates (snippets), is installed, and the language server supports
-snippet completion candidates, Eglot arranges for the completion
-package to instantiate these snippets using @code{yasnippet}.
+If @code{yasnippet}, a popular third-party package for automatic
+insertion of code templates (snippets), is installed, and the language
+server supports snippet completion candidates, Eglot arranges for the
+completion package to instantiate these snippets using
+@code{yasnippet}.  (@code{yasnippet} can be installed from GNU ELPA.)
 
 @item
-If the popular package @code{markdown-mode} is installed, and the
-server provides at-point documentation formatted as Markdown in
-addition to plain text, Eglot arranges for the ElDoc package to enrich
-this text with e.g. fontification before displaying it to the user.
+If the popular third-party package @code{markdown-mode} is installed,
+and the server provides at-point documentation formatted as Markdown
+in addition to plain text, Eglot arranges for the ElDoc package to
+enrich this text with e.g. fontification before displaying it to the
+user.
 
 @item
 In addition to enabling and enhancing other features and packages,
