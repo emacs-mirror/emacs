@@ -126,10 +126,21 @@
   (should nil))
 
 (ert-deftest pkg-tests-cl-intern ()
-  (should nil))
+  (cl-assert (not (find-symbol "foo")))
+  (unwind-protect
+      (progn
+        (cl-intern "foo")
+        (should (find-symbol "foo")))
+    (cl-unintern 'foo)))
 
 (ert-deftest pkg-tests-cl-unintern ()
-  (should nil))
+  (cl-assert (not (find-symbol "foo")))
+  (unwind-protect
+      (progn
+        (cl-intern "foo")
+        (cl-unintern 'foo)
+        (should-not (find-symbol "foo")))
+    (cl-unintern 'foo)))
 
 (ert-deftest pkg-tests-export ()
   (should nil))
