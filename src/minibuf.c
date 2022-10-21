@@ -1622,6 +1622,10 @@ or from one of the possible completions.  */)
   if (FUNCTIONP (collection))
     return call3 (collection, string, predicate, Qnil);
 
+  /* Fake obarray?  */
+  if (VECTORP (collection))
+    collection = Faref (collection, make_fixnum (0));
+
   /* Use a package's symbol table for completion, but remember that we
      are working on a package, because we are called with a predicate
      that takes only one argument, which is a remnant ob obarrays.
@@ -1850,6 +1854,11 @@ with a space are ignored unless STRING itself starts with a space.  */)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
+
+  /* Fake obarray?  */
+  if (VECTORP (collection))
+    collection = Faref (collection, make_fixnum (0));
+
   int type = HASH_TABLE_P (collection) ? 3
     : PACKAGEP (collection) ? 2
     : NILP (collection) || (CONSP (collection) && !FUNCTIONP (collection));
@@ -2052,6 +2061,12 @@ the values STRING, PREDICATE and `lambda'.  */)
 
   CHECK_STRING (string);
 
+  /* If a vector (obarray), use the package stored in slot 0.  */
+  if (VECTORP (collection))
+    collection = Faref (collection, make_fixnum (0));
+
+  /* If a package, use its symbol table.  Remember that it's not a
+     normal hash-table.  */
   const bool symbol_table_p = PACKAGEP (collection);
   if (symbol_table_p)
     collection = PACKAGE_SYMBOLS (collection);
