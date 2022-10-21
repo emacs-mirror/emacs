@@ -925,6 +925,12 @@ Integration for containers in Kubernetes pods.  The host name is a pod
 name returned by @samp{kubectl get pods}.  The first container in a
 pod is used.
 
+@samp{kubectl get pods} returns pods in the current context and
+namespace.  Current namespace can be changed with @samp{kubectl config
+set-context --current --namespace=<name>}.  After invoking this or
+other command which modifies Kubernetes environment outside of Emacs,
+call @code{tramp-cleanup-all-connections} to reset Tramp cache data.
+
 This method does not support user names.
 
 @end table
