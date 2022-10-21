@@ -893,6 +893,7 @@ init_pkg_once (void)
   DEFSYM (Qpackage_prefixes, "package-prefixes");
   DEFSYM (Qpackage_registry, "package-registry");
   DEFSYM (Qpackagep, "packagep");
+  DEFSYM (Qsymbol_packages, "symbol-packages");
 
   staticpro (&Vpackage_registry);
   Vpackage_registry = make_hash_table (hashtest_equal, DEFAULT_HASH_SIZE,
@@ -958,6 +959,8 @@ syms_of_pkg (void)
   defsubr (&Spkg_read);
 
   Fmake_variable_buffer_local (Qpackage_prefixes);
+
+  Fprovide (Qsymbol_packages, Qnil);
 }
 
 /* Called when starting a dumped Emacs.  */
