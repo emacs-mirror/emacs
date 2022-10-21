@@ -430,9 +430,6 @@ be requested using REV."
        rev)))
    ((user-error "Unknown package to fetch: %s" name-or-url))))
 
-;;;###autoload
-(defalias 'package-checkout #'package-vc-install)
-
 (defun package-vc-link-directory (dir name)
   "Install the package NAME in DIR by linking it into the ELPA directory.
 If invoked interactively with a prefix argument, the user will be
