@@ -4,6 +4,8 @@
 @c See file emacs.texi for copying conditions.
 @node Maintaining
 @chapter Maintaining Large Programs
+@cindex maintaining large programs
+@cindex large programming projects, maintaining
 
   This chapter describes Emacs features for maintaining medium- to
 large-size programs and packages.  These features include:
