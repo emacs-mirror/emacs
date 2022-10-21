@@ -1356,7 +1356,7 @@ point by using the command @kbd{M-x eldoc-print-current-symbol-info}.
 The value of this user option controls the amount of idle time before
 the at-point documentation is displayed.  It should be set to the
 number of seconds to wait; the value of zero means to display without
-any delay.  the default is 0.5 sec.
+any delay.  The default is 0.5 sec.
 
 @item eldoc-print-after-edit
 If this user option is non-@code{nil}, ElDoc will show documentation
@@ -1399,7 +1399,7 @@ documentation is already displayed in some window.  (You can use the
 command @kbd{M-x eldoc-doc-buffer} any time to show the ElDoc buffer.)
 If the value of this option is the symbol @code{maybe}, the
 documentation will not be displayed in the echo area if the ElDoc
-buffer is shown in some window and the documentation text has to be
+buffer is shown in some window, and the documentation text has to be
 truncated if displayed in the echo area.  Finally, the value of
 @code{nil} (the default) means always show the documentation in the
 echo area.
