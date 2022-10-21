@@ -145,7 +145,7 @@ name for PKG-DESC."
 This function is meant to be used as a hook for
 `package--read-archive-hook'."
   (let* ((contents-file (expand-file-name
-                         (format "archives/%s/elpa-packages" archive)
+                         (format "archives/%s/elpa-packages.eld" archive)
                          package-user-dir)))
     (when (file-exists-p contents-file)
       (with-temp-buffer
@@ -162,7 +162,7 @@ If optional argument ASYNC is non-nil, perform the downloads
 asynchronously."
   (dolist (archive package-archives)
     (condition-case-unless-debug nil
-        (package--download-one-archive archive "elpa-packages" async)
+        (package--download-one-archive archive "elpa-packages.eld" async)
       (error (message "Failed to download `%s' archive." (car archive))))))
 
 (add-hook 'package-read-archive-hook     #'package-vc--read-archive-data 20)
