@@ -2226,11 +2226,6 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
     {
       if (!NILP (Vprint_gensym))
 	print_c_string ("#:", printcharfun);
-      else if (*SDATA (name) == 0)
-	{
-	  print_c_string ("##", printcharfun);
-	  return;
-	}
     }
   else
     {
@@ -2250,7 +2245,13 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
 	}
     }
 
-  print_symbol_name (name, printcharfun, escape);
+  /* In Common Lisp, this would be ||, but we don't have multi-escapes
+     in Emacs, and we will probably never have them because '| has
+     been a valid symbol, and it is used, for instance in rx.el.  */
+  if (SBYTES (name) == 0)
+    print_c_string ("##", printcharfun);
+  else
+    print_symbol_name (name, printcharfun, escape);
 }
 
 
