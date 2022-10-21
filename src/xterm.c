@@ -10834,6 +10834,16 @@ x_show_hourglass (struct frame *f)
   if (dpy)
     {
       struct x_output *x = FRAME_X_OUTPUT (f);
+
+      /* If the hourglass window is mapped inside a popup menu, input
+	 could be lost if the menu is popped down and the grab is
+	 relinquished, but the hourglass window is still up.  Just
+	 avoid displaying the hourglass at all while popups are
+	 active.  */
+
+      if (popup_activated ())
+	return;
+
 #ifdef USE_X_TOOLKIT
       if (x->widget)
 #else
@@ -19838,7 +19848,20 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	 the input extension is enabled.  (bug#57468) */
 
       if (dpyinfo->supports_xi2)
-	goto OTHER;
+	{
+#if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
+	  goto OTHER;
+#else
+	  /* Unfortunately, X toolkit popups generate LeaveNotify
+	     events due to the core grabs they acquire (and our
+	     releasing of the device grab).  This leads to the mouse
+	     face persisting if a popup is activated by clicking on a
+	     button, and then dismissed by releasing the mouse button
+	     outside the frame, in which case no XI_Enter event is
+	     generated for the grab.  */
+	  goto just_clear_mouse_face;
+#endif
+	}
 #endif
 
 #ifdef HAVE_XWIDGETS
@@ -19855,6 +19878,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       if (x_top_window_to_frame (dpyinfo, event->xcrossing.window))
 	x_detect_focus_change (dpyinfo, any, event, &inev.ie);
+
+#if defined HAVE_XINPUT2						\
+  && (defined USE_X_TOOLKIT || (defined USE_GTK && !defined HAVE_GTK3))
+    just_clear_mouse_face:
+#endif
 
 #if defined USE_X_TOOLKIT
       /* If the mouse leaves the edit widget, then any mouse highlight
@@ -24250,7 +24278,12 @@ x_dispatch_event (XEvent *event, Display *display)
   dpyinfo = x_display_info_for_display (display);
 
   if (dpyinfo)
-    handle_one_xevent (dpyinfo, event, &finish, 0);
+    {
+      /* Block input before calling x_dispatch_event.  */
+      block_input ();
+      handle_one_xevent (dpyinfo, event, &finish, 0);
+      unblock_input ();
+    }
 
   return finish;
 }
@@ -28273,7 +28306,9 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
   Window window = FRAME_OUTER_WINDOW (f);
 #ifdef USE_X_TOOLKIT
   WMShellWidget shell;
+#ifndef USE_MOTIF
   bool hints_changed;
+#endif
 #endif
 
   if (!window)
@@ -28300,11 +28335,14 @@ x_wm_set_size_hint (struct frame *f, long flags, bool user_position)
 	  shell->wm.size_hints.flags |= USPosition;
 	}
 
+#ifndef USE_MOTIF
       hints_changed
 	= widget_update_wm_size_hints (f->output_data.x->widget,
 				       f->output_data.x->edit_widget);
+#else
+      widget_update_wm_size_hints (f->output_data.x->widget,
+				   f->output_data.x->edit_widget);
 
-#ifdef USE_MOTIF
       /* Do this all over again for the benefit of Motif, which always
 	 knows better than the programmer.  */
       shell->wm.size_hints.flags &= ~(PPosition | USPosition);
