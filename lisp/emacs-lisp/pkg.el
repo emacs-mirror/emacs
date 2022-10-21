@@ -236,7 +236,7 @@ but have common elements %s" key1 key2 common))))
   (let ((symbols (pkg--symbol-listify symbols))
         (package (pkg--package-or-default package))
         (syms ()))
-  (let ((syms ()))
+
     ;; Ignore any symbols that are already external.
     (dolist (sym symbols)
       (cl-multiple-value-bind (_s status)
@@ -256,63 +256,39 @@ but have common elements %s" key1 key2 common))))
                 (find-symbol name p)
 	      (when (and w (not (eq s sym))
 			 (not (member s (package-%shadowing-symbols p))))
-		(pushnew sym cset)
-		(pushnew p cpackages))))))
+		(cl-pushnew sym cset)
+		(cl-pushnew p cpackages))))))
 
       (when cset
-	(restart-case
-	    (error
-	     'simple-package-error
-	     :package package
-	     :format-control
-	     (intl:gettext "Exporting these symbols from the ~A package:~%~S~%~
-	      results in name conflicts with these packages:~%~{~A ~}")
-	     :format-arguments
-	     (list (package-%name package) cset
-		   (mapcar #'package-%name cpackages)))
-	  (unintern-conflicting-symbols ()
-	   :report (lambda (stream)
-		     (write-string (intl:gettext "Unintern conflicting symbols.") stream))
-	   (dolist (p cpackages)
-	     (dolist (sym cset)
-	       (moby-unintern sym p))))
-	  (skip-exporting-these-symbols ()
-	   :report (lambda (stream)
-		     (write-string (intl:gettext "Skip exporting conflicting symbols.") stream))
-	   (setq syms (nset-difference syms cset))))))
-    ;;
-    ;; Check that all symbols are accessible.  If not, ask to import them.
+	(error "Exporting these symbols from the %s package: %s
+ results in name conflicts with these packages: %s"
+	       (package-name package)
+               cset
+	       (mapcar #'package-name cpackages))))
+
+    ;; Check that all symbols are accessible.
     (let ((missing ())
 	  (imports ()))
       (dolist (sym syms)
-	(multiple-value-bind (s w) (find-symbol (symbol-name sym) package)
-	  (cond ((not (and w (eq s sym))) (push sym missing))
-		((eq w :inherited) (push sym imports)))))
+	(cl-multiple-value-bind (s w)
+            (find-symbol (cl-symbol-name sym) package)
+	  (cond ((not (and w (eq s sym)))
+                 (push sym missing))
+		((eq w :inherited)
+                 (push sym imports)))))
       (when missing
-	(with-simple-restart
-	    (continue (intl:gettext "Import these symbols into the ~A package.")
-	      (package-%name package))
-	  (error 'simple-package-error
-		 :package package
-		 :format-control
-		 (intl:gettext "These symbols are not accessible in the ~A package:~%~S")
-		 :format-arguments
-		 (list (package-%name package) missing)))
-	(import missing package))
-      (import imports package))
-    ;;
+	(error "These symbols are not accessible in the %s package: %s"
+               (package-%name package)
+               missing)))
+
+    ;; Import
+    (import imports package)
+
     ;; And now, three pages later, we export the suckers.
-    (let ((internal (package-internal-symbols package))
-	  (external (package-external-symbols package)))
-      (dolist (sym syms)
-	(nuke-symbol internal (symbol-name sym))
-	(add-symbol external sym)))
+    (dolist (sym syms)
+      (package-%set-status sym package :external))
     t))
 
-
-
-
-  (error "not yet implemented"))
 
 ;;;###autoload
 (defun unexport (_symbols &optional package)
