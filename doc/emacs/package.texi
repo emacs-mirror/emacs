@@ -534,15 +534,16 @@ system-wide package directory, the deletion command signals an error.
 
 @node Package from Source
 @section Package from Source
-@cindex package source vcs git @c "git" is not technically correct
-                               @c but it is a popular term
+@cindex package development source
+@cindex upstream source, for packages
+@cindex git source of package @c "git" is not technically correct
 
-  By default @code{package-install} will download a Tarball from a
-package archive and install the files therein contained.  Most of the
-time this is just what you want.  One exception is when you decide to
-hack on the source code of a package, and would like to share these
-changes with other users.  In that case you usually want to fetch and
-work on the upstream source, so that you can prepare a usable patch.
+  By default @code{package-install} downloads a Tarball from a package
+archive and installs its files.  This might be inadequate if you wish
+to hack on the package sources and share your changes with others.  In
+that case, you may prefer to directly fetch and work on the upstream
+source.  This often makes it easier to develop patches and report
+bugs.
 
 @findex package-vc-install
   One way to do this is to use @code{package-vc-install}, to fetch the
