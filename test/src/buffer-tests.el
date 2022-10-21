@@ -937,6 +937,51 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlays-in-1 ae 9 11 (a) (a 10 10))
 (deftest-overlays-in-1 af 10 11 (a) (a 10 10))
 
+(defun sorted-overlays-in (beg end)
+  (sort
+   (mapcar (lambda (overlay)
+             (list (overlay-start overlay)
+                   (overlay-end overlay)))
+           (overlays-in beg end))
+   (lambda (first second)
+     (cl-loop for a in first
+              for b in second
+              thereis (< a b)
+              until (> a b)))))
+
+;; behavior for empty range
+(ert-deftest test-overlays-in-empty-range ()
+    (with-temp-buffer
+      (insert (make-string 4 ?x))
+      (cl-loop for start from (point-min) to (point-max)
+               do (cl-loop for end from start to (point-max)
+                           do (when (<= start end)
+                                (make-overlay start end))))
+
+      (cl-loop for pos from (point-min) to (point-max)
+               do (ert-info ((format "after (overlay-recenter %d)" pos))
+                    (overlay-recenter pos)
+                    (should (equal
+                             '((1 1))
+                             (sorted-overlays-in (point-min) (point-min))))
+                    (should (equal
+                             '((1 3) (1 4) (1 5) (2 2))
+                             (sorted-overlays-in 2 2)))
+                    (should (equal
+                             '((1 4) (1 5) (2 4) (2 5) (3 3))
+                             (sorted-overlays-in 3 3)))
+                    (should (equal
+                             '((1 5) (2 5) (3 5) (4 4))
+                             (sorted-overlays-in 4 4)))
+                    (should (equal
+                             '((5 5))
+                             (sorted-overlays-in (point-max) (point-max))))))))
+
+(ert-deftest test-overlays-in-empty-range-bug58672 ()
+  (with-temp-buffer
+    (insert (make-string 10 ?=))
+    (make-overlay 5 7 nil nil t)
+    (should (equal nil (overlays-in 5 5)))))
 
 ;; behavior at point-max
 (ert-deftest test-overlays-in-2 ()

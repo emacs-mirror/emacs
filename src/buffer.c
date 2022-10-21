@@ -2940,7 +2940,8 @@ the normal hook `change-major-mode-hook'.  */)
    [BEG, END).
 
    If EMPTY is true, include empty overlays in that range and also at
-   END, provided END denotes the position at the end of the buffer.
+   END, provided END denotes the position at the end of the accessible
+   part of the buffer.
 
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
@@ -2968,7 +2969,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
   struct itree_node *node;
 
   ITREE_FOREACH (node, current_buffer->overlays, beg,
-                 /* Find empty OV at Z ? */
+                 /* Find empty OV at ZV ? */
                  (end >= ZV && empty) ? ZV + 1 : ZV, ASCENDING)
     {
       if (node->begin > end)
@@ -2985,6 +2986,8 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
               ITREE_FOREACH_ABORT ();
               break;
             }
+          if (empty && node->begin != node->end)
+            continue;
         }
 
       if (! empty && node->begin == node->end)
@@ -3111,11 +3114,11 @@ disable_line_numbers_overlay_at_eob (void)
 
   size = ARRAYELTS (vbuf);
   v = vbuf;
-  n = overlays_in (ZV, ZV, 0, &v, &size, NULL, NULL);
+  n = overlays_in (ZV, ZV, 0, &v, &size, false, NULL);
   if (n > size)
     {
       SAFE_NALLOCA (v, 1, n);
-      overlays_in (ZV, ZV, 0, &v, &n, NULL, NULL);
+      overlays_in (ZV, ZV, 0, &v, &n, false, NULL);
     }
 
   for (i = 0; i < n; ++i)
