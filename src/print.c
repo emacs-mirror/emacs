@@ -2252,7 +2252,7 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
   /* In Common Lisp, this would be ||, but we don't have multi-escapes
      in Emacs, and we will probably never have them because '| has
      been a valid symbol, and it is used, for instance in rx.el.  */
-  if (SBYTES (name) == 0)
+  if (SBYTES (name) == 0 && !EQ (package, Vkeyword_package))
     print_c_string ("##", printcharfun);
   else
     print_symbol_name (name, printcharfun, escape);
