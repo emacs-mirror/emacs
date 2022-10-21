@@ -562,7 +562,7 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
     name = SYMBOL_NAME (name);
   CHECK_STRING (name);
 
-  /* PKG-FIXME: We are assuming that this is intended to be a keyword
+  /* PKG-FIXME? We are assuming that this is intended to be a keyword
      like it was before.  */
   if (SREF (name, 0) == ':' && NILP (package))
     {
@@ -591,10 +591,37 @@ pkg_emacs_intern_soft (Lisp_Object name, Lisp_Object package)
 Lisp_Object
 pkg_emacs_unintern (Lisp_Object name, Lisp_Object package)
 {
+  /* unintern allows symbols.  */
+  Lisp_Object orig = name;
+  if (SYMBOLP (name))
+    name = SYMBOL_NAME (name);
+  CHECK_STRING (name);
+
+  /* PKG-FIXME? We are assuming that this is intended to be a keyword
+     like it was before.  */
+  if (SREF (name, 0) == ':' && NILP (package))
+    {
+      name = Fsubstring (name, make_fixnum (1), Qnil);
+      package = Vkeyword_package;
+    }
+
   if (VECTORP (package))
     package = pkg_fake_me_an_obarray (package);
   package = pkg_package_or_default (package);
-  return pkg_unintern_symbol (name, package);
+
+  Lisp_Object found = pkg_find_symbol (name, package, NULL);
+  if (EQ (found, Qunbound))
+    return Qnil;
+
+  if (SYMBOLP (orig) && !EQ (found, orig))
+    return Qnil;
+
+  /* We should never find an uninterned symbol in a package.  */
+  eassert (!NILP (SYMBOL_PACKAGE (found)));
+  if (VECTORP (package))
+    package = pkg_fake_me_an_obarray (package);
+  package = pkg_package_or_default (package);
+  return pkg_unintern_symbol (found, package);
 }
 
 /* Implements Emacs mapatoms.  */
