@@ -2272,7 +2272,7 @@ extern void init_pkg_once (void);
 extern void init_pkg (void);
 extern void syms_of_pkg (void);
 extern Lisp_Object pkg_qualified_symbol (Lisp_Object name, Lisp_Object package, bool external);
-extern void pkg_error (const char *fmt, ...);
+extern _Noreturn void pkg_error (const char *fmt, ...) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 extern Lisp_Object pkg_unqualified_symbol (Lisp_Object name);
 extern bool pkg_keywordp (Lisp_Object obj);
 extern Lisp_Object pkg_define_symbol (Lisp_Object sym, Lisp_Object package);
