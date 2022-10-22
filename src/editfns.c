@@ -270,7 +270,7 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
 static ptrdiff_t
 overlays_around (ptrdiff_t pos, Lisp_Object *vec, ptrdiff_t len)
 {
-  return overlays_in (pos - 1, pos, false, &vec, &len, false, NULL);
+  return overlays_in (pos - 1, pos, false, &vec, &len, false, false, NULL);
 }
 
 DEFUN ("get-pos-property", Fget_pos_property, Sget_pos_property, 2, 3, 0,

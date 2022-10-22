@@ -860,6 +860,33 @@ with parameters from the *Messages* buffer modification."
       (should-length 1 (overlays-at 15))
       (should-length 1 (overlays-at (point-max))))))
 
+(defun sorted-overlays (overlays)
+  (sort
+   (mapcar (lambda (overlay)
+             (list (overlay-start overlay)
+                   (overlay-end overlay)))
+           overlays)
+   (lambda (first second)
+     (cl-loop for a in first
+              for b in second
+              thereis (< a b)
+              until (> a b)))))
+
+(defun sorted-overlays-at (pos)
+  (sorted-overlays (overlays-at pos)))
+
+(defun sorted-overlays-in (beg end)
+  (sorted-overlays (overlays-in beg end)))
+
+(ert-deftest test-overlays-at-narrow-to-region-end ()
+  ;; See bug#58703.
+  (with-temp-buffer
+   (insert (make-string 30 ?x))
+   (make-overlay 10 11)
+   (narrow-to-region 10 10)
+   (should (equal
+            '((10 11))
+            (sorted-overlays-at 10)))))
 
 ;; +==========================================================================+
 ;; | overlay-in
@@ -936,18 +963,6 @@ with parameters from the *Messages* buffer modification."
 (deftest-overlays-in-1 ad 9 10 () (a 10 10))
 (deftest-overlays-in-1 ae 9 11 (a) (a 10 10))
 (deftest-overlays-in-1 af 10 11 (a) (a 10 10))
-
-(defun sorted-overlays-in (beg end)
-  (sort
-   (mapcar (lambda (overlay)
-             (list (overlay-start overlay)
-                   (overlay-end overlay)))
-           (overlays-in beg end))
-   (lambda (first second)
-     (cl-loop for a in first
-              for b in second
-              thereis (< a b)
-              until (> a b)))))
 
 ;; behavior for empty range
 (ert-deftest test-overlays-in-empty-range ()

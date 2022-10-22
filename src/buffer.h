@@ -1173,7 +1173,7 @@ extern void compact_buffer (struct buffer *);
 extern void evaporate_overlays (ptrdiff_t);
 extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
 extern ptrdiff_t overlays_in (ptrdiff_t, ptrdiff_t, bool, Lisp_Object **,
-                              ptrdiff_t *,  bool, ptrdiff_t *);
+                              ptrdiff_t *,  bool, bool, ptrdiff_t *);
 extern ptrdiff_t previous_overlay_change (ptrdiff_t);
 extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);

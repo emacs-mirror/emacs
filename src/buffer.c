@@ -2943,6 +2943,10 @@ the normal hook `change-major-mode-hook'.  */)
    END, provided END denotes the position at the end of the accessible
    part of the buffer.
 
+   If TRAILING is true, include overlays that begin at END, provided
+   END denotes the position at the end of the accessible part of the
+   buffer.
+
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
@@ -2959,7 +2963,8 @@ the normal hook `change-major-mode-hook'.  */)
 
 ptrdiff_t
 overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
-	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,  bool empty,
+	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
+	     bool empty, bool trailing,
              ptrdiff_t *next_ptr)
 {
   ptrdiff_t idx = 0;
@@ -2968,9 +2973,14 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
   Lisp_Object *vec = *vec_ptr;
   struct itree_node *node;
 
-  ITREE_FOREACH (node, current_buffer->overlays, beg,
-                 /* Find empty OV at ZV ? */
-                 (end >= ZV && empty) ? ZV + 1 : ZV, ASCENDING)
+  /* Extend the search range if overlays beginning at ZV are
+     wanted.  */
+  ptrdiff_t search_end = ZV;
+  if (end >= ZV && (empty || trailing))
+    ++search_end;
+
+  ITREE_FOREACH (node, current_buffer->overlays, beg, search_end,
+                 ASCENDING)
     {
       if (node->begin > end)
         {
@@ -3022,7 +3032,8 @@ overlays_at (ptrdiff_t pos, bool extend,
              Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
              ptrdiff_t *next_ptr)
 {
-  return overlays_in (pos, pos + 1, extend, vec_ptr, len_ptr, false, next_ptr);
+  return overlays_in (pos, pos + 1, extend, vec_ptr, len_ptr,
+		      false, true, next_ptr);
 }
 
 ptrdiff_t
@@ -3085,11 +3096,11 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 
   size = ARRAYELTS (vbuf);
   v = vbuf;
-  n = overlays_in (start, end, 0, &v, &size, true, NULL);
+  n = overlays_in (start, end, 0, &v, &size, true, false, NULL);
   if (n > size)
     {
       SAFE_NALLOCA (v, 1, n);
-      overlays_in (start, end, 0, &v, &n, true, NULL);
+      overlays_in (start, end, 0, &v, &n, true, false, NULL);
     }
 
   for (i = 0; i < n; ++i)
@@ -3114,11 +3125,11 @@ disable_line_numbers_overlay_at_eob (void)
 
   size = ARRAYELTS (vbuf);
   v = vbuf;
-  n = overlays_in (ZV, ZV, 0, &v, &size, false, NULL);
+  n = overlays_in (ZV, ZV, 0, &v, &size, false, false, NULL);
   if (n > size)
     {
       SAFE_NALLOCA (v, 1, n);
-      overlays_in (ZV, ZV, 0, &v, &n, false, NULL);
+      overlays_in (ZV, ZV, 0, &v, &n, false, false, NULL);
     }
 
   for (i = 0; i < n; ++i)
@@ -3798,7 +3809,7 @@ end of the accessible part of the buffer.  */)
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
   noverlays = overlays_in (XFIXNUM (beg), XFIXNUM (end), 1, &overlay_vec, &len,
-                           true, NULL);
+                           true, false, NULL);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
