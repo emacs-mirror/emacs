@@ -643,10 +643,8 @@ extern bool initialized;
 extern struct gflags
 {
   /* True means this Emacs instance was born to dump.  */
-#if defined HAVE_PDUMPER || defined HAVE_UNEXEC
   bool will_dump_ : 1;
   bool will_bootstrap_ : 1;
-#endif
 #ifdef HAVE_PDUMPER
   /* Set in an Emacs process that will likely dump with pdumper; all
      Emacs processes may dump with pdumper, however.  */
