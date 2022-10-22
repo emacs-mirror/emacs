@@ -50,6 +50,9 @@
   (should-error (make-package "x" :use))
   (should-error (make-package "x" :use 1)))
 
+(ert-deftest pkg-tests-packagep ()
+  (packagep (make-package "x")))
+
 (ert-deftest pkg-tests-standard-packages ()
   (should (packagep (find-package "emacs")))
   (should (packagep (find-package "keyword")))
@@ -73,6 +76,7 @@
   (should nil))
 
 (ert-deftest pkg-tests-list-all-packages ()
+  (should (seq-every-p #'packagep (list-all-packages)))
   (with-packages (x y z)
     (let ((all (list-all-packages)))
       (should (member x all))
@@ -141,6 +145,9 @@
         (cl-unintern 'foo)
         (should-not (find-symbol "foo")))
     (cl-unintern 'foo)))
+
+(ert-deftest pkg-tests-package-name ()
+  (should (equal (package-name "emacs") "emacs")))
 
 (ert-deftest pkg-tests-export ()
   (should nil))
