@@ -870,6 +870,14 @@ DEFUN ("package-%set-status", Fpackage_percent_set_status,
   return pkg_set_status (symbol, package, status);
 }
 
+DEFUN ("package-%register", Fpackage_percent_register,
+       Spackage_percent_register, 1, 1, 0, doc:  /* Internal use only.  */)
+  (Lisp_Object package)
+{
+  pkg_register_package (package);
+  return Qnil;
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -949,6 +957,7 @@ syms_of_pkg (void)
   defsubr (&Smake_percent_package);
   defsubr (&Spackage_percent_name);
   defsubr (&Spackage_percent_nicknames);
+  defsubr (&Spackage_percent_register);
   defsubr (&Spackage_percent_set_name);
   defsubr (&Spackage_percent_set_nicknames);
   defsubr (&Spackage_percent_set_shadowing_symbols);
