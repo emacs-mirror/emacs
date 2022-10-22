@@ -508,6 +508,18 @@ If LOUDLY is non-nil, message some debugging information."
   (let ((font-lock-unfontify-region-function #'ignore))
     (funcall #'font-lock-default-fontify-region start end loudly)))
 
+(defun treesit-font-lock-enable ()
+  "Enable tree-sitter font-locking for the current buffer."
+  (treesit-font-lock-recompute-features)
+  (setq-local font-lock-fontify-region-function
+              #'treesit-font-lock-fontify-region)
+  ;; If we don't set `font-lock-defaults' to some non-nil value,
+  ;; font-lock doesn't enable properly (`font-lock-mode-internal'
+  ;; doesn't run).  See `font-lock-specified-p'.
+  (when (null font-lock-defaults)
+    (setq font-lock-defaults '(nil)))
+  (font-lock-mode 1))
+
 ;;; Indent
 
 (defvar treesit--indent-verbose nil
