@@ -3439,7 +3439,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	  if (SYMBOLP (arg))
 	    {
-	      spec->argument = arg = SYMBOL_NAME (arg);
+	      spec->argument = arg = LISP_SYMBOL_NAME (arg);
 	      if (STRING_MULTIBYTE (arg) && ! multibyte)
 		{
 		  multibyte = true;
