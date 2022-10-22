@@ -2196,9 +2196,11 @@ looks_like_number_p (Lisp_Object name)
 
 static void
 print_symbol_name (Lisp_Object name, Lisp_Object printcharfun,
-		   bool escape)
+		   bool escape, bool check_number)
 {
-  bool like_number_p = looks_like_number_p (name);
+  /* Don't check if the name looks like a number if we already know it
+     doesn't.  For example, for keywords.  */
+  bool like_number_p = check_number ? looks_like_number_p (name) : false;
   for (ptrdiff_t ibyte = 0, ichar = 0; ibyte < SBYTES (name);)
     {
       const int c = fetch_string_char_advance (name, &ichar, &ibyte);
@@ -2221,9 +2223,13 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
 {
   const Lisp_Object name = SYMBOL_NAME (symbol);
   const Lisp_Object package = SYMBOL_PACKAGE (symbol);
+  bool check_number_p = true;
 
   if (EQ (package, Vkeyword_package))
-    print_c_string (":", printcharfun);
+    {
+      print_c_string (":", printcharfun);
+      check_number_p = false;
+    }
   else if (EQ (package, Vearmuffs_package))
     ;
   else if (NILP (package))
@@ -2239,13 +2245,14 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
       const bool accessible = !EQ (found, Qunbound);
       if (!accessible || !EQ (found, symbol))
 	{
-	  print_symbol_name (PACKAGE_NAMEX (package), printcharfun, escape);
+	  print_symbol_name (PACKAGE_NAMEX (package), printcharfun, escape, true);
 	  const Lisp_Object found = pkg_find_symbol (name, package, &status);
 	  eassert (!EQ (found, Qunbound));
 	  if (EQ (status, QCexternal))
 	    print_c_string (":", printcharfun);
 	  else
 	    print_c_string ("::", printcharfun);
+	  check_number_p = false;
 	}
     }
 
@@ -2255,7 +2262,7 @@ print_symbol (Lisp_Object symbol, Lisp_Object printcharfun,
   if (SBYTES (name) == 0 && !EQ (package, Vkeyword_package))
     print_c_string ("##", printcharfun);
   else
-    print_symbol_name (name, printcharfun, escape);
+    print_symbol_name (name, printcharfun, escape, check_number_p);
 }
 
 
