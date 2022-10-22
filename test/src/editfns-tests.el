@@ -426,4 +426,8 @@
     (should (= (field-beginning) 7))
     (should (= (field-end) (point-max)))))
 
+(ert-deftest format-%s-keywords ()
+  (should (string-equal (format "%s" :hansi) ":hansi")))
+
+
 ;;; editfns-tests.el ends here
