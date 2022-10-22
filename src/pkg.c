@@ -542,7 +542,9 @@ pkg_emacs_intern (Lisp_Object name, Lisp_Object package)
       package = Vkeyword_package;
     }
 
-  eassert (SREF (name, 0) != ':');
+  /* The following assertion would be invalid because we might want to
+     intern '::' in the keyword package, and a test does that.  */
+  //eassert (SREF (name, 0) != ':');
 
   if (VECTORP (package))
     package = pkg_fake_me_an_obarray (package);
