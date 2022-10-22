@@ -745,7 +745,7 @@ or a buffer name."
           (setq-local outline-level (lambda () 1))
           (setq-local outline-minor-mode-cycle t
                       outline-minor-mode-highlight t
-                      outline-minor-mode-insert-buttons t)
+                      outline-minor-mode-use-buttons 'insert)
           (outline-minor-mode 1)
           (save-excursion
             (goto-char (point-min))

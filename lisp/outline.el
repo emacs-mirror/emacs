@@ -281,39 +281,26 @@ This option is only in effect when `outline-minor-mode-cycle' is non-nil."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defcustom outline-minor-mode-use-buttons '(derived-mode . help-mode)
+(defcustom outline-minor-mode-use-buttons nil
   "Whether to display clickable buttons on the headings.
-The value should be a `buffer-match-p' condition.
-
 These buttons can be used to hide and show the body under the heading.
-Note that this feature is not meant to be used in editing
-buffers (yet) -- that will be amended in a future version."
-  :type 'buffer-predicate
-  :safe #'booleanp
+When the value is `insert', additional placeholders for buttons are
+inserted to the buffer, so buttons are not only clickable,
+but also typing `RET' on them can hide and show the body.
+When the value is `in-margins', then clickable buttons are
+displayed in the margins before the headings.
+When the value is `t', clickable buttons are displayed
+in the buffer before the headings.  The values `t' and
+`in-margins' can be used in editing buffers because they
+don't modify the buffer."
+  :type '(choice (const :tag "Do not use outline buttons" nil)
+                 (const :tag "Show outline buttons in margins" in-margins)
+                 (const :tag "Show outline buttons in buffer" t))
+  :safe #'symbolp
   :version "29.1")
-
-(defvar-local outline--use-buttons nil
-  "Non-nil when buffer displays clickable buttons on the headings.")
-
-(defvar-local outline-minor-mode-insert-buttons nil
-  "Non-nil when it's allowed to modify buffer to insert buttons.")
 
 (defvar-local outline--use-rtl nil
   "Non-nil when direction of clickable buttons is right-to-left.")
-
-(defcustom outline-minor-mode-use-margins '(and (derived-mode . special-mode)
-                                                (not (derived-mode . help-mode)))
-  "Whether to display clickable buttons in the margins.
-The value should be a `buffer-match-p' condition.
-
-These buttons can be used to hide and show the body under the heading.
-Note that this feature is meant to be used in editing buffers."
-  :type 'buffer-predicate
-  :safe #'booleanp
-  :version "29.1")
-
-(defvar-local outline--use-margins nil
-  "Non-nil when buffer displays clickable buttons in the margins.")
 
 (define-icon outline-open nil
   '((image "outline-open.svg" "outline-open.pbm" :height (0.8 . em))
@@ -487,7 +474,7 @@ outline font-lock faces to those of major mode."
     (let ((regexp (concat "^\\(?:" outline-regexp "\\).*$")))
       (while (re-search-forward regexp nil t)
         (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
-          (overlay-put overlay 'outline-overlay t)
+          (overlay-put overlay 'outline-highlight t)
           ;; FIXME: Is it possible to override all underlying face attributes?
           (when (or (memq outline-minor-mode-highlight '(append override))
                     (and (eq outline-minor-mode-highlight t)
@@ -511,25 +498,19 @@ See the command `outline-mode' for more information on this mode."
             (key-description outline-minor-mode-prefix) outline-mode-prefix-map)
   (if outline-minor-mode
       (progn
-        (cond
-         ((buffer-match-p outline-minor-mode-use-margins (current-buffer))
-          (setq-local outline--use-margins t))
-         ((buffer-match-p outline-minor-mode-use-buttons (current-buffer))
-          (setq-local outline--use-buttons t)))
-        (when (and (or outline--use-buttons outline--use-margins)
-                   (eq (current-bidi-paragraph-direction) 'right-to-left))
-          (setq-local outline--use-rtl t))
-        (when outline--use-margins
-          (if outline--use-rtl
-              (setq-local right-margin-width (1+ right-margin-width))
-            (setq-local left-margin-width (1+ left-margin-width)))
-          (setq-local fringes-outside-margins t)
-          ;; Force display of margins
-          (when (eq (current-buffer) (window-buffer))
-            (set-window-buffer nil (window-buffer))))
-        (when (or outline--use-buttons outline--use-margins)
+        (when outline-minor-mode-use-buttons
           (add-hook 'after-change-functions
-                    #'outline--fix-buttons-after-change nil t))
+                    #'outline--fix-buttons-after-change nil t)
+          (when (eq (current-bidi-paragraph-direction) 'right-to-left)
+            (setq-local outline--use-rtl t))
+          (when (eq outline-minor-mode-use-buttons 'in-margins)
+            (if outline--use-rtl
+                (setq-local right-margin-width (1+ right-margin-width))
+              (setq-local left-margin-width (1+ left-margin-width)))
+            (setq-local fringes-outside-margins t)
+            ;; Force display of margins
+            (when (eq (current-buffer) (window-buffer))
+              (set-window-buffer nil (window-buffer)))))
         (when outline-minor-mode-highlight
           (if (and global-font-lock-mode (font-lock-specified-p major-mode))
               (progn
@@ -554,18 +535,18 @@ See the command `outline-mode' for more information on this mode."
       (if font-lock-fontified
           (font-lock-remove-keywords nil outline-font-lock-keywords))
       (font-lock-flush)
-      (remove-overlays nil nil 'outline-overlay t))
-    (when outline--use-buttons
-      (remove-overlays nil nil 'outline-button t))
-    (when outline--use-margins
-      (remove-overlays nil nil 'outline-margin t)
-      (if outline--use-rtl
-          (setq-local right-margin-width (1- right-margin-width))
-        (setq-local left-margin-width (1- left-margin-width)))
-      (setq-local fringes-outside-margins nil)
-      ;; Force removal of margins
-      (when (eq (current-buffer) (window-buffer))
-        (set-window-buffer nil (window-buffer))))))
+      (remove-overlays nil nil 'outline-highlight t))
+    (when outline-minor-mode-use-buttons
+      (if (not (eq outline-minor-mode-use-buttons 'in-margins))
+          (remove-overlays nil nil 'outline-button t)
+        (remove-overlays nil nil 'outline-margin t)
+        (if outline--use-rtl
+            (setq-local right-margin-width (1- right-margin-width))
+          (setq-local left-margin-width (1- left-margin-width)))
+        (setq-local fringes-outside-margins nil)
+        ;; Force removal of margins
+        (when (eq (current-buffer) (window-buffer))
+          (set-window-buffer nil (window-buffer)))))))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.
@@ -1675,7 +1656,7 @@ With a prefix argument, show headings up to that LEVEL."
       ;; In editing buffers we use overlays only, but in other buffers
       ;; we use a mix of text properties, text and overlays to make
       ;; movement commands work more logically.
-      (if outline-minor-mode-insert-buttons
+      (if (eq outline-minor-mode-use-buttons 'insert)
           (let ((inhibit-read-only t))
             (put-text-property (point) (1+ (point)) 'face (plist-get icon 'face))
             (if-let ((image (plist-get icon 'image)))
@@ -1713,13 +1694,13 @@ With a prefix argument, show headings up to that LEVEL."
                           (plist-get icon 'string))))))
     o))
 
-(defun outline--insert-open-button (&optional use-margins)
+(defun outline--insert-open-button ()
   (with-silent-modifications
     (save-excursion
       (beginning-of-line)
-      (if use-margins
+      (if (eq outline-minor-mode-use-buttons 'in-margins)
           (outline--make-margin-overlay 'open)
-        (when outline-minor-mode-insert-buttons
+        (when (eq outline-minor-mode-use-buttons 'insert)
           (let ((inhibit-read-only t))
             (insert "  ")
             (beginning-of-line)))
@@ -1730,13 +1711,13 @@ With a prefix argument, show headings up to that LEVEL."
                          "RET" #'outline-hide-subtree
                          "<mouse-2>" #'outline-hide-subtree)))))))
 
-(defun outline--insert-close-button (&optional use-margins)
+(defun outline--insert-close-button ()
   (with-silent-modifications
     (save-excursion
       (beginning-of-line)
-      (if use-margins
+      (if (eq outline-minor-mode-use-buttons 'in-margins)
           (outline--make-margin-overlay 'close)
-        (when outline-minor-mode-insert-buttons
+        (when (eq outline-minor-mode-use-buttons 'insert)
           (let ((inhibit-read-only t))
             (insert "  ")
             (beginning-of-line)))
@@ -1748,7 +1729,7 @@ With a prefix argument, show headings up to that LEVEL."
                          "<mouse-2>" #'outline-show-subtree)))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
-  (when (or outline--use-buttons outline--use-margins)
+  (when outline-minor-mode-use-buttons
     (when from
       (save-excursion
         (goto-char from)
@@ -1759,17 +1740,16 @@ With a prefix argument, show headings up to that LEVEL."
              (outline-end-of-heading)
              (seq-some (lambda (o) (eq (overlay-get o 'invisible) 'outline))
                        (overlays-at (point))))
-           (outline--insert-close-button outline--use-margins)
-         (outline--insert-open-button outline--use-margins)))
+           (outline--insert-close-button)
+         (outline--insert-open-button)))
      (or from (point-min)) (or to (point-max)))))
 
 (defun outline--fix-buttons-after-change (beg end _len)
   ;; Handle whole lines
   (save-excursion (goto-char beg) (setq beg (pos-bol)))
   (save-excursion (goto-char end) (setq end (pos-eol)))
-  (when outline--use-buttons
-    (remove-overlays beg end 'outline-button t))
-  (when outline--use-margins
+  (if (not (eq outline-minor-mode-use-buttons 'in-margins))
+      (remove-overlays beg end 'outline-button t)
     (remove-overlays beg end 'outline-margin t))
   (outline--fix-up-all-buttons beg end))
 

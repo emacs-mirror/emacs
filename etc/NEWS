@@ -1036,15 +1036,11 @@ or is itself too long.
 +++
 *** New user option 'outline-minor-mode-use-buttons'.
 If non-nil, Outline Minor Mode will use buttons to hide/show outlines
-in addition to the ellipsis.  The default is nil in editing modes, but
-non-nil in 'help-mode' and its derivatives.
-
-+++
-*** New user option 'outline-minor-mode-use-margins'.
-If non-nil, Outline Minor Mode will use the window margins to
-hide/show outlines in addition to the ellipsis.  The default is
-non-nil in 'special-mode' and its derivatives, and it can be used in
-editing modes.
+in addition to the ellipsis.  The default is nil, but in 'help-mode'
+it has the value 'insert' that inserts the buttons directly to the
+buffer where you can use 'RET' to cycle outline visibility.  When
+the value is 'in-margins', Outline Minor Mode uses the window margins
+to hide/show outlines.
 
 ** Windows
 
@@ -1637,7 +1633,7 @@ This mode adds some highlighting, fixes the 'M-q' command, and has
 commands for doing maintenance of the Emacs NEWS files.  In addition,
 this mode turns on 'outline-minor-mode', and thus displays
 customizable icons (see 'icon-preference') in the margins.  To
-disable these icons, customize 'outline-minor-mode-use-margins' to a
+disable these icons, set 'outline-minor-mode-use-buttons' to a
 nil value.
 
 ---
