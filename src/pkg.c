@@ -803,7 +803,8 @@ DEFUN ("package-%set-name", Fpackage_percent_set_name, Spackage_percent_set_name
   (Lisp_Object package, Lisp_Object name)
 {
   CHECK_PACKAGE (package);
-  CHECK_STRING (name);
+  if (!NILP (name))
+    CHECK_STRING (name);
   return XPACKAGE (package)->name = name;
 }
 
@@ -875,7 +876,7 @@ DEFUN ("package-%register", Fpackage_percent_register,
   (Lisp_Object package)
 {
   pkg_register_package (package);
-  return Qnil;
+  return package;
 }
 
 
