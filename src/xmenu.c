@@ -2540,6 +2540,8 @@ pop_down_menu (void *arg)
     }
 #endif
 
+  /* Decrement the popup_activated_flag.  */
+  popup_activated_flag = 0;
 #endif /* HAVE_X_WINDOWS */
 
   unblock_input ();
@@ -2791,6 +2793,12 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 #endif
 
+#ifdef HAVE_X_WINDOWS
+  /* Increment the popup flag; this prevents nested popups from being
+     displayed by user Lisp code in help-echo callbacks, and also
+     prevents mouse face from being displayed.  */
+  popup_activated_flag = 1;
+#endif
   status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
                           x, y, ButtonReleaseMask, &datap,
                           menu_help_callback);
