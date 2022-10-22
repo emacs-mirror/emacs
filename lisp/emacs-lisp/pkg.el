@@ -72,7 +72,9 @@ but have common elements %s" key1 key2 common))))
     (t (error "Bogus %s name: %s" kind name))))
 
 (defun pkg-stringify-names (names kind)
-  (mapcar (lambda (name) (pkg-stringify-name name kind)) names))
+  (cl-remove-duplicates
+   (mapcar (lambda (name) (pkg-stringify-name name kind)) names)
+   :test #'equal))
 
 (defun pkg-package-namify (n)
   (pkg-stringify-name n "package"))
@@ -152,7 +154,8 @@ but have common elements %s" key1 key2 common))))
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-(cl-defun make-package (name &key nicknames use (size 10))
+
+(cl-defun make-package (name &key nicknames use (size 0))
   "tbd"
   (cl-check-type size natnum)
   (let* ((name (pkg-stringify-name name "package name"))
@@ -206,15 +209,15 @@ but have common elements %s" key1 key2 common))))
 ;;;###autoload
 (defun delete-package (package)
   (if (and (packagep package)
-           (null (package-name package)))
+           (null (package-%name package)))
       nil
     (let ((package (pkg-package-or-lose package)))
-    (when (or (eq package *emacs-package*)
-              (eq package *keyword-package*))
-      (error "Cannot delete standard package"))
-    (pkg--remove-from-registry package)
-    (setf (package-%name package) nil)
-    t)))
+      (when (or (eq package *emacs-package*)
+                (eq package *keyword-package*))
+        (error "Cannot delete standard package"))
+      (pkg--remove-from-registry package)
+      (setf (package-%name package) nil)
+      t)))
 
 ;;;###autoload
 (defun rename-package (package new-name &optional new-nicknames)
