@@ -2852,12 +2852,13 @@ in which contexts.  This section explains how to customize Font Lock for
 a particular major mode.
 
   Font Lock mode finds text to highlight in three ways: through
-syntactic parsing based on the syntax table, through searching
-(usually for regular expressions), and through parsing based on a
-full-blown parser.  Syntactic fontification happens first; it finds
-comments and string constants and highlights them.  Search-based
-fontification happens second.  Parser-based fontification can be
-optionally enabled and it will precede the other two fontifications.
+parsing based on a full-blown parser (usually, via an external library
+or program), through syntactic parsing based on the Emacs's built-in
+syntax table, or through searching (usually for regular expressions).
+If enabled, parser-based fontification happens first
+(@pxref{Parser-based Font Lock}).  Syntactic fontification happens
+next; it finds comments and string constants and highlights them.
+Search-based fontification happens last.
 
 @menu
 * Font Lock Basics::            Overview of customizing Font Lock.
@@ -2872,7 +2873,7 @@ optionally enabled and it will precede the other two fontifications.
 * Syntactic Font Lock::         Fontification based on syntax tables.
 * Multiline Font Lock::         How to coerce Font Lock into properly
                                   highlighting multiline constructs.
-* Parser-based Font Lock::      Use a parser for fontification.
+* Parser-based Font Lock::      Use parse data for fontification.
 @end menu
 
 @node Font Lock Basics
@@ -3878,34 +3879,40 @@ reasonably fast.
 
 @node Parser-based Font Lock
 @subsection Parser-based Font Lock
+@cindex parser-based font-lock
 
-@c This node is written when the only parser Emacs has is tree-sitter,
-@c if in the future more parser are supported, feel free to reorganize
-@c and rewrite this node to describe multiple parsers in parallel.
+@c This node is written when the only parser Emacs has is tree-sitter;
+@c if in the future more parser are supported, this should be
+@c reorganized and rewritten to describe multiple parsers in parallel.
 
 Besides simple syntactic font lock and regexp-based font lock, Emacs
-also provides complete syntactic font lock with the help of a parser,
-currently provided by the tree-sitter library (@pxref{Parsing Program
-Source}).
+also provides complete syntactic font lock with the help of a parser.
+Currently, Emacs uses the tree-sitter library (@pxref{Parsing Program
+Source}) for this purpose.
 
 @defun treesit-font-lock-enable
 This function enables parser-based font lock in the current buffer.
 @end defun
 
-Parser-based font lock and other font lock mechanism are not mutually
+Parser-based font lock and other font lock mechanisms are not mutually
 exclusive.  By default, if enabled, parser-based font lock runs first,
-then the simple syntactic font lock (if enabled), then regexp-based
+then the syntactic font lock (if enabled), then the regexp-based
 font lock.
 
 Although parser-based font lock doesn't share the same customization
-variables with regexp-based font lock, parser-based font lock uses
-similar customization schemes.  The tree-sitter counterpart of
-@var{font-lock-keywords} is @var{treesit-font-lock-settings}.
+variables with regexp-based font lock, it uses similar customization
+schemes.  The tree-sitter counterpart of @var{font-lock-keywords} is
+@var{treesit-font-lock-settings}.
 
+@c FIXME: The ``query'' part here and thereafter comes ``out of the
+@c blue''.  There should be some text here explaining what those
+@c ``queries'' are and how are they related to fontifications, or a
+@c cross-reference to another place with such an explanation.
 @defun treesit-font-lock-rules :keyword value query...
 This function is used to set @var{treesit-font-lock-settings}.  It
-takes care of compiling queries and other post-processing and outputs
-a value that @var{treesit-font-lock-settings} accepts.  An example:
+takes care of compiling queries and other post-processing, and outputs
+a value that @var{treesit-font-lock-settings} accepts.  Here's an
+example:
 
 @example
 @group
@@ -3922,8 +3929,8 @@ a value that @var{treesit-font-lock-settings} accepts.  An example:
 @end example
 
 This function takes a list of text or s-exp queries.  Before each
-query, there are @var{:keyword} and @var{value} pairs that configure
-that query.  The @code{:lang} keyword sets the query’s language and
+query, there are @var{:keyword}-@var{value} pairs that configure
+that query.  The @code{:lang} keyword sets the query's language and
 every query must specify the language.  The @code{:feature} keyword
 sets the feature name of the query.  Users can control which features
 are enabled with @code{font-lock-maximum-decoration} and
@@ -3941,34 +3948,37 @@ Other keywords are optional:
 @item @tab @code{keep} @tab Fill-in regions without an existing face
 @end multitable
 
+@c FIXME: The ``capture names'' part should be expl,ained before it is
+@c first used: what it is and how it's related to fontifications.
 Capture names in @var{query} should be face names like
 @code{font-lock-keyword-face}.  The captured node will be fontified
 with that face.  Capture names can also be function names, in which
-case the function is called with (@var{start} @var{end} @var{node}),
-where @var{start} and @var{end} are the start and end position of the
-node in buffer, and @var{node} is the node itself.  If a capture name
-is both a face and a function, the face takes priority.  If a capture
-name is not a face name nor a function name, it is ignored.
+case the function is called with 3 arguments: @var{start}, @var{end},
+and @var{node}, where @var{start} and @var{end} are the start and end
+position of the node in buffer, and @var{node} is the node itself.  If
+a capture name is both a face and a function, the face takes priority.
+If a capture name is neither a face nor a function, it is ignored.
 @end defun
 
 @defvar treesit-font-lock-feature-list
-This is a list of lists of feature symbols.
-
-Each sublist represents a decoration level.
+This is a list of lists of feature symbols.  Each element of the list
+is a list that represents a decoration level.
 @code{font-lock-maximum-decoration} controls which levels are
 activated.
 
-Inside each sublist are feature symbols, which corresponds to the
+@c FIXME: This should be rewritten using our style: ``each element of
+@c the list is a list of the form (FOO BAR BAZ), where FOO...'' etc.
+Inside each sublist are feature symbols, which correspond to the
 @code{:feature} value of a query defined in
 @code{treesit-font-lock-rules}.  Removing a feature symbol from this
 list disables the corresponding query during font-lock.
 
-Common feature names (for general programming language) include
-function-name, type, variable-name (LHS of assignments), builtin,
-constant, keyword, string-interpolation, comment, doc, string,
-operator, preprocessor, escape-sequence, key (in key-value
-pairs).  Major modes are free to subdivide or extend on these
-common features.
+Common feature names, for many programming languages, include
+function-name, type, variable-name (left-hand-side or @acronym{LHS} of
+assignments), builtin, constant, keyword, string-interpolation,
+comment, doc, string, operator, preprocessor, escape-sequence, and key
+(in key-value pairs).  Major modes are free to subdivide or extend
+these common features.
 
 For example, the value of this variable could be:
 @example
@@ -3982,16 +3992,20 @@ For example, the value of this variable could be:
 Major modes should set this variable before calling
 @code{treesit-font-lock-enable}.
 
+@c FIXME: ``for further changes''?  This should clarify when this
+@c function has to be called.
 @findex treesit-font-lock-recompute-features
-In addition, for further changes to this variable to take effect, run
+In addition, for further changes to this variable to take effect, call
 @code{treesit-font-lock-recompute-features}.
 @end defvar
 
 @defvar treesit-font-lock-settings
-A list of @var{setting}s for tree-sitter font lock.  The exact format
+A list of settings for tree-sitter based font lock.  The exact format
 of this variable is considered internal.  One should always use
 @code{treesit-font-lock-rules} to set this variable.
 
+@c FIXME: If the format is considered ``internal'', why do we need to
+@c describe it here?
 Each @var{setting} is of form
 
 @example
@@ -4001,15 +4015,17 @@ Each @var{setting} is of form
 @var{query} must be a compiled query (@pxref{Pattern Matching}).
 
 For @var{setting} to be activated for font-lock, @var{enable} must be
-t.  To disable this @var{setting}, set @var{enable} to nil.
+@code{t}.  To disable this @var{setting}, set @var{enable} to
+@code{nil}.
 
 @var{feature} is the ``feature name'' of the query, users can control
 which features are enabled with @code{font-lock-maximum-decoration}
 and @code{treesit-font-lock-feature-list}.
 
 @var{override} is the override flag for this query.  Its value can be
-t, nil, append, prepend, keep.  See more in
-@code{treesit-font-lock-rules}.
+@code{t}, @code{nil}, @code{append}, @code{prepend}, or @code{keep}.
+@c FIXME: See where?
+See more in @code{treesit-font-lock-rules}.
 @end defvar
 
 Multi-language major modes should provide range functions in
@@ -4077,7 +4093,7 @@ to rely on a full-blown parser, for example, the tree-sitter library.
 
 @menu
 * SMIE::                        A simple minded indentation engine.
-* Parser-based indentation::    Parser-based indentation engine.
+* Parser-based Indentation::    Parser-based indentation engine.
 @end menu
 
 @node SMIE
@@ -4739,108 +4755,100 @@ to the file's local variables of the form:
 
 @node Parser-based Indentation
 @subsection Parser-based Indentation
+@cindex parser-based indentation
 
-@c This node is written when the only parser Emacs has is tree-sitter,
-@c if in the future more parser are supported, feel free to reorganize
-@c and rewrite this node to describe multiple parsers in parallel.
+@c This node is written when the only parser Emacs has is tree-sitter;
+@c if in the future more parsers are supported, this should be
+@c reorganized and rewritten to describe multiple parsers in parallel.
 
 When built with the tree-sitter library (@pxref{Parsing Program
-Source}), Emacs could parse program source and produce a syntax tree.
-And this syntax tree can be used for indentation.  For maximum
-flexibility, we could write a custom indent function that queries the
-syntax tree and indents accordingly for each language, but that would
-be a lot of work.  It is more convenient to use the simple indentation
-engine described below: we only need to write some indentation rules
+Source}), Emacs is capable of parsing the program source and producing
+a syntax tree.  This syntax tree can be used for guiding the program
+source indentation commands.  For maximum flexibility, it is possible
+to write a custom indentation function that queries the syntax tree
+and indents accordingly for each language, but that is a lot of work.
+It is more convenient to use the simple indentation engine described
+below: then the major mode needs only to write some indentation rules
 and the engine takes care of the rest.
 
-To enable the indentation engine, set the value of
+To enable the parser-based indentation engine, set the value of
 @code{indent-line-function} to @code{treesit-indent}.
 
 @defvar treesit-indent-function
 This variable stores the actual function called by
 @code{treesit-indent}.  By default, its value is
-@code{treesit-simple-indent}.  In the future we might add other
+@code{treesit-simple-indent}.  In the future we might add other,
 more complex indentation engines.
 @end defvar
 
 @heading Writing indentation rules
+@cindex indentation rules, for parser-based indentation
 
 @defvar treesit-simple-indent-rules
-This local variable stores indentation rules for every language. It is
-a list of
+This local variable stores indentation rules for every language.  It is
+a list of the form: @w{@code{(@var{language} . @var{rules})}}, where
+@var{language} is a language symbol, and @var{rules} is a list of the
+form @w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
 
-@example
-(@var{language} . @var{rules})
-@end example
-
-where @var{language} is a language symbol, and @var{rules} is a list
-of
-
-@example
-(@var{matcher} @var{anchor} @var{offset})
-@end example
-
-First Emacs passes the node at point to @var{matcher}, if it return
-non-nil, this rule applies.  Then Emacs passes the node to
-@var{anchor}, it returns a point.  Emacs takes the column number of
-that point, add @var{offset} to it, and the result is the indent for
-the current line.
+@c FIXME: ``node''?
+First, Emacs passes the node at point to @var{matcher}; if it returns
+non-@code{nil}, this rule is applicable.  Then Emacs passes the node
+to @var{anchor}, which returns a buffer position.  Emacs takes the
+column number of that position, adds @var{offset} to it, and the
+result is the indentation column for the current line.
 
 The @var{matcher} and @var{anchor} are functions, and Emacs provides
-convenient presets for them.  You can skip over to
-@code{treesit-simple-indent-presets} below, those presets should be
-more than enough.
+convenient defaults for them.
 
-A @var{matcher} or an @var{anchor} is a function that takes three
-arguments (@var{node} @var{parent} @var{bol}).  Argument @var{bol} is
-the point at where we are indenting: the position of the first
-non-whitespace character from the beginning of line; @var{node} is the
-largest (highest-in-tree) node that starts at that point; @var{parent}
-is the parent of @var{node}.  A @var{matcher} returns nil/non-nil, and
-@var{anchor} returns a point.
+@c FIXME: Clarify the following description.  In particular, how to
+@c find/compute ``the largest node'' and its ``parent''?
+Each @var{matcher} or @var{anchor} is a function that takes three
+arguments: @var{node}, @var{parent}, and @var{bol}.  The argument
+@var{bol} is the buffer position whose indentation is required: the
+position of the first non-whitespace character after the beginning of
+the line.  The argument @var{node} is the largest (highest-in-tree)
+node that starts at that position; and @var{parent} is the parent of
+@var{node}.  @var{matcher} should return non-@code{nil} if the rule is
+applicable, and @var{anchor} should return a buffer position that is
+the basis of the indentation.
 @end defvar
 
 @defvar treesit-simple-indent-presets
-This is a list of presets for @var{matcher}s and @var{anchor}s in
-@code{treesit-simple-indent-rules}.  Each of them represent a function
-that takes @var{node}, @var{parent} and @var{bol} as arguments.
+This is a list of defaults for @var{matcher}s and @var{anchor}s in
+@code{treesit-simple-indent-rules}.  Each of them represents a function
+that takes 3 arguments: @var{node}, @var{parent} and @var{bol}.  The
+available default functions are:
 
-@example
-no-node
-@end example
+@ftable @code
+@item no-node
+This matcher is a symbol that matches the case where @var{node} is
+@code{nil}, i.e., there is no node that starts at @var{bol}.  This is
+the case when @var{bol} is on an empty line or inside a multi-line
+string, etc.
 
-This matcher matches the case where @var{node} is nil, i.e., there is
-no node that starts at @var{bol}.  This is the case when @var{bol} is
-at an empty line or inside a multi-line string, etc.
+@item parent-is
+This matcher is a function of one argument, @var{type}; it matches if
+the type of the parent node is @var{type}.
 
-@example
-(parent-is @var{type})
-@end example
+@item node-is
+This matcher is a function of one argument, @var{type}; it matches if
+the node's type is @var{type}.
 
-This matcher matches if @var{parent}'s type is @var{type}.
+@c FIXME: The description of this matcher is unclear.  What is
+@c ``parent'' and what does it mean ``captures NODE''?
+@item query
+This matcher is a function of one argument, @var{query}; it matches if
+querying @var{parent} with @var{query} captures @var{node}.  The
+capture name does not matter.   @c Why is this bit important?
 
-@example
-(node-is @var{type})
-@end example
-
-This matcher matches if @var{node}'s type is @var{type}.
-
-@example
-(query @var{query})
-@end example
-
-This matcher matches if querying @var{parent} with @var{query}
-captures @var{node}.  The capture name does not matter.
-
-@example
-(match @var{node-type} @var{parent-type}
-       @var{node-field} @var{node-index-min} @var{node-index-max})
-@end example
-
-This matcher checks if @var{node}'s type is @var{node-type},
+@item match
+This matcher is a function of 5 arguments: @var{node-type},
+@var{parent-type}, @var{node-field}, @var{node-index-min}, and
+@var{node-index-max}).  It matches if @var{node}'s type is @var{node-type},
 @var{parent}'s type is @var{parent-type}, @var{node}'s field name in
 @var{parent} is @var{node-field}, and @var{node}'s index among its
 siblings is between @var{node-index-min} and @var{node-index-max}.  If
+@c FIXME: ``constraint''?
 the value of a constraint is nil, this matcher doesn't check for that
 constraint.  For example, to match the first child where parent is
 @code{argument_list}, use
@@ -4849,60 +4857,48 @@ constraint.  For example, to match the first child where parent is
 (match nil "argument_list" nil nil 0 0)
 @end example
 
-@example
-first-sibling
-@end example
-
+@c FIXME: ``PARENT''? is that an argument of the anchor function
+@item first-sibling
 This anchor returns the start of the first child of @var{parent}.
 
-@example
-parent
-@end example
+@item parent
+This anchor returns the start of @var{parent}. @c FIXME: Likewise.
 
-This anchor returns the start of @var{parent}.
+@item parent-bol
+This anchor returns the first non-space character on the line of
+@var{parent}.
 
-@example
-parent-bol
-@end example
-
-This anchor returns the beginning of non-space characters on the line
-where @var{parent} is on.
-
-@example
-prev-sibling
-@end example
-
+@c FIXME: ``NODE''?
+@item prev-sibling
 This anchor returns the start of the previous sibling of @var{node}.
 
-@example
-no-indent
-@end example
+@item no-indent
+This anchor returns the start of @var{node}, i.e., no indent. @c ???
 
-This anchor returns the start of @var{node}, i.e., no indent.
-
-@example
-prev-line
-@end example
-
+@item prev-line
 This anchor returns the first non-whitespace charater on the previous
 line.
+@end ftable
+
 @end defvar
 
 @heading Indentation utilities
+@cindex utility functions for parser-based indentation
 
-Here are some utility functions that can help writing indentation
-rules.
+Here are some utility functions that can help writing parser-based
+indentation rules.
 
 @defun treesit-check-indent mode
-This function checks current buffer's indentation against major mode
-@var{mode}.  It indents the current buffer in @var{mode} and compares
-the indentation with the current indentation.  Then it pops up a diff
-buffer showing the difference.  Correct indentation (target) is in
-green, current indentation is in red.
+This function checks the current buffer's indentation against major
+mode @var{mode}.  It indents the current buffer according to
+@var{mode} and compares the results with the current indentation.
+Then it pops up a buffer showing the differences.  Correct
+indentation (target) is shown in green color, current indentation is
+shown in red color.  @c Are colors customizable? faces?
 @end defun
 
-It is also helpful to use @code{treesit-inspect-mode} when writing
-indentation rules.
+It is also helpful to use @code{treesit-inspect-mode} (@pxref{Language
+Definitions}) when writing indentation rules.
 
 @node Desktop Save Mode
 @section Desktop Save Mode

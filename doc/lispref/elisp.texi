@@ -938,6 +938,7 @@ Font Lock Mode
 * Syntactic Font Lock::     Fontification based on syntax tables.
 * Multiline Font Lock::     How to coerce Font Lock into properly
                               highlighting multiline constructs.
+* Parser-based Font Lock::  Use parse data for fontification.
 
 Multiline Font Lock Constructs
 
@@ -948,6 +949,7 @@ Multiline Font Lock Constructs
 Automatic Indentation of code
 
 * SMIE::                    A simple minded indentation engine.
+* Parser-based Indentation:: Parser-based indentation engine.
 
 Simple Minded Indentation Engine
 
@@ -1365,9 +1367,10 @@ Parsing Program Source
 * Language Definitions::     Loading tree-sitter language definitions.
 * Using Parser::             Introduction to parsers.
 * Retrieving Node::          Retrieving node from syntax tree.
-* Accessing Node::           Accessing node information.
+* Accessing Node Information:: Accessing node information.
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.
+* Tree-sitter major modes::  Develop major modes using tree-sitter.
 * Tree-sitter C API::        Compare the C API and the ELisp API.
 
 Syntax Descriptors

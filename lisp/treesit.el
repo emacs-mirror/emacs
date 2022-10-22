@@ -60,10 +60,10 @@ Return the root node of the syntax tree."
     (treesit-parser-root-node
      (treesit-parser-create language))))
 
-(defun treesit-language-at (point)
-  "Return the language used at POINT."
+(defun treesit-language-at (pos)
+  "Return the language used at position POS."
   (cl-loop for parser in (treesit-parser-list)
-           if (treesit-node-on point point parser)
+           if (treesit-node-on pos pos parser)
            return (treesit-parser-language parser)))
 
 (defun treesit-set-ranges (parser-or-lang ranges)
@@ -101,12 +101,13 @@ Return the root node of the syntax tree."
   (treesit-parser-language
    (treesit-node-parser node)))
 
-(defun treesit-node-at (point &optional parser-or-lang named)
-  "Return the smallest node that starts at or after POINT.
+(defun treesit-node-at (pos &optional parser-or-lang named)
+  "Return the smallest node that starts at or after buffer position POS.
 
-\"Starts at or after POINT\" means the start of the node is
-greater or larger than POINT.  Return nil if none find.  If NAMED
-non-nil, only look for named node.
+\"Starts at or after POS\" means the start of the node is greater or
+equal than POS.
+
+Return nil if none find.  If NAMED is non-nil, only look for named node.
 
 If PARSER-OR-LANG is nil, use the first parser in
 \(`treesit-parser-list'); if PARSER-OR-LANG is a parser, use
@@ -118,7 +119,7 @@ that language in the current buffer, and use that."
         next)
     ;; This is very fast so no need for C implementation.
     (while (setq next (treesit-node-first-child-for-pos
-                       node point named))
+                       node pos named))
       (setq node next))
     node))
 
