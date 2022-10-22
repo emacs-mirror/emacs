@@ -1647,6 +1647,10 @@ With a prefix argument, show headings up to that LEVEL."
       (overlay-put o 'evaporate t)
       (overlay-put o 'follow-link 'mouse-face)
       (overlay-put o 'mouse-face 'highlight)
+      (overlay-put o 'keymap
+                   (define-keymap
+                     "RET" #'outline-cycle
+                     "<mouse-2>" #'outline-cycle))
       (overlay-put o 'outline-button t))
     (let ((icon (icon-elements (if (eq type 'close)
                                    (if outline--use-rtl
@@ -1679,6 +1683,10 @@ With a prefix argument, show headings up to that LEVEL."
     (unless o
       (setq o (make-overlay (point) (1+ (point))))
       (overlay-put o 'evaporate t)
+      (overlay-put o 'keymap
+                   (define-keymap
+                     "RET" #'outline-cycle
+                     "<mouse-2>" #'outline-cycle))
       (overlay-put o 'outline-margin t))
     (let ((icon (icon-elements (if (eq type 'close)
                                    (if outline--use-rtl
@@ -1705,11 +1713,7 @@ With a prefix argument, show headings up to that LEVEL."
             (insert "  ")
             (beginning-of-line)))
         (let ((o (outline--make-button-overlay 'open)))
-          (overlay-put o 'help-echo "Click to hide")
-          (overlay-put o 'keymap
-                       (define-keymap
-                         "RET" #'outline-hide-subtree
-                         "<mouse-2>" #'outline-hide-subtree)))))))
+          (overlay-put o 'help-echo "Click to hide"))))))
 
 (defun outline--insert-close-button ()
   (with-silent-modifications
@@ -1722,11 +1726,7 @@ With a prefix argument, show headings up to that LEVEL."
             (insert "  ")
             (beginning-of-line)))
         (let ((o (outline--make-button-overlay 'close)))
-          (overlay-put o 'help-echo "Click to show")
-          (overlay-put o 'keymap
-                       (define-keymap
-                         "RET" #'outline-show-subtree
-                         "<mouse-2>" #'outline-show-subtree)))))))
+          (overlay-put o 'help-echo "Click to show"))))))
 
 (defun outline--fix-up-all-buttons (&optional from to)
   (when outline-minor-mode-use-buttons
