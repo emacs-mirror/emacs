@@ -108,9 +108,8 @@
 
 (defun eudc--plist-member (plist prop &optional predicate)
   "Like `plist-member', but signal on invalid PLIST."
-  ;; Could also use `plistp', but that would change the error.
-  (or (zerop (% (length plist) 2))
-      (error "Malformed plist"))
+  (or (plistp plist)
+      (signal 'wrong-type-argument `(plistp ,plist)))
   (plist-member plist prop predicate))
 
 (defun eudc-plist-member (plist prop)
