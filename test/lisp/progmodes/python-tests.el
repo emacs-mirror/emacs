@@ -46,10 +46,7 @@ always located at the beginning of buffer."
 (defun python-tests-shell-wait-for-prompt ()
   "Wait for the prompt in the shell buffer."
   (python-shell-with-shell-buffer
-    (while (not (if-let ((prompt (python-util-comint-last-prompt)))
-                    (python-shell-comint-end-of-output-p
-                     (buffer-substring-no-properties
-                      (car prompt) (cdr prompt)))))
+    (while (not (python-util-comint-end-of-output-p))
       (sit-for 0.1))))
 
 (defmacro python-tests-with-temp-buffer-with-shell (contents &rest body)
@@ -4478,6 +4475,21 @@ print('Hello')
      (insert "u")
      (should-not (nth 2 (python-completion-at-point))))))
 
+(ert-deftest python-completion-at-point-while-running-1 ()
+  "Should not try to complete when a program is running in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import time
+
+time.sleep(3)
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (goto-char (point-max))
+     (insert "time.")
+     (should-not (with-timeout (1 t) (completion-at-point))))))
+
 (ert-deftest python-completion-at-point-native-1 ()
   (skip-unless (executable-find python-tests-shell-interpreter))
   (python-tests-with-temp-buffer-with-shell
@@ -4552,6 +4564,31 @@ import abc
 
 ;;; FFAP
 
+(ert-deftest python-ffap-module-path-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (should (file-exists-p (python-ffap-module-path "abc"))))))
+
+(ert-deftest python-ffap-module-path-while-running-1 ()
+  "Should not get module path when a program is running in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import abc
+import time
+
+time.sleep(3)
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (should-not (with-timeout (1 t) (python-ffap-module-path "abc"))))))
+
 
 ;;; Code check
 
@@ -4614,6 +4651,32 @@ some_symbol   some_other_symbol
    (python-tests-look-at "  some_other_symbol")
    (should (string= (python-eldoc--get-symbol-at-point)
                     "some_symbol"))))
+
+(ert-deftest python-eldoc--get-doc-at-point-1 ()
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import time
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-shell-wait-for-prompt)
+     (python-tests-look-at "time")
+     (should (python-eldoc--get-doc-at-point)))))
+
+(ert-deftest python-eldoc--get-doc-at-point-while-running-1 ()
+  "Should not get documentation when a program is running in the Shell buffer."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (python-tests-with-temp-buffer-with-shell
+   "
+import time
+
+time.sleep(3)
+"
+   (let ((inhibit-message t))
+     (python-shell-send-buffer)
+     (python-tests-look-at "time")
+     (should-not (with-timeout (1 t) (python-eldoc--get-doc-at-point))))))
 
 
 ;;; Imenu
