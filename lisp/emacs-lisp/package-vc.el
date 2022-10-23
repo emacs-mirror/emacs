@@ -38,6 +38,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'rx))
+(eval-when-compile (require 'inline))
 (require 'package)
 (require 'lisp-mnt)
 (require 'vc)
@@ -139,6 +140,13 @@ name for PKG-DESC."
                           package-vc-archive-spec-alist)
                nil nil #'string=)))
     spec))
+
+(define-inline package-vc-query-spec (pkg-desc prop)
+  "Query the property PROP for the package specification for PKG-DESC.
+If no package specification can be determined, the function will
+return nil."
+  (inline-letevals (pkg-desc prop)
+    (inline-quote (plist-get (pacakge-vc-desc->spec ,pkg-desc) ,prop))))
 
 (defun package-vc--read-archive-data (archive)
   "Update `package-vc-archive-spec-alist' with the contents of ARCHIVE.
