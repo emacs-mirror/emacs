@@ -134,12 +134,11 @@ All other values are ignored.")
   "Retrieve the package specification for PKG-DESC.
 The optional argument NAME can be used to override the default
 name for PKG-DESC."
-  (let ((spec (alist-get
-               (or name (package-desc-name pkg-desc))
-               (alist-get (intern (package-desc-archive pkg-desc))
-                          package-vc-archive-spec-alist)
-               nil nil #'string=)))
-    spec))
+  (alist-get
+   (or name (package-desc-name pkg-desc))
+   (alist-get (intern (package-desc-archive pkg-desc))
+              package-vc-archive-spec-alist)
+   nil nil #'string=))
 
 (define-inline package-vc-query-spec (pkg-desc prop)
   "Query the property PROP for the package specification for PKG-DESC.
